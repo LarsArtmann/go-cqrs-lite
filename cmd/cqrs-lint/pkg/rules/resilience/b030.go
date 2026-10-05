@@ -11,10 +11,12 @@ import (
 // B030: Circuit breaker absence.
 // Detects a bus/dispatcher that lacks circuit breaker middleware. Without a
 // circuit breaker, cascading failures from downstream services can overwhelm
-// the system. Read-only subscribers (a variable whose only bus calls are
-// Subscribe/SubscribeAll — an in-process journal tail) are skipped: nothing
-// is dispatched through them, so circuit breaker middleware is category
-// confusion (CV feedback, 2026-10-03).
+// the system. Journal-tail buses are skipped (busIsJournalTail): read-only
+// subscribers (a variable whose only bus calls are Subscribe/SubscribeAll —
+// an in-process journal tail) and variables assigned from an engine Bus()
+// accessor (subscribing or feeding the in-process fan-out are both
+// journal-tail acts) never call downstream services, so circuit breaker
+// middleware is category confusion for them (CV feedback, 2026-10-03).
 //
 //nolint:ireturn // factory returns public interface
 func NewB030Detector(ctx *analyzer.AnalysisContext) finding.Detector {
@@ -34,7 +36,7 @@ func NewB030Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					continue
 				}
 
-				if busIsReadOnlySubscriber(ctx, name) {
+				if busIsJournalTail(ctx, name) {
 					continue
 				}
 

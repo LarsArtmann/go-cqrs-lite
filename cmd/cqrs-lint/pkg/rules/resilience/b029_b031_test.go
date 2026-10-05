@@ -108,9 +108,13 @@ func main() {
 	ruletest.AssertRule(t, findings, "B029", 0)
 }
 
-// TestB029_StillFiresWhenPublishing: any dispatch-side call on the bus makes
-// it a dispatch pipeline again — the read-only skip must not over-suppress.
-func TestB029_StillFiresWhenPublishing(t *testing.T) {
+// TestB029_NoFindingForEngineJournalTailFeed pins the FEED side of the
+// journal-tail vs dispatch-bus distinction: a variable assigned from an
+// engine Bus() accessor IS the in-process notification tail — publishing
+// onto it feeds the fan-out (best-effort, drop-counted, journal-replayed)
+// rather than calling downstream services — so retry middleware is still
+// category confusion (CV feedback, 2026-10-03).
+func TestB029_NoFindingForEngineJournalTailFeed(t *testing.T) {
 	t.Parallel()
 
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
@@ -118,6 +122,27 @@ func TestB029_StillFiresWhenPublishing(t *testing.T) {
 
 func main() {
 	bus := engine.Bus()
+	bus.Publish(evt)
+}
+`,
+	})
+	ctx.FeatureProfile.HasServer = true
+
+	findings := ruletest.RunDetector(t, resilience.NewB029Detector(ctx))
+	ruletest.AssertRule(t, findings, "B029", 0)
+}
+
+// TestB029_StillFiresWhenPublishing: a bus the PROJECT constructed (not one
+// obtained from the engine) stays a dispatch pipeline when it publishes —
+// the journal-tail skips must not over-suppress constructed buses.
+func TestB029_StillFiresWhenPublishing(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+func main() {
+	bus := newBus()
 	bus.SubscribeAll(handler)
 	bus.Publish(evt)
 }
@@ -141,6 +166,28 @@ func TestB030_NoFindingForReadOnlySubscriber(t *testing.T) {
 func main() {
 	bus := engine.Bus()
 	bus.Subscribe(topic, handler)
+}
+`,
+	})
+	ctx.FeatureProfile.HasServer = true
+
+	findings := ruletest.RunDetector(t, resilience.NewB030Detector(ctx))
+	ruletest.AssertRule(t, findings, "B030", 0)
+}
+
+// TestB030_NoFindingForEngineJournalTailFeed is the B030 twin of the
+// feed-side distinction: publishing onto an engine Bus() accessor result
+// feeds the in-process fan-out — circuit breaker middleware isolates no
+// downstream service there (CV feedback, 2026-10-03).
+func TestB030_NoFindingForEngineJournalTailFeed(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+func main() {
+	bus := engine.Bus()
+	bus.Publish(evt)
 }
 `,
 	})

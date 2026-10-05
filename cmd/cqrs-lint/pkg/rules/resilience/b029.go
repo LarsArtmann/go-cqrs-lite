@@ -11,10 +11,13 @@ import (
 // B029: Missing retry middleware.
 // Detects a bus/dispatcher that is created and used without any retry
 // middleware registered. B008 detects manual retry; this rule detects
-// the absence of middleware-based retry entirely. Read-only subscribers
-// (a variable whose only bus calls are Subscribe/SubscribeAll — an
-// in-process journal tail) are skipped: nothing is dispatched through
-// them, so retry middleware is category confusion (CV feedback, 2026-10-03).
+// the absence of middleware-based retry entirely. Journal-tail buses are
+// skipped (busIsJournalTail): read-only subscribers (a variable whose only
+// bus calls are Subscribe/SubscribeAll — an in-process journal tail) and
+// variables assigned from an engine Bus() accessor (subscribing or feeding
+// the in-process fan-out are both journal-tail acts) never dispatch to
+// downstream services, so retry middleware is category confusion for them
+// (CV feedback, 2026-10-03).
 //
 //nolint:ireturn // factory returns public interface
 func NewB029Detector(ctx *analyzer.AnalysisContext) finding.Detector {
@@ -34,7 +37,7 @@ func NewB029Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					continue
 				}
 
-				if busIsReadOnlySubscriber(ctx, name) {
+				if busIsJournalTail(ctx, name) {
 					continue
 				}
 

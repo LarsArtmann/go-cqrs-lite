@@ -191,6 +191,85 @@ func busIsReadOnlySubscriber(ctx *analyzer.AnalysisContext, varName string) bool
 	return observed > 0
 }
 
+// busVariableFromAccessor reports whether varName is assigned from a Bus()
+// accessor call — `bus := engine.Bus()` or `bus := s.library.Bus()`. The
+// engine's Bus() returns the in-process journal/notification bus: the engine
+// publishes there itself after appends, consumers tail it via SubscribeAll
+// fan-out with drop counting, and durability comes from journal replay — not
+// from transport retries. Publishing onto it feeds that same fan-out
+// (best-effort, drop-counted) rather than calling downstream services, so
+// retry/circuit-breaker middleware advice is category confusion whether the
+// variable subscribes or feeds (CV feedback, 2026-10-03 — the journal-tail
+// vs dispatch-bus distinction).
+func busVariableFromAccessor(ctx *analyzer.AnalysisContext, varName string) bool {
+	for _, gf := range ctx.GoFiles {
+		if gf.IsTest {
+			continue
+		}
+
+		found := false
+
+		ast.Inspect(gf.AST, func(n ast.Node) bool {
+			if found {
+				return false
+			}
+
+			assign, ok := n.(*ast.AssignStmt)
+			if !ok {
+				return true
+			}
+
+			matches := false
+
+			for _, lhs := range assign.Lhs {
+				if ident, ok := lhs.(*ast.Ident); ok && ident.Name == varName {
+					matches = true
+
+					break
+				}
+			}
+
+			if !matches {
+				return true
+			}
+
+			for _, rhs := range assign.Rhs {
+				call, ok := rhs.(*ast.CallExpr)
+				if !ok {
+					continue
+				}
+
+				sel, ok := call.Fun.(*ast.SelectorExpr)
+				if !ok || sel.Sel.Name != "Bus" {
+					continue
+				}
+
+				found = true
+
+				return false
+			}
+
+			return true
+		})
+
+		if found {
+			return true
+		}
+	}
+
+	return false
+}
+
+// busIsJournalTail combines the two journal-tail signals: a variable whose
+// whole bus surface is subscriptions (read-only consumer) and one assigned
+// from an engine Bus() accessor (subscribing and feeding the fan-out are
+// both journal-tail acts). Neither dispatches to downstream services, so the
+// B029/B030 resilience advice does not apply; a bus constructed by the
+// project itself (newBus() and friends) never matches and stays fully armed.
+func busIsJournalTail(ctx *analyzer.AnalysisContext, varName string) bool {
+	return busIsReadOnlySubscriber(ctx, varName) || busVariableFromAccessor(ctx, varName)
+}
+
 // hasMiddlewareKeyword scans all non-test files for x.Use(...) or x.UsePublish(...)
 // calls where any argument or the method name contains keyword (case-insensitive).
 func hasMiddlewareKeyword(ctx *analyzer.AnalysisContext, varName, keyword string) bool {
