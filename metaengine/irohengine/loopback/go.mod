@@ -22,7 +22,3 @@ require (
 	golang.org/x/net v0.59.0 // indirect
 	golang.org/x/text v0.42.0 // indirect
 )
-
-// Sibling replace for unpublished irohengine symbols (DefaultDedupCapacity);
-// stripped by scripts/tag-release.sh at cut time.
-replace github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/v4 => ../

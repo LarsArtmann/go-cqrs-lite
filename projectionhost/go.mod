@@ -109,5 +109,3 @@ require (
 	go.uber.org/goleak v1.3.0
 	modernc.org/sqlite v1.60.1
 )
-
-replace github.com/larsartmann/go-cqrs-lite/record/v4 => ../record

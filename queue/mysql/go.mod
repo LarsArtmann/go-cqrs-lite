@@ -70,11 +70,3 @@ require (
 	golang.org/x/crypto v0.57.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
 )
-
-replace github.com/larsartmann/go-cqrs-lite/queue/v4 => ../../queue
-
-replace github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ../../metaengine
-
-replace github.com/larsartmann/go-cqrs-lite/claiming/v4 => ../../claiming
-
-replace github.com/larsartmann/go-cqrs-lite/testutil/mysqltestcontainer/v4 => ../../testutil/mysqltestcontainer

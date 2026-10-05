@@ -74,5 +74,3 @@ require (
 	modernc.org/memory v1.12.1 // indirect
 	modernc.org/sqlite v1.60.1 // indirect
 )
-
-replace github.com/larsartmann/go-cqrs-lite/record/v4 => ../../record

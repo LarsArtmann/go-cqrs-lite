@@ -23,5 +23,3 @@ require (
 	golang.org/x/tools v0.51.0 // indirect
 	pgregory.net/rapid v1.3.0 // indirect
 )
-
-replace github.com/larsartmann/go-cqrs-lite/record/v4 => ../record
