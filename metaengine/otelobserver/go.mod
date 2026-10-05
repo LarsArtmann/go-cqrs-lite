@@ -19,6 +19,7 @@ require (
 	github.com/larsartmann/go-branded-id v0.7.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.3 // indirect
 	github.com/larsartmann/go-sse v0.6.2 // indirect
+	github.com/tidwall/gjson v1.20.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.47.0 // indirect
 	go.opentelemetry.io/otel/log v1.47.0 // indirect
