@@ -26,6 +26,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
      did NOT retag the root module (doc.go unchanged since v4.0.0; zero
      importable packages) — root stays v4.0.0. -->
      root stays v4.0.0. -->
+## [v4.7.1] — 2026-10-05
+
+- **catalog: templ-components pins v1.20.0 → v1.20.1 (heal the v4.7.0 poison chain).** templ-components v1.20.0's published go.mod required four sibling submodules at zero pseudo-versions (`v1.20.0-00010101000000-000000000000` — unresolvable on the proxy), so any consumer resolving catalog v4.7.0's graph WITHOUT an independent higher templ-components pin failed `go mod tidy`/download. v1.20.1 (templ-components 085e1068) pins the siblings at real versions; catalog re-pins root + icons + utils + htmx (indirect) to it. No API changes.
+
 ## [v4.16.1] — 2026-10-05
 
 - **2026-10-05 dependency sweep (1 module: `metaengine`).** PROPRIETARY LICENSE copy, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites (import ordering, embedded-literal elision). No API changes (api-stability golden carries no delta for this module).
