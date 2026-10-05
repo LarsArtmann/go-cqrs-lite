@@ -34,7 +34,7 @@ type state struct{ N int }
 	case "x.created":
 		state.N++
 	default:
-		return state, nil
+		return state, nil{{.IGNORE}}
 	}
 
 	return state, nil
@@ -58,10 +58,12 @@ require github.com/larsartmann/go-cqrs-lite/event/v4 v4.0.0
 replace github.com/larsartmann/go-cqrs-lite/event/v4 => ` + repoRoot + `/event
 `
 	apply := "func apply"
-	if withDirective {
-		apply = "//cqrs-lint:ignore(C003) repro: suppressed via inline directive\nfunc apply"
+	ignore := " //cqrs-lint:ignore(C003) repro: suppressed via inline directive"
+	if !withDirective {
+		ignore = ""
 	}
 	src := strings.ReplaceAll(reproSrcTpl, "{{.APPLY}}", apply)
+	src = strings.ReplaceAll(src, "{{.IGNORE}}", ignore)
 
 	dir := t.TempDir()
 	if err := os.WriteFile(filepath.Join(dir, "go.mod"), []byte(gomod), 0o600); err != nil {
