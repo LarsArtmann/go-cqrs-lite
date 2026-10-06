@@ -12,7 +12,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.6.1
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.1
 	github.com/larsartmann/go-error-family v0.11.0
-	github.com/larsartmann/go-flightrecorder v0.2.0
+	github.com/larsartmann/go-flightrecorder v0.2.1
 	github.com/maypok86/otter/v2 v2.3.0
 	github.com/onsi/ginkgo/v2 v2.33.0
 	github.com/onsi/gomega v1.44.0
@@ -23,7 +23,7 @@ require (
 require (
 	github.com/Masterminds/semver/v3 v3.5.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
-	github.com/fxamacker/cbor/v2 v2.9.4 // indirect
+	github.com/fxamacker/cbor/v2 v2.9.6 // indirect
 	github.com/gkampitakis/ciinfo v0.3.4 // indirect
 	github.com/gkampitakis/go-snaps v0.5.23 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect

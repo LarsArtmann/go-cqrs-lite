@@ -21,7 +21,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.10.4
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.4
 	github.com/larsartmann/go-error-family v0.11.0
-	github.com/larsartmann/go-flightrecorder v0.2.0
+	github.com/larsartmann/go-flightrecorder v0.2.1
 	modernc.org/sqlite v1.60.1
 )
 
@@ -29,7 +29,7 @@ require (
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/dustin/go-humanize v1.1.0 // indirect
-	github.com/fxamacker/cbor/v2 v2.9.4 // indirect
+	github.com/fxamacker/cbor/v2 v2.9.6 // indirect
 	github.com/gkampitakis/ciinfo v0.3.4 // indirect
 	github.com/gkampitakis/go-snaps v0.5.23 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
