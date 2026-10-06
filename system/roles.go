@@ -2,6 +2,9 @@ package system
 
 import (
 	"fmt"
+	"maps"
+	"slices"
+	"strings"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
@@ -31,10 +34,30 @@ func resolveDedicatedRoles(
 		case RoleSourceOfTruth, RoleEvents, RoleProjections:
 			// Not dedicated-role instances; wired by wireSourceOfTruth /
 			// the projection-instance loop in the constructor.
+		default:
+			// A typo'd role matched no wiring at all: the instance was silently
+			// ignored (no store bound, no error) — fail construction instead.
+			return nil, fmt.Errorf(
+				"%w: %q (valid roles: %s)",
+				ErrUnknownInstanceRole, inst.Role, validInstanceRoles(),
+			)
 		}
 	}
 
 	return dedicated, nil
+}
+
+// validInstanceRoles lists every accepted InstanceRole in declaration order
+// for error messages.
+func validInstanceRoles() string {
+	return strings.Join([]string{
+		string(RoleSourceOfTruth),
+		string(RoleEvents),
+		string(RoleCommands),
+		string(RoleQueries),
+		string(RoleSnapshots),
+		string(RoleProjections),
+	}, ", ")
 }
 
 // wireDedicatedRoles binds the command/query/snapshot stores declared as
@@ -189,7 +212,10 @@ func resolveInstanceEngine(
 	eng, ok := engineCache[engineName]
 	if !ok {
 		return nil, engineName, fmt.Errorf(
-			"%w: instance %q references engine %q", ErrUnknownEngine, inst.Role, engineName,
+			"%w: instance %q references engine %q (configured engines: %s; registered drivers: %s)",
+			ErrUnknownEngine, inst.Role, engineName,
+			strings.Join(slices.Sorted(maps.Keys(engineCache)), ", "),
+			strings.Join(metaengine.RegisteredDrivers(), ", "),
 		)
 	}
 

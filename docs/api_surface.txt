@@ -7291,6 +7291,7 @@ system/var ErrShutdownDependencyInvalid
 system/var ErrSystemStopped
 system/var ErrUnknownBusDriver
 system/var ErrUnknownEngine
+system/var ErrUnknownInstanceRole
 system/var ErrUnknownPublishTarget
 system/var ErrUnsafeChange
 system/var ErrUnsupportedValueType

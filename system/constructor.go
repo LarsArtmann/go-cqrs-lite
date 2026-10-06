@@ -130,8 +130,11 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 
 			if len(unresolved) > 0 {
 				return nil, sys.fail(fmt.Errorf(
-					"%w: projections instance references undefined engine(s): %s",
+					"%w: projections instance references undefined engine(s): %s "+
+						"(configured engines: %s; registered drivers: %s)",
 					ErrUnknownEngine, strings.Join(unresolved, ", "),
+					strings.Join(slices.Sorted(maps.Keys(deployment.Engines)), ", "),
+					strings.Join(metaengine.RegisteredDrivers(), ", "),
 				))
 			}
 
@@ -164,7 +167,18 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 	}
 
 	// Default source of truth when nothing was wired: a Memory engine.
+	// ADVISORY, not SCREAM: the fallback is legitimate for tests and demos,
+	// but a production deployment that reached it by config typo silently
+	// loses every event on restart — surface it on the ScreamReport.
 	if sys.eventStore == nil {
+		safetyReport.Diagnostics = append(safetyReport.Diagnostics, ScreamDiagnostic{
+			Tier: TierAdvisory,
+			Rule: "sot.implicit_memory",
+			Detail: "no source-of-truth/events instance was configured, so the event store " +
+				"falls back to an in-memory engine — all events are lost on restart; " +
+				"declare a source-of-truth (or events) instance on a durable engine for production",
+		})
+
 		eng := metaengine.NewMemoryEngine()
 		sys.engines = append(sys.engines, namedEngine{engine: eng, name: "default"})
 		sys.eventStore = NewEventAdapter(eng.(metaengine.StreamLogBackend), "events")
