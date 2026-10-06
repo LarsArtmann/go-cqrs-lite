@@ -44,7 +44,19 @@ func (s *Store) applyFold(
 
 	defer func() {
 		if r := recover(); r != nil {
-			poisonErr := fmt.Errorf("%w: collection %q, panic: %v", ErrPoisoned, q.QueryName(), r)
+			// Folds signal structured failures by panicking with an error
+			// value (the fold signature has no error channel). Wrapping that
+			// error with %w keeps its chain, so downstream classification
+			// (errorfamily family, retryability, DLQ codes) sees the
+			// original failure instead of an opaque panic string.
+			var poisonErr error
+
+			if perr, ok := r.(error); ok {
+				poisonErr = fmt.Errorf("%w: collection %q: %w", ErrPoisoned, q.QueryName(), perr)
+			} else {
+				poisonErr = fmt.Errorf("%w: collection %q, panic: %v", ErrPoisoned, q.QueryName(), r)
+			}
+
 			s.poison.Poison(q.QueryName(), poisonErr)
 			err = poisonErr
 		}

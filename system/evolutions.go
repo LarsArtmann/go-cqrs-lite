@@ -11,6 +11,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // EvolutionSpec is a sealed interface for evolution declarations. An Evolution
@@ -169,7 +170,7 @@ func (b *evolutionBuilder[R]) Done() EvolutionSpec {
 
 // makeExplicitFold creates a metaengine update fold from an explicit fold entry.
 // It reifies prev to the result type, applies the mutation, and returns the result.
-func makeExplicitFold(resultType reflect.Type, ef explicitFoldEntry) metaengine.Fold {
+func makeExplicitFold(evolution string, resultType reflect.Type, ef explicitFoldEntry) metaengine.Fold {
 	return metaengine.OnRecordTyped(
 		ef.eventType,
 		ef.sample,
@@ -177,7 +178,18 @@ func makeExplicitFold(resultType reflect.Type, ef explicitFoldEntry) metaengine.
 			v := reflect.New(resultType)
 
 			if prev != nil {
-				reifyTo(prev, v.Interface())
+				// The fold signature has no error channel, so a reification
+				// failure is signaled by panicking with the structured error;
+				// Store.applyFold recovers it and routes it through the
+				// collection-poison + projection-host DLQ path like any other
+				// fold error (Corruption is non-retryable, so the host DLQs it
+				// immediately instead of retrying a deterministic failure).
+				if err := reifyTo(prev, v.Interface()); err != nil {
+					panic(errorfamily.WrapCorruptionf(err,
+						"system.evolution.reify_failed",
+						"evolution %q, event %q: stored state does not fit the result type",
+						evolution, ef.eventType))
+				}
 			}
 
 			ef.mutate(e, v.Interface())
@@ -189,13 +201,13 @@ func makeExplicitFold(resultType reflect.Type, ef explicitFoldEntry) metaengine.
 
 // reifyTo converts a raw value (potentially map[string]any from JSON engines)
 // into the target. For Memory engine, the direct type assignment succeeds.
-// Marshal/unmarshal failures panic: the fold signature has no error channel,
-// and silently dropping the previous state would corrupt the projection
-// without any signal. A schema mismatch between stored state and the result
-// type is a programmer error — fail loud, not wrong.
-func reifyTo(src, dst any) {
+// A marshal/unmarshal failure means the stored state does not fit the result
+// type (schema drift or corrupted data): the caller routes the error to the
+// projection's poison/DLQ path — silently dropping the previous state would
+// corrupt the projection without any signal.
+func reifyTo(src, dst any) error {
 	if src == nil {
-		return
+		return nil
 	}
 
 	srcVal := reflect.ValueOf(src)
@@ -204,17 +216,19 @@ func reifyTo(src, dst any) {
 	if srcVal.Type() == dstVal.Elem().Type() {
 		dstVal.Elem().Set(srcVal)
 
-		return
+		return nil
 	}
 
 	data, err := json.Marshal(src)
 	if err != nil {
-		panic(fmt.Sprintf("system: reifyTo: marshal %T: %v", src, err))
+		return fmt.Errorf("system: reifyTo: marshal %T: %w", src, err)
 	}
 
 	if err := json.Unmarshal(data, dst); err != nil {
-		panic(fmt.Sprintf("system: reifyTo: unmarshal %T into %T: %v", src, dst, err))
+		return fmt.Errorf("system: reifyTo: unmarshal into %T: %w", dst, err)
 	}
+
+	return nil
 }
 
 // evolutionDecoderEntries extracts decoder entries from an evolutionSpec's
@@ -249,7 +263,7 @@ func buildEvolutionFolds[R any](evo *evolutionSpec) ([]metaengine.Fold, error) {
 	}
 
 	for _, ef := range evo.explicitFolds {
-		folds = append(folds, makeExplicitFold(evo.resultType, ef))
+		folds = append(folds, makeExplicitFold(evo.name, evo.resultType, ef))
 	}
 
 	return folds, nil
