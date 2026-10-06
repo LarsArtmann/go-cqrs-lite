@@ -214,6 +214,16 @@ nix run .#check-duplication  # no-new-clones gate
 nix run .#check-error-taxonomy  # errorfamily codes vs docs/error-taxonomy.md drift gate
 ```
 
+**batch-release.sh `verify=ok` builds, it does NOT run tests** (2026-10-06
+lesson, id/v4.7.0 + scheduling/v4.6.0 + cqrs-lint/v4.14.0 shipped with red
+suites through a 90-tag wave that reported 90/90 verify=ok). Before cutting
+any wave: run the per-module test suites over the CHANGED set
+(`GOWORK=off go test -count=1 ./...` per module — the plain sweep over all
+modules takes ~10 min warm) or accept that `--smoke`'s install probe is the
+only post-tag test. Same class as the templ-components v1.20.0 lesson:
+release verification must exercise real behavior (tests, import+build),
+never just resolution/build.
+
 ### Reconcile a Planning Doc (don't rewrite it)
 
 Planning docs under `docs/planning/` are dated records, not living API references. When code has
