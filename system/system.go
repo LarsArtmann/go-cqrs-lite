@@ -139,9 +139,12 @@ type System struct {
 	engines []namedEngine
 
 	// ADR-0142 timers: schedulers registered via ManageTimers, started with
-	// the System and stopped on GracefulClose (timers.go).
+	// the System and stopped (cancelled + waited) on Close/GracefulClose
+	// (timers.go). timersWG tracks the running Start goroutines so teardown
+	// can wait for dispatch to fully finish.
 	timers      []TimerScheduler
 	timerCancel context.CancelFunc
+	timersWG    sync.WaitGroup
 
 	// shutdownDeps declares ordering constraints for Close(). Each edge says
 	// "before must close before after". Resources not in any edge keep their
@@ -259,9 +262,9 @@ func (s *System) QueryStore() query.QueryStore {
 	return s.queryStore
 }
 
-// Close shuts down all owned infrastructure: projection host, engines, stores.
-// All close errors are joined and returned (not just the first), matching
-// [stack.Bundle.Close] behavior.
+// Close shuts down all owned infrastructure: managed timers (stopped and
+// waited), projection host, engines, stores. All close errors are joined and
+// returned (not just the first), matching [stack.Bundle.Close] behavior.
 func (s *System) Close() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -271,6 +274,11 @@ func (s *System) Close() error {
 	}
 
 	s.stopped = true
+
+	// Stop managed timers BEFORE any teardown: scheduler dispatch must not
+	// race the engines and buses being closed underneath it. GracefulClose
+	// already stopped them (Phase 0); stopTimersLocked is idempotent.
+	s.stopTimersLocked()
 
 	var errs []error
 

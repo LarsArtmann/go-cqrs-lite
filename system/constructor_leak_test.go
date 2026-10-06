@@ -20,6 +20,7 @@ type leakProbeEngine struct {
 	metaengine.Engine
 	metaengine.StreamLogBackend
 	metaengine.AtomicAppender
+
 	stop   chan struct{}
 	closed chan struct{}
 	once   sync.Once
@@ -181,6 +182,7 @@ func TestSystem_NewErrorPath_ClosesEventBus(t *testing.T) {
 // duplicating its backend wiring.
 type engineCloseHookEngine struct {
 	*leakProbeEngine
+
 	onClose func()
 }
 
@@ -188,5 +190,5 @@ func (e *engineCloseHookEngine) Close() error {
 	err := e.leakProbeEngine.Close()
 	e.onClose()
 
-	return err //nolint:wrapcheck // passthrough by design
+	return err
 }
