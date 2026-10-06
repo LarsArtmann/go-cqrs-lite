@@ -5,6 +5,7 @@ import (
 	"encoding/json/v2"
 	"math"
 	"sort"
+	"sync"
 )
 
 // ADTVector is the ADT for vector similarity search (k-NN).
@@ -242,6 +243,7 @@ func euclideanDistance(a, b []float32) float32 {
 // MemorySearchIndex is a brute-force in-memory full-text search index
 // using a simple TF-IDF scoring. Suitable for small collections or testing.
 type MemorySearchIndex struct {
+	mu   sync.RWMutex
 	docs map[string]string // key → content
 }
 
@@ -252,6 +254,9 @@ func NewMemorySearchIndex() *MemorySearchIndex {
 
 // Insert adds a document to the search index.
 func (m *MemorySearchIndex) Insert(_ context.Context, _ string, doc IndexedText) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
 	m.docs[doc.ID] = doc.Content
 
 	return nil
@@ -263,10 +268,14 @@ func (m *MemorySearchIndex) Query(
 	_, query string,
 	limit int,
 ) ([]SearchResult, error) {
-	return m.query(query, limit), nil
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	return m.queryLocked(query, limit), nil
 }
 
-func (m *MemorySearchIndex) query(query string, limit int) []SearchResult {
+// queryLocked scans the index. Caller MUST hold m.mu (RLock suffices).
+func (m *MemorySearchIndex) queryLocked(query string, limit int) []SearchResult {
 	queryTerms := tokenize(query)
 	var results []SearchResult
 

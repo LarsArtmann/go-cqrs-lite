@@ -4,6 +4,7 @@ import (
 	"context"
 	"math"
 	"sort"
+	"sync"
 )
 
 // ADTSpatial is the ADT for geographic/geometric range queries.
@@ -49,6 +50,7 @@ type SpatialBackend interface {
 // haversine distance for every range query — O(N) per query. Suitable for
 // small collections or testing. For production scale, use an R-tree engine.
 type MemorySpatialIndex struct {
+	mu     sync.RWMutex
 	points map[string]Point // key → point
 }
 
@@ -59,6 +61,9 @@ func NewMemorySpatialIndex() *MemorySpatialIndex {
 
 // Insert adds a point to the spatial index.
 func (m *MemorySpatialIndex) Insert(_ context.Context, _ string, pt Point) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
 	m.points[pt.ID] = pt
 	return nil
 }
@@ -70,10 +75,14 @@ func (m *MemorySpatialIndex) Range(
 	x, y, radius float64,
 	limit int,
 ) ([]SpatialResult, error) {
-	return m.rangeQuery(x, y, radius, limit), nil
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	return m.rangeQueryLocked(x, y, radius, limit), nil
 }
 
-func (m *MemorySpatialIndex) rangeQuery(x, y, radius float64, limit int) []SpatialResult {
+// rangeQueryLocked scans the index. Caller MUST hold m.mu (RLock suffices).
+func (m *MemorySpatialIndex) rangeQueryLocked(x, y, radius float64, limit int) []SpatialResult {
 	var results []SpatialResult
 
 	for id, pt := range m.points {
