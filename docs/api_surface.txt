@@ -2206,6 +2206,8 @@ metadata/method WithCustom
 metadata/struct Metadata
 metadata/struct Tracing
 metadata/type CustomData
+metaengine/adttest/func AssertConcurrentScanDuringWrite
+metaengine/adttest/func AssertConcurrentVectorInsert
 metaengine/adttest/func AssertDedupStore
 metaengine/adttest/func AssertDueClaimer
 metaengine/adttest/func AssertFactSink
@@ -4320,6 +4322,7 @@ metaengine/struct SerializableReadCosts
 metaengine/struct SerializableRule
 metaengine/struct Skip
 metaengine/struct SortColumn
+metaengine/struct SortKeyCursor
 metaengine/struct SortSpec
 metaengine/struct SpatialResult
 metaengine/struct Store

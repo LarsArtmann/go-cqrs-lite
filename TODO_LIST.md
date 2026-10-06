@@ -250,6 +250,19 @@ mesh-demo onboarding) lives in the eventcatalog-hub repo. Execution evidence:
       follow-ups; the gate-semantics ADR + case-study appendix via the T17 row
       in Docs truth). — source: 16-37 §d2/§e2/§f4/§f20, 14-18 §d3 _(Effort: XS — owner rulings)_
 
+- [ ] **Compound-cursor issuance (M06 tail, 2026-10-06):** engines now ACCEPT
+      tie-safe `SortKeyCursor{Sort, Key}` cursors (shared `SortPaginate`
+      core; all nine engine `MapScan`s delegate — memory, sqlite, pg, mysql,
+      duckdb, dgraph, bbolt, pebble, badger), but issuance still mints
+      value-only cursors: `TypedReader.ScanPage` reflects the last item's
+      sort field. Ship the protocol: engines fill a `ScanResult.NextCursor`
+      (they hold the pair keys), `ScanPage` prefers it over reflection, and
+      `ParseCursor` normalizes the round-tripped `{"Sort":…,"Key":…}` JSON
+      form back to the struct (`compareValue` already tolerates the float64
+      drift). Until then the fix is opt-in — callers construct compound
+      cursors by hand. _(Effort: M; wire-format change — golden pins
+      required)_
+
 ## Durable Work Queue module (proposed 2026-09-13)
 
 > ~~T20 PapDashboard adoption evaluation~~ and ~~M4 polish tail~~ done

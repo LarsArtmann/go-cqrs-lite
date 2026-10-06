@@ -98,11 +98,21 @@ func paginateTiePairs(t *testing.T, limit int, mkCursor func(last tiePair) any) 
 	var cursor any
 
 	for page := 0; page < 100; page++ {
-		sorted := metaengine.SortPaginate(buildTiePairs(), tiePairKey, tiePairValue, tiePairSortFn, cursor, limit)
+		sorted := metaengine.SortPaginate(
+			buildTiePairs(),
+			tiePairKey,
+			tiePairValue,
+			tiePairSortFn,
+			cursor,
+			limit,
+		)
 		result := metaengine.PairsToScanResult(sorted, tiePairValue, limit)
 
 		for _, item := range result.Items {
-			keys = append(keys, item.(tiePair).Key) //nolint:forcetypeassert // items are tiePair by construction
+			keys = append(
+				keys,
+				item.(tiePair).Key,
+			) //nolint:forcetypeassert // items are tiePair by construction
 		}
 
 		if !result.HasMore {
@@ -173,7 +183,10 @@ func TestSortPaginate_LegacyCursor_TieHeavy_DropsStraddledTies(t *testing.T) {
 	got := paginateTiePairs(t, 4, func(last tiePair) any { return last })
 
 	if len(got) != 24 {
-		t.Fatalf("legacy cursor collected %d items, want the pinned 24 (6 straddled ties dropped)", len(got))
+		t.Fatalf(
+			"legacy cursor collected %d items, want the pinned 24 (6 straddled ties dropped)",
+			len(got),
+		)
 	}
 
 	for n := 0; n < 6; n++ {
@@ -195,8 +208,8 @@ func TestMapScan_MemoryEngine_CompoundCursor_TieHeavy(t *testing.T) {
 	eng := metaengine.NewMemoryEngine()
 	t.Cleanup(func() { _ = eng.Close() })
 
-	mb := eng.(metaengine.MapBackend)   //nolint:forcetypeassert // memory engine implements all backends
-	sb := eng.(metaengine.ScanBackend)  //nolint:forcetypeassert // memory engine implements all backends
+	mb := eng.(metaengine.MapBackend)  //nolint:forcetypeassert // memory engine implements all backends
+	sb := eng.(metaengine.ScanBackend) //nolint:forcetypeassert // memory engine implements all backends
 
 	ctx := context.Background()
 
@@ -237,7 +250,10 @@ func TestMapScan_MemoryEngine_CompoundCursor_TieHeavy(t *testing.T) {
 		}
 
 		for _, item := range result.Items {
-			got = append(got, item.(map[string]any)["key"].(string)) //nolint:forcetypeassert // by construction
+			got = append(
+				got,
+				item.(map[string]any)["key"].(string),
+			) //nolint:forcetypeassert // by construction
 		}
 
 		if !result.HasMore {
