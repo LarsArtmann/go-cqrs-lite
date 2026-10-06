@@ -456,6 +456,22 @@ func (e *sqliteEngine) PushdownMapScan(
 	cursor any,
 	limit int,
 ) (metaengine.ScanResult, error) {
+	if err := metaengine.ValidateFilterSpecs(filters); err != nil {
+		return metaengine.ScanResult{}, err
+	}
+
+	for _, f := range filters {
+		if err := metaengine.ValidateIdentifier(f.Column); err != nil {
+			return metaengine.ScanResult{}, fmt.Errorf("filter column: %w", err)
+		}
+	}
+
+	if sort != nil {
+		if err := metaengine.ValidateIdentifier(sort.Column); err != nil {
+			return metaengine.ScanResult{}, fmt.Errorf("sort column: %w", err)
+		}
+	}
+
 	if plan, ok := e.plans[col]; ok {
 		return e.pushdownMapScanPlanned(ctx, plan, filters, sort, cursor, limit)
 	}
@@ -535,7 +551,12 @@ func (e *sqliteEngine) StreamScan(
 	sort *metaengine.SortSpec,
 ) iter.Seq2[any, error] {
 	return func(yield func(any, error) bool) {
-		query, args := e.buildStreamQuery(col, filters, sort)
+		query, args, err := e.buildStreamQuery(col, filters, sort)
+		if err != nil {
+			yield(nil, err)
+
+			return
+		}
 
 		rows, err := e.xd(ctx).QueryContext(ctx, query, args...) //nolint:sqlclosecheck
 		if err != nil {
@@ -572,7 +593,23 @@ func (e *sqliteEngine) buildStreamQuery(
 	col string,
 	filters []metaengine.FilterSpec,
 	sort *metaengine.SortSpec,
-) (string, []any) {
+) (string, []any, error) {
+	if err := metaengine.ValidateFilterSpecs(filters); err != nil {
+		return "", nil, err
+	}
+
+	for _, f := range filters {
+		if err := metaengine.ValidateIdentifier(f.Column); err != nil {
+			return "", nil, fmt.Errorf("filter column: %w", err)
+		}
+	}
+
+	if sort != nil {
+		if err := metaengine.ValidateIdentifier(sort.Column); err != nil {
+			return "", nil, fmt.Errorf("sort column: %w", err)
+		}
+	}
+
 	var b strings.Builder
 
 	if plan, ok := e.plans[col]; ok {
@@ -599,7 +636,7 @@ func (e *sqliteEngine) buildStreamQuery(
 			}
 		}
 
-		return b.String(), args
+		return b.String(), args, nil
 	}
 
 	args := make([]any, 0, 1+len(filters))
@@ -631,7 +668,7 @@ func (e *sqliteEngine) buildStreamQuery(
 		}
 	}
 
-	return b.String(), args
+	return b.String(), args, nil
 }
 
 // Compile-time assertions.

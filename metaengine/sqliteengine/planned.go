@@ -285,7 +285,10 @@ func (e *sqliteEngine) pushdownMapScanPlanned(
 	cursor any,
 	limit int,
 ) (metaengine.ScanResult, error) {
-	query, args := buildPlannedSelectQuery(plan, filters, sort, cursor, limit)
+	query, args, err := buildPlannedSelectQuery(plan, filters, sort, cursor, limit)
+	if err != nil {
+		return metaengine.ScanResult{}, err
+	}
 
 	rows, err := scanJSONValues(ctx, e.xd(ctx), query, args...)
 	if err != nil {

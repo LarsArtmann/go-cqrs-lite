@@ -131,7 +131,11 @@ func buildPlannedSelectQuery(
 	sort *metaengine.SortSpec,
 	cursor any,
 	limit int,
-) (string, []any) {
+) (string, []any, error) {
+	if err := metaengine.ValidateFilterSpecs(filters); err != nil {
+		return "", nil, err
+	}
+
 	var b strings.Builder
 	//art-dupl:accept cross-module SQL builder pattern — separate go.mod
 
@@ -178,7 +182,7 @@ func buildPlannedSelectQuery(
 		args = append(args, limit+1)
 	}
 
-	return b.String(), args
+	return b.String(), args, nil
 }
 
 func scanRawPlanned(
@@ -190,7 +194,10 @@ func scanRawPlanned(
 	cursor any,
 	limit int,
 ) ([][]byte, error) {
-	query, args := buildPlannedSelectQuery(plan, filters, sort, cursor, limit)
+	query, args, err := buildPlannedSelectQuery(plan, filters, sort, cursor, limit)
+	if err != nil {
+		return nil, err
+	}
 
 	return scanRawRows(ctx, db, query, args...)
 }

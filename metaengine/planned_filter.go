@@ -14,21 +14,33 @@ func QuestionPlaceholders(int) string { return "?" }
 func DollarPlaceholders(n int) string { return fmt.Sprintf("$%d", n+1) }
 
 // ValidateFilterSpecs reports the first filter carrying an operator outside
-// the defined FilterOp constants. Engine scan paths splice the operator into
-// SQL text (it is not a bind parameter), so this runs at scan entry and again
-// in every planned-query builder as defense in depth.
+// the defined FilterOp constants ([AllFilterOps]). Engine scan paths splice
+// the operator into SQL text (it is not a bind parameter), so this runs at
+// scan entry and again in every planned-query builder as defense in depth.
 func ValidateFilterSpecs(filters []FilterSpec) error {
 	for _, f := range filters {
 		if !f.Op.Valid() {
 			return fmt.Errorf(
-				"metaengine: invalid filter operator %q on column %q (valid: =, !=, <, <=, >, >=, IN)",
+				"metaengine: invalid filter operator %q on column %q (valid: %s)",
 				string(f.Op),
 				f.Column,
+				strings.Join(filterOpNames(), ", "),
 			)
 		}
 	}
 
 	return nil
+}
+
+func filterOpNames() []string {
+	ops := AllFilterOps()
+	names := make([]string, len(ops))
+
+	for i, op := range ops {
+		names[i] = string(op)
+	}
+
+	return names
 }
 
 // AppendPlannedFilter writes one planned-table filter clause: the FilterIn

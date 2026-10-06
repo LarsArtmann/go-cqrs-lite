@@ -72,6 +72,10 @@ func buildPlannedScanQuery(
 	limit int,
 ) (string, []any, error) {
 	//art-dupl:accept cross-module SQL builder pattern — dep-isolated go.mod modules
+	if err := metaengine.ValidateFilterSpecs(filters); err != nil {
+		return "", nil, err
+	}
+
 	for _, f := range filters {
 		if f.Op == metaengine.FilterIn {
 			values, ok := f.Value.([]any)
