@@ -829,6 +829,7 @@ linters:
       - vendor/
 formatters:
   enable:
+    - gci
     - goimports
     - gofumpt
     - golines
