@@ -341,6 +341,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+- **system: `CachedEventStore` no longer serves pre-save snapshots forever (idea 233).** `Save`/`AppendBatch` dropped the cached entry only AFTER the store write, so a concurrent `Load` whose store read straddled the commit could re-populate the pre-save snapshot in the window between write and invalidation — and serve it indefinitely. Writes now invalidate before AND after the store write, and `Load` only repopulates the cache when the stream's write generation is unchanged across its store read (generation entries are never pruned: absent must unambiguously mean "never written"). A concurrent Load/Save race test (`slowLoadStore`) pins the post-Save read contract under `-race`; a failed `Save` now costs a cache miss on the next `Load` (correctness traded over retention).
+
 ### Changed
 
 - **toolchain gate: `check-go-version.sh` floor lowered 1.27.1 → 1.27 (2026-10-03).** The floor existed because published dependencies required >= 1.27.1; the 92-tag minor-form floor wave retired that premise (every tagged module and go.work now declare `go 1.27`, toolchain go1.27.1 satisfies the contract). Floor default, header rationale, and the self-test's uniform-downgrade leg (fixture 1.26, message `< floor go1.27`) all updated; self-test 9/9 green, live gate PASS.
