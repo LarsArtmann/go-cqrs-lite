@@ -258,9 +258,12 @@ func TestCachedEventStore_CacheHitAvoidsStoreRoundTrip(t *testing.T) {
 	}
 }
 
-// TestCachedEventStore_SaveErrorKeepsCacheEntry ensures a failed write does
-// NOT evict a still-valid cache entry (no unnecessary store round-trip).
-func TestCachedEventStore_SaveErrorKeepsCacheEntry(t *testing.T) {
+// TestCachedEventStore_SaveErrorStillServesPreSaveEvents pins the
+// invalidate-before-write contract on the error path: a failed Save has
+// already dropped the cached entry (correctness is kept over cache
+// retention), so the post-error Load takes the store round-trip and still
+// returns the pre-save events — never a torn or empty snapshot.
+func TestCachedEventStore_SaveErrorStillServesPreSaveEvents(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
