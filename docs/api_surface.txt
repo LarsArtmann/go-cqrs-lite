@@ -2910,6 +2910,8 @@ metaengine/func TopKNearest
 metaengine/func TraceStats
 metaengine/func TypeName
 metaengine/func ValidateDurabilityTier
+metaengine/func ValidateFilterSpecs
+metaengine/func ValidateIdentifier
 metaengine/func VectorDistance
 metaengine/func VectorExecuteTyped
 metaengine/func VectorMatchesFilters
