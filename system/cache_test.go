@@ -3,13 +3,29 @@ package system_test
 import (
 	"context"
 	"errors"
+	"fmt"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
 )
+
+// slowLoadStore delays every Load so a reader's store round-trip can
+// straddle a concurrent Save commit — the window the idea-233 race lives in.
+type slowLoadStore struct {
+	event.Store
+	delay time.Duration
+}
+
+func (s *slowLoadStore) Load(ctx context.Context, ref id.StreamRef) ([]event.Event, error) {
+	time.Sleep(s.delay)
+
+	return s.Store.Load(ctx, ref)
+}
 
 func newCacheTestEvent(t *testing.T, ref id.StreamRef, version event.Version) event.Event {
 	t.Helper()
@@ -22,6 +38,99 @@ func newCacheTestEvent(t *testing.T, ref id.StreamRef, version event.Version) ev
 		version,
 		[]byte(`{"kind":"cache"}`),
 	)
+}
+
+// TestCachedEventStore_ConcurrentLoadSaveNeverServesPreSaveSnapshot is the
+// race regression for the stale-read window: a Load whose store round-trip
+// straddles a Save commit must never re-populate (and later serve) the
+// pre-save snapshot. Writers assert the post-Save read contract directly;
+// racing readers hammer Load to trigger the interleaving.
+func TestCachedEventStore_ConcurrentLoadSaveNeverServesPreSaveSnapshot(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	ref := id.NewStreamRef("CacheRace", id.NewStreamID())
+	store := &slowLoadStore{Store: eventtest.NewFakeStore(), delay: 2 * time.Millisecond}
+
+	cached, err := system.NewCachedEventStore(store, 16)
+	if err != nil {
+		t.Fatalf("NewCachedEventStore: %v", err)
+	}
+
+	stop := make(chan struct{})
+
+	readerWG := sync.WaitGroup{}
+
+	readerErr := make(chan error, 8)
+
+	for range 4 {
+		readerWG.Add(1)
+
+		go func() {
+			defer readerWG.Done()
+
+			for {
+				select {
+				case <-stop:
+					return
+				default:
+				}
+
+				if _, err := cached.Load(ctx, ref); err != nil {
+					select {
+					case readerErr <- err:
+					default:
+					}
+
+					return
+				}
+			}
+		}()
+	}
+
+	const saves = 100
+
+	writerErr := make(chan error, 1)
+
+	go func() {
+		defer func() { close(stop) }()
+
+		for i := range saves {
+			events := []event.Event{newCacheTestEvent(t, ref, event.Version(i+1))}
+			if err := cached.Save(ctx, ref, events, event.Version(i)); err != nil {
+				writerErr <- err
+
+				return
+			}
+
+			loaded, err := cached.Load(ctx, ref)
+			if err != nil {
+				writerErr <- err
+
+				return
+			}
+
+			if len(loaded) != i+1 {
+				writerErr <- fmt.Errorf("served pre-save snapshot: got %d events, want %d", len(loaded), i+1)
+
+				return
+			}
+		}
+
+		writerErr <- nil
+	}()
+
+	readerWG.Wait()
+
+	if err := <-writerErr; err != nil {
+		t.Fatalf("writer: %v", err)
+	}
+
+	select {
+	case err := <-readerErr:
+		t.Fatalf("reader: %v", err)
+	default:
+	}
 }
 
 // TestCachedEventStore_SaveInvalidatesCache is the regression test for the
