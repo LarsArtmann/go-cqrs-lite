@@ -2,6 +2,8 @@ package system_test
 
 import (
 	"context"
+	"errors"
+	"strings"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
