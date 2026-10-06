@@ -5,6 +5,18 @@ import (
 	"sort"
 )
 
+// SortKeyCursor is a compound keyset cursor: the sort-field value plus the
+// byte key of the item that produced it. A value-only cursor cannot
+// distinguish items that TIE the cursor's sort value — skipping the tie
+// block silently drops unseen rows, keeping it re-serves seen ones. With
+// both components the cursor filter applies the same (sortValue, key)
+// ordering the sort itself uses, so tie-heavy datasets paginate with
+// neither drops nor duplicates.
+type SortKeyCursor struct {
+	Sort any
+	Key  []byte
+}
+
 // SortPaginate sorts pairs by value (with byte-key tiebreak for determinism),
 // applies keyset pagination (skipping items at or before cursor), and truncates
 // to limit+1 (the +1 lets callers detect has-more). It is the shared core of
@@ -14,9 +26,10 @@ import (
 //
 // sortFn is a tri-state comparator (negative = a before b). When nil, no
 // sorting or cursor pagination is applied — only the limit truncation runs.
-// cursor is the keyset pagination cursor: items where sortFn(item, cursor) <= 0
-// are skipped (already seen). The caller must ensure sortFn handles the cursor
-// value correctly (it may be a raw field value rather than a full item).
+// cursor is the keyset pagination cursor: a [SortKeyCursor] is compared with
+// the full (sortValue, key) ordering, so ties paginate exactly once. A raw
+// value cursor keeps the legacy behavior (items where sortFn(item, cursor)
+// <= 0 are skipped) — tie-lossy, retained for compatibility.
 // The slice is sorted/filtered in place and returned for convenience.
 func SortPaginate[T any](
 	pairs []T,
@@ -37,11 +50,35 @@ func SortPaginate[T any](
 	}
 
 	if cursor != nil && sortFn != nil {
+		cursorValue := cursor
+
+		var compound SortKeyCursor
+
+		hasCompound := false
+
+		if c, ok := cursor.(SortKeyCursor); ok {
+			cursorValue = c.Sort
+			compound = c
+			hasCompound = true
+		}
+
 		filtered := pairs[:0]
 
 		for _, p := range pairs {
-			if sortFn(valueOf(p), cursor) <= 0 {
+			c := sortFn(valueOf(p), cursorValue)
+
+			if c < 0 {
 				continue
+			}
+
+			if c == 0 {
+				if hasCompound {
+					if bytes.Compare(keyOf(p), compound.Key) <= 0 {
+						continue
+					}
+				} else {
+					continue
+				}
 			}
 
 			filtered = append(filtered, p)
