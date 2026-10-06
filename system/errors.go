@@ -43,5 +43,6 @@ var (
 	ErrSystemStopped             = errors.New("system: already stopped")
 	ErrUnknownBusDriver          = errors.New("system: unknown bus driver")
 	ErrUnknownEngine             = errors.New("system: unknown engine")
+	ErrUnknownPublishTarget      = errors.New("system: unknown publish target")
 	ErrUnsupportedValueType      = errors.New("system: unsupported value type")
 )

@@ -190,7 +190,11 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 	}
 
 	sys.bus = bus
-	pub, fanouts := buildPublisher(deployment, sys.bus)
+	pub, fanouts, err := buildPublisher(deployment, sys.bus)
+	if err != nil {
+		return nil, err
+	}
+
 	sys.pubBus = pub
 
 	// Register the bus for lifecycle management (watermill.EventBus implements io.Closer).

@@ -58,31 +58,48 @@ type fanoutBus struct {
 }
 
 // buildPublisher creates the publisher for the decider repository.
-// If the source-of-truth has multiple Publish targets, returns a MultiBus
-// wrapping a Watermill bus per named target. Otherwise returns the local
-// bus. The second return value lists the fan-out buses created (the caller
-// must register them for lifecycle closure).
+// If the source-of-truth declares Publish targets, returns a MultiBus
+// wrapping the local bus plus a Watermill bus per named target — including
+// the single-target case, so PublisherFor resolves every operator-declared
+// name and fan-out semantics are uniform across 1..N targets. Otherwise
+// returns the local bus. Every target must be declared under
+// deployment.Buses; an undeclared name fails construction. The second
+// return value lists the fan-out buses created (the caller must register
+// them for lifecycle closure).
 func buildPublisher(
 	deployment DeploymentConfig, localBus event.Publisher,
-) (event.Publisher, []fanoutBus) {
+) (event.Publisher, []fanoutBus, error) {
 	for _, inst := range deployment.Instances {
-		if isSourceOfTruth(inst.Role) && len(inst.Publish) > 1 {
-			multi := NewMultiBus(localBus)
-			fanouts := make([]fanoutBus, 0, len(inst.Publish))
-
-			for _, target := range inst.Publish {
-				bus := watermill.NewEventBus()
-				multi.AddNamedPublisher(target, bus)
-				fanouts = append(fanouts, fanoutBus{
-					name:      target,
-					publisher: bus,
-					closer:    bus,
-				})
-			}
-
-			return multi, fanouts
+		if !isSourceOfTruth(inst.Role) || len(inst.Publish) == 0 {
+			continue
 		}
+
+		for _, target := range inst.Publish {
+			if _, ok := deployment.Buses[target]; !ok {
+				return nil, nil, fmt.Errorf(
+					"%w: %q (instance role %q; declare it under buses)",
+					ErrUnknownPublishTarget,
+					target,
+					inst.Role,
+				)
+			}
+		}
+
+		multi := NewMultiBus(localBus)
+		fanouts := make([]fanoutBus, 0, len(inst.Publish))
+
+		for _, target := range inst.Publish {
+			bus := watermill.NewEventBus()
+			multi.AddNamedPublisher(target, bus)
+			fanouts = append(fanouts, fanoutBus{
+				name:      target,
+				publisher: bus,
+				closer:    bus,
+			})
+		}
+
+		return multi, fanouts, nil
 	}
 
-	return localBus, nil
+	return localBus, nil, nil
 }

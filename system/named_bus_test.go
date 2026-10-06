@@ -70,6 +70,10 @@ func TestSystem_PublisherFor(t *testing.T) {
 
 	sys, err := system.New(ctx, system.DomainConfig{}, system.DeploymentConfig{
 		Engines: map[string]system.EngineConfig{"primary": {Driver: "memory"}},
+		Buses: map[string]system.BusConfig{
+			"bus1": {Driver: "gochannel"},
+			"bus2": {Driver: "gochannel"},
+		},
 		Instances: []system.InstanceConfig{{
 			Role:    system.RoleSourceOfTruth,
 			Engine:  "primary",
@@ -126,5 +130,87 @@ func TestSystem_PublisherFor_SingleBus(t *testing.T) {
 
 	if _, ok := sys.PublisherFor("anything"); ok {
 		t.Fatal("PublisherFor on a single-bus deployment must report false")
+	}
+}
+
+// TestSystem_PublisherFor_SingleNamedTarget pins the single-target fan-out
+// fix (M09/F29): a source-of-truth with exactly ONE publish target gets the
+// same MultiBus fan-out as a multi-target deployment — the named bus is
+// reachable via PublisherFor, and the local bus stays entry 0 so existing
+// subscribers are unaffected. Before the fix, len(Publish)==1 silently fell
+// back to the local bus and the operator's named target never existed.
+func TestSystem_PublisherFor_SingleNamedTarget(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	sys, err := system.New(ctx, system.DomainConfig{}, system.DeploymentConfig{
+		Engines: map[string]system.EngineConfig{"primary": {Driver: "memory"}},
+		Buses:   map[string]system.BusConfig{"orders": {Driver: "gochannel"}},
+		Instances: []system.InstanceConfig{{
+			Role:    system.RoleSourceOfTruth,
+			Engine:  "primary",
+			Publish: []string{"orders"},
+		}},
+	})
+	if err != nil {
+		t.Fatalf("system.New: %v", err)
+	}
+
+	defer sys.Close()
+
+	orders, ok := sys.PublisherFor("orders")
+	if !ok {
+		t.Fatal("PublisherFor(orders): single publish target must resolve to a named fan-out bus")
+	}
+
+	if orders == sys.Publisher() {
+		t.Fatal("the named fan-out bus must be distinct from the publisher itself")
+	}
+
+	multi, ok := sys.Publisher().(*system.MultiBus)
+	if !ok {
+		t.Fatalf(
+			"Publisher must be a MultiBus for any declared publish target, got %T",
+			sys.Publisher(),
+		)
+	}
+
+	if len(multi.Publishers()) != 2 {
+		t.Fatalf(
+			"MultiBus must carry local + named bus, got %d publishers",
+			len(multi.Publishers()),
+		)
+	}
+}
+
+// TestSystem_New_UnknownPublishTargetFails pins M09/F30: a publish target
+// that is not declared under buses fails construction with
+// ErrUnknownPublishTarget instead of silently creating a fan-out to a bus the
+// operator never configured.
+func TestSystem_New_UnknownPublishTargetFails(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	sys, err := system.New(ctx, system.DomainConfig{}, system.DeploymentConfig{
+		Engines: map[string]system.EngineConfig{"primary": {Driver: "memory"}},
+		Instances: []system.InstanceConfig{{
+			Role:    system.RoleSourceOfTruth,
+			Engine:  "primary",
+			Publish: []string{"ghost"},
+		}},
+	})
+	if err == nil {
+		defer sys.Close()
+		t.Fatal("system.New must reject a publish target that is not declared under buses")
+	}
+
+	if !errors.Is(err, system.ErrUnknownPublishTarget) {
+		t.Fatalf("error must wrap ErrUnknownPublishTarget, got: %v", err)
+	}
+
+	if !strings.Contains(err.Error(), "ghost") {
+		t.Fatalf("error must name the unknown target, got: %v", err)
 	}
 }
