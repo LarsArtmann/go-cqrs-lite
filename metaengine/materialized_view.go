@@ -60,7 +60,7 @@ func (s MaterializedViewSpec) Validate() error {
 		{"column", s.Column},
 		{"groupBy", s.GroupBy},
 	} {
-		if err := validateMatViewString(bad.value); err != nil {
+		if err := ValidateIdentifier(bad.value); err != nil {
 			return fmt.Errorf("materialized view %s: %w", bad.name, err)
 		}
 	}
@@ -87,22 +87,6 @@ func (s MaterializedViewSpec) Validate() error {
 			s.Collection,
 			s.Fn,
 		)
-	}
-
-	return nil
-}
-
-// validateMatViewString rejects empty-forbidden cases are handled by callers;
-// this checks injection-relevant characters.
-func validateMatViewString(s string) error {
-	for _, r := range s {
-		switch {
-		case r >= 'a' && r <= 'z', r >= 'A' && r <= 'Z', r >= '0' && r <= '9',
-			r == '_', r == '.', r == '-', r == ' ', r >= 0x80:
-			// allowed
-		default:
-			return fmt.Errorf("invalid character %q (use letters, digits, '_', '.', '-')", r)
-		}
 	}
 
 	return nil

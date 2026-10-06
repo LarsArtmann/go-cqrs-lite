@@ -13,6 +13,24 @@ func QuestionPlaceholders(int) string { return "?" }
 // the Postgres engine; n is the 0-based count of already-appended args.
 func DollarPlaceholders(n int) string { return fmt.Sprintf("$%d", n+1) }
 
+// ValidateFilterSpecs reports the first filter carrying an operator outside
+// the defined FilterOp constants. Engine scan paths splice the operator into
+// SQL text (it is not a bind parameter), so this runs at scan entry and again
+// in every planned-query builder as defense in depth.
+func ValidateFilterSpecs(filters []FilterSpec) error {
+	for _, f := range filters {
+		if !f.Op.Valid() {
+			return fmt.Errorf(
+				"metaengine: invalid filter operator %q on column %q (valid: =, !=, <, <=, >, >=, IN)",
+				string(f.Op),
+				f.Column,
+			)
+		}
+	}
+
+	return nil
+}
+
 // AppendPlannedFilter writes one planned-table filter clause: the FilterIn
 // branch expands the value list into placeholders and renders an IN (...);
 // every other operator renders a binary comparison. The WHERE/AND switch is

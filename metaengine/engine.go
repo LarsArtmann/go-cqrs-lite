@@ -298,6 +298,20 @@ const (
 	FilterIn FilterOp = "IN"
 )
 
+// Valid reports whether op is one of the defined FilterOp constants.
+// FilterOp is an open string type, so an arbitrary value must not reach a
+// SQL builder: scan entry points and planned-query builders reject invalid
+// operators before rendering (the op is spliced into SQL text, not bound as
+// a parameter).
+func (op FilterOp) Valid() bool {
+	switch op {
+	case FilterEq, FilterNe, FilterLt, FilterLe, FilterGt, FilterGe, FilterIn:
+		return true
+	default:
+		return false
+	}
+}
+
 // FilterSpec is a declarative filter that can be pushed down to the database
 // engine. Column is a JSON path within the stored value (e.g. "status"),
 // producing json_extract(value, '$.status') on SQLite.

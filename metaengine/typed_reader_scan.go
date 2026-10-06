@@ -27,6 +27,25 @@ func (r *TypedReader[V]) Scan(ctx context.Context, opts ...ScanOption) ([]V, err
 		opt(&cfg)
 	}
 
+	// Operator and column names are spliced into SQL text (never bound as
+	// parameters), so both are validated here — the single entry point every
+	// typed scan flows through — and again in the engines' query builders.
+	if err := ValidateFilterSpecs(cfg.filters); err != nil {
+		return nil, err
+	}
+
+	for _, f := range cfg.filters {
+		if err := ValidateIdentifier(f.Column); err != nil {
+			return nil, fmt.Errorf("filter column: %w", err)
+		}
+	}
+
+	if cfg.sort != nil {
+		if err := ValidateIdentifier(cfg.sort.Column); err != nil {
+			return nil, fmt.Errorf("sort column: %w", err)
+		}
+	}
+
 	// PrefetchCache: serve from cache when a cursor key matches.
 	if r.prefetch != nil && cfg.cursor != nil {
 		cacheKey := prefetchCursorKey(r.collection, cfg.cursor)
