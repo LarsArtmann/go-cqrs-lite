@@ -3,12 +3,12 @@ module github.com/larsartmann/go-cqrs-lite/example/mesh-demo
 go 1.27
 
 require (
-	github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.6.1
-	github.com/larsartmann/go-cqrs-lite/command/v4 v4.13.0
-	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.7.1
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.13.0
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.2
-	github.com/larsartmann/go-cqrs-lite/system/v4 v4.10.1
+	github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.7.1
+	github.com/larsartmann/go-cqrs-lite/command/v4 v4.13.1
+	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.7.2
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.13.1
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.1
+	github.com/larsartmann/go-cqrs-lite/system/v4 v4.10.2
 )
 
 require (
@@ -31,20 +31,20 @@ require (
 	github.com/knadh/koanf/v2 v2.3.7 // indirect
 	github.com/larsartmann/go-branded-id v0.7.0 // indirect
 	github.com/larsartmann/go-codec v0.3.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4 v4.2.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.2.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.3 // indirect
-	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.2 // indirect
-	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.5.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.16.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.4.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.5.2 // indirect
-	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.6.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.3 // indirect
+	github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4 v4.2.2 // indirect
+	github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.2.2 // indirect
+	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.4 // indirect
+	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.2 // indirect
+	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3 // indirect
+	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.5.2 // indirect
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.16.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.2 // indirect
+	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.4.2 // indirect
+	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.5.3 // indirect
+	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2 // indirect
+	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.6.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.4 // indirect
 	github.com/larsartmann/go-error-family v0.11.0 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
 	github.com/larsartmann/go-sse v0.6.2 // indirect

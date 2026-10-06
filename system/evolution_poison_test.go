@@ -82,7 +82,7 @@ func TestSystem_EvolutionPoisonEvent_LandsInDLQ_WorkerSurvives(t *testing.T) {
 		if !ok {
 			panic(
 				"memory engine must implement MapBackend",
-			) //nolint:forbidigo // test fixture wiring
+			)
 		}
 
 		return &poisonPrevEngine{
