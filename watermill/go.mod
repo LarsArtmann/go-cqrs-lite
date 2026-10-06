@@ -8,13 +8,13 @@ require (
 	github.com/ThreeDotsLabs/watermill-redisstream v1.4.5
 	github.com/gkampitakis/go-snaps v0.5.23
 	github.com/larsartmann/go-codec v0.3.1
-	github.com/larsartmann/go-cqrs-lite/command/v4 v4.13.0
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.13.0
+	github.com/larsartmann/go-cqrs-lite/command/v4 v4.13.1
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.13.1
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.4.0
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.2
-	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.2
-	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.1
-	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.0
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.1
+	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3
+	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.2
+	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.1
 	github.com/larsartmann/go-error-family v0.11.0
 	github.com/nats-io/nats.go v1.54.0
 	github.com/redis/go-redis/v9 v9.22.0
@@ -32,17 +32,16 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/goccy/go-yaml v1.19.2 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
-	github.com/google/pprof v0.0.0-20260926063103-aaccee046517 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/klauspost/compress v1.20.1 // indirect
 	github.com/klauspost/cpuid/v2 v2.4.0 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/larsartmann/go-branded-id v0.7.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.6.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.2 // indirect
+	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2 // indirect
+	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.6.1 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/maruel/natural v1.3.0 // indirect
 	github.com/nats-io/nkeys v0.4.16 // indirect
@@ -68,7 +67,6 @@ require (
 	go.uber.org/atomic v1.12.0 // indirect
 	golang.org/x/crypto v0.57.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
-	golang.org/x/tools v0.51.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/protobuf v1.36.12 // indirect
 )
