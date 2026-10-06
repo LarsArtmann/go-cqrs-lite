@@ -30,14 +30,17 @@ type PaginationSeed struct {
 // The byte forms differ per engine family (2026-10-06 M06/F22 conformance
 // finding, pinned here instead of silently accommodated):
 //
-//   - memory, postgres, mysql, duckdb, dgraph: the rendered map key — pg,
-//     mysql, duckdb, and dgraph SELECT the key column; memory renders
-//     fmt.Sprintf("%v", key) (CursorKeyRaw).
+//   - memory, sqlite, postgres, mysql, duckdb, dgraph: the rendered map key —
+//     those engines SELECT the key column (memory renders
+//     fmt.Sprintf("%v", key)) (CursorKeyRaw). sqlite joined this family in
+//     the F22 fix: its MapScan previously selected only the value column and
+//     tiebreaked on the stored value JSON, which json v2's non-canonical map
+//     key order made impossible to rebuild from a returned item — the
+//     conformance matrix failed sqlite with drops and duplicates until the
+//     engine read the key column (mirroring pgengine).
 //   - badger, pebble, bbolt: the full prefixed stored key,
 //     keycodec.MapKey(col, EncodeKeyStr(key)) — their MapScan iterates raw
 //     KV keys (CursorKeyKVMapKey).
-//   - sqlite: MapScan SELECTs only the value column, so its tiebreak key is
-//     the stored value JSON itself (CursorKeyValueJSON).
 //
 // Every form paginates tie-heavy collections exactly once with a compound
 // cursor; the forms differ only in the within-tie ORDER, which is why
@@ -65,8 +68,11 @@ func CursorKeyKVMapKey(seed PaginationSeed) []byte {
 }
 
 // CursorKeyValueJSON derives the tiebreak key for engines whose MapScan
-// tiebreaks on the stored value bytes (sqlite selects only the value column).
-// Re-marshalling the decoded item reproduces the stored canonical JSON.
+// tiebreaks on the stored value bytes. No current engine uses this form —
+// sqlite, its last consumer, moved to the key column in the F22 conformance
+// fix — but the derivation stays because the harness self-test uses it to
+// prove that a wrong CursorKey form produces detected violations instead of
+// a false pass.
 func CursorKeyValueJSON(seed PaginationSeed) []byte {
 	encoded, err := json.Marshal(seed.Item)
 	if err != nil {

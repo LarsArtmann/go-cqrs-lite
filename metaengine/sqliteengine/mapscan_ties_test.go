@@ -2,7 +2,6 @@ package sqliteengine_test
 
 import (
 	"context"
-	"encoding/json/v2"
 	"fmt"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -83,14 +82,13 @@ var _ = Describe("SQLiteEngine MapScan compound cursor (regression)", func() {
 				break
 			}
 
-			// The sqlite fallback path keys pairs by the stored JSON value, so
-			// the compound cursor key is the canonical encoding of the last
-			// returned row.
+			// MapScan keys pairs by the stored map key (SELECT key, value — the
+			// F22 conformance fix), so the compound cursor key is the raw key
+			// string of the last returned row.
 			last := result.Items[len(result.Items)-1].(map[string]any) //nolint:forcetypeassert // by construction
-			encoded, err := json.Marshal(last)
-			Expect(err).NotTo(HaveOccurred())
+			lastKey := last["key"].(string)                           //nolint:forcetypeassert // by construction
 
-			cursor = metaengine.SortKeyCursor{Sort: last["sort"], Key: encoded}
+			cursor = metaengine.SortKeyCursor{Sort: last["sort"], Key: []byte(lastKey)}
 		}
 
 		Expect(got).To(HaveLen(30))
@@ -101,8 +99,8 @@ var _ = Describe("SQLiteEngine MapScan compound cursor (regression)", func() {
 			seen[key] = true
 		}
 
-		// Global order: (sort, stored JSON bytes). The walk must serve every
-		// row exactly once in that order across pages.
+		// Global order: (sort, map key bytes). The walk must serve every row
+		// exactly once in that order across pages.
 		type row struct {
 			sort int
 			key  string

@@ -37,3 +37,27 @@ func TestCapabilityConformance(t *testing.T) {
 
 	adttest.RunCapabilityConformance(t, "pebble", newPebbleEngineOrSkip(t), nil)
 }
+
+// TestPaginationConformance runs the compound-cursor MapScan pagination walk
+// (M06/F22). pebble's MapScan tiebreaks on the full prefixed stored key
+// (keycodec.MapKey), so the probe rebuilds cursors in that form.
+func TestPaginationConformance(t *testing.T) {
+	t.Parallel()
+
+	adttest.RunPaginationConformance(t, []adttest.PaginationProbe{
+		{
+			Factory: adttest.Factory{
+				Name:   "memory",
+				Create: func(t *testing.T) metaengine.Engine { return metaengine.NewMemoryEngine() },
+			},
+			CursorKey: adttest.CursorKeyRaw,
+		},
+		{
+			Factory: adttest.Factory{
+				Name:   "pebble",
+				Create: func(t *testing.T) metaengine.Engine { return newPebbleEngineOrSkip(t) },
+			},
+			CursorKey: adttest.CursorKeyKVMapKey,
+		},
+	})
+}

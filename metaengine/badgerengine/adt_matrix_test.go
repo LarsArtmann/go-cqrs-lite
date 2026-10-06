@@ -48,3 +48,34 @@ func TestCapabilityConformance(t *testing.T) {
 
 	adttest.RunCapabilityConformance(t, "badger", eng, nil)
 }
+
+// TestPaginationConformance runs the compound-cursor MapScan pagination walk
+// (M06/F22). badger's MapScan tiebreaks on the full prefixed stored key
+// (keycodec.MapKey), so the probe rebuilds cursors in that form.
+func TestPaginationConformance(t *testing.T) {
+	t.Parallel()
+
+	adttest.RunPaginationConformance(t, []adttest.PaginationProbe{
+		{
+			Factory: adttest.Factory{
+				Name:   "memory",
+				Create: func(t *testing.T) metaengine.Engine { return metaengine.NewMemoryEngine() },
+			},
+			CursorKey: adttest.CursorKeyRaw,
+		},
+		{
+			Factory: adttest.Factory{
+				Name: "badger",
+				Create: func(t *testing.T) metaengine.Engine {
+					t.Helper()
+
+					eng, err := badgerengine.NewBadgerEngine("")
+					gomega.NewWithT(t).Expect(err).NotTo(gomega.HaveOccurred())
+
+					return eng
+				},
+			},
+			CursorKey: adttest.CursorKeyKVMapKey,
+		},
+	})
+}

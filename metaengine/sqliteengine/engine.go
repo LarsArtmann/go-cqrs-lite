@@ -358,17 +358,22 @@ func (e *sqliteEngine) MapScan(
 	limit int,
 ) (metaengine.ScanResult, error) {
 	// Planned collections store rows in a dedicated table; MapScan (the
-	// closure-based fallback) must read from it, not meta_map.
+	// closure-based fallback) must read from it, not meta_map. Both tables
+	// expose the map key, and the tiebreak key is that raw key string —
+	// mirroring pgengine — so compound SortKeyCursor pagination is externally
+	// derivable (the F22 conformance matrix: tiebreaking on the stored value
+	// bytes made cursor keys un-derivable, since re-marshalling a decoded map
+	// does not reproduce json v2's non-canonical map key order).
 	var rows *sql.Rows
 
 	var err error
 
 	if plan, ok := e.plans[col]; ok {
 		rows, err = e.xd(ctx).
-			QueryContext(ctx, "SELECT value FROM "+metaengine.QuoteIdent(plan.Table))
+			QueryContext(ctx, "SELECT key, value FROM "+metaengine.QuoteIdent(plan.Table))
 	} else {
 		rows, err = e.xd(ctx).
-			QueryContext(ctx, `SELECT value FROM meta_map WHERE collection = ?`, col)
+			QueryContext(ctx, `SELECT key, value FROM meta_map WHERE collection = ?`, col)
 	}
 
 	if err != nil {
@@ -385,9 +390,9 @@ func (e *sqliteEngine) MapScan(
 	var pairs []kv
 
 	for rows.Next() {
-		var valStr string
+		var key, valStr string
 
-		if err := rows.Scan(&valStr); err != nil {
+		if err := rows.Scan(&key, &valStr); err != nil {
 			return metaengine.ScanResult{}, err //nolint:wrapcheck // passthrough
 		}
 
@@ -397,7 +402,7 @@ func (e *sqliteEngine) MapScan(
 			continue
 		}
 
-		pairs = append(pairs, kv{key: valStr, value: val})
+		pairs = append(pairs, kv{key: key, value: val})
 	}
 
 	if err := rows.Err(); err != nil {
