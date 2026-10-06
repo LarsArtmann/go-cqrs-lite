@@ -9,8 +9,9 @@ import (
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill/message"
 	gochannel "github.com/ThreeDotsLabs/watermill/pubsub/gochannel"
-	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
+
+	"github.com/larsartmann/go-cqrs-lite/command/v4"
 )
 
 // CommandBus is a full command.Bus implementation backed by a Watermill

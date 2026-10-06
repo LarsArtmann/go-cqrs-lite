@@ -5,12 +5,12 @@ go 1.27
 require (
 	github.com/dustin/go-humanize v1.1.0
 	github.com/larsartmann/go-codec v0.3.1
-	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.7.1
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.13.0
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.2
-	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.3.2
+	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.7.2
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.13.1
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.1
+	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.3.3
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.5.0
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.16.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.16.1
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.4.1
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.5.2
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.0
@@ -64,7 +64,6 @@ require (
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/snappy v1.0.0 // indirect
-	github.com/google/pprof v0.0.0-20260926063103-aaccee046517 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
@@ -79,21 +78,20 @@ require (
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/larsartmann/go-branded-id v0.7.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/command/v4 v4.13.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4 v4.2.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.2.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.3 // indirect
-	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.4.2 // indirect
-	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.2 // indirect
+	github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.2 // indirect
+	github.com/larsartmann/go-cqrs-lite/command/v4 v4.13.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4 v4.2.2 // indirect
+	github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.2.2 // indirect
+	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.4 // indirect
+	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.2 // indirect
+	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.4.3 // indirect
+	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.5.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.5.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/pebble/v4 v4.4.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.10.3 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
-	github.com/larsartmann/go-idempotency v0.3.1 // indirect
 	github.com/larsartmann/go-sqlitestore v0.1.0 // indirect
 	github.com/larsartmann/go-sse v0.6.2 // indirect
 	github.com/lib/pq v1.12.3 // indirect
@@ -153,7 +151,6 @@ require (
 	golang.org/x/sync v0.23.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
 	golang.org/x/text v0.42.0 // indirect
-	golang.org/x/tools v0.51.0 // indirect
 	google.golang.org/protobuf v1.36.12 // indirect
 	modernc.org/libc v1.77.1 // indirect
 	modernc.org/mathutil v1.7.1 // indirect

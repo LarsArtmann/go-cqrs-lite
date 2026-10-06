@@ -8,8 +8,9 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
+
+	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 )
 
 // indexManifestFile is the machine-readable manifest written to the export

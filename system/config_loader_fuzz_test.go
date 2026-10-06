@@ -6,9 +6,10 @@ import (
 	"strings"
 	"testing"
 
+	"pgregory.net/rapid"
+
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
-	"pgregory.net/rapid"
 )
 
 // Rapid properties over the LoadConfig koanf/YAML/env surfaces (Feedback #6

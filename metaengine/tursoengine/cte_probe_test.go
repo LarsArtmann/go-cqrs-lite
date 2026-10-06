@@ -6,8 +6,9 @@ import (
 	"slices"
 	"testing"
 
-	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	_ "turso.tech/database/tursogo" // registers "turso" driver with database/sql
+
+	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 // cteProbeSQL mirrors sqliteengine's construction-time probe

@@ -4,10 +4,11 @@ import (
 	"context"
 	"testing"
 
-	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 	"go.opentelemetry.io/otel/codes"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
+
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 )
 
 // Exemplars are ON by default: the SDK ships the trace-based exemplar

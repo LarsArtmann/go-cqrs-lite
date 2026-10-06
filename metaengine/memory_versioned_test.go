@@ -6,8 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/record/v4"
 	"pgregory.net/rapid"
+
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 func TestMemoryEngine_VersionedStorage(t *testing.T) {

@@ -6,8 +6,9 @@ import (
 	"path/filepath"
 
 	yaml "github.com/go-faster/yaml"
-	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
+
+	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 )
 
 func (e *Exporter) writeCustomDoc(doc catalog.CustomDoc) error {
