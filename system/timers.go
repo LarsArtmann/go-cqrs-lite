@@ -67,15 +67,11 @@ func (s *System) startTimersLocked(parent context.Context) {
 	s.timerCancel = cancel
 
 	for _, sched := range s.timers {
-		s.timersWG.Add(1)
-
-		go func() {
-			defer s.timersWG.Done()
-
+		s.timersWG.Go(func() {
 			// Start returns only on context cancellation (the documented
 			// Scheduler contract); its error is terminal noise at shutdown.
 			_ = sched.Start(ctx)
-		}()
+		})
 	}
 }
 

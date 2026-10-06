@@ -180,7 +180,7 @@ func (b *blockingScheduler) Start(ctx context.Context) error {
 
 	b.once.Do(func() { close(b.returned) })
 
-	return ctx.Err() //nolint:wrapcheck // passthrough of the cancellation cause
+	return ctx.Err()
 }
 
 // TestSystem_CloseStopsTimersAndWait pins M08: plain Close (not just
