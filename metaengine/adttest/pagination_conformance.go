@@ -161,7 +161,7 @@ func RunPaginationConformance(t *testing.T, probes []PaginationProbe) {
 }
 
 // paginationWalk drives one full pagination walk at a fixed limit and returns
-// every conformance violation it finds (empty result = conformant). Returning
+// every rule break it finds (empty result = conformant). Returning
 // problems instead of calling t.Errorf directly keeps the harness itself
 // testable: the self-test proves a wrong CursorKey form produces violations.
 func paginationWalk(
