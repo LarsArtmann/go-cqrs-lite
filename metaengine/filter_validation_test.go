@@ -105,7 +105,10 @@ func TestScanRejectsHostileColumns(t *testing.T) {
 		"col`desc",
 	}
 	for _, column := range hostileColumns {
-		if _, err := reader.Scan(ctx, metaengine.WithFilter(column, metaengine.FilterEq, "x")); err == nil {
+		if _, err := reader.Scan(
+			ctx,
+			metaengine.WithFilter(column, metaengine.FilterEq, "x"),
+		); err == nil {
 			t.Errorf("Scan must reject hostile filter column %q", column)
 		}
 
@@ -115,7 +118,10 @@ func TestScanRejectsHostileColumns(t *testing.T) {
 	}
 
 	for _, column := range []string{"status", "user.Name", "created-at", "外のキー"} {
-		if _, err := reader.Scan(ctx, metaengine.WithFilter(column, metaengine.FilterEq, "x")); err != nil {
+		if _, err := reader.Scan(
+			ctx,
+			metaengine.WithFilter(column, metaengine.FilterEq, "x"),
+		); err != nil {
 			t.Errorf("Scan must accept benign filter column %q, got: %v", column, err)
 		}
 	}

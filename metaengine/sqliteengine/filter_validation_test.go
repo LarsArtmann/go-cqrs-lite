@@ -82,6 +82,10 @@ func TestBuildStreamQueryRejectsHostileInput(t *testing.T) {
 	}
 
 	if !strings.Contains(query, "json_extract(value, '$.status') = ?") || len(args) != 2 {
-		t.Errorf("benign filter must render the json_extract comparison, query=%q args=%v", query, args)
+		t.Errorf(
+			"benign filter must render the json_extract comparison, query=%q args=%v",
+			query,
+			args,
+		)
 	}
 }

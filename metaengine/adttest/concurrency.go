@@ -35,13 +35,13 @@ func AssertConcurrentVectorInsert(t *testing.T, eng metaengine.Engine) {
 
 	errs := make(chan error, writers*perWriter)
 
-	for w := 0; w < writers; w++ {
+	for w := range writers {
 		wg.Add(1)
 
 		go func(w int) {
 			defer wg.Done()
 
-			for i := 0; i < perWriter; i++ {
+			for i := range perWriter {
 				id := fmt.Sprintf("w%d_i%d", w, i)
 
 				if err := vb.VectorInsert(
@@ -126,8 +126,14 @@ func AssertConcurrentScanDuringWrite(t *testing.T, eng metaengine.Engine) {
 			}
 
 			if isSearch {
-				if err := search.SearchInsert(ctx, "scan_race_text"+suffix,
-					metaengine.IndexedText{ID: id, Content: fmt.Sprintf("row %d needle", i)}); err != nil {
+				if err := search.SearchInsert(
+					ctx,
+					"scan_race_text"+suffix,
+					metaengine.IndexedText{
+						ID:      id,
+						Content: fmt.Sprintf("row %d needle", i),
+					},
+				); err != nil {
 					t.Errorf("writer search insert: %v", err)
 					return
 				}
@@ -139,7 +145,7 @@ func AssertConcurrentScanDuringWrite(t *testing.T, eng metaengine.Engine) {
 
 	var readerWG sync.WaitGroup
 
-	for r := 0; r < readers; r++ {
+	for range readers {
 		readerWG.Add(1)
 
 		go func() {

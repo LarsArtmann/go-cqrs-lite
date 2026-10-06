@@ -60,7 +60,10 @@ func (m *MemoryVectorIndex) Insert(_ context.Context, collection string, emb Emb
 	}
 
 	m.dims[collection] = len(emb.Values)
-	m.collectionLocked(collection)[emb.ID] = memoryVectorEntry{values: emb.Values, metadata: emb.Metadata}
+	m.collectionLocked(collection)[emb.ID] = memoryVectorEntry{
+		values:   emb.Values,
+		metadata: emb.Metadata,
+	}
 
 	return nil
 }
