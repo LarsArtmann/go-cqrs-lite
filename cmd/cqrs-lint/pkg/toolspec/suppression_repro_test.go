@@ -1,9 +1,11 @@
 package toolspec
 
 // Repro test for the inline-suppression drop at the toolsdk boundary (M12,
-// DiscordSync 2026-10-05). NOT part of the upstream suite: this file exists
-// to prove, on identical fixture input, that the CLI honors
-// //cqrs-lint:ignore(C003) while Spec().Detect does not.
+// DiscordSync 2026-10-05). Kept as the regression pin after the fix: detect()
+// now composes suppression.NewSuppressionFilter and drops marked findings,
+// matching the CLI pipeline. The two cases below prove, on identical fixture
+// input, that Spec().Detect honors //cqrs-lint:ignore(C003) while the
+// directive-free control still fires.
 //
 // Control: the same fixture WITHOUT the directive must yield C003 (the
 // trigger fires). Repro: with the directive, C003 must NOT appear — the

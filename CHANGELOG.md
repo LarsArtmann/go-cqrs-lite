@@ -26,9 +26,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
      did NOT retag the root module (doc.go unchanged since v4.0.0; zero
      importable packages) — root stays v4.0.0. -->
      root stays v4.0.0. -->
+## [v4.14.1] — 2026-10-06
+
+- **cqrs-lint v4.14.1: toolsdk Spec now honors inline suppressions (M12, DiscordSync 2026-10-05).** `Spec().Detect` returned the RAW finding set — `//cqrs-lint:ignore(...)` directives were dropped at the toolsdk boundary because the suppression filter lived only in the CLI's pipeline composition. detect() now composes `suppression.NewSuppressionFilter()` and drops marked findings (`finding.Filter(NotSuppressed)`), matching the CLI pipeline's own drop point (pipeline_detect drops `IsSuppressed`). BuildFlow and any toolsdk host now see the CLI-parity effective set. The repro canary shipped with the report passes and stays as the regression pin.
+- **cqrs-lint v4.14.1: parallel-test data race on os.Stdout fixed.** v4.14.0's new CLI-contract tests called `ExecuteWithArgs` (fang/cobra read the process-global os.Stdout via `OutOrStdout`) while `captureStdout`-based tests swapped it — a `-race` red on the shipped suite. A package `stdoutMu` now serializes both funnels; direct executions route through a `runCLI` helper, capture callbacks keep the raw call under the already-held lock.
+- **cqrs-lint v4.14.1: test-fixture and golden heals.** `testdata/typedfixture`'s go.sum gained the missing rows (indirect go-codec v0.3.0→v0.3.1; the deliberate drift-test pins untouched) — the v4.14.0 tag shipped with the P014/V007 typed tests failing on "no packages loaded"; the taskmanager golden re-pinned for a one-line source shift in `example/taskmanager/setup.go` (C015 286→285, class and target unchanged).
+
 ## [v4.7.1] — 2026-10-05
 
 - **catalog: templ-components pins v1.20.0 → v1.20.1 (heal the v4.7.0 poison chain).** templ-components v1.20.0's published go.mod required four sibling submodules at zero pseudo-versions (`v1.20.0-00010101000000-000000000000` — unresolvable on the proxy), so any consumer resolving catalog v4.7.0's graph WITHOUT an independent higher templ-components pin failed `go mod tidy`/download. v1.20.1 (templ-components 085e1068) pins the siblings at real versions; catalog re-pins root + icons + utils + htmx (indirect) to it. No API changes.
+- **id: test suite realigned to the v4.7.0 branding contract (2026-10-06).** The v4.7.0 tag shipped with 15 red tests: parse/derive/encoding/fuzz/idtest assertions compared `.String()` to bare literals, encoding the pre-branding contract (String == identity). Identity assertions now read `.Get()` (the bare wire/identity form; MarshalText/JSON/SQL stay bare), the JSON roundtrip test constructs `NewStreamID()` instead of the accidentally-double-branded `New[StreamID]()`, and a new `TestStreamIDDisplayAndIdentityLaws` pins both forms plus the round-trip law (`ParseStreamID(x).Get() == x`, `ParseStreamID(id.String()) == id`). No production-code changes.
 
 ## [v4.16.1] — 2026-10-05
 
@@ -97,6 +104,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [v4.6.1] — 2026-10-05
 
 - **2026-10-05 dependency sweep (2 modules: `snapshot`, `storage/memory`).** PROPRIETARY LICENSE copies, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No API changes (api-stability golden carries no delta for these modules).
+- **scheduling: test suite realigned to the v4.6.0 branding contract (2026-10-06).** Three MemoryTimerStore/Scheduler tests asserted timer IDs via `.String()` against bare literals; with `TimerMarker.Name()` branding the display form, the v4.6.0 tag shipped with them red. Identity assertions now read `.Get()`. No production-code changes.
 
 ## [v4.6.0] — 2026-10-05
 

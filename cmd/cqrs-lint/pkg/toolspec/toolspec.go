@@ -13,6 +13,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/fix"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/suppression"
 	"github.com/larsartmann/go-finding"
 	"github.com/larsartmann/go-finding/pipeline"
 	"github.com/larsartmann/go-finding/toolsdk"
@@ -105,7 +106,19 @@ func detect(ctx context.Context) ([]finding.Finding, error) {
 
 	all = analyzer.ApplySeverityOverrides(all, effective.SeverityOverrides)
 
-	return analyzer.FilterDisabledFindings(all, effective.DisabledSet()), nil
+	all = analyzer.FilterDisabledFindings(all, effective.DisabledSet())
+
+	// Inline-suppression parity with the CLI pipeline (M12, DiscordSync
+	// 2026-10-05): the CLI's pipeline marks findings suppressed by
+	// //cqrs-lint:ignore(...) comments and drops them before reporting
+	// (pipeline_detect drops IsSuppressed findings); the Spec boundary must
+	// return the same effective set, not the raw one.
+	marked, err := suppression.NewSuppressionFilter().Transform(ctx, all)
+	if err != nil {
+		return nil, fmt.Errorf("cqrs-lint: suppression filter: %w", err)
+	}
+
+	return finding.Filter(marked, finding.NotSuppressed), nil
 }
 
 // loadVerdict implements CLI parity for the toolsdk boundary (issue #42).
