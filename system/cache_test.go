@@ -18,6 +18,7 @@ import (
 // straddle a concurrent Save commit — the window the idea-233 race lives in.
 type slowLoadStore struct {
 	event.Store
+
 	delay time.Duration
 }
 

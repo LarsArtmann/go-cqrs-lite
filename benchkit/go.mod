@@ -9,10 +9,10 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.13.1
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.1
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.3.3
-	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.5.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.5.1
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.16.1
-	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.4.1
-	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.5.2
+	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.4.2
+	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.5.3
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.0
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.1
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.6.0
@@ -87,14 +87,13 @@ require (
 	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.4.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.5.2 // indirect
-	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.5.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/pebble/v4 v4.4.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.10.3 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
 	github.com/larsartmann/go-sqlitestore v0.1.0 // indirect
 	github.com/larsartmann/go-sse v0.6.2 // indirect
-	github.com/lib/pq v1.12.3 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/lufia/plan9stats v0.0.0-20260802145828-341c2f0c90b5 // indirect
 	github.com/magiconair/properties v1.18.12 // indirect
