@@ -40,9 +40,10 @@ type TimerScheduler interface {
 }
 
 // ManageTimers hands a Scheduler's lifecycle to the composition root: it is
-// started when the System starts and stopped (context cancelled, run to
-// completion) on GracefulClose — timers become a system-owned concern, not
-// a consumer-managed goroutine. Register before Start.
+// started when the System starts and stopped — context cancelled and waited
+// to completion — on both Close and GracefulClose. Timers become a
+// system-owned concern, not a consumer-managed goroutine. Register before
+// Start.
 func (s *System) ManageTimers(sched TimerScheduler) {
 	if sched == nil {
 		return
@@ -66,7 +67,11 @@ func (s *System) startTimersLocked(parent context.Context) {
 	s.timerCancel = cancel
 
 	for _, sched := range s.timers {
+		s.timersWG.Add(1)
+
 		go func() {
+			defer s.timersWG.Done()
+
 			// Start returns only on context cancellation (the documented
 			// Scheduler contract); its error is terminal noise at shutdown.
 			_ = sched.Start(ctx)
@@ -74,16 +79,27 @@ func (s *System) startTimersLocked(parent context.Context) {
 	}
 }
 
-// stopTimers cancels the scheduler context and waits for Start to return.
+// stopTimers cancels the scheduler context and waits for every Start
+// goroutine to return. Callers must NOT hold s.mu; use stopTimersLocked
+// under Close's lock instead.
 func (s *System) stopTimers() {
 	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.stopTimersLocked()
+}
+
+// stopTimersLocked cancels the scheduler context and waits for every Start
+// goroutine to return, so nothing dispatched by a managed scheduler can
+// race the teardown that follows. The caller must hold s.mu; idempotent
+// (a no-op when timers never started or are already stopped).
+func (s *System) stopTimersLocked() {
 	cancel := s.timerCancel
 	s.timerCancel = nil
-	s.mu.Unlock()
 
-	if cancel == nil {
-		return
+	if cancel != nil {
+		cancel()
 	}
 
-	cancel()
+	s.timersWG.Wait()
 }

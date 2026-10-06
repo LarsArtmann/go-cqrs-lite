@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"sync"
 )
 
@@ -82,7 +83,9 @@ func LookupDriver(name string) (DriverFactory, error) {
 	return factory, nil
 }
 
-// RegisteredDrivers returns the names of all registered storage drivers.
+// RegisteredDrivers returns the names of all registered storage drivers in
+// sorted order, so introspection output (System.Explain topology, dashboards)
+// stays deterministic across boots regardless of map iteration order.
 func RegisteredDrivers() []string {
 	driverMu.RLock()
 	defer driverMu.RUnlock()
@@ -91,6 +94,8 @@ func RegisteredDrivers() []string {
 	for name := range drivers {
 		names = append(names, name)
 	}
+
+	slices.Sort(names)
 
 	return names
 }

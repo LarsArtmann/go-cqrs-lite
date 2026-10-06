@@ -2,6 +2,7 @@ package system_test
 
 import (
 	"context"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -163,6 +164,58 @@ func TestSystem_DomainConfigTimersHook(t *testing.T) {
 
 	if err := sys.GracefulClose(context.Background()); err != nil {
 		t.Fatalf("GracefulClose: %v", err)
+	}
+}
+
+// blockingScheduler satisfies TimerScheduler: Start blocks until its context
+// is cancelled, then signals. It is the minimal observable for "Close stopped
+// AND waited for the managed scheduler".
+type blockingScheduler struct {
+	returned chan struct{}
+	once     sync.Once
+}
+
+func (b *blockingScheduler) Start(ctx context.Context) error {
+	<-ctx.Done()
+
+	b.once.Do(func() { close(b.returned) })
+
+	return ctx.Err() //nolint:wrapcheck // passthrough of the cancellation cause
+}
+
+// TestSystem_CloseStopsTimersAndWait pins M08: plain Close (not just
+// GracefulClose) must cancel the managed schedulers' context and WAIT for
+// Start to return before closing engines — otherwise scheduler dispatch
+// races the engine teardown that follows in Close.
+func TestSystem_CloseStopsTimersAndWait(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	sys, err := system.New(ctx, system.DomainConfig{}, system.DeploymentConfig{
+		Engines:   map[string]system.EngineConfig{"primary": {Driver: "memory"}},
+		Instances: []system.InstanceConfig{{Role: system.RoleSourceOfTruth, Engine: "primary"}},
+	})
+	if err != nil {
+		t.Fatalf("system.New: %v", err)
+	}
+
+	sched := &blockingScheduler{returned: make(chan struct{})}
+
+	sys.ManageTimers(sched)
+
+	if err := sys.Start(ctx); err != nil {
+		t.Fatalf("Start: %v", err)
+	}
+
+	if err := sys.Close(); err != nil {
+		t.Fatalf("Close: %v", err)
+	}
+
+	select {
+	case <-sched.returned:
+	case <-time.After(5 * time.Second):
+		t.Fatal("Close returned but the managed scheduler's Start is still running")
 	}
 }
 
