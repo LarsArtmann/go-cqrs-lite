@@ -48,6 +48,33 @@ func TestCapabilityConformance(t *testing.T) {
 	})
 }
 
+// TestPaginationConformance runs the compound-cursor MapScan pagination walk
+// (M06/F22): tie-heavy pages must cover every row exactly once with monotone
+// order and honest HasMore. Probes rebuild each engine's externally observable
+// tiebreak key form — raw map key for memory, stored value JSON for sqlite
+// (whose MapScan selects only the value column). Engine modules run the same
+// walk for their engines in their adt_matrix_test.go.
+func TestPaginationConformance(t *testing.T) {
+	t.Parallel()
+
+	adttest.RunPaginationConformance(t, []adttest.PaginationProbe{
+		{
+			Factory: adttest.Factory{
+				Name:   "memory",
+				Create: func(t *testing.T) metaengine.Engine { return metaengine.NewMemoryEngine() },
+			},
+			CursorKey: adttest.CursorKeyRaw,
+		},
+		{
+			Factory: adttest.Factory{
+				Name:   "sqlite",
+				Create: func(t *testing.T) metaengine.Engine { return newIsolatedSQLiteEngine(t) },
+			},
+			CursorKey: adttest.CursorKeyValueJSON,
+		},
+	})
+}
+
 func TestLayoutMatrix(t *testing.T) {
 	t.Parallel()
 
