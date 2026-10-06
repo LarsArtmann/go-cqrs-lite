@@ -119,7 +119,7 @@ func AssertConcurrentScanDuringWrite(t *testing.T, eng metaengine.Engine) {
 
 			if isSpatial {
 				if err := sb.SpatialInsert(ctx, "scan_race_spatial"+suffix,
-					metaengine.Point{ID: id, X: float64(i % 360) - 180, Y: 0}); err != nil {
+					metaengine.Point{ID: id, X: float64(i%360) - 180, Y: 0}); err != nil {
 					t.Errorf("writer spatial insert: %v", err)
 					return
 				}
