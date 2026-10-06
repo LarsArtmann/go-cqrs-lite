@@ -2,6 +2,7 @@ package system
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"maps"
@@ -88,7 +89,7 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 		cfg := deployment.Engines[name]
 		eng, err := createEngineFromDriver(ctx, cfg, engineDurability[name])
 		if err != nil {
-			return nil, fmt.Errorf("system: create engine %q: %w", name, err)
+			return nil, sys.fail(fmt.Errorf("system: create engine %q: %w", name, err))
 		}
 
 		engineCache[name] = eng
@@ -99,14 +100,14 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 	// over the source-of-truth instance for their store.
 	dedicated, err := resolveDedicatedRoles(deployment)
 	if err != nil {
-		return nil, err
+		return nil, sys.fail(err)
 	}
 
 	// Wire source-of-truth and projection instances.
 	for _, inst := range deployment.Instances {
 		if isSourceOfTruth(inst.Role) {
 			if err := wireSourceOfTruth(sys, deployment, inst, engineCache, dedicated); err != nil {
-				return nil, err
+				return nil, sys.fail(err)
 			}
 		}
 
@@ -128,10 +129,10 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 			}
 
 			if len(unresolved) > 0 {
-				return nil, fmt.Errorf(
+				return nil, sys.fail(fmt.Errorf(
 					"%w: projections instance references undefined engine(s): %s",
 					ErrUnknownEngine, strings.Join(unresolved, ", "),
-				)
+				))
 			}
 
 			if len(projEngines) > 0 && len(processedProjections) > 0 {
@@ -148,7 +149,7 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 					projEngines,
 					append(planOpts, processedProjections...)...)
 				if err != nil {
-					return nil, fmt.Errorf("system: plan projections: %w", err)
+					return nil, sys.fail(fmt.Errorf("system: plan projections: %w", err))
 				}
 
 				sys.projStore = store
@@ -159,7 +160,7 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 	// Bind dedicated command/query/snapshot instances (after the loop so they
 	// take precedence over any source-of-truth wiring above).
 	if err := wireDedicatedRoles(sys, deployment, dedicated, engineCache); err != nil {
-		return nil, err
+		return nil, sys.fail(err)
 	}
 
 	// Default source of truth when nothing was wired: a Memory engine.
@@ -176,7 +177,7 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 
 		store, err := metaengine.Plan([]metaengine.Engine{eng}, processedProjections...)
 		if err != nil {
-			return nil, fmt.Errorf("system: plan default projections: %w", err)
+			return nil, sys.fail(fmt.Errorf("system: plan default projections: %w", err))
 		}
 
 		sys.projStore = store
@@ -186,21 +187,24 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 	// host can use the bus as a live subscriber.
 	bus, err := createEventBus(deployment)
 	if err != nil {
-		return nil, err
+		return nil, sys.fail(err)
 	}
 
 	sys.bus = bus
-	pub, fanouts, err := buildPublisher(deployment, sys.bus)
-	if err != nil {
-		return nil, err
-	}
 
-	sys.pubBus = pub
-
-	// Register the bus for lifecycle management (watermill.EventBus implements io.Closer).
+	// Register the bus for lifecycle management (watermill.EventBus implements
+	// io.Closer) BEFORE the publisher build so a buildPublisher failure cannot
+	// strand the bus's goroutines.
 	if closer, ok := bus.(io.Closer); ok {
 		sys.closers = append(sys.closers, namedCloser{closer: closer, name: "event-bus"})
 	}
+
+	pub, fanouts, err := buildPublisher(deployment, sys.bus)
+	if err != nil {
+		return nil, sys.fail(err)
+	}
+
+	sys.pubBus = pub
 
 	// Register each fan-out bus by its Publish target name so Close() does not
 	// leak them and diagnostics show the operator-facing name.
@@ -215,7 +219,7 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 	if sys.projStore != nil {
 		journal, ok := sys.eventStore.(event.SeekableJournal)
 		if !ok {
-			return nil, ErrSeekableJournalMissing
+			return nil, sys.fail(ErrSeekableJournalMissing)
 		}
 
 		// Auto-wire the system bus as the subscriber for live event delivery
@@ -232,7 +236,7 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 
 		host, err := projectionhost.New(journal, cpStore, hostOpts...)
 		if err != nil {
-			return nil, fmt.Errorf("system: create projection host: %w", err)
+			return nil, sys.fail(fmt.Errorf("system: create projection host: %w", err))
 		}
 
 		// Register a projection adapter that feeds events into the metaengine Store.
@@ -265,7 +269,7 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 		}
 
 		if err := host.Register(adapter); err != nil {
-			return nil, fmt.Errorf("system: register projection adapter: %w", err)
+			return nil, sys.fail(fmt.Errorf("system: register projection adapter: %w", err))
 		}
 
 		sys.projHost = host
@@ -280,7 +284,7 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 
 		planReport, err := CheckPlanSafety(ctx, currentPlan, deployment.ManifestPath)
 		if err != nil {
-			return nil, fmt.Errorf("system: plan safety check: %w", err)
+			return nil, sys.fail(fmt.Errorf("system: plan safety check: %w", err))
 		}
 
 		// Surface plan-drift WARN/ADVISORY findings alongside config findings.
@@ -294,7 +298,7 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 				detail = planReport.Diagnostics[0].Detail
 			}
 
-			return nil, fmt.Errorf("%w: %s", ErrUnsafeChange, detail)
+			return nil, sys.fail(fmt.Errorf("%w: %s", ErrUnsafeChange, detail))
 		}
 	}
 
@@ -304,7 +308,7 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 	// shutdown topological sort (E10), while config-only validation would
 	// reject the documented synthetic names (the E10 follow-up gap).
 	if err := validateShutdownDependencies(domain.ShutdownDependencies, sys.engines); err != nil {
-		return nil, err
+		return nil, sys.fail(err)
 	}
 
 	for _, dep := range domain.ShutdownDependencies {
@@ -331,6 +335,40 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 	}
 
 	return sys, nil
+}
+
+// fail tears down everything New created so far and returns err with any
+// teardown failures joined after it. It is the single exit for New's error
+// paths once the first engine exists: returning the bare error there would
+// drop the System on the floor and leak engine file handles, locks, and
+// background goroutines. Ordering mirrors [System.Close] (projection host,
+// then engines, then registered closers); teardown errors never mask the
+// construction error.
+func (sys *System) fail(err error) error {
+	var errs []error
+	if err != nil {
+		errs = append(errs, err)
+	}
+
+	if sys.projHost != nil {
+		if stopErr := sys.projHost.Stop(); stopErr != nil {
+			errs = append(errs, fmt.Errorf("system: fail-cleanup projection host: %w", stopErr))
+		}
+	}
+
+	for _, eng := range sys.orderedEngines() {
+		if closeErr := eng.Close(); closeErr != nil {
+			errs = append(errs, fmt.Errorf("system: fail-cleanup engine: %w", closeErr))
+		}
+	}
+
+	for _, nc := range sys.closers {
+		if closeErr := nc.closer.Close(); closeErr != nil {
+			errs = append(errs, fmt.Errorf("system: fail-cleanup %s: %w", nc.name, closeErr))
+		}
+	}
+
+	return errors.Join(errs...)
 }
 
 // Start begins projection processing (if configured).
