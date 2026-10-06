@@ -1,6 +1,7 @@
 package sqliteengine
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
 	"errors"
@@ -403,42 +404,26 @@ func (e *sqliteEngine) MapScan(
 		return metaengine.ScanResult{}, err //nolint:wrapcheck // passthrough
 	}
 
-	sort.Slice(pairs, func(i, j int) bool {
-		if sortFunc != nil {
-			if c := sortFunc(pairs[i].value, pairs[j].value); c != 0 {
-				return c < 0
-			}
-		}
+	if sortFunc == nil {
+		sort.Slice(pairs, func(i, j int) bool {
+			return bytes.Compare([]byte(pairs[i].key), []byte(pairs[j].key)) < 0
+		})
 
-		return strings.Compare(pairs[i].key, pairs[j].key) < 0
-	})
-
-	//art-dupl:accept cross-module engine pattern — dep-isolated go.mod modules
-	if cursor != nil && sortFunc != nil {
-		filtered := pairs[:0]
-
-		for _, p := range pairs {
-			if sortFunc(p.value, cursor) <= 0 {
-				continue
-			}
-
-			filtered = append(filtered, p)
-		}
-
-		pairs = filtered
+		return metaengine.PairsToScanResult(pairs, func(p kv) any { return p.value }, limit), nil
 	}
 
-	hasMore := limit > 0 && len(pairs) > limit
-	if hasMore {
-		pairs = pairs[:limit]
-	}
-
-	results := make([]any, len(pairs))
-	for i, p := range pairs {
-		results[i] = p.value
-	}
-
-	return metaengine.ScanResult{Items: results, HasMore: hasMore}, nil
+	return metaengine.PairsToScanResult(
+		metaengine.SortPaginate(
+			pairs,
+			func(p kv) []byte { return []byte(p.key) },
+			func(p kv) any { return p.value },
+			sortFunc,
+			cursor,
+			limit,
+		),
+		func(p kv) any { return p.value },
+		limit,
+	), nil
 }
 
 // --- metaengine.PushdownScan ---

@@ -4,8 +4,6 @@ import (
 	"context"
 	"encoding/json/v2"
 	"fmt"
-	"sort"
-	"strings"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
@@ -65,39 +63,16 @@ func (e *dgraphEngine) MapScan(
 		pairs = append(pairs, kv{key: entry.MapKey, value: val})
 	}
 
-	if sortFunc != nil {
-		sort.Slice(pairs, func(i, j int) bool {
-			if c := sortFunc(pairs[i].value, pairs[j].value); c != 0 {
-				return c < 0
-			}
-
-			return strings.Compare(pairs[i].key, pairs[j].key) < 0
-		})
-	}
-
-	//art-dupl:accept cross-module engine pattern — dep-isolated go.mod modules
-	if cursor != nil && sortFunc != nil {
-		filtered := pairs[:0]
-		for _, p := range pairs {
-			if sortFunc(p.value, cursor) <= 0 {
-				continue
-			}
-
-			filtered = append(filtered, p)
-		}
-
-		pairs = filtered
-	}
-
-	hasMore := limit > 0 && len(pairs) > limit
-	if hasMore {
-		pairs = pairs[:limit]
-	}
-
-	items := make([]any, len(pairs))
-	for i, p := range pairs {
-		items[i] = p.value
-	}
-
-	return metaengine.ScanResult{Items: items, HasMore: hasMore}, nil
+	return metaengine.PairsToScanResult(
+		metaengine.SortPaginate(
+			pairs,
+			func(p kv) []byte { return []byte(p.key) },
+			func(p kv) any { return p.value },
+			sortFunc,
+			cursor,
+			limit,
+		),
+		func(p kv) any { return p.value },
+		limit,
+	), nil
 }

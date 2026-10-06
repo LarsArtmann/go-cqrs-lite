@@ -1,10 +1,10 @@
 package metaengine
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"sort"
-	"strings"
 	"sync"
 )
 
@@ -212,35 +212,27 @@ func (m *memoryEngine) MapScan(
 		pairs = append(pairs, kv{key: k, value: v})
 	}
 
-	// Sort with a deterministic tiebreaker: primary = sort comparator,
-	// secondary = map key (as string). This ensures reproducible output
-	// even though Go randomizes map iteration order.
-	sort.Slice(pairs, func(i, j int) bool {
-		if sortFunc != nil {
-			if c := sortFunc(pairs[i].value, pairs[j].value); c != 0 {
-				return c < 0
-			}
-		}
+	// Deterministic key form: the map key rendered as bytes. It drives both the
+	// sort tiebreaker and the compound cursor comparison, mirroring the byte
+	// keys the KV engines hand to the shared SortPaginate core.
+	keyOf := func(p kv) []byte { return []byte(fmt.Sprintf("%v", p.key)) }
+	valueOf := func(p kv) any { return p.value }
 
-		return strings.Compare(fmt.Sprintf("%v", pairs[i].key), fmt.Sprintf("%v", pairs[j].key)) < 0
-	})
+	// Without a sort comparator the cursor filter is inert; sorting on the key
+	// form alone keeps output deterministic despite randomized map iteration.
+	if sortFunc == nil {
+		sort.Slice(pairs, func(i, j int) bool {
+			return bytes.Compare(keyOf(pairs[i]), keyOf(pairs[j])) < 0
+		})
 
-	// Keyset pagination: skip items at or before the cursor position.
-	if cursor != nil && sortFunc != nil {
-		filtered := pairs[:0]
-		for _, p := range pairs {
-			c := sortFunc(p.value, cursor)
-			if c <= 0 {
-				continue
-			}
-
-			filtered = append(filtered, p)
-		}
-
-		pairs = filtered
+		return PairsToScanResult(pairs, valueOf, limit), nil
 	}
 
-	return PairsToScanResult(pairs, func(p kv) any { return p.value }, limit), nil
+	return PairsToScanResult(
+		SortPaginate(pairs, keyOf, valueOf, sortFunc, cursor, limit),
+		valueOf,
+		limit,
+	), nil
 }
 
 // --- VectorBackend ---
