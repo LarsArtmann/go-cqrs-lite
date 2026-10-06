@@ -54,7 +54,12 @@ func (s *Store) applyFold(
 			if perr, ok := r.(error); ok {
 				poisonErr = fmt.Errorf("%w: collection %q: %w", ErrPoisoned, q.QueryName(), perr)
 			} else {
-				poisonErr = fmt.Errorf("%w: collection %q, panic: %v", ErrPoisoned, q.QueryName(), r)
+				poisonErr = fmt.Errorf(
+					"%w: collection %q, panic: %v",
+					ErrPoisoned,
+					q.QueryName(),
+					r,
+				)
 			}
 
 			s.poison.Poison(q.QueryName(), poisonErr)

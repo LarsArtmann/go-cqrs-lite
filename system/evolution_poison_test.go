@@ -20,8 +20,7 @@ type PoisonCreated struct {
 }
 
 type PoisonRenamed struct {
-	ID    string
-	Title string
+	ID string
 }
 
 type PoisonView struct {
@@ -81,7 +80,9 @@ func TestSystem_EvolutionPoisonEvent_LandsInDLQ_WorkerSurvives(t *testing.T) {
 		base := metaengine.NewMemoryEngine()
 		inner, ok := base.(metaengine.MapBackend)
 		if !ok {
-			panic("memory engine must implement MapBackend") //nolint:forbidigo // test fixture wiring
+			panic(
+				"memory engine must implement MapBackend",
+			) //nolint:forbidigo // test fixture wiring
 		}
 
 		return &poisonPrevEngine{
@@ -103,7 +104,7 @@ func TestSystem_EvolutionPoisonEvent_LandsInDLQ_WorkerSurvives(t *testing.T) {
 				system.Evolve[PoisonView]("poison_evo").
 					On("poison.created", PoisonCreated{}),
 				"poison.renamed", PoisonRenamed{},
-				func(e PoisonRenamed, v *PoisonView) { v.Title = e.Title },
+				func(_ PoisonRenamed, v *PoisonView) { v.Title = "renamed" },
 			).Done(),
 		},
 		Projections: []system.ProjectionDeclaration{
@@ -158,7 +159,7 @@ func seedPoisonEvents(t *testing.T, ctx context.Context, sys *system.System) {
 		mustEvent(event.New("poison.created", streamID, "Poison", event.Version(1),
 			PoisonCreated{ID: "poison-1", Title: "Original"})),
 		mustEvent(event.New("poison.renamed", streamID, "Poison", event.Version(2),
-			PoisonRenamed{ID: "poison-1", Title: "Renamed"})),
+			PoisonRenamed{ID: "poison-1"})),
 		mustEvent(event.New("poison.created", streamID, "Poison", event.Version(3),
 			PoisonCreated{ID: "healthy-1", Title: "Healthy"})),
 	}
@@ -172,7 +173,10 @@ func seedPoisonEvents(t *testing.T, ctx context.Context, sys *system.System) {
 // post-poison insert landed) and the dead-letter store recorded the poison
 // event, or the deadline expires.
 func waitForPoisonDrain(
-	t *testing.T, ctx context.Context, sys *system.System, dlq *projectionhost.MemoryDeadLetterStore,
+	t *testing.T,
+	ctx context.Context,
+	sys *system.System,
+	dlq *projectionhost.MemoryDeadLetterStore,
 ) {
 	t.Helper()
 
@@ -185,7 +189,12 @@ func waitForPoisonDrain(
 		}
 
 		if len(entries) > 0 {
-			if _, getErr := system.Get[PoisonView](ctx, sys, "healthy_views", "healthy-1"); getErr == nil {
+			if _, getErr := system.Get[PoisonView](
+				ctx,
+				sys,
+				"healthy_views",
+				"healthy-1",
+			); getErr == nil {
 				return
 			}
 		}

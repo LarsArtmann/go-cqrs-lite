@@ -9,9 +9,10 @@ import (
 	"slices"
 	"strings"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
-	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // EvolutionSpec is a sealed interface for evolution declarations. An Evolution
@@ -170,7 +171,11 @@ func (b *evolutionBuilder[R]) Done() EvolutionSpec {
 
 // makeExplicitFold creates a metaengine update fold from an explicit fold entry.
 // It reifies prev to the result type, applies the mutation, and returns the result.
-func makeExplicitFold(evolution string, resultType reflect.Type, ef explicitFoldEntry) metaengine.Fold {
+func makeExplicitFold(
+	evolution string,
+	resultType reflect.Type,
+	ef explicitFoldEntry,
+) metaengine.Fold {
 	return metaengine.OnRecordTyped(
 		ef.eventType,
 		ef.sample,
