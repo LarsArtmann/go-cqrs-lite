@@ -20,9 +20,10 @@ type SortKeyCursor struct {
 // SortPaginate sorts pairs by value (with byte-key tiebreak for determinism),
 // applies keyset pagination (skipping items at or before cursor), and truncates
 // to limit+1 (the +1 lets callers detect has-more). It is the shared core of
-// the KV engines' in-memory scan paths (badger, pebble, bbolt); each engine
-// maps its own pair type in via keyOf/valueOf, so the extraction removes the
-// duplicated algorithm without forcing a common pair struct.
+// every engine's in-memory scan path (memory, sqlite, postgres, mysql, duckdb,
+// dgraph, badger, pebble, bbolt); each engine maps its own pair type in via
+// keyOf/valueOf, so the extraction removes the duplicated algorithm without
+// forcing a common pair struct.
 //
 // sortFn is a tri-state comparator (negative = a before b). When nil, no
 // sorting or cursor pagination is applied — only the limit truncation runs.
