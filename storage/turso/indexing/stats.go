@@ -6,9 +6,8 @@ import (
 	"fmt"
 	"strings"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // IndexUsageStats reports per-index statistics from the query planner.

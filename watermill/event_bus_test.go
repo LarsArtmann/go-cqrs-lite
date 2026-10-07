@@ -241,7 +241,11 @@ func TestEventBusPublishRacingCloseNeverLeaksRawTransportError(t *testing.T) {
 
 		select {
 		case err := <-rawErr:
-			t.Fatalf("iteration %d: publish leaked a raw transport error (want nil or typed ErrBusClosed): %v", i, err)
+			t.Fatalf(
+				"iteration %d: publish leaked a raw transport error (want nil or typed ErrBusClosed): %v",
+				i,
+				err,
+			)
 		default:
 		}
 	}

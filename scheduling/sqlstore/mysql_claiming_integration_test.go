@@ -25,7 +25,6 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
-
 	"github.com/larsartmann/go-cqrs-lite/scheduling/sqlstore/v4"
 	"github.com/larsartmann/go-cqrs-lite/scheduling/v4"
 )

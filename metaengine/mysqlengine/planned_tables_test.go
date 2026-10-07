@@ -4,9 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/onsi/gomega"
-
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/onsi/gomega"
 )
 
 // TestMySQLPlannedTablesReporting pins the PlannedTablesReporter capability

@@ -86,7 +86,7 @@ var _ = Describe("SQLiteEngine MapScan compound cursor (regression)", func() {
 			// F22 conformance fix), so the compound cursor key is the raw key
 			// string of the last returned row.
 			last := result.Items[len(result.Items)-1].(map[string]any) //nolint:forcetypeassert // by construction
-			lastKey := last["key"].(string)                           //nolint:forcetypeassert // by construction
+			lastKey := last["key"].(string)                            //nolint:forcetypeassert // by construction
 
 			cursor = metaengine.SortKeyCursor{Sort: last["sort"], Key: []byte(lastKey)}
 		}

@@ -91,8 +91,8 @@ const (
 // Keys are zero-padded so lexical order equals seeding order.
 func paginationSeededKeys() []string {
 	keys := make([]string, 0, paginationSortValues*paginationKeysPerVal)
-	for v := 0; v < paginationSortValues; v++ {
-		for n := 0; n < paginationKeysPerVal; n++ {
+	for v := range paginationSortValues {
+		for n := range paginationKeysPerVal {
 			keys = append(keys, fmt.Sprintf("k%02d-%02d", v, n))
 		}
 	}
@@ -102,11 +102,16 @@ func paginationSeededKeys() []string {
 
 // seedPaginationCollection inserts the tie-heavy dataset via MapBackend:
 // paginationSortValues sort values with paginationKeysPerVal tying keys each.
-func seedPaginationCollection(ctx context.Context, t *testing.T, mb metaengine.MapBackend, col string) {
+func seedPaginationCollection(
+	ctx context.Context,
+	t *testing.T,
+	mb metaengine.MapBackend,
+	col string,
+) {
 	t.Helper()
 
-	for v := 0; v < paginationSortValues; v++ {
-		for n := 0; n < paginationKeysPerVal; n++ {
+	for v := range paginationSortValues {
+		for n := range paginationKeysPerVal {
 			key := fmt.Sprintf("k%02d-%02d", v, n)
 			if err := mb.MapSet(ctx, col, key, map[string]any{"key": key, "sort": v}); err != nil {
 				t.Fatalf("MapSet %s: %v", key, err)
@@ -261,7 +266,9 @@ func paginationWalk(
 		}
 
 		if curSort == prevSort {
-			prevCK := probe.CursorKey(PaginationSeed{Collection: col, Key: prevKey, Item: items[i-1]})
+			prevCK := probe.CursorKey(
+				PaginationSeed{Collection: col, Key: prevKey, Item: items[i-1]},
+			)
 			curCK := probe.CursorKey(PaginationSeed{Collection: col, Key: curKey, Item: items[i]})
 			if bytes.Compare(prevCK, curCK) >= 0 {
 				problems = append(problems, fmt.Sprintf(

@@ -11,7 +11,6 @@ import (
 	"testing"
 
 	_ "github.com/go-sql-driver/mysql"
-
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
 )
 

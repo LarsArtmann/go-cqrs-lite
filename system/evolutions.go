@@ -9,10 +9,9 @@ import (
 	"slices"
 	"strings"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // EvolutionSpec is a sealed interface for evolution declarations. An Evolution

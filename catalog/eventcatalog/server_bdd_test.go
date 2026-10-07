@@ -7,10 +7,9 @@ import (
 	"net/http/httptest"
 	"testing/fstest"
 
+	"github.com/larsartmann/go-cqrs-lite/catalog/v4/eventcatalog"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-
-	"github.com/larsartmann/go-cqrs-lite/catalog/v4/eventcatalog"
 )
 
 //go:embed testdata/site

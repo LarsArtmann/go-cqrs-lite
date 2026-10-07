@@ -19,7 +19,12 @@ func TestPaginationWalk_MemoryExactOnce(t *testing.T) {
 	sb := eng.(metaengine.ScanBackend) //nolint:forcetypeassert // memory implements ScanBackend
 	ctx := context.Background()
 	col := t.Name()
-	seedPaginationCollection(ctx, t, eng.(metaengine.MapBackend), col) //nolint:forcetypeassert // memory implements MapBackend
+	seedPaginationCollection(
+		ctx,
+		t,
+		eng.(metaengine.MapBackend),
+		col,
+	) //nolint:forcetypeassert // memory implements MapBackend
 
 	probe := PaginationProbe{
 		Factory:   Factory{Name: "memory"},
@@ -27,8 +32,22 @@ func TestPaginationWalk_MemoryExactOnce(t *testing.T) {
 	}
 
 	for _, limit := range []int{1, 3, 4, 5, 7, 23, 24, 25} {
-		if problems := paginationWalk(ctx, t, sb, probe, col, paginationSortFn(t), limit); len(problems) > 0 {
-			t.Errorf("limit=%d: expected conformance, got violations: %s", limit, strings.Join(problems, "; "))
+		if problems := paginationWalk(
+			ctx,
+			t,
+			sb,
+			probe,
+			col,
+			paginationSortFn(t),
+			limit,
+		); len(
+			problems,
+		) > 0 {
+			t.Errorf(
+				"limit=%d: expected conformance, got violations: %s",
+				limit,
+				strings.Join(problems, "; "),
+			)
 		}
 	}
 }
@@ -46,7 +65,12 @@ func TestPaginationWalk_WrongKeyFormDetected(t *testing.T) {
 	sb := eng.(metaengine.ScanBackend) //nolint:forcetypeassert // memory implements ScanBackend
 	ctx := context.Background()
 	col := t.Name()
-	seedPaginationCollection(ctx, t, eng.(metaengine.MapBackend), col) //nolint:forcetypeassert // memory implements MapBackend
+	seedPaginationCollection(
+		ctx,
+		t,
+		eng.(metaengine.MapBackend),
+		col,
+	) //nolint:forcetypeassert // memory implements MapBackend
 
 	probe := PaginationProbe{
 		Factory:   Factory{Name: "memory-wrong-form"},
@@ -56,13 +80,25 @@ func TestPaginationWalk_WrongKeyFormDetected(t *testing.T) {
 	detected := false
 
 	for _, limit := range []int{1, 3, 4, 5, 7, 23, 24, 25} {
-		if problems := paginationWalk(ctx, t, sb, probe, col, paginationSortFn(t), limit); len(problems) > 0 {
+		if problems := paginationWalk(
+			ctx,
+			t,
+			sb,
+			probe,
+			col,
+			paginationSortFn(t),
+			limit,
+		); len(
+			problems,
+		) > 0 {
 			detected = true
 			break
 		}
 	}
 
 	if !detected {
-		t.Error("wrong CursorKey form produced zero violations — the conformance walk cannot detect tie-lossy pagination")
+		t.Error(
+			"wrong CursorKey form produced zero violations — the conformance walk cannot detect tie-lossy pagination",
+		)
 	}
 }

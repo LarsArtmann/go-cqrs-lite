@@ -7,11 +7,10 @@ import (
 	"testing"
 
 	"github.com/cockroachdb/pebble"
-	bolt "go.etcd.io/bbolt"
-
 	bboltengine "github.com/larsartmann/go-cqrs-lite/metaengine/bboltengine/v4"
 	pebbleengine "github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	bolt "go.etcd.io/bbolt"
 )
 
 // bench_layout_calibration_disk_storage_test.go measures REAL on-disk bytes of
