@@ -172,11 +172,14 @@ func waitFor(t *testing.T, cond func() bool, timeout time.Duration) {
 	}
 }
 
-// TestEventBusPublishRacingCloseNeverLeaksRawTransportError pins the
-// publish/close drain: concurrent Publish calls hammering the bus while
-// Close runs must never observe the backend's RAW closed error (watermill's
-// "Pub/Sub closed") — every publish either succeeds or fails with the typed
-// event.ErrBusClosed the dispatch tolerance in consumers matches on.
+// TestEventBusPublishRacingCloseNeverLeaksRawTransportError is a contract
+// pin for the publish/close drain; the leak itself was proven at the consumer
+// level (nsfw-classifier's rooms stress repro, 2026-10-07). Concurrent
+// Publish calls hammering the bus while Close runs must never observe the
+// backend's RAW closed error (watermill's "Pub/Sub closed") — every publish
+// either succeeds or fails with the typed event.ErrBusClosed the dispatch
+// tolerance in consumers matches on. This single-shot shape pins the
+// contract; it cannot deterministically reproduce the guard straddle.
 func TestEventBusPublishRacingCloseNeverLeaksRawTransportError(t *testing.T) {
 	t.Parallel()
 
