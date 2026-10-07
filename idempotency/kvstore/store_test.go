@@ -8,9 +8,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/larsartmann/go-idempotency"
+
 	"github.com/larsartmann/go-cqrs-lite/idempotency/kvstore/v4"
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
-	"github.com/larsartmann/go-idempotency"
 )
 
 // ttlTestParams returns a (ttl, wait) pair with enough headroom to survive

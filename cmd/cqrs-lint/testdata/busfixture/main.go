@@ -31,8 +31,8 @@ func (e engineShell) Bus() event.Bus { return e.bus }
 type rabbitConn struct{}
 
 // Bus mirrors a downstream transport accessor: same method name, own type.
-func (c rabbitConn) Bus() rabbitConn    { return c }
-func (c rabbitConn) Publish(evt event.Event) error { return nil }
+func (c rabbitConn) Bus() rabbitConn                  { return c }
+func (c rabbitConn) Publish(evt event.Event) error    { return nil }
 func (c rabbitConn) SubscribeAll(event.Handler) error { return nil }
 
 func main() {

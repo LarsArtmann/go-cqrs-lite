@@ -3,10 +3,11 @@ package scenario_test
 import (
 	"testing"
 
+	"pgregory.net/rapid"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4"
 	"github.com/larsartmann/go-cqrs-lite/scenario/v4"
-	"pgregory.net/rapid"
 )
 
 // equivalenceTaskIDs is the closed key space the generator draws from: a
