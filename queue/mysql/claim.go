@@ -9,7 +9,6 @@ import (
 	"time"
 
 	mysqldriver "github.com/go-sql-driver/mysql"
-
 	"github.com/larsartmann/go-cqrs-lite/queue/v4"
 	"github.com/larsartmann/go-cqrs-lite/queue/v4/facts"
 	"github.com/larsartmann/go-cqrs-lite/queue/v4/task"
