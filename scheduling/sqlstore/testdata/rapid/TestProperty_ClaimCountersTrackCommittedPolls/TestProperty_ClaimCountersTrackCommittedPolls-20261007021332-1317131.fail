@@ -1,0 +1,17 @@
+# 2026/10/07 02:13:32.170912 [TestProperty_ClaimCountersTrackCommittedPolls] [rapid] draw scheduled: 1
+# 2026/10/07 02:13:32.170955 [TestProperty_ClaimCountersTrackCommittedPolls] [rapid] draw fire_offset: 0
+# 2026/10/07 02:13:32.171526 [TestProperty_ClaimCountersTrackCommittedPolls] [rapid] draw polls: 1
+# 2026/10/07 02:13:32.172921 [TestProperty_ClaimCountersTrackCommittedPolls] [rapid] draw renew_0: true
+# 2026/10/07 02:13:32.173317 [TestProperty_ClaimCountersTrackCommittedPolls] RenewLease on a live claim TimerMarker:counter-0: sqlstore: renew TimerMarker:counter-0: [orchestration:scheduling.sqlstore.lease_not_held] no live claim for this timer (fired, canceled, or lease expired)
+# 
+v0.4.8#2325770775831206553
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x1
