@@ -3,6 +3,7 @@ package adoption_test
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
@@ -37,6 +38,27 @@ func buildScanFixtureContext(t *testing.T) *analyzer.AnalysisContext {
 	return ctx
 }
 
+// scanFixtureAnchorLine returns the 1-indexed line of the coached
+// TypedReader scan (`r.Scan(ctx)` inside readAll) in the committed
+// scanfixture — derived at runtime so these tests pin by receiver TYPE,
+// not by line proximity: editing the fixture above the loops must not
+// break them.
+func scanFixtureAnchorLine(t *testing.T) int {
+	t.Helper()
+
+	src, err := os.ReadFile(filepath.Join("../../../testdata/scanfixture/main.go"))
+	if err != nil {
+		t.Fatalf("read scanfixture: %v", err)
+	}
+	for i, line := range strings.Split(string(src), "\n") {
+		if strings.Contains(line, "r.Scan(ctx)") {
+			return i + 1
+		}
+	}
+	t.Fatalf("scanfixture: coached TypedReader scan (r.Scan(ctx)) not found")
+	return 0
+}
+
 func TestF031_ScanWithoutLimitFires(t *testing.T) {
 	t.Parallel()
 
@@ -65,7 +87,8 @@ func TestF031_BufioScannerScanDoesNotFire(t *testing.T) {
 	// Typed-path proof: real static types from the committed fixture module.
 	// The bufio loop and the TypedReader Scan live in the same file — exactly
 	// one finding (the reader scan) may fire, proving the bufio receiver was
-	// excluded by type, not by absence of Scan calls.
+	// excluded by type, not by absence of Scan calls. The anchor line is
+	// derived from the fixture source, not hard-coded.
 	ctx := buildScanFixtureContext(t)
 
 	findings := ruletest.RunDetector(t, adoption.NewF031Detector(ctx))
@@ -78,8 +101,9 @@ func TestF031_BufioScannerScanDoesNotFire(t *testing.T) {
 		t.Errorf("finding anchored at %s, want %s (the TypedReader scan, not the bufio loop)",
 			findings[0].Position.File, want)
 	}
-	if line := findings[0].Position.Line; line < 30 || line > 32 {
-		t.Errorf("finding anchored at line %d, want the readAll body (30-32)", line)
+	if want := scanFixtureAnchorLine(t); findings[0].Position.Line != want {
+		t.Errorf("finding anchored at line %d, want %d (the readAll body) — the bufio loop must be excluded by type",
+			findings[0].Position.Line, want)
 	}
 }
 
@@ -89,8 +113,8 @@ func TestF031_SqlRowsScanDoesNotFire(t *testing.T) {
 	// Typed-path proof: the database/sql iteration loop (the CV sqlite event
 	// store shape) lives in the same fixture file as the coached TypedReader
 	// Scan — exactly one finding may fire, and it must anchor at the reader
-	// scan (30-32), proving the *sql.Rows receiver was excluded by type,
-	// not by absence of Scan calls.
+	// scan (located at runtime), proving the *sql.Rows receiver was excluded
+	// by type, not by absence of Scan calls.
 	ctx := buildScanFixtureContext(t)
 
 	findings := ruletest.RunDetector(t, adoption.NewF031Detector(ctx))
@@ -99,10 +123,10 @@ func TestF031_SqlRowsScanDoesNotFire(t *testing.T) {
 	if len(findings) != 1 {
 		t.Fatalf("expected exactly 1 finding, got %d", len(findings))
 	}
-	if line := findings[0].Position.Line; line < 30 || line > 32 {
+	if want := scanFixtureAnchorLine(t); findings[0].Position.Line != want {
 		t.Errorf(
-			"finding anchored at line %d, want the readAll body (30-32) — the *sql.Rows loop must be excluded by type",
-			line,
+			"finding anchored at line %d, want %d (the readAll body) — the *sql.Rows loop must be excluded by type",
+			findings[0].Position.Line, want,
 		)
 	}
 }
