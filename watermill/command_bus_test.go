@@ -2,12 +2,14 @@ package watermill_test
 
 import (
 	"context"
+	"errors"
 	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v4"
 )
@@ -246,5 +248,47 @@ func TestCommandBusCustomTopic(t *testing.T) {
 	waitFor(t, func() bool { return received.Load() > 0 }, 2*time.Second)
 	if received.Load() != 1 {
 		t.Fatalf("expected 1 command, got %d", received.Load())
+	}
+}
+
+// TestCommandBusPublishRacingCloseNeverLeaksRawTransportError pins the
+// publish/close drain: a Publish that passes the closed guard must either
+// succeed or surface the typed ErrBusClosed — never the backend's raw
+// closed error (watermill's "Pub/Sub closed"), which consumers cannot
+// recognize via errors.Is(event.ErrBusClosed).
+func TestCommandBusPublishRacingCloseNeverLeaksRawTransportError(t *testing.T) {
+	t.Parallel()
+
+	for i := range 300 {
+		bus := cqrswatermill.NewCommandBus()
+
+		err := bus.Subscribe("race.cmd", func(_ context.Context, _ command.Command) error {
+			return nil
+		})
+		if err != nil {
+			t.Fatalf("iteration %d: subscribe: %v", i, err)
+		}
+
+		cmd, err := command.New("race.cmd", id.NewStreamID())
+		if err != nil {
+			t.Fatalf("iteration %d: create command: %v", i, err)
+		}
+
+		closed := make(chan error, 1)
+		go func() {
+			time.Sleep(time.Millisecond)
+			closed <- bus.Close()
+		}()
+
+		pubErr := bus.Publish(context.Background(), cmd)
+		closeErr := <-closed
+
+		if closeErr != nil {
+			t.Fatalf("iteration %d: close: %v", i, closeErr)
+		}
+
+		if pubErr != nil && !errors.Is(pubErr, event.ErrBusClosed) {
+			t.Fatalf("iteration %d: publish leaked a raw transport error (want nil or typed ErrBusClosed): %v", i, pubErr)
+		}
 	}
 }

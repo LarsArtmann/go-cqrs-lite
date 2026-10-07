@@ -26,6 +26,14 @@ type EventBus struct {
 	closed bool
 	mu     sync.Mutex
 
+	// publishWG drains in-flight Publish calls in Close: a publish that
+	// passed the closed guard must reach the backend BEFORE Close closes
+	// it. Without the drain, a publish straddling the backend close fails
+	// with the transport's RAW closed error (watermill's "Pub/Sub closed"),
+	// which errors.Is(event.ErrBusClosed) cannot recognize — the typed
+	// bus-closed contract consumers match on.
+	publishWG sync.WaitGroup
+
 	logger *slog.Logger
 	topic  string
 
@@ -107,7 +115,10 @@ func (b *EventBus) Publish(ctx context.Context, events ...event.Event) error {
 	}
 
 	pub := b.cachedPublisher
+	b.publishWG.Add(1)
 	b.mu.Unlock()
+
+	defer b.publishWG.Done()
 
 	if len(events) == 0 {
 		return nil
@@ -170,6 +181,13 @@ func (b *EventBus) Close() error {
 	backend := b.backend
 
 	b.mu.Unlock()
+
+	// Drain in-flight publishes BEFORE closing the backend, so a publish
+	// that passed the closed guard never meets a closed transport (that
+	// leaks the transport's raw closed error, unrecognizable as the typed
+	// bus-closed contract). Publishes stay concurrent — the drain only
+	// delays the backend close, not other publishes.
+	b.publishWG.Wait()
 
 	// Close the backend outside the lock to avoid blocking the dispatch
 	// goroutine, which may be finishing an in-flight message via dispatchLocal.

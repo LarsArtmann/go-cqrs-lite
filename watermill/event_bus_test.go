@@ -2,6 +2,7 @@ package watermill_test
 
 import (
 	"context"
+	"errors"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -168,5 +169,48 @@ func waitFor(t *testing.T, cond func() bool, timeout time.Duration) {
 			return
 		}
 		time.Sleep(5 * time.Millisecond)
+	}
+}
+
+// TestEventBusPublishRacingCloseNeverLeaksRawTransportError pins the
+// publish/close drain: a Publish that passes the closed guard must either
+// succeed or surface the typed ErrBusClosed — never the backend's raw
+// closed error (watermill's "Pub/Sub closed"), which consumers cannot
+// recognize via errors.Is(event.ErrBusClosed).
+func TestEventBusPublishRacingCloseNeverLeaksRawTransportError(t *testing.T) {
+	t.Parallel()
+
+	for i := range 300 {
+		bus := cqrswatermill.NewEventBus()
+
+		err := bus.Subscribe("race.evt", func(_ context.Context, _ event.Event) error {
+			return nil
+		})
+		if err != nil {
+			t.Fatalf("iteration %d: subscribe: %v", i, err)
+		}
+
+		evt, err := event.NewEvent("race.evt", id.NewStreamID(), "Race", event.Version(1),
+			[]byte(`{"n":1}`))
+		if err != nil {
+			t.Fatalf("iteration %d: NewEvent: %v", i, err)
+		}
+
+		closed := make(chan error, 1)
+		go func() {
+			time.Sleep(time.Millisecond)
+			closed <- bus.Close()
+		}()
+
+		pubErr := bus.Publish(context.Background(), evt)
+		closeErr := <-closed
+
+		if closeErr != nil {
+			t.Fatalf("iteration %d: close: %v", i, closeErr)
+		}
+
+		if pubErr != nil && !errors.Is(pubErr, event.ErrBusClosed) {
+			t.Fatalf("iteration %d: publish leaked a raw transport error (want nil or typed ErrBusClosed): %v", i, pubErr)
+		}
 	}
 }
