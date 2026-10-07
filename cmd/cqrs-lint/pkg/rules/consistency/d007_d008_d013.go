@@ -6,9 +6,10 @@ import (
 	"go/ast"
 	"path/filepath"
 
+	"github.com/larsartmann/go-finding"
+
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/lintutil"
-	"github.com/larsartmann/go-finding"
 )
 
 // D007: Inconsistent event creation API.
@@ -177,10 +178,12 @@ func NewD008Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 // D013: Schema version not stamped on events.
 // Detects projects that create events (event.New/event.NewEvent) without ever
-// using event.WithSchemaVersion. Without schema versioning, upcasting is
-// impossible to implement retroactively. This is a coaching rule — it fires
-// once per project when there are event creation calls but zero schema-version
-// options used.
+// using event.WithSchemaVersion. NOTE (2026-10-08 default-awareness fix): the
+// constructors already default the schema version to 1 (event's buildEvent
+// calls ParseSchemaVersion(1)), so the "impossible retroactively" framing was
+// wrong — this is a coaching rule that fires once per project while zero
+// schema-version options are used, reminding the team to stamp BEFORE the
+// first schema change.
 //
 //nolint:ireturn // factory returns public interface
 func NewD013Detector(ctx *analyzer.AnalysisContext) finding.Detector {
@@ -234,7 +237,7 @@ func NewD013Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			f, err := findingTemplate.Builder(
 				"D013",
 				fmt.Sprintf(
-					"Project creates %d events without event.WithSchemaVersion — schema evolution (upcasting) is impossible to add retroactively",
+					"Project creates %d events without explicit event.WithSchemaVersion — constructors default schemaVersion to 1, so stamp a version BEFORE the first schema change (upcasting cannot be added retroactively once v2 events exist)",
 					eventCreateCount,
 				),
 				finding.SeverityInfo,
@@ -243,8 +246,9 @@ func NewD013Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				WithCategory(finding.CategoryStyle).
 				WithConfidence(finding.ConfidenceLow).
 				WithSuggestion(
-					"Add event.WithSchemaVersion(1) to new event constructors so future schema " +
-						"changes can use upcasters without breaking stored events",
+					"Add event.WithSchemaVersion(1) to new event constructors now (the " +
+						"implicit default) so the first real schema change can bump it and " +
+						"register an upcaster without breaking stored events",
 				).
 				WithSnippet(ctx.SourceLine(firstFile, firstLine)).
 				Build()

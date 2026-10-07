@@ -107,7 +107,7 @@ func consistencyRules() []RuleInfo {
 			Category:    "consistency",
 			Severity:    "info",
 			Confidence:  "low",
-			Description: "Events created without event.WithSchemaVersion — schema evolution (upcasting) is impossible to add retroactively",
+			Description: "Events created without explicit event.WithSchemaVersion (constructors default schemaVersion to 1) — stamp before the first schema change so upcasting stays possible",
 			AutoFix:     false,
 		},
 		{

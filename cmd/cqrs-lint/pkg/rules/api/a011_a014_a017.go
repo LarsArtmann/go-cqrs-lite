@@ -7,9 +7,10 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/larsartmann/go-finding"
+
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/lintutil"
-	"github.com/larsartmann/go-finding"
 )
 
 // A011: Inconsistent JSON key casing in event payloads.
@@ -125,8 +126,12 @@ func hasCamelHump(s string) bool {
 }
 
 // A014: Deprecated API usage.
-// Detects calls to deprecated APIs: event.NewEvent (use event.New),
-// dispatcher.Register (use RegisterTyped).
+// Detects calls to deprecated APIs: dispatcher.Register / command.Register
+// (use RegisterTyped).
+// event.NewEvent is deliberately NOT in this table: it carries no Deprecated
+// marker in event/v4 (event/event_construct.go) — preferring event.New is a
+// style choice covered by D007/A002, not a deprecation (fixed 2026-10-08,
+// the "A014 stale deprecation claim" ruling).
 // The qualifier is resolved through the file's import declarations
 // (lintutil.QualifierResolvesTo), so aliased imports are detected and a
 // consumer's own package named "event" no longer false-positives.
@@ -139,11 +144,6 @@ type deprecatedAPIEntry struct {
 }
 
 var deprecatedAPIEntries = []deprecatedAPIEntry{ //nolint:gochecknoglobals // static lookup table
-	{
-		pathFragment: "go-cqrs-lite/event",
-		symbol:       "NewEvent",
-		replacement:  "event.New (auto-marshaling, simpler API)",
-	},
 	{
 		pathFragment: "go-cqrs-lite/dispatcher",
 		symbol:       "Register",
@@ -187,12 +187,6 @@ func NewA014Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					entry, deprecated := matchDeprecatedAPI(gf.AST, qualifier, sel.Sel.Name)
 					if !deprecated {
-						return true
-					}
-
-					// event.NewEvent inside schema.NewUpcaster closures is the
-					// correct API — upcasters reconstruct events from raw bytes.
-					if entry.symbol == "NewEvent" && analyzer.IsInsideUpcasterClosure(gf, call) {
 						return true
 					}
 

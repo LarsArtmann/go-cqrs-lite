@@ -19,7 +19,7 @@ C023 Stop() error ignored — pending events or resources may be lost
 C023 Stop() error ignored — pending events or resources may be lost
 C026 Idempotency TTL mismatch — literal TTL passed but a TTL constant (projectionSettleMs) is defined and not used here
 C026 Idempotency TTL mismatch — literal TTL passed but a TTL constant (projectionSettleMs) is defined and not used here
-D013 Project creates 11 events without event.WithSchemaVersion — schema evolution (upcasting) is impossible to add retroactively
+D013 Project creates 11 events without explicit event.WithSchemaVersion — constructors default schemaVersion to 1, so stamp a version BEFORE the first schema change (upcasting cannot be added retroactively once v2 events exist)
 E003 Package github.com/larsartmann/go-cqrs-lite/example/taskmanager mixes 4 CQRS concerns (command, event, fold, projection) — split into domain/infrastructure boundaries
 E014 Project uses projectionhost but has no projection drain/sync/flush call — the read model may be stale when the command handler returns
 F004 Server-mode project has no Prometheus metrics — runtime observability is unavailable

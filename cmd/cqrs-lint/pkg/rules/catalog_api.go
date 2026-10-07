@@ -125,7 +125,7 @@ func apiRules() []RuleInfo {
 			Category:    "api",
 			Severity:    "warning",
 			Confidence:  "high",
-			Description: "Calls to deprecated APIs (event.NewEvent, dispatcher.Register)",
+			Description: "Calls to deprecated APIs (dispatcher.Register, command.Register)",
 			AutoFix:     false,
 		},
 		{

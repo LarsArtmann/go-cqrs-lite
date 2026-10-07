@@ -477,7 +477,7 @@ Command embeds BasicCommand by value — cannot satisfy command.Command (pointer
 
 Severity: `warning` · Confidence: `high` · Auto-fix: no · Category: `api`
 
-Calls to deprecated APIs (event.NewEvent, dispatcher.Register)
+Calls to deprecated APIs (dispatcher.Register, command.Register)
 
 <a id="a015"></a>
 
@@ -1054,7 +1054,7 @@ Raw fmt/log print in CQRS handler — use structured logging (slog)
 
 Severity: `info` · Confidence: `low` · Auto-fix: no · Category: `consistency`
 
-Events created without event.WithSchemaVersion — schema evolution (upcasting) is impossible to add retroactively
+Events created without explicit event.WithSchemaVersion (constructors default schemaVersion to 1) — stamp before the first schema change so upcasting stays possible
 
 <a id="d014"></a>
 

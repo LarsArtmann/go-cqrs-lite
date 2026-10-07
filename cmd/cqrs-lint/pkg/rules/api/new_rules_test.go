@@ -4,10 +4,11 @@ import (
 	"strings"
 	"testing"
 
+	"golang.org/x/tools/go/packages"
+
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/api"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/ruletest"
-	"golang.org/x/tools/go/packages"
 )
 
 // --- A009: Missing stack preset ---
@@ -211,7 +212,10 @@ type CreateCmd struct {
 
 // --- A014: Deprecated API usage ---
 
-func TestA014_DetectsNewEventCall(t *testing.T) {
+// TestA014_NewEventStaysSilent: event.NewEvent carries NO Deprecated marker
+// in event/v4 (event/event_construct.go) — preferring event.New is D007/A002
+// territory, not a deprecation. Pins the 2026-10-08 stale-claim fix.
+func TestA014_NewEventStaysSilent(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"events.go": `package main
 
@@ -223,18 +227,18 @@ func createEvent() {
 `,
 	})
 	findings := ruletest.RunDetector(t, api.NewA014Detector(ctx))
-	ruletest.AssertRule(t, findings, "A014", 1)
+	ruletest.AssertRule(t, findings, "A014", 0)
 }
 
-// TestA014_DetectsAliasedImportCall: an aliased go-cqrs-lite/event import
+// TestA014_DetectsAliasedImportCall: an aliased go-cqrs-lite import
 // must still be detected — the qualifier resolves through the import decl.
 func TestA014_DetectsAliasedImportCall(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"events.go": ruletest.AliasedImportSource("ev",
-			"github.com/larsartmann/go-cqrs-lite/event/v4",
-			`func createEvent() {
-	ev.NewEvent("user.created", "id", "User", 1, nil)
-}`,
+		"events.go": ruletest.AliasedImportSource("disp",
+			"github.com/larsartmann/go-cqrs-lite/dispatcher/v4",
+			`func register(d *disp.Dispatcher) {
+	disp.Register(d, "x", nil, nil)
+}`, //nolint:staticcheck // deliberately deprecated shape
 		),
 	})
 	findings := ruletest.RunDetector(t, api.NewA014Detector(ctx))
