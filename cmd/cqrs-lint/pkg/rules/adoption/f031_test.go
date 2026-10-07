@@ -102,8 +102,11 @@ func TestF031_BufioScannerScanDoesNotFire(t *testing.T) {
 			findings[0].Position.File, want)
 	}
 	if want := scanFixtureAnchorLine(t); findings[0].Position.Line != want {
-		t.Errorf("finding anchored at line %d, want %d (the readAll body) — the bufio loop must be excluded by type",
-			findings[0].Position.Line, want)
+		t.Errorf(
+			"finding anchored at line %d, want %d (the readAll body) — the bufio loop must be excluded by type",
+			findings[0].Position.Line,
+			want,
+		)
 	}
 }
 
@@ -126,7 +129,8 @@ func TestF031_SqlRowsScanDoesNotFire(t *testing.T) {
 	if want := scanFixtureAnchorLine(t); findings[0].Position.Line != want {
 		t.Errorf(
 			"finding anchored at line %d, want %d (the readAll body) — the *sql.Rows loop must be excluded by type",
-			findings[0].Position.Line, want,
+			findings[0].Position.Line,
+			want,
 		)
 	}
 }
