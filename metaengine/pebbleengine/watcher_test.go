@@ -5,10 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/onsi/gomega"
-
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
+	"github.com/onsi/gomega"
 )
 
 // watcherTaskID is a distinct key type so Remove[V]() can unambiguously

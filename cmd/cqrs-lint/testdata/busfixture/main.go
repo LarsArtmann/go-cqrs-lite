@@ -14,6 +14,7 @@ package main
 // advice is category-correct there).
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -35,6 +36,12 @@ func (c rabbitConn) Bus() rabbitConn                  { return c }
 func (c rabbitConn) Publish(evt event.Event) error    { return nil }
 func (c rabbitConn) SubscribeAll(event.Handler) error { return nil }
 
+// newLocalBus is a project-CONSTRUCTED dispatch bus (the newBus() shape):
+// same event.Bus interface, but not obtained from an engine accessor.
+func newLocalBus() event.Bus { return shell.bus }
+
+var shell = engineShell{}
+
 func main() {
 	engine := engineShell{}
 	bus := engine.Bus()
@@ -45,4 +52,21 @@ func main() {
 	_ = rabbitBus.Publish(evt)
 
 	_ = http.ListenAndServe(":8080", nil)
+}
+
+// feedTail and dispatchLocal are the two-same-named-variables shape: under
+// name-keyed tracking both `bus` entries collapsed into one, and the
+// accessor in feedTail masked the dispatch bus in dispatchLocal (CV
+// 2026-10-05); under identity-keyed tracking they are distinct variables —
+// feedTail's bus skips as the journal tail, dispatchLocal's bus draws
+// retry/circuit-breaker advice.
+func feedTail() {
+	e := engineShell{}
+	bus := e.Bus()
+	_ = bus.SubscribeAll(handler)
+}
+
+func dispatchLocal() {
+	bus := newLocalBus()
+	_ = bus.Publish(context.Background(), evt)
 }

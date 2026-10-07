@@ -5,9 +5,8 @@ import (
 	"go/ast"
 	"go/types"
 
-	"github.com/larsartmann/go-finding"
-
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
+	"github.com/larsartmann/go-finding"
 )
 
 // C043: named []byte payload passed to event.New.

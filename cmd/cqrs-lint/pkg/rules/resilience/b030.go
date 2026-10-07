@@ -3,9 +3,8 @@ package resilience
 import (
 	"context"
 
-	"github.com/larsartmann/go-finding"
-
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
+	"github.com/larsartmann/go-finding"
 )
 
 // B030: Circuit breaker absence.
@@ -31,28 +30,28 @@ func NewB030Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 			var findings []finding.Finding
 
-			for name, pos := range buses {
-				if !ctx.ProfileForFile(pos.Filename).HasServer {
+			for _, v := range buses {
+				if !ctx.ProfileForFile(v.pos.Filename).HasServer {
 					continue
 				}
 
-				if busIsJournalTail(ctx, name) {
+				if busIsJournalTail(ctx, v) {
 					continue
 				}
 
-				if hasMiddlewareKeyword(ctx, name, "circuit") ||
-					hasMiddlewareKeyword(ctx, name, "breaker") {
+				if hasMiddlewareKeyword(ctx, v, "circuit") ||
+					hasMiddlewareKeyword(ctx, v, "breaker") {
 					continue
 				}
 
 				fs := singleInfoFinding(
 					ctx,
 					"B030",
-					"Bus/dispatcher "+name+" has no circuit breaker middleware — "+
+					"Bus/dispatcher "+v.name+" has no circuit breaker middleware — "+
 						"cascading failures from downstream services are not isolated",
-					"Add middleware.CircuitBreaker() to "+name+".Use() chain to "+
+					"Add middleware.CircuitBreaker() to "+v.name+".Use() chain to "+
 						"isolate downstream failures and prevent cascade",
-					pos,
+					v.pos,
 					finding.ConfidenceLow,
 				)
 				findings = append(findings, fs...)

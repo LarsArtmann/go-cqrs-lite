@@ -3,9 +3,8 @@ package resilience
 import (
 	"context"
 
-	"github.com/larsartmann/go-finding"
-
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
+	"github.com/larsartmann/go-finding"
 )
 
 // B029: Missing retry middleware.
@@ -32,27 +31,27 @@ func NewB029Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 			var findings []finding.Finding
 
-			for name, pos := range buses {
-				if !ctx.ProfileForFile(pos.Filename).HasServer {
+			for _, v := range buses {
+				if !ctx.ProfileForFile(v.pos.Filename).HasServer {
 					continue
 				}
 
-				if busIsJournalTail(ctx, name) {
+				if busIsJournalTail(ctx, v) {
 					continue
 				}
 
-				if hasMiddlewareKeyword(ctx, name, "retry") {
+				if hasMiddlewareKeyword(ctx, v, "retry") {
 					continue
 				}
 
 				fs := singleInfoFinding(
 					ctx,
 					"B029",
-					"Bus/dispatcher "+name+" has no retry middleware — "+
+					"Bus/dispatcher "+v.name+" has no retry middleware — "+
 						"transient failures will propagate to callers",
-					"Add middleware.Retry() to "+name+".Use() chain for "+
+					"Add middleware.Retry() to "+v.name+".Use() chain for "+
 						"automatic transient failure recovery",
-					pos,
+					v.pos,
 					finding.ConfidenceLow,
 				)
 				findings = append(findings, fs...)

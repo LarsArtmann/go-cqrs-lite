@@ -3,13 +3,12 @@ package resilience
 import (
 	"go/ast"
 	"go/token"
+	"go/types"
 	"strings"
 
-	"golang.org/x/tools/go/packages"
-
-	"github.com/larsartmann/go-finding"
-
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
+	"github.com/larsartmann/go-finding"
+	"golang.org/x/tools/go/packages"
 )
 
 // singleInfoFinding builds a single info-level finding with the common
@@ -68,7 +67,57 @@ func receiverIsCQRSBus(pkg *packages.Package, sel *ast.SelectorExpr) bool {
 		strings.Contains(typeStr, "cqrs-lite/dispatcher/")
 }
 
-func hasBusMethodCall(ctx *analyzer.AnalysisContext, varName string) bool {
+// busVariable is one tracked bus/dispatcher variable: its name, its
+// declaration position, and — when type info resolves — the variable's
+// types.Object identity. Identity is what separates two same-named `bus`
+// variables in different scopes or files: name-keyed tracking blended
+// them into one entry (a journal-tail accessor in one file masked a
+// dispatch bus in another; CV feedback, 2026-10-05). When obj is nil
+// (syntax-only loads), identity degrades to the legacy name match.
+type busVariable struct {
+	name string
+	pos  token.Position
+	obj  types.Object
+}
+
+// selectorOnVariable reports whether sel's receiver identifier refers to
+// variable v: exact types.Object identity when both sides resolve, else
+// the conservative name match (the legacy semantics).
+func selectorOnVariable(pkg *packages.Package, sel *ast.SelectorExpr, v busVariable) bool {
+	ident, ok := sel.X.(*ast.Ident)
+	if !ok || ident.Name != v.name {
+		return false
+	}
+
+	if v.obj == nil || pkg == nil || pkg.TypesInfo == nil {
+		return true
+	}
+
+	if obj := pkg.TypesInfo.ObjectOf(ident); obj != nil {
+		return obj == v.obj
+	}
+
+	return true
+}
+
+// identIsVariable is selectorOnVariable's assignment-LHS twin.
+func identIsVariable(pkg *packages.Package, ident *ast.Ident, v busVariable) bool {
+	if ident.Name != v.name {
+		return false
+	}
+
+	if v.obj == nil || pkg == nil || pkg.TypesInfo == nil {
+		return true
+	}
+
+	if obj := pkg.TypesInfo.ObjectOf(ident); obj != nil {
+		return obj == v.obj
+	}
+
+	return true
+}
+
+func hasBusMethodCall(ctx *analyzer.AnalysisContext, v busVariable) bool {
 	busMethodNames := map[string]bool{
 		"Use":           true,
 		"UsePublish":    true,
@@ -103,8 +152,7 @@ func hasBusMethodCall(ctx *analyzer.AnalysisContext, varName string) bool {
 				return true
 			}
 
-			ident, ok := sel.X.(*ast.Ident)
-			if !ok || ident.Name != varName {
+			if !selectorOnVariable(gf.Pkg, sel, v) {
 				return true
 			}
 
@@ -144,7 +192,7 @@ var subscribeOnlyBusMethods = map[string]bool{
 // middleware advice is category confusion for it (CV feedback, 2026-10-03).
 // Any dispatch-side call (Publish, Dispatch, Handle, Use, Register*) makes
 // it a dispatch pipeline and returns false.
-func busIsReadOnlySubscriber(ctx *analyzer.AnalysisContext, varName string) bool {
+func busIsReadOnlySubscriber(ctx *analyzer.AnalysisContext, v busVariable) bool {
 	observed := 0
 
 	for _, gf := range ctx.GoFiles {
@@ -165,8 +213,7 @@ func busIsReadOnlySubscriber(ctx *analyzer.AnalysisContext, varName string) bool
 				return true
 			}
 
-			ident, ok := sel.X.(*ast.Ident)
-			if !ok || ident.Name != varName {
+			if !selectorOnVariable(gf.Pkg, sel, v) {
 				return true
 			}
 
@@ -224,7 +271,7 @@ func accessorReturnsCQRSBus(pkg *packages.Package, call *ast.CallExpr) bool {
 // retry/circuit-breaker middleware advice is category confusion whether the
 // variable subscribes or feeds (CV feedback, 2026-10-03 — the journal-tail
 // vs dispatch-bus distinction).
-func busVariableFromAccessor(ctx *analyzer.AnalysisContext, varName string) bool {
+func busVariableFromAccessor(ctx *analyzer.AnalysisContext, v busVariable) bool {
 	for _, gf := range ctx.GoFiles {
 		if gf.IsTest {
 			continue
@@ -245,7 +292,7 @@ func busVariableFromAccessor(ctx *analyzer.AnalysisContext, varName string) bool
 			matches := false
 
 			for _, lhs := range assign.Lhs {
-				if ident, ok := lhs.(*ast.Ident); ok && ident.Name == varName {
+				if ident, ok := lhs.(*ast.Ident); ok && identIsVariable(gf.Pkg, ident, v) {
 					matches = true
 
 					break
@@ -293,13 +340,13 @@ func busVariableFromAccessor(ctx *analyzer.AnalysisContext, varName string) bool
 // both journal-tail acts). Neither dispatches to downstream services, so the
 // B029/B030 resilience advice does not apply; a bus constructed by the
 // project itself (newBus() and friends) never matches and stays fully armed.
-func busIsJournalTail(ctx *analyzer.AnalysisContext, varName string) bool {
-	return busIsReadOnlySubscriber(ctx, varName) || busVariableFromAccessor(ctx, varName)
+func busIsJournalTail(ctx *analyzer.AnalysisContext, v busVariable) bool {
+	return busIsReadOnlySubscriber(ctx, v) || busVariableFromAccessor(ctx, v)
 }
 
 // hasMiddlewareKeyword scans all non-test files for x.Use(...) or x.UsePublish(...)
 // calls where any argument or the method name contains keyword (case-insensitive).
-func hasMiddlewareKeyword(ctx *analyzer.AnalysisContext, varName, keyword string) bool {
+func hasMiddlewareKeyword(ctx *analyzer.AnalysisContext, v busVariable, keyword string) bool {
 	keywordLower := strings.ToLower(keyword)
 
 	for _, gf := range ctx.GoFiles {
@@ -329,8 +376,7 @@ func hasMiddlewareKeyword(ctx *analyzer.AnalysisContext, varName, keyword string
 				return true
 			}
 
-			ident, ok := sel.X.(*ast.Ident)
-			if !ok || ident.Name != varName {
+			if !selectorOnVariable(gf.Pkg, sel, v) {
 				return true
 			}
 
@@ -381,12 +427,15 @@ func callContainsKeyword(expr ast.Expr, keyword string) bool {
 	return found
 }
 
-// findBusVariables returns a map of bus/dispatcher variable names to their
-// position, collected from assignment statements in non-test files.
+// findBusVariables returns the project's bus/dispatcher variables, collected
+// from assignment statements in non-test files and keyed by IDENTITY: the
+// variable's types.Object when type info resolves (two same-named `bus`
+// variables in different scopes/files are distinct entries), the variable
+// name otherwise (the legacy single-entry-per-name semantics).
 // Only variables that also have CQRS bus method calls (Use, Publish, etc.)
 // are included — this filters out lookalike names (errorBus.Notify).
-func findBusVariables(ctx *analyzer.AnalysisContext) map[string]token.Position {
-	buses := make(map[string]token.Position)
+func findBusVariables(ctx *analyzer.AnalysisContext) []busVariable {
+	candidates := make([]busVariable, 0)
 
 	for _, gf := range ctx.GoFiles {
 		if gf.IsTest {
@@ -400,15 +449,57 @@ func findBusVariables(ctx *analyzer.AnalysisContext) map[string]token.Position {
 			}
 
 			for _, lhs := range assign.Lhs {
-				if ident, ok := lhs.(*ast.Ident); ok {
-					if isBusName(ident.Name) && hasBusMethodCall(ctx, ident.Name) {
-						buses[ident.Name] = ctx.Fset.Position(ident.Pos())
-					}
+				ident, ok := lhs.(*ast.Ident)
+				if !ok || !isBusName(ident.Name) {
+					continue
 				}
+
+				obj := types.Object(nil)
+				if gf.Pkg != nil && gf.Pkg.TypesInfo != nil {
+				if o := gf.Pkg.TypesInfo.ObjectOf(ident); o != nil {
+					obj = o
+				}
+				}
+
+				candidates = append(candidates, busVariable{
+					name: ident.Name,
+					pos:  ctx.Fset.Position(ident.Pos()),
+					obj:  obj,
+				})
 			}
 
 			return true
 		})
+	}
+
+	// Dedupe by identity: same types.Object (typed loads) or same name
+	// (syntax-only fallback — the legacy single-entry semantics).
+	buses := make([]busVariable, 0, len(candidates))
+	seenObj := make(map[types.Object]bool)
+	seenName := make(map[string]bool)
+
+	for _, c := range candidates {
+		if !hasBusMethodCall(ctx, c) {
+			continue
+		}
+
+		if c.obj != nil {
+			if seenObj[c.obj] {
+				continue
+			}
+
+			seenObj[c.obj] = true
+			buses = append(buses, c)
+
+			continue
+		}
+
+		if seenName[c.name] {
+			continue
+		}
+
+		seenName[c.name] = true
+		buses = append(buses, c)
 	}
 
 	return buses
