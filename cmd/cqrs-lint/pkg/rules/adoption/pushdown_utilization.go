@@ -233,6 +233,13 @@ func (p pushdownScope) filterFinding(
 	return f
 }
 
+// isComparisonOperator reports whether op is one of the six comparison
+// operators; every other token is out of scope for field-extraction.
+func isComparisonOperator(op token.Token) bool {
+	return op == token.EQL || op == token.NEQ || op == token.LSS ||
+		op == token.LEQ || op == token.GTR || op == token.GEQ
+}
+
 // comparedFieldsOfRangeVar returns the deduplicated, sorted field names the
 // range body compares on the loop variable (`if row.Score >= x` → "Score").
 func comparedFieldsOfRangeVar(rng *ast.RangeStmt) []string {
@@ -252,9 +259,7 @@ func comparedFieldsOfRangeVar(rng *ast.RangeStmt) []string {
 			return true
 		}
 
-		switch bin.Op {
-		case token.EQL, token.NEQ, token.LSS, token.LEQ, token.GTR, token.GEQ:
-		default:
+		if !isComparisonOperator(bin.Op) {
 			return true
 		}
 
