@@ -3,6 +3,7 @@ package resilience_test
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
@@ -325,30 +326,62 @@ func buildBusFixtureContext(t *testing.T) *analyzer.AnalysisContext {
 	return ctx
 }
 
-// TestB029_TypedAccessorStaysSkipped pins the typed-path positive: in a
-// module with REAL type info, the engine-shaped accessor (engineShell.Bus()
-// returning event.Bus — the system.System.Bus()/consumer-passthrough shape)
-// keeps the journal-tail skip. The transport-typed twin (rabbitConn.Bus())
-// never reaches this rule in typed loads: hasBusMethodCall's receiverIsCQRSBus
-// gate already excludes it from bus registration — the accessor RESULT-type
-// gate (accessorReturnsCQRSBus) is the second, independent layer, pinned
-// directly by TestAccessorReturnsCQRSBus_DiscriminatesOnResultType.
-func TestB029_TypedAccessorStaysSkipped(t *testing.T) {
+// busFixtureLine returns the 1-indexed line of needle in the committed
+// busfixture main.go — anchors are derived at runtime so fixture edits
+// cannot break the pins by line proximity.
+func busFixtureLine(t *testing.T, needle string) int {
+	t.Helper()
+
+	src, err := os.ReadFile(filepath.Join("../../../testdata/busfixture/main.go"))
+	if err != nil {
+		t.Fatalf("read busfixture: %v", err)
+	}
+
+	for i, line := range strings.Split(string(src), "\n") {
+		if strings.Contains(line, needle) {
+			return i + 1
+		}
+	}
+
+	t.Fatalf("busfixture: %q not found", needle)
+
+	return 0
+}
+
+// TestB029_TwoSameNamedBusVariablesAreDistinct pins identity-keyed bus
+// tracking (row 48): the fixture declares TWO `bus` variables — feedTail's
+// engine-accessor journal tail (must skip) and dispatchLocal's
+// project-constructed dispatch bus (must draw advice). Name-keyed tracking
+// blended them into one entry and the accessor masked the dispatch bus
+// (0 findings); the identity model yields exactly ONE finding, anchored at
+// dispatchLocal's construction (derived at runtime). The rabbitConn shape
+// stays excluded upstream (hasBusMethodCall's receiver gate).
+func TestB029_TwoSameNamedBusVariablesAreDistinct(t *testing.T) {
 	// Not parallel: buildBusFixtureContext sets GOWORK via t.Setenv.
 
 	ctx := buildBusFixtureContext(t)
 
 	findings := ruletest.RunDetector(t, resilience.NewB029Detector(ctx))
-	ruletest.AssertRule(t, findings, "B029", 0)
+	ruletest.AssertRule(t, findings, "B029", 1)
+
+	if want := busFixtureLine(t, "bus := newLocalBus()"); findings[0].Position.Line != want {
+		t.Errorf("B029 anchored at line %d, want %d (dispatchLocal's constructed bus)",
+			findings[0].Position.Line, want)
+	}
 }
 
-// TestB030_TypedAccessorStaysSkipped is the B030 twin of the typed-path
-// positive pin above.
-func TestB030_TypedAccessorStaysSkipped(t *testing.T) {
+// TestB030_TwoSameNamedBusVariablesAreDistinct is the B030 twin of the
+// identity-keyed discrimination pin above.
+func TestB030_TwoSameNamedBusVariablesAreDistinct(t *testing.T) {
 	// Not parallel: buildBusFixtureContext sets GOWORK via t.Setenv.
 
 	ctx := buildBusFixtureContext(t)
 
 	findings := ruletest.RunDetector(t, resilience.NewB030Detector(ctx))
-	ruletest.AssertRule(t, findings, "B030", 0)
+	ruletest.AssertRule(t, findings, "B030", 1)
+
+	if want := busFixtureLine(t, "bus := newLocalBus()"); findings[0].Position.Line != want {
+		t.Errorf("B030 anchored at line %d, want %d (dispatchLocal's constructed bus)",
+			findings[0].Position.Line, want)
+	}
 }

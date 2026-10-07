@@ -456,9 +456,9 @@ func findBusVariables(ctx *analyzer.AnalysisContext) []busVariable {
 
 				obj := types.Object(nil)
 				if gf.Pkg != nil && gf.Pkg.TypesInfo != nil {
-				if o := gf.Pkg.TypesInfo.ObjectOf(ident); o != nil {
-					obj = o
-				}
+					if o := gf.Pkg.TypesInfo.ObjectOf(ident); o != nil {
+						obj = o
+					}
 				}
 
 				candidates = append(candidates, busVariable{
