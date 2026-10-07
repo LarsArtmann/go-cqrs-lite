@@ -5,9 +5,10 @@ import (
 	"go/token"
 	"strings"
 
+	"golang.org/x/tools/go/packages"
+
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 	"github.com/larsartmann/go-finding"
-	"golang.org/x/tools/go/packages"
 )
 
 // singleInfoFinding builds a single info-level finding with the common
@@ -190,6 +191,28 @@ func busIsReadOnlySubscriber(ctx *analyzer.AnalysisContext, varName string) bool
 	return observed > 0
 }
 
+// accessorReturnsCQRSBus reports whether a matched Bus() call's static
+// RESULT type is a go-cqrs-lite event bus — the engine journal tail.
+// system.System.Bus() returns event.Bus, and consumer passthroughs (CV's
+// LibraryEngine.Bus()) return the same interface, so the RESULT type is
+// the discriminating signal: a user rabbit.Bus() returning its own
+// downstream transport type never grants the journal-tail skip, whatever
+// the accessor is named. Returns true when type info is unavailable or
+// unresolved (conservative — keeps the legacy name-only match, which the
+// syntax-only fixtures rely on).
+func accessorReturnsCQRSBus(pkg *packages.Package, call *ast.CallExpr) bool {
+	if pkg == nil || pkg.TypesInfo == nil {
+		return true
+	}
+
+	tv, ok := pkg.TypesInfo.Types[call]
+	if !ok || tv.Type == nil {
+		return true
+	}
+
+	return strings.Contains(tv.Type.String(), "cqrs-lite/event/")
+}
+
 // busVariableFromAccessor reports whether varName is assigned from a Bus()
 // accessor call — `bus := engine.Bus()` or `bus := s.library.Bus()`. The
 // engine's Bus() returns the in-process journal/notification bus: the engine
@@ -240,6 +263,10 @@ func busVariableFromAccessor(ctx *analyzer.AnalysisContext, varName string) bool
 
 				sel, ok := call.Fun.(*ast.SelectorExpr)
 				if !ok || sel.Sel.Name != "Bus" {
+					continue
+				}
+
+				if !accessorReturnsCQRSBus(gf.Pkg, call) {
 					continue
 				}
 

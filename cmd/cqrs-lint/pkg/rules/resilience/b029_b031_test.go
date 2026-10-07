@@ -1,6 +1,9 @@
 package resilience_test
 
 import (
+	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
@@ -269,4 +272,90 @@ func main() {
 
 	findings := ruletest.RunDetector(t, resilience.NewB031Detector(ctx))
 	ruletest.AssertRule(t, findings, "B031", 0)
+}
+
+func TestB031_JournalTailFedHostStillNeedsDLQ(t *testing.T) {
+	t.Parallel()
+
+	// Symmetry pin for the B029/B030 journal-tail accessor signal: a
+	// projection host fed from the engine's Bus() journal tail still needs
+	// a dead-letter store — journal replay recovers LOST deliveries, but a
+	// poison event replays the same fold failure forever; only a DLQ
+	// isolates it. B031 keys on projectionhost.New construction and never
+	// consults bus variables, so no accessor shape can suppress it.
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+func main() {
+	bus := engine.Bus()
+	host, _ := projectionhost.New(bus, cpStore)
+	host.Register(proj)
+}
+`,
+	})
+	ctx.FeatureProfile.HasServer = true
+
+	findings := ruletest.RunDetector(t, resilience.NewB031Detector(ctx))
+	ruletest.AssertRule(t, findings, "B031", 1)
+}
+
+// buildBusFixtureContext loads the committed busfixture module so Bus()
+// accessor call sites carry genuine static result types — the typed-path
+// harness BuildContextFromSource cannot provide (empty types.Info).
+func buildBusFixtureContext(t *testing.T) *analyzer.AnalysisContext {
+	t.Helper()
+
+	t.Setenv("GOWORK", "off")
+
+	fixture, err := filepath.Abs("../../../testdata/busfixture")
+	if err != nil {
+		t.Fatalf("abs fixture path: %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(fixture, "go.mod")); err != nil {
+		t.Fatalf("bus fixture missing (expected committed testdata): %v", err)
+	}
+
+	ctx, err := analyzer.BuildContext(fixture)
+	if err != nil {
+		t.Fatalf("BuildContext(busfixture): %v", err)
+	}
+	if len(ctx.LoadErrors) > 0 {
+		t.Fatalf("bus fixture loaded with errors: %v", ctx.LoadErrors)
+	}
+
+	return ctx
+}
+
+// TestB029_AccessorResultTypeDiscriminates pins the typed tightening of the
+// Bus() accessor signal (row 49): in ONE typed fixture, an accessor whose
+// result type is the engine's event.Bus keeps the journal-tail skip, while
+// a same-named accessor returning a downstream transport type
+// (rabbitConn.Bus()) draws the retry-middleware advice again.
+func TestB029_AccessorResultTypeDiscriminates(t *testing.T) {
+	// Not parallel: buildBusFixtureContext sets GOWORK via t.Setenv.
+
+	ctx := buildBusFixtureContext(t)
+
+	findings := ruletest.RunDetector(t, resilience.NewB029Detector(ctx))
+	ruletest.AssertRule(t, findings, "B029", 1)
+
+	if name := findings[0].Message; !strings.Contains(name, "rabbitBus") {
+		t.Errorf("B029 must anchor at rabbitBus (the transport-typed accessor), got: %s", name)
+	}
+}
+
+// TestB030_AccessorResultTypeDiscriminates is the B030 twin: the
+// transport-typed accessor loses the journal-tail skip and draws the
+// circuit-breaker advice; the event.Bus-typed accessor stays silent.
+func TestB030_AccessorResultTypeDiscriminates(t *testing.T) {
+	// Not parallel: buildBusFixtureContext sets GOWORK via t.Setenv.
+
+	ctx := buildBusFixtureContext(t)
+
+	findings := ruletest.RunDetector(t, resilience.NewB030Detector(ctx))
+	ruletest.AssertRule(t, findings, "B030", 1)
+
+	if name := findings[0].Message; !strings.Contains(name, "rabbitBus") {
+		t.Errorf("B030 must anchor at rabbitBus (the transport-typed accessor), got: %s", name)
+	}
 }
