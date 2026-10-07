@@ -173,10 +173,10 @@ func waitFor(t *testing.T, cond func() bool, timeout time.Duration) {
 }
 
 // TestEventBusPublishRacingCloseNeverLeaksRawTransportError pins the
-// publish/close drain: a Publish that passes the closed guard must either
-// succeed or surface the typed ErrBusClosed — never the backend's raw
-// closed error (watermill's "Pub/Sub closed"), which consumers cannot
-// recognize via errors.Is(event.ErrBusClosed).
+// publish/close drain: concurrent Publish calls hammering the bus while
+// Close runs must never observe the backend's RAW closed error (watermill's
+// "Pub/Sub closed") — every publish either succeeds or fails with the typed
+// event.ErrBusClosed the dispatch tolerance in consumers matches on.
 func TestEventBusPublishRacingCloseNeverLeaksRawTransportError(t *testing.T) {
 	t.Parallel()
 
@@ -196,21 +196,50 @@ func TestEventBusPublishRacingCloseNeverLeaksRawTransportError(t *testing.T) {
 			t.Fatalf("iteration %d: NewEvent: %v", i, err)
 		}
 
-		closed := make(chan error, 1)
-		go func() {
-			time.Sleep(time.Millisecond)
-			closed <- bus.Close()
-		}()
+		var wg sync.WaitGroup
+		rawErr := make(chan error, 1)
+		stop := make(chan struct{})
 
-		pubErr := bus.Publish(context.Background(), evt)
-		closeErr := <-closed
+		for range 6 {
+			wg.Add(1)
+
+			go func() {
+				defer wg.Done()
+
+				for {
+					select {
+					case <-stop:
+						return
+					default:
+					}
+
+					if pubErr := bus.Publish(context.Background(), evt); pubErr != nil {
+						if !errors.Is(pubErr, event.ErrBusClosed) {
+							select {
+							case rawErr <- pubErr:
+							default:
+							}
+						}
+
+						return
+					}
+				}
+			}()
+		}
+
+		time.Sleep(200 * time.Microsecond)
+		closeErr := bus.Close()
+		close(stop)
+		wg.Wait()
 
 		if closeErr != nil {
 			t.Fatalf("iteration %d: close: %v", i, closeErr)
 		}
 
-		if pubErr != nil && !errors.Is(pubErr, event.ErrBusClosed) {
-			t.Fatalf("iteration %d: publish leaked a raw transport error (want nil or typed ErrBusClosed): %v", i, pubErr)
+		select {
+		case err := <-rawErr:
+			t.Fatalf("iteration %d: publish leaked a raw transport error (want nil or typed ErrBusClosed): %v", i, err)
+		default:
 		}
 	}
 }
