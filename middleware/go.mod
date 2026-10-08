@@ -15,7 +15,7 @@ require (
 	github.com/larsartmann/go-error-family v0.11.0
 	github.com/larsartmann/go-flightrecorder v0.2.1
 	github.com/larsartmann/go-idempotency v0.3.1
-	github.com/larsartmann/go-retry v0.7.1
+	github.com/larsartmann/go-retry v0.8.0
 	github.com/onsi/ginkgo/v2 v2.33.0
 	github.com/onsi/gomega v1.44.0
 	github.com/samber/lo v1.53.0
