@@ -8,9 +8,8 @@ import (
 	"testing"
 	"time"
 
-	flightrecorder "github.com/larsartmann/go-flightrecorder"
-
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
+	flightrecorder "github.com/larsartmann/go-flightrecorder"
 )
 
 // phFRMu serializes flight recorder tests because Go's runtime/trace

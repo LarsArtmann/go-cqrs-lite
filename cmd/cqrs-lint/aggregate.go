@@ -4,9 +4,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/larsartmann/go-finding"
-
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
+	"github.com/larsartmann/go-finding"
 )
 
 // aggregateMetadataKey is the Finding.Metadata key used to store the inferred

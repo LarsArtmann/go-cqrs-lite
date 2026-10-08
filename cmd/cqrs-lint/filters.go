@@ -4,11 +4,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/larsartmann/go-finding"
-	"github.com/larsartmann/go-finding/pipeline"
-
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules"
+	"github.com/larsartmann/go-finding"
+	"github.com/larsartmann/go-finding/pipeline"
 )
 
 // consumerOnlyRules are rules that coach CONSUMERS of go-cqrs-lite to adopt

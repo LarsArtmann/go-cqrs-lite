@@ -8,7 +8,6 @@ import (
 
 	sqlmock "github.com/DATA-DOG/go-sqlmock"
 	mysqldriver "github.com/go-sql-driver/mysql"
-
 	"github.com/larsartmann/go-cqrs-lite/queue/v4"
 )
 
