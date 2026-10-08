@@ -4,12 +4,13 @@ import (
 	"io"
 
 	"github.com/larsartmann/go-codec"
+	flightrecorder "github.com/larsartmann/go-flightrecorder"
+
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
-	flightrecorder "github.com/larsartmann/go-flightrecorder"
 )
 
 // Option configures a [Bundle]. It is a field setter with no error return,
@@ -239,9 +240,9 @@ type MetaEngineStore interface {
 // the typed companion lives in the stack/metaengine module. Call sites
 // passing a *metaengine.Store compile unchanged.
 //
-// 	bundle, _ := sqlite.New(dsn,
-// 	    stack.WithMetaEngine(meStore),
-// 	)
+//	bundle, _ := sqlite.New(dsn,
+//	    stack.WithMetaEngine(meStore),
+//	)
 func WithMetaEngine(store MetaEngineStore) Option {
 	return func(b *Bundle) {
 		b.metaEngine = store

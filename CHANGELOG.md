@@ -28,6 +28,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
      root stays v4.0.0. -->
 ## [Unreleased]
 
+### Added
+
+- **`stack/metaengine` — the typed stack↔metaengine bridge module (GitHub #36).** New independently-versioned module (`stackmeta.WithStore(store)` / `stackmeta.Store(bundle)`) carrying the metaengine registration + concrete-store recovery that the root `stack` package can no longer express without importing metaengine. The root module's require graph is now metaengine-FREE (verified: `GOWORK=off go mod graph` shows zero metaengine edges — plain stack composition no longer transitively carries the planner); the root keeps only a `stack.MetaEngineStore` lifecycle seam (`Close() error`) so existing `stack.WithMetaEngine(store)` call sites compile unchanged (both symbols now Deprecated for the v5 stack deletion, ADR-0123). Pinned by the bridge's own suite (typed round-trip, nil recovery, deprecated-seam compatibility).
+
+### Changed
+
+- **`stack`: `WithMetaEngine`/`Bundle.MetaEngine` now speak the `MetaEngineStore` seam (GitHub #36).** Signatures move from `*metaengine.Store` to the interface (`Close() error`) the concrete store satisfies structurally — call sites passing a `*metaengine.Store` compile unchanged; consumers invoking metaengine methods on `bundle.MetaEngine()` must recover the concrete store via `stackmeta.Store(bundle)` (or a type assertion). The whole stack family dies at v5 (ADR-0123); `system.New` consumers are unaffected.
+
 ## [metaengine/v4.17.0, system/v4.11.0, cmd/cqrs-lint/v4.15.0, signing/v4.4.0, benchkit/v4.7.0, storage/v4.10.5, systemtest/v4.0.0, testutil/mysqltestcontainer/v4.0.0 (+34 more) — 2026-10-08 stalled-waves release train (42 tags)] — 2026-10-08
 
 ### Added

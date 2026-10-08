@@ -2,59 +2,59 @@ direction: down
 title: "Path to v5.0.0 — Pareto execution graph (W0 → W6)"
 
 w0: "W0 · UNBLOCK — the 1% that unblocks 51%" {
-	direction: right
-	t01: "T01 Owner ruling pack — R1–R28 + Layer 0 (ADR-0139 4Qs · sweep §4(a) · ADR-0146/0147)" {shape: document}
-	t02: "T02 Publish stalled v4.x waves — WITH pre-tag tests (2026-10-06 lesson)" {shape: document}
+  direction: right
+  t01: "T01 Owner ruling pack — R1–R28 + Layer 0 (ADR-0139 4Qs · sweep §4(a) · ADR-0146/0147)" {shape: document}
+  t02: "T02 Publish stalled v4.x waves — WITH pre-tag tests (2026-10-06 lesson)" {shape: document}
 }
 
 w1: "W1 · PROVE — quiet-window verification (4%)" {
-	direction: right
-	t03: "T03 Composed #verify re-record"
-	t04: "T04 MySQL/MariaDB legs (VM + nspawn + snapshot-migration + shuffled seeds)"
-	t05: "T05 Calibration campaign (SearchQuery · dgraph · baseline re-pin)"
+  direction: right
+  t03: "T03 Composed #verify re-record"
+  t04: "T04 MySQL/MariaDB legs (VM + nspawn + snapshot-migration + shuffled seeds)"
+  t05: "T05 Calibration campaign (SearchQuery · dgraph · baseline re-pin)"
 }
 
 w2: "W2 · MIGRATE — pre-cut, master-safe" {
-	direction: right
-	t06: "T06 #36 stack→metaengine module"
-	t07: "T07 Compound-cursor issuance"
-	t08: "T08 Consumer-DX (AsyncAPI schemas · pushdown · lint tail)"
-	t09: "T09 Wire-string grep §4(b)"
-	t10: "T10 Golden + meta-tests green"
-	t11: "T11 Engine surfaces BEFORE the freeze (SingleWriter lease · AggregateOn · routing v1)"
+  direction: right
+  t06: "T06 #36 stack→metaengine module"
+  t07: "T07 Compound-cursor issuance"
+  t08: "T08 Consumer-DX (AsyncAPI schemas · pushdown · lint tail)"
+  t09: "T09 Wire-string grep §4(b)"
+  t10: "T10 Golden + meta-tests green"
+  t11: "T11 Engine surfaces BEFORE the freeze (SingleWriter lease · AggregateOn · routing v1)"
 }
 
 branch: "V5 BRANCH — T12 Layer 3: paths v4→v5 across 98 go.mod + 6-place registration sweep" {style.fill: "#f4d35e"}
 
 w3: "W3 · DELETE — cascade Layers 4→8" {
-	direction: right
-	t13: "T13 L4 smalls (BuildWhereClause · ADR-0126 shells · tombstone API)"
-	t14: "T14 L5 projections (Materialize · RelationalProjection+view · GraphProjection)"
-	t15: "T15 L6 stack/ deleted entirely"
-	t16: "T16 L7 transport/http + grpc"
-	t17: "T17 L8 NewStreamRef breaking"
+  direction: right
+  t13: "T13 L4 smalls (BuildWhereClause · ADR-0126 shells · tombstone API)"
+  t14: "T14 L5 projections (Materialize · RelationalProjection+view · GraphProjection)"
+  t15: "T15 L6 stack/ deleted entirely"
+  t16: "T16 L7 transport/http + grpc"
+  t17: "T17 L8 NewStreamRef breaking"
 }
 
 w4: "W4 · BUILD — the v5 license spent" {
-	direction: right
-	t18: "T18 L9 Universal Engine fold (T19–T21) + ApplyBatch atomicity"
-	t19: "T19 L10 Scan-default flip (Option C)"
-	t20: "T20 L11 Encryption-at-rest (KeyProvider)"
-	t21: "T21 FilterOp window (Contains/Prefix · queue.WithClock)"
+  direction: right
+  t18: "T18 L9 Universal Engine fold (T19–T21) + ApplyBatch atomicity"
+  t19: "T19 L10 Scan-default flip (Option C)"
+  t20: "T20 L11 Encryption-at-rest (KeyProvider)"
+  t21: "T21 FilterOp window (Contains/Prefix · queue.WithClock)"
 }
 
 w5: "W5 · SHIP" {
-	direction: right
-	t22: "T22 L12 Docs — migration guide · CHANGELOG · SKILL.md refresh"
-	t23: "T23 L13 THE CUT — full verify · tag v5.0.0 · proxy check" {style.fill: "#ff6b6b"}
+  direction: right
+  t22: "T22 L12 Docs — migration guide · CHANGELOG · SKILL.md refresh"
+  t23: "T23 L13 THE CUT — full verify · tag v5.0.0 · proxy check" {style.fill: "#ff6b6b"}
 }
 
 w6: "W6 · CLOSE — post-v5 + parallel backlog" {
-	direction: right
-	t24: "T24 Goal-closure gates A–D + FEATURES flip"
-	t25: "T25 Upstream filings (turso A+B · exhaustruct · cmdguard · …)"
-	t26: "T26 Tooling polish (smoke-all · 350-line splits · registration scaffold)"
-	t27: "T27 Watchlist / parked (observe-only + demand-gated)"
+  direction: right
+  t24: "T24 Goal-closure gates A–D + FEATURES flip"
+  t25: "T25 Upstream filings (turso A+B · exhaustruct · cmdguard · …)"
+  t26: "T26 Tooling polish (smoke-all · 350-line splits · registration scaffold)"
+  t27: "T27 Watchlist / parked (observe-only + demand-gated)"
 }
 
 w0 -> w1: "rulings gate go-aheads"
