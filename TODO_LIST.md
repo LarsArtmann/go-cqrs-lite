@@ -36,8 +36,16 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 > [`docs/planning/2026-10-03_17-20_SUPERB-full-todo-pareto-plan.html`](docs/planning/2026-10-03_17-20_SUPERB-full-todo-pareto-plan.html)
 > (full-list Pareto master plan: 27 medium tasks / 118 fine tasks over all 112
 > open rows + 9 open issues; truth-strike + #49/#50/#51 triage executed same
-> day; §07 = the 28-ruling owner decision bundle). This file remains the
-> living source of truth.
+> day; §07 = the 28-ruling owner decision bundle). **Current plan (2026-10-08
+> 14:59):**
+> [`docs/planning/2026-10-08_14-59_SUPERB-v5-goal-pareto-plan.html`](docs/planning/2026-10-08_14-59_SUPERB-v5-goal-pareto-plan.html)
+> (v5-GOAL Pareto plan: 27 medium tasks / 150 fine tasks ≤12 min over ALL 109
+> open rows, sequenced onto the v5-cut-readiness Layers 0–13 — W0 ruling pack +
+> publish waves → W1 quiet-window legs → W2 pre-cut migrations → W3 branch +
+> deletion cascade → W4 universal fold/encryption/FilterOp → W5 docs + THE CUT
+> → W6 closure; graph:
+> [`.d2`](docs/planning/2026-10-08_14-59_SUPERB-v5-goal-pareto-plan.d2)). This
+> file remains the living source of truth.
 
 ## Section index
 
