@@ -90,7 +90,7 @@
     "stack/mysql": "stack/mysql/v4.2.3",
     "stack/pebble": "stack/pebble/v4.4.3",
     "stack/postgres": "stack/postgres/v4.4.3",
-    "stack/sqlite": "stack/sqlite/v4.3.4",
+    "stack/sqlite": "stack/sqlite/v4.3.5",
     "stack/turso": "stack/turso/v4.4.3",
     "storage": "storage/v4.10.5",
     "storage/backuptest": "storage/backuptest/v4.2.3",

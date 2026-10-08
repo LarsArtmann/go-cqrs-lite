@@ -27,6 +27,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
      importable packages) — root stays v4.0.0. -->
 ## [Unreleased]
 
+### Changed
+
+- **Turso IVM verified range extended to v0.8.2 (pin catch-up).** `metaengine.TursoGoIVMVerifiedThrough` advances v0.8.1 → v0.8.2 and `TursoGoIVMLastVerified` to 2026-10-08: workspace go.mod pins rode the dependency sweep to tursogo v0.8.2, and the `-tags ivmrepro` repro suite re-ran GREEN on the new pin — all three grouped-view defects (A/B/C) still reproduce with the identical 430.50 delta signature, so the operator caveat range extends one version with no behavior change (scalar views remain exact; the recursive-CTE probe pin stays green). `#check-turso-version` green across all live citations and pins.
+
+## [stack/v4.5.0, stack/metaengine/v4.0.0, stack/sqlite/v4.3.5 — 2026-10-08 stack seam mini-wave (GitHub #36)] — 2026-10-08
+
 ### Added
 
 - **`stack/metaengine` — the typed stack↔metaengine bridge module (GitHub #36).** New independently-versioned module (`stackmeta.WithStore(store)` / `stackmeta.Store(bundle)`) carrying the metaengine registration + concrete-store recovery that the root `stack` package can no longer express without importing metaengine. The root module's require graph is now metaengine-FREE (verified: `GOWORK=off go mod graph` shows zero metaengine edges — plain stack composition no longer transitively carries the planner); the root keeps only a `stack.MetaEngineStore` lifecycle seam (`Close() error`) so existing `stack.WithMetaEngine(store)` call sites compile unchanged (both symbols now Deprecated for the v5 stack deletion, ADR-0123). Pinned by the bridge's own suite (typed round-trip, nil recovery, deprecated-seam compatibility).
@@ -34,7 +40,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Changed
 
 - **`stack`: `WithMetaEngine`/`Bundle.MetaEngine` now speak the `MetaEngineStore` seam (GitHub #36).** Signatures move from `*metaengine.Store` to the interface (`Close() error`) the concrete store satisfies structurally — call sites passing a `*metaengine.Store` compile unchanged; consumers invoking metaengine methods on `bundle.MetaEngine()` must recover the concrete store via `stackmeta.Store(bundle)` (or a type assertion). The whole stack family dies at v5 (ADR-0123); `system.New` consumers are unaffected.
-- **Turso IVM verified range extended to v0.8.2 (pin catch-up).** `metaengine.TursoGoIVMVerifiedThrough` advances v0.8.1 → v0.8.2 and `TursoGoIVMLastVerified` to 2026-10-08: workspace go.mod pins rode the dependency sweep to tursogo v0.8.2, and the `-tags ivmrepro` repro suite re-ran GREEN on the new pin — all three grouped-view defects (A/B/C) still reproduce with the identical 430.50 delta signature, so the operator caveat range extends one version with no behavior change (scalar views remain exact; the recursive-CTE probe pin stays green). `#check-turso-version` green across all live citations and pins.
+- **`stack/sqlite`: v4.3.5 resolves the metaengine preset through the seam + bridge, dropping its temporary workspace replace.** The sqlite preset's go.mod no longer carries the `=> ../metaengine` local replace: it resolves `stack/metaengine/v4@v4.0.0` from the proxy and rides `stack/v4` to v4.5.0 via MVS, so the module is consumable standalone without workspace surgery. Dependency-first tag order mattered here — the bridge's `b.MetaEngine().(*metaengine.Store)` recovery cannot compile against pre-seam `stack/v4.4.3` (its `MetaEngine()` returned the concrete type), so the seam shipped first, then the bridge, then this re-pin. Standalone build + `-short` suite green at the tag commit; proxy-smoked at attempt 1.
 
 ## [metaengine/v4.17.0, system/v4.11.0, cmd/cqrs-lint/v4.15.0, signing/v4.4.0, benchkit/v4.7.0, storage/v4.10.5, systemtest/v4.0.0, testutil/mysqltestcontainer/v4.0.0 (+34 more) — 2026-10-08 stalled-waves release train (42 tags)] — 2026-10-08
 
