@@ -26,319 +26,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
      did NOT retag the root module (doc.go unchanged since v4.0.0; zero
      importable packages) — root stays v4.0.0. -->
      root stays v4.0.0. -->
-## [v4.14.1] — 2026-10-06
-
-- **cqrs-lint hotfix wave (1 module: `cmd/cqrs-lint`).** Single-module patch train; the fixes below shipped as `cmd/cqrs-lint/v4 v4.14.1` only.
-- **cqrs-lint v4.14.1: toolsdk Spec now honors inline suppressions (M12, DiscordSync 2026-10-05).** `Spec().Detect` returned the RAW finding set — `//cqrs-lint:ignore(...)` directives were dropped at the toolsdk boundary because the suppression filter lived only in the CLI's pipeline composition. detect() now composes `suppression.NewSuppressionFilter()` and drops marked findings (`finding.Filter(NotSuppressed)`), matching the CLI pipeline's own drop point (pipeline_detect drops `IsSuppressed`). BuildFlow and any toolsdk host now see the CLI-parity effective set. The repro canary shipped with the report passes and stays as the regression pin.
-- **cqrs-lint v4.14.1: parallel-test data race on os.Stdout fixed.** v4.14.0's new CLI-contract tests called `ExecuteWithArgs` (fang/cobra read the process-global os.Stdout via `OutOrStdout`) while `captureStdout`-based tests swapped it — a `-race` red on the shipped suite. A package `stdoutMu` now serializes both funnels; direct executions route through a `runCLI` helper, capture callbacks keep the raw call under the already-held lock.
-- **cqrs-lint v4.14.1: test-fixture and golden heals.** `testdata/typedfixture`'s go.sum gained the missing rows (indirect go-codec v0.3.0→v0.3.1; the deliberate drift-test pins untouched) — the v4.14.0 tag shipped with the P014/V007 typed tests failing on "no packages loaded"; the taskmanager golden re-pinned for a one-line source shift in `example/taskmanager/setup.go` (C015 286→285, class and target unchanged).
-
-## [v4.7.1] — 2026-10-05
-
-- **catalog: templ-components pins v1.20.0 → v1.20.1 (heal the v4.7.0 poison chain).** templ-components v1.20.0's published go.mod required four sibling submodules at zero pseudo-versions (`v1.20.0-00010101000000-000000000000` — unresolvable on the proxy), so any consumer resolving catalog v4.7.0's graph WITHOUT an independent higher templ-components pin failed `go mod tidy`/download. v1.20.1 (templ-components 085e1068) pins the siblings at real versions; catalog re-pins root + icons + utils + htmx (indirect) to it. No API changes.
-- **id: test suite realigned to the v4.7.0 branding contract (2026-10-06).** The v4.7.0 tag shipped with 15 red tests: parse/derive/encoding/fuzz/idtest assertions compared `.String()` to bare literals, encoding the pre-branding contract (String == identity). Identity assertions now read `.Get()` (the bare wire/identity form; MarshalText/JSON/SQL stay bare), the JSON roundtrip test constructs `NewStreamID()` instead of the accidentally-double-branded `New[StreamID]()`, and a new `TestStreamIDDisplayAndIdentityLaws` pins both forms plus the round-trip law (`ParseStreamID(x).Get() == x`, `ParseStreamID(id.String()) == id`). No production-code changes.
-
-## [v4.16.1] — 2026-10-05
-
-- **2026-10-05 dependency sweep (1 module: `metaengine`).** PROPRIETARY LICENSE copy, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites (import ordering, embedded-literal elision). No API changes (api-stability golden carries no delta for this module).
-
-## [v4.14.0] — 2026-10-05
-
-- **cqrs-lint v4.14.0: A013 inverted — fires on VALUE-embedded `BasicCommand`, silent on the sanctioned pointer form (GitHub #51).** The old rule flagged `*command.BasicCommand` embeds and suggested value embedding "for cache locality" — but every `BasicCommand` method has a pointer receiver, so a value embed cannot satisfy `command.Command` (compile error when dispatched), and `ApplyOptions` mutates through the embedded pointer so pipeline enrichment reaches the command. Following the old suggestion broke compilation; real consumers (go-aichat/chatstore) emitted A013 on their sanctioned pattern. Now: value embeds fire at warning severity with the compile-failure rationale and the pointer-form suggestion; pointer embeds are silent (all 7 example embeds + the cqrs-gen template use the pointer form). RULES.md/README/catalog re-pinned, taskmanager golden re-generated (10 A013 findings dropped to 0), `TestA013_DetectsValueBasicCommand`/`TestA013_PointerEmbedStaysSilent` pin the inversion.
-- **cqrs-lint v4.14.0: `doctor --fix` renamed to `doctor --prune-suppressions` (breaking).** The root command's `--fix` applies findings autofixes; doctor's `--fix` removed stale suppression directives — the same flag name doing two unrelated destructive things per subcommand made every docs example ambiguous. The new name is parallel to `--audit-suppressions` and still implies the audit; `--dry-run` keeps its doctor-local meaning (preview the prune). Migration: replace `cqrs-lint doctor --fix` with `cqrs-lint doctor --prune-suppressions` (add `--dry-run` to preview). The old name is an unknown-flag error, not a silent alias.
-- **cqrs-lint v4.14.0: F022/F023 coach pushdown UTILIZATION for metaengine importers (nsfw-classifier feedback, 2026-10-03).** Adopting metaengine and adopting pushdown are different steps; the rules used to skip importers entirely, hiding the population that needs coaching most. Importers now get type-linked findings: `slices.SortFunc`/`sort.Slice` over a registered `metaengine.Query` R type lacking `SortOnField` (F022), and range loops with field comparisons over an R lacking `FilterOnField` (F023) — gated on the declaration's `Volume(n)` (≥1000; absent/unresolvable stays silent), with exactly-one-R attribution (shared R types stay silent rather than guess the collection). Suggestions show the two-layer shape (declaration allow-lists columns, `metaengine.WithFilter` binds values at read time) and the memory-engine framing (declaring is free — it activates with a SQL DSN). New analyzer surface: `CQRSRegistry.MetaengineQueries` (`analyzer.QueryDeclInfo`), `FeatureProfile.MetaengineQueryCount`/`MetaengineDeclarativeQueries`; the profile line is now actionable (`pushdown: false (3 queries, 0 declarative — …)`). Backed by the committed typed fixture `cmd/cqrs-lint/testdata/scanfixture`.
-- **cqrs-lint v4.14.0: `tracing: "off"` is an explicit decline (F003).** Detection no longer collapses absence-of-OTel-evidence to `TracingOff` (it stays `TracingUnknown`), so a pinned `"off"` uniquely means "deliberately declined" and F003 honors it — the same contract `features.monetary` uses for C008. Doctor consequently stops suggesting `tracing` pins for un-traced projects.
-- **cqrs-lint v4.14.0: doctor suggestions pin Server/SoftDelete only as positive evidence.** A detected `false` is absence-of-evidence within importer packages (non-importer packages are outside the scan scope); pinning it as project truth silenced real server rules for a consumer whose server lived elsewhere. `FeatureProfile.ToConfigFeatures` emits the booleans only when true, and doctor prints a scope NOTE beside the suggestion.
-- **cqrs-lint: event emissions through constructor helpers resolve (nsfw-classifier feedback).** `event.New(t, …)` inside `func newRoomEvent(t event.Type, …)` left the type invisible to `EventTypesEmitted` (soft-delete detection reported false). `analyzer.ResolveHelperEmitCalls` walks helper call sites post-scan and records the constants exactly as direct emissions would.
-- **cqrs-lint: A012 recognizes constant-identifier tombstone cases.** Folds whose switch handles deletion via `case evtRoomItemDeleted:` (not string literals) are no longer coached to add tombstone handling; `FoldInfo.SwitchCaseValues` + `analyzer.ResolveFoldTombstoneCases` resolve case identifiers through `TypeConstValues`, sharing the soft-delete vocabulary via `analyzer.IsTombstoneLikeEventType`.
-- **cqrs-lint: A011 no longer counts single-word JSON keys as camelCase.** `id` beside `source_dir` is not a mixed-casing signal; camel requires a lowercase→uppercase hump (`createdAt` still fires).
-- **cqrs-lint: F031 excludes non-metaengine `Scan` receivers by type.** `bufio.Scanner.Scan` loops (and `database/sql` `rows.Scan`) no longer trigger the WithLimit coaching; receivers resolve through real type information, unresolvable ones keep the legacy behavior.
-- **cqrs-lint: F026 only coaches readers that actually Scan.** `TypedReader.Get` never uses the prefetch cache, so point-Get-only readers are silent; the message no longer claims Get benefits.
-- **cqrs-lint: A009 recognizes the `system/` composition root.** Importing `go-cqrs-lite/system/` (ADR-0123) counts as adoption instead of being coached toward deprecated `stack/` presets; `systemtest/` does not suppress.
-- **cqrs-lint: stale-suppression warnings name the actual anchor.** `suppression.StaleSuppression.FiresAt` records where the rule really fires, rendered as `rule X does not fire here (fires at file.go:LINE); safe to remove or move`.
-- **cqrs-lint: DomainKind vocabulary surfaced.** The profile renders `domain: unknown (pinnable: internal, security, financial)` — `internal`/`security` were previously discoverable only by reading analyzer source.
-- **cqrs-lint: F023 non-importer suggestion no longer lies about the API.** It showed `FilterOnField[R]("column", op, value)` (three args with a runtime value); it now shows the two-layer shape with values bound at read time.
-- **cqrs-lint: subcommand flag consistency.** Five classes of silent
-- **cqrs-lint: multi-store feature model — mixed pools, config arrays, and memory inference (`analyzer.StoreSpec`, `analyzer.FeatureProfile.Stores`, `analyzer.FeatureProfile.EffectiveStores`).** The `store` feature was a single first-wins scalar while the runtime is multi-store by design (`system`'s `DeploymentConfig.Engines` is a named mixed pool; journal backend and projection engines are independent axes). Now: (1) every import signal (stack preset, `metaengine/<engine>engine`, `storage/` custom + constructor refinement, bare SQLite driver) is recorded into `FeatureProfile.Stores` — the primary `Store` keeps its historical first-seen selection; (2) `"features": {"store": ...}` accepts a string OR an array (`["postgres","sqlite"]`, first entry = primary), with unknown names rejected at config load listing the valid values; (3) an engine-less `metaengine` import infers the built-in memory driver (`store: "memory"`, engines gain `"memory"`) — sound because the core package init-registers `"memory"` and shipped engines register only via their module imports; doctor renders the in-app-custom-engine caveat next to the inferred engine; (4) exists-quantified predicates `AnyStoreSQL`/`AnyStorePersistent`/`AnyStoreDistributed` replace primary-only gates in F022/F023–F025 (pushdown coaching) and C017/C036 (persistence consistency) — a mixed postgres+memory pool now counts as SQL-backed and persistent. `cqrs-lint explain` documents the full detection contract (first-seen primary, fallback order, array form); pinned by per-module fixture tests (engine-less inference, mixed pool, engine-only, stack/memory overlap) plus JSONC loader e2e for both config forms.
-- **cqrs-lint CLI contract made mechanically true (M01–M05, M09, M13 of the CLI-consistency plan).** The shipped README/CONTRIBUTING claims now have enforcement: per-command `--format` vocabularies are single-sourced in `cmd/cqrs-lint/formats.go` (validate + `WithShort` + `explain` + the `init` template all derive from the same slices — the explain/init templates previously omitted csv/tsv); config-file `"format"` parity for scorecard/doctor is e2e-pinned (temp `.cqrs-lint.json` + `t.Chdir`); the hand-written root usage block is extracted to `rootLongHelp` and set-equality-checked against the registered subcommands (the `changelog` omission class); cobra's auto-added `completion`/`help <cmd>` surfaces and doctor's `--prune-suppressions` rename are pinned; a flag acceptance/scoping matrix covers every subcommand × shared/local flag; `init --preset` ×6 round-trips through the real JSONCLoader; `--format` beats the config file; `changelog` now prints an honest stderr notice when no release tag exists (fallback no longer silent). Docs: exit-code table, flag-consumption matrix, `rules --json`+`--markdown` precedence (markdown wins), the explain tri-state teaching note (why `tracing`=on/off but `server`=true/false), and the doctor `--format json` schema table in the skill's advanced reference.
-- **2026-10-05 dependency sweep content rides this minor** (PROPRIETARY LICENSE copy, dependency refresh, Go 1.27 modernize rewrites; the stale-go.sum prune).
-
-## [v4.13.1] — 2026-10-05
-
-- **2026-10-05 dependency sweep (2 modules: `command`, `event`).** PROPRIETARY LICENSE copies, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites (import ordering, embedded-literal elision). No API changes (api-stability golden carries no delta for these modules).
-
-## [v4.10.4] — 2026-10-05
-
-- **2026-10-05 dependency sweep (1 module: `storage`).** PROPRIETARY LICENSE copy, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No API changes (api-stability golden carries no delta for this module).
-
-## [v4.10.2] — 2026-10-05
-
-- **2026-10-05 dependency sweep (1 module: `system`).** PROPRIETARY LICENSE copy, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No API changes (api-stability golden carries no delta for this module).
-
-## [v4.10.1] — 2026-10-05
-
-- **2026-10-05 dependency sweep (1 module: `query`).** PROPRIETARY LICENSE copy, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No API changes (api-stability golden carries no delta for this module).
-
-## [v4.7.3] — 2026-10-05
-
-- **2026-10-05 dependency sweep (1 module: `metadata`).** PROPRIETARY LICENSE copy, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No API changes (api-stability golden carries no delta for this module).
-
-## [v4.7.2] — 2026-10-05
-
-- **2026-10-05 dependency sweep (2 modules: `decider`, `middleware`).** PROPRIETARY LICENSE copies, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites; the stale-go.sum prune reaches `decider`. No API changes (api-stability golden carries no delta for these modules).
-
-## [v4.7.0] — 2026-10-05
-
-- **catalog/asyncapi: queries export as real AsyncAPI 3.0 request/reply operations.** The package doc claimed "queries become request/reply operations", but the exporter never emitted one — `asyncapi.Reply`/`asyncapi.ReplyAddress` were dead types and queries shipped as plain `receive` operations with no response contract. Every query operation now carries a `reply` addressed to `$message.header#/replyTo` on a dedicated `<query>.replies` channel; the reply message (opaque schema — the catalog does not model query response types) is registered in that channel's messages map, following the Reply scoping contract documented on `asyncapi.Reply`. Commands and events never gain a reply. AsyncAPI tooling (Microcks, generators, the AsyncAPI React view) can now surface query response semantics. Goldens re-pinned (`catalog/testdata/golden/asyncapi*.snap`); `TestExporter_Export_Query` pins the full reply shape (address, channel ref, registered reply message, ref scoping).
-- **catalog/asyncapi: channel titles no longer mangle "queries" into "querie".** The singular noun for channel titles was computed with `strings.TrimSuffix(kind, "s")`, so query channels rendered "Get Order querie Channel". A real singular map fixes queries (and is exact for commands/events); applied on both the service and agent channel paths.
-- **id: `StreamMarker.Name()` (new method).** The stream marker type gains `Name() string` returning `"StreamMarker"` — marker self-identification for diagnostics without type switches (api-stability golden: `id/method Name`).
-- **2026-10-05 dependency sweep (2 modules: `catalog`, `id`).** PROPRIETARY LICENSE copies, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No further API changes (api-stability golden deltas for this wave are exactly `id/method Name` and `scheduling/method Name`).
-
-## [v4.6.4] — 2026-10-05
-
-- **2026-10-05 dependency sweep (1 module: `watermill`).** PROPRIETARY LICENSE copy, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No API changes (api-stability golden carries no delta for this module).
-
-## [v4.6.2] — 2026-10-05
-
-- **2026-10-05 dependency sweep (2 modules: `benchkit`, `record`).** PROPRIETARY LICENSE copies, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No API changes (api-stability golden carries no delta for these modules).
-
-## [v4.6.1] — 2026-10-05
-
-- **2026-10-05 dependency sweep (2 modules: `snapshot`, `storage/memory`).** PROPRIETARY LICENSE copies, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No API changes (api-stability golden carries no delta for these modules).
-- **scheduling: test suite realigned to the v4.6.0 branding contract (2026-10-06).** Three MemoryTimerStore/Scheduler tests asserted timer IDs via `.String()` against bare literals; with `TimerMarker.Name()` branding the display form, the v4.6.0 tag shipped with them red. Identity assertions now read `.Get()`. No production-code changes.
-
-## [v4.6.0] — 2026-10-05
-
-- **scheduling: `TimerMarker.Name()` (new method).** The timer marker type gains `Name() string` returning `"TimerMarker"` — marker self-identification for diagnostics without type switches (api-stability golden: `scheduling/method Name`).
-- **2026-10-05 dependency sweep (1 module: `scheduling`).** PROPRIETARY LICENSE copy, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No further API changes.
-
-## [v4.5.3] — 2026-10-05
-
-- **2026-10-05 dependency sweep (1 module: `projectionhost`).** PROPRIETARY LICENSE copy, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No API changes (api-stability golden carries no delta for this module).
-
-## [v4.5.2] — 2026-10-05
-
-- **2026-10-05 dependency sweep (3 modules: `dispatcher`, `metaengine/projectionadapter`, `otel`).** PROPRIETARY LICENSE copies, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No API changes (api-stability golden carries no delta for these modules).
-
-## [v4.5.1] — 2026-10-05
-
-- **2026-10-05 dependency sweep (2 modules: `metaengine/sqliteengine`, `schema`).** PROPRIETARY LICENSE copies, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No API changes (api-stability golden carries no delta for these modules).
-
-## [v4.4.3] — 2026-10-05
-
-- **2026-10-05 dependency sweep (8 modules: `encryption`, `listing`, `stack`, `stack/memory`, `stack/pebble`, `stack/postgres`, `stack/turso`, `storage/pebble`).** PROPRIETARY LICENSE copies, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No API changes (api-stability golden carries no delta for these modules).
-
-## [v4.4.2] — 2026-10-05
-
-- **2026-10-05 dependency sweep (6 modules: `cmd/api-stability`, `idempotency/sqlstore`, `metaengine/pebbleengine`, `metaengine/pgengine`, `projection`, `scenario`).** PROPRIETARY LICENSE copies, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No API changes (api-stability golden carries no delta for these modules).
-
-## [v4.3.4] — 2026-10-05
-
-- **2026-10-05 dependency sweep (4 modules: `signing`, `stack/sqlite`, `storage/turso`, `transport/http`).** PROPRIETARY LICENSE copies, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No API changes (api-stability golden carries no delta for these modules).
-
-## [v4.3.3] — 2026-10-05
-
-- **cqrs-bench: `--format` validated up front — typos fail loud instead of silently rendering text.** Every render switch's default branch doubled as "text", so an unknown value (`--format xmml`) or a documented-but-unsupported combination ran the whole benchmark first and then printed plain text. `run`, `compare`, `sweep`, `layout`, and run's soak mode now validate their format subset as the first handler statement: `cqrs-bench: invalid --format "xmml" for run (supported: …)` before any work happens. The shared flag help now scopes `benchstat`/`manifest` to `run`.
-- **cqrs-gen: positional scan paths were dead code (broken since subcommand
-- **cqrs-bench: `run --format markdown` and `layout --format table` render for real.** Both were advertised by `--help` but silently fell back to plain text: run summaries (and soak sample tables) now render markdown tables mirroring the compare output, and `layout` renders a bordered priority table (Layout/Priority/Selected/Embed/Normalize/Margin) instead of text sections. Pinned by e2e tests per subcommand (fail-fast rejection, markdown pipes, layout table columns, soak subset).
-- **2026-10-05 dependency sweep (9 modules: `cmd/cqrs-bench`, `cmd/cqrs-gen`, `cmd/doc-check`, `deriver`, `graph`, `kv`, `prometheus`, `testutil`, `transport/grpc`).** PROPRIETARY LICENSE copies, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites; the stale-go.sum prune reaches `cmd/cqrs-gen` and `cmd/doc-check`. No API changes (api-stability golden carries no delta for these modules).
-
-## [v4.3.2] — 2026-10-05
-
-- **2026-10-05 dependency sweep (8 modules: `idempotency/kvstore`, `metaengine/badgerengine`, `metaengine/bboltengine`, `metaengine/dgraphengine`, `metaengine/duckdbengine`, `metaengine/irohengine`, `metaengine/mysqlengine`, `stack/bench`).** PROPRIETARY LICENSE copies, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites; the stale-go.sum prune reaches `metaengine/badgerengine`. No API changes (api-stability golden carries no delta for these modules).
-
-## [v4.2.4] — 2026-10-05
-
-- **2026-10-05 dependency sweep (1 module: `dedup`).** PROPRIETARY LICENSE copy, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No API changes (api-stability golden carries no delta for this module).
-
-## [v4.2.3] — 2026-10-05
-
-- **2026-10-05 dependency sweep (9 modules: `integration`, `metaengine/irohengine/quic`, `metaengine/tursoengine`, `stack/bbolt`, `stack/duckdb`, `stack/mysql`, `storage/backuptest`, `storage/bbolt`, `testutil/pgtestcontainer`).** PROPRIETARY LICENSE copies, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No API changes (api-stability golden carries no delta for these modules).
-
-## [v4.2.2] — 2026-10-05
-
-- **2026-10-05 dependency sweep (2 modules: `commandlifecycle`, `commandlifecycle/projections`).** PROPRIETARY LICENSE copies, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No API changes (api-stability golden carries no delta for these modules).
-
-## [v4.1.3] — 2026-10-05
-
-- **2026-10-05 dependency sweep (2 modules: `metaengine/graphadapter`, `scheduling/sqlstore`).** PROPRIETARY LICENSE copies, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No API changes (api-stability golden carries no delta for these modules).
-
-## [v4.1.2] — 2026-10-05
-
-- **2026-10-05 dependency sweep (2 modules: `cmd/cqrs-upgrade`, `metaengine/bench`).** PROPRIETARY LICENSE copies, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites; the stale-go.sum prune reaches `cmd/cqrs-upgrade`. No API changes (api-stability golden carries no delta for these modules).
-
-## [v4.0.5] — 2026-10-05
-
-- **2026-10-05 dependency sweep (1 module: `metaengine/irohengine/loopback`).** PROPRIETARY LICENSE copy, dependency refresh, Go 1.27 modernize rewrites. No API changes.
-
-## [v4.0.2] — 2026-10-05
-
-- **2026-10-05 dependency sweep (10 modules: `claiming`, `metaengine/bigtableengine`, `metaengine/otelobserver`, `otel/otlp`, `queue`, `queue/mysql`, `queue/postgres`, `queue/sqlite`, `scheduling/engine`, `system/integration`).** PROPRIETARY LICENSE copies, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites; the stale-go.sum prune reaches `metaengine/otelobserver` and `otel/otlp`. No API changes (api-stability golden carries no delta for these modules).
-
-## [v0.2.3] — 2026-10-05
-
-- **2026-10-05 dependency sweep (1 module: `example/readme-quickstart`).** PROPRIETARY LICENSE copy, dependency refresh, Go 1.27 modernize rewrites. No API changes.
-
-## [v0.1.3] — 2026-10-05
-
-- **2026-10-05 dependency sweep (1 module: `example/metaengine-quickstart`).** PROPRIETARY LICENSE copy, dependency refresh, Go 1.27 modernize rewrites. No API changes.
-
-## [v0.1.2] — 2026-10-05
-
-- **2026-10-05 dependency sweep (2 modules: `example/goal-shaped-app`, `example/scheduler-otel-status`).** PROPRIETARY LICENSE copies, dependency refresh, Go 1.27 modernize rewrites. No API changes.
-
-<!-- release-train 2026-10-03: go-directive minor-form floor wave (92 tags, 13 dependency-ordered batches).
-     Every tagged module ships `go 1.27` (minor-only). The 8 cycle members
-     (command, event, query, schema, snapshot, storage/memory, metaengine,
-     metaengine/sqliteengine) carry minor bumps: their test-only cycle back-edge
-     requires pin pre-1.27.1 sibling tags so tag-time tidy does not re-lift the
-     directive; the pinned floors are all <= 1.26.7. -->
-## [v4.13.5] — 2026-10-05
-
-- **cqrs-lint v4.13.5: F010 traversal keywords match at identifier-part edges, not as substrings.** The seven-keyword list (`Traverse`, `Ancestor`, `Descendant`, `ShortestPath`, `Neighbor`, `Adjacency`, `Hierarchy`) contained-matched function names, so the model stayed one unlucky identifier away from the ChromePath class of misfire (a `gitHierarchyDump` — git plumbing, no graph work — coached graph-projection adoption). Keywords now fire only when their CamelCase word run aligns with the function name's leading or trailing word run, case-insensitively (`keywordAtIdentifierEdge` + `identifierParts`/`splitCamelToken`): buried occurrences (`gitHierarchyDump`, `dumpHierarchyTree`) go silent, idiomatic unexported names (`traverseGraph`, `walkHierarchy`) gain coverage the old case-sensitive substring match missed, and a keyword part may extend into its word (`Ancestor` still matches `Ancestors`). Known residual, accepted: a keyword that LEADS the name still fires with a trailing noun (`ShortestPathHelper`) — no name-only model separates that from `TraverseGraph`, and F010 is a low-confidence hint with the `WITH RECURSIVE` SQL branch carrying the strong signal. Pins: `TestF010_NoFindingOnBuriedKeywordIdentifier` (the gitHierarchyDump shape), `TestF010_StillFiresOnLeadingTraversalWord` (leading-run arm), `TestF010_FiresOnUnexportedTraversalNames` (case-insensitive recall), beside the existing `TestF010_NoFindingOnFilePathSetter`/`TestF010_StillFiresOnShortestPath` guards. Discrimination pair: at tag v4.13.3 the same gitHierarchyDump fixture fires F010; at HEAD it does not.
-
-## [v4.13.4] — 2026-10-05
-
-- **cqrs-lint v4.13.4: B029/B030 recognize engine journal-tail buses (the `Bus()` accessor signal).** A bus variable assigned from an engine `Bus()` accessor (`bus := engine.Bus()` — the in-process journal/notification bus the engine itself publishes to after appends) no longer draws retry/circuit-breaker middleware advice, whether it only subscribes or also feeds the fan-out: durability there comes from journal replay plus drop counting, not transport retries, so the coaching was category confusion for the journal tail (CV feedback, 2026-10-03). Project-CONSTRUCTED buses (`newBus()` and friends) keep the old behavior — the publish-side over-suppression guard now pins exactly that shape (`TestB029_StillFiresWhenPublishing` de-accessorized to a constructed bus), beside the new feed-side pins `TestB029_NoFindingForEngineJournalTailFeed` + `TestB030_NoFindingForEngineJournalTailFeed` and the existing read-only-subscriber skip (`busIsJournalTail` combines both signals).
-
-- **cqrs-lint v4.13.4 rider: formatting sweep over the doctor/audit/store-spec surfaces (backfilled 2026-10-07).** Daemon carrier `bad9b23d6` reformatted behavior-neutral call sites (`setupDoctorCommand`'s `runSuppressionAudit` invocation, the `failOnStaleSuppressions` error, `StoreSpec.UnmarshalJSON`, and the `TestF031_SqlRowsScanDoesNotFire` anchor assertion) as part of a repo-wide wrap pass — no behavior change, but the release section names it so the pre-tag completeness check's per-commit coverage holds.
-
-- **cqrs-lint v4.13.4 rider: contract tests moved to json/v2 validity checks (backfilled 2026-10-07).** Daemon carrier `180f85f50` replaced `encoding/json.Valid` with `encoding/json/v2`'s `jsontext.Value.IsValid` inside `TestScorecardConfigFileFormatParity`, `TestDoctorConfigFileFormatParity`, and `TestFormatFlagBeatsConfigFile` — the doctor/scorecard JSON-output parity guarantees are unchanged, now evaluated through the v2 API.
-
-## [v4.3.3] — 2026-10-04
-
-- **signing: `CloneEvent` preserves the source event's payload encoding (1 module: `signing`; GitHub #52).** The v4.3.2 `event.NewEvent` → `event.New` migration dropped the encoding carry-over, so every signed clone was re-stamped with the default CBOR encoding while its payload bytes stayed whatever the producer wrote — JSON events labeled `encoding=cbor` failed downstream decodes and signed events silently never reached read models (cqrs-htmx's signing battery, isolated by bump-bisection over the 43-module wave). `signing.CloneEvent` now passes `event.WithEncoding(evt.Encoding())`, mirroring `encryption`'s attach/decrypt reconstruction paths; regression `TestCloneEvent_PreservesPayloadEncoding` pins JSON-in/JSON-out (payload still decodes as stamped JSON), CBOR-in/CBOR-out, and the `AttachSignature` path. v4.3.1 was the last good tag; v4.3.2 is broken for non-CBOR producers — pin v4.3.3 (or stay on v4.3.1).
-
-## [v4.16.0] — 2026-10-03
-
-- **go-directive minor-form floor (1 module: `metaengine`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
-
-## [v4.13.3] — 2026-10-03
-
-- **cqrs-lint v4.13.3: F031 database/sql exemption pinned by typed-path fixture.** `*sql.Rows.Scan` loops (raw SQL iteration, the CV sqlite event store shape) no longer fire scan-without-limit — `scanReceiverIsMetaengine` consults the receiver's static type, so only metaengine reader reads are coached (bufio was already excluded; unresolvable receivers keep legacy syntactic coverage). Regression: `TestF031_SqlRowsScanDoesNotFire` (cmd/cqrs-lint/pkg/rules/adoption/f031_test.go) over the committed scanfixture module — the `*sql.Rows` loop shares the fixture file with the coached TypedReader Scan, so exactly one finding may fire and it must anchor at the reader scan (exclusion proven by type, not by absence of Scan calls).
-- **cqrs-lint v4.13.3: F010 drops the bare `"Path"` traversal keyword.** The graph-traversal identifier heuristic contains-matched every function name carrying "Path", so a `*Path` option setter (`WithChromePath` — a browser binary path in CV's `internal/di/handlers_pipeline.go`) was coached to import the graph projection module. The keyword list now carries only genuine traversal vocabulary (`Traverse`, `Ancestor`, `Descendant`, `ShortestPath`, `Neighbor`, `Adjacency`, `Hierarchy`) — the path-finding case stays covered by the dedicated `ShortestPath` entry. Pinned by `TestF010_NoFindingOnFilePathSetter` (the `WithChromePath` option-setter shape) beside the over-suppression guard `TestF010_StillFiresOnShortestPath`.
-
-## [v4.13.2] — 2026-10-03
-
-- **go-directive minor-form floor (1 module: `cmd/cqrs-lint`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
-
-## [v4.13.0] — 2026-10-03
-
-- **go-directive minor-form floor (2 modules: `command`, `event`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
-
-## [v4.10.3] — 2026-10-03
-
-- **go-directive minor-form floor (1 module: `storage`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
-
-## [v4.10.1] — 2026-10-03
-
-- **go-directive minor-form floor (1 module: `system`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
-
-## [v4.10.0] — 2026-10-03
-
-- **go-directive minor-form floor (1 module: `query`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
-
-## [v4.7.2] — 2026-10-03
-
-- **go-directive minor-form floor (1 module: `metadata`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
-
-## [v4.7.1] — 2026-10-03
-
-- **go-directive minor-form floor (2 modules: `decider`, `middleware`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
-
-## [v4.6.3] — 2026-10-03
-
-- **go-directive minor-form floor (1 module: `watermill`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
-
-## [v4.6.2] — 2026-10-03
-
-- **go-directive minor-form floor (1 module: `id`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
-
-## [v4.6.1] — 2026-10-03
-
-- **go-directive minor-form floor (3 modules: `benchkit`, `catalog`, `record`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
-
-## [v4.6.0] — 2026-10-03
-
-- **go-directive minor-form floor (2 modules: `snapshot`, `storage/memory`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
-
-## [v4.5.2] — 2026-10-03
-
-- **go-directive minor-form floor (1 module: `projectionhost`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
-
-## [v4.5.1] — 2026-10-03
-
-- **go-directive minor-form floor (4 modules: `dispatcher`, `metaengine/projectionadapter`, `otel`, `scheduling`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
-
-## [v4.5.0] — 2026-10-03
-
-- **go-directive minor-form floor (2 modules: `metaengine/sqliteengine`, `schema`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
-
-## [v4.4.2] — 2026-10-03
-
-- **go-directive minor-form floor (8 modules: `encryption`, `listing`, `stack`, `stack/memory`, `stack/pebble`, `stack/postgres`, `stack/turso`, `storage/pebble`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
-
-## [v4.4.1] — 2026-10-03
-
-- **go-directive minor-form floor (6 modules: `cmd/api-stability`, `idempotency/sqlstore`, `metaengine/pebbleengine`, `metaengine/pgengine`, `projection`, `scenario`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
-
-## [v4.3.3] — 2026-10-03
-
-- **go-directive minor-form floor (3 modules: `stack/sqlite`, `storage/turso`, `transport/http`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
-
-## [v4.3.2] — 2026-10-03
-
-- **go-directive minor-form floor (10 modules: `cmd/cqrs-bench`, `cmd/cqrs-gen`, `cmd/doc-check`, `deriver`, `graph`, `kv`, `prometheus`, `signing`, `testutil`, `transport/grpc`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
-
-## [v4.3.1] — 2026-10-03
-
-- **go-directive minor-form floor (8 modules: `idempotency/kvstore`, `metaengine/badgerengine`, `metaengine/bboltengine`, `metaengine/dgraphengine`, `metaengine/duckdbengine`, `metaengine/irohengine`, `metaengine/mysqlengine`, `stack/bench`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
-
-## [v4.2.3] — 2026-10-03
-
-- **go-directive minor-form floor (1 module: `dedup`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
-
-## [v4.2.2] — 2026-10-03
-
-- **go-directive minor-form floor (9 modules: `integration`, `metaengine/irohengine/quic`, `metaengine/tursoengine`, `stack/bbolt`, `stack/duckdb`, `stack/mysql`, `storage/backuptest`, `storage/bbolt`, `testutil/pgtestcontainer`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
-
-## [v4.2.1] — 2026-10-03
-
-- **go-directive minor-form floor (2 modules: `commandlifecycle`, `commandlifecycle/projections`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
-
-## [v4.1.2] — 2026-10-03
-
-- **go-directive minor-form floor (2 modules: `metaengine/graphadapter`, `scheduling/sqlstore`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
-
-## [v4.1.1] — 2026-10-03
-
-- **go-directive minor-form floor (2 modules: `cmd/cqrs-upgrade`, `metaengine/bench`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
-
-## [v4.0.4] — 2026-10-03
-
-- **go-directive minor-form floor (1 module: `metaengine/irohengine/loopback`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
-
-## [v4.0.1] — 2026-10-03
-
-- **go-directive minor-form floor (10 modules: `claiming`, `metaengine/bigtableengine`, `metaengine/otelobserver`, `otel/otlp`, `queue`, `queue/mysql`, `queue/postgres`, `queue/sqlite`, `scheduling/engine`, `system/integration`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
-
-## [v0.2.2] — 2026-10-03
-
-- **go-directive minor-form floor (2 modules: `example/readme-quickstart`, `example/taskmanager`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
-
-## [v0.2.1] — 2026-10-03
-
-- **go-directive minor-form floor (1 module: `example/getting-started`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
-
-## [v0.1.2] — 2026-10-03
-
-- **go-directive minor-form floor (1 module: `example/metaengine-quickstart`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
-
-## [v0.1.1] — 2026-10-03
-
-- **go-directive minor-form floor (2 modules: `example/goal-shaped-app`, `example/scheduler-otel-status`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
-
 ## [Unreleased]
+
+## [metaengine/v4.17.0, system/v4.11.0, cmd/cqrs-lint/v4.15.0, signing/v4.4.0, benchkit/v4.7.0, storage/v4.10.5, systemtest/v4.0.0, testutil/mysqltestcontainer/v4.0.0 (+34 more) — 2026-10-08 stalled-waves release train (42 tags)] — 2026-10-08
 
 ### Added
 
@@ -1184,6 +874,318 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   split around `TypedReader` into reader core, scan, aggregates, grouped
   aggregates, scan options, and cursor files.
 
+## [v4.14.1] — 2026-10-06
+
+- **cqrs-lint hotfix wave (1 module: `cmd/cqrs-lint`).** Single-module patch train; the fixes below shipped as `cmd/cqrs-lint/v4 v4.14.1` only.
+- **cqrs-lint v4.14.1: toolsdk Spec now honors inline suppressions (M12, DiscordSync 2026-10-05).** `Spec().Detect` returned the RAW finding set — `//cqrs-lint:ignore(...)` directives were dropped at the toolsdk boundary because the suppression filter lived only in the CLI's pipeline composition. detect() now composes `suppression.NewSuppressionFilter()` and drops marked findings (`finding.Filter(NotSuppressed)`), matching the CLI pipeline's own drop point (pipeline_detect drops `IsSuppressed`). BuildFlow and any toolsdk host now see the CLI-parity effective set. The repro canary shipped with the report passes and stays as the regression pin.
+- **cqrs-lint v4.14.1: parallel-test data race on os.Stdout fixed.** v4.14.0's new CLI-contract tests called `ExecuteWithArgs` (fang/cobra read the process-global os.Stdout via `OutOrStdout`) while `captureStdout`-based tests swapped it — a `-race` red on the shipped suite. A package `stdoutMu` now serializes both funnels; direct executions route through a `runCLI` helper, capture callbacks keep the raw call under the already-held lock.
+- **cqrs-lint v4.14.1: test-fixture and golden heals.** `testdata/typedfixture`'s go.sum gained the missing rows (indirect go-codec v0.3.0→v0.3.1; the deliberate drift-test pins untouched) — the v4.14.0 tag shipped with the P014/V007 typed tests failing on "no packages loaded"; the taskmanager golden re-pinned for a one-line source shift in `example/taskmanager/setup.go` (C015 286→285, class and target unchanged).
+
+## [v4.7.1] — 2026-10-05
+
+- **catalog: templ-components pins v1.20.0 → v1.20.1 (heal the v4.7.0 poison chain).** templ-components v1.20.0's published go.mod required four sibling submodules at zero pseudo-versions (`v1.20.0-00010101000000-000000000000` — unresolvable on the proxy), so any consumer resolving catalog v4.7.0's graph WITHOUT an independent higher templ-components pin failed `go mod tidy`/download. v1.20.1 (templ-components 085e1068) pins the siblings at real versions; catalog re-pins root + icons + utils + htmx (indirect) to it. No API changes.
+- **id: test suite realigned to the v4.7.0 branding contract (2026-10-06).** The v4.7.0 tag shipped with 15 red tests: parse/derive/encoding/fuzz/idtest assertions compared `.String()` to bare literals, encoding the pre-branding contract (String == identity). Identity assertions now read `.Get()` (the bare wire/identity form; MarshalText/JSON/SQL stay bare), the JSON roundtrip test constructs `NewStreamID()` instead of the accidentally-double-branded `New[StreamID]()`, and a new `TestStreamIDDisplayAndIdentityLaws` pins both forms plus the round-trip law (`ParseStreamID(x).Get() == x`, `ParseStreamID(id.String()) == id`). No production-code changes.
+
+## [v4.16.1] — 2026-10-05
+
+- **2026-10-05 dependency sweep (1 module: `metaengine`).** PROPRIETARY LICENSE copy, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites (import ordering, embedded-literal elision). No API changes (api-stability golden carries no delta for this module).
+
+## [v4.14.0] — 2026-10-05
+
+- **cqrs-lint v4.14.0: A013 inverted — fires on VALUE-embedded `BasicCommand`, silent on the sanctioned pointer form (GitHub #51).** The old rule flagged `*command.BasicCommand` embeds and suggested value embedding "for cache locality" — but every `BasicCommand` method has a pointer receiver, so a value embed cannot satisfy `command.Command` (compile error when dispatched), and `ApplyOptions` mutates through the embedded pointer so pipeline enrichment reaches the command. Following the old suggestion broke compilation; real consumers (go-aichat/chatstore) emitted A013 on their sanctioned pattern. Now: value embeds fire at warning severity with the compile-failure rationale and the pointer-form suggestion; pointer embeds are silent (all 7 example embeds + the cqrs-gen template use the pointer form). RULES.md/README/catalog re-pinned, taskmanager golden re-generated (10 A013 findings dropped to 0), `TestA013_DetectsValueBasicCommand`/`TestA013_PointerEmbedStaysSilent` pin the inversion.
+- **cqrs-lint v4.14.0: `doctor --fix` renamed to `doctor --prune-suppressions` (breaking).** The root command's `--fix` applies findings autofixes; doctor's `--fix` removed stale suppression directives — the same flag name doing two unrelated destructive things per subcommand made every docs example ambiguous. The new name is parallel to `--audit-suppressions` and still implies the audit; `--dry-run` keeps its doctor-local meaning (preview the prune). Migration: replace `cqrs-lint doctor --fix` with `cqrs-lint doctor --prune-suppressions` (add `--dry-run` to preview). The old name is an unknown-flag error, not a silent alias.
+- **cqrs-lint v4.14.0: F022/F023 coach pushdown UTILIZATION for metaengine importers (nsfw-classifier feedback, 2026-10-03).** Adopting metaengine and adopting pushdown are different steps; the rules used to skip importers entirely, hiding the population that needs coaching most. Importers now get type-linked findings: `slices.SortFunc`/`sort.Slice` over a registered `metaengine.Query` R type lacking `SortOnField` (F022), and range loops with field comparisons over an R lacking `FilterOnField` (F023) — gated on the declaration's `Volume(n)` (≥1000; absent/unresolvable stays silent), with exactly-one-R attribution (shared R types stay silent rather than guess the collection). Suggestions show the two-layer shape (declaration allow-lists columns, `metaengine.WithFilter` binds values at read time) and the memory-engine framing (declaring is free — it activates with a SQL DSN). New analyzer surface: `CQRSRegistry.MetaengineQueries` (`analyzer.QueryDeclInfo`), `FeatureProfile.MetaengineQueryCount`/`MetaengineDeclarativeQueries`; the profile line is now actionable (`pushdown: false (3 queries, 0 declarative — …)`). Backed by the committed typed fixture `cmd/cqrs-lint/testdata/scanfixture`.
+- **cqrs-lint v4.14.0: `tracing: "off"` is an explicit decline (F003).** Detection no longer collapses absence-of-OTel-evidence to `TracingOff` (it stays `TracingUnknown`), so a pinned `"off"` uniquely means "deliberately declined" and F003 honors it — the same contract `features.monetary` uses for C008. Doctor consequently stops suggesting `tracing` pins for un-traced projects.
+- **cqrs-lint v4.14.0: doctor suggestions pin Server/SoftDelete only as positive evidence.** A detected `false` is absence-of-evidence within importer packages (non-importer packages are outside the scan scope); pinning it as project truth silenced real server rules for a consumer whose server lived elsewhere. `FeatureProfile.ToConfigFeatures` emits the booleans only when true, and doctor prints a scope NOTE beside the suggestion.
+- **cqrs-lint: event emissions through constructor helpers resolve (nsfw-classifier feedback).** `event.New(t, …)` inside `func newRoomEvent(t event.Type, …)` left the type invisible to `EventTypesEmitted` (soft-delete detection reported false). `analyzer.ResolveHelperEmitCalls` walks helper call sites post-scan and records the constants exactly as direct emissions would.
+- **cqrs-lint: A012 recognizes constant-identifier tombstone cases.** Folds whose switch handles deletion via `case evtRoomItemDeleted:` (not string literals) are no longer coached to add tombstone handling; `FoldInfo.SwitchCaseValues` + `analyzer.ResolveFoldTombstoneCases` resolve case identifiers through `TypeConstValues`, sharing the soft-delete vocabulary via `analyzer.IsTombstoneLikeEventType`.
+- **cqrs-lint: A011 no longer counts single-word JSON keys as camelCase.** `id` beside `source_dir` is not a mixed-casing signal; camel requires a lowercase→uppercase hump (`createdAt` still fires).
+- **cqrs-lint: F031 excludes non-metaengine `Scan` receivers by type.** `bufio.Scanner.Scan` loops (and `database/sql` `rows.Scan`) no longer trigger the WithLimit coaching; receivers resolve through real type information, unresolvable ones keep the legacy behavior.
+- **cqrs-lint: F026 only coaches readers that actually Scan.** `TypedReader.Get` never uses the prefetch cache, so point-Get-only readers are silent; the message no longer claims Get benefits.
+- **cqrs-lint: A009 recognizes the `system/` composition root.** Importing `go-cqrs-lite/system/` (ADR-0123) counts as adoption instead of being coached toward deprecated `stack/` presets; `systemtest/` does not suppress.
+- **cqrs-lint: stale-suppression warnings name the actual anchor.** `suppression.StaleSuppression.FiresAt` records where the rule really fires, rendered as `rule X does not fire here (fires at file.go:LINE); safe to remove or move`.
+- **cqrs-lint: DomainKind vocabulary surfaced.** The profile renders `domain: unknown (pinnable: internal, security, financial)` — `internal`/`security` were previously discoverable only by reading analyzer source.
+- **cqrs-lint: F023 non-importer suggestion no longer lies about the API.** It showed `FilterOnField[R]("column", op, value)` (three args with a runtime value); it now shows the two-layer shape with values bound at read time.
+- **cqrs-lint: subcommand flag consistency.** Five classes of silent
+- **cqrs-lint: multi-store feature model — mixed pools, config arrays, and memory inference (`analyzer.StoreSpec`, `analyzer.FeatureProfile.Stores`, `analyzer.FeatureProfile.EffectiveStores`).** The `store` feature was a single first-wins scalar while the runtime is multi-store by design (`system`'s `DeploymentConfig.Engines` is a named mixed pool; journal backend and projection engines are independent axes). Now: (1) every import signal (stack preset, `metaengine/<engine>engine`, `storage/` custom + constructor refinement, bare SQLite driver) is recorded into `FeatureProfile.Stores` — the primary `Store` keeps its historical first-seen selection; (2) `"features": {"store": ...}` accepts a string OR an array (`["postgres","sqlite"]`, first entry = primary), with unknown names rejected at config load listing the valid values; (3) an engine-less `metaengine` import infers the built-in memory driver (`store: "memory"`, engines gain `"memory"`) — sound because the core package init-registers `"memory"` and shipped engines register only via their module imports; doctor renders the in-app-custom-engine caveat next to the inferred engine; (4) exists-quantified predicates `AnyStoreSQL`/`AnyStorePersistent`/`AnyStoreDistributed` replace primary-only gates in F022/F023–F025 (pushdown coaching) and C017/C036 (persistence consistency) — a mixed postgres+memory pool now counts as SQL-backed and persistent. `cqrs-lint explain` documents the full detection contract (first-seen primary, fallback order, array form); pinned by per-module fixture tests (engine-less inference, mixed pool, engine-only, stack/memory overlap) plus JSONC loader e2e for both config forms.
+- **cqrs-lint CLI contract made mechanically true (M01–M05, M09, M13 of the CLI-consistency plan).** The shipped README/CONTRIBUTING claims now have enforcement: per-command `--format` vocabularies are single-sourced in `cmd/cqrs-lint/formats.go` (validate + `WithShort` + `explain` + the `init` template all derive from the same slices — the explain/init templates previously omitted csv/tsv); config-file `"format"` parity for scorecard/doctor is e2e-pinned (temp `.cqrs-lint.json` + `t.Chdir`); the hand-written root usage block is extracted to `rootLongHelp` and set-equality-checked against the registered subcommands (the `changelog` omission class); cobra's auto-added `completion`/`help <cmd>` surfaces and doctor's `--prune-suppressions` rename are pinned; a flag acceptance/scoping matrix covers every subcommand × shared/local flag; `init --preset` ×6 round-trips through the real JSONCLoader; `--format` beats the config file; `changelog` now prints an honest stderr notice when no release tag exists (fallback no longer silent). Docs: exit-code table, flag-consumption matrix, `rules --json`+`--markdown` precedence (markdown wins), the explain tri-state teaching note (why `tracing`=on/off but `server`=true/false), and the doctor `--format json` schema table in the skill's advanced reference.
+- **2026-10-05 dependency sweep content rides this minor** (PROPRIETARY LICENSE copy, dependency refresh, Go 1.27 modernize rewrites; the stale-go.sum prune).
+
+## [v4.13.1] — 2026-10-05
+
+- **2026-10-05 dependency sweep (2 modules: `command`, `event`).** PROPRIETARY LICENSE copies, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites (import ordering, embedded-literal elision). No API changes (api-stability golden carries no delta for these modules).
+
+## [v4.10.4] — 2026-10-05
+
+- **2026-10-05 dependency sweep (1 module: `storage`).** PROPRIETARY LICENSE copy, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No API changes (api-stability golden carries no delta for this module).
+
+## [v4.10.2] — 2026-10-05
+
+- **2026-10-05 dependency sweep (1 module: `system`).** PROPRIETARY LICENSE copy, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No API changes (api-stability golden carries no delta for this module).
+
+## [v4.10.1] — 2026-10-05
+
+- **2026-10-05 dependency sweep (1 module: `query`).** PROPRIETARY LICENSE copy, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No API changes (api-stability golden carries no delta for this module).
+
+## [v4.7.3] — 2026-10-05
+
+- **2026-10-05 dependency sweep (1 module: `metadata`).** PROPRIETARY LICENSE copy, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No API changes (api-stability golden carries no delta for this module).
+
+## [v4.7.2] — 2026-10-05
+
+- **2026-10-05 dependency sweep (2 modules: `decider`, `middleware`).** PROPRIETARY LICENSE copies, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites; the stale-go.sum prune reaches `decider`. No API changes (api-stability golden carries no delta for these modules).
+
+## [v4.7.0] — 2026-10-05
+
+- **catalog/asyncapi: queries export as real AsyncAPI 3.0 request/reply operations.** The package doc claimed "queries become request/reply operations", but the exporter never emitted one — `asyncapi.Reply`/`asyncapi.ReplyAddress` were dead types and queries shipped as plain `receive` operations with no response contract. Every query operation now carries a `reply` addressed to `$message.header#/replyTo` on a dedicated `<query>.replies` channel; the reply message (opaque schema — the catalog does not model query response types) is registered in that channel's messages map, following the Reply scoping contract documented on `asyncapi.Reply`. Commands and events never gain a reply. AsyncAPI tooling (Microcks, generators, the AsyncAPI React view) can now surface query response semantics. Goldens re-pinned (`catalog/testdata/golden/asyncapi*.snap`); `TestExporter_Export_Query` pins the full reply shape (address, channel ref, registered reply message, ref scoping).
+- **catalog/asyncapi: channel titles no longer mangle "queries" into "querie".** The singular noun for channel titles was computed with `strings.TrimSuffix(kind, "s")`, so query channels rendered "Get Order querie Channel". A real singular map fixes queries (and is exact for commands/events); applied on both the service and agent channel paths.
+- **id: `StreamMarker.Name()` (new method).** The stream marker type gains `Name() string` returning `"StreamMarker"` — marker self-identification for diagnostics without type switches (api-stability golden: `id/method Name`).
+- **2026-10-05 dependency sweep (2 modules: `catalog`, `id`).** PROPRIETARY LICENSE copies, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No further API changes (api-stability golden deltas for this wave are exactly `id/method Name` and `scheduling/method Name`).
+
+## [v4.6.4] — 2026-10-05
+
+- **2026-10-05 dependency sweep (1 module: `watermill`).** PROPRIETARY LICENSE copy, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No API changes (api-stability golden carries no delta for this module).
+
+## [v4.6.2] — 2026-10-05
+
+- **2026-10-05 dependency sweep (2 modules: `benchkit`, `record`).** PROPRIETARY LICENSE copies, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No API changes (api-stability golden carries no delta for these modules).
+
+## [v4.6.1] — 2026-10-05
+
+- **2026-10-05 dependency sweep (2 modules: `snapshot`, `storage/memory`).** PROPRIETARY LICENSE copies, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No API changes (api-stability golden carries no delta for these modules).
+- **scheduling: test suite realigned to the v4.6.0 branding contract (2026-10-06).** Three MemoryTimerStore/Scheduler tests asserted timer IDs via `.String()` against bare literals; with `TimerMarker.Name()` branding the display form, the v4.6.0 tag shipped with them red. Identity assertions now read `.Get()`. No production-code changes.
+
+## [v4.6.0] — 2026-10-05
+
+- **scheduling: `TimerMarker.Name()` (new method).** The timer marker type gains `Name() string` returning `"TimerMarker"` — marker self-identification for diagnostics without type switches (api-stability golden: `scheduling/method Name`).
+- **2026-10-05 dependency sweep (1 module: `scheduling`).** PROPRIETARY LICENSE copy, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No further API changes.
+
+## [v4.5.3] — 2026-10-05
+
+- **2026-10-05 dependency sweep (1 module: `projectionhost`).** PROPRIETARY LICENSE copy, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No API changes (api-stability golden carries no delta for this module).
+
+## [v4.5.2] — 2026-10-05
+
+- **2026-10-05 dependency sweep (3 modules: `dispatcher`, `metaengine/projectionadapter`, `otel`).** PROPRIETARY LICENSE copies, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No API changes (api-stability golden carries no delta for these modules).
+
+## [v4.5.1] — 2026-10-05
+
+- **2026-10-05 dependency sweep (2 modules: `metaengine/sqliteengine`, `schema`).** PROPRIETARY LICENSE copies, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No API changes (api-stability golden carries no delta for these modules).
+
+## [v4.4.3] — 2026-10-05
+
+- **2026-10-05 dependency sweep (8 modules: `encryption`, `listing`, `stack`, `stack/memory`, `stack/pebble`, `stack/postgres`, `stack/turso`, `storage/pebble`).** PROPRIETARY LICENSE copies, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No API changes (api-stability golden carries no delta for these modules).
+
+## [v4.4.2] — 2026-10-05
+
+- **2026-10-05 dependency sweep (6 modules: `cmd/api-stability`, `idempotency/sqlstore`, `metaengine/pebbleengine`, `metaengine/pgengine`, `projection`, `scenario`).** PROPRIETARY LICENSE copies, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No API changes (api-stability golden carries no delta for these modules).
+
+## [v4.3.4] — 2026-10-05
+
+- **2026-10-05 dependency sweep (4 modules: `signing`, `stack/sqlite`, `storage/turso`, `transport/http`).** PROPRIETARY LICENSE copies, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No API changes (api-stability golden carries no delta for these modules).
+
+## [v4.3.3] — 2026-10-05
+
+- **cqrs-bench: `--format` validated up front — typos fail loud instead of silently rendering text.** Every render switch's default branch doubled as "text", so an unknown value (`--format xmml`) or a documented-but-unsupported combination ran the whole benchmark first and then printed plain text. `run`, `compare`, `sweep`, `layout`, and run's soak mode now validate their format subset as the first handler statement: `cqrs-bench: invalid --format "xmml" for run (supported: …)` before any work happens. The shared flag help now scopes `benchstat`/`manifest` to `run`.
+- **cqrs-gen: positional scan paths were dead code (broken since subcommand
+- **cqrs-bench: `run --format markdown` and `layout --format table` render for real.** Both were advertised by `--help` but silently fell back to plain text: run summaries (and soak sample tables) now render markdown tables mirroring the compare output, and `layout` renders a bordered priority table (Layout/Priority/Selected/Embed/Normalize/Margin) instead of text sections. Pinned by e2e tests per subcommand (fail-fast rejection, markdown pipes, layout table columns, soak subset).
+- **2026-10-05 dependency sweep (9 modules: `cmd/cqrs-bench`, `cmd/cqrs-gen`, `cmd/doc-check`, `deriver`, `graph`, `kv`, `prometheus`, `testutil`, `transport/grpc`).** PROPRIETARY LICENSE copies, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites; the stale-go.sum prune reaches `cmd/cqrs-gen` and `cmd/doc-check`. No API changes (api-stability golden carries no delta for these modules).
+
+## [v4.3.2] — 2026-10-05
+
+- **2026-10-05 dependency sweep (8 modules: `idempotency/kvstore`, `metaengine/badgerengine`, `metaengine/bboltengine`, `metaengine/dgraphengine`, `metaengine/duckdbengine`, `metaengine/irohengine`, `metaengine/mysqlengine`, `stack/bench`).** PROPRIETARY LICENSE copies, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites; the stale-go.sum prune reaches `metaengine/badgerengine`. No API changes (api-stability golden carries no delta for these modules).
+
+## [v4.2.4] — 2026-10-05
+
+- **2026-10-05 dependency sweep (1 module: `dedup`).** PROPRIETARY LICENSE copy, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No API changes (api-stability golden carries no delta for this module).
+
+## [v4.2.3] — 2026-10-05
+
+- **2026-10-05 dependency sweep (9 modules: `integration`, `metaengine/irohengine/quic`, `metaengine/tursoengine`, `stack/bbolt`, `stack/duckdb`, `stack/mysql`, `storage/backuptest`, `storage/bbolt`, `testutil/pgtestcontainer`).** PROPRIETARY LICENSE copies, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No API changes (api-stability golden carries no delta for these modules).
+
+## [v4.2.2] — 2026-10-05
+
+- **2026-10-05 dependency sweep (2 modules: `commandlifecycle`, `commandlifecycle/projections`).** PROPRIETARY LICENSE copies, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No API changes (api-stability golden carries no delta for these modules).
+
+## [v4.1.3] — 2026-10-05
+
+- **2026-10-05 dependency sweep (2 modules: `metaengine/graphadapter`, `scheduling/sqlstore`).** PROPRIETARY LICENSE copies, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No API changes (api-stability golden carries no delta for these modules).
+
+## [v4.1.2] — 2026-10-05
+
+- **2026-10-05 dependency sweep (2 modules: `cmd/cqrs-upgrade`, `metaengine/bench`).** PROPRIETARY LICENSE copies, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites; the stale-go.sum prune reaches `cmd/cqrs-upgrade`. No API changes (api-stability golden carries no delta for these modules).
+
+## [v4.0.5] — 2026-10-05
+
+- **2026-10-05 dependency sweep (1 module: `metaengine/irohengine/loopback`).** PROPRIETARY LICENSE copy, dependency refresh, Go 1.27 modernize rewrites. No API changes.
+
+## [v4.0.2] — 2026-10-05
+
+- **2026-10-05 dependency sweep (10 modules: `claiming`, `metaengine/bigtableengine`, `metaengine/otelobserver`, `otel/otlp`, `queue`, `queue/mysql`, `queue/postgres`, `queue/sqlite`, `scheduling/engine`, `system/integration`).** PROPRIETARY LICENSE copies, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites; the stale-go.sum prune reaches `metaengine/otelobserver` and `otel/otlp`. No API changes (api-stability golden carries no delta for these modules).
+
+## [v0.2.3] — 2026-10-05
+
+- **2026-10-05 dependency sweep (1 module: `example/readme-quickstart`).** PROPRIETARY LICENSE copy, dependency refresh, Go 1.27 modernize rewrites. No API changes.
+
+## [v0.1.3] — 2026-10-05
+
+- **2026-10-05 dependency sweep (1 module: `example/metaengine-quickstart`).** PROPRIETARY LICENSE copy, dependency refresh, Go 1.27 modernize rewrites. No API changes.
+
+## [v0.1.2] — 2026-10-05
+
+- **2026-10-05 dependency sweep (2 modules: `example/goal-shaped-app`, `example/scheduler-otel-status`).** PROPRIETARY LICENSE copies, dependency refresh, Go 1.27 modernize rewrites. No API changes.
+
+<!-- release-train 2026-10-03: go-directive minor-form floor wave (92 tags, 13 dependency-ordered batches).
+     Every tagged module ships `go 1.27` (minor-only). The 8 cycle members
+     (command, event, query, schema, snapshot, storage/memory, metaengine,
+     metaengine/sqliteengine) carry minor bumps: their test-only cycle back-edge
+     requires pin pre-1.27.1 sibling tags so tag-time tidy does not re-lift the
+     directive; the pinned floors are all <= 1.26.7. -->
+## [v4.13.5] — 2026-10-05
+
+- **cqrs-lint v4.13.5: F010 traversal keywords match at identifier-part edges, not as substrings.** The seven-keyword list (`Traverse`, `Ancestor`, `Descendant`, `ShortestPath`, `Neighbor`, `Adjacency`, `Hierarchy`) contained-matched function names, so the model stayed one unlucky identifier away from the ChromePath class of misfire (a `gitHierarchyDump` — git plumbing, no graph work — coached graph-projection adoption). Keywords now fire only when their CamelCase word run aligns with the function name's leading or trailing word run, case-insensitively (`keywordAtIdentifierEdge` + `identifierParts`/`splitCamelToken`): buried occurrences (`gitHierarchyDump`, `dumpHierarchyTree`) go silent, idiomatic unexported names (`traverseGraph`, `walkHierarchy`) gain coverage the old case-sensitive substring match missed, and a keyword part may extend into its word (`Ancestor` still matches `Ancestors`). Known residual, accepted: a keyword that LEADS the name still fires with a trailing noun (`ShortestPathHelper`) — no name-only model separates that from `TraverseGraph`, and F010 is a low-confidence hint with the `WITH RECURSIVE` SQL branch carrying the strong signal. Pins: `TestF010_NoFindingOnBuriedKeywordIdentifier` (the gitHierarchyDump shape), `TestF010_StillFiresOnLeadingTraversalWord` (leading-run arm), `TestF010_FiresOnUnexportedTraversalNames` (case-insensitive recall), beside the existing `TestF010_NoFindingOnFilePathSetter`/`TestF010_StillFiresOnShortestPath` guards. Discrimination pair: at tag v4.13.3 the same gitHierarchyDump fixture fires F010; at HEAD it does not.
+
+## [v4.13.4] — 2026-10-05
+
+- **cqrs-lint v4.13.4: B029/B030 recognize engine journal-tail buses (the `Bus()` accessor signal).** A bus variable assigned from an engine `Bus()` accessor (`bus := engine.Bus()` — the in-process journal/notification bus the engine itself publishes to after appends) no longer draws retry/circuit-breaker middleware advice, whether it only subscribes or also feeds the fan-out: durability there comes from journal replay plus drop counting, not transport retries, so the coaching was category confusion for the journal tail (CV feedback, 2026-10-03). Project-CONSTRUCTED buses (`newBus()` and friends) keep the old behavior — the publish-side over-suppression guard now pins exactly that shape (`TestB029_StillFiresWhenPublishing` de-accessorized to a constructed bus), beside the new feed-side pins `TestB029_NoFindingForEngineJournalTailFeed` + `TestB030_NoFindingForEngineJournalTailFeed` and the existing read-only-subscriber skip (`busIsJournalTail` combines both signals).
+
+- **cqrs-lint v4.13.4 rider: formatting sweep over the doctor/audit/store-spec surfaces (backfilled 2026-10-07).** Daemon carrier `bad9b23d6` reformatted behavior-neutral call sites (`setupDoctorCommand`'s `runSuppressionAudit` invocation, the `failOnStaleSuppressions` error, `StoreSpec.UnmarshalJSON`, and the `TestF031_SqlRowsScanDoesNotFire` anchor assertion) as part of a repo-wide wrap pass — no behavior change, but the release section names it so the pre-tag completeness check's per-commit coverage holds.
+
+- **cqrs-lint v4.13.4 rider: contract tests moved to json/v2 validity checks (backfilled 2026-10-07).** Daemon carrier `180f85f50` replaced `encoding/json.Valid` with `encoding/json/v2`'s `jsontext.Value.IsValid` inside `TestScorecardConfigFileFormatParity`, `TestDoctorConfigFileFormatParity`, and `TestFormatFlagBeatsConfigFile` — the doctor/scorecard JSON-output parity guarantees are unchanged, now evaluated through the v2 API.
+
+## [v4.3.3] — 2026-10-04
+
+- **signing: `CloneEvent` preserves the source event's payload encoding (1 module: `signing`; GitHub #52).** The v4.3.2 `event.NewEvent` → `event.New` migration dropped the encoding carry-over, so every signed clone was re-stamped with the default CBOR encoding while its payload bytes stayed whatever the producer wrote — JSON events labeled `encoding=cbor` failed downstream decodes and signed events silently never reached read models (cqrs-htmx's signing battery, isolated by bump-bisection over the 43-module wave). `signing.CloneEvent` now passes `event.WithEncoding(evt.Encoding())`, mirroring `encryption`'s attach/decrypt reconstruction paths; regression `TestCloneEvent_PreservesPayloadEncoding` pins JSON-in/JSON-out (payload still decodes as stamped JSON), CBOR-in/CBOR-out, and the `AttachSignature` path. v4.3.1 was the last good tag; v4.3.2 is broken for non-CBOR producers — pin v4.3.3 (or stay on v4.3.1).
+
+## [v4.16.0] — 2026-10-03
+
+- **go-directive minor-form floor (1 module: `metaengine`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v4.13.3] — 2026-10-03
+
+- **cqrs-lint v4.13.3: F031 database/sql exemption pinned by typed-path fixture.** `*sql.Rows.Scan` loops (raw SQL iteration, the CV sqlite event store shape) no longer fire scan-without-limit — `scanReceiverIsMetaengine` consults the receiver's static type, so only metaengine reader reads are coached (bufio was already excluded; unresolvable receivers keep legacy syntactic coverage). Regression: `TestF031_SqlRowsScanDoesNotFire` (cmd/cqrs-lint/pkg/rules/adoption/f031_test.go) over the committed scanfixture module — the `*sql.Rows` loop shares the fixture file with the coached TypedReader Scan, so exactly one finding may fire and it must anchor at the reader scan (exclusion proven by type, not by absence of Scan calls).
+- **cqrs-lint v4.13.3: F010 drops the bare `"Path"` traversal keyword.** The graph-traversal identifier heuristic contains-matched every function name carrying "Path", so a `*Path` option setter (`WithChromePath` — a browser binary path in CV's `internal/di/handlers_pipeline.go`) was coached to import the graph projection module. The keyword list now carries only genuine traversal vocabulary (`Traverse`, `Ancestor`, `Descendant`, `ShortestPath`, `Neighbor`, `Adjacency`, `Hierarchy`) — the path-finding case stays covered by the dedicated `ShortestPath` entry. Pinned by `TestF010_NoFindingOnFilePathSetter` (the `WithChromePath` option-setter shape) beside the over-suppression guard `TestF010_StillFiresOnShortestPath`.
+
+## [v4.13.2] — 2026-10-03
+
+- **go-directive minor-form floor (1 module: `cmd/cqrs-lint`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v4.13.0] — 2026-10-03
+
+- **go-directive minor-form floor (2 modules: `command`, `event`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v4.10.3] — 2026-10-03
+
+- **go-directive minor-form floor (1 module: `storage`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v4.10.1] — 2026-10-03
+
+- **go-directive minor-form floor (1 module: `system`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v4.10.0] — 2026-10-03
+
+- **go-directive minor-form floor (1 module: `query`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v4.7.2] — 2026-10-03
+
+- **go-directive minor-form floor (1 module: `metadata`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v4.7.1] — 2026-10-03
+
+- **go-directive minor-form floor (2 modules: `decider`, `middleware`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v4.6.3] — 2026-10-03
+
+- **go-directive minor-form floor (1 module: `watermill`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v4.6.2] — 2026-10-03
+
+- **go-directive minor-form floor (1 module: `id`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v4.6.1] — 2026-10-03
+
+- **go-directive minor-form floor (3 modules: `benchkit`, `catalog`, `record`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v4.6.0] — 2026-10-03
+
+- **go-directive minor-form floor (2 modules: `snapshot`, `storage/memory`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v4.5.2] — 2026-10-03
+
+- **go-directive minor-form floor (1 module: `projectionhost`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v4.5.1] — 2026-10-03
+
+- **go-directive minor-form floor (4 modules: `dispatcher`, `metaengine/projectionadapter`, `otel`, `scheduling`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v4.5.0] — 2026-10-03
+
+- **go-directive minor-form floor (2 modules: `metaengine/sqliteengine`, `schema`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v4.4.2] — 2026-10-03
+
+- **go-directive minor-form floor (8 modules: `encryption`, `listing`, `stack`, `stack/memory`, `stack/pebble`, `stack/postgres`, `stack/turso`, `storage/pebble`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v4.4.1] — 2026-10-03
+
+- **go-directive minor-form floor (6 modules: `cmd/api-stability`, `idempotency/sqlstore`, `metaengine/pebbleengine`, `metaengine/pgengine`, `projection`, `scenario`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v4.3.3] — 2026-10-03
+
+- **go-directive minor-form floor (3 modules: `stack/sqlite`, `storage/turso`, `transport/http`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v4.3.2] — 2026-10-03
+
+- **go-directive minor-form floor (10 modules: `cmd/cqrs-bench`, `cmd/cqrs-gen`, `cmd/doc-check`, `deriver`, `graph`, `kv`, `prometheus`, `signing`, `testutil`, `transport/grpc`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v4.3.1] — 2026-10-03
+
+- **go-directive minor-form floor (8 modules: `idempotency/kvstore`, `metaengine/badgerengine`, `metaengine/bboltengine`, `metaengine/dgraphengine`, `metaengine/duckdbengine`, `metaengine/irohengine`, `metaengine/mysqlengine`, `stack/bench`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v4.2.3] — 2026-10-03
+
+- **go-directive minor-form floor (1 module: `dedup`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v4.2.2] — 2026-10-03
+
+- **go-directive minor-form floor (9 modules: `integration`, `metaengine/irohengine/quic`, `metaengine/tursoengine`, `stack/bbolt`, `stack/duckdb`, `stack/mysql`, `storage/backuptest`, `storage/bbolt`, `testutil/pgtestcontainer`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v4.2.1] — 2026-10-03
+
+- **go-directive minor-form floor (2 modules: `commandlifecycle`, `commandlifecycle/projections`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v4.1.2] — 2026-10-03
+
+- **go-directive minor-form floor (2 modules: `metaengine/graphadapter`, `scheduling/sqlstore`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v4.1.1] — 2026-10-03
+
+- **go-directive minor-form floor (2 modules: `cmd/cqrs-upgrade`, `metaengine/bench`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v4.0.4] — 2026-10-03
+
+- **go-directive minor-form floor (1 module: `metaengine/irohengine/loopback`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v4.0.1] — 2026-10-03
+
+- **go-directive minor-form floor (10 modules: `claiming`, `metaengine/bigtableengine`, `metaengine/otelobserver`, `otel/otlp`, `queue`, `queue/mysql`, `queue/postgres`, `queue/sqlite`, `scheduling/engine`, `system/integration`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v0.2.2] — 2026-10-03
+
+- **go-directive minor-form floor (2 modules: `example/readme-quickstart`, `example/taskmanager`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v0.2.1] — 2026-10-03
+
+- **go-directive minor-form floor (1 module: `example/getting-started`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v0.1.2] — 2026-10-03
+
+- **go-directive minor-form floor (1 module: `example/metaengine-quickstart`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v0.1.1] — 2026-10-03
+
+- **go-directive minor-form floor (2 modules: `example/goal-shaped-app`, `example/scheduler-otel-status`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
 ## [catalog/v4.6.0, cmd/cqrs-lint/v4.13.0 — data-mesh federation surface] — 2026-09-29
 
 The data-mesh/federation wave: the EventCatalog exporter grows its governance + federation machinery, cqrs-lint gains the E019 contract-completeness rule. Both tags proxy-verified + smoke green; mesh-demo's pre-release sibling replace stripped (it builds standalone on published pins now), `cmd/cqrs-upgrade` + `example/goal-shaped-app` re-pinned, and the `check-example-standalone` audit is back at 0 findings.
@@ -1317,7 +1319,6 @@ the projection-host double-apply fix).
   test exposed the projection-host double-apply below (the leg re-arms with
   this wave's `projectionhost/v4.5.1` fix).
 
-
 - **system: fail closed on the racy `EventAdapter.Save` fallback (go-graph-rag
   feedback #3).** A backend implementing neither `AtomicAppender` nor
   `Transactional` no longer silently runs the racy check-then-append Save:
@@ -1355,7 +1356,6 @@ the projection-host double-apply fix).
   `docs_compile_test.go`, and the Doctor output carries a machine-specific
   ns-figures caveat plus a `goal.db` reset note (`trash`, never `rm`).
 
-
 - **record: `DeferClose` (ADR-0144).** The discard-close idiom
   (`defer record.DeferClose(x)` replacing the verbose func-wrapped
   discard-close statement) now lives at Tier 0, so leaf storage
@@ -1382,7 +1382,6 @@ the projection-host double-apply fix).
   `TestHost_CatchUpDrain_LiveThenCatchUpDoesNotDoubleApply`
   (mutation-verified: removing the mark fails the test with
   "applied 2 times").
-
 
 ## [metaengine/v4.14.0, system/v4.8.0, claiming/v4.0.0, queue/v4.0.0, storage/v4.10.0, decider/v4.7.0, projectionhost/v4.5.0, benchkit/v4.6.0, catalog/v4.5.0, cmd/cqrs-lint/v4.12.0 — 2026-09-19 release train (+82 more module tags)] — 2026-09-19
 
@@ -1416,7 +1415,6 @@ Coordinated release of the full 2026-09-08 → 09-19 surface (92 modules):
 `example/readme-quickstart/v0.2.1`, `example/metaengine-quickstart/v0.1.1`, 
 `example/scheduler-otel-status/v0.1.0`, `example/goal-shaped-app/v0.1.0`
 First releases: `claiming/v4.0.0`, `queue/v4.0.0` (+ `queue/sqlite/v4.0.0`, `queue/postgres/v4.0.0`, `queue/mysql/v4.0.0`, `queue/conformance` ships with `queue`), `scheduling/engine/v4.0.0`, `system/integration/v4.0.0`, `metaengine/bigtableengine/v4.0.0`, `metaengine/otelobserver/v4.0.0`, `otel/otlp/v4.0.0`, and `example/goal-shaped-app/v0.1.0` — the ADR-0142 universal storage substrate, the durable work-queue stack (ADR-0134/0142), and the Goal example become proxy-visible for consumers. The examples' module paths are suffix-less, so their v0 tags are the proxy-visible line.
-
 
 ### Fixed — repo-wide lint debt cleared to zero; exhaustruct_v5 panic class killed (2026-09-19)
 
@@ -4571,7 +4569,6 @@ workflow-side root cause (first wave 2026-09-01 fixed the API-stability job).
   (`storage/sql/journal_reader_prealloc_test.go`); the three SQL stores'
   stream-load paths are unchanged in behavior.
 
-
 ### Changed — bbolt/pebble resolve published backuptest standalone — 2026-08-29
 
 - **`storage/bbolt`** and **`storage/pebble`** dropped their
@@ -6347,7 +6344,6 @@ forbidden — see CONTRIBUTING.md → Release Process.
 - **`cmd/cqrs-lint/pkg/analyzer/module_catalog_data.go`**: Added
   `commandlifecycle` to the DefaultCatalog.
 
-
 ### Added — ADR-0124: Operator-Driven Layout Planning — 2026-08-11
 
 > Replaces the original M9 ("auto-generate child collections from `[]Attachment`
@@ -7946,7 +7942,6 @@ Cut via the detached-worktree release path during the SUPERB adoption wave.
   `omitzero` fallback, scenario DSL actor support, deriver/commandlifecycle
   propagation, `middleware.CommandActorContext`, and `id.ActorID.Validate`
   all re-run green after this wave.
-
 
 ### Changed — record.Encoding is now a compact typed stamp — 2026-08-22
 
