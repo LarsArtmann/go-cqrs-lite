@@ -115,12 +115,12 @@ require (
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.6.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.6.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/bbolt/v4 v4.2.3 // indirect
-	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/storage/pebble/v4 v4.4.3 // indirect
+	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2 // indirect
+	github.com/larsartmann/go-cqrs-lite/storage/pebble/v4 v4.4.4 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/turso/v4 v4.3.4 // indirect
-	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.10.4 // indirect
-	github.com/larsartmann/go-cqrs-lite/system/v4 v4.10.2 // indirect
-	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.4 // indirect
+	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.10.5 // indirect
+	github.com/larsartmann/go-cqrs-lite/system/v4 v4.11.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.5 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.1 // indirect
 	github.com/larsartmann/go-ndjson v0.0.1 // indirect
 	github.com/larsartmann/go-output/d2 v0.38.4 // indirect

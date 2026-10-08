@@ -6,9 +6,9 @@ require (
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.13.1
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.7.2
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.13.1
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.1
-	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.1
-	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.4
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.2
+	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2
+	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.5
 )
 
 require (
@@ -26,7 +26,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2 // indirect
-	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.6.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.6.2 // indirect
 	github.com/larsartmann/go-error-family v0.11.0 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.1 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
