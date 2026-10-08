@@ -496,15 +496,29 @@ replace-free — 10-25 §a2/§a3, now archived).
 > Zero local `=> ../` replaces remain EXCEPT `storage/go.mod` (`=> ../encryption`,
 > `=> ../snapshot` — the documented unpublished-sibling pattern).
 
-- [ ] **Release-train tail (post-v4.9.0 waves, queued in [Unreleased])** —
-      metaengine wave (row in Metaengine follow-ups below); queue/mysql + `testutil/mysqltestcontainer`
-      tag pair; `scheduling/engine` for `ErrEngineNotDueClaimer`; encryption
-      docs/wire-goldens entry; cqrs-lint typed-info tier (P014/F090/F091/
-      C008/C013/C035 — the biggest single Unreleased item); cqrs-upgrade
-      `--strict` growth; benchkit/cqrs-bench (row in its own section). After the
-      queue/metaengine waves: drop taskmanager's four sibling replaces (queue,
-      queue/sqlite, claiming, metaengine) — the same consumer-purity play as
-      scheduler-otel-status. — source: closeout §f17-24 _(Effort: M each, wave mechanics)_
+- [x] ~~**Release-train tail (post-v4.9.0 waves, queued in [Unreleased])**~~ —
+      **PUBLISHED 2026-10-08 (42-tag stalled-waves train, receipts below):**
+      per-module `GOWORK=off go test -short` ran GREEN over all 49 candidate
+      modules FIRST (the 2026-10-06 verify≠tests lesson); then
+      `batch-release.sh` cut metaengine v4.17.0 (solo, dependency-first) →
+      push → proxy smoke ✓ → `pin-sweep.sh` (36 modules bumped to latest) →
+      38-tag batch (system v4.11.0, cmd/cqrs-lint v4.15.0, signing v4.4.0,
+      storage v4.10.5, queue family v4.0.3, scheduling v4.6.2 + sqlstore
+      v4.1.4, watermill v4.6.5, id v4.7.2, benchkit v4.7.0, engines, tails)
+      → push (one tag initially missed by a bad push-list parse — caught and
+      pushed by the manifest `--check --remote` gate: cqrs-lint v4.15.0) →
+      dependents wave (cmd/cqrs-bench v4.3.4, systemtest v4.0.0 FIRST TAG,
+      testutil/mysqltestcontainer v4.0.0 FIRST TAG) → smoke ✓ ×3 →
+      taskmanager/systemtest/cqrs-bench sibling replaces dropped (0 remaining)
+      → `check-example-standalone --build` 0 findings → versions.json 110
+      trains + README matrix fresh vs origin → CHANGELOG cut into the dated
+      wave section + `[Unreleased]` restored to first position (verify-docs
+      green, `TestTagContentMatchesChangelog` green, changelog-symbols 55
+      citations green). Run logs: `build/release-logs/batch-20261008-*.log`.
+      Stale items found already-tagged during curation (scheduling/engine
+      ErrEngineNotDueClaimer ∈ v4.0.2, cqrs-upgrade --strict ∈ v4.1.2,
+      catalog StaticServer ∈ v4.7.1) — their wave rows were dead. — source:
+      closeout §f17-24
 - [ ] [RULED 2026-10-08] **claiming V006 advisory decision** — **RULED:
       linter-semantics fix** (teach V006 to skip pins at a module's newest
       existing tag — content-identical re-tags are history lies). XS cqrs-lint
@@ -554,8 +568,10 @@ replace-free — 10-25 §a2/§a3, now archived).
       dead `projectionhost→storage/v4.10.0` edge healed via MVS through
       system/v4.10.0), `pin-sweep --check` fully green (sibling + external; the
       `go-finding` family bump for cqrs-lint cleared the external leg — 19/19
-      packages green). REMAINING: the G-T13 mysql-VM quiet-window leg + the
-      CHANGELOG wave-section cut (owner mechanics).
+      packages green). **Receipt 2026-10-08 (T02): CHANGELOG wave-section cut
+      DONE — metaengine v4.17.0 + engine patch wave published (42-tag train;
+      dated wave section in CHANGELOG; run logs `build/release-logs/batch-20261008-*.log`).
+      REMAINING: the G-T13 mysql-VM quiet-window leg only (tracked in T04).**
       — source: closeout §f17/§c2 _(Effort: M — tag-wave mechanics)_
 - [ ] **Calibration provenance protocol + quiet-window re-runs** — protocol HALF DONE 2026-09-11 (later session), re-runs remain gated on a quiet window: (a) DONE — `scripts/calibration-gate.sh` asserts 1-min load < 5 (overridable `--max-load`/`CALIB_MAX_LOAD`; CI exempt) and aborts loudly — verified against a live compile storm (load 207 → hard abort); `calibration-drift.sh` runs it before benching; (b) DONE — protocol items 6-8 in `docs/benchmarks/calibration-2026-08-30.md` define the per-entry PROVENANCE line (store path + binary version output + uptime samples) and ban secondhand version citations; the 2026-09-11 SearchQuery entry now carries an explicit provenance-gap note; (c) MECHANISM DONE, RUN PARTIAL — `benchmark-regression.sh --save` writes a titled provenance header (fixture-tested, parser-safe); the titled re-pin of `benchmarks/benchmark-baseline.txt` **DID run 2026-09-20 17:12 UTC** (receipt: the T18b canonical record `docs/benchmarks/2026-09-20-21_t18b-record.md` — noise-clean save, go1.27.1 provenance, claimkit/SQLite entries, 0 regressions vs the 2026-09-11 baseline); the quiet-window count=5 SearchQuery re-run remains pending (a 493-load storm held the 2026-09-11 session; gate correctly refuses); (d) PENDING — re-anchor ALL dgraph constants in one gate-passing window. Run when `scripts/calibration-gate.sh` passes: SearchQuery count=5 (supersede today's table if medians move >5%), then the benchmark-baseline re-pin, then the dgraph constant campaign. — source: 03-50 §b2/§b3/§f7/§f8/§f15/§f16, 02-48 §d3/§f8
       _(Effort: M)_
@@ -999,15 +1015,14 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       asrecord/MIGRATION_TO_STACK/PRESETS guides once v5 nears. — source:
       08-26 §c6, 08-41 §f25–27
       _(Effort: M)_
-- [ ] **systemtest tag-wave tail: strip the module's sibling replaces** —
-      the Feedback #4 split itself is DONE 2026-09-22: the Tier-7
-      `systemtest/` module owns system's real-engine suites (13 moved files
-      + the four sqlite wiring tests + the checkpoint restart-durability test
-      via the new public `system.NewEngineCheckpointStore`); system/go.mod
-      drops ALL engine requires; registered in go.work, flake testModules,
-      api-stability, module layers/budget, and the cqrs-lint catalog (census
-      96→97) — receipt: CHANGELOG [Unreleased].
-      — source: 23-24 followups §f22, feedback doc §4.4 _(Effort: XS at tag time)_
+- [x] ~~**systemtest tag-wave tail: strip the module's sibling replaces**~~ —
+      **DONE 2026-10-08 (T02 Wave F):** `systemtest/v4.0.0` FIRST TAG cut,
+      pushed, proxy-smoked ✓; working-tree sibling replaces dropped post-tag
+      (0 `=> ../` remain) alongside taskmanager's four and cqrs-bench's
+      benchkit pin; `check-example-standalone --build` green at 0 findings.
+      The Feedback #4 split itself was DONE 2026-09-22 (Tier-7 `systemtest/`
+      module owns system's real-engine suites; receipt: CHANGELOG).
+      — source: 23-24 followups §f22, feedback doc §4.4
 - [ ] **Cut v5.0.0** — tag all modules. Update CHANGELOG, README, SKILL.md,
       examples. Run full verify gate. _(Effort: M)_
 
@@ -1085,11 +1100,13 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       `scripts/calibration-gate.sh` PASS, re-run the compare command from the
       capture header, then annotate. — source: archived 15-37 §f3/§f30
 
-- [ ] [BLOCKED] **Benchkit tag wave (owner go-ahead)** — cut benchkit with
-      the statistical-rigor + polish-tail APIs (~+17 untagged exports deep),
-      bump `cmd/cqrs-bench` pin, strip the sibling replace; batch with the
-      next queue/system release or cut now — owner timing call. — source:
-      archived 15-57-benchkit §f15/§g1 _(Effort: M, owner-gated)_
+- [x] ~~[BLOCKED] **Benchkit tag wave (owner go-ahead)**~~ — **DONE 2026-10-08
+      (T02 Wave E, go-ahead granted by blanket authorization):** `benchkit/v4.7.0`
+      cut+pushed+proxy-smoked ✓ with the statistical-rigor + polish-tail APIs
+      (~+17 exports); `cmd/cqrs-bench/v4.3.4` pin-bumped + its sibling replace
+      stripped; LICENSE corrected to the root form (Lars Artmann). Run log:
+      `build/release-logs/batch-20261008-154909.log`. — source:
+      archived 15-57-benchkit §f15/§g1
 
 ---
 

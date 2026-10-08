@@ -79,4 +79,18 @@ dual-write block in watermill, and this table's Legacy column.
 code: **no consumer depends on go-cqrs-lite's old wire spellings.**
 (PapDashboard's `internal/api/audit.go` carries `aggregate_id` columns, but
 that is its own local audit-event schema, not a go-cqrs-lite wire surface.)
-Re-run at the v5.0.0 cut per the sweep §4 checklist.
+
+**2026-10-08 re-run (v5-GOAL plan T09/f072, full ~/projects sweep):**
+**no consumer surprise at v5.0** — (a) zero sibling consumers of benchkit /
+cqrs-bench output (the JSON schema v2.0.0 `aggregates`→`streams` rename has
+no external reader); (b) watermill consumers (CV, DiscordSync, InboxClean,
+Cyberdom, Zlota44, …) read metadata through the DUAL-WRITE window — fresh
+messages carry both `stream_*` and legacy `aggregate_*` spellings until v6,
+so dashboards filtering the old keys keep working through the cut;
+(c) `aggregate_id`/`aggregate_type` in sibling SQL (ChastityAPI, CV,
+Code-Quality-Agent, CreditReformBilanzampel, PapDashboard) sits in
+consumer-owned schemas/queries against the library's SQL columns — and the
+SQL `events`/`commands` column rename is RULED v5.x expand-contract, NOT
+the v5.0 cut (2026-10-08 blanket ruling, sweep §4(a)). Consequence pinned:
+the V5-MIGRATION-GUIDE must carry the SQL-column expand-contract section
+first-class (T22) — ≥4 sibling projects hold queries over those columns.
