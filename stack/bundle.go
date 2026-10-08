@@ -7,7 +7,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
-	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
 	flightrecorder "github.com/larsartmann/go-flightrecorder"
@@ -68,8 +67,10 @@ type Bundle struct {
 	// ── Metaengine (optional) ──
 	// The cost-based storage planner. Set via WithMetaEngine. Consumers call
 	// metaengine.Plan() themselves (typed generics) and pass the *Store here
-	// for lifecycle management and discoverability by benchkit.
-	metaEngine *metaengine.Store
+	// for lifecycle management and discoverability by benchkit. Held as the
+	// [MetaEngineStore] seam so this module stays metaengine-free (issue #36);
+	// recover the concrete store via stack/metaengine.Store.
+	metaEngine MetaEngineStore
 
 	// ── Projection runner prerequisites (optional) ──
 	// ProjectionJournal and ProjectionSubscriber are usually the same as
@@ -197,7 +198,11 @@ func (b *Bundle) EventCodec() codec.Codec {
 //
 // benchkit auto-discovers metaengine via this accessor (unless Config.SkipMetaEngine
 // is set), measuring Apply throughput and ExecuteTyped read latency.
-func (b *Bundle) MetaEngine() *metaengine.Store {
+//
+// Deprecated: removed in v5 together with the whole stack module
+// (ADR-0123); returns the [MetaEngineStore] seam — recover the concrete
+// *metaengine.Store via the typed stack/metaengine.Store helper.
+func (b *Bundle) MetaEngine() MetaEngineStore {
 	return b.metaEngine
 }
 

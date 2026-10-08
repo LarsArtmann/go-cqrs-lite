@@ -7,6 +7,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
+	stackme "github.com/larsartmann/go-cqrs-lite/stack/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 )
@@ -47,26 +48,27 @@ func TestPreset_WithMetaEngine(t *testing.T) {
 	}
 	defer func() { _ = bundle.Close() }()
 
-	// The bundle must expose the store via MetaEngine().
-	if bundle.MetaEngine() == nil {
-		t.Fatal("bundle.MetaEngine() is nil — WithMetaEngine did not wire")
+	// The bundle must expose the store via the typed recovery helper.
+	me := stackme.Store(bundle)
+	if me == nil {
+		t.Fatal("metaengine.Store(bundle) is nil — WithMetaEngine did not wire")
 	}
 
 	// Apply events and execute the query through the preset path.
 	ctx := context.Background()
 
-	if err := bundle.MetaEngine().Apply(ctx, "presetItemCreated",
+	if err := me.Apply(ctx, "presetItemCreated",
 		presetItemCreated{Status: "active"}); err != nil {
 		t.Fatalf("Apply: %v", err)
 	}
 
-	if err := bundle.MetaEngine().Apply(ctx, "presetItemCreated",
+	if err := me.Apply(ctx, "presetItemCreated",
 		presetItemCreated{Status: "active"}); err != nil {
 		t.Fatalf("Apply: %v", err)
 	}
 
 	result, err := metaengine.ExecuteTyped[countInput, map[string]int64](
-		ctx, bundle.MetaEngine(), countInput{},
+		ctx, me, countInput{},
 	)
 	if err != nil {
 		t.Fatalf("ExecuteTyped: %v", err)
