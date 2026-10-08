@@ -320,7 +320,7 @@ Modules release on independent per-module version trains (`<module>/vX.Y.Z` git 
 | schema | `schema/v4.5.2` |
 | signing | `signing/v4.4.0` |
 | snapshot | `snapshot/v4.6.2` |
-| stack | `stack/v4.4.3` |
+| stack | `stack/v4.5.0` |
 | stack/bbolt | `stack/bbolt/v4.2.3` |
 | stack/bench | `stack/bench/v4.3.2` |
 | stack/duckdb | `stack/duckdb/v4.2.3` |
