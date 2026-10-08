@@ -195,5 +195,3 @@ require (
 	modernc.org/sqlite v1.60.1 // indirect
 	turso.tech/database/tursogo v0.8.1 // indirect
 )
-
-replace github.com/larsartmann/go-cqrs-lite/benchkit/v4 => ../../benchkit
