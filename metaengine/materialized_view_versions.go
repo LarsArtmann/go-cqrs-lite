@@ -12,6 +12,6 @@ package metaengine
 // the full flip procedure is docs/turso-go-ivm-fix-flip-runbook.md.
 const (
 	TursoGoIVMVerifiedFrom    = "v0.7.2"
-	TursoGoIVMVerifiedThrough = "v0.8.1"
-	TursoGoIVMLastVerified    = "2026-10-01"
+	TursoGoIVMVerifiedThrough = "v0.8.2"
+	TursoGoIVMLastVerified    = "2026-10-08"
 )

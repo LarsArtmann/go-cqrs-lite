@@ -162,7 +162,7 @@ func (r *ivmReproEngine) scalarSum(t *testing.T) float64 {
 // TestIVMReproDefectA_GroupedDeltaLossAt2k reproduces defect A at its minimal
 // documented checkpoint: 2,000 rows in two transactions, where the grouped
 // view total must LOSE the cross-transaction delta (documented view 95,459.50
-// vs base 95,890.00 — a 430.50 loss, stable across v0.7.2 … v0.8.1).
+// vs base 95,890.00 — a 430.50 loss, stable across v0.7.2 … v0.8.2).
 func TestIVMReproDefectA_GroupedDeltaLossAt2k(t *testing.T) {
 	ctx := context.Background()
 	r := ivmOpenReproEngine(t, "defectA_2k.db")
