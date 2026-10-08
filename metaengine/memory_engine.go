@@ -228,11 +228,12 @@ func (m *memoryEngine) MapScan(
 		return PairsToScanResult(pairs, valueOf, limit), nil
 	}
 
-	return PairsToScanResult(
-		SortPaginate(pairs, keyOf, valueOf, sortFunc, cursor, limit),
-		valueOf,
-		limit,
-	), nil
+	pairs = SortPaginate(pairs, keyOf, valueOf, sortFunc, cursor, limit)
+
+	res := PairsToScanResult(pairs, valueOf, limit)
+	res.NextCursor = LastPairCursor(pairs, keyOf, valueOf, limit)
+
+	return res, nil
 }
 
 // --- VectorBackend ---

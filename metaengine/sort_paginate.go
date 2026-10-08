@@ -118,3 +118,30 @@ func PairsToScanResult[T any](pairs []T, valueOf func(T) any, limit int) ScanRes
 
 	return ScanResult{Items: results, HasMore: hasMore}
 }
+
+// LastPairCursor derives the compound continuation cursor for the last row a
+// [PairsToScanResult] would include: the (sort value, byte key) pair of the
+// limit-th pair (or the final pair when fewer than limit remain). Engines call
+// it after SortPaginate to fill [ScanResult.NextCursor] on sorted scans; it
+// returns nil for an empty page so callers can assign unconditionally. The
+// limit truncation mirrors PairsToScanResult — the has-more probe row (the
+// limit+1-th pair SortPaginate kept) is never the cursor source.
+func LastPairCursor[T any](
+	pairs []T,
+	keyOf func(T) []byte,
+	valueOf func(T) any,
+	limit int,
+) any {
+	n := len(pairs)
+	if n == 0 {
+		return nil
+	}
+
+	if limit > 0 && n > limit {
+		n = limit
+	}
+
+	last := pairs[n-1]
+
+	return SortKeyCursor{Sort: valueOf(last), Key: keyOf(last)}
+}

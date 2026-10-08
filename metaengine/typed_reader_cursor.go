@@ -5,11 +5,29 @@ import (
 	"fmt"
 )
 
+// pageMeta carries engine pagination metadata out of the scan paths so
+// ScanPage can prefer the engine-issued compound cursor over reflecting the
+// sort field out of the last item. hasMore is the engine's own probe result;
+// nextCursor is [ScanResult.NextCursor] (nil on paths that cannot derive one).
+type pageMeta struct {
+	nextCursor any
+	hasMore    bool
+}
+
 // ScanPage performs a scan and returns both the results and the next-page
-// cursor for keyset pagination. The cursor is derived from the sort field of
-// the last returned item. Pass it back via WithCursor(cursor.Value) on the
-// next call, or use WithCursorString(cursor.Encode()) for an HTTP-safe
-// opaque cursor string that round-trips through the PrefetchCache.
+// cursor for keyset pagination. When the engine issued a compound cursor
+// ([ScanResult.NextCursor], a [SortKeyCursor] over the sort value + byte key
+// of the last row) it is returned as-is, so tie-heavy datasets paginate with
+// neither drops nor duplicates; ScanPage also honors the engine's has-more
+// probe and returns a nil cursor at exact end-of-stream (a full final page
+// no longer mints a cursor into an empty next page). Otherwise the cursor is
+// derived from the sort field of the last returned item (the legacy value
+// cursor — tie-lossy, retained for paths without engine cursor support and
+// for PrefetchCache-attached readers, whose 2x fetch makes the engine's
+// fetch-boundary cursor unrepresentative of the page boundary). Pass the
+// cursor back via WithCursor(cursor.Value) on the next call, or use
+// WithCursorString(cursor.Encode()) for an HTTP-safe opaque cursor string
+// that round-trips through the PrefetchCache.
 //
 // When a PrefetchCache is attached, ScanPage auto-populates it: extra rows
 // beyond the limit are cached so the next page request is served from cache
@@ -17,7 +35,7 @@ import (
 //
 // Returns (items, nil cursor, nil) when there are no more pages.
 func (r *TypedReader[V]) ScanPage(ctx context.Context, opts ...ScanOption) ([]V, *Cursor, error) {
-	result, err := r.Scan(ctx, opts...)
+	result, meta, err := r.scanItems(ctx, opts...)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -28,6 +46,14 @@ func (r *TypedReader[V]) ScanPage(ctx context.Context, opts ...ScanOption) ([]V,
 	}
 
 	if len(result) == 0 || cfg.limit <= 0 || len(result) < cfg.limit {
+		return result, nil, nil
+	}
+
+	if r.prefetch == nil && meta.nextCursor != nil {
+		if meta.hasMore {
+			return result, &Cursor{Value: meta.nextCursor}, nil
+		}
+
 		return result, nil, nil
 	}
 

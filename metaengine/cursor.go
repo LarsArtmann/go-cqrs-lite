@@ -42,6 +42,13 @@ func (c Cursor) Encode() (string, error) {
 
 // ParseCursor decodes a cursor string produced by Cursor.String().
 // Returns (nil, nil) for an empty string (no cursor — start of stream).
+//
+// A compound cursor payload — the JSON shape [SortKeyCursor] encodes to,
+// exactly the keys "Sort" and "Key" with "Key" a base64 string — is
+// normalized back into a Cursor{Value: SortKeyCursor} so engine-side keyset
+// filters see the compound form regardless of whether the cursor crossed a
+// process boundary. Any other payload keeps the raw decoded value (the legacy
+// value-cursor contract).
 func ParseCursor(s string) (*Cursor, error) {
 	if s == "" {
 		return nil, nil //nolint:nilnil // empty cursor = start of stream (nil result, nil error); documented contract
@@ -57,5 +64,40 @@ func ParseCursor(s string) (*Cursor, error) {
 		return nil, fmt.Errorf("metaengine.ParseCursor: invalid JSON payload: %w", err)
 	}
 
+	if skc, ok := sortKeyCursorFromJSON(v); ok {
+		return &Cursor{Value: skc}, nil
+	}
+
 	return &Cursor{Value: v}, nil
+}
+
+// sortKeyCursorFromJSON recognizes the compound-cursor wire shape in an
+// already-decoded JSON value: a two-key object mapping "Sort" to the sort
+// value and "Key" to the base64-encoded byte key (the encoding
+// encoding/json produces for []byte). It returns false for anything else,
+// including partial shapes — a malformed compound cursor degrades to the raw
+// value instead of silently dropping the key component.
+func sortKeyCursorFromJSON(v any) (SortKeyCursor, bool) {
+	obj, ok := v.(map[string]any)
+	if !ok || len(obj) != 2 {
+		return SortKeyCursor{}, false
+	}
+
+	sortVal, hasSort := obj["Sort"]
+	keyStr, hasKey := obj["Key"]
+	if !hasSort || !hasKey {
+		return SortKeyCursor{}, false
+	}
+
+	keyEncoded, ok := keyStr.(string)
+	if !ok {
+		return SortKeyCursor{}, false
+	}
+
+	key, err := base64.StdEncoding.DecodeString(keyEncoded)
+	if err != nil {
+		return SortKeyCursor{}, false
+	}
+
+	return SortKeyCursor{Sort: sortVal, Key: key}, true
 }

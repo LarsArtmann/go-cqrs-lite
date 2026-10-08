@@ -253,15 +253,27 @@ type MapUpdater interface {
 // metadata. Items contains at most limit rows (never limit+1). HasMore is true
 // when additional rows exist beyond Items, signalling that the caller should
 // offer a cursor for the next page.
+//
+// NextCursor is the engine-issued continuation cursor for the last row of
+// Items: a [SortKeyCursor] (sort value + byte key) on paths that can derive
+// one, nil otherwise. Engines set it only on sorted scans; TypedReader.ScanPage
+// prefers it over reflecting the sort field out of the last item, so ties
+// paginate exactly once instead of the legacy value-cursor skip-the-tie-block
+// behavior. Callers pass it back unchanged via WithCursor/WithCursorString —
+// ParseCursor normalizes the encoded form back into a compound cursor.
 type ScanResult struct {
-	Items   []any
-	HasMore bool
+	Items      []any
+	HasMore    bool
+	NextCursor any
 }
 
 // RawScanResult is the raw-bytes variant of ScanResult for ScanRawValues.
+// NextCursor mirrors [ScanResult.NextCursor] for raw paths that can derive a
+// compound continuation cursor; nil otherwise.
 type RawScanResult struct {
-	Items   [][]byte
-	HasMore bool
+	Items      [][]byte
+	HasMore    bool
+	NextCursor any
 }
 
 // ScanBackend handles filtered+sorted scans for collection queries.

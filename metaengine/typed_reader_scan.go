@@ -14,8 +14,17 @@ import (
 // operator may re-pin this default store-wide with [WithDefaultLimit]
 // (plan option) — an explicit WithLimit always wins.
 func (r *TypedReader[V]) Scan(ctx context.Context, opts ...ScanOption) ([]V, error) {
+	items, _, err := r.scanItems(ctx, opts...)
+	return items, err
+}
+
+// scanItems is the scan dispatch shared by Scan and ScanPage: it runs the
+// current scan path and additionally surfaces the engine's pagination
+// metadata (pageMeta) so ScanPage can prefer the engine-issued compound
+// cursor over reflection-minted value cursors.
+func (r *TypedReader[V]) scanItems(ctx context.Context, opts ...ScanOption) ([]V, pageMeta, error) {
 	if err := r.store.IsPoisoned(r.collection); err != nil {
-		return nil, err
+		return nil, pageMeta{}, err
 	}
 
 	cfg := scanConfig{limit: 100}
@@ -31,18 +40,18 @@ func (r *TypedReader[V]) Scan(ctx context.Context, opts ...ScanOption) ([]V, err
 	// parameters), so both are validated here — the single entry point every
 	// typed scan flows through — and again in the engines' query builders.
 	if err := ValidateFilterSpecs(cfg.filters); err != nil {
-		return nil, err
+		return nil, pageMeta{}, err
 	}
 
 	for _, f := range cfg.filters {
 		if err := ValidateIdentifier(f.Column); err != nil {
-			return nil, fmt.Errorf("filter column: %w", err)
+			return nil, pageMeta{}, fmt.Errorf("filter column: %w", err)
 		}
 	}
 
 	if cfg.sort != nil {
 		if err := ValidateIdentifier(cfg.sort.Column); err != nil {
-			return nil, fmt.Errorf("sort column: %w", err)
+			return nil, pageMeta{}, fmt.Errorf("sort column: %w", err)
 		}
 	}
 
@@ -55,13 +64,13 @@ func (r *TypedReader[V]) Scan(ctx context.Context, opts ...ScanOption) ([]V, err
 			for _, row := range cached {
 				v, err := reify[V](row)
 				if err != nil {
-					return nil, fmt.Errorf("prefetch decode %s: %w", r.collection, err)
+					return nil, pageMeta{}, fmt.Errorf("prefetch decode %s: %w", r.collection, err)
 				}
 
 				result = append(result, v)
 			}
 
-			return trimToLimit(result, cfg.limit), nil
+			return trimToLimit(result, cfg.limit), pageMeta{}, nil
 		}
 	}
 
@@ -98,7 +107,7 @@ func (r *TypedReader[V]) Scan(ctx context.Context, opts ...ScanOption) ([]V, err
 
 	eng, ok := r.store.collectionEngine(r.collection)
 	if !ok {
-		return nil, fmt.Errorf("%w: %q", errNoQueryForInputType, r.collection)
+		return nil, pageMeta{}, fmt.Errorf("%w: %q", errNoQueryForInputType, r.collection)
 	}
 
 	// OR groups and multi-column sort require the closure path — they
@@ -120,7 +129,7 @@ func (r *TypedReader[V]) Scan(ctx context.Context, opts ...ScanOption) ([]V, err
 		return r.scanClosure(ctx, sb, cfg, fetchLimit)
 	}
 
-	return nil, fmt.Errorf("%w: %s", errUnsupportedScanReads, eng.Profile().Name)
+	return nil, pageMeta{}, fmt.Errorf("%w: %s", errUnsupportedScanReads, eng.Profile().Name)
 }
 
 func (r *TypedReader[V]) scanRaw(
@@ -128,12 +137,12 @@ func (r *TypedReader[V]) scanRaw(
 	rsr RawScanReader,
 	cfg scanConfig,
 	fetchLimit int,
-) ([]V, error) {
+) ([]V, pageMeta, error) {
 	rawResult, err := rsr.ScanRawValues(
 		ctx, r.collection, cfg.filters, cfg.sort, rawCursorValue(cfg.cursor), fetchLimit,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("typed reader scan %s: %w", r.collection, err)
+		return nil, pageMeta{}, fmt.Errorf("typed reader scan %s: %w", r.collection, err)
 	}
 
 	result := make([]V, 0, len(rawResult.Items))
@@ -141,13 +150,15 @@ func (r *TypedReader[V]) scanRaw(
 	for _, raw := range rawResult.Items {
 		v, err := reify[V](jsonValue(raw))
 		if err != nil {
-			return nil, fmt.Errorf("typed reader scan %s: %w", r.collection, err)
+			return nil, pageMeta{}, fmt.Errorf("typed reader scan %s: %w", r.collection, err)
 		}
 
 		result = append(result, v)
 	}
 
-	return r.trimAndCache(result, cfg), nil
+	meta := pageMeta{nextCursor: rawResult.NextCursor, hasMore: rawResult.HasMore}
+
+	return r.trimAndCache(result, cfg), meta, nil
 }
 
 func (r *TypedReader[V]) scanPushdown(
@@ -155,12 +166,12 @@ func (r *TypedReader[V]) scanPushdown(
 	pushdown PushdownScan,
 	cfg scanConfig,
 	fetchLimit int,
-) ([]V, error) {
+) ([]V, pageMeta, error) {
 	scanResult, err := pushdown.PushdownMapScan(
 		ctx, r.collection, cfg.filters, cfg.sort, rawCursorValue(cfg.cursor), fetchLimit,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("typed reader scan %s: %w", r.collection, err)
+		return nil, pageMeta{}, fmt.Errorf("typed reader scan %s: %w", r.collection, err)
 	}
 
 	result := make([]V, 0, len(scanResult.Items))
@@ -168,13 +179,15 @@ func (r *TypedReader[V]) scanPushdown(
 	for _, row := range scanResult.Items {
 		v, err := reify[V](row)
 		if err != nil {
-			return nil, fmt.Errorf("typed reader scan %s: %w", r.collection, err)
+			return nil, pageMeta{}, fmt.Errorf("typed reader scan %s: %w", r.collection, err)
 		}
 
 		result = append(result, v)
 	}
 
-	return r.trimAndCache(result, cfg), nil
+	meta := pageMeta{nextCursor: scanResult.NextCursor, hasMore: scanResult.HasMore}
+
+	return r.trimAndCache(result, cfg), meta, nil
 }
 
 func (r *TypedReader[V]) scanClosure(
@@ -182,7 +195,7 @@ func (r *TypedReader[V]) scanClosure(
 	sb ScanBackend,
 	cfg scanConfig,
 	fetchLimit int,
-) ([]V, error) {
+) ([]V, pageMeta, error) {
 	filterFn := buildClosureFilter(cfg)
 	sortFn := buildClosureSort(cfg)
 
@@ -195,7 +208,7 @@ func (r *TypedReader[V]) scanClosure(
 		fetchLimit,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("typed reader scan %s: %w", r.collection, err)
+		return nil, pageMeta{}, fmt.Errorf("typed reader scan %s: %w", r.collection, err)
 	}
 
 	result := make([]V, 0, len(scanResult.Items))
@@ -203,13 +216,15 @@ func (r *TypedReader[V]) scanClosure(
 	for _, row := range scanResult.Items {
 		v, err := reify[V](row)
 		if err != nil {
-			return nil, fmt.Errorf("typed reader scan %s: %w", r.collection, err)
+			return nil, pageMeta{}, fmt.Errorf("typed reader scan %s: %w", r.collection, err)
 		}
 
 		result = append(result, v)
 	}
 
-	return r.trimAndCache(result, cfg), nil
+	meta := pageMeta{nextCursor: scanResult.NextCursor, hasMore: scanResult.HasMore}
+
+	return r.trimAndCache(result, cfg), meta, nil
 }
 
 func buildClosureFilter(cfg scanConfig) func(item any) bool {
