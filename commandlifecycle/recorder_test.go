@@ -58,7 +58,7 @@ func TestLifecycleStreamRef(t *testing.T) {
 	ref := commandlifecycle.LifecycleStreamRef(cmd)
 
 	g.Expect(ref.Type).To(Equal(commandlifecycle.StreamTypeCommandLifecycle))
-	g.Expect(ref.ID.String()).To(Equal(cmd.ID().String()))
+	g.Expect(ref.ID.Get()).To(Equal(cmd.ID().String()))
 }
 
 func TestEventTypeConstants(t *testing.T) {

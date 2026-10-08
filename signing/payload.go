@@ -9,7 +9,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 )
 
-const canonicalFormatVersion = "go-cqrs-lite/signing/v1"
+const canonicalFormatVersion = "go-cqrs-lite/signing/v2"
 
 const lengthPrefixSize = 4
 
@@ -18,9 +18,9 @@ func canonicalPayload(evt event.Event) []byte {
 		return nil
 	}
 
-	id := evt.ID().String()
+	id := evt.ID().Get().String()
 	typ := string(evt.Type())
-	aggID := evt.StreamID().String()
+	aggID := evt.StreamID().Get()
 	aggType := string(evt.StreamType())
 	version := strconv.Itoa(evt.Version().Int())
 	schemaVer := strconv.Itoa(evt.SchemaVersion().Int())

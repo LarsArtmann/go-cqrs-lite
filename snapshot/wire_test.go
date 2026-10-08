@@ -173,7 +173,7 @@ func TestWire_CBORRoundTripAndLegacyKeys(t *testing.T) {
 		// StreamID encodes as a CBOR byte string: pre-v5 writers serialized
 		// id.StreamID through its BinaryMarshaler, and that byte-string form
 		// is what snapshotWireLegacy must decode.
-		StreamID:   []byte(want.StreamID.String()),
+		StreamID:   []byte(want.StreamID.Get()),
 		StreamType: string(want.StreamType),
 		Version:    want.Version.Int(),
 		State:      want.State,

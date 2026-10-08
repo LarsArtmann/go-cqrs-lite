@@ -159,6 +159,10 @@ func DeriveStreamID(namespace string, keys ...string) StreamID {
 
 // StreamIDFrom creates a StreamID from any fmt.Stringer.
 // Useful for interop with consumer-side branded IDs that implement String().
+// A leading brand prefix from String() is stripped (ParseStreamID semantics),
+// so the raw value stays bare regardless of the source's display form.
 func StreamIDFrom(s fmt.Stringer) StreamID {
-	return cbid.NewID[StreamMarker](s.String())
+	id, _ := ParseStreamID(s.String())
+
+	return id
 }

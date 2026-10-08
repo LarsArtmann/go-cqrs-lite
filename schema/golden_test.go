@@ -91,7 +91,7 @@ func TestGolden_UpcasterOutput(t *testing.T) {
 	for i, e := range upcasted {
 		snapshots[i] = snapshotEvent{
 			Type:          string(e.Type()),
-			StreamID:      e.StreamID().String(),
+			StreamID:      e.StreamID().Get(),
 			StreamType:    string(e.StreamType()),
 			Version:       e.Version().Int(),
 			SchemaVersion: e.SchemaVersion().Int(),
