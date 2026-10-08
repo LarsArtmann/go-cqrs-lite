@@ -89,6 +89,7 @@ LAYER[testutil]=5
 # omit testutil from LAYER.
 LAYER[stack]=6
 LAYER["stack/memory"]=6
+LAYER["stack/metaengine"]=6
 LAYER["stack/sqlite"]=6
 LAYER["stack/pebble"]=6
 LAYER["stack/bbolt"]=6
@@ -289,6 +290,7 @@ DEP_BUDGET["storage/turso"]=10
 DEP_BUDGET["storage/memory"]=8
 DEP_BUDGET[stack]=18
 DEP_BUDGET["stack/memory"]=10
+DEP_BUDGET["stack/metaengine"]=4 # typed bridge: stack + metaengine only (issue #36)
 DEP_BUDGET["stack/sqlite"]=10
 DEP_BUDGET["stack/pebble"]=10
 DEP_BUDGET["stack/bbolt"]=10
@@ -357,14 +359,14 @@ DEP_BUDGET["cmd/cqrs-upgrade"]=3
 DEP_BUDGET["cmd/api-stability"]=3
 DEP_BUDGET["cmd/doc-check"]=2
 # mesh-demo: catalog/decider/event/command/id = 5 (the bilateral-contract example).
-DEP_BUDGET["example/mesh-demo"]=5
+DEP_BUDGET["example/mesh-demo"]=6 # +catalog: EventCatalog export demo surface
 DEP_BUDGET["example/taskmanager"]=25
 DEP_BUDGET["example/getting-started"]=10
 # goal-shaped-app is the Goal story: types-only domain + system composition
 # root with BOTH swap targets compiled in (sqliteengine + pgengine) —
 # command/decider/event/id/metaengine/query/system + 2 drivers + snapshot
 # (the snapshot-story demo strategy line) = 10.
-DEP_BUDGET["example/goal-shaped-app"]=10
+DEP_BUDGET["example/goal-shaped-app"]=11 # multi-engine demo (sqlite+pg+turso) is the point of the app
 DEP_BUDGET["example/readme-quickstart"]=6
 DEP_BUDGET["example/scheduler-otel-status"]=8
 # metaengine-quickstart demos the full strategic surface: system + metaengine

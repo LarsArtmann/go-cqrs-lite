@@ -265,6 +265,7 @@
             "stack"
             "stack/bbolt"
             "stack/memory"
+            "stack/metaengine"
             "stack/sqlite"
             "stack/duckdb"
             "stack/pebble"

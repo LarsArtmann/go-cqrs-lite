@@ -42,6 +42,12 @@ func buildDefaultCatalog() []ModuleEntry {
 
 		// ── Persistence ────────────────────────────────────────────────
 		{
+			Key: "stack/metaengine", DisplayName: "Stack MetaEngine Bridge", Category: CategoryPersistence,
+			ImportHints: []string{"go-cqrs-lite/stack/metaengine"},
+			Description: "typed stack↔metaengine registration (WithStore/Store; the root stack module stays metaengine-free)",
+			Suggestion:  "opt-in metaengine lifecycle wiring for plain stack composition",
+		},
+		{
 			Key: "stack/sqlite", DisplayName: "SQLite Stack", Category: CategoryPersistence,
 			ImportHints: []string{"go-cqrs-lite/stack/sqlite"},
 			Description: "SQLite stack preset (event store + read models + snapshots)",

@@ -1,11 +1,11 @@
-package metaengine_test
+package stackmeta_test
 
 import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
-	"github.com/larsartmann/go-cqrs-lite/stack/metaengine/v4"
+	stackmeta "github.com/larsartmann/go-cqrs-lite/stack/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 	memory "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 )
@@ -51,13 +51,13 @@ func TestWithStore(t *testing.T) {
 
 	bundle, err := stack.New(
 		stack.WithEventStore(memStore),
-		metaengine.WithStore(store),
+		stackmeta.WithStore(store),
 	)
 	if err != nil {
 		t.Fatalf("stack.New: %v", err)
 	}
 
-	if got := metaengine.Store(bundle); got != store {
+	if got := stackmeta.Store(bundle); got != store {
 		t.Fatal("Store(bundle) returned a different pointer than what WithStore registered")
 	}
 	if bundle.MetaEngine() == nil {
@@ -82,7 +82,7 @@ func TestWithStore_Nil(t *testing.T) {
 		t.Fatalf("stack.New: %v", err)
 	}
 
-	if got := metaengine.Store(bundle); got != nil {
+	if got := stackmeta.Store(bundle); got != nil {
 		t.Fatal("Store(bundle) should be nil when WithStore was not called")
 	}
 	if bundle.MetaEngine() != nil {
@@ -114,7 +114,7 @@ func TestDeprecatedSeamStillAcceptsConcreteStore(t *testing.T) {
 		t.Fatalf("stack.New: %v", err)
 	}
 
-	if got := metaengine.Store(bundle); got != store {
+	if got := stackmeta.Store(bundle); got != store {
 		t.Fatal("Store(bundle) did not recover the store registered via the deprecated seam")
 	}
 

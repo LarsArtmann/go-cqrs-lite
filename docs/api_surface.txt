@@ -5514,8 +5514,13 @@ stack/func WithSnapshotStore
 stack/func WithSubscriber
 stack/interface Drainer
 stack/interface HealthChecker
+stack/interface MetaEngineStore
 stack/memory/func New
 stack/memory/func New
+stack/metaengine/func Store
+stack/metaengine/func Store
+stack/metaengine/func WithStore
+stack/metaengine/func WithStore
 stack/method Capabilities
 stack/method CatchUpSubscriber
 stack/method Close

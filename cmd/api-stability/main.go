@@ -97,6 +97,7 @@ var modules = []string{
 	// Composition (Bundle layer)
 	"stack",
 	"stack/memory",
+	"stack/metaengine",
 	"stack/sqlite",
 	"stack/duckdb",
 	"stack/pebble",
