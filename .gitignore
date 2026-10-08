@@ -171,6 +171,7 @@ cmd/cqrs-upgrade/cqrs-upgrade
 catalog/ec-fixture
 cmd/cqrs-lint/testdata/typedfixture/typedfixture
 cmd/cqrs-lint/testdata/scanfixture/scanfixture
+cmd/cqrs-lint/testdata/busfixture/busfixture
 example/goal-shaped-app/goal-shaped-app
 example/scheduler-otel-status/scheduler-otel-status
 catalog/cmd/ec-fixture/ec-fixture

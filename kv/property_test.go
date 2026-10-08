@@ -4,8 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 	"pgregory.net/rapid"
+
+	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 )
 
 // Property tests for kv.TypedStore[T,K] and Cache[T,K] invariants.
