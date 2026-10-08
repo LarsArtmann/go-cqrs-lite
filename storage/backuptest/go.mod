@@ -19,5 +19,6 @@ require (
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2 // indirect
 	github.com/larsartmann/go-error-family v0.11.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
+	github.com/tidwall/gjson v1.20.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 )
