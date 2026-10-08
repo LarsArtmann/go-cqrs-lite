@@ -679,11 +679,11 @@
             src = pkgs.fetchFromGitHub {
               owner = "golang";
               repo = "perf";
-              rev = "master";
-              hash = "sha256-YgMIIF9DAjyAPpZJtVoOKSatNhRPg/nPOYr0P06Fi5s=";
+              rev = "406019bb8b6893dd1245d31bf511c719619bb5c9";
+              hash = "sha256-R0Gu3giMeJKbDNT1LcKCOZTznoc1wGYCxmvt+dA5mhM=";
             };
             subPackages = [ "cmd/benchstat" ];
-            vendorHash = "sha256-AZx9tPzsPvjc5kpmiBa6eYKtrw0hczYi0sbcd/lkiiA=";
+            vendorHash = "sha256-9y6O/R2fOPYAGjlIZ2lcO1TNiZPj6My3EoPRiiFZu3U=";
           };
         in
         {

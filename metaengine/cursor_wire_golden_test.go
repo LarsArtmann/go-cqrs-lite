@@ -52,7 +52,11 @@ func TestCursorWireFormatGolden(t *testing.T) {
 			}
 
 			if got != tc.want {
-				t.Fatalf("wire bytes changed:\n got %q\nwant %q\nfrozen cursor contract — see test doc", got, tc.want)
+				t.Fatalf(
+					"wire bytes changed:\n got %q\nwant %q\nfrozen cursor contract — see test doc",
+					got,
+					tc.want,
+				)
 			}
 
 			parsed, err := ParseCursor(got)

@@ -72,7 +72,7 @@ func (e *mysqlEngine) PushdownMapScan(
 		if skc, ok := cursor.(metaengine.SortKeyCursor); ok {
 			sortExpr := e.jsonCursorExpr(sort.Column, skc.Sort)
 
-			fmt.Fprintf(&b, ` AND (%s %s %s OR %s = %s AND ` + "`key`" + ` > ?)`,
+			fmt.Fprintf(&b, ` AND (%s %s %s OR %s = %s AND `+"`key`"+` > ?)`,
 				sortExpr, op, e.jsonParamPlaceholder(),
 				sortExpr, e.jsonParamPlaceholder())
 
@@ -115,7 +115,11 @@ func (e *mysqlEngine) PushdownMapScan(
 
 	var next any
 	if sort != nil && len(rows) > 0 {
-		next = metaengine.LastDecodedRowCursor(rows[len(rows)-1], sort.Column, []byte(keys[len(keys)-1]))
+		next = metaengine.LastDecodedRowCursor(
+			rows[len(rows)-1],
+			sort.Column,
+			[]byte(keys[len(keys)-1]),
+		)
 	}
 
 	return metaengine.ScanResult{Items: rows, HasMore: hasMore, NextCursor: next}, nil

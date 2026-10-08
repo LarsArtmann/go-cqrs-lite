@@ -118,7 +118,12 @@ func buildPlannedScanQuery(
 
 	args := []any{}
 
-	fmt.Fprintf(&b, "SELECT CAST(value AS CHAR), %s FROM %s", backtickIdent("key"), backtickIdent(plan.Table))
+	fmt.Fprintf(
+		&b,
+		"SELECT CAST(value AS CHAR), %s FROM %s",
+		backtickIdent("key"),
+		backtickIdent(plan.Table),
+	)
 
 	started := false
 
@@ -136,7 +141,12 @@ func buildPlannedScanQuery(
 	}
 
 	if sort != nil {
-		metaengine.AppendKeysetOrder(&b, backtickIdent(sort.Column), backtickIdent("key"), sort.Desc)
+		metaengine.AppendKeysetOrder(
+			&b,
+			backtickIdent(sort.Column),
+			backtickIdent("key"),
+			sort.Desc,
+		)
 	}
 
 	if limit > 0 {
@@ -176,7 +186,11 @@ func (e *mysqlEngine) pushdownMapScanPlanned(
 
 	var next any
 	if sort != nil && len(rows) > 0 {
-		next = metaengine.LastDecodedRowCursor(rows[len(rows)-1], sort.Column, []byte(keys[len(keys)-1]))
+		next = metaengine.LastDecodedRowCursor(
+			rows[len(rows)-1],
+			sort.Column,
+			[]byte(keys[len(keys)-1]),
+		)
 	}
 
 	return metaengine.ScanResult{Items: rows, HasMore: hasMore, NextCursor: next}, nil

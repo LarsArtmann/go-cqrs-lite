@@ -207,7 +207,12 @@ func buildPlannedSelectQuery(
 
 	args := []any{}
 
-	fmt.Fprintf(&b, "SELECT value, %s FROM %s", metaengine.QuoteIdent("key"), metaengine.QuoteIdent(plan.Table))
+	fmt.Fprintf(
+		&b,
+		"SELECT value, %s FROM %s",
+		metaengine.QuoteIdent("key"),
+		metaengine.QuoteIdent(plan.Table),
+	)
 
 	whereStarted := false
 	argIdx := 1
@@ -228,7 +233,12 @@ func buildPlannedSelectQuery(
 	}
 
 	if sort != nil {
-		metaengine.AppendKeysetOrder(&b, metaengine.QuoteIdent(sort.Column), metaengine.QuoteIdent("key"), sort.Desc)
+		metaengine.AppendKeysetOrder(
+			&b,
+			metaengine.QuoteIdent(sort.Column),
+			metaengine.QuoteIdent("key"),
+			sort.Desc,
+		)
 	}
 
 	if limit > 0 {

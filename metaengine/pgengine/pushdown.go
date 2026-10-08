@@ -78,10 +78,16 @@ func (e *pgEngine) PushdownMapScan(
 		if skc, ok := cursor.(metaengine.SortKeyCursor); ok {
 			jb, _ := json.Marshal(skc.Sort)
 
-			fmt.Fprintf(&b, ` AND (value->'%s' %s $%d::jsonb OR value->'%s' = $%d::jsonb AND key > $%d)`,
-				escapeJSONKey(sort.Column), op, len(args)+1,
-				escapeJSONKey(sort.Column), len(args)+2,
-				len(args)+3)
+			fmt.Fprintf(
+				&b,
+				` AND (value->'%s' %s $%d::jsonb OR value->'%s' = $%d::jsonb AND key > $%d)`,
+				escapeJSONKey(sort.Column),
+				op,
+				len(args)+1,
+				escapeJSONKey(sort.Column),
+				len(args)+2,
+				len(args)+3,
+			)
 
 			args = append(args, string(jb), string(jb), string(skc.Key))
 		} else {
@@ -119,7 +125,11 @@ func (e *pgEngine) PushdownMapScan(
 
 	var next any
 	if sort != nil && len(rows) > 0 {
-		next = metaengine.LastDecodedRowCursor(rows[len(rows)-1], sort.Column, []byte(keys[len(keys)-1]))
+		next = metaengine.LastDecodedRowCursor(
+			rows[len(rows)-1],
+			sort.Column,
+			[]byte(keys[len(keys)-1]),
+		)
 	}
 
 	return metaengine.ScanResult{Items: rows, HasMore: hasMore, NextCursor: next}, nil
