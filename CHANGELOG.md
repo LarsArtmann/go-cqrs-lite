@@ -27,8 +27,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
      importable packages) — root stays v4.0.0. -->
 ## [Unreleased]
 
+### Added
+
+- **Compound keyset cursors issued and consumed by every engine (T07).** All nine metaengine engines now mint `SortKeyCursor` continuation cursors in `ScanResult.NextCursor` and consume them exactly-once: the SQL family (sqlite, turso, pg, mysql, duckdb) via the shared `metaengine.AppendKeysetCursorPredicate`/`AppendKeysetOrder` helpers (key tiebreak ALWAYS ascending) plus engine-local `LastDecodedRowCursor` emission and key-carrying 2-column scans; the KV family (pebble, bbolt, badger) via bare user-key cursors decoded with the new `metaengine/keycodec.UserKeyBytes`; memory and dgraph via the closure path. The wire shape `{"Sort":<scalar>,"Key":"<base64>"}` (URL-safe base64) is pinned byte-exact by `TestCursorWireFormatGolden` — a frozen contract. Pinned per engine by `enginetest.RunKeysetPaginationTest`/`RunKeysetExactEndTest` plus unplanned-surface locals (`TestSQLite_PushdownStandardTies`, `TestDuckDB_PushdownStandardTies`, `TestPg_PushdownStandardTies`, `TestMySQL_PushdownStandardTies`), each mutation-verified.
+
+### Fixed
+
+- **Pebble sort-index DESC + tiebreak correctness.** The sort-index scan path had no compound-cursor consume, ordered DESC ties by key-DESC (incompatible with the ascending-key tiebreak the wire contract specifies), and never emitted a continuation cursor — rewritten with composite `(value, key)` entry bounds, group-range DESC walking, and run-reversal bounded by the page target.
+- **MySQL claimkit concurrent-construction race.** Two engines constructed in parallel against the same database could both pass the `information_schema` index probe before either `CREATE INDEX` landed; the loser now tolerates MySQL error 1061 instead of failing construction.
+- **MySQL planned-layout identifier overflow.** Planned table/index names derived from long collection names exceeded MySQL's 64-character identifier limit and failed layout application; names are now deterministically truncated with an FNV-1a hash suffix (`mysqlSafeIdent`) so distinct long names never collide.
+
 ### Changed
 
+- **KV engine cursor keys are bare user keys.** bbolt/badger/pebble `MapScan` results previously exposed full storage keys (`m\x00<collection>\x00<key>`) in pagination cursors, leaking the physical layout across the wire; all three now strip the prefix via `keycodec.UserKeyBytes`, matching the memory engine's convention. The adttest `PaginationProbe` registry tracks the unified `CursorKeyRaw` form.
 - **Turso IVM verified range extended to v0.8.2 (pin catch-up).** `metaengine.TursoGoIVMVerifiedThrough` advances v0.8.1 → v0.8.2 and `TursoGoIVMLastVerified` to 2026-10-08: workspace go.mod pins rode the dependency sweep to tursogo v0.8.2, and the `-tags ivmrepro` repro suite re-ran GREEN on the new pin — all three grouped-view defects (A/B/C) still reproduce with the identical 430.50 delta signature, so the operator caveat range extends one version with no behavior change (scalar views remain exact; the recursive-CTE probe pin stays green). `#check-turso-version` green across all live citations and pins.
 
 ## [stack/v4.5.0, stack/metaengine/v4.0.0, stack/sqlite/v4.3.5 — 2026-10-08 stack seam mini-wave (GitHub #36)] — 2026-10-08

@@ -472,6 +472,39 @@ surface (`materialized_views` in EngineConfig YAML). Full recipe: `recipes.md`
 > as the recommended shape until upstream fixes it. Details:
 > `docs/research/2026-09-07_turso-go-ivm-commit-failure-issue-draft.md`.
 
+#### Keyset pagination: compound cursors (all engines)
+
+Sorted metaengine scans paginate with **compound cursors**: every engine mints
+a continuation cursor in `ScanResult.NextCursor` carrying the last row's
+`(sort value, key)` pair, and consuming it resumes exactly after that row —
+tie-heavy datasets paginate exactly once, on every engine (memory, sqlite,
+turso, pebble, bbolt, badger, duckdb, postgres, mysql, dgraph).
+
+```go
+// page walk: nil cursor return = exact end of stream
+rows, next, err := reader.ScanPage(ctx, WithLimit(50), WithCursorString(cur))
+if next != nil {
+    cur, _ = next.Encode() // URL-safe base64 — HTTP-safe opaque token
+    // render `?cursor=cur`; the next request feeds it back via WithCursorString
+}
+```
+
+Contract details that matter to consumers:
+
+- **Wire shape (frozen, byte-pinned by `TestCursorWireFormatGolden`):**
+  `{"Sort":<bare scalar>,"Key":"<base64 of the row key>"}` under URL-safe
+  base64. Legacy scalar cursors (pre-compound) still parse — `ParseCursor`
+  normalizes the compound shape back into `SortKeyCursor` regardless of how
+  many process boundaries it crossed.
+- **Ordering:** `(sort [DESC], key ASC)` — the key tiebreak is ALWAYS
+  ascending, even for DESC sorts, on every engine. A cursor minted by one
+  engine's page walk is consumable by the next walk with no drops and no
+  duplicates (asserted per engine by `enginetest.RunKeysetPaginationTest`).
+- **Integral sort values normalize to int64** on the wire round-trip, so JSON
+  float64 decode artifacts never mismatch INTEGER SQL columns.
+- **`HasMore=true` always comes with a non-nil `NextCursor`** — a page that
+  reports more but cannot continue is a bug, not a contract state.
+
 #### Point-in-time reads: pick a versioned engine (ADR-0141)
 
 When a read model must answer "what was this value at time T?" without
