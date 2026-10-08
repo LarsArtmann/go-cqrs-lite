@@ -6,6 +6,7 @@ import (
 	"encoding/json/v2"
 	"errors"
 	"fmt"
+	"hash/fnv"
 	"strings"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
@@ -76,8 +77,13 @@ func (e *mysqlEngine) planFor(col string) (metaengine.LayoutPlan, bool) {
 }
 
 // registerPlannedLayout creates the planned table + indexes and stores the
-// plan. Called with layoutMu held.
+// plan. Called with layoutMu held. Table and index names are shortened to
+// MySQL's 64-char identifier limit first (long collection names would
+// otherwise overflow in idx_meta_planned_<collection>_<field>); the FNV-1a
+// suffix keeps distinct long names from colliding after truncation.
 func (e *mysqlEngine) registerPlannedLayout(ctx context.Context, plan metaengine.LayoutPlan) error {
+	plan = planWithMySQLSafeIdents(plan)
+
 	for _, stmt := range mysqlDDL(plan) {
 		if _, err := e.db.ExecContext(ctx, stmt); err != nil {
 			return fmt.Errorf("mysqlengine.registerPlannedLayout: %w", err)
@@ -91,6 +97,44 @@ func (e *mysqlEngine) registerPlannedLayout(ctx context.Context, plan metaengine
 	e.plans[plan.Collection] = plan
 
 	return nil
+}
+
+// mysqlIdentLimit is MySQL/MariaDB's maximum identifier length (bytes).
+const mysqlIdentLimit = 64
+
+// mysqlSafeIdent shortens name to fit MySQL's identifier limit by truncating
+// and appending a stable FNV-1a hash of the full name — distinct long names
+// never collide after truncation.
+func mysqlSafeIdent(name string) string {
+	if len(name) <= mysqlIdentLimit {
+		return name
+	}
+
+	hash := fnv.New64a()
+	_, _ = hash.Write([]byte(name))
+
+	suffix := fmt.Sprintf("_%012x", hash.Sum64())
+
+	return name[:mysqlIdentLimit-len(suffix)] + suffix
+}
+
+// planWithMySQLSafeIdents returns plan with table and index names shortened
+// to MySQL's identifier limit. Collection and column names are untouched
+// (they flow through backtickIdent into DDL separately).
+func planWithMySQLSafeIdents(plan metaengine.LayoutPlan) metaengine.LayoutPlan {
+	safe := plan
+	safe.Table = mysqlSafeIdent(plan.Table)
+
+	if len(plan.Indexes) > 0 {
+		safe.Indexes = make([]metaengine.PlannedIndex, len(plan.Indexes))
+
+		for i, idx := range plan.Indexes {
+			idx.Name = mysqlSafeIdent(idx.Name)
+			safe.Indexes[i] = idx
+		}
+	}
+
+	return safe
 }
 
 // ApplyLayoutPlan implements metaengine.LayoutPlanApplier: registers a full

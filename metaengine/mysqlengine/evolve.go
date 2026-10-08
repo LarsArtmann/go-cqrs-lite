@@ -25,6 +25,8 @@ func (e *mysqlEngine) EvolveLayoutPlan(
 	e.layoutMu.Lock()
 	defer e.layoutMu.Unlock()
 
+	plan = planWithMySQLSafeIdents(plan)
+
 	if _, exists := e.plans[plan.Collection]; !exists {
 		if err := e.registerPlannedLayout(ctx, plan); err != nil {
 			return nil, fmt.Errorf("mysqlengine.EvolveLayoutPlan: %w", err)

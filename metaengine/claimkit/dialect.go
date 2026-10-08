@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/claiming/v4"
@@ -83,7 +84,9 @@ func ensureClaimsTables(ctx context.Context, db *sql.DB, d claiming.Dialect) err
 // ensureIndexes creates the claim/dedup indexes idempotently. Postgres and
 // SQLite support IF NOT EXISTS; MySQL-compatible servers do not, so the
 // index is probed in information_schema first (the claiming/migrate.go
-// pattern).
+// pattern). Two engines constructing concurrently against the same database
+// can both pass the probe before either CREATE INDEX lands, so the duplicate
+// error (1061) is tolerated rather than raced.
 func ensureIndexes(ctx context.Context, db *sql.DB, d claiming.Dialect) error {
 	if d == claiming.DialectMySQL {
 		const probe = `
@@ -116,6 +119,10 @@ WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND INDEX_NAME = ?`
 			}
 
 			if _, err := db.ExecContext(ctx, idx.ddl); err != nil {
+				if isDuplicateIndexErr(err) {
+					continue
+				}
+
 				return fmt.Errorf("ensure index %s: %w", idx.name, err)
 			}
 		}
@@ -134,6 +141,13 @@ WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND INDEX_NAME = ?`
 	}
 
 	return nil
+}
+
+// isDuplicateIndexErr reports whether err is MySQL error 1061 (duplicate key
+// name) — the concurrent-construction race's benign outcome.
+func isDuplicateIndexErr(err error) bool {
+	return err != nil &&
+		(strings.Contains(err.Error(), "1061") || strings.Contains(err.Error(), "Duplicate key name"))
 }
 
 func claimsDDL(d claiming.Dialect) []string {
