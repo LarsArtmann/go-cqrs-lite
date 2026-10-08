@@ -20,14 +20,14 @@ func TestDebugLegacyCursorProbe(t *testing.T) {
 
 	fmt.Printf("PAGE1 items=%v cursor.Value=%#v (%T)\n", tieIDs(items), cursor.Value, cursor.Value)
 
-	items2, cursor2, err := reader.ScanPage(ctx,
+	items2, _, err := reader.ScanPage(ctx,
 		metaengine.WithSort("Priority", false), metaengine.WithLimit(5),
 		metaengine.WithCursor(cursor.Value))
 	if err != nil {
-		t.Fatalf("page2: %v", err)
+		t.Fatalf("page2 (engine cursor): %v", err)
 	}
 
-	fmt.Printf("PAGE2 items=%v cursor2=%#v\n", tieIDs(items2), cursor2)
+	fmt.Printf("PAGE2 (engine compound cursor) items=%v\n", tieIDs(items2))
 
 	items3, _, err := reader.ScanPage(ctx,
 		metaengine.WithSort("Priority", false), metaengine.WithLimit(5),
