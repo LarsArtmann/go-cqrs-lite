@@ -43,7 +43,7 @@ func KeysetPaginationQuery(name string) metaengine.QueryDecl[keysetListInput, ke
 func RunKeysetPaginationTest(t *testing.T, eng metaengine.Engine) {
 	t.Helper()
 
-	const queryName = "keyset_pagination"
+	queryName := ScopedCollection("keyset_pagination")
 
 	store, err := metaengine.Plan([]metaengine.Engine{eng}, KeysetPaginationQuery(queryName))
 	if err != nil {
@@ -52,9 +52,7 @@ func RunKeysetPaginationTest(t *testing.T, eng metaengine.Engine) {
 
 	t.Cleanup(func() { _ = store.Close() })
 
-	ctx := context.Background()
-
-	seedKeysetRows(t, store, ScopedCollection("keysetRow"), 13)
+	seedKeysetRows(t, store, "keysetRow", 13)
 
 	reader := metaengine.NewReader[keysetRow](store, queryName)
 
@@ -110,7 +108,7 @@ func RunKeysetPaginationTest(t *testing.T, eng metaengine.Engine) {
 func RunKeysetExactEndTest(t *testing.T, eng metaengine.Engine) {
 	t.Helper()
 
-	const queryName = "keyset_exact_end"
+	queryName := ScopedCollection("keyset_exact_end")
 
 	store, err := metaengine.Plan([]metaengine.Engine{eng}, KeysetPaginationQuery(queryName))
 	if err != nil {
@@ -119,9 +117,7 @@ func RunKeysetExactEndTest(t *testing.T, eng metaengine.Engine) {
 
 	t.Cleanup(func() { _ = store.Close() })
 
-	ctx := context.Background()
-
-	seedKeysetRows(t, store, ScopedCollection("keysetRow"), 12)
+	seedKeysetRows(t, store, "keysetRow", 12)
 
 	reader := metaengine.NewReader[keysetRow](store, queryName)
 
