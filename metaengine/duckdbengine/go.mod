@@ -34,8 +34,3 @@ require (
 	golang.org/x/exp v0.0.0-20260908205506-85c1c2202aba // indirect
 	golang.org/x/sys v0.48.0 // indirect
 )
-
-// Sibling replace for unpublished metaengine symbols (planned-table capabilities); stripped by scripts/tag-release.sh at cut time.
-replace github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ../
-
-replace github.com/larsartmann/go-cqrs-lite/claiming/v4 => ../../claiming

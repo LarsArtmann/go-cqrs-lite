@@ -110,6 +110,8 @@ github.com/larsartmann/go-branded-id v0.7.0 h1:k5KT50Kh0WmeniH0rQ3Gvm2RdSAQFZtuR
 github.com/larsartmann/go-branded-id v0.7.0/go.mod h1:gM5FhB6d23qZO8hIU/rHpUnm/6dwKy9UGMhgvXDqNsc=
 github.com/larsartmann/go-codec v0.3.1 h1:9025JGvz7CVbfDgUVLIWfmg117683XZ5D2wUXhXsSr4=
 github.com/larsartmann/go-codec v0.3.1/go.mod h1:OYx+M0nVF+7xR0bjQdVJwF4ROFRskyg5spMsOMl1F80=
+github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.2 h1:yakAjC4K02sVvudipDP/fhLfSXDuo5rnNBY+hDou34Y=
+github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.2/go.mod h1:7TQ7fSd6bRqd7lYSTDMPIDCDZtzU/r3KqivP9m1M7gk=
 github.com/larsartmann/go-cqrs-lite/command/v4 v4.13.1 h1:wL7o9VtwmIxudrTD70UROY8zLf2WbQgJO/YRSGQX0JY=
 github.com/larsartmann/go-cqrs-lite/command/v4 v4.13.1/go.mod h1:pjEmaHSxZ+c5j6Xo6qXTJNnyBGEe/WhEaEjU+lLi6IA=
 github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4 v4.2.2 h1:GhXxFUTMl4YaxldKpoufd7Ucnbeulja7bcH0cv463/c=
@@ -138,6 +140,8 @@ github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.5.2 h1:WI
 github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.5.2/go.mod h1:uhUxksEaJtH8tEPhywHXU2qpCaa/XEr03wALiotQSrU=
 github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.5.1 h1:+DMWNY925W0Vfz5onuzRW6UETqz2TvW940Dhu1wSOSc=
 github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.5.1/go.mod h1:kl4EnqmjAtVlS03bpSvYVdvo3aa1KB896aQJKh4XVSY=
+github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.17.0 h1:4Kn7ulDYRn9Xt6L+mqPJXP3mc09XTkylpfck2o/Taow=
+github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.17.0/go.mod h1:9AHwAtaOfkLBYDJ/MANM8ngPpNbpna27rGwCUO4rjIY=
 github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.7.1 h1:v0Uv07XPqqXFXx7W/cdL4nT1z16D/Oy2ia9zwjAJgLU=
 github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.7.1/go.mod h1:97Snd2UOt0/VSoGqMcLEvsfLcXAVrPNetcpiygD6gUk=
 github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.2 h1:q91s4+q6eoKZDXzil/WV5kTGRFUNbDXiebkMlxiJpcg=
@@ -150,6 +154,8 @@ github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1 h1:TQXQy2GgpoRNiMFWY4ye6sw8
 github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1/go.mod h1:9u9VxUbAQMTV5c8rAn03Mv7INSAka+VY22UnVxK4tdc=
 github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2 h1:YtlkO7+wTXNTzskWbqf2xKAZC+HGe+gp0oejzJahqhg=
 github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2/go.mod h1:JFGAWfaNItRWzmUBog4Q3aZOhSGmtWHeP55pBlPE0g0=
+github.com/larsartmann/go-cqrs-lite/scheduling/engine/v4 v4.0.2 h1:xlLfoDS2dCMiRJNnzw46j4ALDuv1SO2WZvJQUsZV/1U=
+github.com/larsartmann/go-cqrs-lite/scheduling/engine/v4 v4.0.2/go.mod h1:WIUgYGEC6+FEVgJ6ELgr9dSeAKUsyEcYEKMz0tzhmH8=
 github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.6.1 h1:GUZxCVnhufg4ycMx4McS5R69sNZRajSE0Hqn9Sx4qW0=
 github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.6.1/go.mod h1:opj5Zh/iog1SeYI22cBmz6RAnlJOVDttgRQNRIuy1II=
 github.com/larsartmann/go-cqrs-lite/schema/v4 v4.5.0 h1:0J7hTj8QBrGnxTJjN4dUKHpwSM5oDhK7ilpmJzdrhvU=
