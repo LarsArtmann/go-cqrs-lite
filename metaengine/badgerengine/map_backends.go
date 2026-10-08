@@ -7,6 +7,7 @@ import (
 	"github.com/dgraph-io/badger/v4"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/keycodec"
 )
 
 // --- MapBackend ---
@@ -148,7 +149,7 @@ func (e *badgerEngine) MapScan(
 			}
 
 			pairs = append(pairs, kvPair{
-				key:   append([]byte(nil), item.Key()...),
+				key:   keycodec.UserKeyBytes(item.Key(), prefix),
 				value: decoded,
 			})
 		}

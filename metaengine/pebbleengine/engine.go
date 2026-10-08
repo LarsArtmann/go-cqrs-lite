@@ -434,7 +434,7 @@ func (e *pebbleEngine) MapScan(
 		}
 
 		pairs = append(pairs, kvPair{
-			key:   append([]byte(nil), iter.Key()...),
+			key:   keycodec.UserKeyBytes(iter.Key(), prefix),
 			value: val,
 		})
 	}

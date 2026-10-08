@@ -169,6 +169,27 @@ func EncodeKeyStr(key any) string {
 	return string(EncodeJSON(key))
 }
 
+// UserKeyBytes strips the collection prefix from a full map key and renders
+// the JSON-encoded user key in its bare canonical byte form — the same
+// fmt.Sprintf("%v") rendering the memory engine uses for sort tiebreaks and
+// compound cursors. KV engines hand the result to SortPaginate so wire
+// cursors carry the user key ("item-012"), never the storage key
+// ("m\x00<col>\x00\"item-012\""). Keys that do not decode as JSON pass
+// through as raw bytes; the result never aliases fullKey.
+func UserKeyBytes(fullKey, prefix []byte) []byte {
+	rest := fullKey
+	if bytes.HasPrefix(rest, prefix) {
+		rest = rest[len(prefix):]
+	}
+
+	var v any
+	if err := json.Unmarshal(rest, &v); err != nil {
+		return append([]byte(nil), rest...)
+	}
+
+	return []byte(fmt.Sprintf("%v", v))
+}
+
 // StreamKey returns the per-stream entry key for the StreamLogBackend.
 // seq is zero-padded to 20 digits so lexicographic byte order matches numeric order.
 func StreamKey(col, sid string, seq int64) []byte {
