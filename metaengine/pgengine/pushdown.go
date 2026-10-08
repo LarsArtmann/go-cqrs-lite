@@ -18,8 +18,13 @@ import (
 // the native JSON type, so numeric comparisons work correctly:
 // 5 > 3 (numeric), not "5" > "3" (lexical).
 //
-// Keyset pagination: cursor becomes an additional WHERE clause on the sort
-// column. LIMIT is n+1 for has-more detection.
+// Keyset pagination: compound [SortKeyCursor] cursors compare
+// (sort op, sort =, key >) with the key tiebreak ALWAYS ascending, and
+// ORDER BY appends the key column so tie-heavy datasets paginate exactly
+// once. The ::jsonb casts apply to the sort-value binds only (the key column
+// is TEXT), which is why this dialect renders the predicate inline instead
+// of the placeholder-generic core helper. LIMIT is n+1 for has-more
+// detection; the last included row mints the next compound cursor.
 func (e *pgEngine) PushdownMapScan(
 	ctx context.Context,
 	collection string,
@@ -37,7 +42,7 @@ func (e *pgEngine) PushdownMapScan(
 	var b strings.Builder //art-dupl:accept cross-module SQL builder pattern — separate go.mod
 	args := []any{collection}
 
-	b.WriteString(`SELECT value::text FROM meta_map WHERE collection = $1`)
+	b.WriteString(`SELECT value::text, key FROM meta_map WHERE collection = $1`)
 
 	for _, f := range filters {
 		if f.Op == metaengine.FilterIn {
@@ -70,10 +75,21 @@ func (e *pgEngine) PushdownMapScan(
 			op = "<"
 		}
 
-		jb, _ := json.Marshal(cursor)
-		fmt.Fprintf(&b, ` AND value->'%s' %s $%d::jsonb`,
-			escapeJSONKey(sort.Column), op, len(args)+1)
-		args = append(args, string(jb))
+		if skc, ok := cursor.(metaengine.SortKeyCursor); ok {
+			jb, _ := json.Marshal(skc.Sort)
+
+			fmt.Fprintf(&b, ` AND (value->'%s' %s $%d::jsonb OR value->'%s' = $%d::jsonb AND key > $%d)`,
+				escapeJSONKey(sort.Column), op, len(args)+1,
+				escapeJSONKey(sort.Column), len(args)+2,
+				len(args)+3)
+
+			args = append(args, string(jb), string(jb), string(skc.Key))
+		} else {
+			jb, _ := json.Marshal(cursor)
+			fmt.Fprintf(&b, ` AND value->'%s' %s $%d::jsonb`,
+				escapeJSONKey(sort.Column), op, len(args)+1)
+			args = append(args, string(jb))
+		}
 	}
 
 	if sort != nil {
@@ -81,13 +97,15 @@ func (e *pgEngine) PushdownMapScan(
 		if sort.Desc {
 			b.WriteString(` DESC`)
 		}
+
+		b.WriteString(`, key`)
 	}
 
 	if limit > 0 {
 		fmt.Fprintf(&b, ` LIMIT %d`, limit+1)
 	}
 
-	rows, err := scanPGJSONValues(ctx, e.conn(ctx), b.String(), args...)
+	rows, keys, err := scanPGJSONValuesWithKeys(ctx, e.conn(ctx), b.String(), args...)
 	//art-dupl:accept cross-module SQL engine pattern — dep-isolated go.mod modules
 	if err != nil {
 		return metaengine.ScanResult{}, err
@@ -96,9 +114,15 @@ func (e *pgEngine) PushdownMapScan(
 	hasMore := limit > 0 && len(rows) > limit
 	if hasMore {
 		rows = rows[:limit]
+		keys = keys[:limit]
 	}
 
-	return metaengine.ScanResult{Items: rows, HasMore: hasMore}, nil
+	var next any
+	if sort != nil && len(rows) > 0 {
+		next = metaengine.LastDecodedRowCursor(rows[len(rows)-1], sort.Column, []byte(keys[len(keys)-1]))
+	}
+
+	return metaengine.ScanResult{Items: rows, HasMore: hasMore, NextCursor: next}, nil
 }
 
 // ApplyLayout implements metaengine.LayoutPlanner. It creates partial
@@ -191,6 +215,54 @@ func scanPGJSONValues(
 	}
 
 	return result, nil
+}
+
+// scanPGJSONValuesWithKeys executes the query and decodes each row's JSONB
+// value alongside its key column — the pair keyset scans need to tiebreak and
+// mint compound cursors.
+func scanPGJSONValuesWithKeys(
+	ctx context.Context,
+	db metaengine.SQLExec,
+	query string,
+	args ...any,
+) ([]any, []string, error) {
+	rows, err := db.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, nil, fmt.Errorf("pgengine scan: %w", err)
+	}
+
+	defer metaengine.DeferClose(rows)
+	//art-dupl:accept cross-module SQL engine pattern — separate go.mod
+
+	var (
+		result []any
+		keys   []string
+	)
+
+	for rows.Next() {
+		var (
+			raw []byte
+			key string
+		)
+
+		if err := rows.Scan(&raw, &key); err != nil {
+			return nil, nil, fmt.Errorf("pgengine scan: row: %w", err)
+		}
+
+		var val any
+		if err := json.Unmarshal(raw, &val); err != nil {
+			return nil, nil, fmt.Errorf("pgengine scan: unmarshal: %w", err)
+		}
+
+		result = append(result, val)
+		keys = append(keys, key)
+	}
+
+	if err := rows.Err(); err != nil {
+		return result, keys, fmt.Errorf("pgengine scan: %w", err)
+	}
+
+	return result, keys, nil
 }
 
 // escapeJSONKey escapes single quotes in a JSONB key literal for use inside

@@ -63,7 +63,10 @@ func appendPGPlannedFilter(
 
 // buildPGPlannedScanQuery renders the planned-table pushdown SELECT: native
 // column filters, ORDER BY on the declared column, keyset cursor predicate,
-// and LIMIT n+1 for has-more detection.
+// and LIMIT n+1 for has-more detection. The SELECT carries the key column so
+// keyset scans can tiebreak and emit compound cursors; cursor predicate and
+// ORDER BY go through the shared metaengine keyset helpers (key tiebreak
+// ALWAYS ascending, mirroring every other engine).
 func buildPGPlannedScanQuery(
 	plan metaengine.LayoutPlan,
 	filters []metaengine.FilterSpec,
@@ -97,8 +100,15 @@ func buildPGPlannedScanQuery(
 		}
 	}
 
-	if sort != nil && cursor != nil {
-		if err := validatePlannedFilterValue(plan, sort.Column, cursor); err != nil {
+	// A compound cursor validates its SORT component against the column type;
+	// the struct itself is not a column value.
+	cursorVal := cursor
+	if skc, ok := cursor.(metaengine.SortKeyCursor); ok {
+		cursorVal = skc.Sort
+	}
+
+	if sort != nil && cursorVal != nil {
+		if err := validatePlannedFilterValue(plan, sort.Column, cursorVal); err != nil {
 			return "", nil, err
 		}
 	}
@@ -107,7 +117,7 @@ func buildPGPlannedScanQuery(
 
 	args := []any{}
 
-	fmt.Fprintf(&b, "SELECT value::text FROM %s", metaengine.QuoteIdent(plan.Table))
+	fmt.Fprintf(&b, "SELECT value::text, key FROM %s", metaengine.QuoteIdent(plan.Table))
 
 	started := false
 
@@ -116,11 +126,21 @@ func buildPGPlannedScanQuery(
 	}
 
 	if sort != nil && cursor != nil {
-		metaengine.AppendPlannedCursor(&b, &args, &started, sort, cursor,
-			metaengine.QuoteIdent, metaengine.DollarPlaceholders)
+		metaengine.AppendKeysetCursorPredicate(
+			&b, &args, &started,
+			metaengine.QuoteIdent(sort.Column), "key",
+			sort.Desc, cursor,
+			func(n int) string { return fmt.Sprintf("$%d", n+1) },
+		)
 	}
 
-	metaengine.AppendPlannedOrderLimit(&b, sort, limit, metaengine.QuoteIdent)
+	if sort != nil {
+		metaengine.AppendKeysetOrder(&b, metaengine.QuoteIdent(sort.Column), "key", sort.Desc)
+	}
+
+	if limit > 0 {
+		fmt.Fprintf(&b, " LIMIT %d", limit+1)
+	}
 
 	return b.String(), args, nil
 }
@@ -141,7 +161,7 @@ func (e *pgEngine) pushdownMapScanPlanned(
 		return metaengine.ScanResult{}, err
 	}
 
-	rows, err := scanPGJSONValues(ctx, e.conn(ctx), query, args...)
+	rows, keys, err := scanPGJSONValuesWithKeys(ctx, e.conn(ctx), query, args...)
 	if err != nil {
 		return metaengine.ScanResult{}, err
 	}
@@ -149,7 +169,13 @@ func (e *pgEngine) pushdownMapScanPlanned(
 	hasMore := limit > 0 && len(rows) > limit
 	if hasMore {
 		rows = rows[:limit]
+		keys = keys[:limit]
 	}
 
-	return metaengine.ScanResult{Items: rows, HasMore: hasMore}, nil
+	var next any
+	if sort != nil && len(rows) > 0 {
+		next = metaengine.LastDecodedRowCursor(rows[len(rows)-1], sort.Column, []byte(keys[len(keys)-1]))
+	}
+
+	return metaengine.ScanResult{Items: rows, HasMore: hasMore, NextCursor: next}, nil
 }

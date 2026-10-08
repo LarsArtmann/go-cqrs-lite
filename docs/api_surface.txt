@@ -3366,6 +3366,7 @@ metaengine/keycodec/func SplitGroupAndSeq
 metaengine/keycodec/func StreamKey
 metaengine/keycodec/func StreamPrefix
 metaengine/keycodec/func StreamSeqKey
+metaengine/keycodec/func UserKeyBytes
 metaengine/keycodec/func VectorKey
 metaengine/keycodec/func VectorMetaKey
 metaengine/keycodec/func VectorMetaPrefix
