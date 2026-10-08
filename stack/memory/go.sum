@@ -69,6 +69,7 @@ github.com/larsartmann/go-cqrs-lite/kv/v4 v4.3.4 h1:qjyuwN170cnhKGPh9xw1chMYRaxN
 github.com/larsartmann/go-cqrs-lite/kv/v4 v4.3.4/go.mod h1:1XDFlK75nxp4QA5TbUItuTnoKdVItDk2a4EXckdRfaU=
 github.com/larsartmann/go-cqrs-lite/listing/v4 v4.4.2 h1:VUUFMiABLm2DCpkQBlZAe/vS7jV2HRD3GgYsrtpAMw0=
 github.com/larsartmann/go-cqrs-lite/listing/v4 v4.4.2/go.mod h1:kKKNyc1JfDWlVYw3ZkVnO5VSBTQju/64pS7eKKvs2Ss=
+github.com/larsartmann/go-cqrs-lite/listing/v4 v4.4.4 h1:adCLLEnjEguX5NunGTPVhs/MYWtvmpW7Why8SMpu8MM=
 github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3 h1:t6+zJntr/N9ah7HEUHab3Xq5cQK5T7Tu7UqGblRZdaw=
 github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3/go.mod h1:RzBMkLnFnOXEx5R5OVj4pRs+cYToWDQbT0BaOFMUutM=
 github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.5.1 h1:+DMWNY925W0Vfz5onuzRW6UETqz2TvW940Dhu1wSOSc=
@@ -89,6 +90,8 @@ github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.6.2 h1:wUB01/0p6iDDyQ5XAnQEYg
 github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.6.2/go.mod h1:of3SGHkLFeRGvOoIYcDT2+aoZGjkXVHC91rHibTAiT8=
 github.com/larsartmann/go-cqrs-lite/stack/v4 v4.4.3 h1:c+9WN1mppqslDU6nw1wwT69QXqV/i2CZbXcZD+YlWOA=
 github.com/larsartmann/go-cqrs-lite/stack/v4 v4.4.3/go.mod h1:iaUrHkmuuHotUQ8m3PTXqoq86mbDFqe4i1ijkPaVVwI=
+github.com/larsartmann/go-cqrs-lite/stack/v4 v4.5.0 h1:IAdi9hEixS4tDbf5DsO7D1poOsN0tB6tX3azIm5dPTE=
+github.com/larsartmann/go-cqrs-lite/stack/v4 v4.5.0/go.mod h1:ls5/ERC16jb02ux8YcO1JJ1xlOf7M7udpJa5jWlu3tk=
 github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2 h1:h7624nwPbDVqIpCX2xkBd8FPen7hDraHFfVsMFhFdZs=
 github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2/go.mod h1:yl5xmDZ2IbDv6WkBMzbeJ8mNenfWRpXpImfj1gTTTus=
 github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.5 h1:31qbWhY2xiKCtFKuzJo1VJKdAl7LV9wxIOIbdA74uDk=
@@ -97,6 +100,8 @@ github.com/larsartmann/go-error-family v0.11.0 h1:xqXLKrTMznStmHUapxd/6Fj5/878sb
 github.com/larsartmann/go-error-family v0.11.0/go.mod h1:CAzjAVWjAFDUXEaaRqIgjW28i/NrQ07OsE9Dffhx29c=
 github.com/larsartmann/go-flightrecorder v0.2.0 h1:vCyd+jXA5SsJxTS7zaOvlzJiNPqy+79fJ24irY+adGA=
 github.com/larsartmann/go-flightrecorder v0.2.0/go.mod h1:KOAVyRuxUX0eeKPc3mjAwOKsenSS1SjBqnJ0KKPxyhA=
+github.com/larsartmann/go-flightrecorder v0.2.1 h1:46haKa+T3R8HmtEfVIvF4j6ri8N8qn6H94AFKFMdkE8=
+github.com/larsartmann/go-flightrecorder v0.2.1/go.mod h1:fZZpp2eR4SkhI31DTCGheg4QqKE2o9R/22jk3/084tE=
 github.com/larsartmann/go-sse v0.6.2 h1:a1f/EnjhWlsNnxo0U1DygpYMy2XbUfyGBuKMWhwQg0U=
 github.com/larsartmann/go-sse v0.6.2/go.mod h1:PVVDLkzjkTR2MvqcqL3/XmWY8cdSUpEe8YWaouHVVz4=
 github.com/lithammer/shortuuid/v3 v3.0.7 h1:trX0KTHy4Pbwo/6ia8fscyHoGA+mf1jWbPJVuvyJQQ8=

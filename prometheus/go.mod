@@ -4,7 +4,7 @@ go 1.27
 
 require (
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.2
-	github.com/prometheus/client_golang v1.24.1
+	github.com/prometheus/client_golang v1.25.0
 	go.opentelemetry.io/otel v1.47.0
 	go.opentelemetry.io/otel/exporters/prometheus v0.69.0
 	go.opentelemetry.io/otel/sdk/metric v1.47.0

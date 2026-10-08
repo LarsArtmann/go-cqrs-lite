@@ -12,7 +12,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.17.0
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2
 	github.com/larsartmann/go-cqrs-lite/stack/metaengine/v4 v4.0.0
-	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.4.3
+	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.5.0
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.10.5
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.5
 	github.com/larsartmann/go-error-family v0.11.0
@@ -67,5 +67,3 @@ require (
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
 )
-
-replace github.com/larsartmann/go-cqrs-lite/stack/metaengine/v4 => ../metaengine
