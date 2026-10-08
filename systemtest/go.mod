@@ -110,18 +110,3 @@ require (
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
 )
-
-// Sibling replaces: systemtest tests system's UNRELEASED surface
-// (NewEngineCheckpointStore, the Feedback-#4 split). Strip at the next
-// system/engines tag wave — the taskmanager replace pattern.
-replace github.com/larsartmann/go-cqrs-lite/system/v4 => ../system
-
-replace github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ../metaengine
-
-replace github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 => ../metaengine/sqliteengine
-
-replace github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4 => ../metaengine/pebbleengine
-
-replace github.com/larsartmann/go-cqrs-lite/metaengine/badgerengine/v4 => ../metaengine/badgerengine
-
-replace github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4 => ../metaengine/pgengine
