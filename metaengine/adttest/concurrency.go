@@ -20,10 +20,7 @@ func AssertConcurrentVectorInsert(t *testing.T, eng metaengine.Engine) {
 
 	ctx := context.Background()
 
-	vb, ok := eng.(metaengine.VectorBackend)
-	if !ok {
-		t.Fatal("engine does not implement metaengine.VectorBackend")
-	}
+	vb := requireVectorBackend(t, eng)
 
 	const writers = 8
 	const perWriter = 50

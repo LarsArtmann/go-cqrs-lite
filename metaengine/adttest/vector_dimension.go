@@ -10,6 +10,19 @@ import (
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
+// requireVectorBackend recovers the engine's vector backend with the canonical
+// failure message shared by every vector ADT entry point.
+func requireVectorBackend(t *testing.T, eng metaengine.Engine) metaengine.VectorBackend {
+	t.Helper()
+
+	vb, ok := eng.(metaengine.VectorBackend)
+	if !ok {
+		t.Fatal("engine does not implement metaengine.VectorBackend")
+	}
+
+	return vb
+}
+
 // AssertVectorDimensionGuard pins the cross-engine dimension-lock contract on
 // one engine instance: the first insert establishes the collection's
 // dimension; a mismatching insert is rejected with errors.Is(...,
@@ -22,10 +35,7 @@ func AssertVectorDimensionGuard(t *testing.T, eng metaengine.Engine) {
 
 	ctx := context.Background()
 
-	vb, ok := eng.(metaengine.VectorBackend)
-	if !ok {
-		t.Fatal("engine does not implement metaengine.VectorBackend")
-	}
+	vb := requireVectorBackend(t, eng)
 
 	suffix := fmt.Sprintf("_%d", time.Now().UnixNano())
 	col := "dim_guard" + suffix

@@ -89,13 +89,18 @@ func (c *CachedEventStore) Load(ctx context.Context, ref id.StreamRef) ([]event.
 	return events, nil
 }
 
+// advanceGeneration bumps the stream's write generation under the cache lock.
+func (c *CachedEventStore) advanceGeneration(key string) {
+	c.mu.Lock()
+	c.gens[key]++
+	c.mu.Unlock()
+}
+
 // beginWrite opens a write: the generation advances and the cached entry is
 // dropped BEFORE the store write, so no reader is served the pre-write
 // snapshot while the write is in flight.
 func (c *CachedEventStore) beginWrite(key string) {
-	c.mu.Lock()
-	c.gens[key]++
-	c.mu.Unlock()
+	c.advanceGeneration(key)
 
 	c.cache.Invalidate(key)
 }
@@ -113,9 +118,7 @@ func (c *CachedEventStore) beginWrite(key string) {
 func (c *CachedEventStore) endWrite(key string) {
 	c.cache.Invalidate(key)
 
-	c.mu.Lock()
-	c.gens[key]++
-	c.mu.Unlock()
+	c.advanceGeneration(key)
 }
 
 // readGeneration snapshots the stream's write generation before a store read.

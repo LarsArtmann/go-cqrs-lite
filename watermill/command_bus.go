@@ -95,6 +95,7 @@ func (b *CommandBus) Publish(_ context.Context, cmds ...command.Command) error {
 
 	topic := b.topic
 	pub := b.publisher
+	//art-dupl:accept command/event bus publish-tail twins (event_bus.go): independent payload types keep the buses decoupled, the WaitGroup handshake is deliberately parallel
 	b.publishWG.Add(1)
 	b.mu.Unlock()
 

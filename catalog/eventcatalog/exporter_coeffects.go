@@ -108,6 +108,7 @@ func coeffectStatus(evt catalog.Message) string {
 }
 
 func serviceIDs(ids []catalog.ServiceID) []string {
+	//art-dupl:accept typed-slice→string loop idiom also used by metaengine/planned_filter.go; cross-module, sharing a 5-line idiom would add a dep edge for no value
 	out := make([]string, len(ids))
 	for i, id := range ids {
 		out[i] = string(id)
