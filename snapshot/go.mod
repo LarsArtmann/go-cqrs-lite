@@ -15,7 +15,7 @@ require (
 )
 
 require (
-	github.com/fxamacker/cbor/v2 v2.9.4 // indirect
+	github.com/fxamacker/cbor/v2 v2.9.6 // indirect
 	github.com/gkampitakis/ciinfo v0.3.4 // indirect
 	github.com/goccy/go-yaml v1.19.2 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
