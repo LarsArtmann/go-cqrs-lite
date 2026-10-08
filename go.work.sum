@@ -999,7 +999,6 @@ github.com/larsartmann/cmdguard/spinner v0.2.0/go.mod h1:lfgTUFqiiFaNmtkdieMXbCw
 github.com/larsartmann/go-cqrs-lite/idempotency/kvstore/v4 v4.1.0/go.mod h1:br2nxuwBLugcV1w47bOLjX3ei/4TFXVjfJL5r6uaRB0=
 github.com/larsartmann/go-cqrs-lite/metaengine/bboltengine/v4 v4.1.0/go.mod h1:YAuSkgv9kvx3SYSHVuNKWtds97hadYMjU2LpmpJFn5g=
 github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.1.1/go.mod h1:4V33qjwL3R72tvRGPRM7AlBWMDHeB4JjA5wMG7uBZqU=
-github.com/larsartmann/go-cqrs-lite/prometheus/v4 v4.3.3/go.mod h1:MzHVmhzru9t3RKyYPVnhQ9/juHSwwuauF9Lct3Rj6HE=
 github.com/larsartmann/go-cqrs-lite/stack/bbolt/v4 v4.0.0-20260806160506-f6bcfb0bcb06/go.mod h1:9YKoAEHR0vW9RGpcYdBuGCGdx+xknagtYoQyjQt8smU=
 github.com/larsartmann/go-cqrs-lite/storage/bbolt/v4 v4.0.0-20260806125330-508e2817469c/go.mod h1:C4d+jVIKNzM5Tfgz2YrlErW7ow8Bt04cAX7wBgHaM/Y=
 github.com/larsartmann/go-datastar/static v0.1.0/go.mod h1:Mkt7d9FrtMiiT3bGpJv+5RRX4+5x1/gJv9YWuFlWaD4=
@@ -2235,6 +2234,7 @@ google.golang.org/genproto/googleapis/bytestream v0.0.0-20250428153025-10db94c68
 google.golang.org/genproto/googleapis/bytestream v0.0.0-20250505200425-f936aa4a68b2/go.mod h1:h6yxum/C2qRb4txaZRLDHK8RyS0H/o2oEDeKY4onY/Y=
 google.golang.org/genproto/googleapis/bytestream v0.0.0-20260630182238-925bb5da69e7/go.mod h1:6TABGosqSqU2l1+fJ3jdvOYPPVryeKybxYF0cCZkTBE=
 google.golang.org/genproto/googleapis/bytestream v0.0.0-20260921155816-b14227669459/go.mod h1:RoCpRfcA27uTJ0TZb3Vyad8eLVakUKdLdV2yMdlm2+w=
+google.golang.org/genproto/googleapis/bytestream v0.0.0-20260928230214-8a89bd6388cc/go.mod h1:RoCpRfcA27uTJ0TZb3Vyad8eLVakUKdLdV2yMdlm2+w=
 google.golang.org/genproto/googleapis/rpc v0.0.0-20230525234030-28d5490b6b19/go.mod h1:66JfowdXAEgad5O9NnYcsNPLCPZJD++2L9X0PCMODrA=
 google.golang.org/genproto/googleapis/rpc v0.0.0-20230526203410-71b5a4ffd15e/go.mod h1:66JfowdXAEgad5O9NnYcsNPLCPZJD++2L9X0PCMODrA=
 google.golang.org/genproto/googleapis/rpc v0.0.0-20230530153820-e85fd2cbaebc/go.mod h1:66JfowdXAEgad5O9NnYcsNPLCPZJD++2L9X0PCMODrA=

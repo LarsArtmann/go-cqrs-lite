@@ -7,7 +7,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
-	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
 	flightrecorder "github.com/larsartmann/go-flightrecorder"
@@ -218,6 +217,15 @@ func WithReadModels(backend kv.Store) Option {
 	}
 }
 
+// MetaEngineStore is the minimal contract the Bundle needs from a
+// cost-based query planner: lifecycle management. The concrete
+// *metaengine.Store satisfies it structurally; the typed helpers live in the
+// stack/metaengine module so plain stack composition carries no metaengine
+// dependency (issue #36).
+type MetaEngineStore interface {
+	Close() error
+}
+
 // WithMetaEngine sets the metaengine Store on the Bundle and registers it for
 // Close. The Store is a cost-based query planner — the consumer constructs it
 // via metaengine.Plan(engines, queries...) and passes it here for lifecycle
@@ -227,10 +235,14 @@ func WithReadModels(backend kv.Store) Option {
 // Config.SkipMetaEngine is set), measuring Apply throughput and ExecuteTyped
 // read latency.
 //
-//	bundle, _ := sqlite.New(dsn,
-//	    stack.WithMetaEngine(meStore),
-//	)
-func WithMetaEngine(store *metaengine.Store) Option {
+// Deprecated: removed in v5 together with the whole stack module (ADR-0123);
+// the typed companion lives in the stack/metaengine module. Call sites
+// passing a *metaengine.Store compile unchanged.
+//
+// 	bundle, _ := sqlite.New(dsn,
+// 	    stack.WithMetaEngine(meStore),
+// 	)
+func WithMetaEngine(store MetaEngineStore) Option {
 	return func(b *Bundle) {
 		b.metaEngine = store
 		b.registerCloser(store)
