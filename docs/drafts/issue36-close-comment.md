@@ -1,0 +1,1 @@
+Shipped. Root `stack` is metaengine-free now (zero metaengine edges in `GOWORK=off go mod graph`): stack/v4.5.0 keeps only a deprecated `MetaEngineStore` seam, the new stack/metaengine/v4.0.0 module carries the bridge (`stackmeta.WithStore`), stack/sqlite/v4.3.5 re-pins through it. All three pushed + proxy-smoked.

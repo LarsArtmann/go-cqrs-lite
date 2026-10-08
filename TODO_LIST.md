@@ -156,11 +156,24 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       #28 CLOSED 16:24:01Z; the cqrs-upgrade `--json --strict` holes (a)(b)(c)
       + NoPins scan shipped in the same CHANGELOG `[Unreleased]` wave).
       — issue #27 _(Effort: M)_
-- [ ] **W4 — structural tail:** #36 move `WithMetaEngine` + Bundle
+- [x] ~~**W4 — structural tail:** #36 move `WithMetaEngine` + Bundle
       registration into a `stack/metaengine` module (4 root files import
       metaengine: options/bundle/accessors/materialize); deprecated root
       forwarders until v5; full new-module gate sweep + hermetic
-      metaengine-free-graph probe. — issue #36 _(Effort: L)_
+      metaengine-free-graph probe.~~ — **DONE 2026-10-08 (T06, pulled
+      forward as a W1 blocker):** root `stack` keeps only the deprecated
+      `MetaEngineStore` Close() seam (`WithMetaEngine`/`Bundle.MetaEngine`
+      compile unchanged for concrete-store callers); the new
+      `stack/metaengine/v4@v4.0.0` module carries `stackmeta.WithStore`/
+      `stackmeta.Store` registration + concrete recovery; root require
+      graph verified metaengine-FREE (`GOWORK=off go mod graph`, zero
+      edges). Shipped as the dependency-first mini-wave stack/v4.5.0 →
+      stack/metaengine/v4.0.0 → stack/sqlite/v4.3.5 (drops its temp
+      replace, rides stack v4.5.0 via MVS), all three pushed +
+      proxy-smoked attempt 1; standalone builds + `-short` suites green;
+      new-module gate sweep done in the prior session; CHANGELOG dated
+      section cut + versions manifest fresh; issue #36 CLOSED 2026-10-08
+      with receipt. — issue #36 _(Effort: L)_
 - [ ] [RULED 2026-10-08] **#27 ask-3 (owner): CI annotation of modules whose
       master HEAD is ahead of their latest tag** — **RULED: non-blocking
       workflow-summary annotation** (a `$GITHUB_STEP_SUMMARY` table — zero
