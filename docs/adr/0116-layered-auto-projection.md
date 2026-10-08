@@ -135,7 +135,18 @@ event-type-string flexibility for zero-config CRUD setup.
 
 ## Implementation Status
 
-### Layer 1: Implemented (planner-time fold inference)
+### Layer 1: RETIRED in original form; Evolution-convention is the sanctioned Layer 1 (ADR-0151 addendum 2026-10-08)
+
+The planner-time `Infer()` API described below was **Deprecated 2026-09-16 and
+is removed at v5** (invisible fold mappings, struct-name conventions in a
+wire-type world). Per [ADR-0151](0151-goal-direction-evolutions-are-the-declaration.md),
+the sanctioned Layer 1 is the **Evolution-convention declaration**: one
+`DomainConfig.Evolutions` entry per read model, keyed by declared wire event
+types (`AutoCRUDByNamedEvents`), warn-first on partial coverage, coeffect-gated
+(`DomainConfig.Events`), Doctor-visible, and lint-covered (E018). The original
+`Infer` design is kept below as the dated record:
+
+### Layer 1 (historical): planner-time fold inference
 
 The `Infer()` API provides planner-time fold inference:
 

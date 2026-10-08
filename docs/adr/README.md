@@ -252,5 +252,7 @@ watermill/     — Watermill protocol adapter
 | [0147](0147-mesh-policy-enforcement-non-goal.md) | Mesh-Level Policy Enforcement Is an Explicit Non-Goal | 2026-09-24 | Accepted |
 | [0148](0148-benchmark-gate-semantics.md) | Benchmark Gate Semantics — Noise, Provenance, and Refusal | 2026-09-25 | Accepted |
 | [0149](0149-durable-checkpoints-and-dlq-by-events.md) | Durable Checkpoints and DLQ-by-Events in system.New | 2026-09-28 | Accepted |
+| [0150](0150-engineconfig-singlewriter-advisory-lease.md) | EngineConfig.SingleWriter Advisory Lease | 2026-10-08 | Accepted |
+| [0151](0151-goal-direction-evolutions-are-the-declaration.md) | Goal Direction — "Declare ONLY" Means Evolutions + Queries | 2026-10-08 | Accepted |
 
 > **Note:** ADRs 0036 and 0041 were never assigned (gaps in numbering).

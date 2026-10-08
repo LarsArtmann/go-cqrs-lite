@@ -292,9 +292,12 @@ Design doc: [`METAENGINE-LIVE-LATENCY-MODEL.md`](docs/planning/METAENGINE-LIVE-L
 This is the guiding intent for every metaengine decision. When design choices conflict, defer to this.
 
 ```text
-"Developers declare ONLY Commands + Events + Queries and their relationships. We should be able to build
-superb projections (materialized views) and developers never need to worry about anything else, while where
-data lives is up to operators at DEPLOYMENT time."
+"Developers declare ONLY Commands + Events + Queries, their relationships, and one Evolution per
+read model (the fold declaration). We should be able to build superb projections (materialized
+views) — wired and routed by the system — and developers never need to worry about anything else,
+while where data lives is up to operators at DEPLOYMENT time."
 ```
+
+**Amended 2026-10-08 per [ADR-0151](docs/adr/0151-goal-direction-evolutions-are-the-declaration.md):** the Evolution IS the declaration; runtime `Infer` stays dead (removed at v5); a `cqrs-gen` fold-codegen revival stays parked behind an evidence gate (G-T16 parity numbers or a named consumer ask).
 
 **Paradigm framing (2026-09-10):** the vision above is the "context paradigm" from Cordis (arXiv:2608.25512 — spatiotemporal composability). Developers write coeffect specifications (queries + relationships); operators reconcile config (engines); the planner mediates as the unified context. Engines are literally `Profile() + Closer` (capability declaration fused with a disposer); layouts are revertible via gated rebuild (`RebuildThreshold`/`ConfirmRebuild`). Full mapping — including how the whole repo and the go-modularize skill project the same two axes — lives in [`docs/architecture-understanding/2026-09-10_cordis-spatiotemporal-composability-mapping.md`](docs/architecture-understanding/2026-09-10_cordis-spatiotemporal-composability-mapping.md).
