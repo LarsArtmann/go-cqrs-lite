@@ -63,7 +63,11 @@ func appendPlannedFilter(
 // buildPlannedScanQuery renders the planned-table pushdown SELECT: native
 // column filters, ORDER BY on the declared column (native numeric ordering —
 // the meta_map gcn_ twin-column dance is not needed on extracted columns),
-// keyset cursor predicate, and LIMIT n+1 for has-more detection.
+// keyset cursor predicate, and LIMIT n+1 for has-more detection. The SELECT
+// carries the key column so keyset scans can tiebreak and emit compound
+// cursors; cursor predicate and ORDER BY go through the shared metaengine
+// keyset helpers (key tiebreak ALWAYS ascending, mirroring every other
+// engine).
 func buildPlannedScanQuery(
 	plan metaengine.LayoutPlan,
 	filters []metaengine.FilterSpec,
@@ -97,8 +101,15 @@ func buildPlannedScanQuery(
 		}
 	}
 
-	if sort != nil && cursor != nil {
-		if err := validatePlannedFilterValue(plan, sort.Column, cursor); err != nil {
+	// A compound cursor validates its SORT component against the column type;
+	// the struct itself is not a column value.
+	cursorVal := cursor
+	if skc, ok := cursor.(metaengine.SortKeyCursor); ok {
+		cursorVal = skc.Sort
+	}
+
+	if sort != nil && cursorVal != nil {
+		if err := validatePlannedFilterValue(plan, sort.Column, cursorVal); err != nil {
 			return "", nil, err
 		}
 	}
@@ -107,7 +118,7 @@ func buildPlannedScanQuery(
 
 	args := []any{}
 
-	fmt.Fprintf(&b, "SELECT CAST(value AS CHAR) FROM %s", backtickIdent(plan.Table))
+	fmt.Fprintf(&b, "SELECT CAST(value AS CHAR), %s FROM %s", backtickIdent("key"), backtickIdent(plan.Table))
 
 	started := false
 
@@ -116,11 +127,21 @@ func buildPlannedScanQuery(
 	}
 
 	if sort != nil && cursor != nil {
-		metaengine.AppendPlannedCursor(&b, &args, &started, sort, cursor,
-			backtickIdent, metaengine.QuestionPlaceholders)
+		metaengine.AppendKeysetCursorPredicate(
+			&b, &args, &started,
+			backtickIdent(sort.Column), backtickIdent("key"),
+			sort.Desc, cursor,
+			func(n int) string { return "?" },
+		)
 	}
 
-	metaengine.AppendPlannedOrderLimit(&b, sort, limit, backtickIdent)
+	if sort != nil {
+		metaengine.AppendKeysetOrder(&b, backtickIdent(sort.Column), backtickIdent("key"), sort.Desc)
+	}
+
+	if limit > 0 {
+		fmt.Fprintf(&b, " LIMIT %d", limit+1)
+	}
 
 	return b.String(), args, nil
 }
@@ -141,7 +162,7 @@ func (e *mysqlEngine) pushdownMapScanPlanned(
 		return metaengine.ScanResult{}, err
 	}
 
-	rows, err := scanMySQLJSONValues(ctx, e.conn(ctx), query, args...)
+	rows, keys, err := scanMySQLJSONValuesWithKeys(ctx, e.conn(ctx), query, args...)
 	if err != nil {
 		return metaengine.ScanResult{}, err
 	}
@@ -150,7 +171,13 @@ func (e *mysqlEngine) pushdownMapScanPlanned(
 	hasMore := limit > 0 && len(rows) > limit
 	if hasMore {
 		rows = rows[:limit]
+		keys = keys[:limit]
 	}
 
-	return metaengine.ScanResult{Items: rows, HasMore: hasMore}, nil
+	var next any
+	if sort != nil && len(rows) > 0 {
+		next = metaengine.LastDecodedRowCursor(rows[len(rows)-1], sort.Column, []byte(keys[len(keys)-1]))
+	}
+
+	return metaengine.ScanResult{Items: rows, HasMore: hasMore, NextCursor: next}, nil
 }

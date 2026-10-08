@@ -15,7 +15,12 @@ import (
 // construction) gets the equivalent JSON_EXTRACT form.
 //
 // Using value->'$.field' on MySQL preserves the native JSON type for numeric
-// comparisons. Keyset pagination adds a WHERE clause on the sort column.
+// comparisons. Keyset pagination: compound [SortKeyCursor] cursors compare
+// (sort op, sort =, key >) with the key tiebreak ALWAYS ascending, and
+// ORDER BY appends the key column so tie-heavy datasets paginate exactly
+// once; the sort-side expressions reuse the dialect's cursor/twin-column
+// helpers so MariaDB's numeric ordering stays intact. LIMIT is n+1 for
+// has-more detection; the last included row mints the next compound cursor.
 // art-dupl:accept cross-module SQL engine pattern — separate go.mod
 func (e *mysqlEngine) PushdownMapScan(
 	ctx context.Context,
@@ -34,7 +39,7 @@ func (e *mysqlEngine) PushdownMapScan(
 	var b strings.Builder
 	args := []any{collection}
 
-	b.WriteString(`SELECT CAST(value AS CHAR) FROM meta_map WHERE collection = ?`)
+	b.WriteString("SELECT CAST(value AS CHAR), `key` FROM meta_map WHERE collection = ?")
 
 	for _, f := range filters {
 		if f.Op == metaengine.FilterIn {
@@ -64,9 +69,20 @@ func (e *mysqlEngine) PushdownMapScan(
 			op = "<"
 		}
 
-		fmt.Fprintf(&b, ` AND %s %s %s`,
-			e.jsonCursorExpr(sort.Column, cursor), op, e.jsonParamPlaceholder())
-		args = append(args, e.jsonFilterParam(cursor))
+		if skc, ok := cursor.(metaengine.SortKeyCursor); ok {
+			sortExpr := e.jsonCursorExpr(sort.Column, skc.Sort)
+
+			fmt.Fprintf(&b, ` AND (%s %s %s OR %s = %s AND ` + "`key`" + ` > ?)`,
+				sortExpr, op, e.jsonParamPlaceholder(),
+				sortExpr, e.jsonParamPlaceholder())
+
+			sortParam := e.jsonFilterParam(skc.Sort)
+			args = append(args, sortParam, sortParam, string(skc.Key))
+		} else {
+			fmt.Fprintf(&b, ` AND %s %s %s`,
+				e.jsonCursorExpr(sort.Column, cursor), op, e.jsonParamPlaceholder())
+			args = append(args, e.jsonFilterParam(cursor))
+		}
 	}
 
 	if sort != nil {
@@ -78,13 +94,14 @@ func (e *mysqlEngine) PushdownMapScan(
 		}
 
 		fmt.Fprintf(&b, ` ORDER BY %s`, strings.Join(exprs, ", "))
+		b.WriteString(", `key`")
 	}
 
 	if limit > 0 {
 		fmt.Fprintf(&b, ` LIMIT %d`, limit+1)
 	}
 
-	rows, err := scanMySQLJSONValues(ctx, e.conn(ctx), b.String(), args...)
+	rows, keys, err := scanMySQLJSONValuesWithKeys(ctx, e.conn(ctx), b.String(), args...)
 	//art-dupl:accept cross-module SQL engine pattern — dep-isolated go.mod modules
 	if err != nil {
 		return metaengine.ScanResult{}, err
@@ -93,9 +110,15 @@ func (e *mysqlEngine) PushdownMapScan(
 	hasMore := limit > 0 && len(rows) > limit
 	if hasMore {
 		rows = rows[:limit]
+		keys = keys[:limit]
 	}
 
-	return metaengine.ScanResult{Items: rows, HasMore: hasMore}, nil
+	var next any
+	if sort != nil && len(rows) > 0 {
+		next = metaengine.LastDecodedRowCursor(rows[len(rows)-1], sort.Column, []byte(keys[len(keys)-1]))
+	}
+
+	return metaengine.ScanResult{Items: rows, HasMore: hasMore, NextCursor: next}, nil
 }
 
 // ApplyLayout implements metaengine.LayoutPlanner. MySQL 8.0.13+ gets
@@ -159,6 +182,54 @@ func (e *mysqlEngine) ApplyLayout(collection string, filterFields, sortFields []
 	e.appliedLayouts[key] = true
 
 	return nil
+}
+
+// scanMySQLJSONValuesWithKeys executes the query and decodes each row's JSON
+// value alongside its key column — the pair keyset scans need to tiebreak and
+// mint compound cursors.
+// art-dupl:accept cross-module SQL engine pattern — separate go.mod
+func scanMySQLJSONValuesWithKeys(
+	ctx context.Context,
+	db metaengine.SQLExec,
+	query string,
+	args ...any,
+) ([]any, []string, error) {
+	rows, err := db.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, nil, fmt.Errorf("mysqlengine scan: %w", err)
+	}
+
+	defer metaengine.DeferClose(rows)
+
+	var (
+		result []any
+		keys   []string
+	)
+
+	for rows.Next() {
+		var (
+			raw []byte
+			key string
+		)
+
+		if err := rows.Scan(&raw, &key); err != nil {
+			return nil, nil, fmt.Errorf("mysqlengine scan: row: %w", err)
+		}
+
+		var val any
+		if err := json.Unmarshal(raw, &val); err != nil {
+			return nil, nil, fmt.Errorf("mysqlengine scan: unmarshal: %w", err)
+		}
+
+		result = append(result, val)
+		keys = append(keys, key)
+	}
+
+	if err := rows.Err(); err != nil {
+		return result, keys, fmt.Errorf("mysqlengine scan: %w", err)
+	}
+
+	return result, keys, nil
 }
 
 // scanMySQLJSONValues executes the query and decodes each row's JSON value.
