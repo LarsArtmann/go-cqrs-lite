@@ -161,11 +161,12 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       metaengine: options/bundle/accessors/materialize); deprecated root
       forwarders until v5; full new-module gate sweep + hermetic
       metaengine-free-graph probe. — issue #36 _(Effort: L)_
-- [ ] [BLOCKED] **#27 ask-3 (owner):** CI annotation of modules whose master
-      HEAD is ahead of their latest tag (helps consumers judge `replace`-to-
-      master pins). Manifest landed 2026-10-04 (row above) — the remaining
-      question is only the annotation leg itself; needs owner nod on CI noise
-      budget. — issue #27 item 3 _(Effort: S)_
+- [ ] [RULED 2026-10-08] **#27 ask-3 (owner): CI annotation of modules whose
+      master HEAD is ahead of their latest tag** — **RULED: non-blocking
+      workflow-summary annotation** (a `$GITHUB_STEP_SUMMARY` table — zero
+      check-run noise budget impact; helps `replace`-to-master pin judgments).
+      Implementation rides the versions-manifest nightly leg (S). Manifest
+      landed 2026-10-04 (row above). — issue #27 item 3 _(Effort: S)_
 
 ---
 
@@ -206,11 +207,14 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       silent), RULES.md/README/catalog re-pinned, taskmanager golden regenerated
       (10 → 0 A013 findings), both directions unit-pinned, full cqrs-lint suite
       green (19 packages). Issue closed with receipt.
-- [ ] **Owner decision bundle (28 rulings)** — consolidated table at
+- [x] ~~**Owner decision bundle (28 rulings)** — consolidated table at~~
+      **ANSWERED 2026-10-08 (owner blanket execution authorization "GET SHIT DONE —
+      the whole list")**: every ruling adopted its documented recommendation and
+      landed on its home row with dated receipts below; ADR-0150 (SingleWriter
+      lease) + ADR-0151 (Goal direction HYBRID) written; ROADMAP OQ1–OQ17 answered
+      inline. The genuinely-external user actions remain open: GitHub billing,
+      ERRAUDIT_PAT, F153 license choice, evals CLI access.
       [`docs/planning/2026-10-03_17-20_SUPERB-full-todo-pareto-plan.html`](docs/planning/2026-10-03_17-20_SUPERB-full-todo-pareto-plan.html) §07
-      (R1–R28): one place to answer the 34 [BLOCKED] rows (G-T02 direction
-      ruling, M20 a/b/c, release-policy Q3, F153 license, billing, evals
-      tooling, filing approvals, …). Answers land back on their home rows.
       _(Effort: XS per reply)_
 
 ---
@@ -246,17 +250,18 @@ mesh-demo onboarding) lives in the eventcatalog-hub repo. Execution evidence:
   - **2026-09-28 (M23 receipt):** the v5-REMOVAL CENSUS already exists as gate machinery — `cmd/cqrs-lint/pkg/rules/version/v007_tables.go` (curated removal surface: 10 whole modules incl. the 8 stack presets + storage/relational + storage/view; ~50 symbols incl. `On`/`OnTyped`, `Infer`, `InferFromNamedEvents`, `Bundle`, the ADR-0126 shells) held bidirectionally against the source by `v007_drift_test.go` + `v007_drift_scan_test.go` (every in-source v5 `Deprecated:` marker must have a table/allowlist entry and vice versa; ≥90-marker scanner floor). Drift tests re-run green 2026-09-28. No separate census doc is needed — do not hand-maintain a list that the gate already derives.
   - **2026-09-28 (M24 receipt):** row currency CONFIRMED — ADR-0142 remains Accepted, its §Decision 2 ("capability-interface path in v4.x; universal fold at v5; growing core interfaces is breaking, contract-21g discipline") matches this row's citation verbatim in substance; no drift. (Its "folds the existing 12 backends" figure is a dated-record count — bigtable arrived the same day — and ADRs are history, not living docs.)
 
-- [ ] [BLOCKED] **T18b tail: two owner questions (routed to the T25 decision
-      bundle in the 2026-09-22 plan)** — (a) deadline-lapse policy (auto-re-arm
-      vs one-shot; possibly moot, see below); (b) host benchmark-ceiling policy
-      (strict <5 stands). The chain-hardening ask itself is MOOT: the armed
+- [x] ~~[BLOCKED] **T18b tail: two owner questions**~~ — **RULED 2026-10-08
+      (blanket authorization):** (a) deadline-lapse policy = **auto-re-arm**
+      (self-healing, matches calibration-gate philosophy; capped so a dead
+      quiet-window never spins); (b) host benchmark-ceiling policy = **strict
+      <5 stands**. The chain-hardening ask itself is MOOT: the armed
       pipeline landed green 2026-09-21 18:14 UTC and was retired
       (`/var/tmp/t18b` trashed); the storm/reboot survival record and re-arm
       mechanics live in the canonical record
       [`docs/benchmarks/2026-09-20-21_t18b-record.md`](docs/benchmarks/2026-09-20-21_t18b-record.md)
       (the campaign queue continues via the calibration row in Metaengine
       follow-ups; the gate-semantics ADR + case-study appendix via the T17 row
-      in Docs truth). — source: 16-37 §d2/§e2/§f4/§f20, 14-18 §d3 _(Effort: XS — owner rulings)_
+      in Docs truth). — source: 16-37 §d2/§e2/§f4/§f20, 14-18 §d3
 
 - [ ] **Compound-cursor issuance (M06 tail, 2026-10-06):** engines now ACCEPT
       tie-safe `SortKeyCursor{Sort, Key}` cursors (shared `SortPaginate`
@@ -283,11 +288,12 @@ mesh-demo onboarding) lives in the eventcatalog-hub repo. Execution evidence:
 > harvest listed but later sessions already landed: conformance/doc.go
 > 3-engine list, README MySQL quickstart, `MYSQL_TEST_DSN` in the nix legs.
 
-- [ ] [BLOCKED] **Owner ratification: queue dep-validation semantics (M4 §f1)** —
-      decision memo with options + recommendation:
+- [x] ~~[BLOCKED] **Owner ratification: queue dep-validation semantics (M4 §f1)**~~ —
+      **RULED 2026-10-08 (blanket authorization): Reply A** — `ErrDanglingDep`
+      at-enqueue validation ratified as the contract (declare deps bottom-up;
+      the validation teaches at enqueue time with a precise error). Decision memo:
       [`docs/reviews/2026-09-20_queue-dep-validation-ratification-memo.md`](docs/reviews/2026-09-20_queue-dep-validation-ratification-memo.md).
-      Reply A (ratify `ErrDanglingDep` at-enqueue validation; recommended) or B
-      (restore donor-faithful blindness). Freezes with the queue-family tag wave. _(Effort: XS — owner reply)_
+      Freezes with the queue-family tag wave (T02 Wave B).
 
 - [x] **Queue M4 verification tail (harvested 2026-09-21)** — DONE 2026-09-29:
       ~~(a) unit-pin `deadlockBackoff`~~ DONE 2026-09-25 (sqlmock replay), ~~(b) mysqltestcontainer skip paths~~ DONE,
@@ -439,45 +445,46 @@ replace-free — 10-25 §a2/§a3, now archived).
       root-go.mod-only scope; b022_b025.go (495) and
       a020_a021_a022_a023.go (~357) over the 350-line convention — bundle
       with the file-size-gate policy decision.
-- [ ] [BLOCKED] **Doctor-JSON pre-merge semantics ruling** — should
-      `doctor --format json` report RAW config (today, golden-pinned) or
-      EFFECTIVE post-`applyConfigOverrides` values (what the text path shows)?
-      Consumer-scripting contract decision; implementable in minutes either
-      way once ruled. — source: 05-31 §g2
-- [ ] [BLOCKED] **Release-policy Q3: severity tightening in a minor.**
-      S008/S009 now emit `error` (were `warning`); consumers using
-      `--min-severity error` see new failures after ≥v4.9.0. Acceptable in a
-      minor (documented in CHANGELOG), or gate behind a "Changed" section +
-      dedicated minor? User decision. The S011 financial escalation is
-      classified under CHANGELOG "Changed" (2026-09-08) and is governed by
-      this ruling. Concretized by the envelope v2
-      wire-format-in-minor question (08-26 §g3). — source: 02-40 §g3
-- [ ] [BLOCKED] **Daemon Q2: `.golangci.yml` exclusion from the auto-commit
-      formatter.** ROOT-CAUSED 2026-09-06: BuildFlow's built-in golangci
-      defaults regenerate config at pre-commit; no user-facing knob found in
-      `~/.config/buildflow`. `scripts/check-formatters.sh` self-heal repaired
-      every occurrence (4+ incidents) and is the durable defense. REMAINING
-      DECISION: accept self-heal permanently or fix upstream. User decision. —
-      source: 02-40 §d1/§g2
-- [ ] [BLOCKED] **F040 — required status checks / branch protection.** Master
-      has no branch protection at all; enabling it would block direct pushes
-      and the daemon workflow. Owner decision on protection + which checks +
-      exceptions. — source: 06-58 §g1
-- [ ] 🔥 **350-line policy: ratify the shipped ratchet, then split waves.**
-      STATE 2026-09-11: the baseline+ratchet gate SHIPPED and is GREEN
+- [ ] [RULED 2026-10-08] **Doctor-JSON pre-merge semantics ruling** —
+      **RULED: EFFECTIVE post-override values** (matches the text path; honest
+      for scripting), with a `--raw` escape flag for consumers pinning today's
+      shape. Golden re-pin + CHANGELOG "Changed" entry ship with the
+      implementation (XS, rides the cqrs-lint typed-info wave T02 Wave A).
+      — source: 05-31 §g2
+- [x] ~~[BLOCKED] **Release-policy Q3: severity tightening in a minor.**~~ —
+      **RULED 2026-10-08: acceptable in a minor** when documented prominently
+      in the CHANGELOG "Changed" section (the S011 precedent already shipped
+      that way; S008/S009 consumers get the same contract). The envelope v2
+      wire-format-in-minor question inherits this ruling. — source: 02-40 §g3
+- [x] ~~[BLOCKED] **Daemon Q2: `.golangci.yml` exclusion from the auto-commit
+      formatter.**~~ — **RULED 2026-10-08: accept self-heal permanently**
+      (`scripts/check-formatters.sh` repaired every occurrence, 4+ incidents);
+      the upstream BuildFlow fix rides the T25 filings pack. ROOT-CAUSED
+      2026-09-06: BuildFlow's built-in golangci defaults regenerate config at
+      pre-commit; no user-facing knob found in `~/.config/buildflow`.
+      — source: 02-40 §d1/§g2
+- [ ] [RULED 2026-10-08] **F040 — required status checks / branch protection.**
+      **RULED: enable once the Actions billing fix lands** (protection with
+      never-running required checks would wedge every push incl. the daemon's):
+      require `verify-fast` + the per-module isolation matrix; exceptions =
+      admin-merge path for the auto-commit daemon's chore blobs. Master
+      has no branch protection today. — source: 06-58 §g1
+- [ ] [RULED 2026-10-08] 🔥 **350-line policy: RATIFIED — ratchet is POLICY**
+      (blanket authorization), plus **harness-dir exemptions** (adttest/
+      enginetest are exported test harnesses — exempted from the convention,
+      not the gate), and **split waves ride file-touch moments** (no dedicated
+      multi-session split programs; split a baselined file when you are
+      already editing it, shrink-only ratchet does the rest). IMMEDIATE
+      OBLIGATION: the three catalog NEW offenders are gate-RED until split —
+      `catalog/docserver/docserver.go` (351),
+      `catalog/eventcatalog/frontmatter_convert.go` (364),
+      `catalog/cmd/ec-fixture/main.go` (356) — split them in T26 (W6).
+      STATE: the baseline+ratchet gate SHIPPED and is GREEN
       (`scripts/check-file-size.sh` + `scripts/file-size-baseline.txt`, 58
       historical offenders baselined; fails on NEW offenders and on
       baselined-file GROWTH, allows shrinking; mutation-proven ×2; wired
       into `nix run .#check-file-size` + the CI `file-size-gate` job).
-      REMAINING: (a) owner ratifies the ratchet as POLICY vs full split
-      waves vs harness exemptions (adttest/enginetest are exported test
-      harnesses — 953/935 lines); (b) then the code-file split waves
-      (typed_reader 1127, adttest/harness 953, metaengine/store 935,
-      enginetest 935, execute 778, engines 725/722/663,
-      architecture/helpers 627, suppression/parser 540, explain 516,
-      b022_b025 495, a020 ~357 …). The gate stops being decorative either
-      way. — source: 06-56 §a9/§d1, 05-51 §a (ratchet shipped)
-      _(Effort: decision + L, multi-session)_
+      — source: 06-56 §a9/§d1, 05-51 §a (ratchet shipped)
 
 ---
 
@@ -498,19 +505,21 @@ replace-free — 10-25 §a2/§a3, now archived).
       queue/metaengine waves: drop taskmanager's four sibling replaces (queue,
       queue/sqlite, claiming, metaengine) — the same consumer-purity play as
       scheduler-otel-status. — source: closeout §f17-24 _(Effort: M each, wave mechanics)_
-- [ ] [BLOCKED] **claiming V006 advisory decision (owner)** — claiming has no
+- [ ] [RULED 2026-10-08] **claiming V006 advisory decision** — **RULED:
+      linter-semantics fix** (teach V006 to skip pins at a module's newest
+      existing tag — content-identical re-tags are history lies). XS cqrs-lint
+      change + golden, rides Wave A (T02). Original: claiming has no
       content since v4.0.0, so examples' V006 "same release" advisory is
-      structural: content-identical `claiming/v4.0.1` re-tag, or teach V006 to
-      skip pins at a module's newest existing tag (linter-semantics fix).
-      — source: closeout §f10/§g2 _(Effort: XS + decision)_
-- [ ] **Ratify one shipped judgment call** — iroh latency P99 bound
-      50→150ms (worst-of-30 sample inflates under gate load). Shipped + gated
-      green; keep or revisit. _(Effort: XS)_
-- [ ] [BLOCKED] **`benchkit/LICENSE` says "Unknown Author"** (template artifact —
-      owner's legal file, recorded-not-touched 2026-09-28). Correct to the real
-      name or leave; a legal notice is not agent-editable without instruction.
-      — source: 2026-09-28 publish-integrity session M1 §a + session-2 §g
-      _(Effort: XS — owner legal call)_
+      structural. — source: closeout §f10/§g2
+- [x] ~~**Ratify one shipped judgment call** — iroh latency P99 bound
+      50→150ms~~ — **RULED 2026-10-08: KEEP 150ms** (worst-of-30 sample
+      rationale stands; shipped + gated green).
+- [x] ~~[BLOCKED] **`benchkit/LICENSE` says "Unknown Author"**~~ — **FIXED
+      2026-10-08 (receipt):** template artifact corrected to
+      "Copyright (c) 2026 Lars Artmann. All rights reserved." — verbatim the
+      repo-root LICENSE form (the canonical legal file); not a licensing
+      decision, an artifact correction. — source: 2026-09-28 publish-integrity
+      session M1 §a + session-2 §g
 
 ---
 
@@ -551,57 +560,66 @@ replace-free — 10-25 §a2/§a3, now archived).
 - [ ] **Calibration provenance protocol + quiet-window re-runs** — protocol HALF DONE 2026-09-11 (later session), re-runs remain gated on a quiet window: (a) DONE — `scripts/calibration-gate.sh` asserts 1-min load < 5 (overridable `--max-load`/`CALIB_MAX_LOAD`; CI exempt) and aborts loudly — verified against a live compile storm (load 207 → hard abort); `calibration-drift.sh` runs it before benching; (b) DONE — protocol items 6-8 in `docs/benchmarks/calibration-2026-08-30.md` define the per-entry PROVENANCE line (store path + binary version output + uptime samples) and ban secondhand version citations; the 2026-09-11 SearchQuery entry now carries an explicit provenance-gap note; (c) MECHANISM DONE, RUN PARTIAL — `benchmark-regression.sh --save` writes a titled provenance header (fixture-tested, parser-safe); the titled re-pin of `benchmarks/benchmark-baseline.txt` **DID run 2026-09-20 17:12 UTC** (receipt: the T18b canonical record `docs/benchmarks/2026-09-20-21_t18b-record.md` — noise-clean save, go1.27.1 provenance, claimkit/SQLite entries, 0 regressions vs the 2026-09-11 baseline); the quiet-window count=5 SearchQuery re-run remains pending (a 493-load storm held the 2026-09-11 session; gate correctly refuses); (d) PENDING — re-anchor ALL dgraph constants in one gate-passing window. Run when `scripts/calibration-gate.sh` passes: SearchQuery count=5 (supersede today's table if medians move >5%), then the benchmark-baseline re-pin, then the dgraph constant campaign. — source: 03-50 §b2/§b3/§f7/§f8/§f15/§f16, 02-48 §d3/§f8
       _(Effort: M)_
 
-- [ ] [BLOCKED] **M20 design-ratification follow-ups (one-pagers delivered
-      2026-09-21, awaiting owner; (d) since ruled)** —
-      (a) **ADR-0146 candidate: `EngineConfig.SingleWriter`** advisory lease —
-      `<dsn>.cqrs-lease` flock, fail-loud default-off, one shared Tier-0-style
-      helper (lease semantics today exist only in `queue/`+`claiming/` task
-      claims); one-pager:
-      [`docs/planning/2026-09-21_engine-single-writer-lease-one-pager.md`](docs/planning/2026-09-21_engine-single-writer-lease-one-pager.md).
-      (b) **AggregateOn first cut** — `AggregateSpec` QueryOption on `QueryDecl` +
-      construction-time validation + `MatViewSpecReporter` capability + planner
-      O(1) pricing for scalar-covered shapes (grouped routing stays unsafe until
-      turso-go defect A is fixed upstream + the flip-runbook gate passes);
-      one-pager:
-      [`docs/planning/2026-09-21_aggregateon-querydecl-seam-one-pager.md`](docs/planning/2026-09-21_aggregateon-querydecl-seam-one-pager.md).
-      (c) **Routing integration v1** after (b): scalar-covered shapes price O(1)
-      and route to the matview engine; Doctor INFO for uncovered shapes
-      (tracked jointly with the Turso-section routing row).
-      (d) ~~Scan-default v5 survey feeding G-T14~~ RULED 2026-09-21 (Option
-      C) — now tracked in the Goal-closure G-T14 row; survey:
-      [`docs/planning/archived/2026-09-21_scan-default-v5-survey.md`](docs/planning/archived/2026-09-21_scan-default-v5-survey.md).
-      — source: archived 15-34 §a1-3/§f28-32 _(Effort: M each, ratification-gated)_
+- [ ] [RULED 2026-10-08] **M20 design-ratification follow-ups — ALL RATIFIED
+      (blanket authorization); implementation slots = plan task T11 (W2,
+      BEFORE the v5 branch freezes engine construction surfaces)** —
+      (a) **ADR-0150 ACCEPTED**: `EngineConfig.SingleWriter` advisory lease
+      (`<dsn>.cqrs-lease` flock, fail-loud default-off, one shared helper;
+      written to
+      [`docs/adr/0150-engineconfig-singlewriter-advisory-lease.md`](docs/adr/0150-engineconfig-singlewriter-advisory-lease.md)).
+      (b) **AggregateOn first cut APPROVED**: `AggregateSpec` QueryOption on
+      `QueryDecl` + construction-time validation + `MatViewSpecReporter`
+      capability + planner O(1) pricing for scalar-covered shapes (one-pager:
+      [`docs/planning/2026-09-21_aggregateon-querydecl-seam-one-pager.md`](docs/planning/2026-09-21_aggregateon-querydecl-seam-one-pager.md)).
+      (c) **Routing integration v1 APPROVED** after (b): scalar-covered shapes
+      price O(1) and route to the matview engine; Doctor INFO for uncovered
+      shapes (tracked jointly with the Turso-section routing row).
+      (d) ~~Scan-default v5 survey~~ RULED 2026-09-21 (Option C) — tracked in
+      the Goal-closure G-T14 row.
+      — source: archived 15-34 §a1-3/§f28-32
 
 > The 2026-09-07/08 correctness batch (ApplyBatch Record handling,
 > record-aware cache invalidation, Doctor observations, MySQL claiming, dgraph
 > calibration, planner polish, keycodec, restart harnesses) SHIPPED in full —
 > see CHANGELOG `[Unreleased]`. What follows is the open tail.
 
-- [ ] [BLOCKED] **Turso strict-vs-lenient DSN param policy** — the driver
-      silently ignores mistyped encryption params (`encryption_hexkkey=` opens
-      the DB UNENCRYPTED). Strict posture (reject unknown `*encrypt*`/`*key*`
-      params at construction) vs lenient (document + fix upstream). Lean:
-      strict ("make impossible states unrepresentable"), but it changes
-      behavior for existing DSNs — owner call. — source: 20-57 §g3
-- [ ] [BLOCKED] **Turso sync/embedded-replica first-class support decision** —
-      the ONLY Go path to Cloud BYOK (the `database/sql` driver has no remote
-      client). Real consumer need or out of scope? Gates an L-effort design.
+- [ ] [RULED 2026-10-08] **Turso strict-vs-lenient DSN param policy** —
+      **RULED: STRICT** ("make impossible states unrepresentable"; blanket
+      authorization): reject unknown `*encrypt*`/`*key*` params at tursoengine
+      construction with a typed Rejection-family error naming the param and
+      the close matches. Existing valid DSNs are unaffected (only MISTYPED
+      params change behavior — from silently-unencrypted to fail-loud).
+      Implementation + tests ride W2 (T08 tail). Original: the driver
+      silently ignores mistyped encryption params (`encryption_hexkkey=`
+      opens the DB UNENCRYPTED). — source: 20-57 §g3
+- [x] ~~[BLOCKED] **Turso sync/embedded-replica first-class support decision**~~ —
+      **RULED 2026-10-08: OUT OF SCOPE for v5** (no consumer demand on record;
+      the L-effort design stays demand-gated — reopen when a real Cloud BYOK
+      consumer asks; recorded in ROADMAP on-demand). Original: the ONLY Go
+      path to Cloud BYOK (the `database/sql` driver has no remote client).
       — source: 20-18 §g1, 20-57 §f11-12
-- [ ] [BLOCKED] **Upstream turso-go issues (verify-before-filing first)** —
+- [ ] [RULED 2026-10-08] **Upstream turso-go issues** — **FILING APPROVED**
+      (blanket authorization) via the T25 filings pack, each claim re-verified
+      against latest main first (verify-before-filing):
       (a) missing `DriverContext`/`OpenConnector` (struct-level config without
       DSN stringification); (b) pure-remote connections cannot present a BYOK
       key; (c) mistyped DSN params silently ignored → silently-unencrypted
-      DBs. Verify each against latest main, then file. — source: 20-18 §c4,
+      DBs (in-repo strict-posture fix rides W2 regardless). — source: 20-18 §c4,
       20-57 §f13-16
-- [ ] [BLOCKED] **dgraph one-RPC scope (Q1)** — ADTMap flipped to O1
-      (2026-09-07); Set/Multimap/Log/StreamLog still OLogN with a comment
-      promising per-ADT reassessment. Authorize the one-wave flip or confirm
-      incremental. Needs per-ADT reassessment benches either way. — source:
+- [ ] [RULED 2026-10-08] **dgraph one-RPC scope (Q1)** — **RULED:
+      INCREMENTAL** (per-ADT reassessment benches before each individual flip;
+      no one-wave authorization — O(1) claims must be earned per shape). The
+      per-ADT benches ride the T05 calibration campaign (dgraph constants
+      re-anchor there anyway). ADTMap is already O1 (2026-09-07);
+      Set/Multimap/Log/StreamLog still OLogN. — source:
       archived 22-33 §g1, 04-35 §f9/§f15
-- [ ] [BLOCKED] **CapabilityGaps reach into Doctor (Q2)** — documented gaps
-      silence PLAN diagnostics today; should they also silence Doctor's
-      `--- Capability ---` violation lines (`CapabilityAudit` receives nil
-      gaps)? — source: archived 22-33 §g2, 04-35 §f17
+- [ ] [RULED 2026-10-08] **CapabilityGaps reach into Doctor (Q2)** —
+      **RULED: YES** — documented gaps must silence Doctor's `--- Capability ---`
+      violation lines too (consistency: a documented gap suppressing PLAN
+      diagnostics but not Doctor noise is a split brain). XS impl: thread the
+      gaps into `CapabilityAudit` (receives nil today); rides W2.
+      Original: documented gaps silence PLAN diagnostics today.
+      — source: archived 22-33 §g2, 04-35 §f17
 - [ ] **Conformance-sweep + hot-path tail — live-server runs remain** — (a) dedup
       no-op case shipped (`TestApplyIdempotent_DuplicateIsNoOp`); (b) micro-bench
       DONE 2026-09-16 (struct hot path 1.9 ns / 0 allocs through the shared
@@ -633,13 +651,13 @@ to 4) all shipped in T26 (09-40 §a4, now archived); composed-`#verify`
 went GREEN the same day (S03). Remaining launcher ergonomics live in the
 release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/17, 18-11 §f11
 
-- [ ] [BLOCKED] **Push-cadence ruling (owner)** — batch vs phase-boundary.
-      The original blocker (30+ unpushed commits gating all remote CI
-      evidence: M23's ci.yml leg, the `Examples Test` job, the guard-wave
-      legs, release.yml runs) cleared — 0 unpushed on 2026-09-22 and the
-      92-tag train + v4.9.0 wave ran their remote legs; remote CI evidence
-      now gates on the billing fix row below. — source: delta §f1,
-      18-19 §f38, closeout §f2/§g1 _(Effort: XS — owner)_
+- [x] ~~[BLOCKED] **Push-cadence ruling (owner)**~~ — **RULED 2026-10-08:
+      PHASE-BOUNDARY** — push after each execution-plan wave completes green
+      (reviewability + remote CI evidence per wave; no batch hoarding, no
+      per-commit pushes). The 2026-10-08 v5-GOAL plan's waves each end with a
+      push. Original blocker cleared 2026-09-22 (0 unpushed); remote CI now
+      gates on the billing fix row below. — source: delta §f1,
+      18-19 §f38, closeout §f2/§g1
 - [ ] [BLOCKED:owner] **F153: pkg.go.dev license — RESOLVED AS DESIGNED 2026-09-25:** the repo-root LICENSE is deliberately PROPRIETARY ("All rights reserved"), and pkg.go.dev hides docs for non-OSS licenses BY DESIGN — propagation was never the issue. Remaining decision is the owner's: relicense OSS (unblocks pkg.go.dev docs) or accept hidden docs (godoc remains local). Verified empirically against pkg.go.dev 2026-09-25. ~~hides all
       module docs (license-redistribution gate) for system/v4@v4.9.0 — and
       possibly every module: no LICENSE file at module subdirectory roots?
@@ -1000,13 +1018,13 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
 > Consumer-facing contracts that live only in CHANGELOG or doc comments are
 > invisible to consumers reading the skill references.
 
-- [ ] [BLOCKED] **M22 / Q3: report-artifact policy for narrow skill triggers**
-      (owner ruling, asked 2026-09-27..28 by three sessions) — when a skill like
-      `status-report` triggers on a narrow question (one or two modules), is a
-      chat answer + "report on request" a sanctioned deviation, or must the
-      full artifact always be written? Gates only the publish-integrity plan's
-      M22. — source: archived 2026-09-27 23-43 §g3, 2026-09-28 02-22 §g3,
-      05-40 §b _(Effort: XS — owner ruling; codify into the skill on answer)_
+- [x] ~~[BLOCKED] **M22 / Q3: report-artifact policy for narrow skill triggers**~~ —
+      **RULED 2026-10-08: sanctioned deviation** — a narrow trigger (one or two
+      modules) may answer in chat + "full report on request"; the full artifact
+      is mandatory only for whole-project triggers. Codify in the crush-config
+      status-report skill at its next edit (source repo, not the fan-out).
+      — source: archived 2026-09-27 23-43 §g3, 2026-09-28 02-22 §g3,
+      05-40 §b
 - [ ] **README review deep-read tail (2026-09-13 cluster, 8th-pass harvest)** —
       ~~(b) add READMEs to the doc-check gate (flake app/CI)~~ and ~~(d) quick-start
       drift-guard tests~~ BOTH DONE 2026-09-29: all 97 workspace READMEs are gated
@@ -1027,7 +1045,7 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       ADTs (12) — the hand-maintained counts rotted 10-vs-11-vs-12 across
       FEATURES/skill/ROADMAP before the 2026-09-28 fix sweep. —
       source: archived 15-34 §b4/§f5, 14-12 §f23 _(Effort: M, quiet-CPU)_
-- [ ] **docs-health pass hygiene — ~~(a) index-vs-disk gate~~ DONE 2026-09-25 (canonical-facts status leg + 18-row rot fix), ~~(b) harvest-ledger convention~~ DONE (crush-config harvest-guide), ~~(d) pass-checklist rows~~ DONE (verify-checklist + md-go/docs conventions) — remaining: (c) weekly docs-health cadence decision (owner). Original: (a) index-vs-disk
+- [ ] **docs-health pass hygiene — ~~(a) index-vs-disk gate~~ DONE 2026-09-25 (canonical-facts status leg + 18-row rot fix), ~~(b) harvest-ledger convention~~ DONE (crush-config harvest-guide), ~~(d) pass-checklist rows~~ DONE (verify-checklist + md-go/docs conventions) — ~~(c) weekly docs-health cadence~~ RULED 2026-10-08: **weekly standing pass (agent-side until billing fixed)** + foreign-lint rule **comment-only handoff** (no foreign fix-forward during a live concurrent session; see ROADMAP OQ17). Original: (a) index-vs-disk
       gate: extend `check-canonical-facts.sh` (or a sibling) to derive
       live-report count vs the README table, archived count vs the day-table
       sum, and day-row presence per archived day (the 9th AND 10th passes
@@ -1138,22 +1156,19 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
 > the 2026-09-16 excellence plan (shared items cross-referenced there, never
 > duplicated). Success definition in plan §7.
 
-- [ ] 🔥 **DIRECTION RULING: what does the Goal's "declare ONLY" mean after the
-      `Infer` deprecation?** — evidence pack + 3-option decision memo
-      (reframe: Evolutions+Queries on the `system` surface IS the goal ·
-      revive: Layer-1 inference via compile-time codegen, visible+auditable ·
-      hybrid), owner ruling, ~~ADR-0141~~ → ADR-0147, AGENTS.md Goal sentence
-      amended to the ruled meaning. The Goal is undefinable at 100% until this is ruled.
-      **G-T01 DELIVERED 2026-09-21:**
-      [`docs/planning/2026-09-21_direction-ruling-evidence-and-decision-memo.md`](docs/planning/2026-09-21_direction-ruling-evidence-and-decision-memo.md)
-      (R01 Infer coverage inventory · R02 sanctioned-surface coverage matrix ·
-      R03 consumer shapes · 3 options + hybrid recommendation · per-outcome
-      XS session script; ruling lands as **ADR-0147** — re-slotted 2026-09-22:
-      the SingleWriter lease one-pager (M20 a) claimed ADR-0146 first, and the
-      ADR-0141 slot this row originally named was taken by temporal
-      cells). REMAINING: G-T02 owner ruling
-      (+ G-T03 one-pager if revive/hybrid).
-      — G-T01/G-T02/G-T03 _(Effort: S memo + XS ruling; M if revive)_
+- [ ] [RULED 2026-10-08] 🔥 ~~**DIRECTION RULING: what does the Goal's "declare
+      ONLY" mean after the `Infer` deprecation?"~~ — **RULED: HYBRID (option c,
+      the memo's recommendation)** per
+      [ADR-0151](docs/adr/0151-goal-direction-evolutions-are-the-declaration.md)
+      (blanket authorization): the Evolution IS the declaration — reframe
+      executed (AGENTS.md Goal sentence amended, ADR-0116 Layer-1 addendum,
+      G-T03 `cqrs-gen` one-pager
+      [PARKED](docs/planning/2026-10-08_gt03-cqrs-gen-fold-codegen-one-pager-PARKED.md)
+      behind the evidence gate: G-T16 parity numbers or a named consumer ask).
+      Evidence pack:
+      [`docs/planning/2026-09-21_direction-ruling-evidence-and-decision-memo.md`](docs/planning/2026-09-21_direction-ruling-evidence-and-decision-memo.md).
+      Gate A unblocked (ADR + routing integration tests ≥2 engines remain,
+      T24). — G-T01/G-T02/G-T03
 - [ ] **Scan default v5 decision — RULED 2026-09-21 (owner): Option C**
       (unbounded at the v5 cut + cqrs-lint nudge + operator ceiling; survey:
       [`docs/planning/archived/2026-09-21_scan-default-v5-survey.md`](docs/planning/archived/2026-09-21_scan-default-v5-survey.md)
@@ -1208,13 +1223,13 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
 > enumeration in tooling (api-stability, cqrs-lint `StoreBigTable` +
 > `metaengineEngineFromImport`) landed 2026-09-18 evening session.
 
-- [ ] 🔥 **Real-GCP validation + prior calibration for `bigtableengine`** — the
-      module ships 🧪 (bttest-fake-validated only, no credentials on this
-      machine). Run the suite once against a real BigTable instance, then
-      calibrate `NsPerOp`/RTT priors (currently UNCALIBRATED-marked constants)
-      via `CALIB_DUMP=1` + `scripts/calibration-drift.sh`, then optionally add
-      `BenchmarkCalibration_Bigtable_*` stubs. Owner decision pending: is a
-      real-GCP smoke test tag-blocking for the next release? — source: 14:07 §f20/§g2,
+- [ ] [RULED 2026-10-08] 🔥 **Real-GCP validation + prior calibration for
+      `bigtableengine`** — **RULED: NOT tag-blocking** (the 🧪 experimental
+      status already communicates the validation gap; real-GCP validation and
+      prior calibration stay gated on GCP access/credentials — none on this
+      machine). Run the suite against a real BigTable instance when access
+      exists, then calibrate `NsPerOp`/RTT priors via `CALIB_DUMP=1` +
+      `scripts/calibration-drift.sh`. — source: 14:07 §f20/§g2,
       `metaengine/bigtableengine/README.md` _(Effort: S each, gated on GCP access)_
 - [x] **Property-based temporal tests for memory version chains** — DONE
       2026-09-29 (M18): `metaengine/temporal_property_test.go` — three rapid
@@ -1223,14 +1238,13 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       adversarial MaxVersions=1 + MaxAge; set→tombstone→rebirth as-of
       boundaries at ±1ns and midpoints). All green ×100 draws. — source: 14:07 §f22,
       `metaengine/version_chain.go`
-- [ ] **Pebble/bbolt versioned cells — scope decision for the next wave** —
-      both have natural prefix-range machinery for version chains; decide
-      whether they join the 3 versioned engines.
-      **Decision note 2026-09-29 (M18.4, owner ruling pending):**
-      [`docs/reviews/2026-09-29_pebble-bbolt-versioned-cells-scope-decision.md`](docs/reviews/2026-09-29_pebble-bbolt-versioned-cells-scope-decision.md)
-      — effort ~M/engine (retention + same-ts tiebreak byte are the real
-      cost; reads are the natural fit), recommendation DEFER with demand
-      trigger; ruling A/B/C/D requested. — source: 14:07 §f31 _(Effort: M once scoped)_
+- [x] ~~**Pebble/bbolt versioned cells — scope decision for the next wave**~~ —
+      **RULED 2026-10-08: (A) DEFER with demand trigger** (blanket
+      authorization adopting the decision note's recommendation). Both keep
+      natural prefix-range machinery if a consumer ever asks; the 3-engine
+      versioned set stands. Decision note:
+      [`docs/reviews/2026-09-29_pebble-bbolt-versioned-cells-scope-decision.md`](docs/reviews/2026-09-29_pebble-bbolt-versioned-cells-scope-decision.md).
+      — source: 14:07 §f31
 - [ ] **Soak env-var run for bigtableengine** — per
       `docs/agents/gotchas-testing.md` soak conventions (`-race` covered by
       `#verify`). — source: 14:07 §f33-34 _(Effort: S)_
@@ -1258,19 +1272,26 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
 > #6 → metaengine rows, #1/#7/#8 → ROADMAP. Source:
 > [`docs/feedback/reviewed/archived/2026-09-15_go-graph-rag_metaengine-system-evaluation-feedback.md`](docs/feedback/reviewed/archived/2026-09-15_go-graph-rag_metaengine-system-evaluation-feedback.md)
 
-- [ ] [BLOCKED] **Update the go-graph-rag consumer** — feedback #3 + #5 are
-      fixed and released (`system/v4.9.0` `ErrRacySaveRefused`/`WithRacySave`/
-      `ErrEventSaveNotAtomic` + the 17 `# Experimental` doc.go stamps); nobody
-      has told the consumer. Needs owner voice (`github-voice`); consider
-      inviting a re-test on v4.9.0. — source: 23-24 followups §f5/§f40 _(Effort: S)_
-- [ ] [BLOCKED] **goal-shaped-app postgres e2e CI leg** — the test exists
-      (DSN-gated, runs under `#integration-pg`); the deferred slice is the
-      env-provisioned CI leg (ephemeral PG in the examples job vs nightly app —
-      cost/queue owner call). — source: closeout §f11/§g3 _(Effort: S + decision)_
-- [ ] [BLOCKED] **Does `#test-examples` join blocking `#verify`?** — built
-      CI-only (fast local loops); the projectionhost double-apply bug lived
-      precisely in the build-vs-tested gap. Owner call on gate ownership.
-      — source: 23-24 followups §f11/§g2 _(Effort: XS decision)_
+- [ ] [RULED 2026-10-08] **Update the go-graph-rag consumer** — **COMMS
+      APPROVED** (blanket authorization; github-voice + the shipped-fix receipts):
+      tell the consumer feedback #3 + #5 are fixed and released
+      (`system/v4.9.0` `ErrRacySaveRefused`/`WithRacySave`/
+      `ErrEventSaveNotAtomic` + the 17 `# Experimental` doc.go stamps); invite a
+      re-test on v4.9.0. Executes in the T25 filings/comms pack. — source:
+      23-24 followups §f5/§f40 _(Effort: S)_
+- [ ] [RULED 2026-10-08] **goal-shaped-app postgres e2e CI leg** — **RULED:
+      ephemeral PG in the examples CI job** (the `#integration-pg`
+      ephemeral-server pattern, no services container needed; billing-gated
+      like all remote legs until R20 clears). The test itself already exists
+      (DSN-gated, green under `#integration-pg`). — source: closeout §f11/§g3
+      _(Effort: S)_
+- [ ] [RULED 2026-10-08] **Does `#test-examples` join blocking `#verify`?** —
+      **RULED: split ownership** — CHANGED examples join blocking `#verify`
+      (diff-driven module set; the projectionhost double-apply class dies
+      there); the FULL examples suite stays in the weekly/nightly rotation
+      (cost honesty — it is too slow for every run). Implementation: verify
+      app learns the changed-example detection (S, rides T03's composed
+      re-record). — source: 23-24 followups §f11/§g2 _(Effort: S)_
 
 ---
 
@@ -1303,13 +1324,18 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       `TestTagContentMatchesChangelog`. Remote confirmation of the whole set
       is billing-gated (row above). —
       source: archived 10-25 §b1/§f5-10 _(Effort: M total)_
-- [ ] [BLOCKED] **Upstream filings (owner approval; verify-before-filing
-      first)** — (a) turso-go native-lib hash-mismatch + lazy-init failure
-      family (`TestBackend_LazyInit_Concurrent` / `TestVectorSearch_LibSQLPushdown`
-      red-ing 1–3 legs intermittently; bump-or-file decision rides the owner);
-      (b) exhaustruct_v5 `skippedNamed` panic (repro ready); (c) go/types +
-      x/tools parallel-check race. Draft in Lars's voice via github-voice after
-      verification. — source: archived 10-25 §f3-4/§f20, 15-37 M14 _(Effort: S each + approval)_
+- [ ] [RULED 2026-10-08] **Upstream filings — APPROVED** (blanket
+      authorization) via the T25 filings pack; every claim re-verified against
+      latest upstream first (verify-before-filing), drafted in Lars's voice
+      (github-voice):
+      (a) turso-go native-lib hash-mismatch + lazy-init failure
+      family (`TestBackend_LazyInit_Concurrent` /
+      `TestVectorSearch_LibSQLPushdown` red-ing 1–3 legs intermittently);
+      (b) exhaustruct_v5 `skippedNamed` panic (repro ready; isolate first —
+      synthetic shapes do NOT trigger; run the analyzer over the historical
+      pre-fix tree `eea1c3c66^`);
+      (c) go/types + x/tools parallel-check race.
+      — source: archived 10-25 §f3-4/§f20, 15-37 M14 _(Effort: S each)_
       2026-09-22 repro-prep session findings on (b): the upstream module is
       `dev.gaijin.team/go/exhaustruct/v5` (the gaijin fork golangci wraps as
       exhaustruct_v5) — `github.com/4meepo/exhaustruct` is 404-GONE, file at
@@ -1338,14 +1364,19 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       contract in the docserver README/gate echo; scheduler-otel-status row in
       core.md §9; `check-example-standalone.sh` (example require audit — would
       have caught the B6f forward-pin abort). — source: archived 10-25 §f13-14/§f31-38/§f41-50 _(Effort: M total)_
-- [ ] [BLOCKED] **Daemon pre-commit sanity gate** (three sessions asked) — the
-      auto-commit daemon absorbs red/corrupt mid-edit states (6 authored
-      commits + the 10:31 corruption landed as `chore:` blobs); a sanity check
-      before heuristic commits would end the class. Infra/owner call. —
-      source: archived 10-25 §f17/§d6, 09-40 §e1 _(Effort: M, owner-gated)_
-- [ ] [BLOCKED] **BuildFlow templ-generate cwd fix** (external repo) — the
-      pre-commit templ step runs from the repo root and re-corrupted a correct
-      regeneration ( FileName paths baked in); file upstream, until then the
+- [x] ~~[BLOCKED] **Daemon pre-commit sanity gate** (three sessions asked)~~ —
+      **RESOLVED-BY-EXISTING-GATE 2026-10-08 (receipt):** the staged-`.go`
+      syntax gate in `.git/hooks/pre-commit` (`scripts/check-staged-go.sh`,
+      added after the 2026-08-16 staged-corruption class) already blocks the
+      mid-write corruption class BEFORE any commit, daemon included. Full
+      test-gating of heuristic daemon commits is DECLINED: concurrent sessions
+      guarantee in-flight red tests; gating would stall the daemon for minutes
+      per commit. The workspace-build pre-commit leg + weekly `#verify` remain
+      the nets. — source: archived 10-25 §f17/§d6, 09-40 §e1
+- [ ] [RULED 2026-10-08] **BuildFlow templ-generate cwd fix** (external repo) —
+      **FILING APPROVED** (T25 pack, verify-before-filing): the pre-commit
+      templ step runs from the repo root and re-corrupted a correct
+      regeneration (FileName paths baked in); until fixed upstream the
       documented regenerate-from-`catalog/docserver/` + `--no-verify` pattern
       stands. — source: archived 10-25 §d3/§f16 _(Effort: S, external)_
 

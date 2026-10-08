@@ -748,62 +748,47 @@ CONFLICT`, JSONB) should work with near-zero changes. Point the DSN at port
 > Standing questions from recent sessions that block or shape work. Answers
 > should be folded into TODO_LIST once decided.
 
-1. **Next tag wave + severity policy** (updated 2026-09-06): the 39-tag v4
+1. **Next tag wave + severity policy** — **ANSWERED 2026-10-08 (blanket
+   authorization):** (a) next wave AUTHORIZED — executing as plan task T02
+   (pre-tag tests first, the 2026-10-06 lesson); (b) severity-tightening in a
+   minor is ACCEPTABLE with a prominent CHANGELOG "Changed" section (S011
+   precedent). Historical context: the 39-tag v4
    wave B1–B7 was cut+pushed 2026-08-29 (plan archived at
    `docs/planning/archived/2026-08-27_17-30_PENDING-TAG-WAVE-PLAN.md`).
-   OPEN decisions: (a) authorize the next patch/minor wave (metaengine
-   session-7 surface is ≥1 minor untagged; see TODO_LIST Release section);
-   (b) is severity-tightening (S008/S009 now `error` in v4.9.0) acceptable
-   in a minor release, or gated behind a "Changed" + dedicated minor?
-2. **Zenoh go/no-go** (new 2026-09-16): Eclipse Zenoh v1.10.1 research
-   ([mapping report](docs/architecture-understanding/2026-09-15_zenoh-spatiotemporal-fabric-mapping.md))
-   frames it as a brokerless network fabric one layer below watermill's
-   plugin ecosystem — candidate surfaces: W1 external `watermill-zenoh`
-   plugin (go-sse sibling-repo pattern; CGo via zenoh-c + Nix packaging
-   burden), W2 edge command dispatch + liveliness→ADR-0137 probes, W3
-   queryable-served read models / CRDT `zenohengine` /
-   timestamp-instrumentation→planner. DECIDE: pursue W1 now, or file as
-   landscape research? Everything else hinges on this; see the report's
-   §4 Pareto + §5 risks.
-3. **SA1019 exclusion permanence**: keep the scoped
-   `(middleware|idempotency)/.*_test\.go$` exclusion permanently, or migrate
-   kvstore test matrices onto the go-idempotency contract suite before v5?
-4. **Stale-pin sweep policy**: may future sessions bump ALL sibling-module pins
-   repo-wide to latest tags mechanically (gate-verified), or only on breakage?
-   A yes also greenlights the pin-drift meta-test failing on staleness.
-5. **Vulncheck placement**: check-coverage / check-duplication / check-arch /
-   check-depguard already run inside `#verify` (wired since `6f7c88388`,
-   2026-08-03 — the Aug-14 "gates are unwired" premise was wrong; check-coverage
-   rotted while WIRED because the script was broken). Only `#vulncheck` sits
-   outside `#verify`. Fold it in (+time per run), keep it a manual pre-tag
-   step (current TODO_LIST pre-tag checklist), or wire it into CI?
-6. **Tracing JSON `omitempty` standardization** (from the WithActor review):
-   only `ActorID` omits zero; `CorrelationID`/`CausationID`/`UserID`/`RequestID`
-   serialize as empty strings. Making them all omit-zero is cleaner but a
-   breaking JSON change for consumers parsing the raw shape. Standardize
-   (needs ADR) or leave asymmetric?
-7. **MySQL-8 nix backend** (2026-08-15): the nix integration envs run MariaDB
-   (`pkgs.mariadb`), but MySQL 8 has meaningfully different JSON behavior
-   (functional indexes, native JSON type). Add a real MySQL-8 nix VM check
-   (`mysql8-vm`, ~130s in CI), or stay MariaDB-only and treat MySQL via
-   docker probes as today?
-8. **`mysqlengine.Dialect()` export** (2026-08-15): mysqlengine exports
-   `Dialect() string` ("mysql"/"mariadb"). Keep as stable public API, or
-   demote to internal and expose via `Profile()` metadata (avoids a
-   stringly-typed API surface before the v5 freeze)?
-9. **Contention-retry knobs: internal forever or exported?** (2026-09-11,
-   updated same day): dgraphengine's retry schedule (6 attempts, 15–240ms
-   backoff + jitter) stays fixed internal behavior, but retries are now
-   OBSERVABLE via `WithContentionObserver` (callback per retry; no metrics
-   dep — the check-arch budget forced the dependency inversion). OPEN
-   REMAINDER: expose tuning knobs (`WithContentionRetry(...)`) in the v5
-   API train? Exporting means api-stability golden work. — source: 02-16
-   §g1, 05-51 §a
-10. **`test-integration.sh` / `test-all-backends.sh` fate** (2026-09-11):
-    are the composite runners staying long-term (operator-facing
-    one-command entry points → give them their own shuffle evals, TODO_LIST
-    Testing section) or legacy on the way out (leave unshuffled, like the
-    stack presets)? — source: 02-16 §g2
+2. **Zenoh go/no-go** — **ANSWERED 2026-10-08: landscape research only.**
+   No W1 plugin now (zero consumer demand; CGo + zenoh-c + Nix packaging
+   burden is not buyable on speculation). Revisit when an edge-consumer ask
+   lands. Mapping report kept:
+   ([mapping report](docs/architecture-understanding/2026-09-15_zenoh-spatiotemporal-fabric-mapping.md)).
+3. **SA1019 exclusion permanence** — **ANSWERED 2026-10-08: keep the scoped
+   `(middleware|idempotency)/.*_test\.go$` exclusion permanently.** The
+   kvstore-matrix migration onto the go-idempotency contract suite is
+   demand-gated nice-to-have, not a v5 blocker.
+4. **Stale-pin sweep policy** — **ANSWERED 2026-10-08: YES on both.**
+   Future sessions may bump ALL sibling-module pins repo-wide to latest tags
+   mechanically (gate-verified via `pin-sweep.sh`), and the pin-drift
+   meta-test may fail on staleness.
+5. **Vulncheck placement** — **ANSWERED 2026-10-08: stays a manual pre-tag
+   step** (current TODO_LIST pre-tag checklist). Folding into `#verify`
+   adds per-run cost with little marginal safety between tags.
+6. **Tracing JSON `omitempty` standardization** — **ANSWERED 2026-10-08:
+   standardize ALL omit-zero at v5** (the breaking window; needs a one-page
+   ADR rider on the v5 cut — all of `CorrelationID`/`CausationID`/`UserID`/
+   `RequestID` join `ActorID`).
+7. **MySQL-8 nix backend** — **ANSWERED 2026-10-08: stay MariaDB-only** in
+   nix envs; MySQL-8 coverage continues via docker/manual probes (no
+   observed JSON-path divergence since 2026-08 justifies a ~130s CI VM).
+8. **`mysqlengine.Dialect()` export** — **ANSWERED 2026-10-08: demote to
+   internal at v5**, expose via `Profile()` metadata (kills the
+   stringly-typed surface before the freeze; part of the W3 deletion pass).
+9. **Contention-retry knobs: internal forever or exported?** — **ANSWERED
+   2026-10-08: export `WithContentionRetry(...)` at v5** (plan task T11 —
+   engine-surface additions must precede the construction-surface freeze;
+   observability via `WithContentionObserver` already shipped). — source:
+   02-16 §g1, 05-51 §a
+10. **`test-integration.sh` / `test-all-backends.sh` fate** — **ANSWERED
+    2026-10-08: STAYING** (operator-facing one-command entry points) → they
+    get their own shuffle evals (S task, T26 tail). — source: 02-16 §g2
 11. ~~**Skip-vs-fail for live conformance construction** (2026-09-11): when
     an engine cannot be built after retry exhaustion — availability-first
     SKIP (CI green, coverage silently drops) or honesty-first FAIL (CI
@@ -813,48 +798,42 @@ CONFLICT`, JSONB) should work with near-zero changes. Point the DSN at port
     fails loudly on everything else (ending the silent-coverage-loss class
     that once deleted four ADT subtests). Spread to pg/mysql live helpers
     is a TODO_LIST item.
-12. **Dead-path example modules + invisible tags** (2026-09-11):
-    example/taskmanager + example/getting-started carry suffix-less module
-    paths whose v3/v4 tags are permanently proxy-invisible, and
-    `event/v4/eventtest` has invisible v0.x tags. Re-path to /v4, delete, or
-    document as frozen v0-era teaching code? Decides three audit-noise
-    sources in `tag-release.sh --audit`. — source: 01-47 §g2
+12. **Dead-path example modules + invisible tags** (2026-09-11) —
+    **ANSWERED 2026-10-08: document as frozen v0-era teaching code**
+    (deleting breaks history; re-pathing to /v4 creates dual-module
+    confusion). Silence the `tag-release.sh --audit` noise via an explicit
+    frozen-list annotation, not path surgery. example/taskmanager +
+    example/getting-started carry suffix-less module paths whose v3/v4 tags
+    are permanently proxy-invisible, and `event/v4/eventtest` has invisible
+    v0.x tags. — source: 01-47 §g2
 13. **Query-level stream (`Stream(ctx, input, fn)`) for metaengine**
-    (2026-09-13): the engine capability and collection-level
-    `Store.StreamCollection` shipped (export now streams); the query-level
-    form (typed input + configured filters/sort, `iter.Seq2`) remains open.
-    Wire when an analytics/bulk-scan consumer needs it. — source:
+    (2026-09-13) — **CONFIRMED 2026-10-08: stays demand-gated** (wire when an
+    analytics/bulk-scan consumer needs it). The engine capability and
+    collection-level `Store.StreamCollection` shipped (export now streams);
+    the query-level form (typed input + configured filters/sort, `iter.Seq2`)
+    remains open. — source:
     `docs/planning/archived/2026-09-13_T16-memo-streamingscan-wire-or-cut.md`
-14. **Command-rejection event scope** (2026-09-13; HALF RESOLVED 2026-09-15):
-    `command.rejected` + errorfamily classification SHIPPED (T17 option A:
-    `DefaultRejectionFamilies` {Rejection, Conflict}, `RejectionLog` folds
-    rejected, DLQ/FailureLog unchanged — AGENTS.md contract #25). Remaining
-    question: is opt-in payload capture ever wanted? Revisit only with a
-    concrete compliance consumer. — source:
+14. **Command-rejection event scope** (2026-09-13) — **CONFIRMED 2026-10-08:
+    opt-in payload capture stays demand-gated** (revisit only with a concrete
+    compliance consumer). `command.rejected` + errorfamily classification
+    SHIPPED (T17 option A; AGENTS.md contract #25). — source:
     `docs/planning/archived/2026-09-13_T17-memo-command-log-audit-scope.md`
 15. **Session log: external forever or a future `sessionlifecycle` module?**
-    (2026-09-13; tracking moved 2026-09-21): the T18 memo recommends staying external
-    (`cqrs-htmx/identity-model`) and keeping the planned `queue/` module
-    scoped to work items; revisit only on a concrete audit consumer — the
-    follow-up now lives with the session domain:
-    `LarsArtmann/cqrs-htmx#25`. — source:
+    (2026-09-13) — **CONFIRMED 2026-10-08: EXTERNAL FOREVER** (the T18 memo's
+    recommendation; `queue/` stays scoped to work items). Follow-up lives
+    with the session domain: `LarsArtmann/cqrs-htmx#25`. — source:
     `docs/planning/archived/2026-09-13_T18-memo-session-log-boundary.md`
-16. **Push cadence (2026-09-22; asked by four sessions in two days):**
-    ~~master is 30+ commits ahead of origin across ≥3 sessions' waves (only
-    tags were pushed); ALL remote CI evidence (M23's gate leg, the
-    `Examples Test` job, guard-wave legs) is gated on it.~~ **PREMISE CLEARED
-    2026-09-22** (master pushed; 0 unpushed; the 92-tag train + v4.9.0 wave ran
-    their remote legs). Remote CI evidence now gates only on the Actions
-    billing fix (TODO_LIST CI section). Remaining live question: batch-push on
-    a cadence, or push immediately after each wave? (Also decides whether the
-    2026-09-21 23:33 140-file downgrade wave — the third — gets bisected
-    remotely.)
-17. **Docs-health cadence + foreign-lint interjection (2026-09-22):** (a)
-    make the docs-health pass a standing weekly job (three passes in three
-    days, each catching ~10 drifting reports) or keep event-driven? (b) when
-    a pass finds foreign red gates under a live concurrent session —
-    fix-forward-on-sight with disclosure, comment-only handoff, or strict
-    hands-off? (One ruling covers both 10th/11th-pass questions.)
+16. **Push cadence** — **ANSWERED 2026-10-08: phase-boundary** — push
+    immediately after each execution-plan wave completes green (TODO_LIST CI
+    section receipt). Premise had already cleared 2026-09-22 (master pushed;
+    0 unpushed; the 92-tag train + v4.9.0 wave ran their remote legs).
+17. **Docs-health cadence + foreign-lint interjection** — **ANSWERED
+    2026-10-08:** (a) **weekly standing pass** (agent-side until the Actions
+    billing fix; three passes in three days caught ~10 drifting reports each —
+    the cadence is earned); (b) **comment-only handoff** — a pass finding
+    foreign red gates under a live concurrent session leaves a comment +
+    handoff note, never fix-forward (unless the foreign session is provably
+    dead). One ruling covers both 10th/11th-pass questions.
 
 ---
 
