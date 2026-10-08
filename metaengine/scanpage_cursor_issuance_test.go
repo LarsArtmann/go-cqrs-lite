@@ -131,7 +131,7 @@ func walkPages(
 		}
 	}
 
-	t.Fatal("pagination did not terminate within 50 pages (cursor loop?)")
+	t.Fatalf("pagination did not terminate within 50 pages (cursor loop?): pages %v, visited %v", pageSizes, visited)
 
 	return nil, nil
 }
