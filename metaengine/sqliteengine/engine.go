@@ -466,56 +466,9 @@ func (e *sqliteEngine) PushdownMapScan(
 		return e.pushdownMapScanPlanned(ctx, plan, filters, sort, cursor, limit)
 	}
 
-	var b strings.Builder
+	query, args := buildStandardScanQuery(col, filters, sort, cursor, limit)
 
-	args := []any{col}
-
-	b.WriteString(`SELECT value FROM meta_map WHERE collection = ?`)
-
-	// Push filter predicates into WHERE.
-	for _, f := range filters {
-		appendStandardFilter(&b, &args, f)
-	}
-
-	// Push keyset cursor into WHERE (must come before ORDER BY).
-	if sort != nil && cursor != nil {
-		path := jsonPath(sort.Column)
-
-		op := ">"
-		if sort.Desc {
-			op = "<"
-		}
-
-		b.WriteString(` AND json_extract(value, '`)
-		b.WriteString(path)
-		b.WriteString(`') `)
-		b.WriteString(op)
-		b.WriteString(` ?`)
-
-		args = append(args, cursor)
-	}
-
-	// Push sort into ORDER BY.
-	if sort != nil {
-		path := jsonPath(sort.Column)
-
-		b.WriteString(` ORDER BY json_extract(value, '`)
-		b.WriteString(path)
-		b.WriteString(`')`)
-
-		if sort.Desc {
-			b.WriteString(` DESC`)
-		}
-	}
-
-	// Fetch limit+1 to detect has-more.
-	if limit > 0 {
-		b.WriteString(` LIMIT ?`)
-
-		args = append(args, limit+1)
-	}
-
-	rows, err := scanJSONValues(ctx, e.xd(ctx), b.String(), args...)
+	rows, keys, err := scanJSONValuesWithKeys(ctx, e.xd(ctx), query, args...)
 	if err != nil {
 		return metaengine.ScanResult{}, err
 	}
@@ -523,9 +476,15 @@ func (e *sqliteEngine) PushdownMapScan(
 	hasMore := limit > 0 && len(rows) > limit
 	if hasMore {
 		rows = rows[:limit]
+		keys = keys[:limit]
 	}
 
-	return metaengine.ScanResult{Items: rows, HasMore: hasMore}, nil
+	var next any
+	if sort != nil && len(rows) > 0 {
+		next = metaengine.LastDecodedRowCursor(rows[len(rows)-1], sort.Column, []byte(keys[len(keys)-1]))
+	}
+
+	return metaengine.ScanResult{Items: rows, HasMore: hasMore, NextCursor: next}, nil
 }
 
 // --- metaengine.StreamingScan ---

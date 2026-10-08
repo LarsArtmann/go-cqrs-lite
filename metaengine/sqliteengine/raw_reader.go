@@ -38,6 +38,11 @@ func (e *sqliteEngine) GetRawValue(ctx context.Context, col string, key any) ([]
 
 // --- RawScanReader ---
 
+// ScanRawValues scans raw JSON rows with keyset pagination. On sorted scans it
+// also issues the compound continuation cursor (SortKeyCursor over the last
+// returned row's sort value + key) so tie-heavy datasets paginate exactly
+// once; the same predicate consumes both legacy scalar cursors and compound
+// ones pushed back as the cursor argument.
 func (e *sqliteEngine) ScanRawValues(
 	ctx context.Context,
 	col string,
@@ -48,12 +53,14 @@ func (e *sqliteEngine) ScanRawValues(
 ) (metaengine.RawScanResult, error) {
 	var rows [][]byte
 
+	var keys []string
+
 	var err error
 
 	if plan, ok := e.plans[col]; ok {
-		rows, err = scanRawPlanned(ctx, e.xd(ctx), plan, filters, sort, cursor, limit)
+		rows, keys, err = scanRawPlanned(ctx, e.xd(ctx), plan, filters, sort, cursor, limit)
 	} else {
-		rows, err = scanRawStandard(ctx, e.xd(ctx), col, filters, sort, cursor, limit)
+		rows, keys, err = scanRawStandard(ctx, e.xd(ctx), col, filters, sort, cursor, limit)
 	}
 
 	if err != nil {
@@ -63,9 +70,67 @@ func (e *sqliteEngine) ScanRawValues(
 	hasMore := limit > 0 && len(rows) > limit
 	if hasMore {
 		rows = rows[:limit]
+		keys = keys[:limit]
 	}
 
-	return metaengine.RawScanResult{Items: rows, HasMore: hasMore}, nil
+	var next any
+	if sort != nil && len(rows) > 0 {
+		next = metaengine.LastJSONRowCursor(rows[len(rows)-1], sort.Column, keys[len(keys)-1])
+	}
+
+	return metaengine.RawScanResult{Items: rows, HasMore: hasMore, NextCursor: next}, nil
+}
+
+// jsonSortExpr renders the sort expression for standard (meta_map) scans: the
+// stored JSON document's field via json_extract.
+func jsonSortExpr(sort *metaengine.SortSpec) string {
+	return fmt.Sprintf("json_extract(value, '%s')", jsonPath(sort.Column))
+}
+
+// metaMapKeyExpr is the keyset tiebreak column of meta_map. It stays unquoted
+// to match the historical `WHERE key = ?` statements.
+const metaMapKeyExpr = "key"
+
+// buildStandardScanQuery builds the SELECT for standard (meta_map) scans:
+// value + key columns, pushed filters, the keyset cursor predicate, and the
+// deterministic ORDER BY (sort column, then key ascending — the tiebreak the
+// compound cursor predicate mirrors). Shared by the raw and pushdown scan
+// surfaces so both consume and issue identical cursors.
+func buildStandardScanQuery(
+	col string,
+	filters []metaengine.FilterSpec,
+	sort *metaengine.SortSpec,
+	cursor any,
+	limit int,
+) (string, []any) {
+	var b strings.Builder
+
+	args := []any{col}
+
+	b.WriteString(`SELECT value, key FROM meta_map WHERE collection = ?`)
+
+	for _, f := range filters {
+		appendStandardFilter(&b, &args, f)
+	}
+
+	if sort != nil && cursor != nil {
+		started := true // `collection = ?` already opened the WHERE clause
+		metaengine.AppendKeysetCursorPredicate(&b, &args, &started,
+			jsonSortExpr(sort), metaMapKeyExpr, sort.Desc, cursor,
+			metaengine.QuestionPlaceholders)
+	}
+
+	if sort != nil {
+		metaengine.AppendKeysetOrder(&b, jsonSortExpr(sort), metaMapKeyExpr, sort.Desc)
+	}
+
+	if limit > 0 {
+		b.WriteString(` LIMIT ?`)
+
+		args = append(args, limit+1)
+	}
+
+	return b.String(), args
 }
 
 func scanRawStandard(
@@ -76,55 +141,16 @@ func scanRawStandard(
 	sort *metaengine.SortSpec,
 	cursor any,
 	limit int,
-) ([][]byte, error) {
-	var b strings.Builder
+) ([][]byte, []string, error) {
+	query, args := buildStandardScanQuery(col, filters, sort, cursor, limit)
 
-	args := []any{col}
-
-	b.WriteString(`SELECT value FROM meta_map WHERE collection = ?`)
-
-	for _, f := range filters {
-		appendStandardFilter(&b, &args, f)
-	}
-
-	if sort != nil && cursor != nil {
-		path := jsonPath(sort.Column)
-
-		op := ">"
-		if sort.Desc {
-			op = "<"
-		}
-
-		b.WriteString(` AND json_extract(value, '`)
-		b.WriteString(path)
-		b.WriteString(`') `)
-		b.WriteString(op)
-		b.WriteString(` ?`)
-
-		args = append(args, cursor)
-	}
-
-	if sort != nil {
-		path := jsonPath(sort.Column)
-
-		b.WriteString(` ORDER BY json_extract(value, '`)
-		b.WriteString(path)
-		b.WriteString(`')`)
-
-		if sort.Desc {
-			b.WriteString(` DESC`)
-		}
-	}
-
-	if limit > 0 {
-		b.WriteString(` LIMIT ?`)
-
-		args = append(args, limit+1)
-	}
-
-	return scanRawRows(ctx, db, b.String(), args...)
+	return scanRawRowsWithKeys(ctx, db, query, args...)
 }
 
+// buildPlannedSelectQuery builds the SELECT for planned-table scans: value +
+// key columns, direct column filters, the keyset cursor predicate (compound
+// SortKeyCursor aware), and the deterministic ORDER BY with key tiebreak.
+// art-dupl:accept cross-module SQL builder pattern — separate go.mod
 func buildPlannedSelectQuery(
 	plan metaengine.LayoutPlan,
 	filters []metaengine.FilterSpec,
@@ -136,12 +162,13 @@ func buildPlannedSelectQuery(
 		return "", nil, err
 	}
 
+	keyExpr := metaengine.QuoteIdent("key")
+
 	var b strings.Builder
-	//art-dupl:accept cross-module SQL builder pattern — separate go.mod
 
 	args := []any{}
 
-	fmt.Fprintf(&b, "SELECT value FROM %s", metaengine.QuoteIdent(plan.Table))
+	fmt.Fprintf(&b, "SELECT value, %s FROM %s", keyExpr, metaengine.QuoteIdent(plan.Table))
 
 	whereStarted := false
 
@@ -150,34 +177,17 @@ func buildPlannedSelectQuery(
 	}
 
 	if sort != nil && cursor != nil {
-		if !whereStarted {
-			b.WriteString(" WHERE ")
-
-			whereStarted = true
-		} else {
-			b.WriteString(" AND ")
-		}
-
-		op := ">"
-		if sort.Desc {
-			op = "<"
-		}
-
-		fmt.Fprintf(&b, "%s %s ?", metaengine.QuoteIdent(sort.Column), op)
-
-		args = append(args, cursor)
+		metaengine.AppendKeysetCursorPredicate(&b, &args, &whereStarted,
+			metaengine.QuoteIdent(sort.Column), keyExpr, sort.Desc, cursor,
+			metaengine.QuestionPlaceholders)
 	}
 
 	if sort != nil {
-		fmt.Fprintf(&b, " ORDER BY %s", metaengine.QuoteIdent(sort.Column))
-
-		if sort.Desc {
-			b.WriteString(" DESC")
-		}
+		metaengine.AppendKeysetOrder(&b, metaengine.QuoteIdent(sort.Column), keyExpr, sort.Desc)
 	}
 
 	if limit > 0 {
-		b.WriteString(" LIMIT ?")
+		b.WriteString(` LIMIT ?`)
 
 		args = append(args, limit+1)
 	}
@@ -193,13 +203,13 @@ func scanRawPlanned(
 	sort *metaengine.SortSpec,
 	cursor any,
 	limit int,
-) ([][]byte, error) {
+) ([][]byte, []string, error) {
 	query, args, err := buildPlannedSelectQuery(plan, filters, sort, cursor, limit)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return scanRawRows(ctx, db, query, args...)
+	return scanRawRowsWithKeys(ctx, db, query, args...)
 }
 
 func scanSingleColumn(
@@ -231,32 +241,37 @@ func scanSingleColumn(
 	return result, rows.Err() //nolint:wrapcheck // passthrough
 }
 
-func scanRawRows(
+// scanRawRowsWithKeys scans two-column (value, key) queries into raw JSON
+// bytes plus their key columns — the keyset cursor's Key source.
+func scanRawRowsWithKeys(
 	ctx context.Context,
 	db metaengine.SQLExec,
 	query string,
 	args ...any,
-) ([][]byte, error) {
+) ([][]byte, []string, error) {
 	rows, err := db.QueryContext(ctx, query, args...) //nolint:sqlclosecheck
 	if err != nil {
-		return nil, err //nolint:wrapcheck // passthrough
+		return nil, nil, err //nolint:wrapcheck // passthrough
 	}
 
 	defer metaengine.DeferClose(rows)
 
-	var result [][]byte
+	var values [][]byte
+
+	var keys []string
 
 	for rows.Next() {
-		var valStr string
+		var valStr, keyStr string
 
-		if err := rows.Scan(&valStr); err != nil {
-			return nil, err //nolint:wrapcheck // passthrough
+		if err := rows.Scan(&valStr, &keyStr); err != nil {
+			return nil, nil, err //nolint:wrapcheck // passthrough
 		}
 
-		result = append(result, stringToBytes(valStr))
+		values = append(values, stringToBytes(valStr))
+		keys = append(keys, keyStr)
 	}
 
-	return result, rows.Err() //nolint:wrapcheck // passthrough
+	return values, keys, rows.Err() //nolint:wrapcheck // passthrough
 }
 
 func stringToBytes(s string) []byte {

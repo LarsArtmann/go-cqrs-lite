@@ -290,16 +290,21 @@ func (e *sqliteEngine) pushdownMapScanPlanned(
 		return metaengine.ScanResult{}, err
 	}
 
-	rows, err := scanJSONValues(ctx, e.xd(ctx), query, args...)
+	rows, keys, err := scanJSONValuesWithKeys(ctx, e.xd(ctx), query, args...)
 	if err != nil {
 		return metaengine.ScanResult{}, err
 	}
 
-	//art-dupl:accept cross-module SQL engine pattern — separate go.mod
 	hasMore := limit > 0 && len(rows) > limit
 	if hasMore {
 		rows = rows[:limit]
+		keys = keys[:limit]
 	}
 
-	return metaengine.ScanResult{Items: rows, HasMore: hasMore}, nil
+	var next any
+	if sort != nil && len(rows) > 0 {
+		next = metaengine.LastDecodedRowCursor(rows[len(rows)-1], sort.Column, []byte(keys[len(keys)-1]))
+	}
+
+	return metaengine.ScanResult{Items: rows, HasMore: hasMore, NextCursor: next}, nil
 }

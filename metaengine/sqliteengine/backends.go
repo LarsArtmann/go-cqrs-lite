@@ -107,6 +107,40 @@ func scanJSONValues(
 	return scanSingleColumn(ctx, db, query, metaengine.DecodeStreamValue, args...)
 }
 
+// scanJSONValuesWithKeys executes a two-column (value, key) query and decodes
+// each JSON value. The key column rides along as the keyset cursor's Key
+// source on sorted scans.
+func scanJSONValuesWithKeys(
+	ctx context.Context,
+	db metaengine.SQLExec,
+	query string,
+	args ...any,
+) ([]any, []string, error) {
+	rows, err := db.QueryContext(ctx, query, args...) //nolint:sqlclosecheck
+	if err != nil {
+		return nil, nil, err //nolint:wrapcheck // passthrough
+	}
+
+	defer metaengine.DeferClose(rows)
+
+	var values []any
+
+	var keys []string
+
+	for rows.Next() {
+		var valStr, keyStr string
+
+		if err := rows.Scan(&valStr, &keyStr); err != nil {
+			return nil, nil, err //nolint:wrapcheck // passthrough
+		}
+
+		values = append(values, metaengine.DecodeStreamValue(valStr))
+		keys = append(keys, keyStr)
+	}
+
+	return values, keys, rows.Err() //nolint:wrapcheck // passthrough
+}
+
 // --- metaengine.MultimapBackend ---
 
 func (e *sqliteEngine) MultiAdd(ctx context.Context, col string, key any, value any) error {
