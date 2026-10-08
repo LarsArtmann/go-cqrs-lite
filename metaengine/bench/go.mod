@@ -7,12 +7,12 @@ require (
 	github.com/duckdb/duckdb-go/v2 v2.10506.0
 	github.com/go-sql-driver/mysql v1.10.1
 	github.com/jackc/pgx/v5 v5.11.0
-	github.com/larsartmann/go-cqrs-lite/metaengine/bboltengine/v4 v4.3.2
-	github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4 v4.3.2
-	github.com/larsartmann/go-cqrs-lite/metaengine/mysqlengine/v4 v4.3.2
-	github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4 v4.4.2
-	github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4 v4.4.2
-	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.5.1
+	github.com/larsartmann/go-cqrs-lite/metaengine/bboltengine/v4 v4.3.3
+	github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4 v4.3.3
+	github.com/larsartmann/go-cqrs-lite/metaengine/mysqlengine/v4 v4.3.3
+	github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4 v4.4.3
+	github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4 v4.4.3
+	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.5.2
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.17.0
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2
 	go.etcd.io/bbolt v1.5.0
