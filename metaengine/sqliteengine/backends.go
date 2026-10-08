@@ -116,6 +116,7 @@ func scanJSONValuesWithKeys(
 	query string,
 	args ...any,
 ) ([]any, []string, error) {
+	//art-dupl:accept idiomatic scanner preamble shared across engine scan helpers
 	rows, err := db.QueryContext(ctx, query, args...) //nolint:sqlclosecheck
 	if err != nil {
 		return nil, nil, err //nolint:wrapcheck // passthrough

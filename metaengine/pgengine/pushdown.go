@@ -98,7 +98,7 @@ func (e *pgEngine) PushdownMapScan(
 		}
 	}
 
-	if sort != nil {
+	if sort != nil { //art-dupl:accept cross-module SQL dialect ORDER BY rendering — separate go.mod
 		fmt.Fprintf(&b, ` ORDER BY value->'%s'`, escapeJSONKey(sort.Column))
 		if sort.Desc {
 			b.WriteString(` DESC`)

@@ -96,7 +96,7 @@ func (e *duckdbEngine) PushdownMapScan(
 		}
 	}
 
-	if sort != nil {
+	if sort != nil { //art-dupl:accept cross-module SQL dialect ORDER BY rendering — separate go.mod
 		fmt.Fprintf(&b, ` ORDER BY json_extract(value, '%s')`, jsonPath(sort.Column))
 
 		if sort.Desc {

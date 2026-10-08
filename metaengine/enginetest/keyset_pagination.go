@@ -45,16 +45,7 @@ func RunKeysetPaginationTest(t *testing.T, eng metaengine.Engine) {
 
 	queryName := ScopedCollection("keyset_pagination")
 
-	store, err := metaengine.Plan([]metaengine.Engine{eng}, KeysetPaginationQuery(queryName))
-	if err != nil {
-		t.Fatalf("Plan: %v", err)
-	}
-
-	t.Cleanup(func() { _ = store.Close() })
-
-	seedKeysetRows(t, store, "keysetRow", 13)
-
-	reader := metaengine.NewReader[keysetRow](store, queryName)
+	reader := setupKeysetStore(t, eng, queryName, 13)
 
 	wantAsc := []string{
 		"item-000", "item-003", "item-006", "item-009", "item-012",
@@ -142,16 +133,7 @@ func RunKeysetExactEndTest(t *testing.T, eng metaengine.Engine) {
 
 	queryName := ScopedCollection("keyset_exact_end")
 
-	store, err := metaengine.Plan([]metaengine.Engine{eng}, KeysetPaginationQuery(queryName))
-	if err != nil {
-		t.Fatalf("Plan: %v", err)
-	}
-
-	t.Cleanup(func() { _ = store.Close() })
-
-	seedKeysetRows(t, store, "keysetRow", 12)
-
-	reader := metaengine.NewReader[keysetRow](store, queryName)
+	reader := setupKeysetStore(t, eng, queryName, 12)
 
 	walk := keysetWalk(t, reader, false, 4)
 
@@ -180,6 +162,29 @@ func RunKeysetExactEndTest(t *testing.T, eng metaengine.Engine) {
 			t.Fatalf("pushdown page sizes %v, want [4 4 4]", engineWalk.pages)
 		}
 	}
+}
+
+// setupKeysetStore plans the keyset query against eng, seeds n rows, and
+// returns the typed reader — the shared setup of both keyset harness entry
+// points so the two Runs pin the same projection shape.
+func setupKeysetStore(
+	t *testing.T,
+	eng metaengine.Engine,
+	queryName string,
+	n int,
+) *metaengine.TypedReader[keysetRow] {
+	t.Helper()
+
+	store, err := metaengine.Plan([]metaengine.Engine{eng}, KeysetPaginationQuery(queryName))
+	if err != nil {
+		t.Fatalf("Plan: %v", err)
+	}
+
+	t.Cleanup(func() { _ = store.Close() })
+
+	seedKeysetRows(t, store, "keysetRow", n)
+
+	return metaengine.NewReader[keysetRow](store, queryName)
 }
 
 // keysetEngineWalk drives PushdownMapScan directly to exhaustion, passing
