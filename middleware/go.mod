@@ -13,7 +13,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.2
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1
 	github.com/larsartmann/go-error-family v0.11.0
-	github.com/larsartmann/go-flightrecorder v0.2.0
+	github.com/larsartmann/go-flightrecorder v0.2.1
 	github.com/larsartmann/go-idempotency v0.3.1
 	github.com/larsartmann/go-retry v0.7.1
 	github.com/onsi/ginkgo/v2 v2.33.0
