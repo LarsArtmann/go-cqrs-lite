@@ -231,7 +231,7 @@ func (m *memoryEngine) MapScan(
 	pairs = SortPaginate(pairs, keyOf, valueOf, sortFunc, cursor, limit)
 
 	res := PairsToScanResult(pairs, valueOf, limit)
-	res.NextCursor = LastPairCursor(pairs, keyOf, valueOf, limit)
+	// mutation-test: res.NextCursor = LastPairCursor(pairs, keyOf, valueOf, limit)
 
 	return res, nil
 }
