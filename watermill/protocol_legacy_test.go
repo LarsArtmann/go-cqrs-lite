@@ -53,9 +53,9 @@ func TestEventToMessage_DualWritesStreamKeys(t *testing.T) {
 	msg := eventToMessage(evt)
 
 	for key, want := range map[string]string{
-		metaStreamID:            streamID.String(),
+		metaStreamID:            streamID.Get(),
 		metaStreamType:          "Order",
-		metaLegacyAggregateID:   streamID.String(),
+		metaLegacyAggregateID:   streamID.Get(),
 		metaLegacyAggregateType: "Order",
 	} {
 		if got := msg.Metadata.Get(key); got != want {

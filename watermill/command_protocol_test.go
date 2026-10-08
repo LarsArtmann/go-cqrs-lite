@@ -37,7 +37,7 @@ func TestCommandRoundTrip(t *testing.T) {
 
 	for key, want := range map[string]string{
 		"command_type":   "user.create",
-		"aggregate_id":   streamID.String(),
+		"aggregate_id":   streamID.Get(),
 		"correlation_id": correlationID.String(),
 		"causation_id":   causationID.String(),
 		"user_id":        userID.String(),
@@ -143,7 +143,7 @@ func TestCommandToMessage_NoMetadata(t *testing.T) {
 	if msg.Metadata.Get("command_type") != "user.create" {
 		t.Fatalf("command_type mismatch")
 	}
-	if msg.Metadata.Get("aggregate_id") != streamID.String() {
+	if msg.Metadata.Get("aggregate_id") != streamID.Get() {
 		t.Fatalf("aggregate_id mismatch")
 	}
 	if msg.Metadata.Get("correlation_id") != "" {

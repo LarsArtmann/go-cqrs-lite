@@ -86,7 +86,7 @@ func TestRoundTrip(t *testing.T) {
 		if string(received.Payload) != `{"name":"Alice"}` {
 			t.Errorf("payload = %q, want %q", received.Payload, `{"name":"Alice"}`)
 		}
-		if received.Metadata.Get("aggregate_id") != streamID.String() {
+		if received.Metadata.Get("aggregate_id") != streamID.Get() {
 			t.Errorf("aggregate_id mismatch")
 		}
 		assertMetadata(t, received.Metadata, "version", "1")
