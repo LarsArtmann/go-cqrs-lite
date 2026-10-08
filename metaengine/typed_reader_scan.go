@@ -3,6 +3,7 @@ package metaengine
 import (
 	"context"
 	"fmt"
+	"os"
 )
 
 // Scan returns the values matching the given filter/sort/limit options.
