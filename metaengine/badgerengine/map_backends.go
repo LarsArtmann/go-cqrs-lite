@@ -171,7 +171,12 @@ func (e *badgerEngine) MapScan(
 		results[i] = p.value
 	}
 
-	return metaengine.ScanResult{Items: results, HasMore: hasMore}, nil
+	res := metaengine.ScanResult{Items: results, HasMore: hasMore}
+	if sortFunc != nil {
+		res.NextCursor = metaengine.LastPairCursor(pairs, kvPairKey, kvPairValue, limit)
+	}
+
+	return res, nil
 }
 
 // kvPairKey/kvPairValue are the accessors handed to metaengine.SortPaginate.

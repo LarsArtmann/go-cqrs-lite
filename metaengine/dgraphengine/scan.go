@@ -63,16 +63,15 @@ func (e *dgraphEngine) MapScan(
 		pairs = append(pairs, kv{key: entry.MapKey, value: val})
 	}
 
-	return metaengine.PairsToScanResult(
-		metaengine.SortPaginate(
-			pairs,
-			func(p kv) []byte { return []byte(p.key) },
-			func(p kv) any { return p.value },
-			sortFunc,
-			cursor,
-			limit,
-		),
-		func(p kv) any { return p.value },
-		limit,
-	), nil
+	keyOf := func(p kv) []byte { return []byte(p.key) }
+	valueOf := func(p kv) any { return p.value }
+
+	pairs = metaengine.SortPaginate(pairs, keyOf, valueOf, sortFunc, cursor, limit)
+
+	res := metaengine.PairsToScanResult(pairs, valueOf, limit)
+	if sortFunc != nil {
+		res.NextCursor = metaengine.LastPairCursor(pairs, keyOf, valueOf, limit)
+	}
+
+	return res, nil
 }

@@ -445,7 +445,12 @@ func (e *pebbleEngine) MapScan(
 
 	pairs = sortAndPaginate(pairs, sortFunc, cursor, limit)
 
-	return metaengine.PairsToScanResult(pairs, kvPairValue, limit), nil
+	res := metaengine.PairsToScanResult(pairs, kvPairValue, limit)
+	if sortFunc != nil {
+		res.NextCursor = metaengine.LastPairCursor(pairs, kvPairKey, kvPairValue, limit)
+	}
+
+	return res, nil
 }
 
 // --- SetBackend ---

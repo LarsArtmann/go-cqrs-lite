@@ -135,7 +135,12 @@ func (e *bboltEngine) MapScan(
 
 	pairs = sortAndPaginateKV(pairs, sortFunc, cursor, limit)
 
-	return metaengine.PairsToScanResult(pairs, kvPairValue, limit), nil
+	res := metaengine.PairsToScanResult(pairs, kvPairValue, limit)
+	if sortFunc != nil {
+		res.NextCursor = metaengine.LastPairCursor(pairs, kvPairKey, kvPairValue, limit)
+	}
+
+	return res, nil
 }
 
 // kvPairKey/kvPairValue are the accessors handed to metaengine.SortPaginate.
