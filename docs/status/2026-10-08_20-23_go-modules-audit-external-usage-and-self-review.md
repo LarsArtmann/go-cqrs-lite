@@ -124,6 +124,7 @@
 ## g) Questions I cannot answer myself
 
 1. **Is external adoption ever a goal?** The repo is public but PROPRIETARY (LICENSE 2026-03-15; pkg.go.dev permanently hides docs; zero importers; 1 star). If source-available-by-design: consolidation is unconstrained and P1 item 6 resolves "stay proprietary". If adoption is desired: relicensing is the single highest-leverage change, ahead of any module restructuring. I cannot know the intent.
+   > **ANSWERED 2026-10-08 (chat, same day): "first only my projects"** — external adoption is not a current goal; proprietary license is intentional; consolidation is unconstrained. Recorded in AGENTS.md ("Consumer scope"). Relicensing wave dropped from the backlog (P1 #6 resolved: stay proprietary; P3 #30 parked behind a future intent change).
 2. **v5 migration appetite:** when the darlings' import paths change (event/id/command/decider/middleware/query/storage into a core module), do you want a hard one-shot fleet migration (~40 projects, codemod-driven, v4 dies) or a v4/v5 dual-support transition period? This decides whether option B is cheap or expensive — and I cannot pick your risk tolerance for 40 production projects.
 3. **cqrs-htmx + go-appkit boundary:** are they in-scope companions of go-cqrs-lite (co-designed, lockstep-released, their imports shape the v5 core) or independent downstream projects to be treated like any external consumer? They are the de-facto composition layer — but their ownership/release coupling to this repo is a business call, not a code fact.
 

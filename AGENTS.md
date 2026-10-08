@@ -18,6 +18,8 @@ A lightweight CQRS **library/SDK** for Go with Event Sourcing support, branded I
 
 Consumers import what they need and compose their own stack. Not a framework — no opinionated transport, message broker, or SQL driver.
 
+> **Consumer scope (decided 2026-10-08):** first-party fleet only — external adoption is NOT a current goal. The PROPRIETARY LICENSE is intentional; the `~/projects` universe IS the complete consumer market (verified: repo is PUBLIC, 1 star, pkg.go.dev Imported-by: 0; cqrs-htmx carries 500/685 indirect edges, go-appkit 122). Never infer this repo's privacy from the family-wide `GOPRIVATE` devShell setting — that covers OTHER private family repos, not this one. Zero-consumer-by-fleet evidence therefore IS a kill/integrate signal here, unlike a public-market library.
+
 ## Where to Find Things
 
 [`SKILL.md`](SKILL.md) (symlink to `.agents/skills/go-cqrs-lite/SKILL.md`) is the canonical API reference for **all** agents — consumers AND contributors. Its `references/` contain verified, copy-paste recipes and module docs. This AGENTS.md covers internal contracts, procedures, and gotchas that only matter when working **inside** the repo.
