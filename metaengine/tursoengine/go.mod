@@ -4,7 +4,7 @@ go 1.27
 
 require (
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.5.1
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.16.1
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.17.0
 	github.com/onsi/gomega v1.44.0
 	github.com/samber/lo v1.53.0
 	pgregory.net/rapid v1.3.0

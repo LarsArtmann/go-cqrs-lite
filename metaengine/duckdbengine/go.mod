@@ -5,7 +5,7 @@ go 1.27
 require (
 	github.com/duckdb/duckdb-go/v2 v2.10506.0
 	github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.2
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.16.1
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.17.0
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2
 )
 

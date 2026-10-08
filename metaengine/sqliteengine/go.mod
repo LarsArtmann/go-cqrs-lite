@@ -4,7 +4,7 @@ go 1.27
 
 require (
 	github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.2
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.16.1
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.17.0
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2
 	github.com/onsi/ginkgo/v2 v2.33.0
 	github.com/onsi/gomega v1.44.0

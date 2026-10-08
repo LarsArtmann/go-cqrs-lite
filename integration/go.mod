@@ -17,7 +17,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/idempotency/sqlstore/v4 v4.4.2
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.3.3
 	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.5.2
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.16.1
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.17.0
 	github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.7.2
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.2
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1

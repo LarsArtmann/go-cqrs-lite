@@ -6,7 +6,7 @@ require (
 	github.com/larsartmann/cmdguard/v4 v4.1.0
 	github.com/larsartmann/go-codec v0.3.1
 	github.com/larsartmann/go-cqrs-lite/benchkit/v4 v4.6.2
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.16.1
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.17.0
 	github.com/larsartmann/go-cqrs-lite/stack/bbolt/v4 v4.2.3
 	github.com/larsartmann/go-cqrs-lite/stack/duckdb/v4 v4.2.3
 	github.com/larsartmann/go-cqrs-lite/stack/memory/v4 v4.4.3
@@ -88,7 +88,7 @@ require (
 	github.com/knadh/koanf/parsers/yaml v1.1.1 // indirect
 	github.com/knadh/koanf/providers/env v1.1.0 // indirect
 	github.com/knadh/koanf/providers/file v1.2.1 // indirect
-	github.com/knadh/koanf/v2 v2.3.7 // indirect
+	github.com/knadh/koanf/v2 v2.3.8 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/larsartmann/go-atomic-write v0.6.0 // indirect

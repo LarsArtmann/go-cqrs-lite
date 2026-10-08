@@ -11,7 +11,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4 v4.4.2
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.5.1
 	github.com/larsartmann/go-cqrs-lite/metaengine/tursoengine/v4 v4.2.3
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.16.1
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.17.0
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1
 	github.com/larsartmann/go-cqrs-lite/scenario/v4 v4.4.2
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.6.1

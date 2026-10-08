@@ -49,8 +49,6 @@ github.com/felixge/httpsnoop v1.1.0 h1:3YtUj32ZZkqZtt3sZZsClsymw/QDuVfpNhoA31zeO
 github.com/felixge/httpsnoop v1.1.0/go.mod h1:Zqxgdd+1Rkcz8euOqdr7lqgCRJztwr5hp9vDSi5UZCE=
 github.com/fsnotify/fsnotify v1.10.1 h1:b0/UzAf9yR5rhf3RPm9gf3ehBPpf0oZKIjtpKrx59Ho=
 github.com/fsnotify/fsnotify v1.10.1/go.mod h1:TLheqan6HD6GBK6PrDWyDPBaEV8LspOxvPSjC+bVfgo=
-github.com/fxamacker/cbor/v2 v2.9.4 h1:xwjVlxEMR3S605oUlgBjKLTTeGFciYPGYCtF/35LKGo=
-github.com/fxamacker/cbor/v2 v2.9.4/go.mod h1:vM4b+DJCtHn+zz7h3FFp/hDAI9WNWCsZj23V5ytsSxQ=
 github.com/fxamacker/cbor/v2 v2.9.6 h1:NHZPxuUjJXQjX9itA785y/5NKSlI4HQ+S7noZsmI7hs=
 github.com/fxamacker/cbor/v2 v2.9.6/go.mod h1:4EaZp6ClVunETjQ4GHmGNzysDK91Lr+r6Yz6tJqzVCw=
 github.com/gkampitakis/ciinfo v0.3.4 h1:5eBSibVuSMbb/H6Elc0IIEFbkzCJi3lm94n0+U7Z0KY=
@@ -105,8 +103,6 @@ github.com/knadh/koanf/providers/env v1.1.0 h1:U2VXPY0f+CsNDkvdsG8GcsnK4ah85WwWy
 github.com/knadh/koanf/providers/env v1.1.0/go.mod h1:QhHHHZ87h9JxJAn2czdEl6pdkNnDh/JS1Vtsyt65hTY=
 github.com/knadh/koanf/providers/file v1.2.1 h1:bEWbtQwYrA+W2DtdBrQWyXqJaJSG3KrP3AESOJYp9wM=
 github.com/knadh/koanf/providers/file v1.2.1/go.mod h1:bp1PM5f83Q+TOUu10J/0ApLBd9uIzg+n9UgthfY+nRA=
-github.com/knadh/koanf/v2 v2.3.7 h1:amceufOeoQcq6VFKjm7/ggJ3t0Dkqaxy5fza4j3YgTA=
-github.com/knadh/koanf/v2 v2.3.7/go.mod h1:gRb40VRAbd4iJMYYD5IxZ6hfuopFcXBpc9bbQpZwo28=
 github.com/knadh/koanf/v2 v2.3.8 h1:NftEOf0Y456FqpLJj31RYYZQnfBQ+DDhsNQPqJ6nuk4=
 github.com/knadh/koanf/v2 v2.3.8/go.mod h1:gRb40VRAbd4iJMYYD5IxZ6hfuopFcXBpc9bbQpZwo28=
 github.com/kr/pretty v0.3.1 h1:flRD4NNwYAUpkphVc1HcthR4KEIFJ65n8Mw5qdRn3LE=
@@ -153,8 +149,8 @@ github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.5.1 h1:+DMWNY9
 github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.5.1/go.mod h1:kl4EnqmjAtVlS03bpSvYVdvo3aa1KB896aQJKh4XVSY=
 github.com/larsartmann/go-cqrs-lite/metaengine/tursoengine/v4 v4.2.3 h1:ly8jbrXtQHGMT+2XOyLiLxCw7bHr4ehL010rwold5pA=
 github.com/larsartmann/go-cqrs-lite/metaengine/tursoengine/v4 v4.2.3/go.mod h1:s4LfuUDj+act3GKKmie/z6wHizHJb/YQPRUZxpxLR8s=
-github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.16.1 h1:4lB9dR4SWkrGGhrZplDzZGh7ohE/zT/CMHzCJapluLw=
-github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.16.1/go.mod h1:UhwqZSo9muCbAPQ8YHRhWsXvTCTPLUIDg0vtpV/wgSc=
+github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.17.0 h1:4Kn7ulDYRn9Xt6L+mqPJXP3mc09XTkylpfck2o/Taow=
+github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.17.0/go.mod h1:9AHwAtaOfkLBYDJ/MANM8ngPpNbpna27rGwCUO4rjIY=
 github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.7.1 h1:v0Uv07XPqqXFXx7W/cdL4nT1z16D/Oy2ia9zwjAJgLU=
 github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.7.1/go.mod h1:97Snd2UOt0/VSoGqMcLEvsfLcXAVrPNetcpiygD6gUk=
 github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.2 h1:q91s4+q6eoKZDXzil/WV5kTGRFUNbDXiebkMlxiJpcg=
@@ -191,8 +187,6 @@ github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.4 h1:m9DbY1IxOdH2fmuE9LdNi
 github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.4/go.mod h1:gmg56WnhMZZNHzmZQlj/ccO6MsPvWPRNu+/7BsvH438=
 github.com/larsartmann/go-error-family v0.11.0 h1:xqXLKrTMznStmHUapxd/6Fj5/878sb4SIZiy4JvCItQ=
 github.com/larsartmann/go-error-family v0.11.0/go.mod h1:CAzjAVWjAFDUXEaaRqIgjW28i/NrQ07OsE9Dffhx29c=
-github.com/larsartmann/go-flightrecorder v0.2.0 h1:vCyd+jXA5SsJxTS7zaOvlzJiNPqy+79fJ24irY+adGA=
-github.com/larsartmann/go-flightrecorder v0.2.0/go.mod h1:KOAVyRuxUX0eeKPc3mjAwOKsenSS1SjBqnJ0KKPxyhA=
 github.com/larsartmann/go-flightrecorder v0.2.1 h1:46haKa+T3R8HmtEfVIvF4j6ri8N8qn6H94AFKFMdkE8=
 github.com/larsartmann/go-flightrecorder v0.2.1/go.mod h1:fZZpp2eR4SkhI31DTCGheg4QqKE2o9R/22jk3/084tE=
 github.com/larsartmann/go-idempotency v0.3.1 h1:LzCg+4DI/RrqPJvR6bmmxMUE/jfUK2quREj0/2exSXI=
@@ -304,8 +298,6 @@ github.com/tklauser/go-sysconf v0.4.0 h1:7H0uAN+7RkwWRaxhYXDLqa5V3LPrJeV8wmD9dRU
 github.com/tklauser/go-sysconf v0.4.0/go.mod h1:8mTNWyog7H+MpKijp4VmKJAd2bbYQ2zuUwkYRbUArPI=
 github.com/tklauser/numcpus v0.12.0 h1:NR85qdvHA9pFse3x3weVZ0r0ST8R6l5RHbZrlRaqob4=
 github.com/tklauser/numcpus v0.12.0/go.mod h1:ABHeXzJnr/qqwguhClkZKT1/8VABcYrsyUiUGobwWJg=
-github.com/tursodatabase/turso-go-platform-libs v0.8.1 h1:PSg1quKjmdmGXBlUqM29ftyyavjTUlF7YST+OhXdrtQ=
-github.com/tursodatabase/turso-go-platform-libs v0.8.1/go.mod h1:bo+Lpv5OYOX1gRV9L5DLKMsYxmDs56SkZwnCOLEFcxU=
 github.com/tursodatabase/turso-go-platform-libs v0.8.2 h1:1pB5zYtlPVMDqGm5zFxjyell6vudj3GndnKM2vAsb08=
 github.com/tursodatabase/turso-go-platform-libs v0.8.2/go.mod h1:bo+Lpv5OYOX1gRV9L5DLKMsYxmDs56SkZwnCOLEFcxU=
 github.com/vmihailenco/msgpack v4.0.4+incompatible h1:dSLoQfGFAo3F6OoNhwUmLwVgaUXK79GlxNBwueZn0xI=
@@ -394,7 +386,5 @@ modernc.org/token v1.1.0 h1:Xl7Ap9dKaEs5kLoOQeQmPWevfnk/DM5qcLcYlA8ys6Y=
 modernc.org/token v1.1.0/go.mod h1:UGzOrNV1mAFSEB63lOFHIpNRUVMvYTc6yu1SMY/XTDM=
 pgregory.net/rapid v1.3.0 h1:vBvO0VSqti75J1jjYqpgPNBLKMd1+gxa9fYo7vk/Exc=
 pgregory.net/rapid v1.3.0/go.mod h1:dPlE4OBBxgXPqkP79flB6sJL1dx5azpI7HQ9MY9Z7uk=
-turso.tech/database/tursogo v0.8.1 h1:GEKdIqWdplON4dklEeqHWTkqOA9hh5lK/aUO6ihMZ10=
-turso.tech/database/tursogo v0.8.1/go.mod h1:8ffQqY1KYpDo21Dl6fbrW5Oi89hfDnf/WuS9Y5EAuEE=
 turso.tech/database/tursogo v0.8.2 h1:rZa+ZzsTCj9quht5mpng92BF1c9DKiRZHNUVg8aooiQ=
 turso.tech/database/tursogo v0.8.2/go.mod h1:njSx52Ytbuvzt8y+fnW57BA1s/oPb5x1CN/zDHZpq40=

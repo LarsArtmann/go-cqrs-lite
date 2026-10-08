@@ -7,7 +7,7 @@ require (
 	github.com/fxamacker/cbor/v2 v2.9.4
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.4
 	github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/v4 v4.3.2
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.16.1
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.17.0
 	github.com/onsi/gomega v1.44.0
 	github.com/samber/lo v1.53.0
 )

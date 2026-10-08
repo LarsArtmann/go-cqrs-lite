@@ -4,7 +4,7 @@ go 1.27
 
 require (
 	github.com/dgraph-io/badger/v4 v4.9.6
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.16.1
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.17.0
 	github.com/onsi/gomega v1.44.0
 )
 
