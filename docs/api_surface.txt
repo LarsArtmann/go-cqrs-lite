@@ -2833,6 +2833,7 @@ metaengine/func Infer
 metaengine/func InferFromNamedEvents
 metaengine/func ItemFieldByName
 metaengine/func JSONFieldName
+metaengine/func LastPairCursor
 metaengine/func ListPlannedTables
 metaengine/func LoadManifest
 metaengine/func LookupDriver
