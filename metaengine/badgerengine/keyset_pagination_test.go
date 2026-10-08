@@ -8,11 +8,11 @@ import (
 
 // TestBadger_KeysetPagination pins the compound-cursor keyset contract
 // against the Badger engine (closure path; Badger has no pushdown scan).
+// Each Run call gets its own engine: the harness's store.Close closes the
+// engine it wrapped, so sharing one instance across Runs double-closes.
 func TestBadger_KeysetPagination(t *testing.T) {
 	t.Parallel()
 
-	eng := newBadgerEngineOrSkip(t)
-
-	enginetest.RunKeysetPaginationTest(t, eng)
-	enginetest.RunKeysetExactEndTest(t, eng)
+	enginetest.RunKeysetPaginationTest(t, newBadgerEngineOrSkip(t))
+	enginetest.RunKeysetExactEndTest(t, newBadgerEngineOrSkip(t))
 }

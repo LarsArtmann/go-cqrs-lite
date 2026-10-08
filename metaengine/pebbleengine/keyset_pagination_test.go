@@ -7,12 +7,12 @@ import (
 )
 
 // TestPebble_KeysetPagination pins the compound-cursor keyset contract
-// against the Pebble engine (closure path; Pebble has no pushdown scan).
+// against the Pebble engine across its raw, sort-index, and closure paths.
+// Each Run call gets its own engine: the harness's store.Close closes the
+// engine it wrapped, so sharing one instance across Runs double-closes.
 func TestPebble_KeysetPagination(t *testing.T) {
 	t.Parallel()
 
-	eng := newPebbleEngineOrSkip(t)
-
-	enginetest.RunKeysetPaginationTest(t, eng)
-	enginetest.RunKeysetExactEndTest(t, eng)
+	enginetest.RunKeysetPaginationTest(t, newPebbleEngineOrSkip(t))
+	enginetest.RunKeysetExactEndTest(t, newPebbleEngineOrSkip(t))
 }

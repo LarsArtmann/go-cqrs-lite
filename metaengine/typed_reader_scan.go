@@ -3,7 +3,6 @@ package metaengine
 import (
 	"context"
 	"fmt"
-	"os"
 )
 
 // Scan returns the values matching the given filter/sort/limit options.
@@ -225,11 +224,6 @@ func (r *TypedReader[V]) scanClosure(
 
 	meta := pageMeta{nextCursor: scanResult.NextCursor, hasMore: scanResult.HasMore}
 	meta.nextCursor = normalizeClosureCursor(meta.nextCursor, cfg)
-
-	if os.Getenv("KEYSET_DEBUG") != "" {
-		fmt.Printf("[scanClosure] col=%s sort=%+v cursor=%#v -> items=%d hasMore=%v next=%#v\n",
-			r.collection, cfg.sort, cfg.cursor, len(scanResult.Items), scanResult.HasMore, meta.nextCursor)
-	}
 
 	return r.trimAndCache(result, cfg), meta, nil
 }

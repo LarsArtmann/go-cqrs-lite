@@ -6,6 +6,7 @@ import (
 
 	_ "modernc.org/sqlite"
 
+	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	sqliteengine "github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/enginetest"
 )
@@ -15,22 +16,28 @@ import (
 func TestSQLite_KeysetPagination(t *testing.T) {
 	t.Parallel()
 
-	db, err := sql.Open("sqlite", "file::memory:?cache=shared")
-	if err != nil {
-		t.Fatalf("sql.Open: %v", err)
+	newEngine := func(t *testing.T) metaengine.Engine {
+		t.Helper()
+
+		db, err := sql.Open("sqlite", "file::memory:?cache=shared")
+		if err != nil {
+			t.Fatalf("sql.Open: %v", err)
+		}
+
+		t.Cleanup(func() { _ = db.Close() })
+
+		db.SetMaxOpenConns(1)
+
+		eng, err := sqliteengine.NewSQLiteEngine(db)
+		if err != nil {
+			t.Fatalf("NewSQLiteEngine: %v", err)
+		}
+
+		return eng
 	}
 
-	defer db.Close()
-
-	db.SetMaxOpenConns(1)
-
-	eng, err := sqliteengine.NewSQLiteEngine(db)
-	if err != nil {
-		t.Fatalf("NewSQLiteEngine: %v", err)
-	}
-
-	defer eng.Close()
-
-	enginetest.RunKeysetPaginationTest(t, eng)
-	enginetest.RunKeysetExactEndTest(t, eng)
+	// Each Run call gets its own engine: the harness's store.Close closes
+	// the engine it wrapped, so sharing one instance double-closes.
+	enginetest.RunKeysetPaginationTest(t, newEngine(t))
+	enginetest.RunKeysetExactEndTest(t, newEngine(t))
 }

@@ -1,6 +1,7 @@
 package pebbleengine
 
 import (
+	"bytes"
 	"context"
 	"slices"
 
@@ -75,12 +76,28 @@ func indexFieldValue(fields map[string]any, field string) (string, bool) {
 	return encodeIndexValue(fieldVal), true
 }
 
+// sortIndexHit is one row produced by sort-index iteration: the row's raw
+// JSON bytes plus the bare primary key, so callers can emit compound
+// (sort value, key) cursors.
+type sortIndexHit struct {
+	primaryKey string
+	value      []byte
+}
+
 // scanWithSortIndex uses the sort index for ordered iteration. Keys in the
 // sort index are laid out as o{sep}{col}{sep}{field}{sep}{encodedValue}{sep}{pk},
-// so lexicographic forward iteration yields ascending order and backward
-// iteration yields descending order — no Go-level sort needed. Filters are
+// so lexicographic forward iteration yields (value ASC, key ASC). Filters are
 // applied in Go; early termination stops once limit+1 matching rows are found.
-// Cursor pagination uses the encoded cursor value to set an exclusive bound.
+//
+// Cursor pagination: a metaengine.SortKeyCursor sets a composite bound on the
+// full (encodedValue, primaryKey) index entry — ascending resumes strictly
+// after the cursor entry, descending ranges up to (excluding) it so later keys
+// of the same value group stay in play. A raw scalar cursor keeps the legacy
+// whole-group-skip bound. Backward iteration alone would order equal-value
+// ties key-DESCENDING, violating the wire contract's key-ascending tiebreak,
+// so DESC walks buffer each equal-value run and flush it reversed; the buffer
+// is bounded by targetCount because dropped-oldest entries would sort beyond
+// the page anyway.
 func (e *pebbleEngine) scanWithSortIndex(
 	_ context.Context,
 	col string,
@@ -88,18 +105,33 @@ func (e *pebbleEngine) scanWithSortIndex(
 	sortSpec *metaengine.SortSpec,
 	cursor any,
 	limit int,
-) ([][]byte, error) {
+) ([]sortIndexHit, error) {
 	prefix := sortIndexFieldPrefix(col, sortSpec.Column)
 	lowerBound := prefix
 	upperBound := nextKey(prefix)
 
 	if cursor != nil {
-		cursorGroup := append(append(prefix, encodeIndexValue(cursor)...), sep...)
+		if compound, ok := cursor.(metaengine.SortKeyCursor); ok {
+			// cursor.Key is the bare user key (wire form); index entries carry
+			// the JSON-encoded key form, so re-encode before building the entry.
+			entry := sortIndexKey(
+				col, sortSpec.Column,
+				encodeIndexValue(compound.Sort), encodeKeyStr(string(compound.Key)),
+			)
 
-		if sortSpec.Desc {
-			upperBound = cursorGroup
+			if sortSpec.Desc {
+				upperBound = entry
+			} else {
+				lowerBound = nextKey(entry)
+			}
 		} else {
-			lowerBound = nextKey(cursorGroup)
+			cursorGroup := append(append(prefix, encodeIndexValue(cursor)...), sep...)
+
+			if sortSpec.Desc {
+				upperBound = cursorGroup
+			} else {
+				lowerBound = nextKey(cursorGroup)
+			}
 		}
 	}
 
@@ -118,19 +150,53 @@ func (e *pebbleEngine) scanWithSortIndex(
 		targetCount = limit + 1
 	}
 
-	var results [][]byte
+	var results []sortIndexHit
 
 	if sortSpec.Desc {
+		var run []sortIndexHit
+
+		var runGroup []byte
+
+		flushRun := func() {
+			for i := len(run) - 1; i >= 0; i-- {
+				results = append(results, run[i])
+			}
+
+			run = run[:0]
+		}
+
 		for iter.Last(); iter.Valid(); iter.Prev() {
-			if e.collectSortIndexEntry(iter, col, filters, &results) &&
-				targetCount > 0 && len(results) >= targetCount {
+			fullKey := append([]byte(nil), iter.Key()...)
+			group := fullKey[:len(fullKey)-len(extractPrimaryKeyFromIndex(fullKey))]
+
+			if runGroup == nil || !bytes.Equal(group, runGroup) {
+				flushRun()
+				runGroup = append(runGroup[:0], group...)
+			}
+
+			if hit, ok := e.collectSortIndexHit(fullKey, col, filters); ok {
+				run = append(run, hit)
+
+				if targetCount > 0 && len(run) > targetCount {
+					run = run[1:]
+				}
+			}
+
+			if targetCount > 0 && len(results) >= targetCount {
 				break
 			}
 		}
+
+		flushRun()
 	} else {
 		for iter.First(); iter.Valid(); iter.Next() {
-			if e.collectSortIndexEntry(iter, col, filters, &results) &&
-				targetCount > 0 && len(results) >= targetCount {
+			fullKey := append([]byte(nil), iter.Key()...)
+
+			if hit, ok := e.collectSortIndexHit(fullKey, col, filters); ok {
+				results = append(results, hit)
+			}
+
+			if targetCount > 0 && len(results) >= targetCount {
 				break
 			}
 		}
@@ -143,21 +209,18 @@ func (e *pebbleEngine) scanWithSortIndex(
 	return results, nil
 }
 
-// collectSortIndexEntry reads the value for the current iterator position,
-// applies filters in Go, and appends to results when the row passes.
-// Returns true if the row was appended.
-func (e *pebbleEngine) collectSortIndexEntry(
-	iter *pebble.Iterator,
+// collectSortIndexHit reads the value for an index entry key, applies filters
+// in Go, and returns the hit when the row passes.
+func (e *pebbleEngine) collectSortIndexHit(
+	fullKey []byte,
 	col string,
 	filters []metaengine.FilterSpec,
-	results *[][]byte,
-) bool {
-	fullKey := append([]byte(nil), iter.Key()...)
+) (sortIndexHit, bool) {
 	primaryKey := extractPrimaryKeyFromIndex(fullKey)
 
 	val, closer, err := e.db.Get(mapKey(col, primaryKey))
 	if err != nil {
-		return false
+		return sortIndexHit{}, false
 	}
 
 	valCopy := append([]byte(nil), val...)
@@ -167,11 +230,9 @@ func (e *pebbleEngine) collectSortIndexEntry(
 		decoded := decodeJSON(valCopy)
 
 		if !metaengine.PassesFilterSpecs(decoded, filters) {
-			return false
+			return sortIndexHit{}, false
 		}
 	}
 
-	*results = append(*results, valCopy)
-
-	return true
+	return sortIndexHit{primaryKey: primaryKey, value: valCopy}, true
 }

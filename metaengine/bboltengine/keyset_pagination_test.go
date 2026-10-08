@@ -8,11 +8,11 @@ import (
 
 // TestBbolt_KeysetPagination pins the compound-cursor keyset contract
 // against the bbolt engine (closure path; bbolt has no pushdown scan).
+// Each Run call gets its own engine: the harness's store.Close closes the
+// engine it wrapped, so sharing one instance across Runs double-closes.
 func TestBbolt_KeysetPagination(t *testing.T) {
 	t.Parallel()
 
-	eng := newBboltEngineOrSkip(t)
-
-	enginetest.RunKeysetPaginationTest(t, eng)
-	enginetest.RunKeysetExactEndTest(t, eng)
+	enginetest.RunKeysetPaginationTest(t, newBboltEngineOrSkip(t))
+	enginetest.RunKeysetExactEndTest(t, newBboltEngineOrSkip(t))
 }

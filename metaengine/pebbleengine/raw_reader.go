@@ -6,6 +6,7 @@ import (
 
 	"github.com/cockroachdb/pebble"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/keycodec"
 )
 
 // Compile-time assertions for the raw reader interfaces.
@@ -62,12 +63,12 @@ func (e *pebbleEngine) ScanRawValues(
 
 	if hasLayout {
 		if sortSpec != nil && plan.hasSortField(sortSpec.Column) {
-			rows, err := e.scanWithSortIndex(ctx, col, filters, sortSpec, cursor, limit)
+			hits, err := e.scanWithSortIndex(ctx, col, filters, sortSpec, cursor, limit)
 			if err != nil {
 				return metaengine.RawScanResult{}, err
 			}
 
-			return trimRaw(rows, limit), nil
+			return rawHitsResult(hits, sortSpec, limit), nil
 		}
 
 		if indexed, err := e.scanWithIndex(ctx, col, filters, plan); err == nil && indexed != nil {
@@ -99,7 +100,7 @@ func (e *pebbleEngine) ScanRawValues(
 		}
 
 		pairs = append(pairs, kvPair{
-			key:   append([]byte(nil), iter.Key()...),
+			key:   keycodec.UserKeyBytes(iter.Key(), prefix),
 			value: decoded,
 			raw:   raw,
 		})
@@ -137,5 +138,39 @@ func (e *pebbleEngine) ScanRawValues(
 		results[i] = p.raw
 	}
 
-	return metaengine.RawScanResult{Items: results, HasMore: hasMore}, nil
+	var next any
+	if sortSpec != nil && len(pairs) > 0 {
+		last := pairs[len(pairs)-1]
+		next = metaengine.LastDecodedRowCursor(last.value, sortSpec.Column, last.key)
+	}
+
+	return metaengine.RawScanResult{Items: results, HasMore: hasMore, NextCursor: next}, nil
+}
+
+// rawHitsResult assembles the RawScanResult for a sort-index walk: truncate
+// to limit, collect raw values, and mint the compound continuation cursor
+// from the last included row. The index primary key is stored in its
+// JSON-encoded form; UserKeyBytes unwraps it to the bare user key the wire
+// cursor contract requires.
+func rawHitsResult(hits []sortIndexHit, sortSpec *metaengine.SortSpec, limit int) metaengine.RawScanResult {
+	hasMore := limit > 0 && len(hits) > limit
+	if hasMore {
+		hits = hits[:limit]
+	}
+
+	items := make([][]byte, len(hits))
+	for i, hit := range hits {
+		items[i] = hit.value
+	}
+
+	var next any
+	if len(hits) > 0 {
+		last := hits[len(hits)-1]
+		next = metaengine.LastDecodedRowCursor(
+			decodeJSON(last.value), sortSpec.Column,
+			keycodec.UserKeyBytes([]byte(last.primaryKey), nil),
+		)
+	}
+
+	return metaengine.RawScanResult{Items: items, HasMore: hasMore, NextCursor: next}
 }

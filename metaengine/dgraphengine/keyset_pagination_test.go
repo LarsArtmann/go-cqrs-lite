@@ -8,11 +8,11 @@ import (
 
 // TestDgraph_KeysetPagination pins the compound-cursor keyset contract
 // against the Dgraph engine (closure path via its KV adapter).
+// Each Run call gets its own engine: the harness's store.Close closes the
+// engine it wrapped, so sharing one instance across Runs double-closes.
 func TestDgraph_KeysetPagination(t *testing.T) {
 	t.Parallel()
 
-	eng := newDgraphEngineOrSkip(t)
-
-	enginetest.RunKeysetPaginationTest(t, eng)
-	enginetest.RunKeysetExactEndTest(t, eng)
+	enginetest.RunKeysetPaginationTest(t, newDgraphEngineOrSkip(t))
+	enginetest.RunKeysetExactEndTest(t, newDgraphEngineOrSkip(t))
 }
