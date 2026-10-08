@@ -5,9 +5,10 @@ import (
 	"errors"
 	"time"
 
-	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 	idempotency "github.com/larsartmann/go-idempotency"
+
+	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 // errNilDedupStore is returned by NewFromEngine when handed a nil DedupStore.

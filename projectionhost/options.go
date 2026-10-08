@@ -4,11 +4,12 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v4"
-	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 	flightrecorder "github.com/larsartmann/go-flightrecorder"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
+
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 )
 
 // HostOption configures a Host.
