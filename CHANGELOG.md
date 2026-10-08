@@ -25,7 +25,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
      floor tags were already proxy-invisible). The 10-03 floor-wave rationale
      did NOT retag the root module (doc.go unchanged since v4.0.0; zero
      importable packages) — root stays v4.0.0. -->
-     root stays v4.0.0. -->
 ## [Unreleased]
 
 ### Added
@@ -35,6 +34,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Changed
 
 - **`stack`: `WithMetaEngine`/`Bundle.MetaEngine` now speak the `MetaEngineStore` seam (GitHub #36).** Signatures move from `*metaengine.Store` to the interface (`Close() error`) the concrete store satisfies structurally — call sites passing a `*metaengine.Store` compile unchanged; consumers invoking metaengine methods on `bundle.MetaEngine()` must recover the concrete store via `stackmeta.Store(bundle)` (or a type assertion). The whole stack family dies at v5 (ADR-0123); `system.New` consumers are unaffected.
+- **Turso IVM verified range extended to v0.8.2 (pin catch-up).** `metaengine.TursoGoIVMVerifiedThrough` advances v0.8.1 → v0.8.2 and `TursoGoIVMLastVerified` to 2026-10-08: workspace go.mod pins rode the dependency sweep to tursogo v0.8.2, and the `-tags ivmrepro` repro suite re-ran GREEN on the new pin — all three grouped-view defects (A/B/C) still reproduce with the identical 430.50 delta signature, so the operator caveat range extends one version with no behavior change (scalar views remain exact; the recursive-CTE probe pin stays green). `#check-turso-version` green across all live citations and pins.
 
 ## [metaengine/v4.17.0, system/v4.11.0, cmd/cqrs-lint/v4.15.0, signing/v4.4.0, benchkit/v4.7.0, storage/v4.10.5, systemtest/v4.0.0, testutil/mysqltestcontainer/v4.0.0 (+34 more) — 2026-10-08 stalled-waves release train (42 tags)] — 2026-10-08
 
