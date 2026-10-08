@@ -325,6 +325,7 @@ Modules release on independent per-module version trains (`<module>/vX.Y.Z` git 
 | stack/bench | `stack/bench/v4.3.2` |
 | stack/duckdb | `stack/duckdb/v4.2.3` |
 | stack/memory | `stack/memory/v4.4.3` |
+| stack/metaengine | `stack/metaengine/v4.0.0` |
 | stack/mysql | `stack/mysql/v4.2.3` |
 | stack/pebble | `stack/pebble/v4.4.3` |
 | stack/postgres | `stack/postgres/v4.4.3` |
