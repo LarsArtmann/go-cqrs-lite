@@ -307,7 +307,7 @@ func (c *ClaimingTimerStore[P]) RenewLease(
 	newUntil := now.Add(extension)
 
 	query, args := claiming.RenewStmt(
-		c.dialect, timersSpec(), c.formatTime(newUntil), id.String(), c.formatTime(now),
+		c.dialect, timersSpec(), c.formatTime(newUntil), id.Get(), c.formatTime(now),
 	)
 
 	res, err := c.db.ExecContext(ctx, query, args...)

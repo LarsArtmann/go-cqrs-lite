@@ -246,12 +246,12 @@ func decodeDueTimer[P any](
 
 // MarkFired removes a timer after it has been dispatched.
 func (s *SQLTimerStore[P]) MarkFired(ctx context.Context, id scheduling.TimerID) error {
-	return s.deleteTimer(ctx, id.String(), "mark_fired")
+	return s.deleteTimer(ctx, id.Get(), "mark_fired")
 }
 
 // Cancel removes a timer before it fires.
 func (s *SQLTimerStore[P]) Cancel(ctx context.Context, id scheduling.TimerID) error {
-	return s.deleteTimer(ctx, id.String(), "cancel")
+	return s.deleteTimer(ctx, id.Get(), "cancel")
 }
 
 func (s *SQLTimerStore[P]) deleteTimer(ctx context.Context, id, op string) error {

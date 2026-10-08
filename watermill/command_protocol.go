@@ -39,11 +39,11 @@ func CommandToMessage(cmd command.Command) *message.Message {
 	md := msg.Metadata
 	md.Set(metaCommandID, cmdID.String())
 	md.Set(metaCommandType, string(cmd.Type()))
-	md.Set(metaStreamID, cmd.StreamID().String())
+	md.Set(metaStreamID, cmd.StreamID().Get())
 
 	// Dual-write window (v6: drop): pre-rename readers key on the legacy
 	// aggregate spelling.
-	md.Set(metaLegacyAggregateID, cmd.StreamID().String())
+	md.Set(metaLegacyAggregateID, cmd.StreamID().Get())
 
 	if mp, ok := cmd.(command.MetadataCarrier); ok {
 		m := mp.Metadata()

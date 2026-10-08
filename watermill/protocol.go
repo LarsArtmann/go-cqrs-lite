@@ -71,12 +71,12 @@ func eventToMessage(evt event.Event) *message.Message {
 
 	md.Set(metaEventID, evt.ID().String())
 	md.Set(metaEventType, string(evt.Type()))
-	md.Set(metaStreamID, evt.StreamID().String())
+	md.Set(metaStreamID, evt.StreamID().Get())
 	md.Set(metaStreamType, string(evt.StreamType()))
 
 	// Dual-write window (v6: drop): pre-rename readers key on the legacy
 	// aggregate spellings.
-	md.Set(metaLegacyAggregateID, evt.StreamID().String())
+	md.Set(metaLegacyAggregateID, evt.StreamID().Get())
 	md.Set(metaLegacyAggregateType, string(evt.StreamType()))
 	md.Set(metaVersion, strconv.Itoa(evt.Version().Int()))
 	md.Set(metaSchemaVersion, strconv.Itoa(evt.SchemaVersion().Int()))

@@ -54,7 +54,7 @@ func claimDueMySQL[P any](
 	if len(timers) > 0 {
 		ids := make([]string, len(timers))
 		for i, timer := range timers {
-			ids[i] = timer.ID.String()
+			ids[i] = timer.ID.Get()
 		}
 
 		if err := claiming.StampLeaseMySQL(
