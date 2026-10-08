@@ -3,6 +3,7 @@ module github.com/larsartmann/go-cqrs-lite/metaengine/v4
 go 1.27
 
 require (
+	github.com/dustin/go-humanize v1.1.0
 	github.com/jackc/pgx/v5 v5.11.0
 	github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.2
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.4
@@ -20,7 +21,6 @@ require (
 
 require (
 	github.com/Masterminds/semver/v3 v3.5.0 // indirect
-	github.com/dustin/go-humanize v1.1.0 // indirect
 	github.com/gkampitakis/ciinfo v0.3.4 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect

@@ -65,15 +65,21 @@ func (s *BenchmarkSummary) FormatTable() string {
 		fmt.Fprintf(&rowsSb61, "%-15s %-12s %-10s %-10s %-10s %-12.0f %12s\n",
 			r.Label,
 			r.Priority,
-			fmt.Sprintf("%.2fms", float64(r.LatencyP50.Microseconds())/1e3),
-			fmt.Sprintf("%.2fms", float64(r.LatencyP95.Microseconds())/1e3),
-			fmt.Sprintf("%.2fms", float64(r.LatencyP99.Microseconds())/1e3),
+			formatLatencyMs(r.LatencyP50),
+			formatLatencyMs(r.LatencyP95),
+			formatLatencyMs(r.LatencyP99),
 			r.Throughput,
 			formatBytes(r.StorageBytes))
 	}
 	rows += rowsSb61.String()
 
 	return rows
+}
+
+// formatLatencyMs renders a duration as two-decimal milliseconds for the
+// benchmark table's fixed-width P50/P95/P99 columns.
+func formatLatencyMs(d time.Duration) string {
+	return fmt.Sprintf("%.2fms", float64(d.Microseconds())/1e3)
 }
 
 func formatBytes(b int64) string {

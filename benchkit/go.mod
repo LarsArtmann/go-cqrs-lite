@@ -19,8 +19,8 @@ require (
 	github.com/larsartmann/go-cqrs-lite/stack/memory/v4 v4.4.3
 	github.com/larsartmann/go-cqrs-lite/stack/pebble/v4 v4.4.3
 	github.com/larsartmann/go-cqrs-lite/stack/postgres/v4 v4.4.3
-	github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4 v4.3.4
-	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.4.3
+	github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4 v4.3.5
+	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.5.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2
 	github.com/larsartmann/go-cqrs-lite/system/v4 v4.11.0
 	github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.2.3

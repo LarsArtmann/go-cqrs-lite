@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"time"
+
+	"github.com/dustin/go-humanize"
 )
 
 // EngineStats is a per-engine runtime measurement view surfaced by
@@ -150,9 +152,9 @@ func FormatLiveLatency(st EngineStats) string {
 	prior := st.Profile.NetworkRTT
 	if st.Stale {
 		if st.HasLiveRTT && st.Samples > 0 {
-			return fmt.Sprintf("rtt=live %s [stale, last %s ago]",
+			return fmt.Sprintf("rtt=live %s [stale, last probe %s]",
 				roundDur(st.MeasuredRTT.EWMA),
-				roundDur(time.Since(st.LastProbe)),
+				humanize.RelTime(st.LastProbe, time.Now(), "ago", "from now"),
 			)
 		}
 

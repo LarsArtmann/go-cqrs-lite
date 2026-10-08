@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/dustin/go-humanize"
 )
 
 // ExplainOptions controls what EXPLAIN returns.
@@ -413,15 +415,15 @@ func (s *Store) Doctor(ctx context.Context) string {
 
 	fmt.Fprintf(&b, "  plan version: %d\n", version)
 	if !computedAt.IsZero() {
-		fmt.Fprintf(&b, "  computed: %s ago\n", roundDur(time.Since(computedAt)))
+		fmt.Fprintf(&b, "  computed: %s\n", humanize.RelTime(computedAt, time.Now(), "ago", "from now"))
 	}
 
 	if replanCount > 0 {
 		fmt.Fprintf(
 			&b,
-			"  replans: %d (last %s ago)\n",
+			"  replans: %d (last %s)\n",
 			replanCount,
-			roundDur(time.Since(lastReplan)),
+			humanize.RelTime(lastReplan, time.Now(), "ago", "from now"),
 		)
 	} else {
 		b.WriteString("  replans: 0 (never)\n")

@@ -12,6 +12,11 @@ import (
 // both components the cursor filter applies the same (sortValue, key)
 // ordering the sort itself uses, so tie-heavy datasets paginate with
 // neither drops nor duplicates.
+//
+// Sort carries the bare sort-column value (a scalar) — the TypedReader
+// narrows closure-engine cursors (whose SortPaginate core only sees whole
+// rows) via normalizeClosureCursor before the cursor leaves ScanPage, so
+// wire cursors stay small and SQL keyset predicates can bind Sort directly.
 type SortKeyCursor struct {
 	Sort any
 	Key  []byte

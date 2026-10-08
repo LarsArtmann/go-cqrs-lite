@@ -223,8 +223,32 @@ func (r *TypedReader[V]) scanClosure(
 	}
 
 	meta := pageMeta{nextCursor: scanResult.NextCursor, hasMore: scanResult.HasMore}
+	meta.nextCursor = normalizeClosureCursor(meta.nextCursor, cfg)
 
 	return r.trimAndCache(result, cfg), meta, nil
+}
+
+// normalizeClosureCursor narrows an engine-issued compound cursor's Sort
+// component from the full last row to the bare sort-column value. Closure
+// engines (memory, KV, dgraph) compare via a comparator closure and never see
+// the column name, so SortPaginate cursors carry the whole row; this is the
+// one place that knows cfg.sort.Column. A scalar Sort keeps the wire cursor
+// small (no row leakage into HTTP-facing cursor strings) and directly
+// bindable by SQL keyset predicates. Rows missing the sort field keep the
+// full-row cursor (graceful degradation), and non-compound cursors pass
+// through untouched.
+func normalizeClosureCursor(next any, cfg scanConfig) any {
+	skc, ok := next.(SortKeyCursor)
+	if !ok || cfg.sort == nil {
+		return next
+	}
+
+	sortVal := itemFieldByName(skc.Sort, cfg.sort.Column)
+	if sortVal == nil {
+		return next
+	}
+
+	return SortKeyCursor{Sort: sortVal, Key: skc.Key}
 }
 
 func buildClosureFilter(cfg scanConfig) func(item any) bool {
@@ -286,7 +310,21 @@ func buildClosureSort(cfg scanConfig) func(a, b any) int {
 	if cfg.sort != nil {
 		col := cfg.sort.Column
 		sortFn := func(a, b any) int {
-			return compareValue(itemFieldByName(a, col), itemFieldByName(b, col))
+			av := itemFieldByName(a, col)
+			bv := itemFieldByName(b, col)
+
+			if bv == nil && b != nil && !isRowValue(b) {
+				// Cursor operands arrive as bare scalar sort values (legacy
+				// WithCursor cursors and SortKeyCursor.Sort after
+				// normalizeClosureCursor) — there is no row to field-extract,
+				// so compare against the scalar itself. Without this the
+				// extraction reads nil, compareValue ranks every row
+				// strictly-after the cursor, and pagination re-serves the
+				// same page forever.
+				bv = b
+			}
+
+			return compareValue(av, bv)
 		}
 
 		if cfg.sort.Desc {

@@ -212,6 +212,40 @@ func TestScanPage_CompoundCursor_ExactEndReturnsNilCursor(t *testing.T) {
 	}
 }
 
+// TestScanPage_EmittedCursor_ScalarSortWireShape pins the emit narrowing: the
+// engine's SortPaginate core only sees whole rows, but the cursor ScanPage
+// hands out must carry the bare sort-column value — small on the wire, no row
+// leakage into HTTP-facing cursor strings, and directly bindable by SQL
+// keyset predicates.
+func TestScanPage_EmittedCursor_ScalarSortWireShape(t *testing.T) {
+	t.Parallel()
+
+	reader := setupTieScan(t, 13)
+
+	items, cursor, err := reader.ScanPage(context.Background(),
+		metaengine.WithSort("Priority", false), metaengine.WithLimit(5))
+	if err != nil {
+		t.Fatalf("ScanPage: %v", err)
+	}
+
+	if len(items) != 5 || items[4].ID != "item-012" {
+		t.Fatalf("page 1 = %v, want 5 items ending at item-012", tieIDs(items))
+	}
+
+	skc, ok := cursor.Value.(metaengine.SortKeyCursor)
+	if !ok {
+		t.Fatalf("cursor value %T, want SortKeyCursor", cursor.Value)
+	}
+
+	if fmt.Sprintf("%v", skc.Sort) != "0" {
+		t.Fatalf("cursor Sort %#v, want the bare scalar 0 (not the whole row)", skc.Sort)
+	}
+
+	if !bytes.Equal(skc.Key, []byte("item-012")) {
+		t.Fatalf("cursor Key %q, want item-012", skc.Key)
+	}
+}
+
 // TestParseCursor_CompoundRoundTrip pins the wire format (exactly the two
 // keys "Sort" and "Key", Key base64) and that ParseCursor normalizes it back
 // into a SortKeyCursor regardless of the JSON number decode flavor.

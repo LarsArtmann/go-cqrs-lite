@@ -342,3 +342,18 @@ func itemFieldByName(item any, name string) any {
 
 	return extractValueByName(item, name)
 }
+
+// isRowValue reports whether v is a scan row shape — a map[string]any (SQL
+// engines) or a struct (memory engine) — rather than a bare scalar. Cursor
+// comparisons use it to distinguish "row that lacks the sort field" (keep the
+// nil extraction) from "bare scalar cursor operand" (compare the scalar
+// directly).
+func isRowValue(v any) bool {
+	if _, ok := v.(map[string]any); ok {
+		return true
+	}
+
+	_, ok := structValue(v)
+
+	return ok
+}
