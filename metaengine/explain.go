@@ -415,7 +415,11 @@ func (s *Store) Doctor(ctx context.Context) string {
 
 	fmt.Fprintf(&b, "  plan version: %d\n", version)
 	if !computedAt.IsZero() {
-		fmt.Fprintf(&b, "  computed: %s\n", humanize.RelTime(computedAt, time.Now(), "ago", "from now"))
+		fmt.Fprintf(
+			&b,
+			"  computed: %s\n",
+			humanize.RelTime(computedAt, time.Now(), "ago", "from now"),
+		)
 	}
 
 	if replanCount > 0 {

@@ -481,7 +481,11 @@ func (e *sqliteEngine) PushdownMapScan(
 
 	var next any
 	if sort != nil && len(rows) > 0 {
-		next = metaengine.LastDecodedRowCursor(rows[len(rows)-1], sort.Column, []byte(keys[len(keys)-1]))
+		next = metaengine.LastDecodedRowCursor(
+			rows[len(rows)-1],
+			sort.Column,
+			[]byte(keys[len(keys)-1]),
+		)
 	}
 
 	return metaengine.ScanResult{Items: rows, HasMore: hasMore, NextCursor: next}, nil

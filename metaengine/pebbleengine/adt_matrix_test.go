@@ -57,7 +57,7 @@ func TestPaginationConformance(t *testing.T) {
 				Name:   "pebble",
 				Create: func(t *testing.T) metaengine.Engine { return newPebbleEngineOrSkip(t) },
 			},
-			CursorKey: adttest.CursorKeyKVMapKey,
+			CursorKey: adttest.CursorKeyRaw,
 		},
 	})
 }

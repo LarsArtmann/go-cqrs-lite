@@ -6,6 +6,7 @@ import (
 	"slices"
 
 	"github.com/cockroachdb/pebble"
+
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
@@ -125,7 +126,9 @@ func (e *pebbleEngine) scanWithSortIndex(
 			entry := sortIndexKey(col, sortSpec.Column, encodeIndexValue(compound.Sort), encodedKey)
 
 			if sortSpec.Desc {
-				skipGroup = append(append(append([]byte(nil), prefix...), encodeIndexValue(compound.Sort)...), sep...)
+				skipGroup = append(
+					append(append([]byte(nil), prefix...), encodeIndexValue(compound.Sort)...),
+					sep...)
 				skipFloor = []byte(encodedKey)
 				upperBound = nextKey(skipGroup)
 			} else {
@@ -177,7 +180,8 @@ func (e *pebbleEngine) scanWithSortIndex(
 			primaryKey := extractPrimaryKeyFromIndex(fullKey)
 			group := fullKey[:len(fullKey)-len(primaryKey)]
 
-			if skipGroup != nil && bytes.Equal(group, skipGroup) && string(skipFloor) != "" && primaryKey <= string(skipFloor) {
+			if skipGroup != nil && bytes.Equal(group, skipGroup) && string(skipFloor) != "" &&
+				primaryKey <= string(skipFloor) {
 				continue
 			}
 

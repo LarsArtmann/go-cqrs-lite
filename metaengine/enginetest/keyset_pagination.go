@@ -213,7 +213,10 @@ func keysetEngineWalk(
 		}
 
 		for _, item := range res.Items {
-			walk.visited = append(walk.visited, fmt.Sprintf("%v", metaengine.ItemFieldByName(item, "ID")))
+			walk.visited = append(
+				walk.visited,
+				fmt.Sprintf("%v", metaengine.ItemFieldByName(item, "ID")),
+			)
 		}
 
 		walk.pages = append(walk.pages, len(res.Items))
@@ -233,8 +236,11 @@ func keysetEngineWalk(
 		cursorVal = res.NextCursor
 	}
 
-	t.Fatalf("pushdown pagination did not terminate within 50 pages (cursor loop?): pages %v, visited %v",
-		walk.pages, walk.visited)
+	t.Fatalf(
+		"pushdown pagination did not terminate within 50 pages (cursor loop?): pages %v, visited %v",
+		walk.pages,
+		walk.visited,
+	)
 
 	return walk
 }

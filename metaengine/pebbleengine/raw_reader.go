@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/cockroachdb/pebble"
+
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/keycodec"
 )
@@ -152,7 +153,11 @@ func (e *pebbleEngine) ScanRawValues(
 // from the last included row. The index primary key is stored in its
 // JSON-encoded form; UserKeyBytes unwraps it to the bare user key the wire
 // cursor contract requires.
-func rawHitsResult(hits []sortIndexHit, sortSpec *metaengine.SortSpec, limit int) metaengine.RawScanResult {
+func rawHitsResult(
+	hits []sortIndexHit,
+	sortSpec *metaengine.SortSpec,
+	limit int,
+) metaengine.RawScanResult {
 	hasMore := limit > 0 && len(hits) > limit
 	if hasMore {
 		hits = hits[:limit]

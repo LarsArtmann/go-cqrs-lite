@@ -11,12 +11,13 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-codec"
+	_ "modernc.org/sqlite"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
-	_ "modernc.org/sqlite"
 )
 
 type cborTaskPayload struct {
@@ -69,7 +70,14 @@ func TestEventAdapter_CBORPayloadRoundTripSQLite(t *testing.T) {
 		Custom: map[event.MetadataKey]string{"tenant": "acme", "source": "test"},
 	}
 
-	evt, err := event.New("task.created", streamID, "Task", 1, wantPayload, event.WithMetadata(wantMeta))
+	evt, err := event.New(
+		"task.created",
+		streamID,
+		"Task",
+		1,
+		wantPayload,
+		event.WithMetadata(wantMeta),
+	)
 	if err != nil {
 		t.Fatalf("event.New: %v", err)
 	}
@@ -115,7 +123,11 @@ func TestEventAdapter_CBORPayloadRoundTripSQLite(t *testing.T) {
 	}
 
 	if !maps.Equal(got.Metadata().Custom, wantMeta.Custom) {
-		t.Errorf("custom metadata mismatch: got %v, want %v", got.Metadata().Custom, wantMeta.Custom)
+		t.Errorf(
+			"custom metadata mismatch: got %v, want %v",
+			got.Metadata().Custom,
+			wantMeta.Custom,
+		)
 	}
 
 	if !got.OccurredAt().Equal(evt.OccurredAt()) {

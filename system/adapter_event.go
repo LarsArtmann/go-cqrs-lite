@@ -6,10 +6,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/maypok86/otter/v2"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
-	"github.com/maypok86/otter/v2"
 )
 
 // seqCacheCapacity bounds the event-ID → seq cache. 4096 covers resume
@@ -21,9 +22,12 @@ const seqCacheCapacity = 4096
 type EventAdapterOption func(*EventAdapter)
 
 // WithSerialization enables event serialization for persistent engines
-// (SQLite, Pebble). When enabled, events are encoded to JSON envelope strings
-// on write and decoded on read. For the Memory engine, this option should NOT
-// be set — events are stored as direct pointers.
+// (SQLite, Pebble). Each event is wrapped in a JSON envelope that carries the
+// raw payload bytes (base64) plus its original [codec.Encoding] tag, so
+// payloads round-trip byte-identical: CBOR events are NOT re-encoded, and
+// [event.DecodePayloadAuto] sees the original encoding on read. Pinned by
+// TestEventAdapter_CBORPayloadRoundTripSQLite. For the Memory engine, this
+// option should NOT be set — events are stored as direct pointers.
 func WithSerialization() EventAdapterOption {
 	return func(a *EventAdapter) { a.Serialize = true }
 }

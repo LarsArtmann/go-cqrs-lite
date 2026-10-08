@@ -6,13 +6,15 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-codec"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
 // serializedEvent is the JSON envelope for persisting events in SQL-based
 // StreamLogBackends. The Memory engine stores pointers directly; SQL engines
-// store this envelope as a TEXT value.
+// store this envelope as a TEXT value. Payload and Encoding ride through
+// untouched — encodeEvent never re-encodes payload bytes.
 type serializedEvent struct {
 	ID            string    `json:"id"`
 	Type          string    `json:"type"`

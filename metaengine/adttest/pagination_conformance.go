@@ -38,9 +38,13 @@ type PaginationSeed struct {
 //     key order made impossible to rebuild from a returned item — the
 //     conformance matrix failed sqlite with drops and duplicates until the
 //     engine read the key column (mirroring pgengine).
-//   - badger, pebble, bbolt: the full prefixed stored key,
-//     keycodec.MapKey(col, EncodeKeyStr(key)) — their MapScan iterates raw
-//     KV keys (CursorKeyKVMapKey).
+//   - badger, pebble, bbolt ALSO joined the CursorKeyRaw family on 2026-10-08
+//     (T07 compound-cursor work): their MapScan pair keys are now
+//     keycodec.UserKeyBytes (prefix stripped, JSON unwrapped), so wire cursors
+//     carry the bare user key instead of the full prefixed stored key —
+//     unifying the tiebreak form across every engine family. The legacy
+//     CursorKeyKVMapKey derivation stays for the self-test and historical
+//     reference.
 //
 // Every form paginates tie-heavy collections exactly once with a compound
 // cursor; the forms differ only in the within-tie ORDER, which is why

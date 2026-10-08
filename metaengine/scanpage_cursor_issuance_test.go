@@ -131,7 +131,11 @@ func walkPages(
 		}
 	}
 
-	t.Fatalf("pagination did not terminate within 50 pages (cursor loop?): pages %v, visited %v", pageSizes, visited)
+	t.Fatalf(
+		"pagination did not terminate within 50 pages (cursor loop?): pages %v, visited %v",
+		pageSizes,
+		visited,
+	)
 
 	return nil, nil
 }
@@ -326,7 +330,10 @@ func TestParseCursor_LegacyAndMalformedShapesDegrade(t *testing.T) {
 			}
 
 			if _, ok := parsed.Value.(metaengine.SortKeyCursor); ok {
-				t.Fatalf("payload %v normalized to SortKeyCursor; malformed shapes must degrade", tc.payload)
+				t.Fatalf(
+					"payload %v normalized to SortKeyCursor; malformed shapes must degrade",
+					tc.payload,
+				)
 			}
 
 			if _, ok := parsed.Value.(map[string]any); !ok {

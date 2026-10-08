@@ -71,7 +71,7 @@ func TestPaginationConformance(t *testing.T) {
 					return eng
 				},
 			},
-			CursorKey: adttest.CursorKeyKVMapKey,
+			CursorKey: adttest.CursorKeyRaw,
 		},
 	})
 }
