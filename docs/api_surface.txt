@@ -2757,6 +2757,7 @@ metaengine/enginetest/func RunAutoCRUDSoak
 metaengine/enginetest/func RunConcurrentTxTest
 metaengine/enginetest/func RunKeysetExactEndTest
 metaengine/enginetest/func RunKeysetPaginationTest
+metaengine/enginetest/func RunPushdownStandardTiesTest
 metaengine/enginetest/func RunPushdownTest
 metaengine/enginetest/func RunRecordStampTest
 metaengine/enginetest/func RunRestartSafetyFromDBTest
