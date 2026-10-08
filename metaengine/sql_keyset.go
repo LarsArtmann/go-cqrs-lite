@@ -12,7 +12,7 @@ import (
 //
 //   - legacy scalar cursor: `sortExpr op ?` (one bind arg)
 //   - compound [SortKeyCursor]: `(sortExpr op ? OR sortExpr = ? AND keyExpr > ?)`
-//     (three bind args: sort, sort, key)
+//     (three bind args: sort, key)
 //
 // op flips with the sort direction; the key tiebreak comparison always
 // ascends, mirroring the bytes.Compare tiebreak SortPaginate applies on the

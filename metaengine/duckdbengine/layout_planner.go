@@ -190,34 +190,12 @@ func (e *duckdbEngine) mapDeletePlanned(
 	return nil
 }
 
-func (e *duckdbEngine) pushdownMapScanPlanned(
-	ctx context.Context,
-	plan metaengine.LayoutPlan,
-	filters []metaengine.FilterSpec,
-	sort *metaengine.SortSpec,
-	cursor any,
-	limit int,
-) (metaengine.ScanResult, error) {
-	query, args := buildPlannedSelectQuery(plan, filters, sort, cursor, limit)
-
-	rows, err := scanDuckDBJSONValues(ctx, e.conn(ctx), query, args...)
-	if err != nil {
-		return metaengine.ScanResult{}, err
-	}
-
-	//art-dupl:accept cross-module SQL engine pattern — separate go.mod
-	hasMore := limit > 0 && len(rows) > limit
-	if hasMore {
-		rows = rows[:limit]
-	}
-
-	return metaengine.ScanResult{Items: rows, HasMore: hasMore}, nil
-}
-
 // buildPlannedSelectQuery constructs a parameterised SELECT for a planned
 // table using DuckDB's $N placeholder syntax. Filters use direct column
 // references (no json_extract), enabling DuckDB's zone maps and ART indexes
-// to prune data blocks.
+// to prune data blocks. The SELECT carries the key column so keyset scans can
+// tiebreak and emit compound cursors; cursor and ORDER BY go through the
+// shared metaengine keyset helpers.
 func buildPlannedSelectQuery(
 	plan metaengine.LayoutPlan,
 	filters []metaengine.FilterSpec,
@@ -225,12 +203,11 @@ func buildPlannedSelectQuery(
 	cursor any,
 	limit int,
 ) (string, []any) {
-	var b strings.Builder
-	//art-dupl:accept cross-module SQL builder pattern — separate go.mod
+	var b strings.Builder //art-dupl:accept cross-module SQL builder pattern — separate go.mod
 
 	args := []any{}
 
-	fmt.Fprintf(&b, "SELECT value FROM %s", metaengine.QuoteIdent(plan.Table))
+	fmt.Fprintf(&b, "SELECT value, %s FROM %s", metaengine.QuoteIdent("key"), metaengine.QuoteIdent(plan.Table))
 
 	whereStarted := false
 	argIdx := 1
@@ -240,23 +217,18 @@ func buildPlannedSelectQuery(
 	}
 
 	if sort != nil && cursor != nil {
-		writeWhereOrAnd(&b, &whereStarted)
+		metaengine.AppendKeysetCursorPredicate(
+			&b, &args, &whereStarted,
+			metaengine.QuoteIdent(sort.Column), metaengine.QuoteIdent("key"),
+			sort.Desc, cursor,
+			func(n int) string { return fmt.Sprintf("$%d", n+1) },
+		)
 
-		op := ">"
-		if sort.Desc {
-			op = "<"
-		}
-
-		fmt.Fprintf(&b, "%s %s $%d", metaengine.QuoteIdent(sort.Column), op, argIdx)
-		args = append(args, cursor)
-		argIdx++
+		argIdx = len(args) + 1
 	}
 
 	if sort != nil {
-		fmt.Fprintf(&b, " ORDER BY %s", metaengine.QuoteIdent(sort.Column))
-		if sort.Desc {
-			b.WriteString(" DESC")
-		}
+		metaengine.AppendKeysetOrder(&b, metaengine.QuoteIdent(sort.Column), metaengine.QuoteIdent("key"), sort.Desc)
 	}
 
 	if limit > 0 {
