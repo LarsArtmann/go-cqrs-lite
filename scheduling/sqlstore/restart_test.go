@@ -79,7 +79,7 @@ func TestSQLiteTimerStore_SurvivesRestart(t *testing.T) {
 		t.Fatalf("expected 1 timer survived restart, got %d", len(due))
 	}
 
-	if due[0].ID.String() != "order-123-timeout" {
+	if due[0].ID.Get() != "order-123-timeout" {
 		t.Fatalf("timer ID: got %q, want %q", due[0].ID, "order-123-timeout")
 	}
 

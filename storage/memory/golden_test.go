@@ -137,7 +137,7 @@ func TestGolden_SnapshotStoreRoundTrip(t *testing.T) {
 		State      string `json:"state"`
 		CreatedAt  string `json:"createdAt"`
 	}{
-		StreamID:   loaded.StreamID.String(),
+		StreamID:   loaded.StreamID.Get(),
 		StreamType: string(loaded.StreamType),
 		Version:    loaded.Version.Int(),
 		State:      string(loaded.State),

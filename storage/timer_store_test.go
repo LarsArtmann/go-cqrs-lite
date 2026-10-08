@@ -63,7 +63,7 @@ func TestSQLTimerStore_ScheduleAndDue(t *testing.T) {
 		t.Fatalf("expected 1 due timer, got %d", len(due))
 	}
 
-	if due[0].ID.String() != "a" {
+	if due[0].ID.Get() != "a" {
 		t.Fatalf("expected 'a', got %q", due[0].ID)
 	}
 
@@ -133,8 +133,8 @@ func TestSQLTimerStore_DueOrdersByFireAtAscending(t *testing.T) {
 
 	want := []string{"oldest", "middle", "newest"}
 	for i, w := range want {
-		if due[i].ID.String() != w {
-			t.Fatalf("position %d: want %q, got %q", i, w, due[i].ID.String())
+		if due[i].ID.Get() != w {
+			t.Fatalf("position %d: want %q, got %q", i, w, due[i].ID.Get())
 		}
 	}
 }

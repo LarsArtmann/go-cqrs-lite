@@ -79,7 +79,7 @@ func TestSQLiteTimerStore_ScheduleAndDue(t *testing.T) {
 		t.Fatalf("expected 1 due timer, got %d", len(due))
 	}
 
-	if due[0].ID.String() != "t1" {
+	if due[0].ID.Get() != "t1" {
 		t.Fatalf("expected t1, got %s", due[0].ID)
 	}
 
@@ -97,7 +97,7 @@ func TestSQLiteTimerStore_ScheduleAndDue(t *testing.T) {
 		t.Fatalf("expected 3 due timers, got %d", len(due))
 	}
 
-	if due[0].ID.String() != "t1" || due[1].ID.String() != "t2" || due[2].ID.String() != "t3" {
+	if due[0].ID.Get() != "t1" || due[1].ID.Get() != "t2" || due[2].ID.Get() != "t3" {
 		t.Fatalf("expected order t1,t2,t3 got %s,%s,%s", due[0].ID, due[1].ID, due[2].ID)
 	}
 }

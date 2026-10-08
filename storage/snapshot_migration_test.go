@@ -68,7 +68,7 @@ func TestMigrateSnapshotColumnsToStream_SQLite(t *testing.T) {
 		(aggregate_type, aggregate_id, version, state, created_at)
 		VALUES ('User', ?, 7, ?, '2026-01-02T03:04:05.999Z')`
 	streamID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
-	if _, err := db.Exec(insertLegacy, streamID.String(), []byte("state-bytes")); err != nil {
+	if _, err := db.Exec(insertLegacy, streamID.Get(), []byte("state-bytes")); err != nil {
 		t.Fatalf("insert legacy row: %v", err)
 	}
 

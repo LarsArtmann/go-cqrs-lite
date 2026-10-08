@@ -58,7 +58,7 @@ func TestGolden_SnapshotStructure(t *testing.T) {
 		State      string `json:"state"`
 		CreatedAt  string `json:"createdAt"`
 	}{
-		StreamID:   snap.StreamID.String(),
+		StreamID:   snap.StreamID.Get(),
 		StreamType: string(snap.StreamType),
 		Version:    snap.Version.Int(),
 		State:      string(snap.State),
