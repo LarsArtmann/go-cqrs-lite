@@ -17,6 +17,7 @@ require (
 	github.com/duckdb/duckdb-go-bindings/lib/linux-amd64 v0.10506.0 // indirect
 	github.com/duckdb/duckdb-go-bindings/lib/linux-arm64 v0.10506.0 // indirect
 	github.com/duckdb/duckdb-go-bindings/lib/windows-amd64 v0.10506.0 // indirect
+	github.com/dustin/go-humanize v1.1.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
 	github.com/goccy/go-json v0.11.2 // indirect
 	github.com/google/flatbuffers v25.12.19+incompatible // indirect

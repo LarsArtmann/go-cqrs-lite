@@ -2750,10 +2750,13 @@ metaengine/duckdbengine/method VectorSearchPath
 metaengine/duckdbengine/method VectorSearchPath
 metaengine/enginetest/const RaceEnabled
 metaengine/enginetest/const RaceEnabled
+metaengine/enginetest/func KeysetPaginationQuery
 metaengine/enginetest/func RunAtomicAppenderTest
 metaengine/enginetest/func RunAtomicAppenderTestIn
 metaengine/enginetest/func RunAutoCRUDSoak
 metaengine/enginetest/func RunConcurrentTxTest
+metaengine/enginetest/func RunKeysetExactEndTest
+metaengine/enginetest/func RunKeysetPaginationTest
 metaengine/enginetest/func RunPushdownTest
 metaengine/enginetest/func RunRecordStampTest
 metaengine/enginetest/func RunRestartSafetyFromDBTest
@@ -2777,6 +2780,8 @@ metaengine/func AllFilterOps
 metaengine/func AllFoldKinds
 metaengine/func AllReadPatterns
 metaengine/func AllStorageLayouts
+metaengine/func AppendKeysetCursorPredicate
+metaengine/func AppendKeysetOrder
 metaengine/func AppendPlannedCursor
 metaengine/func AppendPlannedFilter
 metaengine/func AppendPlannedOrderLimit
@@ -2833,6 +2838,8 @@ metaengine/func Infer
 metaengine/func InferFromNamedEvents
 metaengine/func ItemFieldByName
 metaengine/func JSONFieldName
+metaengine/func LastDecodedRowCursor
+metaengine/func LastJSONRowCursor
 metaengine/func LastPairCursor
 metaengine/func ListPlannedTables
 metaengine/func LoadManifest
