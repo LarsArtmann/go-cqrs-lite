@@ -114,6 +114,12 @@ done
 export MYSQL_TEST_DSN="cqrs:cqrs@tcp(127.0.0.1:${HOST_PORT})/cqrs_test?parseTime=true&multiStatements=true"
 echo "==> DSN: $MYSQL_TEST_DSN"
 
+# QEMU slirp resets 16-way CAS racer bursts before mysqld sees them
+# (gotchas-testing.md, 2026-09-19); the built-in legs cap racers, so the
+# verbatim args path must inherit the same default. Explicit callers win.
+: "${ADTTEST_CAS_RACERS:=10}"
+export ADTTEST_CAS_RACERS
+
 if [ $# -gt 0 ]; then
 	if [ "$1" = "go" ]; then
 		shift
