@@ -47,9 +47,9 @@
 
 - **v5 proposal:** direction and shape given; no ADR, no doc, no go-modularize Phase 1–5 migration matrix (offered, not written).
 - **Stranded pins:** counted, not root-caused (which of the 12 direct codec consumers are leaf apps vs cqrs-htmx/go-appkit) and not swept.
-- **External usage:** flagship trains checked (root/event/system/metaengine/id); the other 47 consumed trains not individually checked against pkg.go.dev/proxy.
-- **Module-count drift:** 101 vs AGENTS.md's 98 found; not reconciled (canonical-facts gate derives from the same `find` and would also report 101 — the AGENTS.md text is stale, delta = 3 modules since last census).
-- **gopls noise classification:** false alarm identified and explained; not yet added to the LSP-noise gotcha doc.
+- ~~**External usage:** flagship trains checked (root/event/system/metaengine/id); the other 47 consumed trains not individually checked against pkg.go.dev/proxy.~~ done 2026-10-09: all 52 swept, zero non-LarsArtmann importers — `docs/evidence/consumer-usage-2026-10-09.md` (note: id shows 48 public importers — all intra-repo + first-party repos; "Imported-by: 0" was shorthand, not literal for every train).
+- ~~**Module-count drift:** 101 vs AGENTS.md's 98 found; not reconciled (canonical-facts gate derives from the same `find` and would also report 101 — the AGENTS.md text is stale, delta = 3 modules since last census).~~ done 2026-10-09: AGENTS.md re-counted (101 go.mod / 97 rowed modules), canonical-facts gate green.
+- ~~**gopls noise classification:** false alarm identified and explained; not yet added to the LSP-noise gotcha doc.~~ done 2026-10-09: `docs/agents/gotchas-tooling-build.md` (go-humanize bullet beside the stdversion/tidy entries).
 - **cqrs-htmx/go-appkit centrality:** asserted from eyeballing the dependency tree ("nearly all indirection flows via them"); the "via" edges were never mechanically counted.
 
 ## c) NOT STARTED
