@@ -117,7 +117,8 @@ func TestComputeScorecardWithWaivers_TriggerlessWaiverIsShamed(t *testing.T) {
 	result, err := ComputeScorecardWithWaivers(
 		analyzer.DefaultCatalog, absentUsage(),
 		analyzer.FeatureProfile{}, analyzer.PresetNone, waivers,
-	)	if err != nil {
+	)
+	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
@@ -347,5 +348,91 @@ func TestResolveScorecardPreset(t *testing.T) {
 	}
 	if err := resolveScorecardPreset(&AppConfig{Path: badDir}); err == nil {
 		t.Fatal("want error for unknown project preset")
+	}
+}
+
+// TestComputeScorecardWithWaivers_FiredTriggerIsSurfaced pins trigger
+// expiry: when a detectable profile signal that the waiver's trigger
+// mentions has appeared, the WAIVED row is flagged and a recommendation
+// demands re-litigation. Wording stays advisory ("LIKELY FIRED").
+func TestComputeScorecardWithWaivers_FiredTriggerIsSurfaced(t *testing.T) {
+	t.Parallel()
+
+	waivers := []analyzer.ScorecardWaiver{{
+		Key:     "idempotency",
+		Reason:  "single-process dispatch, no redelivery",
+		Trigger: "when we add an http server",
+	}}
+
+	result, err := ComputeScorecardWithWaivers(
+		analyzer.DefaultCatalog, absentUsage(),
+		analyzer.FeatureProfile{HasServer: true}, analyzer.PresetNone, waivers,
+	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(result.Waived) != 1 {
+		t.Fatalf("Waived = %+v, want one row", result.Waived)
+	}
+	if !strings.Contains(result.Waived[0].Evidence, "TRIGGER LIKELY FIRED") {
+		t.Errorf("evidence = %q, want fired-trigger flag", result.Waived[0].Evidence)
+	}
+	if !slices.ContainsFunc(result.Recommendations, func(r string) bool {
+		return strings.Contains(r, "idempotency") && strings.Contains(r, "likely fired")
+	}) {
+		t.Errorf("recommendations = %+v, want a re-litigation entry", result.Recommendations)
+	}
+}
+
+// TestComputeScorecardWithWaivers_UnfiredTriggerStaysQuiet pins the inverse:
+// a signal that has not appeared, or a trigger whose words merely CONTAIN a
+// signal word ("business" vs "bus"), must not flag the waiver.
+func TestComputeScorecardWithWaivers_UnfiredTriggerStaysQuiet(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		name    string
+		trigger string
+		fp      analyzer.FeatureProfile
+	}{
+		{
+			name:    "server trigger, no server yet",
+			trigger: "when a server appears",
+			fp:      analyzer.FeatureProfile{},
+		},
+		{
+			name:    "business is not the bus signal",
+			trigger: "when business logic grows",
+			fp:      analyzer.FeatureProfile{HasAsyncBus: true},
+		},
+		{
+			name:    "fired signal but unrelated words",
+			trigger: "when domain grows past 50 aggregates",
+			fp:      analyzer.FeatureProfile{HasServer: true, HasAsyncBus: true},
+		},
+	}
+	for _, tt := range cases {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			waivers := []analyzer.ScorecardWaiver{{
+				Key: "graph", Reason: "no use case", Trigger: tt.trigger,
+			}}
+			result, err := ComputeScorecardWithWaivers(
+				analyzer.DefaultCatalog, absentUsage(), tt.fp, analyzer.PresetNone, waivers,
+			)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if strings.Contains(result.Waived[0].Evidence, "TRIGGER LIKELY FIRED") {
+				t.Errorf("evidence = %q, must not flag", result.Waived[0].Evidence)
+			}
+			if slices.ContainsFunc(result.Recommendations, func(r string) bool {
+				return strings.Contains(r, "likely fired")
+			}) {
+				t.Errorf("recommendations = %+v, must stay quiet", result.Recommendations)
+			}
+		})
 	}
 }

@@ -66,6 +66,31 @@ func TestRenderDoctorFeatureProfile(t *testing.T) {
 	}
 }
 
+// TestRenderDoctorFeatureProfile_CompositionHint pins the cross-render hint:
+// a system.New composition points the doctor reader at the scorecard that
+// acts on the signal; without composition the hint stays absent.
+func TestRenderDoctorFeatureProfile_CompositionHint(t *testing.T) {
+	t.Parallel()
+
+	composed := &analyzer.AnalysisContext{
+		FeatureProfile: analyzer.FeatureProfile{HasSystemComposition: true},
+	}
+	buf := &bytes.Buffer{}
+	renderDoctorFeatureProfile(buf, composed)
+	if out := buf.String(); !strings.Contains(out, "scorecard credits persistence rows") {
+		t.Errorf("expected composition hint, got:\n%s", out)
+	}
+
+	plain := &analyzer.AnalysisContext{
+		FeatureProfile: analyzer.FeatureProfile{},
+	}
+	buf2 := &bytes.Buffer{}
+	renderDoctorFeatureProfile(buf2, plain)
+	if out := buf2.String(); strings.Contains(out, "composition detected") {
+		t.Errorf("hint must stay absent without composition, got:\n%s", out)
+	}
+}
+
 func TestRenderDoctorEffectiveSettings(t *testing.T) {
 	t.Parallel()
 

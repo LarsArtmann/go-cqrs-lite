@@ -49,6 +49,7 @@ func renderExplain() string {
 	renderFeatures(&b)
 	renderRulesConfig(&b)
 	renderHealthConfig(&b)
+	renderScorecardConfig(&b)
 	renderResolutionOrder(&b)
 	renderSuppressionSyntax(&b)
 
@@ -182,6 +183,13 @@ var topLevelKeys = []topLevelKey{
 	{"features", "object", "{}", "Override auto-detected feature profile (see FEATURES below)"},
 	{"rules", "object", "{}", "Rule-specific configuration (see RULES below)"},
 	{"health", "object", "{}", "Health-score tuning (see HEALTH below)"},
+	{"scorecard", "object", "{}", "Scorecard settings: recorded waivers (see SCORECARD below)"},
+	{
+		"typed-info",
+		"string",
+		`"auto"`,
+		"Typed confirmation tier for rules that need type info: auto, on, off",
+	},
 }
 
 func renderTopLevelKeys(b *strings.Builder) {
@@ -357,6 +365,39 @@ func renderHealthConfig(b *strings.Builder) {
 	b.WriteString("\n")
 	b.WriteString("  Example:\n")
 	b.WriteString("    {\"health\": {\"info-cap\": 15}}\n")
+	b.WriteString("\n\n")
+}
+
+func renderScorecardConfig(b *strings.Builder) {
+	writeSectionHeader(b, "SCORECARD")
+	b.WriteString("  The scorecard.waivers key records per-module adoption refusals.\n")
+	b.WriteString("  A waiver is an auditable refusal, NOT a silencer: the row renders in\n")
+	b.WriteString("  a WAIVED section with its reason, leaves the coverage denominator\n")
+	b.WriteString("  (declared not-applicable), and waiving a used or profile-irrelevant\n")
+	b.WriteString("  module is a hard error. When a detectable trigger condition arrives\n")
+	b.WriteString("  (a server, an async bus, a transport appears), the waiver is flagged\n")
+	b.WriteString("  for re-litigation.\n")
+	b.WriteString("\n")
+	b.WriteString("  Key       Type    Required  Description\n")
+	b.WriteString("  ───       ────    ────────  ───────────\n")
+	b.WriteString("  key       string  yes       Scored catalog key to waive (e.g. \"graph\").\n")
+	b.WriteString("                             Run `cqrs-lint scorecard` for the key list.\n")
+	b.WriteString("  reason    string  yes       Why the module has no place in this domain.\n")
+	b.WriteString("  trigger   string  no        Revisit condition; a waiver without one\n")
+	b.WriteString("                             renders with a visible gap. Strongly\n")
+	b.WriteString("                             recommended — a trigger-less waiver is a\n")
+	b.WriteString("                             permanent pin by accident.\n")
+	b.WriteString("\n")
+	b.WriteString("  Example:\n")
+	b.WriteString("    {\"scorecard\": {\"waivers\": [\n")
+	b.WriteString("      {\"key\": \"graph\",\n")
+	b.WriteString("       \"reason\": \"no traversal-heavy read models\",\n")
+	b.WriteString("       \"trigger\": \"variable-depth queries appear\"}\n")
+	b.WriteString("    ]}}\n")
+	b.WriteString("\n")
+	b.WriteString("  Waivers are read from the scored project's own .cqrs-lint.json\n")
+	b.WriteString("  (run cqrs-lint from the project root); a config in the operator's\n")
+	b.WriteString("  cwd fills only keys the project did not record.\n")
 	b.WriteString("\n\n")
 }
 

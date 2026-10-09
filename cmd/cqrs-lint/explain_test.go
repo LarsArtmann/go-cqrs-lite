@@ -1,6 +1,7 @@
 package main
 
 import (
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -17,6 +18,7 @@ func TestRenderExplain_ContainsAllSections(t *testing.T) {
 		"FEATURES",
 		"RULES",
 		"HEALTH",
+		"SCORECARD",
 		"RESOLUTION ORDER",
 		"SUPPRESSION",
 	}
@@ -24,6 +26,32 @@ func TestRenderExplain_ContainsAllSections(t *testing.T) {
 	for _, section := range requiredSections {
 		if !strings.Contains(output, section) {
 			t.Errorf("renderExplain() output missing section %q", section)
+		}
+	}
+}
+
+// TestRenderExplain_DocumentsEveryConfigFileKey mechanically enforces the
+// README claim that explain is "full documentation of every config key":
+// every AppConfig field carrying a json tag must appear in the output. A new
+// config key without an explain row fails here, not in a user's trust.
+func TestRenderExplain_DocumentsEveryConfigFileKey(t *testing.T) {
+	t.Parallel()
+
+	documented := make(map[string]bool, len(topLevelKeys))
+	for _, k := range topLevelKeys {
+		documented[k.key] = true
+	}
+
+	rt := reflect.TypeOf(AppConfig{})
+	for i := range rt.NumField() {
+		field := rt.Field(i)
+		tag := field.Tag.Get("json")
+		if tag == "" || tag == "-" {
+			continue
+		}
+		key := strings.Split(tag, ",")[0]
+		if !documented[key] {
+			t.Errorf("topLevelKeys missing config key %q (README claims explain documents every key)", key)
 		}
 	}
 }

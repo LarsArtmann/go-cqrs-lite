@@ -105,6 +105,20 @@ func defaultConfigTemplate() string {
   // Group findings by: none, module, aggregate
   // Uncomment to enable:
   // "group-by": "module"
+
+  // Scorecard waivers: record WHY an adoptable module has no place in this
+  // domain. A waiver renders in a WAIVED section (never silently hides),
+  // leaves the coverage denominator, and should carry a revisit trigger.
+  // Uncomment and edit per module:
+  // "scorecard": {
+  //   "waivers": [
+  //     {
+  //       "key": "graph",
+  //       "reason": "no traversal-heavy read models",
+  //       "trigger": "variable-depth queries appear"
+  //     }
+  //   ]
+  // }
 }
 `
 }

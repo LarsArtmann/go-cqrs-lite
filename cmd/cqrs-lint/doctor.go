@@ -375,6 +375,20 @@ func renderDoctorFeatureProfile(w io.Writer, actx *analyzer.AnalysisContext) {
 		)
 		_, _ = fmt.Fprintln(w)
 	}
+
+	// Cross-render hint: doctor already surfaces the composition signal; the
+	// scorecard acts on it (persistence rows credited, Modernity grade).
+	if profile.HasSystemComposition {
+		_, _ = fmt.Fprintln(
+			w,
+			"  Hint: system.New composition detected — the scorecard credits persistence rows",
+		)
+		_, _ = fmt.Fprintln(
+			w,
+			"        as used via this wiring (see `cqrs-lint scorecard`).",
+		)
+		_, _ = fmt.Fprintln(w)
+	}
 }
 
 // renderDoctorPerModuleProfiles shows each module's profile in multi-module workspaces.
