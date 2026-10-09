@@ -112,6 +112,7 @@ var modules = []string{
 	"testutil/pgtestcontainer",
 	"catalog",
 	"benchkit",
+	"core/v5",
 	"system",
 	"system/integration",
 	"systemtest",

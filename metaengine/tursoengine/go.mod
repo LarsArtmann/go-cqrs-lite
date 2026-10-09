@@ -8,7 +8,7 @@ require (
 	github.com/onsi/gomega v1.44.0
 	github.com/samber/lo v1.53.0
 	pgregory.net/rapid v1.3.0
-	turso.tech/database/tursogo v0.8.1
+	turso.tech/database/tursogo v0.8.2
 )
 
 require (
@@ -16,6 +16,7 @@ require (
 	github.com/ebitengine/purego v0.11.1 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
+	github.com/jackc/puddle/v2 v2.2.3 // indirect
 	github.com/larsartmann/go-branded-id v0.7.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.4 // indirect
@@ -28,7 +29,7 @@ require (
 	github.com/ncruces/go-strftime v1.1.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
-	github.com/tursodatabase/turso-go-platform-libs v0.8.1 // indirect
+	github.com/tursodatabase/turso-go-platform-libs v0.8.2 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/net v0.59.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect

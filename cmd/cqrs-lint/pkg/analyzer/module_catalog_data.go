@@ -292,5 +292,11 @@ func buildDefaultCatalog() []ModuleEntry {
 			Description: "System-level BDD harness (Given/When/Then) over a real system.New boot (ADR-0153)",
 			Suggestion:  "End-to-end BDD scenarios: dispatch, journal diffs, query awaits, saga capture",
 		},
+		{
+			Key: "core/v5", DisplayName: "Core (v5)", Category: CategoryCore,
+			ImportHints: []string{"go-cqrs-lite/core/v5"},
+			Description: "The v5 core module: the merged Tier 0-3 domain trains as packages (ADR-0152 dual-support)",
+			Suggestion:  "Import core/v5 subpackages (core/v5/event, ...) for v5-first development",
+		},
 	}
 }

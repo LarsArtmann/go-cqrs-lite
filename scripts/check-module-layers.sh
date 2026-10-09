@@ -98,6 +98,14 @@ LAYER["stack/duckdb"]=6
 LAYER["stack/mysql"]=6
 LAYER["stack/turso"]=6
 LAYER[system]=6
+# core/v5 (5): the merged v5 core module (ADR-0152) — Tier 0-3 domain plus
+# the composition surface as PACKAGES of one module. Labelled at the driver
+# tier (5) so engines/storage drivers (L4/L5) may depend on it as equal-or-
+# lower peers in the v5 end state; during dual-support it imports NO v4
+# sibling (copy-forward, no back-imports), so the downward rule is trivially
+# satisfied. Layer is per-MODULE: packages that were separate layers in v4
+# are same-module imports here and invisible to this gate.
+LAYER["core/v5"]=5
 LAYER["system/integration"]=7
 # systemtest (7): the Feedback-#4 split — system's real-engine suites moved
 # here so system/v4 consumers pull no engine implementation. Test-only
@@ -313,11 +321,12 @@ DEP_BUDGET[catalog]=7
 DEP_BUDGET[integration]=21
 DEP_BUDGET[benchkit]=25
 DEP_BUDGET[testutil]=5
-# metaengine: 6 = the four Tier-0-ish primitives (record/id/dedup/errorfamily)
+# metaengine: 7 = the four Tier-0-ish primitives (record/id/dedup/errorfamily)
 # + go-sse (ServeSSE) + claiming (ADR-0142 claimkit: the ONE database/sql
 # claim+dedup runtime every SQL engine embeds; claiming is a zero-runtime
-# statement library, L2).
-DEP_BUDGET[metaengine]=6
+# statement library, L2) + go-humanize (engine stats/doctor output
+# humanization, 2026-10-08 go-humanize-linter sweep).
+DEP_BUDGET[metaengine]=7
 DEP_BUDGET["metaengine/pebbleengine"]=5
 DEP_BUDGET["metaengine/duckdbengine"]=5
 DEP_BUDGET["metaengine/pgengine"]=5
@@ -350,6 +359,10 @@ DEP_BUDGET[systemtest]=6
 # systemscenario: 6 = system + event + command + query + id (all in-repo)
 # + go-error-family (fleet-standard classification, ThenErrorFamily).
 DEP_BUDGET[systemscenario]=6
+# core/v5: skeleton starts at 0; each v5 move wave (T07/T09/T10) bumps this
+# to the union of the merged trains' production deps. Intra-repo v4 deps do
+# not count — merged trains become same-module packages.
+DEP_BUDGET["core/v5"]=0
 DEP_BUDGET["metaengine/irohengine"]=2
 DEP_BUDGET["metaengine/irohengine/loopback"]=4
 DEP_BUDGET["metaengine/irohengine/quic"]=5
