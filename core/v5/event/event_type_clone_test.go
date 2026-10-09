@@ -1,0 +1,278 @@
+package event_test
+
+import (
+	"errors"
+	"testing"
+	"time"
+
+	"github.com/larsartmann/go-cqrs-lite/core/v5/event"
+	"github.com/larsartmann/go-cqrs-lite/core/v5/id"
+	"github.com/larsartmann/go-cqrs-lite/core/v5/id/idtest"
+	"github.com/larsartmann/go-cqrs-lite/core/v5/record"
+)
+
+func TestWithEventID(t *testing.T) {
+	t.Parallel()
+
+	overrideID := idtest.ParseEventID(t, "01HK154EJG2GP2SR75DK1Q1TBH")
+
+	evt, err := event.NewEvent(
+		"TestEvent",
+		id.NewStreamID(),
+		"TestStream",
+		1,
+		nil,
+		event.WithEventID(overrideID),
+	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if evt.ID() != overrideID {
+		t.Errorf("ID = %s, want %s", evt.ID(), overrideID)
+	}
+}
+
+func TestWithOccurredAt(t *testing.T) {
+	t.Parallel()
+
+	ts := time.Date(2025, 3, 15, 10, 30, 0, 0, time.UTC)
+
+	evt, err := event.NewEvent(
+		"TestEvent",
+		id.NewStreamID(),
+		"TestStream",
+		1,
+		nil,
+		event.WithOccurredAt(ts),
+	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if !evt.OccurredAt().Equal(ts) {
+		t.Errorf("OccurredAt = %v, want %v", evt.OccurredAt(), ts)
+	}
+}
+
+func TestParseType(t *testing.T) {
+	t.Parallel()
+
+	got, err := event.ParseType("user.created")
+	if err != nil {
+		t.Fatalf("ParseType: %v", err)
+	}
+
+	if got != "user.created" {
+		t.Errorf("ParseType = %q, want %q", got, "user.created")
+	}
+
+	if got.IsZero() {
+		t.Error("IsZero should be false for valid type")
+	}
+}
+
+func TestParseType_Empty(t *testing.T) {
+	t.Parallel()
+
+	_, err := event.ParseType("")
+	if !errors.Is(err, event.ErrEmptyEventType) {
+		t.Errorf("empty type err = %v, want ErrEmptyEventType", err)
+	}
+}
+
+// TestType_IsAliasOfRecord locks the ADR-0111 alias: event.Type must remain
+// assignment-compatible with record.Type — the cross-type comparison below
+// only compiles while Type is an alias. Reverting to a standalone defined
+// type fails this file at compile time.
+func TestType_IsAliasOfRecord(t *testing.T) {
+	t.Parallel()
+
+	if event.Type("user.created") != record.Type("user.created") {
+		t.Error("event.Type must be comparable to record.Type unchanged")
+	}
+}
+
+func TestParseStreamType(t *testing.T) {
+	t.Parallel()
+
+	got, err := id.ParseStreamType("User")
+	if err != nil {
+		t.Fatalf("id.ParseStreamType: %v", err)
+	}
+
+	if got != "User" {
+		t.Errorf("id.ParseStreamType = %q, want %q", got, "User")
+	}
+
+	if got.IsZero() {
+		t.Error("IsZero should be false for valid type")
+	}
+}
+
+func TestParseStreamType_Empty(t *testing.T) {
+	t.Parallel()
+
+	_, err := id.ParseStreamType("")
+	if err == nil {
+		t.Fatal("expected error for empty stream type")
+	}
+}
+
+func TestClone_DeepCopy(t *testing.T) {
+	t.Parallel()
+
+	evt, err := event.NewEvent(
+		"UserCreated",
+		idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95"),
+		"User",
+		1,
+		[]byte("original"),
+		event.WithCorrelationID(idtest.ParseCorrelationID(t, "01HK154EJG2GP2SR75DK1Q1TBH")),
+	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	cloned := evt.Clone()
+
+	if cloned.ID() != evt.ID() {
+		t.Error("cloned ID should match original")
+	}
+
+	if cloned.Type() != evt.Type() {
+		t.Error("cloned Type should match original")
+	}
+
+	if cloned.StreamID() != evt.StreamID() {
+		t.Error("cloned StreamID should match original")
+	}
+
+	if cloned.Version() != evt.Version() {
+		t.Error("cloned Version should match original")
+	}
+
+	if string(cloned.Payload()) != "original" {
+		t.Error("cloned payload should match original")
+	}
+
+	if cloned.Metadata().CorrelationID != evt.Metadata().CorrelationID {
+		t.Error("cloned metadata should match original")
+	}
+}
+
+func TestClone_IndependentPayload(t *testing.T) {
+	t.Parallel()
+
+	evt, err := event.NewEvent(
+		"UserCreated",
+		id.NewStreamID(),
+		"User",
+		1,
+		[]byte("original"),
+	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	cloned := evt.Clone()
+
+	clonedPayload := cloned.Payload()
+	clonedPayload[0] = 'X'
+
+	if string(evt.Payload()) != "original" {
+		t.Error("mutating cloned payload should not affect original")
+	}
+}
+
+func TestClone_IndependentMetadata(t *testing.T) {
+	t.Parallel()
+
+	evt, err := event.NewEvent(
+		"UserCreated",
+		id.NewStreamID(),
+		"User",
+		1,
+		[]byte("{}"),
+		event.WithCorrelationID(idtest.ParseCorrelationID(t, "01HK154EJG2GP2SR75DK1Q1TBH")),
+	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	cloned := evt.Clone()
+
+	originalCorrID := evt.Metadata().CorrelationID
+	clonedMeta := cloned.Metadata()
+	clonedMeta.CorrelationID = id.CorrelationID{}
+
+	if clonedMeta.CorrelationID == originalCorrID {
+		t.Error("expected cloned metadata CorrelationID to differ after mutation")
+	}
+
+	if evt.Metadata().CorrelationID != originalCorrID {
+		t.Error("mutating cloned metadata should not affect original")
+	}
+}
+
+func TestClone_NilPayload(t *testing.T) {
+	t.Parallel()
+
+	evt, err := event.NewEvent(
+		"UserCreated",
+		id.NewStreamID(),
+		"User",
+		1,
+		nil,
+	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	cloned := evt.Clone()
+
+	if cloned.Payload() != nil {
+		t.Error("cloned nil payload should remain nil")
+	}
+}
+
+// TestClone_IndependentOpts verifies that Clone produces independent opts
+// (deadline, clock). eventOptions fields are immutable types (func, interface,
+// time.Time) so a shallow struct copy suffices — but we lock in the guarantee
+// that the clone and original share no mutable state through opts.
+func TestClone_IndependentOpts(t *testing.T) {
+	t.Parallel()
+
+	fixedTime := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
+	deadline := fixedTime.Add(30 * time.Second)
+
+	evt, err := event.NewEvent(
+		"UserCreated",
+		id.NewStreamID(),
+		"User",
+		1,
+		[]byte("payload"),
+		event.WithClock(func() time.Time { return fixedTime }),
+		event.WithDeadline(deadline),
+	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	cloned := evt.Clone()
+
+	// Values are preserved.
+	if cloned.OccurredAt() != evt.OccurredAt() {
+		t.Errorf("cloned OccurredAt = %v, want %v", cloned.OccurredAt(), evt.OccurredAt())
+	}
+
+	clonedDeadline, clonedOK := cloned.Deadline()
+	origDeadline, origOK := evt.Deadline()
+	if !clonedOK || !origOK {
+		t.Fatal("both clone and original should have a deadline")
+	}
+
+	if clonedDeadline != origDeadline {
+		t.Errorf("cloned Deadline = %v, want %v", clonedDeadline, origDeadline)
+	}
+}

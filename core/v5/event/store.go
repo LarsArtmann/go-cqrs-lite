@@ -1,0 +1,142 @@
+package event
+
+import (
+	"context"
+	"time"
+
+	"github.com/larsartmann/go-cqrs-lite/core/v5/id"
+)
+
+// SaveFunc is the function signature for EventSink.Save implementations.
+type SaveFunc func(
+	ctx context.Context,
+	ref id.StreamRef,
+	events []Event,
+	expectedVersion Version,
+) error
+
+// EventSink is the write side of event persistence.
+// Appends events, never reads, never deletes.
+type EventSink interface {
+	// Save appends events with optimistic concurrency check.
+	Save(
+		ctx context.Context,
+		ref id.StreamRef,
+		events []Event,
+		expectedVersion Version,
+	) error
+
+	// AppendBatch appends without concurrency checks.
+	// For bulk imports, event replay, and migrations.
+	AppendBatch(
+		ctx context.Context,
+		ref id.StreamRef,
+		events []Event,
+	) error
+}
+
+// MultiBatchEntry pairs a stream reference with the events to persist for it.
+// Used by MultiSink.SaveMultiBatch to write events for multiple streams
+// in a single atomic operation.
+type MultiBatchEntry struct {
+	Ref    id.StreamRef
+	Events []Event
+}
+
+// MultiSink persists events for multiple streams in a single atomic operation.
+// This is an optional capability: stores that implement it enable bulk-write
+// paths (e.g., multi-stream ingest) to avoid N separate transactions.
+//
+// Implementations guarantee atomicity — either all entries are persisted or
+// none are (single lock scope for in-memory, single database transaction for SQL).
+// Events must carry correct version numbers; the store does NOT perform
+// optimistic concurrency checks (same semantics as AppendBatch).
+type MultiSink interface {
+	SaveMultiBatch(ctx context.Context, entries []MultiBatchEntry) error
+}
+
+// EventSource is the read side of event persistence.
+// Loads events, never writes.
+//
+// # Missing-stream contract
+//
+// Load and LoadFromVersion return (nil, ErrStreamNotFound) when the stream
+// does not exist. In-memory and SQL stores do this today; pebble/bbolt
+// currently return (nil, nil) — a divergence scheduled for alignment at v5.
+// Consumers must treat both shapes as "no events" and must NOT rely on the
+// (nil, nil) shape.
+type EventSource interface {
+	// Load retrieves all events for a stream.
+	Load(
+		ctx context.Context,
+		ref id.StreamRef,
+	) ([]Event, error)
+
+	// LoadFromVersion retrieves events starting after version (exclusive).
+	LoadFromVersion(
+		ctx context.Context,
+		ref id.StreamRef,
+		version Version,
+	) ([]Event, error)
+
+	// LoadToVersion retrieves events up to and including maxVersion.
+	// Returns ErrStreamNotFound if no events exist for the stream.
+	LoadToVersion(
+		ctx context.Context,
+		ref id.StreamRef,
+		maxVersion Version,
+	) ([]Event, error)
+
+	// LoadToTimestamp retrieves events where OccurredAt <= maxTime.
+	// Returns ErrStreamNotFound if no events exist for the stream.
+	LoadToTimestamp(
+		ctx context.Context,
+		ref id.StreamRef,
+		maxTime time.Time,
+	) ([]Event, error)
+}
+
+// Store is the composite of EventSink + EventSource.
+// All existing implementations satisfy Store.
+type Store interface {
+	EventSink
+	EventSource
+}
+
+// Journal reads all events across all streams, ordered by occurrence.
+// "Journal" is the standard event sourcing term for the complete, ordered,
+// append-only log of all domain events. This is the core interface for
+// projection replay.
+type Journal interface {
+	// ReadAll retrieves all events across all streams, ordered by OccurredAt.
+	ReadAll(ctx context.Context) ([]Event, error)
+}
+
+// SeekableJournal extends Journal with position-based reading.
+// Enables efficient projection catch-up without loading all events into memory.
+//
+// Position is based on event ID ordering. ULID-based IDs are time-sortable, making
+// them suitable for position-based loading. Using non-monotonic IDs may produce
+// incorrect results.
+//
+// # Dangling-cursor contract
+//
+// ReadFrom with an afterEventID that no longer exists (e.g. pruned journal)
+// returns zero events and a nil error — the drain ends. SQL/pebble/bbolt
+// implement this shape; memory replays from the start instead. The SQL shape
+// (empty tail) is the pinned contract: replaying the full journal from a
+// stale cursor would silently duplicate events into projections.
+type SeekableJournal interface {
+	Journal
+
+	// ReadFrom retrieves events ordered by OccurredAt, starting after
+	// the given event ID. Returns up to limit events. Pass limit <= 0 for no limit.
+	ReadFrom(ctx context.Context, afterEventID id.EventID, limit int) ([]Event, error)
+}
+
+// BackwardsSource loads events in reverse version order (newest first).
+// Useful for tail-loading scenarios where only the most recent events are needed.
+type BackwardsSource interface {
+	EventSource
+	LoadBackwards(ctx context.Context, ref id.StreamRef) ([]Event, error)
+}

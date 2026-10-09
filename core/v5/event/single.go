@@ -1,0 +1,36 @@
+package event
+
+import (
+	"github.com/larsartmann/go-cqrs-lite/core/v5/id"
+)
+
+// Single creates a single event and returns it as a one-element slice.
+// This is a convenience wrapper around New for the common case where a
+// decide function emits exactly one event.
+//
+// Example:
+//
+//	func decideCreate(s State, cmd CreateCmd) ([]event.Event, error) {
+//	    return event.Single("user.created", cmd.StreamID(), "User", s.Version.Increment(), UserCreated{Name: cmd.Name})
+//	}
+//
+// This replaces the singleEvent/makeEvent/mustEvent helper functions
+// that every consumer project reimplements.
+func Single(
+	eventType Type,
+	streamID id.StreamID,
+	streamType id.StreamType,
+	version Version,
+	payload any,
+	opts ...Option,
+) ([]Event, error) {
+	evt, err := New(eventType, streamID, streamType, version, payload, opts...)
+	if err != nil {
+		// New already classifies per failure mode (Rejection for invalid
+		// params, Corruption for marshal failures); re-wrapping as Rejection
+		// would reclassify genuine marshal Corruption.
+		return nil, err
+	}
+
+	return []Event{evt}, nil
+}

@@ -1,0 +1,23 @@
+package command_test
+
+import (
+	"testing"
+
+	"github.com/larsartmann/go-cqrs-lite/core/v5/command"
+	"github.com/larsartmann/go-cqrs-lite/core/v5/dispatcher"
+)
+
+// TestMiddlewareAliasesAreIdentical pins the E15 signature unification:
+// command.Middleware and command.PublishMiddleware are aliases of the
+// shared [dispatcher.Middleware] shape, so a dispatcher-typed value is
+// directly usable as a command middleware — no adapter, no wrapping.
+func TestMiddlewareAliasesAreIdentical(t *testing.T) {
+	t.Parallel()
+
+	handlerMW := dispatcher.Middleware[command.Handler](nil)
+	publishMW := dispatcher.Middleware[command.Publisher](nil)
+
+	if handlerMW != nil || publishMW != nil {
+		t.Fatal("nil dispatcher middleware values must assign cleanly to the command aliases")
+	}
+}

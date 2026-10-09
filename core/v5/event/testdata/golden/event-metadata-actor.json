@@ -1,0 +1,14 @@
+{
+  "correlationId": "01HK1540X0841Y0A6BSX1VKR97",
+  "causationId": "01HK1540X0841Y0A6BSX1VKR98",
+  "userId": "01HK1540X0841Y0A6BSX1VKR99",
+  "requestId": "01HK1540X0841Y0A6BSX1VKRA1",
+  "actorId": "service:order-api",
+  "source": "test-service",
+  "ipAddress": "10.0.0.1",
+  "userAgent": "test-agent/1.0",
+  "custom": {
+    "custom.trace": "abc123",
+    "tenant": "acme"
+  }
+}

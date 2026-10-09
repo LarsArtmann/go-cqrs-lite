@@ -1,0 +1,105 @@
+package event
+
+import (
+	"encoding/json/jsontext"
+	"slices"
+
+	"github.com/larsartmann/go-codec"
+	errorfamily "github.com/larsartmann/go-error-family"
+
+	"github.com/larsartmann/go-cqrs-lite/core/v5/id"
+)
+
+// New creates a new event with a typed payload.
+//
+// If payload is []byte or json.RawMessage, it is used directly (no marshaling).
+// For all other types, the payload is marshaled using the codec provided via
+// [WithCodec] (falling back to [DefaultCodec], which defaults to
+// [codec.CBORCodec]).
+//
+// The encoding is auto-stamped from the codec used — unless [WithEncoding] is
+// provided, in which case the explicit encoding takes precedence. This is
+// essential when reconstructing events from a wire format or storage where the
+// payload bytes and encoding are already known (e.g. the Watermill bridge).
+//
+// Returns an error if payload is nil.
+func New(
+	eventType Type,
+	streamID id.StreamID,
+	streamType id.StreamType,
+	version Version,
+	payload any,
+	opts ...Option,
+) (*ImmutableEvent, error) {
+	var c codec.Codec
+
+	if len(opts) > 0 {
+		probe := &ImmutableEvent{} //nolint:exhaustruct_v5 // probe: only opts field accessed
+
+		for _, opt := range opts {
+			opt(probe)
+		}
+
+		if probe.opts != nil && probe.opts.newCodec != nil {
+			c = probe.opts.newCodec
+		}
+	}
+
+	if c == nil {
+		c = DefaultCodec
+	}
+
+	data, err := marshalPayload(payload, eventType, c)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := validateEventParams(
+		eventType,
+		streamID,
+		streamType,
+		version,
+		data,
+	); err != nil {
+		return nil, err
+	}
+
+	enc := c.Encoding()
+	evt := buildEvent(eventType, streamID, streamType, version, data, opts)
+	// Respect an explicit WithEncoding option (e.g. when reconstructing events
+	// from storage or a wire format). Only stamp the codec's encoding when the
+	// caller did not specify one.
+	if evt.encoding == "" {
+		evt.encoding = enc
+	}
+
+	return evt, nil
+}
+
+func marshalPayload(payload any, eventType Type, c codec.Codec) ([]byte, error) {
+	if payload == nil {
+		return nil, errorfamily.WrapRejection(
+			ErrNilPayload,
+			"event.nil_payload",
+			"payload is required for event type "+string(eventType),
+		)
+	}
+
+	switch v := payload.(type) {
+	case []byte:
+		return slices.Clone(v), nil
+	case jsontext.Value:
+		return slices.Clone(v), nil
+	default:
+		data, err := c.Encode(payload)
+		if err != nil {
+			return nil, errorfamily.WrapCorruption(
+				err,
+				"event.marshal_payload_failed",
+				"marshal payload for event type "+string(eventType),
+			)
+		}
+
+		return data, nil
+	}
+}

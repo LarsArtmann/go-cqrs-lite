@@ -1,0 +1,15 @@
+# 2026/06/08 00:23:52.208999 [TestParseInvalidString] [rapid] draw invalid: "\x00𐀀"
+# 2026/06/08 00:23:52.209007 [TestParseInvalidString] expected parse to fail for invalid string
+# 
+v0.4.8#7152948528651134165
+0x0
+0x5555555555555
+0x0
+0x0
+0x0
+0x5555555555555
+0x0
+0x187d4073ed830a
+0xffc2
+0x0
+0x0

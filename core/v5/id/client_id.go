@@ -1,0 +1,18 @@
+package id
+
+// ClientMarker is a phantom type for branding ClientIDs.
+type ClientMarker struct{}
+
+// ClientID is a strongly-typed identifier for the client device that created an event.
+// Use this for offline-first attribution and conflict detection.
+type ClientID = Of[ClientMarker]
+
+// NewClientID generates a new random ClientID.
+func NewClientID() ClientID {
+	return New[ClientMarker]()
+}
+
+// ParseClientID converts a string to a ClientID.
+func ParseClientID(s string) (ClientID, error) {
+	return Parse[ClientMarker](s)
+}
