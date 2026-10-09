@@ -1,0 +1,205 @@
+package systemscenario_test
+
+// Task-domain fixture shared by the harness self-tests. Twin of the
+// systemtest/fixtures_test.go block — test fixtures may not cross the module
+// boundary.
+
+import (
+	"context"
+	"encoding/json/v2"
+
+	errorfamily "github.com/larsartmann/go-error-family"
+
+	"github.com/larsartmann/go-cqrs-lite/command/v4"
+	"github.com/larsartmann/go-cqrs-lite/decider/v4"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/system/v4"
+)
+
+// ── Domain types ──
+
+type TaskCreated struct {
+	ID     string
+	Title  string
+	Status string
+}
+
+type TaskCompleted struct {
+	ID     string
+	Status string
+}
+
+type TaskRenamed struct {
+	ID    string
+	Title string
+}
+
+type TaskState struct {
+	Title  string
+	Status string
+	Exists bool
+}
+
+type TaskView struct {
+	ID     string
+	Title  string
+	Status string
+}
+
+var (
+	errTaskExists    error = errorfamily.NewRejection("task.already_exists", "task already exists")
+	errTaskMissing   error = errorfamily.NewRejection("task.missing", "task does not exist")
+	errTaskCompleted error = errorfamily.NewConflict("task.already_completed", "task already completed")
+
+	// completerActor is stamped on task.completed events by the fixture
+	// handler so metadata assertions have something deterministic to check.
+	completerActor = id.NewActorID(id.ActorSystem, "harness-fixture")
+)
+
+// EchoQuery is a deterministic query handler target (no projection
+// dependency) for WhenQuery-act tests.
+type EchoQuery struct {
+	Value string
+}
+
+func (EchoQuery) Type() query.Type { return "task.echo" }
+
+func applyTask(state TaskState, evt event.Event) (TaskState, error) {
+	switch evt.Type() {
+	case "task.created":
+		var payload TaskCreated
+		if err := json.Unmarshal(evt.Payload(), &payload); err != nil {
+			return state, err
+		}
+
+		state.Title, state.Status, state.Exists = payload.Title, payload.Status, true
+	case "task.renamed":
+		var payload TaskRenamed
+		if err := json.Unmarshal(evt.Payload(), &payload); err != nil {
+			return state, err
+		}
+
+		state.Title = payload.Title
+	case "task.completed":
+		state.Status = "completed"
+	}
+
+	return state, nil
+}
+
+var taskDecider = decider.Decider[TaskState]{
+	Initial: TaskState{},
+	Apply:   applyTask,
+}
+
+// taskEvent mints a Task-stream event, panicking on construction errors
+// (fixture invariant).
+func taskEvent(
+	eventType event.Type,
+	streamID id.StreamID,
+	version event.Version,
+	payload any,
+	opts ...event.Option,
+) event.Event {
+	evt, err := event.New(eventType, streamID, "Task", version, payload, opts...)
+	if err != nil {
+		panic(err)
+	}
+
+	return evt
+}
+
+// newTaskCmd mints a BasicCommand, panicking on construction errors.
+func newTaskCmd(cmdType command.Type, streamID id.StreamID) *command.BasicCommand {
+	cmd, err := command.New(cmdType, streamID)
+	if err != nil {
+		panic(err)
+	}
+
+	return cmd
+}
+
+// taskDomain is the ONE DomainConfig both the harness tests and the
+// config-drift demo boot — the fixture-from-production-config property.
+func taskDomain() system.DomainConfig {
+	return system.DomainConfig{
+		Commands: func(sys *system.System) {
+			registerTaskHandlers(sys)
+		},
+		Queries: func(sys *system.System) {
+			system.RegisterQuery[EchoQuery, string](sys, "task.echo", //nolint:errcheck // fixture
+				func(ctx context.Context, q EchoQuery) (string, error) {
+					return q.Value, nil
+				})
+		},
+		Projections: []system.ProjectionDeclaration{
+			system.Lookup[TaskView]("task_views").
+				On("task.created", TaskCreated{}).
+				On("task.renamed", TaskRenamed{}).
+				On("task.completed", TaskCompleted{}).
+				Done(),
+		},
+	}
+}
+
+func registerTaskHandlers(sys *system.System) {
+	system.RegisterDecider(sys, "Task", taskDecider) //nolint:errcheck // fixture: registration cannot fail
+
+	system.RegisterCommand[*command.BasicCommand, TaskState](sys, "task.create", //nolint:errcheck // fixture
+		func(ctx context.Context, cmd *command.BasicCommand) system.Op[TaskState] {
+			return system.Execute(ctx, cmd.StreamID(), "Task",
+				func(state TaskState, version event.Version) ([]event.Event, error) {
+					if state.Exists {
+						return nil, errTaskExists
+					}
+
+					return []event.Event{taskEvent("task.created", cmd.StreamID(), version+1,
+						TaskCreated{ID: cmd.StreamID().String(), Title: "first", Status: "pending"})}, nil
+				})
+		})
+
+	system.RegisterCommand[*command.BasicCommand, TaskState](sys, "task.rename", //nolint:errcheck // fixture
+		func(ctx context.Context, cmd *command.BasicCommand) system.Op[TaskState] {
+			return system.Execute(ctx, cmd.StreamID(), "Task",
+				func(state TaskState, version event.Version) ([]event.Event, error) {
+					if !state.Exists {
+						return nil, errTaskMissing
+					}
+
+					return []event.Event{taskEvent("task.renamed", cmd.StreamID(), version+1,
+						TaskRenamed{ID: cmd.StreamID().String(), Title: "renamed"})}, nil
+				})
+		})
+
+	system.RegisterCommand[*command.BasicCommand, TaskState](sys, "task.complete", //nolint:errcheck // fixture
+		func(ctx context.Context, cmd *command.BasicCommand) system.Op[TaskState] {
+			return system.Execute(ctx, cmd.StreamID(), "Task",
+				func(state TaskState, version event.Version) ([]event.Event, error) {
+					if !state.Exists {
+						return nil, errTaskMissing
+					}
+
+					if state.Status == "completed" {
+						return nil, errTaskCompleted
+					}
+
+					return []event.Event{taskEvent("task.completed", cmd.StreamID(), version+1,
+						TaskCompleted{ID: cmd.StreamID().String(), Status: "completed"})}, nil
+				})
+		})
+}
+
+// memoryDeployment mirrors the auto-projection test deployment: one memory
+// engine serving source-of-truth and projections.
+func memoryDeployment() system.DeploymentConfig {
+	return system.DeploymentConfig{
+		Engines: map[string]system.EngineConfig{
+			"primary": {Driver: "memory"},
+		},
+		Instances: []system.InstanceConfig{
+			{Role: system.RoleSourceOfTruth, Engine: "primary"},
+			{Role: system.RoleProjections, Engine: "primary"},
+		},
+	}
+}
