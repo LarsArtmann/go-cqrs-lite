@@ -16,7 +16,7 @@ require (
 	github.com/maypok86/otter/v2 v2.3.0
 	github.com/onsi/ginkgo/v2 v2.33.0
 	github.com/onsi/gomega v1.44.0
-	golang.org/x/sync v0.23.0
+	golang.org/x/sync v0.24.0
 	pgregory.net/rapid v1.3.0
 )
 
