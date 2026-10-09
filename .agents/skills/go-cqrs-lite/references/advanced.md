@@ -889,6 +889,28 @@ usage); grade pain is fixed by honesty/auditability/aim, never by softening:
   (`modernityGrade`, `waivedCount`; SARIF also carries the panel counts
   `removedApiUses`/`deprecatedTransportUses`/`stackPresetUses`, all
   `omitempty` so clean runs stay byte-identical).
+- **Multi-module projects are scored project-wide** (2026-10-09) — stack-
+  surface counts, `system.New`/pushdown composition signals, and the
+  Modernity inputs are the UNION across every per-`go.mod` profile, because
+  the canonical wiring often lives in a dedicated submodule
+  (`cqrs-htmx/systemadapter`, `go-appkit/cqrs`) while the primary module
+  carries none of it. Store-kind resolution keeps its documented
+  primary-wins semantics; only the composition/legacy signals union.
+- **JSON output schema** (`--format json`; `omitempty` fields absent when
+  zero):
+
+| Field                            | Type     | Meaning                                                       |
+| -------------------------------- | -------- | ------------------------------------------------------------- |
+| `summary.used_count`             | int      | Rows with status `used` (incl. composition credit)             |
+| `summary.relevant_total`         | int      | Denominator: used + missing (waivers leave it)                 |
+| `summary.coverage_percent`       | int      | `used_count / relevant_total`                                  |
+| `summary.grade`                  | string   | Breadth grade (Minimal/Sparse/Fair/Good/Excellent)             |
+| `summary.modernity_grade`        | string   | Legacy/Partial/Modern (see above)                              |
+| `summary.waived_count`           | int      | Waived rows (present when > 0)                                 |
+| `used[]`/`missing[]`/`waived[]`  | []object | `{key, display_name, category, status, evidence?, suggestion?}` |
+| `metaengine`                     | object   | `{detected, engines?, pushdown_adopted, suggestion?}`           |
+| `deprecated`                     | object   | `{removed_api_uses, deprecated_transport_uses, stack_preset_uses, suggestion?}` |
+| `recommendations[]`              | []string | Up to 3 coaching lines from the missing list                    |
 
 **`cqrs-lint doctor --format json`** emits a machine-readable report
 (module-rule findings, engine coverage, severity overrides). Key order is
@@ -913,7 +935,7 @@ Schema (top level; `omitempty` fields absent unless noted):
 | `disabledFromPreset`| []string | Rule IDs the preset disabled                                   |
 | `disabledFromConfig`| []string | Rule IDs config disabled                                       |
 | `severityOverrides` | map      | ruleID → severity (sorted keys)                                |
-| `features`          | object   | Detected feature profile (same shape as config `features`)     |
+| `features`          | object   | Detected feature profile (config `features` shape PLUS detection-only fields: `stackPresets`, metaengine engines/pushdown) |
 | `modules`           | []object | Per-`go.mod` profiles: `{module, profile}`                     |
 | `audit`             | object   | With `--audit-suppressions`/`--prune-suppressions`: `{total, active, stale, unknownRule, entries[], fix?}`; `fix` (prune mode) carries `{dryRun, removed[], skipped[], files[]}` |
 

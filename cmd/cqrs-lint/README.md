@@ -191,8 +191,27 @@ sits on the canonical path. Both print in the summary banner:
   deleted per ADR-0123 — `system.New` becomes the only composition root).
   Migrate before the v5 cut.
 
+In multi-module projects both axes score **project-wide**: stack-surface
+imports, `system.New` wiring, and pushdown signals are unioned across every
+`go.mod` in the tree (composition often lives in a dedicated submodule —
+`cqrs-htmx/systemadapter`, `go-appkit/cqrs` — while the primary module
+carries none of it).
+
 A focused app at low breadth but Modern is a perfect consumer — the scorecard
 must not coach it into feature bloat.
+
+### Config resolution order (path vs cwd)
+
+The scorecard resolves its inputs in a fixed order so scoring a project from
+anywhere yields the same verdict:
+
+1. `<path>/.cqrs-lint.json` (the scored project's own config) — its `preset`
+   and its `scorecard.waivers` WIN.
+2. The operator's cwd config fills only keys the project did not record
+   (cmdguard's loader).
+
+Run `cqrs-lint explain` for the rendered walkthrough of these rules —
+including waiver expiry semantics and the trigger-firing advisory.
 
 ## Feature Profiles
 
