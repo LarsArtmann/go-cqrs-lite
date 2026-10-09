@@ -243,7 +243,9 @@ func TestOutputFindingsJSON(t *testing.T) {
 	}
 
 	cfg := &AppConfig{Format: "json"}
+	stdoutMu.Lock()
 	err = outputFindings(context.Background(), []finding.Finding{f}, cfg, 0)
+	stdoutMu.Unlock()
 	if err != nil {
 		t.Errorf("outputFindings json: %v", err)
 	}
@@ -253,7 +255,9 @@ func TestOutputFindingsEmpty(t *testing.T) {
 	t.Parallel()
 
 	cfg := &AppConfig{Format: "text", Quiet: true}
+	stdoutMu.Lock()
 	err := outputFindings(context.Background(), nil, cfg, 0)
+	stdoutMu.Unlock()
 	if err != nil {
 		t.Errorf("outputFindings empty: %v", err)
 	}
