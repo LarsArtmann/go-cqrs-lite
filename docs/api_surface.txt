@@ -6049,7 +6049,9 @@ schema/const FailOnDecodeError
 schema/const PassthroughOnDecodeError
 schema/func AddField
 schema/func Compile
+schema/func Declare
 schema/func Drop
+schema/func Event
 schema/func NewUpcaster
 schema/func NewValidator
 schema/func NewVersionedSeekableJournal
@@ -6071,6 +6073,7 @@ schema/interface Op
 schema/interface Upcaster
 schema/method Close
 schema/method Close
+schema/method CurrentVersion
 schema/method ReadAll
 schema/method ReadFrom
 schema/method RegisterType
@@ -6078,10 +6081,12 @@ schema/method RegisteredTypes
 schema/method SourceTransform
 schema/method SourceType
 schema/method SourceVersion
+schema/method Type
 schema/method Upcast
 schema/method Upcasters
 schema/method Validate
 schema/struct Chain
+schema/struct EventSchema
 schema/struct SplitOutput
 schema/struct Validator
 schema/struct VersionedSeekableJournal

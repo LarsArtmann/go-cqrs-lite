@@ -49,6 +49,8 @@ func TestSchemaDeclaration_AppliesOnEveryReadPath(t *testing.T) {
 	}
 
 	t.Run("store Load upcasts", func(t *testing.T) {
+		t.Parallel()
+
 		loaded, err := sys.EventStore().Load(ctx, ref)
 		if err != nil {
 			t.Fatalf("Load: %v", err)
@@ -73,6 +75,8 @@ func TestSchemaDeclaration_AppliesOnEveryReadPath(t *testing.T) {
 	})
 
 	t.Run("journal capability survives decoration", func(t *testing.T) {
+		t.Parallel()
+
 		journal, ok := sys.EventStore().(event.SeekableJournal)
 		if !ok {
 			t.Fatal("decorated store lost SeekableJournal")

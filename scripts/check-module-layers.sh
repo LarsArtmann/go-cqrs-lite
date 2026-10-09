@@ -350,7 +350,10 @@ DEP_BUDGET["scheduling/sqlstore"]=7
 # scheduling/engine: 3 = scheduling contract + metaengine + sqliteengine
 # (the facade's conformance/constructor target; memory engine is test-only).
 DEP_BUDGET["scheduling/engine"]=3
-DEP_BUDGET[system]=20
+# system: 21 = the prior 20 + schema (DomainConfig.Schema payload-contract
+# declarations compiled and applied at the composition root, 2026-10-09 T1 —
+# Tier 5 → Tier 2, downward and legal).
+DEP_BUDGET[system]=21
 DEP_BUDGET["system/integration"]=7
 # systemtest: 6 = system + metaengine core + the four engine drivers whose
 # suites it owns (goleak is test-only); the point of the module is engine
