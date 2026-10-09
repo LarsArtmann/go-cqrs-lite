@@ -297,6 +297,7 @@ func buildDefaultCatalog() []ModuleEntry {
 			ImportHints: []string{"go-cqrs-lite/core/v5"},
 			Description: "The v5 core module: the merged Tier 0-3 domain trains as packages (ADR-0152 dual-support)",
 			Suggestion:  "Import core/v5 subpackages (core/v5/event, ...) for v5-first development",
+			Core:        true,
 		},
 	}
 }

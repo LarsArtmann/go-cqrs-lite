@@ -5,6 +5,7 @@ filippo.io/edwards25519 v1.2.0/go.mod h1:xzAOLCNug/yB62zG1bQ8uziwrIqIuxhctzJT18Q
 github.com/AdaLogics/go-fuzz-headers v0.0.0-20240806141605-e8a1dd7889d6 h1:He8afgbRMd7mFxO99hRNu+6tazq8nFF9lIwo9JFroBk=
 github.com/AdaLogics/go-fuzz-headers v0.0.0-20240806141605-e8a1dd7889d6/go.mod h1:8o94RPi1/7XTJvwPpRSzSUedZrtlirdB3r9Z20bi2f8=
 github.com/Azure/go-ansiterm v0.0.0-20261006220739-8c912ac31dd4 h1:m2xcjRABtG288vnlV3U/PKh/HnPURxZp50RKNUwBxM8=
+github.com/Azure/go-ansiterm v0.0.0-20261006220739-8c912ac31dd4/go.mod h1:MTUE7ZuZO89FAtAwozGg6AWD83pcdefnEq5gF82MB8s=
 github.com/DATA-DOG/go-sqlmock v1.5.2 h1:OcvFkGmslmlZibjAjaHm3L//6LiuBgolP7OputlJIzU=
 github.com/DATA-DOG/go-sqlmock v1.5.2/go.mod h1:88MAG/4G7SMwSE3CeA0ZKzrT5CiOU3OJ+JlNzwDqpNU=
 github.com/Masterminds/semver/v3 v3.5.0 h1:kQceYJfbupGfZOKZQg0kou0DgAKhzDg2NZPAwZ/2OOE=
@@ -129,6 +130,7 @@ github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.3.4/go.mod h1:srePZ4/nmXnrmqZ
 github.com/larsartmann/go-error-family v0.11.0 h1:xqXLKrTMznStmHUapxd/6Fj5/878sb4SIZiy4JvCItQ=
 github.com/larsartmann/go-error-family v0.11.0/go.mod h1:CAzjAVWjAFDUXEaaRqIgjW28i/NrQ07OsE9Dffhx29c=
 github.com/larsartmann/go-flightrecorder v0.2.1 h1:46haKa+T3R8HmtEfVIvF4j6ri8N8qn6H94AFKFMdkE8=
+github.com/larsartmann/go-flightrecorder v0.2.1/go.mod h1:fZZpp2eR4SkhI31DTCGheg4QqKE2o9R/22jk3/084tE=
 github.com/larsartmann/go-sqlitestore v0.1.0 h1:+u9nCNdyHZPjduUXWdfy087b9tSeo8GVXrsK4NieVWA=
 github.com/larsartmann/go-sqlitestore v0.1.0/go.mod h1:CH198vEnbz2tqlnJGpQCjDykWdmJLnm8K8LdmH2JzU8=
 github.com/lib/pq v1.12.3 h1:tTWxr2YLKwIvK90ZXEw8GP7UFHtcbTtty8zsI+YjrfQ=
@@ -207,6 +209,7 @@ github.com/testcontainers/testcontainers-go v0.44.0/go.mod h1:IcnwQrYTO86xHXu5bv
 github.com/testcontainers/testcontainers-go/modules/postgres v0.44.0 h1:8fdv/9y3JMxjQ+ULAcOG8RtgeNu5t9XF9LolSXDuTwM=
 github.com/testcontainers/testcontainers-go/modules/postgres v0.44.0/go.mod h1:CFr2LncGYokw+OKjXcr8ARCKG1SaC2UEnGxFBovE86g=
 github.com/tidwall/gjson v1.20.0 h1:+agJ3rEzKcCXKDKo0ml26UROcpcAlnZyjq+TjbY5Fto=
+github.com/tidwall/gjson v1.20.0/go.mod h1:V37/opeE/JbLUOfH0QTXiNez2l0RUjYUhpT4szFQAfc=
 github.com/tidwall/match v1.2.0 h1:0pt8FlkOwjN2fPt4bIl4BoNxb98gGHN2ObFEDkrfZnM=
 github.com/tidwall/match v1.2.0/go.mod h1:eRSPERbgtNPcGhD8UCthc6PmLEQXEWd3PRB5JTxsfmM=
 github.com/tidwall/pretty v1.2.2 h1:dz1jrRuE7or/74V490B4/GP1pZm5WKlt2bgCP5A83w8=

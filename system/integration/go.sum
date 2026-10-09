@@ -1,6 +1,7 @@
 dario.cat/mergo v1.0.2 h1:85+piFYR1tMbRrLcDwR18y4UKJ3aH1Tbzi24VRW1TK8=
 dario.cat/mergo v1.0.2/go.mod h1:E/hbnu0NxMFBjpMIE34DRGLWqDy0g5FuKDhCb31ngxA=
 github.com/Azure/go-ansiterm v0.0.0-20261006220739-8c912ac31dd4 h1:m2xcjRABtG288vnlV3U/PKh/HnPURxZp50RKNUwBxM8=
+github.com/Azure/go-ansiterm v0.0.0-20261006220739-8c912ac31dd4/go.mod h1:MTUE7ZuZO89FAtAwozGg6AWD83pcdefnEq5gF82MB8s=
 github.com/Masterminds/semver/v3 v3.5.0 h1:kQceYJfbupGfZOKZQg0kou0DgAKhzDg2NZPAwZ/2OOE=
 github.com/Masterminds/semver/v3 v3.5.0/go.mod h1:4V+yj/TJE1HU9XfppCwVMZq3I84lprf4nC11bSS5beM=
 github.com/Microsoft/go-winio v0.6.2 h1:F2VQgta7ecxGYO8k3ZZz3RS8fVIXVxONVUPlNERoyfY=
@@ -14,6 +15,7 @@ github.com/ThreeDotsLabs/watermill-nats/v2 v2.2.0/go.mod h1:+RcILy/DVrLq3DFVzzRt
 github.com/ThreeDotsLabs/watermill-redisstream v1.4.5 h1:SCETqsAYo/CRBb7H3+zWCcSqhMpDrQA4I6dCqC7UPR4=
 github.com/ThreeDotsLabs/watermill-redisstream v1.4.5/go.mod h1:Da3wqG1OcvHPODjuJcxSCY1O7D4loIZQpVbZ5u94xRo=
 github.com/andybalholm/brotli v1.2.6 h1:ftYnfj6usCp+UGV5kSJ3+chpMQgU+gJf/AxsUQ52REI=
+github.com/andybalholm/brotli v1.2.6/go.mod h1:rzTDkvFWvIrjDXZHkuS16NPggd91W3kUSvPlQ1pLaKY=
 github.com/apache/arrow-go/v18 v18.8.0 h1:BLOzbPv7bxMPgXPacAg6HQjnxupYsZzC4tf+FkqPU/M=
 github.com/apache/arrow-go/v18 v18.8.0/go.mod h1:uJCFfCwq0KsxCmsCfQg4ft+LsW+iHYzAXiSDh5ug/8U=
 github.com/apache/thrift v0.24.0 h1:zy31L1a49QTNB2bG1BBfMXol3yJrTH975G3pPubQVLQ=
@@ -106,6 +108,7 @@ github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761/go.mod h1:5TJZ
 github.com/jackc/pgx/v5 v5.11.0 h1:IzBBtyK9AHqf98cctWFifYSci2hgQR/cd56wB4p+ogg=
 github.com/jackc/pgx/v5 v5.11.0/go.mod h1:mal1tBGAFfLHvZzaYh77YS/eC6IX9OWbRV1QIIM0Jn4=
 github.com/jackc/puddle/v2 v2.2.3 h1:f8HoREISb3l5eO9coPgK7U3hKLhWGokOFVcThl5jrao=
+github.com/jackc/puddle/v2 v2.2.3/go.mod h1:vriiEXHvEE654aYKXXjOvZM39qJ0q+azkZFrfEOc3H4=
 github.com/klauspost/compress v1.20.1 h1:T7kKElXUMXrUJ2E9QhQhxFtcK5rPyLdsGZvdbLMPdiQ=
 github.com/klauspost/compress v1.20.1/go.mod h1:LUdAzn7YLVvxLpc7y3V1m40wESHTgc1422pwwBSKYuI=
 github.com/klauspost/cpuid/v2 v2.4.0 h1:S6Hrbc7+ywsr0r+RLapfGBHfyefhCTwEh3A0tV913Dw=
@@ -201,6 +204,7 @@ github.com/larsartmann/go-flightrecorder v0.2.1/go.mod h1:fZZpp2eR4SkhI31DTCGheg
 github.com/larsartmann/go-idempotency v0.3.1 h1:LzCg+4DI/RrqPJvR6bmmxMUE/jfUK2quREj0/2exSXI=
 github.com/larsartmann/go-idempotency v0.3.1/go.mod h1:cgc4TyjWbLh8qG+7iNgl3qrjfDhvjjzKkfVblVm9cTQ=
 github.com/larsartmann/go-retry v0.8.0 h1:R7twMiRiZNWQKryF3nqtE/3R3Td5xkhiHIoXEnlCZNM=
+github.com/larsartmann/go-retry v0.8.0/go.mod h1:p1ITwjm4NMVRhJHV/23ymaIbAdGuvufounnvFbgItXs=
 github.com/larsartmann/go-sqlitestore v0.1.0 h1:+u9nCNdyHZPjduUXWdfy087b9tSeo8GVXrsK4NieVWA=
 github.com/larsartmann/go-sqlitestore v0.1.0/go.mod h1:CH198vEnbz2tqlnJGpQCjDykWdmJLnm8K8LdmH2JzU8=
 github.com/larsartmann/go-sse v0.6.2 h1:a1f/EnjhWlsNnxo0U1DygpYMy2XbUfyGBuKMWhwQg0U=
@@ -292,6 +296,7 @@ github.com/testcontainers/testcontainers-go v0.44.0/go.mod h1:IcnwQrYTO86xHXu5bv
 github.com/testcontainers/testcontainers-go/modules/postgres v0.44.0 h1:8fdv/9y3JMxjQ+ULAcOG8RtgeNu5t9XF9LolSXDuTwM=
 github.com/testcontainers/testcontainers-go/modules/postgres v0.44.0/go.mod h1:CFr2LncGYokw+OKjXcr8ARCKG1SaC2UEnGxFBovE86g=
 github.com/tidwall/gjson v1.20.0 h1:+agJ3rEzKcCXKDKo0ml26UROcpcAlnZyjq+TjbY5Fto=
+github.com/tidwall/gjson v1.20.0/go.mod h1:V37/opeE/JbLUOfH0QTXiNez2l0RUjYUhpT4szFQAfc=
 github.com/tidwall/match v1.2.0 h1:0pt8FlkOwjN2fPt4bIl4BoNxb98gGHN2ObFEDkrfZnM=
 github.com/tidwall/match v1.2.0/go.mod h1:eRSPERbgtNPcGhD8UCthc6PmLEQXEWd3PRB5JTxsfmM=
 github.com/tidwall/pretty v1.2.2 h1:dz1jrRuE7or/74V490B4/GP1pZm5WKlt2bgCP5A83w8=
@@ -341,6 +346,7 @@ go.yaml.in/yaml/v3 v3.0.5/go.mod h1:HVTZu1O7/Vkt2N+BFy8Zza+lnLsABggaTM2ZpNIGuKg=
 golang.org/x/crypto v0.57.0 h1:3ZVCjf8Ggz7zneR/EHRVx68Ctf+2pmIMP2UFhh9cC6M=
 golang.org/x/crypto v0.57.0/go.mod h1:Fdz0i5U6CoizGwLda9DttjSk6qlZo25zYNtR+ycvuZA=
 golang.org/x/exp v0.0.0-20261007192929-f45ad48fbe92 h1:kc+Gi2MFkd0KWtdDlVxVwjw4KB98/77usJDFj+6YFQ8=
+golang.org/x/exp v0.0.0-20261007192929-f45ad48fbe92/go.mod h1:SRjTzy5WcYqRRqquLUvHeeovSwLO0CZ3xcltZNO4Fck=
 golang.org/x/mod v0.41.0 h1:qJmnOUb4YB+FsEuM3HcWucdZASCPGhsX6uljO6pog0c=
 golang.org/x/mod v0.41.0/go.mod h1:Ek9pY8RKWXwsWvd3rQiHYtMqkjSUV+s1Rj7j4H5Ur6o=
 golang.org/x/net v0.59.0 h1:5zfYln+w5XCxwrnMMJPufRgNoXEaGxl0wo5GqPXyues=

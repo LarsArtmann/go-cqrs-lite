@@ -51,7 +51,6 @@ require (
 	github.com/goccy/go-yaml v1.19.2 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/jackc/puddle/v2 v2.2.3 // indirect
 	github.com/knadh/koanf/maps v0.1.3 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect

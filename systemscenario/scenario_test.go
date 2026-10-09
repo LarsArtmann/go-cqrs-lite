@@ -2,11 +2,16 @@ package systemscenario_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
 	"github.com/larsartmann/go-cqrs-lite/systemscenario/v4"
 )
@@ -69,7 +74,7 @@ func TestSystem_GivenSeedsDeciderState(t *testing.T) {
 	sc.When(newTaskCmd("task.complete", ref.ID)).
 		ThenError(errTaskMissing).
 		ThenNoEvents().
-		ThenErrorFamily(errorfamilyRejection())
+		ThenErrorFamily(errorfamily.Rejection)
 }
 
 func TestSystem_ConflictFamilyOnCompletedTask(t *testing.T) {
@@ -82,7 +87,7 @@ func TestSystem_ConflictFamilyOnCompletedTask(t *testing.T) {
 		sc.Event("task.completed", ref, TaskCompleted{ID: ref.ID.String(), Status: "completed"}),
 	).When(newTaskCmd("task.complete", ref.ID)).
 		ThenError(errTaskCompleted).
-		ThenErrorFamily(errorfamilyConflict())
+		ThenErrorFamily(errorfamily.Conflict)
 }
 
 func TestSystem_ThenQueryAwaitsProjection(t *testing.T) {
@@ -108,7 +113,7 @@ func TestSystem_GivenByCommandSeedsByIntent(t *testing.T) {
 		Then("task.renamed")
 }
 
-func TestSystem_ThenEventsInspectsVersionsAndStreams(t *testing.T) {
+func TestSystem_ThenEventsAndMetadata(t *testing.T) {
 	t.Parallel()
 
 	sc, ref, _ := newTaskScenario(t)
@@ -131,21 +136,34 @@ func TestSystem_ThenEventsInspectsVersionsAndStreams(t *testing.T) {
 			}
 		}).
 		ThenMetadata(0, func(md event.Metadata) error {
-			if md.EventID == "" && md.OccurredAt.IsZero() {
-				return errNilMetadataStamp()
+			if md.ActorID != completerActor {
+				return fmt.Errorf("want actor %s on task.completed, got %s", completerActor, md.ActorID)
 			}
 
 			return nil
 		})
 }
 
-func TestSystem_WhenQueryActAndThenResult(t *testing.T) {
+func TestSystem_WhenQueryActThenResultAndSuccess(t *testing.T) {
 	t.Parallel()
 
-	sc, ref, ctx := newTaskScenario(t)
+	sc, _, _ := newTaskScenario(t)
 
-	sc.Given().Command(newTaskCmd("task.create", ref.ID)).
-		WhenQuery(lookupAllQuery(t)).
-		ThenSuccess()
-	_ = ctx
+	sc.WhenQuery(EchoQuery{Value: "hello"}).
+		ThenSuccess().
+		ThenResult("hello")
 }
+
+func TestSystem_WhenQueryUnknownHandlerThenError(t *testing.T) {
+	t.Parallel()
+
+	sc, _, _ := newTaskScenario(t)
+
+	sc.WhenQuery(unknownQuery{}).
+		ThenError(query.ErrHandlerNotFound)
+}
+
+// unknownQuery targets no registered handler.
+type unknownQuery struct{}
+
+func (unknownQuery) Type() query.Type { return "task.unknown" }

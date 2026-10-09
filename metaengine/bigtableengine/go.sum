@@ -71,10 +71,14 @@ github.com/googleapis/gax-go/v2 v2.26.2 h1:ydkmNXxj7bEmmeK5AihkKnWxyOyBR9TDebvp5
 github.com/googleapis/gax-go/v2 v2.26.2/go.mod h1:sMKqnMesnKH+3wiRJROcttA+cJoZoGbZl1vDQ8XYtGk=
 github.com/larsartmann/go-branded-id v0.7.0 h1:k5KT50Kh0WmeniH0rQ3Gvm2RdSAQFZtuRhXWDtQkWhU=
 github.com/larsartmann/go-branded-id v0.7.0/go.mod h1:gM5FhB6d23qZO8hIU/rHpUnm/6dwKy9UGMhgvXDqNsc=
+github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.2 h1:yakAjC4K02sVvudipDP/fhLfSXDuo5rnNBY+hDou34Y=
+github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.2/go.mod h1:7TQ7fSd6bRqd7lYSTDMPIDCDZtzU/r3KqivP9m1M7gk=
 github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.4 h1:HJb+krWBAieW3DikAyiPOSKt/LZB9llOsT5FpKrE4Qg=
 github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.4/go.mod h1:AbQjMKQWyXaz0lDe4/9Xryvmq6FzwlfuQNaCKR5KizI=
 github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.2 h1:ob6AO+t87lfSFzNlAIcwhjLjjbvTVzvxUYU4s3j0gkA=
 github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.2/go.mod h1:Xk9r4UyYh+XSaw75SI+gBma8f6r+AUSJds0zUGpwDKA=
+github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.5.2 h1:62R7BYzsBmre3ZpLI/1Ix17kx+wUbnQwfJI/z4HbkZg=
+github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.5.2/go.mod h1:8ROLpkWKi10BvYkgMIj1bjJJrKABX0gKQuUDt2bAjzQ=
 github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2 h1:YtlkO7+wTXNTzskWbqf2xKAZC+HGe+gp0oejzJahqhg=
 github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2/go.mod h1:JFGAWfaNItRWzmUBog4Q3aZOhSGmtWHeP55pBlPE0g0=
 github.com/larsartmann/go-error-family v0.11.0 h1:xqXLKrTMznStmHUapxd/6Fj5/878sb4SIZiy4JvCItQ=

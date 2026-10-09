@@ -14,6 +14,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/decider/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
 )
 
@@ -185,7 +186,8 @@ func registerTaskHandlers(sys *system.System) {
 					}
 
 					return []event.Event{taskEvent("task.completed", cmd.StreamID(), version+1,
-						TaskCompleted{ID: cmd.StreamID().String(), Status: "completed"})}, nil
+						TaskCompleted{ID: cmd.StreamID().String(), Status: "completed"},
+						event.WithActor(completerActor))}, nil
 				})
 		})
 }

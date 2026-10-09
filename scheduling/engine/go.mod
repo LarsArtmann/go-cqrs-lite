@@ -10,9 +10,7 @@ require (
 
 require (
 	github.com/dustin/go-humanize v1.1.0 // indirect
-	github.com/fxamacker/cbor/v2 v2.9.6 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/jackc/puddle/v2 v2.2.3 // indirect
 	github.com/larsartmann/go-branded-id v0.7.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.4 // indirect
