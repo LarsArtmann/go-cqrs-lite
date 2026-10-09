@@ -20,6 +20,10 @@ type ScorecardSummary struct {
 	IrrelevantCount int    `json:"irrelevant_count"`
 	CoveragePercent int    `json:"coverage_percent"`
 	Grade           string `json:"grade"`
+	// WaivedCount is the number of MISSING rows moved to the Waived
+	// partition by recorded waivers (.cqrs-lint.json scorecard.waivers).
+	WaivedCount    int    `json:"waived_count,omitempty"`
+	ModernityGrade string `json:"modernity_grade,omitempty"`
 }
 
 // ScorecardResult is the computed adoption scorecard. It partitions the
@@ -29,6 +33,7 @@ type ScorecardResult struct {
 	Summary         ScorecardSummary     `json:"summary"`
 	Used            []ScorecardModule    `json:"used"`
 	Missing         []ScorecardModule    `json:"missing"`
+	Waived          []ScorecardModule    `json:"waived,omitempty"`
 	Irrelevant      []ScorecardModule    `json:"irrelevant,omitempty"`
 	Recommendations []string             `json:"recommendations,omitempty"`
 	Metaengine      *ScorecardMetaengine `json:"metaengine,omitempty"`
@@ -85,6 +90,11 @@ func ComputeScorecard(
 	for _, e := range relevant {
 		relevantSet[e.Key] = true
 	}
+
+	// Composition credit: backends wired through metaengine engines or
+	// system.New are in use even without direct stack imports — crediting
+	// them keeps the remaining MISSING rows honest.
+	usage = creditComposition(usage, fp, relevantSet)
 
 	var result ScorecardResult
 

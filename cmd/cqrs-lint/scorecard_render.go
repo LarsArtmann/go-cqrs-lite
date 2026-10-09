@@ -44,6 +44,14 @@ func renderScorecardText(result ScorecardResult, colorMode output.ColorMode) str
 		fmt.Fprintf(&b, "  (%d modules excluded as irrelevant for this profile)\n",
 			result.Summary.IrrelevantCount)
 	}
+	if result.Summary.ModernityGrade != "" {
+		fmt.Fprintf(&b, "Modernity: %s — %s\n",
+			result.Summary.ModernityGrade, ModernityHint(result.Summary.ModernityGrade))
+	}
+	if result.Summary.WaivedCount > 0 {
+		fmt.Fprintf(&b, "  (%d modules waived — recorded refusals, see WAIVED)\n",
+			result.Summary.WaivedCount)
+	}
 	b.WriteString("\n")
 
 	// Metaengine section.
@@ -76,28 +84,14 @@ func renderScorecardText(result ScorecardResult, colorMode output.ColorMode) str
 	}
 
 	// Used modules table.
-	if len(result.Used) > 0 {
-		b.WriteString("USED\n")
-		usedTable, err := renderModuleTable(result.Used, colorMode)
-		if err != nil {
-			b.WriteString(formatModuleList(result.Used))
-		} else {
-			b.WriteString(usedTable)
-		}
-		b.WriteString("\n")
-	}
+	writeModuleSection(&b, "USED", result.Used, colorMode)
 
 	// Missing modules table.
-	if len(result.Missing) > 0 {
-		b.WriteString("MISSING\n")
-		missingTable, err := renderModuleTable(result.Missing, colorMode)
-		if err != nil {
-			b.WriteString(formatModuleList(result.Missing))
-		} else {
-			b.WriteString(missingTable)
-		}
-		b.WriteString("\n")
-	}
+	writeModuleSection(&b, "MISSING", result.Missing, colorMode)
+
+	// Waived modules table (recorded refusals — pressure stays visible).
+	writeModuleSection(&b, "WAIVED (recorded refusals — re-litigate on trigger)",
+		result.Waived, colorMode)
 
 	// Recommendations.
 	if len(result.Recommendations) > 0 {
@@ -113,7 +107,7 @@ func renderScorecardText(result ScorecardResult, colorMode output.ColorMode) str
 
 // renderModuleTable renders a list of modules as a table. The Evidence
 // column is included only when at least one module has non-empty evidence
-// (typically the USED table — missing/irrelevant modules have none).
+// (typically the USED/WAIVED tables — missing/irrelevant modules have none).
 func renderModuleTable(modules []ScorecardModule, colorMode output.ColorMode) (string, error) {
 	showEvidence := false
 	for _, m := range modules {
@@ -142,6 +136,27 @@ func renderModuleTable(modules []ScorecardModule, colorMode output.ColorMode) (s
 
 	data := builder.Build()
 	return table.Render(data, table.WithColorMode(colorMode))
+}
+
+// writeModuleSection renders one titled module-table section, falling back
+// to the plain list when table rendering fails. Empty sections are skipped.
+func writeModuleSection(
+	b *strings.Builder,
+	title string,
+	modules []ScorecardModule,
+	colorMode output.ColorMode,
+) {
+	if len(modules) == 0 {
+		return
+	}
+	b.WriteString(title + "\n")
+	tableOut, err := renderModuleTable(modules, colorMode)
+	if err != nil {
+		b.WriteString(formatModuleList(modules))
+	} else {
+		b.WriteString(tableOut)
+	}
+	b.WriteString("\n")
 }
 
 // formatModuleList is a fallback when table rendering fails. It outputs
@@ -190,6 +205,14 @@ func renderScorecardMarkdown(result ScorecardResult) string {
 	if result.Summary.IrrelevantCount > 0 {
 		fmt.Fprintf(&b, "\n_%d modules excluded as irrelevant for this profile._\n",
 			result.Summary.IrrelevantCount)
+	}
+	if result.Summary.ModernityGrade != "" {
+		fmt.Fprintf(&b, "\n**Modernity: %s** — %s\n",
+			result.Summary.ModernityGrade, ModernityHint(result.Summary.ModernityGrade))
+	}
+	if result.Summary.WaivedCount > 0 {
+		fmt.Fprintf(&b, "\n_%d modules waived — recorded refusals with reasons and triggers below._\n",
+			result.Summary.WaivedCount)
 	}
 
 	if result.Metaengine != nil {
@@ -242,6 +265,15 @@ func renderScorecardMarkdown(result ScorecardResult) string {
 	renderMarkdownTable("Used", result.Used)
 	renderMarkdownTable("Missing", result.Missing)
 
+	if len(result.Waived) > 0 {
+		fmt.Fprintf(&b, "\n### Waived (%d) — recorded refusals\n\n", len(result.Waived))
+		b.WriteString("| Module | Status | Reason / revisit trigger |\n")
+		b.WriteString("|--------|--------|--------------------------|\n")
+		for _, m := range result.Waived {
+			fmt.Fprintf(&b, "| %s | %s | %s |\n", m.DisplayName, m.Status, m.Evidence)
+		}
+	}
+
 	if len(result.Recommendations) > 0 {
 		b.WriteString("\n### Recommendations\n\n")
 		for _, rec := range result.Recommendations {
@@ -263,6 +295,8 @@ func renderScorecardSARIF(result ScorecardResult) (string, error) {
 		UsedCount:       result.Summary.UsedCount,
 		RelevantTotal:   result.Summary.RelevantTotal,
 		IrrelevantCount: result.Summary.IrrelevantCount,
+		WaivedCount:     result.Summary.WaivedCount,
+		ModernityGrade:  result.Summary.ModernityGrade,
 	}
 	if result.Metaengine != nil {
 		detected := result.Metaengine.Detected
@@ -417,6 +451,8 @@ type sarifProperties struct {
 	UsedCount                 int      `json:"usedCount"`
 	RelevantTotal             int      `json:"relevantTotal"`
 	IrrelevantCount           int      `json:"irrelevantCount"`
+	WaivedCount               int      `json:"waivedCount,omitempty"`
+	ModernityGrade            string   `json:"modernityGrade,omitempty"`
 	MetaengineDetected        *bool    `json:"metaengineDetected,omitempty"`
 	MetaengineEngines         []string `json:"metaengineEngines,omitempty"`
 	MetaenginePushdownAdopted *bool    `json:"metaenginePushdownAdopted,omitempty"`

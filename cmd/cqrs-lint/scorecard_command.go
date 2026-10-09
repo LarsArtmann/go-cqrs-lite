@@ -64,8 +64,14 @@ func runScorecard(
 	threshold int,
 ) error {
 	usage := analyzer.DetectUsedModules(actx.Packages, actx.GoFiles, analyzer.DefaultCatalog)
-	result := ComputeScorecard(analyzer.DefaultCatalog, usage, actx.FeatureProfile, cfg.Preset)
+	result, err := ComputeScorecardWithWaivers(
+		analyzer.DefaultCatalog, usage, actx.FeatureProfile, cfg.Preset, cfg.Scorecard.Waivers,
+	)
+	if err != nil {
+		return fmt.Errorf("scorecard: %w", err)
+	}
 	result.Deprecated = ComputeDeprecatedPanel(ctx, actx)
+	result.Summary.ModernityGrade = ModernityGrade(result.Deprecated, actx.FeatureProfile)
 
 	out, err := renderScorecard(result, cfg.Format, parseColorMode(cfg.Color))
 	if err != nil {

@@ -139,6 +139,9 @@ type AppConfig struct {
 	Rules analyzer.RulesConfig `json:"rules,omitempty"` //nolint:modernize // config compatibility
 	// Health carries health-score tuning (e.g. the Info-deduction cap).
 	Health HealthConfig `json:"health,omitempty"` //nolint:modernize // config compatibility
+	// Scorecard carries scorecard settings: recorded per-module adoption
+	// waivers (see analyzer.ScorecardSettings).
+	Scorecard analyzer.ScorecardSettings `json:"scorecard,omitempty"` //nolint:modernize // config compatibility
 	// TypedInfo gates the F091 typed-confirmation tier: rules that need type
 	// information to attribute or confirm findings (F090(b) dot-import
 	// attribution, C008 usage confirmation) run their typed path only when
