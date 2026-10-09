@@ -65,6 +65,13 @@ var deprecatedV5Symbols = []deprecatedV5Symbol{ //nolint:gochecknoglobals // sta
 		symbol:      "OnlyTombstoned",
 		replacement: "event-type-driven deletion (ADR-0114)",
 	},
+	// 2026-10-08: issue #36 seam — WithMetaEngine marked Deprecated in-source
+	// (v5 removes it with the stack module); the typed companion is canonical.
+	{
+		fragment:    "stack",
+		symbol:      "WithMetaEngine",
+		replacement: "stackmeta.WithStore (typed companion in stack/metaengine)",
+	},
 	// 2026-09-16: marked Deprecated in-source (removal at v5); keep the
 	// curated table and the markers in lockstep — V007 is table-driven.
 	{

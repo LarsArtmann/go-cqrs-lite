@@ -1491,6 +1491,7 @@ Wire a cost-based query planner into the Bundle lifecycle with one option.
 
 ```go
 import sqlite "github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4"
+import stackmeta "github.com/larsartmann/go-cqrs-lite/stack/metaengine/v4"
 
 // 1. Declare your query (Counter ADT for O(1) status counts)
 type StatusCounts struct{}
@@ -1510,13 +1511,14 @@ store, _ := metaengine.Plan(
 
 // 2. Register with the Bundle (lifecycle managed automatically)
 bundle, _ := sqlite.New(dsn,
-    sqlite.WithStack(stack.WithMetaEngine(store)),
+    sqlite.WithStack(stackmeta.WithStore(store)),
 )
 defer bundle.Close() // closes the metaengine Store too
 
-// 3. Query at runtime
+// 3. Query at runtime (stackmeta.Store recovers the concrete *Store from
+//    the MetaEngineStore seam — Bundle.MetaEngine() returns the interface)
 counts, _ := metaengine.ExecuteTyped[StatusCounts, map[string]int64](
-    ctx, bundle.MetaEngine(), StatusCounts{},
+    ctx, stackmeta.Store(bundle), StatusCounts{},
 )
 
 // 4. For projection lifecycle (checkpoint, retry, DLQ), wrap in adapter
@@ -1526,8 +1528,8 @@ host.Register(adapter)
 
 Key points:
 
-- `WithMetaEngine(store)` registers the Store for `Bundle.Close()` — no manual cleanup
-- `bundle.MetaEngine()` returns the Store for runtime queries
+- `stackmeta.WithStore(store)` registers the Store for `Bundle.Close()` — no manual cleanup (the untyped `stack.WithMetaEngine` forwarder is deprecated, v5 removes it)
+- `bundle.MetaEngine()` returns the `MetaEngineStore` lifecycle seam (issue #36) — recover the concrete `*metaengine.Store` for queries via `stackmeta.Store(bundle)`
 - benchkit auto-discovers via `MetaEngine() != nil` (unless `Config.SkipMetaEngine`)
 - The consumer calls `metaengine.Plan()` themselves (typed generics can't flow through `any`)
 - `sqlite.WithStack()` is the passthrough for additional `stack.Option`s on any SQL preset
