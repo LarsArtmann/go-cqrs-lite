@@ -301,6 +301,19 @@ mesh-demo onboarding) lives in the eventcatalog-hub repo. Execution evidence:
 - [ ] **T3 payload fingerprint ledger + T5 persisted layout fingerprints** — LiveStore-style drift detection: per-event payload hash stamp (warn-first) and per-collection engine fingerprints checked at boot → `LayoutDiff` → existing `RebuildThreshold`/`ConfirmRebuild` gate. _(Effort: L; v5-gated where stamps touch `Record`)_
 - [ ] **T6 compat policy + T7 docs/ADR split** — additive-change rules as a cqrs-lint rule; recipes + core.md conventions; proposal → implementation ADRs. _(Effort: M; follows the code)_
 
+## System-level BDD testing harness (building 2026-10-09)
+
+> Axon-5-informed Given/When/Then harness over a real `system.New` boot.
+> Plan: [`docs/planning/2026-10-09_04-04_SUPERB-bdd-testing-harness-pareto-plan.md`](docs/planning/2026-10-09_04-04_SUPERB-bdd-testing-harness-pareto-plan.md) ·
+> Design: [ADR-0153](docs/adr/0153-system-level-bdd-testing-harness-systemscenario.md).
+> Companion evidence: cqrs-htmx `declarative_test.go` (51 raw dispatches, ~300 lines of `eventually` scaffolding, 22× given-prerequisite re-derivation); go-appkit zero scenario usage.
+
+- [x] **Owner ruling (2026-10-09, Full Execution Mode)** — Q1 slot-alongside-v5 (gated on Phase-0 evidence, which confirmed demand), Q2 plain `testing.T` fluent chains, Q3 `Clock` on `system.New` only. All three accepted as recommended; ADR-0153 records them.
+- [ ] **Phase 2 — MVP harness** (`systemscenario` module: `System`/`Given`/`When`/`Then`/`ThenQuery`/`ThenError`/vacuous guard; three-gate registration; self-tests). _(Effort: M)_
+- [ ] **Phase 3 — any-message phases** (`Given().Command`, `WhenEvent`, `WhenQuery`, `ThenEvents`, `ThenCommands` saga capture, `ThenErrorFamily`). _(Effort: M)_
+- [ ] **Phase 4 — testability infra + proof** (`system.Clock` + `WithClock`, `TimeAdvances` incl. additive `scheduling.WithClock` seam per ADR-0153 D4, v4-parity proof, cqrs-htmx + go-appkit pilots, docs wave). _(Effort: L)_
+- [ ] **Phase 5 — tail** (golden trails, equivalence+rapidgen, bench/CI/CHANGELOG propagation, final `#verify` + retro). _(Effort: M)_
+
 ## Durable Work Queue module (proposed 2026-09-13)
 
 > ~~T20 PapDashboard adoption evaluation~~ and ~~M4 polish tail~~ done
