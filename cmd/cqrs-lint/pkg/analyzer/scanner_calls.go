@@ -275,6 +275,22 @@ func capturePayloadType(ctx *AnalysisContext, call *ast.CallExpr) {
 					return
 				}
 			}
+		case *ast.CallExpr:
+			// T(x) — conversion payload: the domain wraps a wider view into
+			// the payload type at the emit site (nsfw-classifier history:
+			// event.New(..., MediaCaptured(cmd.View), ...) — the conversion
+			// blinded the registry and made that package the lone E003
+			// flag while identical siblings routed through emit helpers).
+			// A conversion names the exact payload type, so this case is
+			// precise. Deliberately NOT handled here: selector payloads
+			// (cmd.Field) — the field name need not equal the payload type
+			// name, and revealing them today would flip consumers to new
+			// E003 findings before E003's construct counting understands
+			// emit helpers.
+			if id, ok := a.Fun.(*ast.Ident); ok && len(a.Args) == 1 {
+				ctx.Registry.EventPayloadTypes[id.Name] = true
+				return
+			}
 		case *ast.Ident:
 			ctx.Registry.EventPayloadTypes[a.Name] = true
 			return
