@@ -6,8 +6,6 @@ package systemscenario_test
 
 import (
 	"context"
-	"encoding/json/v2"
-
 	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
@@ -26,14 +24,10 @@ type TaskCreated struct {
 	Status string
 }
 
-type TaskCompleted struct {
-	ID     string
-	Status string
-}
-
 type TaskUpdated struct {
-	ID    string
-	Title string
+	ID     string
+	Title  string
+	Status string
 }
 
 type TaskState struct {
@@ -53,7 +47,7 @@ var (
 	errTaskMissing   error = errorfamily.NewRejection("task.missing", "task does not exist")
 	errTaskCompleted error = errorfamily.NewConflict("task.already_completed", "task already completed")
 
-	// completerActor is stamped on task.completed events by the fixture
+	// completerActor is stamped on completion task.updated events by the fixture
 	// handler so metadata assertions have something deterministic to check.
 	completerActor = id.NewActorID(id.ActorSystem, "harness-fixture")
 )
@@ -69,21 +63,19 @@ func (EchoQuery) Type() query.Type { return "task.echo" }
 func applyTask(state TaskState, evt event.Event) (TaskState, error) {
 	switch evt.Type() {
 	case "task.created":
-		var payload TaskCreated
-		if err := json.Unmarshal(evt.Payload(), &payload); err != nil {
+		payload, err := event.DecodePayloadAuto[TaskCreated](evt)
+		if err != nil {
 			return state, err
 		}
 
 		state.Title, state.Status, state.Exists = payload.Title, payload.Status, true
 	case "task.updated":
-		var payload TaskUpdated
-		if err := json.Unmarshal(evt.Payload(), &payload); err != nil {
+		payload, err := event.DecodePayloadAuto[TaskUpdated](evt)
+		if err != nil {
 			return state, err
 		}
 
-		state.Title = payload.Title
-	case "task.completed":
-		state.Status = "completed"
+		state.Title, state.Status = payload.Title, payload.Status
 	}
 
 	return state, nil
@@ -138,7 +130,6 @@ func taskDomain() system.DomainConfig {
 			system.Lookup[TaskView]("task_views").
 				On("task.created", TaskCreated{}).
 				On("task.updated", TaskUpdated{}).
-				On("task.completed", TaskCompleted{}).
 				Done(),
 		},
 	}
@@ -169,7 +160,7 @@ func registerTaskHandlers(sys *system.System) {
 					}
 
 					return []event.Event{taskEvent("task.updated", cmd.StreamID(), version+1,
-						TaskUpdated{ID: cmd.StreamID().String(), Title: "renamed"})}, nil
+						TaskUpdated{ID: cmd.StreamID().String(), Title: "renamed", Status: state.Status})}, nil
 				})
 		})
 
@@ -185,8 +176,8 @@ func registerTaskHandlers(sys *system.System) {
 						return nil, errTaskCompleted
 					}
 
-					return []event.Event{taskEvent("task.completed", cmd.StreamID(), version+1,
-						TaskCompleted{ID: cmd.StreamID().String(), Status: "completed"},
+					return []event.Event{taskEvent("task.updated", cmd.StreamID(), version+1,
+						TaskUpdated{ID: cmd.StreamID().String(), Title: state.Title, Status: "completed"},
 						event.WithActor(completerActor))}, nil
 				})
 		})

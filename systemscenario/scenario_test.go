@@ -49,7 +49,7 @@ func TestSystem_HappyPath(t *testing.T) {
 	sc.Given(
 		sc.Event("task.created", ref, TaskCreated{ID: ref.ID.String(), Title: "ship it", Status: "pending"}),
 	).When(newTaskCmd("task.complete", ref.ID)).
-		Then("task.completed")
+		Then("task.updated")
 }
 
 func TestSystem_ThenPayloadAssertsDecodedPayload(t *testing.T) {
@@ -61,8 +61,8 @@ func TestSystem_ThenPayloadAssertsDecodedPayload(t *testing.T) {
 		sc.Event("task.created", ref, TaskCreated{ID: ref.ID.String(), Title: "ship it", Status: "pending"}),
 	).When(newTaskCmd("task.complete", ref.ID))
 
-	phase.Then("task.completed")
-	systemscenario.ThenPayload(phase, 0, TaskCompleted{ID: ref.ID.String(), Status: "completed"})
+	phase.Then("task.updated")
+	systemscenario.ThenPayload(phase, 0, TaskUpdated{ID: ref.ID.String(), Title: "ship it", Status: "completed"})
 }
 
 func TestSystem_GivenSeedsDeciderState(t *testing.T) {
@@ -84,7 +84,7 @@ func TestSystem_ConflictFamilyOnCompletedTask(t *testing.T) {
 
 	sc.Given(
 		sc.Event("task.created", ref, TaskCreated{ID: ref.ID.String(), Status: "pending"}),
-		sc.Event("task.completed", ref, TaskCompleted{ID: ref.ID.String(), Status: "completed"}),
+		sc.Event("task.completed", ref, TaskUpdated{ID: ref.ID.String(), Title: "ship it", Status: "completed"}),
 	).When(newTaskCmd("task.complete", ref.ID)).
 		ThenError(errTaskCompleted).
 		ThenErrorFamily(errorfamily.Conflict)
@@ -98,7 +98,7 @@ func TestSystem_ThenQueryAwaitsProjection(t *testing.T) {
 	sc.Given(
 		sc.Event("task.created", ref, TaskCreated{ID: ref.ID.String(), Title: "ship it", Status: "pending"}),
 	).When(newTaskCmd("task.complete", ref.ID)).
-		Then("task.completed").
+		Then("task.updated").
 		ThenQuery(taskViewQuery(sc, ctx, ref.ID.String()),
 			TaskView{ID: ref.ID.String(), Title: "ship it", Status: "completed"})
 }
@@ -121,7 +121,7 @@ func TestSystem_ThenEventsAndMetadata(t *testing.T) {
 	sc.Given(
 		sc.Event("task.created", ref, TaskCreated{ID: ref.ID.String(), Title: "ship it", Status: "pending"}),
 	).When(newTaskCmd("task.complete", ref.ID)).
-		Then("task.completed").
+		Then("task.updated").
 		ThenEvents(func(events []event.Event) {
 			if len(events) != 1 {
 				t.Fatalf("ThenEvents: want 1 act event, got %d", len(events))

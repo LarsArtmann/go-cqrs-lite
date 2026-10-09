@@ -17,7 +17,7 @@ func TestSystem_WhenEventDrivesBusPath(t *testing.T) {
 	sc.Given(
 		sc.Event("task.created", ref, TaskCreated{ID: ref.ID.String(), Title: "bus task", Status: "pending"}),
 	).WhenEvent(
-		sc.Event("task.completed", ref, TaskCompleted{ID: ref.ID.String(), Status: "completed"}),
+		sc.Event("task.completed", ref, TaskUpdated{ID: ref.ID.String(), Title: "ship it", Status: "completed"}),
 	).ThenNoEvents(). // bus acts do not journal the published events themselves
 				ThenQuery(taskViewQuery(sc, ctx, ref.ID.String()),
 			TaskView{ID: ref.ID.String(), Title: "bus task", Status: "completed"})

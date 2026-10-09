@@ -76,7 +76,7 @@ func TestFailureDiagnostics(t *testing.T) {
 
 	for _, want := range []string{
 		"want event types [task.bogus]",
-		"got [task.completed]",
+		"got [task.updated]",
 		"(actor: ", // per-event actor diagnostics
 	} {
 		if !strings.Contains(string(out), want) {

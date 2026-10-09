@@ -30,7 +30,7 @@ func TestSystem_ConfigDriftDemo(t *testing.T) {
 	sc.Given(
 		sc.Event("task.created", href, TaskCreated{ID: href.ID.String(), Status: "pending"}),
 	).When(newTaskCmd("task.complete", href.ID)).
-		Then("task.completed")
+		Then("task.updated")
 
 	want := []event.Type{"task.created", "task.completed"}
 	if len(rawTypes) != len(want) {

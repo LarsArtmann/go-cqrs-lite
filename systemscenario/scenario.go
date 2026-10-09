@@ -45,10 +45,10 @@ type capturedCommand struct {
 // Scenario is a booted system under Given/When/Then test. Construct via
 // [System]; never zero-value it.
 type Scenario struct {
-	t       *testing.T
-	ctx     context.Context
-	sys     *system.System
-	cfg     scenarioConfig
+	t        *testing.T
+	ctx      context.Context
+	sys      *system.System
+	cfg      scenarioConfig
 	asserted bool
 
 	cmdMu            sync.Mutex
