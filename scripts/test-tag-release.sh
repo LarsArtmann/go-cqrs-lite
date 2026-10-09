@@ -157,10 +157,30 @@ out_lib="$(smoke_probe_args "cli" "$LIBTMP/does-not-exist.txt")"
 check "missing probes file yields the default (empty)" bash -c "[ -z \"\$0\" ]" "$out_lib"
 
 printf '%s\n' '# fixture untag list' 'frozen/mod' '.' >"$LIBTMP/untagged.txt"
-check "is_untagged matches a listed train" env UNTAGGED_TRAINS_FILE="$LIBTMP/untagged.txt" bash -c 'source "$(dirname "$0")/lib/release_common.sh" && is_untagged frozen/mod' "$(cd "$(dirname "$0")" && pwd)"
-check "is_untagged matches the root '.' train" env UNTAGGED_TRAINS_FILE="$LIBTMP/untagged.txt" bash -c 'source "$(dirname "$0")/lib/release_common.sh" && is_untagged .' "$(cd "$(dirname "$0")" && pwd)"
-check "is_untagged passes an unlisted train" env UNTAGGED_TRAINS_FILE="$LIBTMP/untagged.txt" bash -c '! source "$(dirname "$0")/lib/release_common.sh" || ! is_untagged live/mod' "$(cd "$(dirname "$0")" && pwd)"
-check "is_untagged tolerates a missing list file" env UNTAGGED_TRAINS_FILE="$LIBTMP/no-such-list.txt" bash -c 'source "$(dirname "$0")/lib/release_common.sh" && ! is_untagged frozen/mod' "$(cd "$(dirname "$0")" && pwd)"
+if UNTAGGED_TRAINS_FILE="$LIBTMP/untagged.txt" is_untagged "frozen/mod"; then
+	echo "  ✓ PASS: is_untagged matches a listed train"
+else
+	echo "  ✗ FAIL: is_untagged must match a listed train"
+	FAILED=1
+fi
+if UNTAGGED_TRAINS_FILE="$LIBTMP/untagged.txt" is_untagged "."; then
+	echo "  ✓ PASS: is_untagged matches the root '.' train"
+else
+	echo "  ✗ FAIL: is_untagged must match the root '.' train"
+	FAILED=1
+fi
+if UNTAGGED_TRAINS_FILE="$LIBTMP/untagged.txt" is_untagged "live/mod"; then
+	echo "  ✗ FAIL: is_untagged must pass an unlisted train"
+	FAILED=1
+else
+	echo "  ✓ PASS: is_untagged passes an unlisted train"
+fi
+if UNTAGGED_TRAINS_FILE="$LIBTMP/no-such-list.txt" is_untagged "frozen/mod"; then
+	echo "  ✗ FAIL: is_untagged must tolerate a missing list file"
+	FAILED=1
+else
+	echo "  ✓ PASS: is_untagged tolerates a missing list file"
+fi
 rm -rf "$LIBTMP"
 
 echo "━━━ Test 6: --smoke rejects a non-main module cleanly ━━━"
