@@ -13,7 +13,7 @@ import (
 //
 // After [WhenPhase.TimeAdvances] the assertion polls until the types match
 // or the await timeout expires (timer firing is asynchronous).
-func (p *WhenPhase) Then(expected ...event.Type) {
+func (p *WhenPhase) Then(expected ...event.Type) *WhenPhase {
 	s := p.sc
 	s.t.Helper()
 	s.requireAct("Then")
@@ -29,7 +29,7 @@ func (p *WhenPhase) Then(expected ...event.Type) {
 				" since the When act, got " + formatTypes(got) + describeEvents(s.actEvents())
 		})
 
-		return
+		return p
 	}
 
 	got := eventTypes(s.actEvents())
@@ -37,6 +37,8 @@ func (p *WhenPhase) Then(expected ...event.Type) {
 		s.t.Fatalf("Then: want event types %s since the When act, got %s\nact events:%s",
 			formatTypes(expected), formatTypes(got), describeEvents(s.actEvents()))
 	}
+
+	return p
 }
 
 // ThenEvents hands the full act events to inspect for assertions beyond

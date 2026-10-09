@@ -31,7 +31,7 @@ type TaskCompleted struct {
 	Status string
 }
 
-type TaskRenamed struct {
+type TaskUpdated struct {
 	ID    string
 	Title string
 }
@@ -75,8 +75,8 @@ func applyTask(state TaskState, evt event.Event) (TaskState, error) {
 		}
 
 		state.Title, state.Status, state.Exists = payload.Title, payload.Status, true
-	case "task.renamed":
-		var payload TaskRenamed
+	case "task.updated":
+		var payload TaskUpdated
 		if err := json.Unmarshal(evt.Payload(), &payload); err != nil {
 			return state, err
 		}
@@ -137,7 +137,7 @@ func taskDomain() system.DomainConfig {
 		Projections: []system.ProjectionDeclaration{
 			system.Lookup[TaskView]("task_views").
 				On("task.created", TaskCreated{}).
-				On("task.renamed", TaskRenamed{}).
+				On("task.updated", TaskUpdated{}).
 				On("task.completed", TaskCompleted{}).
 				Done(),
 		},
@@ -168,8 +168,8 @@ func registerTaskHandlers(sys *system.System) {
 						return nil, errTaskMissing
 					}
 
-					return []event.Event{taskEvent("task.renamed", cmd.StreamID(), version+1,
-						TaskRenamed{ID: cmd.StreamID().String(), Title: "renamed"})}, nil
+					return []event.Event{taskEvent("task.updated", cmd.StreamID(), version+1,
+						TaskUpdated{ID: cmd.StreamID().String(), Title: "renamed"})}, nil
 				})
 		})
 

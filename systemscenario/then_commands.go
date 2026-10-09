@@ -10,7 +10,7 @@ import (
 // in order — the saga/deriver assertion: an event published on the bus
 // triggers a deriver whose derived command is captured here (Axon
 // then().commands analog). After TimeAdvances the assertion polls.
-func (p *WhenPhase) ThenCommands(expected ...command.Type) {
+func (p *WhenPhase) ThenCommands(expected ...command.Type) *WhenPhase {
 	s := p.sc
 	s.t.Helper()
 	s.requireAct("ThenCommands")
@@ -26,7 +26,7 @@ func (p *WhenPhase) ThenCommands(expected ...command.Type) {
 				", got " + formatTypes(got) + describeCommands(s.actCommands())
 		})
 
-		return
+		return p
 	}
 
 	got := commandTypes(s.actCommands())
@@ -34,6 +34,8 @@ func (p *WhenPhase) ThenCommands(expected ...command.Type) {
 		s.t.Fatalf("ThenCommands: want dispatched command types %s since the When act, got %s\nact commands:%s",
 			formatTypes(expected), formatTypes(got), describeCommands(s.actCommands()))
 	}
+
+	return p
 }
 
 // ThenCommandsSatisfy hands the commands dispatched since the act baseline

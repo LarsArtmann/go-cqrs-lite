@@ -110,7 +110,7 @@ func TestSystem_GivenByCommandSeedsByIntent(t *testing.T) {
 
 	sc.Given().Command(newTaskCmd("task.create", ref.ID)).
 		When(newTaskCmd("task.rename", ref.ID)).
-		Then("task.renamed")
+		Then("task.updated")
 }
 
 func TestSystem_ThenEventsAndMetadata(t *testing.T) {

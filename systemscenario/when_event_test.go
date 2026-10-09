@@ -4,8 +4,6 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
-	"github.com/larsartmann/go-cqrs-lite/id/v4"
-	"github.com/larsartmann/go-cqrs-lite/systemscenario/v4"
 )
 
 // TestSystem_WhenEventDrivesBusPath exercises the bus act: a published event
@@ -21,7 +19,7 @@ func TestSystem_WhenEventDrivesBusPath(t *testing.T) {
 	).WhenEvent(
 		sc.Event("task.completed", ref, TaskCompleted{ID: ref.ID.String(), Status: "completed"}),
 	).ThenNoEvents(). // bus acts do not journal the published events themselves
-		ThenQuery(taskViewQuery(sc, ctx, ref.ID.String()),
+				ThenQuery(taskViewQuery(sc, ctx, ref.ID.String()),
 			TaskView{ID: ref.ID.String(), Title: "bus task", Status: "completed"})
 }
 
@@ -35,7 +33,7 @@ func TestSystem_ThenCommandsCapturesActs(t *testing.T) {
 
 	sc.Given().Command(newTaskCmd("task.create", ref.ID)).
 		When(newTaskCmd("task.rename", ref.ID)).
-		Then("task.renamed").
+		Then("task.updated").
 		ThenCommands("task.rename").
 		ThenCommandsSatisfy(func(cmds []command.Command) {
 			if len(cmds) != 1 {

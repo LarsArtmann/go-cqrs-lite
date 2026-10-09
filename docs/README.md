@@ -184,6 +184,7 @@ The authoritative module index with README links lives in the **[project README]
 | [0150](adr/0150-engineconfig-singlewriter-advisory-lease.md)          | EngineConfig.SingleWriter Advisory Lease                              | Accepted                                            |
 | [0151](adr/0151-goal-direction-evolutions-are-the-declaration.md)     | Goal Direction — "Declare ONLY" Means Evolutions + Queries            | Accepted                                            |
 | [0152](adr/0152-fleet-first-module-topology-v5-dual-support.md)       | Fleet-First Module Topology and v5 Dual-Support Transition            | Accepted                                            |
+| [0153](adr/0153-system-level-bdd-testing-harness-systemscenario.md)   | System-Level BDD Testing Harness (systemscenario)                     | Accepted                                            |
 | [0100](adr/0100-redesign-scope-parallel.md)                           | Redesign scope: parallel (new alongside old)                          | Accepted                                            |
 | [0101](adr/0101-backend-abstraction-n-instance.md)                    | Backend abstraction: N-instance metaengine                            | Accepted                                            |
 | [0102](adr/0102-admin-interface-introspection-only.md)                | Admin web interface: introspection API only                           | Accepted                                            |

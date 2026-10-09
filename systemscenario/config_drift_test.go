@@ -5,10 +5,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
-	"github.com/larsartmann/go-cqrs-lite/systemscenario/v4"
 )
 
 // TestSystem_ConfigDriftDemo is the fixture-from-production-config proof
@@ -63,7 +63,7 @@ func bootRawAndDispatch(t *testing.T, ref id.StreamRef) []event.Type {
 		t.Fatalf("raw boot: Start: %v", err)
 	}
 
-	for _, cmdType := range []string{"task.create", "task.complete"} {
+	for _, cmdType := range []command.Type{"task.create", "task.complete"} {
 		if err := sys.CommandDispatcher().Dispatch(ctx, newTaskCmd(cmdType, ref.ID)); err != nil {
 			t.Fatalf("raw boot: dispatch %s: %v", cmdType, err)
 		}

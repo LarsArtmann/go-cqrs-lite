@@ -110,6 +110,11 @@ func (g *GivenPhase) When(cmd command.Command) *WhenPhase {
 	return g.sc.When(cmd)
 }
 
+// WhenEvent transitions to the bus-path act. See [Scenario.WhenEvent].
+func (g *GivenPhase) WhenEvent(events ...event.Event) *WhenPhase {
+	return g.sc.WhenEvent(events...)
+}
+
 // WhenQuery transitions to the act under test by dispatching a query.
 func (g *GivenPhase) WhenQuery(q query.Query) *WhenPhase {
 	return g.sc.WhenQuery(q)
