@@ -6,6 +6,11 @@
 > across 10 categories at last reconciliation; the CLI is the single source of
 > truth, this file is a point-in-time snapshot). Remaining open items are
 > candidates for future rule additions. Struck-through items are done.
+>
+> **Mission (2026-10-09):** cqrs-lint exists to drive consumer projects toward
+> maximal, MOST-MODERN go-cqrs-lite usage — every idea here is evaluated
+> against that goal; the scorecard's teeth are the point, never the problem
+> (see README § Scorecard for the credit/waiver/modernity machinery).
 
 > Generated from a deep analysis of **45 consumer projects** (21 analyzed from source code on disk).
 > Each idea is grounded in a real anti-pattern observed in one or more consumer codebases.

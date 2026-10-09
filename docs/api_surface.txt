@@ -583,6 +583,9 @@ cmd/cqrs-lint/func ComputeDeprecatedPanel
 cmd/cqrs-lint/func ComputeHealthScore
 cmd/cqrs-lint/func ComputeHealthScoreWithCap
 cmd/cqrs-lint/func ComputeScorecard
+cmd/cqrs-lint/func ComputeScorecardWithWaivers
+cmd/cqrs-lint/func ModernityGrade
+cmd/cqrs-lint/func ModernityHint
 cmd/cqrs-lint/method Load
 cmd/cqrs-lint/method MarshalJSON
 cmd/cqrs-lint/pkg/analyzer/const CategoryCore
@@ -692,6 +695,7 @@ cmd/cqrs-lint/pkg/analyzer/func StringLit
 cmd/cqrs-lint/pkg/analyzer/func StripJSONC
 cmd/cqrs-lint/pkg/analyzer/func UsedKeys
 cmd/cqrs-lint/pkg/analyzer/func ValidPresetNames
+cmd/cqrs-lint/pkg/analyzer/func ValidateScorecardWaivers
 cmd/cqrs-lint/pkg/analyzer/method All
 cmd/cqrs-lint/pkg/analyzer/method AnyStoreDistributed
 cmd/cqrs-lint/pkg/analyzer/method AnyStorePersistent
@@ -748,6 +752,8 @@ cmd/cqrs-lint/pkg/analyzer/struct ProjectConfig
 cmd/cqrs-lint/pkg/analyzer/struct ProjectionInfo
 cmd/cqrs-lint/pkg/analyzer/struct QueryDeclInfo
 cmd/cqrs-lint/pkg/analyzer/struct RulesConfig
+cmd/cqrs-lint/pkg/analyzer/struct ScorecardSettings
+cmd/cqrs-lint/pkg/analyzer/struct ScorecardWaiver
 cmd/cqrs-lint/pkg/analyzer/struct StoreSpec
 cmd/cqrs-lint/pkg/analyzer/type CommandFlowKind
 cmd/cqrs-lint/pkg/analyzer/type ConfigPreset
