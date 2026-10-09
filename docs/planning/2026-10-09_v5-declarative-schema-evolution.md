@@ -251,6 +251,8 @@ Decode, codec selection, validation-ordering, re-encode, event reconstruction, v
 
 ## 12. Open questions → recommendations
 
+> **Ruling (2026-10-09, same day):** the owner re-issued the standing execution loop ("execute and verify, repeat until done") instead of objecting to any recommendation — adopted as delegated approval of all three recommendations below plus the **T2-first sequence (T2 → T1 → T4 → T3 → T5 → T6/T7)**, with T2 landing v4.x-additive and fleet apps migrating opportunistically (bank-sync pilot first). Implementation ADRs split out as each increment lands (T7).
+
 1. **Declaration home?** → **Type lives in `schema/` (Tier 2 builder); composition point is `system.DomainConfig` (ADR-0123); `catalog/` renders.** No third registry: `DomainConfig.Schema` derives `Events` (coeffect gate), decoder registrations, and the catalog export from one list. Layering: system (Tier 5) → schema (Tier 2) is downward and legal; the reverse would violate `check-arch`. (Confirm with a `#check-arch` dry run at implementation time.)
 2. **T3 stamp location?** → **Metadata field now; first-class `Record` stamp at v5 only if burn-in favors it.** Metadata ships in v4.x with zero schema churn; the v5 window stays open for the cleaner form.
 3. **Warn-first promotion?** → **Advisory + opt-in hard mode from day one; promote to hard after DiscordSync + bank-sync each run one clean minor cycle with the ledger on.** Mirrors the ADR-0151 evidence-gate style: named consumers, named criterion, not a date.
