@@ -10,6 +10,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/decider/v4"
+	"github.com/larsartmann/go-cqrs-lite/deriver/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
@@ -195,4 +196,41 @@ func memoryDeployment() system.DeploymentConfig {
 			{Role: system.RoleProjections, Engine: "primary"},
 		},
 	}
+}
+
+// sagaDomain extends taskDomain with the archiver saga: a deriver reacts to
+// task.updated events by dispatching task.archive, whose handler emits
+// task.archived — the event→command→event chain ThenCommands asserts.
+func sagaDomain() system.DomainConfig {
+	base := taskDomain()
+	baseCommands := base.Commands
+
+	base.Commands = func(sys *system.System) {
+		baseCommands(sys)
+		registerArchive(sys)
+
+		archiver := deriver.Deriver(func(ctx context.Context, evt event.Event) ([]command.Command, error) {
+			return []command.Command{newTaskCmd("task.archive", evt.StreamID())}, nil
+		})
+		if err := sys.Bus().Subscribe("task.updated", archiver.AsHandler(sys.CommandDispatcher())); err != nil {
+			panic(err)
+		}
+	}
+
+	return base
+}
+
+func registerArchive(sys *system.System) {
+	system.RegisterCommand[*command.BasicCommand, TaskState](sys, "task.archive", //nolint:errcheck // fixture
+		func(ctx context.Context, cmd *command.BasicCommand) system.Op[TaskState] {
+			return system.Execute(ctx, cmd.StreamID(), "Task",
+				func(state TaskState, version event.Version) ([]event.Event, error) {
+					if !state.Exists {
+						return nil, errTaskMissing
+					}
+
+					return []event.Event{taskEvent("task.archived", cmd.StreamID(), version+1,
+						TaskUpdated{ID: cmd.StreamID().String(), Title: state.Title, Status: "archived"})}, nil
+				})
+		})
 }

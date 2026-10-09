@@ -77,3 +77,20 @@ func (p *WhenPhase) Query(q query.Query) *WhenPhase {
 
 	return p
 }
+
+// Await flips the scenario into await mode: every subsequent Then*
+// assertion polls until it passes or the await timeout expires. The bus
+// delivers to subscribers (derivers, notifications) asynchronously, so acts
+// whose outcomes arrive via a bus handler — a deriver dispatching a derived
+// command — must be awaited:
+//
+//	sc.When(cmdComplete).Await().
+//		Then("task.updated", "task.archived").
+//		ThenCommands("task.complete", "task.archive")
+//
+// [WhenPhase.TimeAdvances] implies await mode.
+func (p *WhenPhase) Await() *WhenPhase {
+	p.sc.awaitMode = true
+
+	return p
+}
