@@ -208,8 +208,8 @@ check "dry-run refusal names the policy list" bash -c "printf '%s' \"\$0\" | gre
 
 echo "━━━ Test 9: --lockstep fans one version to every manifest train ━━━"
 fixture_repo "$TMPROOT/t9"
-printf '# v5-style wave manifest (dependency order, no versions)\ngood Core of the wave\nlibx\n' >"$TMPROOT/t9/wave.txt"
-out="$(cd "$TMPROOT/t9" && BATCH_RELEASE_LOG_DIR="$TMPROOT/t9-logs" bash "$SCRIPT" --lockstep v2.0.9 --from-manifest wave.txt 2>&1)" && rc=0 || rc=$?
+printf '# v5-style wave manifest (dependency order, no versions)\ngood Core of the wave\nlibx\n' >"$TMPROOT/t9-wave.txt"
+out="$(cd "$TMPROOT/t9" && BATCH_RELEASE_LOG_DIR="$TMPROOT/t9-logs" bash "$SCRIPT" --lockstep v2.0.9 --from-manifest "$TMPROOT/t9-wave.txt" 2>&1)" && rc=0 || rc=$?
 check "lockstep release exits 0" test "$rc" -eq 0
 check "lockstep tag created (described train)" bash -c "git -C \"\$0\" tag -l good/v2.0.9 | grep -q ." "$TMPROOT/t9"
 check "lockstep tag created (bare train)" bash -c "git -C \"\$0\" tag -l libx/v2.0.9 | grep -q ." "$TMPROOT/t9"
@@ -218,8 +218,8 @@ check "tree fully restored" bash -c "git -C \"\$0\" status --porcelain | wc -l |
 
 echo "━━━ Test 10: --lockstep refuses a wrong-major train (path-vs-tag) ━━━"
 fixture_repo "$TMPROOT/t10"
-printf 'good Wrong-major train\n' >"$TMPROOT/t10/wave.txt"
-out="$(cd "$TMPROOT/t10" && bash "$SCRIPT" --lockstep v3.0.0 --from-manifest wave.txt 2>&1)" && rc=0 || rc=$?
+printf 'good Wrong-major train\n' >"$TMPROOT/t10-wave.txt"
+out="$(cd "$TMPROOT/t10" && bash "$SCRIPT" --lockstep v3.0.0 --from-manifest "$TMPROOT/t10-wave.txt" 2>&1)" && rc=0 || rc=$?
 check "lockstep wrong-major exits nonzero" test "$rc" -ne 0
 check "path-vs-tag guard fired" bash -c "printf '%s' \"\$0\" | grep -q 'end in /v3'" "$out"
 check "no tag was created" bash -c "! git -C \"\$0\" tag -l good/v3.0.0 | grep -q ." "$TMPROOT/t10"
@@ -227,15 +227,15 @@ check "no tag was created" bash -c "! git -C \"\$0\" tag -l good/v3.0.0 | grep -
 echo "━━━ Test 11: --lockstep + untag policy + malformed input ━━━"
 fixture_repo "$TMPROOT/t11"
 printf '# fixture untag list\nlibx\n' >"$TMPROOT/t11-untagged.txt"
-printf 'good Fine\nlibx Frozen\n' >"$TMPROOT/t11/wave.txt"
-out="$(cd "$TMPROOT/t11" && UNTAGGED_TRAINS_FILE="$TMPROOT/t11-untagged.txt" bash "$SCRIPT" --lockstep v2.0.10 --from-manifest wave.txt 2>&1)" && rc=0 || rc=$?
+printf 'good Fine\nlibx Frozen\n' >"$TMPROOT/t11-wave.txt"
+out="$(cd "$TMPROOT/t11" && UNTAGGED_TRAINS_FILE="$TMPROOT/t11-untagged.txt" bash "$SCRIPT" --lockstep v2.0.10 --from-manifest "$TMPROOT/t11-wave.txt" 2>&1)" && rc=0 || rc=$?
 check "lockstep refuses an untagged train" test "$rc" -ne 0
 check "untag policy error shown" bash -c "printf '%s' \"\$0\" | grep -q 'untag policy list'" "$out"
 check "no tag was created" bash -c "! git -C \"\$0\" tag -l '*/v2.0.10' | grep -q ." "$TMPROOT/t11"
-out="$(cd "$TMPROOT/t11" && bash "$SCRIPT" --lockstep v2.0.11 --from-manifest wave.txt \"good stray triple\" 2>&1)" && rc=0 || rc=$?
+out="$(cd "$TMPROOT/t11" && bash "$SCRIPT" --lockstep v2.0.11 --from-manifest "$TMPROOT/t11-wave.txt" \"good stray triple\" 2>&1)" && rc=0 || rc=$?
 check "lockstep rejects positional triples" test "$rc" -ne 0
 check "lockstep positional error is actionable" bash -c "printf '%s' \"\$0\" | grep -q 'takes the module list from --from-manifest'" "$out"
-out="$(cd "$TMPROOT/t11" && bash "$SCRIPT" --lockstep v2.0.12 --from-manifest wave.txt --dry-run 2>&1)" && rc=0 || rc=$?
+out="$(cd "$TMPROOT/t11" && bash "$SCRIPT" --lockstep v2.0.12 --from-manifest "$TMPROOT/t11-wave.txt" --dry-run 2>&1)" && rc=0 || rc=$?
 check "lockstep dry-run exits 0 without tagging" test "$rc" -eq 0
 check "lockstep dry-run creates no tags" bash -c "! git -C \"\$0\" tag -l '*/v2.0.12' | grep -q ." "$TMPROOT/t11"
 

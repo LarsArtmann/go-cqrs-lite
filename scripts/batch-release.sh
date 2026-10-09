@@ -325,7 +325,7 @@ if [ -n "$LOCKSTEP_VER" ]; then
 	for line in "${MANIFEST_LINES[@]}"; do
 		module=$(printf '%s' "$line" | awk '{print $1}')
 		description=$(printf '%s' "$line" | cut -d' ' -f2-)
-		if [ -z "$description" ]; then
+		if [ "$description" = "$line" ]; then
 			description="Lockstep wave ${LOCKSTEP_VER}"
 		fi
 		ARGS+=("${module} ${LOCKSTEP_VER} ${description}")
