@@ -59,11 +59,11 @@ func WithSort(column string, desc bool) ScanOption {
 	}
 }
 
-// SortColumn declares one column in a compound sort.
-type SortColumn struct {
-	Column string
-	Desc   bool
-}
+// SortColumn declares one column in a compound sort. It is an alias of
+// SortSpec: a compound sort is a list of single-column sort directives, and
+// the first column is already projected into the pushdown SortSpec, so the
+// two names can never drift apart.
+type SortColumn = SortSpec
 
 // WithSortColumns sets a compound sort (multi-column ORDER BY). When set,
 // single-column WithSort is ignored. Pushdown engines use only the first
