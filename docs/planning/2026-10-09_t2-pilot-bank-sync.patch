@@ -1,0 +1,417 @@
+diff --git a/internal/cqrs/infrastructure.go b/internal/cqrs/infrastructure.go
+index 52081d5c..e7ec9e45 100644
+--- a/internal/cqrs/infrastructure.go
++++ b/internal/cqrs/infrastructure.go
+@@ -367,13 +367,18 @@ func NewInfrastructure(
+ 	}
+ 
+ 	// Wire the upcasting read layer over the adapter: event.DecorateStore
+-	// composes the journal store with schema.UpcastSourceTransform so event
++	// composes the journal store with the compiled schema chain so event
+ 	// upcasters (see upcasting.go) apply automatically on Load while writes
+ 	// pass through unchanged. History normalized by migrate-journal makes
+ 	// this defensive rather than load-bearing.
++	upcastChain, err := UpcastChain()
++	if err != nil {
++		return nil, errorfamily.WrapInfrastructure(err, "cqrs.upcast_chain", "compile schema evolution chain")
++	}
++
+ 	upcastingStore := event.DecorateStore(
+ 		adapter, nil,
+-		schema.UpcastSourceTransform(NewBalanceUpdatedV1ToV2Upcaster()),
++		upcastChain.SourceTransform(),
+ 	)
+ 
+ 	deciderRepo, err := decider.NewRepository(
+diff --git a/internal/cqrs/upcasting.go b/internal/cqrs/upcasting.go
+index 7b50801e..6ddc202c 100644
+--- a/internal/cqrs/upcasting.go
++++ b/internal/cqrs/upcasting.go
+@@ -1,116 +1,54 @@
+ package cqrs
+ 
+ import (
+-	"encoding/json/v2"
+-
+-	"github.com/larsartmann/go-codec"
+ 	"github.com/larsartmann/go-cqrs-lite/event/v4"
+ 	"github.com/larsartmann/go-cqrs-lite/schema/v4"
+ 	errorfamily "github.com/larsartmann/go-error-family"
+ )
+ 
+-// FieldRename describes a single field name change in an event payload schema.
+-type FieldRename struct {
+-	From string
+-	To   string
+-}
+-
+ // schemaV1 is the schema version before the BalanceUpdatedPayload restructuring.
+ const schemaV1 event.SchemaVersion = 1
+ 
+-// NewBalanceUpdatedV1ToV2Upcaster transforms v1 BalanceUpdated payloads
+-// (flat amountCents/reservedCents/currency) into v2 payloads (nested
+-// amount/reserved MoneyPayload objects). This was the first real schema
+-// migration: the v1 layout split a single currency across two bare cent
+-// fields, violating the "cents and currency are inseparable" principle that
+-// every other payload follows.
++// UpcastChain compiles bank-sync's declarative schema-evolution chain. The
++// only hand-written logic is the v1→v2 BalanceUpdated reshape (the flat
++// amountCents/reservedCents/currency layout violated "cents and currency
++// are inseparable"); everything else — matching, version stamping, payload
++// encoding, event identity preservation — is library machinery
++// (schema.Compile, 2026-10-09 T2).
+ //
+-//nolint:ireturn // returns schema.Upcaster from external CQRS framework
+-func NewBalanceUpdatedV1ToV2Upcaster() schema.Upcaster {
+-	return schema.NewUpcaster(EventBalanceUpdated, schemaV1, func(evt event.Event) (*event.ImmutableEvent, error) {
+-		var raw map[string]any
+-
+-		if err := json.Unmarshal(evt.Payload(), &raw); err != nil {
+-			return nil, errorfamily.WrapCorruption(err, "upcast.unmarshal", "unmarshal BalanceUpdated v1 payload")
+-		}
+-
+-		currency, hasCurrency := raw["currency"]
+-		if !hasCurrency {
+-			return nil, errorfamily.NewCorruption(
+-				"upcast.missing_currency",
+-				"BalanceUpdated v1 payload missing required 'currency' field",
+-			)
+-		}
+-
+-		amountCents := raw["amountCents"]
+-		reservedCents := raw["reservedCents"]
+-
+-		raw["amount"] = map[string]any{
+-			"cents":    amountCents,
+-			"currency": currency,
+-		}
+-		raw["reserved"] = map[string]any{
+-			"cents":    reservedCents,
+-			"currency": currency,
+-		}
+-
+-		delete(raw, "currency")
+-		delete(raw, "amountCents")
+-		delete(raw, "reservedCents")
+-
+-		payload, err := json.Marshal(raw)
+-		if err != nil {
+-			return nil, errorfamily.WrapCorruption(err, "upcast.marshal", "marshal BalanceUpdated v2 payload")
+-		}
+-
+-		return event.New(
+-			evt.Type(),
+-			evt.StreamID(),
+-			evt.StreamType(),
+-			evt.Version(),
+-			payload,
+-			event.WithCodec(codec.JSONCodec{}),
+-		)
+-	})
++// The returned chain composes with event.DecorateStore via
++// chain.SourceTransform(): reads see current payloads, stored bytes and the
++// write path stay untouched. History normalized by migrate-journal makes
++// this defensive rather than load-bearing.
++func UpcastChain() (*schema.Chain, error) {
++	return schema.Compile(
++		schema.Transform(EventBalanceUpdated, schemaV1, upcastBalanceUpdatedV1),
++	)
+ }
+ 
+-// NewFieldRenameUpcaster returns a schema.Upcaster that rewrites payload
+-// field names in events of sourceType at sourceVersion. Useful for evolving
+-// event schemas without breaking old data.
+-//
+-//nolint:ireturn // returns schema.Upcaster from external CQRS framework
+-func NewFieldRenameUpcaster(
+-	sourceType event.Type,
+-	sourceVersion event.SchemaVersion,
+-	renames []FieldRename,
+-) schema.Upcaster {
+-	return schema.NewUpcaster(sourceType, sourceVersion, func(evt event.Event) (*event.ImmutableEvent, error) {
+-		var raw map[string]any
+-
+-		err := json.Unmarshal(evt.Payload(), &raw)
+-		if err != nil {
+-			return nil, errorfamily.WrapCorruption(err, "upcast.unmarshal", "unmarshal payload for upcast")
+-		}
+-
+-		for _, rename := range renames {
+-			if val, ok := raw[rename.From]; ok {
+-				delete(raw, rename.From)
+-				raw[rename.To] = val
+-			}
+-		}
+-
+-		payload, err := json.Marshal(raw)
+-		if err != nil {
+-			return nil, errorfamily.WrapCorruption(err, "upcast.marshal", "marshal upcasted payload")
+-		}
+-
+-		return event.New(
+-			evt.Type(),
+-			evt.StreamID(),
+-			evt.StreamType(),
+-			evt.Version(),
+-			payload,
+-			event.WithCodec(codec.JSONCodec{}),
++// upcastBalanceUpdatedV1 reshapes a v1 payload (flat cents fields with a
++// shared currency) into the v2 nested MoneyPayload layout.
++func upcastBalanceUpdatedV1(fields map[string]any) (map[string]any, error) {
++	currency, hasCurrency := fields["currency"]
++	if !hasCurrency {
++		return nil, errorfamily.NewCorruption(
++			"upcast.missing_currency",
++			"BalanceUpdated v1 payload missing required 'currency' field",
+ 		)
+-	})
++	}
++
++	fields["amount"] = map[string]any{
++		"cents":    fields["amountCents"],
++		"currency": currency,
++	}
++	fields["reserved"] = map[string]any{
++		"cents":    fields["reservedCents"],
++		"currency": currency,
++	}
++
++	delete(fields, "currency")
++	delete(fields, "amountCents")
++	delete(fields, "reservedCents")
++
++	return fields, nil
+ }
+internal/cqrs/upcasting_test.go <- a3afd42f
+diff --git a/internal/cqrs/upcasting_test.go b/internal/cqrs/upcasting_test.go
+index fbf02209..0bd3541f 100644
+--- a/internal/cqrs/upcasting_test.go
++++ b/internal/cqrs/upcasting_test.go
+@@ -7,11 +7,12 @@ import (
+ 	"github.com/larsartmann/go-codec"
+ 	"github.com/larsartmann/go-cqrs-lite/event/v4"
+ 	"github.com/larsartmann/go-cqrs-lite/id/v4"
++	"github.com/larsartmann/go-cqrs-lite/schema/v4"
+ 	. "github.com/onsi/ginkgo/v2"
+ 	. "github.com/onsi/gomega"
+ )
+ 
+-var _ = Describe("FieldRenameUpcaster", func() {
++var _ = Describe("schema chain field renames", func() {
+ 	It("renames fields in an event payload", func() {
+ 		aggID := id.NewStreamID()
+ 
+@@ -22,28 +23,29 @@ var _ = Describe("FieldRenameUpcaster", func() {
+ 				"keep":    "untouched",
+ 			},
+ 			event.WithCodec(codec.JSONCodec{}),
++			event.WithSchemaVersion(1),
+ 		)
+ 		Expect(err).ToNot(HaveOccurred())
+ 
+-		upcaster := cqrs.NewFieldRenameUpcaster(
+-			cqrs.EventSyncStarted, 1,
+-			[]cqrs.FieldRename{
+-				{From: "oldName", To: "newName"},
+-			},
++		chain, err := schema.Compile(
++			schema.RenameField(cqrs.EventSyncStarted, 1, "oldName", "newName"),
+ 		)
++		Expect(err).ToNot(HaveOccurred())
+ 
+-		result, err := upcaster.Upcast(evt)
++		result, err := chain.SourceTransform()([]event.Event{evt})
+ 		Expect(err).ToNot(HaveOccurred())
++		Expect(result).To(HaveLen(1))
+ 
+ 		var transformed map[string]any
+-		Expect(json.Unmarshal(result.Payload(), &transformed)).To(Succeed())
++		Expect(json.Unmarshal(result[0].Payload(), &transformed)).To(Succeed())
+ 
+ 		Expect(transformed).ToNot(HaveKey("oldName"))
+ 		Expect(transformed).To(HaveKeyWithValue("newName", "test-value"))
+ 		Expect(transformed).To(HaveKeyWithValue("keep", "untouched"))
++		Expect(result[0].SchemaVersion()).To(Equal(event.SchemaVersion(2)))
+ 	})
+ 
+-	It("preserves fields that are not renamed", func() {
++	It("preserves event identity while renaming", func() {
+ 		aggID := id.NewStreamID()
+ 
+ 		evt, err := event.New(
+@@ -53,20 +55,26 @@ var _ = Describe("FieldRenameUpcaster", func() {
+ 				"provider":  "wise",
+ 			},
+ 			event.WithCodec(codec.JSONCodec{}),
++			event.WithSchemaVersion(1),
+ 		)
+ 		Expect(err).ToNot(HaveOccurred())
+ 
+-		upcaster := cqrs.NewFieldRenameUpcaster(
+-			cqrs.EventSyncCompleted, 1,
+-			[]cqrs.FieldRename{},
++		chain, err := schema.Compile(
++			schema.RenameField(cqrs.EventSyncCompleted, 1, "balanceId", "balanceID"),
+ 		)
++		Expect(err).ToNot(HaveOccurred())
+ 
+-		result, err := upcaster.Upcast(evt)
++		result, err := chain.SourceTransform()([]event.Event{evt})
+ 		Expect(err).ToNot(HaveOccurred())
++		Expect(result).To(HaveLen(1))
+ 
+ 		var transformed map[string]any
+-		Expect(json.Unmarshal(result.Payload(), &transformed)).To(Succeed())
+-		Expect(transformed).To(HaveKeyWithValue("balanceId", float64(42)))
++		Expect(json.Unmarshal(result[0].Payload(), &transformed)).To(Succeed())
++		Expect(transformed).To(HaveKeyWithValue("balanceID", float64(42)))
+ 		Expect(transformed).To(HaveKeyWithValue("provider", "wise"))
++
++		Expect(result[0].ID()).To(Equal(evt.ID()))
++		Expect(result[0].StreamID()).To(Equal(evt.StreamID()))
++		Expect(result[0].Version()).To(Equal(evt.Version()))
+ 	})
+ })
+internal/cqrs/upcasting_v1_v2_test.go <- a3afd42f
+diff --git a/internal/cqrs/upcasting_v1_v2_test.go b/internal/cqrs/upcasting_v1_v2_test.go
+index 4ed1e539..d6aaf80d 100644
+--- a/internal/cqrs/upcasting_v1_v2_test.go
++++ b/internal/cqrs/upcasting_v1_v2_test.go
+@@ -12,7 +12,7 @@ import (
+ 	. "github.com/onsi/gomega"
+ )
+ 
+-var _ = Describe("BalanceUpdatedV1ToV2Upcaster", func() {
++var _ = Describe("UpcastChain BalanceUpdated v1 to v2", func() {
+ 	makeV1Event := func(payload map[string]any) event.Event {
+ 		aggID := id.NewStreamID()
+ 		evt, err := event.New(
+@@ -25,6 +25,17 @@ var _ = Describe("BalanceUpdatedV1ToV2Upcaster", func() {
+ 		return evt
+ 	}
+ 
++	upcastOne := func(evt event.Event) event.Event {
++		chain, err := cqrs.UpcastChain()
++		Expect(err).ToNot(HaveOccurred())
++
++		result, err := chain.SourceTransform()([]event.Event{evt})
++		Expect(err).ToNot(HaveOccurred())
++		Expect(result).To(HaveLen(1))
++
++		return result[0]
++	}
++
+ 	It("transforms flat amountCents/reservedCents/currency into nested MoneyPayload", func() {
+ 		evt := makeV1Event(map[string]any{
+ 			"id":            float64(42),
+@@ -38,9 +49,7 @@ var _ = Describe("BalanceUpdatedV1ToV2Upcaster", func() {
+ 			"createdAt":     "2024-01-15T10:30:00Z",
+ 		})
+ 
+-		upcaster := cqrs.NewBalanceUpdatedV1ToV2Upcaster()
+-		result, err := upcaster.Upcast(evt)
+-		Expect(err).ToNot(HaveOccurred())
++		result := upcastOne(evt)
+ 
+ 		var decoded cqrs.BalanceUpdatedPayload
+ 		Expect(json.Unmarshal(result.Payload(), &decoded)).To(Succeed())
+@@ -66,9 +75,7 @@ var _ = Describe("BalanceUpdatedV1ToV2Upcaster", func() {
+ 			"createdAt":     "2024-01-01T00:00:00Z",
+ 		})
+ 
+-		upcaster := cqrs.NewBalanceUpdatedV1ToV2Upcaster()
+-		result, err := upcaster.Upcast(evt)
+-		Expect(err).ToNot(HaveOccurred())
++		result := upcastOne(evt)
+ 
+ 		var raw map[string]any
+ 		Expect(json.Unmarshal(result.Payload(), &raw)).To(Succeed())
+@@ -80,7 +87,7 @@ var _ = Describe("BalanceUpdatedV1ToV2Upcaster", func() {
+ 		Expect(raw).To(HaveKey("reserved"))
+ 	})
+ 
+-	It("preserves zero-value cents correctly", func() {
++	It("preserves zero-value cents and event identity", func() {
+ 		evt := makeV1Event(map[string]any{
+ 			"id":            float64(1),
+ 			"profileId":     float64(1),
+@@ -93,14 +100,18 @@ var _ = Describe("BalanceUpdatedV1ToV2Upcaster", func() {
+ 			"createdAt":     "2024-01-01T00:00:00Z",
+ 		})
+ 
+-		upcaster := cqrs.NewBalanceUpdatedV1ToV2Upcaster()
+-		result, err := upcaster.Upcast(evt)
+-		Expect(err).ToNot(HaveOccurred())
++		result := upcastOne(evt)
+ 
+ 		var decoded cqrs.BalanceUpdatedPayload
+ 		Expect(json.Unmarshal(result.Payload(), &decoded)).To(Succeed())
+ 		Expect(decoded.Amount.Cents).To(Equal(int64(0)))
+ 		Expect(decoded.Reserved.Cents).To(Equal(int64(0)))
++
++		Expect(result.SchemaVersion()).To(Equal(event.SchemaVersion(2)))
++		Expect(result.ID()).To(Equal(evt.ID()))
++		Expect(result.StreamID()).To(Equal(evt.StreamID()))
++		Expect(result.Version()).To(Equal(evt.Version()))
++		Expect(result.OccurredAt()).To(BeTemporally("==", evt.OccurredAt()))
+ 	})
+ 
+ 	It("returns a Corruption error when currency field is missing", func() {
+@@ -114,10 +125,12 @@ var _ = Describe("BalanceUpdatedV1ToV2Upcaster", func() {
+ 			"reservedCents": float64(0),
+ 		})
+ 
+-		upcaster := cqrs.NewBalanceUpdatedV1ToV2Upcaster()
+-		_, err := upcaster.Upcast(evt)
++		chain, err := cqrs.UpcastChain()
++		Expect(err).ToNot(HaveOccurred())
++
++		_, err = chain.SourceTransform()([]event.Event{evt})
+ 		Expect(err).To(HaveOccurred())
+-		Expect(err.Error()).To(ContainSubstring("missing_currency"))
++		Expect(err.Error()).To(ContainSubstring("upcast.missing_currency"))
+ 	})
+ 
+ 	It("returns a Corruption error when payload is not valid JSON", func() {
+@@ -129,9 +142,11 @@ var _ = Describe("BalanceUpdatedV1ToV2Upcaster", func() {
+ 		)
+ 		Expect(err).ToNot(HaveOccurred())
+ 
+-		upcaster := cqrs.NewBalanceUpdatedV1ToV2Upcaster()
+-		_, err = upcaster.Upcast(evt)
++		chain, err := cqrs.UpcastChain()
++		Expect(err).ToNot(HaveOccurred())
++
++		_, err = chain.SourceTransform()([]event.Event{evt})
+ 		Expect(err).To(HaveOccurred())
+-		Expect(err.Error()).To(ContainSubstring("upcast.unmarshal"))
++		Expect(err.Error()).To(ContainSubstring("schema.op_decode_failed"))
+ 	})
+ })
+internal/cqrs/store_conformance_test.go <- a3afd42f
+diff --git a/internal/cqrs/store_conformance_test.go b/internal/cqrs/store_conformance_test.go
+index f18ba91d..67126508 100644
+--- a/internal/cqrs/store_conformance_test.go
++++ b/internal/cqrs/store_conformance_test.go
+@@ -15,7 +15,6 @@ import (
+ 	"github.com/larsartmann/go-cqrs-lite/encryption/v4"
+ 	"github.com/larsartmann/go-cqrs-lite/event/v4"
+ 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+-	"github.com/larsartmann/go-cqrs-lite/schema/v4"
+ 	cqrsstorage "github.com/larsartmann/go-cqrs-lite/storage/v4"
+ 	. "github.com/onsi/ginkgo/v2"
+ 	. "github.com/onsi/gomega"
+@@ -52,9 +51,12 @@ func decoratedCompositeForTest(ctx context.Context, db *sql.DB, encryptionKey []
+ 		store = encryptedStore
+ 	}
+ 
++	upcastChain, err := cqrs.UpcastChain()
++	Expect(err).NotTo(HaveOccurred())
++
+ 	return event.DecorateStore(
+ 		store, nil,
+-		schema.UpcastSourceTransform(cqrs.NewBalanceUpdatedV1ToV2Upcaster()),
++		upcastChain.SourceTransform(),
+ 	)
+ }
+ 
