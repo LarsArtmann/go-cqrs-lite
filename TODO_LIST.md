@@ -894,6 +894,15 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       `#check-lint-config` inside `#verify-fast`) — only the quiet window is
       missing: load1 hit 163 at 2026-09-28 22:00 (shared-host storm; still
       ~10 at 00:30). Never force under storm.
+      STATE 2026-10-09 22:00: T03/f045 owns this row; BLOCKED on the sibling
+      BDD-harness wave (docs/planning/2026-10-09_14-49) — systemscenario is
+      GOWORK=off compile-red (uses the untagged `system.Clock`/`WithClock`
+      seam while its go.mod pins `system/v4 v4.11.0`); their plan owns tagging
+      `system v4.12.0` + `systemscenario v4.0.0`. Verify chain v4 armed
+      detached (`~/.local/state/crush-t03/verify-chain.sh`): compile probe →
+      fixture tidy probe → load gate → preflight 9/9 → `#verify`. Their
+      15:49–18:40 tag wave re-rotted cqrs-lint fixtures (gjson bump) — tidied
+      + converged 21:53.
       — source: archived 16-37 §f10, 15-34 §f20, 15-57 §b1; 04-04 §f1
       _(Effort: M, quiet-window)_
 - [ ] **Verify the nightly weekly load-sweep leg fires** (Sundays-only, first

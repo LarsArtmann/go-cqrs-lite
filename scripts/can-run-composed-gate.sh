@@ -18,7 +18,9 @@
 #      load-guard refusals 5 times on 2026-10-09: gate GREEN at load5=14,
 #      verify refuses at load5 >= 10. The --wait path passes BOTH ceilings
 #      to wait-for-quiet explicitly — its --max-load flag alone defaults
-#      load5 to 1.5x, which would reintroduce the same gap.)
+#      load5 to 1.5x, which would reintroduce the same gap. WAIT_TIMEOUT /
+#      WAIT_INTERVAL (defaults 3600/30, wait-for-quiet's own) pass through
+#      to the same call — self-test knobs, no behavior change.)
 #
 # Usage:
 #   scripts/can-run-composed-gate.sh            # assert now (ceiling 10)
@@ -162,6 +164,23 @@ self_test() {
 		echo "  ✓ PASS: draining burst (load5 over ceiling) refused"
 	fi
 
+	# 1c. --wait delegation passes BOTH ceilings: the same draining-burst
+	#     fixture must be refused BY wait-for-quiet ("host never quieted"),
+	#     not merely caught by the trailing assert ("precondition failed").
+	#     rc alone cannot distinguish the two — if the --wait call ever drops
+	#     --max-load5, wait-for-quiet re-defaults load5 to 1.5x ceiling (15),
+	#     14.6 slips under, and the wait phase aims at the wrong target.
+	wait_out="$(QUIET_LOADAVG_FILE="$tmp/draining" CI=false CANARY_PROCS='impossible-pattern-xyz' \
+		TREE_STABLE_DELAY=0 WAIT_TIMEOUT=1 WAIT_INTERVAL=1 \
+		"$0" --wait 2>&1)"
+	wait_rc=$?
+	if ((wait_rc != 0)) && grep -q 'host never quieted' <<<"$wait_out"; then
+		echo "  ✓ PASS: --wait delegation refuses draining burst (both ceilings)"
+	else
+		echo "  ✗ FAIL: --wait must delegate both ceilings (rc=${wait_rc}, out: ${wait_out:-empty})"
+		failures=$((failures + 1))
+	fi
+
 	# 2b. wait-loop recovers after one rebound: fixture starts loud, flips
 	#     quiet after 1s; the one-shot would refuse, the loop retries into GREEN.
 	printf '40.0 55.0 1.0 1/1 1\n' >"$tmp/flip"
@@ -256,7 +275,9 @@ if [[ "$WAIT_LOOP" == 1 ]]; then
 fi
 
 if [[ "$WAIT_MODE" == 1 ]]; then
-	"$SCRIPT_DIR/wait-for-quiet.sh" --max-load "$CEILING" --max-load5 "$CEILING" || fail "host never quieted (wait-for-quiet rc=$?)"
+	"$SCRIPT_DIR/wait-for-quiet.sh" --max-load "$CEILING" --max-load5 "$CEILING" \
+		--timeout "${WAIT_TIMEOUT:-3600}" --interval "${WAIT_INTERVAL:-30}" \
+		|| fail "host never quieted (wait-for-quiet rc=$?)"
 fi
 
 if ! assert_all; then
