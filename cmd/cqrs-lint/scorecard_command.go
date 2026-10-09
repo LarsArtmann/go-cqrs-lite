@@ -65,7 +65,7 @@ func runScorecard(
 ) error {
 	usage := analyzer.DetectUsedModules(actx.Packages, actx.GoFiles, analyzer.DefaultCatalog)
 	result, err := ComputeScorecardWithWaivers(
-		analyzer.DefaultCatalog, usage, actx.FeatureProfile, cfg.Preset, cfg.Scorecard.Waivers,
+		analyzer.DefaultCatalog, usage, actx.FeatureProfile, cfg.Preset, cfg.ScorecardSettings.Waivers,
 	)
 	if err != nil {
 		return fmt.Errorf("scorecard: %w", err)

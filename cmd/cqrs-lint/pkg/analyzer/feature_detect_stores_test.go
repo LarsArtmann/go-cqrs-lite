@@ -78,6 +78,43 @@ func main() { _, _ = postgres.Name, sqliteengine.Name }
 	}
 }
 
+// TestDetectFeatures_SystemCompositionImport pins the system composition
+// root detection with its boundary rule: "go-cqrs-lite/system/" must match
+// the versioned system import but never "go-cqrs-lite/systemtest".
+func TestDetectFeatures_SystemCompositionImport(t *testing.T) {
+	t.Parallel()
+
+	ctx := BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+import (
+	"github.com/larsartmann/go-cqrs-lite/system/v4"
+)
+
+func main() { _ = system.New }
+`,
+	})
+
+	if !ctx.FeatureProfile.HasSystemComposition {
+		t.Fatal("system/v4 import should set HasSystemComposition")
+	}
+
+	sibling := BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+import (
+	"github.com/larsartmann/go-cqrs-lite/systemtest/v4"
+)
+
+func main() { _ = systemtest.Run }
+`,
+	})
+
+	if sibling.FeatureProfile.HasSystemComposition {
+		t.Fatal("systemtest import must NOT set HasSystemComposition (path-boundary rule)")
+	}
+}
+
 // TestDetectFeatures_EngineImportSetsStoreAndList pins single-engine
 // wiring: the engine import implies both the primary store and the list.
 func TestDetectFeatures_EngineImportSetsStoreAndList(t *testing.T) {
