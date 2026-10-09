@@ -65,6 +65,11 @@ type Scenario struct {
 	lastErr         error
 	lastQueryResult any
 
+	// versionHints tracks the next version per stream for [Scenario.Event],
+	// counting minted-but-unappended events so multiple mints in one Given
+	// stamp strictly increasing versions.
+	versionHints map[string]event.Version
+
 	// awaitMode makes Then* assertions poll (set by TimeAdvances).
 	awaitMode bool
 }
@@ -94,10 +99,11 @@ func System(
 	}
 
 	sc := &Scenario{ //nolint:exhaustruct_v5 // baselines set at the first When act
-		t:   t,
-		ctx: ctx,
-		sys: sys,
-		cfg: cfg,
+		t:            t,
+		ctx:          ctx,
+		sys:          sys,
+		cfg:          cfg,
+		versionHints: make(map[string]event.Version),
 	}
 	sys.UseCommandMiddleware(sc.captureMiddleware())
 
@@ -272,24 +278,28 @@ func (s *Scenario) Event(
 	return evt
 }
 
-// nextVersion returns the version the next event on ref should carry.
+// nextVersion returns the version the next event on ref should carry,
+// counting minted-but-unappended events so consecutive [Scenario.Event]
+// calls in one Given stamp strictly increasing versions.
 func (s *Scenario) nextVersion(ref id.StreamRef) event.Version {
 	s.t.Helper()
 
-	events, err := s.sys.EventStore().Load(s.ctx, ref)
-	if err != nil {
-		if errors.Is(err, event.ErrStreamNotFound) {
-			return 1
-		}
+	key := ref.String()
+	if next, ok := s.versionHints[key]; ok {
+		s.versionHints[key] = next + 1
+		return next
+	}
 
+	next := event.Version(1)
+	if events, err := s.sys.EventStore().Load(s.ctx, ref); err == nil && len(events) > 0 {
+		next = events[len(events)-1].Version() + 1
+	} else if err != nil && !errors.Is(err, event.ErrStreamNotFound) {
 		s.t.Fatalf("systemscenario.Event: load %s: %v", ref, err)
 	}
 
-	if len(events) == 0 {
-		return 1
-	}
+	s.versionHints[key] = next + 1
 
-	return events[len(events)-1].Version() + 1
+	return next
 }
 
 // describeEvents renders one line per event for failure diagnostics:

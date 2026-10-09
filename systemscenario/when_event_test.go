@@ -6,9 +6,8 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 )
 
-// TestSystem_WhenEventDrivesBusPath exercises the bus act: a published event
-// (no journal append) still flows to projections, so the read model reflects
-// it via ThenQuery.
+// TestSystem_WhenEventDrivesBusPath exercises the external-event act:
+// journaled + published, so the projection tails it into the read model.
 func TestSystem_WhenEventDrivesBusPath(t *testing.T) {
 	t.Parallel()
 
@@ -17,9 +16,9 @@ func TestSystem_WhenEventDrivesBusPath(t *testing.T) {
 	sc.Given(
 		sc.Event("task.created", ref, TaskCreated{ID: ref.ID.String(), Title: "bus task", Status: "pending"}),
 	).WhenEvent(
-		sc.Event("task.completed", ref, TaskUpdated{ID: ref.ID.String(), Title: "ship it", Status: "completed"}),
-	).ThenNoEvents(). // bus acts do not journal the published events themselves
-				ThenQuery(taskViewQuery(sc, ctx, ref.ID.String()),
+		sc.Event("task.updated", ref, TaskUpdated{ID: ref.ID.String(), Title: "bus task", Status: "completed"}),
+	).Then("task.updated").
+		ThenQuery(taskViewQuery(sc, ctx, ref.ID.String()),
 			TaskView{ID: ref.ID.String(), Title: "bus task", Status: "completed"})
 }
 

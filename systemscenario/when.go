@@ -20,11 +20,12 @@ func (s *Scenario) When(cmd command.Command) *WhenPhase {
 	return &WhenPhase{sc: s}
 }
 
-// WhenEvent is the bus path act: publish events to the event bus so
-// projections, derivers, and subscribers react exactly as they would to
-// production traffic (Axon when().event analog). The events themselves are
-// NOT appended to the journal — the bus is the delivery mechanism; handlers
-// that persist will do so through their own stores.
+// WhenEvent is the external-event act: events are recorded in the journal
+// (facts that happened, ADR-0136) AND published to the event bus, so both
+// journal-tailing projections and bus subscribers (derivers, notifications)
+// react exactly as they would to production external traffic (Axon
+// when().event analog — the aggregate fixture likewise injects into the
+// event stream).
 func (s *Scenario) WhenEvent(events ...event.Event) *WhenPhase {
 	return (&WhenPhase{sc: s}).Event(events...)
 }
@@ -48,15 +49,17 @@ func (p *WhenPhase) Command(cmd command.Command) *WhenPhase {
 	return p.sc.When(cmd)
 }
 
-// Event chains a bus-path act. See [Scenario.WhenEvent].
+// Event chains an external-event act: journal + publish. See
+// [Scenario.WhenEvent].
 func (p *WhenPhase) Event(events ...event.Event) *WhenPhase {
 	s := p.sc
 	s.t.Helper()
 
 	s.markActStart()
 
-	if err := s.sys.Publisher().Publish(s.ctx, events...); err != nil {
-		s.t.Fatalf("systemscenario.WhenEvent: publish: %v", err)
+	if len(events) > 0 {
+		s.appendEvents(events)
+		s.publishEvents(events)
 	}
 
 	return p

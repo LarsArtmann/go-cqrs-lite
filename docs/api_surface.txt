@@ -7350,6 +7350,7 @@ systemscenario/method ThenSuccess
 systemscenario/method When
 systemscenario/method When
 systemscenario/method WhenEvent
+systemscenario/method WhenEvent
 systemscenario/method WhenQuery
 systemscenario/method WhenQuery
 systemscenario/struct GivenPhase

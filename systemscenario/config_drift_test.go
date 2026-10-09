@@ -32,7 +32,7 @@ func TestSystem_ConfigDriftDemo(t *testing.T) {
 	).When(newTaskCmd("task.complete", href.ID)).
 		Then("task.updated")
 
-	want := []event.Type{"task.created", "task.completed"}
+	want := []event.Type{"task.created", "task.updated"}
 	if len(rawTypes) != len(want) {
 		t.Fatalf("raw boot: want journal %v, got %v", want, rawTypes)
 	}

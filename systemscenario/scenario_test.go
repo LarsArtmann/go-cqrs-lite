@@ -84,7 +84,7 @@ func TestSystem_ConflictFamilyOnCompletedTask(t *testing.T) {
 
 	sc.Given(
 		sc.Event("task.created", ref, TaskCreated{ID: ref.ID.String(), Status: "pending"}),
-		sc.Event("task.completed", ref, TaskUpdated{ID: ref.ID.String(), Title: "ship it", Status: "completed"}),
+		sc.Event("task.updated", ref, TaskUpdated{ID: ref.ID.String(), Title: "ship it", Status: "completed"}),
 	).When(newTaskCmd("task.complete", ref.ID)).
 		ThenError(errTaskCompleted).
 		ThenErrorFamily(errorfamily.Conflict)

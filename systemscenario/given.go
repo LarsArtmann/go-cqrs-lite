@@ -43,14 +43,14 @@ func (g *GivenPhase) Events(events ...event.Event) *GivenPhase {
 		return g
 	}
 
-	s.appendGiven(events)
-	s.publishGiven(events)
+	s.appendEvents(events)
+	s.publishEvents(events)
 
 	return g
 }
 
 // appendGiven appends the events to the journal, grouped per stream.
-func (s *Scenario) appendGiven(events []event.Event) {
+func (s *Scenario) appendEvents(events []event.Event) {
 	s.t.Helper()
 
 	byStream := make(map[id.StreamRef][]event.Event)
@@ -74,7 +74,7 @@ func (s *Scenario) appendGiven(events []event.Event) {
 
 // publishGiven publishes the events to the bus so projections and saga
 // subscribers fold them, mirroring the repository's save→publish order.
-func (s *Scenario) publishGiven(events []event.Event) {
+func (s *Scenario) publishEvents(events []event.Event) {
 	s.t.Helper()
 
 	if err := s.sys.Publisher().Publish(s.ctx, events...); err != nil {
