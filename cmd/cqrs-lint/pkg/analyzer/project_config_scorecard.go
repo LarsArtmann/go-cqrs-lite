@@ -1,6 +1,7 @@
 package analyzer
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 )
@@ -56,7 +57,7 @@ func ValidateScorecardWaivers(waivers []ScorecardWaiver) error {
 	for _, w := range waivers {
 		switch {
 		case w.Key == "":
-			return fmt.Errorf("scorecard waiver: key must not be empty")
+			return errors.New("scorecard waiver: key must not be empty")
 		case seen[w.Key]:
 			return fmt.Errorf("scorecard waiver: duplicate key %q", w.Key)
 		case !scored[ModuleKey(w.Key)]:
