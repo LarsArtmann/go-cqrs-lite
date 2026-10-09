@@ -871,6 +871,9 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       (zero assertion failures; the documented semi-dead-VM/host-contention
       class). Replay both logged seeds (`build/shuffle-seeds.log`) when the
       box is quiet; closes the dgraph `-shuffle=on` rollout item's caveat fully.
+      STATE 2026-10-09 22:05: seed list lives IN-TREE — replay from
+      `build/shuffle-seeds.log` directly (`grep 'label=mysql'` for the 7
+      mysql-manual seeds; the lost /tmp extraction of 21 was derived data).
       — source: 08-05 §b1/§f5 _(Effort: M)_
 - [ ] **Run the real `#integration-mysql-vm` leg through the hardened
       `vm-mysql.sh` in a quiet window (load1<5)**, then update the F52 AGENTS
