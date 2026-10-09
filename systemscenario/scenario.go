@@ -60,7 +60,7 @@ type capturedCommand struct {
 // Scenario is a booted system under Given/When/Then test. Construct via
 // [System]; never zero-value it.
 type Scenario struct {
-	t        *testing.T
+	t        testing.TB
 	ctx      context.Context
 	sys      *system.System
 	cfg      scenarioConfig
@@ -99,7 +99,7 @@ type Scenario struct {
 // Given/When/Then chains; a scenario that never runs a Then* assertion fails
 // the test (vacuous-pass guard).
 func System(
-	t *testing.T,
+	t testing.TB,
 	ctx context.Context,
 	domain system.DomainConfig,
 	deploy system.DeploymentConfig,
@@ -142,7 +142,7 @@ func System(
 // wrapper's boot. The caller owns the lifecycle — Adopt registers no
 // shutdown cleanup.
 func Adopt(
-	t *testing.T,
+	t testing.TB,
 	ctx context.Context,
 	sys *system.System,
 	opts ...Option,
@@ -162,7 +162,7 @@ func Adopt(
 
 // newScenario assembles the Scenario and installs the capture middleware.
 func newScenario(
-	t *testing.T,
+	t testing.TB,
 	ctx context.Context,
 	sys *system.System,
 	cfg scenarioConfig,
@@ -209,7 +209,8 @@ func (s *Scenario) Clock() system.Clock { return s.clock }
 
 // requireTerminalAssertion registers a cleanup that fails the test if no
 // Then* assertion ever ran — a scenario without a terminal assertion would
-// otherwise pass vacuously. Port of scenario/dsl.go's guard.
+// otherwise pass vacuously. Port of scenario/dsl.go's guard. Accepts TB so
+// benchmarks can drive scenarios without a vacuous failure.
 func (s *Scenario) requireTerminalAssertion() {
 	s.t.Cleanup(func() {
 		if !s.asserted {

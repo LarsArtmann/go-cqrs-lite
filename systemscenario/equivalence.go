@@ -3,6 +3,7 @@ package systemscenario
 import (
 	"context"
 	"fmt"
+	"slices"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -10,16 +11,17 @@ import (
 )
 
 // journalTrail is the observable shape of a journal: per stream, the ordered
-// (type, version, payload) triples. Minted event IDs and timestamps are
-// ignored — two systems fed the same history are observationally equivalent
-// exactly when these trails match (the system-level analog of
-// scenario/v4's AssertObservationalEquivalence, ADR-0136 context).
+// (type, version) pairs. Minted event IDs, timestamps, and payload bytes are
+// ignored — payloads embed minted stream IDs, and shape+order+versioning is
+// what a deployment swap can distort; two systems fed the same history are
+// observationally equivalent exactly when these trails match (the
+// system-level analog of scenario/v4's AssertObservationalEquivalence,
+// ADR-0136 context).
 type journalTrail map[string][]trailEntry
 
 type trailEntry struct {
 	eventType event.Type
 	version   event.Version
-	payload   []byte
 }
 
 // AssertJournalEquivalence fails when two booted systems' journals are not
@@ -40,10 +42,35 @@ func AssertJournalEquivalence(t *testing.T, ctx context.Context, a, b *system.Sy
 		t.Fatalf("journal equivalence: read system B: %v", err)
 	}
 
-	if fmt.Sprint(trailA) != fmt.Sprint(trailB) {
+	normalizedA, normalizedB := normalizeTrail(trailA), normalizeTrail(trailB)
+	if fmt.Sprint(normalizedA) != fmt.Sprint(normalizedB) {
 		t.Fatalf("journal equivalence violated:\nsystem A: %s\nsystem B: %s",
-			renderTrail(trailA), renderTrail(trailB))
+			renderTrail(normalizedA), renderTrail(normalizedB))
 	}
+}
+
+// normalizeTrail replaces stream keys (which carry minted IDs) with ordinals
+// by order of first appearance, sorted — two systems fed the same scenario
+// in the same stream order compare equal regardless of the IDs they minted.
+func normalizeTrail(trail journalTrail) []normalizedStream {
+	keys := make([]string, 0, len(trail))
+	for key := range trail {
+		keys = append(keys, key)
+	}
+
+	slices.Sort(keys)
+
+	out := make([]normalizedStream, len(keys))
+	for i, key := range keys {
+		out[i] = normalizedStream{ordinal: i, entries: trail[key]}
+	}
+
+	return out
+}
+
+type normalizedStream struct {
+	ordinal int
+	entries []trailEntry
 }
 
 // readJournalTrail normalizes a system's journal into its observable trail.
@@ -64,20 +91,19 @@ func readJournalTrail(ctx context.Context, sys *system.System) (journalTrail, er
 		trail[key] = append(trail[key], trailEntry{
 			eventType: evt.Type(),
 			version:   evt.Version(),
-			payload:   evt.Payload(),
 		})
 	}
 
 	return trail, nil
 }
 
-// renderTrail renders a trail for failure diagnostics.
-func renderTrail(trail journalTrail) string {
+// renderTrail renders a normalized trail for failure diagnostics.
+func renderTrail(streams []normalizedStream) string {
 	out := ""
-	for stream, entries := range trail {
-		out += "\n  " + stream + ":"
+	for _, stream := range streams {
+		out += fmt.Sprintf("\n  stream #%d:", stream.ordinal)
 
-		for _, entry := range entries {
+		for _, entry := range stream.entries {
 			out += fmt.Sprintf("\n    - %s v%d", entry.eventType, entry.version)
 		}
 	}

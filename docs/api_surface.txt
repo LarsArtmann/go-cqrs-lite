@@ -8086,9 +8086,12 @@ system/var ErrUnknownInstanceRole
 system/var ErrUnknownPublishTarget
 system/var ErrUnsafeChange
 system/var ErrUnsupportedValueType
+systemscenario/func Adopt
+systemscenario/func AssertJournalEquivalence
 systemscenario/func System
 systemscenario/func ThenPayload
 systemscenario/func ThenQueryTyped
+systemscenario/func Trail
 systemscenario/func WithAwaitTimeout
 systemscenario/func WithClock
 systemscenario/method Await
@@ -8109,6 +8112,7 @@ systemscenario/method ThenError
 systemscenario/method ThenErrorFamily
 systemscenario/method ThenEvents
 systemscenario/method ThenEventsSatisfy
+systemscenario/method ThenGolden
 systemscenario/method ThenMetadata
 systemscenario/method ThenNoCommands
 systemscenario/method ThenNoEvents

@@ -28,7 +28,7 @@ func TestTrailIsDeterministicShape(t *testing.T) {
 		sc.Event("task.created", ref, TaskCreated{ID: ref.ID.String(), Status: "pending"}),
 	).When(newTaskCmd("task.complete", ref.ID)).
 		ThenEvents(func(events []event.Event) {
-			want := "- task.updated v2\n"
+			want := "- task.updated v2 actor=harness-fixture\n"
 			if got := systemscenario.Trail(events); got != want {
 				t.Fatalf("Trail:\nwant %q\ngot  %q", want, got)
 			}
