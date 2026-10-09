@@ -190,7 +190,7 @@ func ComputeDeprecatedPanel(
 	panel := &ScorecardDeprecated{
 		RemovedAPIUses:      count(lintversion.NewV007Detector(actx)),
 		DeprecatedTransport: count(adoption.NewF030Detector(actx)),
-		StackPresetUses:     len(actx.FeatureProfile.StackPresets),
+		StackPresetUses:     stackPresetUseCount(actx),
 	}
 
 	switch {
@@ -206,6 +206,26 @@ func ComputeDeprecatedPanel(
 	}
 
 	return panel
+}
+
+// stackPresetUseCount returns the number of DISTINCT stack surfaces in use
+// project-wide: the primary module's profile unioned with every per-module
+// profile. The v007/F030 detector counts beside it scan the whole project,
+// so a stack import hidden in a submodule (cqrs-htmx keeps its stack wiring
+// in usermgmt/) must stay visible to the v5-readiness panel too — the
+// primary-only view BuildContext exposes would silently zero it.
+func stackPresetUseCount(actx *analyzer.AnalysisContext) int {
+	seen := make(map[string]struct{}, len(actx.FeatureProfile.StackPresets))
+	add := func(names []string) {
+		for _, name := range names {
+			seen[name] = struct{}{}
+		}
+	}
+	add(actx.FeatureProfile.StackPresets)
+	for _, fp := range actx.FeatureProfiles {
+		add(fp.StackPresets)
+	}
+	return len(seen)
 }
 
 // scorecardLess defines the sort order for scorecard rows: by category
