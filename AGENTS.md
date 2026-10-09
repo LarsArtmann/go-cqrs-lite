@@ -75,7 +75,7 @@ cd cmd/doc-check && GOWORK=off go run . ../../SKILL.md ../../.agents/skills/go-c
 | Bench         | `nix run .#bench` (full sweep) · `./scripts/benchmark-regression.sh` (gates: load + per-metric noise via `benchkit.RunRepeated`/`MetricVariation` + median ns/op 25% — rename-guarded, CI fails on breach)                                                                                                                                                                                                                              |
 | CI            | GitHub Actions: ci.yml (Nix-based, build/vet/test/lint/race/coverage + GOWORK=off per-module)                                                                                                                                                                                                                                                                                                                                           |
 
-Multi-module Go workspace (`go.work`) with 101 `go.mod` files (incl. root; count gate-derived via `check-canonical-facts.sh` — its regex only catches the un-backticked `N go.mod` form, so fix backticked prose counts by hand). Verify: `find . -name go.mod -not -path './vendor/*' | wc -l`
+Multi-module Go workspace (`go.work`) with 102 `go.mod` files (incl. root; count gate-derived via `check-canonical-facts.sh` — its regex only catches the un-backticked `N go.mod` form, so fix backticked prose counts by hand). Verify: `find . -name go.mod -not -path './vendor/*' | wc -l`
 
 Per-module isolation: `cd event && GOWORK=off go test ./... -count=1`
 
@@ -173,7 +173,7 @@ Split by topic; edit the topic file, never inline here:
 - [`gotchas-language-footguns.md`](docs/agents/gotchas-language-footguns.md) — pgx/CBOR/encoding traps, GOWORK positional, alloc pins, Dgraph/MariaDB/SQLite/DuckDB dialects.
 - [`gotchas-testing.md`](docs/agents/gotchas-testing.md) — full testing conventions.
 - [`gowork-modes.md`](docs/agents/gowork-modes.md) — THE GOWORK decision table + mandatory env chain + jsonv2 tag.
-- [`module-map.md`](docs/agents/module-map.md) — the internal module map (101 go.mod files incl. root; 97 non-testdata modules rowed — census gate-derived via `check-canonical-facts.sh`; engines/tools/examples also live in FEATURES' maturity matrix).
+- [`module-map.md`](docs/agents/module-map.md) — the internal module map (102 go.mod files incl. root; 98 non-testdata modules rowed — census gate-derived via `check-canonical-facts.sh`; engines/tools/examples also live in FEATURES' maturity matrix).
 
 TL;DR rules (too hot to be one click away):
 
@@ -246,13 +246,13 @@ Exemplar: `docs/planning/event-query-model.md` (reconciled 2026-09-13; plan `doc
 
 Before calling a change done, find the consumers of every exported symbol you touched and run THEIR module tests:
 
-1. Search references (`lsp_references` or `rg "SymbolName" --type go -l`) across all modules — the repo is a 97-module workspace; consumers live outside your module.
+1. Search references (`lsp_references` or `rg "SymbolName" --type go -l`) across all modules — the repo is a 98-module workspace; consumers live outside your module.
 2. Treat aggregate/convenience exports as high-risk: `projections.All()` is consumed by `system.WithCommandLifecycle`, so growing it changes every consumer's wiring.
 3. Run each consumer module's `GOWORK=off go test -short` (plus lint for the changed modules) before the final report — a compile-only check is not a verification.
 
 ## Module Tiers
 
-Seven-tier model — see [ADR-0046](docs/adr/0046-seven-tier-model.md) and [SEVEN-TIER-MODEL.md](docs/architecture-understanding/SEVEN-TIER-MODEL.md) for full mapping (78 modules at authoring; 97 rowed modules across 7 tiers as of 2026-10-09, gate-derived).
+Seven-tier model — see [ADR-0046](docs/adr/0046-seven-tier-model.md) and [SEVEN-TIER-MODEL.md](docs/architecture-understanding/SEVEN-TIER-MODEL.md) for full mapping (78 modules at authoring; 98 rowed modules across 7 tiers as of 2026-10-09, gate-derived).
 
 ```
 Tier 0 — Primitives: id/, dispatcher/, kv/, dedup/, record/ (codec, retry, flightrecorder extracted → external repos, ADR-0128)
