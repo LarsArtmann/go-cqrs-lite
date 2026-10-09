@@ -52,6 +52,12 @@ type FeatureProfile struct {
 	// This classifies CLI tools with embedded dashboards correctly, suppressing
 	// server-only rules (health checks, Prometheus, transport suggestions).
 	ServerLocal bool `json:"serverLocal"`
+	// HasSystemComposition is true when the project imports the system
+	// composition root (go-cqrs-lite/system). system.New auto-wires store,
+	// bus, projections, queries, and engines internally (ADR-0123), so the
+	// scorecard composition-credits persistence rows for such projects
+	// instead of reading them MISSING.
+	HasSystemComposition bool `json:"hasSystemComposition"`
 	// HasMetaengine is true when the project imports the metaengine module.
 	// Adoption rules (F022-F025) use this to gate pushdown suggestions.
 	HasMetaengine bool `json:"hasMetaengine"`
@@ -102,6 +108,7 @@ func (fp FeatureProfile) String() string {
 	}
 	_, _ = fmt.Fprintf(&b, "transport:     %t\n", fp.HasTransport)
 	_, _ = fmt.Fprintf(&b, "server-local:  %t\n", fp.ServerLocal)
+	_, _ = fmt.Fprintf(&b, "system:        %t\n", fp.HasSystemComposition)
 	_, _ = fmt.Fprintf(&b, "async-bus:     %t\n", fp.HasAsyncBus)
 	_, _ = fmt.Fprintf(&b, "metaengine:    %t\n", fp.HasMetaengine)
 	if len(fp.MetaengineEngines) > 0 {

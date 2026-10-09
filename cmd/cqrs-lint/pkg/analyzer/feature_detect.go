@@ -230,6 +230,12 @@ func detectImports(
 		fp.HasAsyncBus = true
 	}
 
+	// The trailing slash prevents "go-cqrs-lite/systemtest" from matching:
+	// real system imports are versioned ("go-cqrs-lite/system/v4").
+	if strings.Contains(path, "go-cqrs-lite/system/") {
+		fp.HasSystemComposition = true
+	}
+
 	// HasTransport covers every sanctioned external-delivery path: the
 	// watermill/ bridge (broker transports), go-sse (SSE delivery), cqrs-htmx,
 	// and the deprecated transport/* modules (kept so legacy projects do not

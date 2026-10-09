@@ -131,3 +131,40 @@ Nothing destructive — zero code/doc mutations; this report is the only write. 
 ---
 
 **Report status:** written 2026-10-09 02:47. Not committed (harness forbids unprompted commits; auto-commit daemon will absorb). HARVEST deferred pending decision + the 3 answers above. **Waiting for instructions.**
+
+---
+
+## Addendum — follow-up executed same session (2026-10-09, ~03:00)
+
+The owner's "make it even better" turn executed this report's own homework. Status changes:
+
+- **(b)2 CLOSED** — ADR-0151 and ADR-0152 read at source. **Material finding: ADR-0152
+  RETIRES per-train independence for Tier 0–3** (one v5 core module, Tier 0–3 as
+  packages; drivers stay modular; "tag on first consumer; untagged until then").
+- **(b)3 CLOSED** — payoff test executed on real data: **cqrs-htmx touches
+  journal-position APIs in ~20 production files** (sync_pull, journalsse, audit handlers,
+  usermgmt, dashboardui, setup); **go-appkit: zero**. Consumer patterns captured:
+  the capability-assertion dance (`sync_pull.go:134`), the `limit+1` has-more dance
+  (`sync_pull.go:222`), manual next-cursor pagination (`handlers_audit.go:62,80`), and a
+  documented command-vs-query journal divergence (`handlers_audit.go:92-99`).
+- **REVERSAL OF OPTION A (d-grade correction):** the turn-1/session recommendation
+  "in-repo Tier 0 `wal/` module" is **wrong under ADR-0152** — it would create a new
+  train that must be re-merged at the v5 cut. Correct form: **`journal` as a package in
+  the v5 core module**, `event.Journal`/`SeekableJournal` re-expressed over it. Recorded
+  in the new planning doc (below), §7.
+- **(f)1-4, 6, 8-10, 27-28 executed or folded** into the new deliverable:
+  **`docs/planning/2026-10-09_journal-contract-unification-exploration.md`** — the v2
+  kernel (all 11 blind spots incorporated: `Page[T]`, `MissingCursorPolicy` replacing the
+  bool, gaps-allowed invariant grounded in ADR-0143, `ErrPruned`/`ErrOverrun`,
+  Tailer backpressure policy, time axis, capability self-description + Decorate rules),
+  verified ecosystem comparison (tidwall/wal v1.2.1 + etcd server/v3 wal v3.7.2 via
+  raw pkg.go.dev fetches; Kafka hedged concept-level; a constructed-URL 404 on etcd was
+  caught and fixed via registry search per the verify-external-claims discipline),
+  capability matrix, landing plan, and the 3 owner questions restated with
+  recommendations.
+- **(g)2 recommendation now evidence-backed:** land with the v5 core cut (Q2).
+- **Naming recommendation:** `journal`, not `wal` (etcd's verified read-before-append /
+  CRC-repair shape shows "WAL" = crash-recovery device — not our abstraction).
+- Gate: md-go (`scripts/check-md-go.sh`) run after writing the doc — **GREEN**
+  (all 1480 code blocks valid, 73 skipped, no new errors; the doc's Go fences parse).
+

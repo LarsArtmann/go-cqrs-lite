@@ -38,6 +38,10 @@ type ProjectConfig struct {
 	// Rules carries rule-specific overrides, merged ON TOP of the preset's
 	// rules (union for disable lists, config wins for severity overrides).
 	Rules RulesConfig `json:"rules,omitzero"`
+
+	// Scorecard carries scorecard behavior settings: recorded per-module
+	// adoption waivers. See ScorecardSettings.
+	Scorecard ScorecardSettings `json:"scorecard,omitzero"`
 }
 
 // LoadProjectConfig reads ConfigFileName from dir and decodes it as JSONC
@@ -67,6 +71,10 @@ func LoadProjectConfig(dir string) (ProjectConfig, bool, error) {
 			"%s: %w %q (valid: %s)",
 			path, errUnknownPreset, cfg.Preset, strings.Join(ValidPresetNames(), ", "),
 		)
+	}
+
+	if err := ValidateScorecardWaivers(cfg.Scorecard.Waivers); err != nil {
+		return ProjectConfig{}, true, fmt.Errorf("%s: %w", path, err)
 	}
 
 	return cfg, true, nil
