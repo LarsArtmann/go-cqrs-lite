@@ -78,7 +78,9 @@ func Declare(schemas ...EventSchema) (*Chain, error) {
 func validateDeclaration(declared EventSchema, seen map[event.Type]struct{}) error {
 	if declared.eventType == "" {
 		return errorfamily.NewRejection(
-			"schema.invalid_declaration", "event schema declaration requires a non-empty event type")
+			"schema.invalid_declaration",
+			"event schema declaration requires a non-empty event type",
+		)
 	}
 
 	if _, duplicate := seen[declared.eventType]; duplicate {

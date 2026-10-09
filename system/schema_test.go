@@ -34,7 +34,7 @@ func TestSchemaDeclaration_AppliesOnEveryReadPath(t *testing.T) {
 	if err != nil {
 		t.Fatalf("New: %v", err)
 	}
-	defer sys.Close()
+	t.Cleanup(func() { _ = sys.Close() })
 
 	ref := id.NewStreamRef("User", id.NewStreamID())
 
@@ -158,7 +158,11 @@ func TestSchemaDeclaration_RejectsInvalidDeclaration(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			if _, err := New(ctx, DomainConfig{Schema: tt.schema}, schemaTestDeployment()); err == nil {
+			if _, err := New(
+				ctx,
+				DomainConfig{Schema: tt.schema},
+				schemaTestDeployment(),
+			); err == nil {
 				t.Fatal("New accepted an invalid schema declaration")
 			}
 		})
