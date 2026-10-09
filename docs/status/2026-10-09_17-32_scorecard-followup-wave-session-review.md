@@ -103,3 +103,61 @@ Continued the scorecard-ratchet work: fixed the cwd-preset quirk (`scorecard --p
 - **g/3 (release):** remains owner-gated; my recommendation: hold until the concurrent session lands (red dup gate).
 
 **Standing notes:** no manual commit (harness contract; auto-commit daemon absorbed this session's edits — all code was green at each absorbed point). Concurrent session live in-tree: schema/* and systemscenario/ are theirs, untouched.
+
+---
+
+## Continuation addendum (2026-10-09 evening — same arc, gates + probes + hardening)
+
+Executed this report's "Exact Next Steps" under the standing execute-and-verify
+instruction. Everything below is verified, not claimed:
+
+1. **Remaining gates:** file-size (my files), md-go, lint-config — green. My
+   file-size additions were caught and FIXED by splitting:
+   `doctor.go` 447→359 (profile renderers → new `doctor_render.go`) and
+   `feature_detect.go` 357→339 (`stackPresetFromImport` → new
+   `feature_detect_stack.go`). The 12 remaining violations are foreign
+   (rules/*, stale.go from a 09-06 commit, schema/system/metaengine from the
+   concurrent sessions).
+2. **Validation probes found a REAL BUG — multi-module blindspot.** cqrs-htmx
+   graded stack-surface 0 despite `usermgmt/stack_repositories.go` importing
+   `stack/v4`: BuildContext exposes only the PRIMARY module's profile, so
+   submodule signals were invisible to the panel (while v007 counts are
+   project-wide — inconsistent in one panel). Fixed project-wide:
+   `stackPresetUseCount` (distinct surfaces across all per-module profiles)
+   and `compositionWideProfile` (`system.New`/pushdown signals unioned for
+   composition credit AND Modernity). Regression tests:
+   `TestStackPresetUseCount_UnionsAllModuleProfiles`,
+   `TestComputeDeprecatedPanel_CountsStackPresetsAcrossModules`,
+   `TestCompositionWideProfile_UnionsSubmoduleSignals`.
+3. **Probe results (rebuilt binary):** journal 5/30 (16%) Minimal,
+   **Modernity: Modern** — regression PASS (denominator 29→30 is the foreign
+   `systemscenario` catalog entry, registered 06:10). cqrs-htmx 14/32 (43%)
+   Fair, **Modernity: Legacy** — 41 v5-removed uses + 1 stack-surface
+   (`//go:build ignore` file correctly NOT counted); its modern side
+   (systemadapter composition, metaengine + pushdown) now renders too.
+   go-appkit 8/30 (26%), **Modernity: Modern** (the `cqrs/` submodule's
+   system wiring finally counts). Self-lint exit 0 (C025 warning is
+   pre-existing in doctor_audit.go, 10-04). Recorded as
+   [ADR-0152](../../docs/adr/0152-fleet-first-module-topology-v5-dual-support.md) ratchet evidence.
+4. **Mutation-tested the reflect explain pin** per repo convention:
+   deleted the `scorecard` topLevelKeys row → test FAILED → restored →
+   green. The pin has teeth.
+5. **Docs:** advanced.md (multi-module union bullet, scorecard JSON schema
+   table, doctor `features` row now names `stackPresets`); README (union
+   note + "Config resolution order (path vs cwd)" section); CHANGELOG
+   bullet gained (c2). TODO_LIST: 5 of 6 scorecard-ratchet rows DONE with
+   dated receipts (journal-side adoption stays owner-gated, annotated with
+   the 30-denominator note). 05:23 report addendum points here.
+6. **Final gate set:** gofmt clean; file-size mine-clean; doc-check 1184
+   refs ✓ (core/v5 ambiguity advisories are the concurrent session's, exit
+   0); changelog-symbols 37 honest; api-stability TestEvery ✓; full
+   main+analyzer suites ✓; check-cqrs-lint-cli.sh probes + `--self-test` ✓;
+   dup gate unchanged — 6 foreign groups (systemscenario/* + pre-existing
+   output.go idiom), ZERO mine (moves, not copies).
+
+**Still owner-gated (unchanged):** (1) tag cqrs-lint now vs hold for the
+concurrent session (dup gate still red on their groups); (2) lint/doctor
+path-preset unification (CI behavior change); (3) confirm the concurrent
+session owns the systemscenario clone cleanup. cqrs-htmx was under ACTIVE
+concurrent development during probing (commits 18:05/18:10) — its 14/32 is a
+snapshot, not a fixture.
