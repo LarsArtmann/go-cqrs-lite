@@ -6,6 +6,13 @@ A domain-aware linter for [go-cqrs-lite](https://github.com/larsartmann/go-cqrs-
 
 It finds bugs, API misuse, and boilerplate that generic linters cannot detect — because these are CQRS-specific patterns that require understanding the library's types, conventions, and architecture.
 
+> **Purpose (read before proposing changes):** cqrs-lint exists to get consumer
+> projects to use go-cqrs-lite in the most modern, most complete way possible.
+> The scorecard grade is a ratchet with teeth BY DESIGN — never soften or
+> relabel it into comfort. When a grade hurts, the fix is to make the rows
+> honest (composition credit), auditable (waivers), and aimed at the right
+> target (the modernity axis) — not to defang the pressure.
+
 ## Quickstart
 
 ```bash
@@ -117,6 +124,67 @@ Every failure mode maps to exit 1; only a clean run maps to 0:
 
 These are pinned at the binary level by `scripts/check-cqrs-lint-cli.sh`
 (run directly, or via its `--self-test` inside `nix run .#check-release-scripts`).
+
+## Scorecard
+
+`cqrs-lint scorecard` partitions the library catalog into **Used / Missing /
+Irrelevant / Waived**, computes adoption coverage over the profile-relevant
+denominator, and grades it. The grade has teeth by design: it exists to pull
+consumers toward maximal, most-modern library usage.
+
+### Composition credit (honest rows)
+
+Usage detection is import-based, but a backend wired through composition is
+in use even without a direct stack import. When the feature profile detects a
+backend signal — a `metaengine/*engine` import, a raw database-driver import,
+or a `system.New` composition — the corresponding persistence rows
+(`stack/sqlite`, `stack/memory`, `storage`, …) are credited as **used** with
+an Evidence string naming the wiring path (`composed via metaengine sqlite
+engine import`, `composed via system.New (wired internally)`). Direct imports
+always win, and profile-irrelevant rows are never credited. A lying MISSING
+row licenses dismissing every row — credit keeps the remaining ones honest.
+
+### Waivers (auditable refusals)
+
+A module that genuinely has no use case in your domain can be waived in
+`.cqrs-lint.json`. A waiver is a recorded refusal, not a silencer: the row
+renders in a **WAIVED** section with its reason and revisit trigger, waived
+rows leave the coverage denominator (declared not-applicable, like the
+automatic Irrelevant partition but on purpose), and waiving a used or
+profile-irrelevant module is a hard error.
+
+```jsonc
+{
+  "scorecard": {
+    "waivers": [
+      {
+        "key": "graph",                              // scored catalog key
+        "reason": "no traversal-heavy read models",   // mandatory
+        "trigger": "variable-depth queries appear"    // revisit condition
+      }
+    ]
+  }
+}
+```
+
+A waiver without a trigger renders with a visible "no revisit trigger
+recorded" suffix, and waivers that dominate the scorecard add a
+review-justifications recommendation. When the trigger fires, re-litigate —
+waive again only if the reason still holds.
+
+### Modernity grade (the right target)
+
+Adoption coverage measures breadth; **modernity** measures whether the usage
+sits on the canonical path. Both print in the summary banner:
+
+- **Modern** — v5-clean AND composed via `system.New`, or metaengine with
+  declarative pushdown (`FilterOnField`/`SortOnField`).
+- **Partial** — v5-clean but on neither canonical path.
+- **Legacy** — v5-removed APIs or deprecated transports in use; migrate
+  before the v5 cut.
+
+A focused app at low breadth but Modern is a perfect consumer — the scorecard
+must not coach it into feature bloat.
 
 ## Feature Profiles
 
