@@ -219,7 +219,7 @@ var recipeCatalogB2 = map[string]recipeSpec{
 			"func viewQuery(_ *systemscenario.Scenario, _ context.Context, _ id.StreamRef) func() (any, error) {\n" +
 			"	return func() (any, error) { return TaskView{}, nil }\n" +
 			"}\n",
-		trailers: "_ = ref",
+		trailers: "",
 	},
 	"### 2.43 System-Level BDD Scenarios — Given/When/Then over a real system.New (systemscenario, ADR-0153) #2": {
 		imports: []string{
