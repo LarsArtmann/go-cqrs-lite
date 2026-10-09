@@ -3,8 +3,6 @@ package systemscenario
 import (
 	"context"
 	"errors"
-	"fmt"
-	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -123,15 +121,7 @@ func System(
 		t.Fatalf("systemscenario: system.New: %v", err)
 	}
 
-	sc := &Scenario{ //nolint:exhaustruct_v5 // baselines set at the first When act
-		t:            t,
-		ctx:          ctx,
-		sys:          sys,
-		cfg:          cfg,
-		clock:        cfg.clock,
-		versionHints: make(map[string]event.Version),
-	}
-	sys.UseCommandMiddleware(sc.captureMiddleware())
+	sc := newScenario(t, ctx, sys, cfg)
 
 	if err := sys.Start(ctx); err != nil {
 		_ = sys.Close()
@@ -141,6 +131,53 @@ func System(
 
 	t.Cleanup(func() { sc.shutdown() })
 	sc.requireTerminalAssertion()
+
+	return sc
+}
+
+// Adopt wraps an ALREADY-BOOTED system (started or not) — the
+// wrapper-library entry point: when a facade owns the system.New call (e.g.
+// a service object exposing System()), Adopt installs command capture and
+// the vacuous-pass guard over it so Given/When/Then works against the
+// wrapper's boot. The caller owns the lifecycle — Adopt registers no
+// shutdown cleanup.
+func Adopt(
+	t *testing.T,
+	ctx context.Context,
+	sys *system.System,
+	opts ...Option,
+) *Scenario {
+	t.Helper()
+
+	cfg := defaultConfig()
+	for _, opt := range opts {
+		opt(&cfg)
+	}
+
+	sc := newScenario(t, ctx, sys, cfg)
+	sc.requireTerminalAssertion()
+
+	return sc
+}
+
+// newScenario assembles the Scenario and installs the capture middleware.
+func newScenario(
+	t *testing.T,
+	ctx context.Context,
+	sys *system.System,
+	cfg scenarioConfig,
+) *Scenario {
+	t.Helper()
+
+	sc := &Scenario{ //nolint:exhaustruct_v5 // baselines set at the first When act
+		t:            t,
+		ctx:          ctx,
+		sys:          sys,
+		cfg:          cfg,
+		clock:        cfg.clock,
+		versionHints: make(map[string]event.Version),
+	}
+	sys.UseCommandMiddleware(sc.captureMiddleware())
 
 	return sc
 }
@@ -157,6 +194,11 @@ func (s *Scenario) shutdown() {
 // System returns the booted system for escape hatches (typed queries via
 // MetaEngine, direct store access, health inspection).
 func (s *Scenario) System() *system.System { return s.sys }
+
+// Phase returns the current WhenPhase for the package-level generic
+// assertions ([ThenPayload], [ThenQueryTyped]) that Go methods cannot
+// express. Safe before any act; the assertions themselves require one.
+func (s *Scenario) Phase() *WhenPhase { return &WhenPhase{sc: s} }
 
 // Clock returns the scenario's time source — a [system.ManualClock] frozen
 // at 2026-01-01T00:00:00Z by default. Consumer Timers closures compute
@@ -221,78 +263,6 @@ func (s *Scenario) requireAct(method string) {
 	}
 }
 
-// journal returns the full event journal, ordered by occurrence.
-func (s *Scenario) journal() []event.Event {
-	s.t.Helper()
-
-	journal, ok := s.sys.EventStore().(event.Journal)
-	if !ok {
-		s.t.Fatal("systemscenario: event store does not implement event.Journal (ReadAll)")
-	}
-
-	events, err := journal.ReadAll(s.ctx)
-	if err != nil {
-		s.t.Fatalf("systemscenario: read journal: %v", err)
-	}
-
-	return events
-}
-
-// journalIDSet returns the set of event IDs currently in the journal.
-func (s *Scenario) journalIDSet() map[string]struct{} {
-	ids := make(map[string]struct{})
-
-	for _, evt := range s.journal() {
-		ids[evt.ID().String()] = struct{}{}
-	}
-
-	return ids
-}
-
-// commandIDSet returns the set of command IDs captured so far.
-func (s *Scenario) commandIDSet() map[string]struct{} {
-	s.cmdMu.Lock()
-	defer s.cmdMu.Unlock()
-
-	ids := make(map[string]struct{}, len(s.capturedCommands))
-	for _, entry := range s.capturedCommands {
-		ids[entry.cmd.ID().String()] = struct{}{}
-	}
-
-	return ids
-}
-
-// actEvents returns the journal events emitted since the act baseline,
-// preserving journal order.
-func (s *Scenario) actEvents() []event.Event {
-	events := s.journal()
-	acted := make([]event.Event, 0, len(events))
-
-	for _, evt := range events {
-		if _, given := s.baselineEventIDs[evt.ID().String()]; !given {
-			acted = append(acted, evt)
-		}
-	}
-
-	return acted
-}
-
-// actCommands returns the commands dispatched since the act baseline,
-// preserving dispatch order.
-func (s *Scenario) actCommands() []command.Command {
-	s.cmdMu.Lock()
-	defer s.cmdMu.Unlock()
-
-	acted := make([]command.Command, 0, len(s.capturedCommands))
-	for _, entry := range s.capturedCommands {
-		if _, given := s.baselineCommandIDs[entry.cmd.ID().String()]; !given {
-			acted = append(acted, entry.cmd)
-		}
-	}
-
-	return acted
-}
-
 // Event mints a correctly-versioned domain event for the stream ref via
 // [event.New], stamping the next per-stream version (harness-tracked from
 // the store), so Given clauses compose without manual version bookkeeping:
@@ -337,24 +307,4 @@ func (s *Scenario) nextVersion(ref id.StreamRef) event.Version {
 	s.versionHints[key] = next + 1
 
 	return next
-}
-
-// describeEvents renders one line per event for failure diagnostics:
-// type, version, stream, and actor.
-func describeEvents(events []event.Event) string {
-	if len(events) == 0 {
-		return "(no events)"
-	}
-
-	out := ""
-
-	var outSb315 strings.Builder
-	for _, evt := range events {
-		fmt.Fprintf(&outSb315, "\n  - %s v%d on %s:%s (actor: %s)",
-			evt.Type(), evt.Version(), evt.StreamType(), evt.StreamID(), evt.Metadata().ActorID)
-	}
-
-	out += outSb315.String()
-
-	return out
 }

@@ -362,7 +362,7 @@ DEP_BUDGET[systemscenario]=6
 # core/v5: skeleton starts at 0; each v5 move wave (T07/T09/T10) bumps this
 # to the union of the merged trains' production deps. Intra-repo v4 deps do
 # not count — merged trains become same-module packages.
-DEP_BUDGET["core/v5"]=0
+DEP_BUDGET["core/v5"]=6
 DEP_BUDGET["metaengine/irohengine"]=2
 DEP_BUDGET["metaengine/irohengine/loopback"]=4
 DEP_BUDGET["metaengine/irohengine/quic"]=5
