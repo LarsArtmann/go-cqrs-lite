@@ -5,6 +5,7 @@ go 1.27
 require github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.0.0
 
 require (
+	github.com/dustin/go-humanize v1.1.0 // indirect
 	github.com/larsartmann/go-branded-id v0.7.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.4 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2 // indirect

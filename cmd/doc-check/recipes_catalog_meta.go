@@ -217,7 +217,7 @@ var recipeCatalogB = map[string]recipeSpec{
 			`"github.com/larsartmann/go-cqrs-lite/metaengine/v4"`,
 			`"github.com/larsartmann/go-cqrs-lite/record/v4"`,
 			`"github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4"`,
-			`"github.com/larsartmann/go-cqrs-lite/stack/v4"`,
+			`stackmeta "github.com/larsartmann/go-cqrs-lite/stack/metaengine/v4"`,
 			`"github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4"`,
 			`"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"`,
 			`"context"`,
