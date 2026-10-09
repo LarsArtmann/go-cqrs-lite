@@ -35,6 +35,14 @@ func run(ctx context.Context, cfg *AppConfig) error {
 		return fmt.Errorf("load packages: %w", err)
 	}
 
+	// Scorecard mode resolves the preset from the scored project's own
+	// config before feature overrides resolve (same convention as waivers).
+	if cfg.Scorecard {
+		if err := resolveScorecardPreset(cfg); err != nil {
+			return err
+		}
+	}
+
 	applyConfigOverrides(cfg, actx)
 
 	minConfidence, err := finding.ParseConfidence(cfg.MinConfidence)

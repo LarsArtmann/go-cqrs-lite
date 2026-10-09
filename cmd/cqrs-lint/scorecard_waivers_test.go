@@ -304,3 +304,49 @@ func TestComputeScorecardWithWaivers_InvalidWaiversSurfaceAnalyzeErrors(t *testi
 		t.Fatalf("want unknown-key error, got %v", err)
 	}
 }
+
+// TestResolveScorecardPreset pins the preset-resolution convention: a preset
+// recorded in the scored project's <path>/.cqrs-lint.json wins over the
+// operator's cwd config; with no project config the cwd preset stands.
+func TestResolveScorecardPreset(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	if err := os.WriteFile(
+		filepath.Join(dir, ".cqrs-lint.json"),
+		[]byte(`{"preset": "library"}`),
+		0o644,
+	); err != nil {
+		t.Fatal(err)
+	}
+
+	cfg := &AppConfig{Path: dir, Preset: analyzer.PresetLocalCLI}
+	if err := resolveScorecardPreset(cfg); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if cfg.Preset != analyzer.PresetLibrary {
+		t.Errorf("preset = %q, want project's library to win over cwd local-cli", cfg.Preset)
+	}
+
+	// No project config: the cwd preset passes through unchanged.
+	plain := &AppConfig{Path: t.TempDir(), Preset: analyzer.PresetLocalCLI}
+	if err := resolveScorecardPreset(plain); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if plain.Preset != analyzer.PresetLocalCLI {
+		t.Errorf("preset = %q, want unchanged without project config", plain.Preset)
+	}
+
+	// Unknown preset in the project config errors loudly (LoadProjectConfig).
+	badDir := t.TempDir()
+	if err := os.WriteFile(
+		filepath.Join(badDir, ".cqrs-lint.json"),
+		[]byte(`{"preset": "bogus"}`),
+		0o644,
+	); err != nil {
+		t.Fatal(err)
+	}
+	if err := resolveScorecardPreset(&AppConfig{Path: badDir}); err == nil {
+		t.Fatal("want error for unknown project preset")
+	}
+}

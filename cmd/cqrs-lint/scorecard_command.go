@@ -37,6 +37,9 @@ func setupScorecardCommand(cli *cmdguard.CLI[AppConfig]) error {
 				return fmt.Errorf("load packages: %w", err)
 			}
 
+			if err := resolveScorecardPreset(cfg); err != nil {
+				return err
+			}
 			applyConfigOverrides(cfg, actx)
 
 			return runScorecard(ctx, cfg, actx, flags.Threshold)
@@ -50,6 +53,24 @@ func setupScorecardCommand(cli *cmdguard.CLI[AppConfig]) error {
 		cmdguard.WithNoArgs(),
 	)
 	return registerCommand(cli, "scorecard", cmd, err)
+}
+
+// resolveScorecardPreset fixes the effective preset to the scored project's
+// own config before feature overrides resolve: a preset recorded in
+// <path>/.cqrs-lint.json wins, and the operator's cwd config (cmdguard
+// loader) fills only when the project records none. Without this,
+// `scorecard --path X` run from a config-carrying cwd scores X against the
+// operator's preset instead of its own. The waivers follow the same
+// convention (resolveScorecardWaivers).
+func resolveScorecardPreset(cfg *AppConfig) error {
+	project, found, err := analyzer.LoadProjectConfig(cfg.Path)
+	if err != nil {
+		return fmt.Errorf("scorecard: %w", err)
+	}
+	if found && project.Preset != "" && project.Preset != analyzer.PresetNone {
+		cfg.Preset = project.Preset
+	}
+	return nil
 }
 
 // runScorecard is the single scorecard entry point shared by the root
