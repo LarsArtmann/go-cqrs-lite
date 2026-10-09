@@ -16,7 +16,9 @@
 #      calibration-gate v2 rule verify-load-guard enforces — load5 < ceiling,
 #      no multiplier. A 1.5x load5 slack here fired #verify straight into
 #      load-guard refusals 5 times on 2026-10-09: gate GREEN at load5=14,
-#      verify refuses at load5 >= 10.)
+#      verify refuses at load5 >= 10. The --wait path passes BOTH ceilings
+#      to wait-for-quiet explicitly — its --max-load flag alone defaults
+#      load5 to 1.5x, which would reintroduce the same gap.)
 #
 # Usage:
 #   scripts/can-run-composed-gate.sh            # assert now (ceiling 10)
@@ -254,7 +256,7 @@ if [[ "$WAIT_LOOP" == 1 ]]; then
 fi
 
 if [[ "$WAIT_MODE" == 1 ]]; then
-	"$SCRIPT_DIR/wait-for-quiet.sh" --max-load "$CEILING" || fail "host never quieted (wait-for-quiet rc=$?)"
+	"$SCRIPT_DIR/wait-for-quiet.sh" --max-load "$CEILING" --max-load5 "$CEILING" || fail "host never quieted (wait-for-quiet rc=$?)"
 fi
 
 if ! assert_all; then
