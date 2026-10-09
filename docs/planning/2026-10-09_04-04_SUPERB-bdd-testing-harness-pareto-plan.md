@@ -385,3 +385,47 @@ flowchart TD
 
 - TODO_LIST section added (T07) — the living source; this file is the snapshot.
 - On approval: Full Execution Mode — top to bottom, gates respected, every task verified.
+
+---
+
+## Addendum — execution record (2026-10-09, Full Execution Mode)
+
+Owner granted Full Execution Mode 2026-10-09 (the Gate-1/Gate-2 ruling);
+Q1/Q2/Q3 accepted as recommended. Status per section (per the point-in-time
+rule: annotated, not rewritten):
+
+- **§4 T01–T07 (P0/P1)** — DONE. T01 correction on the record: the session's
+  saved Axon pages were garbage-collected; names re-verified from primary
+  sources. TWO session claims were WRONG: `when().timeElapses(...)` does NOT
+  exist on the Axon 5 fixture (it is Axon 4's `whenTimeElapses`) and no
+  `whenQuery` phase exists (Axon tests queries only via
+  `then().expect`). ADR-0153 carries the corrected table. T03 evidence:
+  cqrs-htmx pilot train = `declarative_test.go` user lifecycle (51 dispatch
+  sites, ~300 lines of `eventually` scaffolding, 22× given-prerequisite
+  re-derivation). T04: go-appkit pilot = memory facade round-trip via
+  `Adopt`.
+- **§4 T08–T12 (P2, the 1%→51%)** — DONE. All green; gates at T12 passed
+  (api-stability +35 exports, arch budget, file-size; note: the
+  `#check-file-size` gate flagged `metaengine/{engine,reflect,typed_reader_scan}.go`
+  growth from ANOTHER agent's concurrent work — not this plan's changes).
+- **§4 T13–T17 (P3, 4%→64%)** — DONE, plus `Await()` (needed for async bus
+  outcomes — Axon parity gap the plan didn't name).
+- **§4 T18–T23 (P4, 20%→80%)** — DONE. ADR-0153 D4 deviation exercised:
+  additive `scheduling.WithClock` seam. Pilots GREEN in both companions and
+  they fed THREE API additions back into the harness mid-flight
+  (`ThenQueryFails`, `ThenQueryTyped` + `Phase()`, `Adopt`); the go-appkit
+  pilot also flipped their timer-stop tripwire + two caveat carriers (the
+  upstream ADR-0142 lifecycle had landed past their pinned v4.10.2).
+- **§4 T24–T27 (P5, tail)** — DONE: `ThenGolden`/`Trail`,
+  `AssertJournalEquivalence` + rapidgen property, boot bench (~1.6 ms per
+  full scenario), CHANGELOG (symbol gate green), systemtest README,
+  cqrs-upgrade no-op. T27 final `#verify` + this addendum + AGENTS
+  contract #28.
+- **New finding (not in the plan):** the saga test exposed a PRODUCT
+  deadlock — synchronous derivers on `sys.Bus()` deadlock under the default
+  single-topic `BlockPublishUntilSubscriberAck` bus. Recorded in TODO_LIST
+  (owner ruling wanted); the harness fixture documents the async-derivation
+  workaround.
+
+**Verdict: 27/27 medium tasks shipped; all phase gates green; 3
+plan-external API additions and 1 product bug are the pilot dividend.**
