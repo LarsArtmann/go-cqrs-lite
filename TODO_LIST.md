@@ -449,6 +449,20 @@ replace-free — 10-25 §a2/§a3, now archived).
 - [ ] **F005 stable anchor** — alphabetically-first-package anchor moves when that package drops `WithSchemaVersion`; stale-suppression gate catches the drift loudly. Re-anchor (go.mod, A009 precedent) only if more consumers hit it.
 - [ ] **B005 StrictApplyFolds disambiguation** — name-matched registry; same-named folds across packages could confuse it. Test-suite hardening item, not a rule change.
 
+> Scorecard-ratchet harvest (2026-10-09, from
+> `docs/status/2026-10-09_02-41_cqrs-lint-purpose-recalibration-session-review.md`):
+> composition credit + waivers + Modernity headline are DONE (CHANGELOG
+> `[Unreleased]`; verified live against `~/projects/journal`: 2/28 → 5/29,
+> false-MISSING persistence rows credited, `Modernity: Modern`). Deliberately
+> open:
+
+- [ ] **Scorecard waiver e2e in the binary probe set** — `scripts/check-cqrs-lint-cli.sh` should pin the waiver path (config file → WAIVED section → threshold math) at the binary level; today it is covered by unit+render tests only.
+- [ ] **Waiver trigger expiry surfacing** — detectable trigger conditions (server/async-bus appearing, domain growth) should flag expired waivers loudly in scorecard output; today triggers render but never fire.
+- [ ] **Scorecard preset resolution is cwd-based** — `cfg.Preset` flows from cmdguard's cwd config, so `scorecard --path X` run from another cwd scores X against the operator's cwd preset (observed live: a journal run picked up the local-cli self-lint preset). Waivers now resolve from `<path>/.cqrs-lint.json` first (`resolveScorecardWaivers`); preset should follow the same convention.
+- [ ] **Legacy-persistence signal in modernity** — `ModernityGrade` treats stack-preset imports as v5-clean; per ADR-0123 the stack presets are removed at v5, so consider whether a stack-only app with metaengine pushdown should really grade Modern.
+- [ ] **Doctor composition cross-render** — the profile now carries `hasSystemComposition` (doctor golden updated); consider a doctor hint pointing scorecard users at composition-credited rows.
+- [ ] **Journal-side adoption (owner-gated)** — once this cqrs-lint version is tagged: run the new scorecard in `~/projects/journal`, replace the AGENTS.md "do NOT chase the grade" moat with per-row waivers (reason + revisit triggers incl. F007's "daemon lands / multi-writer / first schema break"), and route the C033 false-positive class per its ROADMAP entry.
+
 > Point-in-time execution plan (T01–T24 / F001–F096) with per-row resolution
 > markers: `docs/planning/archived/2026-09-06_00-31_cqrs-lint-v5-hardening-pareto-plan.md`.
 > T01–T12, T20–T24, F089, F090(a+b), F091 Tiers 1–3 (incl. P014 ApplyLayout)

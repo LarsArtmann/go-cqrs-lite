@@ -7,6 +7,28 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 )
 
+// resolveScorecardWaivers merges the two waiver sources: the scored
+// project's config (<path>/.cqrs-lint.json, the doctor/toolspec convention)
+// wins per key, and the CLI-level config (cwd, cmdguard loader) fills keys
+// the project did not record. The scored project owns its refusals.
+func resolveScorecardWaivers(cfg *AppConfig) ([]analyzer.ScorecardWaiver, error) {
+	project, found, err := analyzer.LoadProjectConfig(cfg.Path)
+	if err != nil {
+		return nil, err
+	}
+	if !found {
+		return cfg.ScorecardSettings.Waivers, nil
+	}
+
+	merged := slices.Clone(project.Scorecard.Waivers)
+	for _, w := range cfg.ScorecardSettings.Waivers {
+		if !slices.ContainsFunc(merged, func(m analyzer.ScorecardWaiver) bool { return m.Key == w.Key }) {
+			merged = append(merged, w)
+		}
+	}
+	return merged, nil
+}
+
 // ComputeScorecardWithWaivers computes the scorecard and then applies the
 // project's recorded waivers: rows matching a waiver move from MISSING to a
 // visible WAIVED partition carrying the recorded reason and revisit trigger,

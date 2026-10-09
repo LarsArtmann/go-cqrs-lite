@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+	"path/filepath"
 	"slices"
 	"strings"
 	"testing"
@@ -221,6 +223,57 @@ func TestRenderScorecard_WaivedAndModernity(t *testing.T) {
 		if !strings.Contains(md, want) {
 			t.Errorf("markdown render missing %q", want)
 		}
+	}
+}
+
+// TestResolveScorecardWaivers pins the merge contract: the scored project's
+// <path>/.cqrs-lint.json owns its refusals per key; the CLI-level (cwd)
+// config only fills unrecorded keys; a malformed project config errors.
+func TestResolveScorecardWaivers(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	projectCfg := `{"scorecard": {"waivers": [{"key": "graph", "reason": "project reason", "trigger": "t"}]}}`
+	if err := os.WriteFile(filepath.Join(dir, ".cqrs-lint.json"), []byte(projectCfg), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	merged, err := resolveScorecardWaivers(&AppConfig{
+		Path: dir,
+		ScorecardSettings: analyzer.ScorecardSettings{Waivers: []analyzer.ScorecardWaiver{
+			{Key: "graph", Reason: "cli reason"}, // project wins
+			{Key: "kv", Reason: "cli-only"},      // filled in
+		}},
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(merged) != 2 {
+		t.Fatalf("merged = %+v, want 2 waivers", merged)
+	}
+	for _, w := range merged {
+		if w.Key == "graph" && w.Reason != "project reason" {
+			t.Errorf("graph reason = %q, want project reason to win", w.Reason)
+		}
+	}
+
+	// No project config: CLI-level waivers pass through unchanged.
+	passthrough, err := resolveScorecardWaivers(&AppConfig{
+		Path:              t.TempDir(),
+		ScorecardSettings: analyzer.ScorecardSettings{Waivers: []analyzer.ScorecardWaiver{{Key: "kv", Reason: "r"}}},
+	})
+	if err != nil || len(passthrough) != 1 {
+		t.Fatalf("passthrough = (%v, %v), want 1 waiver", passthrough, err)
+	}
+
+	// Malformed project config (bad waiver key) errors loudly.
+	badDir := t.TempDir()
+	badCfg := `{"scorecard": {"waivers": [{"key": "bogus", "reason": "r"}]}}`
+	if err := os.WriteFile(filepath.Join(badDir, ".cqrs-lint.json"), []byte(badCfg), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := resolveScorecardWaivers(&AppConfig{Path: badDir}); err == nil {
+		t.Fatal("want load error for bogus project waiver key")
 	}
 }
 

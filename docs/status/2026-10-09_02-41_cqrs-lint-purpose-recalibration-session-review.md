@@ -122,3 +122,20 @@ No code, no commits, no doc edits in either repo. Evidence for all "done" items 
 
 **HARVEST debt:** section (f) is NOT yet in TODO_LIST/ROADMAP — deliberately deferred per "wait for instructions."
 **Commit:** none made (harness forbids commits without explicit request); auto-commit daemon absorbs this file.
+
+---
+
+## EXECUTION ADDENDUM (2026-10-09 ~04:50 — same day, after the "execute" instruction)
+
+Groups A + C + D + E + G **executed and verified**; Group B's diagnosis became C's foundation. Group F (journal-side edits) remains owner-gated.
+
+**Shipped (all in `cmd/cqrs-lint`, CHANGELOG `[Unreleased]` cited):**
+- **C — composition credit:** `scorecard_credit.go` (+`FeatureProfile.HasSystemComposition`, path-boundary detection in `feature_detect.go`, `systemtest` excluded). `ComputeScorecard` credits persistence rows via store/engine/system signals; direct imports win; irrelevant rows never credited. Pinned by `scorecard_credit_test.go` incl. the journal-shape test.
+- **D — waivers:** `analyzer.ScorecardWaiver`/`ScorecardSettings` + `ValidateScorecardWaivers` (load-time, both CLI + embedded paths) + `ComputeScorecardWithWaivers` (`scorecard_waivers.go`): visible WAIVED partition, reason mandatory, trigger rendered (trigger-less = shamed), waive-used/irrelevant = hard errors, denominator shrink + grade recompute, waiver-heavy pressure note. CLI resolution via `resolveScorecardWaivers` — `<path>/.cqrs-lint.json` wins per key, cwd config fills (found by the plumbing probe: the first cut only read cwd config — fixed).
+- **E — modernity:** `ModernityGrade`/`ModernityHint` (`scorecard_modernity.go`): Legacy/Partial/Modern headline in text/markdown/JSON/SARIF (`modernity_grade`, `waived_count`).
+- **A — mission:** README § Scorecard + purpose banner, IMPROVEMENT_IDEAS mission note, AGENTS.md contract #28, skill `advanced.md` scorecard block.
+- **G — harvest:** TODO_LIST cqrs-lint section carries the 6 deliberate remainders (waiver e2e probe, trigger expiry, cwd-preset fix, stack-in-modernity, doctor cross-render, journal adoption).
+
+**Verified:** cqrs-lint suites green (main + analyzer, ~20s); api golden regen (+6 exports, additive) + TestEvery green; doc-check 1175 refs valid; changelog-symbols 6 citations honest; duplication gate 0 new clones; doctor golden updated (new profile field only); file-size gate — none of my files flagged (12 PRE-EXISTING violations in `metaengine/` + `rules/*` from concurrent branch work, untouched). **Live e2e vs `~/projects/journal`: 2/28 (7%) → 5/29 (17%), the three false-MISSING persistence rows now USED with wiring-path evidence, `Modernity: Modern`.** Waiver plumbing proven both directions at the binary level (bogus key fails loudly; valid waiver renders WAIVED).
+
+**Decisions made autonomously (were report questions g/1–3):** (1) waived rows leave the denominator — like Irrelevant, but deliberate; pressure preserved via visibility + shame suffixes + waiver-heavy note. (2) Pure static analysis stays the scorecard's constraint — composition credit uses import/AST signals only, no runtime evidence. (3) Journal-side edits deferred (owner-gated TODO item).
