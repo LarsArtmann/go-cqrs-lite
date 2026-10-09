@@ -11,6 +11,8 @@
 # 5. An existing tag is rejected before anything is touched
 # 6. The dated run log (M15/e1) records guards, phases, failure tails, and a
 #    one-line-per-module summary — while --dry-run writes no log at all
+# 7. An untag-policy-listed train (ADR-0152) is refused before anything is
+#    touched, in BOTH real and --dry-run modes
 #
 # Run: bash scripts/test-batch-release.sh
 set -euo pipefail
@@ -185,6 +187,21 @@ out="$(cd "$TMPROOT/t7" && BATCH_RELEASE_LOG_DIR="$TMPROOT/t7-logs" bash "$SCRIP
 check "smoke-all rejects a malformed probe line" test "$rc" -ne 0
 check "smoke run log written" bash -c "ls \"\$0\"/smoke-*.log >/dev/null 2>&1" "$TMPROOT/t7-logs"
 check "smoke log names the probes file" bash -c "grep -q 'probes: probes.txt' \"\$0\"/smoke-*.log" "$TMPROOT/t7-logs"
+
+echo "━━━ Test 8: untag-policy guard refuses a listed train (ADR-0152) ━━━"
+fixture_repo "$TMPROOT/t8"
+printf '# fixture untag list\ngood\n' >"$TMPROOT/t8-untagged.txt"
+out="$(cd "$TMPROOT/t8" && BATCH_RELEASE_LOG_DIR="$TMPROOT/t8-logs" UNTAGGED_TRAINS_FILE="$TMPROOT/t8-untagged.txt" bash "$SCRIPT" "good v2.0.2 Frozen train" "libx v2.0.1 Also fine" 2>&1)" && rc=0 || rc=$?
+check "release exits nonzero on untagged train" test "$rc" -ne 0
+check "error names the policy list" bash -c "printf '%s' \"\$0\" | grep -q 'untag policy list (scripts/untagged-trains.txt)'" "$out"
+check "error cites ADR-0152" bash -c "printf '%s' \"\$0\" | grep -q 'ADR-0152'" "$out"
+check "no tag was created" bash -c "! git -C \"\$0\" tag -l good/v2.0.2 | grep -q ." "$TMPROOT/t8"
+check "tree untouched" bash -c "git -C \"\$0\" status --porcelain | wc -l | grep -qx 0" "$TMPROOT/t8"
+check "run log records the untag guard" bash -c "grep -q 'guard FAIL good: on the untag policy list' \"\$0\"/batch-*.log" "$TMPROOT/t8-logs"
+
+out="$(cd "$TMPROOT/t8" && UNTAGGED_TRAINS_FILE="$TMPROOT/t8-untagged.txt" bash "$SCRIPT" --dry-run "good v2.0.2 Frozen train" 2>&1)" && rc=0 || rc=$?
+check "dry-run also refuses an untagged train" test "$rc" -ne 0
+check "dry-run refusal names the policy list" bash -c "printf '%s' \"\$0\" | grep -q 'untag policy list'" "$out"
 
 if [ "$FAILED" -eq 0 ]; then
 	echo ""
