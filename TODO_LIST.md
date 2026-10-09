@@ -301,6 +301,14 @@ mesh-demo onboarding) lives in the eventcatalog-hub repo. Execution evidence:
 - [ ] **T3 payload fingerprint ledger + T5 persisted layout fingerprints** — LiveStore-style drift detection: per-event payload hash stamp (warn-first) and per-collection engine fingerprints checked at boot → `LayoutDiff` → existing `RebuildThreshold`/`ConfirmRebuild` gate. _(Effort: L; v5-gated where stamps touch `Record`)_
 - [ ] **T6 compat policy + T7 docs/ADR split** — additive-change rules as a cqrs-lint rule; recipes + core.md conventions; proposal → implementation ADRs. _(Effort: M; follows the code)_
 
+**Execution plan (2026-10-09 18:02, Pareto-sequenced):** [`docs/planning/2026-10-09_18-02_SUPERB-v5-schema-evolution-execution-plan.md`](docs/planning/2026-10-09_18-02_SUPERB-v5-schema-evolution-execution-plan.md) — 26 medium tasks (30–100 min) / 134 fine tasks (≤12 min), phases: 1% tag wave + bank-sync adoption → 4% T1 completion + DiscordSync/cqrs-htmx → 20% T4 + ADR + trust surface → tail T3/T5/T6/housekeeping. New rows surfaced by the plan:
+
+- [ ] **Release wave: schema v4.6.0 + system minor, co-released; then apply the bank-sync pilot patch** — the 1%→51% (all shipped value is dead code until consumers import it; also unblocks system's GOWORK=off CI). Blocked by concurrent-session red gates; changed-set path per the 2026-10-06 lesson. _(Effort: M; plan M1–M5)_
+- [ ] **T1 remainder: TypeDecoder derivation + catalog render/semver bridge + cqrs-lint undeclared-event rule** — makes the declaration THE single source (one list, four consumers). _(Effort: L; plan M6–M8)_
+- [ ] **Fleet adoption wave 2: DiscordSync (211-line upcasters → RenameType/Transform) + cqrs-htmx (SchemaVersion surfaced, zero upcasters → declared Schema)**. _(Effort: M; plan M9–M10)_
+- [ ] **Trust surface: chain benchmarks + godoc Examples + fuzz/rapid properties** — upcasting runs on every event load; costs and hostile-input behavior must be measured, not guessed. _(Effort: M; plan M14–M16)_
+- [ ] **Housekeeping tail: kv-alias sweep, RevisionSnapshotFilter lead, proposal-fence convention doc, parallel-declaration ritual, runbook note, TODO prune**. _(Effort: S–M; plan M24–M25)_
+
 ## System-level BDD testing harness (building 2026-10-09)
 
 > Axon-5-informed Given/When/Then harness over a real `system.New` boot.
