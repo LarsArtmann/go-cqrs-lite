@@ -14,6 +14,10 @@
 #   - Every tagged module must COMPILE standalone (GOWORK=off) against its
 #     stripped go.mod before any tag is created (command/v4.7.0 shipped with
 #     a go.mod pinning an older sibling than the code needed).
+#   - Untag policy guard per triple (ADR-0152): modules listed in
+#     scripts/untagged-trains.txt (zero-consumer trains, internal tools,
+#     examples, drivers-before-first-consumer) are REFUSED before anything
+#     is touched. Untagging stops tagging; it never deletes tags.
 #   - Hardened restore: the temp commit is undone with `git reset --soft
 #     <original_head>` + `git restore --staged --worktree`. The old
 #     `git checkout -- .` restored the STRIPPED go.mods from the stale
@@ -314,6 +318,12 @@ for arg in "${ARGS[@]}"; do
 		exit 1
 		;;
 	esac
+
+	if is_untagged "$module"; then
+		untag_guard_fail "$module"
+		run_log "guard FAIL ${module}: on the untag policy list (ADR-0152)"
+		exit 1
+	fi
 
 	module_path="$(awk '/^module /{print $2; exit}' "$gomod")"
 	if ! path_matches_major "$module_path" "$version"; then

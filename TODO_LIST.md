@@ -498,6 +498,19 @@ replace-free — 10-25 §a2/§a3, now archived).
       baselined-file GROWTH, allows shrinking; mutation-proven ×2; wired
       into `nix run .#check-file-size` + the CI `file-size-gate` job).
       — source: 06-56 §a9/§d1, 05-51 §a (ratchet shipped)
+- [ ] [SURFACED 2026-10-09] 🔥 **File-size gate RED again — 10 sibling-grown
+      offenders (W1 parallel sessions, none mine).** `nix run .#check-file-size`
+      fails on: cqrs-lint `pkg/rules/consistency/d005_version.go` (406 NEW),
+      `pkg/rules/resilience/helpers.go` (507 NEW), `pkg/suppression/stale.go`
+      (489→533), `doctor.go` (400→433); system `system.go` (358 NEW),
+      `constructor.go` (357→413); metaengine `engine.go` (700→712),
+      `reflect.go` (352→359), `typed_reader_scan.go` (367 NEW),
+      `adttest/pagination_conformance.go` (353 NEW — likely a baseline
+      candidate under the harness-dir exemption ruling, owners' call).
+      Owners: split at your next file-touch moment (shrink-only ratchet does
+      the rest) or pin the baseline on a structural shift. NOT part of
+      `#verify` — does not block the T03 verify-green receipt.
+      — source: 00-32 W1 status §b/§f
 
 ---
 

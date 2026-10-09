@@ -13,6 +13,18 @@
 # The manifest lists every module prefix that EVER published a tag (105+ trains,
 # including retired dirs the proxy still serves) — it is tag truth, not tree truth.
 #
+# UNTAG MARKING (ADR-0152): trains listed in scripts/untagged-trains.txt no
+# longer cut releases, but their historical tags remain proxy-served tag truth,
+# so they STAY in versions.json. Their README rows carry a "*(untagged per
+# ADR-0152)*" note so humans do not read a frozen tag as a live train.
+# versions.json stays pure (machine tag truth); the README carries policy.
+#
+# PHANTOM ROOT TRAIN: the "." row is the repo-root module (doc.go placeholder
+# only). Its lone v4.0.0 tag is proxy-INVISIBLE (v4 tag on a suffix-less module
+# path — the issue-#20 class), resolves for nobody, and per ADR-0152 will never
+# be followed by another root tag. It is recorded because the manifest is tag
+# truth, not because the train is alive.
+#
 # Modes:
 #   bash scripts/check-versions-manifest.sh               # gate: local tags vs committed artifacts
 #   bash scripts/check-versions-manifest.sh --check       # same, explicit
@@ -43,11 +55,19 @@ REMOTE=0
 # Pins: sort -V latest-pick (v4.10.0 > v4.9.0), prerelease ordering (v2.0.0 >
 # v2.0.0-rc1), root-train "." key, exact manifest golden, README table render,
 # and BOTH mutation legs — stale manifest must fail, unmanifested new tag must
-# fail (--update then heals both).
+# fail (--update then heals both) — plus the untag-marker legs: README note
+# rendered, versions.json purity, and a stripped marker failing --check.
 if [ "${1:-}" = "--self-test" ]; then
 	SELF="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
 	TMP="$(mktemp -d)"
 	trap 'rm -rf "$TMP"' EXIT
+
+	# Hermetic untag lookups: the default list is the REAL repo policy file,
+	# and the fixture's "." root train would inherit the real root's untag
+	# marker. Pin every early leg to an empty list; the marker legs below
+	# override with their own fixture list.
+	: >"$TMP/untagged-none.txt"
+	export UNTAGGED_TRAINS_FILE="$TMP/untagged-none.txt"
 
 	fixture() {
 		rm -rf "$TMP/repo"
@@ -139,6 +159,34 @@ WANT
 		fails=$((fails + 1))
 	}
 
+	# UNTAG MARKING (ADR-0152): untagged trains stay in versions.json (pure
+	# tag truth) but their README rows carry the policy note. Mutation legs
+	# pin both directions: a stripped marker must fail --check.
+	printf '# fixture untag list\nalpha\n' >"$TMP/untagged.txt"
+	rc=0
+	(cd "$TMP/repo" && UNTAGGED_TRAINS_FILE="$TMP/untagged.txt" bash "$SELF" --update) >/dev/null 2>&1 || rc=$?
+	check "update green with untag list present" 0 "$rc"
+	grep -qF '| alpha | `alpha/v4.11.0` *(untagged per ADR-0152)* |' "$TMP/repo/README.md" &&
+		echo "  ✓ PASS: README row carries the untag note" || {
+		echo "  ✗ FAIL: README row missing the untag note"
+		fails=$((fails + 1))
+	}
+	grep -qF '"alpha": "alpha/v4.11.0"' "$TMP/repo/versions.json" &&
+		echo "  ✓ PASS: versions.json stays pure tag truth (no policy text)" || {
+		echo "  ✗ FAIL: versions.json drifted from pure tag truth"
+		fails=$((fails + 1))
+	}
+	rc=0
+	(cd "$TMP/repo" && UNTAGGED_TRAINS_FILE="$TMP/untagged.txt" bash "$SELF" --check) >/dev/null 2>&1 || rc=$?
+	check "check green with marker in place" 0 "$rc"
+
+	sed -i 's/`alpha\/v4.11.0` \*(untagged per ADR-0152)\*/`alpha\/v4.11.0`/' "$TMP/repo/README.md"
+	rc=0
+	(cd "$TMP/repo" && UNTAGGED_TRAINS_FILE="$TMP/untagged.txt" bash "$SELF" --check) >/dev/null 2>&1 || rc=$?
+	check "MUTATION stripped untag marker fails" 1 "$rc"
+
+	(cd "$TMP/repo" && UNTAGGED_TRAINS_FILE="$TMP/untagged.txt" bash "$SELF" --update) >/dev/null 2>&1
+
 	if [ "$fails" -eq 0 ]; then
 		echo "check-versions-manifest self-test passed."
 		exit 0
@@ -160,6 +208,12 @@ for arg in "$@"; do
 done
 
 cd "$(git rev-parse --show-toplevel)"
+
+# is_untagged lives in the shared release lib (single implementation with
+# tag-release.sh/batch-release.sh; override path via UNTAGGED_TRAINS_FILE in
+# the self-test fixture).
+# shellcheck disable=SC1091 # sourced release lib lives beside this script
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib/release_common.sh"
 
 # Tag source: local refs (dev + tag-time refresh) or origin (nightly freshness).
 list_tags() {
@@ -232,7 +286,11 @@ render_readme_table() {
 	echo '| Module | Latest published tag |'
 	echo '| --- | --- |'
 	for module in $(printf '%s\n' "${!latest[@]}" | LC_ALL=C sort); do
-		printf '| %s | `%s` |\n' "$module" "${latest[$module]}"
+		note=""
+		if is_untagged "$module"; then
+			note=' *(untagged per ADR-0152)*'
+		fi
+		printf '| %s | `%s`%s |\n' "$module" "${latest[$module]}" "$note"
 	done
 }
 

@@ -436,6 +436,18 @@ if [ ! -f "$gomod" ]; then
 	exit 1
 fi
 
+# --- Untag policy guard (ADR-0152) ---
+#
+# Trains listed in scripts/untagged-trains.txt no longer cut releases:
+# zero fleet consumers, internal tools, examples, or drivers awaiting their
+# first consumer. The list is the single policy source; batch-release.sh
+# routes the same guard through release_common.sh. Untagging never deletes
+# existing tags — it only stops new ones.
+if is_untagged "$module"; then
+	untag_guard_fail "$module"
+	exit 1
+fi
+
 # --- Verify the module path's major version matches the tag ---
 #
 # The proxy refuses any tag whose major version does not match the module
