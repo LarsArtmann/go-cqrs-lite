@@ -46,8 +46,21 @@
 #   ./scripts/batch-release.sh [--dry-run] "<module> <version> <description>" ...
 #   ./scripts/batch-release.sh --from-manifest <file>
 #   ./scripts/batch-release.sh --from-manifest <file> --dry-run
+#   ./scripts/batch-release.sh --lockstep <version> --from-manifest <file> [--dry-run]
 #   ./scripts/batch-release.sh --audit
 #   ./scripts/batch-release.sh --smoke-all <file>
+#
+# --lockstep <version> (ADR-0152): fans ONE version out to every train in the
+# manifest — the v5 wave model (one lockstep version; per-train semver is
+# retired for /v5-path modules). The manifest then holds
+# "<module> [description...]" lines WITHOUT versions, in DEPENDENCY ORDER
+# (the core module first, then trains that depend on it): the same-batch
+# sibling limitation still applies — a dependent's tag-time tidy resolves the
+# sibling's latest PUBLISHED tag — so push the core tag before cutting
+# dependents that must pin the new version, or cut dependents in a second
+# pass. Every per-train guard still runs (untag policy, path-vs-tag — which
+# rejects any train whose module path major differs from the lockstep
+# version: a v5 wave can only carry /v5-path trains).
 #
 # --dry-run prints the tags that WOULD be created (existence, tag collision,
 # path-vs-tag guard, sequence checks) without touching go.mod files, the
@@ -110,11 +123,15 @@ esac
 usage() {
 	echo "Usage: $0 [--dry-run] \"<module> <version> <description>\" ..."
 	echo "       $0 --from-manifest <file> [--dry-run]   # triples from a wave manifest"
+	echo "       $0 --lockstep <version> --from-manifest <file> [--dry-run]"
+	echo "                                                  # ONE version fanned to every"
+	echo "                                                  # manifest train (v5 waves)"
 	echo "       $0 --audit"
 	echo "       $0 --smoke-all <file-with-module-version-lines>"
 	echo "Example:"
 	echo "  $0 \"event v4.0.3 Patch release\" \"command v4.0.1 Patch release\""
 	echo "  $0 --dry-run \"event v4.0.3 Patch release\""
+	echo "  $0 --lockstep v5.0.0-alpha.1 --from-manifest wave.txt   # wave.txt: 'core/v5 First v5 wave'"
 	echo "  $0 --audit   # all-modules path-vs-tag audit (via tag-release.sh)"
 }
 
@@ -234,6 +251,7 @@ fi
 
 DRY_RUN=0
 ARGS=()
+MANIFEST_LINES=()
 
 # Materialize --from-manifest FIRST: read the wave as one
 # "<module> <version> <description>" line per row (# comments and blank
@@ -242,6 +260,7 @@ ARGS=()
 argv=("$@")
 remaining=()
 i=0
+LOCKSTEP_VER=""
 while [ "$i" -lt "${#argv[@]}" ]; do
 	a="${argv[$i]}"
 	if [ "$a" = "--from-manifest" ]; then
@@ -259,8 +278,22 @@ while [ "$i" -lt "${#argv[@]}" ]; do
 			case "$line" in
 			\#* | "") continue ;;
 			esac
-			ARGS+=("$line")
+			MANIFEST_LINES+=("$line")
 		done <"$manifest"
+	elif [ "$a" = "--lockstep" ]; then
+		i=$((i + 1))
+		if [ "$i" -ge "${#argv[@]}" ]; then
+			echo "ERROR: --lockstep requires a version argument (e.g. v5.0.0-alpha.1)"
+			exit 1
+		fi
+		LOCKSTEP_VER="${argv[$i]}"
+		case "$LOCKSTEP_VER" in
+		v[0-9]*) : ;;
+		*)
+			echo "ERROR: malformed lockstep version \"${LOCKSTEP_VER}\" (want vMAJOR.MINOR.PATCH[-pre])"
+			exit 1
+			;;
+		esac
 	elif [ "$a" = "--dry-run" ]; then
 		DRY_RUN=1
 	elif [ "$a" = "-h" ] || [ "$a" = "--help" ]; then
@@ -274,7 +307,35 @@ done
 for a in "${remaining[@]}"; do
 	ARGS+=("$a")
 done
+positional_count=${#remaining[@]}
 unset argv remaining
+
+# Materialize manifest lines into triples: verbatim for per-train waves, or
+# fanned out with the ONE lockstep version (ADR-0152 v5 waves — the manifest
+# then holds "<module> [description...]" lines in dependency order).
+if [ -n "$LOCKSTEP_VER" ]; then
+	if [ "$positional_count" -gt 0 ]; then
+		echo "ERROR: --lockstep takes the module list from --from-manifest; positional triples carry their own versions."
+		exit 1
+	fi
+	if [ ${#MANIFEST_LINES[@]} -eq 0 ]; then
+		echo "ERROR: --lockstep requires a --from-manifest with '<module> [description...]' lines"
+		exit 1
+	fi
+	for line in "${MANIFEST_LINES[@]}"; do
+		module=$(printf '%s' "$line" | awk '{print $1}')
+		description=$(printf '%s' "$line" | cut -d' ' -f2-)
+		if [ -z "$description" ]; then
+			description="Lockstep wave ${LOCKSTEP_VER}"
+		fi
+		ARGS+=("${module} ${LOCKSTEP_VER} ${description}")
+	done
+else
+	for line in "${MANIFEST_LINES[@]}"; do
+		ARGS+=("$line")
+	done
+fi
+unset MANIFEST_LINES
 
 if [ ${#ARGS[@]} -eq 0 ]; then
 	usage
