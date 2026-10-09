@@ -284,9 +284,9 @@ fixture_repo "$TMPROOT/t12"
 printf '# fixture untag list\ngood\n' >"$TMPROOT/t12-untagged.txt"
 out="$(cd "$TMPROOT/t12" && UNTAGGED_TRAINS_FILE="$TMPROOT/t12-untagged.txt" bash "$SCRIPT" good v2.0.6 "frozen train" 2>&1)" && rc=0 || rc=$?
 check "release exits nonzero on untagged train" test "$rc" -ne 0
-check "error names the policy list" bash -c "printf '%s' "\$0" | grep -q 'untag policy list (scripts/untagged-trains.txt)'" "$out"
-check "no tag was created" bash -c "! git -C "\$0" tag -l good/v2.0.6 | grep -q ." "$TMPROOT/t12"
-check "tree untouched" bash -c "git -C "\$0" status --porcelain | wc -l | grep -qx 0" "$TMPROOT/t12"
+check "error names the policy list" bash -c "printf '%s' \"\$0\" | grep -q 'untag policy list (scripts/untagged-trains.txt)'" "$out"
+check "no tag was created" bash -c "! git -C \"\$0\" tag -l good/v2.0.6 | grep -q ." "$TMPROOT/t12"
+check "tree untouched" bash -c "git -C \"\$0\" status --porcelain | wc -l | grep -qx 0" "$TMPROOT/t12"
 
 if [ "$FAILED" -eq 0 ]; then
 	echo ""

@@ -549,6 +549,32 @@ any CI-gating script with a `--self-test` (`check-go-version.sh`,
 `check-md-go.sh`, `calibration-gate.sh`, `check-golangci-hash.sh` — the
 repo convention is that gates ship with mutation-tested self-tests).
 
+#### Untag policy (ADR-0152): trains that no longer cut releases
+
+**Decided 2026-10-08** ([ADR-0152](docs/adr/0152-fleet-first-module-topology-v5-dual-support.md)):
+the only market is the first-party fleet, and per-train version independence
+was never used. Trains with zero fleet consumers no longer tag. The
+definitive list is **`scripts/untagged-trains.txt`** (one module dir per
+line; the `.` row is the phantom repo-root train).
+
+- **Untagging means STOP TAGGING.** Existing tags are never deleted and stay
+  proxy-served; `versions.json` keeps recording the latest tag of an untagged
+  train (it is tag truth). The README manifest marks those rows
+  *(untagged per ADR-0152)* so a frozen tag is not misread as a live train.
+- **Both release scripts enforce it**: `tag-release.sh` and `batch-release.sh`
+  refuse a listed train before touching anything (shared guard in
+  `scripts/lib/release_common.sh`; `--dry-run` refuses too).
+- **Who is on it**: the 49 zero-consumer trains of the 2026-10-08 audit, the
+  root train, internal tools (`cmd/*` except `cmd/cqrs-lint`), examples, test
+  suites, and the driver tier.
+- **Driver tier rule — tag on first consumer**: engines, storage drivers,
+  transports, and queue drivers stay untagged until a fleet app imports one.
+  Capability is proven by the integration suites, not by a tag. When the
+  first consumer lands, remove the train from the list **in the same commit**
+  and tag from there.
+- **Exception**: `cmd/cqrs-lint` keeps its release train (cross-repo
+  consumers: buildflow, gomend).
+
 #### Pre-tag checklist (multi-module wave)
 
 Run through this before a tag wave — each item exists because a wave tripped
