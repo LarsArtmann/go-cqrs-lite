@@ -12,7 +12,11 @@
 #   2. tree stable: HEAD + status digest identical across two samples
 #      60s apart (the auto-commit daemon absorbs fast; identical digests
 #      across a minute means nothing is actively editing)
-#   3. load under the ceiling (1-min AND 5-min, wait-for-quiet v2 rule)
+#   3. load under the ceiling (1-min AND 5-min; EXACT parity with the
+#      calibration-gate v2 rule verify-load-guard enforces — load5 < ceiling,
+#      no multiplier. A 1.5x load5 slack here fired #verify straight into
+#      load-guard refusals 5 times on 2026-10-09: gate GREEN at load5=14,
+#      verify refuses at load5 >= 10.)
 #
 # Usage:
 #   scripts/can-run-composed-gate.sh            # assert now (ceiling 10)
@@ -111,7 +115,7 @@ check_load() {
 	awk -v l1="$l1" -v l5="$l5" -v c="$CEILING" \
 		'BEGIN {
 			if (l1 !~ /^[0-9.]+$/ || l5 !~ /^[0-9.]+$/) exit 1
-			exit !(l1 + 0 < c && l5 + 0 < c * 1.5)
+			exit !(l1 + 0 < c && l5 + 0 < c)
 		}'
 }
 
@@ -141,6 +145,19 @@ self_test() {
 		failures=$((failures + 1))
 	else
 		echo "  ✓ PASS: loud load refused"
+	fi
+
+	# 1b. draining-burst gap (the 2026-10-09 refusal arc): load1 quiet but
+	#     load5 in [ceiling, 1.5*ceiling) must be refused — verify-load-guard
+	#     (calibration-gate v2 rule) refuses at load5 >= ceiling, so firing
+	#     here burns a ~10-min nix preamble per refusal.
+	printf '7.8 14.6 1.0 1/1 1\n' >"$tmp/draining"
+	if QUIET_LOADAVG_FILE="$tmp/draining" CI=false CANARY_PROCS='impossible-pattern-xyz' \
+		TREE_STABLE_DELAY=0 "$0" >/dev/null 2>&1; then
+		echo "  ✗ FAIL: draining burst (load5 over ceiling) must be refused"
+		failures=$((failures + 1))
+	else
+		echo "  ✓ PASS: draining burst (load5 over ceiling) refused"
 	fi
 
 	# 2b. wait-loop recovers after one rebound: fixture starts loud, flips

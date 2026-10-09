@@ -33,6 +33,34 @@ path_matches_major() {
 	esac
 }
 
+# is_untagged <module-dir>: exits 0 iff the module is on the untag policy
+# list (ADR-0152: zero-fleet-consumer trains, internal tools, examples, and
+# drivers-before-first-consumer no longer cut releases). Both release scripts
+# route the guard here so the policy has ONE implementation. Fixture tests
+# point the lookup at their own list via UNTAGGED_TRAINS_FILE.
+is_untagged() {
+	local module_dir="$1"
+	local list_file="${UNTAGGED_TRAINS_FILE:-}"
+	if [ -z "$list_file" ]; then
+		list_file="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/untagged-trains.txt"
+	fi
+	[ -f "$list_file" ] || return 1
+	awk -v m="$module_dir" '!/^#/ && NF && $1 == m { found = 1; exit } END { exit !found }' "$list_file"
+}
+
+# untag_guard_fail <module>: prints the policy error (what/why/fix) and is
+# followed by `exit 1` at the call site. Kept beside is_untagged so message
+# and check cannot drift apart.
+untag_guard_fail() {
+	local module_dir="$1"
+	echo "ERROR: ${module_dir} is on the untag policy list (scripts/untagged-trains.txt)."
+	echo "Untagged trains no longer cut releases (ADR-0152): zero fleet consumers,"
+	echo "internal tooling, examples, or a driver awaiting its first consumer. Existing"
+	echo "tags stay proxy-served; the manifest keeps recording them. If this train has"
+	echo "WON a consumer, remove it from scripts/untagged-trains.txt in the commit that"
+	echo "adds the consumer, then re-run."
+}
+
 # module_has_root_main <module-dir>: exits 0 iff the module's root package
 # is `main`. The install+run smoke probe only applies to CLI modules; a
 # library module takes the "probe skipped" path in the caller.

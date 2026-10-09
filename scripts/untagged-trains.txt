@@ -1,0 +1,85 @@
+# untagged-trains.txt — module trains that NO LONGER CUT RELEASES (ADR-0152).
+#
+# Policy (decided 2026-10-08, docs/adr/0152-fleet-first-module-topology-v5-dual-support.md):
+#   - Untagging means STOP TAGGING. Existing tags are never deleted and stay
+#     proxy-served; versions.json keeps recording the latest tag (tag truth).
+#   - Entries are the trains with ZERO consumers in the first-party fleet
+#     (2026-10-08 who-uses audit, Appendix B) plus internal tools and examples
+#     that never needed release trains in the first place.
+#   - Driver-tier rule: engines/drivers/transports TAG ON FIRST CONSUMER.
+#     While listed here, a driver is capability-proven by its integration
+#     suites only. When a fleet app starts importing one, remove it here in
+#     the same commit that adds the consumer, then tag.
+#   - Exception: cmd/cqrs-lint keeps its release train (cross-repo consumers:
+#     buildflow, gomend).
+#
+# Consumed by scripts/lib/release_common.sh (is_untagged — the guard both
+# tag-release.sh and batch-release.sh route through) and by
+# scripts/check-versions-manifest.sh (README manifest marking). One module
+# dir per line; # comments allowed. The "." key is the repo-root train
+# (doc.go only; its v4.0.0 tag is proxy-invisible and will never be followed).
+
+# repo-root train (doc.go placeholder; never tag again)
+.
+
+# internal tools — local modules, no release train needed
+benchkit
+cmd/api-stability
+cmd/cqrs-bench
+cmd/cqrs-gen
+cmd/cqrs-upgrade
+cmd/doc-check
+
+# examples — usage demos, not deployments
+example/getting-started
+example/goal-shaped-app
+example/mesh-demo
+example/metaengine-quickstart
+example/readme-quickstart
+example/scheduler-otel-status
+example/taskmanager
+
+# test suites — repo-local by design
+integration
+system/integration
+systemtest
+testutil/mysqltestcontainer
+
+# driver tier — tag on first consumer
+metaengine/badgerengine
+metaengine/bboltengine
+metaengine/bench
+metaengine/bigtableengine
+metaengine/dgraphengine
+metaengine/duckdbengine
+metaengine/graphadapter
+metaengine/irohengine
+metaengine/irohengine/loopback
+metaengine/irohengine/quic
+metaengine/mysqlengine
+metaengine/otelobserver
+metaengine/pgengine
+metaengine/tursoengine
+queue/mysql
+storage/backuptest
+storage/pebble
+
+# deprecated presets — removed at v5 (ADR-0123); no new tags
+stack/bbolt
+stack/bench
+stack/duckdb
+stack/memory
+stack/metaengine
+stack/mysql
+stack/pebble
+stack/postgres
+stack/turso
+
+# ghost verdicts pending T02 owner sign-off (docs/adr/0152 addendum):
+# kill / keep-driver / absorb — untagged under every outcome until a consumer
+deriver
+graph
+idempotency/kvstore
+otel/otlp
+transport/grpc
+transport/http
