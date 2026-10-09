@@ -87,3 +87,20 @@ Bonus refactors: `writeModuleSection` dedup in render (3 duplicated table blocks
 ---
 
 **Standing notes:** no manual commit (harness contract; auto-commit daemon absorbs). Prior report's questions g/1-3 were answered autonomously and documented in its execution addendum — flag if any call should be revisited.
+
+---
+
+## Execution addendum (2026-10-09, follow-up wave)
+
+The 18-item backlog harvested from this report (section f) was executed by the
+17:32 follow-up session and hard-closed by the same-day continuation:
+**`docs/status/2026-10-09_17-32_scorecard-followup-wave-session-review.md`**
+is the current truth for path-owned presets, stack-surface modernity, waiver
+trigger expiry, and the config-docs contract. Validation probes on the
+companion fleet additionally surfaced and fixed a multi-module blindspot
+(stack + composition signals now union across per-`go.mod` profiles;
+ADR-0152 carries the cqrs-htmx-Legacy / go-appkit-Modern evidence). The five
+actionable TODO_LIST rows above are DONE with dated receipts; only
+journal-side adoption remains (owner-gated, unchanged). This report's
+question g/3 (explain's documentation claim) was answered BINDING and made
+mechanically true by a reflect test in the follow-up wave.

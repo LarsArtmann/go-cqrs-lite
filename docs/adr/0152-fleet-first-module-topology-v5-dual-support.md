@@ -91,3 +91,15 @@ capability is proven by integration suites only; cqrs-htmx's own submodule
 
 Full consumer matrix, zero-consumer list, stranded-pin inventory, and the
 verification log: `docs/status/2026-10-08_20-23_go-modules-audit-external-usage-and-self-review.md`.
+
+**Ratchet evidence (2026-10-09, cqrs-lint scorecard):** the migration-order
+premise is now measurable. `cqrs-lint scorecard --path ~/projects/cqrs-htmx`
+grades **Modernity: Legacy** — 41 v5-removed API uses plus 1 stack-surface
+import (`stack/v4` bundle, live in `usermgmt/` production code) — while its
+modern side (the `systemadapter/` composition module, metaengine pushdown)
+renders in the same report. `~/projects/go-appkit` grades **Modernity: Modern**
+(the `cqrs/` submodule's `system.New` wiring is detected project-wide). The
+first-migration-target ordering this ADR predicts is exactly what the
+scorecard now surfaces per project. Snapshots live in
+`docs/status/2026-10-09_17-32_scorecard-followup-wave-session-review.md` and
+its follow-up addendum.
