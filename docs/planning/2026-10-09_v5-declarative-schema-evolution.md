@@ -75,11 +75,15 @@ This also sits cleanly on the ADR-0136 ladder: both axes are **replayable** effe
 
 ```go
 // skip-validate
-schema := schema.Declare(
-    schema.Event[user.Created]("user.created", 2),            // wire name + current version
-    schema.Event[user.Renamed]("user.renamed", 1,
-        schema.From(1, schema.Rename("name", "displayName"))), // chain declared inline
-    schema.DefaultCodec(codec.CBORCodec{}),
+// Illustrative v5 surface: the `v5schema` qualifier names the PROPOSED API —
+// none of these symbols exist in the repo yet.
+v5schema := declaration("payments")
+
+v5schema.Declare(
+    v5schema.Event[user.Created]("user.created", 2),             // wire name + current version
+    v5schema.Event[user.Renamed]("user.renamed", 1,
+        v5schema.From(1, v5schema.Rename("name", "displayName"))), // chain declared inline
+    v5schema.DefaultCodec(codec.CBORCodec{}),
 )
 ```
 
@@ -90,13 +94,15 @@ schema := schema.Declare(
 
 ### T2 — Named upcast ops (Axon AF5's best idea, on our chain)
 
+Illustrative signatures (the `v5schema` qualifier names the proposed API — none exist yet):
+
 ```go
 // skip-validate
-schema.RenameType("user.created.v1", "user.created")       // rename wire type
-schema.RenameField("user.created", 1, "name", "fullName")  // rename payload field
-schema.AddField("user.created", 1, "country", "US")        // add field w/ default
-schema.RemoveField("user.created", 2, "legacyToken")
-schema.Split("user.checkout", 3, producing("cart.checked_out", "payment.requested"), splitFn)
+v5schema.RenameType("user.created.v1", "user.created")       // rename wire type
+v5schema.RenameField("user.created", 1, "name", "fullName")  // rename payload field
+v5schema.AddField("user.created", 1, "country", "US")        // add field w/ default
+v5schema.RemoveField("user.created", 2, "legacyToken")
+v5schema.Split("user.checkout", 3, producing("cart.checked_out", "payment.requested"), splitFn)
 ```
 
 - Each op compiles to an `Upcaster` (the `UpcastSourceTransform` read path is untouched — capability-preserving per ADR-0126).
