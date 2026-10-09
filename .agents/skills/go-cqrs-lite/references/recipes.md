@@ -2813,3 +2813,58 @@ every field is zero). `IPAddress` and `UserAgent` are plain string types; the th
 branded (`id.CorrelationID`, `id.RequestID`, `id.ClientID`) — mint with `id.New...` or parse
 with the `idtest` helpers. This ships the enricher that apps previously had to hand-roll
 per project (the cqrs-htmx gap, GitHub issue #35).
+
+### 2.43 System-Level BDD Scenarios — Given/When/Then over a real system.New (systemscenario, ADR-0153)
+
+The decider-level DSL (§6.10 in advanced.md) tests pure functions. When the
+wiring, projections, sagas, or timers are under test, boot the whole system
+through the harness with the SAME `DomainConfig`/`DeploymentConfig` your
+production binary uses — config drift between prod and tests becomes
+structurally impossible.
+
+```go
+import (
+    "context"
+    "testing"
+
+    "github.com/larsartmann/go-cqrs-lite/id/v4"
+    "github.com/larsartmann/go-cqrs-lite/systemscenario/v4"
+)
+
+func TestTaskCompletion(t *testing.T) {
+    ctx := context.Background()
+    sc := systemscenario.System(t, ctx, taskDomain(), memoryDeployment())
+    ref := id.NewStreamRef("Task", id.NewStreamID())
+
+    sc.Given(                              // seed the journal + bus (auto-versioned events)
+        sc.Event("task.created", ref, TaskCreated{Title: "ship it"}),
+    ).When(completeCmd(ref)).              // dispatch through the REAL dispatcher
+        Then("task.updated").              // journal diff since the act baseline
+        ThenQuery(viewQuery(sc, ctx, ref), // poll-await the async projection
+            TaskView{Title: "ship it", Status: "completed"})
+}
+```
+
+Every phase composes: `Given().Command(seedCmd)` seeds by intent through the
+real dispatcher; `WhenEvent(evts...)` records + publishes external events;
+`WhenQuery(q)` makes queries a first-class act (`ThenResult`, `ThenSuccess`);
+`ThenEvents`/`ThenPayload`/`ThenMetadata` assert beyond types;
+`ThenCommands` captures the dispatch chain (the deriver saga story — call
+`Await()` first, bus delivery is asynchronous); `ThenErrorFamily` asserts
+the errorfamily taxonomy; `TimeAdvances(d)` advances the frozen
+`system.ManualClock` so deadline timers fire without sleeping (wire
+`scheduling.WithClock(sys.Clock().Now)` in `DomainConfig.Timers`).
+
+```go
+sc.Given().Command(registerCmd).
+    When(renameCmd).
+    ThenError(system.ErrNoDecider).        // errors.Is on the captured outcome
+    ThenNoEvents().                        // journal diff is empty
+    ThenErrorFamily(errorfamily.Rejection) // 6-family taxonomy
+```
+
+Determinism contract: journal/command assertions are synchronous (dispatch
+writes before returning); read-model assertions poll (`WithAwaitTimeout`,
+default 5s). A scenario without a `Then*` fails the test (vacuous guard).
+Wrapper libraries that own the `system.New` call adopt their booted system:
+`systemscenario.Adopt(t, ctx, eventService.System())`.

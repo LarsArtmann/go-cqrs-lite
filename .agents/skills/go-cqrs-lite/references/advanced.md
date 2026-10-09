@@ -390,6 +390,21 @@ scenario.GivenProjection(t, &UserProjection{}, evt1, evt2).ThenNoError()
 scenario.GivenProjection(t, &BrokenProj{}, badEvt).ThenError() // expects >= 1 error
 ```
 
+When the wiring itself is under test, the system-level twin takes over:
+`systemscenario` (ADR-0153) boots a REAL `system.New` with the production
+DomainConfig/DeploymentConfig — dispatch, journal diffs, poll-awaited
+queries, captured command chains (sagas), and manual-clock timer firing.
+See recipes.md §2.43 for the full walkthrough; the mapping:
+
+| scenario/v4 (functional core)      | systemscenario (system tier)              |
+| ---------------------------------- | ----------------------------------------- |
+| `Given(t, apply, initial, events)` | `Given(events...)` (journal + bus seed)   |
+| `When(cmd, decide)`                | `When(cmd)` (real dispatch)               |
+| `Then(types)`                      | `Then(types...)` (journal diff)           |
+| `ThenQueryResult(fn, want)`        | `ThenQuery(fn, want)` (awaits projection) |
+| `ThenError(target)`                | `ThenError`/`ThenErrorFamily`             |
+| vacuous guard                      | vacuous guard (ported)                    |
+
 ### 6.11 Scheduled Commands / Durable Deadlines
 
 Classic ES need — "cancel the order 30 minutes after creation if still unpaid" — as a

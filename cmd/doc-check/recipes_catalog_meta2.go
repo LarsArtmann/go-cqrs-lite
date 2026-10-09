@@ -201,6 +201,37 @@ var recipeCatalogB2 = map[string]recipeSpec{
 		},
 		preamble: "type OrderPlaced struct{ OrderID string }\n",
 	},
+	"### 2.43 System-Level BDD Scenarios — Given/When/Then over a real system.New (systemscenario, ADR-0153) #1": {
+		imports: []string{
+			`"context"`,
+			`"testing"`,
+			`"github.com/larsartmann/go-cqrs-lite/command/v4"`,
+			`"github.com/larsartmann/go-cqrs-lite/id/v4"`,
+			`"github.com/larsartmann/go-cqrs-lite/system/v4"`,
+			`"github.com/larsartmann/go-cqrs-lite/systemscenario/v4"`,
+		},
+		preamble: "type TaskCreated struct{ Title string }\n" +
+			"type TaskView struct{ Title, Status string }\n" +
+			"var _ = system.DomainConfig{}\n" +
+			"func taskDomain() system.DomainConfig { return system.DomainConfig{} }\n" +
+			"func memoryDeployment() system.DeploymentConfig { return system.DeploymentConfig{} }\n" +
+			"func completeCmd(_ id.StreamRef) command.Command { return nil }\n" +
+			"func viewQuery(_ *systemscenario.Scenario, _ context.Context, _ id.StreamRef) func() (any, error) {\n" +
+			"	return func() (any, error) { return TaskView{}, nil }\n" +
+			"}\n",
+		trailers: "_ = ref",
+	},
+	"### 2.43 System-Level BDD Scenarios — Given/When/Then over a real system.New (systemscenario, ADR-0153) #2": {
+		imports: []string{
+			`errorfamily "github.com/larsartmann/go-error-family"`,
+			`"github.com/larsartmann/go-cqrs-lite/command/v4"`,
+			`"github.com/larsartmann/go-cqrs-lite/system/v4"`,
+			`"github.com/larsartmann/go-cqrs-lite/systemscenario/v4"`,
+		},
+		preamble: "var registerCmd, renameCmd command.Command\n" +
+			"var sc *systemscenario.Scenario\n",
+		trailers: "",
+	},
 	"### 2.42 Request Correlation — RequestScope Enricher (event + decider) #1": {
 		imports: []string{
 			`"context"`,
