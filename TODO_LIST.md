@@ -54,6 +54,7 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 [New consumer issues](#new-consumer-issues-2026-10-03-triage) ·
 [Data-mesh & federation tail](#data-mesh--federation-tail-2026-09-24) ·
 [Metaengine Universal Storage Substrate](#metaengine-universal-storage-substrate-proposed-2026-09-18) ·
+[V5 schema evolution](#v5-declarative-schema-evolution-proposed-2026-10-09) ·
 [Durable Work Queue](#durable-work-queue-module-proposed-2026-09-13) ·
 [Command-side depth](#command-side-domain-depth-2026-09-13-plan) ·
 [Reset-projection stall](#investigate-testsystem_resetprojection_restartandreplay-contention-stall-found-2026-09-13) ·
@@ -288,6 +289,17 @@ mesh-demo onboarding) lives in the eventcatalog-hub repo. Execution evidence:
       drift). Until then the fix is opt-in — callers construct compound
       cursors by hand. _(Effort: M; wire-format change — golden pins
       required)_
+
+## V5 declarative schema evolution (proposed 2026-10-09)
+
+> Research-informed proposal (Axon Framework upcasting + LiveStore declared-schema/rematerialization model), awaiting owner ruling: [`docs/planning/2026-10-09_v5-declarative-schema-evolution.md`](docs/planning/2026-10-09_v5-declarative-schema-evolution.md). One declared schema unifying the four disconnected half-mechanisms (SchemaVersion, upcaster closures, catalog governance, in-process-only layout diffing); both axes ride existing machinery (SourceTransform chains; journal-survives-reset + ConfirmRebuild).
+
+- [ ] **Owner ruling on the proposal** — decision needed on the three Open Questions (declaration home `schema/` vs `catalog/`; T3 stamp location metadata vs first-class `Record` stamp; warn-first promotion timing). On acceptance this splits into implementation ADRs. _(Effort: S; ruling)_
+- [ ] **T2 named upcast ops** — `RenameType`/`RenameField`/`AddField`/`RemoveField`/`Split` compiling to the existing `Upcaster` interface; order-independent most-specific chain matching. Zero read-path change (ADR-0126 capability preservation). _(Effort: M; first increment — lands before T1 so there are ops to declare)_
+- [ ] **T1 `schema.Declaration`** — one registry binding wire name + current version + codec + Go type + chain; unifies the catalog-governance split-brain (catalog already models `WithVersion` — export becomes a view of the runtime declaration); cqrs-lint undeclared-event rule. _(Effort: L; the "defined Schema" ask)_
+- [ ] **T4 snapshot state-shape stamp** — Axon `RevisionSnapshotFilter` analog: mismatch discards the snapshot (counted) and rebuilds from the journal (ADR-0136 replayable rung, ADR-0143 journal guarantee). Fixes today's silent stale-snapshot load. _(Effort: S; independently correct)_
+- [ ] **T3 payload fingerprint ledger + T5 persisted layout fingerprints** — LiveStore-style drift detection: per-event payload hash stamp (warn-first) and per-collection engine fingerprints checked at boot → `LayoutDiff` → existing `RebuildThreshold`/`ConfirmRebuild` gate. _(Effort: L; v5-gated where stamps touch `Record`)_
+- [ ] **T6 compat policy + T7 docs/ADR split** — additive-change rules as a cqrs-lint rule; recipes + core.md conventions; proposal → implementation ADRs. _(Effort: M; follows the code)_
 
 ## Durable Work Queue module (proposed 2026-09-13)
 
