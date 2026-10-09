@@ -46,6 +46,7 @@ func declaredEventTypes(domain DomainConfig) []event.Type {
 	merged := make([]event.Type, 0, len(domain.Events)+len(domain.Schema))
 
 	for _, declared := range append(append([]event.Type{}, domain.Events...), schemaTypes(domain.Schema)...) {
+		//art-dupl:accept cross-module 6-line map-dedup idiom (pairs with cqrs-lint feature_profile_stores.go) — restructuring to dodge the detector would be worse code
 		if _, duplicate := seen[declared]; duplicate {
 			continue
 		}
