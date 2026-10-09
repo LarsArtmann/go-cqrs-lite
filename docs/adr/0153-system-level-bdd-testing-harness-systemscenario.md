@@ -80,6 +80,7 @@ Alternatives rejected:
 ### D2 — Phase-object Given/When/Then API on plain `testing.T`
 
 ```go
+// skip-validate
 sc := systemscenario.System(t, ctx, domainCfg, deployCfg) // boots system.New + Start + t.Cleanup
 
 sc.Given(evtCreated).                     // seed journal (AppendBatch + bus publish)

@@ -173,6 +173,8 @@ Today (~45 lines + wiring at two call sites, `internal/cqrs/upcasting.go:29-72`)
 
 ```go
 // skip-validate
+import "github.com/larsartmann/go-cqrs-lite/schema/v4"
+
 schema.NewUpcaster(EventBalanceUpdated, schemaV1, func(evt event.Event) (*event.ImmutableEvent, error) {
     var raw map[string]any
     if err := json.Unmarshal(evt.Payload(), &raw); err != nil {

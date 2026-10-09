@@ -111,6 +111,7 @@ ORDER BY, and LIMIT/OFFSET at the database level.
 
 ```go
 import (
+    "github.com/larsartmann/go-cqrs-lite/kv/v4"
     "github.com/larsartmann/go-cqrs-lite/storage/v4"
     "github.com/larsartmann/go-cqrs-lite/stack/v4"
 )
