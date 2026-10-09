@@ -1,0 +1,109 @@
+goroutine 8 [running]:
+runtime/pprof.writeGoroutineStacks({0x10e0b20, 0x1ddb13b4baa0})
+	/tmp/gomod-verify/golang.org/toolchain@v0.0.1-go1.27.0.linux-amd64/src/runtime/pprof/pprof.go:816 +0x69
+runtime/pprof.writeGoroutine({0x10e0b20?, 0x1ddb13b4baa0?}, 0x40e775?)
+	/tmp/gomod-verify/golang.org/toolchain@v0.0.1-go1.27.0.linux-amd64/src/runtime/pprof/pprof.go:779 +0x25
+runtime/pprof.(*Profile).WriteTo(0x9f6e47?, {0x10e0b20?, 0x1ddb13b4baa0?}, 0x0?)
+	/tmp/gomod-verify/golang.org/toolchain@v0.0.1-go1.27.0.linux-amd64/src/runtime/pprof/pprof.go:405 +0x149
+github.com/larsartmann/go-cqrs-lite/systemscenario/v4_test.TestZZDeadlockReproSyncDeriver(0x1ddb13b30d88)
+	/home/lars/projects/go-cqrs-lite/systemscenario/zz_deadlock_repro_test.go:81 +0x5b7
+testing.tRunner(0x1ddb13b30d88, 0x10e8f90)
+	/tmp/gomod-verify/golang.org/toolchain@v0.0.1-go1.27.0.linux-amd64/src/testing/testing.go:2193 +0xea
+created by testing.(*T).Run in goroutine 1
+	/tmp/gomod-verify/golang.org/toolchain@v0.0.1-go1.27.0.linux-amd64/src/testing/testing.go:2258 +0x4d4
+
+goroutine 1 [chan receive]:
+testing.(*T).Run(0x1ddb13b30b48, {0xa0898b?, 0x1ddb139bbaa0?}, 0x10e8f90)
+	/tmp/gomod-verify/golang.org/toolchain@v0.0.1-go1.27.0.linux-amd64/src/testing/testing.go:2266 +0x4f2
+testing.runTests.func1(0x1ddb13b30b48)
+	/tmp/gomod-verify/golang.org/toolchain@v0.0.1-go1.27.0.linux-amd64/src/testing/testing.go:2742 +0x37
+testing.tRunner(0x1ddb13b30b48, 0x1ddb139bbbc8)
+	/tmp/gomod-verify/golang.org/toolchain@v0.0.1-go1.27.0.linux-amd64/src/testing/testing.go:2193 +0xea
+testing.runTests({0xa18de4, 0x35}, {0xa18de4, 0x35}, 0x1ddb139808a0, {0x114aa20, 0x1a, 0x1a}, {0xc2aa691405e538fe, 0xdf85c6eef, ...})
+	/tmp/gomod-verify/golang.org/toolchain@v0.0.1-go1.27.0.linux-amd64/src/testing/testing.go:2740 +0x510
+testing.(*M).Run(0x1ddb13b4da40)
+	/tmp/gomod-verify/golang.org/toolchain@v0.0.1-go1.27.0.linux-amd64/src/testing/testing.go:2600 +0x6af
+main.main()
+	_testmain.go:100 +0x9b
+
+goroutine 50 [select]:
+github.com/ThreeDotsLabs/watermill/pubsub/gochannel.(*GoChannel).Subscribe.func1(0x1ddb13a7c240, 0x1ddb13b26000)
+	/tmp/gomod-verify/github.com/!three!dots!labs/watermill@v1.5.3/pubsub/gochannel/pubsub.go:214 +0xa9
+created by github.com/ThreeDotsLabs/watermill/pubsub/gochannel.(*GoChannel).Subscribe in goroutine 8
+	/tmp/gomod-verify/github.com/!three!dots!labs/watermill@v1.5.3/pubsub/gochannel/pubsub.go:213 +0x46f
+
+goroutine 51 [sync.Mutex.Lock]:
+internal/sync.runtime_SemacquireMutex(0x10390f8?, 0xa0?, 0x0?)
+	/tmp/gomod-verify/golang.org/toolchain@v0.0.1-go1.27.0.linux-amd64/src/runtime/sema.go:95 +0x25
+internal/sync.(*Mutex).lockSlow(0x1ddb13982430)
+	/tmp/gomod-verify/golang.org/toolchain@v0.0.1-go1.27.0.linux-amd64/src/internal/sync/mutex.go:149 +0x15a
+internal/sync.(*Mutex).Lock(...)
+	/tmp/gomod-verify/golang.org/toolchain@v0.0.1-go1.27.0.linux-amd64/src/internal/sync/mutex.go:70
+sync.(*Mutex).Lock(...)
+	/tmp/gomod-verify/golang.org/toolchain@v0.0.1-go1.27.0.linux-amd64/src/sync/mutex.go:46
+github.com/ThreeDotsLabs/watermill/pubsub/gochannel.(*GoChannel).Publish(0x1ddb13b26000, {0x9f90ce, 0xb}, {0x1ddb13970360, 0x1, 0xf86900?})
+	/tmp/gomod-verify/github.com/!three!dots!labs/watermill@v1.5.3/pubsub/gochannel/pubsub.go:108 +0x63d
+github.com/larsartmann/go-cqrs-lite/watermill/v4.(*EventBus).rebuildPublisherChain.func1({0x7781bf13c1d8?, 0x1ddb13999380?}, {0x1ddb13970350, 0x1, 0x1ddb139993b0?})
+	/home/lars/projects/go-cqrs-lite/watermill/event_bus_internals.go:17 +0xcf
+github.com/larsartmann/go-cqrs-lite/event/v4.PublisherFunc.Publish(0x1ddb13aa0030?, {0x10e4d28?, 0x1ddb13b4b8c0?}, {0x1ddb13970350?, 0x4?, 0x1ddb139993b0?})
+	/home/lars/projects/go-cqrs-lite/event/bus.go:23 +0x35
+github.com/larsartmann/go-cqrs-lite/watermill/v4.(*EventBus).Publish(0x1ddb13aa0000, {0x10e4d28, 0x1ddb13b4b8c0}, {0x1ddb13970350, 0x1, 0x1})
+	/home/lars/projects/go-cqrs-lite/watermill/event_bus.go:126 +0x251
+github.com/larsartmann/go-cqrs-lite/decider/v4.(*Repository[...]).ExecuteRef(0xa44440, {0x10e4d60, 0x1ddb139923c0}, {{0x9f25bc, 0x73f2b9?}, {{0x1ddb1399a300?, 0xc?}}}, 0x1ddb139b7100?)
+	/home/lars/projects/go-cqrs-lite/decider/decider.go:163 +0x6dc
+github.com/larsartmann/go-cqrs-lite/system/v4.RegisterCommand[...].func1({0x10e3630, 0x1ddb13b48990})
+	/home/lars/projects/go-cqrs-lite/system/register.go:122 +0x286
+github.com/larsartmann/go-cqrs-lite/command/v4.(*Dispatcher).Dispatch(0x1ddb139702a0, {0x10e4d60, 0x1ddb139923c0}, {0x10e3630, 0x1ddb13b48990})
+	/home/lars/projects/go-cqrs-lite/command/dispatcher.go:81 +0x22c
+github.com/larsartmann/go-cqrs-lite/deriver/v4.Deriver.AsHandler.func2({0x10e4d60, 0x1ddb139923c0}, 0x1ddb13b648c0)
+	/home/lars/projects/go-cqrs-lite/deriver/deriver.go:166 +0x37f
+github.com/larsartmann/go-cqrs-lite/watermill/v4.(*EventBus).rebuildHandlerChain.func1({0x10e4d60, 0x1ddb139923c0}, 0x1ddb13b648c0)
+	/home/lars/projects/go-cqrs-lite/watermill/event_bus_internals.go:54 +0x287
+github.com/larsartmann/go-cqrs-lite/watermill/v4.dispatchCached[...](0xb?, 0x1ddb13a7cea0?, {0x10e4d60?, 0x1ddb139923c0}, 0x1ddb13b648c0)
+	/home/lars/projects/go-cqrs-lite/watermill/bus_helpers.go:219 +0xab
+github.com/larsartmann/go-cqrs-lite/watermill/v4.(*EventBus).dispatchLocal(...)
+	/home/lars/projects/go-cqrs-lite/watermill/event_bus_internals.go:70
+github.com/larsartmann/go-cqrs-lite/watermill/v4.(*EventBus).runEventLoop(0x1ddb13aa0000, {0x10e4d60, 0x1ddb139923c0}, 0x1ddb139a83f0)
+	/home/lars/projects/go-cqrs-lite/watermill/event_bus_internals.go:98 +0x1c6
+created by github.com/larsartmann/go-cqrs-lite/watermill/v4.(*subscriptionState).ensureStarted in goroutine 8
+	/home/lars/projects/go-cqrs-lite/watermill/bus_helpers.go:53 +0x2b5
+
+goroutine 53 [select]:
+github.com/ThreeDotsLabs/watermill/pubsub/gochannel.(*GoChannel).waitForAckFromSubscribers(0x1ddb13b26000, 0x1ddb13a7ce40, 0x1ddb139a8bd0)
+	/tmp/gomod-verify/github.com/!three!dots!labs/watermill@v1.5.3/pubsub/gochannel/pubsub.go:144 +0x10c
+github.com/ThreeDotsLabs/watermill/pubsub/gochannel.(*GoChannel).Publish(0x1ddb13b26000, {0x9f90ce, 0xb}, {0x1ddb13970330, 0x1, 0xf86900?})
+	/tmp/gomod-verify/github.com/!three!dots!labs/watermill@v1.5.3/pubsub/gochannel/pubsub.go:133 +0x97e
+github.com/larsartmann/go-cqrs-lite/watermill/v4.(*EventBus).rebuildPublisherChain.func1({0x1?, 0x1ddb13999140?}, {0x1ddb13970320, 0x1, 0x1ddb13999170?})
+	/home/lars/projects/go-cqrs-lite/watermill/event_bus_internals.go:17 +0xcf
+github.com/larsartmann/go-cqrs-lite/event/v4.PublisherFunc.Publish(0x1ddb13aa0030?, {0x10e4d28?, 0x1ddb13b4b560?}, {0x1ddb13970320?, 0x4?, 0x1ddb13999170?})
+	/home/lars/projects/go-cqrs-lite/event/bus.go:23 +0x35
+github.com/larsartmann/go-cqrs-lite/watermill/v4.(*EventBus).Publish(0x1ddb13aa0000, {0x10e4d28, 0x1ddb13b4b560}, {0x1ddb13970320, 0x1, 0x1})
+	/home/lars/projects/go-cqrs-lite/watermill/event_bus.go:126 +0x251
+github.com/larsartmann/go-cqrs-lite/decider/v4.(*Repository[...]).ExecuteRef(0xa44440, {0x10e4b68, 0x1179ba0}, {{0x9f25bc, 0x73f2b9?}, {{0x1ddb1399a300?, 0xd?}}}, 0x1ddb139b6ae0?)
+	/home/lars/projects/go-cqrs-lite/decider/decider.go:163 +0x6dc
+github.com/larsartmann/go-cqrs-lite/system/v4.RegisterCommand[...].func1({0x10e3630, 0x1ddb13b48750})
+	/home/lars/projects/go-cqrs-lite/system/register.go:122 +0x286
+github.com/larsartmann/go-cqrs-lite/command/v4.(*Dispatcher).Dispatch(0x1ddb139702a0, {0x10e4b68, 0x1179ba0}, {0x10e3630, 0x1ddb13b48750})
+	/home/lars/projects/go-cqrs-lite/command/dispatcher.go:81 +0x22c
+github.com/larsartmann/go-cqrs-lite/systemscenario/v4_test.TestZZDeadlockReproSyncDeriver.func1()
+	/home/lars/projects/go-cqrs-lite/systemscenario/zz_deadlock_repro_test.go:71 +0x158
+created by github.com/larsartmann/go-cqrs-lite/systemscenario/v4_test.TestZZDeadlockReproSyncDeriver in goroutine 8
+	/home/lars/projects/go-cqrs-lite/systemscenario/zz_deadlock_repro_test.go:66 +0x495
+
+goroutine 56 [sync.WaitGroup.Wait]:
+sync.runtime_SemacquireWaitGroup(0x1ddb13b4b860?, 0xe0?)
+	/tmp/gomod-verify/golang.org/toolchain@v0.0.1-go1.27.0.linux-amd64/src/runtime/sema.go:114 +0x2e
+sync.(*WaitGroup).Wait(0x1ddb13982680)
+	/tmp/gomod-verify/golang.org/toolchain@v0.0.1-go1.27.0.linux-amd64/src/sync/waitgroup.go:206 +0x85
+github.com/ThreeDotsLabs/watermill/pubsub/gochannel.(*GoChannel).sendMessage.func1({0x1ddb13970340, 0x1, 0x0?})
+	/tmp/gomod-verify/github.com/!three!dots!labs/watermill@v1.5.3/pubsub/gochannel/pubsub.go:177 +0x11a
+created by github.com/ThreeDotsLabs/watermill/pubsub/gochannel.(*GoChannel).sendMessage in goroutine 53
+	/tmp/gomod-verify/github.com/!three!dots!labs/watermill@v1.5.3/pubsub/gochannel/pubsub.go:164 +0x249
+
+goroutine 57 [select]:
+github.com/ThreeDotsLabs/watermill/pubsub/gochannel.(*subscriber).sendMessageToSubscriber(0x1ddb13a7c240, 0x1ddb13a7ce40, 0x1ddb13b4b7d0)
+	/tmp/gomod-verify/github.com/!three!dots!labs/watermill@v1.5.3/pubsub/gochannel/pubsub.go:408 +0x4c5
+github.com/ThreeDotsLabs/watermill/pubsub/gochannel.(*GoChannel).sendMessage.func1.1()
+	/tmp/gomod-verify/github.com/!three!dots!labs/watermill@v1.5.3/pubsub/gochannel/pubsub.go:172 +0x28
+created by github.com/ThreeDotsLabs/watermill/pubsub/gochannel.(*GoChannel).sendMessage.func1 in goroutine 56
+	/tmp/gomod-verify/github.com/!three!dots!labs/watermill@v1.5.3/pubsub/gochannel/pubsub.go:171 +0x6b
