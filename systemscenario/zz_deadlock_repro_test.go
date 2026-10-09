@@ -64,7 +64,8 @@ func TestZZDeadlockReproSyncDeriver(t *testing.T) {
 
 	done := make(chan error, 1)
 	go func() {
-		if err := sys.CommandDispatcher().Dispatch(ctx, newTaskCmd("task.create", ref.ID)); err != nil {
+		if err := sys.CommandDispatcher().
+			Dispatch(ctx, newTaskCmd("task.create", ref.ID)); err != nil {
 			done <- err
 			return
 		}
