@@ -15,33 +15,33 @@
 
 ## a) FULLY DONE
 
-| # | Item | Evidence |
-|---|------|----------|
-| 1 | Verified C033 is real and correctly characterized by the journal note (missing-error-wrapping detector) | `cmd/cqrs-lint/pkg/rules/correctness/c033.go:23`, `RULES.md:281` |
-| 2 | Verified the grade math: 2/28 → "Minimal" per `scoreGrade` thresholds (>=80 Excellent … <20 Minimal) | `cmd/cqrs-lint/scorecard.go:222-235`, test pins at `scorecard_test.go:63,257` |
-| 3 | Mapped the scorecard's real sophistication (round-1 under-estimate corrected in round 2): FeatureProfile-relative denominator (`RelevantFor`), Irrelevant partition, Metaengine engine/pushdown panel, Deprecated v5-clean panel | `cmd/cqrs-lint/scorecard.go:38-59,77-87` |
-| 4 | Confirmed NO scorecard-native waiver/acknowledgment mechanism exists (rule findings have suppression; scorecard rows have nothing) | grep `waive\|acknowledg\|NotApplicable` over `cmd/cqrs-lint` — zero scorecard hits |
-| 5 | Round-2 deliverable: three purpose-aligned improvement directions — (1) credit composition wiring to kill false negatives, (2) `waive(key, reason, trigger)` rendered as visible WAIVED rows, (3) dual-grade headline Adoption + Modernity | Delivered in-session; grounded in the panels/structures cited above |
+| # | Item                                                                                                                                                                                                                                       | Evidence                                                                           |
+| - | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------- |
+| 1 | Verified C033 is real and correctly characterized by the journal note (missing-error-wrapping detector)                                                                                                                                    | `cmd/cqrs-lint/pkg/rules/correctness/c033.go:23`, `RULES.md:281`                   |
+| 2 | Verified the grade math: 2/28 → "Minimal" per `scoreGrade` thresholds (>=80 Excellent … <20 Minimal)                                                                                                                                       | `cmd/cqrs-lint/scorecard.go:222-235`, test pins at `scorecard_test.go:63,257`      |
+| 3 | Mapped the scorecard's real sophistication (round-1 under-estimate corrected in round 2): FeatureProfile-relative denominator (`RelevantFor`), Irrelevant partition, Metaengine engine/pushdown panel, Deprecated v5-clean panel           | `cmd/cqrs-lint/scorecard.go:38-59,77-87`                                           |
+| 4 | Confirmed NO scorecard-native waiver/acknowledgment mechanism exists (rule findings have suppression; scorecard rows have nothing)                                                                                                         | grep `waive\|acknowledg\|NotApplicable` over `cmd/cqrs-lint` — zero scorecard hits |
+| 5 | Round-2 deliverable: three purpose-aligned improvement directions — (1) credit composition wiring to kill false negatives, (2) `waive(key, reason, trigger)` rendered as visible WAIVED rows, (3) dual-grade headline Adoption + Modernity | Delivered in-session; grounded in the panels/structures cited above                |
 
 No code, no commits, no doc edits in either repo. Evidence for all "done" items is the in-session tool output cited above.
 
 ## b) PARTIALLY DONE
 
-| # | Item | What works | What remains open | Blocker | Effort |
-|---|------|-----------|-------------------|---------|--------|
-| 1 | Verification of the journal note's evidence claims (A024, doctor "store: sqlite, pushdown 11/11", F005/F007/F009 refs) | Upstream half verified (C033, grade math, doctor is a real metaengine surface) | Never opened `~/projects/journal` — the consumer-side claims are trusted, not checked | Session scope (user pasted; I did not request repo access) | S to verify |
-| 2 | Understanding the usage-detection pipeline behind the scorecard | Read ~150 lines of scorecard.go | Did NOT read how `analyzer.ModuleUsage` is derived (imports? call sites?), how `RelevantFor`/FeatureProfile classify, why SQLite rows read MISSING despite system.New wiring | Stopped when the opinion was formed — should not have stopped | M |
-| 3 | Feasibility of "credit composition wiring" | Claimed Metaengine panel proves the evidence pipeline exists | Unverified whether that panel detects engines wired via `system.New` config vs. only direct engine-module imports | Depends on (2) | M |
+| # | Item                                                                                                                   | What works                                                                     | What remains open                                                                                                                                                            | Blocker                                                       | Effort      |
+| - | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- | ----------- |
+| 1 | Verification of the journal note's evidence claims (A024, doctor "store: sqlite, pushdown 11/11", F005/F007/F009 refs) | Upstream half verified (C033, grade math, doctor is a real metaengine surface) | Never opened `~/projects/journal` — the consumer-side claims are trusted, not checked                                                                                        | Session scope (user pasted; I did not request repo access)    | S to verify |
+| 2 | Understanding the usage-detection pipeline behind the scorecard                                                        | Read ~150 lines of scorecard.go                                                | Did NOT read how `analyzer.ModuleUsage` is derived (imports? call sites?), how `RelevantFor`/FeatureProfile classify, why SQLite rows read MISSING despite system.New wiring | Stopped when the opinion was formed — should not have stopped | M           |
+| 3 | Feasibility of "credit composition wiring"                                                                             | Claimed Metaengine panel proves the evidence pipeline exists                   | Unverified whether that panel detects engines wired via `system.New` config vs. only direct engine-module imports                                                            | Depends on (2)                                                | M           |
 
 ## c) NOT STARTED
 
-| # | Item | Why not started | Priority |
-|---|------|-----------------|----------|
-| 1 | Any code change in either repo | Session was consultation; no edit was requested | n/a |
+| # | Item                                                                                                                                                       | Why not started                                     | Priority                                               |
+| - | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- | ------------------------------------------------------ |
+| 1 | Any code change in either repo                                                                                                                             | Session was consultation; no edit was requested     | n/a                                                    |
 | 2 | Memory write of the user's purpose statement ("linter exists to drive maximal, most-modern adoption; grade has teeth by design") into AGENTS.md / RULES.md | **Missed at discovery time — my failure, see (d)3** | HIGH — cheap, prevents repeat of (d)1 by future agents |
-| 3 | TODO_LIST/ROADMAP harvest of this report's (f) | User instructed report-then-wait | HIGH (skill mandates HARVEST; deferred to instruction) |
-| 4 | Reproducing the journal scorecard run to capture exact MISSING rows | Out of session scope as run | MEDIUM (feeds B-group tasks) |
-| 5 | Checking whether RULES.md/IMPROVEMENT_IDEAS.md state the mission somewhere beyond my grep hits (IMPROVEMENT_IDEAS.md:41 consumer table was incidental) | Not searched with intent | MEDIUM |
+| 3 | TODO_LIST/ROADMAP harvest of this report's (f)                                                                                                             | User instructed report-then-wait                    | HIGH (skill mandates HARVEST; deferred to instruction) |
+| 4 | Reproducing the journal scorecard run to capture exact MISSING rows                                                                                        | Out of session scope as run                         | MEDIUM (feeds B-group tasks)                           |
+| 5 | Checking whether RULES.md/IMPROVEMENT_IDEAS.md state the mission somewhere beyond my grep hits (IMPROVEMENT_IDEAS.md:41 consumer table was incidental)     | Not searched with intent                            | MEDIUM                                                 |
 
 ## d) TOTALLY FUCKED UP
 
@@ -53,6 +53,7 @@ No code, no commits, no doc edits in either repo. Evidence for all "done" items 
 ## e) WHAT WE SHOULD IMPROVE
 
 **Session behavior (mine):**
+
 1. Direction-changing recommendations on owner-owned tooling must state the assumed purpose explicitly and conditionally ("if the goal is comfort → X; if the goal is ratchet → Y") — or ask first. One sentence of insurance prevents a wrong steering round.
 2. Verify consumer-side claims against the consumer repo before endorsing them ("legitimate", "correct", "BY DESIGN") — endorsement transfers my credibility to unverified evidence.
 3. Memory writes at discovery time. This failure is recurring-class: global AGENTS.md calls it out ("❌ I'll batch updates → You'll forget").
@@ -70,6 +71,7 @@ No code, no commits, no doc edits in either repo. Evidence for all "done" items 
 ## f) Next tasks (26 — brainstorm fuel; needs docs-health HARVEST routing; user said up to 50, quality chosen over filler)
 
 **Group A — mission/memory (quick, highest leverage-per-minute):**
+
 1. Write the cqrs-lint mission line into repo `AGENTS.md` Quick Reference: "exists to drive maximal, most-modern adoption across consumer projects; grade has teeth by design — never propose softening it." — Impact: High · S · Documentation
 2. Add the mission paragraph to `cmd/cqrs-lint/RULES.md` preamble (audience: consumers reading their findings). — High · S · Documentation
 3. Mirror one sentence in `cmd/cqrs-lint/IMPROVEMENT_IDEAS.md` consumer-strategy section (where the "Light/indirect" table lives, line 41). — Medium · S · Documentation
@@ -112,11 +114,11 @@ No code, no commits, no doc edits in either repo. Evidence for all "done" items 
 ## g) Questions I cannot figure out myself
 
 1. **Grade math under waivers:** should a waived row LEAVE the denominator (score rises — waivers as pressure-release) or stay counted (score unchanged, row visibly WAIVED — waivers as pressure-recording)? This is a product-intent call that decides the entire waiver design; I can argue both from the mission statement.
-   *Tried:* reasoned from "grade has teeth by design" — both readings are consistent with teeth; no code or doc breaks the tie.
-2. **May the scorecard consume runtime evidence** (doctor output, calibration data), or must it remain pure static analysis? Determines how far "composition credit" can honestly go (static config parsing vs. consuming a doctor artifact). 
-   *Tried:* read scorecard.go — all current inputs are static; whether that is a constraint or an accident is not discoverable from code.
+   _Tried:_ reasoned from "grade has teeth by design" — both readings are consistent with teeth; no code or doc breaks the tie.
+2. **May the scorecard consume runtime evidence** (doctor output, calibration data), or must it remain pure static analysis? Determines how far "composition credit" can honestly go (static config parsing vs. consuming a doctor artifact).
+   _Tried:_ read scorecard.go — all current inputs are static; whether that is a constraint or an accident is not discoverable from code.
 3. **Who owns journal-side edits** (F007 trigger line, later waiver migration): may a go-cqrs-lite session touch `~/projects/journal/AGENTS.md`, or is that reserved for journal sessions / you?
-   *Tried:* consumer-scope decision (2026-10-08) makes the fleet in-scope as companions, but AGENTS.md edits in a sibling project are an ownership boundary, not a dependency question.
+   _Tried:_ consumer-scope decision (2026-10-08) makes the fleet in-scope as companions, but AGENTS.md edits in a sibling project are an ownership boundary, not a dependency question.
 
 ---
 
@@ -130,6 +132,7 @@ No code, no commits, no doc edits in either repo. Evidence for all "done" items 
 Groups A + C + D + E + G **executed and verified**; Group B's diagnosis became C's foundation. Group F (journal-side edits) remains owner-gated.
 
 **Shipped (all in `cmd/cqrs-lint`, CHANGELOG `[Unreleased]` cited):**
+
 - **C — composition credit:** `scorecard_credit.go` (+`FeatureProfile.HasSystemComposition`, path-boundary detection in `feature_detect.go`, `systemtest` excluded). `ComputeScorecard` credits persistence rows via store/engine/system signals; direct imports win; irrelevant rows never credited. Pinned by `scorecard_credit_test.go` incl. the journal-shape test.
 - **D — waivers:** `analyzer.ScorecardWaiver`/`ScorecardSettings` + `ValidateScorecardWaivers` (load-time, both CLI + embedded paths) + `ComputeScorecardWithWaivers` (`scorecard_waivers.go`): visible WAIVED partition, reason mandatory, trigger rendered (trigger-less = shamed), waive-used/irrelevant = hard errors, denominator shrink + grade recompute, waiver-heavy pressure note. CLI resolution via `resolveScorecardWaivers` — `<path>/.cqrs-lint.json` wins per key, cwd config fills (found by the plumbing probe: the first cut only read cwd config — fixed).
 - **E — modernity:** `ModernityGrade`/`ModernityHint` (`scorecard_modernity.go`): Legacy/Partial/Modern headline in text/markdown/JSON/SARIF (`modernity_grade`, `waived_count`).

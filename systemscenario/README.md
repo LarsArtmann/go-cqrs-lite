@@ -24,12 +24,12 @@ from production wiring. There is nothing to re-declare.
 
 ## Phases
 
-| Phase | Methods | Axon analog |
-|---|---|---|
-| Given | `Given(events...)`, `sc.Event(type, ref, payload)` (auto-versioned), `Given().Command(cmds...)` (seed by intent) | `given().events()/commands()` |
-| When | `When(cmd)`, `WhenEvent(events...)` (journaled + published external events), `WhenQuery(q)`, `TimeAdvances(d)` | `when().command()/event()`, Axon 4 `whenTimeElapses` |
-| Then | `Then(types...)`, `ThenEvents`, `ThenEventsSatisfy`, `ThenPayload` (generic), `ThenMetadata`, `ThenQuery`, `ThenQueryFunc`, `ThenResult`, `ThenSuccess`, `ThenError`, `ThenErrorFamily`, `ThenCommands`, `ThenCommandsSatisfy`, `ThenNoEvents`, `ThenNoCommands` | `then().events()/commands()/exception()/success()` |
-| Modes | `Await()` (poll mode for async bus outcomes), options `WithAwaitTimeout`, `WithClock` | — |
+| Phase | Methods                                                                                                                                                                                                                                                          | Axon analog                                          |
+| ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| Given | `Given(events...)`, `sc.Event(type, ref, payload)` (auto-versioned), `Given().Command(cmds...)` (seed by intent)                                                                                                                                                 | `given().events()/commands()`                        |
+| When  | `When(cmd)`, `WhenEvent(events...)` (journaled + published external events), `WhenQuery(q)`, `TimeAdvances(d)`                                                                                                                                                   | `when().command()/event()`, Axon 4 `whenTimeElapses` |
+| Then  | `Then(types...)`, `ThenEvents`, `ThenEventsSatisfy`, `ThenPayload` (generic), `ThenMetadata`, `ThenQuery`, `ThenQueryFunc`, `ThenResult`, `ThenSuccess`, `ThenError`, `ThenErrorFamily`, `ThenCommands`, `ThenCommandsSatisfy`, `ThenNoEvents`, `ThenNoCommands` | `then().events()/commands()/exception()/success()`   |
+| Modes | `Await()` (poll mode for async bus outcomes), options `WithAwaitTimeout`, `WithClock`                                                                                                                                                                            | —                                                    |
 
 **Determinism contract:** journal/command assertions are synchronous
 (dispatch writes the journal before returning); read-model assertions poll
@@ -59,16 +59,16 @@ testing with zero infrastructure (imports only `event` + `projection`).
 `systemscenario` is the **system** tier: full composition root, real
 dispatch, journal, bus, projections, timers. Neither replaces the other:
 
-| scenario/v4 (unchanged, Production) | systemscenario |
-|---|---|
-| `Given[Cmd,State](t, apply, initial, events)` folds state in memory | `Given(events)` seeds the real journal + bus |
-| `When(cmd, decide)` calls your decide func directly | `When(cmd)` dispatches through the system dispatcher |
-| `Then(types)` on decide's return value | `Then(types)` journal diff since the act baseline |
-| `ThenEvents(inspect)` | `ThenEvents(inspect)` + `ThenEventsSatisfy` (polling) |
-| `GivenProjection(t, proj, events)` + `ThenQueryResult(fn, want)` | `Given(...)` + `When(cmd)` + `ThenQuery(fn, want)` (awaits the async host) |
-| `ThenError(target)` | `ThenError(target)` + `ThenErrorFamily(family)` |
-| vacuous guard (`dsl.go`) | vacuous guard (ported) |
-| — | `WhenEvent`, `WhenQuery`, `ThenCommands`, `TimeAdvances`, `Await` |
+| scenario/v4 (unchanged, Production)                                 | systemscenario                                                             |
+| ------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| `Given[Cmd,State](t, apply, initial, events)` folds state in memory | `Given(events)` seeds the real journal + bus                               |
+| `When(cmd, decide)` calls your decide func directly                 | `When(cmd)` dispatches through the system dispatcher                       |
+| `Then(types)` on decide's return value                              | `Then(types)` journal diff since the act baseline                          |
+| `ThenEvents(inspect)`                                               | `ThenEvents(inspect)` + `ThenEventsSatisfy` (polling)                      |
+| `GivenProjection(t, proj, events)` + `ThenQueryResult(fn, want)`    | `Given(...)` + `When(cmd)` + `ThenQuery(fn, want)` (awaits the async host) |
+| `ThenError(target)`                                                 | `ThenError(target)` + `ThenErrorFamily(family)`                            |
+| vacuous guard (`dsl.go`)                                            | vacuous guard (ported)                                                     |
+| —                                                                   | `WhenEvent`, `WhenQuery`, `ThenCommands`, `TimeAdvances`, `Await`          |
 
 Use `scenario` for fast decider-pure unit loops; use `systemscenario` when
 the wiring, projections, sagas, or timers are under test.

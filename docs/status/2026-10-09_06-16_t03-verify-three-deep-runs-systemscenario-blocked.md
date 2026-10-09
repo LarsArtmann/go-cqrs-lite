@@ -56,11 +56,11 @@
 
 ## b) Verify runs this session (each deeper than the last)
 
-| Run | Window | Phases reached | Failure | Fixed by |
-|-----|--------|----------------|---------|----------|
-| #1 | 02:02→03:24 (gate waited ~1h) | Build → Vet → Test | recipe_l1492 + 3-fixture rot + V007 drift + wiring flake | me (session) |
-| #2 | 04:59→05:13 (window held) | Build → Vet → Test ✓ → Race | cqrs-lint os.Stdout race (2 printer sites) | me (session) |
-| #3 | 05:18→06:14 (window held) | Build → Vet → Test | **systemscenario ×3 — NOT fixed, sibling-active** | — (halted) |
+| Run | Window                        | Phases reached              | Failure                                                  | Fixed by     |
+| --- | ----------------------------- | --------------------------- | -------------------------------------------------------- | ------------ |
+| #1  | 02:02→03:24 (gate waited ~1h) | Build → Vet → Test          | recipe_l1492 + 3-fixture rot + V007 drift + wiring flake | me (session) |
+| #2  | 04:59→05:13 (window held)     | Build → Vet → Test ✓ → Race | cqrs-lint os.Stdout race (2 printer sites)               | me (session) |
+| #3  | 05:18→06:14 (window held)     | Build → Vet → Test          | **systemscenario ×3 — NOT fixed, sibling-active**        | — (halted)   |
 
 ## c) The systemscenario blockers (run #3, left for instructions)
 

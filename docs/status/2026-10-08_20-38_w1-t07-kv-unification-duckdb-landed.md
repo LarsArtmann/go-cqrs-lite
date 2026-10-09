@@ -14,6 +14,7 @@ f064 docs, api golden regen (keycodec export), preflight, verify chain.
 ## What landed this session (all verified by tests, mutations reverted)
 
 ### 1. enginetest conformance harness completed and de-vacuated
+
 - Fixed the 2 unused-`ctx` compile errors (`keyset_pagination.go:55,122` deleted).
 - **Vacuity bug found + fixed**: seeded via `ScopedCollection("keysetRow")` — wrong half of the
   contract. `store.Apply` targets must be the RECORD TYPE NAME (`"keysetRow"` — what `OnRecord`
@@ -26,6 +27,7 @@ f064 docs, api golden regen (keycodec export), preflight, verify chain.
   the (sort DESC, key ASC) contract), engine pushdown surface (cursor shape Sort=0/Key=item-012).
 
 ### 2. Mutation-verified: sqlite's three surfaces
+
 - Raw surface (`ScanRawValues`): emit-off → drops 10/13 + phantom [4,4,4,0] + DESC breakage. ✓
 - Planned pushdown (`pushdownMapScanPlanned`): emit-off → "HasMore without cursor". ✓
 - Standard pushdown (engine.go:483): NEW local test `TestSQLite_PushdownStandardTies`
@@ -34,6 +36,7 @@ f064 docs, api golden regen (keycodec export), preflight, verify chain.
   query rides the PLANNED path; the standard path was previously untested for cursors.
 
 ### 3. Architecture: KV cursor keys unified to the bare user key (wire contract)
+
 - **Bug**: bbolt/badger/pebble closure cursors carried the FULL STORAGE KEY
   (`m\x00<col>\x00"item-012"` — prefix + JSON-quoted) — violating the wire contract
   (`{"Sort":<scalar>,"Key":"item-012"}`) and breaking cross-engine cursor portability.
@@ -46,11 +49,14 @@ f064 docs, api golden regen (keycodec export), preflight, verify chain.
   the pattern).
 
 ### 4. Bug: pebble layout sort-index violated the compound contract three ways (fixed)
+
 Root cause chain: pebble implements `RawScanReader`; `Plan` auto-applies a layout for declared
 sorts → the walk served from `scanWithSortIndex` (an index-iterator path predating T07):
+
 1. No compound consume — `encodeIndexValue(SortKeyCursor)` seeked garbage → tie-block drops.
 2. DESC walked the index backward (`Last→Prev`) → **key-DESCENDING within ties** (contract: asc).
 3. No cursor emission at all.
+
 - **Rewrite** (`sort_index.go`): compound cursor → composite bound on the full
   `(encodedValue, primaryKey)` index entry; ASC resumes strictly after the entry; DESC ranges the
   cursor's whole value group and skips the served prefix IN-LOOP (byte ranges alone cannot express
@@ -66,6 +72,7 @@ sorts → the walk served from `scanWithSortIndex` (an index-iterator path preda
 - Mutation-verified: sort-index emit-off → asc drops + desc drops + phantom page. ✓
 
 ### 5. duckdb slice LANDED (green on first run)
+
 - Standard path (`pushdown.go`): `SELECT value, "key"`; dialect-local compound predicate
   (`::json` casts on sort binds only — key is VARCHAR; the shared helper takes one placeholder
   func, so this stays dialect territory): `(sort op $N::json OR sort = $N::json AND "key" > $N)`,
@@ -80,17 +87,20 @@ sorts → the walk served from `scanWithSortIndex` (an index-iterator path preda
   (mutation pipeline mis-ran; both emit guards verified RESTORED — no `if false` remnants).
 
 ### 6. Engine-per-Run rewiring (double-close fix)
+
 The harness's `t.Cleanup(store.Close)` closes the ENGINE (store owns engine lifecycle — same note
 as the soak harness). Two Runs sharing one engine → pebble panic "pebble: closed". All 6 wiring
 files (pebble/bbolt/badger/duckdb/dgraph/sqlite) now construct one engine per Run call.
 
 ### 7. Sibling-session ripple absorbed
+
 The other session added `go-humanize` to metaengine core; 12 engine modules' go.mod/go.sum needed
 tidy (api-stability's TestEveryModuleGoSumIsTidy gates it). buildflow `gomod-check --fix` passed
 its own criterion but not the test's (sibling-replace resolution) — ran the per-module
 `GOWORK=off go mod tidy` the test itself prescribes: 12 modules tidied, TestEvery GREEN.
 
 ## Suites status (all run this session, workspace mode)
+
 - metaengine core -short: **GREEN**
 - sqliteengine -short: **GREEN** (6.5s)
 - pebble / bbolt / badger -short (FULL suites incl. adttest matrix): **GREEN**
@@ -99,6 +109,7 @@ its own criterion but not the test's (sibling-replace resolution) — ran the pe
   affect explain goldens — check pending)
 
 ## Honest ledger (mistakes this session)
+
 1. ScopedCollection inverted usage → vacuous harness (caught by 0-rows failure, fixed).
 2. sed comment broke composite literal in first mutation attempt (compile error, not a valid
    mutation; redone guard-style).
@@ -112,6 +123,7 @@ its own criterion but not the test's (sibling-replace resolution) — ran the pe
    (daemon had already absorbed the legit work) — safe, but noted for discipline.
 
 ## Current tree state
+
 - Modified (daemon will absorb): duckdbengine/layout_planner.go, duckdbengine/pushdown.go,
   metaengine/sql_keyset.go (FOREIGN doc-comment tweak by sibling session — "bind args: sort, sort,
   key" → "sort, key"; investigated, left alone).
@@ -120,6 +132,7 @@ its own criterion but not the test's (sibling-replace resolution) — ran the pe
   enginetest additions; regen owed.
 
 ## Remaining (ordered)
+
 1. duckdb: mutation-verify the two emit guards; run FULL duckdb -short suite (explain goldens may
    pin the old single-column SELECT — fix goldens if the new shape is correct).
 2. api golden regen + TestEvery (keycodec.UserKeyBytes et al).
@@ -137,6 +150,7 @@ its own criterion but not the test's (sibling-replace resolution) — ran the pe
 7. Then: f046 receipts → T04 f047–f052 → T05 f053–f057 → W2 tail.
 
 ## Standing questions (answered autonomously per plan policy; user may override)
+
 - Verify-chain policy → work through, verify late (quiet window).
 - 18:35 attribution → moot; daemon absorbs; don't fight it.
 - SQL fan-out → full compound emit+consume on pg/mysql/duckdb (an engine issuing a cursor it

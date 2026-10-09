@@ -302,7 +302,7 @@ to be.
 37. Verify or drop the `RevisionSnapshotFilter` unverified lead (Axon).
 38. Proposal-fence convention (`v5schema.` qualifier) → `docs/agents/gotchas-tooling-build.md`.
 39. Parallel-declaration check ritual ("does a change add a registry beside DomainConfig?") →
-   AGENTS.md notes section.
+    AGENTS.md notes section.
 40. `#verify` full run once the concurrent session's gates are green (the only full-repo
     verification I did NOT run this session — it would have failed on their files).
 
@@ -329,8 +329,8 @@ to be.
 
 ---
 
-*Format note: `.md` at the caller's explicit demand — an override of the status-report skill's
+_Format note: `.md` at the caller's explicit demand — an override of the status-report skill's
 HTML default (the skill honors explicit format requests; flagged here so the divergence stays
-visible, same as the 16:08 report).*
+visible, same as the 16:08 report)._
 
-*Then: WAITING FOR INSTRUCTIONS.*
+_Then: WAITING FOR INSTRUCTIONS._

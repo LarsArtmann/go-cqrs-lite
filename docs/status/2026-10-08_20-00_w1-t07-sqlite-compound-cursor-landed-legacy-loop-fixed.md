@@ -18,17 +18,17 @@
 
 ## 2. Verified State (from live runs this session)
 
-| Check | Result |
-|---|---|
-| api-stability golden regen (`--update`) | ✅ 1 insertion (`metaengine/func LastPairCursor`); "API surface OK: 7569 exports"; `TestEvery` ok |
-| metaengine `-short` full suite | ✅ ok 7.5s (incl. 4 new compound-cursor tests) |
-| pebble / bbolt / badger / dgraph `-short` | ✅ all ok (never-run debt cleared) |
-| sqliteengine build+vet+`-short` full | ✅ ok 8.4s (after SQL slice) |
-| Mutation test (disable engine cursor emit) | ✅ tests fail via drops (10/13), phantom page `[4 4 4 0]`, int cursor — exact discrimination |
-| Legacy `WithCursor(0)` probe (post-fix) | ✅ correct next page (was: identical page forever) |
-| enginetest package compile | ❌ `declared and not used: ctx` ×2 (keyset_pagination.go:55,122) |
-| preflight-composed | ⏸ not re-run (would fail api-stability: golden is stale again — see §5) |
-| verify chain | ❌ 12B expired failed on calibration load gate; not relaunched |
+| Check                                      | Result                                                                                            |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------- |
+| api-stability golden regen (`--update`)    | ✅ 1 insertion (`metaengine/func LastPairCursor`); "API surface OK: 7569 exports"; `TestEvery` ok |
+| metaengine `-short` full suite             | ✅ ok 7.5s (incl. 4 new compound-cursor tests)                                                    |
+| pebble / bbolt / badger / dgraph `-short`  | ✅ all ok (never-run debt cleared)                                                                |
+| sqliteengine build+vet+`-short` full       | ✅ ok 8.4s (after SQL slice)                                                                      |
+| Mutation test (disable engine cursor emit) | ✅ tests fail via drops (10/13), phantom page `[4 4 4 0]`, int cursor — exact discrimination      |
+| Legacy `WithCursor(0)` probe (post-fix)    | ✅ correct next page (was: identical page forever)                                                |
+| enginetest package compile                 | ❌ `declared and not used: ctx` ×2 (keyset_pagination.go:55,122)                                  |
+| preflight-composed                         | ⏸ not re-run (would fail api-stability: golden is stale again — see §5)                           |
+| verify chain                               | ❌ 12B expired failed on calibration load gate; not relaunched                                    |
 
 ---
 
@@ -39,7 +39,7 @@
 3. **Regenerated api-stability golden** (the blocking gate-RED): only adds `LastPairCursor` (struct fields aren't golden entries). Verified + meta-tests green.
 4. **Fixed + completed `metaengine/scanpage_cursor_issuance_test.go`**: repaired `walkPages` (raw `WithCursor(cursor.Value)` vs string `WithCursorString` pass-back; the old version dead-stored opts and always used the string form); added 4 test functions (tie-heavy exact-once 13/5 both modes; exact-end nil-cursor 12/4; ParseCursor compound round-trip incl. wire-shape pin `{"Sort":2,"Key":"aXRlbS0wMDc="}`; 5 malformed-shape degradation guards + string-stays-string + empty=start).
 5. **Mutation-tested the tests** (the previous cursor test was accidentally tie-safe — I refused to trust mine unmutated): disabled memory-engine emit → **tests failed via INFINITE LOOP, not the predicted drops**. Root-caused with a debug probe + SortPaginate instrumentation (all instrumentation since removed, probe trashed):
-   - **Bug A (introduced pre-halt)**: emitted `SortKeyCursor.Sort` carried the **whole last row** (`valueOf(last)` = full struct). Only worked because the closure comparator field-extracts *both* operands. Leaks the entire row into HTTP-facing cursor strings; would bind garbage in SQL keyset predicates.
+   - **Bug A (introduced pre-halt)**: emitted `SortKeyCursor.Sort` carried the **whole last row** (`valueOf(last)` = full struct). Only worked because the closure comparator field-extracts _both_ operands. Leaks the entire row into HTTP-facing cursor strings; would bind garbage in SQL keyset predicates.
    - **Bug B (pre-existing, user-visible)**: a **legacy scalar cursor** (e.g. reflection-minted `0`, or any user-supplied `WithCursor(int)`) on the closure path: `itemFieldByName(scalar)` → nil → `compareValue(x, nil)` = +1 → filter inert → **the same page is re-served forever**.
 6. **Fixed both**:
    - `normalizeClosureCursor` (typed_reader_scan.go): narrows compound Sort from whole-row to the bare sort-column value — the one place that knows `cfg.sort.Column`. SortKeyCursor doc contract updated ("Sort carries the bare sort-column value").
@@ -84,7 +84,7 @@
 1. `buildStandardScanQuery` doesn't validate identifiers (callers do); `buildPlannedSelectQuery` does. Unify.
 2. CHANGELOG `[Unreleased]` entries owed: compound-cursor issuance+consume (sqlite + core helpers), the **legacy infinite-loop fix** (user-visible!), normalizeClosureCursor wire narrowing, conformance harness.
 3. readmodels.md doc row (f064) + wire-format golden file (f064) still owed.
-4. art-dupl check after SQL slice (I added cross-engine-shareable helpers — the pg/mysql builders should switch to them, which *reduces* clone surface).
+4. art-dupl check after SQL slice (I added cross-engine-shareable helpers — the pg/mysql builders should switch to them, which _reduces_ clone surface).
 5. Wire `RunKeysetPaginationTest`/`RunKeysetExactEndTest` into pebble/bbolt/badger/dgraph/duckdb suites (cheap, high pin value).
 6. TODO_LIST row for the treefmt/yaml-formatter golden-exclusion idea (config-war class cure, still open).
 
@@ -124,6 +124,6 @@
 
 ## 10. Three Questions for the User
 
-1. **Verify chain policy (carried over):** relaunch the wait-loop chain now (it may fire overnight while pg/mysql work lands — tree instability will keep resetting it), or hold until T07 is fully closed and relaunch once? 
+1. **Verify chain policy (carried over):** relaunch the wait-loop chain now (it may fire overnight while pg/mysql work lands — tree instability will keep resetting it), or hold until T07 is fully closed and relaunch once?
 2. **18:35 attribution (carried over):** did YOU make the golangci/templ/middleware changes and push the bridge tag, or is it all daemon regression? (Only affects whether the treefmt/yaml-formatter exclusion TODO gets priority; the repair itself is done and green.)
 3. **SQL fan-out confirmation:** sqlite landed with full compound emit+consume. Confirm pg/mysql/duckdb get the same full treatment this week (they need their slices + integration suites), or is sqlite-only + reflection fallback acceptable for the W1 boundary?

@@ -158,9 +158,9 @@ profile-irrelevant module is a hard error.
   "scorecard": {
     "waivers": [
       {
-        "key": "graph",                              // scored catalog key
-        "reason": "no traversal-heavy read models",   // mandatory
-        "trigger": "variable-depth queries appear"    // revisit condition
+        "key": "graph", // scored catalog key
+        "reason": "no traversal-heavy read models", // mandatory
+        "trigger": "variable-depth queries appear" // revisit condition
       }
     ]
   }

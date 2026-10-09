@@ -26,7 +26,7 @@ quiet window" hardening = the 600s-hang fix, deriver bus-deadlock option). I tou
    - #2 api-golden drift on `systemscenario/method Await`: **FIXED by sibling** —
      `docs/api_surface.txt:8097` contains the method; standalone meta-test run
      (`TestEveryModuleGoSumIsTidy|TestAPISurface`) green in 2.965 s.
-   - #3 600s test hang: **subsumed** — systemscenario no longer *compiles* GOWORK=off:
+   - #3 600s test hang: **subsumed** — systemscenario no longer _compiles_ GOWORK=off:
      uses `system.Clock`/`WithClock`/4-arg `system.New` (seam landed 06:13, commit a2aec239f,
      post-v4.11.0) while go.mod pins `system/v4 v4.11.0` from the proxy with **no replace block**.
      Workspace-mode builds resolve local; verify's GOWORK=off phases cannot. Sibling's tag wave
@@ -56,7 +56,7 @@ quiet window" hardening = the 600s-hang fix, deriver bus-deadlock option). I tou
 
 - **T03/f045 (GREEN #verify):** chain armed and healthy, but blocked on the sibling's wave
   landing (system v4.12.0 tag / replaces). ~5 h in probe-wait so far; their session is visibly
-  active — as of 19:51 they have *untracked* `systemscenario/zz_deadlock_repro_test.go` and
+  active — as of 19:51 they have _untracked_ `systemscenario/zz_deadlock_repro_test.go` and
   `docs/status/deriver-deadlock-stacks-2026-10-09.txt`: they are debugging a deriver/bus
   deadlock RIGHT NOW (their plan's "bus deadlock" item). Load 32.85/44.88/37.91 at 20:05.
 - **Self-healing verify scheduling (prior Q2):** implemented via chain v3, but its 12 h deadline
@@ -77,7 +77,7 @@ quiet window" hardening = the 600s-hang fix, deriver bus-deadlock option). I tou
 ## d) TOTALLY FUCKED UP (honest ledger)
 
 1. **Rebuilt the chain wrapper in `/tmp` AGAIN.** This morning's /tmp wipe destroyed wrapper v2
-   and I *knew that* — my first act was noting the loss — yet I wrote v3 to the same volatile
+   and I _knew that_ — my first act was noting the loss — yet I wrote v3 to the same volatile
    location. If my session dies, both the chain (job 2D3) and watcher (job 2DE) die with it, and
    another /tmp wipe loses the wrapper + log. Same mistake twice in one day.
 2. **Lost prep artifact `/tmp/mysql-shuffle-seeds.txt`** (21 mysql-labeled seeds for f049,
@@ -125,6 +125,7 @@ touch the running script — editing a live bash script mid-execution corrupts i
 ## f) NEXT UP TO 50 (ordered; nothing executed until instructed)
 
 Verify path:
+
 1. Monitor chain 2D3 / watcher 2DE to terminal state (log: /tmp/verify-t08.log).
 2. On PROBE WINDOW EXPIRED (~02:56 if wave still in flight): re-arm with fresh deadline.
 3. When systemscenario compiles again: standalone `GOWORK=off go test -count=1 .` (hang check)
@@ -150,9 +151,9 @@ T04 (quiet windows, after verify green):
 14. f047 `nix run .#integration-mysql-vm` (6 legs; check orphan QEMU port 33070 before/after).
 15. F52: AGENTS.md integration-rows evidence from the VM run.
 16. f048 storage snapshot-migration mysql integration (build tag `integration`, MYSQL_TEST_DSN;
-    userspace MariaDB recipe port 33061; TODO ~1018).
+userspace MariaDB recipe port 33061; TODO ~1018).
 17. f049 RE-EXTRACT the 21 mysql shuffle seeds (list lost — see d/2) from TODO ~821 pointers,
-    then replay via `go test -shuffle=<seed>`; persist the list in-repo this time.
+then replay via `go test -shuffle=<seed>`; persist the list in-repo this time.
 18. f050 G-T13 ADTSet mysql-VM leg (TODO ~580).
 19. f051 `#integration-mysql-nspawn` — still blocked on root; surface in receipts again.
 20. f052 queue/mysql conformance half.
@@ -162,16 +163,16 @@ T05 (same gate-passing window where possible):
 22. f054 SearchQuery count=5 (calibration table; recipe at t18b-record:89).
 23. f055 re-anchor DG_NetworkRTT + dgraph constants in a gate-passing window.
 24. f056 `./scripts/benchmark-regression.sh --save benchmarks/benchmark-baseline.txt` with
-    provenance header (calibration PASS first).
+provenance header (calibration PASS first).
 25. f057 supersede-note on docs/benchmarks/2026-09-19_backend-comparison-variation.md.
 
 Housekeeping:
 26. Research + write the twice-owed "insert-before-symbol tool" gotcha (search prior
-    docs/status reports for context).
+docs/status reports for context).
 27. TODO_LIST row for the sibling-wave blocker (e/6).
 28. `--wait` self-test case (e/7).
 29. Consider a docs/status note at every session boundary, halt or not (this report exists only
-    because you demanded it).
+because you demanded it).
 
 ## g) QUESTIONS I CANNOT ANSWER MYSELF (max 3)
 

@@ -295,7 +295,8 @@
    migrations or additions.
 
 ---
-*Report written 2026-10-09 14:40 CEST, immediately after the execution
+
+_Report written 2026-10-09 14:40 CEST, immediately after the execution
 session; suite re-verified green at report time (`systemscenario` ok,
 0.410s). Working tree clean — all session artifacts absorbed by the
-auto-commit daemon.*
+auto-commit daemon._

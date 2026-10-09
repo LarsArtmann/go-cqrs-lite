@@ -8,25 +8,25 @@
 
 ## a) FULLY DONE
 
-| Item | Evidence |
-| --- | --- |
-| Full triage of all report categories (14 verdicts: fixed / by-design / annotated / sanctioned / rejected / false-positive) | Plan doc §4 ledger, each with file:line evidence |
-| `metaengine.SortColumn` → alias of `SortSpec` (only same-module split brain) | module tests ok 38.9s; golden diff exactly 1 line (`struct`→`type`); `TestEvery` ok |
-| `projectionhost.awaitWorkers` flush via `context.WithoutCancel(ctx)` (values survive, cancellation still ignored); nolint removed safely | module tests ok 2.3s; golangci: no contextcheck/nolintlint findings |
-| CHANGELOG `### Changed` entries (2) | `check-changelog-symbols.sh`: 37 citations honest |
-| Targeted lint of both changed files | zero findings (pre-existing cyclop findings only in untouched files) |
-| doc gates | doc-check 1184 refs valid; `check-md-go` no new errors |
-| TODO_LIST harvest (Code Quality + v5 Unification entries) | 2 entries cross-linking the plan |
-| Plan doc with Pareto tiers, medium/fine task tables, mermaid graph, verdict ledger, receipts | pushed |
-| Commit + push | `036775275` → origin/master |
+| Item                                                                                                                                     | Evidence                                                                            |
+| ---------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| Full triage of all report categories (14 verdicts: fixed / by-design / annotated / sanctioned / rejected / false-positive)               | Plan doc §4 ledger, each with file:line evidence                                    |
+| `metaengine.SortColumn` → alias of `SortSpec` (only same-module split brain)                                                             | module tests ok 38.9s; golden diff exactly 1 line (`struct`→`type`); `TestEvery` ok |
+| `projectionhost.awaitWorkers` flush via `context.WithoutCancel(ctx)` (values survive, cancellation still ignored); nolint removed safely | module tests ok 2.3s; golangci: no contextcheck/nolintlint findings                 |
+| CHANGELOG `### Changed` entries (2)                                                                                                      | `check-changelog-symbols.sh`: 37 citations honest                                   |
+| Targeted lint of both changed files                                                                                                      | zero findings (pre-existing cyclop findings only in untouched files)                |
+| doc gates                                                                                                                                | doc-check 1184 refs valid; `check-md-go` no new errors                              |
+| TODO_LIST harvest (Code Quality + v5 Unification entries)                                                                                | 2 entries cross-linking the plan                                                    |
+| Plan doc with Pareto tiers, medium/fine task tables, mermaid graph, verdict ledger, receipts                                             | pushed                                                                              |
+| Commit + push                                                                                                                            | `036775275` → origin/master                                                         |
 
 ## b) PARTIALLY DONE
 
-| Item | What's missing |
-| --- | --- |
-| Full-repo lint verification | Background `nix run .#lint` ran **without** `scripts/go-env.sh` (ambient env — gotcha #2 violation); its "findings in ~33 modules" output is suspect. Compensated with per-module golangci under sanctioned env for MY files, but the repo-wide lint state is unverified this session. |
-| Plan doc internal consistency | **Shipped with stale rows:** F11/F12 in the fine-task table still show 🔄 while §6 receipts say ✅. Self-contradiction in a pushed doc. |
-| Authored git history | The daemon absorbed 5 of 6 files into `chore:` commits mid-verification; the detailed message rides on a 1-file docs commit. Code changes lack inline detailed messages in history. |
+| Item                          | What's missing                                                                                                                                                                                                                                                                         |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Full-repo lint verification   | Background `nix run .#lint` ran **without** `scripts/go-env.sh` (ambient env — gotcha #2 violation); its "findings in ~33 modules" output is suspect. Compensated with per-module golangci under sanctioned env for MY files, but the repo-wide lint state is unverified this session. |
+| Plan doc internal consistency | **Shipped with stale rows:** F11/F12 in the fine-task table still show 🔄 while §6 receipts say ✅. Self-contradiction in a pushed doc.                                                                                                                                                |
+| Authored git history          | The daemon absorbed 5 of 6 files into `chore:` commits mid-verification; the detailed message rides on a 1-file docs commit. Code changes lack inline detailed messages in history.                                                                                                    |
 
 ## c) NOT STARTED
 
@@ -54,33 +54,33 @@
 
 ## f) Next things (session-scoped, sorted by impact)
 
-| # | Task |
-| --- | --- |
-| 1 | Fix stale F11/F12 rows in the plan doc (1-min edit) |
-| 2 | Resolve the lint contradiction: sanctioned full `nix run .#lint` — are the ~33-module findings real or env poison? |
-| 3 | If real: triage the findings list (contradicts TODO_LIST's "#lint 88/88 green 2026-09-29") |
-| 4 | M4: enumerate v4↔core/v5 mirror pairs (id, kv, event, command, query, dispatcher) |
-| 5 | M4: table-driven lockstep cross-compare test (event.Type pattern) |
-| 6 | M4: wire into CI/meta-test set + document in gotchas |
-| 7 | Run `#check-duplication` post-alias (belt-and-braces) |
-| 8 | Consumer-module spot tests (stack, systemtest) for the alias change |
-| 9 | M5: check branching-flow for a suppression/config surface |
-| 10 | M5: else write a mirror-pair filter wrapper |
-| 11 | F29: re-run branching-flow, validate signal-vs-noise ratio |
-| 12 | M6: `TombstoneFilter` enum in core/v5/kv |
-| 13 | M6: `SyncWritesTier` signature decision (keep two-knob ABI vs typed input) |
-| 14 | M6: `kv.OrderClause`/`SortSpec` unification eval inside the v5 family |
-| 15 | M7: `storage` SQLStreamReader/StreamProjection — extract or accept-comment |
-| 16 | M7: `metaengine` MapDedupStore/MapDueClaimer — extract or accept |
-| 17 | M7: `snapshot` Snapshot/wire + `turso` SyncDB/syncDbConnection — decide |
-| 18 | M9: DLQ cross-doc comments (middleware vs projectionhost MemoryDeadLetterStore) |
-| 19 | M8: cqrs-lint `deprecatedTransportImport`/`deprecatedV5Module` DTO merge |
-| 20 | M10: options structs for the 8 medium flag-param rows (cqrs-bench/cqrs-lint/doc-check/ec-fixture) |
-| 21 | Verify the session-start `cmd/cqrs-lint/scorecard_test.go` modification (daemon-absorbed; I never read its diff — only verified it wasn't mine to touch) |
-| 22 | Note buildflow qualifier syntax in project memory once validated |
+| #  | Task                                                                                                                                                                                                  |
+| -- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1  | Fix stale F11/F12 rows in the plan doc (1-min edit)                                                                                                                                                   |
+| 2  | Resolve the lint contradiction: sanctioned full `nix run .#lint` — are the ~33-module findings real or env poison?                                                                                    |
+| 3  | If real: triage the findings list (contradicts TODO_LIST's "#lint 88/88 green 2026-09-29")                                                                                                            |
+| 4  | M4: enumerate v4↔core/v5 mirror pairs (id, kv, event, command, query, dispatcher)                                                                                                                     |
+| 5  | M4: table-driven lockstep cross-compare test (event.Type pattern)                                                                                                                                     |
+| 6  | M4: wire into CI/meta-test set + document in gotchas                                                                                                                                                  |
+| 7  | Run `#check-duplication` post-alias (belt-and-braces)                                                                                                                                                 |
+| 8  | Consumer-module spot tests (stack, systemtest) for the alias change                                                                                                                                   |
+| 9  | M5: check branching-flow for a suppression/config surface                                                                                                                                             |
+| 10 | M5: else write a mirror-pair filter wrapper                                                                                                                                                           |
+| 11 | F29: re-run branching-flow, validate signal-vs-noise ratio                                                                                                                                            |
+| 12 | M6: `TombstoneFilter` enum in core/v5/kv                                                                                                                                                              |
+| 13 | M6: `SyncWritesTier` signature decision (keep two-knob ABI vs typed input)                                                                                                                            |
+| 14 | M6: `kv.OrderClause`/`SortSpec` unification eval inside the v5 family                                                                                                                                 |
+| 15 | M7: `storage` SQLStreamReader/StreamProjection — extract or accept-comment                                                                                                                            |
+| 16 | M7: `metaengine` MapDedupStore/MapDueClaimer — extract or accept                                                                                                                                      |
+| 17 | M7: `snapshot` Snapshot/wire + `turso` SyncDB/syncDbConnection — decide                                                                                                                               |
+| 18 | M9: DLQ cross-doc comments (middleware vs projectionhost MemoryDeadLetterStore)                                                                                                                       |
+| 19 | M8: cqrs-lint `deprecatedTransportImport`/`deprecatedV5Module` DTO merge                                                                                                                              |
+| 20 | M10: options structs for the 8 medium flag-param rows (cqrs-bench/cqrs-lint/doc-check/ec-fixture)                                                                                                     |
+| 21 | Verify the session-start `cmd/cqrs-lint/scorecard_test.go` modification (daemon-absorbed; I never read its diff — only verified it wasn't mine to touch)                                              |
+| 22 | Note buildflow qualifier syntax in project memory once validated                                                                                                                                      |
 | 23 | Sibling-session observation: `systemscenario/zz_deadlock_repro_test.go` + deriver-bus-deadlock evidence landed via daemon commits — confirm it's tracked against the known product deadlock TODO item |
-| 24 | Archived status doc (2026-07-31) still narrates `SortColumn` as a new type — frozen history, but the docs-health ANNOTATE rule applies on next touch |
-| 25 | Decide SortColumn alias policy at v5 (see question 3) |
+| 24 | Archived status doc (2026-07-31) still narrates `SortColumn` as a new type — frozen history, but the docs-health ANNOTATE rule applies on next touch                                                  |
+| 25 | Decide SortColumn alias policy at v5 (see question 3)                                                                                                                                                 |
 
 ## g) Questions I cannot answer myself
 

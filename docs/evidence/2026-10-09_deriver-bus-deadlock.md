@@ -77,14 +77,14 @@ dispatches synchronously by design.
 
 ## 2. Option-design memo (F01.2)
 
-| | (a) Async bus delivery | (b) `deriver.WithAsyncDispatch` option | (c) Journal-tailed deriver host |
-|---|---|---|---|
-| Change surface | `watermill` EventBus delivery semantics (every subscriber, every consumer) | `deriver` `AsHandler` options | New infrastructure (host process tailing the journal) |
-| Ordering | Breaks ordered live delivery for ALL consumers (the reason `BlockPublishUntilSubscriberAck` is set) | Derived commands run after the handler returns; per-source-event order preserved by dispatch queue | Totally ordered by journal position; survives restarts |
-| Risk to v4.x consumers | HIGH: silent semantic shift of a shipped bus | LOW: opt-in, additive, default unchanged | New module: none until adopted |
-| Error surfacing | Unchanged | Requires explicit design (see §3) | Host owns retries/DLQ semantics (design at v5) |
-| Deadlock cured | Yes (nested publish no longer blocks the loop) | Yes for the deriver class (dispatch leaves the handler goroutine) | Yes (derivers never touch the bus) |
-| Cost | Rework of delivery + all tests that rely on sync publish→ack | ~90 min, additive option + tests | v5-scale project (cursoring, at-least-once, idempotency story) |
+|                        | (a) Async bus delivery                                                                              | (b) `deriver.WithAsyncDispatch` option                                                             | (c) Journal-tailed deriver host                                |
+| ---------------------- | --------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| Change surface         | `watermill` EventBus delivery semantics (every subscriber, every consumer)                          | `deriver` `AsHandler` options                                                                      | New infrastructure (host process tailing the journal)          |
+| Ordering               | Breaks ordered live delivery for ALL consumers (the reason `BlockPublishUntilSubscriberAck` is set) | Derived commands run after the handler returns; per-source-event order preserved by dispatch queue | Totally ordered by journal position; survives restarts         |
+| Risk to v4.x consumers | HIGH: silent semantic shift of a shipped bus                                                        | LOW: opt-in, additive, default unchanged                                                           | New module: none until adopted                                 |
+| Error surfacing        | Unchanged                                                                                           | Requires explicit design (see §3)                                                                  | Host owns retries/DLQ semantics (design at v5)                 |
+| Deadlock cured         | Yes (nested publish no longer blocks the loop)                                                      | Yes for the deriver class (dispatch leaves the handler goroutine)                                  | Yes (derivers never touch the bus)                             |
+| Cost                   | Rework of delivery + all tests that rely on sync publish→ack                                        | ~90 min, additive option + tests                                                                   | v5-scale project (cursoring, at-least-once, idempotency story) |
 
 **Ruling (accepted by owner 2026-10-09, G1):** (b) NOW, (c) as the v5 direction.
 (a) is rejected for v4.x — it changes global ordering semantics for every consumer to

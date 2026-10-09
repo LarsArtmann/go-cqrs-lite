@@ -37,14 +37,14 @@ Re-verified against docs.axoniq.io 5.3 + apidocs.axoniq.io (the earlier
 session's saved pages were garbage-collected; two session claims were WRONG and
 are corrected here):
 
-| Claim | Verdict | Source |
-|---|---|---|
-| `AxonTestFixture.with(configurer)` replaces `AggregateTestFixture`/`SagaTestFixture` | ✅ verified (single unified fixture; official migration page) | docs.axoniq.io/…/migration/paths/test-fixtures/ |
-| Any message in any given/when phase (`given().event/command`, `when().event/command/events`) | ✅ verified for commands+events | apidocs `AxonTestPhase.Given`/`.When` |
-| Then surface: `events`, `eventsSatisfy`, `noEvents`, `commands`, `commandsSatisfy`, `noCommands`, `exception`, `success`, `resultMessagePayload`, `await`, `expect` | ✅ verified | apidocs `AxonTestPhase.Then` equivalents |
-| `when().timeElapses(...)` on the Axon 5 fixture | ❌ **does not exist** — `whenTimeElapses`/`whenTimeAdvancesTo` are Axon 4 `AggregateTestFixture` APIs | apidocs (absent), Axon 4 docs |
-| `whenQuery(...)` phase | ❌ **does not exist** — Axon tests queries only via `then().expect(config -> gateway.query(...))` | docs.axoniq.io 5.3 testing pages |
-| Fixture built from the production `ApplicationConfigurer` (same config in prod and test) | ✅ verified — the load-bearing idea | docs.axoniq.io 5.3 basic-testing |
+| Claim                                                                                                                                                               | Verdict                                                                                               | Source                                          |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| `AxonTestFixture.with(configurer)` replaces `AggregateTestFixture`/`SagaTestFixture`                                                                                | ✅ verified (single unified fixture; official migration page)                                         | docs.axoniq.io/…/migration/paths/test-fixtures/ |
+| Any message in any given/when phase (`given().event/command`, `when().event/command/events`)                                                                        | ✅ verified for commands+events                                                                       | apidocs `AxonTestPhase.Given`/`.When`           |
+| Then surface: `events`, `eventsSatisfy`, `noEvents`, `commands`, `commandsSatisfy`, `noCommands`, `exception`, `success`, `resultMessagePayload`, `await`, `expect` | ✅ verified                                                                                           | apidocs `AxonTestPhase.Then` equivalents        |
+| `when().timeElapses(...)` on the Axon 5 fixture                                                                                                                     | ❌ **does not exist** — `whenTimeElapses`/`whenTimeAdvancesTo` are Axon 4 `AggregateTestFixture` APIs | apidocs (absent), Axon 4 docs                   |
+| `whenQuery(...)` phase                                                                                                                                              | ❌ **does not exist** — Axon tests queries only via `then().expect(config -> gateway.query(...))`     | docs.axoniq.io 5.3 testing pages                |
+| Fixture built from the production `ApplicationConfigurer` (same config in prod and test)                                                                            | ✅ verified — the load-bearing idea                                                                   | docs.axoniq.io 5.3 basic-testing                |
 
 The lesson set we adopt: **fixture-from-production-config**, **any-message
 phases**, **command-capture assertions**, **time control**. Two deliberate

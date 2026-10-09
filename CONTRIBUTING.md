@@ -560,7 +560,7 @@ line; the `.` row is the phantom repo-root train).
 - **Untagging means STOP TAGGING.** Existing tags are never deleted and stay
   proxy-served; `versions.json` keeps recording the latest tag of an untagged
   train (it is tag truth). The README manifest marks those rows
-  *(untagged per ADR-0152)* so a frozen tag is not misread as a live train.
+  _(untagged per ADR-0152)_ so a frozen tag is not misread as a live train.
 - **Both release scripts enforce it**: `tag-release.sh` and `batch-release.sh`
   refuse a listed train before touching anything (shared guard in
   `scripts/lib/release_common.sh`; `--dry-run` refuses too).

@@ -85,7 +85,7 @@ composition layers instead of a hypothetical public market.
 paths, v5 features on new); the eventual import rewrite touches every app
 (codemod-mitigated); untagged drivers lose the "tagged = ready" signal —
 capability is proven by integration suites only; cqrs-htmx's own submodule
- sprawl mirrors this repo's and will need the same treatment eventually.
+sprawl mirrors this repo's and will need the same treatment eventually.
 
 ## Evidence
 

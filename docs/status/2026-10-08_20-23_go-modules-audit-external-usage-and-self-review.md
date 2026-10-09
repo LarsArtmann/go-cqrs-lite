@@ -1,24 +1,24 @@
 # Go Modules Audit — Status & Self-Review
 
 **Date:** 2026-10-08 20:23 CEST
-**Session scope:** Analysis-only session triggered by *"I feel like we are doing something wrong with the way we use go modules??"* — repo investigation, verdict, analysis of the user-supplied `who-uses` consumer scan (202 modules in `~/projects`), external-usage verification, and self-review. **Zero code changes were made this session.** This file is the session's only durable artifact.
+**Session scope:** Analysis-only session triggered by _"I feel like we are doing something wrong with the way we use go modules??"_ — repo investigation, verdict, analysis of the user-supplied `who-uses` consumer scan (202 modules in `~/projects`), external-usage verification, and self-review. **Zero code changes were made this session.** This file is the session's only durable artifact.
 
 ---
 
 ## Headline results — every claim verification-graded
 
-| # | Session claim | Verdict | Evidence |
-|---|---|---|---|
-| 1 | "Repo is private → the `~/projects` scan IS the entire possible market" | **WRONG — corrected** | `gh api repos/LarsArtmann/go-cqrs-lite`: `private:false, visibility:public`, 1 star, 0 forks, 0 watchers |
-| 2 | "metaengine/benchkit go-humanize drift; GOWORK=off standalone build broken RIGHT NOW" | **WRONG — false alarm** | `go-humanize` IS required (`metaengine/go.mod:6`, `benchkit/go.mod:6`); `GOWORK=off go build ./...` green in both; the 18 LSP diagnostics are gopls workspace-mode noise (a documented gotcha) |
-| 3 | External consumers? | **Verified: zero known** | pkg.go.dev `event/v4`: **Imported by: 0**; 1 star / 0 forks / 0 watchers; proxy lists fully populated (indexer-driven) |
-| 4 | Why does pkg.go.dev hide all documentation? | **License: PROPRIETARY** | `LICENSE` first line "PROPRIETARY LICENSE", added 2026-03-15; pkg.go.dev reports UNKNOWN/redistributable-unchecked at every tagged version → docs hidden **by policy, permanently** |
-| 5 | Root train "." = v4.0.0 | **Phantom tag** | proxy `@v/list` for the suffix-less root path serves only v0.1.0–v1.7.1; a v4 tag on a `/vN`-less path is proxy-invisible (the repo's own issue-#20 class) |
-| 6 | 101 `go.mod` files | Current truth | `find . -name go.mod -not -path './vendor/*' \| wc -l` = 101; AGENTS.md still says 98 (stale) |
-| 7 | 76/101 modules are single-package | Counted, not tier-caveated | includes legitimately-single-package driver modules (the count is right, the framing was incomplete) |
-| 8 | 52 trains consumed, 49 live trains + root with zero consumers (in `~/projects`) | Parsed from who-uses log | Appendices A/B |
+| # | Session claim                                                                         | Verdict                    | Evidence                                                                                                                                                                                       |
+| - | ------------------------------------------------------------------------------------- | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | "Repo is private → the `~/projects` scan IS the entire possible market"               | **WRONG — corrected**      | `gh api repos/LarsArtmann/go-cqrs-lite`: `private:false, visibility:public`, 1 star, 0 forks, 0 watchers                                                                                       |
+| 2 | "metaengine/benchkit go-humanize drift; GOWORK=off standalone build broken RIGHT NOW" | **WRONG — false alarm**    | `go-humanize` IS required (`metaengine/go.mod:6`, `benchkit/go.mod:6`); `GOWORK=off go build ./...` green in both; the 18 LSP diagnostics are gopls workspace-mode noise (a documented gotcha) |
+| 3 | External consumers?                                                                   | **Verified: zero known**   | pkg.go.dev `event/v4`: **Imported by: 0**; 1 star / 0 forks / 0 watchers; proxy lists fully populated (indexer-driven)                                                                         |
+| 4 | Why does pkg.go.dev hide all documentation?                                           | **License: PROPRIETARY**   | `LICENSE` first line "PROPRIETARY LICENSE", added 2026-03-15; pkg.go.dev reports UNKNOWN/redistributable-unchecked at every tagged version → docs hidden **by policy, permanently**            |
+| 5 | Root train "." = v4.0.0                                                               | **Phantom tag**            | proxy `@v/list` for the suffix-less root path serves only v0.1.0–v1.7.1; a v4 tag on a `/vN`-less path is proxy-invisible (the repo's own issue-#20 class)                                     |
+| 6 | 101 `go.mod` files                                                                    | Current truth              | `find . -name go.mod -not -path './vendor/*' \| wc -l` = 101; AGENTS.md still says 98 (stale)                                                                                                  |
+| 7 | 76/101 modules are single-package                                                     | Counted, not tier-caveated | includes legitimately-single-package driver modules (the count is right, the framing was incomplete)                                                                                           |
+| 8 | 52 trains consumed, 49 live trains + root with zero consumers (in `~/projects`)       | Parsed from who-uses log   | Appendices A/B                                                                                                                                                                                 |
 
-**Net market picture (corrected):** the repo is *source-available but proprietary* — publicly fetchable, legally unusable by third parties. Combined with zero known importers, the `~/projects` universe (42 Lars projects + cqrs-htmx/go-appkit/buildflow/go-taskqueue intermediaries) is the complete real consumer population **today**; an external consumer could only exist after relicensing. The consolidation argument from earlier in the session survives the public-repo correction at full strength — for a different reason than originally stated.
+**Net market picture (corrected):** the repo is _source-available but proprietary_ — publicly fetchable, legally unusable by third parties. Combined with zero known importers, the `~/projects` universe (42 Lars projects + cqrs-htmx/go-appkit/buildflow/go-taskqueue intermediaries) is the complete real consumer population **today**; an external consumer could only exist after relicensing. The consolidation argument from earlier in the session survives the public-repo correction at full strength — for a different reason than originally stated.
 
 ---
 
@@ -65,8 +65,8 @@
 
 ## d) TOTALLY FUCKED UP — honest
 
-1. **Stated "the repo is private" as fact.** It was an inference from the devShell's `GOPRIVATE=github.com/larsartmann/*` family-wide setting (which exists because *other* repos in the family are private). The documented one-line audit (`gh api repos/... --jq .private`) was available and was skipped. An entire learning ("zero *possible* consumers, forever") was built on the false premise. User corrected; verified public within the same session.
-2. **Invented a live build break.** Trusted 18 gopls diagnostics as truth ("go-humanize is not in your go.mod"), plus a `grep | head`-truncated module list, and declared the metaengine standalone build broken *without ever running the build*. Both go.mods require the dependency (line 6, both modules); `GOWORK=off` builds are green; the imports were committed same-day (auto-commit `24b14f485`, 2026-10-08), which explains the gopls lag. The "live specimen" was noise that flattered the thesis — **confirmation bias, not verification.**
+1. **Stated "the repo is private" as fact.** It was an inference from the devShell's `GOPRIVATE=github.com/larsartmann/*` family-wide setting (which exists because _other_ repos in the family are private). The documented one-line audit (`gh api repos/... --jq .private`) was available and was skipped. An entire learning ("zero _possible_ consumers, forever") was built on the false premise. User corrected; verified public within the same session.
+2. **Invented a live build break.** Trusted 18 gopls diagnostics as truth ("go-humanize is not in your go.mod"), plus a `grep | head`-truncated module list, and declared the metaengine standalone build broken _without ever running the build_. Both go.mods require the dependency (line 6, both modules); `GOWORK=off` builds are green; the imports were committed same-day (auto-commit `24b14f485`, 2026-10-08), which explains the gopls lag. The "live specimen" was noise that flattered the thesis — **confirmation bias, not verification.**
 3. **Two buggy parses before a correct one.** First awk emitted one row (state machine bug); second kept stale totals when the regex missed the singular "(1 consumer)" — queue/flightrecorder/retry/storage-turso/pebbleengine/scheduling-engine totals were wrong in intermediate tool output (the user-facing table came from the corrected third parse). Lesson: anchor-check a parser against rows whose truth is already known before trusting any of it.
 4. Minor: `cmd 2>&1 | head; echo $?` captured `head`'s exit code, not the command's (empty output was the real signal); the "76 single-package" table row lacked the drivers-are-legit caveat; the 101-vs-98 drift was noticed and silently dropped instead of reported.
 
@@ -74,7 +74,7 @@
 
 ## e) WHAT WE SHOULD IMPROVE (process)
 
-- **Verification bar:** any externally-checkable claim gets its one-liner *before* it is stated (`gh api`, `GOWORK=off go build`, un-truncated `grep`). No exceptions for claims that fit the narrative — especially those.
+- **Verification bar:** any externally-checkable claim gets its one-liner _before_ it is stated (`gh api`, `GOWORK=off go build`, un-truncated `grep`). No exceptions for claims that fit the narrative — especially those.
 - **gopls diagnostics are noise until a GOWORK=off build agrees** (already a documented gotcha; this session is a fresh incident to cite).
 - **Anchor-validate ad-hoc parsers** against known rows; prefer `jq` for structured data.
 - **Persist analysis artifacts in-repo when the analysis concludes**, not only in chat (this report, incl. appendices, is that artifact).
@@ -84,6 +84,7 @@
 ## f) Next things (prioritized)
 
 **P0 — evidence closure & memory (minutes–hours)**
+
 1. AGENTS.md: record public+proprietary fact and the GOPRIVATE-no-inference rule (memory rule, blocks repeat of failure 1).
 2. Sweep all 52 consumed trains through pkg.go.dev/proxy (`Imported by`, `@v/list` vs latest tag) → `docs/evidence/consumer-usage-2026-10-08.md`; close the "47 unchecked trains" gap.
 3. Fix AGENTS.md module count 98→101 (or run the canonical-facts update path); identify the 3-module delta.
@@ -109,7 +110,7 @@
 19. versions.json: split live/retired; README manifest marks retired trains.
 20. eventtest v0.4.0: align to the v4 family or fold into core at v5.
 21. batch-release: auto-generate wave manifest from changed-set + transitive dependents (kills the manual triple list).
-22. pin-sweep: run per-module *tests*, not build-only (the 2026-10-06 red-suites lesson — still open in AGENTS.md).
+22. pin-sweep: run per-module _tests_, not build-only (the 2026-10-06 red-suites lesson — still open in AGENTS.md).
 
 **P3 — hygiene / monitoring**
 23. Periodic `who-uses` gate feeding FEATURES maturity matrix (consumer counts per train; zero-consumer engines marked experimental-by-evidence).
@@ -134,36 +135,36 @@
 
 ## Appendix A — 52 consumed trains (from who-uses, corrected parse; format total/direct)
 
-| Train | Total | Direct | | Train | Total | Direct |
-|---|---|---|---|---|---|---|
-| id | 41 | 36 | | system | 31 | 13 |
-| event | 41 | 35 | | commandlifecycle/projections | 31 | 1 |
-| dispatcher | 41 | 1 | | commandlifecycle | 31 | 0 |
-| metadata | 41 | 3 | | listing | 31 | 4 |
-| record | 41 | 12 | | claiming | 30 | 0 |
-| command | 40 | 29 | | codec (retired) | 29 | 12 |
-| query | 39 | 21 | | storage/memory | 29 | 15 |
-| otel | 38 | 16 | | scenario | 27 | 11 |
-| projection | 37 | 11 | | signing | 27 | 3 |
-| snapshot | 37 | 15 | | stack | 27 | 5 |
-| decider | 36 | 28 | | catalog | 26 | 10 |
-| watermill | 35 | 16 | | encryption | 26 | 3 |
-| dedup | 34 | 1 | | eventtest (v0.4.0) | 26 | 5 |
-| kv | 33 | 3 | | prometheus | 26 | 5 |
-| metaengine | 33 | 15 | | testutil/pgtestcontainer | 26 | 0 |
-| scheduling | 33 | 3 | | idempotency (retired) | 9 | 7 |
-| metaengine/projectionadapter | 32 | 9 | | schema | 8 | 6 |
-| metaengine/sqliteengine | 32 | 15 | | idempotency/sqlstore | 4 | 4 |
-| projectionhost | 32 | 11 | | storage/bbolt | 4 | 1 |
-| middleware | 31 | 23 | | stack/sqlite | 3 | 3 |
-| storage | 31 | 18 | | cmd/cqrs-lint | 2 | 1 |
-| | | | | testutil | 2 | 1 |
-| | | | | flightrecorder (retired) | 1 | 0 |
-| | | | | metaengine/pebbleengine | 1 | 1 |
-| | | | | queue, queue/sqlite, queue/postgres | 1 ea | 0 |
-| | | | | retry (retired) | 1 | 0 |
-| | | | | scheduling/engine, scheduling/sqlstore | 1 ea | 1 |
-| | | | | storage/turso | 1 | 1 |
+| Train                        | Total | Direct |   | Train                                  | Total | Direct |
+| ---------------------------- | ----- | ------ | - | -------------------------------------- | ----- | ------ |
+| id                           | 41    | 36     |   | system                                 | 31    | 13     |
+| event                        | 41    | 35     |   | commandlifecycle/projections           | 31    | 1      |
+| dispatcher                   | 41    | 1      |   | commandlifecycle                       | 31    | 0      |
+| metadata                     | 41    | 3      |   | listing                                | 31    | 4      |
+| record                       | 41    | 12     |   | claiming                               | 30    | 0      |
+| command                      | 40    | 29     |   | codec (retired)                        | 29    | 12     |
+| query                        | 39    | 21     |   | storage/memory                         | 29    | 15     |
+| otel                         | 38    | 16     |   | scenario                               | 27    | 11     |
+| projection                   | 37    | 11     |   | signing                                | 27    | 3      |
+| snapshot                     | 37    | 15     |   | stack                                  | 27    | 5      |
+| decider                      | 36    | 28     |   | catalog                                | 26    | 10     |
+| watermill                    | 35    | 16     |   | encryption                             | 26    | 3      |
+| dedup                        | 34    | 1      |   | eventtest (v0.4.0)                     | 26    | 5      |
+| kv                           | 33    | 3      |   | prometheus                             | 26    | 5      |
+| metaengine                   | 33    | 15     |   | testutil/pgtestcontainer               | 26    | 0      |
+| scheduling                   | 33    | 3      |   | idempotency (retired)                  | 9     | 7      |
+| metaengine/projectionadapter | 32    | 9      |   | schema                                 | 8     | 6      |
+| metaengine/sqliteengine      | 32    | 15     |   | idempotency/sqlstore                   | 4     | 4      |
+| projectionhost               | 32    | 11     |   | storage/bbolt                          | 4     | 1      |
+| middleware                   | 31    | 23     |   | stack/sqlite                           | 3     | 3      |
+| storage                      | 31    | 18     |   | cmd/cqrs-lint                          | 2     | 1      |
+|                              |       |        |   | testutil                               | 2     | 1      |
+|                              |       |        |   | flightrecorder (retired)               | 1     | 0      |
+|                              |       |        |   | metaengine/pebbleengine                | 1     | 1      |
+|                              |       |        |   | queue, queue/sqlite, queue/postgres    | 1 ea  | 0      |
+|                              |       |        |   | retry (retired)                        | 1     | 0      |
+|                              |       |        |   | scheduling/engine, scheduling/sqlstore | 1 ea  | 1      |
+|                              |       |        |   | storage/turso                          | 1     | 1      |
 
 ## Appendix B — 49 live trains with zero consumers (+ root)
 
@@ -184,4 +185,4 @@ benchkit, cmd/api-stability, cmd/cqrs-bench, cmd/cqrs-gen, cmd/cqrs-upgrade, cmd
 
 ---
 
-*Point-in-time snapshot. Stale by design; annotate, never rewrite (docs-health ANNOTATE mode).*
+_Point-in-time snapshot. Stale by design; annotate, never rewrite (docs-health ANNOTATE mode)._

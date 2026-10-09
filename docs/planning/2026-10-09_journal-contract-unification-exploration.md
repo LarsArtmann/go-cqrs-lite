@@ -14,11 +14,11 @@
 The fleet has three parallel formulations of "ordered, append-only, cursor-readable log",
 each with its own position semantics:
 
-| Home | Surface | Position/cursor semantics | Evidence |
-| --- | --- | --- | --- |
-| CQRS read contracts | `event.Journal` / `SeekableJournal` / `StreamingJournal` | opaque `id.EventID` cursor; dangling-cursor contract lives in a comment | `event/store.go:110,129`; `event/streaming_source.go:60`; contract comment `event/store.go:122-128` |
-| Engine contracts | `metaengine.StreamLogBackend` / `SeqSeekableStreamLog` | `int64` seq, gap-tolerant resume tokens | `metaengine/engine.go:468`; `metaengine/seq_seek.go:41` |
-| Generic mechanics | `LogStore[T,ID]`, `Inserter[T]`/`JournalReader[T]`, `AdapterCore[T]` (ADR-0126 cores) | `afterID` string / "unknown cursor → 0" | `storage/memory/log_store.go:49`; `storage/sql/inserter.go:20`, `journal_reader.go:22`; `system/adapter_core.go:20` |
+| Home                | Surface                                                                               | Position/cursor semantics                                               | Evidence                                                                                                            |
+| ------------------- | ------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| CQRS read contracts | `event.Journal` / `SeekableJournal` / `StreamingJournal`                              | opaque `id.EventID` cursor; dangling-cursor contract lives in a comment | `event/store.go:110,129`; `event/streaming_source.go:60`; contract comment `event/store.go:122-128`                 |
+| Engine contracts    | `metaengine.StreamLogBackend` / `SeqSeekableStreamLog`                                | `int64` seq, gap-tolerant resume tokens                                 | `metaengine/engine.go:468`; `metaengine/seq_seek.go:41`                                                             |
+| Generic mechanics   | `LogStore[T,ID]`, `Inserter[T]`/`JournalReader[T]`, `AdapterCore[T]` (ADR-0126 cores) | `afterID` string / "unknown cursor → 0"                                 | `storage/memory/log_store.go:49`; `storage/sql/inserter.go:20`, `journal_reader.go:22`; `system/adapter_core.go:20` |
 
 The mechanics are already shared (ADR-0126). The **contract** is not: a consumer cannot
 reason about "what happens when my cursor is unknown/pruned" without reading three
@@ -50,16 +50,16 @@ extensions over it. No new go.mod.
 
 ## 3. What the ecosystem teaches (verified 2026-10-09)
 
-| System | Position model | Verified facts | Teaches us |
-| --- | --- | --- | --- |
-| `github.com/tidwall/wal` v1.2.1 | caller-supplied `uint64` index, **gapless required** (`ErrOutOfOrder` when index ≠ LastIndex()+1) | `Write(index,data)`, `Read(index)`, `FirstIndex/LastIndex`, `TruncateFront/Back`, `Sync`, `Batch`; sentinels `ErrCorrupt/ErrClosed/ErrNotFound/ErrOutOfOrder/ErrOutOfRange/ErrEmptyLog` | uint64 positions, explicit bounds reporting, retention, and a sentinel error contract are a proven complete kernel. `Imported by: 49`. |
-| etcd `go.etcd.io/etcd/server/v3/storage/wal` v3.7.2 | raft `(term,index)`; segmented `$seq-$index.wal` files, 64 MB cuts | cumulative CRC over ALL preceding record protobufs; 8-byte-aligned length fields (torn-write safety); read-mode vs append-mode lifecycle (must `ReadAll` before appending); `ReleaseLockTo(index)` retention; `Repair` truncates torn tail | "WAL" in industry = a **crash-recovery device** (checksums, repair, read-before-append). That is NOT our abstraction — naming must say `journal`. Chained CRC is the reference pattern IF audit-grade integrity is ever wanted. |
-| Kafka | per-partition monotonic offsets; retention windows vs consumer lag | *(concept-level comparison only — no exact API claims made here)* | the retention-vs-catch-up race (§5 I3) is the canonical operational failure mode; resumption policy must be explicit. |
+| System                                              | Position model                                                                                    | Verified facts                                                                                                                                                                                                                             | Teaches us                                                                                                                                                                                                                      |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `github.com/tidwall/wal` v1.2.1                     | caller-supplied `uint64` index, **gapless required** (`ErrOutOfOrder` when index ≠ LastIndex()+1) | `Write(index,data)`, `Read(index)`, `FirstIndex/LastIndex`, `TruncateFront/Back`, `Sync`, `Batch`; sentinels `ErrCorrupt/ErrClosed/ErrNotFound/ErrOutOfOrder/ErrOutOfRange/ErrEmptyLog`                                                    | uint64 positions, explicit bounds reporting, retention, and a sentinel error contract are a proven complete kernel. `Imported by: 49`.                                                                                          |
+| etcd `go.etcd.io/etcd/server/v3/storage/wal` v3.7.2 | raft `(term,index)`; segmented `$seq-$index.wal` files, 64 MB cuts                                | cumulative CRC over ALL preceding record protobufs; 8-byte-aligned length fields (torn-write safety); read-mode vs append-mode lifecycle (must `ReadAll` before appending); `ReleaseLockTo(index)` retention; `Repair` truncates torn tail | "WAL" in industry = a **crash-recovery device** (checksums, repair, read-before-append). That is NOT our abstraction — naming must say `journal`. Chained CRC is the reference pattern IF audit-grade integrity is ever wanted. |
+| Kafka                                               | per-partition monotonic offsets; retention windows vs consumer lag                                | _(concept-level comparison only — no exact API claims made here)_                                                                                                                                                                          | the retention-vs-catch-up race (§5 I3) is the canonical operational failure mode; resumption policy must be explicit.                                                                                                           |
 
 **Make-vs-buy verdict:** neither library is importable for our shape — tidwall/wal is
 file-backed and non-generic (payload `[]byte`, random-access index, gapless-required);
 etcd's is raft-typed and recovery-oriented. But their contracts validate the kernel
-design below. We adopt the *ideas* (bounds, sentinels, retention semantics), not the deps
+design below. We adopt the _ideas_ (bounds, sentinels, retention semantics), not the deps
 (zero-dep Tier-0 discipline, dep budgets).
 
 ## 4. Data model
@@ -80,7 +80,7 @@ exactly one position; positions only grow; entries never change once appended.
    order; `c` beyond head → empty page (not error); `c` pruned or unknown → the log's
    configured **missing-cursor policy** (below), never undefined behavior. This is the
    typed promotion of the `event/store.go:122-128` comment + `fromStartWhenMissing` bool
-   + AdapterCore "unknown → 0".
+   - AdapterCore "unknown → 0".
 4. **I4 — Durability is explicit.** Appended ≠ durable; durability is the `Syncer`
    capability (memory engines legitimately lack it).
 5. **I5 — Batch atomicity.** A single `Append(values...)` is all-or-nothing; its returned
@@ -226,13 +226,13 @@ of probing.
 
 ## 6. Capability matrix (current backends, honestly)
 
-| Backend | Kernel | Partitioned | Tailer | Truncater | Syncer | TimeBounded |
-| --- | --- | --- | --- | --- | --- | --- |
-| `storage/memory.LogStore` | yes | yes (`TrackStreams`) | no (in-proc watcher possible) | no | no | filter-only |
-| SQL (`JournalReader`/`Inserter`) | yes | yes (stream key) | no (poll-based) | DELETE-prefix possible | yes (tx) | yes (timestamp col) |
-| bbolt journal | yes | via keyspace | no | tx delete | yes | no |
-| Pebble | yes | via prefix | no | compaction-ish | yes (WAL!) | no |
-| `system.AdapterCore` over engines | yes | yes | engine Watcher where present | engine-specific | engine-specific | no |
+| Backend                           | Kernel | Partitioned          | Tailer                        | Truncater              | Syncer          | TimeBounded         |
+| --------------------------------- | ------ | -------------------- | ----------------------------- | ---------------------- | --------------- | ------------------- |
+| `storage/memory.LogStore`         | yes    | yes (`TrackStreams`) | no (in-proc watcher possible) | no                     | no              | filter-only         |
+| SQL (`JournalReader`/`Inserter`)  | yes    | yes (stream key)     | no (poll-based)               | DELETE-prefix possible | yes (tx)        | yes (timestamp col) |
+| bbolt journal                     | yes    | via keyspace         | no                            | tx delete              | yes             | no                  |
+| Pebble                            | yes    | via prefix           | no                            | compaction-ish         | yes (WAL!)      | no                  |
+| `system.AdapterCore` over engines | yes    | yes                  | engine Watcher where present  | engine-specific        | engine-specific | no                  |
 
 No backend gets Tailer for free — that is fine: the capability exists so the contract
 has a home for `CatchUpSubscriber`-style consumers, not to force implementations.
@@ -241,9 +241,9 @@ has a home for `CatchUpSubscriber`-style consumers, not to force implementations
 
 - **NOT a new v4 module.** ADR-0152 retired per-train independence for Tier 0–3 (one
   v5 core module, lockstep versioning, drivers stay modular). Adding `wal/v4` now would
-  be a new train that must be re-merged at the v5 cut. *(This document therefore
+  be a new train that must be re-merged at the v5 cut. _(This document therefore
   explicitly REVERSES the session's earlier "Option A: in-repo Tier-0 wal/ module" —
-  that option predates reading ADR-0152 at source.)*
+  that option predates reading ADR-0152 at source.)_
 - **Lands as `github.com/larsartmann/go-cqrs-lite/v5/journal`** (package in the one
   core module), with `event.Journal`/`SeekableJournal`/`StreamingJournal` re-expressed
   as thin capability wrappers over `journal.Log[record-flavored T]`, and the ADR-0126
@@ -285,10 +285,10 @@ has a home for `CatchUpSubscriber`-style consumers, not to force implementations
 
 ## 10. Verification appendix (per verify-external-claims discipline)
 
-| Claim | Status | Source |
-| --- | --- | --- |
-| tidwall/wal v1.2.1 API surface (Write/Read/First/Last/Truncates/Sync/Batch, sentinels, gapless `ErrOutOfOrder`) | verified 2026-10-09 | pkg.go.dev/github.com/tidwall/wal (raw fetch) |
-| etcd wal v3.7.2 (segments 64 MB `$seq-$index.wal`, cumulative CRC, read-before-append, `ReleaseLockTo`, `Repair`) | verified 2026-10-09 | pkg.go.dev/go.etcd.io/etcd/server/v3/storage/wal (raw fetch; path found via pkg.go.dev search after a constructed-URL 404 was caught and discarded) |
-| Kafka row | concept-level only, hedged | no exact API strings claimed |
-| All in-repo file:line citations | verified 2026-10-09 | direct grep/view (`event/store.go:110,129`, `metaengine/engine.go:468`, `storage/memory/log_store.go:49`, `system/adapter_core.go:20`, cqrs-htmx `sync_pull.go:134,222`, `handlers_audit.go:62,80,92-99`) |
-| ADR-0151/0152 content | verified at source 2026-10-09 | `docs/adr/0151-*.md`, `docs/adr/0152-*.md` |
+| Claim                                                                                                             | Status                        | Source                                                                                                                                                                                                    |
+| ----------------------------------------------------------------------------------------------------------------- | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| tidwall/wal v1.2.1 API surface (Write/Read/First/Last/Truncates/Sync/Batch, sentinels, gapless `ErrOutOfOrder`)   | verified 2026-10-09           | pkg.go.dev/github.com/tidwall/wal (raw fetch)                                                                                                                                                             |
+| etcd wal v3.7.2 (segments 64 MB `$seq-$index.wal`, cumulative CRC, read-before-append, `ReleaseLockTo`, `Repair`) | verified 2026-10-09           | pkg.go.dev/go.etcd.io/etcd/server/v3/storage/wal (raw fetch; path found via pkg.go.dev search after a constructed-URL 404 was caught and discarded)                                                       |
+| Kafka row                                                                                                         | concept-level only, hedged    | no exact API strings claimed                                                                                                                                                                              |
+| All in-repo file:line citations                                                                                   | verified 2026-10-09           | direct grep/view (`event/store.go:110,129`, `metaengine/engine.go:468`, `storage/memory/log_store.go:49`, `system/adapter_core.go:20`, cqrs-htmx `sync_pull.go:134,222`, `handlers_audit.go:62,80,92-99`) |
+| ADR-0151/0152 content                                                                                             | verified at source 2026-10-09 | `docs/adr/0151-*.md`, `docs/adr/0152-*.md`                                                                                                                                                                |

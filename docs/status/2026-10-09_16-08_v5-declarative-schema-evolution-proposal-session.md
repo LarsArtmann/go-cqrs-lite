@@ -59,6 +59,7 @@ Radical honesty; all caught and fixed in-session, but they were real failures:
 ## f) Next tasks (up to 50, ranked)
 
 Ruling-gated (top 3 = the unblock):
+
 1. **Rule on the proposal** — accept/reject T-sequence (T2→T1→T4→T3→T5→T6/T7 recommended). Impact: Critical. Effort: S. Decision.
 2. **Rule: T1/T3 in v4.x-additive or v5-wave-only** (ADR-0152 dual-support choice). Impact: Critical. Effort: S. Decision.
 3. **Rule: companions co-release?** — ship ops + declaration WITH cqrs-htmx/bank-sync/DiscordSync migration in one wave (per ADR-0152 co-release model). Impact: Critical. Effort: S. Decision.
@@ -131,4 +132,4 @@ Hygiene / session fallout:
 
 ---
 
-*Report format: `.md` at the user's explicit path demand — overrides the status-report skill's HTML-canonical default (flagged per skill contract).*
+_Report format: `.md` at the user's explicit path demand — overrides the status-report skill's HTML-canonical default (flagged per skill contract)._

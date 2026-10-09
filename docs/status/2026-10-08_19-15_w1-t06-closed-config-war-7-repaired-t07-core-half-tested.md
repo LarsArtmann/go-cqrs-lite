@@ -166,6 +166,7 @@ Verify chain queued in background (12B), still waiting for the quiet window.
 ## f) NEXT UP TO 50 THINGS (ranked)
 
 **Immediate (blocking correctness of the tree):**
+
 1. Regen api golden: `cd cmd/api-stability && GOWORK=off go run . --update` (ScanResult/RawScanResult fields).
 2. Fix `walkPages` (mode logic) + write the actual test functions: tie-heavy ScanPage exact-once (raw cursor), string round-trip, exact-end nil cursor, ParseCursor compound normalization + legacy-degradation guards.
 3. Run new tests + full metaengine `-short` suite.

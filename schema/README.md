@@ -97,19 +97,19 @@ Semantics (Axon Framework 5 event-transformation model, adopted):
 
 ## API
 
-| Symbol                                         | Description                                                                                                     |
-| ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| `NewUpcaster(eventType, fromVer, fn)`          | Creates an upcaster for a specific event type and source version.                                               |
-| `UpcastSourceTransform(upcasters...)`          | `event.SourceTransform` applying upcasters on load — compose via `event.DecorateStore`/`event.DecorateJournal`. |
-| `Compile(ops...)`                              | Validates and compiles named ops into an immutable `Chain`.                                                     |
-| `Chain.SourceTransform()`                      | Batch-level transform applying every op (incl. `Split`/`Drop`/`RenameType`).                                    |
-| `Chain.Upcasters()`                            | Converts the 1:1 ops to classic `Upcaster` values; batch ops are rejected.                                      |
-| `RenameType` / `RenameField` / `AddField` / `RemoveField` / `Transform` / `Split` / `Drop` | The named ops. Each compiles into the chain; payload ops advance the schema version by one. |
-| `WithDecodePolicy(Fail\|Passthrough\|Drop)`    | Per-op decode-failure policy (`FailOnDecodeError` is the default).                                              |
-| `Validator`                                    | Validates event payloads against registered types.                                                              |
-| `RegisterType[T]()`                            | Register a Go type for schema validation (ADR-0017).                                                            |
-| `NewVersionedStore(store, upcasters...)`       | **Deprecated** (removed v5): pre-transform shell; forwards to `event.DecorateStore`.                            |
-| `NewVersionedSeekableJournal(j, upcasters...)` | **Deprecated** (removed v5): pre-transform shell; forwards to `event.DecorateJournal`.                          |
+| Symbol                                                                                     | Description                                                                                                     |
+| ------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------- |
+| `NewUpcaster(eventType, fromVer, fn)`                                                      | Creates an upcaster for a specific event type and source version.                                               |
+| `UpcastSourceTransform(upcasters...)`                                                      | `event.SourceTransform` applying upcasters on load — compose via `event.DecorateStore`/`event.DecorateJournal`. |
+| `Compile(ops...)`                                                                          | Validates and compiles named ops into an immutable `Chain`.                                                     |
+| `Chain.SourceTransform()`                                                                  | Batch-level transform applying every op (incl. `Split`/`Drop`/`RenameType`).                                    |
+| `Chain.Upcasters()`                                                                        | Converts the 1:1 ops to classic `Upcaster` values; batch ops are rejected.                                      |
+| `RenameType` / `RenameField` / `AddField` / `RemoveField` / `Transform` / `Split` / `Drop` | The named ops. Each compiles into the chain; payload ops advance the schema version by one.                     |
+| `WithDecodePolicy(Fail\|Passthrough\|Drop)`                                                | Per-op decode-failure policy (`FailOnDecodeError` is the default).                                              |
+| `Validator`                                                                                | Validates event payloads against registered types.                                                              |
+| `RegisterType[T]()`                                                                        | Register a Go type for schema validation (ADR-0017).                                                            |
+| `NewVersionedStore(store, upcasters...)`                                                   | **Deprecated** (removed v5): pre-transform shell; forwards to `event.DecorateStore`.                            |
+| `NewVersionedSeekableJournal(j, upcasters...)`                                             | **Deprecated** (removed v5): pre-transform shell; forwards to `event.DecorateJournal`.                          |
 
 ## Design
 

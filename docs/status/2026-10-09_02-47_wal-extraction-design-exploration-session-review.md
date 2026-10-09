@@ -62,6 +62,7 @@ Nothing destructive — zero code/doc mutations; this report is the only write. 
 ## e) WHAT WE SHOULD IMPROVE (session-derived, both process and design)
 
 **Process (mine):**
+
 1. Apply a loaded skill's litmus tests BEFORE recommending, not when challenged.
 2. When a recommendation hinges on an ADR's content/timing, read the ADR at source; AGENTS.md summaries compress exactly the details that matter at decision time.
 3. Surface noticed drift immediately and explicitly (fix-or-flag, on sight).
@@ -80,6 +81,7 @@ Nothing destructive — zero code/doc mutations; this report is the only write. 
 ## f) Up to 50 things to get done next (35 real; ranked, session-derived)
 
 **Decision homework (before any greenlight):**
+
 1. Enumerate direct journal-position consumers in cqrs-htmx + go-appkit (`rg "ReadFrom|afterEventID|afterSeq"`) → module-vs-package verdict.
 2. Read ADR-0152 at source (topology + wave mechanics the timing claim leaned on).
 3. Read ADR-0151 at source (evidence-gate precedent invoked twice).
@@ -167,4 +169,3 @@ The owner's "make it even better" turn executed this report's own homework. Stat
   CRC-repair shape shows "WAL" = crash-recovery device — not our abstraction).
 - Gate: md-go (`scripts/check-md-go.sh`) run after writing the doc — **GREEN**
   (all 1480 code blocks valid, 73 skipped, no new errors; the doc's Go fences parse).
-
