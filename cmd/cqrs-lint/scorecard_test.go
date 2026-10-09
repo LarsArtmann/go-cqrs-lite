@@ -387,3 +387,101 @@ func TestComputeScorecard_MetaengineSection_MarkdownRendering(t *testing.T) {
 		t.Error("expected pushdown status in markdown output")
 	}
 }
+
+func TestStackPresetUseCount_UnionsAllModuleProfiles(t *testing.T) {
+	t.Parallel()
+
+	// Multi-module project: the primary module imports the root bundle while
+	// a submodule carries the engine presets (the cqrs-htmx shape — stack
+	// wiring lives in usermgmt/, not the primary module). The union must
+	// count distinct surfaces across BOTH, not just the primary profile
+	// BuildContext exposes.
+	actx := &analyzer.AnalysisContext{
+		FeatureProfile: analyzer.FeatureProfile{StackPresets: []string{"bundle"}},
+		FeatureProfiles: map[string]analyzer.FeatureProfile{
+			"usermgmt": {StackPresets: []string{"sqlite", "bundle"}},
+		},
+	}
+
+	if got := stackPresetUseCount(actx); got != 2 {
+		t.Errorf("stackPresetUseCount = %d, want 2 (distinct union across modules)", got)
+	}
+
+	// Single-module projects have no per-module map; the primary profile
+	// alone must still count.
+	single := &analyzer.AnalysisContext{
+		FeatureProfile: analyzer.FeatureProfile{StackPresets: []string{"sqlite"}},
+	}
+	if got := stackPresetUseCount(single); got != 1 {
+		t.Errorf("stackPresetUseCount(single module) = %d, want 1", got)
+	}
+
+	// Clean projects stay clean (zero surfaces anywhere).
+	clean := &analyzer.AnalysisContext{
+		FeatureProfile:  analyzer.FeatureProfile{},
+		FeatureProfiles: map[string]analyzer.FeatureProfile{"sub": {}},
+	}
+	if got := stackPresetUseCount(clean); got != 0 {
+		t.Errorf("stackPresetUseCount(clean) = %d, want 0", got)
+	}
+}
+
+func TestComputeDeprecatedPanel_CountsStackPresetsAcrossModules(t *testing.T) {
+	t.Parallel()
+
+	actx := &analyzer.AnalysisContext{
+		FeatureProfile: analyzer.FeatureProfile{StackPresets: []string{"bundle"}},
+		FeatureProfiles: map[string]analyzer.FeatureProfile{
+			"usermgmt": {StackPresets: []string{"sqlite", "bundle"}},
+		},
+	}
+
+	panel := ComputeDeprecatedPanel(t.Context(), actx)
+
+	if panel.StackPresetUses != 2 {
+		t.Errorf(
+			"StackPresetUses = %d, want 2 (project-wide union, not primary-only)",
+			panel.StackPresetUses,
+		)
+	}
+	if !strings.Contains(panel.Suggestion, "system.New") {
+		t.Errorf("expected stack migration suggestion, got %q", panel.Suggestion)
+	}
+}
+
+func TestCompositionWideProfile_UnionsSubmoduleSignals(t *testing.T) {
+	t.Parallel()
+
+	// The companion shape: the primary module carries no composition, a
+	// dedicated submodule owns the system.New wiring (cqrs-htmx/systemadapter,
+	// go-appkit/cqrs). The grade-facing profile must surface those signals
+	// while leaving primary-wins store resolution untouched.
+	actx := &analyzer.AnalysisContext{
+		FeatureProfile: analyzer.FeatureProfile{Store: analyzer.StoreMemory},
+		FeatureProfiles: map[string]analyzer.FeatureProfile{
+			"systemadapter": {HasSystemComposition: true},
+			"cqrs":          {HasMetaengine: true, MetaenginePushdown: true},
+		},
+	}
+
+	fp := compositionWideProfile(actx)
+
+	if !fp.HasSystemComposition {
+		t.Error("HasSystemComposition must surface from the systemadapter submodule")
+	}
+	if !fp.HasMetaengine || !fp.MetaenginePushdown {
+		t.Error("metaengine pushdown signals must surface from submodules")
+	}
+	if fp.Store != analyzer.StoreMemory {
+		t.Errorf("primary-wins store resolution must be preserved, got %v", fp.Store)
+	}
+
+	// Single-module projects: no per-module map, profile passes through
+	// unchanged.
+	single := &analyzer.AnalysisContext{
+		FeatureProfile: analyzer.FeatureProfile{HasSystemComposition: true},
+	}
+	if got := compositionWideProfile(single); !got.HasSystemComposition {
+		t.Error("single-module composition signal lost in pass-through")
+	}
+}

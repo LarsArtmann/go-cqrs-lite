@@ -89,14 +89,21 @@ func runScorecard(
 	if err != nil {
 		return fmt.Errorf("scorecard: %w", err)
 	}
+	// Composition signals (system.New wiring, metaengine pushdown) are a
+	// project-wide property: BuildContext exposes only the primary module's
+	// profile, but the canonical wiring often lives in a dedicated submodule
+	// (cqrs-htmx/systemadapter, go-appkit/cqrs). Both the composition credit
+	// and the Modernity grade must see it or those projects get coached off
+	// a path they are already on.
+	fp := compositionWideProfile(actx)
 	result, err := ComputeScorecardWithWaivers(
-		analyzer.DefaultCatalog, usage, actx.FeatureProfile, cfg.Preset, waivers,
+		analyzer.DefaultCatalog, usage, fp, cfg.Preset, waivers,
 	)
 	if err != nil {
 		return fmt.Errorf("scorecard: %w", err)
 	}
 	result.Deprecated = ComputeDeprecatedPanel(ctx, actx)
-	result.Summary.ModernityGrade = ModernityGrade(result.Deprecated, actx.FeatureProfile)
+	result.Summary.ModernityGrade = ModernityGrade(result.Deprecated, fp)
 
 	out, err := renderScorecard(result, cfg.Format, parseColorMode(cfg.Color))
 	if err != nil {

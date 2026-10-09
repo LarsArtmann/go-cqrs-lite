@@ -228,6 +228,30 @@ func stackPresetUseCount(actx *analyzer.AnalysisContext) int {
 	return len(seen)
 }
 
+// compositionWideProfile returns the primary module's profile with the
+// canonical-path composition signals — system.New wiring, metaengine and
+// declarative pushdown — ORed across every per-module profile. Composition
+// often lives in a dedicated submodule (cqrs-htmx/systemadapter,
+// go-appkit/cqrs); the primary-only view BuildContext exposes would grade
+// those projects as if the composition did not exist. Only the composition
+// booleans are unioned — store resolution keeps its documented primary-wins
+// semantics (feature_detect.go T20-3).
+func compositionWideProfile(actx *analyzer.AnalysisContext) analyzer.FeatureProfile {
+	fp := actx.FeatureProfile
+	for _, sub := range actx.FeatureProfiles {
+		if sub.HasSystemComposition {
+			fp.HasSystemComposition = true
+		}
+		if sub.HasMetaengine {
+			fp.HasMetaengine = true
+		}
+		if sub.MetaenginePushdown {
+			fp.MetaenginePushdown = true
+		}
+	}
+	return fp
+}
+
 // scorecardLess defines the sort order for scorecard rows: by category
 // priority (lower = first), then by key for determinism.
 func scorecardLess(a, b ScorecardModule) bool {
