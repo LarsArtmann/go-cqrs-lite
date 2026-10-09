@@ -3,6 +3,7 @@ package record
 // CauseKind discriminates what kind of thing caused a record. The zero value
 // is CauseNone, so "no cause recorded" is an explicit state rather than a
 // missing ID (review P4).
+// art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 type CauseKind uint8
 
 const (

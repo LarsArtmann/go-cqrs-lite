@@ -19,6 +19,7 @@ import (
 // moment ("when did this happen?"): created_at, occurred_at, updated_at, etc.
 //
 // For wall-clock times ("9am, for whom?"), use WallTime instead.
+// art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 type Instant struct {
 	t time.Time
 }

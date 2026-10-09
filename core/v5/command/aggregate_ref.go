@@ -1,8 +1,9 @@
 package command
 
 import (
-	"github.com/larsartmann/go-cqrs-lite/core/v5/id"
 	errorfamily "github.com/larsartmann/go-error-family"
+
+	"github.com/larsartmann/go-cqrs-lite/core/v5/id"
 )
 
 // StreamType and StreamRef are type aliases for the id package types.
@@ -10,6 +11,7 @@ import (
 // without adding a direct event/ dependency for these core identifiers.
 // This is an intentional convenience re-export, not a layering violation:
 // commands operate on the same stream identity as events.
+// art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 type StreamType = id.StreamType
 
 type StreamRef = id.StreamRef

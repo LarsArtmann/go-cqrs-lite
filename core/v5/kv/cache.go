@@ -9,6 +9,7 @@ import (
 	"github.com/maypok86/otter/v2"
 )
 
+// art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 const defaultCacheCapacity = 1000
 
 // Sentinel errors for Cache construction.

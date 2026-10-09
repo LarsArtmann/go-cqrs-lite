@@ -14,6 +14,7 @@ import (
 // The fields are unexported so an inconsistent state (a time without the
 // known flag) cannot be constructed by accident — the only producers are
 // NewStamp and JSON decoding of a marshaled Stamp.
+// art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 type Stamp struct {
 	at    time.Time
 	known bool

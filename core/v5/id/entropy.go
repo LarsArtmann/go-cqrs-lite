@@ -37,6 +37,7 @@ import (
 // is acquired only to create a new epoch — at most once per millisecond.
 
 // idEpoch is one millisecond window of ULID generation.
+// art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 type idEpoch struct {
 	ms       uint64  // ULID millisecond timestamp stamped on every ID of this epoch
 	prefix   [6]byte // per-epoch crypto-random entropy (high 48 bits of the 80-bit ULID entropy)

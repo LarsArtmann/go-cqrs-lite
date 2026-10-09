@@ -5,6 +5,7 @@ import "time"
 // SliceFromVersion returns the sub-slice of events starting after the given
 // version (exclusive). If version >= len(events), an empty slice is returned.
 func SliceFromVersion(events []Event, version Version) []Event {
+	//art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 	if version.Int() >= len(events) {
 		return []Event{}
 	}

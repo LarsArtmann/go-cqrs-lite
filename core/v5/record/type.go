@@ -5,6 +5,7 @@ package record
 //
 // event.Type, command.Type, and query.Type are aliases of this type
 // (ADR-0111): one definition, so the per-module copies cannot drift.
+// art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 type Type string
 
 // String returns the type as a plain string.

@@ -8,6 +8,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/v5/id"
 )
 
+// art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 type builder struct {
 	eventType  Type
 	streamID   id.StreamID

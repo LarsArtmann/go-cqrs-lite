@@ -8,6 +8,7 @@ import (
 // MetadataKey represents a custom metadata key for commands.
 // It is command-local so consumers adding custom metadata need not import
 // event/ for a domain-neutral string type (ADR-0031).
+// art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 type MetadataKey string
 
 // Metadata contains tracing and contextual information for commands.

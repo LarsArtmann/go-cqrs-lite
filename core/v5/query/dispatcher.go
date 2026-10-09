@@ -5,8 +5,9 @@ import (
 	"errors"
 	"io"
 
-	"github.com/larsartmann/go-cqrs-lite/core/v5/dispatcher"
 	errorfamily "github.com/larsartmann/go-error-family"
+
+	"github.com/larsartmann/go-cqrs-lite/core/v5/dispatcher"
 )
 
 // Handler processes a query and returns a result.
@@ -22,6 +23,7 @@ import (
 //
 // This pushes the `any` ↔ T conversion to the framework boundary, giving consumers
 // compile-time type safety in their handler and caller code.
+// art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 type Handler = func(context.Context, Query) (any, error)
 
 // Dispatcher routes queries to their handlers.

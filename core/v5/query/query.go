@@ -3,17 +3,19 @@ package query
 import (
 	"context"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/core/v5/dispatcher"
 	"github.com/larsartmann/go-cqrs-lite/core/v5/id"
 	"github.com/larsartmann/go-cqrs-lite/core/v5/metadata"
 	"github.com/larsartmann/go-cqrs-lite/core/v5/record"
-	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // Type identifies a query type.
 //
 // It is an alias of record.Type (ADR-0111): one definition shared with
 // event and command, so the per-module copies cannot drift.
+// art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 type Type = record.Type
 
 // ParseType validates and returns a Type. Returns an error if empty.

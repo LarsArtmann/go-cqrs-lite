@@ -13,6 +13,7 @@ import (
 // When embedded anonymously in a struct, encoding/json promotes these
 // fields to the parent level, preserving the existing JSON shape:
 // {"correlationId": "...", "causationId": "...", ...}.
+// art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 type Tracing struct {
 	CorrelationID id.CorrelationID `json:"correlationId"`
 	CausationID   id.CausationID   `json:"causationId"`

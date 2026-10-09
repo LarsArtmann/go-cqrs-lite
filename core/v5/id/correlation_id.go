@@ -3,6 +3,7 @@ package id
 // CorrelationMarker is a phantom type for branding CorrelationIDs.
 // Exported so domain packages can create domain-specific IDs interoperable
 // with CorrelationID and integrate type-parameterized tooling (e.g. BrandNamer).
+// art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 type CorrelationMarker struct{}
 
 // CorrelationID is a strongly-typed identifier for distributed tracing correlation.

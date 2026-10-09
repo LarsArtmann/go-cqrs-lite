@@ -15,6 +15,7 @@ import (
 // The interface is deliberately minimal: Get, Set, Delete, and Scan. Stores
 // that support richer querying (WHERE, ORDER BY, LIMIT) additionally implement
 // [ViewQuerier].
+// art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 type ViewStore[V any, K fmt.Stringer] interface {
 	Get(ctx context.Context, key K) (*V, error)
 	Set(ctx context.Context, key K, val *V) error

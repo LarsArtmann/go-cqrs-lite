@@ -14,6 +14,7 @@ import (
 // Of aliases go-branded-id's ID[T, ulid.ULID], inheriting all serialization
 // (JSON, SQL, Text, Binary, Gob) and utility methods (IsZero, Equal, Or,
 // Reset, Get, Ptr, FromPtr, String, GoString, Format, etc.).
+// art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 type Of[T any] = cbid.ID[T, ulid.ULID]
 
 // New generates a new random ULID-backed ID. Generation is concurrency-safe

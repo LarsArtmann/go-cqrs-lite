@@ -12,6 +12,7 @@ import (
 // Deprecated: Tombstones violate event-stream immutability (ADR-0114).
 // Express deletion as a domain event (e.g. "user.deleted") and handle it in
 // your fold function instead. See docs/migration/tombstone-to-domain-events.md.
+// art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 type TombstoneStatus int
 
 const (

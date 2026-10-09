@@ -13,6 +13,7 @@ import (
 // Mirrors the idempotency property-test pattern (rapid.Check + per-store factory).
 
 // storeFactory builds a fresh TypedStore + cleanup for each rapid iteration.
+// art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 type storeFactory func() (*kv.TypedStore[testUser, testID], func())
 
 func allTypedStores() map[string]storeFactory {

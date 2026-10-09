@@ -5,8 +5,9 @@ import (
 	"errors"
 	"io"
 
-	"github.com/larsartmann/go-cqrs-lite/core/v5/dispatcher"
 	errorfamily "github.com/larsartmann/go-error-family"
+
+	"github.com/larsartmann/go-cqrs-lite/core/v5/dispatcher"
 )
 
 // Dispatcher routes commands to their handlers.
@@ -22,6 +23,7 @@ import (
 // the loss of the unexported `inner` field. The current 4-statement duplication
 // (struct/io.Closer/NewDispatcher/Use) is the minimum that preserves the typed,
 // encapsulated public API.
+// art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 type Dispatcher struct {
 	inner *dispatcher.Dispatcher[Handler, Middleware]
 }

@@ -6,6 +6,7 @@ import (
 )
 
 func TestMemStore_IteratorOrdering(t *testing.T) {
+	//art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 	t.Parallel()
 
 	s := NewMemStore()

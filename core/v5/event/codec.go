@@ -25,6 +25,7 @@ import (
 // package-level variable — concurrent reads after startup are safe, but
 // concurrent read+write is a data race. Do not mutate it after events are
 // in flight.
+// art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 var DefaultCodec codec.Codec = codec.CBORCodec{}
 
 // DecodePayloadAuto decodes an event's payload into a typed value using the

@@ -13,6 +13,7 @@ import (
 // The zero value (EncodingUnknown) means the payload carries no codec
 // stamp: it is absent, opaque, or envelope-wrapped — the envelope stamps
 // itself.
+// art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 type Encoding uint8
 
 const (

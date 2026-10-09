@@ -1,6 +1,7 @@
 package id
 
 // EventMarker is a phantom type for branding EventIDs.
+// art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 type EventMarker struct{}
 
 // EventID is a strongly-typed identifier for domain events.

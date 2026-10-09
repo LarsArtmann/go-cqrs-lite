@@ -11,6 +11,7 @@ import (
 // from the event package still resolve and behave identically to the canonical
 // id package types, guarding the ADR-0058 backward-compatibility surface.
 func TestV3CompatAliases(t *testing.T) {
+	//art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 	t.Parallel()
 
 	// Type aliases cross-assign to the canonical id package types.

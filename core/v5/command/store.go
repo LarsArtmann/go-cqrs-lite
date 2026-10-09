@@ -6,10 +6,12 @@ import (
 	"slices"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/core/v5/id"
 	errorfamily "github.com/larsartmann/go-error-family"
+
+	"github.com/larsartmann/go-cqrs-lite/core/v5/id"
 )
 
+// art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 type PersistedCommand struct {
 	id         id.CommandID
 	cmdType    Type

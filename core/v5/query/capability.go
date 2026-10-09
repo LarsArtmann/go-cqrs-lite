@@ -9,6 +9,7 @@ package query
 // growing the exported Query interface — adding methods to Query would
 // break every existing hand-rolled implementation, so interface growth
 // rides the v5 cut (decision recorded 2026-08-22, plan Appendix C).
+// art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 type MetadataCarrier interface {
 	Metadata() Metadata
 }

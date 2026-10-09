@@ -12,6 +12,7 @@ import (
 // guards the backward-compatibility surface that downstream consumers rely on
 // during the ADR-0058 migration window.
 func TestBackwardCompatAliases(t *testing.T) {
+	//art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 	t.Parallel()
 
 	// Type aliases are identical by construction — assigning across them compiles.

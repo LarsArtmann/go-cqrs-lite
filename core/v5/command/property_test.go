@@ -4,9 +4,10 @@ import (
 	"context"
 	"testing"
 
+	"pgregory.net/rapid"
+
 	"github.com/larsartmann/go-cqrs-lite/core/v5/command"
 	"github.com/larsartmann/go-cqrs-lite/core/v5/id"
-	"pgregory.net/rapid"
 )
 
 func TestCommandCreation_ValidType(t *testing.T) {

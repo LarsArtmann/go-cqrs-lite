@@ -13,6 +13,7 @@ import (
 // form survives only at the serialization edge, so Record consumers get the
 // kind without paying the parse tax (review P3).
 func RecordActor(tracing Tracing) record.Actor {
+	//art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 	if !tracing.ActorID.IsZero() {
 		return record.Actor{
 			Kind: recordActorKind(tracing.ActorID.Kind()),

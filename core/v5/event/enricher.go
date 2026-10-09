@@ -5,6 +5,7 @@ import "context"
 // ContextEnricher extracts event options from a context.
 // Use WithEnricher on repositories to automatically enrich events
 // with context-derived metadata (correlation IDs, user IDs, etc.).
+// art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 type ContextEnricher func(ctx context.Context) []Option
 
 // CompositeEnricher combines multiple [ContextEnricher] functions into one.

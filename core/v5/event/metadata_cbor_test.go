@@ -18,6 +18,7 @@ import (
 // intact, not as a zero value. Custom stores that CBOR-encode metadata rely
 // on this; dropping the actor here is silent audit-trail data loss.
 func TestMetadata_CBORRoundtrip_PreservesActor(t *testing.T) {
+	//art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 	t.Parallel()
 
 	actor := id.NewServiceActor("order-api")

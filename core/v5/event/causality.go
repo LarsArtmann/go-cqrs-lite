@@ -10,6 +10,7 @@ import (
 // (ADR-0031). It records which command produced this event, replacing the
 // stringly-typed Custom[MetadataKeyCommandType]/Custom[MetadataKeyCommandID]
 // pattern while keeping those entries for v2 backward compatibility.
+// art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 type Causation struct {
 	CommandType string
 	CommandID   id.CommandID

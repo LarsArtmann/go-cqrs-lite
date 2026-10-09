@@ -20,6 +20,7 @@ import (
 // stored as time.Time shifts by a day when viewed from a different timezone.
 //
 // The string format is RFC 3339 date-only: "2006-01-02".
+// art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 type Date struct {
 	Year  int
 	Month time.Month

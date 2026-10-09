@@ -9,6 +9,7 @@ import (
 // Clone returns a deep copy of the event. The returned event is fully independent —
 // mutations to its payload or metadata will not affect the original.
 func (e *ImmutableEvent) Clone() *ImmutableEvent {
+	//art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 	var clonedOpts *eventOptions
 	if e.opts != nil {
 		cloned := *e.opts

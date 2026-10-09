@@ -8,6 +8,7 @@ import (
 )
 
 func newTestCache(t *testing.T) *kv.Cache[testUser, testID] {
+	//art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 	t.Helper()
 
 	store := kv.NewMemStore()

@@ -13,6 +13,7 @@ import (
 // pulls from the inner iterator per SourceTransform application. Streaming
 // transforms are batch-based ([]Event in, []Event out), so the iterator
 // buffers one chunk at a time to keep memory bounded.
+// art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 const journalTransformChunkSize = 128
 
 // DecorateJournal wraps journal with a read-side transform. It is the journal

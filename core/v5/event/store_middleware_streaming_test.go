@@ -12,6 +12,7 @@ import (
 
 // streamingStore implements Store plus StreamingSource and StreamingJournal
 // so DecorateStore's streaming forwarding can be exercised.
+// art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 type streamingStore struct {
 	fullStore
 	streamErr error

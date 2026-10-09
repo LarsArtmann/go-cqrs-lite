@@ -10,6 +10,7 @@ import (
 // Returns nil options for empty data. Wraps parse errors as corruption errors
 // with the provided error code prefix.
 func UnmarshalMetadataJSON(data []byte, errCode, eventType string) ([]Option, error) {
+	//art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 	if len(data) == 0 {
 		return nil, nil
 	}

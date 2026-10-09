@@ -12,6 +12,7 @@ import (
 // ActorID's unexported fields are silently dropped and the decoded value comes
 // back zero — an audit-trail data loss.
 func (a ActorID) MarshalBinary() ([]byte, error) {
+	//art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 	return []byte(a.PrefixedString()), nil
 }
 

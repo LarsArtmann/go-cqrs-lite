@@ -6,8 +6,9 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-codec"
-	"github.com/larsartmann/go-cqrs-lite/core/v5/id"
 	errorfamily "github.com/larsartmann/go-error-family"
+
+	"github.com/larsartmann/go-cqrs-lite/core/v5/id"
 )
 
 // TypedPersistedCommand is a persisted command with a typed payload P, closing
@@ -17,6 +18,7 @@ import (
 // Payload, with no compile-time guarantee that the bytes match the expected
 // type. TypedPersistedCommand makes that decode the adapter's responsibility:
 // a [TypedCommandStore] decodes once at the boundary.
+// art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 type TypedPersistedCommand[P any] struct {
 	ID         id.CommandID
 	Type       Type

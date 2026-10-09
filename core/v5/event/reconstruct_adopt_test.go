@@ -11,6 +11,7 @@ import (
 func adoptTestInputs(
 	t *testing.T,
 ) (id.EventID, Type, id.StreamType, id.StreamID, []byte, Metadata, time.Time) {
+	//art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 	t.Helper()
 
 	return id.NewEventID(), "UserCreated", "User", id.NewStreamID(),

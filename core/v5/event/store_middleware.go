@@ -12,6 +12,7 @@ import (
 
 // SinkTransform is applied to events before they are persisted to the inner
 // store (write side). Use with [DecorateStore].
+// art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 type SinkTransform func([]Event) ([]Event, error)
 
 // SourceTransform is applied to events after they are loaded from the inner

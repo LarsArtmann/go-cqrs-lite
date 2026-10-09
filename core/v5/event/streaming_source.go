@@ -25,6 +25,7 @@ import (
 //	}
 //
 // Implementations are NOT goroutine-safe — each iterator is single-threaded.
+// art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 type EventIterator interface {
 	// Next returns the next event, or io.EOF when no more events remain.
 	// Any other error indicates a read failure; the iterator should be closed.

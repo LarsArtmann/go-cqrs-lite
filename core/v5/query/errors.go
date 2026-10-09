@@ -5,6 +5,7 @@ import (
 )
 
 // ErrHandlerNotFound is returned when no handler is registered for a query type.
+// art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 var ErrHandlerNotFound error = errorfamily.NewRejection(
 	"query.handler_not_found",
 	"no handler registered for query",

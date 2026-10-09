@@ -8,6 +8,7 @@ import (
 )
 
 // errNilTypedValue is returned by [TypedStore.Set] when val is nil.
+// art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 var errNilTypedValue error = errorfamily.NewRejection(
 	"kv.nil_value",
 	"kv: TypedStore.Set called with a nil value",

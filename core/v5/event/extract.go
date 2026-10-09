@@ -14,6 +14,7 @@ import (
 // This helper is shared by signing and encryption to eliminate duplicated
 // metadata-extraction boilerplate.
 func ExtractCustomBytes(evt Event, key MetadataKey) ([]byte, bool, error) {
+	//art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 	md := evt.Metadata()
 
 	encoded, ok := md.Custom[key]

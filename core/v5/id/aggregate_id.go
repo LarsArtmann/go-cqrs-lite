@@ -7,6 +7,7 @@ import (
 
 // Deprecated: use StreamMarker. AggregateMarker is retained as a type alias
 // for backward compatibility with consumer code that embeds it for branding.
+// art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 type AggregateMarker = StreamMarker
 
 // Deprecated: use StreamID. AggregateID is retained as a type alias.

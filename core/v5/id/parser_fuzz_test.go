@@ -13,6 +13,7 @@ import (
 // FuzzParseAggregateID is a broader variant of FuzzParse: it accepts ANY
 // non-empty string (not just ULID), per the StreamID contract.
 func FuzzParseAggregateID(f *testing.F) {
+	//art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 	f.Add("01H4S2Z4QX8N1P5K3M7R9T0V2W")
 	f.Add("")
 	f.Add("lock_user1_user2")

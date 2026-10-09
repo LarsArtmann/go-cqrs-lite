@@ -11,6 +11,7 @@ import (
 // handRolledMetadataQuery proves a consumer implementation OUTSIDE this repo
 // satisfies query.MetadataCarrier without embedding BasicQuery — the whole
 // point of the capability pattern (plan Appendix C).
+// art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 type handRolledMetadataQuery struct {
 	requestID id.RequestID
 }

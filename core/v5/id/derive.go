@@ -12,6 +12,7 @@ import (
 // namespace bytes (e.g. namespace="ab", keys=["cd"] vs namespace="abc",
 // keys=["d"] would collide without separation).
 func hashNamespacedKeys(namespace string, keys ...string) []byte {
+	//art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 	h := sha256.New()
 	_, _ = h.Write([]byte(namespace))
 

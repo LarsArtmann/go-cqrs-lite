@@ -13,6 +13,7 @@ import (
 // Update the expected values ONLY when intentionally changing the allocation behavior.
 
 func TestAllocs_NewEvent_NoOptions(t *testing.T) {
+	//art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 	streamID := id.NewStreamID()
 	payload := []byte(`{"name":"test","value":42}`)
 

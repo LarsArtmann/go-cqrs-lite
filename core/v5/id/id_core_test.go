@@ -7,6 +7,7 @@ import (
 	"github.com/oklog/ulid/v2"
 )
 
+// art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 const testULID = "01HK1549P84T9XF8R94E960633"
 
 func parseID[T any](tb testing.TB, s string) Of[T] {

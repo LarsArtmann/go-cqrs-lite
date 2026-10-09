@@ -7,13 +7,15 @@ import (
 	"slices"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/core/v5/id"
 	errorfamily "github.com/larsartmann/go-error-family"
+
+	"github.com/larsartmann/go-cqrs-lite/core/v5/id"
 )
 
 // PersistedQuery is a stored query with full audit metadata.
 // It is the query-side equivalent of command.PersistedCommand.
 
+// art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 type PersistedQuery struct {
 	id         id.RequestID
 	queryType  Type

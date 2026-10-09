@@ -15,6 +15,7 @@ func validateEventParams(
 	version Version,
 	payload []byte,
 ) error {
+	//art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 	if eventType == "" {
 		return errorfamily.WrapRejection(
 			ErrEmptyEventType,

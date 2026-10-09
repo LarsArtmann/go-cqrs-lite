@@ -9,6 +9,7 @@ import (
 )
 
 func TestNew_StructPayload(t *testing.T) {
+	//art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 	t.Parallel()
 
 	streamID := idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95")
