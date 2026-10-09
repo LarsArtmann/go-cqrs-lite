@@ -103,6 +103,10 @@ LAYER["system/integration"]=7
 # here so system/v4 consumers pull no engine implementation. Test-only
 # module: no production consumers.
 LAYER[systemtest]=7
+# systemscenario (7): consumer-facing system-level BDD harness (ADR-0153);
+# test-infrastructure tier like systemtest/eventtest, but a published library
+# consumers import (api-stability tracked).
+LAYER[systemscenario]=7
 LAYER[catalog]=7
 LAYER[integration]=7
 LAYER["stack/bench"]=7
@@ -343,6 +347,9 @@ DEP_BUDGET["system/integration"]=7
 # suites it owns (goleak is test-only); the point of the module is engine
 # coverage, so a high budget is the design, not sprawl.
 DEP_BUDGET[systemtest]=6
+# systemscenario: 6 = system + event + command + query + id (all in-repo)
+# + go-error-family (fleet-standard classification, ThenErrorFamily).
+DEP_BUDGET[systemscenario]=6
 DEP_BUDGET["metaengine/irohengine"]=2
 DEP_BUDGET["metaengine/irohengine/loopback"]=4
 DEP_BUDGET["metaengine/irohengine/quic"]=5

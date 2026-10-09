@@ -300,8 +300,10 @@
             "metaengine/irohengine/loopback"
             "metaengine/irohengine/quic"
             "metaengine/mysqlengine"
+            "core/v5"
             "system"
             "system/integration"
+            "systemscenario"
             "systemtest"
           ];
           modulePaths = builtins.concatStringsSep " " (map (m: "./${m}/...") testModules);

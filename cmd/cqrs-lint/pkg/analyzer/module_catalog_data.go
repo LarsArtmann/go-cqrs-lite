@@ -286,5 +286,11 @@ func buildDefaultCatalog() []ModuleEntry {
 			Description: "Fluent BDD test DSL (Given/When/Then) for deciders and projections",
 			Suggestion:  "BDD scenario tests for decider and projection behavior",
 		},
+		{
+			Key: "systemscenario", DisplayName: "System Scenario Testing", Category: CategoryReliability,
+			ImportHints: []string{"go-cqrs-lite/systemscenario"},
+			Description: "System-level BDD harness (Given/When/Then) over a real system.New boot (ADR-0153)",
+			Suggestion:  "End-to-end BDD scenarios: dispatch, journal diffs, query awaits, saga capture",
+		},
 	}
 }

@@ -115,6 +115,7 @@ var modules = []string{
 	"system",
 	"system/integration",
 	"systemtest",
+	"systemscenario",
 	"cmd/cqrs-lint",
 	"cmd/cqrs-bench",
 	"cmd/cqrs-upgrade",
