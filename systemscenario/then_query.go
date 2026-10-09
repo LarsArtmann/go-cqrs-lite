@@ -85,7 +85,11 @@ func (p *WhenPhase) ThenResult(want any) *WhenPhase {
 	s.requireAct("ThenResult")
 
 	if !reflect.DeepEqual(s.lastQueryResult, want) {
-		s.t.Fatalf("ThenResult: query result mismatch\nwant: %#v\ngot:  %#v", want, s.lastQueryResult)
+		s.t.Fatalf(
+			"ThenResult: query result mismatch\nwant: %#v\ngot:  %#v",
+			want,
+			s.lastQueryResult,
+		)
 	}
 
 	return p

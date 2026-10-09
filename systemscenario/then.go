@@ -3,6 +3,7 @@ package systemscenario
 import (
 	"reflect"
 	"slices"
+	"strings"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 )
@@ -148,13 +149,18 @@ func formatTypes(types []event.Type) string {
 	}
 
 	out := "["
+
+	var outSb151 strings.Builder
+
 	for i, t := range types {
 		if i > 0 {
-			out += " "
+			outSb151.WriteString(" ")
 		}
 
-		out += string(t)
+		outSb151.WriteString(string(t))
 	}
+
+	out += outSb151.String()
 
 	return out + "]"
 }

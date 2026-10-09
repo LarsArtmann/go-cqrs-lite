@@ -7325,6 +7325,7 @@ system/var ErrUnsupportedValueType
 systemscenario/func System
 systemscenario/func ThenPayload
 systemscenario/func WithAwaitTimeout
+systemscenario/method Await
 systemscenario/method Command
 systemscenario/method Command
 systemscenario/method Event

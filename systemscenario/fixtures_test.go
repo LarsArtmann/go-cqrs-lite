@@ -126,7 +126,7 @@ func taskDomain() system.DomainConfig {
 			registerTaskHandlers(sys)
 		},
 		Queries: func(sys *system.System) {
-			system.RegisterQuery[EchoQuery, string](sys, "task.echo", //nolint:errcheck // fixture
+			system.RegisterQuery[EchoQuery, string](sys, "task.echo",
 				func(ctx context.Context, q EchoQuery) (string, error) {
 					return q.Value, nil
 				})
@@ -145,11 +145,11 @@ func registerTaskHandlers(sys *system.System) {
 		sys,
 		"Task",
 		taskDecider,
-	) //nolint:errcheck // fixture: registration cannot fail
+	)
 
 	system.RegisterCommand[*command.BasicCommand, TaskState](
 		sys,
-		"task.create", //nolint:errcheck // fixture
+		"task.create",
 		func(ctx context.Context, cmd *command.BasicCommand) system.Op[TaskState] {
 			return system.Execute(ctx, cmd.StreamID(), "Task",
 				func(state TaskState, version event.Version) ([]event.Event, error) {
@@ -175,7 +175,7 @@ func registerTaskHandlers(sys *system.System) {
 
 	system.RegisterCommand[*command.BasicCommand, TaskState](
 		sys,
-		"task.rename", //nolint:errcheck // fixture
+		"task.rename",
 		func(ctx context.Context, cmd *command.BasicCommand) system.Op[TaskState] {
 			return system.Execute(ctx, cmd.StreamID(), "Task",
 				func(state TaskState, version event.Version) ([]event.Event, error) {
@@ -201,7 +201,7 @@ func registerTaskHandlers(sys *system.System) {
 
 	system.RegisterCommand[*command.BasicCommand, TaskState](
 		sys,
-		"task.complete", //nolint:errcheck // fixture
+		"task.complete",
 		func(ctx context.Context, cmd *command.BasicCommand) system.Op[TaskState] {
 			return system.Execute(ctx, cmd.StreamID(), "Task",
 				func(state TaskState, version event.Version) ([]event.Event, error) {
@@ -285,7 +285,7 @@ func sagaDomain() system.DomainConfig {
 func registerArchive(sys *system.System) {
 	system.RegisterCommand[*command.BasicCommand, TaskState](
 		sys,
-		"task.archive", //nolint:errcheck // fixture
+		"task.archive",
 		func(ctx context.Context, cmd *command.BasicCommand) system.Op[TaskState] {
 			return system.Execute(ctx, cmd.StreamID(), "Task",
 				func(state TaskState, version event.Version) ([]event.Event, error) {

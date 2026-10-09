@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -109,6 +110,7 @@ func System(
 
 	if err := sys.Start(ctx); err != nil {
 		_ = sys.Close()
+
 		t.Fatalf("systemscenario: system.Start: %v", err)
 	}
 
@@ -181,7 +183,9 @@ func (s *Scenario) requireAct(method string) {
 	s.asserted = true
 
 	if !s.actStarted {
-		s.t.Fatal("systemscenario: call a When act (When, WhenEvent, WhenQuery) before " + method + "()")
+		s.t.Fatal(
+			"systemscenario: call a When act (When, WhenEvent, WhenQuery) before " + method + "()",
+		)
 	}
 }
 
@@ -287,6 +291,7 @@ func (s *Scenario) nextVersion(ref id.StreamRef) event.Version {
 	key := ref.String()
 	if next, ok := s.versionHints[key]; ok {
 		s.versionHints[key] = next + 1
+
 		return next
 	}
 
@@ -310,10 +315,14 @@ func describeEvents(events []event.Event) string {
 	}
 
 	out := ""
+
+	var outSb315 strings.Builder
 	for _, evt := range events {
-		out += fmt.Sprintf("\n  - %s v%d on %s:%s (actor: %s)",
+		fmt.Fprintf(&outSb315, "\n  - %s v%d on %s:%s (actor: %s)",
 			evt.Type(), evt.Version(), evt.StreamType(), evt.StreamID(), evt.Metadata().ActorID)
 	}
+
+	out += outSb315.String()
 
 	return out
 }

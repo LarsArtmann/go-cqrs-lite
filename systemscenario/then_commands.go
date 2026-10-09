@@ -2,6 +2,7 @@ package systemscenario
 
 import (
 	"slices"
+	"strings"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 )
@@ -31,8 +32,12 @@ func (p *WhenPhase) ThenCommands(expected ...command.Type) *WhenPhase {
 
 	got := commandTypes(s.actCommands())
 	if !slices.Equal(got, expected) {
-		s.t.Fatalf("ThenCommands: want dispatched command types %s since the When act, got %s\nact commands:%s",
-			formatTypes(expected), formatTypes(got), describeCommands(s.actCommands()))
+		s.t.Fatalf(
+			"ThenCommands: want dispatched command types %s since the When act, got %s\nact commands:%s",
+			formatTypes(expected),
+			formatTypes(got),
+			describeCommands(s.actCommands()),
+		)
 	}
 
 	return p
@@ -75,9 +80,13 @@ func describeCommands(cmds []command.Command) string {
 	}
 
 	out := ""
+
+	var outSb82 strings.Builder
 	for _, cmd := range cmds {
-		out += "\n  - " + string(cmd.Type()) + " on " + cmd.StreamID().String()
+		outSb82.WriteString("\n  - " + string(cmd.Type()) + " on " + cmd.StreamID().String())
 	}
+
+	out += outSb82.String()
 
 	return out
 }

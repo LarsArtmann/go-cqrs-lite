@@ -47,7 +47,11 @@ func TestSystem_HappyPath(t *testing.T) {
 	sc, ref, _ := newTaskScenario(t)
 
 	sc.Given(
-		sc.Event("task.created", ref, TaskCreated{ID: ref.ID.String(), Title: "ship it", Status: "pending"}),
+		sc.Event(
+			"task.created",
+			ref,
+			TaskCreated{ID: ref.ID.String(), Title: "ship it", Status: "pending"},
+		),
 	).When(newTaskCmd("task.complete", ref.ID)).
 		Then("task.updated")
 }
@@ -58,11 +62,19 @@ func TestSystem_ThenPayloadAssertsDecodedPayload(t *testing.T) {
 	sc, ref, _ := newTaskScenario(t)
 
 	phase := sc.Given(
-		sc.Event("task.created", ref, TaskCreated{ID: ref.ID.String(), Title: "ship it", Status: "pending"}),
+		sc.Event(
+			"task.created",
+			ref,
+			TaskCreated{ID: ref.ID.String(), Title: "ship it", Status: "pending"},
+		),
 	).When(newTaskCmd("task.complete", ref.ID))
 
 	phase.Then("task.updated")
-	systemscenario.ThenPayload(phase, 0, TaskUpdated{ID: ref.ID.String(), Title: "ship it", Status: "completed"})
+	systemscenario.ThenPayload(
+		phase,
+		0,
+		TaskUpdated{ID: ref.ID.String(), Title: "ship it", Status: "completed"},
+	)
 }
 
 func TestSystem_GivenSeedsDeciderState(t *testing.T) {
@@ -84,7 +96,11 @@ func TestSystem_ConflictFamilyOnCompletedTask(t *testing.T) {
 
 	sc.Given(
 		sc.Event("task.created", ref, TaskCreated{ID: ref.ID.String(), Status: "pending"}),
-		sc.Event("task.updated", ref, TaskUpdated{ID: ref.ID.String(), Title: "ship it", Status: "completed"}),
+		sc.Event(
+			"task.updated",
+			ref,
+			TaskUpdated{ID: ref.ID.String(), Title: "ship it", Status: "completed"},
+		),
 	).When(newTaskCmd("task.complete", ref.ID)).
 		ThenError(errTaskCompleted).
 		ThenErrorFamily(errorfamily.Conflict)
@@ -96,7 +112,11 @@ func TestSystem_ThenQueryAwaitsProjection(t *testing.T) {
 	sc, ref, ctx := newTaskScenario(t)
 
 	sc.Given(
-		sc.Event("task.created", ref, TaskCreated{ID: ref.ID.String(), Title: "ship it", Status: "pending"}),
+		sc.Event(
+			"task.created",
+			ref,
+			TaskCreated{ID: ref.ID.String(), Title: "ship it", Status: "pending"},
+		),
 	).When(newTaskCmd("task.complete", ref.ID)).
 		Then("task.updated").
 		ThenQuery(taskViewQuery(sc, ctx, ref.ID.String()),
@@ -119,7 +139,11 @@ func TestSystem_ThenEventsAndMetadata(t *testing.T) {
 	sc, ref, _ := newTaskScenario(t)
 
 	sc.Given(
-		sc.Event("task.created", ref, TaskCreated{ID: ref.ID.String(), Title: "ship it", Status: "pending"}),
+		sc.Event(
+			"task.created",
+			ref,
+			TaskCreated{ID: ref.ID.String(), Title: "ship it", Status: "pending"},
+		),
 	).When(newTaskCmd("task.complete", ref.ID)).
 		Then("task.updated").
 		ThenEvents(func(events []event.Event) {
@@ -137,7 +161,11 @@ func TestSystem_ThenEventsAndMetadata(t *testing.T) {
 		}).
 		ThenMetadata(0, func(md event.Metadata) error {
 			if md.ActorID != completerActor {
-				return fmt.Errorf("want actor %s on task.completed, got %s", completerActor, md.ActorID)
+				return fmt.Errorf(
+					"want actor %s on task.completed, got %s",
+					completerActor,
+					md.ActorID,
+				)
 			}
 
 			return nil

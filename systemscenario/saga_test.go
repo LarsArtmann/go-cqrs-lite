@@ -52,7 +52,8 @@ func TestSystem_CombinedPhases(t *testing.T) {
 	sc.Given().Command(newTaskCmd("task.create", ref.ID)).
 		WhenEvent(
 			sc.Event("task.updated", ref, TaskUpdated{ID: ref.ID.String(), Title: "ship it", Status: "completed"}),
-		).Then("task.updated").
+		).
+		Then("task.updated").
 		ThenQuery(taskViewQuery(sc, ctx, ref.ID.String()),
 			TaskView{ID: ref.ID.String(), Title: "ship it", Status: "completed"})
 }

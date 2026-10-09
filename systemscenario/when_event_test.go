@@ -15,9 +15,11 @@ func TestSystem_WhenEventDrivesBusPath(t *testing.T) {
 
 	sc.Given(
 		sc.Event("task.created", ref, TaskCreated{ID: ref.ID.String(), Title: "bus task", Status: "pending"}),
-	).WhenEvent(
-		sc.Event("task.updated", ref, TaskUpdated{ID: ref.ID.String(), Title: "bus task", Status: "completed"}),
-	).Then("task.updated").
+	).
+		WhenEvent(
+			sc.Event("task.updated", ref, TaskUpdated{ID: ref.ID.String(), Title: "bus task", Status: "completed"}),
+		).
+		Then("task.updated").
 		ThenQuery(taskViewQuery(sc, ctx, ref.ID.String()),
 			TaskView{ID: ref.ID.String(), Title: "bus task", Status: "completed"})
 }
