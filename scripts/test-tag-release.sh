@@ -12,6 +12,8 @@
 # 6. --audit --baseline gates on NEW violations only; --write-baseline writes
 # 7. (see Test 7+) — and the zip-content guard: control-char paths and >4 MiB
 #    blobs kill the tag before push (tursoengine/v4.2.0 class); clean trees pass
+# 12. The untag-policy guard (ADR-0152) refuses a listed train before any
+#     mutation; is_untagged unit-pinned beside the other release_common helpers
 #
 # Run: bash scripts/test-tag-release.sh
 set -euo pipefail
@@ -153,6 +155,12 @@ out_lib="$(smoke_probe_args "other" "$LIBTMP/probes.txt")"
 check "unlisted module yields the --help default (empty)" bash -c "[ -z \"\$0\" ]" "$out_lib"
 out_lib="$(smoke_probe_args "cli" "$LIBTMP/does-not-exist.txt")"
 check "missing probes file yields the default (empty)" bash -c "[ -z \"\$0\" ]" "$out_lib"
+
+printf '%s\n' '# fixture untag list' 'frozen/mod' '.' >"$LIBTMP/untagged.txt"
+check "is_untagged matches a listed train" env UNTAGGED_TRAINS_FILE="$LIBTMP/untagged.txt" bash -c 'source "$(dirname "$0")/lib/release_common.sh" && is_untagged frozen/mod' "$(cd "$(dirname "$0")" && pwd)"
+check "is_untagged matches the root '.' train" env UNTAGGED_TRAINS_FILE="$LIBTMP/untagged.txt" bash -c 'source "$(dirname "$0")/lib/release_common.sh" && is_untagged .' "$(cd "$(dirname "$0")" && pwd)"
+check "is_untagged passes an unlisted train" env UNTAGGED_TRAINS_FILE="$LIBTMP/untagged.txt" bash -c '! source "$(dirname "$0")/lib/release_common.sh" || ! is_untagged live/mod' "$(cd "$(dirname "$0")" && pwd)"
+check "is_untagged tolerates a missing list file" env UNTAGGED_TRAINS_FILE="$LIBTMP/no-such-list.txt" bash -c 'source "$(dirname "$0")/lib/release_common.sh" && ! is_untagged frozen/mod' "$(cd "$(dirname "$0")" && pwd)"
 rm -rf "$LIBTMP"
 
 echo "━━━ Test 6: --smoke rejects a non-main module cleanly ━━━"
@@ -250,6 +258,15 @@ out="$(cd "$TMPROOT/t11" && bash "$SCRIPT" good v2.0.5 "clean" 2>&1)" && rc=0 ||
 check "release exits 0 on a clean tree" test "$rc" -eq 0
 check "guard success line printed" bash -c "printf '%s' \"\$0\" | grep -q 'zip-content guard: no control-char paths'" "$out"
 check "tag created" bash -c "git -C \"\$0\" tag -l good/v2.0.5 | grep -q ." "$TMPROOT/t11"
+
+echo "━━━ Test 12: untag-policy guard refuses a listed train (ADR-0152) ━━━"
+fixture_repo "$TMPROOT/t12"
+printf '# fixture untag list\ngood\n' >"$TMPROOT/t12-untagged.txt"
+out="$(cd "$TMPROOT/t12" && UNTAGGED_TRAINS_FILE="$TMPROOT/t12-untagged.txt" bash "$SCRIPT" good v2.0.6 "frozen train" 2>&1)" && rc=0 || rc=$?
+check "release exits nonzero on untagged train" test "$rc" -ne 0
+check "error names the policy list" bash -c "printf '%s' "\$0" | grep -q 'untag policy list (scripts/untagged-trains.txt)'" "$out"
+check "no tag was created" bash -c "! git -C "\$0" tag -l good/v2.0.6 | grep -q ." "$TMPROOT/t12"
+check "tree untouched" bash -c "git -C "\$0" status --porcelain | wc -l | grep -qx 0" "$TMPROOT/t12"
 
 if [ "$FAILED" -eq 0 ]; then
 	echo ""
