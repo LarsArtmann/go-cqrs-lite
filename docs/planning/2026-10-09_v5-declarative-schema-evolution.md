@@ -92,6 +92,19 @@ Both axes sit on the ADR-0136 ladder's **replayable** rung: their inverse is the
 
 ## 7. The proposal: one declaration, seven increments
 
+### Integration rule first (ADR-0123): `system.DomainConfig` IS the declaration surface
+
+The composition root already declares the domain — verified in code:
+
+- `DomainConfig.Events []event.Type` — wire names, coeffect-gated (`system/config_types.go:49-57`)
+- `DomainConfig.Evolutions []EvolutionSpec` — the fold declarations, ADR-0151's sanctioned form (`config_types.go:44-47`)
+- `DomainConfig.Projections []ProjectionDeclaration` — sealed, typo-proof (`config_types.go:36-42`)
+- `DomainConfig.ProjectionTypeDecoder` — typed payload decoding via `projectionadapter` (`config_types.go:71-78`)
+
+Therefore the v5 schema declaration **extends `DomainConfig`, never sits beside it**. Concretely: a `DomainConfig.Schema []schema.EventDef` (typed superset of `Events`: name + current version + codec + Go type + chain) with `Events` derived when `Schema` is present — one declaration, four consumers (coeffect gate, projection decoders — `TypeDecoder` registration becomes DERIVABLE from `Schema`, cqrs-lint, catalog export). `schema.Declare` (below) is the Tier-2 builder; `system.New` is the only composition point consumers touch. Layering holds: system (Tier 5) → schema (Tier 2).
+
+**The missing seam, verified:** `system/` and `metaengine/` contain ZERO upcaster references — a `system.New` consumer cannot inject upcasting today. bank-sync/DiscordSync wire `event.DecorateStore` only because they compose lower layers directly. The fix is part of T2/T1: upcasters declared via `DomainConfig` are applied INSIDE system's adapter layer (`EventAdapter.ReadFrom`, `system/adapter_event_journal.go:16`, for the projection-host path; the decider load path likewise) — capability-preserving decoration becomes the composition root's job, not each consumer's.
+
 ### T2 — Named upcast ops (first; demonstrated demand)
 
 Illustrative signatures (the `v5schema` qualifier names the proposed API — none exist yet):
@@ -110,24 +123,31 @@ v5schema.Drop("audit.legacy_ping")                                     // delibe
 - Each op compiles to the existing `Upcaster` interface; `UpcastSourceTransform`/`DecorateStore`/`DecorateJournal` untouched (ADR-0126 capability preservation). Following AxonIQ: transform ops may change only the version; only `RenameType` changes identity.
 - Chain construction validates at BUILD time: duplicate (type, version) exact matches rejected; most-specific-first matching, order-independent (adoption of AxonIQ semantics; cycle detection already exists in `schema/registry.go`).
 - Declarative error policy per op: `OnDecodeError` Fail (default) | Passthrough | Drop — fleet-confirmed need (§2.3).
-- Blast radius: `schema/` only (new `ops.go`), table-driven tests, api-stability golden regen, doc-check. **Additive, non-breaking, v4.x-shippable.**
+- Blast radius: `schema/` only (new `ops.go`), table-driven tests, api-stability golden regen, doc-check. **Additive, non-breaking, v4.x-shippable.** (The system seam above lands with T1 — ops are usable standalone via `UpcastSourceTransform` immediately.)
 
-### T1 — `schema.Declaration`: the defined schema (the ask)
+### T1 — The declared schema, extending `system.DomainConfig`
 
 ```go
 // skip-validate
-decl := v5schema.Declare(
-    v5schema.Event[user.Created]("user.created", 2),
-    v5schema.Event[user.Renamed]("user.renamed", 1,
-        v5schema.From(1, v5schema.Rename("name", "displayName"))),
-    v5schema.DefaultCodec(codec.CBORCodec{}),
-)
+// Illustrative v5 surface: `Schema` is the proposed DomainConfig field; the
+// v5schema qualifier names the proposed builder API — none exist in the repo yet.
+sys, err := system.New(ctx,
+    system.DomainConfig{
+        Schema: v5schema.Declare(
+            v5schema.Event[user.Created]("user.created", 2),
+            v5schema.Event[user.Renamed]("user.renamed", 1,
+                v5schema.From(1, v5schema.Rename("name", "displayName"))),
+            v5schema.DefaultCodec(codec.CBORCodec{}),
+        ),
+        Evolutions: []system.EvolutionSpec{ /* folds — unchanged, ADR-0151 */ },
+    },
+    system.DeploymentConfig{ /* engines — unchanged */ })
 ```
 
-- One registry binding wire name + CURRENT version + codec + Go type + evolution chain. Construction-time validation covers duplicate names, version gaps, and chain integrity.
-- **Unifies the split-brain:** `catalog` (which already models `WithVersion` — `catalog/message_config.go:89`) renders the SAME declaration for governance export instead of a parallel one.
-- cqrs-lint rule: emitted/consumed event types must be declared (symmetric to E018 coeffect gating).
-- Blast radius: `schema/declaration.go` (new), `catalog/` bridge, one cqrs-lint rule, api golden, doc-check, module-catalog test untouched (no new module). **Additive; v4.x-shippable with the declaration optional at first.**
+- One registry binding wire name + CURRENT version + codec + Go type + evolution chain. Construction-time validation covers duplicate names, version gaps, and chain integrity; `Events` derives from it when present (coeffect gate unchanged in behavior).
+- **Unifies the split-brain at the root:** `catalog` (which already models `WithVersion` — `catalog/message_config.go:89`) renders the SAME declaration for governance export; `projectionadapter.TypeDecoder` registrations become derivable from it; cqrs-lint's undeclared-event rule reads it.
+- Upcasters declared here are applied inside system's adapters (see integration rule) — `system.New` consumers get upcasting without hand-wiring.
+- Blast radius: `schema/declaration.go` (new) + `system/config_types.go` (field + adapter application) + `catalog/` bridge + one cqrs-lint rule, api golden, doc-check, module-catalog test untouched (no new module). **Additive; v4.x-shippable with `Schema` optional at first.**
 
 ### T4 — Snapshot state-shape stamp
 
@@ -142,8 +162,9 @@ decl := v5schema.Declare(
 
 ### T5 — Persisted layout fingerprints + boot drift gate
 
-- Engines persist a per-collection layout fingerprint alongside materialized data (cleared with collections on reset; journal exempt per ADR-0143). Boot compares declared vs persisted → `LayoutDiff`s → existing `RebuildThreshold` auto-rebuild / `ConfirmRebuild` operator gate. Adds LiveStore's completed-replay marker so a crash mid-rebuild never serves half-rebuilt state.
-- Blast radius: `metaengine/` (fingerprint store + boot check; reuses `PlanDiff` machinery, `plan_diff.go:47`), sqliteengine as reference implementation, then engine conformance suite. **L; the only increment needing per-engine work.**
+- Engines persist a per-collection layout fingerprint — the hash of the metaengine **LayoutPlan** (`BuildLayoutPlanFromType` output, the shape `LayoutPlanApplier` materializes) — alongside materialized data (cleared with collections on reset; journal exempt per ADR-0143). Boot compares declared vs persisted → `LayoutDiff`s → existing `RebuildThreshold` auto-rebuild / `ConfirmRebuild` operator gate. Adds LiveStore's completed-replay marker so a crash mid-rebuild never serves half-rebuilt state.
+- `system.New` boot runs the check as part of composition (the operator gate surfaces through the existing Doctor/health surfaces).
+- Blast radius: `metaengine/` (fingerprint store + boot check; reuses `PlanDiff` machinery, `plan_diff.go:47`), sqliteengine as reference implementation, then engine conformance suite, `system/` boot hook. **L; the only increment needing per-engine work.**
 
 ### T6 — Compatibility policy + lint
 
@@ -230,6 +251,6 @@ Decode, codec selection, validation-ordering, re-encode, event reconstruction, v
 
 ## 12. Open questions → recommendations
 
-1. **Declaration home?** → **`schema/` (runtime), `catalog/` renders.** Layering: catalog is Tier 6 tooling and may depend down; `schema/` depending on catalog would point upward and violate `check-arch`. The runtime home wins mechanically, not stylistically. (Confirm with a `#check-arch` dry run at implementation time.)
+1. **Declaration home?** → **Type lives in `schema/` (Tier 2 builder); composition point is `system.DomainConfig` (ADR-0123); `catalog/` renders.** No third registry: `DomainConfig.Schema` derives `Events` (coeffect gate), decoder registrations, and the catalog export from one list. Layering: system (Tier 5) → schema (Tier 2) is downward and legal; the reverse would violate `check-arch`. (Confirm with a `#check-arch` dry run at implementation time.)
 2. **T3 stamp location?** → **Metadata field now; first-class `Record` stamp at v5 only if burn-in favors it.** Metadata ships in v4.x with zero schema churn; the v5 window stays open for the cleaner form.
 3. **Warn-first promotion?** → **Advisory + opt-in hard mode from day one; promote to hard after DiscordSync + bank-sync each run one clean minor cycle with the ledger on.** Mirrors the ADR-0151 evidence-gate style: named consumers, named criterion, not a date.
