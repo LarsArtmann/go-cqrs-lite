@@ -85,7 +85,7 @@ func TestComputeScorecard_CompositionCreditDirectImportWins(t *testing.T) {
 		Evidence: "github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4",
 	}
 	fp := analyzer.FeatureProfile{
-		Store: analyzer.StoreSQLite,
+		Store:  analyzer.StoreSQLite,
 		Stores: []analyzer.StoreKind{analyzer.StoreSQLite},
 	}
 
@@ -106,10 +106,10 @@ func TestComputeScorecard_CompositionCreditNeverPullsIrrelevantRows(t *testing.T
 	t.Parallel()
 
 	fp := analyzer.FeatureProfile{
-		HasServer: false,
+		HasServer:   false,
 		ServerLocal: false,
-		Store:     analyzer.StorePostgres,
-		Stores:    []analyzer.StoreKind{analyzer.StorePostgres},
+		Store:       analyzer.StorePostgres,
+		Stores:      []analyzer.StoreKind{analyzer.StorePostgres},
 	}
 
 	result := ComputeScorecard(analyzer.DefaultCatalog, absentUsage(), fp, analyzer.PresetLocalCLI)

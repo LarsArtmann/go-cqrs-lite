@@ -847,6 +847,24 @@ cmd/cqrs-lint/README.md "BuildFlow Integration".
   same-tool pairs — nothing to correlate in a single-tool linter) and no
   LSP server yet (conversion proven; transport awaiting demand).
 
+**`cqrs-lint scorecard` is a modernization ratchet (2026-10-09)** — the grade
+has teeth BY DESIGN (mission: drive consumers toward maximal, most-modern
+usage); grade pain is fixed by honesty/auditability/aim, never by softening:
+
+- **Composition credit** — persistence rows (`stack/sqlite`, `stack/memory`,
+  `storage`, …) count as used when the backend is wired via a
+  `metaengine/*engine` import, a raw driver import, or `system.New`
+  (evidence string names the path). Kills false-MISSING rows for composed
+  apps; direct imports always win.
+- **Waivers** (`.cqrs-lint.json` `scorecard.waivers`: `key`/`reason`/
+  `trigger`) — recorded refusals render in a WAIVED section, leave the
+  coverage denominator, and error when waiving used/irrelevant modules.
+  Reason mandatory; a trigger-less waiver renders a visible shame suffix.
+- **Modernity grade** (Legacy/Partial/Modern) — headlines beside breadth:
+  Modern = v5-clean AND (`system.New` composition OR metaengine declarative
+  pushdown). A low-breadth Modern app is a perfect consumer, not a deficient
+  one. Emitted in text/markdown/JSON/SARIF (`modernityGrade`, `waivedCount`).
+
 **`cqrs-lint doctor --format json`** emits a machine-readable report
 (module-rule findings, engine coverage, severity overrides). Key order is
 DETERMINISTIC since the 2026-09-08 wave (`encoding/json/v2` emits map
