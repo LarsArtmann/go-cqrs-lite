@@ -24,7 +24,17 @@ import (
 // After construction, the consumer registers commands, queries, and deciders
 // via the generic top-level functions (RegisterDecider, RegisterCommand,
 // RegisterQuery). Then call Start to begin projection processing.
-func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) (*System, error) {
+func New(
+	ctx context.Context,
+	domain DomainConfig,
+	deployment DeploymentConfig,
+	opts ...Option,
+) (*System, error) {
+	options := systemOptions{}
+	for _, opt := range opts {
+		opt(&options)
+	}
+
 	// Safety check: refuse to start if SCREAM-tier violations exist.
 	// WARN+OVERRIDE / ADVISORY findings are kept on the System for
 	// post-construction introspection via ScreamReport.
@@ -43,6 +53,7 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 	sys := &System{
 		deployment:   deployment,
 		safetyReport: safetyReport,
+		clock:        options.clock,
 		repos:        make(map[string]any),
 		deciders:     make(map[string]any),
 		cmdDisp:      command.NewDispatcher(),

@@ -57,6 +57,7 @@ type schedulerOptions struct {
 	maxRetries   int
 	retryDelay   time.Duration
 	logger       *slog.Logger
+	now          func() time.Time
 }
 
 // Option configures a Scheduler.
@@ -67,6 +68,7 @@ func defaultOptions() schedulerOptions {
 		pollInterval: defaultPollInterval,
 		maxRetries:   defaultMaxRetries,
 		retryDelay:   defaultRetryDelay,
+		now:          time.Now,
 	}
 }
 
@@ -98,6 +100,17 @@ func WithMaxRetries(n int) Option {
 // the random component avoids thundering-herd retries. Default: 100ms.
 func WithRetryDelay(d time.Duration) Option {
 	return func(o *schedulerOptions) { o.retryDelay = d }
+}
+
+// WithClock sets the Scheduler's time source; default time.Now. Inject a
+// controllable clock (e.g. system.ManualClock exposed via sys.Clock()) to
+// make deadline tests deterministic without sleeping (ADR-0153 D4).
+func WithClock(now func() time.Time) Option {
+	return func(o *schedulerOptions) {
+		if now != nil {
+			o.now = now
+		}
+	}
 }
 
 // WithLogger sets a structured logger. Default: slog.Default().
@@ -147,7 +160,7 @@ func (s *Scheduler[P]) Start(ctx context.Context) error {
 }
 
 func (s *Scheduler[P]) tick(ctx context.Context) error {
-	now := time.Now()
+	now := s.opts.now()
 
 	due, err := s.store.Due(ctx, now)
 	if err != nil && len(due) == 0 {

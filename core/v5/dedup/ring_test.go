@@ -1,0 +1,269 @@
+package dedup_test
+
+import (
+	"strconv"
+	"testing"
+
+	"github.com/larsartmann/go-cqrs-lite/core/v5/dedup"
+)
+
+//art-dupl:accept v5 copy-forward twin of dedup/v4 (ADR-0152 dual-support); removed with v4 in T26
+func TestRing_Basic(t *testing.T) {
+	t.Parallel()
+
+	r := dedup.NewRing(4)
+
+	r.Add("a")
+	r.Add("b")
+	r.Add("c")
+
+	for _, id := range []string{"a", "b", "c"} {
+		if !r.Has(id) {
+			t.Errorf("expected %q in ring", id)
+		}
+	}
+
+	if r.Has("d") {
+		t.Error("d should not be present")
+	}
+
+	if r.Len() != 3 {
+		t.Errorf("Len: got %d, want 3", r.Len())
+	}
+
+	if r.Capacity() != 4 {
+		t.Errorf("Capacity: got %d, want 4", r.Capacity())
+	}
+}
+
+func TestRing_Eviction(t *testing.T) {
+	t.Parallel()
+
+	r := dedup.NewRing(3)
+
+	r.Add("a")
+	r.Add("b")
+	r.Add("c")
+	// Ring is full (cap 3). Adding "d" evicts "a".
+	r.Add("d")
+
+	if r.Has("a") {
+		t.Error("a should have been evicted")
+	}
+
+	if !r.Has("d") {
+		t.Error("d should be present")
+	}
+
+	if r.Len() != 3 {
+		t.Errorf("Len after eviction: got %d, want 3", r.Len())
+	}
+
+	// Add more — evicts b, then c.
+	r.Add("e")
+	r.Add("f")
+
+	if r.Has("b") {
+		t.Error("b should have been evicted")
+	}
+
+	if !r.Has("f") {
+		t.Error("f should be present")
+	}
+}
+
+func TestRing_DuplicateAdd(t *testing.T) {
+	t.Parallel()
+
+	r := dedup.NewRing(4)
+
+	r.Add("x")
+	r.Add("x") // no-op
+	r.Add("x") // no-op
+
+	if r.Len() != 1 {
+		t.Errorf("Len after duplicate adds: got %d, want 1", r.Len())
+	}
+}
+
+func TestRing_NilSafe(t *testing.T) {
+	t.Parallel()
+
+	var r *dedup.Ring
+
+	if r.Has("anything") {
+		t.Error("nil ring should not contain anything")
+	}
+
+	if r.Len() != 0 {
+		t.Error("nil ring Len should be 0")
+	}
+}
+
+func TestRing_LargeCapacity_Wraparound(t *testing.T) {
+	t.Parallel()
+
+	const capacity = 1024
+	r := dedup.NewRing(capacity)
+
+	// Fill beyond capacity to exercise wraparound.
+	for i := range capacity * 3 {
+		r.Add(string(rune(i)))
+	}
+
+	if r.Len() != capacity {
+		t.Errorf("Len: got %d, want %d", r.Len(), capacity)
+	}
+
+	// The oldest entries should be evicted.
+	if r.Has(string(rune(0))) {
+		t.Error("first entry should have been evicted")
+	}
+
+	// The newest entries should be present.
+	if !r.Has(string(rune(capacity*3 - 1))) {
+		t.Error("last entry should be present")
+	}
+}
+
+func TestRing_DefaultCapacityFallback(t *testing.T) {
+	t.Parallel()
+
+	r := dedup.NewRing(0) // should fall back to DefaultCapacity
+	if r.Capacity() != dedup.DefaultCapacity {
+		t.Errorf("Capacity: got %d, want default %d", r.Capacity(), dedup.DefaultCapacity)
+	}
+
+	rNegative := dedup.NewRing(-5)
+	if rNegative.Capacity() != dedup.DefaultCapacity {
+		t.Errorf("Capacity: got %d, want default %d", rNegative.Capacity(), dedup.DefaultCapacity)
+	}
+}
+
+// TestRing_ProductionCapacity10K drives a ring at the QUIC transport's
+// production capacity (irohengine/quic constructs NewRing(10000) for op-level
+// dedup) past the 10K boundary. The smaller-capacity tests above prove the
+// eviction math in principle; this one pins it at the scale where the head
+// index wraps many times and where an off-by-one in the eviction window would
+// silently widen the reapplication window for redelivered ops.
+func TestRing_ProductionCapacity10K(t *testing.T) {
+	t.Parallel()
+
+	const capacity = 10_000
+	const total = 3 * capacity
+
+	r := dedup.NewRing(capacity)
+
+	for i := range total {
+		r.Add(strconv.Itoa(i))
+
+		if r.Len() > capacity {
+			t.Fatalf("iteration %d: Len %d exceeded capacity %d", i, r.Len(), capacity)
+		}
+	}
+
+	if r.Len() != capacity {
+		t.Fatalf("after %d adds: Len %d, want %d", total, r.Len(), capacity)
+	}
+
+	// The oldest entries fell out of the window (evicted range [0, 2*capacity)).
+	for _, id := range []string{"0", "1", strconv.Itoa(capacity - 1), strconv.Itoa(2*capacity - 1)} {
+		if r.Has(id) {
+			t.Errorf("evicted op %q still present", id)
+		}
+	}
+
+	// The most recent capacity entries are all still deduped.
+	for i := total - capacity; i < total; i++ {
+		if !r.Has(strconv.Itoa(i)) {
+			t.Fatalf("in-window op %d missing after %d adds", i, total)
+		}
+	}
+
+	// Re-adding an evicted op re-inserts it (graceful eviction, no reset gap):
+	// the ring accepts it and evicts the current oldest entry in its place.
+	oldest := strconv.Itoa(total - capacity)
+
+	r.Add("0")
+
+	if !r.Has("0") {
+		t.Fatal("re-added op 0 not present")
+	}
+
+	if r.Has(oldest) {
+		t.Errorf("oldest in-window op %q survived an add that should have evicted it", oldest)
+	}
+
+	if r.Len() != capacity {
+		t.Errorf("Len after re-add: %d, want %d", r.Len(), capacity)
+	}
+}
+
+// TestRing_RingShapeInvariants is a property-based test verifying that:
+//  1. Len never exceeds Capacity
+//  2. Evicted IDs are no longer Has-able
+//  3. A full ring's Len == Capacity, and stays there as more IDs are added
+func TestRing_RingShapeInvariants(t *testing.T) {
+	t.Parallel()
+
+	const capacity = 8
+	r := dedup.NewRing(capacity)
+	seen := make(map[string]bool)
+	idGen := func(i int) string {
+		// Use a sparse string space to avoid collisions within the test run.
+		return string(rune('a'+i%26)) + "-" + itoa(i)
+	}
+
+	for i := range capacity * 5 {
+		id := idGen(i)
+		r.Add(id)
+		seen[id] = true
+
+		if r.Len() > capacity {
+			t.Fatalf("iteration %d: Len %d exceeded capacity %d", i, r.Len(), capacity)
+		}
+
+		// The last `capacity` unique IDs should be present; older ones may have been evicted.
+		if i >= capacity {
+			oldest := idGen(i - capacity)
+			if r.Has(oldest) {
+				t.Fatalf("iteration %d: oldest-in-window %q should have been evicted", i, oldest)
+			}
+		}
+	}
+
+	if r.Len() != capacity {
+		t.Errorf("after saturation: Len %d, want %d", r.Len(), capacity)
+	}
+}
+
+// itoa is a tiny strconv.Itoa-free helper to avoid the import for one use.
+func itoa(n int) string {
+	if n == 0 {
+		return "0"
+	}
+
+	out := make([]byte, 0, 8)
+
+	for n > 0 {
+		out = append([]byte{byte('0' + n%10)}, out...)
+		n /= 10
+	}
+
+	return string(out)
+}
+
+// TestRing_NilAddIsNoOp pins nil-receiver Add safety: the documented
+// "nil *Ring when no replay occurred" pattern must not panic on the Add
+// side of a Has-then-Add boundary loop.
+func TestRing_NilAddIsNoOp(t *testing.T) {
+	t.Parallel()
+
+	var ring *dedup.Ring
+
+	ring.Add("event-001")
+
+	if ring.Has("event-001") {
+		t.Error("nil ring must stay empty after Add")
+	}
+}

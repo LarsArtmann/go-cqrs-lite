@@ -1215,6 +1215,13 @@ commandlifecycle/struct RejectedPayload
 commandlifecycle/struct RetriedPayload
 commandlifecycle/type CommandKey
 commandlifecycle/type RecorderOption
+core/v5/dedup/const DefaultCapacity
+core/v5/dedup/func NewRing
+core/v5/dedup/method Add
+core/v5/dedup/method Capacity
+core/v5/dedup/method Has
+core/v5/dedup/method Len
+core/v5/dedup/struct Ring
 decider/const DefaultStateCacheCapacity
 decider/func ExecuteCommandRef
 decider/func NewRepository

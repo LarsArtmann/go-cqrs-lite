@@ -113,6 +113,9 @@ type System struct {
 
 	deployment DeploymentConfig
 
+	// clock is the injected time source (nil = RealClock); see clock.go.
+	clock Clock
+
 	// Adapters wrap StreamLogBackend as standard CQRS interfaces.
 	eventStore event.Store
 	cmdStore   command.Store
