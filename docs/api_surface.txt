@@ -5219,6 +5219,7 @@ scheduling/func MustParseTimerID
 scheduling/func New
 scheduling/func NewMemoryTimerStore
 scheduling/func ParseTimerID
+scheduling/func WithClock
 scheduling/func WithLogger
 scheduling/func WithMaxRetries
 scheduling/func WithPollInterval
@@ -7132,6 +7133,7 @@ system/func NewCachedEventStore
 system/func NewCommandAdapter
 system/func NewEngineCheckpointStore
 system/func NewEventAdapter
+system/func NewManualClock
 system/func NewMemorySnapshotBackend
 system/func NewMultiBus
 system/func NewQueryAdapter
@@ -7144,23 +7146,27 @@ system/func RegisterCommand
 system/func RegisterDecider
 system/func RegisterQuery
 system/func Where
+system/func WithClock
 system/func WithCommandLifecycle
 system/func WithCommandSerialization
 system/func WithQuerySerialization
 system/func WithRacySave
 system/func WithSerialization
 system/func WithSnapshotStrategy
+system/interface Clock
 system/interface Drainer
 system/interface EvolutionSpec
 system/interface ProjectionDeclaration
 system/interface TimerScheduler
 system/method AddNamedPublisher
 system/method AddPublisher
+system/method Advance
 system/method AppendBatch
 system/method AppendBatch
 system/method AppendBatch
 system/method Bus
 system/method CacheStats
+system/method Clock
 system/method Close
 system/method Close
 system/method Close
@@ -7209,6 +7215,8 @@ system/method LoadToVersion
 system/method ManageTimers
 system/method MetaEngine
 system/method Names
+system/method Now
+system/method Now
 system/method On
 system/method On
 system/method On
@@ -7245,6 +7253,7 @@ system/method Save
 system/method Save
 system/method SaveQuery
 system/method ScreamReport
+system/method Set
 system/method ShutdownOrder
 system/method Snapshot
 system/method SnapshotStore
@@ -7275,6 +7284,7 @@ system/struct EventAdapter
 system/struct InstanceConfig
 system/struct InstanceTopology
 system/struct LookupInput
+system/struct ManualClock
 system/struct MaterializedViewConfig
 system/struct MultiBus
 system/struct Op
@@ -7282,6 +7292,7 @@ system/struct PriorityConfig
 system/struct ProjectionHostInfo
 system/struct ProjectionSpec
 system/struct QueryAdapter
+system/struct RealClock
 system/struct ScanInput
 system/struct ScreamDiagnostic
 system/struct ScreamReport
@@ -7295,6 +7306,7 @@ system/type EventAdapterOption
 system/type EvolveOption
 system/type FindOption
 system/type InstanceRole
+system/type Option
 system/type QueryAdapterOption
 system/type RegisterDeciderOption
 system/type ScreamTier
@@ -7332,7 +7344,9 @@ system/var ErrUnsupportedValueType
 systemscenario/func System
 systemscenario/func ThenPayload
 systemscenario/func WithAwaitTimeout
+systemscenario/func WithClock
 systemscenario/method Await
+systemscenario/method Clock
 systemscenario/method Command
 systemscenario/method Command
 systemscenario/method Event
@@ -7355,6 +7369,9 @@ systemscenario/method ThenQuery
 systemscenario/method ThenQueryFunc
 systemscenario/method ThenResult
 systemscenario/method ThenSuccess
+systemscenario/method TimeAdvances
+systemscenario/method TimeAdvances
+systemscenario/method TimeAdvances
 systemscenario/method When
 systemscenario/method When
 systemscenario/method WhenEvent

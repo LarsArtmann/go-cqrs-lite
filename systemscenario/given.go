@@ -1,6 +1,8 @@
 package systemscenario
 
 import (
+	"time"
+
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
@@ -118,4 +120,9 @@ func (g *GivenPhase) WhenEvent(events ...event.Event) *WhenPhase {
 // WhenQuery transitions to the act under test by dispatching a query.
 func (g *GivenPhase) WhenQuery(q query.Query) *WhenPhase {
 	return g.sc.WhenQuery(q)
+}
+
+// TimeAdvances transitions to the time act. See [Scenario.TimeAdvances].
+func (g *GivenPhase) TimeAdvances(d time.Duration) *WhenPhase {
+	return g.sc.TimeAdvances(d)
 }

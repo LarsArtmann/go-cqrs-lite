@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-//art-dupl:accept v5 copy-forward twin of dedup/v4 (ADR-0152 dual-support); removed with v4 in T26
+// art-dupl:accept v5 copy-forward twin of dedup/v4 (ADR-0152 dual-support); removed with v4 in T26
 func BenchmarkRing_Add(b *testing.B) {
 	r := NewRing(1024)
 

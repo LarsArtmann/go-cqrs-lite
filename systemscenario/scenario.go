@@ -20,6 +20,7 @@ type Option func(*scenarioConfig)
 
 type scenarioConfig struct {
 	awaitTimeout time.Duration
+	clock        system.Clock
 }
 
 func defaultConfig() scenarioConfig {
@@ -35,6 +36,21 @@ func WithAwaitTimeout(d time.Duration) Option {
 		}
 	}
 }
+
+// WithClock replaces the scenario's default [system.ManualClock] (frozen at
+// a fixed epoch) with another time source. TimeAdvances requires the
+// ManualClock, so tests that exercise timers should not override it.
+func WithClock(clock system.Clock) Option {
+	return func(c *scenarioConfig) {
+		if clock != nil {
+			c.clock = clock
+		}
+	}
+}
+
+// manualClockEpoch is the frozen instant every scenario starts at:
+// deterministic timestamps in events and timers, no wall-clock coupling.
+var manualClockEpoch = time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
 
 // capturedCommand records one command dispatched through the system's
 // dispatcher: the command and its dispatch outcome.
@@ -73,6 +89,10 @@ type Scenario struct {
 
 	// awaitMode makes Then* assertions poll (set by TimeAdvances).
 	awaitMode bool
+
+	// clock is the scenario's time source (default: ManualClock frozen at
+	// manualClockEpoch, injected into system.New via system.WithClock).
+	clock system.Clock
 }
 
 // System boots a full system via [system.New] with the SAME DomainConfig and
@@ -94,7 +114,11 @@ func System(
 		opt(&cfg)
 	}
 
-	sys, err := system.New(ctx, domain, deploy)
+	if cfg.clock == nil {
+		cfg.clock = system.NewManualClock(manualClockEpoch)
+	}
+
+	sys, err := system.New(ctx, domain, deploy, system.WithClock(cfg.clock))
 	if err != nil {
 		t.Fatalf("systemscenario: system.New: %v", err)
 	}
@@ -104,6 +128,7 @@ func System(
 		ctx:          ctx,
 		sys:          sys,
 		cfg:          cfg,
+		clock:        cfg.clock,
 		versionHints: make(map[string]event.Version),
 	}
 	sys.UseCommandMiddleware(sc.captureMiddleware())
@@ -132,6 +157,13 @@ func (s *Scenario) shutdown() {
 // System returns the booted system for escape hatches (typed queries via
 // MetaEngine, direct store access, health inspection).
 func (s *Scenario) System() *system.System { return s.sys }
+
+// Clock returns the scenario's time source — a [system.ManualClock] frozen
+// at 2026-01-01T00:00:00Z by default. Consumer Timers closures compute
+// deterministic FireAt values from it and wire
+// scheduling.WithClock(sys.Clock().Now) so When().TimeAdvances(d) makes
+// timers fire without sleeping.
+func (s *Scenario) Clock() system.Clock { return s.clock }
 
 // requireTerminalAssertion registers a cleanup that fails the test if no
 // Then* assertion ever ran — a scenario without a terminal assertion would

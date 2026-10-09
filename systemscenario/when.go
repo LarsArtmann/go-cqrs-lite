@@ -1,9 +1,12 @@
 package systemscenario
 
 import (
+	"time"
+
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
+	"github.com/larsartmann/go-cqrs-lite/system/v4"
 )
 
 // When is the act under test: dispatch cmd through the system's command
@@ -28,6 +31,16 @@ func (s *Scenario) When(cmd command.Command) *WhenPhase {
 // event stream).
 func (s *Scenario) WhenEvent(events ...event.Event) *WhenPhase {
 	return (&WhenPhase{sc: s}).Event(events...)
+}
+
+// TimeAdvances is the time act: advance the scenario's manual clock by d
+// (Axon 4 whenTimeElapses analog; Axon 5 dropped it). Timers whose FireAt
+// falls due fire on the scheduler's next poll tick, and the scenario flips
+// into await mode so subsequent Then* assertions poll. Requires the default
+// harness clock (do not pass [WithClock]) and consumer timers wired with
+// scheduling.WithClock(sys.Clock().Now).
+func (s *Scenario) TimeAdvances(d time.Duration) *WhenPhase {
+	return (&WhenPhase{sc: s}).TimeAdvances(d)
 }
 
 // WhenQuery is the query act: dispatch q through the query dispatcher and
@@ -74,6 +87,26 @@ func (p *WhenPhase) Query(q query.Query) *WhenPhase {
 
 	result, err := s.sys.QueryDispatcher().Dispatch(s.ctx, q)
 	s.lastQueryResult, s.lastErr = result, err
+
+	return p
+}
+
+// TimeAdvances chains the time act. See [Scenario.TimeAdvances].
+func (p *WhenPhase) TimeAdvances(d time.Duration) *WhenPhase {
+	s := p.sc
+	s.t.Helper()
+
+	s.markActStart()
+
+	manual, ok := s.clock.(*system.ManualClock)
+	if !ok {
+		s.t.Fatal("systemscenario: TimeAdvances requires the default harness ManualClock " +
+			"(a WithClock option replaced it)")
+	}
+
+	manual.Advance(d)
+
+	s.awaitMode = true
 
 	return p
 }

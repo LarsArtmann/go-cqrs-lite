@@ -33,6 +33,7 @@ func TestScheduler_WithClock_FreezesDueWindow(t *testing.T) {
 	sched := New(store,
 		func(_ context.Context, _ Timer[string]) error {
 			dispatched.Add(1)
+
 			return nil
 		},
 		WithPollInterval(time.Millisecond),
