@@ -5095,7 +5095,6 @@ metaengine/struct SerializableQuery
 metaengine/struct SerializableReadCosts
 metaengine/struct SerializableRule
 metaengine/struct Skip
-metaengine/struct SortColumn
 metaengine/struct SortKeyCursor
 metaengine/struct SortSpec
 metaengine/struct SpatialResult
@@ -5172,6 +5171,7 @@ metaengine/type Replication
 metaengine/type SSEOption
 metaengine/type SampleKind
 metaengine/type ScanOption
+metaengine/type SortColumn
 metaengine/type StorageLayout
 metaengine/type StoreHooks
 metaengine/type TrackerOption

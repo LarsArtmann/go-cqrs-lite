@@ -903,6 +903,19 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
 
 ## Code Quality
 
+- [ ] **Branching-flow duplicate-type triage follow-ups (2026-10-09)** — the
+      465-row duplicate-type analysis was fully triaged
+      ([plan](docs/planning/2026-10-09_18-16_SUPERB-branching-flow-triage.md)):
+      ~95% already-governed (ADR-0152 v4↔core/v5 mirrors, annotated queue/engine
+      dialect twins, sanctioned per-engine pair types, intentional DTO/markers).
+      Shipped same day: `metaengine.SortColumn` = `SortSpec` alias (same-module
+      split brain) + projectionhost shutdown flush via `context.WithoutCancel`.
+      Open: (a) v4↔core/v5 mirror-drift lockstep audit — exported surfaces of
+      mirrored modules (id, kv, event, command, query, dispatcher…) must stay
+      shape-identical while dual-support runs; a mechanical cross-compare test
+      (the `event.Type` lockstep-test pattern) is the guard. (b) Teach
+      branching-flow (or a wrapper filter) the mirror pairs so future reports
+      carry signal instead of ~230 mirror rows. _(Effort: M audit, S filter)_
 - [ ] **Watch the 3 baselined `.templ` clone groups (specview noscript pair,
       eventcatalogview catalogSection pair + Breadcrumbs ×4)** — the 2026-09-28
       dedup campaign (archived
@@ -1008,6 +1021,15 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
 - [ ] **Delete `storage.RelationalProjection` + `storage/view` (SQLViewStore)** —
       multi-collection batch atomicity + auto-projection replaces them. Also
       removes the remaining `aggregate_*` SQL surfaces wholesale. _(Effort: M)_
+- [ ] **v5 cut: typed tombstone filter + sort-type eval in core/v5** —
+      `kv.TombstoneQuerier.QueryByTombstone(ctx, excludeTombstoned, onlyTombstoned
+      bool)` encodes a 3-state filter as two bools (interface-bound in v4; the
+      `storage/view` implementation is deleted at v5 anyway) — core/v5/kv should
+      take a typed `TombstoneFilter` enum instead. While forking, evaluate the
+      `metaengine.SyncWritesTier(volatile, syncWrites bool)` signature and whether
+      the v5 module family wants one shared sort-directive type
+      (`kv.OrderClause` / `metaengine.SortSpec` are shape-identical today).
+      _(Effort: S–M)_
 - [ ] **Delete `graph.GraphProjection`** — auto-projection + graphadapter
       replaces it. _(Effort: S)_
 - [ ] **Delete `stack.Bundle` + all 8 stack presets** — `system.System` is the
