@@ -211,8 +211,11 @@ func renderScorecardMarkdown(result ScorecardResult) string {
 			result.Summary.ModernityGrade, ModernityHint(result.Summary.ModernityGrade))
 	}
 	if result.Summary.WaivedCount > 0 {
-		fmt.Fprintf(&b, "\n_%d modules waived — recorded refusals with reasons and triggers below._\n",
-			result.Summary.WaivedCount)
+		fmt.Fprintf(
+			&b,
+			"\n_%d modules waived — recorded refusals with reasons and triggers below._\n",
+			result.Summary.WaivedCount,
+		)
 	}
 
 	if result.Metaengine != nil {

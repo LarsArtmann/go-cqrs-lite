@@ -92,7 +92,11 @@ func TestLoadProjectConfig_ScorecardWaivers(t *testing.T) {
 				]
 			}
 		}`
-		if err := os.WriteFile(filepath.Join(dir, ConfigFileName), []byte(content), 0o644); err != nil {
+		if err := os.WriteFile(
+			filepath.Join(dir, ConfigFileName),
+			[]byte(content),
+			0o644,
+		); err != nil {
 			t.Fatal(err)
 		}
 
@@ -112,7 +116,11 @@ func TestLoadProjectConfig_ScorecardWaivers(t *testing.T) {
 		t.Parallel()
 		dir := t.TempDir()
 		content := `{"scorecard": {"waivers": [{"key": "bogus", "reason": "r"}]}}`
-		if err := os.WriteFile(filepath.Join(dir, ConfigFileName), []byte(content), 0o644); err != nil {
+		if err := os.WriteFile(
+			filepath.Join(dir, ConfigFileName),
+			[]byte(content),
+			0o644,
+		); err != nil {
 			t.Fatal(err)
 		}
 

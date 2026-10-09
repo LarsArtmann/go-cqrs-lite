@@ -50,7 +50,10 @@ func TestComputeScorecardWithWaivers_MovesRowsAndRecomputes(t *testing.T) {
 	if result.Waived[0].Evidence != wantEvidence {
 		t.Errorf("waived evidence = %q, want %q", result.Waived[0].Evidence, wantEvidence)
 	}
-	if slices.ContainsFunc(result.Missing, func(m ScorecardModule) bool { return m.Key == "graph" }) {
+	if slices.ContainsFunc(
+		result.Missing,
+		func(m ScorecardModule) bool { return m.Key == "graph" },
+	) {
 		t.Error("graph must leave MISSING after being waived")
 	}
 
@@ -234,7 +237,11 @@ func TestResolveScorecardWaivers(t *testing.T) {
 
 	dir := t.TempDir()
 	projectCfg := `{"scorecard": {"waivers": [{"key": "graph", "reason": "project reason", "trigger": "t"}]}}`
-	if err := os.WriteFile(filepath.Join(dir, ".cqrs-lint.json"), []byte(projectCfg), 0o644); err != nil {
+	if err := os.WriteFile(
+		filepath.Join(dir, ".cqrs-lint.json"),
+		[]byte(projectCfg),
+		0o644,
+	); err != nil {
 		t.Fatal(err)
 	}
 
@@ -259,8 +266,10 @@ func TestResolveScorecardWaivers(t *testing.T) {
 
 	// No project config: CLI-level waivers pass through unchanged.
 	passthrough, err := resolveScorecardWaivers(&AppConfig{
-		Path:              t.TempDir(),
-		ScorecardSettings: analyzer.ScorecardSettings{Waivers: []analyzer.ScorecardWaiver{{Key: "kv", Reason: "r"}}},
+		Path: t.TempDir(),
+		ScorecardSettings: analyzer.ScorecardSettings{
+			Waivers: []analyzer.ScorecardWaiver{{Key: "kv", Reason: "r"}},
+		},
 	})
 	if err != nil || len(passthrough) != 1 {
 		t.Fatalf("passthrough = (%v, %v), want 1 waiver", passthrough, err)
@@ -269,7 +278,11 @@ func TestResolveScorecardWaivers(t *testing.T) {
 	// Malformed project config (bad waiver key) errors loudly.
 	badDir := t.TempDir()
 	badCfg := `{"scorecard": {"waivers": [{"key": "bogus", "reason": "r"}]}}`
-	if err := os.WriteFile(filepath.Join(badDir, ".cqrs-lint.json"), []byte(badCfg), 0o644); err != nil {
+	if err := os.WriteFile(
+		filepath.Join(badDir, ".cqrs-lint.json"),
+		[]byte(badCfg),
+		0o644,
+	); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := resolveScorecardWaivers(&AppConfig{Path: badDir}); err == nil {

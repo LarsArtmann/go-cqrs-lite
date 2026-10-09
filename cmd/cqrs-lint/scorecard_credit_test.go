@@ -66,7 +66,10 @@ func TestComputeScorecard_CompositionCreditSystemNewJournalShape(t *testing.T) {
 	}
 
 	for _, key := range []string{"stack/sqlite", "storage", "stack/memory"} {
-		if slices.ContainsFunc(result.Missing, func(m ScorecardModule) bool { return m.Key == key }) {
+		if slices.ContainsFunc(
+			result.Missing,
+			func(m ScorecardModule) bool { return m.Key == key },
+		) {
 			t.Errorf("module %s must not remain MISSING after composition credit", key)
 		}
 	}
@@ -117,7 +120,10 @@ func TestComputeScorecard_CompositionCreditNeverPullsIrrelevantRows(t *testing.T
 	if usedKeysOf(result)["stack/postgres"] {
 		t.Error("stack/postgres is irrelevant for local-cli and must not be credited into Used")
 	}
-	if !slices.ContainsFunc(result.Irrelevant, func(m ScorecardModule) bool { return m.Key == "stack/postgres" }) {
+	if !slices.ContainsFunc(
+		result.Irrelevant,
+		func(m ScorecardModule) bool { return m.Key == "stack/postgres" },
+	) {
 		t.Error("stack/postgres should be Irrelevant for local-cli")
 	}
 }

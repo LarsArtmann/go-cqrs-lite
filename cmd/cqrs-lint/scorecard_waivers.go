@@ -22,7 +22,10 @@ func resolveScorecardWaivers(cfg *AppConfig) ([]analyzer.ScorecardWaiver, error)
 
 	merged := slices.Clone(project.Scorecard.Waivers)
 	for _, w := range cfg.ScorecardSettings.Waivers {
-		if !slices.ContainsFunc(merged, func(m analyzer.ScorecardWaiver) bool { return m.Key == w.Key }) {
+		if !slices.ContainsFunc(
+			merged,
+			func(m analyzer.ScorecardWaiver) bool { return m.Key == w.Key },
+		) {
 			merged = append(merged, w)
 		}
 	}
@@ -92,13 +95,19 @@ func applyWaivers(result *ScorecardResult, waivers []analyzer.ScorecardWaiver) e
 // and waiving an irrelevant module is dead config under the current profile.
 func checkWaivable(result *ScorecardResult, waivers []analyzer.ScorecardWaiver) error {
 	for _, w := range waivers {
-		if slices.ContainsFunc(result.Used, func(m ScorecardModule) bool { return m.Key == w.Key }) {
+		if slices.ContainsFunc(
+			result.Used,
+			func(m ScorecardModule) bool { return m.Key == w.Key },
+		) {
 			return fmt.Errorf(
 				"scorecard waiver for %q: module is USED — waivers record refusals, not redundancies",
 				w.Key,
 			)
 		}
-		if slices.ContainsFunc(result.Irrelevant, func(m ScorecardModule) bool { return m.Key == w.Key }) {
+		if slices.ContainsFunc(
+			result.Irrelevant,
+			func(m ScorecardModule) bool { return m.Key == w.Key },
+		) {
 			return fmt.Errorf(
 				"scorecard waiver for %q: module is irrelevant for this profile — remove the waiver",
 				w.Key,
