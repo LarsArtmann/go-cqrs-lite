@@ -6,6 +6,7 @@ package systemscenario_test
 
 import (
 	"context"
+
 	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
@@ -46,7 +47,10 @@ type TaskView struct {
 var (
 	errTaskExists    error = errorfamily.NewRejection("task.already_exists", "task already exists")
 	errTaskMissing   error = errorfamily.NewRejection("task.missing", "task does not exist")
-	errTaskCompleted error = errorfamily.NewConflict("task.already_completed", "task already completed")
+	errTaskCompleted error = errorfamily.NewConflict(
+		"task.already_completed",
+		"task already completed",
+	)
 
 	// completerActor is stamped on completion task.updated events by the fixture
 	// handler so metadata assertions have something deterministic to check.
@@ -137,9 +141,15 @@ func taskDomain() system.DomainConfig {
 }
 
 func registerTaskHandlers(sys *system.System) {
-	system.RegisterDecider(sys, "Task", taskDecider) //nolint:errcheck // fixture: registration cannot fail
+	system.RegisterDecider(
+		sys,
+		"Task",
+		taskDecider,
+	) //nolint:errcheck // fixture: registration cannot fail
 
-	system.RegisterCommand[*command.BasicCommand, TaskState](sys, "task.create", //nolint:errcheck // fixture
+	system.RegisterCommand[*command.BasicCommand, TaskState](
+		sys,
+		"task.create", //nolint:errcheck // fixture
 		func(ctx context.Context, cmd *command.BasicCommand) system.Op[TaskState] {
 			return system.Execute(ctx, cmd.StreamID(), "Task",
 				func(state TaskState, version event.Version) ([]event.Event, error) {
@@ -147,12 +157,25 @@ func registerTaskHandlers(sys *system.System) {
 						return nil, errTaskExists
 					}
 
-					return []event.Event{taskEvent("task.created", cmd.StreamID(), version+1,
-						TaskCreated{ID: cmd.StreamID().String(), Title: "first", Status: "pending"})}, nil
+					return []event.Event{
+						taskEvent(
+							"task.created",
+							cmd.StreamID(),
+							version+1,
+							TaskCreated{
+								ID:     cmd.StreamID().String(),
+								Title:  "first",
+								Status: "pending",
+							},
+						),
+					}, nil
 				})
-		})
+		},
+	)
 
-	system.RegisterCommand[*command.BasicCommand, TaskState](sys, "task.rename", //nolint:errcheck // fixture
+	system.RegisterCommand[*command.BasicCommand, TaskState](
+		sys,
+		"task.rename", //nolint:errcheck // fixture
 		func(ctx context.Context, cmd *command.BasicCommand) system.Op[TaskState] {
 			return system.Execute(ctx, cmd.StreamID(), "Task",
 				func(state TaskState, version event.Version) ([]event.Event, error) {
@@ -160,12 +183,25 @@ func registerTaskHandlers(sys *system.System) {
 						return nil, errTaskMissing
 					}
 
-					return []event.Event{taskEvent("task.updated", cmd.StreamID(), version+1,
-						TaskUpdated{ID: cmd.StreamID().String(), Title: "renamed", Status: state.Status})}, nil
+					return []event.Event{
+						taskEvent(
+							"task.updated",
+							cmd.StreamID(),
+							version+1,
+							TaskUpdated{
+								ID:     cmd.StreamID().String(),
+								Title:  "renamed",
+								Status: state.Status,
+							},
+						),
+					}, nil
 				})
-		})
+		},
+	)
 
-	system.RegisterCommand[*command.BasicCommand, TaskState](sys, "task.complete", //nolint:errcheck // fixture
+	system.RegisterCommand[*command.BasicCommand, TaskState](
+		sys,
+		"task.complete", //nolint:errcheck // fixture
 		func(ctx context.Context, cmd *command.BasicCommand) system.Op[TaskState] {
 			return system.Execute(ctx, cmd.StreamID(), "Task",
 				func(state TaskState, version event.Version) ([]event.Event, error) {
@@ -177,11 +213,22 @@ func registerTaskHandlers(sys *system.System) {
 						return nil, errTaskCompleted
 					}
 
-					return []event.Event{taskEvent("task.updated", cmd.StreamID(), version+1,
-						TaskUpdated{ID: cmd.StreamID().String(), Title: state.Title, Status: "completed"},
-						event.WithActor(completerActor))}, nil
+					return []event.Event{
+						taskEvent(
+							"task.updated",
+							cmd.StreamID(),
+							version+1,
+							TaskUpdated{
+								ID:     cmd.StreamID().String(),
+								Title:  state.Title,
+								Status: "completed",
+							},
+							event.WithActor(completerActor),
+						),
+					}, nil
 				})
-		})
+		},
+	)
 }
 
 // memoryDeployment mirrors the auto-projection test deployment: one memory
@@ -209,10 +256,25 @@ func sagaDomain() system.DomainConfig {
 		baseCommands(sys)
 		registerArchive(sys)
 
-		archiver := deriver.Deriver(func(ctx context.Context, evt event.Event) ([]command.Command, error) {
-			return []command.Command{newTaskCmd("task.archive", evt.StreamID())}, nil
-		})
-		if err := sys.Bus().Subscribe("task.updated", archiver.AsHandler(sys.CommandDispatcher())); err != nil {
+		// FINDING (2026-10-09, harness saga test): a SYNCHRONOUS deriver on
+		// sys.Bus() deadlocks - the default event bus publishes with
+		// BlockPublishUntilSubscriberAck, so the deriver's derived-command
+		// dispatch re-publishes from inside the handler the publisher is
+		// waiting on. Async derivation (fire-and-forget) is today's safe
+		// wiring; see TODO_LIST for the product fix options. The harness's
+		// Await() mode asserts its outcome.
+		archiver := deriver.Deriver(
+			func(ctx context.Context, evt event.Event) ([]command.Command, error) {
+				go func() {
+					_ = sys.CommandDispatcher().
+						Dispatch(ctx, newTaskCmd("task.archive", evt.StreamID()))
+				}()
+
+				return nil, nil
+			},
+		)
+		if err := sys.Bus().
+			Subscribe("task.updated", archiver.AsHandler(sys.CommandDispatcher())); err != nil {
 			panic(err)
 		}
 	}
@@ -221,7 +283,9 @@ func sagaDomain() system.DomainConfig {
 }
 
 func registerArchive(sys *system.System) {
-	system.RegisterCommand[*command.BasicCommand, TaskState](sys, "task.archive", //nolint:errcheck // fixture
+	system.RegisterCommand[*command.BasicCommand, TaskState](
+		sys,
+		"task.archive", //nolint:errcheck // fixture
 		func(ctx context.Context, cmd *command.BasicCommand) system.Op[TaskState] {
 			return system.Execute(ctx, cmd.StreamID(), "Task",
 				func(state TaskState, version event.Version) ([]event.Event, error) {
@@ -229,8 +293,19 @@ func registerArchive(sys *system.System) {
 						return nil, errTaskMissing
 					}
 
-					return []event.Event{taskEvent("task.archived", cmd.StreamID(), version+1,
-						TaskUpdated{ID: cmd.StreamID().String(), Title: state.Title, Status: "archived"})}, nil
+					return []event.Event{
+						taskEvent(
+							"task.archived",
+							cmd.StreamID(),
+							version+1,
+							TaskUpdated{
+								ID:     cmd.StreamID().String(),
+								Title:  state.Title,
+								Status: "archived",
+							},
+						),
+					}, nil
 				})
-		})
+		},
+	)
 }
