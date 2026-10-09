@@ -52,14 +52,17 @@ type ScorecardMetaengine struct {
 }
 
 // ScorecardDeprecated reports usage of surfaces that v5 removes: V007
-// (v5-removed-API references) and F030 (deprecated transport/http SSE).
-// The panel answers "is this project already clean for the v5 cut?" from
-// the same detectors the lint run uses, independent of preset disables.
+// (v5-removed-API references), F030 (deprecated transport/http SSE), and
+// stack-surface imports (engine presets + stack.Bundle, deleted per
+// ADR-0123). The panel answers "is this project already clean for the v5
+// cut?" from the same detectors the lint run uses, independent of preset
+// disables.
 //
 //nolint:tagliatelle // snake_case JSON for CLI tool consumers
 type ScorecardDeprecated struct {
 	RemovedAPIUses      int    `json:"removed_api_uses"`
 	DeprecatedTransport int    `json:"deprecated_transport_uses"`
+	StackPresetUses     int    `json:"stack_preset_uses"`
 	Suggestion          string `json:"suggestion,omitempty"`
 }
 
@@ -187,6 +190,7 @@ func ComputeDeprecatedPanel(
 	panel := &ScorecardDeprecated{
 		RemovedAPIUses:      count(lintversion.NewV007Detector(actx)),
 		DeprecatedTransport: count(adoption.NewF030Detector(actx)),
+		StackPresetUses:     len(actx.FeatureProfile.StackPresets),
 	}
 
 	switch {
@@ -196,6 +200,9 @@ func ComputeDeprecatedPanel(
 	case panel.DeprecatedTransport > 0:
 		panel.Suggestion = "Replace transport/http SSE with go-sse or watermill " +
 			"before the v5 cut"
+	case panel.StackPresetUses > 0:
+		panel.Suggestion = "Stack presets and stack.Bundle are removed at the " +
+			"v5 cut (ADR-0123) — migrate to system.New composition"
 	}
 
 	return panel

@@ -12,14 +12,17 @@ import (
 // feature bloat to raise a breadth score.
 //
 // Grades:
-//   - "Legacy"  — v5-removed APIs or deprecated transports are in use; every
-//     day on them compounds the v5 migration.
+//   - "Legacy"  — a v5-removed surface is in use: v5-removed APIs, deprecated
+//     transports, or stack-surface imports (engine presets + stack.Bundle,
+//     deleted per ADR-0123 — system.New becomes the only composition root).
 //   - "Modern"  — v5-clean AND on the canonical path: composed via
 //     system.New, or metaengine with declarative pushdown adopted.
 //   - "Partial" — v5-clean but neither composition signal present.
 func ModernityGrade(deprecated *ScorecardDeprecated, fp analyzer.FeatureProfile) string {
 	if deprecated != nil &&
-		(deprecated.RemovedAPIUses > 0 || deprecated.DeprecatedTransport > 0) {
+		(deprecated.RemovedAPIUses > 0 ||
+			deprecated.DeprecatedTransport > 0 ||
+			deprecated.StackPresetUses > 0) {
 		return "Legacy"
 	}
 	if fp.HasSystemComposition || (fp.HasMetaengine && fp.MetaenginePushdown) {
@@ -34,7 +37,7 @@ func ModernityHint(grade string) string {
 	case "Modern":
 		return "canonical path (system.New composition or declarative pushdown)"
 	case "Legacy":
-		return "v5-removed APIs in use — migrate before the v5 cut (see DEPRECATED SURFACES)"
+		return "v5-removed surface in use — migrate before the v5 cut (see DEPRECATED SURFACES)"
 	case "Partial":
 		return "v5-clean; adopt system.New composition or FilterOnField/SortOnField pushdown to modernize"
 	default:

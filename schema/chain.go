@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	errorfamily "github.com/larsartmann/go-error-family"
-	"github.com/larsartmann/go-codec"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 )
@@ -22,6 +21,7 @@ type Chain struct {
 	exact   map[chainKey]Op
 	byType  map[event.Type]Op
 	renames map[event.Type]event.Type
+	targets map[event.Type]struct{}
 	maxHops int
 }
 
@@ -42,6 +42,7 @@ func Compile(ops ...Op) (*Chain, error) {
 		exact:   make(map[chainKey]Op, len(ops)),
 		byType:  make(map[event.Type]Op),
 		renames: make(map[event.Type]event.Type),
+		targets: make(map[event.Type]struct{}),
 		maxHops: len(ops) + 1,
 	}
 
@@ -105,7 +106,7 @@ func (c *Chain) addRename(op *renameTypeOp) error {
 		)
 	}
 
-	if _, taken := c.renames[op.to]; taken {
+	if _, taken := c.targets[op.to]; taken {
 		return errorfamily.WrapRejection(
 			ErrDuplicateOp, "schema.duplicate_rename_target",
 			"rename target "+string(op.to)+" already produced by another RenameType",
@@ -114,6 +115,7 @@ func (c *Chain) addRename(op *renameTypeOp) error {
 
 	c.byType[op.from] = op
 	c.renames[op.from] = op.to
+	c.targets[op.to] = struct{}{}
 
 	return nil
 }
@@ -188,9 +190,13 @@ func (c *Chain) SourceTransform() event.SourceTransform {
 // Upcasters converts the chain's 1:1 ops ([RenameField], [AddField],
 // [RemoveField], [Transform]) into classic [Upcaster] values for
 // [UpcastSourceTransform]. Chains containing [RenameType], [Split], or
-// [Drop] — or a non-failing decode policy that drops — cannot map onto the
-// single-event interface and are rejected.
+// [Drop] — or a decode policy that drops — cannot map onto the single-event
+// interface and are rejected.
 func (c *Chain) Upcasters() ([]Upcaster, error) {
+	if len(c.byType) > 0 {
+		return nil, batchOpErr("RenameType/Drop (type-only) ops")
+	}
+
 	upcasters := make([]Upcaster, 0, len(c.exact))
 
 	for key, op := range c.exact {
@@ -233,4 +239,77 @@ func batchOpErr(name string) error {
 		ErrBatchOpNotConvertible, "schema.op_not_convertible",
 		name+" needs batch semantics; use Chain.SourceTransform()",
 	)
+}
+
+func validateOpParams(op Op) error {
+	switch typed := op.(type) {
+	case *renameTypeOp:
+		if typed.from == "" || typed.to == "" {
+			return invalidOpErr("RenameType requires non-empty from and to event types")
+		}
+
+		if typed.from == typed.to {
+			return invalidOpErr("RenameType from == to (" + string(typed.from) + ")")
+		}
+	case *dropOp:
+		if typed.sourceType == "" {
+			return invalidOpErr("Drop requires a non-empty event type")
+		}
+	case *fieldOp:
+		if err := validateSource(typed.sourceType, typed.sourceVersion); err != nil {
+			return err
+		}
+
+		if typed.field == "" || (typed.kind == fieldRename && typed.renamedTo == "") {
+			return invalidOpErr("field ops require non-empty field names")
+		}
+	case *transformOp:
+		if err := validateSource(typed.sourceType, typed.sourceVersion); err != nil {
+			return err
+		}
+
+		if typed.transform == nil {
+			return invalidOpErr("Transform requires a non-nil function")
+		}
+	case *splitOp:
+		return validateSplit(typed)
+	default:
+		return invalidOpErr("unknown op (schema.Op is sealed; only package constructors are valid)")
+	}
+
+	return nil
+}
+
+func validateSplit(op *splitOp) error {
+	if err := validateSource(op.sourceType, op.sourceVersion); err != nil {
+		return err
+	}
+
+	if len(op.outputs) == 0 {
+		return invalidOpErr("Split requires at least one Producing output")
+	}
+
+	for _, output := range op.outputs {
+		if output.eventType == "" || output.payload == nil {
+			return invalidOpErr("Split outputs require a non-empty type and a non-nil payload function")
+		}
+	}
+
+	return nil
+}
+
+func validateSource(sourceType event.Type, sourceVersion event.SchemaVersion) error {
+	if sourceType == "" {
+		return invalidOpErr("ops require a non-empty event type")
+	}
+
+	if !sourceVersion.IsPositive() {
+		return invalidOpErr("ops require a positive schema version, got " + sourceVersion.String())
+	}
+
+	return nil
+}
+
+func invalidOpErr(msg string) error {
+	return errorfamily.WrapRejection(ErrInvalidOp, "schema.invalid_op", msg)
 }

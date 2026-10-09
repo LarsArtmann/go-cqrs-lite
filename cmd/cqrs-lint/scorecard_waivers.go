@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"slices"
+	"strings"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 )
@@ -54,7 +55,7 @@ func ComputeScorecardWithWaivers(
 	}
 
 	result := ComputeScorecard(catalog, usage, fp, preset)
-	if err := applyWaivers(&result, waivers); err != nil {
+	if err := applyWaivers(&result, waivers, fp); err != nil {
 		return ScorecardResult{}, err
 	}
 
@@ -63,7 +64,11 @@ func ComputeScorecardWithWaivers(
 
 // applyWaivers partitions MISSING into kept Missing and Waived, then
 // recomputes the summary against the shrunken denominator.
-func applyWaivers(result *ScorecardResult, waivers []analyzer.ScorecardWaiver) error {
+func applyWaivers(
+	result *ScorecardResult,
+	waivers []analyzer.ScorecardWaiver,
+	fp analyzer.FeatureProfile,
+) error {
 	if err := checkWaivable(result, waivers); err != nil {
 		return err
 	}
@@ -81,12 +86,13 @@ func applyWaivers(result *ScorecardResult, waivers []analyzer.ScorecardWaiver) e
 			continue
 		}
 		row.Status = "waived"
-		row.Evidence = waiverEvidence(w)
+		row.Evidence = waiverEvidence(w, fp)
 		result.Waived = append(result.Waived, row)
 	}
 	result.Missing = kept
 
 	recomputeWaivedSummary(result)
+	flagFiredWaiverTriggers(result, waivers, fp)
 	return nil
 }
 
@@ -140,10 +146,102 @@ func recomputeWaivedSummary(result *ScorecardResult) {
 
 // waiverEvidence renders the recorded justification plus its revisit
 // trigger. A missing trigger is surfaced instead of hidden — a waiver
-// without a trigger is a permanent pin by accident.
-func waiverEvidence(w analyzer.ScorecardWaiver) string {
+// without a trigger is a permanent pin by accident. When a detectable
+// profile signal that the trigger mentions has since appeared, the waiver
+// is flagged for re-litigation: a recorded refusal whose revisit condition
+// plausibly arrived must not silently persist.
+func waiverEvidence(w analyzer.ScorecardWaiver, fp analyzer.FeatureProfile) string {
+	var b strings.Builder
+	b.WriteString(w.Reason)
 	if w.Trigger == "" {
-		return w.Reason + " — no revisit trigger recorded"
+		b.WriteString(" — no revisit trigger recorded")
+	} else {
+		fmt.Fprintf(&b, " — revisit when: %s", w.Trigger)
 	}
-	return fmt.Sprintf("%s — revisit when: %s", w.Reason, w.Trigger)
+	if fired := firedTriggerSignals(w, fp); len(fired) > 0 {
+		fmt.Fprintf(&b, " — TRIGGER LIKELY FIRED (profile now has %s): re-litigate this waiver",
+			strings.Join(fired, "; "))
+	}
+	return b.String()
+}
+
+// waiverTriggerSignals maps detectable FeatureProfile signals to the
+// trigger words that make them reviewable. Matching is word-exact on the
+// lowercased trigger text ("bus" does not match "business") — the wording
+// stays advisory ("LIKELY FIRED") because triggers are free text the tool
+// cannot fully interpret.
+//
+//nolint:gochecknoglobals // read-only signal table
+var waiverTriggerSignals = []struct {
+	signal string
+	words  []string
+	fired  func(analyzer.FeatureProfile) bool
+}{
+	{
+		signal: "network server (server=true)",
+		words:  []string{"server", "http", "endpoint"},
+		fired:  func(fp analyzer.FeatureProfile) bool { return fp.HasServer },
+	},
+	{
+		signal: "async bus (async-bus=true)",
+		words:  []string{"async", "bus", "watermill", "broker", "distributed"},
+		fired:  func(fp analyzer.FeatureProfile) bool { return fp.HasAsyncBus },
+	},
+	{
+		signal: "external transport (transport=true)",
+		words:  []string{"transport", "sse"},
+		fired:  func(fp analyzer.FeatureProfile) bool { return fp.HasTransport },
+	},
+}
+
+// firedTriggerSignals returns the detectable profile signals that are now
+// PRESENT and whose trigger word the waiver's free-text revisit trigger
+// mentions. Surfacing is advisory — never a silent waiver removal.
+func firedTriggerSignals(w analyzer.ScorecardWaiver, fp analyzer.FeatureProfile) []string {
+	if w.Trigger == "" {
+		return nil
+	}
+	tokens := triggerTokens(w.Trigger)
+	var fired []string
+	for _, s := range waiverTriggerSignals {
+		if !s.fired(fp) {
+			continue
+		}
+		if slices.ContainsFunc(s.words, func(word string) bool { return tokens[word] }) {
+			fired = append(fired, s.signal)
+		}
+	}
+	return fired
+}
+
+// triggerTokens lowercases the free-text trigger and splits it into word
+// tokens with surrounding punctuation stripped.
+func triggerTokens(trigger string) map[string]bool {
+	tokens := make(map[string]bool)
+	for _, field := range strings.Fields(strings.ToLower(trigger)) {
+		token := strings.Trim(field, ",.;:!?()[]\"'")
+		if token != "" {
+			tokens[token] = true
+		}
+	}
+	return tokens
+}
+
+// flagFiredWaiverTriggers appends one recommendation per waiver whose
+// revisit trigger plausibly fired, keeping the re-litigation pressure in
+// the summary-level output (not just the WAIVED row evidence).
+func flagFiredWaiverTriggers(
+	result *ScorecardResult,
+	waivers []analyzer.ScorecardWaiver,
+	fp analyzer.FeatureProfile,
+) {
+	for _, w := range waivers {
+		fired := firedTriggerSignals(w, fp)
+		if len(fired) == 0 {
+			continue
+		}
+		result.Recommendations = append(result.Recommendations, fmt.Sprintf(
+			"waiver for %q: revisit trigger likely fired (%s) — re-litigate or re-record it",
+			w.Key, strings.Join(fired, "; ")))
+	}
 }

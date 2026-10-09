@@ -236,6 +236,14 @@ func detectImports(
 		fp.HasSystemComposition = true
 	}
 
+	// Stack surfaces (engine presets + the root bundle module) are deleted
+	// at the v5 cut (ADR-0123) — record the names so the scorecard's
+	// modernity axis can coach the system.New migration honestly.
+	if name := stackPresetFromImport(path); name != "" &&
+		!slices.Contains(fp.StackPresets, name) {
+		fp.StackPresets = append(fp.StackPresets, name)
+	}
+
 	// HasTransport covers every sanctioned external-delivery path: the
 	// watermill/ bridge (broker transports), go-sse (SSE delivery), cqrs-htmx,
 	// and the deprecated transport/* modules (kept so legacy projects do not
@@ -293,6 +301,24 @@ func storeKindFromImportPath(path string) StoreKind {
 	default:
 		return StoreUnknown
 	}
+}
+
+// stackPresetFromImport maps a go-cqrs-lite/stack import to its preset short
+// name: engine presets ("sqlite", "postgres", "mysql", "pebble", "memory",
+// "turso", "duckdb", "bbolt", "metaengine") and the root module ("bundle" —
+// its subpackages like sqlopt share the module path). All of them are deleted
+// at the v5 cut (ADR-0123). Returns "" for non-stack imports.
+func stackPresetFromImport(path string) string {
+	const prefix = "go-cqrs-lite/stack/"
+	i := strings.Index(path, prefix)
+	if i < 0 {
+		return ""
+	}
+	name, _, _ := strings.Cut(path[i+len(prefix):], "/")
+	if name == "" || name == "v4" {
+		return "bundle"
+	}
+	return name
 }
 
 // metaengineEngineFromImport maps an import path to a short engine name.

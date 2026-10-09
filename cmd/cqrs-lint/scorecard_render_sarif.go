@@ -19,6 +19,11 @@ func renderScorecardSARIF(result ScorecardResult) (string, error) {
 		WaivedCount:     result.Summary.WaivedCount,
 		ModernityGrade:  result.Summary.ModernityGrade,
 	}
+	if result.Deprecated != nil {
+		props.RemovedAPIUses = result.Deprecated.RemovedAPIUses
+		props.DeprecatedTransportUses = result.Deprecated.DeprecatedTransport
+		props.StackPresetUses = result.Deprecated.StackPresetUses
+	}
 	if result.Metaengine != nil {
 		detected := result.Metaengine.Detected
 		props.MetaengineDetected = &detected
@@ -174,6 +179,9 @@ type sarifProperties struct {
 	IrrelevantCount           int      `json:"irrelevantCount"`
 	WaivedCount               int      `json:"waivedCount,omitempty"`
 	ModernityGrade            string   `json:"modernityGrade,omitempty"`
+	RemovedAPIUses            int      `json:"removedApiUses,omitempty"`
+	DeprecatedTransportUses   int      `json:"deprecatedTransportUses,omitempty"`
+	StackPresetUses           int      `json:"stackPresetUses,omitempty"`
 	MetaengineDetected        *bool    `json:"metaengineDetected,omitempty"`
 	MetaengineEngines         []string `json:"metaengineEngines,omitempty"`
 	MetaenginePushdownAdopted *bool    `json:"metaenginePushdownAdopted,omitempty"`

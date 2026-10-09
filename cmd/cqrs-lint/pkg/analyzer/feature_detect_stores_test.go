@@ -115,6 +115,67 @@ func main() { _ = systemtest.Run }
 	}
 }
 
+// TestStackPresetFromImport pins the stack-surface naming: engine presets
+// keep their name, the root module and its subpackages collapse to "bundle",
+// and every non-stack import (including system and systemtest) is rejected.
+func TestStackPresetFromImport(t *testing.T) {
+	t.Parallel()
+
+	cases := map[string]string{
+		"github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4":     "sqlite",
+		"github.com/larsartmann/go-cqrs-lite/stack/metaengine/v4": "metaengine",
+		"github.com/larsartmann/go-cqrs-lite/stack/v4":            "bundle",
+		"github.com/larsartmann/go-cqrs-lite/stack/v4/sqlopt":     "bundle",
+		"github.com/larsartmann/go-cqrs-lite/system/v4":           "",
+		"github.com/larsartmann/go-cqrs-lite/systemtest/v4":       "",
+		"github.com/larsartmann/go-cqrs-lite/event/v4":            "",
+		"example.com/other/stack/sqlite":                          "",
+	}
+	for path, want := range cases {
+		if got := stackPresetFromImport(path); got != want {
+			t.Errorf("stackPresetFromImport(%q) = %q, want %q", path, got, want)
+		}
+	}
+}
+
+// TestDetectFeatures_StackPresetImport pins that stack imports populate
+// StackPresets (the v5-removed surface list) while a system composition
+// import alone leaves it empty.
+func TestDetectFeatures_StackPresetImport(t *testing.T) {
+	t.Parallel()
+
+	ctx := BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+import (
+	sqlite "github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4"
+)
+
+func main() { _ = sqlite.New }
+`,
+	})
+
+	got := ctx.FeatureProfile.StackPresets
+	if len(got) != 1 || got[0] != "sqlite" {
+		t.Fatalf("StackPresets = %v, want [sqlite]", got)
+	}
+
+	composed := BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+import (
+	"github.com/larsartmann/go-cqrs-lite/system/v4"
+)
+
+func main() { _ = system.New }
+`,
+	})
+	if len(composed.FeatureProfile.StackPresets) != 0 {
+		t.Fatalf("StackPresets = %v, want empty for system-only composition",
+			composed.FeatureProfile.StackPresets)
+	}
+}
+
 // TestDetectFeatures_EngineImportSetsStoreAndList pins single-engine
 // wiring: the engine import implies both the primary store and the list.
 func TestDetectFeatures_EngineImportSetsStoreAndList(t *testing.T) {

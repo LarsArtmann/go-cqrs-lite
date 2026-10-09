@@ -30,6 +30,20 @@ func TestModernityGrade(t *testing.T) {
 			want:       "Legacy",
 		},
 		{
+			name:       "stack-preset import forces Legacy even with pushdown",
+			deprecated: &ScorecardDeprecated{StackPresetUses: 1},
+			fp: analyzer.FeatureProfile{
+				HasMetaengine: true, MetaenginePushdown: true,
+			},
+			want: "Legacy",
+		},
+		{
+			name:       "stack-preset import forces Legacy even with system composition",
+			deprecated: &ScorecardDeprecated{StackPresetUses: 2},
+			fp:         analyzer.FeatureProfile{HasSystemComposition: true},
+			want:       "Legacy",
+		},
+		{
 			name: "system composition is Modern",
 			fp:   analyzer.FeatureProfile{HasSystemComposition: true},
 			want: "Modern",

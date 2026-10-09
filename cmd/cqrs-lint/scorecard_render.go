@@ -72,11 +72,12 @@ func renderScorecardText(result ScorecardResult, colorMode output.ColorMode) str
 		b.WriteString("\n")
 	}
 
-	// Deprecated-surface panel (V007/F030 — v5-readiness).
+	// Deprecated-surface panel (V007/F030/stack presets — v5-readiness).
 	if result.Deprecated != nil {
 		b.WriteString("DEPRECATED SURFACES (v5-readiness)\n")
 		fmt.Fprintf(&b, "  v5-removed API uses:       %d\n", result.Deprecated.RemovedAPIUses)
 		fmt.Fprintf(&b, "  transport/http SSE uses:   %d\n", result.Deprecated.DeprecatedTransport)
+		fmt.Fprintf(&b, "  stack-surface imports:     %d\n", result.Deprecated.StackPresetUses)
 		if result.Deprecated.Suggestion != "" {
 			fmt.Fprintf(&b, "  → %s\n", result.Deprecated.Suggestion)
 		}
@@ -242,6 +243,11 @@ func renderScorecardMarkdown(result ScorecardResult) string {
 			&b,
 			"- **transport/http SSE uses:** %d\n",
 			result.Deprecated.DeprecatedTransport,
+		)
+		fmt.Fprintf(
+			&b,
+			"- **stack-surface imports:** %d\n",
+			result.Deprecated.StackPresetUses,
 		)
 		if result.Deprecated.Suggestion != "" {
 			fmt.Fprintf(&b, "\n_💡 %s_\n", result.Deprecated.Suggestion)

@@ -105,29 +105,35 @@ func (c *Chain) expandSplit(outputs []event.Event, budget int) ([]event.Event, e
 func applyOp(op Op, evt event.Event) ([]event.Event, opOutcome, error) {
 	switch typed := op.(type) {
 	case *renameTypeOp:
-		next, err := rebuildEvent(evt, evt.Payload(), typed.to, evt.SchemaVersion())
+		next, err := rebuild(evt, evt.Payload(), typed.to, evt.SchemaVersion())
 		return []event.Event{next}, opContinue, err
 	case *dropOp:
 		return nil, opDrop, nil
+	case *splitOp:
+		outputs, err := applySplitOp(typed, evt)
+		return outputs, opSplit, err
 	default:
-		return applyDecodeOp(op.(decodeOp), evt)
+		next, outcome, err := applyDecodeOp(op.(decodeOp), evt)
+		return []event.Event{next}, outcome, err
 	}
 }
 
+// applyDecodeOp runs the 1:1 payload ops (field ops and Transform): decode
+// the payload into a field map (policy governs decode failures), mutate,
+// re-encode with the SAME encoding, rebuild with schema version + 1.
 func applyDecodeOp(op decodeOp, evt event.Event) (event.Event, opOutcome, error) {
 	fields, err := decodeFieldMap(evt)
 	if err != nil {
 		return handleDecodeError(evt, op.policy(), err)
 	}
 
-	switch typed := op.(type) {
-	case *fieldOp:
-		applyFieldOp(typed, fields)
-	case *transformOp:
-		fields, err = typed.transform(fields)
+	if transform, ok := op.(*transformOp); ok {
+		fields, err = transform.transform(fields)
 		if err != nil {
 			return nil, opContinue, wrapTransformErr(evt, err)
 		}
+	} else {
+		applyFieldOp(op.(*fieldOp), fields)
 	}
 
 	payload, err := encodeFieldMap(evt, fields)
@@ -135,7 +141,7 @@ func applyDecodeOp(op decodeOp, evt event.Event) (event.Event, opOutcome, error)
 		return nil, opContinue, err
 	}
 
-	next, err := rebuildEvent(evt, payload, evt.Type(), evt.SchemaVersion().Increment())
+	next, err := rebuild(evt, payload, evt.Type(), evt.SchemaVersion().Increment())
 	return next, opContinue, err
 }
 
@@ -158,12 +164,14 @@ func applyFieldOp(op *fieldOp, fields map[string]any) {
 func applySplitOp(op *splitOp, evt event.Event) ([]event.Event, error) {
 	fields, err := decodeFieldMap(evt)
 	if err != nil {
-		outcome, outcomeErr := handleDecodeError(evt, op.policy(), err)
-		if outcomeErr != nil || outcome != opContinue {
-			return nil, outcomeErr
+		switch op.policy() {
+		case PassthroughOnDecodeError:
+			return []event.Event{evt}, nil
+		case DropOnDecodeError:
+			return nil, nil
+		default:
+			return nil, wrapDecodeErr(evt, err)
 		}
-
-		return []event.Event{evt}, nil
 	}
 
 	result := make([]event.Event, 0, len(op.outputs))
@@ -191,11 +199,25 @@ func produceSplitOutput(
 		return nil, wrapTransformErr(evt, err)
 	}
 
-	return rebuildEvent(evt, nil, output.eventType, sourceVersion.Increment(),
-		payloadForNew(payload))
-}
+	data, err := encodeValue(evt, payload)
+	if err != nil {
+		return nil, err
+	}
 
-func payloadForNew(payload any) any { return payload }
+	// Fresh event ID: N outputs cannot share one identity. Everything else
+	// (stream, position, metadata, timestamp, encoding) is inherited.
+	return event.New(
+		output.eventType,
+		evt.StreamID(),
+		evt.StreamType(),
+		evt.Version(),
+		data,
+		event.WithOccurredAt(evt.OccurredAt()),
+		event.WithMetadata(evt.Metadata()),
+		event.WithEncoding(evt.Encoding()),
+		event.WithSchemaVersion(sourceVersion.Increment()),
+	)
+}
 
 func handleDecodeError(
 	evt event.Event,
@@ -227,15 +249,18 @@ func wrapTransformErr(evt event.Event, err error) error {
 	)
 }
 
+// decodeFieldMap decodes the payload with the codec the event's Encoding()
+// stamp selects — self-describing events, mixed JSON/CBOR streams included.
+// Errors are returned unwrapped; the caller wraps once per policy path.
 func decodeFieldMap(evt event.Event) (map[string]any, error) {
 	codecFor, err := codec.ForEncoding(evt.Encoding())
 	if err != nil {
-		return nil, wrapDecodeErr(evt, err)
+		return nil, err
 	}
 
 	var fields map[string]any
 	if err := codecFor.Decode(evt.Payload(), &fields); err != nil {
-		return nil, wrapDecodeErr(evt, err)
+		return nil, err
 	}
 
 	if fields == nil {
@@ -262,24 +287,21 @@ func encodeFieldMap(evt event.Event, fields map[string]any) ([]byte, error) {
 	return payload, nil
 }
 
-func rebuildEvent(
+// rebuild constructs the upcasted event for 1:1 ops: fresh instance,
+// preserved identity (event ID, stream, position, timestamp, metadata,
+// encoding), new type and schema version. payload is already encoded bytes.
+func rebuild(
 	evt event.Event,
-	_ []byte,
+	payload []byte,
 	eventType event.Type,
 	schemaVersion event.SchemaVersion,
-	payload ...any,
 ) (event.Event, error) {
-	value := any(payloadForPayload(evt))
-	if len(payload) > 0 && payload[0] != nil {
-		value = payload[0]
-	}
-
 	return event.New(
 		eventType,
 		evt.StreamID(),
 		evt.StreamType(),
 		evt.Version(),
-		value,
+		payload,
 		event.WithEventID(evt.ID()),
 		event.WithOccurredAt(evt.OccurredAt()),
 		event.WithMetadata(evt.Metadata()),
@@ -288,4 +310,26 @@ func rebuildEvent(
 	)
 }
 
-func payloadForPayload(evt event.Event) []byte { return evt.Payload() }
+// encodeValue encodes a Split payload function's return value with the
+// codec matching the SOURCE event's encoding, so payload bytes and the
+// encoding stamp always agree ([]byte payloads pass through untouched).
+func encodeValue(evt event.Event, payload any) ([]byte, error) {
+	if raw, isBytes := payload.([]byte); isBytes {
+		return raw, nil
+	}
+
+	codecFor, err := codec.ForEncoding(evt.Encoding())
+	if err != nil {
+		return nil, wrapDecodeErr(evt, err)
+	}
+
+	encoded, err := codecFor.Encode(payload)
+	if err != nil {
+		return nil, errorfamily.WrapCorruption(
+			err, "schema.op_encode_failed",
+			"encode payload of "+string(evt.Type()),
+		)
+	}
+
+	return encoded, nil
+}

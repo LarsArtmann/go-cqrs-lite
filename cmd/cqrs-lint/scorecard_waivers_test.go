@@ -117,8 +117,7 @@ func TestComputeScorecardWithWaivers_TriggerlessWaiverIsShamed(t *testing.T) {
 	result, err := ComputeScorecardWithWaivers(
 		analyzer.DefaultCatalog, absentUsage(),
 		analyzer.FeatureProfile{}, analyzer.PresetNone, waivers,
-	)
-	if err != nil {
+	)	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 

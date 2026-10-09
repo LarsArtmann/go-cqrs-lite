@@ -58,6 +58,14 @@ type FeatureProfile struct {
 	// scorecard composition-credits persistence rows for such projects
 	// instead of reading them MISSING.
 	HasSystemComposition bool `json:"hasSystemComposition"`
+	// StackPresets lists the go-cqrs-lite/stack surfaces the project
+	// imports: engine presets ("sqlite", "postgres", "mysql", "pebble",
+	// "memory", "turso", "duckdb", "bbolt", "metaengine") and the root
+	// module ("bundle"). Every one of them is deleted at the v5 cut
+	// (ADR-0123: system.New becomes the only composition root), so
+	// stack-preset usage is a v5-removed surface the scorecard's modernity
+	// axis must not grade as canonical.
+	StackPresets []string `json:"stackPresets,omitempty"`
 	// HasMetaengine is true when the project imports the metaengine module.
 	// Adoption rules (F022-F025) use this to gate pushdown suggestions.
 	HasMetaengine bool `json:"hasMetaengine"`
@@ -109,6 +117,10 @@ func (fp FeatureProfile) String() string {
 	_, _ = fmt.Fprintf(&b, "transport:     %t\n", fp.HasTransport)
 	_, _ = fmt.Fprintf(&b, "server-local:  %t\n", fp.ServerLocal)
 	_, _ = fmt.Fprintf(&b, "system:        %t\n", fp.HasSystemComposition)
+	if len(fp.StackPresets) > 0 {
+		_, _ = fmt.Fprintf(&b, "stack-presets: %s (removed at v5 — ADR-0123)\n",
+			strings.Join(fp.StackPresets, ", "))
+	}
 	_, _ = fmt.Fprintf(&b, "async-bus:     %t\n", fp.HasAsyncBus)
 	_, _ = fmt.Fprintf(&b, "metaengine:    %t\n", fp.HasMetaengine)
 	if len(fp.MetaengineEngines) > 0 {
