@@ -139,4 +139,6 @@ flowchart TD
 - `projectionhost` `GOWORK=off go test ./... -count=1` — **ok 2.336s**
 - `cmd/api-stability --update` — golden diff exactly 1 line (`metaengine/struct SortColumn` → `metaengine/type SortColumn`); `TestEvery` **ok**
 - `scripts/check-changelog-symbols.sh` — **37 pkg.Symbol citations honest**
-- `nix run .#lint` + doc-check — see commit message (receipts recorded at close-out)
+- `golangci-lint` on both touched modules (sanctioned env chain): **zero findings in the changed files** (`scan_options.go` clean; `host.go` clean — the 4 projectionhost cyclop findings are pre-existing complexity in untouched files; removing the `contextcheck` nolint was safe)
+- `cmd/doc-check` — **1184 references valid across 57 packages** (the ⚠ alias-ambiguity notes are pre-existing union-resolved)
+- `nix run .#check-md-go` — **no new errors** (105 baselined archived)
