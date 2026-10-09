@@ -110,7 +110,6 @@ func applyOp(op Op, evt event.Event) ([]event.Event, opOutcome, error) {
 		return []event.Event{next}, opContinue, err
 	case *dropOp:
 		// Type-only removal: no payload work, nothing to rebuild.
-
 		return nil, opDrop, nil
 	case *splitOp:
 		outputs, err := applySplitOp(typed, evt)

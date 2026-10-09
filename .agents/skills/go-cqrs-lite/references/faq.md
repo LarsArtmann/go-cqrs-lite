@@ -370,16 +370,27 @@ var decide decider.CommandDecideFunc[UserState, *CreateUser] =
 **Cause:** lifecycle streams (`command.failed`, etc.) were written by older
 library versions; new code wants new payload fields.
 
-**Fix:** no migration tool needed — compose an upcaster onto the store:
+**Fix:** no migration tool needed — declare the evolution steps as named ops
+and compose the compiled chain onto the store:
 
 ```go
 import schema "github.com/larsartmann/go-cqrs-lite/schema/v4"
 
-upcasted := event.DecorateStore(raw, nil, schema.UpcastSourceTransform(
-    schema.NewUpcaster(commandlifecycle.TypeFailed, 1, upcastFailedV1toV2),
-))
+chain, _ := schema.Compile(
+    schema.RenameField(commandlifecycle.TypeFailed, 1, "reason", "failureReason"),
+    schema.AddField(commandlifecycle.TypeFailed, 1, "severity", "error"),
+)
+
+upcasted := event.DecorateStore(raw, nil, chain.SourceTransform())
 recorder := commandlifecycle.NewRecorder(upcasted) // reads see v2, writes pass through
 ```
+
+Matching is order-independent and validated at `Compile` time (duplicates,
+rename cycles, and invalid parameters are rejected; decode failures follow a
+per-op `schema.WithDecodePolicy` — Fail by default). `RenameType`, `Split`,
+and `Drop` change event identity or count, so they need the batch-level
+`chain.SourceTransform()`; the 1:1 field ops also convert to classic
+upcasters via `chain.Upcasters()` for `schema.UpcastSourceTransform`.
 
 Reads see the evolved payload and `SchemaVersion()` bump; raw bytes and the
 write path stay untouched. Full recipe with the preservation rules:
