@@ -9,6 +9,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
+	"github.com/larsartmann/go-cqrs-lite/schema/v4"
 )
 
 // ─── Config types (D11: DomainConfig + DeploymentConfig separation) ───
@@ -54,7 +55,18 @@ type DomainConfig struct {
 	// advisory (dead events are legitimate for audit-only journals).
 	// Leave empty to skip validation (the v4 default); skip selectively
 	// with DisableCoeffectValidation. RawQuery is opaque to the gate.
+	// Types declared by Schema join this universe for the gate.
 	Events []event.Type
+
+	// Schema declares event payload contracts — wire name, CURRENT schema
+	// version, and the upcast ops migrating older stored versions toward it
+	// (built with [schema.Event], validated by [schema.Declare] at boot).
+	// When non-empty, New decorates the event store with the compiled chain:
+	// decider loads and projection reads see current payloads, while writes
+	// and stored bytes stay untouched (ADR-0126). Declared event types join
+	// Events for the coeffect gate — Schema extends this config, it never
+	// sits beside it as a second registry (ADR-0123).
+	Schema []schema.EventSchema
 
 	// DisableCoeffectValidation turns off the DomainConfig.Events gate (both
 	// the dangling-subscription error and the unconsumed-event advisory).

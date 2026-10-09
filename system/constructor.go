@@ -78,9 +78,13 @@ func New(
 
 	// Coeffect validation gate (ADR-0136 follow-up): fail composition when a
 	// declared event universe exists and something consumes outside it.
-	if len(domain.Events) > 0 && !domain.DisableCoeffectValidation {
+	// DomainConfig.Schema types join the universe — a payload-contract
+	// declaration is also a journal-universe declaration (2026-10-09 T1).
+	eventUniverse := declaredEventTypes(domain)
+
+	if len(eventUniverse) > 0 && !domain.DisableCoeffectValidation {
 		if err := validateCoeffectGraph(
-			domain.Events, domain.Evolutions, consumedEventTypes, safetyReport,
+			eventUniverse, domain.Evolutions, consumedEventTypes, safetyReport,
 		); err != nil {
 			return nil, err
 		}
@@ -193,6 +197,13 @@ func New(
 		eng := metaengine.NewMemoryEngine()
 		sys.engines = append(sys.engines, namedEngine{engine: eng, name: "default"})
 		sys.eventStore = NewEventAdapter(eng.(metaengine.StreamLogBackend), "events")
+	}
+
+	// Apply the declared schema evolution AFTER every event-store assignment
+	// path (instances, cache wrapper, memory fallback) so one decoration
+	// covers decider loads and the projection host journal alike.
+	if err := applySchemaDeclaration(sys, domain); err != nil {
+		return nil, sys.fail(err)
 	}
 
 	// Default projection store from Memory when projections are declared.
