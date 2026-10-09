@@ -81,7 +81,7 @@ func (c *Chain) upcastOne(evt event.Event, budget int) ([]event.Event, error) {
 			return []event.Event{evt}, nil
 		case opDrop:
 			return nil, nil
-		default:
+		case opSplit:
 			return c.expandSplit(results, budget)
 		}
 	}
@@ -105,7 +105,7 @@ func (c *Chain) expandSplit(outputs []event.Event, budget int) ([]event.Event, e
 func applyOp(op Op, evt event.Event) ([]event.Event, opOutcome, error) {
 	switch typed := op.(type) {
 	case *renameTypeOp:
-		next, err := rebuild(evt, evt.Payload(), typed.to, evt.SchemaVersion())
+		next, err := rebuild(evt, evt.Payload(), typed.target, evt.SchemaVersion())
 		return []event.Event{next}, opContinue, err
 	case *dropOp:
 		return nil, opDrop, nil
@@ -127,13 +127,14 @@ func applyDecodeOp(op decodeOp, evt event.Event) (event.Event, opOutcome, error)
 		return handleDecodeError(evt, op.policy(), err)
 	}
 
-	if transform, ok := op.(*transformOp); ok {
-		fields, err = transform.transform(fields)
+	switch typed := op.(type) {
+	case *transformOp:
+		fields, err = typed.transform(fields)
 		if err != nil {
 			return nil, opContinue, wrapTransformErr(evt, err)
 		}
-	} else {
-		applyFieldOp(op.(*fieldOp), fields)
+	case *fieldOp:
+		applyFieldOp(typed, fields)
 	}
 
 	payload, err := encodeFieldMap(evt, fields)
@@ -169,8 +170,8 @@ func applySplitOp(op *splitOp, evt event.Event) ([]event.Event, error) {
 			return []event.Event{evt}, nil
 		case DropOnDecodeError:
 			return nil, nil
-		default:
-			return nil, wrapDecodeErr(evt, err)
+		case FailOnDecodeError:
+			return nil, err
 		}
 	}
 

@@ -61,6 +61,80 @@ probe_init_path() {
 	return 0
 }
 
+# make_clean_module <dir>: a valid Go module with no go-cqrs-lite imports
+# (the canonical clean-run fixture; all-relevant rows read as MISSING).
+make_clean_module() {
+	mkdir -p "$1"
+	printf 'module example.com/clean\n\ngo 1.27\n' >"$1/go.mod"
+	printf 'package main\n\nfunc main() {}\n' >"$1/main.go"
+}
+
+# probe_scorecard_waiver <bin>: a recorded waiver in <path>/.cqrs-lint.json
+# moves the row to a visible WAIVED section and exits 0 — pins the
+# config-file -> WAIVED chain at the binary level (unit tests bypass the
+# CLI glue; the first waiver cut shipped silently broken exactly there).
+probe_scorecard_waiver() {
+	local dir="$WORK_DIR/waiver-probe" out rc
+	make_clean_module "$dir"
+	printf '{"scorecard": {"waivers": [{"key": "graph", "reason": "probe: no graph read models", "trigger": "probe end"}]}}\n' \
+		>"$dir/.cqrs-lint.json"
+	out="$($1 scorecard --path "$dir" 2>/dev/null)" && rc=0 || rc=$?
+	if [ "$rc" -ne 0 ]; then
+		echo "scorecard waiver run exited $rc (want 0)" >&2
+		return 1
+	fi
+	if ! grep -q "WAIVED" <<<"$out" || ! grep -q "Graph" <<<"$out"; then
+		echo "waived row must render in a WAIVED section, got: ${out:0:80}" >&2
+		return 1
+	fi
+	return 0
+}
+
+# probe_scorecard_bogus_waiver <bin>: an unknown waiver key in the scored
+# project's config must exit nonzero (never silently ignored).
+probe_scorecard_bogus_waiver() {
+	local dir="$WORK_DIR/bogus-waiver-probe"
+	make_clean_module "$dir"
+	printf '{"scorecard": {"waivers": [{"key": "bogus", "reason": "r"}]}}\n' \
+		>"$dir/.cqrs-lint.json"
+	if "$1" scorecard --path "$dir" >/dev/null 2>&1; then
+		echo "bogus waiver key must exit nonzero" >&2
+		return 1
+	fi
+	return 0
+}
+
+# scorecard_relevant_total <bin> <dir>: extract relevant_total from JSON.
+scorecard_relevant_total() {
+	"$1" scorecard --format json --path "$2" 2>/dev/null |
+		grep -oE '"relevant_total":[0-9]+' | head -1 | grep -oE '[0-9]+'
+}
+
+# probe_scorecard_path_preset <bin>: the preset recorded in
+# <path>/.cqrs-lint.json must drive relevance — a "production" preset makes
+# production-restricted rows (postgres, prometheus, …) relevant, so its
+# relevant_total must exceed a preset-less twin's. If the operator's cwd
+# config won instead, both totals would match and this probe fails.
+probe_scorecard_path_preset() {
+	local plain="$WORK_DIR/preset-plain" prod="$WORK_DIR/preset-prod"
+	make_clean_module "$plain"
+	make_clean_module "$prod"
+	printf '{"preset": "production"}\n' >"$prod/.cqrs-lint.json"
+
+	local plain_total prod_total
+	plain_total="$(scorecard_relevant_total "$1" "$plain")" || true
+	prod_total="$(scorecard_relevant_total "$1" "$prod")" || true
+	if ! [[ "$plain_total" =~ ^[0-9]+$ ]] || ! [[ "$prod_total" =~ ^[0-9]+$ ]]; then
+		echo "could not extract relevant_total (plain=${plain_total:-none} prod=${prod_total:-none})" >&2
+		return 1
+	fi
+	if [ "$prod_total" -le "$plain_total" ]; then
+		echo "path preset must widen relevance: prod=$prod_total plain=$plain_total (want prod>plain)" >&2
+		return 1
+	fi
+	return 0
+}
+
 # REJECTED probes: the binary call must FAIL (probe succeeds when rc != 0).
 # Covers: scorecard --format csv / doctor --format yaml (per-command format
 # subsets), version --fix (lint-only flag scoping), doctor --fix (rename pin),
@@ -92,6 +166,9 @@ run_probes() {
 	if ! run_rejected_probe "scorecard below threshold" \
 		"$bin scorecard --scorecard-threshold 101 --path $WORK_DIR"; then failed=1; fi
 	probe_init_path "$bin" || failed=1
+	probe_scorecard_waiver "$bin" || failed=1
+	probe_scorecard_bogus_waiver "$bin" || failed=1
+	probe_scorecard_path_preset "$bin" || failed=1
 
 	# Accepted-class: a valid Go module with no go-cqrs-lite imports is a
 	# clean "nothing to lint" run, rc=0. (A bare empty dir is NOT clean —
@@ -114,6 +191,9 @@ self_test() {
 	printf '#!/usr/bin/env bash\nexit 1\n' >"$tmp/stub_always_fails"
 	printf '#!/usr/bin/env bash\nexit 0\n' >"$tmp/stub_init_no_file"
 	printf '#!/usr/bin/env bash\necho "[]"\n' >"$tmp/stub_good_json"
+	printf '#!/usr/bin/env bash\necho "MISSING only — no waived section"\n' >"$tmp/stub_no_waived"
+	printf '#!/usr/bin/env bash\necho "{\"summary\":{\"relevant_total\":9}}"\n' >"$tmp/stub_fixed_total"
+	printf '#!/usr/bin/env bash\necho "WAIVED (recorded refusals) — Graph Projections"\n' >"$tmp/stub_good_waived"
 	chmod +x "$tmp"/stub_*
 
 	WORK_DIR="$tmp/work"
@@ -136,10 +216,26 @@ self_test() {
 		echo "self-test: an exiting-0 stub must fail a rejected-class probe" >&2
 		failed=1
 	fi
+	probe_scorecard_waiver "$tmp/stub_no_waived" && {
+		echo "self-test: output without a WAIVED section must fail the waiver probe" >&2
+		failed=1
+	}
+	probe_scorecard_bogus_waiver "$tmp/stub_always_ok" && {
+		echo "self-test: silently accepting a bogus waiver must fail the probe" >&2
+		failed=1
+	}
+	probe_scorecard_path_preset "$tmp/stub_fixed_total" && {
+		echo "self-test: identical relevance under a path preset must fail the preset probe" >&2
+		failed=1
+	}
 
 	# Positive controls: well-behaved stubs pass.
 	probe_rules_json "$tmp/stub_good_json" || {
 		echo "self-test: valid json stub should pass the json probe" >&2
+		failed=1
+	}
+	probe_scorecard_waiver "$tmp/stub_good_waived" || {
+		echo "self-test: a rendered WAIVED section should pass the waiver probe" >&2
 		failed=1
 	}
 

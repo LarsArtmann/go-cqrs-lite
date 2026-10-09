@@ -78,9 +78,9 @@ func Producing(
 // version and payload. Subsequent ops declared for the NEW type continue to
 // apply (rename, then reshape).
 //
-// Invalid parameters (empty type, from == to) are rejected by [Compile].
-func RenameType(from, to event.Type) Op {
-	return &renameTypeOp{from: from, to: to}
+// Invalid parameters (empty type, from == target) are rejected by [Compile].
+func RenameType(from, target event.Type) Op {
+	return &renameTypeOp{from: from, target: target}
 }
 
 // RenameField renames a payload field. If the field is absent the op is a
@@ -202,7 +202,8 @@ func newOpConfig(opts []OpOption) opConfig {
 }
 
 type renameTypeOp struct {
-	from, to event.Type
+	from   event.Type
+	target event.Type
 }
 
 func (*renameTypeOp) op() {}
@@ -222,31 +223,31 @@ const (
 )
 
 type fieldOp struct {
+	opConfig
 	sourceType    event.Type
 	sourceVersion event.SchemaVersion
 	kind          fieldOpKind
 	field         string
 	renamedTo     string
 	defaultValue  any
-	opConfig
 }
 
 func (*fieldOp) op() {}
 
 type transformOp struct {
+	opConfig
 	sourceType    event.Type
 	sourceVersion event.SchemaVersion
 	transform     func(map[string]any) (map[string]any, error)
-	opConfig
 }
 
 func (*transformOp) op() {}
 
 type splitOp struct {
+	opConfig
 	sourceType    event.Type
 	sourceVersion event.SchemaVersion
 	outputs       []SplitOutput
-	opConfig
 }
 
 func (*splitOp) op() {}

@@ -38,6 +38,12 @@ func TestGenerateInitConfigDefaultProducesValidJSON(t *testing.T) {
 	if cfg.Format != "text" {
 		t.Errorf("expected format=text, got %q", cfg.Format)
 	}
+
+	// The skeleton advertises the waiver mechanism (commented example): a
+	// user discovering scorecard.waivers via init should not need the docs.
+	if !strings.Contains(content, "scorecard") || !strings.Contains(content, "waivers") {
+		t.Errorf("default skeleton should carry a commented scorecard.waivers example:\n%s", content)
+	}
 }
 
 // TestGenerateInitConfigAllValidPresets verifies every named preset produces

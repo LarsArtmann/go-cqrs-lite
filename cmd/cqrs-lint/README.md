@@ -170,7 +170,13 @@ profile-irrelevant module is a hard error.
 A waiver without a trigger renders with a visible "no revisit trigger
 recorded" suffix, and waivers that dominate the scorecard add a
 review-justifications recommendation. When the trigger fires, re-litigate —
-waive again only if the reason still holds.
+waive again only if the reason still holds. Waivers are read from the scored
+project's own `.cqrs-lint.json` (a config in the operator's cwd fills only
+unrecorded keys), and when a detectable trigger condition arrives — a server,
+an async bus, or a transport appears in the profile — the waiver row is
+flagged `TRIGGER LIKELY FIRED` with a re-litigation recommendation.
+`--scorecard-threshold` gates the **waiver-adjusted** coverage: waived rows
+leave the denominator, so a recorded refusal never fails the gate.
 
 ### Modernity grade (the right target)
 
@@ -180,8 +186,10 @@ sits on the canonical path. Both print in the summary banner:
 - **Modern** — v5-clean AND composed via `system.New`, or metaengine with
   declarative pushdown (`FilterOnField`/`SortOnField`).
 - **Partial** — v5-clean but on neither canonical path.
-- **Legacy** — v5-removed APIs or deprecated transports in use; migrate
-  before the v5 cut.
+- **Legacy** — a v5-removed surface in use: v5-removed APIs, deprecated
+  transports, or stack-surface imports (engine presets + `stack.Bundle`,
+  deleted per ADR-0123 — `system.New` becomes the only composition root).
+  Migrate before the v5 cut.
 
 A focused app at low breadth but Modern is a perfect consumer — the scorecard
 must not coach it into feature bloat.

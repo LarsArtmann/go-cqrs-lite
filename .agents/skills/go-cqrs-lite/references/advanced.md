@@ -875,10 +875,20 @@ usage); grade pain is fixed by honesty/auditability/aim, never by softening:
   `trigger`) — recorded refusals render in a WAIVED section, leave the
   coverage denominator, and error when waiving used/irrelevant modules.
   Reason mandatory; a trigger-less waiver renders a visible shame suffix.
+  Waivers resolve from the SCORED project's config (cwd config fills only
+  unrecorded keys); a detectable trigger arrival (server/async-bus/transport
+  in the profile) flags the waiver `TRIGGER LIKELY FIRED` for re-litigation.
+  `--scorecard-threshold` gates the waiver-adjusted coverage.
 - **Modernity grade** (Legacy/Partial/Modern) — headlines beside breadth:
   Modern = v5-clean AND (`system.New` composition OR metaengine declarative
   pushdown). A low-breadth Modern app is a perfect consumer, not a deficient
-  one. Emitted in text/markdown/JSON/SARIF (`modernityGrade`, `waivedCount`).
+  one. Legacy = any v5-removed surface: v5-removed APIs, deprecated
+  transports, or stack-surface imports (engine presets + `stack.Bundle`,
+  deleted per ADR-0123 — counted in the DEPRECATED SURFACES panel as
+  `stack_preset_uses`). Emitted in text/markdown/JSON/SARIF
+  (`modernityGrade`, `waivedCount`; SARIF also carries the panel counts
+  `removedApiUses`/`deprecatedTransportUses`/`stackPresetUses`, all
+  `omitempty` so clean runs stay byte-identical).
 
 **`cqrs-lint doctor --format json`** emits a machine-readable report
 (module-rule findings, engine coverage, severity overrides). Key order is

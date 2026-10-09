@@ -1,7 +1,7 @@
 package schema
 
 import (
-	"sort"
+	"slices"
 	"strconv"
 
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -47,33 +47,8 @@ func Compile(ops ...Op) (*Chain, error) {
 	}
 
 	for _, op := range ops {
-		if err := validateOpParams(op); err != nil {
+		if err := chain.add(op); err != nil {
 			return nil, err
-		}
-
-		switch typed := op.(type) {
-		case *renameTypeOp:
-			if err := chain.addRename(typed); err != nil {
-				return nil, err
-			}
-		case *dropOp:
-			if _, exists := chain.byType[typed.sourceType]; exists {
-				return nil, duplicateOpErr(typed.sourceType, 0)
-			}
-
-			chain.byType[typed.sourceType] = typed
-		case *fieldOp:
-			if err := chain.addExact(typed.sourceType, typed.sourceVersion, op); err != nil {
-				return nil, err
-			}
-		case *transformOp:
-			if err := chain.addExact(typed.sourceType, typed.sourceVersion, op); err != nil {
-				return nil, err
-			}
-		case *splitOp:
-			if err := chain.addExact(typed.sourceType, typed.sourceVersion, op); err != nil {
-				return nil, err
-			}
 		}
 	}
 
@@ -82,6 +57,37 @@ func Compile(ops ...Op) (*Chain, error) {
 	}
 
 	return chain, nil
+}
+
+func (c *Chain) add(op Op) error {
+	if err := validateOpParams(op); err != nil {
+		return err
+	}
+
+	switch typed := op.(type) {
+	case *renameTypeOp:
+		return c.addRename(typed)
+	case *dropOp:
+		return c.addDrop(typed)
+	case *fieldOp:
+		return c.addExact(typed.sourceType, typed.sourceVersion, op)
+	case *transformOp:
+		return c.addExact(typed.sourceType, typed.sourceVersion, op)
+	case *splitOp:
+		return c.addExact(typed.sourceType, typed.sourceVersion, op)
+	default:
+		return invalidOpErr("unknown op (schema.Op is sealed; only package constructors are valid)")
+	}
+}
+
+func (c *Chain) addDrop(op *dropOp) error {
+	if _, exists := c.byType[op.sourceType]; exists {
+		return duplicateOpErr(op.sourceType, 0)
+	}
+
+	c.byType[op.sourceType] = op
+
+	return nil
 }
 
 func (c *Chain) addExact(
@@ -106,16 +112,16 @@ func (c *Chain) addRename(op *renameTypeOp) error {
 		)
 	}
 
-	if _, taken := c.targets[op.to]; taken {
+	if _, taken := c.targets[op.target]; taken {
 		return errorfamily.WrapRejection(
 			ErrDuplicateOp, "schema.duplicate_rename_target",
-			"rename target "+string(op.to)+" already produced by another RenameType",
+			"rename target "+string(op.target)+" already produced by another RenameType",
 		)
 	}
 
 	c.byType[op.from] = op
-	c.renames[op.from] = op.to
-	c.targets[op.to] = struct{}{}
+	c.renames[op.from] = op.target
+	c.targets[op.target] = struct{}{}
 
 	return nil
 }
@@ -216,12 +222,17 @@ func upcasterFor(key chainKey, op Op) (Upcaster, error) {
 		return nil, batchOpErr("Split")
 	}
 
-	if op.(decodeOp).policy() == DropOnDecodeError {
+	decode, ok := op.(decodeOp)
+	if !ok {
+		return nil, invalidOpErr("op cannot convert to Upcaster")
+	}
+
+	if decode.policy() == DropOnDecodeError {
 		return nil, batchOpErr("DropOnDecodeError policy")
 	}
 
 	return NewUpcaster(key.eventType, key.version, func(evt event.Event) (event.Event, error) {
-		next, outcome, err := applyDecodeOp(op.(decodeOp), evt)
+		next, outcome, err := applyDecodeOp(decode, evt)
 		if err != nil {
 			return nil, err
 		}
@@ -244,25 +255,15 @@ func batchOpErr(name string) error {
 func validateOpParams(op Op) error {
 	switch typed := op.(type) {
 	case *renameTypeOp:
-		if typed.from == "" || typed.to == "" {
-			return invalidOpErr("RenameType requires non-empty from and to event types")
-		}
-
-		if typed.from == typed.to {
-			return invalidOpErr("RenameType from == to (" + string(typed.from) + ")")
-		}
+		return validateRename(typed)
 	case *dropOp:
 		if typed.sourceType == "" {
 			return invalidOpErr("Drop requires a non-empty event type")
 		}
-	case *fieldOp:
-		if err := validateSource(typed.sourceType, typed.sourceVersion); err != nil {
-			return err
-		}
 
-		if typed.field == "" || (typed.kind == fieldRename && typed.renamedTo == "") {
-			return invalidOpErr("field ops require non-empty field names")
-		}
+		return nil
+	case *fieldOp:
+		return validateFieldOp(typed)
 	case *transformOp:
 		if err := validateSource(typed.sourceType, typed.sourceVersion); err != nil {
 			return err
@@ -271,10 +272,34 @@ func validateOpParams(op Op) error {
 		if typed.transform == nil {
 			return invalidOpErr("Transform requires a non-nil function")
 		}
+
+		return nil
 	case *splitOp:
 		return validateSplit(typed)
 	default:
 		return invalidOpErr("unknown op (schema.Op is sealed; only package constructors are valid)")
+	}
+}
+
+func validateRename(op *renameTypeOp) error {
+	if op.from == "" || op.target == "" {
+		return invalidOpErr("RenameType requires non-empty from and to event types")
+	}
+
+	if op.from == op.target {
+		return invalidOpErr("RenameType from == to (" + string(op.from) + ")")
+	}
+
+	return nil
+}
+
+func validateFieldOp(op *fieldOp) error {
+	if err := validateSource(op.sourceType, op.sourceVersion); err != nil {
+		return err
+	}
+
+	if op.field == "" || (op.kind == fieldRename && op.renamedTo == "") {
+		return invalidOpErr("field ops require non-empty field names")
 	}
 
 	return nil
