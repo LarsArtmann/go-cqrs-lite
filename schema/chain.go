@@ -129,13 +129,13 @@ func (c *Chain) addRename(op *renameTypeOp) error {
 func (c *Chain) detectRenameCycles() error {
 	visited := make(map[event.Type]int, len(c.renames))
 
-	var froms []event.Type
+	froms := make([]event.Type, 0, len(c.renames))
 
 	for from := range c.renames {
 		froms = append(froms, from)
 	}
 
-	sort.Slice(froms, func(i, j int) bool { return froms[i] < froms[j] })
+	slices.Sort(froms)
 
 	for _, start := range froms {
 		if err := walkRenames(c.renames, start, visited); err != nil {
@@ -316,7 +316,9 @@ func validateSplit(op *splitOp) error {
 
 	for _, output := range op.outputs {
 		if output.eventType == "" || output.payload == nil {
-			return invalidOpErr("Split outputs require a non-empty type and a non-nil payload function")
+			return invalidOpErr(
+				"Split outputs require a non-empty type and a non-nil payload function",
+			)
 		}
 	}
 

@@ -51,7 +51,10 @@ func TestRenderExplain_DocumentsEveryConfigFileKey(t *testing.T) {
 		}
 		key := strings.Split(tag, ",")[0]
 		if !documented[key] {
-			t.Errorf("topLevelKeys missing config key %q (README claims explain documents every key)", key)
+			t.Errorf(
+				"topLevelKeys missing config key %q (README claims explain documents every key)",
+				key,
+			)
 		}
 	}
 }

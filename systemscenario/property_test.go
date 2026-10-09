@@ -55,7 +55,11 @@ func TestProperty_RandomCommandSequencesKeepJournalOrdered(t *testing.T) {
 		last := event.Version(0)
 		for _, evt := range events {
 			if evt.Version() <= last {
-				rt.Fatalf("journal versions not strictly increasing: v%d after v%d", evt.Version(), last)
+				rt.Fatalf(
+					"journal versions not strictly increasing: v%d after v%d",
+					evt.Version(),
+					last,
+				)
 			}
 
 			last = evt.Version()
@@ -86,7 +90,8 @@ func TestSystem_JournalEquivalenceAcrossDeployments(t *testing.T) {
 
 		streamID := id.NewStreamID()
 		for _, cmdType := range []command.Type{"task.create", "task.rename", "task.complete"} {
-			if err := sys.CommandDispatcher().Dispatch(ctx, newTaskCmd(cmdType, streamID)); err != nil {
+			if err := sys.CommandDispatcher().
+				Dispatch(ctx, newTaskCmd(cmdType, streamID)); err != nil {
 				t.Fatalf("dispatch %s: %v", cmdType, err)
 			}
 		}

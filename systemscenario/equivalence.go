@@ -77,7 +77,10 @@ type normalizedStream struct {
 func readJournalTrail(ctx context.Context, sys *system.System) (journalTrail, error) {
 	journal, ok := sys.EventStore().(event.Journal)
 	if !ok {
-		return nil, fmt.Errorf("event store of %T does not implement event.Journal", sys.EventStore())
+		return nil, fmt.Errorf(
+			"event store of %T does not implement event.Journal",
+			sys.EventStore(),
+		)
 	}
 
 	events, err := journal.ReadAll(ctx)

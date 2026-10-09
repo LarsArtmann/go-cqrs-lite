@@ -3,8 +3,8 @@ package schema
 import (
 	"strconv"
 
-	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/go-codec"
+	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 )
@@ -106,16 +106,25 @@ func applyOp(op Op, evt event.Event) ([]event.Event, opOutcome, error) {
 	switch typed := op.(type) {
 	case *renameTypeOp:
 		next, err := rebuild(evt, evt.Payload(), typed.target, evt.SchemaVersion())
+
 		return []event.Event{next}, opContinue, err
 	case *dropOp:
+
 		return nil, opDrop, nil
 	case *splitOp:
 		outputs, err := applySplitOp(typed, evt)
+
 		return outputs, opSplit, err
-	default:
-		next, outcome, err := applyDecodeOp(op.(decodeOp), evt)
-		return []event.Event{next}, outcome, err
 	}
+
+	decode, ok := op.(decodeOp)
+	if !ok {
+		return nil, opContinue, invalidOpErr("op cannot apply (schema.Op is sealed)")
+	}
+
+	next, outcome, err := applyDecodeOp(decode, evt)
+
+	return []event.Event{next}, outcome, err
 }
 
 // applyDecodeOp runs the 1:1 payload ops (field ops and Transform): decode
@@ -207,7 +216,7 @@ func produceSplitOutput(
 
 	// Fresh event ID: N outputs cannot share one identity. Everything else
 	// (stream, position, metadata, timestamp, encoding) is inherited.
-	return event.New(
+	produced, err := event.New(
 		output.eventType,
 		evt.StreamID(),
 		evt.StreamType(),
@@ -218,6 +227,11 @@ func produceSplitOutput(
 		event.WithEncoding(evt.Encoding()),
 		event.WithSchemaVersion(sourceVersion.Increment()),
 	)
+	if err != nil {
+		return nil, wrapRebuildErr(evt, output.eventType, err)
+	}
+
+	return produced, nil
 }
 
 func handleDecodeError(
@@ -230,9 +244,11 @@ func handleDecodeError(
 		return evt, opDone, nil
 	case DropOnDecodeError:
 		return nil, opDrop, nil
-	default:
-		return nil, opContinue, wrapDecodeErr(evt, err)
+	case FailOnDecodeError:
+		return nil, opContinue, err
 	}
+
+	return nil, opContinue, wrapDecodeErr(evt, err)
 }
 
 func wrapDecodeErr(evt event.Event, err error) error {
@@ -252,16 +268,15 @@ func wrapTransformErr(evt event.Event, err error) error {
 
 // decodeFieldMap decodes the payload with the codec the event's Encoding()
 // stamp selects — self-describing events, mixed JSON/CBOR streams included.
-// Errors are returned unwrapped; the caller wraps once per policy path.
 func decodeFieldMap(evt event.Event) (map[string]any, error) {
 	codecFor, err := codec.ForEncoding(evt.Encoding())
 	if err != nil {
-		return nil, err
+		return nil, wrapDecodeErr(evt, err)
 	}
 
 	var fields map[string]any
 	if err := codecFor.Decode(evt.Payload(), &fields); err != nil {
-		return nil, err
+		return nil, wrapDecodeErr(evt, err)
 	}
 
 	if fields == nil {
@@ -297,7 +312,7 @@ func rebuild(
 	eventType event.Type,
 	schemaVersion event.SchemaVersion,
 ) (event.Event, error) {
-	return event.New(
+	upcasted, err := event.New(
 		eventType,
 		evt.StreamID(),
 		evt.StreamType(),
@@ -308,6 +323,19 @@ func rebuild(
 		event.WithMetadata(evt.Metadata()),
 		event.WithEncoding(evt.Encoding()),
 		event.WithSchemaVersion(schemaVersion),
+	)
+	if err != nil {
+		return nil, wrapRebuildErr(evt, eventType, err)
+	}
+
+	return upcasted, nil
+}
+
+func wrapRebuildErr(evt event.Event, eventType event.Type, err error) error {
+	return errorfamily.WrapCorruption(
+		err, "schema.rebuild_failed",
+		"rebuild "+string(eventType)+" v"+evt.SchemaVersion().String()+
+			" (source "+string(evt.Type())+")",
 	)
 }
 

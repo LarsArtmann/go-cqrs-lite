@@ -20,7 +20,9 @@ func newPayloadEvent(
 	tb.Helper()
 
 	streamID := idtest.ParseStreamID(tb, "01HK1540X0841Y0A6BSX1VKR95")
-	newOpts := append([]event.Option{event.WithSchemaVersion(event.SchemaVersion(schemaVersion))}, opts...)
+	newOpts := append(
+		[]event.Option{event.WithSchemaVersion(event.SchemaVersion(schemaVersion))},
+		opts...)
 
 	if raw, isBytes := payload.([]byte); isBytes {
 		evt, err := event.NewEvent(eventType, streamID, "Bank", event.Version(1), raw, newOpts...)
@@ -56,13 +58,13 @@ func TestChainFieldOps(t *testing.T) {
 	transform := schemaTransformMoney(t)
 
 	tests := []struct {
-		name         string
-		ops          func() []Op
-		eventType    event.Type
-		version      int
-		payload      string
-		wantVersion  int
-		wantFields   map[string]any
+		name        string
+		ops         func() []Op
+		eventType   event.Type
+		version     int
+		payload     string
+		wantVersion int
+		wantFields  map[string]any
 	}{
 		{
 			name: "rename field",
@@ -278,7 +280,10 @@ func TestChainRenameTypeChainsIntoNewType(t *testing.T) {
 	}
 
 	if got[0].SchemaVersion() != 2 {
-		t.Errorf("schema version = %d, want 2 (rename keeps 1, field op advances)", got[0].SchemaVersion())
+		t.Errorf(
+			"schema version = %d, want 2 (rename keeps 1, field op advances)",
+			got[0].SchemaVersion(),
+		)
 	}
 
 	if _, renamed := decodedFields(t, got[0])["displayName"]; !renamed {
@@ -310,7 +315,11 @@ func TestChainExactMatchBeatsTypeOnly(t *testing.T) {
 	}
 
 	if got[1].Type() != "user.registered" || got[1].SchemaVersion() != 5 {
-		t.Errorf("v5: type=%s v=%d, want user.registered v5 (rename keeps version)", got[1].Type(), got[1].SchemaVersion())
+		t.Errorf(
+			"v5: type=%s v=%d, want user.registered v5 (rename keeps version)",
+			got[1].Type(),
+			got[1].SchemaVersion(),
+		)
 	}
 }
 
@@ -319,20 +328,33 @@ func TestChainSplitAndDrop(t *testing.T) {
 
 	chain, err := Compile(
 		Drop("audit.legacy_ping"),
-		Split("checkout.completed", 1,
-			Producing("cart.checked_out", func(evt event.Event, fields map[string]any) (any, error) {
-				return map[string]any{"cartID": fields["cartID"]}, nil
-			}),
-			Producing("payment.requested", func(evt event.Event, fields map[string]any) (any, error) {
-				return map[string]any{"totalCents": fields["totalCents"]}, nil
-			}),
+		Split(
+			"checkout.completed",
+			1,
+			Producing(
+				"cart.checked_out",
+				func(evt event.Event, fields map[string]any) (any, error) {
+					return map[string]any{"cartID": fields["cartID"]}, nil
+				},
+			),
+			Producing(
+				"payment.requested",
+				func(evt event.Event, fields map[string]any) (any, error) {
+					return map[string]any{"totalCents": fields["totalCents"]}, nil
+				},
+			),
 		),
 	)
 	if err != nil {
 		t.Fatalf("Compile: %v", err)
 	}
 
-	checkout := newPayloadEvent(t, "checkout.completed", 1, []byte(`{"cartID":"c1","totalCents":999}`))
+	checkout := newPayloadEvent(
+		t,
+		"checkout.completed",
+		1,
+		[]byte(`{"cartID":"c1","totalCents":999}`),
+	)
 	legacy := newPayloadEvent(t, "audit.legacy_ping", 3, []byte(`{"x":1}`))
 
 	got, err := chain.upcastAll([]event.Event{checkout, legacy})
@@ -407,7 +429,11 @@ func TestChainDecodeErrorPolicies(t *testing.T) {
 		}
 
 		if got[0].SchemaVersion() != 1 || string(got[0].Payload()) != "42" {
-			t.Errorf("passthrough changed the event: v%d %s", got[0].SchemaVersion(), got[0].Payload())
+			t.Errorf(
+				"passthrough changed the event: v%d %s",
+				got[0].SchemaVersion(),
+				got[0].Payload(),
+			)
 		}
 	})
 
@@ -596,8 +622,8 @@ func TestUpcastersBridge(t *testing.T) {
 		t.Parallel()
 
 		for name, ops := range map[string][]Op{
-			"split": {Split("a", 1, Producing("b", func(event.Event, map[string]any) (any, error) { return nil, nil }))},
-			"drop":  {Drop("a")},
+			"split":  {Split("a", 1, Producing("b", func(event.Event, map[string]any) (any, error) { return nil, nil }))},
+			"drop":   {Drop("a")},
 			"rename": {RenameType("a", "b")},
 		} {
 			t.Run(name, func(t *testing.T) {

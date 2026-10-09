@@ -90,7 +90,7 @@ func RenameType(from, target event.Type) Op {
 func RenameField(
 	sourceType event.Type,
 	sourceVersion event.SchemaVersion,
-	from, to string,
+	from, target string,
 	opts ...OpOption,
 ) Op {
 	return &fieldOp{
@@ -98,7 +98,7 @@ func RenameField(
 		sourceVersion: sourceVersion,
 		kind:          fieldRename,
 		field:         from,
-		renamedTo:     to,
+		renamedTo:     target,
 		opConfig:      newOpConfig(opts),
 	}
 }
@@ -224,6 +224,7 @@ const (
 
 type fieldOp struct {
 	opConfig
+
 	sourceType    event.Type
 	sourceVersion event.SchemaVersion
 	kind          fieldOpKind
@@ -236,6 +237,7 @@ func (*fieldOp) op() {}
 
 type transformOp struct {
 	opConfig
+
 	sourceType    event.Type
 	sourceVersion event.SchemaVersion
 	transform     func(map[string]any) (map[string]any, error)
@@ -245,6 +247,7 @@ func (*transformOp) op() {}
 
 type splitOp struct {
 	opConfig
+
 	sourceType    event.Type
 	sourceVersion event.SchemaVersion
 	outputs       []SplitOutput
