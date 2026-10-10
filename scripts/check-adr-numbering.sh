@@ -22,8 +22,12 @@
 set -euo pipefail
 
 ADR_DIR="docs/adr"
-# Documented in docs/adr/README.md: "ADRs 0036 and 0041 were never assigned".
-NEVER_ASSIGNED="0036 0041"
+# Documented in docs/adr/README.md: "ADRs 0036, 0041, and 0138 were never
+# assigned (gaps in numbering)."
+NEVER_ASSIGNED="0036 0041 0138"
+# Historical suffix-numbered ADR (addendum to 0099); renaming would break
+# links from frozen archived status reports.
+SUFFIX_NUMBERS="0099a"
 
 fail() { echo "FAIL: $*" >&2; exit 1; }
 info() { echo "check-adr-numbering: $*"; }
@@ -50,12 +54,20 @@ run_checks() {
   local index="$dir/README.md"
   [ -f "$index" ] || { echo "FAIL: no index at $index" >&2; return 1; }
 
-  local files numbers dups
-  files=$(cd "$dir" && ls [0-9][0-9][0-9][0-9]-*.md 2>/dev/null || true)
+  local files numbers dups strays
+  files=$(cd "$dir" && ls [0-9][0-9][0-9][0-9]-*.md [0-9][0-9][0-9][0-9][a-z]-*.md 2>/dev/null | sort -u || true)
   [ -n "$files" ] || { echo "FAIL: no ADR files found in $dir" >&2; return 1; }
 
+  # 0. Non-conforming filenames: an ADR that escapes the NNNN[-a]- prefix
+  #    escapes this gate entirely (the 0099a class found on first run).
+  strays=$(cd "$dir" && ls *.md 2>/dev/null | grep -vxE 'README\.md|[0-9]{4}([a-z])?-[A-Za-z0-9._-]+' || true)
+  if [ -n "$strays" ]; then
+    echo "FAIL: non-conforming ADR filename(s) in $dir (want NNNN-slug.md): $strays" >&2
+    return 1
+  fi
+
   # 1. Duplicate numbers (filesystem-wide: tracked + untracked).
-  numbers=$(printf '%s\n' "$files" | cut -c1-4 | sort)
+  numbers=$(printf '%s\n' "$files" | sed 's/-.*//' | sort)
   dups=$(printf '%s\n' "$numbers" | uniq -d)
   if [ -n "$dups" ]; then
     echo "FAIL: duplicate ADR number(s): $dups" \
@@ -65,9 +77,9 @@ run_checks() {
 
   # 2. Index lockstep: every file has exactly one row (matched by link
   #    target basename); every row's target exists; titles match.
-  local f num h1_title index_rows rows_for target index_title
+  local f num h1_title rows_for target index_title
   while IFS= read -r f; do
-    num=$(printf '%s' "$f" | cut -c1-4)
+    num=${f%%-*}
     rows_for=$(grep -cE "\| \[$num\]\($f\) +\|" "$index" || true)
     if [ "$rows_for" -eq 0 ]; then
       echo "FAIL: $dir/$f has no index row in README.md" >&2
@@ -78,8 +90,8 @@ run_checks() {
       return 1
     fi
     # Tolerant H1 extraction: historical ADRs use "# ADR-NNNN: T",
-    # "# ADR NNNN: T", and bare "# T".
-    h1_title=$(head -1 "$dir/$f" | sed 's/^# //' | sed 's/^ADR-\{0,1\} \{0,1\}[0-9]\{4\}: //' | sed 's/^ *//;s/ *$//')
+    # "# ADR NNNN: T", "# ADR-NNNNa: T", and bare "# T".
+    h1_title=$(head -1 "$dir/$f" | sed 's/^# //' | sed 's/^ADR-\{0,1\} \{0,1\}[0-9]\{4\}[a-z]\{0,1\}: //' | sed 's/^ *//;s/ *$//')
     index_title=$(grep -E "\| \[$num\]\($f\) +\|" "$index" | head -1 | awk -F'|' '{print $3}' | sed 's/^ \+\| \+$//g')
     if [ -z "$h1_title" ]; then
       echo "FAIL: $dir/$f H1 does not start with '# ' (or first line is empty)" >&2
@@ -101,10 +113,11 @@ run_checks() {
     fi
   done < <(grep -oE '\| \[[0-9]{4}\]\([^)]+\)' "$index" | sed -E 's/.*\(([^)]+)\)/\1/')
 
-  # 3. Gaps: warn-only, outside the documented never-assigned set.
+  # 3. Gaps: warn-only, outside the documented never-assigned set. Gap
+  #    arithmetic uses the 4-digit part (0099a counts as 0099).
   local max missing gap undocumented=0
-  max=$(printf '%s\n' "$numbers" | sort -n | tail -1)
-  missing=$(comm -23 <(seq -f '%04g' 1 "$max") <(printf '%s\n' "$numbers" | sort))
+  max=$(printf '%s\n' "$numbers" | cut -c1-4 | sort -n | tail -1)
+  missing=$(comm -23 <(seq -f '%04g' 1 "$max") <(printf '%s\n' "$numbers" | cut -c1-4 | sort -u))
   for gap in $missing; do
     if printf '%s\n' $NEVER_ASSIGNED | grep -qxF "$gap"; then
       continue
@@ -162,6 +175,10 @@ self_test() {
   mk_fixture clean
   expect_ok "$fixture" "clean fixture passes"
 
+  mk_fixture stray
+  printf '# Stray Notes\n' > "$fixture/notes.md"
+  expect_fail "$fixture" "non-conforming filename fails" "non-conforming ADR filename"
+
   mk_fixture dup
   printf '# ADR-0002: Collision\n' > "$fixture/0002-collision.md"
   expect_fail "$fixture" "duplicate number fails (the parallel-session class)" "duplicate ADR number"
@@ -207,5 +224,5 @@ if [ "${SELF_TEST:-0}" = "1" ]; then
 fi
 
 run_checks "$ADR_DIR"
-local_count=$(cd "$ADR_DIR" && ls [0-9][0-9][0-9][0-9]-*.md 2>/dev/null | wc -l | tr -d ' ')
+local_count=$(cd "$ADR_DIR" && ls [0-9][0-9][0-9][0-9]-*.md [0-9][0-9][0-9][0-9][a-z]-*.md 2>/dev/null | sort -u | wc -l | tr -d ' ')
 info "OK: no duplicates, index in lockstep ($local_count ADRs)"
