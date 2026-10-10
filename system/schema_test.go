@@ -168,3 +168,54 @@ func TestSchemaDeclaration_RejectsInvalidDeclaration(t *testing.T) {
 		})
 	}
 }
+
+func TestSchemaDeclaration_FingerprintStamping(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	declaration := schema.Event("user.created", 2,
+		schema.RenameField("user.created", 1, "name", "displayName"),
+	)
+
+	sys, err := New(ctx, DomainConfig{
+		Schema:                  []schema.EventSchema{declaration},
+		StampSchemaFingerprints: true,
+	}, schemaTestDeployment())
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	t.Cleanup(func() { _ = sys.Close() })
+
+	ref := id.NewStreamRef("User", id.NewStreamID())
+
+	// Write at the CURRENT version; the sink stamp records the declaration
+	// fingerprint so later reads can detect pre-change events.
+	v2, err := event.NewEvent("user.created", ref.ID, "User", 1,
+		[]byte(`{"displayName":"Lars"}`), event.WithSchemaVersion(2))
+	if err != nil {
+		t.Fatalf("NewEvent: %v", err)
+	}
+
+	if err := sys.EventStore().Save(ctx, ref, []event.Event{v2}, 0); err != nil {
+		t.Fatalf("Save: %v", err)
+	}
+
+	loaded, err := sys.EventStore().Load(ctx, ref)
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+
+	if len(loaded) != 1 {
+		t.Fatalf("loaded %d events, want 1", len(loaded))
+	}
+
+	stamped := loaded[0].Metadata().Custom[event.MetadataKey(schema.FingerprintMetadataKey)]
+	if stamped != declaration.Fingerprint() {
+		t.Fatalf("stamped fingerprint %q, want declared %q", stamped, declaration.Fingerprint())
+	}
+
+	if stamped == "" {
+		t.Fatal("stamp missing entirely")
+	}
+}

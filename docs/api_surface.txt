@@ -4734,6 +4734,7 @@ scheduling/type TimerID
 scheduling/var ErrEmptyTimerID
 schema/const DropOnDecodeError
 schema/const FailOnDecodeError
+schema/const FingerprintMetadataKey
 schema/const PassthroughOnDecodeError
 schema/func AddField
 schema/func Compile
@@ -4741,6 +4742,9 @@ schema/func Declare
 schema/func Drop
 schema/func Event
 schema/func EventOf
+schema/func FingerprintDrift
+schema/func FingerprintDriftHard
+schema/func FingerprintStamp
 schema/func NewUpcaster
 schema/func NewValidator
 schema/func NewVersionedSeekableJournal
@@ -4763,6 +4767,7 @@ schema/interface Upcaster
 schema/method Close
 schema/method CurrentVersion
 schema/method Declaration
+schema/method Fingerprint
 schema/method ReadAll
 schema/method ReadFrom
 schema/method RegisterType
@@ -4783,6 +4788,7 @@ schema/struct Validator
 schema/struct VersionedSeekableJournal
 schema/struct VersionedStore
 schema/type DecodeErrorPolicy
+schema/type DriftHook
 schema/type OpOption
 schema/type ValidatorOption
 schema/var ErrBatchOpNotConvertible
