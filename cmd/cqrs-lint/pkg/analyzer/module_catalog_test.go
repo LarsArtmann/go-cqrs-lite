@@ -228,6 +228,7 @@ func TestCatalogEveryGoWorkModuleCovered(t *testing.T) {
 		"example/getting-started":        "example project",
 		"example/mesh-demo":              "example project",
 		"example/goal-shaped-app":        "example project",
+	"example/graph-native":           "example project",
 		"example/metaengine-quickstart":  "example project",
 		"example/readme-quickstart":      "example project",
 		"example/scheduler-otel-status":  "example project",
