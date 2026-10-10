@@ -65,6 +65,15 @@ type DomainConfig struct {
 	// sits beside it as a second registry (ADR-0123).
 	Schema []schema.EventSchema
 
+	// StampSchemaFingerprints opts the write path into shape-drift
+	// bookkeeping: every event whose type is declared in Schema is stamped
+	// with that declaration's fingerprint (metadata key
+	// schema.FingerprintMetadataKey) on Save. Off by default — stamping is
+	// an observability aid for detecting that a stored event predates a
+	// declaration change, not a correctness requirement (reads upcast
+	// regardless).
+	StampSchemaFingerprints bool
+
 	// DisableCoeffectValidation turns off the DomainConfig.Events gate (both
 	// the dangling-subscription error and the unconsumed-event advisory).
 	DisableCoeffectValidation bool

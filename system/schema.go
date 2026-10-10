@@ -18,6 +18,10 @@ import (
 // The declaration is DATA in DomainConfig, never a second registry: New is
 // the only composition point (ADR-0123), and schema.Declare validation runs
 // at boot — bad declarations fail composition, not the first read.
+//
+// With DomainConfig.StampSchemaFingerprints, the write path additionally
+// stamps every declared event's metadata with its declaration fingerprint
+// (schema.FingerprintStamp) so later reads can detect shape drift.
 func applySchemaDeclaration(sys *System, domain DomainConfig) error {
 	if len(domain.Schema) == 0 {
 		return nil
@@ -28,7 +32,12 @@ func applySchemaDeclaration(sys *System, domain DomainConfig) error {
 		return fmt.Errorf("system: declare schema: %w", err)
 	}
 
-	sys.eventStore = event.DecorateStore(sys.eventStore, nil, chain.SourceTransform())
+	var sink event.SinkTransform
+	if domain.StampSchemaFingerprints {
+		sink = schema.FingerprintStamp(domain.Schema, schema.FingerprintMetadataKey)
+	}
+
+	sys.eventStore = event.DecorateStore(sys.eventStore, sink, chain.SourceTransform())
 
 	return nil
 }
