@@ -487,6 +487,11 @@ This plan treats tree-red from these as **externally blocked**: T27 verifies MY 
   `system/system.go` (361, new), `cmd/cqrs-lint/pkg/suppression/stale.go` (489→533 grew) —
   metaengine/system/schema-wave agents.
 - doc-check alias-ambiguity WARNINGS (core/v5 vs v4 package aliases) — advisory, core/v5 agent.
+- `nix fmt` tree-wide FAILS on `system/schema_declarations.go:61` (2026-10-10): the schema-wave
+  agent's `func (s *SchemaSet) Event[T any](` uses Go 1.27 GENERIC METHODS (legal — verified
+  with a minimal go1.27.0 compile), but treefmt's pinned gofumpt predates them and exits 2 on
+  the parse. The wave's own files are gofumpt-clean (checked file-by-file). Fix belongs to the
+  schema-wave agent or a gofumpt pin bump — NOT this wave.
 
 ### 11.3 GOWORK standalone reds until the next tag wave (Q2, expected)
 

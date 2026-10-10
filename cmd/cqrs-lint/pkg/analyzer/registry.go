@@ -15,6 +15,11 @@ type CQRSRegistry struct {
 	EventTypesEmitted map[string]EventEmission // event type string → emission location
 	// EventTypesInCatalog tracks event types registered via catalog.Event.
 	EventTypesInCatalog map[string]bool
+	// EventTypesInSchemaDecl tracks event types declared via schema.Event /
+	// schema.EventOf / the system.Schemas() builder's Event method — the
+	// declaration list that drives upcasting and projection decoding
+	// (DomainConfig.Schema). E021 consumes it as the declared-set.
+	EventTypesInSchemaDecl map[string]EventEmission // event type string → declaration location
 	// CommandTypesRegistered tracks command types registered via RegisterTyped.
 	// Keys MUST be struct type names — constructor-call registrations are kept
 	// in ConstructorHandlers instead (T20-4).
@@ -79,6 +84,18 @@ type CQRSRegistry struct {
 	pendingEmittedEventTypeRefs []pendingEventTypeRef
 	pendingCatalogEventTypeRefs []pendingEventTypeRef
 
+	// pendingSchemaEventTypeRefs records event-type arguments passed to
+	// schema declarations (schema.Event/EventOf, builder .Event) that could
+	// not be resolved to a string at the call site. Resolved alongside the
+	// other pending refs by ResolveEmittedEventTypeConsts.
+	pendingSchemaEventTypeRefs []pendingEventTypeRef
+
+	// schemaBuilderIdents records per-file local variables initialized from
+	// system.Schemas() ("schemas := system.Schemas()"), so builder-method
+	// .Event calls through the variable resolve. Same-file only — the fluent
+	// API is declared and consumed in one place.
+	schemaBuilderIdents map[string]map[string]bool // file path → ident → true
+
 	// emitHelperParams records constructor helpers whose event.New call
 	// passes one of the helper's own PARAMETERS as the event type
 	// (func newRoomEvent(t event.Type, ...) { event.New(t, ...) }). The
@@ -135,6 +152,7 @@ func NewCQRSRegistry() *CQRSRegistry {
 	return &CQRSRegistry{
 		EventTypesEmitted:      make(map[string]EventEmission),
 		EventTypesInCatalog:    make(map[string]bool),
+		EventTypesInSchemaDecl: make(map[string]EventEmission),
 		CommandTypesRegistered: make(map[string]bool),
 		ConstructorHandlers:    make(map[string]bool),
 		EventPayloadTypes:      make(map[string]bool),
@@ -175,4 +193,11 @@ func (r *CQRSRegistry) IsCommandRegistered(cmdType string) bool {
 // IsEventInCatalog returns true if an event type has been cataloged.
 func (r *CQRSRegistry) IsEventInCatalog(eventType string) bool {
 	return r.EventTypesInCatalog[eventType]
+}
+
+// IsEventSchemaDeclared returns true if an event type carries a schema
+// declaration (schema.Event/EventOf or the system.Schemas() builder).
+func (r *CQRSRegistry) IsEventSchemaDeclared(eventType string) bool {
+	_, ok := r.EventTypesInSchemaDecl[eventType]
+	return ok
 }
