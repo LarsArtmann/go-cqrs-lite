@@ -2,9 +2,8 @@ package schema
 
 import (
 	"github.com/larsartmann/go-codec"
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // The payload layer of chain execution: decode/re-encode field maps with the

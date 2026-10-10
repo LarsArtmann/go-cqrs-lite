@@ -218,7 +218,7 @@ func firedTriggerSignals(w analyzer.ScorecardWaiver, fp analyzer.FeatureProfile)
 // tokens with surrounding punctuation stripped.
 func triggerTokens(trigger string) map[string]bool {
 	tokens := make(map[string]bool)
-	for _, field := range strings.Fields(strings.ToLower(trigger)) {
+	for field := range strings.FieldsSeq(strings.ToLower(trigger)) {
 		token := strings.Trim(field, ",.;:!?()[]\"'")
 		if token != "" {
 			tokens[token] = true

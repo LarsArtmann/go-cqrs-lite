@@ -7,9 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	output "github.com/larsartmann/go-output"
-
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
+	output "github.com/larsartmann/go-output"
 )
 
 // TestComputeScorecardWithWaivers_MovesRowsAndRecomputes pins the waiver
