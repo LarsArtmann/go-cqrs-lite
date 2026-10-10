@@ -953,6 +953,21 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       fixture tidy probe → load gate → preflight 9/9 → `#verify`. Their
       15:49–18:40 tag wave re-rotted cqrs-lint fixtures (gjson bump) — tidied
       + converged 21:53.
+      STATE 2026-10-10 13:00: the ~33-module lint-red contradiction from the
+      10-09 session is RESOLVED — the ambient-env findings were REAL, with
+      TWO stacked causes. (1) CONFIG REGRESSION, now fixed: the settings
+      rewrite that added the depguard allow-list (daemon commits 10-08..10-10)
+      silently DROPPED `cyclop.max-complexity: 25` (default 10 fired on every
+      complexity-11..25 function) and the whole `errcheck.exclude-functions`
+      block; both restored verbatim from the 09-29 tree with a comment in
+      `.golangci.yml`. `#check-lint-config` is BLIND to settings loss (its
+      canaries cover exhaustruct + depguard only) — extend it to pin the
+      settings key-set if this class recurs. (2) GENUINE new-code lint debt
+      from the 10-03..10-10 waves: modules shipping code without a full-lint
+      pass (systemscenario wrapcheck/err113/thelper/varnamelen; systemtest
+      gocognit; watermill; core/v5; pebble; catalog; …) — the module list
+      under the restored config is in the 10-10 session log; per-module
+      triage still owed by the owning sessions.
       — source: archived 16-37 §f10, 15-34 §f20, 15-57 §b1; 04-04 §f1
       _(Effort: M, quiet-window)_
 - [ ] **Verify the nightly weekly load-sweep leg fires** (Sundays-only, first

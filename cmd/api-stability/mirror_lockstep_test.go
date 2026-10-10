@@ -95,6 +95,7 @@ func TestMirrorLockstep(t *testing.T) {
 	for i, p := range sorted {
 		if i >= maxReported {
 			t.Errorf("... and %d more mirror drift problems", len(sorted)-maxReported)
+
 			break
 		}
 		t.Errorf("%s", p)
@@ -245,6 +246,7 @@ func checkMirrorLockstep(goldenLines []string, rows []mirrorAllowlistRow) ([]str
 				name,
 				name,
 			))
+
 			continue
 		}
 
@@ -326,6 +328,7 @@ func mirrorRowCovers(rows []mirrorAllowlistRow, module, side, rel string) bool {
 			if strings.HasPrefix(rel, subtree+"/") || rel == subtree {
 				return true
 			}
+
 			continue
 		}
 
@@ -366,6 +369,7 @@ func staleMirrorRows(rows []mirrorAllowlistRow, v4, v5 map[string]map[string]str
 
 			if mirrorRowCovers([]mirrorAllowlistRow{row}, row.module, row.side, rel) {
 				covers = true
+
 				break
 			}
 		}
@@ -387,6 +391,7 @@ func sortedSet(set map[string]struct{}) []string {
 		out = append(out, k)
 	}
 	sort.Strings(out)
+
 	return out
 }
 
@@ -418,6 +423,7 @@ func parseMirrorAllowlist(content string) ([]mirrorAllowlistRow, []string) {
 
 		if len(fields) < 4 {
 			problems = append(problems, where+": want '<module> <side> <symbol> <reason>'")
+
 			continue
 		}
 
@@ -428,6 +434,7 @@ func parseMirrorAllowlist(content string) ([]mirrorAllowlistRow, []string) {
 			// Golden entry symbols are "<kind> <Name>" — two tokens.
 			if len(fields) < 5 {
 				problems = append(problems, where+": want '<module> <side> <kind> <Name> <reason>'")
+
 				continue
 			}
 			symbol, reason = fields[2]+" "+fields[3], fields[4]
@@ -435,6 +442,7 @@ func parseMirrorAllowlist(content string) ([]mirrorAllowlistRow, []string) {
 
 		if _, isKnown := known[module]; !isKnown {
 			problems = append(problems, fmt.Sprintf("%s: unknown mirror module %q", where, module))
+
 			continue
 		}
 
@@ -443,12 +451,14 @@ func parseMirrorAllowlist(content string) ([]mirrorAllowlistRow, []string) {
 				problems,
 				fmt.Sprintf("%s: side must be v4 or v5, got %q", where, side),
 			)
+
 			continue
 		}
 
 		key := module + " " + side + " " + symbol
 		if _, dup := seen[key]; dup {
 			problems = append(problems, fmt.Sprintf("%s: duplicate register row %q", where, key))
+
 			continue
 		}
 

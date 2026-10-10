@@ -126,6 +126,32 @@ linters:
     - zerologlint
   default: none
   settings:
+    # Restored 2026-10-10: both blocks below were dropped when the settings
+    # section was rewritten for the depguard allow-list (daemon commits
+    # 2026-10-08..10); their loss silently retightened the lint gate
+    # (cyclop default 10 instead of 25; errcheck exclusions gone) and put
+    # ~30 modules red overnight. #check-lint-config cannot see settings
+    # loss — extend it if this class recurs.
+    cyclop:
+      max-complexity: 25
+    errcheck:
+      exclude-functions:
+        - (*os.File).Close
+        - (io.Closer).Close
+        - (*database/sql.DB).Close
+        - (*database/sql.Rows).Close
+        - (*database/sql.Stmt).Close
+        - (net.Conn).Close
+        - (*net.TCPConn).Close
+        - (*net.UDPConn).Close
+        - fmt.Fprint
+        - fmt.Fprintf
+        - fmt.Fprintln
+        - fmt.Print
+        - fmt.Printf
+        - fmt.Println
+        - (*strings.Builder).WriteString
+        - (*bytes.Buffer).WriteString
     depguard:
       rules:
         main-allow-list:
