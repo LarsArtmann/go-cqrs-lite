@@ -415,19 +415,19 @@ separator (koanf convention). Env overrides win over YAML.
 
 ### DomainConfig Fields
 
-| Field                    | Description                                                                                  |
-| ------------------------ | -------------------------------------------------------------------------------------------- |
-| `Commands`               | Function that registers typed command handlers on the System.                                |
-| `Queries`                | Function that registers typed query handlers on the System.                                  |
+| Field                    | Description                                                                                                                             |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `Commands`               | Function that registers typed command handlers on the System.                                                                           |
+| `Queries`                | Function that registers typed query handlers on the System.                                                                             |
 | `Events`                 | This context's event universe (`[]event.Type`): feeds the coeffect gate, which errors on event subscriptions with no producer in scope. |
-| `Projections`            | `[]ProjectionDeclaration` — usually `system.RawQuery(query)` per metaengine query.            |
-| `ProjectionDecoder`      | Decodes event payloads for projection fold handlers.                                         |
-| `ProjectionTypeDecoder`  | Recommended: typed event decoder with stream ID access.                                      |
-| `ProjectionEventDecoder` | Full event context decoder for projection fold handlers.                                     |
-| `Middleware`             | Command-level domain middleware (validation, authz, etc.).                                   |
-| `ProjectionHostOptions`  | Projection host options (batch size, DLQ, restart policy, etc.).                             |
-| `CheckpointStore`        | Persistent checkpoint store. If nil, in-memory (lost on restart).                            |
-| `ShutdownDependencies`   | Ordering constraints for `Close()` (engine names only; projection host always closes first). |
+| `Projections`            | `[]ProjectionDeclaration` — usually `system.RawQuery(query)` per metaengine query.                                                      |
+| `ProjectionDecoder`      | Decodes event payloads for projection fold handlers.                                                                                    |
+| `ProjectionTypeDecoder`  | Recommended: typed event decoder with stream ID access.                                                                                 |
+| `ProjectionEventDecoder` | Full event context decoder for projection fold handlers.                                                                                |
+| `Middleware`             | Command-level domain middleware (validation, authz, etc.).                                                                              |
+| `ProjectionHostOptions`  | Projection host options (batch size, DLQ, restart policy, etc.).                                                                        |
+| `CheckpointStore`        | Persistent checkpoint store. If nil, in-memory (lost on restart).                                                                       |
+| `ShutdownDependencies`   | Ordering constraints for `Close()` (engine names only; projection host always closes first).                                            |
 
 #### Declaring projections
 

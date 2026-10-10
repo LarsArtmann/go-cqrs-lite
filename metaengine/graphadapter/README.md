@@ -5,11 +5,11 @@ to the `metaengine.Engine` contract — registers as engine name **`graph-memory
 
 ## When to use which
 
-| You want | Use |
-| --- | --- |
-| Graph-native read models from event folds (Edge/EdgeRemoval), planner-routed, any engine | `metaengine.Query` Graph ADT via `system.RawQuery` — see the skill's `recipes.md` §2.44. The adapter is NOT on this path. |
-| An in-memory graph engine satisfying `metaengine.Engine` (e.g. to hand to code that wants an Engine) | `graphadapter.New()` / `NewWithDriver(d)` |
-| Label-rich direct reads (typed NodeRefs, Traverse/Neighbors/ShortestPath) | `Adapter.Driver()` — escape hatch to the underlying `graph.MemoryDriver` |
+| You want                                                                                             | Use                                                                                                                       |
+| ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Graph-native read models from event folds (Edge/EdgeRemoval), planner-routed, any engine             | `metaengine.Query` Graph ADT via `system.RawQuery` — see the skill's `recipes.md` §2.44. The adapter is NOT on this path. |
+| An in-memory graph engine satisfying `metaengine.Engine` (e.g. to hand to code that wants an Engine) | `graphadapter.New()` / `NewWithDriver(d)`                                                                                 |
+| Label-rich direct reads (typed NodeRefs, Traverse/Neighbors/ShortestPath)                            | `Adapter.Driver()` — escape hatch to the underlying `graph.MemoryDriver`                                                  |
 
 ## API
 

@@ -73,6 +73,7 @@
 ## f) NEXT — up to 50 items (ordered)
 
 **T23 (chaos + SSE):**
+
 1. Implement `chaos.go`: `DelayedDriver(base string, delay time.Duration) string` in systemscenario (embed Engine, override StreamLogBackend methods with sleep).
 2. Chaos test: scenario on DelayedDriver(memory, 2–5ms) — random command sequence, assert journal ordering + fold-vs-read-model still hold under latency.
 3. Delayed-driver edge: delay on `StreamAppend` must not break optimistic-concurrency detection (AtomicAppender still promotes).

@@ -188,8 +188,8 @@ waves 0–5 all complete):
 - **§g Q2 (graphadapter label flattening):** RULED as documented limitation —
   flat node identity + label-less edges both pinned in
   [ADR-0156](../adr/0156-graph-edge-labels-at-v5.md) (v4.x: collection-per-relation
-  + `Driver()` hatch; labeled edges reopen only on a named fleet consumer).
-  `Edge` does NOT grow fields in v4.x.
+  - `Driver()` hatch; labeled edges reopen only on a named fleet consumer).
+    `Edge` does NOT grow fields in v4.x.
 - **allengines (D3):** RULED NO convenience module — measured 5.3× binary tax
   (68.2 MiB vs 12.7 MiB sqlite-only, 221 vs 64 modules); the two-level story is
   [ADR-0157](../adr/0157-engine-fleet-operation-two-level-story.md) (blank-import

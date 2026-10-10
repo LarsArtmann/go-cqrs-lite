@@ -13,7 +13,7 @@
 
 "Where data lives is up to operators at DEPLOYMENT time" is the north-star promise. Today that
 promise is delivered by two mechanisms that were never written down as one story, so operators
-keep asking the same two questions: *which engines can I choose from?* and *where do I choose?*
+keep asking the same two questions: _which engines can I choose from?_ and _where do I choose?_
 
 1. **Compile time — the app author fixes the candidate set.** Engines are separate modules that
    self-register via `init()` → `metaengine.RegisterDriver` ([ADR-0123](0123-v5-unification-single-composition-root-universal-engines-auto-projection.md) §3).
@@ -35,10 +35,10 @@ blank-imports every engine, so apps could route to anything at runtime without c
 Measured on 2026-10-10 (go1.27.1, linux/amd64, blank-import probe modules, proxy-resolved
 tagged versions):
 
-| Probe | Binary size | Unique modules | `go mod graph` edges |
-| --- | --- | --- | --- |
-| sqlite engine only | 12,747,630 B (~12.2 MiB) | 64 | 168 |
-| all 10 pure-Go engines | 68,185,216 B (~65.0 MiB) | 221 | 871 |
+| Probe                  | Binary size              | Unique modules | `go mod graph` edges |
+| ---------------------- | ------------------------ | -------------- | -------------------- |
+| sqlite engine only     | 12,747,630 B (~12.2 MiB) | 64             | 168                  |
+| all 10 pure-Go engines | 68,185,216 B (~65.0 MiB) | 221            | 871                  |
 
 Blank-importing the full pure-Go fleet is a **5.3× binary tax and 3.5× module-count tax** on
 every consumer. A convenience module would force that tax onto all importers to save one import
@@ -48,20 +48,20 @@ one durable source-of-truth engine plus one specialized projections engine.
 
 ### D2 — The candidate set (membership table).
 
-| Driver | Module | Pure Go | Graph ADT | Notes |
-| --- | --- | --- | --- | --- |
-| `memory` | core `metaengine` | yes | yes | default; no persistence |
-| `sqlite` | `sqliteengine` | yes (modernc) | yes | recursive CTE, iterative fallback |
-| `turso` | `tursoengine` | yes | yes | wraps the sqlite engine |
-| `postgres` | `pgengine` | yes (pgx) | yes | `WITH RECURSIVE` |
-| `mysql` | `mysqlengine` | yes | yes | 8.0+ CTE, probed fallback |
-| `badger` | `badgerengine` | yes | yes | prefix-scan BFS |
-| `bbolt` | `bboltengine` | yes | **no** | no `ADTGraph` methods |
-| `pebble` | `pebbleengine` | yes | **no** | no `ADTGraph` methods |
-| `iroh` | `irohengine` | yes (go-sse) | yes | replicated, passthrough/BFS |
-| `dgraph` | `dgraphengine` | yes (dgo gRPC) | yes | native `n(depth:)` traversal |
-| `duckdb` | `duckdbengine` | **no — CGo** | yes | `//go:build cgo` on registration |
-| `bigtable` | `bigtableengine` | yes but heavy | — | 3 direct GCP deps, ~50 indirect; excluded from any convenience-set discussion |
+| Driver     | Module            | Pure Go        | Graph ADT | Notes                                                                         |
+| ---------- | ----------------- | -------------- | --------- | ----------------------------------------------------------------------------- |
+| `memory`   | core `metaengine` | yes            | yes       | default; no persistence                                                       |
+| `sqlite`   | `sqliteengine`    | yes (modernc)  | yes       | recursive CTE, iterative fallback                                             |
+| `turso`    | `tursoengine`     | yes            | yes       | wraps the sqlite engine                                                       |
+| `postgres` | `pgengine`        | yes (pgx)      | yes       | `WITH RECURSIVE`                                                              |
+| `mysql`    | `mysqlengine`     | yes            | yes       | 8.0+ CTE, probed fallback                                                     |
+| `badger`   | `badgerengine`    | yes            | yes       | prefix-scan BFS                                                               |
+| `bbolt`    | `bboltengine`     | yes            | **no**    | no `ADTGraph` methods                                                         |
+| `pebble`   | `pebbleengine`    | yes            | **no**    | no `ADTGraph` methods                                                         |
+| `iroh`     | `irohengine`      | yes (go-sse)   | yes       | replicated, passthrough/BFS                                                   |
+| `dgraph`   | `dgraphengine`    | yes (dgo gRPC) | yes       | native `n(depth:)` traversal                                                  |
+| `duckdb`   | `duckdbengine`    | **no — CGo**   | yes       | `//go:build cgo` on registration                                              |
+| `bigtable` | `bigtableengine`  | yes but heavy  | —         | 3 direct GCP deps, ~50 indirect; excluded from any convenience-set discussion |
 
 "Pure Go" = builds without a C toolchain. Graph capability is interface-detected
 (`GraphAddEdge`/`GraphNeighbors`/`GraphRemoveEdge` on the engine), not Profile-declared — a
@@ -89,8 +89,8 @@ module compiles standalone, and registration is side-effect-free (`init()` only)
 
 ## Consequences
 
-**Positive:** the operator story is two sentences — *authors import candidates, operators pick
-in YAML* — with measured evidence that import-minimalism is a real lever (5.3× binary spread).
+**Positive:** the operator story is two sentences — _authors import candidates, operators pick
+in YAML_ — with measured evidence that import-minimalism is a real lever (5.3× binary spread).
 Binary size stays a first-class deployment artifact; CGo isolation (duckdb) remains the app's
 explicit choice.
 

@@ -22,7 +22,10 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ARGS=()
-if [[ "${1:-}" == "--" ]]; then shift; ARGS=("$@"); fi
+if [[ "${1:-}" == "--" ]]; then
+	shift
+	ARGS=("$@")
+fi
 
 RAW="$(branching-flow dupe "${ARGS[@]:-.}" --format json --exclude-generated 2>/dev/null)"
 

@@ -503,19 +503,19 @@ are not detectors; listing one in `rules.disable` is a silent no-op.
 
 ## Architecture Rules
 
-| ID   | Rule                       | Severity | Description                                                        |
-| ---- | -------------------------- | -------- | ------------------------------------------------------------------ |
-| E001 | layer-violation            | Error    | Tier-0 module imports Tier-3+ module                               |
-| E002 | circular-dependency        | Error    | Two modules import each other                                      |
-| E003 | missing-module-boundary    | Warning  | All CQRS code in one package                                       |
-| E004 | event-not-in-catalog       | Info     | Event type emitted but not in catalog                              |
-| E005 | command-without-handler    | Warning  | Command type defined but never registered                          |
-| E006 | event-without-projection   | Info     | Event emitted but no projection handles it                         |
-| E007 | query-without-handler      | Info     | Query type defined but never registered                            |
-| E018 | projection-without-emitter | Warning  | Projection handles an event nothing emits or catalogs — typo class |
-| E019 | data-product-without-contract | Info  | Declared data product serves outputs without a data contract      |
-| E020 | handrolled-system-boot-in-test | Info | Test file boots `system.New` without adopting the systemscenario harness |
-| E021 | emitted-without-schema-declaration | Warning | Emitted event type carries no schema declaration — upcasting and typed decoding skip it |
+| ID   | Rule                               | Severity | Description                                                                             |
+| ---- | ---------------------------------- | -------- | --------------------------------------------------------------------------------------- |
+| E001 | layer-violation                    | Error    | Tier-0 module imports Tier-3+ module                                                    |
+| E002 | circular-dependency                | Error    | Two modules import each other                                                           |
+| E003 | missing-module-boundary            | Warning  | All CQRS code in one package                                                            |
+| E004 | event-not-in-catalog               | Info     | Event type emitted but not in catalog                                                   |
+| E005 | command-without-handler            | Warning  | Command type defined but never registered                                               |
+| E006 | event-without-projection           | Info     | Event emitted but no projection handles it                                              |
+| E007 | query-without-handler              | Info     | Query type defined but never registered                                                 |
+| E018 | projection-without-emitter         | Warning  | Projection handles an event nothing emits or catalogs — typo class                      |
+| E019 | data-product-without-contract      | Info     | Declared data product serves outputs without a data contract                            |
+| E020 | handrolled-system-boot-in-test     | Info     | Test file boots `system.New` without adopting the systemscenario harness                |
+| E021 | emitted-without-schema-declaration | Warning  | Emitted event type carries no schema declaration — upcasting and typed decoding skip it |
 
 ## Security Rules
 

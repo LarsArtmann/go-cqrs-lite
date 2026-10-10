@@ -30,56 +30,61 @@ MODE="proxy"
 [ "${1:-}" = "--tree" ] && MODE="tree"
 
 ENGINES=(
-  metaengine
-  metaengine/sqliteengine
-  metaengine/tursoengine
-  metaengine/pgengine
-  metaengine/mysqlengine
-  metaengine/badgerengine
-  metaengine/bboltengine
-  metaengine/pebbleengine
-  metaengine/dgraphengine
-  metaengine/irohengine
+	metaengine
+	metaengine/sqliteengine
+	metaengine/tursoengine
+	metaengine/pgengine
+	metaengine/mysqlengine
+	metaengine/badgerengine
+	metaengine/bboltengine
+	metaengine/pebbleengine
+	metaengine/dgraphengine
+	metaengine/irohengine
 )
 
 imports_for() { # comma-joined subset name list -> import block body
-  for path in "$@"; do
-    printf '\t_ "github.com/larsartmann/go-cqrs-lite/%s/v4"\n' "$path"
-  done
+	for path in "$@"; do
+		printf '\t_ "github.com/larsartmann/go-cqrs-lite/%s/v4"\n' "$path"
+	done
 }
 
 run_probe() { # <slug> <display-name> <import-paths...>
-  local slug="$1" name="$2"; shift 2
-  local dir
-  dir=$(mktemp -d "${TMPDIR:-/tmp}/fleet-probe-XXXXXX") || { echo "mktemp failed" >&2; exit 1; }
-  trap 'rm -rf "$dir"' EXIT
+	local slug="$1" name="$2"
+	shift 2
+	local dir
+	dir=$(mktemp -d "${TMPDIR:-/tmp}/fleet-probe-XXXXXX") || {
+		echo "mktemp failed" >&2
+		exit 1
+	}
+	trap 'rm -rf "$dir"' EXIT
 
-  {
-    printf 'package main\n\nimport (\n'
-    imports_for "$@"
-    printf ')\n\nfunc main() {}\n'
-  } > "$dir/main.go"
+	{
+		printf 'package main\n\nimport (\n'
+		imports_for "$@"
+		printf ')\n\nfunc main() {}\n'
+	} >"$dir/main.go"
 
-  (
-    cd "$dir"
-    go mod init "fleetprobe/$slug" >/dev/null
-    if [ "$MODE" = "tree" ]; then
-      while IFS= read -r moddir; do
-        [ "$moddir" = "." ] && continue
-        local modpath
-        modpath=$(grep -m1 '^module ' "$moddir/go.mod" | sed 's/^module //')
-        go mod edit -replace "$modpath=$(realpath "$REPO_ROOT/$moddir")"
-      done < <(cd "$REPO_ROOT" && find . -name go.mod -not -path './vendor/*' -printf '%h\n')
-    fi
-    go mod tidy >/dev/null 2>&1
-    go build -o probe .
-    local size modules edges
-    size=$(stat -c%s probe)
-    modules=$(go list -m all | tail -n +2 | wc -l | tr -d ' ')
-    edges=$(go mod graph | wc -l | tr -d ' ')
-    printf '| %s | %s | %s | %s |\n' "$name" "$size B" "$modules" "$edges"
-  )
-  rm -rf "$dir"; trap - EXIT
+	(
+		cd "$dir"
+		go mod init "fleetprobe/$slug" >/dev/null
+		if [ "$MODE" = "tree" ]; then
+			while IFS= read -r moddir; do
+				[ "$moddir" = "." ] && continue
+				local modpath
+				modpath=$(grep -m1 '^module ' "$moddir/go.mod" | sed 's/^module //')
+				go mod edit -replace "$modpath=$(realpath "$REPO_ROOT/$moddir")"
+			done < <(cd "$REPO_ROOT" && find . -name go.mod -not -path './vendor/*' -printf '%h\n')
+		fi
+		go mod tidy >/dev/null 2>&1
+		go build -o probe .
+		local size modules edges
+		size=$(stat -c%s probe)
+		modules=$(go list -m all | tail -n +2 | wc -l | tr -d ' ')
+		edges=$(go mod graph | wc -l | tr -d ' ')
+		printf '| %s | %s | %s | %s |\n' "$name" "$size B" "$modules" "$edges"
+	)
+	rm -rf "$dir"
+	trap - EXIT
 }
 
 echo "mode: $MODE (ADR-0157 reference: sqlite-only 12,747,630 B / 64 / 168; all-10 68,185,216 B / 221 / 871)"

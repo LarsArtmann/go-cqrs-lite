@@ -18,7 +18,7 @@ M9 research-complete, no DiscordSync edits yet). Previous report:
 - CHANGELOG T1b entry (catalog.FromTypedSchema / SemverFromWire + tier ruling); changelog-symbols
   gate green (30 citations).
 - modules.md catalog row + new faq entry ("EventCatalog export in sync with schema declarations")
-  + TOC; doc-check green (1270 refs); md-go green.
+  - TOC; doc-check green (1270 refs); md-go green.
 
 ### M8 — cqrs-lint E021 (T1c) — COMPLETE
 
@@ -195,7 +195,7 @@ None of these shipped defects; all were caught inside the same task.
 1. **`.golangci.yml` conflict (Q1)**: the concurrent session re-added `gci` (fights treefmt per
    contract #18), removed the depguard allow-list, loosened cyclop, without re-pinning the config
    hash golden. (a) restore documented config + re-pin, (b) accept theirs + rewrite contract #18
-   + re-pin, or (c) leave it to the BDD session? Blocks a clean M26 `#verify` (lint-config gate).
+   - re-pin, or (c) leave it to the BDD session? Blocks a clean M26 `#verify` (lint-config gate).
 2. **Tag-wave ownership (Q2)**: may this stream tag the next wave (schema v4.6.1+ with
    TypedEventSchema + catalog + cqrs-lint co-release) when Phase 1 completes, or does the BDD
    session own tag waves? (I will NOT tag without an explicit go — same for pushes.)

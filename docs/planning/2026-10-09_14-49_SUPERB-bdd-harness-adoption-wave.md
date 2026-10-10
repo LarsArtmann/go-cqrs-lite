@@ -450,39 +450,39 @@ This plan treats tree-red from these as **externally blocked**: T27 verifies MY 
 
 ### 11.1 Per-task record
 
-| Task | Status | Evidence / notes |
-| ---- | ------ | ---------------- |
-| T01 | DONE | `docs/evidence/2026-10-09_deriver-bus-deadlock.md` (repro + §2 option memo) — ADR-0154 inputs |
-| T02 | DONE | Changed-set per-module full tests green pre-tag; wave manifest in the 10-09 sessions' reports |
-| T03 | DONE | Companion baselines recorded (cqrs-htmx + go-appkit full suites, 10-09) |
-| T04 | DONE | TODO_LIST adoption-wave section (TODO_LIST.md §"BDD harness adoption wave residue") |
-| T05 | DONE | `docs/adr/0154-deriver-async-dispatch-and-journal-tailed-host.md` + 2026-10-10 mechanism addendum |
-| T06 | DONE | FEATURES.md systemscenario/Clock rows + maturity matrix (10-09 sessions) |
-| T07 | DONE | SKILL.md harness paragraph (`SKILL.md` "Testing such apps") + recipes §2.43 |
-| T08 | DONE | `deriver.WithAsyncDispatch` (async path strips the delivery mark — deriver.go:234) |
-| T09 | DONE | saga fixture flipped to WithAsyncDispatch; README constraint note updated |
-| T10–T13 | DONE | cqrs-htmx user train fully migrated, legacy twins deleted per Q3 — commit `749ddbb5` (declarative_test.go 1235→896 lines, suite 2.2s→0.8s), systemadapter green standalone |
-| T14 | DONE | Tag wave: `systemscenario/v4 v4.0.0` (+ system v4.12.0) on the proxy |
-| T15 | DONE | Both companions resolve systemscenario v4.0.0 from the proxy, replaces dropped (htmx commit `e4f9784f`; go-appkit cqrs/go.mod:19) |
-| T16 | DONE | `ThenCommandsSatisfyAwait` + `ThenQueryEventuallyFails` + last-error surfacing (CHANGELOG [Unreleased], hardening pack A) |
-| T17 | DONE | `WithQuietWindow` + `WithCommandCaptureFilter` (hardening pack B) |
-| T18 | DONE | go-appkit layer-2 pilot — commit `59eb9e2` (HTTP acts, harness assertions) |
-| T19 | DONE | `systemscenario/example_test.go` (System, saga, TimeAdvances examples) — post-tag, rides next wave |
-| T20 | DONE (F20.4 PARTIAL) | `Memory()`/`SQLite(t)` presets (`systemscenario/presets.go`) + tests + README; **F20.4 pilots-adopt-presets PARTIAL with rationale**: presets are post-tag, companions pin proxy v4.0.0 — adoption waits for the next tag wave (Q2), same dependency shape as every other post-tag API |
-| T21 | DONE | Fold-vs-read-model property (rapid) + allocs/op bench (in tag: property_test.go, bench_test.go) |
-| T22 | DONE | `DelayedDriver` chaos seam + `SubscribeSSE[V]` real-HTTP helper (`systemscenario/chaos.go`, `sse.go`, race-clean tests; recipes §2.45) — untagged, rides next wave |
-| T23 | DONE (as E020) | `cqrs-lint` E020 `handrolled-system-boot-in-test` (E019 was taken by a concurrent wave's data-product rule; `cmd/cqrs-lint/pkg/rules/architecture/e020.go`; 210 rules) |
-| T24 | DONE | `cqrs-upgrade` `suggest:then-query` advisory (own syntax-only test-file walk — cqrs-lint BuildContext loads `Tests:false`; wire schemaVersion 2) |
-| T25 | DONE | `example/taskmanager/systemscenario_test.go` (Adopt over the NewServer facade; deriver auto-assign pinned in-poll) + `example/goal-shaped-app/systemscenario_test.go` (cqrs.yaml boot, GetTask/errTaskGone/OpenTasks asserts); both ADD-only, tagged-API-only, `check-example-standalone.sh` green |
-| T26 | DONE | `watermill.ErrReentrantPublish` guard on both buses (Event+Command), `event.MarkInDelivery`/`WithoutDeliveryMark` ctx marker (goroutine-ID-free), deriver strips on async dispatch; 3 race-clean tests + 5s watchdog |
-| T27 | DONE | This addendum + retro (§11.4) + final verify + superseding status report `docs/status/2026-10-10_*bdd-adoption-wave-complete*` |
+| Task    | Status               | Evidence / notes                                                                                                                                                                                                                                                                                   |
+| ------- | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T01     | DONE                 | `docs/evidence/2026-10-09_deriver-bus-deadlock.md` (repro + §2 option memo) — ADR-0154 inputs                                                                                                                                                                                                      |
+| T02     | DONE                 | Changed-set per-module full tests green pre-tag; wave manifest in the 10-09 sessions' reports                                                                                                                                                                                                      |
+| T03     | DONE                 | Companion baselines recorded (cqrs-htmx + go-appkit full suites, 10-09)                                                                                                                                                                                                                            |
+| T04     | DONE                 | TODO_LIST adoption-wave section (TODO_LIST.md §"BDD harness adoption wave residue")                                                                                                                                                                                                                |
+| T05     | DONE                 | `docs/adr/0154-deriver-async-dispatch-and-journal-tailed-host.md` + 2026-10-10 mechanism addendum                                                                                                                                                                                                  |
+| T06     | DONE                 | FEATURES.md systemscenario/Clock rows + maturity matrix (10-09 sessions)                                                                                                                                                                                                                           |
+| T07     | DONE                 | SKILL.md harness paragraph (`SKILL.md` "Testing such apps") + recipes §2.43                                                                                                                                                                                                                        |
+| T08     | DONE                 | `deriver.WithAsyncDispatch` (async path strips the delivery mark — deriver.go:234)                                                                                                                                                                                                                 |
+| T09     | DONE                 | saga fixture flipped to WithAsyncDispatch; README constraint note updated                                                                                                                                                                                                                          |
+| T10–T13 | DONE                 | cqrs-htmx user train fully migrated, legacy twins deleted per Q3 — commit `749ddbb5` (declarative_test.go 1235→896 lines, suite 2.2s→0.8s), systemadapter green standalone                                                                                                                         |
+| T14     | DONE                 | Tag wave: `systemscenario/v4 v4.0.0` (+ system v4.12.0) on the proxy                                                                                                                                                                                                                               |
+| T15     | DONE                 | Both companions resolve systemscenario v4.0.0 from the proxy, replaces dropped (htmx commit `e4f9784f`; go-appkit cqrs/go.mod:19)                                                                                                                                                                  |
+| T16     | DONE                 | `ThenCommandsSatisfyAwait` + `ThenQueryEventuallyFails` + last-error surfacing (CHANGELOG [Unreleased], hardening pack A)                                                                                                                                                                          |
+| T17     | DONE                 | `WithQuietWindow` + `WithCommandCaptureFilter` (hardening pack B)                                                                                                                                                                                                                                  |
+| T18     | DONE                 | go-appkit layer-2 pilot — commit `59eb9e2` (HTTP acts, harness assertions)                                                                                                                                                                                                                         |
+| T19     | DONE                 | `systemscenario/example_test.go` (System, saga, TimeAdvances examples) — post-tag, rides next wave                                                                                                                                                                                                 |
+| T20     | DONE (F20.4 PARTIAL) | `Memory()`/`SQLite(t)` presets (`systemscenario/presets.go`) + tests + README; **F20.4 pilots-adopt-presets PARTIAL with rationale**: presets are post-tag, companions pin proxy v4.0.0 — adoption waits for the next tag wave (Q2), same dependency shape as every other post-tag API             |
+| T21     | DONE                 | Fold-vs-read-model property (rapid) + allocs/op bench (in tag: property_test.go, bench_test.go)                                                                                                                                                                                                    |
+| T22     | DONE                 | `DelayedDriver` chaos seam + `SubscribeSSE[V]` real-HTTP helper (`systemscenario/chaos.go`, `sse.go`, race-clean tests; recipes §2.45) — untagged, rides next wave                                                                                                                                 |
+| T23     | DONE (as E020)       | `cqrs-lint` E020 `handrolled-system-boot-in-test` (E019 was taken by a concurrent wave's data-product rule; `cmd/cqrs-lint/pkg/rules/architecture/e020.go`; 210 rules)                                                                                                                             |
+| T24     | DONE                 | `cqrs-upgrade` `suggest:then-query` advisory (own syntax-only test-file walk — cqrs-lint BuildContext loads `Tests:false`; wire schemaVersion 2)                                                                                                                                                   |
+| T25     | DONE                 | `example/taskmanager/systemscenario_test.go` (Adopt over the NewServer facade; deriver auto-assign pinned in-poll) + `example/goal-shaped-app/systemscenario_test.go` (cqrs.yaml boot, GetTask/errTaskGone/OpenTasks asserts); both ADD-only, tagged-API-only, `check-example-standalone.sh` green |
+| T26     | DONE                 | `watermill.ErrReentrantPublish` guard on both buses (Event+Command), `event.MarkInDelivery`/`WithoutDeliveryMark` ctx marker (goroutine-ID-free), deriver strips on async dispatch; 3 race-clean tests + 5s watchdog                                                                               |
+| T27     | DONE                 | This addendum + retro (§11.4) + final verify + superseding status report `docs/status/2026-10-10_*bdd-adoption-wave-complete*`                                                                                                                                                                     |
 
 ### 11.2 Known-red at close (all external, §7-owned — verified not mine)
 
 - `cmd/cqrs-lint/pkg/rules/version` TestV007 (core/v5 marker drift) — core/v5 agent.
 - File-size offenders (7 at close; the wave's files — chaos.go 343, sse.go 189, e020.go,
   suggest.go, both example suites — are all under caps): `metaengine/engine.go` (712),
-  `metaengine/reflect.go` (359), `metaengine/typed_reader_scan.go` (367), 
+  `metaengine/reflect.go` (359), `metaengine/typed_reader_scan.go` (367),
   `projectionhost/host.go` (383), `metaengine/adttest/pagination_conformance.go` (353, new),
   `system/system.go` (361, new), `cmd/cqrs-lint/pkg/suppression/stale.go` (489→533 grew) —
   metaengine/system/schema-wave agents.
@@ -512,7 +512,7 @@ other post-tag API in this wave (presets, chaos/SSE, ThenQueryEventuallyFails, E
    `errTaskGone`) map the sentinel to success in the probe. `ThenQueryEventuallyFails` is the
    first-class form but is post-tag — the probe adapter is the tag-compatible pattern both
    companions/examples used. FAQ entry added.
-3. **Then*-chaining shape** — `.Command()` continues a chain; `.When().When()` does not exist;
+3. __Then_-chaining shape_* — `.Command()` continues a chain; `.When().When()` does not exist;
    `Given()` with zero events is valid. FAQ entry added.
 4. **In-chain read-model barriers** — the deriver auto-assign poll ("wait for X before
    dispatching Y or OCC-conflict") is expressible as a `ThenQueryFunc` BETWEEN `.Command()`

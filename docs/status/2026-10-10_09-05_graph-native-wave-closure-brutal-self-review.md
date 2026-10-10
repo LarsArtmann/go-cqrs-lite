@@ -145,6 +145,7 @@
 ## f) NEXT — up to 50, impact-sorted (session-derived only)
 
 **Harvest & inventory (do first):**
+
 1. HARVEST the entombed 07-37 §f items into TODO_LIST (docs-health HARVEST mode).
 2. TODO_LIST row: coeffect gate blind to `RawQuery` — product fix = `buildProjections`
    extracting event types from `rawQuerySpec` folds (or rule documented-forever).
@@ -156,9 +157,9 @@
 
 **Split-brain kills:**
 6. Engine-capability generation gate (single source; ADR-0157/advanced/system/COOKBOOK/
-   modules embed or link). My top structural recommendation.
+modules embed or link). My top structural recommendation.
 7. `scripts/measure-engine-fleet.sh` checked in; re-runs ADR-0157's numbers; optional
-   nightly-bench leg.
+nightly-bench leg.
 8. `scripts/check-adr-numbering.sh` (duplicates + gaps + untracked-collision) + CI leg.
 
 **Recipe-gap closures (each drops a T18 waiver):**
@@ -174,25 +175,25 @@
 
 **Pre-existing red triage (from 07-37 §f-31…37 — needs ONE owning decision):**
 19. core/v5 README 23 broken links. 20. cqrs-bench go.sum untidy. 21. core/v5 missing
-   `.go-arch-lint.yml`. 22. BuildFlow pseudo-version hygiene (sqliteengine v4.5.2).
+`.go-arch-lint.yml`. 22. BuildFlow pseudo-version hygiene (sqliteengine v4.5.2).
 23. 34 modules need `go mod tidy`. 24. golangci red: system/, scheduling/sqlstore,
-   stack/sqlite. 25. go-licenses FAIL (bigtableengine). 26. govulncheck toolchain mismatch
-   (go1.26 vs 1.27).
+stack/sqlite. 25. go-licenses FAIL (bigtableengine). 26. govulncheck toolchain mismatch
+(go1.26 vs 1.27).
 
 **Verification & hygiene:**
 27. Full `nix run .#verify` in a quiet window as the post-wave confirmation.
 28. LSP false-positive warnings in example/graph-native (unused/gci) — stale single-file
-    analysis; consider an LSP restart note in gotchas or an exclusion; do NOT "fix" by
-    deleting used symbols.
+analysis; consider an LSP restart note in gotchas or an exclusion; do NOT "fix" by
+deleting used symbols.
 29. Audit-agent prompt template: add "ignore IDE diagnostics" clause (crush-config skill
-    repo, not fan-out).
+repo, not fan-out).
 30. Recommit authored message for the T18+fixes and closure changes? Only if history
-    readability matters — content is verified landed; otherwise drop.
+readability matters — content is verified landed; otherwise drop.
 31. ADR-0157 D2: add a "verified from source on" date stamp so future drift is detectable.
 32. recipes §2.44 fence #3: fold the `follow` guard bodies inline once round-2 stall #1 is
-    ruled worth closing (currently example-pointer by design).
+ruled worth closing (currently example-pointer by design).
 33. Consider `graph-native` example: `-race` suite into `testModules`? Currently
-    build-only example — deliberate; revisit if the BDD suite grows.
+build-only example — deliberate; revisit if the BDD suite grows.
 
 ## g) QUESTIONS I CANNOT ANSWER MYSELF
 
