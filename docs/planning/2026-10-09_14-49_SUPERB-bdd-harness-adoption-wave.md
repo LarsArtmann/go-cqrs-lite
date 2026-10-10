@@ -1,6 +1,6 @@
 # SUPERB — BDD Harness Adoption Wave: Release, Migrate, Harden, Clean Up
 
-> **Date:** 2026-10-09 14:49 · **Status:** PLAN (awaiting owner go / Full Execution Mode)
+> **Date:** 2026-10-09 14:49 · **Status:** EXECUTED 27/27 (addendum below, 2026-10-10)
 > **Source:** status report [`docs/status/2026-10-09_14-40_systemscenario-bdd-harness-full-execution-status.md`](../status/2026-10-09_14-40_systemscenario-bdd-harness-full-execution-status.md) §b/§c/§f, plus re-verified repo state at 14:45.
 > **Predecessor:** [`2026-10-09_04-04_SUPERB-bdd-testing-harness-pareto-plan.md`](2026-10-09_04-04_SUPERB-bdd-testing-harness-pareto-plan.md) — EXECUTED 27/27 (see its addendum). This plan is the adoption wave that plan ended on.
 > **Format note:** `.md` + mermaid per operator instruction (pareto-planning skill default is HTML — explicit override, consistent with the 04-04 precedent).
@@ -433,3 +433,102 @@ This plan treats tree-red from these as **externally blocked**: T27 verifies MY 
 
 - TODO_LIST adoption-wave section added on approval (T04 harvest).
 - On Full Execution Mode: top to bottom, gates respected, every task verified, `#verify` + companion suites green at the end, retro + addendum written.
+
+---
+
+## 11. EXECUTION ADDENDUM (2026-10-10)
+
+> **Status banner:** EXECUTED 27/27 under owner Full Execution Mode with Gate-1 rulings baked in
+> (Q1 = `deriver.WithAsyncDispatch` now + journal-tailed deriver host as v5/ADR-0154; Q2 = new API
+> rides the next tag wave; Q3 = migrate-and-delete per green train). Sessions 2026-10-09 →
+> 2026-10-10; final session closed T25–T27 (this addendum, the retro, the superseding status
+> report). Module set the wave touched: **systemscenario, event, deriver, watermill, cqrs-lint,
+> cqrs-upgrade** (+ example/taskmanager, example/goal-shaped-app as consumers; companions
+> cqrs-htmx + go-appkit as adopting repos). Numbering note: session handoffs used a numbering ONE
+> ROW LATER than this table for T21+ (handoff T23 = plan T22, etc.); this addendum uses PLAN
+> numbering.
+
+### 11.1 Per-task record
+
+| Task | Status | Evidence / notes |
+| ---- | ------ | ---------------- |
+| T01 | DONE | `docs/evidence/2026-10-09_deriver-bus-deadlock.md` (repro + §2 option memo) — ADR-0154 inputs |
+| T02 | DONE | Changed-set per-module full tests green pre-tag; wave manifest in the 10-09 sessions' reports |
+| T03 | DONE | Companion baselines recorded (cqrs-htmx + go-appkit full suites, 10-09) |
+| T04 | DONE | TODO_LIST adoption-wave section (TODO_LIST.md §"BDD harness adoption wave residue") |
+| T05 | DONE | `docs/adr/0154-deriver-async-dispatch-and-journal-tailed-host.md` + 2026-10-10 mechanism addendum |
+| T06 | DONE | FEATURES.md systemscenario/Clock rows + maturity matrix (10-09 sessions) |
+| T07 | DONE | SKILL.md harness paragraph (`SKILL.md` "Testing such apps") + recipes §2.43 |
+| T08 | DONE | `deriver.WithAsyncDispatch` (async path strips the delivery mark — deriver.go:234) |
+| T09 | DONE | saga fixture flipped to WithAsyncDispatch; README constraint note updated |
+| T10–T13 | DONE | cqrs-htmx user train fully migrated, legacy twins deleted per Q3 — commit `749ddbb5` (declarative_test.go 1235→896 lines, suite 2.2s→0.8s), systemadapter green standalone |
+| T14 | DONE | Tag wave: `systemscenario/v4 v4.0.0` (+ system v4.12.0) on the proxy |
+| T15 | DONE | Both companions resolve systemscenario v4.0.0 from the proxy, replaces dropped (htmx commit `e4f9784f`; go-appkit cqrs/go.mod:19) |
+| T16 | DONE | `ThenCommandsSatisfyAwait` + `ThenQueryEventuallyFails` + last-error surfacing (CHANGELOG [Unreleased], hardening pack A) |
+| T17 | DONE | `WithQuietWindow` + `WithCommandCaptureFilter` (hardening pack B) |
+| T18 | DONE | go-appkit layer-2 pilot — commit `59eb9e2` (HTTP acts, harness assertions) |
+| T19 | DONE | `systemscenario/example_test.go` (System, saga, TimeAdvances examples) — post-tag, rides next wave |
+| T20 | DONE (F20.4 PARTIAL) | `Memory()`/`SQLite(t)` presets (`systemscenario/presets.go`) + tests + README; **F20.4 pilots-adopt-presets PARTIAL with rationale**: presets are post-tag, companions pin proxy v4.0.0 — adoption waits for the next tag wave (Q2), same dependency shape as every other post-tag API |
+| T21 | DONE | Fold-vs-read-model property (rapid) + allocs/op bench (in tag: property_test.go, bench_test.go) |
+| T22 | DONE | `DelayedDriver` chaos seam + `SubscribeSSE[V]` real-HTTP helper (`systemscenario/chaos.go`, `sse.go`, race-clean tests; recipes §2.45) — untagged, rides next wave |
+| T23 | DONE (as E020) | `cqrs-lint` E020 `handrolled-system-boot-in-test` (E019 was taken by a concurrent wave's data-product rule; `cmd/cqrs-lint/pkg/rules/architecture/e020.go`; 210 rules) |
+| T24 | DONE | `cqrs-upgrade` `suggest:then-query` advisory (own syntax-only test-file walk — cqrs-lint BuildContext loads `Tests:false`; wire schemaVersion 2) |
+| T25 | DONE | `example/taskmanager/systemscenario_test.go` (Adopt over the NewServer facade; deriver auto-assign pinned in-poll) + `example/goal-shaped-app/systemscenario_test.go` (cqrs.yaml boot, GetTask/errTaskGone/OpenTasks asserts); both ADD-only, tagged-API-only, `check-example-standalone.sh` green |
+| T26 | DONE | `watermill.ErrReentrantPublish` guard on both buses (Event+Command), `event.MarkInDelivery`/`WithoutDeliveryMark` ctx marker (goroutine-ID-free), deriver strips on async dispatch; 3 race-clean tests + 5s watchdog |
+| T27 | DONE | This addendum + retro (§11.4) + final verify + superseding status report `docs/status/2026-10-10_*bdd-adoption-wave-complete*` |
+
+### 11.2 Known-red at close (all external, §7-owned — verified not mine)
+
+- `cmd/cqrs-lint/pkg/rules/version` TestV007 (core/v5 marker drift) — core/v5 agent.
+- File-size offenders (7 at close; the wave's files — chaos.go 343, sse.go 189, e020.go,
+  suggest.go, both example suites — are all under caps): `metaengine/engine.go` (712),
+  `metaengine/reflect.go` (359), `metaengine/typed_reader_scan.go` (367), 
+  `projectionhost/host.go` (383), `metaengine/adttest/pagination_conformance.go` (353, new),
+  `system/system.go` (361, new), `cmd/cqrs-lint/pkg/suppression/stale.go` (489→533 grew) —
+  metaengine/system/schema-wave agents.
+- doc-check alias-ambiguity WARNINGS (core/v5 vs v4 package aliases) — advisory, core/v5 agent.
+
+### 11.3 GOWORK standalone reds until the next tag wave (Q2, expected)
+
+`deriver` and `watermill` now import the UNPUBLISHED `event` marker API
+(`WithoutDeliveryMark` et al.): `GOWORK=off` standalone builds against tagged deps fail until
+`event/v4` tags. Workspace-mode builds/tests are the contract meanwhile — same ruling as every
+other post-tag API in this wave (presets, chaos/SSE, ThenQueryEventuallyFails, E020).
+
+### 11.4 Retro (F25.4 feedback memo + honest-miss log)
+
+**API friction found while adopting (F25.4; durable half lives in the skill FAQ):**
+
+1. **Adopt-over-facade ergonomics** — clean; the subtle part is context ownership: Adopt's ctx
+   rides every harness dispatch, so pass a long-lived context and keep the cancellable one for
+   the facade's own Start/Stop (taskmanager suite models this).
+2. **Deleted-row assertion split** — `TypedReader.Get`'s `(zero, false, nil)` shape must ride
+   the probe VALUE into `ThenQueryFunc`; queries that error on missing (goal-shaped-app's
+   `errTaskGone`) map the sentinel to success in the probe. `ThenQueryEventuallyFails` is the
+   first-class form but is post-tag — the probe adapter is the tag-compatible pattern both
+   companions/examples used. FAQ entry added.
+3. **Then*-chaining shape** — `.Command()` continues a chain; `.When().When()` does not exist;
+   `Given()` with zero events is valid. FAQ entry added.
+4. **In-chain read-model barriers** — the deriver auto-assign poll ("wait for X before
+   dispatching Y or OCC-conflict") is expressible as a `ThenQueryFunc` BETWEEN `.Command()`
+   acts — no explicit barrier API needed. This is the waitForView-elimination pattern.
+5. **SSE client parsing** — spec-correct data-line joining had to be hand-rolled in
+   `systemscenario/sse.go` (go-sse ships the server wire-format, not a client parser).
+
+**Honest misses (all recovered; lesson → gotchas):** handoff design claim nearly built on
+(interface embedding does NOT tunnel capability assertions — verified against the compiler
+first); SSE parser off-by-one (`len("data")` is 4); async-escape test subscription mismatch
+twice (a python global replace shadowed a targeted one — proved machinery with a throwaway test,
+then trashed it); sed-mangled var decl; 2 daemon-race edit failures + 1 partial multiedit
+(recovered with asserted python replaces — ALWAYS re-verify edits landed under the daemon);
+`.When().When()` compile miss. Durable lessons landed in
+`docs/agents/gotchas-testing.md` (retro 2026-10-10).
+
+### 11.5 Corrected-handoff-claims register
+
+Two handoff claims failed verification this wave (caught before damage): (1) "capability
+forwarding via embedding" (chaos.go) — Go does not promote type assertions through embedding;
+(2) "`ThenQueryEventuallyFails` is tagged v4.0.0" — it is NOT (tagged surface ends at
+ThenQueryFails); the cqrs-htmx sweep therefore correctly used the tagged adapter pattern, and
+the example suites were written tag-only from the start. Rule: handoff "designs/APIs chosen" get
+compiler/`git show <tag>` verification before building on them.

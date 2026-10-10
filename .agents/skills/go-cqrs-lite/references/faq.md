@@ -28,11 +28,12 @@
 > - [Events don't record the causing command](#why-dont-my-events-record-which-command-caused-them)
 > - [Command lost in the decide closure](#my-decide-function-captured-the-command-in-a-closure--is-that-wrong)
 > - [Evolving persisted command lifecycle payloads](#how-do-i-evolve-command-lifecycle-payloads-that-are-already-persisted)
+> - [EventCatalog export in sync with schema declarations](#how-do-i-keep-my-eventcatalog-export-in-sync-with-my-schema-declarations)
 > - [Will the v5 cut break my imports?](#will-the-v5-cut-break-my-imports-what-is-going-away)
 > - [stack vs system — which composition layer?](#stack-vs-system--which-composition-layer-should-i-import)
 > - [Turso engine encryption at rest](#does-the-turso-engine-support-encryption-at-rest)
 > - [pkg.go.dev shows no documentation](#why-does-pkggodev-show-no-documentation-for-these-modules)
-> - [Harness chain won't compile after a Then*](#my-systemscenario-chain-wont-compile-after-a-then--whenwhen-does-not-exist)
+> - [Harness chain won't compile after a Then*](#my-systemscenario-chain-wont-compile-after-a-then-whenwhen-does-not-exist)
 > - [Asserting a deleted row is gone](#how-do-i-assert-a-deleted-row-is-gone-with-the-harness)
 
 ### "My event payload won't decode"
@@ -442,6 +443,37 @@ upcasters via `chain.Upcasters()` for `schema.UpcastSourceTransform`.
 Reads see the evolved payload and `SchemaVersion()` bump; raw bytes and the
 write path stay untouched. Full recipe with the preservation rules:
 [recipes.md](recipes.md) §2.19b.
+
+### "How do I keep my EventCatalog export in sync with my schema declarations?"
+
+**Cause:** hand-written `catalog.Event` declarations duplicate what the
+schema declaration already knows (event type, current version, payload
+shape) — two sources of truth drift apart.
+
+**Fix:** render the governance message FROM the same typed declaration that
+drives upcasting and projection decoding:
+
+```go
+import (
+    "github.com/larsartmann/go-cqrs-lite/catalog/v4"
+    schema "github.com/larsartmann/go-cqrs-lite/schema/v4"
+)
+
+decl := schema.EventOf(BalanceUpdated, 2, schema.RenameField(BalanceUpdated, 1, "amount", "balance"))
+
+builder.AddService("bank", "Bank", "1.0.0", "sync",
+    catalog.FromTypedSchema(decl, catalog.Sends),
+)
+```
+
+The message ID is the event type, the payload schema is derived from the Go
+type, and the version string comes from `catalog.SemverFromWire` (wire int
+N → "N.0.0" — the wire keeps the integer, the string is derived display
+metadata). `catalog.WithVersion`/`catalog.WithName` override when the export
+needs operator-facing names. With the `system.Schemas()` builder the same
+declarations also derive the projection type decoder — one declaration list,
+three consumers (upcasting, decoding, governance). Bridge direction matters:
+catalog imports schema (downward, legal); `system` never imports catalog.
 
 ### "Why doesn't `middleware.CommandRetry` retry version conflicts?"
 

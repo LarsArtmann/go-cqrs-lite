@@ -53,7 +53,7 @@
 | `transport/http` | `transport/http/v4` | **DEPRECATED** (ADR-0127, removal at v5). `NewSSEBroker`, `SSEHandler`. Use `github.com/larsartmann/go-sse` or `watermill/` instead.                                                                         |
 | `otel`           | `otel/v4`           | `Tracer`, `Meter`, `Spans`, `Attributes`, `DBSystem` (db.system semconv). Re-exports — import this, not go.opentelemetry.io. Exemplars flow by default (trace-based filter).                                 |
 | `otel/otlp`      | `otel/otlp/v4`      | `SetupOTLP(ctx, OTLPConfig)` — one-call OTLP/HTTP trace+metric exporters over `otel.Setup` (endpoint/insecure/headers/service). No gRPC dep.                                                                 |
-| `catalog`        | `catalog/v4`        | `Registry`, `SchemaFromType[T]()`, exporters: `asyncapi`, `d2`, `eventcatalog`, `openapi`; `docserver` serves it all (templ-components UI, embedded assets).                                                 |
+| `catalog`        | `catalog/v4`        | `Registry`, `SchemaFromType[T]()`, `FromTypedSchema[T]()` (renders a `schema.TypedEventSchema` declaration as a governance message; `SemverFromWire` derives the display version), exporters: `asyncapi`, `d2`, `eventcatalog`, `openapi`; `docserver` serves it all (templ-components UI, embedded assets).                                                 |
 | `watermill`      | `watermill/v4`      | `EventBus` (GoChannel-backed, replaces `memory.MemoryBus`), `CatchUpSubscriber`, `EventPublisher`, `MessageToEvent`. ADR-0028. Command protocol carries actor as `actor_id` (`"kind:raw"`), both directions. |
 
 ### Reliability & Testing (Layer 1–3)

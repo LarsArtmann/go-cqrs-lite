@@ -334,6 +334,9 @@ mesh-demo onboarding) lives in the eventcatalog-hub repo. Execution evidence:
       deriver host as the v5 direction** — [ADR-0154](docs/adr/0154-deriver-async-dispatch-and-journal-tailed-host.md);
       evidence: [docs/evidence/2026-10-09_deriver-bus-deadlock.md](docs/evidence/2026-10-09_deriver-bus-deadlock.md)
       (live stack capture). The wave executes the fix (T08 option, T09 fixture flip, T26 loud-fail).
+      **SHIPPED 2026-10-10**: `deriver.WithAsyncDispatch` + T26 loud-fail landed
+      (`watermill.ErrReentrantPublish`, `event.MarkInDelivery`/`WithoutDeliveryMark` — see CHANGELOG
+      [Unreleased] and the ADR-0154 addendum); the journal-tailed deriver host stays the v5 direction.
 - [ ] **cqrs-htmx SQLite-lifecycle tests through the harness** (`sqliteDeployment` variant) — the wave
       migrates the memory-deployment trains; the sqlite-backed lifecycle tests remain on raw wiring.
       — source: 14:40 §f7 _(Effort: M)_
