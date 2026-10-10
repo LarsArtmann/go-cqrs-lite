@@ -58,11 +58,11 @@ Sorted by importance / impact / effort / customer-value.
 | F8  | `projectionhost` module tests                                             | M2     | ✅ 2.3s green          |
 | F9  | CHANGELOG `### Changed` bullets (2)                                       | M1/M2  | ✅                     |
 | F10 | `check-changelog-symbols.sh` gate                                         | M11    | ✅ 37 citations honest |
-| F11 | Lint touched modules (full `nix run .#lint`)                              | M11    | 🔄 running             |
-| F12 | doc-check over skill references (no refs mention SortColumn — verified)   | M11    | 🔄                     |
+| F11 | Lint touched modules (targeted per-module golangci, sanctioned env; the backgrounded full `nix run .#lint` ran WITHOUT `go-env.sh` and its output was discarded as env-poisoned) | M11    | ✅                     |
+| F12 | doc-check over skill references (no refs mention SortColumn — verified)   | M11    | ✅ 1184 refs valid     |
 | F13 | TODO_LIST harvest (2 entries: Code Quality + v5 Unification)              | M3     | ✅                     |
 | F14 | Write this plan doc                                                       | M3     | ✅                     |
-| F15 | git commit (detailed) + push                                              | M11    | ☐                      |
+| F15 | git commit (detailed) + push                                              | M11    | ✅ `036775275` pushed  |
 | F16 | Enumerate mirror module pairs (id, kv, event, command, query, dispatcher) | M4     | ☐                      |
 | F17 | Table-driven lockstep cross-compare test (event.Type pattern)             | M4     | ☐                      |
 | F18 | Wire into CI/meta-test set; document in gotchas                           | M4     | ☐                      |

@@ -375,3 +375,18 @@ next schema tag. Ruling: `replace github.com/larsartmann/go-cqrs-lite/schema/v4 
 catalog/go.mod (the repo's established dev-time pattern, 10+ modules; `tag-release.sh` strips local
 replaces at tag time, forcing the schema+catalog co-release this plan already schedules for the
 Phase 1 wave).
+
+### D6 — M8 executed: E021 scopes to EMITTED types; gate-hygiene absorption (2026-10-10 ~10:00)
+
+E021 `emitted-without-schema-declaration` (T1c) parses `schema.Event`/`schema.EventOf` calls AND
+both `system.Schemas()` builder forms (direct chain via receiver-walk; local builder variable via
+per-file assignment tracking). Scope ruling: consumption-only types stay E018's provider-contract
+tier (imported events), catalog.Event counts as declared, zero declarations → silence. 7 fixture
+tests; detector count 210→211; README/RULES (regenerated, not hand-edited — RULES.md is generated
+output). Offset the scanner_calls.go growth by extracting handlerTypeFromCall et al. to
+scanner_calls_helpers.go (338 < 360 baseline — the file SHRANK). Gate hygiene absorbed from the
+concurrent sessions (mechanical, additive): repo-wide `go mod tidy` (28 modules with stale go.sum
+from the import churn), graph-native README (meta-test demanded), taskmanager golden V003 2→3
+(their tag wave added systemscenario v4.0.0). STILL THEIRS, verified pre-existing via worktree at
+05:44 commit: `TestMultiModuleBuildContext_PartitionsProfiles` (deriver CommandFlow=commands
+expectation vs their deriver changes) — M26 blocker list.
