@@ -383,6 +383,13 @@ ADR-0136.
 
 There are **three projection tiers** — pick by read-access pattern:
 
+> **v5 direction (ADR-0123):** the graph read pattern no longer needs the
+> legacy `graph.GraphProjection` tier — new code folds relations into
+> `metaengine.Edge` records (Graph ADT) and lets the planner route
+> traversals: [recipes.md §2.44](recipes.md#244-graph-native-read-models--edge-folds-traversal-retraction-system--metaengine),
+> reference app [`example/graph-native`](../../../example/graph-native),
+> engine matrix [advanced.md §6.13](advanced.md#613-graph-native-read-models-metaengine-graph-adt-legacy-graph).
+
 > **Benchmarking a tier choice?** Single runs are point estimates. Measure
 > with `cqrs-bench --repeat N` and check the per-metric cross-run CoV
 > (`Variation:` section / `MetricVariation`) before believing any "tier X is
@@ -392,7 +399,7 @@ There are **three projection tiers** — pick by read-access pattern:
 | --------------- | ------------------------------------ | -------------------------- | ------------------------------------------------- |
 | **Document/KV** | `stack.Materialize` + `kv.ViewStore` | one record in one table    | single-entity lookups, CRUD-style reads           |
 | **Relational**  | `storage.RelationalProjection`       | several related SQL tables | multi-table joins, WHERE/ORDER BY, set predicates |
-| **Graph**       | `graph.GraphProjection`              | nodes + edges              | variable-depth traversal, path-finding, adjacency |
+| **Graph**       | `metaengine` Graph ADT (modern); `graph.GraphProjection` (legacy, removed v5) | nodes + edges              | variable-depth traversal, path-finding, adjacency |
 
 `SQLViewStore` (above) is the document tier with queryable columns — still one
 record per event. When a single event must update several related tables

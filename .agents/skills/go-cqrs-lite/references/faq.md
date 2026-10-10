@@ -323,6 +323,29 @@ they reach `event.New` / `command.New` / `query.New`.
 cqrs-lint rule **C043** flags this at the call site (type-aware: named
 `[]byte` payloads, `jsontext.Value` exempt).
 
+### "How do I model relations / graphs (follows, dependencies, reply chains)?"
+
+Fold the relation events into `metaengine.Edge` records — the planner
+classifies the query as the Graph ADT and routes depth-limited traversals to
+the deployed engine (sqlite recursive CTE, Dgraph native `@recurse`, BFS
+fallback). Retraction is a domain event whose fold returns
+`metaengine.EdgeRemoval` (ADR-0114). Recipe:
+[recipes.md §2.44](recipes.md#244-graph-native-read-models--edge-folds-traversal-retraction-system--metaengine);
+behavior-verified app: [`example/graph-native`](../../../example/graph-native).
+Two traps: (1) derive node names from payload fields — `id.StreamID.String()`
+is the brand-prefixed display form (`"StreamMarker:alice"`), not a clean node
+name; (2) the legacy `graph.GraphProjection` tier is deprecated (removed v5) —
+don't start new code there.
+
+### "Why does ExecuteCtx return []any for my []string traversal query?"
+
+`Store.ExecuteCtx(ctx, input)` returns `any` and traversal results come back
+as `[]any` regardless of the query's `R` type parameter. Use
+`metaengine.ExecuteTyped[Q, R](ctx, store, input)` — it reconstructs the
+typed collection (`[]string`, sorted by the query's sort key), or
+`ExecuteTypedByName[Q, R](ctx, store, "query_name", input)` when several
+queries share one input type.
+
 ## Command-side pitfalls
 
 ### "Why don't my events record which command caused them?"

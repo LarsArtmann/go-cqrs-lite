@@ -289,4 +289,24 @@ var recipeCatalogB2 = map[string]recipeSpec{
 			"ctx := context.Background()\nvar sys *system.System\n",
 		trailers: "_ = reach\n_ = err",
 	},
+	"### 2.44 Graph-Native Read Models — Edge folds, traversal, retraction (system + metaengine) #4": {
+		imports: []string{
+			`"context"`,
+			`"testing"`,
+			`errorfamily "github.com/larsartmann/go-error-family"`,
+			`"github.com/larsartmann/go-cqrs-lite/command/v4"`,
+			`"github.com/larsartmann/go-cqrs-lite/metaengine/v4"`,
+			`"github.com/larsartmann/go-cqrs-lite/system/v4"`,
+			`"github.com/larsartmann/go-cqrs-lite/systemscenario/v4"`,
+		},
+		preamble: "type Reachability struct {\n" +
+			"\tNode  string\n" +
+			"\tDepth int\n" +
+			"}\n" +
+			"var t testing.TB\n" +
+			"var ctx context.Context\n" +
+			"func graphDomain() system.DomainConfig { return system.DomainConfig{} }\n" +
+			"func followCmd(t *testing.T, follower, followee string) command.Command { return nil }\n",
+		trailers: "_ = sc",
+	},
 }

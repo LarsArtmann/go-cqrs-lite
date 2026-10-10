@@ -2983,8 +2983,39 @@ reach, err := metaengine.ExecuteTyped[Reachability, []string](ctx,
 // projection host applies journal events asynchronously.
 ```
 
-BDD-test it at system level: the graph-native BDD suite in
-[`example/graph-native/scenario_test.go`](../../../example/graph-native/scenario_test.go)
-pins traversal + retraction + guard rejections against the same
-`DomainConfig` the binary boots (systemscenario, §2.43).
+BDD-test it at system level (§2.43): boot the SAME `DomainConfig`, dispatch
+real commands, and assert the reachable set — `ThenQueryTyped` polls until
+the projection converges, and guard rejections assert via
+`ThenErrorFamily`:
+
+```go
+import (
+    "context"
+    "testing"
+
+    errorfamily "github.com/larsartmann/go-error-family"
+
+    "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+    "github.com/larsartmann/go-cqrs-lite/systemscenario/v4"
+)
+
+sc := systemscenario.System(t, ctx, graphDomain(), systemscenario.Memory())
+
+sc.When(followCmd(t, "alice", "bob")).
+    Command(followCmd(t, "bob", "carol")).
+    Then("user.followed", "user.followed")
+
+systemscenario.ThenQueryTyped(sc.Phase(),
+    func() ([]string, error) { // typed traversal, polled to convergence
+        return metaengine.ExecuteTyped[Reachability, []string](ctx,
+            sc.System().MetaEngine(), Reachability{Node: "alice", Depth: 2})
+    },
+    func(got []string) error { return nil /* compare sorted reachable set */ })
+
+sc.Phase().When(followCmd(t, "alice", "alice")).
+    ThenErrorFamily(errorfamily.Rejection) // decider guard: no self-follow
+```
+
+Behavior-verified reference: the graph-native BDD suite in
+[`example/graph-native/scenario_test.go`](../../../example/graph-native/scenario_test.go).
 
