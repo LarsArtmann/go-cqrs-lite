@@ -317,8 +317,10 @@ DEP_BUDGET["stack/bench"]=25
 # +1 templ-components/utils (generated d2view_templ.go imports it directly
 # since templ-components v1.11.0 — same +1-for-a-submodule precedent as
 # storage/pebble above), +1 templ-components/icons (same submodule precedent,
-# v1.18 split the icon set into its own module).
-DEP_BUDGET[catalog]=7
+# v1.18 split the icon set into its own module), +1 schema/v4 (T1b of the
+# v5 schema-evolution plan: FromTypedSchema renders governance exports from
+# typed schema declarations — schema is the downward import, system stays out).
+DEP_BUDGET[catalog]=8
 DEP_BUDGET[integration]=21
 DEP_BUDGET[benchkit]=25
 DEP_BUDGET[testutil]=5

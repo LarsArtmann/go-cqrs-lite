@@ -1,5 +1,10 @@
 module github.com/larsartmann/go-cqrs-lite/catalog/v4
 
+// Dev-time sibling replace: FromTypedSchema uses schema.TypedEventSchema,
+// which is in the working tree but not yet in a tagged schema/v4 release.
+// tag-release.sh strips local replaces at tag time (schema+catalog co-release).
+replace github.com/larsartmann/go-cqrs-lite/schema/v4 => ../schema
+
 go 1.27
 
 require (
