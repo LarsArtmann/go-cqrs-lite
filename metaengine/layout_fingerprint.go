@@ -71,7 +71,12 @@ func RecordLayoutStamps(
 	plans []LayoutPlan,
 ) error {
 	for _, plan := range plans {
-		if err := backend.MapSet(ctx, LayoutStampCollection, plan.Collection, plan.Fingerprint()); err != nil {
+		if err := backend.MapSet(
+			ctx,
+			LayoutStampCollection,
+			plan.Collection,
+			plan.Fingerprint(),
+		); err != nil {
 			return fmt.Errorf("metaengine.RecordLayoutStamps: %s: %w", plan.Collection, err)
 		}
 	}
@@ -127,7 +132,12 @@ func MarkReplayComplete(
 	completedAt := time.Now().UTC().Format(time.RFC3339)
 
 	for _, collection := range collections {
-		if err := backend.MapSet(ctx, LayoutStampCollection, replayCompletePrefix+collection, completedAt); err != nil {
+		if err := backend.MapSet(
+			ctx,
+			LayoutStampCollection,
+			replayCompletePrefix+collection,
+			completedAt,
+		); err != nil {
 			return fmt.Errorf("metaengine.MarkReplayComplete: %s: %w", collection, err)
 		}
 	}

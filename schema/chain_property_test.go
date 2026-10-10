@@ -5,9 +5,10 @@ import (
 
 	"github.com/larsartmann/go-codec"
 
+	"pgregory.net/rapid"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	cqrsid "github.com/larsartmann/go-cqrs-lite/id/v4"
-	"pgregory.net/rapid"
 )
 
 // TestPropertyChain_VersionMonotonicityAndIdentity drives randomly generated
@@ -45,11 +46,18 @@ func TestPropertyChain_VersionMonotonicityAndIdentity(t *testing.T) {
 			case 2:
 				ops = append(ops, RenameField(eventType, opVersion, "name", "displayName"))
 			case 3:
-				ops = append(ops, Transform(eventType, opVersion, func(fields map[string]any) (map[string]any, error) {
-					fields["derived"] = len(fields)
+				ops = append(
+					ops,
+					Transform(
+						eventType,
+						opVersion,
+						func(fields map[string]any) (map[string]any, error) {
+							fields["derived"] = len(fields)
 
-					return fields, nil
-				}))
+							return fields, nil
+						},
+					),
+				)
 			}
 		}
 
@@ -99,7 +107,8 @@ func TestPropertyChain_VersionMonotonicityAndIdentity(t *testing.T) {
 			t.Fatal("occurredAt changed")
 		}
 
-		if upcasted.StreamID() != source.StreamID() || upcasted.StreamType() != source.StreamType() {
+		if upcasted.StreamID() != source.StreamID() ||
+			upcasted.StreamType() != source.StreamType() {
 			t.Fatal("stream identity changed")
 		}
 	})

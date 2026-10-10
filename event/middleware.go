@@ -45,7 +45,11 @@ func RejectingHandlerMiddleware(code, msg string) Middleware {
 //
 // Backoff: base * exp^(attempt-1), capped at maxDelay. Context cancellation
 // aborts between attempts.
-func PublishRetry(attempts int, baseDelay, maxDelay time.Duration, logger *slog.Logger) PublishMiddleware {
+func PublishRetry(
+	attempts int,
+	baseDelay, maxDelay time.Duration,
+	logger *slog.Logger,
+) PublishMiddleware {
 	if attempts < 1 {
 		attempts = 1
 	}

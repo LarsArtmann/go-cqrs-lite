@@ -43,7 +43,11 @@ func RejectingHandlerMiddleware(code, msg string) Middleware {
 //
 // Backoff: base * exp^(attempt-1), capped at maxDelay. Context cancellation
 // aborts between attempts.
-func PublishRetry(attempts int, baseDelay, maxDelay time.Duration, logger *slog.Logger) PublishMiddleware {
+func PublishRetry(
+	attempts int,
+	baseDelay, maxDelay time.Duration,
+	logger *slog.Logger,
+) PublishMiddleware {
 	//art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 	if attempts < 1 {
 		attempts = 1

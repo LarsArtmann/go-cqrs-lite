@@ -19,8 +19,8 @@ type exampleUserCreated struct {
 func ExampleSchemas() {
 	decls, err := system.Schemas().
 		Event[exampleUserCreated]("user.created", 2,
-			schema.RenameField("user.created", 1, "name", "displayName"),
-		).
+		schema.RenameField("user.created", 1, "name", "displayName"),
+	).
 		Event[struct{}]("user.deleted", 1).
 		Build()
 	if err != nil {

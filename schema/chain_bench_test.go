@@ -40,7 +40,7 @@ func benchPayloadEvent(tb testing.TB, codecFor codec.Codec) event.Event {
 		"email": "bench@example.com",
 		"flags": []any{float64(1), float64(2), float64(3)},
 		"profile": map[string]any{
-			"name":  "Bench",
+			"name":   "Bench",
 			"avatar": "https://example.com/a.png",
 			"bio":    "representative nested object",
 		},

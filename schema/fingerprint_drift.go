@@ -1,8 +1,9 @@
 package schema
 
 import (
-	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
+
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
 )
 
 // DriftHook observes one shape-drift finding: a stored event whose
@@ -42,7 +43,8 @@ func FingerprintDrift(declared []EventSchema, onDrift DriftHook) event.SourceTra
 				continue
 			}
 
-			if declaredFp, isDeclared := fingerprints[evt.Type()]; isDeclared && stamped != declaredFp {
+			if declaredFp, isDeclared := fingerprints[evt.Type()]; isDeclared &&
+				stamped != declaredFp {
 				onDrift(evt, stamped, declaredFp)
 			}
 		}
@@ -70,7 +72,11 @@ func FingerprintDriftHard(declared []EventSchema) event.SourceTransform {
 			if isDeclared && stamped != declaredFp {
 				return nil, errorfamily.NewCorruption(
 					"schema.fingerprint_drift",
-					"event "+evt.ID().String()+" ("+evt.Type().String()+") was written under shape "+
+					"event "+evt.ID().
+						String()+
+						" ("+evt.Type().
+						String()+
+						") was written under shape "+
 						stamped+" but the declared shape is "+declaredFp,
 				)
 			}

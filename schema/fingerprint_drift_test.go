@@ -3,8 +3,9 @@ package schema
 import (
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
+
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
 )
 
 func driftTestEvents(
@@ -17,7 +18,11 @@ func driftTestEvents(
 	matching = newPayloadEvent(t, declared.eventType, 2, []byte(`{}`))
 	if stampedFingerprint != "" {
 		var err error
-		matching, err = rebuildWithMetadataStamp(matching, FingerprintMetadataKey, declared.Fingerprint())
+		matching, err = rebuildWithMetadataStamp(
+			matching,
+			FingerprintMetadataKey,
+			declared.Fingerprint(),
+		)
 		if err != nil {
 			t.Fatalf("stamp matching: %v", err)
 		}
@@ -25,7 +30,11 @@ func driftTestEvents(
 
 	mismatched = newPayloadEvent(t, declared.eventType, 2, []byte(`{}`))
 	var err error
-	mismatched, err = rebuildWithMetadataStamp(mismatched, FingerprintMetadataKey, "v1:stalefingerprint")
+	mismatched, err = rebuildWithMetadataStamp(
+		mismatched,
+		FingerprintMetadataKey,
+		"v1:stalefingerprint",
+	)
 	if err != nil {
 		t.Fatalf("stamp mismatched: %v", err)
 	}
@@ -46,9 +55,12 @@ func TestFingerprintDrift_AdvisoryHookFiresOnlyOnMismatch(t *testing.T) {
 
 	var findings []string
 
-	transform := FingerprintDrift([]EventSchema{declared}, func(evt event.Event, stamped, declaredFp string) {
-		findings = append(findings, evt.Type().String()+"="+stamped+"!="+declaredFp)
-	})
+	transform := FingerprintDrift(
+		[]EventSchema{declared},
+		func(evt event.Event, stamped, declaredFp string) {
+			findings = append(findings, evt.Type().String()+"="+stamped+"!="+declaredFp)
+		},
+	)
 
 	got, err := transform([]event.Event{matching, mismatched, unstamped})
 	if err != nil {

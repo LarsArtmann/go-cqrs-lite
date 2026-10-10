@@ -265,16 +265,18 @@ func TestChainCBORStaysCBOR(t *testing.T) {
 func TestTransformNestedMapsAreStringKeyedOnCBOR(t *testing.T) {
 	t.Parallel()
 
-	chain, err := Compile(Transform("user.profiled", 1, func(fields map[string]any) (map[string]any, error) {
-		profile, ok := fields["profile"].(map[string]any)
-		if !ok {
-			t.Fatalf("nested map is %T, want map[string]any", fields["profile"])
-		}
+	chain, err := Compile(
+		Transform("user.profiled", 1, func(fields map[string]any) (map[string]any, error) {
+			profile, ok := fields["profile"].(map[string]any)
+			if !ok {
+				t.Fatalf("nested map is %T, want map[string]any", fields["profile"])
+			}
 
-		profile["displayName"] = profile["name"]
+			profile["displayName"] = profile["name"]
 
-		return fields, nil
-	}))
+			return fields, nil
+		}),
+	)
 	if err != nil {
 		t.Fatalf("Compile: %v", err)
 	}

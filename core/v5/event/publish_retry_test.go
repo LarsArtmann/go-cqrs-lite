@@ -8,9 +8,10 @@ import (
 	"testing"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/core/v5/event"
 	"github.com/larsartmann/go-cqrs-lite/core/v5/id"
-	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // failingPublisher fails the first n publishes with the given error, then

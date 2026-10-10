@@ -50,16 +50,38 @@ func opFingerprintStep(op Op) string {
 	case *fieldOp:
 		switch typed.kind {
 		case fieldRename:
-			return fmt.Sprintf("field-rename:%s@%d:%s->%s", typed.sourceType, typed.sourceVersion, typed.field, typed.renamedTo)
+			return fmt.Sprintf(
+				"field-rename:%s@%d:%s->%s",
+				typed.sourceType,
+				typed.sourceVersion,
+				typed.field,
+				typed.renamedTo,
+			)
 		case fieldAdd:
-			return fmt.Sprintf("field-add:%s@%d:%s=%v", typed.sourceType, typed.sourceVersion, typed.field, typed.defaultValue)
+			return fmt.Sprintf(
+				"field-add:%s@%d:%s=%v",
+				typed.sourceType,
+				typed.sourceVersion,
+				typed.field,
+				typed.defaultValue,
+			)
 		case fieldRemove:
-			return fmt.Sprintf("field-remove:%s@%d:%s", typed.sourceType, typed.sourceVersion, typed.field)
+			return fmt.Sprintf(
+				"field-remove:%s@%d:%s",
+				typed.sourceType,
+				typed.sourceVersion,
+				typed.field,
+			)
 		}
 	case *transformOp:
 		return fmt.Sprintf("transform:%s@%d", typed.sourceType, typed.sourceVersion)
 	case *splitOp:
-		return fmt.Sprintf("split:%s@%d:%d-outputs", typed.sourceType, typed.sourceVersion, len(typed.outputs))
+		return fmt.Sprintf(
+			"split:%s@%d:%d-outputs",
+			typed.sourceType,
+			typed.sourceVersion,
+			len(typed.outputs),
+		)
 	case *dropOp:
 		return fmt.Sprintf("drop:%s", typed.sourceType)
 	}

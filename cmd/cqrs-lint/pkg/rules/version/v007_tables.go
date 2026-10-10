@@ -245,12 +245,24 @@ var deprecatedV5Symbols = []deprecatedV5Symbol{ //nolint:gochecknoglobals // sta
 		symbol:      "MarkRebirth",
 		replacement: "domain events for restore (docs/migration/tombstone-to-domain-events.md)",
 	},
-	{fragment: "core/event", symbol: "MetadataKeyTombstone", replacement: "domain events for deletion"},
-	{fragment: "core/event", symbol: "MetadataKeyRebirth", replacement: "domain events for restore"},
+	{
+		fragment:    "core/event",
+		symbol:      "MetadataKeyTombstone",
+		replacement: "domain events for deletion",
+	},
+	{
+		fragment:    "core/event",
+		symbol:      "MetadataKeyRebirth",
+		replacement: "domain events for restore",
+	},
 	{fragment: "core/event", symbol: "TombstoneMark", replacement: "domain events for deletion"},
 	{fragment: "core/event", symbol: "TombstoneStatus", replacement: "domain events"},
 	{fragment: "core/metadata", symbol: "CustomData", replacement: "metadata.Metadata[K]"},
-	{fragment: "core/query", symbol: "ParseType", replacement: "record.ParseType(s, ErrEmptyQueryType)"},
+	{
+		fragment:    "core/query",
+		symbol:      "ParseType",
+		replacement: "record.ParseType(s, ErrEmptyQueryType)",
+	},
 	// v5: manual snapshot helper replaced by encoding-aware construction.
 	{
 		fragment:    "snapshot",
