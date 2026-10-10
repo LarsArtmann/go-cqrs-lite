@@ -107,17 +107,41 @@ func TestMirrorLockstep(t *testing.T) {
 func TestMirrorLockstepBites(t *testing.T) {
 	t.Parallel()
 
+	// Parser bites: structural violations are reported and dropped so the
+	// checker never sees a row it cannot classify.
+	badAllowlist := "" +
+		"nosuch v4 func X reason\n" +
+		"kv v9 func X reason\n" +
+		"id v4 func Dup reason\n" +
+		"id v4 func Dup duplicate\n" +
+		"id v4 func NoReason\n" +
+		"id v4 func OK valid row\n"
+
+	rows, parseProblems := parseMirrorAllowlist(badAllowlist)
+
+	parsed := strings.Join(parseProblems, "\n")
+
+	for _, mustMention := range []string{"nosuch", "v9", "duplicate", "<reason>"} {
+		if !strings.Contains(parsed, mustMention) {
+			t.Errorf("parser output missing %q; problems were:\n%s", mustMention, parsed)
+		}
+	}
+
+	if len(rows) != 2 || rows[0].symbol != "func Dup" || rows[1].symbol != "func OK" {
+		t.Errorf("invalid rows must be dropped, valid kept; got %+v", rows)
+	}
+
+	// Checker bites: both drift directions, stale rows, registry violations.
 	golden := []string{
-		"id/func Shared",                 // shared symbol: fine
-		coreV5Prefix + "/id/func Shared", //
-		"id/func Lagging",                // v4-side drift, unclassified
+		"id/func Shared",                  // shared symbol: fine
+		coreV5Prefix + "/id/func Shared",  //
+		"id/func Lagging",                 // v4-side drift, unclassified
 		coreV5Prefix + "/id/func Evolved", // v5-side drift, unclassified
 		coreV5Prefix + "/newpkg/func New", // package missing from mirrorPairs
+		"event/v4/eventtest/func Fixture", // subtree drift, unclassified
 	}
-	rows := []mirrorAllowlistRow{
+	rows = []mirrorAllowlistRow{
 		{module: "id", side: "v4", symbol: "func Gone", reason: "covers nothing -> stale"},
-		{module: "nosuch", side: "v4", symbol: "func X", reason: "unknown module"},
-		{module: "kv", side: "v9", symbol: "func X", reason: "bad side"},
 	}
 
 	problems, _ := checkMirrorLockstep(golden, rows)
@@ -126,24 +150,26 @@ func TestMirrorLockstepBites(t *testing.T) {
 	for _, mustMention := range []string{
 		"func Lagging",
 		"func Evolved",
-		"func Gone", // stale row
-		"nosuch",    // unknown module
-		"v9",        // bad side
-		"newpkg",    // registry violation
+		"func Gone",     // stale row
+		"newpkg",        // registry violation
+		"v4/eventtest/", // subtree drift reported with its relative path
 	} {
 		if !strings.Contains(joined, mustMention) {
 			t.Errorf("detector output missing %q; problems were:\n%s", mustMention, joined)
 		}
 	}
 
-	// Positive control: a clean mirror with one classified row stays silent.
+	// Positive control: a clean mirror with one exact row and one subtree row
+	// stays silent.
 	cleanGolden := []string{
 		"kv/func Shared",
 		coreV5Prefix + "/kv/func Shared",
 		"kv/func Lagging",
+		"event/v4/eventtest/func Fixture",
 	}
 	cleanRows := []mirrorAllowlistRow{
 		{module: "kv", side: "v4", symbol: "func Lagging", reason: "classified lag"},
+		{module: "event", side: "v4", symbol: "v4/eventtest/...", reason: "classified subtree"},
 	}
 	if problems, _ := checkMirrorLockstep(cleanGolden, cleanRows); len(problems) != 0 {
 		t.Errorf("clean input produced problems: %v", problems)
@@ -358,8 +384,11 @@ func sortedSet(set map[string]struct{}) []string {
 
 // parseMirrorAllowlist parses the register file: one row per line as
 // "<module> <side> <symbol> <reason...>", '#' comments and blank lines
-// ignored. Structural problems (unknown module/side, duplicate rows) are
-// returned as strings so the caller can fail with file context.
+// ignored. A symbol is either a subtree path containing '/' (single token,
+// e.g. "v4/eventtest/...") or a golden entry "<kind> <Name>" (two tokens,
+// e.g. "func MarkInDelivery"). Structural problems (unknown module/side,
+// duplicate or reason-less rows) are reported and the offending row is
+// DROPPED so the checker never classifies with a row it cannot trust.
 func parseMirrorAllowlist(content string) ([]mirrorAllowlistRow, []string) {
 	known := make(map[string]struct{}, len(mirrorPairs))
 	for _, pair := range mirrorPairs {
@@ -376,38 +405,43 @@ func parseMirrorAllowlist(content string) ([]mirrorAllowlistRow, []string) {
 			continue
 		}
 
-		module, rest, ok := strings.Cut(line, " ")
-		if !ok {
-			problems = append(problems, fmt.Sprintf("line %d: want '<module> <side> <symbol> <reason>'", lineNo+1))
+		fields := strings.Fields(line)
+		where := fmt.Sprintf("line %d", lineNo+1)
+
+		if len(fields) < 4 {
+			problems = append(problems, where+": want '<module> <side> <symbol> <reason>'")
 			continue
 		}
 
-		side, rest, ok := strings.Cut(rest, " ")
-		if !ok {
-			problems = append(problems, fmt.Sprintf("line %d: want '<module> <side> <symbol> <reason>'", lineNo+1))
-			continue
-		}
+		module, side := fields[0], fields[1]
 
-		symbol, reason, ok := strings.Cut(rest, " ")
-		if !ok || strings.TrimSpace(reason) == "" {
-			problems = append(problems, fmt.Sprintf("line %d: reason is mandatory", lineNo+1))
-			continue
+		symbol, reason := fields[2], fields[3]
+		if !strings.Contains(symbol, "/") {
+			// Golden entry symbols are "<kind> <Name>" — two tokens.
+			if len(fields) < 5 {
+				problems = append(problems, where+": want '<module> <side> <kind> <Name> <reason>'")
+				continue
+			}
+			symbol, reason = fields[2]+" "+fields[3], fields[4]
 		}
 
 		if _, isKnown := known[module]; !isKnown {
-			problems = append(problems, fmt.Sprintf("line %d: unknown mirror module %q", lineNo+1, module))
+			problems = append(problems, fmt.Sprintf("%s: unknown mirror module %q", where, module))
+			continue
 		}
 
 		if side != "v4" && side != "v5" {
-			problems = append(problems, fmt.Sprintf("line %d: side must be v4 or v5, got %q", lineNo+1, side))
+			problems = append(problems, fmt.Sprintf("%s: side must be v4 or v5, got %q", where, side))
+			continue
 		}
 
 		key := module + " " + side + " " + symbol
 		if _, dup := seen[key]; dup {
-			problems = append(problems, fmt.Sprintf("line %d: duplicate register row %q", lineNo+1, key))
+			problems = append(problems, fmt.Sprintf("%s: duplicate register row %q", where, key))
+			continue
 		}
-		seen[key] = struct{}{}
 
+		seen[key] = struct{}{}
 		rows = append(rows, mirrorAllowlistRow{module: module, side: side, symbol: symbol, reason: reason})
 	}
 
