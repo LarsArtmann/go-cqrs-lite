@@ -79,7 +79,9 @@ var taskmanagerGoldenProfile = map[string]int{
 	"F028": 1,
 	"F031": 1,
 	"S010": 1,
-	"V003": 2,
+	// V003: 3 since the 2026-10-10 tag wave — taskmanager now also pins
+	// systemscenario/v4 v4.0.0 (3 minors behind).
+	"V003": 3,
 	// V006 (divergent-module-pins) intentionally absent: the 2026-10-03
 	// per-module-tags rework fires only on the SAME module pinned to
 	// different versions across MULTIPLE go.mod files; taskmanager is a
