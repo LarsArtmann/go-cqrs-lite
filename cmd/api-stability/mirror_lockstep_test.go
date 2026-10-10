@@ -242,7 +242,8 @@ func checkMirrorLockstep(goldenLines []string, rows []mirrorAllowlistRow) ([]str
 		if len(v4Sets[name]) == 0 && len(v5Sets[name]) > 0 {
 			problems = append(problems, fmt.Sprintf(
 				"mirror %s: v4 side has no golden entries but core/v5/%s does — v4 module deleted or renamed? update mirrorPairs for the v5 cut",
-				name, name,
+				name,
+				name,
 			))
 			continue
 		}
@@ -276,7 +277,11 @@ func checkMirrorLockstep(goldenLines []string, rows []mirrorAllowlistRow) ([]str
 
 // classifyMirrorDrift fails on any relative symbol present on only one side
 // of a mirror pair unless a register row classifies it.
-func classifyMirrorDrift(name string, v4, v5 map[string]struct{}, rows []mirrorAllowlistRow) []string {
+func classifyMirrorDrift(
+	name string,
+	v4, v5 map[string]struct{},
+	rows []mirrorAllowlistRow,
+) []string {
 	var problems []string
 
 	for _, rel := range sortedSet(v4) {
@@ -287,7 +292,9 @@ func classifyMirrorDrift(name string, v4, v5 map[string]struct{}, rows []mirrorA
 		if !mirrorRowCovers(rows, name, "v4", rel) {
 			problems = append(problems, fmt.Sprintf(
 				"mirror %s: unclassified v4-side drift %q — mirror it into core/v5/%s or add a register row with a reason to testdata/mirror_lockstep_allowlist.txt",
-				name, rel, name,
+				name,
+				rel,
+				name,
 			))
 		}
 	}
@@ -300,7 +307,8 @@ func classifyMirrorDrift(name string, v4, v5 map[string]struct{}, rows []mirrorA
 		if !mirrorRowCovers(rows, name, "v5", rel) {
 			problems = append(problems, fmt.Sprintf(
 				"mirror %s: unclassified v5-side drift %q — deliberate v5 evolution must be a register row with a reason in testdata/mirror_lockstep_allowlist.txt",
-				name, rel,
+				name,
+				rel,
 			))
 		}
 	}
@@ -431,7 +439,10 @@ func parseMirrorAllowlist(content string) ([]mirrorAllowlistRow, []string) {
 		}
 
 		if side != "v4" && side != "v5" {
-			problems = append(problems, fmt.Sprintf("%s: side must be v4 or v5, got %q", where, side))
+			problems = append(
+				problems,
+				fmt.Sprintf("%s: side must be v4 or v5, got %q", where, side),
+			)
 			continue
 		}
 
@@ -442,7 +453,10 @@ func parseMirrorAllowlist(content string) ([]mirrorAllowlistRow, []string) {
 		}
 
 		seen[key] = struct{}{}
-		rows = append(rows, mirrorAllowlistRow{module: module, side: side, symbol: symbol, reason: reason})
+		rows = append(
+			rows,
+			mirrorAllowlistRow{module: module, side: side, symbol: symbol, reason: reason},
+		)
 	}
 
 	return rows, problems

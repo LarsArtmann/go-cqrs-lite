@@ -79,8 +79,8 @@ func e021Finding(
 		WithCategory(finding.CategoryStructure).
 		WithConfidence(finding.ConfidenceMedium).
 		WithSuggestion(
-			"Declare it where the other schemas are declared (schema.EventOf, or the system.Schemas() builder's .Event) — "+
-				"or fix the typo if a near-identical type is already declared; "+
+			"Declare it where the other schemas are declared (schema.EventOf, or the system.Schemas() builder's .Event) — " +
+				"or fix the typo if a near-identical type is already declared; " +
 				"catalog.Event counts as declared when the type is intentionally external",
 		).
 		WithSnippet(ctx.SourceLine(emission.File, emission.Line)).

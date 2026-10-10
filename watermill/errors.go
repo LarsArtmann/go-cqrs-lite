@@ -4,8 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	cqrsevent "github.com/larsartmann/go-cqrs-lite/event/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
+
+	cqrsevent "github.com/larsartmann/go-cqrs-lite/event/v4"
 )
 
 // ErrMissingMetadata is returned when a required metadata field is missing from a Watermill message.

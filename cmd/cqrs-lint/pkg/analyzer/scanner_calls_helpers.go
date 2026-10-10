@@ -192,13 +192,21 @@ func constructorHandlerText(call *ast.CallExpr) string {
 // (schema.Event/EventOf or the Schemas-builder .Event method): the first
 // argument is the event type as a string literal, or a constant reference
 // that resolves in the post-pass (ResolveEmittedEventTypeConsts).
-func recordSchemaDeclaredEvent(ctx *AnalysisContext, gf *GoFile, call *ast.CallExpr, pos token.Position) {
+func recordSchemaDeclaredEvent(
+	ctx *AnalysisContext,
+	gf *GoFile,
+	call *ast.CallExpr,
+	pos token.Position,
+) {
 	if len(call.Args) == 0 {
 		return
 	}
 
 	if eventTypeStr := StringLit(call.Args[0]); eventTypeStr != "" {
-		ctx.Registry.EventTypesInSchemaDecl[eventTypeStr] = EventEmission{File: gf.Path, Line: pos.Line}
+		ctx.Registry.EventTypesInSchemaDecl[eventTypeStr] = EventEmission{
+			File: gf.Path,
+			Line: pos.Line,
+		}
 	} else if name := ExprIdentName(call.Args[0]); name != "" {
 		ctx.Registry.pendingSchemaEventTypeRefs = append(
 			ctx.Registry.pendingSchemaEventTypeRefs,
