@@ -1696,4 +1696,4 @@ dprint, ADR-0123 addendum) shipped the same day — completed rows deleted
       field-name planner contract, and the `[]any` ExecuteCtx cast. Source:
       crm `internal/domain/relation` + `internal/app/projections.go`
       (relationGraphProjection) + the crm audit report
-      `docs/status/2026-10-10_05-48_graph-native-docs-audit-report.md`.
+      crm `docs/status/2026-10-10_06-59_relations-network-graph-feature.md` (research verdict inside).
