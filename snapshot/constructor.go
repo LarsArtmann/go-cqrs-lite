@@ -4,10 +4,11 @@ import (
 	"slices"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
-	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // NewSnapshot constructs a [Snapshot] that satisfies every invariant,
@@ -42,6 +43,10 @@ func NewSnapshot(
 		State:      slices.Clone(state),
 		Encoding:   encoding,
 		CreatedAt:  time.Now().UTC(),
+
+		// Unstamped: NewSnapshot builds the raw envelope; shape stamping is
+		// the decider layer's concern (WithSnapshotStateVersion).
+		StateShape: "",
 	}
 
 	if err := snap.Validate(); err != nil {
