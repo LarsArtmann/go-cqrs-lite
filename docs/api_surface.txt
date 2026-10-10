@@ -1782,6 +1782,7 @@ decider/func WithEnricher
 decider/func WithFlightRecorder
 decider/func WithLoadCoalescing
 decider/func WithPollInterval
+decider/func WithSnapshotStateVersion
 decider/func WithSnapshotStore
 decider/func WithSnapshotStrategy
 decider/func WithStateCache
@@ -1801,6 +1802,7 @@ decider/method LoadAtVersion
 decider/method LoadAtVersionRef
 decider/method LoadRef
 decider/method Put
+decider/method SnapshotShapeDiscards
 decider/method WaitForVersion
 decider/method WaitForVersionRef
 decider/struct Decider

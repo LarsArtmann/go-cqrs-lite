@@ -455,3 +455,41 @@ test files via `.#fmt`, plus the errname rename `fieldMismatch`→`fieldMismatch
 harness files — a test-local type, zero semantic change). STILL THEIRS: identity-model (2) +
 usermgmt (4) exhaustruct findings — judgment-call field additions in concurrent-session code, left
 untouched (M26 triage list).
+
+### D9 — M13 staged as a post-tag patch; M11/M12 shipped in-repo (2026-10-10 ~18:30)
+
+Tag-wall pattern (third instance — D7, D8, now this): bank-sync builds hermetically
+(`buildGoModule` + vendorHash, no go.work, no replaces) and pins decider v4.7.2 + snapshot v4.6.2 —
+BOTH lack the T4 surface (`Snapshot.StateShape`, `WithSnapshotStateVersion`), and sibling replaces
+would break their nix build. M13 is therefore STAGED, not skipped:
+`docs/planning/2026-10-10_m13-bank-sync-state-shape.patch` (the M5 patch pattern) carries the exact
+diff — declare `balanceSyncStateShape = "1"` beside the repo construction and add
+`decider.WithSnapshotStateVersion[BalanceSyncState]` to the option list at infrastructure.go:382 —
+with application instructions tied to the next wave's tags.
+
+In-repo, M11+M12 shipped and are green: snapshot module (StateShape field mirrored through both
+wire spellings, JSON+CBOR roundtrip, absent=accept pins, golden unaffected by construction),
+decider module (option + stamp-on-save + discard-and-rebuild-from-journal + counted
+`SnapshotShapeDiscards` accessor + 4-test conformance suite), api golden regenerated twice
+(6273→6275 exports), changelog entries cited honestly (40 symbols verified). decider carries a
+dev-time sibling replace on snapshot/v4 (the D5 pattern — co-release strips it). Known trap hit
+and dodged: the test-package `everyN` helper leans on Ginkgo's fail handler, so the new suite uses
+`snapshot.EveryNEvents` directly.
+
+### M14 perf baseline — chain vs hand-rolled upcast (2026-10-10, schema/chain_bench_test.go)
+
+32-core dev machine, 2s benchtime, representative payload (flat fields + nested object + list),
+one Transform op matching (the rename+transform two-op chain; hand-rolled = decode-map + mutate +
+re-encode + event.New rebuild, the pre-chain idiom):
+
+| Benchmark                      | ns/op | B/op | allocs/op |
+| ------------------------------ | ----- | ---- | --------- |
+| ChainSourceTransform JSON      | 3311  | 2385 | 41        |
+| HandrolledUpcast JSON          | 3081  | 2337 | 37        |
+| ChainSourceTransform CBOR      | 3231  | 2825 | 48        |
+| HandrolledUpcast CBOR          | 3985  | 2415 | 42        |
+
+Verdict: PARITY. JSON costs the chain ~7% (+4 allocs — op matching + the nested-map
+normalization walk); on CBOR the chain is ~19% FASTER (normalization produces map[string]any,
+which re-encodes cheaper than the hand path's map[any]any tree). The declarative form costs
+nothing measurable at the read path's once-per-event cadence — no optimization warranted.

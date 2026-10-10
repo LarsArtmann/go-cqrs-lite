@@ -1,0 +1,34 @@
+From: v5 schema-evolution plan M13 (T4c)
+Subject: [PATCH] bank-sync: stamp BalanceSyncState snapshots with the state-shape version
+
+Apply AFTER the next go-cqrs-lite tag wave ships decider/v4 > v4.7.2 and
+snapshot/v4 > v4.6.2 (bank-sync builds hermetically via buildGoModule +
+vendorHash — dev-time sibling replaces would break the nix build, so this
+patch waits for the proxy tags). Then: `go get` both pins, `go mod tidy`,
+apply, run the battery.
+
+The declared version is "1" because BalanceSyncState's shape has never
+changed: the stamp's value is the NEXT shape change, which then only bumps
+this constant instead of shipping silently-stale snapshots.
+
+diff --git a/internal/cqrs/infrastructure.go b/internal/cqrs/infrastructure.go
+--- a/internal/cqrs/infrastructure.go
++++ b/internal/cqrs/infrastructure.go
+@@ -379,6 +379,12 @@ func SetupInfrastructure(
+ 	upcastingStore := event.DecorateStore(adapter, nil, upcastingChain.SourceTransform())
+
++	// balanceSyncStateShape stamps every snapshot with the shape version of
++	// BalanceSyncState (T4 shape guard): a future State shape change bumps
++	// this constant and stale snapshots are discarded + rebuilt from the
++	// journal instead of decoded into the new shape. "1" is the first stamp —
++	// the shape has never changed; see decider.WithSnapshotStateVersion.
++	const balanceSyncStateShape = "1"
++
+ 	deciderRepo, err := decider.NewRepository(
+ 		upcastingStore, bus, balanceSyncDecider,
+ 		decider.WithSnapshotStore[BalanceSyncState](countingSnapshotStore),
+ 		decider.WithCodec[BalanceSyncState](snapshotCodec),
++		decider.WithSnapshotStateVersion[BalanceSyncState](balanceSyncStateShape),
+ 		decider.WithSnapshotStrategy[BalanceSyncState](snapshotStrategy),
+ 		decider.WithEnricher[BalanceSyncState](event.CompositeEnricher(
+ 			event.CommandCausalityEnricher,
