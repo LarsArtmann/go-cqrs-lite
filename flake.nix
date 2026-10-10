@@ -1395,6 +1395,43 @@
                   ${pkgs.bash}/bin/bash "$PWD/scripts/check-md-go.sh" "$@"
                 '';
 
+            # check-adr-numbering: ADR numbering integrity — duplicate
+            # numbers (INCLUDING untracked parallel-session files — the
+            # 2026-10-10 double-0155 collision class), index lockstep
+            # (row-per-file, title == H1), non-conforming filenames; warns
+            # on undocumented numbering gaps. --self-test for the fixture
+            # mutations.
+            check-adr-numbering =
+              mkApp "check-adr-numbering"
+                [
+                  pkgs.bash
+                  pkgs.coreutils
+                  pkgs.gnused
+                  pkgs.gnugrep
+                  pkgs.gawk
+                ]
+                ''
+                  ${pkgs.bash}/bin/bash "$PWD/scripts/check-adr-numbering.sh" "$@"
+                '';
+
+            # check-engine-capabilities: engine capability single-source
+            # gate — docs/engine-capabilities.md is GENERATED from the
+            # source census (register.go drivers, graph/removal/undirected
+            # method probes, delegation, CGo) and must not drift.
+            # --self-test for the fixture mutations, --update to regenerate.
+            check-engine-capabilities =
+              mkApp "check-engine-capabilities"
+                [
+                  pkgs.bash
+                  pkgs.coreutils
+                  pkgs.gnugrep
+                  pkgs.findutils
+                  pkgs.diffutils
+                ]
+                ''
+                  ${pkgs.bash}/bin/bash "$PWD/scripts/check-engine-capabilities.sh" "$@"
+                '';
+
             check-modules = mkApp "check-modules" [ pkgs.findutils pkgs.gnugrep ] ''
               # Verify every go.mod in the workspace is covered by testModules.
               # Prevents the "CI blind spot" where new modules ship untested.

@@ -84,6 +84,12 @@ jobs:
       - name: md-go-validator docs gate
         run: nix run .#check-md-go
 
+      - name: ADR numbering gate
+        run: nix run .#check-adr-numbering
+
+      - name: Engine capability single-source gate
+        run: nix run .#check-engine-capabilities
+
       - name: Heap-measurement contract
         run: bash scripts/check-heap-parallel.sh
 
