@@ -6055,6 +6055,7 @@ schema/func Compile
 schema/func Declare
 schema/func Drop
 schema/func Event
+schema/func EventOf
 schema/func NewUpcaster
 schema/func NewValidator
 schema/func NewVersionedSeekableJournal
@@ -6077,13 +6078,17 @@ schema/interface Upcaster
 schema/method Close
 schema/method Close
 schema/method CurrentVersion
+schema/method CurrentVersion
+schema/method Declaration
 schema/method ReadAll
 schema/method ReadFrom
 schema/method RegisterType
 schema/method RegisteredTypes
+schema/method Sample
 schema/method SourceTransform
 schema/method SourceType
 schema/method SourceVersion
+schema/method Type
 schema/method Type
 schema/method Upcast
 schema/method Upcasters
@@ -6091,6 +6096,7 @@ schema/method Validate
 schema/struct Chain
 schema/struct EventSchema
 schema/struct SplitOutput
+schema/struct TypedEventSchema
 schema/struct Validator
 schema/struct VersionedSeekableJournal
 schema/struct VersionedStore
@@ -7923,6 +7929,7 @@ system/func RawQuery
 system/func RegisterCommand
 system/func RegisterDecider
 system/func RegisterQuery
+system/func Schemas
 system/func Where
 system/func WithClock
 system/func WithCommandLifecycle
@@ -7942,6 +7949,7 @@ system/method Advance
 system/method AppendBatch
 system/method AppendBatch
 system/method AppendBatch
+system/method Build
 system/method Bus
 system/method CacheStats
 system/method Clock
@@ -7951,6 +7959,7 @@ system/method Close
 system/method Close
 system/method CommandDispatcher
 system/method CommandStore
+system/method Declarations
 system/method Delete
 system/method Done
 system/method Done
@@ -7958,6 +7967,7 @@ system/method Done
 system/method Done
 system/method Drain
 system/method EngineNames
+system/method Event
 system/method EventStore
 system/method Explain
 system/method Filterable
@@ -8041,6 +8051,7 @@ system/method StreamID
 system/method StreamType
 system/method TimerEngine
 system/method ToAny
+system/method TypeDecoder
 system/method UseCommandMiddleware
 system/method VerifyProjections
 system/method WorkerStatus
@@ -8072,6 +8083,8 @@ system/struct ProjectionSpec
 system/struct QueryAdapter
 system/struct RealClock
 system/struct ScanInput
+system/struct SchemaDeclarations
+system/struct SchemaSet
 system/struct ScreamDiagnostic
 system/struct ScreamReport
 system/struct ShutdownDependency

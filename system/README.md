@@ -404,7 +404,8 @@ separator (koanf convention). Env overrides win over YAML.
 | ------------------------ | -------------------------------------------------------------------------------------------- |
 | `Commands`               | Function that registers typed command handlers on the System.                                |
 | `Queries`                | Function that registers typed query handlers on the System.                                  |
-| `Projections`            | Metaengine query declarations for auto-wired projections.                                    |
+| `Events`                 | This context's event universe (`[]event.Type`): feeds the coeffect gate, which errors on event subscriptions with no producer in scope. |
+| `Projections`            | `[]ProjectionDeclaration` — usually `system.RawQuery(query)` per metaengine query.            |
 | `ProjectionDecoder`      | Decodes event payloads for projection fold handlers.                                         |
 | `ProjectionTypeDecoder`  | Recommended: typed event decoder with stream ID access.                                      |
 | `ProjectionEventDecoder` | Full event context decoder for projection fold handlers.                                     |
@@ -412,6 +413,36 @@ separator (koanf convention). Env overrides win over YAML.
 | `ProjectionHostOptions`  | Projection host options (batch size, DLQ, restart policy, etc.).                             |
 | `CheckpointStore`        | Persistent checkpoint store. If nil, in-memory (lost on restart).                            |
 | `ShutdownDependencies`   | Ordering constraints for `Close()` (engine names only; projection host always closes first). |
+
+#### Declaring projections
+
+A projection is a metaengine query declaration wrapped in `system.RawQuery`
+(the only `ProjectionDeclaration` most apps need), plus a typed decoder for
+its fold payloads:
+
+```go
+import (
+    "github.com/larsartmann/go-cqrs-lite/event/v4"
+    "github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4"
+    "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+    "github.com/larsartmann/go-cqrs-lite/system/v4"
+)
+
+// query is any metaengine.Query[Q, R] declaration (folds define the ADT).
+var query metaengine.QueryDecl
+
+domain := system.DomainConfig{
+    Projections: []system.ProjectionDeclaration{system.RawQuery(query)},
+    ProjectionTypeDecoder: projectionadapter.NewTypeDecoder(
+        projectionadapter.Register(event.Type("user.followed"), Followed{}),
+    ),
+}
+```
+
+NOTE: the coeffect gate cannot see through `RawQuery` declarations — declare
+`Events` only when you also use `Evolve`/`Lookup` declarations whose
+subscriptions the gate should validate. Full recipe: the skill's
+`references/recipes.md` §2.44.
 
 ### YAML
 

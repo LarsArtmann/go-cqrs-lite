@@ -71,6 +71,9 @@ type wireModule struct {
 	Deprecations []struct {
 		Rule string `json:"rule"`
 	} `json:"deprecations"`
+	Suggestions []struct {
+		Rule string `json:"rule"`
+	} `json:"suggestions"`
 }
 
 func decodeWire(t *testing.T, buf []byte) []wireModule {

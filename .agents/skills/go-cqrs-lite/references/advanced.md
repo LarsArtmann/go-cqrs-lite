@@ -484,12 +484,14 @@ deletion-as-domain-event (ADR-0114): an `EdgeRemoval` fold removes exactly
 the edge the retracted fact added.
 
 ```go
-query := metaengine.Query[ReachabilityQuery, []string]("follow_graph",
+// sample/sample2 are zero-value payload types registered per event type;
+// edgeFold/removeFold are the fold funcs returning Edge/EdgeRemoval.
+query := metaengine.Query[Reachability, []string]("follow_graph",
     metaengine.OnRecordTyped("user.followed", sample, edgeFold),      // → metaengine.Edge
     metaengine.OnRecordTyped("user.unfollowed", sample2, removeFold), // → metaengine.EdgeRemoval
 )
 // declared via system.RawQuery(query) in DomainConfig.Projections;
-// reads via metaengine.ExecuteTyped[ReachabilityQuery, []string](ctx, sys.MetaEngine(), in)
+// reads via metaengine.ExecuteTyped[Reachability, []string](ctx, sys.MetaEngine(), in)
 ```
 
 Copy-paste recipe with the full composition-root wiring:
@@ -497,10 +499,11 @@ Copy-paste recipe with the full composition-root wiring:
 Behavior-verified reference application (runnable main + systemscenario BDD
 suite): [`example/graph-native`](../../../example/graph-native).
 
-**Engine support:** memory, sqlite, turso, pg, mysql, duckdb (recursive
-CTE), badger (prefix-scan BFS + undirected), dgraph (native `@recurse`),
-iroh — pebble does NOT support ADTGraph. Undirected traversal
-(`Undirected: true` input field) is an optional capability
+**Engine support (driver registry names):** memory, sqlite, turso, postgres,
+mysql, duckdb (recursive CTE), badger (prefix-scan BFS + undirected), dgraph
+(native `@recurse`), iroh — **pebble and bbolt do NOT support ADTGraph** (the
+planner fails graph queries on them with an unsupported error). Undirected
+traversal (`Undirected: true` input field) is an optional capability
 (`metaengine.HasUndirectedGraphSupport`): engines without it report the
 missing capability instead of guessing.
 

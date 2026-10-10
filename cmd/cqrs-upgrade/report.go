@@ -191,7 +191,7 @@ func scanFindingsAnalyzed(dir string) ([]findingJSON, []findingJSON, int, error)
 		return out[i].Rule < out[j].Rule
 	})
 
-	return out, suggestionFindings(ctx), analyzed, nil
+	return out, suggestionFindings(dir), analyzed, nil
 }
 
 // printSuggestions prints the advisory migration hints. Always rendered

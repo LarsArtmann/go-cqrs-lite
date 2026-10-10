@@ -287,9 +287,7 @@ var recipeCatalogB2 = map[string]recipeSpec{
 		},
 		preamble: "type Followed struct{ Follower, Followee string }\n" +
 			"type Unfollowed struct{ Follower, Followee string }\n" +
-			"var follow func(follower any, followee string) decider.DecideFunc[FollowState]\n" +
-			"var sys *system.System\n",
-		trailers: "_ = sys",
+			"func follow(follower any, followee string) decider.DecideFunc[FollowState] { return nil }\n",
 	},
 	"### 2.44 Graph-Native Read Models — Edge folds, traversal, retraction (system + metaengine) #4": {
 		imports: []string{
