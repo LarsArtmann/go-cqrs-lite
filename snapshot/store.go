@@ -35,6 +35,16 @@ type Snapshot struct { //nolint:recvcheck // receiver mix is API-frozen; changin
 	State      []byte          `json:"state"`
 	Encoding   record.Encoding `json:"encoding,omitempty"`
 	CreatedAt  time.Time       `json:"createdAt"`
+
+	// StateShape optionally stamps the shape identity of State (a caller-owned
+	// version string, e.g. "2" — or the fingerprint a future minting helper
+	// derives from the Go state type). Writers that know their state's shape
+	// stamp it; readers compare it against the shape they can decode and
+	// discard mismatches instead of loading stale-shaped state as if it were
+	// current (the silent-stale-snapshot class). The empty string means
+	// unstamped: pre-change snapshots decode unchanged and readers MUST accept
+	// them (absent = accept).
+	StateShape string `json:"stateShape,omitempty"`
 }
 
 type SnapshotSink interface {

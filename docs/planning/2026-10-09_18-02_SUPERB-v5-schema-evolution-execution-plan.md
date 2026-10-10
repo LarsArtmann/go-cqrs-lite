@@ -448,3 +448,10 @@ candidate follow-up task; when collapsed, the payload-embedded versioning and th
 actual disease). Also noted: root-package `EventCatalog` (Published Language registry with
 per-event SchemaVersion) is a third parallel list — the M7 `catalog.FromTypedSchema` bridge is the
 convergence tool once typed declarations are tag-reachable.
+
+Battery state: workspace `#test` green (race, forEachGoModule); systemadapter lint 0 issues after
+absorbing the concurrent session's mechanical debt (gci/golines reformat of their three harness
+test files via `.#fmt`, plus the errname rename `fieldMismatch`→`fieldMismatchError` across both
+harness files — a test-local type, zero semantic change). STILL THEIRS: identity-model (2) +
+usermgmt (4) exhaustruct findings — judgment-call field additions in concurrent-session code, left
+untouched (M26 triage list).

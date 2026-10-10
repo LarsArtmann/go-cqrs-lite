@@ -29,6 +29,7 @@ type snapshotWire struct {
 	State      []byte          `json:"state"`
 	Encoding   record.Encoding `json:"encoding,omitempty"`
 	CreatedAt  time.Time       `json:"createdAt"`
+	StateShape string          `json:"stateShape,omitempty"`
 }
 
 // snapshotWireLegacy mirrors snapshotWire with the pre-v5 JSON keys.
@@ -39,6 +40,7 @@ type snapshotWireLegacy struct {
 	State      []byte          `json:"state"`
 	Encoding   record.Encoding `json:"encoding,omitempty"`
 	CreatedAt  time.Time       `json:"createdAt"`
+	StateShape string          `json:"stateShape,omitempty"`
 }
 
 // UnmarshalJSON decodes a Snapshot from JSON written by any v4.x or v5+
