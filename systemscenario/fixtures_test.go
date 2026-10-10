@@ -6,6 +6,7 @@ package systemscenario_test
 
 import (
 	"context"
+	"fmt"
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
@@ -256,25 +257,26 @@ func sagaDomain() system.DomainConfig {
 		baseCommands(sys)
 		registerArchive(sys)
 
-		// FINDING (2026-10-09, harness saga test): a SYNCHRONOUS deriver on
-		// sys.Bus() deadlocks - the default event bus publishes with
-		// BlockPublishUntilSubscriberAck, so the deriver's derived-command
-		// dispatch re-publishes from inside the handler the publisher is
-		// waiting on. Async derivation (fire-and-forget) is today's safe
-		// wiring; see TODO_LIST for the product fix options. The harness's
-		// Await() mode asserts its outcome.
+		// The sanctioned saga wiring (ADR-0154): a synchronous deriver on
+		// sys.Bus() deadlocks (nested publish under
+		// BlockPublishUntilSubscriberAck — evidence pack
+		// docs/evidence/2026-10-09_deriver-bus-deadlock.md), so derived
+		// dispatches leave the handler goroutine via WithAsyncDispatch. The
+		// harness's Await() mode asserts the asynchronous outcome.
 		archiver := deriver.Deriver(
 			func(ctx context.Context, evt event.Event) ([]command.Command, error) {
-				go func() {
-					_ = sys.CommandDispatcher().
-						Dispatch(ctx, newTaskCmd("task.archive", evt.StreamID()))
-				}()
-
-				return nil, nil
+				return []command.Command{newTaskCmd("task.archive", evt.StreamID())}, nil
 			},
 		)
 		if err := sys.Bus().
-			Subscribe("task.updated", archiver.AsHandler(sys.CommandDispatcher())); err != nil {
+			Subscribe("task.updated", archiver.AsHandler(
+				sys.CommandDispatcher(),
+				deriver.WithAsyncDispatch(func(evt event.Event, cmd command.Command, err error) {
+					// A failed derived dispatch must fail the test loudly,
+					// not vanish with the goroutine.
+					panic(fmt.Sprintf("archiver dispatch %s (from %s): %v", cmd.Type(), evt.Type(), err))
+				}),
+			)); err != nil {
 			panic(err)
 		}
 	}

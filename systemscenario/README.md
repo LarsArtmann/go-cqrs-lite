@@ -45,12 +45,16 @@ middleware; `ThenCommands` diffs dispatched commands against the act
 baseline — the event→command→event chain of a deriver is assertable
 end-to-end (`Await()` first: bus delivery is asynchronous).
 
-> **Known constraint (found by the harness saga test, 2026-10-09):** a
-> deriver subscribed via `sys.Bus().Subscribe` that dispatches derived
+> **Known constraint (found by the harness saga test, 2026-10-09; ruled by
+> [ADR-0154](../docs/adr/0154-deriver-async-dispatch-and-journal-tailed-host.md)):**
+> a deriver subscribed via `sys.Bus().Subscribe` that dispatches derived
 > commands **synchronously** deadlocks — the default event bus publishes with
 > `BlockPublishUntilSubscriberAck`, so the derived dispatch re-publishes from
-> inside the handler the publisher is waiting on. Derive asynchronously (go
-> routine) until the product fix lands.
+> inside the handler the publisher is waiting on (live stack evidence:
+> [docs/evidence/2026-10-09_deriver-bus-deadlock.md](../docs/evidence/2026-10-09_deriver-bus-deadlock.md)).
+> Wire sagas with `deriver.WithAsyncDispatch` (per-event goroutine, error
+> callback) and assert outcomes via `Await()`; the saga fixture in this
+> module's tests is the reference wiring.
 
 ## Relationship to scenario/v4 (parity)
 
