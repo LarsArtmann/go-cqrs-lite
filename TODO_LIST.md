@@ -962,19 +962,40 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
 
 ## Code Quality
 
-- [ ] **Branching-flow duplicate-type triage follow-ups (2026-10-09)** — the
+- [x] **Branching-flow duplicate-type triage follow-ups (2026-10-09)** — the
       465-row duplicate-type analysis was fully triaged
       ([plan](docs/planning/2026-10-09_18-16_SUPERB-branching-flow-triage.md)):
       ~95% already-governed (ADR-0152 v4↔core/v5 mirrors, annotated queue/engine
       dialect twins, sanctioned per-engine pair types, intentional DTO/markers).
       Shipped same day: `metaengine.SortColumn` = `SortSpec` alias (same-module
       split brain) + projectionhost shutdown flush via `context.WithoutCancel`.
-      Open: (a) v4↔core/v5 mirror-drift lockstep audit — exported surfaces of
-      mirrored modules (id, kv, event, command, query, dispatcher…) must stay
-      shape-identical while dual-support runs; a mechanical cross-compare test
-      (the `event.Type` lockstep-test pattern) is the guard. (b) Teach
-      branching-flow (or a wrapper filter) the mirror pairs so future reports
-      carry signal instead of ~230 mirror rows. _(Effort: M audit, S filter)_
+      **Closed 2026-10-10**: (a) mirror-drift lockstep is now a hard gate —
+      `TestMirrorLockstep` in `cmd/api-stability/mirror_lockstep_test.go`
+      compares the 9 v4↔core/v5 mirror pairs against the api golden with a
+      classified drift register
+      (`cmd/api-stability/testdata/mirror_lockstep_allowlist.txt`; stale rows
+      must be pruned; new `core/v5/<pkg>` must register). Same commit deduped
+      the golden itself — the generator double-emitted nested-module symbols
+      (2204 phantom lines; the entire apparent id/command/query mirror lag was
+      duplicate-line fiction). Real lag today: event only (eventtest subtree
+      + 3 delivery-mark funcs). (b) `scripts/dupe-signal.sh` filters mirror
+      groups from `branching-flow dupe` output (104 groups suppressed, 77
+      signal groups kept, suppressed list stays visible) — the tool's
+      `//nolint:branching-flow` is ignored by the dupe analyzer (verified
+      against installed 0.6.4 and the tool repo's local master).
+- [ ] **`core/v5` needs a `.go-arch-lint.yml`** — 14 production packages and
+      growing, `TestMultiPackageModulesHaveArchLintConfig`
+      (cmd/api-stability) is red since the package count crossed the
+      threshold (visible 2026-10-10; sibling v5 sessions actively adding
+      packages — coordinate before writing the dependency rules, they encode
+      the v5 layering design).
+- [ ] **branching-flow upstream: `dupe` analyzer ignores
+      `//nolint:branching-flow`** — the flag `--include-suppressed` exists but
+      duplicate-type findings never suppress, in installed 0.6.4 AND local
+      master (verified 2026-10-10, three directive placements tested). Fix
+      belongs in `~/projects/branching-flow` (active session there —
+      coordinate); `scripts/dupe-signal.sh` is the interim wrapper and becomes
+      obsolete once dupe honors directives.
 - [ ] **Watch the 3 baselined `.templ` clone groups (specview noscript pair,
       eventcatalogview catalogSection pair + Breadcrumbs ×4)** — the 2026-09-28
       dedup campaign (archived

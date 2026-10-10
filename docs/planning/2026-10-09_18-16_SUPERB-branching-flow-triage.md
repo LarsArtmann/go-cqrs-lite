@@ -36,8 +36,9 @@ Sorted by importance / impact / effort / customer-value.
 | M2  | `projectionhost.awaitWorkers` flush via `context.WithoutCancel(ctx)`                                                                                                         | Med     | Trace/values survive shutdown checkpoint flush                 | S ~30m    | Observability          | ✅ DONE     |
 | M3  | Triage ledger (this doc) + TODO_LIST harvest                                                                                                                                 | High    | Converts 465 rows into decisions; blocks blind churn           | S ~30m    | —                      | ✅ DONE     |
 | M11 | Verification gates + commit + push                                                                                                                                           | High    | Proof the fixes are safe                                       | S ~30m    | —                      | ✅ DONE     |
-| M4  | v4↔core/v5 mirror-drift lockstep audit (mechanical cross-compare test)                                                                                                       | High    | Guards ADR-0152 dual-support against silent drift              | M ~90m    | Fleet migration safety | ☐ scheduled |
-| M5  | Branching-flow mirror-pair suppression (config or wrapper filter)                                                                                                            | Med     | Future reports carry signal, not ~230 mirror rows              | S–M ~60m  | Maintainer time        | ☐ scheduled |
+| M4b | Golden dedup: generator double-emitted nested-module symbols (2204 phantom lines) — `slices.Compact` in cmd/api-stability                                                   | High    | Kills false drift at the source (multiset diffs lied)          | S ~30m    | Golden trust           | ✅ DONE 2026-10-10 |
+| M4  | v4↔core/v5 mirror-drift lockstep audit (mechanical cross-compare test)                                                                                                       | High    | Guards ADR-0152 dual-support against silent drift              | M ~90m    | Fleet migration safety | ✅ DONE 2026-10-10 |
+| M5  | Branching-flow mirror-pair suppression (config or wrapper filter)                                                                                                            | Med     | Future reports carry signal, not ~230 mirror rows              | S–M ~60m  | Maintainer time        | ✅ DONE 2026-10-10 |
 | M6  | v5 cut bundle: `TombstoneFilter` enum in core/v5/kv; `SyncWritesTier` + `OrderClause`/`SortSpec` eval                                                                        | Med     | API quality at the cut, where breaks are free                  | M ~100m   | v5 consumers           | ☐ v5 wave   |
 | M7  | Same-package field-twin review: `storage` SQLStreamReader/StreamProjection, `metaengine` MapDedupStore/MapDueClaimer, `snapshot` store/wire, `turso` SyncDB/syncDbConnection | Low–Med | Latent drift removal or explicit accept                        | M ~60m    | —                      | ☐ scheduled |
 | M8  | cqrs-lint internal table-DTO merge (`deprecatedTransportImport`/`deprecatedV5Module`)                                                                                        | Low     | Tidiness                                                       | S ~30m    | —                      | ☐ scheduled |
@@ -63,11 +64,11 @@ Sorted by importance / impact / effort / customer-value.
 | F13 | TODO_LIST harvest (2 entries: Code Quality + v5 Unification)              | M3     | ✅                     |
 | F14 | Write this plan doc                                                       | M3     | ✅                     |
 | F15 | git commit (detailed) + push                                              | M11    | ✅ `036775275` pushed  |
-| F16 | Enumerate mirror module pairs (id, kv, event, command, query, dispatcher) | M4     | ☐                      |
-| F17 | Table-driven lockstep cross-compare test (event.Type pattern)             | M4     | ☐                      |
-| F18 | Wire into CI/meta-test set; document in gotchas                           | M4     | ☐                      |
-| F19 | Check branching-flow config surface for suppression support               | M5     | ☐                      |
-| F20 | Else write wrapper filter ingesting the mirror-pair list                  | M5     | ☐                      |
+| F16 | Enumerate mirror module pairs — 9 pairs (6 planned + dedup, metadata, record)                           | M4     | ✅ 2026-10-10          |
+| F17 | Table-driven lockstep cross-compare test (`TestMirrorLockstep`, golden-set + drift register)              | M4     | ✅ mutation-verified   |
+| F18 | Wire into CI/meta-test set; document in gotchas                                                          | M4     | ✅ gotchas-module-mgmt |
+| F19 | Check branching-flow config surface for suppression support — `//nolint:branching-flow` ignored by dupe   | M5     | ✅ verified vs master  |
+| F20 | Else write wrapper filter ingesting the mirror-pair list — `scripts/dupe-signal.sh`, path-derived keys   | M5     | ✅ 104 suppressed      |
 | F21 | `TombstoneFilter` enum + core/v5/kv interface change                      | M6     | ☐                      |
 | F22 | `SyncWritesTier` signature decision (keep two-knob ABI vs typed input)    | M6     | ☐                      |
 | F23 | `storage` same-package twins: read, extract or accept-comment             | M7     | ☐                      |
@@ -76,7 +77,7 @@ Sorted by importance / impact / effort / customer-value.
 | F26 | DLQ cross-doc comments in both `MemoryDeadLetterStore` files              | M9     | ☐                      |
 | F27 | cqrs-lint DTO merge + rule tests                                          | M8     | ☐                      |
 | F28 | Options structs for the 8 medium flag-param rows (per tool)               | M10    | ☐                      |
-| F29 | Re-run branching-flow after M5; confirm mirror rows suppressed            | M5     | ☐                      |
+| F29 | Re-run branching-flow after M5; confirm mirror rows suppressed — 77 signal groups kept, mirror rows gone  | M5     | ✅ 2026-10-10          |
 
 ## 4. Triage verdict ledger (the do-not-verschlimmbessern guard)
 
