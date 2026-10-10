@@ -8,7 +8,7 @@ package systemscenario_test
 
 import (
 	"context"
-	"fmt"
+	"testing"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
@@ -16,6 +16,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/deriver/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/scheduling/engine/v4"
 	"github.com/larsartmann/go-cqrs-lite/scheduling/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
@@ -114,6 +115,13 @@ func exampleCommand(t command.Type, stream id.StreamID) command.Command {
 	return cmd
 }
 
+// exampleLookup reads the task_views projection — the read-model query the
+// examples assert on.
+func exampleLookup(ctx context.Context, sc *systemscenario.Scenario, taskID id.StreamID) (string, error) {
+	return metaengine.ExecuteTyped[system.LookupInput[string], string](
+		ctx, sc.System().MetaEngine(), system.LookupInput[string]{ID: taskID.String()})
+}
+
 // ExampleSystem is the happy path: boot the SAME configs the production
 // binary uses, act with a real dispatch, assert the journal diff and the
 // projected read model.
@@ -128,7 +136,7 @@ func ExampleSystem() {
 	sc.When(exampleCommand("task.create", taskID)).
 		Then("task.created").
 		ThenQuery(func() (any, error) {
-			return metaengineLookup(ctx, sc, taskID)
+			return exampleLookup(ctx, sc, taskID)
 		}, "ship it")
 }
 
@@ -143,19 +151,35 @@ func ExampleWhenPhase_Await() {
 	domain := exampleDomain()
 	baseCommands := domain.Commands
 
+	// The archiver saga: a deriver reacts to task.created by deriving
+	// task.complete. Derived dispatches MUST leave the handler goroutine
+	// (WithAsyncDispatch) — a synchronous nested publish deadlocks the
+	// single-topic bus (ADR-0154).
 	domain.Commands = func(sys *system.System) {
 		baseCommands(sys)
 
 		completer := deriver.Deriver(
-			func(_ context.Context, _ event.Event) ([]command.Command, error) {
-				return nil, fmt.Errorf("replaced inline below")
+			func(_ context.Context, evt event.Event) ([]command.Command, error) {
+				return []command.Command{exampleCommand("task.complete", evt.StreamID())}, nil
 			},
 		)
-		_ = completer
+
+		if err := sys.Bus().Subscribe("task.created", completer.AsHandler(
+			sys.CommandDispatcher(),
+			deriver.WithAsyncDispatch(func(evt event.Event, cmd command.Command, err error) {
+				panic("derived dispatch failed: " + err.Error())
+			}),
+		)); err != nil {
+			panic(err)
+		}
 	}
 
 	sc := systemscenario.System(t, ctx, domain, exampleDeployment())
-	_ = sc
+
+	sc.When(exampleCommand("task.create", id.NewStreamID())).
+		Await().
+		Then("task.created", "task.completed").
+		ThenCommands("task.create", "task.complete")
 }
 
 // ExampleScenario_TimeAdvances is the deterministic-time story: a deadline
