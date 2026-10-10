@@ -334,5 +334,15 @@ concurrent-session offenders stay theirs to shrink or baseline.
 
 ### D2 — ADR shape (decided at M2, below): ONE combined implementation ADR
 
-Executed as `docs/adr/0154-declarative-schema-evolution-t2-t1.md` — see M2 notes in the status
-stream.
+Executed as `docs/adr/0155-declarative-schema-evolution-t2-t1.md` (docs/adr/README.md index updated
+through 0155). md-go + doc-check gates green (1240 refs).
+
+### D1-supplement — tag wave executed by the concurrent BDD session (2026-10-10)
+
+The 2026-10-10 "BDD harness adoption wave" (manifest:
+`docs/planning/2026-10-09_tag-wave-manifest-bdd-harness.md`) cut `schema/v4.6.0` + `system/v4.12.0`
+(+ deriver/v4.4.0, scheduling/v4.7.0, systemscenario/v4.0.0) riding this stream's CHANGELOG entries.
+M3/M4 verification performed independently this session: all 5 tags local+origin resolved,
+`git tag --contains` proves schema/v4.6.0 contains the T2 code, proxy serves schema v4.6.0 +
+system v4.12.0, and a clean-consumer smoke (fresh temp module, `go get schema/v4@v4.6.0`, compile
+chain + Upcasters) ran green with zero local replaces. M3+M4 therefore CLOSED as done.
