@@ -716,6 +716,7 @@ cmd/cqrs-lint/pkg/analyzer/method IsCommandRegistered
 cmd/cqrs-lint/pkg/analyzer/method IsDistributed
 cmd/cqrs-lint/pkg/analyzer/method IsEmbedded
 cmd/cqrs-lint/pkg/analyzer/method IsEventInCatalog
+cmd/cqrs-lint/pkg/analyzer/method IsEventSchemaDeclared
 cmd/cqrs-lint/pkg/analyzer/method IsLibrarySelfLint
 cmd/cqrs-lint/pkg/analyzer/method IsSQL
 cmd/cqrs-lint/pkg/analyzer/method Keys
@@ -857,6 +858,7 @@ cmd/cqrs-lint/pkg/rules/architecture/func NewE017Detector
 cmd/cqrs-lint/pkg/rules/architecture/func NewE018Detector
 cmd/cqrs-lint/pkg/rules/architecture/func NewE019Detector
 cmd/cqrs-lint/pkg/rules/architecture/func NewE020Detector
+cmd/cqrs-lint/pkg/rules/architecture/func NewE021Detector
 cmd/cqrs-lint/pkg/rules/boilerplate/func NewB001Detector
 cmd/cqrs-lint/pkg/rules/boilerplate/func NewB002Detector
 cmd/cqrs-lint/pkg/rules/boilerplate/func NewB003Detector

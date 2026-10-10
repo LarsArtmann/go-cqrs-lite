@@ -114,6 +114,7 @@ func NewEventBus(opts ...EventBusOption) *EventBus {
 // (BlockPublishUntilSubscriberAck). Escape asynchronously and clear the
 // mark (event.WithoutDeliveryMark, deriver.WithAsyncDispatch).
 func (b *EventBus) Publish(ctx context.Context, events ...event.Event) error {
+	//art-dupl:accept guard-call twin (command_bus.go): both buses open with the same shared rejectReentrant guard; the kind literal is the only difference
 	if err := rejectReentrant(ctx, "event"); err != nil {
 		return err
 	}
