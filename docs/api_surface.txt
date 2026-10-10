@@ -1290,6 +1290,7 @@ core/v5/event/func ParseType
 core/v5/event/func ParseVersion
 core/v5/event/func PayloadReadOnly
 core/v5/event/func ProcessingModeFrom
+core/v5/event/func PublishRetry
 core/v5/event/func ReconstructEventFromFields
 core/v5/event/func ReconstructEventWithAdoptedPayload
 core/v5/event/func ReconstructEventWithMetadata
