@@ -279,6 +279,21 @@ var recipeCatalogB2 = map[string]recipeSpec{
 	"### 2.44 Graph-Native Read Models — Edge folds, traversal, retraction (system + metaengine) #3": {
 		imports: []string{
 			`"context"`,
+			`"slices"`,
+			`"github.com/larsartmann/go-cqrs-lite/command/v4"`,
+			`"github.com/larsartmann/go-cqrs-lite/decider/v4"`,
+			`"github.com/larsartmann/go-cqrs-lite/event/v4"`,
+			`"github.com/larsartmann/go-cqrs-lite/system/v4"`,
+		},
+		preamble: "type Followed struct{ Follower, Followee string }\n" +
+			"type Unfollowed struct{ Follower, Followee string }\n" +
+			"var follow func(follower any, followee string) decider.DecideFunc[FollowState]\n" +
+			"var sys *system.System\n",
+		trailers: "_ = sys",
+	},
+	"### 2.44 Graph-Native Read Models — Edge folds, traversal, retraction (system + metaengine) #4": {
+		imports: []string{
+			`"context"`,
 			`"github.com/larsartmann/go-cqrs-lite/metaengine/v4"`,
 			`"github.com/larsartmann/go-cqrs-lite/system/v4"`,
 		},
@@ -289,7 +304,7 @@ var recipeCatalogB2 = map[string]recipeSpec{
 			"ctx := context.Background()\nvar sys *system.System\n",
 		trailers: "_ = reach\n_ = err",
 	},
-	"### 2.44 Graph-Native Read Models — Edge folds, traversal, retraction (system + metaengine) #4": {
+	"### 2.44 Graph-Native Read Models — Edge folds, traversal, retraction (system + metaengine) #5": {
 		imports: []string{
 			`"context"`,
 			`"testing"`,

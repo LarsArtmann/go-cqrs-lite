@@ -23,6 +23,11 @@ type moduleReport struct {
 	Error        string
 	Bumps        []bump
 	Deprecations []findingJSON
+	// Suggestions are advisory migration hints (report-only, never
+	// applied, ignored by --strict): today the eventually-loop →
+	// systemscenario.ThenQuery matcher. Deprecations block v5; suggestions
+	// coach toward the harness while migrating.
+	Suggestions []findingJSON
 	// ScanErr records a failed deprecation scan (load/detect failure). A
 	// failed scan is NOT the same as a clean one: v5-readiness is unknown.
 	ScanErr error
@@ -56,6 +61,11 @@ func (r moduleReport) toJSON() moduleJSON {
 		deprecations = []findingJSON{} // emit [], never null
 	}
 
+	suggestions := r.Suggestions
+	if suggestions == nil {
+		suggestions = []findingJSON{} // emit [], never null
+	}
+
 	out := moduleJSON{
 		SchemaVersion:        moduleSchemaVersion,
 		Dir:                  r.Dir,
@@ -63,6 +73,7 @@ func (r moduleReport) toJSON() moduleJSON {
 		Error:                r.Error,
 		Bumps:                make([]bumpJSON, 0, len(r.Bumps)), // emit [], never null
 		Deprecations:         deprecations,
+		Suggestions:          suggestions,
 		DeprecationScanError: "",
 	}
 
@@ -119,18 +130,20 @@ func (b bump) toJSON() bumpJSON {
 // records the error in the report instead of aborting; the strict gate
 // fails on it.
 func deprecationFindings(dir string) ([]findingJSON, error) {
-	findings, _, err := deprecationFindingsAnalyzed(dir)
+	findings, _, _, err := scanFindingsAnalyzed(dir)
 
 	return findings, err
 }
 
-// deprecationFindingsAnalyzed is deprecationFindings plus the number of Go
-// files the detector actually analyzed, so callers can assert the scan
-// measured something (a zero-file scan proves nothing — the 02-47 lesson).
-func deprecationFindingsAnalyzed(dir string) ([]findingJSON, int, error) {
+// scanFindingsAnalyzed runs the v5-removal detector AND the advisory
+// suggestion matcher over one BuildContext (one package load, two
+// detectors) and also returns the number of Go files analyzed, so callers
+// can assert the scan measured something (a zero-file scan proves nothing
+// — the 02-47 lesson).
+func scanFindingsAnalyzed(dir string) ([]findingJSON, []findingJSON, int, error) {
 	ctx, err := cqrsanalyzer.BuildContext(dir)
 	if err != nil {
-		return nil, 0, fmt.Errorf("build context: %w", err)
+		return nil, nil, 0, fmt.Errorf("build context: %w", err)
 	}
 
 	analyzed := len(ctx.GoFiles)
@@ -142,12 +155,12 @@ func deprecationFindingsAnalyzed(dir string) ([]findingJSON, int, error) {
 			detail = first.Errors[0]
 		}
 
-		return nil, analyzed, fmt.Errorf("%w: %s: %s", errPackageLoad, first.Module, detail)
+		return nil, nil, analyzed, fmt.Errorf("%w: %s: %s", errPackageLoad, first.Module, detail)
 	}
 
 	findings, detErr := cqrsversion.NewV007Detector(ctx).Detect(context.Background())
 	if detErr != nil {
-		return nil, analyzed, fmt.Errorf("detect: %w", detErr)
+		return nil, nil, analyzed, fmt.Errorf("detect: %w", detErr)
 	}
 
 	out := make([]findingJSON, 0, len(findings))
@@ -168,7 +181,29 @@ func deprecationFindingsAnalyzed(dir string) ([]findingJSON, int, error) {
 		return out[i].Rule < out[j].Rule
 	})
 
-	return out, analyzed, nil
+	return out, suggestionFindings(ctx), analyzed, nil
+}
+
+// printSuggestions prints the advisory migration hints. Always rendered
+// (an empty section is information too): unlike deprecations these never
+// gate anything — they coach toward the systemscenario harness while a
+// suite migrates.
+func printSuggestions(w io.Writer, suggestions []findingJSON) {
+	if len(suggestions) == 0 {
+		fmt.Fprintln(w, "suggestions: none (advisory; never auto-applied)")
+
+		return
+	}
+
+	fmt.Fprintf(
+		w,
+		"suggestions: %d hint(s) — advisory migration hints, never auto-applied:\n",
+		len(suggestions),
+	)
+
+	for _, f := range suggestions {
+		fmt.Fprintf(w, "  %s %s [%s]\n", f.Position, f.Message, f.Rule)
+	}
 }
 
 // printDeprecations prints the v5-removal findings for one module.
