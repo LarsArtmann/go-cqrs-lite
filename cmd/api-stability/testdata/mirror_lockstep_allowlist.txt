@@ -1,0 +1,18 @@
+# Mirror lockstep drift register (ADR-0152 dual-support)
+#
+# One row per line: <v4-module> <side> <symbol> <reason...>
+#   side=v4: symbol exists only on the v4 side — transition lag, or a
+#            never-mirror verdict for surface that dies at the v5 cut.
+#   side=v5: symbol exists only on the core/v5 side — deliberate v5
+#            evolution (the audit trail for divergence decisions).
+# A trailing "/..." on <symbol> covers a whole subpackage subtree.
+#
+# Enforced by TestMirrorLockstep in cmd/api-stability/mirror_lockstep_test.go:
+# any drift NOT classified here fails CI, and rows that no longer cover any
+# drift fail as stale — prune them when the sides reconverge. The per-pair
+# lag/evolved counts in the test log are the v4→v5 migration ratchet.
+
+event v4 v4/eventtest/... pending-mirror: eventtest suite not yet forked into core/v5/event (ADR-0152 transition lag)
+event v4 func MarkInDelivery pending-mirror: delivery-mark feature not yet forked into core/v5/event
+event v4 func WithoutDeliveryMark pending-mirror: delivery-mark feature not yet forked into core/v5/event
+event v4 func ContextInDelivery pending-mirror: delivery-mark feature not yet forked into core/v5/event
