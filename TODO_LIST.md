@@ -309,19 +309,52 @@ mesh-demo onboarding) lives in the eventcatalog-hub repo. Execution evidence:
 - [ ] **Trust surface: chain benchmarks + godoc Examples + fuzz/rapid properties** — upcasting runs on every event load; costs and hostile-input behavior must be measured, not guessed. _(Effort: M; plan M14–M16)_
 - [ ] **Housekeeping tail: kv-alias sweep, RevisionSnapshotFilter lead, proposal-fence convention doc, parallel-declaration ritual, runbook note, TODO prune**. _(Effort: S–M; plan M24–M25)_
 
-## System-level BDD testing harness (building 2026-10-09)
+## BDD harness adoption wave (executing 2026-10-09)
 
-> Axon-5-informed Given/When/Then harness over a real `system.New` boot.
-> Plan: [`docs/planning/2026-10-09_04-04_SUPERB-bdd-testing-harness-pareto-plan.md`](docs/planning/2026-10-09_04-04_SUPERB-bdd-testing-harness-pareto-plan.md) ·
-> Design: [ADR-0153](docs/adr/0153-system-level-bdd-testing-harness-systemscenario.md).
-> Companion evidence: cqrs-htmx `declarative_test.go` (51 raw dispatches, ~300 lines of `eventually` scaffolding, 22× given-prerequisite re-derivation); go-appkit zero scenario usage.
+> The harness shipped + verified 2026-10-09 (27/27 tasks of the
+> [04-04 plan](docs/planning/2026-10-09_04-04_SUPERB-bdd-testing-harness-pareto-plan.md);
+> execution record: [14:40 status report](docs/status/2026-10-09_14-40_systemscenario-bdd-harness-full-execution-status.md)).
+> The adoption wave ([14-49 plan](docs/planning/2026-10-09_14-49_SUPERB-bdd-harness-adoption-wave.md),
+> T01–T27, Full Execution Mode) is executing now — its addendum is the execution record.
+> This section holds ONLY what survives the wave (residue the plan does not cover).
 
-- [x] **Owner ruling (2026-10-09, Full Execution Mode)** — Q1 slot-alongside-v5 (gated on Phase-0 evidence, which confirmed demand), Q2 plain `testing.T` fluent chains, Q3 `Clock` on `system.New` only. All three accepted as recommended; ADR-0153 records them.
-- [x] **Phase 2 — MVP harness** — DONE 2026-10-09: `systemscenario` module registered in all three gates + api-stability golden; `System`/`Given`/`When`/`Then`/`ThenQuery`/`ThenError`/vacuous guard + 14 self-tests (config-drift demo, failure-diagnostics child-process checks) green.
-- [x] **Phase 3 — any-message phases** — DONE 2026-10-09: `Given().Command`, `WhenEvent` (journal+publish; projections tail the JOURNAL), `WhenQuery`, `ThenEvents(Satisfy)`/`ThenPayload`/`ThenMetadata`, `ThenCommands` saga capture via always-on middleware + `Await()`, `ThenErrorFamily`; first end-to-end deriver saga test.
-- [x] **Phase 4 — testability infra + proof** — DONE 2026-10-09: `system.Clock`/`ManualClock` + additive `WithClock` on `system.New` (default path pinned unchanged), additive `scheduling.WithClock` seam (ADR-0153 D4 deviation documented), `TimeAdvances` fires deadline timers without sleeping; v4-parity README section + `scenario/v4` untouched-green; cqrs-htmx pilot (`systemadapter/declarative_harness_pilot_test.go`, full suite green, migrated tests ~2× faster with field-named failures) + go-appkit pilot (`cqrs/scenario_pilot_test.go` via new `Adopt` API — also flipped their timer-stop tripwire + 2 caveat carriers); docs wave (recipes §2.43 compile-gated, advanced §6.10 mapping, modules.md row, AGENTS contract #28).
-- [x] **Phase 5 — tail** — DONE 2026-10-09: `ThenGolden`/`Trail` (go-snaps, eventtest precedent), `AssertJournalEquivalence` deployment-swap proof + rapidgen property (journal version ordering), boot bench (~1.6ms/scenario), CHANGELOG (symbol gate green), cqrs-upgrade no-op confirmed, `systemtest/README.md` written.
-- [ ] **FINDING (2026-10-09, harness saga test): synchronous deriver on the system event bus deadlocks** — the default bus publishes single-topic with `BlockPublishUntilSubscriberAck`, so a deriver's derived-command dispatch re-publishes from inside the handler the publisher is waiting on. Options: async-delivery mode in the watermill EventBus bridge, an async dispatch option on `deriver.AsHandler`, or a journal-tailed deriver host (projectionhost-style). Until ruled on: derive asynchronously (see systemscenario saga fixture). _(Effort: M; product decision — owner ruling wanted)_
+- [x] ~~**FINDING (2026-10-09, harness saga test): synchronous deriver on the system event bus deadlocks**~~
+      **RULED 2026-10-09 (adoption-wave G1): (b) `deriver.WithAsyncDispatch` NOW + (c) journal-tailed
+      deriver host as the v5 direction** — [ADR-0154](docs/adr/0154-deriver-async-dispatch-and-journal-tailed-host.md);
+      evidence: [docs/evidence/2026-10-09_deriver-bus-deadlock.md](docs/evidence/2026-10-09_deriver-bus-deadlock.md)
+      (live stack capture). The wave executes the fix (T08 option, T09 fixture flip, T26 loud-fail).
+- [ ] **cqrs-htmx SQLite-lifecycle tests through the harness** (`sqliteDeployment` variant) — the wave
+      migrates the memory-deployment trains; the sqlite-backed lifecycle tests remain on raw wiring.
+      — source: 14:40 §f7 _(Effort: M)_
+- [ ] **Harness depth assertions**: `Scenario.Event` version-hint invalidation for out-of-band appends
+      (documented limitation), golden-trail payload hashes (modulo stream IDs), `AssertJournalEquivalence`
+      per-stream diff diagnostics + stream-order contract note, snapshot interplay (`WithSnapshotStrategy`
+      in-scenario round-trip), DLQ in-scenario (`projectionhost.WithDeadLetterStore`), upcaster in
+      given-phase (`schema.UpcastSourceTransform`), idempotency scenario (same command twice → one event),
+      optimistic-concurrency scenario (stale version → Conflict family). — source: 14:40 §f13/15/16/20,
+      02-46 §f21-25 _(Effort: M each, incremental)_
+- [ ] **`TimeAdvancesTo(t)` sugar** (Axon 4 `whenTimeAdvancesTo` analog; harness has `TimeAdvances(d)`
+      only) + `system` `Bus()` delivery-mode knobs for test deployments (block-until-ack today).
+      — source: 14:40 §f23/41 _(Effort: S each)_
+- [ ] **Observational-equivalence port to system level + store-conformance suite reuse inside the
+      harness** (both scenario/v4 concepts with no systemscenario analog yet). — source: 02-46 §f28/30
+      _(Effort: M; demand-gated on fleet adoption)_
+- [ ] **`scenario/v4` `testing.TB` refactor** (parity with systemscenario's TB-based constructors;
+      enables benchmarks there too). — source: 14:40 §f48 _(Effort: S; ride any scenario/v4 touch)_
+- [ ] **Companion commit-history hygiene** — pilot commits in cqrs-htmx/go-appkit are daemon `chore:`
+      only; author proper messages if history matters before the next companion release.
+      — source: 14:40 §f35 _(Effort: XS, optional)_
+- [ ] **Externals (not this wave's work, tracked here so they are not lost)**: `core/v5` missing
+      `.go-arch-lint.yml` + V007 marker-table drift (14 symbols) + doc-check alias-ambiguity warnings —
+      core/v5 agent's in-flight scaffolding; metaengine file-size offenders (engine.go 712, reflect.go 359,
+      typed_reader_scan.go 367, adttest/pagination_conformance.go 353) — metaengine agent's growth.
+      All three keep `#verify` tree-red while MY modules are green. — source: 14:40 §f45-47, plan §7
+      _(Effort: theirs; recheck at next verify)_
+- [ ] **go-appkit GracefulClose upstream ask re-check** — their tripwire flipped 2026-10-09; verify
+      whether `2026-10-06_upstream-ask-gocqrslite-gracefulclose.md` is closable. — source: 14:40 §f24 _(Effort: XS)_
+- [ ] **cqrs-lint catalog counts test** — the systemscenario catalog entry may need an adoption-
+      suggestions coverage bump (`TestCatalogHasExpectedCounts`). — source: 14:40 §f31 _(Effort: XS;
+      fold into T23's rule work)_
 
 ## Durable Work Queue module (proposed 2026-09-13)
 

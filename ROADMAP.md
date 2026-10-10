@@ -597,6 +597,26 @@ minor of dual-read support):
 - Event stream compaction / log truncation strategies
 - Transactional outbox (ADR-0016 designed, zero code — the biggest ES-library
   gap per the 2026-08-14 review)
+- **Journal-tailed deriver host** (ADR-0154 decision c, recorded 2026-10-09):
+  projectionhost-shaped host that tails the journal and runs derivers as a
+  replayable consumer — survives restarts (persisted cursor), totally ordered
+  by journal position (no cross-event interleaving), structurally removes the
+  reentrant-publish deadlock class. Pairs with `deriver.Idempotent` for
+  exactly-once effects. v5-scale: needs cursoring, retry/DLQ story.
+- **systemscenario absorbs scenario/v4 at v5** (ADR-0153 note): the
+  functional-core tier (deciders + projections, no infrastructure) becomes a
+  layer beneath the system tier — one testing surface instead of two; scenario/v4's
+  `testing.TB` refactor (TODO_LIST) is the v4.x warm-up.
+- **v4-shim-over-v5 pattern** (Axon legacy-shim lesson, 02-46 §f12): keep a thin
+  compatibility facade over the v5 testing surface so consumer tests migrate
+  file-by-file, not big-bang — apply when the v5 harness cut lands.
+- **Axon DCB (dynamic consistency boundary) research note** (from the ADR-0153
+  Axon verification, not from code): decider scoping beyond fixed aggregates —
+  boundaries that grow/shrink with domain entity graphs. Research only; no
+  consumer demand signal yet.
+- **Harness presets grow per-engine variants as fleets adopt** (adoption-wave §8):
+  `systemscenario.Memory()`/`.SQLite(t)` land in the wave (T20); postgres/pebble/
+  duckdb presets follow demand, not speculation.
 - Multi-tenant event store (schema-per-tenant)
 - Data-product SLA/freshness fields (probed 2026-09-24: EventCatalog core 4.6.3
   has NO SLA/freshness schema — data products carry only input/output pointers
