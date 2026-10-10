@@ -81,10 +81,6 @@ func TestProperty_ReadModelMatchesFold(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
-	sc := systemscenario.System(t, ctx, taskDomain(), memoryDeployment())
-
-	_ = sc // placeholder removed below
-
 	rapid.Check(t, func(rt *rapid.T) {
 		// The harness allows exactly one Given phase per scenario, so each
 		// generated sequence gets its own boot. Adopt keeps the lifecycle
@@ -101,7 +97,7 @@ func TestProperty_ReadModelMatchesFold(t *testing.T) {
 			rt.Fatalf("Start: %v", err)
 		}
 
-		scenario := systemscenario.Adopt(rt, ctx, sys)
+		scenario := systemscenario.Adopt(t, ctx, sys)
 
 		streamID := id.NewStreamID()
 
