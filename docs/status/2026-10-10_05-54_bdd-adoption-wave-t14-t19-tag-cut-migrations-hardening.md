@@ -10,6 +10,7 @@
 ## a) FULLY DONE (this session)
 
 ### T14 — systemscenario/v4 v4.0.0 tag + wave completion ✅
+
 - **Root cause of the block was narrower than the handoff said:** deriver was ALREADY pinned v4.4.0 (interrupt state was stale on that); only `scheduling/v4 v4.6.2` was stale. `go build ./...` PASSED while `go test` failed — `timer_test.go:55: undefined: scheduling.WithClock` (test files compile against the pin too; build-green ≠ test-green).
 - `go get scheduling/v4@v4.7.0` → standalone suite green, `-race` green.
 - Authored pin commit LOST to a daemon race (pre-commit hook's BuildFlow ran ~4 min; HEAD moved mid-commit: `cannot lock ref 'HEAD'`). Daemon absorbed the pins; content verified in tree.
@@ -18,17 +19,21 @@
 - **All 5 wave tags verified on origin** (10 ls-remote refs = 5 tags + 5 `^{}`): schema/v4.6.0, deriver/v4.4.0, system/v4.12.0, scheduling/v4.7.0, systemscenario/v4.0.0.
 
 ### T14 tail — CHANGELOG + manifest ✅
+
 - **CHANGELOG wave section** `## [schema/v4.6.0, deriver/v4.4.0, system/v4.12.0, scheduling/v4.7.0, systemscenario/v4.0.0 — 2026-10-10 BDD harness adoption wave (5 tags)]`: moved the 4 shipped entries out of [Unreleased] (schema upcast ops, system schema-compose, systemscenario harness, system Clock seam); ADDED the previously-missing **deriver WithAsyncDispatch** (ADR-0154, evidence-doc link) and **scheduling WithClock** bullets. `check-changelog-symbols.sh` green (8 citations).
 - **versions manifest**: `check-versions-manifest.sh --update` regenerated versions.json (112 trains) + README table — deriver v4.3.4→v4.4.0 **with the untagged marker gone** (live train again), plus the other 4 new rows. `--check` green.
 - README links gate: 23 broken — all pre-existing core/v5 externals, unchanged, not mine.
 - Daemon absorbed the docs commit (chore `707fc38e9`); contents verified (systemscenario row, system v4.12.0 row, versions.json).
 
 ### T15 — companion migrations to released tags ✅
+
 - **cqrs-htmx** (authored commit `e4f9784f` — race WON): dropped the systemscenario pre-tag replaces (go.work + systemadapter/go.mod); `systemscenario/v4@v4.0.0` resolves from the proxy; system rode MVS v4.11.0→v4.12.0. Schema replace KEPT per ruling but its comment corrected ("no longer load-bearing since schema/v4.6.0 — permanent local-dev"). Build-all green, systemadapter suite green (0.73s), FULL suite green.
 - **go-appkit** (daemon-absorbed chore `04096e0`, contents verified): dropped the pilot trio (systemscenario+system+schema in go.work; systemscenario in cqrs/go.mod); cqrs pins system v4.12.0 + systemscenario v4.0.0 explicit, schema indirect. Workspace build green, cqrs suite green (2.5s), FULL suite green (the integration module's 2 failures are the PRE-EXISTING externals).
 
 ### T16+T17 — harness hardening pack ✅ (code in daemon chore `e78f73b38`; docs+golden authored `f3cc555e7`)
+
 New exported API in systemscenario (+4 golden exports, 8428→8432):
+
 - **`ThenCommandsSatisfyAwait(inspect func([]command.Command) error)`** — polled twin for derived-command chains (void sibling stays sync: t.Errorf can't say "not yet").
 - **`ThenQueryEventuallyFails(fn, target)`** — eventual negative query assertion; the first-class `awaitNotFound` (rows that vanish once the projection catches up).
 - **Timeout honesty** — `awaitQuery` core tracks the last query error separately from the check mismatch; query-assert timeouts report BOTH channels.
@@ -38,11 +43,13 @@ New exported API in systemscenario (+4 golden exports, 8428→8432):
 - Docs: systemscenario README (table rows + "Timeout honesty" + "Negative-event windows" sections), FEATURES.md 3 rows, CHANGELOG [Unreleased] entry. Symbols gate green (9 citations).
 
 ### T18 — go-appkit layer-2 pilot ✅ (authored commit `59eb9e2`)
+
 - `integration/harness_http_pilot_test.go`: **HTTP acts, harness assertions** — `systemscenario.Adopt` over `es.System()` + acts over the real wire (`testkit.Serve` full chain, POST /bump ×2) + Then/ThenCommands/ThenQuery asserting journal diff, captured wire commands, and read model. **Key technique (feedback memo, in the file header):** a side-effect-free `WhenQuery` act snapshots the journal/command baselines, making wire-driven acts diffable exactly like harness-dispatched ones (Adopt's capture sits on the system dispatcher the HTTP handlers dispatch through).
 - Pinned systemscenario v4.0.0 in integration (PUBLISHED tag → charter-compliant); watermill v4.6.4→v4.6.5 + go-retry v0.7.1→v0.8.0 rode MVS.
 - **GREEN ON FIRST RUN.** Full integration suite: exactly the 2 PRE-EXISTING failures; verified my pins are NOT implicated (pin-drift fails only on the undocumented go-appkit/docs family module — unchanged reason).
 
 ### T19 — godoc examples ✅ (daemon-absorbed, tree clean)
+
 - `systemscenario/example_test.go`: `ExampleSystem` (happy path + read model), `ExampleWhenPhase_Await` (saga via deriver.WithAsyncDispatch + Await + ThenCommands), `ExampleScenario_TimeAdvances` (timer wiring, frozen clock, no sleeping). **`docTB` stub pattern:** examples receive no testing.TB, so a stand-in satisfies the signature; no Output comment → `go vet` compiles them (pkg.go.dev shapes always build) but they never execute. Vet + suite green.
 
 ---
@@ -50,12 +57,14 @@ New exported API in systemscenario (+4 golden exports, 8428→8432):
 ## b) PARTIALLY DONE
 
 ### T20 — presets (research COMPLETE, implementation not started)
+
 Established this session:
+
 - `DEP_BUDGET[systemscenario]=7` and it is AT 7 — adding sqliteengine = one new in-repo direct dep → budget 8.
 - **system's production go.mod ALREADY requires metaengine/sqliteengine v4.5.2 + modernc.org/sqlite** → importing it in systemscenario adds ZERO new external deps (already transitive), pure-Go (CGo isolation list = only duckdb pair).
 - Drivers resolve via `metaengine.LookupDriver` (database/sql pattern): the CONSUMER must import the engine package for its `init()` registration — so `SQLite(t)` needs the sqliteengine import in systemscenario itself.
 - Timer deployments use a dedicated `"timers"` engine (fixture `timerDeployment`).
-Still to find: how system resolves `TimerEngine()` (engine name vs fallback), and the DSN shape sqliteengine's factory expects (grep hit the wrong file — engine.go, not sqlite.go).
+  Still to find: how system resolves `TimerEngine()` (engine name vs fallback), and the DSN shape sqliteengine's factory expects (grep hit the wrong file — engine.go, not sqlite.go).
 
 ---
 

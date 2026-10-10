@@ -117,7 +117,11 @@ func exampleCommand(t command.Type, stream id.StreamID) command.Command {
 
 // exampleLookup reads the task_views projection — the read-model query the
 // examples assert on.
-func exampleLookup(ctx context.Context, sc *systemscenario.Scenario, taskID id.StreamID) (string, error) {
+func exampleLookup(
+	ctx context.Context,
+	sc *systemscenario.Scenario,
+	taskID id.StreamID,
+) (string, error) {
 	return metaengine.ExecuteTyped[system.LookupInput[string], string](
 		ctx, sc.System().MetaEngine(), system.LookupInput[string]{ID: taskID.String()})
 }
@@ -213,7 +217,8 @@ func ExampleScenario_TimeAdvances() {
 		sys.ManageTimers(scheduling.New(
 			store,
 			func(timerCtx context.Context, timer scheduling.Timer[string]) error {
-				return sys.CommandDispatcher().Dispatch(timerCtx, exampleCommand("task.complete", taskID))
+				return sys.CommandDispatcher().
+					Dispatch(timerCtx, exampleCommand("task.complete", taskID))
 			},
 			scheduling.WithPollInterval(5*time.Millisecond),
 			scheduling.WithClock(sys.Clock().Now),

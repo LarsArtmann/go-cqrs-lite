@@ -61,7 +61,9 @@ func (p *WhenPhase) ThenCommandsSatisfy(inspect func(cmds []command.Command)) *W
 // The void-returning sibling stays synchronous because its t.Errorf
 // contract cannot express "not yet"; awaiting inspection reports failure as
 // an error instead, and the timeout message carries the last one.
-func (p *WhenPhase) ThenCommandsSatisfyAwait(inspect func(cmds []command.Command) error) *WhenPhase {
+func (p *WhenPhase) ThenCommandsSatisfyAwait(
+	inspect func(cmds []command.Command) error,
+) *WhenPhase {
 	s := p.thenScenario("ThenCommandsSatisfyAwait")
 
 	s.await("ThenCommandsSatisfyAwait", func() (bool, string) {

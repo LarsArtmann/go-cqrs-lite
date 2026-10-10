@@ -14,8 +14,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
+
+	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/systemscenario/v4"
 )
@@ -127,7 +128,11 @@ func TestThenCommandsSatisfyAwait_PassesOnDerivedChain(t *testing.T) {
 				}
 			}
 
-			return fmt.Errorf("task.archive on %s not dispatched yet (%d captured)", ref.ID, len(cmds))
+			return fmt.Errorf(
+				"task.archive on %s not dispatched yet (%d captured)",
+				ref.ID,
+				len(cmds),
+			)
 		})
 }
 
@@ -204,7 +209,8 @@ func TestThenQueryFunc_TimeoutReportsLastQueryError(t *testing.T) {
 	}
 
 	last := messages[len(messages)-1]
-	if !contains(last, "result mismatch") || !contains(last, "last query error: view not projected yet") {
+	if !contains(last, "result mismatch") ||
+		!contains(last, "last query error: view not projected yet") {
 		t.Fatalf("timeout detail must report check message AND last query error, got: %s", last)
 	}
 }

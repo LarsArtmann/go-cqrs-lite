@@ -276,8 +276,8 @@ fi
 
 if [[ "$WAIT_MODE" == 1 ]]; then
 	"$SCRIPT_DIR/wait-for-quiet.sh" --max-load "$CEILING" --max-load5 "$CEILING" \
-		--timeout "${WAIT_TIMEOUT:-3600}" --interval "${WAIT_INTERVAL:-30}" \
-		|| fail "host never quieted (wait-for-quiet rc=$?)"
+		--timeout "${WAIT_TIMEOUT:-3600}" --interval "${WAIT_INTERVAL:-30}" ||
+		fail "host never quieted (wait-for-quiet rc=$?)"
 fi
 
 if ! assert_all; then
