@@ -8120,6 +8120,8 @@ system/var ErrUnsafeChange
 system/var ErrUnsupportedValueType
 systemscenario/func Adopt
 systemscenario/func AssertJournalEquivalence
+systemscenario/func Memory
+systemscenario/func SQLite
 systemscenario/func System
 systemscenario/func ThenPayload
 systemscenario/func ThenQueryTyped

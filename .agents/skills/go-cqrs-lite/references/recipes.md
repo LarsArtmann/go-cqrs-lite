@@ -2868,3 +2868,14 @@ writes before returning); read-model assertions poll (`WithAwaitTimeout`,
 default 5s). A scenario without a `Then*` fails the test (vacuous guard).
 Wrapper libraries that own the `system.New` call adopt their booted system:
 `systemscenario.Adopt(t, ctx, eventService.System())`.
+
+Tests with no production config to mirror can boot on a one-liner preset:
+`systemscenario.Memory()` (memory engines incl. a dedicated `timers` engine,
+so `TimeAdvances` works out of the box) or `systemscenario.SQLite(t)`
+(file-backed SQLite under `t.TempDir()` + memory timers — real SQL planning
+without shared-cache in-memory flakiness).
+
+```go
+sc := systemscenario.System(t, ctx, taskDomain(), systemscenario.Memory())
+scSQLite := systemscenario.System(t, ctx, taskDomain(), systemscenario.SQLite(t))
+```

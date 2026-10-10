@@ -232,6 +232,18 @@ var recipeCatalogB2 = map[string]recipeSpec{
 			"var sc *systemscenario.Scenario\n",
 		trailers: "",
 	},
+	"### 2.43 System-Level BDD Scenarios — Given/When/Then over a real system.New (systemscenario, ADR-0153) #3": {
+		imports: []string{
+			`"context"`,
+			`"testing"`,
+			`"github.com/larsartmann/go-cqrs-lite/system/v4"`,
+			`"github.com/larsartmann/go-cqrs-lite/systemscenario/v4"`,
+		},
+		preamble: "func taskDomain() system.DomainConfig { return system.DomainConfig{} }\n" +
+			"var t testing.TB\n" +
+			"var ctx context.Context\n",
+		trailers: "_ = sc\n_ = scSQLite\n",
+	},
 	"### 2.42 Request Correlation — RequestScope Enricher (event + decider) #1": {
 		imports: []string{
 			`"context"`,
