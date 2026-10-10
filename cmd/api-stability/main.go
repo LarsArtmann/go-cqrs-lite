@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strings"
 
@@ -163,6 +164,12 @@ func main() {
 		}
 
 		sort.Strings(exports)
+
+		// Nested module paths in the modules slice (e.g. "event" plus
+		// "event/v4/eventtest") make the parent walk re-emit the child
+		// module's symbols. The golden tracks a SET of exported symbols,
+		// so collapse the duplicates before writing or comparing.
+		exports = slices.Compact(exports)
 
 		if cfg.Update {
 			return writeGoldenFile(goldenPath, exports)
