@@ -306,7 +306,7 @@ var recipeCatalogB2 = map[string]recipeSpec{
 			"var t testing.TB\n" +
 			"var ctx context.Context\n" +
 			"func graphDomain() system.DomainConfig { return system.DomainConfig{} }\n" +
-			"func followCmd(t *testing.T, follower, followee string) command.Command { return nil }\n",
+			"func followCmd(t testing.TB, follower, followee string) command.Command { return nil }\n",
 		trailers: "_ = sc",
 	},
 }

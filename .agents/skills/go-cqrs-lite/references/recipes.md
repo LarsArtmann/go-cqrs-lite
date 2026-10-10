@@ -3012,7 +3012,7 @@ systemscenario.ThenQueryTyped(sc.Phase(),
     },
     func(got []string) error { return nil /* compare sorted reachable set */ })
 
-sc.Phase().When(followCmd(t, "alice", "alice")).
+sc.When(followCmd(t, "alice", "alice")).
     ThenErrorFamily(errorfamily.Rejection) // decider guard: no self-follow
 ```
 
