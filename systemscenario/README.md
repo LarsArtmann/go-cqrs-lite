@@ -102,6 +102,28 @@ dispatch, journal, bus, projections, timers. Neither replaces the other:
 Use `scenario` for fast decider-pure unit loops; use `systemscenario` when
 the wiring, projections, sagas, or timers are under test.
 
+## Cost of a scenario
+
+`BenchmarkScenarioBoot` measures the full per-scenario cost a harness test
+pays: `system.New` + middleware + Start + one given + one act + one Then +
+GracefulClose, on `Memory()` engines. Snapshot (2026-10-10, 32-vCPU host,
+`go test -bench BenchmarkScenarioBoot -benchmem`):
+
+```
+BenchmarkScenarioBoot-32  ~1.2–1.8 ms/op   ~9.2 MB/op   ~1371 allocs/op
+```
+
+The 9 MB is the composition root itself (engines, dispatcher, bus,
+projection host, middleware chains) — one scenario is one real boot, which
+is the point. Suites with hundreds of scenarios stay in the seconds; use
+`scenario` (decider-pure) when you need microsecond loops instead.
+
+Correctness depth: `TestProperty_ReadModelMatchesFold` (rapid) drives random
+create/rename/complete sequences and asserts the projected read-model row
+equals the pure fold over the journal — the fold-equivalence oracle; and
+`TestProperty_RandomCommandSequencesKeepJournalOrdered` pins journal
+versioning under adversarial dispatch order.
+
 ## Status
 
 Experimental (rides `system`'s experimental status, FEATURES.md). Registered
