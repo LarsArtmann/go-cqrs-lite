@@ -61,3 +61,19 @@ scheduling (independent)
 - `scheduling/v4 v4.7.0` — Added: `WithClock`.
 - `deriver/v4 v4.4.0` — Added: `WithAsyncDispatch` (ADR-0154).
 - `schema/v4 v4.6.0` — Added: `Event`/`EventSchema` declaration API (concurrent work).
+
+## Companion baselines (T03, 2026-10-09)
+
+**cqrs-htmx** (26 modules): ALL GREEN. Pre-existing gap found and fixed during the
+baseline: go.work lacked a `schema/v4` local replace while the local `system/`
+replace consumes the untagged schema API — `dashboardui/systembridge`,
+`examples/system-demo`, `systemadapter` were build-broken; replace added (same
+local-dev pattern as the existing block), all three green after.
+
+**go-appkit** (11 workspace members): 10 GREEN incl. `cqrs` (the harness pilot
+module, 11.2s). `integration` RED on 2 tests — BOTH pre-existing and unrelated to
+this wave: `TestGoModPinsMatchDocumentedPins` (undocumented `go-appkit/docs` family
+module) and `TestDocsCompositionThroughAppkitService` ("SUPERB Docs E2E" content
+mismatch). External owners; not touched. (go-appkit go.work also needed the
+`schema/v4` local replace for the same system-consumes-schema reason; added with a
+drop-with-the-pair note.)
