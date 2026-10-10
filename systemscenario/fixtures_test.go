@@ -274,7 +274,14 @@ func sagaDomain() system.DomainConfig {
 				deriver.WithAsyncDispatch(func(evt event.Event, cmd command.Command, err error) {
 					// A failed derived dispatch must fail the test loudly,
 					// not vanish with the goroutine.
-					panic(fmt.Sprintf("archiver dispatch %s (from %s): %v", cmd.Type(), evt.Type(), err))
+					panic(
+						fmt.Sprintf(
+							"archiver dispatch %s (from %s): %v",
+							cmd.Type(),
+							evt.Type(),
+							err,
+						),
+					)
 				}),
 			)); err != nil {
 			panic(err)

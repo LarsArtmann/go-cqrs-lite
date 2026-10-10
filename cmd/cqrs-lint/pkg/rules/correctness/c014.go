@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"go/ast"
 
-	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 	"github.com/larsartmann/go-finding"
+
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 )
 
 // Detects time.Local usage in Go source files.

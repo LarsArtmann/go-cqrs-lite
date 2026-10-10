@@ -28,13 +28,16 @@ func newAsyncFixture(t *testing.T) *asyncFixture {
 		release:    make(chan struct{}),
 	}
 
-	if err := f.dispatcher.Register("cmd.blocking", cqrscommand.Handler(func(context.Context, cqrscommand.Command) error {
-		close(f.entered)
+	if err := f.dispatcher.Register(
+		"cmd.blocking",
+		cqrscommand.Handler(func(context.Context, cqrscommand.Command) error {
+			close(f.entered)
 
-		<-f.release
+			<-f.release
 
-		return nil
-	})); err != nil {
+			return nil
+		}),
+	); err != nil {
 		t.Fatalf("register blocking handler: %v", err)
 	}
 
@@ -123,11 +126,14 @@ func TestWithAsyncDispatch_ErrorSurfacedToCallback(t *testing.T) {
 
 	f := newAsyncFixture(t)
 	secondDispatched := make(chan struct{}, 1)
-	if err := f.dispatcher.Register("cmd.second", cqrscommand.Handler(func(context.Context, cqrscommand.Command) error {
-		secondDispatched <- struct{}{}
+	if err := f.dispatcher.Register(
+		"cmd.second",
+		cqrscommand.Handler(func(context.Context, cqrscommand.Command) error {
+			secondDispatched <- struct{}{}
 
-		return nil
-	})); err != nil {
+			return nil
+		}),
+	); err != nil {
 		t.Fatalf("register second handler: %v", err)
 	}
 
@@ -139,13 +145,16 @@ func TestWithAsyncDispatch_ErrorSurfacedToCallback(t *testing.T) {
 	})
 
 	got := make(chan error, 1)
-	handler := d.AsHandler(f.dispatcher, WithAsyncDispatch(func(_ cqrsevent.Event, cmd cqrscommand.Command, err error) {
-		if cmd.Type() != "cmd.unregistered" {
-			t.Errorf("callback got command %s, want cmd.unregistered", cmd.Type())
-		}
+	handler := d.AsHandler(
+		f.dispatcher,
+		WithAsyncDispatch(func(_ cqrsevent.Event, cmd cqrscommand.Command, err error) {
+			if cmd.Type() != "cmd.unregistered" {
+				t.Errorf("callback got command %s, want cmd.unregistered", cmd.Type())
+			}
 
-		got <- err
-	}))
+			got <- err
+		}),
+	)
 
 	if err := handler(context.Background(), testEvent(t, "test.event")); err != nil {
 		t.Fatalf("handler returned error: %v", err)
