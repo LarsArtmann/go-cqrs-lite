@@ -158,6 +158,12 @@ func scanCallExpr(ctx *AnalysisContext, gf *GoFile, call *ast.CallExpr) {
 		// generic instantiation, so sel.X is the receiver.
 		recordSchemaDeclaredEvent(ctx, gf, call, pos)
 
+	case isSchemaOpName(funcName) && IsQualifierFor(gf, sel, "go-cqrs-lite/schema"):
+		// schema.RenameField / AddField / RemoveField / Transform / Split —
+		// migration ops declaring a rung of a ladder (type, sourceVersion).
+		// Feeds E022's missing-rung check.
+		recordSchemaOp(ctx, gf, call, pos)
+
 	case funcName == "AddDataProduct" && (IsQualifierFor(gf, sel, "go-cqrs-lite/catalog") ||
 		argIsCatalogDataProduct(call) ||
 		// Variable-passed product: the ident argument resolves to a

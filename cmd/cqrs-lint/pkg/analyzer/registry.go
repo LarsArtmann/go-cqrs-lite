@@ -20,6 +20,11 @@ type CQRSRegistry struct {
 	// declaration list that drives upcasting and projection decoding
 	// (DomainConfig.Schema). E021 consumes it as the declared-set.
 	EventTypesInSchemaDecl map[string]EventEmission // event type string → declaration location
+	// SchemaLadders tracks each declared event's version ladder: the current
+	// version and every op's source version (literal forms only — const
+	// references stay unresolved). E022 consumes it to flag missing rungs:
+	// a stored event at a version with no op never upcasts.
+	SchemaLadders map[string]*SchemaLadder // event type string → ladder
 	// CommandTypesRegistered tracks command types registered via RegisterTyped.
 	// Keys MUST be struct type names — constructor-call registrations are kept
 	// in ConstructorHandlers instead (T20-4).
@@ -153,6 +158,7 @@ func NewCQRSRegistry() *CQRSRegistry {
 		EventTypesEmitted:      make(map[string]EventEmission),
 		EventTypesInCatalog:    make(map[string]bool),
 		EventTypesInSchemaDecl: make(map[string]EventEmission),
+		SchemaLadders:          make(map[string]*SchemaLadder),
 		CommandTypesRegistered: make(map[string]bool),
 		ConstructorHandlers:    make(map[string]bool),
 		EventPayloadTypes:      make(map[string]bool),
@@ -200,4 +206,16 @@ func (r *CQRSRegistry) IsEventInCatalog(eventType string) bool {
 func (r *CQRSRegistry) IsEventSchemaDeclared(eventType string) bool {
 	_, ok := r.EventTypesInSchemaDecl[eventType]
 	return ok
+}
+
+// schemaLadder returns the event type's ladder, creating an empty one when
+// first seen (ops may be recorded before the declaration call is scanned).
+func (r *CQRSRegistry) schemaLadder(eventType string) *SchemaLadder {
+	ladder, ok := r.SchemaLadders[eventType]
+	if !ok {
+		ladder = &SchemaLadder{}
+		r.SchemaLadders[eventType] = ladder
+	}
+
+	return ladder
 }

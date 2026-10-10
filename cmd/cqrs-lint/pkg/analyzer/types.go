@@ -18,6 +18,16 @@ type EventEmission struct {
 	Line int
 }
 
+// SchemaLadder is one declared event's version ladder: the current version
+// from its declaration plus every op's source version. Literal forms only —
+// const-referenced types or versions stay untracked (the rule stays silent
+// rather than guessing).
+type SchemaLadder struct {
+	Current    int
+	Decl       EventEmission
+	OpVersions map[int]EventEmission // source version → op call site
+}
+
 // CommandInfo describes a command type found in the analyzed code.
 type CommandInfo struct {
 	Name             string // struct type name

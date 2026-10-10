@@ -207,12 +207,60 @@ func recordSchemaDeclaredEvent(
 			File: gf.Path,
 			Line: pos.Line,
 		}
+
+		// Ladder tracking (E022): the current version is the second argument
+		// when present (schema.Event/EventOf and the builder's .Event both
+		// take it positionally). Literal only; unknown stays -1 (silent).
+		if len(call.Args) > 1 {
+			if ladder := ctx.Registry.schemaLadder(eventTypeStr); ladder != nil {
+				if version := IntLit(call.Args[1]); version > 0 {
+					ladder.Current = version
+					ladder.Decl = EventEmission{File: gf.Path, Line: pos.Line}
+				}
+			}
+		}
 	} else if name := ExprIdentName(call.Args[0]); name != "" {
 		ctx.Registry.pendingSchemaEventTypeRefs = append(
 			ctx.Registry.pendingSchemaEventTypeRefs,
 			pendingEventTypeRef{constName: name, file: gf.Path, line: pos.Line},
 		)
 	}
+}
+
+// recordSchemaOp records one migration op call (schema.RenameField, AddField,
+// RemoveField, Transform, Split, RenameType): first argument the event type
+// string literal, second the source version literal. RenameType's second
+// argument is the TARGET type, not a version — it does not record a rung.
+func recordSchemaOp(
+	ctx *AnalysisContext,
+	gf *GoFile,
+	call *ast.CallExpr,
+	pos token.Position,
+) {
+	if len(call.Args) < 2 {
+		return
+	}
+
+	eventTypeStr := StringLit(call.Args[0])
+	if eventTypeStr == "" {
+		return
+	}
+
+	version := IntLit(call.Args[1])
+	if version <= 0 {
+		return
+	}
+
+	ladder := ctx.Registry.schemaLadder(eventTypeStr)
+	if ladder == nil {
+		return
+	}
+
+	if ladder.OpVersions == nil {
+		ladder.OpVersions = make(map[int]EventEmission)
+	}
+
+	ladder.OpVersions[version] = EventEmission{File: gf.Path, Line: pos.Line}
 }
 
 // isSchemaBuilderEventCall reports whether an .Event method call targets the
@@ -289,4 +337,17 @@ func trackSchemaBuilderAssignments(ctx *AnalysisContext, gf *GoFile, stmt *ast.A
 			ctx.Registry.schemaBuilderIdents[gf.Path][ident.Name] = true
 		}
 	}
+}
+
+// isSchemaOpName reports whether the function name is a schema migration-op
+// constructor carrying (eventType, sourceVersion, ...) positionally.
+// RenameType deliberately does not qualify: its second argument is the target
+// TYPE, not a version, and type renames do not add a version rung.
+func isSchemaOpName(name string) bool {
+	switch name {
+	case "RenameField", "AddField", "RemoveField", "Transform", "Split":
+		return true
+	}
+
+	return false
 }
