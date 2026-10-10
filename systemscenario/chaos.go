@@ -83,6 +83,7 @@ func DelayedDriver(t testing.TB, base string, delay time.Duration) string {
 // [DelayedDriver] for why each must be forwarded explicitly.
 type delayedEngine struct {
 	metaengine.Engine
+
 	delay time.Duration
 }
 

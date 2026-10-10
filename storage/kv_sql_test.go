@@ -6,10 +6,9 @@ import (
 	"slices"
 	"testing"
 
-	_ "modernc.org/sqlite" // pure-Go SQLite driver
-
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 	"github.com/larsartmann/go-cqrs-lite/storage/v4"
+	_ "modernc.org/sqlite" // pure-Go SQLite driver
 )
 
 func newTestKVStore(t *testing.T) *storage.SQLKVStore {

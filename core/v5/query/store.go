@@ -7,9 +7,8 @@ import (
 	"slices"
 	"time"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-cqrs-lite/core/v5/id"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // PersistedQuery is a stored query with full audit metadata.

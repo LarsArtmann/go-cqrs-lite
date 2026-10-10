@@ -5,9 +5,8 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/onsi/gomega"
-
 	"github.com/larsartmann/go-cqrs-lite/core/v5/id"
+	"github.com/onsi/gomega"
 )
 
 const (

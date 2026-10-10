@@ -8,11 +8,10 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-codec"
-	_ "modernc.org/sqlite"
-
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
+	_ "modernc.org/sqlite"
 )
 
 func openSQLite(t *testing.T) *sql.DB {

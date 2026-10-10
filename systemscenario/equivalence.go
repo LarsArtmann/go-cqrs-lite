@@ -102,8 +102,11 @@ func readJournalTrail(ctx context.Context, sys *system.System) (journalTrail, er
 func renderTrail(streams []normalizedStream) string {
 	out := ""
 
-	var outSb106 strings.Builder
-	var outSb105 strings.Builder
+	var (
+		outSb106 strings.Builder
+		outSb105 strings.Builder
+	)
+
 	for _, stream := range streams {
 		fmt.Fprintf(&outSb106, "\n  stream #%d:", stream.ordinal)
 
@@ -114,6 +117,7 @@ func renderTrail(streams []normalizedStream) string {
 
 		outSb105.WriteString(outSb109.String())
 	}
+
 	out += outSb105.String()
 
 	out += outSb106.String()

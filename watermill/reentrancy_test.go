@@ -59,7 +59,10 @@ func TestEventBus_ReentrantPublishFailsFast(t *testing.T) {
 	select {
 	case pubErr := <-done:
 		if pubErr != nil {
-			t.Fatalf("outer publish must succeed (handler acked; nested error is the handler's), got: %v", pubErr)
+			t.Fatalf(
+				"outer publish must succeed (handler acked; nested error is the handler's), got: %v",
+				pubErr,
+			)
 		}
 	case <-time.After(5 * time.Second):
 		t.Fatal("outer publish hung — the reentrancy guard did not fire (deadlock regression)")
@@ -105,7 +108,7 @@ func TestEventBus_AsyncEscapePublishAllowed(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := bus.Publish(context.Background(), reentrancyEvent(t, "task.updated")); err != nil {
+	if err := bus.Publish(context.Background(), reentrancyEvent(t, "task.created")); err != nil {
 		t.Fatal(err)
 	}
 

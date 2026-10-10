@@ -6,11 +6,10 @@ import (
 	"strings"
 	"testing"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/systemscenario/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // The BDD suite (ADR-0153): the SAME DomainConfig the binary boots, driven

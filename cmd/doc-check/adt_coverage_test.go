@@ -76,6 +76,7 @@ func TestRecipeADTCoverage(t *testing.T) {
 				"ADT %s exists in metaengine.AllADTs() but has no heading pattern here — add coverage or a waiver",
 				adt,
 			)
+
 			continue
 		}
 
@@ -93,6 +94,7 @@ func TestRecipeADTCoverage(t *testing.T) {
 				)
 			}
 			t.Logf("WAIVED %s: %s", adt, reason)
+
 			continue
 		}
 
@@ -121,6 +123,7 @@ func matchesHeading(headings []string, pattern *regexp.Regexp) bool {
 			return true
 		}
 	}
+
 	return false
 }
 

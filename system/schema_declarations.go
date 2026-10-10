@@ -1,11 +1,10 @@
 package system
 
 import (
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4"
 	"github.com/larsartmann/go-cqrs-lite/schema/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // SchemaDeclarations is the built result of the [Schemas] builder: the
