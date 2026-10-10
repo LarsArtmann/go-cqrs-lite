@@ -148,6 +148,10 @@ func RemoveField(
 // only place hand-written logic belongs (reshapes, derived fields, splits of
 // one flat field into nested objects).
 //
+// Field-map contract: nested maps are map[string]any regardless of the
+// event's encoding (CBOR's map[any]any is normalized on decode). Maps with
+// non-string keys are outside the contract and stay as decoded.
+//
 // Invalid parameters are rejected by [Compile].
 func Transform(
 	sourceType event.Type,

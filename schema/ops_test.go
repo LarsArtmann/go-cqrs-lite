@@ -257,6 +257,64 @@ func TestChainCBORStaysCBOR(t *testing.T) {
 	}
 }
 
+// TestTransformNestedMapsAreStringKeyedOnCBOR pins the field-map contract for
+// nested objects: fxamacker/cbor decodes maps into map[any]any when the
+// target is any, so without normalization a nested-object Transform works on
+// JSON events and silently no-ops on CBOR events (found wiring DiscordSync's
+// user-kind upcasters onto a CBOR journal).
+func TestTransformNestedMapsAreStringKeyedOnCBOR(t *testing.T) {
+	t.Parallel()
+
+	chain, err := Compile(Transform("user.profiled", 1, func(fields map[string]any) (map[string]any, error) {
+		profile, ok := fields["profile"].(map[string]any)
+		if !ok {
+			t.Fatalf("nested map is %T, want map[string]any", fields["profile"])
+		}
+
+		profile["displayName"] = profile["name"]
+
+		return fields, nil
+	}))
+	if err != nil {
+		t.Fatalf("Compile: %v", err)
+	}
+
+	source := newPayloadEvent(t, "user.profiled", 1,
+		map[string]any{"profile": map[string]any{"name": "Lars"}, "rank": float64(3)},
+		event.WithCodec(codec.CBORCodec{}))
+
+	if source.Encoding() != codec.EncodingCBOR {
+		t.Fatalf("test setup: source encoding = %s", source.Encoding())
+	}
+
+	got, err := chain.upcastAll([]event.Event{source})
+	if err != nil {
+		t.Fatalf("upcastAll: %v", err)
+	}
+
+	if got[0].SchemaVersion() != event.SchemaVersion(2) {
+		t.Errorf("schema version = %d, want 2 (transform must fire)", got[0].SchemaVersion())
+	}
+
+	var result struct {
+		Profile struct {
+			Name        string `json:"name"`
+			DisplayName string `json:"displayName"`
+		} `json:"profile"`
+		Rank float64 `json:"rank"`
+	}
+	if err := (codec.CBORCodec{}).Decode(got[0].Payload(), &result); err != nil {
+		t.Fatalf("decode cbor result: %v", err)
+	}
+
+	if result.Profile.DisplayName != "Lars" || result.Profile.Name != "Lars" {
+		t.Errorf("profile = %+v, want displayName and name both Lars", result.Profile)
+	}
+	if result.Rank != 3 {
+		t.Errorf("rank = %v, want 3 (sibling fields must survive)", result.Rank)
+	}
+}
+
 func TestChainRenameTypeChainsIntoNewType(t *testing.T) {
 	t.Parallel()
 

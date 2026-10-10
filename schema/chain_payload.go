@@ -27,6 +27,13 @@ func wrapTransformErr(evt event.Event, err error) error {
 
 // decodeFieldMap decodes the payload with the codec the event's Encoding()
 // stamp selects — self-describing events, mixed JSON/CBOR streams included.
+//
+// Nested maps are normalized to map[string]any so Transform/field ops see one
+// shape regardless of encoding: fxamacker/cbor decodes maps into
+// map[any]any when the target is any, while encoding/json yields
+// map[string]any — without normalization a nested-object Transform works on
+// JSON events and silently no-ops on CBOR events. Maps with non-string keys
+// are outside the map[string]any field-map contract and are left as decoded.
 func decodeFieldMap(evt event.Event) (map[string]any, error) {
 	codecFor, err := codec.ForEncoding(evt.Encoding())
 	if err != nil {
@@ -42,7 +49,49 @@ func decodeFieldMap(evt event.Event) (map[string]any, error) {
 		fields = make(map[string]any)
 	}
 
+	normalizeStringKeyMaps(fields)
+
 	return fields, nil
+}
+
+// normalizeStringKeyMaps rewrites every nested map[any]any whose keys are all
+// strings into map[string]any, in place. Slices are walked recursively.
+// A map with any non-string key is returned unchanged (all-or-nothing per
+// map) — it cannot be represented in the field-map contract.
+func normalizeStringKeyMaps(fields map[string]any) {
+	for key, value := range fields {
+		fields[key] = normalizeValue(value)
+	}
+}
+
+func normalizeValue(value any) any {
+	switch typed := value.(type) {
+	case map[string]any:
+		normalizeStringKeyMaps(typed)
+
+		return typed
+	case map[any]any:
+		normalized := make(map[string]any, len(typed))
+
+		for anyKey, nested := range typed {
+			strKey, isString := anyKey.(string)
+			if !isString {
+				return typed // non-string key: outside the contract, keep as-is
+			}
+
+			normalized[strKey] = normalizeValue(nested)
+		}
+
+		return normalized
+	case []any:
+		for i, item := range typed {
+			typed[i] = normalizeValue(item)
+		}
+
+		return typed
+	default:
+		return value
+	}
 }
 
 func encodeFieldMap(evt event.Event, fields map[string]any) ([]byte, error) {
