@@ -199,36 +199,29 @@ func scanFindingsAnalyzed(dir string) ([]findingJSON, []findingJSON, int, error)
 // gate anything — they coach toward the systemscenario harness while a
 // suite migrates.
 func printSuggestions(w io.Writer, suggestions []findingJSON) {
-	if len(suggestions) == 0 {
-		fmt.Fprintln(w, "suggestions: none (advisory; never auto-applied)")
-
-		return
-	}
-
-	fmt.Fprintf(
-		w,
-		"suggestions: %d hint(s) — advisory migration hints, never auto-applied:\n",
-		len(suggestions),
-	)
-
-	for _, f := range suggestions {
-		fmt.Fprintf(w, "  %s %s [%s]\n", f.Position, f.Message, f.Rule)
-	}
+	printFindings(w, suggestions,
+		"suggestions: none (advisory; never auto-applied)",
+		"suggestions: %d hint(s) — advisory migration hints, never auto-applied:\n")
 }
 
 // printDeprecations prints the v5-removal findings for one module.
 func printDeprecations(w io.Writer, findings []findingJSON) {
+	printFindings(w, findings,
+		"deprecation report: no v5-removed API usage detected",
+		"deprecation report: %d finding(s) — APIs removed at go-cqrs-lite v5:\n")
+}
+
+// printFindings renders one findings section: the emptySummary line when
+// the slice is empty, else the count header (header, one %d) followed by
+// one line per finding — the shared body of the two report sections.
+func printFindings(w io.Writer, findings []findingJSON, emptySummary, header string) {
 	if len(findings) == 0 {
-		fmt.Fprintln(w, "deprecation report: no v5-removed API usage detected")
+		fmt.Fprintln(w, emptySummary)
 
 		return
 	}
 
-	fmt.Fprintf(
-		w,
-		"deprecation report: %d finding(s) — APIs removed at go-cqrs-lite v5:\n",
-		len(findings),
-	)
+	fmt.Fprintf(w, header, len(findings))
 
 	for _, f := range findings {
 		fmt.Fprintf(w, "  %s %s [%s]\n", f.Position, f.Message, f.Rule)

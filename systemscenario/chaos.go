@@ -262,6 +262,7 @@ func (d *delayedEngine) StreamLoadByEventID(
 func (d *delayedEngine) StreamReadAsOfVersion(
 	ctx context.Context, collection, streamID string, maxVersion int64,
 ) ([]any, error) {
+	//art-dupl:accept StreamTemporalReader forward twins (AsOf/FromVersion): explicit hand-forwarding IS the wrap's design — Go cannot delegate capability assertions through embedding
 	d.pause(ctx)
 
 	reader, ok := d.Engine.(metaengine.StreamTemporalReader)

@@ -33,3 +33,4 @@ F031 Scan without WithLimit silently truncates at 100 rows — larger collection
 S010 Bus has encryption/signing middleware but store is not wrapped — events stored in cleartext
 V003 queue/sqlite/v4 is on v4.0.x — 3 minor versions behind latest (v4.3.x), missing bug fixes and features
 V003 queue/v4 is on v4.0.x — 3 minor versions behind latest (v4.3.x), missing bug fixes and features
+V003 systemscenario/v4 is on v4.0.x — 3 minor versions behind latest (v4.3.x), missing bug fixes and features
