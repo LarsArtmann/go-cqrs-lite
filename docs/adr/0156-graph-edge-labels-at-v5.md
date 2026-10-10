@@ -4,7 +4,7 @@
 - Date: 2026-10-10
 - Deciders: owner (graph-native adoption-closure plan V2, Wave 4)
 - Related: [ADR-0114](0114-tombstone-as-domain-event.md) (deletion as domain events — `EdgeRemoval`),
-  [ADR-0155](0155-engine-fleet-operation-two-level-story.md) (engine fleet operation),
+  [ADR-0157](0157-engine-fleet-operation-two-level-story.md) (engine fleet operation),
   [`metaengine/types.go`](../../metaengine/types.go) (`Edge`), [`metaengine/graphadapter/doc.go`](../../metaengine/graphadapter/doc.go) (limitation + escape hatch)
 
 ## Context
