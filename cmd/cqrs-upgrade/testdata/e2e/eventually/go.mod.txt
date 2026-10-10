@@ -1,0 +1,3 @@
+module example.com/eventually
+
+go 1.27

@@ -1,0 +1,24 @@
+package eventually
+
+import (
+	"testing"
+	"time"
+)
+
+// retryBackoff sleeps WITHOUT a deadline condition — an ordinary retry
+// loop, not an eventually loop; the matcher must stay silent.
+func retryBackoff() {
+	for i := range 3 {
+		if ok := probe(); ok {
+			return
+		}
+
+		time.Sleep(time.Duration(i+1) * 10 * time.Millisecond)
+	}
+}
+
+func probe() bool { return true }
+
+func TestBackoff(t *testing.T) {
+	retryBackoff()
+}

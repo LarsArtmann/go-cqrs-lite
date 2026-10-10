@@ -137,7 +137,7 @@ func TestE2E_NoPins_ModuleStillScanned(t *testing.T) {
 func TestE2E_Violation_ScanAnalyzedFiles(t *testing.T) {
 	dir := setupFixture(t, "violation")
 
-	_, analyzed, err := deprecationFindingsAnalyzed(dir)
+	_, _, analyzed, err := scanFindingsAnalyzed(dir)
 	if err != nil {
 		t.Fatalf("scan failed: %v", err)
 	}

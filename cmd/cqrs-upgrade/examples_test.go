@@ -29,7 +29,7 @@ func TestExamples_AreV5Clean(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			dir := filepath.Join("..", "..", "example", name)
 
-			findings, analyzed, err := deprecationFindingsAnalyzed(dir)
+			findings, _, analyzed, err := scanFindingsAnalyzed(dir)
 			if err != nil {
 				t.Fatalf("deprecation scan failed (v5-readiness unproven): %v", err)
 			}

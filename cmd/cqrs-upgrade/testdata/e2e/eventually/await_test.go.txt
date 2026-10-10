@@ -1,0 +1,29 @@
+package eventually
+
+import (
+	"testing"
+	"time"
+)
+
+func lookupTitle() string { return "" }
+
+// awaitTitle is the hand-rolled eventually idiom the suggestion matcher
+// flags: a deadline comparison in the loop condition and a sleep between
+// probes — exactly what ThenQuery provides as a tested assertion.
+func awaitTitle(t *testing.T) {
+	deadline := time.Now().Add(5 * time.Second)
+
+	for time.Now().Before(deadline) {
+		if got := lookupTitle(); got == "renamed" {
+			return
+		}
+
+		time.Sleep(10 * time.Millisecond)
+	}
+
+	t.Fatalf("timed out waiting for title, last: %q", lookupTitle())
+}
+
+func TestAwait(t *testing.T) {
+	awaitTitle(t)
+}

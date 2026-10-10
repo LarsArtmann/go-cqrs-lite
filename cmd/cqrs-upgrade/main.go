@@ -262,12 +262,14 @@ func upgradeModule(cfg config, dir string) moduleReport {
 	return scanDeprecations(dir, rep)
 }
 
-// scanDeprecations fills the report's deprecation-scan fields and returns
-// it. Shared by the no-pins early exit and the post-bump path — both owe the
-// caller a v5-readiness report.
+// scanDeprecations fills the report's deprecation-scan and suggestion
+// fields and returns it. Shared by the no-pins early exit and the post-bump
+// path — both owe the caller a v5-readiness report. Suggestions ride the
+// same BuildContext (one package load): they never gate, they coach.
 func scanDeprecations(dir string, rep moduleReport) moduleReport {
-	findings, scanErr := deprecationFindings(dir)
+	findings, suggestions, scanErr := scanFindings(dir)
 	rep.Deprecations = findings
+	rep.Suggestions = suggestions
 	rep.ScanErr = scanErr
 
 	return rep
@@ -293,6 +295,8 @@ func printReport(r moduleReport) {
 			printDeprecations(os.Stdout, r.Deprecations)
 		}
 	}
+
+	printSuggestions(os.Stdout, r.Suggestions)
 }
 
 // printBumps renders the plan table for both dry-run and apply runs.

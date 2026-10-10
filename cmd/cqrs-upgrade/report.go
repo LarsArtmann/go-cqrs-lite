@@ -41,7 +41,8 @@ type moduleReport struct {
 // wrapper object would break jq consumers) is the wire-format generation:
 // 1 = bumps always-present + deprecations always-present + NoPins modules
 // scanned. Old CLIs omit it; bump it on any contract change.
-const moduleSchemaVersion = 1
+// 2 = suggestions always-present (advisory report-only section).
+const moduleSchemaVersion = 2
 
 type moduleJSON struct {
 	SchemaVersion        int           `json:"schemaVersion"`
@@ -50,6 +51,7 @@ type moduleJSON struct {
 	Error                string        `json:"error,omitempty"`
 	Bumps                []bumpJSON    `json:"bumps"`
 	Deprecations         []findingJSON `json:"deprecations"`
+	Suggestions          []findingJSON `json:"suggestions"`
 	DeprecationScanError string        `json:"deprecationScanError,omitempty"`
 }
 
@@ -133,6 +135,14 @@ func deprecationFindings(dir string) ([]findingJSON, error) {
 	findings, _, _, err := scanFindingsAnalyzed(dir)
 
 	return findings, err
+}
+
+// scanFindings is the pipeline-facing wrapper: deprecations, suggestions,
+// and the scan error in one call.
+func scanFindings(dir string) ([]findingJSON, []findingJSON, error) {
+	deps, suggs, _, err := scanFindingsAnalyzed(dir)
+
+	return deps, suggs, err
 }
 
 // scanFindingsAnalyzed runs the v5-removal detector AND the advisory
