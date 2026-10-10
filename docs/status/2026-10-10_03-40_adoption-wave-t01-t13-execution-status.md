@@ -45,10 +45,10 @@
 7. **T07 — SKILL.md**: testing pointer (recipes §2.43, advanced §6.10) + recipes line
    extended. doc-check: 1184 refs valid (4 ambiguity warnings = known core/v5 externals).
 8. **T08 — `deriver.WithAsyncDispatch`** (commit `b4d350ba1`): option + error-handler type
-   + dispatchAsync (per-event goroutine, WithoutCancel, first-error-stop, nil-onError
-   drops errors — loudly documented). 4 race-clean unit tests: handler-returns-before-
-   dispatch, default-stays-synchronous (pinned), error surfaces to callback + stops chain,
-   cancelled context does not kill async dispatch. api golden +2 exports.
+   - dispatchAsync (per-event goroutine, WithoutCancel, first-error-stop, nil-onError
+     drops errors — loudly documented). 4 race-clean unit tests: handler-returns-before-
+     dispatch, default-stays-synchronous (pinned), error surfaces to callback + stops chain,
+     cancelled context does not kill async dispatch. api golden +2 exports.
 9. **T09 — fixture flip**: systemscenario saga fixture goroutine → WithAsyncDispatch with a
    panicking onError (failed derived dispatches fail tests loudly). Full suite race-clean.
    README constraint note → points at ADR-0154 + evidence pack.
@@ -75,8 +75,8 @@
    system/systemscenario; GOWORK=off reds for system+systemscenario are the EXPECTED
    pre-tag state and the reason the order exists). The first `batch-release.sh` invocation
    FAILED: "working tree has uncommitted changes" — `scripts/untagged-trains.txt` (my edit)
-   + `.agents/skills/go-cqrs-lite/SKILL.md` (dirty — not mine this time; the daemon or a
-   concurrent agent touched it after my 7696eee95 commit). Nothing was tagged; no damage.
+   - `.agents/skills/go-cqrs-lite/SKILL.md` (dirty — not mine this time; the daemon or a
+     concurrent agent touched it after my 7696eee95 commit). Nothing was tagged; no damage.
 2. **Authored-commit discipline (again)**: 2 of 3 intended authored commits this session
    lost their bulk to daemon races (evidence pack absorbed pre-add; migration bulk absorbed
    between edit and commit). Only T08 (`b4d350ba1`), T06+T07 (`7696eee95`), harvest
@@ -128,6 +128,7 @@ rollout, watermill loud-fail, final verify + retro).
 ## f) Up to 50 things to get done next
 
 **Resume T14 (the wave — all evidence already gathered):**
+
 1. Commit the dirty files (`untagged-trains.txt` + inspect the SKILL.md dirt FIRST —
    rule 6: never commit changes I didn't author without reading them; if it is a foreign
    in-flight edit, wait or stash-aside, do not absorb blindly).
@@ -145,49 +146,49 @@ rollout, watermill loud-fail, final verify + retro).
 
 **T15 (drop replaces — rescoped):**
 11. cqrs-htmx: drop `systemscenario/v4` replace from go.work AND `systemadapter/go.mod`;
-    keep their schema line (permanent local-dev pattern).
+keep their schema line (permanent local-dev pattern).
 12. go-appkit: drop the pilot trio (systemscenario + system + schema lines in go.work) +
-    `cqrs/go.mod` replace; tidy; full suites green on published tags.
+`cqrs/go.mod` replace; tidy; full suites green on published tags.
 
 **T16–T20 (hardening/pilots/examples/presets):** items 13–30 are the plan's own fine
 breakdown (F16.1–F20.4) — nothing new discovered that changes them, EXCEPT:
 13. T16's timeout last-error surfacing should ALSO cover the `awaitNotFound` pattern this
-    session introduced in cqrs-htmx (query-error-as-success hides the last non-matching
-    error — surface it in the detail string).
+session introduced in cqrs-htmx (query-error-as-success hides the last non-matching
+error — surface it in the detail string).
 14. T20 presets: `Memory()` should default `RecommendedMemoryDeployment`-shaped single-
-    engine memory config; keep `SQLite(t)` DSN-per-test.
+engine memory config; keep `SQLite(t)` DSN-per-test.
 
 **T21–T26:** plan fine breakdown F21.1–F26.4 stands. Additions from this session:
 15. T21's fold-vs-read-model invariant: use the systemscenario task fixture (TaskView vs
-    decider fold) — direct reuse.
+decider fold) — direct reuse.
 16. T26 loud-fail: the evidence pack's exact mechanism (per-topic mutex) means detection
-    belongs in `EventBus.Publish` (publisher-depth flag is NOT enough — the cycle is
-    cross-goroutine via the mutex; a publish-depth goroutine-local works because the nested
-    publish happens ON the event-loop goroutine which CAN carry the flag). Verify with the
-    evidence-pack repro shape before committing to a mechanism.
+belongs in `EventBus.Publish` (publisher-depth flag is NOT enough — the cycle is
+cross-goroutine via the mutex; a publish-depth goroutine-local works because the nested
+publish happens ON the event-loop goroutine which CAN carry the flag). Verify with the
+evidence-pack repro shape before committing to a mechanism.
 
 **T27 + tail:**
 17. `nix run .#verify` (expect: my modules green; core/v5 arch-lint + V007 + doc-check
-    aliases + metaengine file-size red — externals itemized).
+aliases + metaengine file-size red — externals itemized).
 18. `nix run .#check-md-go` on the new docs (evidence pack, ADR-0154, manifest).
 19. Plan addendum: DONE/PARTIAL per section + the 5-module wave restatement.
 20. Companion full suites post-T15.
 21. TODO_LIST: strike the wave-execution residue rows that T14–T26 close.
 22. CHANGELOG [Unreleased] → version sections for all five tags.
 23. Retro into `docs/agents/gotchas-*`: "commit before release scripts", "wave = consumers
-    of untagged API, not just changed modules".
+of untagged API, not just changed modules".
 24. cqrs-htmx + go-appkit daemons will absorb the T15 drops — authored commits where
-    possible (single-call pattern).
+possible (single-call pattern).
 25. Re-check `TestCatalogHasExpectedCounts` (cqrs-lint) if systemscenario's catalog entry
-    drifted (14:40 §f31 residue row).
+drifted (14:40 §f31 residue row).
 26. go-appkit `integration` module: in go.work `use` set CONTRADICTING its own charter
-    comment (charter: NOT a member; use list: `./integration`) — THEIR bug to file/flag,
-    surfaced in the baseline record.
+comment (charter: NOT a member; use list: `./integration`) — THEIR bug to file/flag,
+surfaced in the baseline record.
 27. The `.agents/skills/go-cqrs-lite/SKILL.md` foreign dirt: read it, judge on merits,
-    commit or leave for its author (never blind-absorb).
+commit or leave for its author (never blind-absorb).
 28–50. The plan's F16–F26 fine tasks verbatim (38 items; see
-    `docs/planning/2026-10-09_14-49_SUPERB-bdd-harness-adoption-wave.md` §5) — no further
-    decomposition needed at report time.
+`docs/planning/2026-10-09_14-49_SUPERB-bdd-harness-adoption-wave.md` §5) — no further
+decomposition needed at report time.
 
 ## g) Questions I CANNOT figure out myself
 

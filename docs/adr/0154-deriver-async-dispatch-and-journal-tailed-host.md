@@ -89,12 +89,12 @@ the ROADMAP. It is NOT built by this ADR; D1 is the v4.x bridge.
 
 ## Alternatives considered
 
-| Option | Verdict | Why |
-|---|---|---|
-| (a) Async bus delivery in `watermill.EventBus` | Rejected for v4.x | Changes global ordering semantics for EVERY subscriber (the reason `BlockPublishUntilSubscriberAck` exists — ordered live delivery); silent semantic shift of a shipped bus to fix a deriver-specific hazard. May be revisited only with a delivery-mode knob (adoption-wave residue TODO). |
-| (b) `deriver.WithAsyncDispatch` | **Adopted (D1)** | Opt-in, additive, ~90 min; promotes the known-safe workaround to a first-class API with error surfacing. |
-| (c) Journal-tailed deriver host | **Adopted as v5 direction (D2)** | The endgame; too large for v4.x and unnecessary once (b) unblocks sagas. |
-| Do nothing (document the hazard) | Rejected | The deadlock is a whole-boot hang with no stack-trace pointer at the misuse site; silent by nature (see consequences). |
+| Option                                         | Verdict                          | Why                                                                                                                                                                                                                                                                                         |
+| ---------------------------------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| (a) Async bus delivery in `watermill.EventBus` | Rejected for v4.x                | Changes global ordering semantics for EVERY subscriber (the reason `BlockPublishUntilSubscriberAck` exists — ordered live delivery); silent semantic shift of a shipped bus to fix a deriver-specific hazard. May be revisited only with a delivery-mode knob (adoption-wave residue TODO). |
+| (b) `deriver.WithAsyncDispatch`                | **Adopted (D1)**                 | Opt-in, additive, ~90 min; promotes the known-safe workaround to a first-class API with error surfacing.                                                                                                                                                                                    |
+| (c) Journal-tailed deriver host                | **Adopted as v5 direction (D2)** | The endgame; too large for v4.x and unnecessary once (b) unblocks sagas.                                                                                                                                                                                                                    |
+| Do nothing (document the hazard)               | Rejected                         | The deadlock is a whole-boot hang with no stack-trace pointer at the misuse site; silent by nature (see consequences).                                                                                                                                                                      |
 
 ## Consequences
 

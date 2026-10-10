@@ -1,9 +1,10 @@
 package command
 
 import (
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/core/v5/id"
 	"github.com/larsartmann/go-cqrs-lite/core/v5/record"
-	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // Type identifies a command type.

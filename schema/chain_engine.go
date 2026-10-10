@@ -3,8 +3,9 @@ package schema
 import (
 	"strconv"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
+
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
 )
 
 // decodeOp is implemented by every op that decodes the payload into a field

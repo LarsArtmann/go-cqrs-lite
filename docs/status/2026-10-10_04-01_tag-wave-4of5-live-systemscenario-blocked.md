@@ -16,12 +16,12 @@
    deletion (1235→896 lines, 2.2s→0.8s).
 2. **T14 — FOUR tags cut, pushed, proxy-served, smoke-passed** (each in its own
    batch-release invocation, dependency order per the manifest):
-   | # | Tag | Carries | Proxy |
-   |---|-----|---------|-------|
-   | 1 | `schema/v4.6.0` | Event/EventSchema declaration API (concurrent session's work; their ROADMAP row asked for exactly this tag) | ✓ attempt 1 |
-   | 2 | `deriver/v4.4.0` | `WithAsyncDispatch` + `AsyncDispatchErrorHandler` (ADR-0154 D1) | ✓ attempt 1 |
-   | 3 | `system/v4.12.0` | Clock seam + schema-on-every-read-path + adapter serial hardening | ✓ attempt 1 |
-   | 4 | `scheduling/v4.7.0` | `WithClock(now func() time.Time)` | ✓ attempt 1 |
+   | # | Tag                 | Carries                                                                                                     | Proxy       |
+   | - | ------------------- | ----------------------------------------------------------------------------------------------------------- | ----------- |
+   | 1 | `schema/v4.6.0`     | Event/EventSchema declaration API (concurrent session's work; their ROADMAP row asked for exactly this tag) | ✓ attempt 1 |
+   | 2 | `deriver/v4.4.0`    | `WithAsyncDispatch` + `AsyncDispatchErrorHandler` (ADR-0154 D1)                                             | ✓ attempt 1 |
+   | 3 | `system/v4.12.0`    | Clock seam + schema-on-every-read-path + adapter serial hardening                                           | ✓ attempt 1 |
+   | 4 | `scheduling/v4.7.0` | `WithClock(now func() time.Time)`                                                                           | ✓ attempt 1 |
 3. **Untag-policy removal for `deriver`** committed with rationale (tag-on-first-consumer:
    systemscenario's module graph is the consumer; owner-approved via Q1).
 4. **system's schema pin bump** (`a30b3f464`): the batch script REFUSED system's first cut
@@ -76,6 +76,7 @@ obligations: CHANGELOG version sections, versions-manifest check, tag-COUNT asse
 ## f) Up to 50 things to get done next
 
 **Finish T14 (minutes):**
+
 1. Diagnose the systemscenario standalone build failure (`go build ./...` GOWORK=off, full
    output — do not tail-truncate).
 2. `go get scheduling/v4@v4.7.0 deriver/v4@v4.4.0` (+ anything else the diagnosis shows);
@@ -90,21 +91,21 @@ obligations: CHANGELOG version sections, versions-manifest check, tag-COUNT asse
 
 **T15 (drop replaces):**
 10. cqrs-htmx: remove `systemscenario/v4` replaces (go.work + systemadapter/go.mod);
-    `go get systemscenario/v4@v4.0.0` + tidy; full suite green.
+`go get systemscenario/v4@v4.0.0` + tidy; full suite green.
 11. go-appkit: drop the pilot trio (go.work: systemscenario + system + schema lines) +
-    `cqrs/go.mod` replace; `go get`; tidy; full suites green.
+`cqrs/go.mod` replace; `go get`; tidy; full suites green.
 12. Companions: authored commits (single-call pattern).
 
 **T16–T20 (plan fine tasks F16–F20):**
 13. F16.1 `ThenCommandsSatisfy` await variant.
 14. F16.2 timeout last-error surfacing (query error vs check message) — ALSO cover the
-    `awaitNotFound` pattern (error-as-success hides the last real error).
+`awaitNotFound` pattern (error-as-success hides the last real error).
 15. F16.3–F16.4 tests + README rows.
 16. F17.1–F17.4 `WithQuietWindow` + `WithCommandCaptureFilter` (+ tests, docs).
 17. F18.1–F18.4 go-appkit layer-2 pilot (integration module via `Adopt` + `testkit.Serve`)
-    — mind their `integration` charter (GOWORK=off hermetic).
+— mind their `integration` charter (GOWORK=off hermetic).
 18. F19.1–F19.4 godoc examples (System happy path, saga via WithAsyncDispatch + Await +
-    ThenCommands, TimeAdvances deadline); `go vet` compile check.
+ThenCommands, TimeAdvances deadline); `go vet` compile check.
 19. F20.1–F20.4 `Memory()` / `SQLite(t)` presets + pilots adopt them.
 
 **T21–T26:**
@@ -112,19 +113,19 @@ obligations: CHANGELOG version sections, versions-manifest check, tag-COUNT asse
 21. F21.2 allocs/op bench (`-benchmem` on BenchmarkScenarioBoot) + F21.3 README metrics.
 22. F22.1–F22.4 DelayedJournal chaos scenario + ServeSSE assertion helper.
 23. F23.1–F23.4 cqrs-lint advisory rule (system-booting test without harness) + catalog
-    counts test + api-stability regen.
+counts test + api-stability regen.
 24. F24.1–F24.4 cqrs-upgrade `eventually`→`ThenQuery` suggestion rule.
 25. F25.1–F25.4 fleet rollout: example/taskmanager + example/goal-shaped-app.
 26. F26.1–F26.4 watermill `ErrReentrantPublish` loud-fail — mechanism per the evidence
-    pack (the nested publish runs ON the event-loop goroutine, so a goroutine-local
-    publisher-depth flag works; verify with the repro shape).
+pack (the nested publish runs ON the event-loop goroutine, so a goroutine-local
+publisher-depth flag works; verify with the repro shape).
 
 **T27 + tail:**
 27. `nix run .#verify` (my modules green; core/v5 + metaengine reds itemized as externals).
 28. `nix run .#check-md-go` on the new docs (evidence pack, ADR-0154, manifest).
 29. Plan addendum: DONE/PARTIAL per section + restate the 5-module wave.
 30. Retro into gotchas: "commit before release scripts", "wave = consumers of untagged
-    API", "grep go.mod after dependency surgery".
+API", "grep go.mod after dependency surgery".
 31. TODO_LIST residue rows: strike what T14–T26 close.
 32. Companion full suites post-T15 + the 14:40 §f32 root-go.mod stray-require check.
 

@@ -1,11 +1,12 @@
 package rules
 
 import (
+	"github.com/larsartmann/go-finding"
+
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/adoption"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/architecture"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/resilience"
-	"github.com/larsartmann/go-finding"
 )
 
 // appendConsumerCoaching registers the consumer-coaching detectors: rules

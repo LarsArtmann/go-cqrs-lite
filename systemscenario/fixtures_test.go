@@ -8,6 +8,8 @@ import (
 	"context"
 	"fmt"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/decider/v4"
 	"github.com/larsartmann/go-cqrs-lite/deriver/v4"
@@ -15,7 +17,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
-	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // ── Domain types ──

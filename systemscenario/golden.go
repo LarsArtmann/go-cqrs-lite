@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/gkampitakis/go-snaps/snaps"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 )
 

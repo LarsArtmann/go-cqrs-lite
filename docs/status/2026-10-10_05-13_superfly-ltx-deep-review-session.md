@@ -28,8 +28,8 @@
 2. **Never ran the ltx test suite** (`go test ./...` in the clone — ~30s). I called the
    `pageSeq` validation trick "elegant" from reading production code only; the tests that pin
    that behavior went unread (~2.3k lines of test files: 0% read).
-3. **Never opened LICENSE** — irrelevant for stealing *ideas*, mandatory before anyone
-   copies *code*. Should have been a 5-second read, flagged either way.
+3. **Never opened LICENSE** — irrelevant for stealing _ideas_, mandatory before anyone
+   copies _code_. Should have been a 5-second read, flagged either way.
 4. **Partial coverage I presented as full**: "production core read 100%" is true, but CLI was
    1/8 files (only `apply.go`), `internal/`, `file_spec.go` unread.
 5. **Noticed-then-dropped observations**: `FileInfo.Level` (leveled/LSM-style compaction
@@ -67,85 +67,85 @@
 
 ## a) FULLY DONE
 
-| # | Item | Evidence |
-|---|------|----------|
-| 1 | Loaded mandatory `go-cqrs-lite` skill before task work | SKILL.md read in first tool call |
-| 2 | Cloned superfly/ltx @ f299ac5 | `/tmp/ltx-review`, git log inspected (15 recent commits) |
-| 3 | Read 100% of LTX production core: `ltx.go` (642L), `encoder.go` (560L), `decoder.go` (574L), `checksum.go` (188L), `compactor.go` (263L) | all five files viewed end-to-end this session |
-| 4 | Read README format spec v3 + CLAUDE.md + go.mod (Go 1.24, single dep `pierrec/lz4/v4`) | in-session |
-| 5 | Read `cmd/ltx/apply.go` (apply semantics: pre/post-apply verification loop) + `IsContiguous` | in-session |
-| 6 | Surveyed go-cqrs-lite counterpart surfaces: `signing/` (per-event HMAC/Ed25519/COSE), `event` Version/SchemaVersion + AppendBatch, `snapshot/` exists, `Journal`/`SeekableJournal`/`StreamingJournal` interfaces, compression grep (absent in production storage code), hash-usage grep (`signing/`, `encryption/hkdf`, `id/derive`) | greps + targeted views, in-session |
-| 7 | Delivered structured review with relevance matrix + verdicts | in-chat deliverable (this session's only output) |
+| # | Item                                                                                                                                                                                                                                                                                                                                 | Evidence                                                 |
+| - | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------- |
+| 1 | Loaded mandatory `go-cqrs-lite` skill before task work                                                                                                                                                                                                                                                                               | SKILL.md read in first tool call                         |
+| 2 | Cloned superfly/ltx @ f299ac5                                                                                                                                                                                                                                                                                                        | `/tmp/ltx-review`, git log inspected (15 recent commits) |
+| 3 | Read 100% of LTX production core: `ltx.go` (642L), `encoder.go` (560L), `decoder.go` (574L), `checksum.go` (188L), `compactor.go` (263L)                                                                                                                                                                                             | all five files viewed end-to-end this session            |
+| 4 | Read README format spec v3 + CLAUDE.md + go.mod (Go 1.24, single dep `pierrec/lz4/v4`)                                                                                                                                                                                                                                               | in-session                                               |
+| 5 | Read `cmd/ltx/apply.go` (apply semantics: pre/post-apply verification loop) + `IsContiguous`                                                                                                                                                                                                                                         | in-session                                               |
+| 6 | Surveyed go-cqrs-lite counterpart surfaces: `signing/` (per-event HMAC/Ed25519/COSE), `event` Version/SchemaVersion + AppendBatch, `snapshot/` exists, `Journal`/`SeekableJournal`/`StreamingJournal` interfaces, compression grep (absent in production storage code), hash-usage grep (`signing/`, `encryption/hkdf`, `id/derive`) | greps + targeted views, in-session                       |
+| 7 | Delivered structured review with relevance matrix + verdicts                                                                                                                                                                                                                                                                         | in-chat deliverable (this session's only output)         |
 
 ## b) PARTIALLY DONE
 
-| # | What works now | What remains open | Effort |
-|---|----------------|-------------------|--------|
-| 1 | LTX review delivered with 7 steal-patterns + 4 anti-patterns | NOT persisted to repo docs; no commit hash, no durable artifact | S |
-| 2 | Two adoption candidates identified (segment checksum chain; integrity-bearing resumption tokens) | Neither verified against actual `watermill.CatchUpSubscriber` checkpoint code or `ServeSSE` replay code — gap is hypothesized, not confirmed | S–M |
-| 3 | Claim "no journal segment merge in go-cqrs-lite" | Asserted from module-map knowledge; snapshot/ and storage journal internals not read this session to confirm | S |
-| 4 | LTX repo characterized (health, history, deps) | Tests never run; consumer repos (LiteFS/Litestream) never opened; LICENSE never read | S |
+| # | What works now                                                                                   | What remains open                                                                                                                            | Effort |
+| - | ------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| 1 | LTX review delivered with 7 steal-patterns + 4 anti-patterns                                     | NOT persisted to repo docs; no commit hash, no durable artifact                                                                              | S      |
+| 2 | Two adoption candidates identified (segment checksum chain; integrity-bearing resumption tokens) | Neither verified against actual `watermill.CatchUpSubscriber` checkpoint code or `ServeSSE` replay code — gap is hypothesized, not confirmed | S–M    |
+| 3 | Claim "no journal segment merge in go-cqrs-lite"                                                 | Asserted from module-map knowledge; snapshot/ and storage journal internals not read this session to confirm                                 | S      |
+| 4 | LTX repo characterized (health, history, deps)                                                   | Tests never run; consumer repos (LiteFS/Litestream) never opened; LICENSE never read                                                         | S      |
 
 ## c) NOT STARTED
 
-| # | Planned | Why not started | Priority |
-|---|---------|-----------------|----------|
-| 1 | Persist review to `docs/architecture-understanding/` | Session ended at chat deliverable | High |
-| 2 | ADR-grade proposal for segment-level journal checksum chain | Blocked on (b)#2 verification + threat-model decision (see g) | Medium |
-| 3 | Verification of LTX's production-scale claim via LiteFS/Litestream repos | Not attempted; relied on code-comment citations (litestream #1477, ltx #96) | High for honesty |
-| 4 | Benchmarks quantifying LTX patterns (4x memory claim, spill threshold) — LTX's numbers are their code comments, not our measurements | Out of scope for a review read | Low |
-| 5 | Landing-zone design (Tier 0 `record/` vs Tier 1 `event/` vs per-engine) for any adopted pattern | Premature before (b)#2 | Medium |
+| # | Planned                                                                                                                              | Why not started                                                             | Priority         |
+| - | ------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------- | ---------------- |
+| 1 | Persist review to `docs/architecture-understanding/`                                                                                 | Session ended at chat deliverable                                           | High             |
+| 2 | ADR-grade proposal for segment-level journal checksum chain                                                                          | Blocked on (b)#2 verification + threat-model decision (see g)               | Medium           |
+| 3 | Verification of LTX's production-scale claim via LiteFS/Litestream repos                                                             | Not attempted; relied on code-comment citations (litestream #1477, ltx #96) | High for honesty |
+| 4 | Benchmarks quantifying LTX patterns (4x memory claim, spill threshold) — LTX's numbers are their code comments, not our measurements | Out of scope for a review read                                              | Low              |
+| 5 | Landing-zone design (Tier 0 `record/` vs Tier 1 `event/` vs per-engine) for any adopted pattern                                      | Premature before (b)#2                                                      | Medium           |
 
 ## d) TOTALLY FUCKED UP
 
 **Severity: LOW (reputational/epistemic, not operational — no code touched, nothing broken).**
 
-| # | What | Specifics | Mitigation |
-|---|------|-----------|------------|
+| # | What                                             | Specifics                                                                                                                                                                                                                                                                                                                                        | Mitigation                                                                                 |
+| - | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------ |
 | 1 | **Unverified external claim in the deliverable** | Final line: "validated by LTX running this design in production at fly.io scale." I never verified fly.io deployment scale in-session. Only real corroboration: LTX code comments cite litestream #1477 / ltx #96 (proves Litestream-adjacent production use, NOT "fly.io scale"). This is precisely the `verify-external-claims` failure class. | Read LiteFS/Litestream source or docs; weaken wording to code-comment-cited production use |
-| 2 | **Recommendations without target verification** | "Consider: integrity-bearing resumption tokens" — delivered before reading our own checkpoint/SSE replay code. If integrity already exists there, the recommendation is noise. | Read `watermill/` checkpoint + `metaengine.ServeSSE` (f #2–#3) |
-| 3 | Wasted first tool call on GitHub HTML fetch | Returned navigation chrome only | Clone-first heuristic adopted |
+| 2 | **Recommendations without target verification**  | "Consider: integrity-bearing resumption tokens" — delivered before reading our own checkpoint/SSE replay code. If integrity already exists there, the recommendation is noise.                                                                                                                                                                   | Read `watermill/` checkpoint + `metaengine.ServeSSE` (f #2–#3)                             |
+| 3 | Wasted first tool call on GitHub HTML fetch      | Returned navigation chrome only                                                                                                                                                                                                                                                                                                                  | Clone-first heuristic adopted                                                              |
 
 ## e) WHAT WE SHOULD IMPROVE
 
-| # | Pattern | Impact | Fix |
-|---|---------|--------|-----|
-| 1 | External reviews die in chat | High — analysis lost with context window | Persist every external-review session to `docs/architecture-understanding/<date>_*.md` same-session |
-| 2 | Review-order indiscipline | Medium — unverified claims ship | Fixed order: clone → test run → LICENSE → code → consumers → write |
-| 3 | verify-external-claims blind spot on self-authored claims | Medium — trophy-case phrasing slipped through | Treat my own "production scale"-class phrasings as claims requiring in-session evidence |
-| 4 | Recommendation-before-target-read | Medium — half-work presented as done | Read the go-cqrs-lite target surface BEFORE writing any "consider adopting" row |
-| 5 | No todos in multi-phase research | Low–Medium — silent coverage gaps (see forgot #4–#5) | Always todos for 4+ phase sessions |
-| 6 | Claim-strength labeling | Low — "no compression" stated flat | Tag claims: verified-by-read / grep-level / prior-knowledge |
+| # | Pattern                                                   | Impact                                               | Fix                                                                                                 |
+| - | --------------------------------------------------------- | ---------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| 1 | External reviews die in chat                              | High — analysis lost with context window             | Persist every external-review session to `docs/architecture-understanding/<date>_*.md` same-session |
+| 2 | Review-order indiscipline                                 | Medium — unverified claims ship                      | Fixed order: clone → test run → LICENSE → code → consumers → write                                  |
+| 3 | verify-external-claims blind spot on self-authored claims | Medium — trophy-case phrasing slipped through        | Treat my own "production scale"-class phrasings as claims requiring in-session evidence             |
+| 4 | Recommendation-before-target-read                         | Medium — half-work presented as done                 | Read the go-cqrs-lite target surface BEFORE writing any "consider adopting" row                     |
+| 5 | No todos in multi-phase research                          | Low–Medium — silent coverage gaps (see forgot #4–#5) | Always todos for 4+ phase sessions                                                                  |
+| 6 | Claim-strength labeling                                   | Low — "no compression" stated flat                   | Tag claims: verified-by-read / grep-level / prior-knowledge                                         |
 
 ## f) Next tasks (ranked; feeds docs-health HARVEST)
 
-| # | Task | Impact | Effort | Category |
-|---|------|--------|--------|----------|
-| 1 | Read `watermill.CatchUpSubscriber` + its checkpoint store; verify whether resumption tokens carry any integrity today | High | S–M | Research |
-| 2 | Read `metaengine.ServeSSE` `Last-Event-ID`/`SSEReplay` handling; same integrity question | High | S | Research |
-| 3 | Read `id/derive.go` — determine what hashing/derivation already exists before designing ANY checksum chain (do not reinvent) | High | S | Research |
-| 4 | Run ltx test suite in clone (`cd /tmp/ltx-review && go test ./...`), record pass/fail @ f299ac5 | Medium | S | Verification |
-| 5 | Read ltx LICENSE; note code-copy vs idea-copy boundary | Medium | S | Verification |
-| 6 | Verify LiteFS/Litestream actually consume LTX (their repos/docs); correct or confirm the scale claim | High (honesty) | S–M | Verification |
-| 7 | Persist this session's LTX review as `docs/architecture-understanding/2026-10-10_superfly-ltx-mapping.md` (pin commit f299ac5) | High | S | Documentation |
-| 8 | If (1)–(3) confirm gaps: draft ADR "journal segment integrity chain (LTX pre/post-apply analog)" with Tier landing-zone analysis | High | M | Design |
-| 9 | If adopted: decide CRC64-chain (cheap, non-crypto) vs HMAC-chain (rides existing `signing/`) — needs threat-model answer (see g-Q2) | High | S | Design |
-| 10 | Audit `storage/sql` batch-insert paths against LTX's encoder-abort-FSM pattern (no half-written file can ever be "finished" valid) | Medium | M | Quality |
-| 11 | Evaluate `pageSeq`-style "validate index against stream without retaining either" for large `ReadStreamFrom`/`StreamingJournal` paths | Medium | M | Feature |
-| 12 | Audit our snapshot invariants: structural (LTX `IsSnapshot()==MinTXID==1`) vs flag/metadata-based; report drift from ADR-0114 philosophy | Medium | M | Quality |
-| 13 | Non-zero-guarantee trick (LTX `ChecksumFlag 1<<63`): apply to any zero-able integrity/position fields we introduce | Low | S | Design |
-| 14 | Commutative XOR-fold checksum for parallel large-journal verification (LTX `ChecksumPages`, 24 workers) — only if journals get integrity work | Medium | M | Feature |
-| 15 | Add `NodeID`-zeroed-on-compaction ↔ `id.ActorID` merge-provenance cross-reference note to the ADR from (8) | Low | S | Documentation |
-| 16 | Capture dropped observations (`FileInfo.Level` leveled compaction; WAL salt/offset provenance) in the persisted doc from (7) | Low | S | Documentation |
-| 17 | Feasibility note: per-record LZ4 *block* compression for journal payloads — ONLY with logical-checksum-before-compress rule; likely park for v5+ | Low | M | Research |
-| 18 | Confirm "no compression" claim properly (codec options, `stack` presets, kv/snapshot codec knobs) and record as verified fact | Low | S | Verification |
-| 19 | If checksum chain adopted: extend `benchkit`/`cqrs-bench` with integrity-on/off phases so cost is measured, not assumed | Medium | M | Quality |
-| 20 | Write the "review-order" discipline (e#2) into `docs/agents/gotchas-*.md` or the go-cqrs-lite skill references if it recurs in a second session | Low | S | Documentation |
-| 21 | Clean up `/tmp/ltx-review` once items 4–5 are done (trash, not rm) | Low | S | Cleanup |
-| 22 | If (1)–(2) show SSE replay integrity matters: consider joint design for `ServeSSE` replay + CatchUp checkpoints (one integrity-token type, two consumers) | Medium | M | Design |
-| 23 | Check whether `errorfamily` has a Corruption-family code ready for checksum-chain mismatch errors before ADR (8) names one | Low | S | Research |
+| #  | Task                                                                                                                                                      | Impact         | Effort | Category      |
+| -- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- | ------ | ------------- |
+| 1  | Read `watermill.CatchUpSubscriber` + its checkpoint store; verify whether resumption tokens carry any integrity today                                     | High           | S–M    | Research      |
+| 2  | Read `metaengine.ServeSSE` `Last-Event-ID`/`SSEReplay` handling; same integrity question                                                                  | High           | S      | Research      |
+| 3  | Read `id/derive.go` — determine what hashing/derivation already exists before designing ANY checksum chain (do not reinvent)                              | High           | S      | Research      |
+| 4  | Run ltx test suite in clone (`cd /tmp/ltx-review && go test ./...`), record pass/fail @ f299ac5                                                           | Medium         | S      | Verification  |
+| 5  | Read ltx LICENSE; note code-copy vs idea-copy boundary                                                                                                    | Medium         | S      | Verification  |
+| 6  | Verify LiteFS/Litestream actually consume LTX (their repos/docs); correct or confirm the scale claim                                                      | High (honesty) | S–M    | Verification  |
+| 7  | Persist this session's LTX review as `docs/architecture-understanding/2026-10-10_superfly-ltx-mapping.md` (pin commit f299ac5)                            | High           | S      | Documentation |
+| 8  | If (1)–(3) confirm gaps: draft ADR "journal segment integrity chain (LTX pre/post-apply analog)" with Tier landing-zone analysis                          | High           | M      | Design        |
+| 9  | If adopted: decide CRC64-chain (cheap, non-crypto) vs HMAC-chain (rides existing `signing/`) — needs threat-model answer (see g-Q2)                       | High           | S      | Design        |
+| 10 | Audit `storage/sql` batch-insert paths against LTX's encoder-abort-FSM pattern (no half-written file can ever be "finished" valid)                        | Medium         | M      | Quality       |
+| 11 | Evaluate `pageSeq`-style "validate index against stream without retaining either" for large `ReadStreamFrom`/`StreamingJournal` paths                     | Medium         | M      | Feature       |
+| 12 | Audit our snapshot invariants: structural (LTX `IsSnapshot()==MinTXID==1`) vs flag/metadata-based; report drift from ADR-0114 philosophy                  | Medium         | M      | Quality       |
+| 13 | Non-zero-guarantee trick (LTX `ChecksumFlag 1<<63`): apply to any zero-able integrity/position fields we introduce                                        | Low            | S      | Design        |
+| 14 | Commutative XOR-fold checksum for parallel large-journal verification (LTX `ChecksumPages`, 24 workers) — only if journals get integrity work             | Medium         | M      | Feature       |
+| 15 | Add `NodeID`-zeroed-on-compaction ↔ `id.ActorID` merge-provenance cross-reference note to the ADR from (8)                                                | Low            | S      | Documentation |
+| 16 | Capture dropped observations (`FileInfo.Level` leveled compaction; WAL salt/offset provenance) in the persisted doc from (7)                              | Low            | S      | Documentation |
+| 17 | Feasibility note: per-record LZ4 _block_ compression for journal payloads — ONLY with logical-checksum-before-compress rule; likely park for v5+          | Low            | M      | Research      |
+| 18 | Confirm "no compression" claim properly (codec options, `stack` presets, kv/snapshot codec knobs) and record as verified fact                             | Low            | S      | Verification  |
+| 19 | If checksum chain adopted: extend `benchkit`/`cqrs-bench` with integrity-on/off phases so cost is measured, not assumed                                   | Medium         | M      | Quality       |
+| 20 | Write the "review-order" discipline (e#2) into `docs/agents/gotchas-*.md` or the go-cqrs-lite skill references if it recurs in a second session           | Low            | S      | Documentation |
+| 21 | Clean up `/tmp/ltx-review` once items 4–5 are done (trash, not rm)                                                                                        | Low            | S      | Cleanup       |
+| 22 | If (1)–(2) show SSE replay integrity matters: consider joint design for `ServeSSE` replay + CatchUp checkpoints (one integrity-token type, two consumers) | Medium         | M      | Design        |
+| 23 | Check whether `errorfamily` has a Corruption-family code ready for checksum-chain mismatch errors before ADR (8) names one                                | Low            | S      | Research      |
 
-*Items 24–50 deliberately not padded — 23 real items > 50 filled ones. ROADMAP-fuel items (11, 14, 17) should route via docs-health HARVEST, not TODO_LIST.*
+_Items 24–50 deliberately not padded — 23 real items > 50 filled ones. ROADMAP-fuel items (11, 14, 17) should route via docs-health HARVEST, not TODO_LIST._
 
 ## g) Questions I cannot answer myself
 
@@ -167,4 +167,4 @@
 
 ---
 
-*Point-in-time snapshot. Section (f) is docs-health HARVEST input. Auto-commit daemon will absorb this file; no manual commit per harness contract.*
+_Point-in-time snapshot. Section (f) is docs-health HARVEST input. Auto-commit daemon will absorb this file; no manual commit per harness contract._

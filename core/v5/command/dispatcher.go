@@ -5,8 +5,9 @@ import (
 	"errors"
 	"io"
 
-	"github.com/larsartmann/go-cqrs-lite/core/v5/dispatcher"
 	errorfamily "github.com/larsartmann/go-error-family"
+
+	"github.com/larsartmann/go-cqrs-lite/core/v5/dispatcher"
 )
 
 // Dispatcher routes commands to their handlers.

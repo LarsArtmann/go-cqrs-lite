@@ -368,7 +368,7 @@ linters:
       - path: queue/conformance/
         linters:
           - mnd
-      - text: 'embedlit: embedded field type can be removed from struct literal'
+      - text: "embedlit: embedded field type can be removed from struct literal"
         linters:
           - modernize
       - path: testhelpers/fake.*\.go$
@@ -401,15 +401,15 @@ linters:
         linters:
           - contextcheck
       - path: (stack|storage|graph|benchkit|cmd/cqrs-bench|example|integration|record|metadata|event|command|query|metaengine|commandlifecycle|decider)/.*\.go$
-        text: 'SA1019: .*removed in v5.*'
+        text: "SA1019: .*removed in v5.*"
         linters:
           - staticcheck
       - path: (event|metadata)/.*_test\.go$
-        text: 'SA1019: .*EnsureCustom.*is deprecated'
+        text: "SA1019: .*EnsureCustom.*is deprecated"
         linters:
           - staticcheck
       - path: (middleware|idempotency)/.*_test\.go$
-        text: 'SA1019: .*(NewMemoryStore|MemoryStore) is deprecated'
+        text: "SA1019: .*(NewMemoryStore|MemoryStore) is deprecated"
         linters:
           - staticcheck
       - path: id/

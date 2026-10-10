@@ -6,8 +6,9 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-codec"
-	"github.com/larsartmann/go-cqrs-lite/core/v5/id"
 	errorfamily "github.com/larsartmann/go-error-family"
+
+	"github.com/larsartmann/go-cqrs-lite/core/v5/id"
 )
 
 // TypedPersistedCommand is a persisted command with a typed payload P, closing
