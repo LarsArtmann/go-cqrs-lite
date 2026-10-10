@@ -1683,3 +1683,17 @@ dprint, ADR-0123 addendum) shipped the same day — completed rows deleted
   return waits for v5 where signature changes are free.
 - **KeyProvider tier (env/file composite provider)** — deferred to ROADMAP;
   the bank-sync ask is closed by the shipped helpers. — source: 08-26 §f14
+
+## From the CRM's Graph-ADT debut (2026-10-10, first real consumer)
+
+- [ ] **Recipes §graph: the Graph ADT end-to-end pattern** — the Kith CRM
+      (github.com/LarsArtmann/crm, relations feature 2026-10-10) is the
+      FIRST real consumer of `metaengine.Edge`/`EdgeRemoval` folds +
+      `NetworkInput{Undirected}` undirected traversal over sqlite's
+      recursive CTE. Document the working recipe: dual collections (record
+      view for lists + `relation-graph` for edges), stateless EdgeRemoval
+      folds carrying BOTH endpoints in the payload, the `Undirected`
+      field-name planner contract, and the `[]any` ExecuteCtx cast. Source:
+      crm `internal/domain/relation` + `internal/app/projections.go`
+      (relationGraphProjection) + the crm audit report
+      `docs/status/2026-10-10_05-48_graph-native-docs-audit-report.md`.
