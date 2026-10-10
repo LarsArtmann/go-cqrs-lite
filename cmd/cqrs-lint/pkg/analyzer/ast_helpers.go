@@ -3,6 +3,7 @@ package analyzer
 import (
 	"go/ast"
 	"go/token"
+	"strconv"
 	"strings"
 )
 
@@ -217,6 +218,23 @@ func ExtractJSONTag(tag string) string {
 	value := tag[start : start+end]
 	if comma := strings.Index(value, ","); comma >= 0 {
 		value = value[:comma]
+	}
+
+	return value
+}
+
+// IntLit returns the value of an integer literal expression, or -1 when the
+// expression is not a plain int literal (constants and expressions do not
+// resolve here — callers treat -1 as unknown).
+func IntLit(expr ast.Expr) int {
+	lit, ok := expr.(*ast.BasicLit)
+	if !ok || lit.Kind != token.INT {
+		return -1
+	}
+
+	value, err := strconv.Atoi(lit.Value)
+	if err != nil {
+		return -1
 	}
 
 	return value

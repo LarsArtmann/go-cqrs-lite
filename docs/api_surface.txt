@@ -2800,6 +2800,7 @@ metaengine/const LayoutKV
 metaengine/const LayoutLSM
 metaengine/const LayoutNormalize
 metaengine/const LayoutRow
+metaengine/const LayoutStampCollection
 metaengine/const MatViewAvg
 metaengine/const MatViewCount
 metaengine/const MatViewMax
@@ -3026,10 +3027,13 @@ metaengine/func JSONFieldName
 metaengine/func LastDecodedRowCursor
 metaengine/func LastJSONRowCursor
 metaengine/func LastPairCursor
+metaengine/func LayoutStampDiffs
+metaengine/func LayoutStampsDoctorSection
 metaengine/func ListPlannedTables
 metaengine/func LoadManifest
 metaengine/func LookupDriver
 metaengine/func MapUpdateTyped
+metaengine/func MarkReplayComplete
 metaengine/func MaterializeCost
 metaengine/func MultiAggregateScan
 metaengine/func MustPlanFingerprint
@@ -3075,11 +3079,13 @@ metaengine/func Query
 metaengine/func QuestionPlaceholders
 metaengine/func QuoteIdent
 metaengine/func ReadTrace
+metaengine/func RecordLayoutStamps
 metaengine/func RecordTrace
 metaengine/func RegisterDriver
 metaengine/func RegisteredDrivers
 metaengine/func RejectDurabilityTier
 metaengine/func Remove
+metaengine/func ReplayCompletedAt
 metaengine/func ReplayCost
 metaengine/func ReplayTrace
 metaengine/func SQLiteEngineProfile
@@ -3459,6 +3465,7 @@ metaengine/method ExplainPlan
 metaengine/method Export
 metaengine/method Failures
 metaengine/method FilterCount
+metaengine/method Fingerprint
 metaengine/method FormatTable
 metaengine/method Fresh
 metaengine/method Get
@@ -3943,6 +3950,7 @@ metaengine/struct LayoutCost
 metaengine/struct LayoutDiff
 metaengine/struct LayoutInfo
 metaengine/struct LayoutPlan
+metaengine/struct LayoutStampDiff
 metaengine/struct LayoutVersion
 metaengine/struct LayoutWarning
 metaengine/struct LiveLatency
