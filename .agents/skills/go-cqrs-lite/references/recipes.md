@@ -2911,7 +2911,10 @@ type Unfollowed struct{ Follower, Followee string }
 
 // Traversal input conventions: Node = start, Depth defaults to 1 when zero,
 // Undirected walks both directions (engines without it report the missing
-// capability instead of guessing).
+// capability instead of guessing). Depth N returns exactly the nodes
+// reachable within N hops: the start node itself is EXCLUDED, results are
+// deduplicated, and there is no row cap — traversal cost is bounded only by
+// graph size.
 type Reachability struct {
     Node  string
     Depth int
@@ -2949,7 +2952,7 @@ import (
 )
 
 domain := system.DomainConfig{
-    Commands: registerFollowDeciderAndCommands,   // decider + Follow/Unfollow commands
+    Commands:              registerFollowDeciderAndCommands, // write side, fence below
     Projections:           []system.ProjectionDeclaration{system.RawQuery(query)},
     ProjectionTypeDecoder: decoder,
 }
@@ -2962,6 +2965,67 @@ deploy := system.DeploymentConfig{ // operator territory: pick engines per role
         {Role: system.RoleSourceOfTruth, Engine: "primary"},
         {Role: system.RoleProjections, Engine: "primary"}, // or a "graph": {Driver: "dgraph", DSN: "localhost:9080"}
     },
+}
+```
+
+The write side is a plain decider — no graph-specific machinery. State
+folds the SAME facts the graph folds consume; guards are ordinary domain
+rejections (`errorfamily`); unfollow mirrors follow:
+
+```go
+import (
+    "context"
+
+    errorfamily "github.com/larsartmann/go-error-family"
+
+    "github.com/larsartmann/go-cqrs-lite/command/v4"
+    "github.com/larsartmann/go-cqrs-lite/decider/v4"
+    "github.com/larsartmann/go-cqrs-lite/event/v4"
+    "github.com/larsartmann/go-cqrs-lite/id/v4"
+    "github.com/larsartmann/go-cqrs-lite/system/v4"
+)
+
+// FollowState is the replayed per-follower state the guards run against.
+type FollowState struct{ Followees []string }
+
+func applyFollow(state FollowState, evt event.Event) (FollowState, error) {
+    switch evt.Type() {
+    case "user.followed":
+        payload, err := event.DecodePayloadAuto[Followed](evt) // same payload type as the Edge fold
+        if err != nil {
+            return state, err
+        }
+        if !slices.Contains(state.Followees, payload.Followee) {
+            state.Followees = append(state.Followees, payload.Followee)
+        }
+    case "user.unfollowed":
+        payload, err := event.DecodePayloadAuto[Unfollowed](evt)
+        if err != nil {
+            return state, err
+        }
+        state.Followees = slices.DeleteFunc(state.Followees,
+            func(candidate string) bool { return candidate == payload.Followee })
+    }
+    return state, nil
+}
+
+// FollowCmd is the write-side API: dispatch on the FOLLOWER's stream ID
+// (semantic, caller-chosen keys are string-backed — id.ParseStreamID).
+type FollowCmd struct {
+    *command.BasicCommand
+    Followee string
+}
+
+func registerFollowDeciderAndCommands(sys *system.System) {
+    _ = system.RegisterDecider(sys, "User", decider.Decider[FollowState]{
+        Initial: FollowState{},
+        Apply:   applyFollow,
+    })
+    _ = system.RegisterCommand[FollowCmd, FollowState](sys, "user.follow",
+        func(cmdCtx context.Context, cmd FollowCmd) system.Op[FollowState] {
+            return system.Execute(cmdCtx, cmd.StreamID(), "User",
+                follow(cmd.StreamID(), cmd.Followee)) // guards: no self-follow, no duplicate edge
+        })
 }
 ```
 

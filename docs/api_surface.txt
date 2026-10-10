@@ -854,6 +854,7 @@ cmd/cqrs-lint/pkg/rules/architecture/func NewE016Detector
 cmd/cqrs-lint/pkg/rules/architecture/func NewE017Detector
 cmd/cqrs-lint/pkg/rules/architecture/func NewE018Detector
 cmd/cqrs-lint/pkg/rules/architecture/func NewE019Detector
+cmd/cqrs-lint/pkg/rules/architecture/func NewE020Detector
 cmd/cqrs-lint/pkg/rules/boilerplate/func NewB001Detector
 cmd/cqrs-lint/pkg/rules/boilerplate/func NewB002Detector
 cmd/cqrs-lint/pkg/rules/boilerplate/func NewB003Detector

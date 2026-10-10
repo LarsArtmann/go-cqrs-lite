@@ -73,8 +73,9 @@ func fileAdoptsSystemscenario(file *ast.File) bool {
 
 // systemNewCalls returns the system.New call sites in the file. The
 // qualifier resolves through type info when available (aliased imports
-// match by import path, exactly system/v4); the local-name fallback covers
-// syntax-only loads.
+// match by exact import path); the import-table fallback covers
+// syntax-only loads, mapping the qualifier to its import's local name
+// (alias, or last path segment with the major-version suffix stripped).
 func systemNewCalls(gf *analyzer.GoFile) []*ast.CallExpr {
 	var calls []*ast.CallExpr
 
@@ -94,20 +95,71 @@ func systemNewCalls(gf *analyzer.GoFile) []*ast.CallExpr {
 			return true
 		}
 
-		if path, resolved := analyzer.ResolveQualifierTyped(gf, ident); resolved {
-			if path != systemModulePath {
-				return true
-			}
-		} else if ident.Name != "system" {
-			return true
+		if qualifierIsSystem(gf, ident) {
+			calls = append(calls, call)
 		}
-
-		calls = append(calls, call)
 
 		return true
 	})
 
 	return calls
+}
+
+// qualifierIsSystem reports whether ident refers to the system module.
+// Typed resolution wins (exact import path, shadowing-aware); the
+// import-table fallback keeps syntax-only loads honest for aliases.
+func qualifierIsSystem(gf *analyzer.GoFile, ident *ast.Ident) bool {
+	if path, resolved := analyzer.ResolveQualifierTyped(gf, ident); resolved {
+		return path == systemModulePath
+	}
+
+	if gf == nil || gf.AST == nil {
+		return false
+	}
+
+	for _, imp := range gf.AST.Imports {
+		if importLocalName(imp) == ident.Name {
+			return strings.Trim(imp.Path.Value, `"`) == systemModulePath
+		}
+	}
+
+	return false
+}
+
+// importLocalName derives the local name an import binds: the explicit
+// alias, or the last path segment with a major-version suffix ("/v4")
+// stripped (the package name convention for versioned module paths).
+func importLocalName(imp *ast.ImportSpec) string {
+	if imp.Name != nil {
+		return imp.Name.Name
+	}
+
+	path := strings.Trim(imp.Path.Value, `"`)
+	if idx := strings.LastIndex(path, "/"); idx >= 0 && isVersionSegment(path[idx+1:]) {
+		path = path[:idx]
+	}
+
+	if idx := strings.LastIndex(path, "/"); idx >= 0 {
+		return path[idx+1:]
+	}
+
+	return path
+}
+
+// isVersionSegment reports whether s looks like a module major-version
+// suffix: "v" followed by digits only.
+func isVersionSegment(s string) bool {
+	if len(s) < 2 || s[0] != 'v' {
+		return false
+	}
+
+	for _, r := range s[1:] {
+		if r < '0' || r > '9' {
+			return false
+		}
+	}
+
+	return true
 }
 
 // e020Finding builds the finding for one hand-rolled boot, anchored at the

@@ -175,5 +175,14 @@ func architectureRules() []RuleInfo {
 			Description: "Data product serves outputs without a DataContract (or declares no outputs) — consumers get no schema or version pin; advisory contract-completeness check",
 			AutoFix:     false,
 		},
+		{
+			ID:          "E020",
+			Name:        "handrolled-system-boot-in-test",
+			Category:    "architecture",
+			Severity:    "info",
+			Confidence:  "medium",
+			Description: "Test file boots system.New without importing systemscenario — the BDD harness provides the boot, journal capture, await semantics, and vacuous-pass guard as tested infrastructure; engine-coverage suites may dismiss",
+			AutoFix:     false,
+		},
 	}
 }

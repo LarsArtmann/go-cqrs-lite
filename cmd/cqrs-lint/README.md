@@ -377,7 +377,7 @@ catalog severity — nothing silently demotes to `info`).
 
 ## Rule Count
 
-**209 rules** across 10 categories: correctness (43), API misuse (32), boilerplate (31), consistency (18), architecture (19), security (10), performance (10), version (7), testing (8), adoption (31).
+**210 rules** across 10 categories: correctness (43), API misuse (32), boilerplate (31), consistency (18), architecture (20), security (10), performance (10), version (7), testing (8), adoption (31).
 
 The tables below are curated highlights. The complete, generated catalog —
 every rule with severity, confidence, auto-fix support, and doc links — lives
@@ -513,6 +513,8 @@ are not detectors; listing one in `rules.disable` is a silent no-op.
 | E006 | event-without-projection   | Info     | Event emitted but no projection handles it                         |
 | E007 | query-without-handler      | Info     | Query type defined but never registered                            |
 | E018 | projection-without-emitter | Warning  | Projection handles an event nothing emits or catalogs — typo class |
+| E019 | data-product-without-contract | Info  | Declared data product serves outputs without a data contract      |
+| E020 | handrolled-system-boot-in-test | Info | Test file boots `system.New` without adopting the systemscenario harness |
 
 ## Security Rules
 
