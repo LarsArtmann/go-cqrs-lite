@@ -360,14 +360,18 @@ DEP_BUDGET["system/integration"]=7
 # suites it owns (goleak is test-only); the point of the module is engine
 # coverage, so a high budget is the design, not sprawl.
 DEP_BUDGET[systemtest]=6
-# systemscenario: 8 = system + event + command + query + id (all in-repo)
+# systemscenario: 9 = system + event + command + query + id (all in-repo)
 # + go-error-family (fleet-standard classification, ThenErrorFamily)
 # + go-snaps (ThenGolden snapshots — the eventtest LAYER-7 precedent allows
 #   test-tooling deps in test-infrastructure modules)
 # + sqliteengine (SQLite(t) preset driver registration; zero NEW external
 #   deps — modernc.org/sqlite rides indirect through sqliteengine, which
 #   system's PRODUCTION go.mod already requires)
-DEP_BUDGET[systemscenario]=8
+# + metaengine (DelayedDriver chaos wrapper + SubscribeSSE helper import it
+#   directly — RegisterDriver/LookupDriver, NewWatcher, ServeSSE; it was a
+#   test-only import before those production files; in-repo Tier 3, already
+#   an indirect dep of system)
+DEP_BUDGET[systemscenario]=9
 # core/v5: skeleton starts at 0; each v5 move wave (T07/T09/T10) bumps this
 # to the union of the merged trains' production deps. Intra-repo v4 deps do
 # not count — merged trains become same-module packages.
