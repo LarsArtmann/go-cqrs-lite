@@ -22,6 +22,7 @@ func (e *badgerEngine) MapSet(_ context.Context, col string, key, value any) err
 }
 
 func (e *badgerEngine) MapGet(_ context.Context, col string, key any) (any, bool, error) {
+	//art-dupl:accept cross-module KV engine pattern — separate go.mod
 	k := mapKey(col, encodeKeyStr(key))
 
 	var result any
@@ -68,6 +69,7 @@ func (e *badgerEngine) MapUpdate(
 	key any,
 	update func(prev any) any,
 ) error {
+	//art-dupl:accept cross-module KV engine pattern — separate go.mod
 	k := mapKey(col, encodeKeyStr(key))
 
 	// The read-modify-write must be atomic: concurrent MapUpdate calls on the

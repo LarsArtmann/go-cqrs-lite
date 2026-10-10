@@ -24,6 +24,7 @@ func (e *bboltEngine) MapSet(_ context.Context, col string, key, value any) erro
 }
 
 func (e *bboltEngine) MapGet(_ context.Context, col string, key any) (any, bool, error) {
+	//art-dupl:accept cross-module KV engine pattern — separate go.mod
 	k := mapKey(col, encodeKeyStr(key))
 
 	var result any
@@ -63,6 +64,7 @@ func (e *bboltEngine) MapUpdate(
 	key any,
 	update func(prev any) any,
 ) error {
+	//art-dupl:accept cross-module KV engine pattern — separate go.mod
 	k := mapKey(col, encodeKeyStr(key))
 
 	// bbolt's Update is single-writer: the read and write are atomic within

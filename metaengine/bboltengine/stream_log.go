@@ -25,6 +25,7 @@ import (
 // can reconstruct cross-stream ordering.
 
 func (e *bboltEngine) nextStreamSeq(col, sid string) int64 {
+	//art-dupl:accept cross-module KV engine pattern — separate go.mod
 	k := streamSeqMapKey(col, sid)
 	actual, _ := e.streamSeq.LoadOrStore(k, &atomic.Int64{})
 

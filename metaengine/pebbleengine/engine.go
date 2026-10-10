@@ -346,6 +346,7 @@ func (e *pebbleEngine) MapUpdate(
 	key any,
 	update func(prev any) any,
 ) error {
+	//art-dupl:accept cross-module KV engine pattern — separate go.mod
 	k := mapKey(col, encodeKeyStr(key))
 
 	// The read-modify-write must be atomic: concurrent MapUpdate calls on the

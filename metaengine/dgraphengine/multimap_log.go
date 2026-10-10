@@ -22,6 +22,7 @@ func (e *dgraphEngine) MultiAdd(
 	key any,
 	value any,
 ) error {
+	//art-dupl:accept per-operation Dgraph glue — distinct mutations share the keyStr idiom
 	keyStr := fmt.Sprint(key)
 	valueJSON, err := json.Marshal(value)
 	if err != nil {
