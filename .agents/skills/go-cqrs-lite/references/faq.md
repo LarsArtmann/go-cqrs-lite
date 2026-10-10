@@ -734,3 +734,16 @@ own LICENSE copy and is hidden identically — sweeping LICENSE copies into the
 module directories does not help, so do not attempt that "fix"). The
 pkg.go.dev badges in the README still work as version links; for readable
 docs use `go doc <module-path>` locally, or read `SKILL.md`.
+
+## How do I evolve an event payload without breaking stored events?
+
+Declare upcast ops — never hand-roll event rebuilds in projections. One
+declaration per event type (`system.Schemas().Event[T](type, version, ops...)`
+inside `system.New`, or `schema.Compile(...)` + `event.DecorateJournal` outside
+it) compiles into a read-path chain: stored events come back at their CURRENT
+shape while the journal stays untouched. The chain's rebuild is the only path
+that preserves event identity AND stamps the schema version (idempotent by
+construction). For derived fields the `schema.Transform` field map guarantees
+nested maps are `map[string]any` regardless of JSON/CBOR encoding. Full recipe:
+recipes.md §2.46; the snapshot twin (`decider.WithSnapshotStateVersion`) covers
+state-shape changes the same way.

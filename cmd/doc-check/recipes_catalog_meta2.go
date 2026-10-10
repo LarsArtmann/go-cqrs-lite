@@ -345,4 +345,27 @@ var recipeCatalogB2 = map[string]recipeSpec{
 			"var sc *systemscenario.Scenario\n",
 		trailers: "_ = sub",
 	},
+	"### 2.46 Schema Evolution — Named Upcast Ops, Declared Once (schema + system) #1": {
+		errFunc: true,
+		imports: []string{
+			`"context"`,
+			`"github.com/larsartmann/go-cqrs-lite/schema/v4"`,
+			`"github.com/larsartmann/go-cqrs-lite/system/v4"`,
+		},
+		preamble: "type UserCreated struct{ Name string }\n" +
+			"type UserDeleted struct{}\n" +
+			"var ctx context.Context\n" +
+			"var deployment system.DeploymentConfig\n",
+		trailers: "_ = sys",
+	},
+	"### 2.46 Schema Evolution — Named Upcast Ops, Declared Once (schema + system) #2": {
+		errFunc: true,
+		imports: []string{
+			`"github.com/larsartmann/go-cqrs-lite/event/v4"`,
+			`"github.com/larsartmann/go-cqrs-lite/schema/v4"`,
+		},
+		preamble: "var store event.Journal\n" +
+			"var events = struct{ AttachmentBackedUp event.Type }{AttachmentBackedUp: \"discord.attachment.backed_up\"}\n",
+		trailers: "_ = journal",
+	},
 }

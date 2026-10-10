@@ -3130,3 +3130,69 @@ sub.Await(t, 5*time.Second, "renamed view", func(v TaskView) bool {
 `SubscribeSSE` serves the collection via `metaengine.ServeSSE` on an
 in-process HTTP server and connects as the first client — an `Await`
 passing means a browser EventSource on the same endpoint sees the value.
+
+### 2.46 Schema Evolution — Named Upcast Ops, Declared Once (schema + system)
+
+Event payloads evolve. The chain compiles named ops — `RenameType` for wire-name
+changes, `RenameField`/`AddField`/`RemoveField` for shape moves, `Transform`
+for the hand-written derivations — and applies them on EVERY read path;
+stored events are never rewritten. Declare via `system.Schemas()` and both
+`DomainConfig` inputs derive from one list:
+
+```go
+import (
+    "github.com/larsartmann/go-cqrs-lite/schema/v4"
+    "github.com/larsartmann/go-cqrs-lite/system/v4"
+)
+
+decls, err := system.Schemas().
+    Event[UserCreated]("user.created", 2,
+        schema.RenameField("user.created", 1, "name", "displayName")).
+    Event[UserDeleted]("user.deleted", 1).
+    Build()
+if err != nil {
+    return err
+}
+
+sys, err := system.New(ctx, system.DomainConfig{
+    Schema:                decls.Declarations(),
+    ProjectionTypeDecoder: decls.TypeDecoder(),
+}, deployment)
+```
+
+Outside `system.New`, compile the same ops directly and decorate a journal
+(the DiscordSync shape — note the field-map contract: nested maps arrive as
+`map[string]any` regardless of encoding):
+
+```go
+import (
+    "github.com/larsartmann/go-cqrs-lite/event/v4"
+    "github.com/larsartmann/go-cqrs-lite/schema/v4"
+)
+
+chain, err := schema.Compile(
+    schema.RenameType("discord.attachment.migrated", events.AttachmentBackedUp),
+    schema.Transform("discord.message.created", 1,
+        func(fields map[string]any) (map[string]any, error) {
+            if author, ok := fields["author"].(map[string]any); ok {
+                author["kind"] = "human"
+            }
+            return fields, nil
+        },
+        schema.WithDecodePolicy(schema.PassthroughOnDecodeError)),
+)
+if err != nil {
+    return err
+}
+
+journal := event.DecorateJournal(store, chain.SourceTransform())
+// journal reads see CURRENT shapes: renamed types, upcasted payloads.
+```
+
+Decode-failure policy per op: `FailOnDecodeError` (default — drift an
+operator must see), `PassthroughOnDecodeError` (best-effort journals), or
+`DropOnDecodeError` (known garbage). Ops match on (event type, schema
+version); each applied op stamps version+1, so upcasting is idempotent by
+construction. `decider.WithSnapshotStateVersion[State]("1")` is the snapshot
+twin: stamps saved snapshots with the state-shape version and discards
+mismatches, rebuilding from the journal.

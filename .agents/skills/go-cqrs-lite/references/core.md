@@ -424,6 +424,24 @@ with owners, inputs, and bilateral producers/consumers) and `example/mesh-demo` 
 full two-context walkthrough (`mesh-demo gate` runs the runtime-gate twin of the catalog
 check).
 
+### 3.9b Schema evolution is declared, not hand-rolled (T2/T1 conventions)
+
+Payload evolution lives in ONE declaration per event type — `DomainConfig.Schema`
+(via `system.Schemas().Event[T](type, version, ops...)`) or a hand-compiled
+`schema.Compile(...)` composed with `event.DecorateJournal`/`DecorateStore`.
+Never rebuild events ad hoc in projection handlers: the chain's rebuild is the
+only path that preserves event identity (ID, timestamp, stream, metadata,
+encoding) AND stamps the schema version, which is what keeps projection
+checkpoints aligned and upcasting idempotent. Field-map contract for
+`schema.Transform`: nested maps are `map[string]any` regardless of the event's
+encoding (CBOR's `map[any]any` is normalized on decode; non-string keys are
+outside the contract). Pick a decode policy deliberately — `FailOnDecodeError`
+(default, drift must be loud), `PassthroughOnDecodeError` (best-effort
+journals), `DropOnDecodeError` (known garbage). The snapshot twin is
+`decider.WithSnapshotStateVersion[State]("1")`: saved snapshots carry the
+state-shape stamp and mismatches are discarded + rebuilt from the journal
+(absent stamp = accept). Recipe: `recipes.md` §2.46.
+
 ### 3.10 AsOf is a meta field — point-in-time reads (ADR-0141)
 
 A query input field named `AsOf time.Time` is RESERVED on metaengine point-lookup inputs
