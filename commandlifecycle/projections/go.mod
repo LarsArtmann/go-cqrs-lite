@@ -23,10 +23,11 @@ require (
 	github.com/larsartmann/go-error-family v0.11.0 // indirect
 	github.com/larsartmann/go-sse v0.6.2 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
+	github.com/tidwall/gjson v1.20.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
-	golang.org/x/net v0.59.0 // indirect
-	golang.org/x/text v0.42.0 // indirect
+	golang.org/x/net v0.61.0 // indirect
+	golang.org/x/text v0.43.0 // indirect
 )
 
 replace github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 => ../

@@ -16,6 +16,7 @@ require (
 	github.com/tidwall/gjson v1.20.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
+	golang.org/x/net v0.61.0 // indirect
 )
 
 // Sibling replace for unpublished record symbols (DeferClose, ADR-0144);

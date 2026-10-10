@@ -21,8 +21,9 @@ require (
 
 require (
 	filippo.io/edwards25519 v1.2.0 // indirect
-	github.com/Azure/go-ansiterm v0.0.0-20261006220739-8c912ac31dd4 // indirect
+	github.com/Azure/go-ansiterm v0.0.0-20261008234032-65faa4be4f89 // indirect
 	github.com/DataDog/zstd v1.5.7 // indirect
+	github.com/Microsoft/go-winio v0.6.3 // indirect
 	github.com/andybalholm/brotli v1.2.6 // indirect
 	github.com/apache/arrow-go/v18 v18.8.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
@@ -59,6 +60,7 @@ require (
 	github.com/larsartmann/go-error-family v0.11.0 // indirect
 	github.com/larsartmann/go-sse v0.6.2 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
+	github.com/moby/moby/client v0.6.2 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/ncruces/go-strftime v1.1.0 // indirect
 	github.com/pierrec/lz4/v4 v4.1.33 // indirect
@@ -70,6 +72,7 @@ require (
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/rogpeppe/go-internal v1.16.0 // indirect
 	github.com/zeebo/xxh3 v1.1.0 // indirect
+	golang.org/x/crypto v0.58.0 // indirect
 	golang.org/x/exp v0.0.0-20261009195045-ca0d7ba23607 // indirect
 	golang.org/x/sync v0.24.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
