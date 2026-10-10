@@ -193,5 +193,14 @@ func architectureRules() []RuleInfo {
 			Description: "Emitted event type carries no schema declaration (schema.Event/EventOf or the system.Schemas() builder) — upcasting and typed decoding skip it; typo-proofs declarations against emitters once any declaration exists, catalog.Event counts as declared",
 			AutoFix:     false,
 		},
+		{
+			ID:          "E022",
+			Name:        "schema-ladder-gap",
+			Category:    "architecture",
+			Severity:    "warning",
+			Confidence:  "medium",
+			Description: "Declared event version ladder has a missing rung: current version N with no op from some version below — stored events at the missing version never upcast (literal forms only; see docs/SCHEMA-COMPATIBILITY.md)",
+			AutoFix:     false,
+		},
 	}
 }

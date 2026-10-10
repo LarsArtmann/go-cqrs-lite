@@ -12,7 +12,7 @@ Detectors per category (severities: `error` blocks CI, `warning` reports, `info`
 | [Boilerplate](#boilerplate) | 31 | B001–B031 |
 | [Performance](#performance) | 10 | P001–P014 |
 | [Consistency](#consistency) | 18 | D001–D019 |
-| [Architecture](#architecture) | 21 | E001–E021 |
+| [Architecture](#architecture) | 22 | E001–E022 |
 | [Security](#security) | 10 | S001–S011 |
 | [Testing](#testing) | 8 | T001–T008 |
 | [Version](#version) | 7 | V001–V007 |
@@ -1274,6 +1274,14 @@ Test file boots system.New without importing systemscenario — the BDD harness 
 Severity: `warning` · Confidence: `medium` · Auto-fix: no · Category: `architecture`
 
 Emitted event type carries no schema declaration (schema.Event/EventOf or the system.Schemas() builder) — upcasting and typed decoding skip it; typo-proofs declarations against emitters once any declaration exists, catalog.Event counts as declared
+
+<a id="e022"></a>
+
+#### E022 — `schema-ladder-gap`
+
+Severity: `warning` · Confidence: `medium` · Auto-fix: no · Category: `architecture`
+
+Declared event version ladder has a missing rung: current version N with no op from some version below — stored events at the missing version never upcast (literal forms only; see docs/SCHEMA-COMPATIBILITY.md)
 
 
 ## Security
