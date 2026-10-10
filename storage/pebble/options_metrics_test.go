@@ -5,9 +5,10 @@ import (
 	"log/slog"
 	"testing"
 
+	"github.com/onsi/gomega"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
-	"github.com/onsi/gomega"
 )
 
 func TestDefaultOptions(t *testing.T) {

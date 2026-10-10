@@ -13,9 +13,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/idempotency/sqlstore/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/go-idempotency"
+
+	"github.com/larsartmann/go-cqrs-lite/idempotency/sqlstore/v4"
 )
 
 // openStore opens a *sql.DB with driver/dsn, pings it, and wraps it via new

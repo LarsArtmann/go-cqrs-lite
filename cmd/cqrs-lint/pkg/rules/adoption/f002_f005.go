@@ -3,8 +3,9 @@ package adoption
 import (
 	"context"
 
-	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 	"github.com/larsartmann/go-finding"
+
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 )
 
 // F002 detects projects with 3+ event types that do not call catalog.NewBuilder.

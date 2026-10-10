@@ -6,8 +6,9 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-codec"
-	"github.com/larsartmann/go-cqrs-lite/core/v5/id"
 	errorfamily "github.com/larsartmann/go-error-family"
+
+	"github.com/larsartmann/go-cqrs-lite/core/v5/id"
 )
 
 // TypedQuery is a query with a typed payload P, closing the type-safety hole

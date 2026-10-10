@@ -172,3 +172,31 @@ No commits, no file changes — evidence is the conversation record itself.
 ---
 
 _Point-in-time snapshot. Stale by design. ANNOTATE, never rewrite. Auto-commit daemon will absorb this file; no manual commit per harness contract._
+
+---
+
+## Appendix — dispatch/closure record (added 2026-10-10, execution session)
+
+Non-destructive closure note; the snapshot above is untouched. Disposition of
+this report's questions by the executed plan
+([V2](../planning/2026-10-10_06-11_SUPERB-graph-native-adoption-closure-and-operator-story-V2.md),
+waves 0–5 all complete):
+
+- **§g Q1 (graph demand / A-R1):** default carried — full waves executed;
+  graph-native is now ADOPT-IF-NEEDED (TODO_LIST marker flipped to DONE with
+  this framing). No fleet consumer requires it today.
+- **§g Q2 (graphadapter label flattening):** RULED as documented limitation —
+  flat node identity + label-less edges both pinned in
+  [ADR-0156](../adr/0156-graph-edge-labels-at-v5.md) (v4.x: collection-per-relation
+  + `Driver()` hatch; labeled edges reopen only on a named fleet consumer).
+  `Edge` does NOT grow fields in v4.x.
+- **allengines (D3):** RULED NO convenience module — measured 5.3× binary tax
+  (68.2 MiB vs 12.7 MiB sqlite-only, 221 vs 64 modules); the two-level story is
+  [ADR-0157](../adr/0157-engine-fleet-operation-two-level-story.md) (blank-import
+  candidates at compile time, cqrs.yaml routing at runtime).
+- **§f docs fixes:** all dispatched via V2 waves — recipes §2.44 (+ write-side
+  fence, depth semantics), advanced.md §6.13 modern-first rewrite, COOKBOOK
+  graph chapter, graphadapter README (new), system/README graph + declaration
+  sections, FAQ entries. T19 consumer dry-run GREEN (2 iterations).
+- **§e/§f pre-existing red (core/v5 links, cqrs-bench, golangci, etc.):** NOT
+  this wave's scope — left to the owning sessions, tracked in the 07-37 report §f.

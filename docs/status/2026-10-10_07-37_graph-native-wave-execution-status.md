@@ -119,3 +119,32 @@
 ---
 
 **Verdict:** Waves 0–3 substantively DONE and gated (one behavior-verified example, one compile-verified recipe set, one honesty-fixed doc cluster); Wave 3 needs its final two gate runs; Waves 4–5 untouched. The plan's biggest self-inflicted wound is the commit-daemon race; the biggest discovered product gap is the coeffect gate's RawQuery blindness. Session is PAUSED here per instruction — awaiting directions on questions g-1…g-3 and the go/no-go for Waves 4–5.
+
+---
+
+## Appendix — resolution record (added 2026-10-10, same session, continuing)
+
+Non-destructive; snapshot above untouched. The three §g questions resolved by
+user default (continue = full waves, authored commits with amend-on-race,
+pre-existing red left alone), then executed:
+
+1. **A-R1 (graph demand):** full Waves 4–5 executed; adopt-if-needed framing
+   recorded in TODO_LIST (IN FLIGHT marker → DONE).
+2. **Commits:** authored commits attempted each wave; two survived cleanly
+   (Wave 3 status report, ADR collision resolution), the rest were
+   message-only losses to daemon races on mixed-content commits (content
+   always landed; amending shared daemon commits was ruled out).
+3. **Pre-existing red:** untouched, still owned by parallel sessions —
+   EXCEPT the ADR-0155 numbering collision, resolved: the parallel session's
+   ACCEPTED declarative-schema-evolution ADR kept 0155; this wave's engine
+   fleet ADR renumbered to **0157** (0156 edge labels unchanged —
+   graphadapter doc.go forward-reference preserved).
+
+Wave-level outcomes: Wave 3 D6/D11 green (readme-deprecated clean; the 23
+broken README links are ALL pre-existing core/v5, 2026-10-09). Wave 4 =
+ADR-0157 + ADR-0156 + measurements (pure-Go fleet: 68,185,216 B / 221
+modules / 871 edges vs sqlite-only 12,747,630 B / 64 / 168). Wave 5 = T18
+ADT-recipe ratchet (mutation-tested, 5 visible waivers → TODO_LIST row) +
+T19 dry-run GREEN after 2 iterations (12 stalls round 1 → 9 fixed, rest
+by-design example-pointers) + harvest + this appendix. Final state: push
+authorized and executed at Wave 5 close.

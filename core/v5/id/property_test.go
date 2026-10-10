@@ -3,8 +3,9 @@ package id_test
 import (
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/core/v5/id"
 	"pgregory.net/rapid"
+
+	"github.com/larsartmann/go-cqrs-lite/core/v5/id"
 )
 
 // TestParseRoundTrip checks that parsing a stringified ID returns the same ID.
