@@ -31,27 +31,42 @@ type GivenPhase struct {
 	sc *Scenario
 }
 
-// Events appends more pre-existing events to the given history. See
-// [Scenario.Given] for the seeding semantics.
-func (g *GivenPhase) Events(events ...event.Event) *GivenPhase {
+// givenScenario returns the scenario backing a Given* seeding call, failing
+// fast once the first When act has started — seeding must precede the act.
+func (g *GivenPhase) givenScenario(where string) *Scenario {
 	s := g.sc
 	s.t.Helper()
 
 	if s.actStarted {
-		s.t.Fatal("systemscenario: Given must run before the first When act")
+		s.t.Fatalf("systemscenario: %s must run before the first When act", where)
 	}
+
+	return s
+}
+
+// Events appends more pre-existing events to the given history. See
+// [Scenario.Given] for the seeding semantics.
+func (g *GivenPhase) Events(events ...event.Event) *GivenPhase {
+	s := g.givenScenario("Given")
 
 	if len(events) == 0 {
 		return g
 	}
 
-	s.appendEvents(events)
-	s.publishEvents(events)
+	s.journalThenPublish(events)
 
 	return g
 }
 
-// appendGiven appends the events to the journal, grouped per stream.
+// journalThenPublish appends the events to the journal and then publishes
+// them — the repository's save→publish order that projections and saga
+// subscribers depend on.
+func (s *Scenario) journalThenPublish(events []event.Event) {
+	s.appendEvents(events)
+	s.publishEvents(events)
+}
+
+// appendEvents appends the events to the journal, grouped per stream.
 func (s *Scenario) appendEvents(events []event.Event) {
 	s.t.Helper()
 
@@ -74,7 +89,7 @@ func (s *Scenario) appendEvents(events []event.Event) {
 	}
 }
 
-// publishGiven publishes the events to the bus so projections and saga
+// publishEvents publishes the events to the bus so projections and saga
 // subscribers fold them, mirroring the repository's save→publish order.
 func (s *Scenario) publishEvents(events []event.Event) {
 	s.t.Helper()
@@ -91,12 +106,7 @@ func (s *Scenario) publishEvents(events []event.Event) {
 // test. Commands dispatched here are part of the baseline; Then* assertions
 // see only the When acts.
 func (g *GivenPhase) Command(cmds ...command.Command) *GivenPhase {
-	s := g.sc
-	s.t.Helper()
-
-	if s.actStarted {
-		s.t.Fatal("systemscenario: Given.Command must run before the first When act")
-	}
+	s := g.givenScenario("Given.Command")
 
 	for _, cmd := range cmds {
 		if err := s.sys.CommandDispatcher().Dispatch(s.ctx, cmd); err != nil {

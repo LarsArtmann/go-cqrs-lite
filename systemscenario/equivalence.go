@@ -3,6 +3,7 @@ package systemscenario
 import (
 	"context"
 	"fmt"
+	"maps"
 	"slices"
 	"strings"
 	"testing"
@@ -54,12 +55,7 @@ func AssertJournalEquivalence(t *testing.T, ctx context.Context, a, b *system.Sy
 // by order of first appearance, sorted — two systems fed the same scenario
 // in the same stream order compare equal regardless of the IDs they minted.
 func normalizeTrail(trail journalTrail) []normalizedStream {
-	keys := make([]string, 0, len(trail))
-	for key := range trail {
-		keys = append(keys, key)
-	}
-
-	slices.Sort(keys)
+	keys := slices.Sorted(maps.Keys(trail))
 
 	out := make([]normalizedStream, len(keys))
 	for i, key := range keys {

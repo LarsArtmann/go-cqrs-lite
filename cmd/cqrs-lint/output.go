@@ -15,6 +15,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"maps"
 	"slices"
 	"strconv"
 	"strings"
@@ -171,11 +172,7 @@ func formatConfigExcluded(configExcluded map[string]int) string {
 		return ""
 	}
 
-	rules := make([]string, 0, len(configExcluded))
-	for rule := range configExcluded {
-		rules = append(rules, rule)
-	}
-	slices.Sort(rules)
+	rules := slices.Sorted(maps.Keys(configExcluded))
 
 	entries := make([]string, 0, len(rules))
 	for _, rule := range rules {

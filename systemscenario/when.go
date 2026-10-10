@@ -57,6 +57,16 @@ type WhenPhase struct {
 	sc *Scenario
 }
 
+// beginAct returns the scenario with the helper boundary marked and a fresh
+// act baseline started — the shared prologue of every chained act.
+func (p *WhenPhase) beginAct() *Scenario {
+	s := p.sc
+	s.t.Helper()
+	s.markActStart()
+
+	return s
+}
+
 // Command chains another command act (Axon when().command analog).
 func (p *WhenPhase) Command(cmd command.Command) *WhenPhase {
 	return p.sc.When(cmd)
@@ -65,14 +75,10 @@ func (p *WhenPhase) Command(cmd command.Command) *WhenPhase {
 // Event chains an external-event act: journal + publish. See
 // [Scenario.WhenEvent].
 func (p *WhenPhase) Event(events ...event.Event) *WhenPhase {
-	s := p.sc
-	s.t.Helper()
-
-	s.markActStart()
+	s := p.beginAct()
 
 	if len(events) > 0 {
-		s.appendEvents(events)
-		s.publishEvents(events)
+		s.journalThenPublish(events)
 	}
 
 	return p
@@ -80,10 +86,7 @@ func (p *WhenPhase) Event(events ...event.Event) *WhenPhase {
 
 // Query chains a query act. See [Scenario.WhenQuery].
 func (p *WhenPhase) Query(q query.Query) *WhenPhase {
-	s := p.sc
-	s.t.Helper()
-
-	s.markActStart()
+	s := p.beginAct()
 
 	result, err := s.sys.QueryDispatcher().Dispatch(s.ctx, q)
 	s.lastQueryResult, s.lastErr = result, err
@@ -93,10 +96,7 @@ func (p *WhenPhase) Query(q query.Query) *WhenPhase {
 
 // TimeAdvances chains the time act. See [Scenario.TimeAdvances].
 func (p *WhenPhase) TimeAdvances(d time.Duration) *WhenPhase {
-	s := p.sc
-	s.t.Helper()
-
-	s.markActStart()
+	s := p.beginAct()
 
 	manual, ok := s.clock.(*system.ManualClock)
 	if !ok {
