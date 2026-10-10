@@ -1,5 +1,13 @@
 # SUPERB Plan — Graph-Native Adoption Closure + Operator Story (v4.x-safe docs/example wave)
 
+> **⚠ SUPERSEDED (2026-10-10 06:11, same session, pre-execution)** by
+> [`2026-10-10_06-11_SUPERB-graph-native-adoption-closure-and-operator-story-V2.md`](2026-10-10_06-11_SUPERB-graph-native-adoption-closure-and-operator-story-V2.md).
+> Self-challenge found 7 flaws: recipe-before-example ordering (compile-only
+> verification, the session's own confessed weakness), no wave-boundary commits
+> (daemon absorbs authored history), no systemic ADT-recipe ratchet, no consumer
+> dry-run acceptance test, no shared-file collision guard, no TODO_LIST in-flight
+> marker, unbounded fix loops + unnamed value assumption. V2 §1 has the full diff.
+
 **Date:** 2026-10-10 06:05
 **Source:** Session status report `docs/status/2026-10-10_05-48_graph-native-docs-audit-allengines-consult-session.md` (35 tasks, 3 open questions)
 **Objective:** Make the modern graph-native path (`system.New` + `metaengine` Edge folds) adoptable from docs alone, kill every docs-lie found, and ship the two operator-story decision docs — with ZERO API/breaking changes.
