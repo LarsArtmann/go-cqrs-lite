@@ -124,6 +124,47 @@ equals the pure fold over the journal — the fold-equivalence oracle; and
 `TestProperty_RandomCommandSequencesKeepJournalOrdered` pins journal
 versioning under adversarial dispatch order.
 
+## Chaos and SSE
+
+Two legs that take a scenario beyond the happy path:
+
+- **`DelayedDriver(t, base, delay)`** — journal-latency chaos. Wraps any
+  registered base driver (e.g. `"memory"`) with a `delay` sleep before every
+  journal-family operation, registers it under a process-unique name, and
+  returns that name for `EngineConfig{Driver: name}`:
+
+  ```go
+  deploy := systemscenario.Memory()
+  deploy.Engines["primary"] = system.EngineConfig{
+      Driver: systemscenario.DelayedDriver(t, "memory", 2*time.Millisecond),
+  }
+  ```
+
+  Map operations pass through undelayed, so read models stay fast — the
+  chaos targets the journal I/O path. Booting a delayed deployment at all
+  proves capability forwarding (system.New's atomicity gate asserts
+  `AtomicAppender`/`Transactional` on the wrapper; Go does not tunnel type
+  assertions through embedding, so the wrapper forwards them by hand), and
+  a concurrent-save race proves optimistic concurrency still serializes
+  under latency (`chaos_test.go`).
+
+- **`SubscribeSSE[V](t, ctx, sc, collection)`** — SSE assertions over the
+  production wire path. Serves a projection collection from the scenario's
+  metaengine store via `metaengine.ServeSSE` on an in-process HTTP server
+  and connects as the first client, decoding events as `V`:
+
+  ```go
+  sub := systemscenario.SubscribeSSE[TaskView](t, ctx, sc, "task_views")
+  // ... Given / When acts ...
+  sub.Await(t, 5*time.Second, "renamed task view", func(v TaskView) bool {
+      return v.Title == "renamed"
+  })
+  ```
+
+  Subscribe BEFORE the acts whose projection changes you want to observe —
+  notifications fire on writes. An `Await` passing here means a browser
+  EventSource on the same endpoint sees the value too.
+
 ## Status
 
 Experimental (rides `system`'s experimental status, FEATURES.md). Registered

@@ -309,4 +309,27 @@ var recipeCatalogB2 = map[string]recipeSpec{
 			"func followCmd(t testing.TB, follower, followee string) command.Command { return nil }\n",
 		trailers: "_ = sc",
 	},
+	"### 2.45 Chaos Journal & SSE Stream Assertions (systemscenario) #1": {
+		imports: []string{
+			`"testing"`,
+			`"time"`,
+			`"github.com/larsartmann/go-cqrs-lite/system/v4"`,
+			`"github.com/larsartmann/go-cqrs-lite/systemscenario/v4"`,
+		},
+		preamble: "var t testing.TB\n",
+		trailers: "_ = deploy",
+	},
+	"### 2.45 Chaos Journal & SSE Stream Assertions (systemscenario) #2": {
+		imports: []string{
+			`"context"`,
+			`"testing"`,
+			`"time"`,
+			`"github.com/larsartmann/go-cqrs-lite/systemscenario/v4"`,
+		},
+		preamble: "type TaskView struct{ Title string }\n" +
+			"var t testing.TB\n" +
+			"var ctx context.Context\n" +
+			"var sc *systemscenario.Scenario\n",
+		trailers: "_ = sub",
+	},
 }

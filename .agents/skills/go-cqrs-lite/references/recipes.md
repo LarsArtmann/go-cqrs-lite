@@ -3019,3 +3019,45 @@ sc.When(followCmd(t, "alice", "alice")).
 Behavior-verified reference: the graph-native BDD suite in
 [`example/graph-native/scenario_test.go`](../../../example/graph-native/scenario_test.go).
 
+
+### 2.45 Chaos Journal & SSE Stream Assertions (systemscenario)
+
+Two harness legs for real-world conditions: prove invariants hold when the
+journal is SLOW, and prove projection changes reach SSE consumers over the
+production wire path.
+
+```go
+import (
+    "testing"
+    "time"
+
+    "github.com/larsartmann/go-cqrs-lite/system/v4"
+    "github.com/larsartmann/go-cqrs-lite/systemscenario/v4"
+)
+
+deploy := systemscenario.Memory()
+deploy.Engines["primary"] = system.EngineConfig{
+    Driver: systemscenario.DelayedDriver(t, "memory", 2*time.Millisecond),
+}
+// boot scenarios on deploy: journal ops sleep 2ms; map ops stay fast.
+// Booting at all proves capability forwarding (system.New's atomicity
+// gate asserts AtomicAppender/Transactional on the wrapper).
+```
+
+`DelayedDriver` wraps ANY registered base driver (import the engine package
+first), registering under a process-unique name — repeated calls in one
+test binary are safe. Vector/search/spatial/snapshot capabilities are
+intentionally dropped: it is for stream-log chaos, not full-surface engine
+tests.
+
+```go
+sub := systemscenario.SubscribeSSE[TaskView](t, ctx, sc, "task_views")
+// ... Given / When acts (subscribe BEFORE the acts you want to see) ...
+sub.Await(t, 5*time.Second, "renamed view", func(v TaskView) bool {
+    return v.Title == "renamed"
+})
+```
+
+`SubscribeSSE` serves the collection via `metaengine.ServeSSE` on an
+in-process HTTP server and connects as the first client — an `Await`
+passing means a browser EventSource on the same endpoint sees the value.
