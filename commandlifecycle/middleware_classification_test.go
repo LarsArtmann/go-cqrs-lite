@@ -5,13 +5,12 @@ import (
 	"errors"
 	"testing"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-	. "github.com/onsi/gomega"
-
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/middleware/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
+	. "github.com/onsi/gomega"
 )
 
 // defaultRetryConfig keeps the errorfamily-based IsRetryable predicate so

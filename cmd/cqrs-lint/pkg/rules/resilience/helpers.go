@@ -6,10 +6,9 @@ import (
 	"go/types"
 	"strings"
 
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 	"github.com/larsartmann/go-finding"
 	"golang.org/x/tools/go/packages"
-
-	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 )
 
 // singleInfoFinding builds a single info-level finding with the common

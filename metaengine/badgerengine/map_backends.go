@@ -5,7 +5,6 @@ import (
 	"errors"
 
 	"github.com/dgraph-io/badger/v4"
-
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/keycodec"
 )

@@ -35,6 +35,7 @@ func run() error {
 	sqliteDSN := flag.String("sqlite", "", "sqlite DSN for the source-of-truth engine")
 	dgraphAddr := flag.String("dgraph", "", "route projections to Dgraph at this gRPC address")
 	configPath := flag.String("config", "", "boot the deployment from this cqrs.yaml")
+
 	flag.Parse()
 
 	ctx := context.Background()

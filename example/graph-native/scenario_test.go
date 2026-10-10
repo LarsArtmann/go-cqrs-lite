@@ -3,13 +3,13 @@ package main
 import (
 	"context"
 	"slices"
+	"strings"
 	"testing"
-
-	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/systemscenario/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // The BDD suite (ADR-0153): the SAME DomainConfig the binary boots, driven
@@ -133,13 +133,15 @@ func sprintSet(values []string) string {
 	}
 
 	out := "["
+	var outSb135 strings.Builder
 	for i, value := range values {
 		if i > 0 {
-			out += " "
+			outSb135.WriteString(" ")
 		}
 
-		out += value
+		outSb135.WriteString(value)
 	}
+	out += outSb135.String()
 
 	return out + "]"
 }

@@ -4,11 +4,10 @@ import (
 	"context"
 	"sort"
 
-	"github.com/larsartmann/go-finding"
-
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/adoption"
 	lintversion "github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/version"
+	"github.com/larsartmann/go-finding"
 )
 
 // ScorecardSummary is the headline math for the scorecard.
