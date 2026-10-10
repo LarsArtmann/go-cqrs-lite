@@ -21,6 +21,8 @@ A **library, not a framework**: import only the modules you need; compose them.
 
 **Sole exception:** reading, explaining, or migrating *existing v4 code* that already imports those modules. Then name the ADR-0123 target and show the migration path. `stack` presets and the v1 read-model tiers are removed in v5.
 
+**Testing such apps:** use [`systemscenario`](references/modules.md) — system-level Given/When/Then over the SAME `DomainConfig`/`DeploymentConfig` the production binary uses (ADR-0153): `systemscenario.System(t, ctx, domain, deploy)` boots a real composition root with a frozen `ManualClock`; `Given().Command(...)`, `When(cmd)`, `WhenEvent`, `WhenQuery`, `TimeAdvances(d)` acts; `Then*`/`ThenQuery*`/`ThenCommands`/`ThenError*` assert events, read models, saga command chains, errors, and fired timers without sleeps. Recipe: [recipes.md §2.43](references/recipes.md); Axon-parity mapping: [advanced.md §6.10](references/advanced.md).
+
 Core loop: Command→Dispatcher→Handler→Decider(load→fold→decide→save→publish)→EventStore+Bus→Projection→ReadModel→Query.
 
 **Read [`core.md`](references/core.md) first** — decision matrix, conventions, cheat sheet, anti-patterns.
@@ -42,7 +44,7 @@ Full walkthrough: [`core.md` → 60-second quickstart](references/core.md#60-sec
 
 > **Experimental status:** `system` is marked experimental in the repo's `FEATURES.md` (the module code and its README carry no marker — 2026-09-15 adoption research §2.4). It is production-capable today, but the v5 cut renames some constructors (see [`faq.md`](references/faq.md)). `metaengine` is the stable shared surface.
 
-- [`recipes.md`](references/recipes.md) — event sourcing, persistence, snapshots, signing, encryption, OTel
+- [`recipes.md`](references/recipes.md) — event sourcing, persistence, snapshots, signing, encryption, OTel, system-level BDD tests (§2.43)
 - [`readmodels.md`](references/readmodels.md) — projections, SQL views, tier selection
 - [`modules.md`](references/modules.md) — all modules: imports + one-liners
 - [`advanced.md`](references/advanced.md) — tombstone, watermill, gRPC, projectionhost, scheduling, graph, SSE
