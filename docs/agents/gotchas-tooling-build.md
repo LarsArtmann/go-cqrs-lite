@@ -191,3 +191,21 @@ Discipline:
 - If a poisoned tag was already pushed: delete the tag FAST (the proxy
   caches zips forever, but it also caches 404-absence); never re-push the
   same version name; cut the next patch version instead.
+
+## Go 1.27 generic methods break treefmt formatters (2026-10-10)
+
+`system/schema_declarations.go` uses a Go 1.27 generic method
+(`func (s *SchemaSet) Event[T any](...)`). The go1.27 compiler accepts it
+(the module builds and tests green), but gofumpt/goimports/golines all
+parse with an older go/parser generation and fail with
+`method must have no type parameters` (line 61:26) — which fails the WHOLE
+`nix fmt` / BuildFlow `nix-fmt` step (treefmt aborts the batch).
+
+- Verified 2026-10-10: gofumpt v0.12.0 is upstream LATEST (nixpkgs matches);
+  no formatter release parses generic methods yet.
+- Fix in place: `flake.nix` treefmt `settings.excludes` carries
+  `system/schema_declarations.go` (same pattern as the `*_templ.go`
+  exclusion). The file gets NO formatter coverage meanwhile — keep it
+  hand-formatted.
+- Drop the exclude when gofumpt/golines ship generic-methods support
+  (reproduce check: `gofumpt -l system/schema_declarations.go`).
