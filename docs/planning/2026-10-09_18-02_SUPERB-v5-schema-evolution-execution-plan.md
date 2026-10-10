@@ -527,3 +527,34 @@ cqrs-htmx UpcasterRegistry collapse, and the decider/snapshot/system/schema co-r
 dev-time sibling replaces strip at tag time: catalog→schema, decider→snapshot, system→schema).
 Known-still-red (concurrent-session-owned, verified): cqrs-lint partition test + V007 core/v5
 marker tables; cqrs-htmx identity-model/usermgmt exhaustruct.
+
+### D11 — M26 verify verdict: green modulo attributed concurrent-session reds (2026-10-10 ~23:59)
+
+Full `nix run .#verify`: doc assertions GREEN after one mechanical absorbed fix (the ADR index
+was missing rows 0154–0157 — the concurrent sessions' new ADRs; added verbatim-titled rows);
+build + vet + the whole workspace test sweep GREEN (every engine module, core/v5, system,
+systemscenario, systemtest — including every module this stream touched: schema, snapshot,
+decider, metaengine, system, cqrs-lint's analyzer/rules packages). Race/lint legs did not
+complete: the sweep aborts on cqrs-lint's two failures, and the lint leg is currently red
+REPO-WIDE from config surgery. Remaining reds, ALL verified as concurrent-session-owned:
+
+1. `TestMultiModuleBuildContext_PartitionsProfiles` (pre-existing since at least 05:44, verified
+   via worktree this morning).
+2. `TestV007_TablesCoverAllV5DeprecationMarkers` — their core/v5 mirror added 14 deprecation
+   markers not yet tabled (their tables/allowlists own the semantics).
+3. Repo-wide gci formatter drift: `scripts/check-golangci-hash.sh` FAILS (.golangci.yml edited
+   today without re-pinning — today's history shows depguard-block removal mid-flight after the
+   cyclop/errcheck restore). This is the documented config-corruption class; the new gci behavior
+   disagrees with the treefmt 3-group contract (AGENTS #18). My four touched test files now match
+   the treefmt-canonical layout; I did NOT mass-rewrite imports against an unstable lint signal
+   and did NOT restore their in-flight config. Their gate (self-tested, zero-warning) will catch
+   the unpinned hash.
+4. cqrs-htmx identity-model (2) + usermgmt (4) exhaustruct (recorded in D8).
+
+Also absorbed mechanically: 4 unindexed ADR rows (above) and — earlier — the lint findings in my
+own files (golines/wsl in DiscordSync, gci grouping in my four new test files, exhaustruct in
+snapshot/constructor.go via the explicit `StateShape: ""` with rationale comment).
+
+**PLAN CLOSED at M26.** Everything shippable without the next tag wave is shipped; the post-tag
+tail (M13 patch, DiscordSync workaround drop, cqrs-htmx registry collapse, three sibling-replace
+strips) rides the owner's Q2 decision.
