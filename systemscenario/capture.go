@@ -83,6 +83,7 @@ func (s *Scenario) actCommands() []command.Command {
 // describeEvents renders one line per event for failure diagnostics:
 // type, version, stream, and actor.
 func describeEvents(events []event.Event) string {
+	//art-dupl:accept intentional: per-type diagnostic renderers, not a shared abstraction
 	if len(events) == 0 {
 		return "(no events)"
 	}

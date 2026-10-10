@@ -17,6 +17,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
+	"github.com/larsartmann/go-cqrs-lite/systemscenario/v4"
 )
 
 // ── Domain types ──
@@ -232,18 +233,12 @@ func registerTaskHandlers(sys *system.System) {
 	)
 }
 
-// memoryDeployment mirrors the auto-projection test deployment: one memory
-// engine serving source-of-truth and projections.
+// memoryDeployment dogsfoods the Memory() preset (one memory engine for
+// source-of-truth and projections plus the dedicated timers engine). Kept
+// as a named fixture so test files read symmetrically; the preset itself is
+// the canonical definition.
 func memoryDeployment() system.DeploymentConfig {
-	return system.DeploymentConfig{
-		Engines: map[string]system.EngineConfig{
-			"primary": {Driver: "memory"},
-		},
-		Instances: []system.InstanceConfig{
-			{Role: system.RoleSourceOfTruth, Engine: "primary"},
-			{Role: system.RoleProjections, Engine: "primary"},
-		},
-	}
+	return systemscenario.Memory()
 }
 
 // sagaDomain extends taskDomain with the archiver saga: a deriver reacts to

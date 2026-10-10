@@ -22,6 +22,20 @@ The harness boots the SAME `DomainConfig`/`DeploymentConfig` your production
 binary uses — fixture-from-production-config — so harness tests cannot drift
 from production wiring. There is nothing to re-declare.
 
+## Deployment presets
+
+One-liner `DeploymentConfig`s for tests that do not need to exercise a
+specific engine topology:
+
+| Preset                     | Layout                                                                | Use when                                                |
+| -------------------------- | --------------------------------------------------------------------- | ------------------------------------------------------- |
+| `systemscenario.Memory()`  | memory primary (journal + projections) + dedicated memory `timers` engine | default fast path; `TimeAdvances` works out of the box  |
+| `systemscenario.SQLite(t)` | file-backed SQLite primary under `t.TempDir()` (WAL) + memory `timers` engine | exercising real SQL planning, pragmas, file-backed data |
+
+`SQLite(t)` uses a file DSN, not shared-cache in-memory: engines own and
+close their `*sql.DB`, and shared-cache in-memory databases die with the
+last connection — file DSNs keep reopen-style assertions honest.
+
 ## Phases
 
 | Phase | Methods                                                                                                                                                                                                                                                                                                                                    | Axon analog                                          |

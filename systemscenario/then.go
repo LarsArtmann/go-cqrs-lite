@@ -170,6 +170,7 @@ func eventTypes(events []event.Event) []event.Type {
 
 // formatTypes renders a type slice for failure messages.
 func formatTypes(types []event.Type) string {
+	//art-dupl:accept intentional: per-type diagnostic renderers, not a shared abstraction
 	if len(types) == 0 {
 		return "(none)"
 	}

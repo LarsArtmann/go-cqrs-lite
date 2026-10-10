@@ -12,12 +12,10 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/systemscenario/v4"
 )
 
-// timerDeployment adds the dedicated timers engine.
+// timerDeployment is Memory() — the preset already declares the dedicated
+// timers engine.
 func timerDeployment() system.DeploymentConfig {
-	deploy := memoryDeployment()
-	deploy.Engines["timers"] = system.EngineConfig{Driver: "memory"}
-
-	return deploy
+	return systemscenario.Memory()
 }
 
 // timerDomain wraps taskDomain with a deadline timer scheduled one hour

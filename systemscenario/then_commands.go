@@ -96,6 +96,7 @@ func commandTypes(cmds []command.Command) []command.Type {
 
 // describeCommands renders one line per command for failure diagnostics.
 func describeCommands(cmds []command.Command) string {
+	//art-dupl:accept intentional: per-type diagnostic renderers, not a shared abstraction
 	if len(cmds) == 0 {
 		return "(no commands)"
 	}
