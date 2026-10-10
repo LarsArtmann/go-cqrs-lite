@@ -8,7 +8,8 @@
 #   Layer 0: dedup, dispatcher, id, record   (leaf packages, no internal deps)
 #   Layer 1: kv (→ record), metadata (→ id, record)
 #   Layer 2: command, event, query           (→ dispatcher, id, metadata, record)
-#   Layer 3: core root                       (→ everything)
+#   Layer 3: test helper kits                (→ parent domain package)
+#   Layer 4: core root                       (→ everything)
 
 version: 3
 
@@ -22,21 +23,33 @@ excludeFiles:
 components:
   core: { in: . }
   command: { in: command }
+  commandtest: { in: command/commandtest }
   dedup: { in: dedup }
   dispatcher: { in: dispatcher }
   event: { in: event }
   id: { in: id }
+  idtest: { in: id/idtest }
   kv: { in: kv }
+  viewstoretest: { in: kv/viewstoretest }
   metadata: { in: metadata }
   query: { in: query }
+  querytest: { in: query/querytest }
   record: { in: record }
 
 deps:
   # Layer 0 — leaf packages (no internal dependencies)
   dedup:
+    anyProjectDeps: false
+    anyVendorDeps: true
   dispatcher:
+    anyProjectDeps: false
+    anyVendorDeps: true
   id:
+    anyProjectDeps: false
+    anyVendorDeps: true
   record:
+    anyProjectDeps: false
+    anyVendorDeps: true
 
   # Layer 1 — primitive composites
   kv:
@@ -67,7 +80,23 @@ deps:
       - metadata
       - record
 
-  # Layer 3 — module root (wiring, docs, shared front door)
+  # Layer 3 — test helper kits (may use their parent domain package)
+  commandtest:
+    mayDependOn:
+      - command
+      - id
+  idtest:
+    mayDependOn:
+      - id
+  viewstoretest:
+    mayDependOn:
+      - kv
+  querytest:
+    mayDependOn:
+      - id
+      - query
+
+  # Layer 4 — module root (wiring, docs, shared front door)
   core:
     mayDependOn:
       - command
