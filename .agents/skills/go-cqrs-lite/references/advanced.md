@@ -499,13 +499,18 @@ Copy-paste recipe with the full composition-root wiring:
 Behavior-verified reference application (runnable main + systemscenario BDD
 suite): [`example/graph-native`](../../../example/graph-native).
 
-**Engine support (driver registry names):** memory, sqlite, turso, postgres,
-mysql, duckdb (recursive CTE), badger (prefix-scan BFS + undirected), dgraph
-(native `@recurse`), iroh — **pebble and bbolt do NOT support ADTGraph** (the
-planner fails graph queries on them with an unsupported error). Undirected
-traversal (`Undirected: true` input field) is an optional capability
-(`metaengine.HasUndirectedGraphSupport`): engines without it report the
-missing capability instead of guessing.
+**Engine support:** memory, sqlite, turso, postgres, mysql, duckdb
+(recursive CTE), badger (prefix-scan BFS + undirected), dgraph (native
+`@recurse`), iroh (programmatic `irohengine.Replicated` wrapper — NOT a
+registry driver) — **pebble and bbolt do NOT support ADTGraph** (the planner
+fails graph queries on them with an unsupported error). Graph capability is
+per-feature, not all-or-nothing: duckdb adds and traverses edges but has no
+`GraphRemoveEdge` and no undirected traversal. The generated, gated
+per-engine matrix (graph / edge removal / undirected / CGo):
+[docs/engine-capabilities.md](../../../docs/engine-capabilities.md).
+Undirected traversal (`Undirected: true` input field) is an optional
+capability (`metaengine.HasUndirectedGraphSupport`): engines without it
+report the missing capability instead of guessing.
 
 **Known limitation — flat node identity in `graphadapter`:** the in-memory
 `metaengine/graphadapter` bridge (engine name `graph-memory`) stamps every

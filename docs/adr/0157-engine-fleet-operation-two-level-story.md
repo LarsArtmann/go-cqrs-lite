@@ -67,6 +67,18 @@ one durable source-of-truth engine plus one specialized projections engine.
 (`GraphAddEdge`/`GraphNeighbors`/`GraphRemoveEdge` on the engine), not Profile-declared — a
 driver without the ADT simply fails graph queries with an unsupported error at runtime.
 
+> **Correction (verified from source 2026-10-10, capability-gate session):**
+> two refinements to the snapshot above. (1) `iroh` is NOT a registry driver —
+> `irohengine` registers no `RegisterDriver` name; it is constructed
+> programmatically (`irohengine.Replicated(local, ...)`), as is `graphadapter`
+> (`graph-memory`; never a DeploymentConfig driver — 11 registry drivers
+> total). (2) "Graph ADT yes" is per-feature: duckdb implements
+> `GraphAddEdge` + traversal but neither `GraphRemoveEdge` nor undirected
+> traversal. The per-engine truth now lives GENERATED from source and gated in
+> [docs/engine-capabilities.md](../engine-capabilities.md)
+> (`nix run .#check-engine-capabilities`); this table stays as the decision
+> snapshot.
+
 ### D3 — Optional app-side build-tag variants are the app's concern, not the library's.
 
 Fleet binaries that want one source tree with per-environment engine sets (e.g. a lean

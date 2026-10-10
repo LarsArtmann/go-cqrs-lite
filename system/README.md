@@ -190,10 +190,15 @@ instances:
 ```
 
 Engine capability for the Graph ADT (traversal path / undirected / edge
-removal): sqlite + turso (recursive CTE, iterative fallback), postgres +
-duckdb (WITH RECURSIVE), mysql (8.0+ CTE, probed fallback), dgraph (native),
-badger (prefix-scan BFS), memory + iroh (BFS / passthrough) — all three
-capabilities. Pebble and bbolt do not support the Graph ADT. Full matrix:
+removal) is engine-specific: sqlite + turso (recursive CTE, iterative
+fallback), postgres + duckdb (WITH RECURSIVE), mysql (8.0+ CTE, probed
+fallback), dgraph (native), badger (prefix-scan BFS), memory + iroh (BFS /
+passthrough). Pebble and bbolt do not support the Graph ADT at all. Not every
+graph engine has every capability — duckdb, for example, adds and traverses
+edges but has no `GraphRemoveEdge` and no undirected traversal. The generated,
+gated per-engine matrix (graph / edge removal / undirected / CGo):
+[docs/engine-capabilities.md](../docs/engine-capabilities.md); worked graph
+recipes: [metaengine/COOKBOOK.md](../metaengine/COOKBOOK.md) and
 [advanced.md §6.13](../.agents/skills/go-cqrs-lite/references/advanced.md).
 
 ## Operator Config File (koanf YAML + env overrides)
@@ -269,7 +274,7 @@ via config.
 
 Built-in drivers: `memory` (always available). Additional drivers
 (`sqlite`, `turso`, `postgres`, `mysql`, `pebble`, `bbolt`, `badger`,
-`duckdb`, `dgraph`, `iroh`) self-register when their package is imported
+`duckdb`, `dgraph`) self-register when their package is imported
 via a blank import:
 
 ```go
@@ -277,10 +282,14 @@ import _ "github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4"
 ```
 
 The full driver inventory with pure-Go/CGo and capability columns lives in
-[ADR-0157](../docs/adr/0157-engine-fleet-operation-two-level-story.md).
+[docs/engine-capabilities.md](../docs/engine-capabilities.md) — GENERATED
+from source and kept honest by `nix run .#check-engine-capabilities`.
 Note: the `graphadapter` bridge's `graph-memory` engine is NOT a
 DeploymentConfig driver — it is a standalone `metaengine.Engine` for
-hand-wiring ([graphadapter README](../metaengine/graphadapter/README.md)).
+hand-wiring ([graphadapter README](../metaengine/graphadapter/README.md)) —
+and neither is `irohengine` (programmatic `irohengine.Replicated(local)`
+wrapper, no registry driver). The two-level operator story behind this
+registry: [ADR-0157](../docs/adr/0157-engine-fleet-operation-two-level-story.md).
 
 Bus drivers are wired directly via `watermill` (no registry). Only
 `gochannel` (in-process) is supported; unknown driver names return an error

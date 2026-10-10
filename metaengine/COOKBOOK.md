@@ -284,15 +284,14 @@ reach, _ := metaengine.ExecuteTyped[Reachability, []string](
 
 ### Which Engine Serves the Traversal
 
-| Engine | Traversal path | Undirected | Edge removal |
-| ------ | ------------- | ---------- | ------------ |
-| sqlite / turso | recursive CTE on `meta_graph_edges` (iterative BFS fallback on old servers) | yes | yes |
-| postgres / duckdb | single WITH RECURSIVE statement | yes | yes |
-| mysql | WITH RECURSIVE (8.0+), iterative fallback via probe | yes | yes |
-| dgraph | native `n(depth:)` recurse | yes | yes |
-| badger | prefix-scan BFS over adjacency keys | yes | yes |
-| memory / iroh | in-process BFS / replicated passthrough | yes | yes |
-| pebble / bbolt | not supported — the planner routes elsewhere or Plan fails | – | – |
+The per-engine matrix (graph / undirected / edge removal / CGo — e.g. duckdb
+traverses but has no `GraphRemoveEdge` and no undirected support) is
+GENERATED from source and gated:
+[docs/engine-capabilities.md](../docs/engine-capabilities.md). Traversal
+paths in short: sqlite/turso recursive CTE (iterative fallback), postgres and
+duckdb a single WITH RECURSIVE, mysql WITH RECURSIVE 8.0+ with probed
+fallback, dgraph native `n(depth:)`, badger prefix-scan BFS, memory/iroh
+BFS/passthrough; pebble and bbolt do not serve graph queries at all.
 
 > Node identity is payload-derived by convention: `Edge.From`/`To` are
 > untyped endpoints, and stream-ID display strings are brand-prefixed

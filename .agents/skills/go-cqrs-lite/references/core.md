@@ -109,14 +109,19 @@ domain := system.DomainConfig{
 sys, err := system.New(ctx, domain, deployment)
 defer sys.Close()
 
-// 4. Start projections, execute commands — events are sourced + projected
-_ = sys.ProjectionHost().Start(ctx)
+// 4. Start the system (projection host + timers), execute commands
+_ = sys.Start(ctx)
 _ = sys.CommandDispatcher().Dispatch(ctx, cmd)
 
 // 5. Query the read model (typed reader over the metaengine collection)
 reader := metaengine.NewReader[CounterView](sys.MetaEngine(), "counter_views")
 view, found, _ := reader.Get(ctx, counterID.String()) // Value: 5
 ```
+
+`sys.Start(ctx)` is the canonical one-call lifecycle: it starts the projection
+host and the timers, returns `system.ErrAlreadyStarted` on a second call, and
+belongs BEFORE the first command dispatch. `sys.ProjectionHost().Start(ctx)`
+remains the narrow seam for starting only the host.
 
 **The domain code never changes when the operator swaps engines** — memory → sqlite →
 postgres → pebble is one `EngineConfig` line plus the driver's blank import. This is the
