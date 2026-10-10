@@ -14,7 +14,7 @@
 > - [§6.10 Scenario-Testing DSL](#610-scenario-testing-dsl-givenwhenthen)
 > - [§6.11 Scheduled Commands / Durable Deadlines](#611-scheduled-commands--durable-deadlines)
 > - [§6.12 Reactive Command Derivation (deriver)](#612-reactive-command-derivation-deriver)
-> - [§6.13 Graph Projections](#613-graph-projections-graph)
+> - [§6.13 Graph-Native Read Models (metaengine Graph ADT; legacy: graph)](#613-graph-native-read-models-metaengine-graph-adt-legacy-graph)
 > - [§6.14 Prometheus Metrics Export](#614-prometheus-metrics-export-prometheus)
 > - [§6.15 SSE Streaming vs CatchUpSubscriber](#615-sse-streaming-vs-catchupsubscriber--which-replay-path)
 > - [§6.16 Metaengine SSE & Cursor Pagination](#616-metaengine-sse-streaming--cursor-pagination-metaengine)
@@ -783,14 +783,14 @@ result, _ := metaengine.ExecuteTyped[projections.DeadLetterQuery, projections.De
 )
 ```
 
-| Lifecycle event | Emitted when | Projection |
-|-----------------|-------------|------------|
-| `command.received` | Server accepts command | ProcessingTime |
-| `command.rejected` | Rejection-family error (never retried, never DLQed) | RejectionLog |
-| `command.failed` | Single attempt fails (non-rejection) | FailureLog |
-| `command.retried` | Before each retry | RetryCount |
-| `command.dead-lettered` | All retries exhausted (non-rejection) | DLQ |
-| `command.completed` | Command processed successfully | ProcessingTime |
+| Lifecycle event         | Emitted when                                        | Projection     |
+| ----------------------- | --------------------------------------------------- | -------------- |
+| `command.received`      | Server accepts command                              | ProcessingTime |
+| `command.rejected`      | Rejection-family error (never retried, never DLQed) | RejectionLog   |
+| `command.failed`        | Single attempt fails (non-rejection)                | FailureLog     |
+| `command.retried`       | Before each retry                                   | RetryCount     |
+| `command.dead-lettered` | All retries exhausted (non-rejection)               | DLQ            |
+| `command.completed`     | Command processed successfully                      | ProcessingTime |
 
 Use `commandlifecycle.WithStrict()` when lifecycle tracking must not silently
 fail (auditable systems). See [ADR-0117](../../../../docs/adr/0117-command-lifecycle-as-events.md).
@@ -935,18 +935,18 @@ usage); grade pain is fixed by honesty/auditability/aim, never by softening:
 - **JSON output schema** (`--format json`; `omitempty` fields absent when
   zero):
 
-| Field                            | Type     | Meaning                                                       |
-| -------------------------------- | -------- | ------------------------------------------------------------- |
-| `summary.used_count`             | int      | Rows with status `used` (incl. composition credit)             |
-| `summary.relevant_total`         | int      | Denominator: used + missing (waivers leave it)                 |
-| `summary.coverage_percent`       | int      | `used_count / relevant_total`                                  |
-| `summary.grade`                  | string   | Breadth grade (Minimal/Sparse/Fair/Good/Excellent)             |
-| `summary.modernity_grade`        | string   | Legacy/Partial/Modern (see above)                              |
-| `summary.waived_count`           | int      | Waived rows (present when > 0)                                 |
-| `used[]`/`missing[]`/`waived[]`  | []object | `{key, display_name, category, status, evidence?, suggestion?}` |
-| `metaengine`                     | object   | `{detected, engines?, pushdown_adopted, suggestion?}`           |
-| `deprecated`                     | object   | `{removed_api_uses, deprecated_transport_uses, stack_preset_uses, suggestion?}` |
-| `recommendations[]`              | []string | Up to 3 coaching lines from the missing list                    |
+| Field                           | Type     | Meaning                                                                         |
+| ------------------------------- | -------- | ------------------------------------------------------------------------------- |
+| `summary.used_count`            | int      | Rows with status `used` (incl. composition credit)                              |
+| `summary.relevant_total`        | int      | Denominator: used + missing (waivers leave it)                                  |
+| `summary.coverage_percent`      | int      | `used_count / relevant_total`                                                   |
+| `summary.grade`                 | string   | Breadth grade (Minimal/Sparse/Fair/Good/Excellent)                              |
+| `summary.modernity_grade`       | string   | Legacy/Partial/Modern (see above)                                               |
+| `summary.waived_count`          | int      | Waived rows (present when > 0)                                                  |
+| `used[]`/`missing[]`/`waived[]` | []object | `{key, display_name, category, status, evidence?, suggestion?}`                 |
+| `metaengine`                    | object   | `{detected, engines?, pushdown_adopted, suggestion?}`                           |
+| `deprecated`                    | object   | `{removed_api_uses, deprecated_transport_uses, stack_preset_uses, suggestion?}` |
+| `recommendations[]`             | []string | Up to 3 coaching lines from the missing list                                    |
 
 **`cqrs-lint doctor --format json`** emits a machine-readable report
 (module-rule findings, engine coverage, severity overrides). Key order is
@@ -956,24 +956,24 @@ marshals with sorted keys), so consumer scripts can diff outputs byte-for-byte.
 
 Schema (top level; `omitempty` fields absent unless noted):
 
-| Field               | Type     | Meaning                                                        |
-| ------------------- | -------- | -------------------------------------------------------------- |
-| `path`              | string   | Analyzed directory (absolute)                                  |
-| `configFile`        | string   | Resolved `.cqrs-lint.json` path (present when `configFound`)    |
-| `configFound`       | bool     | Config file existed                                            |
-| `parentConfigs`     | []string | Ancestor-dir configs merged for rule disables (monorepos)      |
-| `preset`            | string   | Active preset name                                             |
-| `severityFloor`     | string   | Effective min severity (preset floor applies)                  |
-| `minConfidence`     | string   | Effective min confidence                                       |
-| `rulesTotal`        | int      | Catalog size                                                   |
-| `rulesActive`       | int      | After preset/config disables                                   |
-| `rulesDisabled`     | int      | Total disabled                                                 |
-| `disabledFromPreset`| []string | Rule IDs the preset disabled                                   |
-| `disabledFromConfig`| []string | Rule IDs config disabled                                       |
-| `severityOverrides` | map      | ruleID → severity (sorted keys)                                |
-| `features`          | object   | Detected feature profile (config `features` shape PLUS detection-only fields: `stackPresets`, metaengine engines/pushdown) |
-| `modules`           | []object | Per-`go.mod` profiles: `{module, profile}`                     |
-| `audit`             | object   | With `--audit-suppressions`/`--prune-suppressions`: `{total, active, stale, unknownRule, entries[], fix?}`; `fix` (prune mode) carries `{dryRun, removed[], skipped[], files[]}` |
+| Field                | Type     | Meaning                                                                                                                                                                          |
+| -------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `path`               | string   | Analyzed directory (absolute)                                                                                                                                                    |
+| `configFile`         | string   | Resolved `.cqrs-lint.json` path (present when `configFound`)                                                                                                                     |
+| `configFound`        | bool     | Config file existed                                                                                                                                                              |
+| `parentConfigs`      | []string | Ancestor-dir configs merged for rule disables (monorepos)                                                                                                                        |
+| `preset`             | string   | Active preset name                                                                                                                                                               |
+| `severityFloor`      | string   | Effective min severity (preset floor applies)                                                                                                                                    |
+| `minConfidence`      | string   | Effective min confidence                                                                                                                                                         |
+| `rulesTotal`         | int      | Catalog size                                                                                                                                                                     |
+| `rulesActive`        | int      | After preset/config disables                                                                                                                                                     |
+| `rulesDisabled`      | int      | Total disabled                                                                                                                                                                   |
+| `disabledFromPreset` | []string | Rule IDs the preset disabled                                                                                                                                                     |
+| `disabledFromConfig` | []string | Rule IDs config disabled                                                                                                                                                         |
+| `severityOverrides`  | map      | ruleID → severity (sorted keys)                                                                                                                                                  |
+| `features`           | object   | Detected feature profile (config `features` shape PLUS detection-only fields: `stackPresets`, metaengine engines/pushdown)                                                       |
+| `modules`            | []object | Per-`go.mod` profiles: `{module, profile}`                                                                                                                                       |
+| `audit`              | object   | With `--audit-suppressions`/`--prune-suppressions`: `{total, active, stale, unknownRule, entries[], fix?}`; `fix` (prune mode) carries `{dryRun, removed[], skipped[], files[]}` |
 
 **Repo verification apps** (contributors; run via `nix run .#<app>`):
 
