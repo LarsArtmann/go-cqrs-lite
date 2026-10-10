@@ -1,6 +1,9 @@
 package analyzer
 
-import "go/ast"
+import (
+	"go/ast"
+	"go/token"
+)
 
 // extractHandlerFuncLit unwraps function literal arguments (closure handlers).
 func extractHandlerFuncLit(expr ast.Expr) *ast.FuncLit {
@@ -146,4 +149,136 @@ func eventMetadataTypeExpr(call *ast.CallExpr) ast.Expr {
 	}
 
 	return nil
+}
+
+// handlerTypeFromCall extracts the handler type name from a RegisterTyped or
+// RegisterQuery call. It handles two registration patterns:
+//
+//  1. Composite literal:     RegisterTyped(d, MyCommand{})      → "MyCommand"
+//  2. Closure handler:       RegisterTyped(d, type, func(ctx, c *MyCommand) error {...})
+//
+// Constructor-call handlers (NewMyCommand(bus)) are NOT type names — they are
+// recorded separately via constructorHandlerText (T20-4).
+func handlerTypeFromCall(call *ast.CallExpr) string {
+	for _, arg := range call.Args {
+		switch a := arg.(type) {
+		case *ast.CompositeLit:
+			if id, ok := a.Type.(*ast.Ident); ok {
+				return id.Name
+			}
+		case *ast.FuncLit:
+			return handlerTypeFromClosure(a)
+		}
+	}
+
+	return ""
+}
+
+// constructorHandlerText returns the call text of the first constructor-call
+// handler argument (e.g. "NewMyCommand(bus)"), or "" when no handler arg is a
+// call expression. T20-4: these records live in Registry.ConstructorHandlers,
+// never in CommandTypesRegistered (keys there must be struct type names).
+func constructorHandlerText(call *ast.CallExpr) string {
+	for _, arg := range call.Args {
+		if _, ok := arg.(*ast.CallExpr); ok {
+			return ExprString(arg)
+		}
+	}
+
+	return ""
+}
+
+// recordSchemaDeclaredEvent records one schema-declaration event type
+// (schema.Event/EventOf or the Schemas-builder .Event method): the first
+// argument is the event type as a string literal, or a constant reference
+// that resolves in the post-pass (ResolveEmittedEventTypeConsts).
+func recordSchemaDeclaredEvent(ctx *AnalysisContext, gf *GoFile, call *ast.CallExpr, pos token.Position) {
+	if len(call.Args) == 0 {
+		return
+	}
+
+	if eventTypeStr := StringLit(call.Args[0]); eventTypeStr != "" {
+		ctx.Registry.EventTypesInSchemaDecl[eventTypeStr] = EventEmission{File: gf.Path, Line: pos.Line}
+	} else if name := ExprIdentName(call.Args[0]); name != "" {
+		ctx.Registry.pendingSchemaEventTypeRefs = append(
+			ctx.Registry.pendingSchemaEventTypeRefs,
+			pendingEventTypeRef{constName: name, file: gf.Path, line: pos.Line},
+		)
+	}
+}
+
+// isSchemaBuilderEventCall reports whether an .Event method call targets the
+// system.Schemas() fluent builder: the receiver is a system.Schemas() call
+// (directly or through a chain of builder .Event calls) or a local variable
+// initialized from one (tracked per file by trackSchemaBuilderAssignments).
+// A false positive only over-declares — suppressing an E021 finding — which
+// is the safe direction; a false negative keeps the finding alive.
+func isSchemaBuilderEventCall(ctx *AnalysisContext, gf *GoFile, sel *ast.SelectorExpr) bool {
+	switch recv := sel.X.(type) {
+	case *ast.Ident:
+		return ctx.Registry.schemaBuilderIdents[gf.Path][recv.Name]
+	case *ast.CallExpr:
+		return isSchemaBuilderChainCall(ctx, gf, recv)
+	}
+
+	return false
+}
+
+// isSchemaBuilderChainCall walks a receiver call chain that must end in a
+// system-qualified Schemas() call or a tracked builder variable:
+// system.Schemas().Event[a](...).Event[b](...).
+func isSchemaBuilderChainCall(ctx *AnalysisContext, gf *GoFile, call *ast.CallExpr) bool {
+	chainSel, ok := SelectorFromExpr(call.Fun)
+	if !ok {
+		return false
+	}
+
+	switch chainSel.Sel.Name {
+	case "Schemas":
+		return IsQualifierFor(gf, chainSel, "go-cqrs-lite/system")
+	case "Event":
+		switch recv := chainSel.X.(type) {
+		case *ast.CallExpr:
+			return isSchemaBuilderChainCall(ctx, gf, recv)
+		case *ast.Ident:
+			return ctx.Registry.schemaBuilderIdents[gf.Path][recv.Name]
+		}
+	}
+
+	return false
+}
+
+// trackSchemaBuilderAssignments records `schemas := system.Schemas()` (and
+// the rare re-assignment form) so later builder-method calls through the
+// variable resolve to the schema declaration tier. Same-file only: the fluent
+// builder is declared and consumed in one place; a cross-file builder var is
+// a missed declaration (safe direction).
+func trackSchemaBuilderAssignments(ctx *AnalysisContext, gf *GoFile, stmt *ast.AssignStmt) {
+	for i, rhs := range stmt.Rhs {
+		call, ok := rhs.(*ast.CallExpr)
+		if !ok {
+			continue
+		}
+
+		sel, ok := SelectorFromExpr(call.Fun)
+		if !ok || sel.Sel.Name != "Schemas" || !IsQualifierFor(gf, sel, "go-cqrs-lite/system") {
+			continue
+		}
+
+		if i >= len(stmt.Lhs) {
+			continue
+		}
+
+		if ident, ok := stmt.Lhs[i].(*ast.Ident); ok {
+			if ctx.Registry.schemaBuilderIdents == nil {
+				ctx.Registry.schemaBuilderIdents = make(map[string]map[string]bool)
+			}
+
+			if ctx.Registry.schemaBuilderIdents[gf.Path] == nil {
+				ctx.Registry.schemaBuilderIdents[gf.Path] = make(map[string]bool)
+			}
+
+			ctx.Registry.schemaBuilderIdents[gf.Path][ident.Name] = true
+		}
+	}
 }

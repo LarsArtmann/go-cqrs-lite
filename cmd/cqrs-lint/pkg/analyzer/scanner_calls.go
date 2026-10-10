@@ -145,6 +145,19 @@ func scanCallExpr(ctx *AnalysisContext, gf *GoFile, call *ast.CallExpr) {
 			}
 		}
 
+	case (funcName == "Event" || funcName == "EventOf") && IsQualifierFor(gf, sel, "go-cqrs-lite/schema"):
+		// schema.Event / schema.EventOf — a schema declaration: the first
+		// arg is the event type (literal or constant). Feeds E021's
+		// declared-set.
+		recordSchemaDeclaredEvent(ctx, gf, call, pos)
+
+	case funcName == "Event" && isSchemaBuilderEventCall(ctx, gf, sel):
+		// (*system.SchemaSet).Event[T](type, version, ops...) — the
+		// system.Schemas() fluent builder, chained directly or through a
+		// local builder variable. SelectorFromExpr already unwrapped the
+		// generic instantiation, so sel.X is the receiver.
+		recordSchemaDeclaredEvent(ctx, gf, call, pos)
+
 	case funcName == "AddDataProduct" && (IsQualifierFor(gf, sel, "go-cqrs-lite/catalog") ||
 		argIsCatalogDataProduct(call) ||
 		// Variable-passed product: the ident argument resolves to a
@@ -167,43 +180,6 @@ func scanCallExpr(ctx *AnalysisContext, gf *GoFile, call *ast.CallExpr) {
 			ctx.Registry.StrictApplyFolds[name] = true
 		}
 	}
-}
-
-// handlerTypeFromCall extracts the handler type name from a RegisterTyped or
-// RegisterQuery call. It handles two registration patterns:
-//
-//  1. Composite literal:     RegisterTyped(d, MyCommand{})      → "MyCommand"
-//  2. Closure handler:       RegisterTyped(d, type, func(ctx, c *MyCommand) error {...})
-//
-// Constructor-call handlers (NewMyCommand(bus)) are NOT type names — they are
-// recorded separately via constructorHandlerText (T20-4).
-func handlerTypeFromCall(call *ast.CallExpr) string {
-	for _, arg := range call.Args {
-		switch a := arg.(type) {
-		case *ast.CompositeLit:
-			if id, ok := a.Type.(*ast.Ident); ok {
-				return id.Name
-			}
-		case *ast.FuncLit:
-			return handlerTypeFromClosure(a)
-		}
-	}
-
-	return ""
-}
-
-// constructorHandlerText returns the call text of the first constructor-call
-// handler argument (e.g. "NewMyCommand(bus)"), or "" when no handler arg is a
-// call expression. T20-4: these records live in Registry.ConstructorHandlers,
-// never in CommandTypesRegistered (keys there must be struct type names).
-func constructorHandlerText(call *ast.CallExpr) string {
-	for _, arg := range call.Args {
-		if _, ok := arg.(*ast.CallExpr); ok {
-			return ExprString(arg)
-		}
-	}
-
-	return ""
 }
 
 // handlerTypeFromClosure extracts the handler type from a function literal's

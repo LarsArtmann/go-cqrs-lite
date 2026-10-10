@@ -161,7 +161,8 @@ func ResolveRegisteredTypeConsts(reg *CQRSRegistry) {
 // constant-emitted events. See cqrs-htmx feedback (C040 phantoms).
 func ResolveEmittedEventTypeConsts(reg *CQRSRegistry) {
 	if len(reg.pendingEmittedEventTypeRefs) == 0 &&
-		len(reg.pendingCatalogEventTypeRefs) == 0 {
+		len(reg.pendingCatalogEventTypeRefs) == 0 &&
+		len(reg.pendingSchemaEventTypeRefs) == 0 {
 		return
 	}
 
@@ -183,6 +184,15 @@ func ResolveEmittedEventTypeConsts(reg *CQRSRegistry) {
 		}
 
 		reg.EventTypesInCatalog[val] = true
+	}
+
+	for _, ref := range reg.pendingSchemaEventTypeRefs {
+		val := reg.TypeConstValues[ref.constName]
+		if val == "" {
+			continue
+		}
+
+		reg.EventTypesInSchemaDecl[val] = EventEmission{File: ref.file, Line: ref.line}
 	}
 }
 

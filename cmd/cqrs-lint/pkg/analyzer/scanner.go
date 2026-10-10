@@ -23,6 +23,7 @@ func scanFile(ctx *AnalysisContext, gf *GoFile) {
 		switch node := n.(type) {
 		case *ast.AssignStmt:
 			trackVarAssignments(node, varAssigns)
+			trackSchemaBuilderAssignments(ctx, gf, node)
 		case *ast.CallExpr:
 			scanCallExpr(ctx, gf, node)
 			scanMetaengineQueryDecl(ctx, gf, node)
