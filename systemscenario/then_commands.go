@@ -12,9 +12,7 @@ import (
 // triggers a deriver whose derived command is captured here (Axon
 // then().commands analog). After TimeAdvances the assertion polls.
 func (p *WhenPhase) ThenCommands(expected ...command.Type) *WhenPhase {
-	s := p.sc
-	s.t.Helper()
-	s.requireAct("ThenCommands")
+	s := p.thenScenario("ThenCommands")
 
 	if s.awaitMode {
 		s.await("ThenCommands", func() (bool, string) {
@@ -49,9 +47,7 @@ func (p *WhenPhase) ThenCommands(expected ...command.Type) *WhenPhase {
 // for derived-command chains (asynchronous deriver dispatch, ADR-0154) use
 // [WhenPhase.ThenCommandsSatisfyAwait].
 func (p *WhenPhase) ThenCommandsSatisfy(inspect func(cmds []command.Command)) *WhenPhase {
-	s := p.sc
-	s.t.Helper()
-	s.requireAct("ThenCommandsSatisfy")
+	s := p.thenScenario("ThenCommandsSatisfy")
 
 	inspect(s.actCommands())
 
@@ -66,9 +62,7 @@ func (p *WhenPhase) ThenCommandsSatisfy(inspect func(cmds []command.Command)) *W
 // contract cannot express "not yet"; awaiting inspection reports failure as
 // an error instead, and the timeout message carries the last one.
 func (p *WhenPhase) ThenCommandsSatisfyAwait(inspect func(cmds []command.Command) error) *WhenPhase {
-	s := p.sc
-	s.t.Helper()
-	s.requireAct("ThenCommandsSatisfyAwait")
+	s := p.thenScenario("ThenCommandsSatisfyAwait")
 
 	s.await("ThenCommandsSatisfyAwait", func() (bool, string) {
 		if err := inspect(s.actCommands()); err != nil {

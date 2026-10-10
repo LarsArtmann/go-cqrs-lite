@@ -16,9 +16,7 @@ import (
 // After [WhenPhase.TimeAdvances] the assertion polls until the types match
 // or the await timeout expires (timer firing is asynchronous).
 func (p *WhenPhase) Then(expected ...event.Type) *WhenPhase {
-	s := p.sc
-	s.t.Helper()
-	s.requireAct("Then")
+	s := p.thenScenario("Then")
 
 	if s.awaitMode {
 		s.await("Then", func() (bool, string) {
@@ -48,9 +46,7 @@ func (p *WhenPhase) Then(expected ...event.Type) *WhenPhase {
 // so remaining assertions still run. Synchronous; for poll-based inspection
 // (after TimeAdvances) use [WhenPhase.ThenEventsSatisfy].
 func (p *WhenPhase) ThenEvents(inspect func(events []event.Event)) *WhenPhase {
-	s := p.sc
-	s.t.Helper()
-	s.requireAct("ThenEvents")
+	s := p.thenScenario("ThenEvents")
 
 	inspect(s.actEvents())
 
@@ -61,9 +57,7 @@ func (p *WhenPhase) ThenEvents(inspect func(events []event.Event)) *WhenPhase {
 // expires. Use after asynchronous acts (TimeAdvances); ThenEvents is the
 // synchronous sibling.
 func (p *WhenPhase) ThenEventsSatisfy(inspect func(events []event.Event) error) *WhenPhase {
-	s := p.sc
-	s.t.Helper()
-	s.requireAct("ThenEventsSatisfy")
+	s := p.thenScenario("ThenEventsSatisfy")
 
 	s.await("ThenEventsSatisfy", func() (bool, string) {
 		if err := inspect(s.actEvents()); err != nil {
@@ -81,9 +75,7 @@ func (p *WhenPhase) ThenEventsSatisfy(inspect func(events []event.Event) error) 
 // window — the full await timeout by default, shorter via
 // [WithQuietWindow] — failing as soon as any event appears inside it.
 func (p *WhenPhase) ThenNoEvents() *WhenPhase {
-	s := p.sc
-	s.t.Helper()
-	s.requireAct("ThenNoEvents")
+	s := p.thenScenario("ThenNoEvents")
 
 	if s.awaitMode {
 		window := s.cfg.quietWindow
@@ -117,9 +109,7 @@ func (p *WhenPhase) ThenNoEvents() *WhenPhase {
 //
 //	systemscenario.ThenPayload(phase, 0, TaskCreated{Title: "ship"})
 func ThenPayload[T any](p *WhenPhase, index int, want T) {
-	s := p.sc
-	s.t.Helper()
-	s.requireAct("ThenPayload")
+	s := p.thenScenario("ThenPayload")
 
 	events := s.actEvents()
 	if index < 0 || index >= len(events) {
@@ -142,9 +132,7 @@ func ThenPayload[T any](p *WhenPhase, index int, want T) {
 // causation, custom data). check returns nil to pass, or an error describing
 // the mismatch.
 func (p *WhenPhase) ThenMetadata(index int, check func(md event.Metadata) error) *WhenPhase {
-	s := p.sc
-	s.t.Helper()
-	s.requireAct("ThenMetadata")
+	s := p.thenScenario("ThenMetadata")
 
 	events := s.actEvents()
 	if index < 0 || index >= len(events) {
@@ -157,6 +145,17 @@ func (p *WhenPhase) ThenMetadata(index int, check func(md event.Metadata) error)
 	}
 
 	return p
+}
+
+// thenScenario returns the scenario backing a Then* assertion, marking the
+// test-helper boundary and failing fast when no When act ran first — the
+// shared prologue of every Then* method.
+func (p *WhenPhase) thenScenario(method string) *Scenario {
+	s := p.sc
+	s.t.Helper()
+	s.requireAct(method)
+
+	return s
 }
 
 // eventTypes maps events to their types.

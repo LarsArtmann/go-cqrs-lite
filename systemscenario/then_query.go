@@ -63,9 +63,7 @@ func (s *Scenario) awaitQuery(what string, fn func() (any, error), check func(go
 // errors keep polling (a projection may not have the row yet); the timeout
 // message reports the last mismatch AND the last query error.
 func (p *WhenPhase) ThenQuery(fn func() (any, error), want any) *WhenPhase {
-	s := p.sc
-	s.t.Helper()
-	s.requireAct("ThenQuery")
+	s := p.thenScenario("ThenQuery")
 
 	s.awaitQuery("ThenQuery", fn, func(got any) error {
 		if reflect.DeepEqual(got, want) {
@@ -82,9 +80,7 @@ func (p *WhenPhase) ThenQuery(fn func() (any, error), want any) *WhenPhase {
 // awaiting the asynchronous projection pipeline. Use it when the wanted
 // result is easier to describe than to construct (field subsets, orderings).
 func (p *WhenPhase) ThenQueryFunc(fn func() (any, error), check func(got any) error) *WhenPhase {
-	s := p.sc
-	s.t.Helper()
-	s.requireAct("ThenQueryFunc")
+	s := p.thenScenario("ThenQueryFunc")
 
 	s.awaitQuery("ThenQueryFunc", fn, check)
 
@@ -99,9 +95,7 @@ func (p *WhenPhase) ThenQueryFunc(fn func() (any, error), check func(got any) er
 // that VANISHES once the projection catches up — use
 // [WhenPhase.ThenQueryEventuallyFails].
 func (p *WhenPhase) ThenQueryFails(fn func() (any, error), target error) *WhenPhase {
-	s := p.sc
-	s.t.Helper()
-	s.requireAct("ThenQueryFails")
+	s := p.thenScenario("ThenQueryFails")
 
 	got, err := fn()
 	if err == nil {
@@ -122,9 +116,7 @@ func (p *WhenPhase) ThenQueryFails(fn func() (any, error), target error) *WhenPh
 // the projection catches up, so the failing lookup itself is the condition
 // to await. The timeout message reports the last non-matching outcome.
 func (p *WhenPhase) ThenQueryEventuallyFails(fn func() (any, error), target error) *WhenPhase {
-	s := p.sc
-	s.t.Helper()
-	s.requireAct("ThenQueryEventuallyFails")
+	s := p.thenScenario("ThenQueryEventuallyFails")
 
 	s.await("ThenQueryEventuallyFails", func() (bool, string) {
 		got, err := fn()
@@ -153,9 +145,7 @@ func (p *WhenPhase) ThenQueryEventuallyFails(fn func() (any, error), target erro
 //			return nil
 //		})
 func ThenQueryTyped[T any](p *WhenPhase, fn func() (T, error), check func(got T) error) *WhenPhase {
-	s := p.sc
-	s.t.Helper()
-	s.requireAct("ThenQueryTyped")
+	s := p.thenScenario("ThenQueryTyped")
 
 	s.awaitQuery("ThenQueryTyped",
 		func() (any, error) { return fn() },
@@ -175,9 +165,7 @@ func ThenQueryTyped[T any](p *WhenPhase, fn func() (T, error), check func(got T)
 // ThenResult asserts the captured result of the WhenQuery act deep-equals
 // want. Query dispatch is synchronous, so no polling.
 func (p *WhenPhase) ThenResult(want any) *WhenPhase {
-	s := p.sc
-	s.t.Helper()
-	s.requireAct("ThenResult")
+	s := p.thenScenario("ThenResult")
 
 	if !reflect.DeepEqual(s.lastQueryResult, want) {
 		s.t.Fatalf(
@@ -193,9 +181,7 @@ func (p *WhenPhase) ThenResult(want any) *WhenPhase {
 // ThenSuccess asserts the most recent act produced no error (Axon
 // then().success analog) — the positive counterpart of ThenError.
 func (p *WhenPhase) ThenSuccess() *WhenPhase {
-	s := p.sc
-	s.t.Helper()
-	s.requireAct("ThenSuccess")
+	s := p.thenScenario("ThenSuccess")
 
 	if s.lastErr != nil {
 		s.t.Fatalf("ThenSuccess: last act returned error: %v", s.lastErr)
