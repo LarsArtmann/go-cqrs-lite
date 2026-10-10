@@ -60,6 +60,11 @@ the operator picks engines in ONE place (`DeploymentConfig`). This is the comple
 from `example/getting-started/main.go` (runnable; SQLite via one line):
 
 ```go
+import (
+    "github.com/larsartmann/go-cqrs-lite/event/v4"
+    "github.com/larsartmann/go-cqrs-lite/record/v4"
+)
+
 // 1. Define your domain (pure functions, no framework coupling)
 type CounterState struct{ Value int }
 type Incremented struct{ Amount int }
@@ -317,8 +322,10 @@ Modules must import `github.com/larsartmann/go-cqrs-lite/otel/v4`, not `go.opent
 The only exception is DB interop (`dialect.go`). Branded IDs prevent mixing ID types:
 
 ```go
-type UserID = id.Of[struct{}]   // cannot be passed where OrderID is expected
-uid := id.New[UserID]()
+import cqrsid "github.com/larsartmann/go-cqrs-lite/id/v4"
+
+type UserID = cqrsid.Of[struct{}] // cannot be passed where OrderID is expected
+uid := cqrsid.New[UserID]()
 ```
 
 ### 3.6 Defensive clone on accessors
