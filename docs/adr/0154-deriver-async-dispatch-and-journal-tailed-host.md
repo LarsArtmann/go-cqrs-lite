@@ -123,3 +123,26 @@ the ROADMAP. It is NOT built by this ADR; D1 is the v4.x bridge.
   already the asserted reality).
 - **ADR-0028 (watermill as canonical bus)**: unchanged — D1 fixes the deriver side,
   not the bus. The bus's ordered-live-delivery guarantee stays intact.
+
+---
+
+## Addendum: ErrReentrantPublish shipped (2026-10-10, adoption-wave T26)
+
+The "independent hardening" bullet above is now implemented. Mechanism:
+
+- `event.MarkInDelivery(ctx)` / `event.ContextInDelivery(ctx)` /
+  `event.WithoutDeliveryMark(ctx)` carry a synchronous-bus-delivery marker on
+  the handler context (goroutine-ID-free by design; the marker rides the
+  context, so it flows through synchronous handler chains and stops at
+  goroutine boundaries that clear it).
+- The watermill EventBus and CommandBus mark the context at `dispatchLocal`
+  and reject a nested synchronous `Publish` on a marked context with
+  `watermill.ErrReentrantPublish` (Orchestration family) instead of hanging
+  on the per-topic subscriber lock under `BlockPublishUntilSubscriberAck`.
+- `deriver.WithAsyncDispatch` strips the mark on its dispatch goroutine
+  (`event.WithoutDeliveryMark(context.WithoutCancel(ctx))`) — the sanctioned
+  escape publishes cleanly, pinned by test.
+
+The evidence-pack reproduction shape (deriver handler → dispatch → nested
+publish) now fails fast with the sentinel; non-nested publishes and async
+escapes are unaffected (race-clean test triple in `watermill/reentrancy_test.go`).

@@ -2910,11 +2910,12 @@ type Followed struct{ Follower, Followee string }
 type Unfollowed struct{ Follower, Followee string }
 
 // Traversal input conventions: Node = start, Depth defaults to 1 when zero,
-// Undirected walks both directions (engines without it report the missing
-// capability instead of guessing). Depth N returns exactly the nodes
-// reachable within N hops: the start node itself is EXCLUDED, results are
-// deduplicated, and there is no row cap — traversal cost is bounded only by
-// graph size.
+// Undirected walks both directions (add an `Undirected bool` field to the
+// input struct; engines without the capability report the missing capability
+// instead of guessing). Depth N returns exactly the nodes reachable within N
+// hops: the start node itself is EXCLUDED, results are deduplicated and
+// UNORDERED (compare as sets), and there is no row cap — traversal cost is
+// bounded only by graph size.
 type Reachability struct {
     Node  string
     Depth int
@@ -2970,7 +2971,9 @@ deploy := system.DeploymentConfig{ // operator territory: pick engines per role
 
 The write side is a plain decider — no graph-specific machinery. State
 folds the SAME facts the graph folds consume; guards are ordinary domain
-rejections (`errorfamily`); unfollow mirrors follow:
+rejections (`errorfamily`); unfollow mirrors follow. Boot the wired system
+with `sys.Start(ctx)` (starts the projection host with everything else —
+see system/README §Lifecycle):
 
 ```go
 import (
@@ -3007,8 +3010,9 @@ func applyFollow(state FollowState, evt event.Event) (FollowState, error) {
     return state, nil
 }
 
-// FollowCmd is the write-side API: dispatch on the FOLLOWER's stream ID
-// (semantic, caller-chosen keys are string-backed — id.ParseStreamID).
+// FollowCmd is the write-side API: dispatch on the FOLLOWER's stream ID.
+// Semantic, caller-chosen keys are string-backed StreamIDs:
+//   stream, err := id.ParseStreamID("alice") // no prefix, .Get() returns "alice"
 type FollowCmd struct {
     *command.BasicCommand
     Followee string

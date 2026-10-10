@@ -220,6 +220,7 @@ catalog/func DomainSends
 catalog/func DomainSubDomains
 catalog/func DomainUbiquitousLanguage
 catalog/func Event
+catalog/func FromTypedSchema
 catalog/func HttpStatusDescription
 catalog/func Key
 catalog/func Labels
@@ -243,6 +244,7 @@ catalog/func SchemaFromReflect
 catalog/func SchemaFromType
 catalog/func SchemaToAny
 catalog/func SchemaToJSON
+catalog/func SemverFromWire
 catalog/func ServiceAttachments
 catalog/func ServiceBadges
 catalog/func ServiceEntities
@@ -2195,6 +2197,7 @@ event/func CheckVersionConflict
 event/func CommandCausalityEnricher
 event/func CommandCausalityFromContext
 event/func CompositeEnricher
+event/func ContextInDelivery
 event/func DecodePayload
 event/func DecodePayloadAuto
 event/func DecodePayloads
@@ -2207,6 +2210,7 @@ event/func ExtractCustomBytesChecked
 event/func FilterByTimestamp
 event/func FromContext
 event/func IsReplay
+event/func MarkInDelivery
 event/func MarkRebirth
 event/func MarkTombstone
 event/func MarshalMetadataJSON
@@ -2267,6 +2271,7 @@ event/func WithSchemaVersion
 event/func WithSource
 event/func WithUserAgent
 event/func WithUserID
+event/func WithoutDeliveryMark
 event/interface BackwardsSource
 event/interface Bus
 event/interface CheckpointSink
@@ -8467,3 +8472,4 @@ watermill/type CommandBusOption
 watermill/type EventBusOption
 watermill/type RetryConfig
 watermill/var ErrMissingMetadata
+watermill/var ErrReentrantPublish
