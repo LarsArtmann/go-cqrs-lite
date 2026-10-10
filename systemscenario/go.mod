@@ -6,14 +6,14 @@ require (
 	github.com/gkampitakis/go-snaps v0.5.23
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.13.1
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.7.2
-	github.com/larsartmann/go-cqrs-lite/deriver/v4 v4.3.4
+	github.com/larsartmann/go-cqrs-lite/deriver/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.13.1
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.2
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.17.0
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1
 	github.com/larsartmann/go-cqrs-lite/scheduling/engine/v4 v4.0.2
-	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.6.1
-	github.com/larsartmann/go-cqrs-lite/system/v4 v4.11.0
+	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.6.2
+	github.com/larsartmann/go-cqrs-lite/system/v4 v4.12.0
 	github.com/larsartmann/go-error-family v0.11.0
 	pgregory.net/rapid v1.3.0
 )
@@ -49,6 +49,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.4.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.5.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2 // indirect
+	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.6.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.5 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.1 // indirect
@@ -65,7 +66,7 @@ require (
 	github.com/sergi/go-diff v1.4.0 // indirect
 	github.com/sony/gobreaker v1.0.0 // indirect
 	github.com/stretchr/testify v1.12.1 // indirect
-	github.com/tidwall/gjson v1.19.0 // indirect
+	github.com/tidwall/gjson v1.20.0 // indirect
 	github.com/tidwall/match v1.2.0 // indirect
 	github.com/tidwall/pretty v1.2.2 // indirect
 	github.com/tidwall/sjson v1.2.5 // indirect
