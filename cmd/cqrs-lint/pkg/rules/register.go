@@ -162,6 +162,7 @@ func RegisterAll(ctx *analyzer.AnalysisContext) []finding.Detector {
 		architecture.NewE018Detector(ctx),
 		architecture.NewE019Detector(ctx),
 		architecture.NewE020Detector(ctx),
+		architecture.NewE021Detector(ctx),
 		// Security
 		security.NewS001Detector(ctx),
 		security.NewS002Detector(ctx),

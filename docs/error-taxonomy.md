@@ -448,6 +448,7 @@ Corruption, INSERT failure → Infrastructure); the marshal site now mints
 | —     | Rejection      | `watermill.parse_stream_id_failed`      |
 | —     | Rejection      | `watermill.parse_tombstone_status`      |
 | —     | Rejection      | `watermill.parse_version_failed`        |
+| —     | Orchestration  | `watermill.reentrant_publish`           |
 | —     | Infrastructure | `watermill.publish_command_failed`      |
 | —     | Infrastructure | `watermill.publish_event_failed`        |
 | —     | Infrastructure | `watermill.subscribe_failed`            |

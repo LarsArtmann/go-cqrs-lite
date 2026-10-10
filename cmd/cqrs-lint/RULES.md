@@ -12,7 +12,7 @@ Detectors per category (severities: `error` blocks CI, `warning` reports, `info`
 | [Boilerplate](#boilerplate) | 31 | B001–B031 |
 | [Performance](#performance) | 10 | P001–P014 |
 | [Consistency](#consistency) | 18 | D001–D019 |
-| [Architecture](#architecture) | 19 | E001–E019 |
+| [Architecture](#architecture) | 21 | E001–E021 |
 | [Security](#security) | 10 | S001–S011 |
 | [Testing](#testing) | 8 | T001–T008 |
 | [Version](#version) | 7 | V001–V007 |
@@ -1258,6 +1258,22 @@ Projection handles an event type nothing emits or catalogs — typo class, mirro
 Severity: `info` · Confidence: `high` · Auto-fix: no · Category: `architecture`
 
 Data product serves outputs without a DataContract (or declares no outputs) — consumers get no schema or version pin; advisory contract-completeness check
+
+<a id="e020"></a>
+
+#### E020 — `handrolled-system-boot-in-test`
+
+Severity: `info` · Confidence: `medium` · Auto-fix: no · Category: `architecture`
+
+Test file boots system.New without importing systemscenario — the BDD harness provides the boot, journal capture, await semantics, and vacuous-pass guard as tested infrastructure; engine-coverage suites may dismiss
+
+<a id="e021"></a>
+
+#### E021 — `emitted-without-schema-declaration`
+
+Severity: `warning` · Confidence: `medium` · Auto-fix: no · Category: `architecture`
+
+Emitted event type carries no schema declaration (schema.Event/EventOf or the system.Schemas() builder) — upcasting and typed decoding skip it; typo-proofs declarations against emitters once any declaration exists, catalog.Event counts as declared
 
 
 ## Security

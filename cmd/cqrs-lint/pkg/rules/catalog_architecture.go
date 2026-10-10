@@ -184,5 +184,14 @@ func architectureRules() []RuleInfo {
 			Description: "Test file boots system.New without importing systemscenario — the BDD harness provides the boot, journal capture, await semantics, and vacuous-pass guard as tested infrastructure; engine-coverage suites may dismiss",
 			AutoFix:     false,
 		},
+		{
+			ID:          "E021",
+			Name:        "emitted-without-schema-declaration",
+			Category:    "architecture",
+			Severity:    "warning",
+			Confidence:  "medium",
+			Description: "Emitted event type carries no schema declaration (schema.Event/EventOf or the system.Schemas() builder) — upcasting and typed decoding skip it; typo-proofs declarations against emitters once any declaration exists, catalog.Event counts as declared",
+			AutoFix:     false,
+		},
 	}
 }
