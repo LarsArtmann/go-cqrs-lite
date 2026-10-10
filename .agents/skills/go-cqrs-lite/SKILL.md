@@ -159,3 +159,11 @@ One catalog, TWO exports. `@eventcatalog/core` resolves composite
 composite form. Export the DEFAULT tree for rendering; re-export with
 `catalog.WithPlainRefIDs` (and `WithSkipBootstrapFiles` in CI) for linting —
 details in `catalog/README.md` ("Governance exports") and recipes §2.41.
+
+---
+
+**Fan-out:** this skill lives in this repo (`.agents/skills/go-cqrs-lite`)
+and is symlinked into the Crush fan-out. The authoring norm, its guards, and
+the 2026-09 stale-link incident that spawned them live in
+`/home/lars/projects/crush-config/README.md` § "Skill fan-out: authoring
+norm and integrity".

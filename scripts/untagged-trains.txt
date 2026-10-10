@@ -77,7 +77,10 @@ stack/turso
 
 # ghost verdicts pending T02 owner sign-off (docs/adr/0152 addendum):
 # kill / keep-driver / absorb — untagged under every outcome until a consumer
-deriver
+# deriver REMOVED 2026-10-09: consumer arrived — systemscenario/v4 (ADR-0153)
+# requires it in its module graph (saga fixture uses WithAsyncDispatch,
+# ADR-0154), and systemscenario is fleet-consumed (cqrs-htmx, go-appkit).
+# Tag-on-first-consumer rule satisfied; owner approved via adoption-wave Q1.
 graph
 idempotency/kvstore
 otel/otlp
