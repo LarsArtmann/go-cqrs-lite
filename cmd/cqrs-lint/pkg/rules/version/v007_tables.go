@@ -212,6 +212,45 @@ var deprecatedV5Symbols = []deprecatedV5Symbol{ //nolint:gochecknoglobals // sta
 		symbol:      "AsRecord",
 		replacement: "command.AsRecordPersisted (payload, stream type, receive stamps)",
 	},
+	// ADR-0152: core/v5 copy-forward twins of the v4 deprecated surface
+	// (identical semantics; removed together with the v4 train in T26).
+	{
+		fragment:    "core/command",
+		symbol:      "AsRecord",
+		replacement: "command.AsRecordPersisted (payload, stream type, receive stamps)",
+	},
+	{
+		fragment:    "core/command",
+		symbol:      "ParseType",
+		replacement: "record.ParseType(s, ErrEmptyCommandType)",
+	},
+	{
+		fragment:    "core/event",
+		symbol:      "ParseType",
+		replacement: "record.ParseType(s, ErrEmptyEventType)",
+	},
+	{fragment: "core/event", symbol: "EnsureCustom", replacement: "event.Metadata.WithCustom"},
+	{
+		fragment:    "core/event",
+		symbol:      "DetectTombstone",
+		replacement: "domain events for deletion (docs/migration/tombstone-to-domain-events.md)",
+	},
+	{
+		fragment:    "core/event",
+		symbol:      "MarkTombstone",
+		replacement: "domain events for deletion (docs/migration/tombstone-to-domain-events.md)",
+	},
+	{
+		fragment:    "core/event",
+		symbol:      "MarkRebirth",
+		replacement: "domain events for restore (docs/migration/tombstone-to-domain-events.md)",
+	},
+	{fragment: "core/event", symbol: "MetadataKeyTombstone", replacement: "domain events for deletion"},
+	{fragment: "core/event", symbol: "MetadataKeyRebirth", replacement: "domain events for restore"},
+	{fragment: "core/event", symbol: "TombstoneMark", replacement: "domain events for deletion"},
+	{fragment: "core/event", symbol: "TombstoneStatus", replacement: "domain events"},
+	{fragment: "core/metadata", symbol: "CustomData", replacement: "metadata.Metadata[K]"},
+	{fragment: "core/query", symbol: "ParseType", replacement: "record.ParseType(s, ErrEmptyQueryType)"},
 	// v5: manual snapshot helper replaced by encoding-aware construction.
 	{
 		fragment:    "snapshot",

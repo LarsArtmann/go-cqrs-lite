@@ -62,6 +62,7 @@ var v5DriftMethodAllowlist = map[v5MethodKey]string{
 	{"decider", "TypedRepository", "ExecuteCommand"}: "pair-form forwarder removed at v5; use ExecuteCommandRef",
 	{"decider", "TypedRepository", "Load"}:           "pair-form forwarder removed at v5; use LoadRef",
 	{"metadata", "Metadata", "EnsureCustom"}:         "in-place mutation removed at v5 (ADR-0126); use WithCustom",
+	{"core/metadata", "Metadata", "EnsureCustom"}:    "ADR-0152 v5 copy-forward twin; use WithCustom",
 }
 
 // v5StaleEntryAllowlist exempts table entries that have no live package-level
