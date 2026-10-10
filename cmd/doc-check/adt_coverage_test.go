@@ -72,29 +72,45 @@ func TestRecipeADTCoverage(t *testing.T) {
 	for _, adt := range adts {
 		pattern, ok := adtHeadingPatterns[adt]
 		if !ok {
-			t.Errorf("ADT %s exists in metaengine.AllADTs() but has no heading pattern here — add coverage or a waiver", adt)
+			t.Errorf(
+				"ADT %s exists in metaengine.AllADTs() but has no heading pattern here — add coverage or a waiver",
+				adt,
+			)
 			continue
 		}
 
 		if reason, waived := adtCoverageWaivers[adt]; waived {
 			if strings.TrimSpace(reason) == "" {
-				t.Errorf("ADT %s waiver has an EMPTY reason — unexplained gaps are not allowed", adt)
+				t.Errorf(
+					"ADT %s waiver has an EMPTY reason — unexplained gaps are not allowed",
+					adt,
+				)
 			}
 			if matchesHeading(headings, pattern) {
-				t.Errorf("ADT %s is waived but a recipes.md heading matches it — drop the waiver", adt)
+				t.Errorf(
+					"ADT %s is waived but a recipes.md heading matches it — drop the waiver",
+					adt,
+				)
 			}
 			t.Logf("WAIVED %s: %s", adt, reason)
 			continue
 		}
 
 		if !matchesHeading(headings, pattern) {
-			t.Errorf("ADT %s has NO recipes.md heading matching %q — write a recipe or waive with a reason", adt, pattern)
+			t.Errorf(
+				"ADT %s has NO recipes.md heading matching %q — write a recipe or waive with a reason",
+				adt,
+				pattern,
+			)
 		}
 	}
 
 	for adt := range adtHeadingPatterns {
 		if !strings.Contains(strings.Join(adts, "\n"), adt) {
-			t.Errorf("heading pattern registered for %s but that ADT no longer exists in AllADTs() — remove the entry", adt)
+			t.Errorf(
+				"heading pattern registered for %s but that ADT no longer exists in AllADTs() — remove the entry",
+				adt,
+			)
 		}
 	}
 }
@@ -118,7 +134,8 @@ func parseAllADTs(t *testing.T, path string) []string {
 		t.Fatalf("read enum_validation.go: %v", err)
 	}
 
-	body := regexp.MustCompile(`(?s)func AllADTs\(\) \[\]ADT \{(.*?)\n\}`).FindStringSubmatch(string(src))
+	body := regexp.MustCompile(`(?s)func AllADTs\(\) \[\]ADT \{(.*?)\n\}`).
+		FindStringSubmatch(string(src))
 	if body == nil {
 		t.Fatalf("AllADTs() not found in %s — did it move? update the parser path", path)
 	}

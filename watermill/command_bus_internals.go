@@ -7,6 +7,7 @@ import (
 
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
 )
 
 func (b *CommandBus) rebuildHandlerChain() {
@@ -46,7 +47,10 @@ func (b *CommandBus) rebuildHandlerChain() {
 }
 
 func (b *CommandBus) dispatchLocal(ctx context.Context, cmd command.Command) error {
-	return dispatchCached(&b.mu, &b.cachedHandler, ctx, cmd)
+	// Mark the delivery so a nested synchronous Publish on this context
+	// fails fast with ErrReentrantPublish instead of deadlocking on the
+	// per-topic lock the delivering publish holds (ADR-0154).
+	return dispatchCached(&b.mu, &b.cachedHandler, event.MarkInDelivery(ctx), cmd)
 }
 
 func (b *CommandBus) ensureSubscriptionLocked() {

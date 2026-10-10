@@ -67,6 +67,26 @@ proj := projectionadapter.New("tasks", store, func(eventType string, payload []b
 The decoded value is passed to `Store.Apply`, which routes it to all registered
 queries that listen for that event type.
 
+## Typed Decoder (recommended)
+
+For typed folds (`metaengine.OnRecordTyped`), build a `*TypeDecoder` from
+per-event-type registrations. Every registration wraps the decoded payload in
+`EventWithID[E]`, so folds also see the stream ID:
+
+```go
+decoder := projectionadapter.NewTypeDecoder(
+    projectionadapter.Register(event.Type("task.created"), TaskCreated{}),
+    projectionadapter.Register(event.Type("task.deleted"), TaskDeleted{}),
+)
+
+// fold sample type is then EventWithID[TaskCreated]:
+//   func(_ record.Record, evt projectionadapter.EventWithID[TaskCreated]) metaengine.Record
+```
+
+`RegisterString("task.created", TaskCreated{})` accepts plain strings.
+Wire the decoder through `system.DomainConfig.ProjectionTypeDecoder` (see the
+skill's `references/recipes.md` §2.44 for the end-to-end path).
+
 ## Design Notes
 
 - **Separate package**: This adapter lives in its own module to preserve

@@ -2,6 +2,7 @@ package watermill
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"log/slog"
 	"sync"
@@ -10,6 +11,7 @@ import (
 	"github.com/ThreeDotsLabs/watermill/message"
 	gochannel "github.com/ThreeDotsLabs/watermill/pubsub/gochannel"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
@@ -85,7 +87,21 @@ func NewCommandBus(opts ...CommandBusOption) *CommandBus {
 }
 
 // Publish sends commands through to the Watermill topic.
-func (b *CommandBus) Publish(_ context.Context, cmds ...command.Command) error {
+//
+// A context marked as inside a synchronous bus delivery (see
+// event.ContextInDelivery) is rejected with [ErrReentrantPublish] instead
+// of deadlocking: the nested synchronous publish would block forever on the
+// per-topic subscriber lock the delivering publish still holds
+// (BlockPublishUntilSubscriberAck). Escape asynchronously and clear the
+// mark (event.WithoutDeliveryMark, deriver.WithAsyncDispatch).
+func (b *CommandBus) Publish(ctx context.Context, cmds ...command.Command) error {
+	if event.ContextInDelivery(ctx) {
+		return fmt.Errorf(
+			"%w: nested command publish from a synchronous delivery handler",
+			ErrReentrantPublish,
+		)
+	}
+
 	b.mu.Lock()
 	if b.closed {
 		b.mu.Unlock()

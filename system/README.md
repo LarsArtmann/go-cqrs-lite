@@ -424,12 +424,12 @@ its fold payloads:
 import (
     "github.com/larsartmann/go-cqrs-lite/event/v4"
     "github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4"
-    "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
     "github.com/larsartmann/go-cqrs-lite/system/v4"
 )
 
-// query is any metaengine.Query[Q, R] declaration (folds define the ADT).
-var query metaengine.QueryDecl
+// query is any metaengine.Query[Q, R] declaration (folds define the ADT):
+//   query := metaengine.Query[MyInput, MyResult]("my_collection", folds...)
+var query any
 
 domain := system.DomainConfig{
     Projections: []system.ProjectionDeclaration{system.RawQuery(query)},

@@ -67,7 +67,10 @@ func (b *EventBus) rebuildHandlerChain() {
 }
 
 func (b *EventBus) dispatchLocal(ctx context.Context, evt event.Event) error {
-	return dispatchCached(&b.mu, &b.cachedHandler, ctx, evt)
+	// Mark the delivery so a nested synchronous Publish on this context
+	// fails fast with ErrReentrantPublish instead of deadlocking on the
+	// per-topic lock the delivering publish holds (ADR-0154).
+	return dispatchCached(&b.mu, &b.cachedHandler, event.MarkInDelivery(ctx), evt)
 }
 
 func (b *EventBus) ensureSubscriptionLocked() {

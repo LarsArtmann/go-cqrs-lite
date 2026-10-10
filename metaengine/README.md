@@ -87,13 +87,16 @@ When using metaengine with go-cqrs-lite's event store, use the
 `projectionadapter` package to wire events into the metaengine Store:
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4"
+import (
+    "github.com/larsartmann/go-cqrs-lite/record/v4"
+    "github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4"
+)
 
 // 1. Declare a query using EventWithID (wraps payload with stream ID)
 var findUser = metaengine.Query[FindUser, FindUserResult]("find_user",
-    metaengine.OnTyped("user.created",
+    metaengine.OnRecordTyped("user.created",
         projectionadapter.EventWithID[UserCreated]{},
-        func(e projectionadapter.EventWithID[UserCreated]) (string, FindUserResult) {
+        func(_ record.Record, e projectionadapter.EventWithID[UserCreated]) (string, FindUserResult) {
             return e.ID, FindUserResult{ID: e.ID, Name: e.Payload.Name}
         }),
 )

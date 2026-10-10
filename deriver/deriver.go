@@ -228,7 +228,11 @@ func (d Deriver) dispatchAsync(
 	dispatcher *cqrscommand.Dispatcher,
 	onError AsyncDispatchErrorHandler,
 ) {
-	ctx = context.WithoutCancel(ctx)
+	// WithoutCancel keeps values — including the synchronous-delivery mark
+	// a bus may have stamped on the handler context. Strip it: this dispatch
+	// runs on its own goroutine, so downstream publishes are NOT reentrant
+	// (they would otherwise fail fast with the bus's ErrReentrantPublish).
+	ctx = cqrsevent.WithoutDeliveryMark(context.WithoutCancel(ctx))
 
 	for _, cmd := range cmds {
 		if err := dispatcher.Dispatch(ctx, cmd); err != nil {

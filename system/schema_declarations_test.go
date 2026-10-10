@@ -40,8 +40,8 @@ func TestSchemaDeclarations_BuilderDerivesDecoderAndChain(t *testing.T) {
 
 	decls, err := system.Schemas().
 		Event[userCreatedV2]("user.created", 2,
-			schema.RenameField("user.created", 1, "name", "displayName"),
-		).
+		schema.RenameField("user.created", 1, "name", "displayName"),
+	).
 		Build()
 	if err != nil {
 		t.Fatalf("Build: %v", err)

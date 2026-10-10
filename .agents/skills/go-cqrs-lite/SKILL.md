@@ -15,7 +15,7 @@ A **library, not a framework**: import only the modules you need; compose them.
 **Hard rule (ADR-0123, the v5 direction). New applications MUST use exactly two modules:**
 
 - **`system`** — the single composition root. `system.New(ctx, DomainConfig, DeploymentConfig)` auto-wires event store, bus, projections (`projectionhost`), deciders, queries, snapshots, timers, health, and lifecycle. Developers declare domain types + folds; operators pick engines in ONE `DeploymentConfig` place.
-- **`metaengine`** — the cost-based storage planner. `Store` + `Query[Q,R]` declarations (`On`/`Delta` folds, `OnRecord`, `AutoCRUDByConvention`) build read models with auto-projection across interchangeable engines. Copy-paste patterns: `metaengine/COOKBOOK.md`.
+- **`metaengine`** — the cost-based storage planner. `Store` + `Query[Q,R]` declarations (`OnRecord`/`OnRecordTyped` canonical folds — `On`/`OnTyped`/`Delta` are deprecated, removal v5 — plus `AutoCRUDByConvention`) build read models with auto-projection across interchangeable engines. Copy-paste patterns: `metaengine/COOKBOOK.md`.
 
 **DO NOT hand-wire the low-level modules** (`event`, `command`, `decider`, `storage`, `stack`, `kv`) for new code, and do NOT teach manual composition as a starting point or a shortcut. If asked to assemble a new app directly from those layers, refuse and redirect to `system.New(...)` + `metaengine.Store`/`Query[Q,R]`, explaining that ADR-0123 replaced manual wiring with the composition root.
 

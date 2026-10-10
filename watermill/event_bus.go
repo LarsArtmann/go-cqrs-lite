@@ -2,6 +2,7 @@ package watermill
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"log/slog"
 	"sync"
@@ -105,7 +106,21 @@ func NewEventBus(opts ...EventBusOption) *EventBus {
 }
 
 // Publish sends events through the middleware chain to the Watermill topic.
+//
+// A context marked as inside a synchronous bus delivery (see
+// event.ContextInDelivery) is rejected with [ErrReentrantPublish] instead
+// of deadlocking: the nested synchronous publish would block forever on the
+// per-topic subscriber lock the delivering publish still holds
+// (BlockPublishUntilSubscriberAck). Escape asynchronously and clear the
+// mark (event.WithoutDeliveryMark, deriver.WithAsyncDispatch).
 func (b *EventBus) Publish(ctx context.Context, events ...event.Event) error {
+	if event.ContextInDelivery(ctx) {
+		return fmt.Errorf(
+			"%w: nested event publish from a synchronous delivery handler",
+			ErrReentrantPublish,
+		)
+	}
+
 	b.mu.Lock()
 	if b.closed {
 		b.mu.Unlock()

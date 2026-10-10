@@ -65,7 +65,7 @@ func (s *SchemaSet) Event[T any](
 	ops ...schema.Op,
 ) *SchemaSet {
 	if s.seen == nil {
-		s.seen = make(map[event.Type]struct{}, 4)
+		s.seen = make(map[event.Type]struct{})
 	}
 
 	s.seen[eventType] = struct{}{}
