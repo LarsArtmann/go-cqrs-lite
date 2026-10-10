@@ -77,9 +77,9 @@ func registerUnfollowCommand(sys *system.System) {
 
 // deploymentOptions carries the operator's decisions from main.
 type deploymentOptions struct {
-	sqliteDSN   string // source-of-truth engine DSN ("" = ephemeral in-memory)
-	dgraphAddr  string // projections engine gRPC address ("" = sqlite projections)
-	configPath  string // cqrs.yaml via system.LoadConfig (overrides the above)
+	sqliteDSN  string // source-of-truth engine DSN ("" = ephemeral in-memory)
+	dgraphAddr string // projections engine gRPC address ("" = sqlite projections)
+	configPath string // cqrs.yaml via system.LoadConfig (overrides the above)
 }
 
 // buildDeployment decides where data lives — pure operator territory.

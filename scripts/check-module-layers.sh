@@ -133,6 +133,7 @@ LAYER["example/goal-shaped-app"]=7
 LAYER["example/readme-quickstart"]=7
 LAYER["example/scheduler-otel-status"]=7
 LAYER["example/metaengine-quickstart"]=7
+LAYER["example/graph-native"]=7
 LAYER["cmd/cqrs-lint/testdata/typedfixture"]=7
 LAYER["cmd/cqrs-lint/testdata/scanfixture"]=7
 LAYER["cmd/cqrs-lint/testdata/busfixture"]=7
@@ -401,6 +402,7 @@ DEP_BUDGET["example/scheduler-otel-status"]=8
 # + sqliteengine + projectionadapter + event/id/record — 7 first-party deps
 # is the honest count for a composition example.
 DEP_BUDGET["example/metaengine-quickstart"]=7
+DEP_BUDGET["example/graph-native"]=12 # system+metaengine core, projectionadapter, sqlite+dgraph engines, systemscenario (test)
 DEP_BUDGET["cmd/cqrs-lint/testdata/typedfixture"]=1
 DEP_BUDGET["cmd/cqrs-lint/testdata/scanfixture"]=1
 DEP_BUDGET["cmd/cqrs-lint/testdata/busfixture"]=1
