@@ -1,5 +1,14 @@
 # v5 Schema-Evolution Plan — Status (2026-10-10 09:49 CEST)
 
+> **UPDATE 2026-10-10 ~23:00 (evening continuation):** M9–M25 are DONE —
+> DiscordSync chain migration + the CBOR nested-map library fix (D7),
+> cqrs-htmx Schema adoption (D8), T4 snapshot guard (M11–M13 staged for
+> bank-sync), trust surface (M14–M16), docs wave (M17), T3+T5 fingerprints
+> (M18–M22), compat policy + E022 (M23), housekeeping (M24–M25). The three
+> OPEN questions below are still open (tag-wave ownership is now the only
+> blocker for the post-tag adoption tail). Current truth:
+> [the plan's decision log](../planning/2026-10-09_18-02_SUPERB-v5-schema-evolution-execution-plan.md) (D7+) + TODO_LIST prune.
+
 Scope: executing M1–M26 of
 [the v5 schema-evolution execution plan](../planning/2026-10-09_18-02_SUPERB-v5-schema-evolution-execution-plan.md)
 under the standing loop. This report covers the morning continuation (M7 finish → M8 complete →

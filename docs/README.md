@@ -185,6 +185,10 @@ The authoritative module index with README links lives in the **[project README]
 | [0151](adr/0151-goal-direction-evolutions-are-the-declaration.md)     | Goal Direction — "Declare ONLY" Means Evolutions + Queries            | Accepted                                            |
 | [0152](adr/0152-fleet-first-module-topology-v5-dual-support.md)       | Fleet-First Module Topology and v5 Dual-Support Transition            | Accepted                                            |
 | [0153](adr/0153-system-level-bdd-testing-harness-systemscenario.md)   | System-Level BDD Testing Harness (systemscenario)                     | Accepted                                            |
+| [0154](adr/0154-deriver-async-dispatch-and-journal-tailed-host.md)    | Deriver Async Dispatch Now, Journal-Tailed Deriver Host at v5         | Accepted                                            |
+| [0155](adr/0155-declarative-schema-evolution-t2-t1.md)                | Declarative Schema Evolution — Named Upcast Ops (T2) + DomainConfig Declaration (T1) | Accepted                            |
+| [0156](adr/0156-graph-edge-labels-at-v5.md)                           | Graph Edge Labels at v5                                               | Accepted                                            |
+| [0157](adr/0157-engine-fleet-operation-two-level-story.md)            | Engine Fleet Operation — Compile-Time Import Selection, Runtime cqrs.yaml | Accepted                                        |
 | [0100](adr/0100-redesign-scope-parallel.md)                           | Redesign scope: parallel (new alongside old)                          | Accepted                                            |
 | [0101](adr/0101-backend-abstraction-n-instance.md)                    | Backend abstraction: N-instance metaengine                            | Accepted                                            |
 | [0102](adr/0102-admin-interface-introspection-only.md)                | Admin web interface: introspection API only                           | Accepted                                            |
