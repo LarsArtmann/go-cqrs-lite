@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"slices"
+	"strings"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -89,6 +90,7 @@ func readJournalTrail(ctx context.Context, sys *system.System) (journalTrail, er
 	}
 
 	trail := make(journalTrail)
+
 	for _, evt := range events {
 		key := fmt.Sprintf("%s:%s", evt.StreamType(), evt.StreamID())
 		trail[key] = append(trail[key], trailEntry{
@@ -103,13 +105,17 @@ func readJournalTrail(ctx context.Context, sys *system.System) (journalTrail, er
 // renderTrail renders a normalized trail for failure diagnostics.
 func renderTrail(streams []normalizedStream) string {
 	out := ""
+	var outSb106 strings.Builder
 	for _, stream := range streams {
-		out += fmt.Sprintf("\n  stream #%d:", stream.ordinal)
+		outSb106.WriteString(fmt.Sprintf("\n  stream #%d:", stream.ordinal))
 
+		var outSb109 strings.Builder
 		for _, entry := range stream.entries {
-			out += fmt.Sprintf("\n    - %s v%d", entry.eventType, entry.version)
+			outSb109.WriteString(fmt.Sprintf("\n    - %s v%d", entry.eventType, entry.version))
 		}
+		out += outSb109.String()
 	}
+	out += outSb106.String()
 
 	return out
 }

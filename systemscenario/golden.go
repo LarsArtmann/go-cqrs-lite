@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/gkampitakis/go-snaps/snaps"
-
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 )
 
@@ -42,6 +41,7 @@ func Trail(events []event.Event) string {
 //	sc.Given(...).When(cmd).ThenGolden(t, "task_lifecycle")
 func (p *WhenPhase) ThenGolden(t *testing.T, path string) *WhenPhase {
 	s := p.sc
+
 	t.Helper()
 	s.requireAct("ThenGolden")
 

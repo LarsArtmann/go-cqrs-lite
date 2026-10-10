@@ -3,9 +3,8 @@ package query_test
 import (
 	"testing"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-cqrs-lite/core/v5/query"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 func TestQueryErrors_Classification(t *testing.T) {

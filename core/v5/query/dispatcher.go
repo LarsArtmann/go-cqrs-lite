@@ -5,9 +5,8 @@ import (
 	"errors"
 	"io"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-cqrs-lite/core/v5/dispatcher"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // Handler processes a query and returns a result.

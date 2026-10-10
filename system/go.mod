@@ -23,7 +23,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2
 	github.com/larsartmann/go-cqrs-lite/scheduling/engine/v4 v4.0.2
-	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.6.2
+	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.7.0
 	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.6.0
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.6.2
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2
