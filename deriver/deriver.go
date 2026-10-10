@@ -31,11 +31,18 @@ const DefaultMaxDepth = 16
 
 type depthCtxKey struct{}
 
+// AsyncDispatchErrorHandler receives a failed asynchronous dispatch: the
+// source event, the derived command, and the dispatch error. Arguments are
+// safe to ignore; handlers typically log, metric, or route to a DLQ.
+type AsyncDispatchErrorHandler func(evt cqrsevent.Event, cmd cqrscommand.Command, err error)
+
 // HandlerOption configures the handler produced by [Deriver.AsHandler].
 type HandlerOption func(*asHandlerConfig)
 
 type asHandlerConfig struct {
-	maxDepth int
+	maxDepth     int
+	asyncSet     bool
+	asyncOnError AsyncDispatchErrorHandler
 }
 
 // WithMaxDepth bounds synchronous derivation chains. Derived dispatches run
@@ -55,6 +62,37 @@ func WithMaxDepth(depth int) HandlerOption {
 		}
 
 		c.maxDepth = depth
+	}
+}
+
+// WithAsyncDispatch dispatches derived commands on a background goroutine
+// (one per source event; that event's commands dispatch in order) instead of
+// inside the event handler.
+//
+// REQUIRED when the deriver subscribes on the same event bus its derived
+// commands publish to through a synchronous delivery path: the default
+// watermill EventBus deadlocks on a nested publish from a handler
+// (ADR-0154; live stack evidence in docs/evidence/2026-10-09_deriver-bus-deadlock.md).
+//
+// Semantics:
+//   - Context: dispatches run under context.WithoutCancel of the handler
+//     context — values flow, but the async work is not killed when the
+//     outer publish/request scope ends.
+//   - Errors: async dispatch cannot return through the handler. Each failed
+//     dispatch invokes onError (if non-nil) and stops that event's remaining
+//     commands (matching the synchronous path's first-error-stop). A NIL
+//     onError DROPS dispatch errors — pass at least a logging handler.
+//   - Ordering: commands from the SAME event dispatch in order; commands
+//     from DIFFERENT events may interleave. Assert outcomes, not dispatch
+//     order.
+//   - Cycles: async dispatch escapes [WithMaxDepth]'s synchronous depth
+//     counter (context does not cross goroutines). Bound async derivation
+//     cycles with [Deriver.Idempotent] (deterministic command IDs + an
+//     idempotency store), not depth.
+func WithAsyncDispatch(onError AsyncDispatchErrorHandler) HandlerOption {
+	return func(c *asHandlerConfig) {
+		c.asyncSet = true
+		c.asyncOnError = onError
 	}
 }
 
@@ -162,6 +200,12 @@ func (d Deriver) AsHandler(
 			dispatchCtx = context.WithValue(ctx, depthCtxKey{}, depth+1)
 		}
 
+		if cfg.asyncSet {
+			go d.dispatchAsync(dispatchCtx, evt, cmds, dispatcher, cfg.asyncOnError)
+
+			return nil
+		}
+
 		for _, cmd := range cmds {
 			if err := dispatcher.Dispatch(dispatchCtx, cmd); err != nil {
 				return fmt.Errorf("deriver dispatch %s (from %s): %w",
@@ -170,6 +214,30 @@ func (d Deriver) AsHandler(
 		}
 
 		return nil
+	}
+}
+
+// dispatchAsync runs one event's derived commands sequentially on the
+// caller's goroutine (AsHandler spawned it): per-event order is preserved,
+// the handler goroutine is freed immediately. First error stops the chain
+// and reports via onError when non-nil (ADR-0154 D1).
+func (d Deriver) dispatchAsync(
+	ctx context.Context,
+	evt cqrsevent.Event,
+	cmds []cqrscommand.Command,
+	dispatcher *cqrscommand.Dispatcher,
+	onError AsyncDispatchErrorHandler,
+) {
+	ctx = context.WithoutCancel(ctx)
+
+	for _, cmd := range cmds {
+		if err := dispatcher.Dispatch(ctx, cmd); err != nil {
+			if onError != nil {
+				onError(evt, cmd, err)
+			}
+
+			return
+		}
 	}
 }
 

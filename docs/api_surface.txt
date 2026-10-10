@@ -2030,11 +2030,13 @@ dedup/struct Ring
 deriver/const DefaultMaxDepth
 deriver/const SourceEventIDKey
 deriver/func Noop
+deriver/func WithAsyncDispatch
 deriver/func WithMaxDepth
 deriver/method AsHandler
 deriver/method Filter
 deriver/method Idempotent
 deriver/method Then
+deriver/type AsyncDispatchErrorHandler
 deriver/type Deriver
 deriver/type HandlerOption
 deriver/var ErrDepthExceeded
