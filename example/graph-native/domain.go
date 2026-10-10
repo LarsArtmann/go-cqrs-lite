@@ -32,7 +32,7 @@ const (
 	streamType = "User"
 )
 
-// The follower IS the stream: FollowedPayload carries only the followee, and
+// FollowedPayload carries only the followee: the follower IS the stream, and
 // the graph fold recovers the follower from the event's stream ID — one
 // source of truth, no duplicated field.
 type FollowedPayload struct {
