@@ -587,6 +587,7 @@ cmd/cqrs-lint/pkg/analyzer/func FilterDisabledFindings
 cmd/cqrs-lint/pkg/analyzer/func FindFuncDecl
 cmd/cqrs-lint/pkg/analyzer/func FindHandlerArg
 cmd/cqrs-lint/pkg/analyzer/func FindMethodDecl
+cmd/cqrs-lint/pkg/analyzer/func IntLit
 cmd/cqrs-lint/pkg/analyzer/func IsCQRSImport
 cmd/cqrs-lint/pkg/analyzer/func IsCQRSModulePath
 cmd/cqrs-lint/pkg/analyzer/func IsEventBusType
@@ -673,6 +674,7 @@ cmd/cqrs-lint/pkg/analyzer/struct ProjectConfig
 cmd/cqrs-lint/pkg/analyzer/struct ProjectionInfo
 cmd/cqrs-lint/pkg/analyzer/struct QueryDeclInfo
 cmd/cqrs-lint/pkg/analyzer/struct RulesConfig
+cmd/cqrs-lint/pkg/analyzer/struct SchemaLadder
 cmd/cqrs-lint/pkg/analyzer/struct ScorecardSettings
 cmd/cqrs-lint/pkg/analyzer/struct ScorecardWaiver
 cmd/cqrs-lint/pkg/analyzer/struct StoreSpec
@@ -777,6 +779,7 @@ cmd/cqrs-lint/pkg/rules/architecture/func NewE018Detector
 cmd/cqrs-lint/pkg/rules/architecture/func NewE019Detector
 cmd/cqrs-lint/pkg/rules/architecture/func NewE020Detector
 cmd/cqrs-lint/pkg/rules/architecture/func NewE021Detector
+cmd/cqrs-lint/pkg/rules/architecture/func NewE022Detector
 cmd/cqrs-lint/pkg/rules/boilerplate/func NewB001Detector
 cmd/cqrs-lint/pkg/rules/boilerplate/func NewB002Detector
 cmd/cqrs-lint/pkg/rules/boilerplate/func NewB003Detector
@@ -2021,6 +2024,7 @@ event/func ParseType
 event/func ParseVersion
 event/func PayloadReadOnly
 event/func ProcessingModeFrom
+event/func PublishRetry
 event/func ReconstructEventFromFields
 event/func ReconstructEventWithAdoptedPayload
 event/func ReconstructEventWithMetadata
