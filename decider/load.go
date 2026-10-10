@@ -255,6 +255,12 @@ func (r *Repository[State]) loadFromSnapshot(
 		return r.loadFromStore(ctx, ref)
 	}
 
+	if r.snapshotShapeMismatch(snap) {
+		r.snapshotShapeDiscards.Add(1)
+
+		return r.loadFromStore(ctx, ref)
+	}
+
 	var state State
 
 	err = r.codec.Decode(snap.State, &state)
@@ -279,6 +285,26 @@ func (r *Repository[State]) loadFromSnapshot(
 	}
 
 	return state, snap.Version.Add(uint(len(events))), nil
+}
+
+// snapshotShapeMismatch reports whether the loaded snapshot's state shape is
+// known-stale for this repository: a shape version was declared via
+// WithSnapshotStateVersion, the snapshot carries a (possibly different)
+// stamp, and the two disagree. Unstamped snapshots never mismatch (absent =
+// accept); an undeclared repository accepts everything.
+func (r *Repository[State]) snapshotShapeMismatch(snap *snapshot.Snapshot) bool {
+	return r.snapshotStateShape != "" &&
+		snap.StateShape != "" &&
+		snap.StateShape != r.snapshotStateShape
+}
+
+// SnapshotShapeDiscards returns how many loads discarded a snapshot because
+// its StateShape stamp mismatched the declared version and rebuilt state
+// from the journal instead. A persistently growing counter means the stored
+// snapshots predate a State shape change and the strategy has not re-saved
+// at the current version yet.
+func (r *Repository[State]) SnapshotShapeDiscards() uint64 {
+	return r.snapshotShapeDiscards.Load()
 }
 
 // loadFromCache attempts an incremental load from the hot-state cache.

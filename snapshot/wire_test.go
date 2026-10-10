@@ -201,3 +201,81 @@ func TestWire_CBORRoundTripAndLegacyKeys(t *testing.T) {
 		t.Errorf("legacy CBOR payload mismatch: %+v", fromLegacy)
 	}
 }
+
+func TestWire_StateShapeRoundtrips(t *testing.T) {
+	t.Parallel()
+
+	stamped := wireTestSnapshot(t)
+	stamped.StateShape = "2"
+
+	data, err := json.Marshal(stamped)
+	if err != nil {
+		t.Fatalf("marshal: %v", err)
+	}
+
+	if !strings.Contains(string(data), `"stateShape":"2"`) {
+		t.Errorf("marshal output missing stateShape stamp: %s", data)
+	}
+
+	var got snapshot.Snapshot
+	if err := json.Unmarshal(data, &got); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+
+	if got.StateShape != "2" {
+		t.Errorf("JSON roundtrip lost the state shape stamp: %q", got.StateShape)
+	}
+
+	encoded, err := codec.CBORCodec{}.Encode(stamped)
+	if err != nil {
+		t.Fatalf("cbor encode: %v", err)
+	}
+
+	var fromCBOR snapshot.Snapshot
+	if err := (codec.CBORCodec{}).Decode(encoded, &fromCBOR); err != nil {
+		t.Fatalf("cbor decode: %v", err)
+	}
+
+	if fromCBOR.StateShape != "2" {
+		t.Errorf("CBOR roundtrip lost the state shape stamp: %q", fromCBOR.StateShape)
+	}
+}
+
+func TestWire_StateShapeAbsentAccepted(t *testing.T) {
+	t.Parallel()
+
+	// Pre-change documents carry no stateShape key at all: the stamp is
+	// optional and readers MUST accept its absence (absent = accept).
+	const legacy = `{
+		"stream_id": "01HK1540X0841Y0A6BSX1VKR95",
+		"stream_type": "User",
+		"version": 5,
+		"state": "eyJuYW1lIjoiQWxpY2UifQ==",
+		"encoding": 1,
+		"createdAt": "2026-06-01T12:00:00Z"
+	}`
+
+	var got snapshot.Snapshot
+	if err := json.Unmarshal([]byte(legacy), &got); err != nil {
+		t.Fatalf("unmarshal unstamped: %v", err)
+	}
+
+	if err := got.Validate(); err != nil {
+		t.Fatalf("unstamped snapshot must stay valid: %v", err)
+	}
+
+	if got.StateShape != "" {
+		t.Errorf("unstamped document decoded with non-empty StateShape %q", got.StateShape)
+	}
+
+	// An unstamped writer's output must not grow a stateShape key: the wire
+	// stays byte-compatible for existing golden consumers.
+	data, err := json.Marshal(wireTestSnapshot(t))
+	if err != nil {
+		t.Fatalf("marshal unstamped: %v", err)
+	}
+
+	if strings.Contains(string(data), "stateShape") {
+		t.Errorf("unstamped marshal emitted a stateShape key: %s", data)
+	}
+}

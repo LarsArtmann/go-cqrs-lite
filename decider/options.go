@@ -35,6 +35,26 @@ func WithSnapshotStrategy[State any](strategy snapshot.SnapshotStrategy) Reposit
 	}
 }
 
+// WithSnapshotStateVersion declares the CURRENT shape version of State and
+// opts the repository into snapshot shape guarding: every snapshot this
+// repository writes is stamped with the version, and a load whose stored
+// stamp differs discards the snapshot and rebuilds state from the journal
+// (the journal is the truth; a stale-shaped snapshot is never loaded as if
+// it were current). Discards are counted via
+// [Repository.SnapshotShapeDiscards].
+//
+// Unstamped snapshots (written before the stamp existed, or by writers
+// without a declaration) are always accepted — absent = accept. An empty
+// version string disables both the stamp and the guard.
+//
+// The version is caller-owned: bump it whenever State's shape changes in a
+// way old bytes must not be decoded into (field renames, type changes).
+func WithSnapshotStateVersion[State any](version string) RepositoryOption[State] {
+	return func(r *Repository[State]) {
+		r.snapshotStateShape = version
+	}
+}
+
 // WithEnricher sets a context enricher that automatically enriches events
 // with metadata derived from context (correlation IDs, user IDs, etc.).
 func WithEnricher[State any](enricher event.ContextEnricher) RepositoryOption[State] {

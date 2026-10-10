@@ -3,6 +3,7 @@ package decider
 import (
 	"context"
 	"log/slog"
+	"sync/atomic"
 	"time"
 
 	"github.com/larsartmann/go-codec"
@@ -41,6 +42,8 @@ type Repository[State any] struct {
 	snapshotStore         snapshot.SnapshotStore
 	codec                 codec.Codec
 	snapshotStrategy      snapshot.SnapshotStrategy
+	snapshotStateShape    string
+	snapshotShapeDiscards atomic.Uint64
 	enricher              event.ContextEnricher
 	decider               Decider[State]
 	loadGroup             singleflight.Group
@@ -270,6 +273,8 @@ func (r *Repository[State]) saveSnapshotAfterEvents(
 
 		return
 	}
+
+	snap.StateShape = r.snapshotStateShape
 
 	saveErr := r.snapshotStore.Save(ctx, snap)
 	if saveErr != nil {
