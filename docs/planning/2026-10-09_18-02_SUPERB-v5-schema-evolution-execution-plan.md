@@ -346,3 +346,32 @@ M3/M4 verification performed independently this session: all 5 tags local+origin
 `git tag --contains` proves schema/v4.6.0 contains the T2 code, proxy serves schema v4.6.0 +
 system v4.12.0, and a clean-consumer smoke (fresh temp module, `go get schema/v4@v4.6.0`, compile
 chain + Upcasters) ran green with zero local replaces. M3+M4 therefore CLOSED as done.
+
+### D3 — M5 executed as semantic re-collapse (decided 2026-10-10 ~07:00)
+
+The staged bank-sync patch (written against pre-T2 APIs at ~22:30) rotted against the concurrent
+session's T18 changes within 12h. Ruling: re-derive semantically instead of re-applying —
+`UpcastChain()` composes `schema.Transform` ops (renames + the typed money-triplet upcaster with
+its Corruption codes preserved through `schema.op_transform_failed` wrapping); the four
+hand-rolled upcaster types were deleted; both wiring sites go through
+`event.DecorateStore(store, nil, upcastingChain.SourceTransform())`. Full battery green
+(build, tests, -race, golangci, erraudit). Landed via daemon commits `cfb8bfe1`+`cd224ca8`
+(attribution rewrite deferred to owner — see status report Q3).
+
+### D4 — M7.4 tier ruling (decided 2026-10-10 ~08:30): the bridge lives in catalog, NOT system
+
+"system exposes the declaration list to catalog" is TIER-ILLEGAL (system Tier 5 → catalog Tier 6
+is an upward dependency). Ruling: the `system.Schemas()` builder RESULT is the single artifact both
+consumers receive — `system.SchemaDeclarations.Declarations()` feeds `DomainConfig.Schema` (system
+side) while `catalog.FromTypedSchema[T]` consumes the same `schema.TypedEventSchema[T]` values
+(catalog side, importing schema downward — legal). This also forced the catalog dep budget 7→8
+(`DEP_BUDGET[catalog]`, rationale in `scripts/check-module-layers.sh`).
+
+### D5 — catalog dev-time sibling replace (decided 2026-10-10): unblock standalone gates pre-tag
+
+`TypedEventSchema` is post-v4.6.0 (working tree only), so every GOWORK=off consumer of catalog —
+`#check-eventcatalog`'s fixture builder, api-stability, CI's per-module leg — was red until the
+next schema tag. Ruling: `replace github.com/larsartmann/go-cqrs-lite/schema/v4 => ../schema` in
+catalog/go.mod (the repo's established dev-time pattern, 10+ modules; `tag-release.sh` strips local
+replaces at tag time, forcing the schema+catalog co-release this plan already schedules for the
+Phase 1 wave).

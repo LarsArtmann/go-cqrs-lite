@@ -32,6 +32,8 @@
 > - [stack vs system — which composition layer?](#stack-vs-system--which-composition-layer-should-i-import)
 > - [Turso engine encryption at rest](#does-the-turso-engine-support-encryption-at-rest)
 > - [pkg.go.dev shows no documentation](#why-does-pkggodev-show-no-documentation-for-these-modules)
+> - [Harness chain won't compile after a Then*](#my-systemscenario-chain-wont-compile-after-a-then--whenwhen-does-not-exist)
+> - [Asserting a deleted row is gone](#how-do-i-assert-a-deleted-row-is-gone-with-the-harness)
 
 ### "My event payload won't decode"
 
@@ -345,6 +347,28 @@ as `[]any` regardless of the query's `R` type parameter. Use
 typed collection (`[]string`, sorted by the query's sort key), or
 `ExecuteTypedByName[Q, R](ctx, store, "query_name", input)` when several
 queries share one input type.
+
+### "My systemscenario chain won't compile after a Then* (`.When().When()` does not exist)"
+
+Chain continuation lives on `*WhenPhase`: after the first `When(...)` (or a
+Then* assertion, which also returns `*WhenPhase`), keep chaining with
+`.Command(...)`/`.Event(...)`/`.Query(...)`/`.TimeAdvances(d)` — there is no
+second `.When()`. Exactly one `Given()` opens a scenario and `Given()` with
+zero events is valid when all seeding happens as When acts. Over a facade
+that owns `system.New` itself, `systemscenario.Adopt(t, ctx, srv.Sys)` wraps
+it — pass a long-lived context (dispatches ride it); keep the cancellable
+context for the facade's own Start/Stop lifecycle.
+
+### "How do I assert a deleted row is gone with the harness?"
+
+It depends on the read shape. `TypedReader.Get` returns
+`(zero, false, nil)` for a missing key — NOT an error — so absence must ride
+the probe's value into `ThenQueryFunc` (return `found` as the result, assert
+`false`). Queries that DO error on missing (`ErrNotFound`, app sentinels like
+`errTaskGone`) map the sentinel to success inside the probe, or use
+`ThenQueryEventuallyFails` (polling twin of `ThenQueryFails`; needs the tag
+wave after systemscenario v4.0.0 — until then the probe adapter is the
+tag-compatible pattern). Deletion-as-event background: ADR-0114.
 
 ## Command-side pitfalls
 
