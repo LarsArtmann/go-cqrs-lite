@@ -14,11 +14,10 @@ import (
 	"testing"
 	"time"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/systemscenario/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // sentinelFailed unwinds a failTB like runtime.Goexit unwinds a real T after
@@ -31,6 +30,7 @@ type sentinelFailed struct{}
 // calls is implemented below.
 type failTB struct {
 	testing.TB
+
 	mu       sync.Mutex
 	messages []string
 	cleanups []func()

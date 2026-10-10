@@ -161,6 +161,41 @@ The projection host exists only when the domain declares projections
 (`DomainConfig.Projections`/`Evolutions`) — a deployment without projections is
 a pure event log and `System.ProjectionHost()` returns nil.
 
+## Graph-Native Projections (deployment picks the traversal engine)
+
+Domains declare relations as events folded into `metaengine.Edge` records
+(see the skill's [recipes §2.44](../.agents/skills/go-cqrs-lite/references/recipes.md)
+and the behavior-verified [`example/graph-native`](../example/graph-native));
+the OPERATOR picks which engine serves the traversals — same domain code,
+different `DeploymentConfig`:
+
+```yaml
+# sqlite serves both roles (recursive CTE over meta_graph_edges):
+engines:
+  primary:
+    driver: sqlite
+    dsn: /var/lib/myapp/events.db
+instances:
+  - role: source-of-truth
+    engine: primary
+  - role: projections
+    engine: primary
+
+# ...or route projections to Dgraph (native @recurse traversal; DSN is a
+# plain gRPC address) by changing ONLY the deployment:
+# engines:
+#   graph:
+#     driver: dgraph
+#     dsn: localhost:9080
+```
+
+Engine capability for the Graph ADT (traversal path / undirected / edge
+removal): sqlite + turso (recursive CTE, iterative fallback), postgres +
+duckdb (WITH RECURSIVE), mysql (8.0+ CTE, probed fallback), dgraph (native),
+badger (prefix-scan BFS), memory + iroh (BFS / passthrough) — all three
+capabilities. Pebble and bbolt do not support the Graph ADT. Full matrix:
+[advanced.md §6.13](../.agents/skills/go-cqrs-lite/references/advanced.md).
+
 ## Operator Config File (koanf YAML + env overrides)
 
 `LoadConfig` reads the deployment from YAML and applies `CQRS_` env overrides

@@ -84,6 +84,7 @@ func (p *WhenPhase) ThenNoEvents() *WhenPhase {
 		}
 
 		deadline := time.Now().Add(window)
+
 		for {
 			if events := s.actEvents(); len(events) > 0 {
 				s.t.Fatalf("ThenNoEvents: %d event(s) appeared within the %s quiet window:%s",

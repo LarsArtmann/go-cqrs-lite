@@ -101,16 +101,21 @@ func readJournalTrail(ctx context.Context, sys *system.System) (journalTrail, er
 // renderTrail renders a normalized trail for failure diagnostics.
 func renderTrail(streams []normalizedStream) string {
 	out := ""
+
 	var outSb106 strings.Builder
+	var outSb105 strings.Builder
 	for _, stream := range streams {
-		outSb106.WriteString(fmt.Sprintf("\n  stream #%d:", stream.ordinal))
+		fmt.Fprintf(&outSb106, "\n  stream #%d:", stream.ordinal)
 
 		var outSb109 strings.Builder
 		for _, entry := range stream.entries {
-			outSb109.WriteString(fmt.Sprintf("\n    - %s v%d", entry.eventType, entry.version))
+			fmt.Fprintf(&outSb109, "\n    - %s v%d", entry.eventType, entry.version)
 		}
-		out += outSb109.String()
+
+		outSb105.WriteString(outSb109.String())
 	}
+	out += outSb105.String()
+
 	out += outSb106.String()
 
 	return out

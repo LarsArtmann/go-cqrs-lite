@@ -41,6 +41,7 @@ func (s *Scenario) awaitQuery(what string, fn func() (any, error), check func(go
 		got, err := fn()
 		if err != nil {
 			lastQueryErr = err.Error()
+
 			return false, "query returned error: " + lastQueryErr
 		}
 

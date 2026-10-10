@@ -242,3 +242,61 @@ results, _ := qb.
     Limit(50).
     Execute(ctx)
 ```
+
+## Graph Patterns
+
+Relations as events, traversals as queries. Fold follow/unfollow facts into
+`metaengine.Edge` records; the planner classifies the query as the Graph ADT
+and routes depth-limited reachability to the deployed engine. Full
+composition-root wiring (system.New, decider guards, BDD suite):
+[`example/graph-native`](../example/graph-native) and the skill's
+[recipes §2.44](../.agents/skills/go-cqrs-lite/references/recipes.md).
+
+### Follow Network with Retraction (Edge + EdgeRemoval)
+
+```go
+type Followed struct{ Follower, Followee string }
+type Unfollowed struct{ Follower, Followee string }
+
+// Node field = start node; Depth defaults to 1 when zero; Undirected is
+// optional engine capability (HasUndirectedGraphSupport).
+type Reachability struct {
+    Node  string
+    Depth int
+}
+
+followGraph := metaengine.Query[Reachability, []string]("follow_graph",
+    metaengine.On(Followed{}, func(e Followed) metaengine.Edge {
+        return metaengine.Edge{From: e.Follower, To: e.Followee}
+    }),
+    // ADR-0114 deletion-as-event: the retraction fold removes exactly the
+    // edge the retracted fact added (engines without GraphRemoveEdge fail
+    // loudly at apply time — there is no degraded fallback).
+    metaengine.On(Unfollowed{}, func(e Unfollowed) metaengine.EdgeRemoval {
+        return metaengine.EdgeRemoval{From: e.Follower, To: e.Followee}
+    }),
+)
+
+// Apply facts, read reachability (typed; raw ExecuteCtx returns []any):
+reach, _ := metaengine.ExecuteTyped[Reachability, []string](
+    ctx, store, Reachability{Node: "alice", Depth: 2})
+```
+
+### Which Engine Serves the Traversal
+
+| Engine | Traversal path | Undirected | Edge removal |
+| ------ | ------------- | ---------- | ------------ |
+| sqlite / turso | recursive CTE on `meta_graph_edges` (iterative BFS fallback on old servers) | yes | yes |
+| postgres / duckdb | single WITH RECURSIVE statement | yes | yes |
+| mysql | WITH RECURSIVE (8.0+), iterative fallback via probe | yes | yes |
+| dgraph | native `n(depth:)` recurse | yes | yes |
+| badger | prefix-scan BFS over adjacency keys | yes | yes |
+| memory / iroh | in-process BFS / replicated passthrough | yes | yes |
+| pebble / bbolt | not supported — the planner routes elsewhere or Plan fails | – | – |
+
+> Node identity is payload-derived by convention: `Edge.From`/`To` are
+> untyped endpoints, and stream-ID display strings are brand-prefixed
+> (`"StreamMarker:alice"`) — carry clean node names in the event payload.
+> The in-memory `metaengine/graphadapter` bridge additionally flattens all
+> nodes to one label; engine-backed graphs are unaffected (its package doc
+> details the `Driver()` escape hatch).

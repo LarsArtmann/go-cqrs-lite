@@ -6,10 +6,9 @@ import (
 	"errors"
 	"testing"
 
-	_ "modernc.org/sqlite"
-
 	cqrsevent "github.com/larsartmann/go-cqrs-lite/event/v4"
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
+	_ "modernc.org/sqlite"
 )
 
 var errIntentionalHandlerFailure = errors.New("intentional handler failure")

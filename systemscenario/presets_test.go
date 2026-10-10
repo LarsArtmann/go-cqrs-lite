@@ -73,6 +73,7 @@ func TestPreset_SQLiteThenQuerySeesProjection(t *testing.T) {
 		if view.Status != "completed" {
 			return fmt.Errorf("want status completed, got %s", view.Status)
 		}
+
 		return nil
 	})
 }
