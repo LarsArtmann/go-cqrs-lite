@@ -390,3 +390,61 @@ from the import churn), graph-native README (meta-test demanded), taskmanager go
 (their tag wave added systemscenario v4.0.0). STILL THEIRS, verified pre-existing via worktree at
 05:44 commit: `TestMultiModuleBuildContext_PartitionsProfiles` (deriver CommandFlow=commands
 expectation vs their deriver changes) — M26 blocker list.
+
+### D7 — M9 executed: chain migration found a REAL library bug; fix + tagged-version workaround (2026-10-10 ~17:00)
+
+DiscordSync's 211-line hand-rolled upcaster module collapsed onto `UpcastChain() (*schema.Chain,
+error)` (2× `RenameType` keeping the `//cqrs-lint:ignore(E006)` comments + 4× `Transform(type, 1,
+upcastUserKindField("author"|"user"), WithDecodePolicy(PassthroughOnDecodeError))`); storage.go's
+`Journal()` now compiles the chain and wraps via `event.DecorateJournal(ec.store,
+chain.SourceTransform())` + SeekableJournal assertion (errkit.Rejection on compile failure — a bad
+declaration is a programming error, not infrastructure). Registry test renamed to
+`upcasters_chain_test.go` via git mv; all 10 original intents kept + a new
+`TestChain_PassthroughOnMalformedPayload` pinning the declared policy.
+
+**Library bug found (the reason this was not a pure mechanical migration):** fxamacker/cbor decodes
+nested maps as `map[any]any` when the target is `any` — so a `Transform` touching a NESTED object
+worked on JSON events and SILENTLY NO-OPPED on CBOR events (DiscordSync's journal default). All
+four user-kind upcasters bumped the version (op fired) yet never set `kind`. The schema module's
+own tests only exercised FLAT CBOR field maps, so T2 shipped with the gap. Fix (in-repo,
+[Unreleased]): `decodeFieldMap` normalizes nested string-key maps to `map[string]any` (shared seam
+under Transform/field ops/Split; non-string-key maps stay as decoded — all-or-nothing per map);
+contract documented on `schema.Transform`; regression-pinned by
+`TestTransformNestedMapsAreStringKeyedOnCBOR` (typed-decode assertions — re-decoding the result as
+`map[string]any` would yield `map[any]any` again). Schema + system module suites green; changelog
+symbols gate green (38 citations).
+
+**Tag-state ruling (Q2 still owner-open, so NO tag from this session):** DiscordSync consumes
+schema strictly via module-proxy tags (no go.work, no replaces, hermetic nix build — a filesystem
+replace would break it), and the fix is unreleased. Therefore DiscordSync pins v4.6.0 AND carries a
+documented `map[any]any` branch in `upcastUserKindField` (convert → derive → write back), marked
+droppable when pinning schema/v4 > v4.6.0. The `go get schema/v4@v4.6.0` MVS wave also pulled
+sibling pins (event v4.13.1, id v4.7.2, snapshot v4.6.2, cbor v2.9.6, …) — required by schema
+v4.6.0's own go.mod; flake pin synced (`sync-flake-pins.sh`) to the covering tag commit. NOTE:
+DiscordSync's daemon auto-commits AND auto-pushes — these edits go public within ~1h of writing.
+
+### D8 — M10 executed: cqrs-htmx adopts DomainConfig.Schema via the TAGGED surface only (2026-10-10 ~17:45)
+
+Tag-state fact (the load-bearing discovery): system/v4.12.0 + schema/v4.6.0 (cqrs-htmx's pins) DO
+contain `DomainConfig.Schema` + `schema.Event`/`Declare` (T1-core + T2 tagged), but `system.Schemas()`
+(the typed builder, T1a) is UNTAGGED — so cqrs-htmx CANNOT use the one-list builder via the proxy
+yet. M10 therefore adopted the tagged surface: new `systemadapter/schema.go` declares all 21
+identity-model event types (`EventSchemas() []schema.EventSchema` via `schema.Event(type, 1)` —
+envelope version 1, zero ops, deliberately exhaustive incl. the legacy EventRolesUpdated so
+projection subscriptions stay inside the coeffect gate's declared universe) and wires
+`Schema: EventSchemas()` into `DomainConfig()`. `EventTypeDecoder()` stays the decoder — the
+builder's `.TypeDecoder()` consolidation is a follow-up once the builder tags. Drift-pinned by
+`schema_test.go`: decoder `EventTypes()` vs declared types set-equality (production-vs-production,
+catches event #22 added to one list only), `schema.Declare(EventSchemas()...)` compiles, and every
+declared version equals `envelopeSchemaVersion`. The existing systemscenario harness tests double
+as the boot proof (applySchemaDeclaration + coeffect gate ran green through them).
+
+Split-brain found and DOCUMENTED, not collapsed (out of M10's scope): identity-model carries its
+OWN homegrown upcaster layer (`UpcasterRegistry`, payload-embedded `schema_version` field,
+`CurrentSchemaVersion = 2`, global `SetUpcasterRegistry` — called by NO production code, so the
+decode path is a passthrough today). That registry is the same class of migration as M9 and a
+candidate follow-up task; when collapsed, the payload-embedded versioning and the envelope
+`SchemaVersion()` need a one-or-the-other decision (two versioning layers on one event is the
+actual disease). Also noted: root-package `EventCatalog` (Published Language registry with
+per-event SchemaVersion) is a third parallel list — the M7 `catalog.FromTypedSchema` bridge is the
+convergence tool once typed declarations are tag-reachable.
