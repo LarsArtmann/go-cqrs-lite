@@ -5,9 +5,10 @@ import (
 	"strconv"
 
 	"github.com/a-h/templ"
-	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 	"github.com/larsartmann/templ-components/display"
 	"github.com/larsartmann/templ-components/utils"
+
+	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 )
 
 // Display glue for the event catalog pages: URL builders and the
@@ -15,7 +16,12 @@ import (
 
 // catalogTableProps builds the shared catalog-table chrome: compact cells,
 // striped rows, optional hover, screen-reader label.
-func catalogTableProps(ariaLabel string, headers []string, rows []display.TableRow, hover bool) display.TableProps {
+func catalogTableProps(
+	ariaLabel string,
+	headers []string,
+	rows []display.TableRow,
+	hover bool,
+) display.TableProps {
 	return display.TableProps{
 		Headers:     headers,
 		BaseProps:   utils.BaseProps{AriaLabel: ariaLabel},

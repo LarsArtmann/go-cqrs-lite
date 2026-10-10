@@ -3,9 +3,10 @@ package command_test
 import (
 	"testing"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/core/v5/command"
 	"github.com/larsartmann/go-cqrs-lite/core/v5/id"
-	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 func TestCommandErrors_Classification(t *testing.T) {
