@@ -2,7 +2,6 @@ package system
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"maps"
@@ -11,7 +10,6 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
-	"github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
@@ -276,33 +274,8 @@ func New(
 		}
 
 		// Register a projection adapter that feeds events into the metaengine Store.
-		// Decoder priority: TypeDecoder > EventDecoder > PayloadDecoder > generic JSON.
-		var adapter *projectionadapter.Adapter
-
-		switch {
-		case domain.ProjectionTypeDecoder != nil:
-			adapter = projectionadapter.NewWithDecoder(
-				"projections", sys.projStore, domain.ProjectionTypeDecoder,
-			)
-		case domain.ProjectionEventDecoder != nil:
-			adapter = projectionadapter.New("projections", sys.projStore, nil,
-				projectionadapter.WithEventDecoder(domain.ProjectionEventDecoder),
-			)
-		case autoEventDecoder != nil:
-			adapter = projectionadapter.New("projections", sys.projStore, nil,
-				projectionadapter.WithEventDecoder(
-					projectionadapter.EventDecoder(autoEventDecoder),
-				),
-			)
-		default:
-			var decoder projectionadapter.PayloadDecoder
-
-			if domain.ProjectionDecoder != nil {
-				decoder = projectionadapter.PayloadDecoder(domain.ProjectionDecoder)
-			}
-
-			adapter = projectionadapter.New("projections", sys.projStore, decoder)
-		}
+		// Decoder priority: TypeDecoder > EventDecoder > auto-derived > generic JSON.
+		adapter := newProjectionAdapter(sys, domain, autoEventDecoder)
 
 		if err := host.Register(adapter); err != nil {
 			return nil, sys.fail(fmt.Errorf("system: register projection adapter: %w", err))
@@ -371,62 +344,6 @@ func New(
 	}
 
 	return sys, nil
-}
-
-// fail tears down everything New created so far and returns err with any
-// teardown failures joined after it. It is the single exit for New's error
-// paths once the first engine exists: returning the bare error there would
-// drop the System on the floor and leak engine file handles, locks, and
-// background goroutines. Ordering mirrors [System.Close] (projection host,
-// then engines, then registered closers); teardown errors never mask the
-// construction error.
-func (sys *System) fail(err error) error {
-	var errs []error
-	if err != nil {
-		errs = append(errs, err)
-	}
-
-	if sys.projHost != nil {
-		if stopErr := sys.projHost.Stop(); stopErr != nil {
-			errs = append(errs, fmt.Errorf("system: fail-cleanup projection host: %w", stopErr))
-		}
-	}
-
-	for _, eng := range sys.orderedEngines() {
-		if closeErr := eng.Close(); closeErr != nil {
-			errs = append(errs, fmt.Errorf("system: fail-cleanup engine: %w", closeErr))
-		}
-	}
-
-	for _, nc := range sys.closers {
-		if closeErr := nc.closer.Close(); closeErr != nil {
-			errs = append(errs, fmt.Errorf("system: fail-cleanup %s: %w", nc.name, closeErr))
-		}
-	}
-
-	return errors.Join(errs...)
-}
-
-// Start begins projection processing (if configured).
-func (s *System) Start(ctx context.Context) error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	if s.started {
-		return ErrAlreadyStarted
-	}
-
-	s.started = true
-
-	if s.projHost != nil {
-		if err := s.projHost.Start(ctx); err != nil {
-			return fmt.Errorf("system: start projection host: %w", err)
-		}
-	}
-
-	s.startTimersLocked(ctx)
-
-	return nil
 }
 
 // isSourceOfTruth returns true for instances that hold event/command/query logs.

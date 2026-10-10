@@ -317,3 +317,22 @@ post-tag, battery-verified.
 | Another session edits system/ mid-T1a/b/c    | Re-view before every edit (daemon discipline); small PR-sized increments                                                                                                         |
 | `Event[T]` type-binding design churn         | Design note FIRST (M6.1); mirrors projectionadapter's existing registration shape                                                                                                |
 | Verschllimmbessern                           | Every task ends at a gate; no speculative rewrites; reverts only of self-authored scaffolding; the pilot-replace pattern (prove → preserve → revert) for unreleased-API adoption |
+
+## Decision log (executed)
+
+### D1 — tag timing (decided 2026-10-09 22:45): TAG NOW via changed-set
+
+Re-check at M1 found the concurrent session's gates REDDER than at 17:57 (11 file-size offenders:
+cqrs-lint ×5, metaengine ×4, projectionhost ×1, system/system.go; 6 clone groups in
+systemscenario/ + cqrs-lint) and `tag-release.sh` verified to NOT run repo-wide ratchet gates
+(it strips replaces → tidy → resolve-verify → tag). This stream's own files were cleaned to green
+first (schema/chain_engine.go split → chain_payload.go; system/config_types.go → engine_config.go
+extraction, 421→302; system/constructor.go → system_lifecycle.go + projection_wiring.go
+extractions, 435→352; system tests green after each). Ruling: proceed with the tag wave on
+changed-set testing (schema + system real per-module test runs) per the 2026-10-06 lesson;
+concurrent-session offenders stay theirs to shrink or baseline.
+
+### D2 — ADR shape (decided at M2, below): ONE combined implementation ADR
+
+Executed as `docs/adr/0154-declarative-schema-evolution-t2-t1.md` — see M2 notes in the status
+stream.
