@@ -32,14 +32,16 @@ const (
 	streamType = "User"
 )
 
-// FollowedPayload carries only the followee: the follower IS the stream, and
-// the graph fold recovers the follower from the event's stream ID — one
-// source of truth, no duplicated field.
+// FollowedPayload is the fact, self-describing: who followed whom. Node
+// names live in the payload (NOT derived from the stream ID — StreamID.String
+// is a brand-prefixed display form, not a clean node name).
 type FollowedPayload struct {
+	Follower string `json:"follower"`
 	Followee string `json:"followee"`
 }
 
 type UnfollowedPayload struct {
+	Follower string `json:"follower"`
 	Followee string `json:"followee"`
 }
 
@@ -88,7 +90,7 @@ func applyFollowState(state FollowState, evt event.Event) (FollowState, error) {
 // follow decides a Followed fact. Guards: no self-follow, no duplicate edge.
 func follow(follower id.StreamID, followee string) decider.DecideFunc[FollowState] {
 	return func(state FollowState, version event.Version) ([]event.Event, error) {
-		if follower.String() == followee {
+		if follower.Get() == followee {
 			return nil, errorfamily.NewRejection("follow.self", "cannot follow yourself")
 		}
 
@@ -97,7 +99,7 @@ func follow(follower id.StreamID, followee string) decider.DecideFunc[FollowStat
 		}
 
 		evt, err := event.New(evtUserFollowed, follower, streamType,
-			version.Increment(), FollowedPayload{Followee: followee})
+			version.Increment(), FollowedPayload{Follower: follower.Get(), Followee: followee})
 		if err != nil {
 			return nil, err
 		}
@@ -114,7 +116,7 @@ func unfollow(follower id.StreamID, followee string) decider.DecideFunc[FollowSt
 		}
 
 		evt, err := event.New(evtUserUnfollowed, follower, streamType,
-			version.Increment(), UnfollowedPayload{Followee: followee})
+			version.Increment(), UnfollowedPayload{Follower: follower.Get(), Followee: followee})
 		if err != nil {
 			return nil, err
 		}

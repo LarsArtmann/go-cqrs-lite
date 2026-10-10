@@ -26,14 +26,15 @@ type ReachabilityQuery struct {
 }
 
 // followGraphProjection declares the graph read model: Edge folds add,
-// EdgeRemoval folds retract (ADR-0114). The follower comes from the event's
-// stream ID (EventWithID.ID); the followee from the decoded payload.
+// EdgeRemoval folds retract (ADR-0114). Node names come from the decoded
+// payload (clean domain names — stream-ID display forms are brand-prefixed
+// and would corrupt node identity).
 func followGraphProjection() ([]system.ProjectionDeclaration, *projectionadapter.TypeDecoder) {
 	addEdge := metaengine.OnRecordTyped(
 		string(evtUserFollowed),
 		projectionadapter.EventWithID[FollowedPayload]{},
 		func(_ record.Record, evt projectionadapter.EventWithID[FollowedPayload]) metaengine.Edge {
-			return metaengine.Edge{From: evt.ID, To: evt.Payload.Followee}
+			return metaengine.Edge{From: evt.Payload.Follower, To: evt.Payload.Followee}
 		},
 	)
 
@@ -41,7 +42,7 @@ func followGraphProjection() ([]system.ProjectionDeclaration, *projectionadapter
 		string(evtUserUnfollowed),
 		projectionadapter.EventWithID[UnfollowedPayload]{},
 		func(_ record.Record, evt projectionadapter.EventWithID[UnfollowedPayload]) metaengine.EdgeRemoval {
-			return metaengine.EdgeRemoval{From: evt.ID, To: evt.Payload.Followee}
+			return metaengine.EdgeRemoval{From: evt.Payload.Follower, To: evt.Payload.Followee}
 		},
 	)
 

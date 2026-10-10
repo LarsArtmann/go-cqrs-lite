@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/decider/v4"
-	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	_ "github.com/larsartmann/go-cqrs-lite/metaengine/dgraphengine/v4" // register the "dgraph" driver (operator opt-in)
 	_ "github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4" // register the "sqlite" driver
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
@@ -17,16 +16,25 @@ import (
 
 // buildSystem wires the composition root from a domain and a deployment.
 func buildSystem(ctx context.Context, deployment system.DeploymentConfig) (*system.System, error) {
+	return system.New(ctx, graphDomain(), deployment)
+}
+
+// graphDomain is the developer half: everything declared, nothing wired.
+// Shared by the binary and the systemscenario BDD suite — the SAME config
+// the production process boots.
+func graphDomain() system.DomainConfig {
 	projection, typeDecoder := followGraphProjection()
 
-	domain := system.DomainConfig{
+	return system.DomainConfig{
 		Commands:              registerCommands,
 		Projections:           projection,
 		ProjectionTypeDecoder: typeDecoder,
-		Events:                []event.Type{evtUserFollowed, evtUserUnfollowed},
+		// NOTE: no Events universe here. The coeffect gate cannot see through
+		// system.RawQuery declarations (they are opaque to it), so declaring
+		// Events would only emit unconsumed-event advisories for exactly the
+		// types these folds consume. Evolve/Lookup declarations DO feed the
+		// gate — declare Events when using those.
 	}
-
-	return system.New(ctx, domain, deployment)
 }
 
 // registerCommands declares the decider and both commands. The coeffect gate
