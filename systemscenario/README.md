@@ -28,8 +28,8 @@ from production wiring. There is nothing to re-declare.
 | ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
 | Given | `Given(events...)`, `sc.Event(type, ref, payload)` (auto-versioned), `Given().Command(cmds...)` (seed by intent)                                                                                                                                                 | `given().events()/commands()`                        |
 | When  | `When(cmd)`, `WhenEvent(events...)` (journaled + published external events), `WhenQuery(q)`, `TimeAdvances(d)`                                                                                                                                                   | `when().command()/event()`, Axon 4 `whenTimeElapses` |
-| Then  | `Then(types...)`, `ThenEvents`, `ThenEventsSatisfy`, `ThenPayload` (generic), `ThenMetadata`, `ThenQuery`, `ThenQueryFunc`, `ThenResult`, `ThenSuccess`, `ThenError`, `ThenErrorFamily`, `ThenCommands`, `ThenCommandsSatisfy`, `ThenNoEvents`, `ThenNoCommands` | `then().events()/commands()/exception()/success()`   |
-| Modes | `Await()` (poll mode for async bus outcomes), options `WithAwaitTimeout`, `WithClock`                                                                                                                                                                            | —                                                    |
+| Then  | `Then(types...)`, `ThenEvents`, `ThenEventsSatisfy`, `ThenPayload` (generic), `ThenMetadata`, `ThenQuery`, `ThenQueryFunc`, `ThenQueryFails`, `ThenQueryEventuallyFails`, `ThenResult`, `ThenSuccess`, `ThenError`, `ThenErrorFamily`, `ThenCommands`, `ThenCommandsSatisfy`, `ThenCommandsSatisfyAwait`, `ThenNoEvents`, `ThenNoCommands` | `then().events()/commands()/exception()/success()`   |
+| Modes | `Await()` (poll mode for async bus outcomes), options `WithAwaitTimeout`, `WithQuietWindow` (bounds `ThenNoEvents` silence under await), `WithCommandCaptureFilter` (capture noise control), `WithClock`                                            | —                                                    |
 
 **Determinism contract:** journal/command assertions are synchronous
 (dispatch writes the journal before returning); read-model assertions poll
@@ -37,6 +37,17 @@ from production wiring. There is nothing to re-declare.
 advances the harness `ManualClock` (frozen at 2026-01-01Z) and flips into
 poll mode — deadline timers fire without sleeping when your `Timers` closure
 wires `scheduling.WithClock(sys.Clock().Now)`.
+
+**Timeout honesty:** every polling assertion reports the LAST probe outcome
+on timeout, and query assertions additionally carry the last query error
+alongside the check mismatch — a projection that kept erroring before the
+data settled is distinguishable from wrong data. `ThenQueryEventuallyFails`
+is the eventual negative (rows that vanish once the projection catches up —
+the first-class `awaitNotFound`); `ThenQueryFails` stays immediate.
+
+**Negative-event windows:** under await mode `ThenNoEvents` watches for
+silence for the quiet window — the full await timeout by default, shorter
+via `WithQuietWindow` — failing the moment any event lands inside it.
 
 **Vacuous guard:** a scenario that never runs a `Then*` fails the test.
 
