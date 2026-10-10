@@ -15,6 +15,17 @@ templ scalarNonceMeta(nonce string) {
 	}
 }
 
+// noscriptFallback renders the <noscript> notice for the SPA pages: what
+// is unavailable without JavaScript and where the raw spec lives.
+templ noscriptFallback(what, rawName, specURL string) {
+	<noscript>
+		<p class="p-4 text-sm text-gray-700 dark:text-gray-300">
+			The { what } requires JavaScript. The raw { rawName } is available at
+			<a href={ templ.SafeURL(specURL) } class="font-medium text-blue-600 hover:underline dark:text-blue-400">the JSON endpoint</a>.
+		</p>
+	</noscript>
+}
+
 // ScalarPage wraps the embedded Scalar SPA with a slim chrome. Asset URLs
 // are anchored at docsPrefix so the page works under any mount point.
 //
@@ -35,12 +46,7 @@ templ ScalarPage(brand, docsPrefix, specURL string) {
 			class="h-[calc(100dvh-3.5rem)]"
 			data-tc-spec-url={ specURL }
 		></div>
-		<noscript>
-			<p class="p-4 text-sm text-gray-700 dark:text-gray-300">
-				The Scalar API reference requires JavaScript. The raw OpenAPI spec is available at
-				<a href={ templ.SafeURL(specURL) } class="font-medium text-blue-600 hover:underline dark:text-blue-400">the JSON endpoint</a>.
-			</p>
-		</noscript>
+		@noscriptFallback("Scalar API reference", "OpenAPI spec", specURL)
 		@layout.Script(templ.GetNonce(ctx), docsPrefix+"/static/scalar.js", nil)
 		<script nonce={ templ.GetNonce(ctx) }>
 			(function () {
@@ -75,12 +81,7 @@ templ AsyncAPIPage(brand, docsPrefix, specURL string) {
 	@layout.Base(props) {
 		@spaHeader(brand, docsPrefix, "Event Reference")
 		<div id="asyncapi" class="min-h-[calc(100dvh-3.5rem)]" data-spec-url={ specURL }></div>
-		<noscript>
-			<p class="p-4 text-sm text-gray-700 dark:text-gray-300">
-				The AsyncAPI event reference requires JavaScript. The raw AsyncAPI spec is available at
-				<a href={ templ.SafeURL(specURL) } class="font-medium text-blue-600 hover:underline dark:text-blue-400">the JSON endpoint</a>.
-			</p>
-		</noscript>
+		@noscriptFallback("AsyncAPI event reference", "AsyncAPI spec", specURL)
 		@layout.Script(templ.GetNonce(ctx), docsPrefix+"/static/asyncapi-react.js", nil)
 		<script nonce={ templ.GetNonce(ctx) }>
 			(function () {

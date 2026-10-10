@@ -55,8 +55,9 @@ echo "$RAW" | jq -r "$classify | [.[] | select(.class == \"signal\")] | sort_by(
   end"
 
 echo
-echo "$RAW" | jq -r "$classify | [.[] | select(.class != \"signal\")]
-  | \"suppressed \\(length) mirror group(s):\\n\" + (
-    if length == 0 then \"  (none)\" else
-      sort_by(.id) | .[] | \"  group \\(.id) [\\(.class), \\(.n) sites] \\(.rows[0].Type): \" + ([.rows[].File] | join(\", \"))
+echo "$RAW" | jq -r "$classify | [.[] | select(.class != \"signal\")] as \$supp
+  | ([.[] | select(.class == \"signal\")] | length) as \$kept
+  | \"kept \\(\$kept) signal group(s); suppressed \\(\$supp | length) mirror group(s):\" + (
+    if (\$supp | length) == 0 then \"\\n  (none)\" else
+      \"\\n\" + ([\$supp | sort_by(.id) | .[] | \"  group \\(.id) [\\(.class), \\(.n) sites] \\(.rows[0].Type): \" + ([.rows[].File] | join(\", \"))] | join(\"\\n\"))
     end)"

@@ -148,14 +148,7 @@ func EventCatalogPage(data eventCatalogOverview) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = display.Table(display.TableProps{
-					Headers:     []string{"Kind", "Message", "Summary", "Producer", "Consumers"},
-					BaseProps:   utils.BaseProps{AriaLabel: "Catalog messages"},
-					Striped:     true,
-					Hover:       true,
-					CellPadding: display.TableCellPaddingCompact,
-					Rows:        messageRows(data.Messages),
-				}).Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = display.Table(catalogTableProps("Catalog messages", []string{"Kind", "Message", "Summary", "Producer", "Consumers"}, messageRows(data.Messages), true)).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -171,14 +164,7 @@ func EventCatalogPage(data eventCatalogOverview) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = display.Table(display.TableProps{
-					Headers:     []string{"Channel", "Address", "Protocols", "Delivery", "Messages"},
-					BaseProps:   utils.BaseProps{AriaLabel: "Catalog channels"},
-					Striped:     true,
-					Hover:       true,
-					CellPadding: display.TableCellPaddingCompact,
-					Rows:        channelRows(data.Channels),
-				}).Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = display.Table(catalogTableProps("Catalog channels", []string{"Channel", "Address", "Protocols", "Delivery", "Messages"}, channelRows(data.Channels), true)).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -194,14 +180,7 @@ func EventCatalogPage(data eventCatalogOverview) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = display.Table(display.TableProps{
-					Headers:     []string{"Service", "Version", "Summary", "Messages"},
-					BaseProps:   utils.BaseProps{AriaLabel: "Catalog services"},
-					Striped:     true,
-					Hover:       true,
-					CellPadding: display.TableCellPaddingCompact,
-					Rows:        serviceRows(data.Services),
-				}).Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = display.Table(catalogTableProps("Catalog services", []string{"Service", "Version", "Summary", "Messages"}, serviceRows(data.Services), true)).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -218,14 +197,7 @@ func EventCatalogPage(data eventCatalogOverview) templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = display.Table(display.TableProps{
-						Headers:     []string{"Data Product", "Version", "Summary", "Owners"},
-						BaseProps:   utils.BaseProps{AriaLabel: "Catalog data products"},
-						Striped:     true,
-						Hover:       true,
-						CellPadding: display.TableCellPaddingCompact,
-						Rows:        dataProductRows(data.DataProducts),
-					}).Render(ctx, templ_7745c5c3_Buffer)
+					templ_7745c5c3_Err = display.Table(catalogTableProps("Catalog data products", []string{"Data Product", "Version", "Summary", "Owners"}, dataProductRows(data.DataProducts), true)).Render(ctx, templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -302,12 +274,7 @@ func EventCatalogDataProductPage(d eventCatalogDataProductDetail) templ.Componen
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = navigation.Breadcrumbs(navigation.BreadcrumbsProps{
-					Items: []navigation.BreadcrumbItem{
-						{Text: eventCatalogTitle, Href: eventCatalogHref(d.DocsPath)},
-						{Text: d.Name, Active: true},
-					},
-				}).Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = eventCatalogBreadcrumbs(d.DocsPath, d.Name).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -350,13 +317,7 @@ func EventCatalogDataProductPage(d eventCatalogDataProductDetail) templ.Componen
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = display.Table(display.TableProps{
-						Headers:     []string{"Event", "Version"},
-						BaseProps:   utils.BaseProps{AriaLabel: "Data product inputs"},
-						Striped:     true,
-						CellPadding: display.TableCellPaddingCompact,
-						Rows:        portRows(d.Inputs),
-					}).Render(ctx, templ_7745c5c3_Buffer)
+					templ_7745c5c3_Err = display.Table(catalogTableProps("Data product inputs", []string{"Event", "Version"}, portRows(d.Inputs), false)).Render(ctx, templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -374,13 +335,7 @@ func EventCatalogDataProductPage(d eventCatalogDataProductDetail) templ.Componen
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = display.Table(display.TableProps{
-						Headers:     []string{"Event", "Version", "Contract"},
-						BaseProps:   utils.BaseProps{AriaLabel: "Data product outputs"},
-						Striped:     true,
-						CellPadding: display.TableCellPaddingCompact,
-						Rows:        portRowsWithContract(d.Outputs),
-					}).Render(ctx, templ_7745c5c3_Buffer)
+					templ_7745c5c3_Err = display.Table(catalogTableProps("Data product outputs", []string{"Event", "Version", "Contract"}, portRowsWithContract(d.Outputs), false)).Render(ctx, templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -457,12 +412,7 @@ func EventCatalogMessagePage(d eventCatalogMessageDetail) templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = navigation.Breadcrumbs(navigation.BreadcrumbsProps{
-					Items: []navigation.BreadcrumbItem{
-						{Text: eventCatalogTitle, Href: eventCatalogHref(d.DocsPath)},
-						{Text: d.Name, Active: true},
-					},
-				}).Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = eventCatalogBreadcrumbs(d.DocsPath, d.Name).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -544,13 +494,7 @@ func EventCatalogMessagePage(d eventCatalogMessageDetail) templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = display.Table(display.TableProps{
-						Headers:     []string{"Field", "Type", "Required", "Description", "Constraints"},
-						BaseProps:   utils.BaseProps{AriaLabel: "Schema properties"},
-						Striped:     true,
-						CellPadding: display.TableCellPaddingCompact,
-						Rows:        propertyRows(d.Properties),
-					}).Render(ctx, templ_7745c5c3_Buffer)
+					templ_7745c5c3_Err = display.Table(catalogTableProps("Schema properties", []string{"Field", "Type", "Required", "Description", "Constraints"}, propertyRows(d.Properties), false)).Render(ctx, templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -610,7 +554,7 @@ func EventCatalogMessagePage(d eventCatalogMessageDetail) templ.Component {
 						var templ_7745c5c3_Var11 string
 						templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(change.Version)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `docserver/eventcatalogview.templ`, Line: 196, Col: 27}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `docserver/eventcatalogview.templ`, Line: 140, Col: 27}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 						if templ_7745c5c3_Err != nil {
@@ -623,7 +567,7 @@ func EventCatalogMessagePage(d eventCatalogMessageDetail) templ.Component {
 						var templ_7745c5c3_Var12 string
 						templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(change.Summary)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `docserver/eventcatalogview.templ`, Line: 196, Col: 47}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `docserver/eventcatalogview.templ`, Line: 140, Col: 47}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 						if templ_7745c5c3_Err != nil {
@@ -711,12 +655,7 @@ func EventCatalogChannelPage(d eventCatalogChannelDetail) templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = navigation.Breadcrumbs(navigation.BreadcrumbsProps{
-					Items: []navigation.BreadcrumbItem{
-						{Text: eventCatalogTitle, Href: eventCatalogHref(d.DocsPath)},
-						{Text: d.Name, Active: true},
-					},
-				}).Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = eventCatalogBreadcrumbs(d.DocsPath, d.Name).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -852,12 +791,7 @@ func EventCatalogServicePage(d eventCatalogServiceDetail) templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = navigation.Breadcrumbs(navigation.BreadcrumbsProps{
-					Items: []navigation.BreadcrumbItem{
-						{Text: eventCatalogTitle, Href: eventCatalogHref(d.DocsPath)},
-						{Text: d.Name, Active: true},
-					},
-				}).Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = eventCatalogBreadcrumbs(d.DocsPath, d.Name).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1058,6 +992,42 @@ func eventCatalogNotFound(brand, docsPath, kind, id string) templ.Component {
 	})
 }
 
+// eventCatalogBreadcrumbs renders the shared detail-page trail: catalog
+// landing page, then the active resource.
+func eventCatalogBreadcrumbs(docsPath, name string) templ.Component {
+	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
+			return templ_7745c5c3_CtxErr
+		}
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+		if !templ_7745c5c3_IsBuffer {
+			defer func() {
+				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err == nil {
+					templ_7745c5c3_Err = templ_7745c5c3_BufErr
+				}
+			}()
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var23 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var23 == nil {
+			templ_7745c5c3_Var23 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		templ_7745c5c3_Err = navigation.Breadcrumbs(navigation.BreadcrumbsProps{
+			Items: []navigation.BreadcrumbItem{
+				{Text: eventCatalogTitle, Href: eventCatalogHref(docsPath)},
+				{Text: name, Active: true},
+			},
+		}).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		return nil
+	})
+}
+
 // catalogSection is the shared h2 spacing helper for event catalog pages.
 // It forwards to sectionHeading (layout.templ) — one heading helper for all
 // docserver pages.
@@ -1080,9 +1050,9 @@ func messageKindBadge(kind string) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var23 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var23 == nil {
-			templ_7745c5c3_Var23 = templ.NopComponent
+		templ_7745c5c3_Var24 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var24 == nil {
+			templ_7745c5c3_Var24 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		templ_7745c5c3_Err = display.Badge(display.BadgeProps{
@@ -1116,9 +1086,9 @@ func dataProductHeaderBadges(d eventCatalogDataProductDetail) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var24 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var24 == nil {
-			templ_7745c5c3_Var24 = templ.NopComponent
+		templ_7745c5c3_Var25 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var25 == nil {
+			templ_7745c5c3_Var25 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		if d.Hidden || len(d.Badges) > 0 {
@@ -1164,21 +1134,21 @@ func messageLinkCell(label, sub, href string) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var25 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var25 == nil {
-			templ_7745c5c3_Var25 = templ.NopComponent
+		templ_7745c5c3_Var26 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var26 == nil {
+			templ_7745c5c3_Var26 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 57, "<a href=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var26 templ.SafeURL
-		templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(href))
+		var templ_7745c5c3_Var27 templ.SafeURL
+		templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(href))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `docserver/eventcatalogview.templ`, Line: 341, Col: 30}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `docserver/eventcatalogview.templ`, Line: 286, Col: 30}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var26))
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1186,12 +1156,12 @@ func messageLinkCell(label, sub, href string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var27 string
-		templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs(label)
+		var templ_7745c5c3_Var28 string
+		templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs(label)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `docserver/eventcatalogview.templ`, Line: 341, Col: 109}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `docserver/eventcatalogview.templ`, Line: 286, Col: 109}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1204,12 +1174,12 @@ func messageLinkCell(label, sub, href string) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var28 string
-			templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs(sub)
+			var templ_7745c5c3_Var29 string
+			templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinStringErrs(sub)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `docserver/eventcatalogview.templ`, Line: 343, Col: 72}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `docserver/eventcatalogview.templ`, Line: 288, Col: 72}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var29))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1239,9 +1209,9 @@ func codeBlock(content, ariaLabel string) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var29 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var29 == nil {
-			templ_7745c5c3_Var29 = templ.NopComponent
+		templ_7745c5c3_Var30 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var30 == nil {
+			templ_7745c5c3_Var30 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		templ_7745c5c3_Err = display.CopyButton(display.CopyButtonProps{
@@ -1256,12 +1226,12 @@ func codeBlock(content, ariaLabel string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var30 string
-		templ_7745c5c3_Var30, templ_7745c5c3_Err = templ.ResolveAttributeValue(ariaLabel)
+		var templ_7745c5c3_Var31 string
+		templ_7745c5c3_Var31, templ_7745c5c3_Err = templ.ResolveAttributeValue(ariaLabel)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `docserver/eventcatalogview.templ`, Line: 355, Col: 24}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `docserver/eventcatalogview.templ`, Line: 300, Col: 24}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var30)
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var31)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1269,12 +1239,12 @@ func codeBlock(content, ariaLabel string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var31 string
-		templ_7745c5c3_Var31, templ_7745c5c3_Err = templ.JoinStringErrs(content)
+		var templ_7745c5c3_Var32 string
+		templ_7745c5c3_Var32, templ_7745c5c3_Err = templ.JoinStringErrs(content)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `docserver/eventcatalogview.templ`, Line: 357, Col: 17}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `docserver/eventcatalogview.templ`, Line: 302, Col: 17}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var31))
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var32))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

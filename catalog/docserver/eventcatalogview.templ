@@ -35,45 +35,17 @@ templ EventCatalogPage(data eventCatalogOverview) {
 			}
 
 			@catalogSection("Messages")
-			@display.Table(display.TableProps{
-				Headers:     []string{"Kind", "Message", "Summary", "Producer", "Consumers"},
-					BaseProps:   utils.BaseProps{AriaLabel: "Catalog messages"},
-				Striped:     true,
-				Hover:       true,
-				CellPadding: display.TableCellPaddingCompact,
-				Rows:        messageRows(data.Messages),
-			})
+			@display.Table(catalogTableProps("Catalog messages", []string{"Kind", "Message", "Summary", "Producer", "Consumers"}, messageRows(data.Messages), true))
 
 			@catalogSection("Channels")
-			@display.Table(display.TableProps{
-				Headers:     []string{"Channel", "Address", "Protocols", "Delivery", "Messages"},
-					BaseProps:   utils.BaseProps{AriaLabel: "Catalog channels"},
-				Striped:     true,
-				Hover:       true,
-				CellPadding: display.TableCellPaddingCompact,
-				Rows:        channelRows(data.Channels),
-			})
+			@display.Table(catalogTableProps("Catalog channels", []string{"Channel", "Address", "Protocols", "Delivery", "Messages"}, channelRows(data.Channels), true))
 
 			@catalogSection("Services")
-			@display.Table(display.TableProps{
-				Headers:     []string{"Service", "Version", "Summary", "Messages"},
-					BaseProps:   utils.BaseProps{AriaLabel: "Catalog services"},
-				Striped:     true,
-				Hover:       true,
-				CellPadding: display.TableCellPaddingCompact,
-				Rows:        serviceRows(data.Services),
-			})
+			@display.Table(catalogTableProps("Catalog services", []string{"Service", "Version", "Summary", "Messages"}, serviceRows(data.Services), true))
 
 			if len(data.DataProducts) > 0 {
 				@catalogSection("Data Products")
-				@display.Table(display.TableProps{
-					Headers:     []string{"Data Product", "Version", "Summary", "Owners"},
-						BaseProps:   utils.BaseProps{AriaLabel: "Catalog data products"},
-					Striped:     true,
-					Hover:       true,
-					CellPadding: display.TableCellPaddingCompact,
-					Rows:        dataProductRows(data.DataProducts),
-				})
+				@display.Table(catalogTableProps("Catalog data products", []string{"Data Product", "Version", "Summary", "Owners"}, dataProductRows(data.DataProducts), true))
 			}
 		}
 	}
@@ -86,12 +58,7 @@ templ EventCatalogDataProductPage(d eventCatalogDataProductDetail) {
 	@layout.Base(base) {
 		@docsNav(d.Brand, d.DocsPath, d.DocsPath+"/eventcatalog")
 		@layout.Container(layout.ContainerProps{Class: "pb-16 pt-8"}) {
-			@navigation.Breadcrumbs(navigation.BreadcrumbsProps{
-				Items: []navigation.BreadcrumbItem{
-					{Text: eventCatalogTitle, Href: eventCatalogHref(d.DocsPath)},
-					{Text: d.Name, Active: true},
-				},
-			})
+			@eventCatalogBreadcrumbs(d.DocsPath, d.Name)
 			@display.PageHeader(display.PageHeaderProps{
 				Title:    d.Name,
 				Subtitle: d.Summary,
@@ -106,23 +73,11 @@ templ EventCatalogDataProductPage(d eventCatalogDataProductDetail) {
 			})
 			if len(d.Inputs) > 0 {
 				@catalogSection("Input ports (events consumed)")
-				@display.Table(display.TableProps{
-					Headers:     []string{"Event", "Version"},
-						BaseProps:   utils.BaseProps{AriaLabel: "Data product inputs"},
-					Striped:     true,
-					CellPadding: display.TableCellPaddingCompact,
-					Rows:        portRows(d.Inputs),
-				})
+				@display.Table(catalogTableProps("Data product inputs", []string{"Event", "Version"}, portRows(d.Inputs), false))
 			}
 			if len(d.Outputs) > 0 {
 				@catalogSection("Output ports (events served)")
-				@display.Table(display.TableProps{
-					Headers:     []string{"Event", "Version", "Contract"},
-						BaseProps:   utils.BaseProps{AriaLabel: "Data product outputs"},
-					Striped:     true,
-					CellPadding: display.TableCellPaddingCompact,
-					Rows:        portRowsWithContract(d.Outputs),
-				})
+				@display.Table(catalogTableProps("Data product outputs", []string{"Event", "Version", "Contract"}, portRowsWithContract(d.Outputs), false))
 			}
 		}
 	}
@@ -135,12 +90,7 @@ templ EventCatalogMessagePage(d eventCatalogMessageDetail) {
 	@layout.Base(base) {
 		@docsNav(d.Brand, d.DocsPath, d.DocsPath+"/eventcatalog")
 		@layout.Container(layout.ContainerProps{Class: "pb-16 pt-8"}) {
-			@navigation.Breadcrumbs(navigation.BreadcrumbsProps{
-				Items: []navigation.BreadcrumbItem{
-					{Text: eventCatalogTitle, Href: eventCatalogHref(d.DocsPath)},
-					{Text: d.Name, Active: true},
-				},
-			})
+			@eventCatalogBreadcrumbs(d.DocsPath, d.Name)
 			@display.PageHeader(display.PageHeaderProps{
 				Title:    d.Name,
 				Subtitle: d.Summary,
@@ -171,13 +121,7 @@ templ EventCatalogMessagePage(d eventCatalogMessageDetail) {
 			}
 			if len(d.Properties) > 0 {
 				@catalogSection("Payload schema")
-				@display.Table(display.TableProps{
-					Headers:     []string{"Field", "Type", "Required", "Description", "Constraints"},
-					BaseProps:   utils.BaseProps{AriaLabel: "Schema properties"},
-					Striped:     true,
-					CellPadding: display.TableCellPaddingCompact,
-					Rows:        propertyRows(d.Properties),
-				})
+				@display.Table(catalogTableProps("Schema properties", []string{"Field", "Type", "Required", "Description", "Constraints"}, propertyRows(d.Properties), false))
 			}
 			if d.SchemaJSON != "" {
 				@catalogSection("Raw JSON schema")
@@ -208,12 +152,7 @@ templ EventCatalogChannelPage(d eventCatalogChannelDetail) {
 	@layout.Base(base) {
 		@docsNav(d.Brand, d.DocsPath, d.DocsPath+"/eventcatalog")
 		@layout.Container(layout.ContainerProps{Class: "pb-16 pt-8"}) {
-			@navigation.Breadcrumbs(navigation.BreadcrumbsProps{
-				Items: []navigation.BreadcrumbItem{
-					{Text: eventCatalogTitle, Href: eventCatalogHref(d.DocsPath)},
-					{Text: d.Name, Active: true},
-				},
-			})
+			@eventCatalogBreadcrumbs(d.DocsPath, d.Name)
 			@display.PageHeader(display.PageHeaderProps{
 				Title:    d.Name,
 				Subtitle: d.Summary,
@@ -248,12 +187,7 @@ templ EventCatalogServicePage(d eventCatalogServiceDetail) {
 	@layout.Base(base) {
 		@docsNav(d.Brand, d.DocsPath, d.DocsPath+"/eventcatalog")
 		@layout.Container(layout.ContainerProps{Class: "pb-16 pt-8"}) {
-			@navigation.Breadcrumbs(navigation.BreadcrumbsProps{
-				Items: []navigation.BreadcrumbItem{
-					{Text: eventCatalogTitle, Href: eventCatalogHref(d.DocsPath)},
-					{Text: d.Name, Active: true},
-				},
-			})
+			@eventCatalogBreadcrumbs(d.DocsPath, d.Name)
 			@display.PageHeader(display.PageHeaderProps{
 				Title:    d.Name,
 				Subtitle: d.Summary,
@@ -304,6 +238,17 @@ templ eventCatalogNotFound(brand, docsPath, kind, id string) {
 			})
 		}
 	}
+}
+
+// eventCatalogBreadcrumbs renders the shared detail-page trail: catalog
+// landing page, then the active resource.
+templ eventCatalogBreadcrumbs(docsPath, name string) {
+	@navigation.Breadcrumbs(navigation.BreadcrumbsProps{
+		Items: []navigation.BreadcrumbItem{
+			{Text: eventCatalogTitle, Href: eventCatalogHref(docsPath)},
+			{Text: name, Active: true},
+		},
+	})
 }
 
 // catalogSection is the shared h2 spacing helper for event catalog pages.
