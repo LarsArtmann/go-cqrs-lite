@@ -1,7 +1,7 @@
 {
   "version": "1.0",
   "threshold": 3,
-  "recordedAt": "2026-10-01T03:33:36.1505265Z",
+  "recordedAt": "2026-10-10T09:56:12.381031897Z",
   "entries": [
     {
       "hash": "009086edf885236e",
@@ -12,12 +12,52 @@
       "tokens": 8
     },
     {
+      "hash": "015c2bd0db74ac28",
+      "files": [
+        "core/v5/event/store_middleware_streaming.go",
+        "event/store_middleware_streaming.go"
+      ],
+      "tokens": 40
+    },
+    {
+      "hash": "02191964def70c0d",
+      "files": [
+        "core/v5/query/dispatcher.go",
+        "query/dispatcher.go"
+      ],
+      "tokens": 44
+    },
+    {
+      "hash": "03122f1e4dd56600",
+      "files": [
+        "metaengine/sqliteengine/engine.go",
+        "metaengine/duckdbengine/scan.go"
+      ],
+      "tokens": 6
+    },
+    {
       "hash": "032b8fc3d1f3df36",
       "files": [
         "stack/mysql/preset.go",
         "stack/sqlite/preset.go"
       ],
       "tokens": 10
+    },
+    {
+      "hash": "03ba05299ff1ca71",
+      "files": [
+        "core/v5/event/streaming_source.go",
+        "event/streaming_source.go"
+      ],
+      "tokens": 24
+    },
+    {
+      "hash": "03ea1b001ac2eaf4",
+      "files": [
+        "core/v5/event/asrecord_test.go",
+        "event/asrecord_test.go"
+      ],
+      "tokens": 102
     },
     {
       "hash": "042a25ea73339942",
@@ -45,12 +85,36 @@
       "tokens": 12
     },
     {
+      "hash": "068e51e604d35ace",
+      "files": [
+        "core/v5/query/asrecord.go",
+        "query/asrecord.go"
+      ],
+      "tokens": 12
+    },
+    {
       "hash": "07e8f07193114fb3",
       "files": [
         "metaengine/infer_composite.go",
         "metaengine/infer_composite.go"
       ],
       "tokens": 6
+    },
+    {
+      "hash": "08ed7c794df17d17",
+      "files": [
+        "core/v5/event/single_test.go",
+        "event/single_test.go"
+      ],
+      "tokens": 38
+    },
+    {
+      "hash": "09936feead93c9e1",
+      "files": [
+        "core/v5/event/journal_middleware.go",
+        "event/journal_middleware.go"
+      ],
+      "tokens": 54
     },
     {
       "hash": "0b44a915c5714261",
@@ -93,12 +157,28 @@
       "tokens": 10
     },
     {
+      "hash": "0e496738952a2260",
+      "files": [
+        "core/v5/id/actor_id.go",
+        "id/actor_id.go"
+      ],
+      "tokens": 78
+    },
+    {
       "hash": "0ec542208b4155a6",
       "files": [
         "storage/pebble/command_store.go",
         "storage/bbolt/store.go"
       ],
       "tokens": 6
+    },
+    {
+      "hash": "0f8bff2f8966cbce",
+      "files": [
+        "core/v5/event/time_types.go",
+        "event/time_types.go"
+      ],
+      "tokens": 122
     },
     {
       "hash": "0fcf37a60ece6092",
@@ -109,12 +189,60 @@
       "tokens": 6
     },
     {
+      "hash": "11967e662658c756",
+      "files": [
+        "core/v5/event/slice_test.go",
+        "event/slice_test.go"
+      ],
+      "tokens": 76
+    },
+    {
+      "hash": "1613ba5dcac002d9",
+      "files": [
+        "core/v5/event/time_types_test.go",
+        "event/time_types_test.go"
+      ],
+      "tokens": 230
+    },
+    {
       "hash": "16832264843018ae",
       "files": [
         "metaengine/pgengine/engine.go",
         "metaengine/duckdbengine/engine.go"
       ],
       "tokens": 6
+    },
+    {
+      "hash": "1749cb06b7f27f85",
+      "files": [
+        "core/v5/id/aggregate_type.go",
+        "id/aggregate_type.go"
+      ],
+      "tokens": 10
+    },
+    {
+      "hash": "188ec6c8c1ed5504",
+      "files": [
+        "core/v5/id/actor_id_binary.go",
+        "id/actor_id_binary.go"
+      ],
+      "tokens": 12
+    },
+    {
+      "hash": "1894c989bfb5281c",
+      "files": [
+        "core/v5/metadata/ids.go",
+        "metadata/ids.go"
+      ],
+      "tokens": 8
+    },
+    {
+      "hash": "190ff70a3e81db69",
+      "files": [
+        "core/v5/query/query.go",
+        "query/query.go"
+      ],
+      "tokens": 46
     },
     {
       "hash": "1a4be02ccfb9b642",
@@ -135,18 +263,42 @@
       "tokens": 33
     },
     {
-      "hash": "1aacd504be9c3da7",
+      "hash": "1a9dce1b2aceaef4",
       "files": [
-        "kv/mem.go",
-        "metaengine/irohengine/transport.go"
+        "core/v5/id/id_convenience_test.go",
+        "id/id_convenience_test.go"
       ],
-      "tokens": 6
+      "tokens": 138
+    },
+    {
+      "hash": "1cc19ba27b7cdbd1",
+      "files": [
+        "core/v5/query/querytest/querytest.go",
+        "query/querytest/querytest.go"
+      ],
+      "tokens": 8
     },
     {
       "hash": "1d2b2aac342600b9",
       "files": [
         "metaengine/pebbleengine/vector.go",
         "metaengine/badgerengine/vector.go"
+      ],
+      "tokens": 6
+    },
+    {
+      "hash": "1d5502882eaaae7d",
+      "files": [
+        "core/v5/dedup/ring_test.go",
+        "dedup/ring_test.go"
+      ],
+      "tokens": 144
+    },
+    {
+      "hash": "1e0a4ac4b5570d91",
+      "files": [
+        "catalog/docserver/specview.templ",
+        "catalog/docserver/specview.templ"
       ],
       "tokens": 6
     },
@@ -165,6 +317,14 @@
         "metaengine/claimkit/dedup.go"
       ],
       "tokens": 8
+    },
+    {
+      "hash": "21cd60282ea3386c",
+      "files": [
+        "core/v5/event/clock_test.go",
+        "event/clock_test.go"
+      ],
+      "tokens": 70
     },
     {
       "hash": "21f4c90759b2face",
@@ -189,6 +349,22 @@
         "queue/postgres/engine.go"
       ],
       "tokens": 14
+    },
+    {
+      "hash": "23ab8ef8b0a9cd05",
+      "files": [
+        "core/v5/kv/mem_test.go",
+        "kv/mem_test.go"
+      ],
+      "tokens": 180
+    },
+    {
+      "hash": "23c3bd106ad8b4dc",
+      "files": [
+        "core/v5/kv/property_test.go",
+        "kv/property_test.go"
+      ],
+      "tokens": 32
     },
     {
       "hash": "244b850924a62e68",
@@ -224,6 +400,31 @@
       "tokens": 6
     },
     {
+      "hash": "25e2227c4e60e4d1",
+      "files": [
+        "core/v5/id/idtest/idtest.go",
+        "id/idtest/idtest.go"
+      ],
+      "tokens": 36
+    },
+    {
+      "hash": "2622108235099308",
+      "files": [
+        "core/v5/id/stream_id_laws_test.go",
+        "id/stream_id_laws_test.go"
+      ],
+      "tokens": 30
+    },
+    {
+      "hash": "264ccc752c28cdac",
+      "files": [
+        "metaengine/mysqlengine/planned_scan.go",
+        "metaengine/pgengine/planned_scan.go",
+        "metaengine/sqliteengine/planned.go"
+      ],
+      "tokens": 18
+    },
+    {
       "hash": "27ebdb42a123b9cf",
       "files": [
         "metaengine/pebbleengine/scan_count.go",
@@ -240,12 +441,44 @@
       "tokens": 8
     },
     {
+      "hash": "2a9fcc79b59d0d6d",
+      "files": [
+        "core/v5/query/audit.go",
+        "query/audit.go"
+      ],
+      "tokens": 28
+    },
+    {
       "hash": "2ab96772b9fe5d45",
       "files": [
         "metaengine/bboltengine/engine.go",
         "metaengine/badgerengine/engine.go"
       ],
       "tokens": 38
+    },
+    {
+      "hash": "2b6e9fe1fd31c183",
+      "files": [
+        "core/v5/record/type.go",
+        "record/type.go"
+      ],
+      "tokens": 10
+    },
+    {
+      "hash": "2ba17f12fb206a45",
+      "files": [
+        "metaengine/pgengine/planned_scan.go",
+        "metaengine/mysqlengine/planned_scan.go"
+      ],
+      "tokens": 14
+    },
+    {
+      "hash": "2cea23586aa05bda",
+      "files": [
+        "core/v5/event/reconstruct.go",
+        "event/reconstruct.go"
+      ],
+      "tokens": 34
     },
     {
       "hash": "2d55e5a876093c25",
@@ -281,6 +514,38 @@
       "tokens": 6
     },
     {
+      "hash": "2f84a934ead0d78e",
+      "files": [
+        "core/v5/event/causality_test.go",
+        "event/causality_test.go"
+      ],
+      "tokens": 122
+    },
+    {
+      "hash": "30a883fc646f8e2e",
+      "files": [
+        "core/v5/id/request_id.go",
+        "id/request_id.go"
+      ],
+      "tokens": 8
+    },
+    {
+      "hash": "30d27a712e0f7caa",
+      "files": [
+        "core/v5/query/typed.go",
+        "query/typed.go"
+      ],
+      "tokens": 38
+    },
+    {
+      "hash": "3110f161ff5b17d7",
+      "files": [
+        "core/v5/event/event_construct.go",
+        "event/event_construct.go"
+      ],
+      "tokens": 24
+    },
+    {
       "hash": "36139d78dff8732f",
       "files": [
         "metaengine/memory_graph.go",
@@ -305,12 +570,28 @@
       "tokens": 12
     },
     {
+      "hash": "397138cedd448ab1",
+      "files": [
+        "command/errors_test.go",
+        "core/v5/command/errors_test.go"
+      ],
+      "tokens": 34
+    },
+    {
       "hash": "397eadeda877f12e",
       "files": [
         "projectionhost/worker.go",
         "projectionhost/worker_falsesharing_bench_test.go"
       ],
       "tokens": 8
+    },
+    {
+      "hash": "3a61f0add4d5ed49",
+      "files": [
+        "metaengine/pgengine/pushdown.go",
+        "metaengine/duckdbengine/pushdown.go"
+      ],
+      "tokens": 6
     },
     {
       "hash": "3a8477484cfe9ca4",
@@ -327,6 +608,22 @@
         "watermill/command_subscriber_adapter.go"
       ],
       "tokens": 6
+    },
+    {
+      "hash": "3bd04b03ead708c8",
+      "files": [
+        "core/v5/event/options.go",
+        "event/options.go"
+      ],
+      "tokens": 62
+    },
+    {
+      "hash": "3c8f66023267f0be",
+      "files": [
+        "core/v5/id/command_id.go",
+        "id/command_id.go"
+      ],
+      "tokens": 24
     },
     {
       "hash": "3e2a79d7e9a98e14",
@@ -349,12 +646,68 @@
       "tokens": 8
     },
     {
-      "hash": "41e4cd9c93992bef",
+      "hash": "3ed8149bfb08c9aa",
       "files": [
-        "record/actor.go",
-        "id/actor_id.go"
+        "command/commandtest/store_suite.go",
+        "core/v5/command/commandtest/store_suite.go"
       ],
-      "tokens": 10
+      "tokens": 160
+    },
+    {
+      "hash": "402d69e69c54eeea",
+      "files": [
+        "core/v5/event/reconstruct_adopt_test.go",
+        "event/reconstruct_adopt_test.go"
+      ],
+      "tokens": 46
+    },
+    {
+      "hash": "4030ded37e8c92cd",
+      "files": [
+        "core/v5/event/store_middleware_streaming_test.go",
+        "event/store_middleware_streaming_test.go"
+      ],
+      "tokens": 92
+    },
+    {
+      "hash": "404f95f95699786d",
+      "files": [
+        "core/v5/id/actor_id_json.go",
+        "id/actor_id_json.go"
+      ],
+      "tokens": 16
+    },
+    {
+      "hash": "40bac4e0c78a46d9",
+      "files": [
+        "core/v5/query/pagination.go",
+        "query/pagination.go"
+      ],
+      "tokens": 40
+    },
+    {
+      "hash": "413071e047bf5d89",
+      "files": [
+        "core/v5/event/bus.go",
+        "event/bus.go"
+      ],
+      "tokens": 16
+    },
+    {
+      "hash": "42496bf10141f6ec",
+      "files": [
+        "command/metadata_test.go",
+        "core/v5/command/metadata_test.go"
+      ],
+      "tokens": 158
+    },
+    {
+      "hash": "42717cbc83569cc9",
+      "files": [
+        "core/v5/id/event_id.go",
+        "id/event_id.go"
+      ],
+      "tokens": 8
     },
     {
       "hash": "42b57bad6267d9ad",
@@ -365,20 +718,20 @@
       "tokens": 6
     },
     {
-      "hash": "441abbc8af60eb16",
+      "hash": "4339492c644932ce",
       "files": [
-        "metaengine/sqliteengine/engine.go",
-        "metaengine/dgraphengine/scan.go"
+        "core/v5/dedup/ring_bench_test.go",
+        "dedup/ring_bench_test.go"
       ],
-      "tokens": 12
+      "tokens": 30
     },
     {
-      "hash": "4540881f22df307d",
+      "hash": "44b267d5c0c583aa",
       "files": [
-        "metaengine/sqliteengine/raw_reader.go",
-        "metaengine/duckdbengine/layout_planner.go"
+        "core/v5/id/stream_type.go",
+        "id/stream_type.go"
       ],
-      "tokens": 8
+      "tokens": 30
     },
     {
       "hash": "4586acab7888854d",
@@ -405,20 +758,20 @@
       "tokens": 6
     },
     {
+      "hash": "45f7ea2c7b5797e1",
+      "files": [
+        "command/store_test.go",
+        "core/v5/command/store_test.go"
+      ],
+      "tokens": 224
+    },
+    {
       "hash": "46503131ba91aab1",
       "files": [
         "claiming/claiming.go",
         "idempotency/sqlstore/store.go"
       ],
       "tokens": 8
-    },
-    {
-      "hash": "46fd1c5dd8aae744",
-      "files": [
-        "watermill/event_bus.go",
-        "watermill/command_bus.go"
-      ],
-      "tokens": 6
     },
     {
       "hash": "48a491da089ca28f",
@@ -453,6 +806,30 @@
       "tokens": 8
     },
     {
+      "hash": "4c5b65be7b8724a6",
+      "files": [
+        "core/v5/query/store_test.go",
+        "query/store_test.go"
+      ],
+      "tokens": 100
+    },
+    {
+      "hash": "4ccc19f5c91bbe56",
+      "files": [
+        "core/v5/id/client_id.go",
+        "id/client_id.go"
+      ],
+      "tokens": 8
+    },
+    {
+      "hash": "4dfceff23051763d",
+      "files": [
+        "core/v5/event/customdata_test.go",
+        "event/customdata_test.go"
+      ],
+      "tokens": 110
+    },
+    {
       "hash": "4ee782da7bbcaa01",
       "files": [
         "metaengine/keycodec/keycodec.go",
@@ -461,12 +838,60 @@
       "tokens": 6
     },
     {
+      "hash": "50f9845b61449689",
+      "files": [
+        "metaengine/pgengine/scan.go",
+        "metaengine/mysqlengine/scan.go"
+      ],
+      "tokens": 18
+    },
+    {
       "hash": "53013234388e5ba8",
       "files": [
         "metaengine/mysqlengine/explain.go",
         "metaengine/pgengine/explain.go"
       ],
       "tokens": 10
+    },
+    {
+      "hash": "542852ac0cbe9931",
+      "files": [
+        "core/v5/metadata/metadata_test.go",
+        "metadata/metadata_test.go"
+      ],
+      "tokens": 106
+    },
+    {
+      "hash": "54e3b256fce51ebf",
+      "files": [
+        "core/v5/kv/cache_test.go",
+        "kv/cache_test.go"
+      ],
+      "tokens": 258
+    },
+    {
+      "hash": "553da6a674ff5766",
+      "files": [
+        "core/v5/event/extract.go",
+        "event/extract.go"
+      ],
+      "tokens": 20
+    },
+    {
+      "hash": "555f8b19c988ec48",
+      "files": [
+        "catalog/eventcatalog/exporter_coeffects.go",
+        "metaengine/planned_filter.go"
+      ],
+      "tokens": 6
+    },
+    {
+      "hash": "55c760f14678a1d0",
+      "files": [
+        "command/command.go",
+        "core/v5/command/command.go"
+      ],
+      "tokens": 30
     },
     {
       "hash": "55cd073a14a07f34",
@@ -509,6 +934,30 @@
       "tokens": 14
     },
     {
+      "hash": "57f8c6c46e09ea03",
+      "files": [
+        "metaengine/sqliteengine/backends.go",
+        "metaengine/sqliteengine/raw_reader.go"
+      ],
+      "tokens": 6
+    },
+    {
+      "hash": "5837ca8eb36ec768",
+      "files": [
+        "core/v5/record/actor.go",
+        "record/actor.go"
+      ],
+      "tokens": 24
+    },
+    {
+      "hash": "58384a94631e9eb3",
+      "files": [
+        "watermill/event_bus.go",
+        "watermill/command_bus.go"
+      ],
+      "tokens": 8
+    },
+    {
       "hash": "58a901a135ab0c32",
       "files": [
         "metaengine/mysqlengine/planned.go",
@@ -525,6 +974,14 @@
       "tokens": 28
     },
     {
+      "hash": "59541bfbd054c5c0",
+      "files": [
+        "systemscenario/chaos.go",
+        "systemscenario/chaos.go"
+      ],
+      "tokens": 6
+    },
+    {
       "hash": "5a2a337706e35490",
       "files": [
         "metaengine/mysqlengine/transaction.go",
@@ -532,6 +989,30 @@
         "metaengine/pgengine/transaction.go"
       ],
       "tokens": 27
+    },
+    {
+      "hash": "5b29fef02bd583b1",
+      "files": [
+        "core/v5/event/date_test.go",
+        "event/date_test.go"
+      ],
+      "tokens": 134
+    },
+    {
+      "hash": "5c37c6b4b732d134",
+      "files": [
+        "command/asrecord_persisted_test.go",
+        "core/v5/command/asrecord_persisted_test.go"
+      ],
+      "tokens": 82
+    },
+    {
+      "hash": "5c6e0f33ce4ff2b2",
+      "files": [
+        "core/v5/event/store_middleware_test.go",
+        "event/store_middleware_test.go"
+      ],
+      "tokens": 198
     },
     {
       "hash": "5c92cd485f79d9d6",
@@ -543,20 +1024,28 @@
       "tokens": 21
     },
     {
-      "hash": "5c984ff129a82e2c",
+      "hash": "5f8e87370778dd6c",
       "files": [
-        "metaengine/irohengine/transport.go",
-        "dispatcher/lifecycle.go"
+        "core/v5/metadata/metadata.go",
+        "metadata/metadata.go"
       ],
-      "tokens": 8
+      "tokens": 46
     },
     {
-      "hash": "5f2d6a48c8fdd281",
+      "hash": "5fb8217d67ff847a",
       "files": [
-        "command/asrecord.go",
-        "query/asrecord.go"
+        "core/v5/record/record_test.go",
+        "record/record_test.go"
       ],
-      "tokens": 10
+      "tokens": 106
+    },
+    {
+      "hash": "5ff948688fe85739",
+      "files": [
+        "core/v5/event/causality.go",
+        "event/causality.go"
+      ],
+      "tokens": 20
     },
     {
       "hash": "6001afe42ae46494",
@@ -570,22 +1059,20 @@
       "tokens": 15
     },
     {
+      "hash": "60b743f87624d374",
+      "files": [
+        "core/v5/id/aggregate_id.go",
+        "id/aggregate_id.go"
+      ],
+      "tokens": 18
+    },
+    {
       "hash": "60d2d1dea94ee8be",
       "files": [
         "metaengine/pgengine/planned.go",
         "metaengine/mysqlengine/planned.go"
       ],
       "tokens": 6
-    },
-    {
-      "hash": "60e10f4bd2b4da68",
-      "files": [
-        "catalog/docserver/eventcatalogview.templ",
-        "catalog/docserver/eventcatalogview.templ",
-        "catalog/docserver/eventcatalogview.templ",
-        "catalog/docserver/eventcatalogview.templ"
-      ],
-      "tokens": 12
     },
     {
       "hash": "611df615814f2018",
@@ -596,12 +1083,36 @@
       "tokens": 18
     },
     {
+      "hash": "616bd68ae3359f3a",
+      "files": [
+        "core/v5/id/parser_fuzz_test.go",
+        "id/parser_fuzz_test.go"
+      ],
+      "tokens": 78
+    },
+    {
+      "hash": "62664fa4587cc026",
+      "files": [
+        "watermill/event_bus.go",
+        "watermill/command_bus.go"
+      ],
+      "tokens": 6
+    },
+    {
       "hash": "63a9b6d34ee8f9fc",
       "files": [
         "metaengine/bboltengine/stream_log.go",
         "metaengine/badgerengine/stream_log.go"
       ],
       "tokens": 6
+    },
+    {
+      "hash": "6454ac6b72ae7cab",
+      "files": [
+        "core/v5/kv/mem_iterator_test.go",
+        "kv/mem_iterator_test.go"
+      ],
+      "tokens": 110
     },
     {
       "hash": "64b8b6d893007fea",
@@ -618,6 +1129,30 @@
         "queue/sqlite/facts.go"
       ],
       "tokens": 84
+    },
+    {
+      "hash": "657d843d4893ac7f",
+      "files": [
+        "core/v5/id/user_id.go",
+        "id/user_id.go"
+      ],
+      "tokens": 8
+    },
+    {
+      "hash": "66fcb9242ca65efd",
+      "files": [
+        "core/v5/event/tombstone_test.go",
+        "event/tombstone_test.go"
+      ],
+      "tokens": 120
+    },
+    {
+      "hash": "6751bcc663b1228c",
+      "files": [
+        "core/v5/event/parser_fuzz_test.go",
+        "event/parser_fuzz_test.go"
+      ],
+      "tokens": 132
     },
     {
       "hash": "67573e3215843799",
@@ -637,12 +1172,36 @@
       "tokens": 8
     },
     {
+      "hash": "6a92e71593d097a1",
+      "files": [
+        "core/v5/event/replay.go",
+        "event/replay.go"
+      ],
+      "tokens": 20
+    },
+    {
+      "hash": "6ad6e47a2130e64f",
+      "files": [
+        "command/memory_bus_test.go",
+        "core/v5/command/memory_bus_test.go"
+      ],
+      "tokens": 114
+    },
+    {
       "hash": "6ccdb39d8b792061",
       "files": [
         "testutil/mysqltestcontainer/mysqltestcontainer.go",
         "testutil/pgtestcontainer/pgtestcontainer.go"
       ],
       "tokens": 8
+    },
+    {
+      "hash": "6d86f589183d03db",
+      "files": [
+        "core/v5/event/enricher_test.go",
+        "event/enricher_test.go"
+      ],
+      "tokens": 56
     },
     {
       "hash": "6eaebf69ac6133c2",
@@ -653,6 +1212,46 @@
       "tokens": 10
     },
     {
+      "hash": "6ee60bae613eb88a",
+      "files": [
+        "command/aggregate_ref.go",
+        "core/v5/command/aggregate_ref.go"
+      ],
+      "tokens": 20
+    },
+    {
+      "hash": "6f478d2f07b18d7e",
+      "files": [
+        "core/v5/event/store_middleware.go",
+        "event/store_middleware.go"
+      ],
+      "tokens": 94
+    },
+    {
+      "hash": "7040ccebe5959f46",
+      "files": [
+        "core/v5/event/codec.go",
+        "event/codec.go"
+      ],
+      "tokens": 46
+    },
+    {
+      "hash": "712417c98f14117b",
+      "files": [
+        "command/typed_store.go",
+        "core/v5/command/typed_store.go"
+      ],
+      "tokens": 48
+    },
+    {
+      "hash": "7227f5b22aacdbdf",
+      "files": [
+        "core/v5/event/enricher.go",
+        "event/enricher.go"
+      ],
+      "tokens": 6
+    },
+    {
       "hash": "72476c388429335b",
       "files": [
         "storage/memory/checkpoint.go",
@@ -661,12 +1260,60 @@
       "tokens": 10
     },
     {
+      "hash": "731d3c7b58581240",
+      "files": [
+        "core/v5/id/compat_aliases_test.go",
+        "id/compat_aliases_test.go"
+      ],
+      "tokens": 60
+    },
+    {
+      "hash": "74bbb9c8c26d668b",
+      "files": [
+        "core/v5/id/causation_id.go",
+        "id/causation_id.go"
+      ],
+      "tokens": 8
+    },
+    {
+      "hash": "755439305b6edd83",
+      "files": [
+        "core/v5/event/benchmark_clone_test.go",
+        "event/benchmark_clone_test.go"
+      ],
+      "tokens": 40
+    },
+    {
+      "hash": "7591744f703c3acc",
+      "files": [
+        "core/v5/id/correlation_id.go",
+        "id/correlation_id.go"
+      ],
+      "tokens": 8
+    },
+    {
       "hash": "75dfba5f82da5c61",
       "files": [
         "metaengine/duckdbengine/engine.go",
         "metaengine/pgengine/engine.go"
       ],
       "tokens": 14
+    },
+    {
+      "hash": "76205137a30645a8",
+      "files": [
+        "core/v5/event/tombstone.go",
+        "event/tombstone.go"
+      ],
+      "tokens": 56
+    },
+    {
+      "hash": "769f25366434aafd",
+      "files": [
+        "core/v5/event/asrecord.go",
+        "event/asrecord.go"
+      ],
+      "tokens": 24
     },
     {
       "hash": "76d03c0c6ebbc805",
@@ -694,6 +1341,30 @@
       "tokens": 6
     },
     {
+      "hash": "79f41c978205de9a",
+      "files": [
+        "cmd/cqrs-lint/pkg/analyzer/feature_profile_stores.go",
+        "system/schema.go"
+      ],
+      "tokens": 6
+    },
+    {
+      "hash": "7a1ace8c80991be8",
+      "files": [
+        "core/v5/event/types.go",
+        "event/types.go"
+      ],
+      "tokens": 130
+    },
+    {
+      "hash": "7b0478b18fa72cd0",
+      "files": [
+        "core/v5/query/capability_test.go",
+        "query/capability_test.go"
+      ],
+      "tokens": 36
+    },
+    {
       "hash": "7b7306d73f9f9425",
       "files": [
         "metaengine/mysqlengine/engine.go",
@@ -702,12 +1373,12 @@
       "tokens": 14
     },
     {
-      "hash": "7d2cf7faf656f414",
+      "hash": "7cea905f1a97ddf1",
       "files": [
-        "metaengine/pgengine/planned_scan.go",
-        "metaengine/mysqlengine/planned_scan.go"
+        "core/v5/query/asrecord_test.go",
+        "query/asrecord_test.go"
       ],
-      "tokens": 8
+      "tokens": 100
     },
     {
       "hash": "7de0c395d2ff3bd4",
@@ -742,6 +1413,14 @@
       "tokens": 52
     },
     {
+      "hash": "7fdc35b9ef7d745c",
+      "files": [
+        "core/v5/event/checkpoint.go",
+        "event/checkpoint.go"
+      ],
+      "tokens": 12
+    },
+    {
       "hash": "8021644c7b9f813c",
       "files": [
         "metaengine/reflect.go",
@@ -750,12 +1429,28 @@
       "tokens": 6
     },
     {
+      "hash": "8061cec1a550d4d1",
+      "files": [
+        "core/v5/id/derive_test.go",
+        "id/derive_test.go"
+      ],
+      "tokens": 68
+    },
+    {
       "hash": "842181d148ad87d8",
       "files": [
         "queue/mysql/facts.go",
         "queue/sqlite/facttx.go"
       ],
       "tokens": 6
+    },
+    {
+      "hash": "850ef96b79b59b43",
+      "files": [
+        "core/v5/event/coverage_test.go",
+        "event/coverage_test.go"
+      ],
+      "tokens": 90
     },
     {
       "hash": "852f2f6a8aa256e4",
@@ -774,12 +1469,52 @@
       "tokens": 6
     },
     {
+      "hash": "85896c74f52480df",
+      "files": [
+        "core/v5/query/querytest/store_suite.go",
+        "query/querytest/store_suite.go"
+      ],
+      "tokens": 100
+    },
+    {
+      "hash": "85fd175952ada24d",
+      "files": [
+        "core/v5/id/id_core_test.go",
+        "id/id_core_test.go"
+      ],
+      "tokens": 100
+    },
+    {
       "hash": "87485b08cf1f68ba",
       "files": [
         "queue/mysql/details.go",
         "queue/sqlite/details.go"
       ],
       "tokens": 8
+    },
+    {
+      "hash": "88820c7fa92901f7",
+      "files": [
+        "command/benchmark_test.go",
+        "core/v5/command/benchmark_test.go"
+      ],
+      "tokens": 40
+    },
+    {
+      "hash": "892f5eef08da2eef",
+      "files": [
+        "core/v5/event/event.go",
+        "event/event.go"
+      ],
+      "tokens": 48
+    },
+    {
+      "hash": "8ac30df5c066f002",
+      "files": [
+        "core/v5/event/builder.go",
+        "event/builder.go"
+      ],
+      "tokens": 30
     },
     {
       "hash": "8b26e414587ec84d",
@@ -798,6 +1533,14 @@
       "tokens": 8
     },
     {
+      "hash": "8c5a2b9f7d9e72a3",
+      "files": [
+        "core/v5/event/tombstone_property_test.go",
+        "event/tombstone_property_test.go"
+      ],
+      "tokens": 40
+    },
+    {
       "hash": "8c6cb24d98625ba7",
       "files": [
         "metaengine/mysqlengine/planned.go",
@@ -812,6 +1555,30 @@
         "catalog/docserver/csp_browser_test.go"
       ],
       "tokens": 6
+    },
+    {
+      "hash": "8d5ab612eeb48227",
+      "files": [
+        "core/v5/query/benchmark_test.go",
+        "query/benchmark_test.go"
+      ],
+      "tokens": 56
+    },
+    {
+      "hash": "8dca663c6c68b623",
+      "files": [
+        "core/v5/record/encoding.go",
+        "record/encoding.go"
+      ],
+      "tokens": 14
+    },
+    {
+      "hash": "8f591e58d8502214",
+      "files": [
+        "core/v5/event/metadata_json.go",
+        "event/metadata_json.go"
+      ],
+      "tokens": 16
     },
     {
       "hash": "90d1189f2ce6c3ba",
@@ -831,6 +1598,14 @@
       "tokens": 21
     },
     {
+      "hash": "91c33517b5bb18e9",
+      "files": [
+        "core/v5/kv/mem_batch.go",
+        "kv/mem_batch.go"
+      ],
+      "tokens": 40
+    },
+    {
       "hash": "9385564dce1bd900",
       "files": [
         "queue/conformance/deps.go",
@@ -847,6 +1622,22 @@
       "tokens": 16
     },
     {
+      "hash": "9559498b9c488edf",
+      "files": [
+        "core/v5/kv/mem_batch_test.go",
+        "kv/mem_batch_test.go"
+      ],
+      "tokens": 70
+    },
+    {
+      "hash": "96923cb21e3bd27a",
+      "files": [
+        "core/v5/kv/mem.go",
+        "kv/mem.go"
+      ],
+      "tokens": 116
+    },
+    {
       "hash": "9869895f0ced7147",
       "files": [
         "metaengine/memory_graph.go",
@@ -855,12 +1646,44 @@
       "tokens": 6
     },
     {
+      "hash": "990cbb1b7a030b44",
+      "files": [
+        "core/v5/event/codec_test.go",
+        "event/codec_test.go"
+      ],
+      "tokens": 374
+    },
+    {
+      "hash": "998bd55896fe1a08",
+      "files": [
+        "core/v5/event/request_context.go",
+        "event/request_context.go"
+      ],
+      "tokens": 32
+    },
+    {
       "hash": "9adea5b5c2f731b7",
       "files": [
         "metaengine/sqliteengine/stream_log.go",
         "metaengine/sqliteengine/stream_log.go"
       ],
       "tokens": 6
+    },
+    {
+      "hash": "9b1f93409f47f6c1",
+      "files": [
+        "core/v5/dispatcher/dispatcher_test.go",
+        "dispatcher/dispatcher_test.go"
+      ],
+      "tokens": 304
+    },
+    {
+      "hash": "9b9887c3d58a0756",
+      "files": [
+        "command/asrecord.go",
+        "core/v5/command/asrecord.go"
+      ],
+      "tokens": 26
     },
     {
       "hash": "9bba267600d2bda3",
@@ -879,12 +1702,36 @@
       "tokens": 6
     },
     {
+      "hash": "9d372d29255405b8",
+      "files": [
+        "core/v5/dispatcher/benchmark_test.go",
+        "dispatcher/benchmark_test.go"
+      ],
+      "tokens": 42
+    },
+    {
+      "hash": "9dfc8987f861bb3e",
+      "files": [
+        "core/v5/event/types_test.go",
+        "event/types_test.go"
+      ],
+      "tokens": 58
+    },
+    {
       "hash": "9e97a74fe6d04a95",
       "files": [
         "queue/sqlite/open.go",
         "queue/mysql/open.go"
       ],
       "tokens": 18
+    },
+    {
+      "hash": "9f66ca26368fd802",
+      "files": [
+        "core/v5/id/benchmark_test.go",
+        "id/benchmark_test.go"
+      ],
+      "tokens": 36
     },
     {
       "hash": "9f744adefd469ebd",
@@ -896,12 +1743,44 @@
       "tokens": 21
     },
     {
-      "hash": "a2caedbb78cb3a29",
+      "hash": "9fccdff232b49b91",
       "files": [
-        "metaengine/mysqlengine/evolve.go",
-        "metaengine/pgengine/evolve.go"
+        "core/v5/dispatcher/lifecycle.go",
+        "dispatcher/lifecycle.go"
       ],
-      "tokens": 8
+      "tokens": 24
+    },
+    {
+      "hash": "a030cb6f25bf9617",
+      "files": [
+        "core/v5/event/metadata_cbor_test.go",
+        "event/metadata_cbor_test.go"
+      ],
+      "tokens": 44
+    },
+    {
+      "hash": "a4adb0d5ad57dd36",
+      "files": [
+        "core/v5/dispatcher/dispatcher.go",
+        "dispatcher/dispatcher.go"
+      ],
+      "tokens": 88
+    },
+    {
+      "hash": "a4ec09c5c772307c",
+      "files": [
+        "core/v5/event/allocs_test.go",
+        "event/allocs_test.go"
+      ],
+      "tokens": 48
+    },
+    {
+      "hash": "a4f2814397377a50",
+      "files": [
+        "command/bus.go",
+        "core/v5/command/bus.go"
+      ],
+      "tokens": 12
     },
     {
       "hash": "a60dfacda2ab4bf7",
@@ -912,12 +1791,68 @@
       "tokens": 10
     },
     {
+      "hash": "a62956c95540fdd0",
+      "files": [
+        "core/v5/event/request_context_test.go",
+        "event/request_context_test.go"
+      ],
+      "tokens": 88
+    },
+    {
+      "hash": "a7d1647a4595634b",
+      "files": [
+        "core/v5/id/id.go",
+        "id/id.go"
+      ],
+      "tokens": 18
+    },
+    {
+      "hash": "a7d578eb9ec0cfc2",
+      "files": [
+        "core/v5/event/event_new.go",
+        "event/event_new.go"
+      ],
+      "tokens": 24
+    },
+    {
       "hash": "a8123765a63ec91b",
       "files": [
         "transport/http/sse.go",
         "transport/grpc/event_server.go"
       ],
       "tokens": 6
+    },
+    {
+      "hash": "a86564e88416418b",
+      "files": [
+        "core/v5/event/v3_compat_aliases.go",
+        "event/v3_compat_aliases.go"
+      ],
+      "tokens": 16
+    },
+    {
+      "hash": "a8f9b98ad7d5b5fa",
+      "files": [
+        "core/v5/metadata/record_actor.go",
+        "metadata/record_actor.go"
+      ],
+      "tokens": 8
+    },
+    {
+      "hash": "a914908e94c999fc",
+      "files": [
+        "core/v5/kv/typed_options.go",
+        "kv/typed_options.go"
+      ],
+      "tokens": 10
+    },
+    {
+      "hash": "aa7961c7c2da367e",
+      "files": [
+        "core/v5/query/audit_test.go",
+        "query/audit_test.go"
+      ],
+      "tokens": 100
     },
     {
       "hash": "abac19a31b86e50b",
@@ -928,6 +1863,30 @@
         "storage/bbolt/stream_test.go"
       ],
       "tokens": 32
+    },
+    {
+      "hash": "ac447283cb824585",
+      "files": [
+        "core/v5/query/errors.go",
+        "query/errors.go"
+      ],
+      "tokens": 14
+    },
+    {
+      "hash": "ac5737534ed8d974",
+      "files": [
+        "core/v5/id/stream_id.go",
+        "id/stream_id.go"
+      ],
+      "tokens": 42
+    },
+    {
+      "hash": "ac8ae7b5db1847ee",
+      "files": [
+        "core/v5/query/capability.go",
+        "query/capability.go"
+      ],
+      "tokens": 6
     },
     {
       "hash": "ac9800b5bba7aa54",
@@ -946,6 +1905,14 @@
       "tokens": 6
     },
     {
+      "hash": "ad4aee9a3d73b39f",
+      "files": [
+        "command/typed_test.go",
+        "core/v5/command/typed_test.go"
+      ],
+      "tokens": 60
+    },
+    {
       "hash": "ae4a3e9bbedda033",
       "files": [
         "metaengine/memory_stream_log.go",
@@ -962,12 +1929,52 @@
       "tokens": 10
     },
     {
+      "hash": "b0441063c8312d8f",
+      "files": [
+        "core/v5/kv/benchmark_test.go",
+        "kv/benchmark_test.go"
+      ],
+      "tokens": 106
+    },
+    {
+      "hash": "b077436cde3467ab",
+      "files": [
+        "core/v5/id/derive.go",
+        "id/derive.go"
+      ],
+      "tokens": 8
+    },
+    {
+      "hash": "b0a9c5618f925efb",
+      "files": [
+        "command/asrecord_test.go",
+        "core/v5/command/asrecord_test.go"
+      ],
+      "tokens": 96
+    },
+    {
       "hash": "b0d0bd735a5e0ba3",
       "files": [
         "metaengine/bboltengine/stream_log.go",
         "metaengine/badgerengine/stream_log.go"
       ],
       "tokens": 14
+    },
+    {
+      "hash": "b14815659c7085d3",
+      "files": [
+        "core/v5/record/stamp_test.go",
+        "record/stamp_test.go"
+      ],
+      "tokens": 42
+    },
+    {
+      "hash": "b258279a2b7f9ee4",
+      "files": [
+        "core/v5/id/entropy.go",
+        "id/entropy.go"
+      ],
+      "tokens": 34
     },
     {
       "hash": "b3ab79107935f177",
@@ -1003,12 +2010,44 @@
       "tokens": 8
     },
     {
+      "hash": "b6be78e810de96b1",
+      "files": [
+        "command/dispatcher_test.go",
+        "core/v5/command/dispatcher_test.go"
+      ],
+      "tokens": 162
+    },
+    {
       "hash": "b6e23d0869499053",
       "files": [
         "metaengine/dgraphengine/engine.go",
         "metaengine/dgraphengine/vector.go"
       ],
       "tokens": 6
+    },
+    {
+      "hash": "b7243ce7e4107e96",
+      "files": [
+        "core/v5/event/errors.go",
+        "event/errors.go"
+      ],
+      "tokens": 62
+    },
+    {
+      "hash": "b75f4710c9fea64d",
+      "files": [
+        "core/v5/kv/kv.go",
+        "kv/kv.go"
+      ],
+      "tokens": 12
+    },
+    {
+      "hash": "b859733019de3552",
+      "files": [
+        "core/v5/id/actor_id_test.go",
+        "id/actor_id_test.go"
+      ],
+      "tokens": 150
     },
     {
       "hash": "b85afc6bfb111108",
@@ -1039,10 +2078,9 @@
       "files": [
         "cmd/api-stability/main.go",
         "cmd/doc-check/main.go",
-        "cmd/cqrs-gen/main.go",
         "cmd/cqrs-lint/main.go"
       ],
-      "tokens": 12
+      "tokens": 9
     },
     {
       "hash": "b9ba62fc086c4089",
@@ -1061,12 +2099,84 @@
       "tokens": 6
     },
     {
+      "hash": "ba855b213b5fb092",
+      "files": [
+        "core/v5/event/metadata.go",
+        "event/metadata.go"
+      ],
+      "tokens": 44
+    },
+    {
       "hash": "bc7bfa9b4ee3fa0a",
       "files": [
         "queue/mysql/cancel.go",
         "queue/sqlite/cancel.go"
       ],
       "tokens": 52
+    },
+    {
+      "hash": "bd3604f6edeff55a",
+      "files": [
+        "core/v5/kv/cache.go",
+        "kv/cache.go"
+      ],
+      "tokens": 102
+    },
+    {
+      "hash": "bd6b4dc93ca8e825",
+      "files": [
+        "core/v5/record/cause_test.go",
+        "record/cause_test.go"
+      ],
+      "tokens": 32
+    },
+    {
+      "hash": "bd80a6d8df607ba6",
+      "files": [
+        "core/v5/id/aggregate_id_test.go",
+        "id/aggregate_id_test.go"
+      ],
+      "tokens": 72
+    },
+    {
+      "hash": "be5345eb40dcd257",
+      "files": [
+        "core/v5/event/single.go",
+        "event/single.go"
+      ],
+      "tokens": 6
+    },
+    {
+      "hash": "bfa6365feca85c1c",
+      "files": [
+        "core/v5/record/cause.go",
+        "record/cause.go"
+      ],
+      "tokens": 22
+    },
+    {
+      "hash": "bfae4d2af25a710b",
+      "files": [
+        "metaengine/duckdbengine/pushdown.go",
+        "metaengine/mysqlengine/pushdown.go"
+      ],
+      "tokens": 12
+    },
+    {
+      "hash": "c07f935452823bae",
+      "files": [
+        "core/v5/event/batch.go",
+        "event/batch.go"
+      ],
+      "tokens": 10
+    },
+    {
+      "hash": "c0cc45d6bed5f152",
+      "files": [
+        "watermill/command_bus.go",
+        "watermill/event_bus.go"
+      ],
+      "tokens": 18
     },
     {
       "hash": "c17c3013f61ac59c",
@@ -1085,12 +2195,28 @@
       "tokens": 6
     },
     {
+      "hash": "c2d51c34757f6844",
+      "files": [
+        "core/v5/query/dispatcher_test.go",
+        "query/dispatcher_test.go"
+      ],
+      "tokens": 248
+    },
+    {
       "hash": "c3e4038c86d3ea73",
       "files": [
         "example/metaengine-quickstart/vector_demo.go",
         "example/metaengine-quickstart/graph_demo.go"
       ],
       "tokens": 6
+    },
+    {
+      "hash": "c5530c04f787cac2",
+      "files": [
+        "command/errors.go",
+        "core/v5/command/errors.go"
+      ],
+      "tokens": 22
     },
     {
       "hash": "c561d72aff9bf30f",
@@ -1109,6 +2235,38 @@
       "tokens": 12
     },
     {
+      "hash": "c8eb0ad0db474a7a",
+      "files": [
+        "command/metadata.go",
+        "core/v5/command/metadata.go"
+      ],
+      "tokens": 20
+    },
+    {
+      "hash": "c933c2086bac8177",
+      "files": [
+        "core/v5/event/store.go",
+        "event/store.go"
+      ],
+      "tokens": 18
+    },
+    {
+      "hash": "ca00d6d8d9d73dcc",
+      "files": [
+        "core/v5/event/slice.go",
+        "event/slice.go"
+      ],
+      "tokens": 14
+    },
+    {
+      "hash": "cb3e0feda44a5cb2",
+      "files": [
+        "core/v5/dispatcher/errors.go",
+        "dispatcher/errors.go"
+      ],
+      "tokens": 6
+    },
+    {
       "hash": "cc76f27bfc67f5db",
       "files": [
         "system/adapter_command_serial.go",
@@ -1125,20 +2283,20 @@
       "tokens": 8
     },
     {
-      "hash": "ce5ee2fb1bbe5055",
+      "hash": "cd27e35c035d1759",
       "files": [
-        "metaengine/pgengine/scan.go",
-        "metaengine/mysqlengine/scan.go"
+        "core/v5/event/event_validate.go",
+        "event/event_validate.go"
       ],
-      "tokens": 30
+      "tokens": 10
     },
     {
-      "hash": "cf5714a585e7fa25",
+      "hash": "ceef5722e9ac1790",
       "files": [
-        "metaengine/mysqlengine/pushdown.go",
-        "metaengine/pgengine/pushdown.go"
+        "core/v5/kv/viewstoretest/contract.go",
+        "kv/viewstoretest/contract.go"
       ],
-      "tokens": 8
+      "tokens": 32
     },
     {
       "hash": "cfe7d0814fdd9e0a",
@@ -1176,6 +2334,14 @@
       "tokens": 8
     },
     {
+      "hash": "d3751d067755906f",
+      "files": [
+        "core/v5/event/actor_context.go",
+        "event/actor_context.go"
+      ],
+      "tokens": 16
+    },
+    {
       "hash": "d522dea9b75da756",
       "files": [
         "queue/conformance/claims.go",
@@ -1203,6 +2369,14 @@
       "tokens": 52
     },
     {
+      "hash": "d6956b69ea7cd8d3",
+      "files": [
+        "command/memory_bus.go",
+        "core/v5/command/memory_bus.go"
+      ],
+      "tokens": 64
+    },
+    {
       "hash": "d6edbeec7016657d",
       "files": [
         "queue/sqlite/claim.go",
@@ -1219,12 +2393,44 @@
       "tokens": 6
     },
     {
+      "hash": "d817395fce06c8b7",
+      "files": [
+        "core/v5/query/pagination_test.go",
+        "query/pagination_test.go"
+      ],
+      "tokens": 50
+    },
+    {
+      "hash": "d90796b60532d4d1",
+      "files": [
+        "core/v5/query/metadata_test.go",
+        "query/metadata_test.go"
+      ],
+      "tokens": 72
+    },
+    {
       "hash": "d92ef0b07ae5fba5",
       "files": [
         "system/introspection_extended.go",
         "system/introspection_extended.go"
       ],
       "tokens": 6
+    },
+    {
+      "hash": "d95f6bde61b7d8cf",
+      "files": [
+        "metaengine/mysqlengine/pushdown.go",
+        "metaengine/pgengine/pushdown.go"
+      ],
+      "tokens": 14
+    },
+    {
+      "hash": "daa883a28eda72d8",
+      "files": [
+        "core/v5/record/record.go",
+        "record/record.go"
+      ],
+      "tokens": 32
     },
     {
       "hash": "db0148424217cf51",
@@ -1235,12 +2441,20 @@
       "tokens": 6
     },
     {
-      "hash": "dca0f46e7ce3f399",
+      "hash": "dbe55260d5fd9570",
       "files": [
-        "command/commandtest/store_suite.go",
-        "event/v4/eventtest/fake_store_test.go"
+        "core/v5/event/compat_aliases_test.go",
+        "event/compat_aliases_test.go"
       ],
-      "tokens": 8
+      "tokens": 40
+    },
+    {
+      "hash": "dd42d3fb7942c835",
+      "files": [
+        "core/v5/event/actor_context_test.go",
+        "event/actor_context_test.go"
+      ],
+      "tokens": 36
     },
     {
       "hash": "de5870fd36520747",
@@ -1249,6 +2463,22 @@
         "queue/postgres/facts.go"
       ],
       "tokens": 18
+    },
+    {
+      "hash": "dfed3b984517af82",
+      "files": [
+        "core/v5/metadata/record_actor_test.go",
+        "metadata/record_actor_test.go"
+      ],
+      "tokens": 42
+    },
+    {
+      "hash": "e07078dc2c7384dd",
+      "files": [
+        "core/v5/kv/view_store.go",
+        "kv/view_store.go"
+      ],
+      "tokens": 52
     },
     {
       "hash": "e07c4e4571bce887",
@@ -1277,6 +2507,14 @@
       "tokens": 39
     },
     {
+      "hash": "e15a874023e3f10a",
+      "files": [
+        "command/store.go",
+        "core/v5/command/store.go"
+      ],
+      "tokens": 56
+    },
+    {
       "hash": "e2b84d4f92483b80",
       "files": [
         "metaengine/pgengine/engine.go",
@@ -1301,12 +2539,28 @@
       "tokens": 10
     },
     {
+      "hash": "e655dd4a12e21260",
+      "files": [
+        "core/v5/id/id_encoding_test.go",
+        "id/id_encoding_test.go"
+      ],
+      "tokens": 126
+    },
+    {
       "hash": "e6a333470ae3aaa1",
       "files": [
         "metaengine/enginetest/soak.go",
         "metaengine/soak_10m_test.go"
       ],
       "tokens": 6
+    },
+    {
+      "hash": "e71a90d788097cee",
+      "files": [
+        "core/v5/event/event_metadata_test.go",
+        "event/event_metadata_test.go"
+      ],
+      "tokens": 178
     },
     {
       "hash": "e7d9b3f5bedb97e6",
@@ -1318,28 +2572,28 @@
       "tokens": 12
     },
     {
-      "hash": "e9a4d61e591df95e",
-      "files": [
-        "catalog/docserver/specview.templ",
-        "catalog/docserver/specview.templ"
-      ],
-      "tokens": 6
-    },
-    {
-      "hash": "ebd84280614ccfa2",
-      "files": [
-        "metaengine/pgengine/planned_scan.go",
-        "metaengine/mysqlengine/planned_scan.go"
-      ],
-      "tokens": 8
-    },
-    {
       "hash": "ecaaea585ccdbe00",
       "files": [
         "queue/mysql/claim.go",
         "queue/sqlite/claim.go"
       ],
       "tokens": 50
+    },
+    {
+      "hash": "ecbe3378dbb422c2",
+      "files": [
+        "core/v5/query/store.go",
+        "query/store.go"
+      ],
+      "tokens": 44
+    },
+    {
+      "hash": "ed3127b44dc0ee2f",
+      "files": [
+        "core/v5/kv/typed_store.go",
+        "kv/typed_store.go"
+      ],
+      "tokens": 100
     },
     {
       "hash": "ee0dc2630a56b111",
@@ -1350,6 +2604,14 @@
       "tokens": 14
     },
     {
+      "hash": "ee2cff4655760168",
+      "files": [
+        "core/v5/event/event_core_test.go",
+        "event/event_core_test.go"
+      ],
+      "tokens": 72
+    },
+    {
       "hash": "ee619b6ffb7d9abb",
       "files": [
         "queue/sqlite/engine.go",
@@ -1357,6 +2619,30 @@
         "metaengine/pgengine/engine.go"
       ],
       "tokens": 9
+    },
+    {
+      "hash": "eebae7b02d6be4f5",
+      "files": [
+        "core/v5/event/codec_typed_test.go",
+        "event/codec_typed_test.go"
+      ],
+      "tokens": 74
+    },
+    {
+      "hash": "ef6fc94e183df3d5",
+      "files": [
+        "core/v5/event/date.go",
+        "event/date.go"
+      ],
+      "tokens": 66
+    },
+    {
+      "hash": "eff933bbf311b38b",
+      "files": [
+        "core/v5/event/event_type_clone_test.go",
+        "event/event_type_clone_test.go"
+      ],
+      "tokens": 140
     },
     {
       "hash": "f093cb2e5909b7ff",
@@ -1375,6 +2661,14 @@
       "tokens": 12
     },
     {
+      "hash": "f0f3070bea028cd3",
+      "files": [
+        "core/v5/event/journal_middleware_test.go",
+        "event/journal_middleware_test.go"
+      ],
+      "tokens": 220
+    },
+    {
       "hash": "f14a06be6d0c63ec",
       "files": [
         "middleware/retry.go",
@@ -1391,6 +2685,22 @@
       "tokens": 6
     },
     {
+      "hash": "f204cf0635641607",
+      "files": [
+        "core/v5/kv/typed_store_test.go",
+        "kv/typed_store_test.go"
+      ],
+      "tokens": 178
+    },
+    {
+      "hash": "f2537b03699d5c62",
+      "files": [
+        "core/v5/event/builder_test.go",
+        "event/builder_test.go"
+      ],
+      "tokens": 94
+    },
+    {
       "hash": "f450e800b55f4835",
       "files": [
         "projectionhost/sqlite_dlq.go",
@@ -1399,12 +2709,36 @@
       "tokens": 6
     },
     {
+      "hash": "f626ed0d4de5059c",
+      "files": [
+        "command/dispatcher.go",
+        "core/v5/command/dispatcher.go"
+      ],
+      "tokens": 28
+    },
+    {
       "hash": "f6a4a2089f813261",
       "files": [
         "metaengine/pgengine/pushdown.go",
         "metaengine/mysqlengine/pushdown.go"
       ],
       "tokens": 14
+    },
+    {
+      "hash": "f77312a1b70a3cf3",
+      "files": [
+        "core/v5/record/stamp.go",
+        "record/stamp.go"
+      ],
+      "tokens": 36
+    },
+    {
+      "hash": "f7750310d8b0873e",
+      "files": [
+        "core/v5/event/fuzz_test.go",
+        "event/fuzz_test.go"
+      ],
+      "tokens": 62
     },
     {
       "hash": "f8064f3fa86a6216",
@@ -1437,14 +2771,6 @@
         "metaengine/pgengine/reset.go"
       ],
       "tokens": 10
-    },
-    {
-      "hash": "f97cff300af0eb2a",
-      "files": [
-        "catalog/docserver/eventcatalog_schema.go",
-        "metaengine/adttest/harness.go"
-      ],
-      "tokens": 6
     },
     {
       "hash": "fa6386295cbbba1c",
@@ -1480,14 +2806,6 @@
       "tokens": 8
     },
     {
-      "hash": "fe60fa36c4c500c5",
-      "files": [
-        "metaengine/duckdbengine/layout_planner.go",
-        "metaengine/sqliteengine/planned.go"
-      ],
-      "tokens": 8
-    },
-    {
       "hash": "feb83cb2e50b0493",
       "files": [
         "metaengine/duckdbengine/graph.go",
@@ -1514,11 +2832,10 @@
     {
       "hash": "ffb5766c308b7716",
       "files": [
-        "watermill/event_bus.go",
         "metaengine/irohengine/loopback/transport.go",
         "metaengine/irohengine/quic/transport.go"
       ],
-      "tokens": 9
+      "tokens": 6
     },
     {
       "hash": "ffc5f502963b47d2",

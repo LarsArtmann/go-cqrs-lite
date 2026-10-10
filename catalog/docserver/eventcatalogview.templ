@@ -58,18 +58,10 @@ templ EventCatalogDataProductPage(d eventCatalogDataProductDetail) {
 	@layout.Base(base) {
 		@docsNav(d.Brand, d.DocsPath, d.DocsPath+"/eventcatalog")
 		@layout.Container(layout.ContainerProps{Class: "pb-16 pt-8"}) {
-			@eventCatalogBreadcrumbs(d.DocsPath, d.Name)
-			@display.PageHeader(display.PageHeaderProps{
-				Title:    d.Name,
-				Subtitle: d.Summary,
-				Action: dataProductHeaderBadges(d),
-			})
-			@display.DefinitionList(display.DefinitionListProps{
-				Items: []display.DefinitionItem{
-					{Term: "Data Product ID", Detail: d.ID},
-					{Term: "Version", Detail: d.Version},
-					{Term: "Owners", Detail: joinOr(d.Owners)},
-				},
+			@eventCatalogDetailHeader(d.DocsPath, d.Name, d.Summary, dataProductHeaderBadges(d), []display.DefinitionItem{
+				{Term: "Data Product ID", Detail: d.ID},
+				{Term: "Version", Detail: d.Version},
+				{Term: "Owners", Detail: joinOr(d.Owners)},
 			})
 			if len(d.Inputs) > 0 {
 				@catalogSection("Input ports (events consumed)")
@@ -90,19 +82,11 @@ templ EventCatalogMessagePage(d eventCatalogMessageDetail) {
 	@layout.Base(base) {
 		@docsNav(d.Brand, d.DocsPath, d.DocsPath+"/eventcatalog")
 		@layout.Container(layout.ContainerProps{Class: "pb-16 pt-8"}) {
-			@eventCatalogBreadcrumbs(d.DocsPath, d.Name)
-			@display.PageHeader(display.PageHeaderProps{
-				Title:    d.Name,
-				Subtitle: d.Summary,
-				Action:   messageKindBadge(d.Kind),
-			})
-			@display.DefinitionList(display.DefinitionListProps{
-				Items: []display.DefinitionItem{
-					{Term: "Message ID", Detail: d.ID},
-					{Term: "Version", Detail: d.Version},
-					{Term: "Producers", Detail: joinOr(d.Producers)},
-					{Term: "Consumers", Detail: joinOr(d.Consumers)},
-				},
+			@eventCatalogDetailHeader(d.DocsPath, d.Name, d.Summary, messageKindBadge(d.Kind), []display.DefinitionItem{
+				{Term: "Message ID", Detail: d.ID},
+				{Term: "Version", Detail: d.Version},
+				{Term: "Producers", Detail: joinOr(d.Producers)},
+				{Term: "Consumers", Detail: joinOr(d.Consumers)},
 			})
 			if len(d.Channels) > 0 {
 				@catalogSection("Channels")
@@ -152,19 +136,11 @@ templ EventCatalogChannelPage(d eventCatalogChannelDetail) {
 	@layout.Base(base) {
 		@docsNav(d.Brand, d.DocsPath, d.DocsPath+"/eventcatalog")
 		@layout.Container(layout.ContainerProps{Class: "pb-16 pt-8"}) {
-			@eventCatalogBreadcrumbs(d.DocsPath, d.Name)
-			@display.PageHeader(display.PageHeaderProps{
-				Title:    d.Name,
-				Subtitle: d.Summary,
-				Action:   display.Badge(display.BadgeProps{Text: "channel", Type: display.BadgeNeutral, Pill: true}),
-			})
-			@display.DefinitionList(display.DefinitionListProps{
-				Items: []display.DefinitionItem{
-					{Term: "Channel ID", Detail: d.ID},
-					{Term: "Address", Detail: d.Address},
-					{Term: "Protocols", Detail: joinOr(d.Protocols)},
-					{Term: "Delivery guarantee", Detail: d.Guarantee},
-				},
+			@eventCatalogDetailHeader(d.DocsPath, d.Name, d.Summary, display.Badge(display.BadgeProps{Text: "channel", Type: display.BadgeNeutral, Pill: true}), []display.DefinitionItem{
+				{Term: "Channel ID", Detail: d.ID},
+				{Term: "Address", Detail: d.Address},
+				{Term: "Protocols", Detail: joinOr(d.Protocols)},
+				{Term: "Delivery guarantee", Detail: d.Guarantee},
 			})
 			@catalogSection("Messages on this channel")
 			if len(d.Messages) == 0 {
@@ -187,20 +163,12 @@ templ EventCatalogServicePage(d eventCatalogServiceDetail) {
 	@layout.Base(base) {
 		@docsNav(d.Brand, d.DocsPath, d.DocsPath+"/eventcatalog")
 		@layout.Container(layout.ContainerProps{Class: "pb-16 pt-8"}) {
-			@eventCatalogBreadcrumbs(d.DocsPath, d.Name)
-			@display.PageHeader(display.PageHeaderProps{
-				Title:    d.Name,
-				Subtitle: d.Summary,
-				Action:   display.Badge(display.BadgeProps{Text: "v" + d.Version, Type: display.BadgeInfo, Pill: true}),
-			})
-			@display.DefinitionList(display.DefinitionListProps{
-				Items: []display.DefinitionItem{
-					{Term: "Service ID", Detail: d.ID},
-					{Term: "Owners", Detail: joinOr(d.Owners)},
-					{Term: "Writes to", Detail: joinOr(d.WritesTo)},
-					{Term: "Reads from", Detail: joinOr(d.ReadsFrom)},
-					{Term: "Repository", Detail: d.Repository},
-				},
+			@eventCatalogDetailHeader(d.DocsPath, d.Name, d.Summary, display.Badge(display.BadgeProps{Text: "v" + d.Version, Type: display.BadgeInfo, Pill: true}), []display.DefinitionItem{
+				{Term: "Service ID", Detail: d.ID},
+				{Term: "Owners", Detail: joinOr(d.Owners)},
+				{Term: "Writes to", Detail: joinOr(d.WritesTo)},
+				{Term: "Reads from", Detail: joinOr(d.ReadsFrom)},
+				{Term: "Repository", Detail: d.Repository},
 			})
 			@messageRefSection("Commands", d.CommandRefs)
 			@messageRefSection("Events", d.EventRefs)
@@ -240,15 +208,22 @@ templ eventCatalogNotFound(brand, docsPath, kind, id string) {
 	}
 }
 
-// eventCatalogBreadcrumbs renders the shared detail-page trail: catalog
-// landing page, then the active resource.
-templ eventCatalogBreadcrumbs(docsPath, name string) {
+// eventCatalogDetailHeader renders the shared detail-page chrome: the
+// breadcrumb trail back to the catalog, the page header, and the identity
+// definition list.
+templ eventCatalogDetailHeader(docsPath, name, summary string, action templ.Component, items []display.DefinitionItem) {
 	@navigation.Breadcrumbs(navigation.BreadcrumbsProps{
 		Items: []navigation.BreadcrumbItem{
 			{Text: eventCatalogTitle, Href: eventCatalogHref(docsPath)},
 			{Text: name, Active: true},
 		},
 	})
+	@display.PageHeader(display.PageHeaderProps{
+		Title:    name,
+		Subtitle: summary,
+		Action:   action,
+	})
+	@display.DefinitionList(display.DefinitionListProps{Items: items})
 }
 
 // catalogSection is the shared h2 spacing helper for event catalog pages.
