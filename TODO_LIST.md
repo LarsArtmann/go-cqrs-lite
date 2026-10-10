@@ -47,13 +47,16 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 > [`.d2`](docs/planning/2026-10-08_14-59_SUPERB-v5-goal-pareto-plan.d2)). This
 > file remains the living source of truth.
 
-> **IN FLIGHT (2026-10-10, this session):** Graph-native adoption closure +
-> operator-story wave — plan
-> [`docs/planning/2026-10-10_06-11_SUPERB-graph-native-adoption-closure-and-operator-story-V2.md`](docs/planning/2026-10-10_06-11_SUPERB-graph-native-adoption-closure-and-operator-story-V2.md)
-> is executing NOW (example/graph-native, recipes §graph, §6.13 honesty,
-> COOKBOOK graph chapter, operator/edge-label ADRs, T18 ADT ratchet, T19
-> dry-run). Do not start duplicate graph-docs work; this marker is removed at
-> Wave 5 (G8).
+> **DONE (2026-10-10):** Graph-native adoption closure + operator-story wave
+> (plan
+> [`…V2.md`](docs/planning/2026-10-10_06-11_SUPERB-graph-native-adoption-closure-and-operator-story-V2.md))
+> executed to completion: `example/graph-native` (BDD-green, all gates),
+> recipes §2.44 + advanced §6.13 modern-first, COOKBOOK graph chapter,
+> ADR-0157 (engine fleet two-level story, measured) + ADR-0156 (edge labels
+> at v5), T18 ADT-recipe ratchet (5 visible waivers below), T19 consumer
+> dry-run GREEN after 2 iterations. Graph-native is now
+> **adopt-if-needed**: no fleet consumer currently requires it; when one
+> does, the recipe + example are the entry points.
 
 ## Section index
 
@@ -1228,6 +1231,15 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       gate-set decision (dep-budget review first); README ops section for
       `quiet-window-run`/`nightly-bench`. — source: archived 16-37 §f14-26/§f35
       _(Effort: S-M each, sliceable)_
+- [ ] **ADT recipe gaps (T18 ratchet waivers, 2026-10-10)** — 5 of 11
+      metaengine ADTs have no recipes.md heading; each is waived with reason
+      in `cmd/doc-check/adt_coverage_test.go` and stays visible in test
+      output until closed: **ADTSet** (FoldSet mirrors the Map fold — add
+      alongside the next Set consumer), **ADTLog** (log-tail reads documented
+      only in readmodels.md tier notes), **ADTStreamLog** (single prose
+      mention), **ADTSortedMap** + **ADTMultimap** (no fleet consumer).
+      Writing a recipe for any of them removes the waiver — the gate refuses
+      stale waivers. _(Effort: XS each)_
 
 ---
 

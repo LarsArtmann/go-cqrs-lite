@@ -277,10 +277,10 @@ import _ "github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4"
 ```
 
 The full driver inventory with pure-Go/CGo and capability columns lives in
-[ADR-0157](../../docs/adr/0157-engine-fleet-operation-two-level-story.md).
+[ADR-0157](../docs/adr/0157-engine-fleet-operation-two-level-story.md).
 Note: the `graphadapter` bridge's `graph-memory` engine is NOT a
 DeploymentConfig driver — it is a standalone `metaengine.Engine` for
-hand-wiring ([graphadapter README](../../metaengine/graphadapter/README.md)).
+hand-wiring ([graphadapter README](../metaengine/graphadapter/README.md)).
 
 Bus drivers are wired directly via `watermill` (no registry). Only
 `gochannel` (in-process) is supported; unknown driver names return an error
