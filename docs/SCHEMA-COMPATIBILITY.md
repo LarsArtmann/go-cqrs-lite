@@ -13,13 +13,13 @@ shape is therefore a question about OLD events: can they still be read?
 
 ## Safe without a version bump (additive)
 
-| Change                                   | Why safe                                              |
-| ---------------------------------------- | ----------------------------------------------------- |
-| Adding a field with a zero value         | Old events decode with the zero value; `AddField` can default it explicitly |
-| Adding `omitempty` to a new field        | Wire shape of old writers unchanged                   |
-| Adding a NEW event type                  | Nothing old references it                            |
-| Widening an int field (int32 → int64)    | All old values representable (verify per codec)       |
-| Adding an index to a layout plan         | Read-path only; record the new fingerprint            |
+| Change                                | Why safe                                                                    |
+| ------------------------------------- | --------------------------------------------------------------------------- |
+| Adding a field with a zero value      | Old events decode with the zero value; `AddField` can default it explicitly |
+| Adding `omitempty` to a new field     | Wire shape of old writers unchanged                                         |
+| Adding a NEW event type               | Nothing old references it                                                   |
+| Widening an int field (int32 → int64) | All old values representable (verify per codec)                             |
+| Adding an index to a layout plan      | Read-path only; record the new fingerprint                                  |
 
 Additive changes never bump `EventSchema`'s current version and never add
 ops. Bump the DECLARED-shape fingerprint consumers only if you want the
@@ -27,13 +27,13 @@ ledger to note the change (fingerprints change automatically).
 
 ## Version-bump triggers (write an op, bump current version)
 
-| Change                      | Required op                                            |
-| --------------------------- | ------------------------------------------------------- |
-| Renaming a field            | `RenameField(type, oldVersion, from, to)`               |
-| Removing a field            | `RemoveField(type, oldVersion, field)`                  |
-| Changing a field's type     | `Transform(type, oldVersion, ...)` converting values    |
-| Restructuring (flatten/nest)| `Transform(type, oldVersion, ...)` reshaping the payload |
-| Renaming the event type     | `RenameType(from, target)` in the FROM type's declaration |
+| Change                       | Required op                                               |
+| ---------------------------- | --------------------------------------------------------- |
+| Renaming a field             | `RenameField(type, oldVersion, from, to)`                 |
+| Removing a field             | `RemoveField(type, oldVersion, field)`                    |
+| Changing a field's type      | `Transform(type, oldVersion, ...)` converting values      |
+| Restructuring (flatten/nest) | `Transform(type, oldVersion, ...)` reshaping the payload  |
+| Renaming the event type      | `RenameType(from, target)` in the FROM type's declaration |
 
 Bump the declaration's current version BY ONE per migration step and declare
 an op FROM the previous version. The ladder must be CONTINUOUS: every version

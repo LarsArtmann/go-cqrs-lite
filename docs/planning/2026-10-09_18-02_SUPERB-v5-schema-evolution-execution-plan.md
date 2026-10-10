@@ -123,34 +123,34 @@ post-tag, battery-verified.
 
 ## Medium plan — 26 tasks, 30–100 min each (sorted by importance/impact/effort/customer-value)
 
-| #   | Task                                                                                                                                               | Tier | Impact (1–5) | Effort (min) | Customer value                                | Depends    |
-| --- | -------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ------------ | ------------ | --------------------------------------------- | ---------- |
-| M1  | Gate pre-flight: re-run `#check-file-size` + `#check-duplication`, assess concurrent-session state, decide + record tag path (D1)                  | 1%   | 5            | 30           | Unblocks the entire release chain             | —          |
-| M2  | Implementation ADR for T2+T1 (one combined; D2): ops semantics, batch-vs-bridge, DomainConfig composition, layering, rejected alternatives         | 20%  | 5            | 60           | Decision archaeology ships WITH the wave      | M1         |
-| M3  | Changed-set release: `GOWORK=off` per-module tests (schema+system), CHANGELOG cuts, tag `schema/v4.6.0` + system minor via release scripts (flock) | 1%   | 5            | 90           | Fleet can import; system CI unblocked         | M2         |
-| M4  | Post-tag verify: proxy propagation, clean-consumer `go get` smoke, release note                                                                    | 1%   | 4            | 30           | Trust the tag is real                         | M3         |
-| M5  | bank-sync: apply `2026-10-09_t2-pilot-bank-sync.patch`, resolve drift vs their HEAD, full battery, commit (D3)                                     | 1%   | 5            | 45           | First real consumer live on ops               | M4         |
-| M6  | T1a: `EventSchema` Go-type binding (`Event[T]`) + `projectionadapter.TypeDecoder` derivation + system wiring when `ProjectionTypeDecoder` nil      | 4%   | 5            | 90           | Declaration replaces hand-registered decoders | M3         |
-| M7  | T1b: catalog render from `Schema` + version-identity bridge (semver derived from wire int)                                                         | 4%   | 4            | 90           | One declaration → governance export           | M6         |
-| M8  | T1c: cqrs-lint undeclared-event rule reading `Schema`                                                                                              | 4%   | 4            | 90           | Typo-proof declarations, third lockstep tier  | M7         |
+| #   | Task                                                                                                                                                                                                   | Tier | Impact (1–5) | Effort (min) | Customer value                                | Depends    |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---- | ------------ | ------------ | --------------------------------------------- | ---------- |
+| M1  | Gate pre-flight: re-run `#check-file-size` + `#check-duplication`, assess concurrent-session state, decide + record tag path (D1)                                                                      | 1%   | 5            | 30           | Unblocks the entire release chain             | —          |
+| M2  | Implementation ADR for T2+T1 (one combined; D2): ops semantics, batch-vs-bridge, DomainConfig composition, layering, rejected alternatives                                                             | 20%  | 5            | 60           | Decision archaeology ships WITH the wave      | M1         |
+| M3  | Changed-set release: `GOWORK=off` per-module tests (schema+system), CHANGELOG cuts, tag `schema/v4.6.0` + system minor via release scripts (flock)                                                     | 1%   | 5            | 90           | Fleet can import; system CI unblocked         | M2         |
+| M4  | Post-tag verify: proxy propagation, clean-consumer `go get` smoke, release note                                                                                                                        | 1%   | 4            | 30           | Trust the tag is real                         | M3         |
+| M5  | bank-sync: apply `2026-10-09_t2-pilot-bank-sync.patch`, resolve drift vs their HEAD, full battery, commit (D3)                                                                                         | 1%   | 5            | 45           | First real consumer live on ops               | M4         |
+| M6  | T1a: `EventSchema` Go-type binding (`Event[T]`) + `projectionadapter.TypeDecoder` derivation + system wiring when `ProjectionTypeDecoder` nil                                                          | 4%   | 5            | 90           | Declaration replaces hand-registered decoders | M3         |
+| M7  | T1b: catalog render from `Schema` + version-identity bridge (semver derived from wire int)                                                                                                             | 4%   | 4            | 90           | One declaration → governance export           | M6         |
+| M8  | T1c: cqrs-lint undeclared-event rule reading `Schema`                                                                                                                                                  | 4%   | 4            | 90           | Typo-proof declarations, third lockstep tier  | M7         |
 | M9  | DiscordSync pilot: collapse 211-line upcasters onto `RenameType`/`Transform`; battery; adopt or preserve patch per tag state — **DONE 2026-10-10** (found + fixed the CBOR nested-map library bug, D7) | 4%   | 4            | 60           | Second consumer; rename-family showcase       | M5         |
-| M10 | cqrs-htmx: adopt `DomainConfig.Schema` (today: SchemaVersion surfaced, zero upcasters) — **DONE 2026-10-10** (tagged surface only, D8)                                                                            | 4%   | 3            | 45           | Third consumer; zero-upcaster → declared      | M5         |
-| M11 | T4a: snapshot envelope optional state-shape stamp + accessors + roundtrip tests (absent = accept) — **DONE 2026-10-10**                       | 20%  | 4            | 60           | Kills silent stale-snapshot loads (class)     | —          |
-| M12 | T4b: `decider.WithSnapshotStateVersion` + mismatch → discard + counted stat + rebuild-from-journal + conformance test — **DONE 2026-10-10**     | 20%  | 5            | 90           | Snapshot correctness, journal-is-truth        | M11        |
-| M13 | T4c: bank-sync stamps `BalanceSyncState` (real-consumer proof) + battery — **STAGED as post-tag patch (D9)**                                   | 20%  | 3            | 30           | Proven on the snapshot user                   | M12, M5    |
-| M14 | Benchmarks: chain `SourceTransform` vs hand-rolled closure (ns/op + allocs), record baseline, perf note — **DONE 2026-10-10 (parity)**          | 20%  | 3            | 60           | Read-path cost known, not guessed             | —          |
-| M15 | Godoc `Example` functions: `Compile`, `Chain.SourceTransform`, `Declare`+system — **DONE 2026-10-10 (4 examples)**                              | 20%  | 3            | 45           | Discoverability on pkg.go.dev                 | —          |
-| M16 | Fuzz (arbitrary payloads × chains; random op sets) + rapid properties (version monotonicity, identity preservation) — **DONE 2026-10-10 (4.3M execs)** | 20%  | 4            | 90           | Hostile-input trust for every-load path       | —          |
-| M17 | Docs wave: recipes.md recipe (compile-harness classified), core.md §3 conventions, README/faq cross-links — **DONE 2026-10-10**                 | 20%  | 3            | 90           | The sanctioned-form documentation             | M6         |
-| M18 | T3a: declared-shape fingerprint helper (stable hash, never ciphertext) + opt-in metadata stamp on write — **DONE 2026-10-10**                   | tail | 3            | 90           | Drift becomes detectable                      | M6         |
-| M19 | T3b: read-side compare + warn hook + opt-in hard mode + burn-in criterion wiring — **DONE 2026-10-10**                                           | tail | 3            | 60           | Advisory ledger live in fleet                 | M18        |
-| M20 | T5a: `LayoutPlan` stable fingerprint, engine-side persistence (memory+sqlite), reset clears/journal exempt, absent=accept — **DONE 2026-10-10 (map-surface persistence)** | tail | 3            | 90           | Layout drift detectable at boot               | —          |
-| M21 | T5b: boot diff → `LayoutDiff` → `RebuildThreshold` auto / `ConfirmRebuild` gate + tests — **DONE (existing ADR-0124 machinery + stamp diffs)**  | tail | 4            | 90           | LiveStore-style rematerialization             | M20        |
-| M22 | T5c: completed-replay marker (crash-mid-rebuild safety) + Doctor render — **DONE 2026-10-10**                                                    | tail | 3            | 60           | Never serve half-rebuilt state                | M21        |
-| M23 | T6: compat policy doc (additive vs version-bump triggers) + cqrs-lint additive-change rule + fixtures — **DONE 2026-10-10 (E022, 212 rules)**   | tail | 3            | 90           | Policy enforced, not remembered               | M8         |
-| M24 | Housekeeping A: kv-alias sweep (recipes.md:65, core.md id), proposal-fence convention → gotchas doc, parallel-declaration ritual → AGENTS — **DONE** | tail | 2            | 60           | Future sessions stop re-learning              | M17        |
-| M25 | Housekeeping B: verify/drop `RevisionSnapshotFilter` lead, migrate-journal runbook note, TODO prune, status annotate — **DONE (lead dropped)**  | tail | 2            | 45           | Debt recorded honestly                        | M5         |
-| M26 | Full-repo `nix run .#verify` + fast integration set once concurrent session is green; triage anything of mine                                      | 1%   | 4            | 60           | The one gate run this stream never did        | M5, others |
+| M10 | cqrs-htmx: adopt `DomainConfig.Schema` (today: SchemaVersion surfaced, zero upcasters) — **DONE 2026-10-10** (tagged surface only, D8)                                                                 | 4%   | 3            | 45           | Third consumer; zero-upcaster → declared      | M5         |
+| M11 | T4a: snapshot envelope optional state-shape stamp + accessors + roundtrip tests (absent = accept) — **DONE 2026-10-10**                                                                                | 20%  | 4            | 60           | Kills silent stale-snapshot loads (class)     | —          |
+| M12 | T4b: `decider.WithSnapshotStateVersion` + mismatch → discard + counted stat + rebuild-from-journal + conformance test — **DONE 2026-10-10**                                                            | 20%  | 5            | 90           | Snapshot correctness, journal-is-truth        | M11        |
+| M13 | T4c: bank-sync stamps `BalanceSyncState` (real-consumer proof) + battery — **STAGED as post-tag patch (D9)**                                                                                           | 20%  | 3            | 30           | Proven on the snapshot user                   | M12, M5    |
+| M14 | Benchmarks: chain `SourceTransform` vs hand-rolled closure (ns/op + allocs), record baseline, perf note — **DONE 2026-10-10 (parity)**                                                                 | 20%  | 3            | 60           | Read-path cost known, not guessed             | —          |
+| M15 | Godoc `Example` functions: `Compile`, `Chain.SourceTransform`, `Declare`+system — **DONE 2026-10-10 (4 examples)**                                                                                     | 20%  | 3            | 45           | Discoverability on pkg.go.dev                 | —          |
+| M16 | Fuzz (arbitrary payloads × chains; random op sets) + rapid properties (version monotonicity, identity preservation) — **DONE 2026-10-10 (4.3M execs)**                                                 | 20%  | 4            | 90           | Hostile-input trust for every-load path       | —          |
+| M17 | Docs wave: recipes.md recipe (compile-harness classified), core.md §3 conventions, README/faq cross-links — **DONE 2026-10-10**                                                                        | 20%  | 3            | 90           | The sanctioned-form documentation             | M6         |
+| M18 | T3a: declared-shape fingerprint helper (stable hash, never ciphertext) + opt-in metadata stamp on write — **DONE 2026-10-10**                                                                          | tail | 3            | 90           | Drift becomes detectable                      | M6         |
+| M19 | T3b: read-side compare + warn hook + opt-in hard mode + burn-in criterion wiring — **DONE 2026-10-10**                                                                                                 | tail | 3            | 60           | Advisory ledger live in fleet                 | M18        |
+| M20 | T5a: `LayoutPlan` stable fingerprint, engine-side persistence (memory+sqlite), reset clears/journal exempt, absent=accept — **DONE 2026-10-10 (map-surface persistence)**                              | tail | 3            | 90           | Layout drift detectable at boot               | —          |
+| M21 | T5b: boot diff → `LayoutDiff` → `RebuildThreshold` auto / `ConfirmRebuild` gate + tests — **DONE (existing ADR-0124 machinery + stamp diffs)**                                                         | tail | 4            | 90           | LiveStore-style rematerialization             | M20        |
+| M22 | T5c: completed-replay marker (crash-mid-rebuild safety) + Doctor render — **DONE 2026-10-10**                                                                                                          | tail | 3            | 60           | Never serve half-rebuilt state                | M21        |
+| M23 | T6: compat policy doc (additive vs version-bump triggers) + cqrs-lint additive-change rule + fixtures — **DONE 2026-10-10 (E022, 212 rules)**                                                          | tail | 3            | 90           | Policy enforced, not remembered               | M8         |
+| M24 | Housekeeping A: kv-alias sweep (recipes.md:65, core.md id), proposal-fence convention → gotchas doc, parallel-declaration ritual → AGENTS — **DONE**                                                   | tail | 2            | 60           | Future sessions stop re-learning              | M17        |
+| M25 | Housekeeping B: verify/drop `RevisionSnapshotFilter` lead, migrate-journal runbook note, TODO prune, status annotate — **DONE (lead dropped)**                                                         | tail | 2            | 45           | Debt recorded honestly                        | M5         |
+| M26 | Full-repo `nix run .#verify` + fast integration set once concurrent session is green; triage anything of mine                                                                                          | 1%   | 4            | 60           | The one gate run this stream never did        | M5, others |
 
 **Order = priority.** Total ≈ 23.5 h of planned work. Phases 0–1 (M1–M10, ≈ 8.5 h) deliver 64%;
 
@@ -482,12 +482,12 @@ and dodged: the test-package `everyN` helper leans on Ginkgo's fail handler, so 
 one Transform op matching (the rename+transform two-op chain; hand-rolled = decode-map + mutate +
 re-encode + event.New rebuild, the pre-chain idiom):
 
-| Benchmark                      | ns/op | B/op | allocs/op |
-| ------------------------------ | ----- | ---- | --------- |
-| ChainSourceTransform JSON      | 3311  | 2385 | 41        |
-| HandrolledUpcast JSON          | 3081  | 2337 | 37        |
-| ChainSourceTransform CBOR      | 3231  | 2825 | 48        |
-| HandrolledUpcast CBOR          | 3985  | 2415 | 42        |
+| Benchmark                 | ns/op | B/op | allocs/op |
+| ------------------------- | ----- | ---- | --------- |
+| ChainSourceTransform JSON | 3311  | 2385 | 41        |
+| HandrolledUpcast JSON     | 3081  | 2337 | 37        |
+| ChainSourceTransform CBOR | 3231  | 2825 | 48        |
+| HandrolledUpcast CBOR     | 3985  | 2415 | 42        |
 
 Verdict: PARITY. JSON costs the chain ~7% (+4 allocs — op matching + the nested-map
 normalization walk); on CBOR the chain is ~19% FASTER (normalization produces map[string]any,
@@ -509,10 +509,11 @@ contract, decode policies, snapshot twin), faq entry, modules.md decider row.
 
 Fingerprints (M18–M22): schema-side T3 (Fingerprint + write stamp + advisory/hard drift) wired
 into system via `DomainConfig.StampSchemaFingerprints`; metaengine-side T5 (LayoutPlan.Fingerprint
-+ stamps riding ORDINARY map persistence — the lean ruling that avoided per-engine forks entirely;
-absent=accept, resets clear per ADR-0143) + replay-completion markers + Doctor section. M21's
-RebuildThreshold/ConfirmRebuild machinery ALREADY EXISTED (ADR-0124 wave) — the delta was the drift
-signal feeding it, not the gate.
+
+- stamps riding ORDINARY map persistence — the lean ruling that avoided per-engine forks entirely;
+  absent=accept, resets clear per ADR-0143) + replay-completion markers + Doctor section. M21's
+  RebuildThreshold/ConfirmRebuild machinery ALREADY EXISTED (ADR-0124 wave) — the delta was the drift
+  signal feeding it, not the gate.
 
 Policy + lint (M23): docs/SCHEMA-COMPATIBILITY.md (additive / version-bump / never-do / observability
 ladder) + E022 `schema-ladder-gap` (ladder tracking in the analyzer; literal-only, const-refs stay

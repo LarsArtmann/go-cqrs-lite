@@ -3,6 +3,7 @@
 **Date written:** 2026-10-10 23:47 (Saturday) — **~44h after the session work itself** (2026-10-09 ~02:45–03:00). Intervening sessions ran in the repo meanwhile (e.g. `2026-10-10_21-10_post-session-brutal-self-review-harvest-and-gates.md` — not read; per instructions this report covers only THIS session's run and what it directly produced).
 **Session type:** Design exploration → evidence-backed design deliverable. Zero production code changes.
 **Artifacts produced by this session (both auto-committed by the daemon):**
+
 - `docs/status/2026-10-09_02-47_wal-extraction-design-exploration-session-review.md` (+ same-session addendum)
 - `docs/planning/2026-10-09_journal-contract-unification-exploration.md` (v2 kernel proposal)
 
@@ -48,6 +49,7 @@ Nothing destructive (zero production code; both artifacts committed clean). Four
 ## e) WHAT WE SHOULD IMPROVE
 
 **Process (mine):**
+
 1. **Compile-verify design Go, not just parse-verify.** Parse-level green (md-go) gave false comfort; a scratch-module build of each kernel fence would have caught d3's neighbors and costs ~1 minute. New standing rule for any future kernel/contract doc.
 2. **Label reasoned vs. verified in every matrix.** The capability matrix needs an "estimate/probe-pending" marker column until each engine is probed.
 3. **Action two-line drift fixes on sight — actually.** d2 is a discipline failure, not a knowledge failure.
@@ -64,6 +66,7 @@ Nothing destructive (zero production code; both artifacts committed clean). Four
 ## f) Up to 50 things to get done next (26 real, ranked)
 
 **Repair the deliverable (minutes):**
+
 1. Fix the Tailer error-path incoherence in the planning doc (d3) — pick `chan Event[T]` or closed-means-overrun convention.
 2. Compile-verify all kernel fences in a scratch module; record result in the doc's verification appendix.
 3. Add "reasoned, not probed" labeling to the capability matrix.

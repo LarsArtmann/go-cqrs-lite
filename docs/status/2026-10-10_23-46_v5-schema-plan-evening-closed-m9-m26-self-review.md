@@ -200,6 +200,7 @@ and every module I touched). Four remaining reds all attributed to the concurren
 ## f) NEXT — up to 50 things, roughly ordered
 
 **Close the honesty gaps from this session (fast):**
+
 1. `git apply --check` the M13 bank-sync patch against their HEAD (+ fix if it drifted).
 2. Wire `LayoutStampsDoctorSection` into `Store.Doctor` + regenerate/extend the Doctor golden.
 3. M21.5 integration test: stamp diff → ConfirmRebuild → replay → MarkReplayComplete round trip.
@@ -220,40 +221,40 @@ and every module I touched). Four remaining reds all attributed to the concurren
 
 **Post-tag-wave adoption tail (blocked on Q2 → question 1):**
 15. Cut the co-release wave: schema > v4.6.0, snapshot > v4.6.2, decider > v4.7.2, system minor
-    (three sibling replaces strip at tag time: catalog→schema, decider→snapshot, system→schema).
+(three sibling replaces strip at tag time: catalog→schema, decider→snapshot, system→schema).
 16. Apply the M13 bank-sync patch + pins + battery.
 17. Drop DiscordSync's `map[any]any` workaround branch + re-pin schema.
 18. bank-sync: collapse any remaining hand-rolled upcast helpers onto the chain.
 19. cqrs-htmx: collapse the homegrown UpcasterRegistry (needs ruling → question 2).
 20. cqrs-htmx: unify EventCatalog from typed declarations via `catalog.FromTypedSchema`.
 21. system: adopt `Schemas()` builder in cqrs-htmx once tagged (kills EventTypeDecoder's parallel
-    list).
+list).
 
 **Product hardening:**
 22. System wiring for `FingerprintDrift` (a DomainConfig drift-hook option, slog/otel default).
 23. `FingerprintDriftHard` burn-in criterion: a named-consumer cycle checklist in
-    SCHEMA-COMPATIBILITY (who burns in first: bank-sync or DiscordSync?).
+SCHEMA-COMPATIBILITY (who burns in first: bank-sync or DiscordSync?).
 24. Snapshot stamp for the systemtier: does system's snapshot wiring expose
-    WithSnapshotStateVersion from DomainConfig? (check + add if missing).
+WithSnapshotStateVersion from DomainConfig? (check + add if missing).
 25. Extend layout-stamp persistence verification to a real SQL engine (sqliteengine integration
-    test) — memory-only today.
+test) — memory-only today.
 26. Layout stamp read on system boot: wire `LayoutStampDiffs` into system.Start diagnostics.
 27. E022: const-version resolution (extend the const post-pass to ladder versions, not just
-    event types).
+event types).
 28. E021+E022 in the scorecard/doctor profile JSON (additive surfaces per contract #28).
 29. Fuzz `FingerprintStamp` (hostile metadata: pre-existing key, huge values).
 30. Rapid property: `EventSchema.Fingerprint` commutes with op reordering across ALL op kinds
-    (split arity covered; add rename/transform mixes).
+(split arity covered; add rename/transform mixes).
 31. Chain benchmark under CBOR normalization for DEEP nests (3+ levels) — the walk is O(payload);
-    measure the worst case.
+measure the worst case.
 32. `LayoutPlan.Fingerprint` in ExplainPlan output (plan-time drift visibility).
 
 **Concurrent-session debt (theirs, offer to absorb mechanical parts → question 3):**
 33. V007: table the 14 core/v5 deprecation markers (or their allowlist with reasons).
 34. Re-pin `scripts/golangci-config-hash.golden.txt` once their `.golangci.yml` surgery lands
-    (or restore — their call).
+(or restore — their call).
 35. The gci-vs-treefmt alignment regression: after config settles, one `nix fmt` pass + verify
-    the 3-group contract holds for ~35 modules.
+the 3-group contract holds for ~35 modules.
 36. cqrs-htmx identity-model (2) + usermgmt (4) exhaustruct triage.
 37. Partition test (`TestMultiModuleBuildContext_PartitionsProfiles`) — still red, still theirs.
 
@@ -269,13 +270,13 @@ and every module I touched). Four remaining reds all attributed to the concurren
 44. DiscordSync: stale `go.work.sum` (no go.work) — flag to their session or remove.
 45. Plan doc: final progress-table percent column refresh (stale %s vs completed marks).
 46. TODO_LIST: add the post-tag tail checklist items 15–21 as one tracked block (currently one
-    row).
+row).
 47. Sweep `.agents/skills` faq TOC after the new entry (verify anchor link works).
 48. Consider `trash` for the zz_probe files' history note (they were trashed mid-session; confirm
-    no daemon resurrection).
+no daemon resurrection).
 49. Nightly bench baseline: re-run after schema normalization lands on a tag (read-path cost moved).
 50. Retro: add "attribution gates first" + "mutation-verify pins" to the project AGENTS testing
-    section so the next session inherits the lesson structurally.
+section so the next session inherits the lesson structurally.
 
 ---
 
