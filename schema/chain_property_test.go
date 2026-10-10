@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-codec"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	cqrsid "github.com/larsartmann/go-cqrs-lite/id/v4"
 	"pgregory.net/rapid"
