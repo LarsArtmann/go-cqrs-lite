@@ -970,6 +970,33 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       triage still owed by the owning sessions.
       — source: archived 16-37 §f10, 15-34 §f20, 15-57 §b1; 04-04 §f1
       _(Effort: M, quiet-window)_
+- [ ] **Mirror-lag burn-down: fork `eventtest` + the delivery-mark trio into
+      core/v5/event** — the lockstep register's only pending-mirror rows
+      (`v4/eventtest/...` subtree, 80 symbols + `MarkInDelivery`/
+      `WithoutDeliveryMark`/`ContextInDelivery`); every other pair is already
+      shape-identical. Watch `TestMirrorLockstep`'s lag count drop to 0 and
+      prune the register rows (stale-row check enforces it). Long-term: add
+      signature-level lockstep (compile-time cross-import, the `event.Type`
+      pattern) once core/v5 stabilizes — the golden gate is kind+name only.
+      — source: 13-50-10-10 report §f3/f9 _(Effort: M)_
+- [ ] **`#check-lint-config` blindness to settings loss** — the whole-file
+      hash tripwire BLESSED the 2026-10-08..10 cyclop/errcheck drop (its own
+      `--update` instructions re-pinned the regressed config). Extend the gate
+      with settings-canaries: pin the settings KEY-SET and assert
+      `cyclop.max-complexity` + the `errcheck.exclude-functions` presence, so
+      an accidental drop fails even after a re-pin.
+      — source: 13-50-10-10 report §f5 _(Effort: S)_
+- [ ] **dupe-signal: `--keep-v5` flag + one-time suppressed-group audit by the
+      v5 owner** — the wrapper suppresses ALL intra-core/v5 groups by default;
+      twins like `MetadataCarrier` (core/v5/command vs core/v5/query) may be
+      real consolidation signal for the v5 core, not noise. Policy decision
+      pending (see report §g1).
+      — source: 13-50-10-10 report §f7 _(Effort: S + decision)_
+- [ ] **Root-cause the `nix fmt` gofumpt exit-2** ("failed to finalise
+      formatting" persists while the tree comes up clean; hypothesis = sibling
+      mid-write file + fail-on-change racing the daemon — unproven). CI's fmt
+      gate (`nix fmt --fail-on-change`) depends on this being benign.
+      — source: 13-50-10-10 report §f4 _(Effort: S)_
 - [ ] **Verify the nightly weekly load-sweep leg fires** (Sundays-only, first
       real run) and logs cleanly. — source: 14-52 addendum 2, 16-37 §f31 _(Effort: XS, observe)_
 
