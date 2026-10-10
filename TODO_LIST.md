@@ -47,6 +47,14 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 > [`.d2`](docs/planning/2026-10-08_14-59_SUPERB-v5-goal-pareto-plan.d2)). This
 > file remains the living source of truth.
 
+> **IN FLIGHT (2026-10-10, this session):** Graph-native adoption closure +
+> operator-story wave — plan
+> [`docs/planning/2026-10-10_06-11_SUPERB-graph-native-adoption-closure-and-operator-story-V2.md`](docs/planning/2026-10-10_06-11_SUPERB-graph-native-adoption-closure-and-operator-story-V2.md)
+> is executing NOW (example/graph-native, recipes §graph, §6.13 honesty,
+> COOKBOOK graph chapter, operator/edge-label ADRs, T18 ADT ratchet, T19
+> dry-run). Do not start duplicate graph-docs work; this marker is removed at
+> Wave 5 (G8).
+
 ## Section index
 
 [Legend](#legend) ·

@@ -149,10 +149,11 @@
 
 ## 7. Fact scratchpad (filled during Wave 0)
 
-- GraphDriver implementations found: _(pending A8)_
-- Cypher/Gremlin verdict: _(pending A9)_
-- bigtableengine dep weight: _(pending A11)_
-- dgraph DSN format: _(pending A12)_
+- GraphDriver implementations found: (A8, 2026-10-10) **`graph.MemoryDriver` ONLY** (`graph/memory.go:11` "the reference implementation"; `graph/graph.go:130` interface assertion; no other impl in 38 repo matches). Neo4j/Memgraph drivers are design-hypothetical "consumer-pulled sibling modules" (`graph/graph.go:29-32`).
+- Cypher/Gremlin verdict: (A9) **portability target, NOT shipped capability.** `graph/graph.go:20-23` documents the asymmetry: reads deliberately NOT abstracted; a real-DB driver would expose native Cypher/Gremlin directly, but none ships — only MemoryDriver's Go-native read API (Traverse/Neighbors/ShortestPath). modules.md `graph` row fixed (A10); advanced.md §6.13 line "Reads run native Cypher/Gremlin via the driver" gets the same honesty fix in Wave 2 (B1).
+- bigtableengine dep weight: (A11) **HEAVY.** 3 direct production deps (`cloud.google.com/go/bigtable`, `google.golang.org/api`, `google.golang.org/grpc`) pulling ~50 indirect modules (full GCP auth/OTel/SPIFFE/longrunning surface). allengines membership: EXCLUDE (ADR E2 input).
+- dgraph DSN format: (A12) **plain gRPC address `host:port`** (e.g. `localhost:9080`) — `register.go:18` passes `cfg.DSN` to `New(addr)` → `dgo.NewClient(addr, insecure creds…)` (`engine.go:76-81`). No DSN scheme parsing; TLS/custom grpc options require `NewFromClient(client)`.
+- Bonus (C-scoping): `graphadapter` also implements `GraphRemoveEdge` (adapter.go:94, idempotent, directed-only) — EdgeRemoval folds work through the adapter; `Profile()` name "graph-memory", NsPerOp 3000.
 
 ## 8. Execution Graph
 
