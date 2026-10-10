@@ -254,5 +254,14 @@ watermill/     — Watermill protocol adapter
 | [0149](0149-durable-checkpoints-and-dlq-by-events.md) | Durable Checkpoints and DLQ-by-Events in system.New | 2026-09-28 | Accepted |
 | [0150](0150-engineconfig-singlewriter-advisory-lease.md) | EngineConfig.SingleWriter Advisory Lease | 2026-10-08 | Accepted |
 | [0151](0151-goal-direction-evolutions-are-the-declaration.md) | Goal Direction — "Declare ONLY" Means Evolutions + Queries | 2026-10-08 | Accepted |
+| [0152](0152-fleet-first-module-topology-v5-dual-support.md) | Fleet-First Module Topology and v5 Dual-Support Transition | 2026-10-08 | Accepted |
+| [0153](0153-system-level-bdd-testing-harness-systemscenario.md) | System-Level BDD Testing Harness (`systemscenario`) | 2026-10-09 | Accepted |
+| [0154](0154-deriver-async-dispatch-and-journal-tailed-host.md) | Deriver Async Dispatch Now, Journal-Tailed Deriver Host at v5 | 2026-10-09 | Accepted |
+| [0155](0155-engine-fleet-operation-two-level-story.md) | Engine Fleet Operation — Compile-Time Import Selection, Runtime cqrs.yaml | 2026-10-10 | Proposed |
+| [0156](0156-graph-edge-labels-at-v5.md) | Graph Edge Labels at v5 | 2026-10-10 | Proposed |
+| [0152](0152-fleet-first-module-topology-v5-dual-support.md) | Fleet-First Module Topology (v5 Dual-Support) | 2026-10-08 | Accepted |
+| [0153](0153-system-level-bdd-testing-harness-systemscenario.md) | System-Level BDD Testing Harness (`systemscenario`) | 2026-10-09 | Accepted |
+| [0154](0154-deriver-async-dispatch-and-journal-tailed-host.md) | Deriver Async Dispatch and Journal-Tailed Host | 2026-10-09 | Accepted |
+| [0155](0155-declarative-schema-evolution-t2-t1.md) | Declarative Schema Evolution — Named Upcast Ops (T2) + DomainConfig Declaration (T1) | 2026-10-09 | Accepted |
 
 > **Note:** ADRs 0036 and 0041 were never assigned (gaps in numbering).

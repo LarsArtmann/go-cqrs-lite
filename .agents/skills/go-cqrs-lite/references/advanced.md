@@ -512,6 +512,13 @@ underlying `graph.MemoryDriver` for label-rich direct reads
 (`Traverse`/`Neighbors`/`ShortestPath`). The engine-backed path (sqlite,
 dgraph, ...) does not use graphadapter and is unaffected.
 
+**Known limitation — label-less edges (ADR-0156):** `metaengine.Edge` is a
+flat `{From, To}` pair with identity `(collection, From, To)` — edges carry
+no relationship type. Model multi-relational graphs as ONE COLLECTION PER
+RELATION (one fold each); `Adapter.Driver()` remains the escape hatch for
+native label/predicate access. Labeled edges are a v5 candidate gated on a
+named fleet consumer need ([ADR-0156](../../../docs/adr/0156-graph-edge-labels-at-v5.md)).
+
 **Reads are NOT abstracted (ADR-0038):** writes are portable (openCypher
 MERGE semantics), reads are engine-native by design. The only
 `graph.GraphDriver` implementation shipped is the in-memory reference
