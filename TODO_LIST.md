@@ -57,6 +57,12 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 > dry-run GREEN after 2 iterations. Graph-native is now
 > **adopt-if-needed**: no fleet consumer currently requires it; when one
 > does, the recipe + example are the entry points.
+>
+> **AMENDED 2026-10-10 (same day, harvest session):** the "no fleet consumer"
+> framing is stale — the Kith CRM relations feature consumed the Graph ADT
+> the same morning (first real consumer; see the CRM debut section at the
+> bottom). The adopt-if-needed posture stands, but the trigger HAS fired for
+> the recipe-polish row below it.
 
 ## Section index
 
@@ -369,6 +375,20 @@ mesh-demo onboarding) lives in the eventcatalog-hub repo. Execution evidence:
 - [ ] **cqrs-lint catalog counts test** — the systemscenario catalog entry may need an adoption-
       suggestions coverage bump (`TestCatalogHasExpectedCounts`). — source: 14:40 §f31 _(Effort: XS;
       fold into T23's rule work)_
+- [ ] **Document `Then*` first-act baseline semantics in recipes §2.43** — the
+      systemscenario `Then*` assertions compare against a FIRST-ACT snapshot
+      (the state at the first `When`), a semantics consumers regularly
+      misread as "latest state"; one clarifying paragraph + example in the
+      §2.43 recipe (verify wording against systemscenario source before
+      shipping — that module is parallel-session owned).
+      — source: 2026-10-10 07-37 §f25, 09-05 §f14 _(Effort: XS)_
+- [ ] **[BLOCKED] Tag `systemscenario` so `example/graph-native` builds
+      standalone** — `scripts/check-example-standalone.sh --build` fails for
+      the example until `systemscenario` cuts a tag including `Memory()`
+      (pinned v4.0.0 predates it; workspace mode is green). Owner: the
+      systemscenario parallel session — this row exists so the dependency is
+      visible to them; unblock = next systemscenario tag wave.
+      — source: 2026-10-10 09-05 §b3/§f5 _(Effort: theirs; XS verify after tag)_
 
 ## Durable Work Queue module (proposed 2026-09-13)
 
@@ -483,6 +503,17 @@ mesh-demo onboarding) lives in the eventcatalog-hub repo. Execution evidence:
 `metaengine/projectionadapter`/`irohengine` sibling replaces and repinned
 every consumer (`pin-sweep --check --remote` green; tags verified
 replace-free — 10-25 §a2/§a3, now archived).
+
+- [ ] **Coeffect gate is blind to `RawQuery`-declared folds — product fix** —
+      `system`'s coeffect validation (`DomainConfig.Events` /
+      `ErrDanglingEventSubscription`, ADR context: the gate's three-tier
+      contract) cannot see event types consumed by folds inside
+      `system.RawQuery(query)` declarations, forcing consumers into the
+      documented RawQuery workaround. Fix: `buildProjections` extracts event
+      types from `rawQuerySpec` folds and feeds them into the coeffect
+      universe. Deferred by the graph wave's D1 zero-API-change rule; needs
+      its own green-light + `system` module tests when taken.
+      — source: 2026-10-10 07-37 §f24, 09-05 §c1/§f2 _(Effort: S)_
 
 ---
 
@@ -655,6 +686,13 @@ replace-free — 10-25 §a2/§a3, now archived).
       repo-root LICENSE form (the canonical legal file); not a licensing
       decision, an artifact correction. — source: 2026-09-28 publish-integrity
       session M1 §a + session-2 §g
+
+- [ ] **[BLOCKED] Root README version-manifest row for `example/graph-native`**
+      — the versions manifest (`scripts/check-versions-manifest.sh`) rows only
+      tagged trains; graph-native rides ADR-0152's untagged-examples ruling.
+      Add the row when/if a graph-native tag is ever cut (or record the
+      path-vs-tag exclusion there). — source: 2026-10-10 07-37 §f27
+      _(Effort: XS, blocked on tagging decision)_
 
 ---
 
@@ -1000,6 +1038,20 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
 - [ ] **Verify the nightly weekly load-sweep leg fires** (Sundays-only, first
       real run) and logs cleanly. — source: 14-52 addendum 2, 16-37 §f31 _(Effort: XS, observe)_
 
+- [ ] **Pre-existing red needs ONE owning decision (triage row)** — noticed
+      2026-10-09/10, untouched by the graph waves (user default: leave
+      parallel-session work alone). Six items: (1) `cmd/cqrs-bench` go.sum
+      untidy (`TestEveryModuleGoSumIsTidy` fails); (2) BuildFlow pseudo-version
+      hygiene — `metaengine/go.mod` sqliteengine `v4.5.2` off the zero
+      pseudo-version rule; (3) 34 modules need `go mod tidy`; (4) golangci red
+      in `system/`, `scheduling/sqlstore`, `stack/sqlite`; (5) go-licenses
+      FAIL for `metaengine/bigtableengine`; (6) BuildFlow govulncheck runs
+      go1.26 against go1.27 sources. core/v5 arch-lint + doc-check
+      alias-ambiguity are tracked separately (BDD-harness Externals row + Code
+      Quality row). Decide: one sweep session, or per-owner distribution.
+      — source: 2026-10-10 07-37 §f31–37 (minus the separately-tracked), 09-05
+      §f19–26 _(Effort: M triage + S-M fixes)_
+
 ---
 
 ## Code Quality
@@ -1306,6 +1358,15 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       mention), **ADTSortedMap** + **ADTMultimap** (no fleet consumer).
       Writing a recipe for any of them removes the waiver — the gate refuses
       stale waivers. _(Effort: XS each)_
+- [ ] **`metaengine/COOKBOOK.md` fences have ZERO automated checking** —
+      verified 2026-10-10: md-go-validator walks `docs/` only and doc-check
+      scans READMEs + skill references, so COOKBOOK go fences are unchecked
+      at BOTH parse and compile level (recipes.md, the other major cookbook,
+      is compile-gated). Cheapest honest fix: add `metaengine/COOKBOOK.md` to
+      the md-go walk (parse-level, XS); compile-level (recipes-catalog
+      harness) only if COOKBOOK grows hand-written snippets that rot.
+      — source: 2026-10-10 07-37 §f28, verified this session _(Effort: XS
+      parse-level)_
 
 ---
 
@@ -1724,3 +1785,10 @@ dprint, ADR-0123 addendum) shipped the same day — completed rows deleted
       crm `internal/domain/relation` + `internal/app/projections.go`
       (relationGraphProjection) + the crm audit report
       crm `docs/status/2026-10-10_06-59_relations-network-graph-feature.md` (research verdict inside).
+- [ ] **Integration candidate: `example/graph-native --dgraph` against the
+      ephemeral Dgraph harness** — the example carries a `--dgraph` flag
+      (projections route to Dgraph) but nothing exercises it against a real
+      server; `nix run .#integration-dgraph` already provides ephemeral
+      Dgraph. Extend the example's integration story or add a systemtest leg.
+      — source: 2026-10-10 07-37 §f30 _(Effort: S-M; rides the CRM-driven
+      graph polish above)_

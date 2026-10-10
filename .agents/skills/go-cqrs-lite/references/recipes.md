@@ -2893,7 +2893,10 @@ engine (sqlite's recursive CTE, Dgraph's native `@recurse`, BFS fallback
 elsewhere). Retraction is deletion-as-domain-event (ADR-0114): an
 `EdgeRemoval` fold removes exactly the edge the retracted fact added.
 Behavior-verified reference app: [`example/graph-native`](../../../example/graph-native)
-(runnable main + systemscenario BDD suite).
+(runnable main + systemscenario BDD suite). The FULL write side — the guarded
+`follow`/`unfollow` deciders (self-follow and duplicate-edge Rejections,
+unfollow-of-missing-edge Conflict) and command construction — lives in that
+example; the fences below show the read-side declaration shapes.
 
 ```go
 import (
