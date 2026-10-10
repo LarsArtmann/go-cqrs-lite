@@ -28,27 +28,51 @@ func (s *Scenario) await(what string, probe func() (bool, string)) {
 	}
 }
 
+// awaitQuery polls fn/check until satisfied, tracking the last query error
+// separately from the check mismatch so a timeout reports BOTH: a query
+// that kept erroring before the data settled has a different cause than a
+// query returning the wrong shape, and the last probe alone can hide it.
+func (s *Scenario) awaitQuery(what string, fn func() (any, error), check func(got any) error) {
+	s.t.Helper()
+
+	var lastQueryErr string
+
+	s.await(what, func() (bool, string) {
+		got, err := fn()
+		if err != nil {
+			lastQueryErr = err.Error()
+			return false, "query returned error: " + lastQueryErr
+		}
+
+		if err := check(got); err != nil {
+			detail := err.Error()
+			if lastQueryErr != "" {
+				detail += "\n(last query error: " + lastQueryErr + ")"
+			}
+
+			return false, detail
+		}
+
+		return true, ""
+	})
+}
+
 // ThenQuery polls fn until its result deep-equals want, awaiting the
 // asynchronous projection pipeline (bus delivery + fold) — the read-model
 // analog of scenario/v4's ThenQueryResult, with the await built in. Query
-// errors keep polling (a projection may not have the row yet); the last
-// error surfaces on timeout.
+// errors keep polling (a projection may not have the row yet); the timeout
+// message reports the last mismatch AND the last query error.
 func (p *WhenPhase) ThenQuery(fn func() (any, error), want any) *WhenPhase {
 	s := p.sc
 	s.t.Helper()
 	s.requireAct("ThenQuery")
 
-	s.await("ThenQuery", func() (bool, string) {
-		got, err := fn()
-		if err != nil {
-			return false, "query returned error: " + err.Error()
-		}
-
+	s.awaitQuery("ThenQuery", fn, func(got any) error {
 		if reflect.DeepEqual(got, want) {
-			return true, ""
+			return nil
 		}
 
-		return false, fmt.Sprintf("result mismatch\nwant: %#v\ngot:  %#v", want, got)
+		return fmt.Errorf("result mismatch\nwant: %#v\ngot:  %#v", want, got)
 	})
 
 	return p
@@ -62,18 +86,7 @@ func (p *WhenPhase) ThenQueryFunc(fn func() (any, error), check func(got any) er
 	s.t.Helper()
 	s.requireAct("ThenQueryFunc")
 
-	s.await("ThenQueryFunc", func() (bool, string) {
-		got, err := fn()
-		if err != nil {
-			return false, "query returned error: " + err.Error()
-		}
-
-		if err := check(got); err != nil {
-			return false, err.Error()
-		}
-
-		return true, ""
-	})
+	s.awaitQuery("ThenQueryFunc", fn, check)
 
 	return p
 }
@@ -82,7 +95,9 @@ func (p *WhenPhase) ThenQueryFunc(fn func() (any, error), check func(got any) er
 // (errors.Is) IMMEDIATELY - the negative twin of ThenQuery. Use it for
 // lookups of missing entities: unlike ThenQuery, which keeps polling
 // (assuming eventual projection consistency), a failed query here fails the
-// test right away with the query's error.
+// test right away with the query's error. For the eventual form — a row
+// that VANISHES once the projection catches up — use
+// [WhenPhase.ThenQueryEventuallyFails].
 func (p *WhenPhase) ThenQueryFails(fn func() (any, error), target error) *WhenPhase {
 	s := p.sc
 	s.t.Helper()
@@ -96,6 +111,33 @@ func (p *WhenPhase) ThenQueryFails(fn func() (any, error), target error) *WhenPh
 	if !errors.Is(err, target) {
 		s.t.Fatalf("ThenQueryFails: error mismatch\nwant: %v\ngot:  %v", target, err)
 	}
+
+	return p
+}
+
+// ThenQueryEventuallyFails polls fn until it returns an error matching
+// target (errors.Is) — the eventual twin of [WhenPhase.ThenQueryFails] and
+// the first-class form of the hand-rolled awaitNotFound pattern: a row that
+// vanishes from a read model (tombstone, rebirth) only stops existing once
+// the projection catches up, so the failing lookup itself is the condition
+// to await. The timeout message reports the last non-matching outcome.
+func (p *WhenPhase) ThenQueryEventuallyFails(fn func() (any, error), target error) *WhenPhase {
+	s := p.sc
+	s.t.Helper()
+	s.requireAct("ThenQueryEventuallyFails")
+
+	s.await("ThenQueryEventuallyFails", func() (bool, string) {
+		got, err := fn()
+		if err == nil {
+			return false, fmt.Sprintf("query still succeeds, result: %#v", got)
+		}
+
+		if errors.Is(err, target) {
+			return true, ""
+		}
+
+		return false, fmt.Sprintf("query error mismatch\nwant: %v\ngot:  %v", target, err)
+	})
 
 	return p
 }
@@ -115,18 +157,17 @@ func ThenQueryTyped[T any](p *WhenPhase, fn func() (T, error), check func(got T)
 	s.t.Helper()
 	s.requireAct("ThenQueryTyped")
 
-	s.await("ThenQueryTyped", func() (bool, string) {
-		got, err := fn()
-		if err != nil {
-			return false, "query returned error: " + err.Error()
-		}
+	s.awaitQuery("ThenQueryTyped",
+		func() (any, error) { return fn() },
+		func(got any) error {
+			typed, ok := got.(T)
+			if !ok {
+				return fmt.Errorf("query result type %T does not match the check parameter", got)
+			}
 
-		if err := check(got); err != nil {
-			return false, err.Error()
-		}
-
-		return true, ""
-	})
+			return check(typed)
+		},
+	)
 
 	return p
 }

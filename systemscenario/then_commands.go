@@ -45,13 +45,38 @@ func (p *WhenPhase) ThenCommands(expected ...command.Type) *WhenPhase {
 
 // ThenCommandsSatisfy hands the commands dispatched since the act baseline
 // to inspect for assertions beyond types — payloads, stream targets, actors.
-// Use t.Errorf inside inspect so remaining assertions still run.
+// Use t.Errorf inside inspect so remaining assertions still run. Synchronous;
+// for derived-command chains (asynchronous deriver dispatch, ADR-0154) use
+// [WhenPhase.ThenCommandsSatisfyAwait].
 func (p *WhenPhase) ThenCommandsSatisfy(inspect func(cmds []command.Command)) *WhenPhase {
 	s := p.sc
 	s.t.Helper()
 	s.requireAct("ThenCommandsSatisfy")
 
 	inspect(s.actCommands())
+
+	return p
+}
+
+// ThenCommandsSatisfyAwait polls inspect until it returns nil or the await
+// timeout expires — the awaited twin of [WhenPhase.ThenCommandsSatisfy] for
+// derived-command chains: a deriver's dispatch leaves the handler goroutine
+// (WithAsyncDispatch), so the captured-command log fills in asynchronously.
+// The void-returning sibling stays synchronous because its t.Errorf
+// contract cannot express "not yet"; awaiting inspection reports failure as
+// an error instead, and the timeout message carries the last one.
+func (p *WhenPhase) ThenCommandsSatisfyAwait(inspect func(cmds []command.Command) error) *WhenPhase {
+	s := p.sc
+	s.t.Helper()
+	s.requireAct("ThenCommandsSatisfyAwait")
+
+	s.await("ThenCommandsSatisfyAwait", func() (bool, string) {
+		if err := inspect(s.actCommands()); err != nil {
+			return false, err.Error()
+		}
+
+		return true, ""
+	})
 
 	return p
 }

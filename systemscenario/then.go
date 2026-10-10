@@ -4,6 +4,7 @@ import (
 	"reflect"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 )
@@ -75,10 +76,36 @@ func (p *WhenPhase) ThenEventsSatisfy(inspect func(events []event.Event) error) 
 	return p
 }
 
-// ThenNoEvents asserts the When acts emitted no journal events. After
-// TimeAdvances this waits the full await timeout for silence before passing
-// — set WithAwaitTimeout to bound it.
+// ThenNoEvents asserts the When acts emitted no journal events. Under await
+// mode (after TimeAdvances or Await) it watches for silence for the quiet
+// window — the full await timeout by default, shorter via
+// [WithQuietWindow] — failing as soon as any event appears inside it.
 func (p *WhenPhase) ThenNoEvents() *WhenPhase {
+	s := p.sc
+	s.t.Helper()
+	s.requireAct("ThenNoEvents")
+
+	if s.awaitMode {
+		window := s.cfg.quietWindow
+		if window <= 0 {
+			window = s.cfg.awaitTimeout
+		}
+
+		deadline := time.Now().Add(window)
+		for {
+			if events := s.actEvents(); len(events) > 0 {
+				s.t.Fatalf("ThenNoEvents: %d event(s) appeared within the %s quiet window:%s",
+					len(events), window, describeEvents(events))
+			}
+
+			if time.Now().After(deadline) {
+				return p
+			}
+
+			time.Sleep(10 * time.Millisecond)
+		}
+	}
+
 	p.Then()
 
 	return p

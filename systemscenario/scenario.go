@@ -17,8 +17,10 @@ import (
 type Option func(*scenarioConfig)
 
 type scenarioConfig struct {
-	awaitTimeout time.Duration
-	clock        system.Clock
+	awaitTimeout  time.Duration
+	quietWindow   time.Duration
+	clock         system.Clock
+	captureFilter func(command.Command) bool
 }
 
 func defaultConfig() scenarioConfig {
@@ -42,6 +44,32 @@ func WithClock(clock system.Clock) Option {
 	return func(c *scenarioConfig) {
 		if clock != nil {
 			c.clock = clock
+		}
+	}
+}
+
+// WithQuietWindow bounds how long [WhenPhase.ThenNoEvents] waits for
+// silence under await mode (after TimeAdvances or Await). Default: the full
+// await timeout — the negative assertion must actually watch for late
+// arrivals, not pass the instant it is called. Pass a shorter window to
+// make negative tests fast while still catching arrivals within it.
+func WithQuietWindow(d time.Duration) Option {
+	return func(c *scenarioConfig) {
+		if d > 0 {
+			c.quietWindow = d
+		}
+	}
+}
+
+// WithCommandCaptureFilter restricts command capture to commands the
+// filter accepts: background noise (lifecycle sweeps, keepalives) stops
+// diluting ThenCommands baselines. The filter runs on dispatch goroutines
+// inside the capture lock — it must be pure and fast. Filtered commands are
+// never captured, so no Then* assertion sees them.
+func WithCommandCaptureFilter(filter func(command.Command) bool) Option {
+	return func(c *scenarioConfig) {
+		if filter != nil {
+			c.captureFilter = filter
 		}
 	}
 }
@@ -230,9 +258,11 @@ func (s *Scenario) captureMiddleware() command.Middleware {
 		return func(ctx context.Context, cmd command.Command) error {
 			err := next(ctx, cmd)
 
-			s.cmdMu.Lock()
-			s.capturedCommands = append(s.capturedCommands, capturedCommand{cmd: cmd, err: err})
-			s.cmdMu.Unlock()
+			if s.cfg.captureFilter == nil || s.cfg.captureFilter(cmd) {
+				s.cmdMu.Lock()
+				s.capturedCommands = append(s.capturedCommands, capturedCommand{cmd: cmd, err: err})
+				s.cmdMu.Unlock()
+			}
 
 			return err
 		}
