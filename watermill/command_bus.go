@@ -2,7 +2,6 @@ package watermill
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"log/slog"
 	"sync"
@@ -13,7 +12,6 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
-	"github.com/larsartmann/go-cqrs-lite/event/v4"
 )
 
 // CommandBus is a full command.Bus implementation backed by a Watermill
@@ -96,11 +94,8 @@ func NewCommandBus(opts ...CommandBusOption) *CommandBus {
 // (BlockPublishUntilSubscriberAck). Escape asynchronously and clear the
 // mark (event.WithoutDeliveryMark, deriver.WithAsyncDispatch).
 func (b *CommandBus) Publish(ctx context.Context, cmds ...command.Command) error {
-	if event.ContextInDelivery(ctx) {
-		return fmt.Errorf(
-			"%w: nested command publish from a synchronous delivery handler",
-			ErrReentrantPublish,
-		)
+	if err := rejectReentrant(ctx, "command"); err != nil {
+		return err
 	}
 
 	b.mu.Lock()

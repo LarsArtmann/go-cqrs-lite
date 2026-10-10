@@ -1,6 +1,10 @@
 package watermill
 
 import (
+	"context"
+	"fmt"
+
+	cqrsevent "github.com/larsartmann/go-cqrs-lite/event/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
@@ -21,3 +25,19 @@ var ErrReentrantPublish error = errorfamily.NewOrchestration(
 	"watermill.reentrant_publish",
 	"publish from inside a synchronous bus delivery would deadlock",
 )
+
+// rejectReentrant returns the [ErrReentrantPublish] guard error for a
+// nested synchronous publish of kind ("event"/"command"), or nil when ctx
+// is not inside a bus delivery — the shared guard both buses' Publish
+// methods open with.
+func rejectReentrant(ctx context.Context, kind string) error {
+	if !cqrsevent.ContextInDelivery(ctx) {
+		return nil
+	}
+
+	return fmt.Errorf(
+		"%w: nested %s publish from a synchronous delivery handler",
+		ErrReentrantPublish,
+		kind,
+	)
+}

@@ -2,7 +2,6 @@ package watermill
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"log/slog"
 	"sync"
@@ -115,11 +114,8 @@ func NewEventBus(opts ...EventBusOption) *EventBus {
 // (BlockPublishUntilSubscriberAck). Escape asynchronously and clear the
 // mark (event.WithoutDeliveryMark, deriver.WithAsyncDispatch).
 func (b *EventBus) Publish(ctx context.Context, events ...event.Event) error {
-	if event.ContextInDelivery(ctx) {
-		return fmt.Errorf(
-			"%w: nested event publish from a synchronous delivery handler",
-			ErrReentrantPublish,
-		)
+	if err := rejectReentrant(ctx, "event"); err != nil {
+		return err
 	}
 
 	b.mu.Lock()
