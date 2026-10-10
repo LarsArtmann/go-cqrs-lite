@@ -471,24 +471,60 @@ bus.SubscribeAll(composed.AsHandler(cmdDispatcher))
 // ADR-0040: functional/composable API over a declarative rule registry.
 ```
 
-### 6.13 Graph Projections (graph)
+### 6.13 Graph-Native Read Models (metaengine Graph ADT; legacy: graph)
 
-> **v5 deprecation notice (ADR-0123):** `graph.GraphProjection` (with
-> `Handler`, `WithSchema`, `NewGraphProjection`) is **deprecated and removed
-> in v5** — the replacement is `metaengine/graphadapter` over the
-> metaengine Graph ADT. `graph.GraphSink`/`GraphDriver` survive v5
-> (graphadapter is built on them). Canonical v5-removal list:
-> [FAQ — "Will the v5 cut break my imports?"](faq.md#will-the-v5-cut-break-my-imports-what-is-going-away).
+**The modern path (v5 direction, ADR-0123):** model relations as domain
+events and fold them into `metaengine.Edge` records inside a
+`metaengine.Query[Q,R]`. The planner classifies the query as the Graph ADT
+(`ReadTraversal`) and routes depth-limited traversals to the deployed
+engine — sqlite/turso/pg/mysql/duckdb run recursive CTEs over
+`meta_graph_edges`, Dgraph runs native `@recurse`, badger prefix-scans BFS,
+everything else takes the `metaengine.GraphBFS` fallback. Retraction is
+deletion-as-domain-event (ADR-0114): an `EdgeRemoval` fold removes exactly
+the edge the retracted fact added.
 
-The third projection tier. Where `stack.Materialize` writes one document per
-key and `storage.RelationalProjection` writes across SQL tables, `graph`
-merges events into **nodes and edges** — the right shape for variable-depth
-traversal, path-finding, adjacency, and connected-component queries (reply
-chains, social graphs, causation DAGs, role memberships).
+```go
+query := metaengine.Query[ReachabilityQuery, []string]("follow_graph",
+    metaengine.OnRecordTyped("user.followed", sample, edgeFold),      // → metaengine.Edge
+    metaengine.OnRecordTyped("user.unfollowed", sample2, removeFold), // → metaengine.EdgeRemoval
+)
+// declared via system.RawQuery(query) in DomainConfig.Projections;
+// reads via metaengine.ExecuteTyped[ReachabilityQuery, []string](ctx, sys.MetaEngine(), in)
+```
 
-Writes ARE portable across backends (openCypher MERGE semantics shared by
-Neo4j, Memgraph, Apache Age, RedisGraph). Reads run native Cypher/Gremlin via
-the driver (only `MemoryDriver` offers a Go-native read API).
+Copy-paste recipe with the full composition-root wiring:
+[recipes.md §2.44](recipes.md#244-graph-native-read-models--edge-folds-traversal-retraction-system--metaengine).
+Behavior-verified reference application (runnable main + systemscenario BDD
+suite): [`example/graph-native`](../../../example/graph-native).
+
+**Engine support:** memory, sqlite, turso, pg, mysql, duckdb (recursive
+CTE), badger (prefix-scan BFS + undirected), dgraph (native `@recurse`),
+iroh — pebble does NOT support ADTGraph. Undirected traversal
+(`Undirected: true` input field) is an optional capability
+(`metaengine.HasUndirectedGraphSupport`): engines without it report the
+missing capability instead of guessing.
+
+**Known limitation — flat node identity in `graphadapter`:** the in-memory
+`metaengine/graphadapter` bridge (engine name `graph-memory`) stamps every
+node with the same label/`id` key prop, so distinct node TYPES (User vs
+Task) share one namespace. Escape hatch: `Adapter.Driver()` returns the
+underlying `graph.MemoryDriver` for label-rich direct reads
+(`Traverse`/`Neighbors`/`ShortestPath`). The engine-backed path (sqlite,
+dgraph, ...) does not use graphadapter and is unaffected.
+
+**Reads are NOT abstracted (ADR-0038):** writes are portable (openCypher
+MERGE semantics), reads are engine-native by design. The only
+`graph.GraphDriver` implementation shipped is the in-memory reference
+`MemoryDriver` (Go-native read API); a Neo4j/Memgraph driver would expose
+its native Cypher/Gremlin directly, but none ships — implement
+`graph.GraphDriver` yourself and validate with the `graph/graphtest`
+contract suite.
+
+**Legacy tier (DEPRECATED, removed in v5 — ADR-0123):** `graph.GraphProjection`
+(with `Handler`, `WithSchema`, `NewGraphProjection`) merges events into
+nodes and edges through a `graph.GraphSink` directly, outside the planner.
+Read it only to migrate existing v4 code; edges-only reads move to the
+metaengine Graph ADT above.
 
 ```go
 import "github.com/larsartmann/go-cqrs-lite/graph/v4"

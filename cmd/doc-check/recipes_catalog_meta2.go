@@ -256,4 +256,37 @@ var recipeCatalogB2 = map[string]recipeSpec{
 			"var d decider.Decider[State]\n",
 		trailers: "_ = repo\n_ = err",
 	},
+	"### 2.44 Graph-Native Read Models — Edge folds, traversal, retraction (system + metaengine) #1": {
+		imports: []string{
+			`"github.com/larsartmann/go-cqrs-lite/event/v4"`,
+			`"github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4"`,
+			`"github.com/larsartmann/go-cqrs-lite/metaengine/v4"`,
+			`"github.com/larsartmann/go-cqrs-lite/record/v4"`,
+		},
+		trailers: "_ = query\n_ = decoder",
+	},
+	"### 2.44 Graph-Native Read Models — Edge folds, traversal, retraction (system + metaengine) #2": {
+		imports: []string{
+			`"github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4"`,
+			`_ "github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4"`,
+			`"github.com/larsartmann/go-cqrs-lite/system/v4"`,
+		},
+		preamble: "var query any\n" +
+			"var decoder *projectionadapter.TypeDecoder\n" +
+			"var registerFollowDeciderAndCommands func(*system.System)\n",
+		trailers: "_ = domain\n_ = deploy",
+	},
+	"### 2.44 Graph-Native Read Models — Edge folds, traversal, retraction (system + metaengine) #3": {
+		imports: []string{
+			`"context"`,
+			`"github.com/larsartmann/go-cqrs-lite/metaengine/v4"`,
+			`"github.com/larsartmann/go-cqrs-lite/system/v4"`,
+		},
+		preamble: "type Reachability struct {\n" +
+			"\tNode  string\n" +
+			"\tDepth int\n" +
+			"}\n" +
+			"ctx := context.Background()\nvar sys *system.System\n",
+		trailers: "_ = reach\n_ = err",
+	},
 }

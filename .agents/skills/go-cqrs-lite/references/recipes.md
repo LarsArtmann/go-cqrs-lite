@@ -48,6 +48,10 @@
 > - [§2.38 Engine-Backed Timers, Queue Claims & Dedup — the ONE Substrate](#238-engine-backed-timers-queue-claims--dedup--the-one-substrate-adr-0142)
 > - [§2.39 The Goal in 5 Minutes — declare types, swap engines by config](#239-the-goal-in-5-minutes--declare-types-swap-engines-by-config-goal-shaped-app)
 > - [§2.40 Statistical Rigor: repeats, CoV, benchstat (benchkit)](#240-statistical-rigor-repeats-cov-benchstat-benchkit)
+> - [§2.41 Declare Data Products + Contracts End-to-End](#241-declare-data-products--contracts-end-to-end-catalog-data-mesh)
+> - [§2.42 Request Correlation — RequestScope Enricher](#242-request-correlation--requestscope-enricher-event--decider)
+> - [§2.43 System-Level BDD Scenarios](#243-system-level-bdd-scenarios--givenwhenthen-over-a-real-systemnew-systemscenario-adr-0153)
+> - [§2.44 Graph-Native Read Models — Edge folds, traversal, retraction](#244-graph-native-read-models--edge-folds-traversal-retraction-system--metaengine)
 
 ### 2.0 Bundle Presets — one-call infrastructure wiring
 
@@ -2879,3 +2883,108 @@ without shared-cache in-memory flakiness).
 sc := systemscenario.System(t, ctx, taskDomain(), systemscenario.Memory())
 scSQLite := systemscenario.System(t, ctx, taskDomain(), systemscenario.SQLite(t))
 ```
+
+### 2.44 Graph-Native Read Models — Edge folds, traversal, retraction (system + metaengine)
+
+Relations as domain events, traversals as queries: fold `user.followed` into
+`metaengine.Edge` records and the planner classifies the query as the Graph
+ADT (`ReadTraversal`), routing depth-limited reachability to the deployed
+engine (sqlite's recursive CTE, Dgraph's native `@recurse`, BFS fallback
+elsewhere). Retraction is deletion-as-domain-event (ADR-0114): an
+`EdgeRemoval` fold removes exactly the edge the retracted fact added.
+Behavior-verified reference app: [`example/graph-native`](../../../example/graph-native)
+(runnable main + systemscenario BDD suite).
+
+```go
+import (
+    "github.com/larsartmann/go-cqrs-lite/event/v4"
+    "github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4"
+    "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+    "github.com/larsartmann/go-cqrs-lite/record/v4"
+)
+
+// Payloads carry BOTH node names: id.StreamID.String() is a brand-prefixed
+// display form ("StreamMarker:alice"), not a clean node name — derive node
+// identity from payload fields, never from stream IDs.
+type Followed struct{ Follower, Followee string }
+type Unfollowed struct{ Follower, Followee string }
+
+// Traversal input conventions: Node = start, Depth defaults to 1 when zero,
+// Undirected walks both directions (engines without it report the missing
+// capability instead of guessing).
+type Reachability struct {
+    Node  string
+    Depth int
+}
+
+query := metaengine.Query[Reachability, []string]("follow_graph",
+    metaengine.OnRecordTyped("user.followed",
+        projectionadapter.EventWithID[Followed]{},
+        func(_ record.Record, evt projectionadapter.EventWithID[Followed]) metaengine.Edge {
+            return metaengine.Edge{From: evt.Payload.Follower, To: evt.Payload.Followee}
+        }),
+    metaengine.OnRecordTyped("user.unfollowed",   // retraction fold (ADR-0114)
+        projectionadapter.EventWithID[Unfollowed]{},
+        func(_ record.Record, evt projectionadapter.EventWithID[Unfollowed]) metaengine.EdgeRemoval {
+            return metaengine.EdgeRemoval{From: evt.Payload.Follower, To: evt.Payload.Followee}
+        }),
+)
+
+decoder := projectionadapter.NewTypeDecoder(
+    projectionadapter.Register(event.Type("user.followed"), Followed{}),
+    projectionadapter.Register(event.Type("user.unfollowed"), Unfollowed{}),
+)
+```
+
+Wire through the composition root — `system.RawQuery` carries the query
+declaration; blank-import the engine modules your deployment may use (they
+self-register, database/sql style — ADR-0123 §3). NOTE: the coeffect gate
+(`DomainConfig.Events`) cannot see through `RawQuery`, so declare an Events
+universe only when you also use `Evolve`/`Lookup` declarations.
+
+```go
+import (
+    _ "github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4" // registers "sqlite"
+    "github.com/larsartmann/go-cqrs-lite/system/v4"
+)
+
+domain := system.DomainConfig{
+    Commands: registerFollowDeciderAndCommands,   // decider + Follow/Unfollow commands
+    Projections:           []system.ProjectionDeclaration{system.RawQuery(query)},
+    ProjectionTypeDecoder: decoder,
+}
+
+deploy := system.DeploymentConfig{ // operator territory: pick engines per role
+    Engines: map[string]system.EngineConfig{
+        "primary": {Driver: "sqlite", DSN: "file:demo?mode=memory&cache=shared"},
+    },
+    Instances: []system.InstanceConfig{
+        {Role: system.RoleSourceOfTruth, Engine: "primary"},
+        {Role: system.RoleProjections, Engine: "primary"}, // or a "graph": {Driver: "dgraph", DSN: "localhost:9080"}
+    },
+}
+```
+
+Execute with `ExecuteTyped` for a typed `[]string` (raw `ExecuteCtx` returns
+`[]any` regardless of the R parameter — reconstructTyped is what makes the
+typed form work):
+
+```go
+import (
+    "context"
+
+    "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+)
+
+reach, err := metaengine.ExecuteTyped[Reachability, []string](ctx,
+    sys.MetaEngine(), Reachability{Node: "alice", Depth: 2})
+// after carol unfollows dave, the EdgeRemoval fold retracts that edge and
+// dave leaves every traversal that used it — poll until converged; the
+// projection host applies journal events asynchronously.
+```
+
+BDD-test it at system level: the graph-native BDD suite in
+[`example/graph-native/scenario_test.go`](../../../example/graph-native/scenario_test.go)
+pins traversal + retraction + guard rejections against the same
+`DomainConfig` the binary boots (systemscenario, §2.43).
+
