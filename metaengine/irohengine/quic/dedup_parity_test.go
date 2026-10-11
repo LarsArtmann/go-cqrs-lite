@@ -25,7 +25,7 @@ func TestDedupParity_SharedCapacityConst(t *testing.T) {
 // production capacity: duplicate IDs deduplicate, and after overflowing the
 // window memory stays bounded while the most recent IDs remain deduplicated.
 func TestRing_ProductionCapacity10K(t *testing.T) {
-	tr := &QuicTransport{dedupRing: dedup.NewRing(DefaultDedupCapacity)}
+	tr := &QuicTransport{dedupRing: dedup.NewRing[string](DefaultDedupCapacity)}
 
 	if !tr.markSeen("op-1") {
 		t.Fatal("first markSeen(op-1) = false, want true")
