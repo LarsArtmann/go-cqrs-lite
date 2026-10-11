@@ -2,7 +2,6 @@ package projectionhost_test
 
 import (
 	"bytes"
-	"context"
 	"errors"
 	"sync"
 	"testing"
@@ -70,8 +69,7 @@ func TestHost_FlightRecorder_CapturesOnTerminalFailure(t *testing.T) {
 	)
 	_ = host.Register(proj)
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 	_ = host.Start(ctx)
 
 	// Wait for the worker to reach terminal failure.
@@ -110,8 +108,7 @@ func TestHost_FlightRecorder_NilRecorder_NoOp(t *testing.T) {
 	)
 	_ = host.Register(proj)
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 	_ = host.Start(ctx)
 
 	// Wait for terminal failure — should not panic even with nil recorder.

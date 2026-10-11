@@ -69,8 +69,8 @@ func autoInferFilters(
 		keySet[k] = true
 	}
 
-	for i := range queryType.NumField() {
-		f := queryType.Field(i)
+	for f := range queryType.Fields() {
+		f := f
 		if !f.IsExported() {
 			continue
 		}

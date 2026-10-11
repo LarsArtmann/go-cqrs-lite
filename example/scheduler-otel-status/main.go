@@ -18,11 +18,10 @@ import (
 	"os"
 	"time"
 
-	_ "modernc.org/sqlite" // driver registration for the demo database
-
 	cqrsprom "github.com/larsartmann/go-cqrs-lite/prometheus/v4"
 	"github.com/larsartmann/go-cqrs-lite/scheduling/sqlstore/v4"
 	"github.com/larsartmann/go-cqrs-lite/scheduling/v4"
+	_ "modernc.org/sqlite" // driver registration for the demo database
 )
 
 func main() {
@@ -57,7 +56,7 @@ func run() error {
 		return err
 	}
 
-	if err := store.Schedule(ctx, dueTimer("demo-timer")); err != nil {
+	if err := store.Schedule(ctx, dueTimer(scheduling.MustParseTimerID("demo-timer"))); err != nil {
 		return err
 	}
 
@@ -139,9 +138,9 @@ func pollLoop(ctx context.Context, store *sqlstore.ClaimingTimerStore[struct{}])
 	}
 }
 
-func dueTimer(id string) scheduling.Timer[struct{}] {
+func dueTimer(id scheduling.TimerID) scheduling.Timer[struct{}] {
 	return scheduling.Timer[struct{}]{
-		ID:     scheduling.MustParseTimerID(id),
+		ID:     id,
 		FireAt: time.Now().Add(-time.Second),
 	}
 }

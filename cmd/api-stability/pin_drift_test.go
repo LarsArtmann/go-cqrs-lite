@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -74,7 +75,7 @@ func TestSiblingModulePinsResolve(t *testing.T) {
 				}
 
 				switch {
-				case !tagExists(allTags, depDir, version) && isPseudoVersion(version):
+				case !slices.Contains(allTags, depDir+"/"+version) && isPseudoVersion(version):
 					broken = append(
 						broken,
 						fmt.Sprintf(
@@ -84,7 +85,7 @@ func TestSiblingModulePinsResolve(t *testing.T) {
 							version,
 						),
 					)
-				case !tagExists(allTags, depDir, version):
+				case !slices.Contains(allTags, depDir+"/"+version):
 					broken = append(broken, fmt.Sprintf("%s requires %s %s — no such tag exists",
 						mod, depDir, version))
 				case compareVersions(version, latest) < 0:
@@ -178,7 +179,7 @@ func parseGoMod(t *testing.T, path string) (map[string]string, map[string]struct
 
 	inRequireBlock, inReplaceBlock := false, false
 
-	for _, raw := range strings.Split(string(data), "\n") {
+	for raw := range strings.SplitSeq(string(data), "\n") {
 		line := strings.TrimSpace(raw)
 
 		switch {
@@ -251,13 +252,7 @@ func latestTagFor(tags []string, dir string) string {
 }
 
 func tagExists(tags []string, dir, version string) bool {
-	for _, tag := range tags {
-		if tag == dir+"/"+version {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(tags, dir+"/"+version)
 }
 
 func isPseudoVersion(version string) bool {

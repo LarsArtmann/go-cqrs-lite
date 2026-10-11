@@ -133,7 +133,7 @@ func TestKVStore_CheckAndRecord_Concurrent_AllImplementations(t *testing.T) {
 			wins, dups := 0, 0
 
 			start := make(chan struct{})
-			for i := 0; i < goroutines; i++ {
+			for range goroutines {
 				go func() {
 					defer wg.Done()
 					<-start

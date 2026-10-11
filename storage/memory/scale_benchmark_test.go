@@ -119,9 +119,7 @@ func BenchmarkMemoryStore_Save_Concurrent(b *testing.B) {
 	b.ResetTimer()
 
 	for b.Loop() {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			newID := id.NewStreamID()
 			newEvt := benchEvent(b, newID, 1)
 			if err := store.Save(
@@ -132,7 +130,7 @@ func BenchmarkMemoryStore_Save_Concurrent(b *testing.B) {
 			); err != nil {
 				errOnce.Do(func() { firstErr = err })
 			}
-		}()
+		})
 	}
 
 	wg.Wait()

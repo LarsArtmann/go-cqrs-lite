@@ -31,10 +31,8 @@ func TestNewMessageBuilder_ConcurrentOptionsDoNotMutateSharedSchema(t *testing.T
 	var wg sync.WaitGroup
 
 	for range workers {
-		wg.Add(1)
 
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 
 			cfg := newMessageBuilder[regressionPayload](
 				QueryMessage, "test.concurrent.qry", Receives,
@@ -51,7 +49,7 @@ func TestNewMessageBuilder_ConcurrentOptionsDoNotMutateSharedSchema(t *testing.T
 			if got := len(builder.schema.Parameters); got != 1 {
 				t.Errorf("builder schema params = %d, want exactly 1", got)
 			}
-		}()
+		})
 	}
 
 	wg.Wait()

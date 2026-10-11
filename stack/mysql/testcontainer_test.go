@@ -20,7 +20,7 @@ import (
 var (
 	containerDSN string
 	adminDB      *sql.DB
-	dbCounter    int64
+	dbCounter    atomic.Int64
 	testDBCache  sync.Map // map[string]string — t.Name() → per-test DSN
 )
 
@@ -122,7 +122,7 @@ func mysqlDSN(t *testing.T) string {
 		return dsn.(string)
 	}
 
-	dbName := fmt.Sprintf("test_%d", atomic.AddInt64(&dbCounter, 1))
+	dbName := fmt.Sprintf("test_%d", dbCounter.Add(1))
 	if _, err := adminDB.Exec("CREATE DATABASE `" + dbName + "`"); err != nil {
 		t.Fatalf("create test database %s: %v", dbName, err)
 	}

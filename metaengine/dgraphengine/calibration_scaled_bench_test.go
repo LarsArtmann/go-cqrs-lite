@@ -32,7 +32,7 @@ func seedScaledDocs(b *testing.B, eng metaengine.Engine, col string, rows int) {
 
 	ctx := context.Background()
 
-	for i := 0; i < rows; i++ {
+	for i := range rows {
 		doc := map[string]any{"i": i, "mod": i % 10}
 
 		if err := mb.MapSet(ctx, col, fmt.Sprintf("k%06d", i), doc); err != nil {
@@ -117,7 +117,7 @@ func BenchmarkCalibration_DgraphSearchQuery(b *testing.B) {
 	for _, rows := range []int{100, 1000, 10000} {
 		col := uniqueCollection(b, fmt.Sprintf("search_%d", rows))
 
-		for i := 0; i < rows; i++ {
+		for i := range rows {
 			doc := metaengine.IndexedText{
 				ID:      fmt.Sprintf("k%06d", i),
 				Content: fmt.Sprintf("alpha beta gamma delta token%04d", i%10),

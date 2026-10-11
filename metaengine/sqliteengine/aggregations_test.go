@@ -681,7 +681,7 @@ func TestSQLite_Aggregate_LargeDataset(t *testing.T) { //nolint:tparallel
 	const n = 10_000
 	var expectedSum float64
 
-	for i := 0; i < n; i++ {
+	for i := range n {
 		price := float64(i) + 1
 		expectedSum += price
 		val := map[string]any{"id": fmtID(i), "status": "open", "price": price}

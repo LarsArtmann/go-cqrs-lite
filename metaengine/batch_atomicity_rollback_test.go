@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"maps"
 	"sync"
 	"testing"
 
@@ -106,9 +107,7 @@ func (e *failingTxEngine) RunInTx(ctx context.Context, fn func(context.Context) 
 	snap := make(map[string]map[string]any, len(e.data))
 	for c, m := range e.data {
 		cp := make(map[string]any, len(m))
-		for k, v := range m {
-			cp[k] = v
-		}
+		maps.Copy(cp, m)
 
 		snap[c] = cp
 	}

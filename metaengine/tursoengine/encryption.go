@@ -115,7 +115,7 @@ func applyEncryption(dsn string, cfg *encryptionConfig) (string, error) {
 // silently.
 func withEncryptionParams(dsn string, cipher Cipher, hexKey string) (string, error) {
 	if _, query, hasQuery := strings.Cut(dsn, "?"); hasQuery {
-		for _, part := range strings.Split(query, "&") {
+		for part := range strings.SplitSeq(query, "&") {
 			if key, _, _ := strings.Cut(
 				part,
 				"=",

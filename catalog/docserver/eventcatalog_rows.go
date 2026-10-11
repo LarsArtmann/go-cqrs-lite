@@ -6,7 +6,6 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/larsartmann/templ-components/display"
-	"github.com/larsartmann/templ-components/utils"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 )
@@ -24,7 +23,7 @@ func catalogTableProps(
 ) display.TableProps {
 	return display.TableProps{
 		Headers:     headers,
-		BaseProps:   utils.BaseProps{AriaLabel: ariaLabel},
+		AriaLabel:   ariaLabel,
 		Striped:     true,
 		Hover:       hover,
 		CellPadding: display.TableCellPaddingCompact,

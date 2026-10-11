@@ -167,7 +167,7 @@ func FuzzNewULID_Unique(f *testing.F) {
 		}
 
 		seen := make(map[string]struct{}, n)
-		for i := 0; i < n; i++ {
+		for i := range n {
 			newID := id.New[id.StreamID]()
 			s := newID.String()
 			if _, dup := seen[s]; dup {

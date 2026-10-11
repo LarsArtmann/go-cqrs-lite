@@ -16,7 +16,7 @@ func BenchmarkLayoutPlanner_FullScan(b *testing.B) {
 
 	mb := eng.(metaengine.MapBackend)
 
-	for i := 0; i < 10_000; i++ {
+	for i := range 10_000 {
 		status := "inactive"
 		if i%100 == 0 {
 			status = "active" // 100 active out of 10K
@@ -76,7 +76,7 @@ func BenchmarkLayoutPlanner_SortIndexVsGoSort(b *testing.B) {
 
 			mb := eng.(metaengine.MapBackend)
 
-			for i := 0; i < 10_000; i++ {
+			for i := range 10_000 {
 				if err := mb.MapSet(ctx, "bench", fmt.Sprintf("k%d", i), map[string]any{
 					"score": i,
 				}); err != nil {
@@ -115,7 +115,7 @@ func BenchmarkLayoutPlanner_IndexedScan(b *testing.B) {
 
 	mb := eng.(metaengine.MapBackend)
 
-	for i := 0; i < 10_000; i++ {
+	for i := range 10_000 {
 		status := "inactive"
 		if i%100 == 0 {
 			status = "active" // 100 active out of 10K

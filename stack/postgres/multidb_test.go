@@ -112,8 +112,8 @@ func dbNameFromDSN(t *testing.T, dsn string) string {
 		}
 	}
 
-	if idx := strings.Index(dsn, "dbname="); idx >= 0 {
-		rest := dsn[idx+len("dbname="):]
+	if _, after, ok := strings.Cut(dsn, "dbname="); ok {
+		rest := after
 		end := strings.IndexAny(rest, " ")
 		if end < 0 {
 			return rest

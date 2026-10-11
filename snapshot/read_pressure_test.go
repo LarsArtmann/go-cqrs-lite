@@ -218,15 +218,13 @@ func TestReadPressure_ConcurrentReads(t *testing.T) {
 	var wg sync.WaitGroup
 
 	for range 100 {
-		wg.Add(1)
 
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 
 			for range 10 {
 				rp.RecordRead(ref, event.Version(1))
 			}
-		}()
+		})
 	}
 
 	wg.Wait()
@@ -245,25 +243,21 @@ func TestReadPressure_ConcurrentReadAndSnapshot(t *testing.T) {
 	var wg sync.WaitGroup
 
 	for range 50 {
-		wg.Add(1)
 
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 
 			for range 10 {
 				rp.RecordRead(ref, event.Version(1))
 			}
-		}()
+		})
 	}
 
 	for range 50 {
-		wg.Add(1)
 
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 
 			_ = rp.ShouldSnapshotFor(ref, event.Version(1))
-		}()
+		})
 	}
 
 	wg.Wait()

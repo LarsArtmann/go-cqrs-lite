@@ -102,13 +102,13 @@ func TestFormatConfigFeatures(t *testing.T) {
 		},
 		{
 			name:     "server only",
-			features: analyzer.ConfigFeatures{Server: ptrBool(true)},
+			features: analyzer.ConfigFeatures{Server: new(true)},
 			want:     "server=true",
 		},
 		{
 			name: "multiple features",
 			features: analyzer.ConfigFeatures{
-				Server:  ptrBool(true),
+				Server:  new(true),
 				Tracing: ptrTracingKind(analyzer.TracingOn),
 			},
 			want: "server=true, tracing=on",
@@ -126,10 +126,12 @@ func TestFormatConfigFeatures(t *testing.T) {
 	}
 }
 
+//go:fix inline
 func ptrBool(b bool) *bool {
-	return &b
+	return new(b)
 }
 
+//go:fix inline
 func ptrTracingKind(k analyzer.TracingKind) *analyzer.TracingKind {
-	return &k
+	return new(k)
 }

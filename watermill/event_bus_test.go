@@ -204,10 +204,8 @@ func TestEventBusPublishRacingCloseNeverLeaksRawTransportError(t *testing.T) {
 		stop := make(chan struct{})
 
 		for range 6 {
-			wg.Add(1)
 
-			go func() {
-				defer wg.Done()
+			wg.Go(func() {
 
 				for {
 					select {
@@ -227,7 +225,7 @@ func TestEventBusPublishRacingCloseNeverLeaksRawTransportError(t *testing.T) {
 						return
 					}
 				}
-			}()
+			})
 		}
 
 		time.Sleep(200 * time.Microsecond)

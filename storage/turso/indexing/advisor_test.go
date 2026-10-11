@@ -352,7 +352,7 @@ func benchAdvisor(b *testing.B, withIndexes bool) *sql.DB {
 	}
 
 	// Seed events for the same stream to make the queries realistic.
-	for i := 0; i < 1000; i++ {
+	for i := range 1000 {
 		_, err := db.ExecContext(
 			context.Background(),
 			`INSERT INTO events (id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, payload_encoding, metadata, occurred_at, created_at)

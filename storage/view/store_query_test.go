@@ -55,7 +55,7 @@ func TestSQLViewStore_Query_Pagination(t *testing.T) {
 	store := parallelViewStore(t)
 	ctx := context.Background()
 
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		key := fmt.Sprintf("u%02d", i)
 		if err := store.Set(ctx, testKey(key), &testView{
 			Name: fmt.Sprintf("User%d", i), Email: "x@ex.com", Age: i,

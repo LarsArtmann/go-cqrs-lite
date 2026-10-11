@@ -32,7 +32,7 @@ func TestReadmePresetTableMatchesCode(t *testing.T) {
 
 	var rows []readmePresetRow
 
-	for _, line := range strings.Split(string(data), "\n") {
+	for line := range strings.SplitSeq(string(data), "\n") {
 		line = strings.TrimSpace(line)
 		if !strings.HasPrefix(line, "| `") {
 			continue
@@ -48,7 +48,7 @@ func TestReadmePresetTableMatchesCode(t *testing.T) {
 
 		var rules []string
 		if rulesCol != "(none)" && rulesCol != "" {
-			for _, r := range strings.Split(rulesCol, ",") {
+			for r := range strings.SplitSeq(rulesCol, ",") {
 				r = strings.TrimSpace(r)
 				if r != "" {
 					rules = append(rules, r)

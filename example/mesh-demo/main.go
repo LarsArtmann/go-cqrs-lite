@@ -85,10 +85,12 @@ func runExportCmd(args []string) error {
 // place order → order.placed → billing folds it, issues invoice →
 // invoice.issued → orders folds it, completes the order.
 func runDemo() error {
-	const orderID = "order-42"
+	const rawOrderID = "order-42"
+
+	orderID := NewOrderID(rawOrderID)
 
 	events, err := decideInto(nil, initialOrderState(), foldOrder,
-		placeOrder(PlaceOrderCmd{OrderID: orderID, CustomerID: "cust-7", TotalCents: 9900}))
+		placeOrder(PlaceOrderCmd{OrderID: orderID, CustomerID: NewCustomerID("cust-7"), TotalCents: 9900}))
 	if err != nil {
 		return err
 	}

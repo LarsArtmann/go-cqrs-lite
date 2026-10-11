@@ -326,7 +326,7 @@ func TestTagContentMatchesChangelog(t *testing.T) {
 	// Extract the version suffix from each module tag (e.g., "event/v4.0.4" → "v4.0.4").
 	tagVersionRe := regexp.MustCompile(`/((?:v)\d+\.\d+\.\d+)$`)
 	taggedVersions := make(map[string]int)
-	for _, line := range strings.Split(strings.TrimSpace(string(tagOut)), "\n") {
+	for line := range strings.SplitSeq(strings.TrimSpace(string(tagOut)), "\n") {
 		if line == "" {
 			continue
 		}

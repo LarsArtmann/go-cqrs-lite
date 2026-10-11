@@ -363,7 +363,7 @@ func TestSQLiteDeadLetterStore_ListPaged(t *testing.T) {
 	store := newSQLiteDLQ(t)
 	ctx := context.Background()
 
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		entry := makeDLQEntry(t, "users-proj")
 		entry.FailedAt = time.Now().UTC().Add(time.Duration(i) * time.Minute)
 		_ = store.Store(ctx, entry)
@@ -490,7 +490,7 @@ func TestSQLiteDeadLetterStore_Stress_10k(t *testing.T) {
 
 	const n = 10_000
 
-	for i := 0; i < n; i++ {
+	for i := range n {
 		entry := makeDLQEntry(t, fmt.Sprintf("proj-%d", i%5))
 		_ = store.Store(ctx, entry)
 	}
@@ -545,11 +545,11 @@ func TestSQLiteDeadLetterStore_ConcurrentStore(t *testing.T) {
 
 	wg.Add(goroutines)
 
-	for g := 0; g < goroutines; g++ {
+	for g := range goroutines {
 		go func(projName string) {
 			defer wg.Done()
 
-			for i := 0; i < perGoroutine; i++ {
+			for range perGoroutine {
 				entry := makeDLQEntry(t, projName)
 				_ = store.Store(ctx, entry)
 			}

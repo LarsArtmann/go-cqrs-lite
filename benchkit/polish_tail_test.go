@@ -238,7 +238,7 @@ func TestHeadlineMetricNames_MatchesGateScriptLiteral(t *testing.T) {
 		t.Skipf("gate script not readable from test context: %v", err)
 	}
 
-	for _, line := range strings.Split(string(script), "\n") {
+	for line := range strings.SplitSeq(string(script), "\n") {
 		if !strings.HasPrefix(line, "NOISE_HEADLINE=") || strings.Contains(line, "${") {
 			continue
 		}
@@ -347,7 +347,7 @@ func TestRunSuiteRepeated_CovThroughRealBenchstatOutput(t *testing.T) {
 
 	var covLines int
 
-	for _, line := range strings.Split(string(out), "\n") {
+	for line := range strings.SplitSeq(string(out), "\n") {
 		fields := strings.Fields(line)
 		// benchstat input row: name, iterations, then <value unit> pairs.
 		if len(fields) < 4 || !strings.HasPrefix(fields[0], "BenchmarkCovBenchstatFixture") {

@@ -12,13 +12,13 @@ func TestQuery_MetadataMerge(t *testing.T) {
 
 	base := query.Metadata{
 		Custom: map[query.MetadataKey]string{"tenant": "acme"},
-	}
-	base.CorrelationID = id.NewCorrelationID()
+
+		CorrelationID: id.NewCorrelationID()}
 
 	overlay := query.Metadata{
 		Custom: map[query.MetadataKey]string{"region": "us-east-1"},
-	}
-	overlay.UserID = id.NewUserID()
+
+		UserID: id.NewUserID()}
 
 	merged := base.Merge(overlay)
 

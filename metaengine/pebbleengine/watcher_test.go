@@ -1,7 +1,6 @@
 package pebbleengine_test
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -48,8 +47,7 @@ func TestPebbleWatcher_DeleteNotificationDeliversZeroValue(t *testing.T) {
 	store, err := metaengine.Plan([]metaengine.Engine{eng}, q)
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	watcher := metaengine.NewWatcher[watcherTask](store, "pebble_watcher_tasks")
 	defer watcher.Close()
@@ -100,8 +98,7 @@ func TestPebbleWatcher_WithReplayRecordsTypedValue(t *testing.T) {
 	store, err := metaengine.Plan([]metaengine.Engine{eng}, q)
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	watcher := metaengine.NewWatcher[watcherTask](store, "pebble_replay_tasks")
 	replay := watcher.WithReplay(100)

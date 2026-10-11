@@ -11,7 +11,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v4/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4/idtest"
-	"github.com/larsartmann/go-cqrs-lite/metadata/v4"
 )
 
 var updateGolden = flag.Bool("update", false, "update golden files")
@@ -25,17 +24,15 @@ func TestGolden_EventMetadataWithActor(t *testing.T) {
 	actor := id.NewServiceActor("order-api")
 
 	meta := event.Metadata{
-		Tracing: metadata.Tracing{
-			CorrelationID: idtest.ParseCorrelationID(t, "01HK1540X0841Y0A6BSX1VKR97"),
-			CausationID:   idtest.ParseCausationID(t, "01HK1540X0841Y0A6BSX1VKR98"),
-			UserID:        idtest.ParseUserID(t, "01HK1540X0841Y0A6BSX1VKR99"),
-			RequestID:     idtest.ParseRequestID(t, "01HK1540X0841Y0A6BSX1VKRA1"),
-			ActorID:       actor,
-		},
-		Source:    "test-service",
-		IPAddress: "10.0.0.1",
-		UserAgent: "test-agent/1.0",
-		Custom:    map[event.MetadataKey]string{"custom.trace": "abc123", "tenant": "acme"},
+		CorrelationID: idtest.ParseCorrelationID(t, "01HK1540X0841Y0A6BSX1VKR97"),
+		CausationID:   idtest.ParseCausationID(t, "01HK1540X0841Y0A6BSX1VKR98"),
+		UserID:        idtest.ParseUserID(t, "01HK1540X0841Y0A6BSX1VKR99"),
+		RequestID:     idtest.ParseRequestID(t, "01HK1540X0841Y0A6BSX1VKRA1"),
+		ActorID:       actor,
+		Source:        "test-service",
+		IPAddress:     "10.0.0.1",
+		UserAgent:     "test-agent/1.0",
+		Custom:        map[event.MetadataKey]string{"custom.trace": "abc123", "tenant": "acme"},
 	}
 
 	evt, err := event.NewEvent(

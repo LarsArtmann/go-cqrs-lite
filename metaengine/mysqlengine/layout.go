@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"hash/fnv"
+	"maps"
 	"sync/atomic"
 )
 
@@ -246,9 +247,7 @@ func cowLookup(m *atomic.Pointer[map[string]string], field string) (string, bool
 func cowPublish(m *atomic.Pointer[map[string]string], field, value string) {
 	next := make(map[string]string, 1)
 	if snap := m.Load(); snap != nil {
-		for k, v := range *snap {
-			next[k] = v
-		}
+		maps.Copy(next, *snap)
 	}
 
 	next[field] = value

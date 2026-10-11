@@ -179,7 +179,7 @@ func TestEventStore_ConcurrentSave_VersionConflict(t *testing.T) {
 	const goroutines = 10
 	errCh := make(chan error, goroutines)
 
-	for i := 0; i < goroutines; i++ {
+	for range goroutines {
 		go func() {
 			evt := cfg.NewTestEvent(t, streamID, 2)
 			errCh <- store.Save(
@@ -193,7 +193,7 @@ func TestEventStore_ConcurrentSave_VersionConflict(t *testing.T) {
 
 	var successes, conflicts int
 
-	for i := 0; i < goroutines; i++ {
+	for range goroutines {
 		err := <-errCh
 		if err == nil {
 			successes++

@@ -168,8 +168,8 @@ func (e *pebbleEngine) scanWithSortIndex(
 		var runGroup []byte
 
 		flushRun := func() {
-			for i := len(run) - 1; i >= 0; i-- {
-				results = append(results, run[i])
+			for _, r := range slices.Backward(run) {
+				results = append(results, r)
 			}
 
 			run = run[:0]

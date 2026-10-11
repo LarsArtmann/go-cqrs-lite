@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/core/v5/id"
-	"github.com/larsartmann/go-cqrs-lite/core/v5/metadata"
 	"github.com/larsartmann/go-cqrs-lite/core/v5/query"
 )
 
@@ -20,7 +19,7 @@ func (h *handRolledMetadataQuery) Type() query.Type { return "user.by-id" }
 
 func (h *handRolledMetadataQuery) Metadata() query.Metadata {
 	return query.Metadata{
-		Tracing: metadata.Tracing{RequestID: h.requestID},
+		RequestID: h.requestID,
 	}
 }
 

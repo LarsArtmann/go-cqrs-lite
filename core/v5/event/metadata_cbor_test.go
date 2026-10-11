@@ -9,7 +9,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/v5/event"
 	"github.com/larsartmann/go-cqrs-lite/core/v5/id"
 	"github.com/larsartmann/go-cqrs-lite/core/v5/id/idtest"
-	"github.com/larsartmann/go-cqrs-lite/core/v5/metadata"
 )
 
 // TestMetadata_CBORRoundtrip_PreservesActor locks the guarantee that
@@ -34,16 +33,14 @@ func TestMetadata_CBORRoundtrip_PreservesActor(t *testing.T) {
 	}
 
 	original := event.Metadata{
-		Tracing: metadata.Tracing{
-			CorrelationID: idtest.ParseCorrelationID(t, "01HK1540X0841Y0A6BSX1VKR97"),
-			CausationID:   idtest.ParseCausationID(t, "01HK1540X0841Y0A6BSX1VKR98"),
-			UserID:        idtest.ParseUserID(t, "01HK1540X0841Y0A6BSX1VKR99"),
-			RequestID:     reqID,
-			ActorID:       actor,
-		},
-		Source:    "test-service",
-		IPAddress: "10.0.0.1",
-		UserAgent: "test-agent/1.0",
+		CorrelationID: idtest.ParseCorrelationID(t, "01HK1540X0841Y0A6BSX1VKR97"),
+		CausationID:   idtest.ParseCausationID(t, "01HK1540X0841Y0A6BSX1VKR98"),
+		UserID:        idtest.ParseUserID(t, "01HK1540X0841Y0A6BSX1VKR99"),
+		RequestID:     reqID,
+		ActorID:       actor,
+		Source:        "test-service",
+		IPAddress:     "10.0.0.1",
+		UserAgent:     "test-agent/1.0",
 		Causation: &event.Causation{
 			CommandType: "CreateOrder",
 			CommandID:   cmdID,

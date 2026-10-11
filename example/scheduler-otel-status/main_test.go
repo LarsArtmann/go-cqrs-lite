@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
-	_ "modernc.org/sqlite" // driver registration for the test database
-
+	"github.com/larsartmann/go-cqrs-lite/scheduling/v4"
 	"github.com/larsartmann/go-cqrs-lite/scheduling/sqlstore/v4"
+	_ "modernc.org/sqlite" // driver registration for the test database
 )
 
 // newTestStore builds the example's exact store shape (in-memory SQLite,
@@ -44,7 +44,7 @@ func TestSchedulerOtelStatus_ClaimFlowCounted(t *testing.T) {
 	ctx := context.Background()
 	store := newTestStore(t)
 
-	timer := dueTimer("claim-flow-1")
+	timer := dueTimer(scheduling.MustParseTimerID("claim-flow-1"))
 	if err := store.Schedule(ctx, timer); err != nil {
 		t.Fatalf("Schedule: %v", err)
 	}
@@ -95,10 +95,8 @@ func TestSchedulerOtelStatus_StatusSnapshotRate(t *testing.T) {
 	t.Parallel()
 
 	snap := statusSnapshot{
-		ClaimMetricsSnapshot: sqlstore.ClaimMetricsSnapshot{
-			ClaimedTimers: 10,
-			StartedAt:     time.Now().Add(-5 * time.Minute),
-		},
+		ClaimedTimers: 10,
+		StartedAt:     time.Now().Add(-5 * time.Minute),
 	}
 
 	minutes := time.Since(snap.StartedAt).Minutes()
@@ -111,10 +109,10 @@ func TestSchedulerOtelStatus_StatusSnapshotRate(t *testing.T) {
 		t.Errorf("rate over 5min window: got %f, want ~2.0", rate)
 	}
 
-	zero := statusSnapshot{ClaimMetricsSnapshot: sqlstore.ClaimMetricsSnapshot{
+	zero := statusSnapshot{
 		ClaimedTimers: 10,
 		StartedAt:     time.Now(),
-	}}
+	}
 	zeroMinutes := time.Since(zero.StartedAt).Minutes()
 	zeroRate := 0.0
 	if zeroMinutes > 0 {

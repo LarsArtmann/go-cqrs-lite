@@ -111,7 +111,7 @@ func TestPgPlannedExplain_IndexUsageProofs(t *testing.T) {
 	// Seed enough rows with high cardinality that the planner must choose
 	// the index (a 500-row table with one matching row cannot rationally
 	// seq-scan when an index exists).
-	for i := 0; i < 500; i++ {
+	for i := range 500 {
 		g.Expect(mb.MapSet(
 			ctx,
 			"planned_explain",

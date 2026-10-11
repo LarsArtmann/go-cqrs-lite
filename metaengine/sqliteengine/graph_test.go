@@ -214,7 +214,7 @@ func TestGraph_DeepChainCTE(t *testing.T) {
 	col := "test_graph_deep_chain"
 
 	const chainLen = 100
-	for i := 0; i < chainLen; i++ {
+	for i := range chainLen {
 		e := metaengine.Edge{From: fmt.Sprintf("n%03d", i), To: fmt.Sprintf("n%03d", i+1)}
 		if err := gb.GraphAddEdge(ctx, col, e); err != nil {
 			t.Fatalf("GraphAddEdge %v: %v", e, err)

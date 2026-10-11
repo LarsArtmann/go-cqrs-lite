@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strings"
 	"testing"
 )
@@ -63,7 +64,7 @@ func TestRecipeADTCoverage(t *testing.T) {
 	}
 
 	var headings []string
-	for _, line := range strings.Split(string(md), "\n") {
+	for line := range strings.SplitSeq(string(md), "\n") {
 		if strings.HasPrefix(line, "### ") || strings.HasPrefix(line, "#### ") {
 			headings = append(headings, line)
 		}
@@ -118,13 +119,7 @@ func TestRecipeADTCoverage(t *testing.T) {
 }
 
 func matchesHeading(headings []string, pattern *regexp.Regexp) bool {
-	for _, h := range headings {
-		if pattern.MatchString(h) {
-			return true
-		}
-	}
-
-	return false
+	return slices.ContainsFunc(headings, pattern.MatchString)
 }
 
 // parseAllADTs extracts the ADT identifier list from the AllADTs() function

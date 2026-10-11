@@ -163,8 +163,8 @@ func exportedNonMetaTypeFields(t reflect.Type) []reflect.StructField {
 
 	var fields []reflect.StructField
 
-	for i := range t.NumField() {
-		f := t.Field(i)
+	for f := range t.Fields() {
+		f := f
 		if f.IsExported() && !metaNames[f.Name] {
 			fields = append(fields, f)
 		}

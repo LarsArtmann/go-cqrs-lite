@@ -19,7 +19,10 @@ import (
 
 // OrderStatusView is the orders read model the gate demo folds: placed →
 // invoiced → completed. Keyed by OrderID — the bilateral contract payloads
-// key on OrderID, so the evolution declares EvolveKey("OrderID").
+// key on OrderID, so the evolution declares EvolveKey("OrderID"). The field
+// stays a plain string: the evolve machinery assigns it from the wire key,
+// and a read-model row is the serialized query answer.
+//branching-flow:ignore strong-id
 type OrderStatusView struct {
 	OrderID    string
 	Placed     bool

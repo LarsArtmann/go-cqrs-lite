@@ -122,10 +122,8 @@ func AssertDedupStore(t *testing.T, factories []Factory) {
 				trues := make(chan bool, racers)
 
 				for range racers {
-					wg.Add(1)
 
-					go func() {
-						defer wg.Done()
+					wg.Go(func() {
 
 						// Retry transient infra failures (e.g. one reset
 						// connection through a VM port-forward): an attempt that
@@ -155,7 +153,7 @@ func AssertDedupStore(t *testing.T, factories []Factory) {
 
 							time.Sleep(50 * time.Millisecond)
 						}
-					}()
+					})
 				}
 
 				wg.Wait()

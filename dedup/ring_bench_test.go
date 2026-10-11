@@ -16,7 +16,7 @@ func BenchmarkRing_Add(b *testing.B) {
 
 func BenchmarkRing_AddEvict(b *testing.B) {
 	r := NewRing[string](1024)
-	for i := 0; i < 1024; i++ {
+	for i := range 1024 {
 		r.Add(strconv.Itoa(i))
 	}
 
@@ -28,7 +28,7 @@ func BenchmarkRing_AddEvict(b *testing.B) {
 
 func BenchmarkRing_Has(b *testing.B) {
 	r := NewRing[string](1024)
-	for i := 0; i < 1024; i++ {
+	for i := range 1024 {
 		r.Add(strconv.Itoa(i))
 	}
 
@@ -40,7 +40,7 @@ func BenchmarkRing_Has(b *testing.B) {
 
 func BenchmarkRing_HasMiss(b *testing.B) {
 	r := NewRing[string](1024)
-	for i := 0; i < 1024; i++ {
+	for i := range 1024 {
 		r.Add(strconv.Itoa(i))
 	}
 

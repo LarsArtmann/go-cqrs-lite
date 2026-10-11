@@ -466,7 +466,7 @@ func TestCommandAdapter_ReadAllAndReadFrom_Serialized(t *testing.T) {
 
 	ref := command.NewStreamRef("Task", id.NewStreamID())
 
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		cmd, err := command.NewPersistedCommand("task.create", ref, []byte(`{}`))
 		if err != nil {
 			t.Fatalf("NewPersistedCommand: %v", err)
@@ -562,7 +562,7 @@ func TestQueryAdapter_ReadAllQueriesAndReadQueriesFrom_Serialized(t *testing.T) 
 	adapter := system.NewQueryAdapter(eng.(metaengine.StreamLogBackend), "queries",
 		system.WithQuerySerialization())
 
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		q, err := query.NewPersistedQuery("task.get", []byte(`{}`))
 		if err != nil {
 			t.Fatalf("NewPersistedQuery: %v", err)

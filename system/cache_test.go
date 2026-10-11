@@ -65,10 +65,8 @@ func TestCachedEventStore_ConcurrentLoadSaveNeverServesPreSaveSnapshot(t *testin
 	readerErr := make(chan error, 8)
 
 	for range 4 {
-		readerWG.Add(1)
 
-		go func() {
-			defer readerWG.Done()
+		readerWG.Go(func() {
 
 			for {
 				select {
@@ -86,7 +84,7 @@ func TestCachedEventStore_ConcurrentLoadSaveNeverServesPreSaveSnapshot(t *testin
 					return
 				}
 			}
-		}()
+		})
 	}
 
 	const saves = 100

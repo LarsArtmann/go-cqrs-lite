@@ -20,8 +20,8 @@ type tiePair struct {
 func buildTiePairs() []tiePair {
 	pairs := make([]tiePair, 0, 30)
 
-	for sortVal := 0; sortVal < 6; sortVal++ {
-		for n := 0; n < 5; n++ {
+	for sortVal := range 6 {
+		for n := range 5 {
 			pairs = append(pairs, tiePair{Sort: sortVal, Key: fmt.Sprintf("k%d-%02d", sortVal, n)})
 		}
 	}
@@ -97,7 +97,7 @@ func paginateTiePairs(t *testing.T, limit int, mkCursor func(last tiePair) any) 
 
 	var cursor any
 
-	for page := 0; page < 100; page++ {
+	for range 100 {
 		sorted := metaengine.SortPaginate(
 			buildTiePairs(),
 			tiePairKey,
@@ -189,7 +189,7 @@ func TestSortPaginate_LegacyCursor_TieHeavy_DropsStraddledTies(t *testing.T) {
 		)
 	}
 
-	for n := 0; n < 6; n++ {
+	for n := range 6 {
 		dropped := fmt.Sprintf("k%d-04", n)
 		if slices.Contains(got, dropped) {
 			t.Fatalf("legacy cursor unexpectedly served straddled tie %q", dropped)
@@ -213,8 +213,8 @@ func TestMapScan_MemoryEngine_CompoundCursor_TieHeavy(t *testing.T) {
 
 	ctx := context.Background()
 
-	for sortVal := 0; sortVal < 6; sortVal++ {
-		for n := 0; n < 5; n++ {
+	for sortVal := range 6 {
+		for n := range 5 {
 			key := fmt.Sprintf("k%d-%02d", sortVal, n)
 			err := mb.MapSet(ctx, "ties", key, map[string]any{"sort": sortVal, "key": key})
 			if err != nil {
@@ -243,7 +243,7 @@ func TestMapScan_MemoryEngine_CompoundCursor_TieHeavy(t *testing.T) {
 
 	var cursor any
 
-	for page := 0; page < 100; page++ {
+	for page := range 100 {
 		result, err := sb.MapScan(ctx, "ties", nil, sortFn, cursor, limit)
 		if err != nil {
 			t.Fatalf("MapScan page %d: %v", page, err)

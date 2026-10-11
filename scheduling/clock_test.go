@@ -13,8 +13,7 @@ import (
 func TestScheduler_WithClock_FreezesDueWindow(t *testing.T) {
 	t.Parallel()
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	base := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
 	now := base

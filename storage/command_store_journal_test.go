@@ -197,9 +197,9 @@ func TestSQLCommandStore_MetadataRoundtrip(t *testing.T) {
 
 	meta := command.Metadata{
 		Custom: map[command.MetadataKey]string{"source": "test"},
-	}
-	meta.CorrelationID = id.NewCorrelationID()
-	meta.UserID = id.NewUserID()
+
+		CorrelationID: id.NewCorrelationID(),
+		UserID:        id.NewUserID()}
 
 	cmd, err := command.NewPersistedCommand(
 		"CreateUser", ref, []byte(`{"name":"Alice"}`),

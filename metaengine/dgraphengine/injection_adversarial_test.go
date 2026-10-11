@@ -2,6 +2,7 @@ package dgraphengine_test
 
 import (
 	"context"
+	"slices"
 	"testing"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
@@ -113,13 +114,7 @@ func TestAdversarialDQLInjection(t *testing.T) {
 
 		for _, r := range results {
 			// Every result ID must be one of our attack vectors — no injected IDs.
-			found := false
-			for _, attack := range attackVectors {
-				if r.ID == attack {
-					found = true
-					break
-				}
-			}
+			found := slices.Contains(attackVectors, r.ID)
 			if !found {
 				t.Errorf("Search returned unknown ID (possible injection): %q", r.ID)
 			}

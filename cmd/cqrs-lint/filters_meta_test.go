@@ -52,7 +52,7 @@ func TestPresetRuleIDsAreRealRules(t *testing.T) {
 func TestPresetHelpTextListsAllPresets(t *testing.T) {
 	t.Parallel()
 
-	field, ok := reflect.TypeOf(initPresetFlags{}).FieldByName("Preset")
+	field, ok := reflect.TypeFor[initPresetFlags]().FieldByName("Preset")
 	if !ok {
 		t.Fatal("initPresetFlags has no Preset field")
 	}

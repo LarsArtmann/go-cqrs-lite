@@ -3,6 +3,7 @@ module github.com/larsartmann/go-cqrs-lite/example/mesh-demo
 go 1.27
 
 require (
+	github.com/larsartmann/go-branded-id v0.7.0
 	github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.7.1
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.13.1
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.7.2
@@ -32,7 +33,6 @@ require (
 	github.com/knadh/koanf/providers/env v1.1.0 // indirect
 	github.com/knadh/koanf/providers/file v1.2.1 // indirect
 	github.com/knadh/koanf/v2 v2.3.8 // indirect
-	github.com/larsartmann/go-branded-id v0.7.0 // indirect
 	github.com/larsartmann/go-codec v0.3.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4 v4.2.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.2.3 // indirect

@@ -49,8 +49,7 @@ func TestDuckDBWatcher_DeleteNotificationDeliversZeroValue(t *testing.T) {
 		t.Fatalf("Plan: %v", err)
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	watcher := metaengine.NewWatcher[watcherTask](store, "duckdb_watcher_tasks")
 	defer watcher.Close()

@@ -3,6 +3,7 @@ package watermill_test
 import (
 	"context"
 	"errors"
+	"maps"
 	"testing"
 	"time"
 
@@ -113,9 +114,7 @@ func invalidMetadataTestCases() []struct {
 
 func mergeMetadata(base map[string]string, key, value string) map[string]string {
 	out := make(map[string]string, len(base)+1)
-	for k, v := range base {
-		out[k] = v
-	}
+	maps.Copy(out, base)
 	out[key] = value
 
 	return out

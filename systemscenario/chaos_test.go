@@ -99,10 +99,8 @@ func TestChaosDelayedJournal_OptimisticConcurrencyHolds(t *testing.T) {
 	)
 
 	for range 2 {
-		wg.Add(1)
 
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 
 			evt := taskEvent(
 				"task.updated",
@@ -117,7 +115,7 @@ func TestChaosDelayedJournal_OptimisticConcurrencyHolds(t *testing.T) {
 			if err == nil {
 				successfulSaves.Add(1)
 			}
-		}()
+		})
 	}
 
 	wg.Wait()

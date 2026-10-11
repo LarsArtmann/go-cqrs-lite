@@ -873,8 +873,7 @@ func TestHost_OnFailed_FiresOnExhaustedRestarts(t *testing.T) {
 	)
 	_ = host.Register(proj)
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 	_ = host.Start(ctx)
 
 	requireEventually(t, 5*time.Second, func() bool {
@@ -918,8 +917,7 @@ func TestHost_WorkerFailedMetric(t *testing.T) {
 	)
 	_ = host.Register(proj)
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 	_ = host.Start(ctx)
 
 	requireEventually(t, 5*time.Second, func() bool {
@@ -990,7 +988,7 @@ func TestHost_Reset_CallsResettableProjection(t *testing.T) {
 	}
 
 	proj := &resettableCountingProjection{
-		countingProjection: countingProjection{name: "rst-proj"},
+		name: "rst-proj",
 	}
 	host, _ := projectionhost.New(journal, cpStore, projectionhost.WithBatchSize(10))
 	_ = host.Register(proj)
@@ -1185,8 +1183,7 @@ func TestHost_WorkerDraining_StatusDuringShutdown(t *testing.T) {
 	host, _ := projectionhost.New(journal, cpStore, projectionhost.WithBatchSize(5))
 	_ = host.Register(proj)
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 	_ = host.Start(ctx)
 
 	requireEventually(t, 2*time.Second, func() bool {
@@ -1217,8 +1214,7 @@ func TestHost_WithShutdownTimeout_CustomValue(t *testing.T) {
 	)
 	_ = host.Register(proj)
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 	_ = host.Start(ctx)
 
 	requireEventually(t, 2*time.Second, func() bool {
@@ -1365,7 +1361,7 @@ func TestHost_Reset_PurgesDeadLetters(t *testing.T) {
 	})
 
 	proj := &resettableCountingProjection{
-		countingProjection: countingProjection{name: "purge-me"},
+		name: "purge-me",
 	}
 	host, _ := projectionhost.New(
 		journal, cpStore,
@@ -1407,7 +1403,7 @@ func TestHost_Reset_WithoutPurge_KeepsDeadLetters(t *testing.T) {
 	})
 
 	proj := &resettableCountingProjection{
-		countingProjection: countingProjection{name: "keep-dlq"},
+		name: "keep-dlq",
 	}
 	host, _ := projectionhost.New(
 		journal, cpStore,

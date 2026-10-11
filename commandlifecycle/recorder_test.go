@@ -432,7 +432,7 @@ func TestNew_FullRetryScenario_SucceedsOnThirdAttempt(t *testing.T) {
 	composed := outer(func(ctx context.Context, c command.Command) error {
 		var lastErr error
 
-		for a := 0; a < maxAttempts; a++ {
+		for range maxAttempts {
 			lastErr = innerHandler(ctx, c)
 			if lastErr == nil {
 				return nil
@@ -473,7 +473,7 @@ func TestNew_FullRetryScenario_ExhaustedAllAttempts(t *testing.T) {
 	composed := outer(func(ctx context.Context, c command.Command) error {
 		var lastErr error
 
-		for a := 0; a < maxAttempts; a++ {
+		for range maxAttempts {
 			lastErr = innerHandler(ctx, c)
 			if lastErr == nil {
 				return nil

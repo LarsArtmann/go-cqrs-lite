@@ -14,8 +14,8 @@ import (
 // into the plain meta_map store (no layout plan, so MapScan takes the
 // fallback path that sorts in Go).
 func sqliteMapScanTieRows(ctx context.Context, mb metaengine.MapBackend) {
-	for sortVal := 0; sortVal < 6; sortVal++ {
-		for n := 0; n < 5; n++ {
+	for sortVal := range 6 {
+		for n := range 5 {
 			key := fmt.Sprintf("k%d-%02d", sortVal, n)
 			Expect(mb.MapSet(ctx, "ties", key, map[string]any{"sort": sortVal, "key": key})).
 				To(Succeed())
@@ -67,7 +67,7 @@ var _ = Describe("SQLiteEngine MapScan compound cursor (regression)", func() {
 
 		var cursor any
 
-		for page := 0; page < 100; page++ {
+		for range 100 {
 			result, err := sb.MapScan(ctx, "ties", nil, sqliteTieSortFn, cursor, limit)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -107,8 +107,8 @@ var _ = Describe("SQLiteEngine MapScan compound cursor (regression)", func() {
 		}
 
 		rows := make([]row, 0, 30)
-		for sortVal := 0; sortVal < 6; sortVal++ {
-			for n := 0; n < 5; n++ {
+		for sortVal := range 6 {
+			for n := range 5 {
 				rows = append(rows, row{sort: sortVal, key: fmt.Sprintf("k%d-%02d", sortVal, n)})
 			}
 		}

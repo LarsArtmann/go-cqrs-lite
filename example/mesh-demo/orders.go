@@ -9,6 +9,8 @@ package main
 import (
 	"errors"
 
+	cbid "github.com/larsartmann/go-branded-id"
+
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/decider/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -25,10 +27,31 @@ const (
 	ordersStreamType = "Order"
 )
 
+// OrderID is the caller-chosen order number — string-backed branded, the
+// id.StreamID pattern (AGENTS.md 21(d)): ULID backing is for system-minted
+// IDs only, so a caller-chosen key stays string-backed — the same number
+// always derives the same stream, keeping retries idempotent.
+type OrderID = cbid.ID[orderIDMarker, string]
+
+// CustomerID brands the customer reference alongside OrderID.
+type CustomerID = cbid.ID[customerIDMarker, string]
+
+type (
+	orderIDMarker    struct{}
+	customerIDMarker struct{}
+)
+
+// NewOrderID brands a raw wire order number — contexts exchange plain
+// strings in the bilateral payloads and brand at their boundaries.
+func NewOrderID(raw string) OrderID { return cbid.NewID[orderIDMarker](raw) }
+
+// NewCustomerID brands a raw wire customer reference.
+func NewCustomerID(raw string) CustomerID { return cbid.NewID[customerIDMarker](raw) }
+
 // orderStreamID derives a deterministic stream ID from the order number —
 // same caller-chosen key ⇒ same stream (the id.StreamID pattern).
-func orderStreamID(orderID string) id.StreamID {
-	return id.DeriveStreamID("order", orderID)
+func orderStreamID(orderID OrderID) id.StreamID {
+	return id.DeriveStreamID("order", orderID.Get())
 }
 
 // ErrEmptyOrder rejects a place-order command with no items.
@@ -36,6 +59,9 @@ var ErrEmptyOrder = errors.New("order: cart is empty")
 
 // OrderPlacedPayload is the CONTRACT of the order.placed event — billing
 // codes against this shape; breaking it is a version bump, not an edit.
+// Fields stay plain strings: the payload is the wire form (JSON), and
+// contexts brand at their own boundaries.
+//branching-flow:ignore strong-id
 type OrderPlacedPayload struct {
 	OrderID    string `json:"orderId"`
 	CustomerID string `json:"customerId"`
@@ -43,6 +69,7 @@ type OrderPlacedPayload struct {
 }
 
 // OrderCompletedPayload is the contract of order.completed.
+//branching-flow:ignore strong-id
 type OrderCompletedPayload struct {
 	OrderID    string `json:"orderId"`
 	InvoiceRef string `json:"invoiceRef"`
@@ -50,6 +77,7 @@ type OrderCompletedPayload struct {
 
 // InvoiceReceivedPayload mirrors billing's invoice.issued contract from the
 // CONSUMING side (orders' copy of the bilateral contract).
+//branching-flow:ignore strong-id
 type InvoiceReceivedPayload struct {
 	InvoiceRef string `json:"invoiceRef"`
 	OrderID    string `json:"orderId"`
@@ -95,8 +123,8 @@ func foldOrder(s OrderState, evt event.Event) (OrderState, error) {
 type PlaceOrderCmd struct {
 	*command.BasicCommand
 
-	OrderID    string
-	CustomerID string
+	OrderID    OrderID
+	CustomerID CustomerID
 	TotalCents int64
 }
 
@@ -109,8 +137,8 @@ func placeOrder(cmd PlaceOrderCmd) decider.DecideFunc[OrderState] {
 
 		evt, err := event.New(evtOrderPlaced, orderStreamID(cmd.OrderID), ordersStreamType,
 			v.Increment(), OrderPlacedPayload{
-				OrderID:    cmd.OrderID,
-				CustomerID: cmd.CustomerID,
+				OrderID:    cmd.OrderID.Get(),
+				CustomerID: cmd.CustomerID.Get(),
 				TotalCents: cmd.TotalCents,
 			})
 		if err != nil {
@@ -123,14 +151,14 @@ func placeOrder(cmd PlaceOrderCmd) decider.DecideFunc[OrderState] {
 
 // completeOrder decides order.completed once the (replicated) invoice has
 // arrived — the second half of the bilateral contract.
-func completeOrder(orderID string) decider.DecideFunc[OrderState] {
+func completeOrder(orderID OrderID) decider.DecideFunc[OrderState] {
 	return func(s OrderState, v event.Version) ([]event.Event, error) {
 		if !s.Placed || s.InvoiceRef == "" || s.Completed {
 			return nil, nil
 		}
 
 		evt, err := event.New(evtOrderCompleted, orderStreamID(orderID), ordersStreamType,
-			v.Increment(), OrderCompletedPayload{OrderID: orderID, InvoiceRef: s.InvoiceRef})
+			v.Increment(), OrderCompletedPayload{OrderID: orderID.Get(), InvoiceRef: s.InvoiceRef})
 		if err != nil {
 			return nil, err
 		}

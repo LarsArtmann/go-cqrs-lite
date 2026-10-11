@@ -37,10 +37,8 @@ func TestNewID_ConcurrentUnique(t *testing.T) {
 	var wg sync.WaitGroup
 
 	for w := range workers {
-		wg.Add(1)
 
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 
 			minted := make([]task.ID, perWorker)
 			for i := range perWorker {
@@ -48,7 +46,7 @@ func TestNewID_ConcurrentUnique(t *testing.T) {
 			}
 
 			ids[w] = minted
-		}()
+		})
 	}
 
 	wg.Wait()

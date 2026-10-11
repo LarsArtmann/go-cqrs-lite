@@ -1,7 +1,6 @@
 package watermill_test
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -23,8 +22,7 @@ func TestRoundTrip(t *testing.T) {
 	publisher := wm.NewPublisherAdapter(bus)
 	subscriber := wm.NewSubscriberAdapter(bus)
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	msgCh, err := subscriber.Subscribe(ctx, "user.created")
 	if err != nil {

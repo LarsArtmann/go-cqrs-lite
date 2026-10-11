@@ -42,14 +42,14 @@ func TestRenderExplain_DocumentsEveryConfigFileKey(t *testing.T) {
 		documented[k.key] = true
 	}
 
-	rt := reflect.TypeOf(AppConfig{})
-	for i := range rt.NumField() {
-		field := rt.Field(i)
+	rt := reflect.TypeFor[AppConfig]()
+	for field := range rt.Fields() {
+		field := field
 		tag := field.Tag.Get("json")
 		if tag == "" || tag == "-" {
 			continue
 		}
-		key := strings.Split(tag, ",")[0]
+		key, _, _ := strings.Cut(tag, ",")
 		if !documented[key] {
 			t.Errorf(
 				"topLevelKeys missing config key %q (README claims explain documents every key)",

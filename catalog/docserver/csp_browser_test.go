@@ -132,7 +132,7 @@ var deliberatelyDeniedOrigins = []string{
 func fatalCSPRefusals(console string) []string {
 	var fatal []string
 
-	for _, line := range strings.Split(console, "\n") {
+	for line := range strings.SplitSeq(console, "\n") {
 		refusal := strings.Contains(line, "Refused to") ||
 			(strings.Contains(line, "violates") && strings.Contains(line, "Content Security Policy"))
 		if !refusal {

@@ -378,7 +378,7 @@ func TestPlan_EqualLatencyTieBreakIsDeterministic(t *testing.T) {
 
 	const planRounds = 5
 
-	for i := 0; i < planRounds; i++ {
+	for i := range planRounds {
 		store, err := Plan([]Engine{a, b}, capabilityQuery())
 		if err != nil {
 			t.Fatalf("Plan round %d: %v", i, err)

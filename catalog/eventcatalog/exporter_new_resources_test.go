@@ -75,7 +75,7 @@ func TestExporter_DataProductWithContract(t *testing.T) {
 		Hidden:  true,
 		Outputs: []catalog.DataProductOutput{
 			{
-				Ref: catalog.Ref{ID: "UserMetrics"},
+				ID: "UserMetrics",
 				Contract: &catalog.DataContract{
 					Path: "contracts/user-metrics.json",
 					Name: "UserMetrics",
@@ -319,7 +319,7 @@ func TestExporter_DataProduct(t *testing.T) {
 			{ID: "PaymentProcessed"},
 		},
 		Outputs: []catalog.DataProductOutput{
-			{Ref: catalog.Ref{ID: "OrderMetricsCalculated", Version: "1.0.0"}},
+			{ID: "OrderMetricsCalculated", Version: "1.0.0"},
 		},
 	})
 

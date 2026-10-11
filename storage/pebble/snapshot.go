@@ -59,12 +59,10 @@ func NewSnapshotStore(
 	}
 
 	s := &SnapshotStore{
-		storeBase: storeBase{
-			db:         database,
-			logger:     logger,
-			prefix:     "cqrs_snapshot:",
-			syncWrites: true,
-		},
+		db:         database,
+		logger:     logger,
+		prefix:     "cqrs_snapshot:",
+		syncWrites: true,
 	}
 
 	for _, opt := range opts {

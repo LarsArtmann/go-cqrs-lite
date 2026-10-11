@@ -198,8 +198,8 @@ func TestCustomData_Clone(t *testing.T) {
 	t.Run("populated custom map is independent", func(t *testing.T) {
 		t.Parallel()
 		d := CustomData[key]{
-			Tracing: Tracing{CorrelationID: id.NewCorrelationID()},
-			Custom:  map[key]string{"a": "1", "b": "2"},
+			CorrelationID: id.NewCorrelationID(),
+			Custom:        map[key]string{"a": "1", "b": "2"},
 		}
 		cloned := d.Clone()
 
@@ -240,13 +240,13 @@ func TestCustomData_Merge(t *testing.T) {
 	t.Run("other overlays tracing and custom", func(t *testing.T) {
 		t.Parallel()
 		base := CustomData[key]{
-			Tracing: Tracing{UserID: id.NewUserID()},
-			Custom:  map[key]string{"keep": "base", "override": "base-val"},
+			UserID: id.NewUserID(),
+			Custom: map[key]string{"keep": "base", "override": "base-val"},
 		}
 		corrOther := id.NewCorrelationID()
 		other := CustomData[key]{
-			Tracing: Tracing{CorrelationID: corrOther},
-			Custom:  map[key]string{"override": "other-val", "new": "added"},
+			CorrelationID: corrOther,
+			Custom:        map[key]string{"override": "other-val", "new": "added"},
 		}
 		merged := base.Merge(other)
 

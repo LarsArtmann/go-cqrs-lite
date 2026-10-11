@@ -33,7 +33,7 @@ func TestRegistry_AddDataProduct(t *testing.T) {
 	reg.AddDataProduct(catalog.DataProduct{
 		ID: "metrics", Name: "Metrics", Version: "1.0.0",
 		Inputs:  []catalog.Ref{{ID: "OrderCreated"}},
-		Outputs: []catalog.DataProductOutput{{Ref: catalog.Ref{ID: "MetricsReady"}}},
+		Outputs: []catalog.DataProductOutput{{ID: "MetricsReady"}},
 	})
 
 	cat := reg.Build()

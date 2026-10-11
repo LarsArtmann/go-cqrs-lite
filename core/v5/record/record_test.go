@@ -280,12 +280,10 @@ func TestRecord_EmbeddingWorks(t *testing.T) {
 	}
 
 	er := EventRecord{
-		Record: record.Record{
-			Type:       "test.event",
-			StreamType: "Test",
-			Version:    1,
-		},
-		Encoding: "json",
+		Type:       "test.event",
+		StreamType: "Test",
+		Version:    1,
+		Encoding:   "json",
 	}
 
 	if er.Type != "test.event" {

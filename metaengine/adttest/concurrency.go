@@ -87,10 +87,7 @@ func AssertConcurrentScanDuringWrite(t *testing.T, eng metaengine.Engine) {
 
 	var writer sync.WaitGroup
 
-	writer.Add(1)
-
-	go func() {
-		defer writer.Done()
+	writer.Go(func() {
 
 		vb, isVector := eng.(metaengine.VectorBackend)
 		sb, isSpatial := eng.(metaengine.SpatialBackend)
@@ -136,17 +133,15 @@ func AssertConcurrentScanDuringWrite(t *testing.T, eng metaengine.Engine) {
 				}
 			}
 		}
-	}()
+	})
 
 	const readers = 4
 
 	var readerWG sync.WaitGroup
 
 	for range readers {
-		readerWG.Add(1)
 
-		go func() {
-			defer readerWG.Done()
+		readerWG.Go(func() {
 
 			deadline := time.Now().Add(300 * time.Millisecond)
 
@@ -178,7 +173,7 @@ func AssertConcurrentScanDuringWrite(t *testing.T, eng metaengine.Engine) {
 					}
 				}
 			}
-		}()
+		})
 	}
 
 	readerWG.Wait()

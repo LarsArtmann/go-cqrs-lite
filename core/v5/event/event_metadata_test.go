@@ -7,7 +7,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/v5/event"
 	"github.com/larsartmann/go-cqrs-lite/core/v5/id"
 	"github.com/larsartmann/go-cqrs-lite/core/v5/id/idtest"
-	"github.com/larsartmann/go-cqrs-lite/core/v5/metadata"
 )
 
 func TestEventOptions(t *testing.T) {
@@ -163,7 +162,7 @@ func TestWithMetadata_MergesInsteadOfReplace(t *testing.T) {
 		1,
 		nil,
 		event.WithCorrelationID(correlationID),
-		event.WithMetadata(event.Metadata{Tracing: metadata.Tracing{UserID: userID}}),
+		event.WithMetadata(event.Metadata{UserID: userID}),
 	)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)

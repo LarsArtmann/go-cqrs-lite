@@ -30,7 +30,7 @@ func seedTiedEvents(t *testing.T, store *SQLEventStore, n int) []event.Event {
 	events := make([]event.Event, n)
 	aggIDs := make([]id.StreamID, n)
 
-	for i := 0; i < n; i++ {
+	for i := range n {
 		aggIDs[i] = id.NewStreamID()
 		occurred := base.Add(time.Duration(i/3) * time.Millisecond)
 
@@ -317,7 +317,7 @@ func BenchmarkSQLiteEventStore_ReadFrom_FullDrain(b *testing.B) {
 
 	batch := make([]event.Event, 0, total)
 
-	for i := 0; i < total; i++ {
+	for i := range total {
 		evt, err := event.NewEvent(
 			cfg.EvtType,
 			aggID,

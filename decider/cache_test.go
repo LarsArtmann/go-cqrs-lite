@@ -156,16 +156,12 @@ func TestStateCache_Concurrent(t *testing.T) {
 	var wg sync.WaitGroup
 
 	for range 50 {
-		wg.Add(1)
-
-		go func() {
-			defer wg.Done()
-
+		wg.Go(func() {
 			for i := range 100 {
 				cache.Put(ref, counterState{Value: i}, event.Version(i))
 				_, _, _ = cache.Get(ref)
 			}
-		}()
+		})
 	}
 
 	wg.Wait()

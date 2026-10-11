@@ -262,10 +262,8 @@ func AssertDueClaimer( //nolint:maintidx // linear conformance narrative
 				)
 
 				for worker := range 4 {
-					wg.Add(1)
 
-					go func() {
-						defer wg.Done()
+					wg.Go(func() {
 
 						claimed, err := claimer.ClaimDue(ctx, metaengine.ClaimDueRequest{
 							Collection: col,
@@ -285,7 +283,7 @@ func AssertDueClaimer( //nolint:maintidx // linear conformance narrative
 						for _, cl := range claimed {
 							allKeys[cl.Key]++
 						}
-					}()
+					})
 				}
 
 				wg.Wait()

@@ -285,10 +285,8 @@ func TestMapDueClaimer_ConcurrentClaimersDisjoint(t *testing.T) {
 	)
 
 	for worker := range 4 {
-		wg.Add(1)
 
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 
 			claimed, err := c.ClaimDue(ctx, metaengine.ClaimDueRequest{
 				Collection: "tasks",
@@ -308,7 +306,7 @@ func TestMapDueClaimer_ConcurrentClaimersDisjoint(t *testing.T) {
 			for _, cl := range claimed {
 				allKeys[cl.Key]++
 			}
-		}()
+		})
 	}
 
 	wg.Wait()
@@ -438,10 +436,8 @@ func TestMapDedupStore_ConcurrentCASExactlyOneWinner(t *testing.T) {
 	trues := make(chan bool, racers)
 
 	for range racers {
-		wg.Add(1)
 
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 
 			seen, err := d.DedupCheckAndRecord(ctx, "dedup", "race", time.Minute, now)
 			if err != nil {
@@ -451,7 +447,7 @@ func TestMapDedupStore_ConcurrentCASExactlyOneWinner(t *testing.T) {
 			}
 
 			trues <- seen
-		}()
+		})
 	}
 
 	wg.Wait()

@@ -50,10 +50,8 @@ func TestBatchCommit_ConcurrentWritersIdenticalJournal(t *testing.T) {
 	errs := make(chan error, writers)
 
 	for w := range writers {
-		wg.Add(1)
 
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 
 			ref := id.NewStreamRef("User", id.NewStreamID())
 
@@ -80,7 +78,7 @@ func TestBatchCommit_ConcurrentWritersIdenticalJournal(t *testing.T) {
 					return
 				}
 			}
-		}()
+		})
 		_ = w
 	}
 
@@ -144,11 +142,9 @@ func TestBatchCommit_ConflictingSaveDoesNotPoisonGroup(t *testing.T) {
 	results := make(chan error, 2)
 
 	save := func(expected event.Version, evts ...event.Event) {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			results <- store.Save(ctx, ref, evts, expected)
-		}()
+		})
 	}
 
 	save(0, good)

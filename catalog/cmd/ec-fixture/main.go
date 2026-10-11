@@ -88,16 +88,14 @@ func registerFixtureService(reg *catalog.Registry, visualiser bool) {
 			Language: "go",
 			URL:      "https://github.com/example/order-svc",
 		},
-		BaseConfig: catalog.BaseConfig{
-			Sidebar: &catalog.SidebarConfig{Badge: "v1", Label: "Orders"},
-			Styles: &catalog.StylesConfig{
-				Icon:      "server",
-				NodeColor: "blue",
-				NodeLabel: "orders",
-			},
-			Visualiser: &visualiser,
-			EditUrl:    "https://github.com/example/order-svc/edit/main/docs",
+		Sidebar: &catalog.SidebarConfig{Badge: "v1", Label: "Orders"},
+		Styles: &catalog.StylesConfig{
+			Icon:      "server",
+			NodeColor: "blue",
+			NodeLabel: "orders",
 		},
+		Visualiser: &visualiser,
+		EditUrl:    "https://github.com/example/order-svc/edit/main/docs",
 	})
 }
 
@@ -240,7 +238,7 @@ func run(outputDir string, changelogProfile, plainProfile bool) error {
 		Inputs:  []catalog.Ref{{ID: fixtureEventID, Version: fixtureVersion}},
 		Outputs: []catalog.DataProductOutput{
 			{
-				Ref:      catalog.Ref{ID: fixtureEventID, Version: fixtureVersion},
+				ID: fixtureEventID, Version: fixtureVersion,
 				Contract: &catalog.DataContract{Path: "contracts/orders.yaml", Name: "orders"},
 			},
 		},

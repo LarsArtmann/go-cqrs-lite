@@ -67,7 +67,7 @@ func TestSoak_RecordPipeline_100K(t *testing.T) {
 
 	streamID := id.NewStreamID()
 
-	for i := 0; i < numEvents; i++ {
+	for i := range numEvents {
 		key := fmt.Sprintf("item-%d", i%numKeys)
 		payload, _ := json.Marshal(soakItem{ID: key, Name: fmt.Sprintf("name-%d", i)})
 

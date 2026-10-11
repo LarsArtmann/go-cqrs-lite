@@ -1,7 +1,6 @@
 package metaengine
 
 import (
-	"context"
 	"database/sql"
 	"testing"
 	"time"
@@ -34,8 +33,7 @@ func TestWatcher_ReceivesDeleteNotification(t *testing.T) {
 		t.Fatalf("Plan: %v", err)
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	watcher := NewWatcher[testTask](store, "del_tasks")
 	defer watcher.Close()
@@ -93,8 +91,7 @@ func TestWatcherWithSeq_ReceivesDeleteNotification(t *testing.T) {
 		t.Fatalf("Plan: %v", err)
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	watcher := NewWatcher[testTask](store, "del_seq_tasks")
 	replay := watcher.WithReplay(100)
@@ -149,8 +146,7 @@ func TestSQLiteWatcher_ReceivesValue_WithReplay(t *testing.T) {
 
 	store := newSQLiteTestStore(t)
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	watcher := NewWatcher[testTask](store, "tasks")
 	replay := watcher.WithReplay(100)
@@ -224,8 +220,7 @@ func TestSQLiteWatcher_ReceivesDeleteNotification(t *testing.T) {
 		t.Fatalf("Plan: %v", err)
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	watcher := NewWatcher[testTask](store, "sqlite_del_tasks")
 	defer watcher.Close()

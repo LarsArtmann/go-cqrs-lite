@@ -64,7 +64,7 @@ func issueInvoiceForOrder(
 // completeOrderFromInvoice is orders' reaction to the replicated
 // invoice.issued.
 func completeOrderFromInvoice(
-	orderID string,
+	orderID OrderID,
 	billingEvents []event.Event,
 ) decider.DecideFunc[OrderState] {
 	invoice, err := replay(billingEvents, initialInvoiceState(), foldInvoice)

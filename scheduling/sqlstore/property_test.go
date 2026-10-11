@@ -106,7 +106,7 @@ func TestProperty_ConcurrentScheduleSameID(t *testing.T) {
 		var wg sync.WaitGroup
 		errs := make(chan error, n)
 
-		for i := 0; i < n; i++ {
+		for i := range n {
 			wg.Add(1)
 
 			go func(i int) {
@@ -152,7 +152,7 @@ func TestProperty_DueOrdering(t *testing.T) {
 
 		n := rapid.IntRange(2, 30).Draw(rt, "timer_count")
 
-		for i := 0; i < n; i++ {
+		for i := range n {
 			offset := time.Duration(rapid.IntRange(1, 3600).Draw(rt, "offset")) * time.Second
 			if err := store.Schedule(ctx, scheduling.Timer[testPayload]{
 				ID:      scheduling.MustParseTimerID(fmt.Sprintf("timer-%d", i)),
@@ -235,7 +235,7 @@ func TestProperty_ConcurrentScheduleAndMarkFired(t *testing.T) {
 		var wg sync.WaitGroup
 
 		// Schedule timers
-		for i := 0; i < numTimers; i++ {
+		for i := range numTimers {
 			wg.Add(1)
 
 			go func(i int) {

@@ -90,7 +90,7 @@ func mergeExperimentalParam(value string, hasValue bool, token string) (string, 
 // hasExperimentalToken reports whether a comma-separated feature list
 // contains token (case-insensitive, whitespace-tolerant).
 func hasExperimentalToken(list, token string) bool {
-	for _, t := range strings.Split(list, ",") {
+	for t := range strings.SplitSeq(list, ",") {
 		if strings.EqualFold(strings.TrimSpace(t), token) {
 			return true
 		}

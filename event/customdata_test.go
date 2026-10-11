@@ -123,12 +123,12 @@ func TestCustomData_Merge_OverlaysTracingAndCustom(t *testing.T) {
 	cid := id.NewCorrelationID()
 
 	base := metadata.CustomData[event.MetadataKey]{
-		Tracing: metadata.Tracing{CorrelationID: cid},
-		Custom:  map[event.MetadataKey]string{"tenant": "acme"},
+		CorrelationID: cid,
+		Custom:        map[event.MetadataKey]string{"tenant": "acme"},
 	}
 	other := metadata.CustomData[event.MetadataKey]{
-		Tracing: metadata.Tracing{UserID: id.NewUserID()},
-		Custom:  map[event.MetadataKey]string{"region": "us-east-1"},
+		UserID: id.NewUserID(),
+		Custom: map[event.MetadataKey]string{"region": "us-east-1"},
 	}
 
 	result := base.Merge(other)

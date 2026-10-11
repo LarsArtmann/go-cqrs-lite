@@ -46,17 +46,13 @@ func TestPaginationConformance(t *testing.T) {
 
 	adttest.RunPaginationConformance(t, []adttest.PaginationProbe{
 		{
-			Factory: adttest.Factory{
-				Name:   "memory",
-				Create: func(t *testing.T) metaengine.Engine { return metaengine.NewMemoryEngine() },
-			},
+			Name:      "memory",
+			Create:    func(t *testing.T) metaengine.Engine { return metaengine.NewMemoryEngine() },
 			CursorKey: adttest.CursorKeyRaw,
 		},
 		{
-			Factory: adttest.Factory{
-				Name:   "pebble",
-				Create: func(t *testing.T) metaengine.Engine { return newPebbleEngineOrSkip(t) },
-			},
+			Name:      "pebble",
+			Create:    func(t *testing.T) metaengine.Engine { return newPebbleEngineOrSkip(t) },
 			CursorKey: adttest.CursorKeyRaw,
 		},
 	})

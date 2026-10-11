@@ -265,10 +265,7 @@ func TestTimerStore_ConcurrentDispatchersDisjoint(t *testing.T) {
 		)
 		mustT(t, err)
 
-		wg.Add(1)
-
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 
 			<-start
 
@@ -285,7 +282,7 @@ func TestTimerStore_ConcurrentDispatchersDisjoint(t *testing.T) {
 			for _, tm := range due {
 				got[tm.ID.Get()]++
 			}
-		}()
+		})
 	}
 
 	close(start)

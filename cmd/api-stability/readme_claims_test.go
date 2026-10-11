@@ -49,7 +49,7 @@ func TestREADMEClaim_EventThirdPartyDeps(t *testing.T) {
 	}
 
 	thirdParty := map[string]bool{}
-	for _, line := range strings.Split(string(out), "\n") {
+	for line := range strings.SplitSeq(string(out), "\n") {
 		line = strings.TrimSpace(line)
 		if line == "" || line == "github.com/larsartmann/go-cqrs-lite/event/v4" {
 			continue

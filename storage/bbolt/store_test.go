@@ -70,7 +70,7 @@ func TestJournalReadAll(t *testing.T) {
 	store := backend.EventStore()
 	ctx := context.Background()
 
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		ref := id.NewStreamRef("User", id.NewStreamID())
 		evt, _ := event.NewEvent("user.created", ref.ID, "User", 1,
 			[]byte(`{"i":`+string(rune('0'+i))+`}`))

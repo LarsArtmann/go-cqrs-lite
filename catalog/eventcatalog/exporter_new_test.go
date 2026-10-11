@@ -242,13 +242,11 @@ func TestExporter_Export_ServiceWithBaseConfig(t *testing.T) {
 	visualiser := false
 	reg := cattest.NewTestRegistry(catalog.Service{
 		ID: "svc", Name: "Service", Version: "1.0.0",
-		BaseConfig: catalog.BaseConfig{
-			EditUrl:    "https://github.com/org/repo/edit/main/svc.mdx",
-			Visualiser: &visualiser,
-			Sidebar:    &catalog.SidebarConfig{Badge: "v2", Label: "MySvc"},
-			Styles:     &catalog.StylesConfig{Icon: "server", NodeColor: "blue"},
-			Draft:      &catalog.DraftConfig{Title: "WIP", Message: "Do not use yet"},
-		},
+		EditUrl:    "https://github.com/org/repo/edit/main/svc.mdx",
+		Visualiser: &visualiser,
+		Sidebar:    &catalog.SidebarConfig{Badge: "v2", Label: "MySvc"},
+		Styles:     &catalog.StylesConfig{Icon: "server", NodeColor: "blue"},
+		Draft:      &catalog.DraftConfig{Title: "WIP", Message: "Do not use yet"},
 	})
 
 	cat := reg.Build()
@@ -285,10 +283,8 @@ func TestExporter_Export_ResourceGroupsRejected(t *testing.T) {
 
 	reg := cattest.NewTestRegistry(catalog.Service{
 		ID: "svc", Name: "Service", Version: "1.0.0",
-		BaseConfig: catalog.BaseConfig{
-			ResourceGroups: []catalog.ResourceGroup{
-				{ID: "rg1", Title: "Group 1", Items: []string{"OrderCreated"}, Limit: 5},
-			},
+		ResourceGroups: []catalog.ResourceGroup{
+			{ID: "rg1", Title: "Group 1", Items: []string{"OrderCreated"}, Limit: 5},
 		},
 	})
 

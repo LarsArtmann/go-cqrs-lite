@@ -130,19 +130,19 @@ type AppConfig struct {
 
 	// Features declares which go-cqrs-lite modules the consumer uses.
 	// Each non-nil flag overrides auto-detection. See FeatureProfile docs.
-	Features analyzer.ConfigFeatures `json:"features,omitempty"` //nolint:modernize // config compatibility
+	Features analyzer.ConfigFeatures `json:"features"` //nolint:modernize // config compatibility
 	// Preset is a named set of feature-flag defaults (sugar over Features).
 	// Explicit Features flags always override preset values.
 	Preset analyzer.ConfigPreset `json:"preset,omitempty" default:""`
 	// Rules carries rule-specific overrides (e.g. external-API struct prefixes
 	// for D002). See analyzer.RulesConfig docs for each field.
-	Rules analyzer.RulesConfig `json:"rules,omitempty"` //nolint:modernize // config compatibility
+	Rules analyzer.RulesConfig `json:"rules"` //nolint:modernize // config compatibility
 	// Health carries health-score tuning (e.g. the Info-deduction cap).
-	Health HealthConfig `json:"health,omitempty"` //nolint:modernize // config compatibility
+	Health HealthConfig `json:"health"` //nolint:modernize // config compatibility
 	// ScorecardSettings carries scorecard settings: recorded per-module
 	// adoption waivers (see analyzer.ScorecardSettings). Named distinctly
 	// from the Scorecard bool flag above.
-	ScorecardSettings analyzer.ScorecardSettings `json:"scorecard,omitempty"` //nolint:modernize // config compatibility
+	ScorecardSettings analyzer.ScorecardSettings `json:"scorecard"` //nolint:modernize // config compatibility
 	// TypedInfo gates the F091 typed-confirmation tier: rules that need type
 	// information to attribute or confirm findings (F090(b) dot-import
 	// attribution, C008 usage confirmation) run their typed path only when

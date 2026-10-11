@@ -87,7 +87,7 @@ func TestGraphRAG_ConcurrentStress(t *testing.T) {
 	totalQueries := int64(numGoroutines * queriesPerGoroutine)
 
 	latencies := make([]int64, totalQueries)
-	var idx int64
+	var idx atomic.Int64
 
 	var wg sync.WaitGroup
 	wg.Add(numGoroutines)
@@ -100,7 +100,7 @@ func TestGraphRAG_ConcurrentStress(t *testing.T) {
 
 			for q := range queriesPerGoroutine {
 				query := topics[(goroutineID+q)%len(topics)]
-				i := atomic.AddInt64(&idx, 1) - 1
+				i := idx.Add(1) - 1
 
 				queryStart := time.Now()
 
@@ -143,7 +143,7 @@ func TestGraphRAG_ConcurrentStress(t *testing.T) {
 	elapsed := time.Since(start)
 
 	// --- REPORT ---
-	successful := atomic.LoadInt64(&idx)
+	successful := idx.Load()
 	qps := float64(successful) / elapsed.Seconds()
 
 	// Sort latencies for percentile calculation.

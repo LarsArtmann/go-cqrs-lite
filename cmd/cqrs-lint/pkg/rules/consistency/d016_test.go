@@ -15,7 +15,7 @@ func TestD016_TooManyFields(t *testing.T) {
 	// Build a struct with 25 fields
 	src := "package main\n\ntype BigPayloadCreated struct {\n"
 	var srcSb16 strings.Builder
-	for i := 0; i < 25; i++ {
+	for range 25 {
 		srcSb16.WriteString("\tField  string\n")
 	}
 	src += srcSb16.String()
@@ -33,7 +33,7 @@ func TestD016_UnderLimit(t *testing.T) {
 
 	src := "package main\n\ntype SmallCreated struct {\n"
 	var srcSb32 strings.Builder
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		srcSb32.WriteString("\tField  string\n")
 	}
 	src += srcSb32.String()

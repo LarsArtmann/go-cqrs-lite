@@ -17,7 +17,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v4/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4/idtest"
-	"github.com/larsartmann/go-cqrs-lite/metadata/v4"
 	wm "github.com/larsartmann/go-cqrs-lite/watermill/v4"
 )
 
@@ -51,16 +50,14 @@ func TestGolden_MessageMetadata(t *testing.T) {
 		event.WithOccurredAt(time.Date(2026, 3, 10, 12, 0, 0, 0, time.UTC)),
 		event.WithSchemaVersion(2),
 		event.WithMetadata(event.Metadata{
-			Tracing: metadata.Tracing{
-				CorrelationID: corrID,
-				CausationID:   causID,
-				UserID:        userID,
-				ActorID:       id.NewServiceActor("order-api"),
-			},
-			Source:    "test-service",
-			IPAddress: "10.0.0.1",
-			UserAgent: "test-agent/1.0",
-			Custom:    map[event.MetadataKey]string{"custom.trace": "abc123"},
+			CorrelationID: corrID,
+			CausationID:   causID,
+			UserID:        userID,
+			ActorID:       id.NewServiceActor("order-api"),
+			Source:        "test-service",
+			IPAddress:     "10.0.0.1",
+			UserAgent:     "test-agent/1.0",
+			Custom:        map[event.MetadataKey]string{"custom.trace": "abc123"},
 			Causation: &event.Causation{
 				CommandType: "place-order",
 				CommandID:   id.DeriveCommandID("golden", "order.created"),
@@ -87,9 +84,7 @@ func snapshotMetadata(t *testing.T, msg *message.Message) {
 	t.Helper()
 
 	sorted := make(map[string]string)
-	for k, v := range msg.Metadata {
-		sorted[k] = v
-	}
+	maps.Copy(sorted, msg.Metadata)
 
 	got := marshalSortedMap(sorted)
 

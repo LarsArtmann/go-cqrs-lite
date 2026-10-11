@@ -66,12 +66,10 @@ func NewCommandStore(
 	}
 
 	s := &CommandStore{
-		storeBase: storeBase{
-			db:         database,
-			logger:     logger,
-			prefix:     "cqrs_command:",
-			syncWrites: true,
-		},
+		db:         database,
+		logger:     logger,
+		prefix:     "cqrs_command:",
+		syncWrites: true,
 
 		journalPrefix: "cqrs_cmd_journal:",
 	}

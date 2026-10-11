@@ -26,10 +26,8 @@ func BenchmarkMixedWorkload_ReadsDuringWrites(b *testing.B) {
 			var wg sync.WaitGroup
 
 			// Writer goroutine
-			wg.Add(1)
 
-			go func() {
-				defer wg.Done()
+			wg.Go(func() {
 
 				for i := range b.N {
 					item := benchItemResult{
@@ -42,7 +40,7 @@ func BenchmarkMixedWorkload_ReadsDuringWrites(b *testing.B) {
 						return
 					}
 				}
-			}()
+			})
 
 			// Reader goroutine(s)
 			for r := range max(1, b.N*(100-writeRatio)/max(writeRatio, 1)/100) {

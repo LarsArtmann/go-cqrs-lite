@@ -111,8 +111,8 @@ func (s *Store) formatPlanAuditTrail() string {
 	recent := hist[start:]
 	parts := make([]string, 0, len(recent))
 
-	for i := len(recent) - 1; i >= 0; i-- {
-		e := recent[i]
+	for _, e := range slices.Backward(recent) {
+
 		label := e.Trigger
 		if e.Priority != nil {
 			label += "(" + string(e.Priority.Resolve("", "")) + ")"

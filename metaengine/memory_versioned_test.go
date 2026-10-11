@@ -3,6 +3,7 @@ package metaengine
 import (
 	"context"
 	"errors"
+	"maps"
 	"testing"
 	"time"
 
@@ -161,9 +162,7 @@ func TestMemoryEngine_VersionedStorage_Property(t *testing.T) {
 			ts := time.Now()
 
 			snap := stateSnapshot{ts: ts, state: make(map[string]int64, len(current))}
-			for k, v := range current {
-				snap.state[k] = v
-			}
+			maps.Copy(snap.state, current)
 
 			timeline = append(timeline, snap)
 

@@ -39,8 +39,7 @@ func TestHost_NonRetryableHandlerError_SkipsRetries(t *testing.T) {
 	)
 	host.Register(proj)
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	go func() { _ = host.Start(ctx) }()
 

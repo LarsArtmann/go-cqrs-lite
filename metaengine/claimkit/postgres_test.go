@@ -80,14 +80,12 @@ func TestClaimKit_PostgresConcurrentNew(t *testing.T) {
 	var wg sync.WaitGroup
 
 	for range workers {
-		wg.Add(1)
 
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 
 			_, err := claimkit.New(context.Background(), db, claiming.DialectPostgres)
 			errs <- err
-		}()
+		})
 	}
 
 	wg.Wait()

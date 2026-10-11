@@ -37,7 +37,7 @@ func TestComputeHealthScore_Floor(t *testing.T) {
 	t.Parallel()
 
 	var findings []finding.Finding
-	for i := 0; i < 100; i++ {
+	for range 100 {
 		f, _ := finding.NewBuilder(
 			"C001", "test",
 			"critical issue",
@@ -198,7 +198,7 @@ func TestComputeHealthScore_InfoCap(t *testing.T) {
 
 	findings := make([]finding.Finding, 0, 50)
 
-	for i := 0; i < 50; i++ {
+	for range 50 {
 		f, _ := finding.NewBuilder(
 			"D002", "test", "style nit",
 			finding.SeverityInfo,
@@ -229,7 +229,7 @@ func TestComputeHealthScore_InfoCapDoesNotAffectHigherSeverities(t *testing.T) {
 	).Build()
 	findings = append(findings, critical)
 
-	for i := 0; i < 50; i++ {
+	for range 50 {
 		f, _ := finding.NewBuilder(
 			"D002", "test", "style nit",
 			finding.SeverityInfo,
@@ -252,7 +252,7 @@ func TestComputeHealthScore_TunableCap(t *testing.T) {
 	t.Parallel()
 
 	findings := make([]finding.Finding, 0, 50)
-	for i := 0; i < 50; i++ {
+	for range 50 {
 		f, _ := finding.NewBuilder(
 			"D002", "test", "style nit",
 			finding.SeverityInfo,
@@ -279,7 +279,7 @@ func TestComputeHealthScore_InfoCappedTransparency(t *testing.T) {
 	t.Parallel()
 
 	findings := make([]finding.Finding, 0, 30)
-	for i := 0; i < 30; i++ {
+	for range 30 {
 		f, _ := finding.NewBuilder(
 			"D002", "test", "style nit",
 			finding.SeverityInfo,
@@ -315,7 +315,7 @@ func TestComputeHealthScore_InfoCapAppliedReflectsCustomCap(t *testing.T) {
 	t.Parallel()
 
 	findings := make([]finding.Finding, 0, 30)
-	for i := 0; i < 30; i++ {
+	for range 30 {
 		f, _ := finding.NewBuilder(
 			"D002", "test", "style nit",
 			finding.SeverityInfo,

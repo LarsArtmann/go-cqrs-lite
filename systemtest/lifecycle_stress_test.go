@@ -122,14 +122,12 @@ func dispatchConcurrentCreates(ctx context.Context, sys *system.System, n int) e
 	errCh := make(chan error, n)
 
 	for range n {
-		wg.Add(1)
 
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 
 			errCh <- sys.CommandDispatcher().
 				Dispatch(ctx, newCmd("stress.create", id.NewStreamID()))
-		}()
+		})
 	}
 
 	wg.Wait()

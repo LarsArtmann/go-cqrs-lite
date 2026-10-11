@@ -18,10 +18,10 @@ func TestAsRecord_MapsStructuralFields(t *testing.T) {
 	userID := id.NewUserID()
 	receivedAt := time.Date(2026, 8, 14, 12, 0, 0, 0, time.UTC)
 
-	md := query.Metadata{}
-	md.CorrelationID = correlationID
-	md.CausationID = causationID
-	md.UserID = userID
+	md := query.Metadata{
+		CorrelationID: correlationID,
+		CausationID:   causationID,
+		UserID:        userID}
 	qWithMeta, err := query.NewPersistedQuery(
 		"get_user",
 		[]byte(`{"id":"42"}`),

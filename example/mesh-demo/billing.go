@@ -18,7 +18,9 @@ const (
 )
 
 // InvoiceIssuedPayload is the CONTRACT of invoice.issued — orders codes
-// against this shape.
+// against this shape. Fields stay plain strings: the payload is the wire
+// form (JSON), and contexts brand at their own boundaries.
+//branching-flow:ignore strong-id
 type InvoiceIssuedPayload struct {
 	InvoiceRef  string `json:"invoiceRef"`
 	OrderID     string `json:"orderId"`
@@ -27,6 +29,7 @@ type InvoiceIssuedPayload struct {
 
 // OrderPlacedReceived mirrors orders' order.placed contract from the
 // CONSUMING side.
+//branching-flow:ignore strong-id
 type OrderPlacedReceived struct {
 	OrderID    string `json:"orderId"`
 	CustomerID string `json:"customerId"`
@@ -35,7 +38,7 @@ type OrderPlacedReceived struct {
 
 // InvoiceState is billing's private state.
 type InvoiceState struct {
-	OrderID     string
+	OrderID     OrderID
 	AmountCents int64
 	IssuedRef   string
 }
@@ -52,7 +55,7 @@ func foldInvoice(s InvoiceState, evt event.Event) (InvoiceState, error) {
 			return s, err
 		}
 
-		s.OrderID, s.AmountCents = p.OrderID, p.TotalCents
+		s.OrderID, s.AmountCents = NewOrderID(p.OrderID), p.TotalCents
 	case evtInvoiceIssued:
 		p, err := event.DecodePayloadAuto[InvoiceIssuedPayload](evt)
 		if err != nil {
@@ -70,7 +73,7 @@ func foldInvoice(s InvoiceState, evt event.Event) (InvoiceState, error) {
 type IssueInvoiceCmd struct {
 	*command.BasicCommand
 
-	OrderID     string
+	OrderID     OrderID
 	AmountCents int64
 }
 
@@ -82,12 +85,12 @@ func issueInvoice(cmd IssueInvoiceCmd) decider.DecideFunc[InvoiceState] {
 			return nil, nil
 		}
 
-		ref := "inv-" + cmd.OrderID
+		ref := "inv-" + cmd.OrderID.Get()
 
-		evt, err := event.New(evtInvoiceIssued, id.DeriveStreamID("invoice", cmd.OrderID),
+		evt, err := event.New(evtInvoiceIssued, id.DeriveStreamID("invoice", cmd.OrderID.Get()),
 			billingStreamType, v.Increment(), InvoiceIssuedPayload{
 				InvoiceRef:  ref,
-				OrderID:     cmd.OrderID,
+				OrderID:     cmd.OrderID.Get(),
 				AmountCents: cmd.AmountCents,
 			})
 		if err != nil {

@@ -22,6 +22,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/tursoengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/samber/lo"
 )
 
 type bisectOutcome struct {
@@ -186,24 +187,18 @@ func TestIVMReproDefectAOnsetBisect(t *testing.T) {
 	// groups): does a SINGLE-transaction load stay exact, and where is the
 	// smallest cross-tx boundary that loses its delta?
 	var chunkSweep []bisectOutcome
-	for _, chunk := range []int{2000, 1000, 500, 100, 10} {
-		chunkSweep = append(chunkSweep, runBisectConfig(t, 2000, 316, chunk))
-	}
+	chunkSweep = lo.Map([]int{2000, 1000, 500, 100, 10}, func(chunk int, _ int) bisectOutcome { return runBisectConfig(t, 2000, 316, chunk) })
 	report("chunk", chunkSweep)
 
 	// Dimension 2 — groups at fixed rows/chunk (2k rows, 500-row txs):
 	// is the delta loss group-count-sensitive below the draft's 316?
 	var groupSweep []bisectOutcome
-	for _, groups := range []int{1, 2, 8, 64, 316, 2000} {
-		groupSweep = append(groupSweep, runBisectConfig(t, 2000, groups, 500))
-	}
+	groupSweep = lo.Map([]int{1, 2, 8, 64, 316, 2000}, func(groups int, _ int) bisectOutcome { return runBisectConfig(t, 2000, groups, 500) })
 	report("groups", groupSweep)
 
 	// Dimension 3 — rows at fixed groups/chunk (316 groups, 500-row txs):
 	// is the SECOND transaction already enough, and does the loss scale?
 	var rowSweep []bisectOutcome
-	for _, rows := range []int{500, 1000, 2000, 4000} {
-		rowSweep = append(rowSweep, runBisectConfig(t, rows, 316, 500))
-	}
+	rowSweep = lo.Map([]int{500, 1000, 2000, 4000}, func(rows int, _ int) bisectOutcome { return runBisectConfig(t, rows, 316, 500) })
 	report("rows", rowSweep)
 }

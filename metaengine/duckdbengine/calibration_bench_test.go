@@ -349,10 +349,7 @@ func populateDuckDBRaw(ctx context.Context, db *sql.DB, col string, n int) error
 	const chunk = 500 // DuckDB parameter sanity.
 
 	for start := 0; start < n; start += chunk {
-		end := start + chunk
-		if end > n {
-			end = n
-		}
+		end := min(start+chunk, n)
 
 		size := end - start
 		rows := make([]string, size)

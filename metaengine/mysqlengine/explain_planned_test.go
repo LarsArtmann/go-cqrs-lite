@@ -35,7 +35,7 @@ func TestMySQLPlannedExplain_IndexUsageProofs(t *testing.T) {
 		metaengine.BuildLayoutPlan("planned_explain", []string{"code"}, []string{"priority"}),
 	)).To(gomega.Succeed())
 
-	for i := 0; i < 500; i++ {
+	for i := range 500 {
 		g.Expect(mb.MapSet(
 			ctx,
 			"planned_explain",

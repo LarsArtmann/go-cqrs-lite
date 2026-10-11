@@ -46,7 +46,7 @@ func presetNamesForTest(t *testing.T) []string {
 func formatFlagHelpTag(t *testing.T) string {
 	t.Helper()
 
-	field, ok := reflect.TypeOf(AppConfig{}).FieldByName("Format")
+	field, ok := reflect.TypeFor[AppConfig]().FieldByName("Format")
 	if !ok {
 		t.Fatal("AppConfig.Format field not found")
 	}

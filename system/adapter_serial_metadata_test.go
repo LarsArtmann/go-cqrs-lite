@@ -7,7 +7,6 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
-	"github.com/larsartmann/go-cqrs-lite/metadata/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
@@ -35,12 +34,10 @@ func TestCommandAdapter_MetadataRoundTrip(t *testing.T) {
 	ref := command.NewStreamRef("CmdTask", id.NewStreamID())
 
 	want := command.Metadata{
-		Tracing: metadata.Tracing{
-			CorrelationID: id.NewCorrelationID(),
-			CausationID:   id.NewCausationID(),
-			UserID:        id.NewUserID(),
-			RequestID:     id.NewRequestID(),
-		},
+		CorrelationID: id.NewCorrelationID(),
+		CausationID:   id.NewCausationID(),
+		UserID:        id.NewUserID(),
+		RequestID:     id.NewRequestID(),
 		Custom: map[command.MetadataKey]string{
 			"tenant": "acme",
 			"source": "test",
@@ -94,10 +91,8 @@ func TestQueryAdapter_MetadataRoundTrip(t *testing.T) {
 	adapter := system.NewQueryAdapter(backend, "queries", system.WithQuerySerialization())
 
 	want := query.Metadata{
-		Tracing: metadata.Tracing{
-			CorrelationID: id.NewCorrelationID(),
-			RequestID:     id.NewRequestID(),
-		},
+		CorrelationID: id.NewCorrelationID(),
+		RequestID:     id.NewRequestID(),
 		Custom: map[query.MetadataKey]string{
 			"view": "tasks",
 		},

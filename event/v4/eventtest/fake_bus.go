@@ -2,6 +2,7 @@ package eventtest
 
 import (
 	"context"
+	"slices"
 	"sync"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -41,8 +42,8 @@ func NewFakeBus() *FakeBus {
 func (b *FakeBus) rebuildPublishChain() {
 	var chain event.Publisher = event.PublisherFunc(b.dispatch)
 
-	for i := len(b.publishMW) - 1; i >= 0; i-- {
-		chain = b.publishMW[i](chain)
+	for _, v := range slices.Backward(b.publishMW) {
+		chain = v(chain)
 	}
 
 	b.publishChain = chain
@@ -68,8 +69,8 @@ func (b *FakeBus) dispatch(ctx context.Context, events ...event.Event) error {
 		for _, s := range subs {
 			if s.all || s.eventType == evt.Type() {
 				h := s.handler
-				for i := len(hmw) - 1; i >= 0; i-- {
-					h = hmw[i](h)
+				for _, h0 := range slices.Backward(hmw) {
+					h = h0(h)
 				}
 
 				if err := h(ctx, evt); err != nil {

@@ -421,7 +421,7 @@ func TestDuckDBEngine_ApplyLayoutPlan(t *testing.T) {
 		Quantity int
 	}
 
-	plan := metaengine.BuildColumnarLayoutPlan("products", reflect.TypeOf(ProductView{}))
+	plan := metaengine.BuildColumnarLayoutPlan("products", reflect.TypeFor[ProductView]())
 	if err := lpa.ApplyLayoutPlan(plan); err != nil {
 		t.Fatalf("ApplyLayoutPlan: %v", err)
 	}
@@ -714,7 +714,7 @@ func TestDuckDBEngine_ColumnarDoublePrecision(t *testing.T) {
 		Pi float64
 	}
 
-	plan := metaengine.BuildColumnarLayoutPlan("precision", reflect.TypeOf(PrecisionView{}))
+	plan := metaengine.BuildColumnarLayoutPlan("precision", reflect.TypeFor[PrecisionView]())
 	lpa := eng.(metaengine.LayoutPlanApplier)
 	if err := lpa.ApplyLayoutPlan(plan); err != nil {
 		t.Fatalf("ApplyLayoutPlan: %v", err)

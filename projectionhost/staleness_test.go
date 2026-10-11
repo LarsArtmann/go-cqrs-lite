@@ -1,7 +1,6 @@
 package projectionhost_test
 
 import (
-	"context"
 	"errors"
 	"testing"
 	"time"
@@ -49,8 +48,7 @@ func TestCheckStaleness_FreshProjection(t *testing.T) {
 	host, journal := newStalenessHost(t)
 	journal.append(makeEvent("test.event"))
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	_ = host.Start(ctx)
 	time.Sleep(100 * time.Millisecond)
@@ -66,8 +64,7 @@ func TestCheckStaleness_StaleProjection(t *testing.T) {
 	host, journal := newStalenessHost(t)
 	journal.append(makeEvent("test.event"))
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	_ = host.Start(ctx)
 	time.Sleep(100 * time.Millisecond)
@@ -108,8 +105,7 @@ func TestCheckProjectionStaleness_Fresh(t *testing.T) {
 	host, journal := newStalenessHost(t)
 	journal.append(makeEvent("test.event"))
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	_ = host.Start(ctx)
 	time.Sleep(100 * time.Millisecond)
@@ -124,8 +120,7 @@ func TestCheckProjectionStaleness_Stale(t *testing.T) {
 	host, journal := newStalenessHost(t)
 	journal.append(makeEvent("test.event"))
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	_ = host.Start(ctx)
 	time.Sleep(100 * time.Millisecond)

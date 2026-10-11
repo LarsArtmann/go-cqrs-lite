@@ -72,7 +72,7 @@ func TestRecipesCatalogCoversFile(t *testing.T) {
 }
 
 func firstLine(s string) string {
-	for _, ln := range strings.Split(s, "\n") {
+	for ln := range strings.SplitSeq(s, "\n") {
 		if t := strings.TrimSpace(ln); t != "" {
 			return t
 		}
@@ -94,7 +94,7 @@ func extractBodyImports(code string, imports []string) (string, []string) {
 	}
 	var body, extra []string
 	inGroup := false
-	for _, ln := range strings.Split(code, "\n") {
+	for ln := range strings.SplitSeq(code, "\n") {
 		tl := strings.TrimSpace(ln)
 		switch {
 		case !inGroup && strings.HasPrefix(tl, "import ("):
@@ -181,7 +181,7 @@ func workspaceFor(t *testing.T, root, dir string) string {
 	}
 	var sb strings.Builder
 	inUse := false
-	for _, ln := range strings.Split(string(raw), "\n") {
+	for ln := range strings.SplitSeq(string(raw), "\n") {
 		tl := strings.TrimSpace(ln)
 		switch {
 		case tl == "use (":

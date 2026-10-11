@@ -276,7 +276,7 @@ func TestCLI_Compare_DiskNonZero(t *testing.T) {
 	}
 
 	// sqlite row should show a non-zero disk value (M, KB, B — not "0 B").
-	for _, line := range strings.Split(output, "\n") {
+	for line := range strings.SplitSeq(output, "\n") {
 		if strings.Contains(line, "| sqlite") {
 			if strings.Contains(line, "| 0 B |") {
 				t.Errorf("sqlite disk should be non-zero in compare:\n%s", line)

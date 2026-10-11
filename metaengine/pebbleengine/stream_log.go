@@ -198,9 +198,9 @@ func journalEntryFromKey(key, raw []byte) (metaengine.StreamLogEntry, bool) {
 		return metaengine.StreamLogEntry{}, false
 	}
 
-	idx := bytes.Index(raw, []byte(sep))
-	if idx >= 0 {
-		return metaengine.StreamLogEntry{Seq: seq, Value: decodeJSON(raw[idx+1:])}, true
+	_, after, ok := bytes.Cut(raw, []byte(sep))
+	if ok {
+		return metaengine.StreamLogEntry{Seq: seq, Value: decodeJSON(after)}, true
 	}
 
 	return metaengine.StreamLogEntry{Seq: seq, Value: decodeJSON(raw)}, true

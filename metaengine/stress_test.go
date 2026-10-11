@@ -27,7 +27,7 @@ func TestStress_100KEvents(t *testing.T) {
 	t.Run("PointLookup", func(t *testing.T) {
 		// Sequential: shares the parent's store.
 		// Verify 100 random IDs return correct data.
-		for i := 0; i < 100; i++ {
+		for i := range 100 {
 			idx := i * (N / 100) // spread across the full range
 			key := fmt.Sprintf("item-%06d", idx)
 

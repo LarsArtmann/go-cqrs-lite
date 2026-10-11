@@ -111,10 +111,8 @@ func TestEngineHealth_CatchUpUnderConcurrentApplies(t *testing.T) {
 	// the log holds 32 events guarantees the rebuild races a moving log AND
 	// terminates deterministically.
 	for range writers {
-		wg.Add(1)
 
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 
 			for range perWriter {
 				i := nextIndex.Add(1)
@@ -142,7 +140,7 @@ func TestEngineHealth_CatchUpUnderConcurrentApplies(t *testing.T) {
 					ticked.Add(1)
 				}
 			}
-		}()
+		})
 	}
 
 	// The rebuild runs INSIDE the write storm: wait until the log is

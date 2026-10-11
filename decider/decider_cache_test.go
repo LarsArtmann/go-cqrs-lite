@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-codec"
-
 	"github.com/larsartmann/go-cqrs-lite/decider/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4/eventtest"
@@ -97,7 +96,7 @@ func TestRepository_StateCache_LoadSkipsFullLoadOnHit(t *testing.T) {
 
 	// Create + seed some events
 	executeCreate(t, repo, streamID)
-	for i := 0; i < 4; i++ {
+	for range 4 {
 		_ = executeAndIncrement(t, repo, streamID, "CounterIncremented")
 	}
 
@@ -333,27 +332,19 @@ func TestRepository_StateCache_ConcurrentLoadExecute(t *testing.T) {
 	var wg sync.WaitGroup
 
 	for range 20 {
-		wg.Add(1)
-
-		go func() {
-			defer wg.Done()
-
+		wg.Go(func() {
 			for range 10 {
 				_, _, _ = repo.Load(context.Background(), streamID, "Counter")
 			}
-		}()
+		})
 	}
 
 	for range 20 {
-		wg.Add(1)
-
-		go func() {
-			defer wg.Done()
-
+		wg.Go(func() {
 			for range 5 {
 				_ = executeAndIncrement(t, repo, streamID, "CounterIncremented")
 			}
-		}()
+		})
 	}
 
 	wg.Wait()

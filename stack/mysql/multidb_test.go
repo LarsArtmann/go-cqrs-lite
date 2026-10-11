@@ -80,8 +80,8 @@ func mysqlDBName(t *testing.T, dsn string) string {
 	}
 
 	rest := dsn[slashIdx+1:]
-	if qIdx := strings.Index(rest, "?"); qIdx >= 0 {
-		return rest[:qIdx]
+	if before, _, ok := strings.Cut(rest, "?"); ok {
+		return before
 	}
 
 	return rest

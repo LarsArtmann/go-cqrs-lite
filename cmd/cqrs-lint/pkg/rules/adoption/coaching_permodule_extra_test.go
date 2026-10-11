@@ -408,7 +408,7 @@ func TestF008_PerModuleEventCountIsolation(t *testing.T) {
 
 	libEvents := ""
 	var libEventsSb404 strings.Builder
-	for i := 0; i < 5; i++ {
+	for i := range 5 {
 		libEventsSb404.WriteString("event.New(\"agg.event" + itoa(i) + "\", nil)\n")
 	}
 	libEvents += libEventsSb404.String()

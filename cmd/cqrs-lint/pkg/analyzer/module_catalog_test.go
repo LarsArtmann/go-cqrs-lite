@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"strings"
 	"testing"
 )
@@ -289,11 +290,8 @@ func TestCatalogEveryGoWorkModuleCovered(t *testing.T) {
 		fullPath := "go-cqrs-lite/" + mod
 		covered := false
 		for _, e := range DefaultCatalog.All() {
-			for _, h := range e.ImportHints {
-				if h == fullPath {
-					covered = true
-					break
-				}
+			if slices.Contains(e.ImportHints, fullPath) {
+				covered = true
 			}
 			if covered {
 				break
@@ -323,7 +321,7 @@ func findGoWork(t *testing.T) string {
 	}
 
 	dir := filepath.Dir(filename)
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		candidate := filepath.Join(dir, "go.work")
 		if _, err := os.Stat(candidate); err == nil {
 			return candidate

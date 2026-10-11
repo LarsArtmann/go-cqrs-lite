@@ -1,10 +1,9 @@
 package decider
 
 import (
-	"github.com/maypok86/otter/v2"
-
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/maypok86/otter/v2"
 )
 
 // DefaultStateCacheCapacity is used when capacity <= 0.

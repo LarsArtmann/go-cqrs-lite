@@ -80,7 +80,7 @@ func TestSliceIterator_CloseIdempotent(t *testing.T) {
 
 	iter := event.NewSliceIterator(nil)
 
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		if err := iter.Close(); err != nil {
 			t.Fatalf("Close call %d: %v", i, err)
 		}

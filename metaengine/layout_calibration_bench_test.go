@@ -83,7 +83,7 @@ func BenchmarkLayoutCalibration_EmbedRead(b *testing.B) {
 	ctx := context.Background()
 	const N = 1000
 
-	for i := 0; i < N; i++ {
+	for i := range N {
 		_ = mb.MapSet(ctx, "orders_embed", fmt.Sprintf("order-%d", i), makeCalibOrder(i))
 	}
 
@@ -117,7 +117,7 @@ func BenchmarkLayoutCalibration_EmbedWrite(b *testing.B) {
 	ctx := context.Background()
 	const N = 1000
 
-	for i := 0; i < N; i++ {
+	for i := range N {
 		_ = mb.MapSet(ctx, "orders_embed", fmt.Sprintf("order-%d", i), makeCalibOrder(i))
 	}
 
@@ -158,7 +158,7 @@ func BenchmarkLayoutCalibration_NormalizeRead(b *testing.B) {
 	ctx := context.Background()
 	const N = 1000
 
-	for i := 0; i < N; i++ {
+	for i := range N {
 		order := makeCalibOrder(i)
 		header := calibOrderHeader{ID: order.ID, Total: order.Total, Status: order.Status}
 		_ = mb.MapSet(ctx, "orders_norm", order.ID, header)
@@ -191,7 +191,7 @@ func BenchmarkLayoutCalibration_NormalizeWrite(b *testing.B) {
 	ctx := context.Background()
 	const N = 1000
 
-	for i := 0; i < N; i++ {
+	for i := range N {
 		order := makeCalibOrder(i)
 		header := calibOrderHeader{ID: order.ID, Total: order.Total, Status: order.Status}
 		_ = mb.MapSet(ctx, "orders_norm", order.ID, header)

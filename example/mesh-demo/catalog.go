@@ -79,7 +79,7 @@ func buildOrdersCatalog() *catalog.Catalog {
 		Inputs:  []catalog.Ref{{ID: evtInvoiceIssuedID, Version: ordersCatalogVersion}},
 		Outputs: []catalog.DataProductOutput{
 			{
-				Ref: catalog.Ref{ID: evtOrderPlacedID, Version: ordersCatalogVersion},
+				ID: evtOrderPlacedID, Version: ordersCatalogVersion,
 				Contract: &catalog.DataContract{
 					Path: "contracts/order-placed.yaml",
 					Name: "order-placed",
@@ -140,7 +140,7 @@ func buildBillingCatalog() *catalog.Catalog {
 		Inputs:  []catalog.Ref{{ID: evtOrderPlacedID, Version: ordersCatalogVersion}},
 		Outputs: []catalog.DataProductOutput{
 			{
-				Ref: catalog.Ref{ID: evtInvoiceIssuedID, Version: billingCatalogVersion},
+				ID: evtInvoiceIssuedID, Version: billingCatalogVersion,
 				Contract: &catalog.DataContract{
 					Path: "contracts/invoice-issued.yaml",
 					Name: "invoice-issued",

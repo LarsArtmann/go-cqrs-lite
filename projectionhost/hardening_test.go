@@ -24,7 +24,7 @@ func TestReset_ClearsCheckpointBeforeReadModel(t *testing.T) {
 	journal.append(makeEvent("task.created"))
 
 	proj := &resettableCountingProjection{
-		countingProjection: countingProjection{name: "tasks"},
+		name: "tasks",
 	}
 
 	host, err := projectionhost.New(journal, cpStore, projectionhost.WithBatchSize(10))
@@ -340,17 +340,14 @@ func TestReplayDeadLetters_ConcurrentWithRunningWorker(t *testing.T) {
 	// race detector fires on the projection's shared state.
 	var wg sync.WaitGroup
 
-	wg.Add(1)
-
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 
 		for range 20 {
 			if _, err := host.ReplayDeadLetters(ctx, ""); err != nil {
 				t.Errorf("ReplayDeadLetters: %v", err)
 			}
 		}
-	}()
+	})
 
 	wg.Wait()
 	cancel()

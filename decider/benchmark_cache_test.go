@@ -87,7 +87,7 @@ func BenchmarkDecider_Load_WithCache_HeavyHistory(b *testing.B) {
 	streamID := id.NewStreamID()
 
 	// Seed 5000 events — heavy history where cache benefit is maximal
-	for i := 0; i < 5000; i++ {
+	for range 5000 {
 		benchExecute(b, repo, ctx, streamID, "CounterIncremented")
 	}
 

@@ -129,7 +129,7 @@ func seedDiskCalibPopulate(b *testing.B, eng metaengine.Engine, n int) {
 	mm := eng.(metaengine.MultimapBackend)
 	ctx := context.Background()
 
-	for i := 0; i < n; i++ {
+	for i := range n {
 		order := makeDiskCalibOrder(i)
 		if err := mb.MapSet(ctx, "orders_embed", order.ID, order); err != nil {
 			b.Fatalf("seed embed: %v", err)

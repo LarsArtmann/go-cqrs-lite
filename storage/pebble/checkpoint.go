@@ -58,12 +58,10 @@ func NewCheckpointStore(
 	}
 
 	s := &CheckpointStore{
-		storeBase: storeBase{
-			db:         database,
-			logger:     logger,
-			prefix:     "cqrs_checkpoint:",
-			syncWrites: true,
-		},
+		db:         database,
+		logger:     logger,
+		prefix:     "cqrs_checkpoint:",
+		syncWrites: true,
 	}
 
 	for _, opt := range opts {

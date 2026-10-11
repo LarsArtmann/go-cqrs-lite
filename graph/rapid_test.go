@@ -26,14 +26,14 @@ func genGraph(t *rapid.T, numNodes, numEdges int) (*MemoryDriver, []NodeRef, []E
 
 	nodes := make([]NodeRef, 0, numNodes)
 
-	for i := 0; i < numNodes; i++ {
+	for i := range numNodes {
 		ref := NodeRef{Label: "User", KeyProp: "id", KeyValue: fmt.Sprintf("n%d", i)}
 		nodes = append(nodes, ref)
 	}
 
 	edges := make([]EdgeRef, 0, numEdges)
 
-	for i := 0; i < numEdges; i++ {
+	for range numEdges {
 		if numNodes < 2 {
 			break
 		}
@@ -176,7 +176,7 @@ func TestRapid_QueryLabelFilter(t *testing.T) {
 
 		driver := NewMemoryDriver()
 		_ = driver.RunInTx(func(sink GraphSink) error {
-			for i := 0; i < numNodes; i++ {
+			for i := range numNodes {
 				label := "User"
 				if i%2 == 0 {
 					label = "Bot"

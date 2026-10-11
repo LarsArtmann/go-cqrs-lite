@@ -121,12 +121,12 @@ func onRecordFold[E any](eventType string, sample E, handler any) Fold {
 			return results[0].Interface(), results[1].Interface()
 		}
 		f := &insertFold{
-			recordCtx: recordCtx{recordAware: true},
-			eventType: eventType,
-			sample:    sample,
-			keyType:   handlerType.Out(0),
-			valueType: handlerType.Out(1),
-			invoke:    invoke,
+			recordAware: true,
+			eventType:   eventType,
+			sample:      sample,
+			keyType:     handlerType.Out(0),
+			valueType:   handlerType.Out(1),
+			invoke:      invoke,
 		}
 		return f
 
@@ -145,11 +145,11 @@ func onRecordFold[E any](eventType string, sample E, handler any) Fold {
 			return hv.Call(args)[0].Interface()
 		}
 		f := &updateFold{
-			recordCtx: recordCtx{recordAware: true},
-			eventType: eventType,
-			sample:    sample,
-			valueType: handlerType.Out(0),
-			invoke:    invoke,
+			recordAware: true,
+			eventType:   eventType,
+			sample:      sample,
+			valueType:   handlerType.Out(0),
+			invoke:      invoke,
 		}
 		return f
 
@@ -162,10 +162,10 @@ func onRecordFold[E any](eventType string, sample E, handler any) Fold {
 				return callWithRecord(rec, event)[0].Interface().(Delta)
 			}
 			return &countFold{
-				recordCtx: recordCtx{recordAware: true},
-				eventType: eventType,
-				sample:    sample,
-				invoke:    invoke,
+				recordAware: true,
+				eventType:   eventType,
+				sample:      sample,
+				invoke:      invoke,
 			}
 
 		case reflect.TypeFor[Edge]():
@@ -173,10 +173,10 @@ func onRecordFold[E any](eventType string, sample E, handler any) Fold {
 				return callWithRecord(rec, event)[0].Interface().(Edge)
 			}
 			f := &edgeFold{
-				recordCtx: recordCtx{recordAware: true},
-				eventType: eventType,
-				sample:    sample,
-				invoke:    invoke,
+				recordAware: true,
+				eventType:   eventType,
+				sample:      sample,
+				invoke:      invoke,
 			}
 			return f
 
@@ -185,10 +185,10 @@ func onRecordFold[E any](eventType string, sample E, handler any) Fold {
 				return callWithRecord(rec, event)[0].Interface().(EdgeRemoval)
 			}
 			f := &edgeRemoveFold{
-				recordCtx: recordCtx{recordAware: true},
-				eventType: eventType,
-				sample:    sample,
-				invoke:    invoke,
+				recordAware: true,
+				eventType:   eventType,
+				sample:      sample,
+				invoke:      invoke,
 			}
 			return f
 
@@ -197,10 +197,10 @@ func onRecordFold[E any](eventType string, sample E, handler any) Fold {
 				return callWithRecord(rec, event)[0].Interface().(Embedding)
 			}
 			return &vectorFold{
-				recordCtx: recordCtx{recordAware: true},
-				eventType: eventType,
-				sample:    sample,
-				invoke:    invoke,
+				recordAware: true,
+				eventType:   eventType,
+				sample:      sample,
+				invoke:      invoke,
 			}
 
 		case reflect.TypeFor[IndexedText]():
@@ -208,10 +208,10 @@ func onRecordFold[E any](eventType string, sample E, handler any) Fold {
 				return callWithRecord(rec, event)[0].Interface().(IndexedText)
 			}
 			return &searchFold{
-				recordCtx: recordCtx{recordAware: true},
-				eventType: eventType,
-				sample:    sample,
-				invoke:    invoke,
+				recordAware: true,
+				eventType:   eventType,
+				sample:      sample,
+				invoke:      invoke,
 			}
 
 		case reflect.TypeFor[Point]():
@@ -219,10 +219,10 @@ func onRecordFold[E any](eventType string, sample E, handler any) Fold {
 				return callWithRecord(rec, event)[0].Interface().(Point)
 			}
 			return &spatialFold{
-				recordCtx: recordCtx{recordAware: true},
-				eventType: eventType,
-				sample:    sample,
-				invoke:    invoke,
+				recordAware: true,
+				eventType:   eventType,
+				sample:      sample,
+				invoke:      invoke,
 			}
 
 		case reflect.TypeFor[Skip]():
@@ -233,10 +233,10 @@ func onRecordFold[E any](eventType string, sample E, handler any) Fold {
 				return callWithRecord(rec, event)[0].Interface().(MultiEntry)
 			}
 			return &multiInsertFold{
-				recordCtx: recordCtx{recordAware: true},
-				eventType: eventType,
-				sample:    sample,
-				invoke:    invoke,
+				recordAware: true,
+				eventType:   eventType,
+				sample:      sample,
+				invoke:      invoke,
 			}
 
 		case reflect.TypeFor[Append]():
@@ -244,10 +244,10 @@ func onRecordFold[E any](eventType string, sample E, handler any) Fold {
 				return callWithRecord(rec, event)[0].Interface().(Append)
 			}
 			return &appendFold{
-				recordCtx: recordCtx{recordAware: true},
-				eventType: eventType,
-				sample:    sample,
-				invoke:    invoke,
+				recordAware: true,
+				eventType:   eventType,
+				sample:      sample,
+				invoke:      invoke,
 			}
 
 		default:
@@ -255,11 +255,11 @@ func onRecordFold[E any](eventType string, sample E, handler any) Fold {
 				return callWithRecord(rec, event)[0].Interface()
 			}
 			f := &setFold{
-				recordCtx: recordCtx{recordAware: true},
-				eventType: eventType,
-				sample:    sample,
-				keyType:   outType,
-				invoke:    invoke,
+				recordAware: true,
+				eventType:   eventType,
+				sample:      sample,
+				keyType:     outType,
+				invoke:      invoke,
 			}
 			return f
 		}

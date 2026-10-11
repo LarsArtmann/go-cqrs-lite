@@ -30,7 +30,7 @@ func dataProductTestProvider() *catalog.Catalog {
 		Inputs: []catalog.Ref{{ID: "invoice.issued", Version: "1.0.0"}},
 		Outputs: []catalog.DataProductOutput{
 			{
-				Ref: catalog.Ref{ID: "order.placed", Version: "1.0.0"},
+				ID: "order.placed", Version: "1.0.0",
 				Contract: &catalog.DataContract{
 					Path: "contracts/order-placed.yaml",
 					Name: "order-placed",

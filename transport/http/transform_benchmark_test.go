@@ -102,7 +102,7 @@ func BenchmarkCBORToJSONTransform_FanOut_100Clients(b *testing.B) {
 	b.ResetTimer()
 
 	for b.Loop() {
-		for i := 0; i < clients; i++ {
+		for range clients {
 			out := CBORToJSONTransform(evt)
 			if len(out) == 0 {
 				b.Fatal("empty transform output")

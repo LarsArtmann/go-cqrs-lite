@@ -144,7 +144,7 @@ func (e *plannedFakeEngine) ApplyLayoutPlan(metaengine.LayoutPlan) error { retur
 func TestBackfillPlannedTables_SkipsWithoutCapability(t *testing.T) {
 	t.Parallel()
 
-	eng := &plannedFakeEngine{fakeEngine: fakeEngine{profile: metaengine.EngineProfile{
+	eng := &plannedFakeEngine{profile: metaengine.EngineProfile{
 		Name: "fake-planned",
 		Layouts: map[metaengine.ADT]metaengine.StorageLayout{
 			metaengine.ADTMap: metaengine.LayoutRow,
@@ -152,7 +152,7 @@ func TestBackfillPlannedTables_SkipsWithoutCapability(t *testing.T) {
 		Supports: map[metaengine.ADT]metaengine.Complexity{
 			metaengine.ADTMap: metaengine.ComplexityOLogN,
 		},
-	}}}
+	}}
 
 	store, err := metaengine.Plan([]metaengine.Engine{eng}, filteredTaskQuery())
 	if err != nil {

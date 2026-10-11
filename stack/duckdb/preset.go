@@ -37,16 +37,12 @@ type duckdbConfig struct {
 
 func defaultConfig() config {
 	return config{
-		DSNConfig: sqlopt.DSNConfig{
-			AutoMigrate: true,
-			EventDSN:    "",
-			QueryDSN:    "",
-			ViewDSN:     "",
-		},
-		duckdbConfig: duckdbConfig{
-			Threads:     0,
-			MemoryLimit: "",
-		},
+		AutoMigrate: true,
+		EventDSN:    "",
+		QueryDSN:    "",
+		ViewDSN:     "",
+		Threads:     0,
+		MemoryLimit: "",
 	}
 }
 

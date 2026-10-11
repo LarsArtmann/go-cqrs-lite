@@ -241,10 +241,8 @@ func TestConcurrency_ReplanCheckRoutingStress(t *testing.T) {
 	var wg sync.WaitGroup
 
 	// Goroutine 1: Replan every 10ms.
-	wg.Add(1)
 
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 
 		ticker := time.NewTicker(10 * time.Millisecond)
 		defer ticker.Stop()
@@ -257,13 +255,11 @@ func TestConcurrency_ReplanCheckRoutingStress(t *testing.T) {
 				_ = store.Replan(ctx)
 			}
 		}
-	}()
+	})
 
 	// Goroutine 2: CheckRouting every 5ms.
-	wg.Add(1)
 
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 
 		ticker := time.NewTicker(5 * time.Millisecond)
 		defer ticker.Stop()
@@ -276,13 +272,11 @@ func TestConcurrency_ReplanCheckRoutingStress(t *testing.T) {
 				_ = store.CheckRouting(ctx)
 			}
 		}
-	}()
+	})
 
 	// Goroutine 3: Shift the tracker RTT.
-	wg.Add(1)
 
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 
 		ticker := time.NewTicker(3 * time.Millisecond)
 		defer ticker.Stop()
@@ -292,16 +286,14 @@ func TestConcurrency_ReplanCheckRoutingStress(t *testing.T) {
 			case <-ctx.Done():
 				return
 			case <-ticker.C:
-				tracker.Record(time.Duration(1+atomic.AddInt64(&rttShift, 1)) * time.Millisecond)
+				tracker.Record(time.Duration(1+rttShift.Add(1)) * time.Millisecond)
 			}
 		}
-	}()
+	})
 
 	// Goroutine 4: GetEngineStats every 15ms.
-	wg.Add(1)
 
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 
 		ticker := time.NewTicker(15 * time.Millisecond)
 		defer ticker.Stop()
@@ -314,7 +306,7 @@ func TestConcurrency_ReplanCheckRoutingStress(t *testing.T) {
 				_ = store.GetEngineStats(ctx)
 			}
 		}
-	}()
+	})
 
 	wg.Wait()
 
@@ -324,7 +316,7 @@ func TestConcurrency_ReplanCheckRoutingStress(t *testing.T) {
 	}
 }
 
-var rttShift int64
+var rttShift atomic.Int64
 
 // --- Differential CheckRouting Test ---
 

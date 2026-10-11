@@ -1,7 +1,6 @@
 package bboltengine_test
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -46,8 +45,7 @@ func TestBboltWatcher_DeleteNotificationDeliversZeroValue(t *testing.T) {
 	store, err := metaengine.Plan([]metaengine.Engine{eng}, q)
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	watcher := metaengine.NewWatcher[watcherTask](store, "bbolt_watcher_tasks")
 	defer watcher.Close()
@@ -98,8 +96,7 @@ func TestBboltWatcher_WithReplayRecordsTypedValue(t *testing.T) {
 	store, err := metaengine.Plan([]metaengine.Engine{eng}, q)
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	watcher := metaengine.NewWatcher[watcherTask](store, "bbolt_replay_tasks")
 	replay := watcher.WithReplay(100)

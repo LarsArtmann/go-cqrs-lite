@@ -176,7 +176,7 @@ func TestExplainPlan_NoVolatileForPersistentEngine(t *testing.T) {
 
 	output := store.ExplainPlan()
 	// The word "volatile" should not appear on the engine line for persistent engines.
-	for _, line := range strings.Split(output, "\n") {
+	for line := range strings.SplitSeq(output, "\n") {
 		if strings.Contains(line, "persistent") && strings.Contains(line, "volatile") {
 			t.Errorf("persistent engine line should not contain \"volatile\": %s", line)
 		}

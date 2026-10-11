@@ -61,17 +61,13 @@ func TestPaginationConformance(t *testing.T) {
 
 	adttest.RunPaginationConformance(t, []adttest.PaginationProbe{
 		{
-			Factory: adttest.Factory{
-				Name:   "memory",
-				Create: func(t *testing.T) metaengine.Engine { return metaengine.NewMemoryEngine() },
-			},
+			Name:      "memory",
+			Create:    func(t *testing.T) metaengine.Engine { return metaengine.NewMemoryEngine() },
 			CursorKey: adttest.CursorKeyRaw,
 		},
 		{
-			Factory: adttest.Factory{
-				Name:   "sqlite",
-				Create: func(t *testing.T) metaengine.Engine { return newIsolatedSQLiteEngine(t) },
-			},
+			Name:      "sqlite",
+			Create:    func(t *testing.T) metaengine.Engine { return newIsolatedSQLiteEngine(t) },
 			CursorKey: adttest.CursorKeyRaw,
 		},
 	})

@@ -36,6 +36,7 @@ func adoptTaskmanager(t *testing.T) (*Server, *systemscenario.Scenario) {
 func taskView(srv *Server, taskID id.StreamID) func() (any, error) {
 	return func() (any, error) {
 		view, _, err := srv.TaskReader.Get(context.Background(), taskID.String())
+
 		return view, err
 	}
 }

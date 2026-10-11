@@ -164,7 +164,7 @@ func TestAsRecordPersisted_ActorKindWins(t *testing.T) {
 
 	cmd, err := command.NewPersistedCommand("user.create", ref, nil,
 		command.WithCommandMetadata(command.Metadata{
-			Tracing: metadata.Tracing{ActorID: actor},
+			ActorID: actor,
 		}),
 	)
 	if err != nil {

@@ -258,14 +258,12 @@ func TestSystem_ConcurrentDispatch(t *testing.T) {
 	var wg sync.WaitGroup
 
 	for range 20 {
-		wg.Add(1)
 
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 
 			streamID := id.NewStreamID()
 			_ = sys.CommandDispatcher().Dispatch(ctx, newCmd("task.create", streamID))
-		}()
+		})
 	}
 
 	wg.Wait()

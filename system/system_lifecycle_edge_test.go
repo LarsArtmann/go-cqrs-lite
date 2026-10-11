@@ -336,11 +336,9 @@ func TestSystem_ConcurrentClose(t *testing.T) {
 	const goroutines = 10
 
 	for range goroutines {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			_ = sys.Close()
-		}()
+		})
 	}
 	wg.Wait()
 

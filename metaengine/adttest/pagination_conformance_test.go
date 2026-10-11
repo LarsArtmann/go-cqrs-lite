@@ -27,7 +27,7 @@ func TestPaginationWalk_MemoryExactOnce(t *testing.T) {
 	) //nolint:forcetypeassert // memory implements MapBackend
 
 	probe := PaginationProbe{
-		Factory:   Factory{Name: "memory"},
+		Name:      "memory",
 		CursorKey: CursorKeyRaw,
 	}
 
@@ -73,7 +73,7 @@ func TestPaginationWalk_WrongKeyFormDetected(t *testing.T) {
 	) //nolint:forcetypeassert // memory implements MapBackend
 
 	probe := PaginationProbe{
-		Factory:   Factory{Name: "memory-wrong-form"},
+		Name:      "memory-wrong-form",
 		CursorKey: CursorKeyValueJSON,
 	}
 

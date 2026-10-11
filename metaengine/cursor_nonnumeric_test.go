@@ -137,7 +137,7 @@ func TestCursorRoundTrip_StringKey_AllEngines(t *testing.T) {
 			var cursor *metaengine.Cursor
 			pageSize := 3
 
-			for page := 0; page < 10; page++ {
+			for page := range 10 {
 				input := ListByNameInput{Limit: pageSize}
 				if cursor != nil {
 					encoded, err := cursor.Encode()
@@ -226,7 +226,7 @@ func TestCursorRoundTrip_TimeKey_AllEngines(t *testing.T) {
 			var cursor *metaengine.Cursor
 			pageSize := 2
 
-			for page := 0; page < 10; page++ {
+			for page := range 10 {
 				input := ListByTimeInput{Limit: pageSize}
 				if cursor != nil {
 					encoded, err := cursor.Encode()

@@ -79,10 +79,10 @@ func TestTursoMatView_PropertyServedMatchesBase(t *testing.T) {
 
 		var all []row
 		var written []row
-		for txIdx := 0; txIdx < txCount; txIdx++ {
+		for txIdx := range txCount {
 			n := rapid.IntRange(5, 20).Draw(rt, fmt.Sprintf("rows_tx%d", txIdx))
 			var batch []row
-			for i := 0; i < n; i++ {
+			for range n {
 				idx := len(all)
 				all = append(all, row{
 					key: fmt.Sprintf("k%04d", idx),
@@ -259,7 +259,7 @@ func TestTursoMatView_GroupedSumDefectAEnvelopeGuard(t *testing.T) {
 
 	expGroupSum := map[string]float64{}
 	var expSum float64
-	for i := 0; i < rowsTotal; i++ {
+	for i := range rowsTotal {
 		amount := float64(i%amountMod) + 0.5
 		expSum += amount
 		expGroupSum[fmt.Sprintf("c%d", i%groupModulus)] += amount
