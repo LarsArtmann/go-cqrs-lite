@@ -1,33 +1,4 @@
-A032 Field AssignmentJob.AssigneeID is string/int — use id.Of[T] branded ID for type safety
-A032 Field AssignmentJob.TaskID is string/int — use id.Of[T] branded ID for type safety
-B004 Command CreateTaskCmd has 4 fields — consider using cqrs-gen to generate constructors
-B005 Fold applyTask uses a switch statement — consider decider.StrictApply for compile-time exhaustiveness
-C009 panic() in production code — use error returns instead
-C009 panic() in production code — use error returns instead
-C009 panic() in production code — use error returns instead
-C009 panic() in production code — use error returns instead
-C013 Struct TaskDueDateSetPayload has DueDate of type time.Time — timezone info is lost via CBOR epoch encoding
-C015 unchecked Close() at /home/lars/projects/go-cqrs-lite/example/taskmanager/setup.go:286:7 — error is discarded, resource leak risk
-C023 Close() error ignored — pending events or resources may be lost
-C023 Close() error ignored — pending events or resources may be lost
-C023 Shutdown() error ignored — pending events or resources may be lost
-C023 Shutdown() error ignored — pending events or resources may be lost
-C023 Stop() error ignored — pending events or resources may be lost
-C023 Stop() error ignored — pending events or resources may be lost
-C026 Idempotency TTL mismatch — literal TTL passed but a TTL constant (projectionSettleMs) is defined and not used here
-C026 Idempotency TTL mismatch — literal TTL passed but a TTL constant (projectionSettleMs) is defined and not used here
-D013 Project creates 11 events without explicit event.WithSchemaVersion — constructors default schemaVersion to 1, so stamp a version BEFORE the first schema change (upcasting cannot be added retroactively once v2 events exist)
-E003 Package github.com/larsartmann/go-cqrs-lite/example/taskmanager mixes 4 CQRS concerns (command, event, fold, projection) — split into domain/infrastructure boundaries
-E014 Project uses projectionhost but has no projection drain/sync/flush call — the read model may be stale when the command handler returns
-F004 Server-mode project has no Prometheus metrics — runtime observability is unavailable
-F009 Time-based patterns detected (timers, deadlines, expirations) but scheduling module is not used — hand-rolled timers are fragile and not crash-safe
-F013 Manual HTTP handlers for dispatch but no delivery module is used — hand-rolled HTTP lacks broker fanout, SSE delivery, and trace-context propagation
-F021 metaengine query "task_counts_by_status" has 4 fold declarations — high write amplification may degrade ingest throughput (each event triggers multiple engine writes)
-F021 metaengine query "task_views" has 11 fold declarations — high write amplification may degrade ingest throughput (each event triggers multiple engine writes)
-F026 metaengine.NewReader used for Scans but WithPrefetch never called — every Scan page fetch hits the underlying store individually
-F028 Project uses slog but never calls slog.SetDefault — the default logger is unconfigured (Text to stderr)
-F031 Scan without WithLimit silently truncates at 100 rows — larger collections return wrong (partial) results
-S010 Bus has encryption/signing middleware but store is not wrapped — events stored in cleartext
+A018 Project imports go-cqrs-lite but never calls Save/Publish/Dispatch — possible dead import or missing wiring
 V003 queue/sqlite/v4 is on v4.0.x — 3 minor versions behind latest (v4.3.x), missing bug fixes and features
 V003 queue/v4 is on v4.0.x — 3 minor versions behind latest (v4.3.x), missing bug fixes and features
 V003 systemscenario/v4 is on v4.0.x — 3 minor versions behind latest (v4.3.x), missing bug fixes and features
