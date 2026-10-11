@@ -161,7 +161,7 @@ func (wq *WorkQueue) process(ctx context.Context, claim queue.Claim[AssignmentJo
 
 	if err := wq.disp.Dispatch(ctx, AssignTaskCmd{
 		BasicCommand: base,
-		AssigneeID:   job.AssigneeID,
+		AssigneeID:   NewAssigneeID(job.AssigneeID),
 	}); err != nil {
 		wq.logger.Warn("assignment dispatch failed, retrying with backoff",
 			"task", job.TaskID, "attempt", claim.Task.Attempts+1, "error", err)

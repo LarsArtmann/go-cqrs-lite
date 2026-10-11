@@ -45,7 +45,7 @@ func applyTask(state TaskState, evt event.Event) (TaskState, error) {
 			return state, err
 		}
 
-		state.AssigneeID = p.AssigneeID
+		state.AssigneeID = NewAssigneeID(p.AssigneeID)
 
 	case evtTaskStarted:
 		state.Status = StatusActive
@@ -165,7 +165,7 @@ func Create(cmd CreateTask) decider.DecideFunc[TaskState] {
 // AssignTask command.
 type AssignTask struct {
 	ID         TaskID
-	AssigneeID string
+	AssigneeID AssigneeID
 }
 
 func Assign(cmd AssignTask) decider.DecideFunc[TaskState] {
@@ -185,7 +185,7 @@ func Assign(cmd AssignTask) decider.DecideFunc[TaskState] {
 		}
 
 		evt, err := event.New(evtTaskAssigned, cmd.ID, streamType, v.Increment(),
-			TaskAssignedPayload{AssigneeID: cmd.AssigneeID})
+			TaskAssignedPayload{AssigneeID: cmd.AssigneeID.Get()})
 		if err != nil {
 			return nil, errorfamily.Newf(
 				errorfamily.Infrastructure,

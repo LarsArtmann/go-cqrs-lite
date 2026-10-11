@@ -19,7 +19,7 @@ import (
 // (BlockPublishUntilSubscriberAck=true).
 // ──────────────────────────────────────────────────────────────────────────
 
-const defaultAssignee = "team-lead"
+var defaultAssignee = NewAssigneeID("team-lead")
 
 // newDeriverProjection creates a projection that auto-assigns new tasks via
 // the durable work queue; the worker loop dispatches the command.
@@ -32,7 +32,7 @@ func newDeriverProjection(wq *WorkQueue) projection.Projection {
 		func(ctx context.Context, evt event.Event) error {
 			return wq.enqueueAssignment(ctx, AssignmentJob{
 				TaskID:     evt.StreamID().String(),
-				AssigneeID: defaultAssignee,
+				AssigneeID: defaultAssignee.Get(),
 			})
 		},
 		[]event.Type{evtTaskCreated},

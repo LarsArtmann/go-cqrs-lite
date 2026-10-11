@@ -9,7 +9,9 @@ package main
 // metaengine.go) rebuilds it from the event stream.
 // ──────────────────────────────────────────────────────────────────────────
 
-// TaskView is the read-model representation served by the query side.
+// TaskView is the read-model representation served by the query side —
+// a serialized query answer, so identifier fields stay plain strings.
+//branching-flow:ignore strong-id
 type TaskView struct {
 	ID          string   `json:"id"`
 	Title       string   `json:"title"`

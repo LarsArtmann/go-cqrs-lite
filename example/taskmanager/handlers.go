@@ -46,7 +46,7 @@ type CreateTaskCmd struct {
 type AssignTaskCmd struct {
 	*command.BasicCommand
 
-	AssigneeID string
+	AssigneeID AssigneeID
 }
 
 type (

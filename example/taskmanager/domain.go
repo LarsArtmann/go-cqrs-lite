@@ -5,6 +5,8 @@ import (
 	"strings"
 	"time"
 
+	cbid "github.com/larsartmann/go-branded-id"
+
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 )
@@ -23,6 +25,18 @@ const streamType = id.StreamType("Task")
 // because the event system keys on that type. For compile-time branded
 // IDs with custom markers (id.Of[TaskMarker]), see the id/ package docs.
 type TaskID = id.StreamID
+
+// AssigneeID is the caller-chosen assignee name ("team-lead", "alice") —
+// string-backed branded, the id.StreamID pattern (AGENTS.md 21(d)): ULID
+// backing is for system-minted IDs only, and an assignee name is chosen by
+// the caller, not minted.
+type AssigneeID = cbid.ID[assigneeIDMarker, string]
+
+type assigneeIDMarker struct{}
+
+// NewAssigneeID brands a raw wire assignee name — payloads and queue jobs
+// carry plain strings; the aggregate brands at its boundaries.
+func NewAssigneeID(raw string) AssigneeID { return cbid.NewID[assigneeIDMarker](raw) }
 
 // Priority ranks task urgency.
 type Priority string
@@ -65,7 +79,7 @@ type TaskState struct {
 	Title       string
 	Description string
 	Priority    Priority
-	AssigneeID  string
+	AssigneeID  AssigneeID
 	Status      Status
 	DueDate     *time.Time
 	BlockedBy   []id.StreamID

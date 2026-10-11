@@ -170,7 +170,7 @@ func (s *Server) handleTaskSubresource(w http.ResponseWriter, r *http.Request) {
 			BasicCommand: Must(
 				command.New(cmdAssignTask, taskID),
 			),
-			AssigneeID: body.AssigneeID,
+			AssigneeID: NewAssigneeID(body.AssigneeID),
 		})
 
 	case "start":
