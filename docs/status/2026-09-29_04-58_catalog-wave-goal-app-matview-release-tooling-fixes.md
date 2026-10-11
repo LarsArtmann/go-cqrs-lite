@@ -1,5 +1,9 @@
 # Status: catalog/v4.6.0 wave published, goal-shaped-app matview LIVE, release-tooling bugs fixed
 
+> **RESOLVED-BY-ROUTING (docs-health 13th pass, 2026-10-11):** every §f item
+> struck with its landing receipt or routed; §g answered inline. Successor
+> sessions (06-41, 09-15, 10-01) executed the remaining plan order.
+
 **2026-09-29 04:58 CEST** · resuming the
 [post-wave Pareto plan](../planning/2026-09-28_22-00_SUPERB-post-wave-verification-and-backlog-pareto-plan.md)
 · predecessor: [2026-09-29 01-27](2026-09-29_01-27_post-wave-pareto-execution-lint-green-hotfix-retags-doc-corpus.md)
@@ -108,42 +112,42 @@ push master (plan says requested; tags pushed, branch not).
 
 ## f) NEXT (up to 50, plan order)
 
-1. Finish M14 (ADT anchor + gate legs + FEATURES switch to gate-derived).
-2. CHANGELOG M27 entry + AGENTS go-env protocol note.
-3. Full `nix run .#lint` + `nix flake check` + `#check-duplication` (heavy
-   gate batch).
-4. M04 composed verify (quiet) → closes dedup (a) + CI re-record rows.
-5. M05 MySQL VM legs + shuffled seed replay.
-6. M11 calibration (SearchQuery, supersede-note, dgraph constants).
-7. M16 (c) clock-seam design + (e) parallel-migrate sweep.
-8. M17 config-loader table tests → fuzz → shutdown stress → determinism.
-9. M18 three rapid properties + pebble/bbolt scope note.
-10. M19 ephemeral-nats + watermill-nats roundtrip + `#integration-nats` app.
-11. M21 BFS unify (nil-vs-empty ruling), passthrough conventions, retry
-    backport review, templ watch note.
-12. M24 requestContextEnricher (read cqrs-htmx copy → design → implement →
-    golden → docs).
-13. M25 mesh-demo system.New variant (coeffect gate demo).
-14. M26 v5 inventory readiness checklist.
-15. M15 prep: quick-rulings one-pager + ADR-level pack + user-action list.
-16. M23 prep: verified drafts (turso A+B, turso-go a/b/c, md-go asks,
-    graph-rag note) — hold filing for owner.
-17. M20 matview v2 triage note; M22 CI watch bundle (data-dependent).
-18. F032 named-[]byte lint rule (M08 deferral, now unblocked).
-19. Push master (question g1).
-20. benchkit tag wave decision (question g2).
-21. bank-sync / cqrs-htmx lint-adoption ping (the unblock completed).
-22. Goal-closure G-T25 FEATURES flip check after gates A–D evidence lands.
-23. Remaining 92-tag CI tail (billing-gated observe).
-24. cv consumer bump (operator-gated).
+1. ~~Finish M14 (ADT anchor + gate legs + FEATURES switch to gate-derived).~~ done 09-29 06:41 — ADT anchor found (`metaengine.AllADTs()`, 11 planner ADTs), gate leg 5 shipped, 5 rotted doc sites fixed (06-41 §a3)
+2. ~~CHANGELOG M27 entry + AGENTS go-env protocol note.~~ done 09-29 06:41 (06-41 §a1–a2)
+3. ~~Full `nix run .#lint` + `nix flake check` + `#check-duplication` (heavy
+   gate batch).~~ done 09-29 09:15 — lint green (8 real findings fixed), `#check-duplication` GREEN; `nix flake check` stayed load-deferred → quiet-window rows
+4. ~~M04 composed verify (quiet) → closes dedup (a) + CI re-record rows.~~ routed — open at 10-11 (TODO_LIST §CI)
+5. ~~M05 MySQL VM legs + shuffled seed replay.~~ routed — open at 10-11 (quiet-gated)
+6. ~~M11 calibration (SearchQuery, supersede-note, dgraph constants).~~ routed — open at 10-11 (quiet-gated)
+7. ~~M16 (c) clock-seam design + (e) parallel-migrate sweep.~~ done 09-29 09:15 — design doc + advisory-lock DDL sweep green on ephemeral PG (09-15 §M16)
+8. ~~M17 config-loader table tests → fuzz → shutdown stress → determinism.~~ done 09-29 09:15 — 2 live LoadConfig bugs found+fixed, all legs green (09-15 §M17)
+9. ~~M18 three rapid properties + pebble/bbolt scope note.~~ done 09-29 09:15 (09-15 §M18; note = `docs/reviews/2026-09-29_pebble-bbolt-versioned-cells-scope-decision.md`)
+10. ~~M19 ephemeral-nats + watermill-nats roundtrip + `#integration-nats` app.~~ done 09-29 09:15 — 4/4 green vs real broker; 2nd run green 10-01 (09-15 §M19)
+11. ~~M21 BFS unify (nil-vs-empty ruling), passthrough conventions, retry
+    backport review, templ watch note.~~ mostly done 10-01 — M21.1–21.3 shipped (10-01_04-30 §a); retry-backport review → TODO_LIST §Code Quality
+12. ~~M24 requestContextEnricher (read cqrs-htmx copy → design → implement →
+    golden → docs).~~ done 10-01 — `event.RequestScope` + `WithRequestScope` + `RequestScopeEnricher`, recipes §2.42; issue #35 closed 10-03
+13. ~~M25 mesh-demo system.New variant (coeffect gate demo).~~ done 10-01 09:56 — `gate` subcommand shipped, tests+standalone green
+14. ~~M26 v5 inventory readiness checklist.~~ done 10-01 — `docs/planning/2026-10-01_v5-cut-readiness-checklist.md` (10-01_04-30 §a)
+15. ~~M15 prep: quick-rulings one-pager + ADR-level pack + user-action list.~~ done 10-01 — owner-decision pack A1–A14/B1–B5/C1–C4 (10-01_04-30 §a)
+16. ~~M23 prep: verified drafts (turso A+B, turso-go a/b/c, md-go asks,
+    graph-rag note) — hold filing for owner.~~ done 10-01 — drafts verified in the watch+filing pack; filing owner-held
+17. ~~M20 matview v2 triage note; M22 CI watch bundle (data-dependent).~~ done 10-01 — both in the watch pack (10-01_04-30 §a)
+18. ~~F032 named-[]byte lint rule (M08 deferral, now unblocked).~~ done 10-01 09:56 — shipped as C043 (6 tests, FP-clean)
+19. ~~Push master (question g1).~~ routed — still open at 10-11 (4 commits ahead)
+20. ~~benchkit tag wave decision (question g2).~~ answered by action — benchkit/v4.7.0 tagged in the 10-08 wave (`git tag` verified 10-11)
+21. ~~bank-sync / cqrs-htmx lint-adoption ping (the unblock completed).~~ routed — external consumers, owner comms; adoption tail row stands
+22. ~~Goal-closure G-T25 FEATURES flip check after gates A–D evidence lands.~~ routed — G-T25 parity evidence remains the parked cqrs-gen gate (ADR-0151 amendment 10-08)
+23. ~~Remaining 92-tag CI tail (billing-gated observe).~~ routed — billing-gated watch row stands
+24. ~~cv consumer bump (operator-gated).~~ routed — operator-gated row stands
 
 ## g) QUESTIONS FOR THE OWNER (cannot answer alone)
 
-1. **Push `master`?** The plan records "push is explicitly requested this
+1. ~~**Push `master`?** The plan records "push is explicitly requested this
    session" (2026-09-28); all tags are pushed; master sits N commits ahead.
-   One `git push origin master` — yes/no?
-2. **benchkit tag wave**: cut under the blanket directive like catalog was,
-   or hold for a separate go-ahead? (Owner-gated row; ~+17 untagged exports.)
-3. **Quiet-window strategy for M04/M05/M11**: arm a background load-poller
+   One `git push origin master` — yes/no?~~ still open at 10-11 — never answered; branch ahead 4
+2. ~~**benchkit tag wave**: cut under the blanket directive like catalog was,
+   or hold for a separate go-ahead? (Owner-gated row; ~+17 untagged exports.)~~ ANSWERED by action — benchkit/v4.7.0 tagged in the 10-08 wave
+3. ~~**Quiet-window strategy for M04/M05/M11**: arm a background load-poller
    that auto-fires when load1<5 (risk: the box has 47 users — a foreign lull
-   is not our quiet window), or schedule a dedicated quiet session?
+   is not our quiet window), or schedule a dedicated quiet session?~~ still open at 10-11 — no window arrived; owner ruling pending (M15.1)

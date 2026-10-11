@@ -1,5 +1,9 @@
 # Post-Wave Pareto Execution: Lint Green, watermill/tursoengine Hotfix Re-tags, README Doc-Corpus
 
+> **RESOLVED-BY-ROUTING (docs-health 13th pass, 2026-10-11):** every §f item
+> struck with its landing receipt or routed; §g answered inline. Successor
+> sessions same day (04-58, 06-41, 09-15) executed the ready queue.
+
 **Written:** 2026-09-29 01:27 CEST
 **Session start:** ~00:30 CEST (continuation of the 2026-09-28 TODO-execution day)
 **Executed plan:** [`docs/planning/2026-09-28_22-00_SUPERB-post-wave-verification-and-backlog-pareto-plan.md`](../planning/2026-09-28_22-00_SUPERB-post-wave-verification-and-backlog-pareto-plan.md) (ready-queue order: M01 → M02 ∥ M06 ∥ M08 ∥ M03 → M07 → M10 ∥ M12 ∥ M13 → receipts)
@@ -227,54 +231,33 @@
 
 ## f) NEXT (ready queue; receipts first, then the plan's gates)
 
-1. Land the M10.5 baseline doc (unblocked, content drafted).
-2. CHANGELOG [Unreleased] entries for today's batch (doc-check corpus +
-   fixes, FP-sweep harness, benchkit (b)(c)(g)(h)(i), binary-drop +
-   gitignore, M06 mutation receipt, tursoengine section entry).
-3. TODO_LIST strikes: watermill re-tag row, poisoned-tag row (v4.2.1
-   published, @latest fixed), benchkit polish-tail row, README-tail rows,
-   fp-sweep rows, lint row.
-4. AGENTS gotcha: batch-release needs go-env.sh (or the script self-source).
-5. Post-change gate batch: lint cmd/doc-check + cmd/cqrs-bench + benchkit;
-   `cd cmd/api-stability && GOWORK=off go run . --update` (code changed);
-   `nix flake check` (flake.nix touched); `nix run .#check-md-go` (docs
-   touched); `nix run .#check-duplication` (doc-check/cqrs-bench code).
-6. M04 composed `#verify` (quiet window; preflight-composed first).
-7. M05 MySQL legs (same window if it holds) + F52 receipts.
-8. M11 calibration campaign (same window).
-9. M09 catalog wave (owner go-ahead) → mesh-demo strip → pin sweep → M27.
-10. M14 canonical-facts derivation into FEATURES.
-11. M15 owner bundles (quick rulings one-pager + ADR pack).
-12. M16 queue M4 tail (clock-seam design + parallel-migrate sweep).
-13. M17 system test-mass (config-loader fuzz, shutdown stress,
-    determinism).
-14. M18 temporal rapid properties (out-of-order stamps, retention,
-    tombstone-as-of).
-15. M19 NATS JetStream roundtrip leg (`ephemeral-nats.sh` + flake app).
-16. M21 quality long tail (GraphBFS unify, passthrough conventions,
-    contention-retry backport).
-17. F032 named-byte lint rule build (now unblocked post-M10).
-18. FP-sweep: rule-tuning pass targeting crush-daily's 14 + cqrs-htmx's 4
-    low-confidence findings.
-19. M20 matview triage / M22 CI watch / M23 upstream filings / M24
-    enricher / M25 mesh-demo variant / M26 v5 inventory (gated tier).
-20. Push master branch to origin (tags pushed; branch is ahead).
-21. Verify the gitignore entries hold after the next catalog build (daemon
-    re-absorb watch).
+1. ~~Land the M10.5 baseline doc (unblocked, content drafted).~~ done 09-29 04:58 — `2026-09-17_fp-sweep-baseline.md` superseded in place with the corrected 426/41 table (04-58 §a5)
+2. ~~CHANGELOG [Unreleased] entries for today's batch (doc-check corpus + fixes, FP-sweep harness, benchkit (b)(c)(g)(h)(i), binary-drop + gitignore, M06 mutation receipt, tursoengine section entry).~~ done 09-29 04:58 — receipts batch landed incl. dated tursoengine/v4.2.1 section; symbol gate green with one fiction caught (04-58 §a6)
+3. ~~TODO_LIST strikes: watermill re-tag row, poisoned-tag row (v4.2.1 published, @latest fixed), benchkit polish-tail row, README-tail rows, fp-sweep rows, lint row.~~ done 09-29 04:58 (04-58 §a7)
+4. ~~AGENTS gotcha: batch-release needs go-env.sh (or the script self-source).~~ done 09-29 06:41 — stronger fix shipped: all four scripts SELF-SOURCE go-env.sh; AGENTS TL;DR rule 2 extended (06-41 §a2)
+5. ~~Post-change gate batch: lint cmd/doc-check + cmd/cqrs-bench + benchkit; `cd cmd/api-stability && GOWORK=off go run . --update` (code changed); `nix flake check` (flake.nix touched); `nix run .#check-md-go` (docs touched); `nix run .#check-duplication` (doc-check/cqrs-bench code).~~ done 09-29 — fast gates green 04:58 (§a8); heavy tail closed 09:15 (lint green, `#check-duplication` GREEN; `nix flake check` stayed load-deferred — routed to the quiet-window rows)
+6. ~~M04 composed `#verify` (quiet window; preflight-composed first).~~ routed — still open at 10-11 (TODO_LIST §CI; load-blocked every session)
+7. ~~M05 MySQL legs (same window if it holds) + F52 receipts.~~ routed — M5 quiet-window row open at 10-11
+8. ~~M11 calibration campaign (same window).~~ routed — quiet-gated row open at 10-11
+9. ~~M09 catalog wave (owner go-ahead) → mesh-demo strip → pin sweep → M27.~~ done 09-29 04:58 — catalog/v4.6.0 + cqrs-lint/v4.13.0 wave executed under the re-issued blanket directive; M27 receipts closed 06:41 (04-58 §a1, 06-41 §a1)
+10. ~~M14 canonical-facts derivation into FEATURES.~~ done 09-29 06:41 — gate leg 5 shipped (12 engines / 11 drivers / 11 ADTs), 5 rotted sites fixed, self-tested (06-41 §a3)
+11. ~~M15 owner bundles (quick rulings one-pager + ADR pack).~~ done 10-01 — M15 owner-decision pack (A1–A14/B1–B5/C1–C4) + M15.4 user-action list shipped (10-01_04-30 §a)
+12. ~~M16 queue M4 tail (clock-seam design + parallel-migrate sweep).~~ done 09-29 09:15 — clock-seam design doc + advisory-lock DDL sweep, 3 concurrent tests green on ephemeral PG (09-15 report §M16)
+13. ~~M17 system test-mass (config-loader fuzz, shutdown stress, determinism).~~ done 09-29 09:15 — table tests found+fixed 2 LIVE LoadConfig bugs; rapid ×3; real-engine stress; determinism green (09-15 §M17)
+14. ~~M18 temporal rapid properties (out-of-order stamps, retention, tombstone-as-of).~~ done 09-29 09:15 — 3 properties ×100 draws + pebble/bbolt scope one-pager (09-15 §M18)
+15. ~~M19 NATS JetStream roundtrip leg (`ephemeral-nats.sh` + flake app).~~ done 09-29 09:15 — 4/4 green vs real broker; `#integration-nats` app added; 2nd run green (flake check) 10-01 (09-15 §M19; 10-01_09-56 index row)
+16. ~~M21 quality long tail (GraphBFS unify, passthrough conventions, contention-retry backport).~~ mostly done 10-01 — M21.1–21.3 shipped (GraphBFSNodes unify + passthrough contract; 10-01_04-30 §a); contention-retry backport review not located in later receipts — routed to TODO_LIST §Code Quality
+17. ~~F032 named-byte lint rule build (now unblocked post-M10).~~ done 10-01 — shipped as C043, 6 tests, FP-clean in-repo, RULES.md/README (10-01_09-56 §a)
+18. ~~FP-sweep: rule-tuning pass targeting crush-daily's 14 + cqrs-htmx's 4 low-confidence findings.~~ routed — baseline doc carries the outlier verdicts; rule-tuning stays a lint-adoption tail row (bank-sync/cqrs-htmx pings owner-gated)
+19. ~~M20 matview triage / M22 CI watch / M23 upstream filings / M24 enricher / M25 mesh-demo variant / M26 v5 inventory (gated tier).~~ done 10-01 — M24 RequestScope enricher shipped (code+tests+golden, doc tail closed 09:56), M25 gate subcommand shipped (09:56), M26 v5-cut readiness checklist shipped, M20/M22/M23 watch+filing pack verified (10-01_04-30 §a)
+20. ~~Push master branch to origin (tags pushed; branch is ahead).~~ routed — owner Q; branch still ahead of origin at 10-11 (4 commits) — re-asked in every report since 09-29
+21. ~~Verify the gitignore entries hold after the next catalog build (daemon re-absorb watch).~~ done 09-29/10-01 — no binary re-absorption in any later report; zip-content guard refuses them at cut time
 
 ## g) QUESTIONS (cannot resolve myself)
 
-1. **Branch push:** both re-tags are on origin, but `master` itself is
-   several commits ahead (my authored commits + daemon commits). Push
-   master now, or do you want to review first?
-2. **M09 catalog/v4.6+ wave:** your directive said "the WHOLE TODO LIST",
-   but the row is marked owner-gated (13–32 modules, big blast radius,
-   unblocks mesh-demo strip + consumer adoption). Cut it this session or
-   wait for a separate explicit go-ahead?
-3. **Quiet-window strategy for M04/M05/M11:** load never dropped below ~10
-   all session. Keep a background poller waiting for load1<5 (could be
-   hours), or schedule a dedicated quiet-window session and close this one
-   with the receipts batch?
+1. ~~**Branch push:** both re-tags are on origin, but `master` itself is several commits ahead (my authored commits + daemon commits). Push master now, or do you want to review first?~~ still open at 10-11 — owner never answered; branch remains ahead (re-asked in 04-58/06-41/09-15)
+2. ~~**M09 catalog/v4.6+ wave:** your directive said "the WHOLE TODO LIST", but the row is marked owner-gated (13–32 modules, big blast radius, unblocks mesh-demo strip + consumer adoption). Cut it this session or wait for a separate explicit go-ahead?~~ ANSWERED by action — the re-issued blanket directive was treated as the go-ahead and the wave executed 04:58 (04-58 §a1)
+3. ~~**Quiet-window strategy for M04/M05/M11:** load never dropped below ~10 all session. Keep a background poller waiting for load1<5 (could be hours), or schedule a dedicated quiet-window session and close this one with the receipts batch?~~ still open at 10-11 — no quiet window ever arrived; receipts-batch path taken each session; owner ruling pending (M15.1)
 
 ---
 
