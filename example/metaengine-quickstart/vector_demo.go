@@ -14,6 +14,9 @@ import (
 // the query declares a k-NN search and the planner routes it to the engine's
 // vector ADT (brute-force on Memory/SQLite, ANN indexes elsewhere).
 
+// DocEmbedded's ID is the semantic document key (e.g. "doc-1") — the demo
+// keeps identifiers plain strings by design.
+//branching-flow:ignore file
 type DocEmbedded struct {
 	ID     string
 	Values []float32

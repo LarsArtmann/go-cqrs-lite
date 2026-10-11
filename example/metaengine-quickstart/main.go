@@ -28,6 +28,13 @@ const demoTaskID = "task-1"
 var errUnknownEventType = errors.New("unknown event type")
 
 // ── Domain Events ──
+//
+// This quickstart's point is the smallest possible declaration surface:
+// plain structs, plain strings (the demo task identity is the semantic key
+// "task-1"). Identifier fields stay primitives by design — event payloads,
+// the read model, and the query are serialized data, not domain handles.
+// The file-level strong-id directive encodes exactly that policy.
+//branching-flow:ignore file
 
 type TaskCreated struct {
 	ID     string

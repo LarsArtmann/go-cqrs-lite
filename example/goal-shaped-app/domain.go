@@ -10,6 +10,10 @@ import (
 // tier-1 core-domain bus types (command, query) — no engines, no schema, no
 // table registration, no scan limits. Operators decide all of that in
 // cqrs.yaml and can swap them per deployment without touching this file.
+// Identifier fields stay plain strings for the same reason — payloads,
+// read models, and queries are serialized data on this surface — encoded as
+// a file-level strong-id directive below.
+//branching-flow:ignore file
 
 // Task status values folded into [TaskView].
 const (

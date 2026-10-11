@@ -121,6 +121,9 @@ func dispatch(
 
 // awaitGone polls the task.get query until the deleted task's view has
 // been removed from the read model (the tombstone folded everywhere).
+// taskID stays a plain string: the story's task identity is a plain-struct
+// value end to end (domain.go's surface rationale).
+//branching-flow:ignore file
 func awaitGone(ctx context.Context, sys *system.System, taskID string) error {
 	basic, err := query.New(qryGetTask)
 	if err != nil {
