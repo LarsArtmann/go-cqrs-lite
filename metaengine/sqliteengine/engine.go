@@ -578,7 +578,7 @@ func (e *sqliteEngine) buildStreamQuery(
 			}
 
 			fmt.Fprintf(&b, "%s %s ?", metaengine.QuoteIdent(f.Column), string(f.Op))
-			args = append(args, f.Value)
+			args = append(args, metaengine.FilterBindValue(f.Value))
 		}
 
 		if sort != nil {
@@ -606,7 +606,7 @@ func (e *sqliteEngine) buildStreamQuery(
 		b.WriteString(string(f.Op))
 		b.WriteString(` ?`)
 
-		args = append(args, f.Value)
+		args = append(args, metaengine.FilterBindValue(f.Value))
 	}
 
 	if sort != nil {

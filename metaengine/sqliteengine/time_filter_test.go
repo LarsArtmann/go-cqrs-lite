@@ -81,7 +81,7 @@ func setupCallStore(t *testing.T, planned bool) (*metaengine.Store, context.Cont
 		{ID: "nextday", At: day.Add(26 * time.Hour), Status: "open"},
 	}
 	for _, item := range items {
-		if err := store.Apply(ctx, "call", item); err != nil {
+		if err := store.Apply(ctx, "callItem", item); err != nil {
 			t.Fatalf("Apply %s: %v", item.ID, err)
 		}
 	}
@@ -102,7 +102,7 @@ func assertSameDayBounds(t *testing.T, reader *metaengine.TypedReader[callItem],
 		t.Fatalf("Count Ge: %v", err)
 	}
 	if n != 2 {
-		t.Errorf("%s Ge(day) = %d, want 2 (same-day rows kept; the raw bind dropped the day)", collection, n)
+		t.Errorf("%s Ge(day) = %d, want 3 (day start is a lower bound; the raw bind dropped same-day rows)", collection, n)
 	}
 
 	n, err = reader.Count(ctx, metaengine.WithFilter("at", metaengine.FilterLt, dayEnd))
