@@ -17,7 +17,8 @@ type deprecatedTransportImport struct {
 	replacement string
 }
 
-var deprecatedTransportImports = []deprecatedTransportImport{ //nolint:gochecknoglobals // static lookup table for deprecated transport detection
+//nolint:gochecknoglobals // static lookup table for deprecated transport detection
+var deprecatedTransportImports = []deprecatedTransportImport{
 	{
 		fragment: "go-cqrs-lite/transport/http",
 		replacement: "Serve SSE with github.com/larsartmann/go-sse (or " +

@@ -78,7 +78,8 @@ func NewS002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			if !ctx.ProfileForFile(pos.Filename).HasServer {
 				severity = finding.SeverityInfo
 				confidence = finding.ConfidenceLow
-				suggestion = "This appears to be a local-only project (no HTTP/gRPC server). Consider adding encryption if the data may be exposed to networks"
+				suggestion = "This appears to be a local-only project (no HTTP/gRPC server). Consider adding encryption if the " +
+					"data may be exposed to networks
 			}
 
 			f, err := findingTemplate.Builder(

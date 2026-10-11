@@ -25,8 +25,10 @@ import (
 // here was a semantic collision (users could not tell which "fix" a docs
 // example meant).
 type doctorFlags struct {
-	AuditSuppressions bool `default:"false" flag:"audit-suppressions" help:"Audit all inline suppressions: show active vs stale vs unknown-rule status"`
-	Prune             bool `default:"false" flag:"prune-suppressions" help:"Remove stale whole-line suppressions (implies audit)"`
+	AuditSuppressions bool `default:"false" flag:"audit-suppressions" help:"Audit all inline suppressions: show " +
+		"active vs stale vs unknown-rule status`
+	Prune             bool `default:"false" flag:"prune-suppressions" help:"Remove stale whole-line suppressions " +
+		"(implies audit)`
 	DryRun            bool `default:"false" flag:"dry-run"            help:"With --prune-suppressions: show what would be removed without changing any file"`
 	// FailOnStale makes the doctor exit non-zero when stale inline
 	// suppressions or unknown-rule suppressions exist (implies audit). The

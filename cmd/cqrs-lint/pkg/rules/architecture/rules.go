@@ -41,7 +41,8 @@ func NewE004Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				).
 					WithCategory(finding.CategoryStructure).
 					WithConfidence(finding.ConfidenceMedium).
-					WithSuggestion(fmt.Sprintf("Register %q via catalog.Event(%q, ...) or add it to your catalog Registry", eventType, eventType)).
+					WithSuggestion(fmt.Sprintf("Register %q via catalog.Event(%q, ...) or add it to your catalog " +
+						"Registry, eventType, eventType)).
 					WithSnippet(ctx.SourceLine(emission.File, emission.Line)).
 					Build()
 				if err == nil {

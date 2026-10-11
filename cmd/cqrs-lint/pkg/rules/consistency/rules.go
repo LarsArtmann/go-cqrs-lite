@@ -84,7 +84,8 @@ func NewD001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				).
 					WithCategory(finding.CategoryStyle).
 					WithConfidence(finding.ConfidenceMedium).
-					WithSuggestion("Pick one convention: dot notation (domain.event) or PascalCase (DomainEvent) and use it consistently").
+					WithSuggestion("Pick one convention: dot notation (domain.event) or PascalCase (DomainEvent) and use it " +
+						"consistently).
 					WithSnippet(ctx.SourceLine(firstFile, firstLine)).
 					Build()
 				if err == nil {

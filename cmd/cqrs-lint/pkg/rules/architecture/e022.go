@@ -61,7 +61,8 @@ func NewE022Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				f, err := findingTemplate.Builder(
 					"E022",
 					fmt.Sprintf(
-						"schema declaration for %q is at version %d but no op migrates FROM %s — stored events at that version never upcast",
+						"schema declaration for %q is at version %d but no op migrates FROM %s — stored events at that version never " +
+							"upcast,
 						evtType, ladder.Current, strings.Join(versions, ", "),
 					),
 					finding.SeverityWarning,

@@ -34,7 +34,8 @@ func NewT001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				projectFinding(
 					"T001",
 					"Project defines deciders but has no scenario.Given tests — deciders lack BDD-style behavioral tests",
-					"Use scenario.Given[T,S](t, fold, initial, events...).When(cmd, decide).Then(expectedEvents...) for decider testing",
+					"Use scenario.Given[T,S](t, fold, initial, events...).When(cmd, decide).Then(expectedEvents...) for decider " +
+						"testing,
 					finding.ConfidenceMedium,
 					ctx,
 				),

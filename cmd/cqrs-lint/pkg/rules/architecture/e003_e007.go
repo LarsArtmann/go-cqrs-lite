@@ -82,7 +82,8 @@ func NewE003Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				).
 					WithCategory(finding.CategoryStructure).
 					WithConfidence(finding.ConfidenceLow).
-					WithSuggestion("Separate commands/events (domain) from projections/handlers (infrastructure) into distinct packages").
+					WithSuggestion("Separate commands/events (domain) from projections/handlers (infrastructure) into distinct " +
+						"packages).
 					Build()
 				if err == nil {
 					findings = append(findings, f)

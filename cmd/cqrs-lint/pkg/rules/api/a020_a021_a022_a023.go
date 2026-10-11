@@ -131,7 +131,8 @@ func NewA020Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				f, err := findingTemplate.Builder(
 					"A020",
 					fmt.Sprintf(
-						"Custom event.Bus implementation %q — use watermill.NewEventBus() or the library's memory bus instead of reimplementing",
+						"Custom event.Bus implementation %q — use watermill.NewEventBus() or the library's memory bus instead of " +
+							"reimplementing,
 						typeName,
 					),
 					finding.SeverityWarning,

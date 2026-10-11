@@ -149,7 +149,8 @@ func NewB002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 						f, err := findingTemplate.Builder(
 							"B002",
-							fmt.Sprintf("Function %s manually wires event store + bus + repository — use a stack preset (stack/sqlite, stack/pebble) instead", fn.Name.Name),
+							fmt.Sprintf("Function %s manually wires event store + bus + repository — use a stack preset (stack/sqlite, " +
+								"stack/pebble) instead, fn.Name.Name),
 							finding.SeverityInfo,
 							finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 						).

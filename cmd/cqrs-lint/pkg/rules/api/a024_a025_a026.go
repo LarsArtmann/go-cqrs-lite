@@ -119,7 +119,8 @@ func NewA024Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			).
 				WithCategory(finding.CategoryBestPractice).
 				WithConfidence(finding.ConfidenceHigh).
-				WithSuggestion("Wire up an event store, bus, and decider.Repository to complete the event sourcing pipeline, or remove the unused imports").
+				WithSuggestion("Wire up an event store, bus, and decider.Repository to complete the event sourcing pipeline, " +
+					"or remove the unused imports).
 				Build()
 			if err == nil {
 				findings = append(findings, f)

@@ -44,7 +44,8 @@ func NewA001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				if manualCount >= 2 {
 					f, err := findingTemplate.Builder(
 						"A001",
-						fmt.Sprintf("Command %s manually implements Type()/ID()/StreamID() — embed *command.BasicCommand instead", cmd.Name),
+						fmt.Sprintf("Command %s manually implements Type()/ID()/StreamID() — embed *command.BasicCommand " +
+							"instead, cmd.Name),
 						finding.SeverityError,
 						finding.Pos(finding.FilePath(cmd.File), cmd.Pos.Line, cmd.Pos.Column),
 					).

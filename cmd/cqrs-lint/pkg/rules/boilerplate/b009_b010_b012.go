@@ -247,7 +247,8 @@ func NewB012Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					).
 						WithCategory(finding.CategoryBestPractice).
 						WithConfidence(finding.ConfidenceHigh).
-						WithSuggestion("Use event.New(eventType, aggID, aggType, version, payload) which handles marshaling automatically").
+						WithSuggestion("Use event.New(eventType, aggID, aggType, version, payload) which handles marshaling " +
+							"automatically).
 						WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 						Build()
 					if err != nil {

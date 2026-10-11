@@ -37,7 +37,8 @@ func NewT005Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				projectFinding(
 					"T005",
 					"Projections have no error-path tests — malformed payloads and unknown event types are untested",
-					"Add scenario.GivenProjection tests with ThenError, or test your projection with malformed payloads and unknown event types",
+					"Add scenario.GivenProjection tests with ThenError, or test your projection with malformed payloads and " +
+						"unknown event types,
 					finding.ConfidenceLow,
 					ctx,
 				),
