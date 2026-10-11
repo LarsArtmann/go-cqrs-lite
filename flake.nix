@@ -794,12 +794,11 @@
             build = config.packages.default;
             # goimports shells out to `go`; the wrapped formatter would try to
             # DOWNLOAD go1.27 in the network-less sandbox because go.work
-            # requires it. Pin the check environment to the same go_1_27
-            # toolchain the builds use (DiscordSync flake pattern).
+            # requires it. Provide the go_1_27 toolchain (DiscordSync flake
+            # pattern) — alone: pinning GOTOOLCHAIN/GOFLAGS changes goimports'
+            # module resolution and regroups ~200 correctly-formatted files.
             format = (config.treefmt.build.check self).overrideAttrs (old: {
               nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ goPkg ];
-              GOTOOLCHAIN = "local";
-              GOFLAGS = "-mod=mod";
             });
             # Fast vendorHash drift checks: force realization of the goModules
             # FODs. If vendorHash doesn't match go.sum, the FOD fails with a

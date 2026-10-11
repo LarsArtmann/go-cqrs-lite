@@ -7,9 +7,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/onsi/gomega"
+
 	"github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
-	"github.com/onsi/gomega"
 )
 
 // TestEvictPooledStream_ReopenOnNextSend pins the self-healing half of the

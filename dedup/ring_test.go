@@ -10,7 +10,7 @@ import (
 func TestRing_Basic(t *testing.T) {
 	t.Parallel()
 
-	r := dedup.NewRing(4)
+	r := dedup.NewRing[string](4)
 
 	r.Add("a")
 	r.Add("b")
@@ -38,7 +38,7 @@ func TestRing_Basic(t *testing.T) {
 func TestRing_Eviction(t *testing.T) {
 	t.Parallel()
 
-	r := dedup.NewRing(3)
+	r := dedup.NewRing[string](3)
 
 	r.Add("a")
 	r.Add("b")
@@ -74,7 +74,7 @@ func TestRing_Eviction(t *testing.T) {
 func TestRing_DuplicateAdd(t *testing.T) {
 	t.Parallel()
 
-	r := dedup.NewRing(4)
+	r := dedup.NewRing[string](4)
 
 	r.Add("x")
 	r.Add("x") // no-op
@@ -88,7 +88,7 @@ func TestRing_DuplicateAdd(t *testing.T) {
 func TestRing_NilSafe(t *testing.T) {
 	t.Parallel()
 
-	var r *dedup.Ring
+	var r *dedup.Ring[string]
 
 	if r.Has("anything") {
 		t.Error("nil ring should not contain anything")
@@ -103,7 +103,7 @@ func TestRing_LargeCapacity_Wraparound(t *testing.T) {
 	t.Parallel()
 
 	const capacity = 1024
-	r := dedup.NewRing(capacity)
+	r := dedup.NewRing[string](capacity)
 
 	// Fill beyond capacity to exercise wraparound.
 	for i := range capacity * 3 {
@@ -125,15 +125,48 @@ func TestRing_LargeCapacity_Wraparound(t *testing.T) {
 	}
 }
 
+// TestRing_TypedKeys pins the generic contract: the ring keys on any
+// comparable ID kind, so a boundary holding branded IDs needs no string
+// round-trip (transport/http stores id.EventID directly, iroh stores
+// plain op-ID strings).
+func TestRing_TypedKeys(t *testing.T) {
+	t.Parallel()
+
+	type taskID int // stand-in for a branded ID: a distinct comparable kind
+
+	r := dedup.NewRing[taskID](2)
+
+	r.Add(1)
+	r.Add(2)
+
+	if !r.Has(1) || !r.Has(2) {
+		t.Fatal("typed keys 1 and 2 should be present")
+	}
+
+	if r.Has(3) {
+		t.Error("3 should not be present")
+	}
+
+	r.Add(3) // full ring: evicts key 1
+
+	if r.Has(1) {
+		t.Error("1 should have been evicted")
+	}
+
+	if !r.Has(3) || !r.Has(2) {
+		t.Error("2 and 3 should be present after eviction")
+	}
+}
+
 func TestRing_DefaultCapacityFallback(t *testing.T) {
 	t.Parallel()
 
-	r := dedup.NewRing(0) // should fall back to DefaultCapacity
+	r := dedup.NewRing[string](0) // should fall back to DefaultCapacity
 	if r.Capacity() != dedup.DefaultCapacity {
 		t.Errorf("Capacity: got %d, want default %d", r.Capacity(), dedup.DefaultCapacity)
 	}
 
-	rNegative := dedup.NewRing(-5)
+	rNegative := dedup.NewRing[string](-5)
 	if rNegative.Capacity() != dedup.DefaultCapacity {
 		t.Errorf("Capacity: got %d, want default %d", rNegative.Capacity(), dedup.DefaultCapacity)
 	}
@@ -151,7 +184,7 @@ func TestRing_ProductionCapacity10K(t *testing.T) {
 	const capacity = 10_000
 	const total = 3 * capacity
 
-	r := dedup.NewRing(capacity)
+	r := dedup.NewRing[string](capacity)
 
 	for i := range total {
 		r.Add(strconv.Itoa(i))
@@ -206,7 +239,7 @@ func TestRing_RingShapeInvariants(t *testing.T) {
 	t.Parallel()
 
 	const capacity = 8
-	r := dedup.NewRing(capacity)
+	r := dedup.NewRing[string](capacity)
 	seen := make(map[string]bool)
 	idGen := func(i int) string {
 		// Use a sparse string space to avoid collisions within the test run.
@@ -258,7 +291,7 @@ func itoa(n int) string {
 func TestRing_NilAddIsNoOp(t *testing.T) {
 	t.Parallel()
 
-	var ring *dedup.Ring
+	var ring *dedup.Ring[string]
 
 	ring.Add("event-001")
 

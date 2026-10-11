@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"cloud.google.com/go/bigtable"
+
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 

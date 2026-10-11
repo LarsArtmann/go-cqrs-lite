@@ -12,12 +12,13 @@ import (
 
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill-nats/v2/pkg/jetstream"
+	natsgo "github.com/nats-io/nats.go"
+	natsjs "github.com/nats-io/nats.go/jetstream"
+
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v4"
-	natsgo "github.com/nats-io/nats.go"
-	natsjs "github.com/nats-io/nats.go/jetstream"
 )
 
 // natsConnCloser adapts *natsgo.Conn to io.Closer (nats.Conn.Close returns

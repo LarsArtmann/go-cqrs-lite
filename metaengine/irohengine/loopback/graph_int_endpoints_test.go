@@ -6,8 +6,9 @@ import (
 	"testing"
 	"time"
 
-	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/samber/lo"
+
+	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 // graphIntDispatch is the local interface for graph ops used by the

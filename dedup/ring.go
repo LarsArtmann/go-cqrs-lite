@@ -20,25 +20,32 @@ package dedup
 // margin while bounding memory to ~90KB regardless of journal size.
 const DefaultCapacity = 1024
 
-// Ring is a fixed-capacity set of string IDs used to deduplicate events at a
-// stream boundary. Only the most recently added IDs are retained.
-type Ring struct {
-	buf   []string
-	idx   map[string]int // id → position in buf
-	head  int            // next write position (oldest entry when full)
-	count int            // entries currently in the ring
+// Ring is a fixed-capacity set of IDs used to deduplicate events at a stream
+// boundary. Only the most recently added IDs are retained.
+//
+// K is the ID kind — pick the strongest type the boundary has available
+// (id.EventID for journal event overlap, a branded ID, or string for
+// wire-opaque tokens such as SSE sequence numbers). dedup stays a zero-dep
+// module: K is caller-chosen, so the ring never imports id/ itself.
+type Ring[K comparable] struct {
+	buf   []K
+	idx   map[K]int // id → position in buf
+	head  int       // next write position (oldest entry when full)
+	count int       // entries currently in the ring
 }
 
 // NewRing creates a Ring with the given capacity. Falls back to DefaultCapacity
-// if capacity <= 0 (defensive — callers may pass user-configured values).
-func NewRing(capacity int) *Ring {
+// if capacity <= 0 (defensive — callers may pass user-configured values). The
+// ID kind must be instantiated explicitly (K does not appear in the argument
+// list): dedup.NewRing[string](cap) or dedup.NewRing[id.EventID](cap).
+func NewRing[K comparable](capacity int) *Ring[K] {
 	if capacity <= 0 {
 		capacity = DefaultCapacity
 	}
 
-	return &Ring{
-		buf:   make([]string, capacity),
-		idx:   make(map[string]int, capacity),
+	return &Ring[K]{
+		buf:   make([]K, capacity),
+		idx:   make(map[K]int, capacity),
 		head:  0,
 		count: 0,
 	}
@@ -49,11 +56,7 @@ func NewRing(capacity int) *Ring {
 // is a no-op, matching Has/Len/Capacity nil-safety so the documented
 // "use a nil *Ring when no replay occurred" pattern cannot panic on the
 // Add side of a Has-then-Add boundary loop.
-//
-// The id parameter is deliberately a plain string: dedup is a zero-dep
-// Tier-0 module and Ring stores any caller ID kind.
-//branching-flow:ignore strong-id
-func (r *Ring) Add(id string) {
+func (r *Ring[K]) Add(id K) {
 	if r == nil {
 		return
 	}
@@ -75,9 +78,7 @@ func (r *Ring) Add(id string) {
 
 // Has reports whether the ID is currently in the ring. A nil receiver always
 // returns false, so callers can use a nil *Ring when no replay occurred.
-// The id parameter is deliberately a plain string, mirroring Add.
-//branching-flow:ignore strong-id
-func (r *Ring) Has(id string) bool {
+func (r *Ring[K]) Has(id K) bool {
 	if r == nil {
 		return false
 	}
@@ -88,7 +89,7 @@ func (r *Ring) Has(id string) bool {
 }
 
 // Len returns the number of IDs currently in the ring. A nil receiver returns 0.
-func (r *Ring) Len() int {
+func (r *Ring[K]) Len() int {
 	if r == nil {
 		return 0
 	}
@@ -98,7 +99,7 @@ func (r *Ring) Len() int {
 
 // Capacity returns the maximum number of IDs the ring can hold.
 // A nil receiver returns 0.
-func (r *Ring) Capacity() int {
+func (r *Ring[K]) Capacity() int {
 	if r == nil {
 		return 0
 	}

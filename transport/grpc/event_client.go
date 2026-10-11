@@ -4,11 +4,12 @@ import (
 	"context"
 
 	"github.com/larsartmann/go-codec"
+	errorfamily "github.com/larsartmann/go-error-family"
+	"google.golang.org/grpc"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	cqrsproto "github.com/larsartmann/go-cqrs-lite/transport/grpc/v4/proto"
-	errorfamily "github.com/larsartmann/go-error-family"
-	"google.golang.org/grpc"
 )
 
 // EventClient subscribes to events from a remote gRPC EventService.

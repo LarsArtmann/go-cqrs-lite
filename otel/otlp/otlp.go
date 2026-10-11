@@ -18,10 +18,11 @@ package otlp
 import (
 	"context"
 
-	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 	otlpmetrichttp "go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
 	otlptracehttp "go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
+
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 )
 
 // OTLPConfig configures the OTLP/HTTP exporters behind SetupOTLP.
