@@ -246,3 +246,23 @@ parse with an older go/parser generation and fail with
   and BuildFlow's own go-mod-normalize cannot apply it either. The repo
   convention is tag-pinned replaced requires; ignore that doctor entry
   until BuildFlow special-cases major-version paths.
+
+## Concurrent-session edits + planning-doc fences (2026-10-10, schema-evolution stream)
+
+Two micro-disciplines that each cost a failed edit this stream:
+
+- **RE-VIEW shared files before EVERY edit while concurrent sessions run.**
+  The edit tool's staleness guard rejected CHANGELOG.md, registry.go, and
+  scanner_calls.go edits three times — each time the concurrent session (or
+  the auto-commit daemon) had touched the file after my last read. A blind
+  retry with the same old_string wastes a round trip; re-`view` the exact
+  region first. Also true cross-repo: cqrs-htmx harness files drifted while
+  being read.
+- **Planning-doc pseudo-code fences carry `// skip-validate` IN the fence**
+  (policy since 2026-09-21, `scripts/check-md-go.sh`): the md-go gate parses
+  every live `go` fence under docs/. Intentional pseudo-code without the
+  marker fails the gate; frozen history lives in
+  `scripts/md-go-baseline.txt`. The same gate covers `.agents/skills/**`
+  markdown now — recipe fences added there must parse (or be classified as
+  skips in the recipes catalog).
+
