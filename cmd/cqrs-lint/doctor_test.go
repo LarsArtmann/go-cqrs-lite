@@ -126,12 +126,3 @@ func TestFormatConfigFeatures(t *testing.T) {
 	}
 }
 
-//go:fix inline
-func ptrBool(b bool) *bool {
-	return new(b)
-}
-
-//go:fix inline
-func ptrTracingKind(k analyzer.TracingKind) *analyzer.TracingKind {
-	return new(k)
-}
