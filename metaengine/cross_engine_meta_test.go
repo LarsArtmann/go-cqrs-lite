@@ -5,9 +5,10 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 // cross_engine_meta_test.go guards the Store read-contract across every Engine

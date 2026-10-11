@@ -6,10 +6,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4"
-	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 	. "github.com/onsi/gomega"
+
+	"github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
 )
 
 func TestEventTypeConstants_IncludesRejected(t *testing.T) {

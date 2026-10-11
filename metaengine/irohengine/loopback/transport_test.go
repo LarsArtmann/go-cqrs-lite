@@ -7,10 +7,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/onsi/gomega"
+
 	"github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/loopback/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
-	"github.com/onsi/gomega"
 )
 
 // waitForPeers polls until both transports see the expected peer count.

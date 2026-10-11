@@ -7,11 +7,12 @@ import (
 	"testing"
 	"time"
 
+	_ "modernc.org/sqlite" // test-only driver registration
+
 	"github.com/larsartmann/go-cqrs-lite/claiming/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/adttest"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/claimkit"
-	_ "modernc.org/sqlite" // test-only driver registration
 )
 
 // host adapts the claimkit runtimes to metaengine.Engine so the adttest

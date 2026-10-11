@@ -5,8 +5,9 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/larsartmann/go-cqrs-lite/queue/v4"
 	_ "modernc.org/sqlite" // pure-Go SQLite driver (CGo-free)
+
+	"github.com/larsartmann/go-cqrs-lite/queue/v4"
 )
 
 // Store is the embedded, durable queue.Store over one SQLite file.

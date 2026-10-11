@@ -8,9 +8,10 @@ import (
 	"sync/atomic"
 	"testing"
 
+	"pgregory.net/rapid"
+
 	"github.com/larsartmann/go-cqrs-lite/metaengine/tursoengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
-	"pgregory.net/rapid"
 )
 
 // matViewPropertyDBCounter gives every rapid iteration its own database file

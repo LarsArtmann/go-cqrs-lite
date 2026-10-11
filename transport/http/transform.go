@@ -4,6 +4,7 @@ import (
 	"log/slog"
 
 	"github.com/larsartmann/go-codec"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 )
 

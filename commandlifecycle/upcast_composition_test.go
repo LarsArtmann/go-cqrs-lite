@@ -6,13 +6,14 @@ import (
 	"testing"
 	"time"
 
+	. "github.com/onsi/gomega"
+
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/schema/v4"
 	memorystore "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
-	. "github.com/onsi/gomega"
 )
 
 // failedPayloadV2 models a FUTURE evolution of commandlifecycle.FailedPayload:

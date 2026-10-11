@@ -11,8 +11,9 @@ import (
 	"fmt"
 	"testing"
 
-	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/onsi/gomega"
+
+	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 // cleanupPlannedCollection removes a planned table and its meta_map rows so

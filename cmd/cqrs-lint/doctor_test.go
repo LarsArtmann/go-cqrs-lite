@@ -125,4 +125,3 @@ func TestFormatConfigFeatures(t *testing.T) {
 		})
 	}
 }
-
