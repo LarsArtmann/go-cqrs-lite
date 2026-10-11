@@ -207,10 +207,8 @@ func LayoutStampsDoctorSection(
 			replayState = "replayed at " + completedAt
 		}
 
-		section.WriteString(fmt.Sprintf(
-			"%s: %s declared=%s %s\n",
-			plan.Collection, state, plan.Fingerprint(), replayState,
-		))
+		fmt.Fprintf(&section, "%s: %s declared=%s %s\n",
+			plan.Collection, state, plan.Fingerprint(), replayState)
 	}
 
 	return section.String()

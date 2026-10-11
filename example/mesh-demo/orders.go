@@ -41,6 +41,10 @@ type (
 	customerIDMarker struct{}
 )
 
+func (orderIDMarker) Name() string { return "orderIDMarker" }
+
+func (customerIDMarker) Name() string { return "customerIDMarker" }
+
 // NewOrderID brands a raw wire order number — contexts exchange plain
 // strings in the bilateral payloads and brand at their boundaries.
 func NewOrderID(raw string) OrderID { return cbid.NewID[orderIDMarker](raw) }

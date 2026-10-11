@@ -112,7 +112,6 @@ func (s *Store) formatPlanAuditTrail() string {
 	parts := make([]string, 0, len(recent))
 
 	for _, e := range slices.Backward(recent) {
-
 		label := e.Trigger
 		if e.Priority != nil {
 			label += "(" + string(e.Priority.Resolve("", "")) + ")"

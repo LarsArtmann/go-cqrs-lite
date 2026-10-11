@@ -35,6 +35,8 @@ type AssigneeID = cbid.ID[assigneeIDMarker, string]
 
 type assigneeIDMarker struct{}
 
+func (assigneeIDMarker) Name() string { return "assigneeIDMarker" }
+
 // NewAssigneeID brands a raw wire assignee name — payloads and queue jobs
 // carry plain strings; the aggregate brands at its boundaries.
 func NewAssigneeID(raw string) AssigneeID { return cbid.NewID[assigneeIDMarker](raw) }
