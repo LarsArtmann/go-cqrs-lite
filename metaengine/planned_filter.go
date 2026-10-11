@@ -74,7 +74,7 @@ func AppendPlannedFilter(
 		for i, v := range values {
 			placeholders[i] = placeholder(len(*args))
 
-			*args = append(*args, v)
+			*args = append(*args, FilterBindValue(v))
 		}
 
 		fmt.Fprintf(b, "%s IN (%s)", identQuote(f.Column), strings.Join(placeholders, inSeparator))
@@ -86,7 +86,7 @@ func AppendPlannedFilter(
 
 	fmt.Fprintf(b, "%s %s %s", identQuote(f.Column), string(f.Op), placeholder(len(*args)))
 
-	*args = append(*args, f.Value)
+	*args = append(*args, FilterBindValue(f.Value))
 }
 
 // beginFilterClause opens the WHERE clause or extends it with AND.

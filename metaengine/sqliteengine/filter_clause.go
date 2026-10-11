@@ -14,9 +14,12 @@ import (
 // The caller is responsible for the leading " AND " or " WHERE ".
 //
 // Filter type-coercion: SQLite json_extract returns native types (INTEGER, REAL,
-// TEXT), so numeric comparisons work without explicit CAST. This differs from
-// DuckDB (CAST AS DOUBLE) and Postgres (::float8) — see the equivalent filter
-// builders in those packages for their coercion strategies.
+// TEXT), so numeric comparisons work without explicit CAST. time.Time filter
+// values coerce to RFC3339 text via [metaengine.FilterBindValue] — the stored
+// view JSON renders times that way, and a driver-default bind (space
+// separator) lexicographically miscompares same-day bounds (issue #62). This
+// differs from DuckDB (CAST AS DOUBLE) and Postgres (::float8) — see the
+// equivalent filter builders in those packages for their coercion strategies.
 // art-dupl:accept cross-module SQL builder pattern — separate go.mod
 func appendStandardFilter(b *strings.Builder, args *[]any, f metaengine.FilterSpec) {
 	path := jsonPath(f.Column)
@@ -31,7 +34,7 @@ func appendStandardFilter(b *strings.Builder, args *[]any, f metaengine.FilterSp
 		for i, v := range values {
 			placeholders[i] = "?"
 
-			*args = append(*args, v)
+			*args = append(*args, metaengine.FilterBindValue(v))
 		}
 
 		fmt.Fprintf(b,
@@ -41,7 +44,7 @@ func appendStandardFilter(b *strings.Builder, args *[]any, f metaengine.FilterSp
 			strings.Join(placeholders, ","))
 	} else {
 		fmt.Fprintf(b, ` AND json_extract(value, '%s') %s ?`, path, string(f.Op))
-		*args = append(*args, f.Value)
+		*args = append(*args, metaengine.FilterBindValue(f.Value))
 	}
 }
 

@@ -19,6 +19,11 @@ import (
 // snake_case form of the column name. Without this, camelCase filterable
 // fields over snake_case json tags extracted as NULL and every pushdown
 // filter silently matched nothing (2026-09-18 Ledger CRM).
+//
+// time.Time values coerce to RFC3339 text via [FilterBindValue] so the
+// planned column's TEXT rendering matches both the JSON document and the
+// filter binds (issue #62: a driver-default time rendering on the write side
+// and an RFC3339 bind — or vice versa — miscompare on every range filter).
 func ExtractFields(value any, columns []PlannedColumn) map[string]any {
 	result := make(map[string]any, len(columns))
 
@@ -26,7 +31,7 @@ func ExtractFields(value any, columns []PlannedColumn) map[string]any {
 		for _, c := range columns {
 			for k, v := range m {
 				if strings.EqualFold(k, c.Name) || strings.EqualFold(k, snakeCase(c.Name)) {
-					result[c.Name] = v
+					result[c.Name] = FilterBindValue(v)
 
 					break
 				}
@@ -50,7 +55,7 @@ func ExtractFields(value any, columns []PlannedColumn) map[string]any {
 
 				if strings.EqualFold(JSONFieldName(f), c.Name) ||
 					strings.EqualFold(f.Name, c.Name) {
-					result[c.Name] = rv.Field(i).Interface()
+					result[c.Name] = FilterBindValue(rv.Field(i).Interface())
 
 					break
 				}
