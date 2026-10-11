@@ -78,13 +78,14 @@ func NewC009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 // isMustFunc returns true if the function follows a panic-safe convention:
 //
-//   - Must*/must* (e.g., MustParseUserID, mustCommand) — the standard Go
+//   - Must*/must* (e.g., MustParseUserID, mustCommand, and the BARE `must`
+//     helper — the package-local template.Must idiom) — the standard Go
 //     "panic on programming error" convention, like regexp.MustCompile.
-//   - New* (e.g., NewCollectCommand, NewServer) — constructor panics on
-//     invalid arguments are a widely used Go idiom. All New* functions are
-//     exempted regardless of return type (pointer, value, interface, or
-//     multi-return with error) because constructor-validation panics are
-//     conventional in Go.
+//   - New* (e.g., NewCollectCommand, NewServer, and the bare `New`) —
+//     constructor panics on invalid arguments are a widely used Go idiom.
+//     All New* functions are exempted regardless of return type (pointer,
+//     value, interface, or multi-return with error) because
+//     constructor-validation panics are conventional in Go.
 func isMustFunc(fn *ast.FuncDecl) bool {
 	if fn.Name == nil {
 		return false
@@ -92,13 +93,13 @@ func isMustFunc(fn *ast.FuncDecl) bool {
 
 	name := fn.Name.Name
 
-	if (strings.HasPrefix(name, "must") || strings.HasPrefix(name, "Must")) && len(name) > 4 {
+	// Prefix match alone: the length guards this check used to carry
+	// (len(name) > 4 / > 3) excluded the BARE `must` and `New` helpers —
+	// the exact shapes the convention celebrates (issue #64; a consumer
+	// renamed its composition-root helper purely to satisfy the lint).
+	if strings.HasPrefix(name, "must") || strings.HasPrefix(name, "Must") {
 		return true
 	}
 
-	if strings.HasPrefix(name, "New") && len(name) > 3 {
-		return true
-	}
-
-	return false
+	return strings.HasPrefix(name, "New")
 }

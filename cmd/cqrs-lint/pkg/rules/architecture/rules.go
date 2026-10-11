@@ -91,8 +91,8 @@ func NewE005Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				).
 					WithCategory(finding.CategoryStructure).
 					WithConfidence(finding.ConfidenceMedium).
-					WithSuggestion(fmt.Sprintf("Register a handler for %s via command.RegisterTyped or "+
-						"dispatcher.Register", cmd.Name)).
+					WithSuggestion(fmt.Sprintf("Register a handler for %s via system.RegisterCommand (the "+
+						"system composition root), command.RegisterTyped, or dispatcher.Register", cmd.Name)).
 					WithSnippet(ctx.SourceLine(cmd.File, cmd.Pos.Line)).
 					Build()
 				if err == nil {

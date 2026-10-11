@@ -351,6 +351,31 @@ func mustCommand(cmdType string, streamID string) *Command {
 	ruletest.AssertRule(t, findings, "C009", 0)
 }
 
+// C009 must also skip the BARE `must` helper — the package-local
+// template.Must idiom. The former len(name) > 4 guard excluded exactly this
+// shape and forced a consumer to rename its composition-root helper purely
+// to satisfy the lint (issue #64).
+func TestC009_NoFindingInBareMustFunc(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"app.go": `package main
+
+import "context"
+
+func must(err error) {
+	if err != nil {
+		panic(err)
+	}
+}
+
+func boot() {
+	must(register(context.Background()))
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, correctness.NewC009Detector(ctx))
+	ruletest.AssertRule(t, findings, "C009", 0)
+}
+
 // C009 must also skip exported Must* functions (MustParse, MustCompile, etc.)
 // following the same Go convention as regexp.MustCompile / template.Must.
 func TestC009_NoFindingInExportedMustFunc(t *testing.T) {

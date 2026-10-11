@@ -157,6 +157,33 @@ func register() {
 	ruletest.AssertRule(t, findings, "E005", 0)
 }
 
+// E005 must NOT fire for a command registered via the system composition root
+// (ADR-0123: system.RegisterCommand[T, S]) — the documented wiring path for
+// system-rooted apps. Regression pin for issue #64 (pbx-lens: every command
+// flagged "no registered handler" despite system-root registration).
+func TestE005_NoFindingWhenRegisteredViaSystem(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"app.go": `package main
+
+import "context"
+
+type ArchiveUser struct {
+	*BasicCommand
+	ID string
+}
+
+func register(sys *system.System) {
+	_ = system.RegisterCommand[ArchiveUser, *UserState](sys, "users.archive",
+		func(ctx context.Context, cmd ArchiveUser, state *UserState) error {
+			return nil
+		})
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, architecture.NewE005Detector(ctx))
+	ruletest.AssertRule(t, findings, "E005", 0)
+}
+
 // --- E005: Non-CQRS type with Type() method (e.g., pflag.Value) is NOT flagged
 
 func TestE005_NoFindingForPflagValueType(t *testing.T) {
