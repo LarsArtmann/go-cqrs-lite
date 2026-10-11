@@ -913,7 +913,7 @@ github.com/labstack/gommon v0.4.2/go.mod h1:QlUFxVM+SNXhDL/Z7YhocGIBYOiwB0mXm1+1
 github.com/larsartmann/cmdguard/flightrecorder v0.1.0 h1:XNtimBAFO6fqQiD2g27M/sdwsddMRi7ZuLRxq3wnl04=
 github.com/larsartmann/cmdguard/glamour v0.2.0 h1:bZ7XsRrUcbP6v9UlIKWdUxboYHlTBgoJQaJzEdsyD4k=
 github.com/larsartmann/cmdguard/spinner v0.2.0 h1:rFOOl20ct+RFQ1hlXbpq1SrIHsx1dfbWxwfuM3WkACE=
-github.com/larsartmann/go-cqrs-lite/event/v4 v4.14.0/go.mod h1:EiRkaPJ1jYwj7mbVIZ+iyXYxZM8ABCpOf7L96ZBMJWE=
+github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.3.0/go.mod h1:AbQjMKQWyXaz0lDe4/9Xryvmq6FzwlfuQNaCKR5KizI=
 github.com/larsartmann/go-cqrs-lite/idempotency/kvstore/v4 v4.1.0/go.mod h1:br2nxuwBLugcV1w47bOLjX3ei/4TFXVjfJL5r6uaRB0=
 github.com/larsartmann/go-cqrs-lite/metaengine/bboltengine/v4 v4.1.0/go.mod h1:YAuSkgv9kvx3SYSHVuNKWtds97hadYMjU2LpmpJFn5g=
 github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.1.1/go.mod h1:4V33qjwL3R72tvRGPRM7AlBWMDHeB4JjA5wMG7uBZqU=

@@ -6,7 +6,7 @@ require (
 	github.com/dustin/go-humanize v1.1.0
 	github.com/jackc/pgx/v5 v5.11.0
 	github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.2
-	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.4
+	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.2
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.5.2
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2

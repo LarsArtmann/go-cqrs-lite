@@ -17,7 +17,7 @@
     "core": "core/v1.6.0",
     "cqrs-lite": "cqrs-lite/v0.1.1",
     "decider": "decider/v4.7.2",
-    "dedup": "dedup/v4.2.4",
+    "dedup": "dedup/v4.3.0",
     "deriver": "deriver/v4.4.0",
     "dispatcher": "dispatcher/v4.5.2",
     "encryption": "encryption/v4.4.4",
