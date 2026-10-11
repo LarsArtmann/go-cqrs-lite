@@ -303,7 +303,7 @@ Modules release on independent per-module version trains (`<module>/vX.Y.Z` git 
 | otel/otlp | `otel/otlp/v4.0.2` *(untagged per ADR-0152)* |
 | pebble | `pebble/v2.6.0` |
 | projection | `projection/v4.4.2` |
-| projectionhost | `projectionhost/v4.5.3` |
+| projectionhost | `projectionhost/v4.6.0` |
 | prometheus | `prometheus/v4.3.3` |
 | query | `query/v4.10.1` |
 | queue | `queue/v4.0.3` |
