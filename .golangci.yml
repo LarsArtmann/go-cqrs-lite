@@ -412,6 +412,10 @@ linters:
         text: "SA1019: .*(NewMemoryStore|MemoryStore) is deprecated"
         linters:
           - staticcheck
+      - path: idempotency/.*_test\.go$
+        text: 'SA1019: .*metaengine\.DedupStore.*'
+        linters:
+          - staticcheck
       - path: id/
         linters:
           - err113

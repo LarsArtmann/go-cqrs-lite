@@ -16,6 +16,9 @@ var errNilDedupStore = errors.New("idempotency/sqlstore.NewFromEngine: nil Dedup
 
 // DefaultEngineCollection is the claims-collection name engine-backed stores
 // use for their dedup window.
+//
+// Deprecated: use the metaengine.DedupStore engine capability instead
+// (ADR-0142, wired through system at deployment time). No v5 successor.
 const DefaultEngineCollection = "idempotency"
 
 // NewFromEngine builds the engine-backed facade (ADR-0142): the SAME public
@@ -24,6 +27,9 @@ const DefaultEngineCollection = "idempotency"
 // this module's own SQL. The one documented divergence: engine-mode Record
 // RE-CLAIMS a lapsed window (fresh TTL) where the SQL store leaves a stale
 // row untouched — lazier reads then behave identically either way.
+//
+// Deprecated: use the metaengine.DedupStore engine capability directly
+// instead (ADR-0142, wired through system at deployment time). No v5 successor.
 func NewFromEngine(dedup metaengine.DedupStore, collection string) (*Store, error) {
 	if dedup == nil {
 		return nil, errNilDedupStore
