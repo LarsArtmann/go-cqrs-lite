@@ -12,9 +12,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/onsi/gomega"
-
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/onsi/gomega"
 )
 
 // TestPgPlannedTable_RoundTrip pins the Map routing: after ApplyLayoutPlan,

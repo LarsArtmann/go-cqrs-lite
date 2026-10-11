@@ -4,10 +4,9 @@ import (
 	"database/sql"
 	"testing"
 
-	_ "modernc.org/sqlite" // register sqlite driver for all metaengine tests
-
 	sqliteengine "github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	_ "modernc.org/sqlite" // register sqlite driver for all metaengine tests
 )
 
 func newSQLiteEngine() (metaengine.Engine, *sql.DB) {

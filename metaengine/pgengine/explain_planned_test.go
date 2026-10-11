@@ -13,10 +13,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/onsi/gomega"
-
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4"
+	"github.com/onsi/gomega"
 )
 
 // explainPlannedScan runs EXPLAIN (FORMAT JSON) for the planned collection's

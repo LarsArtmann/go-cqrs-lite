@@ -44,7 +44,6 @@ func TestRenderExplain_DocumentsEveryConfigFileKey(t *testing.T) {
 
 	rt := reflect.TypeFor[AppConfig]()
 	for field := range rt.Fields() {
-		field := field
 		tag := field.Tag.Get("json")
 		if tag == "" || tag == "-" {
 			continue

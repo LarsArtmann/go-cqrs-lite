@@ -6,9 +6,8 @@ import (
 	"fmt"
 	"testing"
 
-	. "github.com/onsi/gomega"
-
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	. "github.com/onsi/gomega"
 )
 
 // raw_reader_test.go validates that the Pebble engine implements the

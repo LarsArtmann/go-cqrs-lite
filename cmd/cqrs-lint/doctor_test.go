@@ -109,7 +109,7 @@ func TestFormatConfigFeatures(t *testing.T) {
 			name: "multiple features",
 			features: analyzer.ConfigFeatures{
 				Server:  new(true),
-				Tracing: ptrTracingKind(analyzer.TracingOn),
+				Tracing: new(analyzer.TracingOn),
 			},
 			want: "server=true, tracing=on",
 		},

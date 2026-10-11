@@ -10,9 +10,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/onsi/gomega"
-
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/onsi/gomega"
 )
 
 // TestMySQLPlannedExplain_IndexUsageProofs pins the index-usage contract:

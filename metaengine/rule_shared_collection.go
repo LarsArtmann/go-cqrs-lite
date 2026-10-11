@@ -113,7 +113,6 @@ func sharedTypesInResult(rt reflect.Type, shared map[string]bool) []string {
 	seen := make(map[string]bool)
 
 	for field := range rt.Fields() {
-		field := field
 		if !field.IsExported() {
 			continue
 		}

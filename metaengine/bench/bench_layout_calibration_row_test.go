@@ -12,7 +12,6 @@ import (
 
 	_ "github.com/go-sql-driver/mysql" // register mysql driver for calibration
 	_ "github.com/jackc/pgx/v5/stdlib" // register pgx driver for calibration
-
 	mysqlengine "github.com/larsartmann/go-cqrs-lite/metaengine/mysqlengine/v4"
 	pgengine "github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4"
 	sqliteengine "github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4"

@@ -70,7 +70,6 @@ func autoInferFilters(
 	}
 
 	for f := range queryType.Fields() {
-		f := f
 		if !f.IsExported() {
 			continue
 		}

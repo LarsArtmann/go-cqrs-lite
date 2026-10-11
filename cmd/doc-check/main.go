@@ -203,12 +203,12 @@ func run(files []string, jsonOut, listAllAmbiguous bool) error {
 	}
 
 	if len(navIssues) > 0 {
-		return fmt.Errorf( //nolint:lll // CLI tool, no untrusted input
+		return fmt.Errorf(
 			"%w: %d broken anchor(s)/§ cross-ref(s) found", errBrokenNav, len(navIssues))
 	}
 
 	if len(arityIssues) > 0 {
-		return fmt.Errorf( //nolint:lll // CLI tool, no untrusted input
+		return fmt.Errorf(
 			"%w: %d doc call(s) with wrong argument count", errArityMismatch, len(arityIssues))
 	}
 
@@ -230,14 +230,14 @@ func run(files []string, jsonOut, listAllAmbiguous bool) error {
 	}
 
 	if totalRefs == 0 {
-		return fmt.Errorf( //nolint:lll // CLI tool, no untrusted input
+		return fmt.Errorf(
 			"%w: no fenced ```go code blocks detected — documents were NOT verified. "+
 				"Add a verification code block or pass files with Go samples",
 			errNoReferences,
 		)
 	}
 
-	log.Printf( //nolint:lll
+	log.Printf(
 		"✓ All %d references valid across %d package(s).",
 		totalRefs, len(res.clauses),
 	)

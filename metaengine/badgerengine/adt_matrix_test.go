@@ -3,11 +3,10 @@ package badgerengine_test
 import (
 	"testing"
 
-	"github.com/onsi/gomega"
-
 	"github.com/larsartmann/go-cqrs-lite/metaengine/badgerengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/adttest"
+	"github.com/onsi/gomega"
 )
 
 // adt_matrix_test.go runs the full 7-ADT test matrix across the Badger
