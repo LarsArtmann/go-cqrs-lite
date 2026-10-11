@@ -68,7 +68,7 @@ func createdView(view TaskView) error {
 		return fmt.Errorf("Priority: want %q, got %q", PriorityHigh, view.Priority)
 	}
 
-	if view.AssigneeID != defaultAssignee {
+	if view.AssigneeID != defaultAssignee.Get() {
 		return fmt.Errorf("AssigneeID: want %q, got %q", defaultAssignee, view.AssigneeID)
 	}
 

@@ -43,7 +43,7 @@ func TestIntegration_FullLifecycle(t *testing.T) {
 	// on task.created — if we send task.start before the assign commits,
 	// we get an optimistic-concurrency version conflict.
 	waitForView(t, srv, taskID, func(v *TaskView) bool {
-		return v.AssigneeID == defaultAssignee
+		return v.AssigneeID == defaultAssignee.Get()
 	})
 
 	// ── Start the task ────────────────────────────────────────────────
@@ -273,7 +273,7 @@ func TestIntegration_MetaEngineTaskReader(t *testing.T) {
 	}
 
 	// ── Start task1, then filter by status=active ──
-	waitForView(t, srv, task1, func(v *TaskView) bool { return v.AssigneeID == defaultAssignee })
+	waitForView(t, srv, task1, func(v *TaskView) bool { return v.AssigneeID == defaultAssignee.Get() })
 
 	if err := srv.CmdDisp.Dispatch(ctx, StartTaskCmd{
 		BasicCommand: Must(command.New(cmdStartTask, task1)),

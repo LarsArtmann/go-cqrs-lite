@@ -29,7 +29,7 @@ func TestWorkQueue_AssignmentSurvivesRestart(t *testing.T) {
 		t.Fatalf("open queue: %v", err)
 	}
 
-	job := AssignmentJob{TaskID: "01JRESTART", AssigneeID: defaultAssignee}
+	job := AssignmentJob{TaskID: "01JRESTART", AssigneeID: defaultAssignee.Get()}
 
 	for range 2 { // dedup key converges: two enqueues, one task
 		if _, err := store.Enqueue(ctx, task.New[AssignmentJob]{
@@ -92,6 +92,6 @@ func TestWorkQueue_AutoAssignEndToEnd(t *testing.T) {
 	}
 
 	waitForView(t, srv, taskID, func(v *TaskView) bool {
-		return v.AssigneeID == defaultAssignee
+		return v.AssigneeID == defaultAssignee.Get()
 	})
 }

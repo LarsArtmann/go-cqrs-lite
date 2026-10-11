@@ -138,7 +138,7 @@ func TestDecider_AssignTask(t *testing.T) {
 		t.Parallel()
 
 		scenario.Given[AssignTask, TaskState](t, applyTask, TaskState{}, created).
-			When(AssignTask{ID: taskID, AssigneeID: "user-123"},
+			When(AssignTask{ID: taskID, AssigneeID: NewAssigneeID("user-123")},
 				func(s TaskState, cmd AssignTask) ([]event.Event, error) { return Assign(cmd)(s, 0) }).
 			Then(evtTaskAssigned)
 	})
@@ -149,7 +149,7 @@ func TestDecider_AssignTask(t *testing.T) {
 		assigned := mustEvt(evtTaskAssigned, taskID, TaskAssignedPayload{AssigneeID: "user-123"})
 
 		scenario.Given[AssignTask, TaskState](t, applyTask, TaskState{}, created, assigned).
-			When(AssignTask{ID: taskID, AssigneeID: "user-123"},
+			When(AssignTask{ID: taskID, AssigneeID: NewAssigneeID("user-123")},
 				func(s TaskState, cmd AssignTask) ([]event.Event, error) { return Assign(cmd)(s, 0) }).
 			ThenError(errMatch(errorfamily.Conflict, "task.assign.same"))
 	})
@@ -242,7 +242,7 @@ func TestDecider_FoldState(t *testing.T) {
 				Exists:     true,
 				Title:      "Test",
 				Priority:   PriorityHigh,
-				AssigneeID: "user-1",
+				AssigneeID: NewAssigneeID("user-1"),
 				Status:     StatusCompleted,
 			})
 	})

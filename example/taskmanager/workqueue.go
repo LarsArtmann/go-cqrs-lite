@@ -34,6 +34,9 @@ const (
 )
 
 // AssignmentJob is the queued payload: assign task TaskID to AssigneeID.
+// The job is the queue's serialized wire form — plain strings, branded at
+// the dispatch boundary.
+//branching-flow:ignore strong-id
 type AssignmentJob struct {
 	TaskID     string `json:"task_id"`
 	AssigneeID string `json:"assignee_id"`
