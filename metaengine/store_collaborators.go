@@ -57,7 +57,7 @@ func (p *poisonTracker) Clear() {
 type idempotencyTracker struct {
 	mu   sync.Mutex
 	ring *dedup.Ring[string] // nil → unbounded legacy mode
-	seen sync.Map    // event ID → struct{}, used only when ring == nil
+	seen sync.Map            // event ID → struct{}, used only when ring == nil
 }
 
 func newIdempotencyTracker(capacity int) *idempotencyTracker {

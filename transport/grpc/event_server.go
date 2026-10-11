@@ -50,7 +50,7 @@ type EventServer struct {
 	// nextID mints client connection keys — a monotonic counter, not an
 	// identity, so it stays a plain integer.
 	//branching-flow:ignore strong-id
-	nextID  int64
+	nextID int64
 }
 
 const clientBufferSize = 128

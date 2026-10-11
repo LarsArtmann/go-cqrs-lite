@@ -29,7 +29,7 @@ import (
 //
 // lastEventID is the raw SSE Last-Event-ID header token — wire-opaque by
 // protocol — parsed once at entry via id.ParseEventID.
-//branching-flow:ignore strong-id
+// branching-flow:ignore strong-id
 func replayEvents(
 	w http.ResponseWriter,
 	flusher http.Flusher,

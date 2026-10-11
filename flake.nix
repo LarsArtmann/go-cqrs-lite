@@ -689,7 +689,7 @@
               hash = "sha256-R0Gu3giMeJKbDNT1LcKCOZTznoc1wGYCxmvt+dA5mhM=";
             };
             subPackages = [ "cmd/benchstat" ];
-            vendorHash = "sha256-9y6O/R2fOPYAGjlIZ2lcO1TNiZPj6My3EoPRiiFZu3U=";
+            vendorHash = "sha256-Zfte0X5r+rfuzQUfIjfvGiWVhobPYvYNg4cCP7OVAcQ=";
           };
         in
         {
