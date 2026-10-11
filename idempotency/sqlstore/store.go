@@ -8,6 +8,10 @@
 // The caller owns the *sql.DB — [Store.Close] is a no-op. Create the table
 // via [NewSQLiteStore] or [NewPostgresStore], which call CREATE TABLE IF NOT
 // EXISTS automatically.
+//
+// Deprecated: use the metaengine.DedupStore engine capability instead
+// (ADR-0142, wired through system at deployment time). No v5 successor; this
+// package is retained only for existing consumers.
 package sqlstore
 
 import (
@@ -23,17 +27,29 @@ import (
 
 // Dialect selects SQL syntax for table creation and placeholders.
 // art-dupl:accept intentional cross-module duplicate — separate go.mod, values MUST match
+//
+// Deprecated: use the metaengine.DedupStore engine capability instead
+// (ADR-0142, wired through system at deployment time). No v5 successor.
 type Dialect int
 
 const (
 	// DialectSQLite uses ? placeholders and SQLite-specific DDL.
+	//
+	// Deprecated: use the metaengine.DedupStore engine capability instead
+	// (ADR-0142, wired through system at deployment time). No v5 successor.
 	DialectSQLite Dialect = iota
 	// DialectPostgres uses $N placeholders and PostgreSQL-specific DDL.
+	//
+	// Deprecated: use the metaengine.DedupStore engine capability instead
+	// (ADR-0142, wired through system at deployment time). No v5 successor.
 	DialectPostgres
 	// DialectMySQL uses ? placeholders and MySQL-specific DDL.
 	// MySQL's ON DUPLICATE KEY UPDATE replaces ON CONFLICT; the conditional
 	// update uses IF() since MySQL does not support a WHERE clause in
 	// ON DUPLICATE KEY UPDATE.
+	//
+	// Deprecated: use the metaengine.DedupStore engine capability instead
+	// (ADR-0142, wired through system at deployment time). No v5 successor.
 	DialectMySQL
 )
 
@@ -104,6 +120,9 @@ func mysqlQueries() queries {
 // optional [Store.Sweep] method.
 //
 // The caller owns the *sql.DB; [Store.Close] is a no-op.
+//
+// Deprecated: use the metaengine.DedupStore engine capability instead
+// (ADR-0142, wired through system at deployment time). No v5 successor.
 type Store struct {
 	db      *sql.DB
 	dialect Dialect
@@ -116,6 +135,9 @@ type Store struct {
 
 // NewSQLiteStore creates a SQLite-backed idempotency store and creates the
 // schema if it does not exist. The caller retains ownership of db.
+//
+// Deprecated: use the metaengine.DedupStore engine capability instead
+// (ADR-0142, wired through system at deployment time). No v5 successor.
 func NewSQLiteStore(ctx context.Context, database *sql.DB) (*Store, error) {
 	q := sqliteQueries()
 	if _, err := database.ExecContext(ctx, q.ddl); err != nil {
@@ -132,6 +154,9 @@ func NewSQLiteStore(ctx context.Context, database *sql.DB) (*Store, error) {
 
 // NewPostgresStore creates a PostgreSQL-backed idempotency store and creates
 // the schema if it does not exist. The caller retains ownership of db.
+//
+// Deprecated: use the metaengine.DedupStore engine capability instead
+// (ADR-0142, wired through system at deployment time). No v5 successor.
 func NewPostgresStore(ctx context.Context, database *sql.DB) (*Store, error) {
 	q := postgresQueries()
 	if _, err := database.ExecContext(ctx, q.ddl); err != nil {
@@ -148,6 +173,9 @@ func NewPostgresStore(ctx context.Context, database *sql.DB) (*Store, error) {
 
 // NewMySQLStore creates a MySQL/MariaDB-backed idempotency store and creates
 // the schema if it does not exist. The caller retains ownership of db.
+//
+// Deprecated: use the metaengine.DedupStore engine capability instead
+// (ADR-0142, wired through system at deployment time). No v5 successor.
 func NewMySQLStore(ctx context.Context, database *sql.DB) (*Store, error) {
 	q := mysqlQueries()
 	if _, err := database.ExecContext(ctx, q.ddl); err != nil {
@@ -164,6 +192,9 @@ func NewMySQLStore(ctx context.Context, database *sql.DB) (*Store, error) {
 
 // Seen reports whether the key is currently recorded and not expired.
 // Expired entries are lazily deleted.
+//
+// Deprecated: use the metaengine.DedupStore engine capability instead
+// (ADR-0142, wired through system at deployment time). No v5 successor.
 func (s *Store) Seen(ctx context.Context, key string) (bool, error) {
 	if s.engine.dedup != nil {
 		return s.engine.seen(ctx, key)
@@ -206,6 +237,9 @@ func expiryFromTTL(ttl time.Duration) (int64, error) {
 // An expired key is reclaimed lazily by a subsequent Seen or Sweep call; until
 // then Record on an expired-but-present row is also a no-op (INSERT ... ON
 // CONFLICT DO NOTHING), so the stale expiry is NOT refreshed.
+//
+// Deprecated: use the metaengine.DedupStore engine capability instead
+// (ADR-0142, wired through system at deployment time). No v5 successor.
 func (s *Store) Record(ctx context.Context, key string, ttl time.Duration) error {
 	if s.engine.dedup != nil {
 		return s.engine.record(ctx, key, ttl)
@@ -234,6 +268,9 @@ func (s *Store) Record(ctx context.Context, key string, ttl time.Duration) error
 // UPDATE overwrites it. Both SQLite and PostgreSQL evaluate the WHERE clause
 // within the same statement, so concurrent callers are serialized at the row
 // level by the database engine.
+//
+// Deprecated: use the metaengine.DedupStore engine capability instead
+// (ADR-0142, wired through system at deployment time). No v5 successor.
 func (s *Store) CheckAndRecord(ctx context.Context, key string, ttl time.Duration) error {
 	if s.engine.dedup != nil {
 		return s.engine.checkAndRecord(ctx, key, ttl)
@@ -269,6 +306,9 @@ func (s *Store) CheckAndRecord(ctx context.Context, key string, ttl time.Duratio
 
 // Sweep deletes all expired entries. Call periodically to bound table growth,
 // or rely on lazy deletion in [Store.Seen] and [Store.CheckAndRecord].
+//
+// Deprecated: use the metaengine.DedupStore engine capability instead
+// (ADR-0142, wired through system at deployment time). No v5 successor.
 func (s *Store) Sweep(ctx context.Context) (int64, error) {
 	if s.engine.dedup != nil {
 		return s.engine.sweep(ctx)
@@ -294,4 +334,7 @@ func (s *Store) Sweep(ctx context.Context) (int64, error) {
 }
 
 // Close is a no-op. The caller owns the *sql.DB.
+//
+// Deprecated: use the metaengine.DedupStore engine capability instead
+// (ADR-0142, wired through system at deployment time). No v5 successor.
 func (s *Store) Close() {}

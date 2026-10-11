@@ -1,3 +1,8 @@
+// Package kvstore adapts a kv.Store backend into an idempotency.Store.
+//
+// Deprecated: use the metaengine.DedupStore engine capability instead
+// (ADR-0142, wired through system at deployment time). No v5 successor; this
+// package is retained only for existing consumers.
 package kvstore
 
 import (
@@ -24,6 +29,9 @@ import (
 // KVBackend is the contract a KV store must satisfy to back an idempotency
 // Store. Every kv.Store implementation that also implements kv.ConditionalWriter
 // satisfies this (e.g., kv.MemStore).
+//
+// Deprecated: use the metaengine.DedupStore engine capability instead
+// (ADR-0142, wired through system at deployment time). No v5 successor.
 type KVBackend interface {
 	kv.Reader
 	kv.Writer
@@ -37,6 +45,9 @@ type KVBackend interface {
 // so a key is written at most once: Record is a no-op when the key already
 // exists (the TTL is not extended), matching the documented [idempotency.Store]
 // contract shared with MemoryStore and the SQL store.
+//
+// Deprecated: use the metaengine.DedupStore engine capability instead
+// (ADR-0142, wired through system at deployment time). No v5 successor.
 type Store struct {
 	backend KVBackend
 }
@@ -44,6 +55,9 @@ type Store struct {
 // New wraps a KVBackend as an idempotency.Store.
 // The caller retains ownership of the backend's Close — calling Close on the
 // returned store closes the underlying backend.
+//
+// Deprecated: use the metaengine.DedupStore engine capability instead
+// (ADR-0142, wired through system at deployment time). No v5 successor.
 func New(backend KVBackend) *Store {
 	return &Store{backend: backend}
 }
@@ -58,6 +72,8 @@ func expiryFromTTL(ttl time.Duration) (int64, error) {
 	return time.Now().Add(ttl).UnixNano(), nil
 }
 
+// Deprecated: use the metaengine.DedupStore engine capability instead
+// (ADR-0142, wired through system at deployment time). No v5 successor.
 func (s *Store) Seen(ctx context.Context, key string) (bool, error) {
 	val, err := s.backend.Get(ctx, []byte(key))
 	if err != nil {
@@ -91,6 +107,8 @@ func (s *Store) Seen(ctx context.Context, key string) (bool, error) {
 	return true, nil
 }
 
+// Deprecated: use the metaengine.DedupStore engine capability instead
+// (ADR-0142, wired through system at deployment time). No v5 successor.
 func (s *Store) Record(ctx context.Context, key string, ttl time.Duration) error {
 	expiry, err := expiryFromTTL(ttl)
 	if err != nil {
@@ -108,6 +126,8 @@ func (s *Store) Record(ctx context.Context, key string, ttl time.Duration) error
 	return nil
 }
 
+// Deprecated: use the metaengine.DedupStore engine capability instead
+// (ADR-0142, wired through system at deployment time). No v5 successor.
 func (s *Store) CheckAndRecord(ctx context.Context, key string, ttl time.Duration) error {
 	expiry, err := expiryFromTTL(ttl)
 	if err != nil {
@@ -190,6 +210,8 @@ func (s *Store) CheckAndRecord(ctx context.Context, key string, ttl time.Duratio
 	return idempotency.ErrDuplicate
 }
 
+// Deprecated: use the metaengine.DedupStore engine capability instead
+// (ADR-0142, wired through system at deployment time). No v5 successor.
 func (s *Store) Close() error {
 	return s.backend.Close() //nolint:wrapcheck // passthrough
 }
