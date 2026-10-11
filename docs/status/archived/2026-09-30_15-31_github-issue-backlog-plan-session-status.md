@@ -12,8 +12,8 @@ and produced an execution plan. No fixes shipped, no issues closed, no tags cut.
 
 **Companion artifacts (all produced this session):**
 
-- `docs/planning/2026-09-30_14-28_SUPERB-github-issue-backlog-pareto-plan.html` (95 KB, self-contained, inline SVG)
-- `docs/planning/2026-09-30_14-28_github-issue-plan.d2` + `.svg` (execution graph)
+- `docs/planning/archived/2026-09-30_14-28_SUPERB-github-issue-backlog-pareto-plan.html` (95 KB, self-contained, inline SVG)
+- `docs/planning/archived/2026-09-30_14-28_github-issue-plan.d2` + `.svg` (execution graph)
 - `TODO_LIST.md` → new section "GitHub issue backlog (2026-09-30 plan)" + section-index entry
 
 ---

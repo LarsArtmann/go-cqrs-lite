@@ -30,7 +30,7 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 > [12-26](docs/status/archived/2026-09-24_12-26_data-mesh-pareto-execution-session.md),
 > [13-32](docs/status/archived/2026-09-24_13-32_data-mesh-completion-session.md));
 > the open tail is the section below. **Current plan (2026-09-28 01:26):**
-> [`docs/planning/2026-09-28_01-26_SUPERB-publish-integrity-pareto-plan.md`](docs/planning/2026-09-28_01-26_SUPERB-publish-integrity-pareto-plan.md)
+> [`docs/planning/2026-09-28_01-26_SUPERB-publish-integrity-pareto-plan.md`](docs/planning/archived/2026-09-28_01-26_SUPERB-publish-integrity-pareto-plan.md)
 > (M-tasks; M1–M4, M6, M14–M16, M19, M23–M25 done with receipts in this file;
 > open: M5+M20 quiet-window campaign, M22 owner Q3). **Current plan (2026-10-03 17:20):**
 > [`docs/planning/2026-10-03_17-20_SUPERB-full-todo-pareto-plan.html`](docs/planning/2026-10-03_17-20_SUPERB-full-todo-pareto-plan.html)
@@ -116,28 +116,10 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 
 > All 10 open issues reviewed and verified against master HEAD (`004298c1a`)
 > on 2026-09-30. Execution plan (27 tasks / 88 fine tasks, Pareto waves):
-> [`docs/planning/2026-09-30_14-28_SUPERB-github-issue-backlog-pareto-plan.html`](docs/planning/2026-09-30_14-28_SUPERB-github-issue-backlog-pareto-plan.html)
-> (graph: [`.d2`](docs/planning/2026-09-30_14-28_github-issue-plan.d2)).
+> [`docs/planning/archived/2026-09-30_14-28_SUPERB-github-issue-backlog-pareto-plan.html`](docs/planning/archived/2026-09-30_14-28_SUPERB-github-issue-backlog-pareto-plan.html)
+> (graph: [`.d2`](docs/planning/archived/2026-09-30_14-28_github-issue-plan.d2)).
 > Rows below are the living source; the plan is the point-in-time snapshot.
 
-- [x] 🔥 ~~**W1 — consumer unblock (the 1%):** #26 retract `stack/postgres/v4
-      v4.2.0` + #21 finish watermill wire fix + one release wave (watermill
-      v4.7.0, stack/postgres v4.4.2)~~ — **DONE 2026-10-03 (receipt):** #21 was
-      already fixed AND released — `watermill/v4.6.3` exists on remote + proxy
-      (tagged 2026-10-03 05:49 in the 11-module batch; `eventToMessage` writes
-      scalar `correlation_id`/`causation_id` via shared `writeTracing`,
-      `TestEventToMessage_TypedCausationRoundtrip` green; issue closed with
-      receipt). `stack/postgres/v4.4.2` also already tagged; the missing half —
-      the `retract v4.2.0` directive — added to `stack/postgres/go.mod` this
-      session (tidy+build green; reaches the proxy with the next tag; #26
-      commented, stays open until published). No new wave needed. — issues #21 #26
-      ~~_(Effort: M)_~~ actual: XS
-- [x] 🔥 ~~**W0 — close #25:** requested tag `metaengine/projectionadapter/v4.5.0`
-      ALREADY EXISTS on remote (`8c87c48a6`, verified 2026-09-30) — verify
-      `OccurredAt` in tag, comment receipt, close. — issue #25~~ — **DONE 2026-10-01
-      (stale-row receipt 2026-10-03): issue #25 CLOSED 2026-10-01T15:13:53Z**
-      (`gh issue view 25`: state CLOSED — the 2026-10-01 session tagged, verified,
-      and closed). Delete at next docs-health pass.
 - [ ] **W2 — linter trust (the 4%):** ~~#42 port CLI's none-import guard into
       `toolspec.detect` (guard lives only at `cmd/cqrs-lint/run.go:326`;
       provider path lints non-consumers, verified)~~ DONE 2026-10-03 (issue #42
@@ -174,24 +156,6 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       #28 CLOSED 16:24:01Z; the cqrs-upgrade `--json --strict` holes (a)(b)(c)
       + NoPins scan shipped in the same CHANGELOG `[Unreleased]` wave).
       — issue #27 _(Effort: M)_
-- [x] ~~**W4 — structural tail:** #36 move `WithMetaEngine` + Bundle
-      registration into a `stack/metaengine` module (4 root files import
-      metaengine: options/bundle/accessors/materialize); deprecated root
-      forwarders until v5; full new-module gate sweep + hermetic
-      metaengine-free-graph probe.~~ — **DONE 2026-10-08 (T06, pulled
-      forward as a W1 blocker):** root `stack` keeps only the deprecated
-      `MetaEngineStore` Close() seam (`WithMetaEngine`/`Bundle.MetaEngine`
-      compile unchanged for concrete-store callers); the new
-      `stack/metaengine/v4@v4.0.0` module carries `stackmeta.WithStore`/
-      `stackmeta.Store` registration + concrete recovery; root require
-      graph verified metaengine-FREE (`GOWORK=off go mod graph`, zero
-      edges). Shipped as the dependency-first mini-wave stack/v4.5.0 →
-      stack/metaengine/v4.0.0 → stack/sqlite/v4.3.5 (drops its temp
-      replace, rides stack v4.5.0 via MVS), all three pushed +
-      proxy-smoked attempt 1; standalone builds + `-short` suites green;
-      new-module gate sweep done in the prior session; CHANGELOG dated
-      section cut + versions manifest fresh; issue #36 CLOSED 2026-10-08
-      with receipt. — issue #36 _(Effort: L)_
 - [ ] [RULED 2026-10-08] **#27 ask-3 (owner): CI annotation of modules whose
       master HEAD is ahead of their latest tag** — **RULED: non-blocking
       workflow-summary annotation** (a `$GITHUB_STEP_SUMMARY` table — zero
@@ -1404,7 +1368,7 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
 > CV (real consumer, evented-funnel-core Phase 0 GO) ran a parity-gated
 > four-tier read-model benchmark against metaengine/storage/sqlstore and
 > Phase-0 seam spike over a real 6.2k-event store. All their API-fit claims
-> were re-verified against source: [`docs/reviews/2026-09-16_cv-verdicts-reflection.md`](docs/reviews/2026-09-16_cv-verdicts-reflection.md).
+> were re-verified against source: [`docs/reviews/2026-09-16_cv-verdicts-reflection.md`](docs/reviews/archived/2026-09-16_cv-verdicts-reflection.md).
 > The `Scan` 100-row-default doc lie is FIXED in the same change (doc comment +
 > FAQ entry); `ApplyBatch` atomicity stays tracked under v5 Unification
 > (ADR-0123 §10) — CV's 3.4 s → 109 ms pragma measurement is the perf
@@ -1457,7 +1421,7 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
 
 ## metaengine Goal-closure follow-ups (2026-09-17)
 
-> Source plan: [`docs/planning/2026-09-17_05-49_SUPERB-metaengine-goal-closure-pareto-plan.md`](docs/planning/2026-09-17_05-49_SUPERB-metaengine-goal-closure-pareto-plan.md)
+> Source plan: [`docs/planning/2026-09-17_05-49_SUPERB-metaengine-goal-closure-pareto-plan.md`](docs/planning/archived/2026-09-17_05-49_SUPERB-metaengine-goal-closure-pareto-plan.md)
 > (distance analysis: ~55–60% consumer-experienced). Executes AFTER/ALONGSIDE
 > the 2026-09-16 excellence plan (shared items cross-referenced there, never
 > duplicated). Success definition in plan §7.
@@ -1472,7 +1436,7 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       [PARKED](docs/planning/2026-10-08_gt03-cqrs-gen-fold-codegen-one-pager-PARKED.md)
       behind the evidence gate: G-T16 parity numbers or a named consumer ask).
       Evidence pack:
-      [`docs/planning/2026-09-21_direction-ruling-evidence-and-decision-memo.md`](docs/planning/2026-09-21_direction-ruling-evidence-and-decision-memo.md).
+      [`docs/planning/archived/2026-09-21_direction-ruling-evidence-and-decision-memo.md`](docs/planning/archived/2026-09-21_direction-ruling-evidence-and-decision-memo.md).
       Gate A unblocked (ADR + routing integration tests ≥2 engines remain,
       T24). — G-T01/G-T02/G-T03
 - [ ] **Scan default v5 decision — RULED 2026-09-21 (owner): Option C**

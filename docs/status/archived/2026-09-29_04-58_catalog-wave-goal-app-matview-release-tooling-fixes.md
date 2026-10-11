@@ -5,7 +5,7 @@
 > sessions (06-41, 09-15, 10-01) executed the remaining plan order.
 
 **2026-09-29 04:58 CEST** · resuming the
-[post-wave Pareto plan](../planning/2026-09-28_22-00_SUPERB-post-wave-verification-and-backlog-pareto-plan.md)
+[post-wave Pareto plan](../../planning/archived/2026-09-28_22-00_SUPERB-post-wave-verification-and-backlog-pareto-plan.md)
 · predecessor: [2026-09-29 01-27](2026-09-29_01-27_post-wave-pareto-execution-lint-green-hotfix-retags-doc-corpus.md)
 · load during session: 18–105 (quiet-gated tasks stayed closed)
 

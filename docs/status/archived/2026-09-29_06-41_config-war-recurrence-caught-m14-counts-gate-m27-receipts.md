@@ -5,7 +5,7 @@
 > successors (09-15) and the 10-01 wave executed the queue.
 
 **Session window:** 05:32–06:41 CEST. Continuation of the SUPERB plan
-([2026-09-28_22-00](../planning/2026-09-28_22-00_SUPERB-post-wave-verification-and-backlog-pareto-plan.md)).
+([2026-09-28_22-00](../../planning/archived/2026-09-28_22-00_SUPERB-post-wave-verification-and-backlog-pareto-plan.md)).
 Load at start 14.4, at close 24.4/36.3/44.4 — quiet gates stayed closed all session.
 
 ---

@@ -6,7 +6,7 @@
 > Successor sessions: 10-01 wave, then the 10-08..11 waves.
 
 > Session window 07:02–09:15 CEST 2026-09-29. Continuation of the SUPERB
-> post-wave plan (`docs/planning/2026-09-28_22-00_SUPERB-post-wave-verification-and-backlog-pareto-plan.md`).
+> post-wave plan (`docs/planning/archived/2026-09-28_22-00_SUPERB-post-wave-verification-and-backlog-pareto-plan.md`).
 > Owner directive: full-list execution; ADR rulings/filings/billing prep-only.
 > **Ended WAITING FOR INSTRUCTIONS** — questions at the end.
 

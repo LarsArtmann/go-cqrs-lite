@@ -6,7 +6,7 @@
 
 **Written:** 2026-09-29 01:27 CEST
 **Session start:** ~00:30 CEST (continuation of the 2026-09-28 TODO-execution day)
-**Executed plan:** [`docs/planning/2026-09-28_22-00_SUPERB-post-wave-verification-and-backlog-pareto-plan.md`](../planning/2026-09-28_22-00_SUPERB-post-wave-verification-and-backlog-pareto-plan.md) (ready-queue order: M01 → M02 ∥ M06 ∥ M08 ∥ M03 → M07 → M10 ∥ M12 ∥ M13 → receipts)
+**Executed plan:** [`docs/planning/2026-09-28_22-00_SUPERB-post-wave-verification-and-backlog-pareto-plan.md`](../../planning/archived/2026-09-28_22-00_SUPERB-post-wave-verification-and-backlog-pareto-plan.md) (ready-queue order: M01 → M02 ∥ M06 ∥ M08 ∥ M03 → M07 → M10 ∥ M12 ∥ M13 → receipts)
 **Machine:** load1 10–12.3 throughout (never <5 — all quiet-window gates stayed closed, by rule).
 
 ---
