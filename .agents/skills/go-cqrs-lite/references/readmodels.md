@@ -387,7 +387,7 @@ There are **three projection tiers** — pick by read-access pattern:
 > legacy `graph.GraphProjection` tier — new code folds relations into
 > `metaengine.Edge` records (Graph ADT) and lets the planner route
 > traversals: [recipes.md §2.44](recipes.md#244-graph-native-read-models--edge-folds-traversal-retraction-system--metaengine),
-> reference app [`example/graph-native`](../../../example/graph-native),
+> reference app [`example/graph-native`](../../../../example/graph-native/domain.go),
 > engine matrix [advanced.md §6.13](advanced.md#613-graph-native-read-models-metaengine-graph-adt-legacy-graph).
 
 > **Benchmarking a tier choice?** Single runs are point estimates. Measure

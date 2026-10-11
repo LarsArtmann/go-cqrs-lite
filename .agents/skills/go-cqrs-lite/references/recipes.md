@@ -2892,7 +2892,7 @@ ADT (`ReadTraversal`), routing depth-limited reachability to the deployed
 engine (sqlite's recursive CTE, Dgraph's native `@recurse`, BFS fallback
 elsewhere). Retraction is deletion-as-domain-event (ADR-0114): an
 `EdgeRemoval` fold removes exactly the edge the retracted fact added.
-Behavior-verified reference app: [`example/graph-native`](../../../example/graph-native)
+Behavior-verified reference app: [`example/graph-native`](../../../../example/graph-native/domain.go)
 (runnable main + systemscenario BDD suite). The FULL write side — the guarded
 `follow`/`unfollow` deciders (self-follow and duplicate-edge Rejections,
 unfollow-of-missing-edge Conflict) and command construction — lives in that
@@ -3086,7 +3086,7 @@ sc.When(followCmd(t, "alice", "alice")).
 ```
 
 Behavior-verified reference: the graph-native BDD suite in
-[`example/graph-native/scenario_test.go`](../../../example/graph-native/scenario_test.go).
+[`example/graph-native/scenario_test.go`](../../../../example/graph-native/scenario_test.go).
 
 
 ### 2.45 Chaos Journal & SSE Stream Assertions (systemscenario)

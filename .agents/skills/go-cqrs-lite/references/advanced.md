@@ -497,7 +497,7 @@ query := metaengine.Query[Reachability, []string]("follow_graph",
 Copy-paste recipe with the full composition-root wiring:
 [recipes.md §2.44](recipes.md#244-graph-native-read-models--edge-folds-traversal-retraction-system--metaengine).
 Behavior-verified reference application (runnable main + systemscenario BDD
-suite): [`example/graph-native`](../../../example/graph-native).
+suite): [`example/graph-native`](../../../../example/graph-native/domain.go).
 
 **Engine support:** memory, sqlite, turso, postgres, mysql, duckdb
 (recursive CTE), badger (prefix-scan BFS + undirected), dgraph (native
@@ -507,7 +507,7 @@ fails graph queries on them with an unsupported error). Graph capability is
 per-feature, not all-or-nothing: duckdb adds and traverses edges but has no
 `GraphRemoveEdge` and no undirected traversal. The generated, gated
 per-engine matrix (graph / edge removal / undirected / CGo):
-[docs/engine-capabilities.md](../../../docs/engine-capabilities.md).
+[docs/engine-capabilities.md](../../../../docs/engine-capabilities.md).
 Undirected traversal (`Undirected: true` input field) is an optional
 capability (`metaengine.HasUndirectedGraphSupport`): engines without it
 report the missing capability instead of guessing.
@@ -525,7 +525,7 @@ flat `{From, To}` pair with identity `(collection, From, To)` — edges carry
 no relationship type. Model multi-relational graphs as ONE COLLECTION PER
 RELATION (one fold each); `Adapter.Driver()` remains the escape hatch for
 native label/predicate access. Labeled edges are a v5 candidate gated on a
-named fleet consumer need ([ADR-0156](../../../docs/adr/0156-graph-edge-labels-at-v5.md)).
+named fleet consumer need ([ADR-0156](../../../../docs/adr/0156-graph-edge-labels-at-v5.md)).
 
 **Reads are NOT abstracted (ADR-0038):** writes are portable (openCypher
 MERGE semantics), reads are engine-native by design. The only

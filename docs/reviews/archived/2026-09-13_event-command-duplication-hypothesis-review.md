@@ -12,7 +12,7 @@
 > is the `command.AsRecord` bridge fidelity, detailed in §3.
 > **Companion reviews:** [event/ split re-review](2026-09-13_event-module-split-re-review.md) ·
 > [command-side depth](2026-09-13_command-side-depth-review.md)
-> **Series:** extends [2026-08-22 core data-model review](../2026-08-22_core-data-model-review.html)
+> **Series:** extends [2026-08-22 core data-model review](../archived/2026-08-22_core-data-model-review.html)
 > (whose P5 finding — AsRecord bridges dropping instance ID — was fixed via `record.Record.ID`;
 > the asymmetry below is the next defect in the same family)
 

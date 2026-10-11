@@ -33,4 +33,4 @@ runtime `Infer` (Deprecated 2026-09-16, removed at v5) by construction.
 3. Activation evidence and G-T16 numbers recorded here before any code lands.
 
 Evidence base: direction memo
-[`2026-09-21_direction-ruling-evidence-and-decision-memo.md`](2026-09-21_direction-ruling-evidence-and-decision-memo.md) §3(b), §4.
+[`2026-09-21_direction-ruling-evidence-and-decision-memo.md`](archived/2026-09-21_direction-ruling-evidence-and-decision-memo.md) §3(b), §4.

@@ -15,7 +15,7 @@ their relationships…" — was only literally satisfiable by runtime
 v5 (invisible fold mappings, struct-name conventions in a wire-type world, zero
 production call sites). Until ruled, Goal-closure Gate A was blocked and the
 Goal undefinable. Evidence pack:
-[`docs/planning/2026-09-21_direction-ruling-evidence-and-decision-memo.md`](../planning/2026-09-21_direction-ruling-evidence-and-decision-memo.md).
+[`docs/planning/2026-09-21_direction-ruling-evidence-and-decision-memo.md`](../planning/archived/2026-09-21_direction-ruling-evidence-and-decision-memo.md).
 
 ## Decision
 

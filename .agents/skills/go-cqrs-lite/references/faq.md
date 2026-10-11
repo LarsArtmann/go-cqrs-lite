@@ -334,7 +334,7 @@ the deployed engine (sqlite recursive CTE, Dgraph native `@recurse`, BFS
 fallback). Retraction is a domain event whose fold returns
 `metaengine.EdgeRemoval` (ADR-0114). Recipe:
 [recipes.md §2.44](recipes.md#244-graph-native-read-models--edge-folds-traversal-retraction-system--metaengine);
-behavior-verified app: [`example/graph-native`](../../../example/graph-native).
+behavior-verified app: [`example/graph-native`](../../../../example/graph-native/domain.go).
 Two traps: (1) derive node names from payload fields — `id.StreamID.String()`
 is the brand-prefixed display form (`"StreamMarker:alice"`), not a clean node
 name; (2) the legacy `graph.GraphProjection` tier is deprecated (removed v5) —

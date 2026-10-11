@@ -3,7 +3,7 @@
 - Status: Proposed
 - Date: 2026-10-10
 - Deciders: owner (graph-native adoption-closure plan V2, Wave 4)
-- Related: [ADR-0123](0123-v5-unification-single-composition-root-universal-engines-auto-projection.md) §3 (driver registry),
+- Related: [ADR-0123](0123-v5-unification-single-composition-root.md) §3 (driver registry),
   [ADR-0124](0124-operator-driven-layout-planning.md) (operator-driven layout),
   [ADR-0125](0125-developer-priority-is-layout-only.md) (developer priority is layout-only),
   [ADR-0156](0156-graph-edge-labels-at-v5.md) (edge labels),
@@ -16,7 +16,7 @@ promise is delivered by two mechanisms that were never written down as one story
 keep asking the same two questions: _which engines can I choose from?_ and _where do I choose?_
 
 1. **Compile time — the app author fixes the candidate set.** Engines are separate modules that
-   self-register via `init()` → `metaengine.RegisterDriver` ([ADR-0123](0123-v5-unification-single-composition-root-universal-engines-auto-projection.md) §3).
+   self-register via `init()` → `metaengine.RegisterDriver` ([ADR-0123](0123-v5-unification-single-composition-root.md) §3).
    A blank import (`_ "…/metaengine/sqliteengine/v4"`) is the only wiring; what is not imported
    is not in the binary. `system/` never imports engines (ADR-0123: no dependency inversion).
 2. **Runtime — the operator routes among the compiled-in set.** `system.LoadConfig` reads
