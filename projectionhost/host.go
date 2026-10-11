@@ -19,8 +19,7 @@ import (
 
 // workerStartStaggerMs is the millisecond delay added between consecutive
 // worker goroutines on Host.Start(). Without staggering, all workers would
-// race to open journal iterators in lockstep, causing sharp load spikes at
-// restart time.
+// race to open journal iterators in lockstep, spiking load at restart.
 const workerStartStaggerMs = 10
 
 // Host manages the lifecycle of multiple projection workers. Each worker reads
@@ -146,8 +145,6 @@ func newWorker(
 // projections (their Processed/Errors/Restarts counters reset — see
 // WorkerState). For continuous live tailing, pair this host with
 // watermill.CatchUpSubscriber or poll periodically by calling Start again.
-// This host is a batch-drainer with crash-restart semantics, not a live
-// stream consumer.
 //
 // Returns an error if already started.
 func (h *Host) Start(ctx context.Context) error {

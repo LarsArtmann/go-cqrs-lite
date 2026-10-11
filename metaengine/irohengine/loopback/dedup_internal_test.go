@@ -16,7 +16,7 @@ import (
 // the identical contract in dedup_parity_test.go, and both rings are built
 // from the shared irohengine.DefaultDedupCapacity so the windows cannot drift.
 func TestMarkSeen_DedupWindow(t *testing.T) {
-	tr := &LoopbackTransport{dedupRing: dedup.NewRing(irohengine.DefaultDedupCapacity)}
+	tr := &LoopbackTransport{dedupRing: dedup.NewRing[string](irohengine.DefaultDedupCapacity)}
 
 	if !tr.markSeen("op-1") {
 		t.Fatal("first markSeen(op-1) = false, want true")
@@ -36,7 +36,7 @@ func TestMarkSeen_DedupWindow(t *testing.T) {
 func TestMarkSeen_EvictsOldestNotAll(t *testing.T) {
 	const capacity = 4
 
-	tr := &LoopbackTransport{dedupRing: dedup.NewRing(capacity)}
+	tr := &LoopbackTransport{dedupRing: dedup.NewRing[string](capacity)}
 
 	const oldest = "op-oldest"
 
@@ -64,7 +64,7 @@ func TestMarkSeen_EvictsOldestNotAll(t *testing.T) {
 // TestMarkSeen_BoundedOverflow proves memory stays bounded across far more IDs
 // than the capacity, while every recent ID remains deduplicated.
 func TestMarkSeen_BoundedOverflow(t *testing.T) {
-	tr := &LoopbackTransport{dedupRing: dedup.NewRing(irohengine.DefaultDedupCapacity)}
+	tr := &LoopbackTransport{dedupRing: dedup.NewRing[string](irohengine.DefaultDedupCapacity)}
 
 	for i := range irohengine.DefaultDedupCapacity * 2 {
 		tr.markSeen(fmt.Sprintf("fill-%06d", i))

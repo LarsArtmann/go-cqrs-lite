@@ -54,9 +54,8 @@ type worker struct {
 	// so the live phase can skip events that overlap the replay→live boundary.
 	// Bounded to dedup.DefaultCapacity entries — never grows during live
 	// processing. Protected by handleMu during the catch-up drain and live
-	// phases (when both the drain loop and the subscriber callback may access
-	// it concurrently). During the initial drain, only the worker goroutine
-	// accesses it (no concurrency).
+	// phases (both the drain loop and the subscriber callback may access it
+	// concurrently); only the worker goroutine touches it during the initial drain.
 	seenIDs *dedup.Ring[id.EventID]
 
 	// handleMu serializes event processing between the catch-up drain and the
