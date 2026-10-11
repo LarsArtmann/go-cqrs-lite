@@ -35,7 +35,10 @@ func NewE004Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 				f, err := findingTemplate.Builder(
 					"E004",
-					fmt.Sprintf("Event type %q is emitted but not registered in catalog — consumers cannot discover it", eventType),
+					fmt.Sprintf(
+						"Event type %q is emitted but not registered in catalog — consumers cannot discover it",
+						eventType,
+					),
 					finding.SeverityInfo,
 					pos,
 				).
@@ -79,7 +82,10 @@ func NewE005Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 				f, err := findingTemplate.Builder(
 					"E005",
-					fmt.Sprintf("Command type %q has no registered handler — dispatching it will return ErrNoHandler", cmd.Name),
+					fmt.Sprintf(
+						"Command type %q has no registered handler — dispatching it will return ErrNoHandler",
+						cmd.Name,
+					),
 					finding.SeverityWarning,
 					finding.Pos(finding.FilePath(cmd.File), cmd.Pos.Line, cmd.Pos.Column),
 				).

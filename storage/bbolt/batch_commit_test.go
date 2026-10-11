@@ -50,7 +50,6 @@ func TestBatchCommit_ConcurrentWritersIdenticalJournal(t *testing.T) {
 	errs := make(chan error, writers)
 
 	for w := range writers {
-
 		wg.Go(func() {
 			ref := id.NewStreamRef("User", id.NewStreamID())
 
