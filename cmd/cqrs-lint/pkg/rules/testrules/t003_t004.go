@@ -34,8 +34,8 @@ func NewT003Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				projectFinding(
 					"T003",
 					"Project uses events but does not import eventtest — tests lack fake stores/buses from the library",
-					"Import event/v4/eventtest for FakeStore, FakeBus, event factories, and test assertions instead of " +
-						"hand-rolling mocks,
+					"Import event/v4/eventtest for FakeStore, FakeBus, event factories, and test assertions instead of "+
+						"hand-rolling mocks",
 					finding.ConfidenceMedium,
 					ctx,
 				),
@@ -69,7 +69,8 @@ func NewT004Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			return []finding.Finding{
 				projectFinding(
 					"T004",
-					"Project uses catalog for documentation generation but has no snapshot tests — generated output changes go undetected",
+					"Project uses catalog for documentation generation but has no snapshot tests — generated output changes go "+
+						"undetected",
 					"Import github.com/gkampitakis/go-snaps and use snaps.MatchSnapshot to pin generated catalog/schema output",
 					finding.ConfidenceLow,
 					ctx,

@@ -44,14 +44,15 @@ func NewA001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				if manualCount >= 2 {
 					f, err := findingTemplate.Builder(
 						"A001",
-						fmt.Sprintf("Command %s manually implements Type()/ID()/StreamID() — embed *command.BasicCommand " +
-							"instead, cmd.Name),
+						fmt.Sprintf("Command %s manually implements Type()/ID()/StreamID() — embed *command.BasicCommand "+
+							"instead", cmd.Name),
 						finding.SeverityError,
 						finding.Pos(finding.FilePath(cmd.File), cmd.Pos.Line, cmd.Pos.Column),
 					).
 						WithCategory(finding.CategoryBestPractice).
 						WithConfidence(finding.ConfidenceHigh).
-						WithSuggestion("Embed *command.BasicCommand to get Type(), ID(), and StreamID() for free, constructed via command.New(type, streamID)").
+						WithSuggestion("Embed *command.BasicCommand to get Type(), ID(), and StreamID() for free, constructed via " +
+							"command.New(type, streamID)").
 						WithSnippet(ctx.SourceLine(cmd.File, cmd.Pos.Line)).
 						Build()
 					if err != nil {

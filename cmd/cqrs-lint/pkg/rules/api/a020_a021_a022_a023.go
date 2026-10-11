@@ -131,8 +131,8 @@ func NewA020Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				f, err := findingTemplate.Builder(
 					"A020",
 					fmt.Sprintf(
-						"Custom event.Bus implementation %q — use watermill.NewEventBus() or the library's memory bus instead of " +
-							"reimplementing,
+						"Custom event.Bus implementation %q — use watermill.NewEventBus() or the library's memory bus instead of "+
+							"reimplementing",
 						typeName,
 					),
 					finding.SeverityWarning,
@@ -184,7 +184,8 @@ func NewA021Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				f, err := findingTemplate.Builder(
 					"A021",
 					fmt.Sprintf(
-						"Custom event.Store implementation %q — use storage/memory.MemoryStore or a SQL/Pebble backend instead of reimplementing",
+						"Custom event.Store implementation %q — use storage/memory.MemoryStore or a SQL/Pebble backend instead of "+
+							"reimplementing",
 						typeName,
 					),
 					finding.SeverityWarning,
@@ -192,7 +193,8 @@ func NewA021Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				).
 					WithCategory(finding.CategoryBestPractice).
 					WithConfidence(finding.ConfidenceMedium).
-					WithSuggestion("Replace custom store with storage/memory.MemoryStore, storage.NewSQLiteBackend, or storage/pebble.NewStore").
+					WithSuggestion("Replace custom store with storage/memory.MemoryStore, storage.NewSQLiteBackend, or " +
+						"storage/pebble.NewStore").
 					WithSnippet(ctx.SourceLine(entry.file, entry.line)).
 					Build()
 				if err != nil {

@@ -57,7 +57,7 @@ func NewA029Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						WithCategory(finding.CategoryBestPractice).
 						WithConfidence(finding.ConfidenceHigh).
 						WithSuggestion("Implement UsePublish to chain publish middleware, or use watermill.NewEventBus() which " +
-							"provides a working implementation).
+							"provides a working implementation").
 						WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 						Build()
 					if err != nil {

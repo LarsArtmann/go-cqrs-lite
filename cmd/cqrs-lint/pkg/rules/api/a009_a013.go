@@ -74,7 +74,7 @@ func NewA009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				suggestion = "Use stack/pebble.New(dir) for one-call setup with sane defaults"
 			case analyzer.StoreCustom:
 				suggestion = "Consider using a stack/ preset for boilerplate-free setup, or keep custom wiring if you need " +
-					"full control
+					"full control"
 			case analyzer.StoreUnknown,
 				analyzer.StoreMemory,
 				analyzer.StoreTurso,
@@ -230,7 +230,8 @@ func NewA012Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				).
 					WithCategory(finding.CategoryBestPractice).
 					WithConfidence(finding.ConfidenceLow).
-					WithSuggestion("Handle deletion events (e.g., \"user.deleted\") in your fold function via event-type-based detection (ADR-0114)").
+					WithSuggestion("Handle deletion events (e.g., \"user.deleted\") in your fold function via event-type-based " +
+						"detection (ADR-0114)").
 					WithSnippet(ctx.SourceLine(fold.File, fold.Pos.Line)).
 					Build()
 				if err != nil {
@@ -303,13 +304,16 @@ func NewA013Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 								f, err := findingTemplate.Builder(
 									"A013",
-									fmt.Sprintf("Command %s embeds BasicCommand by value — its methods are pointer-receiver, so %s does not satisfy command.Command", cmd.Name, cmd.Name),
+									fmt.Sprintf("Command %s embeds BasicCommand by value — its methods are pointer-receiver, so %s does not "+
+										"satisfy command.Command", cmd.Name, cmd.Name),
 									finding.SeverityWarning,
 									finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 								).
 									WithCategory(finding.CategoryBestPractice).
 									WithConfidence(finding.ConfidenceHigh).
-									WithSuggestion("Embed *command.BasicCommand (pointer): required while every BasicCommand method has a pointer receiver, and ApplyOptions mutates through the embedded pointer so pipeline enrichment reaches the dispatched command").
+									WithSuggestion("Embed *command.BasicCommand (pointer): required while every BasicCommand method " +
+										"has a pointer receiver, and ApplyOptions mutates through the embedded pointer " +
+										"so pipeline enrichment reaches the dispatched command").
 									WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 									Build()
 								if err != nil {

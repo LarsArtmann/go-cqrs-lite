@@ -83,14 +83,15 @@ func NewA005Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 						f, err := findingTemplate.Builder(
 							"A005",
-							"Manual projection via bus.SubscribeAll — use projectionhost.Host for checkpoint persistence, dead-letter " +
-								"queues, and crash recovery,
+							"Manual projection via bus.SubscribeAll — use projectionhost.Host for checkpoint persistence, dead-letter "+
+								"queues, and crash recovery",
 							finding.SeverityWarning,
 							finding.Pos(finding.FilePath(subscribePos.Filename), subscribePos.Line, subscribePos.Column),
 						).
 							WithCategory(finding.CategoryBestPractice).
 							WithConfidence(finding.ConfidenceMedium).
-							WithSuggestion("Register projections with projectionhost.New(journal, checkpointStore) instead of manual bus.SubscribeAll + switch").
+							WithSuggestion("Register projections with projectionhost.New(journal, checkpointStore) instead of manual " +
+								"bus.SubscribeAll + switch").
 							WithSnippet(ctx.SourceLine(subscribePos.Filename, subscribePos.Line)).
 							Build()
 						if err == nil {

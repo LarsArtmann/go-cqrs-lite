@@ -85,7 +85,7 @@ func NewD001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					WithCategory(finding.CategoryStyle).
 					WithConfidence(finding.ConfidenceMedium).
 					WithSuggestion("Pick one convention: dot notation (domain.event) or PascalCase (DomainEvent) and use it " +
-						"consistently).
+						"consistently").
 					WithSnippet(ctx.SourceLine(firstFile, firstLine)).
 					Build()
 				if err == nil {
@@ -174,7 +174,8 @@ func NewD002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						).
 							WithCategory(finding.CategoryStyle).
 							WithConfidence(finding.ConfidenceLow).
-							WithSuggestion("Pick one JSON key casing convention for this struct — camelCase for API types, snake_case for event payloads").
+							WithSuggestion("Pick one JSON key casing convention for this struct — camelCase for API types, snake_case " +
+								"for event payloads").
 							WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 							Build()
 						if err == nil {

@@ -83,7 +83,7 @@ func NewE003Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					WithCategory(finding.CategoryStructure).
 					WithConfidence(finding.ConfidenceLow).
 					WithSuggestion("Separate commands/events (domain) from projections/handlers (infrastructure) into distinct " +
-						"packages).
+						"packages").
 					Build()
 				if err == nil {
 					findings = append(findings, f)
@@ -147,7 +147,8 @@ func NewE007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					).
 						WithCategory(finding.CategoryStructure).
 						WithConfidence(finding.ConfidenceLow).
-						WithSuggestion("Register the query via query.RegisterTyped or dispatcher.RegisterTyped, or suppress if registration is runtime/generic (E007 cannot trace through helpers)").
+						WithSuggestion("Register the query via query.RegisterTyped or dispatcher.RegisterTyped, or suppress if " +
+							"registration is runtime/generic (E007 cannot trace through helpers)").
 						WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 						Build()
 					if err != nil {

@@ -61,8 +61,8 @@ func NewE022Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				f, err := findingTemplate.Builder(
 					"E022",
 					fmt.Sprintf(
-						"schema declaration for %q is at version %d but no op migrates FROM %s — stored events at that version never " +
-							"upcast,
+						"schema declaration for %q is at version %d but no op migrates FROM %s — stored events at that version never "+
+							"upcast",
 						evtType, ladder.Current, strings.Join(versions, ", "),
 					),
 					finding.SeverityWarning,
@@ -71,7 +71,8 @@ func NewE022Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					WithCategory(finding.CategoryStructure).
 					WithConfidence(finding.ConfidenceMedium).
 					WithSuggestion(
-						"Declare an op for each missing version (schema.RenameField/AddField/RemoveField/Transform with that source version), " +
+						"Declare an op for each missing version (schema.RenameField/AddField/RemoveField/Transform with that source " +
+							"version), " +
 							"or lower the current version — see docs/SCHEMA-COMPATIBILITY.md (the ladder must be continuous)",
 					).
 					WithSnippet(ctx.SourceLine(ladder.Decl.File, ladder.Decl.Line)).

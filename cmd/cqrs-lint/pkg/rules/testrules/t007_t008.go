@@ -36,8 +36,8 @@ func NewT007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				projectFinding(
 					"T007",
 					"Project uses event stores but has no save→load round-trip test — serialization and ordering bugs go undetected",
-					"Add a test that calls store.Save then store.Load on the same stream and asserts event count, types, and " +
-						"version ordering,
+					"Add a test that calls store.Save then store.Load on the same stream and asserts event count, types, and "+
+						"version ordering",
 					finding.ConfidenceLow,
 					ctx,
 				),
@@ -115,7 +115,8 @@ func NewT008Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						WithCategory(finding.CategoryTesting).
 						WithConfidence(finding.ConfidenceHigh).
 						WithSuggestion(
-							"Import event/v4/eventtest for FakeStore/FakeBus, or storage/memory for MemoryStore — production backends slow tests and add external dependencies",
+							"Import event/v4/eventtest for FakeStore/FakeBus, or storage/memory for MemoryStore — production backends " +
+								"slow tests and add external dependencies",
 						).
 						WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 						Build()

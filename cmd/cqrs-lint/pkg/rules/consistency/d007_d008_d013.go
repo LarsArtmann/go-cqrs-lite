@@ -238,8 +238,8 @@ func NewD013Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				"D013",
 				fmt.Sprintf(
 					"Project creates %d events without explicit event.WithSchemaVersion — "+
-					"constructors default schemaVersion to 1, so stamp a version BEFORE the first schema change "+
-					"(upcasting cannot be added retroactively once v2 events exist)",
+						"constructors default schemaVersion to 1, so stamp a version BEFORE the first schema change "+
+						"(upcasting cannot be added retroactively once v2 events exist)",
 					eventCreateCount,
 				),
 				finding.SeverityInfo,

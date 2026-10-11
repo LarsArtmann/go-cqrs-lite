@@ -66,7 +66,7 @@ func NewA007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					WithCategory(finding.CategoryBestPractice).
 					WithConfidence(finding.ConfidenceMedium).
 					WithSuggestion("Use the functional decider.Decider[State] pattern (Initial + Apply) consistently — it's the " +
-						"recommended approach).
+						"recommended approach").
 					WithSnippet(ctx.SourceLine(firstOO.File, firstOO.Pos.Line)).
 					Build()
 				if err == nil {

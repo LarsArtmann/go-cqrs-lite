@@ -38,8 +38,8 @@ func TestC013_TypedTier_ViewFileCandidateJSONTagGate(t *testing.T) {
 			}
 
 			ctx := analyzer.BuildContextFromSource(t, map[string]string{
-				"views.go": "package views\n\nimport \"time\"\n\ntype AccountSummary struct {\n\tOpenedAt " +
-					"time.Time + tag + "\n}\n",
+				"views.go": "package views\n\nimport \"time\"\n\n" +
+					"type AccountSummary struct {\n\tOpenedAt time.Time" + tag + "\n}\n",
 			})
 			ctx.TypedInfoMode = tt.typedMode
 

@@ -79,7 +79,7 @@ func NewS002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				severity = finding.SeverityInfo
 				confidence = finding.ConfidenceLow
 				suggestion = "This appears to be a local-only project (no HTTP/gRPC server). Consider adding encryption if the " +
-					"data may be exposed to networks
+					"data may be exposed to networks"
 			}
 
 			f, err := findingTemplate.Builder(

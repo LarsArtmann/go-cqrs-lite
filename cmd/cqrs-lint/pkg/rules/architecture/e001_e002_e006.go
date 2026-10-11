@@ -190,7 +190,7 @@ func NewE006Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					WithCategory(finding.CategoryStructure).
 					WithConfidence(finding.ConfidenceLow).
 					WithSuggestion("Register a projection or add a fold case for this event type, or suppress if intentionally " +
-						"unhandled).
+						"unhandled").
 					WithSnippet(ctx.SourceLine(emission.File, emission.Line)).
 					Build()
 				if err == nil {

@@ -120,7 +120,7 @@ func NewA024Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				WithCategory(finding.CategoryBestPractice).
 				WithConfidence(finding.ConfidenceHigh).
 				WithSuggestion("Wire up an event store, bus, and decider.Repository to complete the event sourcing pipeline, " +
-					"or remove the unused imports).
+					"or remove the unused imports").
 				Build()
 			if err == nil {
 				findings = append(findings, f)
@@ -155,13 +155,15 @@ func NewA025Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 			f, err := findingTemplate.Builder(
 				"A025",
-				"Project uses command/query dispatchers but has no event sourcing — CQRS without event sourcing may miss audit trail and replay capabilities",
+				"Project uses command/query dispatchers but has no event sourcing — CQRS without event sourcing may miss audit "+
+					"trail and replay capabilities",
 				finding.SeverityInfo,
 				finding.Pos(finding.FilePath(ctx.ProjectRoot+"/go.mod"), 1, 1),
 			).
 				WithCategory(finding.CategoryBestPractice).
 				WithConfidence(finding.ConfidenceLow).
-				WithSuggestion("Consider adding event sourcing (event/ + decider/) for audit trail, replay, and temporal queries, or keep as-is if CQRS-without-ES is intentional").
+				WithSuggestion("Consider adding event sourcing (event/ + decider/) for audit trail, replay, and temporal " +
+					"queries, or keep as-is if CQRS-without-ES is intentional").
 				Build()
 			if err == nil {
 				findings = append(findings, f)
@@ -195,13 +197,15 @@ func NewA026Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 			f, err := findingTemplate.Builder(
 				"A026",
-				"Project uses event/ and watermill but has no command, decider, or query — using go-cqrs-lite as a bare event bus without CQRS separation",
+				"Project uses event/ and watermill but has no command, decider, or query — using go-cqrs-lite as a bare event "+
+					"bus without CQRS separation",
 				finding.SeverityInfo,
 				finding.Pos(finding.FilePath(ctx.ProjectRoot+"/go.mod"), 1, 1),
 			).
 				WithCategory(finding.CategoryBestPractice).
 				WithConfidence(finding.ConfidenceLow).
-				WithSuggestion("Consider adding command/query separation (command/ + query/ + decider/) for a fuller CQRS architecture, or keep as-is if event bus is the intended use").
+				WithSuggestion("Consider adding command/query separation (command/ + query/ + decider/) for a fuller CQRS " +
+					"architecture, or keep as-is if event bus is the intended use").
 				Build()
 			if err == nil {
 				findings = append(findings, f)

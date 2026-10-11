@@ -123,8 +123,8 @@ func NewB005Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 				f, err := findingTemplate.Builder(
 					"B005",
-					fmt.Sprintf("Fold %s uses a switch statement — consider decider.StrictApply for compile-time " +
-						"exhaustiveness, fold.FuncName),
+					fmt.Sprintf("Fold %s uses a switch statement — consider decider.StrictApply for compile-time "+
+						"exhaustiveness", fold.FuncName),
 					finding.SeverityInfo,
 					finding.Pos(finding.FilePath(fold.File), fold.Pos.Line, fold.Pos.Column),
 				).

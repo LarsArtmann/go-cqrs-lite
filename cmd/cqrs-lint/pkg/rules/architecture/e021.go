@@ -70,8 +70,8 @@ func e021Finding(
 	return findingTemplate.Builder(
 		"E021",
 		fmt.Sprintf(
-			"event type %q is emitted but carries no schema declaration — upcasting and typed decoding skip it (typo class: " +
-				"a near-identical declared type never matches),
+			"event type %q is emitted but carries no schema declaration — upcasting and typed decoding skip it (typo class: "+
+				"a near-identical declared type never matches)",
 			evtType,
 		),
 		finding.SeverityWarning,

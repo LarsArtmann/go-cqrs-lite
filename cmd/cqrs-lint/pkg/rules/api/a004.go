@@ -78,7 +78,7 @@ func NewA004Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 								WithCategory(finding.CategoryBestPractice).
 								WithConfidence(finding.ConfidenceMedium).
 								WithSuggestion("Use command.RegisterTyped or query.RegisterTyped to register typed handlers without " +
-									"runtime type assertions).
+									"runtime type assertions").
 								WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 								Build()
 							if err != nil {

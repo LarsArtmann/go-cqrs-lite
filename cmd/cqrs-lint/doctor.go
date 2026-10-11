@@ -25,11 +25,9 @@ import (
 // here was a semantic collision (users could not tell which "fix" a docs
 // example meant).
 type doctorFlags struct {
-	AuditSuppressions bool `default:"false" flag:"audit-suppressions" help:"Audit all inline suppressions: show " +
-		"active vs stale vs unknown-rule status`
-	Prune             bool `default:"false" flag:"prune-suppressions" help:"Remove stale whole-line suppressions " +
-		"(implies audit)`
-	DryRun            bool `default:"false" flag:"dry-run"            help:"With --prune-suppressions: show what would be removed without changing any file"`
+	AuditSuppressions bool `default:"false" flag:"audit-suppressions" help:"Audit all inline suppressions: show active vs stale vs unknown-rule status"`      //nolint:lll // struct tag must stay on one line
+	Prune             bool `default:"false" flag:"prune-suppressions" help:"Remove stale whole-line suppressions (implies audit)"`                            //nolint:lll // struct tag must stay on one line
+	DryRun            bool `default:"false" flag:"dry-run"            help:"With --prune-suppressions: show what would be removed without changing any file"` //nolint:lll // struct tag must stay on one line
 	// FailOnStale makes the doctor exit non-zero when stale inline
 	// suppressions or unknown-rule suppressions exist (implies audit). The
 	// root command's flag of the same name is lint-run-only, but CI documented
