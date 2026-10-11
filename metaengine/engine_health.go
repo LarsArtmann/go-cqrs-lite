@@ -327,10 +327,11 @@ func (s *Store) StartAutoReprobe(ctx context.Context, interval time.Duration) (s
 		ticker := time.NewTicker(interval)
 		defer ticker.Stop()
 
+	loop:
 		for {
 			select {
 			case <-ctx.Done():
-				return
+				break loop
 
 			case <-ticker.C:
 				s.reprobeOnce(ctx)
