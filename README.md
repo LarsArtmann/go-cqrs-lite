@@ -204,7 +204,7 @@ Every module is independently importable and has its own `go.mod`. Here are the 
 | **storage/pebble** | Embedded KV: event/snapshot/checkpoint stores (PebbleDB + CBOR)       |
 | **projectionhost** | Managed projection lifecycle: crash-restart, checkpoints, dead-letter |
 | **middleware**     | Logging, retry, validation, recovery, circuit breaker, OTel           |
-| **kv**             | Layer-0 KV abstraction: `Store`, `TypedStore[T,K]`, `Cache`           |
+| **kv**             | Layer-0 KV abstraction: `kv.Store`, `TypedStore[T,K]`, `Cache`        |
 | **catalog**        | Auto-generate AsyncAPI 3.0, EventCatalog, OpenAPI, D2 from Go types   |
 | **stack/sqlite**   | One-call preset: SQLite + event bus + read models + projections       |
 

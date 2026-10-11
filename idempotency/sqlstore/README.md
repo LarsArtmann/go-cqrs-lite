@@ -1,5 +1,11 @@
 # idempotency/sqlstore — SQL-Backed Idempotency Store
 
+> **Deprecated module (v5 removal candidate).** Everything in this README
+> documents a deprecated surface: use the `metaengine.DedupStore` engine
+> capability (ADR-0142 universal storage substrate) instead. Kept for
+> existing consumers until the v5 cut; see TODO_LIST (idempotency-retirement
+> ADR) for the migration plan.
+
 [![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/idempotency/sqlstore/v4.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/idempotency/sqlstore/v4)
 
 Adapts any `database/sql`-compatible database (SQLite, PostgreSQL) into an `idempotency.Store` with TTL-based key expiry. Enables multi-process idempotency for horizontally-scaled command handlers.
