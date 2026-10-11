@@ -56,7 +56,7 @@ func (p *poisonTracker) Clear() {
 // idempotency store). capacity <= 0 keeps the legacy unbounded behavior.
 type idempotencyTracker struct {
 	mu   sync.Mutex
-	ring *dedup.Ring // nil → unbounded legacy mode
+	ring *dedup.Ring[string] // nil → unbounded legacy mode
 	seen sync.Map    // event ID → struct{}, used only when ring == nil
 }
 
@@ -65,7 +65,7 @@ func newIdempotencyTracker(capacity int) *idempotencyTracker {
 		return &idempotencyTracker{}
 	}
 
-	return &idempotencyTracker{ring: dedup.NewRing(capacity)}
+	return &idempotencyTracker{ring: dedup.NewRing[string](capacity)}
 }
 
 // CheckAndRecord returns true if the eventID was already seen (duplicate).
@@ -118,7 +118,7 @@ func (t *idempotencyTracker) Clear() {
 		t.mu.Lock()
 		defer t.mu.Unlock()
 
-		t.ring = dedup.NewRing(t.ring.Capacity())
+		t.ring = dedup.NewRing[string](t.ring.Capacity())
 
 		return
 	}

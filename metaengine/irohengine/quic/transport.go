@@ -55,7 +55,7 @@ type QuicTransport struct {
 	// like SetAdd/CounterIncrement under redelivery or relay echo).
 	// Uses dedup.Ring for bounded memory with graceful eviction (no reset gap).
 	dedupMu   sync.Mutex
-	dedupRing *dedup.Ring
+	dedupRing *dedup.Ring[string]
 
 	acceptWG sync.WaitGroup
 }
@@ -104,7 +104,7 @@ func New(opts ...Option) (*QuicTransport, error) {
 		alpn:      cfg.alpn,
 		cfg:       cfg,
 		conns:     make(map[string]*peerConn),
-		dedupRing: dedup.NewRing(DefaultDedupCapacity),
+		dedupRing: dedup.NewRing[string](DefaultDedupCapacity),
 	}
 
 	// Start accept loop

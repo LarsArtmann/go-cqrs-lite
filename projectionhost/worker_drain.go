@@ -190,12 +190,12 @@ func (w *worker) liveHandler(ctx context.Context) event.Handler {
 		w.handleMu.Lock()
 		defer w.handleMu.Unlock()
 
-		if w.wasSeen(evt.ID().String()) {
+		if w.wasSeen(evt.ID()) {
 			return nil
 		}
 
 		if !w.shouldHandle(evt) {
-			w.markSeen(evt.ID().String())
+			w.markSeen(evt.ID())
 			w.lastProcessedNs.Store(time.Now().UnixNano())
 
 			return nil
@@ -219,7 +219,7 @@ func (w *worker) liveHandler(ctx context.Context) event.Handler {
 			return saveErr
 		}
 
-		w.markSeen(evt.ID().String())
+		w.markSeen(evt.ID())
 		w.processed.Add(1)
 		w.lastProcessedNs.Store(time.Now().UnixNano())
 
@@ -236,12 +236,12 @@ func (w *worker) liveHandler(ctx context.Context) event.Handler {
 // if the event cannot be processed even after retries and DLQ routing. Shared
 // by the initial drain and the catch-up drain.
 func (w *worker) processEvent(ctx context.Context, evt event.Event) error {
-	if w.wasSeen(evt.ID().String()) {
+	if w.wasSeen(evt.ID()) {
 		return nil
 	}
 
 	if !w.shouldHandle(evt) {
-		w.markSeen(evt.ID().String())
+		w.markSeen(evt.ID())
 
 		return nil
 	}
@@ -261,7 +261,7 @@ func (w *worker) processEvent(ctx context.Context, evt event.Event) error {
 	}
 
 	w.processed.Add(1)
-	w.markSeen(evt.ID().String())
+	w.markSeen(evt.ID())
 	w.lastProcessedNs.Store(time.Now().UnixNano())
 
 	return nil

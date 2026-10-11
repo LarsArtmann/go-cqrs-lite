@@ -224,7 +224,7 @@ func replayMissedEvents[V any](
 	r *http.Request,
 	replay *SSEReplay[V],
 	cfg SSEConfig,
-) (*dedup.Ring, error) {
+) (*dedup.Ring[string], error) {
 	var afterSeq uint64
 
 	if lastID := r.Header.Get("Last-Event-ID"); lastID != "" {
@@ -241,7 +241,7 @@ func replayMissedEvents[V any](
 		replayed = replayed[len(replayed)-cfg.ReplayLimit:]
 	}
 
-	ring := dedup.NewRing(dedup.DefaultCapacity)
+	ring := dedup.NewRing[string](dedup.DefaultCapacity)
 
 	for _, sv := range replayed {
 		data, err := json.Marshal(sv.Value)

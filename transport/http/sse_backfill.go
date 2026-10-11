@@ -130,6 +130,9 @@ func BackfillHandler(broker *SSEBroker) http.Handler {
 			events = []event.Event{}
 		}
 
+		// backfillItem is the HTTP JSON response shape — wire contract, so the
+		// event ID stays a plain string on the wire.
+		//branching-flow:ignore strong-id
 		type backfillItem struct {
 			ID      string         `json:"id"`
 			Type    string         `json:"type"`

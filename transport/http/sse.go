@@ -11,6 +11,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/dedup/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 )
 
@@ -242,7 +243,7 @@ func SSEHandler(broker *SSEBroker) http.Handler {
 
 		// Last-Event-ID reconnection: replay missed events if journal is available.
 		// The dedup ring is carried into the live loop to suppress duplicates.
-		var replayed *dedup.Ring
+		var replayed *dedup.Ring[id.EventID]
 
 		if broker.journal != nil {
 			if lastEventID := r.Header.Get("Last-Event-ID"); lastEventID != "" {
@@ -261,7 +262,7 @@ func SSEHandler(broker *SSEBroker) http.Handler {
 				}
 
 				// Suppress events already delivered during replay.
-				if replayed.Has(evt.ID().String()) {
+				if replayed.Has(evt.ID()) {
 					continue
 				}
 

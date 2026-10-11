@@ -47,6 +47,9 @@ type EventServer struct {
 
 	mu      sync.RWMutex
 	clients map[int64]chan *cqrsproto.EventEnvelope
+	// nextID mints client connection keys — a monotonic counter, not an
+	// identity, so it stays a plain integer.
+	//branching-flow:ignore strong-id
 	nextID  int64
 }
 

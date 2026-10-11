@@ -15,6 +15,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/dedup/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 	"github.com/larsartmann/go-cqrs-lite/projection/v4"
 )
@@ -56,7 +57,7 @@ type worker struct {
 	// phases (when both the drain loop and the subscriber callback may access
 	// it concurrently). During the initial drain, only the worker goroutine
 	// accesses it (no concurrency).
-	seenIDs *dedup.Ring
+	seenIDs *dedup.Ring[id.EventID]
 
 	// handleMu serializes event processing between the catch-up drain and the
 	// live subscriber callback. Without this, a non-blocking subscriber (e.g.
@@ -356,13 +357,13 @@ func familyToName(f errorfamily.Family) string {
 }
 
 // markSeen records an event ID as processed during journal drain.
-func (w *worker) markSeen(id string) {
-	w.seenIDs.Add(id)
+func (w *worker) markSeen(eventID id.EventID) {
+	w.seenIDs.Add(eventID)
 }
 
 // wasSeen reports whether an event ID was seen during journal drain.
-func (w *worker) wasSeen(id string) bool {
-	return w.seenIDs.Has(id)
+func (w *worker) wasSeen(eventID id.EventID) bool {
+	return w.seenIDs.Has(eventID)
 }
 
 // lastProcessedAt returns the wall-clock time of the most recently processed

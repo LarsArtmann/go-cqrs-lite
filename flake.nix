@@ -626,7 +626,10 @@
                   wantedBy = [ "multi-user.target" ];
                   after = [ "network.target" ];
                   serviceConfig = {
-                    ExecStart = "${pkgs.dgraph}/bin/dgraph zero --my=127.0.0.1:5080 --idx=1 --postings /var/lib/dgraph-zero/p --wal /var/lib/dgraph-zero/w";
+                    # Dgraph 25.x: `zero` has no --idx (raft idx=1 is the
+                    # default) and no --postings (that is an Alpha flag);
+                    # both crashed the service with "unknown flag".
+                    ExecStart = "${pkgs.dgraph}/bin/dgraph zero --my=127.0.0.1:5080 --wal /var/lib/dgraph-zero/w";
                     StateDirectory = "dgraph-zero";
                     Restart = "on-failure";
                   };

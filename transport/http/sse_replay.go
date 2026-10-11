@@ -26,13 +26,17 @@ import (
 // Returns a bounded dedup ring of replayed EventIDs for live-phase
 // deduplication. The ring covers only the last sseDedupRingCapacity entries,
 // which is sufficient because replay→live overlap is always at the tail.
+//
+// lastEventID is the raw SSE Last-Event-ID header token — wire-opaque by
+// protocol — parsed once at entry via id.ParseEventID.
+//branching-flow:ignore strong-id
 func replayEvents(
 	w http.ResponseWriter,
 	flusher http.Flusher,
 	broker *SSEBroker,
 	ctx context.Context,
 	lastEventID string,
-) *dedup.Ring {
+) *dedup.Ring[id.EventID] {
 	if broker.replayTimeout > 0 {
 		var cancel context.CancelFunc
 
@@ -61,7 +65,7 @@ func replayEvents(
 		ringCap = sseDedupRingCapacity
 	}
 
-	replayed := dedup.NewRing(ringCap)
+	replayed := dedup.NewRing[id.EventID](ringCap)
 	start := time.Now()
 
 	budget := resolveReplayBudget(broker)
@@ -133,7 +137,7 @@ func runReplayLoop(
 	broker *SSEBroker,
 	w http.ResponseWriter,
 	afterID id.EventID,
-	replayed *dedup.Ring,
+	replayed *dedup.Ring[id.EventID],
 	budget int,
 ) replayResult {
 	if broker.replayLimit > 0 {
@@ -149,7 +153,7 @@ func runBoundedReplay(
 	broker *SSEBroker,
 	w http.ResponseWriter,
 	afterID id.EventID,
-	replayed *dedup.Ring,
+	replayed *dedup.Ring[id.EventID],
 	budget int,
 ) replayResult {
 	var res replayResult
@@ -181,7 +185,7 @@ func runUnlimitedReplay(
 	broker *SSEBroker,
 	w http.ResponseWriter,
 	afterID id.EventID,
-	replayed *dedup.Ring,
+	replayed *dedup.Ring[id.EventID],
 	budget int,
 ) replayResult {
 	var res replayResult
@@ -239,7 +243,7 @@ func runUnlimitedReplay(
 func writeReplayBatchBounded(
 	w http.ResponseWriter,
 	events []event.Event,
-	replayed *dedup.Ring,
+	replayed *dedup.Ring[id.EventID],
 	priorBytes, budget int,
 	transform func(event.Event) []byte,
 ) (int, int, bool) {
@@ -257,7 +261,7 @@ func writeReplayBatchBounded(
 			return bytesWritten, eventsWritten, true
 		}
 
-		replayed.Add(evt.ID().String())
+		replayed.Add(evt.ID())
 
 		bytesWritten += len(data)
 		eventsWritten++

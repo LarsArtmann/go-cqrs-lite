@@ -124,7 +124,7 @@ func newWorker(
 		cpStore:    cpStore,
 		opts:       opts,
 		logger:     opts.logger,
-		seenIDs:    dedup.NewRing(dedup.DefaultCapacity),
+		seenIDs:    dedup.NewRing[id.EventID](dedup.DefaultCapacity),
 		typeSet:    buildTypeSet(p.EventTypes()),
 		state: WorkerState{ //nolint:exhaustruct_v5 // zero-value counters
 			Name:   name,

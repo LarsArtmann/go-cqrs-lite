@@ -69,7 +69,7 @@ type LoopbackTransport struct {
 
 	// Op-level dedup (prevents double-application under redelivery)
 	dedupMu   sync.Mutex
-	dedupRing *dedup.Ring
+	dedupRing *dedup.Ring[string]
 
 	// Optional simulated latency (for testing convergence under delay)
 	maxDelay time.Duration
@@ -128,7 +128,7 @@ func New(opts ...Option) (*LoopbackTransport, error) {
 		addr:      listener.Addr().String(),
 		listener:  listener,
 		conns:     make(map[string]net.Conn),
-		dedupRing: dedup.NewRing(irohengine.DefaultDedupCapacity),
+		dedupRing: dedup.NewRing[string](irohengine.DefaultDedupCapacity),
 		maxDelay:  cfg.maxDelay,
 	}
 
