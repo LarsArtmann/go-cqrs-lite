@@ -192,7 +192,26 @@ func main() {
 			path = args[0]
 		}
 
-		absPath, err := filepath.Abs(path)
+		// A "/..." suffix is a Go WILDCARD scope, not a directory —
+		// filepath.Abs literalizes it into a nonexistent path and the load
+		// dies with "chdir <root>/...: no such file or directory" that the
+		// runner then misdiagnoses as a broken build. Resolve the wildcard to
+		// its base directory: the go.mod walk in BuildContext already
+		// discovers every module under a root, so "./..." at a go.work
+		// monorepo root means "all workspace members" and just works; a
+		// deeper pattern's base dir scopes the walk to that subtree.
+		resolved := path
+		if resolved == "" {
+			resolved = "."
+		}
+		if resolved == "..." {
+			resolved = "."
+		} else if strings.HasSuffix(resolved, "/...") {
+			resolved = strings.TrimSuffix(resolved, "...")
+			resolved = strings.TrimSuffix(resolved, "/")
+		}
+
+		absPath, err := filepath.Abs(resolved)
 		if err != nil {
 			return fmt.Errorf("resolve path: %w", err)
 		}
