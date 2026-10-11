@@ -106,7 +106,8 @@ func checkWaivable(result *ScorecardResult, waivers []analyzer.ScorecardWaiver) 
 			func(m ScorecardModule) bool { return m.Key == w.Key },
 		) {
 			return fmt.Errorf(
-				"scorecard waiver for %q: module is USED — waivers record refusals, not redundancies",
+				"%w for %q: module is USED — waivers record refusals, not redundancies",
+				analyzer.ErrScorecardWaiver,
 				w.Key,
 			)
 		}
@@ -115,7 +116,8 @@ func checkWaivable(result *ScorecardResult, waivers []analyzer.ScorecardWaiver) 
 			func(m ScorecardModule) bool { return m.Key == w.Key },
 		) {
 			return fmt.Errorf(
-				"scorecard waiver for %q: module is irrelevant for this profile — remove the waiver",
+				"%w for %q: module is irrelevant for this profile — remove the waiver",
+				analyzer.ErrScorecardWaiver,
 				w.Key,
 			)
 		}

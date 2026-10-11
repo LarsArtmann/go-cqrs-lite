@@ -18,6 +18,10 @@ type StoreSpec struct {
 	Kinds []StoreKind
 }
 
+// errStoreSpec prefixes every StoreSpec decoding failure; the dynamic detail
+// (empty value, unknown backend, ...) always wraps this sentinel.
+var errStoreSpec = errors.New("store")
+
 // Primary returns the first declared kind, or StoreNone when empty.
 func (s StoreSpec) Primary() StoreKind {
 	if len(s.Kinds) == 0 {
@@ -46,8 +50,9 @@ func (s StoreSpec) String() string {
 func (s *StoreSpec) UnmarshalJSON(data []byte) error {
 	trimmed := bytes.TrimLeft(data, " \t\r\n")
 	if len(trimmed) == 0 {
-		return errors.New(
-			"store: expected a store name string or an array of store names, got empty value",
+		return fmt.Errorf(
+			"%w: expected a store name string or an array of store names, got empty value",
+			errStoreSpec,
 		)
 	}
 	switch trimmed[0] {
@@ -67,7 +72,7 @@ func (s *StoreSpec) UnmarshalJSON(data []byte) error {
 			return fmt.Errorf("store: %w", err)
 		}
 		if len(kinds) == 0 {
-			return errors.New("store: array form must list at least one backend")
+			return fmt.Errorf("%w: array form must list at least one backend", errStoreSpec)
 		}
 		for _, kind := range kinds {
 			if err := validateStoreKind(kind); err != nil {
@@ -78,7 +83,8 @@ func (s *StoreSpec) UnmarshalJSON(data []byte) error {
 		return nil
 	default:
 		return fmt.Errorf(
-			"store: expected a store name string or an array of store names, got %q",
+			"%w: expected a store name string or an array of store names, got %q",
+			errStoreSpec,
 			trimmed[0],
 		)
 	}
@@ -89,7 +95,8 @@ func validateStoreKind(kind StoreKind) error {
 		return nil
 	}
 	return fmt.Errorf(
-		"store: unknown backend %q (valid: %s)",
+		"%w: unknown backend %q (valid: %s)",
+		errStoreSpec,
 		kind,
 		joinStoreKindNames(AllStoreKinds()),
 	)

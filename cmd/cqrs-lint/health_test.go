@@ -36,7 +36,7 @@ func TestComputeHealthScore_WithFindings(t *testing.T) {
 func TestComputeHealthScore_Floor(t *testing.T) {
 	t.Parallel()
 
-	var findings []finding.Finding
+	findings := make([]finding.Finding, 0, 100)
 	for range 100 {
 		f, _ := finding.NewBuilder(
 			"C001", "test",
@@ -220,7 +220,7 @@ func TestComputeHealthScore_InfoCap(t *testing.T) {
 func TestComputeHealthScore_InfoCapDoesNotAffectHigherSeverities(t *testing.T) {
 	t.Parallel()
 
-	var findings []finding.Finding
+	findings := make([]finding.Finding, 0, 51)
 
 	critical, _ := finding.NewBuilder(
 		"C001", "test", "real bug",

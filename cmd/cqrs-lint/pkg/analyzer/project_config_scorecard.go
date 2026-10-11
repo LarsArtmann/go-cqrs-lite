@@ -40,6 +40,11 @@ type ScorecardWaiver struct {
 	Trigger string `json:"trigger,omitempty"`
 }
 
+// ErrScorecardWaiver prefixes every waiver validation failure; dynamic
+// detail (duplicate key, unknown module, ...) wraps this sentinel so
+// callers can match with errors.Is.
+var ErrScorecardWaiver = errors.New("scorecard waiver")
+
 // ValidateScorecardWaivers checks waivers against the default catalog:
 // keys must be known scored modules, reasons must be non-empty, and keys
 // must be unique. Returns the first violation wrapped with the key.
@@ -57,16 +62,17 @@ func ValidateScorecardWaivers(waivers []ScorecardWaiver) error {
 	for _, w := range waivers {
 		switch {
 		case w.Key == "":
-			return errors.New("scorecard waiver: key must not be empty")
+			return fmt.Errorf("%w: key must not be empty", ErrScorecardWaiver)
 		case seen[w.Key]:
-			return fmt.Errorf("scorecard waiver: duplicate key %q", w.Key)
+			return fmt.Errorf("%w: duplicate key %q", ErrScorecardWaiver, w.Key)
 		case !scored[ModuleKey(w.Key)]:
 			return fmt.Errorf(
-				"scorecard waiver: unknown module key %q (must be a scored catalog key)",
+				"%w: unknown module key %q (must be a scored catalog key)",
+				ErrScorecardWaiver,
 				w.Key,
 			)
 		case strings.TrimSpace(w.Reason) == "":
-			return fmt.Errorf("scorecard waiver for %q: reason must not be empty", w.Key)
+			return fmt.Errorf("%w for %q: reason must not be empty", ErrScorecardWaiver, w.Key)
 		}
 		seen[w.Key] = true
 	}

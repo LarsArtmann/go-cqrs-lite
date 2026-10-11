@@ -12,7 +12,7 @@ import (
 // backendRowKeys maps a detected StoreKind to the catalog row that tracks
 // that backend. Kinds without a catalog row (badger, dgraph, iroh, bigtable,
 // custom) have no stack-preset entry and are skipped.
-var backendRowKeys = map[analyzer.StoreKind]string{
+var backendRowKeys = map[analyzer.StoreKind]string{ //nolint:gochecknoglobals // read-only lookup table
 	analyzer.StoreSQLite:   "stack/sqlite",
 	analyzer.StorePostgres: "stack/postgres",
 	analyzer.StoreMySQL:    "stack/mysql",
@@ -27,7 +27,7 @@ var backendRowKeys = map[analyzer.StoreKind]string{
 // it, for evidence attribution. The memory engine is built into metaengine
 // core (registered without an engine import), so it gets its own evidence
 // wording.
-var engineNames = map[analyzer.StoreKind]string{
+var engineNames = map[analyzer.StoreKind]string{ //nolint:gochecknoglobals // read-only lookup table
 	analyzer.StoreSQLite:   "sqlite",
 	analyzer.StorePostgres: "postgres",
 	analyzer.StoreMySQL:    "mysql",

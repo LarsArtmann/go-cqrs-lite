@@ -53,7 +53,7 @@ func (fp *FeatureProfile) dedupeStores() {
 // this list, never the primary alone: a mixed pool (postgres journal +
 // memory projections) is SQL-backed even though its primary alone might
 // suggest otherwise.
-func (fp FeatureProfile) EffectiveStores() []StoreKind {
+func (fp *FeatureProfile) EffectiveStores() []StoreKind {
 	kinds := fp.Stores
 	if len(kinds) == 0 && fp.Store != StoreUnknown && fp.Store != StoreNone && fp.Store != "" {
 		kinds = []StoreKind{fp.Store}
@@ -65,7 +65,7 @@ func (fp FeatureProfile) EffectiveStores() []StoreKind {
 
 // AnyStoreSQL reports whether any backend can push down filters/sorts
 // (ORDER BY / WHERE). Gates pushdown-adoption suggestions (F022-F025).
-func (fp FeatureProfile) AnyStoreSQL() bool {
+func (fp *FeatureProfile) AnyStoreSQL() bool {
 	for _, kind := range fp.EffectiveStores() {
 		if kind.IsSQL() {
 			return true
@@ -76,7 +76,7 @@ func (fp FeatureProfile) AnyStoreSQL() bool {
 
 // AnyStoreDistributed reports whether any backend runs as a separate
 // server process, enabling (and requiring) multi-instance deployment.
-func (fp FeatureProfile) AnyStoreDistributed() bool {
+func (fp *FeatureProfile) AnyStoreDistributed() bool {
 	for _, kind := range fp.EffectiveStores() {
 		if kind.IsDistributed() {
 			return true
@@ -89,7 +89,7 @@ func (fp FeatureProfile) AnyStoreDistributed() bool {
 // complement of an all-in-memory (or no-backend) setup. Used by rules that
 // flag in-memory per-call stores as inconsistent with an otherwise
 // persistent system (C017) or skip when nothing persists at all (C036).
-func (fp FeatureProfile) AnyStorePersistent() bool {
+func (fp *FeatureProfile) AnyStorePersistent() bool {
 	for _, kind := range fp.EffectiveStores() {
 		if kind != StoreMemory && kind != StoreUnknown && kind != StoreNone {
 			return true

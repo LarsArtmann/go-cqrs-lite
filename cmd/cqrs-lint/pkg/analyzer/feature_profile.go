@@ -91,7 +91,7 @@ type FeatureProfile struct {
 	Monetary MonetaryKind `json:"monetary"`
 }
 
-func (fp FeatureProfile) String() string {
+func (fp *FeatureProfile) String() string {
 	var b strings.Builder
 	_, _ = fmt.Fprintf(&b, "store:         %s\n", fp.Store)
 	if effective := fp.EffectiveStores(); len(effective) > 1 {
@@ -251,7 +251,7 @@ func mergeConfigFeatures(dst *ConfigFeatures, src ConfigFeatures) {
 // pinning "server": false as project truth silenced real server rules for a
 // consumer whose server lived in a non-importer package (nsfw-classifier
 // feedback, 2026-10-03).
-func (fp FeatureProfile) ToConfigFeatures() ConfigFeatures {
+func (fp *FeatureProfile) ToConfigFeatures() ConfigFeatures {
 	cf := ConfigFeatures{}
 	if fp.HasServer {
 		cf.Server = &fp.HasServer

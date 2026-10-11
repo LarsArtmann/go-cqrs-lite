@@ -36,7 +36,7 @@ func NewV006Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 			goModFiles, err := findGoModFiles(ctx.ProjectRoot)
 			if err != nil || len(goModFiles) == 0 {
-				return nil, nil
+				return nil, nil //nolint:nilerr // unreadable root degrades to no findings, matching findGoModFiles' skip semantics
 			}
 
 			// pinSites maps module path → pins, each pin remembering where it

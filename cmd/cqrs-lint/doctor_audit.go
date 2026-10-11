@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -11,6 +12,8 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/suppression"
 )
+
+var errSuppressionAudit = errors.New("suppression audit")
 
 // runSuppressionAudit runs the full lint pipeline, collects all inline
 // suppressions, cross-references them with findings, and renders an audit
@@ -283,6 +286,8 @@ func failOnStaleSuppressions(
 			stale++
 		case suppression.AuditUnknownRule:
 			unknown++
+		case suppression.AuditActive:
+			// active suppressions are neither stale nor unknown
 		}
 	}
 
@@ -291,7 +296,8 @@ func failOnStaleSuppressions(
 	}
 
 	return fmt.Errorf(
-		"%d stale and %d unknown-rule suppressions found — remove them or fix the rule IDs (see the audit above)",
+		"%w: %d stale and %d unknown-rule suppressions found — remove them or fix the rule IDs (see the audit above)",
+		errSuppressionAudit,
 		stale,
 		unknown,
 	)
