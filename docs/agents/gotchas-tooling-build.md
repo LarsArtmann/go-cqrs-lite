@@ -209,3 +209,40 @@ parse with an older go/parser generation and fail with
   hand-formatted.
 - Drop the exclude when gofumpt/golines ship generic-methods support
   (reproduce check: `gofumpt -l system/schema_declarations.go`).
+
+## BuildFlow environment notes (2026-10-11 branch-consolidation session)
+
+- **Sandboxed treefmt check needs the go toolchain on PATH** —
+  `checks.format` is `(config.treefmt.build.check self).overrideAttrs`
+  with `nativeBuildInputs ++ [goPkg]` (DiscordSync flake pattern;
+  `treefmt.flakeCheck = false`). Without it, goimports tries to DOWNLOAD
+  go1.27 in the network-less sandbox. Do NOT add `GOTOOLCHAIN=local` /
+  `GOFLAGS=-mod=mod` here: they change goimports' module resolution and
+  regroup ~200 correctly-formatted files (verified).
+- **treefmt v2 mtime cache lies after daemon commits** — local `nix fmt`
+  can report 0 changed while a full sandbox pass finds hundreds. When the
+  format check disagrees with local runs, converge with
+  `nix fmt -- --no-cache` (53s full pass) and let the daemon commit.
+- **System govulncheck is built with go1.26 and cannot analyze go1.27
+  code** — `nix shell nixpkgs#govulncheck` works. Run BuildFlow without
+  stale system tools shadowing PATH, or the govulncheck step fails with
+  "package requires newer Go version".
+- **lychee needs GITHUB_TOKEN** for private-repo links (fleet
+  authenticate-vs-exclude policy undecided per BuildFlow doctor); without
+  it the step exits 2 on 404s.
+- **license-check is skip_steps'd** — the repo is PROPRIETARY by design;
+  go-licenses fails deterministically on the LarsArtmann module zips.
+- **mysql-nspawn is NOT a flake check anymore** — it requires the
+  `uid-range` system feature (opt-in via scripts/enable-nspawn-support.sh)
+  and made every `nix flake check`/BuildFlow run red on hosts without it.
+  `nix run .#integration-mysql-nspawn` (QEMU fallback) remains;
+  `checks.mysql-vm` covers the same health test portably.
+- **Dgraph 25.x dropped `zero --idx` and has no `zero --postings`** —
+  nixpkgs dgraph bumps break the dgraph-vm unit flags ("unknown flag");
+  zero now takes `--raft "idx=1"` (default) and postings is alpha-only.
+- **BuildFlow doctor's pseudo-version-hygiene check is a false positive
+  for /v4 module paths** — it wants zero-pseudo requires on intra-repo
+  replaces, but `go mod edit` rejects v0 on /v4 paths ("should be v4"),
+  and BuildFlow's own go-mod-normalize cannot apply it either. The repo
+  convention is tag-pinned replaced requires; ignore that doctor entry
+  until BuildFlow special-cases major-version paths.

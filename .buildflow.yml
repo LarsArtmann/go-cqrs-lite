@@ -43,3 +43,9 @@ warnings_budget:
   go-auto-upgrade: 1000
   lychee: 700
   cqrs-lint: 700
+
+# license-check expects recognizable OSS licenses in every module zip; this
+# repo is PROPRIETARY by design (AGENTS.md consumer-scope decision), so
+# go-licenses fails deterministically on the LarsArtmann module set.
+skip_steps:
+  - license-check
