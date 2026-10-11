@@ -833,8 +833,11 @@ linters:
       - storage/view/
       - vendor/
 formatters:
+  # formatting — goimports -local + gofumpt + golines via `nix fmt`; gci was
+  # REMOVED because it fights treefmt over the same import blocks and
+  # re-broke 95+ files once (2026-08-16). golangci-lint-auto-configure
+  # re-adding this block is the known recurrence — keep gci out.
   enable:
-    - gci
     - goimports
     - gofumpt
     - golines
