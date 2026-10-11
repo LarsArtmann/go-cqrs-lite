@@ -1,5 +1,16 @@
 # SUPERB Pareto Plan — Trust-Green → Tag Waves → v5 Cut (2026-10-11 20:16 CEST)
 
+> **Execution status (dated 2026-10-12 ~01:00 CEST):** M01 + M02 DONE (file-size ratchet green;
+> the M01 system/metaengine GOWORK=off reds were the UNRELEASED 10-11 coupling, not tagged-surface
+> breaks — re-verified green 10-12 after the wave below). M03 + M04 were executed 2026-10-10 by a
+> parallel session (system/v4.12.0, systemscenario/v4.0.0, schema/v4.6.0, scheduling/v4.7.0,
+> deriver/v4.4.0). The 10-11 reentrancy coupling discovered mid-execution is CLOSED: six tags cut
+> and proxy-smoked (event/v4.14.0, dedup/v4.3.0, metaengine/v4.18.0, deriver/v4.5.0,
+> watermill/v4.7.0, projectionhost/v4.6.0; dated CHANGELOG section landed). SCOPE CORRECTION vs the
+> task table below: transport/http and metaengine/irohengine{,/loopback,/quic} are ADR-0152
+> UNTAGGED TRAINS (`scripts/untagged-trains.txt`) — their `Ring[string]`/`Ring[id.EventID]`
+> adaptations ship as pin bumps only, no cuts. Next open: M05 fleet adoption, M06 repro tests.
+
 > **Source of truth:** [TODO_LIST.md](../../TODO_LIST.md) (126 open rows across 28 sections, inventoried
 > 2026-10-11 20:16). This plan is a **point-in-time snapshot** of that list, Pareto-sequenced.
 > Predecessor: [`2026-10-03_17-20_SUPERB-full-todo-pareto-plan.html`](2026-10-03_17-20_SUPERB-full-todo-pareto-plan.html)
