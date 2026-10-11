@@ -10,6 +10,7 @@
 ## a) FULLY DONE
 
 ### Branch consolidation (the original ask)
+
 1. **Analyzed all 10 local + 8 remote branches** — ahead/behind, content, supersession evidence for each.
 2. **`feat/publish-retry-middleware` → fast-forward merged** into master (6 commits: docs/status reports, TODO_LIST, `snapshot/constructor.go` explicit `StateShape: ""`, import-grouping in schema/decider tests). Verified: snapshot, schema, decider module tests green. (The `PublishRetry` middleware itself had already landed on master earlier via daemon commits — the branch was tail work.)
 3. **`dependabot/go_modules/minor-and-patch-7c8509d383` → cherry-picked** (go-redis v9.22.0→v9.23.0, 184 go.mod/go.sum files). Verified: rigorous downgrade scan (every removed pin pairs with a NEWER add; `cpuid` dropped intentionally by redis 9.23; genproto 20260928→20261005), watermill build+short tests green, full-workspace build sweep over all 103 modules, full `nix run .#test` green.
@@ -19,6 +20,7 @@
 7. **Worktrees cleaned**: hashfix worktree removed (verified clean first), 4 dead `/tmp` worktrees pruned. Only the main checkout remains.
 
 ### Pre-existing gate breakage found & fixed (all verified pre-existing on `origin/master` — NOT caused by the merges)
+
 8. **api-stability golden stale** (6289 vs 6293: `PublishRetry`, `IntLit`, `SchemaLadder`, `NewE022Detector`) → regenerated; `TestAPISurfaceCheck`/`UpdateIdempotent` green.
 9. **V007 drift gate**: 14 unclassified core/v5 deprecation markers → added 13 `deprecatedV5Symbols` entries (ADR-0152 copy-forward twins, mirroring v4 replacement texts) + 1 method-allowlist row (`core/metadata.Metadata.EnsureCustom`).
 10. **`core/v5` had no `.go-arch-lint.yml`** → created with the REAL dependency DAG (derived from actual imports: L0 dedup/dispatcher/id/record → L1 kv/metadata → L2 command/event/query → L3 test kits → root), fixed YAML schema + 4 test-helper subpackage components. Canonical `check-arch.sh` gate passes.
@@ -26,6 +28,7 @@
 12. **art-dupl gate**: `#check-duplication` → 0 new clone groups.
 
 ### BuildFlow: from catastrophic red to all-steps-green
+
 (Original state: 7 failed steps, 43 blocked. Final state: 1066/1379 passed, **0 step failures**, remaining findings are warning-class within configured budgets.)
 13. **nix-fmt / treefmt total failure** — root cause: Go 1.27 **generic methods** (`(*SchemaSet).Event[T]` in `system/schema_declarations.go`, landed via daemon commit before this session) parse in the go1.27 compiler but NOT in gofumpt/goimports/golines ("method must have no type parameters"). Verified upstream gofumpt v0.12.0 IS the latest release → global treefmt exclude with rationale (templ-precedent pattern) + gotcha documented.
 14. **Sandboxed `checks.format` red** (offline toolchain download) → patched with the DiscordSync-proven pattern: `flakeCheck = false` + `(config.treefmt.build.check self).overrideAttrs` adding `goPkg` to `nativeBuildInputs`. Deliberately WITHOUT `GOTOOLCHAIN=local`/`GOFLAGS=-mod=mod` — verified those regroup ~200 correctly-formatted files in this 103-module workspace.
@@ -78,6 +81,7 @@
 **What did I forget?** The repo's own Close-a-Wave procedure: CHANGELOG/FEATURES inventory for user-visible changes (go-redis bump, v5 mirror). I reasoned myself out of it ("dependabot PRs don't touch changelogs") instead of checking the repo's convention. Also: loading the buildflow skill BEFORE my first manual lint/format command, per its own trigger description.
 
 **What's stupid that we (the repo) do anyway?**
+
 - The **auto-commit daemon absorbs everything into `chore:` commits** — including substantive fixes (V007 tables, flake surgery) — destroying authored history and racing BuildFlow's own pre-commit hook (a documented oscillation engine; I lived through two instances this session).
 - **103 modules × per-module go.sum**: one dependency bump = 184-file diffs + 62-file tidy sweeps. Mechanical, but every session pays it.
 - **Daemon-bypassed gates**: the golden/V007/arch-config drift I fixed all entered master through `chore: auto-commit` sweeps that skip every gate. The gates are good; the commit path around them is the hole.
@@ -98,6 +102,7 @@
 ## f) Up to 50 things to get done next
 
 **Unblock / ship (do first)**
+
 1. Decide push scope for the 13-commit master (see question 1) and push.
 2. Delete the 8 stale remote branches after push.
 3. Close the dependabot PR (superseded by the cherry-pick).
@@ -171,4 +176,4 @@
 
 ---
 
-*Point-in-time snapshot. Section (f) is harvest-ready for TODO_LIST.md via docs-health HARVEST — not yet harvested per this prompt's "report only" instruction. THEN WAITING FOR INSTRUCTIONS.*
+_Point-in-time snapshot. Section (f) is harvest-ready for TODO_LIST.md via docs-health HARVEST — not yet harvested per this prompt's "report only" instruction. THEN WAITING FOR INSTRUCTIONS._

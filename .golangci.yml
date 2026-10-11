@@ -73,6 +73,7 @@ linters:
     - intrange
     - iotamixing
     - ireturn
+    - lll
     - loggercheck
     - maintidx
     - makezero
@@ -827,13 +828,15 @@ linters:
       - metaengine/sqliteengine/
       - storage/view/
       - vendor/
-# Formatters intentionally EMPTY (contract: flake.nix treefmt owns ALL
-# formatting — goimports -local + gofumpt + golines via `nix fmt`; gci was
-# removed 2026-08-16 because two tools fighting over import blocks re-broke
-# 95+ files). golangci-lint-auto-configure re-adding this block is the
-# documented oscillation engine — do not accept that rewrite.
 formatters:
-  enable: []
+  enable:
+    - gci
+    - goimports
+    - gofumpt
+    - golines
+  settings:
+    golines:
+      max-len: 120
   exclusions:
     generated: lax
     paths:

@@ -44,7 +44,7 @@
 ## d) TOTALLY FUCKED UP
 
 1. **The fork question never reached the user** — my `question` tool call omitted the required `type` field and errored out; the user answered implicitly by redirecting to dedup. A major direction decision was left dangling and is still unanswered (see questions).
-2. **GOWORK=off false-alarm cycle** — built consumer modules in isolation mode against the *published* non-generic dedup, got "not a generic type" failures, and only then remembered the repo's own gowork decision table (`docs/agents/gowork-modes.md` — which I never loaded). In-flight cross-module work verifies in workspace mode; I burned a cycle rediscovering a documented fact.
+2. **GOWORK=off false-alarm cycle** — built consumer modules in isolation mode against the _published_ non-generic dedup, got "not a generic type" failures, and only then remembered the repo's own gowork decision table (`docs/agents/gowork-modes.md` — which I never loaded). In-flight cross-module work verifies in workspace mode; I burned a cycle rediscovering a documented fact.
 3. **"Fleet verified: 5 repos" framing** — my initial claim omitted the two MOST important companions (cqrs-htmx, go-appkit). The ~/projects-wide grep did cover them (zero matches — claim holds), but I reported the evidence before explicitly checking the highest-stakes consumers. Verification-before-claiming discipline slipped exactly where blast radius mattered most.
 4. **First suppression experiment deployed a suppress-all footgun** — my nolint-form test was fine, but I nearly mass-deployed `//branching-flow:ignore strong-id <reason>` variants that would have degraded to **suppress-ALL** (any trailing text after the type invalidates it). Caught during format-parsing research, but the safe form should have been read from the tool source BEFORE editing a repo file.
 5. **Plan churn visible to the user** — suppress-carpet → challenge → retreat → dedup lesson → generics. The retreat was correct, but a tighter sequence (tool mechanics fully read before triage; Pareto fixes first) would have avoided the embarrassing middle.
@@ -62,6 +62,7 @@
 ## f) NEXT 50 (prioritized groups)
 
 **Immediate verification debt (dedup change):**
+
 1. Run full `nix run .#verify` over the generics change.
 2. Run `./scripts/benchmark-regression.sh` (ring benchmarks — generics shape-stenciling check on hot paths).
 3. Run `-race` on projectionhost + transport/http (ring callers under handleMu/broker concurrency).
@@ -133,4 +134,4 @@
 
 ---
 
-*Report generated from session state only; no external research. Ephemeral triage artifacts (/tmp/strongid_findings.tsv, /tmp/strongid_digest.txt) are not persisted — item 31/49 covers their substance.*
+_Report generated from session state only; no external research. Ephemeral triage artifacts (/tmp/strongid_findings.tsv, /tmp/strongid_digest.txt) are not persisted — item 31/49 covers their substance._
