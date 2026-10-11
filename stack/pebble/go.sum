@@ -114,8 +114,8 @@ github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2 h1:h7624nwPbDVqIpCX
 github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2/go.mod h1:yl5xmDZ2IbDv6WkBMzbeJ8mNenfWRpXpImfj1gTTTus=
 github.com/larsartmann/go-cqrs-lite/storage/pebble/v4 v4.4.4 h1:fVo8JKYBQTPyqXggDAiPhuDFpZXu5GGHVVTNGJ2A0OI=
 github.com/larsartmann/go-cqrs-lite/storage/pebble/v4 v4.4.4/go.mod h1:GQiqtAcckOsXsk/7P8njggnpj6bTEt9gCKOKlVmRsV0=
-github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.5 h1:31qbWhY2xiKCtFKuzJo1VJKdAl7LV9wxIOIbdA74uDk=
-github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.5/go.mod h1:cv6+mNdXYgnTUwWUwJ/U8VxZ6IyxipCS5w+i7tIC/Rg=
+github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.7.0 h1:iVMpCZnjhIK+P2uwUwbDW/gOB7vnnyMPPd6Q7rB1nZo=
+github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.7.0/go.mod h1:02FR0CDEWBlmg6KBOl3rwH6qF7DpJ2SmDoIrchBUymY=
 github.com/larsartmann/go-error-family v0.11.0 h1:xqXLKrTMznStmHUapxd/6Fj5/878sb4SIZiy4JvCItQ=
 github.com/larsartmann/go-error-family v0.11.0/go.mod h1:CAzjAVWjAFDUXEaaRqIgjW28i/NrQ07OsE9Dffhx29c=
 github.com/larsartmann/go-flightrecorder v0.2.1 h1:46haKa+T3R8HmtEfVIvF4j6ri8N8qn6H94AFKFMdkE8=
