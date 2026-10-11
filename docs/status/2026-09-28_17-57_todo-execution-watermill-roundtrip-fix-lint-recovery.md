@@ -1,5 +1,10 @@
 # TODO-Execution Session: publish-integrity rows, wave-completion discovery, watermill roundtrip fix, lint recovery
 
+> **RESOLVED-BY-ROUTING (docs-health 13th pass, 2026-10-11):** every §f item
+> struck with its landing receipt or routed; §g answered inline. Successor
+> sessions (09-29_01-27 → 10-01) closed the lint tail, the re-tags, and the
+> release-tooling work this session queued.
+
 > **Session:** 2026-09-28 16:16–17:57 CEST · **Scope:** actionable unblocked TODO_LIST rows + the 🔥 dedup-campaign verification tail · **Source plan:** TODO_LIST.md (living source) · **Tree state at close:** clean (daemon-absorbed)
 
 ---
@@ -56,25 +61,25 @@
 
 ## f) NEXT TASKS (ordered)
 
-1. Move the two G703 nolints onto the sink lines (`os.MkdirAll(contractDir, dirPerm)` / `os.WriteFile(`) in `catalog/cmd/ec-fixture/main.go`; `nix fmt`; module-level lint → green.
-2. Resolve the `cmd/cqrs-lint` dupl finding (`catalog_adoption.go` vs `catalog_boilerplate.go`) — accept-directive with rationale or scoped exclusion; re-pin if the golden shifts.
-3. `nix run .#lint` → fully green.
-4. Run touched-module tests: `GOWORK=off go test ./...` in scenario, scheduling/sqlstore, storage, middleware, benchkit, metaengine, projectionhost, systemtest, catalog.
-5. Composed `#verify` when `can-run-composed-gate` passes (load1 < 5): `bash scripts/preflight-composed.sh && nix run .#can-run-composed-gate -- --wait-loop && nix run .#verify` — closes dedup slice (a) AND the CI "Composed #verify re-record" row in one run.
-6. Quiet-window mysql legs: `#integration-mysql-vm` (cowLookup) + the shuffled-suite seed replay (`build/shuffle-seeds.log`).
-7. Update the TODO_LIST dedup-campaign row with dated receipts: (b) lint 16/20→finish, (c)(d)(e)(f) green, (a) pending verify; strike completed sub-parts.
-8. Update the CI "Composed #verify re-record" row with the run receipt.
-9. AGENTS.md: add the config-war trio-preflight rule (or a TODO row if it needs owner sign-off).
-10. `watermill/v4.6.2` re-tag — owner timing call (row exists; consumers on v4.6.1+event/v4.12.0 ship corrupted bridge payloads today).
-11. CHANGELOG wave-section cut for the completed 7-tag wave (owner mechanics; receipt updated).
-12. `tursoengine/v4.2.1` clean re-cut (existing owner row).
-13. Sweep other bridges for named-byte-type payloads into `event.New`/`command`/`query` constructors (the silent-corruption class).
-14. Trash the stray `event/event.test` binary.
-15. Consider the cqrs-lint rule / FAQ entry for named-byte types (see e)4).
+1. ~~Move the two G703 nolints onto the sink lines (`os.MkdirAll(contractDir, dirPerm)` / `os.WriteFile(`) in `catalog/cmd/ec-fixture/main.go`; `nix fmt`; module-level lint → green.~~ done 09-29 — nolints moved to the sink lines (with the golines-relocation trap documented), module lint green (09-29_01-27 §a-M01)
+2. ~~Resolve the `cmd/cqrs-lint` dupl finding (`catalog_adoption.go` vs `catalog_boilerplate.go`) — accept-directive with rationale or scoped exclusion; re-pin if the golden shifts.~~ done 09-29 — `//nolint:dupl` needed on BOTH files' line 1 (finding flips sides after one fix); lint 88/88 (09-29_01-27 §a-M01)
+3. ~~`nix run .#lint` → fully green.~~ done 09-29 — full lint 88/88 modules clean (09-29_01-27 §a-M01); final 8 real findings fixed + green again 09-29 09:15
+4. ~~Run touched-module tests: `GOWORK=off go test ./...` in scenario, scheduling/sqlstore, storage, middleware, benchkit, metaengine, projectionhost, systemtest, catalog.~~ done 09-29 — 9 lint-touched module quick tests green (09-29_01-27 §a-M01); full suites via later gates
+5. ~~Composed `#verify` when `can-run-composed-gate` passes (load1 < 5): `bash scripts/preflight-composed.sh && nix run .#can-run-composed-gate -- --wait-loop && nix run .#verify` — closes dedup slice (a) AND the CI "Composed #verify re-record" row in one run.~~ routed — still open at 10-11: load never dropped below ~10 in any session since; TODO_LIST §CI rows carry the recipe
+6. ~~Quiet-window mysql legs: `#integration-mysql-vm` (cowLookup) + the shuffled-suite seed replay (`build/shuffle-seeds.log`).~~ routed — M5 quiet-window row, still open at 10-11 (load-gated)
+7. ~~Update the TODO_LIST dedup-campaign row with dated receipts: (b) lint 16/20→finish, (c)(d)(e)(f) green, (a) pending verify; strike completed sub-parts.~~ done 09-29 — row rewritten with (b)(c)(d-pg/dgraph/redis)(e)(f) struck, (a) composed-verify remaining (09-29_01-27 §a-M02)
+8. ~~Update the CI "Composed #verify re-record" row with the run receipt.~~ routed — pre-run obligations receipt added 09-29 (STATE 2026-09-29); the run itself still load-blocked at 10-11
+9. ~~AGENTS.md: add the config-war trio-preflight rule (or a TODO row if it needs owner sign-off).~~ done 09-29 — the tripwire trio proven structural in `#verify`+`#verify-fast` since 2026-09-06 and mutation-verified 09-29 (09-29_01-27 §a-M06); AGENTS gotcha entries written (§a-M02)
+10. ~~`watermill/v4.6.2` re-tag — owner timing call (row exists; consumers on v4.6.1+event/v4.12.0 ship corrupted bridge payloads today).~~ done 09-29 — tagged/pushed/proxy-served attempt 2 after the ambient-env diagnosis; pin-sweep bumped stack presets (09-29_01-27 §a-M03)
+11. ~~CHANGELOG wave-section cut for the completed 7-tag wave (owner mechanics; receipt updated).~~ done 09-29 — `## [7-tag wave] — 2026-09-28` section cut + watermill/v4.6.2 section, authored `1962b83fd` (09-29_01-27 §a-M07)
+12. ~~`tursoengine/v4.2.1` clean re-cut (existing owner row).~~ done 09-29 — three attempts (zip-guard binary drop → daemon HEAD race → clean cut); `@latest` resolves v4.2.1 (09-29_01-27 §a-M07)
+13. ~~Sweep other bridges for named-byte-type payloads into `event.New`/`command`/`query` constructors (the silent-corruption class).~~ done 09-29 — repo-wide sweep clean (gRPC getters plain `[]byte`, no `json.RawMessage` at constructors, the three named types never reach `event.New`); FAQ entry added (09-29_01-27 §a-M08)
+14. ~~Trash the stray `event/event.test` binary.~~ done 10-11 — 13th pass trashed it (gitignored build artifact, confirmed absent)
+15. ~~Consider the cqrs-lint rule / FAQ entry for named-byte types (see e)4).~~ done — FAQ entry 09-29 (01-27 §a-M08); the rule shipped 10-01 as C043 (6 tests, FP-clean; 10-01_09-56 §a)
 16. Then: resume the TODO_LIST's own priority order — M5+M20 quiet-window campaign, M22 owner Q3, the catalog tag wave (owner go-ahead), `batch-release.sh --from-manifest` usage in the next wave (the run log will now carry the forensics).
 
 ## g) QUESTIONS (≤3)
 
-1. **watermill/v4.6.2:** cut immediately (consumer-impacting: v4.6.1 + event/v4.12.0 corrupts every bridged event payload) or batch with the next wave?
-2. **Config-war tripwires:** promote `check-formatters` + `check-depguard` + `check-golangci-hash` into `#verify-fast` so daemon `.golangci.yml` rewrites are caught within minutes instead of days? (My recommendation: yes.)
-3. **Composed #verify:** keep polling for a quiet window in this session's tail and run it (long, exclusive), or hand it to a dedicated quiet-window session (the `--wait-loop` recipe is queued either way)?
+1. ~~**watermill/v4.6.2:** cut immediately (consumer-impacting: v4.6.1 + event/v4.12.0 corrupts every bridged event payload) or batch with the next wave?~~ ANSWERED by action 09-29 — cut immediately (M03, §a); later superseded by v4.6.3 (2026-10-03, carries the #21 scalar-causation fix)
+2. ~~**Config-war tripwires:** promote `check-formatters` + `check-depguard` + `check-golangci-hash` into `#verify-fast` so daemon `.golangci.yml` rewrites are caught within minutes instead of days? (My recommendation: yes.)~~ ANSWERED 09-29 — already structural: the trio's gates (`#check-lint-config`) have run inside BOTH `#verify` and `#verify-fast` since 2026-09-06; mutation-proven 09-29 (01-27 §a-M06)
+3. ~~**Composed #verify:** keep polling for a quiet window in this session's tail and run it (long, exclusive), or hand it to a dedicated quiet-window session (the `--wait-loop` recipe is queued either way)?~~ still open at 10-11 — every subsequent session stayed load-blocked; recipe queued in TODO_LIST §CI
