@@ -16,7 +16,7 @@ func renderDoctorFeatureProfile(w io.Writer, actx *analyzer.AnalysisContext) {
 	_, _ = fmt.Fprintln(w, "FEATURE PROFILE")
 	_, _ = fmt.Fprintln(w, "───────────────")
 	_, _ = fmt.Fprintln(w)
-	_, _ = fmt.Fprint(w, profile)
+	_, _ = fmt.Fprint(w, &profile)
 	_, _ = fmt.Fprintln(w)
 
 	// Show config overrides if any features were explicitly pinned
@@ -90,7 +90,7 @@ func renderDoctorPerModuleProfiles(w io.Writer, actx *analyzer.AnalysisContext) 
 		}
 
 		_, _ = fmt.Fprintf(w, "=== %s ===\n", rel)
-		_, _ = fmt.Fprint(w, m.profile)
+		_, _ = fmt.Fprint(w, &m.profile)
 		_, _ = fmt.Fprintln(w)
 	}
 }

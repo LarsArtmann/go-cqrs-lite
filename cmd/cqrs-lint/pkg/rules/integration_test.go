@@ -60,7 +60,10 @@ func TestIntegration_Taskmanager(t *testing.T) {
 // lost detection, count drift) is caught as a test failure.
 // Update with CQRS_LINT_UPDATE_GOLDEN=1 go test -run TestIntegration_TaskmanagerExpectedFindings ./pkg/rules/.
 var taskmanagerGoldenProfile = map[string]int{
-	"A032": 5,
+	// A032: 2 since the 2026-10-11 waves — taskmanager modernized at its
+	// boundaries (NewAssigneeID in http.go, branching-flow:ignore on the
+	// AssignmentJob wire form), so three plain-string fields became branded.
+	"A032": 2,
 	"B004": 1,
 	"B005": 1,
 	"C009": 4,

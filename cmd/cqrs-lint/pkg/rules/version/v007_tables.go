@@ -74,16 +74,8 @@ var deprecatedV5Symbols = []deprecatedV5Symbol{ //nolint:gochecknoglobals // sta
 	},
 	// 2026-09-16: marked Deprecated in-source (removal at v5); keep the
 	// curated table and the markers in lockstep — V007 is table-driven.
-	{
-		fragment:    "metaengine",
-		symbol:      "On",
-		replacement: "metaengine fold DSL OnRecord",
-	},
-	{
-		fragment:    "metaengine",
-		symbol:      "OnTyped",
-		replacement: "metaengine fold DSL OnRecordTyped",
-	},
+	{fragment: "metaengine", symbol: "On", replacement: "metaengine fold DSL OnRecord"},
+	{fragment: "metaengine", symbol: "OnTyped", replacement: "metaengine fold DSL OnRecordTyped"},
 	{
 		fragment:    "metaengine",
 		symbol:      "Infer",

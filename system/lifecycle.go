@@ -1,6 +1,10 @@
 package system
 
 import (
+	"context"
+	"errors"
+	"fmt"
+
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4"
 	"github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4"
@@ -66,4 +70,99 @@ func WithCommandLifecycle(
 		AttemptMiddleware: attempt,
 		Projections:       projs,
 	}
+}
+
+// Close shuts down all owned infrastructure: managed timers (stopped and
+// waited), projection host, engines, stores. All close errors are joined and
+// returned (not just the first), matching [stack.Bundle.Close] behavior.
+func (s *System) Close() error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if s.stopped {
+		return nil
+	}
+
+	s.stopped = true
+
+	// Stop managed timers BEFORE any teardown: scheduler dispatch must not
+	// race the engines and buses being closed underneath it. GracefulClose
+	// already stopped them (Phase 0); stopTimersLocked is idempotent.
+	s.stopTimersLocked()
+
+	var errs []error
+
+	if s.projHost != nil {
+		if err := s.projHost.Stop(); err != nil {
+			errs = append(errs, fmt.Errorf("system: stop projection host: %w", err))
+		}
+	}
+
+	for _, eng := range s.orderedEngines() {
+		if err := eng.Close(); err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	// Close external resources registered via RegisterCloser (after engines).
+	for _, nc := range s.closers {
+		if err := nc.closer.Close(); err != nil {
+			errs = append(errs, fmt.Errorf("system: close %s: %w", nc.name, err))
+		}
+	}
+
+	return errors.Join(errs...)
+}
+
+// GracefulClose drains in-flight work via any registered [Drainer] resources,
+// then calls [Close] with a context-bounded timeout. It returns when Close
+// finishes or the context is cancelled, whichever comes first. If the context
+// expires during draining, Close is still attempted; if it expires during
+// Close, resources may still be closing in the background.
+//
+// Use this instead of [Close] when you need a shutdown deadline (e.g., a
+// Kubernetes SIGTERM grace period).
+func (s *System) GracefulClose(ctx context.Context) error {
+	// Phase 0: stop managed timers (scheduler dispatch must not race the
+	// drain/close phases).
+	s.stopTimers()
+
+	// Phase 1: drain in-flight work.
+	if err := s.drainAll(ctx); err != nil {
+		return fmt.Errorf("system: graceful drain: %w", err)
+	}
+
+	// Phase 2: close with context race.
+	done := make(chan error, 1)
+
+	go func() { done <- s.Close() }()
+
+	select {
+	case err := <-done:
+		// A pre-expired context must win deterministically over an
+		// instantaneous Close: select's uniform choice between two ready
+		// cases would otherwise flake (observed under parallel test load).
+		if cerr := ctx.Err(); cerr != nil {
+			return fmt.Errorf("system: graceful close: %w", cerr)
+		}
+
+		return err
+	case <-ctx.Done():
+		return fmt.Errorf("system: graceful close: %w", ctx.Err())
+	}
+}
+
+// ResetProjection resets a projection's checkpoint and read-model state so it
+// replays from the beginning on the next Start. The projection host must be
+// stopped before calling this method (projectionhost.Host.Reset returns an
+// error if the host is running).
+//
+// The projection must implement [projectionhost.Resettable] for its read-model
+// state to be cleared. The checkpoint is always reset regardless.
+func (s *System) ResetProjection(ctx context.Context, name string) error {
+	if s.projHost == nil {
+		return ErrNoProjectionHost
+	}
+
+	return s.projHost.Reset(ctx, name)
 }

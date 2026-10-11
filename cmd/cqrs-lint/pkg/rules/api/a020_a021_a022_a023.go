@@ -339,19 +339,3 @@ func NewA023Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 		},
 	)
 }
-
-// projectImportsCQRS returns true if any non-test file in the project imports
-// a go-cqrs-lite module. Used by project-level rules to gate detection.
-func projectImportsCQRS(ctx *analyzer.AnalysisContext) bool {
-	for _, gf := range ctx.GoFiles {
-		if gf.IsTest {
-			continue
-		}
-
-		if lintutil.FileImportsCQRS(gf.AST) {
-			return true
-		}
-	}
-
-	return false
-}

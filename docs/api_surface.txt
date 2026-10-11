@@ -689,6 +689,7 @@ cmd/cqrs-lint/pkg/analyzer/type StoreKind
 cmd/cqrs-lint/pkg/analyzer/type TracingKind
 cmd/cqrs-lint/pkg/analyzer/type UsageStatus
 cmd/cqrs-lint/pkg/analyzer/var DefaultCatalog
+cmd/cqrs-lint/pkg/analyzer/var ErrScorecardWaiver
 cmd/cqrs-lint/pkg/analyzer/var PresetDefinitions
 cmd/cqrs-lint/pkg/fix/func NewCQRSFixProvider
 cmd/cqrs-lint/pkg/fix/method CanHandle
