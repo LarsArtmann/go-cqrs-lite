@@ -49,7 +49,7 @@ func NewRing(capacity int) *Ring {
 // is a no-op, matching Has/Len/Capacity nil-safety so the documented
 // "use a nil *Ring when no replay occurred" pattern cannot panic on the
 // Add side of a Has-then-Add boundary loop.
-func (r *Ring) Add(id string) {
+func (r *Ring) Add(id string) { //nolint:branching-flow // :strong-id type-agnostic replay ring: dedup is a zero-dep Tier-0 module and stores any caller ID kind
 	if r == nil {
 		return
 	}
@@ -71,7 +71,7 @@ func (r *Ring) Add(id string) {
 
 // Has reports whether the ID is currently in the ring. A nil receiver always
 // returns false, so callers can use a nil *Ring when no replay occurred.
-func (r *Ring) Has(id string) bool {
+func (r *Ring) Has(id string) bool { //nolint:branching-flow // :strong-id type-agnostic replay ring: dedup is a zero-dep Tier-0 module and stores any caller ID kind
 	if r == nil {
 		return false
 	}
