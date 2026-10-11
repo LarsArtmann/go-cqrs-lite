@@ -27,6 +27,8 @@ type CommonMetadata struct {
 	// CorrelationID links a chain of related records across the system.
 	// A user action that triggers a command, which emits events, which trigger
 	// sagas that emit more commands — all share one CorrelationID.
+	// v4 metadata contract — plain string by design; superseded structurally at v5.
+	//branching-flow:ignore strong-id
 	CorrelationID string
 
 	// CausationID identifies what caused this record: a command ID, a timer
@@ -36,6 +38,8 @@ type CommonMetadata struct {
 	// Deprecated: removed in v5. Use Cause, which records the causer's kind
 	// explicitly instead of leaving it implied. The AsRecord bridges populate
 	// both fields until the v5 cut.
+	// v4 metadata contract — plain string by design; superseded structurally at v5.
+	//branching-flow:ignore strong-id
 	CausationID string
 
 	// Cause identifies what produced this record — a command, a timer, an
@@ -52,6 +56,8 @@ type CommonMetadata struct {
 	// Deprecated: removed in v5. Use Actor, which carries the
 	// kind-discriminated union structurally. The AsRecord bridges populate
 	// both fields until the v5 cut.
+	// v4 metadata contract — plain string by design; superseded structurally at v5.
+	//branching-flow:ignore strong-id
 	ActorID string
 
 	// Actor identifies who or what produced this record — user, bot, system,

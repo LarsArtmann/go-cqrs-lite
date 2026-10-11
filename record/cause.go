@@ -62,6 +62,8 @@ type Cause struct {
 
 	// ID is the causer's identifier: command ID, timer ID, or event ID.
 	// Empty when Kind is CauseNone.
+	// v4 metadata contract — plain string by design; superseded structurally at v5.
+	//branching-flow:ignore strong-id
 	ID string
 }
 
