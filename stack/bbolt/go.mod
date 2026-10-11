@@ -23,7 +23,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.13.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.7.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.2 // indirect
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.13.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.14.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.3.4 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3 // indirect
@@ -41,7 +41,6 @@ require (
 	github.com/redis/go-redis/v9 v9.23.0 // indirect
 	github.com/sony/gobreaker v1.0.0 // indirect
 	github.com/stretchr/testify v1.12.1 // indirect
-	github.com/tidwall/gjson v1.20.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/otel v1.47.0 // indirect
@@ -53,9 +52,6 @@ require (
 	go.opentelemetry.io/otel/trace v1.47.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/crypto v0.58.0 // indirect
-	golang.org/x/mod v0.42.0 // indirect
-	golang.org/x/net v0.61.0 // indirect
 	golang.org/x/sync v0.24.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
-	golang.org/x/text v0.43.0 // indirect
 )

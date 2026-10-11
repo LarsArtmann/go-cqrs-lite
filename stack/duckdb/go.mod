@@ -40,7 +40,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.13.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.7.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.2 // indirect
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.13.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.14.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.4.4 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3 // indirect
@@ -78,11 +78,8 @@ require (
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/crypto v0.58.0 // indirect
 	golang.org/x/exp v0.0.0-20261009195045-ca0d7ba23607 // indirect
-	golang.org/x/mod v0.42.0 // indirect
-	golang.org/x/net v0.61.0 // indirect
 	golang.org/x/sync v0.24.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
-	golang.org/x/text v0.43.0 // indirect
 	modernc.org/libc v1.77.1 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
