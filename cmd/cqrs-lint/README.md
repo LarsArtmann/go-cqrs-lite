@@ -377,7 +377,7 @@ catalog severity — nothing silently demotes to `info`).
 
 ## Rule Count
 
-**212 rules** across 10 categories: correctness (43), API misuse (32), boilerplate (31), consistency (18), architecture (22), security (10), performance (10), version (7), testing (8), adoption (31).
+**213 rules** across 10 categories: correctness (43), API misuse (32), boilerplate (31), consistency (18), architecture (22), security (10), performance (11), version (7), testing (8), adoption (31).
 
 The tables below are curated highlights. The complete, generated catalog —
 every rule with severity, confidence, auto-fix support, and doc links — lives
@@ -539,6 +539,7 @@ are not detectors; listing one in `rules.disable` is a silent no-op.
 | P008 | projectionhost-no-batchsize | Info     | projectionhost.New without WithBatchSize — throughput bottleneck on large streams |
 | P009 | json-codec-large-payloads   | Info     | Large event payload using JSON codec — CBOR is ~35% smaller                       |
 | P010 | no-snapshot-large-aggregate | Warning  | Collection-type state without snapshot strategy or cache — expensive reloads      |
+| P015 | journal-readall-in-query-handler | Warning  | journal.ReadAll reachable from a query handler — folds the entire journal per query (O(journal) on the request path) |
 | P006 | polling-loop-short-interval | Info     | time.Sleep <100ms inside a for-loop — busy-poll pattern                           |
 
 ## Version Rules

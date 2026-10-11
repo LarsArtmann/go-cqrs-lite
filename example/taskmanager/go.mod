@@ -15,7 +15,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.7.2
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.2
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.4.2
-	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.5.3
+	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.6.0
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1
 	github.com/larsartmann/go-cqrs-lite/queue/sqlite/v4 v4.0.3
 	github.com/larsartmann/go-cqrs-lite/queue/v4 v4.0.3

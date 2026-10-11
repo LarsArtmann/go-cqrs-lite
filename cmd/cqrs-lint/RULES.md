@@ -10,7 +10,7 @@ Detectors per category (severities: `error` blocks CI, `warning` reports, `info`
 | [Correctness](#correctness) | 43 | C001–C043 |
 | [API](#api) | 32 | A001–A034 |
 | [Boilerplate](#boilerplate) | 31 | B001–B031 |
-| [Performance](#performance) | 10 | P001–P014 |
+| [Performance](#performance) | 11 | P001–P015 |
 | [Consistency](#consistency) | 18 | D001–D019 |
 | [Architecture](#architecture) | 22 | E001–E022 |
 | [Security](#security) | 10 | S001–S011 |
@@ -956,6 +956,14 @@ SQLite store without busy_timeout — 'database is locked' errors under concurre
 Severity: `info` · Confidence: `medium` · Auto-fix: no · Category: `performance`
 
 ApplyLayout on an engine that also implements ApplyLayoutPlan — bypasses type-derived layout planning; build a LayoutPlan from the read-model type instead (typed-info tier only)
+
+<a id="p015"></a>
+
+#### P015 — `journal-readall-in-query-handler`
+
+Severity: `warning` · Confidence: `medium` · Auto-fix: no · Category: `performance`
+
+journal.ReadAll reachable from a query handler — folds the entire journal per query (O(journal) on the request path)
 
 
 ## Consistency
