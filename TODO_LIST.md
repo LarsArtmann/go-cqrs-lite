@@ -39,7 +39,15 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 > [`docs/planning/2026-10-03_17-20_SUPERB-full-todo-pareto-plan.html`](docs/planning/2026-10-03_17-20_SUPERB-full-todo-pareto-plan.html)
 > (full-list Pareto master plan: 27 medium tasks / 118 fine tasks over all 112
 > open rows + 9 open issues; truth-strike + #49/#50/#51 triage executed same
-> day; §07 = the 28-ruling owner decision bundle). **Current plan (2026-10-08
+> day; §07 = the 28-ruling owner decision bundle). **Current plan (2026-10-11 20:16):**
+> [`docs/planning/2026-10-11_20-16_SUPERB-trust-green-tags-to-v5-cut-pareto-plan.md`](docs/planning/2026-10-11_20-16_SUPERB-trust-green-tags-to-v5-cut-pareto-plan.md)
+> (Pareto over all 126 open rows: the 1% = changed-set trust green + the
+> system/systemscenario/schema tag waves; the 4% = consumer bugs #62/#63/#64 +
+> RULED cqrs-lint fixes + v5 deletion cascade slices; the 20% = compound-cursor
+> issuance, idempotency ADR, harness depth, quiet-window proof batch; 27 medium
+> tasks / 150 fine tasks with a mermaid execution graph. Supersedes the
+> sequencing (not the content) of the plans below; the v5-cut-readiness
+> checklist remains the cut-order authority.) **Current plan (2026-10-08
 > 14:59):**
 > [`docs/planning/2026-10-08_14-59_SUPERB-v5-goal-pareto-plan.html`](docs/planning/2026-10-08_14-59_SUPERB-v5-goal-pareto-plan.html)
 > (v5-GOAL Pareto plan: 27 medium tasks / 150 fine tasks ≤12 min over ALL 109
