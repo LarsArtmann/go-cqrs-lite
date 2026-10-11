@@ -824,9 +824,11 @@
             # Run via: nix flake check (Linux) or nix build .#checks.x86_64-linux.postgres-vm
             postgres-vm = pgServiceTest;
             mysql-vm = mysqlServiceTest;
-            # nspawn variant — ~10x faster, requires uid-range system feature.
-            # Run: nix build .#checks.x86_64-linux.mysql-nspawn -L
-            mysql-nspawn = mysqlNspawnTest;
+            # nspawn variant intentionally NOT a check: it needs the uid-range
+            # system feature (opt-in via scripts/enable-nspawn-support.sh) and
+            # failed every `nix flake check`/BuildFlow run on hosts without it.
+            # mysql-vm covers the same health test portably; the
+            # `nix run .#integration-mysql-nspawn` app (QEMU fallback) remains.
             # DuckDB columnar engine health (embedded, no server needed).
             duckdb-vm = duckdbTest;
             # Turso libSQL server health (remote sync path).
@@ -1778,9 +1780,8 @@
                   export CGO_ENABLED=1
                   echo "=== Postgres VM Check ==="
                   nix build .#checks.x86_64-linux.postgres-vm -L
-                  echo "=== MySQL Check (nspawn preferred, QEMU fallback) ==="
-                  nix build .#checks.x86_64-linux.mysql-nspawn -L 2>/dev/null \
-                    || nix build .#checks.x86_64-linux.mysql-vm -L
+                  echo "=== MySQL VM Check ==="
+                  nix build .#checks.x86_64-linux.mysql-vm -L
                   echo "=== Ephemeral PG Integration Tests ==="
                   bash "$PWD/scripts/ephemeral-pg.sh" -short
                   echo "✅ All integration checks passed"

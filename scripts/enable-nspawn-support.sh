@@ -3,7 +3,7 @@
 # support for NixOS test driver on this host.
 #
 # Adds `uid-range` to system-features and enables `auto-allocate-uids` so that
-# `nix build .#checks.x86_64-linux.mysql-nspawn` works (~10x faster MySQL test).
+# `nix run .#integration-mysql-nspawn` uses the nspawn path (~10x faster MySQL test).
 #
 # MUST be run as root: sudo bash scripts/enable-nspawn-support.sh
 #
@@ -23,7 +23,7 @@ MODULE_FILE="/etc/nixos/nspawn-support.nix"
 
 cat >"$MODULE_FILE" <<'EOF'
 # nspawn-support.nix — Enable systemd-nspawn container tests for the NixOS
-# test driver. Required by: nix build .#checks.x86_64-linux.mysql-nspawn
+# test driver. Required by: the nspawn path of nix run .#integration-mysql-nspawn
 #
 # These settings allow the Nix daemon to allocate UID ranges for build
 # processes that use systemd-nspawn (PID namespace isolation). Without them,
@@ -80,5 +80,5 @@ fi
 
 echo ""
 echo "==> Done! You can now run:"
-echo "    nix build .#checks.x86_64-linux.mysql-nspawn -L"
+echo "    nix run .#integration-mysql-nspawn"
 echo "    sudo nix run .#integration-mysql-nspawn"
