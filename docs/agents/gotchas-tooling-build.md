@@ -265,4 +265,3 @@ Two micro-disciplines that each cost a failed edit this stream:
   `scripts/md-go-baseline.txt`. The same gate covers `.agents/skills/**`
   markdown now — recipe fences added there must parse (or be classified as
   skips in the recipes catalog).
-
