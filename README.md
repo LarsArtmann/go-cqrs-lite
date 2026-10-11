@@ -261,7 +261,7 @@ Modules release on independent per-module version trains (`<module>/vX.Y.Z` git 
 | deriver                        | `deriver/v4.4.0`                                                  |
 | dispatcher                     | `dispatcher/v4.5.2`                                               |
 | encryption                     | `encryption/v4.4.4`                                               |
-| event                          | `event/v4.13.1`                                                   |
+| event                          | `event/v4.14.0`                                                   |
 | event/v3/eventtest             | `event/v3/eventtest/v3.7.4`                                       |
 | event/v4/eventtest             | `event/v4/eventtest/v0.4.0`                                       |
 | example/getting-started        | `example/getting-started/v4.1.0` _(untagged per ADR-0152)_        |
