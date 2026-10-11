@@ -96,9 +96,7 @@ func TestIdempotencyTracker_ConcurrentExactlyOnce(t *testing.T) {
 	var wg sync.WaitGroup
 
 	for range workers {
-
 		wg.Go(func() {
-
 			local := make([]int32, ids)
 
 			for range rounds {

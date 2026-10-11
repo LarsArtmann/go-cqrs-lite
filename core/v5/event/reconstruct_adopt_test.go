@@ -100,9 +100,7 @@ func TestReconstructEventWithAdoptedPayload_ConcurrentReads(t *testing.T) {
 	var wg sync.WaitGroup
 
 	for range 8 {
-
 		wg.Go(func() {
-
 			for range 100 {
 				if string(adopted.Payload()) == "" {
 					t.Error("empty payload read")

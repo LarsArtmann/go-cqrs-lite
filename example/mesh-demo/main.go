@@ -89,8 +89,14 @@ func runDemo() error {
 
 	orderID := NewOrderID(rawOrderID)
 
-	events, err := decideInto(nil, initialOrderState(), foldOrder,
-		placeOrder(PlaceOrderCmd{OrderID: orderID, CustomerID: NewCustomerID("cust-7"), TotalCents: 9900}))
+	events, err := decideInto(
+		nil,
+		initialOrderState(),
+		foldOrder,
+		placeOrder(
+			PlaceOrderCmd{OrderID: orderID, CustomerID: NewCustomerID("cust-7"), TotalCents: 9900},
+		),
+	)
 	if err != nil {
 		return err
 	}

@@ -326,7 +326,6 @@ func TestDemoteEngine_ConcurrentExactlyOnce(t *testing.T) {
 	}
 
 	demot.Go(func() {
-
 		if err := store.DemoteEngine(ctx, "items", WithDemoteForce()); err != nil {
 			t.Errorf("demote: %v", err)
 		}

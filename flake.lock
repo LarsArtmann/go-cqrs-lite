@@ -57,11 +57,11 @@
     "go-branded-id": {
       "flake": false,
       "locked": {
-        "lastModified": 1791549805,
-        "narHash": "sha256-1NJJCPrLw9bhUuwtEqXJ5YXAXoiZR29DwLvPiafIplU=",
+        "lastModified": 1791706742,
+        "narHash": "sha256-WPMHxrOlQwvbzvcQMrKW1SXE2ORR3kM/r6hcOkecm+o=",
         "owner": "LarsArtmann",
         "repo": "go-branded-id",
-        "rev": "484e22f6562db8c5f4b69e05fef5884719efc194",
+        "rev": "4d9b0c158d66ab608e38397efa0195652509f7cd",
         "type": "github"
       },
       "original": {
@@ -91,11 +91,11 @@
     "go-finding": {
       "flake": false,
       "locked": {
-        "lastModified": 1791206617,
-        "narHash": "sha256-Jt0dSiuFoiG07P/Q1NhjgVNufM7oitt3O5vSMGA+hdA=",
+        "lastModified": 1791708941,
+        "narHash": "sha256-b9ThCzKWeb9k999Rba24JXx0hpcTzHNDQTzjJrUirsI=",
         "owner": "LarsArtmann",
         "repo": "go-finding",
-        "rev": "576c7384cfb93ce0b4c04d6998586ed04216d99d",
+        "rev": "9c675c77bc37a1c8fdd4adc2172ba3af4f712686",
         "type": "github"
       },
       "original": {

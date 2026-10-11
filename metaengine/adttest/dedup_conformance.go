@@ -122,9 +122,7 @@ func AssertDedupStore(t *testing.T, factories []Factory) {
 				trues := make(chan bool, racers)
 
 				for range racers {
-
 					wg.Go(func() {
-
 						// Retry transient infra failures (e.g. one reset
 						// connection through a VM port-forward): an attempt that
 						// failed after committing surfaces as seen=true on the

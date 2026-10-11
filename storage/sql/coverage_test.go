@@ -111,7 +111,8 @@ func TestMarshalMetadata_ActorRoundtrip(t *testing.T) {
 	actor := id.NewUserActor(id.NewUserID())
 	m := event.Metadata{
 		ActorID:       actor,
-		CorrelationID: id.NewCorrelationID()}
+		CorrelationID: id.NewCorrelationID(),
+	}
 
 	data, err := sqlpkg.MarshalMetadata(m)
 	if err != nil {

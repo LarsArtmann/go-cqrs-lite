@@ -65,9 +65,7 @@ func TestCachedEventStore_ConcurrentLoadSaveNeverServesPreSaveSnapshot(t *testin
 	readerErr := make(chan error, 8)
 
 	for range 4 {
-
 		readerWG.Go(func() {
-
 			for {
 				select {
 				case <-stop:

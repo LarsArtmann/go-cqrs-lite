@@ -812,9 +812,7 @@ func TestPrefetchCache_ConcurrentAccess(t *testing.T) {
 
 	// Writers: hammer Put from multiple goroutines.
 	for range 8 {
-
 		wg.Go(func() {
-
 			for i := range 500 {
 				cache.Put(fmt.Sprintf("key-%d", i%20), []any{fmt.Sprintf("val-%d", i)})
 			}
@@ -823,9 +821,7 @@ func TestPrefetchCache_ConcurrentAccess(t *testing.T) {
 
 	// Readers: hammer Get concurrently.
 	for range 4 {
-
 		wg.Go(func() {
-
 			for i := range 1000 {
 				_ = cache.Get(fmt.Sprintf("key-%d", i%20))
 			}
@@ -835,7 +831,6 @@ func TestPrefetchCache_ConcurrentAccess(t *testing.T) {
 	// Clearer: periodically wipes the cache.
 
 	wg.Go(func() {
-
 		for range 100 {
 			cache.Clear()
 		}

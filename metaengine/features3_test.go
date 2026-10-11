@@ -169,9 +169,7 @@ func TestReadCoalescer_Concurrent(t *testing.T) {
 	var wg sync.WaitGroup
 
 	for range 10 {
-
 		wg.Go(func() {
-
 			_, _ = rc.Do("same-key", func() (any, error) {
 				mu.Lock()
 				callCount++

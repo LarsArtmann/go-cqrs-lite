@@ -204,9 +204,7 @@ func TestEventBusPublishRacingCloseNeverLeaksRawTransportError(t *testing.T) {
 		stop := make(chan struct{})
 
 		for range 6 {
-
 			wg.Go(func() {
-
 				for {
 					select {
 					case <-stop:

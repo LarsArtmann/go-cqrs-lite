@@ -10,8 +10,18 @@ import (
 // foldTests exercise both contexts' decide/fold cores — the domain logic a
 // consumer ships — with zero infrastructure.
 func TestOrders_PlaceOrderEmitsPlacedContract(t *testing.T) {
-	events, err := decideInto(nil, initialOrderState(), foldOrder,
-		placeOrder(PlaceOrderCmd{OrderID: NewOrderID("o-1"), CustomerID: NewCustomerID("c-9"), TotalCents: 4200}))
+	events, err := decideInto(
+		nil,
+		initialOrderState(),
+		foldOrder,
+		placeOrder(
+			PlaceOrderCmd{
+				OrderID:    NewOrderID("o-1"),
+				CustomerID: NewCustomerID("c-9"),
+				TotalCents: 4200,
+			},
+		),
+	)
 	if err != nil {
 		t.Fatalf("place order: %v", err)
 	}
@@ -31,15 +41,31 @@ func TestOrders_PlaceOrderEmitsPlacedContract(t *testing.T) {
 }
 
 func TestOrders_RejectsEmptyCart(t *testing.T) {
-	if _, err := decideInto(nil, initialOrderState(), foldOrder,
-		placeOrder(PlaceOrderCmd{OrderID: NewOrderID("o-2"), TotalCents: 0})); !errors.Is(err, ErrEmptyOrder) {
+	if _, err := decideInto(
+		nil,
+		initialOrderState(),
+		foldOrder,
+		placeOrder(
+			PlaceOrderCmd{OrderID: NewOrderID("o-2"), TotalCents: 0},
+		),
+	); !errors.Is(err, ErrEmptyOrder) {
 		t.Fatalf("want ErrEmptyOrder, got %v", err)
 	}
 }
 
 func TestBilling_FoldsForeignOrderPlacedAndIssuesInvoice(t *testing.T) {
-	orderEvents, err := decideInto(nil, initialOrderState(), foldOrder,
-		placeOrder(PlaceOrderCmd{OrderID: NewOrderID("o-3"), CustomerID: NewCustomerID("c-1"), TotalCents: 1500}))
+	orderEvents, err := decideInto(
+		nil,
+		initialOrderState(),
+		foldOrder,
+		placeOrder(
+			PlaceOrderCmd{
+				OrderID:    NewOrderID("o-3"),
+				CustomerID: NewCustomerID("c-1"),
+				TotalCents: 1500,
+			},
+		),
+	)
 	if err != nil {
 		t.Fatalf("place order: %v", err)
 	}
@@ -87,8 +113,14 @@ func TestBilling_InvoiceIssueIsIdempotent(t *testing.T) {
 func TestLifecycle_CrossDomainRoundTripCompletesOrder(t *testing.T) {
 	orderID := NewOrderID("o-5")
 
-	orderEvents, err := decideInto(nil, initialOrderState(), foldOrder,
-		placeOrder(PlaceOrderCmd{OrderID: orderID, CustomerID: NewCustomerID("c-2"), TotalCents: 9900}))
+	orderEvents, err := decideInto(
+		nil,
+		initialOrderState(),
+		foldOrder,
+		placeOrder(
+			PlaceOrderCmd{OrderID: orderID, CustomerID: NewCustomerID("c-2"), TotalCents: 9900},
+		),
+	)
 	if err != nil {
 		t.Fatalf("place: %v", err)
 	}

@@ -38,7 +38,7 @@ type TaskCreatedPayload struct {
 
 // TaskAssignedPayload is the task.assigned contract — the wire form keeps
 // plain strings; the aggregate brands at its fold boundary.
-//branching-flow:ignore strong-id
+// branching-flow:ignore strong-id
 type TaskAssignedPayload struct {
 	AssigneeID string `json:"assigneeId"`
 }

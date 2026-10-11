@@ -57,7 +57,6 @@ func TestClaimingSQLite_RaceStress_DueVsMetrics(t *testing.T) {
 	stop := make(chan struct{})
 
 	wg.Go(func() {
-
 		for {
 			select {
 			case <-stop:
@@ -72,9 +71,7 @@ func TestClaimingSQLite_RaceStress_DueVsMetrics(t *testing.T) {
 	errCh := make(chan error, pollers)
 
 	for range pollers {
-
 		wg.Go(func() {
-
 			for range pollsPerPoller {
 				claimed, err := store.Due(ctx, time.Now().UTC())
 				if err != nil {

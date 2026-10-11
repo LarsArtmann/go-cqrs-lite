@@ -11,7 +11,7 @@ package main
 
 // TaskView is the read-model representation served by the query side —
 // a serialized query answer, so identifier fields stay plain strings.
-//branching-flow:ignore strong-id
+// branching-flow:ignore strong-id
 type TaskView struct {
 	ID          string   `json:"id"`
 	Title       string   `json:"title"`

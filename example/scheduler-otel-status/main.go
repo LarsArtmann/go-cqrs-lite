@@ -18,10 +18,11 @@ import (
 	"os"
 	"time"
 
+	_ "modernc.org/sqlite" // driver registration for the demo database
+
 	cqrsprom "github.com/larsartmann/go-cqrs-lite/prometheus/v4"
 	"github.com/larsartmann/go-cqrs-lite/scheduling/sqlstore/v4"
 	"github.com/larsartmann/go-cqrs-lite/scheduling/v4"
-	_ "modernc.org/sqlite" // driver registration for the demo database
 )
 
 func main() {

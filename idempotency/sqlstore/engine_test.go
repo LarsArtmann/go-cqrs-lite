@@ -89,9 +89,7 @@ func TestEngineFacade_ConcurrentExactlyOneWinner(t *testing.T) {
 	winners := make(chan bool, racers)
 
 	for range racers {
-
 		wg.Go(func() {
-
 			err := store.CheckAndRecord(ctx, "race", time.Minute)
 			if err != nil && !errors.Is(err, idempotency.ErrDuplicate) {
 				t.Errorf("racer: %v", err)

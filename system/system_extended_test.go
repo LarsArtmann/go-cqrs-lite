@@ -258,9 +258,7 @@ func TestSystem_ConcurrentDispatch(t *testing.T) {
 	var wg sync.WaitGroup
 
 	for range 20 {
-
 		wg.Go(func() {
-
 			streamID := id.NewStreamID()
 			_ = sys.CommandDispatcher().Dispatch(ctx, newCmd("task.create", streamID))
 		})

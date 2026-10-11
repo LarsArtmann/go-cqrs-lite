@@ -61,7 +61,7 @@ var ErrEmptyOrder = errors.New("order: cart is empty")
 // codes against this shape; breaking it is a version bump, not an edit.
 // Fields stay plain strings: the payload is the wire form (JSON), and
 // contexts brand at their own boundaries.
-//branching-flow:ignore strong-id
+// branching-flow:ignore strong-id
 type OrderPlacedPayload struct {
 	OrderID    string `json:"orderId"`
 	CustomerID string `json:"customerId"`
@@ -69,7 +69,7 @@ type OrderPlacedPayload struct {
 }
 
 // OrderCompletedPayload is the contract of order.completed.
-//branching-flow:ignore strong-id
+// branching-flow:ignore strong-id
 type OrderCompletedPayload struct {
 	OrderID    string `json:"orderId"`
 	InvoiceRef string `json:"invoiceRef"`
@@ -77,7 +77,7 @@ type OrderCompletedPayload struct {
 
 // InvoiceReceivedPayload mirrors billing's invoice.issued contract from the
 // CONSUMING side (orders' copy of the bilateral contract).
-//branching-flow:ignore strong-id
+// branching-flow:ignore strong-id
 type InvoiceReceivedPayload struct {
 	InvoiceRef string `json:"invoiceRef"`
 	OrderID    string `json:"orderId"`

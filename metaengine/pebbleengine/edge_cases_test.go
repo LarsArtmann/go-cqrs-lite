@@ -74,9 +74,7 @@ func TestPebbleLayoutPlanner_ConcurrentReadWrite(t *testing.T) {
 	}
 
 	for range 3 {
-
 		wg.Go(func() {
-
 			_, _ = rsr.ScanRawValues(
 				ctx, "items",
 				[]metaengine.FilterSpec{{Column: "score", Op: metaengine.FilterGe, Value: 0}},

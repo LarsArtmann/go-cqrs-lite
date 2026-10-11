@@ -16,7 +16,7 @@ import (
 
 // DocEmbedded's ID is the semantic document key (e.g. "doc-1") — the demo
 // keeps identifiers plain strings by design.
-//branching-flow:ignore file
+// branching-flow:ignore file
 type DocEmbedded struct {
 	ID     string
 	Values []float32

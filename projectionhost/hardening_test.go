@@ -341,7 +341,6 @@ func TestReplayDeadLetters_ConcurrentWithRunningWorker(t *testing.T) {
 	var wg sync.WaitGroup
 
 	wg.Go(func() {
-
 		for range 20 {
 			if _, err := host.ReplayDeadLetters(ctx, ""); err != nil {
 				t.Errorf("ReplayDeadLetters: %v", err)

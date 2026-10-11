@@ -266,7 +266,6 @@ func TestTimerStore_ConcurrentDispatchersDisjoint(t *testing.T) {
 		mustT(t, err)
 
 		wg.Go(func() {
-
 			<-start
 
 			due, err := store.Due(ctx, now)

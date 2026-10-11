@@ -243,7 +243,6 @@ func TestConcurrency_ReplanCheckRoutingStress(t *testing.T) {
 	// Goroutine 1: Replan every 10ms.
 
 	wg.Go(func() {
-
 		ticker := time.NewTicker(10 * time.Millisecond)
 		defer ticker.Stop()
 
@@ -260,7 +259,6 @@ func TestConcurrency_ReplanCheckRoutingStress(t *testing.T) {
 	// Goroutine 2: CheckRouting every 5ms.
 
 	wg.Go(func() {
-
 		ticker := time.NewTicker(5 * time.Millisecond)
 		defer ticker.Stop()
 
@@ -277,7 +275,6 @@ func TestConcurrency_ReplanCheckRoutingStress(t *testing.T) {
 	// Goroutine 3: Shift the tracker RTT.
 
 	wg.Go(func() {
-
 		ticker := time.NewTicker(3 * time.Millisecond)
 		defer ticker.Stop()
 
@@ -294,7 +291,6 @@ func TestConcurrency_ReplanCheckRoutingStress(t *testing.T) {
 	// Goroutine 4: GetEngineStats every 15ms.
 
 	wg.Go(func() {
-
 		ticker := time.NewTicker(15 * time.Millisecond)
 		defer ticker.Stop()
 

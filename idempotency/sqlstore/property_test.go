@@ -109,7 +109,6 @@ func TestProperty_SQLiteCheckAndRecordExactlyOnce(t *testing.T) {
 		var wg sync.WaitGroup
 
 		for range n {
-
 			wg.Go(func() {
 				results <- store.CheckAndRecord(context.Background(), key, ttl)
 			})

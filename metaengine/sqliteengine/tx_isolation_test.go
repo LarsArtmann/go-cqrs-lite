@@ -125,9 +125,7 @@ func TestSQLiteEngine_ConcurrentStreamReadVsAppendExpected(t *testing.T) {
 	var writerWG sync.WaitGroup
 
 	for range writers {
-
 		writerWG.Go(func() {
-
 			for i := range writes {
 				if err := ctx.Err(); err != nil {
 					return
@@ -156,9 +154,7 @@ func TestSQLiteEngine_ConcurrentStreamReadVsAppendExpected(t *testing.T) {
 	}()
 
 	for range readers {
-
 		wg.Go(func() {
-
 			for {
 				select {
 				case <-stop:

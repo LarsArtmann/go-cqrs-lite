@@ -60,9 +60,7 @@ func spinWhile(b *testing.B, read func()) {
 	var wg sync.WaitGroup
 
 	for range max(runtime.GOMAXPROCS(0)-1, 1) {
-
 		wg.Go(func() {
-
 			for !stop.Load() {
 				read()
 			}

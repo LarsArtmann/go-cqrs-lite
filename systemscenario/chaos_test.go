@@ -99,9 +99,7 @@ func TestChaosDelayedJournal_OptimisticConcurrencyHolds(t *testing.T) {
 	)
 
 	for range 2 {
-
 		wg.Go(func() {
-
 			evt := taskEvent(
 				"task.updated",
 				ref.ID,

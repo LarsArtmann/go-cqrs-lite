@@ -46,7 +46,8 @@ func TestWithCommandMetadata(t *testing.T) {
 	ref := command.NewStreamRef("User", streamID)
 
 	md := command.Metadata{
-		CorrelationID: id.NewCorrelationID()}
+		CorrelationID: id.NewCorrelationID(),
+	}
 
 	cmd, err := command.NewPersistedCommand(
 		"CreateUser", ref, []byte(`{}`),

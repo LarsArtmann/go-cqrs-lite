@@ -262,9 +262,7 @@ func AssertDueClaimer( //nolint:maintidx // linear conformance narrative
 				)
 
 				for worker := range 4 {
-
 					wg.Go(func() {
-
 						claimed, err := claimer.ClaimDue(ctx, metaengine.ClaimDueRequest{
 							Collection: col,
 							Owner:      fmt.Sprintf("w%d", worker),

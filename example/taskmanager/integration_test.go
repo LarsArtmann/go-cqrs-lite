@@ -273,7 +273,12 @@ func TestIntegration_MetaEngineTaskReader(t *testing.T) {
 	}
 
 	// ── Start task1, then filter by status=active ──
-	waitForView(t, srv, task1, func(v *TaskView) bool { return v.AssigneeID == defaultAssignee.Get() })
+	waitForView(
+		t,
+		srv,
+		task1,
+		func(v *TaskView) bool { return v.AssigneeID == defaultAssignee.Get() },
+	)
 
 	if err := srv.CmdDisp.Dispatch(ctx, StartTaskCmd{
 		BasicCommand: Must(command.New(cmdStartTask, task1)),

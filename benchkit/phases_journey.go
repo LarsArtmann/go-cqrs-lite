@@ -4,10 +4,11 @@ import (
 	"context"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
-	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // maxJourneySamples caps the number of end-to-end journey measurements so the

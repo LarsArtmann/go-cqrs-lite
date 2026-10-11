@@ -31,9 +31,7 @@ func TestNewMessageBuilder_ConcurrentOptionsDoNotMutateSharedSchema(t *testing.T
 	var wg sync.WaitGroup
 
 	for range workers {
-
 		wg.Go(func() {
-
 			cfg := newMessageBuilder[regressionPayload](
 				QueryMessage, "test.concurrent.qry", Receives,
 				[]MessageOption{WithParam("since", "query", "test param", false)},

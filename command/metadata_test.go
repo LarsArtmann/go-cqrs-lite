@@ -173,12 +173,14 @@ func TestCommand_MetadataMerge(t *testing.T) {
 	base := command.Metadata{
 		Custom: map[command.MetadataKey]string{"tenant": "acme"},
 
-		CorrelationID: id.NewCorrelationID()}
+		CorrelationID: id.NewCorrelationID(),
+	}
 
 	overlay := command.Metadata{
 		Custom: map[command.MetadataKey]string{"region": "us-east-1"},
 
-		UserID: id.NewUserID()}
+		UserID: id.NewUserID(),
+	}
 
 	merged := base.Merge(overlay)
 

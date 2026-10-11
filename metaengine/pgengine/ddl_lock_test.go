@@ -41,9 +41,7 @@ func TestNew_ConcurrentConstruction(t *testing.T) {
 	var wg sync.WaitGroup
 
 	for range workers {
-
 		wg.Go(func() {
-
 			eng, err := pgengine.New(dsn)
 			if err != nil {
 				errs <- err

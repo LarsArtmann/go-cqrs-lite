@@ -139,9 +139,7 @@ func TestMigrateSnapshotColumns_ConcurrentInitIsSafe(t *testing.T) {
 	var wg sync.WaitGroup
 
 	for i := range runners {
-
 		wg.Go(func() {
-
 			<-start
 
 			errs[i] = MigrateSnapshotColumnsToStream(ctx, db, sqlpkg.SQLiteDialect{})

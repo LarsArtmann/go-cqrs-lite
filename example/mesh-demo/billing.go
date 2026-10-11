@@ -20,7 +20,7 @@ const (
 // InvoiceIssuedPayload is the CONTRACT of invoice.issued — orders codes
 // against this shape. Fields stay plain strings: the payload is the wire
 // form (JSON), and contexts brand at their own boundaries.
-//branching-flow:ignore strong-id
+// branching-flow:ignore strong-id
 type InvoiceIssuedPayload struct {
 	InvoiceRef  string `json:"invoiceRef"`
 	OrderID     string `json:"orderId"`
@@ -29,7 +29,7 @@ type InvoiceIssuedPayload struct {
 
 // OrderPlacedReceived mirrors orders' order.placed contract from the
 // CONSUMING side.
-//branching-flow:ignore strong-id
+// branching-flow:ignore strong-id
 type OrderPlacedReceived struct {
 	OrderID    string `json:"orderId"`
 	CustomerID string `json:"customerId"`

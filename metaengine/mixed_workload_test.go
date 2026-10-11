@@ -28,7 +28,6 @@ func BenchmarkMixedWorkload_ReadsDuringWrites(b *testing.B) {
 			// Writer goroutine
 
 			wg.Go(func() {
-
 				for i := range b.N {
 					item := benchItemResult{
 						ID:       fmt.Sprintf("mixed-%06d", i),
