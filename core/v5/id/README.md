@@ -78,5 +78,5 @@ All branded IDs support:
 - [**event**](../event/README.md) — Uses `StreamID`, `EventID`, `CorrelationID`, `CausationID`
 - [**command**](../command/README.md) — Uses `AggregateID` (deprecated alias of `StreamID`), `CommandID`
 - [**query**](../query/README.md) — Uses `RequestID`
-- [**decider**](../decider/README.md) — Aggregates keyed by branded `StreamID`
+- [**decider**](../../../decider/README.md) — Aggregates keyed by branded `StreamID`
 - [**id/idtest**](idtest/doc.go) — Test helpers (`ParseStreamID`, `ParseEventID`) that call `tb.Fatalf`

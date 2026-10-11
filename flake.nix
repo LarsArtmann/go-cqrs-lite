@@ -888,10 +888,9 @@
 
               src = mkMdGoValidatorSource pkgs;
 
-              # Re-pinned 2026-10-04: md-go-validator input moved on master
-              # (flake.lock refresh without a vendorHash re-pin — same class
-              # as the 2026-09-29 shift).
-              vendorHash = "sha256-rrfMI/LXbmHdyz6nJLwAYVRfExKkBvMvjalpOG+ms6I=";
+              # Re-pinned 2026-10-11: md-go-validator input moved on master
+              # again (same class as the 2026-09-29/10-04 shifts).
+              vendorHash = "sha256-c6lqyeijVxRJAk1R8uWZZ3VIogaqnxUvnRcJG2KJaKM=";
               proxyVendor = true;
 
               subPackages = [ "cmd/md-go-validator" ];

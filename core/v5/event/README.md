@@ -129,7 +129,7 @@ CBOR encoding of `time.Time` loses timezone information. Use these types in even
 - **`event.WallTime`** — Local time-of-day with IANA timezone (schedules, reminders, business hours)
 - **`event.Date`** — Calendar date without time (birth dates, employment dates)
 
-See [`docs/TIMEZONE_HANDLING.md`](../docs/TIMEZONE_HANDLING.md) for the full guide.
+See [`docs/TIMEZONE_HANDLING.md`](../../../docs/TIMEZONE_HANDLING.md) for the full guide.
 
 ```go
 type CheckinSubmitted struct {
@@ -143,12 +143,12 @@ type CheckinSubmitted struct {
 
 - [**command**](../command/README.md) — Command dispatch, typed handlers, middleware
 - [**query**](../query/README.md) — Query dispatch, typed results, pagination
-- [**decider**](../decider/README.md) — Pure-function aggregate pattern (recommended)
+- [**decider**](../../../decider/README.md) — Pure-function aggregate pattern (recommended)
 - [**id**](../id/README.md) — Branded IDs: `id.Of[T]` backed by ULID
 - [**go-codec**](https://github.com/larsartmann/go-codec) — Payload encoding (JSON, CBOR, Raw) for `DecodePayload`
-- [**schema**](../schema/README.md) — Upcasting and schema evolution
-- [**snapshot**](../snapshot/README.md) — Snapshot persistence
-- [**signing**](../signing/README.md) — Event signing (HMAC, Ed25519)
-- [**encryption**](../encryption/README.md) — Payload encryption (XChaCha20, AES-GCM)
-- [**middleware**](../middleware/README.md) — Logging, retry, tracing, metrics
-- [**projection**](../projection/README.md) — Read-model projections from event streams
+- [**schema**](../../../schema/README.md) — Upcasting and schema evolution
+- [**snapshot**](../../../snapshot/README.md) — Snapshot persistence
+- [**signing**](../../../signing/README.md) — Event signing (HMAC, Ed25519)
+- [**encryption**](../../../encryption/README.md) — Payload encryption (XChaCha20, AES-GCM)
+- [**middleware**](../../../middleware/README.md) — Logging, retry, tracing, metrics
+- [**projection**](../../../projection/README.md) — Read-model projections from event streams
