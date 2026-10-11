@@ -93,5 +93,14 @@ func performanceRules() []RuleInfo {
 			Description: "ApplyLayout on an engine that also implements ApplyLayoutPlan — bypasses type-derived layout planning; build a LayoutPlan from the read-model type instead (typed-info tier only)",
 			AutoFix:     false,
 		},
+		{
+			ID:          "P015",
+			Name:        "journal-readall-in-query-handler",
+			Category:    "performance",
+			Severity:    "warning",
+			Confidence:  "medium",
+			Description: "journal.ReadAll reachable from a query handler — folds the entire journal per query (O(journal) on the request path)",
+			AutoFix:     false,
+		},
 	}
 }
