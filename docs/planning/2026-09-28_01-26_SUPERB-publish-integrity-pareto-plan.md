@@ -1,5 +1,7 @@
 # SUPERB — Publish-Integrity-First Pareto Plan (session backlog)
 
+> **EXECUTED (docs-health 13th pass, 2026-10-11):** M1–M4, M6, M14–M16, M19, M23–M25 shipped with receipts in TODO_LIST (09-28_17-57 → 10-01 reports); open residue = M5+M20 quiet-window campaign + M22 owner Q3, both rowed in TODO_LIST §CI. Archived as the executed plan's record.
+
 **Planned:** 2026-09-28 01:26 CEST
 **Source backlog:** [`docs/status/2026-09-27_23-43_sqliteengine-metaengine-system-qa-session.md`](../status/archived/2026-09-27_23-43_sqliteengine-metaengine-system-qa-session.md) §f (26 items) + §g (3 owner questions)
 **Scope:** EVERYTHING this session surfaced — the full 26-item backlog and the 3 gates. NOT the whole `TODO_LIST.md` (that stays the living source; task M15/HARVEST syncs this plan into it).

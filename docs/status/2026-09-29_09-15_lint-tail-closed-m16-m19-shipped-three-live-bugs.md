@@ -1,5 +1,10 @@
 # Status Report — 2026-09-29 09:15: lint tail closed, M16+M17+M18+M19 shipped, 3 real bugs fixed
 
+> **RESOLVED-BY-ROUTING (docs-health 13th pass, 2026-10-11):** the honest
+> remainder below is resolved or routed — M19's doc tail landed, the NATS
+> flake check ran green 10-01, and the owner questions remain open/routed.
+> Successor sessions: 10-01 wave, then the 10-08..11 waves.
+
 > Session window 07:02–09:15 CEST 2026-09-29. Continuation of the SUPERB
 > post-wave plan (`docs/planning/2026-09-28_22-00_SUPERB-post-wave-verification-and-backlog-pareto-plan.md`).
 > Owner directive: full-list execution; ADR rulings/filings/billing prep-only.
@@ -112,16 +117,16 @@
 
 ## What is NOT done (honest remainder)
 
-- **M19 tail**: watermill skill backends.md gotcha entry + CHANGELOG M18/M19
-  entries + doc-check pass — NOT yet written (next session, ~15 min).
-- **Not re-run after today's edits**: `#check-duplication` (new test code
+- ~~**M19 tail**: watermill skill backends.md gotcha entry + CHANGELOG M18/M19
+  entries + doc-check pass — NOT yet written (next session, ~15 min).~~ done — backends.md carries the NATS JetStream section incl. the plugin-gap gotchas and the CHANGELOG entries landed (CHANGELOG lines "NATS JetStream broker leg (M19)" + "temporal semantics pinned by rapid properties (M18)"; verified 10-11)
+- ~~**Not re-run after today's edits**: `#check-duplication` (new test code
   since the green), api-stability verify pass (no exported changes today
   beyond the already-regen'd DialectDuckDB), `nix flake check` (deferred —
-  load 41/30/23 ALL session, quiet gates never opened).
-- **Untouched**: M21 (graph unify), M24 (enricher), M25, M26, M15 prep
-  bundles, M20/M22/M23 bundles, F032, quiet-gated M04/M05/M11/M14.3.
-- **NATS suite ran green ONCE** — no repeat/flake check yet.
-- **Push**: not done (Q1 below). **Benchkit tag wave**: not cut (Q2 below).
+  load 41/30/23 ALL session, quiet gates never opened).~~ resolved — `#check-duplication` re-ran GREEN 10-01 (dupl baseline re-pin 186, 09:56 report); api-stability green at 04:58 (7,514 exports); `nix flake check` stayed load-deferred → quiet-window rows
+- ~~**Untouched**: M21 (graph unify), M24 (enricher), M25, M26, M15 prep
+  bundles, M20/M22/M23 bundles, F032, quiet-gated M04/M05/M11/M14.3.~~ resolved 10-01 — M21.1–21.3, M24, M25, M26, M15 pack, M20/M22/M23 watch pack, F032=C043 ALL shipped (10-01_04-30 + 09-56 reports); only the quiet-gated quartet (M04/M05/M11/M14.3) remains routed-open at 10-11
+- ~~**NATS suite ran green ONCE** — no repeat/flake check yet.~~ done 10-01 — 2nd run green, no flake (10-01_09:56 index row)
+- ~~**Push**: not done (Q1 below). **Benchkit tag wave**: not cut (Q2 below).~~ routed — push still open at 10-11 (ahead 4); benchkit/v4.7.0 since tagged (10-08 wave)
 
 ## What I forgot / could do better
 
@@ -145,13 +150,13 @@
 
 ## Questions for the owner (blocking)
 
-1. **Push master now?** (many daemon commits ahead of origin; all tags
-   already pushed)
-2. **Benchkit tag wave** — cut under the blanket sanction (M09 precedent) or
-   hold for explicit go?
-3. **Quiet-window strategy** for M04/M05/M11/M14.3 (load never dropped below
+1. ~~**Push master now?** (many daemon commits ahead of origin; all tags
+   already pushed)~~ still open at 10-11 — branch ahead 4; owner never answered
+2. ~~**Benchkit tag wave** — cut under the blanket sanction (M09 precedent) or
+   hold for explicit go?~~ ANSWERED by action — benchkit/v4.7.0 tagged in the 10-08 wave
+3. ~~**Quiet-window strategy** for M04/M05/M11/M14.3 (load never dropped below
    14 today): (a) I auto-poll opportunistically, (b) you name a window,
-   (c) raise the ceiling?
-4. **Design rulings pack** (one class, one reply): M16.1 clock seam B-vs-C ·
+   (c) raise the ceiling?~~ still open at 10-11 — de-facto (a) with no window landing; ruling pending (M15.1)
+4. ~~**Design rulings pack** (one class, one reply): M16.1 clock seam B-vs-C ·
    M18.4 pebble/bbolt A–D · M19 CI-leg (add to ci.yml now vs billing-gated
-   later).
+   later).~~ routed — all three in the 10-01 owner-decision pack; rulings pending; M16 implementation owner-gated per its design doc

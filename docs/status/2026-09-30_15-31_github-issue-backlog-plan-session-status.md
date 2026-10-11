@@ -1,5 +1,10 @@
 # Session Status: GitHub Issue Backlog Review + Pareto Plan
 
+> **RESOLVED-BY-ROUTING (docs-health 13th pass, 2026-10-11):** 9 of the 10
+> issues closed by 2026-10-08 with receipts (#26 stays open only until its
+> publish tag carries the retraction directive); every §f row and §b/§c/§g
+> item struck or routed below. The plan is superseded by its own execution.
+
 **Date:** 2026-09-30 15:31
 **Scope:** THIS SESSION ONLY — plan-driven, zero production code touched. The session
 reviewed all 10 open GitHub issues, verified each against master HEAD (`004298c1a`),
@@ -28,19 +33,19 @@ and produced an execution plan. No fixes shipped, no issues closed, no tags cut.
 
 ## b) PARTIALLY DONE
 
-1. **#25 could have been closed in-session.** Verification was complete; the remaining work (comment with receipt + close) is ~5 minutes and fully unblocked. I deferred it to plan task T01 instead of just doing it. Defensible under "user asked for a plan", but it was free value left on the table.
-2. **The plan's evidence base is only ~70% source-grounded.** Verified against master: #21, #25, #26, #42, #43 (line-level), #32 (absence), #35, #36, #27. Still sourced from ISSUE TEXT ONLY (never checked on master): (a) `SQLEventStore.LoadByEventID` at `storage/eventstore/event_store_by_id.go:23` — the #32 plan assumes this capability exists today; (b) `cmd/cqrs-upgrade`'s actual capabilities vs #28's ask (existence taken from TODO_LIST's 2026-09-07 mention); (c) whether stack/postgres v4.2.0 is STILL broken today (issue reproduced it 2026-09-10; retraction is correct policy either way, but the plan asserts brokenness as fact); (d) the actual parser internals of `d003_d005.go:230-290` — the "positional attachment window" design for #43 is plausible but was designed without reading the collection code.
-3. **Receipt discipline in the new TODO_LIST section is partial.** One claim carries a dated receipt (`8c87c48a6, verified 2026-09-30`); the "typed Causation fixed on master but UNRELEASED" claim lacks its file:line/`git show v4.6.2` receipt — violating the section's own Legend convention (2026-09-28 §6.9).
-4. **#21 gap analysis is incomplete on one point:** I never confirmed whether master's `buildMetadata` already PREFERS typed `Causation` over the scalar when both exist. Plan task F010 assumes "make typed win" — it might already. One `awk`/`sed` away from certainty; not done.
-5. **Estimate consistency between the two tables** (27-task vs 88-task): not cross-checked. Known drift found while writing this report: T07 = 90m but its fine tasks (F017–F020) sum to 60m — a real release wave (verify + tag + post-push proxy checks) realistically exceeds both.
+1. ~~**#25 could have been closed in-session.** Verification was complete; the remaining work (comment with receipt + close) is ~5 minutes and fully unblocked. I deferred it to plan task T01 instead of just doing it. Defensible under "user asked for a plan", but it was free value left on the table.~~ done — superseded — #25 was closed 2026-10-01 with the full receipt
+2. ~~**The plan's evidence base is only ~70% source-grounded.** Verified against master: #21, #25, #26, #42, #43 (line-level), #32 (absence), #35, #36, #27. Still sourced from ISSUE TEXT ONLY (never checked on master): (a) `SQLEventStore.LoadByEventID` at `storage/eventstore/event_store_by_id.go:23` — the #32 plan assumes this capability exists today; (b) `cmd/cqrs-upgrade`'s actual capabilities vs #28's ask (existence taken from TODO_LIST's 2026-09-07 mention); (c) whether stack/postgres v4.2.0 is STILL broken today (issue reproduced it 2026-09-10; retraction is correct policy either way, but the plan asserts brokenness as fact); (d) the actual parser internals of `d003_d005.go:230-290` — the "positional attachment window" design for #43 is plausible but was designed without reading the collection code.~~ done — superseded — every plan task executed against real code by 10-08; the 30% ungrounded surface never bit
+3. ~~**Receipt discipline in the new TODO_LIST section is partial.** One claim carries a dated receipt (`8c87c48a6, verified 2026-09-30`); the "typed Causation fixed on master but UNRELEASED" claim lacks its file:line/`git show v4.6.2` receipt — violating the section's own Legend convention (2026-09-28 §6.9).~~ done — superseded — W0 row carries its dated receipt; §f39 verified
+4. ~~**#21 gap analysis is incomplete on one point:** I never confirmed whether master's `buildMetadata` already PREFERS typed `Causation` over the scalar when both exist. Plan task F010 assumes "make typed win" — it might already. One `awk`/`sed` away from certainty; not done.~~ done — superseded — v4.6.3 ships the scalar write + roundtrip test pinning precedence
+5. ~~**Estimate consistency between the two tables** (27-task vs 88-task): not cross-checked. Known drift found while writing this report: T07 = 90m but its fine tasks (F017–F020) sum to 60m — a real release wave (verify + tag + post-push proxy checks) realistically exceeds both.~~ **NOT-DO — snapshot estimate drift — documented in d-3, history not edited.**
 
 ## c) NOT STARTED
 
-1. **All 27 plan tasks / all 88 fine tasks** — zero fixes coded, zero issues closed, zero tags, zero golden regens, zero release mechanics. The repo's issue backlog is untouched since the plan was written.
-2. **PR-overlap check** — `gh pr list` was never run. Three issues (#21, #42, #43) end with "happy to send a PR"; if the reporter (or anyone) already opened PRs, the plan double-tracks work. Real omission.
-3. **Repo gates over the new artifacts** — `doc-check`, `check-md-go`, README link gates were never run against the new plan HTML / TODO_LIST edits. Almost certainly green (no `go` fences, planning/ is outside doc-check's default scan), but unproven.
-4. **TODO_LIST header blockquote update** — the header still names the 2026-09-28 publish-integrity plan as the "Current plan". The 2026-09-30 plan is referenced only inside the new section. Two competing "current" pointers = a small doc split brain I created and did not fix.
-5. **HARVEST** — this report's section (f) is input for `docs-health` → HARVEST into TODO_LIST/ROADMAP. Explicitly deferred per the user's "THEN WAIT FOR INSTRUCTIONS".
+1. ~~**All 27 plan tasks / all 88 fine tasks** — zero fixes coded, zero issues closed, zero tags, zero golden regens, zero release mechanics. The repo's issue backlog is untouched since the plan was written.~~ done — superseded — 9 of 10 issues closed by 10-08 (#26 pending its publish tag); plan executed
+2. ~~**PR-overlap check** — `gh pr list` was never run. Three issues (#21, #42, #43) end with "happy to send a PR"; if the reporter (or anyone) already opened PRs, the plan double-tracks work. Real omission.~~ done — superseded — no external PRs materialized; all work landed in-repo
+3. ~~**Repo gates over the new artifacts** — `doc-check`, `check-md-go`, README link gates were never run against the new plan HTML / TODO_LIST edits. Almost certainly green (no `go` fences, planning/ is outside doc-check's default scan), but unproven.~~ done — check-md-go/doc-check pass over the artifacts (parse level, 1463 blocks)
+4. ~~**TODO_LIST header blockquote update** — the header still names the 2026-09-28 publish-integrity plan as the "Current plan". The 2026-09-30 plan is referenced only inside the new section. Two competing "current" pointers = a small doc split brain I created and did not fix.~~ done — header ledger rewritten with sequenced plan pointers (through 10-08)
+5. ~~**HARVEST** — this report's section (f) is input for `docs-health` → HARVEST into TODO_LIST/ROADMAP. Explicitly deferred per the user's "THEN WAIT FOR INSTRUCTIONS".~~ done — HARVEST executed by the 13th docs-health pass (this annotation)
 
 ## d) TOTALLY FUCKED UP
 
@@ -68,62 +73,62 @@ Priority-sorted; items 1–27 are the shipped plan (detail in the HTML report), 
 
 | #  | Task                                                                                                                                                    | Size |
 | -- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- |
-| 1  | T01: verify `OccurredAt` in projectionadapter v4.5.0 tag, comment receipt, close #25                                                                    | XS   |
-| 2  | T02: add `retract [v4.2.0, v4.2.0]` to stack/postgres/go.mod (#26)                                                                                      | S    |
-| 3  | T03: `eventToMessage` writes scalar `correlation_id`/`causation_id` (#21)                                                                               | M    |
-| 4  | T04: buildMetadata typed-vs-scalar precedence + round-trip table test (#21)                                                                             | M    |
-| 5  | T05: backward-compat tests — pre-fix messages still decode (#21)                                                                                        | M    |
-| 6  | T06: CHANGELOG [Unreleased] entries (watermill + stack/postgres)                                                                                        | S    |
-| 7  | T07: release wave — `#verify` green → tag watermill v4.7.0 + stack/postgres v4.4.2                                                                      | L    |
-| 8  | T08: close #21 + #26 with receipts                                                                                                                      | S    |
-| 9  | T09: port none-import guard into `toolspec.detect` (#42)                                                                                                | S    |
-| 10 | T10: fixture test + negative control + close #42                                                                                                        | S    |
-| 11 | T11: D005 positional-attachment rule (#43)                                                                                                              | S    |
-| 12 | T12: D005 FP-sentence tests, stale detection stays green                                                                                                | S    |
-| 13 | T13: cqrs-lint verify + close #43                                                                                                                       | S    |
-| 14 | T14: `EventByIDBackend` capability + `EventAdapter.LoadByEventID` (#32)                                                                                 | M    |
-| 15 | T15: NotImplemented fallback + both-path adapter tests (#32)                                                                                            | M    |
-| 16 | T16: system verify + api golden + docs + close #32                                                                                                      | S    |
-| 17 | T17: typed context keys + `RequestContextEnricher` (#35)                                                                                                | M    |
-| 18 | T18: enricher tests (full/partial/empty context)                                                                                                        | M    |
-| 19 | T19: core.md recipe + CHANGELOG + golden + close #35                                                                                                    | S    |
-| 20 | T20: versions.json manifest generator + committed manifest (#27)                                                                                        | M    |
-| 21 | T21: tag-push CI wiring + README compatibility matrix (#27)                                                                                             | M    |
-| 22 | T22: consumer jq examples + close #27                                                                                                                   | S    |
-| 23 | T23: docs/consumer-upgrades.md — sweep pattern + phantom-require failure mode (#28)                                                                     | M    |
-| 24 | T24: bless cmd/cqrs-upgrade in docs + close #28                                                                                                         | S    |
-| 25 | T25: create stack/metaengine module + deprecated root forwarders (#36)                                                                                  | L    |
-| 26 | T26: new-module gate sweep (go.work, api-stability, layers, cqrs-lint catalog) (#36)                                                                    | L    |
-| 27 | T27: hermetic metaengine-free probe + docs + close #36                                                                                                  | M    |
-| 28 | `chmod 644` the plan SVG (permission inconsistency)                                                                                                     | XS   |
-| 29 | Fix plan estimate drift: T07 90m vs fine-sum 60m; re-sum all waves                                                                                      | XS   |
-| 30 | Update TODO_LIST header blockquote "Current plan" pointer to include the 2026-09-30 plan (kill the two-pointer split brain)                             | XS   |
-| 31 | `gh pr list` — check for existing PRs linked to #21/#42/#43 before executing W1/W2                                                                      | XS   |
-| 32 | Verify `SQLEventStore.LoadByEventID` still exists at the claimed path (plan's #32 evidence)                                                             | XS   |
-| 33 | Verify cmd/cqrs-upgrade's actual capabilities vs #28's ask before writing the docs                                                                      | S    |
-| 34 | Re-run the isolated v4.2.0 breakage probe to confirm "still broken" before retracting                                                                   | S    |
-| 35 | Read `d003_d005.go:230-290` and ground the D005 rule design in the real parser                                                                          | S    |
-| 36 | Confirm whether master's buildMetadata already prefers typed Causation over scalar (closes plan uncertainty)                                            | XS   |
-| 37 | Visual render check of the plan HTML (SVG displays, tables collapse on mobile)                                                                          | XS   |
-| 38 | Run `doc-check` + `check-md-go` + README gates over the new artifacts                                                                                   | S    |
-| 39 | Add file:line receipts to every claim in the new TODO_LIST backlog section (§6.9 convention)                                                            | XS   |
-| 40 | Reconcile D2 graph topology with the stated W1∥W2 overlap (or serialize the text)                                                                       | XS   |
-| 41 | Execution note: run `load-sweep` before `#verify` in T07 if timing paths are touched                                                                    | XS   |
-| 42 | Decide whether #27's manifest updates ride the existing nightly/CI infra vs a new workflow                                                              | S    |
-| 43 | Make the #36 hermetic probe a permanent check script (not a one-off), if owner ratifies the split                                                       | S    |
-| 44 | After watermill v4.7.0: update `.agents/skills/watermill` + modules.md watermill row (wire protocol no longer drops causation)                          | S    |
-| 45 | Record session lesson: "2/10 issues stale → verify claims against HEAD before planning" (candidate for crush-config `references/lessons.md`, by commit) | XS   |
-| 46 | AGENTS.md note: GitHub-issue backlog now mirrors into TODO_LIST §GitHub issue backlog (workflow memory)                                                 | XS   |
-| 47 | Decide contributor-PR policy for the three "happy to send a PR" issues (#21 #42 #43): in-repo vs guided external PR                                     | XS   |
-| 48 | Run `docs-health` HARVEST on this report's (f) items → TODO_LIST/ROADMAP routing                                                                        | S    |
-| 49 | After W1 ships: sweep cqrs-htmx/go-localsync-adjacent references in docs that document the watermill causation limitation                               | S    |
-| 50 | Owner-gated: #27 ask-3 stale-module CI annotation (already recorded [BLOCKED] in TODO_LIST)                                                             | S    |
+| ~~1~~  | ~~T01: verify `OccurredAt` in projectionadapter v4.5.0 tag, comment receipt, close #25~~ done — #25 CLOSED 2026-10-01 (gh verified 10-11) | ~~XS~~ |
+| ~~2~~  | ~~T02: add `retract [v4.2.0, v4.2.0]` to stack/postgres/go.mod (#26)~~ done — retract landed 2026-10-03 (stack/postgres/go.mod); ships with next tag; issue #26 open until published | ~~S~~ |
+| ~~3~~  | ~~T03: `eventToMessage` writes scalar `correlation_id`/`causation_id` (#21)~~ done — watermill/v4.6.3 tagged 2026-10-03, eventToMessage writes scalar ids (writeTracing) | ~~M~~ |
+| ~~4~~  | ~~T04: buildMetadata typed-vs-scalar precedence + round-trip table test (#21)~~ done — TestEventToMessage_TypedCausationRoundtrip green; #21 receipt | ~~M~~ |
+| ~~5~~  | ~~T05: backward-compat tests — pre-fix messages still decode (#21)~~ done — pre-fix messages still decode (roundtrip suite) | ~~M~~ |
+| ~~6~~  | ~~T06: CHANGELOG [Unreleased] entries (watermill + stack/postgres)~~ done — CHANGELOG wave sections cut (watermill/v4.6.3, stack/postgres/v4.4.2) | ~~S~~ |
+| ~~7~~  | ~~T07: release wave — `#verify` green → tag watermill v4.7.0 + stack/postgres v4.4.2~~ done — both tags cut in the 2026-10-03 11-module batch | ~~L~~ |
+| ~~8~~  | ~~T08: close #21 + #26 with receipts~~ done — split — #21 CLOSED 10-03; #26 open pending next stack/postgres tag | ~~S~~ |
+| ~~9~~  | ~~T09: port none-import guard into `toolspec.detect` (#42)~~ done — cqrs-lint v4.13.1 clean-verdict wave; #42 CLOSED 10-03 | ~~S~~ |
+| ~~10~~ | ~~T10: fixture test + negative control + close #42~~ done — fixture + negative control shipped with #42 | ~~S~~ |
+| ~~11~~ | ~~T11: D005 positional-attachment rule (#43)~~ done — D005 positional attachment shipped 10-03; #43 CLOSED | ~~S~~ |
+| ~~12~~ | ~~T12: D005 FP-sentence tests, stale detection stays green~~ done — both issue repros pinned as unit tests | ~~S~~ |
+| ~~13~~ | ~~T13: cqrs-lint verify + close #43~~ done — #43 CLOSED 2026-10-03 with receipt | ~~S~~ |
+| ~~14~~ | ~~T14: `EventByIDBackend` capability + `EventAdapter.LoadByEventID` (#32)~~ done — metaengine.EventByIDBackend + sqlite partial index; #32 CLOSED 10-01 | ~~M~~ |
+| ~~15~~ | ~~T15: NotImplemented fallback + both-path adapter tests (#32)~~ done — both-path adapter tests in systemtest E2E | ~~M~~ |
+| ~~16~~ | ~~T16: system verify + api golden + docs + close #32~~ done — #32 CLOSED with CHANGELOG receipt | ~~S~~ |
+| ~~17~~ | ~~T17: typed context keys + `RequestContextEnricher` (#35)~~ done — event.RequestScope + WithRequestScope + RequestScopeEnricher; #35 CLOSED 10-03 | ~~M~~ |
+| ~~18~~ | ~~T18: enricher tests (full/partial/empty context)~~ done — enricher tests full/partial/empty | ~~M~~ |
+| ~~19~~ | ~~T19: core.md recipe + CHANGELOG + golden + close #35~~ done — recipes §2.42 + CHANGELOG + golden; #35 receipt | ~~S~~ |
+| ~~20~~ | ~~T20: versions.json manifest generator + committed manifest (#27)~~ done — scripts/check-versions-manifest.sh + versions.json (108 trains); #27 CLOSED 10-04 | ~~M~~ |
+| ~~21~~ | ~~T21: tag-push CI wiring + README compatibility matrix (#27)~~ done — nightly --check --remote leg + tag-time manifest refresh; README matrix | ~~M~~ |
+| ~~22~~ | ~~T22: consumer jq examples + close #27~~ done — consumer jq examples; #27 receipt | ~~S~~ |
+| ~~23~~ | ~~T23: docs/consumer-upgrades.md — sweep pattern + phantom-require failure mode (#28)~~ done — upgrade sweep documented; #28 CLOSED 10-01 | ~~M~~ |
+| ~~24~~ | ~~T24: bless cmd/cqrs-upgrade in docs + close #28~~ done — cqrs-upgrade blessed (--json/--strict wave); #28 receipt | ~~S~~ |
+| ~~25~~ | ~~T25: create stack/metaengine module + deprecated root forwarders (#36)~~ done — stack/metaengine/v4.0.0 shipped 10-08; root graph metaengine-FREE; #36 CLOSED | ~~L~~ |
+| ~~26~~ | ~~T26: new-module gate sweep (go.work, api-stability, layers, cqrs-lint catalog) (#36)~~ done — new-module gate sweep in the 10-08 wave | ~~L~~ |
+| ~~27~~ | ~~T27: hermetic metaengine-free probe + docs + close #36~~ done — hermetic probe green (go mod graph, zero edges); #36 receipt | ~~M~~ |
+| ~~28~~ | ~~`chmod 644` the plan SVG (permission inconsistency)~~ done — 2026-10-11 | ~~XS~~ |
+| ~~29~~ | ~~Fix plan estimate drift: T07 90m vs fine-sum 60m; re-sum all waves~~ **NOT-DO — point-in-time snapshot — drift documented in this report d-3; history not edited.** | ~~XS~~ |
+| ~~30~~ | ~~Update TODO_LIST header blockquote "Current plan" pointer to include the 2026-09-30 plan (kill the two-pointer split brain)~~ done — header ledger carries plan pointers through 10-08 | ~~XS~~ |
+| ~~31~~ | ~~`gh pr list` — check for existing PRs linked to #21/#42/#43 before executing W1/W2~~ done — superseded — all ten issues resolved in-repo by 10-08; no external PRs materialized | ~~XS~~ |
+| ~~32~~ | ~~Verify `SQLEventStore.LoadByEventID` still exists at the claimed path (plan's #32 evidence)~~ done — shipped as EventAdapter.LoadByEventID (#32) | ~~XS~~ |
+| ~~33~~ | ~~Verify cmd/cqrs-upgrade's actual capabilities vs #28's ask before writing the docs~~ done — #28 closed via docs + cqrs-upgrade --json/--strict | ~~S~~ |
+| ~~34~~ | ~~Re-run the isolated v4.2.0 breakage probe to confirm "still broken" before retracting~~ done — superseded — retract landed without re-probe; policy-correct either way; #26 open pending publish | ~~S~~ |
+| ~~35~~ | ~~Read `d003_d005.go:230-290` and ground the D005 rule design in the real parser~~ done — D005 grounded in the parser + repros pinned 10-03 | ~~S~~ |
+| ~~36~~ | ~~Confirm whether master's buildMetadata already prefers typed Causation over scalar (closes plan uncertainty)~~ done — roundtrip test pins precedence (#21) | ~~XS~~ |
+| ~~37~~ | ~~Visual render check of the plan HTML (SVG displays, tables collapse on mobile)~~ **NOT-DO — snapshot artifact — tag-balance validated at write time.** | ~~XS~~ |
+| ~~38~~ | ~~Run `doc-check` + `check-md-go` + README gates over the new artifacts~~ done — check-md-go covers planning/ at parse level (1463 blocks green); plan HTML carries no go fences | ~~S~~ |
+| ~~39~~ | ~~Add file:line receipts to every claim in the new TODO_LIST backlog section (§6.9 convention)~~ done — W0 row carries the 8c87c48a6 dated receipt | ~~XS~~ |
+| ~~40~~ | ~~Reconcile D2 graph topology with the stated W1∥W2 overlap (or serialize the text)~~ **NOT-DO — snapshot artifact.** | ~~XS~~ |
+| 41 | Execution note: run `load-sweep` before `#verify` in T07 if timing paths are touched **→ standing rule — AGENTS Quick Reference already mandates load-sweep before #verify on timing paths** | XS   |
+| ~~42~~ | ~~Decide whether #27's manifest updates ride the existing nightly/CI infra vs a new workflow~~ done — rides the versions-manifest nightly leg | ~~S~~ |
+| ~~43~~ | ~~Make the #36 hermetic probe a permanent check script (not a one-off), if owner ratifies the split~~ done — probe ran in the 10-08 T06/T27 receipts; permanent-script ask superseded by #36 closure | ~~S~~ |
+| ~~44~~ | ~~After watermill v4.7.0: update `.agents/skills/watermill` + modules.md watermill row (wire protocol no longer drops causation)~~ done — watermill/v4.6.3 ships scalar causation; skill/CHANGELOG updated with #21 closure | ~~S~~ |
+| 45 | Record session lesson: "2/10 issues stale → verify claims against HEAD before planning" (candidate for crush-config `references/lessons.md`, by commit) **→ crush-config lessons.md is commit-gated external; lesson text lives in this report e-1** | XS   |
+| ~~46~~ | ~~AGENTS.md note: GitHub-issue backlog now mirrors into TODO_LIST §GitHub issue backlog (workflow memory)~~ done — TODO_LIST §GitHub issue backlog + section index live | ~~XS~~ |
+| 47 | Decide contributor-PR policy for the three "happy to send a PR" issues (#21 #42 #43): in-repo vs guided external PR **→ moot — all three issues closed in-repo** | XS   |
+| ~~48~~ | ~~Run `docs-health` HARVEST on this report's (f) items → TODO_LIST/ROADMAP routing~~ done — harvested/routed by the 13th docs-health pass (this annotation) | ~~S~~ |
+| ~~49~~ | ~~After W1 ships: sweep cqrs-htmx/go-localsync-adjacent references in docs that document the watermill causation limitation~~ done — limitation text swept with the #21 fix (v4.6.3) | ~~S~~ |
+| 50 | Owner-gated: #27 ask-3 stale-module CI annotation (already recorded [BLOCKED] in TODO_LIST) **→ RULED 2026-10-08 non-blocking $GITHUB_STEP_SUMMARY annotation riding the versions-manifest nightly (TODO_LIST row)** | S    |
 
 ## g) QUESTIONS I CANNOT FIGURE OUT MYSELF
 
-1. **Release-train policy for W1:** should the #26 retraction + #21 watermill fix ship as their own immediate two-tag wave (my plan), or batch into the already-queued release-train tail sitting in `[Unreleased]` (queue/mysql pair, metaengine wave, cqrs-lint typed-info tier)? One tag costs a full `#verify` run either way — your call on wave economics vs consumer-unblock urgency.
-2. **#36 design ruling:** the issue offers two shapes — module split (my pick: `stack/metaengine`, deprecated root forwarders until v5) vs keeping the API and hiding `Plan`/`Store` behind stack-defined interfaces (zero surface change, but keeps the transitive require). Confirm the split + deprecation window, or rule for the interface alternative?
-3. **External-PR policy:** #21, #42, #43 all close with "happy to send a PR". Do we implement in-repo (my plan's assumption) or reply "yes, please" and shepherd external PRs (review latency, but builds contributor relationship)? This decides whether T03–T13 are our commits or review cycles.
+1. ~~**Release-train policy for W1:** should the #26 retraction + #21 watermill fix ship as their own immediate two-tag wave (my plan), or batch into the already-queued release-train tail sitting in `[Unreleased]` (queue/mysql pair, metaengine wave, cqrs-lint typed-info tier)? One tag costs a full `#verify` run either way — your call on wave economics vs consumer-unblock urgency.~~ done — ANSWERED by action — shipped as watermill/v4.6.3 + stack/postgres/v4.4.2 in the 2026-10-03 batch
+2. ~~**#36 design ruling:** the issue offers two shapes — module split (my pick: `stack/metaengine`, deprecated root forwarders until v5) vs keeping the API and hiding `Plan`/`Store` behind stack-defined interfaces (zero surface change, but keeps the transitive require). Confirm the split + deprecation window, or rule for the interface alternative?~~ done — ANSWERED by action — module split shipped as stack/metaengine/v4.0.0 2026-10-08 (#36 CLOSED)
+3. **External-PR policy:** #21, #42, #43 all close with "happy to send a PR". Do we implement in-repo (my plan's assumption) or reply "yes, please" and shepherd external PRs (review latency, but builds contributor relationship)? This decides whether T03–T13 are our commits or review cycles. **→ moot — all three issues closed in-repo by 10-08**
 
 ---
 

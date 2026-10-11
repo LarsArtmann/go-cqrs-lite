@@ -1,5 +1,7 @@
 # Direction Ruling — Evidence Pack + 3-Option Decision Memo (G-T01)
 
+> **RULED — SUPERSEDED (docs-health 13th pass, 2026-10-11):** the G-T01 direction question this memo priced was answered by [ADR-0151](../adr/0151-goal-direction-evolutions-are-the-declaration.md) (2026-10-08): the Evolution IS the declaration; runtime Infer stays dead; cqrs-gen revival parked behind an evidence gate. The memo's option pricing remains the historical evidence pack. Archived.
+
 > **Status: DELIVERED — the ruling itself remains owner-gated (G-T02).**
 > **Date:** 2026-09-21 · **Source:** goal-closure plan §1.1 / G-T01–G-T03
 > ([plan](2026-09-17_05-49_SUPERB-metaengine-goal-closure-pareto-plan.md)).

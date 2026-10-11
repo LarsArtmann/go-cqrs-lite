@@ -1,5 +1,7 @@
 # Review: How the CV Phase-0/T29 verdicts reflect on go-cqrs-lite (claims verified against source)
 
+> **ROUTED (docs-health 13th pass, 2026-10-11):** every follow-up this reflection raised is tracked in TODO_LIST §"CV consumer-verdict follow-ups (2026-09-16)" (the living source); the Scan doc lie it verified was fixed same-day. Archived as the reflection's record.
+
 - **Date:** 2026-09-16
 - **Trigger:** CV's Phase-0 seam-spike ADR + T29 read-model tier verdict + three CV status
   reports (2026-09-15/16) all cite this library's APIs. Every externally-made claim below

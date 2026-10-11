@@ -1,5 +1,7 @@
 # Evolution-Fold-Inheritance Coverage Audit — G-T09
 
+> **POINT-IN-TIME AUDIT (docs-health 13th pass, 2026-10-11):** coverage snapshot consumed by the goal-closure arc; any residual gap lives in TODO_LIST (§Metaengine Goal-closure / §Metaengine follow-ups). Archived as a measurement record.
+
 **Date:** 2026-09-21
 **Source task:** [`TODO_LIST.md` § metaengine Goal-closure follow-ups](../../TODO_LIST.md) G-T09 (plan ref: [`2026-09-17_05-49_SUPERB-metaengine-goal-closure-pareto-plan.md`](2026-09-17_05-49_SUPERB-metaengine-goal-closure-pareto-plan.md), R19–R21).
 **Scope:** enumerate every `system` projection declaration shape, whether it inherits folds from a matching `Evolution` today, and where the gaps are. Evidence is `file:line` against master (`9efeb426e`).

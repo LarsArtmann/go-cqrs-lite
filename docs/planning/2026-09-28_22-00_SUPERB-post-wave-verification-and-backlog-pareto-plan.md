@@ -1,5 +1,7 @@
 # SUPERB — Post-Wave Verification & Backlog Pareto Plan
 
+> **EXECUTED (docs-health 13th pass, 2026-10-11):** the 09-29 sessions (01-27, 04-58, 06-41, 09-15) executed M01–M19 end-to-end — lint green, watermill/tursoengine hotfix re-tags, README doc-corpus gate, FP-sweep refresh, benchkit debts, M14 counts gate, M16–M19 shipped. Only the quiet-gated legs (M04 composed verify, M05 MySQL, M11 calibration) remain open, rowed in TODO_LIST §CI. Archived.
+
 **Planned:** 2026-09-28 22:00 CEST
 **Source backlog:** the FULL open `TODO_LIST.md` (111 open rows, 21 sections — the living source stays authoritative) + this day's session leftovers ([status report](../status/2026-09-28_17-57_todo-execution-watermill-roundtrip-fix-lint-recovery.md) §b/§c).
 **Scope:** ALL open TODOs, mapped. Owner-gated items become decision microtasks (never agent-self-executed); quiet-window items carry explicit load gates; v5-gated items are inventoried but NOT scheduled for v4.x execution.

@@ -1,5 +1,7 @@
 # SUPERB — metaengine Goal Closure (Pareto Plan)
 
+> **EXECUTED (docs-health 13th pass, 2026-10-11):** the goal-closure wave shipped through 09-17..10-01 (receipts: TODO_LIST §Metaengine Goal-closure follow-ups + the 09-2x session reports); the direction question was RULED via ADR-0151 (2026-10-08, Evolutions are the declaration); G-T25/cqrs-gen stays parked behind its evidence gate. Archived as the executed plan's record.
+
 - **Date:** 2026-09-17 05:49 CEST
 - **The Goal being closed** (AGENTS.md north star, verbatim): _"Developers declare ONLY Commands + Events + Queries and their relationships. We should be able to build superb projections (materialized views) and developers never need to worry about anything else, while where data lives is up to operators at DEPLOYMENT time."_
 - **Companion plan:** [`archived/2026-09-16_21-05_SUPERB-metaengine-system-excellence-pareto-plan.md`](archived/2026-09-16_21-05_SUPERB-metaengine-system-excellence-pareto-plan.md) — the reliability/release/v5-coherence train. THIS plan closes the **Goal gap** measured at ~55–60% consumer-experienced (distance analysis 2026-09-17). Shared items are cross-referenced by that plan's T-numbers — never duplicated as second markable rows.
