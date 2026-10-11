@@ -101,7 +101,7 @@ func assertSameDayBounds(t *testing.T, reader *metaengine.TypedReader[callItem],
 	if err != nil {
 		t.Fatalf("Count Ge: %v", err)
 	}
-	if n != 2 {
+	if n != 3 {
 		t.Errorf("%s Ge(day) = %d, want 3 (day start is a lower bound; the raw bind dropped same-day rows)", collection, n)
 	}
 

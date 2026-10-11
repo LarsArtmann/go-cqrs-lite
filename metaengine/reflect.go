@@ -301,9 +301,18 @@ func extractFirstDomainField(input any) any {
 	return v.FieldByName(fields[0].Name).Interface()
 }
 
-// extractValueByName finds an exported field in the input struct whose name
-// matches the given name case-insensitively, and returns its value.
-// Used by FilterOnField to extract filter values from the query input.
+// extractValueByName finds an exported field in the input struct matching the
+// given name case-insensitively, and returns its value. Used by
+// FilterOnField to extract filter values from the query input, and by the
+// closure-fallback filter/sort/cursor paths to extract row fields.
+//
+// The match is json-tag-first, Go-field-name second: SQL engines resolve
+// declarative columns by JSON key (json_extract '$.started_at'), so the
+// memory engine's struct rows must resolve the same column the same way —
+// a filter on a snake_case json tag is correct on sqlite and silently
+// matched nothing on memory (issue #63). The field-name fallback keeps
+// camelCase/Go-name columns working (ExtractFields' dual naming-world
+// contract).
 func extractValueByName(input any, name string) any {
 	v, ok := structValue(input)
 	if !ok {
@@ -311,6 +320,17 @@ func extractValueByName(input any, name string) any {
 	}
 
 	t := v.Type()
+
+	for i := range t.NumField() {
+		f := t.Field(i)
+		if !f.IsExported() {
+			continue
+		}
+
+		if strings.EqualFold(JSONFieldName(f), name) {
+			return v.Field(i).Interface()
+		}
+	}
 
 	for i := range t.NumField() {
 		f := t.Field(i)
