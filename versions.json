@@ -111,6 +111,6 @@
     "transport/grpc": "transport/grpc/v4.3.3",
     "transport/http": "transport/http/v4.3.5",
     "turso": "turso/v2.6.0",
-    "watermill": "watermill/v4.6.5"
+    "watermill": "watermill/v4.7.0"
   }
 }
