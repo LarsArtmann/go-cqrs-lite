@@ -9,7 +9,10 @@ and its entry is deleted from this file. Historical session reports live under
 2026-09-20, 2026-09-21 ×2, 2026-09-22 — the 12th pass (2026-09-28) archived
 the 09-20..28 accumulation: the T18b arc ×6, the unblock/verify/data-mesh/t4/
 dedup/publish-integrity clusters, and five executed SUPERB plans, all
-RESOLVED-BY-ROUTING-bannered).
+RESOLVED-BY-ROUTING-bannered). The 13th pass (2026-10-11) archived the
+09-28..09-30 accumulation (7 status reports + 8 planning artifacts + 6
+reviews, manifest in docs/status/README.md), killed 31 rows of live-index
+rot, and harvested the 10-11 tails into the rows below.
 The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 
 > **Prioritized execution plan (2026-09-08):**
@@ -607,6 +610,14 @@ replace-free — 10-25 §a2/§a3, now archived).
 
 ## Release / Tagging
 
+- [ ] **#26 publish watch — the `retract v4.2.0` directive ships with the next
+      `stack/postgres` tag** — retract landed in `stack/postgres/go.mod`
+      2026-10-03 (tidy+build green; reaches the module proxy with the next
+      tagged release); issue #26 was commented and stays OPEN until that tag
+      publishes; close it with the proxy receipt. (Residue of the executed
+      2026-09-30 issue-backlog W1 row, deleted at the 13th docs-health pass.)
+      — issue #26 _(Effort: XS)_
+
 > The full 39-tag v4 wave (B1–B7) was cut, pushed, and verify-ci-green on
 > 2026-08-29. The SUPERB wave tagged `otel/v4.4.0` + `cmd/cqrs-upgrade/v4.0.0`
 > (2026-09-07) and a coordinated release re-tagged 15 modules (2026-09-08).
@@ -662,6 +673,18 @@ replace-free — 10-25 §a2/§a3, now archived).
 ---
 
 ## Metaengine — follow-ups
+
+- [ ] 🔥 **Write the idempotency-retirement ADR + route the decision** — retire
+      `idempotency/{kvstore,sqlstore}` (pre-ADR-0142 fossils; parent module
+      deleted at ADR-0128) in favor of a `system`-exposed dedup facade over
+      `metaengine.DedupStore`; fleet consumers enumerated (10 repos). The
+      2026-10-11 analysis session ended with the verdict but NO artifact —
+      the ADR (run `nix run .#check-adr-numbering` before AND after), a
+      decision-queue/TODO routing entry, and the ADR-0152 ghost-verdict
+      addendum for `idempotency/kvstore` are the owed artifacts. Design
+      questions (facade shape, `collection`/`now` args, bool vs sentinel
+      return) are pre-enumerated in the source report §f5–f12.
+      Source: docs/status/2026-10-11_07-28 report §f1–f4. _(Effort: M)_
 
 - [x] **Feedback #6: system test-mass gap** — DONE 2026-09-29 (M17):
       (a) config-loader table tests + 3 rapid properties — which FOUND and
@@ -783,6 +806,22 @@ replace-free — 10-25 §a2/§a3, now archived).
 ---
 
 ## CI / Infrastructure
+
+- [ ] 🔥 **Decide gate coverage for `cmd/*` modules (the 82-findings class)** —
+      `cmd/cqrs-lint` (and `cmd/doc-check`, `cmd/api-stability`) are NOT in
+      `testModules`/`lintModules` (flake.nix), so no gate lints or tests them;
+      82 findings + a stale golden accumulated invisibly (2026-10-11 triage).
+      Either add them with dep-budget review (`nix run .#check-arch` after) or
+      document the exclusion rationale in `docs/agents/module-map.md`.
+      Source: docs/status/2026-10-11_19-27 report §f15. _(Effort: M, owner
+      decision on gate membership)_
+- [ ] **Durable guard against the gci re-add loop** — BuildFlow
+      `golangci-lint-auto-configure` re-added `gci` to `formatters.enable` at
+      least twice (2026-10-10 `9d31b8e07`, again before 10-11 `0aa0e0f5f`
+      removed it). Same class as the documented `go-version-auto-configure`
+      skip (AGENTS gotcha #6). Fix: BuildFlow config skip, hook, or a CI check
+      failing on `gci` in formatters. Source: 2026-10-11_19-27 §f16.
+      _(Effort: S, owner decision on mechanism)_
 
 `scripts/wait-for-quiet.sh` (1-min AND 5-min ceilings, self-tested),
 `scripts/can-run-composed-gate.sh` (no-release-procs + tree-stability +
