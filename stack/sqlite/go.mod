@@ -14,7 +14,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/stack/metaengine/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.5.0
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.10.5
-	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.5
+	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.7.0
 	github.com/larsartmann/go-error-family v0.11.0
 	modernc.org/sqlite v1.60.1
 )

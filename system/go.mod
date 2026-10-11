@@ -26,7 +26,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.6.0
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.6.2
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2
-	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.5
+	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.7.0
 	github.com/larsartmann/go-error-family v0.11.0
 	github.com/maypok86/otter/v2 v2.3.0
 	github.com/onsi/gomega v1.44.0

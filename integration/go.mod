@@ -29,7 +29,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/storage/pebble/v4 v4.4.4
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.10.5
 	github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.3.4
-	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.5
+	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.7.0
 	github.com/larsartmann/go-error-family v0.11.0
 	github.com/larsartmann/go-idempotency v0.3.1
 	github.com/onsi/ginkgo/v2 v2.33.0
