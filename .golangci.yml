@@ -73,7 +73,6 @@ linters:
     - intrange
     - iotamixing
     - ireturn
-    - lll
     - loggercheck
     - maintidx
     - makezero
@@ -368,7 +367,7 @@ linters:
       - path: queue/conformance/
         linters:
           - mnd
-      - text: "embedlit: embedded field type can be removed from struct literal"
+      - text: 'embedlit: embedded field type can be removed from struct literal'
         linters:
           - modernize
       - path: testhelpers/fake.*\.go$
@@ -401,15 +400,15 @@ linters:
         linters:
           - contextcheck
       - path: (stack|storage|graph|benchkit|cmd/cqrs-bench|example|integration|record|metadata|event|command|query|metaengine|commandlifecycle|decider)/.*\.go$
-        text: "SA1019: .*removed in v5.*"
+        text: 'SA1019: .*removed in v5.*'
         linters:
           - staticcheck
       - path: (event|metadata)/.*_test\.go$
-        text: "SA1019: .*EnsureCustom.*is deprecated"
+        text: 'SA1019: .*EnsureCustom.*is deprecated'
         linters:
           - staticcheck
       - path: (middleware|idempotency)/.*_test\.go$
-        text: "SA1019: .*(NewMemoryStore|MemoryStore) is deprecated"
+        text: 'SA1019: .*(NewMemoryStore|MemoryStore) is deprecated'
         linters:
           - staticcheck
       - path: idempotency/.*_test\.go$
@@ -833,10 +832,6 @@ linters:
       - storage/view/
       - vendor/
 formatters:
-  # formatting — goimports -local + gofumpt + golines via `nix fmt`; gci was
-  # REMOVED because it fights treefmt over the same import blocks and
-  # re-broke 95+ files once (2026-08-16). golangci-lint-auto-configure
-  # re-adding this block is the known recurrence — keep gci out.
   enable:
     - goimports
     - gofumpt

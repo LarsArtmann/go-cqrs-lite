@@ -84,16 +84,26 @@ func TestJSONKeyParity_MemoryVsSQLite(t *testing.T) { //nolint:tparallel
 	memReader := metaengine.NewReader[sessionRow](memStore, "sessions")
 	sqlReader := metaengine.NewReader[sessionRow](sqlStore, "sessions")
 
-	memCount, err := memReader.Count(ctx, metaengine.WithFilter("started_at", metaengine.FilterGe, day))
+	memCount, err := memReader.Count(
+		ctx,
+		metaengine.WithFilter("started_at", metaengine.FilterGe, day),
+	)
 	if err != nil {
 		t.Fatalf("memory Count: %v", err)
 	}
-	sqlCount, err := sqlReader.Count(ctx, metaengine.WithFilter("started_at", metaengine.FilterGe, day))
+	sqlCount, err := sqlReader.Count(
+		ctx,
+		metaengine.WithFilter("started_at", metaengine.FilterGe, day),
+	)
 	if err != nil {
 		t.Fatalf("sqlite Count: %v", err)
 	}
 	if memCount != sqlCount {
-		t.Errorf("memory Count = %d, sqlite Count = %d — engines disagree on the same json-key filter", memCount, sqlCount)
+		t.Errorf(
+			"memory Count = %d, sqlite Count = %d — engines disagree on the same json-key filter",
+			memCount,
+			sqlCount,
+		)
 	}
 
 	memScan, err := memReader.Scan(ctx,
@@ -115,10 +125,16 @@ func TestJSONKeyParity_MemoryVsSQLite(t *testing.T) { //nolint:tparallel
 	}
 	for i := range memScan {
 		if memScan[i].ID != sqlScan[i].ID {
-			t.Errorf("row %d memory = %q, sqlite = %q — sort by json key disagrees", i, memScan[i].ID, sqlScan[i].ID)
+			t.Errorf(
+				"row %d memory = %q, sqlite = %q — sort by json key disagrees",
+				i,
+				memScan[i].ID,
+				sqlScan[i].ID,
+			)
 		}
 	}
-	if len(memScan) != 3 || memScan[0].ID != "early" || memScan[1].ID != "mid" || memScan[2].ID != "late" {
+	if len(memScan) != 3 || memScan[0].ID != "early" || memScan[1].ID != "mid" ||
+		memScan[2].ID != "late" {
 		t.Errorf("expected [early mid late] ascending by started_at, got %v", memScan)
 	}
 }

@@ -25,9 +25,9 @@ func TestItemFieldByNameResolvesJSONTagFirst(t *testing.T) {
 	row := tagRow{ID: "r1", StartedAt: time.Date(2026, 10, 11, 8, 0, 0, 0, time.UTC), State: "open"}
 
 	cases := []struct {
-		name  string
+		name   string
 		column string
-		want  any
+		want   any
 	}{
 		{"json key snake_case", "started_at", row.StartedAt},
 		{"json key case-insensitive", "STARTED_AT", row.StartedAt},

@@ -89,7 +89,11 @@ func setupCallStore(t *testing.T, planned bool) (*metaengine.Store, context.Cont
 	return store, ctx
 }
 
-func assertSameDayBounds(t *testing.T, reader *metaengine.TypedReader[callItem], collection string) {
+func assertSameDayBounds(
+	t *testing.T,
+	reader *metaengine.TypedReader[callItem],
+	collection string,
+) {
 	t.Helper()
 
 	ctx := context.Background()
@@ -102,7 +106,11 @@ func assertSameDayBounds(t *testing.T, reader *metaengine.TypedReader[callItem],
 		t.Fatalf("Count Ge: %v", err)
 	}
 	if n != 3 {
-		t.Errorf("%s Ge(day) = %d, want 3 (day start is a lower bound; the raw bind dropped same-day rows)", collection, n)
+		t.Errorf(
+			"%s Ge(day) = %d, want 3 (day start is a lower bound; the raw bind dropped same-day rows)",
+			collection,
+			n,
+		)
 	}
 
 	n, err = reader.Count(ctx, metaengine.WithFilter("at", metaengine.FilterLt, dayEnd))
@@ -110,10 +118,17 @@ func assertSameDayBounds(t *testing.T, reader *metaengine.TypedReader[callItem],
 		t.Fatalf("Count Lt: %v", err)
 	}
 	if n != 2 {
-		t.Errorf("%s Lt(dayEnd) = %d, want 2 (same-day rows kept; the raw bind leaked the day)", collection, n)
+		t.Errorf(
+			"%s Lt(dayEnd) = %d, want 2 (same-day rows kept; the raw bind leaked the day)",
+			collection,
+			n,
+		)
 	}
 
-	n, err = reader.Count(ctx, metaengine.WithFilter("at", metaengine.FilterGt, day.Add(-time.Second)))
+	n, err = reader.Count(
+		ctx,
+		metaengine.WithFilter("at", metaengine.FilterGt, day.Add(-time.Second)),
+	)
 	if err != nil {
 		t.Fatalf("Count Gt: %v", err)
 	}
@@ -121,12 +136,19 @@ func assertSameDayBounds(t *testing.T, reader *metaengine.TypedReader[callItem],
 		t.Errorf("%s Gt(day-1s) = %d, want 3", collection, n)
 	}
 
-	n, err = reader.Count(ctx, metaengine.WithFilter("at", metaengine.FilterEq, day.Add(8*time.Hour)))
+	n, err = reader.Count(
+		ctx,
+		metaengine.WithFilter("at", metaengine.FilterEq, day.Add(8*time.Hour)),
+	)
 	if err != nil {
 		t.Fatalf("Count Eq: %v", err)
 	}
 	if n != 1 {
-		t.Errorf("%s Eq(morning) = %d, want 1 (bind must round-trip the stored rendering)", collection, n)
+		t.Errorf(
+			"%s Eq(morning) = %d, want 1 (bind must round-trip the stored rendering)",
+			collection,
+			n,
+		)
 	}
 }
 
