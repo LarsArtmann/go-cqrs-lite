@@ -70,7 +70,7 @@ func main() {
 - **Atomic `CheckAndRecord`**: Uses `SetIfAbsent` (conditional write) for atomicity. On a rare race (key deleted between `SetIfAbsent` and `Get`), it retries once.
 - **Expired key reclaim**: If `SetIfAbsent` fails but the existing entry has expired, the store overwrites and claims it.
 - **Error classification**: Infrastructure errors are classified as `Transient`; decode failures as `Corruption` via `go-error-family`.
-- **Returns `idempotency.ErrDuplicate`** from the parent `idempotency/v4` package for duplicates.
+- **Returns `idempotency.ErrDuplicate`** from the external `go-idempotency` core (ADR-0128 deleted the in-repo parent module) for duplicates.
 
 ## Related Modules
 

@@ -57,7 +57,12 @@ func TestMultiModuleBuildContext_PartitionsProfiles(t *testing.T) {
 	}
 
 	// 2. Verify the deriver module has CommandFlow=commands (it dispatches).
-	deriverKey := filepath.Join(repoRoot, "deriver")
+	// FeatureProfiles keys are absolute since BuildContext canonicalizes its
+	// root (ProfileForFile matches absolute finding positions against them).
+	deriverKey, absErr := filepath.Abs(filepath.Join(repoRoot, "deriver"))
+	if absErr != nil {
+		t.Fatalf("abs deriver key: %v", absErr)
+	}
 	deriverProfile, ok := ctx.FeatureProfiles[deriverKey]
 	if !ok {
 		t.Fatalf("deriver module not found in FeatureProfiles (key=%s)", deriverKey)
@@ -68,7 +73,10 @@ func TestMultiModuleBuildContext_PartitionsProfiles(t *testing.T) {
 	}
 
 	// 3. Verify a pure library module (e.g. id/) has CommandFlow != commands.
-	idKey := filepath.Join(repoRoot, "id")
+	idKey, absErr := filepath.Abs(filepath.Join(repoRoot, "id"))
+	if absErr != nil {
+		t.Fatalf("abs id key: %v", absErr)
+	}
 	idProfile, ok := ctx.FeatureProfiles[idKey]
 	if !ok {
 		t.Fatalf("id module not found in FeatureProfiles (key=%s)", idKey)
@@ -115,8 +123,12 @@ func TestMultiModuleBuildContext_FileAttribution(t *testing.T) {
 		t.Fatalf("BuildContext(%s): %v", repoRoot, err)
 	}
 
-	// Find files from the deriver module.
-	deriverDir := filepath.Join(repoRoot, "deriver")
+	// Find files from the deriver module (ModuleDir keys are absolute since
+	// BuildContext canonicalizes its root).
+	deriverDir, absErr := filepath.Abs(filepath.Join(repoRoot, "deriver"))
+	if absErr != nil {
+		t.Fatalf("abs deriver dir: %v", absErr)
+	}
 	hasDeriverFiles := false
 
 	for _, gf := range ctx.GoFiles {
@@ -141,7 +153,10 @@ func TestMultiModuleBuildContext_FileAttribution(t *testing.T) {
 	}
 
 	// Find files from the id module.
-	idDir := filepath.Join(repoRoot, "id")
+	idDir, idErr := filepath.Abs(filepath.Join(repoRoot, "id"))
+	if idErr != nil {
+		t.Fatalf("abs id dir: %v", idErr)
+	}
 	hasIDFiles := false
 
 	for _, gf := range ctx.GoFiles {

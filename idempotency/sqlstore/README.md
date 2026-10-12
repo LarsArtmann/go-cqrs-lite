@@ -8,7 +8,7 @@
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/idempotency/sqlstore/v4.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/idempotency/sqlstore/v4)
 
-Adapts any `database/sql`-compatible database (SQLite, PostgreSQL) into an `idempotency.Store` with TTL-based key expiry. Enables multi-process idempotency for horizontally-scaled command handlers.
+Adapts any `database/sql`-compatible database (SQLite, PostgreSQL, MySQL) into an `idempotency.Store` with TTL-based key expiry. Enables multi-process idempotency for horizontally-scaled command handlers.
 
 ```bash
 go get github.com/larsartmann/go-cqrs-lite/idempotency/sqlstore/v4
