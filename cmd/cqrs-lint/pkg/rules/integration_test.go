@@ -66,7 +66,11 @@ var taskmanagerGoldenProfile = map[string]int{
 	"A032": 2,
 	"B004": 1,
 	"B005": 1,
-	"C009": 4,
+	// C009: 3 since 2026-10-12 — the bare `Must` helper exemption (issue #64,
+	// commit 46187d98a) silences taskmanager's generic Must[T]; the raw
+	// detector count is must.go:23 plus the two features.go panics (their
+	// //cqrs-lint:ignore comments apply at CLI level, not detector level).
+	"C009": 3,
 	"C013": 1,
 	"C015": 1,
 	"C023": 6,
