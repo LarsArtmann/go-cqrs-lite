@@ -65,8 +65,15 @@ func (p *Provider) Handler() http.Handler {
 	return p.handler
 }
 
-// Shutdown flushes pending metrics and releases resources.
+// Shutdown flushes pending metrics and releases resources. A nil Provider
+// is a no-op (returns nil): typed-nil registrations in DI containers
+// resolve as Shutdowners, and a parallel eager shutdown would otherwise
+// SIGSEGV the process (issue #54).
 func (p *Provider) Shutdown(ctx context.Context) error {
+	if p == nil {
+		return nil
+	}
+
 	if err := p.meterProvider.Shutdown(ctx); err != nil {
 		return fmt.Errorf("shutdown: %w", err)
 	}

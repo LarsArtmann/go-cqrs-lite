@@ -122,8 +122,15 @@ var errShutdown = errors.New("otel provider shutdown incomplete")
 var errBuildResource = errors.New("failed to build OTel resource")
 
 // Shutdown flushes pending spans and metrics, then releases resources.
-// Always call this on application exit.
+// Always call this on application exit. A nil Provider is a no-op (returns
+// nil): typed-nil registrations in DI containers (samber/do
+// `ProvideValue(inj, (*Provider)(nil))`) resolve as Shutdowners, and a
+// parallel eager shutdown would otherwise SIGSEGV the process (issue #54).
 func (p *Provider) Shutdown(ctx context.Context) error {
+	if p == nil {
+		return nil
+	}
+
 	var errs []error
 
 	// ForceFlush BEFORE Shutdown: the batcher drops spans recorded between the
