@@ -915,6 +915,7 @@ cmd/cqrs-lint/pkg/rules/performance/func NewP011Detector
 cmd/cqrs-lint/pkg/rules/performance/func NewP012Detector
 cmd/cqrs-lint/pkg/rules/performance/func NewP013Detector
 cmd/cqrs-lint/pkg/rules/performance/func NewP014Detector
+cmd/cqrs-lint/pkg/rules/performance/func NewP015Detector
 cmd/cqrs-lint/pkg/rules/resilience/func NewB029Detector
 cmd/cqrs-lint/pkg/rules/resilience/func NewB030Detector
 cmd/cqrs-lint/pkg/rules/resilience/func NewB031Detector
@@ -3017,6 +3018,7 @@ metaengine/func ExecDDLLocked
 metaengine/func ExecuteTyped
 metaengine/func ExecuteTypedByName
 metaengine/func ExtractFields
+metaengine/func FilterBindValue
 metaengine/func FilterOn
 metaengine/func FilterOnField
 metaengine/func FormatLiveLatency
