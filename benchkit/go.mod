@@ -89,7 +89,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.5.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.7.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.6.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.7.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/pebble/v4 v4.4.4 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.10.5 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.1 // indirect

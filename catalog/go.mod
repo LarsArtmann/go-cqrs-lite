@@ -11,7 +11,7 @@ require (
 	github.com/a-h/templ v0.3.1070
 	github.com/gkampitakis/go-snaps v0.5.23
 	github.com/go-faster/yaml v0.4.6
-	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.6.0
+	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.7.0
 	github.com/larsartmann/go-error-family v0.11.0
 	github.com/larsartmann/templ-components v1.20.1
 	github.com/larsartmann/templ-components/icons v1.20.1

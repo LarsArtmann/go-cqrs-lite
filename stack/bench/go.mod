@@ -89,7 +89,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.7.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.6.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.7.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.6.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/bbolt/v4 v4.2.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/pebble/v4 v4.4.4 // indirect
