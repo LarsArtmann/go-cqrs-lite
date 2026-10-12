@@ -467,7 +467,12 @@ func TestAuditSuppressions_AgreesWithStaleDetector(t *testing.T) {
 	}
 	for rule, want := range wantStatus {
 		if staleRules[rule] == (want == suppression.AuditActive) {
-			t.Errorf("stale detector disagrees on %s: stale=%v, audit says %s", rule, staleRules[rule], want)
+			t.Errorf(
+				"stale detector disagrees on %s: stale=%v, audit says %s",
+				rule,
+				staleRules[rule],
+				want,
+			)
 		}
 	}
 }

@@ -83,7 +83,9 @@ func TestWithContentionObserver_WiresEngine(t *testing.T) {
 }
 
 //nolint:staticcheck // verbatim server message below
-var errNonContention error = &staticError{"rpc error: code = PermissionDenied desc = not contention"}
+var errNonContention error = &staticError{
+	"rpc error: code = PermissionDenied desc = not contention",
+}
 
 type staticError struct{ msg string }
 
