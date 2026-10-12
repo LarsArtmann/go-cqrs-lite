@@ -25,6 +25,15 @@ func (f PublisherFunc) Publish(ctx context.Context, events ...Event) error {
 
 // Subscriber registers handlers for events. Projections and event processors
 // only need this interface — they never publish.
+//
+// Cleanup convention (mirrors the Bus io.Closer note): implementations that
+// spawn dispatch goroutines or own resources should implement io.Closer;
+// callers type-assert when they need to stop a subscription —
+// `if c, ok := sub.(io.Closer); ok { c.Close() }`. A Subscriber without
+// Close runs for the process lifetime; consumers holding only this
+// interface should accept an io.Closer alongside it when they need a stop
+// handle (issue #56 — the contract must not stay implicit, so every
+// library invents its own stop channel).
 type Subscriber interface {
 	Subscribe(eventType Type, handler Handler) error
 	SubscribeAll(handler Handler) error

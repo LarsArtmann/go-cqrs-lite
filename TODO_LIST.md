@@ -1843,3 +1843,16 @@ dprint, ADR-0123 addendum) shipped the same day — completed rows deleted
       (v5 deletions); encryption (15) folds into M25 (ADR-0139). Full
       classification: docs/planning/2026-10-12_06-45_wave-c-delta-audit.md
       — source: N04 audit _(Effort: S per module after inspection)_
+- [ ] **[#58 owner verdict: pre-system journal → system.New adoption path]**
+      — two shapes on the table: (1) `DeploymentConfig` accepts an
+      `event.Store` override (skips engine-built adapter — a second
+      construction path through the composition root, needs design review
+      against ADR-0123's operator-decides-data-location story), or (2) a
+      documented migration helper (foreign journal →
+      `event.ReconstructEventFromFields` → adapter append, aggregate-
+      agnostic; browser-history is the named consumer with ~136k CBOR
+      events incl. a usermgmt drain). The separable ask is DONE: the
+      CBOR-through-SQLite round-trip pin exists
+      (`TestEventAdapter_CBORPayloadRoundTripSQLite`, system module).
+      — source: issue #58 _(Effort: XS for the verdict row; M for either
+      shape)_
