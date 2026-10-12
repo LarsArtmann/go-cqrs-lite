@@ -325,3 +325,14 @@ func TestSetup_WithViews_HistogramBoundaries(t *testing.T) {
 
 	t.Fatal("cqrs_operation_duration metric not found — view did not apply boundaries")
 }
+
+// TestProvider_Shutdown_NilReceiverNoOp pins the #54 fix: a typed-nil
+// *Provider (the samber/do ProvideValue placeholder shape) must Shutdown as
+// a no-op instead of SIGSEGVing the parallel eager shutdown.
+func TestProvider_Shutdown_NilReceiverNoOp(t *testing.T) {
+	t.Parallel()
+
+	if err := (*cqrsprom.Provider)(nil).Shutdown(context.Background()); err != nil {
+		t.Fatalf("nil Provider Shutdown = %v, want nil", err)
+	}
+}

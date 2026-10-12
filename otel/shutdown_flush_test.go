@@ -72,3 +72,14 @@ func TestProvider_Shutdown_FlushesBeforeShutdown(t *testing.T) {
 		t.Fatalf("expected [flush shutdown], got %v", events)
 	}
 }
+
+// TestProvider_Shutdown_NilReceiverNoOp pins the #54 fix: a typed-nil
+// *Provider (the samber/do ProvideValue placeholder shape) must Shutdown as
+// a no-op instead of SIGSEGVing the parallel eager shutdown.
+func TestProvider_Shutdown_NilReceiverNoOp(t *testing.T) {
+	t.Parallel()
+
+	if err := (*Provider)(nil).Shutdown(context.Background()); err != nil {
+		t.Fatalf("nil Provider Shutdown = %v, want nil", err)
+	}
+}
