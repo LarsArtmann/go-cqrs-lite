@@ -10,7 +10,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.2
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.3.4
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.5.2
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.18.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.19.0
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.4.2
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.6.0
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1

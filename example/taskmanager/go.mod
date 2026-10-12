@@ -11,7 +11,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.2
 	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.5.3
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.5.2
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.18.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.19.0
 	github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.7.2
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.2
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.4.2
