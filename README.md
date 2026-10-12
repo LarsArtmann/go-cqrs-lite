@@ -340,7 +340,7 @@ Modules release on independent per-module version trains (`<module>/vX.Y.Z` git 
 | sync | `sync/v0.2.0` |
 | system | `system/v4.12.0` |
 | system/integration | `system/integration/v4.0.2` *(untagged per ADR-0152)* |
-| systemscenario | `systemscenario/v4.0.0` |
+| systemscenario | `systemscenario/v4.1.0` |
 | systemtest | `systemtest/v4.0.0` *(untagged per ADR-0152)* |
 | testhelpers | `testhelpers/v1.7.1` |
 | testing | `testing/v3.3.0` |
