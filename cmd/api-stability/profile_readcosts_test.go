@@ -27,8 +27,8 @@ func TestEngineProfilesSetReadCosts(t *testing.T) {
 	roster := map[string]string{
 		"metaengine/pgengine":     "profile.go", // Profile() extracted (file-size ratchet)
 		"metaengine/mysqlengine":  "engine.go",
-		"metaengine/sqliteengine": "../engine.go", // profile factory lives core-side (SQLiteEngineProfile)
-		"metaengine/duckdbengine": "profile.go",   // Profile() extracted (file-size ratchet)
+		"metaengine/sqliteengine": "../engine_sqlite_profile.go", // profile factory lives core-side (SQLiteEngineProfile; extracted from engine.go by the file-size ratchet)
+		"metaengine/duckdbengine": "profile.go",                  // Profile() extracted (file-size ratchet)
 		"metaengine/dgraphengine": "engine.go",
 		"metaengine/badgerengine": "engine.go",
 		"metaengine/bboltengine":  "engine.go",
