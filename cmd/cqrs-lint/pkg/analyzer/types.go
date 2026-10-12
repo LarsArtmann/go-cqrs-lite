@@ -3,6 +3,7 @@
 package analyzer
 
 import (
+	"fmt"
 	"go/ast"
 	"go/token"
 	"os"
@@ -129,6 +130,12 @@ type AnalysisContext struct {
 	// Per-file detectors resolve the correct profile for each finding's file via
 	// ProfileForFile. Empty for single-module projects (use FeatureProfile).
 	FeatureProfiles map[string]FeatureProfile
+
+	// profileFallbackWarn fires once when ProfileForFile finds NO matching
+	// per-module key and silently downgrades to the primary profile — the
+	// shape that hid the relative-key bug (fixed 2026-10-12). sync.Once keeps
+	// the warning to one line per analysis under parallel detectors.
+	profileFallbackWarn sync.Once
 
 	// RulesConfig carries rule-specific overrides from .cqrs-lint.json (the
 	// "rules" key). Detectors consult it to suppress documented false-positive
