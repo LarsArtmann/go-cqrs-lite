@@ -296,7 +296,7 @@ Modules release on independent per-module version trains (`<module>/vX.Y.Z` git 
 | metaengine/pebbleengine | `metaengine/pebbleengine/v4.4.3` |
 | metaengine/pgengine | `metaengine/pgengine/v4.4.3` *(untagged per ADR-0152)* |
 | metaengine/projectionadapter | `metaengine/projectionadapter/v4.5.3` |
-| metaengine/sqliteengine | `metaengine/sqliteengine/v4.5.2` |
+| metaengine/sqliteengine | `metaengine/sqliteengine/v4.5.3` |
 | metaengine/tursoengine | `metaengine/tursoengine/v4.2.3` *(untagged per ADR-0152)* |
 | middleware | `middleware/v4.7.2` |
 | otel | `otel/v4.5.2` |
