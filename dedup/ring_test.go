@@ -153,7 +153,10 @@ func TestRing_TypedKeys(t *testing.T) {
 		t.Error("1 should have been evicted")
 	}
 
-	if !r.Has(3) || !r.Has(2) {
+	if !r.Has(3) ||
+		!r.Has(
+			2,
+		) { //art-dupl:accept core/v5 copy-forward twin lives in core/v5/dedup/ring_test.go (ADR-0152 mirror-lag fork)
 		t.Error("2 and 3 should be present after eviction")
 	}
 }

@@ -121,7 +121,9 @@ func TestRing_LargeCapacity_Wraparound(t *testing.T) {
 	}
 
 	// The newest entries should be present.
-	if !r.Has(string(rune(capacity*3 - 1))) {
+	if !r.Has(
+		string(rune(capacity*3 - 1)),
+	) { //art-dupl:accept core/v5 copy-forward twin of dedup/ring_test.go (ADR-0152 mirror-lag fork)
 		t.Error("last entry should be present")
 	}
 }
