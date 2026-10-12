@@ -255,7 +255,7 @@ Modules release on independent per-module version trains (`<module>/vX.Y.Z` git 
 | commandlifecycle/projections | `commandlifecycle/projections/v4.2.3` |
 | core | `core/v1.6.0` |
 | cqrs-lite | `cqrs-lite/v0.1.1` |
-| decider | `decider/v4.7.2` |
+| decider | `decider/v4.8.0` |
 | dedup | `dedup/v4.3.0` |
 | deriver | `deriver/v4.5.0` |
 | dispatcher | `dispatcher/v4.5.2` |
