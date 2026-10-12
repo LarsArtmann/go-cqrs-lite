@@ -280,7 +280,7 @@ Modules release on independent per-module version trains (`<module>/vX.Y.Z` git 
 | listing | `listing/v4.4.4` |
 | memory | `memory/v2.6.0` |
 | metadata | `metadata/v4.7.3` |
-| metaengine | `metaengine/v4.18.0` |
+| metaengine | `metaengine/v4.19.0` |
 | metaengine/badgerengine | `metaengine/badgerengine/v4.3.3` *(untagged per ADR-0152)* |
 | metaengine/bboltengine | `metaengine/bboltengine/v4.3.3` *(untagged per ADR-0152)* |
 | metaengine/bench | `metaengine/bench/v4.1.2` *(untagged per ADR-0152)* |
