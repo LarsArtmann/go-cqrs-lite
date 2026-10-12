@@ -37,7 +37,9 @@ func (s *System) Dedup() (metaengine.DedupStore, error) {
 	}
 
 	if engine == nil {
-		return nil, fmt.Errorf("system: no engines configured; Dedup needs a deployment engine with the DedupStore capability")
+		return nil, fmt.Errorf(
+			"system: no engines configured; Dedup needs a deployment engine with the DedupStore capability",
+		)
 	}
 
 	dedup, ok := engine.(metaengine.DedupStore)
@@ -53,7 +55,9 @@ func (s *System) Dedup() (metaengine.DedupStore, error) {
 
 		return nil, fmt.Errorf(
 			"system: engine %q does not implement metaengine.DedupStore (inspected: %v) — name a dedup-capable engine %q in the deployment, or use a map engine's MapDedupStore",
-			name, inspected, "dedup",
+			name,
+			inspected,
+			"dedup",
 		)
 	}
 

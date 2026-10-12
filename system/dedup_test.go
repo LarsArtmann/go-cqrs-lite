@@ -98,9 +98,12 @@ func TestSystem_Dedup_NoCapabilityNamesTheEngines(t *testing.T) {
 	t.Parallel()
 
 	driverName := "dedupless-" + t.Name()
-	metaengine.RegisterDriver(driverName, func(_ context.Context, _ metaengine.DriverConfig) (metaengine.Engine, error) {
-		return deduplessEngine{}, nil
-	})
+	metaengine.RegisterDriver(
+		driverName,
+		func(_ context.Context, _ metaengine.DriverConfig) (metaengine.Engine, error) {
+			return deduplessEngine{}, nil
+		},
+	)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
