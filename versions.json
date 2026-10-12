@@ -80,7 +80,7 @@
     "scheduling/sqlstore": "scheduling/sqlstore/v4.1.4",
     "schema": "schema/v4.7.0",
     "signing": "signing/v4.4.0",
-    "snapshot": "snapshot/v4.6.2",
+    "snapshot": "snapshot/v4.7.0",
     "stack": "stack/v4.5.0",
     "stack/bbolt": "stack/bbolt/v4.2.3",
     "stack/bench": "stack/bench/v4.3.2",

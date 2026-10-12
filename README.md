@@ -319,7 +319,7 @@ Modules release on independent per-module version trains (`<module>/vX.Y.Z` git 
 | scheduling/sqlstore | `scheduling/sqlstore/v4.1.4` |
 | schema | `schema/v4.7.0` |
 | signing | `signing/v4.4.0` |
-| snapshot | `snapshot/v4.6.2` |
+| snapshot | `snapshot/v4.7.0` |
 | stack | `stack/v4.5.0` |
 | stack/bbolt | `stack/bbolt/v4.2.3` *(untagged per ADR-0152)* |
 | stack/bench | `stack/bench/v4.3.2` *(untagged per ADR-0152)* |
