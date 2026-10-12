@@ -115,7 +115,11 @@ func TrailWithPayloads(events []event.Event, masks []string) string {
 // ThenGolden.
 //
 //	sc.Given(...).When(cmd).ThenGoldenWithPayloads(t, "task_lifecycle")
-func (p *WhenPhase) ThenGoldenWithPayloads(t *testing.T, path string, extraMasks ...string) *WhenPhase {
+func (p *WhenPhase) ThenGoldenWithPayloads(
+	t *testing.T,
+	path string,
+	extraMasks ...string,
+) *WhenPhase {
 	s := p.sc
 
 	t.Helper()

@@ -28,7 +28,12 @@ func snapshotTaskDomain() system.DomainConfig {
 			panic(err)
 		}
 
-		if err := system.RegisterDecider(sys, "Task", taskDecider, system.WithSnapshotStrategy(strategy)); err != nil {
+		if err := system.RegisterDecider(
+			sys,
+			"Task",
+			taskDecider,
+			system.WithSnapshotStrategy(strategy),
+		); err != nil {
 			panic(err)
 		}
 

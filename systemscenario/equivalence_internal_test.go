@@ -53,7 +53,9 @@ func TestTrailDiff_PairwiseRendersDivergentStream(t *testing.T) {
 func TestTrailDiff_LengthMismatchReportsMissingStream(t *testing.T) {
 	t.Parallel()
 
-	a := []normalizedStream{{ordinal: 0, entries: []trailEntry{{eventType: "task.created", version: 1}}}}
+	a := []normalizedStream{
+		{ordinal: 0, entries: []trailEntry{{eventType: "task.created", version: 1}}},
+	}
 
 	if got := trailDiff(a, nil); !strings.Contains(got, "stream #0 exists only in system A") {
 		t.Fatalf("trailDiff missing-only-in-A:\n%s", got)

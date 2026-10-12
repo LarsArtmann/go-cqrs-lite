@@ -116,7 +116,11 @@ func TestSystem_ThenGoldenWithPayloads(t *testing.T) {
 	sc, ref, _ := newTaskScenario(t)
 
 	sc.Given(
-		sc.Event("task.created", ref, TaskCreated{ID: ref.ID.String(), Title: "golden", Status: "pending"}),
+		sc.Event(
+			"task.created",
+			ref,
+			TaskCreated{ID: ref.ID.String(), Title: "golden", Status: "pending"},
+		),
 	).When(newTaskCmd("task.complete", ref.ID)).
 		Then("task.updated").
 		ThenGoldenWithPayloads(t, "golden_task_payloads")
