@@ -644,6 +644,39 @@ replace-free — 10-25 §a2/§a3, now archived).
       validating P015 corpus output 2026-10-12.
       — source: 2026-10-12 P015 validation session
 
+> **N05 fleet-roll receipt (2026-10-12, post-12-26 status report).** The
+> doctor stale-audit false positives are ROOT-CAUSED AND FIXED in-repo:
+> `cqrs-lint doctor` passed a relative path into `analyzer.BuildContext`
+> (lint absolutizes), per-module feature-profile keys came out relative,
+> and `ProfileForFile`'s prefix match silently missed every absolute
+> finding position — feature-gated rules (B029/B030 on browser-history)
+> never fired in the audit pipeline, so working suppressions classified
+> STALE. Fix: BuildContext canonicalizes its root + `AuditSuppressions`
+> now shares the suppression filter's per-file matcher (parity tests
+> pinned; CHANGELOG [Unreleased] Fixed). browser-history's
+> `check-cqrs-lint` gate is GREEN end-to-end with the `:159` directive
+> intact. Fleet state after the roll:
+>
+> - [ ] **The fix is UNRELEASED — next cmd/cqrs-lint tag wave must carry
+>       it** (pbx-lens pins the v4.16.0 TAG = pre-fix; browser-history +
+>       cqrs-htmx use the global `~/go/bin` PATH binary, rebuilt locally
+>       from the fix). InboxClean is workspace-linked and gets it on next
+>       run.
+> - [ ] **cqrs-htmx gate triage (audit-or-suppress), feeding M05/Q2:**
+>       under the rolled binary `nix run .#check-cqrs-lint` is 11/13
+>       green; two units fail — the repo ROOT (28 findings, mostly
+>       adoption coaching: 4×E021 schema declarations, 3×P009 JSON-CBOR
+>       []byte payloads, 4×A032, 2×B027, 2×A013 + singletons) and
+>       `systemadapter` (2: V003 systemscenario v4.0.x is 3 minors
+>       behind — the entangled-roll question; E014 projectionhost without
+>       a drain/sync/flush call). NOTE the gate's devShell sets GOWORK=off
+>       and reports "none import go-cqrs-lite" when invoked outside the
+>       flake app — run via `nix run .#check-cqrs-lint`.
+> - [x] Global binary rolled twice: P015-capable (2026-10-12 morning),
+>       then doctor-fix rebuild — always rebuild from cmd/cqrs-lint with
+>       `GOPATH=/home/lars/go go build -o /home/lars/go/bin/cqrs-lint .`.
+>       — source: 2026-10-12 N05 fleet-roll session + 12-26 status report
+
 ---
 
 ## Release / Tagging

@@ -277,3 +277,36 @@ Two micro-disciplines that each cost a failed edit this stream:
   `scripts/md-go-baseline.txt`. The same gate covers `.agents/skills/**`
   markdown now — recipe fences added there must parse (or be classified as
   skips in the recipes catalog).
+
+## Fleet-roll traps: stale FODs and same-binary path divergence (2026-10-12, N05 session)
+
+- **A nix FOD's store path is derived from its EXPECTED hash — keeping the
+  old hash after a rev bump silently builds the OLD source.** Rolling a
+  `fetchFromGitHub`/`buildGoModule` pin (pbx-lens cqrs-lint block) and
+  leaving the previous hash as a "placeholder" makes nix reuse the old
+  store output: the build "succeeds", tests pass, and the pinned RULE never
+  registers. The hash dance REQUIRES a distinct wrong placeholder (e.g.
+  all-A base64 `sha256-AAAAAAAA...`), then paste the `got:` hash; the
+  `vendorHash` leg repeats the same dance independently. ALWAYS verify the
+  built binary actually registers the new rule (`cqrs-lint rules | grep
+  P015`) before trusting a pin roll.
+- **Two subcommands of the same binary can disagree because ONE normalizes
+  its inputs — diff the input preparation, not the core logic.** The
+  browser-history gate failed as `cqrs-lint .` green + `cqrs-lint doctor`
+  red on the same tree/env/binary: lint absolutized `cfg.Path` in its
+  command entry; doctor passed `.` verbatim into `BuildContext`, whose
+  per-module feature-profile keys inherited the relative form and never
+  matched `ProfileForFile`'s absolute finding positions (silent fallback to
+  the root module's profile). Fixed at the source (BuildContext
+  canonicalizes, 2026-10-12); the debugging lesson stands: when two paths
+  through shared logic produce different results, instrument the SHARED
+  function's ENTRY (both callers) before theorizing about the shared logic
+  itself — the divergence was invisible inside the function.
+- **Reproducing another repo's nix gate locally: run BOTH stages in ONE
+  shell before trusting any env replica.** Half-replicated envs (ambient
+  `GOWORK` leakage, wrong `go` on PATH, missing `GOEXPERIMENT=jsonv2`)
+  produce plausible-but-wrong findings universes; a debug dump collected
+  under a replica can send the investigation toward phantom causes. The
+  reliable recipe: `nix develop -c bash -c 'unset GOWORK; export
+  GOEXPERIMENT=jsonv2; <binary> ...'` in the target repo, validated by
+  matching the gate's own lint-stage output (file/suppression counts) FIRST.

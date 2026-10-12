@@ -8,6 +8,14 @@ ONLY (see §f push item).
 mandate. Executed: M14 bookkeeping → tag/gotcha hygiene → N05 (P015 fleet roll onto
 cqrs-lint/v4.16.0). The roll's audit leg surfaced a REAL cqrs-lint bug mid-investigation.
 
+> **RESOLVED 2026-10-12 ~14:00:** the §b/§d doctor stale-audit bug is root-caused and
+> fixed in-repo (relative-root `BuildContext` canonicalization + `AuditSuppressions`
+> sharing the suppression filter's matcher; parity tests; CHANGELOG Fixed entry).
+> browser-history's `check-cqrs-lint` gate is GREEN with the `:159` directives intact.
+> Fix is UNRELEASED — the next cmd/cqrs-lint tag wave must carry it (receipt:
+> TODO_LIST cqrs-lint section, N05 fleet-roll receipt 2026-10-12). The §f/§g items
+> (cqrs-htmx triage, push authorization, entangled rolls) remain open.
+
 ---
 
 ## a) FULLY DONE
