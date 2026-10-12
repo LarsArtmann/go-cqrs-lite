@@ -1,0 +1,3 @@
+The documented-convention option is in — `event/bus.go`'s `Subscriber` doc now carries the cleanup contract, mirroring the `Bus` io.Closer note: implementations that spawn dispatch goroutines should implement `io.Closer`, callers type-assert (`if c, ok := sub.(io.Closer); ok { c.Close() }`), and a `Subscriber` without `Close` runs for the process lifetime — accept an `io.Closer` alongside when you need a stop handle. No interface change (your "no behavior change requested" framing), so this rides the next event patch tag.
+
+Your go-taskqueue shape (own stop channel + WaitGroup behind the concrete type) stays valid — it now matches the documented convention instead of fighting it.
