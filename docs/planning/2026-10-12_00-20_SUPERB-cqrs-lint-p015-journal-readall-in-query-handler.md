@@ -127,3 +127,20 @@ graph TD
 | Module healthy                            | `GOWORK=off go test ./...` + vet + lint green in cmd/cqrs-lint            |
 | Repo gates intact                         | file-size, art-dupl, changelog-symbol gate wording safe                    |
 | Consumer ratchet lands green              | nsfw-classifier cqrs-lint exit 0 after suppressions + pin update          |
+
+## Addendum 2026-10-12: discrimination proof (mutation testing)
+
+The fixture suite was proven to test by deliberately breaking the detector
+three ways — each mutant must turn the suite red, then the committed file was
+restored (`git restore`) and re-verified green:
+
+| Mutant (in `p015.go`)                                        | Suite result                                  |
+| ------------------------------------------------------------ | --------------------------------------------- |
+| M1: `p015JournalishName` returns false for every name        | Both TP tests FAIL; 4 NP tests stay green     |
+| M2: root suffix match `RegisterQuery` → `RegisterQueryXX`    | Both TP tests FAIL; 4 NP tests stay green     |
+| M3: `p015JournalHelpers` returns an empty map (hop severed)  | ONLY the one-hop TP fails; direct TP survives |
+
+M3's surgical failure proves the direct and one-hop detection paths are
+independently exercised — a regression in either is caught alone. Restored
+state verified: `git diff` empty, `go test -run TestP015` green.
+
