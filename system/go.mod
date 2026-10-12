@@ -16,7 +16,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.4.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.2
 	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.5.3
-	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.5.2
+	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.5.3
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.19.0
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.6.0
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1
