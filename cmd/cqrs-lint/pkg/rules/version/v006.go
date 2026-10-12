@@ -25,6 +25,14 @@ import (
 // with "updates to go.mod needed" until the pins are realigned in the same
 // change (the workspace-lockstep class).
 //
+// Exception (ruling 2026-10-08, owner decision A3): a module whose release
+// train has STOPPED — no newer tag exists — must not receive an "align up"
+// advisory, because satisfying it would demand a content-identical re-tag
+// (a history lie). Pins at the newest existing tag of such a module are
+// current; divergence findings for these modules are skipped. Refresh the
+// newestExistingTags table at every cqrs-lint release (same discipline as
+// V003's latestKnownMinor).
+//
 //nolint:ireturn // factory returns public interface
 func NewV006Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
@@ -85,6 +93,14 @@ func NewV006Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 				lowest := sorted[0]
 				highest := sorted[len(sorted)-1]
+
+				// Ruling A3 (2026-10-08): the stale-side pin sits at the
+				// module's newest existing tag — the "align up" advisory would
+				// require a content-identical re-tag, so the divergence is
+				// structural, not actionable.
+				if tag, stopped := newestExistingTags[path]; stopped && lowest.version == tag {
+					continue
+				}
 
 				others := make([]string, 0, len(sorted)-1)
 				for _, s := range sorted[1:] {
@@ -176,4 +192,14 @@ func sortedKeys[V any](m map[string]V) []string {
 	slices.Sort(keys)
 
 	return keys
+}
+
+// newestExistingTags records stopped release trains: modules whose newest
+// existing tag is the listed version (ruling 2026-10-08 A3 — claiming rode
+// no content since v4.0.0, so "align up" advisories against it are
+// structural). A pin AT this version is current even when the fleet rides a
+// newer wave; V006 skips divergence findings for listed modules. Refresh at
+// every cqrs-lint release against `git tag -l '<module>/*'`.
+var newestExistingTags = map[string]string{ //nolint:gochecknoglobals // static release-surface table
+	"github.com/larsartmann/go-cqrs-lite/claiming/v4": "v4.0.2",
 }
