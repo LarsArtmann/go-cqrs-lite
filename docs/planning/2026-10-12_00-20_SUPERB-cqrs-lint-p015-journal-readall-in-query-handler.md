@@ -144,3 +144,25 @@ M3's surgical failure proves the direct and one-hop detection paths are
 independently exercised — a regression in either is caught alone. Restored
 state verified: `git diff` empty, `go test -run TestP015` green.
 
+## Addendum 2026-10-12: structured corpus + SARIF validation
+
+The "never validate by tail" lesson, executed. Pinned expectation: the
+nsfw-classifier corpus carries EXACTLY five P015 sites, all suppressed:
+`internal/feedback/domain.go:214`, `internal/history/domain_queries.go:205`
+and `:264`, `internal/rooms/domain_queries.go:93`,
+`internal/verdicts/domain.go:165` (finding lines; each suppression comment
+sits directly above). The consumer-side mechanical pin (`--fail-on-stale-suppressions`
++ suppression count pin 31) enforces this on every gate run.
+
+| Claim                                   | Proof                                                                                                     |
+| --------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| Gate green with the linter from ad4f824f5 | `cqrs-lint --fail-on-stale-suppressions` exit 0; "19 finding(s) suppressed by inline comments" (5 P015 + 14) |
+| Exactly 5 P015, correct sites           | `--format text --show-suppressed`: 5 `[P015]` blocks at the five pinned sites, each with a Suppressed marker |
+| 0 unsuppressed P015                     | `--format json`: findings contain only 1 info-level F021; no P015 outside suppressions                       |
+| SARIF rendering of P015                 | Synthetic fixture: SARIF 2.1.0 result at the ReadAll call site, `level: warning`, property bag carries `go-finding/severity` / `-confidence` (0.5 Medium) / `-category` (performance) / `-fixStrategy` (suggest) / `-suggestion` / `-snippet` / `-id` |
+
+Product gap found during validation: `--format json --show-suppressed`
+prints the suppressed-findings text block AFTER the JSON document — recorded
+in TODO_LIST §cqrs-lint.
+
+

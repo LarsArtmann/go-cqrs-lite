@@ -614,6 +614,27 @@ replace-free — 10-25 §a2/§a3, now archived).
       `#verify` — does not block the T03 verify-green receipt.
       — source: 00-32 W1 status §b/§f
 
+> P015 follow-up harvest (2026-10-12, from
+> `docs/status/2026-10-12_01-18_superb-p015-linter-session-status.md` §f plus
+> the validation session that closed it): discrimination proof DONE (3/3
+> mutants killed, plan-doc addendum); corpus re-validated programmatically
+> (5 P015 sites, all suppressed, gate exit 0); SARIF property bag verified on
+> a synthetic fixture. Deliberately open:
+
+- [ ] **`--show-suppressed` breaks structured-format parseability** —
+      `--format json --show-suppressed` prints the human-readable suppressed
+      findings block to stdout AFTER the JSON document
+      (`formatSuppressedFindings` at run.go:100 writes os.Stdout
+      unconditionally when non-quiet), so the stream is not
+      machine-parseable for that flag combo — contradicting the
+      "json/sarif/csv stay parseable" contract comment (run.go:472), which
+      only names `--quiet` as the silencer. Fix direction: render suppressed
+      findings INSIDE the report payload for structured formats (e.g. a
+      `suppressed` array in json/sarif/csv) or route the text block to
+      stderr; add a parseability regression test for the combo. Found while
+      validating P015 corpus output 2026-10-12.
+      — source: 2026-10-12 P015 validation session
+
 ---
 
 ## Release / Tagging
