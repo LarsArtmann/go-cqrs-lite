@@ -338,7 +338,7 @@ Modules release on independent per-module version trains (`<module>/vX.Y.Z` git 
 | storage/pebble | `storage/pebble/v4.4.4` *(untagged per ADR-0152)* |
 | storage/turso | `storage/turso/v4.3.4` |
 | sync | `sync/v0.2.0` |
-| system | `system/v4.12.0` |
+| system | `system/v4.13.0` |
 | system/integration | `system/integration/v4.0.2` *(untagged per ADR-0152)* |
 | systemscenario | `systemscenario/v4.1.0` |
 | systemtest | `systemtest/v4.0.0` *(untagged per ADR-0152)* |
