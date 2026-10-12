@@ -5888,6 +5888,7 @@ system/method Close
 system/method CommandDispatcher
 system/method CommandStore
 system/method Declarations
+system/method Dedup
 system/method Delete
 system/method Done
 system/method Drain

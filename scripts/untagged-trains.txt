@@ -82,7 +82,11 @@ stack/turso
 # ADR-0154), and systemscenario is fleet-consumed (cqrs-htmx, go-appkit).
 # Tag-on-first-consumer rule satisfied; owner approved via adoption-wave Q1.
 graph
+# idempotency/{kvstore,sqlstore} ghost verdict RESOLVED by ADR-0158
+# (2026-10-12): deprecated at v4.x, deleted at v5.0.0; migration target is
+# the metaengine.DedupStore capability wired through system (System.Dedup()).
 idempotency/kvstore
+idempotency/sqlstore
 otel/otlp
 transport/grpc
 transport/http

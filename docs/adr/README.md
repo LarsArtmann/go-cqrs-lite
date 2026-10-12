@@ -260,5 +260,6 @@ watermill/     — Watermill protocol adapter
 | [0155](0155-declarative-schema-evolution-t2-t1.md) | Declarative Schema Evolution — Named Upcast Ops (T2) + DomainConfig Declaration (T1) | 2026-10-09 | Accepted |
 | [0156](0156-graph-edge-labels-at-v5.md) | Graph Edge Labels at v5 | 2026-10-10 | Proposed |
 | [0157](0157-engine-fleet-operation-two-level-story.md) | Engine Fleet Operation — Compile-Time Import Selection, Runtime cqrs.yaml | 2026-10-10 | Proposed |
+| [0158](0158-idempotency-retirement-engine-dedupstore.md) | Retire `idempotency/{kvstore,sqlstore}` — the engine `DedupStore` capability is the dedup primitive | 2026-10-12 | Accepted |
 
 > **Note:** ADRs 0036, 0041, and 0138 were never assigned (gaps in numbering).
