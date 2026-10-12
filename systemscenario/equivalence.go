@@ -45,10 +45,56 @@ func AssertJournalEquivalence(t *testing.T, ctx context.Context, a, b *system.Sy
 	}
 
 	normalizedA, normalizedB := normalizeTrail(trailA), normalizeTrail(trailB)
-	if fmt.Sprint(normalizedA) != fmt.Sprint(normalizedB) {
-		t.Fatalf("journal equivalence violated:\nsystem A: %s\nsystem B: %s",
-			renderTrail(normalizedA), renderTrail(normalizedB))
+	if diff := trailDiff(normalizedA, normalizedB); diff != "" {
+		t.Fatalf("journal equivalence violated:%s\n%s", diff, ordinalCaveat)
 	}
+}
+
+// ordinalCaveat is appended to every equivalence failure: the pairwise
+// stream matching is by first-appearance ordinal, so a deployment that
+// writes the same streams in a different order shifts every ordinal at once
+// and must be read as a global reordering, not N per-stream divergences.
+const ordinalCaveat = "note: streams are matched pairwise by first-appearance ordinal " +
+	"(#0, #1, ...), never by stream ID (IDs are minted per deployment) — a " +
+	"deployment that writes the same streams in a different order shifts every " +
+	"ordinal and is reported wholesale, not as per-stream divergences"
+
+// trailDiff renders the pairwise per-stream divergence between two
+// normalized trails, or "" when they are observationally equal. Streams
+// beyond one trail's length are reported as missing from that system.
+func trailDiff(a, b []normalizedStream) string {
+	var sb strings.Builder
+
+	for i := range max(len(a), len(b)) {
+		switch {
+		case i >= len(a):
+			fmt.Fprintf(&sb, "\n\nstream #%d exists only in system B", i)
+		case i >= len(b):
+			fmt.Fprintf(&sb, "\n\nstream #%d exists only in system A", i)
+		case fmt.Sprint(a[i].entries) != fmt.Sprint(b[i].entries):
+			fmt.Fprintf(&sb, "\n\nstream #%d differs:\n  system A:%s\n  system B:%s",
+				i, renderTrailEntries(a[i].entries), renderTrailEntries(b[i].entries))
+		}
+	}
+
+	return sb.String()
+}
+
+// renderTrailEntries renders one stream's ordered (type, version) entries
+// for failure diagnostics.
+func renderTrailEntries(entries []trailEntry) string {
+	//art-dupl:accept intentional: per-type diagnostic renderer, sibling of describeEvents
+	if len(entries) == 0 {
+		return "\n    (no events)"
+	}
+
+	var sb strings.Builder
+
+	for _, entry := range entries {
+		fmt.Fprintf(&sb, "\n    - %s v%d", entry.eventType, entry.version)
+	}
+
+	return sb.String()
 }
 
 // normalizeTrail replaces stream keys (which carry minted IDs) with ordinals
@@ -96,31 +142,4 @@ func readJournalTrail(ctx context.Context, sys *system.System) (journalTrail, er
 	}
 
 	return trail, nil
-}
-
-// renderTrail renders a normalized trail for failure diagnostics.
-func renderTrail(streams []normalizedStream) string {
-	out := ""
-
-	var (
-		outSb106 strings.Builder
-		outSb105 strings.Builder
-	)
-
-	for _, stream := range streams {
-		fmt.Fprintf(&outSb106, "\n  stream #%d:", stream.ordinal)
-
-		var outSb109 strings.Builder
-		for _, entry := range stream.entries {
-			fmt.Fprintf(&outSb109, "\n    - %s v%d", entry.eventType, entry.version)
-		}
-
-		outSb105.WriteString(outSb109.String())
-	}
-
-	out += outSb105.String()
-
-	out += outSb106.String()
-
-	return out
 }

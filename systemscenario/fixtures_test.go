@@ -143,12 +143,18 @@ func taskDomain() system.DomainConfig {
 }
 
 func registerTaskHandlers(sys *system.System) {
-	system.RegisterDecider(
-		sys,
-		"Task",
-		taskDecider,
-	)
+	if err := system.RegisterDecider(sys, "Task", taskDecider); err != nil {
+		panic(err)
+	}
 
+	registerTaskCommandHandlers(sys)
+}
+
+// registerTaskCommandHandlers wires the task command handlers onto an
+// already-registered Task decider. The split lets domain variants (e.g. the
+// snapshot-configured fixture) attach registration options without forking
+// the handler set.
+func registerTaskCommandHandlers(sys *system.System) {
 	system.RegisterCommand[*command.BasicCommand, TaskState](
 		sys,
 		"task.create",
