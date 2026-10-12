@@ -676,10 +676,15 @@ replace-free — 10-25 §a2/§a3, now archived).
       ErrEngineNotDueClaimer ∈ v4.0.2, cqrs-upgrade --strict ∈ v4.1.2,
       catalog StaticServer ∈ v4.7.1) — their wave rows were dead. — source:
       closeout §f17-24
-- [ ] [RULED 2026-10-08] **claiming V006 advisory decision** — **RULED:
-      linter-semantics fix** (teach V006 to skip pins at a module's newest
-      existing tag — content-identical re-tags are history lies). XS cqrs-lint
-      change + golden, rides Wave A (T02). Original: claiming has no
+- [x] ~~[RULED 2026-10-08] **claiming V006 advisory decision**~~ — **DONE
+      2026-10-12 (linter-semantics fix):** V006 skips divergence findings
+      when the stale-side pin sits at the module's newest existing tag
+      (`newestExistingTags` table, v006.go; claiming → v4.0.2) — an
+      "align up" advisory would demand a content-identical re-tag (a
+      history lie). Skip is module-scoped (live trains still flagged);
+      fixture tests
+      `TestV006_SkipsStoppedTrainAtNewestExistingTag` +
+      `TestV006_StoppedTrainSkipIsModuleScoped`. Original: claiming has no
       content since v4.0.0, so examples' V006 "same release" advisory is
       structural. — source: closeout §f10/§g2
 - [x] ~~**Ratify one shipped judgment call** — iroh latency P99 bound

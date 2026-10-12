@@ -418,3 +418,64 @@ require github.com/larsartmann/go-cqrs-lite/event/v4 v4.9.0
 		}
 	}
 }
+
+// TestV006_SkipsStoppedTrainAtNewestExistingTag is ruling 2026-10-08 A3:
+// claiming's release train stopped at v4.0.2, so a divergent higher pin in
+// another go.mod must not produce an "align up" advisory — satisfying it
+// would demand a content-identical re-tag (a history lie).
+func TestV006_SkipsStoppedTrainAtNewestExistingTag(t *testing.T) {
+	t.Parallel()
+
+	ctx := ctxWithGoMods(t, map[string]string{
+		"go.mod": `module example.com/app
+
+go 1.26.4
+
+require github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.2
+`,
+		"sub/go.mod": `module example.com/app/sub
+
+go 1.26.4
+
+require github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.1.0
+`,
+	})
+	findings := ruletest.RunDetector(t, version.NewV006Detector(ctx))
+	ruletest.AssertRule(t, findings, "V006", 0)
+}
+
+// TestV006_StoppedTrainSkipIsModuleScoped: the newest-existing-tag skip is
+// per module — a divergence in a live release train still fires even when a
+// stopped-train module is pinned divergently in the same files.
+func TestV006_StoppedTrainSkipIsModuleScoped(t *testing.T) {
+	t.Parallel()
+
+	ctx := ctxWithGoMods(t, map[string]string{
+		"go.mod": `module example.com/app
+
+go 1.26.4
+
+require (
+	github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.2
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.14.0
+)
+`,
+		"sub/go.mod": `module example.com/app/sub
+
+go 1.26.4
+
+require (
+	github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.1.0
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.13.0
+)
+`,
+	})
+	findings := ruletest.RunDetector(t, version.NewV006Detector(ctx))
+	ruletest.AssertRule(t, findings, "V006", 1)
+
+	for _, f := range findings {
+		if !strings.Contains(f.Message, "event/v4") {
+			t.Errorf("only the live-train module may be flagged, got: %s", f.Message)
+		}
+	}
+}
