@@ -323,12 +323,18 @@ mesh-demo onboarding) lives in the eventcatalog-hub repo. Execution evidence:
       migrates the memory-deployment trains; the sqlite-backed lifecycle tests remain on raw wiring.
       — source: 14:40 §f7 _(Effort: M)_
 - [ ] **Harness depth assertions**: `Scenario.Event` version-hint invalidation for out-of-band appends
-      (documented limitation), golden-trail payload hashes (modulo stream IDs), `AssertJournalEquivalence`
-      per-stream diff diagnostics + stream-order contract note, snapshot interplay (`WithSnapshotStrategy`
-      in-scenario round-trip), DLQ in-scenario (`projectionhost.WithDeadLetterStore`), upcaster in
+      (documented limitation), DLQ in-scenario (`projectionhost.WithDeadLetterStore`), upcaster in
       given-phase (`schema.UpcastSourceTransform`), idempotency scenario (same command twice → one event),
       optimistic-concurrency scenario (stale version → Conflict family). — source: 14:40 §f13/15/16/20,
       02-46 §f21-25 _(Effort: M each, incremental)_
+      - [x] **2026-10-12 (harness-depth receipt): payload hashes + equivalence diffs + snapshot
+            round-trip SHIPPED** — `TrailWithPayloads`/`ThenGoldenWithPayloads` (sha256 over RAW stored
+            payload bytes, first-appearance ordinal masking `<<stream#N>>`), pairwise per-stream
+            `trailDiff` + first-appearance-ordinal caveat (replaces the broken renderer that printed
+            entries before headers), snapshot fixture pattern (dedicated file-backed SQLite
+            `RoleSnapshots` instance + `system.WithSnapshotStrategy(snapshot.EveryNEvents(2))` — the
+            memory engine implements no `SnapshotBackend`). Masking is mutation-verified; see the
+            CHANGELOG [Unreleased] M14 row.
 - [ ] **`TimeAdvancesTo(t)` sugar** (Axon 4 `whenTimeAdvancesTo` analog; harness has `TimeAdvances(d)`
       only) + `system` `Bus()` delivery-mode knobs for test deployments (block-until-ack today).
       — source: 14:40 §f23/41 _(Effort: S each)_

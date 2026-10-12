@@ -2884,6 +2884,29 @@ sc := systemscenario.System(t, ctx, taskDomain(), systemscenario.Memory())
 scSQLite := systemscenario.System(t, ctx, taskDomain(), systemscenario.SQLite(t))
 ```
 
+Golden-file assertions come in a payload-aware twin:
+`ThenGoldenWithPayloads(t, "name")` hashes each trail entry's RAW stored
+payload bytes (`Payload()` is the encoded `[]byte`, not a decoded value) after
+masking every configured stream ID with first-appearance ordinal tokens
+(`<<stream#0>>`, `<<stream#1>>`, ...), so the golden is stable across runs and
+machines while still catching payload drift. Use it as
+`sc.Given(...).When(cmd).ThenGoldenWithPayloads(t, "task_lifecycle")`, pass
+extra masks as trailing args, or hash a standalone trail with
+`systemscenario.TrailWithPayloads(events, masks)`. Journal-equivalence
+failures (`AssertJournalEquivalence`) render a pairwise per-stream diff that
+pinpoints the first divergent stream with both sides shown; remember the
+ordinals are assigned by first appearance, so a reordering shifts every later
+token.
+
+Snapshot-backed deciders are fixture-testable too, but mind the wiring rule:
+the memory engine implements NO `SnapshotBackend` (the capability lives on a
+separate snapshots backend), so snapshot tests need a dedicated snapshots
+instance on an engine that has one (e.g. the sqlite driver under the
+`RoleSnapshots` deployment role) plus
+`system.WithSnapshotStrategy(snapshot.EveryNEvents(n))` on
+`system.RegisterDecider` — `System.SnapshotStore()` returns nil without a
+snapshot-capable engine, and strategy-less deciders never write one.
+
 ### 2.44 Graph-Native Read Models — Edge folds, traversal, retraction (system + metaengine)
 
 Relations as domain events, traversals as queries: fold `user.followed` into
