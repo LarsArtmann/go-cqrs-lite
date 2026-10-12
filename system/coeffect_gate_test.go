@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4"
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
 )
@@ -177,6 +179,12 @@ func TestSystem_CoeffectGate_RawQueryConsumesFoldTypes(t *testing.T) {
 	}
 
 	defer sys.Close()
+
+	for _, d := range sys.ScreamReport().Diagnostics {
+		if d.Rule == "coeffect.unconsumed_event" && strings.Contains(d.Detail, "rawq.created") {
+			t.Fatalf("false unconsumed advisory for a RawQuery-consumed type: %s", d.Detail)
+		}
+	}
 }
 
 // TestSystem_CoeffectGate_RawQueryUndeclaredStillDangles: the RawQuery fix

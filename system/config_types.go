@@ -51,7 +51,9 @@ type DomainConfig struct {
 	// nearly always a typo); a declared type nothing consumes is an
 	// advisory (dead events are legitimate for audit-only journals).
 	// Leave empty to skip validation (the v4 default); skip selectively
-	// with DisableCoeffectValidation. RawQuery is opaque to the gate.
+	// with DisableCoeffectValidation. RawQuery projections consume their
+	// folds' wire types (the gate reads [metaengine.Fold.EventType]);
+	// non-QueryDecl passthroughs stay opaque.
 	// Types declared by Schema join this universe for the gate.
 	Events []event.Type
 
