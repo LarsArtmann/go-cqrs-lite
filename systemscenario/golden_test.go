@@ -1,6 +1,9 @@
 package systemscenario_test
 
 import (
+	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
 	"strings"
 	"testing"
 
@@ -41,63 +44,70 @@ func TestTrailIsDeterministicShape(t *testing.T) {
 }
 
 // TestTrailWithPayloads_IsRunStable pins the F73 contract: payloads embed
-// the minted stream ID, yet the masked hash is byte-identical across runs
-// and the masked token actually replaced the ID.
+// the minted stream ID (a fresh ULID every run), yet the masked hash is
+// byte-identical across runs — and differs from the unmasked hash within a
+// run, proving the substitution actually fired.
 func TestTrailWithPayloads_IsRunStable(t *testing.T) {
 	t.Parallel()
 
-	build := func(t *testing.T) string {
+	build := func(t *testing.T) (masked, raw string) {
 		t.Helper()
 
 		sc, ref, _ := newTaskScenario(t)
-		var trail string
 
 		sc.Given(
 			sc.Event("task.created", ref, TaskCreated{ID: ref.ID.String(), Status: "pending"}),
 		).When(newTaskCmd("task.complete", ref.ID)).
 			ThenEvents(func(events []event.Event) {
-				trail = systemscenario.TrailWithPayloads(events, []string{ref.ID.String()})
+				masked = systemscenario.TrailWithPayloads(events, []string{ref.ID.String()})
+				raw = systemscenario.TrailWithPayloads(events, nil)
 			})
 
-		return trail
+		return masked, raw
 	}
 
-	first, second := build(t), build(t)
-	if first != second {
-		t.Fatalf("TrailWithPayloads not run-stable:\nfirst:\n%ssecond:\n%s", first, second)
+	maskedA, rawA := build(t)
+	maskedB, rawB := build(t)
+
+	if maskedA != maskedB {
+		t.Fatalf("TrailWithPayloads not run-stable:\nfirst:\n%ssecond:\n%s", maskedA, maskedB)
 	}
 
-	if !strings.Contains(first, "<<stream#0>>") {
-		t.Fatalf("expected masked stream token in trail:\n%s", first)
+	if maskedA == rawA {
+		t.Fatalf("masking with the true stream ID must change the hash:\n%s", maskedA)
 	}
 
-	if strings.Contains(first, "payload=sha256") || !strings.Contains(first, "payload=") {
-		t.Fatalf("expected payload= suffix per line:\n%s", first)
-	}
+	_ = rawB
 }
 
-// TestTrailWithPayloads_MasksAppliedBeforeHash proves the hash covers MASKED
-// bytes: two runs whose raw payloads differ only in the minted ID produce
-// identical hashes, and an unmasked run differs from the masked one.
-func TestTrailWithPayloads_MasksAppliedBeforeHash(t *testing.T) {
+// TestTrailWithPayloads_MasksBeforeHash pins the mechanics: the rendered
+// hash equals sha256 over the payload bytes with the ID manually replaced
+// by its first-appearance token.
+func TestTrailWithPayloads_MasksBeforeHash(t *testing.T) {
 	t.Parallel()
 
 	sc, ref, _ := newTaskScenario(t)
-	var masked string
+	var got, want string
 
 	sc.Given(
 		sc.Event("task.created", ref, TaskCreated{ID: ref.ID.String(), Status: "pending"}),
 	).When(newTaskCmd("task.complete", ref.ID)).
 		ThenEvents(func(events []event.Event) {
-			masked = systemscenario.TrailWithPayloads(events, []string{ref.ID.String()})
-			raw := systemscenario.TrailWithPayloads(events, nil)
+			got = systemscenario.TrailWithPayloads(events, []string{ref.ID.String()})
 
-			sameID := strings.Split(strings.Split(raw, "payload=")[1], "\n")[0]
-			maskedID := strings.Split(strings.Split(masked, "payload=")[1], "\n")[0]
-			if sameID != maskedID {
-				t.Fatalf("masking with the true ID must not change the hash:\nraw %s\nmasked %s", sameID, maskedID)
-			}
+			masked := bytes.ReplaceAll(
+				events[0].Payload(),
+				[]byte(ref.ID.String()),
+				[]byte("<<stream#0>>"),
+			)
+			sum := sha256.Sum256(masked)
+			want = hex.EncodeToString(sum[:])
 		})
+
+	rendered := strings.Split(strings.Split(got, "payload=")[1], "\n")[0]
+	if rendered != want {
+		t.Fatalf("masked hash mismatch:\nwant %s\ngot  %s", want, rendered)
+	}
 }
 
 func TestSystem_ThenGoldenWithPayloads(t *testing.T) {
