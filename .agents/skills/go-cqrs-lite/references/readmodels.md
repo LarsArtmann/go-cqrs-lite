@@ -81,7 +81,8 @@ transactions. The consequence for your code:
   counting/summing folds (`r.Count++`) are NOT and need dedup — either
   checkpoint-store dedup (projectionhost's default: the checkpoint store and
   the projection share the engine transaction), or an explicit dedup window
-  (`dedup.Ring` in-process, `idempotency/sqlstore` durable; recipes §2.38
+  (`dedup.Ring` in-process, `metaengine.DedupStore` durable — ADR-0158 retires
+  `idempotency/sqlstore`; recipes §2.38
   routes all three through the same engine substrate).
 - **A counter that over-counts under replay is a contract violation in YOUR
   fold, not a delivery bug** — delivery was at-least-once, as documented.

@@ -35,27 +35,17 @@ type SuppressionAuditEntry struct {
 // active, stale, or unknown-rule. Unlike DetectStaleSuppressions (which only
 // returns stale ones), this returns every suppression so developers can see
 // the full picture during periodic suppression health checks.
+//
+// The active/stale verdict uses the SAME matcher as the suppression filter and
+// DetectStaleSuppressions (matchedSuppressionsForFile: finding line, trailing
+// line, first non-blank line above) so a directive the filter honors can never
+// classify stale here. The doctor audit and the lint run must agree by
+// construction (2026-10-12 browser-history false-stale lesson).
 func AuditSuppressions(
 	goFiles []string,
 	findings []finding.Finding,
 	knownRuleIDs map[string]bool,
 ) []SuppressionAuditEntry {
-	matched := make(map[suppressionLocation]bool)
-
-	for _, f := range findings {
-		file := string(f.Position.File)
-		if file == "" {
-			continue
-		}
-
-		rule := string(f.Rule)
-		line := f.Position.Line
-
-		matched[suppressionLocation{file, line, rule}] = true
-		matched[suppressionLocation{file, line - 1, rule}] = true
-		matched[suppressionLocation{file, line + 1, rule}] = true
-	}
-
 	var entries []SuppressionAuditEntry
 
 	for _, path := range goFiles {
@@ -69,6 +59,7 @@ func AuditSuppressions(
 		}
 
 		lines := strings.Split(string(data), "\n")
+		matched := matchedSuppressionsForFile(findings, path, lines)
 
 		for lineIdx, line := range lines {
 			suppressions := ParseSuppressions(line)

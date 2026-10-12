@@ -123,6 +123,21 @@ func hasGoSourceFiles(dirs []string) bool {
 // Supports monorepos: recursively discovers all go.mod files under projectRoot
 // and merges packages from every module into a single context.
 func BuildContext(projectRoot string) (*AnalysisContext, error) {
+	// Canonicalize the root to an absolute path: every downstream path form
+	// (module dirs, per-module feature-profile keys, go.mod locations) derives
+	// from it, while finding positions from go/packages are always absolute.
+	// With a relative root (the doctor command passes the config/flag value
+	// verbatim, e.g. "."), profile keys came out relative and ProfileForFile's
+	// longest-prefix match silently missed for EVERY file — detectors gated on
+	// per-module features then evaluated against the primary module's profile
+	// (the doctor audit on browser-history lost the api module's HasServer,
+	// classifying two working B029/B030 suppressions stale; fixed 2026-10-12).
+	absRoot, err := filepath.Abs(projectRoot)
+	if err != nil {
+		return nil, fmt.Errorf("resolve project root: %w", err)
+	}
+	projectRoot = absRoot
+
 	modDirs, err := findGoModDirs(projectRoot)
 	if err != nil {
 		return nil, fmt.Errorf("find modules: %w", err)

@@ -146,11 +146,14 @@ go-cqrs-lite has **two SSE implementations** (ADR-0091: kept separate — differ
 
 #### Dedup: Which store?
 
-| Scenario                    | Module                 | Store                                 |
-| --------------------------- | ---------------------- | ------------------------------------- |
-| In-process, fast, ephemeral | `go-idempotency`       | `MemoryStore`                         |
-| SQL-backed, persistent      | `idempotency/sqlstore` | `NewSQLiteStore` / `NewPostgresStore` |
-| KV-backed (Pebble, etc.)    | `idempotency/kvstore`  | `KVStore` with any `kv.Store`         |
+**Default: `metaengine.DedupStore`** (ADR-0142 capability; ADR-0158 retirement) — every first-party engine implements it (SQL engines natively, map-shaped engines via the degraded `MapDedupStore`); assert it on the deployment engine or reach it through the composition root. `idempotency/{sqlstore,kvstore}` are DEPRECATED (2026-10-11) and are deleted at v5.0.0.
+
+| Scenario                              | Module                 | Store                                                         |
+| ------------------------------------- | ---------------------- | ------------------------------------------------------------- |
+| Engine-backed (default)               | `metaengine`           | `DedupStore` (`DedupCheckAndRecord`/`DedupSeen`/`DedupSweep`) |
+| In-process, fast, ephemeral           | `go-idempotency`       | `MemoryStore`                                                 |
+| SQL-backed, persistent (DEPRECATED)   | `idempotency/sqlstore` | `NewSQLiteStore` / `NewPostgresStore` / `NewMySQLStore`       |
+| KV-backed, Pebble etc. (DEPRECATED)   | `idempotency/kvstore`  | `KVStore` with any `kv.Store`                                 |
 
 ### Catalog exports: render tree vs governance tree
 
