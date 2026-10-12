@@ -677,6 +677,29 @@ replace-free — 10-25 §a2/§a3, now archived).
 >       `GOPATH=/home/lars/go go build -o /home/lars/go/bin/cqrs-lint .`.
 >       — source: 2026-10-12 N05 fleet-roll session + 12-26 status report
 
+> **M20 quiet-window verify receipt (2026-10-12, N05/M20 session).** The
+> campaign surfaced and fixed TWO verify blockers in the changed set:
+> (1) `cmd/api-stability` `TestEngineProfilesSetReadCosts` failed because
+> the SQLiteEngineProfile factory was ratcheted out of `metaengine/engine.go`
+> into `engine_sqlite_profile.go` without updating the roster (fixed: roster
+> follows the extraction, same as pg/duckdb); (2) `scheduling/clock_test.go`
+> advanced its injected clock by plain assignment while the scheduler tick
+> goroutine read it — a test-only data race failing five scheduler tests
+> under `-race` at gate load (fixed: atomic.Value clock). Both fixes green
+> 3x under `-race`; api-stability + cqrs-lint + scheduling + doc-check
+> (1,284 refs) all green in-window. BLOCKED, NOT green repo-wide: the lint
+> leg reports pre-existing `gocognit` findings in `watermill/command_bus_test.go`,
+> `watermill/event_bus_test.go`, `systemtest/time_fidelity_test.go` (+8
+> modules) from the concurrent session's 109-file wave (f2c892b5b, 11:38) —
+> those files are NOT this session's; the repo-wide green verify lands when
+> that session's lint triage does. Verify's own internal load gate refuses
+> attempts at load5 ≥ 10 regardless of the outer wrapper's ceiling — wrap
+> with `nix run .#quiet-window-run -- --ceiling 10 --deadline N -- nix run
+> .#verify` (the `.#can-run-composed-gate` app named in the gate's retry
+> hint does NOT exist in the flake; the script is scripts/can-run-composed-gate.sh,
+> one-shot only).
+> — source: 2026-10-12 M20 leg, this session
+
 ---
 
 ## Release / Tagging
