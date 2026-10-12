@@ -327,6 +327,9 @@ mesh-demo onboarding) lives in the eventcatalog-hub repo. Execution evidence:
       given-phase (`schema.UpcastSourceTransform`), idempotency scenario (same command twice → one event),
       optimistic-concurrency scenario (stale version → Conflict family). — source: 14:40 §f13/15/16/20,
       02-46 §f21-25 _(Effort: M each, incremental)_
+      - [ ] Sweep the harness (and doc-check recipes) for other `json.Marshal(payload)` traps — payloads
+            are the raw stored `[]byte` encoding; any JSON round-trip hides embedded IDs (see the M14
+            gotcha in gotchas-language-footguns.md). _(Effort: S)_
       - [x] **2026-10-12 (harness-depth receipt): payload hashes + equivalence diffs + snapshot
             round-trip SHIPPED** — `TrailWithPayloads`/`ThenGoldenWithPayloads` (sha256 over RAW stored
             payload bytes, first-appearance ordinal masking `<<stream#N>>`), pairwise per-stream

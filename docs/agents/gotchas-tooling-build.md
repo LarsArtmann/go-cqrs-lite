@@ -245,7 +245,19 @@ parse with an older go/parser generation and fail with
   replaces, but `go mod edit` rejects v0 on /v4 paths ("should be v4"),
   and BuildFlow's own go-mod-normalize cannot apply it either. The repo
   convention is tag-pinned replaced requires; ignore that doctor entry
-  until BuildFlow special-cases major-version paths.
+  until BuildFlow special-cases major-version paths. UPDATE 2026-10-12:
+  ACTING on the hint (sed to a zero pseudo-version) broke FIVE downstream
+  sibling-replace consumers with `unknown revision 000000000000` — an
+  intra-repo-replaced require MUST pin at the newest REAL tag (e.g.
+  `metaengine/sqliteengine/v4 v4.5.3`); never normalize it.
+- **Scope BuildFlow runs when only one step is needed — the full dev
+  pipeline rewrites go.sums repo-wide** — its `go-work-*` steps rewrote
+  21 modules' go.sums in one run (2026-10-12, re-tidied by hand), and
+  `nix-hash-fix` + `go-mod-update` fail chronically. `buildflow -s
+  golangci-lint` runs lint alone (lint stayed green through the whole
+  incident). Doctor fix-hints can name apps this flake lacks (`nix run
+  .#deps` does not exist) — verify a hint command against the flake
+  before running it.
 
 ## Concurrent-session edits + planning-doc fences (2026-10-10, schema-evolution stream)
 
