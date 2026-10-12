@@ -104,7 +104,7 @@ func TestTrailWithPayloads_MasksBeforeHash(t *testing.T) {
 			want = hex.EncodeToString(sum[:])
 		})
 
-	rendered := strings.Split(strings.Split(got, "payload=")[1], "\n")[0]
+	rendered, _, _ := strings.Cut(strings.Split(got, "payload=")[1], "\n")
 	if rendered != want {
 		t.Fatalf("masked hash mismatch:\nwant %s\ngot  %s", want, rendered)
 	}

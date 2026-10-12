@@ -80,6 +80,7 @@ func TrailWithPayloads(events []event.Event, masks []string) string {
 
 	// First appearance order across the whole trail — the ordinal source.
 	tokens := map[string]string{}
+
 	for i, evt := range events {
 		// Payload() is the stored encoding ([]byte — CBOR by default);
 		// its text strings appear verbatim, so masking operates on those
