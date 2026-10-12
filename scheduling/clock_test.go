@@ -16,12 +16,15 @@ func TestScheduler_WithClock_FreezesDueWindow(t *testing.T) {
 	ctx := t.Context()
 
 	base := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
-	now := base
+	// atomic: the WithClock closure runs on the scheduler's tick goroutine,
+	// so the clock advance below must not race the reads.
+	var now atomic.Value // time.Time
+	now.Store(base)
 
 	store := NewMemoryTimerStore[string]()
 	if err := store.Schedule(ctx, Timer[string]{
 		ID:      MustParseTimerID("clock-freeze"),
-		FireAt:  now.Add(time.Hour),
+		FireAt:  base.Add(time.Hour),
 		Payload: "go",
 	}); err != nil {
 		t.Fatalf("Schedule: %v", err)
@@ -36,7 +39,7 @@ func TestScheduler_WithClock_FreezesDueWindow(t *testing.T) {
 			return nil
 		},
 		WithPollInterval(time.Millisecond),
-		WithClock(func() time.Time { return now }),
+		WithClock(func() time.Time { return now.Load().(time.Time) }),
 	)
 
 	go func() { _ = sched.Start(ctx) }()
@@ -48,7 +51,7 @@ func TestScheduler_WithClock_FreezesDueWindow(t *testing.T) {
 	}
 
 	// Advance past FireAt: the next poll must dispatch.
-	now = now.Add(2 * time.Hour)
+	now.Store(now.Load().(time.Time).Add(2 * time.Hour))
 
 	deadline := time.Now().Add(3 * time.Second)
 	for dispatched.Load() == 0 && time.Now().Before(deadline) {
