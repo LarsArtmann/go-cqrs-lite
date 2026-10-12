@@ -24,7 +24,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/signing/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.7.0
 	github.com/larsartmann/go-cqrs-lite/system/v4 v4.12.0
-	github.com/larsartmann/go-cqrs-lite/systemscenario/v4 v4.0.0
+	github.com/larsartmann/go-cqrs-lite/systemscenario/v4 v4.1.0
 	github.com/larsartmann/go-error-family v0.11.0
 	github.com/larsartmann/go-idempotency v0.3.1
 	github.com/larsartmann/go-sse/ssetest v0.4.0
