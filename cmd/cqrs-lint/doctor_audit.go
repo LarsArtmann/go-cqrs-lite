@@ -62,17 +62,6 @@ func computeSuppressionAudit(
 
 	allFindings := collectFindings(result)
 
-	if os.Getenv("CQRS_LINT_DEBUG_AUDIT") != "" {
-		b029 := 0
-		for _, f := range allFindings {
-			if string(f.Rule) == "B029" || string(f.Rule) == "B030" {
-				b029++
-				fmt.Fprintf(os.Stderr, "DEBUG-AUDIT: %s %s %s:%d\n", f.Rule, f.Severity, f.Position.File, f.Position.Line)
-			}
-		}
-		fmt.Fprintf(os.Stderr, "DEBUG-AUDIT: total=%d b029/30=%d gofiles=%d\n", len(allFindings), b029, len(actx.GoFiles))
-	}
-
 	goFilePaths := make([]string, 0, len(actx.GoFiles))
 	for _, gf := range actx.GoFiles {
 		goFilePaths = append(goFilePaths, gf.Path)
