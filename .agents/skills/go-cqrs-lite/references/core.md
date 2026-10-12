@@ -424,7 +424,9 @@ sys, err := system.New(ctx,
 Static + docs twins: `cqrs-lint` rule **E018** (projection handles a type nothing emits;
 `catalog.Event` declarations count as provided for imported events) and
 `catalog.Catalog.ValidateCoeffects` (the EventCatalog export writes a `coeffects.md`
-summary — producers, consumers, dangling rows). Leave `Events` empty to skip the gate
+summary — producers, consumers, dangling rows). `RawQuery` projections count as consumers
+too: the gate reads the raw `metaengine.QueryDecl`'s fold wire types (non-`QueryDecl`
+passthroughs stay opaque). Leave `Events` empty to skip the gate
 entirely (default, v4-compatible). The mesh-facing counterpart of this gate is the
 data-product declaration story — see recipes.md §2.41 (typed `DataProduct`/`DataContract`
 with owners, inputs, and bilateral producers/consumers) and `example/mesh-demo` for the
