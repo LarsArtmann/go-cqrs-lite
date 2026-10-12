@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
@@ -84,7 +85,7 @@ func TestScenario_SnapshotConfiguredDecider(t *testing.T) {
 func TestScenario_SnapshotDeploymentJournalEquivalence(t *testing.T) {
 	t.Parallel()
 
-	_, plainRef, ctx := newTaskScenario(t)
+	sc, ref, ctx := newTaskScenario(t)
 	snapSc, snapRef, _ := newSnapshotScenario(t)
 
 	// Different minted IDs per system are fine — the assertion normalizes
@@ -96,5 +97,13 @@ func TestScenario_SnapshotDeploymentJournalEquivalence(t *testing.T) {
 			Command(newTaskCmd("task.complete", ref.ID))
 	}
 
-	seed(plainRef /* placeholder replaced below */, id.StreamRef{})
+	seed(sc, ref)
+	seed(snapSc, snapRef)
+
+	// A final identical act on both satisfies the vacuous-pass guard and
+	// proves the snapshot deployment keeps deciding from the same state.
+	sc.When(newTaskCmd("task.rename", ref.ID)).Then("task.updated")
+	snapSc.When(newTaskCmd("task.rename", snapRef.ID)).Then("task.updated")
+
+	systemscenario.AssertJournalEquivalence(t, ctx, sc.System(), snapSc.System())
 }
