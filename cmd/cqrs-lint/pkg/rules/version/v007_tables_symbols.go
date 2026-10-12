@@ -14,10 +14,10 @@ type deprecatedV5Symbol struct {
 	replacement string
 }
 
-var deprecatedV5Symbols = slices.Concat(
+var deprecatedV5Symbols = slices.Concat( //nolint:gochecknoglobals // static table
 	deprecatedV5SymbolShells,
 	deprecatedV5SymbolV5Twins,
-) //nolint:gochecknoglobals // static table
+)
 
 var deprecatedV5SymbolShells = []deprecatedV5Symbol{ //nolint:gochecknoglobals // static table
 	// ADR-0123: stack root — Bundle + Materialize + projection runner.
