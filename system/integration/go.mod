@@ -9,7 +9,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.14.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.2
 	github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4 v4.3.3
-	github.com/larsartmann/go-cqrs-lite/system/v4 v4.12.0
+	github.com/larsartmann/go-cqrs-lite/system/v4 v4.13.0
 )
 
 require (
