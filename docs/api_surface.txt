@@ -6044,6 +6044,7 @@ systemscenario/func System
 systemscenario/func ThenPayload
 systemscenario/func ThenQueryTyped
 systemscenario/func Trail
+systemscenario/func TrailWithPayloads
 systemscenario/func WithAwaitTimeout
 systemscenario/func WithClock
 systemscenario/func WithCommandCaptureFilter
@@ -6083,6 +6084,7 @@ systemscenario/method ThenErrorFamily
 systemscenario/method ThenEvents
 systemscenario/method ThenEventsSatisfy
 systemscenario/method ThenGolden
+systemscenario/method ThenGoldenWithPayloads
 systemscenario/method ThenMetadata
 systemscenario/method ThenNoCommands
 systemscenario/method ThenNoEvents
