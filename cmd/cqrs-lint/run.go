@@ -144,26 +144,6 @@ func run(ctx context.Context, cfg *AppConfig) error {
 // overrides onto the auto-detected analysis context. Also validates rule config
 // keys to surface typos that would silently disable an override.
 func applyConfigOverrides(cfg *AppConfig, actx *analyzer.AnalysisContext) {
-	if os.Getenv("CQRS_LINT_DEBUG_AUDIT") != "" {
-		fmt.Fprintf(
-			os.Stderr,
-			"DEBUG-AUDIT: overrides-enter path=%s Features.Server=%v Features.AsyncBus=%v\n",
-			cfg.Path,
-			cfg.Features.Server != nil,
-			cfg.Features.AsyncBus != nil,
-		)
-		for dir, p := range actx.FeatureProfiles {
-			if strings.HasSuffix(dir, "api") {
-				fmt.Fprintf(
-					os.Stderr,
-					"DEBUG-AUDIT: overrides-enter api detected HasServer=%v HasAsyncBus=%v\n",
-					p.HasServer,
-					p.HasAsyncBus,
-				)
-			}
-		}
-	}
-
 	// Warn on unknown preset name (typo detection — consistent with rules-key validation).
 	validatePresetName(os.Stderr, cfg.Preset)
 

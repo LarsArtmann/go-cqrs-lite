@@ -159,9 +159,11 @@
 | Middleware ordering | Middleware applied at dispatch time (any order vs Register)    | ✅     |
 | Duplicate guard     | `ErrHandlerAlreadyRegistered` — prevents double-registration   | ✅     |
 
-### Idempotency ✅ FULLY_FUNCTIONAL
+### Idempotency ⚠️ STORES_DEPRECATED
 
 > `import "github.com/larsartmann/go-idempotency"` (external module — see ADR-0128)
+>
+> **DEPRECATED (ADR-0158, 2026-10-11):** the in-repo backend modules `idempotency/kvstore` and `idempotency/sqlstore` are deprecated at v4.x and deleted at v5.0.0 — use the `metaengine.DedupStore` engine capability (ADR-0142). The external `go-idempotency` core (interface, `MemoryStore`, contract suite) is unaffected.
 
 | Feature         | Detail                                                                                                                            | Status |
 | --------------- | --------------------------------------------------------------------------------------------------------------------------------- | ------ |
@@ -174,8 +176,8 @@
 | Command dedup   | `middleware.CommandIdempotency(store, ttl, keyFn)` — defaults to `cmd.ID().String()` when keyFn is nil                            | ✅     |
 | Event dedup     | `middleware.EventIdempotency(store, ttl, keyFn)` — defaults to `evt.ID().String()` when keyFn is nil                              | ✅     |
 | Query dedup     | `middleware.QueryIdempotency(store, ttl, keyFn)` — panics if keyFn is nil (queries have no built-in identity)                     | ✅     |
-| KVStore         | `idempotency/kvstore` — persistent dedup backed by any `kv.Store`                                                                 | ✅     |
-| SQLStore        | `idempotency/sqlstore` — `NewSQLiteStore` / `NewPostgresStore` / `NewMySQLStore` with `INSERT ON CONFLICT DO NOTHING` + TTL sweep | ✅     |
+| KVStore         | `idempotency/kvstore` — persistent dedup backed by any `kv.Store`                                                                 | ⚠️ Deprecated (ADR-0158) |
+| SQLStore        | `idempotency/sqlstore` — `NewSQLiteStore` / `NewPostgresStore` / `NewMySQLStore` with `INSERT ON CONFLICT DO NOTHING` + TTL sweep | ⚠️ Deprecated (ADR-0158) |
 
 **Sentinel errors:** `ErrDuplicate` (Conflict)
 
@@ -1490,8 +1492,8 @@ Features mentioned in project docs/planning but with **no production code yet**:
 | `stack/bbolt`                    | `…/stack/bbolt/v4`                    | ⚠️ Deprecated (ADR-0123, removal v5; durability tiers, kv store accessor)                                                                                                                                                                                                                         |
 | `deriver`                        | `…/deriver/v4`                        | ✅ Production                                                                                                                                                                                                                                                                                    |
 | `graph`                          | `…/graph/v4`                          | ✅ Production                                                                                                                                                                                                                                                                                    |
-| `idempotency/kvstore`            | `…/idempotency/kvstore/v4`            | ✅ Production (KV-backed idempotency)                                                                                                                                                                                                                                                            |
-| `idempotency/sqlstore`           | `…/idempotency/sqlstore/v4`           | ✅ Production (SQL-backed: SQLite + Postgres + MySQL, `INSERT ON CONFLICT` + TTL)                                                                                                                                                                                                                |
+| `idempotency/kvstore`            | `…/idempotency/kvstore/v4`            | ⚠️ Deprecated (ADR-0158; v5 deletion) — KV-backed idempotency                                                                                                                                                                                                                                    |
+| `idempotency/sqlstore`           | `…/idempotency/sqlstore/v4`           | ⚠️ Deprecated (ADR-0158; v5 deletion) — SQL-backed: SQLite + Postgres + MySQL, `INSERT ON CONFLICT` + TTL                                                                                                                                                                                        |
 | `projection`                     | `…/projection/v4`                     | ✅ Production                                                                                                                                                                                                                                                                                    |
 | `projectionhost`                 | `…/projectionhost/v4`                 | ✅ Production                                                                                                                                                                                                                                                                                    |
 | `scenario`                       | `…/scenario/v4`                       | ✅ Production                                                                                                                                                                                                                                                                                    |

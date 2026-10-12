@@ -377,3 +377,97 @@ func TestDetectStaleSuppressions_NonBlankLineBetweenCommentAndFindingIsStale(t *
 		t.Fatalf("got %d stale suppressions, want 1: %+v", len(stale), stale)
 	}
 }
+
+// TestAuditSuppressions_BlankLineAboveCommentActive pins doctor-audit/lint
+// parity: the suppression filter honors a directive separated from its
+// finding by a blank line (blank-skip walk), so the audit must classify it
+// ACTIVE. A STALE verdict here contradicts the lint run and fails
+// doctor --fail-on-stale-suppressions on a working suppression
+// (browser-history 2026-10-12 false-positive pair).
+func TestAuditSuppressions_BlankLineAboveCommentActive(t *testing.T) {
+	t.Parallel()
+
+	tmp := t.TempDir()
+	src := filepath.Join(tmp, "example.go")
+	_ = os.WriteFile(
+		src,
+		[]byte("package main\n\n//cqrs-lint:ignore(D002)\n\ntype Foo struct{}\n"),
+		0o644,
+	)
+
+	findings := []finding.Finding{
+		{Rule: "D002", Position: finding.Position{File: finding.FilePath(src), Line: 5}},
+	}
+
+	entries := suppression.AuditSuppressions([]string{src}, findings, map[string]bool{"D002": true})
+	if len(entries) != 1 {
+		t.Fatalf("got %d entries, want 1", len(entries))
+	}
+	if entries[0].Status != suppression.AuditActive {
+		t.Errorf("status = %s, want active (the filter honors this directive)", entries[0].Status)
+	}
+}
+
+// TestAuditSuppressions_AgreesWithStaleDetector pins the by-construction
+// contract between the two staleness surfaces: every directive AuditSuppressions
+// classifies STALE must also be reported by DetectStaleSuppressions, and vice
+// versa. Both must mirror the suppression filter's matcher (own line, trailing
+// line, first non-blank line above).
+func TestAuditSuppressions_AgreesWithStaleDetector(t *testing.T) {
+	t.Parallel()
+
+	tmp := t.TempDir()
+	src := filepath.Join(tmp, "example.go")
+	content := "package main\n" +
+		"\n" +
+		"//cqrs-lint:ignore(D001) adjacent above — active\n" +
+		"type A struct{}\n" +
+		"\n" +
+		"//cqrs-lint:ignore(D002) blank between — active\n" +
+		"\n" +
+		"type B struct{}\n" +
+		"\n" +
+		"//cqrs-lint:ignore(D003) code between — stale\n" +
+		"var x = 1\n" +
+		"type C struct{}\n" +
+		"\n" +
+		"//cqrs-lint:ignore(D004) no finding — stale\n" +
+		"type D struct{}\n"
+	_ = os.WriteFile(src, []byte(content), 0o644)
+
+	findings := []finding.Finding{
+		{Rule: "D001", Position: finding.Position{File: finding.FilePath(src), Line: 4}},
+		{Rule: "D002", Position: finding.Position{File: finding.FilePath(src), Line: 8}},
+		{Rule: "D003", Position: finding.Position{File: finding.FilePath(src), Line: 12}},
+	}
+
+	known := map[string]bool{"D001": true, "D002": true, "D003": true, "D004": true}
+
+	entries := suppression.AuditSuppressions([]string{src}, findings, known)
+	statusByRule := make(map[string]suppression.AuditStatus, len(entries))
+	for _, e := range entries {
+		statusByRule[e.Rule] = e.Status
+	}
+
+	wantStatus := map[string]suppression.AuditStatus{
+		"D001": suppression.AuditActive,
+		"D002": suppression.AuditActive,
+		"D003": suppression.AuditStale,
+		"D004": suppression.AuditStale,
+	}
+	for rule, want := range wantStatus {
+		if statusByRule[rule] != want {
+			t.Errorf("audit status[%s] = %s, want %s", rule, statusByRule[rule], want)
+		}
+	}
+
+	staleRules := make(map[string]bool)
+	for _, s := range suppression.DetectStaleSuppressions([]string{src}, findings) {
+		staleRules[s.Rule] = true
+	}
+	for rule, want := range wantStatus {
+		if staleRules[rule] == (want == suppression.AuditActive) {
+			t.Errorf("stale detector disagrees on %s: stale=%v, audit says %s", rule, staleRules[rule], want)
+		}
+	}
+}

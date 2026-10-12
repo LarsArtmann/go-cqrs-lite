@@ -12,7 +12,7 @@ import (
 )
 
 // ErrNoDatabase is returned when the bundle has no SQL database handle.
-var ErrNoDatabase = errorfamily.NewRejection("mysql.no_database",
+var ErrNoDatabase error = errorfamily.NewRejection("mysql.no_database",
 	"mysql: bundle has no SQL database handle")
 
 // SQLViewModel creates a [storage.SQLViewStore] backed by the MySQL database

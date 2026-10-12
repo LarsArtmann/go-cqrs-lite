@@ -7,7 +7,7 @@ import (
 )
 
 // ErrMemorySync is returned when trying to sync an in-memory Turso database.
-var ErrMemorySync = errorfamily.NewRejection(
+var ErrMemorySync error = errorfamily.NewRejection(
 	"turso.memory_sync",
 	"turso: sync requires a file path for dbPath",
 )
@@ -24,7 +24,7 @@ var ErrMemorySync = errorfamily.NewRejection(
 // should back off exponentially or switch to a local-only backend.
 //
 // Use [IsQuotaExceeded] to detect this class of error on any wrapped error.
-var ErrQuotaExceeded = errorfamily.NewRejection(
+var ErrQuotaExceeded error = errorfamily.NewRejection(
 	"turso.quota_exceeded",
 	"turso: account quota exceeded — upgrade plan or reduce usage",
 )

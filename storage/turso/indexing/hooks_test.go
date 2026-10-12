@@ -157,7 +157,7 @@ func TestMultipleHooksCalledInOrder(t *testing.T) {
 	}
 }
 
-var ErrTestVeto = new(testVetoError)
+var ErrTestVeto error = new(testVetoError)
 
 type testVetoError struct{}
 

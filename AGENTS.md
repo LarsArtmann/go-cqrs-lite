@@ -285,6 +285,7 @@ Rules only — see each module's `go.mod` for the actual package list.
 - **Test-only packages** (gomega, ginkgo, rapid, go-snaps, testcontainers) are excluded from dep budget counts.
 - **CGo isolation**: Only `stack/duckdb` and `metaengine/duckdbengine` require CGo. Each is in its own module so consumers who don't import them never need a C compiler.
 - **External extracted modules**: `go-codec`, `go-retry`, `go-idempotency`, `go-flightrecorder`. The in-repo re-export shims were deleted (ADR-0128); import the external paths directly. Workspace `use` block points at sibling checkouts.
+- **`idempotency/{kvstore,sqlstore}` are DEPRECATED (ADR-0158, 2026-10-11)** — every exported symbol carries a `// Deprecated:` notice pointing at the `metaengine.DedupStore` engine capability (ADR-0142). Nothing is removed in v4; deletion at v5.0.0. In-repo test usage is exempted via the `idempotency/.*_test\.go$` SA1019 exclusion in `.golangci.yml` (config hash re-pinned with the change).
 
 ## Metaengine
 

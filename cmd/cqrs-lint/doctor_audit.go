@@ -62,50 +62,6 @@ func computeSuppressionAudit(
 
 	allFindings := collectFindings(result)
 
-	if os.Getenv("CQRS_LINT_DEBUG_AUDIT") != "" {
-		fmt.Fprintf(os.Stderr, "DEBUG-AUDIT: files=%d module=%s selfLint=%v findings=%d\n",
-			len(actx.GoFiles), actx.ModulePath, actx.IsLibrarySelfLint(), len(allFindings))
-		fmt.Fprintf(
-			os.Stderr,
-			"DEBUG-AUDIT: primary profile HasServer=%v HasAsyncBus=%v CommandFlow=%v\n",
-			actx.FeatureProfile.HasServer,
-			actx.FeatureProfile.HasAsyncBus,
-			actx.FeatureProfile.CommandFlow,
-		)
-		for dir := range actx.FeatureProfiles {
-			fmt.Fprintf(os.Stderr, "DEBUG-AUDIT: profile-dir %q\n", dir)
-		}
-		for _, d := range detectors {
-			if strings.Contains(d.Name(), "B029") || strings.Contains(d.Name(), "B030") {
-				fmt.Fprintf(os.Stderr, "DEBUG-AUDIT: registered %s\n", d.Name())
-			}
-		}
-		for _, f := range allFindings {
-			if string(f.Rule) == "B029" || string(f.Rule) == "B030" {
-				fmt.Fprintf(
-					os.Stderr,
-					"DEBUG-AUDIT: finding %s %s:%d\n",
-					f.Rule,
-					f.Position.File,
-					f.Position.Line,
-				)
-			}
-		}
-		for _, gf := range actx.GoFiles {
-			if strings.HasSuffix(gf.Path, "api/server_setup.go") {
-				p := actx.ProfileForFile(gf.Path)
-				fmt.Fprintf(
-					os.Stderr,
-					"DEBUG-AUDIT: ProfileForFile(%s) HasServer=%v HasAsyncBus=%v CommandFlow=%v\n",
-					gf.Path,
-					p.HasServer,
-					p.HasAsyncBus,
-					p.CommandFlow,
-				)
-			}
-		}
-	}
-
 	goFilePaths := make([]string, 0, len(actx.GoFiles))
 	for _, gf := range actx.GoFiles {
 		goFilePaths = append(goFilePaths, gf.Path)

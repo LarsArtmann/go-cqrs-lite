@@ -1489,7 +1489,9 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       direction). Dedup the verbatim-copied `expiryFromTTL` (kvstore:46,
       sqlstore:173) while touching both; add the overflow boundary test; pin
       bump middleware/sqlstore/kvstore (all v0.3.0 today) via the
-      go-ecosystem-upgrade skill. — source: reflection doc §3.1/§4.7 _(Effort: M once upstream lands)_
+      go-ecosystem-upgrade skill. (2026-10-11: both modules are DEPRECATED per
+      ADR-0158 — drop this item if the v5 deletion lands before upstream v0.4.0.)
+      — source: reflection doc §3.1/§4.7 _(Effort: M once upstream lands)_
 - [ ] **benchkit cross-tier PARITY gate** — before any tier-vs-tier benchmark
       number is trusted, assert cross-tier result identity (full snapshot,
       stat counts, ranked IDs) — the template CV's four-tier benchmark
