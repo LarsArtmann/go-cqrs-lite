@@ -317,7 +317,7 @@ Modules release on independent per-module version trains (`<module>/vX.Y.Z` git 
 | scheduling | `scheduling/v4.7.0` |
 | scheduling/engine | `scheduling/engine/v4.0.2` |
 | scheduling/sqlstore | `scheduling/sqlstore/v4.1.4` |
-| schema | `schema/v4.6.0` |
+| schema | `schema/v4.7.0` |
 | signing | `signing/v4.4.0` |
 | snapshot | `snapshot/v4.6.2` |
 | stack | `stack/v4.5.0` |
