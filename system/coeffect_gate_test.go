@@ -144,3 +144,80 @@ func TestSystem_CoeffectGate_RecordTypeAliasInterop(t *testing.T) {
 
 	defer sys.Close()
 }
+
+// TestSystem_CoeffectGate_RawQueryConsumesFoldTypes pins the RawQuery gate
+// fix: a domain whose ONLY consumer of a wire type is a RawQuery projection
+// composes cleanly. Before the fix the gate treated the RawQuery's fold
+// types as unconsumed and reported the domain's own event as a dangling
+// subscription.
+func TestSystem_CoeffectGate_RawQueryConsumesFoldTypes(t *testing.T) {
+	t.Parallel()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	rawQuery := metaengine.Query[findByID, itemView]("gate_raw_views",
+		metaengine.OnRecordTyped(
+			"rawq.created",
+			projectionadapter.EventWithID[itemCreatedEvt]{},
+			func(_ record.Record, e projectionadapter.EventWithID[itemCreatedEvt]) (string, itemView) {
+				return e.ID, itemView{ID: e.ID, Name: e.Payload.Name}
+			},
+		),
+	)
+
+	domain := system.DomainConfig{
+		Projections: []system.ProjectionDeclaration{system.RawQuery(rawQuery)},
+		Events:      []event.Type{"rawq.created"},
+	}
+
+	sys, err := system.New(ctx, domain, gateDeployment())
+	if err != nil {
+		t.Fatalf("RawQuery folds must satisfy the coeffect gate, got: %v", err)
+	}
+
+	defer sys.Close()
+}
+
+// TestSystem_CoeffectGate_RawQueryUndeclaredStillDangles: the RawQuery fix
+// must not open a gate bypass — a fold wire type outside the declared
+// universe still fails composition, now naming the raw query as consumer.
+func TestSystem_CoeffectGate_RawQueryUndeclaredStillDangles(t *testing.T) {
+	t.Parallel()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	rawQuery := metaengine.Query[findByID, itemView]("gate_raw_views",
+		metaengine.OnRecordTyped(
+			"rawq.created",
+			projectionadapter.EventWithID[itemCreatedEvt]{},
+			func(_ record.Record, e projectionadapter.EventWithID[itemCreatedEvt]) (string, itemView) {
+				return e.ID, itemView{ID: e.ID, Name: e.Payload.Name}
+			},
+		),
+	)
+
+	domain := system.DomainConfig{
+		Projections: []system.ProjectionDeclaration{system.RawQuery(rawQuery)},
+		Events:      []event.Type{"something.else"},
+	}
+
+	sys, err := system.New(ctx, domain, gateDeployment())
+
+	if !errors.Is(err, system.ErrDanglingEventSubscription) {
+		t.Fatalf("expected ErrDanglingEventSubscription for undeclared RawQuery fold, got %v", err)
+	}
+
+	if sys != nil {
+		t.Fatal("system should be nil on gate failure")
+	}
+
+	if want := "rawq.created"; !strings.Contains(err.Error(), want) {
+		t.Fatalf("error should name the dangling type %q: %v", want, err)
+	}
+
+	if want := "gate_raw_views"; !strings.Contains(err.Error(), want) {
+		t.Fatalf("error should name the consuming raw query %q: %v", want, err)
+	}
+}

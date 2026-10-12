@@ -7,6 +7,7 @@ import (
 	"github.com/larsartmann/go-codec"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 // LookupInput is the query input type for point-lookup projections.
@@ -110,6 +111,18 @@ func buildProjections(
 			}
 		case rawQuerySpec:
 			queryDecls = append(queryDecls, d.decl)
+
+			// RawQuery passthroughs still consume their folds' event types.
+			// Without this the coeffect gate treats every RawQuery-only domain
+			// event as a dangling subscription even though its own projection
+			// consumes it.
+			name, foldTypes := rawQueryConsumedTypes(d.decl)
+			for _, et := range foldTypes {
+				consumed[event.Type(et)] = append(
+					consumed[event.Type(et)],
+					fmt.Sprintf("projection %q", name),
+				)
+			}
 		default:
 			return nil, nil, nil, fmt.Errorf(
 				"system: unreachable: unknown ProjectionDeclaration %T", decl,
@@ -128,6 +141,35 @@ func buildProjections(
 type decoderTypeEntry struct {
 	eventType  string
 	sampleType reflect.Type
+}
+
+// rawQueryConsumedTypes extracts the wire event types a raw
+// metaengine.QueryDecl consumes via its folds, plus its query name for the
+// coeffect gate's consumer labels. Best-effort: passthroughs that are not
+// QueryDecl-shaped contribute nothing.
+func rawQueryConsumedTypes(decl any) (name string, types []string) {
+	folds, ok := decl.(interface{ QueryFolds() []metaengine.Fold })
+	if !ok {
+		return "<raw query>", nil
+	}
+
+	name = "<raw query>"
+	if n, named := decl.(interface{ QueryName() string }); named {
+		name = n.QueryName()
+	}
+
+	seen := make(map[string]struct{})
+	for _, f := range folds.QueryFolds() {
+		et := f.EventType()
+		if _, dup := seen[et]; dup {
+			continue
+		}
+
+		seen[et] = struct{}{}
+		types = append(types, et)
+	}
+
+	return name, types
 }
 
 // buildEventDecoder creates an EventDecoder that auto-detects the payload
