@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"path/filepath"
 	"slices"
@@ -82,7 +81,10 @@ func TrailWithPayloads(events []event.Event, masks []string) string {
 	// First appearance order across the whole trail — the ordinal source.
 	tokens := map[string]string{}
 	for i, evt := range events {
-		encoded[i] = marshalPayloadForHash(evt)
+		// Payload() is the stored encoding ([]byte — CBOR by default);
+		// its text strings appear verbatim, so masking operates on those
+		// bytes directly.
+		encoded[i] = evt.Payload()
 
 		for _, m := range masked {
 			_, seen := tokens[m]
@@ -148,18 +150,6 @@ func nonEmptyMasks(masks []string) []string {
 	slices.SortFunc(out, func(a, b string) int { return len(b) - len(a) })
 
 	return out
-}
-
-// marshalPayloadForHash encodes the payload for hashing. A payload JSON
-// cannot fail to encode in practice; an unmarshalable one degrades to a
-// literal marker instead of panicking a diagnostic render.
-func marshalPayloadForHash(evt event.Event) []byte {
-	encoded, err := json.Marshal(evt.Payload())
-	if err != nil {
-		return []byte(fmt.Sprintf("<unmarshalable payload: %v>", err))
-	}
-
-	return encoded
 }
 
 // hashMasked substitutes every mask with its ordinal token (longest-first)

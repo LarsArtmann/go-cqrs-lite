@@ -7,6 +7,7 @@ package systemscenario_test
 
 import (
 	"context"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -37,6 +38,25 @@ func snapshotTaskDomain() system.DomainConfig {
 	return base
 }
 
+// snapshotDeployment adds a dedicated snapshots instance to the memory
+// preset: the memory engine does NOT implement SnapshotBackend, so the
+// snapshot store lives on a file-backed SQLite engine (the same wiring
+// systemtest's dedicated-snapshots test pins).
+func snapshotDeployment(t testing.TB) system.DeploymentConfig {
+	deploy := systemscenario.Memory()
+	deploy.Engines["snaps"] = system.EngineConfig{
+		Driver:  "sqlite",
+		DSN:     filepath.Join(t.TempDir(), "snaps.db"),
+		Pragmas: []string{"journal_mode=wal"},
+	}
+	deploy.Instances = append(deploy.Instances, system.InstanceConfig{
+		Role:   system.RoleSnapshots,
+		Engine: "snaps",
+	})
+
+	return deploy
+}
+
 func newSnapshotScenario(t *testing.T) (*systemscenario.Scenario, id.StreamRef, context.Context) {
 	t.Helper()
 
@@ -44,7 +64,7 @@ func newSnapshotScenario(t *testing.T) (*systemscenario.Scenario, id.StreamRef, 
 	t.Cleanup(cancel)
 
 	ref := id.NewStreamRef("Task", id.NewStreamID())
-	sc := systemscenario.System(t, ctx, snapshotTaskDomain(), memoryDeployment())
+	sc := systemscenario.System(t, ctx, snapshotTaskDomain(), snapshotDeployment(t))
 
 	return sc, ref, ctx
 }

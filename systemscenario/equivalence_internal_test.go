@@ -41,7 +41,7 @@ func TestTrailDiff_PairwiseRendersDivergentStream(t *testing.T) {
 	}
 
 	head, body, _ := strings.Cut(got, "system B:")
-	if !strings.Contains(body, "task.updated") {
+	if strings.Contains(body, "task.updated") {
 		t.Fatalf("system B section must NOT carry system A's extra event:\n%s", got)
 	}
 
