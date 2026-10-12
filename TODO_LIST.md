@@ -1830,3 +1830,16 @@ dprint, ADR-0123 addendum) shipped the same day — completed rows deleted
       Dgraph. Extend the example's integration story or add a systemtest leg.
       — source: 2026-10-10 07-37 §f30 _(Effort: S-M; rides the CRM-driven
       graph polish above)_
+
+## From the wave-C delta audit (2026-10-12, N04)
+
+- [ ] **Wave III seed: inspect the ≥5-file content deltas on taggable
+      trains** — middleware (28), command (14), query (13), storage root
+      (9 test-only), otel (7), id (6), scheduling (5): separate real API
+      from errorfamily import-regrouping, then one minor/patch sweep in
+      dependency order. Blanket patch for the 1–3-file rows (record,
+      metadata, prometheus, commandlifecycle, signing, scenario,
+      projection, listing, kv, dedup). stack root (13) DEFERS to M09/M10
+      (v5 deletions); encryption (15) folds into M25 (ADR-0139). Full
+      classification: docs/planning/2026-10-12_06-45_wave-c-delta-audit.md
+      — source: N04 audit _(Effort: S per module after inspection)_
