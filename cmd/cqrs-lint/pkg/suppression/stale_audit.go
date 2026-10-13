@@ -49,16 +49,11 @@ func AuditSuppressions(
 	var entries []SuppressionAuditEntry
 
 	for _, path := range goFiles {
-		if !strings.HasSuffix(path, ".go") {
+		lines, ok := readGoFileLines(path)
+		if !ok {
 			continue
 		}
 
-		data, err := os.ReadFile(path)
-		if err != nil {
-			continue
-		}
-
-		lines := strings.Split(string(data), "\n")
 		matched := matchedSuppressionsForFile(findings, path, lines)
 
 		for lineIdx, line := range lines {

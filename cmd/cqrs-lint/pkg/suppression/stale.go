@@ -52,16 +52,10 @@ func DetectStaleSuppressions(
 	firstFire := firstFireByRule(findings)
 
 	for _, path := range goFiles {
-		if !strings.HasSuffix(path, ".go") {
+		lines, ok := readGoFileLines(path)
+		if !ok {
 			continue
 		}
-
-		data, err := os.ReadFile(path)
-		if err != nil {
-			continue
-		}
-
-		lines := strings.Split(string(data), "\n")
 
 		// Build the matched-location set from this file's own lines: whether a
 		// suppression comment is honored depends on the lines between it and
@@ -82,6 +76,22 @@ func DetectStaleSuppressions(
 	}
 
 	return stale
+}
+
+// readGoFileLines reads path's lines when it is a readable .go file. ok is
+// false for non-Go paths and unreadable files — the shared skip-silently
+// preamble of the stale gate and the doctor audit (same inputs, same verdicts).
+func readGoFileLines(path string) (lines []string, ok bool) {
+	if !strings.HasSuffix(path, ".go") {
+		return nil, false
+	}
+
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, false
+	}
+
+	return strings.Split(string(data), "\n"), true
 }
 
 // firstFireByRule maps each rule ID to the location ("file.go:line", base

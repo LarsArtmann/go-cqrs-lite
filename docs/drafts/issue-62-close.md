@@ -3,6 +3,7 @@ Fixed on master in 1663fa940 — the coerce-at-the-bind-sites option from this i
 `metaengine.FilterBindValue` (`metaengine/filter_bind.go:23`) renders `time.Time` via RFC3339Nano, byte-identical to how `encoding/json` writes it into the view document, so the bind compares exactly against the stored text:
 
 ```go
+// skip-validate
 case time.Time:
 	return t.Format(time.RFC3339Nano)
 ```
