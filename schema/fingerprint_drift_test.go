@@ -12,10 +12,10 @@ func driftTestEvents(
 	t *testing.T,
 	declared EventSchema,
 	stampedFingerprint string,
-) (matching, mismatched, unstamped event.Event) {
+) (event.Event, event.Event, event.Event) {
 	t.Helper()
 
-	matching = newPayloadEvent(t, declared.eventType, 2, []byte(`{}`))
+	matching := newPayloadEvent(t, declared.eventType, 2, []byte(`{}`))
 	if stampedFingerprint != "" {
 		var err error
 		matching, err = rebuildWithMetadataStamp(
@@ -28,7 +28,7 @@ func driftTestEvents(
 		}
 	}
 
-	mismatched = newPayloadEvent(t, declared.eventType, 2, []byte(`{}`))
+	mismatched := newPayloadEvent(t, declared.eventType, 2, []byte(`{}`))
 	var err error
 	mismatched, err = rebuildWithMetadataStamp(
 		mismatched,
@@ -39,7 +39,7 @@ func driftTestEvents(
 		t.Fatalf("stamp mismatched: %v", err)
 	}
 
-	unstamped = newPayloadEvent(t, declared.eventType, 2, []byte(`{}`))
+	unstamped := newPayloadEvent(t, declared.eventType, 2, []byte(`{}`))
 
 	return matching, mismatched, unstamped
 }

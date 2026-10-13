@@ -144,7 +144,7 @@ func rebuildWithMetadataStamp(
 ) (event.Event, error) {
 	metadata := evt.Metadata().Clone().WithCustom(event.MetadataKey(metadataKey), fingerprint)
 
-	return event.New(
+	rebuilt, err := event.New(
 		evt.Type(),
 		evt.StreamID(),
 		evt.StreamType(),
@@ -156,4 +156,9 @@ func rebuildWithMetadataStamp(
 		event.WithEncoding(evt.Encoding()),
 		event.WithSchemaVersion(evt.SchemaVersion()),
 	)
+	if err != nil {
+		return nil, fmt.Errorf("rebuild %s event with metadata stamp: %w", evt.Type(), err)
+	}
+
+	return rebuilt, nil
 }

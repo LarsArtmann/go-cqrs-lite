@@ -73,7 +73,7 @@ func TestVersionedSeekableJournal_Property_upcasterChain(t *testing.T) {
 			upcasters[i] = &chainUpcaster{sourceVer: i + 1}
 		}
 
-		var events []event.Event
+		events := make([]event.Event, 0, numEvents)
 		expectedVersions := make([]int, 0, numEvents)
 
 		for i := range numEvents {
@@ -141,7 +141,7 @@ func TestVersionedSeekableJournal_Property_passthrough(t *testing.T) {
 		ctx := context.Background()
 		streamID := id.NewStreamID()
 
-		var events []event.Event
+		events := make([]event.Event, 0, numEvents)
 		for i := range numEvents {
 			ver := rapid.IntRange(1, numVersions).Draw(rt, "version")
 			payload := fmt.Sprintf("passthrough-%d", i)
@@ -212,7 +212,7 @@ func TestVersionedSeekableJournal_Property_ReadFrom(t *testing.T) {
 			upcasters[i] = &chainUpcaster{sourceVer: i + 1}
 		}
 
-		var events []event.Event
+		events := make([]event.Event, 0, numEvents)
 		for i := range numEvents {
 			evt, err := event.NewEvent(
 				"test.event", streamID, "Test",
@@ -281,7 +281,7 @@ func TestVersionedSeekableJournal_MidStreamUpcastError(t *testing.T) {
 
 	const failIdx = 5
 
-	var events []event.Event
+	events := make([]event.Event, 0, total)
 	for i := range total {
 		payload := fmt.Sprintf("data-%d", i)
 		if i == failIdx {
@@ -344,7 +344,7 @@ func benchmarkReadAll(b *testing.B, chainDepth int) {
 
 	const total = 10_000
 
-	var events []event.Event
+	events := make([]event.Event, 0, total)
 	for i := range total {
 		evt, err := event.NewEvent(
 			"test.event", streamID, "Test",
@@ -401,7 +401,7 @@ func BenchmarkVersionedSeekableJournal_ReadFrom_WithUpcasters(b *testing.B) {
 
 	const total = 10_000
 
-	var events []event.Event
+	events := make([]event.Event, 0, total)
 	for i := range total {
 		evt, err := event.NewEvent(
 			"test.event", streamID, "Test",
