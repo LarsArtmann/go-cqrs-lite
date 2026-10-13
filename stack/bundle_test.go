@@ -219,7 +219,7 @@ func TestBundle_GracefulClose_DrainsBeforeClose(t *testing.T) {
 	}
 }
 
-func TestBundle_GracefulClose_DrainErrorAbortsClose(t *testing.T) {
+func TestBundle_GracefulClose_DrainErrorStillCloses(t *testing.T) {
 	t.Parallel()
 
 	drainErr := errors.New("drain failed")
@@ -242,8 +242,8 @@ func TestBundle_GracefulClose_DrainErrorAbortsClose(t *testing.T) {
 		t.Fatalf("expected drain error, got: %v", err)
 	}
 
-	if closer.closed {
-		t.Fatal("Close should NOT be called when Drain fails")
+	if !closer.closed {
+		t.Fatal("Close must still run when Drain fails — a failed drain must not leak registered closers")
 	}
 }
 

@@ -53,8 +53,10 @@ func (b *Bundle) Close() error {
 //
 //  1. Drain: calls Drain on every registered [Drainer] (event subscribers,
 //     projection runners, routers) so they stop accepting new work and finish
-//     what's in flight. If any Drain returns an error, GracefulClose returns
-//     it immediately without proceeding to Close.
+//     what's in flight. If any Drain returns an error, Close still runs
+//     unconditionally and the drain and close errors are joined — a failed
+//     drain must not leak every registered resource (mirrors
+//     [system.System.GracefulClose]).
 //
 //  2. Close: calls [Bundle.Close] to release all resources (stores, DB, bus).
 //
@@ -69,8 +71,14 @@ func (b *Bundle) Close() error {
 func (b *Bundle) GracefulClose(ctx context.Context) error {
 	for _, d := range b.drainers {
 		if err := d.Drain(ctx); err != nil {
-			return errorfamily.WrapInfrastructure(err, "stack.bundle.graceful_drain",
-				"graceful drain")
+			// A failed drain must not skip Close (see godoc): the drain
+			// deadline is already spent, leaking every registered closer on
+			// top of it would compound the failure. Close runs unconditionally.
+			return errors.Join(
+				errorfamily.WrapInfrastructure(err, "stack.bundle.graceful_drain",
+					"graceful drain"),
+				b.Close(),
+			)
 		}
 	}
 
