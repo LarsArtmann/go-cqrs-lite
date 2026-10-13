@@ -204,6 +204,7 @@ func awaitFidelityView(t *testing.T, ctx context.Context, sys *system.System, le
 		for _, s := range sys.ProjectionHost().Status() {
 			if s.Processed >= 1 && s.Errors == 0 {
 				checkFidelityView(t, sys, leg, orig)
+
 				return
 			}
 		}
