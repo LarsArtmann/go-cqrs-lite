@@ -15,7 +15,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/scheduling/engine/v4 v4.0.2
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.7.0
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.7.0
-	github.com/larsartmann/go-cqrs-lite/system/v4 v4.13.0
+	github.com/larsartmann/go-cqrs-lite/system/v4 v4.14.0
 	github.com/larsartmann/go-error-family v0.11.0
 	pgregory.net/rapid v1.3.0
 )
