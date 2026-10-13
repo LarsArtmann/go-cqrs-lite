@@ -126,7 +126,12 @@ func DetectUsedModules(
 // Callers iterate maps with randomized order, so the evidence records the
 // lexicographically smallest matched path — the scorecard output stays
 // deterministic no matter which import the scan sees first.
-func matchModule(usage map[ModuleKey]ModuleUsage, catalog Catalog, importPath string, testOnly bool) {
+func matchModule(
+	usage map[ModuleKey]ModuleUsage,
+	catalog Catalog,
+	importPath string,
+	testOnly bool,
+) {
 	for _, e := range catalog.Scored() {
 		for _, hint := range e.ImportHints {
 			if !pathBoundaryMatch(importPath, hint) {

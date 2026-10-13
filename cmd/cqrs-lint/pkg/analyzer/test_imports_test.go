@@ -1,12 +1,11 @@
 package analyzer
 
 import (
+	"go/token"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
-
-	"go/token"
 )
 
 // writeTestTree writes a module fixture: go.mod at root, plus the given
@@ -142,8 +141,12 @@ func TestDetectUsedModules_TestOnlyProvenance(t *testing.T) {
 
 	fset := token.NewFileSet()
 	gofiles := []*GoFile{
-		parseTestFile(t, fset, "main.go",
-			"package main\n\nimport \"github.com/larsartmann/go-cqrs-lite/kv/v4\"\n\nfunc main() {}\n"),
+		parseTestFile(
+			t,
+			fset,
+			"main.go",
+			"package main\n\nimport \"github.com/larsartmann/go-cqrs-lite/kv/v4\"\n\nfunc main() {}\n",
+		),
 	}
 
 	usage := DetectUsedModules(

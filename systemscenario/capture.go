@@ -1,12 +1,39 @@
 package systemscenario
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 )
+
+// capturedCommand records one command dispatched through the system's
+// dispatcher: the command and its dispatch outcome.
+type capturedCommand struct {
+	cmd command.Command
+	err error
+}
+
+// captureMiddleware records every command dispatched through the system's
+// dispatcher, in dispatch order, with its outcome. Installed by [System]
+// before Start; ThenCommands diffs the log against the act baseline.
+func (s *Scenario) captureMiddleware() command.Middleware {
+	return func(next command.Handler) command.Handler {
+		return func(ctx context.Context, cmd command.Command) error {
+			err := next(ctx, cmd)
+
+			if s.cfg.captureFilter == nil || s.cfg.captureFilter(cmd) {
+				s.cmdMu.Lock()
+				s.capturedCommands = append(s.capturedCommands, capturedCommand{cmd: cmd, err: err})
+				s.cmdMu.Unlock()
+			}
+
+			return err
+		}
+	}
+}
 
 // journal returns the full event journal, ordered by occurrence.
 func (s *Scenario) journal() []event.Event {
