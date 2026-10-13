@@ -243,7 +243,9 @@ func TestBundle_GracefulClose_DrainErrorStillCloses(t *testing.T) {
 	}
 
 	if !closer.closed {
-		t.Fatal("Close must still run when Drain fails — a failed drain must not leak registered closers")
+		t.Fatal(
+			"Close must still run when Drain fails — a failed drain must not leak registered closers",
+		)
 	}
 }
 

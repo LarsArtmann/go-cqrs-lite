@@ -888,9 +888,9 @@
 
               src = mkMdGoValidatorSource pkgs;
 
-              # Re-pinned 2026-10-11: md-go-validator input moved on master
-              # again (same class as the 2026-09-29/10-04 shifts).
-              vendorHash = "sha256-c6lqyeijVxRJAk1R8uWZZ3VIogaqnxUvnRcJG2KJaKM=";
+              # Re-pinned 2026-10-13: md-go-validator input moved on master
+              # again (same class as the 2026-09-29/10-04/10-11 shifts).
+              vendorHash = "sha256-odwV+4mBfAMw9ilgNWi8M495yFc+1FaU59Y2Wkl4gWE=";
               proxyVendor = true;
 
               subPackages = [ "cmd/md-go-validator" ];

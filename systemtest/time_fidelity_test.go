@@ -196,7 +196,13 @@ func timeFidelityDomain(leg fidelityLeg, orig time.Time) system.DomainConfig {
 // processed (10 s bound, 50 ms ticks), then asserts the end-to-end view drift
 // against the leg's contract. Falls out of the loop at the deadline into the
 // error-check + timeout Fatal — same as the original inline shape.
-func awaitFidelityView(t *testing.T, ctx context.Context, sys *system.System, leg fidelityLeg, orig time.Time) {
+func awaitFidelityView(
+	t *testing.T,
+	ctx context.Context,
+	sys *system.System,
+	leg fidelityLeg,
+	orig time.Time,
+) {
 	t.Helper()
 
 	deadline := time.Now().Add(10 * time.Second)
