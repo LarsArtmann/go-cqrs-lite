@@ -35,6 +35,8 @@ func paginationRowFields(item any) (key string, sortVal float64, ok bool) {
 // cursor sort values (engines call sortFn(item, cursor.Sort) with the raw
 // field value), and normalizes int vs float64 across engine families.
 func paginationSortFn(t *testing.T) func(a, b any) int {
+	t.Helper()
+
 	return func(a, b any) int {
 		av, aok := paginationSortableValue(a)
 		bv, bok := paginationSortableValue(b)

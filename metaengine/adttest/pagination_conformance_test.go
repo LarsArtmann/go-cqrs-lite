@@ -34,7 +34,6 @@ func TestPaginationWalk_MemoryExactOnce(t *testing.T) {
 	for _, limit := range []int{1, 3, 4, 5, 7, 23, 24, 25} {
 		if problems := paginationWalk(
 			ctx,
-			t,
 			sb,
 			probe,
 			col,
@@ -82,7 +81,6 @@ func TestPaginationWalk_WrongKeyFormDetected(t *testing.T) {
 	for _, limit := range []int{1, 3, 4, 5, 7, 23, 24, 25} {
 		if problems := paginationWalk(
 			ctx,
-			t,
 			sb,
 			probe,
 			col,

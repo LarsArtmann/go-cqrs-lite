@@ -160,7 +160,7 @@ func RunPaginationConformance(t *testing.T, probes []PaginationProbe) {
 
 			for _, limit := range []int{1, 3, 4, 5, 7, 23, 24, 25} {
 				t.Run(fmt.Sprintf("limit=%d", limit), func(t *testing.T) {
-					for _, problem := range paginationWalk(ctx, t, sb, probe, col, sortFn, limit) {
+					for _, problem := range paginationWalk(ctx, sb, probe, col, sortFn, limit) {
 						t.Errorf("limit=%d: %s", limit, problem)
 					}
 				})
@@ -175,7 +175,6 @@ func RunPaginationConformance(t *testing.T, probes []PaginationProbe) {
 // testable: the self-test proves a wrong CursorKey form produces violations.
 func paginationWalk(
 	ctx context.Context,
-	t *testing.T,
 	sb metaengine.ScanBackend,
 	probe PaginationProbe,
 	col string,

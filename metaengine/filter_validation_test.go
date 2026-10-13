@@ -117,7 +117,7 @@ func TestScanRejectsHostileColumns(t *testing.T) {
 		}
 	}
 
-	for _, column := range []string{"status", "user.Name", "created-at", "外のキー"} {
+	for _, column := range []string{"status", "user.Name", "created-at", "外のキー"} { //nolint:gosmopolitan // intentional non-ASCII identifier coverage
 		if _, err := reader.Scan(
 			ctx,
 			metaengine.WithFilter(column, metaengine.FilterEq, "x"),
@@ -133,7 +133,7 @@ func TestScanRejectsHostileColumns(t *testing.T) {
 func TestValidateIdentifier(t *testing.T) {
 	t.Parallel()
 
-	for _, s := range []string{"tasks", "user_id", "a.b", "created-at", "with space", "外のキー", "Col42"} {
+	for _, s := range []string{"tasks", "user_id", "a.b", "created-at", "with space", "外のキー", "Col42"} { //nolint:gosmopolitan // intentional non-ASCII identifier coverage
 		if err := metaengine.ValidateIdentifier(s); err != nil {
 			t.Errorf("ValidateIdentifier(%q) = %v, want nil", s, err)
 		}
