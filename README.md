@@ -246,7 +246,7 @@ Modules release on independent per-module version trains (`<module>/vX.Y.Z` git 
 | cmd/api-stability | `cmd/api-stability/v4.4.2` *(untagged per ADR-0152)* |
 | cmd/cqrs-bench | `cmd/cqrs-bench/v4.3.4` *(untagged per ADR-0152)* |
 | cmd/cqrs-gen | `cmd/cqrs-gen/v4.3.3` *(untagged per ADR-0152)* |
-| cmd/cqrs-lint | `cmd/cqrs-lint/v4.16.0` |
+| cmd/cqrs-lint | `cmd/cqrs-lint/v4.17.0` |
 | cmd/cqrs-upgrade | `cmd/cqrs-upgrade/v4.1.2` *(untagged per ADR-0152)* |
 | cmd/doc-check | `cmd/doc-check/v4.3.3` *(untagged per ADR-0152)* |
 | codec | `codec/v4.4.0` |
@@ -338,7 +338,7 @@ Modules release on independent per-module version trains (`<module>/vX.Y.Z` git 
 | storage/pebble | `storage/pebble/v4.4.4` *(untagged per ADR-0152)* |
 | storage/turso | `storage/turso/v4.3.4` |
 | sync | `sync/v0.2.0` |
-| system | `system/v4.13.0` |
+| system | `system/v4.14.0` |
 | system/integration | `system/integration/v4.0.2` *(untagged per ADR-0152)* |
 | systemscenario | `systemscenario/v4.1.0` |
 | systemtest | `systemtest/v4.0.0` *(untagged per ADR-0152)* |
