@@ -35,7 +35,10 @@ func TestSystem_GracefulClose_DrainTimeout(t *testing.T) {
 		// margin keeps ctx.Done the only ready case under scheduler stalls.
 		drainers: []Drainer{&slowDrainer{delay: 2 * time.Second}},
 		engines: []namedEngine{
-			{engine: &countingCloseEngine{name: "engine-a", count: &closeCount, mu: &mu}, name: "engine-a"},
+			{
+				engine: &countingCloseEngine{name: "engine-a", count: &closeCount, mu: &mu},
+				name:   "engine-a",
+			},
 		},
 	}
 
@@ -56,7 +59,10 @@ func TestSystem_GracefulClose_DrainTimeout(t *testing.T) {
 	defer mu.Unlock()
 
 	if closeCount != 1 {
-		t.Errorf("engine must still be closed on drain timeout, but Close was called %d times", closeCount)
+		t.Errorf(
+			"engine must still be closed on drain timeout, but Close was called %d times",
+			closeCount,
+		)
 	}
 }
 

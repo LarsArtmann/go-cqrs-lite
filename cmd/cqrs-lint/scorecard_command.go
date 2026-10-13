@@ -93,7 +93,12 @@ func runScorecard(
 		return fmt.Errorf("scorecard: collect test imports: %w", err)
 	}
 
-	usage := analyzer.DetectUsedModules(actx.Packages, actx.GoFiles, testImports, analyzer.DefaultCatalog)
+	usage := analyzer.DetectUsedModules(
+		actx.Packages,
+		actx.GoFiles,
+		testImports,
+		analyzer.DefaultCatalog,
+	)
 	waivers, err := resolveScorecardWaivers(cfg)
 	if err != nil {
 		return fmt.Errorf("scorecard: %w", err)

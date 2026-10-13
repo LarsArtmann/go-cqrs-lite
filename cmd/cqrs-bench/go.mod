@@ -120,7 +120,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/storage/pebble/v4 v4.4.4 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/turso/v4 v4.3.4 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.10.5 // indirect
-	github.com/larsartmann/go-cqrs-lite/system/v4 v4.13.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/system/v4 v4.14.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.7.0 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.1 // indirect
 	github.com/larsartmann/go-ndjson v0.0.1 // indirect
