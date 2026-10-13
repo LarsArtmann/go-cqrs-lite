@@ -210,7 +210,7 @@ func TestPostgresSnapshotColumnMigration(t *testing.T) {
 	streamID := id.NewStreamID()
 	if _, err := db.ExecContext(ctx,
 		`INSERT INTO snapshots (aggregate_type, aggregate_id, version, state, created_at)
-		 VALUES ('User', $1, 7, '{"k":"v"}', NOW())`, streamID.String(),
+		 VALUES ('User', $1, 7, '{"k":"v"}', NOW())`, streamID,
 	); err != nil {
 		t.Fatalf("insert legacy row: %v", err)
 	}

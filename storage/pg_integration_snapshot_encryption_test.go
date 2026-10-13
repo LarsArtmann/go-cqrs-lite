@@ -178,7 +178,7 @@ func snapshotColumnState(t *testing.T, db pgQuerier, streamID id.StreamID) strin
 
 	var state []byte
 
-	err := db.QueryRow(query, streamID.String()).Scan(&state)
+	err := db.QueryRow(query, streamID).Scan(&state)
 	if err != nil {
 		t.Fatalf("read raw snapshot state column: %v", err)
 	}
