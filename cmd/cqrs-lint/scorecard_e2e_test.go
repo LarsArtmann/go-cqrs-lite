@@ -38,7 +38,7 @@ func main() {}
 
 	actx := analyzer.BuildContextFromSource(t, src)
 
-	usage := analyzer.DetectUsedModules(actx.Packages, actx.GoFiles, analyzer.DefaultCatalog)
+	usage := analyzer.DetectUsedModules(actx.Packages, actx.GoFiles, nil, analyzer.DefaultCatalog)
 
 	result := ComputeScorecard(
 		analyzer.DefaultCatalog, usage,
@@ -121,7 +121,7 @@ func main() {}
 
 	actx := analyzer.BuildContextFromSource(t, src)
 
-	usage := analyzer.DetectUsedModules(actx.Packages, actx.GoFiles, analyzer.DefaultCatalog)
+	usage := analyzer.DetectUsedModules(actx.Packages, actx.GoFiles, nil, analyzer.DefaultCatalog)
 
 	result := ComputeScorecard(
 		analyzer.DefaultCatalog, usage,
@@ -175,7 +175,7 @@ func main() {}
 
 	actx := analyzer.BuildContextFromSource(t, src)
 
-	usage := analyzer.DetectUsedModules(actx.Packages, actx.GoFiles, analyzer.DefaultCatalog)
+	usage := analyzer.DetectUsedModules(actx.Packages, actx.GoFiles, nil, analyzer.DefaultCatalog)
 
 	result := ComputeScorecard(
 		analyzer.DefaultCatalog, usage,
@@ -221,7 +221,7 @@ func main() { fmt.Println("hello") }
 
 	actx := analyzer.BuildContextFromSource(t, src)
 
-	usage := analyzer.DetectUsedModules(actx.Packages, actx.GoFiles, analyzer.DefaultCatalog)
+	usage := analyzer.DetectUsedModules(actx.Packages, actx.GoFiles, nil, analyzer.DefaultCatalog)
 
 	result := ComputeScorecard(
 		analyzer.DefaultCatalog, usage,
@@ -272,7 +272,7 @@ func main() {
 		t.Fatal("expected MetaenginePushdown to be true")
 	}
 
-	usage := analyzer.DetectUsedModules(actx.Packages, actx.GoFiles, analyzer.DefaultCatalog)
+	usage := analyzer.DetectUsedModules(actx.Packages, actx.GoFiles, nil, analyzer.DefaultCatalog)
 
 	result := ComputeScorecard(
 		analyzer.DefaultCatalog, usage,
@@ -327,7 +327,7 @@ func main() {
 		t.Fatal("expected MetaenginePushdown to be false")
 	}
 
-	usage := analyzer.DetectUsedModules(actx.Packages, actx.GoFiles, analyzer.DefaultCatalog)
+	usage := analyzer.DetectUsedModules(actx.Packages, actx.GoFiles, nil, analyzer.DefaultCatalog)
 
 	result := ComputeScorecard(
 		analyzer.DefaultCatalog, usage,

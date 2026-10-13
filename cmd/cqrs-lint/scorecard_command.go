@@ -84,7 +84,16 @@ func runScorecard(
 	actx *analyzer.AnalysisContext,
 	threshold int,
 ) error {
-	usage := analyzer.DetectUsedModules(actx.Packages, actx.GoFiles, analyzer.DefaultCatalog)
+	// Test-only modules (systemscenario, scenario, stack/memory) reach the
+	// scorecard ONLY through _test.go imports: the typed load runs with
+	// Tests: false, so a cheap go/parser walk supplies the missing pass
+	// (issue #69).
+	testImports, err := analyzer.CollectTestImportPaths(actx.ProjectRoot)
+	if err != nil {
+		return fmt.Errorf("scorecard: collect test imports: %w", err)
+	}
+
+	usage := analyzer.DetectUsedModules(actx.Packages, actx.GoFiles, testImports, analyzer.DefaultCatalog)
 	waivers, err := resolveScorecardWaivers(cfg)
 	if err != nil {
 		return fmt.Errorf("scorecard: %w", err)

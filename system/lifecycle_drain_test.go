@@ -27,10 +27,16 @@ func (d *slowDrainer) Drain(ctx context.Context) error {
 func TestSystem_GracefulClose_DrainTimeout(t *testing.T) {
 	t.Parallel()
 
+	var mu sync.Mutex
+	var closeCount int
+
 	sys := &System{
 		// 2s vs the 50ms budget: see TestSystem_Drain_ContextExpired — a wide
 		// margin keeps ctx.Done the only ready case under scheduler stalls.
 		drainers: []Drainer{&slowDrainer{delay: 2 * time.Second}},
+		engines: []namedEngine{
+			{engine: &countingCloseEngine{name: "engine-a", count: &closeCount, mu: &mu}, name: "engine-a"},
+		},
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
@@ -43,6 +49,14 @@ func TestSystem_GracefulClose_DrainTimeout(t *testing.T) {
 
 	if !errors.Is(err, context.DeadlineExceeded) {
 		t.Fatalf("expected DeadlineExceeded, got: %v", err)
+	}
+
+	// A spent drain deadline must not leak resources: Close still ran (#67).
+	mu.Lock()
+	defer mu.Unlock()
+
+	if closeCount != 1 {
+		t.Errorf("engine must still be closed on drain timeout, but Close was called %d times", closeCount)
 	}
 }
 

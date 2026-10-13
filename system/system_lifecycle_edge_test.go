@@ -278,13 +278,15 @@ func (f *failedStatusProjHost) Reset(
 	return nil
 }
 
-// ── GracefulClose drain-error: Close must NOT run ──
+// ── GracefulClose drain-error: Close must STILL run (godoc contract, #67) ──
 
-func TestSystem_GracefulClose_DrainError_NoClose(t *testing.T) {
+func TestSystem_GracefulClose_DrainError_StillCloses(t *testing.T) {
 	t.Parallel()
 
 	var mu sync.Mutex
 	var closeCount int
+
+	drainErr := errors.New("drain failed")
 
 	sys := &System{
 		engines: []namedEngine{
@@ -294,7 +296,7 @@ func TestSystem_GracefulClose_DrainError_NoClose(t *testing.T) {
 			},
 		},
 		drainers: []Drainer{
-			&errorDrainer{err: errors.New("drain failed")},
+			&errorDrainer{err: drainErr},
 		},
 	}
 
@@ -303,12 +305,16 @@ func TestSystem_GracefulClose_DrainError_NoClose(t *testing.T) {
 		t.Fatal("expected GracefulClose to fail with drain error")
 	}
 
+	if !errors.Is(err, drainErr) {
+		t.Fatalf("expected error to wrap drain error, got: %v", err)
+	}
+
 	mu.Lock()
 	defer mu.Unlock()
 
-	if closeCount != 0 {
+	if closeCount != 1 {
 		t.Errorf(
-			"engine should NOT be closed on drain error, but Close was called %d times",
+			"engine must still be closed exactly once on drain error, but Close was called %d times",
 			closeCount,
 		)
 	}

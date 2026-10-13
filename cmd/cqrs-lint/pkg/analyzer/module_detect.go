@@ -47,13 +47,20 @@ type ModuleUsage struct {
 // scored (non-core) catalog entry gets an entry in the result map — either
 // UsageImported (if detected) or UsageAbsent (if not).
 //
-// The detection uses two passes mirroring feature_detect.go:
+// The detection uses three passes mirroring feature_detect.go:
 //
 //	Pass 1:  pkg.Imports scan (populated by go/packages)
 //	Pass 1b: AST import declarations (fallback for test contexts)
+//	Pass 2:  import paths collected from _test.go files
+//
+// Pass 2 exists because the typed load runs with Tests: false: test files
+// reach neither pkg.Imports nor GoFiles, so test-only modules
+// (systemscenario, scenario) are detectable ONLY through their _test.go
+// imports. Importing IS adoption — in tests as anywhere else.
 func DetectUsedModules(
 	pkgs []*packages.Package,
 	gofiles []*GoFile,
+	testImportPaths []string,
 	catalog Catalog,
 ) map[ModuleKey]ModuleUsage {
 	result := make(map[ModuleKey]ModuleUsage, len(catalog.Scored()))
@@ -88,6 +95,14 @@ func DetectUsedModules(
 			path := strings.Trim(imp.Path.Value, `"`)
 			matchModule(result, catalog, path)
 		}
+	}
+
+	// Pass 2: test-file imports. The typed load (Tests: false) never surfaces
+	// _test.go files, so test-only modules are invisible to Passes 1/1b.
+	// Callers collect these via CollectTestImportPaths (go/parser, imports
+	// only); matching reuses matchModule/pathBoundaryMatch unchanged.
+	for _, path := range testImportPaths {
+		matchModule(result, catalog, path)
 	}
 
 	return result

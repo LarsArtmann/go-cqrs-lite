@@ -41,7 +41,7 @@ func main() {}
 	fset := token.NewFileSet()
 	gf := parseTestFile(t, fset, "main.go", src)
 
-	usage := DetectUsedModules(nil, []*GoFile{gf}, DefaultCatalog)
+	usage := DetectUsedModules(nil, []*GoFile{gf}, nil, DefaultCatalog)
 
 	checkStatus(t, usage, "otel", UsageImported)
 	checkStatus(t, usage, "scheduling", UsageImported)
@@ -64,7 +64,7 @@ func main() { fmt.Println("hello") }
 	fset := token.NewFileSet()
 	gf := parseTestFile(t, fset, "main.go", src)
 
-	usage := DetectUsedModules(nil, []*GoFile{gf}, DefaultCatalog)
+	usage := DetectUsedModules(nil, []*GoFile{gf}, nil, DefaultCatalog)
 
 	// All scored modules should be absent.
 	for _, e := range DefaultCatalog.Scored() {
@@ -87,7 +87,7 @@ func main() {}
 	fset := token.NewFileSet()
 	gf := parseTestFile(t, fset, "main.go", src)
 
-	usage := DetectUsedModules(nil, []*GoFile{gf}, DefaultCatalog)
+	usage := DetectUsedModules(nil, []*GoFile{gf}, nil, DefaultCatalog)
 
 	checkStatus(t, usage, "idempotency", UsageImported)
 	// "id" is a core module so not in the scored set — it won't appear in usage.
@@ -114,7 +114,7 @@ func main() {}
 	fset := token.NewFileSet()
 	gf := parseTestFile(t, fset, "main.go", src)
 
-	usage := DetectUsedModules(nil, []*GoFile{gf}, DefaultCatalog)
+	usage := DetectUsedModules(nil, []*GoFile{gf}, nil, DefaultCatalog)
 
 	checkStatus(t, usage, "stack/sqlite", UsageImported)
 	checkStatus(t, usage, "stack/postgres", UsageAbsent)
@@ -136,7 +136,7 @@ func main() {}
 	fset := token.NewFileSet()
 	gf := parseTestFile(t, fset, "main.go", src)
 
-	usage := DetectUsedModules(nil, []*GoFile{gf}, DefaultCatalog)
+	usage := DetectUsedModules(nil, []*GoFile{gf}, nil, DefaultCatalog)
 
 	checkStatus(t, usage, "watermill", UsageImported)
 }
@@ -156,7 +156,7 @@ func init() {}
 	gf1 := parseTestFile(t, fset, "a.go", src1)
 	gf2 := parseTestFile(t, fset, "b.go", src2)
 
-	usage := DetectUsedModules(nil, []*GoFile{gf1, gf2}, DefaultCatalog)
+	usage := DetectUsedModules(nil, []*GoFile{gf1, gf2}, nil, DefaultCatalog)
 
 	checkStatus(t, usage, "otel", UsageImported)
 	checkStatus(t, usage, "signing", UsageImported)
