@@ -393,8 +393,10 @@ DEP_BUDGET["cmd/cqrs-bench"]=19
 DEP_BUDGET["cmd/cqrs-upgrade"]=3
 DEP_BUDGET["cmd/api-stability"]=3
 DEP_BUDGET["cmd/doc-check"]=2
-# mesh-demo: catalog/decider/event/command/id = 5 (the bilateral-contract example).
-DEP_BUDGET["example/mesh-demo"]=6 # +catalog: EventCatalog export demo surface
+# mesh-demo: decider/event/command/id = 4 (the bilateral-contract example)
+# +catalog (EventCatalog export demo surface) +system (composition-root boot,
+# the ADR-0123 modern pattern) +go-branded-id (branded stream IDs) = 7.
+DEP_BUDGET["example/mesh-demo"]=7
 DEP_BUDGET["example/taskmanager"]=25
 DEP_BUDGET["example/getting-started"]=10
 # goal-shaped-app is the Goal story: types-only domain + system composition
