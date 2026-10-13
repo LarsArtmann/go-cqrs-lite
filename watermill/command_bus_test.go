@@ -265,66 +265,87 @@ func TestCommandBusPublishRacingCloseNeverLeaksRawTransportError(t *testing.T) {
 	t.Parallel()
 
 	for i := range 300 {
-		bus := cqrswatermill.NewCommandBus()
+		commandBusPublishRacingCloseIteration(t, i)
+	}
+}
 
-		err := bus.Subscribe("race.cmd", func(_ context.Context, _ command.Command) error {
-			return nil
+// commandBusPublishRacingCloseIteration runs ONE publish-vs-close race
+// iteration: subscribe, hammer Publish from 6 goroutines, Close mid-flight,
+// then assert no raw transport error leaked past the typed ErrBusClosed.
+func commandBusPublishRacingCloseIteration(t *testing.T, i int) {
+	t.Helper()
+
+	bus := cqrswatermill.NewCommandBus()
+
+	err := bus.Subscribe("race.cmd", func(_ context.Context, _ command.Command) error {
+		return nil
+	})
+	if err != nil {
+		t.Fatalf("iteration %d: subscribe: %v", i, err)
+	}
+
+	var wg sync.WaitGroup
+	rawErr := make(chan error, 1)
+	stop := make(chan struct{})
+
+	for range 6 {
+		wg.Go(func() {
+			racePublishCommands(t, i, bus, stop, rawErr)
 		})
-		if err != nil {
-			t.Fatalf("iteration %d: subscribe: %v", i, err)
-		}
+	}
 
-		var wg sync.WaitGroup
-		rawErr := make(chan error, 1)
-		stop := make(chan struct{})
+	time.Sleep(200 * time.Microsecond)
+	closeErr := bus.Close()
+	close(stop)
+	wg.Wait()
 
-		for range 6 {
-			wg.Go(func() {
-				for {
-					select {
-					case <-stop:
-						return
-					default:
-					}
+	if closeErr != nil {
+		t.Fatalf("iteration %d: close: %v", i, closeErr)
+	}
 
-					cmd, err := command.New("race.cmd", id.NewStreamID())
-					if err != nil {
-						t.Errorf("iteration %d: create command: %v", i, err)
+	select {
+	case err := <-rawErr:
+		t.Fatalf(
+			"iteration %d: publish leaked a raw transport error (want nil or typed ErrBusClosed): %v",
+			i,
+			err,
+		)
+	default:
+	}
+}
 
-						return
-					}
-
-					if pubErr := bus.Publish(context.Background(), cmd); pubErr != nil {
-						if !errors.Is(pubErr, event.ErrBusClosed) {
-							select {
-							case rawErr <- pubErr:
-							default:
-							}
-						}
-
-						return
-					}
-				}
-			})
-		}
-
-		time.Sleep(200 * time.Microsecond)
-		closeErr := bus.Close()
-		close(stop)
-		wg.Wait()
-
-		if closeErr != nil {
-			t.Fatalf("iteration %d: close: %v", i, closeErr)
-		}
-
+// racePublishCommands publishes freshly minted commands until the bus errors
+// or stop closes, reporting any NON-typed publish error on rawErr (once).
+func racePublishCommands(
+	t *testing.T,
+	i int,
+	bus *cqrswatermill.CommandBus,
+	stop <-chan struct{},
+	rawErr chan<- error,
+) {
+	for {
 		select {
-		case err := <-rawErr:
-			t.Fatalf(
-				"iteration %d: publish leaked a raw transport error (want nil or typed ErrBusClosed): %v",
-				i,
-				err,
-			)
+		case <-stop:
+			return
 		default:
+		}
+
+		cmd, err := command.New("race.cmd", id.NewStreamID())
+		if err != nil {
+			t.Errorf("iteration %d: create command: %v", i, err)
+
+			return
+		}
+
+		if pubErr := bus.Publish(context.Background(), cmd); pubErr != nil {
+			if !errors.Is(pubErr, event.ErrBusClosed) {
+				select {
+				case rawErr <- pubErr:
+				default:
+				}
+			}
+
+			return
 		}
 	}
 }

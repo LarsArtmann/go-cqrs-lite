@@ -5,11 +5,7 @@ import (
 	"fmt"
 	"maps"
 	"slices"
-	"strconv"
 	"strings"
-	"time"
-
-	"github.com/dustin/go-humanize"
 )
 
 // ExplainOptions controls what EXPLAIN returns.
@@ -258,203 +254,45 @@ func (s *Store) Doctor(ctx context.Context) string {
 	var b strings.Builder
 
 	b.WriteString("=== Metaengine Doctor ===\n\n--- Health ---\n")
-
-	if err := s.HealthCheck(ctx); err != nil {
-		fmt.Fprintf(&b, "  UNHEALTHY: %v\n", err)
-	} else {
-		b.WriteString("  all engines healthy\n")
-	}
+	s.writeDoctorHealthSection(ctx, &b)
 
 	b.WriteString("\n--- Engine Health (ADR-0137) ---\n" + s.doctorEngineHealthSection())
 	s.writeDoctorCatchUpSection(&b)
 
 	b.WriteString("\n--- Collections ---\n")
-
-	stats, err := s.Stats(ctx)
-	if err != nil {
-		fmt.Fprintf(&b, "  ERROR: %v\n", err)
-	} else {
-		for _, stat := range stats {
-			rowStr := "N/A"
-			if stat.RowCount >= 0 {
-				rowStr = strconv.FormatInt(stat.RowCount, 10)
-			}
-
-			fmt.Fprintf(&b, "  %s: %s rows (%s)\n", stat.Name, rowStr, stat.EngineName)
-		}
-	}
+	s.writeDoctorCollectionsSection(ctx, &b)
 
 	b.WriteString("\n--- Poisoned ---\n")
-
-	poisonedAny := false
-
-	s.poison.mu.RLock()
-	for col, err := range s.poison.m {
-		fmt.Fprintf(&b, "  %s: %v\n", col, err)
-		poisonedAny = true
-	}
-	s.poison.mu.RUnlock()
-
-	if !poisonedAny {
-		b.WriteString("  none\n")
-	}
+	s.writeDoctorPoisonedSection(&b)
 
 	b.WriteString("\n--- Durability ---\n")
-
-	s.mu.RLock()
-	engines := slices.Clone(s.engines)
-	s.mu.RUnlock()
-
-	reported := false
-	for _, eng := range engines {
-		dr, ok := eng.(DurabilityReporter)
-		if !ok {
-			continue
-		}
-
-		tier := dr.EffectiveDurability()
-		if tier == "" {
-			tier = "engine-default"
-		}
-
-		fmt.Fprintf(&b, "  %s: %s\n", eng.Profile().Name, tier)
-		reported = true
-	}
-
-	if !reported {
-		b.WriteString("  no engine reports an effective durability tier\n")
-	}
+	engines := s.writeDoctorDurabilitySection(&b)
 
 	b.WriteString(vectorDoctorSection(ctx, engines))
 
 	b.WriteString("\n--- Replication ---\n")
-
-	replicatedAny := false
-	for _, c := range s.Collections() {
-		if c.Replication == ReplicationNone {
-			continue
-		}
-
-		fmt.Fprintf(&b, "  %s: %s (lag=%dms, rtt=%dms)\n",
-			c.Name, c.Replication, c.ReplicationLagMs, c.NetworkRTTMs)
-		replicatedAny = true
-	}
-
-	if !replicatedAny {
-		b.WriteString("  none\n")
-	}
+	s.writeDoctorReplicationSection(&b)
 
 	b.WriteString("\n--- Persistence ---\n")
-
-	volatileAny := false
-	for _, c := range s.Collections() {
-		if c.Persistence != PersistenceVolatile {
-			continue
-		}
-
-		fmt.Fprintf(&b, "  %s: volatile (engine=%s)\n", c.Name, c.EngineName)
-		volatileAny = true
-	}
-
-	if !volatileAny {
-		b.WriteString("  all persistent\n")
-	}
+	s.writeDoctorPersistenceSection(&b)
 
 	b.WriteString("\n--- Aggregate Pushdown ---\n")
-
-	aggAny := false
-	s.mu.RLock()
-	for _, name := range slices.Sorted(maps.Keys(s.queries)) {
-		eng := s.queries[name].QueryEngine()
-		caps := aggregateCapabilities(eng)
-		if caps == "" {
-			continue
-		}
-
-		fmt.Fprintf(&b, "  %s: %s\n", name, caps)
-		aggAny = true
-	}
-	s.mu.RUnlock()
-
-	if !aggAny {
-		b.WriteString("  none\n")
-	}
+	s.writeDoctorAggregateSection(&b)
 
 	b.WriteString("\n--- Latency ---\n")
-
-	latAny := false
-	for _, st := range s.GetEngineStats(ctx) {
-		if !st.Profile.IsRemote() {
-			continue
-		}
-
-		fmt.Fprintf(&b, "  %s: %s\n", st.Name, FormatLiveLatency(st))
-		latAny = true
-	}
-
-	if !latAny {
-		b.WriteString("  all engines local\n")
-	}
+	s.writeDoctorLatencySection(ctx, &b)
 
 	b.WriteString(s.degradedDoctorSection())
 
 	b.WriteString("\n--- Routing ---\n")
-
-	s.mu.RLock()
-	version := 0
-	computedAt := time.Time{}
-	if s.plan != nil {
-		version = s.plan.Version
-		computedAt = s.plan.ComputedAt
-	}
-
-	replanCount := s.replanCount
-	lastReplan := s.lastReplanAt
-	hysteresis := s.routingHysteresis
-	s.mu.RUnlock()
-
-	fmt.Fprintf(&b, "  plan version: %d\n", version)
-	if !computedAt.IsZero() {
-		fmt.Fprintf(
-			&b,
-			"  computed: %s\n",
-			humanize.RelTime(computedAt, time.Now(), "ago", "from now"),
-		)
-	}
-
-	if replanCount > 0 {
-		fmt.Fprintf(
-			&b,
-			"  replans: %d (last %s)\n",
-			replanCount,
-			humanize.RelTime(lastReplan, time.Now(), "ago", "from now"),
-		)
-	} else {
-		b.WriteString("  replans: 0 (never)\n")
-	}
-
-	if hist := s.formatPlanAuditTrail(); hist != "" {
-		fmt.Fprintf(&b, "  audit: %s\n", hist)
-	}
-
-	fmt.Fprintf(&b, "  hysteresis: %.0f%%\n", hysteresis*100)
-
-	driftDiags := s.CheckRouting(ctx)
-	if len(driftDiags) > 0 {
-		fmt.Fprintf(&b, "  drift: %d queries would benefit from re-routing\n", len(driftDiags))
-		for _, d := range driftDiags {
-			fmt.Fprintf(&b, "    %s\n", d.Message)
-		}
-	} else {
-		b.WriteString("  drift: none\n")
-	}
+	s.writeDoctorRoutingSection(ctx, &b)
 
 	b.WriteString(s.capabilityDoctorSection())
 	b.WriteString(s.recordContextDoctorSection())
 	b.WriteString(s.LayoutDoctorSection())
 	b.WriteString(s.PlannedTablesDoctorSection(ctx))
 	b.WriteString(s.MaterializedViewsDoctorSection(ctx))
-	b.WriteString(s.resetDoctorSection())
+	s.resetDoctorSection()
 
 	return b.String()
 }

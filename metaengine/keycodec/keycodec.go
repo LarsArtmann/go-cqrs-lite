@@ -177,10 +177,7 @@ func EncodeKeyStr(key any) string {
 // ("m\x00<col>\x00\"item-012\""). Keys that do not decode as JSON pass
 // through as raw bytes; the result never aliases fullKey.
 func UserKeyBytes(fullKey, prefix []byte) []byte {
-	rest := fullKey
-	if bytes.HasPrefix(rest, prefix) {
-		rest = rest[len(prefix):]
-	}
+	rest := bytes.TrimPrefix(fullKey, prefix)
 
 	var v any
 	if err := json.Unmarshal(rest, &v); err != nil {
