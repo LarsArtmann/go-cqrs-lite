@@ -116,9 +116,11 @@ func (s *System) Close() error {
 
 // GracefulClose drains in-flight work via any registered [Drainer] resources,
 // then calls [Close] with a context-bounded timeout. It returns when Close
-// finishes or the context is cancelled, whichever comes first. If the context
-// expires during draining, Close is still attempted; if it expires during
-// Close, resources may still be closing in the background.
+// finishes or the context is cancelled, whichever comes first. If draining
+// fails — including context expiry — Close is still run unconditionally and
+// the drain and close errors are joined: a spent drain deadline must not leak
+// engines and registered resources. If the context expires during Close,
+// resources may still be closing in the background.
 //
 // Use this instead of [Close] when you need a shutdown deadline (e.g., a
 // Kubernetes SIGTERM grace period).
@@ -127,9 +129,16 @@ func (s *System) GracefulClose(ctx context.Context) error {
 	// drain/close phases).
 	s.stopTimers()
 
-	// Phase 1: drain in-flight work.
-	if err := s.drainAll(ctx); err != nil {
-		return fmt.Errorf("system: graceful drain: %w", err)
+	// Phase 1: drain in-flight work. A drain error must not skip Close (see
+	// godoc): the deadline spent draining cannot be allowed to leak every
+	// engine and registered closer. Close runs unconditionally — not raced
+	// against the (likely already expired) context — so the Phase 2
+	// pre-expired-context determinism guard stays untouched.
+	if drainErr := s.drainAll(ctx); drainErr != nil {
+		return errors.Join(
+			fmt.Errorf("system: graceful drain: %w", drainErr),
+			s.Close(),
+		)
 	}
 
 	// Phase 2: close with context race.

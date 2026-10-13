@@ -989,7 +989,6 @@ github.com/larsartmann/go-cqrs-lite/metaengine/bboltengine/v4 v4.1.0/go.mod h1:Y
 github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.1.1/go.mod h1:4V33qjwL3R72tvRGPRM7AlBWMDHeB4JjA5wMG7uBZqU=
 github.com/larsartmann/go-cqrs-lite/stack/bbolt/v4 v4.0.0-20260806160506-f6bcfb0bcb06/go.mod h1:9YKoAEHR0vW9RGpcYdBuGCGdx+xknagtYoQyjQt8smU=
 github.com/larsartmann/go-cqrs-lite/storage/bbolt/v4 v4.0.0-20260806125330-508e2817469c/go.mod h1:C4d+jVIKNzM5Tfgz2YrlErW7ow8Bt04cAX7wBgHaM/Y=
-github.com/larsartmann/go-cqrs-lite/system/v4 v4.13.0/go.mod h1:z2w36TmzgQ2w0ThStnDRwXuvzD/GHsxdq1fB/Qf+oHQ=
 github.com/larsartmann/go-datastar/static v0.1.0/go.mod h1:Mkt7d9FrtMiiT3bGpJv+5RRX4+5x1/gJv9YWuFlWaD4=
 github.com/larsartmann/go-datastar/static v0.2.0/go.mod h1:Mkt7d9FrtMiiT3bGpJv+5RRX4+5x1/gJv9YWuFlWaD4=
 github.com/larsartmann/go-datastar/static v0.5.0/go.mod h1:J5d13HKqAKSH67hTgOcGTQQtv8UXmm5jm5tcM4+/tnM=
@@ -1008,6 +1007,7 @@ github.com/larsartmann/templ-components/charts/echarts v1.17.0/go.mod h1:U09ZwU1
 github.com/larsartmann/templ-components/charts/echarts v1.18.0/go.mod h1:A42WT8HfY8a2frOlIbfssWz5ttsFeuFSfvDXO7muSTQ=
 github.com/larsartmann/templ-components/charts/echarts v1.19.4/go.mod h1:Ty8IqZ+G/2tu1zUtyPr9+vMazGeG25L49Ver4d0IhuA=
 github.com/larsartmann/templ-components/charts/echarts v1.20.1/go.mod h1:GlfA/0oEY/VE6pOFjbrYFUtV3k2UwTh55BZVddsHIow=
+github.com/larsartmann/templ-components/charts/echarts v1.22.0/go.mod h1:FRgi3D6Q6XRKM7Qo8xCiCj/AicI+ktIdA69Fl+OBS6s=
 github.com/larsartmann/templ-components/datastar v1.8.2/go.mod h1:0VY3QU6FpWu1kN/EDdU+CaPDEwlLgC6X7VlHXspM2oA=
 github.com/larsartmann/templ-components/datastar v1.11.0/go.mod h1:M4nSh8qGKqD+iJQ8p9mTck67ksTHEeaGX7CMuYCtbmo=
 github.com/larsartmann/templ-components/datastar v1.13.2/go.mod h1:NboBxHnArZlQKaS7k1qqRBowNbQZWnuzC1z0tS9GMGw=
@@ -1016,6 +1016,7 @@ github.com/larsartmann/templ-components/datastar v1.17.0/go.mod h1:hEVWn5AXoX5wQ
 github.com/larsartmann/templ-components/datastar v1.18.0/go.mod h1:bbtwOJTjnSjRJDxoJnoKQ3j2KNBENHTVNs+nGWSqujA=
 github.com/larsartmann/templ-components/datastar v1.19.4/go.mod h1:6Q9OjombbiCIs8hLmWUj28SvCvuTggD8NcSFvpmnTWA=
 github.com/larsartmann/templ-components/datastar v1.20.1/go.mod h1:yKHjAuIKJNeqd9GkFZk3V4cIEhju7eIQFoTmVm/1Oik=
+github.com/larsartmann/templ-components/datastar v1.22.0/go.mod h1:3nkf/7n+ghCpt04EKE/DEnFOqJQM2IelVROsDoDZqcE=
 github.com/larsartmann/templ-components/errorpage v1.8.2/go.mod h1:ExVmotoNgWEtou/PBku44ucNnLQw+R0Uqk8QXUAfxdE=
 github.com/larsartmann/templ-components/errorpage v1.11.0/go.mod h1:bqU2IC/4X7BJTwAe9EgGJAvDRXXYIbegr7ir486RNs4=
 github.com/larsartmann/templ-components/errorpage v1.13.2/go.mod h1:4aQ0u6RIDzxskzfQjAWs+xGovQfmdERaffrlQNmR9IQ=
@@ -1024,6 +1025,7 @@ github.com/larsartmann/templ-components/errorpage v1.17.0/go.mod h1:B+ra2RSOb4+U
 github.com/larsartmann/templ-components/errorpage v1.18.0/go.mod h1:tO7XyROIfv4ITYOFoM8GsWCpIWNMK43sq+yas4TRs6Y=
 github.com/larsartmann/templ-components/errorpage v1.19.4/go.mod h1:BiG9yVe2CGjicQAjZlZR+LyQWKIKSAHHOlJN0hYWGjA=
 github.com/larsartmann/templ-components/errorpage v1.20.1/go.mod h1:vNhOclWTSnxV49YD22BIDfxbnwkt26/LMleT3CTaEZQ=
+github.com/larsartmann/templ-components/errorpage v1.22.0/go.mod h1:ztEropqhWYPZ2IUBivI57eNhYw1q1Pldj9NBHOhWics=
 github.com/leodido/go-urn v1.2.0/go.mod h1:+8+nEpDfqqsY+g338gtMEUOtuK+4dEMhiQEgxpxOKII=
 github.com/leodido/go-urn v1.4.0/go.mod h1:bvxc+MVxLKB4z00jd1z+Dvzr47oO32F/QSNjSBOlFxI=
 github.com/lithammer/fuzzysearch v1.1.8 h1:/HIuJnjHuXS8bKaiTMeeDlW2/AyIWk2brx1V8LFgLN4=
