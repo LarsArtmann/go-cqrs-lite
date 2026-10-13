@@ -23,8 +23,10 @@ type scenarioConfig struct {
 	captureFilter func(command.Command) bool
 }
 
+const defaultAwaitTimeout = 5 * time.Second
+
 func defaultConfig() scenarioConfig {
-	return scenarioConfig{awaitTimeout: 5 * time.Second} //nolint:exhaustruct_v5 // zero fields are the defaults
+	return scenarioConfig{awaitTimeout: defaultAwaitTimeout}
 }
 
 // WithAwaitTimeout sets how long poll-awaiting assertions (ThenQuery, and
@@ -76,7 +78,9 @@ func WithCommandCaptureFilter(filter func(command.Command) bool) Option {
 
 // manualClockEpoch is the frozen instant every scenario starts at:
 // deterministic timestamps in events and timers, no wall-clock coupling.
-var manualClockEpoch = time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC) //nolint:gochecknoglobals // immutable frozen epoch (documented default)
+//
+//nolint:gochecknoglobals // immutable frozen epoch (the documented deterministic-time default)
+var manualClockEpoch = time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
 
 // capturedCommand records one command dispatched through the system's
 // dispatcher: the command and its dispatch outcome.
@@ -197,7 +201,7 @@ func newScenario(
 ) *Scenario {
 	tb.Helper()
 
-	scenario := &Scenario{ //nolint:exhaustruct_v5 // baselines set at the first When act
+	scenario := &Scenario{
 		t:            tb,
 		ctx:          ctx,
 		sys:          sys,

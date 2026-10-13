@@ -53,6 +53,8 @@ func TestTrailWithPayloads_IsRunStable(t *testing.T) {
 	build := func(t *testing.T) (string, string) {
 		t.Helper()
 
+		var masked, raw string
+
 		sc, ref, _ := newTaskScenario(t)
 
 		sc.Given(

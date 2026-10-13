@@ -43,6 +43,8 @@ func Memory() system.DeploymentConfig {
 // flaky. Use SQLite when a scenario should exercise real SQL planning,
 // durability pragmas, or file-backed restarts.
 func SQLite(tb testing.TB) system.DeploymentConfig {
+	tb.Helper()
+
 	dsn := filepath.Join(tb.TempDir(), "scenario.db")
 
 	return system.DeploymentConfig{

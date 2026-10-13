@@ -78,6 +78,7 @@ func trailDiff(trailA, trailB []normalizedStream) string {
 			// below are guarded by this switch arm.
 			streamA := trailA[i] //nolint:gosec // G602: bounds proven by the switch arms above
 			streamB := trailB[i] //nolint:gosec // G602: bounds proven by the switch arms above
+
 			if fmt.Sprint(streamA.entries) != fmt.Sprint(streamB.entries) {
 				fmt.Fprintf(&diff, "\n\nstream #%d differs:\n  system A:%s\n  system B:%s",
 					i, renderTrailEntries(streamA.entries), renderTrailEntries(streamB.entries))

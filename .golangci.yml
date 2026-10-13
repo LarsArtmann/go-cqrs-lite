@@ -463,6 +463,25 @@ linters:
           - gocyclo
           - cyclop
           - maintidx
+      # systemscenario is the system-tier BDD HARNESS (ADR-0153), the same
+      # class of carve-out as system/ above: the DSL deliberately captures the
+      # scenario context on the Scenario struct (containedctx), shutdown
+      # closes on a fresh Background context so cleanup survives a cancelled
+      # scenario context — documented on the method (contextcheck), presets
+      # build minimal deployment literals by design (exhaustruct_v5), and the
+      # harness exposes injected engine/system interfaces (ireturn).
+      - path: systemscenario/
+        linters:
+          - containedctx
+          - contextcheck
+          - exhaustruct_v5
+          - ireturn
+      # chaos.go's DelayedDriver is a transparent forwarding proxy: engine
+      # error identities MUST pass through unwrapped — scenario assertions
+      # match engine sentinels through the wrapper.
+      - path: systemscenario/chaos\.go$
+        linters:
+          - wrapcheck
       - path: metaengine/
         linters:
           - cyclop

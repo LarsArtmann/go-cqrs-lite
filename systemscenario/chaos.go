@@ -122,7 +122,12 @@ func (d *delayedEngine) streamBackend(op string) (metaengine.StreamLogBackend, e
 func (d *delayedEngine) missingCapability(capability, op string) error {
 	return errorfamily.NewRejection(
 		"systemscenario.delayed_driver.missing_capability",
-		fmt.Sprintf("delayed driver: base engine %T lacks %s (needed for %s)", d.Engine, capability, op),
+		fmt.Sprintf(
+			"delayed driver: base engine %T lacks %s (needed for %s)",
+			d.Engine,
+			capability,
+			op,
+		),
 	)
 }
 
