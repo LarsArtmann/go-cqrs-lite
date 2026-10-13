@@ -99,15 +99,3 @@ require (
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
 )
-
-// Sibling replace for unpublished metaengine surface (e.g. BackfillPlannedTables); stripped by scripts/tag-release.sh at cut time. MaterializedViewSpec is published since metaengine/v4.14.0.
-replace github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ../metaengine
-
-// Sibling replace for unpublished schema fingerprint surface (FingerprintStamp, FingerprintMetadataKey, EventSchema.Fingerprint); stripped by tag-release.sh at cut time (schema+system co-release).
-replace github.com/larsartmann/go-cqrs-lite/schema/v4 => ../schema
-
-replace github.com/larsartmann/go-cqrs-lite/claiming/v4 => ../claiming
-
-replace github.com/larsartmann/go-cqrs-lite/scheduling/engine/v4 => ../scheduling/engine
-
-replace github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 => ../metaengine/sqliteengine
