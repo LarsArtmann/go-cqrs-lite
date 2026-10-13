@@ -921,6 +921,25 @@ replace-free — 10-25 §a2/§a3, now archived).
       skip (AGENTS gotcha #6). Fix: BuildFlow config skip, hook, or a CI check
       failing on `gci` in formatters. Source: 2026-10-11_19-27 §f16.
       _(Effort: S, owner decision on mechanism)_
+- [ ] **`Benchmark Regression Detection` CI job: `go-env.sh` mktemp fails on
+      the runner** — the job has been red on every push (incl. pre-wave run
+      `38433366220`, proven pre-existing) because `scripts/go-env.sh` sets
+      `GOTMPDIR=/home/lars/projects/.gotmp` and something in the job cannot
+      `mktemp` under it on the GitHub-hosted runner. Core legs (build/vet/
+      test/lint/race) are green; only this job is affected. Fix on the runner
+      side (mkdir -p in the job, or condition the GOTMPDIR on path existence)
+      and un-red the required-checks surface. Source: green-CI wave M4,
+      run `38434044577`. _(Effort: S)_
+- [ ] **Owner review: three flagged green-CI-wave decisions** —
+      (1) `system/v4.14.0` was cut MINOR (not patch) because a stray
+      `(*System).Dedup()` API had merged to master with no CHANGELOG row (row
+      written at cut time, commit `cc5c388fd`); (2) two systemscenario lint
+      carve-outs in `.golangci.yml` (module-wide containedctx/contextcheck/
+      exhaustruct_v5/ireturn + chaos.go wrapcheck — each with inline
+      reasoning, following the system/ precedent); (3) systemscenario
+      err113-to-errorfamily conversions + `t`-to-`tb` exported-param renames.
+      Verdicts wanted: accept as-is, or amend. Source:
+      docs/status/2026-10-13_19-26 §e. _(Effort: XS, owner decision)_
 
 `scripts/wait-for-quiet.sh` (1-min AND 5-min ceilings, self-tested),
 `scripts/can-run-composed-gate.sh` (no-release-procs + tree-stability +
@@ -1109,6 +1128,15 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       gocognit; watermill; core/v5; pebble; catalog; …) — the module list
       under the restored config is in the 10-10 session log; per-module
       triage still owed by the owning sessions.
+      STATE 2026-10-13: the lint-debt half is PAID — the green-CI wave
+      (docs/planning/2026-10-13_18-16) swept every offender: full `#lint`
+      91/91 modules, 0 findings (M5 systemtest gocognit, M7 schema+watermill,
+      M8 metaengine core+4 engines incl. a real Doctor Reset-section bug,
+      M9 systemscenario 76-to-0 + cqrs-upgrade + core/v5). The composed
+      `#verify` re-record itself is M10 of the same plan, executing
+      end-of-wave 2026-10-13 (resequenced past mid-wave: shared-host load
+      60-94 all evening refused the load guard; the end-of-wave run covers a
+      superset tree).
       — source: archived 16-37 §f10, 15-34 §f20, 15-57 §b1; 04-04 §f1
       _(Effort: M, quiet-window)_
 - [ ] **Mirror-lag burn-down: fork `eventtest` + the delivery-mark trio into
