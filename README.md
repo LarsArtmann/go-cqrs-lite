@@ -274,7 +274,7 @@ Modules release on independent per-module version trains (`<module>/vX.Y.Z` git 
 | id | `id/v4.7.2` |
 | idempotency | `idempotency/v4.4.0` |
 | idempotency/kvstore | `idempotency/kvstore/v4.3.3` *(untagged per ADR-0152)* |
-| idempotency/sqlstore | `idempotency/sqlstore/v4.4.3` |
+| idempotency/sqlstore | `idempotency/sqlstore/v4.4.3` *(untagged per ADR-0152)* |
 | integration | `integration/v4.2.3` *(untagged per ADR-0152)* |
 | kv | `kv/v4.3.4` |
 | listing | `listing/v4.4.4` |
