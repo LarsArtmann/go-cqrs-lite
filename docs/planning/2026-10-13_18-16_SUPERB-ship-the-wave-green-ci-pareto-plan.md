@@ -276,3 +276,20 @@ flowchart TD
 2. No gate gets softened to go green (scorecard teeth, waive-used, file-size ratchet, duplication ratchet all stay hard).
 3. Nothing speculative: benchmark before optimizing; stack aligned only on Q2 verdict; provenance is additive-only JSON.
 4. Every push is preceded by changed-set tests (the 2026-10-06 90-tag lesson).
+
+## 8. Addendum — M12 measurement (Pass-2 walk cost, 2026-10-13)
+
+Benchmark per F-46..F-48: `cqrs-lint scorecard --path .` self-run (103 modules),
+git worktree at `be24ceeed` (parent of `1aea1947a`, the Pass-2 landing commit)
+vs current HEAD, same target tree, 3 interleaved rounds each, host load ≈ 60
+(noisy absolute numbers; interleaving isolates the comparison):
+
+| Binary | run1 (cold) | run2 | run3 | warm median |
+|---|---|---|---|---|
+| pre-Pass-2 | 24.6s | 13.0s | 13.9s | 13.0s |
+| current (Pass 2) | 12.8s | 12.4s | 12.4s | 12.4s |
+
+Verdict: NO regression (current ≤ pre within noise; the go/packages typed load
+dominates at ~12.5s and the `parser.ImportsOnly` walk is unmeasurable next to
+it). Closed as measured-fine per F-48 — no dir short-circuit optimization
+warranted.
