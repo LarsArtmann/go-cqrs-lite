@@ -24,7 +24,7 @@ type scenarioConfig struct {
 }
 
 func defaultConfig() scenarioConfig {
-	return scenarioConfig{awaitTimeout: 5 * time.Second}
+	return scenarioConfig{awaitTimeout: 5 * time.Second} //nolint:exhaustruct_v5 // zero fields are the defaults
 }
 
 // WithAwaitTimeout sets how long poll-awaiting assertions (ThenQuery, and
@@ -76,7 +76,7 @@ func WithCommandCaptureFilter(filter func(command.Command) bool) Option {
 
 // manualClockEpoch is the frozen instant every scenario starts at:
 // deterministic timestamps in events and timers, no wall-clock coupling.
-var manualClockEpoch = time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
+var manualClockEpoch = time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC) //nolint:gochecknoglobals // immutable frozen epoch (documented default)
 
 // capturedCommand records one command dispatched through the system's
 // dispatcher: the command and its dispatch outcome.
@@ -127,13 +127,13 @@ type Scenario struct {
 // Given/When/Then chains; a scenario that never runs a Then* assertion fails
 // the test (vacuous-pass guard).
 func System(
-	t testing.TB,
+	tb testing.TB,
 	ctx context.Context,
 	domain system.DomainConfig,
 	deploy system.DeploymentConfig,
 	opts ...Option,
 ) *Scenario {
-	t.Helper()
+	tb.Helper()
 
 	cfg := defaultConfig()
 	for _, opt := range opts {
@@ -146,21 +146,21 @@ func System(
 
 	sys, err := system.New(ctx, domain, deploy, system.WithClock(cfg.clock))
 	if err != nil {
-		t.Fatalf("systemscenario: system.New: %v", err)
+		tb.Fatalf("systemscenario: system.New: %v", err)
 	}
 
-	sc := newScenario(t, ctx, sys, cfg)
+	scenario := newScenario(tb, ctx, sys, cfg)
 
 	if err := sys.Start(ctx); err != nil {
 		_ = sys.Close()
 
-		t.Fatalf("systemscenario: system.Start: %v", err)
+		tb.Fatalf("systemscenario: system.Start: %v", err)
 	}
 
-	t.Cleanup(func() { sc.shutdown() })
-	sc.requireTerminalAssertion()
+	tb.Cleanup(func() { scenario.shutdown() })
+	scenario.requireTerminalAssertion()
 
-	return sc
+	return scenario
 }
 
 // Adopt wraps an ALREADY-BOOTED system (started or not) — the
@@ -170,50 +170,54 @@ func System(
 // wrapper's boot. The caller owns the lifecycle — Adopt registers no
 // shutdown cleanup.
 func Adopt(
-	t testing.TB,
+	tb testing.TB,
 	ctx context.Context,
 	sys *system.System,
 	opts ...Option,
 ) *Scenario {
-	t.Helper()
+	tb.Helper()
 
 	cfg := defaultConfig()
 	for _, opt := range opts {
 		opt(&cfg)
 	}
 
-	sc := newScenario(t, ctx, sys, cfg)
-	sc.requireTerminalAssertion()
+	scenario := newScenario(tb, ctx, sys, cfg)
+	scenario.requireTerminalAssertion()
 
-	return sc
+	return scenario
 }
 
 // newScenario assembles the Scenario and installs the capture middleware.
 func newScenario(
-	t testing.TB,
+	tb testing.TB,
 	ctx context.Context,
 	sys *system.System,
 	cfg scenarioConfig,
 ) *Scenario {
-	t.Helper()
+	tb.Helper()
 
-	sc := &Scenario{ //nolint:exhaustruct_v5 // baselines set at the first When act
-		t:            t,
+	scenario := &Scenario{ //nolint:exhaustruct_v5 // baselines set at the first When act
+		t:            tb,
 		ctx:          ctx,
 		sys:          sys,
 		cfg:          cfg,
 		clock:        cfg.clock,
 		versionHints: make(map[string]event.Version),
 	}
-	sys.UseCommandMiddleware(sc.captureMiddleware())
+	sys.UseCommandMiddleware(scenario.captureMiddleware())
 
-	return sc
+	return scenario
 }
+
+// shutdownGrace bounds the cleanup drain/close when the scenario context is
+// already cancelled (the documented cleanup-on-Background design).
+const shutdownGrace = 5 * time.Second
 
 // shutdown drains and closes the booted system on a background context so
 // cleanup works even when the scenario context is already cancelled.
 func (s *Scenario) shutdown() {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), shutdownGrace)
 	defer cancel()
 
 	_ = s.sys.GracefulClose(ctx)

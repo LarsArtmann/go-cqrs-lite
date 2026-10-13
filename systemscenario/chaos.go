@@ -7,6 +7,8 @@ import (
 	"testing"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
@@ -14,7 +16,7 @@ import (
 // the metaengine driver registry has no unregister hook, so per-call names
 // (delayed-memory-1, delayed-memory-2, ...) keep repeated registrations in
 // the same test binary from clashing.
-var delayedDriverSeq atomic.Int64
+var delayedDriverSeq atomic.Int64 //nolint:gochecknoglobals // the documented process-unique-name workaround (registry has no unregister hook)
 
 // DelayedDriver wraps a registered base driver with artificial journal
 // latency and returns the wrapper's driver name for EngineConfig{Driver:
@@ -46,15 +48,15 @@ var delayedDriverSeq atomic.Int64
 // no unregister hook); the name embeds a sequence number so repeated calls
 // in one test binary are safe. The base driver must already be registered
 // (import its package first), which is checked eagerly.
-func DelayedDriver(t testing.TB, base string, delay time.Duration) string {
-	t.Helper()
+func DelayedDriver(tb testing.TB, base string, delay time.Duration) string {
+	tb.Helper()
 
 	if delay < 0 {
-		t.Fatalf("DelayedDriver: delay must be >= 0, got %s", delay)
+		tb.Fatalf("DelayedDriver: delay must be >= 0, got %s", delay)
 	}
 
 	if _, err := metaengine.LookupDriver(base); err != nil {
-		t.Fatalf("DelayedDriver: base driver %q: %v", base, err)
+		tb.Fatalf("DelayedDriver: base driver %q: %v", base, err)
 	}
 
 	name := fmt.Sprintf("systemscenario/delayed-%s-%d", base, delayedDriverSeq.Add(1))
@@ -109,13 +111,19 @@ func (d *delayedEngine) pause(ctx context.Context) {
 func (d *delayedEngine) streamBackend(op string) (metaengine.StreamLogBackend, error) {
 	backend, ok := d.Engine.(metaengine.StreamLogBackend)
 	if !ok {
-		return nil, fmt.Errorf(
-			"systemscenario: delayed driver: base engine %T lacks StreamLogBackend (needed for %s)",
-			d.Engine, op,
-		)
+		return nil, d.missingCapability("StreamLogBackend", op)
 	}
 
 	return backend, nil
+}
+
+// missingCapability reports (Rejection family) that the wrapped base engine
+// lacks a forwarded capability — a test-setup mistake, never a degraded mode.
+func (d *delayedEngine) missingCapability(capability, op string) error {
+	return errorfamily.NewRejection(
+		"systemscenario.delayed_driver.missing_capability",
+		fmt.Sprintf("delayed driver: base engine %T lacks %s (needed for %s)", d.Engine, capability, op),
+	)
 }
 
 func (d *delayedEngine) StreamAppend(
@@ -188,10 +196,7 @@ func (d *delayedEngine) StreamAppendExpected(
 
 	appender, ok := d.Engine.(metaengine.AtomicAppender)
 	if !ok {
-		return fmt.Errorf(
-			"systemscenario: delayed driver: base engine %T lacks AtomicAppender (needed for StreamAppendExpected)",
-			d.Engine,
-		)
+		return d.missingCapability("AtomicAppender", "StreamAppendExpected")
 	}
 
 	return appender.StreamAppendExpected(ctx, collection, streamID, expectedVersion, values)
@@ -202,10 +207,7 @@ func (d *delayedEngine) RunInTx(ctx context.Context, fn func(context.Context) er
 
 	tx, ok := d.Engine.(metaengine.Transactional)
 	if !ok {
-		return fmt.Errorf(
-			"systemscenario: delayed driver: base engine %T lacks Transactional (needed for RunInTx)",
-			d.Engine,
-		)
+		return d.missingCapability("Transactional", "RunInTx")
 	}
 
 	return tx.RunInTx(ctx, fn)
@@ -218,10 +220,7 @@ func (d *delayedEngine) JournalReadAllWithSeq(
 
 	seeker, ok := d.Engine.(metaengine.SeqSeekableStreamLog)
 	if !ok {
-		return nil, fmt.Errorf(
-			"systemscenario: delayed driver: base engine %T lacks SeqSeekableStreamLog (needed for JournalReadAllWithSeq)",
-			d.Engine,
-		)
+		return nil, d.missingCapability("SeqSeekableStreamLog", "JournalReadAllWithSeq")
 	}
 
 	return seeker.JournalReadAllWithSeq(ctx, collection)
@@ -234,10 +233,7 @@ func (d *delayedEngine) JournalReadFromSeq(
 
 	seeker, ok := d.Engine.(metaengine.SeqSeekableStreamLog)
 	if !ok {
-		return nil, fmt.Errorf(
-			"systemscenario: delayed driver: base engine %T lacks SeqSeekableStreamLog (needed for JournalReadFromSeq)",
-			d.Engine,
-		)
+		return nil, d.missingCapability("SeqSeekableStreamLog", "JournalReadFromSeq")
 	}
 
 	return seeker.JournalReadFromSeq(ctx, collection, afterSeq, limit)
@@ -250,10 +246,7 @@ func (d *delayedEngine) StreamLoadByEventID(
 
 	loader, ok := d.Engine.(metaengine.EventByIDBackend)
 	if !ok {
-		return nil, fmt.Errorf(
-			"systemscenario: delayed driver: base engine %T lacks EventByIDBackend (needed for StreamLoadByEventID)",
-			d.Engine,
-		)
+		return nil, d.missingCapability("EventByIDBackend", "StreamLoadByEventID")
 	}
 
 	return loader.StreamLoadByEventID(ctx, collection, eventID)
@@ -267,10 +260,7 @@ func (d *delayedEngine) StreamReadAsOfVersion(
 
 	reader, ok := d.Engine.(metaengine.StreamTemporalReader)
 	if !ok {
-		return nil, fmt.Errorf(
-			"systemscenario: delayed driver: base engine %T lacks StreamTemporalReader (needed for StreamReadAsOfVersion)",
-			d.Engine,
-		)
+		return nil, d.missingCapability("StreamTemporalReader", "StreamReadAsOfVersion")
 	}
 
 	return reader.StreamReadAsOfVersion(ctx, collection, streamID, maxVersion)
@@ -283,10 +273,7 @@ func (d *delayedEngine) StreamReadFromVersion(
 
 	reader, ok := d.Engine.(metaengine.StreamTemporalReader)
 	if !ok {
-		return nil, fmt.Errorf(
-			"systemscenario: delayed driver: base engine %T lacks StreamTemporalReader (needed for StreamReadFromVersion)",
-			d.Engine,
-		)
+		return nil, d.missingCapability("StreamTemporalReader", "StreamReadFromVersion")
 	}
 
 	return reader.StreamReadFromVersion(ctx, collection, streamID, minVersion)
@@ -295,10 +282,7 @@ func (d *delayedEngine) StreamReadFromVersion(
 func (d *delayedEngine) MapSet(ctx context.Context, collection string, key, value any) error {
 	backend, ok := d.Engine.(metaengine.MapBackend)
 	if !ok {
-		return fmt.Errorf(
-			"systemscenario: delayed driver: base engine %T lacks MapBackend (needed for MapSet)",
-			d.Engine,
-		)
+		return d.missingCapability("MapBackend", "MapSet")
 	}
 
 	return backend.MapSet(ctx, collection, key, value)
@@ -309,10 +293,7 @@ func (d *delayedEngine) MapGet(
 ) (any, bool, error) {
 	backend, ok := d.Engine.(metaengine.MapBackend)
 	if !ok {
-		return nil, false, fmt.Errorf(
-			"systemscenario: delayed driver: base engine %T lacks MapBackend (needed for MapGet)",
-			d.Engine,
-		)
+		return nil, false, d.missingCapability("MapBackend", "MapGet")
 	}
 
 	return backend.MapGet(ctx, collection, key)
@@ -321,10 +302,7 @@ func (d *delayedEngine) MapGet(
 func (d *delayedEngine) MapDelete(ctx context.Context, collection string, key any) error {
 	backend, ok := d.Engine.(metaengine.MapBackend)
 	if !ok {
-		return fmt.Errorf(
-			"systemscenario: delayed driver: base engine %T lacks MapBackend (needed for MapDelete)",
-			d.Engine,
-		)
+		return d.missingCapability("MapBackend", "MapDelete")
 	}
 
 	return backend.MapDelete(ctx, collection, key)
@@ -335,10 +313,7 @@ func (d *delayedEngine) MapUpdate(
 ) error {
 	updater, ok := d.Engine.(metaengine.MapUpdater)
 	if !ok {
-		return fmt.Errorf(
-			"systemscenario: delayed driver: base engine %T lacks MapUpdater (needed for MapUpdate)",
-			d.Engine,
-		)
+		return d.missingCapability("MapUpdater", "MapUpdate")
 	}
 
 	return updater.MapUpdate(ctx, collection, key, update)

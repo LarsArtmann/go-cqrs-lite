@@ -8,6 +8,13 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
 )
 
+// engineNamePrimary / engineNameTimers are the deployment's engine pool
+// names; instance roles reference them by these keys.
+const (
+	engineNamePrimary = "primary"
+	engineNameTimers  = "timers"
+)
+
 // Memory returns the all-in-memory DeploymentConfig: one memory engine for
 // source-of-truth and projections plus a dedicated memory "timers" engine,
 // so timer-backed scenarios (TimeAdvances) work out of the box. Tests that
@@ -15,12 +22,12 @@ import (
 func Memory() system.DeploymentConfig {
 	return system.DeploymentConfig{
 		Engines: map[string]system.EngineConfig{
-			"primary": {Driver: "memory"},
-			"timers":  {Driver: "memory"},
+			engineNamePrimary: {Driver: "memory"},
+			engineNameTimers:  {Driver: "memory"},
 		},
 		Instances: []system.InstanceConfig{
-			{Role: system.RoleSourceOfTruth, Engine: "primary"},
-			{Role: system.RoleProjections, Engine: "primary"},
+			{Role: system.RoleSourceOfTruth, Engine: engineNamePrimary},
+			{Role: system.RoleProjections, Engine: engineNamePrimary},
 		},
 	}
 }
@@ -35,17 +42,17 @@ func Memory() system.DeploymentConfig {
 // when the last connection closes, which makes reopen-style assertions
 // flaky. Use SQLite when a scenario should exercise real SQL planning,
 // durability pragmas, or file-backed restarts.
-func SQLite(t testing.TB) system.DeploymentConfig {
-	dsn := filepath.Join(t.TempDir(), "scenario.db")
+func SQLite(tb testing.TB) system.DeploymentConfig {
+	dsn := filepath.Join(tb.TempDir(), "scenario.db")
 
 	return system.DeploymentConfig{
 		Engines: map[string]system.EngineConfig{
-			"primary": {Driver: "sqlite", DSN: dsn, Pragmas: []string{"journal_mode=wal"}},
-			"timers":  {Driver: "memory"},
+			engineNamePrimary: {Driver: "sqlite", DSN: dsn, Pragmas: []string{"journal_mode=wal"}},
+			engineNameTimers:  {Driver: "memory"},
 		},
 		Instances: []system.InstanceConfig{
-			{Role: system.RoleSourceOfTruth, Engine: "primary"},
-			{Role: system.RoleProjections, Engine: "primary"},
+			{Role: system.RoleSourceOfTruth, Engine: engineNamePrimary},
+			{Role: system.RoleProjections, Engine: engineNamePrimary},
 		},
 	}
 }
