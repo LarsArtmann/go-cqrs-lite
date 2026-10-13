@@ -18,6 +18,11 @@ var ErrNoFoldForEventType = errors.New("projectionadapter: no fold registered fo
 // event payload does not contain it — it lives in the event's StreamID.
 // EventWithID bridges this gap.
 //
+// ID carries the BARE stream value (StreamID.Get()) — the form ParseStreamID
+// accepts, MarshalText emits, and commands dispatch on. It is NOT the
+// "StreamMarker:..." display form of StreamID.String(). Map entries are
+// therefore retrievable by the raw ID from any other layer of the system.
+//
 // This is the canonical wrapper for all queries that key on the entity ID.
 // Use it as the fold handler input type:
 //
@@ -66,7 +71,7 @@ func Register[E any](eventType event.Type, _ E) EventRegistration {
 			}
 
 			return EventWithID[E]{
-				ID:         evt.StreamID().String(),
+				ID:         evt.StreamID().Get(),
 				Payload:    p,
 				OccurredAt: evt.OccurredAt(),
 			}, nil
@@ -91,7 +96,7 @@ func RegisterString[E any](eventType string, _ E) EventRegistration {
 			}
 
 			return EventWithID[E]{
-				ID:         evt.StreamID().String(),
+				ID:         evt.StreamID().Get(),
 				Payload:    p,
 				OccurredAt: evt.OccurredAt(),
 			}, nil
@@ -110,7 +115,7 @@ func RegisterString[E any](eventType string, _ E) EventRegistration {
 //	    case "task.created":
 //	        var p TaskCreatedPayload
 //	        json.Unmarshal(evt.Payload(), &p)
-//	        return eventWithID[TaskCreatedPayload]{ID: evt.StreamID().String(), Payload: p}, nil
+//	        return eventWithID[TaskCreatedPayload]{ID: evt.StreamID().Get(), Payload: p}, nil
 //	    case "task.assigned":
 //	        // ... identical 5-line pattern ...
 //	    // ... 9 more cases ...

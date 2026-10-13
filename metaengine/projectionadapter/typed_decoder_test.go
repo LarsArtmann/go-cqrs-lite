@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json/v2"
 	"errors"
+	"strings"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -54,12 +55,72 @@ func TestTypeDecoder_Register_DecodesPayload(t *testing.T) {
 		t.Fatalf("Title = %q, want %q", wrapped.Payload.Title, "Hello")
 	}
 
-	if wrapped.ID == "" {
-		t.Fatal("ID should be the stream ID, got empty string")
+	// The ID is the BARE stream value (StreamID.Get()) — the form
+	// ParseStreamID accepts, MarshalText emits, and commands dispatch on.
+	// NOT the "StreamMarker:..." display form of String().
+	if wrapped.ID != evt.StreamID().Get() {
+		t.Fatalf("ID = %q, want bare stream value %q", wrapped.ID, evt.StreamID().Get())
 	}
 
-	if wrapped.ID != evt.StreamID().String() {
-		t.Fatalf("ID = %q, want %q", wrapped.ID, evt.StreamID().String())
+	if strings.HasPrefix(wrapped.ID, id.StreamMarker{}.Name()+":") {
+		t.Fatalf("ID = %q carries the StreamMarker display prefix; want bare value", wrapped.ID)
+	}
+}
+
+// TestRegister_MapLookupByBareStreamID_FindsEntity pins the contract that a
+// Map query keyed by EventWithID.ID is retrievable by the RAW stream value —
+// the ID a command dispatches on — not the StreamID.String() display form.
+func TestRegister_MapLookupByBareStreamID_FindsEntity(t *testing.T) {
+	t.Parallel()
+
+	type findItem struct {
+		ID string
+	}
+
+	q := metaengine.Query[findItem, createdPayload](
+		"item_views_bare",
+		metaengine.OnRecordTyped(
+			"item.created",
+			projectionadapter.EventWithID[createdPayload]{},
+			func(_ record.Record, e projectionadapter.EventWithID[createdPayload]) (string, createdPayload) {
+				return e.ID, e.Payload
+			},
+		),
+	)
+
+	store, err := metaengine.Plan(
+		[]metaengine.Engine{metaengine.NewMemoryEngine()},
+		q,
+	)
+	if err != nil {
+		t.Fatalf("metaengine.Plan: %v", err)
+	}
+	defer store.Close()
+
+	dec := projectionadapter.NewTypeDecoder(
+		projectionadapter.Register(event.Type("item.created"), createdPayload{}),
+	)
+
+	adapter := projectionadapter.NewWithDecoder("items-bare", store, dec)
+
+	evt := makeTypedEvent(t, "item.created", createdPayload{Title: "Findable"})
+
+	if err := adapter.Handle(context.Background(), evt); err != nil {
+		t.Fatalf("Handle: %v", err)
+	}
+
+	result, err := store.Execute(findItem{ID: evt.StreamID().Get()})
+	if err != nil {
+		t.Fatalf("lookup by bare stream ID %q: %v", evt.StreamID().Get(), err)
+	}
+
+	item, ok := result.(createdPayload)
+	if !ok {
+		t.Fatalf("result is %T, want createdPayload", result)
+	}
+
+	if item.Title != "Findable" {
+		t.Fatalf("Title = %q, want %q", item.Title, "Findable")
 	}
 }
 

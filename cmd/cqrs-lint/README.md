@@ -571,6 +571,8 @@ are not detectors; listing one in `rules.disable` is a silent no-op.
 
 Adoption rules (F-series) are advisory: they suggest modules and patterns that improve the project but don't indicate bugs. Use `--adoption` to show them separately from the health score.
 
+The scorecard that grades these uses the same rule: importing IS adoption — in `_test.go` files as anywhere else (#69). Test-file imports are collected through a dedicated pass (the typed package load skips test files), so test-only modules like `systemscenario` and `scenario` count as Used, not Missing.
+
 | ID   | Rule                             | Severity | Description                                                                                                        |
 | ---- | -------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------ |
 | F001 | no-domain-delete-event           | Info     | Delete operations without a domain deletion event — consider emitting a "entity.deleted" event for audit trail     |
