@@ -104,14 +104,24 @@ PG_MODULES="${PG_MODULES:-storage stack/postgres metaengine/pgengine projectionh
 # shellcheck disable=SC1091  # dynamic path; syntax-checked separately
 source "$(dirname "$0")/lib/shuffle-seed.sh"
 
-# Unified ephemeral-script contract (2026-10-01): args → verbatim exec with
-# the broker env exported (ephemeral-redis/nats style); no args → the curated
-# module loop below. Targeted loops: PG_MODULES="storage" with an explicit
-# command, e.g. PG_MODULES=storage ./scripts/ephemeral-pg.sh go test -run X ./...
-if [ $# -gt 0 ]; then
+# Unified ephemeral-script contract (2026-10-01, flags amendment 2026-10-13):
+#   args starting with `-` → go-test FLAGS for the curated module loop below
+#     (CI calls `nix run .#integration-pg -- -short`; a lone flag was
+#     previously exec'd as a command — the 2026-10-13 "-short: command not
+#     found" CI failure class);
+#   any other args → verbatim exec with the broker env exported
+#     (ephemeral-redis/nats style), e.g. PG_MODULES=storage
+#     ./scripts/ephemeral-pg.sh go test -run X ./...;
+#   no args → the curated module loop below, unflagged.
+GO_TEST_FLAGS=""
+if [ $# -gt 0 ] && ! [[ "$1" == -* ]]; then
 	echo "==> Running: $*"
 	"$@"
 else
+	if [ $# -gt 0 ]; then
+		GO_TEST_FLAGS="$*"
+		echo "==> Curated loop with go-test flags: $GO_TEST_FLAGS"
+	fi
 	FAILED=0
 	TEST_TIMEOUT="${TEST_TIMEOUT:-300}"
 	for mod in $PG_MODULES; do
@@ -124,7 +134,7 @@ else
 			CGO_ENABLED=1 GOWORK=off \
 				timeout "$TEST_TIMEOUT" \
 				go test -tags "integration" -shuffle="$SEED" ./... \
-				-count=1 -v 2>&1
+				-count=1 -v $GO_TEST_FLAGS 2>&1
 		) || FAILED=1
 	done
 	if [ "$FAILED" -ne 0 ]; then

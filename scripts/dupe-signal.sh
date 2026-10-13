@@ -20,7 +20,6 @@
 # Requires: branching-flow, jq
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ARGS=()
 if [[ "${1:-}" == "--" ]]; then
 	shift

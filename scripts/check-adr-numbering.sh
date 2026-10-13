@@ -25,9 +25,10 @@ ADR_DIR="docs/adr"
 # Documented in docs/adr/README.md: "ADRs 0036, 0041, and 0138 were never
 # assigned (gaps in numbering)."
 NEVER_ASSIGNED="0036 0041 0138"
-# Historical suffix-numbered ADR (addendum to 0099); renaming would break
-# links from frozen archived status reports.
-SUFFIX_NUMBERS="0099a"
+# (Historical note: ADR 0099 has a suffix-numbered addendum file, 0099a —
+# renaming would break links from frozen archived status reports. The
+# filename scan below accepts the optional [a-z] suffix; number arithmetic
+# uses the 4-digit part, so 0099a counts as 0099.)
 
 fail() {
 	echo "FAIL: $*" >&2
@@ -75,7 +76,15 @@ run_checks() {
 
 	# 0. Non-conforming filenames: an ADR that escapes the NNNN[-a]- prefix
 	#    escapes this gate entirely (the 0099a class found on first run).
-	strays=$(cd "$dir" && ls *.md 2>/dev/null | grep -vxE 'README\.md|[0-9]{4}([a-z])?-[A-Za-z0-9._-]+' || true)
+	strays=""
+	for f in "$dir"/*.md; do
+		[ -e "$f" ] || continue
+		base=$(basename "$f")
+		if ! [[ "$base" =~ ^(README\.md|[0-9]{4}([a-z])?-[A-Za-z0-9._-]+)$ ]]; then
+			strays+="$base"$'\n'
+		fi
+	done
+	strays="${strays%$'\n'}"
 	if [ -n "$strays" ]; then
 		echo "FAIL: non-conforming ADR filename(s) in $dir (want NNNN-slug.md): $strays" >&2
 		return 1
