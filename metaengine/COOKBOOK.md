@@ -86,7 +86,9 @@ item, found, _ := reader.Get(ctx, "item-123")
 ### EventDecoder with eventWithID Wrapper
 
 For Map queries keyed by entity ID, the fold handler needs the stream ID.
-Use EventDecoder to bridge event-sourced stream IDs to Map keys:
+Use EventDecoder to bridge event-sourced stream IDs to Map keys. The key is
+the BARE stream value (`StreamID.Get()` — what commands dispatch on), not
+the `StreamID.String()` display form:
 
 ```go
 // skip-validate
@@ -96,7 +98,7 @@ type eventWithID[P any] struct {
 }
 
 func myDecoder(evt event.Event) (any, error) {
-    id := evt.StreamID().String()
+    id := evt.StreamID().Get()
     switch evt.Type() {
     case "created":
         var p createdPayload

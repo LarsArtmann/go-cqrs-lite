@@ -1586,7 +1586,10 @@ item, found, _ := reader.Get(ctx, "item-123")
 
 Map fold handlers need the entity ID as the key, but the event payload doesn't
 contain it — it lives in the event's StreamID. Use `projectionadapter.NewTypeDecoder`
-with `Register` to map event types to typed payloads wrapped in `EventWithID`:
+with `Register` to map event types to typed payloads wrapped in `EventWithID`.
+`EventWithID.ID` carries the BARE stream value (`StreamID.Get()` — what commands
+dispatch on and `ParseStreamID` accepts), never the `StreamID.String()`
+display form (`"StreamMarker:..."`):
 
 ```go
 import "github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4"

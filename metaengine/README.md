@@ -610,13 +610,14 @@ Non-implementing engines are silently skipped (assumed healthy).
 
 The `projectionadapter` package wraps a Store as a `projection.Projection`
 for registration with `projectionhost.Host`. For Map ADT queries that need
-the entity ID (stream ID) as the projection key, use `WithEventDecoder`:
+the entity ID (stream ID) as the projection key, use `WithEventDecoder`.
+The key is the BARE stream value (`StreamID.Get()`), not the display form:
 
 ```go
 adapter := projectionadapter.New("tasks", store, nil,
     projectionadapter.WithEventDecoder(func(evt event.Event) (any, error) {
         return eventWithID{
-            ID:      evt.StreamID().String(),
+            ID:      evt.StreamID().Get(),
             Payload: decodePayload(evt),
         }, nil
     }))
