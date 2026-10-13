@@ -236,45 +236,6 @@ func scanMySQLJSONValuesWithKeys(
 	return result, keys, nil
 }
 
-// scanMySQLJSONValues executes the query and decodes each row's JSON value.
-// art-dupl:accept cross-module SQL engine pattern — separate go.mod
-func scanMySQLJSONValues(
-	ctx context.Context,
-	db metaengine.SQLExec,
-	query string,
-	args ...any,
-) ([]any, error) {
-	rows, err := db.QueryContext(ctx, query, args...)
-	if err != nil {
-		return nil, fmt.Errorf("mysqlengine scan: %w", err)
-	}
-
-	defer metaengine.DeferClose(rows)
-
-	var result []any
-
-	for rows.Next() {
-		var raw []byte
-
-		if err := rows.Scan(&raw); err != nil {
-			return nil, fmt.Errorf("mysqlengine scan: row: %w", err)
-		}
-
-		var val any
-		if err := json.Unmarshal(raw, &val); err != nil {
-			return nil, fmt.Errorf("mysqlengine scan: unmarshal: %w", err)
-		}
-
-		result = append(result, val)
-	}
-
-	if err := rows.Err(); err != nil {
-		return result, fmt.Errorf("mysqlengine scan: %w", err)
-	}
-
-	return result, nil
-}
-
 // escapeJSONPath escapes single quotes in a JSON path expression for use
 // inside value->'$.field'. MySQL uses ” to escape a single quote.
 func escapeJSONPath(key string) string {

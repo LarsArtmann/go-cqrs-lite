@@ -136,7 +136,7 @@ func buildPlannedScanQuery(
 			&b, &args, &started,
 			backtickIdent(sort.Column), backtickIdent("key"),
 			sort.Desc, cursor,
-			func(n int) string { return "?" },
+			func(int) string { return "?" },
 		)
 	}
 

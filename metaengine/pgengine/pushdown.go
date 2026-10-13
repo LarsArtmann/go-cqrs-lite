@@ -188,45 +188,6 @@ func (e *pgEngine) ApplyLayout(collection string, filterFields, sortFields []str
 	return nil
 }
 
-// scanPGJSONValues executes the query and decodes each row's JSONB value.
-func scanPGJSONValues(
-	ctx context.Context,
-	db metaengine.SQLExec,
-	query string,
-	args ...any,
-) ([]any, error) {
-	rows, err := db.QueryContext(ctx, query, args...)
-	if err != nil {
-		return nil, fmt.Errorf("pgengine scan: %w", err)
-	}
-
-	defer metaengine.DeferClose(rows)
-	//art-dupl:accept cross-module SQL engine pattern — separate go.mod
-
-	var result []any
-
-	for rows.Next() {
-		var raw []byte
-
-		if err := rows.Scan(&raw); err != nil {
-			return nil, fmt.Errorf("pgengine scan: row: %w", err)
-		}
-
-		var val any
-		if err := json.Unmarshal(raw, &val); err != nil {
-			return nil, fmt.Errorf("pgengine scan: unmarshal: %w", err)
-		}
-
-		result = append(result, val)
-	}
-
-	if err := rows.Err(); err != nil {
-		return result, fmt.Errorf("pgengine scan: %w", err)
-	}
-
-	return result, nil
-}
-
 // scanPGJSONValuesWithKeys executes the query and decodes each row's JSONB
 // value alongside its key column — the pair keyset scans need to tiebreak and
 // mint compound cursors.

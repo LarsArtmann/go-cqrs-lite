@@ -249,19 +249,6 @@ func buildPlannedSelectQuery(
 	return b.String(), args
 }
 
-// writeWhereOrAnd appends " WHERE " on the first call and " AND " on later
-// calls, updating the flag so subsequent calls use AND.
-func writeWhereOrAnd(b *strings.Builder, whereStarted *bool) {
-	if !*whereStarted {
-		b.WriteString(" WHERE ")
-		*whereStarted = true
-
-		return
-	}
-
-	b.WriteString(" AND ")
-}
-
 // coerceForColumn converts a Go value to a type compatible with the planned
 // column's SQL type. JSON decoding turns all numbers into float64, so this
 // maps them back to INTEGER/REAL when the plan declares those types.

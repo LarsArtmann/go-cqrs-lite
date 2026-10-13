@@ -78,7 +78,9 @@ func TestTursoMatView_PropertyServedMatchesBase(t *testing.T) {
 		}
 
 		var all []row
-		var written []row
+		// Upper bound: txCount transactions x at most 20 rows each
+		// (rapid.IntRange(5, 20) below).
+		written := make([]row, 0, txCount*20)
 		for txIdx := range txCount {
 			n := rapid.IntRange(5, 20).Draw(rt, fmt.Sprintf("rows_tx%d", txIdx))
 			var batch []row
