@@ -2,6 +2,27 @@
 
 > **Scope:** everything actionable from the 2026-10-13 issue-fix session (issues #67/#69, fixed + closed, zero open issues) plus the CI-restoration work it exposed. The 128-item `TODO_LIST.md` backlog is NOT merged here — it keeps its own sections; routing happens in task M15 (HARVEST). Anti-verschlimmbesser rule in force: every change must leave the repo verifiably no worse than found; no speculative rewrites.
 
+## ANNOTATION — 2026-10-13 execution (DONE / DIFFERENT / executing)
+
+Executed same day by the green-CI wave session (status report: `docs/status/2026-10-13_19-26_green-ci-wave-execution-status.md`). Original text below is untouched.
+
+- **T1/M1 (waiver sweep): DONE** — zero scorecard waivers exist fleet-wide; Q1 concern moot. Issues #67/#69 closed with rendered comments.
+- **T2/M2+M3+M4 (wave + fmt + CI truth): DONE** — `system/v4.14.0` + `cmd/cqrs-lint/v4.17.0` tagged/pushed/proxy-smoked; MINOR (not patch) because a stray `system.Dedup()` had merged with no CHANGELOG row (row written at cut time; flagged for owner review in TODO_LIST). fmt green. CI: core legs green on the M4 push; `Benchmark Regression Detection` red (pre-existing).
+- **T3/M5 (systemtest gocognit): DONE** — behavior-identical helper extraction, suite green.
+- **T4/M6 (go-appkit): DONE** — `GracefulClose` migration + dead test deletion, suite green, pushed (Q3: migrate now).
+- **T5/M7+M8+M9 (lint green): DONE** — schema 8, watermill 2, metaengine 7 (+ real Doctor Reset-section bug fixed, engines' dead code deleted), cqrs-upgrade, core/v5, systemscenario 76→0. Full `#lint` 91/91 modules, 0 findings. Two documented `.golangci.yml` carve-outs for systemscenario (flagged for owner review in TODO_LIST).
+- **T5/M10 (full `#verify`): DIFFERENT + EXECUTING** — resequenced to END-of-wave: shared-host load (60–94, 46+ users) refused the load guard all evening; the end-of-wave run covers a superset tree (M11–M18 included). Chain armed: `can-run-composed-gate --wait-loop → #verify` (3h window). Receipt lands in §8 addendum when it completes.
+- **T6/M11 (stack alignment): DONE** — drain error now still Closes (`errors.Join`), test inverted to `…_DrainErrorStillCloses`, CHANGELOG Fixed row, no ADR needed (Q2: align).
+- **T7/M12 (benchmark): DONE** — measured-fine, numbers in §8. No optimization warranted.
+- **T8/M13 (memory + docs): DONE, one DIFFERENT** — AGENTS contract 14 refined (art-dupl trailing-on-region-first-line form, proven on core/v5), AGENTS md-go row notes `docs/drafts/` is LIVE, cqrs-lint README Adoption section gained the #69 one-liner. DIFFERENT: F-52 (RULES.md row) dropped — RULES.md is a GENERATED catalog (`cqrs-lint rules --markdown`, do-not-edit) with no scorecard surface; README carries the line.
+- **T8/M14 (harvest): DONE** — lint-debt STATE marked PAID on the composed-#verify row; two new CI/Infrastructure rows (benchmark-job fix, owner-review of 3 flagged decisions).
+- **T9/M15 (coverage): DONE, with re-baseline** — drift was INHERITED from the 09-19..10-13 waves (schema typed_declaration.go/chain helpers = the big untested chunk), not wave-caused; EXPECTED re-baselined 2026-10-13 (quiet-window numbers). NEW finding: the coverage gate is load-sensitive (±3-5 points under load1>60) — documented in the script comment; re-baseline only from quiet windows.
+- **T9/M16+M17 (e2e + provenance): DONE** — monorepo nested-go.mod fixture test + `test_only` additive JSON flag + text marker; api golden regenerated; cqrs-lint suite green.
+- **TAIL/M18 (symlink): DONE** — WalkDir-skips-symlinks contract pinned by test.
+- **TAIL/M19 (CI watch + triage): PARTIAL** — CI truth: intermediate daemon-push runs failed on FORMATTING classes (shfmt scripts/, flake fmt) that were transient mid-session states, since fixed (both gates green locally); `Benchmark Regression Detection` root-caused (`go-env.sh` GOTMPDIR → uncreatable path on runners) and FIXED in `go-env.sh` (conditional tmpdir export; CHANGELOG Fixed row; next push's run is the proof). Final-push CI watch + this annotation complete the task.
+- **TAIL/M20 (ADR gate): DONE** — `#check-adr-numbering` green before and after (no ADR spawned; 156 ADRs, no duplicates).
+- **Second tag wave (post-verify, unplanned scope): EXECUTING** — untagged consumer-visible deltas exist (stack GracefulClose fix, metaengine Doctor fix, cqrs-lint test_only feature, systemscenario untagged Added API from the prior wave); cut after `#verify` proves the tree, with per-module changed-set tests per the 2026-10-06 lesson.
+
 ## 0. Current state (measured, not assumed)
 
 - Issues #67 (`system.GracefulClose` drain-error leak) and #69 (scorecard test-only imports) — **fixed, tested, closed**; api golden +1 export; CHANGELOG/FEATURES updated.

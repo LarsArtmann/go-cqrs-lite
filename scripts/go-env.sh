@@ -50,10 +50,19 @@ go_env_set GOCACHE /home/lars/projects/.gocache-disk
 go_env_set GOMODCACHE /tmp/gomod-verify
 go_env_set GOPATH /tmp/gopath-verify
 go_env_set GOLANGCI_LINT_CACHE /home/lars/projects/.golangci-disk
-go_env_set GOTMPDIR /home/lars/projects/.gotmp
-go_env_set TMPDIR /home/lars/projects/.gotmp
 
-mkdir -p "$GOCACHE" "$GOLANGCI_LINT_CACHE" "$GOTMPDIR" 2>/dev/null || {
+# Temp dirs: prefer the shared disk path, but fall back to the system default
+# when it cannot exist — GitHub-hosted runners have no /home/lars, and a
+# GOTMPDIR pointing at an uncreatable path breaks every mktemp in the job
+# (the 2026-10-13 Benchmark Regression Detection failure class).
+cqrs_tmpdir=/home/lars/projects/.gotmp
+if mkdir -p "$cqrs_tmpdir" 2>/dev/null && [ -w "$cqrs_tmpdir" ]; then
+	go_env_set GOTMPDIR "$cqrs_tmpdir"
+	go_env_set TMPDIR "$cqrs_tmpdir"
+fi
+unset -v cqrs_tmpdir
+
+mkdir -p "$GOCACHE" "$GOLANGCI_LINT_CACHE" 2>/dev/null || {
 	echo "go-env: WARN — could not create cache dirs under /home/lars/projects" >&2
 }
 

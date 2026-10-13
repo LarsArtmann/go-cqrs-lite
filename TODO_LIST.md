@@ -921,15 +921,18 @@ replace-free — 10-25 §a2/§a3, now archived).
       skip (AGENTS gotcha #6). Fix: BuildFlow config skip, hook, or a CI check
       failing on `gci` in formatters. Source: 2026-10-11_19-27 §f16.
       _(Effort: S, owner decision on mechanism)_
-- [ ] **`Benchmark Regression Detection` CI job: `go-env.sh` mktemp fails on
+- [x] **`Benchmark Regression Detection` CI job: `go-env.sh` mktemp fails on
       the runner** — the job has been red on every push (incl. pre-wave run
       `38433366220`, proven pre-existing) because `scripts/go-env.sh` sets
       `GOTMPDIR=/home/lars/projects/.gotmp` and something in the job cannot
       `mktemp` under it on the GitHub-hosted runner. Core legs (build/vet/
-      test/lint/race) are green; only this job is affected. Fix on the runner
-      side (mkdir -p in the job, or condition the GOTMPDIR on path existence)
-      and un-red the required-checks surface. Source: green-CI wave M4,
-      run `38434044577`. _(Effort: S)_
+      test/lint/race) are green; only this job is affected. FIXED 2026-10-13 (green-CI wave M19): `go-env.sh` now
+      sets GOTMPDIR/TMPDIR only when `/home/lars/projects/.gotmp` is creatable
+      (mkdir -p + -w probe); on runners the system default tmpdir applies and
+      mktemp works — fix verified locally (identical env on this host, shfmt
+      clean, syntax ok); the next push's Benchmark run is the proof. Source:
+      green-CI wave M4 discovery, runs `38434044577`/`38467710398`.
+      _(Effort: S)_
 - [ ] **Owner review: three flagged green-CI-wave decisions** —
       (1) `system/v4.14.0` was cut MINOR (not patch) because a stray
       `(*System).Dedup()` API had merged to master with no CHANGELOG row (row
