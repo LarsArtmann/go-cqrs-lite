@@ -914,6 +914,20 @@ replace-free — 10-25 §a2/§a3, now archived).
       document the exclusion rationale in `docs/agents/module-map.md`.
       Source: docs/status/2026-10-11_19-27 report §f15. _(Effort: M, owner
       decision on gate membership)_
+- [ ] **tursogo v0.8.2 native binding SEGFAULTS on GitHub-hosted runners (upstream ask)** —
+      `TestCheckpointScheduler_StartStop` (and any first `turso_database_new` under
+      load) crashes with SIGSEGV inside `tursogo@v0.8.2/bindings_db.go:397` on
+      ubuntu-latest, deterministically enough to fail both autoretry attempts of
+      the `Verify (fast pre-merge gate)` job (run 38469928558, 2026-10-13).
+      Local: BOTH packages green (0.3s/1.9s). Timeline fits a runner-image
+      update (last green CI 2026-10-09 pre-BDD-wave; every CI run 10-12..13
+      red, mostly other classes fixed by the green-CI wave same day). Bump
+      experiment REJECTED with evidence: v0.8.3 segfaults LOCALLY too
+      (instant crash in the parent package), reverted to v0.8.2. No repo-level
+      fix without softening the gate (no skip invented, contract 2). Track
+      upstream (tursodatabase/turso-go) for a fixed release, then bump and
+      drop this row. Source: green-CI wave M19 triage.
+      _(Effort: S once upstream ships; blocked externally)_
 - [ ] **Durable guard against the gci re-add loop** — BuildFlow
       `golangci-lint-auto-configure` re-added `gci` to `formatters.enable` at
       least twice (2026-10-10 `9d31b8e07`, again before 10-11 `0aa0e0f5f`
