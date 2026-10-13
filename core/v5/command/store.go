@@ -11,8 +11,8 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/v5/id"
 )
 
-// art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
-type PersistedCommand struct {
+// PersistedCommand is a stored command with full audit metadata.
+type PersistedCommand struct { // art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 	id         id.CommandID
 	cmdType    Type
 	streamRef  StreamRef

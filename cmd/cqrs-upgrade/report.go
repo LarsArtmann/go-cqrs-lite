@@ -125,18 +125,6 @@ func (b bump) toJSON() bumpJSON {
 	return out
 }
 
-// deprecationFindings runs the cqrs-lint V007 detector (v5-removed API
-// usage) in-process over dir. A load or detect failure returns an error —
-// callers must not confuse a failed scan with a clean one (a silent
-// false-green is exactly how a strict gate rots). The upgrade pipeline
-// records the error in the report instead of aborting; the strict gate
-// fails on it.
-func deprecationFindings(dir string) ([]findingJSON, error) {
-	findings, _, _, err := scanFindingsAnalyzed(dir)
-
-	return findings, err
-}
-
 // scanFindings is the pipeline-facing wrapper: deprecations, suggestions,
 // and the scan error in one call.
 func scanFindings(dir string) ([]findingJSON, []findingJSON, error) {

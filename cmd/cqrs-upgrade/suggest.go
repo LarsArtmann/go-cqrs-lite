@@ -88,7 +88,7 @@ func loadTestFiles(dir string, fset *token.FileSet) []*cqrsanalyzer.GoFile {
 
 		file, perr := parser.ParseFile(fset, path, nil, 0)
 		if perr != nil {
-			return nil
+			return nil //nolint:nilerr // documented matcher contract: unparseable files are skipped silently
 		}
 
 		files = append(files, &cqrsanalyzer.GoFile{
