@@ -94,6 +94,31 @@ func TestRenderText_HasTables(t *testing.T) {
 	}
 }
 
+// TestRenderText_TestOnlyMarker pins the provenance contract: a Used row whose
+// only adoption evidence is a _test.go import appends the "(test-only import)"
+// marker to its evidence cell, and production-evidence rows stay unmarked.
+func TestRenderText_TestOnlyMarker(t *testing.T) {
+	t.Parallel()
+
+	result := makeTestScorecard()
+	result.Used = append(result.Used, ScorecardModule{
+		Key:         "systemscenario",
+		DisplayName: "System Scenario Testing",
+		Category:    "Testing",
+		Status:      "used",
+		Evidence:    "github.com/larsartmann/go-cqrs-lite/systemscenario/v4",
+		TestOnly:    true,
+	})
+	out := renderScorecardText(result, output.ColorModeNever)
+
+	if !strings.Contains(out, "System Scenario Testing") {
+		t.Errorf("expected test-only module in Used table:\n%s", out)
+	}
+	if !strings.Contains(out, "(test-only import)") {
+		t.Errorf("expected test-only provenance marker in evidence cell:\n%s", out)
+	}
+}
+
 func TestRenderText_HasRecommendations(t *testing.T) {
 	t.Parallel()
 

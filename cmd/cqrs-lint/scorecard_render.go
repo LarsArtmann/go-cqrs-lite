@@ -109,6 +109,8 @@ func renderScorecardText(result ScorecardResult, colorMode output.ColorMode) str
 // renderModuleTable renders a list of modules as a table. The Evidence
 // column is included only when at least one module has non-empty evidence
 // (typically the USED/WAIVED tables — missing/irrelevant modules have none).
+// Test-only rows append a " (test-only import)" provenance marker to their
+// evidence so adoption that lives exclusively in _test.go files reads as such.
 func renderModuleTable(modules []ScorecardModule, colorMode output.ColorMode) (string, error) {
 	showEvidence := false
 	for _, m := range modules {
@@ -127,7 +129,7 @@ func renderModuleTable(modules []ScorecardModule, colorMode output.ColorMode) (s
 
 	for _, m := range modules {
 		if showEvidence {
-			builder.AddRow(m.DisplayName, m.Category, m.Status, m.Evidence)
+			builder.AddRow(m.DisplayName, m.Category, m.Status, evidenceCell(m))
 		} else {
 			builder.AddRow(m.DisplayName, m.Category, m.Status)
 		}
@@ -160,6 +162,16 @@ func writeModuleSection(
 	b.WriteString("\n")
 }
 
+// evidenceCell renders a module's evidence with the test-only provenance
+// marker when the adoption evidence lives exclusively in _test.go imports.
+func evidenceCell(m ScorecardModule) string {
+	if m.TestOnly {
+		return m.Evidence + " (test-only import)"
+	}
+
+	return m.Evidence
+}
+
 // formatModuleList is a fallback when table rendering fails. It outputs
 // a simple aligned list without table borders.
 func formatModuleList(modules []ScorecardModule) string {
@@ -172,7 +184,7 @@ func formatModuleList(modules []ScorecardModule) string {
 				m.DisplayName,
 				m.Category,
 				m.Status,
-				m.Evidence,
+				evidenceCell(m),
 			)
 		} else {
 			fmt.Fprintf(&b, "  %-24s  %-16s  %s\n", m.DisplayName, m.Category, m.Status)

@@ -40,6 +40,10 @@ type ModuleUsage struct {
 	Key      ModuleKey
 	Status   UsageStatus
 	Evidence string // e.g. "import in main.go" — empty when absent
+	// TestOnly is true when the module reached UsageImported exclusively
+	// through _test.go imports (Pass 2): production code never imports it.
+	// Rows flagged this way render a "test-only import" provenance marker.
+	TestOnly bool
 }
 
 // DetectUsedModules scans the analyzed packages and Go files against the
@@ -77,7 +81,7 @@ func DetectUsedModules(
 			if imp == nil {
 				continue
 			}
-			matchModule(result, catalog, imp.PkgPath)
+			matchModule(result, catalog, imp.PkgPath, false)
 		}
 	}
 
@@ -93,16 +97,18 @@ func DetectUsedModules(
 				continue
 			}
 			path := strings.Trim(imp.Path.Value, `"`)
-			matchModule(result, catalog, path)
+			matchModule(result, catalog, path, false)
 		}
 	}
 
 	// Pass 2: test-file imports. The typed load (Tests: false) never surfaces
 	// _test.go files, so test-only modules are invisible to Passes 1/1b.
 	// Callers collect these via CollectTestImportPaths (go/parser, imports
-	// only); matching reuses matchModule/pathBoundaryMatch unchanged.
+	// only); matching reuses matchModule/pathBoundaryMatch unchanged. A
+	// module first matched HERE (Passes 1/1b left it absent) carries
+	// TestOnly=true — the scorecard renders it as test-only adoption.
 	for _, path := range testImportPaths {
-		matchModule(result, catalog, path)
+		matchModule(result, catalog, path, true)
 	}
 
 	return result
@@ -110,15 +116,17 @@ func DetectUsedModules(
 
 // matchModule checks if an import path matches any catalog entry's import
 // hints at a path boundary, and if so, upgrades the usage status to
-// UsageImported. Uses path-boundary matching to prevent false matches
-// (e.g. "go-cqrs-lite/id" must not match "go-cqrs-lite/idempotency").
+// UsageImported. testOnly marks upgrades driven by _test.go imports (Pass 2)
+// so provenance survives into the scorecard. Uses path-boundary matching to
+// prevent false matches (e.g. "go-cqrs-lite/id" must not match
+// "go-cqrs-lite/idempotency").
 //
 // Several distinct imports can match the same entry (module root plus
 // subpackages, e.g. catalog/v4, catalog/v4/simple, catalog/v4/docserver).
 // Callers iterate maps with randomized order, so the evidence records the
 // lexicographically smallest matched path — the scorecard output stays
 // deterministic no matter which import the scan sees first.
-func matchModule(usage map[ModuleKey]ModuleUsage, catalog Catalog, importPath string) {
+func matchModule(usage map[ModuleKey]ModuleUsage, catalog Catalog, importPath string, testOnly bool) {
 	for _, e := range catalog.Scored() {
 		for _, hint := range e.ImportHints {
 			if !pathBoundaryMatch(importPath, hint) {
@@ -130,6 +138,7 @@ func matchModule(usage map[ModuleKey]ModuleUsage, catalog Catalog, importPath st
 					Key:      e.Key,
 					Status:   UsageImported,
 					Evidence: importPath,
+					TestOnly: testOnly,
 				}
 			} else if importPath < entry.Evidence {
 				entry.Evidence = importPath

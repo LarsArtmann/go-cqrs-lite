@@ -75,7 +75,10 @@ type ScorecardModule struct {
 	Category    string `json:"category"`
 	Status      string `json:"status"`
 	Evidence    string `json:"evidence,omitempty"`
-	Suggestion  string `json:"suggestion,omitempty"`
+	// TestOnly marks rows whose ONLY adoption evidence is a _test.go import
+	// (additive provenance, contract-28 rule: consumed JSON extends only).
+	TestOnly   bool   `json:"test_only,omitempty"`
+	Suggestion string `json:"suggestion,omitempty"`
 }
 
 // ComputeScorecard partitions the catalog into Used / Missing / Irrelevant
@@ -114,6 +117,7 @@ func ComputeScorecard(
 		if isUsed && u.Status >= analyzer.UsageImported {
 			row.Status = "used"
 			row.Evidence = u.Evidence
+			row.TestOnly = u.TestOnly
 			result.Used = append(result.Used, row)
 		} else if relevantSet[e.Key] {
 			row.Status = "missing"

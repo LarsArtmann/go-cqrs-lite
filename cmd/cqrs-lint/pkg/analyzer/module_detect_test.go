@@ -193,7 +193,7 @@ func TestMatchModule_EvidenceDeterministic(t *testing.T) {
 		}
 
 		for _, idx := range order {
-			matchModule(usage, DefaultCatalog, paths[idx])
+			matchModule(usage, DefaultCatalog, paths[idx], false)
 		}
 
 		got := usage["catalog"]

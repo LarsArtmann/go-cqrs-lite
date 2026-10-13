@@ -5,6 +5,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"go/token"
 )
 
 // writeTestTree writes a module fixture: go.mod at root, plus the given
@@ -128,5 +130,114 @@ func TestScorecard_TestOnlyImport_Integration(t *testing.T) {
 
 	if u := usage["systemscenario"]; u.Status != UsageImported {
 		t.Fatalf("systemscenario usage: got %s, want used", u.Status)
+	}
+}
+
+// TestDetectUsedModules_TestOnlyProvenance pins the provenance split: a module
+// matched ONLY through _test.go imports carries TestOnly=true, while a module
+// matched by production imports (Pass 1b AST) stays TestOnly=false even when
+// test files import it too.
+func TestDetectUsedModules_TestOnlyProvenance(t *testing.T) {
+	t.Parallel()
+
+	fset := token.NewFileSet()
+	gofiles := []*GoFile{
+		parseTestFile(t, fset, "main.go",
+			"package main\n\nimport \"github.com/larsartmann/go-cqrs-lite/kv/v4\"\n\nfunc main() {}\n"),
+	}
+
+	usage := DetectUsedModules(
+		nil,
+		gofiles,
+		[]string{
+			"github.com/larsartmann/go-cqrs-lite/systemscenario/v4",
+			"github.com/larsartmann/go-cqrs-lite/kv/v4",
+		},
+		DefaultCatalog,
+	)
+
+	if u := usage["systemscenario"]; !u.TestOnly {
+		t.Errorf("systemscenario: TestOnly = false, want true (matched only via _test.go imports)")
+	}
+	if u := usage["kv"]; u.TestOnly {
+		t.Errorf("kv: TestOnly = true, want false (production import is the adoption evidence)")
+	}
+}
+
+// TestCollectTestImportPaths_MonorepoNestedModules pins the monorepo contract
+// (issue #69 tail): a repo with NESTED go.mod files must have every module's
+// _test.go imports collected — findGoModDirs discovers both module roots and
+// the walk covers the inner module's test files.
+func TestCollectTestImportPaths_MonorepoNestedModules(t *testing.T) {
+	t.Parallel()
+
+	root := t.TempDir()
+	writeTestTree(t, root, map[string]string{
+		"go.mod":                "module test.example/outer\n\ngo 1.27\n",
+		"main.go":               "package main\nfunc main() {}\n",
+		"inner/go.mod":          "module test.example/inner\n\ngo 1.27\n",
+		"inner/svc.go":          "package svc\nfunc F() {}\n",
+		"inner/svc_scenario.go": "package svc\n", // no cqrs production import
+		"inner/svc_test.go":     "package svc\nimport \"github.com/larsartmann/go-cqrs-lite/systemscenario/v4\"\nfunc TestX(t *testing.T) {}\n",
+	})
+
+	testImports, err := CollectTestImportPaths(root)
+	if err != nil {
+		t.Fatalf("CollectTestImportPaths: %v", err)
+	}
+
+	found := false
+	for _, p := range testImports {
+		if p == "github.com/larsartmann/go-cqrs-lite/systemscenario/v4" {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Fatalf("inner module test import not collected: %v", testImports)
+	}
+
+	usage := DetectUsedModules(nil, nil, testImports, DefaultCatalog)
+	if u := usage["systemscenario"]; u.Status != UsageImported || !u.TestOnly {
+		t.Fatalf(
+			"inner-module test import: status=%s testOnly=%v, want used+testOnly",
+			u.Status, u.TestOnly,
+		)
+	}
+}
+
+// TestCollectTestImportPaths_SymlinkedDirsNotFollowed pins the WalkDir
+// semantics the walk relies on: symlinked directories are never descended, so
+// _test.go files reachable ONLY through a symlink are invisible by contract.
+func TestCollectTestImportPaths_SymlinkedDirsNotFollowed(t *testing.T) {
+	t.Parallel()
+
+	root := t.TempDir()
+	writeTestTree(t, root, map[string]string{
+		"go.mod":       "module test.example\n\ngo 1.27\n",
+		"main_test.go": "package main\nimport \"github.com/larsartmann/go-cqrs-lite/event/v4\"\n",
+	})
+
+	// The otel import is reachable ONLY via the symlink: WalkDir must skip it.
+	outside := t.TempDir()
+	writeTestTree(t, outside, map[string]string{
+		"linked/x_test.go": "package linked\nimport \"github.com/larsartmann/go-cqrs-lite/otel/v4\"\n",
+	})
+	if err := os.Symlink(outside, filepath.Join(root, "linked")); err != nil {
+		t.Fatalf("symlink: %v", err)
+	}
+
+	got, err := CollectTestImportPaths(root)
+	if err != nil {
+		t.Fatalf("CollectTestImportPaths: %v", err)
+	}
+
+	for _, p := range got {
+		if p == "github.com/larsartmann/go-cqrs-lite/otel/v4" {
+			t.Fatalf("import behind symlink must not be collected, got %v", got)
+		}
+	}
+	if len(got) != 1 || got[0] != "github.com/larsartmann/go-cqrs-lite/event/v4" {
+		t.Fatalf("got %v, want only the real file's event import", got)
 	}
 }

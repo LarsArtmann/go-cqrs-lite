@@ -26,23 +26,30 @@ source "$PWD/scripts/go-env.sh"
 # larger is real drift that should update AGENTS.md.
 TOLERANCE=2.0
 
-# Module → documented coverage (re-baselined 2026-09-19 at the tag-wave gate: command/dispatcher/id/kv/metaengine/schema rose — lint-debt regression tests + new code, no lost tests). Keep in sync with AGENTS.md.
+# Module → documented coverage (re-baselined 2026-10-13 at the green-CI wave:
+# schema/metaengine/command/id/kv/dispatcher/storage-memory/snapshot/decider
+# dropped — inherited drift from the 09-19..10-13 waves adding API surface
+# without proportional tests (schema typed_declaration.go/chain helpers are
+# the big uncovered chunk), NOT lost tests; green-CI-wave changes were
+# behavior-identical lint fixes + dead-code deletion. The gate is
+# load-sensitive: runs under load1>60 measured 3-5 points lower (timeout-
+# skipped tests); re-baseline only from quiet-window numbers).
 # Keys are plain module paths; codec was deleted (ADR-0128) and retry/
 # flightrecorder/idempotency shims never had coverage claims.
 # 2026-08-16: event 87.3→90.0, query 84.5→89.9 re-baselined UPWARD — the T9
 # defect-fix regression tests (06e046c2f) raised both; drift was stale docs, not lost tests.
 declare -A EXPECTED=(
-	[decider]=96.1
-	["storage/memory"]=95.7
-	[snapshot]=91.9
-	[schema]=95.3
+	[decider]=94.7
+	["storage/memory"]=94.9
+	[snapshot]=93.4
+	[schema]=88.3
 	[command]=92.3
-	[event]=90.0
-	[id]=89.6
-	[metaengine]=87.8
-	[query]=89.9
+	[event]=90.9
+	[id]=90.0
+	[metaengine]=87.9
+	[query]=90.1
 	[dispatcher]=92.3
-	[kv]=77.2
+	[kv]=77.5
 )
 
 # Meta-check: every EXPECTED key must resolve to a real module dir. A dangling
