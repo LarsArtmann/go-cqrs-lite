@@ -8,6 +8,8 @@ import (
 	"strings"
 	"testing"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
 )
@@ -62,22 +64,28 @@ const ordinalCaveat = "note: streams are matched pairwise by first-appearance or
 // trailDiff renders the pairwise per-stream divergence between two
 // normalized trails, or "" when they are observationally equal. Streams
 // beyond one trail's length are reported as missing from that system.
-func trailDiff(a, b []normalizedStream) string {
-	var sb strings.Builder
+func trailDiff(trailA, trailB []normalizedStream) string {
+	var diff strings.Builder
 
-	for i := range max(len(a), len(b)) {
+	for i := range max(len(trailA), len(trailB)) {
 		switch {
-		case i >= len(a):
-			fmt.Fprintf(&sb, "\n\nstream #%d exists only in system B", i)
-		case i >= len(b):
-			fmt.Fprintf(&sb, "\n\nstream #%d exists only in system A", i)
-		case fmt.Sprint(a[i].entries) != fmt.Sprint(b[i].entries):
-			fmt.Fprintf(&sb, "\n\nstream #%d differs:\n  system A:%s\n  system B:%s",
-				i, renderTrailEntries(a[i].entries), renderTrailEntries(b[i].entries))
+		case i >= len(trailA):
+			fmt.Fprintf(&diff, "\n\nstream #%d exists only in system B", i)
+		case i >= len(trailB):
+			fmt.Fprintf(&diff, "\n\nstream #%d exists only in system A", i)
+		default:
+			// The cases above returned for out-of-range indices; both indexings
+			// below are guarded by this switch arm.
+			streamA := trailA[i] //nolint:gosec // G602: bounds proven by the switch arms above
+			streamB := trailB[i] //nolint:gosec // G602: bounds proven by the switch arms above
+			if fmt.Sprint(streamA.entries) != fmt.Sprint(streamB.entries) {
+				fmt.Fprintf(&diff, "\n\nstream #%d differs:\n  system A:%s\n  system B:%s",
+					i, renderTrailEntries(streamA.entries), renderTrailEntries(streamB.entries))
+			}
 		}
 	}
 
-	return sb.String()
+	return diff.String()
 }
 
 // renderTrailEntries renders one stream's ordered (type, version) entries
@@ -88,13 +96,13 @@ func renderTrailEntries(entries []trailEntry) string {
 		return "\n    (no events)"
 	}
 
-	var sb strings.Builder
+	var rendered strings.Builder
 
 	for _, entry := range entries {
-		fmt.Fprintf(&sb, "\n    - %s v%d", entry.eventType, entry.version)
+		fmt.Fprintf(&rendered, "\n    - %s v%d", entry.eventType, entry.version)
 	}
 
-	return sb.String()
+	return rendered.String()
 }
 
 // normalizeTrail replaces stream keys (which carry minted IDs) with ordinals
@@ -120,9 +128,9 @@ type normalizedStream struct {
 func readJournalTrail(ctx context.Context, sys *system.System) (journalTrail, error) {
 	journal, ok := sys.EventStore().(event.Journal)
 	if !ok {
-		return nil, fmt.Errorf(
-			"event store of %T does not implement event.Journal",
-			sys.EventStore(),
+		return nil, errorfamily.NewRejection(
+			"systemscenario.equivalence.no_journal",
+			fmt.Sprintf("event store of %T does not implement event.Journal", sys.EventStore()),
 		)
 	}
 

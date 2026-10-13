@@ -210,6 +210,10 @@ func newScenario(
 	return scenario
 }
 
+// pollInterval is the tick between poll-await probes (ThenQuery, ThenNoEvents
+// quiet window, SSEStream.Await).
+const pollInterval = 10 * time.Millisecond
+
 // shutdownGrace bounds the cleanup drain/close when the scenario context is
 // already cancelled (the documented cleanup-on-Background design).
 const shutdownGrace = 5 * time.Second

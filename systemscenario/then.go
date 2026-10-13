@@ -95,7 +95,7 @@ func (p *WhenPhase) ThenNoEvents() *WhenPhase {
 				return p
 			}
 
-			time.Sleep(10 * time.Millisecond)
+			time.Sleep(pollInterval)
 		}
 	}
 

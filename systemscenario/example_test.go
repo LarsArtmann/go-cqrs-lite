@@ -129,7 +129,7 @@ func exampleLookup(
 // ExampleSystem is the happy path: boot the SAME configs the production
 // binary uses, act with a real dispatch, assert the journal diff and the
 // projected read model.
-func ExampleSystem() {
+func ExampleSystem() { //nolint:testableexamples // compile-only by design: docTB is a stand-in, examples print nothing (file header)
 	var t docTB
 
 	ctx := context.Background()
@@ -148,7 +148,7 @@ func ExampleSystem() {
 // dispatches a derived command asynchronously (WithAsyncDispatch — a
 // synchronous deriver deadlocks the single-topic bus, ADR-0154), so the
 // assertion phase awaits the bus delivery and the captured command chain.
-func ExampleWhenPhase_Await() {
+func ExampleWhenPhase_Await() { //nolint:testableexamples // compile-only by design: docTB is a stand-in, examples print nothing (file header)
 	var t docTB
 
 	ctx := context.Background()
@@ -189,7 +189,7 @@ func ExampleWhenPhase_Await() {
 // ExampleScenario_TimeAdvances is the deterministic-time story: a deadline
 // timer scheduled from the scenario's frozen ManualClock fires when the
 // clock advances — no sleeping.
-func ExampleScenario_TimeAdvances() {
+func ExampleScenario_TimeAdvances() { //nolint:testableexamples // compile-only by design: docTB is a stand-in, examples print nothing (file header)
 	var t docTB
 
 	ctx := context.Background()

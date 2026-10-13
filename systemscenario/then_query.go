@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"reflect"
 	"time"
+
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // await polls probe every 10ms until it passes or the await timeout
@@ -24,7 +26,7 @@ func (s *Scenario) await(what string, probe func() (bool, string)) {
 			s.t.Fatalf("%s: condition not met within %s: %s", what, s.cfg.awaitTimeout, detail)
 		}
 
-		time.Sleep(10 * time.Millisecond)
+		time.Sleep(pollInterval)
 	}
 }
 
@@ -71,7 +73,10 @@ func (p *WhenPhase) ThenQuery(fn func() (any, error), want any) *WhenPhase {
 			return nil
 		}
 
-		return fmt.Errorf("result mismatch\nwant: %#v\ngot:  %#v", want, got)
+		return errorfamily.NewRejection(
+			"systemscenario.assertion.result_mismatch",
+			fmt.Sprintf("result mismatch\nwant: %#v\ngot:  %#v", want, got),
+		)
 	})
 
 	return p
@@ -153,7 +158,10 @@ func ThenQueryTyped[T any](p *WhenPhase, fn func() (T, error), check func(got T)
 		func(got any) error {
 			typed, ok := got.(T)
 			if !ok {
-				return fmt.Errorf("query result type %T does not match the check parameter", got)
+				return errorfamily.NewRejection(
+					"systemscenario.assertion.result_type_mismatch",
+					fmt.Sprintf("query result type %T does not match the check parameter", got),
+				)
 			}
 
 			return check(typed)

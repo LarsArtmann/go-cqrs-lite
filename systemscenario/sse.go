@@ -46,13 +46,13 @@ type SSEStream[V any] struct {
 // → HTTP stream → client-side SSE parsing, so an assertion passing here
 // means a browser EventSource on the same endpoint would see the value too.
 func SubscribeSSE[V any](
-	t testing.TB, ctx context.Context, sc *Scenario, collection string,
+	tb testing.TB, ctx context.Context, sc *Scenario, collection string,
 ) *SSEStream[V] {
-	t.Helper()
+	tb.Helper()
 
 	store := sc.System().MetaEngine()
 	if store == nil {
-		t.Fatalf("SubscribeSSE: scenario has no projection store (System().MetaEngine() is nil)")
+		tb.Fatalf("SubscribeSSE: scenario has no projection store (System().MetaEngine() is nil)")
 	}
 
 	watcher := metaengine.NewWatcher[V](store, collection)
@@ -61,28 +61,28 @@ func SubscribeSSE[V any](
 		_ = metaengine.ServeSSE(w, r, watcher)
 	}))
 
-	stream := &SSEStream[V]{t: t, watcher: watcher}
+	stream := &SSEStream[V]{t: tb, watcher: watcher}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, server.URL, nil)
 	if err != nil {
-		t.Fatalf("SubscribeSSE: build request: %v", err)
+		tb.Fatalf("SubscribeSSE: build request: %v", err)
 	}
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		server.Close()
-		t.Fatalf("SubscribeSSE: connect to %s: %v", server.URL, err)
+		tb.Fatalf("SubscribeSSE: connect to %s: %v", server.URL, err)
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		resp.Body.Close()
+		_ = resp.Body.Close()
 		server.Close()
-		t.Fatalf("SubscribeSSE: status %s, want 200 OK", resp.Status)
+		tb.Fatalf("SubscribeSSE: status %s, want 200 OK", resp.Status)
 	}
 
 	go stream.readLoop(resp.Body)
 
-	t.Cleanup(func() {
+	tb.Cleanup(func() {
 		_ = resp.Body.Close()
 		server.Close()
 		watcher.Close()
@@ -95,9 +95,16 @@ func SubscribeSSE[V any](
 // terminated by a blank line delimit events; comment lines (heartbeats,
 // ":keepalive") are ignored. Errors terminate the loop and are reported by
 // Await on timeout.
+// SSE line-scan buffer bounds: events are small JSON documents, but a
+// payload-heavy projection row must not truncate the stream silently.
+const (
+	sseScanInitialBuffer = 64 * 1024
+	sseMaxLineBytes      = 1024 * 1024
+)
+
 func (s *SSEStream[V]) readLoop(body io.Reader) {
 	scanner := bufio.NewScanner(body)
-	scanner.Buffer(make([]byte, 0, 64*1024), 1024*1024)
+	scanner.Buffer(make([]byte, 0, sseScanInitialBuffer), sseMaxLineBytes)
 
 	var data strings.Builder
 
@@ -156,9 +163,9 @@ func (s *SSEStream[V]) Received() []V {
 // received so far (plus any stream error), so a missing value and a broken
 // stream are distinguishable in the failure output.
 func (s *SSEStream[V]) Await(
-	t testing.TB, within time.Duration, what string, match func(V) bool,
+	tb testing.TB, within time.Duration, what string, match func(V) bool,
 ) V {
-	t.Helper()
+	tb.Helper()
 
 	deadline := time.Now().Add(within)
 
@@ -181,9 +188,9 @@ func (s *SSEStream[V]) Await(
 				detail += fmt.Sprintf("; stream error: %v", lastErr)
 			}
 
-			t.Fatalf("SSEStream.Await: %s not received within %s: %s", what, within, detail)
+			tb.Fatalf("SSEStream.Await: %s not received within %s: %s", what, within, detail)
 		}
 
-		time.Sleep(10 * time.Millisecond)
+		time.Sleep(pollInterval)
 	}
 }

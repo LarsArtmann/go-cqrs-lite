@@ -45,13 +45,13 @@ func Trail(events []event.Event) string {
 //
 //	sc.Given(...).When(cmd).ThenGolden(t, "task_lifecycle")
 func (p *WhenPhase) ThenGolden(t *testing.T, path string) *WhenPhase {
-	s := p.sc
-
 	t.Helper()
+
+	s := p.sc
 	s.requireAct("ThenGolden")
 
 	snaps.WithConfig(
-		snaps.Dir(filepath.Join("__snapshots__")),
+		snaps.Dir("__snapshots__"),
 		snaps.Filename(strings.TrimSuffix(filepath.Base(path), filepath.Ext(path))),
 	).MatchSnapshot(t, Trail(s.actEvents()))
 
@@ -121,15 +121,15 @@ func (p *WhenPhase) ThenGoldenWithPayloads(
 	path string,
 	extraMasks ...string,
 ) *WhenPhase {
-	s := p.sc
-
 	t.Helper()
+
+	s := p.sc
 	s.requireAct("ThenGoldenWithPayloads")
 
 	masks := append(s.trackedStreamMasks(), extraMasks...)
 
 	snaps.WithConfig(
-		snaps.Dir(filepath.Join("__snapshots__")),
+		snaps.Dir("__snapshots__"),
 		snaps.Filename(strings.TrimSuffix(filepath.Base(path), filepath.Ext(path))),
 	).MatchSnapshot(t, TrailWithPayloads(s.actEvents(), masks))
 

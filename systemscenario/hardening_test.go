@@ -87,7 +87,7 @@ func (f *failTB) Errorf(format string, args ...any) {
 // diagnostics. Registered cleanups run exactly once (system shutdown) no
 // matter how run unwinds — the sentinel panic unwinds like Goexit, so the
 // named return is set in the defer.
-func runExpectingFailure(t *testing.T, run func(tb testing.TB)) (messages []string) {
+func runExpectingFailure(t *testing.T, run func(tb testing.TB)) (messages []string) { //nolint:nonamedreturns // load-bearing: the sentinel panic unwinds like Goexit, so the defer sets the named return
 	t.Helper()
 
 	ftb := &failTB{}

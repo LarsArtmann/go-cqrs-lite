@@ -50,7 +50,7 @@ func TestTrailIsDeterministicShape(t *testing.T) {
 func TestTrailWithPayloads_IsRunStable(t *testing.T) {
 	t.Parallel()
 
-	build := func(t *testing.T) (masked, raw string) {
+	build := func(t *testing.T) (string, string) {
 		t.Helper()
 
 		sc, ref, _ := newTaskScenario(t)
