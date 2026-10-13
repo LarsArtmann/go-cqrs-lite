@@ -50,6 +50,16 @@ type findNano struct {
 	ID string
 }
 
+// fidelityLeg is one time-fidelity test leg: which event codec the dispatch
+// path uses, and whether the end-to-end view must be nano-EXACT (JSON) or
+// merely bounded by nanoDriftTolerance (CBOR default).
+type fidelityLeg struct {
+	name      string
+	title     string
+	jsonCodec bool
+	exact     bool
+}
+
 // autoPayloadDecoder decodes task.created payloads regardless of event codec,
 // so the CBOR-default and JSON legs share one projection decoder.
 func autoPayloadDecoder(eventType string, payload []byte) (any, error) {
@@ -83,141 +93,161 @@ func TestSystem_TimePayloadFidelity_SQLite(t *testing.T) {
 
 	orig := time.Date(2026, 10, 4, 2, 55, 0, 123456789, time.UTC)
 
-	for _, leg := range []struct {
-		name      string
-		title     string
-		jsonCodec bool
-		exact     bool
-	}{
-		{"json codec exact end to end", "nano-json", true, true},
-		{"cbor default bounded sub-microsecond", "nano-cbor", false, false},
+	for _, leg := range []fidelityLeg{
+		{name: "json codec exact end to end", title: "nano-json", jsonCodec: true, exact: true},
+		{name: "cbor default bounded sub-microsecond", title: "nano-cbor"},
 	} {
 		t.Run(leg.name, func(t *testing.T) {
 			t.Parallel()
-
-			ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-			defer cancel()
-
-			nanoQuery := metaengine.Query[findNano, nanoView](
-				"nano_views_"+leg.title,
-				metaengine.OnRecordTyped(
-					"task.created",
-					TaskCreated{},
-					func(_ record.Record, e TaskCreated) (string, nanoView) {
-						return e.Title, nanoView(e)
-					},
-				),
-			)
-
-			var codecOpt []event.Option
-			if leg.jsonCodec {
-				codecOpt = append(codecOpt, event.WithCodec(codec.JSONCodec{}))
-			}
-
-			domain := system.DomainConfig{
-				Commands: func(sys *system.System) {
-					system.RegisterDecider(sys, "Task", TaskDecider)
-
-					system.RegisterCommand[*command.BasicCommand, TaskState](sys, "task.create",
-						func(ctx context.Context, cmd *command.BasicCommand) system.Op[TaskState] {
-							return system.Execute(ctx, cmd.StreamID(), "Task",
-								func(state TaskState, ver event.Version) ([]event.Event, error) {
-									if state.Exists {
-										return nil, errors.New("task already exists")
-									}
-
-									return []event.Event{mustEvent(event.New("task.created",
-										cmd.StreamID(), "Task", ver+1,
-										TaskCreated{Title: leg.title, At: orig},
-										codecOpt...))}, nil
-								})
-						})
-				},
-				Projections:       []system.ProjectionDeclaration{system.RawQuery(nanoQuery)},
-				ProjectionDecoder: autoPayloadDecoder,
-			}
-
-			sys, err := system.New(ctx, domain, sqliteDeployment(t))
-			if err != nil {
-				t.Fatalf("system.New: %v", err)
-			}
-			defer sys.Close()
-
-			streamID := id.NewStreamID()
-			if err := sys.CommandDispatcher().
-				Dispatch(ctx, newCmd("task.create", streamID)); err != nil {
-				t.Fatalf("dispatch create: %v", err)
-			}
-
-			// Event-store hop: load back and decode through the event codec.
-			loaded, err := sys.EventStore().Load(ctx, id.NewStreamRef("Task", streamID))
-			if err != nil {
-				t.Fatalf("load events: %v", err)
-			}
-			if len(loaded) != 1 {
-				t.Fatalf("expected 1 event, got %d", len(loaded))
-			}
-
-			decoded, err := event.DecodePayloadAuto[TaskCreated](loaded[0])
-			if err != nil {
-				t.Fatalf("decode payload: %v", err)
-			}
-			hopDrift := decoded.At.Sub(orig)
-			t.Logf("event-store hop drift: %d ns", hopDrift)
-
-			if err := sys.Start(ctx); err != nil {
-				t.Fatalf("system.Start: %v", err)
-			}
-
-			deadline := time.Now().Add(10 * time.Second)
-			for time.Now().Before(deadline) {
-				for _, s := range sys.ProjectionHost().Status() {
-					if s.Processed >= 1 && s.Errors == 0 {
-						result, err := sys.MetaEngine().Execute(findNano{ID: leg.title})
-						if err != nil {
-							t.Fatalf("store.Execute: %v", err)
-						}
-
-						view, ok := result.(nanoView)
-						if !ok {
-							t.Fatalf("expected nanoView, got %T", result)
-						}
-
-						drift := view.At.Sub(orig)
-						t.Logf("end-to-end view drift: %d ns (want %s)",
-							drift, driftWord(leg.exact))
-
-						if leg.exact && drift != 0 {
-							t.Fatalf("JSON codec must be nano-exact, drifted %d ns", drift)
-						}
-						if !leg.exact &&
-							(drift < -nanoDriftTolerance || drift > nanoDriftTolerance) {
-							t.Fatalf(
-								"CBOR default drift %d ns exceeds %v bound",
-								drift,
-								nanoDriftTolerance,
-							)
-						}
-
-						return
-					}
-				}
-
-				select {
-				case <-ctx.Done():
-					t.Fatal("timeout waiting for projection")
-				case <-time.After(50 * time.Millisecond):
-				}
-			}
-
-			for _, s := range sys.ProjectionHost().Status() {
-				if s.Errors > 0 {
-					t.Fatalf("projection %q has %d errors", s.Name, s.Errors)
-				}
-			}
-
-			t.Fatal("projection did not process event within timeout")
+			runTimeFidelityLeg(t, leg, orig)
 		})
+	}
+}
+
+// runTimeFidelityLeg boots the sqlite deployment for one leg, dispatches the
+// create command, checks the event-store hop drift, then awaits the projected
+// view and checks the end-to-end drift against the leg's exactness contract.
+func runTimeFidelityLeg(t *testing.T, leg fidelityLeg, orig time.Time) {
+	t.Helper()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+
+	sys, err := system.New(ctx, timeFidelityDomain(leg, orig), sqliteDeployment(t))
+	if err != nil {
+		t.Fatalf("system.New: %v", err)
+	}
+	defer sys.Close()
+
+	streamID := id.NewStreamID()
+	if err := sys.CommandDispatcher().
+		Dispatch(ctx, newCmd("task.create", streamID)); err != nil {
+		t.Fatalf("dispatch create: %v", err)
+	}
+
+	// Event-store hop: load back and decode through the event codec.
+	loaded, err := sys.EventStore().Load(ctx, id.NewStreamRef("Task", streamID))
+	if err != nil {
+		t.Fatalf("load events: %v", err)
+	}
+	if len(loaded) != 1 {
+		t.Fatalf("expected 1 event, got %d", len(loaded))
+	}
+
+	decoded, err := event.DecodePayloadAuto[TaskCreated](loaded[0])
+	if err != nil {
+		t.Fatalf("decode payload: %v", err)
+	}
+	hopDrift := decoded.At.Sub(orig)
+	t.Logf("event-store hop drift: %d ns", hopDrift)
+
+	if err := sys.Start(ctx); err != nil {
+		t.Fatalf("system.Start: %v", err)
+	}
+
+	awaitFidelityView(t, ctx, sys, leg, orig)
+}
+
+// timeFidelityDomain builds the task domain for one fidelity leg: the shared
+// TaskDecider write side with the leg's event codec stamped on the
+// task.created payload, plus the leg's raw nano-view projection.
+func timeFidelityDomain(leg fidelityLeg, orig time.Time) system.DomainConfig {
+	nanoQuery := metaengine.Query[findNano, nanoView](
+		"nano_views_"+leg.title,
+		metaengine.OnRecordTyped(
+			"task.created",
+			TaskCreated{},
+			func(_ record.Record, e TaskCreated) (string, nanoView) {
+				return e.Title, nanoView(e)
+			},
+		),
+	)
+
+	var codecOpt []event.Option
+	if leg.jsonCodec {
+		codecOpt = append(codecOpt, event.WithCodec(codec.JSONCodec{}))
+	}
+
+	return system.DomainConfig{
+		Commands: func(sys *system.System) {
+			system.RegisterDecider(sys, "Task", TaskDecider)
+
+			system.RegisterCommand[*command.BasicCommand, TaskState](sys, "task.create",
+				func(ctx context.Context, cmd *command.BasicCommand) system.Op[TaskState] {
+					return system.Execute(ctx, cmd.StreamID(), "Task",
+						func(state TaskState, ver event.Version) ([]event.Event, error) {
+							if state.Exists {
+								return nil, errors.New("task already exists")
+							}
+
+							return []event.Event{mustEvent(event.New("task.created",
+								cmd.StreamID(), "Task", ver+1,
+								TaskCreated{Title: leg.title, At: orig},
+								codecOpt...))}, nil
+						})
+				})
+		},
+		Projections:       []system.ProjectionDeclaration{system.RawQuery(nanoQuery)},
+		ProjectionDecoder: autoPayloadDecoder,
+	}
+}
+
+// awaitFidelityView polls the projection host until the leg's event is
+// processed (10 s bound, 50 ms ticks), then asserts the end-to-end view drift
+// against the leg's contract. Falls out of the loop at the deadline into the
+// error-check + timeout Fatal — same as the original inline shape.
+func awaitFidelityView(t *testing.T, ctx context.Context, sys *system.System, leg fidelityLeg, orig time.Time) {
+	t.Helper()
+
+	deadline := time.Now().Add(10 * time.Second)
+	for time.Now().Before(deadline) {
+		for _, s := range sys.ProjectionHost().Status() {
+			if s.Processed >= 1 && s.Errors == 0 {
+				checkFidelityView(t, sys, leg, orig)
+				return
+			}
+		}
+
+		select {
+		case <-ctx.Done():
+			t.Fatal("timeout waiting for projection")
+		case <-time.After(50 * time.Millisecond):
+		}
+	}
+
+	for _, s := range sys.ProjectionHost().Status() {
+		if s.Errors > 0 {
+			t.Fatalf("projection %q has %d errors", s.Name, s.Errors)
+		}
+	}
+
+	t.Fatal("projection did not process event within timeout")
+}
+
+// checkFidelityView executes the leg's query once the fold has landed and
+// asserts the measured drift: nano-exact for the JSON codec, bounded by
+// nanoDriftTolerance for the CBOR default.
+func checkFidelityView(t *testing.T, sys *system.System, leg fidelityLeg, orig time.Time) {
+	t.Helper()
+
+	result, err := sys.MetaEngine().Execute(findNano{ID: leg.title})
+	if err != nil {
+		t.Fatalf("store.Execute: %v", err)
+	}
+
+	view, ok := result.(nanoView)
+	if !ok {
+		t.Fatalf("expected nanoView, got %T", result)
+	}
+
+	drift := view.At.Sub(orig)
+	t.Logf("end-to-end view drift: %d ns (want %s)", drift, driftWord(leg.exact))
+
+	if leg.exact && drift != 0 {
+		t.Fatalf("JSON codec must be nano-exact, drifted %d ns", drift)
+	}
+	if !leg.exact && (drift < -nanoDriftTolerance || drift > nanoDriftTolerance) {
+		t.Fatalf("CBOR default drift %d ns exceeds %v bound", drift, nanoDriftTolerance)
 	}
 }
 
