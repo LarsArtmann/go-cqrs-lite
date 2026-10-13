@@ -8,7 +8,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.4.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.2
 	github.com/larsartmann/go-error-family v0.11.0
-	github.com/onsi/ginkgo/v2 v2.33.0
+	github.com/onsi/ginkgo/v2 v2.33.1
 	github.com/onsi/gomega v1.44.0
 	golang.org/x/crypto v0.58.0
 	pgregory.net/rapid v1.3.0

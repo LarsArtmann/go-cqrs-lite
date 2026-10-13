@@ -10,7 +10,7 @@ require (
 	github.com/larsartmann/go-error-family v0.11.0
 	github.com/maypok86/otter/v2 v2.3.0
 	github.com/oklog/ulid/v2 v2.1.2
-	github.com/onsi/ginkgo/v2 v2.33.0
+	github.com/onsi/ginkgo/v2 v2.33.1
 	github.com/onsi/gomega v1.44.0
 	pgregory.net/rapid v1.3.0
 )

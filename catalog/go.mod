@@ -16,7 +16,7 @@ require (
 	github.com/larsartmann/templ-components v1.22.0
 	github.com/larsartmann/templ-components/icons v1.22.0
 	github.com/larsartmann/templ-components/utils v1.22.0
-	github.com/onsi/ginkgo/v2 v2.33.0
+	github.com/onsi/ginkgo/v2 v2.33.1
 	github.com/onsi/gomega v1.44.0
 )
 
