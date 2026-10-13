@@ -577,6 +577,7 @@ cmd/cqrs-lint/pkg/analyzer/func BuildContextFromSource
 cmd/cqrs-lint/pkg/analyzer/func BuildContextFromTempFiles
 cmd/cqrs-lint/pkg/analyzer/func BuildContextWithTypes
 cmd/cqrs-lint/pkg/analyzer/func CategoryPriority
+cmd/cqrs-lint/pkg/analyzer/func CollectTestImportPaths
 cmd/cqrs-lint/pkg/analyzer/func DetectFeatures
 cmd/cqrs-lint/pkg/analyzer/func DetectFeaturesPerModule
 cmd/cqrs-lint/pkg/analyzer/func DetectUsedModules
