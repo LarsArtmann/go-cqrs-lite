@@ -51,6 +51,7 @@ func DetectStaleSuppressions(
 	var stale []StaleSuppression
 	firstFire := firstFireByRule(findings)
 
+	//art-dupl:accept identical scan preamble is intentional — the stale gate and the doctor audit must process the same files through the same matcher (2026-10-12 parity contract)
 	for _, path := range goFiles {
 		lines, ok := readGoFileLines(path)
 		if !ok {
