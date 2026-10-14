@@ -1154,6 +1154,15 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       end-of-wave 2026-10-13 (resequenced past mid-wave: shared-host load
       60-94 all evening refused the load guard; the end-of-wave run covers a
       superset tree).
+      STATE 2026-10-14 02:00: first end-of-wave firing found a REAL divergence:
+      workspace-mode `system` tests failed (2 tests, "expected view, got
+      <nil>") because projectionadapter's EventWithID contract moved to bare
+      keys (`StreamID.Get()`, working tree, untagged) while system tests still
+      queried display-form `String()` — GOWORK=off CI legs stayed green via
+      tagged v4.5.3 (the cross-mode trap). Fixed: system tests query `.Get()`
+      + sibling replace `projectionadapter/v4 => ../metaengine/projectionadapter`
+      in system/go.mod (stripped at cut time; projectionadapter+system
+      co-release). Chain re-armed 03:00 for the clean re-run.
       — source: archived 16-37 §f10, 15-34 §f20, 15-57 §b1; 04-04 §f1
       _(Effort: M, quiet-window)_
 - [ ] **Mirror-lag burn-down: fork `eventtest` + the delivery-mark trio into
