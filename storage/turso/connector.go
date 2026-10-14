@@ -39,6 +39,11 @@ func (t AuthToken) IsZero() bool { return t == "" }
 //
 // The caller is responsible for closing the returned *sql.DB.
 func Open(dbPath DbPath) (*sql.DB, error) {
+	if err := warmTursoLibrary(); err != nil {
+		return nil, errorfamily.WrapInfrastructure(err, "turso.open",
+			"warm up native turso library")
+	}
+
 	database, err := sql.Open("turso", string(dbPath))
 	if err != nil {
 		return nil, errorfamily.WrapInfrastructure(err, "turso.open",

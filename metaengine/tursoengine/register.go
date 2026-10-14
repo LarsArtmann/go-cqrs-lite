@@ -145,6 +145,10 @@ func New(dsn string, opts ...Option) (metaengine.Engine, error) {
 		dsn = encryptedDSN
 	}
 
+	if err := warmTursoLibrary(); err != nil {
+		return nil, fmt.Errorf("tursoengine: warm up native library: %w", err)
+	}
+
 	db, err := sql.Open("turso", dsn)
 	if err != nil {
 		return nil, fmt.Errorf("tursoengine: open %q: %w", redactDSN(dsn), err)
