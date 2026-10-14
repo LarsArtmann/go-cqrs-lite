@@ -51,3 +51,28 @@ tag wave ships. Learned in cqrs-htmx `systemadapter/go.mod` + go.work and
 go-appkit's root go.work (their pin discipline lives in go.work, cqrs-htmx's
 in a replace block — check WHERE the target repo keeps its replaces before
 editing).
+
+## Mass go.sum tidy: toolchain identity decides "tidy" (2026-10-14)
+
+`go mod tidy`'s output is TOOLCHAIN-DEPENDENT, and this host runs three Gos
+at once: ambient PATH `go` = 1.27.0 (system), the nix devShell/`nix run`
+toolchain = 1.27.2 (nixpkgs `go_1_27`, floats with nixpkgs), and
+`GOTOOLCHAIN=auto` will NOT upgrade past a satisfied `go 1.27` directive —
+so `source scripts/go-env.sh && go mod tidy` silently means "tidy with
+1.27.0". `cmd/api-stability`'s `TestEveryModuleGoSumIsTidy` runs
+`go mod tidy -diff` with whatever `go` the CALLER has on PATH: a tidy wave
+done with the ambient 1.27.0 and a verify run with the nix 1.27.2 can each
+undo the other's go.sum shape (observed: the 02:46 `-mod=mod` superset wave
+→ 03:25 1.27.0-minimal tidy → 03:26 verify snapshot caught the pre-tidy
+state and failed with removal-only diffs). Rules: (1) mass tidy with the
+DEV-SHELL toolchain — `nix develop -c bash -c 'which go'`, then run that
+binary per module (`GOWORK=off <nixgo> mod tidy`); the 1.27.0-minimal set
+happened to satisfy both toolchains, but don't rely on convergence luck.
+(2) The `-mod=mod` build legs (api-stability `--update`, standalone builds)
+ADD superset sums — a green tidy meta-test can rot hours later after those
+run; re-tidy after any wave of them. (3) `nix run .#verify` snapshots the
+flake source at invocation — a daemon commit landing between the gate's
+60s-stability window and nix's evaluation means the verify can test a
+STALE tree; a composed-verify failure whose diffs don't reproduce against
+the working tree is this race, not a regression (re-run after the tree
+settles before diagnosing deeper).
