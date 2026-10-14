@@ -1207,6 +1207,16 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       units. Remaining owner action (systemctl is session-banned):
       `cp scripts/nightly/go-cqrs-lint-config-guard.{service,timer} ~/.config/systemd/user/ && systemctl --user daemon-reload && systemctl --user enable --now go-cqrs-lint-config-guard.timer`
       — source: 17-19 report §f1 + 2026-10-14 evening session _(Effort: XS, owner)_
+- [ ] **shfmt authority unification (owner decision)** — CI checks scripts/
+      with ROLLING `nix shell nixpkgs#shfmt` (3.14.1), treefmt has NO shfmt
+      program, local `~/.local/bin/shfmt` is 3.13.1 (forbidden for scripts/;
+      gotcha rowed 2026-10-14). Clean unification = add `shfmt.enable` to
+      treefmt programs WITH an options pin that matches the CLI style — the
+      bare enable churned 99/101 scripts with simplifications (quote removal,
+      re-indent) and was reverted same-day; the drift job then pins to
+      `nix fmt --fail-on-change scripts/`. Decide: pin treefmt options vs
+      accept `-s` semantics repo-wide vs leave the CLI-only rule.
+      — source: 2026-10-14 evening session _(Effort: M)_
 - [ ] **dupe-signal: `--keep-v5` flag + one-time suppressed-group audit by the
       v5 owner** — the wrapper suppresses ALL intra-core/v5 groups by default;
       twins like `MetadataCarrier` (core/v5/command vs core/v5/query) may be

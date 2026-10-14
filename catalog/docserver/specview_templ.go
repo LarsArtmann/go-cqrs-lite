@@ -46,7 +46,7 @@ func scalarNonceMeta(nonce string) templ.Component {
 			var templ_7745c5c3_Var2 string
 			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.ResolveAttributeValue(nonce)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `docserver/specview.templ`, Line: 14, Col: 44}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `specview.templ`, Line: 14, Col: 44}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var2)
 			if templ_7745c5c3_Err != nil {
@@ -91,7 +91,7 @@ func noscriptFallback(what, rawName, specURL string) templ.Component {
 		var templ_7745c5c3_Var4 string
 		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(what)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `docserver/specview.templ`, Line: 23, Col: 13}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `specview.templ`, Line: 23, Col: 13}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
@@ -104,7 +104,7 @@ func noscriptFallback(what, rawName, specURL string) templ.Component {
 		var templ_7745c5c3_Var5 string
 		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(rawName)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `docserver/specview.templ`, Line: 23, Col: 54}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `specview.templ`, Line: 23, Col: 54}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {
@@ -117,7 +117,7 @@ func noscriptFallback(what, rawName, specURL string) templ.Component {
 		var templ_7745c5c3_Var6 templ.SafeURL
 		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(specURL))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `docserver/specview.templ`, Line: 24, Col: 35}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `specview.templ`, Line: 24, Col: 35}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 		if templ_7745c5c3_Err != nil {
@@ -185,7 +185,7 @@ func ScalarPage(brand, docsPrefix, specURL string) templ.Component {
 			var templ_7745c5c3_Var9 string
 			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.ResolveAttributeValue(specURL)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `docserver/specview.templ`, Line: 47, Col: 29}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `specview.templ`, Line: 47, Col: 29}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var9)
 			if templ_7745c5c3_Err != nil {
@@ -214,7 +214,7 @@ func ScalarPage(brand, docsPrefix, specURL string) templ.Component {
 			var templ_7745c5c3_Var10 string
 			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.GetNonce(ctx))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `docserver/specview.templ`, Line: 51, Col: 37}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `specview.templ`, Line: 51, Col: 37}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var10)
 			if templ_7745c5c3_Err != nil {
@@ -315,7 +315,7 @@ func AsyncAPIPage(brand, docsPrefix, specURL string) templ.Component {
 			var templ_7745c5c3_Var14 string
 			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.ResolveAttributeValue(specURL)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `docserver/specview.templ`, Line: 83, Col: 80}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `specview.templ`, Line: 83, Col: 80}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var14)
 			if templ_7745c5c3_Err != nil {
@@ -344,7 +344,7 @@ func AsyncAPIPage(brand, docsPrefix, specURL string) templ.Component {
 			var templ_7745c5c3_Var15 string
 			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.GetNonce(ctx))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `docserver/specview.templ`, Line: 86, Col: 37}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `specview.templ`, Line: 86, Col: 37}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var15)
 			if templ_7745c5c3_Err != nil {

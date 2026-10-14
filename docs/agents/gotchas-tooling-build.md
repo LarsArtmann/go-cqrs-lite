@@ -312,3 +312,27 @@ Two micro-disciplines that each cost a failed edit this stream:
   reliable recipe: `nix develop -c bash -c 'unset GOWORK; export
   GOEXPERIMENT=jsonv2; <binary> ...'` in the target repo, validated by
   matching the gate's own lint-stage output (file/suppression counts) FIRST.
+- **shfmt has THREE potential authorities on this box; only ONE is CI's
+  (2026-10-14)** — CI's drift job runs ROLLING `nix shell nixpkgs#shfmt`
+  (3.14.1 today), `~/.local/bin/shfmt` is 3.13.1, and treefmt carries NO
+  shfmt program at all. Formatting scripts with the local binary reds CI on
+  heredoc-then placement (probe-proxy-tags.sh, twice). RULE: format and
+  check scripts/ ONLY via `nix shell nixpkgs#shfmt --command shfmt -w|-d
+  scripts/`. DO NOT "unify" by adding `shfmt.enable = true` to treefmt
+  programs without an options pin: treefmt's shfmt preset includes
+  simplifications (quote-removal in `[[ ]]`, double→single echo strings) and
+  re-indents — a 2026-10-14 trial churned 99 of 101 scripts (7693 lines) and
+  had to be reverted file-by-file; CLI-normalizing with `shfmt -w scripts/`
+  does NOT undo simplifications (they are content, not layout). A pinned
+  treefmt options match is rowed in TODO_LIST.
+- **`check-coverage` is load-sensitive: a mid-run load spike produces PHANTOM
+  coverage drift (2026-10-14)** — the composed chain's 19:0x leg failed with
+  6 modules "drifted" -2.2..-4.6% (command/dispatcher/id/kv/metaengine/schema)
+  while those modules had ONLY go.sum tidies (dispatcher: ZERO commits since
+  the 10-13 baseline). Re-run on the quieter box: every module at exactly
+  0.0% delta, baseline stands. Mechanism: the composed gate admits at
+  load<10, but a storm re-intensifying during the ~30 min coverage run
+  starves timing-sensitive tests and measured (not written) coverage drops.
+  Before chasing coverage drift: check load history, check the modules'
+  recent commits, and RE-RUN the gate quietly — only a stable reproduction
+  justifies a re-pin.
