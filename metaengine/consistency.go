@@ -88,7 +88,10 @@ func (l *EventLog) eventsFrom(offset int) []EventInput {
 // replayed or will be live-folded after reactivation. reactivate must call
 // leaf code only (health transitions, metrics): the live apply path holds
 // s.mu while recording (s.mu → l.mu), so acquiring s.mu here would invert
-// the order and deadlock.
+// the order and deadlock. Callers that must serialize against live applies
+// (the catch-up gate does, to drain in-flight record+fold pairs before
+// reactivation flips fold routing) acquire s.mu BEFORE calling — extending
+// the chain to s.mu → l.mu → healthMu, the order applyWithRecord uses.
 func (l *EventLog) reactivateIfStable(offset int, reactivate func()) (grew bool) {
 	l.mu.Lock()
 	defer l.mu.Unlock()

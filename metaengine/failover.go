@@ -162,11 +162,24 @@ func (s *Store) catchUpEngine(ctx context.Context, name string) (result error) {
 		// recorded afterwards hits an active engine and folds live. Leaf
 		// calls only inside the gate (ReactivateEngine takes healthMu; see
 		// reactivateIfStable for the ordering contract).
+		//
+		// The s.mu WRITE lock is load-bearing: applies hold s.mu across
+		// record+fold, so once Lock returns, every event already in the log
+		// has also finished its live fold — and that fold routed away from
+		// the still-quarantined target. Without it, reactivation (healthMu
+		// only) can flip the routing of an apply that recorded before the
+		// final replay pass but folds after reactivation: the replay folds
+		// the event AND the live fold folds it again — the +N double-fold
+		// class TestEngineHealth_CatchUpUnderConcurrentApplies caught on CI
+		// (run 38569359207: primary ticks 2002 vs 2000). Lock order
+		// s.mu → l.mu → healthMu is the chain applyWithRecord already uses.
 		var reactivated bool
 
+		s.mu.Lock()
 		grew := s.eventLog.reactivateIfStable(offset, func() {
 			reactivated = s.reactivateEngine(name)
 		})
+		s.mu.Unlock()
 
 		if !grew {
 			if !reactivated {
