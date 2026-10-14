@@ -107,7 +107,7 @@ func reportUnclassified(
 		"D006",
 		fmt.Sprintf(
 			"%s at %s — unclassified error, bypasses the 6-family error taxonomy",
-			ctor, pos.String(),
+			ctor, ctx.RelPos(pos),
 		),
 		finding.SeverityInfo,
 		finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),

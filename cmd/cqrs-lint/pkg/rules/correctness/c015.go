@@ -214,7 +214,7 @@ func reportUncheckedClose(
 
 	f, err := findingTemplate.Builder(
 		"C015",
-		fmt.Sprintf("unchecked Close() at %s — error is discarded, resource leak risk", pos.String()),
+		fmt.Sprintf("unchecked Close() at %s — error is discarded, resource leak risk", ctx.RelPos(pos)),
 		finding.SeverityWarning,
 		finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 	).

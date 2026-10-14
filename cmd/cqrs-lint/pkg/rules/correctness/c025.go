@@ -74,7 +74,7 @@ func reportBareErrorf(
 		fmt.Sprintf(
 			"fmt.Errorf without %%w in CQRS code at %s — "+
 				"loses error classification, breaks the 6-family taxonomy",
-			pos.String(),
+			ctx.RelPos(pos),
 		),
 		finding.SeverityWarning,
 		finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),

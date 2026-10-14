@@ -57,8 +57,12 @@ func TestVectorSearch_LibSQLPushdown(t *testing.T) {
 		}
 
 		reference := metaengine.VectorDistance([]float32{1, 0}, []float32{1, 0}, metric)
-		if results[0].Distance != reference {
-			t.Fatalf("VectorSearch(%s) top distance = %v, want %v",
+		// Semantic equality per the ADR-0140 contract, not bitwise: libSQL's
+		// vector_distance_* float arithmetic differs from the Go reference by
+		// ULPs across builds (observed 4.5e-08 for identical vectors on CI
+		// runners — exactly 0 locally).
+		if diff := results[0].Distance - reference; diff < -1e-6 || diff > 1e-6 {
+			t.Fatalf("VectorSearch(%s) top distance = %v, want ~%v (±1e-6)",
 				metric, results[0].Distance, reference)
 		}
 	}

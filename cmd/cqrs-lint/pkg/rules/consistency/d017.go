@@ -65,7 +65,7 @@ func NewD017Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 							fmt.Sprintf(
 								"unclassified error in domain file at %s — "+
 									"business rule violations must use errorfamily.NewRejection/NewConflict",
-								pos.String(),
+								ctx.RelPos(pos),
 							),
 							finding.SeverityWarning,
 							finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),

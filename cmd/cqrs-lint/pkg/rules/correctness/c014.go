@@ -49,7 +49,7 @@ func NewC014Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						"C014",
 						fmt.Sprintf(
 							"time.Local usage at %s — server-local timezone causes silent data corruption across timezones",
-							pos.String(),
+							ctx.RelPos(pos),
 						),
 						finding.SeverityWarning,
 						finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),

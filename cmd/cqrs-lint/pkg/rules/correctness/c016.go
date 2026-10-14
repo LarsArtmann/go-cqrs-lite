@@ -107,7 +107,7 @@ func NewC016Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 							"C016",
 							fmt.Sprintf(
 								"context.%s() in handler %s at %s — discards caller context (cancellation, timeouts, tracing lost)",
-								sel.Sel.Name, fnDecl.Name.Name, pos.String(),
+								sel.Sel.Name, fnDecl.Name.Name, ctx.RelPos(pos),
 							),
 							finding.SeverityWarning,
 							finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
