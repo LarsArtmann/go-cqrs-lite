@@ -69,7 +69,7 @@ func (r ResetResult) String() string {
 // (e.g. after ADR-0137 quarantine), use [Store.CatchUpEngine] instead — it
 // resets just that engine and replays the EventLog into it.
 func (s *Store) Reset(ctx context.Context) (ResetResult, error) {
-	s.mu.RLock()
+	s.mu.RLock() // art-dupl:accept idiomatic engine-snapshot prologue twin of writeDoctorDurabilitySection
 	engines := slices.Clone(s.engines)
 	s.mu.RUnlock()
 

@@ -62,7 +62,7 @@ func (s *Store) writeDoctorPoisonedSection(b *strings.Builder) {
 // engine snapshot it took — Doctor reuses it for the vector section so both
 // sections observe ONE consistent snapshot (the pre-refactor behavior).
 func (s *Store) writeDoctorDurabilitySection(b *strings.Builder) []Engine {
-	s.mu.RLock()
+	s.mu.RLock() // art-dupl:accept idiomatic engine-snapshot prologue twin of Reset; extracting a helper for 3 lines costs more than the clone
 	engines := slices.Clone(s.engines)
 	s.mu.RUnlock()
 
