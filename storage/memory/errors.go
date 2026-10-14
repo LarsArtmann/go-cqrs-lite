@@ -5,14 +5,14 @@ import (
 )
 
 // ErrHandlerNil is returned when a nil handler is passed to Subscribe or SubscribeAll.
-var ErrHandlerNil = errorfamily.NewRejection(
+var ErrHandlerNil error = errorfamily.NewRejection(
 	"memory.handler_nil",
 	"handler must not be nil",
 )
 
 // ErrNoStreamScoping is returned when a stream-scoped read hits a LogStore
 // configured without stream support (global-only stores, e.g. queries).
-var ErrNoStreamScoping = errorfamily.NewRejection(
+var ErrNoStreamScoping error = errorfamily.NewRejection(
 	"memory.no_stream_scoping",
 	"store has no stream scoping",
 )

@@ -13,12 +13,12 @@ import (
 )
 
 var (
-	errDispatchFailed = errorfamily.NewInfrastructure(
+	errDispatchFailed error = errorfamily.NewInfrastructure(
 		"grpc.dispatch_failed",
 		"grpc: server returned failure",
 	)
-	errQueryFailed      = errorfamily.NewInfrastructure("grpc.query_failed", "grpc: query failed")
-	errMissingCommandID = errorfamily.NewRejection(
+	errQueryFailed error      = errorfamily.NewInfrastructure("grpc.query_failed", "grpc: query failed")
+	errMissingCommandID error = errorfamily.NewRejection(
 		"grpc.missing_command_id",
 		"grpc: command has no ID",
 	)

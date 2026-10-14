@@ -18,7 +18,7 @@ import (
 // errors.Is(err, turso.ErrNoDatabase) still match because errorfamily.Rejection
 // compares error code + family, not pointer identity. The actual error is now
 // constructed inside [sqlopt.SQLViewModel].
-var ErrNoDatabase = errorfamily.NewRejection("turso.no_database",
+var ErrNoDatabase error = errorfamily.NewRejection("turso.no_database",
 	"turso: bundle has no SQL database handle")
 
 // SQLViewModel creates a [storage.SQLViewStore] from the Bundle's Turso

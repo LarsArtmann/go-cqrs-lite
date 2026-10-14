@@ -168,8 +168,8 @@ func atoi(s string) (int, error) {
 }
 
 var (
-	errEmptyString = &parseError{msg: "empty string"}
-	errNotDigit    = &parseError{msg: "non-digit character"}
+	errEmptyString error = &parseError{msg: "empty string"}
+	errNotDigit error    = &parseError{msg: "non-digit character"}
 )
 
 type parseError struct{ msg string }

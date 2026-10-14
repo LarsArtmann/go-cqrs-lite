@@ -275,7 +275,7 @@ func (c *ClaimingTimerStore[P]) scanClaimed(
 // the timer's claim: either the timer was fired/canceled (row gone) or the
 // lease expired and another poller may have re-claimed it. Classified as
 // Orchestration — a distributed-coordination race, not a caller bug.
-var ErrLeaseNotHeld = errorfamily.NewOrchestration(
+var ErrLeaseNotHeld error = errorfamily.NewOrchestration(
 	"scheduling.sqlstore.lease_not_held",
 	"no live claim for this timer (fired, canceled, or lease expired)",
 )

@@ -5,31 +5,31 @@ import (
 )
 
 // ErrNilDatabase is returned when a store constructor is called with a nil *pebble.DB.
-var ErrNilDatabase = errorfamily.NewRejection(
+var ErrNilDatabase error = errorfamily.NewRejection(
 	"pebble.nil_database",
 	"pebble: constructor called with nil database",
 )
 
 var (
 	// ErrStreamTypeMismatch is returned when an event's stream type doesn't match.
-	ErrStreamTypeMismatch = errorfamily.NewConflict(
+	ErrStreamTypeMismatch error = errorfamily.NewConflict(
 		"pebble.stream_type_mismatch",
 		"pebble: event stream type mismatch",
 	)
 	// ErrStreamIDMismatch is returned when an event's stream ID doesn't match.
-	ErrStreamIDMismatch = errorfamily.NewConflict(
+	ErrStreamIDMismatch error = errorfamily.NewConflict(
 		"pebble.stream_id_mismatch",
 		"pebble: event stream ID mismatch",
 	)
 	// ErrVersionMismatch is returned when an event's version doesn't match.
-	ErrVersionMismatch = errorfamily.NewConflict(
+	ErrVersionMismatch error = errorfamily.NewConflict(
 		"pebble.version_mismatch",
 		"pebble: event version mismatch",
 	)
 )
 
 // Deprecated: use ErrStreamTypeMismatch.
-var ErrAggregateTypeMismatch = ErrStreamTypeMismatch
+var ErrAggregateTypeMismatch error = ErrStreamTypeMismatch
 
 // Deprecated: use ErrStreamIDMismatch.
-var ErrAggregateIDMismatch = ErrStreamIDMismatch
+var ErrAggregateIDMismatch error = ErrStreamIDMismatch
