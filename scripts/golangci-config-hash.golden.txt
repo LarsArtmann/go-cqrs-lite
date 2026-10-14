@@ -1,1 +1,1 @@
-a2a4135a93f5adb5c329ac09beb6c1bd25bdffcdf104c316bc46abb5c03a6fc5  .golangci.yml
+4fcb57f95b4db7ffd8c90b0c868129f83a7b923c78450e850d48e6d149ebd47c  .golangci.yml
