@@ -9,9 +9,9 @@ guard), so a nightly run is green-log-or-triage — it never re-pins on its own.
 
 ```bash
 mkdir -p ~/.config/systemd/user
-cp scripts/nightly/go-cqrs-nightly-bench.{service,timer} scripts/nightly/go-cqrs-nightly-lint.{service,timer} ~/.config/systemd/user/
+cp scripts/nightly/go-cqrs-nightly-bench.{service,timer} scripts/nightly/go-cqrs-nightly-lint.{service,timer} scripts/nightly/go-cqrs-lint-config-guard.{service,timer} ~/.config/systemd/user/
 systemctl --user daemon-reload
-systemctl --user enable --now go-cqrs-nightly-bench.timer go-cqrs-nightly-lint.timer
+systemctl --user enable --now go-cqrs-nightly-bench.timer go-cqrs-nightly-lint.timer go-cqrs-lint-config-guard.timer
 ```
 
 ## What runs
@@ -30,6 +30,16 @@ broken trees. The nightly timer catches rot within 24h with zero daemon
 interference. Self-test (fault injection via `NIGHTLY_LINT_CMD`) is wired
 into `nix run .#check-release-scripts`.
 
+`scripts/guard-lint-config.sh` (every 2 min via `go-cqrs-lint-config-guard.timer`)
+→ self-healing `.golangci.yml` watcher — the config-corruption class (depguard
+block deleted by a config rewriter riding parallel sessions, four recurrences
+through 2026-10-14) previously reached origin because the daemon commits
+without hooks. The guard heals the tree and re-stages; the `.githooks/pre-push`
+ride-along and CI `#check-lint-config` cover the residual race window. Fast
+path is a single sha256sum, so the cadence is effectively free. Self-test:
+`scripts/guard-lint-config.sh --self-test` (fixture fault injection,
+mutation-verified 2026-10-14).
+
 ## Logs
 
 `/var/tmp/cqrs-nightly/<UTC-date>.log` — one file per night; a `REGRESSION`
@@ -39,3 +49,8 @@ morning, re-pin only with a deliberate, noise-clean `--save`.
 `/var/tmp/cqrs-nightly/<UTC-date>-lint.log` — a `LINT-ROT` line means the
 daemon absorbed lint-dirty code into master: triage the golangci-lint output
 above the marker.
+
+`/var/tmp/cqrs-lint-config-guard.log` — one line per EVENT (never healthy
+polls): `HEALED via=…` (corruption repaired, re-staged for the daemon's next
+cycle), `BACKOFF dirty-golden` (a re-pin is in flight, guard stood down),
+`UNHEALABLE …` (no committed config matches the golden; human decides).

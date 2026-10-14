@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# pre-push — lint-config guard ride-along (NEVER-BLOCKING by design).
+#
+# The .golangci.yml corruption class (depguard block deleted by a config
+# rewriter riding parallel sessions; four recurrences through 2026-10-14)
+# reaches origin because the auto-commit daemon commits without hooks. A
+# BLOCKING push hook was rejected for the same reason the repo rejected a
+# blocking pre-commit for nightly-lint (scripts/nightly/README.md): the
+# daemon must never fail-loop. So this hook only HEALS: it runs the guard
+# (shape healers + last-resort git restore, see scripts/guard-lint-config.sh)
+# and re-stages the repair; the daemon's next commit cycle absorbs it. The
+# push in flight proceeds untouched; CI #check-lint-config stays the referee
+# for anything already committed.
+#
+# Log: /var/tmp/cqrs-lint-config-guard.log
+
+set -uo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+if ! bash "$ROOT/scripts/guard-lint-config.sh" >/dev/null 2>&1; then
+	echo "WARNING: lint-config guard could not heal .golangci.yml" >&2
+	echo "         (see /var/tmp/cqrs-lint-config-guard.log); push proceeds," >&2
+	echo "         CI #check-lint-config will referee the committed state." >&2
+fi
+
+exit 0

@@ -1,0 +1,11 @@
+[Unit]
+Description=go-cqrs-lite lint-config guard timer (2-min cadence)
+
+[Timer]
+# Fast enough to beat the auto-commit daemon's cycle in the common case;
+# the push hook and CI referee cover the rest of the race window.
+OnBootSec=5min
+OnUnitActiveSec=2min
+
+[Install]
+WantedBy=timers.target

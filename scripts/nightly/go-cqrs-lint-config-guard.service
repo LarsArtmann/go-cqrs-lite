@@ -1,0 +1,9 @@
+[Unit]
+Description=go-cqrs-lite lint-config corruption guard (self-healing .golangci.yml watcher)
+
+[Service]
+Type=oneshot
+# Adjust the path if the repo moves. Heals the config-corruption class the
+# daemon commits without hooks; see scripts/guard-lint-config.sh. Fast path
+# is a single sha256sum, so the 2-min cadence is effectively free.
+ExecStart=%h/projects/go-cqrs-lite/scripts/guard-lint-config.sh

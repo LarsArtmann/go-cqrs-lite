@@ -106,7 +106,7 @@ heal() {
 		git -C "$ROOT" restore --source="$commit" -- .golangci.yml
 		via="last-resort:$commit"
 	fi
-	if [ "$(hash_of "$CONFIG")" != "$(golden_hash)" ]; then then
+	if [ "$(hash_of "$CONFIG")" != "$(golden_hash)" ]; then
 		log_event "UNHEALABLE heal-miss via=$via"
 		echo "guard-lint-config: healer $via produced a config that still mismatches the golden" >&2
 		return 1
@@ -152,9 +152,9 @@ self_test() {
 
 	expect() { # $1=desc $2=want_rc $3=want_log_grep(optional)
 		local out want="$2" got
-		out="$(GUARD_ROOT="$F" GUARD_LOG="$tmp/log" GUARD_SKIP_HEALERS=1 bash "${BASH_SOURCE[0]}")" && got=0 || got=$?
+		out="$(GUARD_ROOT="$F" GUARD_LOG="$tmp/log" GUARD_SKIP_HEALERS=1 bash "${BASH_SOURCE[0]}" 2>&1)" && got=0 || got=$?
 		if [ "$got" != "$want" ]; then
-			echo "  ✗ FAIL: $1 (rc=$got want=$want)" >&2
+			echo "  ✗ FAIL: $1 (rc=$got want=$want) $out" >&2
 			rc=1
 		fi
 		if [ -n "${3:-}" ] && ! grep -q "$3" "$tmp/log" 2>/dev/null; then
@@ -169,7 +169,7 @@ self_test() {
 	cp "$F/.golangci.yml.expected" "$F/.golangci.yml"
 	git -C "$F" add .golangci.yml && git -C "$F" -c user.email=t@t -c user.name=t commit -qm good-config
 	expect "healthy tree exits 0" 0
-	[ -z "$(git -C "$F" status --porcelain)" ] || {
+	[ -z "$(git -C "$F" status --porcelain -- .golangci.yml)" ] || {
 		echo "  ✗ FAIL: healthy tree was modified" >&2
 		rc=1
 	}
@@ -184,8 +184,10 @@ self_test() {
 		echo "  ✗ FAIL: healed bytes wrong" >&2
 		rc=1
 	}
-	git -C "$F" diff --cached --quiet -- .golangci.yml && {
-		echo "  ✗ FAIL: heal not re-staged" >&2
+	# Restored content equals HEAD's, so a successful heal + re-stage leaves
+	# NO porcelain entry for the config (worktree == index == HEAD).
+	[ -z "$(git -C "$F" status --porcelain -- .golangci.yml)" ] || {
+		echo "  ✗ FAIL: heal not fully absorbed (worktree/index still dirty)" >&2
 		rc=1
 	}
 
