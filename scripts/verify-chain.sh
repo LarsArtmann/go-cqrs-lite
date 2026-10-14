@@ -26,6 +26,9 @@
 #   VERIFY_CHAIN_VERIFY_CMD     overrides the #verify command string
 #   VERIFY_CHAIN_MAX_RETRIES    per-step guard-refusal retries (default 40)
 #   VERIFY_CHAIN_RETRY_SLEEP    seconds between refusals (default 300)
+#   VERIFY_CHAIN_LOG            log file (default: build/verify-chain-<ts>.log
+#                               — durable per the 2026-10-01 silent-death
+#                               forensics lesson; /tmp logs are tmpfiles-bait)
 #
 # Exit: 0 chain green; 1 any step failed (real gate failure or retry
 # exhaustion); 2 usage.
@@ -146,8 +149,10 @@ self_test() {
 		VERIFY_CHAIN_VERIFY_CMD="$tmp/pass" VERIFY_CHAIN_RETRY_SLEEP=0 \
 		bash "$SCRIPT_DIR/verify-chain.sh" >/dev/null 2>&1
 	want_fail=$? # expect nonzero
-	[ "$want_fail" -ne 0 ]
-	check "real gate failure fails the chain" $?
+	if [ "$want_fail" -eq 0 ]; then
+		echo "  ✗ FAIL: real gate failure fails the chain" >&2
+		rc=1
+	fi
 	check_eq "real failure not retried (1 attempt)" "$(cat "$tmp/cov3")" "1"
 
 	# T4: permanent refusal exhausts the retry budget -> chain fails.
@@ -157,8 +162,10 @@ self_test() {
 		VERIFY_CHAIN_MAX_RETRIES=2 \
 		bash "$SCRIPT_DIR/verify-chain.sh" >/dev/null 2>&1
 	want_fail=$?
-	[ "$want_fail" -ne 0 ]
-	check "retry exhaustion fails the chain" $?
+	if [ "$want_fail" -eq 0 ]; then
+		echo "  ✗ FAIL: retry exhaustion fails the chain" >&2
+		rc=1
+	fi
 	check_eq "budget respected (2 attempts, then exhaustion)" "$(cat "$tmp/cov4")" "2"
 
 	# T5: gate never green -> chain fails BEFORE coverage runs.
@@ -169,8 +176,10 @@ self_test() {
 		VERIFY_CHAIN_VERIFY_CMD="$tmp/pass" VERIFY_CHAIN_RETRY_SLEEP=0 \
 		bash "$SCRIPT_DIR/verify-chain.sh" >/dev/null 2>&1
 	want_fail=$?
-	[ "$want_fail" -ne 0 ]
-	check "red gate fails the chain" $?
+	if [ "$want_fail" -eq 0 ]; then
+		echo "  ✗ FAIL: red gate fails the chain" >&2
+		rc=1
+	fi
 	[ ! -f "$tmp/cov5" ]
 	check "coverage never ran when gate red" $?
 
@@ -183,7 +192,13 @@ self_test() {
 }
 
 case "${1:-}" in
-"") chain_main "$@" ;;
+"")
+	# Durable log (2026-10-01 lesson: chains die silently and /tmp logs vanish;
+	# build/ is gitignored and survives). pipefail keeps the chain's own rc.
+	LOG="${VERIFY_CHAIN_LOG:-$REPO/build/verify-chain-$(date +%Y%m%d-%H%M%S).log}"
+	mkdir -p "$(dirname "$LOG")" 2>/dev/null || true
+	chain_main "$@" 2>&1 | tee "$LOG"
+	;;
 --self-test) self_test ;;
 *) usage ;;
 esac
