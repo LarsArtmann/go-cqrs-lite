@@ -190,3 +190,30 @@ FOR INSTRUCTIONS per the user's explicit demand.
    quiet-window doctrine). Alternative: re-pin the baseline to CI-measured
    numbers (then local fast-box runs flag +2..+5 positive drift). Keep the
    allowance?
+
+## Addendum (2026-10-14 22:35, next session): §g Q1 answered — REFUTED, no fix needed
+
+Read the concurrency block and the full event chain. Autoretry did NOT cancel
+run #3, and nothing else external did either:
+
+- autoretry.yml has NO `concurrency:` block at all — its runs share no group
+  with CI (`CI-refs/heads/master`, ci.yml:968). Its only action is
+  `rerun-failed-jobs`, guarded on `conclusion == 'failure' && run_attempt == 1`.
+- The one rerun it ever fired (16:24:33Z, referee #2 attempt 2) completed
+  16:54:17Z — four hours before run #3 started (18:58:56Z). No overlap.
+- Autoretry 38625396938 (19:38:38Z) fired three seconds AFTER run #3
+  terminated (19:38:35Z) and was SKIPPED (conclusion=cancelled ≠ failure) —
+  effect, not cause.
+- Run #3's "cancelled" decomposes into: two job-level 15-minute TIMEOUTS
+  (Performance Benchmarks 15m14s, Nix Flake Check 15m13s — staggered starts,
+  both wall-clock ~15m, `##[error]The operation was canceled`) plus one
+  genuine Verify-fast coverage failure at 19:38:34Z (the red the CI allowance
+  fixes).
+
+The REAL structural finding: the CI workflow has NEVER been green (0/1736
+runs) — those two 15-min job budgets were the wall. Fixed this session:
+check 15→60, benchmark 15→45 (evidence comments in ci.yml), plus the
+newly-reachable check-job tail pre-verified locally — which caught
+docs/engine-capabilities.md red since 10-10 (table realignment vs generator
+output, fixed by `--update`, doc excluded in dprint.json). Gotchas rowed in
+docs/agents/gotchas-tooling-build.md. §g Q2/Q3 remain open for the owner.
