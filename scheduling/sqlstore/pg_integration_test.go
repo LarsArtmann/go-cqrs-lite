@@ -96,7 +96,9 @@ func TestIntegration_PostgresTimerStore_ScheduleAndDue(t *testing.T) {
 		t.Fatalf("Due: %v", err)
 	}
 
-	if len(due) != 1 || due[0].ID.String() != "pg-t1" {
+	// TimerID.String() is the "TimerMarker:…" display form; the bare
+	// semantic key (what SQL stores and callers dispatch on) is Get().
+	if len(due) != 1 || due[0].ID.Get() != "pg-t1" {
 		t.Fatalf("expected only pg-t1 due, got %+v", due)
 	}
 
@@ -114,9 +116,9 @@ func TestIntegration_PostgresTimerStore_ScheduleAndDue(t *testing.T) {
 		t.Fatalf("expected 3 due timers, got %d", len(due))
 	}
 
-	if due[0].ID.String() != "pg-t1" ||
-		due[1].ID.String() != "pg-t2" ||
-		due[2].ID.String() != "pg-t3" {
+	if due[0].ID.Get() != "pg-t1" ||
+		due[1].ID.Get() != "pg-t2" ||
+		due[2].ID.Get() != "pg-t3" {
 		t.Fatalf("ordering wrong: got %s,%s,%s", due[0].ID, due[1].ID, due[2].ID)
 	}
 }
@@ -217,7 +219,7 @@ func TestIntegration_PostgresTimerStore_SurvivesRestart(t *testing.T) {
 		t.Fatalf("expected 1 timer survived restart, got %d", len(due))
 	}
 
-	if due[0].ID.String() != "pg-order-timeout" {
+	if due[0].ID.Get() != "pg-order-timeout" {
 		t.Fatalf("timer ID: got %q, want %q", due[0].ID, "pg-order-timeout")
 	}
 
