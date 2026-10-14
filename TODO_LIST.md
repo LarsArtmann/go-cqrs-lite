@@ -1197,6 +1197,16 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       `cyclop.max-complexity` + the `errcheck.exclude-functions` presence, so
       an accidental drop fails even after a re-pin.
       — source: 13-50-10-10 report §f5 _(Effort: S)_
+- [ ] **Lint-config guard: install the systemd timer (OWNER, one command)** —
+      incident 13 (2026-10-14 17:31, auto-commit `17b40d303`, depguard block
+      deleted ~4th recurrence) proved the daemon commits corruption faster
+      than any hook-layer gate can run. SHIPPED same day:
+      `scripts/guard-lint-config.sh` (self-healing watcher, `--self-test`,
+      mutation-verified, live-fired), never-blocking `.githooks/pre-push`
+      ride-along, `scripts/nightly/go-cqrs-lint-config-guard.{service,timer}`
+      units. Remaining owner action (systemctl is session-banned):
+      `cp scripts/nightly/go-cqrs-lint-config-guard.{service,timer} ~/.config/systemd/user/ && systemctl --user daemon-reload && systemctl --user enable --now go-cqrs-lint-config-guard.timer`
+      — source: 17-19 report §f1 + 2026-10-14 evening session _(Effort: XS, owner)_
 - [ ] **dupe-signal: `--keep-v5` flag + one-time suppressed-group audit by the
       v5 owner** — the wrapper suppresses ALL intra-core/v5 groups by default;
       twins like `MetadataCarrier` (core/v5/command vs core/v5/query) may be
