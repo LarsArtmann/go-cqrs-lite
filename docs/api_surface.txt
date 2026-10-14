@@ -645,6 +645,7 @@ cmd/cqrs-lint/pkg/analyzer/method Keys
 cmd/cqrs-lint/pkg/analyzer/method MarshalJSON
 cmd/cqrs-lint/pkg/analyzer/method Primary
 cmd/cqrs-lint/pkg/analyzer/method ProfileForFile
+cmd/cqrs-lint/pkg/analyzer/method RelPos
 cmd/cqrs-lint/pkg/analyzer/method RelevantFor
 cmd/cqrs-lint/pkg/analyzer/method RelevantForProfile
 cmd/cqrs-lint/pkg/analyzer/method Scored
