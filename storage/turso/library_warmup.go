@@ -18,8 +18,8 @@ import (
 const tursoLibraryWarmupTimeout = 30 * time.Second
 
 var (
-	warmTursoLibraryOnce sync.Once
-	warmTursoLibraryErr  error
+	warmTursoLibraryOnce  sync.Once //nolint:gochecknoglobals // idiomatic lazy init; pair of the errXxx below
+	errTursoLibraryWarmup error
 )
 
 // warmTursoLibrary loads the native turso library exactly once per process,
@@ -44,15 +44,15 @@ func warmTursoLibrary() error {
 	warmTursoLibraryOnce.Do(func() {
 		db, err := sql.Open("turso", ":memory:")
 		if err != nil {
-			warmTursoLibraryErr = fmt.Errorf("open warmup connection: %w", err)
+			errTursoLibraryWarmup = fmt.Errorf("open warmup connection: %w", err)
 			return
 		}
 		defer func() { _ = db.Close() }()
 
-		warmTursoLibraryErr = withTursoLibraryLock(db.Ping)
+		errTursoLibraryWarmup = withTursoLibraryLock(db.Ping)
 	})
 
-	return warmTursoLibraryErr
+	return errTursoLibraryWarmup
 }
 
 // withTursoLibraryLock runs ping while holding a best-effort exclusive
