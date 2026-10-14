@@ -30,6 +30,16 @@ NEVER_ASSIGNED="0036 0041 0138"
 # filename scan below accepts the optional [a-z] suffix; number arithmetic
 # uses the 4-digit part, so 0099a counts as 0099.)
 
+# Sorted, unique bare filenames of the NNNN/NNNNa ADRs under $1. Glob-based
+# (no `ls`), so filenames with spaces or non-alphanumeric characters survive
+# the shellcheck SC2012 class and word-splitting cannot lose entries.
+adr_files() {
+	local g
+	for g in "$1"/[0-9][0-9][0-9][0-9]-*.md "$1"/[0-9][0-9][0-9][0-9][a-z]-*.md; do
+		[ -e "$g" ] && printf '%s\n' "${g##*/}"
+	done | sort -u
+}
+
 fail() {
 	echo "FAIL: $*" >&2
 	exit 1
@@ -68,7 +78,7 @@ run_checks() {
 	}
 
 	local files numbers dups strays
-	files=$(cd "$dir" && ls [0-9][0-9][0-9][0-9]-*.md [0-9][0-9][0-9][0-9][a-z]-*.md 2>/dev/null | sort -u || true)
+	files=$(adr_files "$dir")
 	[ -n "$files" ] || {
 		echo "FAIL: no ADR files found in $dir" >&2
 		return 1
@@ -143,9 +153,10 @@ run_checks() {
 	max=$(printf '%s\n' "$numbers" | cut -c1-4 | sort -n | tail -1)
 	missing=$(comm -23 <(seq -f '%04g' 1 "$max") <(printf '%s\n' "$numbers" | cut -c1-4 | sort -u))
 	for gap in $missing; do
-		if printf '%s\n' $NEVER_ASSIGNED | grep -qxF "$gap"; then
-			continue
-		fi
+		local exempt
+		for exempt in $NEVER_ASSIGNED; do
+			[ "$exempt" = "$gap" ] && continue 2
+		done
 		echo "WARN: numbering gap at $gap is not in the documented never-assigned set (update the README note or the NEVER_ASSIGNED list in scripts/check-adr-numbering.sh)"
 		undocumented=1
 	done
@@ -252,5 +263,5 @@ if [ "${SELF_TEST:-0}" = "1" ]; then
 fi
 
 run_checks "$ADR_DIR"
-local_count=$(cd "$ADR_DIR" && ls [0-9][0-9][0-9][0-9]-*.md [0-9][0-9][0-9][0-9][a-z]-*.md 2>/dev/null | sort -u | wc -l | tr -d ' ')
+local_count=$(adr_files "$ADR_DIR" | wc -l | tr -d ' ')
 info "OK: no duplicates, index in lockstep ($local_count ADRs)"

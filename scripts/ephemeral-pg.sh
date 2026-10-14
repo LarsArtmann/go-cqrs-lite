@@ -113,14 +113,14 @@ source "$(dirname "$0")/lib/shuffle-seed.sh"
 #     (ephemeral-redis/nats style), e.g. PG_MODULES=storage
 #     ./scripts/ephemeral-pg.sh go test -run X ./...;
 #   no args → the curated module loop below, unflagged.
-GO_TEST_FLAGS=""
+GO_TEST_FLAGS=()
 if [ $# -gt 0 ] && ! [[ "$1" == -* ]]; then
 	echo "==> Running: $*"
 	"$@"
 else
 	if [ $# -gt 0 ]; then
-		GO_TEST_FLAGS="$*"
-		echo "==> Curated loop with go-test flags: $GO_TEST_FLAGS"
+		GO_TEST_FLAGS=("$@")
+		echo "==> Curated loop with go-test flags: ${GO_TEST_FLAGS[*]}"
 	fi
 	FAILED=0
 	TEST_TIMEOUT="${TEST_TIMEOUT:-300}"
@@ -134,7 +134,7 @@ else
 			CGO_ENABLED=1 GOWORK=off \
 				timeout "$TEST_TIMEOUT" \
 				go test -tags "integration" -shuffle="$SEED" ./... \
-				-count=1 -v $GO_TEST_FLAGS 2>&1
+				-count=1 -v "${GO_TEST_FLAGS[@]}" 2>&1
 		) || FAILED=1
 	done
 	if [ "$FAILED" -ne 0 ]; then
