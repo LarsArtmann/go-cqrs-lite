@@ -928,6 +928,22 @@ replace-free — 10-25 §a2/§a3, now archived).
       upstream (tursodatabase/turso-go) for a fixed release, then bump and
       drop this row. Source: green-CI wave M19 triage.
       _(Effort: S once upstream ships; blocked externally)_
+- [ ] **tursogo v0.8.2 loader cache race — upstream issue owed (repo-side
+      mitigation SHIPPED 2026-10-14)** — `turso-go-platform-libs` v0.8.2
+      `embeddedLibraryTryCreate` writes the shared `turso-go/<hash8>/`
+      cache with plain `os.Create`+`io.Copy`: no lock, no atomic rename, so
+      two processes cold-starting one cache interleave writes and the loser
+      PANICS from `InitLibrary` ("cached library file hash sum mismatch";
+      the failed writer also LEAVES the partial file). Reproduced 1st-try
+      locally, was the deterministic `Module storage/turso` CI red (run
+      38548187646). Repo fix: `library_warmup.go` twins (storage/turso +
+      metaengine/tursoengine) hold `turso-go/cqrs-first-open.lock` around a
+      throwaway `:memory:` warmup ping before the first real open
+      (`turso.Open`/`tursoengine.New`; panic → returned error; details:
+      CHANGELOG [Unreleased] Fixed, gotchas-language-footguns.md). OWED:
+      file the upstream issue (tursodatabase/turso-go-platform-libs — ask
+      for flock or temp+rename in the loader), then link it here.
+      _(Effort: S; filing is owner-gated)_
 - [ ] **Durable guard against the gci re-add loop** — BuildFlow
       `golangci-lint-auto-configure` re-added `gci` to `formatters.enable` at
       least twice (2026-10-10 `9d31b8e07`, again before 10-11 `0aa0e0f5f`
