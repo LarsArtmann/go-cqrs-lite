@@ -45,11 +45,20 @@ go_env_set() {
 go_env_set GOTOOLCHAIN auto
 
 # Cache chain off /mnt/buildcache (full disk, 2026-09-22) onto the paths
-# the verify apps already use — all on / with headroom.
-go_env_set GOCACHE /home/lars/projects/.gocache-disk
+# the verify apps use — all on / with headroom. The /home/lars-backed caches
+# are conditional: GitHub-hosted runners have no /home/lars, and a GOCACHE
+# pointing at an uncreatable path kills every go build ("mkdir /home/lars:
+# permission denied" — the 2026-10-14 Benchmark Regression Detection class,
+# same probe as the tmpdir fallback below). Runners keep go's defaults.
+cqrs_cache_root=/home/lars/projects
+if mkdir -p "$cqrs_cache_root" 2>/dev/null && [ -w "$cqrs_cache_root" ]; then
+	mkdir -p "$cqrs_cache_root/.gocache-disk" "$cqrs_cache_root/.golangci-disk" 2>/dev/null || true
+	go_env_set GOCACHE "$cqrs_cache_root/.gocache-disk"
+	go_env_set GOLANGCI_LINT_CACHE "$cqrs_cache_root/.golangci-disk"
+fi
+unset -v cqrs_cache_root
 go_env_set GOMODCACHE /tmp/gomod-verify
 go_env_set GOPATH /tmp/gopath-verify
-go_env_set GOLANGCI_LINT_CACHE /home/lars/projects/.golangci-disk
 
 # Temp dirs: prefer the shared disk path, but fall back to the system default
 # when it cannot exist — GitHub-hosted runners have no /home/lars, and a
@@ -61,9 +70,5 @@ if mkdir -p "$cqrs_tmpdir" 2>/dev/null && [ -w "$cqrs_tmpdir" ]; then
 	go_env_set TMPDIR "$cqrs_tmpdir"
 fi
 unset -v cqrs_tmpdir
-
-mkdir -p "$GOCACHE" "$GOLANGCI_LINT_CACHE" 2>/dev/null || {
-	echo "go-env: WARN — could not create cache dirs under /home/lars/projects" >&2
-}
 
 unset -f go_env_set go_env_repo_root
