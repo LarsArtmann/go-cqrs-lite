@@ -145,6 +145,9 @@ jobs:
       # The pre-commit hook only formats staged .sh files, so drift can creep
       # in from unstaged edits and other tools (root cause of the 4x map-key
       # mangling). This checks the whole scripts/ tree every push.
+      # ALWAYS format scripts/ with `nix shell nixpkgs#shfmt` (3.14.1), NEVER
+      # ~/.local/bin/shfmt (3.13.1): the two disagree on heredoc-then
+      # placement and red'd this job twice (2026-10-14).
       - name: shfmt diff check on scripts/
         run: nix shell nixpkgs#shfmt --command shfmt -d scripts/
 

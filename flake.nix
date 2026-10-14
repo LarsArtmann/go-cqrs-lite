@@ -668,13 +668,6 @@
               goimports.enable = true;
               golines.enable = true;
               nixfmt.enable = true;
-              # Shell scripts: shfmt as a treefmt program makes `nix fmt`
-              # (this flake.lock-pinned version) the ONE authority — before
-              # this, CI's drift job ran ROLLING `nix shell nixpkgs#shfmt`
-              # while sessions formatted with local binaries, and the skew
-              # red'd CI twice (probe-proxy-tags.sh heredoc-then placement,
-              # 3.13.1 vs 3.14.1, 2026-10-14).
-              shfmt.enable = true;
             };
             # Align goimports with gci's prefix(github.com/larsartmann/go-cqrs-lite)
             # section so both tools produce the same 3-group import layout.
