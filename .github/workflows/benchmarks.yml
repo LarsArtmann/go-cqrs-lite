@@ -239,7 +239,14 @@ jobs:
         if: ${{ !cancelled() }} # D3: refresh even on breach — a failed gate must not freeze the baseline artifact
         run: |
           mkdir -p baseline
-          cp current.txt baseline/baseline.txt
+          # A noise-gate failure kills the job BEFORE the gate-benchmark step
+          # produces current.txt — refreshing then would cp a nonexistent
+          # file and mask the real failure. Nothing to refresh in that case.
+          if [ -f current.txt ]; then
+            cp current.txt baseline/baseline.txt
+          else
+            echo "no current.txt (job failed before gate benchmarks ran) — baseline not refreshed"
+          fi
 
       - name: Upload baseline
         if: ${{ !cancelled() }}
