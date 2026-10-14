@@ -104,7 +104,9 @@ func TestSchemaDeclarations_BuilderDerivesDecoderAndChain(t *testing.T) {
 	for time.Now().Before(deadline) {
 		for _, s := range sys.ProjectionHost().Status() {
 			if s.Processed >= 1 && s.Errors == 0 {
-				result, err := sys.MetaEngine().Execute(lookupByID{ID: streamID.String()})
+				// EventWithID.ID is the bare stream value (Get()), so the
+				// lookup key must be the same form — not String() display.
+				result, err := sys.MetaEngine().Execute(lookupByID{ID: streamID.Get()})
 				if err != nil {
 					t.Fatalf("Execute: %v", err)
 				}

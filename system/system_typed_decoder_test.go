@@ -113,10 +113,12 @@ func TestSystem_ProjectionTypeDecoder_MapByKey(t *testing.T) {
 	for time.Now().Before(deadline) {
 		for _, s := range sys.ProjectionHost().Status() {
 			if s.Processed >= 1 && s.Errors == 0 {
-				// Query by the STREAM ID — this is the key proof.
+				// Query by the bare STREAM ID value — this is the key proof.
+				// EventWithID.ID carries StreamID.Get() (the form commands
+				// dispatch on), not the "StreamMarker:..." display form.
 				// With PayloadDecoder, the key would be "" (empty string)
 				// because the decoder has no access to evt.StreamID().
-				result, err := sys.MetaEngine().Execute(findByID{ID: streamID.String()})
+				result, err := sys.MetaEngine().Execute(findByID{ID: streamID.Get()})
 				if err != nil {
 					t.Fatalf("store.Execute by stream ID: %v", err)
 				}
@@ -126,8 +128,8 @@ func TestSystem_ProjectionTypeDecoder_MapByKey(t *testing.T) {
 					t.Fatalf("expected itemView, got %T", result)
 				}
 
-				if view.ID != streamID.String() {
-					t.Fatalf("view.ID = %q, want stream ID %q", view.ID, streamID.String())
+				if view.ID != streamID.Get() {
+					t.Fatalf("view.ID = %q, want stream ID %q", view.ID, streamID.Get())
 				}
 
 				if view.Name != "widget" {
@@ -169,7 +171,7 @@ func TestSystem_ProjectionEventDecoder(t *testing.T) {
 		}
 
 		return projectionadapter.EventWithID[itemCreatedEvt]{
-			ID:      evt.StreamID().String(),
+			ID:      evt.StreamID().Get(),
 			Payload: itemCreatedEvt{Name: "custom-decoded"},
 		}, nil
 	}
@@ -226,7 +228,7 @@ func TestSystem_ProjectionEventDecoder(t *testing.T) {
 	for time.Now().Before(deadline) {
 		for _, s := range sys.ProjectionHost().Status() {
 			if s.Processed >= 1 && s.Errors == 0 {
-				result, err := sys.MetaEngine().Execute(findByID{ID: streamID.String()})
+				result, err := sys.MetaEngine().Execute(findByID{ID: streamID.Get()})
 				if err != nil {
 					t.Fatalf("store.Execute: %v", err)
 				}

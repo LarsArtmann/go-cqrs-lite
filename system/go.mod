@@ -111,3 +111,8 @@ replace github.com/larsartmann/go-cqrs-lite/claiming/v4 => ../claiming
 replace github.com/larsartmann/go-cqrs-lite/scheduling/engine/v4 => ../scheduling/engine
 
 replace github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 => ../metaengine/sqliteengine
+
+// Sibling replace for the EventWithID bare-key contract (ID = StreamID.Get(),
+// not the String() display form); stripped by tag-release.sh at cut time
+// (projectionadapter+system co-release).
+replace github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 => ../metaengine/projectionadapter
