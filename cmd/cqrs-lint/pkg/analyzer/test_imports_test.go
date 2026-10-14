@@ -4,6 +4,7 @@ import (
 	"go/token"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 )
@@ -189,13 +190,7 @@ func TestCollectTestImportPaths_MonorepoNestedModules(t *testing.T) {
 		t.Fatalf("CollectTestImportPaths: %v", err)
 	}
 
-	found := false
-	for _, p := range testImports {
-		if p == "github.com/larsartmann/go-cqrs-lite/systemscenario/v4" {
-			found = true
-			break
-		}
-	}
+	found := slices.Contains(testImports, "github.com/larsartmann/go-cqrs-lite/systemscenario/v4")
 	if !found {
 		t.Fatalf("inner module test import not collected: %v", testImports)
 	}
