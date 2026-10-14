@@ -131,7 +131,13 @@ jobs:
           files: coverage.out
           fail_ci_if_error: false
 
-    timeout-minutes: 15
+    # 2026-10-14 evidence (run 38619781576 step timeline): cold fmt+build+vet
+    # consumed ~6m, test 7m49s, and the 15m wall fell 2m22s into the race leg
+    # (which carries its own -timeout=30m, as does test) with lint + ~18 gates
+    # + coverage generation still pending. 15m was sized for a smaller suite;
+    # 60m matches the composed cold reality (verify-fast's 45m budget + the
+    # extra gate/coverage steps this job runs on top of it).
+    timeout-minutes: 60
 
   shfmt-drift:
     name: Shell Format Drift (shfmt)
@@ -535,7 +541,12 @@ jobs:
           path: benchmark-results.txt
           retention-days: 30
 
-    timeout-minutes: 15
+    # 2026-10-14 evidence: runs 38592413377 and 38619781576 both hit the old
+    # 15m wall mid-sweep (~9m cold setup + benchmarks still running). The
+    # internal go bench timeout is itself 30m (#bench: go test -bench
+    # -timeout=30m), so 15m could never hold; 45m covers setup + the full
+    # sweep (matches the Benchmark Matrix job budget in benchmarks.yml).
+    timeout-minutes: 45
   gosec:
     name: Security Scan (gosec)
     runs-on: ubuntu-latest
