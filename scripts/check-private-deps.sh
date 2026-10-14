@@ -44,6 +44,7 @@ AUDITED_PUBLIC=(
 	github.com/larsartmann/go-output
 	github.com/larsartmann/go-retry
 	github.com/larsartmann/go-sse
+	github.com/larsartmann/go-sqlitestore
 	github.com/larsartmann/samber-do-auditlog
 	github.com/larsartmann/templ-components
 )
