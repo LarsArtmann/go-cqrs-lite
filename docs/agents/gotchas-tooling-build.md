@@ -336,3 +336,39 @@ Two micro-disciplines that each cost a failed edit this stream:
   Before chasing coverage drift: check load history, check the modules'
   recent commits, and RE-RUN the gate quietly — only a stable reproduction
   justifies a re-pin.
+- **The CI workflow had NEVER been green (0/1736 runs) and the structural
+  wall was job timeouts, not test content (2026-10-14)** — the `check` (Nix
+  Flake Check) job's 15-min budget cold-covered only through ~2 min of the
+  race leg (fmt 0:25 + build 3:13 + vet 0:59 + test 7:49 observed in run
+  38619781576; test and race each carry their own `-timeout=30m`), and the
+  informational `benchmark` job (15 min) can never hold `#bench`'s internal
+  30-min go timeout plus ~9 min cold setup. Raised check 15→60 and benchmark
+  15→45 with evidence comments in ci.yml. COROLLARY: the check-job TAIL
+  (lint onward, ~18 gate steps) had NEVER executed in CI — before declaring
+  a tree referee-ready, pre-verify those steps locally (they are exactly the
+  scripts `nix run .#check-*` wraps); the first such sweep caught the
+  engine-caps red below, hidden for 4 days behind the timeout wall.
+- **Never formatter-align GENERATED docs — regenerate them (2026-10-14)** —
+  docs/engine-capabilities.md is emitted by
+  scripts/check-engine-capabilities.sh with UNALIGNED single-space pipe
+  tables; the aligned/padded form that landed in 9d31b8e07 (2026-10-10,
+  dprint's markdown plugin is configured at repo root — or hand-alignment)
+  broke the gate's textual diff for 4 days, invisibly, because the gate runs
+  ONLY in the CI check job (behind the timeout wall above) and in NO local
+  verify chain (`#verify`/`#verify-fast` do not include
+  check-engine-capabilities). Fixed via `--update` regen; the doc is now in
+  dprint.json excludes. RULE: single-source generated docs
+  (engine-capabilities.md, canonical-facts output, api-stability goldens)
+  regenerate — never hand- or formatter-align, and when adding a new
+  script-generated doc, exclude it from every formatter on day one.
+- **Autoretry does NOT cancel CI runs (suspicion refuted 2026-10-14)** —
+  autoretry.yml has no `concurrency:` block (so its own runs share no group)
+  and only calls rerun-failed-jobs guarded on conclusion=failure &&
+  attempt=1; the rerun of referee #2 (attempt 2, 16:24→16:54Z) completed
+  hours before run #3 even started. Run #3's "cancelled" conclusion
+  decomposes entirely into two 15-min job timeouts (Perf Benchmarks 15m14s,
+  Nix Flake Check 15m13s — staggered starts, both wall-clock ~15m) plus one
+  genuine Verify-fast coverage failure. A job-level timeout shows
+  conclusion=cancelled with "##[error]The operation was canceled" — do not
+  read "cancelled" as an external kill without checking step timelines
+  (`gh api .../jobs/$ID --jq '.steps[]'`).

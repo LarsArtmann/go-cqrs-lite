@@ -1217,6 +1217,16 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       `nix fmt --fail-on-change scripts/`. Decide: pin treefmt options vs
       accept `-s` semantics repo-wide vs leave the CLI-only rule.
       — source: 2026-10-14 evening session _(Effort: M)_
+- [ ] **CI check-job duplication: 60-min cold composed suite per push (owner
+      decision)** — the `check` (Nix Flake Check) job's timeout rose 15→60 on
+      2026-10-14 (structural wall; the CI workflow had never been green) and
+      it re-runs what verify-fast (45 min), per-module matrix jobs, and the
+      standalone gate jobs already cover, plus its 18-step tail that nothing
+      else runs. Decide: slim `check` to fmt + the tail-only gates (heap,
+      taxonomy, ADR, engine-caps, doc-check, doc-assertions, coverage-gen)
+      and leave build/test/race/lint to the dedicated jobs, or accept ~1
+      runner-hour per push until FlakeHub caching is decided (ci.yml's parked
+      note at the top). — source: 2026-10-14 late session _(Effort: S-M)_
 - [ ] **dupe-signal: `--keep-v5` flag + one-time suppressed-group audit by the
       v5 owner** — the wrapper suppresses ALL intra-core/v5 groups by default;
       twins like `MetadataCarrier` (core/v5/command vs core/v5/query) may be
