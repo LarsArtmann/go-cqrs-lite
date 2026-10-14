@@ -928,7 +928,11 @@ func TestRun_ClosedStore_ErrorMessage(t *testing.T) {
 // ── Compare with 3+ backends ──
 
 func TestCompare_ThreeBackends(t *testing.T) {
-	ctx, cancel := parallelTimeoutCtx(t, 60*time.Second)
+	// 150s matches the heavy-suite precedent above: three full bundles
+	// (memory+sqlite CGO+pebble) blew the old 60s deadline under CI runner
+	// contention (observed 60.36s deadline-exceeded on 2026-10-14) while
+	// taking ~30s locally under host load.
+	ctx, cancel := parallelTimeoutCtx(t, 150*time.Second)
 	defer cancel()
 
 	dir := t.TempDir()
