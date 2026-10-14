@@ -68,7 +68,7 @@ chain_main() {
 	# Mandatory env chain (docs/agents/gowork-modes.md): the ambient session
 	# can carry GOTOOLCHAIN=local and broken cache paths that poison builds.
 	source "$SCRIPT_DIR/go-env.sh" 2>/dev/null
-	cd "$REPO"
+	cd "$REPO" || return 1
 
 	if [ -n "$GATE_CMD" ]; then
 		bash -c "$GATE_CMD" || {
@@ -99,6 +99,13 @@ self_test() {
 		fi
 	}
 
+	check_eq() { # $1=desc $2=actual $3=expected
+		if [ "$2" != "$3" ]; then
+			echo "  ✗ FAIL: $1 (got '$2' want '$3')" >&2
+			rc=1
+		fi
+	}
+
 	bash -n "$SCRIPT_DIR/verify-chain.sh"
 	check "syntax" $?
 
@@ -118,53 +125,48 @@ self_test() {
 	chmod +x "$tmp/pass"
 	counter_stub "$tmp/cov" 0 0
 	counter_stub "$tmp/ver" 0 0
-	GATE_CMD="$tmp/pass" COVERAGE_CMD="$tmp/cov.stub" \
-		VERIFY_CMD="$tmp/ver.stub" VERIFY_CHAIN_RETRY_SLEEP=0 \
+	VERIFY_CHAIN_GATE_CMD="$tmp/pass" VERIFY_CHAIN_COVERAGE_CMD="$tmp/cov.stub" \
+		VERIFY_CHAIN_VERIFY_CMD="$tmp/ver.stub" VERIFY_CHAIN_RETRY_SLEEP=0 \
 		bash "$SCRIPT_DIR/verify-chain.sh" >/dev/null 2>&1
 	check "all-green chain exits 0" $?
-	[ "$(cat "$tmp/cov" 2>/dev/null || echo 0)" = "1" ]
-	check "coverage step ran exactly once" $?
-	[ "$(cat "$tmp/ver" 2>/dev/null || echo 0)" = "1" ]
-	check "verify step ran exactly once" $?
+	check_eq "coverage step ran exactly once" "$(cat "$tmp/cov" 2>/dev/null || echo 0)" "1"
+	check_eq "verify step ran exactly once" "$(cat "$tmp/ver" 2>/dev/null || echo 0)" "1"
 
 	# T2: two guard refusals then success -> chain exits 0 after retries.
 	counter_stub "$tmp/cov2" 2 12
-	GATE_CMD="$tmp/pass" COVERAGE_CMD="$tmp/cov2.stub" \
-		VERIFY_CMD="$tmp/pass" VERIFY_CHAIN_RETRY_SLEEP=0 \
+	VERIFY_CHAIN_GATE_CMD="$tmp/pass" VERIFY_CHAIN_COVERAGE_CMD="$tmp/cov2.stub" \
+		VERIFY_CHAIN_VERIFY_CMD="$tmp/pass" VERIFY_CHAIN_RETRY_SLEEP=0 \
 		bash "$SCRIPT_DIR/verify-chain.sh" >/dev/null 2>&1
 	check "refused-then-green step exits 0" $?
-	[ "$(cat "$tmp/cov2")" = "3" ]
-	check "step attempted 3 times (2 refusals + 1 green)" $?
+	check_eq "step attempted 3 times (2 refusals + 1 green)" "$(cat "$tmp/cov2")" "3"
 
 	# T3: REAL failure (rc=1) -> immediate stop, exactly one attempt.
 	counter_stub "$tmp/cov3" 99 1
-	GATE_CMD="$tmp/pass" COVERAGE_CMD="$tmp/cov3.stub" \
-		VERIFY_CMD="$tmp/pass" VERIFY_CHAIN_RETRY_SLEEP=0 \
+	VERIFY_CHAIN_GATE_CMD="$tmp/pass" VERIFY_CHAIN_COVERAGE_CMD="$tmp/cov3.stub" \
+		VERIFY_CHAIN_VERIFY_CMD="$tmp/pass" VERIFY_CHAIN_RETRY_SLEEP=0 \
 		bash "$SCRIPT_DIR/verify-chain.sh" >/dev/null 2>&1
 	want_fail=$? # expect nonzero
 	[ "$want_fail" -ne 0 ]
 	check "real gate failure fails the chain" $?
-	[ "$(cat "$tmp/cov3")" = "1" ]
-	check "real failure not retried (1 attempt)" $?
+	check_eq "real failure not retried (1 attempt)" "$(cat "$tmp/cov3")" "1"
 
 	# T4: permanent refusal exhausts the retry budget -> chain fails.
 	counter_stub "$tmp/cov4" 99 12
-	GATE_CMD="$tmp/pass" COVERAGE_CMD="$tmp/cov4.stub" \
-		VERIFY_CMD="$tmp/pass" VERIFY_CHAIN_RETRY_SLEEP=0 \
+	VERIFY_CHAIN_GATE_CMD="$tmp/pass" VERIFY_CHAIN_COVERAGE_CMD="$tmp/cov4.stub" \
+		VERIFY_CHAIN_VERIFY_CMD="$tmp/pass" VERIFY_CHAIN_RETRY_SLEEP=0 \
 		VERIFY_CHAIN_MAX_RETRIES=2 \
 		bash "$SCRIPT_DIR/verify-chain.sh" >/dev/null 2>&1
 	want_fail=$?
 	[ "$want_fail" -ne 0 ]
 	check "retry exhaustion fails the chain" $?
-	[ "$(cat "$tmp/cov4")" = "2" ]
-	check "budget respected (2 attempts, then exhaustion)" $?
+	check_eq "budget respected (2 attempts, then exhaustion)" "$(cat "$tmp/cov4")" "2"
 
 	# T5: gate never green -> chain fails BEFORE coverage runs.
 	printf '#!/usr/bin/env bash\nexit 1\n' >"$tmp/failgate"
 	chmod +x "$tmp/failgate"
 	counter_stub "$tmp/cov5" 0 0
-	GATE_CMD="$tmp/failgate" COVERAGE_CMD="$tmp/cov5.stub" \
-		VERIFY_CMD="$tmp/pass" VERIFY_CHAIN_RETRY_SLEEP=0 \
+	VERIFY_CHAIN_GATE_CMD="$tmp/failgate" VERIFY_CHAIN_COVERAGE_CMD="$tmp/cov5.stub" \
+		VERIFY_CHAIN_VERIFY_CMD="$tmp/pass" VERIFY_CHAIN_RETRY_SLEEP=0 \
 		bash "$SCRIPT_DIR/verify-chain.sh" >/dev/null 2>&1
 	want_fail=$?
 	[ "$want_fail" -ne 0 ]
