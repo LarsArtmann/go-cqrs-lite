@@ -37,9 +37,9 @@ func TestEventCatalogErrorsPage_Renders(t *testing.T) {
 	t.Parallel()
 
 	srv := NewDocsServer(testProvider, Config{
-		ServiceName:             "Test",
-		Version:                 "1.0.0",
-		EventCatalogErrorsFile:  errorflowFixture(t, errorflowFixtureBody),
+		ServiceName:            "Test",
+		Version:                "1.0.0",
+		EventCatalogErrorsFile: errorflowFixture(t, errorflowFixtureBody),
 	})
 	mux := http.NewServeMux()
 	srv.RegisterRoutes(mux)

@@ -52,35 +52,14 @@ func NewExporter(outputDir string, opts ...Option) *Exporter {
 
 // Export writes all services, messages, and schemas as MDX files to the output directory.
 func (e *Exporter) Export(cat *catalog.Catalog) error { //nolint:cyclop,gocyclo // linear pipeline
-	if e.errorflowPath != "" {
-		export, err := readErrorflowFile(e.errorflowPath)
-		if err != nil {
-			return err
-		}
-		e.errorflow = export
+	if err := e.loadErrorflow(); err != nil {
+		return err
 	}
 
 	enriched := autoDeriveProducersConsumers(cat)
 
-	for _, svc := range enriched.Services {
-		if err := rejectUnsupportedBaseConfig(
-			"service",
-			string(svc.ID),
-			svc.BaseConfig,
-		); err != nil {
-			return err
-		}
-
-		err := e.writeService(svc)
-		if err != nil {
-			return errorfamily.Newf(
-				errorfamily.Infrastructure,
-				"catalog.exporter.1",
-				"write service %s: %v",
-				svc.ID,
-				err,
-			)
-		}
+	if err := e.exportServices(enriched.Services); err != nil {
+		return err
 	}
 
 	if err := e.writeAllMessages(enriched); err != nil {
@@ -274,6 +253,50 @@ func (e *Exporter) Export(cat *catalog.Catalog) error { //nolint:cyclop,gocyclo 
 	// exports, so a hub diffing catalog.index.json never sees a manifest
 	// that describes a half-written tree.
 	return e.writeIndexManifest(enriched)
+}
+
+// loadErrorflow reads the configured erraudit errorflow export
+// (WithErrorflowFile) before any page is written: every service page may
+// embed it as x-errors frontmatter. A nil errorflow means nothing is
+// attached (schema contract in errorflow.go).
+func (e *Exporter) loadErrorflow() error {
+	if e.errorflowPath == "" {
+		return nil
+	}
+
+	export, err := readErrorflowFile(e.errorflowPath)
+	if err != nil {
+		return err
+	}
+	e.errorflow = export
+
+	return nil
+}
+
+// exportServices rejects unsupported service base configs, then writes
+// every service page.
+func (e *Exporter) exportServices(services []catalog.Service) error {
+	for _, svc := range services {
+		if err := rejectUnsupportedBaseConfig(
+			"service",
+			string(svc.ID),
+			svc.BaseConfig,
+		); err != nil {
+			return err
+		}
+
+		if err := e.writeService(svc); err != nil {
+			return errorfamily.Newf(
+				errorfamily.Infrastructure,
+				"catalog.exporter.1",
+				"write service %s: %v",
+				svc.ID,
+				err,
+			)
+		}
+	}
+
+	return nil
 }
 
 func (e *Exporter) writeService(svc catalog.Service) error {

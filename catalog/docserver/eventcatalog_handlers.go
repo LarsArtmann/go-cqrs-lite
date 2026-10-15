@@ -28,7 +28,11 @@ func (ds *DocsServer) serveEventCatalogErrors(w http.ResponseWriter, r *http.Req
 		flow, readErr = eventcatalog.ReadErrorflow(path)
 	}
 
-	ds.renderComponent(w, r, EventCatalogErrorsPage(newEventCatalogErrorsDetail(ds.config, flow, readErr)))
+	ds.renderComponent(
+		w,
+		r,
+		EventCatalogErrorsPage(newEventCatalogErrorsDetail(ds.config, flow, readErr)),
+	)
 }
 
 func (ds *DocsServer) serveEventCatalogMessage(w http.ResponseWriter, r *http.Request) {

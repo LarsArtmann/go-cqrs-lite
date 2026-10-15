@@ -33,11 +33,11 @@ type eventCatalogErrorsDetail struct {
 	// (Config.EventCatalogErrorsFile set but broken).
 	ReadError string
 	// Attached is false when no errorflow file is configured at all.
-	Attached  bool
-	FileName  string
-	Package   string
-	FilesScan int
-	Total     int
+	Attached     bool
+	FileName     string
+	Package      string
+	FilesScan    int
+	Total        int
 	Referenced   int
 	Unreferenced int
 }
@@ -45,7 +45,11 @@ type eventCatalogErrorsDetail struct {
 // newEventCatalogErrorsDetail projects an errorflow export (or its
 // absence/failure) into the page view model. Attached is derived: a nil
 // flow with no read error means no file was configured at all.
-func newEventCatalogErrorsDetail(cfg Config, flow *eventcatalog.Errorflow, readErr error) eventCatalogErrorsDetail {
+func newEventCatalogErrorsDetail(
+	cfg Config,
+	flow *eventcatalog.Errorflow,
+	readErr error,
+) eventCatalogErrorsDetail {
 	detail := eventCatalogErrorsDetail{
 		Brand:    cfg.ServiceName,
 		DocsPath: cfg.DocsPath,
@@ -57,6 +61,7 @@ func newEventCatalogErrorsDetail(cfg Config, flow *eventcatalog.Errorflow, readE
 
 		return detail
 	}
+
 	if flow == nil {
 		return detail
 	}

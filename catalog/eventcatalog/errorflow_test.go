@@ -63,7 +63,10 @@ func writeErrorflowFixture(t *testing.T) string {
 func TestErrorflow_ServiceFrontmatterCarriesXErrors(t *testing.T) {
 	tmpDir := t.TempDir()
 
-	exp := eventcatalog.NewExporter(tmpDir, eventcatalog.WithErrorflowFile(writeErrorflowFixture(t)))
+	exp := eventcatalog.NewExporter(
+		tmpDir,
+		eventcatalog.WithErrorflowFile(writeErrorflowFixture(t)),
+	)
 	if err := exp.Export(cattest.BuildTestCatalog()); err != nil {
 		t.Fatalf("export: %v", err)
 	}
@@ -105,7 +108,10 @@ func TestErrorflow_ServiceFrontmatterCarriesXErrors(t *testing.T) {
 func TestErrorflow_XKeyToleranceContract(t *testing.T) {
 	tmpDir := t.TempDir()
 
-	exp := eventcatalog.NewExporter(tmpDir, eventcatalog.WithErrorflowFile(writeErrorflowFixture(t)))
+	exp := eventcatalog.NewExporter(
+		tmpDir,
+		eventcatalog.WithErrorflowFile(writeErrorflowFixture(t)),
+	)
 	if err := exp.Export(cattest.BuildTestCatalog()); err != nil {
 		t.Fatalf("export: %v", err)
 	}
@@ -138,7 +144,10 @@ func TestErrorflow_XKeyToleranceContract(t *testing.T) {
 			continue
 		}
 		if strings.HasPrefix(line, "errors:") {
-			t.Errorf("bare `errors:` key in frontmatter breaks the x-key tolerance contract:\n%s", line)
+			t.Errorf(
+				"bare `errors:` key in frontmatter breaks the x-key tolerance contract:\n%s",
+				line,
+			)
 		}
 	}
 }
@@ -146,7 +155,10 @@ func TestErrorflow_XKeyToleranceContract(t *testing.T) {
 func TestErrorflow_ManifestCarriesErrorSurface(t *testing.T) {
 	tmpDir := t.TempDir()
 
-	exp := eventcatalog.NewExporter(tmpDir, eventcatalog.WithErrorflowFile(writeErrorflowFixture(t)))
+	exp := eventcatalog.NewExporter(
+		tmpDir,
+		eventcatalog.WithErrorflowFile(writeErrorflowFixture(t)),
+	)
 	if err := exp.Export(cattest.BuildTestCatalog()); err != nil {
 		t.Fatalf("export: %v", err)
 	}
@@ -229,7 +241,10 @@ func TestErrorflow_MissingFileRejected(t *testing.T) {
 func TestErrorflow_ErrorflowModuleScopedSurface(t *testing.T) {
 	tmpDir := t.TempDir()
 
-	exp := eventcatalog.NewExporter(tmpDir, eventcatalog.WithErrorflowFile(writeErrorflowFixture(t)))
+	exp := eventcatalog.NewExporter(
+		tmpDir,
+		eventcatalog.WithErrorflowFile(writeErrorflowFixture(t)),
+	)
 	if err := exp.Export(cattest.BuildTestCatalog()); err != nil {
 		t.Fatalf("export: %v", err)
 	}

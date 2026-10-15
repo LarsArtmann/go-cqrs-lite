@@ -16,7 +16,7 @@ import (
 // exactly (verified against core 5.1.1's generated adrs collection schema,
 // 2026-10-15). Values outside these sets fail the downstream build, so the
 // exporter rejects them here with a precise message instead.
-var adrStatuses = map[catalog.ADRStatus]struct{}{
+var adrStatuses = map[catalog.ADRStatus]struct{}{ //nolint:gochecknoglobals // static vocabulary set, immutable by contract
 	catalog.ADRProposed:   {},
 	catalog.ADRAccepted:   {},
 	catalog.ADRRejected:   {},
@@ -24,7 +24,7 @@ var adrStatuses = map[catalog.ADRStatus]struct{}{
 	catalog.ADRSuperseded: {},
 }
 
-var adrResourceTypes = map[catalog.ADRResourceType]struct{}{
+var adrResourceTypes = map[catalog.ADRResourceType]struct{}{ //nolint:gochecknoglobals // static vocabulary set, immutable by contract
 	catalog.ADRAppliesToAgent:       {},
 	catalog.ADRAppliesToService:     {},
 	catalog.ADRAppliesToEvent:       {},
@@ -59,8 +59,13 @@ func validateADR(adr catalog.ADR) error {
 	}
 
 	if _, ok := adrStatuses[adr.Status]; !ok {
-		return errorfamily.Newf(errorfamily.Rejection, "catalog.exporter_adr.2",
-			"ADR %s: status %q is not one of proposed|accepted|rejected|deprecated|superseded", adr.ID, adr.Status)
+		return errorfamily.Newf(
+			errorfamily.Rejection,
+			"catalog.exporter_adr.2",
+			"ADR %s: status %q is not one of proposed|accepted|rejected|deprecated|superseded",
+			adr.ID,
+			adr.Status,
+		)
 	}
 
 	if _, err := time.Parse(time.DateOnly, adr.Date); err != nil {
