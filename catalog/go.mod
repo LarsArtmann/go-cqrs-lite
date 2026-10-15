@@ -16,7 +16,7 @@ require (
 	github.com/larsartmann/templ-components v1.22.0
 	github.com/larsartmann/templ-components/icons v1.22.0
 	github.com/larsartmann/templ-components/utils v1.22.0
-	github.com/onsi/ginkgo/v2 v2.33.0
+	github.com/onsi/ginkgo/v2 v2.33.1
 	github.com/onsi/gomega v1.44.0
 )
 
@@ -60,6 +60,6 @@ require (
 	golang.org/x/sync v0.24.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
 	golang.org/x/text v0.43.0 // indirect
-	golang.org/x/tools v0.51.0 // indirect
+	golang.org/x/tools v0.52.0 // indirect
 	google.golang.org/protobuf v1.36.12 // indirect
 )
