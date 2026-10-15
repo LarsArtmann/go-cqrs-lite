@@ -1254,14 +1254,18 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       34548534824, run 34747274058, `gh run list`
       _(Effort: M-L, multi-session; the cache-backend migration is the
       single highest-leverage repair)_
-- [ ] **Verify the armed error-audit gate green on main** — 2026-10-15:
+- [x] **Verify the armed error-audit gate green on main** — 2026-10-15:
       the gate no longer waits for the `ERRAUDIT_PAT` secret (never set, and
       the Forgejo mirror is unreachable from GitHub-hosted runners); it now
       builds erraudit v0.6.1 from the vendored source tarball in
       `tools/erraudit/` with zero credentials. Local re-verification via
       `scripts/erraudit-sweep.sh`: all 104 modules clean under
       `erraudit lint ./... --enforce-go-error-family --type-aware`.
-      Watching the first armed CI run. — source: 08-05 §f12/§f19,
+      GREEN 2026-10-15: run 38786710130 (commit 3cb0e8d43), job "Error
+      Audit (erraudit)" — vendored-source install + per-module enforcement
+      both success. (The crafted lint tarball — portfolio detached, SDK
+      stripped — was briefly deleted in f1f0e82d5 and restored in
+      90e1b217b.) — source: 08-05 §f12/§f19,
       SUPERB T1 (2026-10-15) _(Effort: S)_
 - [ ] **Green MySQL-VM shuffled suite in the quiet window** — two attempts
       died ~15s in with transport-level resets on DIFFERENT modules/seeds
