@@ -1,7 +1,7 @@
 
 [TestGolden_EventCatalog_IndexManifest - 1]
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "resources": [
     {
       "id": "order-svc",

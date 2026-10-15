@@ -45,8 +45,11 @@ func TestIndexManifest_CoversEveryResourceKind(t *testing.T) {
 		}
 	}
 
-	if !strings.Contains(manifest, `"schemaVersion": 1`) {
+	if !strings.Contains(manifest, `"schemaVersion": 2`) {
 		t.Errorf("manifest missing schemaVersion:\n%s", manifest)
+	}
+	if strings.Contains(manifest, `"errorSurface"`) {
+		t.Errorf("plain export (no errorflow attachment) must not carry errorSurface:\n%s", manifest)
 	}
 }
 
