@@ -81,6 +81,8 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 [GitHub issue backlog](#github-issue-backlog-2026-09-30-plan) ·
 [New consumer issues](#new-consumer-issues-2026-10-03-triage) ·
 [Data-mesh & federation tail](#data-mesh--federation-tail-2026-09-24) ·
+[EventCatalog v5 licence](#eventcatalog-upstream-v5-licence-shift-2026-10-15) ·
+[Upstream asks (hub)](#upstream-asks-from-eventcatalog-hub-harvested-2026-10-15) ·
 [Metaengine Universal Storage Substrate](#metaengine-universal-storage-substrate-proposed-2026-09-18) ·
 [V5 schema evolution](#v5-declarative-schema-evolution-proposed-2026-10-09) ·
 [Durable Work Queue](#durable-work-queue-module-proposed-2026-09-13) ·
@@ -244,6 +246,77 @@ mesh-demo onboarding) lives in the eventcatalog-hub repo. Execution evidence:
       subscription, and the contract universe composes cleanly over a memory
       engine (`TestGate_TypoCaught`/`TestGate_ContractUniverseComposes`; CHANGELOG
       `[Unreleased]` receipt). — source: 12-26 §f22, 13-32 §f20
+
+---
+
+## EventCatalog upstream v5 licence shift (2026-10-15)
+
+EventCatalog v5 (released 2026-09-24) moved to BSL 1.1; v4 stays MIT but receives
+critical-security fixes only until ~2027-03-24, then EOL. Full analysis in
+[`catalog/AGENTS.md`](catalog/AGENTS.md) ("Upstream v5 licence shift"). Nothing
+breaks today — the `^4.6.3` caret never jumps majors. Decision deadline: before
+v4 EOL (March 2027).
+
+- [ ] **Decide the `@eventcatalog/core` pin strategy before v4 EOL** — options:
+  (a) stay on 4.6.3 indefinitely (MIT, works forever, but the agent-changelog
+  crash workaround and the 3 cosmetic sidebar WARNs are permanent, and no
+  security fixes after 2027-03-24); (b) bump to v5 — now chiefly a TIMING +
+  re-verification decision, not a licence one (see receipt below), and a
+  COORDINATED cross-repo change: eventcatalog-hub builds our exported trees
+  under its own core pin (its standing guardrail: exporter + pin + lockfile +
+  rebuild, together). _(Effort: S for the decision; M for the bump if chosen)_
+  - **2026-10-15 (receipt, cross-repo):** the LICENCE leg is ANSWERED —
+    eventcatalog-hub's audit
+    (`~/projects/eventcatalog-hub/docs/research/2026-10-15_eventcatalog-deep-dive.html`)
+    records LarsArtmann qualifies for EventCatalog v5 Free Use (individual,
+    self-certified; free key from EventCatalog Cloud). De-risk evidence: the
+    hub already builds our v4-format exported trees under core `^5.0.1`
+    (hub package-lock, verified) with link-validation as CI gate — v5 parses
+    our emitted frontmatter empirically. MCP refinement: v5's BUILT-IN MCP
+    server requires SSR (verified NO-GO for static serving — our recommended
+    deploy shape); the standalone `@eventcatalog/mcp-server` consumes
+    `llms.txt`, which we already emit — agent-surface value is NOT
+    bump-gated. Custom-docs routing under v5 confirmed live in the hub
+    deployment (`/docs/custom/*`). Still open for bump time: does v5 fix the
+    agent-changelog crash + 3 sidebar WARNs; full zod/goldens re-verification.
+
+---
+
+## Upstream asks from eventcatalog-hub (harvested 2026-10-15)
+
+Source: hub's v5 leverage plan
+(`~/projects/eventcatalog-hub/docs/planning/2026-10-15_18-22_pareto-eventcatalog-v5-leverage-plan.md`,
+built on its same-day deep-dive audit). The hub will file issues after its own
+verify-before-filing pass (plan task T7.4); these rows land them on OUR side of
+the boundary. Verified against this repo's source on 2026-10-15.
+
+- [ ] **ADR exporter contract (hub T7 → us): emit `adrs/` from this repo** —
+  the hub audit's top content gap: our ADRs (docs/adr/0xxx) are exactly what
+  an "ask your architecture" consumer wants, and core renders ADRs as
+  first-class resources. Blocked upstream-side until the hub confirms the
+  upstream ADR frontmatter schema (T7.1) and files the issue; our side then
+  needs a catalog API type + exporter emission + goldens. _(Effort: M;
+  blocked:upstream)_
+- [ ] **Flows pilot: one mesh-demo context flow (hub T9)** — the live hub
+  catalog renders "Flows: 0"; v5's swimlanes/grouping consume flow resources
+  no source emits. `example/mesh-demo` is ours: design one context flow
+  (orders gate) and emit it via the existing `catalog.Flow` support (shipped
+  2026-09-24 wave, incl. `Flow.Owners`). bank-sync's flow is the sibling
+  pilot in its own repo. _(Effort: M; can start now)_
+- [x] ~~**AsyncAPI/OpenAPI spec assessment (hub T15)** — hub believes spec
+      embedding is an exporter GAP.~~ **Half-wrong (verified 2026-10-15):**
+      `catalog/asyncapi/` and `catalog/openapi/` exist and export AsyncAPI
+      YAML + OpenAPI with golden coverage; the gap is that SOURCES don't
+      declare spec-bearing resources / the hub doesn't surface them — not a
+      missing exporter. Correct the hub's T15.2 inventory when its issue
+      arrives. _(Effort: XS to respond; can start now)_
+- [x] ~~**Systems/channels/entities "blocker is exporter support" (hub T18)** —~~
+      **Only true for SYSTEMS (verified 2026-10-15):** `catalog.Channel`
+      (types.go:193) + channel options/routes and `catalog.Entity`/
+      `catalog.Agent` (types_resources.go:23,51) are already first-class
+      exporter API; sources merely don't declare them. Systems have NO config
+      type yet — that's the one real exporter gap. Tell the hub before it
+      specs exporter work that exists. _(Effort: XS to respond; can start now)_
 
 ---
 
@@ -1102,10 +1175,15 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       34548534824, run 34747274058, `gh run list`
       _(Effort: M-L, multi-session; the cache-backend migration is the
       single highest-leverage repair)_
-- [ ] [BLOCKED] **Set the `ERRAUDIT_PAT` secret** (user action) — erraudit
-      findings verified zero across all modules 2026-09-15; the `error-audit`
-      CI job arms the moment the secret exists. — source: 08-05 §f12/§f19
-      _(Effort: S, user)_
+- [ ] **Verify the armed error-audit gate green on main** — 2026-10-15:
+      the gate no longer waits for the `ERRAUDIT_PAT` secret (never set, and
+      the Forgejo mirror is unreachable from GitHub-hosted runners); it now
+      builds erraudit v0.6.1 from the vendored source tarball in
+      `tools/erraudit/` with zero credentials. Local re-verification via
+      `scripts/erraudit-sweep.sh`: all 104 modules clean under
+      `erraudit lint ./... --enforce-go-error-family --type-aware`.
+      Watching the first armed CI run. — source: 08-05 §f12/§f19,
+      SUPERB T1 (2026-10-15) _(Effort: S)_
 - [ ] **Green MySQL-VM shuffled suite in the quiet window** — two attempts
       died ~15s in with transport-level resets on DIFFERENT modules/seeds
       (zero assertion failures; the documented semi-dead-VM/host-contention
