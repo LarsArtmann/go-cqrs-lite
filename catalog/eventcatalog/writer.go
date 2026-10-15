@@ -214,11 +214,7 @@ func (e *Exporter) writeConfig(cat *catalog.Catalog) error {
 		cfg.WriteString("  llmsTxt: { enabled: true },\n")
 		// Changelog pages are opt-in in EventCatalog
 		// (config.changelog.enabled defaults to false) — without this flag the
-		// exported changelog.mdx sidecar files never render. They stay disabled
-		// when the catalog contains agents: @eventcatalog/core 4.6.3 crashes
-		// rendering /docs/agents/<id>/<version>/changelog (getBadgeHref on an
-		// undefined badge) for ANY agent, with or without a changelog file.
-		// Drop this guard when bumping eventCatalogCoreVersion past a fix.
+		// exported changelog.mdx sidecar files never render.
 		if shouldEnableChangelog(cat) {
 			cfg.WriteString("  changelog: { enabled: true },\n")
 		}
@@ -235,11 +231,13 @@ func (e *Exporter) writeConfig(cat *catalog.Catalog) error {
 	return e.writePackageJSON(cat)
 }
 
+// shouldEnableChangelog reports whether the generated config should enable
+// changelog pages: exactly when the catalog carries changelog data. The
+// former agent exclusion worked around an @eventcatalog/core 4.6.3 crash
+// (getBadgeHref on an undefined badge); fixed upstream and verified on
+// 5.1.1 (2026-10-15: agents + changelog enabled builds clean, the agent
+// changelog pages render).
 func shouldEnableChangelog(cat *catalog.Catalog) bool {
-	if len(cat.Agents) > 0 {
-		return false
-	}
-
 	return catalogHasChangelogs(cat)
 }
 

@@ -69,14 +69,12 @@ fallbacks — keep both when adding pages.
   1.1 — source-available, free for individuals/OSS/orgs under $10M revenue
   AND under $10M raised (self-certified; Free Use for LarsArtmann CONFIRMED
   in the hub's 2026-10-15 audit); larger orgs pay per team. v4 stays MIT but
-  gets critical-security fixes only until ~2027-03-24 (6 months post-v5),
-  then EOL — the 4.6.3 functional bugs worked around below will never be
-  fixed on the v4 line. The `^4.6.3` caret never jumps majors, so existing
-  builds keep working; a pin bump to v5 is a TIMING + re-verification
-  decision (v5 zod schemas, React 19 clean-install upgrade), not a licence
-  one any more. Offsetting: v5 is one product — enterprise features fold in,
-  including routing standalone custom docs pages (see the custom-docs bullet
-  below).
+  got critical-security fixes only until ~2027-03-24 (6 months post-v5),
+  then EOL. Offsetting: v5 is one product — enterprise features fold in,
+  including routing standalone custom docs pages (verified: v5 community
+  builds route them at `/docs/custom/<slug>/`).
+  **BUMPED 2026-10-15: the pin is `^5.1.0`** (spike-verified end-to-end;
+  procedure + evidence in the pin-bump bullet below).
 - **First-party v5 consumer exists: eventcatalog-hub (2026-10-15).** The hub
   runs core `^5.0.1` and builds our v4-format exported trees under its
   link-validation-as-CI-gate — empirical evidence that v5 parses our emitted
@@ -86,7 +84,9 @@ fallbacks — keep both when adding pages.
   built-in v5 MCP server requires SSR (NO-GO for static serving), while the
   standalone `@eventcatalog/mcp-server` consumes the `llms.txt` this
   exporter already emits.
-- **Verified format contract (against core 4.6.3 zod schemas, 2026-09-23).**
+- **Verified format contract (against core 4.6.3 zod schemas 2026-09-23;
+  re-verified against 5.1.1 by the 2026-10-15 render-gate spike — every
+  contract point below builds clean under v5).**
   The exporter must keep honoring these or the downstream `eventcatalog build`
   hard-fails (`InvalidContentEntryDataError`) or silently strips data:
   - Pointer lists (`entities`, `flows`, `domains`, `data-products`, `sends`,
@@ -110,27 +110,46 @@ fallbacks — keep both when adding pages.
   string-based `catalog.ResourceGroup.Items` cannot express),
   `BaseConfig.DetailsPanel` (no equivalent; EventCatalog's is a per-section
   `{visible}` map), and `FlowStep.Channel` (no channel step kind exists).
-- **Known upstream bug (core 4.6.3):** enabling `changelog` in
-  `eventcatalog.config.js` crashes the build on ANY agent changelog page
-  (`getBadgeHref` on an undefined badge — with or without a changelog file).
-  `shouldEnableChangelog` (writer.go) keeps the flag off when the catalog has
-  agents; drop that guard (and the ec-fixture changelog profile) when bumping
-  past a fixed core release.
-- **Known upstream WARN (core 4.6.3), cosmetic:** with `changelog` enabled,
-  the build's link-validation logs 3 broken sidebar links
-  (`/docs/{channels,data-products,entities}/<id>/<version>/changelog`). The
-  changelog page route (`src/pages/docs/[type]/[id]/[version]/changelog/_index.data.ts`
+- **Known upstream bug — agent-changelog crash: FIXED in the 5.x line**
+  (verified 2026-10-15 on core 5.1.1). Core 4.6.3 crashed the build on ANY
+  agent changelog page (`getBadgeHref` on an undefined badge — with or
+  without a changelog file); `shouldEnableChangelog` (writer.go) kept the
+  flag off for agent catalogs until the 2026-10-15 v5 bump dropped the
+  guard. If a future pin regresses this: symptom = build crash on
+  `/docs/agents/<id>/<version>/changelog`; fix = re-add the agent exclusion
+  in `shouldEnableChangelog` plus an agents-free fixture profile.
+- **Known upstream WARN — 3-collection sidebar changelog links: OPEN in 5.1.1
+  (cosmetic).** With `changelog` enabled, link-validation logs broken sidebar
+  links `/docs/{channels,data-products,entities}/<id>/<version>/changelog`.
+  The changelog page route (`src/pages/docs/[type]/[id]/[version]/changelog/_index.data.ts`
   `itemTypes`) covers only agents/events/commands/queries/services/domains/
-  systems/flows/containers — but the entity/data-product sidebar builders and
-  `sidebar-store/state.ts` emit Changelog links for those 3 collections anyway.
-  Unfixable from exporter output (even a `changelog.mdx` cannot make the page
-  generate); the render gate must NOT fail on this WARN.
-- Custom docs export to `docs/<slug>/index.mdx`: collected by the community
-  build (and included for enterprise rendering), but standalone custom pages
-  are an EventCatalog enterprise feature — community builds do not route them.
-- The render gate (`nix run .#check-eventcatalog`) builds TWO fixture profiles
-  (default + changelog) and asserts schema-clean logs plus semantic artifacts
-  (channel message links, rendered changelog page). Extend `cmd/ec-fixture`
+  systems/flows/containers — but the channel/entity/data-product sidebar
+  builders emit Changelog links for those 3 collections anyway. Unfixable
+  from exporter output (even a `changelog.mdx` cannot make the page
+  generate); the render gate must NOT fail on this WARN (the fixture logs 4
+  such links across the 3 collections).
+- **Pin-bump procedure (executed 2026-10-15, `^4.6.3` → `^5.1.0`; reuse for
+  the next bump):** (1) scratch worktree + bump `eventCatalogCoreVersion` +
+  `nix run .#check-eventcatalog` — one run answers build/zod acceptance,
+  the changelog-crash question, the WARN signature, and custom-docs
+  routing; (2) force `changelog: { enabled: true }` into the generated
+  `eventcatalog.config.js` and rebuild to exercise the agent-changelog path
+  BEFORE touching the guard; (3) check custom-docs routing in dist
+  (`/docs/custom/<slug>/`); (4) land pin + goldens + guard/profile changes
+  TOGETHER as one decision commit (never pin without goldens); (5) re-run
+  the gate from master; (6) receipt note to eventcatalog-hub (they build
+  our trees under their own core pin — coordinated cross-repo change).
+- Custom docs export to `docs/<slug>/index.mdx`: under core 5.x they route
+  standalone at `/docs/custom/<slug>/` in community builds too (verified
+  2026-10-15 on 5.1.1; under 4.6.3 only enterprise routed them).
+- `llms.txt` (`writer_llms.go`) is the standalone `@eventcatalog/mcp-server`'s
+  ONLY catalog input (the built-in v5 MCP server needs SSR — a no-go for
+  static serving); its structure is a CONTRACT for agent consumers. Treat
+  format changes as breaking (the writer's godoc says the same).
+- The render gate (`nix run .#check-eventcatalog`) builds ONE fixture
+  profile (default: every resource kind, agents included, changelog on)
+  and asserts schema-clean logs plus semantic artifacts (channel message
+  links, rendered changelog + agent pages). Extend `cmd/ec-fixture`
   when adding new exported frontmatter.
 - **Embedded serving** — `StaticServer` (`server.go`) serves a BUILT
   `dist/` tree from any `fs.FS` (consumers `//go:embed` it), so a site needs

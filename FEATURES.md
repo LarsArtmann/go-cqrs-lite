@@ -976,7 +976,7 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 | Message pages  | Top-level `commands/`, `events/`, `queries/` dirs, deduplicated across services                                  | ✅     |
 | Schema files   | `schema.json` per message (only when schema is non-nil)                                                          | ✅     |
 | Domain pages   | Domain frontmatter with service associations                                                                     | ✅     |
-| Config files   | `eventcatalog.config.js` (stable `cId`, tagline, llmsTxt) + `package.json` pinning `@eventcatalog/core` `^4.6.3` | ✅     |
+| Config files   | `eventcatalog.config.js` (stable `cId`, tagline, llmsTxt) + `package.json` pinning `@eventcatalog/core` `^5.1.0` | ✅     |
 | LLM summary    | `llms.txt` — plain-text catalog summary for LLM consumption                                                      | ✅     |
 
 > `import "github.com/larsartmann/go-cqrs-lite/catalog/v4/d2"`

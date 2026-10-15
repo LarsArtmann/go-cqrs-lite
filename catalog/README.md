@@ -335,7 +335,8 @@ err := ec.Export(catalog)
 
 Writes MDX files with YAML frontmatter, auto-deriving producers/consumers from message directions.
 Generates `llms.txt` and `schemas.txt` for AI consumption. The generated `package.json`
-pins `@eventcatalog/core` to a known-good version (`^4.6.3`) so `npm install` in the
+pins `@eventcatalog/core` to a known-good version (`^5.1.0` — BSL 1.1, Free Use for
+LarsArtmann confirmed; see `AGENTS.md`) so `npm install` in the
 output directory is reproducible; `eventcatalog.config.js` includes a stable `cId`
 derived from the catalog title.
 
@@ -509,7 +510,7 @@ The exporter supports all EventCatalog resource types:
 | Flows         | `flows/<id>/index.mdx`                                                       | Step types: service, message, agent, dataProduct, actor, externalSystem, custom; data stores map to `container`, sub-flows to `flow` (EventCatalog has no channel step) |
 | Teams         | `teams/<id>.mdx`                                                             | With external source sync, hidden, readOnly; role/avatar ride `x-` custom properties (EventCatalog teams have no such fields)                                           |
 | Users         | `users/<id>.mdx`                                                             | With external source sync, hidden, readOnly                                                                                                                             |
-| Custom Docs   | `docs/<slug>/index.mdx`                                                      | Global documentation pages (ADRs, architecture docs); standalone pages render in EventCatalog enterprise                                                                |
+| Custom Docs   | `docs/<slug>/index.mdx`                                                      | Global documentation pages (ADRs, architecture docs); core 5.x routes them standalone at `/docs/custom/<slug>/` (community too; 4.x needed enterprise)                     |
 
 #### Format fidelity
 
@@ -521,8 +522,9 @@ kind). Details worth knowing:
   custom properties — EventCatalog has no native fields for them.
 - Message `Changelog` is written as a `changelog.mdx` sidecar file, and the
   generated `eventcatalog.config.js` enables `changelog: { enabled: true }`
-  when changelogs exist and the catalog has no agents (an upstream core
-  4.6.3 crash on agent changelog pages).
+  whenever the catalog carries changelogs (the core 4.6.3 crash on agent
+  changelog pages that used to keep the flag off for agent catalogs is
+  fixed as of 5.1.1).
 - Message examples are written as `examples/example-N.json` files — the
   format EventCatalog's example loader reads.
 - `BaseConfig.ResourceGroups` cannot be expressed (EventCatalog needs typed

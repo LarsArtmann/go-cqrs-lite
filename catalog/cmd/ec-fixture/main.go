@@ -8,15 +8,12 @@
 // kinds, team x- fields, custom docs).
 //
 // Profiles (optional second arg):
-//   - changelog: omits agents so the generated config can enable changelog
-//     pages (@eventcatalog/core 4.6.3 crashes on agent changelog pages —
-//     see shouldEnableChangelog)
 //   - plain: same resources as the default profile but exported with
 //     WithPlainRefIDs — the @eventcatalog/linter (frontmatter-ID keyed)
 //     variant the check-eventcatalog gate lints with refs/resource-exists
 //     and best-practices/owner-required fully re-armed.
 //
-// Usage: ec-fixture <output-dir> [changelog|plain]
+// Usage: ec-fixture <output-dir> [plain]
 package main
 
 import (
@@ -32,7 +29,7 @@ import (
 
 func main() {
 	if len(os.Args) < 2 || len(os.Args) > 3 {
-		fmt.Fprintln(os.Stderr, "usage: ec-fixture <output-dir> [changelog|plain]")
+		fmt.Fprintln(os.Stderr, "usage: ec-fixture <output-dir> [plain]")
 		os.Exit(2)
 	}
 
@@ -41,12 +38,12 @@ func main() {
 		profile = os.Args[2]
 	}
 
-	if profile != "" && profile != "changelog" && profile != "plain" {
-		fmt.Fprintf(os.Stderr, "ec-fixture: unknown profile %q (want changelog|plain)\n", profile)
+	if profile != "" && profile != "plain" {
+		fmt.Fprintf(os.Stderr, "ec-fixture: unknown profile %q (want plain)\n", profile)
 		os.Exit(2)
 	}
 
-	if err := run(os.Args[1], profile == "changelog", profile == "plain"); err != nil {
+	if err := run(os.Args[1], profile == "plain"); err != nil {
 		fmt.Fprintf(os.Stderr, "ec-fixture: %v\n", err)
 		os.Exit(1)
 	}
@@ -99,7 +96,7 @@ func registerFixtureService(reg *catalog.Registry, visualiser bool) {
 	})
 }
 
-func run(outputDir string, changelogProfile, plainProfile bool) error {
+func run(outputDir string, plainProfile bool) error {
 	reg := catalog.NewRegistry("Demo", fixtureVersion)
 	visualiser := true
 
@@ -210,24 +207,19 @@ func run(outputDir string, changelogProfile, plainProfile bool) error {
 		Owners: []string{fixtureTeamID},
 	})
 
-	if !changelogProfile {
-		// The default profile covers agents; the changelog profile omits them
-		// because @eventcatalog/core 4.6.3 crashes rendering agent changelog
-		// pages, which keeps shouldEnableChangelog(false).
-		reg.AddAgent(catalog.Agent{
-			ID:      "order-bot",
-			Name:    "Order Bot",
-			Version: fixtureVersion,
-			Summary: "AI assistant for order support",
-			Owners:  []string{fixtureTeamID},
-			Sends:   []catalog.Ref{{ID: fixtureEventID, Version: fixtureVersion}},
-			Model:   &catalog.AgentModel{Provider: "openai", Name: "gpt", Version: "4o"},
-			Tools: []catalog.AgentTool{
-				{Name: "orders-db-lookup", Type: "mcp", URL: "https://mcp.example.com/orders"},
-			},
-			Flows: []catalog.FlowID{fixtureFlowID},
-		})
-	}
+	reg.AddAgent(catalog.Agent{
+		ID:      "order-bot",
+		Name:    "Order Bot",
+		Version: fixtureVersion,
+		Summary: "AI assistant for order support",
+		Owners:  []string{fixtureTeamID},
+		Sends:   []catalog.Ref{{ID: fixtureEventID, Version: fixtureVersion}},
+		Model:   &catalog.AgentModel{Provider: "openai", Name: "gpt", Version: "4o"},
+		Tools: []catalog.AgentTool{
+			{Name: "orders-db-lookup", Type: "mcp", URL: "https://mcp.example.com/orders"},
+		},
+		Flows: []catalog.FlowID{fixtureFlowID},
+	})
 
 	reg.AddDataProduct(catalog.DataProduct{
 		ID:      "order-analytics",
@@ -248,7 +240,7 @@ func run(outputDir string, changelogProfile, plainProfile bool) error {
 		ID: fixtureFlowID, Name: "Checkout Flow", Version: fixtureVersion,
 		Summary: "From command to event",
 		Owners:  []string{fixtureTeamID},
-		Steps:   checkoutSteps(changelogProfile),
+		Steps:   checkoutSteps(),
 	})
 
 	reg.AddTeam(catalog.Team{

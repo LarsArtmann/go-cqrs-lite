@@ -7,6 +7,11 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 )
 
+// writeLLMsTxt emits the llms.txt catalog summary. That file is the ONLY
+// catalog input of the standalone @eventcatalog/mcp-server (the built-in
+// core 5.x MCP server requires SSR — a NO-GO for our static serving), so
+// its structure is a CONTRACT for agent consumers: treat format changes as
+// breaking and re-verify the MCP server reads the new shape.
 func (e *Exporter) writeLLMsTxt(cat *catalog.Catalog) error {
 	return e.writeBuilderFile("llms.txt", func(buf *strings.Builder) {
 		fmt.Fprintf(buf, "# %s\n\n", cat.Title)

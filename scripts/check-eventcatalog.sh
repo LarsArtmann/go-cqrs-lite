@@ -3,14 +3,20 @@
 #
 # Replaces the manual /tmp/ec-validate flow: generate a fixture catalog,
 # npm install (network required, pinned by the exporter's package.json to
-# @eventcatalog/core ^4), run `npx eventcatalog build`, and FAIL if the
+# @eventcatalog/core ^5), run `npx eventcatalog build`, and FAIL if the
 # build errors or logs unresolved content references.
 #
-# Two fixture profiles are built in the same installed workdir:
-#   1. default  — every resource kind (incl. agents; changelog pages off,
-#                 see shouldEnableChangelog for the upstream core bug)
-#   2. changelog — agents omitted so changelog pages render, proving the
-#                 changelog.mdx sidecar files actually show up
+# One render profile: default — every resource kind, WITH agents and
+# changelog enabled (the 4.6.3 agent-changelog crash is fixed as of 5.1.1,
+# so the former agents-free changelog profile is folded back in). A second
+# fixture export (plain refs) feeds the @eventcatalog/linter leg.
+#
+# KNOWN cosmetic WARN signature (do NOT treat as a regression): the build
+# logs broken sidebar links /docs/{channels,data-products,entities}/<id>/<version>/changelog
+# — the sidebar builders emit Changelog links for 3 collections whose page
+# route has no changelog handler (catalog/AGENTS.md "Known upstream WARN").
+# Link-validation WARNS but the build completes; this gate fails only on
+# hard errors.
 #
 # Workdir override: CHECK_EVENTCATALOG_DIR=/path (kept for inspection on failure).
 set -euo pipefail
@@ -21,12 +27,12 @@ log="$work/build.log"
 
 echo "==> workdir: $work"
 
-echo "==> 1/4 generating catalog fixture (default profile)"
+echo "==> 1/3 generating catalog fixture (default profile)"
 (cd "$root/catalog" && GOWORK=off go run ./cmd/ec-fixture "$work")
 
 cd "$work"
 
-echo "==> 2/4 npm install (network required)"
+echo "==> 2/3 npm install (network required)"
 npm install --no-audit --no-fund --loglevel=error
 
 run_build() {
@@ -61,33 +67,22 @@ if [ ! -f "$work/commands/CreateOrder/changelog.mdx" ]; then
 	exit 1
 fi
 
-echo "==> 3/4 generating catalog fixture (changelog profile)"
-# The exporter is non-destructive (consumers may keep their own files in the
-# project), so clear its generated resource dirs between profiles — a stale
-# agents/ dir would retrigger the upstream agent-changelog crash.
-find "$work" -mindepth 1 -maxdepth 1 \
-	\( -name node_modules -o -name dist -o -name package-lock.json -o -name build.log \) -prune -o \
-	-exec rm -rf {} +
-(cd "$root/catalog" && GOWORK=off go run ./cmd/ec-fixture "$work" changelog)
-run_build changelog
+if ! grep -q "changelog" "$work/eventcatalog.config.js"; then
+	echo "FAIL: fixture did not enable changelog in eventcatalog.config.js" >&2
+	exit 1
+fi
 
 if ! grep -rq "initial release" "$work/dist/docs/commands/CreateOrder/1.0.0/changelog/"; then
-	echo "FAIL: changelog profile did not render the CreateOrder changelog page" >&2
+	echo "FAIL: build did not render the CreateOrder changelog page" >&2
 	exit 1
 fi
 
-if ! grep -q "changelog" "$work/eventcatalog.config.js"; then
-	echo "FAIL: changelog profile did not enable changelog in eventcatalog.config.js" >&2
+if ! grep -q "order-bot" "$work/dist/docs/agents/order-bot/1.0.0/index.html"; then
+	echo "FAIL: build did not render the agent page" >&2
 	exit 1
 fi
 
-echo "==> 4/4 semantic spot-checks (default profile artifacts)"
-# Re-generate the default profile so its dist is the one left for inspection.
-find "$work" -mindepth 1 -maxdepth 1 \
-	\( -name node_modules -o -name dist -o -name package-lock.json -o -name build.log \) -prune -o \
-	-exec rm -rf {} +
-(cd "$root/catalog" && GOWORK=off go run ./cmd/ec-fixture "$work")
-run_build default
+echo "==> 3/3 semantic spot-checks (channel message links)"
 
 if ! grep -q "collection: commands" "$work/channels/order-events/index.mdx"; then
 	echo "FAIL: channel frontmatter lacks fully qualified message pointers" >&2
@@ -99,7 +94,7 @@ if ! grep -rq "Create Order" "$work/dist/docs/channels/order-events/1.0.0/index.
 	exit 1
 fi
 
-echo "==> 5/5 @eventcatalog/linter on the plain-refs profile"
+echo "==> linter leg: @eventcatalog/linter on the plain-refs profile"
 # The render profiles above pin the @eventcatalog/core contract (composite
 # "<id>-<version>" refs). The linter is the opposite consumer: it indexes by
 # frontmatter ID and can never resolve composite refs, so the same fixture is
