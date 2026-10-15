@@ -306,13 +306,24 @@ built on its same-day deep-dive audit). The hub will file issues after its own
 verify-before-filing pass (plan task T7.4); these rows land them on OUR side of
 the boundary. Verified against this repo's source on 2026-10-15.
 
-- [ ] **ADR exporter contract (hub T7 → us): emit `adrs/` from this repo** —
-  the hub audit's top content gap: our ADRs (docs/adr/0xxx) are exactly what
-  an "ask your architecture" consumer wants, and core renders ADRs as
-  first-class resources. Blocked upstream-side until the hub confirms the
-  upstream ADR frontmatter schema (T7.1) and files the issue; our side then
-  needs a catalog API type + exporter emission + goldens. _(Effort: M;
-  blocked:upstream)_
+- [x] ~~**ADR exporter contract (hub T7 → us): emit `adrs/` from this repo**~~
+  — **DONE 2026-10-15 (evening, hub session): `catalog.ADR` IMPLEMENTED and
+  render-gate-verified.** `catalog.ADR` (Status/Date/DecisionMakers/AppliesTo
+  typed pointers/Supersedes/SupersededBy/Amends/AmendedBy/Related/Badges/Body)
+  + `Builder.AddADR` + registry wiring + immutable copies; the EventCatalog
+  exporter emits `adrs/<id>/index.mdx` with schema-validated frontmatter
+  (status enum, appliesTo type enum, YYYY-MM-DD date — unknown values are
+  Rejection errors at export), honors `WithPlainRefIDs` (pointer version pins
+  dropped), lists ADRs in `catalog.index.json` + `llms.txt`; ec-fixture
+  carries two ADRs exercising every field class (superseded pair with
+  resolving supersedes/supersededBy); golden `eventcatalog-adr.snap`; unit
+  tests incl. rejection table. `nix run .#check-eventcatalog` GREEN end-to-end
+  (core 5.1.x build accepts the fixture — 110 pages; plain-refs linter leg
+  clean at full severity). Schema re-verified against core 5.1.1's generated
+  adrs collection schema — the hub contract doc was updated the same evening
+  (five ADR-pointer fields, 15 appliesTo kinds, `versioned/` history path).
+  Consumer declarations (mesh-demo, bank-sync) follow the library release.
+  _(Effort: M)_
   - **2026-10-15 (receipt): groundwork SKETCHED, design-only** —
     `docs/planning/2026-10-15_20-05_adr-emission-groundwork-sketch.md` holds
     the `catalog.ADR`-type sketch + exporter acceptance criteria. NO
