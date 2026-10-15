@@ -69,14 +69,16 @@ errorfamily.Classify(err) // => Conflict
 
 ## Error Families by Module
 
-> The `middleware`, `graph`, `storage/relational`, `projectionhost`,
-> `transport/grpc`, and `claiming` sections are mechanically drift-gated:
-> every code below is
-> extracted from the module's `errorfamily.*` call sites by
-> `scripts/check-error-taxonomy.sh` (CI + `nix run .#verify`) and diffed
-> against this document in both directions — a code missing here, a stale
-> entry, or a wrong family label fails the build. Extend the gate by adding
-> modules to `GATED_MODULES` in the script.
+> Every module table below is GENERATED: `scripts/generate-error-taxonomy.sh`
+> regenerates the region from erraudit's errorflow export (`erraudit errorflow
+> ./...` per module — its codes array sees inline New/Newf/Wrap/Wrapf mints a
+> plain regex cannot), and `scripts/check-error-taxonomy.sh` (CI + `nix run
+> .#verify`) diffs the document against the modules' `errorfamily.*` call sites
+> in both directions — a code missing here, a stale entry, or a wrong family
+> label fails the build. Extend both by adding modules to `GATED_MODULES` in
+> the gate script (the generator shares the table).
+
+<!-- generate-error-taxonomy:begin (scripts/generate-error-taxonomy.sh writes this region — edit outside the markers) -->
 
 ### core/event
 
@@ -453,7 +455,9 @@ Corruption, INSERT failure → Infrastructure); the marshal site now mints
 | —     | Infrastructure | `watermill.publish_event_failed`        |
 | —     | Infrastructure | `watermill.subscribe_failed`            |
 | —     | Infrastructure | `watermill.topic_cancelled`             |
-| —     | Infrastructure | `watermill.topic_closed`                |
+| —     | Infrastructure | `watermill.topic_closed`             |
+
+<!-- generate-error-taxonomy:end -->
 
 ## Default Classification
 
