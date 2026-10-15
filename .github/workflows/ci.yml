@@ -981,6 +981,26 @@ jobs:
             fi
           done
           exit "$status"
+      - name: Errorflow export freshness (mesh-demo)
+        env:
+          GOEXPERIMENT: jsonv2
+        run: |
+          set -euo pipefail
+          # example/mesh-demo/errorflow.json is a committed artifact the
+          # hub consumes (-errors-file): it must always match what the
+          # pinned erraudit would export from the current source. The
+          # errorflow subcommand landed in erraudit v0.7.0 — until the
+          # vendored pin catches up this step warns instead of failing;
+          # bumping the pin activates it automatically.
+          oldest="$(printf '%s\n' v0.7.0 "$ERRAUDIT_VERSION" | sort -V | head -1)"
+          if [[ "$oldest" == "$ERRAUDIT_VERSION" && "$ERRAUDIT_VERSION" != v0.7.0 ]]; then
+            echo "::warning::errorflow freshness check needs erraudit >= v0.7.0 (pinned: $ERRAUDIT_VERSION) — it activates when the vendored pin bumps"
+            exit 0
+          fi
+          cd example/mesh-demo
+          erraudit errorflow ./... --type-aware -o errorflow.json
+          cd ../..
+          git diff --exit-code -- example/mesh-demo/errorflow.json
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
