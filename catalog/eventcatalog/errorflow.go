@@ -142,3 +142,56 @@ func WithErrorflowFile(path string) Option {
 		e.errorflowPath = path
 	}
 }
+
+// ErrorflowError is the consumer-facing projection of one error in an
+// erraudit errorflow export: the surface fields (what the error is and
+// whether anything references it), without the per-site call positions.
+type ErrorflowError struct {
+	Name    string
+	Kind    string
+	Code    string
+	Family  string
+	Message string
+	Wraps   string
+	Status  string
+}
+
+// Errorflow is the consumer-facing view of an errorflow export, for
+// consumers beyond the exporter (the docserver's error-surface page).
+type Errorflow struct {
+	SchemaVersion int
+	Package       string
+	FilesScanned  int
+	Errors        []ErrorflowError
+}
+
+// ReadErrorflow reads and validates an erraudit errorflow export for
+// non-exporter consumers. Same loud schema contract as WithErrorflowFile:
+// a missing or future-version file is an error, never a silently empty
+// surface.
+func ReadErrorflow(path string) (*Errorflow, error) {
+	export, err := readErrorflowFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	errors := make([]ErrorflowError, 0, len(export.Errors))
+	for _, entry := range export.Errors {
+		errors = append(errors, ErrorflowError{
+			Name:    entry.Name,
+			Kind:    entry.Kind,
+			Code:    entry.Code,
+			Family:  entry.Family,
+			Message: entry.Message,
+			Wraps:   entry.Wraps,
+			Status:  entry.Status,
+		})
+	}
+
+	return &Errorflow{
+		SchemaVersion: export.SchemaVersion,
+		Package:       export.Package,
+		FilesScanned:  export.FilesScanned,
+		Errors:        errors,
+	}, nil
+}
