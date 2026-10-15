@@ -70,6 +70,16 @@ type Config struct {
 	// with copy/download affordances. Consumers typically shell out to the
 	// `d2` CLI and cache the result — the library stays dependency-free.
 	D2SVG func(d2Source string) (string, error)
+
+	// EventCatalogErrorsFile optionally points at an erraudit errorflow
+	// export (JSON, schemaVersion 1 — `erraudit errorflow ./... --type-aware`)
+	// rendered at /docs/eventcatalog/errors: every named error of the
+	// analyzed module with its referenced/unreferenced status. Unset leaves
+	// the page in its explicit "not attached" state; an unreadable or
+	// schema-mismatched file renders as a visible error, never an empty
+	// table. The file is re-read per request, so regenerated exports show
+	// up on refresh.
+	EventCatalogErrorsFile string
 }
 
 // AsyncAPIServerConfig configures the AsyncAPI server entry.
@@ -200,6 +210,7 @@ func (ds *DocsServer) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET "+prefix+"/eventcatalog/messages/{id}", ds.serveEventCatalogMessage)
 	mux.HandleFunc("GET "+prefix+"/eventcatalog/channels/{id}", ds.serveEventCatalogChannel)
 	mux.HandleFunc("GET "+prefix+"/eventcatalog/services/{id}", ds.serveEventCatalogService)
+	mux.HandleFunc("GET "+prefix+"/eventcatalog/errors", ds.serveEventCatalogErrors)
 	mux.HandleFunc(
 		"GET "+prefix+"/eventcatalog/data-products/{id}",
 		ds.serveEventCatalogDataProduct,

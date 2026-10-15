@@ -43,17 +43,21 @@ type eventCatalogErrorsDetail struct {
 }
 
 // newEventCatalogErrorsDetail projects an errorflow export (or its
-// absence/failure) into the page view model.
+// absence/failure) into the page view model. Attached is derived: a nil
+// flow with no read error means no file was configured at all.
 func newEventCatalogErrorsDetail(cfg Config, flow *eventcatalog.Errorflow, readErr error) eventCatalogErrorsDetail {
 	detail := eventCatalogErrorsDetail{
 		Brand:    cfg.ServiceName,
 		DocsPath: cfg.DocsPath,
-		Attached: true,
+		Attached: flow != nil || readErr != nil,
 		FileName: cfg.EventCatalogErrorsFile,
 	}
 	if readErr != nil {
 		detail.ReadError = readErr.Error()
 
+		return detail
+	}
+	if flow == nil {
 		return detail
 	}
 
@@ -70,7 +74,6 @@ func newEventCatalogErrorsDetail(cfg Config, flow *eventcatalog.Errorflow, readE
 
 	return detail
 }
-
 // errorStatusBadgeTypes maps errorflow status vocabulary to badge tones.
 var errorStatusBadgeTypes = map[string]display.BadgeType{
 	errorStatusReferenced:   display.BadgeSuccess,

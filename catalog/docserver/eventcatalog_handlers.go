@@ -1,12 +1,34 @@
 package docserver
 
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/larsartmann/go-cqrs-lite/catalog/v4/eventcatalog"
+)
 
 // The DocsServer handlers below serve the event catalog pages.
 
 func (ds *DocsServer) serveEventCatalog(w http.ResponseWriter, r *http.Request) {
 	r = ds.applyCSP(w, r)
 	ds.renderComponent(w, r, EventCatalogPage(newEventCatalogOverview(ds.config, ds.provider())))
+}
+
+// serveEventCatalogErrors renders the error-surface page. The three states
+// are explicit: no file configured (info alert), broken file (error alert
+// with the cause), valid export (stats + table). An unreadable file must
+// never render as an empty — silently clean — surface.
+func (ds *DocsServer) serveEventCatalogErrors(w http.ResponseWriter, r *http.Request) {
+	r = ds.applyCSP(w, r)
+
+	var (
+		flow    *eventcatalog.Errorflow
+		readErr error
+	)
+	if path := ds.config.EventCatalogErrorsFile; path != "" {
+		flow, readErr = eventcatalog.ReadErrorflow(path)
+	}
+
+	ds.renderComponent(w, r, EventCatalogErrorsPage(newEventCatalogErrorsDetail(ds.config, flow, readErr)))
 }
 
 func (ds *DocsServer) serveEventCatalogMessage(w http.ResponseWriter, r *http.Request) {

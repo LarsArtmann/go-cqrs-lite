@@ -276,3 +276,68 @@ templ codeBlock(content, ariaLabel string) {
 		class="mt-2 overflow-x-auto rounded-lg bg-gray-950 p-4 text-xs leading-relaxed text-gray-100 dark:bg-black dark:text-gray-200"
 	><code>{ content }</code></pre>
 }
+
+// errorStatusBadge renders one error's status as a colored badge:
+// referenced is good (an error something actually checks or wraps),
+// unreferenced is a dead-sentinel warning.
+templ errorStatusBadge(status string) {
+	@display.Badge(display.BadgeProps{
+		Text: status,
+		Type: utils.Lookup(errorStatusBadgeTypes, status, display.BadgeNeutral),
+		Pill: true,
+	})
+}
+
+// EventCatalogErrorsPage renders the module's error surface: every named
+// error with kind, code, and referenced/unreferenced status, from an
+// erraudit errorflow export attached via Config.EventCatalogErrorsFile.
+// The page is explicit about its states — never a silently empty table.
+templ EventCatalogErrorsPage(data eventCatalogErrorsDetail) {
+	{{ base := docsPageProps(data.Brand+" — Error Surface", "Every named error of the analyzed module and whether anything references it", data.DocsPath, templ.GetNonce(ctx)) }}
+	@layout.Base(base) {
+		@docsNav(data.Brand, data.DocsPath, data.DocsPath+"/eventcatalog")
+		@layout.Container(layout.ContainerProps{Class: "pb-16 pt-8"}) {
+			@display.PageHeader(display.PageHeaderProps{
+				Title:    "Error Surface",
+				Subtitle: "The named errors of the analyzed module — erraudit's errorflow export, module scope.",
+			})
+			if data.ReadError != "" {
+				@feedback.Alert(feedback.AlertProps{
+					Type:    feedback.FeedbackError,
+					Title:   "Error surface unavailable",
+					Message: data.ReadError,
+				})
+			} else if !data.Attached {
+				@feedback.Alert(feedback.AlertProps{
+					Type:  feedback.FeedbackInfo,
+					Title: "No error surface attached",
+					Message: "Set Config.EventCatalogErrorsFile to an erraudit errorflow export" +
+						" (erraudit errorflow ./... --type-aware -o errorflow.json) to render the module's errors here.",
+				})
+			} else {
+				if data.Unreferenced > 0 {
+					@feedback.Alert(feedback.AlertProps{
+						Type:  feedback.FeedbackWarning,
+						Title: "Dead sentinels",
+						Message: strconv.Itoa(data.Unreferenced) + " error(s) are unreferenced — nothing checks or wraps them." +
+							" They are deletion or deprecation candidates.",
+					})
+				}
+				@display.Grid(display.GridProps{Cols: display.GridCols3}) {
+					@display.StatCard(display.StatCardProps{Value: strconv.Itoa(data.Total), Label: "Errors", Icon: icons.BugAnt, Tone: display.StatTonePurple})
+					@display.StatCard(display.StatCardProps{Value: strconv.Itoa(data.Referenced), Label: "Referenced", Icon: icons.CheckCircle, Tone: display.StatToneGreen})
+					@display.StatCard(display.StatCardProps{Value: strconv.Itoa(data.Unreferenced), Label: "Unreferenced", Icon: icons.ExclamationTriangle, Tone: display.StatToneYellow})
+				}
+				@catalogSection("Errors")
+				@display.Table(catalogTableProps("Module error surface", []string{"Error", "Kind", "Code", "Status", "Message", "Wraps"}, errorRows(data.Rows), true))
+				<p class="mt-4 text-xs text-gray-500 dark:text-gray-400">
+					Module scope: erraudit analyzes a module, not individual services — every error here belongs to the
+					analyzed module as a whole. { strconv.Itoa(data.FilesScan) } files scanned
+					if data.Package != "" {
+						{ "· package " + data.Package }
+					}
+				</p>
+			}
+		}
+	}
+}
