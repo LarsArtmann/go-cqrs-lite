@@ -9,7 +9,10 @@
 set -uo pipefail
 
 ERRAUDIT="${1:-erraudit}"
-command -v "$ERRAUDIT" >/dev/null 2>&1 || { echo "erraudit not found: $ERRAUDIT" >&2; exit 1; }
+command -v "$ERRAUDIT" >/dev/null 2>&1 || {
+	echo "erraudit not found: $ERRAUDIT" >&2
+	exit 1
+}
 
 repo_root=$(cd "$(dirname "$0")/.." && pwd)
 report_dir="$repo_root/build/erraudit-sweep"
