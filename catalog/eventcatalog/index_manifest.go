@@ -21,7 +21,10 @@ const indexManifestFile = "catalog.index.json"
 
 // indexManifestSchemaVersion bumps whenever the manifest's field set changes
 // incompatibly. Consumers should reject schema versions above their own.
-const indexManifestSchemaVersion = 1
+// v2 (2026-10-15): optional errorSurface section (erraudit errorflow
+// attachment — WithErrorflowFile); v1 readers see the bumped version and
+// stop instead of silently ignoring error-surface changes.
+const indexManifestSchemaVersion = 2
 
 // manifestResource is one exported resource entry in catalog.index.json.
 // Path is relative to the export root with forward slashes.
@@ -34,10 +37,38 @@ type manifestResource struct {
 
 // indexManifest is the catalog.index.json document. Resources are ordered
 // deterministically (canonical kind order, then ID) so re-exporting an
-// unchanged catalog produces byte-identical output.
+// unchanged catalog produces byte-identical output. ErrorSurface is emitted
+// only when the exporter carries an errorflow attachment (omitempty: v1
+// byte-compat for plain exports).
 type indexManifest struct {
-	SchemaVersion int                `json:"schemaVersion"`
-	Resources     []manifestResource `json:"resources"`
+	SchemaVersion int                   `json:"schemaVersion"`
+	Resources     []manifestResource    `json:"resources"`
+	ErrorSurface  *manifestErrorSurface `json:"errorSurface,omitempty"`
+}
+
+// manifestErrorSurface is the error-surface section of catalog.index.json
+// (manifest schemaVersion 2): the attached erraudit errorflow export,
+// name-sorted by erraudit, projected to the fields federation gates diff.
+// WrappedBy/CheckedBy counts (not site lists) so gate diffs stay about the
+// SURFACE, not call positions.
+type manifestErrorSurface struct {
+	Tool          string                  `json:"tool"`
+	SchemaVersion int                     `json:"schemaVersion"`
+	Scope         string                  `json:"scope"`
+	Source        string                  `json:"source,omitempty"`
+	FilesScanned  int                     `json:"filesScanned"`
+	Errors        []manifestErrorSurfaceE `json:"errors"`
+}
+
+type manifestErrorSurfaceE struct {
+	Name      string `json:"name"`
+	Kind      string `json:"kind"`
+	Code      string `json:"code,omitempty"`
+	Family    string `json:"family,omitempty"`
+	Wraps     string `json:"wraps,omitempty"`
+	Status    string `json:"status"`
+	WrappedBy int    `json:"wrappedBy,omitempty"`
+	CheckedBy int    `json:"checkedBy,omitempty"`
 }
 
 // manifestKindOrder is the canonical resource order of the manifest. It is
@@ -162,6 +193,38 @@ func buildIndexManifest(cat *catalog.Catalog) indexManifest {
 	return manifest
 }
 
+// buildErrorSurface projects the errorflow attachment into the manifest's
+// errorSurface section. Site lists become counts (gate diffs track the
+// surface, not call positions); the error order is erraudit's name sort.
+func buildErrorSurface(export *errorflowExport) *manifestErrorSurface {
+	if export == nil {
+		return nil
+	}
+
+	errors := make([]manifestErrorSurfaceE, 0, len(export.Errors))
+	for _, entry := range export.Errors {
+		errors = append(errors, manifestErrorSurfaceE{
+			Name:      entry.Name,
+			Kind:      entry.Kind,
+			Code:      entry.Code,
+			Family:    entry.Family,
+			Wraps:     entry.Wraps,
+			Status:    entry.Status,
+			WrappedBy: len(entry.WrappedBy),
+			CheckedBy: len(entry.CheckedBy),
+		})
+	}
+
+	return &manifestErrorSurface{
+		Tool:          "erraudit",
+		SchemaVersion: export.SchemaVersion,
+		Scope:         "module",
+		Source:        export.Package,
+		FilesScanned:  export.FilesScanned,
+		Errors:        errors,
+	}
+}
+
 // resourceIndexPath builds the canonical <collection>/<id>/index.mdx path
 // with forward slashes (independent of the host OS separator).
 func resourceIndexPath(collection, id string) string {
@@ -170,10 +233,14 @@ func resourceIndexPath(collection, id string) string {
 
 // writeIndexManifest writes catalog.index.json to the export root. It runs
 // after every resource writer so the manifest only exists for fully
-// successful exports.
+// successful exports. The errorSurface section rides along when the
+// exporter carries an errorflow attachment (manifest schemaVersion 2).
 func (e *Exporter) writeIndexManifest(cat *catalog.Catalog) error {
+	manifest := buildIndexManifest(cat)
+	manifest.ErrorSurface = buildErrorSurface(e.errorflow)
+
 	data, err := json.Marshal(
-		buildIndexManifest(cat),
+		manifest,
 		jsontext.WithIndentPrefix(""),
 		jsontext.WithIndent("  "),
 	)

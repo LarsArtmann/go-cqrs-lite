@@ -29,6 +29,14 @@ type Exporter struct {
 
 	skipBootstrapFiles bool
 	plainRefIDs        bool
+
+	// errorflowPath, when set via WithErrorflowFile, attaches the module's
+	// error surface (erraudit errorflow export) to services as x-errors
+	// frontmatter and to catalog.index.json as errorSurface. Read once in
+	// Export; nil errorflow means neither is emitted (schemaVersion 1
+	// manifests stay byte-identical — the section is omitempty).
+	errorflowPath string
+	errorflow     *errorflowExport
 }
 
 // NewExporter creates an exporter that writes MDX files to the given output
@@ -44,6 +52,14 @@ func NewExporter(outputDir string, opts ...Option) *Exporter {
 
 // Export writes all services, messages, and schemas as MDX files to the output directory.
 func (e *Exporter) Export(cat *catalog.Catalog) error { //nolint:cyclop,gocyclo // linear pipeline
+	if e.errorflowPath != "" {
+		export, err := readErrorflowFile(e.errorflowPath)
+		if err != nil {
+			return err
+		}
+		e.errorflow = export
+	}
+
 	enriched := autoDeriveProducersConsumers(cat)
 
 	for _, svc := range enriched.Services {
@@ -275,6 +291,11 @@ func (e *Exporter) writeService(svc catalog.Service) error {
 		Specifications: toSpecifications(svc.Specifications),
 		Attachments:    toAttachments(svc.Attachments),
 		baseConfigFM:   toBaseConfig(svc.BaseConfig),
+	}
+
+	if e.errorflow != nil {
+		xErrors := e.errorflow.toXErrors()
+		fm.XErrors = &xErrors
 	}
 
 	content, err := renderMDX(fm, string(svc.Name), string(svc.Summary), true)
