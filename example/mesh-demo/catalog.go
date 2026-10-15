@@ -95,7 +95,73 @@ func buildOrdersCatalog() *catalog.Catalog {
 		ID: "marta", Name: "Marta Vega", Role: "Lead Engineer", Email: "marta@orders.example.com",
 	})
 
+	// The cross-context lifecycle as a first-class flow — the demo's visible
+	// story (orders → billing → orders), rendered by the hub's Flows surface
+	// through the catalog.Flow support shipped 2026-09-24.
+	reg.AddFlow(catalog.Flow{
+		ID:      "order-lifecycle",
+		Name:    "Order Lifecycle",
+		Version: ordersCatalogVersion,
+		Summary: "From order placement through cross-context invoicing to completion",
+		Owners:  []string{ordersTeamID},
+		Steps:   orderLifecycleSteps(),
+	})
+
 	return reg.Build()
+}
+
+// orderLifecycleSteps walks the demo's decider story step by step: the
+// customer places an order, orders emits order.placed, billing issues
+// invoice.issued across the context boundary, and orders closes the
+// lifecycle with order.completed. Billing is an EXTERNAL node — it is
+// another bounded context's service, not a resource of the orders catalog,
+// so a service ref would not resolve inside this export tree.
+func orderLifecycleSteps() []catalog.FlowStep {
+	return []catalog.FlowStep{
+		{
+			ID:    "s1",
+			Title: "Customer",
+			Actor: &catalog.FlowActor{Name: "Customer", Summary: "Places an order"},
+		},
+		{
+			ID:       "s2",
+			Title:    "Place order",
+			Service:  &catalog.FlowStepRef{ID: "orders-svc"},
+			NextStep: &catalog.FlowEdge{ID: "s3"},
+		},
+		{
+			ID:        "s3",
+			Title:     "Order placed",
+			Message:   &catalog.FlowStepRef{ID: evtOrderPlacedID},
+			NextSteps: []catalog.FlowEdge{{ID: "s4"}},
+		},
+		{
+			ID:    "s4",
+			Title: "Issue invoice",
+			External: &catalog.FlowActor{
+				Name:    "Billing Service",
+				Summary: "Consumes order.placed and issues the invoice",
+			},
+			NextStep: &catalog.FlowEdge{ID: "s5"},
+		},
+		{
+			ID:        "s5",
+			Title:     "Invoice issued",
+			Message:   &catalog.FlowStepRef{ID: evtInvoiceIssuedID},
+			NextSteps: []catalog.FlowEdge{{ID: "s6"}},
+		},
+		{
+			ID:       "s6",
+			Title:    "Complete order",
+			Service:  &catalog.FlowStepRef{ID: "orders-svc"},
+			NextStep: &catalog.FlowEdge{ID: "s7"},
+		},
+		{
+			ID:      "s7",
+			Title:   "Order completed",
+			Message: &catalog.FlowStepRef{ID: catalog.MessageID("order.completed")},
+		},
+	}
 }
 
 // buildBillingCatalog declares the billing context: consumes order.placed,
