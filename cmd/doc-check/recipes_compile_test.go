@@ -17,7 +17,7 @@ const recipesRelPath = ".agents/skills/go-cqrs-lite/references/recipes.md"
 // the test's temp dir, so blocks importing modules OUTSIDE the go-cqrs-lite
 // workspace graph stay compile-verified against RELEASED APIs instead of
 // whatever happens to sit in a maintainer's sibling checkout. Bump a pin
-deliberately when a doc starts using a newer API — the failing build names
+// deliberately when a doc starts using a newer API — the failing build names
 // the drift.
 var externalRequireVersions = map[string]string{
 	"github.com/larsartmann/go-etag/server":         "v0.6.1",
@@ -267,7 +267,10 @@ func TestRecipesCompile(t *testing.T) {
 		for _, mod := range requires {
 			v, ok := externalRequireVersions[mod]
 			if !ok {
-				t.Fatalf("recipe block requires %s but it has no pin in externalRequireVersions", mod)
+				t.Fatalf(
+					"recipe block requires %s but it has no pin in externalRequireVersions",
+					mod,
+				)
 			}
 			sb.WriteString("\t" + mod + " " + v + "\n")
 		}

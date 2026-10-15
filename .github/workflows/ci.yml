@@ -950,7 +950,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       ERRAUDIT_VERSION: v0.6.1
-      ERRAUDIT_SHA256: 8e84b9d2a1d6a350c9d38c6d4dfdedba0fbdb2c84db35536f4ce72f599065879
+      ERRAUDIT_SHA256: 275a7ef9a81572d66cf0a41fea1337c76c7715ecadf49123d26ece04aa91c277
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0

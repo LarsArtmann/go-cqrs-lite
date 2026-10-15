@@ -7,11 +7,15 @@ import (
 	"strings"
 	"time"
 
+	"github.com/larsartmann/go-codec"
 	errorfamily "github.com/larsartmann/go-error-family"
+
+	"github.com/larsartmann/httputil"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/query/v4"
 )
 
 const (
@@ -21,12 +25,18 @@ const (
 	listPageSize    = 100
 )
 
+// taskViewCollection is the metaengine collection behind TaskView reads
+// (declared in buildProjections; shared by the reader and the query handler).
+const taskViewCollection = "task_views"
+
 // routes builds the HTTP mux with all task management endpoints.
 func (s *Server) routes() *http.ServeMux {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/health", s.handleHealth)
 
-	mux.HandleFunc("GET /api/tasks", s.handleListTasks)
+	mux.Handle("GET /api/tasks", errorfamily.HTTPHandler(
+		bindQuery[taskListResult](s.Sys, decodeListTasks, codec.JSONCodec{}),
+	))
 	mux.HandleFunc("POST /api/tasks", s.handleCreateTask)
 	mux.HandleFunc("GET /api/tasks/", s.handleTaskSubresource)
 	mux.HandleFunc("PATCH /api/tasks/", s.handleTaskSubresource)
@@ -88,34 +98,33 @@ func (s *Server) handleCreateTask(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, map[string]string{"id": taskID.String()})
 }
 
-func (s *Server) handleListTasks(w http.ResponseWriter, r *http.Request) {
-	statusFilter := r.URL.Query().Get("status")
+// apiListTasksQuery is the typed query behind GET /api/tasks — registered
+// as "api_list_tasks" in DomainConfig.Queries (setup.go).
+type apiListTasksQuery struct {
+	Status string
+	Limit  int
+}
 
-	var opts []metaengine.ScanOption
-	if statusFilter != "" {
-		opts = append(opts, metaengine.WithFilter("status", metaengine.FilterEq, statusFilter))
+func (apiListTasksQuery) Type() query.Type { return "api_list_tasks" }
+
+// taskListResult preserves the pre-§2.47 response shape: {"tasks": …, "count": …}.
+type taskListResult struct {
+	Tasks []*TaskView `json:"tasks"`
+	Count int         `json:"count"`
+}
+
+// decodeListTasks turns query params into the typed query. The limit is
+// clamped to the page ceiling — the client never sizes the scan.
+func decodeListTasks(r *http.Request) (apiListTasksQuery, error) {
+	limit := int(httputil.ParseUintQuery(r, "limit"))
+	if limit == 0 {
+		limit = listPageSize
+	}
+	if limit > listPageSize {
+		limit = listPageSize
 	}
 
-	// Default sort: priority DESC (highest-priority tasks first).
-	opts = append(opts, metaengine.WithSort("priority", true))
-
-	// Explicit page size — Scan's silent default truncates at 100; naming
-	// it makes the truncation contract visible (F031).
-	opts = append(opts, metaengine.WithLimit(listPageSize))
-
-	tasks, err := s.TaskReader.Scan(r.Context(), opts...)
-	if err != nil {
-		writeError(w, http.StatusInternalServerError, "list tasks: "+err.Error())
-
-		return
-	}
-
-	result := make([]*TaskView, 0, len(tasks))
-	for i := range tasks {
-		result = append(result, &tasks[i])
-	}
-
-	writeJSON(w, http.StatusOK, map[string]any{"tasks": result, "count": len(result)})
+	return apiListTasksQuery{Status: r.URL.Query().Get("status"), Limit: limit}, nil
 }
 
 func (s *Server) handleTaskSubresource(w http.ResponseWriter, r *http.Request) {

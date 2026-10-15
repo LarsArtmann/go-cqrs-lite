@@ -271,4 +271,128 @@ var recipeCatalogB3 = map[string]recipeSpec{
 			"var events = struct{ AttachmentBackedUp event.Type }{AttachmentBackedUp: \"discord.attachment.backed_up\"}\n",
 		trailers: "_ = journal",
 	},
+	"### 2.47 Bind a system Query to an HTTP endpoint — ETag, Server-Timing, safe errors (system + go-etag + httputil) #1": {
+		requires: []string{
+			`github.com/larsartmann/go-etag/server`,
+			`github.com/larsartmann/httputil`,
+			`github.com/larsartmann/httputil/server_timing`,
+		},
+		imports: []string{
+			`"context"`,
+			`"crypto/sha256"`,
+			`"encoding/hex"`,
+			`"net/http"`,
+			`"github.com/larsartmann/go-codec"`,
+			`errorfamily "github.com/larsartmann/go-error-family"`,
+			`"github.com/larsartmann/go-cqrs-lite/metaengine/v4"`,
+			`"github.com/larsartmann/go-cqrs-lite/query/v4"`,
+			`"github.com/larsartmann/go-cqrs-lite/system/v4"`,
+			`etag "github.com/larsartmann/go-etag/server"`,
+			`"github.com/larsartmann/httputil"`,
+			`"github.com/larsartmann/httputil/server_timing"`,
+		},
+		preamble: queryEndpointHelperPreamble +
+			"type TaskView struct {\n\tID    string\n\tTitle string\n}\n\n" +
+			"var sys *system.System\n" +
+			"var mux *http.ServeMux\n" +
+			"var taskReader *metaengine.TypedReader[TaskView]\n",
+	},
+	"### 2.47 Bind a system Query to an HTTP endpoint — ETag, Server-Timing, safe errors (system + go-etag + httputil) #2": {
+		wholeProgram: true,
+		requires: []string{
+			`github.com/larsartmann/go-etag/server`,
+			`github.com/larsartmann/httputil`,
+			`github.com/larsartmann/httputil/server_timing`,
+		},
+	},
+	"### 2.47 Bind a system Query to an HTTP endpoint — ETag, Server-Timing, safe errors (system + go-etag + httputil) #3": {
+		requires: []string{
+			`github.com/larsartmann/go-etag/server`,
+			`github.com/larsartmann/httputil`,
+			`github.com/larsartmann/httputil/server_timing`,
+		},
+		imports: []string{
+			`"context"`,
+			`"crypto/sha256"`,
+			`"encoding/hex"`,
+			`"net/http"`,
+			`"github.com/larsartmann/go-codec"`,
+			`errorfamily "github.com/larsartmann/go-error-family"`,
+			`"github.com/larsartmann/go-cqrs-lite/query/v4"`,
+			`"github.com/larsartmann/go-cqrs-lite/system/v4"`,
+			`etag "github.com/larsartmann/go-etag/server"`,
+			`"github.com/larsartmann/httputil/server_timing"`,
+		},
+		preamble: queryEndpointHelperPreamble +
+			"type TaskView struct {\n\tID    string\n\tTitle string\n}\n\n" +
+			"type ListTasksQuery struct {\n\tFilter string\n\tLimit  int\n}\n\n" +
+			"func (ListTasksQuery) Type() query.Type { return \"list_tasks\" }\n\n" +
+			"func decodeListTasks(r *http.Request) (ListTasksQuery, error) {\n" +
+			"\treturn ListTasksQuery{Filter: r.URL.Query().Get(\"filter\"), Limit: 50}, nil\n}\n\n" +
+			"var sys *system.System\n" +
+			"var mux *http.ServeMux\n",
+	},
+	"### 2.47 Bind a system Query to an HTTP endpoint — ETag, Server-Timing, safe errors (system + go-etag + httputil) #4": {
+		requires: []string{
+			`github.com/larsartmann/httputil`,
+			`github.com/larsartmann/httputil/server_timing`,
+		},
+		imports: []string{
+			`"log/slog"`,
+			`"net/http"`,
+			`"time"`,
+			`"github.com/larsartmann/httputil"`,
+			`"github.com/larsartmann/httputil/server_timing"`,
+		},
+		preamble: "var mux *http.ServeMux\n",
+		trailers: "_ = srv",
+	},
 }
+
+// queryEndpointHelperPreamble scaffolds the §2.47 httpx helper (fence #2) for
+// the fences that consume it (#1/#3): the compiled usage blocks call the same
+// Query/dispatchEncode pair the doc teaches, not a stub.
+const queryEndpointHelperPreamble = `func Query[R any, Q query.Query](
+	sys *system.System,
+	decode func(r *http.Request) (Q, error),
+	c codec.Codec,
+) errorfamily.HandlerFunc {
+	mediaType := "application/json"
+	if c.Encoding() == codec.EncodingCBOR {
+		mediaType = "application/cbor"
+	}
+	return func(w http.ResponseWriter, r *http.Request) error {
+		q, err := decode(r)
+		if err != nil {
+			return err
+		}
+		stop := servertiming.MeasureServerTiming(r.Context(), "query")
+		data, tag, err := dispatchEncode[Q, R](r.Context(), sys, q, c)
+		stop()
+		if err != nil {
+			return err
+		}
+		w.Header().Set("Content-Type", mediaType)
+		w.Header().Set("ETag", tag.String())
+		if etag.MatchesIfNoneMatch(tag, r.Header.Get("If-None-Match")) {
+			w.WriteHeader(http.StatusNotModified)
+			return nil
+		}
+		_, err = w.Write(data)
+		return err
+	}
+}
+
+func dispatchEncode[Q query.Query, R any](ctx context.Context, sys *system.System, q Q, c codec.Codec) ([]byte, etag.ETag, error) {
+	result, err := system.DispatchQuery[Q, R](ctx, sys, q)
+	if err != nil {
+		return nil, etag.ETag{}, err
+	}
+	data, err := c.Encode(result)
+	if err != nil {
+		return nil, etag.ETag{}, err
+	}
+	sum := sha256.Sum256(data)
+	return data, etag.NewETag(hex.EncodeToString(sum[:]), etag.Strong), nil
+}
+`

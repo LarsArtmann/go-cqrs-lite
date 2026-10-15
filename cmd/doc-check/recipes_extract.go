@@ -67,21 +67,52 @@ func extractGoBlocks(md string) []RecipeBlock {
 // splitTypeDecls hoists at-col-0 `type` and `func` declarations out of a
 // snippet so the remaining statements can live inside a function body (a
 // func body may not contain package-level type or func syntax).
+//
+// Decl recognition is signature-aware: a `func` line whose parameter list
+// wraps (generic signatures do) opens signature mode, consuming lines until
+// the body brace, and a body then runs until its braces balance — so
+// `func Query[Q query.Query, R any](` stays one declaration instead of
+// leaking its parameters into func main. One-line declarations
+// (`type X string`, `func (T) M() string { return "x" }`) close immediately,
+// preserving the historical single-line behavior.
 func splitTypeDecls(code string) ([]string, []string) {
 	var decls, stmts []string
 
-	inDecl := false
+	mode := 0 // 0 = scanning, 1 = inside a wrapped signature, 2 = inside a decl body
+	depth := 0
 
 	for line := range strings.SplitSeq(code, "\n") {
+		trimmed := strings.TrimSpace(line)
+
 		switch {
-		case inDecl:
+		case mode == 0 && (strings.HasPrefix(line, "type ") || strings.HasPrefix(line, "func ")):
 			decls = append(decls, line)
-			if line == "}" {
-				inDecl = false
+			switch {
+			case strings.HasSuffix(trimmed, "}"):
+				mode = 0 // complete on this line
+			case strings.HasSuffix(trimmed, "{"):
+				mode, depth = 2, 1
+			case strings.HasPrefix(line, "func "):
+				mode = 1 // signature continues on the next line
+			default:
+				mode = 0 // one-line type alias
 			}
-		case strings.HasPrefix(line, "type ") || strings.HasPrefix(line, "func "):
+		case mode == 1:
 			decls = append(decls, line)
-			inDecl = strings.HasSuffix(strings.TrimSpace(line), "{")
+
+			switch {
+			case strings.HasSuffix(trimmed, "{"):
+				mode, depth = 2, 1
+			case strings.HasSuffix(trimmed, "}"):
+				mode = 0
+			}
+		case mode == 2:
+			decls = append(decls, line)
+
+			depth += strings.Count(line, "{") - strings.Count(line, "}")
+			if depth <= 0 {
+				mode = 0
+			}
 		default:
 			stmts = append(stmts, line)
 		}

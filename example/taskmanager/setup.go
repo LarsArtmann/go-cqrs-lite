@@ -127,6 +127,38 @@ func NewServer(cfg Config, logger *slog.Logger) (*Server, error) {
 				system.WithSnapshotStrategy(snapStrategy)))
 			registerCommands(sys)
 		},
+		Queries: func(sys *system.System) {
+			// The §2.47 pattern: query handlers registered on the system, bound
+			// to routes via bindQuery (httpx.go) — ETag/304, Server-Timing, and
+			// family→status error mapping come with the binding.
+			Check(system.RegisterQuery(sys, "api_list_tasks",
+				func(ctx context.Context, q apiListTasksQuery) (taskListResult, error) {
+					reader := metaengine.NewReader[TaskView](sys.MetaEngine(), taskViewCollection)
+
+					opts := []metaengine.ScanOption{
+						metaengine.WithSort("priority", true),
+						metaengine.WithLimit(q.Limit),
+					}
+					if q.Status != "" {
+						opts = append(
+							opts,
+							metaengine.WithFilter("status", metaengine.FilterEq, q.Status),
+						)
+					}
+
+					tasks, err := reader.Scan(ctx, opts...)
+					if err != nil {
+						return taskListResult{}, err
+					}
+
+					result := make([]*TaskView, 0, len(tasks))
+					for i := range tasks {
+						result = append(result, &tasks[i])
+					}
+
+					return taskListResult{Tasks: result, Count: len(result)}, nil
+				}))
+		},
 		Projections:           projections,
 		ProjectionTypeDecoder: typeDecoder,
 		Middleware:            commandMW,
@@ -171,7 +203,7 @@ func NewServer(cfg Config, logger *slog.Logger) (*Server, error) {
 	}
 
 	if sys.MetaEngine() != nil {
-		srv.TaskReader = metaengine.NewReader[TaskView](sys.MetaEngine(), "task_views")
+		srv.TaskReader = metaengine.NewReader[TaskView](sys.MetaEngine(), taskViewCollection)
 	}
 
 	// ── Event bus signing (HMAC-SHA256 tamper detection) ─────────────────
@@ -214,7 +246,7 @@ func NewServer(cfg Config, logger *slog.Logger) (*Server, error) {
 	// Last-Event-ID reconnection via the replay journal. Replaces the
 	// deprecated transport/http.SSEBroker raw-event stream.
 	if sys.MetaEngine() != nil {
-		srv.taskWatcher = metaengine.NewWatcher[TaskView](sys.MetaEngine(), "task_views")
+		srv.taskWatcher = metaengine.NewWatcher[TaskView](sys.MetaEngine(), taskViewCollection)
 		srv.taskWatcher.WithReplay(sseReplayCapacity)
 	}
 
@@ -237,8 +269,10 @@ func (s *Server) Start(ctx context.Context) {
 // StartHTTP launches the HTTP API server in a background goroutine.
 func (s *Server) StartHTTP(addr string) {
 	s.httpServer = &http.Server{
-		Addr:              addr,
-		Handler:           s.routes(),
+		Addr: addr,
+		// Timing middleware outermost so `total` covers every phase inside
+		// (the bindQuery "query" phase lands on the same header).
+		Handler:           servertiming.ServerTimingMiddleware()(s.routes()),
 		ReadHeaderTimeout: httpReadHeaderSecs * time.Second,
 	}
 

@@ -3291,17 +3291,20 @@ domain := system.DomainConfig{
 _ = domain
 
 mux.Handle("GET /tasks", errorfamily.HTTPHandler(
-    Query(sys, decodeListTasks, codec.JSONCodec{}),
+    Query[[]TaskView](sys, decodeListTasks, codec.JSONCodec{}),
 ))
 ```
 
 `Query` is the helper below — shown unqualified here; in your app it lives in
-`package httpx` and the call reads `httpx.Query(...)`. The name passed to
-`RegisterQuery` must equal the `Type()` the decoder returns (dispatch is by
-type). `TaskView`/`taskReader` come from the metaengine read-model recipes
-(§2.27/§2.28). Decode errors flow through the same pipeline: classify them
-(`errorfamily.WrapRejection` → 400) or pin an explicit status with
-`WithHTTPStatus` for the `404`s and `422`s a family default cannot express.
+`package httpx` and the call reads `httpx.Query[[]TaskView](...)`. The result
+type parameter is explicit (nothing at the call site infers it — the same
+reason `DispatchTyped` is a package-level function), while `Q` infers from
+the decoder. The name passed to `RegisterQuery` must equal the `Type()` the
+decoder returns (dispatch is by type). `TaskView`/`taskReader` come from the
+metaengine read-model recipes (§2.27/§2.28). Decode errors flow through the
+same pipeline: classify them (`errorfamily.WrapRejection` → 400) or pin an
+explicit status with `WithHTTPStatus` for the `404`s and `422`s a family
+default cannot express.
 
 The helper itself — decode → dispatch → encode, with the ETag and timing
 wiring done once and done right:
@@ -3328,7 +3331,7 @@ import (
 // carry a strong content-hash ETag (If-None-Match → 304, body bytes never
 // re-sent) and a Server-Timing "query" phase. Errors return to
 // errorfamily.HTTPHandler, which maps family → status without leaking.
-func Query[Q query.Query, R any](
+func Query[R any, Q query.Query](
     sys *system.System,
     decode func(r *http.Request) (Q, error),
     c codec.Codec,
@@ -3395,7 +3398,7 @@ Same helper, second codec — a one-line difference:
 
 ```go
 mux.Handle("GET /tasks.cbor", errorfamily.HTTPHandler(
-    Query(sys, decodeListTasks, codec.CBORCodec{}),
+    Query[[]TaskView](sys, decodeListTasks, codec.CBORCodec{}),
 ))
 ```
 

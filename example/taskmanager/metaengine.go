@@ -73,7 +73,7 @@ func buildProjections() ([]system.ProjectionDeclaration, *projectionadapter.Type
 	)
 
 	taskViews := metaengine.Query[listTasksInput, TaskView](
-		"task_views",
+		taskViewCollection,
 		metaengine.OnRecordTyped(
 			string(evtTaskCreated),
 			projectionadapter.EventWithID[TaskCreatedPayload]{},

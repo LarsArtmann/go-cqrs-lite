@@ -7,21 +7,28 @@ This directory holds the pinned erraudit source snapshot that the CI
 artifact), the runner has no `ERRAUDIT_PAT` secret, and the Forgejo
 mirror (`forgejo.home.lan`) is unreachable from GitHub-hosted runners.
 A compressed source tarball is credential-free, invisible to the repo's
-`find . -name go.mod` per-module loops, and auditable (exact `git
-archive` output of the tag — no binary blobs).
+`find . -name go.mod` per-module loops, and auditable.
+
+**Provenance (lint build).** The tarball is NOT a pristine `git archive`:
+erraudit v0.6.1 requires the private `project-discovery-sdk` (portfolio
+fleet audits), which credential-free CI cannot fetch. The tarball is
+crafted from the tag by erraudit's `scripts/make-ci-tarball.sh`, which
+detaches the two SDK-importing files behind the `portfolio` build tag
+(the `portfolio` subcommand is absent; lint/tree/analyze are unchanged)
+and strips the SDK requires from go.mod. The script verifies the build
+against a COLD module cache before writing the tarball — the first
+(2026-10-15) tarball shipped pristine and failed CI exactly here.
 
 | File | Origin | SHA256 |
 | --- | --- | --- |
-| `erraudit-v0.6.1-src.tgz` | `git archive v0.6.1 -- cmd pkg internal go.mod go.sum LICENSE README.md` from `LarsArtmann/erraudit` | `8e84b9d2a1d6a350c9d38c6d4dfdedba0fbdb2c84db35536f4ce72f599065879` |
+| `erraudit-v0.6.1-src.tgz` | `scripts/make-ci-tarball.sh v0.6.1` from `LarsArtmann/erraudit` (tag + portfolio detached) | `275a7ef9a81572d66cf0a41fea1337c76c7715ecadf49123d26ece04aa91c277` |
 
 ## Refresh (bump the pin)
 
 From a checkout of `LarsArtmann/erraudit` at the target tag:
 
 ```bash
-git archive --format=tar.gz -o tools/erraudit/erraudit-vX.Y.Z-src.tgz \
-  vX.Y.Z cmd pkg internal go.mod go.sum LICENSE README.md
-sha256sum tools/erraudit/erraudit-vX.Y.Z-src.tgz
+scripts/make-ci-tarball.sh vX.Y.Z tools/erraudit/erraudit-vX.Y.Z-src.tgz
 # remove the old tarball, update the table above AND the checksum +
 # filename in .github/workflows/ci.yml, then verify locally:
 scripts/erraudit-sweep.sh <path-to-built-binary>
