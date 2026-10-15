@@ -127,9 +127,11 @@ func TestErrorflow_XKeyToleranceContract(t *testing.T) {
 			if !seenOpening {
 				seenOpening = true
 				inFrontmatter = true
+
 				continue
 			}
 			inFrontmatter = false
+
 			continue
 		}
 		if !inFrontmatter {
