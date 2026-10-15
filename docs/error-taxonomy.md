@@ -79,6 +79,7 @@ errorfamily.Classify(err) // => Conflict
 > the gate script (the generator shares the table).
 
 <!-- generate-error-taxonomy:begin (scripts/generate-error-taxonomy.sh writes this region — edit outside the markers) -->
+
 ### middleware
 
 | Error                 | Family         | Code                                               |

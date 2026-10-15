@@ -266,7 +266,7 @@ done
 # ── Splice the region into the doc ────────────────────────────────────────
 tmp_doc="$tmp_root/doc.md"
 awk -v begin="$begin" -v end="$end" -v region="$region" '
-	$0 == begin { print; while ((getline line < region) > 0) print line; inside = 1; next }
+	$0 == begin { print; print ""; while ((getline line < region) > 0) print line; inside = 1; next }
 	$0 == end   { inside = 0; print; next }
 	!inside     { print }
 ' "$doc" >"$tmp_doc"
