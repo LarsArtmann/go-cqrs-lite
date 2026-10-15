@@ -34,9 +34,14 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/go-env.sh"
 #     metaengine) ride until the queue/metaengine tag waves land (TODO:
 #     release-train tail; the same consumer-purity play as
 #     scheduler-otel-status).
-#   mesh-demo — REMOVED 2026-09-29: catalog/v4.6.0 published; the replace
-#     block and its obsolescence comment were deleted from the go.mod.
-ALLOWED_REPLACES='taskmanager'
+#   mesh-demo — RE-ADDED 2026-10-16: one catalog replace rides until the
+#     catalog tag with the errorflow API (WithErrorflowFile) lands; the
+#     eventcatalog-hub builds mesh-demo from GitHub where the relative
+#     replace resolves inside the clone (drop_machine_replaces only strips
+#     absolute-path replaces).
+#   mesh-demo (historical) — REMOVED 2026-09-29: catalog/v4.6.0 published;
+#     the previous replace block died with that tag.
+ALLOWED_REPLACES='taskmanager mesh-demo'
 
 DO_BUILD=0
 if [ "${1:-}" = "--build" ]; then
