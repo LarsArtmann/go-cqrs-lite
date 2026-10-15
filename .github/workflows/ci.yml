@@ -935,38 +935,41 @@ jobs:
     timeout-minutes: 10
 
   # Error-policy gate — same self-activating mechanism as go-codec's
-  # error-audit job (erraudit is a private module, so CI needs an
-  # ERRAUDIT_PAT secret with read access to github.com/larsartmann/erraudit).
-  # ACTIVATION PRECONDITION (met 2026-09-13): the 2026-09-11 baseline of 253
-  # findings across 22 modules was driven to ZERO (all modules re-counted
-  # empty under `erraudit lint ./... --enforce-go-error-family --type-aware`,
-  # except claiming/ which was mid-extraction by a parallel session — zero it
-  # before landing that module). The gate is safe to activate now.
+  # Error-policy gate — same self-activating mechanism as go-codec's
+  # error-audit job. erraudit is a private module: instead of an
+  # ERRAUDIT_PAT secret (never set — the gate silently skipped for a
+  # month) or the Forgejo mirror (unreachable from GitHub-hosted
+  # runners), the job builds the pinned vendored source tarball in
+  # tools/erraudit/ — credential-free. See tools/erraudit/README.md.
+  # ACTIVATION PRECONDITION (met 2026-09-13, re-verified 2026-10-15 with
+  # v0.6.1 across all 104 modules via scripts/erraudit-sweep.sh): zero
+  # findings under `erraudit lint ./... --enforce-go-error-family
+  # --type-aware` in every module.
   error-audit:
     name: Error Audit (erraudit)
     runs-on: ubuntu-latest
     env:
-      HAS_ERRAUDIT_PAT: ${{ secrets.ERRAUDIT_PAT != '' }}
+      ERRAUDIT_VERSION: v0.6.1
+      ERRAUDIT_SHA256: 8e84b9d2a1d6a350c9d38c6d4dfdedba0fbdb2c84db35536f4ce72f599065879
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.mod
-      - name: Install erraudit
-        if: env.HAS_ERRAUDIT_PAT == 'true'
+      - name: Install erraudit (vendored source)
         env:
-          GOPRIVATE: github.com/larsartmann/*
-          GOWORK: "off"
+          GOEXPERIMENT: jsonv2
         run: |
-          git config --global url."https://x-access-token:${{ secrets.ERRAUDIT_PAT }}@github.com/".insteadOf "https://github.com/"
-          go install github.com/larsartmann/erraudit/cmd/erraudit@v0.4.0
-      - name: "Skipped: ERRAUDIT_PAT secret not set"
-        if: env.HAS_ERRAUDIT_PAT != 'true'
-        run: |
-          echo "erraudit is a private module (no proxy artifact). Add an ERRAUDIT_PAT secret (read: github.com/larsartmann/erraudit) to enable this gate."
-          echo "Baseline precondition MET 2026-09-13 (findings zeroed; see TODO_LIST.md)."
+          set -euo pipefail
+          tarball="tools/erraudit/erraudit-${ERRAUDIT_VERSION}-src.tgz"
+          echo "${ERRAUDIT_SHA256}  ${tarball}" | sha256sum -c -
+          mkdir -p "${RUNNER_TEMP}/erraudit-src"
+          tar xzf "${tarball}" -C "${RUNNER_TEMP}/erraudit-src"
+          go build -C "${RUNNER_TEMP}/erraudit-src" -o "$(go env GOPATH)/bin/erraudit" ./cmd/erraudit
+          erraudit --help >/dev/null
       - name: Enforce go-error-family error policy (per module)
-        if: env.HAS_ERRAUDIT_PAT == 'true'
+        env:
+          GOEXPERIMENT: jsonv2
         run: |
           set -euo pipefail
           modules=$(find . -name go.mod -not -path './vendor/*' | sed 's|/go.mod||' | sed 's|^\./||' | sort)
