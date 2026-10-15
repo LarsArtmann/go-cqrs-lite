@@ -64,6 +64,12 @@ func runExportCmd(args []string) error {
 		false,
 		"omit eventcatalog.config.js + package.json (hub CI)",
 	)
+	errorsFile := fs.String(
+		"errors-file",
+		"",
+		"erraudit errorflow JSON to attach as x-errors frontmatter + manifest "+
+			"errorSurface (generate: erraudit errorflow ./... --type-aware)",
+	)
 
 	if err := fs.Parse(args); err != nil {
 		return err
@@ -76,7 +82,7 @@ func runExportCmd(args []string) error {
 	return exportDomain(
 		*domain,
 		*outDir,
-		exportOptions{plain: *plain, skipBootstrap: *skipBootstrap},
+		exportOptions{plain: *plain, skipBootstrap: *skipBootstrap, errorsFile: *errorsFile},
 	)
 }
 

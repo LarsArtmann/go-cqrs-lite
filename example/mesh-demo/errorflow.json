@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "package": "./...",
+  "filesScanned": 6,
+  "errors": [
+    {
+      "name": "ErrEmptyOrder",
+      "kind": "sentinel",
+      "message": "order: cart is empty",
+      "declared": "orders.go:62",
+      "status": "unreferenced"
+    },
+    {
+      "name": "errUnknownDomain",
+      "kind": "sentinel",
+      "message": "mesh-demo: unknown domain (want orders|billing)",
+      "declared": "main.go:22",
+      "status": "unreferenced"
+    }
+  ]
+}

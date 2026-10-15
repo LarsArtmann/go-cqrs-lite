@@ -230,6 +230,7 @@ func buildBillingCatalog() *catalog.Catalog {
 type exportOptions struct {
 	plain         bool
 	skipBootstrap bool
+	errorsFile    string
 }
 
 // exportDomain runs the headless export for one bounded context — the
@@ -253,6 +254,10 @@ func exportDomain(domain, outDir string, opts exportOptions) error {
 
 	if opts.skipBootstrap {
 		options = append(options, eventcatalog.WithSkipBootstrapFiles())
+	}
+
+	if opts.errorsFile != "" {
+		options = append(options, eventcatalog.WithErrorflowFile(opts.errorsFile))
 	}
 
 	if err := eventcatalog.NewExporter(outDir, options...).Export(cat); err != nil {
