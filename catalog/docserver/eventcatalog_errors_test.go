@@ -99,9 +99,9 @@ func TestEventCatalogErrorsPage_BrokenFileIsVisibleError(t *testing.T) {
 	srv := NewDocsServer(testProvider, Config{
 		ServiceName: "Test",
 		Version:     "1.0.0",
-		// schemaVersion 2 is a future version — the reader must reject it,
+		// schemaVersion 3 is a future version — the reader must reject it,
 		// and the page must say so instead of rendering an empty table.
-		EventCatalogErrorsFile: errorflowFixture(t, `{"schemaVersion": 2, "errors": []}`),
+		EventCatalogErrorsFile: errorflowFixture(t, `{"schemaVersion": 3, "errors": []}`),
 	})
 	mux := http.NewServeMux()
 	srv.RegisterRoutes(mux)

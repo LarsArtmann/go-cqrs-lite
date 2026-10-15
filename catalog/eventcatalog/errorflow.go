@@ -7,18 +7,20 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
-// errorflowSchemaVersion is the erraudit errorflow export schema this reader
-// supports. The schema is a cross-repo contract (erraudit
-// pkg/errorflow.Export); bump-mismatch rejects loudly rather than emitting
-// silently-wrong frontmatter.
-const errorflowSchemaVersion = 1
+// errorflowSchemaVersion is the NEWEST erraudit errorflow export schema
+// this reader supports (v2 added What/Why/Fix/WayOut template texts).
+// Older exports within the supported window (v1..v2) decode fine — the
+// added v2 columns are optional. The schema is a cross-repo contract
+// (erraudit pkg/errorflow.Export); future-version mismatch rejects loudly
+// rather than emitting silently-wrong frontmatter.
+const errorflowSchemaVersion = 2
 
 // errorflowExport mirrors erraudit's errorflow JSON document (schemaVersion
-// 1): every named error of the analyzed module with kind, go-error-family
-// code/family, declaration site, declared parent, reference sites, and a
-// referenced/unreferenced status. Only the fields the catalog surfaces are
-// decoded; unknown fields are ignored for forward compatibility within the
-// same schema version.
+// 1-2): every named error of the analyzed module with kind, go-error-family
+// code/family, declaration site, declared parent, reference sites, a
+// referenced/unreferenced status, and (v2) the registered What/Why/Fix/WayOut
+// template texts. Only the fields the catalog surfaces are decoded; unknown
+// fields are ignored for forward compatibility within the schema window.
 type errorflowExport struct {
 	SchemaVersion int              `json:"schemaVersion"`
 	Package       string           `json:"package"`
@@ -37,6 +39,10 @@ type errorflowError struct {
 	Status    string          `json:"status"`
 	WrappedBy []errorflowSite `json:"wrappedBy"`
 	CheckedBy []errorflowSite `json:"checkedBy"`
+	What      string          `json:"what"`
+	Why       string          `json:"why"`
+	Fix       string          `json:"fix"`
+	WayOut    string          `json:"wayOut"`
 }
 
 type errorflowSite struct {
@@ -62,9 +68,9 @@ func readErrorflowFile(path string) (*errorflowExport, error) {
 			"parse errorflow file %s as JSON: %v", path, err)
 	}
 
-	if export.SchemaVersion != errorflowSchemaVersion {
+	if export.SchemaVersion < 1 || export.SchemaVersion > errorflowSchemaVersion {
 		return nil, errorfamily.Newf(errorfamily.Rejection, "catalog.exporter.errorflow.schema.1",
-			"errorflow file %s: schemaVersion %d is not the supported %d — regenerate it with a "+
+			"errorflow file %s: schemaVersion %d is outside the supported window 1..%d — regenerate it with a "+
 				"matching erraudit version (erraudit errorflow ./... --type-aware)",
 			path, export.SchemaVersion, errorflowSchemaVersion)
 	}
@@ -128,7 +134,7 @@ func (e *errorflowExport) toXErrors() xErrorsFM {
 }
 
 // WithErrorflowFile attaches an erraudit errorflow export (JSON,
-// schemaVersion 1 — `erraudit errorflow ./... --type-aware`) to the export:
+// schemaVersion 1-2 — `erraudit errorflow ./... --type-aware`) to the export:
 // every service page carries the module's error surface as `x-errors`
 // frontmatter, and catalog.index.json gains an errorSurface section
 // (schemaVersion 2) so federation gates can diff error-surface changes
@@ -145,7 +151,8 @@ func WithErrorflowFile(path string) Option {
 
 // ErrorflowError is the consumer-facing projection of one error in an
 // erraudit errorflow export: the surface fields (what the error is and
-// whether anything references it), without the per-site call positions.
+// whether anything references it) plus the registered template texts
+// (schemaVersion 2), without the per-site call positions.
 type ErrorflowError struct {
 	Name    string
 	Kind    string
@@ -154,6 +161,10 @@ type ErrorflowError struct {
 	Message string
 	Wraps   string
 	Status  string
+	What    string
+	Why     string
+	Fix     string
+	WayOut  string
 }
 
 // Errorflow is the consumer-facing view of an errorflow export, for
@@ -185,6 +196,10 @@ func ReadErrorflow(path string) (*Errorflow, error) {
 			Message: entry.Message,
 			Wraps:   entry.Wraps,
 			Status:  entry.Status,
+			What:    entry.What,
+			Why:     entry.Why,
+			Fix:     entry.Fix,
+			WayOut:  entry.WayOut,
 		})
 	}
 

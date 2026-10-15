@@ -3,6 +3,7 @@ package eventcatalog_test
 import (
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -262,4 +263,78 @@ func TestErrorflow_ErrorflowModuleScopedSurface(t *testing.T) {
 			t.Errorf("service %s must carry the module-scope label:\n%s", svcID, svc)
 		}
 	}
+}
+
+// TestErrorflow_SchemaWindowAndTemplateTexts pins the reader's version
+// window: schemaVersion 1 and 2 decode (v2 adds the What/Why/Fix/WayOut
+// template texts), schemaVersion 3 rejects loudly.
+func TestErrorflow_SchemaWindowAndTemplateTexts(t *testing.T) {
+	v2 := `{
+  "schemaVersion": 2,
+  "package": "./example/demo",
+  "filesScanned": 2,
+  "errors": [
+    {
+      "name": "ErrConfig",
+      "kind": "family.wrap",
+      "code": "CodeConfigInvalid",
+      "family": "rejection",
+      "declared": "errors.go:10",
+      "wraps": "ErrInput",
+      "status": "referenced",
+      "what": "The configuration is invalid.",
+      "why": "A value is missing or malformed.",
+      "fix": "Check the highlighted field.",
+      "wayOut": "Run with --help."
+    }
+  ]
+}`
+
+	path := filepath.Join(t.TempDir(), "errorflow.json")
+	if err := os.WriteFile(path, []byte(v2), 0o600); err != nil {
+		t.Fatalf("write v2 fixture: %v", err)
+	}
+
+	flow, err := eventcatalog.ReadErrorflow(path)
+	if err != nil {
+		t.Fatalf("schemaVersion 2 must decode: %v", err)
+	}
+
+	if flow.SchemaVersion != 2 || len(flow.Errors) != 1 {
+		t.Fatalf("unexpected flow shape: %+v", flow)
+	}
+
+	entry := flow.Errors[0]
+	for _, field := range [4]struct{ name, want string }{
+		{"What", "The configuration is invalid."},
+		{"Why", "A value is missing or malformed."},
+		{"Fix", "Check the highlighted field."},
+		{"WayOut", "Run with --help."},
+	} {
+		if got := map[string]string{
+			"What": entry.What, "Why": entry.Why, "Fix": entry.Fix, "WayOut": entry.WayOut,
+		}[field.name]; got != field.want {
+			t.Errorf("template text %s = %q, want %q", field.name, got, field.want)
+		}
+	}
+
+	if _, err := eventcatalog.ReadErrorflow(writeSchema(t, 1)); err != nil {
+		t.Errorf("schemaVersion 1 must stay in the supported window: %v", err)
+	}
+
+	if _, err := eventcatalog.ReadErrorflow(writeSchema(t, 3)); err == nil {
+		t.Error("schemaVersion 3 (future) must reject loudly")
+	}
+}
+
+func writeSchema(t *testing.T, version int) string {
+	t.Helper()
+
+	path := filepath.Join(t.TempDir(), "errorflow.json")
+	body := `{"schemaVersion": ` + strconv.Itoa(version) + `, "errors": []}`
+	if err := os.WriteFile(path, []byte(body), 0o600); err != nil {
+		t.Fatalf("write schema fixture: %v", err)
+	}
+
+	return path
 }
