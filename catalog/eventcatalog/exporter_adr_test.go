@@ -202,7 +202,10 @@ func TestExporter_ADRInManifestAndLLMsTxt(t *testing.T) {
 		t.Fatalf("read llms.txt: %v", err)
 	}
 
-	if !strings.Contains(string(llms), "ADR: SQLite single-writer event store (sqlite-single-writer)") {
+	if !strings.Contains(
+		string(llms),
+		"ADR: SQLite single-writer event store (sqlite-single-writer)",
+	) {
 		t.Errorf("llms.txt should carry the ADR section\n%s", string(llms))
 	}
 

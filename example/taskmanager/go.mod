@@ -26,8 +26,10 @@ require (
 	github.com/larsartmann/go-cqrs-lite/system/v4 v4.14.0
 	github.com/larsartmann/go-cqrs-lite/systemscenario/v4 v4.1.0
 	github.com/larsartmann/go-error-family v0.11.0
+	github.com/larsartmann/go-etag/server v0.6.1
 	github.com/larsartmann/go-idempotency v0.3.1
 	github.com/larsartmann/go-sse/ssetest v0.4.0
+	github.com/larsartmann/httputil v1.5.0
 	go.opentelemetry.io/otel v1.47.0
 )
 
@@ -64,12 +66,10 @@ require (
 	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.7.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.7.0 // indirect
 	github.com/larsartmann/go-etag/entitytag v0.6.1 // indirect
-	github.com/larsartmann/go-etag/server v0.6.1 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.1 // indirect
 	github.com/larsartmann/go-retry v0.8.0 // indirect
 	github.com/larsartmann/go-sse v0.6.2 // indirect
 	github.com/larsartmann/go-sse/sseparse v0.2.1 // indirect
-	github.com/larsartmann/httputil v1.5.0 // indirect
 	github.com/larsartmann/httputil/server_timing v1.0.2 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/maruel/natural v1.3.0 // indirect

@@ -127,7 +127,9 @@ func TestGolden_EventCatalog_ADRMDX(t *testing.T) {
 
 	tmpDir := exportToTempDir(t, reg.Build())
 
-	adrContent, err := os.ReadFile(filepath.Join(tmpDir, "adrs", "sqlite-single-writer", "index.mdx"))
+	adrContent, err := os.ReadFile(
+		filepath.Join(tmpDir, "adrs", "sqlite-single-writer", "index.mdx"),
+	)
 	if err != nil {
 		t.Fatalf("read adr file: %v", err)
 	}
