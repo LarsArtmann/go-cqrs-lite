@@ -96,6 +96,45 @@ func TestGolden_EventCatalog_IndexManifest(t *testing.T) {
 	matchCatalogGolden(t, "catalog-index-manifest", string(manifestContent))
 }
 
+func TestGolden_EventCatalog_ADRMDX(t *testing.T) {
+	reg := cattest.NewTestRegistry()
+	reg.AddADR(catalog.ADR{
+		ID:      "sqlite-single-writer",
+		Name:    "SQLite single-writer event store",
+		Version: "1.0.0",
+		Status:  catalog.ADRAccepted,
+		Date:    "2026-10-15",
+		Summary: "One writer per database file keeps the sync window simple",
+		Owners:  []string{"lars"},
+		DecisionMakers: []string{
+			"lars",
+		},
+		AppliesTo: []catalog.ADRResourceRef{
+			{Type: catalog.ADRAppliesToService, ID: "bank-sync", Version: "1.0.0"},
+			{Type: catalog.ADRAppliesToEvent, ID: "BalanceUpdated"},
+		},
+		Supersedes: []catalog.ADRRef{{ID: "sqlite-async-replication", Version: "0.9.0"}},
+		Amends:     []catalog.ADRRef{{ID: "event-store-baseline"}},
+		AmendedBy:  []catalog.ADRRef{{ID: "snapshot-every-100"}},
+		Related:    []catalog.ADRRef{{ID: "wise-qonto-providers"}},
+		Badges: []catalog.Badge{
+			{Content: "Accepted", BackgroundColor: "green", TextColor: "white"},
+		},
+		Body: "## Context\n\nOne sync process writes balances.\n\n" +
+			"## Decision\n\nSingle writer, no row locks.\n\n" +
+			"## Consequences\n\nNo lock contention.",
+	})
+
+	tmpDir := exportToTempDir(t, reg.Build())
+
+	adrContent, err := os.ReadFile(filepath.Join(tmpDir, "adrs", "sqlite-single-writer", "index.mdx"))
+	if err != nil {
+		t.Fatalf("read adr file: %v", err)
+	}
+
+	matchCatalogGolden(t, "eventcatalog-adr", string(adrContent))
+}
+
 // Fixture types exercising the schema flattener: Payment embeds
 // PaymentMethod (multi-level flattening), PlaceOrderPayload embeds two
 // structs plus a plain field. The golden pins the FLATTENED output —

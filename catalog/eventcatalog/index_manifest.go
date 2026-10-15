@@ -77,7 +77,7 @@ type manifestErrorSurfaceE struct {
 func manifestKindOrder() []string {
 	return []string{
 		"services", "commands", "events", "queries", "channels",
-		"domains", "containers", "entities", "data-products", "flows",
+		"domains", "containers", "entities", "data-products", "flows", "adrs",
 		"agents", "teams", "users", "docs",
 	}
 }
@@ -150,6 +150,12 @@ func buildIndexManifest(cat *catalog.Catalog) indexManifest {
 		byKind["flows"] = append(byKind["flows"], manifestResource{
 			ID: string(flow.ID), Kind: "flows", Version: string(flow.Version),
 			Path: resourceIndexPath("flows", string(flow.ID)),
+		})
+	}
+	for _, adr := range cat.ADRs {
+		byKind["adrs"] = append(byKind["adrs"], manifestResource{
+			ID: string(adr.ID), Kind: "adrs", Version: string(adr.Version),
+			Path: resourceIndexPath("adrs", string(adr.ID)),
 		})
 	}
 	for _, agent := range cat.Agents {

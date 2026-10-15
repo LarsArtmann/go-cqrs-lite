@@ -99,6 +99,27 @@ func copyFlowEdge(e *FlowEdge) *FlowEdge {
 	return &FlowEdge{ID: e.ID, Label: e.Label}
 }
 
+func copyADR(a *ADR) ADR {
+	return ADR{
+		ID:             a.ID,
+		Name:           a.Name,
+		Version:        a.Version,
+		Status:         a.Status,
+		Date:           a.Date,
+		Summary:        a.Summary,
+		Body:           a.Body,
+		Owners:         copySlice(a.Owners),
+		DecisionMakers: copySlice(a.DecisionMakers),
+		AppliesTo:      copySlice(a.AppliesTo),
+		Supersedes:     copySlice(a.Supersedes),
+		SupersededBy:   copySlice(a.SupersededBy),
+		Amends:         copySlice(a.Amends),
+		AmendedBy:      copySlice(a.AmendedBy),
+		Related:        copySlice(a.Related),
+		Badges:         copyBadges(a.Badges),
+	}
+}
+
 func copyTeam(t *Team) Team {
 	return Team{
 		ID:                    t.ID,

@@ -104,6 +104,32 @@ type flowFM struct {
 	Steps   []flowStepFM `yaml:"steps,omitempty"`
 }
 
+type adrFM struct {
+	ID             string           `yaml:"id"`
+	Name           string           `yaml:"name"`
+	Version        string           `yaml:"version"`
+	Status         string           `yaml:"status"`
+	Date           string           `yaml:"date"`
+	Summary        string           `yaml:"summary,omitempty"`
+	Owners         []string         `yaml:"owners,omitempty"`
+	DecisionMakers []string         `yaml:"decisionMakers,omitempty"`
+	AppliesTo      []adrAppliesToFM `yaml:"appliesTo,omitempty"`
+	Supersedes     []pointer        `yaml:"supersedes,omitempty"`
+	SupersededBy   []pointer        `yaml:"supersededBy,omitempty"`
+	Amends         []pointer        `yaml:"amends,omitempty"`
+	AmendedBy      []pointer        `yaml:"amendedBy,omitempty"`
+	Related        []pointer        `yaml:"related,omitempty"`
+	Badges         []badgeFM        `yaml:"badges,omitempty"`
+}
+
+// adrAppliesToFM references a catalog resource from ADR frontmatter
+// (EventCatalog appliesTo: {type, id, version?}).
+type adrAppliesToFM struct {
+	Type    string `yaml:"type"`
+	ID      string `yaml:"id"`
+	Version string `yaml:"version,omitempty"`
+}
+
 type sourceFM struct {
 	Provider string `yaml:"provider"`
 	ID       string `yaml:"id,omitempty"`

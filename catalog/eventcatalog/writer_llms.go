@@ -33,6 +33,10 @@ func (e *Exporter) writeLLMsTxt(cat *catalog.Catalog) error {
 			writeLLMsTxtFlow(buf, f)
 		}
 
+		for _, adr := range cat.ADRs {
+			writeLLMsTxtADR(buf, adr)
+		}
+
 		for _, team := range cat.Teams {
 			writeLLMsTxtTeam(buf, team)
 		}
@@ -156,6 +160,12 @@ func writeLLMsTxtFlow(buf *strings.Builder, f catalog.Flow) {
 	writeLLMsSectionHeader(buf, "Flow", string(f.Name), string(f.ID), string(f.Summary))
 
 	fmt.Fprintf(buf, "Steps: %d\n\n", len(f.Steps))
+}
+
+func writeLLMsTxtADR(buf *strings.Builder, adr catalog.ADR) {
+	writeLLMsSectionHeader(buf, "ADR", string(adr.Name), string(adr.ID), string(adr.Summary))
+
+	fmt.Fprintf(buf, "Status: %s | Date: %s\n\n", adr.Status, adr.Date)
 }
 
 func writeLLMsTxtTeam(buf *strings.Builder, team catalog.Team) {

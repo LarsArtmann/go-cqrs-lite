@@ -1,0 +1,49 @@
+
+[TestGolden_EventCatalog_ADRMDX - 1]
+/-/-/-/
+id: sqlite-single-writer
+name: SQLite single-writer event store
+version: 1.0.0
+status: accepted
+date: "2026-10-15"
+summary: One writer per database file keeps the sync window simple
+owners:
+    - lars
+decisionMakers:
+    - lars
+appliesTo:
+    -   type: service
+        id: bank-sync
+        version: 1.0.0
+    -   type: event
+        id: BalanceUpdated
+supersedes:
+    -   id: sqlite-async-replication
+        version: 0.9.0
+amends:
+    -   id: event-store-baseline
+amendedBy:
+    -   id: snapshot-every-100
+related:
+    -   id: wise-qonto-providers
+badges:
+    -   content: Accepted
+        backgroundColor: green
+        textColor: white
+/-/-/-/
+
+# SQLite single-writer event store
+
+## Context
+
+One sync process writes balances.
+
+## Decision
+
+Single writer, no row locks.
+
+## Consequences
+
+No lock contention.
+
+---

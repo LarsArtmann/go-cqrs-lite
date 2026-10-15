@@ -104,6 +104,15 @@ fallbacks — keep both when adding pages.
     custom docs REQUIRE `title` + `summary` and have no `id` field.
   - Flow step node keys: `container` (data stores), `flow` (sub-flows) — there
     is no channel step kind; flow actors have no `url` (externalSystem does).
+  - ADRs (`adrs/<id>/index.mdx`): `status` enum and `appliesTo.type` enum
+    and `date` (YYYY-MM-DD) are validated at EXPORT (Rejection errors) —
+    schema verified against core 5.1.1's generated adrs collection schema
+    (2026-10-15). ADR→ADR pointer lists (`supersedes`, `supersededBy`,
+    `amends`, `amendedBy`, `related`) are `{id, version?}` objects like
+    every other pointer list; `WithPlainRefIDs` drops their version pins.
+    The current ADR version lives ONLY in the base index.mdx frontmatter —
+    EventCatalog versions ADR history at `adrs/<id>/versioned/<v>/`, not
+    `adrs/<id>/<v>/` (the message pattern); we emit single-version records.
   - `styles` node color/label nest under `styles.node.{color,label}`.
 - **Deliberately not exported:** `BaseConfig.ResourceGroups` (export fails with
   a Rejection — EventCatalog needs typed `{id, version, type}` items the

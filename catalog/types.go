@@ -46,6 +46,12 @@ func (id FlowEdgeID) String() string { return string(id) }
 
 func (id FlowEdgeID) IsZero() bool { return id == "" }
 
+type ADRID string
+
+func (id ADRID) String() string { return string(id) }
+
+func (id ADRID) IsZero() bool { return id == "" }
+
 type TeamID string
 
 func (id TeamID) String() string { return string(id) }
@@ -213,6 +219,7 @@ type Catalog struct {
 	Channels        []Channel        `json:"channels,omitempty"`
 	DataStores      []DataStore      `json:"dataStores,omitempty"`
 	Flows           []Flow           `json:"flows,omitempty"`
+	ADRs            []ADR            `json:"adrs,omitempty"`
 	Teams           []Team           `json:"teams,omitempty"`
 	Users           []User           `json:"users,omitempty"`
 	Entities        []Entity         `json:"entities,omitempty"`

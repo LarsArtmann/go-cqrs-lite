@@ -952,6 +952,7 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 | Exporter interface  | `Exporter[T]` + `ErrorExporter` — pluggable output format                                                                                                      | ✅     |
 | WalkMessages        | `WalkMessages(cat, fn)` — iterate all messages across all services                                                                                             | ✅     |
 | Rich resource model | Services, Domains, Channels, DataStores, Flows, Teams, Users — with badges, owners, repositories, specifications                                               | ✅     |
+| ADR resources       | `AddADR` — architecture decision records with status lifecycle, appliesTo resource pointers, supersedes/amends/related ADR chains; emitted to `adrs/<id>/index.mdx` with schema-validated frontmatter | ✅     |
 | Message config      | `Command[T]()`, `Event[T]()`, `Query[T]()` — generic message registration with options                                                                         | ✅     |
 | Channel config      | `ChannelAddress`, `ChannelProtocols`, `ChannelMessages`, `ChannelDeliveryGuarantee`, `ChannelRoutes`, `ChannelOwners`, `ChannelBadges`                         | ✅     |
 | Domain config       | `DomainSends`, `DomainReceives`, `DomainEntities`, `DomainBadges`, `DomainOwners`, `DomainAttachments`                                                         | ✅     |

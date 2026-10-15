@@ -508,6 +508,7 @@ The exporter supports all EventCatalog resource types:
 | Channels      | `channels/<id>/index.mdx`                                                    | With protocols, parameters, routes, delivery guarantees                                                                                                                 |
 | Data Stores   | `containers/<id>/index.mdx`                                                  | Databases/caches with authoritative, accessMode, classification (EventCatalog 4.x collects them from `containers/`)                                                     |
 | Flows         | `flows/<id>/index.mdx`                                                       | Step types: service, message, agent, dataProduct, actor, externalSystem, custom; data stores map to `container`, sub-flows to `flow` (EventCatalog has no channel step) |
+| ADRs          | `adrs/<id>/index.mdx`                                                        | Architecture decision records: status, date, decisionMakers, appliesTo `{type, id, version?}` pointers to 15 resource kinds, supersedes/supersededBy/amends/amendedBy/related ADR pointers; status/type/date validated at export |
 | Teams         | `teams/<id>.mdx`                                                             | With external source sync, hidden, readOnly; role/avatar ride `x-` custom properties (EventCatalog teams have no such fields)                                           |
 | Users         | `users/<id>.mdx`                                                             | With external source sync, hidden, readOnly                                                                                                                             |
 | Custom Docs   | `docs/<slug>/index.mdx`                                                      | Global documentation pages (ADRs, architecture docs); core 5.x routes them standalone at `/docs/custom/<slug>/` (community too; 4.x needed enterprise)                     |
@@ -594,6 +595,29 @@ builder.AddFlow(catalog.Flow{
             NextStep: &catalog.FlowEdge{ID: "3"}},
         {ID: "3", Title: "Publish metrics", DataProduct: &catalog.FlowStepRef{ID: "sales-data"}},
     },
+})
+```
+
+#### Architecture Decision Records
+
+ADRs render as first-class EventCatalog resources (`adrs/<id>/index.mdx`,
+routed at `/docs/adrs/<id>/<version>`) with status grouping, appliesTo
+links, and ADR-to-ADR chains — unlike `CustomDoc`, which only produces a
+prose page. The exporter rejects statuses, dates, and appliesTo types the
+EventCatalog schema does not know:
+
+```go
+builder.AddADR(catalog.ADR{
+    ID: "sqlite-single-writer", Name: "SQLite single-writer event store",
+    Version: "1.0.0", Status: catalog.ADRAccepted, Date: "2026-10-15",
+    Summary: "One writer per database file keeps the sync window simple",
+    Owners:  []string{"lars"},
+    AppliesTo: []catalog.ADRResourceRef{
+        {Type: catalog.ADRAppliesToService, ID: "bank-sync", Version: "1.0.0"},
+        {Type: catalog.ADRAppliesToEvent, ID: "BalanceUpdated"},
+    },
+    Supersedes: []catalog.ADRRef{{ID: "sqlite-async-replication"}},
+    Body: "## Context\n...\n\n## Decision\n...\n\n## Consequences\n...",
 })
 ```
 

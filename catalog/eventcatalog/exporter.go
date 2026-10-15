@@ -147,6 +147,19 @@ func (e *Exporter) Export(cat *catalog.Catalog) error { //nolint:cyclop,gocyclo 
 		}
 	}
 
+	for _, adr := range enriched.ADRs {
+		err := e.writeADR(adr)
+		if err != nil {
+			return errorfamily.Newf(
+				errorfamily.Infrastructure,
+				"catalog.exporter.20",
+				"write adr %s: %v",
+				adr.ID,
+				err,
+			)
+		}
+	}
+
 	for _, team := range enriched.Teams {
 		err := e.writeTeam(team)
 		if err != nil {

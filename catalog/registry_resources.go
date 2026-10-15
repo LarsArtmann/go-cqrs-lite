@@ -35,6 +35,13 @@ func (r *Registry) AddFlow(f Flow) {
 	r.flows[f.ID] = copyPtr(copyFlow, f)
 }
 
+func (r *Registry) AddADR(adr ADR) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	r.adrs[adr.ID] = copyPtr(copyADR, adr)
+}
+
 func (r *Registry) AddTeam(team Team) {
 	r.mu.Lock()
 	defer r.mu.Unlock()

@@ -24,6 +24,7 @@ type Registry struct {
 	channels     map[ChannelID]*Channel
 	stores       map[DataStoreID]*DataStore
 	flows        map[FlowID]*Flow
+	adrs         map[ADRID]*ADR
 	teams        map[TeamID]*Team
 	users        map[UserID]*User
 	entities     map[EntityID]*Entity
@@ -44,6 +45,7 @@ func NewRegistry(title, version string) *Registry {
 		channels:     make(map[ChannelID]*Channel),
 		stores:       make(map[DataStoreID]*DataStore),
 		flows:        make(map[FlowID]*Flow),
+		adrs:         make(map[ADRID]*ADR),
 		teams:        make(map[TeamID]*Team),
 		users:        make(map[UserID]*User),
 		entities:     make(map[EntityID]*Entity),

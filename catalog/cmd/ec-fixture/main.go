@@ -243,6 +243,10 @@ func run(outputDir string, plainProfile bool) error {
 		Steps:   checkoutSteps(),
 	})
 
+	for _, adr := range fixtureADRs() {
+		reg.AddADR(adr)
+	}
+
 	reg.AddTeam(catalog.Team{
 		ID:      fixtureTeamID,
 		Name:    "Order Team",

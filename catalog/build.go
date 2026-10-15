@@ -93,6 +93,11 @@ func (b *Builder) AddFlow(f Flow) {
 	b.registry.AddFlow(f)
 }
 
+// AddADR registers an architecture decision record in the catalog.
+func (b *Builder) AddADR(adr ADR) {
+	b.registry.AddADR(adr)
+}
+
 // AddTeam registers a team in the catalog.
 func (b *Builder) AddTeam(team Team) {
 	b.registry.AddTeam(team)
