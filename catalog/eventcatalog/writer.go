@@ -34,7 +34,7 @@ func (e *Exporter) writeResourceMDX(
 	content, err := renderMDX(fm, name, summary, includeGraph)
 	if err != nil {
 		return errorfamily.Newf(errorfamily.Infrastructure, errorCode,
-			"render %s %s: %v", resourceKind, resourceID, err)
+			"render %s %s to %s: %v", resourceKind, resourceID, targetPath, err)
 	}
 
 	return e.writeMDXFile(targetPath, content)
@@ -88,8 +88,8 @@ func (e *Exporter) writeExamples(dir string, examples []jsontext.Value) error {
 		return errorfamily.Newf(
 			errorfamily.Infrastructure,
 			"catalog.writer.3",
-			"create examples dir in %s: %v",
-			dir,
+			"create examples dir %s: %v",
+			examplesDir,
 			err,
 		)
 	}
@@ -104,9 +104,9 @@ func (e *Exporter) writeExamples(dir string, examples []jsontext.Value) error {
 			return errorfamily.Newf(
 				errorfamily.Infrastructure,
 				"catalog.writer.3b",
-				"marshal example %d for dir %s: %v",
+				"marshal example %d for %s: %v",
 				i+1,
-				dir,
+				examplesDir,
 				err,
 			)
 		}
@@ -120,9 +120,9 @@ func (e *Exporter) writeExamples(dir string, examples []jsontext.Value) error {
 			return errorfamily.Newf(
 				errorfamily.Infrastructure,
 				"catalog.writer.3c",
-				"write example %d for dir %s: %v",
+				"write example %d to %s: %v",
 				i+1,
-				dir,
+				examplesDir,
 				err,
 			)
 		}

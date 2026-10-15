@@ -280,7 +280,7 @@ func run(outputDir string, changelogProfile, plainProfile bool) error {
 	}
 
 	if err := exporter.Export(reg.Build()); err != nil {
-		return err
+		return fmt.Errorf("export catalog to %s: %w", outputDir, err)
 	}
 
 	// The data product's output contract points at a contract FILE; the
@@ -298,7 +298,7 @@ func run(outputDir string, changelogProfile, plainProfile bool) error {
 		contractDir,
 		dirPerm,
 	); err != nil {
-		return err
+		return fmt.Errorf("create contract dir %s under %s: %w", contractDir, outputDir, err)
 	}
 
 	return os.WriteFile( //nolint:gosec // fixture output path
