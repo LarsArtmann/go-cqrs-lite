@@ -257,7 +257,10 @@ critical-security fixes only until ~2027-03-24, then EOL. Full analysis in
 breaks today — the `^4.6.3` caret never jumps majors. Decision deadline: before
 v4 EOL (March 2027).
 
-- [ ] **Decide the `@eventcatalog/core` pin strategy before v4 EOL** — options:
+- [x] ~~**Decide the `@eventcatalog/core` pin strategy before v4 EOL**~~ —
+  **RULED + EXECUTED 2026-10-15: BUMP to `^5.1.0`** (evidence-ruled via the
+  T1 spike, not opinion; lands as one decision commit: pin + goldens +
+  changelog-guard drop). Options as they stood:
   (a) stay on 4.6.3 indefinitely (MIT, works forever, but the agent-changelog
   crash workaround and the 3 cosmetic sidebar WARNs are permanent, and no
   security fixes after 2027-03-24); (b) bump to v5 — now chiefly a TIMING +
@@ -277,8 +280,21 @@ v4 EOL (March 2027).
     deploy shape); the standalone `@eventcatalog/mcp-server` consumes
     `llms.txt`, which we already emit — agent-surface value is NOT
     bump-gated. Custom-docs routing under v5 confirmed live in the hub
-    deployment (`/docs/custom/*`). Still open for bump time: does v5 fix the
-    agent-changelog crash + 3 sidebar WARNs; full zod/goldens re-verification.
+    deployment (`/docs/custom/*`).
+  - **2026-10-15 (receipt, spike evidence — the ruling's basis):** scratch
+    worktree + pin `^5.1.0` (resolves 5.1.1) + full `check-eventcatalog`
+    run: default profile 98 pages + changelog 103 pages, ZERO
+    `InvalidContentEntryDataError`, linter clean at full severity. Forced
+    crash-path probe (agents + `changelog: { enabled: true }`): build
+    exits 0, 108 pages, `/docs/agents/order-bot/1.0.0/changelog/` renders,
+    zero `getBadgeHref` — **the 4.6.3 agent-changelog crash is FIXED
+    upstream** → guard dropped. Custom docs route standalone at
+    `/docs/custom/<slug>/` under v5 community (4.x needed enterprise) — an
+    upgrade. The 3-collection sidebar WARN persists (4 fixture links across
+    channels/data-products/entities) — cosmetic, gate tolerates, logged in
+    the tripwire. Full table in the session status addendum; procedure
+    canonized in catalog/AGENTS.md ("Pin-bump procedure"). ROADMAP open
+    questions #18–22 carry the verdict + SSO/Studio/diagrams rulings.
 
 ---
 
@@ -297,12 +313,24 @@ the boundary. Verified against this repo's source on 2026-10-15.
   upstream ADR frontmatter schema (T7.1) and files the issue; our side then
   needs a catalog API type + exporter emission + goldens. _(Effort: M;
   blocked:upstream)_
+  - **2026-10-15 (receipt): groundwork SKETCHED, design-only** —
+    `docs/planning/2026-10-15_20-05_adr-emission-groundwork-sketch.md` holds
+    the `catalog.ADR`-type sketch + exporter acceptance criteria. NO
+    implementation until the hub confirms the frontmatter schema (guardrail:
+    guessing a schema = guaranteed rework).
 - [ ] **Flows pilot: one mesh-demo context flow (hub T9)** — the live hub
   catalog renders "Flows: 0"; v5's swimlanes/grouping consume flow resources
   no source emits. `example/mesh-demo` is ours: design one context flow
   (orders gate) and emit it via the existing `catalog.Flow` support (shipped
   2026-09-24 wave, incl. `Flow.Owners`). bank-sync's flow is the sibling
   pilot in its own repo. _(Effort: M; can start now)_
+  - **2026-10-15 (receipt): SHIPPED** — the orders catalog declares
+    `order-lifecycle` (customer → orders-svc → order.placed → Billing
+    Service external node → invoice.issued → orders-svc → order.completed),
+    `Flow.Owners` = orders-team, exported to `flows/order-lifecycle/` with
+    resolvable message refs; mesh-demo tests green. Hub side needs zero
+    edits — its merge picks the flow up on the next source export; the
+    bank-sync sibling remains its own repo's task.
 - [x] ~~**AsyncAPI/OpenAPI spec assessment (hub T15)** — hub believes spec
       embedding is an exporter GAP.~~ **Half-wrong (verified 2026-10-15):**
       `catalog/asyncapi/` and `catalog/openapi/` exist and export AsyncAPI

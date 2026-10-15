@@ -149,3 +149,34 @@ They answer this report's section (g) and correct parts of its analysis:
 No code changed in this addendum; edits: TODO_LIST.md (pin-row receipt + new
 upstream-asks section + index entry), catalog/AGENTS.md (licence bullet
 updated + new hub-consumer bullet).
+
+---
+
+## Addendum 3 (20:10) — the spike ran, the ruling is BUMP, and it SHIPPED
+
+The plan's T1 spike (scratch worktree `../gcl-v5spike`, pin `^5.1.0` →
+resolves core 5.1.1, full `check-eventcatalog` + forced crash-path probe)
+answered every open question in one run:
+
+| Question | Evidence (2026-10-15, core 5.1.1) |
+| --- | --- |
+| Build passes at all (zod drift)? | YES — default 98 pages + changelog 103 pages, zero `InvalidContentEntryDataError`, zero unresolved refs, exit 0; linter clean at full severity |
+| Agent-changelog crash fixed? | YES — forced probe (agents + `changelog: { enabled: true }`): exit 0, 108 pages, `/docs/agents/order-bot/1.0.0/changelog/` renders, zero `getBadgeHref` |
+| 3-collection sidebar WARNs? | PERSIST (cosmetic) — broken sidebar changelog links for channels/data-products/entities; build completes; gate tolerates (documented in the gate header) |
+| Standalone custom docs routed? | YES — upgraded: `/docs/custom/guides/architecture/index.html` generated under v5 community (4.x needed enterprise) |
+| Licence behavior in CI? | BSL 1.1 confirmed on the package; no key needed for builds (blog contract: builds never break); Free-Use key remains an owner-side self-certification |
+
+**Ruling (owner-delegated, evidence-ruled): BUMP.** Landed as ONE decision
+commit on master: pin `^5.1.0` + goldens (`package.snap`) +
+`shouldEnableChangelog` agent-exclusion drop + ec-fixture changelog profile
+folded into default (agents + changelog prove both at once) + gate
+simplification (2 profiles → 1 + folded assertions). Master render gate
+re-run: green (108 pages, semantic checks + linter clean).
+
+Also executed: the mesh-demo `order-lifecycle` flow (hub's "Flows: 0" → 1 on
+next merge), the upstream-bugs tripwire + pin-bump procedure in
+catalog/AGENTS.md, llms.txt/MCP contract notes, the ADR-emission groundwork
+sketch (design-only, blocked:upstream), ROADMAP verdicts #18–22 (pin,
+upstream watch, SSO, Studio, 3-level diagrams), CHANGELOG Changed row, hub
+receipt rows (corrections + bump sync), and TODO_LIST receipts (pin row
+ruled+executed, flows row shipped, ADR row sketched).

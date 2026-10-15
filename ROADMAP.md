@@ -854,6 +854,41 @@ CONFLICT`, JSONB) should work with near-zero changes. Point the DSN at port
     foreign red gates under a live concurrent session leaves a comment +
     handoff note, never fix-forward (unless the foreign session is provably
     dead). One ruling covers both 10th/11th-pass questions.
+18. **EventCatalog pin: stay on 4.6.3 or bump to v5?** (2026-10-15) —
+    **ANSWERED 2026-10-15: BUMP to `^5.1.0`** — evidence-ruled, not
+    opinion-ruled: the scratch-worktree spike render-gated the entire
+    fixture clean under core 5.1.1 (zod-clean, linter clean), the
+    agent-changelog crash is FIXED upstream (guard dropped), custom docs
+    route at `/docs/custom/<slug>/` in community builds, and the
+    3-collection sidebar WARNs persist but stay cosmetic. Licence: BSL 1.1
+    with confirmed Free Use. Receipt on the TODO_LIST pin row; procedure in
+    `catalog/AGENTS.md` ("Pin-bump procedure").
+19. **Upstream EventCatalog watch after the v5 bump** (2026-10-15) —
+    **ANSWERED 2026-10-15: security-and-regression watch, no calendar
+    trigger.** The v4 EOL sword (2027-03-24) no longer binds us — we ride
+    the maintained 5.x line. Watch items, re-verified at every future bump
+    by the catalog/AGENTS.md pin-bump procedure: the 3-collection sidebar
+    WARN must not grow new collections; the agent-changelog fix must not
+    regress; custom-doc routing must keep working; zod schema additions
+    are opt-in, not breaking.
+20. **EventCatalog SSO** (2026-10-15) — **ANSWERED 2026-10-15: not
+    adopting.** Our deployments are LAN/homelab (catalog.home.lan, repo
+    sites) with no fleet-wide IdP; v5 SSO targets org deployments with an
+    identity provider. Revisit ONLY if a hosted multi-tenant catalog
+    deployment appears.
+21. **EventCatalog Studio v2** (2026-10-15) — **ANSWERED 2026-10-15: after
+    the catalog grows hand-authored content.** Our trees are GENERATED from
+    Go types (regeneration would clobber Studio edits — no write path back
+    into the catalogs). Studio's editing/preview value starts once flows +
+    ADR content exist that someone actually edits by hand (post flow/ADR
+    pilots; the ADR emission row is blocked upstream on the hub's schema
+    confirmation).
+22. **3-level diagrams vs `catalog/d2`** (2026-10-15) — **ANSWERED
+    2026-10-15: coexist.** Core's diagrams render the EventCatalog SITE
+    (service/message/channel views of the exported tree — the hub's
+    consumer surface); `catalog/d2` renders architecture diagrams for repo
+    docs and the docserver. Different audiences and data sources; no
+    consolidation on either side.
 
 ---
 
