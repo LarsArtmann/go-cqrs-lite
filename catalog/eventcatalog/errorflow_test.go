@@ -212,7 +212,7 @@ func TestErrorflow_PlainExportUnchanged(t *testing.T) {
 
 func TestErrorflow_SchemaMismatchRejected(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "errorflow.json")
-	future := strings.Replace(errorflowFixture, `"schemaVersion": 1`, `"schemaVersion": 2`, 1)
+	future := strings.Replace(errorflowFixture, `"schemaVersion": 1`, `"schemaVersion": 3`, 1)
 	if err := os.WriteFile(path, []byte(future), 0o600); err != nil {
 		t.Fatalf("write fixture: %v", err)
 	}
