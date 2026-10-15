@@ -65,6 +65,27 @@ fallbacks — keep both when adding pages.
 - `@eventcatalog/core` is pinned via the `eventCatalogCoreVersion` constant
   (exporter.go). Bump only after verifying the new release renders the generated
   MDX; then regen goldens.
+- **Upstream v5 licence shift (announced 2026-09-24):** EventCatalog v5 is BSL
+  1.1 — source-available, free for individuals/OSS/orgs under $10M revenue
+  AND under $10M raised (self-certified; Free Use for LarsArtmann CONFIRMED
+  in the hub's 2026-10-15 audit); larger orgs pay per team. v4 stays MIT but
+  gets critical-security fixes only until ~2027-03-24 (6 months post-v5),
+  then EOL — the 4.6.3 functional bugs worked around below will never be
+  fixed on the v4 line. The `^4.6.3` caret never jumps majors, so existing
+  builds keep working; a pin bump to v5 is a TIMING + re-verification
+  decision (v5 zod schemas, React 19 clean-install upgrade), not a licence
+  one any more. Offsetting: v5 is one product — enterprise features fold in,
+  including routing standalone custom docs pages (see the custom-docs bullet
+  below).
+- **First-party v5 consumer exists: eventcatalog-hub (2026-10-15).** The hub
+  runs core `^5.0.1` and builds our v4-format exported trees under its
+  link-validation-as-CI-gate — empirical evidence that v5 parses our emitted
+  frontmatter. Any pin bump here is a COORDINATED cross-repo change (hub
+  guardrail: exporter + pin + lockfile + full rebuild, together — never a
+  casual `npm update` on either side). Agent surface is NOT bump-gated: the
+  built-in v5 MCP server requires SSR (NO-GO for static serving), while the
+  standalone `@eventcatalog/mcp-server` consumes the `llms.txt` this
+  exporter already emits.
 - **Verified format contract (against core 4.6.3 zod schemas, 2026-09-23).**
   The exporter must keep honoring these or the downstream `eventcatalog build`
   hard-fails (`InvalidContentEntryDataError`) or silently strips data:
