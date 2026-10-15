@@ -69,10 +69,15 @@ func readErrorflowFile(path string) (*errorflowExport, error) {
 	}
 
 	if export.SchemaVersion < 1 || export.SchemaVersion > errorflowSchemaVersion {
-		return nil, errorfamily.Newf(errorfamily.Rejection, "catalog.exporter.errorflow.schema.1",
+		return nil, errorfamily.Newf(
+			errorfamily.Rejection,
+			"catalog.exporter.errorflow.schema.1",
 			"errorflow file %s: schemaVersion %d is outside the supported window 1..%d — regenerate it with a "+
 				"matching erraudit version (erraudit errorflow ./... --type-aware)",
-			path, export.SchemaVersion, errorflowSchemaVersion)
+			path,
+			export.SchemaVersion,
+			errorflowSchemaVersion,
+		)
 	}
 
 	return &export, nil
