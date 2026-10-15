@@ -95,7 +95,7 @@ run_args_for_dir() {
 	local dir="$1" root="$1"
 	while [ ! -f "$repo_root/$root/go.mod" ] && [ "$root" != "." ]; do
 		root="$(dirname "$root")"
-	done
+		done
 	if [ "$root" = "." ] && [ ! -f "$repo_root/go.mod" ]; then
 		echo "ERROR: no module root found above $dir" >&2
 		return 1
@@ -107,21 +107,21 @@ run_args_for_dir() {
 	fi
 }
 
-errorflow_json_for_dir() {
+# Whole-tree entries cover every nested module under the dir. erraudit's
+# --modules=all fan-out resolves patterns in the root module's context and
+# dies on module boundaries (queue/mysql), so the fan-out is done here:
+# one standalone run per module — nested modules only ever load their own
+# go.sum that way.
+modules_under_dir() {
 	local dir="$1"
-	local run_args pattern modules_args=()
-	run_args="$(run_args_for_dir "$dir")"
-	local run_dir="${run_args%% *}"
-	pattern="${run_args#* }"
+	printf '%s\n' "$dir"
+	find "$repo_root/$dir" -mindepth 2 -name go.mod -not -path '*/vendor/*' -printf '%h\n' |
+		sed "s|^$repo_root/||"
+}
 
-	# Whole-tree entries (no rg maxdepth) with nested modules: fan out.
-	if [ "${dir_deep[$dir]:-1}" -eq 1 ] &&
-		find "$repo_root/$dir" -mindepth 2 -name go.mod -not -path '*/vendor/*' -print -quit | grep -q .; then
-		modules_args=(--modules=all)
-	fi
-
-	(cd "$repo_root/$run_dir" && env GOWORK=off GOFLAGS= GOEXPERIMENT=jsonv2 \
-		"$erraudit" errorflow "$pattern" --type-aware "${modules_args[@]}" 2>/dev/null)
+run_errorflow() { # $1 = module dir to cd into, $2 = package pattern
+	(cd "$repo_root/$1" && env GOWORK=off GOFLAGS= GOEXPERIMENT=jsonv2 \
+		"$erraudit" errorflow "$2" --type-aware 2>/dev/null)
 }
 
 schema_checked=0
@@ -138,6 +138,32 @@ check_schema() {
 	fi
 }
 
+# extract_rows <json> <sec_dir> <prefixes>: appends code\tfamily\tname and
+# dead-sentinel rows for one module's export to the section's TSVs.
+extract_rows() {
+	local json="$1" sec_dir="$2" prefixes="$3"
+
+	jq -r --arg pfx "$prefixes" '
+		($pfx | split(" ") | map(select(length > 0))) as $pfx
+		| ((.errors // [])
+			| map(select((.code // "") != ""))
+			| map({key: .code, value: .name})
+			| from_entries) as $names
+		| (.codes // [])
+		| map(select(((.declared // "") | endswith("_test.go")) | not))
+		| map(select(.code as $c | any($pfx[]; . as $p | $c | startswith($p))))
+		| unique_by([.code, .family])
+		| .[] | [.code, .family, ($names[.code] // "-")] | @tsv
+	' <<<"$json" >>"$sec_dir/codes.tsv"
+
+	jq -r '
+		(.errors // [])
+		| map(select(.status == "unreferenced"))
+		| sort_by(.name)
+		| .[] | [.name, (.declared // "")] | @tsv
+	' <<<"$json" >>"$sec_dir/dead.tsv"
+}
+
 tmp_root="$(mktemp -d)"
 trap 'rm -rf "$tmp_root"' EXIT
 
@@ -151,28 +177,18 @@ for section in "${sections[@]}"; do
 
 	IFS=':' read -r -a dirs <<<"${section_dirs[$section]}"
 	for dir in "${dirs[@]}"; do
-		json="$(errorflow_json_for_dir "$dir")"
-		check_schema "$json"
-
-		jq -r --arg pfx "${section_prefixes[$section]}" '
-			($pfx | split(" ") | map(select(length > 0))) as $pfx
-			| ((.errors // [])
-				| map(select((.code // "") != ""))
-				| map({key: .code, value: .name})
-				| from_entries) as $names
-			| (.codes // [])
-			| map(select(((.declared // "") | endswith("_test.go")) | not))
-			| map(select(.code as $c | any($pfx[]; . as $p | $c | startswith($p))))
-			| unique_by([.code, .family])
-			| .[] | [.code, .family, ($names[.code] // "-")] | @tsv
-		' <<<"$json" >>"$sec_dir/codes.tsv"
-
-		jq -r '
-			(.errors // [])
-			| map(select(.status == "unreferenced"))
-			| sort_by(.name)
-			| .[] | [.name, (.declared // "")] | @tsv
-		' <<<"$json" >>"$sec_dir/dead.tsv"
+		if [ "${dir_deep[$dir]:-1}" -eq 1 ]; then
+			while IFS= read -r mod; do
+				json="$(run_errorflow "$mod" "./...")"
+				check_schema "$json"
+				extract_rows "$json" "$sec_dir" "${section_prefixes[$section]}"
+			done < <(modules_under_dir "$dir")
+		else
+			run_args="$(run_args_for_dir "$dir")"
+			json="$(run_errorflow "${run_args%% *}" "${run_args#* }")"
+			check_schema "$json"
+			extract_rows "$json" "$sec_dir" "${section_prefixes[$section]}"
+		fi
 	done
 
 	# Deduplicate across the section's dirs (a code minted in two dirs of
