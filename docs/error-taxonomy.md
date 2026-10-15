@@ -102,7 +102,6 @@ errorfamily.Classify(err) // => Conflict
 | -                     | Rejection      | `middleware.invalid_initial_delay`                 |
 | -                     | Rejection      | `middleware.invalid_max_attempts`                  |
 | -                     | Rejection      | `middleware.invalid_multiplier`                    |
-| -                     | Middleware     | `middleware.logging`                               |
 | ErrMeterRequired      | Rejection      | `middleware.meter_required`                        |
 | -                     | Infrastructure | `middleware.otel_recorder_init`                    |
 | -                     | Corruption     | `middleware.panic_detail`                          |
@@ -113,7 +112,7 @@ errorfamily.Classify(err) // => Conflict
 | ErrValidationFailed   | Rejection      | `middleware.validation_failed`                     |
 
 - Unreferenced named errors (dead-sentinel candidates): `ErrMeterRequired`
-- 21 of 28 codes are inline mints (no named sentinel)
+- 20 of 27 codes are inline mints (no named sentinel)
 
 ### graph
 
@@ -126,7 +125,6 @@ errorfamily.Classify(err) // => Conflict
 | errEmptyLabel                | Rejection      | `graph.noderef.label_required`        |
 | -                            | Infrastructure | `graph.projection.close`              |
 | errNilDriver                 | Rejection      | `graph.projection.driver_required`    |
-| -                            | Graph          | `graph.projection.handle`             |
 | errNilHandler                | Rejection      | `graph.projection.handler_required`   |
 | errNoName                    | Rejection      | `graph.projection.name_required`      |
 | ErrPathNotFound              | Rejection      | `graph.read.path_not_found`           |
@@ -155,7 +153,7 @@ errorfamily.Classify(err) // => Conflict
 | errSinkWrongKeyProp          | Rejection      | `graph.sink.wrong_key_prop`           |
 
 - Unreferenced named errors (dead-sentinel candidates): `errEmptyEdgeType`, `errEmptyKeyProp`, `errEmptyLabel`, `errNilDriver`, `errNilHandler`, `errNoName`, `errSchemaNoNodeTypes`
-- 6 of 34 codes are inline mints (no named sentinel)
+- 5 of 33 codes are inline mints (no named sentinel)
 
 ### storage/relational
 
@@ -271,7 +269,6 @@ errorfamily.Classify(err) // => Conflict
 | errDispatchFailed   | Infrastructure | `grpc.dispatch_failed`              |
 | -                   | Rejection      | `grpc.dispatch_missing_id`          |
 | -                   | Corruption     | `grpc.event_client.decode`          |
-| -                   | Grpc           | `grpc.event_client.handler`         |
 | -                   | Infrastructure | `grpc.event_client.open_stream`     |
 | -                   | Rejection      | `grpc.event_client.parse_stream_id` |
 | -                   | Infrastructure | `grpc.event_client.receive`         |
@@ -281,11 +278,10 @@ errorfamily.Classify(err) // => Conflict
 | errMissingCommandID | Rejection      | `grpc.missing_command_id`           |
 | -                   | Corruption     | `grpc.query.marshal_result`         |
 | errQueryFailed      | Infrastructure | `grpc.query_failed`                 |
-| -                   | Grpc           | `grpc.remote_error`                 |
 | -                   | Corruption     | `grpc.unmarshal_result`             |
 
 - Unreferenced named errors (dead-sentinel candidates): `errDispatchFailed`, `errQueryFailed`
-- 16 of 19 codes are inline mints (no named sentinel)
+- 14 of 17 codes are inline mints (no named sentinel)
 
 ### claiming
 
@@ -354,7 +350,6 @@ errorfamily.Classify(err) // => Conflict
 | -                     | Infrastructure | `pebble.batch_dup_check`           |
 | -                     | Conflict       | `pebble.batch_existing_dup`        |
 | -                     | Conflict       | `pebble.batch_internal_dup`        |
-| -                     | Pebble         | `pebble.check_version`             |
 | -                     | Corruption     | `pebble.checkpoint_cbor`           |
 | -                     | Corruption     | `pebble.checkpoint_json`           |
 | -                     | Infrastructure | `pebble.command_batch_commit`      |
@@ -411,11 +406,10 @@ errorfamily.Classify(err) // => Conflict
 | -                     | Conflict       | `pebble.version_conflict`          |
 | ErrVersionMismatch    | Conflict       | `pebble.version_mismatch`          |
 | -                     | Infrastructure | `pebble.write_checkpoint`          |
-| -                     | Pebble         | `pebble.write_events`              |
 | -                     | Infrastructure | `pebble.write_snapshot`            |
 
 - Unreferenced named errors (dead-sentinel candidates): `ErrNilDatabase`
-- 64 of 68 codes are inline mints (no named sentinel)
+- 62 of 66 codes are inline mints (no named sentinel)
 
 ### core/event
 
@@ -475,9 +469,7 @@ errorfamily.Classify(err) // => Conflict
 | ErrDuplicateCommand   | Conflict       | `command.duplicate`                |
 | ErrEmptyCommandType   | Rejection      | `command.empty_command_type`       |
 | ErrEmptyStreamType    | Rejection      | `command.empty_stream_type`        |
-| -                     | Command        | `command.handler_failed`           |
 | ErrHandlerNotFound    | Rejection      | `command.handler_not_found`        |
-| -                     | Command        | `command.memory_bus.publish`       |
 | -                     | Rejection      | `command.memory_bus.subscribe`     |
 | errNilBusHandler      | Rejection      | `command.nil_handler`              |
 | ErrNilStreamID        | Rejection      | `command.nil_stream_id`            |
@@ -486,15 +478,13 @@ errorfamily.Classify(err) // => Conflict
 | -                     | Rejection      | `command.parse_stream_type`        |
 | ErrStoreClosed        | Infrastructure | `command.store_closed`             |
 | ErrTypeAssertion      | Rejection      | `command.type_assertion`           |
-| -                     | Command        | `command.typed_store.append_batch` |
 | -                     | Corruption     | `command.typed_store.decode`       |
 | -                     | Corruption     | `command.typed_store.encode`       |
 | -                     | Corruption     | `command.typed_store.encode_batch` |
 | -                     | Infrastructure | `command.typed_store.load`         |
-| -                     | Command        | `command.typed_store.save`         |
 
 - Unreferenced named errors (dead-sentinel candidates): `ErrCommandNotFound`, `ErrDispatcherClosed`, `ErrStoreClosed`, `ErrTypeAssertion`, `errNilBusSubscribeAll`
-- 10 of 21 codes are inline mints (no named sentinel)
+- 6 of 17 codes are inline mints (no named sentinel)
 
 ### core/query
 
@@ -503,7 +493,6 @@ errorfamily.Classify(err) // => Conflict
 | ErrDispatcherClosed | Infrastructure | `query.dispatcher_closed`  |
 | ErrDuplicateQuery   | Conflict       | `query.duplicate`          |
 | ErrEmptyQueryType   | Rejection      | `query.empty_query_type`   |
-| -                   | Query          | `query.handler_failed`     |
 | ErrHandlerNotFound  | Rejection      | `query.handler_not_found`  |
 | -                   | Rejection      | `query.invalid_page`       |
 | -                   | Rejection      | `query.invalid_page_size`  |
@@ -514,10 +503,9 @@ errorfamily.Classify(err) // => Conflict
 | -                   | Corruption     | `query.typed_store.decode` |
 | -                   | Corruption     | `query.typed_store.encode` |
 | -                   | Infrastructure | `query.typed_store.load`   |
-| -                   | Query          | `query.typed_store.save`   |
 
 - Unreferenced named errors (dead-sentinel candidates): `ErrDispatcherClosed`, `ErrQueryNotFound`, `ErrStoreClosed`, `ErrTypeAssertion`
-- 8 of 15 codes are inline mints (no named sentinel)
+- 6 of 13 codes are inline mints (no named sentinel)
 
 ### storage/view
 
@@ -607,9 +595,6 @@ errorfamily.Classify(err) // => Conflict
 | -                    | Rejection      | `stack.invalid_subscriber_type`         |
 | -                    | Corruption     | `stack.materialize.decode`              |
 | -                    | Rejection      | `stack.materialize.extract_key`         |
-| -                    | Stack          | `stack.materialize.handle_event`        |
-| -                    | Stack          | `stack.materialize.load_existing`       |
-| -                    | Stack          | `stack.materialize.load_tombstone`      |
 | ErrMissingCheckpoint | Rejection      | `stack.missing_checkpoint`              |
 | ErrMissingEventStore | Rejection      | `stack.missing_event_store`             |
 | ErrMissingJournal    | Rejection      | `stack.missing_journal`                 |
@@ -619,7 +604,6 @@ errorfamily.Classify(err) // => Conflict
 | ErrMissingSubscriber | Rejection      | `stack.missing_subscriber`              |
 | -                    | Infrastructure | `stack.run_projections.catchup`         |
 | -                    | Corruption     | `stack.run_projections.decode`          |
-| -                    | Stack          | `stack.run_projections.handle`          |
 | -                    | Infrastructure | `stack.run_projections.subscribe`       |
 | -                    | Infrastructure | `turso.apply_durability`                |
 | -                    | Infrastructure | `turso.create_backend`                  |
@@ -647,7 +631,7 @@ errorfamily.Classify(err) // => Conflict
 | -                    | Infrastructure | `turso_preset.wire_sync_bundle`         |
 
 - Unreferenced named errors (dead-sentinel candidates): `ErrEmpty`, `ErrMissingCheckpoint`, `ErrMissingEventStore`, `ErrMissingJournal`, `ErrMissingProjection`, `ErrMissingPublisher`, `ErrMissingQueryStore`, `ErrMissingReadModels`, `ErrMissingSubscriber`, `ErrNoDatabase`
-- 72 of 84 codes are inline mints (no named sentinel)
+- 68 of 80 codes are inline mints (no named sentinel)
 
 ### deriver
 
@@ -686,7 +670,6 @@ errorfamily.Classify(err) // => Conflict
 | -                        | Infrastructure | `storage.batch_insert_events`              |
 | -                        | Infrastructure | `storage.begin_tx`                         |
 | -                        | Infrastructure | `storage.check_version`                    |
-| -                        | Storage        | `storage.check_version`                    |
 | ErrClosed                | Infrastructure | `storage.closed`                           |
 | -                        | Infrastructure | `storage.commit_tx`                        |
 | -                        | Infrastructure | `storage.delete_by_stream`                 |
@@ -701,7 +684,6 @@ errorfamily.Classify(err) // => Conflict
 | -                        | Infrastructure | `storage.iterate_rows`                     |
 | -                        | Infrastructure | `storage.iterate_timers`                   |
 | -                        | Rejection      | `storage.listing_table_prefix`             |
-| -                        | Family         | `storage.load_checkpoint`                  |
 | -                        | Infrastructure | `storage.load_checkpoint`                  |
 | -                        | Infrastructure | `storage.load_snapshot`                    |
 | -                        | Infrastructure | `storage.load_snapshot_version`            |
@@ -794,7 +776,7 @@ errorfamily.Classify(err) // => Conflict
 | -                        | Rejection      | `storage.view.validate_mapper`             |
 
 - Unreferenced named errors (dead-sentinel candidates): `ErrClosed`, `ErrNilDB`, `ErrVersionMismatch`, `errMapperColumnsRequired`, `errMapperScanRowRequired`, `errMapperTableRequired`, `errRelationalNilDB`, `errRelationalNilDialect`, `errRelationalNilHandler`, `errRelationalNoName`, `errSchemaNoTables`, `errSchemaTableNoColumns`, `errSchemaTableNoName`, `errSinkEmptyRow`
-- 115 of 130 codes are inline mints (no named sentinel)
+- 113 of 128 codes are inline mints (no named sentinel)
 
 ### metaengine
 

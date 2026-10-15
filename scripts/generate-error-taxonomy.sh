@@ -154,6 +154,7 @@ extract_rows() {
 			| from_entries) as $names
 		| (.codes // [])
 		| map(select(((.declared // "") | endswith("_test.go")) | not))
+		| map(select(.family | test("^(rejection|conflict|transient|infrastructure|corruption|orchestration)$")))
 		| map(select(.code as $c | any($pfx[]; . as $p | $c | startswith($p))))
 		| unique_by([.code, .family])
 		| .[] | [.code, .family, ($names[.code] // "-")] | @tsv
