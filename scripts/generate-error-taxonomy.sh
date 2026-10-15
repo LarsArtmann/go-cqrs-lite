@@ -120,7 +120,10 @@ modules_under_dir() {
 }
 
 run_errorflow() { # $1 = module dir to cd into, $2 = package pattern
-	(cd "$repo_root/$1" && env GOWORK=off GOFLAGS= GOEXPERIMENT=jsonv2 \
+	# CGO_ENABLED=1: cgo-backed modules (duckdbengine) fail package loading
+	# without it; GOWORK/GOFLAGS are cleared because caller direnv shells
+	# export -mod=mod which breaks module-mode pattern analysis.
+	(cd "$repo_root/$1" && env GOWORK=off GOFLAGS= GOEXPERIMENT=jsonv2 CGO_ENABLED=1 \
 		"$erraudit" errorflow "$2" --type-aware 2>/dev/null)
 }
 
