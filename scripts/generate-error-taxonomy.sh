@@ -60,10 +60,14 @@ if ! grep -qxF "$begin" "$doc" || ! grep -qxF "$end" "$doc"; then
 	exit 1
 fi
 
-# GATED_MODULES rows from the gate script: section|dir|prefixes|floor|maxdepth
+# GATED_MODULES rows from the gate script: section|dir|prefixes|floor|maxdepth.
+# The 5th field (rg --max-depth) marks entries the rg gate scopes SHALLOW
+# (root files only); entries WITHOUT it scope the whole directory tree,
+# nested modules included — for those, erraudit (hard module boundaries)
+# needs --modules=all to see the same codes.
 declare -a sections=()
-declare -A section_dirs=() section_prefixes=() section_floor=()
-while IFS='|' read -r section dir prefixes floor _maxdepth; do
+declare -A section_dirs=() section_prefixes=() section_floor=() dir_deep=()
+while IFS='|' read -r section dir prefixes floor maxdepth; do
 	if [ -z "${section_dirs[$section]+_}" ]; then
 		sections+=("$section")
 		section_dirs["$section"]=""
@@ -74,6 +78,12 @@ while IFS='|' read -r section dir prefixes floor _maxdepth; do
 	section_prefixes["$section"]+=" $prefixes"
 	if [ -n "${floor:-}" ] && [ "$floor" -gt "${section_floor[$section]}" ]; then
 		section_floor["$section"]="$floor"
+	fi
+	# Deep (whole-tree) scan unless EVERY entry for this dir scopes shallow.
+	if [ -n "${maxdepth:-}" ]; then
+		[ "${dir_deep[$dir]:-1}" -eq 0 ] || dir_deep["$dir"]=0
+	else
+		dir_deep["$dir"]=1
 	fi
 done < <(sed -n '/^GATED_MODULES=(/,/^)$/s/^[[:space:]]*"\(.*\)".*/\1/p' "$gate")
 
@@ -99,13 +109,19 @@ run_args_for_dir() {
 
 errorflow_json_for_dir() {
 	local dir="$1"
-	local run_args pattern
+	local run_args pattern modules_args=()
 	run_args="$(run_args_for_dir "$dir")"
 	local run_dir="${run_args%% *}"
 	pattern="${run_args#* }"
 
+	# Whole-tree entries (no rg maxdepth) with nested modules: fan out.
+	if [ "${dir_deep[$dir]:-1}" -eq 1 ] &&
+		find "$repo_root/$dir" -mindepth 2 -name go.mod -not -path '*/vendor/*' -print -quit | grep -q .; then
+		modules_args=(--modules=all)
+	fi
+
 	(cd "$repo_root/$run_dir" && env GOWORK=off GOFLAGS= GOEXPERIMENT=jsonv2 \
-		"$erraudit" errorflow "$pattern" --type-aware 2>/dev/null)
+		"$erraudit" errorflow "$pattern" --type-aware "${modules_args[@]}" 2>/dev/null)
 }
 
 schema_checked=0
