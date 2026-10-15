@@ -318,6 +318,19 @@ the boundary. Verified against this repo's source on 2026-10-15.
     the `catalog.ADR`-type sketch + exporter acceptance criteria. NO
     implementation until the hub confirms the frontmatter schema (guardrail:
     guessing a schema = guaranteed rework).
+  - **2026-10-15 20:15 (HUB RECEIPT): schema CONFIRMED — UNBLOCKED.** The
+    hub shipped the contract at
+    `~/projects/eventcatalog-hub/docs/adr-exporter-contract.md`, verified
+    against the installed core 5.0.1's own docs: required frontmatter
+    `id/name/version/status/date` (status in proposed, accepted, rejected,
+    deprecated, superseded); optional `summary/owners/decisionMakers/
+    appliesTo[{type,id,version?}]/badges`; emission target is
+    `adrs/<id>/index.mdx` at the tree ROOT (NOT under `docs/` — the
+    CustomDoc-slug path renders prose, not an ADR resource; verified
+    against catalog/v4 v4.7.1 and v4.8.0). Hub-side merge + strict gate
+    are LIVE (ghost appliesTo pointers, version-pin drift, and type/kind
+    disagreement fail the hub build; owners/decisionMakers deliberately
+    not gated). The sketch may proceed to implementation.
 - [ ] **Flows pilot: one mesh-demo context flow (hub T9)** — the live hub
   catalog renders "Flows: 0"; v5's swimlanes/grouping consume flow resources
   no source emits. `example/mesh-demo` is ours: design one context flow
@@ -330,7 +343,14 @@ the boundary. Verified against this repo's source on 2026-10-15.
     `Flow.Owners` = orders-team, exported to `flows/order-lifecycle/` with
     resolvable message refs; mesh-demo tests green. Hub side needs zero
     edits — its merge picks the flow up on the next source export; the
-    bank-sync sibling remains its own repo's task.
+    bank-sync sibling remains its own repo's task. UPDATE 2026-10-15
+    20:20: bank-sync's sibling flow (`balance-sync-flow`) SHIPPED in its
+    repo; both verified rendering on a 232-page hub build. NOTE (hub
+    bake-off finding): `order-lifecycle` also exists as a DATA-PRODUCT id
+    in the same tree — core renders both fine at distinct routes, but
+    built-in federation flags the cross-kind id collision as an error;
+    consider renaming the flow id (e.g. `order-lifecycle-flow`) next
+    touch.
 - [x] ~~**AsyncAPI/OpenAPI spec assessment (hub T15)** — hub believes spec
       embedding is an exporter GAP.~~ **Half-wrong (verified 2026-10-15):**
       `catalog/asyncapi/` and `catalog/openapi/` exist and export AsyncAPI
@@ -345,6 +365,37 @@ the boundary. Verified against this repo's source on 2026-10-15.
       exporter API; sources merely don't declare them. Systems have NO config
       type yet — that's the one real exporter gap. Tell the hub before it
       specs exporter work that exists. _(Effort: XS to respond; can start now)_
+
+---
+
+## EventCatalog v5 bump follow-ups (2026-10-15, harvested from the 20-18 status report)
+
+- [ ] **Warn-budget hardening for `check-eventcatalog`** — the gate greps only
+  hard failures and tolerates ALL warns; assert the KNOWN broken-link
+  signature (channels/data-products/entities sidebar changelog links, 4
+  fixture pages) so any NEW warn fails loudly instead of relying on a human
+  reading build.log. The 2026-09-23 backlog idea, now cheap: the expected
+  signature is documented in the gate header. _(Effort: S)_
+- [ ] **config-with-changelogs golden** — `eventcatalog-config.snap`'s fixture
+  catalog carries NO changelogs, so the bumped exporter's
+  `changelog: { enabled: true }` emission is covered by the render gate only,
+  not by a golden; add a config golden over a catalog WITH changelogs.
+  _(Effort: S)_
+- [ ] **Upstream issues to file (verify-before-filing gate first):** (a) the
+  3-collection sidebar changelog WARN under v5 (repro: any catalog with
+  changelog enabled; gate log excerpts on hand); (b) upstream ask: extend the
+  changelog page route's `itemTypes` to channels/data-products/entities.
+  _(Effort: S each; blocked on the verify pass)_
+- [ ] **ROADMAP `[Unreleased]` wave prose** — the CHANGELOG carries the v5-pin
+  bump row; the ROADMAP top `[Unreleased]` highlights bullet does not yet
+  mention it (wave-prose lag class). _(Effort: XS)_
+- [ ] **Pin-bump procedure baseline numbers** — record node/npm versions +
+  expected page counts (98 default / 108 with agents+changelog) in
+  catalog/AGENTS.md so future bumps can detect silent page drops.
+  _(Effort: XS)_
+- [ ] **`-race` pass for catalog/eventcatalog after the guard drop** — the
+  post-change suites ran plain only; the race detector never saw the new
+  emission path. _(Effort: XS)_
 
 ---
 
