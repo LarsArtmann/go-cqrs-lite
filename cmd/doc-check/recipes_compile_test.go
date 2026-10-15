@@ -5,11 +5,25 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"strings"
 	"testing"
 )
 
 const recipesRelPath = ".agents/skills/go-cqrs-lite/references/recipes.md"
+
+// externalRequireVersions pins the tagged version the snippet module resolves
+// each non-workspace recipe import to. The snippet go.mod is generated inside
+// the test's temp dir, so blocks importing modules OUTSIDE the go-cqrs-lite
+// workspace graph stay compile-verified against RELEASED APIs instead of
+// whatever happens to sit in a maintainer's sibling checkout. Bump a pin
+deliberately when a doc starts using a newer API — the failing build names
+// the drift.
+var externalRequireVersions = map[string]string{
+	"github.com/larsartmann/go-etag/server":         "v0.6.1",
+	"github.com/larsartmann/httputil":               "v1.5.0",
+	"github.com/larsartmann/httputil/server_timing": "v1.0.2",
+}
 
 func loadRecipeBlocks(t *testing.T) []RecipeBlock {
 	t.Helper()
@@ -228,9 +242,48 @@ func TestRecipesCompile(t *testing.T) {
 		t.Setenv("RECIPES_COMPILE_DIR", dir)
 		t.Logf("keeping snippet module at %s", dir)
 	}
+	blocks := loadRecipeBlocks(t)
+
+	var requires []string
+	seenReq := map[string]bool{}
+	for _, b := range blocks {
+		spec, ok := lookupSpec(recipeKey(b))
+		if !ok || spec.skip != "" {
+			continue
+		}
+		for _, mod := range spec.requires {
+			if !seenReq[mod] {
+				seenReq[mod] = true
+				requires = append(requires, mod)
+			}
+		}
+	}
+	sort.Strings(requires)
+
 	gomod := "module recipescompile\n\ngo 1.27\n"
+	if len(requires) > 0 {
+		var sb strings.Builder
+		sb.WriteString("module recipescompile\n\ngo 1.27\n\nrequire (\n")
+		for _, mod := range requires {
+			v, ok := externalRequireVersions[mod]
+			if !ok {
+				t.Fatalf("recipe block requires %s but it has no pin in externalRequireVersions", mod)
+			}
+			sb.WriteString("\t" + mod + " " + v + "\n")
+		}
+		sb.WriteString(")\n")
+		gomod = sb.String()
+	}
 	if err := os.WriteFile(filepath.Join(dir, "go.mod"), []byte(gomod), 0o644); err != nil {
 		t.Fatalf("write go.mod: %v", err)
+	}
+	if len(requires) > 0 {
+		dl := exec.Command("go", "mod", "download")
+		dl.Dir = dir
+		dl.Env = append(os.Environ(), "GOWORK=off")
+		if out, err := dl.CombinedOutput(); err != nil {
+			t.Fatalf("go mod download for external recipe requires failed:\n%s", out)
+		}
 	}
 	if err := os.WriteFile(
 		filepath.Join(dir, "go.work"),
@@ -241,7 +294,7 @@ func TestRecipesCompile(t *testing.T) {
 	}
 
 	compiled := 0
-	for _, b := range loadRecipeBlocks(t) {
+	for _, b := range blocks {
 		spec, ok := lookupSpec(recipeKey(b))
 		if !ok || spec.skip != "" {
 			continue

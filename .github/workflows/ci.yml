@@ -541,12 +541,15 @@ jobs:
           path: benchmark-results.txt
           retention-days: 30
 
-    # 2026-10-14 evidence: runs 38592413377 and 38619781576 both hit the old
-    # 15m wall mid-sweep (~9m cold setup + benchmarks still running). The
-    # internal go bench timeout is itself 30m (#bench: go test -bench
-    # -timeout=30m), so 15m could never hold; 45m covers setup + the full
-    # sweep (matches the Benchmark Matrix job budget in benchmarks.yml).
-    timeout-minutes: 45
+    # 2026-10-14 evidence: runs 38592413377/38619781576 hit the old 15m wall
+    # mid-sweep; with the 45m trial, 113 packages finished in ~29m
+    # (scheduling 306s, stack/bench 274s) and the sweep then spent 16+ min
+    # inside metaengine/bench (31 bench funcs; go test serializes benched
+    # packages) with the whole engine family still pending — realistic total
+    # 80-105m cold. The internal go timeout is 30m PER PACKAGE (#bench), so
+    # no single hang runs away; 120m covers the sweep. Slimming this
+    # informational job is an owner decision rowed in TODO_LIST.
+    timeout-minutes: 120
   gosec:
     name: Security Scan (gosec)
     runs-on: ubuntu-latest

@@ -3226,3 +3226,214 @@ version); each applied op stamps version+1, so upcasting is idempotent by
 construction. `decider.WithSnapshotStateVersion[State]("1")` is the snapshot
 twin: stamps saved snapshots with the state-shape version and discards
 mismatches, rebuilding from the journal.
+
+### 2.47 Bind a system Query to an HTTP endpoint — ETag, Server-Timing, safe errors (system + go-etag + httputil)
+
+`system` is transport-agnostic by design, so binding a `Query[Q, R]` to a
+route is app code — and it is exactly the spot where hand-rolled endpoints
+reliably go wrong: errors leak (or a failure renders as `200` with a half-
+written body), responses are never cacheable so every poll re-downloads the
+world, nobody can tell which phase is slow, and `?limit=100000000` walks
+straight into the planner. Copy the ~60-line helper below into your app once
+(a `package httpx` next to your handlers); every query endpoint after that is
+one `mux.Handle` line.
+
+| Job | Library | What you get |
+| --- | --- | --- |
+| Error → status + safe body | `go-error-family` | `Family.HTTPStatus()` (Rejection→400, Conflict→409, Transient→503, …); `HTTPHandler` writes a body that never leaks the raw error |
+| Cache validation | `go-etag/server` | strong content-hash `ETag`; `If-None-Match` → `304` and the body bytes are never re-sent |
+| Phase timing | `httputil/server_timing` | `Server-Timing: query;dur=…` on every response, visible in browser devtools |
+| Deterministic bytes | `go-codec` | stable encode → stable ETag; JSON or CBOR by constructor argument |
+
+Declare the query types, register the handler, bind the route:
+
+```go
+import (
+    "context"
+    "net/http"
+
+    "github.com/larsartmann/go-codec"
+    errorfamily "github.com/larsartmann/go-error-family"
+    "github.com/larsartmann/go-cqrs-lite/query/v4"
+    "github.com/larsartmann/go-cqrs-lite/system/v4"
+    "github.com/larsartmann/httputil"
+)
+
+type ListTasksQuery struct {
+    Filter string
+    Limit  int
+}
+
+func (ListTasksQuery) Type() query.Type { return "list_tasks" }
+
+func decodeListTasks(r *http.Request) (ListTasksQuery, error) {
+    limit := int(httputil.ParseUintQuery(r, "limit"))
+    if limit == 0 {
+        limit = 50
+    }
+    if limit > 200 {
+        limit = 200 // hard ceiling: never let the client size the scan
+    }
+    return ListTasksQuery{Filter: r.URL.Query().Get("filter"), Limit: limit}, nil
+}
+
+domain := system.DomainConfig{
+    Queries: func(sys *system.System) {
+        err := system.RegisterQuery(sys, "list_tasks",
+            func(ctx context.Context, q ListTasksQuery) ([]TaskView, error) {
+                return taskReader.Scan(ctx) // metaengine.TypedReader[TaskView] (§2.27)
+            })
+        if err != nil {
+            panic(err) // duplicate query name — a startup bug, not a runtime condition
+        }
+    },
+}
+_ = domain
+
+mux.Handle("GET /tasks", errorfamily.HTTPHandler(
+    Query(sys, decodeListTasks, codec.JSONCodec{}),
+))
+```
+
+`Query` is the helper below — shown unqualified here; in your app it lives in
+`package httpx` and the call reads `httpx.Query(...)`. The name passed to
+`RegisterQuery` must equal the `Type()` the decoder returns (dispatch is by
+type). `TaskView`/`taskReader` come from the metaengine read-model recipes
+(§2.27/§2.28). Decode errors flow through the same pipeline: classify them
+(`errorfamily.WrapRejection` → 400) or pin an explicit status with
+`WithHTTPStatus` for the `404`s and `422`s a family default cannot express.
+
+The helper itself — decode → dispatch → encode, with the ETag and timing
+wiring done once and done right:
+
+```go
+package httpx
+
+import (
+    "context"
+    "crypto/sha256"
+    "encoding/hex"
+    "net/http"
+
+    "github.com/larsartmann/go-codec"
+    errorfamily "github.com/larsartmann/go-error-family"
+    "github.com/larsartmann/go-cqrs-lite/query/v4"
+    "github.com/larsartmann/go-cqrs-lite/system/v4"
+    etag "github.com/larsartmann/go-etag/server"
+    "github.com/larsartmann/httputil/server_timing"
+)
+
+// Query binds a registered system query to net/http: decode the request into
+// Q, dispatch through the system's query dispatcher, encode with c. Responses
+// carry a strong content-hash ETag (If-None-Match → 304, body bytes never
+// re-sent) and a Server-Timing "query" phase. Errors return to
+// errorfamily.HTTPHandler, which maps family → status without leaking.
+func Query[Q query.Query, R any](
+    sys *system.System,
+    decode func(r *http.Request) (Q, error),
+    c codec.Codec,
+) errorfamily.HandlerFunc {
+    mediaType := "application/json"
+    if c.Encoding() == codec.EncodingCBOR {
+        mediaType = "application/cbor"
+    }
+    return func(w http.ResponseWriter, r *http.Request) error {
+        q, err := decode(r)
+        if err != nil {
+            return err
+        }
+
+        stop := servertiming.MeasureServerTiming(r.Context(), "query")
+        data, tag, err := dispatchEncode[Q, R](r.Context(), sys, q, c)
+        stop() // stop BEFORE any write: the header is injected at first Write
+        if err != nil {
+            return err
+        }
+
+        w.Header().Set("Content-Type", mediaType)
+        w.Header().Set("ETag", tag.String())
+        if etag.MatchesIfNoneMatch(tag, r.Header.Get("If-None-Match")) {
+            w.WriteHeader(http.StatusNotModified)
+            return nil
+        }
+        _, err = w.Write(data)
+        return err
+    }
+}
+
+func dispatchEncode[Q query.Query, R any](
+    ctx context.Context,
+    sys *system.System,
+    q Q,
+    c codec.Codec,
+) ([]byte, etag.ETag, error) {
+    result, err := system.DispatchQuery[Q, R](ctx, sys, q)
+    if err != nil {
+        return nil, etag.ETag{}, err
+    }
+    data, err := c.Encode(result)
+    if err != nil {
+        return nil, etag.ETag{}, err
+    }
+    sum := sha256.Sum256(data)
+    return data, etag.NewETag(hex.EncodeToString(sum[:]), etag.Strong), nil
+}
+```
+
+Three details that make the ETag correct rather than decorative: the tag is
+computed over the encoded bytes, so any state change that alters the response
+also invalidates the cache (no read-model cooperation needed — the cost is one
+encode+hash per miss, and a hot dashlet can graduate to a revision- or
+`AsOf`-derived tag later); the `ETag` header is set before the 304 branch, as
+RFC 9110 requires a 304 to carry the tag; and `HEAD` is free — net/http
+discards the body while the handler logic (and the 304) stays identical.
+Serving JSON and CBOR as separate routes (next fence) needs no `Vary`; if you
+instead negotiate the codec on ONE route, the response depends on `Accept` and
+you MUST add `Vary: Accept` or the cached tag lies.
+
+Same helper, second codec — a one-line difference:
+
+```go
+mux.Handle("GET /tasks.cbor", errorfamily.HTTPHandler(
+    Query(sys, decodeListTasks, codec.CBORCodec{}),
+))
+```
+
+Assemble the server with the httputil chain; keep the timing middleware
+outermost so `total` covers every inner phase:
+
+```go
+import (
+    "log/slog"
+    "net/http"
+    "time"
+
+    "github.com/larsartmann/httputil"
+    "github.com/larsartmann/httputil/server_timing"
+)
+
+handler := servertiming.ServerTimingMiddleware()(
+    httputil.Chain(mux,
+        httputil.Recovery(slog.Default()),
+        httputil.Timeout(10*time.Second),
+        httputil.SecurityHeaders(httputil.DefaultSecurityHeadersConfig()),
+        httputil.Compression(httputil.DefaultCompressionConfig()),
+        httputil.KeyedRateLimiterMiddleware(httputil.DefaultKeyedRateLimiterConfig()),
+    ),
+)
+srv := &http.Server{Addr: ":8080", Handler: handler, ReadHeaderTimeout: 5 * time.Second}
+```
+
+`Compression` sets `Vary: Accept-Encoding`, so compressing AFTER the ETag
+computation stays cache-correct (caches key on the Vary header, and the tag
+identifies the uncompressed entity). `KeyedRateLimiterMiddleware` answers with
+`429` + `Retry-After` per client before your query even dispatches. For
+handlers you do not control, the buffered whole-mux variant
+`etag.New(etag.DefaultETagConfig())` adds the same `304` semantics externally
+— the helper above just does it without buffering.
+
+Test the same query without HTTP via the system scenario harness (§2.43):
+`WhenQuery` dispatches through the SAME dispatcher this endpoint binds.
+HTMX rendering (partials, toasts, pagination UI) builds on the identical
+dispatch core in cqrs-htmx's `app.Query`; live read-model push instead of
+polling is `metaengine.ServeSSE` (§6.16 in advanced.md).

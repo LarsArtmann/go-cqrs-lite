@@ -15,4 +15,5 @@ type recipeSpec struct {
 	trailers     string   // statements appended inside main to blank unused locals
 	wholeProgram bool     // block already starts with "package " — use verbatim
 	errFunc      bool     // wrap statements in `func run() error` (block returns errors)
+	requires     []string // non-workspace module paths the block imports (pinned in recipes_compile_test.go)
 }
