@@ -235,11 +235,11 @@ func TestErrorflow_ErrorflowModuleScopedSurface(t *testing.T) {
 	}
 
 	for _, svcID := range []string{"order-svc", "payment-svc"} {
-		if _, err := os.Stat(filepath.Join(tmpDir, "services", string(svcID))); err != nil {
+		if _, err := os.Stat(filepath.Join(tmpDir, "services", svcID)); err != nil {
 			continue
 		}
 
-		svc, err := os.ReadFile(filepath.Join(tmpDir, "services", string(svcID), "index.mdx"))
+		svc, err := os.ReadFile(filepath.Join(tmpDir, "services", svcID, "index.mdx"))
 		if err != nil {
 			t.Fatalf("read %s page: %v", svcID, err)
 		}

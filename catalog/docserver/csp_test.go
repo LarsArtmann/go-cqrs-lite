@@ -33,7 +33,7 @@ func TestDocsServer_CSP_OptIn(t *testing.T) {
 	mux := http.NewServeMux()
 	srv.RegisterRoutes(mux)
 
-	for _, path := range []string{"/docs", "/docs/openapi", "/docs/asyncapi", "/docs/d2"} {
+	for _, path := range []string{"/docs", "/docs/openapi", "/docs/asyncapi", "/docs/d2", "/docs/eventcatalog/errors"} {
 		req := newTestRequest(path)
 		recorder := httptest.NewRecorder()
 		mux.ServeHTTP(recorder, req)

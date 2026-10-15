@@ -65,17 +65,20 @@ func newEventCatalogErrorsDetail(cfg Config, flow *eventcatalog.Errorflow, readE
 	detail.Package = flow.Package
 	detail.FilesScan = flow.FilesScanned
 	detail.Total = len(flow.Errors)
+
 	for _, entry := range flow.Errors {
 		if entry.Status == errorStatusUnreferenced {
 			detail.Unreferenced++
 		}
 	}
+
 	detail.Referenced = detail.Total - detail.Unreferenced
 
 	return detail
 }
+
 // errorStatusBadgeTypes maps errorflow status vocabulary to badge tones.
-var errorStatusBadgeTypes = map[string]display.BadgeType{
+var errorStatusBadgeTypes = map[string]display.BadgeType{ //nolint:gochecknoglobals // static style lookup table
 	errorStatusReferenced:   display.BadgeSuccess,
 	errorStatusUnreferenced: display.BadgeWarning,
 }

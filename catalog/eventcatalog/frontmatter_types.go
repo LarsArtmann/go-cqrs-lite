@@ -117,7 +117,7 @@ type serviceFM struct {
 	Repository     *repositoryFM     `yaml:"repository,omitempty"`
 	Specifications []specificationFM `yaml:"specifications,omitempty"`
 	Attachments    []attachmentFM    `yaml:"attachments,omitempty"`
-	XErrors        *xErrorsFM        `yaml:"x-errors,omitempty"`
+	XErrors        *xErrorsFM        `yaml:"x-errors,omitempty"` //nolint:tagliatelle // custom property
 }
 
 type domainFM struct {
