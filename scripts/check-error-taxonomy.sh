@@ -51,7 +51,21 @@ GATED_MODULES=(
 # Optional 4th field, default 1.
 DEFAULT_FLOOR=1
 
-EXTRACT_PATTERN='errorfamily\.(?:New|Wrap)(Rejection|Conflict|Transient|Infrastructure|Corruption|Orchestration)\(\s*(?:[^,"]*,\s*)?"([a-z0-9_.]+)"'
+# Two constructor shapes feed the pool:
+#   errorfamily.NewRejection("code", ...) / Wrap*(err, "code", ...)
+#   errorfamily.Newf(errorfamily.Rejection, "code", ...) / Wrapf(err, errorfamily.Rejection, "code", ...)
+# The f-forms are the 2026-10-16 addition (the old pattern was blind to
+# them — Newf/Wrapf mints were invisible to the rg pool while erraudit's
+# errorflow pool sees them, so a regenerated doc would false-positive the
+# rg-fallback gate). The code group requires a FULL literal dotted string:
+# dynamically concatenated codes ("event."+noun+"_x") are matched by
+# neither this pattern nor erraudit (non-literal codes are undiscoverable
+# statically) — the two pools stay in parity by construction.
+# Group 1: family in New|Wrap constructor form; group 2: family in Newf|Wrapf
+# form (incl. optional errorfamily. qualifier); group 3: the code. Exactly
+# one of the family groups is non-empty, so '${1}${2}' is the family. The
+# replacement keeps the pool's code<TAB>family field order.
+EXTRACT_PATTERN='errorfamily\.(?:(?:New|Wrap)(Rejection|Conflict|Transient|Infrastructure|Corruption|Orchestration)\(\s*(?:[^,"]*,\s*)?|(?:New|Wrap)f\(\s*(?:[^,"(]*,\s*)?(?:errorfamily\.)?(Rejection|Conflict|Transient|Infrastructure|Corruption|Orchestration)\s*,\s*)"([a-z0-9_]+(?:\.[a-z0-9_]+)+)"'
 
 # --self-test: run the extraction against the planted mutation fixture
 # (scripts/testdata/error-taxonomy-selftest/) and assert the scanner sees
@@ -62,21 +76,23 @@ if [ "${1:-}" = "--self-test" ]; then
 	tmp="$(mktemp)"
 	trap 'rm -f "$tmp"' EXIT
 
-	rg -U --no-filename -o "$EXTRACT_PATTERN" "$fixture" -r '$2	$1' >"$tmp"
+	rg -U --no-filename -o "$EXTRACT_PATTERN" "$fixture" -r '$3	${1}${2}' >"$tmp"
 	sort -u "$tmp" -o "$tmp"
 
 	fail=0
 	for want in \
 		$'selftest.simple\tRejection' \
 		$'selftest.multiline\tInfrastructure' \
-		$'selftest.wrap\tCorruption'; do
+		$'selftest.wrap\tCorruption' \
+		$'selftest.newf\tRejection' \
+		$'selftest.wrapf\tTransient'; do
 		grep -qxF "$want" "$tmp" || {
 			echo "SELF-TEST FAIL: planted code not extracted: $want" >&2
 			fail=1
 		}
 	done
 
-	for banned in "limit" "never.extract" ".suffix" "selftest.suffix"; do
+	for banned in "limit" "never.extract" ".suffix" "selftest.suffix" "selftest."; do
 		grep -q "^${banned}	" "$tmp" && {
 			echo "SELF-TEST FAIL: junk captured as a code: $banned" >&2
 			fail=1
@@ -107,7 +123,7 @@ for entry in "${GATED_MODULES[@]}"; do
 		"$repo_root/$dir" \
 		"${depth_args[@]}" \
 		--glob '*.go' --glob '!*_test.go' -g '!**/testdata/**' -g '!**/vendor/**' -g '!**/eventtest/**' \
-		-r '$2	$1' >"$tmp_mod" || true
+		-r '$3	${1}${2}' >"$tmp_mod" || true
 	sort -u "$tmp_mod" -o "$tmp_mod"
 	mod_codes=$(wc -l <"$tmp_mod")
 

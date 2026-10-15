@@ -31,9 +31,30 @@ var (
 		limitLabel("selftest.prefix"), // "limit" must not leak as a code
 		"tricky case",
 	)
+
+	// Case 6: Newf (format-verb constructor) with a qualified family — must
+	// be captured. The pre-2026-10-16 pattern was blind to Newf/Wrapf, so a
+	// doc regenerated from erraudit's pool (which sees them) would
+	// false-positive the rg-fallback gate on every one of these rows.
+	caseNewf = errorfamily.Newf(errorfamily.Rejection, "selftest.newf", "newf case %s", "arg")
+
+	// Case 7: Wrapf with a leading error argument and a qualified family,
+	// spanning lines exactly like event/store_middleware_streaming.go —
+	// must be captured.
+	caseWrapf = errorfamily.Wrapf(caseSimple, errorfamily.Transient,
+		"selftest.wrapf",
+		"wrapf case %s", "arg")
+
+	// Case 8: dynamically concatenated code — the code group requires a
+	// full literal dotted string, so the bare "selftest." prefix must NOT
+	// be captured as junk (erraudit's pool skips non-literal codes the same
+	// way; neither pool ever claims this site).
+	caseDynamic = errorfamily.Newf(errorfamily.Rejection, "selftest."+part, "dynamic case")
 )
 
 func limitLabel(p string) string { return p + ".suffix" }
+
+var part = "dynamic"
 
 // Case 5: a quoted example inside a doc comment — the scanner is
 // line-based on constructor shapes, so a commented-out constructor here
