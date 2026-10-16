@@ -228,7 +228,9 @@ errorfamily.Classify(err) // => Conflict
 | ------------------ | -------------- | ------------------------------------------- |
 | -                  | Rejection      | `projectionhost.already_started`            |
 | -                  | Infrastructure | `projectionhost.check_projection_staleness` |
+| -                  | Transient      | `projectionhost.check_projection_staleness` |
 | -                  | Infrastructure | `projectionhost.check_staleness`            |
+| -                  | Transient      | `projectionhost.check_staleness`            |
 | -                  | Rejection      | `projectionhost.checkpoint_store_required`  |
 | -                  | Infrastructure | `projectionhost.dlq_count`                  |
 | -                  | Infrastructure | `projectionhost.dlq_delete`                 |
@@ -257,7 +259,7 @@ errorfamily.Classify(err) // => Conflict
 | -                  | Rejection      | `projectionhost.unknown_projection`         |
 | ErrWorkerFailed    | Infrastructure | `projectionhost.worker_failed`              |
 
-- 28 of 30 codes are inline mints (no named sentinel)
+- 30 of 32 codes are inline mints (no named sentinel)
 
 ### transport/grpc
 
@@ -379,6 +381,7 @@ errorfamily.Classify(err) // => Conflict
 | -                     | Infrastructure | `pebble.journal_iterator`          |
 | ErrNilDatabase        | Rejection      | `pebble.nil_database`              |
 | -                     | Infrastructure | `pebble.open_backend`              |
+| -                     | Corruption     | `pebble.parse_version`             |
 | -                     | Infrastructure | `pebble.parse_version`             |
 | -                     | Corruption     | `pebble.query_corrupt`             |
 | -                     | Infrastructure | `pebble.query_iter`                |
@@ -410,7 +413,7 @@ errorfamily.Classify(err) // => Conflict
 | -                     | Infrastructure | `pebble.write_snapshot`            |
 
 - Unreferenced named errors (dead-sentinel candidates): `ErrNilDatabase`
-- 62 of 66 codes are inline mints (no named sentinel)
+- 63 of 67 codes are inline mints (no named sentinel)
 
 ### core/event
 
