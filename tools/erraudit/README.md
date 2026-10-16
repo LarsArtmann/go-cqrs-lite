@@ -35,6 +35,6 @@ scripts/erraudit-sweep.sh <path-to-built-binary>
 ```
 
 Zero-baseline expectation: 2026-09-13 (22 modules) and re-verified
-2026-10-15 (104 modules) — `erraudit lint ./... --enforce-go-error-family
+2026-10-16 (104 modules, v0.7.0) — `erraudit lint ./... --enforce-go-error-family
 --type-aware` exits 0 everywhere. The sweep script is
 `scripts/erraudit-sweep.sh`.

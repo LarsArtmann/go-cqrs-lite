@@ -941,8 +941,8 @@ jobs:
   # month) or the Forgejo mirror (unreachable from GitHub-hosted
   # runners), the job builds the pinned vendored source tarball in
   # tools/erraudit/ — credential-free. See tools/erraudit/README.md.
-  # ACTIVATION PRECONDITION (met 2026-09-13, re-verified 2026-10-15 with
-  # v0.6.1 across all 104 modules via scripts/erraudit-sweep.sh): zero
+  # ACTIVATION PRECONDITION (met 2026-09-13, re-verified 2026-10-16 with
+  # v0.7.0 across all 104 modules via scripts/erraudit-sweep.sh): zero
   # findings under `erraudit lint ./... --enforce-go-error-family
   # --type-aware` in every module.
   error-audit:
