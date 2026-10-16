@@ -74,8 +74,3 @@ require (
 	golang.org/x/sync v0.24.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
 )
-
-// Pre-release pin: catalog's errorflow API (WithErrorflowFile, the x-errors
-// exporter surface) is not yet tagged; this replace rides until the catalog
-// tag lands (baselined in scripts/check-example-standalone.sh).
-replace github.com/larsartmann/go-cqrs-lite/catalog/v4 => ../../catalog

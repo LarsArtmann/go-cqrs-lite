@@ -39,9 +39,9 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/go-env.sh"
 #     eventcatalog-hub builds mesh-demo from GitHub where the relative
 #     replace resolves inside the clone (drop_machine_replaces only strips
 #     absolute-path replaces).
-#   mesh-demo (historical) — REMOVED 2026-09-29: catalog/v4.6.0 published;
-#     the previous replace block died with that tag.
-ALLOWED_REPLACES='taskmanager mesh-demo'
+#   mesh-demo — REMOVED 2026-10-16: catalog/v4.9.0 published; the errorflow
+#     pre-release replace died with that tag.
+ALLOWED_REPLACES='taskmanager'
 
 DO_BUILD=0
 if [ "${1:-}" = "--build" ]; then
