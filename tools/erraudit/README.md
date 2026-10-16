@@ -10,7 +10,7 @@ A compressed source tarball is credential-free, invisible to the repo's
 `find . -name go.mod` per-module loops, and auditable.
 
 **Provenance (lint build).** The tarball is NOT a pristine `git archive`:
-erraudit v0.6.1 requires the private `project-discovery-sdk` (portfolio
+erraudit v0.7.0 requires the private `project-discovery-sdk` (portfolio
 fleet audits), which credential-free CI cannot fetch. The tarball is
 crafted from the tag by erraudit's `scripts/make-ci-tarball.sh`, which
 detaches the two SDK-importing files behind the `portfolio` build tag
@@ -21,7 +21,7 @@ against a COLD module cache before writing the tarball — the first
 
 | File | Origin | SHA256 |
 | --- | --- | --- |
-| `erraudit-v0.6.1-src.tgz` | `scripts/make-ci-tarball.sh v0.6.1` from `LarsArtmann/erraudit` (tag + portfolio detached) | `275a7ef9a81572d66cf0a41fea1337c76c7715ecadf49123d26ece04aa91c277` |
+| `erraudit-v0.7.0-src.tgz` | `scripts/make-ci-tarball.sh v0.7.0` from `LarsArtmann/erraudit` (tag + portfolio detached) | `f726f94681da816ddbb3fab4a35f045da0efbc7cc7422dd4fd3be10b1aa46208` |
 
 ## Refresh (bump the pin)
 
