@@ -65,7 +65,11 @@ DEFAULT_FLOOR=1
 # form (incl. optional errorfamily. qualifier); group 3: the code. Exactly
 # one of the family groups is non-empty, so '${1}${2}' is the family. The
 # replacement keeps the pool's code<TAB>family field order.
-EXTRACT_PATTERN='errorfamily\.(?:(?:New|Wrap)(Rejection|Conflict|Transient|Infrastructure|Corruption|Orchestration)\(\s*(?:[^,"]*,\s*)?|(?:New|Wrap)f\(\s*(?:[^,"(]*,\s*)?(?:errorfamily\.)?(Rejection|Conflict|Transient|Infrastructure|Corruption|Orchestration)\s*,\s*)"([a-z0-9_]+(?:\.[a-z0-9_]+)+)"'
+# The f-form's optional first-arg group excludes only quotes: it may cross
+# commas and parens so call-shaped wrap causes (a.corruptEventErr(k, err))
+# stay reachable, but it can never step over a string literal, which keeps
+# the 2026-09-11 greedy cross-quote junk capture closed.
+EXTRACT_PATTERN='errorfamily\.(?:(?:New|Wrap)(Rejection|Conflict|Transient|Infrastructure|Corruption|Orchestration)\(\s*(?:[^,"]*,\s*)?|(?:New|Wrap)f\(\s*(?:[^"]*,\s*)?(?:errorfamily\.)?(Rejection|Conflict|Transient|Infrastructure|Corruption|Orchestration)\s*,\s*)"([a-z0-9_]+(?:\.[a-z0-9_]+)+)"'
 
 # --self-test: run the extraction against the planted mutation fixture
 # (scripts/testdata/error-taxonomy-selftest/) and assert the scanner sees
@@ -85,14 +89,15 @@ if [ "${1:-}" = "--self-test" ]; then
 		$'selftest.multiline\tInfrastructure' \
 		$'selftest.wrap\tCorruption' \
 		$'selftest.newf\tRejection' \
-		$'selftest.wrapf\tTransient'; do
+		$'selftest.wrapf\tTransient' \
+		$'selftest.callarg\tCorruption'; do
 		grep -qxF "$want" "$tmp" || {
 			echo "SELF-TEST FAIL: planted code not extracted: $want" >&2
 			fail=1
 		}
 	done
 
-	for banned in "limit" "never.extract" ".suffix" "selftest.suffix" "selftest."; do
+	for banned in "limit" "never.extract" ".suffix" "selftest.suffix" "selftest." "selftest.tricky"; do
 		grep -q "^${banned}	" "$tmp" && {
 			echo "SELF-TEST FAIL: junk captured as a code: $banned" >&2
 			fail=1
@@ -139,9 +144,11 @@ sort -u "$tmp_pool" -o "$tmp_pool"
 total_codes=$(wc -l <"$tmp_pool")
 
 declare -A src_family=()
+declare -A src_pair=()
 while IFS=$'\t' read -r code family; do
 	[ -n "$code" ] || continue
 	src_family["$code"]="$family"
+	src_pair["$code"$'\t'"$family"]=1
 done <"$tmp_pool"
 
 # ── Doc claims ───────────────────────────────────────────────────────────
@@ -197,7 +204,14 @@ BEGIN {
 
 # ── Comparator ───────────────────────────────────────────────────────────
 declare -A claimed=()
+declare -A claimed_pair=()
 check_count=0
+
+# Claims are matched per code+family PAIR: a code minted under two families
+# (e.g. projectionhost.check_staleness — Infrastructure when a worker
+# failed, Transient when lag exceeds the limit) is two pool rows and must
+# appear as two doc rows; a code-level map alone would hide the second
+# family behind whichever row sorted last.
 
 # Pass 1: doc claims vs source pool.
 while IFS=$'\t' read -r kind section token family; do
@@ -211,15 +225,17 @@ while IFS=$'\t' read -r kind section token family; do
 		continue
 		;;
 	L)
-		got="${src_family[$token]:-}"
-		if [ -z "$got" ]; then
+		if [ -n "${src_pair["$token"$'\t'"$family"]:-}" ]; then
+			claimed["$token"]=1
+			claimed_pair["$token"$'\t'"$family"]=1
+		elif [ -n "${src_family[$token]:-}" ]; then
+			got="${src_family[$token]}"
+			echo "ERROR: [$section] \"$token\" is $family in the doc but the source constructs $got (dual-family codes need one doc row per family)" >&2
+			status=1
+		else
 			echo "ERROR: [$section] doc lists \"$token\" ($family) but no errorfamily call site mints it — stale entry?" >&2
 			status=1
-		elif [ "$got" != "$family" ]; then
-			echo "ERROR: [$section] \"$token\" is $family in the doc but the source constructs $got" >&2
-			status=1
 		fi
-		claimed["$token"]=1
 		;;
 	W)
 		stem="${token%\*}"
@@ -234,6 +250,7 @@ while IFS=$'\t' read -r kind section token family; do
 			"$stem"*)
 				matched=$((matched + 1))
 				claimed["$code"]=1
+				claimed_pair["$code"$'\t'"$fam"]=1
 				if [ "$fam" != "$family" ]; then
 					echo "ERROR: [$section] wildcard \"$token\" claims $family but \"$code\" is $fam in source" >&2
 					status=1
@@ -249,11 +266,12 @@ while IFS=$'\t' read -r kind section token family; do
 	esac
 done <"$tmp_claims"
 
-# Pass 2: every source code must be claimed (literal or wildcard) in the doc.
+# Pass 2: every source code+family pair must be claimed (literal row or
+# wildcard) in the doc — a dual-family code missing one of its rows fails.
 uncovered=0
 while IFS=$'\t' read -r code fam; do
 	[ -n "$code" ] || continue
-	if [ -z "${claimed[$code]:-}" ]; then
+	if [ -z "${claimed_pair["$code"$'\t'"$fam"]:-}" ]; then
 		echo "ERROR: \"$code\" ($fam) is minted by a gated module but docs/error-taxonomy.md never lists it — add it or extend a wildcard" >&2
 		status=1
 		uncovered=$((uncovered + 1))

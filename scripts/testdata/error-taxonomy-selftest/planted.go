@@ -50,9 +50,22 @@ var (
 	// be captured as junk (erraudit's pool skips non-literal codes the same
 	// way; neither pool ever claims this site).
 	caseDynamic = errorfamily.Newf(errorfamily.Rejection, "selftest."+part, "dynamic case")
+
+	// Case 9: Wrapf whose first argument is a nested CALL with comma
+	// arguments — the exact storage/pebble corrupt-event shape
+	// (a.corruptEventErr(string(iter.Key()), err)). The f-form's first-arg
+	// group may cross commas and parens but never a quote — must be
+	// captured, and the quoted string inside causeLabel must not leak.
+	caseCallArg = errorfamily.Wrapf(
+		causeLabel("selftest.tricky", part),
+		errorfamily.Corruption, "selftest.callarg",
+		"call-arg case",
+	)
 )
 
 func limitLabel(p string) string { return p + ".suffix" }
+
+func causeLabel(p, q string) string { return p + q }
 
 var part = "dynamic"
 
