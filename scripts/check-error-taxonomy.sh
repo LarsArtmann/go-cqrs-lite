@@ -65,11 +65,16 @@ DEFAULT_FLOOR=1
 # form (incl. optional errorfamily. qualifier); group 3: the code. Exactly
 # one of the family groups is non-empty, so '${1}${2}' is the family. The
 # replacement keeps the pool's code<TAB>family field order.
-# The f-form's optional first-arg group excludes only quotes: it may cross
-# commas and parens so call-shaped wrap causes (a.corruptEventErr(k, err))
-# stay reachable, but it can never step over a string literal, which keeps
-# the 2026-09-11 greedy cross-quote junk capture closed.
-EXTRACT_PATTERN='errorfamily\.(?:(?:New|Wrap)(Rejection|Conflict|Transient|Infrastructure|Corruption|Orchestration)\(\s*(?:[^,"]*,\s*)?|(?:New|Wrap)f\(\s*(?:[^"]*,\s*)?(?:errorfamily\.)?(Rejection|Conflict|Transient|Infrastructure|Corruption|Orchestration)\s*,\s*)"([a-z0-9_]+(?:\.[a-z0-9_]+)+)"'
+# First-argument groups may cross COMPLETE quoted strings only (quoted
+# atoms: "…") — the 2026-09-11 greedy cross-quote junk capture stays
+# closed, but call-shaped wrap causes (a.corruptEventErr(k, err)) and
+# causes containing string literals stay reachable. The f-form's group is
+# lazy so a dynamic-code mint attributes to the NEXT real anchor instead
+# of swallowing it; the constructor form keeps its comma exclusion so
+# identifier-passed codes (NewRejection(CodeX, "y.z")) can never slide the
+# message into the code slot. The f-form needs no comma exclusion — its
+# family anchor rejects that shape on its own.
+EXTRACT_PATTERN='errorfamily\.(?:(?:New|Wrap)(Rejection|Conflict|Transient|Infrastructure|Corruption|Orchestration)\(\s*(?:[^,"]*(?:"[^"]*"[^,"]*)*,\s*)?|(?:New|Wrap)f\(\s*(?:(?:[^"]|"[^"]*")*?,\s*)?(?:errorfamily\.)?(Rejection|Conflict|Transient|Infrastructure|Corruption|Orchestration)\s*,\s*)"([a-z0-9_]+(?:\.[a-z0-9_]+)+)"'
 
 # --self-test: run the extraction against the planted mutation fixture
 # (scripts/testdata/error-taxonomy-selftest/) and assert the scanner sees
