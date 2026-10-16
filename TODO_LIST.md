@@ -1566,6 +1566,29 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
 > deletions in cascade order → flips → docs → tag). The scan-default flip
 > (G-T14) executes ON the v5 branch there.
 
+> **Fleet-migration critical path (ADR-0152 exit, censused 2026-10-16):** v4
+> deletion is gated by three facts. (1) **core/v5 is 9/32 packages** (record,
+> id, dedup, kv, dispatcher, metadata, event, command, query mirror-locked);
+> the missing 23 include every load-bearing surface (decider, middleware,
+> system, metaengine, storage, projectionhost, …) — NO fleet repo can migrate
+> until they land. Even go-appkit `cqrs/` (ADR's target #1) consumes 24 trains,
+> 15 of them not yet in core/v5. (2) **The v4→v5 import-rewrite codemod does
+> not exist** — `cmd/cqrs-upgrade` only bumps v4 pins + reports V007 usage;
+> it has zero `core/v5` awareness. (3) **~35 fleet repos are 100% on v4.**
+> Deleted-outright-at-v5 module debt (real code changes, no v5 twin):
+> `stack/v4` + the 8 presets (browser-history, Code-To-CV-Agent,
+> cqrs-htmx adminui/usermgmt/setup/systemadapter/loginpage/examples,
+> crm, crm-exec-stage, games/SEC, SwettySwipperWeb/services/api,
+> github-local-sync, file-and-image-renamer/bench, go-plugin-mvp demo,
+> plugmarket demo, sperrmuell-direct, webphone) and `idempotency/sqlstore`
+> (browser-history, DiscordSync, games/KeyCountdown, SwettySwipperWeb/api).
+> ZERO-fleet-consumer modules (die at cut with no migration cost):
+> `storage/view`, `storage/relational`, `transport/http`, `transport/grpc`,
+> `idempotency/kvstore` (in-repo integration tests only). Sequence:
+> finish core/v5 (M23 first, then the 23 copy-forwards) → add
+> `cqrs-upgrade --to-v5` import rewrite → cqrs-htmx (shield: 73% of fleet's
+> indirect edges) → go-appkit → app residue → Phase 8 deletions below.
+
 - [ ] **Delete `stack.Materialize`** — auto-projection replaces it. _(Effort: S)_
 - [ ] **Delete `storage.RelationalProjection` + `storage/view` (SQLViewStore)** —
       multi-collection batch atomicity + auto-projection replaces them. Also
