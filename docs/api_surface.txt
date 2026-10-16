@@ -1289,6 +1289,7 @@ core/v5/event/func CheckVersionConflict
 core/v5/event/func CommandCausalityEnricher
 core/v5/event/func CommandCausalityFromContext
 core/v5/event/func CompositeEnricher
+core/v5/event/func ContextInDelivery
 core/v5/event/func DecodePayload
 core/v5/event/func DecodePayloadAuto
 core/v5/event/func DecodePayloads
@@ -1301,6 +1302,7 @@ core/v5/event/func ExtractCustomBytesChecked
 core/v5/event/func FilterByTimestamp
 core/v5/event/func FromContext
 core/v5/event/func IsReplay
+core/v5/event/func MarkInDelivery
 core/v5/event/func MarkRebirth
 core/v5/event/func MarkTombstone
 core/v5/event/func MarshalMetadataJSON
@@ -1362,6 +1364,7 @@ core/v5/event/func WithSchemaVersion
 core/v5/event/func WithSource
 core/v5/event/func WithUserAgent
 core/v5/event/func WithUserID
+core/v5/event/func WithoutDeliveryMark
 core/v5/event/interface BackwardsSource
 core/v5/event/interface Bus
 core/v5/event/interface CheckpointSink
