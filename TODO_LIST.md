@@ -1354,14 +1354,23 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       — source: archived 16-37 §f10, 15-34 §f20, 15-57 §b1; 04-04 §f1
       _(Effort: M, quiet-window)_
 - [ ] **Mirror-lag burn-down: fork `eventtest` + the delivery-mark trio into
-      core/v5/event** — the lockstep register's only pending-mirror rows
-      (`v4/eventtest/...` subtree, 80 symbols + `MarkInDelivery`/
-      `WithoutDeliveryMark`/`ContextInDelivery`); every other pair is already
-      shape-identical. Watch `TestMirrorLockstep`'s lag count drop to 0 and
-      prune the register rows (stale-row check enforces it). Long-term: add
-      signature-level lockstep (compile-time cross-import, the `event.Type`
-      pattern) once core/v5 stabilizes — the golden gate is kind+name only.
-      — source: 13-50-10-10 report §f3/f9 _(Effort: M)_
+      core/v5/event** — **Trio DONE 2026-10-16** (`core/v5/event/deliveryctx.go`,
+      3 register rows pruned, golden symmetric, gates green). Remaining: the
+      `v4/eventtest/...` subtree (80 symbols) — DISCOVERED 2026-10-16: its
+      closure is NOT just eventtest; eventtest→snapshot (fake_snapshot) and
+      snapshot's tests→storage/memory (constructor_test) are test-coupled, so
+      the fork = storage core + storage/memory + snapshot + eventtest
+      (~20K lines, L not M). Two decisions inside: exclude the
+      deprecated-at-v5 storage surfaces (`aggregate_projection.go` =
+      RelationalProjection) from the copy; check the file-size ratchet treats
+      core/v5 copies of baselined >350-line files (the 2026-10-13 trailing
+      `//art-dupl:accept` twin pattern is precedent). Watch
+      `TestMirrorLockstep`'s lag count drop to 0 and prune the register row
+      (stale-row check enforces it). Long-term: add signature-level lockstep
+      (compile-time cross-import, the `event.Type` pattern) once core/v5
+      stabilizes — the golden gate is kind+name only.
+      — source: 13-50-10-10 report §f3/f9; 2026-10-16 closure discovery
+      _(Effort: L)_
 - [ ] **`#check-lint-config` blindness to settings loss** — the whole-file
       hash tripwire BLESSED the 2026-10-08..10 cyclop/errcheck drop (its own
       `--update` instructions re-pinned the regressed config). Extend the gate
