@@ -40,11 +40,11 @@
     "go-atomic-write": {
       "flake": false,
       "locked": {
-        "lastModified": 1792021749,
-        "narHash": "sha256-Kj8ER34udZJO8GDYsmEVI5K5JGVmKZWee2WwNOO8/VQ=",
+        "lastModified": 1792085401,
+        "narHash": "sha256-LdDmz5cSHqb3PEQC4z/JXCR6Nz9ctrYe32ULgsTWtlY=",
         "owner": "LarsArtmann",
         "repo": "go-atomic-write",
-        "rev": "777dcde4dcd2582dac0d33705699f7a6741f4dd6",
+        "rev": "de6157b94edf9ad86e39ba8b989363131d076634",
         "type": "github"
       },
       "original": {
@@ -159,11 +159,11 @@
     "gogenfilter": {
       "flake": false,
       "locked": {
-        "lastModified": 1791200432,
-        "narHash": "sha256-P26DbX9ts4ialtWEnSwE1rPqL0/6fT6u5LVlGuzQ2V0=",
+        "lastModified": 1792085290,
+        "narHash": "sha256-r58GjvxpfaGyyV+f3gRm3YsL9typC+lIoMxJZXl6xro=",
         "owner": "LarsArtmann",
         "repo": "gogenfilter",
-        "rev": "599f1568d9a9516958329876b9b56126ec601a60",
+        "rev": "e8a33dd56d9a848efcedc493931af811dc6ed49e",
         "type": "github"
       },
       "original": {

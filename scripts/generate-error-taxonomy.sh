@@ -102,7 +102,7 @@ run_args_for_dir() {
 	local dir="$1" root="$1"
 	while [ ! -f "$repo_root/$root/go.mod" ] && [ "$root" != "." ]; do
 		root="$(dirname "$root")"
-		done
+	done
 	if [ "$root" = "." ] && [ ! -f "$repo_root/go.mod" ]; then
 		echo "ERROR: no module root found above $dir" >&2
 		return 1
@@ -252,7 +252,7 @@ for section in "${sections[@]}"; do
 		col3+=("\`$code\`")
 		[ ${#name} -gt "$w1" ] && w1=${#name}
 		[ ${#family} -gt "$w2" ] && w2=${#family}
-		[ $(( ${#code} + 2 )) -gt "$w3" ] && w3=$(( ${#code} + 2 ))
+		[ $((${#code} + 2)) -gt "$w3" ] && w3=$((${#code} + 2))
 	done <"$sec_dir/codes.uniq.tsv"
 
 	{
