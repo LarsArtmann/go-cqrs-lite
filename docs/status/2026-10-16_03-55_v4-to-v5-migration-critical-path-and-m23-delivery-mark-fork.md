@@ -199,3 +199,15 @@ Ran `project-dependency-graph who-uses github.com/larsartmann/go-cqrs-lite/ --di
 **Breakage found:** `crm-exec-stage/go.mod` contains **unresolved merge-conflict markers** (`<<<<<<< HEAD` / `>>>>>>> master` at 5 require blocks) — unparseable, so the repo was invisible to the tool. **Census holes confirmed** (missed by the conversational census): Kernovia, Domination, Rolls-Royce-mtuGoHelpCenter-golang, accountability-system, standard-bug-tracking-schema, go-credentials-store, nsfw-classifier, vision-review-agent.
 
 **Corrections applied:** TODO_LIST blockquote (§v5 Unification) annotated with the tool-verified numbers; new checklist row for the ghost-module migration tail + crm-exec-stage fix. The appendix tables above remain as the require-level first pass — read them through the import-level correction.
+
+---
+
+## Addendum 2 (2026-10-16 ~06:55): semantic correction + codec tail RESOLVED
+
+**Correction to Addendum 1:** the tool's edges are go.mod **requires** (direct vs `// indirect` from the require annotation), NOT code imports. My "import-level semantics" claim was wrong — the stack spot-check passed coincidentally (those repos' direct requires co-occur with real imports; browser-history's stack requires are `// indirect`-only, hence excluded). All numbers in Addendum 1 stand as **direct-require counts**.
+
+**The "ghost codec" tier was misdiagnosed — and then resolved itself.** The 11 codec "direct consumers" at 03:59 were zombie REQUIRES with zero code imports anywhere (ADR-0128 moved the imports to `go-codec` long ago; the stale requires just never got tidied). A scheduled sweep (auto-commit daemons, 05:07–06:48) ran tidy across the fleet: codec/v4 requires deleted, `go-codec v0.3.1` promoted to direct (evidence: github-local-sync 05:38 commit diff). Verified ~06:50: **zero `.go` imports, zero go.mod requires fleet-wide.** The only survivor is `cqrs-htmx/scripts/testdata/verify-tag/real-setup-v4.8.1-poisoned/go.mod` — an INTENTIONALLY stale tag-release test fixture (`// indirect` pin is its purpose; do not clean). `codec/` was already deleted from go-cqrs-lite at ADR-0128 — no in-repo residue (gates, golden, go.work, flake all verified clean).
+
+**Owner instruction "codec is used nowhere now, remove it" — satisfied by verification:** there is nothing left to remove; the removal the instruction asked for had already been completed by the morning sweep by the time it was issued. TODO_LIST ghost-module row marked `[x]` with the remaining S-tail (retry/flightrecorder local replaces; crm-exec-stage merge conflict). A temporary debug program added to project-dependency-graph during the investigation was removed again.
+
+**Process lesson (recorded):** hours elapsed mid-session (03:59 → 06:50) during which scheduled automation changed the fleet — any "current state" claim must be re-timestamped before acting on it, and a tool's edge semantics must be read from its source/config (`DirectOnly` help text already stated require semantics) before encoding them into docs.
