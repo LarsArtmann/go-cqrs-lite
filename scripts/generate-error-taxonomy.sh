@@ -273,10 +273,9 @@ for section in "${sections[@]}"; do
 		# checkouts — an unsorted first-appearance order made --check flaky
 		# on fresh clones (the committed doc only matched the tree that
 		# generated it). LC_ALL=C pins the collation.
-		dead_names="$(LC_ALL=C sort "$sec_dir/dead.tsv" \
-			| awk -F'\t' '!seen[$1]++ {printf "%s%s", sep, "`" $1 "`"; sep=", "}')"
+		dead_names="$(LC_ALL=C sort "$sec_dir/dead.tsv" |
+			awk -F'\t' '!seen[$1]++ {printf "%s%s", sep, "`" $1 "`"; sep=", "}')"
 		if [ -n "$dead_names" ]; then
-			dead_count="$(awk -F'\t' '!seen[$1]++' "$sec_dir/dead.tsv" | wc -l)"
 			echo "- Unreferenced named errors (dead-sentinel candidates): $dead_names"
 		fi
 
