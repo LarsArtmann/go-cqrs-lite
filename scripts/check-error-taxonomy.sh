@@ -136,7 +136,7 @@ if [ "${1:-}" = "--self-test" ]; then
 				fi
 			fi
 			;;
-		3) ;;
+		3 | 75) ;;
 		*)
 			echo "SELF-TEST FAIL: generate-error-taxonomy.sh --pool exited rc=$pool_rc" >&2
 			fail=1
@@ -183,6 +183,13 @@ if [ -n "$erraudit_bin" ]; then
 		;;
 	3)
 		echo "NOTE: erraudit unavailable or pre-schemaVersion-2 — using the rg extraction pool" >&2
+		;;
+	75)
+		# EX_TEMPFAIL: transient (go/packages load failure, stale system
+		# binary, concurrent build). The rg pool is at proven parity — fall
+		# back loudly instead of failing CI on a flaky load.
+		echo "WARN: erraudit transiently failed (rc=75) — using the rg extraction pool" >&2
+		cat "$tmp_warn" >&2
 		;;
 	*)
 		echo "ERROR: generate-error-taxonomy.sh --pool failed (rc=$pool_rc)" >&2
@@ -281,7 +288,6 @@ BEGIN {
 ' "$doc" >"$tmp_claims"
 
 # ── Comparator ───────────────────────────────────────────────────────────
-declare -A claimed=()
 declare -A claimed_pair=()
 check_count=0
 
@@ -304,7 +310,6 @@ while IFS=$'\t' read -r kind section token family; do
 		;;
 	L)
 		if [ -n "${src_pair["$token"$'\t'"$family"]:-}" ]; then
-			claimed["$token"]=1
 			claimed_pair["$token"$'\t'"$family"]=1
 		elif [ -n "${src_family[$token]:-}" ]; then
 			got="${src_family[$token]}"
@@ -327,7 +332,6 @@ while IFS=$'\t' read -r kind section token family; do
 			case "$code" in
 			"$stem"*)
 				matched=$((matched + 1))
-				claimed["$code"]=1
 				claimed_pair["$code"$'\t'"$fam"]=1
 				if [ "$fam" != "$family" ]; then
 					echo "ERROR: [$section] wildcard \"$token\" claims $family but \"$code\" is $fam in source" >&2
