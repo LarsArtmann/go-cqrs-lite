@@ -27,6 +27,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
      importable packages) — root stays v4.0.0. -->
 ## [Unreleased]
 
+### Changed
+
+- **go-codec v0.3.1 → v0.3.2 across the five core codec-consuming modules** (event, signing, encryption, storage/pebble, kv). The payload-serialization dependency moves to go-codec's security/tooling release (no Go file changes, no breaking changes); its full-patch toolchain contract (go-codec ADR-0003) carries `go 1.27.2`, and `go mod tidy` raises each consumer's `go` directive to match — consumer CI picks the toolchain up automatically via `go-version-file`. Verified per module with `GOWORK=off` on go1.27.2: `go mod verify`, build, and full test suites green (kv is build-verified; it ships no test files). The remaining modules holding v0.3.1 pins follow in the next release train — the release contains zero behavioral delta, so the sweep is bookkeeping, not urgency.
+
 ### Added
 
 - **core/v5/event: delivery-mark trio forked from v4 (ADR-0152 mirror parity).** `MarkInDelivery`/`ContextInDelivery`/`WithoutDeliveryMark` (the synchronous-bus-delivery reentrancy marker from ADR-0154) now exist on both sides of the event mirror pair; the three pending-mirror rows are pruned from the lockstep register. The event pair's only remaining lag is the `eventtest` subtree (closure scoped in TODO_LIST: eventtest→snapshot→storage/memory are test-coupled).
