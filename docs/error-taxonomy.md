@@ -303,7 +303,7 @@ errorfamily.Classify(err) // => Conflict
 | ErrDanglingDep  | Rejection     | `queue.dangling_dep`   |
 | ErrLeaseNotHeld | Orchestration | `queue.lease_not_held` |
 
-- Unreferenced named errors (dead-sentinel candidates): `ErrDanglingDep`, `ErrDuplicateID`, `ErrEmptyType`, `ErrInvalidTransition`, `ErrLeaseNotHeld`, `ErrNotFound`, `errObservationAbandoned`, `errDSNRequired`, `errNilPool`
+- Unreferenced named errors (dead-sentinel candidates): `ErrDanglingDep`, `ErrDuplicateID`, `ErrEmptyType`, `ErrInvalidTransition`, `ErrLeaseNotHeld`, `ErrNotFound`, `errDSNRequired`, `errNilPool`, `errObservationAbandoned`
 
 ### watermill
 
@@ -791,7 +791,7 @@ errorfamily.Classify(err) // => Conflict
 | ErrPlannedColumnTypeMismatch | Rejection     | `metaengine.planned_column_type_mismatch` |
 | ErrVectorDimensionMismatch   | Rejection     | `metaengine.vector_dimension_mismatch`    |
 
-- Unreferenced named errors (dead-sentinel candidates): `ErrDuplicateEvent`, `ErrPlannedColumnTypeMismatch`, `errCannotInferADT`, `errCollectionCountMismatch`, `errEdgeRemoval`, `errNoEngine`, `errNoEventLog`, `errNoQuery`, `errNoQueryDecls`, `errNotBinaryVector`, `errSSENoFlusher`, `errUndirectedGraph`, `errUnsupportedCounterOps`, `errUnsupportedCounterReads`, `errUnsupportedGraphOps`, `errUnsupportedGraphReads`, `errUnsupportedLogOps`, `errUnsupportedLogReads`, `errUnsupportedMapOps`, `errUnsupportedMultiReads`, `errUnsupportedMultimapOps`, `errUnsupportedSearchOps`, `errUnsupportedSearchReads`, `errUnsupportedSetOps`, `errUnsupportedSpatialOps`, `errUnsupportedSpatialReads`, `errUnsupportedVectorFilters`, `errUnsupportedVectorOps`, `errUnsupportedVectorReads`, `errTransportClosed`, `errQuicTransportClosed`, `ErrFrameTooLarge`, `ErrGraphBackendNotImplemented`, `ErrMapUpdaterNotImplemented`, `ErrScanBackendNotImplemented`, `ErrSearchBackendNotImplemented`, `ErrSpatialBackendNotImplemented`, `ErrTransportClosed`, `ErrVectorBackendNotImplemented`, `ErrNoProber`
+- Unreferenced named errors (dead-sentinel candidates): `ErrDuplicateEvent`, `ErrFrameTooLarge`, `ErrGraphBackendNotImplemented`, `ErrMapUpdaterNotImplemented`, `ErrNoProber`, `ErrPlannedColumnTypeMismatch`, `ErrScanBackendNotImplemented`, `ErrSearchBackendNotImplemented`, `ErrSpatialBackendNotImplemented`, `ErrTransportClosed`, `ErrVectorBackendNotImplemented`, `errCannotInferADT`, `errCollectionCountMismatch`, `errEdgeRemoval`, `errNoEngine`, `errNoEventLog`, `errNoQuery`, `errNoQueryDecls`, `errNotBinaryVector`, `errQuicTransportClosed`, `errSSENoFlusher`, `errTransportClosed`, `errUndirectedGraph`, `errUnsupportedCounterOps`, `errUnsupportedCounterReads`, `errUnsupportedGraphOps`, `errUnsupportedGraphReads`, `errUnsupportedLogOps`, `errUnsupportedLogReads`, `errUnsupportedMapOps`, `errUnsupportedMultiReads`, `errUnsupportedMultimapOps`, `errUnsupportedSearchOps`, `errUnsupportedSearchReads`, `errUnsupportedSetOps`, `errUnsupportedSpatialOps`, `errUnsupportedSpatialReads`, `errUnsupportedVectorFilters`, `errUnsupportedVectorOps`, `errUnsupportedVectorReads`
 
 <!-- generate-error-taxonomy:end -->
 
