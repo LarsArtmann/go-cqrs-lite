@@ -1001,6 +1001,24 @@ jobs:
           erraudit errorflow ./... --type-aware -o errorflow.json
           cd ../..
           git diff --exit-code -- example/mesh-demo/errorflow.json
+      - name: Error taxonomy doc freshness (generated region)
+        env:
+          GOEXPERIMENT: jsonv2
+        run: |
+          set -euo pipefail
+          # docs/error-taxonomy.md's marked region is GENERATED from the
+          # gated modules' errorflow exports (scripts/generate-error-taxonomy.sh).
+          # A stale region (hand edit, or source drift after a landed PR) fails
+          # here with the diff — regenerate and commit. Same activation gate
+          # as the errorflow-freshness step: needs erraudit >= v0.7.0 for the
+          # errorflow codes array; warns instead of failing until the vendored
+          # pin bumps.
+          oldest="$(printf '%s\n' v0.7.0 "$ERRAUDIT_VERSION" | sort -V | head -1)"
+          if [[ "$oldest" == "$ERRAUDIT_VERSION" && "$ERRAUDIT_VERSION" != v0.7.0 ]]; then
+            echo "::warning::taxonomy doc freshness needs erraudit >= v0.7.0 (pinned: $ERRAUDIT_VERSION) — it activates when the vendored pin bumps"
+            exit 0
+          fi
+          scripts/generate-error-taxonomy.sh --check
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

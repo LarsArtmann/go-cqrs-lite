@@ -114,6 +114,36 @@ if [ "${1:-}" = "--self-test" ]; then
 		}
 	done
 
+	# erraudit-pool path: when an erraudit with the codes array is
+	# reachable (PATH or ERRAUDIT_BIN), the generator's --pool dump must
+	# succeed and carry only the capitalized six-family vocabulary. rc 3
+	# (unavailable/pre-v0.7.0) skips — the rg extraction above is the
+	# hermetic surface this fixture pins.
+	erraudit_bin="${ERRAUDIT_BIN:-$(command -v erraudit || true)}"
+	if [ -n "$erraudit_bin" ]; then
+		pool_rc=0
+		pool_tsv="$(ERRAUDIT_BIN="$erraudit_bin" "$repo_root/scripts/generate-error-taxonomy.sh" --pool 2>/dev/null)" || pool_rc=$?
+		case "$pool_rc" in
+		0)
+			if [ -z "$pool_tsv" ]; then
+				echo "SELF-TEST FAIL: generate-error-taxonomy.sh --pool emitted an empty pool" >&2
+				fail=1
+			else
+				badfam="$(awk -F'\t' '$3 !~ /^(Rejection|Conflict|Transient|Infrastructure|Corruption|Orchestration)$/' <<<"$pool_tsv" | head -3)"
+				if [ -n "$badfam" ]; then
+					echo "SELF-TEST FAIL: --pool emitted non-vocabulary families: $badfam" >&2
+					fail=1
+				fi
+			fi
+			;;
+		3) ;;
+		*)
+			echo "SELF-TEST FAIL: generate-error-taxonomy.sh --pool exited rc=$pool_rc" >&2
+			fail=1
+			;;
+		esac
+	fi
+
 	if [ "$fail" -eq 0 ]; then
 		echo "✓ error-taxonomy self-test: scanner extraction matches the planted mutation fixture"
 	fi
@@ -123,33 +153,71 @@ fi
 status=0
 tmp_pool="$(mktemp)"
 tmp_claims="$(mktemp)"
-trap 'rm -f "$tmp_pool" "$tmp_claims"' EXIT
+tmp_warn="$(mktemp)"
+trap 'rm -f "$tmp_pool" "$tmp_claims" "$tmp_warn"' EXIT
 
 # ── Source ground truth: code<TAB>family, one per line ──────────────────
-for entry in "${GATED_MODULES[@]}"; do
-	IFS='|' read -r _section dir _prefixes floor _maxdepth <<<"$entry"
-	floor="${floor:-$DEFAULT_FLOOR}"
+# Pool source preference: erraudit's errorflow export via the generator's
+# --pool dump (the SAME AST-based pool that generates the doc — one
+# implementation, shared with scripts/generate-error-taxonomy.sh, incl.
+# per-section floors and the prefix/_test.go/6-family filters) whenever an
+# erraudit with schemaVersion 2 is reachable; the independent rg extraction
+# below otherwise (nix sandbox, pre-v0.7.0 pins). The rg pattern is at pool
+# parity with erraudit (2026-10-16 event-module proof, rg 42 == erraudit 42,
+# plus the dual-family pebble/projectionhost rows) — either source validates
+# the same doc.
+erraudit_bin="${ERRAUDIT_BIN:-$(command -v erraudit || true)}"
+pool_src=rg
+if [ -n "$erraudit_bin" ]; then
+	pool_rc=0
+	pool_tsv="$(ERRAUDIT_BIN="$erraudit_bin" "$repo_root/scripts/generate-error-taxonomy.sh" --pool 2>"$tmp_warn")" || pool_rc=$?
+	case "$pool_rc" in
+	0)
+		if [ -n "$pool_tsv" ]; then
+			# section<TAB>code<TAB>Family → code<TAB>Family
+			awk -F'\t' '{print $2 "\t" $3}' <<<"$pool_tsv" >"$tmp_pool"
+			pool_src=erraudit
+		else
+			echo "WARN: generate-error-taxonomy.sh --pool returned an empty pool — falling back to the rg extraction" >&2
+		fi
+		;;
+	3)
+		echo "NOTE: erraudit unavailable or pre-schemaVersion-2 — using the rg extraction pool" >&2
+		;;
+	*)
+		echo "ERROR: generate-error-taxonomy.sh --pool failed (rc=$pool_rc)" >&2
+		cat "$tmp_warn" >&2
+		exit 1
+		;;
+	esac
+fi
 
-	depth_args=()
-	[ -n "${_maxdepth:-}" ] && depth_args=(--max-depth "$_maxdepth")
+if [ "$pool_src" = rg ]; then
+	for entry in "${GATED_MODULES[@]}"; do
+		IFS='|' read -r _section dir _prefixes floor _maxdepth <<<"$entry"
+		floor="${floor:-$DEFAULT_FLOOR}"
 
-	tmp_mod="$(mktemp)"
-	rg -U --no-filename -o "$EXTRACT_PATTERN" \
-		"$repo_root/$dir" \
-		"${depth_args[@]}" \
-		--glob '*.go' --glob '!*_test.go' -g '!**/testdata/**' -g '!**/vendor/**' -g '!**/eventtest/**' \
-		-r '$4	${1}${2}${3}' >"$tmp_mod" || true
-	sort -u "$tmp_mod" -o "$tmp_mod"
-	mod_codes=$(wc -l <"$tmp_mod")
+		depth_args=()
+		[ -n "${_maxdepth:-}" ] && depth_args=(--max-depth "$_maxdepth")
 
-	if [ "$mod_codes" -lt "$floor" ]; then
-		echo "ERROR: [$dir] extraction yielded $mod_codes codes (floor $floor) — the rg pattern or the module path is broken" >&2
-		status=1
-	fi
+		tmp_mod="$(mktemp)"
+		rg -U --no-filename -o "$EXTRACT_PATTERN" \
+			"$repo_root/$dir" \
+			"${depth_args[@]}" \
+			--glob '*.go' --glob '!*_test.go' -g '!**/testdata/**' -g '!**/vendor/**' -g '!**/eventtest/**' \
+			-r '$4	${1}${2}${3}' >"$tmp_mod" || true
+		sort -u "$tmp_mod" -o "$tmp_mod"
+		mod_codes=$(wc -l <"$tmp_mod")
 
-	cat "$tmp_mod" >>"$tmp_pool"
-	rm -f "$tmp_mod"
-done
+		if [ "$mod_codes" -lt "$floor" ]; then
+			echo "ERROR: [$dir] extraction yielded $mod_codes codes (floor $floor) — the rg pattern or the module path is broken" >&2
+			status=1
+		fi
+
+		cat "$tmp_mod" >>"$tmp_pool"
+		rm -f "$tmp_mod"
+	done
+fi
 sort -u "$tmp_pool" -o "$tmp_pool"
 total_codes=$(wc -l <"$tmp_pool")
 
@@ -289,7 +357,7 @@ while IFS=$'\t' read -r code fam; do
 done <"$tmp_pool"
 
 if [ "$status" -eq 0 ]; then
-	echo "✓ error-taxonomy: $total_codes codes across ${#GATED_MODULES[@]} modules match docs/error-taxonomy.md ($check_count doc claims)"
+	echo "✓ error-taxonomy: $total_codes codes across ${#GATED_MODULES[@]} modules match docs/error-taxonomy.md ($check_count doc claims, pool=$pool_src)"
 fi
 
 exit "$status"
