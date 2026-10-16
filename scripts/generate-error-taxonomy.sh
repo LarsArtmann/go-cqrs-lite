@@ -26,6 +26,10 @@
 # Modes:
 #   (no args)  rewrite the marked region in place
 #   --check    exit 1 with a diff when the committed region is stale
+#   --pool     dump the filtered code pool as section<TAB>code<TAB>Family
+#              lines (the check-error-taxonomy.sh gate's preferred pool
+#              source; rc 3 = erraudit unavailable, so the gate falls back
+#              to its rg extraction)
 #
 # Activation: needs an erraudit whose errorflow export reports
 # schemaVersion >= 2. Missing or older erraudit warns and exits 0 — the
@@ -42,8 +46,8 @@ gate="$repo_root/scripts/check-error-taxonomy.sh"
 erraudit="${ERRAUDIT_BIN:-erraudit}"
 mode="${1:-}"
 
-if [ "$mode" != "" ] && [ "$mode" != "--check" ]; then
-	echo "usage: $0 [--check]   (regenerate docs/error-taxonomy.md module tables)" >&2
+if [ "$mode" != "" ] && [ "$mode" != "--check" ] && [ "$mode" != "--pool" ]; then
+	echo "usage: $0 [--check|--pool]   (regenerate docs/error-taxonomy.md module tables)" >&2
 	exit 2
 fi
 
@@ -51,11 +55,14 @@ begin='<!-- generate-error-taxonomy:begin (scripts/generate-error-taxonomy.sh wr
 end='<!-- generate-error-taxonomy:end -->'
 
 if ! command -v "$erraudit" >/dev/null 2>&1; then
+	if [ "$mode" = "--pool" ]; then
+		exit 3
+	fi
 	echo "WARN: erraudit not found — taxonomy doc generation skipped (needs errorflow schemaVersion 2)" >&2
 	exit 0
 fi
 
-if ! grep -qxF "$begin" "$doc" || ! grep -qxF "$end" "$doc"; then
+if [ "$mode" != "--pool" ] && { ! grep -qxF "$begin" "$doc" || ! grep -qxF "$end" "$doc"; }; then
 	echo "ERROR: $doc is missing the generate-error-taxonomy markers — refusing to touch it" >&2
 	exit 1
 fi
@@ -136,6 +143,9 @@ check_schema() {
 	local version
 	version="$(jq -r '.schemaVersion // 0' <<<"$1")"
 	if [ "$version" -lt 2 ]; then
+		if [ "$mode" = "--pool" ]; then
+			exit 3
+		fi
 		echo "WARN: erraudit errorflow exports schemaVersion $version (need 2 for the codes array) — taxonomy doc generation skipped; activates at the v0.7.0 pin" >&2
 		exit 0
 	fi
@@ -209,6 +219,16 @@ done
 
 if [ "$status" -ne 0 ]; then
 	exit "$status"
+fi
+
+if [ "$mode" = "--pool" ]; then
+	for section in "${sections[@]}"; do
+		sec_dir="$tmp_root/$(echo "$section" | tr '/ ()' '____')"
+		awk -F'\t' -v sec="$section" \
+			'{printf "%s\t%s\t%s%s\n", sec, $1, toupper(substr($2, 1, 1)), substr($2, 2)}' \
+			"$sec_dir/codes.uniq.tsv"
+	done
+	exit 0
 fi
 
 # ── Render the marked region ──────────────────────────────────────────────
