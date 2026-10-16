@@ -61,20 +61,25 @@ DEFAULT_FLOOR=1
 # dynamically concatenated codes ("event."+noun+"_x") are matched by
 # neither this pattern nor erraudit (non-literal codes are undiscoverable
 # statically) — the two pools stay in parity by construction.
-# Group 1: family in New|Wrap constructor form; group 2: family in Newf|Wrapf
-# form (incl. optional errorfamily. qualifier); group 3: the code. Exactly
-# one of the family groups is non-empty, so '${1}${2}' is the family. The
-# replacement keeps the pool's code<TAB>family field order.
-# First-argument groups may cross COMPLETE quoted strings only (quoted
-# atoms: "…") — the 2026-09-11 greedy cross-quote junk capture stays
-# closed, but call-shaped wrap causes (a.corruptEventErr(k, err)) and
-# causes containing string literals stay reachable. The f-form's group is
-# lazy so a dynamic-code mint attributes to the NEXT real anchor instead
-# of swallowing it; the constructor form keeps its comma exclusion so
-# identifier-passed codes (NewRejection(CodeX, "y.z")) can never slide the
-# message into the code slot. The f-form needs no comma exclusion — its
-# family anchor rejects that shape on its own.
-EXTRACT_PATTERN='errorfamily\.(?:(?:New|Wrap)(Rejection|Conflict|Transient|Infrastructure|Corruption|Orchestration)\(\s*(?:[^,"]*(?:"[^"]*"[^,"]*)*,\s*)?|(?:New|Wrap)f\(\s*(?:(?:[^"]|"[^"]*")*?,\s*)?(?:errorfamily\.)?(Rejection|Conflict|Transient|Infrastructure|Corruption|Orchestration)\s*,\s*)"([a-z0-9_]+(?:\.[a-z0-9_]+)+)"'
+# Group 1: family in New|Wrap constructor form; group 2: family in the
+# no-argument Newf form; group 3: family in the cause-carrying Wrapf/Newf
+# form; group 4: the code. Exactly one family group is non-empty, so
+# '${1}${2}${3}' is the family. The replacement keeps the pool's
+# code<TAB>family field order.
+# Branch preference is load-bearing (leftmost-first): the no-arg f-form is
+# tried BEFORE the cause-crossing f-form, so Newf(errorfamily.Rejection,
+# "code", …) binds at its own family instead of the cause group swallowing
+# past it to a later mint. The cause group crosses only COMPLETE quoted
+# strings (quoted atoms) — the 2026-09-11 greedy cross-quote junk capture
+# stays closed while call-shaped causes (a.corruptEventErr(k, err)) and
+# literal-carrying causes stay reachable. It stays lazy, so an invalid
+# (dynamic-code) mint extends to the NEXT real family+code anchor — every
+# valid mint is captured exactly once, never skipped. The constructor form
+# keeps its comma exclusion so identifier-passed codes
+# (NewRejection(CodeX, "y.z")) can never slide the message into the code
+# slot; the f-forms need no comma exclusion — the family anchor between
+# cause and code rejects that shape on its own.
+EXTRACT_PATTERN='errorfamily\.(?:(?:New|Wrap)(Rejection|Conflict|Transient|Infrastructure|Corruption|Orchestration)\(\s*(?:[^,"]*,\s*)?|(?:New|Wrap)f\(\s*(?:errorfamily\.)?(Rejection|Conflict|Transient|Infrastructure|Corruption|Orchestration)\s*,\s*|(?:New|Wrap)f\(\s*(?:[^"]|"[^"]*")*?,\s*(?:errorfamily\.)?(Rejection|Conflict|Transient|Infrastructure|Corruption|Orchestration)\s*,\s*)"([a-z0-9_]+(?:\.[a-z0-9_]+)+)"'
 
 # --self-test: run the extraction against the planted mutation fixture
 # (scripts/testdata/error-taxonomy-selftest/) and assert the scanner sees
@@ -85,7 +90,7 @@ if [ "${1:-}" = "--self-test" ]; then
 	tmp="$(mktemp)"
 	trap 'rm -f "$tmp"' EXIT
 
-	rg -U --no-filename -o "$EXTRACT_PATTERN" "$fixture" -r '$3	${1}${2}' >"$tmp"
+	rg -U --no-filename -o "$EXTRACT_PATTERN" "$fixture" -r '$4	${1}${2}${3}' >"$tmp"
 	sort -u "$tmp" -o "$tmp"
 
 	fail=0
@@ -133,7 +138,7 @@ for entry in "${GATED_MODULES[@]}"; do
 		"$repo_root/$dir" \
 		"${depth_args[@]}" \
 		--glob '*.go' --glob '!*_test.go' -g '!**/testdata/**' -g '!**/vendor/**' -g '!**/eventtest/**' \
-		-r '$3	${1}${2}' >"$tmp_mod" || true
+		-r '$4	${1}${2}${3}' >"$tmp_mod" || true
 	sort -u "$tmp_mod" -o "$tmp_mod"
 	mod_codes=$(wc -l <"$tmp_mod")
 
