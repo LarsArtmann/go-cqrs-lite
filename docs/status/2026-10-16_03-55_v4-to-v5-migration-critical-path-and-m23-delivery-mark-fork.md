@@ -179,3 +179,23 @@ v4 deletion is **real and now fully measured**, but blocked by exactly three gat
 **Removed-at-v5 module debt (manual code changes, no twin):** `stack/v4` + 8 presets → browser-history, Code-To-CV-Agent, cqrs-htmx (adminui, usermgmt, setup, systemadapter, loginpage, examples, integration_test), crm, crm-exec-stage, games/SEC, SwettySwipperWeb/services/api, github-local-sync, file-and-image-renamer/bench, go-plugin-mvp demo, plugmarket demo, sperrmuell-direct, webphone · `idempotency/sqlstore` → browser-history, DiscordSync, games/KeyCountdown, SwettySwipperWeb/services/api.
 
 **Verification evidence this session:** `TestMirrorLockstep` ✓ · `TestEveryModuleInGolden`/`TestEveryWorkspaceModule*`/`TestEveryGolden`/`TestMultiPackageModulesHaveArchLintConfig` ✓ · `core/v5/event` suite ✓ · `check-changelog-symbols.sh` (14 citations) ✓ · golden +3 symmetric · commits: `64be699fa` (code), docs pending daemon.
+
+---
+
+## Addendum (2026-10-16 ~04:08, same session): tool-verified retire-ability census
+
+Ran `project-dependency-graph who-uses github.com/larsartmann/go-cqrs-lite/ --dir ~/projects` (53 modules matched, 207 modules discovered). This **closes report gap B2**: the census is now tool-verified at **import level** (semantics verified by spot-check: browser-history requires `stack/v4` without importing it → correctly excluded; crm + github-local-sync import it in code → included). The require-level greps above **overcount** (require-without-import) and **undercount** (8 consumer repos the census missed entirely).
+
+**Retire-ability ranking (import-level):**
+
+| Tier | Modules | Verdict |
+|------|---------|---------|
+| **0 — retire NOW** (0 importers anywhere) | `transport/http`, `transport/grpc`, `storage/view`, `storage/relational`, `idempotency/kvstore`, **7 of 8 stack presets** (`stack/{bbolt,duckdb,memory,mysql,pebble,postgres,turso}`; only `stack/sqlite` lives, 3 direct) | free deletes, even ahead of the cut |
+| **1 — one-repo stragglers** (retire after migrating 1 repo) | `queue`+`queue/sqlite`+`queue/postgres` → universal-workflow only · `scheduling/sqlstore` → ChastityAPI · `storage/bbolt` → vision-review-agent · `storage/turso` → DiscordSync · `metaengine/pebbleengine` → file-and-image-renamer · `testutil` → DiscordSync · `commandlifecycle/projections` → go-appkit · `retry`/`flightrecorder` (0 direct + 1 indirect; flightrecorder has NO proxy versions, consumer rides local replace) | migrate the named repo, then delete |
+| **2 — zero-direct but load-bearing** (NOT retireable) | `claiming` (36 indirect), `commandlifecycle` (37 indirect) — pulled fleet-wide via `system`; `testutil/pgtestcontainer` (22 indirect, in-repo test infra) | die only via system's v5 evolution |
+| **Ghost modules** (deleted from repo, still imported) | `go-cqrs-lite/codec` — **11 direct importers** (InboxClean, Kernovia, KeyCountdown, Rolls-Royce-mtuGoHelpCenter-golang, SwettySwipperWeb, accountability-system, github-local-sync, go-localsync, sec, standard-bug-tracking-schema, zlota44) surviving on the proxy-cached dead v4.4.0 tag; ADR-0128's redirect to `go-codec` never reached them | migration tail, upstream unfixable |
+| **Load-bearing core** (keep, copy-forward) | event 41, id 41, command 34, decider 33, middleware 23, query 22, metaengine 21, system 19, storage 18, record 17, otel 16, watermill 16, snapshot 15, storage/memory 14, projectionhost 13, projectionadapter 13, projection 12, codec-class see ghosts, scenario 11 (absorbed by systemscenario), catalog 10 | the 23-package fork list stands |
+
+**Breakage found:** `crm-exec-stage/go.mod` contains **unresolved merge-conflict markers** (`<<<<<<< HEAD` / `>>>>>>> master` at 5 require blocks) — unparseable, so the repo was invisible to the tool. **Census holes confirmed** (missed by the conversational census): Kernovia, Domination, Rolls-Royce-mtuGoHelpCenter-golang, accountability-system, standard-bug-tracking-schema, go-credentials-store, nsfw-classifier, vision-review-agent.
+
+**Corrections applied:** TODO_LIST blockquote (§v5 Unification) annotated with the tool-verified numbers; new checklist row for the ghost-module migration tail + crm-exec-stage fix. The appendix tables above remain as the require-level first pass — read them through the import-level correction.

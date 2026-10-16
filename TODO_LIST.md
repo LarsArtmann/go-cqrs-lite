@@ -1597,7 +1597,42 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
 > finish core/v5 (M23 first, then the 23 copy-forwards) → add
 > `cqrs-upgrade --to-v5` import rewrite → cqrs-htmx (shield: 73% of fleet's
 > indirect edges) → go-appkit → app residue → Phase 8 deletions below.
+>
+> **CORRECTED same day 04:05 by `project-dependency-graph who-uses`
+> (IMPORT-level edges, not require-level — verified: browser-history requires
+> `stack/v4` but never imports it; crm and github-local-sync do):**
+> stack's real importer set is 5 direct (Code-To-CV-Agent, cqrs-htmx, crm,
+> github-local-sync, SEC) + 18 indirect — the require-level repo list above
+> overcounts. SEVEN of 8 stack presets are import-dead
+> (`stack/{bbolt,duckdb,memory,mysql,pebble,postgres,turso}`: zero importers
+> anywhere; only `stack/sqlite` lives, 3 direct). One-repo stragglers:
+> `queue`+`queue/sqlite`+`queue/postgres` (universal-workflow only),
+> `scheduling/sqlstore` (ChastityAPI), `storage/bbolt` (vision-review-agent),
+> `storage/turso` (DiscordSync), `metaengine/pebbleengine`
+> (file-and-image-renamer), `testutil` (DiscordSync),
+> `commandlifecycle/projections` (go-appkit), `retry` + `flightrecorder`
+> (0 direct + 1 indirect each; flightrecorder has NO proxy versions — its
+> consumer rides a local replace). NOT retireable despite 0 direct:
+> `claiming` (36 indirect) + `commandlifecycle` (37 indirect) — pulled by
+> `system` fleet-wide. Load-bearing core (direct importers): event 41, id 41,
+> command 34, decider 33, middleware 23, query 22, metaengine 21, system 19,
+> storage 18, record 17, otel 16, watermill 16. Census holes confirmed:
+> Kernovia, Domination, Rolls-Royce-mtuGoHelpCenter-golang,
+> accountability-system, standard-bug-tracking-schema, go-credentials-store,
+> nsfw-classifier, vision-review-agent import v4 trains; crm-exec-stage/go.mod
+> carries UNRESOLVED MERGE-CONFLICT markers (unparseable).
 
+- [ ] **Ghost-module migration tail (ADR-0128 follow-up, found 2026-10-16 by
+      `project-dependency-graph who-uses`)** — `go-cqrs-lite/codec` is DELETED
+      from this repo, but 11 fleet repos still import it on proxy-cached tags
+      (InboxClean, Kernovia, KeyCountdown, Rolls-Royce-mtuGoHelpCenter-golang,
+      SwettySwipperWeb, accountability-system, github-local-sync,
+      go-localsync, sec, standard-bug-tracking-schema, zlota44) — their builds
+      survive only because the module proxy still serves the dead v4.4.0 tag;
+      redirect them to `github.com/larsartmann/go-codec` directly (retry/
+      flightrecorder already ride local replaces). Also fix
+      crm-exec-stage's merge-conflicted go.mod while in the neighborhood.
+      _(Effort: M)_
 - [ ] **Delete `stack.Materialize`** — auto-projection replaces it. _(Effort: S)_
 - [ ] **Delete `storage.RelationalProjection` + `storage/view` (SQLViewStore)** —
       multi-collection batch atomicity + auto-projection replaces them. Also
