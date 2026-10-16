@@ -1598,13 +1598,15 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
 > `cqrs-upgrade --to-v5` import rewrite → cqrs-htmx (shield: 73% of fleet's
 > indirect edges) → go-appkit → app residue → Phase 8 deletions below.
 >
-> **CORRECTED same day 04:05 by `project-dependency-graph who-uses`
-> (IMPORT-level edges, not require-level — verified: browser-history requires
-> `stack/v4` but never imports it; crm and github-local-sync do):**
-> stack's real importer set is 5 direct (Code-To-CV-Agent, cqrs-htmx, crm,
+> **CORRECTED same day by `project-dependency-graph who-uses`** — the tool's
+> edges are go.mod REQUIRES (direct vs `// indirect` from the require
+> annotation), NOT code imports; the numbers below are direct-require counts
+> (my earlier "import-level" wording was wrong): **
+> stack's direct-require set is 5 (Code-To-CV-Agent, cqrs-htmx, crm,
 > github-local-sync, SEC) + 18 indirect — the require-level repo list above
-> overcounts. SEVEN of 8 stack presets are import-dead
-> (`stack/{bbolt,duckdb,memory,mysql,pebble,postgres,turso}`: zero importers
+> overcounts require-only pins (e.g. browser-history). SEVEN of 8 stack
+> presets are require-dead
+> (`stack/{bbolt,duckdb,memory,mysql,pebble,postgres,turso}`: zero requires
 > anywhere; only `stack/sqlite` lives, 3 direct). One-repo stragglers:
 > `queue`+`queue/sqlite`+`queue/postgres` (universal-workflow only),
 > `scheduling/sqlstore` (ChastityAPI), `storage/bbolt` (vision-review-agent),
@@ -1622,17 +1624,20 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
 > nsfw-classifier, vision-review-agent import v4 trains; crm-exec-stage/go.mod
 > carries UNRESOLVED MERGE-CONFLICT markers (unparseable).
 
-- [ ] **Ghost-module migration tail (ADR-0128 follow-up, found 2026-10-16 by
-      `project-dependency-graph who-uses`)** — `go-cqrs-lite/codec` is DELETED
-      from this repo, but 11 fleet repos still import it on proxy-cached tags
-      (InboxClean, Kernovia, KeyCountdown, Rolls-Royce-mtuGoHelpCenter-golang,
-      SwettySwipperWeb, accountability-system, github-local-sync,
-      go-localsync, sec, standard-bug-tracking-schema, zlota44) — their builds
-      survive only because the module proxy still serves the dead v4.4.0 tag;
-      redirect them to `github.com/larsartmann/go-codec` directly (retry/
-      flightrecorder already ride local replaces). Also fix
-      crm-exec-stage's merge-conflicted go.mod while in the neighborhood.
-      _(Effort: M)_
+- [x] **Ghost-module tail (ADR-0128 follow-up): codec — RESOLVED by the
+      2026-10-16 morning sweep.** The 03:59 `who-uses` run showed 11 repos
+      with direct `go-cqrs-lite/codec/v4 v4.4.0` requires — zombie pins with
+      ZERO code imports anywhere (the tool counts requires; tidy dropped them
+      and promoted `go-codec v0.3.1` to direct — evidence: github-local-sync
+      05:38 commit). Verified 06:5x: zero `.go` imports, zero go.mod requires
+      fleet-wide; the only survivor is the INTENTIONAL
+      `cqrs-htmx/scripts/testdata/verify-tag/real-setup-v4.8.1-poisoned`
+      fixture (stale `// indirect` pin is its purpose — do not clean).
+      `codec/` was already deleted from this repo at ADR-0128; gates, golden,
+      go.work, flake all clean. STILL OPEN from this row: retry +
+      flightrecorder ride local replaces (re-pin consumers to the external
+      repos when convenient); crm-exec-stage/go.mod carries UNRESOLVED
+      MERGE-CONFLICT markers (unparseable by tooling). _(Effort: S remaining)_
 - [ ] **Delete `stack.Materialize`** — auto-projection replaces it. _(Effort: S)_
 - [ ] **Delete `storage.RelationalProjection` + `storage/view` (SQLViewStore)** —
       multi-collection batch atomicity + auto-projection replaces them. Also
