@@ -7,7 +7,7 @@
 package main
 
 import (
-	"errors"
+	errorfamily "github.com/larsartmann/go-error-family"
 
 	cbid "github.com/larsartmann/go-branded-id"
 
@@ -58,8 +58,12 @@ func orderStreamID(orderID OrderID) id.StreamID {
 	return id.DeriveStreamID("order", orderID.Get())
 }
 
-// ErrEmptyOrder rejects a place-order command with no items.
-var ErrEmptyOrder = errors.New("order: cart is empty")
+// ErrEmptyOrder rejects a place-order command with no items. A coded
+// errorfamily sentinel: Rejection (a business rule — never retried) with
+// taxonomy code order.empty, so the errorflow export and the hub's error
+// insights carry it as first-class data. The interface declaration keeps
+// errors.Is call sites free of legacy_as findings.
+var ErrEmptyOrder error = errorfamily.NewRejection("order.empty", "order: cart is empty")
 
 // OrderPlacedPayload is the CONTRACT of the order.placed event — billing
 // codes against this shape; breaking it is a version bump, not an edit.

@@ -19,6 +19,10 @@ import (
 	"slices"
 )
 
+// errUnknownDomain is deliberately UNCODED: it is the mesh-demo's WARN-soak
+// demo error (hub uncoded rule, M82) — next to ErrEmptyOrder's coded
+// sentinel it proves the insights pipeline surfaces both, without the WARN
+// ever turning fatal. Do not migrate it.
 var errUnknownDomain = errors.New("mesh-demo: unknown domain (want orders|billing)")
 
 func main() {
