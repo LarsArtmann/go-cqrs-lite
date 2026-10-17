@@ -84,7 +84,17 @@ func TestDepth_IdempotentCommandRedeliveryEmitsOneEvent(t *testing.T) {
 	cmd := newTaskCmd("task.create", ref.ID)
 
 	sc.Given().When(cmd).Then("task.created")
-	sc.When(cmd).ThenSuccess().ThenNoEvents()
+
+	// The redelivery: same command identity, dispatched again. It succeeds
+	// as a no-op — and the act window (diffed against the FIRST act's
+	// baseline, so both deliveries count) still holds exactly one event.
+	sc.When(cmd).ThenSuccess().ThenEventsSatisfy(func(events []event.Event) error {
+		if len(events) != 1 {
+			return fmt.Errorf("want exactly the first delivery's event after redelivery, got %d", len(events))
+		}
+
+		return nil
+	})
 }
 
 // ── Optimistic concurrency (02-46 §f25) ──

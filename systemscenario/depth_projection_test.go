@@ -38,6 +38,9 @@ func TestDepth_PoisonEventDeadLetters(t *testing.T) {
 	poisonRef := id.NewStreamRef("Task", id.NewStreamID())
 
 	sc.Given(
+		sc.Event("task.created", ref, TaskCreated{
+			ID: ref.ID.String(), Title: "healthy", Status: "pending",
+		}),
 		// A second, poisoned stream: created folds, then a task.updated whose
 		// Title is a number cannot decode into TaskUpdated.
 		sc.Event("task.created", poisonRef, TaskCreated{
@@ -76,6 +79,10 @@ func TestDepth_PoisonEventDeadLetters(t *testing.T) {
 				return fmt.Errorf("dead-letter entry missing diagnostics: %+v", entry)
 			}
 
+			if entry.ErrorFamily != "corruption" {
+				return fmt.Errorf("dead-letter family: want corruption, got %q", entry.ErrorFamily)
+			}
+
 			return nil
 		})
 }
@@ -99,6 +106,10 @@ func TestDepth_GivenPhaseUpcastsLegacyPayloads(t *testing.T) {
 	t.Parallel()
 
 	domain := taskDomain()
+	// The Schema declaration activates the coeffect gate (a declaration IS
+	// a declaration of the journal's event universe) — declare the other
+	// consumed type so the upcast story stays the only variable.
+	domain.Events = []event.Type{"task.updated"}
 	domain.Schema = []schema.EventSchema{
 		schema.Event("task.created", 2,
 			schema.RenameField("task.created", 1, "Name", "Title"),

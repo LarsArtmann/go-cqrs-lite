@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 
+	errorfamily "github.com/larsartmann/go-error-family"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 
@@ -145,7 +146,13 @@ func (a *Adapter) Handle(ctx context.Context, evt event.Event) error {
 	}
 
 	if err != nil {
-		return fmt.Errorf("projectionadapter: decode payload for %s: %w", eventType, err)
+		// A payload that cannot decode is deterministic — retrying cannot
+		// fix the stored bytes — so it classifies as Corruption: hosts with a
+		// DeadLetterStore quarantine it (ADR-0043 poison-message capture)
+		// instead of crash-looping the worker on an unclassifiable error.
+		return errorfamily.WrapCorruption(err,
+			"projectionadapter.decode_payload",
+			"projectionadapter: decode payload for "+eventType)
 	}
 
 	if err := a.store.ApplyRecord(ctx, event.AsRecord(evt), decoded); err != nil {
