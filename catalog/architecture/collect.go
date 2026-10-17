@@ -43,6 +43,7 @@ func collect(cat *catalog.Catalog, cfg config) *document {
 	return &document{
 		title:       cfg.title,
 		description: cfg.description,
+		logo:        safeImageSrc(cfg.logo),
 		generated:   cfg.generatedAt,
 		command:     cfg.command,
 		counts:      b.counts,

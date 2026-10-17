@@ -66,6 +66,12 @@ func writeTopbar(w *htmlWriter, doc *document) {
 	w.open("body")
 	w.open("header", htmlClass("topbar"))
 	w.open("a", htmlClass("brand"), htmlAttr("href", "#overview"))
+
+	if doc.logo != "" {
+		w.open("img", htmlClass("brand-logo"), htmlAttr("src", doc.logo), htmlAttr("alt", ""))
+		w.close("img")
+	}
+
 	w.element("span", doc.title, htmlClass("brand-name"))
 	w.close("a")
 	w.open("div", htmlClass("top-spacer"))

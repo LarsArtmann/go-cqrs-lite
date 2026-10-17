@@ -10,6 +10,7 @@ import (
 type document struct {
 	title       string
 	description string
+	logo        string
 	generated   time.Time
 	command     string
 	counts      []countRow
