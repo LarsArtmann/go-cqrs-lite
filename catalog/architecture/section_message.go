@@ -99,10 +99,7 @@ func messageRefs(msg catalog.Message, idx *refIndex) []block {
 	refs = appendRefs(refs, "Produced by", idx.messagesOf(kindService, idStrings(msg.Producers)))
 	refs = appendRefs(refs, "Consumed by", idx.messagesOf(kindService, idStrings(msg.Consumers)))
 	refs = appendRefs(refs, "Channels", idx.channelsFor(msg))
-
-	if !idx.hide.owners {
-		refs = appendRefs(refs, "Owners", idx.owners(msg.Owners))
-	}
+	refs = appendRefs(refs, "Owners", idx.owners(msg.Owners))
 	refs = appendRefs(refs, "Security", plainRefs(msg.Security))
 	refs = appendRefs(refs, "Labels", labelRefs(msg.Labels))
 

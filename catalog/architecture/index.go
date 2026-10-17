@@ -23,6 +23,8 @@ type refIndex struct {
 	bannedIDs map[string]bool
 	// references selects how out-of-scope references degrade (ADR-0160).
 	references ReferencesMode
+	// hide records which reference parts a redacted export suppresses.
+	hide visibility
 	// names records every non-redacted resource's display name, including
 	// resources outside the kept set, so name-only mode can speak of them.
 	names     map[selKey]string
@@ -113,6 +115,10 @@ func (x *refIndex) owner(id string) resourceRef {
 // selection, owners outside the kept set (or unknown) are dropped entirely:
 // a redacted export must not carry an excluded team or person as text.
 func (x *refIndex) owners(ids []string) []resourceRef {
+	if x.hide.owners {
+		return nil
+	}
+
 	refs := make([]resourceRef, 0, len(ids))
 
 	for _, id := range ids {
