@@ -1,6 +1,7 @@
 package architecture
 
 import (
+	"maps"
 	"slices"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
@@ -16,7 +17,7 @@ type selKey struct {
 // (ADR-0160). Kind names are the spellings [adrKind] accepts: "domain",
 // "service", "command", "event", "query", "channel", "container" (data
 // store), "flow", "entity", "data-product", "agent", "decision" (ADR),
-// "team", "person" and "doc".
+// "team", "person" (user) and "doc".
 type Selector struct {
 	Kind string
 	ID   string
@@ -106,20 +107,25 @@ func (s *Selection) copy() *Selection {
 	}
 }
 
-// keptSet computes the resources an export may render. A nil result means
-// "no selection": every resource is kept.
+// keptSet computes the resources an export may render. A nil kept result
+// means "no selection": every resource is kept. The banned result lists the
+// resources exclude and neverExport redact; they stay hidden in every
+// references mode, even [ReferencesNameOnly].
 //
 // The closure of a container selector is resolved against the catalog:
 // domain → its services → those services' messages. Channels, stores,
 // entities, ADRs and the rest are pulled in only by their own selectors —
-// they are infrastructure a consumer names deliberately.
-func (s *Selection) keptSet(cat *catalog.Catalog) map[selKey]bool {
+// they are infrastructure a consumer names deliberately. With
+// [ReferencesInclude], one level of the resources a kept resource points at
+// joins the set as well (a service brings its stores, entities and message
+// channels), never overriding a ban.
+func (s *Selection) keptSet(cat *catalog.Catalog, references ReferencesMode) (kept, banned map[selKey]bool) {
 	if s.empty() {
-		return nil
+		return nil, nil
 	}
 
-	kept := make(map[selKey]bool)
-	banned := make(map[selKey]bool)
+	kept = make(map[selKey]bool)
+	banned = make(map[selKey]bool)
 	resolve := newSelectorResolver(cat)
 
 	ban := func(selectors []Selector) {
@@ -141,7 +147,7 @@ func (s *Selection) keptSet(cat *catalog.Catalog) map[selKey]bool {
 			}
 		}
 
-		return kept
+		return kept, banned
 	}
 
 	var addWithClosure func(sel Selector)
@@ -172,7 +178,17 @@ func (s *Selection) keptSet(cat *catalog.Catalog) map[selKey]bool {
 		addWithClosure(sel)
 	}
 
-	return kept
+	if references == ReferencesInclude {
+		level := slices.Collect(maps.Keys(kept))
+
+		for _, key := range level {
+			for _, edge := range resolve.edges(key) {
+				addWithClosure(edge)
+			}
+		}
+	}
+
+	return kept, banned
 }
 
 // selectorResolver answers existence and closure questions against one
@@ -307,6 +323,110 @@ func (r selectorResolver) closure(key selKey) []Selector {
 	default:
 		return nil
 	}
+}
+
+// edges returns the resources one level outside a kept resource that
+// [ReferencesInclude] pulls into the export. Closures (domain → services,
+// service → messages) are handled by [selectorResolver.closure]; edges cover
+// the references the rendered sections link to: stores, entities, channels,
+// a channel's messages and an ADR's appliesTo targets.
+func (r selectorResolver) edges(key selKey) []Selector {
+	var out []Selector
+
+	push := func(kind resourceKind, id string) {
+		out = append(out, Selector{Kind: string(kind), ID: id})
+	}
+
+	switch key.kind {
+	case kindService:
+		for _, service := range r.cat.Services {
+			if string(service.ID) != key.id {
+				continue
+			}
+
+			for _, store := range service.ReadsFrom {
+				push(kindDataStore, string(store))
+			}
+
+			for _, store := range service.WritesTo {
+				push(kindDataStore, string(store))
+			}
+
+			for _, entity := range service.Entities {
+				push(kindEntity, string(entity))
+			}
+
+			for _, msg := range slices.Concat(
+				messagesOf(service, kindCommand),
+				messagesOf(service, kindEvent),
+				messagesOf(service, kindQuery),
+			) {
+				for _, channel := range msg.Channels {
+					push(kindChannel, string(channel))
+				}
+			}
+		}
+	case kindCommand, kindEvent, kindQuery:
+		for _, channel := range r.messageChannels(key.kind, key.id) {
+			push(kindChannel, channel)
+		}
+	case kindChannel:
+		for _, channel := range r.cat.Channels {
+			if string(channel.ID) != key.id {
+				continue
+			}
+
+			for _, id := range channel.Messages {
+				if kind, ok := r.messageKind(string(id)); ok {
+					push(kind, string(id))
+				}
+			}
+		}
+	case kindADR:
+		for _, adr := range r.cat.ADRs {
+			if string(adr.ID) != key.id {
+				continue
+			}
+
+			for _, target := range adr.AppliesTo {
+				if kind, ok := adrKind(string(target.Type)); ok {
+					push(kind, target.ID)
+				}
+			}
+		}
+	case kindOverview, kindDomain, kindEntity, kindDataStore, kindDataProduct,
+		kindAgent, kindTeam, kindUser, kindDoc:
+		return nil
+	default:
+		return nil
+	}
+
+	return out
+}
+
+// messageChannels returns the channel ids one message declares.
+func (r selectorResolver) messageChannels(kind resourceKind, id string) []string {
+	for _, service := range r.cat.Services {
+		for _, msg := range messagesOf(service, kind) {
+			if string(msg.ID) == id {
+				return idStrings(msg.Channels)
+			}
+		}
+	}
+
+	return nil
+}
+
+// messageKind resolves a kindless message id to its kind by scanning the
+// services that declare it.
+func (r selectorResolver) messageKind(id string) (resourceKind, bool) {
+	for _, kind := range []resourceKind{kindCommand, kindEvent, kindQuery} {
+		if r.messageExists(kind, id) {
+			return kind, true
+		}
+	}
+
+	return "", false
 }
 
 // allKeys lists every resource in the catalog in registration order.
