@@ -78,6 +78,7 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 ## Section index
 
 [Legend](#legend) ·
+[Journal fixtures (testfixtures lessons)](#journal-fixtures-testfixtures-lessons-harvested-2026-10-17) ·
 [GitHub issue backlog](#github-issue-backlog-2026-09-30-plan) ·
 [New consumer issues](#new-consumer-issues-2026-10-03-triage) ·
 [Data-mesh & federation tail](#data-mesh--federation-tail-2026-09-24) ·
@@ -124,6 +125,32 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
   stale claims were killed this way in one session; keep the discipline.
 
 ---
+
+## Journal fixtures (testfixtures lessons, harvested 2026-10-17)
+
+> Source review: `github.com/go-testfixtures/testfixtures` (v3, MIT, 1.2k stars,
+> active since 2016 — Rails-style YAML DB fixtures: wipe + load per test).
+> Every claim below verified against repo source/README on 2026-10-17.
+
+- [ ] 🔥 **Journal dump⇄load round-trip** (their `Dumper` analog): capture a
+  journal/stream segment into a portable TYPED file (envelope-stamped
+  JSON/CBOR per ADR-0044 — not stringly YAML maps) and replay it as a
+  `systemscenario` Given / fresh-engine seed. Kills the "hand-write 47 events
+  to reproduce a bug" pain. Ship with: default test-target guard +
+  `Dangerous`-prefixed opt-outs (their `EnsureTestDatabase` regexp-`test` check
+  + `DangerousSkipTestDatabaseCheck` naming pattern), parse-once/reuse (their
+  `New()` builds all INSERT SQL up front), and watermark-based skip (their
+  per-table `md5(json_agg(t.*))` checksum skips reloading unchanged tables —
+  the journal analog is a position watermark). _(Effort: L)_
+- [ ] **Consumer-facing test-isolation strategy doc**: their
+  `dbtests/examples.md` + 4 runnable examples (sequential shared DB /
+  per-test disposable DB / txdb / PG template DBs via `CREATE DATABASE ...
+  TEMPLATE`) is a curated decision matrix we lack for consumers. Add a
+  recipes/testing section with the 4 strategies (txdb caveat: DDL-heavy setup
+  degrades it — our engines CREATE TABLE at New) PLUS our differentiator they
+  cannot have: **reset-by-replay** (fresh engine + journal CatchUp rebuild
+  instead of wipe — events are facts, re-derivation is the cheap reset).
+  _(Effort: S)_
 
 ## GitHub issue backlog (2026-09-30 plan)
 
