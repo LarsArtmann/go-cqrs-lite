@@ -701,6 +701,48 @@ the boundary. Verified against this repo's source on 2026-10-15.
       visible to them; unblock = next systemscenario tag wave.
       — source: 2026-10-10 09-05 §b3/§f5 _(Effort: theirs; XS verify after tag)_
 
+## BDD depth-spec follow-ups (2026-10-17 plan)
+
+> Snapshot plan with Pareto layers, 26 medium tasks, fine breakdown and
+> execution graph:
+> [`docs/planning/2026-10-17_20-18_SUPERB-bdd-depth-followups-pareto-plan.md`](docs/planning/2026-10-17_20-18_SUPERB-bdd-depth-followups-pareto-plan.md).
+> Owner gates D1 (tag timing for the projectionadapter Corruption
+> reclassification), D2 (erroring consumer folds — v4.x/v5/never), D3 (race
+> flake: track vs noise) live in the plan §2.
+
+- [ ] **[P0] Companion-repo verification of the depth-spec session's behavior
+      changes** — cqrs-htmx + go-appkit full suites vs the workspace-local
+      tree (the projectionadapter decode→Corruption reclassification and
+      systemscenario nextVersion fix reach them at the next tag; zero
+      companion evidence today). Verify: `nix run .#verify` (mine-green,
+      externals itemized) + `nix run .#verify-ci` per-module legs. — plan
+      M01–M06 _(Effort: M total)_
+- [ ] **Dedup middleware → compile-verified recipes fence** — the
+      idempotency spec's `sys.Dedup()` middleware is the ADR-0158 migration
+      recipe in miniature; consumers will copy it out of the `_test.go`.
+      Add recipes.md fence + `recipes_catalog` entry. — plan M12 _(Effort: M)_
+- [ ] **Coeffect-gate-on-Schema FAQ entry** — declaring `DomainConfig.Schema`
+      activates the dangling-subscription gate (a declaration IS the journal's
+      event universe); every consumed type must be declared or backstopped
+      via `DomainConfig.Events`. Cost the 10-17 session a red cycle. — plan
+      M11 _(Effort: S)_
+- [ ] **systemscenario race-flake measurement** — one full-package `-race`
+      run (10-17) timed out 3 sqlite/snapshot tests at uniform 11.78s under
+      load; 4 later runs green. Measure via `#quiet-window-run`/`#load-sweep`
+      (5× race, GOMAXPROCS bisect) and record verdict — untracked flake =
+      tomorrow's mystery CI red. Pending D3 ruling. — plan M13 _(Effort: M)_
+- [ ] **[ROUTING] Foreign gate-red noticed 2026-10-17** (owners: catalog +
+      cqrs-lint + mesh-demo sessions): (a) file-size gate —
+      `catalog/types_resources.go` 359, `catalog/architecture/selection.go`
+      397 (`nix run .#check-file-size`); (b) arch gate — `example/mesh-demo`
+      8/7 production deps via errorfamily (`nix run .#check-arch`); (c)
+      duplication gate — 2 new clone groups: docserver templ ×2 +
+      catalog/architecture vs cqrs-lint fixture (`nix run .#check-duplication`);
+      (d) `example/taskmanager` build break — `servertiming` undefined, dep
+      dropped from go.mod while source imports it (restore or finish the
+      removal; guard: check no parallel session is mid-removal). — plan M07/M17
+      _(Effort: theirs; S verify each)_
+
 ## Durable Work Queue module (proposed 2026-09-13)
 
 > ~~T20 PapDashboard adoption evaluation~~ and ~~M4 polish tail~~ done
