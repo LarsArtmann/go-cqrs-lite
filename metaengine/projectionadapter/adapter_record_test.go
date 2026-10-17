@@ -107,7 +107,7 @@ func TestAdapter_OnRecordFold_ReceivesRealMetadata(t *testing.T) {
 		t.Fatal("fold received empty StreamID — record wiring is broken")
 	}
 
-	wantStreamID := record.NewStreamRef("Item", streamID.String())
+	wantStreamID := record.NewStreamRef("Item", streamID.Get())
 	if capturedRec.StreamID != wantStreamID {
 		t.Errorf("StreamID = %q, want %q", capturedRec.StreamID, wantStreamID)
 	}

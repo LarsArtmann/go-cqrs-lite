@@ -103,7 +103,7 @@ func TestIntegration_AutoInsert_ThroughAdapter(t *testing.T) {
 	}
 
 	// Verify auto-stamped Record metadata fields.
-	wantStreamID := "Task/" + streamID.String()
+	wantStreamID := "Task/" + streamID.Get()
 	if result.StreamID != wantStreamID {
 		t.Errorf("StreamID = %q, want %q", result.StreamID, wantStreamID)
 	}
