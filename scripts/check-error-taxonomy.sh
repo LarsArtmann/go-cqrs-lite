@@ -27,7 +27,6 @@ GATED_MODULES=(
 	"graph|graph|graph."
 	"storage/relational|storage/relational|relational."
 	"projectionhost|projectionhost|projectionhost."
-	"transport/grpc|transport/grpc|grpc."
 	"claiming|claiming|claiming."
 	"queue|queue|queue."
 	"watermill|watermill|watermill."

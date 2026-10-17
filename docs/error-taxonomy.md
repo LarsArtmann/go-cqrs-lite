@@ -261,31 +261,6 @@ errorfamily.Classify(err) // => Conflict
 
 - 30 of 32 codes are inline mints (no named sentinel)
 
-### transport/grpc
-
-| Error               | Family         | Code                                |
-| ------------------- | -------------- | ----------------------------------- |
-| -                   | Infrastructure | `grpc.ask`                          |
-| -                   | Rejection      | `grpc.command.create`               |
-| -                   | Rejection      | `grpc.command.parse_stream_id`      |
-| -                   | Infrastructure | `grpc.dispatch`                     |
-| errDispatchFailed   | Infrastructure | `grpc.dispatch_failed`              |
-| -                   | Rejection      | `grpc.dispatch_missing_id`          |
-| -                   | Corruption     | `grpc.event_client.decode`          |
-| -                   | Infrastructure | `grpc.event_client.open_stream`     |
-| -                   | Rejection      | `grpc.event_client.parse_stream_id` |
-| -                   | Infrastructure | `grpc.event_client.receive`         |
-| -                   | Corruption     | `grpc.event_client.reconstruct`     |
-| -                   | Infrastructure | `grpc.event_server.send`            |
-| -                   | Infrastructure | `grpc.event_server.subscribe`       |
-| errMissingCommandID | Rejection      | `grpc.missing_command_id`           |
-| -                   | Corruption     | `grpc.query.marshal_result`         |
-| errQueryFailed      | Infrastructure | `grpc.query_failed`                 |
-| -                   | Corruption     | `grpc.unmarshal_result`             |
-
-- Unreferenced named errors (dead-sentinel candidates): `errDispatchFailed`, `errQueryFailed`
-- 14 of 17 codes are inline mints (no named sentinel)
-
 ### claiming
 
 | Error           | Family         | Code                      |
