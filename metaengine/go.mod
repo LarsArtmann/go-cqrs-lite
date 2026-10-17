@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/metaengine/v4
 
-go 1.27
+go 1.27.2
 
 require (
 	github.com/dustin/go-humanize v1.1.0

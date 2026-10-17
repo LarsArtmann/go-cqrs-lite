@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4
 
-go 1.27
+go 1.27.2
 
 require (
 	github.com/larsartmann/go-codec v0.3.1

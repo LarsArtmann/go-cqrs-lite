@@ -5,7 +5,7 @@ module github.com/larsartmann/go-cqrs-lite/catalog/v4
 // schema/v4.7.0). tag-release.sh strips local replaces at tag time.
 replace github.com/larsartmann/go-cqrs-lite/schema/v4 => ../schema
 
-go 1.27
+go 1.27.2
 
 require (
 	github.com/a-h/templ v0.3.1070

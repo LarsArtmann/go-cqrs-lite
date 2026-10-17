@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/decider/v4
 
-go 1.27
+go 1.27.2
 
 // Dev-time sibling replace: WithSnapshotStateVersion stamps
 // snapshot.Snapshot.StateShape, which is unreleased. tag-release.sh strips

@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/example/mesh-demo
 
-go 1.27
+go 1.27.2
 
 require (
 	github.com/larsartmann/go-branded-id v0.7.0

@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/stack/postgres/v4
 
-go 1.27
+go 1.27.2
 
 // v4.2.0 is broken in isolation: it references sqlopt.OpenDBOrErr, which is
 // absent from the sibling versions it pins, so consumers resolving exactly

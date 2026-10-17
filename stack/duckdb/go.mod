@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/stack/duckdb/v4
 
-go 1.27
+go 1.27.2
 
 require (
 	github.com/duckdb/duckdb-go/v2 v2.10506.0
