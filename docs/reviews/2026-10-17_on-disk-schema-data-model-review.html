@@ -1,0 +1,1379 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>On-Disk Schema Data-Model Review — go-cqrs-lite WAL &amp; Projections</title>
+    <style>
+      /* =========================================================================
+         BAUHAUS DARK — Dashboard template
+         Design language: form follows function. Primary colors on graphite.
+         Zero external dependencies: system fonts, no CDN, no build step.
+         Token architecture: see references/bauhaus-tokens.md
+         ========================================================================= */
+
+      :root {
+        /* --- Primitive palette (Bauhaus Dark) --- */
+        --color-graphite: #0e0e10;
+        --color-graphite-2: #18181d;
+        --color-graphite-3: #16161a;
+        --color-bone: #f4f4f0;
+        --color-red: #ff6b6b;
+        --color-blue: #6eb5ff;
+        --color-yellow: #f4d35e;
+        --color-amber: #ffb347;
+        --color-hairline: rgba(244, 244, 240, 0.12);
+        --color-hairline-strong: rgba(244, 244, 240, 0.25);
+
+        /* --- Semantic layer (shared vocabulary with editorial template) --- */
+        --surface: var(--color-graphite);
+        --surface-raised: var(--color-graphite-2);
+        --surface-sunken: var(--color-graphite-3);
+        --text: var(--color-bone);
+        --text-muted: rgba(244, 244, 240, 0.72);
+        --text-faint: rgba(244, 244, 240, 0.45);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-amber);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        /* --- Backward-compatible aliases (do not break consumer skills) --- */
+        --bg: var(--surface);
+        --bg-elevated: var(--surface-raised);
+        --bg-sunken: var(--surface-sunken);
+        --bg-card: var(--surface-raised);
+        --bg-code: var(--surface-sunken);
+        --ink: var(--text);
+        --ink-secondary: var(--text-muted);
+        --ink-muted: var(--text-faint);
+        --rose: var(--problem);
+        --rose-glow: color-mix(in srgb, var(--problem) 15%, transparent);
+        --emerald: var(--solution);
+        --emerald-glow: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber-glow: color-mix(in srgb, var(--warning) 15%, transparent);
+        --coral: var(--problem);
+        --coral-light: color-mix(in srgb, var(--problem) 15%, transparent);
+        --teal: var(--solution);
+        --teal-light: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber-light: color-mix(in srgb, var(--warning) 20%, transparent);
+
+        /* --- Shape --- */
+        --radius: 0px; /* Bauhaus default: sharp corners */
+        --radius-sm: 0px;
+
+        /* --- Type stacks (system only — zero external fonts) --- */
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      /* Sticky-header offset for anchor jumps */
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 15px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* --- Accessibility: keyboard focus --- */
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      a:focus-visible {
+        outline-offset: -1px;
+      }
+
+      /* --- Full-bleed top bar --- */
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      /* --- Layout: optional sticky sidebar TOC --- */
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .sidebar a {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        text-decoration: none;
+        padding: 0.45rem 0.75rem;
+        border-left: 2px solid transparent;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+        font-weight: 500;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        color: var(--accent);
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      /* --- Headings --- */
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      h1 {
+        font-size: clamp(1.8rem, 4vw, 2.6rem);
+        line-height: 1.1;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.4rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+        display: flex;
+        align-items: baseline;
+        gap: 0.6rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.06em;
+      }
+      h3 {
+        font-size: 1.1rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 0.98rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+
+      /* --- Hero --- */
+      .hero {
+        padding: 1.5rem 0 1.5rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .hero-badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--surface);
+        background: var(--accent);
+        padding: 0.3rem 0.7rem;
+        margin-bottom: 0.9rem;
+      }
+      .hero-subtitle {
+        font-size: 1.05rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0;
+      }
+
+      /* Bauhaus signature: geometric shape cluster (optional) */
+      .hero-shapes {
+        position: relative;
+        height: 80px;
+        margin-bottom: 1rem;
+      }
+      .hero-shapes .circle {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 56px;
+        height: 56px;
+        background: var(--problem);
+        border-radius: 50%;
+      }
+      .hero-shapes .square {
+        position: absolute;
+        top: 24px;
+        left: 72px;
+        width: 48px;
+        height: 48px;
+        background: var(--solution);
+      }
+      .hero-shapes .tri {
+        position: absolute;
+        top: 8px;
+        left: 140px;
+        width: 0;
+        height: 0;
+        border-left: 28px solid transparent;
+        border-right: 28px solid transparent;
+        border-bottom: 48px solid var(--warning);
+      }
+
+      /* --- General cards --- */
+      .card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
+      }
+
+      /* --- Issue cards --- */
+      .issue {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* --- Severity badges (used inside issue cards) --- */
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+
+      /* --- Inline badges (used in tables) --- */
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.18rem 0.5rem;
+        border: 1px solid var(--border-strong);
+        color: var(--text-muted);
+      }
+      .badge-critical {
+        color: var(--problem);
+        border-color: var(--problem);
+      }
+      .badge-high {
+        color: var(--warning);
+        border-color: var(--warning);
+      }
+      .badge-medium {
+        color: var(--accent);
+        border-color: var(--accent);
+      }
+      .badge-low {
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        color: var(--solution);
+        border-color: var(--solution);
+      }
+
+      /* --- Callouts (used inside issues or standalone) --- */
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.7rem 0.9rem;
+        border-left: 3px solid var(--border-strong);
+        background: color-mix(in srgb, var(--text) 5%, transparent);
+        font-size: 0.9rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 10%, transparent);
+      }
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 10%, transparent);
+      }
+
+      /* --- Stat cards / scorecards (aliased vocabulary) --- */
+      .stat-grid,
+      .scorecard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 0.75rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .stat-card,
+      .score-card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1rem;
+        position: relative;
+      }
+      .stat-card::before,
+      .score-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--border-strong);
+      }
+      .stat-bad,
+      .score-bad {
+        /* default top bar already set */
+      }
+      .stat-bad::before,
+      .score-bad::before {
+        background: var(--problem);
+      }
+      .stat-good::before,
+      .score-good::before {
+        background: var(--solution);
+      }
+      .stat-warn::before,
+      .score-warn::before {
+        background: var(--warning);
+      }
+      .stat-value,
+      .score {
+        font-family: var(--font-heading);
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.03em;
+        color: var(--text);
+      }
+      .stat-bad .stat-value,
+      .score-bad .score {
+        color: var(--problem);
+      }
+      .stat-good .stat-value,
+      .score-good .score {
+        color: var(--solution);
+      }
+      .stat-warn .stat-value,
+      .score-warn .score {
+        color: var(--warning);
+      }
+      .stat-label,
+      .score-card .label {
+        font-family: var(--font-mono);
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-faint);
+        margin-top: 0.5rem;
+      }
+
+      /* --- Strengths list --- */
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.8rem;
+        padding: 0.7rem 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 700;
+        color: var(--solution);
+        font-size: 1.1rem;
+        line-height: 1.4;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+      }
+
+      /* --- Tables --- */
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.9rem;
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--surface-raised);
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-bottom: 1px solid var(--border-strong);
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-bottom: 1px solid var(--border);
+      }
+      tr:hover td {
+        background: var(--surface-raised);
+      }
+
+      /* --- Before/After comparison --- */
+      .compare-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin: 1rem 0 0.5rem;
+      }
+      .compare-before,
+      .compare-after {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0.4rem 0.7rem;
+        color: var(--surface);
+      }
+      .compare-before {
+        background: var(--problem);
+      }
+      .compare-after {
+        background: var(--solution);
+      }
+      .compare-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      .compare-row pre {
+        margin: 0;
+      }
+
+      /* --- Code blocks + syntax highlighting --- */
+      pre {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      p code,
+      li code,
+      td code {
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+      }
+      .tok-keyword {
+        color: var(--accent);
+      } /* func, type, struct, if, return */
+      .tok-type {
+        color: var(--warning);
+      } /* int, string, bool, error */
+      .tok-string {
+        color: var(--solution);
+      } /* "quoted strings" */
+      .tok-comment {
+        color: var(--text-faint);
+        font-style: italic;
+      }
+      .tok-func {
+        color: #74a9ff;
+      } /* function names */
+      .tok-number {
+        color: var(--accent);
+      } /* 42, 3.14 */
+      .tok-generic {
+        color: var(--problem);
+      } /* T, ID in generics */
+      .tok-builtin {
+        color: #4dd9ff;
+      } /* make, len, append */
+      .tok-punct {
+        color: var(--text-muted);
+      } /* { } ( ) ; = : */
+      .tok-attr {
+        color: var(--accent);
+      } /* Nix attribute names */
+
+      /* --- Dependency tree / ASCII diagrams --- */
+      .dep-tree {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.7;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .dep-tree .root {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .dep-tree .ok {
+        color: var(--solution);
+      }
+      .dep-tree .unwanted {
+        color: var(--problem);
+      }
+
+      /* --- Inline node-and-arrow diagrams --- */
+      .diagram {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+      }
+      .node {
+        display: inline-block;
+        padding: 0.35rem 0.7rem;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        font-weight: 600;
+        background: var(--surface-sunken);
+        border: 1px solid var(--border-strong);
+      }
+      .node-core {
+        background: var(--accent);
+        color: var(--surface);
+        border-color: var(--accent);
+      }
+      .node-problem {
+        background: var(--problem);
+        color: var(--surface);
+        border-color: var(--problem);
+      }
+      .node-good {
+        background: var(--solution);
+        color: var(--surface);
+        border-color: var(--solution);
+      }
+      .arrow {
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Grids (responsive) --- */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      /* --- Inline TOC (alternative to sidebar) --- */
+      .toc {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+        padding: 1rem 1.3rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .toc h3 {
+        margin-bottom: 0.5rem;
+      }
+      .toc ul {
+        list-style: none;
+        padding: 0;
+      }
+      .toc li {
+        margin: 0.25rem 0;
+      }
+      .toc a {
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 0.9rem;
+      }
+      .toc a:hover {
+        color: var(--accent);
+      }
+
+      /* --- Migration / numbered steps --- */
+      .migration-step {
+        display: grid;
+        grid-template-columns: 48px 1fr;
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1rem;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+      }
+      .migration-num {
+        font-family: var(--font-mono);
+        font-weight: 800;
+        font-size: 1.5rem;
+        color: var(--accent);
+        line-height: 1;
+      }
+      .migration-content h4 {
+        margin-bottom: 0.2rem;
+      }
+      .migration-content p {
+        margin-bottom: 0;
+        color: var(--text-muted);
+        font-size: 0.92rem;
+      }
+
+      /* --- Footer --- */
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border);
+        font-size: 0.8rem;
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Responsive --- */
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+        .compare-header,
+        .compare-row {
+          grid-template-columns: 1fr;
+        }
+        .stat-grid,
+        .scorecard {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .migration-step {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Full-bleed top bar (optional — remove for quieter reports) -->
+    <div class="top-bar">
+      <span>DATA-MODEL REVIEW</span>
+      <span>2026-10-17</span>
+      <span>go-cqrs-lite / Crush</span>
+    </div>
+
+    <div class="layout">
+      <!-- Sidebar TOC -->
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#summary">00 Summary</a>
+          <a href="#inventory">01 Ground Truth Inventory</a>
+          <a href="#catalog">02 Problem Catalog</a>
+          <a href="#vision">03 The Vision</a>
+          <a href="#model">04 Go Data Model</a>
+          <a href="#composition">05 Before / After</a>
+          <a href="#validation">06 Validation Layer</a>
+          <a href="#decisions">07 Decision Log</a>
+          <a href="#antipatterns">08 Anti-Patterns</a>
+          <a href="#roadmap">09 Migration Roadmap</a>
+          <a href="#conclusion">10 Conclusion</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <!-- Hero -->
+        <div class="hero">
+          <div class="hero-badge">Data-Model Architecture Deep-Dive</div>
+          <h1>What We Actually Write to Disk</h1>
+          <p class="subtitle">
+            WAL logs &times; projections &times; auxiliary stores — the empirical schema audit of
+            go-cqrs-lite&rsquo;s Commands&nbsp;&rarr;&nbsp;Events&nbsp;&rarr;&nbsp;Queries pipeline.
+            Every claim below cites file:line in the repo. Companion reports:
+            <code>docs/status/2026-10-17_19-36_*</code> (StreamMarker leak fix),
+            <code>docs/reviews/archived/2026-09-13_event-command-duplication-hypothesis-review.md</code>.
+          </p>
+        </div>
+
+        <!-- 00 Summary -->
+        <section id="summary">
+          <h2><span class="num">00</span>Summary</h2>
+          <div class="stat-grid">
+            <div class="stat-card">
+              <div class="stat-value">4</div>
+              <div class="stat-label">WAL byte formats (legacy SQL / system JSON / KV CBOR / keycodec)</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">11</div>
+              <div class="stat-label">Storage engines with distinct on-disk schemas</div>
+            </div>
+            <div class="stat-card stat-bad">
+              <div class="stat-value">2</div>
+              <div class="stat-label">Critical problems</div>
+            </div>
+            <div class="stat-card stat-warn">
+              <div class="stat-value">8</div>
+              <div class="stat-label">High / medium problems</div>
+            </div>
+            <div class="stat-card stat-good">
+              <div class="stat-value">3</div>
+              <div class="stat-label">Solid foundations (envelope, dimension lock, keyset seq)</div>
+            </div>
+          </div>
+          <p>
+            The headline: <strong>the strategic path has the weaker data model.</strong> The
+            <code>system</code> composition root (ADR-0123, the v5 future) journals events as an
+            untyped JSON string in <code>meta_stream_log.value</code> — no unique event ID, no
+            (stream, version) constraint, payloads base64&rsquo;d inside JSON — while the
+            <em>legacy</em> <code>storage/sql</code> table it replaces has typed columns, a primary
+            key, and a stream-version uniqueness constraint. The projection layer is better
+            modeled than the WAL layer; the declaration pipeline (Go&nbsp;&rarr;&nbsp;columns)
+            carries one critical footgun (name-based typing) and no on-disk schema registry.
+          </p>
+        </section>
+
+        <!-- 01 Inventory -->
+        <section id="inventory">
+          <h2><span class="num">01</span>Ground Truth Inventory</h2>
+
+          <h3>Layer A — Write-ahead logs (the journal of record)</h3>
+          <table class="badge-table">
+            <thead>
+              <tr><th>WAL</th><th>Physical shape</th><th>Identity / constraints</th><th>Evidence</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>legacy <code>storage/sql</code></td>
+                <td><code>events</code> table: 10 typed columns (<code>id, event_type, aggregate_type, aggregate_id, version, schema_version, payload BLOB, payload_encoding, metadata, occurred_at</code>)</td>
+                <td><span class="badge badge-good">PK id</span> <span class="badge badge-good">UNIQUE(agg,version)</span> + 4 indexes; MySQL <code>VARCHAR(255)</code>, PG <code>JSONB</code> metadata</td>
+                <td>dialect_sqlite.go:56, postgres.go:40, mysql.go:39, duckdb.go:50</td>
+              </tr>
+              <tr>
+                <td><code>system</code> WAL (v5 path)</td>
+                <td><code>meta_stream_log(seq, collection, stream_id, value TEXT)</code> — value = JSON envelope <code>serializedEvent</code>; Memory engine stores pointers, every non-memory driver serializes (system/roles.go:228)</td>
+                <td><span class="badge badge-critical">no PK on event id</span> <span class="badge badge-critical">no (stream,version) UNIQUE</span>; sqlite-only <code>json_extract('$.id')</code> partial index</td>
+                <td>system/adapter_event_serial.go:18, sqliteengine/engine.go:116, pgengine:140, mysqlengine:119, duckdbengine:120</td>
+              </tr>
+              <tr>
+                <td>KV journals (pebble / bbolt)</td>
+                <td>value = CBOR <code>serializableEvent</code> (occurred_at = UnixNano int64); key <code>{type}:{id}:{%010d version}</code>, journal <code>{%020d unixnano}:{eventID}</code></td>
+                <td>key-order = time order; <span class="badge badge-medium">unescaped <code>:</code> separator</span></td>
+                <td>storage/pebble/store.go:54-57, serialization.go:128; storage/bbolt/serialization.go:95</td>
+              </tr>
+              <tr>
+                <td>keycodec WAL (badger / bbolt-meta / pebble-meta)</td>
+                <td><code>sl\x00{col}\x00{sid}\x00{%020d seq}</code> + global <code>jl\x00{col}\x00{%020d}</code>; value = JSON envelope; counters 8-byte BE</td>
+                <td>lexicographic = numeric; <span class="badge badge-medium">unescaped \x00</span></td>
+                <td>metaengine/keycodec/keycodec.go:38,192-204,234</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>Layer B — Projections / read models (metaengine)</h3>
+          <ul>
+            <li><strong>Generic collections</strong> (every engine): <code>meta_map(collection,key,value)</code>, <code>meta_set</code>, <code>meta_counter</code>, <code>meta_multimap(..,seq,value)</code>, <code>meta_log</code>, <code>meta_graph_edges(from_node,to_node)</code>, <code>meta_snapshot</code>, <code>meta_vector</code>. Value = whole-entity JSON (PG: JSONB; MySQL: JSON; DuckDB: VARCHAR; Dgraph: string predicates emulating the relational shape).</li>
+            <li><strong>Planned tables</strong> (typed projections): <code>meta_planned_&lt;collection&gt;(key PK, value, &lt;typed cols&gt;)</code> — both the JSON <em>and</em> extracted columns written on every upsert; one index per column; PG remaps to BIGINT/DOUBLE PRECISION, MySQL to BIGINT/DOUBLE with FNV-hashed identifiers &le;64 chars.</li>
+            <li><strong>Type mapping</strong> (<code>sqlTypeOf</code>, metaengine/layout.go:306): ints&rarr;INTEGER, float32&rarr;REAL, float64&rarr;DOUBLE, bool&rarr;INTEGER, everything else (incl. <code>time.Time</code>, slices, maps)&rarr;TEXT. Field&nbsp;&rarr;&nbsp;column keeps the declared name; JSON matching falls back to snake_case.</li>
+            <li><strong>Mat views</strong> (turso/libSQL only): <code>cqrs_mv_*</code> over <code>json_extract(value,'$.col')</code>, name truncated 48 chars + FNV suffix.</li>
+            <li><strong>Vectors:</strong> 4 physical formats (LE-f32 BLOB sqlite/mysql, JSONB array PG — no pgvector, <code>FLOAT[]</code> DuckDB, <code>'b'|dim|f32</code> KV) — deliberate ADR-0140 tradeoff, first-insert-wins dimension lock via probe.</li>
+          </ul>
+
+          <h3>Layer C — Auxiliary persisted stores</h3>
+          <ul>
+            <li><strong>Blind-store envelope</strong> (ADR-0044): <code>{"$":"gcdc","enc":"json|cbor","dat":&lt;bytes&gt;}</code> — shared by kv/snapshot/command/query typed stores (one impl in go-codec).</li>
+            <li><strong>Snapshots:</strong> SQL <code>snapshots(stream_type,stream_id,version,state)</code> PK(stream) latest-wins, no encoding column (envelope carries it); pebble CBOR twin with UnixNano.</li>
+            <li><strong>Timers:</strong> <code>timers(id PK, fire_at, payload, created_at)</code> + claimkit <code>meta_due_claims/meta_claim_facts</code>; payload wrapped in a <em>hand-rolled</em> <code>{"v":1,"actor":...,"payload":...}</code> envelope.</li>
+            <li><strong>Dedup/claims:</strong> <code>meta_dedup(collection,key,expires_at)</code>, CAS upsert w/ RETURNING.</li>
+            <li><strong>DLQ:</strong> <code>projection_dead_letters</code> — 15 typed columns, <code>aggregate_*</code> naming, UNIQUE(projection, event_id).</li>
+            <li><strong>Checkpoints:</strong> <code>checkpoints(projection_name PK, event_id, processed_at)</code>; zero-checkpoint = row delete.</li>
+            <li><strong>Command lifecycle:</strong> domain events on <code>CommandLifecycle/&lt;cmd-id&gt;</code> streams + metaengine collections (<code>command_dlq</code> Map, <code>command_retry_count</code> Counter, Logs, Multimap).</li>
+          </ul>
+        </section>
+
+        <!-- 02 Problem Catalog -->
+        <section id="catalog">
+          <h2><span class="num">02</span>Problem Catalog</h2>
+
+          <div class="card card-problem">
+            <div class="card-head"><span class="badge badge-critical">Critical</span> PC-1 &middot; The strategic WAL is schema-less</div>
+            <p>
+              <code>system</code> journals <code>serializedEvent</code> as one JSON TEXT blob.
+              Consequences: (a) event IDs are not unique at the storage layer — replay/duplicate
+              appends are invisible unless the opt-in DedupStore catches them; (b) no
+              (stream,&nbsp;version) constraint — optimistic-concurrency correctness lives entirely
+              in code; (c) <code>payload []byte</code> and <code>metadata []byte</code> are
+              base64&rsquo;d inside JSON (~33% bloat, binary CBOR payloads worst-hit); (d) the only
+              structure is a SQLite-only partial <code>json_extract</code> index. The legacy
+              <code>events</code> table proves the better model already exists in-repo.
+            </p>
+            <pre>meta_stream_log(seq, collection, stream_id, value TEXT)   -- everything else is inside value</pre>
+          </div>
+
+          <div class="card card-problem">
+            <div class="card-head"><span class="badge badge-critical">Critical</span> PC-2 &middot; Name-based column typing</div>
+            <p>
+              When a projected field&rsquo;s Go type is unknown (<code>any</code>),
+              <code>inferColumnType</code> (metaengine/layout.go:169) types the column from the
+              field <em>name</em>: contains <code>price|amount|rate|cost</code> &rarr; REAL,
+              <code>priority|count|age|level|score|num</code> &rarr; INTEGER. A field named
+              <code>contentType</code> becomes INTEGER. Sort/filter on it then misbehaves silently.
+              Schema by naming horoscope.
+            </p>
+          </div>
+
+          <div class="card card-problem">
+            <div class="card-head"><span class="badge badge-high">High</span> PC-3 &middot; Separator injection in KV keys</div>
+            <p>
+              Stream IDs are caller-chosen arbitrary strings (string-backed branded IDs). KV keys
+              join them with unescaped separators: <code>{type}:{id}:{version}</code> (pebble/bbolt
+              storage) and <code>\x00</code> (keycodec). An ID containing <code>:</code> (or NUL)
+              aliases into other streams&rsquo; key ranges — range scans return wrong streams.
+            </p>
+          </div>
+
+          <div class="card card-problem">
+            <div class="card-head"><span class="badge badge-high">High</span> PC-4 &middot; <code>aggregate_*</code> vs <code>stream_*</code> column split brain</div>
+            <p>
+              The July rename (ADR-0058) renamed Go types; the disk kept both vocabularies:
+              <code>events.aggregate_type/aggregate_id</code> (legacy WAL, DLQ table) vs
+              <code>stream_type/stream_id</code> (snapshots, system envelopes, meta tables).
+              Cross-store joins and operator queries speak two dialects of the same concept.
+            </p>
+          </div>
+
+          <div class="card card-problem">
+            <div class="card-head"><span class="badge badge-high">High</span> PC-5 &middot; No on-disk schema registry</div>
+            <p>
+              Every engine creates tables with <code>CREATE TABLE IF NOT EXISTS</code>; layout
+              plans live in an in-memory map (sqliteengine/planned.go:84). Change a plan (rename a
+              field, add a column) and existing databases silently keep the old shape — no
+              fingerprint comparison, no migration, no failure. The repo even has
+              <code>schema/fingerprint.go</code> for events; projections have nothing.
+            </p>
+          </div>
+
+          <div class="card card-warning">
+            <div class="card-head"><span class="badge badge-medium">Medium</span> PC-6 &middot; Three time encodings, one breaks ordering</div>
+            <p>
+              SQLite WAL/DLQ: TEXT <code>2006-01-02T15:04:05.000000000Z07:00</code> — fixed-width
+              fractions but a <em>variable-length offset suffix</em> (<code>Z</code> vs
+              <code>+02:00</code>), so lexicographic <code>ORDER BY occurred_at</code> misorders
+              mixed-offset rows. KV journals: int64 UnixNano (orders correctly). system envelope:
+              RFC3339 JSON (Go default). Same concept, three wire forms, one subtly wrong.
+            </p>
+          </div>
+
+          <div class="card card-warning">
+            <div class="card-head"><span class="badge badge-medium">Medium</span> PC-7 &middot; Three envelope systems</div>
+            <p>
+              ADR-0044 <code>gcdc</code> envelope (kv/snapshot/command/query),
+              <code>serializedEvent</code> JSON (system WAL), and a hand-rolled
+              <code>{"v":1,"actor":...}</code> (timers). Three versioning stories, three magic
+              formats, one of them undocumented as an envelope at all.
+            </p>
+          </div>
+
+          <div class="card card-warning">
+            <div class="card-head"><span class="badge badge-medium">Medium</span> PC-8 &middot; Planned tables: JSON + columns double-write, names can drift</div>
+            <p>
+              Every upsert writes the full entity JSON <em>and</em> extracted columns; the column
+              name comes from the declared filter name, JSON matching falls back to snake_case of
+              the Go field (<code>ParentID&rarr;parent_id</code>). Two naming schemes feeding one
+              row means a plan edited across sessions can write columns the JSON no longer matches.
+            </p>
+          </div>
+
+          <div class="card card-warning">
+            <div class="card-head"><span class="badge badge-medium">Medium</span> PC-9 &middot; VARCHAR(255) on unbounded caller keys (MySQL)</div>
+            <p>
+              <code>meta_map.key</code>, <code>meta_stream_log.stream_id</code>,
+              <code>events.aggregate_id</code> are caller-chosen strings, but MySQL variants cap
+              them at 255 chars (engine-specific failure), and MySQL planned identifiers are
+              FNV-hashed to 64 chars — two engines, two different limits, neither enforced at the
+              API boundary.
+            </p>
+          </div>
+
+          <div class="card card-warning">
+            <div class="card-head"><span class="badge badge-medium">Medium</span> PC-10 &middot; Metadata unreachable inside the WAL blob</div>
+            <p>
+              <code>serializedEvent.Metadata</code> is base64 JSON-in-JSON: no engine can index or
+              push down correlation/actor without decoding the whole envelope. PG&rsquo;s
+              <code>meta_map</code> shows the right pattern (JSONB +
+              <code>(value-&gt;'$.field')</code> expression index) — the WAL lacks it everywhere.
+            </p>
+          </div>
+
+          <div class="card card-warning">
+            <div class="card-head"><span class="badge badge-low">Low</span> PC-11 &middot; Two integer encodings in one keycodec</div>
+            <p>
+              Sequences are 20-digit zero-padded decimal; counters are 8-byte big-endian. Both
+              order correctly; the inconsistency is maintenance tax.</p>
+          </div>
+
+          <div class="card card-warning">
+            <div class="card-head"><span class="badge badge-low">Low</span> PC-12 &middot; Untagged JSON wire fields lock in Go names</div>
+            <p>
+              <code>Causation{CommandType, CommandID}</code> and <code>TombstoneMark{Status,Reason}</code>
+              have no JSON tags — the persisted shape is Go-field-name-camelCase by accident
+              (event/causality.go:13, tombstone.go:69). Renaming a field rewrites the wire.
+            </p>
+          </div>
+
+          <div class="card card-solution">
+            <div class="card-head"><span class="badge badge-fixed">Cleared</span> PC-13 &middot; Lifecycle timestamp key drift — verified non-issue</div>
+            <p>
+              Settled after writing: <code>ReceivedAt time.Time</code> carries the tag <code>json:"receivedAt"</code> (commandlifecycle/events.go:95) —
+              the <code>receivingAt</code> sighting was an audit artifact, not wire drift. Kept as a
+              card because the check itself is the pattern: wire keys are forever, so audit
+              discrepancies get pinned, not assumed.
+            </p>
+          </div>
+
+          <div class="card card-solution">
+            <div class="card-head"><span class="badge badge-fixed">Accepted</span> PC-14 &middot; Vectors in four physical formats</div>
+            <p>
+              LE-f32 BLOB / JSONB array / <code>FLOAT[]</code> / length-prefixed binary. This is
+              the ADR-0140 engine-native tradeoff, compensated by the first-insert-wins dimension
+              lock and path reporting. Recorded, not fixed — the lock is the invariant that
+              matters.
+            </p>
+          </div>
+        </section>
+
+        <!-- 03 Vision -->
+        <section id="vision">
+          <h2><span class="num">03</span>The Vision</h2>
+          <ul>
+            <li><strong>The journal of record is constraint-backed wherever SQL lives.</strong> Event identity and (stream,&nbsp;version) uniqueness enforced by the engine, not by hope.</li>
+            <li><strong>One declared schema per concept, fingerprinted on disk.</strong> A layout plan change against an existing database is a loud, versioned event — never a silent no-op.</li>
+            <li><strong>Column types come from Go types, never from names.</strong> Unknown &rarr; TEXT + warning; heuristics deleted.</li>
+            <li><strong>Keys are injective.</strong> Any caller string round-trips through the key codec unambiguously — separator injection is structurally impossible.</li>
+            <li><strong>One envelope, one time discipline.</strong> ADR-0044 for all blind stores (timers included); UTC fixed-width (or integer nanos) for every stored instant.</li>
+            <li><strong>Operators can read the WAL with plain SQL.</strong> Typed columns + real JSON metadata beat <code>json_extract</code> archaeology on a base64 blob.</li>
+          </ul>
+        </section>
+
+        <!-- 04 Go Data Model -->
+        <section id="model">
+          <h2><span class="num">04</span>Go Data Model</h2>
+
+          <h3>The typed WAL row (SQL engines)</h3>
+          <pre><code><span class="tok-comment">// StreamLogRecord is the single source of truth for the system WAL's</span>
+<span class="tok-comment">// physical shape on SQL engines. Engines render it through their dialect;</span>
+<span class="tok-comment">// the invariant set is engine-independent.</span>
+<span class="tok-keyword">type</span> <span class="tok-type">StreamLogRecord</span> <span class="tok-keyword">struct</span> {
+    Seq           <span class="tok-type">int64</span>  <span class="tok-comment">// engine-assigned, monotonic</span>
+    Collection    <span class="tok-type">string</span>
+    EventID       <span class="tok-type">string</span> <span class="tok-comment">// UNIQUE — duplicate append is a storage error</span>
+    EventType     <span class="tok-type">string</span>
+    StreamType    <span class="tok-type">string</span> <span class="tok-comment">// stream_*, not aggregate_* — one vocabulary (PC-4)</span>
+    StreamID      <span class="tok-type">string</span> <span class="tok-comment">// bare wire value — Get(), never String()</span>
+    Version       <span class="tok-type">int64</span>  <span class="tok-comment">// UNIQUE (Collection, StreamID, Version)</span>
+    SchemaVersion <span class="tok-type">int</span>
+    Payload       []<span class="tok-type">byte</span> <span class="tok-comment">// raw codec bytes — no base64 (PC-1c)</span>
+    Encoding      <span class="tok-type">string</span> <span class="tok-comment">// "json" | "cbor"</span>
+    Metadata      <span class="tok-type">string</span> <span class="tok-comment">// JSON text / JSONB — indexable (PC-10)</span>
+    OccurredAt    <span class="tok-type">int64</span>  <span class="tok-comment">// UnixNano UTC — orders everywhere (PC-6)</span>
+}</code></pre>
+
+          <h3>Injective key codec (KV engines)</h3>
+          <pre><code><span class="tok-comment">// Escaped key component: separator and escape byte are always paired,</span>
+<span class="tok-comment">// so no caller string can forge a component boundary (PC-3).</span>
+<span class="tok-keyword">const</span> (
+    keySep  = <span class="tok-type">byte</span>(<span class="tok-number">0x00</span>)
+    keyEsc  = <span class="tok-type">byte</span>(<span class="tok-number">0x01</span>)
+)
+
+<span class="tok-keyword">func</span> <span class="tok-func">escapeComponent</span>(s <span class="tok-type">string</span>) []<span class="tok-type">byte</span> {
+    out := <span class="tok-builtin">make</span>([]<span class="tok-type">byte</span>, <span class="tok-number">0</span>, <span class="tok-builtin">len</span>(s)+<span class="tok-number">4</span>)
+    <span class="tok-keyword">for</span> i := <span class="tok-number">0</span>; i &lt; <span class="tok-builtin">len</span>(s); i++ {
+        b := s[i]
+        <span class="tok-keyword">if</span> b == keySep || b == keyEsc {
+            out = <span class="tok-builtin">append</span>(out, keyEsc)
+        }
+        out = <span class="tok-builtin">append</span>(out, b)
+    }
+    <span class="tok-keyword">return</span> out
+}
+
+<span class="tok-comment">// Fingerprinted plan: the disk remembers what it was built from (PC-5).</span>
+<span class="tok-keyword">type</span> <span class="tok-type">LayoutFingerprintRow</span> <span class="tok-keyword">struct</span> {
+    Collection  <span class="tok-type">string</span> <span class="tok-comment">// PK</span>
+    Fingerprint <span class="tok-type">string</span> <span class="tok-comment">// schema.PlanFingerprint(plan) — hex</span>
+    AppliedAt   <span class="tok-type">int64</span>
+}</code></pre>
+
+          <h3>Typing without horoscopes (PC-2)</h3>
+          <pre><code><span class="tok-keyword">func</span> <span class="tok-func">sqlTypeOf</span>(t <span class="tok-generic">reflect</span>.Type) (<span class="tok-type">string</span>, <span class="tok-type">error</span>) {
+    <span class="tok-keyword">switch</span> t.Kind() {
+    <span class="tok-keyword">case</span> reflect.Int, reflect.Int64, reflect.Uint64:
+        <span class="tok-keyword">return</span> <span class="tok-string">"INTEGER"</span>, <span class="tok-builtin">nil</span>
+    <span class="tok-keyword">case</span> reflect.Float64:
+        <span class="tok-keyword">return</span> <span class="tok-string">"DOUBLE"</span>, <span class="tok-builtin">nil</span>
+    <span class="tok-keyword">default</span>:
+        <span class="tok-comment">// unknown types are TEXT + an explicit warning — never guessed</span>
+        <span class="tok-comment">// from the field name (deletes inferColumnType entirely)</span>
+        <span class="tok-keyword">return</span> <span class="tok-string">"TEXT"</span>, errUntypedColumn{Field: t.String()}
+    }
+}</code></pre>
+        </section>
+
+        <!-- 05 Before / After -->
+        <section id="composition">
+          <h2><span class="num">05</span>Before / After</h2>
+
+          <div class="compare-header">
+            <div class="compare-before">Before — meta_stream_log (sqliteengine/engine.go:116)</div>
+            <div class="compare-after">After — typed WAL row</div>
+          </div>
+          <div class="compare-row">
+            <pre>CREATE TABLE meta_stream_log (
+  seq INTEGER PRIMARY KEY AUTOINCREMENT,
+  collection TEXT NOT NULL,
+  stream_id  TEXT NOT NULL,
+  value      TEXT NOT NULL   -- JSON blob:
+                             --   payload base64
+                             --   metadata base64
+                             --   event id inside
+);</pre>
+            <pre>CREATE TABLE meta_stream_log (
+  seq          INTEGER PRIMARY KEY AUTOINCREMENT,
+  collection   TEXT NOT NULL,
+  event_id     TEXT NOT NULL UNIQUE,
+  event_type   TEXT NOT NULL,
+  stream_type  TEXT NOT NULL,
+  stream_id    TEXT NOT NULL,
+  version      INTEGER NOT NULL,
+  schema_version INTEGER NOT NULL DEFAULT 1,
+  payload      BLOB NOT NULL,
+  encoding     TEXT NOT NULL DEFAULT 'json',
+  metadata     TEXT NOT NULL,          -- JSON text
+  occurred_at  INTEGER NOT NULL,       -- UnixNano UTC
+  UNIQUE (collection, stream_id, version)
+);
+CREATE INDEX idx_sl_occurred ON meta_stream_log(collection, occurred_at);</pre>
+          </div>
+
+          <div class="compare-header">
+            <div class="compare-before">Before — pebble/bbolt stream key</div>
+            <div class="compare-after">After — escaped components</div>
+          </div>
+          <div class="compare-row">
+            <pre>// "cqrs_event:" + type + ":" + id + ":" + %010d
+// id "a:b" collides with stream ("a", "b") ranges
+key := fmt.Appendf(nil, "%s%s:%s:%010d",
+    prefix, ref.Type, ref.ID, v)</pre>
+            <pre>// sep/esc pairing — components are injective
+key := append(prefix, escapeComponent(type)...)
+key = append(key, keySep, escapeComponent(id)...)
+key = append(key, keySep, seq20(v)...)</pre>
+          </div>
+        </section>
+
+        <!-- 06 Validation -->
+        <section id="validation">
+          <h2><span class="num">06</span>Validation Layer</h2>
+          <ul>
+            <li><strong>Storage constraints as tests:</strong> conformance suite appends the same event twice &rarr; expects a conflict error from <em>every</em> SQL engine (today only legacy <code>storage/sql</code> would pass).</li>
+            <li><strong>Key round-trip law:</strong> <code>decode(encode(type, id, v)) == (type, id, v)</code> for ids including <code>":"</code>, <code>"\x00"</code>, <code>"a:b:c"</code>, empty-ish and 255+ char strings — property-tested (rapid) for all KV engines.</li>
+            <li><strong>Fingerprint gate at boot:</strong> <code>LayoutPlanApplier</code> compares the stored <code>LayoutFingerprintRow</code> against the declared plan; mismatch = loud error naming the collection and both fingerprints (precedent: <code>schema/fingerprint.go</code> already does this for event schemas).</li>
+            <li><strong>Raw-bytes pins:</strong> persisted WAL bytes asserted to contain bare stream IDs, no base64 payload, UTC-suffix times — the lesson from the StreamMarker leak applied to every new invariant.</li>
+            <li><strong>Dimension-lock precedent:</strong> vectors already prove the pattern — first-insert-wins invariant + <code>adttest.AssertVectorDimensionGuard</code> per engine. Copy it for key length limits (PC-9): enforce a validated <code>MaxKeyBytes</code> at the API, not a MySQL runtime error.</li>
+          </ul>
+        </section>
+
+        <!-- 07 Decision Log -->
+        <section id="decisions">
+          <h2><span class="num">07</span>Decision Log</h2>
+          <table class="badge-table">
+            <thead><tr><th>Decision</th><th>Chosen</th><th>Rejected &amp; why</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>WAL physical shape (SQL engines)</td>
+                <td><strong>Typed columns</strong> (StreamLogRecord)</td>
+                <td>CBOR envelope blob — portable and compact, but forfeits engine constraints, typed indexes and operator SQL; constraints are the reason SQL engines exist in the matrix. The generic-JSON path survives only for memory/dgraph.</td>
+              </tr>
+              <tr>
+                <td>Keep <code>value</code> JSON column in planned tables?</td>
+                <td><strong>Keep</strong> (belt for unplanned fields)</td>
+                <td>Columns-only — loses fields outside the plan; JSON-only — loses pushdown. Double-write stays, but under one naming rule: column name = JSON key, always.</td>
+              </tr>
+              <tr>
+                <td>Key escaping vs length-prefix</td>
+                <td><strong>Byte escaping</strong> (sep/esc pairing)</td>
+                <td>Length-prefix — also injective, but variable-length ints complicate range scans and debuggability; escaping keeps keys grep-able.</td>
+              </tr>
+              <tr>
+                <td>Time on disk</td>
+                <td><strong>UnixNano int64</strong> (SQL INTEGER / KV)</td>
+                <td>TEXT UTC fixed-width — human-readable in sqlite CLI, but int wins: orders everywhere, fixed width, no offset footgun. Render to text at query time.</td>
+              </tr>
+              <tr>
+                <td>Timers envelope</td>
+                <td><strong>ADR-0044 gcdc</strong></td>
+                <td>Keep <code>{"v":1,...}</code> — a third envelope with no detection magic and no codec stamp; pure duplication.</td>
+              </tr>
+              <tr>
+                <td>Column vocabulary</td>
+                <td><strong>stream_*</strong> everywhere new; legacy tables get read-aliases</td>
+                <td>Keep aggregate_* — the domain language renamed two quarters ago; disk should stop disagreeing with it.</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- 08 Anti-Patterns -->
+        <section id="antipatterns">
+          <h2><span class="num">08</span>Anti-Patterns</h2>
+          <ul>
+            <li><strong><code>json_extract</code> as a schema.</strong> If the engine must parse JSON to find an event&rsquo;s identity, the table is wrong.</li>
+            <li><strong>Typing by name.</strong> <code>inferColumnType</code>&rsquo;s word lists are schema-by-horoscope; delete, don&rsquo;t extend.</li>
+            <li><strong><code>CREATE TABLE IF NOT EXISTS</code> as migration.</strong> It is an idempotent no-op, not a schema manager; without fingerprints it guarantees drift.</li>
+            <li><strong>VARCHAR(255) on caller strings.</strong> Engine-specific limits on unbounded inputs produce portability bombs; validate at the boundary or store TEXT.</li>
+            <li><strong>Untagged wire structs.</strong> Go field names are not a wire contract; every persisted struct gets JSON tags (PC-12).</li>
+            <li><strong>Base64 inside JSON for binary that has a codec stamp.</strong> The stamp exists precisely so bytes can ride raw.</li>
+          </ul>
+        </section>
+
+        <!-- 09 Roadmap -->
+        <section id="roadmap">
+          <h2><span class="num">09</span>Migration Roadmap</h2>
+          <div class="migration-step"><strong>1.</strong> Delete <code>inferColumnType</code>; unknown &rarr; TEXT + warning (PC-2). Zero migration — heuristics only ever produced wrong types.</div>
+          <div class="migration-step"><strong>2.</strong> Additive WAL columns: extend <code>meta_stream_log</code> with typed columns, backfill via <code>json_extract</code> from existing <code>value</code>, then add UNIQUE constraints and keep <code>value</code> as read-legacy (PC-1, PC-10). Per-engine, additive, replayable — journal rows are facts (ADR-0143), so backfill must copy, never rewrite.</div>
+          <div class="migration-step"><strong>3.</strong> keycodec: escape components; storage/pebble + storage/bbolt switch to escaped keys with a versioned family prefix; dual-read old ranges during one release (PC-3).</div>
+          <div class="migration-step"><strong>4.</strong> <code>LayoutFingerprintRow</code> table + boot comparison in <code>LayoutPlanApplier</code> (PC-5); warn-first v4.x, hard error at v5 (mirrors the reset-capability rollout).</div>
+          <div class="migration-step"><strong>5.</strong> Timers payload &rarr; ADR-0044 envelope (PC-7); one migration decode-old-wrap-new.</div>
+          <div class="migration-step"><strong>6.</strong> Time columns: new writes UnixNano; SQLite TEXT column gets a generated UTC-normalized shadow during transition (PC-6).</div>
+          <div class="migration-step"><strong>7.</strong> Conformance additions: duplicate-append conflict, key round-trip law, fingerprint-mismatch boot failure, raw-bytes pins — all engines, <code>adttest</code> pattern.</div>
+          <div class="migration-step"><strong>8.</strong> v5 cut: <code>aggregate_*</code> &rarr; <code>stream_*</code> aliases dropped where safe; PC-13 grep-and-pin; base64 payload paths deleted.</div>
+        </section>
+
+        <!-- 10 Conclusion -->
+        <section id="conclusion">
+          <h2><span class="num">10</span>Conclusion</h2>
+          <blockquote>
+            &ldquo;The projection layer grew constraints and the journal of record grew a string.
+            Disk is the contract your future self debugs at 3am — give it types, keys, and
+            fingerprints.&rdquo;
+          </blockquote>
+          <p>
+            13 findings (2 critical, 3 high, 5 medium, 2 low, 1 accepted, 1 cleared-in-audit). The fixes are mostly
+            <em>additive and replayable</em> — the architecture&rsquo;s own reset/replay machinery
+            (ADR-0136/0143) is the migration engine. Priority order: PC-2 (delete, one afternoon),
+            PC-5 (fingerprints, the drift killer), PC-3 (key law), PC-1 (typed WAL, rides the v5
+            core work already staged).
+          </p>
+        </section>
+      </main>
+    </div>
+
+    <!-- Progressive-enhancement scrollspy. Nav still works without JS via anchor links. -->
+    <script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) {
+            return document.getElementById(id);
+          })
+          .filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (link) {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id,
+                  );
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
+      })();
+    </script>
+  </body>
+</html>
