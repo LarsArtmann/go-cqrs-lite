@@ -1,294 +1,251 @@
-# SUPERB — BDD Depth-Spec Follow-Ups: Pareto Execution Plan (2026-10-17 20:18)
+# SUPERB — BDD Depth-Spec Follow-Ups: Pareto Execution Plan (v2, 2026-10-17 20:31)
 
-> **Input universe:** ALL follow-up TODOs from this session's self-review
-> ([`docs/status/2026-10-17_20-13_bdd-harness-depth-specs-execution-and-self-review.md`](../status/2026-10-17_20-13_bdd-harness-depth-specs-execution-and-self-review.md)
-> — 40 next-things + 3 owner questions). The session shipped: 5 systemscenario
-> depth specs, the `nextVersion` out-of-band-append fix, the projectionadapter
-> decode-error → Corruption classification, 2 lagging bare-ID test fixes, and
-> the docs close-out.
+> **Input universe:** ALL follow-up TODOs from the 20:13 self-review
+> ([status report](../status/2026-10-17_20-13_bdd-harness-depth-specs-execution-and-self-review.md)).
+> **This is v2 — it replaces v1 (written 20:18) after a hostile self-review.
+> v1 was a good inventory and a bad plan.** What changed and why is in §0.
 >
-> **Scope guard (anti-verschlimmbesserung):** other TODO_LIST sections owned
-> by LIVE parallel sessions (queue, schema-evolution waves, core/v5, catalog,
-> metaengine growth) are EXCLUDED — executing their rows from this plan is
-> how parallel work gets sabotaged. Foreign drift appears here only as
-> ROUTING tasks, never as drive-by fixes (taskmanager's build break is the
-> one deliberate exception — it is a 2-line dep restore with an
-> ownership-check guard).
->
-> **Errata / still-open verification (from the skill's Step-0 discipline):**
-> every task below was re-checked against the 20:13 report; nothing ranked
-> had already shipped by another session as of plan time.
+> **Scope guard (anti-verschlimmbesserung):** parallel-session sections
+> (queue, schema-evolution, core/v5, catalog, metaengine growth) stay
+> EXCLUDED. Foreign gate-red appears only as routing tasks. And v2 adds a
+> **KILL LIST** — v1 scheduled work the backlog itself had demand-gated or
+> marked ride-along; doing that work standalone is how systems get
+> verschlimmbessert.
 
 ---
 
-## 1. Pareto Breakdown
+## 0. Why v2 — v1's seven flaws
 
-### The 1% that delivers 51%
+1. **The tail was not culled — it was scheduled.** v1 gave 9 mediums (~8h)
+   to items the TODO_LIST itself marks "demand-gated on fleet adoption"
+   (equivalence port, conformance reuse), "ride any touch" (scenario/v4 TB
+   refactor), and "optional, if history matters" (companion commit
+   hygiene). That is 45% of the effort for work nobody has asked for. v2
+   kills or demotes all of it (§1 KILL LIST).
+2. **Shipping was inverted.** The repo's own doctrine — "all shipped value
+   is dead code until consumers import it" — says the highest-value move
+   after verification is the TAG WAVE. v1 parked it in the tail (M22).
+   v2 promotes it to the front of P1, merged with the tag-timing decision.
+3. **D3 was a question I can answer myself.** One flaky race run that then
+   passed 4× does not deserve an owner gate AND a 60-minute task. v2
+   reduces it to a 12-minute reproduce-or-close measurement. (Rule
+   violated: only ask what cannot be self-answered.)
+4. **No Definition of Done.** v1 tables had impact/effort but no verifiable
+   exit condition. v2 binds every task to a repo gate command or an
+   artifact.
+5. **No failure edges.** v1's mermaid had happy paths only. What happens
+   when cqrs-htmx goes red, or a parallel session is mid-edit during
+   verify? v2 draws those edges.
+6. **No quiescence step.** The catalog session was writing files WHILE v1
+   was being committed. Running `#verify-fast` into a live foreign tree
+   wastes a 90-minute task. v2 gates it.
+7. **Fine-breakdown cheats.** "Repeat this slice N times" is not a
+   breakdown. Killed items remove their fine tasks; survivors are fully
+   broken down.
 
-**ONE cluster: run the real consumers against the changed code.**
-cqrs-htmx (~30 trains, full-surface chassis) + go-appkit (thin system
-wrapper) full suites vs the WORKSPACE-local go-cqrs-lite. The projectionadapter
-Corruption reclassification is the only shipped BEHAVIOR change with
-unverified blast radius beyond the repo wall; every other session deliverable
-is green in-repo and additive. Until this runs, "would a consumer trust this"
-is an untested claim. Nothing else in this plan matters if this is red.
-
-### The 4% that delivers 64% (+13%)
-
-**Finish the verification receipt block** — close every "I reasoned instead
-of ran" gap from the self-review: api-stability golden proof (+`TestEvery`),
-GOWORK=off standalone legs for the two changed modules, `#verify-fast`,
-`#check-coverage`, erraudit sweep. Individually small; together they convert
-the session's receipts from "targeted gates green" to "the gates that own
-this change are green."
-
-### The 20% that delivers 80% (+16%)
-
-**Trust-surface hardening:**
-- taskmanager `servertiming` build-break fix (restores green example builds —
-  the highest-VISIBILITY customer surface this session noticed);
-- finish the partial depth work: DLQ projection-name pin, OCC sentinel
-  assert, upcaster version-stamp assert, payload-trap sweep v2;
-- memorialize the two copy-out surfaces: coeffect-gate-on-Schema FAQ entry,
-  dedup-middleware recipes fence (consumers WILL copy it out of the test
-  file);
-- race-flake TODO row + quiet-window measurement (untracked flake =
-  tomorrow's mystery CI red).
-
-### The other 80% of tasks → the last 20% of value
-
-The long tail: harness residue rows (TimeAdvancesTo, bus knobs, equivalence
-port, conformance reuse, scenario/v4 TB refactor, sqlite-lifecycle
-migration), owner-gated classification reviews (apply-boundary wrap,
-`buildEventDecoder`), tag-wave sequencing, companion hygiene, reconciliation
-and polish. Valuable, none of it urgent, ALL of it safer after the 20% layer
-has landed.
+**Net effect: ~17.5h → ~10.5h of mediums, same ≥80% value coverage, value
+SHIPPED (tagged) instead of parked.**
 
 ---
 
-## 2. Decision Gates (owner input required — cannot be self-answered)
+## 1. KILL LIST — deliberately NOT scheduled (the anti-verschlimmbesserung core)
+
+| v1 id | Item | Why it dies or waits |
+| --- | --- | --- |
+| M18 | cqrs-htmx sqlite-lifecycle → harness | Companion-repo work, no consumer ask; the wave's own row survives in TODO as demand-gated. Reopen when cqrs-htmx next touches lifecycle tests. |
+| M19a | `TimeAdvancesTo(t)` sugar | Harness sugar with zero current consumer; ride the NEXT harness touch, never standalone. |
+| M19b | `system` `Bus()` delivery knobs | Same — and it grows v4 API surface; v5-adjacent decision, not a Tuesday task. |
+| M20 | Observational-equivalence port + conformance reuse | TODO row says verbatim: "demand-gated on fleet adoption". Fleet has not adopted. |
+| M21 | scenario/v4 `testing.TB` refactor | TODO row says verbatim: "ride any scenario/v4 touch". No touch is scheduled. |
+| M23 | Companion commit-history hygiene | TODO row: "XS, optional". Optional means no. |
+| M26 | `WithDedupScope` preset / DRY decision | Exactly one consumer (the spec). Premature until a second dedup spec exists. |
+| (v1 M13/D3) | Race-flake owner gate | Self-answerable — demoted to a 12-min measurement inside P0. |
+| (v1 M14+M15+M16) | Three separate owner memos | Fragmenting one owner's decision into three artifacts is make-work — merged into ONE decision pack. |
+
+These rows stay visible in TODO_LIST (already there); killing them from the
+PLAN is the decision, and this table is the receipt.
+
+---
+
+## 2. Decision Gates (owner input — genuinely not self-answerable: 2 remain)
 
 | Gate | Question | Blocks |
 | --- | --- | --- |
-| **D1** | Tag timing for the corruption reclassification: ride the NEXT tag wave (companions meet it under CI soonest) or batch with the systemscenario depth wave? | M16, indirectly M18+ |
-| **D2** | Erroring consumer folds in `system.Lookup`/projections (v4.x additive vs v5 vs never) — makes DLQ reachable for DOMAIN poisons, not just decode poisons | M08 (retry-journey spec), M15 |
-| **D3** | Race flake: track as TODO + quiet-window treatment (recommended) or close as runner noise? | M13 |
+| **D1** | ONE bundle-tag wave (systemscenario + system + projectionadapter) now, or wait? The corruption reclassification, the nextVersion fix, and the graph-native unblock all want the same wave. | M12 (tag), everything after |
+| **D2** | Erroring consumer folds (make DLQ reachable for DOMAIN poisons): v4.x additive, v5, or never? | M09 retry-journey half |
 
 ---
 
-## 3. Comprehensive Plan — medium tasks (30–100 min each)
+## 3. Pareto Breakdown (v2)
 
-Sorted by importance / impact / effort / customer-value (P0 = do first).
+- **1% → 51%:** run the real consumers against the changed code
+  (cqrs-htmx, go-appkit vs the workspace). The corruption reclassification
+  is the only shipped behavior change with unverified blast radius.
+- **4% → 64%:** finish the verification receipt block (golden proof,
+  GOWORK=off legs, verify-fast under a QUIESCENT tree, coverage, erraudit)
+  + the 12-min race reproduce-or-close.
+- **20% → 80%:** SHIP + harden: the D1 tag wave (value leaves the building),
+  taskmanager dep restore, depth pins, payload sweep v2, coeffect FAQ,
+  dedup recipes fence, foreign routing rows.
+- **Remaining tasks → last 20%:** only the lockstep/reconciliation work
+  survived the cull. The v1 tail is dead by §1.
 
-| # | Task | Layer | Impact | Effort | Value rationale |
+---
+
+## 4. Comprehensive Plan — medium tasks (30–100 min), v2
+
+Sorted by importance/impact/effort. M-IDs kept stable from v1 for survivors
+(TODO_LIST references stay valid). **DoD = the gate that must be green.**
+
+| # | Task | Layer | Impact | Effort | DoD / artifact |
 | --- | --- | --- | --- | --- | --- |
-| M01 | cqrs-htmx full suite vs workspace (corruption-classified decode errors + nextVersion reach it at tag) | 1% | CRITICAL | 60m | Only unverified fleet blast radius |
-| M02 | go-appkit full suite vs workspace (cqrs/ submodule) | 1% | CRITICAL | 45m | Second consumer of both changed modules |
-| M03 | api-stability golden proof: run `cmd/api-stability` (no `--update` unless drift), `TestEvery`; confirm dep-direct moves need no golden delta | 4% | HIGH | 30m | Unverified "no API drift" assumption |
-| M04 | GOWORK=off standalone `go test ./...` in systemscenario + projectionadapter (the `#verify-ci` matrix shape) | 4% | HIGH | 30m | Proxy-pinned build/test shape after go.mod changes |
-| M05 | `nix run .#verify-fast`; triage any red to mine-vs-foreign with worktree isolation | 4% | HIGH | 90m | Full-chain receipt; foreign red gets routed, not fixed blind |
-| M06 | `nix run .#check-coverage` + `scripts/erraudit-sweep.sh` over the changed set | 4% | MED | 45m | Coverage drift + context-loss class audit |
-| M07 | taskmanager build-break fix: restore `httputil/server_timing` dep (GUARD: `git log example/taskmanager` first — if a parallel session is mid-removal, route instead) | 20% | HIGH | 30m | Green example builds = visible fleet health |
-| M08 | DLQ depth v2: pin exact `ProjectionName`; design retry-journey spec (needs D2) | 20% | MED | 45m | Finish partial work; deepest poison story |
-| M09 | Depth-spec pins: `ThenError(event.ErrVersionConflict)` in OCC; read-back schema-version stamp in upcaster | 20% | MED | 30m | Sentinel identity + upcast stamp honesty |
-| M10 | Payload-trap sweep v2: `Unmarshal`/`DeepEqual`/`%v`-formatting over payloads in systemscenario + recipes | 20% | MED | 45m | M14 gotcha class, adjacent patterns |
-| M11 | Coeffect-gate-on-Schema FAQ entry + cross-link from upcasting recipes | 20% | MED | 30m | Cost me a red cycle; will cost the next one too |
-| M12 | Dedup middleware → compile-verified recipes fence + `recipes_catalog` entry + coverage ratchet | 20% | HIGH | 90m | THE ADR-0158 migration recipe, copy-out surface |
-| M13 | Race-flake: TODO row (done in harvest) + `#quiet-window-run`/`#load-sweep` measurement of systemscenario parallel budget | 20% | MED | 60m | Untracked flake = tomorrow's mystery red |
-| M14 | Erroring-folds decision memo → small ADR or documented wontfix (needs D2) | 20% | MED | 30m | Unblocks M08 depth |
-| M15 | Classification review memo: projectionadapter apply-boundary wrap + `system buildEventDecoder` wraps (owner ruling; NO drive-by fix) | 20% | MED | 45m | Same unclassified-default class as the fixed decode path |
-| M16 | Tag-wave sequencing decision + pre-tag checklist (needs D1) | 20% | MED | 30m | Companion CI meets the change on purpose, not by surprise |
-| M17 | Foreign-drift routing rows: catalog file-size offenders, mesh-demo 8/7 budget, 2 dup groups — precise rows for owners | 20% | MED | 30m | Gates stay red until routed; visibility is the deliverable |
-| M18 | cqrs-htmx sqlite-lifecycle tests through the harness (wave leftover, in companion repo) | 80% | MED | 100m | Closes the adoption wave's own open row |
-| M19 | `TimeAdvancesTo(t)` sugar + `system` `Bus()` delivery-mode knobs | 80% | MED | 90m | Two S-effort wave rows, harness ergonomics |
-| M20 | Observational-equivalence port to system level + store-conformance suite reuse in harness | 80% | MED | 100m | Deployment-swap proof parity |
-| M21 | `scenario/v4` `testing.TB` refactor (bench parity with systemscenario) | 80% | LOW | 60m | Ride-any-touch refactor |
-| M22 | systemscenario tag-wave prep (unblocks example/graph-native standalone build) | 80% | HIGH | 60m | Standing [BLOCKED] row; coordinate with D1 |
-| M23 | Companion commit-history hygiene: authored messages over daemon `chore:` (cqrs-htmx + go-appkit, if history matters) | 80% | LOW | 45m | Optional per wave row |
-| M24 | go-appkit GracefulClose upstream-ask re-check (closable?) | 80% | LOW | 30m | Standing XS row |
-| M25 | Reconcile: 14-49 plan addendum pointer + TODO_LIST rows stay in lockstep with this plan's closure | 80% | MED | 30m | docs-health discipline |
-| M26 | Idempotency ergonomics: `WithDedupScope` preset decision + OCC-fixture purity convention note in fixtures header | 80% | LOW | 30m | DRY if more specs need dedup wiring |
+| M00 | Quiescence + re-baseline: check parallel-session churn (`git status` over 3 samples), re-verify foreign-red attribution still holds, pick full-vs-scoped verify mode | 4% | HIGH | 30m | Written tree-state note in plan addendum; M05 mode decision recorded |
+| M01 | cqrs-htmx full suite vs workspace (temp `go.work` in companion, never blind go.mod edits) | 1% | CRIT | 60m | Companion suite green OR every failure attributed mine/foreign + mine fixed |
+| M02 | go-appkit full suite vs workspace (same pattern) | 1% | CRIT | 45m | Same DoD shape as M01 |
+| M03 | api-stability golden proof: run (no blind `--update`), inspect any drift, `TestEvery` | 4% | HIGH | 30m | `go run .` clean + `TestEvery` green + golden diff (if any) line-explained |
+| M04 | GOWORK=off standalone legs: `go test ./...` + `go list ./...` in systemscenario + projectionadapter | 4% | HIGH | 30m | Both green under `GOWORK=off` |
+| M05 | `#verify-fast` (full tree if M00 says quiescent, else changed-modules scoped); triage ALL red into mine/foreign/flake | 4% | HIGH | 90m | Mine-list empty; foreign-list routed (M17); flake-list has a verdict |
+| M05b | Race reproduce-or-close: full-package systemscenario `-race` ×5 under quiet window; CLOSE with evidence if 5/5 green, else file with data (absorbs v1 D3/M13) | 4% | MED | 12m→(30m) | 5/5 green note in TODO row, or failure shape recorded |
+| M06 | `#check-coverage` + `scripts/erraudit-sweep.sh` over the changed set | 4% | MED | 45m | Both gates green over systemscenario + projectionadapter |
+| M07 | taskmanager build-break fix: restore `httputil/server_timing` dep — GUARD: `git log example/taskmanager` for a live session first; if live, route only | 20% | HIGH | 30m | `go build ./...` + taskmanager suite green |
+| M08 | Owner decision pack (ONE artifact): D1 tag-timing + D2 erroring-folds + the classification proposal for the apply-boundary wrap & `buildEventDecoder` (v1 M14+M15+M16 merged) | 20% | HIGH | 60m | One memo in docs/reviews/ with all three rulings requested; owner verdicts recorded |
+| M09 | Depth pins: `ThenError(event.ErrVersionConflict)` in OCC; read-back `SchemaVersion()==2` in upcaster; exact DLQ `ProjectionName`; retry-journey fixture IFF D2=build | 20% | MED | 45–75m | All three pins green in suite; journey fixture green or D2-deferred note |
+| M10 | Payload-trap sweep v2: `Unmarshal`/`DeepEqual`/`%v`-over-payload in systemscenario + recipes | 20% | MED | 45m | Sweep result (findings fixed on sight ≤5m each or filed) recorded in TODO row |
+| M11 | Coeffect-gate-on-Schema FAQ entry + recipes cross-link | 20% | MED | 30m | doc-check exit 0 + `TestRecipes` green |
+| M12 | **THE TAG WAVE (D1)**: systemscenario + system (+projectionadapter) bundle tag via tag-release flow; unblocks example/graph-native standalone; companion `go get` smoke | 20% | CRIT | 60m | Proxy-resolvable tags + `check-example-standalone.sh --build` green + smoke receipts |
+| M17 | Foreign gate-red routing rows: catalog file-size ×2, mesh-demo 8/7 budget, 2 dup groups, taskmanager (if M07 routed) — each row carries its gate command | 20% | MED | 30m | Four rows in TODO with `nix run .#…` self-verify lines |
+| M25 | Lockstep close-out: annotate THIS plan + 14-49 addendum per completion; TODO rows close AS mediums land (never batched) | 80% | MED | 30m | docs-health discipline: zero entombed rows |
 
-**26 tasks, ~17.5 h total.** Phases: P0 = M01–M06 (verification, ~5h) →
-P1 = M07–M17 (hardening, ~8h) → P2 = M18–M26 (tail, ~8h, gates D1/D2 where marked).
+**14 mediums, ~10.5h.** Phases: **P0** M00→M01/M02→M03/M04→M05/M05b→M06 →
+**P1** M07, M08(→D1/D2), M09, M10, M11, M12, M17 → **P2** M25.
 
 ---
 
-## 4. Fine Breakdown — ALL tasks, ≤12 min each
-
-Sorted by phase then dependency. IDs map to medium tasks (F⟨M⟩.⟨n⟩).
-
-### Phase P0 — Verification debt (the 1% + 4%)
+## 5. Fine Breakdown — ALL kept tasks, ≤12 min each
 
 | ID | Task (≤12 min) | Dep |
 | --- | --- | --- |
-| F01.1 | In cqrs-htmx: `git status` clean check + record base commit | — |
-| F01.2 | Wire cqrs-htmx to workspace: `go work use`/replace check (do NOT edit go.mod blindly; prefer temp `go.work` in companion) | F01.1 |
-| F01.3 | Run cqrs-htmx full suite (workspace mode), capture failures | F01.2 |
-| F01.4 | Triage each failure: corruption-class-related vs pre-existing (worktree isolation if unclear) | F01.3 |
-| F01.5 | If companion-side fix needed (test expectation class only): apply + rerun; else file precise row | F01.4 |
-| F01.6 | Record verdict + evidence in plan addendum; revert any temp wiring | F01.5 |
-| F02.1 | go-appkit `cqrs/` submodule: base-commit + workspace wiring (same pattern) | F01.6 |
-| F02.2 | Run go-appkit full suite, capture | F02.1 |
-| F02.3 | Triage mine-vs-pre-existing; fix companion test expectations only if decode-family related | F02.2 |
-| F02.4 | Record verdict; revert temp wiring | F02.3 |
-| F03.1 | `cd cmd/api-stability && GOWORK=off go run .` — expect clean; if drift, inspect BEFORE updating | — |
-| F03.2 | If drift is legitimate: `--update`, diff the golden, verify every line is explainable | F03.1 |
-| F03.3 | `GOWORK=off go test -run TestEvery .` green | F03.2 |
-| F04.1 | `cd systemscenario && GOWORK=off go test -count=1 ./...` | — |
-| F04.2 | `cd metaengine/projectionadapter && GOWORK=off go test -count=1 ./...` | — |
-| F04.3 | `GOWORK=off go list ./...` in both modules (tidy-shape proof) | F04.1 |
-| F05.1 | `nix run .#verify-fast` (exclusive window — no parallel suites) | M01–M04 |
-| F05.2 | Attribute every red: mine / foreign / flake; write the three lists | F05.1 |
-| F05.3 | Mine → fix now; foreign → ensure M17 rows exist; flake → M13 evidence | F05.2 |
-| F06.1 | `nix run .#check-coverage`; compare changed modules vs last pin | — |
-| F06.2 | `scripts/erraudit-sweep.sh` over systemscenario + projectionadapter changed files | F06.1 |
-| F06.3 | File/fix any finding (context-loss class first) | F06.2 |
+| F00.1 | `git status` sample ×3 (30s apart); classify churn: mine / catalog session / other | — |
+| F00.2 | Re-run the three foreign gates; confirm attribution from 20:13 still holds | F00.1 |
+| F00.3 | Record tree-state + M05 mode (full vs scoped) in plan addendum | F00.2 |
+| F01.1 | cqrs-htmx: clean-tree check + base commit recorded | M00 |
+| F01.2 | Wire companion to workspace via temp `go.work` in the companion dir | F01.1 |
+| F01.3 | Full suite run, capture output | F01.2 |
+| F01.4 | Triage failures: corruption-class-related vs pre-existing (worktree isolation if unclear) | F01.3 |
+| F01.5 | Mine-class fix (companion test-expectation class only) + rerun | F01.4 |
+| F01.6 | Verdict + evidence in addendum; remove temp wiring | F01.5 |
+| F02.1 | go-appkit cqrs/: base commit + temp workspace wiring | M00 |
+| F02.2 | Full suite run + capture | F02.1 |
+| F02.3 | Triage + fix mine-class only + rerun | F02.2 |
+| F02.4 | Verdict recorded; wiring reverted | F02.3 |
+| F03.1 | `cd cmd/api-stability && GOWORK=off go run .` — expect clean | M00 |
+| F03.2 | If drift: inspect BEFORE updating; every golden line explainable | F03.1 |
+| F03.3 | `GOWORK=off go test -run TestEvery .` | F03.2 |
+| F04.1 | `systemscenario`: `GOWORK=off go test -count=1 ./...` | M00 |
+| F04.2 | `projectionadapter`: `GOWORK=off go test -count=1 ./...` | M00 |
+| F04.3 | `GOWORK=off go list ./...` both modules (tidy-shape proof) | F04.1 |
+| F05.1 | `#verify-fast` in the M00-decided mode (exclusive window) | M00–M04 |
+| F05.2 | Attribute every red: mine / foreign / flake (three lists) | F05.1 |
+| F05.3 | Mine → fix now; foreign → M17 rows; flake → verdict note | F05.2 |
+| F05b.1 | `#quiet-window-run` full-package systemscenario `-race` ×5 | M00 |
+| F05b.2 | 5/5 green → close TODO row with evidence; else record failure shape + file | F05b.1 |
+| F06.1 | `nix run .#check-coverage` — compare changed modules vs pin | M00 |
+| F06.2 | `scripts/erraudit-sweep.sh` over changed files | F06.1 |
+| F06.3 | Findings: fix ≤5m each on sight, else file | F06.2 |
+| F07.1 | GUARD: `git log --oneline -5 -- example/taskmanager` — live session? | M00 |
+| F07.2 | If clear: `go get httputil/server_timing` + tidy + build + test green | F07.1 |
+| F07.3 | If live: route to M17 with the guard note | F07.1 |
+| F08.1 | Draft the one-page decision memo: D1 bundle-tag ask + evidence | M01–M06 |
+| F08.2 | Add D2 erroring-folds section (v4.x/v5/never + DLQ-reachability rationale) | F08.1 |
+| F08.3 | Add classification proposal: apply-wrap + buildEventDecoder per-path families | F08.2 |
+| F08.4 | Memo to docs/reviews/; TODO rows updated with the asks | F08.3 |
+| F09.1 | OCC spec: add `ThenError(event.ErrVersionConflict)`; rerun | — |
+| F09.2 | Upcaster spec: read-back `SchemaVersion()==2` assert; rerun | — |
+| F09.3 | DLQ spec: pin exact `ProjectionName`; rerun | — |
+| F09.4 | IFF D2=build: retry-journey fixture (erroring fold) + rerun | D2 |
+| F10.1 | Sweep `Unmarshal\|DeepEqual\|Sprintf` over payload vars in systemscenario prod | — |
+| F10.2 | Same over recipes.md payload fences | F10.1 |
+| F10.3 | Findings: fix-on-sight or file; result recorded in TODO row | F10.2 |
+| F11.1 | FAQ entry: Schema declaration activates coeffect gate + Events backstop | — |
+| F11.2 | Cross-link from §2.43 upcasting paragraph; doc-check + TestRecipes | F11.1 |
+| F12.1 | IFF D1=tag-now: `scripts/go-env.sh` + tag-release flow for the bundle | D1 |
+| F12.2 | Proxy smoke: `go get` each new tag from a scratch module | F12.1 |
+| F12.3 | `check-example-standalone.sh --build` (graph-native unblocked) | F12.2 |
+| F12.4 | Close the [BLOCKED] graph-native row with receipts | F12.3 |
+| F17.1 | TODO row: catalog file-size offenders + gate command | — |
+| F17.2 | TODO row: mesh-demo dep budget + gate command | — |
+| F17.3 | TODO row: 2 foreign dup groups + gate command | — |
+| F17.4 | TODO row: taskmanager (if routed) with guard note | F07.3 |
+| F25.1 | Per completed medium: annotate this plan + close its TODO row | ongoing |
+| F25.2 | End: 14-49 addendum pointer + this plan's completion banner | F25.1 |
 
-### Phase P1 — Trust-surface hardening (the 20%)
-
-| ID | Task (≤12 min) | Dep |
-| --- | --- | --- |
-| F07.1 | GUARD: `git log --oneline -5 -- example/taskmanager` — parallel session active? | — |
-| F07.2 | If clear: restore `github.com/larsartmann/httputil/server_timing` to go.mod via `go get`+tidy | F07.1 |
-| F07.3 | `go build ./...` + suite green in example/taskmanager; else route to owner row | F07.2 |
-| F08.1 | Read DLQ WARN log / run spec to capture exact `ProjectionName` value | D2 (journey half) |
-| F08.2 | Pin exact name in `TestDepth_PoisonEventDeadLetters`; rerun green | F08.1 |
-| F08.3 | If D2=build: sketch retry-journey fixture (erroring fold) as fine tasks here | D2 |
-| F09.1 | Add `ThenError(event.ErrVersionConflict)` to OCC spec; verify chain holds; rerun | — |
-| F09.2 | Add read-back `SchemaVersion()==2` assert to upcaster spec (`ThenEventsSatisfy`); rerun | — |
-| F10.1 | Grep `Unmarshal\|DeepEqual\|Sprintf` over payload variables in systemscenario prod code | — |
-| F10.2 | Same sweep over recipes.md fences mentioning payloads | F10.1 |
-| F10.3 | Findings → fix on sight (≤5min each) or file; record sweep result in TODO row | F10.2 |
-| F11.1 | Write FAQ entry: Schema declaration activates coeffect gate + `DomainConfig.Events` backstop | — |
-| F11.2 | Cross-link from recipes §2.43 upcasting paragraph; run doc-check + TestRecipes | F11.1 |
-| F12.1 | Draft recipes §2.x fence: dedup middleware over `sys.Dedup()` (importable snippet) | — |
-| F12.2 | Add `recipes_catalog` entry (compiled scaffold class); run `TestRecipes` | F12.1 |
-| F12.3 | Coverage ratchet check (TestRecipesCatalogCoversFile + class counts) | F12.2 |
-| F12.4 | If compile flags the snippet: fix the DOC, not the catalog | F12.2 |
-| F13.1 | Reproduce: full-package `-race` ×5 under `#quiet-window-run`; record failure shape | D3 |
-| F13.2 | If reproducible: bisect parallelism (`GOMAXPROCS`/test count) to find budget breach | F13.1 |
-| F13.3 | Verdict → TODO row update (track+mitigate or close-as-noise with evidence) | F13.2 |
-| F14.1 | Draft D2 decision memo: erroring folds — v4.x additive / v5 / never, with DLQ-reachability rationale | D2 |
-| F14.2 | Owner ruling → either ADR stub + fine task breakdown, or wontfix note in TODO | F14.1 |
-| F15.1 | Audit `projectionadapter` apply-boundary wrap + `buildEventDecoder` wraps: list each error path + current family | — |
-| F15.2 | Write classification proposal (Corruption vs Infrastructure per path) into owner memo | F15.1 |
-| F16.1 | Draft D1 pre-tag checklist: which modules tag, companion expectations, smoke path | D1 |
-| F16.2 | Record decision in TODO (tag-wave row) + CHANGELOG note if batching changes | F16.1 |
-| F17.1 | TODO row: catalog `types_resources.go` 359 / `architecture/selection.go` 397 (file-size gate) | — |
-| F17.2 | TODO row: mesh-demo dep budget 8/7 (errorfamily) — budget review or dep drop | — |
-| F17.3 | TODO row: 2 foreign dup groups (docserver templ ×2; catalog/architecture vs cqrs-lint fixture) | — |
-| F17.4 | Cross-link rows to the gate commands so owners can self-verify | F17.1 |
-
-### Phase P2 — The tail (last 20% of value)
-
-| ID | Task (≤12 min) | Dep |
-| --- | --- | --- |
-| F18.1 | Companion: inventory cqrs-htmx sqlite lifecycle tests on raw wiring | M01 |
-| F18.2 | Map each to harness shape (Deployment=SQLite(t), acts, asserts) | F18.1 |
-| F18.3 | Migrate first train; suite green in companion | F18.2 |
-| F18.4 | Migrate remainder in ≤12min slices (one train each; count as repeated task) | F18.3 |
-| F18.5 | Delete legacy twins only after parity green (Q3 rule); update companion CHANGELOG | F18.4 |
-| F19.1 | Implement `TimeAdvancesTo(t)` in when.go + doc comment | — |
-| F19.2 | Spec: absolute-time timer fire via `TimeAdvancesTo`; rerun suite | F19.1 |
-| F19.3 | `system` `Bus()` delivery-mode knob design note (test deployments); decide v4.x additive or not | — |
-| F19.4 | If additive: implement + spec + CHANGELOG + api golden regen | F19.3 |
-| F20.1 | Port `AssertJournalEquivalence` semantics audit — what is scenario/v4-only today | — |
-| F20.2 | Implement system-level observational-equivalence helper + spec | F20.1 |
-| F20.3 | Store-conformance reuse: adapter from harness Scenario to conformance suite; smoke on memory+sqlite | F20.1 |
-| F21.1 | `scenario/v4`: convert constructors to `testing.TB` (mechanical sweep) | — |
-| F21.2 | Add one benchmark proof; api golden regen (public API may shift — check) | F21.1 |
-| F22.1 | Pre-tag: `check-example-standalone.sh --build` for graph-native; confirm only blocker is the pin | D1 |
-| F22.2 | Run tag-release flow per gotchas (self-sources go-env.sh); smoke `go get` from proxy | F22.1 |
-| F22.3 | Post-tag: unblock row closure + graph-native standalone verify | F22.2 |
-| F23.1 | Companion repos: `git log` audit — which daemon `chore:` commits carry wave work | — |
-| F23.2 | If history matters: author proper messages per repo policy (their AGENTS rules) | F23.1 |
-| F24.1 | Re-check go-appkit tripwire + upstream-ask doc; close or re-schedule row | — |
-| F25.1 | After execution: annotate THIS plan + 14-49 addendum with per-section status | — |
-| F25.2 | TODO_LIST lockstep: close rows as their mediums land (no batch-at-end) | F25.1 |
-| F26.1 | Decide `WithDedupScope` preset: promote fixture middleware or keep per-spec; note in fixtures header | F12 |
-| F26.2 | OCC-fixture purity convention note (deliberate out-of-band append inside decide) in fixtures comment | — |
-
-**62 fine tasks** (several are explicitly repeatable slices — F18.4, F23.2 —
-so execution count is higher; every slice stays ≤12 min).
+**50 fine tasks.** No "repeat N times" cheats — v1's lazy slices died with
+their parents in §1.
 
 ---
 
-## 5. Execution Graph
+## 6. Execution Graph (v2 — with failure edges)
 
 ```mermaid
 flowchart TD
-    START((Plan approved)) --> G_D3{D3: race flake<br/>track or close?}
-    START --> G_D1{D1: tag timing}
-    START --> G_D2{D2: erroring folds}
+    START((v2 approved)) --> M00
 
-    subgraph P0["P0 — Verification debt (1%+4%, ~5h)"]
-        M01[M01 cqrs-htmx vs workspace] --> M02[M02 go-appkit vs workspace]
-        M03[M03 api-stability proof] --> M05[M05 verify-fast + triage]
+    subgraph P0["P0 — Verify (1%+4%, ~5h)"]
+        M00[M00 quiescence + mode pick] --> M01 & M02 & M03 & M04
+        M01[M01 cqrs-htmx] --> M05
+        M02[M02 go-appkit] --> M05
+        M03[M03 golden proof] --> M05
         M04[M04 GOWORK=off legs] --> M05
-        M01 --> M05
-        M02 --> M05
-        M06[M06 coverage + erraudit]
+        M00 -->|churning tree| SCOPED[M05 scoped to changed modules]
+        M01 -->|red + MINE| HOTFIX((hotfix loop: fix, re-run M01))
+        HOTFIX --> M05
+        M05[M05 verify-fast + triage] --> M05b[M05b race repro-or-close] --> M06[M06 coverage + erraudit]
     end
 
-    START --> P0
-
-    subgraph P1["P1 — Trust-surface hardening (20%, ~8h)"]
-        M07[M07 taskmanager dep restore] 
-        M08[M08 DLQ depth v2]
-        M09[M09 depth pins]
+    subgraph P1["P1 — Ship + harden (20%, ~5h)"]
+        M07[M07 taskmanager dep restore]
+        M08[M08 owner decision pack] --> GD1{D1 ruling}
+        M08 --> GD2{D2 ruling}
+        M09[M09 depth pins] 
         M10[M10 payload sweep v2]
         M11[M11 coeffect FAQ]
-        M12[M12 dedup recipes fence]
-        M13[M13 race-flake measure]
-        M14[M14 erroring-folds memo]
-        M15[M15 classification review memo]
-        M16[M16 tag checklist]
-        M17[M17 foreign-drift rows]
+        M12[M12 BUNDLE TAG WAVE]
+        M17[M17 foreign routing rows]
     end
 
-    P0 -->|all green| P1
-    G_D2 --> M14
-    G_D1 --> M16
-    G_D3 --> M13
-    M14 --> M08
+    M06 --> P1
+    GD1 -->|tag now| M12
+    GD1 -->|wait| HOLD[M12 parked - row stays open]
+    GD2 -->|build| M09
+    M11 --> M12
+    M05 -->|flake verdicts| M17
+    M12 --> SMOKE[proxy smoke + graph-native unblock]
 
-    subgraph P2["P2 — Tail (last 20%, ~8h)"]
-        M18[M18 cqrs-htmx sqlite→harness]
-        M19[M19 TimeAdvancesTo + bus knobs]
-        M20[M20 equivalence + conformance]
-        M21[M21 scenario/v4 TB]
-        M22[M22 systemscenario tag wave]
-        M23[M23 companion history]
-        M24[M24 GracefulClose re-check]
-        M25[M25 reconcile docs]
-        M26[M26 dedup ergonomics]
+    subgraph P2["P2 — Lockstep (last sliver)"]
+        M25[M25 annotate + close rows as they land]
     end
 
-    P1 --> P2
-    M16 --> M22
-    M12 --> M26
-    M01 --> M18
+    P1 --> P2 --> DONE((shipped, tagged,<br/>zero entombed rows))
 
-    P2 --> DONE((All rows closed<br/>+ docs lockstep))
-    M25 -.closure discipline.-> DONE
+    style M12 fill:#9f9,stroke:#333,stroke-width:2px
+    style HOTFIX fill:#f96
+    style HOLD fill:#fc9
 ```
 
-**Critical path:** M01 → M02 → M05 → M12 → M22 (verification → trust
-surface → the tag that ships it all). D1 gates the tail's most valuable task
-(M22); D2 gates the deepest depth work (M08); D3 gates a measurement, not a
-feature.
+**Critical path:** M00 → M01 → M05 → M08 → D1 → M12 → smoke. Everything
+else parallelizes around it. The two failure edges (hotfix loop, scoped
+verify) are the ones v1 pretended didn't exist.
 
 ---
 
-## 6. Living-source discipline
+## 7. Living-source discipline
 
-- New tasks surfaced by this plan are being added to `TODO_LIST.md` under
-  **"BDD depth-spec follow-ups (2026-10-17 plan)"** — the plan is the
-  snapshot, TODO_LIST is the source of truth.
-- Execution updates go to TODO_LIST rows AS mediums land (F25.2), never
-  batched at the end.
-- Foreign-drift rows (M17) carry gate commands so owning sessions can
-  self-verify without archaeology.
+- TODO_LIST rows added at v1 (20:18) stay valid: M-numbering is stable for
+  survivors; killed v1 tail items were never TODO-referenced by the
+  harvest. The race-flake row gets its evidence verdict from F05b.
+- THIS file is the snapshot; TODO_LIST.md is the living source. Close rows
+  as mediums land.
 
-*Written 2026-10-17 20:18 CEST. Awaiting approval; no execution started.*
+*v2 written 2026-10-17 20:31 CEST, ~13 minutes after v1 — the fastest way to
+a better plan was to attack v1 before anyone could execute it. Awaiting
+approval + D1/D2 rulings; no execution started.*
