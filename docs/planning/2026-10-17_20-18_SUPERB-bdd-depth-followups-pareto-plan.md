@@ -334,4 +334,66 @@ the workspace tree. Companion tree clean post-run.
   system/projectionadapter/metaengine/event/id tags so standalone legs go
   green post-wave (verify whether tag-release.sh auto-sweeps pins; if not,
   bump explicitly). M04's "both green" DoD is achievable only POST-M12;
-  re-run these legs as part of F12 smoke.
+  re-run these legs as part of F12 smoke. UPDATE 20:48: projectionadapter
+  v4.6.0 (with the fix) was tagged by the parallel wave — the ordering
+  constraint is now half-satisfied; system + systemscenario remain.
+
+### M05 — #verify-fast (21:20) ✅ triaged: mine-list EMPTY, foreign routed, 1 flake verdict
+
+Took 4 runs (two blocked by repairable gates, one polluted by a concurrent
+foreign flush of 158 files at 20:57-20:59 — daemon commits `4adb11e03`…
+`b77a8ee4c`):
+
+- **verify-docs RED → FIXED (mine):** ADR index gap (0159/0160 unindexed —
+  foreign ADRs, 2-line doc fix on sight; first attempt over-indexed 0099a as
+  a duplicate — the pre-existing row uses a different title case; corrected).
+- **#build RED → FIXED (mine, = M07):** taskmanager compile break. Green
+  tree-wide after the M07 repair.
+- **Test phase: 140+ packages ok.** Foreign red (all attributed):
+  - api-stability `TestEvery` → 76-module go.sum untidiness (M03 proof).
+  - cqrs-lint `pkg/rules/{performance,resilience,version}` → TestP014/B029/
+    B030/V007_F090b/AccessorBus are **new foreign tests that did not exist
+    at pre-session commit `445130ee7`** ("[no tests to run]") — born red
+    from the in-flight foreign cqrs-lint session.
+  - cqrs-upgrade E2E ×2 → same go.sum-untidy class (fixture module graph
+    breaks: "no packages loaded … stale go.sum").
+- **Flake verdict:** projectionhost `TestLiveCheckpoint_CrashWindowIsBounded`
+  — fails only under full-suite parallel load ("checkpoint saves = 0, want
+  1"), passes solo (0.00s). Load-sensitive timing test; same class as the
+  M05b race flake. Not filed as mine.
+- **Lint:** systemscenario + systemtest 0 issues (mine); foreign findings in
+  `catalog` + `cmd/doc-check` only.
+- **Duplication:** exactly the 2 KNOWN foreign groups (docserver
+  eventcatalogview.templ internal pair; catalog/architecture/index.go vs
+  cqrs-lint discordsync fixture). None mine.
+
+### M07 — taskmanager dep restore (20:55) ✅ — grew into a 4-part repair
+
+Guard PASSED (the 20:41 go.mod touch was the foreign 95-file `go 1.27→1.27.2`
+directive bump, not taskmanager work; source last changed Oct 15):
+
+1. **Missing imports restored** (`servertiming` → `httputil/server_timing`
+   in httpx.go, setup.go, query_http_test.go) + `go mod tidy` made the
+   require direct (repo gate's own canonical command; buildflow's gomod-check
+   delegated to the repo convention).
+2. **Dot-mangled identifiers un-mangled** in query_http_test.go
+   (`systemRegisterQuery`→`system.RegisterQuery(srv.Sys, …)`,
+   `idStreamID`→`id.StreamID`, `parseIDString`→`id.ParseStreamID`) — a
+   foreign codemod had stripped the package dots.
+3. **Bare-ID laggers migrated** (the contract landed by a foreign session):
+   test Get-keys/comparisons (integration_test, systemscenario_test,
+   sse_test, query_http_test) AND a REAL PROD BUG — `handleGetTask` keyed
+   `TaskReader.Get` by prefixed `String()`, so every GET /api/tasks/{id}
+   returned 404 under the bare-ID contract. Plus the seeded-URL builder.
+4. Suite GREEN (workspace + spot -race), standalone `GOWORK=off` build/vet
+   green, tree-wide `#build` unblocked.
+
+### Parallel-session events tonight (context for M12)
+
+- **20:47-20:48: a foreign batch release tagged** event/v4.15.0,
+  command/v4.14.0, signing/v4.4.1, encryption/v4.4.5, kv/v4.3.5, and
+  **metaengine/projectionadapter/v4.6.0 — including this session's corruption
+  classification fix** (verified in the tag: `WrapCorruption` at the decode
+  boundary). system + systemscenario NOT yet tagged.
+- 20:57-20:59: foreign flush of 158 files (daemon) — in-flight cqrs-lint
+  typed-info work whose tests are born-red.
