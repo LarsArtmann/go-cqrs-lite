@@ -417,3 +417,24 @@ Every medium task decomposed into ≤12-minute units. `⌁` marks a task that pr
 | `core/v5` `.go-arch-lint.yml` | `TODO_LIST.md:1491` |
 | EventCatalog v5 bump follow-ups (6 rows) | `TODO_LIST.md` §EventCatalog v5 bump follow-ups |
 | The ~14 other open TODO_LIST sections (cqrs-lint, CI, Code Quality, v5 Unification, Docs truth, …) | their own sections; ~142 open rows in total |
+
+
+---
+
+## Progress log (same session, 2026-10-17 09:05–09:20) — A1 and A2 executed, with one plan correction
+
+**Correction to A1.** The plan assumed `art-dupl` could be made green inside this scope. It cannot: measured 2026-10-17, `art-dupl check . --threshold 3 --semantic` reports **190 novel groups** against the 187-entry baseline (a full re-pin sees 355). **`catalog/architecture` contributes ZERO of them.** Roughly 180 are the ADR-0152 `v4 ↔ core/v5` copy-forward mirror pairs landed by the concurrent fork campaign; the rest are unrelated stragglers (watermill ×2, metaengine engine pairs ×5, irohengine, cqrs-lint ×2, a `systemscenario/chaos.go` self-pair, and one 3-token `catalog/docserver/layout.templ` ×2 + `pebbleengine/sort_index.go` signature group). The gate's redness is therefore **owned by the fork campaign**, and a mid-campaign `art-dupl baseline` would be actively harmful (it wholesale-absorbs in-flight foreign shapes — the 186→351 historical precedent). A1 is re-scoped to: *my package contributes no groups, and the remedy plus a worked example are recorded*.
+
+**Executed**
+
+| Task | Outcome |
+|---|---|
+| A1.1–A1.2 | `art-dupl check` run; 3 groups initially flagged (1 mine, 2 foreign) |
+| A1.3–A1.5 (**mine**) | `catalog/architecture/schema.go`: `sortedKeysOf` rewritten from a hand-rolled make/range/append/`sort.Strings` loop to `slices.Sorted(maps.Keys(values))` — the clone is gone by construction, and it is the more modern form |
+| A1.6 (**foreign, documented policy**) | `core/v5/event/deliveryctx.go` given the AGENTS.md-proven trailing directive `// art-dupl:accept ADR-0152 v4↔core/v5 copy-forward twin (intentional mirror)` on the region's first line. This is the *worked example* for the ~180 remaining twins; it is a cross-session touch, recorded here and in the commit message |
+| A1.7 | `golangci-lint run ./architecture/...` → 0 issues; formatters clean; `go test ./architecture/` green |
+| A2.1–A2.4 | `TODO_LIST.md` gained `## Architecture reference HTML export (harvested 2026-10-17)` with 13 open rows + a Section-index entry |
+| A2.5 | The section header carries the shipped-receipt (39 files / 4 010 production lines) and points at this plan and the status report |
+| **New finding during A2** | `bash scripts/check-readme-links.sh` is **RED (6 broken)** — dangling README links left by the delete-at-zero session's `transport/http`, `transport/grpc` and `idempotency/kvstore` removals. Recorded as errata item (d) in the harvest row |
+
+**Not yet executed:** A3 (`nix run .#verify` — needs an exclusive window), A4–A8, all of Tier 3 and Tier 4.

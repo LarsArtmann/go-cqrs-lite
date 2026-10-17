@@ -79,6 +79,7 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 
 [Legend](#legend) ·
 [Journal fixtures (testfixtures lessons)](#journal-fixtures-testfixtures-lessons-harvested-2026-10-17) ·
+[Architecture reference HTML export](#architecture-reference-html-export-harvested-2026-10-17) ·
 [GitHub issue backlog](#github-issue-backlog-2026-09-30-plan) ·
 [New consumer issues](#new-consumer-issues-2026-10-03-triage) ·
 [Data-mesh & federation tail](#data-mesh--federation-tail-2026-09-24) ·
@@ -151,6 +152,127 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
   cannot have: **reset-by-replay** (fresh engine + journal CatchUp rebuild
   instead of wipe — events are facts, re-derivation is the cheap reset).
   _(Effort: S)_
+
+## Architecture reference HTML export (harvested 2026-10-17)
+
+> **Feature shipped 2026-10-17** (`catalog/architecture`, ADR-0159): a
+> `*catalog.Catalog` renders as ONE self-contained HTML document — filterable
+> kind-tagged sidebar, a section per resource kind, every relationship as an
+> in-file link, message attributes + example payload + generated TypeScript +
+> raw JSON Schema, flow steps, Ctrl/Cmd-K search, light/dark themes, inline
+> CSS/JS, standard library only. Wired to `catalog-export -architecture <path>`,
+> recipe §2.48 (compile-verified), api-stability golden, `catalog/.go-arch-lint.yml`.
+> **39 files / 4 010 production lines.** Full detail:
+> `docs/status/2026-10-17_08-56_architecture-reference-html-export-session.md`;
+> plan: `docs/planning/2026-10-17_09-02_SUPERB-architecture-reference-completion-pareto-plan.md`.
+> Receipt: `nix run .#verify` NOT yet run; `art-dupl` run and clean FOR THIS
+> PACKAGE (0 of 190 novel groups) — see the duplication row below.
+
+- [ ] 🔥 **`check-duplication` is RED on HEAD with 190 novel groups — ~180 are
+      the ADR-0152 v4↔core/v5 copy-forward mirror pairs.** Verified 2026-10-17:
+      `art-dupl check . --threshold 3 --semantic` → 190 new groups vs the
+      187-entry baseline (full re-pin sees 355). `catalog/architecture`
+      contributes **ZERO** (its one group was fixed by rewriting `sortedKeysOf`
+      to `slices.Sorted(maps.Keys(...))`). Root cause: the fork campaign lands
+      twin files without the documented trailing directive. **Remedy per twin:**
+      the AGENTS.md-proven form `type X struct{} // art-dupl:accept ADR-0152
+      v4↔core/v5 copy-forward twin` on the region's FIRST line (applied to
+      `core/v5/event/deliveryctx.go` this session as the worked example).
+      Owner: the v4→v5 fork campaign (08-02 plan F12 / guardrails 3-4), which
+      must either add ~180 directives or do ONE deliberate end-of-campaign
+      re-pin — **never** a mid-campaign full `art-dupl baseline` (that
+      wholesale-absorbs in-flight foreign shapes: 186→351 historical precedent).
+      Non-mirror stragglers in the same 190: watermill ×2, metaengine engine
+      pairs ×5, irohengine ×1, cqrs-lint ×2, `systemscenario/chaos.go` self-pair,
+      and `catalog/docserver/layout.templ` ×2 + `pebbleengine/sort_index.go`
+      (a 3-token signature group; templ cannot carry directives — baseline-only).
+      _(Effort: M — mechanical, but must be done as ONE campaign decision)_
+
+- [ ] 🔥 **Run the composed proof for the new package**: `nix run .#verify` +
+      `.#verify-ci` in an exclusive window; record dated receipts here.
+      _(Effort: M, observe)_
+
+- [ ] **Link↔anchor integrity test**: every `href="#x"` in the output must
+      resolve to an `id="x"` in the same file, plus nav↔section bijection.
+      This single assertion covers the sidebar, the search index, the
+      relationship boxes and the markdown `[[kind|id]]` references — the
+      feature's headline promise. Mutation-verify both. _(Effort: S)_
+
+- [ ] **Pin the published surfaces**: the search-index JSON key shape
+      (`g/k/c/t/a/s/d/h`, read by the inlined palette JS) and `ExportTo`
+      (only `Export`/`ExportFile` are covered today). _(Effort: XS)_
+
+- [ ] **`WithLogo` is dead API** — the option validates and allow-lists a URL
+      but nothing renders it. Decide: render a brand mark in the topbar, or
+      delete the option (`catalog/architecture/exporter.go`). _(Effort: XS)_
+
+- [ ] **Repo-level gate for the artifact** (mirror of `.#check-eventcatalog`):
+      render a fixture, assert self-containment + anchor integrity + section
+      counts + no empty box headers; `--self-test` with fault injection; wire
+      `mkApp` + `#verify` + a CI leg. _(Effort: M)_
+
+- [ ] **Custom exports — the EventCatalog 5.2 half (deferred by ADR-0159)**:
+      selector model (`include`/`exclude`, "exclude applied first and always
+      wins"), `references: omit|name-only|include`, `hide:
+      [owners,repository,contacts,docs,specifications,examples]`,
+      `neverExport` from config, and a `--check` report that exits 1 when a
+      selector matches nothing. Needs its own ADR: **`catalog.BaseConfig` has
+      no custom-property concept**, so `x-*` selectors have nothing to select.
+      Reinstate the `section.owners` field removed this session when the
+      visibility policy lands. Leak test required: an excluded resource's name
+      must never appear as text anywhere (HTML, search index or nav).
+      _(Effort: L)_
+
+- [ ] **Serve the reference from `docserver`**: `/docs/architecture` route +
+      catalog-hash cache + opt-in `Config` flag. Turns a build-time artifact
+      into a one-call capability for the fleet's serving apps. _(Effort: S)_
+
+- [ ] **Runnable example + embed-and-serve proof**: `catalog/example/architecture`
+      (register under `flake.nix` `examplePaths`, NOT `testModules`) and an
+      `example_test.go` that `//go:embed`s the rendered bytes and serves them
+      through `http.ServeMux`. _(Effort: S)_
+
+- [ ] **Large-catalog benchmark**: 1 000 services / 5 000 messages — measure
+      render time and output size; EventCatalog publishes "5 000 messages,
+      ~0.1 s to interactive". Confirm or correct the `content-visibility`
+      claim in the README/ADR. _(Effort: S)_
+
+- [ ] **Docs row**: root `AGENTS.md` quick-reference entry for
+      `catalog/architecture`; `docs/agents/module-map.md` if it enumerates
+      catalog subpackages; a `SKILL.md` mention beside the existing
+      catalog-export paragraphs. _(Effort: S)_
+
+- [ ] **Two lint lessons learned the hard way (record them)**:
+      `exhaustruct_v5` requires complete struct literals for SAME-PACKAGE
+      types (hence this package's `newSection`/`plainRef` constructors), and
+      golines wants ≤100 columns while golangci's golines formatter accepts
+      ≤120 — a line can pass lint and still fail `nix fmt`. Homes:
+      `catalog/AGENTS.md` and `docs/agents/gotchas-tooling-build.md`.
+      _(Effort: XS)_
+
+- [ ] **Erratta on three stale rows (verified 2026-10-17)**: (a) the
+      `TODO_LIST:786` "IMMEDIATE OBLIGATION: the three catalog NEW offenders"
+      is MET and the offender set has DRIFTED — `nix run .#check-file-size`
+      now reports `cmd/doc-check/recipes_catalog_meta3.go` (398 NEW),
+      `catalog/types_resources.go` (359 NEW), `catalog/eventcatalog/exporter.go`
+      (382→392, ratchet GROWTH); (b) `TODO_LIST:1452` item (1) "cmd/cqrs-bench
+      go.sum untidy" is under-stated — `TestEveryModuleGoSumIsTidy` fails for
+      ~ALL modules (benchkit, catalog, claiming, command, commandlifecycle,
+      core/v5, decider, encryption, event, …) and overlaps the 08-02 plan's
+      task 45 (fleet go.sum sweep) — merge, do not run both; (c) NEW finding
+      with no row: `catalog`'s Layer-2 `go-arch-lint` is RED (40 `shouldn't
+      depend on …/catalog/v4` + 14 `not attached`), reproduced byte-for-byte
+      against HEAD's config on go-arch-lint 1.19.0 under GOWORK=off/on and
+      relative/absolute `--project-path`; root cause is `core: { in: . }`
+      being depended on by components whose `mayDependOn` never lists it.
+      Buyer decision required (see `:1452`, `:1491`); (d) **NEW regression
+      from the delete-at-zero session**: `bash scripts/check-readme-links.sh`
+      is now RED with 6 dangling targets left behind by the `transport/http`,
+      `transport/grpc` and `idempotency/kvstore` deletions
+      (`core/v5/dedup/README.md`, `core/v5/kv/README.md`, `dedup/README.md`,
+      `kv/README.md`, `otel/README.md` ×2) — that session's own next-item #4
+      named this gate but it was evidently not run after the `git rm`. Fix is
+      a 6-line README edit. _(Effort: XS)_
 
 ## GitHub issue backlog (2026-09-30 plan)
 
