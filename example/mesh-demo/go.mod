@@ -10,7 +10,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.2
 	github.com/larsartmann/go-cqrs-lite/system/v4 v4.15.0
-	github.com/larsartmann/go-error-family v0.11.0
+	github.com/larsartmann/go-error-family v0.12.0
 )
 
 require (
@@ -32,7 +32,7 @@ require (
 	github.com/knadh/koanf/providers/env v1.1.0 // indirect
 	github.com/knadh/koanf/providers/file v1.2.1 // indirect
 	github.com/knadh/koanf/v2 v2.3.8 // indirect
-	github.com/larsartmann/go-codec v0.3.1 // indirect
+	github.com/larsartmann/go-codec v0.3.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4 v4.2.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.2.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.3.0 // indirect

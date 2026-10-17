@@ -4,7 +4,7 @@ go 1.27.2
 
 require (
 	github.com/ThreeDotsLabs/watermill v1.5.3
-	github.com/larsartmann/go-codec v0.3.1
+	github.com/larsartmann/go-codec v0.3.2
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.0
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.8.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.0
@@ -19,14 +19,12 @@ require (
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.11.0
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.7.0
-	github.com/larsartmann/go-error-family v0.11.0
+	github.com/larsartmann/go-error-family v0.12.0
 	github.com/larsartmann/go-flightrecorder v0.2.1
 	modernc.org/sqlite v1.60.1
 )
 
 require (
-	github.com/Azure/go-ansiterm v0.0.0-20261008234032-65faa4be4f89 // indirect
-	github.com/Microsoft/go-winio v0.6.3 // indirect
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/dustin/go-humanize v1.1.0 // indirect
@@ -49,7 +47,6 @@ require (
 	github.com/maruel/natural v1.3.0 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
-	github.com/moby/moby/client v0.6.2 // indirect
 	github.com/ncruces/go-strftime v1.1.0 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect

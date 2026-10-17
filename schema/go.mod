@@ -4,12 +4,12 @@ go 1.27.2
 
 require (
 	github.com/gkampitakis/go-snaps v0.5.23
-	github.com/larsartmann/go-codec v0.3.1
+	github.com/larsartmann/go-codec v0.3.2
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.0
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.4.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.2
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2
-	github.com/larsartmann/go-error-family v0.11.0
+	github.com/larsartmann/go-error-family v0.12.0
 	pgregory.net/rapid v1.3.0
 )
 

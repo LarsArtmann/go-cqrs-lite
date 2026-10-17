@@ -85,7 +85,7 @@ require (
 )
 
 require (
-	github.com/larsartmann/go-codec v0.3.1
+	github.com/larsartmann/go-codec v0.3.2
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.2
@@ -97,7 +97,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.11.0
 	github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.2.3
 	github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.3.4
-	github.com/larsartmann/go-error-family v0.11.0
+	github.com/larsartmann/go-error-family v0.12.0
 	github.com/larsartmann/go-flightrecorder v0.2.1
 	github.com/samber/lo v1.53.0
 	go.opentelemetry.io/otel v1.47.0

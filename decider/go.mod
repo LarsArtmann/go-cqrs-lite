@@ -8,7 +8,7 @@ go 1.27.2
 replace github.com/larsartmann/go-cqrs-lite/snapshot/v4 => ../snapshot
 
 require (
-	github.com/larsartmann/go-codec v0.3.1
+	github.com/larsartmann/go-codec v0.3.2
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.0
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.4.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.2
@@ -16,7 +16,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.7.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2
-	github.com/larsartmann/go-error-family v0.11.0
+	github.com/larsartmann/go-error-family v0.12.0
 	github.com/larsartmann/go-flightrecorder v0.2.1
 	github.com/maypok86/otter/v2 v2.3.0
 	github.com/onsi/ginkgo/v2 v2.33.0
