@@ -13,6 +13,7 @@ go get github.com/larsartmann/go-cqrs-lite/catalog/v4
 | Package                | Purpose                                                                   |
 | ---------------------- | ------------------------------------------------------------------------- |
 | `catalog`              | Registry, schema reflection, builder, typed IDs                           |
+| `catalog/architecture` | Self-contained HTML "architecture reference" (one file, no Node)          |
 | `catalog/asyncapi`     | AsyncAPI 3.0 YAML/JSON exporter                                           |
 | `catalog/eventcatalog` | EventCatalog MDX file generator                                           |
 | `catalog/openapi`      | OpenAPI 3.0 YAML/JSON exporter                                            |
@@ -661,6 +662,40 @@ builder.AddUser(catalog.User{
     ReadOnly: true,
 })
 ```
+
+### Architecture Reference (self-contained HTML)
+
+Render the whole catalog as ONE HTML file: a filterable sidebar, a section per
+domain, service, message, channel, data store, flow, entity, data product,
+agent, decision, team, person and documentation page, every relationship as an
+in-link, message attributes with an example payload, a TypeScript type and the
+raw schema, and full-text search (Ctrl/Cmd-K) with light and dark themes.
+
+The file carries its own CSS and JS, so it needs no server, no Node toolchain
+and no network: attach it to an email, keep it with an audit, or serve it from
+any static host.
+
+```go
+html, err := architecture.NewExporter(
+    architecture.WithTitle("Acme"),
+    architecture.WithDescription("Acme's architecture."),
+    architecture.WithCommand("catalog-export -architecture architecture.html"),
+).Export(cat)
+// -> []byte, self-contained
+
+// or write it straight to disk
+err = architecture.NewExporter().ExportFile(cat, "architecture.html")
+```
+
+Options: `WithTitle`, `WithDescription`, `WithCommand` (the "regenerate this"
+snippet shown on the overview), `WithLogo`, `WithGeneratedAt` (pin it for
+reproducible output). Only the standard library is used, so importing this
+package links nothing new.
+
+Unlike [`catalog/eventcatalog`](#eventcatalog), which emits an MDX tree for the
+Node EventCatalog CLI, this package renders the final HTML itself. Use both:
+the MDX tree for a hosted catalog, the reference for the copy people can open
+without access to it.
 
 ### OpenAPI
 

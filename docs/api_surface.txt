@@ -110,6 +110,17 @@ benchkit/var ProfileReadHeavy
 benchkit/var ProfileSmall
 benchkit/var ProfileStress
 benchkit/var ProfileWriteHeavy
+catalog/architecture/func NewExporter
+catalog/architecture/func WithCommand
+catalog/architecture/func WithDescription
+catalog/architecture/func WithGeneratedAt
+catalog/architecture/func WithLogo
+catalog/architecture/func WithTitle
+catalog/architecture/method Export
+catalog/architecture/method ExportFile
+catalog/architecture/method ExportTo
+catalog/architecture/struct Exporter
+catalog/architecture/type Option
 catalog/asyncapi/func NewExporter
 catalog/asyncapi/func SchemaToAny
 catalog/asyncapi/func WithDescription

@@ -27,6 +27,7 @@ import (
 	"os"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
+	"github.com/larsartmann/go-cqrs-lite/catalog/v4/architecture"
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4/eventcatalog"
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4/simple"
 )
@@ -62,12 +63,33 @@ func main() {
 		"work/out/catalog-export",
 		"output directory for the EventCatalog MDX tree",
 	)
+	reference := flag.String(
+		"architecture",
+		"",
+		"also write a self-contained architecture reference HTML file to this path",
+	)
 
 	flag.Parse()
 
-	if err := eventcatalog.NewExporter(*output).Export(buildCatalog()); err != nil {
+	cat := buildCatalog()
+
+	if err := eventcatalog.NewExporter(*output).Export(cat); err != nil {
 		log.Fatalf("catalog-export: %v", err)
 	}
 
 	fmt.Fprintf(os.Stdout, "catalog-export: wrote EventCatalog tree to %s\n", *output)
+
+	if *reference == "" {
+		return
+	}
+
+	exp := architecture.NewExporter(
+		architecture.WithCommand("catalog-export -architecture " + *reference),
+	)
+
+	if err := exp.ExportFile(cat, *reference); err != nil {
+		log.Fatalf("catalog-export: %v", err)
+	}
+
+	fmt.Fprintf(os.Stdout, "catalog-export: wrote architecture reference to %s\n", *reference)
 }

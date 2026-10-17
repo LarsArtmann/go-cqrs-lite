@@ -52,6 +52,10 @@
 > - [§2.42 Request Correlation — RequestScope Enricher](#242-request-correlation--requestscope-enricher-event--decider)
 > - [§2.43 System-Level BDD Scenarios](#243-system-level-bdd-scenarios--givenwhenthen-over-a-real-systemnew-systemscenario-adr-0153)
 > - [§2.44 Graph-Native Read Models — Edge folds, traversal, retraction](#244-graph-native-read-models--edge-folds-traversal-retraction-system--metaengine)
+> - [§2.45 Chaos Journal & SSE Stream Assertions](#245-chaos-journal--sse-stream-assertions-systemscenario)
+> - [§2.46 Schema Evolution — Named Upcast Ops, Declared Once](#246-schema-evolution--named-upcast-ops-declared-once-schema--system)
+> - [§2.47 Bind a system Query to an HTTP endpoint](#247-bind-a-system-query-to-an-http-endpoint--etag-server-timing-safe-errors-system--go-etag--httputil)
+> - [§2.48 Publish a Self-Contained Architecture Reference](#248-publish-a-self-contained-architecture-reference-catalogarchitecture)
 
 ### 2.0 Bundle Presets — one-call infrastructure wiring
 
@@ -3440,3 +3444,61 @@ Test the same query without HTTP via the system scenario harness (§2.43):
 HTMX rendering (partials, toasts, pagination UI) builds on the identical
 dispatch core in cqrs-htmx's `app.Query`; live read-model push instead of
 polling is `metaengine.ServeSSE` (§6.16 in advanced.md).
+
+### 2.48 Publish a Self-Contained Architecture Reference (catalog/architecture)
+
+The EventCatalog export (§2.9, §2.41) is an MDX tree for the Node CLI — great
+for a hosted catalog, useless to someone who cannot reach it. When the reader is
+a partner, an auditor, or the team acquiring you, render the SAME catalog as one
+HTML file instead: a filterable, kind-tagged sidebar, a section per domain,
+service, message, channel, data store, flow, entity, data product, agent,
+decision, team, person and documentation page, every relationship as an in-file
+link, message attributes with an example payload, a TypeScript type and the raw
+schema, plus Ctrl/Cmd-K search and light/dark themes.
+
+Styles and scripts are inlined (`assets/reference.css`, `assets/reference.js`),
+so the file needs no server, no Node and no network: attach it to an email, keep
+it with an audit, or `//go:embed` it and serve it from any route you already
+have. The package imports only the standard library, so a service that never
+serves HTML links nothing new by using it.
+
+```go
+import (
+    "log"
+
+    "github.com/larsartmann/go-cqrs-lite/catalog/v4"
+    "github.com/larsartmann/go-cqrs-lite/catalog/v4/architecture"
+)
+
+reg := catalog.NewRegistry("Acme", "1.0.0")
+reg.AddService(catalog.Service{ID: "orders-svc", Name: "Orders", Version: "1.0.0"})
+reg.AddEvent("orders-svc", catalog.Message{
+    ID: "order.placed", Name: "Order Placed", Version: "1.0.0",
+    Direction: catalog.Sends,
+    Summary:   "An order was placed.",
+    Schema:    catalog.SchemaFromType[OrderPlaced](),
+})
+
+cat := reg.Build()
+
+exp := architecture.NewExporter(
+    architecture.WithTitle("Acme"),
+    architecture.WithDescription("Acme's architecture."),
+    architecture.WithCommand("catalog-export -architecture architecture.html"),
+)
+
+// In-process bytes: embed them, serve them, or write them next to the MDX tree.
+html, exportErr := exp.Export(cat)
+if exportErr != nil {
+    log.Fatal(exportErr)
+}
+
+_ = html
+_ = exp.ExportFile(cat, "architecture.html")
+```
+
+`WithGeneratedAt(t)` pins the timestamp for byte-reproducible output (CI
+diffing), and `WithLogo(url)` adds a brand mark — only `http(s):` and
+`data:image/` URLs are rendered, and every catalog string, badge color and
+external URL is escaped or allow-listed on the way in, because the file is meant
+to be handed to people outside the team.
