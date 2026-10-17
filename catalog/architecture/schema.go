@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"encoding/json/jsontext"
+	"maps"
 	"slices"
-	"sort"
 	"strings"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
@@ -52,15 +52,7 @@ func attributeTable(schema *catalog.Schema) markup {
 
 // sortedKeysOf returns a map's keys in stable order.
 func sortedKeysOf[V any](values map[string]V) []string {
-	keys := make([]string, 0, len(values))
-
-	for key := range values {
-		keys = append(keys, key)
-	}
-
-	sort.Strings(keys)
-
-	return keys
+	return slices.Sorted(maps.Keys(values))
 }
 
 // sortedFieldNames returns the property names in stable order.

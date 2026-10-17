@@ -22,7 +22,7 @@ import "context"
 // deliveryMarkKey is the unexported marker key; a false value explicitly
 // clears an inherited mark (WithoutDeliveryMark), so absence and cleared
 // are distinguishable only through ContextInDelivery's boolean result.
-type deliveryMarkKey struct{}
+type deliveryMarkKey struct{} // art-dupl:accept ADR-0152 v4↔core/v5 copy-forward twin (intentional mirror)
 
 // MarkInDelivery returns ctx with the in-delivery marker set. Bus
 // implementations call this on the context they pass into handler
