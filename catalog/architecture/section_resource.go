@@ -6,7 +6,7 @@ import "github.com/larsartmann/go-cqrs-lite/catalog/v4"
 func channelSection(channel catalog.Channel, idx *refIndex) section {
 	return section{
 		kind:    kindChannel,
-		anchor:  idx.get(kindChannel, string(channel.ID)).anchor,
+		id:      string(channel.ID),
 		name:    string(channel.Name),
 		version: string(channel.Version),
 		summary: string(channel.Summary),
@@ -134,7 +134,7 @@ func dataStoreSection(store catalog.DataStore, idx *refIndex, cat *catalog.Catal
 
 	return section{
 		kind:    kindDataStore,
-		anchor:  idx.get(kindDataStore, string(store.ID)).anchor,
+		id:      string(store.ID),
 		name:    string(store.Name),
 		version: string(store.Version),
 		summary: string(store.Summary),
@@ -213,7 +213,7 @@ func entitySection(entity catalog.Entity, idx *refIndex) section {
 
 	return section{
 		kind:    kindEntity,
-		anchor:  idx.get(kindEntity, string(entity.ID)).anchor,
+		id:      string(entity.ID),
 		name:    string(entity.Name),
 		version: string(entity.Version),
 		summary: string(entity.Summary),
@@ -296,7 +296,7 @@ func yesNo(value bool) string {
 func dataProductSection(product catalog.DataProduct, idx *refIndex) section {
 	return section{
 		kind:    kindDataProduct,
-		anchor:  idx.get(kindDataProduct, string(product.ID)).anchor,
+		id:      string(product.ID),
 		name:    string(product.Name),
 		version: string(product.Version),
 		summary: string(product.Summary),

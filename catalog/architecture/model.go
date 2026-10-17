@@ -28,7 +28,7 @@ type countRow struct {
 // sidebar/search metadata that points at it.
 type section struct {
 	kind       resourceKind
-	anchor     string
+	id         string
 	name       string
 	version    string
 	summary    string
@@ -41,6 +41,12 @@ type section struct {
 
 // noCount marks a block heading that shows no item count.
 const noCount = -1
+
+// anchor returns the in-document id of the section, derived from its kind and
+// the resource identifier so links, sidebar and search always agree.
+func (s section) anchor() string {
+	return kindInfos()[s.kind].anchor(s.id)
+}
 
 // block is a titled region inside a section column.
 type block struct {

@@ -39,6 +39,7 @@ type kindInfo struct {
 // kindTable is the ordered registry of every rendered resource kind. The
 // order here is the order of the sidebar and of the document body.
 var kindTable = []kindInfo{
+	{kind: kindOverview, group: "Overview", blurb: "", tag: "DOC", class: "doc", prefix: "overview"},
 	{kind: kindDomain, group: "Domains", blurb: "Business areas and the services that belong to them.", tag: "DOM", class: "dom", prefix: "domain"},
 	{kind: kindService, group: "Services", blurb: "Applications that send and receive messages.", tag: "SVC", class: "svc", prefix: "service"},
 	{kind: kindCommand, group: "Commands", blurb: "Requests to change state.", tag: "CMD", class: "cmd", prefix: "command"},
@@ -66,8 +67,13 @@ func kindInfos() map[resourceKind]kindInfo {
 	return index
 }
 
-// anchor returns the in-document id for a resource of this kind.
+// anchor returns the in-document id for a resource of this kind. The
+// document overview has no resource id and anchors to its prefix.
 func (k kindInfo) anchor(id string) string {
+	if id == "" {
+		return k.prefix
+	}
+
 	return k.prefix + "-" + slug(id)
 }
 

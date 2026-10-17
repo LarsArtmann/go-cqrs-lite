@@ -26,7 +26,7 @@ func messageSection(msg catalog.Message, kind resourceKind, idx *refIndex) secti
 			ownerMeta(idx, msg.Owners),
 			textMeta(operationLabel(msg.Operation)),
 		}),
-		left:  messageBlocks(msg),
+		left:  messageBlocks(msg, idx),
 		right: messageRefs(msg, idx),
 	}
 }
@@ -53,7 +53,7 @@ func operationLabel(op *catalog.Operation) string {
 
 // messageBlocks builds the left-column blocks of a message section: its
 // attributes, an example payload, a TypeScript type and the raw schema.
-func messageBlocks(msg catalog.Message) []block {
+func messageBlocks(msg catalog.Message, idx *refIndex) []block {
 	blocks := make([]block, 0, 6)
 
 	if table := attributeTable(msg.Schema); table != "" {
@@ -76,8 +76,8 @@ func messageBlocks(msg catalog.Message) []block {
 		blocks = append(blocks, blockHTML("Changelog", changes))
 	}
 
-	if msg.Deprecation != nil && msg.Deprecation.Message != "" {
-		blocks = append(blocks, blockHTML("Deprecation", proseBlock(msg.Deprecation.Message)))
+	if msg.Deprecation != nil {
+		blocks = appendProse(blocks, "Deprecation", msg.Deprecation.Message, idx.link)
 	}
 
 	return blocks

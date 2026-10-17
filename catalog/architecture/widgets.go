@@ -161,12 +161,27 @@ func summaryBlock(summary string) markup {
 }
 
 // proseBlock renders markdown prose inside a documentation container.
-func proseBlock(text string) markup {
+func proseBlock(text string, link linkerFunc) markup {
+	body := renderMarkdown(text, link)
+	if body == "" {
+		return ""
+	}
+
 	return renderInto(func(w *htmlWriter) {
 		w.open("div", htmlClass("md"))
-		w.raw(renderMarkdown(text))
+		w.raw(body)
 		w.close("div")
 	})
+}
+
+// appendProse appends a markdown block when the prose is non-empty.
+func appendProse(blocks []block, label, text string, link linkerFunc) []block {
+	body := proseBlock(text, link)
+	if body == "" {
+		return blocks
+	}
+
+	return append(blocks, blockHTML(label, body))
 }
 
 // codeBlock renders a titled code block with a copy button.

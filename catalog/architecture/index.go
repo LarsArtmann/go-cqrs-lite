@@ -106,6 +106,19 @@ func (x *refIndex) anyOf(ids []string) []resourceRef {
 	return refs
 }
 
+// link resolves a "[[kind|id]]" prose reference to an in-document link. It
+// understands the same kind names ADR targets use, so one spelling works in
+// decisions, docs and export selectors alike.
+func (x *refIndex) link(kind, id string) resourceRef {
+	if resolved, ok := adrKind(kind); ok {
+		if ref := x.get(resolved, id); ref.anchor != "" {
+			return ref
+		}
+	}
+
+	return resourceRef{name: id}
+}
+
 // idStrings converts a slice of string-backed identifiers to plain strings.
 func idStrings[T ~string](values []T) []string {
 	out := make([]string, 0, len(values))

@@ -10,7 +10,7 @@ import (
 func overviewSection(cfg config, counts []countRow) section {
 	sec := section{
 		kind:    kindOverview,
-		anchor:  "overview",
+		id:      "",
 		name:    cfg.title,
 		summary: cfg.description,
 		left: []block{

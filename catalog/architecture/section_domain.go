@@ -6,7 +6,7 @@ import "github.com/larsartmann/go-cqrs-lite/catalog/v4"
 func domainSection(domain catalog.Domain, idx *refIndex) section {
 	return section{
 		kind:    kindDomain,
-		anchor:  idx.get(kindDomain, string(domain.ID)).anchor,
+		id:      string(domain.ID),
 		name:    string(domain.Name),
 		version: string(domain.Version),
 		summary: string(domain.Summary),

@@ -12,7 +12,8 @@ func collect(cat *catalog.Catalog, cfg config) *document {
 	register(enriched, idx)
 
 	b := newDocBuilder(cfg.title, cfg.command, cfg.generatedAt)
-	b.sections = append(b.sections, overviewSection(enriched, cfg, idx))
+	collectCounts(b, enriched)
+	b.sections = append(b.sections, overviewSection(cfg, b.counts))
 	b.navAt(kindOverview, navEntry{anchor: "overview", tag: "DOC", class: "doc", name: "Introduction"})
 
 	collectDomains(b, enriched, idx)
@@ -28,7 +29,6 @@ func collect(cat *catalog.Catalog, cfg config) *document {
 	collectTeams(b, enriched, idx)
 	collectUsers(b, enriched, idx)
 	collectDocs(b, enriched, idx)
-	collectCounts(b, enriched)
 
 	return &document{
 		title:       cfg.title,
@@ -47,7 +47,7 @@ func navEntryFor(sec section) navEntry {
 	info := kindInfos()[sec.kind]
 
 	return navEntry{
-		anchor: sec.anchor,
+		anchor: sec.anchor(),
 		tag:    info.tag,
 		class:  info.class,
 		name:   sec.name,
@@ -67,7 +67,7 @@ func addResource(b *docBuilder, sec section, domain string) {
 		Alt:     slug(sec.name),
 		Summary: sec.summary,
 		Domain:  domain,
-		Href:    sec.anchor,
+		Href:    sec.anchor(),
 	})
 }
 
@@ -113,7 +113,7 @@ func collectChannels(b *docBuilder, cat *catalog.Catalog, idx *refIndex) {
 // collectDataStores adds one section per data store.
 func collectDataStores(b *docBuilder, cat *catalog.Catalog, idx *refIndex) {
 	for _, store := range cat.DataStores {
-		addResource(b, dataStoreSection(store, idx), "")
+		addResource(b, dataStoreSection(store, idx, cat), "")
 	}
 }
 

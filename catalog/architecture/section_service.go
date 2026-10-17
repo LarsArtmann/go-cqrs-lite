@@ -15,7 +15,7 @@ func serviceSection(service catalog.Service, idx *refIndex) section {
 
 	return section{
 		kind:    kindService,
-		anchor:  idx.get(kindService, string(service.ID)).anchor,
+		id:      string(service.ID),
 		name:    string(service.Name),
 		version: string(service.Version),
 		summary: string(service.Summary),
