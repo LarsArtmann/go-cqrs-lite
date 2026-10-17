@@ -1,0 +1,14 @@
+{
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Demo identifier",
+      "nullable": false,
+      "deprecated": false
+    }
+  },
+  "required": [
+    "id"
+  ]
+}

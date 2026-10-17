@@ -1,0 +1,13 @@
+# Demo Service
+
+> Auto-generated catalog summary for LLM consumption.
+
+## Demo Service (demo-service)
+Replace with your service summary
+
+### Commands
+- Demo (v1.0.0): A demo command
+
+### Events
+- Demo (v1.0.0) [sends]: A demo event
+

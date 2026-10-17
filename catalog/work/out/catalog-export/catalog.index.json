@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 2,
+  "resources": [
+    {
+      "id": "demo-service",
+      "kind": "services",
+      "version": "1.0.0",
+      "path": "services/demo-service/index.mdx"
+    },
+    {
+      "id": "demo-command",
+      "kind": "commands",
+      "version": "1.0.0",
+      "path": "commands/demo-command/index.mdx"
+    },
+    {
+      "id": "demo.event",
+      "kind": "events",
+      "version": "1.0.0",
+      "path": "events/demo.event/index.mdx"
+    }
+  ]
+}

@@ -13,21 +13,21 @@ import (
 // rendered, so no link, sidebar entry or search hit points outside the set.
 func collect(cat *catalog.Catalog, cfg config) *document {
 	enriched := cat.DeriveProducersConsumers()
-	kept, banned := cfg.sel.keptSet(enriched, cfg.references)
+	plan := cfg.sel.plan(enriched, cfg.references)
 	idx := newRefIndex()
-	idx.kept = kept
+	idx.kept = plan.kept
 	idx.references = cfg.references
 	idx.hide = cfg.hide
-	idx.banned = banned
+	idx.banned = plan.banned
 
-	for key := range banned {
+	for key := range plan.banned {
 		idx.bannedIDs[key.id] = true
 	}
 
 	register(enriched, idx)
 
 	b := newDocBuilder(cfg.title, cfg.command, cfg.generatedAt)
-	b.kept = kept
+	b.kept = plan.kept
 	collectCounts(b, enriched)
 	b.sections = append(b.sections, overviewSection(cfg, b.counts))
 	b.navAt(kindOverview, navEntry{

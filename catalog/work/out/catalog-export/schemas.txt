@@ -1,0 +1,42 @@
+# Schemas
+
+> All message and entity schemas in this catalog.
+
+## Demo (v1.0.0)
+Context: Demo @ Demo Service
+```json
+{
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Demo identifier",
+      "nullable": false,
+      "deprecated": false
+    }
+  },
+  "required": [
+    "id"
+  ]
+}
+```
+
+## Demo (v1.0.0)
+Context: Demo @ Demo Service
+```json
+{
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Demo identifier",
+      "nullable": false,
+      "deprecated": false
+    }
+  },
+  "required": [
+    "id"
+  ]
+}
+```
+
