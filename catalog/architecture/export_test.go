@@ -275,6 +275,34 @@ func TestExportIsSelfContained(t *testing.T) {
 	}
 }
 
+// containerTags are every element this package writes with a separate close
+// tag. A mismatch means a renderer forgot to close a container, which a
+// reader would experience as the rest of the document nesting wrongly.
+var containerTags = []string{
+	"html", "head", "body", "div", "section", "header", "nav", "main",
+	"span", "a", "ul", "ol", "li", "dl", "dt", "dd", "table", "thead",
+	"tbody", "tr", "td", "th", "pre", "code", "blockquote", "button",
+	"style", "script", "small", "strong", "em", "kbd",
+	"h1", "h2", "h3", "h4", "h5", "h6", "p",
+}
+
+func TestExportProducesBalancedHTML(t *testing.T) {
+	out := renderFixture(t)
+
+	for _, tag := range containerTags {
+		opened := countOccurrences(out, "<"+tag+" ") + countOccurrences(out, "<"+tag+">")
+		closed := countOccurrences(out, "</"+tag+">")
+		if opened != closed {
+			t.Errorf("<%s> opened %d times but closed %d times", tag, opened, closed)
+		}
+	}
+}
+
+// countOccurrences counts non-overlapping occurrences of needle in haystack.
+func countOccurrences(haystack, needle string) int {
+	return strings.Count(haystack, needle)
+}
+
 func TestExportFileWritesDocument(t *testing.T) {
 	path := t.TempDir() + "/architecture.html"
 

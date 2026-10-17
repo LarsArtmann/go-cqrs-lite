@@ -59,7 +59,7 @@ func countMeta(count int, singular, plural string) markup {
 		word = singular
 	}
 
-	return renderInto(func(w *htmlWriter) { w.element("span", strconv.Itoa(count)+" "+word) })
+	return renderInto(func(w *htmlWriter) { w.text(strconv.Itoa(count) + " " + word) })
 }
 
 // textMeta renders a plain meta item, or nothing for empty text.
@@ -68,7 +68,7 @@ func textMeta(text string) markup {
 		return ""
 	}
 
-	return renderInto(func(w *htmlWriter) { w.element("span", text) })
+	return renderInto(func(w *htmlWriter) { w.text(text) })
 }
 
 // idLine renders the resource's identifier under its title.

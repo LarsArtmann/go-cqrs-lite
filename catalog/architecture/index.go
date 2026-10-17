@@ -8,13 +8,17 @@ import "github.com/larsartmann/go-cqrs-lite/catalog/v4"
 type refIndex struct {
 	byKind map[resourceKind]map[string]resourceRef
 	byID   map[string]resourceRef
+	// channelsByMessage inverts Channel.Messages, so a message section can
+	// list the channels that carry it without rescanning the catalog.
+	channelsByMessage map[string][]string
 }
 
 // newRefIndex creates an empty index.
 func newRefIndex() *refIndex {
 	return &refIndex{
-		byKind: make(map[resourceKind]map[string]resourceRef),
-		byID:   make(map[string]resourceRef),
+		byKind:            make(map[resourceKind]map[string]resourceRef),
+		byID:              make(map[string]resourceRef),
+		channelsByMessage: make(map[string][]string),
 	}
 }
 
@@ -107,6 +111,20 @@ func (x *refIndex) messagesOf(kind resourceKind, ids []string) []resourceRef {
 	return refs
 }
 
+// channelsFor returns the channels a message travels on, merging the
+// message's own channel list with the reverse index built from the channels.
+func (x *refIndex) channelsFor(msg catalog.Message) []resourceRef {
+	ids := idStrings(msg.Channels)
+
+	for _, id := range x.channelsByMessage[string(msg.ID)] {
+		if !containsID(ids, id) {
+			ids = append(ids, id)
+		}
+	}
+
+	return x.messagesOf(kindChannel, ids)
+}
+
 // link resolves a "[[kind|id]]" prose reference to an in-document link. It
 // understands the same kind names ADR targets use, so one spelling works in
 // decisions, docs and export selectors alike.
@@ -154,6 +172,10 @@ func register(cat *catalog.Catalog, idx *refIndex) {
 
 	for _, channel := range cat.Channels {
 		idx.add(kindChannel, string(channel.ID), string(channel.Name))
+
+		for _, id := range channel.Messages {
+			idx.channelsByMessage[string(id)] = append(idx.channelsByMessage[string(id)], string(channel.ID))
+		}
 	}
 
 	for _, service := range cat.Services {

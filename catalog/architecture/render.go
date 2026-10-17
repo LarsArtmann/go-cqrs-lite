@@ -61,6 +61,7 @@ func writeTopbar(w *htmlWriter, doc *document) {
 	w.element("span", doc.title, htmlClass("brand-name"))
 	w.close("a")
 	w.open("div", htmlClass("top-spacer"))
+	w.close("div")
 	w.open("button", htmlClass("search-btn"), htmlAttr("id", "search-btn"), htmlAttr("type", "button"))
 	w.element("span", "Search the reference")
 	w.element("kbd", "Ctrl-K", htmlAttr("id", "kbd-hint"))
@@ -126,7 +127,11 @@ func writeSectionLeft(w *htmlWriter, sec section) {
 	w.element("span", kindLabel(sec.kind))
 	w.close("div")
 	w.open("div", htmlClass("title-row"))
-	w.element("h2", sec.name)
+	if sec.kind == kindOverview {
+		w.element("h1", sec.name)
+	} else {
+		w.element("h2", sec.name)
+	}
 	w.raw(pillRow(sec.version, sec.badges, sec.deprecated))
 	w.close("div")
 
@@ -173,17 +178,22 @@ func writeLeftBlock(w *htmlWriter, item block) {
 	w.close("div")
 }
 
-// writeRightBox writes one titled box in the relationship column.
+// writeRightBox writes one titled box in the relationship column. A box with
+// no label is a bare card (used for the regenerate-the-reference snippet).
 func writeRightBox(w *htmlWriter, item block) {
 	w.open("div", htmlClass("box"))
-	w.open("div", htmlClass("box-head"))
-	w.element("span", item.label)
 
-	if item.count > 0 {
-		w.element("span", strconv.Itoa(item.count))
+	if item.label != "" {
+		w.open("div", htmlClass("box-head"))
+		w.element("span", item.label)
+
+		if item.count > 0 {
+			w.element("span", strconv.Itoa(item.count))
+		}
+
+		w.close("div")
 	}
 
-	w.close("div")
 	w.open("div", htmlClass("box-body"))
 	w.raw(item.body)
 	w.close("div")

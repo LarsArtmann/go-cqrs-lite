@@ -345,7 +345,14 @@ func renderLink(w *htmlWriter, text string) (int, bool) {
 	label := text[1:close]
 	href := text[close+2 : close+end]
 
-	w.open("a", htmlAttr("href", safeHref(href)), htmlAttr("rel", "noreferrer noopener"), htmlAttr("target", "_blank"))
+	href = safeHref(href)
+
+	if strings.HasPrefix(href, "#") {
+		w.open("a", htmlAttr("href", href))
+	} else {
+		w.open("a", htmlAttr("href", href), htmlAttr("rel", "noreferrer noopener"), htmlAttr("target", "_blank"))
+	}
+
 	w.text(label)
 	w.close("a")
 

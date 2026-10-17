@@ -31,7 +31,7 @@ func writeNavGroup(w *htmlWriter, group navGroup) {
 
 	w.open("div", htmlClass("nav-group"))
 	w.open("div", htmlClass("nav-label"))
-	w.element("a", group.title, htmlAttr("href", "#group-"+slug(string(group.kind))))
+	w.element("a", group.title, htmlAttr("href", groupAnchor(group)))
 	w.element("small", strconv.Itoa(len(group.entries)))
 	w.close("div")
 
@@ -40,6 +40,16 @@ func writeNavGroup(w *htmlWriter, group navGroup) {
 	}
 
 	w.close("div")
+}
+
+// groupAnchor points a sidebar group heading at its body heading, or at the
+// overview section when the group has no heading of its own.
+func groupAnchor(group navGroup) string {
+	if group.kind == kindOverview {
+		return "#overview"
+	}
+
+	return "#group-" + slug(string(group.kind))
 }
 
 // writeNavEntry renders one sidebar link with its kind tag.

@@ -246,16 +246,14 @@ func userSection(user catalog.User, idx *refIndex) section {
 
 // orgBlocks renders the contact details shared by teams and people.
 func orgBlocks(email, slack string) []block {
-	fields := fieldList([][2]string{
-		{"Email", email},
-		{"Slack", slack},
-	})
-
-	if fields == "" {
+	if email == "" && slack == "" {
 		return nil
 	}
 
-	return []block{blockHTML("Contact", fields)}
+	return []block{blockHTML("Contact", fieldList([][2]string{
+		{"Email", email},
+		{"Slack", slack},
+	}))}
 }
 
 // docSection builds the section for one custom documentation page.
