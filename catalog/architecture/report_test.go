@@ -41,19 +41,39 @@ func TestReportReasonsAndExitCode(t *testing.T) {
 		t.Errorf("domain ordering: got %+v, ok=%v, want reason %q", entry, ok, "included")
 	}
 
-	if entry, ok := find(report.Included, "service", "order-service"); !ok || entry.Reason != "in domain ordering" {
+	if entry, ok := find(
+		report.Included,
+		"service",
+		"order-service",
+	); !ok ||
+		entry.Reason != "in domain ordering" {
 		t.Errorf("service via domain closure: got %+v, want %q", entry, "in domain ordering")
 	}
 
-	if entry, ok := find(report.Included, "command", "create-order"); !ok || entry.Reason != "in service order-service" {
+	if entry, ok := find(
+		report.Included,
+		"command",
+		"create-order",
+	); !ok ||
+		entry.Reason != "in service order-service" {
 		t.Errorf("command via service closure: got %+v, want %q", entry, "in service order-service")
 	}
 
-	if entry, ok := find(report.Excluded, "container", "order-db"); !ok || entry.Reason != "exclude" {
+	if entry, ok := find(
+		report.Excluded,
+		"container",
+		"order-db",
+	); !ok ||
+		entry.Reason != "exclude" {
 		t.Errorf("excluded store: got %+v, want %q", entry, "exclude")
 	}
 
-	if entry, ok := find(report.Excluded, "event", "order-created"); !ok || entry.Reason != "neverExport" {
+	if entry, ok := find(
+		report.Excluded,
+		"event",
+		"order-created",
+	); !ok ||
+		entry.Reason != "neverExport" {
 		t.Errorf("never-exported event: got %+v, want %q", entry, "neverExport")
 	}
 

@@ -21,6 +21,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -46,6 +47,8 @@ func (l *selectorList) Set(value string) error {
 	return nil
 }
 
+var errBadSelector = errors.New("selector must be kind:id")
+
 // parseSelectors turns "kind:id" flags into selectors; a malformed flag is
 // a usage error, not a silent skip.
 func parseSelectors(flags selectorList) ([]architecture.Selector, error) {
@@ -54,7 +57,11 @@ func parseSelectors(flags selectorList) ([]architecture.Selector, error) {
 	for _, raw := range flags {
 		kind, id, found := strings.Cut(raw, ":")
 		if !found || kind == "" || id == "" {
-			return nil, fmt.Errorf("selector %q is not kind:id", raw)
+			return nil, fmt.Errorf(
+				"catalog-export: selector %q is not kind:id: %w",
+				raw,
+				errBadSelector,
+			)
 		}
 
 		selectors = append(selectors, architecture.Selector{Kind: kind, ID: id})
@@ -99,15 +106,29 @@ func main() {
 		"",
 		"also write a self-contained architecture reference HTML file to this path",
 	)
+
 	var (
 		includes    selectorList
 		excludes    selectorList
 		neverExport selectorList
 	)
 
-	flag.Var(&includes, "include", "keep only the selected resources and their closure, kind:id (repeatable)")
-	flag.Var(&excludes, "exclude", "drop the selected resources from the export, kind:id (repeatable)")
-	flag.Var(&neverExport, "never-export", "redact the selected resources from any export, kind:id (repeatable)")
+	flag.Var(
+		&includes,
+		"include",
+		"keep only the selected resources and their closure, kind:id (repeatable)",
+	)
+	flag.Var(
+		&excludes,
+		"exclude",
+		"drop the selected resources from the export, kind:id (repeatable)",
+	)
+	flag.Var(
+		&neverExport,
+		"never-export",
+		"redact the selected resources from any export, kind:id (repeatable)",
+	)
+
 	references := flag.String(
 		"references",
 		"",
@@ -176,7 +197,10 @@ func main() {
 	}
 
 	if *references != "" {
-		options = append(options, architecture.WithReferences(architecture.ReferencesMode(*references)))
+		options = append(
+			options,
+			architecture.WithReferences(architecture.ReferencesMode(*references)),
+		)
 	}
 
 	if *hide != "" {

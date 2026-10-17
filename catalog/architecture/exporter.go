@@ -15,14 +15,14 @@ const outputPerm = 0o600
 
 // config is the resolved exporter configuration.
 type config struct {
-	title       string
-	description string
-	command     string
-	logo        string
-	generatedAt time.Time
-	sel         *Selection
-	references  ReferencesMode
-	hide        visibility
+	title        string
+	description  string
+	command      string
+	logo         string
+	generatedAt  time.Time
+	sel          *Selection
+	references   ReferencesMode
+	hide         visibility
 	introduction string
 }
 

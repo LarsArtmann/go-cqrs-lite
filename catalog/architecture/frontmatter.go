@@ -23,13 +23,13 @@ import (
 //
 //	Read this file with the code.
 type ExportSpec struct {
-	Title       string
-	Description string
-	Include     []Selector
-	Exclude     []Selector
-	NeverExport []Selector
-	References  ReferencesMode
-	Hide        []HideSection
+	Title        string
+	Description  string
+	Include      []Selector
+	Exclude      []Selector
+	NeverExport  []Selector
+	References   ReferencesMode
+	Hide         []HideSection
 	Introduction string
 }
 
@@ -96,6 +96,11 @@ func (f specFrontmatter) toSpec(body string) (*ExportSpec, error) {
 	spec := &ExportSpec{
 		Title:        f.Title,
 		Description:  f.Description,
+		Include:      nil,
+		Exclude:      nil,
+		NeverExport:  nil,
+		References:   "",
+		Hide:         nil,
 		Introduction: body,
 	}
 
@@ -105,8 +110,13 @@ func (f specFrontmatter) toSpec(body string) (*ExportSpec, error) {
 	}
 
 	if len(f.Include) == 0 {
-		return nil, errorfamily.NewRejection("catalog.architecture.7",
-			fmt.Sprintf("architecture: export spec %q needs at least one include selector", spec.Title))
+		return nil, errorfamily.NewRejection(
+			"catalog.architecture.7",
+			fmt.Sprintf(
+				"architecture: export spec %q needs at least one include selector",
+				spec.Title,
+			),
+		)
 	}
 
 	selectors := func(entries []specSelector) ([]Selector, error) {
@@ -114,12 +124,17 @@ func (f specFrontmatter) toSpec(body string) (*ExportSpec, error) {
 
 		for _, entry := range entries {
 			if strings.HasPrefix(entry.Kind, "x-") || strings.HasPrefix(entry.ID, "x-") {
-				return nil, errorfamily.NewRejection("catalog.architecture.7",
-					fmt.Sprintf("architecture: custom-property selector %q/%q is not supported (ADR-0160)",
-						entry.Kind, entry.ID))
+				return nil, errorfamily.NewRejection(
+					"catalog.architecture.7",
+					fmt.Sprintf(
+						"architecture: custom-property selector %q/%q is not supported (ADR-0160)",
+						entry.Kind,
+						entry.ID,
+					),
+				)
 			}
 
-			out = append(out, Selector{Kind: entry.Kind, ID: entry.ID})
+			out = append(out, Selector(entry))
 		}
 
 		return out, nil

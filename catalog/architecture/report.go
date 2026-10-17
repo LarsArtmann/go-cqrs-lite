@@ -157,8 +157,7 @@ func (r ExportReport) String() string {
 	var b strings.Builder
 
 	line := func(format string, args ...any) {
-		b.WriteString(fmt.Sprintf(format, args...))
-		b.WriteByte('\n')
+		fmt.Fprintf(&b, format+"\n", args...)
 	}
 
 	line("architecture reference check")

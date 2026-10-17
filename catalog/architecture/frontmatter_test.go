@@ -32,11 +32,11 @@ func leakCatalog() *catalog.Catalog {
 	)
 
 	builder.AddDataStore(catalog.DataStore{
-		ID:          "secret-store",
-		Name:        catalog.Name(hostile),
-		Version:     "1.0.0",
-		Summary:     "Quarterly revenue, unreleased.",
-		Technology:  "postgres@16",
+		ID:         "secret-store",
+		Name:       catalog.Name(hostile),
+		Version:    "1.0.0",
+		Summary:    "Quarterly revenue, unreleased.",
+		Technology: "postgres@16",
 	})
 
 	return builder.Build()
@@ -143,7 +143,8 @@ Everything about **orders**, redacted for the partner portal.
 		t.Errorf("title: %q", spec.Title)
 	}
 
-	if len(spec.Include) != 1 || spec.Include[0].Kind != "domain" || spec.Include[0].ID != "ordering" {
+	if len(spec.Include) != 1 || spec.Include[0].Kind != "domain" ||
+		spec.Include[0].ID != "ordering" {
 		t.Errorf("include selectors: %+v", spec.Include)
 	}
 
