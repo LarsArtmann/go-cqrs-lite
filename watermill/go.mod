@@ -7,7 +7,7 @@ require (
 	github.com/ThreeDotsLabs/watermill-nats/v2 v2.2.0
 	github.com/ThreeDotsLabs/watermill-redisstream v1.4.5
 	github.com/gkampitakis/go-snaps v0.5.23
-	github.com/larsartmann/go-codec v0.3.1
+	github.com/larsartmann/go-codec v0.3.2
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.0
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.4.0
@@ -15,7 +15,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.2
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2
-	github.com/larsartmann/go-error-family v0.11.0
+	github.com/larsartmann/go-error-family v0.12.0
 	github.com/nats-io/nats.go v1.54.0
 	github.com/redis/go-redis/v9 v9.23.0
 	go.opentelemetry.io/otel v1.47.0

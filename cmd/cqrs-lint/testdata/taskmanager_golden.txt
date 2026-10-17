@@ -6,7 +6,7 @@ C009 panic() in production code — use error returns instead
 C009 panic() in production code — use error returns instead
 C009 panic() in production code — use error returns instead
 C013 Struct TaskDueDateSetPayload has DueDate of type time.Time — timezone info is lost via CBOR epoch encoding
-C015 unchecked Close() at setup.go:286:7 — error is discarded, resource leak risk
+C015 unchecked Close() at setup.go:321:7 — error is discarded, resource leak risk
 C023 Close() error ignored — pending events or resources may be lost
 C023 Close() error ignored — pending events or resources may be lost
 C023 Shutdown() error ignored — pending events or resources may be lost
@@ -22,7 +22,7 @@ F004 Server-mode project has no Prometheus metrics — runtime observability is 
 F009 Time-based patterns detected (timers, deadlines, expirations) but scheduling module is not used — hand-rolled timers are fragile and not crash-safe
 F013 Manual HTTP handlers for dispatch but no delivery module is used — hand-rolled HTTP lacks broker fanout, SSE delivery, and trace-context propagation
 F021 metaengine query "task_counts_by_status" has 4 fold declarations — high write amplification may degrade ingest throughput (each event triggers multiple engine writes)
-F021 metaengine query "task_views" has 11 fold declarations — high write amplification may degrade ingest throughput (each event triggers multiple engine writes)
+F021 metaengine query <unknown> has 11 fold declarations — high write amplification may degrade ingest throughput (each event triggers multiple engine writes)
 F026 metaengine.NewReader used for Scans but WithPrefetch never called — every Scan page fetch hits the underlying store individually
 F028 Project uses slog but never calls slog.SetDefault — the default logger is unconfigured (Text to stderr)
 F031 Scan without WithLimit silently truncates at 100 rows — larger collections return wrong (partial) results

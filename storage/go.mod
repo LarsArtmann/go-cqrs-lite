@@ -7,7 +7,7 @@ require (
 	github.com/gkampitakis/go-snaps v0.5.23
 	github.com/go-sql-driver/mysql v1.10.1
 	github.com/jackc/pgx/v5 v5.11.0
-	github.com/larsartmann/go-codec v0.3.1
+	github.com/larsartmann/go-codec v0.3.2
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.0
 	github.com/larsartmann/go-cqrs-lite/encryption/v4 v4.4.5
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.0
@@ -22,7 +22,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.7.0
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.7.0
 	github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.2.3
-	github.com/larsartmann/go-error-family v0.11.0
+	github.com/larsartmann/go-error-family v0.12.0
 	github.com/larsartmann/go-sqlitestore v0.1.0
 	go.opentelemetry.io/otel v1.47.0
 	go.opentelemetry.io/otel/sdk v1.47.0
