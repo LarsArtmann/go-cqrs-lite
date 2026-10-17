@@ -194,36 +194,17 @@ func agentModelFields(model *catalog.AgentModel) markup {
 
 // agentToolTable renders the tools an agent may call.
 func agentToolTable(tools []catalog.AgentTool) markup {
-	if len(tools) == 0 {
-		return ""
+	rows := make([][]tableCell, 0, len(tools))
+
+	for _, tool := range tools {
+		rows = append(rows, []tableCell{
+			monoCell(string(tool.Name)),
+			plainCell(tool.Type),
+			plainCell(string(tool.Description)),
+		})
 	}
 
-	return renderInto(func(w *htmlWriter) {
-		w.open("div", htmlClass("md-table"))
-		w.open("table")
-		w.open("thead")
-		w.open("tr")
-
-		for _, header := range []string{"Tool", headerType, headerDescription} {
-			w.element("th", header)
-		}
-
-		w.close("tr")
-		w.close("thead")
-		w.open("tbody")
-
-		for _, tool := range tools {
-			w.open("tr")
-			w.element("td", string(tool.Name), htmlClass("mono"))
-			w.element("td", tool.Type)
-			w.element("td", string(tool.Description))
-			w.close("tr")
-		}
-
-		w.close("tbody")
-		w.close("table")
-		w.close("div")
-	})
+	return writeTable([]string{"Tool", headerType, headerDescription}, rows)
 }
 
 // teamSection builds the section for one team.

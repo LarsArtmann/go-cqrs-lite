@@ -139,36 +139,17 @@ func labelRefs(labels map[string]string) []resourceRef {
 
 // changeTable renders a message changelog as a table.
 func changeTable(changes []catalog.Change) markup {
-	if len(changes) == 0 {
-		return ""
+	rows := make([][]tableCell, 0, len(changes))
+
+	for _, change := range changes {
+		rows = append(rows, []tableCell{
+			monoCell(string(change.Version)),
+			plainCell(changeDate(change.Date)),
+			plainCell(string(change.Summary)),
+		})
 	}
 
-	return renderInto(func(w *htmlWriter) {
-		w.open("div", htmlClass("md-table"))
-		w.open("table")
-		w.open("thead")
-		w.open("tr")
-
-		for _, header := range []string{headerVersion, headerDate, headerSummary} {
-			w.element("th", header)
-		}
-
-		w.close("tr")
-		w.close("thead")
-		w.open("tbody")
-
-		for _, change := range changes {
-			w.open("tr")
-			w.element("td", string(change.Version), htmlClass("mono"))
-			w.element("td", changeDate(change.Date))
-			w.element("td", string(change.Summary))
-			w.close("tr")
-		}
-
-		w.close("tbody")
-		w.close("table")
-		w.close("div")
-	})
+	return writeTable([]string{headerVersion, headerDate, headerSummary}, rows)
 }
 
 // changeDate formats a changelog date, tolerating a missing one.
