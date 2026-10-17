@@ -70,38 +70,18 @@ func channelRefs(channel catalog.Channel, idx *refIndex) []block {
 
 // parameterTable renders a channel's address parameters.
 func parameterTable(params map[string]catalog.ChannelParam) markup {
-	if len(params) == 0 {
-		return ""
+	rows := make([][]tableCell, 0, len(params))
+
+	for _, name := range sortedKeysOf(params) {
+		param := params[name]
+		rows = append(rows, []tableCell{
+			monoCell(name),
+			plainCell(string(param.Description)),
+			monoCell(param.Default),
+		})
 	}
 
-	return renderInto(func(w *htmlWriter) {
-		w.open("div", htmlClass("md-table"))
-		w.open("table")
-		w.open("thead")
-		w.open("tr")
-
-		for _, header := range []string{"Parameter", headerDescription, "Default"} {
-			w.element("th", header)
-		}
-
-		w.close("tr")
-		w.close("thead")
-		w.open("tbody")
-
-		for _, name := range sortedKeysOf(params) {
-			param := params[name]
-
-			w.open("tr")
-			w.element("td", name, htmlClass("mono"))
-			w.element("td", string(param.Description))
-			w.element("td", param.Default, htmlClass("mono"))
-			w.close("tr")
-		}
-
-		w.close("tbody")
-		w.close("table")
-		w.close("div")
-	})
+	return writeTable([]string{"Parameter", headerDescription, "Default"}, rows)
 }
 
 // routeList renders a channel's routing rules.

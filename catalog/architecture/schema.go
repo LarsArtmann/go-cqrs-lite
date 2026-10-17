@@ -17,37 +17,19 @@ func attributeTable(schema *catalog.Schema) markup {
 		return ""
 	}
 
-	names := sortedFieldNames(schema.Properties)
+	rows := make([][]tableCell, 0, len(schema.Properties))
 
-	return renderInto(func(w *htmlWriter) {
-		w.open("div", htmlClass("md-table"))
-		w.open("table")
-		w.open("thead")
-		w.open("tr")
+	for _, name := range sortedFieldNames(schema.Properties) {
+		prop := schema.Properties[name]
+		rows = append(rows, []tableCell{
+			monoCell(name),
+			monoCell(typeLabel(prop)),
+			plainCell(requiredLabel(schema.Required, name)),
+			plainCell(prop.Description),
+		})
+	}
 
-		for _, header := range []string{headerField, headerType, headerRequired, headerDescription} {
-			w.element("th", header)
-		}
-
-		w.close("tr")
-		w.close("thead")
-		w.open("tbody")
-
-		for _, name := range names {
-			prop := schema.Properties[name]
-
-			w.open("tr")
-			w.element("td", name, htmlClass("mono"))
-			w.element("td", typeLabel(prop), htmlClass("mono"))
-			w.element("td", requiredLabel(schema.Required, name))
-			w.element("td", prop.Description)
-			w.close("tr")
-		}
-
-		w.close("tbody")
-		w.close("table")
-		w.close("div")
-	})
+	return writeTable([]string{headerField, headerType, headerRequired, headerDescription}, rows)
 }
 
 // sortedKeysOf returns a map's keys in stable order.

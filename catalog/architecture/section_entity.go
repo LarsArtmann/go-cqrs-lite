@@ -58,37 +58,18 @@ func entityRefs(entity catalog.Entity, idx *refIndex) []block {
 
 // entityPropertyTable renders an entity's declared properties.
 func entityPropertyTable(props []catalog.EntityProperty) markup {
-	if len(props) == 0 {
-		return ""
+	rows := make([][]tableCell, 0, len(props))
+
+	for _, prop := range props {
+		rows = append(rows, []tableCell{
+			monoCell(string(prop.Name)),
+			monoCell(prop.Type),
+			plainCell(yesNo(prop.Required)),
+			plainCell(prop.Description),
+		})
 	}
 
-	return renderInto(func(w *htmlWriter) {
-		w.open("div", htmlClass("md-table"))
-		w.open("table")
-		w.open("thead")
-		w.open("tr")
-
-		for _, header := range []string{headerProperty, headerType, headerRequired, headerDescription} {
-			w.element("th", header)
-		}
-
-		w.close("tr")
-		w.close("thead")
-		w.open("tbody")
-
-		for _, prop := range props {
-			w.open("tr")
-			w.element("td", string(prop.Name), htmlClass("mono"))
-			w.element("td", prop.Type, htmlClass("mono"))
-			w.element("td", yesNo(prop.Required))
-			w.element("td", prop.Description)
-			w.close("tr")
-		}
-
-		w.close("tbody")
-		w.close("table")
-		w.close("div")
-	})
+	return writeTable([]string{headerProperty, headerType, headerRequired, headerDescription}, rows)
 }
 
 // yesNo renders a boolean as a table cell value.
@@ -142,36 +123,17 @@ func dataProductRefs(product catalog.DataProduct, idx *refIndex) []block {
 
 // outputTable renders a data product's published outputs.
 func outputTable(outputs []catalog.DataProductOutput) markup {
-	if len(outputs) == 0 {
-		return ""
+	rows := make([][]tableCell, 0, len(outputs))
+
+	for _, output := range outputs {
+		rows = append(rows, []tableCell{
+			monoCell(string(output.ID)),
+			plainCell(outputContractPath(output)),
+			plainCell(outputContractType(output)),
+		})
 	}
 
-	return renderInto(func(w *htmlWriter) {
-		w.open("div", htmlClass("md-table"))
-		w.open("table")
-		w.open("thead")
-		w.open("tr")
-
-		for _, header := range []string{"Output", "Contract", headerType} {
-			w.element("th", header)
-		}
-
-		w.close("tr")
-		w.close("thead")
-		w.open("tbody")
-
-		for _, output := range outputs {
-			w.open("tr")
-			w.element("td", string(output.ID), htmlClass("mono"))
-			w.element("td", outputContractPath(output))
-			w.element("td", outputContractType(output))
-			w.close("tr")
-		}
-
-		w.close("tbody")
-		w.close("table")
-		w.close("div")
-	})
+	return writeTable([]string{"Output", "Contract", headerType}, rows)
 }
 
 // outputContractPath returns an output's contract path, if it declares one.
