@@ -9,7 +9,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.5.3
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.19.0
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2
-	github.com/larsartmann/go-cqrs-lite/system/v4 v4.15.0
+	github.com/larsartmann/go-cqrs-lite/system/v4 v4.15.1
 )
 
 require (
@@ -31,9 +31,9 @@ require (
 	github.com/larsartmann/go-branded-id v0.7.0 // indirect
 	github.com/larsartmann/go-codec v0.3.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.2 // indirect
-	github.com/larsartmann/go-cqrs-lite/command/v4 v4.13.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4 v4.2.3 // indirect
-	github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.2.3 // indirect
+	github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.3.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.8.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.2 // indirect
