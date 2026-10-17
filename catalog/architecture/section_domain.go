@@ -14,7 +14,13 @@ func domainSection(domain catalog.Domain, idx *refIndex) section {
 	sec.summary = string(domain.Summary)
 
 	sec.badges = domain.Badges
-	sec.meta = metaLine([]markup{ownerMeta(idx, domain.Owners), countMeta(len(domain.Services), "service", "services"), countMeta(len(domain.SubDomains), "sub-domain", "sub-domains")})
+	sec.meta = metaLine(
+		[]markup{
+			ownerMeta(idx, domain.Owners),
+			countMeta(len(domain.Services), "service", "services"),
+			countMeta(len(domain.SubDomains), "sub-domain", "sub-domains"),
+		},
+	)
 
 	sec.left = domainBlocks(domain)
 	sec.right = domainRefs(domain, idx)
@@ -24,7 +30,7 @@ func domainSection(domain catalog.Domain, idx *refIndex) section {
 
 // domainBlocks builds the left-column blocks of a domain section.
 func domainBlocks(domain catalog.Domain) []block {
-	blocks := make([]block, 0, 2)
+	blocks := make([]block, 0)
 
 	if terms := termList(domain.UbiquitousLanguage); terms != "" {
 		blocks = append(blocks, blockHTML("Ubiquitous language", terms))
@@ -39,14 +45,18 @@ func domainBlocks(domain catalog.Domain) []block {
 
 // domainRefs builds the relationship boxes of a domain section.
 func domainRefs(domain catalog.Domain, idx *refIndex) []block {
-	refs := make([]block, 0, 7)
+	refs := make([]block, 0)
 	refs = appendRefs(refs, "Services", idx.messagesOf(kindService, idStrings(domain.Services)))
 	refs = appendRefs(refs, "Sends", idx.anyOf(refIDs(domain.Sends)))
 	refs = appendRefs(refs, "Receives", idx.anyOf(refIDs(domain.Receives)))
 	refs = appendRefs(refs, "Sub-domains", idx.messagesOf(kindDomain, idStrings(domain.SubDomains)))
 	refs = appendRefs(refs, "Entities", idx.messagesOf(kindEntity, domain.Entities))
 	refs = appendRefs(refs, "Flows", idx.messagesOf(kindFlow, idStrings(domain.Flows)))
-	refs = appendRefs(refs, "Data products", idx.messagesOf(kindDataProduct, idStrings(domain.DataProducts)))
+	refs = appendRefs(
+		refs,
+		"Data products",
+		idx.messagesOf(kindDataProduct, idStrings(domain.DataProducts)),
+	)
 
 	return refs
 }
@@ -84,7 +94,12 @@ func attachmentLinks(items []catalog.Attachment) markup {
 
 		for _, item := range items {
 			w.open("li")
-			w.raw(externalLink(string(item.URL), defaultIfEmpty(string(item.Title), string(item.URL))))
+			w.raw(
+				externalLink(
+					string(item.URL),
+					defaultIfEmpty(string(item.Title), string(item.URL)),
+				),
+			)
 
 			if item.Description != "" {
 				w.element("p", string(item.Description), htmlClass("attr-desc"))

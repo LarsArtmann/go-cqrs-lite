@@ -23,7 +23,7 @@ func newRefIndex() *refIndex {
 }
 
 // add registers a resource and returns the reference other sections link to.
-func (x *refIndex) add(kind resourceKind, id, name string) resourceRef {
+func (x *refIndex) add(kind resourceKind, id, name string) {
 	info := kindInfos()[kind]
 	ref := resourceRef{
 		anchor: info.anchor(id),
@@ -42,8 +42,6 @@ func (x *refIndex) add(kind resourceKind, id, name string) resourceRef {
 	if _, exists := x.byID[id]; !exists {
 		x.byID[id] = ref
 	}
-
-	return ref
 }
 
 // get returns the reference for a resource of a known kind.
@@ -175,7 +173,10 @@ func register(cat *catalog.Catalog, idx *refIndex) {
 		idx.add(kindChannel, string(channel.ID), string(channel.Name))
 
 		for _, id := range channel.Messages {
-			idx.channelsByMessage[string(id)] = append(idx.channelsByMessage[string(id)], string(channel.ID))
+			idx.channelsByMessage[string(id)] = append(
+				idx.channelsByMessage[string(id)],
+				string(channel.ID),
+			)
 		}
 	}
 

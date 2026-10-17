@@ -1,7 +1,6 @@
 package architecture
 
 import (
-	"fmt"
 	"io"
 	"os"
 	"time"
@@ -112,7 +111,7 @@ func (e *Exporter) ExportFile(cat *catalog.Catalog, path string) error {
 
 	if err := os.WriteFile(path, []byte(out), outputPerm); err != nil {
 		return errorfamily.WrapInfrastructure(err, "catalog.architecture.4",
-			fmt.Sprintf("architecture: write %s", path))
+			"architecture: write "+path)
 	}
 
 	return nil

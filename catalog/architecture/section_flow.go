@@ -19,7 +19,9 @@ func flowSection(flow catalog.Flow, idx *refIndex) section {
 	sec.summary = string(flow.Summary)
 
 	sec.badges = flow.Badges
-	sec.meta = metaLine([]markup{ownerMeta(idx, flow.Owners), countMeta(len(flow.Steps), "step", "steps")})
+	sec.meta = metaLine(
+		[]markup{ownerMeta(idx, flow.Owners), countMeta(len(flow.Steps), "step", "steps")},
+	)
 
 	sec.left = []block{blockHTML("Steps", flowSteps(flow.Steps, idx))}
 	sec.right = flowRefs(flow, idx)
@@ -32,7 +34,7 @@ func flowSection(flow catalog.Flow, idx *refIndex) section {
 func flowRefs(flow catalog.Flow, idx *refIndex) []block {
 	touched := touchedRefs(flow, idx)
 
-	refs := make([]block, 0, 3)
+	refs := make([]block, 0)
 
 	if len(touched) > 0 {
 		refs = append(refs, blockCounted("Involved", len(touched), refList(touched)))
@@ -68,7 +70,7 @@ func touchedRefs(flow catalog.Flow, idx *refIndex) []resourceRef {
 
 // stepRefs resolves the resources a single step points at.
 func stepRefs(step catalog.FlowStep, idx *refIndex) []resourceRef {
-	refs := make([]resourceRef, 0, 4)
+	refs := make([]resourceRef, 0)
 
 	for _, target := range []struct {
 		ref  *catalog.FlowStepRef
@@ -147,7 +149,7 @@ func writeStep(w *htmlWriter, number int, step catalog.FlowStep, idx *refIndex) 
 // flowNodes renders the non-catalog participants of a step (actors and
 // custom nodes), which have no section to link to.
 func flowNodes(step catalog.FlowStep) markup {
-	nodes := make([]string, 0, 3)
+	nodes := make([]string, 0)
 
 	for _, node := range []*catalog.FlowActor{step.Actor, step.External} {
 		if node != nil && node.Name != "" {

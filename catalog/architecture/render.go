@@ -36,14 +36,22 @@ func writeHead(w *htmlWriter, doc *document) {
 	w.open("html", htmlAttr("lang", "en"))
 	w.open("head")
 	w.open("meta", htmlAttr("charset", "utf-8"))
-	w.open("meta", htmlAttr("name", "viewport"), htmlAttr("content", "width=device-width, initial-scale=1"))
+	w.open(
+		"meta",
+		htmlAttr("name", "viewport"),
+		htmlAttr("content", "width=device-width, initial-scale=1"),
+	)
 	w.element("title", doc.title+" · Architecture reference")
 
 	if doc.description != "" {
 		w.open("meta", htmlAttr("name", "description"), htmlAttr("content", doc.description))
 	}
 
-	w.open("meta", htmlAttr("name", "generator"), htmlAttr("content", "go-cqrs-lite catalog architecture"))
+	w.open(
+		"meta",
+		htmlAttr("name", "generator"),
+		htmlAttr("content", "go-cqrs-lite catalog architecture"),
+	)
 	w.open("script")
 	w.raw(asset("theme.js"))
 	w.close("script")
@@ -62,7 +70,12 @@ func writeTopbar(w *htmlWriter, doc *document) {
 	w.close("a")
 	w.open("div", htmlClass("top-spacer"))
 	w.close("div")
-	w.open("button", htmlClass("search-btn"), htmlAttr("id", "search-btn"), htmlAttr("type", "button"))
+	w.open(
+		"button",
+		htmlClass("search-btn"),
+		htmlAttr("id", "search-btn"),
+		htmlAttr("type", "button"),
+	)
 	w.element("span", "Search the reference")
 	w.element("kbd", "Ctrl-K", htmlAttr("id", "kbd-hint"))
 	w.close("button")
@@ -77,7 +90,12 @@ func writeTopbar(w *htmlWriter, doc *document) {
 // writeShell writes the sidebar and the document body.
 func writeShell(w *htmlWriter, doc *document) {
 	w.open("div", htmlClass("shell"))
-	w.open("nav", htmlClass("sidenav"), htmlAttr("id", "sidenav"), htmlAttr("aria-label", "Reference"))
+	w.open(
+		"nav",
+		htmlClass("sidenav"),
+		htmlAttr("id", "sidenav"),
+		htmlAttr("aria-label", "Reference"),
+	)
 	w.raw(navHTML(doc))
 	w.close("nav")
 	w.open("main", htmlAttr("id", "main"))
@@ -113,7 +131,12 @@ func writeSections(w *htmlWriter, doc *document) {
 // sectionHTML renders one resource section.
 func sectionHTML(sec section) markup {
 	return renderInto(func(w *htmlWriter) {
-		w.open("section", htmlClass("section"), htmlAttr("id", sec.anchor()), htmlAttr("data-kind", string(sec.kind)))
+		w.open(
+			"section",
+			htmlClass("section"),
+			htmlAttr("id", sec.anchor()),
+			htmlAttr("data-kind", string(sec.kind)),
+		)
 		writeSectionLeft(w, sec)
 		writeSectionRight(w, sec)
 		w.close("section")
@@ -127,11 +150,7 @@ func writeSectionLeft(w *htmlWriter, sec section) {
 	w.element("span", kindLabel(sec.kind))
 	w.close("div")
 	w.open("div", htmlClass("title-row"))
-	if sec.kind == kindOverview {
-		w.element("h1", sec.name)
-	} else {
-		w.element("h2", sec.name)
-	}
+	w.element(titleTag(sec.kind), sec.name)
 	w.raw(pillRow(sec.version, sec.badges, sec.deprecated))
 	w.close("div")
 
@@ -209,16 +228,55 @@ func writeSearchIndex(w *htmlWriter, index string) {
 
 // writeSearchDialog writes the command palette markup.
 func writeSearchDialog(w *htmlWriter) {
-	w.open("div", htmlClass("cmdk-scrim"), htmlAttr("id", "cmdk-scrim"), htmlAttr("hidden", "hidden"))
-	w.open("div", htmlClass("cmdk"), htmlAttr("id", "cmdk"), htmlAttr("role", "dialog"),
-		htmlAttr("aria-modal", "true"), htmlAttr("aria-label", "Search the reference"), htmlAttr("hidden", "hidden"))
-	w.open("input", htmlClass("cmdk-input"), htmlAttr("id", "cmdk-input"), htmlAttr("type", "text"),
-		htmlAttr("placeholder", "Search resources by name, id or summary"), htmlAttr("autocomplete", "off"),
-		htmlAttr("aria-label", "Search the reference"))
-	w.open("div", htmlClass("cmdk-results"), htmlAttr("id", "cmdk-results"), htmlAttr("role", "listbox"))
+	w.open(
+		"div",
+		htmlClass("cmdk-scrim"),
+		htmlAttr("id", "cmdk-scrim"),
+		htmlAttr("hidden", "hidden"),
+	)
+	w.open(
+		"div",
+		htmlClass("cmdk"),
+		htmlAttr("id", "cmdk"),
+		htmlAttr("role", "dialog"),
+		htmlAttr(
+			"aria-modal",
+			"true",
+		),
+		htmlAttr("aria-label", "Search the reference"),
+		htmlAttr("hidden", "hidden"),
+	)
+	w.open(
+		"input",
+		htmlClass("cmdk-input"),
+		htmlAttr("id", "cmdk-input"),
+		htmlAttr("type", "text"),
+		htmlAttr(
+			"placeholder",
+			"Search resources by name, id or summary",
+		),
+		htmlAttr("autocomplete", "off"),
+		htmlAttr("aria-label", "Search the reference"),
+	)
+	w.open(
+		"div",
+		htmlClass("cmdk-results"),
+		htmlAttr("id", "cmdk-results"),
+		htmlAttr("role", "listbox"),
+	)
 	w.close("div")
 	w.close("div")
 	w.close("div")
+}
+
+// titleTag returns the heading element for a section title. Only the overview
+// is an h1, so the document has exactly one top-level heading.
+func titleTag(kind resourceKind) string {
+	if kind == kindOverview {
+		return "h1"
+	}
+
+	return "h2"
 }
 
 // kindLabel returns the display name of a resource kind, as shown in a

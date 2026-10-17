@@ -6,7 +6,11 @@ import "github.com/larsartmann/go-cqrs-lite/catalog/v4"
 func serviceSection(service catalog.Service, idx *refIndex) section {
 	meta := []markup{
 		ownerMeta(idx, service.Owners),
-		countMeta(len(service.Commands)+len(service.Events)+len(service.Queries), "message", "messages"),
+		countMeta(
+			len(service.Commands)+len(service.Events)+len(service.Queries),
+			"message",
+			"messages",
+		),
 	}
 
 	if service.ExternalSystem {
@@ -33,7 +37,7 @@ func serviceSection(service catalog.Service, idx *refIndex) section {
 
 // serviceBlocks builds the left-column blocks of a service section.
 func serviceBlocks(service catalog.Service, idx *refIndex) []block {
-	blocks := make([]block, 0, 3)
+	blocks := make([]block, 0)
 
 	blocks = appendRefs(blocks, "Publishes", serviceMessages(service, idx, catalog.Sends))
 	blocks = appendRefs(blocks, "Handles", serviceMessages(service, idx, catalog.Receives))
@@ -47,9 +51,13 @@ func serviceBlocks(service catalog.Service, idx *refIndex) []block {
 
 // serviceRefs builds the relationship boxes of a service section.
 func serviceRefs(service catalog.Service, idx *refIndex) []block {
-	refs := make([]block, 0, 6)
+	refs := make([]block, 0)
 	refs = appendRefs(refs, "Writes to", idx.messagesOf(kindDataStore, idStrings(service.WritesTo)))
-	refs = appendRefs(refs, "Reads from", idx.messagesOf(kindDataStore, idStrings(service.ReadsFrom)))
+	refs = appendRefs(
+		refs,
+		"Reads from",
+		idx.messagesOf(kindDataStore, idStrings(service.ReadsFrom)),
+	)
 	refs = appendRefs(refs, "Entities", idx.messagesOf(kindEntity, service.Entities))
 	refs = appendRefs(refs, "Flows", idx.messagesOf(kindFlow, idStrings(service.Flows)))
 
@@ -58,7 +66,10 @@ func serviceRefs(service catalog.Service, idx *refIndex) []block {
 	}
 
 	if service.Repository != nil && service.Repository.URL != "" {
-		refs = append(refs, blockHTML("Repository", externalLink(string(service.Repository.URL), "Source code")))
+		refs = append(
+			refs,
+			blockHTML("Repository", externalLink(string(service.Repository.URL), "Source code")),
+		)
 	}
 
 	return refs
@@ -66,7 +77,11 @@ func serviceRefs(service catalog.Service, idx *refIndex) []block {
 
 // serviceMessages resolves the service's messages of one direction, keeping
 // the message kind on each reference so the reader sees what it is.
-func serviceMessages(service catalog.Service, idx *refIndex, direction catalog.Direction) []resourceRef {
+func serviceMessages(
+	service catalog.Service,
+	idx *refIndex,
+	direction catalog.Direction,
+) []resourceRef {
 	refs := make([]resourceRef, 0, len(service.Events))
 
 	for _, kind := range []resourceKind{kindCommand, kindEvent, kindQuery} {

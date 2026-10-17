@@ -14,7 +14,10 @@ func overviewSection(cfg config, counts []countRow) section {
 	sec.right = []block{blockHTML("Catalog", countTable(counts))}
 
 	if cfg.command != "" {
-		sec.right = append(sec.right, blockHTML("", codeBlock("Regenerate this reference", cfg.command)))
+		sec.right = append(
+			sec.right,
+			blockHTML("", codeBlock("Regenerate this reference", cfg.command)),
+		)
 	}
 
 	return sec

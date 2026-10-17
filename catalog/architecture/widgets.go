@@ -15,6 +15,19 @@ type resourceRef struct {
 	note   string
 }
 
+// Table column headers. The same labels head many tables, so they are named
+// once here instead of being spelled out again in every renderer.
+const (
+	headerField       = "Field"
+	headerProperty    = "Property"
+	headerType        = "Type"
+	headerRequired    = "Required"
+	headerDescription = "Description"
+	headerVersion     = "Version"
+	headerDate        = "Date"
+	headerSummary     = "Summary"
+)
+
 // plainRef builds a reference to something with no section in the document,
 // which therefore renders as text rather than a link.
 func plainRef(name string) resourceRef {
@@ -127,14 +140,20 @@ func pillRow(version string, badges []catalog.Badge, deprecated string) markup {
 
 // badgeStyle builds a safe inline style for a badge's colors.
 func badgeStyle(badge catalog.Badge) string {
-	fg := safeColor(string(badge.TextColor))
-	bg := safeColor(string(badge.BackgroundColor))
+	foreground := safeColor(string(badge.TextColor))
+	background := safeColor(string(badge.BackgroundColor))
 
-	if fg == "" && bg == "" {
+	if foreground == "" && background == "" {
 		return ""
 	}
 
-	rule := "--badge-fg:" + defaultIfEmpty(fg, "#ffffff") + ";--badge-bg:" + defaultIfEmpty(bg, "#1d4ed8")
+	rule := "--badge-fg:" + defaultIfEmpty(
+		foreground,
+		"#ffffff",
+	) + ";--badge-bg:" + defaultIfEmpty(
+		background,
+		"#1d4ed8",
+	)
 
 	return htmlAttr("style", rule)
 }
@@ -200,7 +219,12 @@ func codeBlock(title, code string) markup {
 			w.element("span", title, htmlClass("code-title"))
 		}
 
-		w.open("button", htmlClass("copy"), htmlAttr("type", "button"), htmlAttr("aria-label", "Copy code"))
+		w.open(
+			"button",
+			htmlClass("copy"),
+			htmlAttr("type", "button"),
+			htmlAttr("aria-label", "Copy code"),
+		)
 		w.element("span", "Copy")
 		w.close("button")
 		w.close("div")
@@ -220,7 +244,12 @@ func externalLink(href, label string) markup {
 			return
 		}
 
-		w.open("a", htmlAttr("href", safeHref(href)), htmlAttr("rel", "noreferrer noopener"), htmlAttr("target", "_blank"))
+		w.open(
+			"a",
+			htmlAttr("href", safeHref(href)),
+			htmlAttr("rel", "noreferrer noopener"),
+			htmlAttr("target", "_blank"),
+		)
 		w.text(label)
 		w.close("a")
 	})

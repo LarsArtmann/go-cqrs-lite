@@ -1,6 +1,10 @@
 package architecture
 
-import "github.com/larsartmann/go-cqrs-lite/catalog/v4"
+import (
+	"slices"
+
+	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
+)
 
 // collect turns a catalog into a renderable document: it indexes every
 // resource first (so links resolve in both directions) and then builds one
@@ -33,7 +37,7 @@ func collect(cat *catalog.Catalog, cfg config) *document {
 	collectAgents(b, enriched, idx)
 	collectADRs(b, enriched, idx)
 	collectTeams(b, enriched, idx)
-	collectUsers(b, enriched, idx)
+	collectUsers(b, enriched)
 	collectDocs(b, enriched, idx)
 
 	return &document{
@@ -166,9 +170,9 @@ func collectTeams(b *docBuilder, cat *catalog.Catalog, idx *refIndex) {
 }
 
 // collectUsers adds one section per person.
-func collectUsers(b *docBuilder, cat *catalog.Catalog, idx *refIndex) {
+func collectUsers(b *docBuilder, cat *catalog.Catalog) {
 	for _, user := range cat.Users {
-		addResource(b, userSection(user, idx), "")
+		addResource(b, userSection(user), "")
 	}
 }
 
@@ -238,10 +242,8 @@ func messagesOf(service catalog.Service, kind resourceKind) []catalog.Message {
 // domainOfService returns the name of the domain owning a service, if any.
 func domainOfService(cat *catalog.Catalog, id catalog.ServiceID) string {
 	for _, domain := range cat.Domains {
-		for _, member := range domain.Services {
-			if member == id {
-				return string(domain.Name)
-			}
+		if slices.Contains(domain.Services, id) {
+			return string(domain.Name)
 		}
 	}
 

@@ -14,7 +14,9 @@ func adrSection(adr catalog.ADR, idx *refIndex) section {
 	sec.summary = string(adr.Summary)
 
 	sec.badges = adr.Badges
-	sec.meta = metaLine([]markup{textMeta(string(adr.Status)), ownerMeta(idx, adr.Owners), textMeta(adr.Date)})
+	sec.meta = metaLine(
+		[]markup{textMeta(string(adr.Status)), ownerMeta(idx, adr.Owners), textMeta(adr.Date)},
+	)
 
 	sec.left = adrBlocks(adr, idx)
 	sec.right = adrRefs(adr, idx)
@@ -24,7 +26,7 @@ func adrSection(adr catalog.ADR, idx *refIndex) section {
 
 // adrBlocks builds the left-column blocks of a decision record.
 func adrBlocks(adr catalog.ADR, idx *refIndex) []block {
-	blocks := make([]block, 0, 2)
+	blocks := make([]block, 0)
 
 	blocks = appendProse(blocks, "Decision", adr.Body, idx.link)
 
@@ -37,7 +39,7 @@ func adrBlocks(adr catalog.ADR, idx *refIndex) []block {
 
 // adrRefs builds the relationship boxes of a decision record.
 func adrRefs(adr catalog.ADR, idx *refIndex) []block {
-	refs := make([]block, 0, 7)
+	refs := make([]block, 0)
 	refs = appendRefs(refs, "Applies to", adrTargets(adr.AppliesTo, idx))
 	refs = appendRefs(refs, "Supersedes", adrLinks(adr.Supersedes, idx))
 	refs = appendRefs(refs, "Superseded by", adrLinks(adr.SupersededBy, idx))
@@ -67,7 +69,7 @@ func adrTargets(targets []catalog.ADRResourceRef, idx *refIndex) []resourceRef {
 			continue
 		}
 
-		refs = append(refs, resourceRef{name: target.ID})
+		refs = append(refs, plainRef(target.ID))
 	}
 
 	return refs
@@ -151,7 +153,7 @@ func agentSection(agent catalog.Agent, idx *refIndex) section {
 
 // agentBlocks builds the left-column blocks of an agent section.
 func agentBlocks(agent catalog.Agent) []block {
-	blocks := make([]block, 0, 2)
+	blocks := make([]block, 0)
 
 	if model := agentModelFields(agent.Model); model != "" {
 		blocks = append(blocks, blockHTML("Model", model))
@@ -166,7 +168,7 @@ func agentBlocks(agent catalog.Agent) []block {
 
 // agentRefs builds the relationship boxes of an agent section.
 func agentRefs(agent catalog.Agent, idx *refIndex) []block {
-	refs := make([]block, 0, 6)
+	refs := make([]block, 0)
 	refs = appendRefs(refs, "Sends", idx.anyOf(refIDs(agent.Sends)))
 	refs = appendRefs(refs, "Receives", idx.anyOf(refIDs(agent.Receives)))
 	refs = appendRefs(refs, "Writes to", idx.messagesOf(kindDataStore, idStrings(agent.WritesTo)))
@@ -202,7 +204,7 @@ func agentToolTable(tools []catalog.AgentTool) markup {
 		w.open("thead")
 		w.open("tr")
 
-		for _, header := range []string{"Tool", "Type", "Description"} {
+		for _, header := range []string{"Tool", headerType, headerDescription} {
 			w.element("th", header)
 		}
 
@@ -233,7 +235,9 @@ func teamSection(team catalog.Team, idx *refIndex) section {
 	)
 
 	sec.summary = string(team.Summary)
-	sec.meta = metaLine([]markup{countMeta(len(team.Members), "member", "members"), textMeta(string(team.Role))})
+	sec.meta = metaLine(
+		[]markup{countMeta(len(team.Members), "member", "members"), textMeta(string(team.Role))},
+	)
 
 	sec.left = orgBlocks(string(team.Email), string(team.SlackDirectMessageURL))
 	sec.right = appendRefs([]block{}, "Members", idx.owners(team.Members))
@@ -242,7 +246,7 @@ func teamSection(team catalog.Team, idx *refIndex) section {
 }
 
 // userSection builds the section for one person.
-func userSection(user catalog.User, idx *refIndex) section {
+func userSection(user catalog.User) section {
 	sec := newSection(
 		kindUser,
 		string(user.ID),
@@ -272,7 +276,7 @@ func orgBlocks(email, slack string) []block {
 
 // docSection builds the section for one custom documentation page.
 func docSection(doc catalog.CustomDoc, idx *refIndex) section {
-	blocks := appendProse(make([]block, 0, 1), "", doc.Content, idx.link)
+	blocks := appendProse(make([]block, 0), "", doc.Content, idx.link)
 
 	sec := newSection(
 		kindDoc,

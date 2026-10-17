@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"encoding/json/jsontext"
+	"slices"
 	"sort"
 	"strings"
 
@@ -24,7 +25,7 @@ func attributeTable(schema *catalog.Schema) markup {
 		w.open("thead")
 		w.open("tr")
 
-		for _, header := range []string{"Field", "Type", "Required", "Description"} {
+		for _, header := range []string{headerField, headerType, headerRequired, headerDescription} {
 			w.element("th", header)
 		}
 
@@ -34,6 +35,7 @@ func attributeTable(schema *catalog.Schema) markup {
 
 		for _, name := range names {
 			prop := schema.Properties[name]
+
 			w.open("tr")
 			w.element("td", name, htmlClass("mono"))
 			w.element("td", typeLabel(prop), htmlClass("mono"))
@@ -87,10 +89,8 @@ func typeLabel(prop catalog.Property) string {
 
 // requiredLabel reports whether a field is required.
 func requiredLabel(required []string, name string) string {
-	for _, field := range required {
-		if field == name {
-			return "yes"
-		}
+	if slices.Contains(required, name) {
+		return "yes"
 	}
 
 	return ""
@@ -108,6 +108,7 @@ func typeScriptInterface(name string, schema *catalog.Schema) string {
 
 	for _, field := range sortedFieldNames(schema.Properties) {
 		prop := schema.Properties[field]
+
 		optional := ""
 		if requiredLabel(schema.Required, field) == "" {
 			optional = "?"
@@ -135,6 +136,7 @@ func exportName(name string) string {
 			}
 
 			upperNext = false
+
 			b.WriteRune(r)
 		default:
 			upperNext = true
@@ -164,7 +166,9 @@ func tsField(field string) string {
 // tsType maps a schema property to a TypeScript type.
 func tsType(prop catalog.Property) string {
 	if prop.Nullable {
-		return tsType(catalog.Property{Type: prop.Type, Items: prop.Items, Properties: prop.Properties}) + " | null"
+		return tsType(
+			catalog.Property{Type: prop.Type, Items: prop.Items, Properties: prop.Properties},
+		) + " | null"
 	}
 
 	switch string(prop.Type) {
@@ -197,6 +201,7 @@ func tsObject(prop catalog.Property) string {
 
 	for _, field := range sortedFieldNames(prop.Properties) {
 		nested := prop.Properties[field]
+
 		optional := ""
 		if requiredLabel(prop.Required, field) == "" {
 			optional = "?"

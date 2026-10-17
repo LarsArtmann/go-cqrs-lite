@@ -25,7 +25,13 @@ func messageSection(msg catalog.Message, kind resourceKind, idx *refIndex) secti
 	sec.badges = msg.Badges
 	sec.deprecated = deprecated
 
-	sec.meta = metaLine([]markup{textMeta(messageKindLabel(msg)), ownerMeta(idx, msg.Owners), textMeta(operationLabel(msg.Operation))})
+	sec.meta = metaLine(
+		[]markup{
+			textMeta(messageKindLabel(msg)),
+			ownerMeta(idx, msg.Owners),
+			textMeta(operationLabel(msg.Operation)),
+		},
+	)
 	sec.left = messageBlocks(msg, idx)
 
 	sec.right = messageRefs(msg, idx)
@@ -56,7 +62,7 @@ func operationLabel(op *catalog.Operation) string {
 // messageBlocks builds the left-column blocks of a message section: its
 // attributes, an example payload, a TypeScript type and the raw schema.
 func messageBlocks(msg catalog.Message, idx *refIndex) []block {
-	blocks := make([]block, 0, 6)
+	blocks := make([]block, 0)
 
 	if table := attributeTable(msg.Schema); table != "" {
 		blocks = append(blocks, blockHTML("Attributes", table))
@@ -87,7 +93,7 @@ func messageBlocks(msg catalog.Message, idx *refIndex) []block {
 
 // messageRefs builds the relationship boxes of a message section.
 func messageRefs(msg catalog.Message, idx *refIndex) []block {
-	refs := make([]block, 0, 5)
+	refs := make([]block, 0)
 	refs = appendRefs(refs, "Produced by", idx.messagesOf(kindService, idStrings(msg.Producers)))
 	refs = appendRefs(refs, "Consumed by", idx.messagesOf(kindService, idStrings(msg.Consumers)))
 	refs = appendRefs(refs, "Channels", idx.channelsFor(msg))
@@ -96,7 +102,10 @@ func messageRefs(msg catalog.Message, idx *refIndex) []block {
 	refs = appendRefs(refs, "Labels", labelRefs(msg.Labels))
 
 	if msg.Repository != nil && msg.Repository.URL != "" {
-		refs = append(refs, blockHTML("Repository", externalLink(string(msg.Repository.URL), "Source code")))
+		refs = append(
+			refs,
+			blockHTML("Repository", externalLink(string(msg.Repository.URL), "Source code")),
+		)
 	}
 
 	return refs
@@ -140,7 +149,7 @@ func changeTable(changes []catalog.Change) markup {
 		w.open("thead")
 		w.open("tr")
 
-		for _, header := range []string{"Version", "Date", "Summary"} {
+		for _, header := range []string{headerVersion, headerDate, headerSummary} {
 			w.element("th", header)
 		}
 

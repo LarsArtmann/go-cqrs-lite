@@ -12,12 +12,12 @@ import (
 
 type createOrder struct {
 	OrderID string `json:"order_id" doc:"Order identifier"`
-	Amount  int    `json:"amount" doc:"Total in minor units"`
+	Amount  int    `json:"amount"   doc:"Total in minor units"`
 }
 
 type orderCreated struct {
 	OrderID string `json:"order_id" doc:"Order identifier"`
-	Amount  int    `json:"amount" doc:"Total in minor units"`
+	Amount  int    `json:"amount"   doc:"Total in minor units"`
 }
 
 type getOrder struct {
@@ -233,8 +233,17 @@ func TestExportEmbedsSearchIndex(t *testing.T) {
 func TestExportEscapesCatalogData(t *testing.T) {
 	builder := catalog.NewBuilder("Hostile", "1.0.0")
 	builder.AddService("evil", `<script>alert(1)</script>`, "1.0.0", `" onload="alert(2)`)
-	builder.AddService("evil2", "Second", "1.0.0", "",
-		catalog.Event[orderCreated](`x"y`, catalog.Sends, catalog.WithSummary("</script><script>alert(3)</script>")))
+	builder.AddService(
+		"evil2",
+		"Second",
+		"1.0.0",
+		"",
+		catalog.Event[orderCreated](
+			`x"y`,
+			catalog.Sends,
+			catalog.WithSummary("</script><script>alert(3)</script>"),
+		),
+	)
 
 	exp := architecture.NewExporter(architecture.WithGeneratedAt(excludeFrozenAt()))
 
