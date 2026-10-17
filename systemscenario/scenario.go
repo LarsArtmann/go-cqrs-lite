@@ -105,9 +105,10 @@ type Scenario struct {
 	lastErr         error
 	lastQueryResult any
 
-	// versionHints tracks the next version per stream for [Scenario.Event],
-	// counting minted-but-unappended events so multiple mints in one Given
-	// stamp strictly increasing versions.
+	// versionHints floors the next version per stream for [Scenario.Event]:
+	// minted-but-unappended events (multiple mints in one Given) count
+	// ahead of the store, which is re-read on every mint so out-of-band
+	// appends are still picked up.
 	versionHints map[string]event.Version
 
 	// awaitMode makes Then* assertions poll (set by TimeAdvances).
@@ -301,24 +302,26 @@ func (s *Scenario) Event(
 	return evt
 }
 
-// nextVersion returns the version the next event on ref should carry,
-// counting minted-but-unappended events so consecutive [Scenario.Event]
-// calls in one Given stamp strictly increasing versions.
+// nextVersion returns the version the next event on ref should carry. The
+// store is re-consulted on every mint so out-of-band appends through the
+// [Scenario.System] escape hatch advance the stream under the harness; the
+// per-stream hint floors that reading so consecutive [Scenario.Event] mints
+// in one Given (whose events append only at phase end) still stamp strictly
+// increasing versions.
 func (s *Scenario) nextVersion(ref id.StreamRef) event.Version {
 	s.t.Helper()
 
 	key := ref.String()
-	if next, ok := s.versionHints[key]; ok {
-		s.versionHints[key] = next + 1
-
-		return next
-	}
 
 	next := event.Version(1)
 	if events, err := s.sys.EventStore().Load(s.ctx, ref); err == nil && len(events) > 0 {
 		next = events[len(events)-1].Version() + 1
 	} else if err != nil && !errors.Is(err, event.ErrStreamNotFound) {
 		s.t.Fatalf("systemscenario.Event: load %s: %v", ref, err)
+	}
+
+	if hint, ok := s.versionHints[key]; ok && hint > next {
+		next = hint
 	}
 
 	s.versionHints[key] = next + 1
