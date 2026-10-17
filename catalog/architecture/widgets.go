@@ -16,8 +16,9 @@ type resourceRef struct {
 	note   string
 }
 
-// writeRef renders a resource reference as an in-document link.
-func (r resourceRef) write(w *htmlWriter) {
+// writeRef renders a resource reference as an in-document link, or as plain
+// text when the target is not part of the document.
+func (r resourceRef) writeRef(w *htmlWriter) {
 	if r.anchor == "" {
 		w.element("span", r.name, htmlClass("rl", "rl-plain"))
 
@@ -35,41 +36,47 @@ func (r resourceRef) write(w *htmlWriter) {
 	w.close("a")
 }
 
-// refBox renders a titled box of resource references, or nothing when empty.
-func refBox(label string, refs []resourceRef) markup {
+// refList renders references as a vertical list.
+func refList(refs []resourceRef) markup {
 	if len(refs) == 0 {
 		return ""
 	}
 
 	return renderInto(func(w *htmlWriter) {
-		boxStart(w, label, len(refs))
-		w.open("div", htmlClass("box-body"))
-
 		for _, ref := range refs {
-			ref.write(w)
+			ref.writeRef(w)
 		}
-
-		w.close("div")
-		w.close("div")
 	})
 }
 
-// boxStart writes the chrome shared by every right-column box.
-func boxStart(w *htmlWriter, label string, count int) {
-	w.open("div", htmlClass("box"))
-	w.open("div", htmlClass("box-head"))
-	w.element("span", label)
-
-	if count >= 0 {
-		w.element("span", strconv.Itoa(count))
+// refBlock builds a block (left column) from a titled list of references and
+// omits itself entirely when the list is empty.
+func refBlock(label string, refs []resourceRef) (block, bool) {
+	if len(refs) == 0 {
+		return block{}, false
 	}
 
-	w.close("div")
+	return blockCounted(label, len(refs), refList(refs)), true
 }
 
-// block writes a labelled left-column block.
+// appendRefs appends a reference block when it has content.
+func appendRefs(blocks []block, label string, refs []resourceRef) []block {
+	got, ok := refBlock(label, refs)
+	if !ok {
+		return blocks
+	}
+
+	return append(blocks, got)
+}
+
+// blockHTML builds an uncounted block.
 func blockHTML(label string, body markup) block {
-	return block{label: label, body: body}
+	return block{label: label, count: noCount, body: body}
+}
+
+// blockCounted builds a block whose heading shows how many items it lists.
+func blockCounted(label string, count int, body markup) block {
+	return block{label: label, count: count, body: body}
 }
 
 // fieldList renders label/value pairs as a definition list.
@@ -106,9 +113,7 @@ func pillRow(version string, badges []catalog.Badge, deprecated string) markup {
 		}
 
 		for _, badge := range badges {
-			style := badgeStyle(badge)
-
-			w.open("span", htmlClass("pill", "badge"), style)
+			w.open("span", htmlClass("pill", "badge"), badgeStyle(badge))
 			w.text(badge.Content)
 			w.close("span")
 		}
@@ -130,7 +135,7 @@ func badgeStyle(badge catalog.Badge) string {
 }
 
 // safeColor strips anything that could escape a CSS declaration. Catalog
-// colors are authored, not user input, but the reference is served to people
+// colors are authored, not user input, but the reference is read by people
 // outside the team, so the escape hatch stays closed.
 func safeColor(value string) string {
 	var b strings.Builder
@@ -153,9 +158,66 @@ func summaryBlock(summary string) markup {
 		return ""
 	}
 
+	return renderInto(func(w *htmlWriter) { w.element("p", summary, htmlClass("lead")) })
+}
+
+// proseBlock renders markdown prose inside a documentation container.
+func proseBlock(text string) markup {
 	return renderInto(func(w *htmlWriter) {
-		w.element("p", summary, htmlClass("lead"))
+		w.open("div", htmlClass("md"))
+		w.raw(renderMarkdown(text))
+		w.close("div")
 	})
+}
+
+// codeBlock renders a titled code block with a copy button.
+func codeBlock(title, code string) markup {
+	return renderInto(func(w *htmlWriter) {
+		w.open("div", htmlClass("code"))
+		w.open("div", htmlClass("code-head"))
+
+		if title != "" {
+			w.element("span", title, htmlClass("code-title"))
+		}
+
+		w.open("button", htmlClass("copy"), htmlAttr("type", "button"), htmlAttr("aria-label", "Copy code"))
+		w.element("span", "Copy")
+		w.close("button")
+		w.close("div")
+		w.open("pre")
+		w.element("code", code, htmlClass("code-body"))
+		w.close("pre")
+		w.close("div")
+	})
+}
+
+// linkElement renders an external link.
+func linkElement(href, label string) markup {
+	return renderInto(func(w *htmlWriter) {
+		if href == "" {
+			w.element("span", label)
+
+			return
+		}
+
+		w.open("a", htmlAttr("href", safeHref(href)), htmlAttr("rel", "noreferrer noopener"), htmlAttr("target", "_blank"))
+		w.text(label)
+		w.close("a")
+	})
+}
+
+// safeHref allowlists URL schemes: external links in a shared document must
+// not be able to run script when a reader clicks them.
+func safeHref(href string) string {
+	lower := strings.ToLower(strings.TrimSpace(href))
+
+	for _, prefix := range []string{"http://", "https://", "mailto:", "data:image/", "#", "/"} {
+		if strings.HasPrefix(lower, prefix) {
+			return href
+		}
+	}
+
+	return "#"
 }
 
 // defaultIfEmpty returns value when non-empty, else fallback.
@@ -165,4 +227,9 @@ func defaultIfEmpty(value, fallback string) string {
 	}
 
 	return value
+}
+
+// itoa renders an int for inline text.
+func itoa(value int) string {
+	return strconv.Itoa(value)
 }

@@ -40,9 +40,13 @@ type section struct {
 	right      []block
 }
 
+// noCount marks a block heading that shows no item count.
+const noCount = -1
+
 // block is a titled region inside a section column.
 type block struct {
 	label string
+	count int
 	body  markup
 }
 

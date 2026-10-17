@@ -78,8 +78,19 @@ func (x *refIndex) owners(ids []string) []resourceRef {
 	return refs
 }
 
-// messagesOf narrows a message id to a reference of a specific kind.
-func (x *refIndex) messagesOf(kind resourceKind, ids []string) []resourceRef {
+// anyOf resolves identifiers whose kind the model does not record, such as the
+// messages a domain sends or the messages listed on a channel.
+func (x *refIndex) anyOf(ids []string) []resourceRef {
+	refs := make([]resourceRef, 0, len(ids))
+
+	for _, id := range ids {
+		refs = append(refs, x.any(id))
+	}
+
+	return refs
+}
+
+// messagesOf narrows a message id to a reference of a specific kind.func (x *refIndex) messagesOf(kind resourceKind, ids []string) []resourceRef {
 	refs := make([]resourceRef, 0, len(ids))
 
 	for _, id := range ids {
@@ -93,6 +104,28 @@ func (x *refIndex) messagesOf(kind resourceKind, ids []string) []resourceRef {
 	}
 
 	return refs
+}
+
+// idStrings converts a slice of string-backed identifiers to plain strings.
+func idStrings[T ~string](values []T) []string {
+	out := make([]string, 0, len(values))
+
+	for _, value := range values {
+		out = append(out, string(value))
+	}
+
+	return out
+}
+
+// refIDs extracts the message identifiers from catalog references.
+func refIDs(refs []catalog.Ref) []string {
+	out := make([]string, 0, len(refs))
+
+	for _, ref := range refs {
+		out = append(out, string(ref.ID))
+	}
+
+	return out
 }
 
 // register indexes every resource in the catalog before any section is built.
