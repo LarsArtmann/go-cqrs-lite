@@ -236,7 +236,7 @@ func (s *Server) handleTaskSubresource(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleGetTask(w http.ResponseWriter, r *http.Request, taskID id.StreamID) {
-	view, found, err := s.TaskReader.Get(r.Context(), taskID.String())
+	view, found, err := s.TaskReader.Get(r.Context(), taskID.Get())
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "get task: "+err.Error())
 

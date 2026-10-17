@@ -341,7 +341,7 @@ func (s *Server) SeedDemo(ctx context.Context) {
 	s.Logger.Info(
 		"seeded demo task",
 		"id", taskID,
-		"url", "http://localhost:8080/api/tasks/"+taskID.String(),
+		"url", "http://localhost:8080/api/tasks/"+taskID.Get(),
 	)
 }
 

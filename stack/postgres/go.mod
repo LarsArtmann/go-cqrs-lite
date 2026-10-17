@@ -10,10 +10,10 @@ retract v4.2.0
 
 require (
 	github.com/jackc/pgx/v5 v5.11.0
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.14.0
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.2
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.5.0
-	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.10.5
+	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.11.0
 	github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.2.3
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.7.0
 	github.com/larsartmann/go-error-family v0.11.0

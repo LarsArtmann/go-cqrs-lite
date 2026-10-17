@@ -3,13 +3,13 @@ module github.com/larsartmann/go-cqrs-lite/example/metaengine-quickstart
 go 1.27.2
 
 require (
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.14.0
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.2
-	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.5.3
+	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.6.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.5.3
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.19.0
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2
-	github.com/larsartmann/go-cqrs-lite/system/v4 v4.14.0
+	github.com/larsartmann/go-cqrs-lite/system/v4 v4.15.0
 )
 
 require (

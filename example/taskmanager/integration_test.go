@@ -245,7 +245,7 @@ func TestIntegration_MetaEngineTaskReader(t *testing.T) {
 	)
 
 	// ── Point lookup via TaskReader.Get ──
-	view, found, err := srv.TaskReader.Get(ctx, task1.String())
+	view, found, err := srv.TaskReader.Get(ctx, task1.Get())
 	if err != nil {
 		t.Fatalf("TaskReader.Get: %v", err)
 	}
