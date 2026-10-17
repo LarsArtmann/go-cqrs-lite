@@ -8,14 +8,19 @@ import (
 
 // collect turns a catalog into a renderable document: it indexes every
 // resource first (so links resolve in both directions) and then builds one
-// section per resource, in the order the sidebar lists them.
+// section per resource, in the order the sidebar lists them. With a
+// selection (ADR-0160), only kept resources are indexed, counted and
+// rendered, so no link, sidebar entry or search hit points outside the set.
 func collect(cat *catalog.Catalog, cfg config) *document {
 	enriched := cat.DeriveProducersConsumers()
+	kept := cfg.sel.keptSet(enriched)
 	idx := newRefIndex()
+	idx.kept = kept
 
 	register(enriched, idx)
 
 	b := newDocBuilder(cfg.title, cfg.command, cfg.generatedAt)
+	b.kept = kept
 	collectCounts(b, enriched)
 	b.sections = append(b.sections, overviewSection(cfg, b.counts))
 	b.navAt(kindOverview, navEntry{
@@ -189,43 +194,60 @@ func collectDocs(b *docBuilder, cat *catalog.Catalog, idx *refIndex) {
 	}
 }
 
-// collectCounts records the summary numbers shown on the overview.
+// collectCounts records the summary numbers shown on the overview. Under a
+// selection, only kept resources are counted so the overview cannot claim
+// more than the document shows.
 func collectCounts(b *docBuilder, cat *catalog.Catalog) {
-	counts := countMessages(cat)
-
-	b.addCount("Domains", "domain", len(cat.Domains))
-	b.addCount("Services", "service", len(cat.Services))
-	b.addCount("Commands", "command", counts[kindCommand])
-	b.addCount("Events", "event", counts[kindEvent])
-	b.addCount("Queries", "query", counts[kindQuery])
-	b.addCount("Channels", "channel", len(cat.Channels))
-	b.addCount("Data stores", "data store", len(cat.DataStores))
-	b.addCount("Flows", "flow", len(cat.Flows))
-	b.addCount("Entities", "entity", len(cat.Entities))
-	b.addCount("Data products", "data product", len(cat.DataProducts))
-	b.addCount("Agents", "agent", len(cat.Agents))
-	b.addCount("Decisions", "decision", len(cat.ADRs))
-	b.addCount("Teams", "team", len(cat.Teams))
-	b.addCount("People", "person", len(cat.Users))
-}
-
-// countMessages counts unique messages per kind.
-func countMessages(cat *catalog.Catalog) map[resourceKind]int {
-	counts := make(map[resourceKind]int)
+	counted := make(map[resourceKind]int)
 
 	for _, kind := range []resourceKind{kindCommand, kindEvent, kindQuery} {
 		seen := make(map[string]struct{})
 
 		for _, service := range cat.Services {
 			for _, msg := range messagesOf(service, kind) {
+				if !b.isKept(kind, string(msg.ID)) {
+					continue
+				}
+
 				seen[string(msg.ID)] = struct{}{}
 			}
 		}
 
-		counts[kind] = len(seen)
+		counted[kind] = len(seen)
 	}
 
-	return counts
+	b.addCount("Domains", "domain", b.keptCountOr(kindDomain, len(cat.Domains)))
+	b.addCount("Services", "service", b.keptCountOr(kindService, len(cat.Services)))
+	b.addCount("Commands", "command", counted[kindCommand])
+	b.addCount("Events", "event", counted[kindEvent])
+	b.addCount("Queries", "query", counted[kindQuery])
+	b.addCount("Channels", "channel", b.keptCountOr(kindChannel, len(cat.Channels)))
+	b.addCount("Data stores", "data store", b.keptCountOr(kindDataStore, len(cat.DataStores)))
+	b.addCount("Flows", "flow", b.keptCountOr(kindFlow, len(cat.Flows)))
+	b.addCount("Entities", "entity", b.keptCountOr(kindEntity, len(cat.Entities)))
+	b.addCount("Data products", "data product", b.keptCountOr(kindDataProduct, len(cat.DataProducts)))
+	b.addCount("Agents", "agent", b.keptCountOr(kindAgent, len(cat.Agents)))
+	b.addCount("Decisions", "decision", b.keptCountOr(kindADR, len(cat.ADRs)))
+	b.addCount("Teams", "team", b.keptCountOr(kindTeam, len(cat.Teams)))
+	b.addCount("People", "person", b.keptCountOr(kindUser, len(cat.Users)))
+}
+
+// keptCountOr returns how many resources of a kind survive the selection, or
+// the catalog total when no selection is active.
+func (d *docBuilder) keptCountOr(kind resourceKind, total int) int {
+	if d.kept == nil {
+		return total
+	}
+
+	n := 0
+
+	for key := range d.kept {
+		if key.kind == kind {
+			n++
+		}
+	}
+
+	return n
 }
 
 // messagesOf returns a service's messages of one kind.
@@ -246,9 +268,15 @@ func messagesOf(service catalog.Service, kind resourceKind) []catalog.Message {
 }
 
 // domainOfService returns the name of the domain owning a service, if any.
-func domainOfService(cat *catalog.Catalog, id catalog.ServiceID) string {
+// Under a selection that drops the owning domain, the meta text is dropped
+// too: a redacted export must not carry the excluded name.
+func domainOfService(cat *catalog.Catalog, id catalog.ServiceID, b *docBuilder) string {
 	for _, domain := range cat.Domains {
 		if slices.Contains(domain.Services, id) {
+			if !b.isKept(kindDomain, string(domain.ID)) {
+				return ""
+			}
+
 			return string(domain.Name)
 		}
 	}

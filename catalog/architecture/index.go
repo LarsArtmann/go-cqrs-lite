@@ -5,12 +5,17 @@ import "github.com/larsartmann/go-cqrs-lite/catalog/v4"
 // refIndex resolves catalog identifiers to in-document anchors, names and
 // sidebar tags. Every link in the reference goes through it, so a resource
 // that is present gets a link and one that is missing degrades to plain text.
+// Under a selection (ADR-0160), only kept resources are registered and the
+// resolvers skip references to anything outside the kept set, so a redacted
+// export leaks neither links nor names.
 type refIndex struct {
 	byKind map[resourceKind]map[string]resourceRef
 	byID   map[string]resourceRef
 	// channelsByMessage inverts Channel.Messages, so a message section can
 	// list the channels that carry it without rescanning the catalog.
 	channelsByMessage map[string][]string
+	// kept is nil when no selection is active: everything is kept.
+	kept map[selKey]bool
 }
 
 // newRefIndex creates an empty index.
@@ -19,11 +24,24 @@ func newRefIndex() *refIndex {
 		byKind:            make(map[resourceKind]map[string]resourceRef),
 		byID:              make(map[string]resourceRef),
 		channelsByMessage: make(map[string][]string),
+		kept:              nil,
 	}
 }
 
+// isKept reports whether a resource survives the export selection. A nil
+// kept map means no selection: everything is kept.
+func (x *refIndex) isKept(kind resourceKind, id string) bool {
+	return x.kept == nil || x.kept[selKey{kind: kind, id: id}]
+}
+
 // add registers a resource and returns the reference other sections link to.
+// Resources outside the kept set are not registered, so every resolver below
+// treats them as absent from the document.
 func (x *refIndex) add(kind resourceKind, id, name string) {
+	if !x.isKept(kind, id) {
+		return
+	}
+
 	info := kindInfos()[kind]
 	ref := resourceRef{
 		anchor: info.anchor(id),
@@ -65,13 +83,20 @@ func (x *refIndex) owner(id string) resourceRef {
 	return x.get(kindUser, id)
 }
 
-// owners renders owner identifiers as resolvable references.
+// owners renders owner identifiers as resolvable references. Under a
+// selection, owners outside the kept set (or unknown) are dropped entirely:
+// a redacted export must not carry an excluded team or person as text.
 func (x *refIndex) owners(ids []string) []resourceRef {
 	refs := make([]resourceRef, 0, len(ids))
 
 	for _, id := range ids {
 		ref := x.owner(id)
+
 		if ref.anchor == "" {
+			if x.kept != nil {
+				continue
+			}
+
 			ref = plainRef(id)
 		}
 
@@ -82,18 +107,27 @@ func (x *refIndex) owners(ids []string) []resourceRef {
 }
 
 // anyOf resolves identifiers whose kind the model does not record, such as the
-// messages a domain sends or the messages listed on a channel.
+// messages a domain sends or the messages listed on a channel. Under a
+// selection, unresolvable identifiers are skipped instead of degrading, so
+// the export carries no trace of resources it omitted.
 func (x *refIndex) anyOf(ids []string) []resourceRef {
 	refs := make([]resourceRef, 0, len(ids))
 
 	for _, id := range ids {
-		refs = append(refs, x.any(id))
+		ref := x.any(id)
+
+		if ref.anchor == "" && x.kept != nil {
+			continue
+		}
+
+		refs = append(refs, ref)
 	}
 
 	return refs
 }
 
-// messagesOf narrows a message id to a reference of a specific kind.
+// messagesOf narrows a message id to a reference of a specific kind. Under
+// a selection, unresolvable identifiers are skipped (see anyOf).
 func (x *refIndex) messagesOf(kind resourceKind, ids []string) []resourceRef {
 	refs := make([]resourceRef, 0, len(ids))
 
@@ -104,7 +138,13 @@ func (x *refIndex) messagesOf(kind resourceKind, ids []string) []resourceRef {
 			continue
 		}
 
-		refs = append(refs, x.any(id))
+		ref := x.any(id)
+
+		if ref.anchor == "" && x.kept != nil {
+			continue
+		}
+
+		refs = append(refs, ref)
 	}
 
 	return refs
@@ -132,6 +172,10 @@ func (x *refIndex) link(kind, id string) resourceRef {
 		if ref := x.get(resolved, id); ref.anchor != "" {
 			return ref
 		}
+	}
+
+	if x.kept != nil {
+		return resourceRef{}
 	}
 
 	return plainRef(id)
