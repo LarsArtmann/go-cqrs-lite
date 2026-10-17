@@ -120,6 +120,12 @@ func adrKind(resourceType string) (resourceKind, bool) {
 		return kindDataProduct, true
 	case "agent":
 		return kindAgent, true
+	case "decision":
+		return kindADR, true
+	case "person":
+		return kindUser, true
+	case "doc":
+		return kindDoc, true
 	default:
 		return "", false
 	}

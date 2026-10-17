@@ -13,9 +13,15 @@ import (
 // rendered, so no link, sidebar entry or search hit points outside the set.
 func collect(cat *catalog.Catalog, cfg config) *document {
 	enriched := cat.DeriveProducersConsumers()
-	kept := cfg.sel.keptSet(enriched)
+	kept, banned := cfg.sel.keptSet(enriched, cfg.references)
 	idx := newRefIndex()
 	idx.kept = kept
+	idx.references = cfg.references
+	idx.banned = banned
+
+	for key := range banned {
+		idx.bannedIDs[key.id] = true
+	}
 
 	register(enriched, idx)
 

@@ -16,6 +16,17 @@ type refIndex struct {
 	channelsByMessage map[string][]string
 	// kept is nil when no selection is active: everything is kept.
 	kept map[selKey]bool
+	// banned lists the resources exclude and neverExport redact; they stay
+	// hidden in every references mode. bannedIDs flattens it for the
+	// resolvers that see identifiers without a kind.
+	banned    map[selKey]bool
+	bannedIDs map[string]bool
+	// references selects how out-of-scope references degrade (ADR-0160).
+	references ReferencesMode
+	// names records every non-redacted resource's display name, including
+	// resources outside the kept set, so name-only mode can speak of them.
+	names      map[selKey]string
+	namesByID  map[string]string
 }
 
 // newRefIndex creates an empty index.
@@ -25,6 +36,11 @@ func newRefIndex() *refIndex {
 		byID:              make(map[string]resourceRef),
 		channelsByMessage: make(map[string][]string),
 		kept:              nil,
+		banned:            nil,
+		bannedIDs:         make(map[string]bool),
+		references:        ReferencesOmit,
+		names:             make(map[selKey]string),
+		namesByID:         make(map[string]string),
 	}
 }
 
@@ -38,6 +54,16 @@ func (x *refIndex) isKept(kind resourceKind, id string) bool {
 // Resources outside the kept set are not registered, so every resolver below
 // treats them as absent from the document.
 func (x *refIndex) add(kind resourceKind, id, name string) {
+	key := selKey{kind: kind, id: id}
+
+	if !x.banned[key] {
+		x.names[key] = name
+
+		if _, exists := x.namesByID[id]; !exists {
+			x.namesByID[id] = name
+		}
+	}
+
 	if !x.isKept(kind, id) {
 		return
 	}
@@ -92,15 +118,39 @@ func (x *refIndex) owners(ids []string) []resourceRef {
 	for _, id := range ids {
 		ref := x.owner(id)
 
-		if ref.anchor == "" {
-			if x.kept != nil {
+		if ref.anchor != "" {
+			refs = append(refs, ref)
+
+			continue
+		}
+
+		teamKey, userKey := selKey{kind: kindTeam, id: id}, selKey{kind: kindUser, id: id}
+
+		if x.banned[teamKey] || x.banned[userKey] {
+			continue
+		}
+
+		if x.references == ReferencesNameOnly {
+			name := x.names[teamKey]
+
+			if name == "" {
+				name = x.names[userKey]
+			}
+
+			if name != "" {
+				refs = append(refs, plainRef(name))
+
 				continue
 			}
 
-			ref = plainRef(id)
+			if x.kept != nil {
+				continue
+			}
 		}
 
-		refs = append(refs, ref)
+		if x.kept == nil {
+			refs = append(refs, plainRef(id))
+		}
 	}
 
 	return refs
@@ -117,8 +167,12 @@ func (x *refIndex) anyOf(ids []string) []resourceRef {
 		//art-dupl:accept accidental shape match with cmd/cqrs-lint/discordsync_fixture_test.go accumulate loop: shared continue-ladder shape only, not meaning (ref resolution vs finding accumulation)
 		ref := x.any(id)
 
-		if ref.anchor == "" && x.kept != nil {
-			continue
+		if ref.anchor == "" {
+			var ok bool
+
+			if ref, ok = x.degradeAny(id); !ok {
+				continue
+			}
 		}
 
 		refs = append(refs, ref)
@@ -141,14 +195,70 @@ func (x *refIndex) messagesOf(kind resourceKind, ids []string) []resourceRef {
 
 		ref := x.any(id)
 
-		if ref.anchor == "" && x.kept != nil {
-			continue
+		if ref.anchor == "" {
+			var ok bool
+
+			if ref, ok = x.degradeAny(id); !ok {
+				continue
+			}
 		}
 
 		refs = append(refs, ref)
 	}
 
 	return refs
+}
+
+// degrade resolves a typed identifier the index cannot link. Redacted
+// resources (exclude/neverExport) drop in every mode; name-only mode
+// renders the display name as plain text; without a selection the
+// identifier degrades to plain text as it always has.
+func (x *refIndex) degrade(kind resourceKind, id string) (resourceRef, bool) {
+	key := selKey{kind: kind, id: id}
+
+	if x.banned[key] {
+		return resourceRef{}, false
+	}
+
+	if x.references == ReferencesNameOnly {
+		if name := x.names[key]; name != "" {
+			return plainRef(name), true
+		}
+
+		if x.kept != nil {
+			return resourceRef{}, false
+		}
+	}
+
+	if x.kept == nil {
+		return plainRef(id), true
+	}
+
+	return resourceRef{}, false
+}
+
+// degradeAny is degrade for identifiers the model stores without a kind.
+// The no-selection fallback appends a zero reference, which writeRef skips.
+func (x *refIndex) degradeAny(id string) (resourceRef, bool) {
+	if x.bannedIDs[id] {
+		return resourceRef{}, false
+	}
+
+	if x.references == ReferencesNameOnly {
+		if name := x.namesByID[id]; name != "" {
+			return plainRef(name), true
+		}
+
+		if x.kept != nil {
+			return resourceRef{}, false
+		}
+	}
+
+	if x.kept == nil {
+		return resourceRef{}, true
+	}
+
+	return resourceRef{}, false
 }
 
 // channelsFor returns the channels a message travels on, merging the
@@ -169,17 +279,24 @@ func (x *refIndex) channelsFor(msg catalog.Message) []resourceRef {
 // understands the same kind names ADR targets use, so one spelling works in
 // decisions, docs and export selectors alike.
 func (x *refIndex) link(kind, id string) resourceRef {
-	if resolved, ok := adrKind(kind); ok {
-		if ref := x.get(resolved, id); ref.anchor != "" {
-			return ref
+	resolved, ok := adrKind(kind)
+	if !ok {
+		if x.kept != nil {
+			return resourceRef{anchor: "", name: "", tag: "", class: "", note: ""}
 		}
+
+		return plainRef(id)
 	}
 
-	if x.kept != nil {
-		return resourceRef{anchor: "", name: "", tag: "", class: "", note: ""}
+	if ref := x.get(resolved, id); ref.anchor != "" {
+		return ref
 	}
 
-	return plainRef(id)
+	if ref, keep := x.degrade(resolved, id); keep {
+		return ref
+	}
+
+	return resourceRef{anchor: "", name: "", tag: "", class: "", note: ""}
 }
 
 // idStrings converts a slice of string-backed identifiers to plain strings.

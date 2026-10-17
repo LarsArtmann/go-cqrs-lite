@@ -21,6 +21,7 @@ type config struct {
 	logo        string
 	generatedAt time.Time
 	sel         *Selection
+	references  ReferencesMode
 }
 
 // Exporter renders a catalog as one self-contained HTML architecture
@@ -83,6 +84,15 @@ func WithNeverExport(selectors ...Selector) Option {
 	return func(e *Exporter) {
 		e.cfg.sel = e.cfg.sel.neverExporting(selectors...)
 	}
+}
+
+// WithReferences sets how references to resources outside the kept set
+// render (ADR-0160). The default [ReferencesOmit] drops them entirely;
+// [ReferencesNameOnly] degrades them to plain text names; and
+// [ReferencesInclude] pulls one level of pointed-at resources into the
+// export.
+func WithReferences(mode ReferencesMode) Option {
+	return func(e *Exporter) { e.cfg.references = mode }
 }
 
 // NewExporter creates an exporter with the given options applied in order.
