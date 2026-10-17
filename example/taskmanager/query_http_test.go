@@ -18,8 +18,11 @@ import (
 
 	"github.com/larsartmann/go-codec"
 	errorfamily "github.com/larsartmann/go-error-family"
+	"github.com/larsartmann/httputil/server_timing"
 
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
+	"github.com/larsartmann/go-cqrs-lite/system/v4"
 )
 
 // queryServer wraps the mux exactly like Server.StartHTTP does, so the
@@ -186,8 +189,8 @@ func TestIntegration_QueryEndpointRejectionMapsTo400(t *testing.T) {
 
 	srv := newTestServer(t)
 
-	err := systemRegisterQuery(
-		srv,
+	err := system.RegisterQuery(
+		srv.Sys,
 		"api_failing_query",
 		func(_ context.Context, _ failingQuery) (map[string]int, error) {
 			return nil, errorfamily.NewRejection(
@@ -245,15 +248,15 @@ func TestIntegration_QueryEndpointRejectionMapsTo400(t *testing.T) {
 	_ = raw
 }
 
-func parseTaskID(t *testing.T, raw string) (idStreamID, bool) {
+func parseTaskID(t *testing.T, raw string) (id.StreamID, bool) {
 	t.Helper()
 
-	id, err := parseIDString(raw)
+	sid, err := id.ParseStreamID(raw)
 	if err != nil {
 		t.Fatalf("parse task id %q: %v", raw, err)
 	}
 
-	return id, true
+	return sid, true
 }
 
 var _ = time.Second
