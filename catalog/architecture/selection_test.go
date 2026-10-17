@@ -120,9 +120,12 @@ func TestSelectionDomainBringsMembers(t *testing.T) {
 // an included container.
 func TestSelectionNeverExportBeatsInclude(t *testing.T) {
 	t.Run("beats an explicit include", func(t *testing.T) {
-		out := renderSelection(t,
+		out := renderSelection(
+			t,
 			architecture.WithInclude(architecture.Selector{Kind: "command", ID: "create-order"}),
-			architecture.WithNeverExport(architecture.Selector{Kind: "command", ID: "create-order"}),
+			architecture.WithNeverExport(
+				architecture.Selector{Kind: "command", ID: "create-order"},
+			),
 		)
 
 		if strings.Contains(out, `id="command-create-order"`) {
@@ -179,7 +182,10 @@ func TestNoSelectionByteIdentical(t *testing.T) {
 		}
 
 		if !bytes.Equal(base, got) {
-			t.Errorf("%s: export with an empty selection differs from the no-selection export", name)
+			t.Errorf(
+				"%s: export with an empty selection differs from the no-selection export",
+				name,
+			)
 		}
 	}
 

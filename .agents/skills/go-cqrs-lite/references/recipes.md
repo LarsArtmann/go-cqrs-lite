@@ -2945,6 +2945,53 @@ instance on an engine that has one (e.g. the sqlite driver under the
 `system.RegisterDecider` — `System.SnapshotStore()` returns nil without a
 snapshot-capable engine, and strategy-less deciders never write one.
 
+Command idempotency is one middleware over the engine `DedupStore`
+capability (the ADR-0158 migration target for `idempotency/*`): key the
+dedup record by the command's own ID, TTL it, and treat "seen" as a success
+no-op — a retried transport can never double-apply the decision.
+
+```go
+import (
+    "context"
+    "time"
+
+    "github.com/larsartmann/go-cqrs-lite/command/v4"
+    "github.com/larsartmann/go-cqrs-lite/system/v4"
+)
+
+// dedupOnCommandID makes command dispatch idempotent per command ID via the
+// deployment's metaengine.DedupStore capability: a replayed command is a
+// success no-op, never a second handler run.
+func dedupOnCommandID(sys *system.System) command.Middleware {
+    dedupStore, err := sys.Dedup()
+    if err != nil {
+        panic(err) // deployment without a dedup-capable engine
+    }
+
+    return func(next command.Handler) command.Handler {
+        return func(ctx context.Context, cmd command.Command) error {
+            seen, err := dedupStore.DedupCheckAndRecord(
+                ctx, "commands", cmd.ID().String(), time.Minute, time.Now())
+            if err != nil {
+                return err
+            }
+
+            if seen {
+                return nil // redelivery: the first run already applied it
+            }
+
+            return next(ctx, cmd)
+        }
+    }
+}
+
+// Wire it inside DomainConfig.Commands, after the base registrations:
+//     baseCommands(sys)
+//     sys.UseCommandMiddleware(dedupOnCommandID(sys))
+// The depth spec (systemscenario/depth_command_test.go) pins the story: the
+// same command dispatched twice emits its event exactly once.
+```
+
 ### 2.44 Graph-Native Read Models — Edge folds, traversal, retraction (system + metaengine)
 
 Relations as domain events, traversals as queries: fold `user.followed` into

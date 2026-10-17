@@ -114,6 +114,7 @@ func (x *refIndex) anyOf(ids []string) []resourceRef {
 	refs := make([]resourceRef, 0, len(ids))
 
 	for _, id := range ids {
+		//art-dupl:accept accidental shape match with cmd/cqrs-lint/discordsync_fixture_test.go accumulate loop: shared continue-ladder shape only, not meaning (ref resolution vs finding accumulation)
 		ref := x.any(id)
 
 		if ref.anchor == "" && x.kept != nil {
@@ -175,7 +176,7 @@ func (x *refIndex) link(kind, id string) resourceRef {
 	}
 
 	if x.kept != nil {
-		return resourceRef{}
+		return resourceRef{anchor: "", name: "", tag: "", class: "", note: ""}
 	}
 
 	return plainRef(id)

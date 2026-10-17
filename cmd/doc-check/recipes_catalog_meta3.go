@@ -147,6 +147,16 @@ var recipeCatalogB3 = map[string]recipeSpec{
 			"var ctx context.Context\n",
 		trailers: "_ = sc\n_ = scSQLite\n",
 	},
+	"### 2.43 System-Level BDD Scenarios — Given/When/Then over a real system.New (systemscenario, ADR-0153) #4": {
+		imports: []string{
+			`"context"`,
+			`"time"`,
+			`"github.com/larsartmann/go-cqrs-lite/command/v4"`,
+			`"github.com/larsartmann/go-cqrs-lite/system/v4"`,
+		},
+		preamble: "",
+		trailers: "",
+	},
 	"### 2.42 Request Correlation — RequestScope Enricher (event + decider) #1": {
 		imports: []string{
 			`"context"`,

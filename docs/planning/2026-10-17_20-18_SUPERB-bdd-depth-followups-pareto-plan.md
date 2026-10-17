@@ -397,3 +397,69 @@ directive bump, not taskmanager work; source last changed Oct 15):
   boundary). system + systemscenario NOT yet tagged.
 - 20:57-20:59: foreign flush of 158 files (daemon) — in-flight cqrs-lint
   typed-info work whose tests are born-red.
+- **21:01-21:18: the same train's pin-settle wave II** (discovered by the
+  resumed session at 23:19): event/v4.15.1, command/v4.14.1, signing/v4.4.2,
+  encryption/v4.4.6, storage/v4.11.1, projectionhost/v4.7.1,
+  commandlifecycle/v4.3.1, projectionadapter/v4.6.1, and
+  **system/v4.15.1 (pins adapter v4.6.1)** — the M12 "bump system's adapter
+  pin + tag system" leg was thereby completed by the parallel train.
+
+### M06 — coverage + erraudit over the changed set (23:20) ✅ mine-list EMPTY
+
+- erraudit: systemscenario + projectionadapter + taskmanager all rc=0 CLEAN
+  (targeted per-module runs, GOWORK=off).
+- `#check-coverage`: 6 modules drifted beyond ±2.0% (command -2.2, dispatcher
+  -4.6, id -3.4, kv -3.8, metaengine -3.9, schema -3.0) — ALL foreign (the
+  golden tracks 11 modules; none of them is in this session's changed set;
+  box was quiet at load ~6, so genuine drift from the parallel Oct 15–17
+  sessions). ROUTED as TODO §ROUTING row (h) with the re-baseline command;
+  NOT re-baselined here (attribution-first: laundering someone else's drop
+  into the golden would hide a regression).
+
+### M12 — tag wave remainder (23:19–23:30) ✅ COMPLETE
+
+- Pre-flight: tree quiescent 3/3; no live release process; last foreign tag
+  21:18 (wave II above).
+- **systemscenario/v4.2.0 CUT** (minor: new harness API — command capture,
+  golden payload assertions, SSE subscribe, snapshot fixtures, delayed-driver
+  — plus the nextVersion fix). Suite green workspace AND standalone vs pins
+  (the M04 pin-version gap closed); dry-run preview then real cut;
+  zip-content guard green; tag pushed; proxy serves it (attempt 1);
+  scratch-consumer import+build green.
+- **pin-sweep**: 3 example pins bumped to systemscenario v4.2.0 (taskmanager,
+  goal-shaped-app, graph-native), cqrs-lint goldens refreshed, all pins
+  current.
+- DoD legs: M04 re-runs GREEN (both modules standalone);
+  `check-example-standalone.sh --build` 8/8, 0 findings — graph-native's
+  [BLOCKED] row closed; throwaway-copy upgrade smokes of cqrs-htmx and
+  go-appkit build clean against system v4.15.1 + systemscenario v4.2.0.
+
+### Docs sweep + close-out (23:22–23:45) ✅
+
+- `nix fmt` over the tail edits (4 files, formatting-only);
+  doc-check 1340 refs valid rc=0; changelog-symbols rc=0; TestRecipes green.
+- CHANGELOG: taskmanager repair row ([Unreleased] Fixed); depth-specs row
+  extended with the M09 pins (OCC sentinel, SchemaVersion read-back, DLQ
+  ProjectionName); wave heading `## [systemscenario/v4.2.0 …]` carved with
+  the three systemscenario rows moved under it + verification receipts.
+- FEATURES.md taskmanager row: bare-ID migration noted.
+- Dedup-middleware recipes fence DONE (§2.43 #4, compiled scaffold,
+  TestRecipes green) — resolves owner question f19 in favor of "this wave".
+- TODO_LIST: [BLOCKED] graph-native row, [P0] companion-verification row,
+  race-flake row, dedup-fence row — all closed with receipts; ROUTING row
+  gained (h) coverage drift.
+
+## 9. COMPLETION (2026-10-17 23:45)
+
+**PLAN v2 IS COMPLETE.** All 16 tracked mediums are done: M00–M11 + M17 (see
+the 23:16 status report §a), M06 + M12 + M25 closed by the resumed session
+(this section). Owner-gated residue (D2 erroring-folds ruling, C1 error
+classification ruling) lives in the decision pack —
+`docs/reviews/2026-10-17_bdd-depth-followups-owner-decision-pack.md` — and
+does not block any shipped artifact. Foreign gate-red is routed, not
+shouldered (TODO §ROUTING a–h). The release outcome: projectionadapter
+corruption fix + systemscenario depth wave are on the proxy as
+systemscenario/v4.2.0 over the settled system/v4.15.1 graph, with every
+consumer example, the standalone-build audit, and both companions verified
+against the tags.
+

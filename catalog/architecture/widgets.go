@@ -38,6 +38,10 @@ func plainRef(name string) resourceRef {
 // text when the target is not part of the document.
 func (r resourceRef) writeRef(w *htmlWriter) {
 	if r.anchor == "" {
+		if r.name == "" {
+			return
+		}
+
 		w.element("span", r.name, htmlClass("rl", "rl-plain"))
 
 		return

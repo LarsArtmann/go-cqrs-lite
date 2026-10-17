@@ -693,12 +693,12 @@ the boundary. Verified against this repo's source on 2026-10-15.
       against systemscenario source (`markActStart` snapshots baselines once,
       `actStarted` guards re-snapshotting).
       — source: 2026-10-10 07-37 §f25, 09-05 §f14
-- [ ] **[BLOCKED] Tag `systemscenario` so `example/graph-native` builds
-      standalone** — `scripts/check-example-standalone.sh --build` fails for
-      the example until `systemscenario` cuts a tag including `Memory()`
-      (pinned v4.0.0 predates it; workspace mode is green). Owner: the
-      systemscenario parallel session — this row exists so the dependency is
-      visible to them; unblock = next systemscenario tag wave.
+- [x] ~~[BLOCKED] Tag `systemscenario` so `example/graph-native` builds
+      standalone~~ — **UNBLOCKED 2026-10-17 23:25: systemscenario/v4.2.0
+      tagged** (BDD harness depth wave; proxy serves it), `pin-sweep`
+      bumped graph-native's pin v4.1.0→v4.2.0 with goldens refreshed, and
+      `check-example-standalone.sh --build` passes 8/8 examples with 0
+      findings.
       — source: 2026-10-10 09-05 §b3/§f5 _(Effort: theirs; XS verify after tag)_
 
 ## BDD depth-spec follow-ups (2026-10-17 plan)
@@ -710,28 +710,39 @@ the boundary. Verified against this repo's source on 2026-10-15.
 > reclassification), D2 (erroring consumer folds — v4.x/v5/never), D3 (race
 > flake: track vs noise) live in the plan §2.
 
-- [ ] **[P0] Companion-repo verification of the depth-spec session's behavior
-      changes** — cqrs-htmx + go-appkit full suites vs the workspace-local
-      tree (the projectionadapter decode→Corruption reclassification and
-      systemscenario nextVersion fix reach them at the next tag; zero
-      companion evidence today). Verify: `nix run .#verify` (mine-green,
-      externals itemized) + `nix run .#verify-ci` per-module legs. — plan
-      M01–M06 _(Effort: M total)_
-- [ ] **Dedup middleware → compile-verified recipes fence** — the
-      idempotency spec's `sys.Dedup()` middleware is the ADR-0158 migration
-      recipe in miniature; consumers will copy it out of the `_test.go`.
-      Add recipes.md fence + `recipes_catalog` entry. — plan M12 _(Effort: M)_
+- [x] **[P0] Companion-repo verification of the depth-spec session's behavior
+      changes** — DONE 2026-10-17 (plan v2 M01–M06): cqrs-htmx full suite
+      GREEN vs the workspace tree (exit 0, base 3f67fe92, temp go.work,
+      zero edits to either tree); go-appkit root + all 10 submodules GREEN
+      (integration/ charter-excluded); api-stability golden CLEAN; GOWORK=off
+      legs re-run GREEN post-tag (systemscenario + projectionadapter
+      standalone vs published pins — the pin-version gap closed by
+      systemscenario/v4.2.0); #verify-fast mine-list EMPTY (foreign reds
+      itemized in the ROUTING row below); M06 erraudit 3/3 changed modules
+      CLEAN. Tag-level upgrade smokes (throwaway copies, 2026-10-17 23:30):
+      cqrs-htmx and go-appkit build clean against system v4.15.1 +
+      systemscenario v4.2.0. — plan
+      M01–M06
+- [x] **Dedup middleware → compile-verified recipes fence** — DONE
+      2026-10-17 23:40: recipes §2.43 gained the `dedupOnCommandID`
+      middleware fence (sys.Dedup() → DedupCheckAndRecord by command ID,
+      seen = success no-op) with the wiring shape and a pointer at the
+      depth spec; classified as compiled scaffold `#4` in
+      `recipes_catalog_meta3.go`; TestRecipes green (cold compile). Also
+      resolves the f19 owner question (this wave, not the next). — plan M12
 - [x] **Coeffect-gate-on-Schema FAQ entry** — DONE 2026-10-17 21:30: FAQ
       ("Why did declaring a Schema suddenly fail validation with a
       dangling-consumed-event error?") + recipes §2.43 cross-link paragraph
       (prose-only, no catalog churn); doc-check + TestRecipes green. — plan
       M11
-- [ ] **systemscenario race-flake measurement** — one full-package `-race`
-      run (10-17) timed out 3 sqlite/snapshot tests at uniform 11.78s under
-      load; 4 later runs green. Measure via `#quiet-window-run`/`#load-sweep`
-      (5× race, GOMAXPROCS bisect) and record verdict — untracked flake =
-      tomorrow's mystery CI red. D3 self-answered per plan v2 (12-min
-      reproduce-or-close). — plan M05b _(Effort: M)_
+- [x] **systemscenario race-flake measurement** — CLOSED 2026-10-17 (M05b,
+      reproduce-or-close): `quiet-window-run` (window opened at load 3.22) +
+      `go test -count=5 -race ./systemscenario/...` → 5/5 GREEN, `ok
+      3.717s` (evidence: /tmp/quiet-window-run.L5WlJV.log, quoted in the
+      23-16 status report §a7). VERDICT: machine load, not a race bug — the
+      uniform 11.78s timeouts were 3 load-starved tests sharing one deadline;
+      D3 self-answered per plan v2. Same class as projectionhost
+      CrashWindowIsBounded (ROUTING row g). — plan M05b
 - [ ] **[ROUTING] Foreign gate-red noticed 2026-10-17** (owners: catalog +
       cqrs-lint + mesh-demo + release sessions): (a) file-size gate — FOUR
       offenders now: `catalog/types_resources.go` 359,

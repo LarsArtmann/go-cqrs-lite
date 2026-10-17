@@ -95,17 +95,15 @@ func (s *Selection) neverExporting(selectors ...Selector) *Selection {
 
 // copy returns a fresh selection carrying s's rules (nil-safe).
 func (s *Selection) copy() *Selection {
-	out := &Selection{}
-
 	if s == nil {
-		return out
+		return &Selection{include: nil, exclude: nil, neverExport: nil}
 	}
 
-	out.include = slices.Clone(s.include)
-	out.exclude = slices.Clone(s.exclude)
-	out.neverExport = slices.Clone(s.neverExport)
-
-	return out
+	return &Selection{
+		include:     slices.Clone(s.include),
+		exclude:     slices.Clone(s.exclude),
+		neverExport: slices.Clone(s.neverExport),
+	}
 }
 
 // keptSet computes the resources an export may render. A nil result means
@@ -190,6 +188,8 @@ func newSelectorResolver(cat *catalog.Catalog) selectorResolver {
 // exists reports whether the catalog carries the addressed resource.
 func (r selectorResolver) exists(key selKey) bool {
 	switch key.kind {
+	case kindOverview:
+		return false
 	case kindDomain:
 		return r.find(
 			len(r.cat.Domains),
@@ -300,6 +300,10 @@ func (r selectorResolver) closure(key selKey) []Selector {
 		}
 
 		return members
+	case kindOverview, kindCommand, kindEvent, kindQuery, kindChannel, kindDataStore,
+		kindFlow, kindEntity, kindDataProduct, kindAgent, kindADR, kindTeam,
+		kindUser, kindDoc:
+		return nil
 	default:
 		return nil
 	}
