@@ -2902,6 +2902,15 @@ silent; assert a total instead, e.g.
 `ThenEventsSatisfy(func(events []event.Event) error { ... len(events) == 1 ... })`
 across both deliveries of an idempotency-redelivery test.
 
+Schema declarations in the SAME `DomainConfig` activate the coeffect gate: a
+`DomainConfig.Schema` entry makes the declaration the journal's event
+universe, so every CONSUMED type must also be declared or `system.New` fails
+validation (`ErrDanglingEventSubscription`). When an upcasting scenario
+consumes types it has no upcast for, declare them via the
+`DomainConfig.Events` backstop — see the FAQ ("Why did declaring a Schema
+suddenly fail validation?") and the depth-spec upcaster test
+(`systemscenario/depth_projection_test.go`).
+
 Tests with no production config to mirror can boot on a one-liner preset:
 `systemscenario.Memory()` (memory engines incl. a dedicated `timers` engine,
 so `TimeAdvances` works out of the box) or `systemscenario.SQLite(t)`

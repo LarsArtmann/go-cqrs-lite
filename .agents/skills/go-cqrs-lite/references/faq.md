@@ -747,3 +747,17 @@ construction). For derived fields the `schema.Transform` field map guarantees
 nested maps are `map[string]any` regardless of JSON/CBOR encoding. Full recipe:
 recipes.md §2.46; the snapshot twin (`decider.WithSnapshotStateVersion`) covers
 state-shape changes the same way.
+
+## Why did declaring a Schema suddenly fail validation with a dangling-consumed-event error?
+
+Because a Schema declaration ACTIVATES the coeffect gate: declaring
+`DomainConfig.Schema` makes the declaration count as the journal's event
+universe, so every event type your projections CONSUME must also be declared
+— otherwise `system.New` fails with `ErrDanglingEventSubscription` (hard) or
+emits an advisory `coeffect.unconsumed_event`. The fix is the
+`DomainConfig.Events` backstop: list the consumed types you have no upcast
+for alongside the schema declarations. The depth-spec suite's upcaster test
+(`systemscenario/depth_projection_test.go`) shows the shape: one declared
+type with ops, one consumed type via `Events`. See also recipes.md §2.43
+(upcasting + the coeffect gate note).
+

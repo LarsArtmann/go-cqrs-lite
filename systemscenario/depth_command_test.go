@@ -178,6 +178,7 @@ func TestDepth_StaleExpectedVersionYieldsConflict(t *testing.T) {
 		),
 	).When(newTaskCmd("task.complete_raced", ref.ID)).
 		ThenErrorFamily(errorfamily.Conflict).
+		ThenError(event.ErrVersionConflict).
 		Then("task.updated").
 		ThenEventsSatisfy(func(events []event.Event) error {
 			if len(events) != 1 {

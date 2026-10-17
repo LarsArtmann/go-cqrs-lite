@@ -80,7 +80,14 @@ func TestDepth_PoisonEventDeadLetters(t *testing.T) {
 					poisonRef.ID.Get(), entry.StreamID)
 			}
 
-			if entry.ProjectionName == "" || entry.EventID == "" || entry.Error == "" {
+			if entry.ProjectionName != "projections" {
+			return fmt.Errorf(
+				"dead-letter projection name: want projections, got %q",
+				entry.ProjectionName,
+			)
+		}
+
+		if entry.EventID == "" || entry.Error == "" {
 				return fmt.Errorf("dead-letter entry missing diagnostics: %+v", entry)
 			}
 
@@ -134,9 +141,26 @@ func TestDepth_GivenPhaseUpcastsLegacyPayloads(t *testing.T) {
 
 	systemscenario.ThenPayload(phase, 0, TaskUpdated{
 		ID:     ref.ID.String(),
-		Title:  "legacy title",
+		Title: "legacy title",
 		Status: "completed",
 	})
+
+	// Read-back pin: the v1-stamped given event must read back from the
+	// journal upcast to the declared v2 schema stamp — the read path IS the
+	// upcast path, so the stamp proves the decoration wrapped the store the
+	// projection host and decider both read from.
+	loaded, err := sc.System().EventStore().Load(ctx, ref)
+	if err != nil {
+		t.Fatalf("upcast read-back: load journal: %v", err)
+	}
+
+	if len(loaded) == 0 {
+		t.Fatal("upcast read-back: journal is empty")
+	}
+
+	if got := loaded[0].SchemaVersion(); got != 2 {
+		t.Fatalf("upcast read-back stamp: want 2, got %d", got)
+	}
 
 	phase.ThenQuery(taskViewQuery(sc, ctx, ref.ID.String()),
 		TaskView{ID: ref.ID.String(), Title: "legacy title", Status: "completed"})

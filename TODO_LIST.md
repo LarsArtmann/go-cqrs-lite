@@ -721,26 +721,42 @@ the boundary. Verified against this repo's source on 2026-10-15.
       idempotency spec's `sys.Dedup()` middleware is the ADR-0158 migration
       recipe in miniature; consumers will copy it out of the `_test.go`.
       Add recipes.md fence + `recipes_catalog` entry. — plan M12 _(Effort: M)_
-- [ ] **Coeffect-gate-on-Schema FAQ entry** — declaring `DomainConfig.Schema`
-      activates the dangling-subscription gate (a declaration IS the journal's
-      event universe); every consumed type must be declared or backstopped
-      via `DomainConfig.Events`. Cost the 10-17 session a red cycle. — plan
-      M11 _(Effort: S)_
+- [x] **Coeffect-gate-on-Schema FAQ entry** — DONE 2026-10-17 21:30: FAQ
+      ("Why did declaring a Schema suddenly fail validation with a
+      dangling-consumed-event error?") + recipes §2.43 cross-link paragraph
+      (prose-only, no catalog churn); doc-check + TestRecipes green. — plan
+      M11
 - [ ] **systemscenario race-flake measurement** — one full-package `-race`
       run (10-17) timed out 3 sqlite/snapshot tests at uniform 11.78s under
       load; 4 later runs green. Measure via `#quiet-window-run`/`#load-sweep`
       (5× race, GOMAXPROCS bisect) and record verdict — untracked flake =
-      tomorrow's mystery CI red. Pending D3 ruling. — plan M13 _(Effort: M)_
+      tomorrow's mystery CI red. D3 self-answered per plan v2 (12-min
+      reproduce-or-close). — plan M05b _(Effort: M)_
 - [ ] **[ROUTING] Foreign gate-red noticed 2026-10-17** (owners: catalog +
-      cqrs-lint + mesh-demo sessions): (a) file-size gate —
-      `catalog/types_resources.go` 359, `catalog/architecture/selection.go`
-      397 (`nix run .#check-file-size`); (b) arch gate — `example/mesh-demo`
-      8/7 production deps via errorfamily (`nix run .#check-arch`); (c)
-      duplication gate — 2 new clone groups: docserver templ ×2 +
+      cqrs-lint + mesh-demo + release sessions): (a) file-size gate — FOUR
+      offenders now: `catalog/types_resources.go` 359,
+      `catalog/architecture/selection.go` 398,
+      `cmd/doc-check/recipes_catalog_meta3.go` 398 (NEW, born in foreign
+      session `f1f0e82d5`), `catalog/eventcatalog/exporter.go` 382→392
+      growth (foreign docserver session) (`nix run .#check-file-size`);
+      (b) arch gate — `example/mesh-demo` 8/7 production deps via
+      errorfamily (`nix run .#check-arch`); (c) duplication gate — 2 clone
+      groups: docserver eventcatalogview.templ internal pair +
       catalog/architecture vs cqrs-lint fixture (`nix run .#check-duplication`);
-      (d) `example/taskmanager` build break — `servertiming` undefined, dep
-      dropped from go.mod while source imports it (restore or finish the
-      removal; guard: check no parallel session is mid-removal). — plan M07/M17
+      (d) ~~taskmanager build break~~ FIXED 2026-10-17 21:00 by the depth
+      session (missing servertiming imports + dot-mangled identifiers +
+      bare-ID laggers incl. a real prod 404 in handleGetTask; suite green,
+      tree-wide #build unblocked); (e) TestEvery go.sum untidiness ×76
+      modules + cqrs-upgrade E2E fixture breakage — same class, root cause
+      candidate: authored re-pin `78ae14659` (Oct 15 "re-pin workspace
+      dependency checksums") wrote go.sums `go mod tidy` prunes
+      (`cd cmd/api-stability && GOWORK=off go test -run TestEveryModuleGoSumIsTidy .`;
+      worktree-proven pre-existing at `445130ee7`); (f) cqrs-lint
+      `pkg/rules/{performance,resilience,version}` tests born-red from the
+      in-flight foreign typed-info session (tests did not exist at
+      `445130ee7`); (g) 95-file `go 1.27→1.27.2` directive wave (daemon
+      20:41) vs the minor-form lockstep convention — watch
+      `scripts/check-go-version.sh` at the next `#verify-ci`. — plan M17
       _(Effort: theirs; S verify each)_
 
 ## Durable Work Queue module (proposed 2026-09-13)
