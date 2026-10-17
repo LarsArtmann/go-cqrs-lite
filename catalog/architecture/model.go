@@ -112,6 +112,7 @@ type docBuilder struct {
 	title     string
 	generated time.Time
 	command   string
+	kept      map[selKey]bool
 	counts    []countRow
 	nav       []navGroup
 	sections  []section
@@ -124,11 +125,18 @@ func newDocBuilder(title, command string, generated time.Time) *docBuilder {
 		title:     title,
 		command:   command,
 		generated: generated,
+		kept:      nil,
 		counts:    nil,
 		nav:       nil,
 		sections:  nil,
 		search:    nil,
 	}
+}
+
+// isKept reports whether a resource survives the export selection. A nil
+// kept map means no selection: everything is kept.
+func (d *docBuilder) isKept(kind resourceKind, id string) bool {
+	return d.kept == nil || d.kept[selKey{kind: kind, id: id}]
 }
 
 // addSection appends a section and, when it is not empty, its sidebar entry.

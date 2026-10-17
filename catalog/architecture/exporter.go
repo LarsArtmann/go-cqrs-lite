@@ -20,6 +20,7 @@ type config struct {
 	command     string
 	logo        string
 	generatedAt time.Time
+	sel         *Selection
 }
 
 // Exporter renders a catalog as one self-contained HTML architecture
@@ -60,6 +61,30 @@ func WithGeneratedAt(at time.Time) Option {
 	return func(e *Exporter) { e.cfg.generatedAt = at.UTC() }
 }
 
+// WithInclude restricts the export to the selected resources and their
+// natural closure (ADR-0160). An empty include keeps the whole catalog.
+func WithInclude(selectors ...Selector) Option {
+	return func(e *Exporter) {
+		e.cfg.sel = e.cfg.sel.including(selectors...)
+	}
+}
+
+// WithExclude drops the selected resources from the export even when an
+// include would keep them; excludes always win (ADR-0160).
+func WithExclude(selectors ...Selector) Option {
+	return func(e *Exporter) {
+		e.cfg.sel = e.cfg.sel.excluding(selectors...)
+	}
+}
+
+// WithNeverExport marks resources that are absent from any export, even when
+// explicitly included (ADR-0160).
+func WithNeverExport(selectors ...Selector) Option {
+	return func(e *Exporter) {
+		e.cfg.sel = e.cfg.sel.neverExporting(selectors...)
+	}
+}
+
 // NewExporter creates an exporter with the given options applied in order.
 func NewExporter(opts ...Option) *Exporter {
 	exp := &Exporter{cfg: config{
@@ -68,6 +93,7 @@ func NewExporter(opts ...Option) *Exporter {
 		command:     "",
 		logo:        "",
 		generatedAt: time.Time{},
+		sel:         (*Selection)(nil),
 	}}
 
 	for _, opt := range opts {

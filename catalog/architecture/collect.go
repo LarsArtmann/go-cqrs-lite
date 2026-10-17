@@ -67,8 +67,13 @@ func navEntryFor(sec section) navEntry {
 }
 
 // addResource appends a section and its sidebar entry, and records the search
-// hit in one place so the three never drift apart.
+// hit in one place so the three never drift apart. Resources outside the
+// export selection (ADR-0160) are skipped entirely.
 func addResource(b *docBuilder, sec section, domain string) {
+	if !b.isKept(sec.kind, sec.id) {
+		return
+	}
+
 	b.addSection(sec, navEntryFor(sec))
 	b.search = append(b.search, searchEntry{
 		Group:   kindInfos()[sec.kind].group,
@@ -92,7 +97,7 @@ func collectDomains(b *docBuilder, cat *catalog.Catalog, idx *refIndex) {
 // collectServices adds one section per service.
 func collectServices(b *docBuilder, cat *catalog.Catalog, idx *refIndex) {
 	for _, service := range cat.Services {
-		addResource(b, serviceSection(service, idx), domainOfService(cat, service.ID))
+		addResource(b, serviceSection(service, idx), domainOfService(cat, service.ID, b))
 	}
 }
 
