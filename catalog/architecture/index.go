@@ -25,8 +25,8 @@ type refIndex struct {
 	references ReferencesMode
 	// names records every non-redacted resource's display name, including
 	// resources outside the kept set, so name-only mode can speak of them.
-	names      map[selKey]string
-	namesByID  map[string]string
+	names     map[selKey]string
+	namesByID map[string]string
 }
 
 // newRefIndex creates an empty index.

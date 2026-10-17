@@ -119,13 +119,16 @@ func (s *Selection) copy() *Selection {
 // [ReferencesInclude], one level of the resources a kept resource points at
 // joins the set as well (a service brings its stores, entities and message
 // channels), never overriding a ban.
-func (s *Selection) keptSet(cat *catalog.Catalog, references ReferencesMode) (kept, banned map[selKey]bool) {
+func (s *Selection) keptSet(
+	cat *catalog.Catalog,
+	references ReferencesMode,
+) (map[selKey]bool, map[selKey]bool) {
 	if s.empty() {
 		return nil, nil
 	}
 
-	kept = make(map[selKey]bool)
-	banned = make(map[selKey]bool)
+	kept := make(map[selKey]bool)
+	banned := make(map[selKey]bool)
 	resolve := newSelectorResolver(cat)
 
 	ban := func(selectors []Selector) {
@@ -325,6 +328,22 @@ func (r selectorResolver) closure(key selKey) []Selector {
 	}
 }
 
+// selectorSpelling maps an internal kind to the selector spelling adrKind
+// accepts (ADR-0160). Two kinds spell differently: data stores are
+// "container" and ADRs are "decision".
+func selectorSpelling(kind resourceKind) string {
+	switch kind {
+	case kindDataStore:
+		return "container"
+	case kindADR:
+		return "decision"
+	case kindOverview:
+		return ""
+	default:
+		return string(kind)
+	}
+}
+
 // edges returns the resources one level outside a kept resource that
 // [ReferencesInclude] pulls into the export. Closures (domain → services,
 // service → messages) are handled by [selectorResolver.closure]; edges cover
@@ -334,7 +353,7 @@ func (r selectorResolver) edges(key selKey) []Selector {
 	var out []Selector
 
 	push := func(kind resourceKind, id string) {
-		out = append(out, Selector{Kind: string(kind), ID: id})
+		out = append(out, Selector{Kind: selectorSpelling(kind), ID: id})
 	}
 
 	switch key.kind {
@@ -353,7 +372,7 @@ func (r selectorResolver) edges(key selKey) []Selector {
 			}
 
 			for _, entity := range service.Entities {
-				push(kindEntity, string(entity))
+				push(kindEntity, entity)
 			}
 
 			for _, msg := range slices.Concat(
