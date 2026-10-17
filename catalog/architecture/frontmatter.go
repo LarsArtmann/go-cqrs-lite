@@ -1,6 +1,7 @@
 package architecture
 
 import (
+	"fmt"
 	"os"
 	"strings"
 
@@ -67,7 +68,7 @@ func LoadExport(path string) (*ExportSpec, error) {
 
 	if !strings.HasPrefix(text, fence+"\n") && text != fence+"\n" {
 		return nil, errorfamily.NewRejection("catalog.architecture.6",
-			"architecture: %s has no frontmatter fence (--- on the first line)", path)
+			fmt.Sprintf("architecture: %s has no frontmatter fence (--- on the first line)", path))
 	}
 
 	rest := text[len(fence)+1:]
@@ -75,7 +76,7 @@ func LoadExport(path string) (*ExportSpec, error) {
 	end := strings.Index(rest, "\n"+fence)
 	if end < 0 {
 		return nil, errorfamily.NewRejection("catalog.architecture.6",
-			"architecture: %s frontmatter is never closed", path)
+			fmt.Sprintf("architecture: %s frontmatter is never closed", path))
 	}
 
 	front, body := rest[:end], strings.TrimPrefix(rest[end+1+len(fence):], "\n")
@@ -84,7 +85,7 @@ func LoadExport(path string) (*ExportSpec, error) {
 
 	if err := yaml.Unmarshal([]byte(front), &parsed); err != nil {
 		return nil, errorfamily.WrapRejection(err, "catalog.architecture.6",
-			"architecture: %s frontmatter is not valid YAML", path)
+			fmt.Sprintf("architecture: %s frontmatter is not valid YAML", path))
 	}
 
 	return parsed.toSpec(body)
@@ -105,7 +106,7 @@ func (f specFrontmatter) toSpec(body string) (*ExportSpec, error) {
 
 	if len(f.Include) == 0 {
 		return nil, errorfamily.NewRejection("catalog.architecture.7",
-			"architecture: export spec %q needs at least one include selector", spec.Title)
+			fmt.Sprintf("architecture: export spec %q needs at least one include selector", spec.Title))
 	}
 
 	selectors := func(entries []specSelector) ([]Selector, error) {
@@ -114,8 +115,8 @@ func (f specFrontmatter) toSpec(body string) (*ExportSpec, error) {
 		for _, entry := range entries {
 			if strings.HasPrefix(entry.Kind, "x-") || strings.HasPrefix(entry.ID, "x-") {
 				return nil, errorfamily.NewRejection("catalog.architecture.7",
-					"architecture: custom-property selector %q/%q is not supported (ADR-0160)",
-					entry.Kind, entry.ID)
+					fmt.Sprintf("architecture: custom-property selector %q/%q is not supported (ADR-0160)",
+						entry.Kind, entry.ID))
 			}
 
 			out = append(out, Selector{Kind: entry.Kind, ID: entry.ID})
