@@ -11,16 +11,14 @@ import (
 	"github.com/larsartmann/go-idempotency"
 	_ "modernc.org/sqlite"
 
-	"github.com/larsartmann/go-cqrs-lite/idempotency/kvstore/v4"
 	idemsqlstore "github.com/larsartmann/go-cqrs-lite/idempotency/sqlstore/v4"
-	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 	"github.com/larsartmann/go-cqrs-lite/testutil/v4"
 )
 
-// kvstoreTTLParams returns a (ttl, wait) pair with enough headroom to survive
-// -race detector scheduling inflation (mirrors idempotency/kvstore's unit
+// idemTTLParams returns a (ttl, wait) pair with enough headroom to survive
+// -race detector scheduling inflation (mirrors the idempotency stores' unit
 // test params; race awareness comes from testutil here).
-func kvstoreTTLParams() (time.Duration, time.Duration) {
+func idemTTLParams() (time.Duration, time.Duration) {
 	if testutil.RaceEnabled {
 		return 100 * time.Millisecond, 400 * time.Millisecond
 	}
@@ -50,12 +48,12 @@ func newSQLiteStoreForContract(t *testing.T) *idemsqlstore.Store {
 	return s
 }
 
-// TestKVStore_Record_MatchesMemoryStoreContract verifies the kvstore Record/Seen
-// contract matches the reference MemoryStore implementation AND the SQL store.
-// All three implementations must be a no-op on an existing non-expired key and
+// TestKVStore_Record_MatchesMemoryStoreContract verifies the SQL store's
+// Record/Seen contract matches the reference MemoryStore implementation.
+// Both implementations must be a no-op on an existing non-expired key and
 // never extend the TTL. This is the authoritative cross-implementation contract
-// test; it lives in integration/ so idempotency/kvstore does not need a SQLite
-// dependency for it.
+// test; it lives in integration/ so idempotency/sqlstore does not need a SQLite
+// dependency for it. (The kvstore twin ran here until its 2026-10-17 deletion.)
 //
 // Note: MemoryStore.Record intentionally re-records EXPIRED entries (sets a
 // fresh TTL). This test only covers the non-expired case, which all three
@@ -67,7 +65,6 @@ func TestKVStore_Record_MatchesMemoryStoreContract(t *testing.T) {
 
 	stores := map[string]idempotency.Store{
 		"memory":   idempotency.NewMemoryStore(0),
-		"kvstore":  kvstore.New(kv.NewMemStore()),
 		"sqlstore": newSQLiteStoreForContract(t),
 	}
 
@@ -75,7 +72,7 @@ func TestKVStore_Record_MatchesMemoryStoreContract(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			shortTTL, wait := kvstoreTTLParams()
+			shortTTL, wait := idemTTLParams()
 			if err := s.Record(ctx, "k", shortTTL); err != nil {
 				t.Fatalf("first Record: %v", err)
 			}
@@ -116,7 +113,6 @@ func TestKVStore_CheckAndRecord_Concurrent_AllImplementations(t *testing.T) {
 
 	stores := map[string]idempotency.Store{
 		"memory":   idempotency.NewMemoryStore(0),
-		"kvstore":  kvstore.New(kv.NewMemStore()),
 		"sqlstore": newSQLiteStoreForContract(t),
 	}
 
