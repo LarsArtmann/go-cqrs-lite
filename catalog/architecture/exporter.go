@@ -112,7 +112,13 @@ func NewExporter(opts ...Option) *Exporter {
 		generatedAt: time.Time{},
 		sel:         (*Selection)(nil),
 		references:  ReferencesOmit,
-		hide:        visibility{},
+		hide: visibility{
+			owners:         false,
+			repository:     false,
+			examples:       false,
+			specifications: false,
+			docs:           false,
+		},
 	}}
 
 	for _, opt := range opts {

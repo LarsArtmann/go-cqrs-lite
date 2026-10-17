@@ -43,6 +43,13 @@ func newRefIndex() *refIndex {
 		references:        ReferencesOmit,
 		names:             make(map[selKey]string),
 		namesByID:         make(map[string]string),
+		hide: visibility{
+			owners:         false,
+			repository:     false,
+			examples:       false,
+			specifications: false,
+			docs:           false,
+		},
 	}
 }
 

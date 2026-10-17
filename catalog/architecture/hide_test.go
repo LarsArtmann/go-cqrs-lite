@@ -96,14 +96,18 @@ func TestHideSections(t *testing.T) {
 	t.Run("owners", func(t *testing.T) {
 		out := renderHide(t, architecture.WithHide(architecture.HideOwners))
 
-		for _, gone := range []string{"Owned by", `href="#team-hide-team"`} {
+		for _, gone := range []string{"Owned by", ">Owners<", ">Members<"} {
 			if strings.Contains(out, gone) {
-				t.Errorf("owners still render: %q", gone)
+				t.Errorf("ownership attribution still renders: %q", gone)
 			}
 		}
 
 		if !strings.Contains(out, "Source code") {
 			t.Error("hiding owners took the repository block with it")
+		}
+
+		if !strings.Contains(out, `id="team-hide-team"`) {
+			t.Error("hide owners must not remove the team's own section")
 		}
 	})
 
