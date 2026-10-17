@@ -15,7 +15,7 @@ func messageSection(msg catalog.Message, kind resourceKind, idx *refIndex) secti
 
 	return section{
 		kind:       kind,
-		anchor:     idx.get(kind, string(msg.ID)).anchor,
+		id:         string(msg.ID),
 		name:       string(msg.Name),
 		version:    string(msg.Version),
 		summary:    string(msg.Summary),

@@ -90,7 +90,8 @@ func (x *refIndex) anyOf(ids []string) []resourceRef {
 	return refs
 }
 
-// messagesOf narrows a message id to a reference of a specific kind.func (x *refIndex) messagesOf(kind resourceKind, ids []string) []resourceRef {
+// messagesOf narrows a message id to a reference of a specific kind.
+func (x *refIndex) messagesOf(kind resourceKind, ids []string) []resourceRef {
 	refs := make([]resourceRef, 0, len(ids))
 
 	for _, id := range ids {

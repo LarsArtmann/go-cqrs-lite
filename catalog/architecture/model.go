@@ -34,7 +34,7 @@ type section struct {
 	summary    string
 	badges     []catalog.Badge
 	deprecated string // non-empty renders a deprecation notice
-	meta       []markup
+	meta       markup
 	left       []block
 	right      []block
 }

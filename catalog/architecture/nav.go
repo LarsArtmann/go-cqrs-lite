@@ -29,8 +29,6 @@ func writeNavGroup(w *htmlWriter, group navGroup) {
 		return
 	}
 
-	info := kindInfos()[group.kind]
-
 	w.open("div", htmlClass("nav-group"))
 	w.open("div", htmlClass("nav-label"))
 	w.element("a", group.title, htmlAttr("href", "#group-"+slug(string(group.kind))))

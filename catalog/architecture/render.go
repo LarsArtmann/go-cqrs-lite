@@ -3,7 +3,7 @@ package architecture
 import (
 	"encoding/json"
 	"fmt"
-	"strings"
+	"strconv"
 	"time"
 )
 
@@ -21,7 +21,9 @@ func renderDocument(doc *document) (string, error) {
 	writeShell(&w, doc)
 	writeSearchDialog(&w)
 	writeSearchIndex(&w, string(index))
+	w.open("script")
 	w.raw(asset("reference.js"))
+	w.close("script")
 	w.close("body")
 	w.close("html")
 
@@ -42,7 +44,9 @@ func writeHead(w *htmlWriter, doc *document) {
 	}
 
 	w.open("meta", htmlAttr("name", "generator"), htmlAttr("content", "go-cqrs-lite catalog architecture"))
+	w.open("script")
 	w.raw(asset("theme.js"))
+	w.close("script")
 	w.open("style")
 	w.raw(asset("reference.css"))
 	w.close("style")
@@ -73,7 +77,6 @@ func writeTopbar(w *htmlWriter, doc *document) {
 func writeShell(w *htmlWriter, doc *document) {
 	w.open("div", htmlClass("shell"))
 	w.open("nav", htmlClass("sidenav"), htmlAttr("id", "sidenav"), htmlAttr("aria-label", "Reference"))
-	w.raw("")
 	w.raw(navHTML(doc))
 	w.close("nav")
 	w.open("main", htmlAttr("id", "main"))
@@ -177,7 +180,7 @@ func writeRightBox(w *htmlWriter, item block) {
 	w.element("span", item.label)
 
 	if item.count > 0 {
-		w.element("span", fmt.Sprintf("%d", item.count))
+		w.element("span", strconv.Itoa(item.count))
 	}
 
 	w.close("div")
@@ -244,7 +247,7 @@ func kindLabel(kind resourceKind) string {
 	case kindDoc:
 		return "Documentation"
 	default:
-		return strings.Title(string(kind))
+		return string(kind)
 	}
 }
 

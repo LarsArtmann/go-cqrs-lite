@@ -22,7 +22,7 @@ func overviewSection(cfg config, counts []countRow) section {
 	}
 
 	if cfg.command != "" {
-		sec.right = append(sec.right, blockHTML("", codeBlock("Regenerate this reference", "sh", cfg.command)))
+		sec.right = append(sec.right, blockHTML("", codeBlock("Regenerate this reference", cfg.command)))
 	}
 
 	return sec
