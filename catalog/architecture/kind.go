@@ -30,6 +30,7 @@ const (
 type kindInfo struct {
 	kind   resourceKind
 	group  string // sidebar group heading
+	label  string // singular name shown as the section eyebrow
 	blurb  string // sentence under the group heading
 	tag    string // short sidebar tag, e.g. "EVT"
 	class  string // CSS modifier, e.g. "evt"
@@ -38,23 +39,23 @@ type kindInfo struct {
 
 // kindTable is the ordered registry of every rendered resource kind. The
 // order here is the order of the sidebar and of the document body.
-var kindTable = []kindInfo{
-	{kind: kindOverview, group: "Overview", blurb: "", tag: "DOC", class: "doc", prefix: "overview"},
-	{kind: kindDomain, group: "Domains", blurb: "Business areas and the services that belong to them.", tag: "DOM", class: "dom", prefix: "domain"},
-	{kind: kindService, group: "Services", blurb: "Applications that send and receive messages.", tag: "SVC", class: "svc", prefix: "service"},
-	{kind: kindCommand, group: "Commands", blurb: "Requests to change state.", tag: "CMD", class: "cmd", prefix: "command"},
-	{kind: kindEvent, group: "Events", blurb: "Facts that have happened.", tag: "EVT", class: "evt", prefix: "event"},
-	{kind: kindQuery, group: "Queries", blurb: "Requests for state.", tag: "QRY", class: "qry", prefix: "query"},
-	{kind: kindChannel, group: "Channels", blurb: "Where messages travel.", tag: "CHN", class: "chn", prefix: "channel"},
-	{kind: kindDataStore, group: "Data stores", blurb: "Where services keep their data.", tag: "DB", class: "dat", prefix: "data-store"},
-	{kind: kindFlow, group: "Flows", blurb: "Step-by-step business processes.", tag: "FLOW", class: "flw", prefix: "flow"},
-	{kind: kindEntity, group: "Entities", blurb: "The things the domain is about.", tag: "ENT", class: "ent", prefix: "entity"},
-	{kind: kindDataProduct, group: "Data products", blurb: "Published, contract-backed data.", tag: "DP", class: "dp", prefix: "data-product"},
-	{kind: kindAgent, group: "Agents", blurb: "Autonomous consumers and producers.", tag: "AGT", class: "agt", prefix: "agent"},
-	{kind: kindADR, group: "Decisions", blurb: "Architecture decision records.", tag: "ADR", class: "adr", prefix: "adr"},
-	{kind: kindTeam, group: "Teams", blurb: "Groups that own resources.", tag: "TEAM", class: "tm", prefix: "team"},
-	{kind: kindUser, group: "People", blurb: "Individuals that own resources.", tag: "USER", class: "usr", prefix: "user"},
-	{kind: kindDoc, group: "Documentation", blurb: "Additional pages from the catalog.", tag: "DOC", class: "doc", prefix: "doc"},
+var kindTable = []kindInfo{ //nolint:gochecknoglobals // static vocabulary table, immutable by contract
+	{kind: kindOverview, group: "Overview", label: "Architecture reference", blurb: "", tag: "DOC", class: "doc", prefix: "overview"},
+	{kind: kindDomain, group: "Domains", label: "Domain", blurb: "Business areas and the services that belong to them.", tag: "DOM", class: "dom", prefix: "domain"},
+	{kind: kindService, group: "Services", label: "Service", blurb: "Applications that send and receive messages.", tag: "SVC", class: "svc", prefix: "service"},
+	{kind: kindCommand, group: "Commands", label: "Command", blurb: "Requests to change state.", tag: "CMD", class: "cmd", prefix: "command"},
+	{kind: kindEvent, group: "Events", label: "Event", blurb: "Facts that have happened.", tag: "EVT", class: "evt", prefix: "event"},
+	{kind: kindQuery, group: "Queries", label: "Query", blurb: "Requests for state.", tag: "QRY", class: "qry", prefix: "query"},
+	{kind: kindChannel, group: "Channels", label: "Channel", blurb: "Where messages travel.", tag: "CHN", class: "chn", prefix: "channel"},
+	{kind: kindDataStore, group: "Data stores", label: "Data store", blurb: "Where services keep their data.", tag: "DB", class: "dat", prefix: "data-store"},
+	{kind: kindFlow, group: "Flows", label: "Flow", blurb: "Step-by-step business processes.", tag: "FLOW", class: "flw", prefix: "flow"},
+	{kind: kindEntity, group: "Entities", label: "Entity", blurb: "The things the domain is about.", tag: "ENT", class: "ent", prefix: "entity"},
+	{kind: kindDataProduct, group: "Data products", label: "Data product", blurb: "Published, contract-backed data.", tag: "DP", class: "dp", prefix: "data-product"},
+	{kind: kindAgent, group: "Agents", label: "Agent", blurb: "Autonomous consumers and producers.", tag: "AGT", class: "agt", prefix: "agent"},
+	{kind: kindADR, group: "Decisions", label: "Decision record", blurb: "Architecture decision records.", tag: "ADR", class: "adr", prefix: "adr"},
+	{kind: kindTeam, group: "Teams", label: "Team", blurb: "Groups that own resources.", tag: "TEAM", class: "tm", prefix: "team"},
+	{kind: kindUser, group: "People", label: "Person", blurb: "Individuals that own resources.", tag: "USER", class: "usr", prefix: "user"},
+	{kind: kindDoc, group: "Documentation", label: "Documentation", blurb: "Additional pages from the catalog.", tag: "DOC", class: "doc", prefix: "doc"},
 }
 
 // kindInfos indexes kindTable by kind.

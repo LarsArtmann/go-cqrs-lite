@@ -13,17 +13,22 @@ func serviceSection(service catalog.Service, idx *refIndex) section {
 		meta = append(meta, textMeta("External system"))
 	}
 
-	return section{
-		kind:    kindService,
-		id:      string(service.ID),
-		name:    string(service.Name),
-		version: string(service.Version),
-		summary: string(service.Summary),
-		badges:  service.Badges,
-		meta:    metaLine(meta),
-		left:    serviceBlocks(service, idx),
-		right:   serviceRefs(service, idx),
-	}
+	sec := newSection(
+		kindService,
+		string(service.ID),
+		string(service.Name),
+	)
+
+	sec.version = string(service.Version)
+	sec.summary = string(service.Summary)
+
+	sec.badges = service.Badges
+	sec.meta = metaLine(meta)
+
+	sec.left = serviceBlocks(service, idx)
+	sec.right = serviceRefs(service, idx)
+
+	return sec
 }
 
 // serviceBlocks builds the left-column blocks of a service section.

@@ -4,21 +4,22 @@ import "github.com/larsartmann/go-cqrs-lite/catalog/v4"
 
 // domainSection builds the section for one domain.
 func domainSection(domain catalog.Domain, idx *refIndex) section {
-	return section{
-		kind:    kindDomain,
-		id:      string(domain.ID),
-		name:    string(domain.Name),
-		version: string(domain.Version),
-		summary: string(domain.Summary),
-		badges:  domain.Badges,
-		meta: metaLine([]markup{
-			ownerMeta(idx, domain.Owners),
-			countMeta(len(domain.Services), "service", "services"),
-			countMeta(len(domain.SubDomains), "sub-domain", "sub-domains"),
-		}),
-		left:  domainBlocks(domain),
-		right: domainRefs(domain, idx),
-	}
+	sec := newSection(
+		kindDomain,
+		string(domain.ID),
+		string(domain.Name),
+	)
+
+	sec.version = string(domain.Version)
+	sec.summary = string(domain.Summary)
+
+	sec.badges = domain.Badges
+	sec.meta = metaLine([]markup{ownerMeta(idx, domain.Owners), countMeta(len(domain.Services), "service", "services"), countMeta(len(domain.SubDomains), "sub-domain", "sub-domains")})
+
+	sec.left = domainBlocks(domain)
+	sec.right = domainRefs(domain, idx)
+
+	return sec
 }
 
 // domainBlocks builds the left-column blocks of a domain section.

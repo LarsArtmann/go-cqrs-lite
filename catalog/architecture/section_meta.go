@@ -4,21 +4,22 @@ import "github.com/larsartmann/go-cqrs-lite/catalog/v4"
 
 // adrSection builds the section for one architecture decision record.
 func adrSection(adr catalog.ADR, idx *refIndex) section {
-	return section{
-		kind:    kindADR,
-		id:      string(adr.ID),
-		name:    string(adr.Name),
-		version: string(adr.Version),
-		summary: string(adr.Summary),
-		badges:  adr.Badges,
-		meta: metaLine([]markup{
-			textMeta(string(adr.Status)),
-			ownerMeta(idx, adr.Owners),
-			textMeta(adr.Date),
-		}),
-		left:  adrBlocks(adr, idx),
-		right: adrRefs(adr, idx),
-	}
+	sec := newSection(
+		kindADR,
+		string(adr.ID),
+		string(adr.Name),
+	)
+
+	sec.version = string(adr.Version)
+	sec.summary = string(adr.Summary)
+
+	sec.badges = adr.Badges
+	sec.meta = metaLine([]markup{textMeta(string(adr.Status)), ownerMeta(idx, adr.Owners), textMeta(adr.Date)})
+
+	sec.left = adrBlocks(adr, idx)
+	sec.right = adrRefs(adr, idx)
+
+	return sec
 }
 
 // adrBlocks builds the left-column blocks of a decision record.
@@ -55,7 +56,7 @@ func adrTargets(targets []catalog.ADRResourceRef, idx *refIndex) []resourceRef {
 	for _, target := range targets {
 		kind, ok := adrKind(string(target.Type))
 		if !ok {
-			refs = append(refs, resourceRef{name: string(target.Type) + " " + target.ID})
+			refs = append(refs, plainRef(string(target.Type)+" "+target.ID))
 
 			continue
 		}
@@ -79,7 +80,7 @@ func adrLinks(links []catalog.ADRRef, idx *refIndex) []resourceRef {
 	for _, link := range links {
 		ref := idx.get(kindADR, string(link.ID))
 		if ref.anchor == "" {
-			ref = resourceRef{name: string(link.ID)}
+			ref = plainRef(string(link.ID))
 		}
 
 		refs = append(refs, ref)
@@ -130,17 +131,22 @@ func agentSection(agent catalog.Agent, idx *refIndex) section {
 		meta = append(meta, textMeta(string(agent.Model.Provider)+" "+string(agent.Model.Name)))
 	}
 
-	return section{
-		kind:    kindAgent,
-		id:      string(agent.ID),
-		name:    string(agent.Name),
-		version: string(agent.Version),
-		summary: string(agent.Summary),
-		badges:  agent.Badges,
-		meta:    metaLine(meta),
-		left:    agentBlocks(agent),
-		right:   agentRefs(agent, idx),
-	}
+	sec := newSection(
+		kindAgent,
+		string(agent.ID),
+		string(agent.Name),
+	)
+
+	sec.version = string(agent.Version)
+	sec.summary = string(agent.Summary)
+
+	sec.badges = agent.Badges
+	sec.meta = metaLine(meta)
+
+	sec.left = agentBlocks(agent)
+	sec.right = agentRefs(agent, idx)
+
+	return sec
 }
 
 // agentBlocks builds the left-column blocks of an agent section.
@@ -220,28 +226,36 @@ func agentToolTable(tools []catalog.AgentTool) markup {
 
 // teamSection builds the section for one team.
 func teamSection(team catalog.Team, idx *refIndex) section {
-	return section{
-		kind:    kindTeam,
-		id:      string(team.ID),
-		name:    string(team.Name),
-		summary: string(team.Summary),
-		meta:    metaLine([]markup{countMeta(len(team.Members), "member", "members"), textMeta(string(team.Role))}),
-		left:    orgBlocks(string(team.Email), string(team.SlackDirectMessageURL)),
-		right:   appendRefs([]block{}, "Members", idx.owners(team.Members)),
-	}
+	sec := newSection(
+		kindTeam,
+		string(team.ID),
+		string(team.Name),
+	)
+
+	sec.summary = string(team.Summary)
+	sec.meta = metaLine([]markup{countMeta(len(team.Members), "member", "members"), textMeta(string(team.Role))})
+
+	sec.left = orgBlocks(string(team.Email), string(team.SlackDirectMessageURL))
+	sec.right = appendRefs([]block{}, "Members", idx.owners(team.Members))
+
+	return sec
 }
 
 // userSection builds the section for one person.
 func userSection(user catalog.User, idx *refIndex) section {
-	return section{
-		kind:    kindUser,
-		id:      string(user.ID),
-		name:    string(user.Name),
-		summary: "",
-		meta:    metaLine([]markup{textMeta(string(user.Role))}),
-		left:    orgBlocks(string(user.Email), string(user.SlackDirectMessageURL)),
-		right:   []block{},
-	}
+	sec := newSection(
+		kindUser,
+		string(user.ID),
+		string(user.Name),
+	)
+
+	sec.summary = ""
+	sec.meta = metaLine([]markup{textMeta(string(user.Role))})
+
+	sec.left = orgBlocks(string(user.Email), string(user.SlackDirectMessageURL))
+	sec.right = []block{}
+
+	return sec
 }
 
 // orgBlocks renders the contact details shared by teams and people.
@@ -260,14 +274,19 @@ func orgBlocks(email, slack string) []block {
 func docSection(doc catalog.CustomDoc, idx *refIndex) section {
 	blocks := appendProse(make([]block, 0, 1), "", doc.Content, idx.link)
 
-	return section{
-		kind:    kindDoc,
-		id:      string(doc.ID),
-		name:    string(doc.Title),
-		summary: string(doc.Summary),
-		badges:  doc.Badges,
-		meta:    metaLine([]markup{ownerMeta(idx, doc.Owners)}),
-		left:    blocks,
-		right:   appendRefs([]block{}, "Owners", idx.owners(doc.Owners)),
-	}
+	sec := newSection(
+		kindDoc,
+		string(doc.ID),
+		string(doc.Title),
+	)
+
+	sec.summary = string(doc.Summary)
+	sec.badges = doc.Badges
+
+	sec.meta = metaLine([]markup{ownerMeta(idx, doc.Owners)})
+	sec.left = blocks
+
+	sec.right = appendRefs([]block{}, "Owners", idx.owners(doc.Owners))
+
+	return sec
 }

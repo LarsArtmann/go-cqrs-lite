@@ -13,22 +13,24 @@ func messageSection(msg catalog.Message, kind resourceKind, idx *refIndex) secti
 		deprecated = "Deprecated"
 	}
 
-	return section{
-		kind:       kind,
-		id:         string(msg.ID),
-		name:       string(msg.Name),
-		version:    string(msg.Version),
-		summary:    string(msg.Summary),
-		badges:     msg.Badges,
-		deprecated: deprecated,
-		meta: metaLine([]markup{
-			textMeta(messageKindLabel(msg)),
-			ownerMeta(idx, msg.Owners),
-			textMeta(operationLabel(msg.Operation)),
-		}),
-		left:  messageBlocks(msg, idx),
-		right: messageRefs(msg, idx),
-	}
+	sec := newSection(
+		kind,
+		string(msg.ID),
+		string(msg.Name),
+	)
+
+	sec.version = string(msg.Version)
+	sec.summary = string(msg.Summary)
+
+	sec.badges = msg.Badges
+	sec.deprecated = deprecated
+
+	sec.meta = metaLine([]markup{textMeta(messageKindLabel(msg)), ownerMeta(idx, msg.Owners), textMeta(operationLabel(msg.Operation))})
+	sec.left = messageBlocks(msg, idx)
+
+	sec.right = messageRefs(msg, idx)
+
+	return sec
 }
 
 // messageKindLabel describes the message's kind and direction.
@@ -105,7 +107,7 @@ func plainRefs(values []string) []resourceRef {
 	refs := make([]resourceRef, 0, len(values))
 
 	for _, value := range values {
-		refs = append(refs, resourceRef{name: value})
+		refs = append(refs, plainRef(value))
 	}
 
 	return refs
@@ -120,7 +122,7 @@ func labelRefs(labels map[string]string) []resourceRef {
 	refs := make([]resourceRef, 0, len(labels))
 
 	for _, key := range sortedKeysOf(labels) {
-		refs = append(refs, resourceRef{name: key + ": " + labels[key]})
+		refs = append(refs, plainRef(key+": "+labels[key]))
 	}
 
 	return refs

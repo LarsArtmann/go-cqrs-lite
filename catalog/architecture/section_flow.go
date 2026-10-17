@@ -9,22 +9,22 @@ import (
 // flowSection builds the section for one flow: its steps, in order, each
 // linked to the resources it touches.
 func flowSection(flow catalog.Flow, idx *refIndex) section {
-	return section{
-		kind:    kindFlow,
-		id:      string(flow.ID),
-		name:    string(flow.Name),
-		version: string(flow.Version),
-		summary: string(flow.Summary),
-		badges:  flow.Badges,
-		meta: metaLine([]markup{
-			ownerMeta(idx, flow.Owners),
-			countMeta(len(flow.Steps), "step", "steps"),
-		}),
-		left: []block{
-			blockHTML("Steps", flowSteps(flow.Steps, idx)),
-		},
-		right: flowRefs(flow, idx),
-	}
+	sec := newSection(
+		kindFlow,
+		string(flow.ID),
+		string(flow.Name),
+	)
+
+	sec.version = string(flow.Version)
+	sec.summary = string(flow.Summary)
+
+	sec.badges = flow.Badges
+	sec.meta = metaLine([]markup{ownerMeta(idx, flow.Owners), countMeta(len(flow.Steps), "step", "steps")})
+
+	sec.left = []block{blockHTML("Steps", flowSteps(flow.Steps, idx))}
+	sec.right = flowRefs(flow, idx)
+
+	return sec
 }
 
 // flowRefs builds the relationship boxes of a flow section: every resource

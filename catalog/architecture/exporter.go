@@ -63,7 +63,13 @@ func WithGeneratedAt(at time.Time) Option {
 
 // NewExporter creates an exporter with the given options applied in order.
 func NewExporter(opts ...Option) *Exporter {
-	exp := &Exporter{}
+	exp := &Exporter{cfg: config{
+		title:       "",
+		description: "",
+		command:     "",
+		logo:        "",
+		generatedAt: time.Time{},
+	}}
 
 	for _, opt := range opts {
 		opt(exp)

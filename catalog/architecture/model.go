@@ -18,10 +18,13 @@ type document struct {
 	search      []searchEntry
 }
 
-// countRow is one entry of the catalog summary ("Services 12").
+// countRow is one entry of the catalog summary ("Services 12"). The singular
+// and plural forms both live here so the overview prose reads naturally at one
+// of anything, which small catalogs hit constantly.
 type countRow struct {
-	label string
-	value int
+	label    string
+	singular string
+	value    int
 }
 
 // section is one resource's page: a heading, its two columns, and the
@@ -41,6 +44,24 @@ type section struct {
 
 // noCount marks a block heading that shows no item count.
 const noCount = -1
+
+// newSection starts a section for one resource. Every field is named here, so
+// the resource builders only assign what they have; the reference renderer
+// treats the rest as "not present".
+func newSection(kind resourceKind, id, name string) section {
+	return section{
+		kind:       kind,
+		id:         id,
+		name:       name,
+		version:    "",
+		summary:    "",
+		badges:     nil,
+		meta:       "",
+		left:       nil,
+		right:      nil,
+		deprecated: "",
+	}
+}
 
 // anchor returns the in-document id of the section, derived from its kind and
 // the resource identifier so links, sidebar and search always agree.
@@ -96,9 +117,17 @@ type docBuilder struct {
 	search    []searchEntry
 }
 
-// builder creates an empty document builder.
+// newDocBuilder creates an empty document builder.
 func newDocBuilder(title, command string, generated time.Time) *docBuilder {
-	return &docBuilder{title: title, command: command, generated: generated}
+	return &docBuilder{
+		title:     title,
+		command:   command,
+		generated: generated,
+		counts:    nil,
+		nav:       nil,
+		sections:  nil,
+		search:    nil,
+	}
 }
 
 // addSection appends a section and, when it is not empty, its sidebar entry.
@@ -130,6 +159,15 @@ func (d *docBuilder) navAt(kind resourceKind, entry navEntry) {
 }
 
 // addCount records one summary row.
-func (d *docBuilder) addCount(label string, value int) {
-	d.counts = append(d.counts, countRow{label: label, value: value})
+func (d *docBuilder) addCount(label, singular string, value int) {
+	d.counts = append(d.counts, countRow{label: label, singular: singular, value: value})
+}
+
+// word returns the count's noun in the right number.
+func (c countRow) word() string {
+	if c.value == 1 {
+		return c.singular
+	}
+
+	return c.label
 }

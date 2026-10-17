@@ -8,18 +8,10 @@ import (
 // overviewSection builds the document's opening section: what this file is,
 // how much it documents, and how to regenerate it.
 func overviewSection(cfg config, counts []countRow) section {
-	sec := section{
-		kind:    kindOverview,
-		id:      "",
-		name:    cfg.title,
-		summary: cfg.description,
-		left: []block{
-			blockHTML("", overviewProse(cfg.title, counts)),
-		},
-		right: []block{
-			blockHTML("Catalog", countTable(counts)),
-		},
-	}
+	sec := newSection(kindOverview, "", cfg.title)
+	sec.summary = cfg.description
+	sec.left = []block{blockHTML("", overviewProse(cfg.title, counts))}
+	sec.right = []block{blockHTML("Catalog", countTable(counts))}
 
 	if cfg.command != "" {
 		sec.right = append(sec.right, blockHTML("", codeBlock("Regenerate this reference", cfg.command)))
@@ -44,7 +36,7 @@ func overviewProse(title string, counts []countRow) markup {
 				w.raw(", ")
 			}
 
-			w.element("strong", strconv.Itoa(row.value)+" "+strings.ToLower(row.label))
+			w.element("strong", strconv.Itoa(row.value)+" "+strings.ToLower(row.word()))
 		}
 
 		w.raw(".")

@@ -115,11 +115,11 @@ func TestExamplePayloadFallsBackToSynthesis(t *testing.T) {
 
 func TestSafeHrefBlocksScriptURLs(t *testing.T) {
 	cases := map[string]string{
-		"https://example.com": "https://example.com",
-		"mailto:a@b.c":        "mailto:a@b.c",
-		"javascript:alert(1)": "#",
+		"https://example.com":   "https://example.com",
+		"mailto:a@b.c":          "mailto:a@b.c",
+		"javascript:alert(1)":   "#",
 		"  JavaScript:alert(1)": "#",
-		"data:text/html,x":    "#",
+		"data:text/html,x":      "#",
 	}
 
 	for in, want := range cases {

@@ -30,6 +30,7 @@ func (x *refIndex) add(kind resourceKind, id, name string) resourceRef {
 		name:   name,
 		tag:    info.tag,
 		class:  info.class,
+		note:   "",
 	}
 
 	if x.byKind[kind] == nil {
@@ -73,7 +74,7 @@ func (x *refIndex) owners(ids []string) []resourceRef {
 	for _, id := range ids {
 		ref := x.owner(id)
 		if ref.anchor == "" {
-			ref = resourceRef{name: id}
+			ref = plainRef(id)
 		}
 
 		refs = append(refs, ref)
@@ -135,7 +136,7 @@ func (x *refIndex) link(kind, id string) resourceRef {
 		}
 	}
 
-	return resourceRef{name: id}
+	return plainRef(id)
 }
 
 // idStrings converts a slice of string-backed identifiers to plain strings.

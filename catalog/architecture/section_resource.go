@@ -4,21 +4,22 @@ import "github.com/larsartmann/go-cqrs-lite/catalog/v4"
 
 // channelSection builds the section for one channel.
 func channelSection(channel catalog.Channel, idx *refIndex) section {
-	return section{
-		kind:    kindChannel,
-		id:      string(channel.ID),
-		name:    string(channel.Name),
-		version: string(channel.Version),
-		summary: string(channel.Summary),
-		badges:  channel.Badges,
-		meta: metaLine([]markup{
-			ownerMeta(idx, channel.Owners),
-			textMeta(string(channel.Address)),
-			textMeta(string(channel.DeliveryGuarantee)),
-		}),
-		left:  channelBlocks(channel),
-		right: channelRefs(channel, idx),
-	}
+	sec := newSection(
+		kindChannel,
+		string(channel.ID),
+		string(channel.Name),
+	)
+
+	sec.version = string(channel.Version)
+	sec.summary = string(channel.Summary)
+
+	sec.badges = channel.Badges
+	sec.meta = metaLine([]markup{ownerMeta(idx, channel.Owners), textMeta(string(channel.Address)), textMeta(string(channel.DeliveryGuarantee))})
+
+	sec.left = channelBlocks(channel)
+	sec.right = channelRefs(channel, idx)
+
+	return sec
 }
 
 // channelBlocks builds the left-column blocks of a channel section.
@@ -132,19 +133,22 @@ func dataStoreSection(store catalog.DataStore, idx *refIndex, cat *catalog.Catal
 		meta = append(meta, textMeta("System of record"))
 	}
 
-	return section{
-		kind:    kindDataStore,
-		id:      string(store.ID),
-		name:    string(store.Name),
-		version: string(store.Version),
-		summary: string(store.Summary),
-		badges:  store.Badges,
-		meta:    metaLine(meta),
-		left: []block{
-			blockHTML("Store", dataStoreFields(store)),
-		},
-		right: dataStoreRefs(store, idx, cat),
-	}
+	sec := newSection(
+		kindDataStore,
+		string(store.ID),
+		string(store.Name),
+	)
+
+	sec.version = string(store.Version)
+	sec.summary = string(store.Summary)
+
+	sec.badges = store.Badges
+	sec.meta = metaLine(meta)
+
+	sec.left = []block{blockHTML("Store", dataStoreFields(store))}
+	sec.right = dataStoreRefs(store, idx, cat)
+
+	return sec
 }
 
 // dataStoreFields renders a data store's operational attributes.
@@ -211,17 +215,22 @@ func entitySection(entity catalog.Entity, idx *refIndex) section {
 		meta = append(meta, textMeta("Identified by "+entity.Identifier))
 	}
 
-	return section{
-		kind:    kindEntity,
-		id:      string(entity.ID),
-		name:    string(entity.Name),
-		version: string(entity.Version),
-		summary: string(entity.Summary),
-		badges:  entity.Badges,
-		meta:    metaLine(meta),
-		left:    entityBlocks(entity),
-		right:   entityRefs(entity, idx),
-	}
+	sec := newSection(
+		kindEntity,
+		string(entity.ID),
+		string(entity.Name),
+	)
+
+	sec.version = string(entity.Version)
+	sec.summary = string(entity.Summary)
+
+	sec.badges = entity.Badges
+	sec.meta = metaLine(meta)
+
+	sec.left = entityBlocks(entity)
+	sec.right = entityRefs(entity, idx)
+
+	return sec
 }
 
 // entityBlocks builds the left-column blocks of an entity section.
@@ -294,17 +303,22 @@ func yesNo(value bool) string {
 
 // dataProductSection builds the section for one data product.
 func dataProductSection(product catalog.DataProduct, idx *refIndex) section {
-	return section{
-		kind:    kindDataProduct,
-		id:      string(product.ID),
-		name:    string(product.Name),
-		version: string(product.Version),
-		summary: string(product.Summary),
-		badges:  product.Badges,
-		meta:    metaLine([]markup{ownerMeta(idx, product.Owners)}),
-		left:    dataProductBlocks(product),
-		right:   dataProductRefs(product, idx),
-	}
+	sec := newSection(
+		kindDataProduct,
+		string(product.ID),
+		string(product.Name),
+	)
+
+	sec.version = string(product.Version)
+	sec.summary = string(product.Summary)
+
+	sec.badges = product.Badges
+	sec.meta = metaLine([]markup{ownerMeta(idx, product.Owners)})
+
+	sec.left = dataProductBlocks(product)
+	sec.right = dataProductRefs(product, idx)
+
+	return sec
 }
 
 // dataProductBlocks builds the left-column blocks of a data product section.

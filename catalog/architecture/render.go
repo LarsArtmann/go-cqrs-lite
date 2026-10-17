@@ -221,44 +221,10 @@ func writeSearchDialog(w *htmlWriter) {
 	w.close("div")
 }
 
-// kindLabel returns the display name of a resource kind.
+// kindLabel returns the display name of a resource kind, as shown in a
+// section's eyebrow.
 func kindLabel(kind resourceKind) string {
-	switch kind {
-	case kindOverview:
-		return "Architecture reference"
-	case kindDomain:
-		return "Domain"
-	case kindService:
-		return "Service"
-	case kindCommand:
-		return "Command"
-	case kindEvent:
-		return "Event"
-	case kindQuery:
-		return "Query"
-	case kindChannel:
-		return "Channel"
-	case kindDataStore:
-		return "Data store"
-	case kindFlow:
-		return "Flow"
-	case kindEntity:
-		return "Entity"
-	case kindDataProduct:
-		return "Data product"
-	case kindAgent:
-		return "Agent"
-	case kindADR:
-		return "Decision record"
-	case kindTeam:
-		return "Team"
-	case kindUser:
-		return "Person"
-	case kindDoc:
-		return "Documentation"
-	default:
-		return string(kind)
-	}
+	return kindInfos()[kind].label
 }
 
 // generatedStamp formats the generation time shown in the top bar.

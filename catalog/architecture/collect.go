@@ -14,7 +14,13 @@ func collect(cat *catalog.Catalog, cfg config) *document {
 	b := newDocBuilder(cfg.title, cfg.command, cfg.generatedAt)
 	collectCounts(b, enriched)
 	b.sections = append(b.sections, overviewSection(cfg, b.counts))
-	b.navAt(kindOverview, navEntry{anchor: "overview", tag: "DOC", class: "doc", name: "Introduction"})
+	b.navAt(kindOverview, navEntry{
+		anchor: "overview",
+		tag:    "DOC",
+		class:  "doc",
+		name:   "Introduction",
+		alt:    "introduction",
+	})
 
 	collectDomains(b, enriched, idx)
 	collectServices(b, enriched, idx)
@@ -177,20 +183,20 @@ func collectDocs(b *docBuilder, cat *catalog.Catalog, idx *refIndex) {
 func collectCounts(b *docBuilder, cat *catalog.Catalog) {
 	counts := countMessages(cat)
 
-	b.addCount("Domains", len(cat.Domains))
-	b.addCount("Services", len(cat.Services))
-	b.addCount("Commands", counts[kindCommand])
-	b.addCount("Events", counts[kindEvent])
-	b.addCount("Queries", counts[kindQuery])
-	b.addCount("Channels", len(cat.Channels))
-	b.addCount("Data stores", len(cat.DataStores))
-	b.addCount("Flows", len(cat.Flows))
-	b.addCount("Entities", len(cat.Entities))
-	b.addCount("Data products", len(cat.DataProducts))
-	b.addCount("Agents", len(cat.Agents))
-	b.addCount("Decisions", len(cat.ADRs))
-	b.addCount("Teams", len(cat.Teams))
-	b.addCount("People", len(cat.Users))
+	b.addCount("Domains", "domain", len(cat.Domains))
+	b.addCount("Services", "service", len(cat.Services))
+	b.addCount("Commands", "command", counts[kindCommand])
+	b.addCount("Events", "event", counts[kindEvent])
+	b.addCount("Queries", "query", counts[kindQuery])
+	b.addCount("Channels", "channel", len(cat.Channels))
+	b.addCount("Data stores", "data store", len(cat.DataStores))
+	b.addCount("Flows", "flow", len(cat.Flows))
+	b.addCount("Entities", "entity", len(cat.Entities))
+	b.addCount("Data products", "data product", len(cat.DataProducts))
+	b.addCount("Agents", "agent", len(cat.Agents))
+	b.addCount("Decisions", "decision", len(cat.ADRs))
+	b.addCount("Teams", "team", len(cat.Teams))
+	b.addCount("People", "person", len(cat.Users))
 }
 
 // countMessages counts unique messages per kind.
@@ -214,16 +220,19 @@ func countMessages(cat *catalog.Catalog) map[resourceKind]int {
 
 // messagesOf returns a service's messages of one kind.
 func messagesOf(service catalog.Service, kind resourceKind) []catalog.Message {
-	switch kind {
-	case kindCommand:
+	if kind == kindCommand {
 		return service.Commands
-	case kindEvent:
-		return service.Events
-	case kindQuery:
-		return service.Queries
-	default:
-		return nil
 	}
+
+	if kind == kindEvent {
+		return service.Events
+	}
+
+	if kind == kindQuery {
+		return service.Queries
+	}
+
+	return nil
 }
 
 // domainOfService returns the name of the domain owning a service, if any.

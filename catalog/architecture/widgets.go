@@ -15,6 +15,12 @@ type resourceRef struct {
 	note   string
 }
 
+// plainRef builds a reference to something with no section in the document,
+// which therefore renders as text rather than a link.
+func plainRef(name string) resourceRef {
+	return resourceRef{anchor: "", name: name, tag: "", class: "", note: ""}
+}
+
 // writeRef renders a resource reference as an in-document link, or as plain
 // text when the target is not part of the document.
 func (r resourceRef) writeRef(w *htmlWriter) {
@@ -52,7 +58,7 @@ func refList(refs []resourceRef) markup {
 // omits itself entirely when the list is empty.
 func refBlock(label string, refs []resourceRef) (block, bool) {
 	if len(refs) == 0 {
-		return block{}, false
+		return block{label: "", count: 0, body: ""}, false
 	}
 
 	return blockCounted(label, len(refs), refList(refs)), true

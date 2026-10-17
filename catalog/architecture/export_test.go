@@ -287,7 +287,7 @@ var containerTags = []string{
 }
 
 func TestExportProducesBalancedHTML(t *testing.T) {
-	out := renderFixture(t)
+	out := stripRawTextBlocks(renderFixture(t))
 
 	for _, tag := range containerTags {
 		opened := countOccurrences(out, "<"+tag+" ") + countOccurrences(out, "<"+tag+">")
@@ -296,6 +296,28 @@ func TestExportProducesBalancedHTML(t *testing.T) {
 			t.Errorf("<%s> opened %d times but closed %d times", tag, opened, closed)
 		}
 	}
+}
+
+// stripRawTextBlocks removes the embedded stylesheet and scripts, whose text
+// is not markup and would otherwise be counted as tags.
+func stripRawTextBlocks(html string) string {
+	for _, tag := range []string{"style", "script"} {
+		for {
+			start := strings.Index(html, "<"+tag)
+			if start < 0 {
+				break
+			}
+
+			end := strings.Index(html[start:], "</"+tag+">")
+			if end < 0 {
+				break
+			}
+
+			html = html[:start] + html[start+end+len(tag)+3:]
+		}
+	}
+
+	return html
 }
 
 // countOccurrences counts non-overlapping occurrences of needle in haystack.
