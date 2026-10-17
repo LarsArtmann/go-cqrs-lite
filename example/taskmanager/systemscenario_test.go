@@ -35,7 +35,7 @@ func adoptTaskmanager(t *testing.T) (*Server, *systemscenario.Scenario) {
 // taskView returns a probe reading the TaskReader read model for taskID.
 func taskView(srv *Server, taskID id.StreamID) func() (any, error) {
 	return func() (any, error) {
-		view, _, err := srv.TaskReader.Get(context.Background(), taskID.String())
+		view, _, err := srv.TaskReader.Get(context.Background(), taskID.Get())
 
 		return view, err
 	}
@@ -46,7 +46,7 @@ func taskView(srv *Server, taskID id.StreamID) func() (any, error) {
 // absence must be carried as the probe's value, not its error.
 func taskViewAbsent(srv *Server, taskID id.StreamID) func() (any, error) {
 	return func() (any, error) {
-		_, found, err := srv.TaskReader.Get(context.Background(), taskID.String())
+		_, found, err := srv.TaskReader.Get(context.Background(), taskID.Get())
 		if err != nil {
 			return nil, err
 		}
