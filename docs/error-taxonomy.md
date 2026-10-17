@@ -671,6 +671,7 @@ errorfamily.Classify(err) // => Conflict
 | -                        | Infrastructure | `storage.open_duckdb`                      |
 | -                        | Infrastructure | `storage.open_sqlite`                      |
 | -                        | Infrastructure | `storage.open_sqlite_in_memory`            |
+| -                        | Infrastructure | `storage.open_turso_sync`                  |
 | -                        | Corruption     | `storage.parse_command_id`                 |
 | -                        | Corruption     | `storage.parse_command_metadata`           |
 | -                        | Corruption     | `storage.parse_event_id`                   |
@@ -717,6 +718,9 @@ errorfamily.Classify(err) // => Conflict
 | -                        | Infrastructure | `storage.stream_query_from`                |
 | -                        | Infrastructure | `storage.stream_read_all`                  |
 | -                        | Infrastructure | `storage.stream_read_from`                 |
+| ErrMemorySync            | Rejection      | `storage.turso_memory_sync`                |
+| -                        | Infrastructure | `storage.turso_pull`                       |
+| -                        | Infrastructure | `storage.turso_stats`                      |
 | -                        | Infrastructure | `storage.stream_resolve_cursor`            |
 | ErrStreamTypeMismatch    | Conflict       | `storage.stream_type_mismatch`             |
 | ErrUnexpectedTimeType    | Corruption     | `storage.unexpected_time_type`             |
