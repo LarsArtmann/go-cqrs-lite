@@ -1204,6 +1204,14 @@
               ${pkgs.bash}/bin/bash "$PWD/scripts/check-eventcatalog.sh"
             '';
 
+            # check-architecture-reference: render-validate the catalog/architecture
+            # self-contained HTML export outside the go test process — renders a
+            # fixture catalog and asserts self-containment, anchor integrity and
+            # section coverage. --self-test fault-injects corruptions.
+            check-architecture-reference = mkApp "check-architecture-reference" [ goPkg pkgs.bash ] ''
+              ${pkgs.bash}/bin/bash "$PWD/scripts/check-architecture-reference.sh"
+            '';
+
             # check-csp: browser validation of the docserver CSP policy —
             # runs the real embedded Scalar/AsyncAPI bundles under headless
             # Chromium with CSP enabled and fails on any CSP refusal or
@@ -1816,6 +1824,7 @@
                   echo "=== Check Lint Config ===" && nix run .#check-lint-config && \
                   echo "=== Check Docserver CSS ===" && nix run .#check-docserver-css && \
                   echo "=== Check Duplication ===" && nix run .#check-duplication && \
+                  echo "=== Check Architecture Reference ===" && nix run .#check-architecture-reference && \
                   echo "=== Check Turso Version Citations ===" && nix run .#check-turso-version && \
                   echo "=== Check Templ ===" && nix run .#check-templ && \
                   echo "=== Check Bench Gate ===" && nix run .#check-bench-gate && \
@@ -1867,6 +1876,7 @@
                   echo "=== Check Lint Config ===" && nix run .#check-lint-config && \
                   echo "=== Check Docserver CSS ===" && nix run .#check-docserver-css && \
                   echo "=== Check Duplication ===" && nix run .#check-duplication && \
+                  echo "=== Check Architecture Reference ===" && nix run .#check-architecture-reference && \
                   echo "=== Check Turso Version Citations ===" && nix run .#check-turso-version && \
                   echo "=== Check Templ ===" && nix run .#check-templ && \
                   echo "=== Check Bench Gate ===" && nix run .#check-bench-gate && \

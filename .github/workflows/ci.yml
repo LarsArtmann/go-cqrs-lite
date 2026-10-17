@@ -66,6 +66,9 @@ jobs:
       - name: Duplication check
         run: nix run .#check-duplication
 
+      - name: Architecture reference render check
+        run: nix run .#check-architecture-reference -- --self-test
+
       - name: Architecture check (layers + intra-module)
         run: nix run .#check-arch
 
