@@ -123,10 +123,26 @@ func main() {
 		false,
 		"print the export check report instead of writing files; exits 1 when a selector matches nothing",
 	)
+	spec := flag.String(
+		"spec",
+		"",
+		"load the export policy from a markdown file with YAML frontmatter (title and include required; body becomes the introduction)",
+	)
 
 	flag.Parse()
 
 	cat := buildCatalog()
+
+	var specOptions []architecture.Option
+
+	if *spec != "" {
+		loaded, err := architecture.LoadExport(*spec)
+		if err != nil {
+			log.Fatalf("catalog-export: %v", err)
+		}
+
+		specOptions = loaded.Options()
+	}
 
 	includeSelectors, err := parseSelectors(includes)
 	if err != nil {
@@ -143,9 +159,9 @@ func main() {
 		log.Fatalf("catalog-export: %v", err)
 	}
 
-	options := []architecture.Option{
+	options := append([]architecture.Option{
 		architecture.WithCommand("catalog-export -architecture " + *reference),
-	}
+	}, specOptions...)
 
 	if len(includeSelectors) > 0 {
 		options = append(options, architecture.WithInclude(includeSelectors...))
