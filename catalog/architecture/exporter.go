@@ -104,6 +104,7 @@ func NewExporter(opts ...Option) *Exporter {
 		logo:        "",
 		generatedAt: time.Time{},
 		sel:         (*Selection)(nil),
+		references:  ReferencesOmit,
 	}}
 
 	for _, opt := range opts {

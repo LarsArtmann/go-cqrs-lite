@@ -28,6 +28,12 @@ const (
 	headerSummary     = "Summary"
 )
 
+// droppedRef is the reference that renders nothing: the target was
+// redacted from the export (ADR-0160) and no trace of it may appear.
+func droppedRef() resourceRef {
+	return resourceRef{anchor: "", name: "", tag: "", class: "", note: ""}
+}
+
 // plainRef builds a reference to something with no section in the document,
 // which therefore renders as text rather than a link.
 func plainRef(name string) resourceRef {

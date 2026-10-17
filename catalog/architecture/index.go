@@ -217,7 +217,7 @@ func (x *refIndex) degrade(kind resourceKind, id string) (resourceRef, bool) {
 	key := selKey{kind: kind, id: id}
 
 	if x.banned[key] {
-		return resourceRef{}, false
+		return droppedRef(), false
 	}
 
 	if x.references == ReferencesNameOnly {
@@ -226,7 +226,7 @@ func (x *refIndex) degrade(kind resourceKind, id string) (resourceRef, bool) {
 		}
 
 		if x.kept != nil {
-			return resourceRef{}, false
+			return droppedRef(), false
 		}
 	}
 
@@ -234,14 +234,14 @@ func (x *refIndex) degrade(kind resourceKind, id string) (resourceRef, bool) {
 		return plainRef(id), true
 	}
 
-	return resourceRef{}, false
+	return droppedRef(), false
 }
 
 // degradeAny is degrade for identifiers the model stores without a kind.
 // The no-selection fallback appends a zero reference, which writeRef skips.
 func (x *refIndex) degradeAny(id string) (resourceRef, bool) {
 	if x.bannedIDs[id] {
-		return resourceRef{}, false
+		return droppedRef(), false
 	}
 
 	if x.references == ReferencesNameOnly {
@@ -250,15 +250,15 @@ func (x *refIndex) degradeAny(id string) (resourceRef, bool) {
 		}
 
 		if x.kept != nil {
-			return resourceRef{}, false
+			return droppedRef(), false
 		}
 	}
 
 	if x.kept == nil {
-		return resourceRef{}, true
+		return droppedRef(), true
 	}
 
-	return resourceRef{}, false
+	return droppedRef(), false
 }
 
 // channelsFor returns the channels a message travels on, merging the
@@ -282,7 +282,7 @@ func (x *refIndex) link(kind, id string) resourceRef {
 	resolved, ok := adrKind(kind)
 	if !ok {
 		if x.kept != nil {
-			return resourceRef{anchor: "", name: "", tag: "", class: "", note: ""}
+			return droppedRef()
 		}
 
 		return plainRef(id)
@@ -296,7 +296,7 @@ func (x *refIndex) link(kind, id string) resourceRef {
 		return ref
 	}
 
-	return resourceRef{anchor: "", name: "", tag: "", class: "", note: ""}
+	return droppedRef()
 }
 
 // idStrings converts a slice of string-backed identifiers to plain strings.

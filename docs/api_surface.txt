@@ -110,6 +110,9 @@ benchkit/var ProfileReadHeavy
 benchkit/var ProfileSmall
 benchkit/var ProfileStress
 benchkit/var ProfileWriteHeavy
+catalog/architecture/const ReferencesInclude
+catalog/architecture/const ReferencesNameOnly
+catalog/architecture/const ReferencesOmit
 catalog/architecture/func NewExporter
 catalog/architecture/func WithCommand
 catalog/architecture/func WithDescription
@@ -118,6 +121,7 @@ catalog/architecture/func WithGeneratedAt
 catalog/architecture/func WithInclude
 catalog/architecture/func WithLogo
 catalog/architecture/func WithNeverExport
+catalog/architecture/func WithReferences
 catalog/architecture/func WithTitle
 catalog/architecture/method Excluding
 catalog/architecture/method Export
@@ -129,6 +133,7 @@ catalog/architecture/struct Exporter
 catalog/architecture/struct Selection
 catalog/architecture/struct Selector
 catalog/architecture/type Option
+catalog/architecture/type ReferencesMode
 catalog/asyncapi/func NewExporter
 catalog/asyncapi/func SchemaToAny
 catalog/asyncapi/func WithDescription
