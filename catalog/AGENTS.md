@@ -202,6 +202,14 @@ server-rendered HTML).
 - **Search index is a published shape.** The `searchEntry` JSON keys
   (`g/k/c/t/a/s/d/h`) are read by `assets/reference.js` and inlined into
   every generated file. Change them only together.
+  `TestSearchIndexKeyContractPinned` (surfaces_test.go) pins the key set;
+  the anchor↔section tests in anchor_test.go pin navigation integrity.
+- **`WithLogo` renders, it does not decorate.** Decision (2026-10-17): the
+  option renders an `<img class="brand-logo">` in the top bar when the URL
+  passes `safeImageSrc` (http/https/data:image only — a hostile logo is
+  dropped entirely, not rewritten). Tables share one `writeTable` helper
+  (`table.go`); new table-shaped blocks extend it instead of copying the
+  thead/tbody ladder.
 - **The docs example is gated.** The recipe (§2.48 in
   `.agents/skills/go-cqrs-lite/references/recipes.md`) is compile-verified by
   `cmd/doc-check`; its catalog entry lives in
