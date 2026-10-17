@@ -13,7 +13,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.19.0
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2
 	github.com/larsartmann/go-cqrs-lite/system/v4 v4.15.1
-	github.com/larsartmann/go-cqrs-lite/systemscenario/v4 v4.1.0
+	github.com/larsartmann/go-cqrs-lite/systemscenario/v4 v4.2.0
 	github.com/larsartmann/go-error-family v0.12.0
 )
 
