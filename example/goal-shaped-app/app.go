@@ -152,7 +152,7 @@ func decideCreate(cmd CreateTaskCmd, s TaskState, v event.Version) ([]event.Even
 	}
 
 	evt, err := event.New(evtTaskCreated, cmd.StreamID(), streamType, v.Increment(),
-		TaskCreated{ID: cmd.StreamID().String(), Title: cmd.Title, Priority: cmd.Priority})
+		TaskCreated{ID: cmd.StreamID().Get(), Title: cmd.Title, Priority: cmd.Priority})
 	if err != nil {
 		return nil, fmt.Errorf("task.created: %w", err)
 	}
@@ -171,7 +171,7 @@ func decideComplete(cmd CompleteTaskCmd, s TaskState, v event.Version) ([]event.
 
 	evt, err := event.New(evtTaskUpdated, cmd.StreamID(), streamType, v.Increment(),
 		TaskUpdated{
-			ID: cmd.StreamID().String(), Title: s.Title,
+			ID: cmd.StreamID().Get(), Title: s.Title,
 			Status: StatusDone, Priority: s.Priority,
 		})
 	if err != nil {
@@ -187,7 +187,7 @@ func decideDelete(cmd DeleteTaskCmd, s TaskState, v event.Version) ([]event.Even
 	}
 
 	evt, err := event.New(evtTaskDeleted, cmd.StreamID(), streamType, v.Increment(),
-		TaskDeleted{ID: cmd.StreamID().String()})
+		TaskDeleted{ID: cmd.StreamID().Get()})
 	if err != nil {
 		return nil, fmt.Errorf("task.deleted: %w", err)
 	}

@@ -37,7 +37,7 @@ func (a *EventAdapter) encodeEvent(evt event.Event) (string, error) {
 	env := serializedEvent{
 		ID:            evt.ID().String(),
 		Type:          string(evt.Type()),
-		StreamID:      evt.StreamID().String(),
+		StreamID:      evt.StreamID().Get(),
 		StreamType:    string(evt.StreamType()),
 		Version:       evt.Version().Int(),
 		SchemaVersion: evt.SchemaVersion().Int(),

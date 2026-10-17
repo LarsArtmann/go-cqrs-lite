@@ -31,7 +31,7 @@ func (a *CommandAdapter) encodeCommand(cmd *command.PersistedCommand) (string, e
 	env := serializedCommand{
 		ID:         cmd.ID().String(),
 		Type:       string(cmd.Type()),
-		StreamID:   cmd.StreamID().String(),
+		StreamID:   cmd.StreamID().Get(),
 		StreamType: string(cmd.StreamType()),
 		ReceivedAt: cmd.ReceivedAt(),
 		Payload:    cmd.Payload(),

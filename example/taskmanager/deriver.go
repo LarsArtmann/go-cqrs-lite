@@ -31,7 +31,7 @@ func newDeriverProjection(wq *WorkQueue) projection.Projection {
 		"auto-assign",
 		func(ctx context.Context, evt event.Event) error {
 			return wq.enqueueAssignment(ctx, AssignmentJob{
-				TaskID:     evt.StreamID().String(),
+				TaskID:     evt.StreamID().Get(),
 				AssigneeID: defaultAssignee.Get(),
 			})
 		},

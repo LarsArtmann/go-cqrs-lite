@@ -105,7 +105,7 @@ func (r *Recorder) RecordReceived(ctx context.Context, cmd command.Command) erro
 	return r.emit(ctx, cmd, TypeReceived, ReceivedPayload{
 		CommandID:       CommandKey(cmd.ID().String()),
 		CommandType:     cmd.Type().String(),
-		CommandStreamID: cmd.StreamID().String(),
+		CommandStreamID: cmd.StreamID().Get(),
 		ReceivedAt:      r.now(),
 	})
 }

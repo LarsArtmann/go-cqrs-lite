@@ -88,7 +88,7 @@ func (p *StreamProjection) Handle(ctx context.Context, evt event.Event) error {
 				),
 			),
 			evt.StreamType(),
-			evt.StreamID().String(),
+			evt.StreamID().Get(),
 			evt.Version().Int(),
 			evt.OccurredAt(),
 		)
@@ -116,7 +116,7 @@ func (p *StreamProjection) Handle(ctx context.Context, evt event.Event) error {
 			p.table.name, p1, p2, p3, p4, p5,
 			p.dialect.OnConflictDoUpdate([]string{aggregateTypeCol, aggregateIDCol}, setExprs)),
 		evt.StreamType(),
-		evt.StreamID().String(),
+		evt.StreamID().Get(),
 		evt.Version().Int(),
 		evt.OccurredAt(),
 		int(status),

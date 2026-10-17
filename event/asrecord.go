@@ -93,7 +93,7 @@ func AsRecord(evt Event) record.Record {
 		Type:       string(evt.Type()),
 		Encoding:   recordEncoding(evt.Encoding()),
 		Payload:    evt.Payload(),
-		StreamID:   record.NewStreamRefOrZero(streamType, evt.StreamID().String()),
+		StreamID:   record.NewStreamRefOrZero(streamType, evt.StreamID().Get()),
 		StreamType: streamType,
 		Version:    int64(evt.Version()),
 		MetaData: record.CommonMetadata{
