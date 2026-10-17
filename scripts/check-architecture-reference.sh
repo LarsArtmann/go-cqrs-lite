@@ -55,7 +55,10 @@ self_test() {
 assert_all() {
 	local doc="$1" rc=0
 
-	grep -q '<!doctype html>' "$doc" || { echo "FAIL: no doctype"; rc=1; }
+	grep -q '<!doctype html>' "$doc" || {
+		echo "FAIL: no doctype"
+		rc=1
+	}
 
 	for forbidden in 'src="http' 'href="http' '<link ' '@import'; do
 		if grep -qF "$forbidden" "$doc"; then
@@ -86,7 +89,10 @@ assert_all() {
 		command-create-order event-order-created query-get-order \
 		channel-orders data-store-order-db flow-place-order \
 		entity-order adr-0001-events team-ordering doc-getting-started; do
-		grep -q "id=\"$anchor\"" "$doc" || { echo "FAIL: missing section: $anchor"; rc=1; }
+		grep -q "id=\"$anchor\"" "$doc" || {
+			echo "FAIL: missing section: $anchor"
+			rc=1
+		}
 	done
 
 	# grep -c counts LINES; the document is minified — count occurrences.

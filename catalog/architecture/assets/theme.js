@@ -7,9 +7,9 @@
  */
 (function () {
   try {
-    var stored = localStorage.getItem('cqrs-architecture-theme');
+    var stored = localStorage.getItem("cqrs-architecture-theme");
     if (stored) {
-      document.documentElement.setAttribute('data-theme', stored);
+      document.documentElement.setAttribute("data-theme", stored);
     }
   } catch (error) {
     /* storage can be unavailable (private mode, file://); the system theme stands. */
