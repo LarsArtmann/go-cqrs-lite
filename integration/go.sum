@@ -166,8 +166,8 @@ github.com/larsartmann/go-codec v0.3.2 h1:6josVkKRls+9CrXkH8AyCS4uOgJ0oIOvPMl4XF
 github.com/larsartmann/go-codec v0.3.2/go.mod h1:nDkfIZOg49OrpIbZE1fXpQZ6Mmyho35NprMMB3Cq+a8=
 github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.2 h1:yakAjC4K02sVvudipDP/fhLfSXDuo5rnNBY+hDou34Y=
 github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.2/go.mod h1:7TQ7fSd6bRqd7lYSTDMPIDCDZtzU/r3KqivP9m1M7gk=
-github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.0 h1:r1ej2xwUI05BiwPnzBJCoKJ1LHBgjJtCc8l8AnvsHjY=
-github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.0/go.mod h1:cX77pw9xkdxrEDkbQknfkShlehVkk04WJFE88jbxCJM=
+github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.1 h1:H/3KnPHJvPDeDHsbwaJFKVNmrFRlibVr20mA26d74VI=
+github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.1/go.mod h1:cX77pw9xkdxrEDkbQknfkShlehVkk04WJFE88jbxCJM=
 github.com/larsartmann/go-cqrs-lite/decider/v4 v4.8.0 h1:wedLRUReekM48vc4cNi2s3+iHziVGIG1iOAwxaaJEFY=
 github.com/larsartmann/go-cqrs-lite/decider/v4 v4.8.0/go.mod h1:7l6iPlJomlmj/25CHxdai6fa3rhYWFOeDOY/na33++8=
 github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.3.0 h1:p5wGOfVWc+lqEi1yVM4/rfH1pDxNg6Vmb/zys15d0kM=
@@ -212,8 +212,8 @@ github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.7.0 h1:umt4vxzuGfmgbELbTsmy
 github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.7.0/go.mod h1:NGC8vVv1YakNxbMtjq6DNUZORY41bwuq14hM2l4dVYA=
 github.com/larsartmann/go-cqrs-lite/schema/v4 v4.7.0 h1:7JDSpopxhV7BIlZ5iq49WdKrbQdRv5MDigwSZ5nQFyE=
 github.com/larsartmann/go-cqrs-lite/schema/v4 v4.7.0/go.mod h1:Y49ot/wFEpKDeTw/TaCf7ek+hkMcebPFMDHPRWWlSDk=
-github.com/larsartmann/go-cqrs-lite/signing/v4 v4.4.1 h1:UMUwobARTW3B5O0MI0kq9s993Q+O8MyUUFCj1KcJDEo=
-github.com/larsartmann/go-cqrs-lite/signing/v4 v4.4.1/go.mod h1:6aqiMJmlHg72GlS+IS+5+hIdOuFH6hWn2ZGmEIkEB4w=
+github.com/larsartmann/go-cqrs-lite/signing/v4 v4.4.2 h1:PIdvxbgk3FCtz+ec+vuK3IsarYwAmtoSkoe1H09SPIY=
+github.com/larsartmann/go-cqrs-lite/signing/v4 v4.4.2/go.mod h1:FjfWwJa7RAhsMnFVz+T6NmFGMDqgwp1hDHpqmr0xVnE=
 github.com/larsartmann/go-cqrs-lite/stack/v4 v4.5.0 h1:IAdi9hEixS4tDbf5DsO7D1poOsN0tB6tX3azIm5dPTE=
 github.com/larsartmann/go-cqrs-lite/stack/v4 v4.5.0/go.mod h1:ls5/ERC16jb02ux8YcO1JJ1xlOf7M7udpJa5jWlu3tk=
 github.com/larsartmann/go-cqrs-lite/storage/backuptest/v4 v4.2.3 h1:onzmS2XGfDFbmM+9XSxwIBFw/6xsY9dX9Q1XXWYUJ0E=

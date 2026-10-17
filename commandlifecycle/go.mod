@@ -3,7 +3,7 @@ module github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4
 go 1.27.2
 
 require (
-	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.0
+	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.1
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.1
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.2
 	github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.7.2

@@ -5,7 +5,7 @@ go 1.27.2
 require (
 	github.com/larsartmann/go-branded-id v0.7.0
 	github.com/larsartmann/go-codec v0.3.2
-	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.0
+	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.1
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.8.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.1
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.2
@@ -21,7 +21,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/queue/v4 v4.0.3
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2
 	github.com/larsartmann/go-cqrs-lite/scenario/v4 v4.4.3
-	github.com/larsartmann/go-cqrs-lite/signing/v4 v4.4.1
+	github.com/larsartmann/go-cqrs-lite/signing/v4 v4.4.2
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.7.0
 	github.com/larsartmann/go-cqrs-lite/system/v4 v4.15.0
 	github.com/larsartmann/go-cqrs-lite/systemscenario/v4 v4.1.0

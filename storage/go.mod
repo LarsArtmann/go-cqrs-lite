@@ -8,8 +8,8 @@ require (
 	github.com/go-sql-driver/mysql v1.10.1
 	github.com/jackc/pgx/v5 v5.11.0
 	github.com/larsartmann/go-codec v0.3.2
-	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.0
-	github.com/larsartmann/go-cqrs-lite/encryption/v4 v4.4.5
+	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.1
+	github.com/larsartmann/go-cqrs-lite/encryption/v4 v4.4.6
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.1
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.4.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.2
