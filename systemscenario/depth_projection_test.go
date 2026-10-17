@@ -67,7 +67,10 @@ func TestDepth_PoisonEventDeadLetters(t *testing.T) {
 
 			entry := entries[0]
 			if entry.EventType != "task.updated" {
-				return fmt.Errorf("dead-lettered event type: want task.updated, got %s", entry.EventType)
+				return fmt.Errorf(
+					"dead-lettered event type: want task.updated, got %s",
+					entry.EventType,
+				)
 			}
 
 			// DeadLetterEntry.StreamID is the raw stream key (Get()), without

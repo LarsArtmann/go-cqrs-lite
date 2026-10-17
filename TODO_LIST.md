@@ -637,14 +637,24 @@ the boundary. Verified against this repo's source on 2026-10-15.
 - [ ] **cqrs-htmx SQLite-lifecycle tests through the harness** (`sqliteDeployment` variant) — the wave
       migrates the memory-deployment trains; the sqlite-backed lifecycle tests remain on raw wiring.
       — source: 14:40 §f7 _(Effort: M)_
-- [ ] **Harness depth assertions**: `Scenario.Event` version-hint invalidation for out-of-band appends
-      (documented limitation), DLQ in-scenario (`projectionhost.WithDeadLetterStore`), upcaster in
-      given-phase (`schema.UpcastSourceTransform`), idempotency scenario (same command twice → one event),
-      optimistic-concurrency scenario (stale version → Conflict family). — source: 14:40 §f13/15/16/20,
-      02-46 §f21-25 _(Effort: M each, incremental)_
-      - [ ] Sweep the harness (and doc-check recipes) for other `json.Marshal(payload)` traps — payloads
-            are the raw stored `[]byte` encoding; any JSON round-trip hides embedded IDs (see the M14
-            gotcha in gotchas-language-footguns.md). _(Effort: S)_
+- [x] **Harness depth assertions** — DONE 2026-10-17 (bdd-testing session):
+      `systemscenario/depth_command_test.go` + `depth_projection_test.go` pin
+      all five stories over a real `system.New` boot — idempotency (same
+      command twice → one event, via a `sys.Dedup()`-keyed middleware),
+      optimistic concurrency (stale version → `ThenErrorFamily(Conflict)`,
+      only the competitor's event persists), DLQ in-scenario
+      (`projectionhost.WithDeadLetterStore`; required the projectionadapter
+      decode-error → Corruption classification fix, see CHANGELOG [Unreleased]
+      Fixed), upcaster in given-phase (`system.DomainConfig.Schema` +
+      `schema.RenameField` — upcast flows into decider fold AND the
+      projection host's journal), and version-hint invalidation (FIXED, not
+      just documented: `nextVersion` re-consults the store every mint, hint
+      floors — `TestDepth_EventMintPicksUpOutOfBandAppends` is red pre-fix).
+      — source: 14:40 §f13/15/16/20, 02-46 §f21-25
+      - [x] **2026-10-17: `json.Marshal(payload)` trap sweep CLEAN** — zero
+            `json.Marshal` calls in systemscenario production code; the only
+            recipes.md hit is codec-interface prose (not a payload round-trip).
+            The M14 gotcha class has no live instances.
       - [x] **2026-10-12 (harness-depth receipt): payload hashes + equivalence diffs + snapshot
             round-trip SHIPPED** — `TrailWithPayloads`/`ThenGoldenWithPayloads` (sha256 over RAW stored
             payload bytes, first-appearance ordinal masking `<<stream#N>>`), pairwise per-stream
@@ -675,13 +685,14 @@ the boundary. Verified against this repo's source on 2026-10-15.
 - [ ] **cqrs-lint catalog counts test** — the systemscenario catalog entry may need an adoption-
       suggestions coverage bump (`TestCatalogHasExpectedCounts`). — source: 14:40 §f31 _(Effort: XS;
       fold into T23's rule work)_
-- [ ] **Document `Then*` first-act baseline semantics in recipes §2.43** — the
-      systemscenario `Then*` assertions compare against a FIRST-ACT snapshot
-      (the state at the first `When`), a semantics consumers regularly
-      misread as "latest state"; one clarifying paragraph + example in the
-      §2.43 recipe (verify wording against systemscenario source before
-      shipping — that module is parallel-session owned).
-      — source: 2026-10-10 07-37 §f25, 09-05 §f14 _(Effort: XS)_
+- [x] **Document `Then*` first-act baseline semantics in recipes §2.43** — DONE
+      2026-10-17: clarifying paragraph added after the determinism contract
+      (diff target is the FIRST act's snapshot; `ThenNoEvents` after a second
+      chained act measures both acts — assert a total via `ThenEventsSatisfy`;
+      the idempotency depth spec is the worked example). Wording verified
+      against systemscenario source (`markActStart` snapshots baselines once,
+      `actStarted` guards re-snapshotting).
+      — source: 2026-10-10 07-37 §f25, 09-05 §f14
 - [ ] **[BLOCKED] Tag `systemscenario` so `example/graph-native` builds
       standalone** — `scripts/check-example-standalone.sh --build` fails for
       the example until `systemscenario` cuts a tag including `Memory()`

@@ -90,7 +90,10 @@ func TestDepth_IdempotentCommandRedeliveryEmitsOneEvent(t *testing.T) {
 	// baseline, so both deliveries count) still holds exactly one event.
 	sc.When(cmd).ThenSuccess().ThenEventsSatisfy(func(events []event.Event) error {
 		if len(events) != 1 {
-			return fmt.Errorf("want exactly the first delivery's event after redelivery, got %d", len(events))
+			return fmt.Errorf(
+				"want exactly the first delivery's event after redelivery, got %d",
+				len(events),
+			)
 		}
 
 		return nil
@@ -125,7 +128,8 @@ func registerRacedComplete(sys *system.System) {
 						},
 					)
 					ref := id.NewStreamRef("Task", cmd.StreamID())
-					if err := sys.EventStore().AppendBatch(ctx, ref, []event.Event{winner}); err != nil {
+					if err := sys.EventStore().
+						AppendBatch(ctx, ref, []event.Event{winner}); err != nil {
 						return nil, err
 					}
 
@@ -167,13 +171,20 @@ func TestDepth_StaleExpectedVersionYieldsConflict(t *testing.T) {
 	sc, ref, _ := newDepthScenario(t, domain)
 
 	phase := sc.Given(
-		sc.Event("task.created", ref, TaskCreated{ID: ref.ID.String(), Title: "race", Status: "pending"}),
+		sc.Event(
+			"task.created",
+			ref,
+			TaskCreated{ID: ref.ID.String(), Title: "race", Status: "pending"},
+		),
 	).When(newTaskCmd("task.complete_raced", ref.ID)).
 		ThenErrorFamily(errorfamily.Conflict).
 		Then("task.updated").
 		ThenEventsSatisfy(func(events []event.Event) error {
 			if len(events) != 1 {
-				return fmt.Errorf("want exactly the competitor's event, got %d act events", len(events))
+				return fmt.Errorf(
+					"want exactly the competitor's event, got %d act events",
+					len(events),
+				)
 			}
 
 			return nil
@@ -198,7 +209,11 @@ func TestDepth_EventMintPicksUpOutOfBandAppends(t *testing.T) {
 	sc, ref, ctx := newDepthScenario(t, taskDomain())
 
 	sc.Given(
-		sc.Event("task.created", ref, TaskCreated{ID: ref.ID.String(), Title: "hinted", Status: "pending"}),
+		sc.Event(
+			"task.created",
+			ref,
+			TaskCreated{ID: ref.ID.String(), Title: "hinted", Status: "pending"},
+		),
 	)
 
 	outOfBand := taskEvent("task.updated", ref.ID, 2, TaskUpdated{
@@ -211,10 +226,17 @@ func TestDepth_EventMintPicksUpOutOfBandAppends(t *testing.T) {
 	}
 
 	sc.WhenEvent(
-		sc.Event("task.updated", ref, TaskUpdated{ID: ref.ID.String(), Title: "resumed", Status: "completed"}),
+		sc.Event(
+			"task.updated",
+			ref,
+			TaskUpdated{ID: ref.ID.String(), Title: "resumed", Status: "completed"},
+		),
 	).ThenEventsSatisfy(func(events []event.Event) error {
 		if len(events) != 1 || events[0].Version() != 3 {
-			return fmt.Errorf("want the act event at v3 (past the out-of-band v2), got %d event(s)", len(events))
+			return fmt.Errorf(
+				"want the act event at v3 (past the out-of-band v2), got %d event(s)",
+				len(events),
+			)
 		}
 
 		return nil

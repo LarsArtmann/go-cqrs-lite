@@ -2891,6 +2891,17 @@ default 5s). A scenario without a `Then*` fails the test (vacuous guard).
 Wrapper libraries that own the `system.New` call adopt their booted system:
 `systemscenario.Adopt(t, ctx, eventService.System())`.
 
+`Then*` event and command assertions diff against the FIRST act's baseline —
+the journal and captured-command state at the moment the first `When` began —
+not "whatever happened before the assertion call". Consequences: given-phase
+seeds never leak into assertions, but a SECOND chained act (`.Command(c2)`
+after `.When(c1)`) is still measured from that same first-act snapshot, so
+its window contains BOTH acts' events. `ThenNoEvents()` after a second act
+therefore fails if the first act emitted anything, even when the second was
+silent; assert a total instead, e.g.
+`ThenEventsSatisfy(func(events []event.Event) error { ... len(events) == 1 ... })`
+across both deliveries of an idempotency-redelivery test.
+
 Tests with no production config to mirror can boot on a one-liner preset:
 `systemscenario.Memory()` (memory engines incl. a dedicated `timers` engine,
 so `TimeAdvances` works out of the box) or `systemscenario.SQLite(t)`
