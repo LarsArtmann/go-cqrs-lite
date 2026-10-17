@@ -68,8 +68,10 @@ func messageBlocks(msg catalog.Message, idx *refIndex) []block {
 		blocks = append(blocks, blockHTML("Attributes", table))
 	}
 
-	if payload := examplePayload(msg.Schema, msg.Examples); payload != "" {
-		blocks = append(blocks, blockHTML("Example payload", codeBlock("", payload)))
+	if !idx.hide.examples {
+		if payload := examplePayload(msg.Schema, msg.Examples); payload != "" {
+			blocks = append(blocks, blockHTML("Example payload", codeBlock("", payload)))
+		}
 	}
 
 	if ts := typeScriptInterface(string(msg.Name), msg.Schema); ts != "" {
@@ -97,11 +99,14 @@ func messageRefs(msg catalog.Message, idx *refIndex) []block {
 	refs = appendRefs(refs, "Produced by", idx.messagesOf(kindService, idStrings(msg.Producers)))
 	refs = appendRefs(refs, "Consumed by", idx.messagesOf(kindService, idStrings(msg.Consumers)))
 	refs = appendRefs(refs, "Channels", idx.channelsFor(msg))
-	refs = appendRefs(refs, "Owners", idx.owners(msg.Owners))
+
+	if !idx.hide.owners {
+		refs = appendRefs(refs, "Owners", idx.owners(msg.Owners))
+	}
 	refs = appendRefs(refs, "Security", plainRefs(msg.Security))
 	refs = appendRefs(refs, "Labels", labelRefs(msg.Labels))
 
-	if msg.Repository != nil && msg.Repository.URL != "" {
+	if !idx.hide.repository && msg.Repository != nil && msg.Repository.URL != "" {
 		refs = append(
 			refs,
 			blockHTML("Repository", externalLink(string(msg.Repository.URL), "Source code")),

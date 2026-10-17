@@ -17,6 +17,7 @@ func collect(cat *catalog.Catalog, cfg config) *document {
 	idx := newRefIndex()
 	idx.kept = kept
 	idx.references = cfg.references
+	idx.hide = cfg.hide
 	idx.banned = banned
 
 	for key := range banned {
@@ -195,6 +196,10 @@ func collectUsers(b *docBuilder, cat *catalog.Catalog) {
 
 // collectDocs adds one section per custom documentation page.
 func collectDocs(b *docBuilder, cat *catalog.Catalog, idx *refIndex) {
+	if idx.hide.docs {
+		return
+	}
+
 	for _, doc := range cat.CustomDocs {
 		addResource(b, docSection(doc, idx), "")
 	}

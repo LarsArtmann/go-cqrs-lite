@@ -22,6 +22,7 @@ type config struct {
 	generatedAt time.Time
 	sel         *Selection
 	references  ReferencesMode
+	hide        visibility
 }
 
 // Exporter renders a catalog as one self-contained HTML architecture
@@ -95,6 +96,12 @@ func WithReferences(mode ReferencesMode) Option {
 	return func(e *Exporter) { e.cfg.references = mode }
 }
 
+// WithHide suppresses whole parts of the reference (ADR-0160). The default
+// hides nothing; `WithHide()` with no sections is the default.
+func WithHide(sections ...HideSection) Option {
+	return func(e *Exporter) { e.cfg.hide = visibilityFrom(sections) }
+}
+
 // NewExporter creates an exporter with the given options applied in order.
 func NewExporter(opts ...Option) *Exporter {
 	exp := &Exporter{cfg: config{
@@ -105,6 +112,7 @@ func NewExporter(opts ...Option) *Exporter {
 		generatedAt: time.Time{},
 		sel:         (*Selection)(nil),
 		references:  ReferencesOmit,
+		hide:        visibility{},
 	}}
 
 	for _, opt := range opts {

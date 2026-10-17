@@ -61,11 +61,13 @@ func serviceRefs(service catalog.Service, idx *refIndex) []block {
 	refs = appendRefs(refs, "Entities", idx.messagesOf(kindEntity, service.Entities))
 	refs = appendRefs(refs, "Flows", idx.messagesOf(kindFlow, idStrings(service.Flows)))
 
-	if specs := specList(service.Specifications); specs != "" {
-		refs = append(refs, blockCounted("Specifications", len(service.Specifications), specs))
+	if !idx.hide.specifications {
+		if specs := specList(service.Specifications); specs != "" {
+			refs = append(refs, blockCounted("Specifications", len(service.Specifications), specs))
+		}
 	}
 
-	if service.Repository != nil && service.Repository.URL != "" {
+	if !idx.hide.repository && service.Repository != nil && service.Repository.URL != "" {
 		refs = append(
 			refs,
 			blockHTML("Repository", externalLink(string(service.Repository.URL), "Source code")),

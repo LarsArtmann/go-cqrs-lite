@@ -29,7 +29,7 @@ func metaLine(items []markup) markup {
 
 // ownerMeta renders the "Owned by …" meta item with links to the owners.
 func ownerMeta(idx *refIndex, owners []string) markup {
-	if len(owners) == 0 {
+	if len(owners) == 0 || idx.hide.owners {
 		return ""
 	}
 
