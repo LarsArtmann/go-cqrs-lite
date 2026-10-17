@@ -139,6 +139,10 @@ linters:
             - github.com/larsartmann/go-branded-id
             - github.com/larsartmann/go-sse
             - github.com/larsartmann/go-sqlitestore
+            # First-party, used by example/taskmanager's system-query HTTP
+            # binding dogfood (2026-10-16); allow-list caught up 2026-10-17.
+            - github.com/larsartmann/go-etag/server
+            - github.com/larsartmann/httputil
             - github.com/google/uuid
             - github.com/cockroachdb/errors
             - github.com/go-json-experiment/json
