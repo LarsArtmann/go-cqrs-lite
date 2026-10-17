@@ -69,7 +69,7 @@ func TestIntegration_FullLifecycle(t *testing.T) {
 	})
 
 	// ── Verify via read model ─────────────────────────────────────────
-	view, found, err := srv.TaskReader.Get(ctx, taskID.String())
+	view, found, err := srv.TaskReader.Get(ctx, taskID.Get())
 	if err != nil {
 		t.Fatalf("view task: %v", err)
 	}
@@ -300,7 +300,7 @@ func TestIntegration_MetaEngineTaskReader(t *testing.T) {
 	foundTask1 := false
 
 	for _, v := range active {
-		if v.ID == task1.String() {
+		if v.ID == task1.Get() {
 			foundTask1 = true
 		}
 
@@ -325,7 +325,7 @@ func TestIntegration_MetaEngineTaskReader(t *testing.T) {
 	foundTask2 := false
 
 	for _, v := range pending {
-		if v.ID == task2.String() {
+		if v.ID == task2.Get() {
 			foundTask2 = true
 		}
 
@@ -352,7 +352,7 @@ func waitForMetaEngineView(
 	deadline := time.Now().Add(5 * time.Second)
 
 	for time.Now().Before(deadline) {
-		view, found, err := srv.TaskReader.Get(context.Background(), taskID.String())
+		view, found, err := srv.TaskReader.Get(context.Background(), taskID.Get())
 		if err == nil && found && matches(&view) {
 			return
 		}
@@ -392,7 +392,7 @@ func waitForView(t *testing.T, srv *Server, taskID id.StreamID, matches func(*Ta
 	deadline := time.Now().Add(5 * time.Second)
 
 	for time.Now().Before(deadline) {
-		view, found, err := srv.TaskReader.Get(context.Background(), taskID.String())
+		view, found, err := srv.TaskReader.Get(context.Background(), taskID.Get())
 		if err == nil && found && matches(&view) {
 			return
 		}
@@ -409,7 +409,7 @@ func waitForViewRemoved(t *testing.T, srv *Server, taskID id.StreamID) {
 	deadline := time.Now().Add(5 * time.Second)
 
 	for time.Now().Before(deadline) {
-		_, found, _ := srv.TaskReader.Get(context.Background(), taskID.String())
+		_, found, _ := srv.TaskReader.Get(context.Background(), taskID.Get())
 		if !found {
 			return
 		}

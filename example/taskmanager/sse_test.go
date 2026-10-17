@@ -73,7 +73,9 @@ func TestIntegration_SSEStreamsTaskViewUpdates(t *testing.T) {
 			t.Fatalf("decode SSE data %q: %v", evt.Data(), err)
 		}
 
-		if last.ID == taskID.String() && last.Title == sseTestTitle {
+		// TaskView.ID carries the BARE stream value (StreamID.Get()) — the
+		// prefixed String() display form never matches.
+		if last.ID == taskID.Get() && last.Title == sseTestTitle {
 			return // pass: projected view arrived over SSE
 		}
 	}

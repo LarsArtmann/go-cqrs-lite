@@ -250,8 +250,8 @@ Modules release on independent per-module version trains (`<module>/vX.Y.Z` git 
 | cmd/cqrs-upgrade | `cmd/cqrs-upgrade/v4.1.2` *(untagged per ADR-0152)* |
 | cmd/doc-check | `cmd/doc-check/v4.3.3` *(untagged per ADR-0152)* |
 | codec | `codec/v4.4.0` |
-| command | `command/v4.13.1` |
-| commandlifecycle | `commandlifecycle/v4.2.3` |
+| command | `command/v4.14.0` |
+| commandlifecycle | `commandlifecycle/v4.3.0` |
 | commandlifecycle/projections | `commandlifecycle/projections/v4.2.3` |
 | core | `core/v1.6.0` |
 | cqrs-lite | `cqrs-lite/v0.1.1` |
@@ -259,8 +259,8 @@ Modules release on independent per-module version trains (`<module>/vX.Y.Z` git 
 | dedup | `dedup/v4.3.0` |
 | deriver | `deriver/v4.5.0` |
 | dispatcher | `dispatcher/v4.5.2` |
-| encryption | `encryption/v4.4.4` |
-| event | `event/v4.14.0` |
+| encryption | `encryption/v4.4.5` |
+| event | `event/v4.15.0` |
 | event/v3/eventtest | `event/v3/eventtest/v3.7.4` |
 | event/v4/eventtest | `event/v4/eventtest/v0.4.0` |
 | example/getting-started | `example/getting-started/v4.1.0` *(untagged per ADR-0152)* |
@@ -273,9 +273,10 @@ Modules release on independent per-module version trains (`<module>/vX.Y.Z` git 
 | graph | `graph/v4.3.4` *(untagged per ADR-0152)* |
 | id | `id/v4.7.2` |
 | idempotency | `idempotency/v4.4.0` |
+| idempotency/kvstore | `idempotency/kvstore/v4.3.3` *(untagged per ADR-0152)* |
 | idempotency/sqlstore | `idempotency/sqlstore/v4.4.3` *(untagged per ADR-0152)* |
 | integration | `integration/v4.2.3` *(untagged per ADR-0152)* |
-| kv | `kv/v4.3.4` |
+| kv | `kv/v4.3.5` |
 | listing | `listing/v4.4.4` |
 | memory | `memory/v2.6.0` |
 | metadata | `metadata/v4.7.3` |
@@ -294,7 +295,7 @@ Modules release on independent per-module version trains (`<module>/vX.Y.Z` git 
 | metaengine/otelobserver | `metaengine/otelobserver/v4.0.2` *(untagged per ADR-0152)* |
 | metaengine/pebbleengine | `metaengine/pebbleengine/v4.4.3` |
 | metaengine/pgengine | `metaengine/pgengine/v4.4.3` *(untagged per ADR-0152)* |
-| metaengine/projectionadapter | `metaengine/projectionadapter/v4.5.3` |
+| metaengine/projectionadapter | `metaengine/projectionadapter/v4.6.0` |
 | metaengine/sqliteengine | `metaengine/sqliteengine/v4.5.3` |
 | metaengine/tursoengine | `metaengine/tursoengine/v4.2.3` *(untagged per ADR-0152)* |
 | middleware | `middleware/v4.7.2` |
@@ -302,7 +303,7 @@ Modules release on independent per-module version trains (`<module>/vX.Y.Z` git 
 | otel/otlp | `otel/otlp/v4.0.2` *(untagged per ADR-0152)* |
 | pebble | `pebble/v2.6.0` |
 | projection | `projection/v4.4.2` |
-| projectionhost | `projectionhost/v4.6.0` |
+| projectionhost | `projectionhost/v4.7.0` |
 | prometheus | `prometheus/v4.3.3` |
 | query | `query/v4.10.1` |
 | queue | `queue/v4.0.3` |
@@ -317,7 +318,7 @@ Modules release on independent per-module version trains (`<module>/vX.Y.Z` git 
 | scheduling/engine | `scheduling/engine/v4.0.2` |
 | scheduling/sqlstore | `scheduling/sqlstore/v4.1.4` |
 | schema | `schema/v4.7.0` |
-| signing | `signing/v4.4.0` |
+| signing | `signing/v4.4.1` |
 | snapshot | `snapshot/v4.7.0` |
 | stack | `stack/v4.5.0` |
 | stack/bbolt | `stack/bbolt/v4.2.3` *(untagged per ADR-0152)* |
@@ -330,14 +331,14 @@ Modules release on independent per-module version trains (`<module>/vX.Y.Z` git 
 | stack/postgres | `stack/postgres/v4.4.3` *(untagged per ADR-0152)* |
 | stack/sqlite | `stack/sqlite/v4.3.5` |
 | stack/turso | `stack/turso/v4.4.3` *(untagged per ADR-0152)* |
-| storage | `storage/v4.10.5` |
+| storage | `storage/v4.11.0` |
 | storage/backuptest | `storage/backuptest/v4.2.3` *(untagged per ADR-0152)* |
 | storage/bbolt | `storage/bbolt/v4.2.3` |
 | storage/memory | `storage/memory/v4.6.2` |
 | storage/pebble | `storage/pebble/v4.4.4` *(untagged per ADR-0152)* |
 | storage/turso | `storage/turso/v4.3.4` |
 | sync | `sync/v0.2.0` |
-| system | `system/v4.14.0` |
+| system | `system/v4.15.0` |
 | system/integration | `system/integration/v4.0.2` *(untagged per ADR-0152)* |
 | systemscenario | `systemscenario/v4.1.0` |
 | systemtest | `systemtest/v4.0.0` *(untagged per ADR-0152)* |
@@ -346,6 +347,8 @@ Modules release on independent per-module version trains (`<module>/vX.Y.Z` git 
 | testutil | `testutil/v4.3.4` |
 | testutil/mysqltestcontainer | `testutil/mysqltestcontainer/v4.0.0` *(untagged per ADR-0152)* |
 | testutil/pgtestcontainer | `testutil/pgtestcontainer/v4.2.3` |
+| transport/grpc | `transport/grpc/v4.3.3` *(untagged per ADR-0152)* |
+| transport/http | `transport/http/v4.3.5` *(untagged per ADR-0152)* |
 | turso | `turso/v2.6.0` |
 | watermill | `watermill/v4.7.0` |
 <!-- versions-manifest:end -->
