@@ -31,7 +31,7 @@ func runStory(ctx context.Context, sys *system.System) (TaskView, error) {
 		return TaskView{}, err
 	}
 
-	view, err := awaitDone(ctx, sys, doneID.String())
+	view, err := awaitDone(ctx, sys, doneID.Get())
 	if err != nil {
 		return TaskView{}, err
 	}

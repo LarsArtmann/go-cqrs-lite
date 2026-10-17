@@ -100,12 +100,12 @@ func TestScenario_GoalStory(t *testing.T) {
 
 	doneView := func() (any, error) {
 		return system.DispatchQuery[GetTask, TaskView](ctx, sys,
-			GetTask{BasicQuery: getBasic, ID: doneID.String()})
+			GetTask{BasicQuery: getBasic, ID: doneID.Get()})
 	}
 
 	goneView := func() (any, error) {
 		view, qerr := system.DispatchQuery[GetTask, TaskView](ctx, sys,
-			GetTask{BasicQuery: getBasic, ID: goneID.String()})
+			GetTask{BasicQuery: getBasic, ID: goneID.Get()})
 		if errors.Is(qerr, errTaskGone) {
 			return true, nil
 		}

@@ -51,14 +51,14 @@ func TestAsRecord_BasicMapping(t *testing.T) {
 		t.Errorf("StreamType = %q, want %q", rec.StreamType, "User")
 	}
 
-	wantStreamID := record.NewStreamRef("User", streamID.String())
+	wantStreamID := record.NewStreamRef("User", streamID.Get())
 	if rec.StreamID != wantStreamID {
 		t.Errorf("StreamID = %q, want %q", rec.StreamID, wantStreamID)
 	}
 
 	st, id2 := rec.StreamID.Split()
-	if st != "User" || id2 != streamID.String() {
-		t.Errorf("StreamID.Split = (%q, %q), want (%q, %q)", st, id2, "User", streamID.String())
+	if st != "User" || id2 != streamID.Get() {
+		t.Errorf("StreamID.Split = (%q, %q), want (%q, %q)", st, id2, "User", streamID.Get())
 	}
 
 	if rec.Version != 3 {
@@ -326,10 +326,10 @@ func TestAsRecord_StreamRefInvariant(t *testing.T) {
 	}
 
 	if streamType, entityID := rec.StreamID.Split(); streamType != "User" ||
-		entityID != streamID.String() {
+		entityID != streamID.Get() {
 		t.Errorf(
 			"Split = (%q, %q), want (%q, %q)",
-			streamType, entityID, "User", streamID.String(),
+			streamType, entityID, "User", streamID.Get(),
 		)
 	}
 }

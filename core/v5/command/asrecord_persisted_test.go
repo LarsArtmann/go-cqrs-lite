@@ -71,7 +71,7 @@ func TestAsRecordPersisted_FullFidelity(t *testing.T) {
 		)
 	}
 
-	if rec.StreamID != record.NewStreamRefOrZero("user", ref.ID.String()) {
+	if rec.StreamID != record.NewStreamRefOrZero("user", ref.ID.Get()) {
 		t.Errorf("StreamID: got %+v, want full-fidelity stream ref", rec.StreamID)
 	}
 

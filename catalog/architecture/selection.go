@@ -190,9 +190,15 @@ func newSelectorResolver(cat *catalog.Catalog) selectorResolver {
 func (r selectorResolver) exists(key selKey) bool {
 	switch key.kind {
 	case kindDomain:
-		return r.find(len(r.cat.Domains), func(i int) bool { return r.cat.Domains[i].ID == catalog.DomainID(key.id) })
+		return r.find(
+			len(r.cat.Domains),
+			func(i int) bool { return r.cat.Domains[i].ID == catalog.DomainID(key.id) },
+		)
 	case kindService:
-		return r.find(len(r.cat.Services), func(i int) bool { return r.cat.Services[i].ID == catalog.ServiceID(key.id) })
+		return r.find(
+			len(r.cat.Services),
+			func(i int) bool { return r.cat.Services[i].ID == catalog.ServiceID(key.id) },
+		)
 	case kindCommand:
 		return r.messageExists(kindCommand, key.id)
 	case kindEvent:
@@ -200,25 +206,55 @@ func (r selectorResolver) exists(key selKey) bool {
 	case kindQuery:
 		return r.messageExists(kindQuery, key.id)
 	case kindChannel:
-		return r.find(len(r.cat.Channels), func(i int) bool { return r.cat.Channels[i].ID == catalog.ChannelID(key.id) })
+		return r.find(
+			len(r.cat.Channels),
+			func(i int) bool { return r.cat.Channels[i].ID == catalog.ChannelID(key.id) },
+		)
 	case kindDataStore:
-		return r.find(len(r.cat.DataStores), func(i int) bool { return r.cat.DataStores[i].ID == catalog.DataStoreID(key.id) })
+		return r.find(
+			len(r.cat.DataStores),
+			func(i int) bool { return r.cat.DataStores[i].ID == catalog.DataStoreID(key.id) },
+		)
 	case kindFlow:
-		return r.find(len(r.cat.Flows), func(i int) bool { return r.cat.Flows[i].ID == catalog.FlowID(key.id) })
+		return r.find(
+			len(r.cat.Flows),
+			func(i int) bool { return r.cat.Flows[i].ID == catalog.FlowID(key.id) },
+		)
 	case kindEntity:
-		return r.find(len(r.cat.Entities), func(i int) bool { return r.cat.Entities[i].ID == catalog.EntityID(key.id) })
+		return r.find(
+			len(r.cat.Entities),
+			func(i int) bool { return r.cat.Entities[i].ID == catalog.EntityID(key.id) },
+		)
 	case kindDataProduct:
-		return r.find(len(r.cat.DataProducts), func(i int) bool { return r.cat.DataProducts[i].ID == catalog.DataProductID(key.id) })
+		return r.find(
+			len(r.cat.DataProducts),
+			func(i int) bool { return r.cat.DataProducts[i].ID == catalog.DataProductID(key.id) },
+		)
 	case kindAgent:
-		return r.find(len(r.cat.Agents), func(i int) bool { return r.cat.Agents[i].ID == catalog.AgentID(key.id) })
+		return r.find(
+			len(r.cat.Agents),
+			func(i int) bool { return r.cat.Agents[i].ID == catalog.AgentID(key.id) },
+		)
 	case kindADR:
-		return r.find(len(r.cat.ADRs), func(i int) bool { return r.cat.ADRs[i].ID == catalog.ADRID(key.id) })
+		return r.find(
+			len(r.cat.ADRs),
+			func(i int) bool { return r.cat.ADRs[i].ID == catalog.ADRID(key.id) },
+		)
 	case kindTeam:
-		return r.find(len(r.cat.Teams), func(i int) bool { return r.cat.Teams[i].ID == catalog.TeamID(key.id) })
+		return r.find(
+			len(r.cat.Teams),
+			func(i int) bool { return r.cat.Teams[i].ID == catalog.TeamID(key.id) },
+		)
 	case kindUser:
-		return r.find(len(r.cat.Users), func(i int) bool { return r.cat.Users[i].ID == catalog.UserID(key.id) })
+		return r.find(
+			len(r.cat.Users),
+			func(i int) bool { return r.cat.Users[i].ID == catalog.UserID(key.id) },
+		)
 	case kindDoc:
-		return r.find(len(r.cat.CustomDocs), func(i int) bool { return r.cat.CustomDocs[i].ID == catalog.CustomDocID(key.id) })
+		return r.find(
+			len(r.cat.CustomDocs),
+			func(i int) bool { return r.cat.CustomDocs[i].ID == catalog.CustomDocID(key.id) },
+		)
 	default:
 		return false
 	}

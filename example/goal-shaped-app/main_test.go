@@ -115,7 +115,7 @@ func TestGoal_DeletedTaskStaysDeleted(t *testing.T) {
 		t.Fatalf("delete: %v", err)
 	}
 
-	if err := awaitGone(ctx, sys, goneID.String()); err != nil {
+	if err := awaitGone(ctx, sys, goneID.Get()); err != nil {
 		t.Fatalf("awaitGone: %v", err)
 	}
 }

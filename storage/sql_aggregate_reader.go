@@ -103,7 +103,7 @@ func (r *SQLStreamReader) buildListQuery(opts listing.ListOptions) (string, []an
 
 	if !opts.After.IsZero() {
 		conditions = append(conditions, "aggregate_id > "+r.dialect.Placeholder(pi))
-		args = append(args, opts.After.String())
+		args = append(args, opts.After.Get())
 		pi++
 	}
 

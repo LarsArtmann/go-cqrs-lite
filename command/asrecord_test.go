@@ -52,7 +52,7 @@ func TestAsRecord_BasicMapping(t *testing.T) {
 		)
 	}
 
-	wantStreamID := record.NewStreamRef("", streamID.String())
+	wantStreamID := record.NewStreamRef("", streamID.Get())
 	if rec.StreamID != wantStreamID {
 		t.Errorf("StreamID: got %+v, want %+v", rec.StreamID, wantStreamID)
 	}
@@ -159,10 +159,10 @@ func TestAsRecord_StreamRefInvariant(t *testing.T) {
 		t.Fatalf("populated StreamID must pass Validate, got %v (%q)", err, rec.StreamID)
 	}
 
-	if _, entityID := rec.StreamID.Split(); entityID != cmd.StreamID().String() {
+	if _, entityID := rec.StreamID.Split(); entityID != cmd.StreamID().Get() {
 		t.Errorf(
 			"Split entityID = %q, want the command's stream ID %q",
-			entityID, cmd.StreamID().String(),
+			entityID, cmd.StreamID().Get(),
 		)
 	}
 }

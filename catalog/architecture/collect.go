@@ -225,7 +225,11 @@ func collectCounts(b *docBuilder, cat *catalog.Catalog) {
 	b.addCount("Data stores", "data store", b.keptCountOr(kindDataStore, len(cat.DataStores)))
 	b.addCount("Flows", "flow", b.keptCountOr(kindFlow, len(cat.Flows)))
 	b.addCount("Entities", "entity", b.keptCountOr(kindEntity, len(cat.Entities)))
-	b.addCount("Data products", "data product", b.keptCountOr(kindDataProduct, len(cat.DataProducts)))
+	b.addCount(
+		"Data products",
+		"data product",
+		b.keptCountOr(kindDataProduct, len(cat.DataProducts)),
+	)
 	b.addCount("Agents", "agent", b.keptCountOr(kindAgent, len(cat.Agents)))
 	b.addCount("Decisions", "decision", b.keptCountOr(kindADR, len(cat.ADRs)))
 	b.addCount("Teams", "team", b.keptCountOr(kindTeam, len(cat.Teams)))

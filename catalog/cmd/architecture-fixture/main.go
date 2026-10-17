@@ -130,6 +130,6 @@ func main() {
 }
 
 func fail(format string, args ...any) {
-	os.Stderr.WriteString("architecture-fixture: "+format+"\n")
+	os.Stderr.WriteString("architecture-fixture: " + format + "\n")
 	os.Exit(1)
 }
