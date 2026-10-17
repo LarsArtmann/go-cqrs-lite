@@ -274,3 +274,64 @@ approval + D1/D2 rulings; no execution started.*
   directive to finish the entire list, M12 on critical path); D2 stays
   **deferred to the M08 memo** (its only dependent is M09's optional half,
   whose DoD accepts a D2-deferred note).
+
+### M01 — cqrs-htmx vs workspace (20:41) ✅ GREEN
+
+Full `go test -count=1 ./...` (companion base `3f67fe92`, clean tree) via
+temp `GOWORK=/tmp/gclhtmx/go.work` (both use-blocks absolutized; zero edits
+to either tree): **EXIT=0, all packages green** — root, cmd, openapi,
+transport, usermgmt/*, adminui, dashboardui, setup, examples all exercised
+against the workspace-tree gcl including the corruption reclassification
+and the nextVersion fix. Companion tree left clean (verified post-run).
+The deepest behavior change of the depth-spec session is now
+consumer-verified.
+
+### M02 — go-appkit vs workspace (20:47) ✅ GREEN
+
+Companion base `b6bc501`, clean tree, temp `GOWORK=/tmp/gclappkit/go.work`
+(their `integration/` module deliberately EXCLUDED per its pin charter —
+it pins published tags only and its verify is hermetic GOWORK=off).
+Root-module suite: EXIT=0. Note: root-level `./...` does not cross module
+boundaries — per-module legs over cqrs/, health/, realtime/, errorpages/,
+flightrecorder/, flightrecorderhealth/, otel/, security/, systemd/, docs/
+run separately (results appended below).
+
+**Per-module results (20:47): ALL GREEN** — cqrs 4.3s ok, health/doadapter,
+realtime, errorpages, flightrecorder, flightrecorderhealth, otel, security,
+systemd, docs all ok. Both companions are now blast-radius-verified against
+the workspace tree. Companion tree clean post-run.
+
+### M03 — api-stability golden proof (20:43) ✅ golden CLEAN; TestEvery RED on FOREIGN cause
+
+- `GOWORK=off go run .` → "API surface OK: 6233 exports verified" — **zero
+  golden drift**, no `--update` needed; the depth session's "no exported
+  surface changed" reasoning is now proven, not assumed.
+- `TestEvery` → `TestEveryModuleGoSumIsTidy` FAILS for **76 modules**
+  (benchkit, catalog, claiming, cmd/*, core/v5, …). Worktree proof at
+  pre-session commit `445130ee7` (19:39, before any depth-spec commit):
+  **same 76-module failure** → FOREIGN, pre-existing. Root-cause candidate:
+  authored commit `78ae14659` (Oct 15 "Refresh flake inputs and re-pin
+  workspace dependency checksums") wrote go.sums that `go mod tidy` prunes
+  (diffs remove extra `/go.mod` hash lines, e.g. templ-components/errorpage,
+  xerrors). Routed to M17 — not fixable as a drive-by (76-file churn).
+
+### M04 — GOWORK=off standalone legs (20:45) ⚠️ RED = pin-version gap (BY DESIGN, feeds M12)
+
+- `GOWORK=off go list ./...` both modules: OK (tidy-shape).
+- `go test ./...` standalone: **both modules RED** — and both failures are
+  the pins pointing at PRE-FIX versions, not code defects:
+  - projectionadapter: `TestAdapter_OnRecordFold_ReceivesRealMetadata` /
+    `TestIntegration_AutoInsert_ThroughAdapter` — pinned dep graph renders
+    `Task/StreamMarker:01M…` (prefixed) where the fixed tests expect the
+    bare `.Get()` contract from the workspace `id`/`metaengine` code.
+  - systemscenario: `TestDepth_PoisonEventDeadLetters` — pinned
+    projectionadapter (pre-corruption-fix, Transient) crash-loops the
+    projection worker, the DLQ never fires, the healthy rename never folds
+    (`Title:"healthy"` vs want `"renamed"`). **The depth spec fails against
+    old pins exactly as designed — this IS the tag-wave justification.**
+- Consequence for M12: the wave must tag **projectionadapter BEFORE
+  system**, and systemscenario pins must be bumped to the new
+  system/projectionadapter/metaengine/event/id tags so standalone legs go
+  green post-wave (verify whether tag-release.sh auto-sweeps pins; if not,
+  bump explicitly). M04's "both green" DoD is achievable only POST-M12;
+  re-run these legs as part of F12 smoke.
