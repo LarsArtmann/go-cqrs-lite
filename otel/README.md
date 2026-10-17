@@ -169,8 +169,8 @@ buffer — no provider-shutdown timing involved.
 - [**middleware**](../middleware/README.md) — `OTelBundle` and tracing/metrics middleware
 - [**storage**](../storage/README.md) — SQL stores record spans via `otel/` re-exports
 - [**prometheus**](../prometheus/README.md) — OTel→Prometheus metrics bridge
-- [**transport/http**](../transport/http/) — SSE event delivery with consumer spans
-- [**transport/grpc**](../transport/grpc/) — Remote command/query dispatch with server spans
+- **transport/http** — REMOVED 2026-10-17 (zero-consumer delete); was SSE event delivery with consumer spans
+- **transport/grpc** — REMOVED 2026-10-17 (zero-consumer delete); was remote command/query dispatch with server spans
 - [**watermill**](../watermill/) — Broker bridges with producer spans
 
 > **Rule:** Import OTel via `otel/v4`, NOT `go.opentelemetry.io` directly. This keeps the SDK indirect in go.mod files.

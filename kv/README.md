@@ -102,4 +102,4 @@ type ViewStore[V any, K fmt.Stringer] interface {
 - [**storage/pebble**](../storage/pebble/README.md) — Implements `kv.Store` via `NewKVStore`
 - [**storage**](../storage/README.md) — `SQLKVStore` and `SQLViewStore[V,K]`
 - [**stack**](../stack/README.md) — `Materialize[V,K]` consumes `ViewStore[V,K]`
-- [**idempotency/kvstore**](../idempotency/kvstore/README.md) — KV-backed idempotency store
+- **idempotency/kvstore** — REMOVED 2026-10-17 (zero-consumer delete); was the KV-backed idempotency store

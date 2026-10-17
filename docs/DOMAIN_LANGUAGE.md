@@ -501,8 +501,8 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
 
 	// Messaging & Transport
-	http "github.com/larsartmann/go-cqrs-lite/transport/http/v4"
-	grpc "github.com/larsartmann/go-cqrs-lite/transport/grpc/v4"
+	// (transport/http + transport/grpc removed 2026-10-17, zero-consumer
+	// delete; browser delivery now goes through go-sse or watermill/)
 	"github.com/larsartmann/go-cqrs-lite/watermill/v4"
 
 	// Security

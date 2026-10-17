@@ -676,6 +676,8 @@ and no network: attach it to an email, keep it with an audit, or serve it from
 any static host.
 
 ```go
+import "github.com/larsartmann/go-cqrs-lite/catalog/v4/architecture"
+
 html, err := architecture.NewExporter(
     architecture.WithTitle("Acme"),
     architecture.WithDescription("Acme's architecture."),

@@ -273,7 +273,9 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       (`core/v5/dedup/README.md`, `core/v5/kv/README.md`, `dedup/README.md`,
       `kv/README.md`, `otel/README.md` ×2) — that session's own next-item #4
       named this gate but it was evidently not run after the `git rm`. Fix is
-      a 6-line README edit. _(Effort: XS)_
+      a 6-line README edit. FIXED 2026-10-17 same day (six bullets un-linked
+      to "REMOVED 2026-10-17 (zero-consumer delete)" notes; `check-readme-links`
+      0 broken, `check-readme-deprecated` clean). _(Effort: XS)_
 
 ## GitHub issue backlog (2026-09-30 plan)
 
