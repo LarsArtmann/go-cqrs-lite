@@ -249,3 +249,28 @@ verify) are the ones v1 pretended didn't exist.
 *v2 written 2026-10-17 20:31 CEST, ~13 minutes after v1 — the fastest way to
 a better plan was to attack v1 before anyone could execute it. Awaiting
 approval + D1/D2 rulings; no execution started.*
+
+---
+
+## 8. Execution Addendum (2026-10-17, live)
+
+### M00 — tree-state + mode decision (20:37)
+
+- **Quiescence:** 3/3 clean `git status` samples (20:36:08 / 20:36:39 /
+  20:37:22). Catalog session's last write landed 20:34:25 (daemon commit
+  `afbc88c02`, `catalog/architecture/selection.go` +1) — quiesced before M00.
+- **M05 mode: FULL `#verify-fast`** (quiescent tree justifies the full sweep).
+- **Foreign-red attribution RE-BASELINED (drift since the 20:13 report):**
+  file-size gate now has FOUR foreign offenders — the two known
+  (`catalog/types_resources.go` 359, `catalog/architecture/selection.go` 398,
+  grew +1 post-report) plus TWO new foreign ones: `cmd/doc-check/recipes_catalog_meta3.go`
+  398 (born in foreign session `f1f0e82d5` "Document and dogfood HTTP binding
+  for system queries") and `catalog/eventcatalog/exporter.go` 382→392 growth
+  (foreign docserver session `15cf1e944`). None are mine. M17 rows updated to
+  four file-size offenders.
+  check-arch red is unchanged: `example/mesh-demo` 8/7 budget only.
+- **Plan approved 20:36 by owner** ("GET SHIT DONE — the WHOLE TODO LIST").
+  D1 interpreted as **tag-now** (the plan's own §0.2 shipping doctrine + owner
+  directive to finish the entire list, M12 on critical path); D2 stays
+  **deferred to the M08 memo** (its only dependent is M09's optional half,
+  whose DoD accepts a D2-deferred note).
