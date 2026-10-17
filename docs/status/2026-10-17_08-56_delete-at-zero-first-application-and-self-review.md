@@ -131,6 +131,9 @@ Mapped to the self-review questions:
 47. Bench-infra port off presets (38.0) → then delete 7 presets + stack + deprecated APIs.
 48. Gate-pruning cascade → v5 docs → v5.0.0 cut (REAL tests) → fleet pin wave.
 49. Owner-triage queue: mesh-demo 8/7 budget; ~34-module untidy disease (fixes the 4 cqrs-lint reds); taskmanager LSP errors; parallel-session `catalog/AGENTS.md` change identification.
+    > **IDENTIFIED 2026-10-17 (owner session):** the foreign `catalog/AGENTS.md`
+    > change was the architecture-reference section (`catalog/AGENTS.md:176`,
+    > shipped with ADR-0159). Yours to keep as-is.
 50. Adopt an authored-commit convention at phase boundaries (this session's work lives only in `chore: auto-commit` commits — acceptable per harness rule, but thin history for a 6.9K-LOC deletion).
 
 ## g) Questions I can NOT figure out myself

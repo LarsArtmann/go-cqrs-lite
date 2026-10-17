@@ -250,12 +250,12 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       `catalog/AGENTS.md` and `docs/agents/gotchas-tooling-build.md`.
       _(Effort: XS)_
 
-- [ ] **Erratta on three stale rows (verified 2026-10-17)**: (a) the
+- [ ] **Errata on three stale rows (verified 2026-10-17)**: (a) the
       `TODO_LIST:786` "IMMEDIATE OBLIGATION: the three catalog NEW offenders"
       is MET and the offender set has DRIFTED — `nix run .#check-file-size`
       now reports `cmd/doc-check/recipes_catalog_meta3.go` (398 NEW),
       `catalog/types_resources.go` (359 NEW), `catalog/eventcatalog/exporter.go`
-      (382→392, ratchet GROWTH); (b) `TODO_LIST:1452` item (1) "cmd/cqrs-bench
+      (382→392, ratchet GROWTH); (b) the triage row's item (1) "cmd/cqrs-bench
       go.sum untidy" is under-stated — `TestEveryModuleGoSumIsTidy` fails for
       ~ALL modules (benchkit, catalog, claiming, command, commandlifecycle,
       core/v5, decider, encryption, event, …) and overlaps the 08-02 plan's
@@ -265,7 +265,8 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       against HEAD's config on go-arch-lint 1.19.0 under GOWORK=off/on and
       relative/absolute `--project-path`; root cause is `core: { in: . }`
       being depended on by components whose `mayDependOn` never lists it.
-      Buyer decision required (see `:1452`, `:1491`); (d) **NEW regression
+      Buyer decision required (annotated on the triage row and the
+      `core/v5` arch-lint row below); (d) **NEW regression
       from the delete-at-zero session**: `bash scripts/check-readme-links.sh`
       is now RED with 6 dangling targets left behind by the `transport/http`,
       `transport/grpc` and `idempotency/kvstore` deletions
@@ -1582,6 +1583,12 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       go1.26 against go1.27 sources. core/v5 arch-lint + doc-check
       alias-ambiguity are tracked separately (BDD-harness Externals row + Code
       Quality row). Decide: one sweep session, or per-owner distribution.
+      STATE 2026-10-17 (architecture-reference session): item (1) is
+      under-stated — `TestEveryModuleGoSumIsTidy` fails for ~ALL modules, and
+      items (1)+(3) are the same disease as the 08-02 fleet plan's task 45
+      (fleet go.sum sweep); merge them, do not run both. ALSO NEW, add as
+      item (7): `catalog`'s Layer-2 `go-arch-lint` is RED (40+14, root cause
+      `core: { in: . }`) — same owning decision covers it.
       — source: 2026-10-10 07-37 §f31–37 (minus the separately-tracked), 09-05
       §f19–26 _(Effort: M triage + S-M fixes)_
 
@@ -1616,6 +1623,10 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       threshold (visible 2026-10-10; sibling v5 sessions actively adding
       packages — coordinate before writing the dependency rules, they encode
       the v5 layering design).
+      STATE 2026-10-17: the same disease reached `catalog` (Layer-2 red, 40
+      `shouldn't depend` + 14 `not attached`, root cause `core: { in: . }` in
+      `catalog/.go-arch-lint.yml`) — see the architecture-reference section's
+      errata block; one owning decision should cover both configs.
 - [ ] **branching-flow upstream: `dupe` analyzer ignores
       `//nolint:branching-flow`** — the flag `--include-suppressed` exists but
       duplicate-type findings never suppress, in installed 0.6.4 AND local

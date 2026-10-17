@@ -97,6 +97,10 @@ this time (loaded dice — the checks I did late happened to come back clean):
   build-verified** because the instruction forbade unrelated research.
 - `catalog/architecture/{html,model,widgets}.go` — untracked files from a
   parallel session; untouched by me, correctly so.
+  > **RESOLVED 2026-10-17 (owner session):** the parallel session was the
+  > `catalog/architecture` implementation; the files landed in `8e39faad5`
+  > with ADR-0159, recipe §2.48 and the api-stability golden rows. No action
+  > owed.
 
 ## e) WHAT WE SHOULD IMPROVE (session-process lessons)
 
