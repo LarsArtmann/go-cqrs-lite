@@ -147,6 +147,7 @@ func (s *Selection) keptSet(cat *catalog.Catalog) map[selKey]bool {
 	}
 
 	var addWithClosure func(sel Selector)
+
 	addWithClosure = func(sel Selector) {
 		kind, ok := adrKind(sel.Kind)
 		if !ok {
