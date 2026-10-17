@@ -1015,11 +1015,13 @@
           <div class="card card-problem">
             <div class="card-head"><span class="badge badge-high">High</span> PC-5 &middot; No on-disk schema registry</div>
             <p>
-              Every engine creates tables with <code>CREATE TABLE IF NOT EXISTS</code>; layout
-              plans live in an in-memory map (sqliteengine/planned.go:84). Change a plan (rename a
-              field, add a column) and existing databases silently keep the old shape — no
-              fingerprint comparison, no migration, no failure. The repo even has
-              <code>schema/fingerprint.go</code> for events; projections have nothing.
+              Every engine creates tables with <code>CREATE TABLE IF NOT EXISTS</code>. <em>Correction
+              (same-session, 20:15):</em> stamp machinery EXISTS — <code>metaengine.LayoutPlan.Fingerprint</code>
+              + <code>RecordLayoutStamps</code>/<code>LayoutStampDiffs</code> shipped 2026-10-10 (TODO_LIST T3+T5),
+              routing drift into the ADR-0124 rebuild gate. The finding re-scopes to what remains:
+              stamps are opt-in/ledger-style, not a boot-time plan-vs-disk comparison, and nothing
+              verifies that a planned-table <em>column change</em> (the drift that matters) trips the
+              diff on every engine. Original audit text overstated &ldquo;projections have nothing&rdquo;.
             </p>
           </div>
 
