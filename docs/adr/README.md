@@ -262,5 +262,6 @@ watermill/     — Watermill protocol adapter
 | [0157](0157-engine-fleet-operation-two-level-story.md) | Engine Fleet Operation — Compile-Time Import Selection, Runtime cqrs.yaml | 2026-10-10 | Proposed |
 | [0158](0158-idempotency-retirement-engine-dedupstore.md) | Retire `idempotency/{kvstore,sqlstore}` — the engine `DedupStore` capability is the dedup primitive | 2026-10-12 | Accepted |
 | [0159](0159-go-native-architecture-reference-html-export.md) | Publish the architecture reference as self-contained HTML, rendered in Go | 2026-10-17 | Accepted |
+| [0160](0160-architecture-reference-selections-kind-id-selectors.md) | Architecture-reference selections select resources by kind and id, not by custom properties | 2026-10-17 | Accepted |
 
 > **Note:** ADRs 0036, 0041, and 0138 were never assigned (gaps in numbering).
