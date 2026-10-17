@@ -16,7 +16,3 @@ require (
 	github.com/x448/float16 v0.8.4 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 )
-
-// Sibling replace for unpublished record symbols (DeferClose, ADR-0144);
-// stripped by scripts/tag-release.sh at cut time.
-replace github.com/larsartmann/go-cqrs-lite/record/v4 => ../record
