@@ -1,168 +1,178 @@
-# SUPERB — Disk-Truth Pareto Plan (2026-10-17 20:13)
+# SUPERB — Disk-Truth Pareto Plan v2 (2026-10-17 20:13, revised 20:4x)
 
-> **Scope:** the wedge of work surfaced by THIS session — the StreamMarker bare-ID fix wave's
-> verification debt + the on-disk schema data-model review
-> ([`docs/reviews/2026-10-17_on-disk-schema-data-model-review.html`](../reviews/2026-10-17_on-disk-schema-data-model-review.html))
-> — plugged INTO the existing plan ordering, not replacing it. Predecessor master plans:
-> [2026-10-11 trust-green-tags](2026-10-11_20-16_SUPERB-trust-green-tags-to-v5-cut-pareto-plan.md)
-> (owns the 126-row backlog sequencing) and
-> [2026-10-09 v5 schema evolution](2026-10-09_v5-declarative-schema-evolution.md) (owns the
-> upcasting/fingerprint machinery). `TODO_LIST.md` stays the living source; harvest at the end.
+> **Scope:** the disk-truth wedge (StreamMarker fix debt + on-disk schema review) — now
+> **sequenced onto the delivery chain and the v5 cut**, not planned as an isolated track.
+> Predecessors: [2026-10-11 trust-green-tags](2026-10-11_20-16_SUPERB-trust-green-tags-to-v5-cut-pareto-plan.md)
+> (owns the 126-row backlog; its 1% = changed-set trust green + system/systemscenario/schema tag
+> waves — **we JOIN that wave, we do not duplicate it**), [2026-10-09 v5 schema evolution]
+> (2026-10-09_v5-declarative-schema-evolution.md) (owns upcasting/fingerprint machinery).
+> `TODO_LIST.md` stays the living source.
 >
-> Format: `.md` + mermaid per explicit user demand (pareto-planning default is HTML — overridden).
+> **v1 → v2 deltas (what the challenge surfaced):**
+> 1. **The 1% was wrong.** Verification without delivery = polish in a drawer. The real 1% is the
+>    DELIVERY CHAIN (changed-set green → extend the schema-v4.6.0 wave with the six fixed modules
+>    → tag → cqrs-htmx/go-appkit bumps) — TODO_LIST itself rules "all shipped value is dead code
+>    until consumers import it".
+> 2. **v1 duplicated the trust-green plan's W1.** Changed-set verification already has an owner;
+>    v2 contributes modules to that changed set instead of re-running a parallel track.
+> 3. **No wave acceptance criteria.** v2 defines DONE per wave.
+> 4. **No decision gates / risk register.** v2 adds both (incl. the "integration finds a real
+>    regression" gate — answer: fix-forward is safe pre-tag; no released tag carries bare writes).
+> 5. **Fine table violated its own ≤12min rule** (compound `12×3`/`12×5` rows). v2 splits them.
+> 6. **No quantification.** v2 quantifies blast radius; estimates calibrated against prior
+>    executed plans (27 medium/150 fine ≈ multi-day waves).
 
-## Sources
-
-1. Status reports `2026-10-17_19-36_*` and `19-57_*` (fix wave + round-2 self-review, §f lists).
-2. On-disk schema review PC-1…PC-14 (13 findings, 1 cleared) + 8-step roadmap.
-3. TODO_LIST.md Step-0 verification pass (see Errata).
-
-## Errata (Step 0 — corrections before planning, so nobody re-dispatches)
+## Errata (Step 0)
 
 | # | Correction |
 |---|---|
-| E1 | **PC-5 was partially stale.** `LayoutPlan.Fingerprint` + `RecordLayoutStamps`/`LayoutStampDiffs` shipped 2026-10-10 (TODO_LIST §V5-schema-evolution T3+T5, DONE). Review corrected same-session; the remaining real gap is re-scoped as D4 below (default-off, no conformance proof that planned-table column changes trip the diff). |
-| E2 | **Tag wave already has an owner row.** TODO_LIST §V5-schema-evolution keeps an OPEN "Release wave: schema v4.6.0 + system minor" — this plan EXTENDS that wave with the six StreamMarker-fixed modules (event, command, system, storage, commandlifecycle, projectionhost) instead of creating a parallel release row. |
-| E3 | **Upcaster machinery exists and is fleet-proven** (T2 `schema.Chain` + bank-sync/DiscordSync/cqrs-htmx adoption DONE) — the "author an upcaster recipe" idea narrows to a recipes.md §schema doc entry (D18), not new code. |
-| E4 | go.sum untidies (6 modules) belong to the in-flight go-codec v0.3.2 train — planned here only as "tidy-or-confirm-owner" (D17), never racing a parallel session. |
+| E1 | PC-5 partially stale: `LayoutPlan.Fingerprint` + stamp ledger shipped 2026-10-10 (T3+T5). Review corrected; gap re-scoped to default-on + conformance (D→A18). |
+| E2 | Tag wave owned by TODO_LIST §V5-schema-evolution open row (schema v4.6.0 + system minor). We EXTEND it with event/command/storage/commandlifecycle/projectionhost. |
+| E3 | Upcaster machinery fleet-proven (T2 + 3 consumers) — recipes.md doc only (A21). |
+| E4 | go.sum untidies belong to the go-codec v0.3.2 train — tidy-or-confirm-owner only (A24d). |
+
+## Quantified blast radius
+
+- Typed WAL migration touches **4 SQL engines** (sqlite+turso delegate, pg, mysql, duckdb), 1 table each + 1 conformance suite.
+- Key escaping touches **3 KV engines** + **2 legacy KV stores** (storage/pebble, storage/bbolt) with a one-release dual-read window.
+- Tag wave extends an already-open wave by **6 modules**; consumer bumps: **2 repos** (cqrs-htmx ~30 trains, go-appkit 8 files).
+- Pins/laws add ~**10 tests** across 5 modules. inferColumnType deletion touches **1 module** (metaengine core).
 
 ---
 
-## Pareto Breakdown
+## Pareto Breakdown (v2)
 
-### The 1% that delivers 51%
+### The 1% that delivers 51% — THE DELIVERY CHAIN
 
-**Prove what already shipped + delete the horoscope.** Two tiny acts: (P1) run the composed
-`#verify` + integration battery + lint over the changed set — without them the entire
-StreamMarker fix is an unverified claim; (P2) delete `inferColumnType` (one function) — the only
-finding that silently corrupts FUTURE data on every write. Everything else in this plan is worth
-<51% if these two are skipped.
+Everything this session produced sits in `[Unreleased]`; pinned v4 tags still write prefixed
+bytes. One delivery chain converts 100% of it into fleet value:
+**changed-set suites green (join trust-green W1) → extended schema-v4.6.0 wave (6 modules) →
+tag → cqrs-htmx + go-appkit bumps.** ~½ day, mostly machine time. Skip it and every other task
+in this plan polishes code nobody imports.
 
-### The 4% that deliver 64% (adds)
+### The 4% that deliver 64% — the "never again" cluster
 
-**Make the leak class mechanically dead.** (P3) raw-bytes persistence pins, (P4) key round-trip
-law + sep/esc escaping, (P5) cqrs-lint branded-`.String()` rule (warn-first). After these, the
-bug class that cost this session (and #70 before it) cannot recur unnoticed.
+1. Delete `inferColumnType` (the only finding that corrupts FUTURE data silently).
+2. Raw-bytes persistence pins (the class round-trip tests cannot see — proven twice).
+3. keycodec sep/esc escaping + round-trip law (+ legacy KV dual-read).
+4. cqrs-lint branded-`.String()` rule, warn-first.
 
-### The 20% that deliver 80% (adds)
+### The 20% that deliver 80% — the disk truth
 
-**Ship the disk truth to the fleet.** (P6) typed WAL columns on meta engines (PC-1) — the
-journal of record gets constraints; (P7) the extended tag wave so fleet binaries stop writing
-prefixed bytes; (P8) taskmanager test repair + gotchas/CHANGELOG truth fixes (the docs ARE the
-product for a library).
+Typed WAL columns on all SQL engines (constraint-backed journal of record: UNIQUE event id,
+UNIQUE(stream,version), real metadata) + layout-stamp default-on + docs truth (gotchas,
+CHANGELOG four-layer compat, taskmanager example repair).
 
-### The other 20% to reach 100%
+### The other 20% → 100%
 
-Envelope + time unification, column vocabulary, wire tags, cursor/sweep audits, compat fixtures,
-goal.db, recipes, TODO_LIST harvest. Small, serial, zero-risk tail — mostly ≤30min items that
-close every open finding from both reports.
+Envelope unification (timers→gcdc), time discipline (UnixNano), wire tags, cursor/sweep audits,
+legacy decode fixture, goal.db, recipes entry, benchkit key, harvest.
 
 ---
 
-## Table A — Comprehensive plan (30–100 min per task, 24 tasks)
+## Table A — Comprehensive plan (30–100 min, 24 tasks, delivery-first order)
 
-Sorted by importance/impact/effort/customer-value (customer = first-party fleet consumers
-cqrs-htmx/go-appkit/bank-sync/DiscordSync + future-self).
+| # | Task | Tier | Impact | Effort | Gate/Acceptance |
+|---|------|------|--------|--------|-----------------|
+| A1 | Join trust-green W1: run changed-set `GOWORK=off` suites for the 6 StreamMarker modules + schema/system; triage reds (own vs parallel) | 1% | unblocks the wave | M | all 8 modules green |
+| A2 | Extend the open schema-v4.6.0 release row: add event/command/storage/commandlifecycle/projectionhost; co-release via batch-release smoke | 1% | fleet binaries stop writing prefixed | L | tags resolve; `go get` probe ok |
+| A3 | Consumer bumps: cqrs-htmx then go-appkit (ADR-0152 order); run their suites; confirm prefixed writes gone in a systemscenario | 1% | value delivered | M | both consumer suites green |
+| A4 | Run integration battery over the tagged set (`#test-integration`, pg/mysql-vm/dgraph/redis legs) — post-A2, pre-consumer (A3) | 1% | real-engine proof | L | matrix recorded in CHANGELOG |
+| A5 | Delete `inferColumnType`; unknown → TEXT + loud warning; repin layout goldens; api golden if surface moves | 4% | kills silent mistyping | M | `contentType`-like fields → TEXT w/ warn |
+| A6 | Raw-bytes pins: WAL event+command envelopes (no `StreamMarker:`, no base64 payload, metadata JSON) | 4% | leak visible to CI forever | M | pin red on pre-fix code (demonstrated) |
+| A7 | goal-shaped-app end-to-end pin `TaskView.ID == doneID.Get()`; inspect/regenerate goal.db if prefixed | 4% | mirrors #70 pattern | S | story asserts bare id |
+| A8 | keycodec sep/esc escaping (v2 family prefix) + rapid round-trip law over adversarial corpus (`:`,`\x00`,255+) on badger/bbolt-meta/pebble-meta | 4% | kills separator injection | L | law green; v1 key still readable |
+| A9 | storage/pebble + storage/bbolt escaped keys, dual-read window one release (incl. `cqrs_journal_idx` rekey) | 4% | same fix, legacy KV | L | both suites green; README migration note |
+| A10 | cqrs-lint branded-`.String()` rule (warn-first, slog/attribute whitelist, waiver path) | 4% | mechanical prevention | M | fixtures 3 good/3 bad; ratchet doc |
+| A11 | sqliteengine typed WAL: additive columns + json_extract backfill + UNIQUE(event_id) + UNIQUE(collection,stream_id,version); journal COPIED never rewritten (ADR-0143) | 20% | journal gets constraints | L | duplicate-append conflicts |
+| A12 | pgengine + mysqlengine typed WAL (JSONB metadata / online-DDL-safe indexes; NO table recreate on MySQL) | 20% | engine parity | L | same conformance green |
+| A13 | duckdbengine typed WAL (ADD COLUMN path; UNIQUE via engine check + dedup table where DDL lacks it — documented) | 20% | parity without recreate risk | M | conformance adapted + green |
+| A14 | WAL conformance into adttest: duplicate-append + (stream,version) conflict, every SQL engine | 20% | invariants proven per engine | M | 4 engines × 2 cases |
+| A15 | Layout-stamp default-ON for planned tables + conformance: column add/rename trips `LayoutStampDiffs` on every engine | 20% | closes re-scoped PC-5 | M | diff fires on all engines |
+| A16 | Docs truth pack: gotchas (sweep-complete, cursor-pairing, four-layer compat, raw-bytes-pin convention) + CHANGELOG four-layer wording | 20% | docs stop overclaiming | S | doc-check + md-go green |
+| A17 | Fix example/taskmanager tests (`idStreamID`/`servertiming`, dep prune) → deriver.go covered | 20% | example = consumer docs | M | suite green |
+| A18 | Timers payload → ADR-0044 gcdc envelope (decode-old-wrap-new) | tail | one envelope system | M | migration test green |
+| A19 | Time discipline: typed-WAL writers store UnixNano (rides A11–A13); UTC rule documented | tail | kills PC-6 ordering trap | S | order-by test across offsets |
+| A20 | Wire tags for `Causation`/`TombstoneMark` + golden-bytes pin | tail | PC-12 wire lock-in | S | golden committed |
+| A21 | recipes.md §schema: legacy payload-ID strip via `Chain.Upcasters()` (doc only — E3) | tail | consumer playbook | S | doc-check green |
+| A22 | Cursor/sweep audit: pebble/bbolt/watermill keyset readers vs stored form; tests where suspect; `StreamRef.Split()` consumer grep | tail | closes cursor bug class | M | findings rowed or tests added |
+| A23 | Legacy prefixed-row decode fixture (golden v4-era bytes → current code) + benchkit `countKey` alignment | tail | compat proof + hygiene | S | fixture green |
+| A24 | Closeout: docs-health HARVEST (incl. `ParseStreamID` strictness as owner question, go.sum tidy-or-confirm-owner per E4) | tail | backlog hygiene | S | TODO_LIST rows land |
 
-| # | Task | Tier | Impact | Effort | Maps to |
-|---|------|------|--------|--------|---------|
-| A1 | Run `nix run .#verify` on current tree; triage any red to zero | 1% | protects everything shipped today | M (60–90 min) | SR2 f.1 |
-| A2 | Run integration battery `#test-integration` / `#test-all-backends` (pg/mysql/duckdb/dgraph WAL paths) | 1% | proves the fix on real engines | L (90–100 min, mostly machine) | SR2 f.2 |
-| A3 | `nix run .#lint` over the 8 changed modules + core/v5 twins | 1% | gate honesty | S (30 min) | SR2 f.4 |
-| A4 | Delete `inferColumnType`; unknown → TEXT + loud warning; update layout tests | 1% | kills silent wrong-typing class | M (45 min) | PC-2 |
-| A5 | Raw-bytes pin: SQL backend round-trip asserts stored WAL bytes contain no `StreamMarker:`, no base64 payload | 4% | makes leak class visible to tests | M (40 min) | PC-1/SR2 f.3 |
-| A6 | goal-shaped-app story assertion `TaskView.ID == bare stream value` (+ inspect goal.db for prefixed rows; regenerate if local artifact) | 4% | end-to-end pin, mirrors #70 | S (30 min) | SR2 f.13 |
-| A7 | keycodec sep/esc escaping + `decode(encode(k))==k` round-trip law (rapid, adversarial ids `:` `\x00` 255+) across badger/bbolt-meta/pebble-meta | 4% | kills separator injection | L (100 min) | PC-3 |
-| A8 | storage/pebble + storage/bbolt: switch journal/event keys to escaped form behind versioned family prefix, dual-read one release | 4% | same fix, legacy KV stores | L (100 min) | PC-3 |
-| A9 | cqrs-lint rule: branded-ID `.String()` outside log/trace positions, warn-first ratchet + waiver | 4% | recurrence prevention, mechanical | M (90 min) | SR1 e.1 |
-| A10 | Typed WAL columns on sqliteengine: additive ALTER + backfill via json_extract + UNIQUE(event_id), UNIQUE(collection,stream_id,version); journal rows COPIED never rewritten (ADR-0143) | 20% | journal of record gets constraints | L (100 min) | PC-1 |
-| A11 | Same typed-WAL migration for pgengine + mysqlengine + duckdbengine (dialect variants, one conformance test each) | 20% | engine parity | L (100 min) | PC-1 |
-| A12 | WAL conformance addition: duplicate-append must conflict on EVERY SQL engine (extends adttest pattern) | 20% | proves A10/A11 invariants | M (45 min) | PC-1 |
-| A13 | Extend the OPEN schema v4.6.0 + system tag wave with the six StreamMarker modules; run changed-set suites per the 2026-10-06 lesson BEFORE tagging | 20% | fleet stops writing prefixed bytes | L (90–100 min) | E2/SR2 f.10 |
-| A14 | Consumer bumps cqrs-htmx + go-appkit onto the retagged modules (ADR-0152 order), smoke their suites | 20% | value delivery to real consumers | M (60–90 min) | SR2 f.11 |
-| A15 | Fix example/taskmanager test compilation (undefined `idStreamID`/`servertiming`, unused dep) → deriver.go gains coverage | 20% | example = docs | M (45 min) | SR2 f.6 |
-| A16 | Gotchas update: sweep-complete note (8 sites), cursor-pairing lesson, four-layer compat checklist, raw-bytes-pin convention | 20% | memory that prevents re-learning | S (30 min) | SR2 f.5 |
-| A17 | CHANGELOG compat wording → four-layer story (envelope-keyed heal on rebuild / payload-carried need upcasters / journal cosmetic / cursors fixed) | 20% | docs stop overclaiming | S (30 min) | SR2 f.8 |
-| A18 | Layout-stamp coverage: default stamps ON for planned tables + conformance test that a column change trips `LayoutStampDiffs` on every engine | 20% | closes re-scoped PC-5 | M (60–90 min) | E1/PC-5 |
-| A19 | Timers payload → ADR-0044 gcdc envelope (decode-old-wrap-new migration) | tail | one envelope system | M (60 min) | PC-7 |
-| A20 | Time discipline: new WAL writes UnixNano (rides A10–A11); SQLite TEXT readers keep legacy parse; document UTC rule | tail | kills PC-6 ordering trap | S (30 min) | PC-6 |
-| A21 | Wire tags for untagged persisted structs (`Causation`, `TombstoneMark`) + raw-bytes pin of the wire shape | tail | PC-12 wire lock-in | S (30 min) | PC-12 |
-| A22 | Cursor/checkpoint sweep: audit pebble/bbolt/watermill keyset readers for cursor-form vs stored-form mismatch (read-only audit + tests where suspect) | tail | closes the bug class the SQL cursor revealed | M (45–60 min) | SR1 f.7 |
-| A23 | `Record.StreamRef.Split()` consumer audit + legacy prefixed-row decode fixture (golden v4-era bytes through current code) | tail | compat proof | M (45 min) | SR2 f.18/19 |
-| A24 | Harvest this plan into TODO_LIST (docs-health HARVEST) + benchkit `countKey` bare alignment + `ParseStreamID` strictness ruling prepped as owner question | tail | backlog hygiene | S (30 min) | SR2 f.9/20/21 |
-
-## Table B — Fine breakdown (≤12 min per task)
-
-Sorted within wave order (importance first, then dependency).
+## Table B — Fine breakdown (≤12 min each, no compound rows)
 
 | # | Fine task | Parent | Est |
 |---|-----------|--------|-----|
-| B01 | `nix run .#verify` kick-off in quiet window; watch log | A1 | 12 |
-| B02 | Triage verify reds: classify mine vs parallel-session | A1 | 12 |
-| B03 | Fix each own-red (≤3 expected: doc-check/format) one commit-batch | A1 | 12×3 |
-| B04 | `#test-integration` sqlite+pebble+bbolt+duckdb leg | A2 | 12 |
-| B05 | `#integration-pg` ephemeral leg | A2 | 12 |
-| B06 | `#integration-mysql-vm` leg (QEMU ~131s budget) | A2 | 12 |
-| B07 | `#integration-dgraph` + `#integration-redis` legs | A2 | 12 |
-| B08 | Record results matrix into CHANGELOG entry appendix | A2 | 10 |
-| B09 | `nix run .#lint` changed-set; nolint only with reasons | A3 | 12 |
-| B10 | Delete `inferColumnType` func + word lists | A4 | 10 |
-| B11 | `sqlTypeOf` returns (string, error); unknown→TEXT+warn | A4 | 12 |
-| B12 | Update layout_test golden columns (price/count cases→TEXT) | A4 | 12 |
-| B13 | CHANGELOG row + api golden regen if exported surface moved | A4 | 10 |
-| B14 | WAL pin: write 1 event via sqlite backend, read raw row bytes | A5 | 12 |
-| B15 | Assert no `StreamMarker:` prefix, payload not base64, metadata JSON | A5 | 10 |
-| B16 | Same pin for command envelope (serializedCommand) | A5 | 10 |
-| B17 | goal-story assert `TaskView.ID == doneID.Get()` | A6 | 10 |
-| B18 | Inspect goal.db: grep prefixed ids; decide regenerate | A6 | 10 |
-| B19 | keycodec: add `escapeComponent`/`unescapeComponent` + unit table | A7 | 12 |
-| B20 | Wire escaping into StreamKey/JournalKey/MapKey families (v2 prefix) | A7 | 12 |
-| B21 | rapid property: round-trip over adversarial id corpus | A7 | 12 |
-| B22 | badgerengine + bboltengine + pebbleengine suites green | A7 | 12 |
-| B23 | storage/pebble: escaped key builder + legacy-range dual-read | A8 | 12 |
-| B24 | storage/bbolt: same + `cqrs_journal_idx` secondary-index rekey | A8 | 12 |
-| B25 | Migration note in both modules' README (one release dual-read) | A8 | 10 |
-| B26 | cqrs-lint: analyzer skeleton match `.String()` on branded receivers | A9 | 12 |
-| B27 | Whitelist positions: slog/attribute/log-fmt contexts | A9 | 12 |
-| B28 | Test fixtures (3 good, 3 bad sites) + warn severity | A9 | 12 |
-| B29 | Register rule + ratchet note + `.cqrs-lint.json` waiver example | A9 | 12 |
-| B30 | sqliteengine: ALTER meta_stream_log add typed columns (guarded) | A10 | 12 |
-| B31 | Backfill UPDATE from json_extract(value,'$.field') per column | A10 | 12 |
-| B32 | Add UNIQUE(event_id) + UNIQUE(collection,stream_id,version) via recreate-table path | A10 | 12 |
-| B33 | Writer: fill typed columns (payload raw BLOB, metadata JSON text, occurred_at nanos) | A10 | 12 |
-| B34 | Reader: prefer typed columns, fallback value JSON (legacy rows) | A10 | 12 |
-| B35 | pgengine: same 5 steps with JSONB/JSONB→TEXT metadata variant | A11 | 12×5 |
-| B36 | mysqlengine: same with VARCHAR(768) ids, JSON metadata | A11 | 12×5 |
-| B37 | duckdbengine: same with sequence-backed recreate | A11 | 12×5 |
-| B38 | adttest: duplicate-append conflict case all SQL engines | A12 | 12 |
-| B39 | adttest: (stream,version) double-write conflict case | A12 | 10 |
-| B40 | Enumerate changed modules; run changed-set GOWORK=off suites | A13 | 12 |
-| B41 | Co-release with schema v4.6.0 wave owner: batch-release smoke | A13 | 12 |
-| B42 | Post-tag: verify proxy resolution + consumer `go get` probe | A13 | 10 |
-| B43 | cqrs-htmx bump + suite (ADR-0152 first consumer) | A14 | 12 |
-| B44 | go-appkit bump + suite (thin wrapper, 8 prod files) | A14 | 12 |
-| B45 | taskmanager: restore `servertiming` import path / drop usage | A15 | 12 |
-| B46 | taskmanager: fix `idStreamID`/`parseIDString` test helpers | A15 | 12 |
-| B47 | taskmanager: go.mod dep prune + full suite green | A15 | 12 |
-| B48 | gotchas-language-footguns: display-form sweep-complete block (8 sites listed) | A16 | 10 |
-| B49 | gotchas: cursor-pairing invariant bullet | A16 | 8 |
-| B50 | gotchas: four-layer compat checklist (envelope/payload/journal/cursor) | A16 | 10 |
-| B51 | gotchas: raw-bytes-pin convention bullet | A16 | 8 |
-| B52 | CHANGELOG: replace compat sentence with four-layer wording | A17 | 10 |
-| B53 | Layout-stamp: flip default ON for planned tables (config knob inverted) | A18 | 12 |
-| B54 | Conformance: column-add + column-rename trip LayoutStampDiffs per engine | A18 | 12 |
-| B55 | Wire stamp diff into Doctor section assertion | A18 | 10 |
-| B56 | timers: replace hand envelope with codec.WrapEncode | A19 | 12 |
-| B57 | timers: DecodeEnvelopeOrLegacy fallback + migration test | A19 | 12 |
-| B58 | A10–A11 occurred_at nanos: writer + order-by test | A20 | 12 |
-| B59 | Doc: UTC/unixnano rule in gotchas-language-footguns | A20 | 8 |
-| B60 | Add json tags Causation/TombstoneMark + golden bytes test | A21 | 12 |
-| B61 | Grep audit: pebble/bbolt/watermill `After`/cursor readers vs stored form | A22 | 12 |
-| B62 | Add suspect-path tests (2 expected) | A22 | 12 |
-| B63 | `StreamRef.Split()` consumer grep + findings note | A23 | 10 |
-| B64 | Legacy prefixed-row golden fixture through decode path | A23 | 12 |
-| B65 | benchkit countKey → Get() (or comment why display fine) | A24 | 8 |
-| B66 | docs-health HARVEST: plan → TODO_LIST rows; decline-list check | A24 | 12 |
+| B01 | Enumerate changed set (6 modules + schema/system); kick changed-set suites | A1 | 12 |
+| B02 | Triage reds: own vs parallel-session; fix own (each fix its own row if >12min) | A1 | 12 |
+| B03 | Record changed-set green matrix in TODO_LIST release row | A1 | 8 |
+| B04 | Add 6 modules to schema-v4.6.0 wave row; note co-release intent | A2 | 8 |
+| B05 | Dry-run batch-release --smoke over the wave | A2 | 12 |
+| B06 | Tag wave; verify proxy resolution per module | A2 | 12 |
+| B07 | Post-tag `go get` probe from a scratch consumer | A2 | 10 |
+| B08 | cqrs-htmx: bump pins, run suite | A3 | 12 |
+| B09 | go-appkit: bump pins, run suite | A3 | 12 |
+| B10 | systemscenario in consumer: assert no prefixed write reaches store | A3 | 12 |
+| B11 | `#test-integration` local-SQL leg (sqlite/pebble/bbolt/duckdb) | A4 | 12 |
+| B12 | `#integration-pg` ephemeral leg | A4 | 12 |
+| B13 | `#integration-mysql-vm` leg | A4 | 12 |
+| B14 | `#integration-dgraph` + `#integration-redis` legs | A4 | 12 |
+| B15 | Results matrix → CHANGELOG appendix | A4 | 10 |
+| B16 | Delete `inferColumnType` + word lists | A5 | 10 |
+| B17 | `sqlTypeOf` → (string, error); unknown→TEXT+warn | A5 | 12 |
+| B18 | Repin layout goldens (price/count/age cases → TEXT) | A5 | 12 |
+| B19 | CHANGELOG row + api golden regen | A5 | 10 |
+| B20 | WAL pin: write event via sqlite backend, read raw row | A6 | 12 |
+| B21 | Assert: bare id, raw payload, JSON metadata, UTC/nano time | A6 | 10 |
+| B22 | WAL pin: command envelope twin | A6 | 10 |
+| B23 | Demonstrate pin red on pre-fix commit (sanity of the pin itself) | A6 | 10 |
+| B24 | goal-story assert bare ID | A7 | 10 |
+| B25 | goal.db grep prefixed ids; regenerate if local | A7 | 10 |
+| B26 | keycodec: escape/unescape + unit table | A8 | 12 |
+| B27 | v2 family prefixes wired into all key builders | A8 | 12 |
+| B28 | rapid round-trip law, adversarial corpus | A8 | 12 |
+| B29 | 3 KV engine suites green | A8 | 12 |
+| B30 | storage/pebble: escaped builder + legacy dual-read | A9 | 12 |
+| B31 | storage/bbolt: same + journal_idx rekey | A9 | 12 |
+| B32 | Migration notes in both READMEs | A9 | 10 |
+| B33 | cqrs-lint: match `.String()` on branded receivers | A10 | 12 |
+| B34 | Whitelist slog/attribute/log positions | A10 | 12 |
+| B35 | Fixtures 3 good/3 bad; warn severity | A10 | 12 |
+| B36 | Register rule + ratchet + waiver example | A10 | 12 |
+| B37 | sqliteengine: guarded ALTER ADD typed columns | A11 | 12 |
+| B38 | Backfill UPDATE via json_extract per column | A11 | 12 |
+| B39 | Add UNIQUEs (index path; no recreate) | A11 | 12 |
+| B40 | Writer fills typed columns (BLOB payload, JSON metadata, nanos) | A11 | 12 |
+| B41 | Reader prefers typed, falls back to value JSON | A11 | 12 |
+| B42 | pgengine: typed columns + JSONB metadata variant | A12 | 12 |
+| B43 | pgengine: backfill + unique indexes + reader | A12 | 12 |
+| B44 | mysqlengine: typed columns (VARCHAR(768) ids, JSON) | A12 | 12 |
+| B45 | mysqlengine: online-DDL indexes + backfill + reader | A12 | 12 |
+| B46 | duckdbengine: ADD COLUMN path + engine-level unique check | A13 | 12 |
+| B47 | duckdbengine: backfill + reader + doc'd constraint story | A13 | 12 |
+| B48 | adttest: duplicate-append case ×4 engines | A14 | 12 |
+| B49 | adttest: (stream,version) conflict case ×4 engines | A14 | 12 |
+| B50 | Flip stamp default ON (config inversion + migration note) | A15 | 12 |
+| B51 | Conformance: column-add trips diff per engine | A15 | 12 |
+| B52 | Conformance: column-rename trips diff per engine | A15 | 12 |
+| B53 | gotchas: sweep-complete block (8 sites) | A16 | 10 |
+| B54 | gotchas: cursor-pairing invariant | A16 | 8 |
+| B55 | gotchas: four-layer compat checklist | A16 | 10 |
+| B56 | gotchas: raw-bytes-pin convention | A16 | 8 |
+| B57 | CHANGELOG: four-layer compat wording swap | A16 | 10 |
+| B58 | taskmanager: servertiming import/usage fix | A17 | 12 |
+| B59 | taskmanager: idStreamID/parseIDString helpers | A17 | 12 |
+| B60 | taskmanager: dep prune + suite | A17 | 12 |
+| B61 | timers: WrapEncode replace + legacy decode | A18 | 12 |
+| B62 | timers: migration test old→new envelope | A18 | 12 |
+| B63 | typed-WAL nanos writer + cross-offset order test | A19 | 12 |
+| B64 | UTC/unixnano rule doc | A19 | 8 |
+| B65 | Causation/TombstoneMark json tags + golden bytes test | A20 | 12 |
+| B66 | Cursor audit grep + suspect tests (2) | A22 | 12 |
+| B67 | StreamRef.Split consumer grep + note | A22 | 10 |
+| B68 | Legacy prefixed-row golden fixture | A23 | 12 |
+| B69 | benchkit countKey → Get() | A23 | 8 |
+| B70 | HARVEST rows + ParseStreamID ruling prep + go.sum owner check | A24 | 12 |
 
 ---
 
@@ -170,50 +180,62 @@ Sorted within wave order (importance first, then dependency).
 
 ```mermaid
 flowchart TD
-    subgraph W1["1% → 51% (today)"]
-        A1[A1 verify] --> A2[A2 integration battery]
-        A1 --> A3[A3 lint]
-        A4[A4 delete inferColumnType]
+    subgraph D["1% — DELIVERY CHAIN"]
+        A1[A1 changed-set green<br/>joins trust-green W1] --> A2[A2 extended tag wave]
+        A2 --> G1{G1: tags resolve?}
+        G1 -- no --> A2
+        G1 -- yes --> A4[A4 integration battery]
+        A4 --> G2{G2: real regression?}
+        G2 -- yes --> FIX[fix-forward: pre-tag, no released bare writes] --> A4
+        G2 -- no --> A3[A3 consumer bumps]
     end
-    subgraph W2["4% → 64% (this week)"]
-        A5[A5 raw-bytes pins] --> A6[A6 story pin]
-        A7[A7 keycodec escape+law] --> A8[A8 storage KV dual-read]
-        A9[A9 cqrs-lint String rule]
+    subgraph P["4% — never-again cluster"]
+        A5[A5 kill inferColumnType]
+        A6[A6 raw-bytes pins] -. guards .-> A11
+        A7[A7 story pin]
+        A8[A8 key law] --> A9[A9 legacy KV dual-read]
+        A10[A10 lint rule]
     end
-    subgraph W3["20% → 80% (this wave)"]
-        A10[A10 typed WAL sqlite] --> A11[A11 pg/mysql/duckdb]
-        A11 --> A12[A12 conflict conformance]
-        A12 --> A13[A13 extended tag wave] --> A14[A14 consumer bumps]
-        A15[A15 taskmanager tests]
-        A16[A16 gotchas] & A17[A17 CHANGELOG truth]
-        A18[A18 layout-stamp default-on]
+    subgraph T["20% — disk truth"]
+        A11[A11 sqlite typed WAL] --> A12[A12 pg+mysql] --> A13[A13 duckdb] --> A14[A14 conformance]
+        A15[A15 stamps default-on]
+        A16[A16 docs truth] & A17[A17 taskmanager]
     end
-    subgraph W4["other 20% → 100% (tail)"]
-        A19 & A20 & A21 & A22 & A23 & A24
+    subgraph X["tail → 100%"]
+        A18 & A19 & A20 & A21 & A22 & A23 --> A24[A24 harvest]
     end
-    W1 --> W2 --> W3 --> W4
-    A5 -.pins guard.-> A10
-    A7 -.key law guards.-> A10
-    A4 -.no guessing.-> A18
-    A13 -.tags unblock.-> A14
+    D --> P --> T --> X
+    A5 -.no name typing.-> A15
+    A2 -.v4.6.0 wave.-> A18
 ```
 
-## Safety rails (the no-verschlimmbesserung contract)
+## Decision gates
 
-1. **Additive only.** Journal rows are facts (ADR-0143): migrations COPY to new columns, never
-   rewrite `value`; legacy readers keep working; dual-read windows span one release.
-2. **Warn-first gates.** cqrs-lint rule and layout-stamp enforcement ship as warnings before
-   errors; hard mode only at v5 (the established rollout pattern).
-3. **No pin, no change.** Every behavior change lands with its raw-bytes/law test in the same
-   edit; tests that assert old behavior get repinned in the same commit.
-4. **Never race parallel sessions.** go.sum tidies and the tag wave coordinate with the
-   go-codec v0.3.2 train owner (E2/E4); changed-set test suites run before any tag (2026-10-06
-   lesson: verify=ok is not tests).
-5. **Scope discipline.** This plan touches the disk-truth wedge only; the 126-row backlog keeps
-   its 2026-10-11 owner.
+- **G1 (post-tag):** module proxy resolves + `go get` probe ok — else re-tag per go-release skill (never debug downstream first).
+- **G2 (post-integration):** regression found → **fix-forward** (no released tag carries bare writes; journal bytes are additive) — never revert the wave.
+- **G3 (pre-A9 merge):** dual-read window declared in release notes; one release later, drop legacy range.
+- **G4 (A15):** stamp default-on ships WARN mode; hard-fail only at v5 (established rollout pattern).
 
-## Harvest note
+## Risk register
 
-A24 runs docs-health HARVEST: W1–W2 items land as TODO_LIST rows (CI/Code Quality sections),
-W3 tag extension MERGES into the open schema-v4.6.0 release row (E2), W4 tail rows land in
-Code Quality / Docs sections. Declined-if-any go to the Declined guard.
+| Risk | Mitigation |
+|------|------------|
+| MySQL table recreate locks `meta_stream_log` | Additive ALTER + online ADD INDEX only; no recreate (A12) |
+| DuckDB UNIQUE limitations | Engine-level check + dedup table fallback, documented (A13) |
+| Parallel session owns tag train | A2 extends THEIR row (E2); no independent release |
+| cqrs-lint rule false positives | slog/attribute whitelist + waiver path + warn-first (A10) |
+| Key migration dual-read miss | v2 family prefix keeps v1 range intact; G3 drop gate |
+| Pins too loose (assert decode, not bytes) | B23 proves pin red on pre-fix commit |
+
+## Wave acceptance criteria
+
+- **W-DONE (1%):** consumers run retagged modules; a systemscenario in cqrs-htmx proves no prefixed write reaches any store; CHANGELOG rows moved under the version heading.
+- **P-DONE (4%):** a scratch checkout of the pre-fix commit fails the new pins/laws (StreamMarker, separator injection, name-typing) and current HEAD passes all.
+- **T-DONE (20%):** duplicate-append conflicts on all 4 SQL engines; `json_extract` no longer required to find an event's identity; `LayoutStampDiffs` fires on column drift per engine; docs/gotchas updated and gates green.
+- **X-DONE (tail):** TODO_LIST harvested; zero orphan findings from either session report.
+
+## What this plan deliberately does NOT do
+
+- No v5 API breaks (String()/Display() flip, aggregate_*→stream_* column renames) — v5-cut work, owned by the 2026-10-11/10-08 plans.
+- No journal rewriting ever (ADR-0143).
+- No new envelopes, formats, or abstractions beyond unifying onto the existing gcdc envelope.
