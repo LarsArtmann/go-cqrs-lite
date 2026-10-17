@@ -7,7 +7,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.1
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.2
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.5.0
-	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.11.0
+	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.11.1
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.7.0
 	github.com/larsartmann/go-error-family v0.12.0
 	github.com/testcontainers/testcontainers-go v0.44.0
@@ -42,10 +42,10 @@ require (
 	github.com/klauspost/compress v1.20.1 // indirect
 	github.com/larsartmann/go-branded-id v0.7.0 // indirect
 	github.com/larsartmann/go-codec v0.3.2 // indirect
-	github.com/larsartmann/go-cqrs-lite/command/v4 v4.13.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.8.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.2 // indirect
-	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.3.4 // indirect
+	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.3.5 // indirect
 	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.4.4 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.2 // indirect

@@ -11,7 +11,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.3.5
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.5.0
 	github.com/larsartmann/go-cqrs-lite/storage/turso/v4 v4.3.4
-	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.11.0
+	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.11.1
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.7.0
 	github.com/larsartmann/go-error-family v0.12.0
 	turso.tech/database/tursogo v0.8.2

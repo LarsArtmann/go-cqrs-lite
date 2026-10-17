@@ -902,13 +902,13 @@ github.com/labstack/gommon v0.4.2/go.mod h1:QlUFxVM+SNXhDL/Z7YhocGIBYOiwB0mXm1+1
 github.com/larsartmann/cmdguard/flightrecorder v0.1.0 h1:XNtimBAFO6fqQiD2g27M/sdwsddMRi7ZuLRxq3wnl04=
 github.com/larsartmann/cmdguard/glamour v0.2.0 h1:bZ7XsRrUcbP6v9UlIKWdUxboYHlTBgoJQaJzEdsyD4k=
 github.com/larsartmann/cmdguard/spinner v0.2.0 h1:rFOOl20ct+RFQ1hlXbpq1SrIHsx1dfbWxwfuM3WkACE=
-github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.1/go.mod h1:cX77pw9xkdxrEDkbQknfkShlehVkk04WJFE88jbxCJM=
 github.com/larsartmann/go-cqrs-lite/idempotency/kvstore/v4 v4.1.0/go.mod h1:br2nxuwBLugcV1w47bOLjX3ei/4TFXVjfJL5r6uaRB0=
 github.com/larsartmann/go-cqrs-lite/metaengine/bboltengine/v4 v4.1.0/go.mod h1:YAuSkgv9kvx3SYSHVuNKWtds97hadYMjU2LpmpJFn5g=
 github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.1.1/go.mod h1:4V33qjwL3R72tvRGPRM7AlBWMDHeB4JjA5wMG7uBZqU=
-github.com/larsartmann/go-cqrs-lite/signing/v4 v4.4.2/go.mod h1:FjfWwJa7RAhsMnFVz+T6NmFGMDqgwp1hDHpqmr0xVnE=
+github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.7.1/go.mod h1:mKqSVLDB/9fW6PXB4Y5TS+IpN49TrR2bDLfRwyGxlpk=
 github.com/larsartmann/go-cqrs-lite/stack/bbolt/v4 v4.0.0-20260806160506-f6bcfb0bcb06/go.mod h1:9YKoAEHR0vW9RGpcYdBuGCGdx+xknagtYoQyjQt8smU=
 github.com/larsartmann/go-cqrs-lite/storage/bbolt/v4 v4.0.0-20260806125330-508e2817469c/go.mod h1:C4d+jVIKNzM5Tfgz2YrlErW7ow8Bt04cAX7wBgHaM/Y=
+github.com/larsartmann/go-cqrs-lite/storage/v4 v4.11.1/go.mod h1:Pdmn759mqJEaBpEe12lqlzueG3Rx+PY7XTLZt7OGCew=
 github.com/larsartmann/go-datastar/static v0.1.0/go.mod h1:Mkt7d9FrtMiiT3bGpJv+5RRX4+5x1/gJv9YWuFlWaD4=
 github.com/larsartmann/go-datastar/static v0.2.0/go.mod h1:Mkt7d9FrtMiiT3bGpJv+5RRX4+5x1/gJv9YWuFlWaD4=
 github.com/larsartmann/go-datastar/static v0.5.0/go.mod h1:J5d13HKqAKSH67hTgOcGTQQtv8UXmm5jm5tcM4+/tnM=
