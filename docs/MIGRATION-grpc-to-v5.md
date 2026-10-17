@@ -1,8 +1,10 @@
 # Migrating off transport/grpc before v5
 
 > **Audience:** consumers of `github.com/larsartmann/go-cqrs-lite/transport/grpc/v4`.
-> The module is deprecated (ADR-0127) and DELETED at the v5 cut. This guide
-> maps every exported capability to its replacement so mesh consumers are
+> **UPDATE 2026-10-17:** the module is now DELETED from the repo (delete-at-zero:
+> zero fleet consumers; ADR-0127 + the ADR-0152 2026-10-17 addendum). Pinned v4
+> tags (`v4.3.3`) still resolve from the module proxy for legacy builds. This
+> guide maps every exported capability to its replacement so mesh consumers are
 > unbroken by the cut. The general v5 horizon is ADR-0123; the sanctioned
 > external-delivery decision is ADR-0127.
 

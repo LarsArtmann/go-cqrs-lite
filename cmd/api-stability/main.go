@@ -37,7 +37,6 @@ var modules = []string{
 	"commandlifecycle/projections",
 	"query",
 	"query/querytest",
-	"idempotency/kvstore",
 	"idempotency/sqlstore",
 	// Layer 2
 	"schema",
@@ -93,8 +92,6 @@ var modules = []string{
 	"listing",
 	"watermill",
 	"prometheus",
-	"transport/http",
-	"transport/grpc",
 	// Composition (Bundle layer)
 	"stack",
 	"stack/memory",

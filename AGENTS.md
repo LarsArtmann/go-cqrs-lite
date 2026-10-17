@@ -79,7 +79,7 @@ cd cmd/doc-check && GOWORK=off go run . ../../SKILL.md ../../.agents/skills/go-c
 | Bench         | `nix run .#bench` (full sweep) · `./scripts/benchmark-regression.sh` (gates: load + per-metric noise via `benchkit.RunRepeated`/`MetricVariation` + median ns/op 25% — rename-guarded, CI fails on breach)                                                                                                                                                                                                                              |
 | CI            | GitHub Actions: ci.yml (Nix-based, build/vet/test/lint/race/coverage + GOWORK=off per-module; error-audit job builds the vendored erraudit tarball in `tools/erraudit/` — private module, no secret needed; bump = refresh tarball + checksum, see its README; local mirror of the gate loop: `scripts/erraudit-sweep.sh`)                                                                                                                                                                                                                                  |
 
-Multi-module Go workspace (`go.work`) with 103 `go.mod` files (incl. root; count gate-derived via `check-canonical-facts.sh` — its regex only catches the un-backticked `N go.mod` form, so fix backticked prose counts by hand). Verify: `find . -name go.mod -not -path './vendor/*' | wc -l`
+Multi-module Go workspace (`go.work`) with 100 `go.mod` files (incl. root; count gate-derived via `check-canonical-facts.sh` — its regex only catches the un-backticked `N go.mod` form, so fix backticked prose counts by hand). Verify: `find . -name go.mod -not -path './vendor/*' | wc -l`
 
 Per-module isolation: `cd event && GOWORK=off go test ./... -count=1`
 
@@ -179,7 +179,7 @@ Split by topic; edit the topic file, never inline here:
 - [`gotchas-language-footguns.md`](docs/agents/gotchas-language-footguns.md) — pgx/CBOR/encoding traps, GOWORK positional, alloc pins, Dgraph/MariaDB/SQLite/DuckDB dialects.
 - [`gotchas-testing.md`](docs/agents/gotchas-testing.md) — full testing conventions.
 - [`gowork-modes.md`](docs/agents/gowork-modes.md) — THE GOWORK decision table + mandatory env chain + jsonv2 tag.
-- [`module-map.md`](docs/agents/module-map.md) — the internal module map (104 go.mod files incl. root; 100 non-testdata modules rowed — census gate-derived via `check-canonical-facts.sh`; engines/tools/examples also live in FEATURES' maturity matrix).
+- [`module-map.md`](docs/agents/module-map.md) — the internal module map (101 go.mod files incl. root; 97 non-testdata modules rowed — census gate-derived via `check-canonical-facts.sh`; engines/tools/examples also live in FEATURES' maturity matrix).
 
 TL;DR rules (too hot to be one click away):
 
@@ -272,7 +272,7 @@ Tier 0 — Primitives: id/, dispatcher/, kv/, dedup/, record/ (codec, retry, fli
 Tier 1 — Core Domain: event/, command/, query/, scheduling/, metadata/
 Tier 2 — Domain Utilities: schema/, snapshot/, projection/, idempotency/, deriver/, commandlifecycle/, idempotency/kvstore/, idempotency/sqlstore/
 Tier 3 — Aggregation: decider/, graph/, scenario/, projectionhost/, listing/, metaengine/, commandlifecycle/projections/
-Tier 4 — Infrastructure: storage/*, signing/, encryption/, otel/, otel/otlp/, prometheus/, middleware/, transport/*, watermill/, queue/ (+sqlite, postgres; conformance is a subpackage),
+Tier 4 — Infrastructure: storage/*, signing/, encryption/, otel/, otel/otlp/, prometheus/, middleware/, watermill/, queue/ (+sqlite, postgres; conformance is a subpackage),
                      testutil/, metaengine/*engine/, metaengine/projectionadapter/, metaengine/otelobserver/, metaengine/keycodec/, scheduling/sqlstore/, claiming/
 Tier 5 — Composition: stack/, stack/*presets/, system/
 Tier 6 — Tooling & Examples: catalog/, integration/, benchkit/, cmd/*, example/*, event/v4/eventtest/, systemtest/ (Feedback-#4 split: owns system's real-engine suites)

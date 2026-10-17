@@ -173,6 +173,47 @@ fallbacks — keep both when adding pages.
   black-box `package eventcatalog_test`) — extend the specs there rather than
   adding plain table tests.
 
+## architecture — self-contained HTML reference
+
+`catalog/architecture` renders the whole catalog as ONE `.html` file (the
+EventCatalog 5.1 "architecture reference"). It is deliberately separate from
+both `eventcatalog` (MDX for the Node CLI) and `docserver` (multi-page
+server-rendered HTML).
+
+- **No new dependencies, no templ.** The package uses only the standard
+  library plus `go-error-family`. Keep it that way: the catalog module's
+  dependency budget is FULL (`DEP_BUDGET[catalog]=5`), and the point of this
+  package is that a service which never serves HTML can still publish a
+  reference without pulling in a UI stack. Assets live in
+  `architecture/assets/` (CSS/JS) and are inlined via `//go:embed`.
+- **Anchors are derived, never stored.** A section carries `kind` + resource
+  `id`; `section.anchor()` computes `kindInfo.anchor(id)` (`slug` lowercases
+  and replaces anything outside `[a-z0-9_-]`). Sidebar, search index and
+  cross-links all call the same function, so a link cannot drift from its
+  target. Adding a resource kind means adding a row to `kindTable` (group,
+  label, tag, CSS class, anchor prefix) and a section builder — nothing else.
+- **Escaping is single-path.** All catalog text goes through
+  `htmlWriter.text`/`htmlAttr`; `markup` values are only produced by a
+  writer. Prose is rendered by the mini markdown in `markdown.go` +
+  `markdown_inline.go`, which deliberately supports no raw HTML, and
+  `safeHref` allow-lists `http(s)`, `mailto:`, `data:image/`, `#` and `/`.
+  Badge colors pass `safeColor`. When adding a renderer, never interpolate a
+  string with a literal `+` into HTML; use the writer.
+- **Search index is a published shape.** The `searchEntry` JSON keys
+  (`g/k/c/t/a/s/d/h`) are read by `assets/reference.js` and inlined into
+  every generated file. Change them only together.
+- **The docs example is gated.** The recipe (§2.48 in
+  `.agents/skills/go-cqrs-lite/references/recipes.md`) is compile-verified by
+  `cmd/doc-check`; its catalog entry lives in
+  `cmd/doc-check/recipes_catalog_meta4.go` (`recipeCatalogB4`), wired into
+  `recipes_compile_test.go`. Reword the fence and the gate fails until the
+  entry is updated.
+- **`catalog-export -architecture <path>`** writes the reference next to the
+  EventCatalog MDX tree — the copy-paste template consumers start from.
+- `catalog/.go-arch-lint.yml` registers the package as its own component that
+  may depend on `core` only. A new intra-module import needs a matching
+  `mayDependOn` entry.
+
 ## Golden tests
 
 `testdata/golden/` is shared by FOUR package suites (asyncapi, d2,

@@ -246,8 +246,6 @@
             "catalog"
             "middleware"
             "integration"
-            "transport/http"
-            "transport/grpc"
             "prometheus"
             "signing"
             "storage"
@@ -280,7 +278,6 @@
             "cmd/cqrs-bench"
             "cmd/cqrs-upgrade"
             "cmd/doc-check"
-            "idempotency/kvstore"
             "idempotency/sqlstore"
             "metaengine"
             "metaengine/badgerengine"
@@ -1440,11 +1437,6 @@
               echo "All go.mod modules covered by testModules"
             '';
 
-            test-grpc = mkApp "test-grpc" goModules ''
-              echo "==> Testing transport/grpc (GOWORK=off)"
-              (cd transport/grpc && GOWORK=off ${goPkg}/bin/go test ./... -count=1 "$@")
-            '';
-
             check-wasm = mkApp "check-wasm" goModules ''
               wasmMods="id dispatcher event command query decider"
               failed=0
@@ -1549,7 +1541,6 @@
                 echo "=== Test ===" && ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -count=1
                 echo "=== Check Arch ===" && nix run .#check-arch
                 echo "=== API Stability ===" && (cd cmd/api-stability && GOWORK=off ${goPkg}/bin/go run .)
-                echo "=== transport/grpc ===" && (cd transport/grpc && GOWORK=off ${goPkg}/bin/go test ./... -count=1)
                 echo "✅ All CI checks passed"
               '
             '';

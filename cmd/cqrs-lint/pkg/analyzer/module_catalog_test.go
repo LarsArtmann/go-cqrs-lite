@@ -234,7 +234,6 @@ func TestCatalogEveryGoWorkModuleCovered(t *testing.T) {
 		"example/readme-quickstart":      "example project",
 		"example/scheduler-otel-status":  "example project",
 		"example/taskmanager":            "example project",
-		"idempotency/kvstore":            "sub-package (covered by idempotency)",
 		"idempotency/sqlstore":           "sub-package (covered by idempotency)",
 		"integration":                    "cross-module integration tests",
 		"metaengine/irohengine":          "sub-engine (covered by metaengine)",
@@ -276,8 +275,6 @@ func TestCatalogEveryGoWorkModuleCovered(t *testing.T) {
 		"testutil":                       "test utility package",
 		"testutil/mysqltestcontainer":    "test utility sub-package (covered by testutil)",
 		"testutil/pgtestcontainer":       "test utility sub-package (covered by testutil)",
-		"transport/grpc":                 "deprecated module (removal at v5, ADR-0127; watermill/ is the sanctioned broker path)",
-		"transport/http":                 "deprecated module (removal at v5, ADR-0127; go-sse + watermill/ are the sanctioned delivery paths)",
 	}
 
 	// Also exclude external workspace entries (../go-* paths).

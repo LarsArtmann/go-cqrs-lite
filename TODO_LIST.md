@@ -1587,6 +1587,14 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
 
 ## v5 Unification (Phase 8: Deletion + Cut)
 
+> **Owner ruling 2026-10-17 (delete-at-zero):** v4 modules are deleted
+> CONTINUOUSLY as fleet consumer counts hit zero — not held for an end-game
+> cascade. First application same day: transport/http, transport/grpc,
+> idempotency/kvstore (0 fleet requires). Twin policy: fork = snapshot, v4 side
+> fix-only. Fleet migration window: 1–2 weeks. Execution plan:
+> [`docs/planning/2026-10-17_08-02_SUPERB-v4-to-v5-fleet-migration-pareto-execution-plan.md`](docs/planning/2026-10-17_08-02_SUPERB-v4-to-v5-fleet-migration-pareto-execution-plan.md)
+> (amended with the ruling + errata).
+
 > Decision: [ADR-0123](docs/adr/0123-v5-unification-single-composition-root.md).
 > Phases 1–7 done. Pre-cut deprecation markers shipped 2026-08-17; migration
 > guide at `docs/V5-MIGRATION-GUIDE.md`. Snapshot wire tags (T18) DONE

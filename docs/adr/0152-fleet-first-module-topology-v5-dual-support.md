@@ -103,3 +103,27 @@ first-migration-target ordering this ADR predicts is exactly what the
 scorecard now surfaces per project. Snapshots live in
 `docs/status/2026-10-09_17-32_scorecard-followup-wave-session-review.md` and
 its follow-up addendum.
+
+## Addendum (2026-10-17): continuous delete-at-zero
+
+Owner ruling (chat, 2026-10-17) amending the transition mechanics — decision 2's
+"apps migrate opportunistically" becomes a bounded sprint, and the end-game
+delete cascade becomes continuous:
+
+- **Standing rule:** phase out v4 submodule-by-submodule; as soon as no fleet
+  consumer requires a module (and no in-repo coupling holds it), delete it.
+  The full v5 cut remains the terminus. Fleet migration window: 1–2 weeks.
+- **Fork-into-core/v5 is a point-in-time snapshot**; the v4 side is fix-only
+  afterward ("v4 trains keep tagging fixes" now means hotfixes, not feature
+  parity). Requires-only censuses must be paired with an in-repo import check
+  before deletes — the 2026-10-17 erratum found 9 of 11 "free" deletes had
+  hidden couplings (storage-core alias re-exports; bench infra on presets).
+- **First application (same day):** transport/http, transport/grpc,
+  idempotency/kvstore deleted (0 fleet requires; integration kvstore tests
+  rewired to memory+sqlstore). storage/view+relational defer to the storage
+  fork (storage-core alias re-exports); stack presets defer to the bench-infra
+  port (cqrs-bench/benchkit/stack-bench).
+
+Execution plan:
+`docs/planning/2026-10-17_08-02_SUPERB-v4-to-v5-fleet-migration-pareto-execution-plan.md`
+(amended with the ruling + errata).

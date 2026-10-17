@@ -9,7 +9,7 @@
 > - [§6.5 Turso Offline-First](#65-turso-offline-first)
 > - [§6.6 Pebble as KV Store](#66-pebble-as-kv-store)
 > - [§6.7 Code Generation (cqrs-gen)](#67-code-generation-cqrs-gen)
-> - [§6.8 gRPC Transport](#68-grpc-transport-remote-commandquery-dispatch--deprecated)
+> - [§6.8 gRPC Transport](#68-grpc-transport-remote-commandquery-dispatch--removed)
 > - [§6.9 Managed Projection Host](#69-managed-projection-host-crash-restart--checkpoint--dlq)
 > - [§6.10 Scenario-Testing DSL](#610-scenario-testing-dsl-givenwhenthen)
 > - [§6.11 Scheduled Commands / Durable Deadlines](#611-scheduled-commands--durable-deadlines)
@@ -171,52 +171,15 @@ cqrs-gen -type . -output handlers_gen.go -pkg myapp
 
 Generates typed `Register*` boilerplate.
 
-### 6.8 gRPC Transport (remote command/query dispatch) — DEPRECATED
+### 6.8 gRPC Transport (remote command/query dispatch) — REMOVED
 
-> **ADR-0127:** `transport/grpc` is deprecated, removal at v5. For remote
-> command/event distribution use the `watermill/` bridge (`NewCommandPublisher`,
-> `WithBackend`) over a broker; for plain gRPC, bridge your dispatcher over
-> grpc-go directly. The example below works until v5.
-
-Expose local dispatchers over gRPC, or dispatch to a remote CQRS server.
-
-```go
-import (
-    "google.golang.org/grpc"
-    cqrsgrpc "github.com/larsartmann/go-cqrs-lite/transport/grpc/v4"
-)
-
-// --- Server side: expose your dispatchers over gRPC ---
-
-srv := grpc.NewServer()
-cqrsgrpc.RegisterCommandService(srv, cmdDispatcher) // cmdDispatcher: *command.Dispatcher
-cqrsgrpc.RegisterQueryService(srv, qDispatcher)     // qDispatcher: *query.Dispatcher
-
-lis, _ := net.Listen("tcp", ":50051")
-go srv.Serve(lis)
-
-// --- Client side: dispatch to a remote server ---
-
-conn, _ := grpc.NewClient(
-    "localhost:50051",
-    grpc.WithTransportCredentials(insecure.NewCredentials()), // or TLS
-)
-defer conn.Close()
-
-// Command dispatch — transparent remote call
-cmdClient := cqrsgrpc.NewCommandClient(conn)
-err := cmdClient.Dispatch(ctx, myCommand) // same interface as local dispatcher
-
-// Query dispatch — JSON result unmarshaled into your struct
-qClient := cqrsgrpc.NewQueryClient(conn)
-var result GetUserResult
-err := qClient.Ask(ctx, "user.get", &result) // queryType + out pointer
-```
-
-Command payloads are carried in metadata (`metadata.Custom["payload"]`); handlers
-extract them via `cmd.Metadata().Custom["payload"]`. Query results are JSON-encoded
-on the wire. The `CommandClient` implements the same `Dispatch` interface as a local
-dispatcher — swap them freely.
+> `transport/grpc` was deprecated (ADR-0127) and **deleted 2026-10-17**
+> (delete-at-zero: zero fleet consumers; pinned v4 tags still resolve from
+> the module proxy). For remote command/event distribution use the
+> `watermill/` bridge (`NewCommandPublisher`, `WithBackend`) over a broker;
+> for plain gRPC, bridge your dispatcher over grpc-go directly.
+> Symbol-by-symbol migration table:
+> [`MIGRATION-grpc-to-v5.md`](../../../../docs/MIGRATION-grpc-to-v5.md).
 
 ### 6.9 Managed Projection Host (crash-restart + checkpoint + DLQ)
 

@@ -27,6 +27,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
      importable packages) — root stays v4.0.0. -->
 ## [Unreleased]
 
+### Removed
+
+- **transport/http and transport/grpc — deleted (first delete-at-zero application, ADR-0152 addendum 2026-10-17).** Both were deprecated since ADR-0127 and had zero fleet consumers (who-uses census 2026-10-17 08:37). Pinned v4 tags (`transport/http/v4 v4.3.5`, `transport/grpc/v4 v4.3.3`) still resolve from the module proxy. Migration paths: `docs/MIGRATION-grpc-to-v5.md`, go-sse + the watermill/ bridge. De-registered from go.work, flake testModules (incl. the test-grpc app), api-stability golden, module-layers, cqrs-lint module catalog; recipes.md §2.15 rewritten onto `codec.TranscodeToJSON` + go-sse.
+- **idempotency/kvstore — deleted (delete-at-zero, ADR-0158 follow-through).** Zero fleet consumers; deprecated 2026-10-11. Replacement: the `metaengine.DedupStore` engine capability (ADR-0142). The integration contract/property suites now cover memory + sqlstore only (`idemTTLParams` replaces `kvstoreTTLParams`).
+
 ### Changed
 
 - **go-codec v0.3.1 → v0.3.2 across the five core codec-consuming modules** (event, signing, encryption, storage/pebble, kv). The payload-serialization dependency moves to go-codec's security/tooling release (no Go file changes, no breaking changes); its full-patch toolchain contract (go-codec ADR-0003) carries `go 1.27.2`, and `go mod tidy` raises each consumer's `go` directive to match — consumer CI picks the toolchain up automatically via `go-version-file`. Verified per module with `GOWORK=off` on go1.27.2: `go mod verify`, build, and full test suites green (kv is build-verified; it ships no test files). The remaining modules holding v0.3.1 pins follow in the next release train — the release contains zero behavioral delta, so the sweep is bookkeeping, not urgency.

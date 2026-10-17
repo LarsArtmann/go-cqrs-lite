@@ -163,7 +163,7 @@
 
 > `import "github.com/larsartmann/go-idempotency"` (external module — see ADR-0128)
 >
-> **DEPRECATED (ADR-0158, 2026-10-11):** the in-repo backend modules `idempotency/kvstore` and `idempotency/sqlstore` are deprecated at v4.x and deleted at v5.0.0 — use the `metaengine.DedupStore` engine capability (ADR-0142). The external `go-idempotency` core (interface, `MemoryStore`, contract suite) is unaffected.
+> **DEPRECATED (ADR-0158, 2026-10-11) / PARTIALLY DELETED (2026-10-17):** `idempotency/kvstore` is DELETED (delete-at-zero: zero fleet consumers); `idempotency/sqlstore` remains deprecated at v4.x, deleted at v5.0.0 — use the `metaengine.DedupStore` engine capability (ADR-0142). The external `go-idempotency` core (interface, `MemoryStore`, contract suite) is unaffected.
 
 | Feature         | Detail                                                                                                                            | Status |
 | --------------- | --------------------------------------------------------------------------------------------------------------------------------- | ------ |
@@ -176,7 +176,7 @@
 | Command dedup   | `middleware.CommandIdempotency(store, ttl, keyFn)` — defaults to `cmd.ID().String()` when keyFn is nil                            | ✅     |
 | Event dedup     | `middleware.EventIdempotency(store, ttl, keyFn)` — defaults to `evt.ID().String()` when keyFn is nil                              | ✅     |
 | Query dedup     | `middleware.QueryIdempotency(store, ttl, keyFn)` — panics if keyFn is nil (queries have no built-in identity)                     | ✅     |
-| KVStore         | `idempotency/kvstore` — persistent dedup backed by any `kv.Store`                                                                 | ⚠️ Deprecated (ADR-0158) |
+| KVStore         | `idempotency/kvstore` — persistent dedup backed by any `kv.Store`                                                                 | ❌ Deleted (2026-10-17, delete-at-zero) |
 | SQLStore        | `idempotency/sqlstore` — `NewSQLiteStore` / `NewPostgresStore` / `NewMySQLStore` with `INSERT ON CONFLICT DO NOTHING` + TTL sweep | ⚠️ Deprecated (ADR-0158) |
 
 **Sentinel errors:** `ErrDuplicate` (Conflict)
@@ -820,13 +820,13 @@ Retry middleware emits `retry.attempt.N` child spans per attempt. See `docs/SPAN
 
 Deleted — generic utility with no CQRS dependencies and zero consumers.
 
-### SSE Broker ⚠️ DEPRECATED (ADR-0127, removal at v5)
+### SSE Broker ❌ REMOVED (2026-10-17, delete-at-zero)
 
-> `import "github.com/larsartmann/go-cqrs-lite/transport/http/v4"`
->
-> **Deprecated:** use [`github.com/larsartmann/go-sse`](https://pkg.go.dev/github.com/larsartmann/go-sse)
+> `transport/http` was deprecated (ADR-0127) and is deleted; pinned v4 tags
+> (`v4.3.5`) still resolve from the module proxy. Use
+> [`github.com/larsartmann/go-sse`](https://pkg.go.dev/github.com/larsartmann/go-sse)
 > (already used by `metaengine.ServeSSE`) or the `watermill/` bridge. The
-> feature table below documents the module until its v5 removal.
+> feature table below documents the module as it existed at deletion.
 
 | Feature              | Detail                                                                                                                              | Status |
 | -------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ------ |
@@ -846,13 +846,13 @@ Deleted — generic utility with no CQRS dependencies and zero consumers.
 | Dedup ring           | Bounded `dedup.Ring` (1024 entries) for replay→live deduplication — O(1), memory-bounded                                            | ✅     |
 | Replay metrics       | `ReplayMetrics` struct + OTel instruments (duration histogram, event counter, incomplete counter)                                   | ✅     |
 
-### gRPC Transport ⚠️ DEPRECATED (ADR-0127, removal at v5)
+### gRPC Transport ❌ REMOVED (2026-10-17, delete-at-zero)
 
-> `import "github.com/larsartmann/go-cqrs-lite/transport/grpc/v4"`
->
-> **Deprecated:** use the `watermill/` bridge (`NewCommandPublisher` /
-> `WithBackend`) over a broker, or bridge your dispatcher over grpc-go
-> directly. The feature table below documents the module until its v5 removal.
+> `transport/grpc` was deprecated (ADR-0127) and is deleted; pinned v4 tags
+> (`v4.3.3`) still resolve from the module proxy. Use the `watermill/` bridge
+> (`NewCommandPublisher` / `WithBackend`) over a broker, or bridge your
+> dispatcher over grpc-go directly. The feature table below documents the
+> module as it existed at deletion.
 
 Remote gRPC transport for command & query dispatch (superseded ADR-0025 → ADR-0127). Bridges gRPC clients to local dispatchers.
 
@@ -863,8 +863,6 @@ Remote gRPC transport for command & query dispatch (superseded ADR-0025 → ADR-
 | CommandClient     | `NewCommandClient(conn)` — remote `command.Dispatcher` over a gRPC conn | ✅     |
 | QueryClient       | `NewQueryClient(conn)` — remote `query.Dispatcher` over a gRPC conn     | ✅     |
 | Protobuf contract | Generated `.proto` types in `transport/grpc/proto`                      | ✅     |
-
-> Note: `transport/grpc` is a first-class member of `go.work`. The genproto conflict (cockroachdb/errors monolithic `google.golang.org/genproto` vs grpc-go's split `genproto/googleapis/rpc`) is resolved via a workspace-level `replace` directive pinning genproto to a version where the `googleapis/rpc` packages are split out.
 
 ### Profiling ❌ REMOVED
 
@@ -1486,8 +1484,8 @@ Features mentioned in project docs/planning but with **no production code yet**:
 | `storage/bbolt`                  | `…/storage/bbolt/v4`                  | ✅ Production (B+tree, single-writer, full store stack. Durability tiers)                                                                                                                                                                                                                        |
 | `storage/turso`                  | `…/storage/turso/v4`                  | ✅ Production                                                                                                                                                                                                                                                                                    |
 | `storage/backuptest`             | `…/storage/backuptest/v4`             | 🧪 Test harness (shared backup-lifecycle suite any backend plugs into via a Factory adapter)                                                                                                                                                                                                     |
-| `transport/http`                 | `…/transport/http/v4`                 | ⚠️ Deprecated (ADR-0127; removal v5 — use go-sse / watermill)                                                                                                                                                                                                                                     |
-| `transport/grpc`                 | `…/transport/grpc/v4`                 | ⚠️ Deprecated (ADR-0127; removal v5 — use watermill/ brokers)                                                                                                                                                                                                                                     |
+| `transport/http`                 | `…/transport/http/v4`                 | ❌ Deleted (2026-10-17, delete-at-zero) — use go-sse / watermill                                                                                                                                                                                                                                     |
+| `transport/grpc`                 | `…/transport/grpc/v4`                 | ❌ Deleted (2026-10-17, delete-at-zero) — use watermill/ brokers                                                                                                                                                                                                                                     |
 | `prometheus`                     | `…/prometheus/v4`                     | ✅ Production                                                                                                                                                                                                                                                                                    |
 | `testutil`                       | `…/testutil/v4`                       | 🧪 Test utility (`NewCmd`, `RaceEnabled` build-tag helper)                                                                                                                                                                                                                                       |
 | `testutil/pgtestcontainer`       | `…/testutil/pgtestcontainer/v4`       | 🧪 Test utility (Postgres server DSN by priority: `DATABASE_URL` > `POSTGRES_TEST_DSN` env > Docker testcontainer > skip)                                                                                                                                                                        |
@@ -1507,7 +1505,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 | `stack/bbolt`                    | `…/stack/bbolt/v4`                    | ⚠️ Deprecated (ADR-0123, removal v5; durability tiers, kv store accessor)                                                                                                                                                                                                                         |
 | `deriver`                        | `…/deriver/v4`                        | ✅ Production                                                                                                                                                                                                                                                                                    |
 | `graph`                          | `…/graph/v4`                          | ✅ Production                                                                                                                                                                                                                                                                                    |
-| `idempotency/kvstore`            | `…/idempotency/kvstore/v4`            | ⚠️ Deprecated (ADR-0158; v5 deletion) — KV-backed idempotency                                                                                                                                                                                                                                    |
+| `idempotency/kvstore`            | `…/idempotency/kvstore/v4`            | ❌ Deleted (2026-10-17, delete-at-zero) — KV-backed idempotency                                                                                                                                                                                                                                    |
 | `idempotency/sqlstore`           | `…/idempotency/sqlstore/v4`           | ⚠️ Deprecated (ADR-0158; v5 deletion) — SQL-backed: SQLite + Postgres + MySQL, `INSERT ON CONFLICT` + TTL                                                                                                                                                                                        |
 | `projection`                     | `…/projection/v4`                     | ✅ Production                                                                                                                                                                                                                                                                                    |
 | `projectionhost`                 | `…/projectionhost/v4`                 | ✅ Production                                                                                                                                                                                                                                                                                    |

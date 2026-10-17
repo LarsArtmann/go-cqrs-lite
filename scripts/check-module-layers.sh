@@ -51,8 +51,6 @@ LAYER[middleware]=5
 LAYER[storage]=5
 # listing is Aggregation (Tier 3) — depends on event/id, not infrastructure
 LAYER[watermill]=5
-LAYER["transport/http"]=5
-LAYER["transport/grpc"]=5
 LAYER[prometheus]=5
 LAYER["storage/pebble"]=5
 LAYER["storage/bbolt"]=5
@@ -145,7 +143,6 @@ LAYER["testutil/pgtestcontainer"]=5
 # _test.go files get exceptions below. This avoids false layer violations while
 # still budgeting its production deps.
 LAYER[metaengine]=3
-LAYER["idempotency/kvstore"]=2
 # idempotency/sqlstore: SQL STORES over go-idempotency — storage
 # infrastructure by nature, and since ADR-0142 its NewFromEngine facade
 # depends on metaengine (L3) legitimately (an SQL store adapting to the
@@ -290,7 +287,6 @@ DEP_BUDGET[listing]=6
 DEP_BUDGET[watermill]=9
 # codec is required for CBORToJSONTransform (SSE CBOR->JSON adapter composes
 # the codec.TranscodeToJSON primitive — ADR-0052, deletes per-consumer dupes).
-DEP_BUDGET["transport/http"]=6
 DEP_BUDGET[prometheus]=5
 # pebble/bbolt: +1 (11) for the direct record/v4 dep — the snapshot
 # encoding stamp (record.Encoding, 2026-08-22 T17/T18) promotes the Tier-0
@@ -346,8 +342,6 @@ DEP_BUDGET["metaengine/tursoengine"]=5
 # 3 = cloud.google.com/go/bigtable + google.golang.org/api + grpc (the whole
 # point of the dep-isolated module; SDK surface stops at the module boundary).
 DEP_BUDGET["metaengine/bigtableengine"]=3
-DEP_BUDGET["transport/grpc"]=12
-DEP_BUDGET["idempotency/kvstore"]=7
 DEP_BUDGET["idempotency/sqlstore"]=5
 DEP_BUDGET["scheduling/sqlstore"]=7
 # scheduling/engine: 3 = scheduling contract + metaengine + sqliteengine

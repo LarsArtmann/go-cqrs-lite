@@ -65,13 +65,12 @@ var recipeCatalogB = map[string]recipeSpec{
 		preamble: "ctx := context.Background()\n" +
 			"flakyOperation := func(ctx context.Context) error { return nil }\n",
 	},
-	"### 2.15 CBOR→JSON for Browser SSE Clients (codec + transport/http) #1": {
+	"### 2.15 CBOR→JSON for Browser SSE Clients (codec) #1": {
 		imports: []string{
-			`cqrshttp "github.com/larsartmann/go-cqrs-lite/transport/http/v4"`,
-			`cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v4"`,
+			`"github.com/larsartmann/go-codec"`,
+			`"github.com/larsartmann/go-cqrs-lite/event/v4"`,
 		},
-		preamble: "bus := cqrswatermill.NewEventBus()\n",
-		trailers: "_ = broker\n_ = err",
+		trailers: "_ = payload",
 	},
 	"### 2.16 Metaengine SSE Streaming with Reconnection (metaengine) #1": {
 		imports: []string{

@@ -273,7 +273,6 @@ Modules release on independent per-module version trains (`<module>/vX.Y.Z` git 
 | graph | `graph/v4.3.4` *(untagged per ADR-0152)* |
 | id | `id/v4.7.2` |
 | idempotency | `idempotency/v4.4.0` |
-| idempotency/kvstore | `idempotency/kvstore/v4.3.3` *(untagged per ADR-0152)* |
 | idempotency/sqlstore | `idempotency/sqlstore/v4.4.3` *(untagged per ADR-0152)* |
 | integration | `integration/v4.2.3` *(untagged per ADR-0152)* |
 | kv | `kv/v4.3.4` |
@@ -347,8 +346,6 @@ Modules release on independent per-module version trains (`<module>/vX.Y.Z` git 
 | testutil | `testutil/v4.3.4` |
 | testutil/mysqltestcontainer | `testutil/mysqltestcontainer/v4.0.0` *(untagged per ADR-0152)* |
 | testutil/pgtestcontainer | `testutil/pgtestcontainer/v4.2.3` |
-| transport/grpc | `transport/grpc/v4.3.3` *(untagged per ADR-0152)* |
-| transport/http | `transport/http/v4.3.5` *(untagged per ADR-0152)* |
 | turso | `turso/v2.6.0` |
 | watermill | `watermill/v4.7.0` |
 <!-- versions-manifest:end -->

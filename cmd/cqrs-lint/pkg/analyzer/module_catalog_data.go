@@ -137,7 +137,6 @@ func buildDefaultCatalog() []ModuleEntry {
 			Category:    CategoryReliability,
 			ImportHints: []string{
 				"go-idempotency",
-				"go-cqrs-lite/idempotency/kvstore",
 				"go-cqrs-lite/idempotency/sqlstore",
 			},
 			Description: "At-least-once delivery dedup (MemoryStore, SQLStore)",

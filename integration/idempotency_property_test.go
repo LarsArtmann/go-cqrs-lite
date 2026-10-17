@@ -14,9 +14,7 @@ import (
 	_ "modernc.org/sqlite"
 	"pgregory.net/rapid"
 
-	"github.com/larsartmann/go-cqrs-lite/idempotency/kvstore/v4"
 	idemsqlstore "github.com/larsartmann/go-cqrs-lite/idempotency/sqlstore/v4"
-	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 )
 
 var propertyDBCounter atomic.Int64
@@ -25,7 +23,7 @@ var propertyDBCounter atomic.Int64
 // Each call returns a new store and a cleanup function.
 type storeFactory func(t *testing.T) (idempotency.Store, func())
 
-// allStores returns the 3 production Store implementations as a table for
+// allStores returns the production Store implementations as a table for
 // cross-implementation property testing. Each factory creates a fresh instance
 // so rapid iterations never carry state from a previous draw.
 func allStores() map[string]storeFactory {
@@ -34,11 +32,6 @@ func allStores() map[string]storeFactory {
 			s := idempotency.NewMemoryStore(0)
 
 			return s, func() { s.Close() }
-		},
-		"kvstore": func(t *testing.T) (idempotency.Store, func()) {
-			s := kvstore.New(kv.NewMemStore())
-
-			return s, func() { _ = s.Close() }
 		},
 		"sqlstore": func(t *testing.T) (idempotency.Store, func()) {
 			dbName := fmt.Sprintf("propertydb_%d", propertyDBCounter.Add(1))
@@ -205,7 +198,7 @@ func TestProperty_TTLExpiry_AllStores(t *testing.T) {
 
 	runPropertyAllStores(t, func(rt *rapid.T, store idempotency.Store) {
 		key := rapid.String().Draw(rt, "key")
-		ttl, wait := kvstoreTTLParams()
+		ttl, wait := idemTTLParams()
 
 		if err := store.CheckAndRecord(context.Background(), key, ttl); err != nil {
 			rt.Fatalf("CheckAndRecord (first): %v", err)

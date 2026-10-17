@@ -33,9 +33,10 @@ var deprecatedTransportImports = []deprecatedTransportImport{
 	},
 }
 
-// F030 detects imports of the deprecated transport/* modules (ADR-0127).
-// The modules are frozen and removed at v5; projects importing them today
-// get a concrete migration path toward the sanctioned delivery modules.
+// F030 detects imports of the deleted transport/* modules (ADR-0127).
+// The modules were removed 2026-10-17 (delete-at-zero, pre-v5); projects
+// pinned to the old tags get a concrete migration path toward the
+// sanctioned delivery modules.
 // This is the companion to F013: F013 coaches projects WITHOUT a delivery
 // module toward the sanctioned paths, F030 coaches projects OFF the
 // deprecated ones.
@@ -57,8 +58,8 @@ func NewF030Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					out = append(out, singleWarningFinding(
 						ctx,
 						"F030",
-						"Import of deprecated module "+importPath+" — the "+
-							"transport/* modules are removed at v5 (ADR-0127)",
+						"Import of deleted module "+importPath+" — the "+
+							"transport/* modules were removed 2026-10-17 (ADR-0127, delete-at-zero)",
 						dep.replacement+
 							". See docs/adr/0127-deprecate-transport-modules.md "+
 							"for the symbol migration table.",

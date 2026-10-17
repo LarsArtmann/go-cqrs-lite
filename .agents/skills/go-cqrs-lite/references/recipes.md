@@ -20,7 +20,7 @@
 > - [§2.13 SQL-Backed Idempotency](#213-sql-backed-idempotency-idempotencysqlstore)
 > - [§2.13b Retry with Backoff](#213b-retry-with-backoff-retry)
 > - [§2.14 Scaling Out — NATS Transport & Parquet Journal](#214-scaling-out--nats-transport--parquet-journal-design-docs)
-> - [§2.15 CBOR→JSON for Browser SSE Clients](#215-cborjson-for-browser-sse-clients-codec--transporthttp)
+> - [§2.15 CBOR→JSON for Browser SSE Clients](#215-cborjson-for-browser-sse-clients-codec)
 > - [§2.16 Metaengine SSE Streaming with Reconnection](#216-metaengine-sse-streaming-with-reconnection-metaengine)
 > - [§2.17 Metaengine Cursor Pagination with PrefetchCache](#217-metaengine-cursor-pagination-with-prefetchcache-metaengine)
 > - [§2.18 Flight Recorder — Capture Trace on Slow/Error](#218-flight-recorder--capture-trace-on-slowerror-flightrecorder--middleware)
@@ -1012,32 +1012,39 @@ the integration shape, ordering guarantees, and materialization strategies.
 > consumer would compose the existing store/bus/projection interfaces against
 > these backends.
 
-### 2.15 CBOR→JSON for Browser SSE Clients (codec + transport/http)
+### 2.15 CBOR→JSON for Browser SSE Clients (codec)
 
-> **Deprecated module:** `transport/http` is deprecated (ADR-0127, removal at
-> v5). The `codec.TranscodeToJSON` primitive itself is NOT deprecated — pair it
-> with `go-sse` in new code. The recipe below works until v5.
+> `transport/http` (which shipped `CBORToJSONTransform`) was deleted
+> 2026-10-17 (ADR-0127, delete-at-zero). The `codec.TranscodeToJSON`
+> primitive is unaffected — pair it with `go-sse` or `metaengine.ServeSSE`.
 
 Store events in compact CBOR but serve JSON over SSE to browsers. The
 `codec.TranscodeToJSON` primitive decodes CBOR generically and re-encodes as
-JSON; `http.CBORToJSONTransform` wraps it as a ready-made payload transform
-with graceful fallback (on decode failure the raw payload is sent, so clients
-never see a gap).
+JSON; wrap it as a payload transform with graceful fallback (on decode failure
+the raw payload is sent, so clients never see a gap).
 
 ```go
-import cqrshttp "github.com/larsartmann/go-cqrs-lite/transport/http/v4"
+import (
+	"github.com/larsartmann/go-codec"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+)
 
-// One-liner: every SSE/backfill payload is transcoded CBOR→JSON.
-broker, err := cqrshttp.NewSSEBroker(bus,
-    cqrshttp.WithPayloadTransform(cqrshttp.CBORToJSONTransform))
+// Pair with any SSE server (go-sse, metaengine.ServeSSE, plain net/http):
+// every payload is transcoded CBOR→JSON; failures fall back to raw bytes.
+payload := func(evt event.Event) []byte {
+	out, err := codec.TranscodeToJSON(evt.Payload(), codec.EncodingCBOR)
+	if err != nil {
+		return evt.Payload()
+	}
+	return out
+}
 ```
 
 Non-CBOR events (JSON/Raw) pass through with zero overhead (1.9 ns, 0 allocs).
-The transform is applied uniformly across live, replay, and backfill paths.
+Apply the transform uniformly across live, replay, and backfill paths.
 
 When you need schema-aware JSON (reconstructing field names from `toarray`
-structs) or custom logging, call `codec.TranscodeToJSON` directly inside your
-own `func(event.Event) []byte` and use `event.DecodePayloadAuto[T]` for typed
+structs) or custom logging, use `event.DecodePayloadAuto[T]` for typed
 decoding. See the [go-codec](https://github.com/larsartmann/go-codec) README → "CBOR → JSON Transcoding".
 
 ### 2.16 Metaengine SSE Streaming with Reconnection (metaengine)
