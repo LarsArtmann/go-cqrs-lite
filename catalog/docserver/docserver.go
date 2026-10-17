@@ -71,6 +71,13 @@ type Config struct {
 	// `d2` CLI and cache the result — the library stays dependency-free.
 	D2SVG func(d2Source string) (string, error)
 
+	// ArchitectureReference serves the self-contained architecture reference
+	// (catalog/architecture, ADR-0159) at /docs/architecture. Off by
+	// default: existing deployments see byte-identical route tables until
+	// they opt in. The rendered file is cached per catalog instance, so a
+	// provider that returns a stable *catalog.Catalog renders once.
+	ArchitectureReference bool
+
 	// EventCatalogErrorsFile optionally points at an erraudit errorflow
 	// export (JSON, schemaVersion 1 — `erraudit errorflow ./... --type-aware`)
 	// rendered at /docs/eventcatalog/errors: every named error of the
@@ -91,8 +98,9 @@ type AsyncAPIServerConfig struct {
 
 // DocsServer serves auto-generated API documentation from a catalog.
 type DocsServer struct {
-	config   Config
-	provider CatalogProvider
+	config       Config
+	provider     CatalogProvider
+	architecture architectureCache
 }
 
 // NewDocsServer creates a new docs server.
@@ -217,6 +225,10 @@ func (ds *DocsServer) RegisterRoutes(mux *http.ServeMux) {
 	)
 	mux.HandleFunc("GET "+prefix+"/d2", ds.serveD2View)
 	mux.HandleFunc("GET "+prefix+"/d2.txt", ds.serveD2Text)
+
+	if ds.config.ArchitectureReference {
+		mux.HandleFunc("GET "+prefix+"/architecture", ds.serveArchitecture)
+	}
 
 	// Scalar's bundle hardcodes its @font-face URLs to Scalar's CDN; serve a
 	// rewritten copy so the fonts load from this server (font-src 'self')
