@@ -255,6 +255,22 @@ func externalLink(href, label string) markup {
 	})
 }
 
+// safeImageSrc allowlists image sources for the brand logo: only remote
+// http(s) images and inline data images are rendered; anything else (notably
+// javascript:) is dropped entirely rather than rewritten, so a hostile logo
+// leaves no trace in the shared document.
+func safeImageSrc(src string) string {
+	lower := strings.ToLower(strings.TrimSpace(src))
+
+	for _, prefix := range []string{"http://", "https://", "data:image/"} {
+		if strings.HasPrefix(lower, prefix) {
+			return src
+		}
+	}
+
+	return ""
+}
+
 // safeHref allowlists URL schemes: external links in a shared document must
 // not be able to run script when a reader clicks them.
 func safeHref(href string) string {

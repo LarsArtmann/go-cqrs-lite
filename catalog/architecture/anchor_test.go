@@ -60,9 +60,9 @@ func TestExportLinksResolveToSections(t *testing.T) {
 	}
 
 	for _, source := range []struct {
-		name  string
-		re    *regexp.Regexp
-	 what string
+		name string
+		re   *regexp.Regexp
+		what string
 	}{
 		{"href", hrefTargets, "link"},
 		{"search index", searchAnchors, "search hit"},

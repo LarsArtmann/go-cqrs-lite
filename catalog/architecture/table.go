@@ -9,7 +9,7 @@ type tableCell struct {
 
 // plainCell builds a table cell without a class.
 func plainCell(text string) tableCell {
-	return tableCell{text: text}
+	return tableCell{text: text, class: ""}
 }
 
 // monoCell builds a table cell rendered in the monospace style.

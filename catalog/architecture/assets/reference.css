@@ -135,6 +135,7 @@ kbd {
 }
 .brand { display: flex; align-items: center; gap: 10px; color: var(--ink); font-weight: 650; min-width: 0; }
 .brand:hover { color: var(--ink); }
+.brand-logo { height: 22px; width: auto; display: block; border-radius: 4px; }
 .brand-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .top-spacer { flex: 1; }
 .search-btn {
