@@ -29,7 +29,7 @@ func collect(cat *catalog.Catalog, cfg config) *document {
 	b := newDocBuilder(cfg.title, cfg.command, cfg.generatedAt)
 	b.kept = plan.kept
 	collectCounts(b, enriched)
-	b.sections = append(b.sections, overviewSection(cfg, b.counts))
+	b.sections = append(b.sections, overviewSection(cfg, b.counts, idx))
 	b.navAt(kindOverview, navEntry{
 		anchor: "overview",
 		tag:    "DOC",

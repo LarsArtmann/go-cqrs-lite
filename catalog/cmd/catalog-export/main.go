@@ -128,16 +128,6 @@ func main() {
 
 	cat := buildCatalog()
 
-	if err := eventcatalog.NewExporter(*output).Export(cat); err != nil {
-		log.Fatalf("catalog-export: %v", err)
-	}
-
-	fmt.Fprintf(os.Stdout, "catalog-export: wrote EventCatalog tree to %s\n", *output)
-
-	if *reference == "" {
-		return
-	}
-
 	includeSelectors, err := parseSelectors(includes)
 	if err != nil {
 		log.Fatalf("catalog-export: %v", err)
@@ -194,6 +184,16 @@ func main() {
 			os.Exit(1)
 		}
 
+		return
+	}
+
+	if err := eventcatalog.NewExporter(*output).Export(cat); err != nil {
+		log.Fatalf("catalog-export: %v", err)
+	}
+
+	fmt.Fprintf(os.Stdout, "catalog-export: wrote EventCatalog tree to %s\n", *output)
+
+	if *reference == "" {
 		return
 	}
 

@@ -23,6 +23,7 @@ type config struct {
 	sel         *Selection
 	references  ReferencesMode
 	hide        visibility
+	introduction string
 }
 
 // Exporter renders a catalog as one self-contained HTML architecture
@@ -96,6 +97,14 @@ func WithReferences(mode ReferencesMode) Option {
 	return func(e *Exporter) { e.cfg.references = mode }
 }
 
+// WithIntroduction sets a markdown introduction rendered at the top of the
+// overview, under the generated prose. "[[kind|id]]" references resolve
+// against the export's own links; redacted references follow the
+// references mode.
+func WithIntroduction(markdown string) Option {
+	return func(e *Exporter) { e.cfg.introduction = markdown }
+}
+
 // WithHide suppresses whole parts of the reference (ADR-0160). The default
 // hides nothing; `WithHide()` with no sections is the default.
 func WithHide(sections ...HideSection) Option {
@@ -119,6 +128,7 @@ func NewExporter(opts ...Option) *Exporter {
 			specifications: false,
 			docs:           false,
 		},
+		introduction: "",
 	}}
 
 	for _, opt := range opts {

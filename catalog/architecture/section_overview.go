@@ -7,10 +7,18 @@ import (
 
 // overviewSection builds the document's opening section: what this file is,
 // how much it documents, and how to regenerate it.
-func overviewSection(cfg config, counts []countRow) section {
+func overviewSection(cfg config, counts []countRow, idx *refIndex) section {
 	sec := newSection(kindOverview, "", cfg.title)
 	sec.summary = cfg.description
 	sec.left = []block{blockHTML("", overviewProse(cfg.title, counts))}
+
+	if cfg.introduction != "" {
+		sec.left = append(
+			sec.left,
+			blockHTML("", renderMarkdown(cfg.introduction, idx.link)),
+		)
+	}
+
 	sec.right = []block{blockHTML("Catalog", countTable(counts))}
 
 	if cfg.command != "" {
