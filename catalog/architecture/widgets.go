@@ -1,7 +1,6 @@
 package architecture
 
 import (
-	"strconv"
 	"strings"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
@@ -191,8 +190,8 @@ func codeBlock(title, code string) markup {
 	})
 }
 
-// linkElement renders an external link.
-func linkElement(href, label string) markup {
+// externalLink renders a link that leaves the document.
+func externalLink(href, label string) markup {
 	return renderInto(func(w *htmlWriter) {
 		if href == "" {
 			w.element("span", label)
@@ -227,9 +226,4 @@ func defaultIfEmpty(value, fallback string) string {
 	}
 
 	return value
-}
-
-// itoa renders an int for inline text.
-func itoa(value int) string {
-	return strconv.Itoa(value)
 }

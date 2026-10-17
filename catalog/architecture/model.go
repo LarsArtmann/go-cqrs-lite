@@ -33,7 +33,6 @@ type section struct {
 	version    string
 	summary    string
 	badges     []catalog.Badge
-	owners     []string
 	deprecated string // non-empty renders a deprecation notice
 	meta       []markup
 	left       []block
