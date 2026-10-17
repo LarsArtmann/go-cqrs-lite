@@ -70,9 +70,11 @@ func TestDepth_PoisonEventDeadLetters(t *testing.T) {
 				return fmt.Errorf("dead-lettered event type: want task.updated, got %s", entry.EventType)
 			}
 
-			if entry.StreamID != poisonRef.ID.String() {
+			// DeadLetterEntry.StreamID is the raw stream key (Get()), without
+			// the branded-ID String() marker prefix.
+			if entry.StreamID != poisonRef.ID.Get() {
 				return fmt.Errorf("dead-lettered stream: want %s, got %s",
-					poisonRef.ID.String(), entry.StreamID)
+					poisonRef.ID.Get(), entry.StreamID)
 			}
 
 			if entry.ProjectionName == "" || entry.EventID == "" || entry.Error == "" {
