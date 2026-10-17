@@ -9,7 +9,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.0
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.8.0
 	github.com/larsartmann/go-cqrs-lite/encryption/v4 v4.4.5
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.0
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.1
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.4.0
 	github.com/larsartmann/go-cqrs-lite/graph/v4 v4.3.4
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.2

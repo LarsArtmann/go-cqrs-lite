@@ -6,7 +6,7 @@ require (
 	github.com/dustin/go-humanize v1.1.0
 	github.com/larsartmann/go-codec v0.3.2
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.8.0
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.0
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.1
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.2
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.3.5
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.5.3

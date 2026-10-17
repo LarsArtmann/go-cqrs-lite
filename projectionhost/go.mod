@@ -87,7 +87,7 @@ require (
 require (
 	github.com/larsartmann/go-codec v0.3.2
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.3.0
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.0
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.1
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.2
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.2
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.4.2

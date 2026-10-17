@@ -5,7 +5,7 @@ go 1.27.2
 require (
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.0
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.8.0
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.0
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.1
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.2
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.7.0
