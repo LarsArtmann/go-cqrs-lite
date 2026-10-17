@@ -18,7 +18,7 @@ import (
 
 	"github.com/larsartmann/go-codec"
 	errorfamily "github.com/larsartmann/go-error-family"
-	"github.com/larsartmann/httputil/server_timing"
+	servertiming "github.com/larsartmann/httputil/server_timing"
 
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"

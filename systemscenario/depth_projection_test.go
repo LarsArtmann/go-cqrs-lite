@@ -81,13 +81,13 @@ func TestDepth_PoisonEventDeadLetters(t *testing.T) {
 			}
 
 			if entry.ProjectionName != "projections" {
-			return fmt.Errorf(
-				"dead-letter projection name: want projections, got %q",
-				entry.ProjectionName,
-			)
-		}
+				return fmt.Errorf(
+					"dead-letter projection name: want projections, got %q",
+					entry.ProjectionName,
+				)
+			}
 
-		if entry.EventID == "" || entry.Error == "" {
+			if entry.EventID == "" || entry.Error == "" {
 				return fmt.Errorf("dead-letter entry missing diagnostics: %+v", entry)
 			}
 
@@ -141,7 +141,7 @@ func TestDepth_GivenPhaseUpcastsLegacyPayloads(t *testing.T) {
 
 	systemscenario.ThenPayload(phase, 0, TaskUpdated{
 		ID:     ref.ID.String(),
-		Title: "legacy title",
+		Title:  "legacy title",
 		Status: "completed",
 	})
 

@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-idempotency"
-	"github.com/larsartmann/httputil/server_timing"
+	servertiming "github.com/larsartmann/httputil/server_timing"
 	otel "go.opentelemetry.io/otel"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"

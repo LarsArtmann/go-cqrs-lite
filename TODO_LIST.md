@@ -756,7 +756,17 @@ the boundary. Verified against this repo's source on 2026-10-15.
       in-flight foreign typed-info session (tests did not exist at
       `445130ee7`); (g) 95-file `go 1.27→1.27.2` directive wave (daemon
       20:41) vs the minor-form lockstep convention — watch
-      `scripts/check-go-version.sh` at the next `#verify-ci`. — plan M17
+      `scripts/check-go-version.sh` at the next `#verify-ci`. (h) coverage
+      gate — 6 modules drifted beyond ±2.0% at 2026-10-17 23:20 (command
+      -2.2, dispatcher -4.6, id -3.4, kv -3.8, metaengine -3.9, schema
+      -3.0; box was quiet, load ~6 — genuine drift from the parallel
+      Oct 15–17 sessions' changes, not load-skips; systemscenario /
+      projectionadapter / taskmanager are NOT tracked by this golden and
+      the changed-set mine-list is empty; re-baseline only from
+      quiet-window numbers after confirming the drops are expected:
+      `source scripts/go-env.sh && nix run .#check-coverage` then
+      `bash scripts/check-coverage.sh --update` + the AGENTS.md coverage
+      line). — plan M17
       _(Effort: theirs; S verify each)_
 
 ## Durable Work Queue module (proposed 2026-09-13)
