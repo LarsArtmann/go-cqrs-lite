@@ -23,6 +23,7 @@ components:
   simple: { in: simple }
   d2: { in: d2 }
   eventcatalog: { in: eventcatalog }
+  architecture: { in: architecture }
   docserver: { in: docserver }
 
 deps:
@@ -51,6 +52,10 @@ deps:
     anyVendorDeps: true
   eventcatalog:
     anyProjectDeps: false
+    anyVendorDeps: true
+  architecture:
+    mayDependOn:
+      - core
     anyVendorDeps: true
   docserver:
     mayDependOn:

@@ -5,12 +5,28 @@
 - **Scope:** ALL open TODOs from this session's two status reports (03:55, 17:24), the TODO_LIST §v5 Unification rows, and the tool-verified census. Sources: `docs/status/2026-10-16_03-55_*`, `docs/status/2026-10-16_17-24_*`, ADR-0152/0123/0128, mirror lockstep register.
 - **Format note:** owner demanded `.md` + mermaid (skill default is HTML+D2 — explicit instruction wins).
 
+> **OWNER RULING (2026-10-17 ~08:45):** "slowly phase out/migrate deprecated submodule by
+> submodule. As soon as none of my consumers use it anymore, DELETE. Until we can do a full v5
+> cut." Fleet migration window: **1–2 weeks, sprint it.**
+>
+> Folded into this plan:
+> 1. **Standing delete-at-zero rule** — any v4 module with 0 fleet requires AND 0 in-repo
+>    couplings is deleted immediately, not held for a D-phase cascade. Census re-run after every
+>    fleet batch (task 38b).
+> 2. **Deletes are continuous**; D-phase shrinks to the coupled residue (stack + bench-infra
+>    port, deprecated APIs inside live modules, gate-pruning tail).
+> 3. **Twin policy (derived, not owner-ruled):** fork into core/v5 = point-in-time snapshot; the
+>    v4 side goes **fix-only** (feature dev lands in core/v5 only). The 9 existing mirror pairs
+>    (low-churn primitives) keep sync discipline; Big-23 forks stay UNREGISTERED — one-way drift
+>    is expected, no lockstep gate for them (tasks 25/47 scope accordingly).
+> 4. Full v5 cut remains the terminus: last modules die when their counts hit zero; v5.0.0 then.
+
 ## Current state (verified, timestamps matter — fleet automation moves daily)
 
 - core/v5: **9/32 packages** mirror-locked (record, id, dedup, kv, dispatcher, metadata, event, command, query); event lag = eventtest subtree only (delivery-mark trio forked 2026-10-16, `64be699fa`).
 - Fleet: ~35 repos on v4 (event 41 / id 41 / command 34 direct requires). Codec ghost tail RESOLVED by the 2026-10-16 morning sweep (0 imports, 0 requires; intentional poisoned fixture preserved).
 - Tooling: `cqrs-upgrade` = pin bumps + V007 reports only; no v4→v5 rewrite.
-- Free deletes (zero requires): transport/http+grpc, storage/view+relational, idempotency/kvstore, 7 of 8 stack presets.
+- Free deletes (CORRECTED 2026-10-17 08:37 census + in-repo rg): **NOW** = transport/http+grpc, idempotency/kvstore (needs integration-test rewire). **NOT free**: storage/view+relational (die with the storage fork — storage-core alias re-exports), 7 stack presets (gated on bench-infra port, task 38.0), sqlstore (4 fleet consumers).
 - Tool semantics: `project-dependency-graph` edges = go.mod **requires** (direct vs `// indirect`), NOT imports.
 
 ## Step 0 — Errata / verified-done (skill discipline: don't re-dispatch shipped work)
@@ -22,6 +38,8 @@
 | benchkit go.sum tidy | DONE | session 03:45 |
 | Census: "go-appkit not a consumer" | FALSE — consumes 24 trains via cqrs/docs/integration submodules | session 04:0x rg |
 | Census table completeness | HOLES (Kernovia, Domination, Rolls-Royce…, accountability-system, standard-bug-tracking-schema, go-credentials-store, nsfw-classifier, vision-review-agent) | who-uses 03:59 |
+| "Free deletes: 11 modules" (10-16 census) | FALSE for 9 of 11 — requires-only census missed in-repo couplings: storage core re-exports view/relational (`storage/view_aliases.go`, `relational_aliases.go`); presets imported by benchkit tests, `cmd/cqrs-bench/factory.go`, `stack/bench` suite | rg + who-uses 2026-10-17 08:3x |
+| Task 39 (delete stack+presets) had no predecessor | HOLE — bench infra must port off presets first | added task 38.0 |
 
 ---
 
@@ -65,9 +83,9 @@ Sort key: importance (blocks-how-much) > impact (edges deleted) > effort. Effort
 | # | Task | Phase | Effort | Impact | Blocks |
 |---|------|-------|--------|--------|--------|
 | 1 | Write copy-forward playbook (13-step procedure + exclusion list + gate checklist) | P0 | S | ★★★ | all A |
-| 2 | Census artifact: scripts/census-fleet.sh → timestamped JSON (who-uses wrapper, submodule-deep) | P0 | S | ★★★ | B,C sizing |
+| 2 | Census artifact: scripts/census-fleet.sh → timestamped JSON (who-uses wrapper, submodule-deep) **+ `--zero-consumers` delete-trigger report (standing rule driver)** | P0 | S | ★★★ | B,C sizing, 38b |
 | 3 | Ghost verdicts: deriver + graph keep-or-kill (P1 #11) — decision row per module | P0 | S | ★★☆ | A20 |
-| 4 | storage core fork part 1: inventory + deprecated-surface exclusion decision (aggregate_projection etc.) | A | M | ★★★ | 5,7 |
+| 4 | storage core fork part 1: inventory + deprecated-surface exclusion decision (aggregate_projection, view/relational alias strips — the submodules die HERE) | A | M | ★★★ | 5,7 |
 | 5 | storage core fork part 2: production files + command-store family + import rewrite | A | M | ★★★ | 7,10 |
 | 6 | storage/memory fork + tests wired | A | M | ★★★ | 10 |
 | 7 | snapshot fork (test-coupled to 4-6) | A | M | ★★★ | 8 |
@@ -101,7 +119,9 @@ Sort key: importance (blocks-how-much) > impact (edges deleted) > effort. Effort
 | 35 | bank-sync + github-local-sync + SEC + KeyCountdown + SwettySwipperWeb batch codemod + tests | C | M | ★★☆ | 45 |
 | 36 | Residue batch 1 (~12 repos, codemod + go test + commit per repo) | C | M | ★☆☆ | 47 |
 | 37 | Residue batch 2 (~13 repos) + per-repo verify-chain sweep (race on hot paths) | C | M | ★☆☆ | 47 |
-| 38 | Free deletes: transport/http+grpc, storage/view+relational, idempotency/kvstore (+sqlstore once 32/35 done) + gate de-registrations | D | S | ★★☆ | — |
+| 38 | **NOW (ruling): delete transport/http+grpc + idempotency/kvstore** (0 fleet requires, 0 in-repo code importers; integration kvstore tests → sqlstore-only) + full gate de-registration cascade | P0 | M | ★★☆ | — |
+| 38.0 | Port bench infra off presets: cmd/cqrs-bench factory + benchkit tests + stack/bench → system.New engines (unblocks preset + stack deletion) | D | M | ★★☆ | 39 |
+| 38b | Delete-at-zero sweep after every C batch: census re-run → delete each module at 0 fleet requires + 0 in-repo couplings (+sqlstore once 32/35 done) | C | S | ★★☆ | 43 |
 | 39 | Delete stack + 8 presets + deprecated APIs (tombstone metadata, ADR-0126 shells, fold DSL v1) | D | M | ★★★ | 43 |
 | 40 | Gate-pruning cascade: go.work, flake testModules, api-stability modules, module-layers, cqrs-lint catalog, canonical-facts counts, mirror gate retirement | D | M | ★★★ | 43 |
 | 41 | v5 docs finalization: skill references, FAQ, core.md quickstart, V5-MIGRATION-GUIDE refresh, CHANGELOG wave cut | D | S | ★★☆ | 43 |
@@ -207,7 +227,7 @@ flowchart TD
         C4[crm + exec-stage fix] --> C5[InboxClean] --> C6[bank-sync batch] --> C7[residue 1] --> C8[residue 2]
     end
     subgraph D["Phase D — deletes + cut"]
-        D1[free deletes] --> D2[stack+presets+deprecated APIs] --> D3[gate pruning] --> D4[v5 docs] --> D5[cut v5.0.0] --> D6[fleet pin wave]
+        D1[delete-at-zero: continuous] --> D2[stack+presets+deprecated APIs] --> D3[gate pruning] --> D4[v5 docs] --> D5[cut v5.0.0] --> D6[fleet pin wave]
     end
     subgraph E["Phase E — tail"]
         E1[retry/flightrecorder re-pins]
@@ -247,6 +267,8 @@ flowchart TD
 8. Per-repo migrations: baseline first (go build+test BEFORE), scope code edits to files importing the library, GOWORK guard on `go get/tidy` (rename go.work → .bak, restore after, verify go.mod changed).
 9. Census numbers get re-timestamped before use — fleet automation moves pins daily (twice-proven this session).
 10. Deployment-sensitive repos (crm, browser-history class): production-data compat gate on persistence-touching bumps.
+11. **Delete-at-zero requires a coupling check** — a requires-only census misses alias-surface usage and in-repo bench/test importers; run the in-repo `rg` before EVERY delete (proven 2026-10-17: 9 of 11 "free" deletes had hidden couplings).
+12. **Fork = snapshot; v4 side is fix-only afterward** — feature dev lands in core/v5 only; never mirror-sync features into a forked v4 module (cuts the twin-sync tax the 148-commits/2wk churn would otherwise cost).
 
 ## Verification (this plan)
 
@@ -254,3 +276,4 @@ flowchart TD
 - Every task maps to a TODO source: session reports, TODO_LIST §v5 rows, ROADMAP Phase 8.
 - Errata section reconciles shipped work (skill Step 0) — nothing re-dispatched.
 - Plan follows docs/planning conventions: dated, named, non-executed snapshot (execution needs owner GO — see skill Full Execution Mode).
+- **GO status after ruling:** delete-at-zero standing rule GO'ed 2026-10-17 (first application: task 38 executed same day); sprint pacing confirmed (1–2 weeks); explicit GO for the Phase A core-completion sprint still pending.

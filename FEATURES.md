@@ -980,6 +980,20 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 | Config files   | `eventcatalog.config.js` (stable `cId`, tagline, llmsTxt) + `package.json` pinning `@eventcatalog/core` `^5.1.0` | ✅     |
 | LLM summary    | `llms.txt` — plain-text catalog summary for LLM consumption                                                      | ✅     |
 
+> `import "github.com/larsartmann/go-cqrs-lite/catalog/v4/architecture"`
+
+| Feature              | Detail                                                                                                                                  | Status |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| One-file export      | `Exporter.Export(cat)` renders the WHOLE catalog as one self-contained HTML document (inlined CSS + JS, no Node, no network)             | ✅     |
+| Per-resource sections | Domain, service, command, event, query, channel, data store, flow, entity, data product, agent, decision, team, person, doc page        | ✅     |
+| Relationship links   | Producers/consumers, channel membership (both directions), reads/writes, flow-involved resources, ADR targets — every link in-file       | ✅     |
+| Message detail       | Attribute table from the schema, synthesised or real example payload, generated TypeScript interface, raw JSON Schema                    | ✅     |
+| Navigation           | Filterable kind-tagged sidebar, group headings, scroll-spy, Ctrl/Cmd-K search over an inlined index                                      | ✅     |
+| Theming              | Light/dark driven by CSS custom properties, follows the OS and remembers the reader's choice                                             | ✅     |
+| Safe by default      | Catalog strings escaped, badge colors sanitised, external URLs scheme-allowlisted, raw HTML rejected in prose                            | ✅     |
+| Zero new deps        | Standard library only; importing it links no templ and adds nothing to the catalog dependency budget                                     | ✅     |
+| Write helpers        | `Exporter.ExportFile(cat, path)` and `Exporter.ExportTo(w, cat)`; options `WithTitle`, `WithDescription`, `WithCommand`, `WithLogo`, `WithGeneratedAt` | ✅     |
+
 > `import "github.com/larsartmann/go-cqrs-lite/catalog/v4/d2"`
 
 | Feature             | Detail                                                      | Status |
