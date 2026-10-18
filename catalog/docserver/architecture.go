@@ -13,10 +13,10 @@ import (
 // renders the same bytes; a provider that rebuilds the catalog per call
 // pays a re-render per request, which is the honest price of freshness.
 type architectureCache struct {
-	mu    sync.Mutex
-	cat   *catalog.Catalog
+	mu     sync.Mutex
+	cat    *catalog.Catalog
 	render []byte
-	err   error
+	err    error
 }
 
 // load returns the cached render for cat, rendering once when the catalog
@@ -51,13 +51,17 @@ func (ds *DocsServer) serveArchitecture(w http.ResponseWriter, _ *http.Request) 
 		exp := architecture.NewExporter(
 			architecture.WithTitle(ds.config.ServiceName),
 			architecture.WithDescription(ds.config.Description),
-			architecture.WithCommand("docserver " + ds.config.DocsPath + "/architecture"),
+			architecture.WithCommand("docserver "+ds.config.DocsPath+"/architecture"),
 		)
 
 		return exp.Export(cat)
 	})
 	if err != nil {
-		http.Error(w, "architecture reference render failed: "+err.Error(), http.StatusInternalServerError)
+		http.Error(
+			w,
+			"architecture reference render failed: "+err.Error(),
+			http.StatusInternalServerError,
+		)
 
 		return
 	}

@@ -4,7 +4,7 @@ go 1.27.2
 
 require (
 	github.com/larsartmann/cmdguard/v4 v4.1.0
-	github.com/larsartmann/go-codec v0.3.1
+	github.com/larsartmann/go-codec v0.3.2
 	github.com/larsartmann/go-cqrs-lite/benchkit/v4 v4.7.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.19.0
 	github.com/larsartmann/go-cqrs-lite/stack/bbolt/v4 v4.2.3
@@ -16,7 +16,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4 v4.3.5
 	github.com/larsartmann/go-cqrs-lite/stack/turso/v4 v4.4.3
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.5.0
-	github.com/larsartmann/go-error-family v0.11.0
+	github.com/larsartmann/go-error-family v0.12.0
 	github.com/larsartmann/go-output v0.38.4
 	github.com/larsartmann/go-output/delimited v0.38.4
 	github.com/larsartmann/go-output/markdown v0.38.4
@@ -96,13 +96,13 @@ require (
 	github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4 v4.2.3 // indirect
-	github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.2.3 // indirect
+	github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.3.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.8.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.2 // indirect
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.14.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.2 // indirect
-	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.3.4 // indirect
+	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.3.5 // indirect
 	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.4.4 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.5.3 // indirect
