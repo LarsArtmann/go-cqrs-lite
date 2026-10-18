@@ -120,6 +120,7 @@ func decodeListTasks(r *http.Request) (apiListTasksQuery, error) {
 	if limit == 0 {
 		limit = listPageSize
 	}
+
 	if limit > listPageSize {
 		limit = listPageSize
 	}

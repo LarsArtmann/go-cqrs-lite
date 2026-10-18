@@ -44,18 +44,22 @@ func bindQuery[R any, Q query.Query](
 
 		stop := servertiming.MeasureServerTiming(r.Context(), "query")
 		data, tag, err := dispatchEncode[R](r.Context(), sys, q, c)
+
 		stop() // stop BEFORE any write: the header is injected at first Write
+
 		if err != nil {
 			return err
 		}
 
 		w.Header().Set("Content-Type", mediaType)
 		w.Header().Set("ETag", tag.String())
+
 		if etag.MatchesIfNoneMatch(tag, r.Header.Get("If-None-Match")) {
 			w.WriteHeader(http.StatusNotModified)
 
 			return nil
 		}
+
 		_, err = w.Write(data)
 
 		return err

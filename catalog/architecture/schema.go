@@ -2,8 +2,8 @@ package architecture
 
 import (
 	"bytes"
-	"encoding/json"
 	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"maps"
 	"slices"
 	"strings"
@@ -191,7 +191,12 @@ func tsObject(prop catalog.Property) string {
 func prettyJSON(raw []byte) string {
 	var buf bytes.Buffer
 
-	if err := json.Indent(&buf, raw, "", "  "); err != nil {
+	if err := func() error {
+		out, err := jsontext.AppendFormat(nil, raw, jsontext.WithIndent("  "))
+		(&buf).Write(out)
+
+		return err
+	}(); err != nil {
 		return string(raw)
 	}
 
@@ -247,7 +252,7 @@ func synthesize(schema *catalog.Schema) string {
 		value[field] = sampleValue(schema.Properties[field])
 	}
 
-	raw, err := json.MarshalIndent(value, "", "  ")
+	raw, err := json.Marshal(value, jsontext.WithIndentPrefix(""), jsontext.WithIndent("  "))
 	if err != nil {
 		return ""
 	}
