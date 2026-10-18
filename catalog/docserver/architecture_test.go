@@ -5,6 +5,8 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 )
 
 // TestDocsServer_ArchitectureReference pins the opt-in route: 200 with an
