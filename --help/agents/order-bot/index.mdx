@@ -1,0 +1,27 @@
+---
+id: order-bot
+name: Order Bot
+version: 1.0.0
+summary: AI assistant for order support
+owners:
+    - order-team
+sends:
+    -   id: OrderCreated
+        version: 1.0.0
+model:
+    provider: openai
+    name: gpt
+    version: 4o
+tools:
+    -   name: orders-db-lookup
+        type: mcp
+        url: https://mcp.example.com/orders
+flows:
+    -   id: checkout-flow
+---
+
+# Order Bot
+
+AI assistant for order support
+
+<NodeGraph />

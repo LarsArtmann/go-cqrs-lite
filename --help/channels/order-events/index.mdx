@@ -1,0 +1,31 @@
+---
+id: order-events
+name: Order Events
+version: 1.0.0
+summary: All order-related events
+address: orders.events
+protocols: [kafka]
+messages:
+    -   collection: commands
+        name: Create Order
+        id: CreateOrder-1.0.0
+        version: 1.0.0
+    -   collection: events
+        name: Order Created
+        id: OrderCreated-1.0.0
+        version: 1.0.0
+deliveryGuarantee: at-least-once
+parameters:
+    region:
+        enum: [eu, us]
+        default: eu
+        description: Cluster region
+owners:
+    - order-team
+---
+
+# Order Events
+
+All order-related events
+
+<NodeGraph />

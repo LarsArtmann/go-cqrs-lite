@@ -1,0 +1,10 @@
+{
+  "type": "object",
+  "properties": {
+    "orderId": {
+      "type": "string",
+      "nullable": false,
+      "deprecated": false
+    }
+  }
+}

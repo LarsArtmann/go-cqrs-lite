@@ -1,0 +1,9 @@
+# Data contract: orders (fixture)
+id: orders
+owner: order-team
+type: table
+description: One row per order event aggregate
+fields:
+  - name: order_id
+    type: string
+    required: true

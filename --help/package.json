@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "@eventcatalog/core": "^5.1.0"
+  },
+  "description": "Demo event catalog",
+  "name": "demo",
+  "private": true,
+  "type": "module",
+  "version": "1.0.0"
+}

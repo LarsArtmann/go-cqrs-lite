@@ -1,0 +1,29 @@
+---
+id: CreateOrder
+name: Create Order
+version: 1.0.0
+summary: Create a new order
+owners:
+    - order-team
+channels:
+    -   id: order-events
+        version: 1.0.0
+consumers:
+    - order-svc-1.0.0
+operation:
+    method: POST
+    path: /orders
+    statusCodes: ["201", "400"]
+schemaPath: schemas/schema.json
+x-labels:
+    domain: ordering
+x-responses:
+    -   statusCode: "201"
+        description: Order created
+    -   statusCode: "400"
+        description: Validation error
+---
+
+# Create Order
+
+Create a new order

@@ -1,0 +1,19 @@
+# Schemas
+
+> All message and entity schemas in this catalog.
+
+## Create Order (v1.0.0)
+Context: Create Order @ Order Service
+```json
+{
+  "type": "object",
+  "properties": {
+    "orderId": {
+      "type": "string",
+      "nullable": false,
+      "deprecated": false
+    }
+  }
+}
+```
+

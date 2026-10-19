@@ -1,0 +1,40 @@
+---
+id: emit-catalog-from-code
+name: Emit the architecture catalog from code
+version: 1.0.0
+status: accepted
+date: "2026-09-24"
+summary: Catalog resources are declared next to the code they describe
+owners:
+    - order-team
+decisionMakers:
+    - alice
+appliesTo:
+    -   type: service
+        id: order-svc
+        version: 1.0.0
+    -   type: event
+        id: OrderCreated
+supersedes:
+    -   id: document-architecture-by-hand
+related:
+    -   id: document-architecture-by-hand
+badges:
+    -   content: Accepted
+        backgroundColor: green
+        textColor: white
+---
+
+# Emit the architecture catalog from code
+
+## Context
+
+Architecture docs drifted from the services they describe.
+
+## Decision
+
+Services declare their catalog resources in code; the exporter emits them.
+
+## Consequences
+
+Docs stay current because they build with the code.

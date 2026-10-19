@@ -1,0 +1,54 @@
+---
+id: checkout-flow
+name: Checkout Flow
+version: 1.0.0
+summary: From command to event
+owners:
+    - order-team
+steps:
+    -   id: s1
+        title: Customer
+        actor:
+            name: Customer
+            summary: Places orders
+    -   id: s2
+        title: Submit
+        service:
+            id: order-svc
+        next_step:
+            id: s3
+    -   id: s3
+        title: Create
+        message:
+            id: CreateOrder
+        next_steps:
+            -   id: s4
+    -   id: s4
+        title: Persist
+        container:
+            id: orders-db
+    -   id: s5
+        title: AI summary
+        agent:
+            id: order-bot
+    -   id: s6
+        title: Analytics
+        dataProduct:
+            id: order-analytics
+    -   id: s7
+        title: Payment provider
+        externalSystem:
+            name: Stripe
+            url: https://stripe.com
+    -   id: s8
+        title: Audit
+        custom:
+            title: Audit log
+            icon: clipboard
+---
+
+# Checkout Flow
+
+From command to event
+
+<NodeGraph />

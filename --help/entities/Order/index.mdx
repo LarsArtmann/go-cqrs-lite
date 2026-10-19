@@ -1,0 +1,25 @@
+---
+id: Order
+name: Order
+version: 1.0.0
+summary: Order aggregate root
+aggregateRoot: true
+identifier: orderId
+properties:
+    -   name: orderId
+        type: string
+        required: true
+        description: Unique order identifier
+    -   name: items
+        type: array
+        references: OrderItem
+        relationType: one-to-many
+owners:
+    - order-team
+---
+
+# Order
+
+Order aggregate root
+
+<NodeGraph />

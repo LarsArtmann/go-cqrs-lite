@@ -1,0 +1,113 @@
+{
+  "schemaVersion": 2,
+  "resources": [
+    {
+      "id": "order-svc",
+      "kind": "services",
+      "version": "1.0.0",
+      "path": "services/order-svc/index.mdx"
+    },
+    {
+      "id": "CreateOrder",
+      "kind": "commands",
+      "version": "1.0.0",
+      "path": "commands/CreateOrder/index.mdx"
+    },
+    {
+      "id": "OrderCreated",
+      "kind": "events",
+      "version": "1.0.0",
+      "path": "events/OrderCreated/index.mdx"
+    },
+    {
+      "id": "GetOrder",
+      "kind": "queries",
+      "version": "1.0.0",
+      "path": "queries/GetOrder/index.mdx"
+    },
+    {
+      "id": "order-events",
+      "kind": "channels",
+      "version": "1.0.0",
+      "path": "channels/order-events/index.mdx"
+    },
+    {
+      "id": "checkout",
+      "kind": "domains",
+      "version": "1.0.0",
+      "path": "domains/checkout/index.mdx"
+    },
+    {
+      "id": "ordering",
+      "kind": "domains",
+      "version": "1.0.0",
+      "path": "domains/ordering/index.mdx"
+    },
+    {
+      "id": "orders-db",
+      "kind": "containers",
+      "version": "1.0.0",
+      "path": "containers/orders-db/index.mdx"
+    },
+    {
+      "id": "Order",
+      "kind": "entities",
+      "version": "1.0.0",
+      "path": "entities/Order/index.mdx"
+    },
+    {
+      "id": "OrderItem",
+      "kind": "entities",
+      "version": "1.0.0",
+      "path": "entities/OrderItem/index.mdx"
+    },
+    {
+      "id": "order-analytics",
+      "kind": "data-products",
+      "version": "1.0.0",
+      "path": "data-products/order-analytics/index.mdx"
+    },
+    {
+      "id": "checkout-flow",
+      "kind": "flows",
+      "version": "1.0.0",
+      "path": "flows/checkout-flow/index.mdx"
+    },
+    {
+      "id": "document-architecture-by-hand",
+      "kind": "adrs",
+      "version": "1.0.0",
+      "path": "adrs/document-architecture-by-hand/index.mdx"
+    },
+    {
+      "id": "emit-catalog-from-code",
+      "kind": "adrs",
+      "version": "1.0.0",
+      "path": "adrs/emit-catalog-from-code/index.mdx"
+    },
+    {
+      "id": "order-bot",
+      "kind": "agents",
+      "version": "1.0.0",
+      "path": "agents/order-bot/index.mdx"
+    },
+    {
+      "id": "order-team",
+      "kind": "teams",
+      "version": "",
+      "path": "teams/order-team.mdx"
+    },
+    {
+      "id": "alice",
+      "kind": "users",
+      "version": "",
+      "path": "users/alice.mdx"
+    },
+    {
+      "id": "architecture",
+      "kind": "docs",
+      "version": "",
+      "path": "docs/guides/architecture/index.mdx"
+    }
+  ]
+}

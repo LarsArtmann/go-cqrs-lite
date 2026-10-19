@@ -1,0 +1,72 @@
+# Demo
+
+> Auto-generated catalog summary for LLM consumption.
+
+## Order Service (order-svc)
+Manages orders
+
+### Commands
+- Create Order (v1.0.0): Create a new order [POST /orders]
+  - Response 201: Order created
+  - Response 400: Validation error
+
+### Events
+- Order Created (v1.0.0) [sends]: Order was created
+
+### Queries
+- Get Order (v1.0.0): Get order by ID
+
+## Channel: Order Events (order-events)
+All order-related events
+Protocols: kafka
+
+## Data Store: Orders Database (orders-db)
+Type: database
+Technology: postgres@16
+Primary order store
+
+## Flow: Checkout Flow (checkout-flow)
+From command to event
+Steps: 8
+
+## ADR: Document the architecture by hand (document-architecture-by-hand)
+Superseded by emitting the catalog from code
+Status: superseded | Date: 2026-08-01
+
+## ADR: Emit the architecture catalog from code (emit-catalog-from-code)
+Catalog resources are declared next to the code they describe
+Status: accepted | Date: 2026-09-24
+
+## Team: Order Team (order-team)
+Owns ordering
+Members: alice
+
+## User: Alice Smith (alice)
+Role: Senior Engineer
+
+## Domain: Checkout (checkout)
+Checkout subdomain
+
+Ubiquitous Language:
+- Cart: Items pending purchase
+- Fulfillment: The process of completing an order
+
+## Domain: Ordering (ordering)
+Order management domain
+Services: order-svc
+
+## Entity: Order (Order)
+Order aggregate root
+
+## Entity: Order Item (OrderItem)
+A line item of an order
+
+## Data Product: Order Analytics (order-analytics)
+Aggregated order metrics for BI
+
+## Agent: Order Bot (order-bot)
+AI assistant for order support
+Sends: 1 messages
+Model: openai/gpt
+Tools: 1
+
