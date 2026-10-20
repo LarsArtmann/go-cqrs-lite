@@ -6,6 +6,8 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+
+	"github.com/a-h/templ"
 )
 
 // cspNonceFromHeader extracts the nonce from the script-src 'nonce-...'
@@ -111,5 +113,51 @@ func TestDocsServer_CSP_NonceUniquePerRequest(t *testing.T) {
 
 	if nonces[0] == nonces[1] {
 		t.Errorf("expected a fresh nonce per request, both were %q", nonces[0])
+	}
+}
+
+// TestDocsServer_CSP_ReusesOuterContextNonce pins the mounted-under-an-
+// outer-CSP-middleware contract: when the incoming request context already
+// carries a templ nonce (bridged by the consumer's middleware), the
+// docserver REUSES it for both the script attributes and its own header
+// instead of minting a divergent one — a replaced nonce stamps scripts the
+// outer response header never granted, and the browser blocks them all.
+func TestDocsServer_CSP_ReusesOuterContextNonce(t *testing.T) {
+	t.Parallel()
+
+	srv := NewDocsServer(testProvider, Config{
+		ServiceName: "Test",
+		Version:     "1.0.0",
+		EnableCSP:   true,
+	})
+	mux := http.NewServeMux()
+	srv.RegisterRoutes(mux)
+
+	const outer = "outer-middleware-nonce"
+
+	for _, path := range []string{"/docs", "/docs/openapi", "/docs/asyncapi", "/docs/d2"} {
+		req := newTestRequest(path).WithContext(templ.WithNonce(t.Context(), outer))
+
+		recorder := httptest.NewRecorder()
+		mux.ServeHTTP(recorder, req)
+
+		if recorder.Code != http.StatusOK {
+			t.Fatalf("GET %s: expected 200, got %d", path, recorder.Code)
+		}
+
+		if got := cspNonceFromHeader(t, recorder.Header().Get("Content-Security-Policy")); got != outer {
+			t.Errorf("GET %s: header nonce %q replaced the outer context nonce %q", path, got, outer)
+		}
+
+		for _, m := range regexp.MustCompile(`(?i)<script\b[^>]*>`).
+			FindAllString(recorder.Body.String(), -1) {
+			if strings.Contains(m, "src=") {
+				continue
+			}
+
+			if !strings.Contains(m, `nonce="`+outer+`"`) {
+				t.Errorf("GET %s: inline script %q does not carry the outer nonce", path, m)
+			}
+		}
 	}
 }

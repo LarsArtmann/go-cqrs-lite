@@ -65,11 +65,14 @@ func cspPolicy(nonce string, allowEval bool) string {
 		"object-src 'none'"
 }
 
-// applyCSP attaches a fresh per-request nonce to the request context (templ
+// applyCSP attaches a per-request nonce to the request context (templ
 // components read it back with templ.GetNonce to stamp script attributes)
-// and, when EnableCSP is set, sends the matching policy header. Without a
-// usable nonce the request passes through untouched — the pages render
-// exactly as they did before CSP support.
+// and, when EnableCSP is set, sends the matching policy header. A nonce
+// already present in the context (bridged by an outer CSP middleware) is
+// REUSED, never replaced — overwriting it would stamp scripts with a nonce
+// the outer response header does not grant, and the browser would block
+// every inline script. Without a usable nonce the request passes through
+// untouched — the pages render exactly as they did before CSP support.
 func (ds *DocsServer) applyCSP(w http.ResponseWriter, r *http.Request) *http.Request {
 	return ds.applyCSPWith(w, r, cspHeaderValue)
 }
@@ -84,9 +87,12 @@ func (ds *DocsServer) applyCSPWith(
 	r *http.Request,
 	policy func(string) string,
 ) *http.Request {
-	nonce, ok := newNonce()
-	if !ok {
-		return r
+	nonce := templ.GetNonce(r.Context())
+	if nonce == "" {
+		var ok bool
+		if nonce, ok = newNonce(); !ok {
+			return r
+		}
 	}
 
 	if ds.config.EnableCSP {
