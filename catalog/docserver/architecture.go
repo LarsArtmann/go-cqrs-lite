@@ -17,10 +17,12 @@ type architectureCache struct {
 	cat    *catalog.Catalog
 	render []byte
 	err    error
+	done   bool
 }
 
 // load returns the cached render for cat, rendering once when the catalog
-// instance changed.
+// instance changed. Render errors cache with the instance too: a failing
+// render is not retried per request (pinned by TestArchitectureCacheRendersErrorPins).
 func (c *architectureCache) load(
 	cat *catalog.Catalog,
 	render func(*catalog.Catalog) ([]byte, error),
@@ -28,12 +30,13 @@ func (c *architectureCache) load(
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	if c.cat == cat && c.render != nil {
+	if c.cat == cat && c.done {
 		return c.render, c.err
 	}
 
 	c.cat = cat
 	c.render, c.err = render(cat)
+	c.done = true
 
 	return c.render, c.err
 }

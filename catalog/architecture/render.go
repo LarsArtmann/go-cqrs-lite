@@ -1,6 +1,7 @@
 package architecture
 
 import (
+	"encoding/json/jsontext"
 	"encoding/json/v2"
 	"fmt"
 	"strconv"
@@ -9,7 +10,7 @@ import (
 
 // renderDocument renders the finished document as one self-contained HTML page.
 func renderDocument(doc *document) (string, error) {
-	index, err := json.Marshal(doc.search)
+	index, err := json.Marshal(doc.search, jsontext.EscapeForHTML(true), json.Deterministic(true))
 	if err != nil {
 		return "", fmt.Errorf("marshal search index: %w", err)
 	}

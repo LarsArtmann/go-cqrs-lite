@@ -252,7 +252,12 @@ func synthesize(schema *catalog.Schema) string {
 		value[field] = sampleValue(schema.Properties[field])
 	}
 
-	raw, err := json.Marshal(value, jsontext.WithIndentPrefix(""), jsontext.WithIndent("  "))
+	raw, err := json.Marshal(
+		value,
+		json.Deterministic(true),
+		jsontext.WithIndentPrefix(""),
+		jsontext.WithIndent("  "),
+	)
 	if err != nil {
 		return ""
 	}

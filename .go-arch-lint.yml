@@ -24,7 +24,6 @@
 #   Layer 3: decider                               (aggregate orchestration)
 #   Layer 4: storage/memory, signing, encryption, otel  (infra primitives)
 #   Layer 5: middleware, storage, listing, watermill,
-#            transport/http, transport/grpc,
 #            storage/pebble, storage/turso, prometheus
 #   Layer 6: stack presets                         (composition layer)
 #   Layer 7: catalog, integration, examples, cmd   (top-level integration)
@@ -61,8 +60,6 @@ components:
   middleware: { in: middleware/** }
   listing: { in: listing/** }
   watermill: { in: watermill/** }
-  transporthttp: { in: transport/http/** }
-  transportgrpc: { in: transport/grpc/** }
   prometheus: { in: prometheus/** }
   stack: { in: stack/** }
   catalog: { in: catalog/** }
@@ -93,8 +90,6 @@ deps:
   storage: { anyProjectDeps: false, anyVendorDeps: true }
   listing: { anyProjectDeps: false, anyVendorDeps: true }
   watermill: { anyProjectDeps: false, anyVendorDeps: true }
-  transporthttp: { anyProjectDeps: false, anyVendorDeps: true }
-  transportgrpc: { anyProjectDeps: false, anyVendorDeps: true }
   prometheus: { anyProjectDeps: false, anyVendorDeps: true }
   stack: { anyProjectDeps: false, anyVendorDeps: true }
   catalog: { anyProjectDeps: true, anyVendorDeps: true }
