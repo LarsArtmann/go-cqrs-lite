@@ -145,8 +145,16 @@ func TestDocsServer_CSP_ReusesOuterContextNonce(t *testing.T) {
 			t.Fatalf("GET %s: expected 200, got %d", path, recorder.Code)
 		}
 
-		if got := cspNonceFromHeader(t, recorder.Header().Get("Content-Security-Policy")); got != outer {
-			t.Errorf("GET %s: header nonce %q replaced the outer context nonce %q", path, got, outer)
+		if got := cspNonceFromHeader(
+			t,
+			recorder.Header().Get("Content-Security-Policy"),
+		); got != outer {
+			t.Errorf(
+				"GET %s: header nonce %q replaced the outer context nonce %q",
+				path,
+				got,
+				outer,
+			)
 		}
 
 		for _, m := range regexp.MustCompile(`(?i)<script\b[^>]*>`).

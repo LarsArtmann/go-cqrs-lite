@@ -229,6 +229,7 @@ catalog/docserver/func IndexPage
 catalog/docserver/func NewDocsServer
 catalog/docserver/func ScalarPage
 catalog/docserver/func WithD2Description
+catalog/docserver/method ArchitectureReferenceHandler
 catalog/docserver/method AsyncAPISpec
 catalog/docserver/method AsyncAPISpecYAML
 catalog/docserver/method AsyncAPIUI
