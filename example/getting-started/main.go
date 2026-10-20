@@ -197,7 +197,7 @@ func runPipeline(
 	deadline := time.Now().Add(projectionSettleDeadline)
 
 	for {
-		view, found, err := reader.Get(ctx, counterID.String())
+		view, found, err := reader.Get(ctx, counterID.Get())
 		if err != nil {
 			return CounterView{}, err
 		}
