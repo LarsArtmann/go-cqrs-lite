@@ -57,7 +57,7 @@ require (
 	github.com/larsartmann/go-branded-id v0.7.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.3.0 // indirect
-	github.com/larsartmann/go-error-family v0.11.0 // indirect
+	github.com/larsartmann/go-error-family v0.12.0 // indirect
 	github.com/larsartmann/go-sse v0.6.2 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/moby/moby/client v0.6.2 // indirect
