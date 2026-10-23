@@ -17,6 +17,7 @@ type architectureCache struct {
 	cat    *catalog.Catalog
 	render []byte
 	err    error
+	loaded bool
 }
 
 // load returns the cached render for cat, rendering once when the catalog
@@ -28,11 +29,14 @@ func (c *architectureCache) load(
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	if c.cat == cat && c.render != nil {
+	// loaded also caches a failed render: retrying a deterministic failure on
+	// every request would turn one render error into a per-request cost.
+	if c.loaded && c.cat == cat {
 		return c.render, c.err
 	}
 
 	c.cat = cat
+	c.loaded = true
 	c.render, c.err = render(cat)
 
 	return c.render, c.err

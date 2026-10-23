@@ -4,6 +4,7 @@ import (
 	"encoding/json/v2"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -225,11 +226,28 @@ func writeRightBox(w *htmlWriter, item block) {
 	w.close("div")
 }
 
-// writeSearchIndex writes the JSON payload the search dialog reads.
+// writeSearchIndex writes the JSON payload the search dialog reads. The JSON
+// is embedded in a script element, so its HTML-significant characters are
+// escaped as JSON \u sequences: encoding/json/v2 does not HTML-escape, and a
+// hostile catalog string containing "</script>" would otherwise close the
+// element early.
 func writeSearchIndex(w *htmlWriter, index string) {
+	index = htmlSafeJSON(index)
+
 	w.open("script", htmlAttr("type", "application/json"), htmlAttr("id", "search-index"))
 	w.raw(markup(index))
 	w.close("script")
+}
+
+// htmlSafeJSON escapes the characters that can terminate or alter an embedded
+// script element. The replacements are valid JSON escapes inside strings and
+// inert outside them.
+func htmlSafeJSON(jsonText string) string {
+	return strings.NewReplacer(
+		"<", `\u003c`,
+		">", `\u003e`,
+		"&", `\u0026`,
+	).Replace(jsonText)
 }
 
 // writeSearchDialog writes the command palette markup.
