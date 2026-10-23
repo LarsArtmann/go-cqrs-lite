@@ -9,13 +9,14 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json/v2"
+	"errors"
 	"path/filepath"
 	"testing"
 
 	_ "modernc.org/sqlite"
 
-	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4"
+	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 func openTypedWALEngine(t *testing.T) (metaengine.Engine, *sql.DB) {
@@ -85,7 +86,7 @@ func TestTypedWAL_DuplicateEventAppendConflicts(t *testing.T) {
 	}
 
 	err := backend.StreamAppend(ctx, "events", "Task:"+typedStreamID, []any{env})
-	if !metaengine.Is(err, metaengine.ErrVersionConflict) {
+	if !errors.Is(err, metaengine.ErrVersionConflict) {
 		t.Fatalf("duplicate append error = %v, want metaengine.ErrVersionConflict", err)
 	}
 }
@@ -107,7 +108,7 @@ func TestTypedWAL_StreamVersionDuplicateConflicts(t *testing.T) {
 	// identity index must reject the slot collision.
 	err := backend.StreamAppend(ctx, "events", "Task:"+typedStreamID,
 		[]any{typedEnvelope(t, typedEventID2, typedStreamID, 1)})
-	if !metaengine.Is(err, metaengine.ErrVersionConflict) {
+	if !errors.Is(err, metaengine.ErrVersionConflict) {
 		t.Fatalf("(stream,version) duplicate error = %v, want ErrVersionConflict", err)
 	}
 }
@@ -206,7 +207,7 @@ func TestTypedWAL_LegacyDatabaseMigratesInPlace(t *testing.T) {
 
 	err = backend.StreamAppend(context.Background(), "events",
 		"Task:"+typedStreamID, []any{typedEnvelope(t, typedEventID1, typedStreamID, 1)})
-	if !metaengine.Is(err, metaengine.ErrVersionConflict) {
+	if !errors.Is(err, metaengine.ErrVersionConflict) {
 		t.Fatalf("post-migration duplicate = %v, want ErrVersionConflict", err)
 	}
 

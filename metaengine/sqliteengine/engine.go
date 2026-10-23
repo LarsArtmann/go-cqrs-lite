@@ -156,15 +156,15 @@ func defaultSQLiteQueries() sqliteQuerySet {
 		streamAppend: `INSERT INTO meta_stream_log
 			(collection, stream_id, value, event_id, stream_type, version, schema_version, payload, encoding, metadata, occurred_at)
 			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-		streamRead:       `SELECT value FROM meta_stream_log WHERE collection = ? AND stream_id = ? ORDER BY seq`,
-		streamVersion:    `SELECT COUNT(*) FROM meta_stream_log WHERE collection = ? AND stream_id = ?`,
+		streamRead:    `SELECT value FROM meta_stream_log WHERE collection = ? AND stream_id = ? ORDER BY seq`,
+		streamVersion: `SELECT COUNT(*) FROM meta_stream_log WHERE collection = ? AND stream_id = ?`,
 		streamAppendExp: `INSERT INTO meta_stream_log
 			(collection, stream_id, value, event_id, stream_type, version, schema_version, payload, encoding, metadata, occurred_at)
 			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-		journalReadAll:   `SELECT value FROM meta_stream_log WHERE collection = ? ORDER BY seq`,
+		journalReadAll: `SELECT value FROM meta_stream_log WHERE collection = ? ORDER BY seq`,
 		// afterSeq is a journal position within the collection (seq is a
 		// global AUTOINCREMENT shared across collections — see JournalReadFrom).
-		journalReadFrom:       `SELECT value FROM meta_stream_log WHERE collection = ? ORDER BY seq LIMIT ? OFFSET ?`,
+		journalReadFrom: `SELECT value FROM meta_stream_log WHERE collection = ? ORDER BY seq LIMIT ? OFFSET ?`,
 		streamLoadByEventID: `SELECT value FROM (
 			SELECT seq, value FROM meta_stream_log WHERE collection = ? AND event_id = ?
 			UNION ALL
