@@ -2,9 +2,11 @@ package metaengine
 
 import (
 	"fmt"
+	"log/slog"
 	"reflect"
 	"sort"
 	"strings"
+	"time"
 )
 
 // LayoutPlan describes a planned table schema for a collection, optimizing
@@ -325,25 +327,5 @@ func BuildColumnarLayoutPlan(collection string, resultType reflect.Type) LayoutP
 		Table:      table,
 		Columns:    columns,
 		Indexes:    indexes,
-	}
-}
-
-func sqlTypeOf(t reflect.Type) string {
-	if t.Kind() == reflect.Pointer {
-		t = t.Elem()
-	}
-
-	switch t.Kind() {
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
-		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		return "INTEGER"
-	case reflect.Float32:
-		return "REAL"
-	case reflect.Float64:
-		return "DOUBLE"
-	case reflect.Bool:
-		return "INTEGER"
-	default:
-		return "TEXT"
 	}
 }

@@ -47,15 +47,17 @@ func TestBuildLayoutPlanFromType_ReflectionDerivedColumns(t *testing.T) {
 	}
 }
 
-func TestBuildLayoutPlanFromType_UnknownFieldFallsBackToHeuristic(t *testing.T) {
-	// "nonexistent" is not a field of the struct — the name heuristic
-	// decides (keeps map-shaped rows working).
+func TestBuildLayoutPlanFromType_UnknownFieldDegradesToTEXT(t *testing.T) {
+	// "nonexistent" is not a field of the struct — without the result type
+	// there is no honest type, and the deleted name heuristic used to guess
+	// INTEGER for "*count*" (silently mistyping future data). Unknown
+	// fields are TEXT now (keeps map-shaped rows working).
 	plan := metaengine.BuildLayoutPlanFromType[layoutFromTypeDoc](
 		"docs", []string{"nonexistent_count"}, nil,
 	)
 
-	if plan.Columns[0].Type != "INTEGER" {
-		t.Fatalf("heuristic fallback = %q, want INTEGER", plan.Columns[0].Type)
+	if plan.Columns[0].Type != "TEXT" {
+		t.Fatalf("unknown-field fallback = %q, want TEXT (name typing is deleted)", plan.Columns[0].Type)
 	}
 }
 
