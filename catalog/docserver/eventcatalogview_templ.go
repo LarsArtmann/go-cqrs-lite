@@ -510,7 +510,7 @@ func EventCatalogMessagePage(d eventCatalogMessageDetail) templ.Component {
 						var templ_7745c5c3_Var11 string
 						templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(change.Version)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `docserver/eventcatalogview.templ`, Line: 124, Col: 27}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `catalog/docserver/eventcatalogview.templ`, Line: 124, Col: 27}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 						if templ_7745c5c3_Err != nil {
@@ -523,7 +523,7 @@ func EventCatalogMessagePage(d eventCatalogMessageDetail) templ.Component {
 						var templ_7745c5c3_Var12 string
 						templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(change.Summary)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `docserver/eventcatalogview.templ`, Line: 124, Col: 47}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `catalog/docserver/eventcatalogview.templ`, Line: 124, Col: 47}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 						if templ_7745c5c3_Err != nil {
@@ -1071,7 +1071,7 @@ func messageLinkCell(label, sub, href string) templ.Component {
 		var templ_7745c5c3_Var27 templ.SafeURL
 		templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(href))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `docserver/eventcatalogview.templ`, Line: 261, Col: 30}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `catalog/docserver/eventcatalogview.templ`, Line: 261, Col: 30}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
 		if templ_7745c5c3_Err != nil {
@@ -1084,7 +1084,7 @@ func messageLinkCell(label, sub, href string) templ.Component {
 		var templ_7745c5c3_Var28 string
 		templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs(label)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `docserver/eventcatalogview.templ`, Line: 261, Col: 109}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `catalog/docserver/eventcatalogview.templ`, Line: 261, Col: 109}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
 		if templ_7745c5c3_Err != nil {
@@ -1102,7 +1102,7 @@ func messageLinkCell(label, sub, href string) templ.Component {
 			var templ_7745c5c3_Var29 string
 			templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinStringErrs(sub)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `docserver/eventcatalogview.templ`, Line: 263, Col: 72}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `catalog/docserver/eventcatalogview.templ`, Line: 263, Col: 72}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var29))
 			if templ_7745c5c3_Err != nil {
@@ -1154,7 +1154,7 @@ func codeBlock(content, ariaLabel string) templ.Component {
 		var templ_7745c5c3_Var31 string
 		templ_7745c5c3_Var31, templ_7745c5c3_Err = templ.ResolveAttributeValue(ariaLabel)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `docserver/eventcatalogview.templ`, Line: 275, Col: 24}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `catalog/docserver/eventcatalogview.templ`, Line: 275, Col: 24}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var31)
 		if templ_7745c5c3_Err != nil {
@@ -1167,7 +1167,7 @@ func codeBlock(content, ariaLabel string) templ.Component {
 		var templ_7745c5c3_Var32 string
 		templ_7745c5c3_Var32, templ_7745c5c3_Err = templ.JoinStringErrs(content)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `docserver/eventcatalogview.templ`, Line: 277, Col: 17}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `catalog/docserver/eventcatalogview.templ`, Line: 277, Col: 17}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var32))
 		if templ_7745c5c3_Err != nil {
@@ -1382,7 +1382,7 @@ func EventCatalogErrorsPage(data eventCatalogErrorsDetail) templ.Component {
 					var templ_7745c5c3_Var38 string
 					templ_7745c5c3_Var38, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(data.FilesScan))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `docserver/eventcatalogview.templ`, Line: 335, Col: 63}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `catalog/docserver/eventcatalogview.templ`, Line: 335, Col: 63}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var38))
 					if templ_7745c5c3_Err != nil {
@@ -1396,7 +1396,7 @@ func EventCatalogErrorsPage(data eventCatalogErrorsDetail) templ.Component {
 						var templ_7745c5c3_Var39 string
 						templ_7745c5c3_Var39, templ_7745c5c3_Err = templ.JoinStringErrs("· package " + data.Package)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `docserver/eventcatalogview.templ`, Line: 337, Col: 36}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `catalog/docserver/eventcatalogview.templ`, Line: 337, Col: 36}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var39))
 						if templ_7745c5c3_Err != nil {
