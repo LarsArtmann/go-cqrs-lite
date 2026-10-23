@@ -35,49 +35,6 @@ func importsPathIn(files []*analyzer.GoFile, suffixes ...string) bool {
 	return false
 }
 
-// usesMetaengineGraph reports whether the files import metaengine and
-// reference the native Graph ADT. Edge and EdgeRemoval folds are the supported
-// metaengine way to project relations, so a consumer using them already has a
-// first-party graph facility and F010 must stay silent.
-func usesMetaengineGraph(files []*analyzer.GoFile) bool {
-	if !importsPathIn(files, "go-cqrs-lite/metaengine") {
-		return false
-	}
-
-	for _, gf := range files {
-		if gf.IsTest {
-			continue
-		}
-
-		found := false
-
-		ast.Inspect(gf.AST, func(n ast.Node) bool {
-			if found {
-				return false
-			}
-
-			sel, ok := n.(*ast.SelectorExpr)
-			if !ok {
-				return true
-			}
-
-			if sel.Sel.Name == "Edge" || sel.Sel.Name == "EdgeRemoval" {
-				found = true
-
-				return false
-			}
-
-			return true
-		})
-
-		if found {
-			return true
-		}
-	}
-
-	return false
-}
-
 func hasCallIn(files []*analyzer.GoFile, pkgName string, funcNames ...string) bool {
 	nameSet := make(map[string]bool, len(funcNames))
 	for _, n := range funcNames {
@@ -327,60 +284,4 @@ func countCallsIn(files []*analyzer.GoFile, pkgName, funcName string) int {
 	}
 
 	return count
-}
-
-// hasCallOnImportedPackage reports whether any non-test file calls one of
-// funcNames on a qualifier whose import path contains pathFragment. Package
-// aliases are resolved through type info when available (IsQualifierFor).
-func hasCallOnImportedPackage(
-	files []*analyzer.GoFile,
-	pathFragment string,
-	funcNames ...string,
-) bool {
-	nameSet := make(map[string]bool, len(funcNames))
-	for _, n := range funcNames {
-		nameSet[n] = true
-	}
-
-	for _, gf := range files {
-		if gf.IsTest {
-			continue
-		}
-
-		found := false
-
-		ast.Inspect(gf.AST, func(n ast.Node) bool {
-			if found {
-				return false
-			}
-
-			call, ok := n.(*ast.CallExpr)
-			if !ok {
-				return true
-			}
-
-			sel, ok := analyzer.SelectorFromExpr(call.Fun)
-			if !ok {
-				return true
-			}
-
-			if !analyzer.IsQualifierFor(gf, sel, pathFragment) {
-				return true
-			}
-
-			if nameSet[sel.Sel.Name] {
-				found = true
-
-				return false
-			}
-
-			return true
-		})
-
-		if found {
-			return true
-		}
-	}
-
-	return false
 }

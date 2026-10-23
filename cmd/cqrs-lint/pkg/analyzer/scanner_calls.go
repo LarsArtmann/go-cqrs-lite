@@ -2,7 +2,6 @@ package analyzer
 
 import (
 	"go/ast"
-	"go/token"
 	"slices"
 )
 
@@ -190,49 +189,6 @@ func scanCallExpr(ctx *AnalysisContext, gf *GoFile, call *ast.CallExpr) {
 	}
 }
 
-// handlerTypeFromClosure extracts the handler type from a function literal's
-// parameter list. It finds the first parameter that is a pointer to a named
-// type (e.g., *MyCommand) or a named type (e.g., MyQuery), skipping
-// context.Context parameters. Handles bare identifiers (*MyCommand),
-// package-qualified types (*pkg.MyCommand → "MyCommand"), and unqualified
-// cross-package params (cmd deal.LoseCmd → "LoseCmd").
-func handlerTypeFromClosure(fn *ast.FuncLit) string {
-	if fn.Type == nil || fn.Type.Params == nil {
-		return ""
-	}
-
-	for _, param := range fn.Type.Params.List {
-		switch t := param.Type.(type) {
-		case *ast.StarExpr:
-			if name := lastIdentSegment(t.X); name != "" {
-				return name
-			}
-		case *ast.Ident:
-			return t.Name
-		case *ast.SelectorExpr:
-			// context.Context is a SelectorExpr, not a handler type; skip it
-			// and keep looking at the remaining parameters.
-			if isContextSelector(t) {
-				continue
-			}
-
-			return t.Sel.Name
-		}
-	}
-
-	return ""
-}
-
-// isContextSelector reports whether expr is a reference to context.Context.
-func isContextSelector(sel *ast.SelectorExpr) bool {
-	ident, ok := sel.X.(*ast.Ident)
-	if !ok {
-		return false
-	}
-
-	return ident.Name == "context" && sel.Sel.Name == "Context"
-}
-
 // commandTypeFromSystemRegisterCommand extracts the command struct name from
 // a system.RegisterCommand[Cmd, State](sys, name, handler) call. The FIRST
 // generic type argument names the command type (CreateTaskCmd above). When
@@ -361,41 +317,5 @@ func scanProjectionSubscription(
 			Pos:        pos,
 			EventTypes: []string{eventTypeStr},
 		})
-	}
-}
-
-// catalogSimpleMessageIDArg returns the message-id expression of a
-// catalog/simple builder call. Event[T](b *Builder, id string, ...) puts the
-// builder first, so the id lives at index 1.
-func catalogSimpleMessageIDArg(call *ast.CallExpr) ast.Expr {
-	if len(call.Args) < 2 {
-		return nil
-	}
-
-	return call.Args[1]
-}
-
-// recordCatalogEventType records a catalog message declaration: a string
-// literal (directly or through a string(...) conversion) is stored
-// immediately; a constant reference is resolved after scanning by
-// ResolveEmittedEventTypeConsts.
-func recordCatalogEventType(ctx *AnalysisContext, gf *GoFile, pos token.Position, expr ast.Expr) {
-	if expr == nil {
-		return
-	}
-
-	expr = unwrapStringConv(expr)
-
-	if eventTypeStr := StringLit(expr); eventTypeStr != "" {
-		ctx.Registry.EventTypesInCatalog[eventTypeStr] = true
-
-		return
-	}
-
-	if name := ExprIdentName(expr); name != "" {
-		ctx.Registry.pendingCatalogEventTypeRefs = append(
-			ctx.Registry.pendingCatalogEventTypeRefs,
-			pendingEventTypeRef{constName: name, file: gf.Path, line: pos.Line},
-		)
 	}
 }

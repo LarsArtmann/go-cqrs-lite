@@ -186,3 +186,46 @@ func constructorHandlerText(call *ast.CallExpr) string {
 
 	return ""
 }
+
+// handlerTypeFromClosure extracts the handler type from a function literal's
+// parameter list. It finds the first parameter that is a pointer to a named
+// type (e.g., *MyCommand) or a named type (e.g., MyQuery), skipping
+// context.Context parameters. Handles bare identifiers (*MyCommand),
+// package-qualified types (*pkg.MyCommand → "MyCommand"), and unqualified
+// cross-package params (cmd deal.LoseCmd → "LoseCmd").
+func handlerTypeFromClosure(fn *ast.FuncLit) string {
+	if fn.Type == nil || fn.Type.Params == nil {
+		return ""
+	}
+
+	for _, param := range fn.Type.Params.List {
+		switch t := param.Type.(type) {
+		case *ast.StarExpr:
+			if name := lastIdentSegment(t.X); name != "" {
+				return name
+			}
+		case *ast.Ident:
+			return t.Name
+		case *ast.SelectorExpr:
+			// context.Context is a SelectorExpr, not a handler type; skip it
+			// and keep looking at the remaining parameters.
+			if isContextSelector(t) {
+				continue
+			}
+
+			return t.Sel.Name
+		}
+	}
+
+	return ""
+}
+
+// isContextSelector reports whether expr is a reference to context.Context.
+func isContextSelector(sel *ast.SelectorExpr) bool {
+	ident, ok := sel.X.(*ast.Ident)
+	if !ok {
+		return false
+	}
+
+	return ident.Name == "context" && sel.Sel.Name == "Context"
+}

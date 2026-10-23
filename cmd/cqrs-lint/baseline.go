@@ -8,10 +8,10 @@ package main
 // groups only). The baseline is deliberately coarse: entries key by rule,
 // project-relative file, line, and column. Line shifts therefore surface as one
 // new finding plus one shrunk entry, which is the intended drift signal.
+//
+// Persistence (document shape, atomic read/write) lives in baseline_file.go.
 
 import (
-	"encoding/json/jsontext"
-	"encoding/json/v2"
 	"errors"
 	"fmt"
 	"os"
@@ -22,31 +22,6 @@ import (
 	"github.com/larsartmann/go-finding"
 )
 
-// baselineVersion is the on-disk schema version. Unknown versions are rejected
-// rather than silently misread.
-const baselineVersion = 1
-
-// errBaselineInvalid marks malformed or unsupported baseline documents.
-var errBaselineInvalid = errors.New("invalid findings baseline")
-
-// baselineDocument is the JSON shape of .cqrs-lint-baseline.json.
-type baselineDocument struct {
-	Version int             `json:"version"`
-	Tool    string          `json:"tool"`
-	Entries []baselineEntry `json:"entries"`
-}
-
-// baselineEntry records one adjudicated finding. ID is informational (finding
-// IDs embed absolute paths and are not machine-portable); matching uses Rule +
-// File + Line + Column, with File stored relative to the baseline's directory.
-type baselineEntry struct {
-	Rule   string `json:"rule"`
-	File   string `json:"file"`
-	Line   int    `json:"line"`
-	Column int    `json:"column"`
-	Reason string `json:"reason,omitempty"`
-}
-
 // baselineKey is the portable identity of a finding: the absolute path is
 // normalized to a baseline-relative one before it reaches this type.
 type baselineKey struct {
@@ -54,10 +29,6 @@ type baselineKey struct {
 	file   string
 	line   int
 	column int
-}
-
-func (e baselineEntry) key() baselineKey {
-	return baselineKey{rule: e.Rule, file: e.File, line: e.Line, column: e.Column}
 }
 
 // baselineOutcome is the result of splitting a run against a baseline.
@@ -186,92 +157,6 @@ func compareBaselineEntries(a, b baselineEntry) int {
 	return a.Column - b.Column
 }
 
-// loadBaseline reads and validates a baseline document.
-func loadBaseline(path string) (*baselineDocument, error) {
-	data, err := os.ReadFile(path)
-	if err != nil {
-		return nil, fmt.Errorf("read findings baseline %s: %w", path, err)
-	}
-
-	var doc baselineDocument
-
-	if err := json.Unmarshal(data, &doc); err != nil {
-		return nil, fmt.Errorf("%w: %s: %w", errBaselineInvalid, path, err)
-	}
-
-	if doc.Version != baselineVersion {
-		return nil, fmt.Errorf(
-			"%w: %s has version %d, want %d (regenerate with --update-baseline)",
-			errBaselineInvalid, path, doc.Version, baselineVersion,
-		)
-	}
-
-	return &doc, nil
-}
-
-// loadBaselineIfPresent reads a baseline, returning nil when the file does not
-// exist. Used by --update-baseline to preserve reasons on a first write.
-func loadBaselineIfPresent(path string) (*baselineDocument, error) {
-	doc, err := loadBaseline(path)
-	if err == nil {
-		return doc, nil
-	}
-
-	if errors.Is(err, os.ErrNotExist) {
-		return nil, nil
-	}
-
-	return nil, err
-}
-
-// writeBaseline writes the document deterministically: entries sorted, two
-// space indent, trailing newline. Atomic via a temp file + rename so an
-// interrupted run cannot leave a truncated baseline behind.
-func writeBaseline(path string, entries []baselineEntry) error {
-	doc := baselineDocument{
-		Version: baselineVersion,
-		Tool:    "cqrs-lint",
-		Entries: entries,
-	}
-
-	data, err := json.Marshal(doc, jsontext.WithIndent("  "))
-	if err != nil {
-		return fmt.Errorf("marshal findings baseline: %w", err)
-	}
-
-	data = append(data, '\n')
-
-	dir := filepath.Dir(path)
-
-	tmp, err := os.CreateTemp(dir, ".cqrs-lint-baseline-*.tmp")
-	if err != nil {
-		return fmt.Errorf("write findings baseline %s: %w", path, err)
-	}
-
-	tmpName := tmp.Name()
-
-	if _, err := tmp.Write(data); err != nil {
-		_ = tmp.Close()
-		_ = os.Remove(tmpName)
-
-		return fmt.Errorf("write findings baseline %s: %w", path, err)
-	}
-
-	if err := tmp.Close(); err != nil {
-		_ = os.Remove(tmpName)
-
-		return fmt.Errorf("write findings baseline %s: %w", path, err)
-	}
-
-	if err := os.Rename(tmpName, path); err != nil {
-		_ = os.Remove(tmpName)
-
-		return fmt.Errorf("write findings baseline %s: %w", path, err)
-	}
-
-	return nil
-}
-
 // baselineRun is the effective per-run baseline state, or nil when no baseline
 // was requested.
 type baselineRun struct {
@@ -327,26 +212,7 @@ func applyBaseline(cfg *AppConfig, active []finding.Finding) (*baselineRun, erro
 	outcome := splitBaseline(doc, active, root)
 
 	if !cfg.Quiet {
-		if len(outcome.Known) > 0 {
-			fmt.Fprintf(
-				os.Stderr,
-				"%d finding(s) matched the baseline (not reported; %s)\n",
-				len(outcome.Known), absPath,
-			)
-		}
-
-		if len(outcome.Stale) > 0 {
-			fmt.Fprintf(
-				os.Stderr,
-				"Baseline shrunk: %d recorded finding(s) no longer occur. "+
-					"Run with --update-baseline to prune them.\n",
-				len(outcome.Stale),
-			)
-
-			for _, entry := range outcome.Stale {
-				fmt.Fprintf(os.Stderr, "  stale: %s %s:%d:%d\n", entry.Rule, entry.File, entry.Line, entry.Column)
-			}
-		}
+		warnBaselineDrift(absPath, outcome)
 	}
 
 	return &baselineRun{
@@ -354,4 +220,32 @@ func applyBaseline(cfg *AppConfig, active []finding.Finding) (*baselineRun, erro
 		Known:    len(outcome.Known),
 		Stale:    len(outcome.Stale),
 	}, nil
+}
+
+// warnBaselineDrift prints the baseline notices: matched findings are hidden,
+// and stale entries are surfaced as prompt to prune. Warnings go to stderr so
+// machine-readable stdout stays parseable.
+func warnBaselineDrift(absPath string, outcome baselineOutcome) {
+	if len(outcome.Known) > 0 {
+		fmt.Fprintf(
+			os.Stderr,
+			"%d finding(s) matched the baseline (not reported; %s)\n",
+			len(outcome.Known), absPath,
+		)
+	}
+
+	if len(outcome.Stale) == 0 {
+		return
+	}
+
+	fmt.Fprintf(
+		os.Stderr,
+		"Baseline shrunk: %d recorded finding(s) no longer occur. "+
+			"Run with --update-baseline to prune them.\n",
+		len(outcome.Stale),
+	)
+
+	for _, entry := range outcome.Stale {
+		fmt.Fprintf(os.Stderr, "  stale: %s %s:%d:%d\n", entry.Rule, entry.File, entry.Line, entry.Column)
+	}
 }
