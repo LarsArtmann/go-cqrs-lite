@@ -328,9 +328,11 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       stays with the v4↔v5 campaign. (d) file-size offenders —
       `catalog/types_resources.go` (359, NEW) is CATALOG-LOCAL and owed a
       split (open row for the next catalog session); `recipes_catalog_meta3.go`
-      and `eventcatalog/exporter.go` stay with their owning sessions. No
-      offender was allowed to GROW in this session (largest new file:
-      `selection.go` ~450, under the 500 ratchet... verified below).
+      and `eventcatalog/exporter.go` stay with their owning sessions. This
+      session's own drift was caught and fixed in-session: `selection.go`
+      hit 636 lines and was split into `selection.go` (103) + `plan.go`
+      (148) + `resolver.go` (232) + `edges.go` (165) + `degrade.go` (53);
+      `check-file-size` green (no new offenders, no growth).
 
 ## GitHub issue backlog (2026-09-30 plan)
 

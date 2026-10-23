@@ -6,8 +6,10 @@
 # github.com/larsartmann/go-cqrs-lite/* modules and emits a timestamped JSON
 # artifact to docs/evidence/. Semantics match `depgraph who-uses`: go.mod
 # REQUIRES (direct vs `// indirect`), NOT imports. Excluded from the scan:
-# the library repo itself and go-cqrs-lite@<hash> pin snapshots (`.corpus-pins/`,
-# the fleet-automation corpus), vendor/ and node_modules/ trees, and testdata/
+# any go.mod declaring a go-cqrs-lite module path (the library itself AND full
+# forks/work copies of it, e.g. eventcatalog-hub/work/src/mesh-* — a fork's
+# internal requires are not fleet consumption), `.corpus-pins/` pin snapshots
+# and go-cqrs-lite@<hash> dirs, vendor/ and node_modules/ trees, and testdata/
 # fixtures (the intentional real-setup-v4.8.1-poisoned class must never keep a
 # module alive). Duplicate CI checkouts of the same repo (e.g. ci-siblings/)
 # are NOT deduplicated — counts can be inflated, never falsely zeroed; review
@@ -39,10 +41,16 @@ JSON_OUT=""
 while [ $# -gt 0 ]; do
 	case "$1" in
 	--zero-consumers) MODE="zero" ;;
-	--json) shift; JSON_OUT="${1:?--json needs a path}" ;;
+	--json)
+		shift
+		JSON_OUT="${1:?--json needs a path}"
+		;;
 	--latest) MODE="latest" ;;
 	--self-test) MODE="selftest" ;;
-	*) echo "unknown flag: $1 (see header for usage)" >&2; exit 2 ;;
+	*)
+		echo "unknown flag: $1 (see header for usage)" >&2
+		exit 2
+		;;
 	esac
 	shift
 done
@@ -73,7 +81,15 @@ for dirpath, dirnames, filenames in os.walk(fleet_root):
 	scanned += 1
 	repo = os.path.relpath(dirpath, fleet_root)
 	with open(os.path.join(dirpath, "go.mod"), encoding="utf-8", errors="replace") as fh:
-		for line in fh:
+		lines = fh.readlines()
+	for line in lines:
+		m_mod = re.match(r"^module\s+(\S+)", line)
+		if m_mod and (m_mod.group(1) == prefix.rstrip("/") or m_mod.group(1).startswith(prefix)):
+			# the library itself or a full fork of it — never its own consumer
+			scanned -= 1
+			break
+	else:
+		for line in lines:
 			if "=>" in line:  # replace lines are not usage
 				continue
 			m = req_re.match(line.rstrip("\n"))
@@ -156,7 +172,7 @@ self_test() {
 	# ignored), the library repo itself (must be ignored), a pin snapshot
 	# (go-cqrs-lite@<hash> — must be ignored), a testdata fixture (must be
 	# ignored), and a clean repo.
-	mkdir -p "$fixture/appA" "$fixture/appB" "$fixture/appC" "$fixture/vendor-user/vendor" "$fixture/vendor-user/vendor/dep" "$fixture/go-cqrs-lite/event" "$fixture/.corpus-pins/go-cqrs-lite@deadbeef/idempotency/kvstore" "$fixture/appA/testdata/pin-fixture"
+	mkdir -p "$fixture/appA" "$fixture/appB" "$fixture/appC" "$fixture/vendor-user/vendor" "$fixture/vendor-user/vendor/dep" "$fixture/go-cqrs-lite/event" "$fixture/.corpus-pins/go-cqrs-lite@deadbeef/idempotency/kvstore" "$fixture/appA/testdata/pin-fixture" "$fixture/my-fork/scheduling"
 	cat >"$fixture/appA/go.mod" <<EOF
 module example.com/a
 
@@ -181,6 +197,8 @@ EOF
 	printf 'module example.com/pin\n\ngo 1.27\n' >"$fixture/.corpus-pins/go-cqrs-lite@deadbeef/go.mod"
 	printf 'module example.com/pinsnap\n\nrequire %s/idempotency/kvstore/v4 v4.1.0\n' "$PREFIX" >"$fixture/.corpus-pins/go-cqrs-lite@deadbeef/idempotency/kvstore/go.mod"
 	printf 'module example.com/fixture\n\nrequire %s/codec/v4 v4.4.0\n' "$PREFIX" >"$fixture/appA/testdata/pin-fixture/go.mod"
+	printf 'module github.com/larsartmann/go-cqrs-lite\n\ngo 1.27\n' >"$fixture/my-fork/go.mod"
+	printf 'module github.com/larsartmann/go-cqrs-lite/scheduling/v4\n\ngo 1.27\n\nrequire %s/deriver/v4 v4.0.0\n' "$PREFIX" >"$fixture/my-fork/scheduling/go.mod"
 	printf 'module example.com/clean\n\ngo 1.27\n' >"$fixture/appC/go.mod"
 	printf 'module github.com/larsartmann/go-cqrs-lite/event/v4\n\ngo 1.27\n' >"$fixture/go-cqrs-lite/event/go.mod"
 
@@ -200,6 +218,7 @@ dec = mods["decider/v4"]
 assert dec["direct_count"] == 1 and dec["consumers"][0]["version"] == "v4.3.1", dec
 assert "idempotency/kvstore/v4" not in mods, "pin snapshot (go-cqrs-lite@hash) must be excluded"
 assert "codec/v4" not in mods, "testdata fixture must be excluded"
+assert "deriver/v4" not in mods, "full fork of the library (module path = library path) must be excluded"
 assert "appC" not in json.dumps(mods), "clean repo must not appear"
 print("self-test: PASS (direct, indirect, version, replace-skip, vendor+library exclusions)")
 PYEOF
@@ -227,7 +246,10 @@ selftest)
 	;;
 latest)
 	latest=$(ls -1 "$EVIDENCE_DIR"/fleet-census-*.json 2>/dev/null | sort | tail -1)
-	[ -n "${latest:-}" ] || { echo "no fleet-census artifact in $EVIDENCE_DIR yet" >&2; exit 1; }
+	[ -n "${latest:-}" ] || {
+		echo "no fleet-census artifact in $EVIDENCE_DIR yet" >&2
+		exit 1
+	}
 	summary_of "$latest"
 	;;
 *)

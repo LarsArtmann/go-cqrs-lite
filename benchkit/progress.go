@@ -22,9 +22,15 @@ type progressReporter struct {
 	phase string
 	start time.Time
 
+	// writeMu serializes writes to w. beat() runs on the heartbeat goroutine
+	// while endPhase() runs on the caller's goroutine, so the writer itself
+	// needs its own lock: the state mutex only guards num/phase/start.
+	writeMu sync.Mutex
+
 	heart    *time.Ticker
 	done     chan struct{}
 	stopOnce sync.Once
+	wg       sync.WaitGroup
 }
 
 func newProgressReporter(
@@ -52,7 +58,13 @@ func (p *progressReporter) startHeartbeat() {
 	p.heart = time.NewTicker(p.interval)
 	p.done = make(chan struct{})
 
-	go p.heartbeat()
+	p.wg.Add(1)
+
+	go func() {
+		defer p.wg.Done()
+
+		p.heartbeat()
+	}()
 }
 
 func (p *progressReporter) heartbeat() {
@@ -74,7 +86,19 @@ func (p *progressReporter) beat() {
 	elapsed := time.Since(p.start).Round(time.Second)
 	p.mu.RUnlock()
 
-	fmt.Fprintf(p.w, "  %s | %d/%d %s | %s elapsed\n", p.backend, num, p.total, phase, elapsed)
+	p.printf("  %s | %d/%d %s | %s elapsed\n", p.backend, num, p.total, phase, elapsed)
+}
+
+// printf writes one line to the progress writer under the write lock. Every
+// path that writes to p.w must go through it, otherwise the heartbeat
+// goroutine and the caller's goroutine interleave inside a single
+// fmt.Fprintf (surfaced by a full-workspace -race sweep, 2026-10-23:
+// bytes.Buffer growth raced between beat() and RunRepeated's repeat header).
+func (p *progressReporter) printf(format string, args ...any) {
+	p.writeMu.Lock()
+	defer p.writeMu.Unlock()
+
+	fmt.Fprintf(p.w, format, args...)
 }
 
 // beginPhase records the current phase and starts the timer.
@@ -102,17 +126,25 @@ func (p *progressReporter) endPhase(phase string, d time.Duration) {
 	num := p.num
 	p.mu.RUnlock()
 
-	fmt.Fprintf(p.w, "  %s | %d/%d %s | done (%s)\n",
+	p.printf("  %s | %d/%d %s | done (%s)\n",
 		p.backend, num, p.total, phase, d.Round(time.Millisecond))
 }
 
-// stop terminates the heartbeat goroutine. Idempotent. The done channel is
-// closed exactly once and never reassigned — heartbeat() reads it in a select,
-// so mutating it here would race with that read.
+// stop terminates the heartbeat goroutine and WAITS for it to exit. Idempotent.
+// The done channel is closed exactly once and never reassigned — heartbeat()
+// reads it in a select, so mutating it here would race with that read.
+//
+// The join is load-bearing: without it a heartbeat write could still be in
+// flight after the run returned, racing with whatever the caller prints next
+// (RunRepeated's per-repeat header) and with the following run's progress
+// lines. Closing done only signals; wg.Wait makes "stopped" true.
 func (p *progressReporter) stop() {
 	if p == nil || p.done == nil {
 		return
 	}
 
-	p.stopOnce.Do(func() { close(p.done) })
+	p.stopOnce.Do(func() {
+		close(p.done)
+		p.wg.Wait()
+	})
 }
