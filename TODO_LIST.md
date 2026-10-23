@@ -190,26 +190,29 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 
 - [ ] 🔥 **Run the composed proof for the new package**: `nix run .#verify` +
       `.#verify-ci` in an exclusive window; record dated receipts here.
-      _(Effort: M, observe)_
+      STATE 2026-10-18: all code/doc work of the completion plan (A1–A27) has
+      landed BEFORE arming the chain this time (arm-the-chain-last lesson);
+      the chain runs as this plan's final step. _(Effort: M, observe)_
 
-- [ ] **Link↔anchor integrity test**: every `href="#x"` in the output must
-      resolve to an `id="x"` in the same file, plus nav↔section bijection.
-      This single assertion covers the sidebar, the search index, the
-      relationship boxes and the markdown `[[kind|id]]` references — the
-      feature's headline promise. Mutation-verify both. _(Effort: S)_
+- [x] ~~**Link↔anchor integrity test**~~ — **DONE 2026-10-17** (`anchor_test.go`:
+      `TestExportLinksResolveToSections` covers hrefs AND search-index `"h"`
+      anchors, `TestExportNavMatchesSections` the bijection,
+      `TestExportAnchorSlugsAreUnique` the collision guard; mutation-verified
+      ×3).
 
-- [ ] **Pin the published surfaces**: the search-index JSON key shape
-      (`g/k/c/t/a/s/d/h`, read by the inlined palette JS) and `ExportTo`
-      (only `Export`/`ExportFile` are covered today). _(Effort: XS)_
+- [x] ~~**Pin the published surfaces**~~ — **DONE 2026-10-17**
+      (`TestSearchIndexKeyContractPinned` pins `{a,c,d,g,h,k,s,t}`;
+      `TestExportToWritesSameBytes` pins Export↔ExportTo parity).
 
-- [ ] **`WithLogo` is dead API** — the option validates and allow-lists a URL
-      but nothing renders it. Decide: render a brand mark in the topbar, or
-      delete the option (`catalog/architecture/exporter.go`). _(Effort: XS)_
+- [x] ~~**`WithLogo` is dead API**~~ — **DECIDED 2026-10-17: renders** as
+      `<img class="brand-logo">` behind `safeImageSrc` (hostile URLs dropped
+      entirely); decision + tests in `catalog/AGENTS.md` and
+      `surfaces_test.go`.
 
-- [ ] **Repo-level gate for the artifact** (mirror of `.#check-eventcatalog`):
-      render a fixture, assert self-containment + anchor integrity + section
-      counts + no empty box headers; `--self-test` with fault injection; wire
-      `mkApp` + `#verify` + a CI leg. _(Effort: M)_
+- [x] ~~**Repo-level gate for the artifact**~~ — **DONE 2026-10-17**
+      (`scripts/check-architecture-reference.sh` + fixture cmd; `--self-test`
+      fault-injects 3 corruptions; wired as flake app + `#verify`/`#verify-fast`
+      legs + CI step).
 
 - [ ] **Custom exports — the EventCatalog 5.2 half (deferred by ADR-0159)**:
       selector model (`include`/`exclude`, "exclude applied first and always
@@ -222,25 +225,42 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       visibility policy lands. Leak test required: an excluded resource's name
       must never appear as text anywhere (HTML, search index or nav).
       _(Effort: L)_
+      **DONE 2026-10-18 (ADR-0160 + plan A9–A16):** selectors
+      (`WithInclude/WithExclude/WithNeverExport`), references modes
+      (`WithReferences` omit|name-only|include), `WithHide`
+      (owners/repository/examples/specifications/docs — NO `contacts`, no model
+      surface), `WithNeverExport`, `Exporter.Inspect` + `-check` exit-1,
+      `LoadExport` frontmatter + `WithIntroduction`, leak test
+      (`TestExcludedResourceNameNeverAppears`, mutation-verified), owner
+      attribution reinstated. `contacts` and `x-*` selectors rejected until
+      the model grows typed surfaces.
 
-- [ ] **Serve the reference from `docserver`**: `/docs/architecture` route +
-      catalog-hash cache + opt-in `Config` flag. Turns a build-time artifact
-      into a one-call capability for the fleet's serving apps. _(Effort: S)_
+- [x] ~~**Serve the reference from `docserver`**~~ — **DONE 2026-10-18**:
+      opt-in `Config.ArchitectureReference` + `/docs/architecture`, cached
+      per catalog instance (stable provider = one render; rebuilt provider =
+      honest re-render), handler + cache + invalidation tests; served WITHOUT
+      the docserver CSP header (the artifact's inline scripts ARE the
+      feature).
 
-- [ ] **Runnable example + embed-and-serve proof**: `catalog/example/architecture`
-      (register under `flake.nix` `examplePaths`, NOT `testModules`) and an
-      `example_test.go` that `//go:embed`s the rendered bytes and serves them
-      through `http.ServeMux`. _(Effort: S)_
+- [x] ~~**Runnable example + embed-and-serve proof**~~ — **DONE 2026-10-18**:
+      `catalog/example/architecture` (whole catalog + redacted partner slice;
+      NO flake registration needed — `catalog/example/` lives INSIDE the
+      catalog module, unlike the root `example/` dirs, so the plan's
+      `examplePaths` step does not apply) + `Example_exportAndServe`
+      (godoc-renderable, httptest 200) + `TestServedReferenceIsSelfContained`.
 
-- [ ] **Large-catalog benchmark**: 1 000 services / 5 000 messages — measure
-      render time and output size; EventCatalog publishes "5 000 messages,
-      ~0.1 s to interactive". Confirm or correct the `content-visibility`
-      claim in the README/ADR. _(Effort: S)_
+- [x] ~~**Large-catalog benchmark**~~ — **MEASURED 2026-10-18**:
+      `BenchmarkExportLargeCatalog` (1 000 services / 5 000 messages) →
+      **~175 ms warm (~0.6 s cold) per render, 15.65 MB HTML**. README scale
+      section + ADR-0159 consequences carry the numbers; `content-visibility`
+      is why scrolling stays responsive at that size. The EventCatalog
+      "~0.1 s to interactive" claim covers BROWSER layout, not render — our
+      numbers are complementary, not contradictory.
 
-- [ ] **Docs row**: root `AGENTS.md` quick-reference entry for
-      `catalog/architecture`; `docs/agents/module-map.md` if it enumerates
-      catalog subpackages; a `SKILL.md` mention beside the existing
-      catalog-export paragraphs. _(Effort: S)_
+- [x] ~~**Docs row**~~ — **DONE 2026-10-18**: `docs/agents/module-map.md`
+      catalog row extended; `SKILL.md` gained "The architecture reference"
+      beside the catalog-export paragraphs (doc-check green); the root
+      AGENTS quick-ref carries the gate row (2026-10-17).
 
 - [ ] **Two lint lessons learned the hard way (record them)**:
       `exhaustruct_v5` requires complete struct literals for SAME-PACKAGE
@@ -249,6 +269,11 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       ≤120 — a line can pass lint and still fail `nix fmt`. Homes:
       `catalog/AGENTS.md` and `docs/agents/gotchas-tooling-build.md`.
       _(Effort: XS)_
+      **DONE 2026-10-18:** both rows written (catalog/AGENTS.md
+      exhaustruct_v5 own-package-literal rule; gotchas-tooling-build.md
+      golines-vs-golangci row with the direct `golines -w` cure — and the
+      observed direction is the OPPOSITE of the guess: `nix fmt` said
+      0 changed while golangci flagged the file).
 
 - [ ] **Errata on three stale rows (verified 2026-10-17)**: (a) the
       `TODO_LIST:786` "IMMEDIATE OBLIGATION: the three catalog NEW offenders"
@@ -276,6 +301,36 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       a 6-line README edit. FIXED 2026-10-17 same day (six bullets un-linked
       to "REMOVED 2026-10-17 (zero-consumer delete)" notes; `check-readme-links`
       0 broken, `check-readme-deprecated` clean). _(Effort: XS)_
+
+- [ ] **Downstream adoptions (decided 2026-10-18, owner actions in the
+      CONSUMER repos)**: (a) **eventcatalog-hub**: per-source
+      `architecture.html` — YES; the hub's CI already runs
+      `catalog-export`; add `-architecture work/out/<source>/architecture.html`
+      to its export step and a download link per source card. The reference
+      is redaction-ready, so a hub can publish partner slices per audience
+      (`-spec` file per audience). Row for the hub repo. (b) **cqrs-htmx /
+      go-appkit**: SERVE, don't export — their servers already boot the
+      docserver, so adoption is one config line
+      (`docserver.Config{ArchitectureReference: true}`), not a build step;
+      the CLI export stays available for release artifacts. Rows for both
+      repos at their next touch. _(Effort: XS each, other repos)_
+
+- [ ] **Owner decision stamped for the pre-existing reds (ANSWERED
+      2026-10-18, Q3 of the 10-17 23:15 report; default "fix catalog-local,
+      record fleet-wide" CONFIRMED)**: (a) `catalog/go.sum` wave tail —
+      FIXED in place (tidied to go-error-family v0.12.0, 2026-10-17); the
+      FLEET `TestEveryModuleGoSumIsTidy` red stays with the 08-02 plan's
+      task 45 wave session. (b) 6-module coverage drift — DEFERRED to a
+      quiet-window re-pin (the gate's own load>60 warning rules out
+      re-baselining under storm); rides the composed-verify window of this
+      plan. (c) `catalog` arch-lint 40+14 — RECORD-ONLY, root cause is
+      `core: { in: . }` (the fork campaign's surface), not catalog code;
+      stays with the v4↔v5 campaign. (d) file-size offenders —
+      `catalog/types_resources.go` (359, NEW) is CATALOG-LOCAL and owed a
+      split (open row for the next catalog session); `recipes_catalog_meta3.go`
+      and `eventcatalog/exporter.go` stay with their owning sessions. No
+      offender was allowed to GROW in this session (largest new file:
+      `selection.go` ~450, under the 500 ratchet... verified below).
 
 ## GitHub issue backlog (2026-09-30 plan)
 
