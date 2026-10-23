@@ -217,7 +217,7 @@ func TestLoadBaseline_ErrorCases(t *testing.T) {
 	}
 }
 
-func TestLoadBaselineIfPresent_MissingIsNil(t *testing.T) {
+func TestLoadBaselineIfPresent_MissingIsEmptyDocument(t *testing.T) {
 	t.Parallel()
 
 	doc, err := loadBaselineIfPresent(filepath.Join(t.TempDir(), "absent.json"))
@@ -225,8 +225,12 @@ func TestLoadBaselineIfPresent_MissingIsNil(t *testing.T) {
 		t.Fatalf("missing file err = %v, want nil", err)
 	}
 
-	if doc != nil {
-		t.Fatalf("missing file doc = %+v, want nil", doc)
+	if doc == nil || doc.Version != baselineVersion {
+		t.Fatalf("missing file doc = %+v, want an empty versioned document", doc)
+	}
+
+	if len(doc.Entries) != 0 {
+		t.Fatalf("missing file doc has %d entries, want 0", len(doc.Entries))
 	}
 }
 
@@ -316,7 +320,7 @@ func TestApplyBaseline_ReportsShrunkBaseline(t *testing.T) {
 	removed := baselineFinding(root, "b.go", "E003", 2, 1, finding.SeverityWarning)
 	path := writeFixtureBaseline(t, root, []finding.Finding{kept, removed})
 
-	var stderr string = captureStderr(t, func() {
+	stderr := captureStderr(t, func() {
 		res, err := applyBaseline(&AppConfig{Baseline: path}, []finding.Finding{kept})
 		if err != nil {
 			t.Fatalf("applyBaseline: %v", err)

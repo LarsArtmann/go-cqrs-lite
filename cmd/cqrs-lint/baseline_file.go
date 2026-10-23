@@ -64,8 +64,9 @@ func loadBaseline(path string) (*baselineDocument, error) {
 	return &doc, nil
 }
 
-// loadBaselineIfPresent reads a baseline, returning nil when the file does not
-// exist. Used by --update-baseline to preserve reasons on a first write.
+// loadBaselineIfPresent reads a baseline, returning an empty document when the
+// file does not exist. Used by --update-baseline to preserve reasons on a
+// first write.
 func loadBaselineIfPresent(path string) (*baselineDocument, error) {
 	doc, err := loadBaseline(path)
 	if err == nil {
@@ -73,7 +74,7 @@ func loadBaselineIfPresent(path string) (*baselineDocument, error) {
 	}
 
 	if errors.Is(err, os.ErrNotExist) {
-		return nil, nil
+		return &baselineDocument{Version: baselineVersion, Tool: "cqrs-lint"}, nil
 	}
 
 	return nil, err

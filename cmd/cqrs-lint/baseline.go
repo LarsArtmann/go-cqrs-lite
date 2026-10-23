@@ -157,6 +157,10 @@ func compareBaselineEntries(a, b baselineEntry) int {
 	return a.Column - b.Column
 }
 
+// errUpdateBaselineWithoutPath is returned when --update-baseline is used
+// without the --baseline path it must rewrite.
+var errUpdateBaselineWithoutPath = errors.New("--update-baseline requires --baseline <path>")
+
 // baselineRun is the effective per-run baseline state, or nil when no baseline
 // was requested.
 type baselineRun struct {
@@ -171,11 +175,13 @@ type baselineRun struct {
 // not used.
 func applyBaseline(cfg *AppConfig, active []finding.Finding) (*baselineRun, error) {
 	if cfg.UpdateBaseline && cfg.Baseline == "" {
-		return nil, errors.New("--update-baseline requires --baseline <path>")
+		return nil, errUpdateBaselineWithoutPath
 	}
 
 	if cfg.Baseline == "" {
-		return nil, nil
+		// nil result is the "no baseline configured" signal; the caller
+		// reports the unfiltered active set.
+		return nil, nil //nolint:nilnil // nil result means the flag was not used
 	}
 
 	absPath, err := filepath.Abs(cfg.Baseline)

@@ -209,25 +209,20 @@ func s001LHSDisplay(lhs ast.Expr) string {
 	return s001LHSName(lhs)
 }
 
-// schemaVocabularySuffixes identify identifiers that name storage or schema
-// artifacts. A name-shaped literal bound to one of these is vocabulary, not
-// credential material.
-var schemaVocabularySuffixes = []string{
-	"Collection", "CollectionName",
-	"Table", "TableName",
-	"Queue", "QueueName",
-	"Bucket", "BucketName",
-	"Topic", "TopicName",
-	"Index", "IndexName",
-	"Schema", "ViewName",
-}
-
+// isSchemaVocabularyName reports whether an identifier names a storage or
+// schema artifact. A name-shaped literal bound to one of these is vocabulary,
+// not credential material.
 func isSchemaVocabularyName(name string) bool {
-	for _, suffix := range schemaVocabularySuffixes {
-		if strings.HasSuffix(name, suffix) {
-			return true
-		}
+	switch {
+	case strings.HasSuffix(name, "Collection"), strings.HasSuffix(name, "CollectionName"),
+		strings.HasSuffix(name, "Table"), strings.HasSuffix(name, "TableName"),
+		strings.HasSuffix(name, "Queue"), strings.HasSuffix(name, "QueueName"),
+		strings.HasSuffix(name, "Bucket"), strings.HasSuffix(name, "BucketName"),
+		strings.HasSuffix(name, "Topic"), strings.HasSuffix(name, "TopicName"),
+		strings.HasSuffix(name, "Index"), strings.HasSuffix(name, "IndexName"),
+		strings.HasSuffix(name, "Schema"), strings.HasSuffix(name, "ViewName"):
+		return true
+	default:
+		return false
 	}
-
-	return false
 }
