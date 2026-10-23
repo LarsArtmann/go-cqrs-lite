@@ -468,7 +468,9 @@ surface (`materialized_views` in EngineConfig YAML). Full recipe: `recipes.md`
 > (`TypedReader.Scan`/`ScanPage`) apply a default limit of 100 when the input
 > sets no limit — a read model that "misses" rows is usually silently
 > truncated, not filtered. Pass `WithLimit(n)` for an explicit page size, or
-> `WithLimit(0)` for an unbounded scan. Pitfall details: `faq.md`
+> `WithLimit(0)` for an unbounded scan. To make truncation loud instead of
+> silent, pass `WithExact()` (returns `metaengine.ErrScanTruncated` when more
+> rows exist than the limit returned). Pitfall details: `faq.md`
 > ("metaengine `Scan` only returns 100 rows — where are the rest?").
 
 > **Upstream correctness caveat (tursogo ≤ v0.8.2):** SCALAR views
@@ -480,6 +482,26 @@ surface (`materialized_views` in EngineConfig YAML). Full recipe: `recipes.md`
 > `Store.Doctor` WARN remains for opted-in deployments). Treat scalar views
 > as the recommended shape until upstream fixes it. Details:
 > `docs/research/2026-09-07_turso-go-ivm-commit-failure-issue-draft.md`.
+
+#### Bounded collections: keep the newest N rows (`WithCap` + `EnforceCaps`)
+
+For "keep the newest N rows" read models (transcripts, audit tails, token
+tables), declare the policy on the query with `metaengine.WithCap(maxRows,
+orderByColumn)` and trim with `Store.EnforceCap(name)` or
+`Store.EnforceCaps(ctx)` after a batch append / on a timer. Enforcement is
+deliberately explicit: a per-insert trim would scan on every write.
+
+Two things to keep in mind:
+
+- The query must be a Map projection (insert fold) whose result type carries
+  the query's key type, and `orderByColumn` must be a sortable column.
+- Trimming deletes projection rows outside the event log. `Reset` + replay
+  restores the full, uncapped collection, so re-run `EnforceCaps` after a
+  rebuild. Compaction, not a domain event.
+
+Full recipe (declaration, enforcement, cadence, caveats):
+[`metaengine/COOKBOOK.md`](../../../../metaengine/COOKBOOK.md) §"Bounded
+Collections".
 
 #### Keyset pagination: compound cursors (all engines)
 
