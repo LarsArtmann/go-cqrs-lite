@@ -71,8 +71,8 @@ func TestPathContainsFragment_VersionTolerant(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			if got := PathContainsFragment(tt.path, tt.fragment); got != tt.want {
-				t.Errorf("PathContainsFragment(%q, %q) = %v, want %v",
+			if got := pathContainsFragment(tt.path, tt.fragment); got != tt.want {
+				t.Errorf("pathContainsFragment(%q, %q) = %v, want %v",
 					tt.path, tt.fragment, got, tt.want)
 			}
 		})

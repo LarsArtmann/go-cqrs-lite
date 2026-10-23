@@ -88,13 +88,13 @@ func ResolveQualifierTyped(gf *GoFile, ident *ast.Ident) (path string, resolved 
 	return pkgName.Imported().Path(), true
 }
 
-// PathContainsFragment reports whether an import path contains pathFragment,
+// pathContainsFragment reports whether an import path contains pathFragment,
 // tolerating Go module major-version segments. Callers pass version-less
 // fragments ("…/catalog/simple") because the same module is imported as
 // "…/catalog/v4/simple" once it carries a /vN suffix; a plain substring test
 // silently missed every versioned module (issue #79: catalog/v4/simple
 // registrations were invisible while the version-less fixture passed).
-func PathContainsFragment(path, fragment string) bool {
+func pathContainsFragment(path, fragment string) bool {
 	if strings.Contains(path, fragment) {
 		return true
 	}
@@ -153,7 +153,7 @@ func IsQualifierFor(gf *GoFile, sel *ast.SelectorExpr, pathFragment string) bool
 	}
 
 	if path, resolved := ResolveQualifierTyped(gf, ident); resolved {
-		return PathContainsFragment(path, pathFragment)
+		return pathContainsFragment(path, pathFragment)
 	}
 
 	segment := pathFragment
