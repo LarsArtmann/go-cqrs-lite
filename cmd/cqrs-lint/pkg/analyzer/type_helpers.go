@@ -88,6 +88,53 @@ func ResolveQualifierTyped(gf *GoFile, ident *ast.Ident) (path string, resolved 
 	return pkgName.Imported().Path(), true
 }
 
+// PathContainsFragment reports whether an import path contains pathFragment,
+// tolerating Go module major-version segments. Callers pass version-less
+// fragments ("…/catalog/simple") because the same module is imported as
+// "…/catalog/v4/simple" once it carries a /vN suffix; a plain substring test
+// silently missed every versioned module (issue #79: catalog/v4/simple
+// registrations were invisible while the version-less fixture passed).
+func PathContainsFragment(path, fragment string) bool {
+	if strings.Contains(path, fragment) {
+		return true
+	}
+
+	return strings.Contains(stripVersionSegments(path), fragment)
+}
+
+// stripVersionSegments removes Go major-version path elements (v2, v3, …,
+// v10) so versioned and version-less module paths compare equal.
+func stripVersionSegments(path string) string {
+	segments := strings.Split(path, "/")
+	kept := segments[:0]
+
+	for _, segment := range segments {
+		if isMajorVersionSegment(segment) {
+			continue
+		}
+
+		kept = append(kept, segment)
+	}
+
+	return strings.Join(kept, "/")
+}
+
+// isMajorVersionSegment reports whether segment is a Go module major-version
+// element ("v2".."v99"): a "v" followed only by digits.
+func isMajorVersionSegment(segment string) bool {
+	if len(segment) < 2 || segment[0] != 'v' {
+		return false
+	}
+
+	for _, r := range segment[1:] {
+		if r < '0' || r > '9' {
+			return false
+		}
+	}
+
+	return true
+}
+
 // IsQualifierFor reports whether the package qualifier of a selector
 // expression (e.g. `event` in `event.New(...)`) denotes a package whose
 // import path contains pathFragment. Typed resolution
@@ -106,7 +153,7 @@ func IsQualifierFor(gf *GoFile, sel *ast.SelectorExpr, pathFragment string) bool
 	}
 
 	if path, resolved := ResolveQualifierTyped(gf, ident); resolved {
-		return strings.Contains(path, pathFragment)
+		return PathContainsFragment(path, pathFragment)
 	}
 
 	segment := pathFragment

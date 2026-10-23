@@ -111,6 +111,17 @@ type CQRSRegistry struct {
 	// helper indirection made soft-delete detection blind.
 	emitHelperParams map[string]int
 
+	// catalogHelperParams mirrors emitHelperParams for CATALOG declarations:
+	// a top-level helper that forwards one of its own parameters as the
+	// message id to catalog.Event/simple.Event (the "registerEvent[P](b,
+	// aggregate, typ, summary)" wrapper shape). Maps helper name → the
+	// parameter index carrying the id. ResolveCatalogHelperCalls replays each
+	// call site's constant into EventTypesInCatalog. Without it a
+	// wrapper-declared vocabulary stayed invisible and E004 flagged every
+	// emitted event (issue #79: CRM, 21 false positives on a complete
+	// catalog). Name-matched like emitHelperParams.
+	catalogHelperParams map[string]int
+
 	// TypesWithTypeMethod records struct type names that have a Type() method.
 	// Used by E007 to distinguish real CQRS query types (which implement
 	// query.Query's Type() method) from DTOs whose name happens to end in "Query".
@@ -168,6 +179,7 @@ func NewCQRSRegistry() *CQRSRegistry {
 		constAliasExprs:        make(map[string]ast.Expr),
 		TypesWithTypeMethod:    make(map[string]bool),
 		emitHelperParams:       make(map[string]int),
+		catalogHelperParams:    make(map[string]int),
 	}
 }
 
