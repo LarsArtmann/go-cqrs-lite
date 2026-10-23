@@ -42,6 +42,61 @@ func GetUser(id string) *User {
 	ruletest.AssertRule(t, findings, "F010", 0)
 }
 
+// F010 must stay silent when relations are projected through the metaengine
+// Graph ADT: Edge/EdgeRemoval folds are the native, supported graph facility,
+// so recommending the standalone graph module inverts the consumer's intent.
+// Regression pin for issue #82 (CRM: migrated OFF graphadapter TO the ADT).
+func TestF010_NoFindingWithMetaengineGraphADT(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+import (
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+)
+
+type Relation struct {
+	From string
+	To   string
+}
+
+var edgeFold = metaengine.Edge[Relation]{}
+
+func FindAncestors(id string) []string {
+	return nil
+}
+`,
+	})
+
+	findings := ruletest.RunDetector(t, adoption.NewF010Detector(ctx))
+	ruletest.AssertRule(t, findings, "F010", 0)
+}
+
+// Importing metaengine without touching the Graph ADT is not evidence of graph
+// usage; the coaching still fires.
+func TestF010_FindingWhenMetaengineImportedWithoutGraphADT(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+import (
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+)
+
+var q = metaengine.Query{}
+
+func FindAncestors(id string) []string {
+	return nil
+}
+`,
+	})
+
+	findings := ruletest.RunDetector(t, adoption.NewF010Detector(ctx))
+	ruletest.AssertRule(t, findings, "F010", 1)
+}
+
 // TestF010_NoFindingOnFilePathSetter pins the bare-"Path" removal: an
 // identifier like ChromePath (a file-path option setter, no graph work)
 // must not trip the traversal heuristic (CV feedback, 2026-10-03).

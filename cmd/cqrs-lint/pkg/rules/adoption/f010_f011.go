@@ -21,7 +21,10 @@ func NewF010Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			var out []finding.Finding
 
 			for _, sc := range coachingScopes(ctx) {
-				if importsPathIn(sc.files, "go-cqrs-lite/graph") {
+				// Either graph facility satisfies the rule's intent: the
+				// standalone graph module, or the metaengine Graph ADT
+				// (Edge/EdgeRemoval folds traversed by the engine).
+				if importsPathIn(sc.files, "go-cqrs-lite/graph") || usesMetaengineGraph(sc.files) {
 					continue
 				}
 
@@ -36,9 +39,9 @@ func NewF010Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					"Graph-traversal patterns detected (recursive queries, ancestry, "+
 						"path-finding) but graph module is not used — recursive SQL "+
 						"CTEs are slow for deep traversals",
-					"Import the graph module and use graph.NewGraphProjection to build "+
-						"node/edge read models. The MemoryDriver supports Traverse, "+
-						"Neighbors, and ShortestPath in Go-native code.",
+					"Project relations through the metaengine Graph ADT (Edge/EdgeRemoval "+
+						"folds, traversed by the engine), or import the graph module and "+
+						"use graph.NewGraphProjection for a Go-native read model.",
 					pos, finding.ConfidenceLow,
 				)...)
 			}
