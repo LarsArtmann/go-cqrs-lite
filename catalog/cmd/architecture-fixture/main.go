@@ -53,7 +53,13 @@ func fixtureCatalog() *catalog.Catalog {
 		catalog.ServiceEntities("order"),
 	)
 
-	builder.AddDomain("ordering", "Ordering", fixtureVersion, "Everything about orders.", "order-service")
+	builder.AddDomain(
+		"ordering",
+		"Ordering",
+		fixtureVersion,
+		"Everything about orders.",
+		"order-service",
+	)
 
 	builder.AddChannel(catalog.Channel{
 		ID:      "orders",

@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "@eventcatalog/core": "^5.1.0"
+    "@eventcatalog/core": "^5.5.2"
   },
   "description": "Demo event catalog",
   "name": "demo",
