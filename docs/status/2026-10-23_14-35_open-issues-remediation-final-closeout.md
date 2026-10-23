@@ -334,3 +334,27 @@ webphone 13 findings — 0 S001, 0 E004, 0 F002, 0 E005, 0 C010, 0 F010
 
 `TODO_LIST.md` gained the rows this pass produced: `## cqrs-lint` (#79 typed-load fixture + fragment audit, catalog symmetry/limitation doc, #71 `ScanWithMeta` decision, #83 hardening ×3), `## Metaengine — follow-ups` (#72 engine coverage, trim-cost benchmark, timer wiring ruling, `WithCapOnWrite`), `## CI / Infrastructure` (coverage-floor-decrease guard, `flake.lock` coherence check, tree-wide `check-nix-hashes`, `#verify-serial`). The stale "cmd/* modules are not gated" row was marked RESOLVED with the verifying evidence (`cmd/cqrs-lint` etc. are in `testModules`, added by `70b874dfc`). `docs/status/README.md` gained index rows for both 2026-10-23 reports.
 
+### h.7 Gate status at close-out
+
+GREEN, run on this tree:
+
+```text
+nix run .#check-release-scripts   # every release-tooling self-test incl. check-nix-hashes (5 legs)
+nix run .#check-coverage          # 11/11 modules 0.0% delta
+nix run .#check-api-stability     # export golden unchanged
+bash scripts/check-md-go.sh       # 1514 blocks valid, 105 baselined
+bash scripts/check-changelog-symbols.sh   # 27 citations honest
+source scripts/go-env.sh && (per module) GOWORK=off go test -race -count=1 ./...
+  cmd/cqrs-lint  metaengine  metaengine/projectionadapter  projectionhost  benchkit   # all ok
+```
+
+RED on this tree, and **none of it is this work** — a parallel session is actively editing `system/` (sticky stream keys) and `core/v5/`:
+
+| Gate | Red because |
+|---|---|
+| `nix run .#check-file-size` | `system/adapter_event.go` is 351 lines after that session's +30-line `resolveStreamKey` change (uncommitted; was 321 at the last green run). |
+| `nix run .#check-duplication` | one new clone group: `system/adapter_command.go:98-103` vs `system/adapter_event.go:222-227` — the same new `resolveStreamKey` block. |
+| full `#test` / `#test-race` sweeps | inherit the two above plus transient mid-write build states (`system/stream_key.go` was untracked while `adapter_event.go` already referenced it). |
+
+Verified as foreign, not guessed: the duplication report names only the `system/` pair, the file-size report names only `adapter_event.go` (neither is a file this session touched), and `GOWORK=off go mod tidy -diff` in `system` is clean while `api-stability` had reported it untidy mid-edit. The correct action was to leave them alone and report them, which is what happened.
+
