@@ -3064,6 +3064,7 @@ metaengine/func BackfillPlannedCollection
 metaengine/func BenchmarkPlan
 metaengine/func BuildColumnarLayoutPlan
 metaengine/func BuildLayoutPlan
+metaengine/func BuildLayoutPlanForType
 metaengine/func BuildLayoutPlanFromType
 metaengine/func CalibrateEngine
 metaengine/func CapabilityAudit

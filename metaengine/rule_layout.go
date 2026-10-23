@@ -33,7 +33,10 @@ func (r *layoutRule) Apply(result *PlanResult, ctx PlanContext) error {
 			return fmt.Errorf("auto-layout for %q: %w", rt.QueryName(), err)
 		}
 
-		layoutPlan := BuildLayoutPlan(rt.QueryName(), filterFields, sortFields)
+		// Typed plan whenever the result type is known: reflection-derived
+		// column types instead of the all-TEXT plan (a "Priority" int column
+		// must compare as BIGINT in engine keyset SQL, not VARCHAR).
+		layoutPlan := BuildLayoutPlanForType(rt.QueryName(), filterFields, sortFields, rt.QueryResultType())
 		if rt.QueryConfig().columnarLayout {
 			resultType := rt.QueryResultType()
 			if resultType != nil && isStructOrPointerToStruct(resultType) {
