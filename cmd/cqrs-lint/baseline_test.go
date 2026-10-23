@@ -316,9 +316,7 @@ func TestApplyBaseline_ReportsShrunkBaseline(t *testing.T) {
 	removed := baselineFinding(root, "b.go", "E003", 2, 1, finding.SeverityWarning)
 	path := writeFixtureBaseline(t, root, []finding.Finding{kept, removed})
 
-	var stderr string
-
-	stderr = captureStderr(t, func() {
+	var stderr string = captureStderr(t, func() {
 		res, err := applyBaseline(&AppConfig{Baseline: path}, []finding.Finding{kept})
 		if err != nil {
 			t.Fatalf("applyBaseline: %v", err)

@@ -120,15 +120,15 @@ type AppConfig struct {
 	Exclude                 string `default:""      flag:"exclude"                    help:"Exclude paths (comma-separated)"                                                                              local:"true"`
 	Verbose                 bool   `default:"false" flag:"verbose"                    help:"Verbose output"                                                                                               local:"true"`
 	GroupBy                 string `default:""      flag:"group-by"                   help:"Group findings by: none, module, aggregate"                                                                   local:"true" json:"group-by,omitempty"` //nolint:tagalign,tagliatelle
-	Quiet                   bool   `default:"false" flag:"quiet"                      help:"Suppress non-finding output"                                                                                  local:"true"                           short:"q"`
+	Quiet                   bool   `default:"false" flag:"quiet"                      help:"Suppress non-finding output"                                                                                  local:"true"                                  short:"q"`
 	FPSuspects              bool   `default:"false" flag:"fp-suspects"                help:"Show only low-confidence findings (likely false positives)"                                                   local:"true"`
 	ShowSuppressed          bool   `default:"false" flag:"show-suppressed"            help:"Show suppressed findings with their suppression reason"                                                       local:"true"`
 	StrictLoad              bool   `default:"false" flag:"strict-load"                help:"Exit non-zero if any packages failed to load (partial analysis)"                                              local:"true"`
 	FailOnStaleSuppressions bool   `default:"false" flag:"fail-on-stale-suppressions" help:"Exit non-zero if any //cqrs-lint:ignore directives are stale (not suppressing anything)"                      local:"true"`
 	Adoption                bool   `default:"false" flag:"adoption"                   help:"Show F-series adoption coaching but exclude them from health score"                                           local:"true"`
 	Scorecard               bool   `default:"false" flag:"scorecard"                  help:"Print module adoption scorecard (used/missing/coverage); the scorecard subcommand adds --scorecard-threshold" local:"true"`
-	Baseline                string `default:""      flag:"baseline"                   help:"Path to a findings baseline file; only findings absent from it are reported"                                    local:"true" json:"baseline,omitempty"`
-	UpdateBaseline          bool   `default:"false" flag:"update-baseline"            help:"Rewrite the findings baseline from this run (requires --baseline); exits 0"                                     local:"true" json:"update-baseline,omitempty"` //nolint:tagliatelle // CLI config key
+	Baseline                string `default:""      flag:"baseline"                   help:"Path to a findings baseline file; only findings absent from it are reported"                                  local:"true" json:"baseline,omitempty"`
+	UpdateBaseline          bool   `default:"false" flag:"update-baseline"            help:"Rewrite the findings baseline from this run (requires --baseline); exits 0"                                   local:"true" json:"update-baseline,omitempty"` //nolint:tagliatelle // CLI config key
 
 	// Features declares which go-cqrs-lite modules the consumer uses.
 	// Each non-nil flag overrides auto-detection. See FeatureProfile docs.

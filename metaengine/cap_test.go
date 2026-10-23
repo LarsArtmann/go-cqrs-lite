@@ -23,7 +23,7 @@ type capItem struct {
 func cappedQuery(maxRows int, orderBy string) metaengine.QueryDecl[struct{}, capItem] {
 	return metaengine.Query[struct{}, capItem]("recent_items",
 		metaengine.OnRecord(capEvent{}, func(_ record.Record, e capEvent) (string, capItem) {
-			return e.ID, capItem{ID: e.ID, Seq: e.Seq}
+			return e.ID, capItem(e)
 		}),
 		metaengine.WithCap(maxRows, orderBy),
 	)
@@ -154,7 +154,7 @@ func TestWithCap_EnforceCapsOnlyTrimsCappedCollections(t *testing.T) {
 	// An uncapped query must report 0 rather than an error.
 	uncapped := metaengine.Query[struct{}, capItem]("all_items",
 		metaengine.OnRecord(capEvent{}, func(_ record.Record, e capEvent) (string, capItem) {
-			return e.ID, capItem{ID: e.ID, Seq: e.Seq}
+			return e.ID, capItem(e)
 		}),
 	)
 
