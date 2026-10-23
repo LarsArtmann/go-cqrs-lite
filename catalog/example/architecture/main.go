@@ -50,11 +50,11 @@ func buildCatalog() *catalog.Catalog {
 	)
 
 	builder.AddDataStore(catalog.DataStore{
-		ID:          "order-db",
-		Name:        "Order Database",
-		Version:     "1.0.0",
-		Summary:     "System of record for orders.",
-		Technology:  "postgres@16",
+		ID:            "order-db",
+		Name:          "Order Database",
+		Version:       "1.0.0",
+		Summary:       "System of record for orders.",
+		Technology:    "postgres@16",
 		Authoritative: true,
 	})
 

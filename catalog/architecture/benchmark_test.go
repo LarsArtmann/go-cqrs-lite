@@ -9,7 +9,7 @@ import (
 )
 
 type benchPayload struct {
-	ID      string `json:"id" doc:"Identifier"`
+	ID      string `json:"id"      doc:"Identifier"`
 	Counter int    `json:"counter" doc:"A counter"`
 }
 
@@ -66,9 +66,12 @@ func largeCatalog(services, messagesPerService int) *catalog.Catalog {
 }
 
 // BenchmarkExportLargeCatalog measures the whole-pipeline render of a
-// 1 000-service / 5 000-message catalog. The measured floor (2026-10-17,
-// quiet host): ~0.9 s per render and ~3.2 MB of HTML — one-shot at build
-// or deploy time, not per request.
+// 1 000-service / 5 000-message catalog. Measured 2026-10-17 on a quiet
+// host: ~175 ms per render (warm caches; cold first render ≈ 615 ms) and
+// 15.65 MB of HTML — a one-shot cost at build or deploy time, not per
+// request. The size is why sections carry `content-visibility: auto`: the
+// browser only lays out the viewport, so the file stays scrollable while
+// the rest stays unpainted.
 func BenchmarkExportLargeCatalog(b *testing.B) {
 	cat := largeCatalog(1_000, 5)
 

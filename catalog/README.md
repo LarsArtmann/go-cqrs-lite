@@ -779,6 +779,17 @@ mux.HandleFunc("/health", docserver.HealthCheckHandler(cat))
 SPA pages reference assets with absolute DocsPath-anchored URLs and include
 `<noscript>` fallbacks linking the raw specs, so they work behind any router prefix.
 
+### Scale
+
+Measured on the real render path (2026-10-17, quiet host,
+`go test -bench BenchmarkExportLargeCatalog`): a catalog of **1 000
+services / 5 000 messages** renders in **~175 ms warm / ~0.6 s cold** to a
+**15.65 MB** self-contained HTML file. Sections carry
+`content-visibility: auto`, so the browser only lays out the viewport —
+scrolling and search stay responsive at that size. This is a build-time or
+deploy-time cost, never per request (the docserver route caches per catalog
+instance).
+
 The architecture route streams the same self-contained HTML file the
 `catalog-export -architecture` command writes (one inline `<style>`/`<script>`
 pair, no external assets — it works without JavaScript, the search box just

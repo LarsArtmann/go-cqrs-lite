@@ -80,6 +80,13 @@ all-or-nothing, which is the honest description of the current behaviour.
   exists to avoid. The catalog AGENTS.md records the contracts that keep the
   pair honest (derived anchors, single escaping path, search-index shape,
   dependency budget).
+- **Scale is measured, not claimed (2026-10-23 addendum).** A catalog of
+  1 000 services / 5 000 messages renders in ~175 ms warm (~0.6 s cold) to
+  15.65 MB of self-contained HTML
+  (`go test -bench BenchmarkExportLargeCatalog` in `catalog/architecture`).
+  Sections carry `content-visibility: auto`, so browser layout stays
+  viewport-bound at that size. The cost is one-shot at build or deploy
+  time; the docserver route caches per catalog instance.
 - The reference is a NEW published artifact and a new published shape (the
   inlined search index). Both are gated: export-level tests pin section
   coverage, cross-links, escaping, self-containment and HTML tag balance, unit
