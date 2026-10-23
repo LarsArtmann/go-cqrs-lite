@@ -9,12 +9,17 @@ import (
 	"reflect"
 	"slices"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
-// ApplyEncoded processes a JSON-encoded event payload through all queries.
-// The eventType identifies which fold to invoke, and payload is JSON bytes
-// decoded into each fold's expected event type via its sample.
+// ApplyEncoded processes an encoded event payload through all queries.
+// The eventType identifies which fold to invoke. Payload may be JSON or CBOR —
+// the codec is detected from the bytes (see [NormalizeEncoded]) and normalized
+// to JSON before it is decoded into each fold's expected event type via its
+// sample. The payload of an event built with [event.New] (CBOR by default)
+// therefore applies without a manual decode.
 //
 // The apply is a full pipeline citizen — identical to Store.Apply except the
 // payload arrives undecoded: it is metered, hook-observed, recorded to the
@@ -23,33 +28,43 @@ import (
 // only a Type-only Record can be synthesized, so OnRecord folds see empty
 // StreamID/Version; use ApplyEncodedRecord to carry the full Record).
 //
-// For non-JSON encodings (CBOR, etc.), decode manually and use Store.Apply.
+// Encodings outside the JSON/CBOR pair require a manual decode followed by
+// Store.Apply, or [NormalizeEncodedWithEncoding] when the caller owns the
+// codec dispatch.
 //
 // Example with event.Event:
 //
-//	err := store.ApplyEncoded(string(evt.Type()), evt.Payload())
+//	err := store.ApplyEncoded(ctx, string(evt.Type()), evt.Payload())
 //
 // To integrate with projection.Projection, create a thin adapter:
 //
 //	type projectionAdapter struct{ store *metaengine.Store }
-//	func (p *projectionAdapter) Handle(_ context.Context, evt event.Event) error {
-//	    return p.store.ApplyEncoded(string(evt.Type()), evt.Payload())
+//	func (p *projectionAdapter) Handle(ctx context.Context, evt event.Event) error {
+//	    return p.store.ApplyEncoded(ctx, string(evt.Type()), evt.Payload())
 //	}
 func (s *Store) ApplyEncoded(ctx context.Context, eventType string, payload []byte) error {
+	normalized, _, err := NormalizeEncoded(payload)
+	if err != nil {
+		return fmt.Errorf("metaengine.Store.ApplyEncoded %s: %w", eventType, err)
+	}
+
 	return s.applyWithRecord(
 		ctx,
 		feedApplyEncoded,
 		eventType,
 		record.Record{Type: eventType},
-		rawJSON(payload),
+		rawJSON(normalized),
 	)
 }
 
 // ApplyEncodedRecord is ApplyEncoded with full Record context (ADR-0112):
 // Record-aware folds (created via OnRecord) receive rec alongside the
-// decoded payload, exactly like Store.ApplyRecord. payload is JSON bytes;
-// rec.Type must name the event type the folds listen for. Non-Record-aware
-// folds receive only the decoded payload, as usual.
+// decoded payload, exactly like Store.ApplyRecord. rec.Type must name the
+// event type the folds listen for. Non-Record-aware folds receive only the
+// decoded payload, as usual.
+//
+// rec.Encoding, when known, selects the payload codec; an unknown stamp falls
+// back to detection. JSON and CBOR are supported (see [NormalizeEncoded]).
 func (s *Store) ApplyEncodedRecord(ctx context.Context, rec record.Record, payload []byte) error {
 	if rec.Type == "" {
 		return errors.New(
@@ -57,7 +72,12 @@ func (s *Store) ApplyEncodedRecord(ctx context.Context, rec record.Record, paylo
 		)
 	}
 
-	return s.applyWithRecord(ctx, feedApplyEncodedRecord, rec.Type, rec, rawJSON(payload))
+	normalized, _, err := normalizeEncoded(payload, codecEncodingOf(rec.Encoding))
+	if err != nil {
+		return fmt.Errorf("metaengine.Store.ApplyEncodedRecord %s: %w", rec.Type, err)
+	}
+
+	return s.applyWithRecord(ctx, feedApplyEncodedRecord, rec.Type, rec, rawJSON(normalized))
 }
 
 // rawJSON clones the caller's bytes into a jsontext.Value — the pipeline's
@@ -89,7 +109,11 @@ func decodeRawFoldPayload(fold Fold, payload any) (any, error) {
 
 	decoded, err := decodeFromSample(fold.EventSample(), raw)
 	if err != nil {
-		return nil, fmt.Errorf("decode %s: %w", fold.EventType(), err)
+		// The payload bytes are immutable, so a decode failure is
+		// deterministic: retrying cannot fix it. Corruption is the family
+		// that lets projection hosts dead-letter instead of crash-looping.
+		return nil, errorfamily.WrapCorruptionf(err,
+			"metaengine.apply.encoded_decode", "decode %s", fold.EventType())
 	}
 
 	return decoded, nil
