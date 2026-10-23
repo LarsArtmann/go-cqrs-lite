@@ -198,7 +198,12 @@ func applyBaseline(cfg *AppConfig, active []finding.Finding) (*baselineRun, erro
 		}
 
 		if !cfg.Quiet {
-			fmt.Fprintf(os.Stderr, "Findings baseline written: %s (%d entries)\n", absPath, len(entries))
+			fmt.Fprintf(
+				os.Stderr,
+				"Findings baseline written: %s (%d entries)\n",
+				absPath,
+				len(entries),
+			)
 		}
 
 		return &baselineRun{Reported: nil, Known: len(entries), Updated: true}, nil
@@ -246,6 +251,13 @@ func warnBaselineDrift(absPath string, outcome baselineOutcome) {
 	)
 
 	for _, entry := range outcome.Stale {
-		fmt.Fprintf(os.Stderr, "  stale: %s %s:%d:%d\n", entry.Rule, entry.File, entry.Line, entry.Column)
+		fmt.Fprintf(
+			os.Stderr,
+			"  stale: %s %s:%d:%d\n",
+			entry.Rule,
+			entry.File,
+			entry.Line,
+			entry.Column,
+		)
 	}
 }

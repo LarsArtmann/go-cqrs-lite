@@ -51,7 +51,11 @@ func seedCapEvents(t *testing.T, store *metaengine.Store, n int) {
 	ctx := t.Context()
 
 	for i := 1; i <= n; i++ {
-		if err := store.Apply(ctx, "capEvent", capEvent{ID: fmt.Sprintf("e%02d", i), Seq: i}); err != nil {
+		if err := store.Apply(
+			ctx,
+			"capEvent",
+			capEvent{ID: fmt.Sprintf("e%02d", i), Seq: i},
+		); err != nil {
 			t.Fatalf("Apply %d: %v", i, err)
 		}
 	}
@@ -77,7 +81,11 @@ func TestWithCap_EnforceCapKeepsNewestRows(t *testing.T) {
 
 	reader := metaengine.NewReader[capItem](store, "recent_items")
 
-	rows, err := reader.Scan(t.Context(), metaengine.WithLimit(0), metaengine.WithSort("Seq", false))
+	rows, err := reader.Scan(
+		t.Context(),
+		metaengine.WithLimit(0),
+		metaengine.WithSort("Seq", false),
+	)
 	if err != nil {
 		t.Fatalf("Scan: %v", err)
 	}

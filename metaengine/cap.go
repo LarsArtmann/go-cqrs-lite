@@ -113,7 +113,11 @@ func capKeyExtractor(q queryMeta) (func(any) any, error) {
 	}
 
 	if valueType.Kind() != reflect.Struct {
-		return nil, fmt.Errorf("%w: result type %s is not a struct", errCapKeyUnavailable, valueType)
+		return nil, fmt.Errorf(
+			"%w: result type %s is not a struct",
+			errCapKeyUnavailable,
+			valueType,
+		)
 	}
 
 	sample := reflect.New(valueType).Interface()
@@ -163,7 +167,14 @@ func (s *Store) EnforceCap(ctx context.Context, queryName string) (int, error) {
 
 	// Keep page: the newest capRows rows. hasMore means older rows exist and
 	// every row after this cursor is a trim victim.
-	_, hasMore, cursor, err := capScanPage(ctx, eng, q.QueryName(), cfg.capOrderBy, cfg.capRows, nil)
+	_, hasMore, cursor, err := capScanPage(
+		ctx,
+		eng,
+		q.QueryName(),
+		cfg.capOrderBy,
+		cfg.capRows,
+		nil,
+	)
 	if err != nil {
 		return 0, fmt.Errorf("metaengine.EnforceCap(%q): keep scan: %w", queryName, err)
 	}
@@ -179,7 +190,11 @@ func (s *Store) EnforceCap(ctx context.Context, queryName string) (int, error) {
 			ctx, eng, q.QueryName(), cfg.capOrderBy, capTrimBatchSize, cursor,
 		)
 		if scanErr != nil {
-			return removed, fmt.Errorf("metaengine.EnforceCap(%q): trim scan: %w", queryName, scanErr)
+			return removed, fmt.Errorf(
+				"metaengine.EnforceCap(%q): trim scan: %w",
+				queryName,
+				scanErr,
+			)
 		}
 
 		for _, item := range items {
@@ -195,7 +210,11 @@ func (s *Store) EnforceCap(ctx context.Context, queryName string) (int, error) {
 		}
 
 		if next == nil {
-			return removed, fmt.Errorf("metaengine.EnforceCap(%q): %w", queryName, errCapCursorMissing)
+			return removed, fmt.Errorf(
+				"metaengine.EnforceCap(%q): %w",
+				queryName,
+				errCapCursorMissing,
+			)
 		}
 
 		cursor = next

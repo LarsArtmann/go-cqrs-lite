@@ -161,7 +161,10 @@ func fold(s BetaState, evt event.Event) (BetaState, error) {
 	}
 
 	if len(ids) != 2 {
-		t.Errorf("E003 finding IDs are not unique per package: got %d distinct IDs for 2 packages", len(ids))
+		t.Errorf(
+			"E003 finding IDs are not unique per package: got %d distinct IDs for 2 packages",
+			len(ids),
+		)
 	}
 }
 

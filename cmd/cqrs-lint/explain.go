@@ -417,7 +417,9 @@ func renderScorecardConfig(b *strings.Builder) {
 func renderBaselineConfig(b *strings.Builder) {
 	writeSectionHeader(b, "BASELINE")
 
-	b.WriteString("  A checked-in findings baseline records findings you have already adjudicated,\n")
+	b.WriteString(
+		"  A checked-in findings baseline records findings you have already adjudicated,\n",
+	)
 	b.WriteString("  so a run reports only NEW findings. Matching keys on rule, project-relative\n")
 	b.WriteString("  file, line, and column; moving a finding shows up as one new finding plus\n")
 	b.WriteString("  one shrunk entry, which is the intended drift signal.\n")
@@ -429,7 +431,9 @@ func renderBaselineConfig(b *strings.Builder) {
 	b.WriteString("    - findings present in the baseline are hidden and cannot fail the build\n")
 	b.WriteString("    - findings absent from the baseline are reported and gate the exit code\n")
 	b.WriteString("    - entries with no matching finding print a \"Baseline shrunk\" notice\n")
-	b.WriteString("    - --update-baseline rewrites the file (sorted, deterministic) and exits 0;\n")
+	b.WriteString(
+		"    - --update-baseline rewrites the file (sorted, deterministic) and exits 0;\n",
+	)
 	b.WriteString("      it requires --baseline and preserves existing reason fields\n")
 	b.WriteString("    - the health score still counts baselined findings (baselining never\n")
 	b.WriteString("      inflates the score)\n")

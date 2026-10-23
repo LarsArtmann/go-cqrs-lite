@@ -124,7 +124,11 @@ func (b *packageBoundaries) sortedPackages() []string {
 func (b *packageBoundaries) pos(pkg, projectRoot string) finding.Position {
 	anchor := b.anchors[pkg]
 	if anchor.pos.IsValid() {
-		return finding.Pos(finding.FilePath(anchor.pos.Filename), anchor.pos.Line, anchor.pos.Column)
+		return finding.Pos(
+			finding.FilePath(anchor.pos.Filename),
+			anchor.pos.Line,
+			anchor.pos.Column,
+		)
 	}
 
 	if anchor.file != "" {

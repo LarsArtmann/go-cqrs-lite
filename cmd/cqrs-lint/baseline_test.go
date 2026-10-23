@@ -249,7 +249,10 @@ func TestApplyBaseline_UpdateWritesAndIsQuiet(t *testing.T) {
 		baselineFinding(root, "b.go", "E003", 2, 1, finding.SeverityWarning),
 	}
 
-	res, err := applyBaseline(&AppConfig{Baseline: path, UpdateBaseline: true, Quiet: true}, findings)
+	res, err := applyBaseline(
+		&AppConfig{Baseline: path, UpdateBaseline: true, Quiet: true},
+		findings,
+	)
 	if err != nil {
 		t.Fatalf("applyBaseline: %v", err)
 	}
@@ -308,7 +311,6 @@ func TestApplyBaseline_FiltersKnownAndGatesOnlyNew(t *testing.T) {
 
 // A fixed finding must surface as a shrunk baseline so the file can be pruned.
 func TestApplyBaseline_ReportsShrunkBaseline(t *testing.T) {
-
 	root := t.TempDir()
 	kept := baselineFinding(root, "a.go", "S001", 1, 1, finding.SeverityWarning)
 	removed := baselineFinding(root, "b.go", "E003", 2, 1, finding.SeverityWarning)
@@ -343,7 +345,6 @@ func TestApplyBaseline_ReportsShrunkBaseline(t *testing.T) {
 // Quiet silences the baseline drift notices (stderr) without changing the
 // classification.
 func TestApplyBaseline_QuietSilencesDriftNotices(t *testing.T) {
-
 	root := t.TempDir()
 	known := baselineFinding(root, "a.go", "S001", 1, 1, finding.SeverityWarning)
 	path := writeFixtureBaseline(t, root, []finding.Finding{known})

@@ -65,7 +65,8 @@ func NewS001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				// the binding itself says "identifier": a const declaration or a
 				// structural name suffix. Applied unconditionally this would
 				// also skip lowercase API keys, which have the same shape.
-				if lintutil.IsNameShapedValue(val) && (isConst || isSchemaVocabularyName(fieldName)) {
+				if lintutil.IsNameShapedValue(val) &&
+					(isConst || isSchemaVocabularyName(fieldName)) {
 					return
 				}
 
@@ -93,7 +94,10 @@ func NewS001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					f, err := findingTemplate.Builder(
 						"S001",
-						fmt.Sprintf("Potential hardcoded secret in field %q — use environment variables or a secret manager", display),
+						fmt.Sprintf(
+							"Potential hardcoded secret in field %q — use environment variables or a secret manager",
+							display,
+						),
 						severity,
 						finding.Pos(finding.FilePath(p.Filename), p.Line, p.Column),
 					).
@@ -122,7 +126,13 @@ func NewS001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 								break
 							}
 
-							check(node.Pos(), s001LHSName(lhs), s001LHSDisplay(lhs), node.Rhs[i], false)
+							check(
+								node.Pos(),
+								s001LHSName(lhs),
+								s001LHSDisplay(lhs),
+								node.Rhs[i],
+								false,
+							)
 						}
 					case *ast.GenDecl:
 						for _, spec := range node.Specs {
@@ -136,7 +146,13 @@ func NewS001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 									break
 								}
 
-								check(node.Pos(), name.Name, name.Name, vs.Values[i], node.Tok == token.CONST)
+								check(
+									node.Pos(),
+									name.Name,
+									name.Name,
+									vs.Values[i],
+									node.Tok == token.CONST,
+								)
 							}
 						}
 					case *ast.KeyValueExpr:

@@ -36,6 +36,7 @@ var conditionalSeverityRules = map[string]string{
 	"C008": "escalates when the field is a confirmed money name",
 	"S002": "escalates for high-sensitivity payload names",
 	"S006": "escalates for confirmed financial field names",
+	"S001": "const-bound findings downgrade critical to warning (schema vocabulary vs key material)",
 }
 
 // helperMediatedRules build findings through parameterized helpers
