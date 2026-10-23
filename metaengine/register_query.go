@@ -77,7 +77,10 @@ func (s *Store) applyAutoLayoutForQuery(meta queryMeta) error {
 		return fmt.Errorf("metaengine.RegisterQuery: %w", err)
 	}
 
-	layoutPlan := BuildLayoutPlan(meta.QueryName(), filterFields, sortFields)
+	// Typed plan whenever the result type is known: reflection-derived
+	// column types instead of the all-TEXT nameless plan (a "Priority" int
+	// column must compare as BIGINT in engine keyset SQL, not VARCHAR).
+	layoutPlan := BuildLayoutPlanForType(meta.QueryName(), filterFields, sortFields, meta.QueryResultType())
 	if meta.QueryConfig().columnarLayout {
 		rt := meta.QueryResultType()
 		if rt != nil && isStructOrPointerToStruct(rt) {

@@ -203,25 +203,36 @@ func sqlTypeOf(t reflect.Type) (string, error) {
 
 // BuildLayoutPlanFromType is the reflection-based variant of BuildLayoutPlan:
 // it infers each column's SQL type from the corresponding field of the result
-// type R, instead of guessing from the field name. Fields not present on R fall
-// back to the name heuristic (TEXT-safe). This is the recommended constructor
-// when the result type is known at plan time.
+// type R. Fields not present on R degrade to TEXT (name-based type guessing is
+// deleted). This is the recommended constructor when the result type is known
+// at plan time.
 //
 // Type mapping: int*/uint* → INTEGER, float32 → REAL, float64 → DOUBLE,
 // bool → INTEGER, string → TEXT, time.Time → TEXT (ISO-8601). Everything else
-// defaults to TEXT so JSON blobs still round-trip.
+// degrades to TEXT (with a warning) so JSON blobs still round-trip.
 func BuildLayoutPlanFromType[R any](
 	collection string,
 	filterFields, sortFields []string,
 ) LayoutPlan {
-	typeOf := reflect.TypeFor[R]()
+	return BuildLayoutPlanForType(collection, filterFields, sortFields, reflect.TypeFor[R]())
+}
+
+// BuildLayoutPlanForType is the runtime-typed variant of BuildLayoutPlanFromType
+// (same behavior; the result type arrives as a reflect.Type). A nil or
+// non-struct resultType yields the all-TEXT plan of [BuildLayoutPlan].
+func BuildLayoutPlanForType(
+	collection string,
+	filterFields, sortFields []string,
+	resultType reflect.Type,
+) LayoutPlan {
+	typeOf := resultType
 	fieldTypes := map[string]reflect.Type{}
 
-	if typeOf.Kind() == reflect.Pointer {
+	if typeOf != nil && typeOf.Kind() == reflect.Pointer {
 		typeOf = typeOf.Elem()
 	}
 
-	if typeOf.Kind() == reflect.Struct {
+	if typeOf != nil && typeOf.Kind() == reflect.Struct {
 		for f := range typeOf.Fields() {
 			if f.IsExported() {
 				fieldTypes[f.Name] = f.Type
