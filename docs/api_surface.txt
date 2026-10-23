@@ -669,12 +669,15 @@ cmd/cqrs-lint/pkg/analyzer/func IsEventTypeParam
 cmd/cqrs-lint/pkg/analyzer/func IsExampleModulePath
 cmd/cqrs-lint/pkg/analyzer/func IsInsideUpcasterClosure
 cmd/cqrs-lint/pkg/analyzer/func IsKnownPreset
+cmd/cqrs-lint/pkg/analyzer/func IsMajorVersionSegment
 cmd/cqrs-lint/pkg/analyzer/func IsQualifierFor
 cmd/cqrs-lint/pkg/analyzer/func IsTombstoneLikeEventType
 cmd/cqrs-lint/pkg/analyzer/func LoadProjectConfig
 cmd/cqrs-lint/pkg/analyzer/func NewCQRSRegistry
+cmd/cqrs-lint/pkg/analyzer/func PathContainsFragment
 cmd/cqrs-lint/pkg/analyzer/func ReceiverIsEventBus
 cmd/cqrs-lint/pkg/analyzer/func ReceiverTypeName
+cmd/cqrs-lint/pkg/analyzer/func ResolveCatalogHelperCalls
 cmd/cqrs-lint/pkg/analyzer/func ResolveEmittedEventTypeConsts
 cmd/cqrs-lint/pkg/analyzer/func ResolveFeatureProfile
 cmd/cqrs-lint/pkg/analyzer/func ResolveFoldTombstoneCases
@@ -690,6 +693,7 @@ cmd/cqrs-lint/pkg/analyzer/func SelectorNameAndPkg
 cmd/cqrs-lint/pkg/analyzer/func SelectorPackage
 cmd/cqrs-lint/pkg/analyzer/func StringLit
 cmd/cqrs-lint/pkg/analyzer/func StripJSONC
+cmd/cqrs-lint/pkg/analyzer/func StripVersionSegments
 cmd/cqrs-lint/pkg/analyzer/func UsedKeys
 cmd/cqrs-lint/pkg/analyzer/func ValidPresetNames
 cmd/cqrs-lint/pkg/analyzer/func ValidateScorecardWaivers

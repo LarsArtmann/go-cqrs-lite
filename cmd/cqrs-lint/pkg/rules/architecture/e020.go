@@ -135,7 +135,11 @@ func importLocalName(imp *ast.ImportSpec) string {
 	}
 
 	path := strings.Trim(imp.Path.Value, `"`)
-	if idx := strings.LastIndex(path, "/"); idx >= 0 && analyzer.IsMajorVersionSegment(path[idx+1:]) {
+	if idx := strings.LastIndex(
+		path,
+		"/",
+	); idx >= 0 &&
+		analyzer.IsMajorVersionSegment(path[idx+1:]) {
 		path = path[:idx]
 	}
 
