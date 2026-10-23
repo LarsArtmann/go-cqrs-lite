@@ -165,10 +165,11 @@ func defaultSQLiteQueries() sqliteQuerySet {
 		// afterSeq is a journal position within the collection (seq is a
 		// global AUTOINCREMENT shared across collections — see JournalReadFrom).
 		journalReadFrom:       `SELECT value FROM meta_stream_log WHERE collection = ? ORDER BY seq LIMIT ? OFFSET ?`,
-		streamLoadByEventID: `SELECT value FROM meta_stream_log WHERE collection = ? AND event_id = ?
+		streamLoadByEventID: `SELECT value FROM (
+			SELECT seq, value FROM meta_stream_log WHERE collection = ? AND event_id = ?
 			UNION ALL
-			SELECT value FROM meta_stream_log WHERE collection = ? AND event_id IS NULL AND json_valid(value) AND json_extract(value, '$.id') = ?
-			ORDER BY seq LIMIT 1`,
+			SELECT seq, value FROM meta_stream_log WHERE collection = ? AND event_id IS NULL AND json_valid(value) AND json_extract(value, '$.id') = ?
+		) ORDER BY seq LIMIT 1`,
 		journalReadAllWithSeq: `SELECT seq, value FROM meta_stream_log WHERE collection = ? ORDER BY seq`,
 		// Token resumption: a pure index range seek on
 		// idx_stream_log_journal(collection, seq) — O(log n) per page, and

@@ -128,7 +128,9 @@ func ensureTypedStreamLog(db *sql.DB) error {
 
 		var notNull, pk int
 
-		if err := rows.Scan(&cid, &name, &colType, &notNull, &pk); err != nil {
+		var dflt sql.NullString
+
+		if err := rows.Scan(&cid, &name, &colType, &notNull, &dflt, &pk); err != nil {
 			return fmt.Errorf("sqliteengine typed WAL: scan table_info: %w", err)
 		}
 
