@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"go/ast"
 	"go/token"
+	"maps"
 	"slices"
 	"strings"
 
@@ -109,14 +110,7 @@ func (b *packageBoundaries) record(pkg, kind, file string, pos token.Position) {
 }
 
 func (b *packageBoundaries) sortedPackages() []string {
-	names := make([]string, 0, len(b.packages))
-	for pkg := range b.packages {
-		names = append(names, pkg)
-	}
-
-	slices.Sort(names)
-
-	return names
+	return slices.Sorted(maps.Keys(b.packages))
 }
 
 // pos returns the package's anchor location, falling back to go.mod:1:1 only
@@ -152,14 +146,7 @@ func precedes(a, b constructAnchor) bool {
 }
 
 func sortedKinds(constructs map[string]bool) []string {
-	kinds := make([]string, 0, len(constructs))
-	for kind := range constructs {
-		kinds = append(kinds, kind)
-	}
-
-	slices.Sort(kinds)
-
-	return kinds
+	return slices.Sorted(maps.Keys(constructs))
 }
 
 // E007: Query without handler.

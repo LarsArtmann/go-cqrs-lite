@@ -389,9 +389,13 @@ DEP_BUDGET["cmd/api-stability"]=3
 DEP_BUDGET["cmd/doc-check"]=2
 # mesh-demo: decider/event/command/id = 4 (the bilateral-contract example)
 # +catalog (EventCatalog export demo surface) +system (composition-root boot,
-# the ADR-0123 modern pattern) +go-branded-id (branded stream IDs) = 7.
-DEP_BUDGET["example/mesh-demo"]=7
-DEP_BUDGET["example/taskmanager"]=25
+# the ADR-0123 modern pattern) +go-branded-id (branded stream IDs)
+# +go-error-family (classified domain errors at the example's boundaries) = 8.
+DEP_BUDGET["example/mesh-demo"]=8
+# taskmanager: the reference app exercises the full modern stack; the 26th
+# direct dep is httputil/server_timing, added with the Server-Timing HTTP
+# surface (2026-10-15 repair) and pinned by its HTTP integration tests.
+DEP_BUDGET["example/taskmanager"]=26
 DEP_BUDGET["example/getting-started"]=10
 # goal-shaped-app is the Goal story: types-only domain + system composition
 # root with BOTH swap targets compiled in (sqliteengine + pgengine) —

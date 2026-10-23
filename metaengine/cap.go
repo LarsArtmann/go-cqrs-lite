@@ -20,6 +20,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"maps"
 	"reflect"
 	"slices"
 	"time"
@@ -248,17 +249,15 @@ func (s *Store) cappedQueryNames() []string {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	var names []string
+	capped := make(map[string]struct{}, len(s.queries))
 
 	for name, q := range s.queries {
 		if q.QueryConfig().capRows > 0 {
-			names = append(names, name)
+			capped[name] = struct{}{}
 		}
 	}
 
-	slices.Sort(names)
-
-	return names
+	return slices.Sorted(maps.Keys(capped))
 }
 
 // capScanPage reads one descending page of a collection ordered by column.
