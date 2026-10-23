@@ -357,6 +357,14 @@
       "tokens": 8
     },
     {
+      "hash": "3ff8e9ce407c8d7b",
+      "files": [
+        "catalog/docserver/eventcatalogview.templ",
+        "catalog/docserver/eventcatalogview.templ"
+      ],
+      "tokens": 10
+    },
+    {
       "hash": "41e4cd9c93992bef",
       "files": [
         "record/actor.go",
@@ -859,6 +867,14 @@
       "files": [
         "metaengine/memory_graph.go",
         "metaengine/memory_graph.go"
+      ],
+      "tokens": 6
+    },
+    {
+      "hash": "98925078b983ccdf",
+      "files": [
+        "catalog/architecture/index.go",
+        "cmd/cqrs-lint/discordsync_fixture_test.go"
       ],
       "tokens": 6
     },
