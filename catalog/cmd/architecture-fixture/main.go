@@ -28,7 +28,7 @@ type orderCreated struct {
 }
 
 type getOrder struct {
-	OrderID string `json:"order_id" doc:"Order identifier"`
+	OrderID string `json:"order_id" doc:"Order identifier"` //nolint:tagliatelle // mirrors the external snake_case API this fixture documents
 }
 
 func fixtureCatalog() *catalog.Catalog {
@@ -119,7 +119,7 @@ func fixtureCatalog() *catalog.Catalog {
 
 func main() {
 	if len(os.Args) != 2 {
-		fail("usage: architecture-fixture <output.html>")
+		failf("usage: architecture-fixture <output.html>")
 	}
 
 	exp := architecture.NewExporter(
@@ -129,11 +129,12 @@ func main() {
 	)
 
 	if err := exp.ExportFile(fixtureCatalog(), os.Args[1]); err != nil {
-		fail("render: %v", err)
+		failf("render: %v", err)
 	}
 }
 
-func fail(format string, args ...any) {
+func failf(format string, args ...any) {
 	_, _ = fmt.Fprintf(os.Stderr, "architecture-fixture: "+format+"\n", args...)
+
 	os.Exit(1)
 }
