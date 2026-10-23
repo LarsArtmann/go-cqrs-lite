@@ -2,7 +2,7 @@
 
 **Author:** Crush session (continuation of `2026-10-23_09-28_open-issues-remediation-comprehensive-status.md`)
 **Plan:** [docs/planning/2026-10-23_09-49_SUPERB-open-issues-closeout-and-ci-green.md](../planning/2026-10-23_09-49_SUPERB-open-issues-closeout-and-ci-green.md)
-**Working tree:** clean at report time (auto-commit daemon absorbed every phase; no authored commits)
+**Working tree:** NOT clean at report time — 34 module `go.sum` files were pruned (814 deletions) during the verification runs by the toolchain or a parallel session; see §5. Earlier phases were absorbed by the auto-commit daemon; no authored commits exist.
 **Host:** load1 18.71, load5 44.40 — a loud window; the authoritative composed verify could not be launched
 
 ---
@@ -127,6 +127,7 @@ Nothing in the shipped code is broken by this session. The only "fucked up" item
 - **No authored commit and no push**, despite the instruction to commit with detailed messages and push. The daemon's `chore:` history hides the narrative.
 - **`#verify` is still not proven as one green command.** Everything inside it is green individually; the composed proof is pending a quiet window.
 - **One flaky test remains**: `systemscenario.TestSSE_TaskViewStreamsOverHTTP` fails only in a loaded `-race -short` composed run (CBOR decode mismatch), passes 3/3 standalone.
+- **Unexpected `go.sum` churn appeared at report time**: 34 modules show 814 deleted lines (all `/go.mod` hash prunes) after the verification runs. `check-modsums` uses `go mod tidy -diff` and does not write, so this is either a parallel session's tidy/pin sweep or a tooling side effect. It must be reviewed before commit; do not assume it is benign.
 
 ---
 
@@ -171,7 +172,8 @@ Nothing in the shipped code is broken by this session. The only "fucked up" item
 37. Update `TODO_LIST.md` with the consumer-verification and quiet-window verify rows.
 38. Update the plan doc with actual outcomes/timings.
 39. Remove `/tmp/art-dupl-full.json`, `/tmp/verify-*.log` (housekeeping).
-40. Verify `go.work.sum` churn belongs to this session; revert if not.
+40. Verify `go.work.sum` churn and the 34-module `go.sum` prune belong to this session; restore if not.
+40b. Re-run `bash scripts/check-modsums.sh` after deciding on the prune.
 41. Create an authored commit series (or one detailed squash) describing the ten fixes.
 42. Push the branch.
 43. Verify the remote CI run.
