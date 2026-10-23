@@ -81,7 +81,7 @@ CRM total is now 61 findings, all unrelated rules (A032, C013, B004, ...). webph
 | Item | State | What is missing |
 |---|---|---|
 | Composed `nix run .#verify` | Not run | Never launched: gate requires load1 **and** load5 < 10 plus a 60s stable tree. 20 attempts over 3600s, load 15-87. Every constituent gate ran green individually instead. |
-| Full `nix run .#test` sweep | **Running at report time** | 118 packages `ok`, 0 `FAIL` observed so far; the run had not finished when this report was written. |
+| Full `nix run .#test` sweep | **DONE, green** | `#test` finished with **146 packages `ok`, 0 `FAIL`, rc=0**, including `systemscenario` (where the SSE flake lives) and `system/integration`. |
 | `nix run .#test-race` sweep | Not run | Deliberately deferred: it is the most load-sensitive leg and would have competed with the test sweep. |
 | `nix run .#check-release-scripts` | Not run | I appended `check-nix-hashes.sh --self-test` to its step list but never executed the gate afterwards. The self-test itself passes standalone. |
 | `#check-coverage` | Not re-run after my changes | `cmd/cqrs-lint` is not in that gate's scope, so no expected delta; still unverified this pass. |
@@ -142,7 +142,7 @@ CRM total is now 61 findings, all unrelated rules (A032, C013, B004, ...). webph
 9. Correct issue #79's own "To verify" section (the version-less fixture it asks for is exactly what hid the bug).
 
 **Verification**
-10. Finish the running `#test` sweep and record the pass count.
+10. Record the completed `#test` sweep (146 ok / 0 FAIL / rc=0) in the issue comments and the CHANGELOG-adjacent notes.
 11. Run `#test-race` (or `-race -short`) and triage any failure against load before believing it.
 12. Run `#check-release-scripts` after the self-test addition.
 13. Run `#check-coverage` to confirm no drift from this pass.

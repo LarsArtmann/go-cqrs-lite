@@ -67,6 +67,8 @@ if [ "${1:-}" = "--self-test" ]; then
 	if ! NH_ROOT="$NH_TMP" "$0" flake.nix >/dev/null 2>&1; then
 		echo "  ✗ FAIL: clean fixture must pass" >&2
 		failures=$((failures + 1))
+	else
+		echo "  ✓ PASS: clean fixture passes"
 	fi
 
 	# Leg 2: the all-zero placeholder is caught.
@@ -75,6 +77,8 @@ if [ "${1:-}" = "--self-test" ]; then
 	if NH_ROOT="$NH_TMP" "$0" flake.nix >/dev/null 2>&1; then
 		echo "  ✗ FAIL: zero-hash placeholder must fail" >&2
 		failures=$((failures + 1))
+	else
+		echo "  ✓ PASS: zero-hash placeholder caught"
 	fi
 
 	# Leg 3: the nixpkgs constant is caught.
@@ -82,12 +86,26 @@ if [ "${1:-}" = "--self-test" ]; then
 	if NH_ROOT="$NH_TMP" "$0" flake.nix >/dev/null 2>&1; then
 		echo "  ✗ FAIL: lib.fakeHash must fail" >&2
 		failures=$((failures + 1))
+	else
+		echo "  ✓ PASS: lib.fakeHash caught"
 	fi
 
 	# Leg 4: a missing file is loud, never a silent pass.
 	if NH_ROOT="$NH_TMP" "$0" absent.nix >/dev/null 2>&1; then
 		echo "  ✗ FAIL: missing file must fail" >&2
 		failures=$((failures + 1))
+	else
+		echo "  ✓ PASS: missing file is loud"
+	fi
+
+	# Leg 5: the empty-hash form (a rewrite that blanks the value instead of
+	# zeroing it) is the same broken-realisation class.
+	printf 'outputs = { vendorHash = ""; };\n' >"$NH_TMP/flake.nix"
+	if NH_ROOT="$NH_TMP" "$0" flake.nix >/dev/null 2>&1; then
+		echo "  ✗ FAIL: empty hash must fail" >&2
+		failures=$((failures + 1))
+	else
+		echo "  ✓ PASS: empty hash caught"
 	fi
 
 	if [ "$failures" -gt 0 ]; then
