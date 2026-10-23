@@ -252,3 +252,12 @@ flowchart TD
   readable through every migration window.
 - No new envelopes/formats beyond unifying timers onto the existing gcdc envelope.
 - No re-tag of modules whose only delta is cosmetic (the wave-I "(10 tags)" heading stays).
+
+## Addendum (2026-10-23, resuming session)
+
+- **CORRECTION — A10 was dropped by mistake.** Plan v2's A10 (cqrs-lint branded-`.String()`
+  rule, warn-first; v2 fine tasks B33–B36) was accidentally omitted from both the 2026-10-23
+  status report and this plan's task tables. It is re-rowed in TODO_LIST §"Disk-truth plan
+  residue" (🔥 row). It slots into the C11 docs-truth vicinity as a mechanical-prevention tail
+  item — schedule after the release chain and the typed-WAL cluster, before closeout; NOT
+  blocking C02–C10.
