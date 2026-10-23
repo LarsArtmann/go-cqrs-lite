@@ -90,6 +90,9 @@ var (
 	// SwapEngine error.
 	errSwapEngineNotFound = errors.New("metaengine.SwapEngine: engine not found")
 
+	// Scan exactness error.
+	errScanTruncated = errors.New("metaengine: scan result was truncated")
+
 	// SSE error.
 	errSSENoFlusher = errors.New("metaengine.ServeSSE: response writer does not support flushing")
 
@@ -184,4 +187,10 @@ var (
 	// requested DurabilityTier is invalid or not implemented by the driver.
 	// See ValidateDurabilityTier and RejectDurabilityTier.
 	ErrUnsupportedDurability = errUnsupportedDurability
+
+	// ErrScanTruncated is returned by TypedReader.Scan/ScanPage when
+	// WithExact was requested and the engine reported more matching rows than
+	// the scan limit returned. It makes an otherwise silent truncation loud:
+	// callers that need the complete set can raise the limit or use WithLimit(0).
+	ErrScanTruncated = errScanTruncated
 )

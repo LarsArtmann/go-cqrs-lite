@@ -7,6 +7,7 @@ type scanConfig struct {
 	sortCols []SortColumn
 	cursor   any
 	limit    int
+	exact    bool
 	ranges   []RangeSpec
 	inSpecs  []InSpec
 }
@@ -96,6 +97,16 @@ func WithOr(filters ...FilterSpec) ScanOption {
 // 100 when no WithLimit option is passed.
 func WithLimit(n int) ScanOption {
 	return func(c *scanConfig) { c.limit = n }
+}
+
+// WithExact makes Scan and ScanPage return [ErrScanTruncated] instead of a
+// silently truncated result. Without it, a bounded scan that hits its limit is
+// indistinguishable from a complete one at the call site.
+//
+// It composes with WithLimit: WithExact answers "was this the WHOLE result?",
+// not "return more rows". With WithLimit(0) (unbounded) it can never fail.
+func WithExact() ScanOption {
+	return func(c *scanConfig) { c.exact = true }
 }
 
 // WithCursor sets the keyset pagination cursor (the last sort key from the

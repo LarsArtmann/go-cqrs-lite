@@ -8,25 +8,24 @@ import (
 // Scan returns the values matching the given filter/sort/limit options.
 // Uses raw scan when available for single-pass decode per row.
 //
-// WARNING: without [WithLimit], Scan returns at most 100 rows — a silent
+// WARNING: without [WithLimit], Scan returns at most 100 rows, a silent
 // truncation for larger collections. Pass [WithLimit] with the page size you
 // want, or WithLimit(0) for an unbounded scan (no SQL LIMIT clause). An
 // operator may re-pin this default store-wide with [WithDefaultLimit]
-// (plan option) — an explicit WithLimit always wins.
+// (plan option); an explicit WithLimit always wins.
+//
+// To distinguish "exactly the returned rows" from "the first N of many", pass
+// [WithExact]: a truncated result then returns [ErrScanTruncated] instead of a
+// silently short slice. Use [TypedReader.ScanPage] when you want the cursor for
+// the next page rather than an error.
 func (r *TypedReader[V]) Scan(ctx context.Context, opts ...ScanOption) ([]V, error) {
 	items, _, err := r.scanItems(ctx, opts...)
 	return items, err
 }
 
-// scanItems is the scan dispatch shared by Scan and ScanPage: it runs the
-// current scan path and additionally surfaces the engine's pagination
-// metadata (pageMeta) so ScanPage can prefer the engine-issued compound
-// cursor over reflection-minted value cursors.
+// scanItems is the scan dispatch shared by Scan and ScanPage. It applies the
+// scan options and enforces [WithExact] on the resulting metadata.
 func (r *TypedReader[V]) scanItems(ctx context.Context, opts ...ScanOption) ([]V, pageMeta, error) {
-	if err := r.store.IsPoisoned(r.collection); err != nil {
-		return nil, pageMeta{}, err
-	}
-
 	cfg := scanConfig{limit: 100}
 	if dl := r.store.defaultLimit; dl > 0 {
 		cfg.limit = dl
@@ -34,6 +33,33 @@ func (r *TypedReader[V]) scanItems(ctx context.Context, opts ...ScanOption) ([]V
 
 	for _, opt := range opts {
 		opt(&cfg)
+	}
+
+	items, meta, err := r.scanItemsConfigured(ctx, cfg)
+	if err != nil {
+		return nil, pageMeta{}, err
+	}
+
+	if cfg.exact && meta.hasMore {
+		return nil, pageMeta{}, fmt.Errorf(
+			"%w: collection %q has more rows than the limit of %d (use a higher "+
+				"WithLimit, WithLimit(0), or ScanPage for the next cursor)",
+			ErrScanTruncated, r.collection, cfg.limit,
+		)
+	}
+
+	return items, meta, nil
+}
+
+// scanItemsConfigured runs the scan with a fully applied option set and
+// surfaces the engine's pagination metadata (pageMeta) so ScanPage can prefer
+// the engine-issued compound cursor over reflection-minted value cursors.
+func (r *TypedReader[V]) scanItemsConfigured(
+	ctx context.Context,
+	cfg scanConfig,
+) ([]V, pageMeta, error) {
+	if err := r.store.IsPoisoned(r.collection); err != nil {
+		return nil, pageMeta{}, err
 	}
 
 	// Operator and column names are spliced into SQL text (never bound as
@@ -70,7 +96,9 @@ func (r *TypedReader[V]) scanItems(ctx context.Context, opts ...ScanOption) ([]V
 				result = append(result, v)
 			}
 
-			return trimToLimit(result, cfg.limit), pageMeta{}, nil
+			meta := pageMeta{hasMore: cfg.limit > 0 && len(cached) > cfg.limit}
+
+			return trimToLimit(result, cfg.limit), meta, nil
 		}
 	}
 
