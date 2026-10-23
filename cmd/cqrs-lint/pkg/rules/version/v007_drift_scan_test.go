@@ -10,6 +10,8 @@ import (
 	"strings"
 	"sync"
 	"testing"
+
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 )
 
 // This file implements the V007 drift contract's repo scanner: it walks the
@@ -165,7 +167,7 @@ func walkV5Markers(root string) ([]v5DriftDecl, []string, error) {
 			failed = append(failed, path+": "+rerr.Error())
 			return nil //nolint:nilerr // skip unrelativizable path, recorded in failed
 		}
-		frag := stripVersionSuffix(filepath.ToSlash(filepath.Dir(rel)))
+		frag := analyzer.StripVersionSegments(filepath.ToSlash(filepath.Dir(rel)))
 		posPrefix := rel
 
 		if _, v5 := v5DocSignal(src.Doc); v5 {

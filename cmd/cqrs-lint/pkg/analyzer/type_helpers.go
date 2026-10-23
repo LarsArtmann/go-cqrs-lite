@@ -88,28 +88,28 @@ func ResolveQualifierTyped(gf *GoFile, ident *ast.Ident) (path string, resolved 
 	return pkgName.Imported().Path(), true
 }
 
-// pathContainsFragment reports whether an import path contains pathFragment,
+// PathContainsFragment reports whether an import path contains pathFragment,
 // tolerating Go module major-version segments. Callers pass version-less
 // fragments ("…/catalog/simple") because the same module is imported as
 // "…/catalog/v4/simple" once it carries a /vN suffix; a plain substring test
 // silently missed every versioned module (issue #79: catalog/v4/simple
 // registrations were invisible while the version-less fixture passed).
-func pathContainsFragment(path, fragment string) bool {
+func PathContainsFragment(path, fragment string) bool {
 	if strings.Contains(path, fragment) {
 		return true
 	}
 
-	return strings.Contains(stripVersionSegments(path), fragment)
+	return strings.Contains(StripVersionSegments(path), fragment)
 }
 
-// stripVersionSegments removes Go major-version path elements (v2, v3, …,
+// StripVersionSegments removes Go major-version path elements (v2, v3, …,
 // v10) so versioned and version-less module paths compare equal.
-func stripVersionSegments(path string) string {
+func StripVersionSegments(path string) string {
 	segments := strings.Split(path, "/")
 	kept := segments[:0]
 
 	for _, segment := range segments {
-		if isMajorVersionSegment(segment) {
+		if IsMajorVersionSegment(segment) {
 			continue
 		}
 
@@ -119,10 +119,12 @@ func stripVersionSegments(path string) string {
 	return strings.Join(kept, "/")
 }
 
-// isMajorVersionSegment reports whether segment is a Go module major-version
-// element ("v2".."v99"): a "v" followed only by digits.
-func isMajorVersionSegment(segment string) bool {
-	if len(segment) < 2 || segment[0] != 'v' {
+// IsMajorVersionSegment reports whether segment is a Go module major-version
+// element ("v2".."v99"): a "v" followed only by digits, not the "v1" of an
+// ordinary directory (Go module suffixes start at v2, so stripping "v1" would
+// mangle legitimate paths).
+func IsMajorVersionSegment(segment string) bool {
+	if len(segment) < 2 || segment[0] != 'v' || segment[1:] == "1" {
 		return false
 	}
 
@@ -153,7 +155,7 @@ func IsQualifierFor(gf *GoFile, sel *ast.SelectorExpr, pathFragment string) bool
 	}
 
 	if path, resolved := ResolveQualifierTyped(gf, ident); resolved {
-		return pathContainsFragment(path, pathFragment)
+		return PathContainsFragment(path, pathFragment)
 	}
 
 	segment := pathFragment

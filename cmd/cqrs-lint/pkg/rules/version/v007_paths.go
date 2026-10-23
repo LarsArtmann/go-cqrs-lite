@@ -3,6 +3,8 @@ package version
 import (
 	"go/ast"
 	"strings"
+
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 )
 
 // Path-resolution and table-lookup helpers for V007 (v5-removed-api-usage),
@@ -71,32 +73,13 @@ func cqrsModuleOf(importPath string) (string, bool) {
 		return "", false
 	}
 
-	return stripVersionSuffix(rest), true
-}
-
-// stripVersionSuffix removes every major-version segment ("/v2".."/v9")
-// from a module path. Both module-root imports ("stack/sqlite/v4") and
-// subpackages of versioned modules ("storage/v4/relational") must normalize
-// to the table fragment ("stack/sqlite", "storage/relational"): the version
-// segment sits mid-path whenever a module carries more than one package.
-func stripVersionSuffix(path string) string {
-	segs := strings.Split(path, "/")
-	kept := segs[:0]
-	for _, seg := range segs {
-		if len(seg) == 2 && seg[0] == 'v' && seg[1] >= '2' && seg[1] <= '9' {
-			continue
-		}
-
-		kept = append(kept, seg)
-	}
-
-	return strings.Join(kept, "/")
+	return analyzer.StripVersionSegments(rest), true
 }
 
 // defaultQualifier returns the package qualifier an unaliased import binds:
 // the last path segment, with a major-version suffix ("/v2".."/v9") stripped.
 func defaultQualifier(path string) string {
-	return lastPathSegment(stripVersionSuffix(path))
+	return lastPathSegment(analyzer.StripVersionSegments(path))
 }
 
 // lastPathSegment returns the final slash-separated segment of an import

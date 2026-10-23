@@ -633,10 +633,10 @@
               owner = "golang";
               repo = "perf";
               rev = "406019bb8b6893dd1245d31bf511c719619bb5c9";
-              hash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+              hash = "sha256-R0Gu3giMeJKbDNT1LcKCOZTznoc1wGYCxmvt+dA5mhM=";
             };
             subPackages = [ "cmd/benchstat" ];
-            vendorHash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+            vendorHash = "sha256-9y6O/R2fOPYAGjlIZ2lcO1TNiZPj6My3EoPRiiFZu3U=";
           };
         in
         {
@@ -830,7 +830,7 @@
 
               src = mkCqrsLintSource pkgs;
 
-              vendorHash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+              vendorHash = "sha256-J7gNXzrVQ4cPdAXBHTjwu7mvvHZskDsFYIURJuoBIEM=";
               proxyVendor = true;
 
               subPackages = [ "." ];
@@ -887,7 +887,7 @@
 
               # Re-pinned 2026-10-17: md-go-validator input moved on master
               # again (same class as the 2026-09-29/10-04/10-11/10-13 shifts).
-              vendorHash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+              vendorHash = "sha256-x5WV5wQbbYjAX9YPa7yCcZkcB3m81wwVrlxSmcwZB1o=";
               proxyVendor = true;
 
               subPackages = [ "cmd/md-go-validator" ];
@@ -936,10 +936,10 @@
                 owner = "LarsArtmann";
                 repo = "art-dupl";
                 rev = "v0.7.0";
-                hash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+                hash = "sha256-KOjiTspiVFweUiSYPCPb+Lnk+sqymnfIyujxduk9tOY=";
               };
 
-              vendorHash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+              vendorHash = "sha256-C/CUJ5zWvHDQrgw658LinO80HOWQ2EQQRt8YG7KmkVE=";
               proxyVendor = true;
 
               env = {

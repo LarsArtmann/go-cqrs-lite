@@ -135,7 +135,7 @@ func importLocalName(imp *ast.ImportSpec) string {
 	}
 
 	path := strings.Trim(imp.Path.Value, `"`)
-	if idx := strings.LastIndex(path, "/"); idx >= 0 && isVersionSegment(path[idx+1:]) {
+	if idx := strings.LastIndex(path, "/"); idx >= 0 && analyzer.IsMajorVersionSegment(path[idx+1:]) {
 		path = path[:idx]
 	}
 
@@ -144,22 +144,6 @@ func importLocalName(imp *ast.ImportSpec) string {
 	}
 
 	return path
-}
-
-// isVersionSegment reports whether s looks like a module major-version
-// suffix: "v" followed by digits only.
-func isVersionSegment(s string) bool {
-	if len(s) < 2 || s[0] != 'v' {
-		return false
-	}
-
-	for _, r := range s[1:] {
-		if r < '0' || r > '9' {
-			return false
-		}
-	}
-
-	return true
 }
 
 // e020Finding builds the finding for one hand-rolled boot, anchored at the

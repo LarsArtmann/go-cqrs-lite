@@ -33,7 +33,7 @@ import (
 // markers by the drift meta-tests in v007_drift_test.go. A new v5 removal
 // without a table (or allowlist) entry fails the suite, and a stale table
 // entry outliving its symbol fails the reverse check. Fragments are
-// normalized with stripVersionSuffix, so subpackages of versioned modules
+// normalized with analyzer.StripVersionSegments, so subpackages of versioned modules
 // (storage/v4/relational) map to the same fragment space as module roots.
 //
 // Skipped in library self-lint mode: the library legitimately references its
