@@ -14,6 +14,10 @@ import (
 // helpers (projectHasCallAny, firstCallPos, firstFuncDeclPos, ...) delegate
 // to them so all callers share one code path.
 
+// importsPathIn reports whether any non-test file imports a path matching one
+// of the fragments. Matching tolerates Go major-version segments, so a
+// version-less fragment ("…/metaengine") also matches
+// "…/metaengine/v4/graphadapter" (see analyzer.PathContainsFragment).
 func importsPathIn(files []*analyzer.GoFile, suffixes ...string) bool {
 	for _, gf := range files {
 		if gf.IsTest {
@@ -25,7 +29,7 @@ func importsPathIn(files []*analyzer.GoFile, suffixes ...string) bool {
 			}
 			path := strings.Trim(imp.Path.Value, `"`)
 			for _, suffix := range suffixes {
-				if strings.Contains(path, suffix) {
+				if analyzer.PathContainsFragment(path, suffix) {
 					return true
 				}
 			}
