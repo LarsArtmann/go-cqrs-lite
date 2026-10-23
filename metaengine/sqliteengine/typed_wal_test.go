@@ -8,6 +8,7 @@ package sqliteengine_test
 import (
 	"context"
 	"database/sql"
+	"encoding/json/v2"
 	"path/filepath"
 	"testing"
 
@@ -37,10 +38,36 @@ func openTypedWALEngine(t *testing.T) (metaengine.Engine, *sql.DB) {
 	return eng, db
 }
 
-const typedEventEnvelope = `{"id":"01TYPED0000000000000000001","type":"t.evt",` +
-	`"stream_id":"01TYPEDSTREAM000000000001","stream_type":"Task","version":1,` +
-	`"schema_version":0,"payload":"gx9mA2p9bnVt","encoding":"cbor",` +
-	`"metadata":"e30=","occurred_at":"2026-10-23T15:00:00Z"}`
+// typedEnvelope builds a wire envelope the way the system adapter does —
+// json.Marshal of the real shape — so the []byte fields carry guaranteed-valid
+// base64 (hand-written fixture strings once shipped INVALID base64 and the
+// json decode of the payload field failed, silently disabling typed
+// extraction for the whole row: the A11 red-pin lesson).
+func typedEnvelope(t *testing.T, eventID, streamID string, version int) string {
+	t.Helper()
+
+	data, err := json.Marshal(map[string]any{
+		"id":             eventID,
+		"type":           "t.evt",
+		"stream_id":      streamID,
+		"stream_type":    "Task",
+		"version":        version,
+		"schema_version": 0,
+		"payload":        []byte{0xa1, 0x02, 0x69, 0x64},
+		"encoding":       "cbor",
+		"metadata":       []byte(`{}`),
+		"occurred_at":    "2026-10-23T15:00:00Z",
+	})
+	if err != nil {
+		t.Fatalf("marshal envelope: %v", err)
+	}
+
+	return string(data)
+}
+
+const typedStreamID = "01TYPEDSTREAM000000000001"
+const typedEventID1 = "01TYPED0000000000000000001"
+const typedEventID2 = "01TYPED0000000000000000002"
 
 func TestTypedWAL_DuplicateEventAppendConflicts(t *testing.T) {
 	t.Parallel()
@@ -50,18 +77,15 @@ func TestTypedWAL_DuplicateEventAppendConflicts(t *testing.T) {
 	backend := eng.(metaengine.StreamLogBackend)
 	ctx := context.Background()
 
-	if err := backend.StreamAppend(ctx, "events", "Task:01TYPEDSTREAM000000000001",
-		[]any{typedEventEnvelope}); err != nil {
+	env := typedEnvelope(t, typedEventID1, typedStreamID, 1)
+
+	if err := backend.StreamAppend(ctx, "events", "Task:"+typedStreamID,
+		[]any{env}); err != nil {
 		t.Fatalf("first append: %v", err)
 	}
 
-	err := backend.StreamAppend(ctx, "events", "Task:01TYPEDSTREAM000000000001",
-		[]any{typedEventEnvelope})
-	if err == nil {
-		t.Fatal("duplicate event append must conflict (UNIQUE event_id)")
-	}
-
-	if err != metaengine.ErrVersionConflict {
+	err := backend.StreamAppend(ctx, "events", "Task:"+typedStreamID, []any{env})
+	if !metaengine.Is(err, metaengine.ErrVersionConflict) {
 		t.Fatalf("duplicate append error = %v, want metaengine.ErrVersionConflict", err)
 	}
 }
@@ -74,20 +98,16 @@ func TestTypedWAL_StreamVersionDuplicateConflicts(t *testing.T) {
 	backend := eng.(metaengine.StreamLogBackend)
 	ctx := context.Background()
 
-	if err := backend.StreamAppend(ctx, "events", "Task:01TYPEDSTREAM000000000002",
-		[]any{typedEventEnvelope}); err != nil {
+	if err := backend.StreamAppend(ctx, "events", "Task:"+typedStreamID,
+		[]any{typedEnvelope(t, typedEventID1, typedStreamID, 1)}); err != nil {
 		t.Fatalf("seed append: %v", err)
 	}
 
 	// Same (collection, stream, version), DIFFERENT event id: the second
 	// identity index must reject the slot collision.
-	otherID := `{"id":"01TYPED0000000000000000002","type":"t.evt",` +
-		`"stream_id":"01TYPEDSTREAM000000000002","stream_type":"Task","version":1,` +
-		`"payload":"gA","encoding":"cbor","metadata":"e30=",` +
-		`"occurred_at":"2026-10-23T15:00:01Z"}`
-
-	err := backend.StreamAppend(ctx, "events", "Task:01TYPEDSTREAM000000000002", []any{otherID})
-	if err != metaengine.ErrVersionConflict {
+	err := backend.StreamAppend(ctx, "events", "Task:"+typedStreamID,
+		[]any{typedEnvelope(t, typedEventID2, typedStreamID, 1)})
+	if !metaengine.Is(err, metaengine.ErrVersionConflict) {
 		t.Fatalf("(stream,version) duplicate error = %v, want ErrVersionConflict", err)
 	}
 }
@@ -100,8 +120,8 @@ func TestTypedWAL_TypedColumnsFilled(t *testing.T) {
 	backend := eng.(metaengine.StreamLogBackend)
 	ctx := context.Background()
 
-	if err := backend.StreamAppend(ctx, "events", "Task:01TYPEDSTREAM000000000001",
-		[]any{typedEventEnvelope}); err != nil {
+	if err := backend.StreamAppend(ctx, "events", "Task:"+typedStreamID,
+		[]any{typedEnvelope(t, typedEventID1, typedStreamID, 1)}); err != nil {
 		t.Fatalf("append: %v", err)
 	}
 
@@ -120,7 +140,7 @@ func TestTypedWAL_TypedColumnsFilled(t *testing.T) {
 		t.Fatalf("read typed columns: %v", err)
 	}
 
-	if eventID != "01TYPED0000000000000000001" || streamType != "Task" ||
+	if eventID != typedEventID1 || streamType != "Task" ||
 		version != 1 || encoding != "cbor" {
 		t.Fatalf("typed identity columns wrong: %q %q %d %q", eventID, streamType, version, encoding)
 	}
@@ -155,7 +175,8 @@ func TestTypedWAL_LegacyDatabaseMigratesInPlace(t *testing.T) {
 	}
 
 	if _, err := db.Exec(`INSERT INTO meta_stream_log (collection, stream_id, value)
-		VALUES ('events', 'Task:01TYPEDSTREAM000000000001', ?)`, typedEventEnvelope); err != nil {
+		VALUES ('events', 'Task:`+typedStreamID+`', ?)`,
+		typedEnvelope(t, typedEventID1, typedStreamID, 1)); err != nil {
 		t.Fatalf("seed legacy row: %v", err)
 	}
 
@@ -176,7 +197,7 @@ func TestTypedWAL_LegacyDatabaseMigratesInPlace(t *testing.T) {
 		t.Fatalf("read backfilled columns: %v", err)
 	}
 
-	if eventID != "01TYPED0000000000000000001" || version != 1 {
+	if eventID != typedEventID1 || version != 1 {
 		t.Fatalf("backfill wrong: event_id=%q version=%d", eventID, version)
 	}
 
@@ -184,14 +205,13 @@ func TestTypedWAL_LegacyDatabaseMigratesInPlace(t *testing.T) {
 	backend := eng.(metaengine.StreamLogBackend)
 
 	err = backend.StreamAppend(context.Background(), "events",
-		"Task:01TYPEDSTREAM000000000001", []any{typedEventEnvelope})
-	if err != metaengine.ErrVersionConflict {
+		"Task:"+typedStreamID, []any{typedEnvelope(t, typedEventID1, typedStreamID, 1)})
+	if !metaengine.Is(err, metaengine.ErrVersionConflict) {
 		t.Fatalf("post-migration duplicate = %v, want ErrVersionConflict", err)
 	}
 
 	// Reads through the engine still work (value envelope untouched).
-	vals, err := backend.StreamRead(context.Background(), "events",
-		"Task:01TYPEDSTREAM000000000001")
+	vals, err := backend.StreamRead(context.Background(), "events", "Task:"+typedStreamID)
 	if err != nil || len(vals) != 1 {
 		t.Fatalf("StreamRead after migration: %v, %d values", err, len(vals))
 	}
@@ -202,8 +222,7 @@ func TestTypedWAL_LegacyDatabaseMigratesInPlace(t *testing.T) {
 		t.Fatal("engine must implement EventByIDBackend")
 	}
 
-	_, err = byID.StreamLoadByEventID(context.Background(), "events",
-		"01TYPED0000000000000000001")
+	_, err = byID.StreamLoadByEventID(context.Background(), "events", typedEventID1)
 	if err != nil {
 		t.Fatalf("StreamLoadByEventID after migration: %v", err)
 	}

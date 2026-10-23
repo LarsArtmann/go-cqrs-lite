@@ -2,7 +2,6 @@ package sqliteengine
 
 import (
 	"database/sql"
-	"encoding/base64"
 	"encoding/json/v2"
 	"fmt"
 	"strings"
@@ -67,6 +66,8 @@ func extractTypedStreamRow(encoded string) (typedStreamRow, bool) {
 		streamType: &st,
 		version:    &version,
 		encoding:   &enc,
+		payload:    env.Payload,
+		metadata:   env.Metadata,
 	}
 
 	if env.SchemaVersion != 0 {
@@ -74,13 +75,10 @@ func extractTypedStreamRow(encoded string) (typedStreamRow, bool) {
 		row.schemaVersion = &sv
 	}
 
-	if decoded, err := base64.StdEncoding.DecodeString(string(env.Payload)); err == nil {
-		row.payload = decoded
-	}
-
-	if decoded, err := base64.StdEncoding.DecodeString(string(env.Metadata)); err == nil {
-		row.metadata = decoded
-	}
+	// env.Payload / env.Metadata arrive ALREADY base64-decoded: encoding/json
+	// decodes []byte fields from their base64 wire form. Re-decoding here would
+	// corrupt the column whenever the raw bytes are coincidentally valid
+	// base64 (found by the A11 pins, 2026-10-23).
 
 	if t, err := time.Parse(time.RFC3339Nano, env.OccurredAt); err == nil {
 		nanos := t.UnixNano()
