@@ -28,6 +28,10 @@ func (s *Store) RegisterQuery(query any) error {
 		return fmt.Errorf("metaengine.RegisterQuery: %w", err)
 	}
 
+	if err := validateCapConfig(meta); err != nil {
+		return fmt.Errorf("metaengine.RegisterQuery: %w", err)
+	}
+
 	s.mu.Lock()
 	defer s.mu.Unlock()
 

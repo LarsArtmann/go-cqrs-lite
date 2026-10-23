@@ -20,6 +20,34 @@ type QueryConfig struct {
 	sortAccessor    sortAccessor
 	columnarLayout  bool
 	layoutPriority  Priority // developer per-query layout priority (ADR-0124 Layer 4)
+
+	// Bounded projection policy (see WithCap). Enforced by Store.EnforceCap.
+	capRows    int
+	capOrderBy string
+}
+
+// CapRows returns the declared keep-newest cap for this query; 0 means the
+// projection is uncapped.
+func (c QueryConfig) CapRows() int { return c.capRows }
+
+// CapOrderBy returns the column that orders the cap: the newest rows by this
+// column are the ones retained.
+func (c QueryConfig) CapOrderBy() string { return c.capOrderBy }
+
+// WithCap declares a bounded projection: at most maxRows rows are retained,
+// ordered by orderBy (descending, so the largest orderBy values survive).
+// Trim rows with [Store.EnforceCap] or [Store.EnforceCaps] after a batch append
+// or on a timer; enforcement is deliberately not part of every insert.
+//
+// The query must be a Map projection (an insert fold) whose result type carries
+// the query's key type: trimming addresses rows by that key. maxRows <= 0
+// disables the cap. A plain column name is required; the value must be sortable
+// by the assigned engine.
+func WithCap(maxRows int, orderBy string) QueryOption {
+	return func(c *QueryConfig) {
+		c.capRows = maxRows
+		c.capOrderBy = orderBy
+	}
 }
 
 // FilterCount returns the number of declarative filters on this query.
