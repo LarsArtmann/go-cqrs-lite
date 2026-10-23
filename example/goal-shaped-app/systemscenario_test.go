@@ -144,6 +144,13 @@ func TestScenario_GoalStory(t *testing.T) {
 				return fmt.Errorf("view: got %T, want TaskView", got)
 			}
 
+			// Disk-truth pin (A7): the view carries the BARE stream value —
+			// the prefixed String() display form here would key the read
+			// model off the wire identity every other layer dispatches on.
+			if view.ID != doneID.Get() {
+				return fmt.Errorf("view.ID: want bare %q, got %q", doneID.Get(), view.ID)
+			}
+
 			return goalDoneView(view)
 		}).
 		ThenQueryFunc(goneView, wantGone).
