@@ -2,7 +2,9 @@ package adttest
 
 import (
 	"context"
+	"fmt"
 	"testing"
+	"time"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
@@ -28,19 +30,36 @@ func AssertTxIsolationFromForeignContext(t *testing.T, eng metaengine.Engine) {
 		t.Fatalf("engine does not implement metaengine.MapBackend")
 	}
 
-	const col = "tx_iso_map"
+	// Run-unique collection: a fixed name lets a committed "ghost" from a
+	// previous run against the same persistent database surface as a dirty
+	// read on every rerun (the 2026-10-17 mysqlengine false-positive: first
+	// run green, all reruns red until the package timeout; same rule as
+	// dedup/temporal conformance).
+	col := fmt.Sprintf("tx_iso_%d", time.Now().UnixNano())
 
 	inside := make(chan struct{})
 	commit := make(chan struct{})
 	done := make(chan error, 1)
 
+	// Release the tx goroutine on EVERY exit path: a Fatalf below otherwise
+	// parks it on <-commit forever, and the engine's Close in test cleanup
+	// then deadlocks until the package timeout (observed as a 600s hang).
+	defer func() {
+		select {
+		case <-commit:
+		default:
+			close(commit)
+		}
+	}()
+
 	go func() {
 		done <- tx.RunInTx(context.Background(), func(tctx context.Context) error {
-			if err := mb.MapSet(tctx, col, "ghost", "uncommitted"); err != nil {
+			err := mb.MapSet(tctx, col, "ghost", "uncommitted")
+			close(inside)
+			if err != nil {
 				return err
 			}
 
-			close(inside)
 			<-commit
 
 			return nil

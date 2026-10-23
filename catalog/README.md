@@ -772,11 +772,21 @@ mux.HandleFunc("/health", docserver.HealthCheckHandler(cat))
 | `GET {docs}/d2.txt`               | Raw D2 diagram text                                   |
 | `GET {docs}/catalog.json`         | Raw catalog snapshot                                  |
 | `GET {docs}/static/*`             | Embedded assets (docs-ui.css, favicon, vendored SPAs) |
+| `GET {docs}/architecture`         | Self-contained architecture reference (opt-in: `Config.ArchitectureReference`) |
 
 `{docs}` defaults to `/docs` (override with `Config.DocsPath`). `/docs/` redirects to
 `/docs`; unknown `/docs/*` paths return 404 rather than falling back to the index.
 SPA pages reference assets with absolute DocsPath-anchored URLs and include
 `<noscript>` fallbacks linking the raw specs, so they work behind any router prefix.
+
+The architecture route streams the same self-contained HTML file the
+`catalog-export -architecture` command writes (one inline `<style>`/`<script>`
+pair, no external assets — it works without JavaScript, the search box just
+stays empty). It is served without the docserver CSP header because the
+artifact nonces nothing: its inline scripts are the feature. The render is
+cached per `*catalog.Catalog` instance, so a provider that returns a stable
+instance renders once; a provider that rebuilds per call pays a re-render per
+request, which is the honest price of freshness.
 
 ### EventCatalog File Generation
 
