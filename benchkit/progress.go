@@ -58,13 +58,10 @@ func (p *progressReporter) startHeartbeat() {
 	p.heart = time.NewTicker(p.interval)
 	p.done = make(chan struct{})
 
-	p.wg.Add(1)
-
-	go func() {
-		defer p.wg.Done()
+	p.wg.Go(func() {
 
 		p.heartbeat()
-	}()
+	})
 }
 
 func (p *progressReporter) heartbeat() {

@@ -43,20 +43,22 @@ type PlannedIndex struct {
 //   - Duplicate fields (filtered + sorted) get ONE column, not two
 //   - Each unique column gets one index
 //
-// Column types come from the field-name heuristic [inferColumnType]. For
-// reflection-derived types from the stored struct, prefer
-// [BuildLayoutPlanFromType].
+// Every column is TEXT: without the result type there is NO honest way to
+// know a field's SQL type (the old field-NAME heuristic silently typed
+// e.g. a "price" STRING column as REAL — corrupting future data on
+// typed engines). For reflection-derived types from the stored struct,
+// prefer [BuildLayoutPlanFromType].
 func BuildLayoutPlan(collection string, filterFields, sortFields []string) LayoutPlan {
-	return buildLayoutPlan(collection, filterFields, sortFields, inferColumnType)
+	return buildLayoutPlan(collection, filterFields, sortFields)
 }
 
 // buildLayoutPlan is the shared plan builder: dedup, deterministic column
-// order, one index per column. The typeFor callback decides each column's
-// declared SQL type.
+// order, one index per column. Columns are TEXT — name-based type guessing
+// is deleted (it silently mistyped future data); BuildLayoutPlanFromType
+// overrides types it can derive from the result struct.
 func buildLayoutPlan(
 	collection string,
 	filterFields, sortFields []string,
-	typeFor func(field string) string,
 ) LayoutPlan {
 	table := "meta_planned_" + sanitize(collection)
 
@@ -68,14 +70,14 @@ func buildLayoutPlan(
 	for _, f := range filterFields {
 		if !seen[f] {
 			seen[f] = true
-			columns = append(columns, PlannedColumn{Name: f, Type: typeFor(f)})
+			columns = append(columns, PlannedColumn{Name: f, Type: "TEXT"})
 		}
 	}
 
 	for _, f := range sortFields {
 		if !seen[f] {
 			seen[f] = true
-			columns = append(columns, PlannedColumn{Name: f, Type: typeFor(f)})
+			columns = append(columns, PlannedColumn{Name: f, Type: "TEXT"})
 		}
 	}
 
@@ -162,29 +164,39 @@ func sanitize(s string) string {
 	return b.String()
 }
 
-// inferColumnType guesses a SQL column type from a field name.
-// This is intentionally conservative — TEXT works for all JSON types.
-// Prefer BuildLayoutPlanFromType for reflection-based inference from the result
-// type's Go fields, which is accurate instead of name-heuristic.
-func inferColumnType(field string) string {
-	field = strings.ToLower(field)
-
-	switch {
-	case strings.Contains(field, "price"),
-		strings.Contains(field, "amount"),
-		strings.Contains(field, "rate"),
-		strings.Contains(field, "cost"):
-		return "REAL"
-	case strings.Contains(field, "priority"),
-		strings.Contains(field, "count"),
-		strings.Contains(field, "age"),
-		strings.Contains(field, "level"),
-		strings.Contains(field, "score"),
-		strings.Contains(field, "num"):
-		return "INTEGER"
-	default:
-		return "TEXT"
+// sqlTypeOf maps a Go field type to its SQL column type. Kinds with a
+// native mapping are typed; everything else degrades to TEXT (JSON still
+// round-trips) and returns a non-nil advisory error so callers can warn —
+// an unmapped type on a typed engine is a silent-corruption risk the
+// operator should hear about.
+func sqlTypeOf(t reflect.Type) (string, error) {
+	if t.Kind() == reflect.Pointer {
+		t = t.Elem()
 	}
+
+	switch t.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return "INTEGER", nil
+	case reflect.Float32:
+		return "REAL", nil
+	case reflect.Float64:
+		return "DOUBLE", nil
+	case reflect.Bool:
+		return "INTEGER", nil
+	case reflect.String:
+		return "TEXT", nil
+	}
+
+	if t == reflect.TypeFor[time.Time]() {
+		return "TEXT", nil
+	}
+
+	return "TEXT", fmt.Errorf(
+		"no native SQL mapping for %s — column degrades to TEXT (JSON-encoded); "+
+		"declare an explicit column type if typed scans must survive",
+		t,
+	)
 }
 
 // BuildLayoutPlanFromType is the reflection-based variant of BuildLayoutPlan:
@@ -224,7 +236,13 @@ func BuildLayoutPlanFromType[R any](
 
 	for i, c := range plan.Columns {
 		if t, ok := lookupFieldType(fieldTypes, c.Name); ok {
-			plan.Columns[i].Type = sqlTypeOf(t)
+			colType, advisory := sqlTypeOf(t)
+			plan.Columns[i].Type = colType
+
+			if advisory != nil {
+				slog.Warn("metaengine: planned column type degraded to TEXT",
+					"collection", collection, "column", c.Name, "go_type", t.String(), "because", advisory)
+			}
 		}
 	}
 
@@ -278,7 +296,14 @@ func BuildColumnarLayoutPlan(collection string, resultType reflect.Type) LayoutP
 			}
 			seen[name] = true
 
-			columns = append(columns, PlannedColumn{Name: name, Type: sqlTypeOf(f.Type)})
+			colType, advisory := sqlTypeOf(f.Type)
+
+			if advisory != nil {
+				slog.Warn("metaengine: planned column type degraded to TEXT",
+					"collection", collection, "column", name, "go_type", f.Type.String(), "because", advisory)
+			}
+
+			columns = append(columns, PlannedColumn{Name: name, Type: colType})
 		}
 	}
 
