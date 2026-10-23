@@ -127,7 +127,12 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 
 ---
 
-## Journal fixtures (testfixtures lessons, harvested 2026-10-17)
+## Disk-truth plan residue (harvested 2026-10-23, plan `docs/planning/2026-10-17_20-13_SUPERB-disk-truth-pareto-plan.md`)
+
+- [ ] 🔥 **keycodec v2 adoption: dual-read windows on the LSM engines + legacy KV stores (plan A9).** The codec half SHIPPED (v2 builders + escape laws + injection kill, [Unreleased] Added 2026-10-23); the ENGINE half is an L-effort migration per store, each with its own verification: (a) `metaengine/pebbleengine` (reference): swap the engine.go alias block to V2, `getAny(v2, v1)` fallback on exact-key reads (raw_reader.go MapGet, engine.go SetContains/MapSet-oldVal ×2, sort_index.go:237, layout_planner.go:243), dual concatenated prefix scans (v1 range first — seq families order by seq tail and v2 seqs continue past the v1 max, so concatenation is correct; map scans re-sort in SortPaginate), `seq_seeding.go` must scan BOTH tags, `reset.go` resetTagPrefixes must cover both ranges (journal families stay reset-immune per ADR-0143), and the planned-layout secondary index (`sortIndexKey` — its own `:`-joined grammar has the SAME injection) needs its own escaped v2; (b) replicate to `metaengine/badgerengine` + `metaengine/bboltengine` (same-shape twins); (c) legacy `storage/pebble` eventKey `"{prefix}{type}:{id}:{version}"` + `storage/bbolt` journal keys: colon-injection class, same escape treatment + dual-read + bbolt `cqrs_journal_idx` rekey; (d) README migration notes in both legacy stores (G3: dual-read window one release, then drop v1 ranges). Acceptance: per-engine conformance green + a legacy v1 fixture (pre-v2 bytes readable post-upgrade).
+- [ ] **typed WAL cluster rollout after A11–A13 land** — A14 adttest conformance + A15 stamp-default-on ride the SAME metaengine tag wave as A5's layout typing fix and the rule-path FromType fix (all currently untagged; engine standalone suites are red against published pins until that wave cuts).
+
+
 
 > Source review: `github.com/go-testfixtures/testfixtures` (v3, MIT, 1.2k stars,
 > active since 2016 — Rails-style YAML DB fixtures: wipe + load per test).
