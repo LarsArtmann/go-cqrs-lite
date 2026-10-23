@@ -953,6 +953,41 @@ replace-free — 10-25 §a2/§a3, now archived).
 - [x] **Doctor composition cross-render** — DONE 2026-10-09 (`renderDoctorFeatureProfile` prints the composition hint when `HasSystemComposition`; presence+absence pinned in `doctor_render_test.go`).
 - [ ] **Journal-side adoption (owner-gated)** — once this cqrs-lint version is tagged: run the new scorecard in `~/projects/journal`, replace the AGENTS.md "do NOT chase the grade" moat with per-row waivers (reason + revisit triggers incl. F007's "daemon lands / multi-writer / first schema break"), and route the C033 false-positive class per its ROADMAP entry. (2026-10-09 note: journal probes clean at 5/30, Modernity Modern; denominator grew 29→30 via the foreign `systemscenario` catalog entry.)
 
+> Open-issues remediation harvest (2026-10-23, from
+> `docs/status/2026-10-23_14-35_open-issues-remediation-final-closeout.md` §f).
+> Issues #78/#79/#80/#81/#83 are code-closed. Consumer evidence for #79: crm
+> 61 findings with **0** E004/F002/E005/C010/F010/S001 against versioned
+> `catalog/v4/simple` registrations; webphone 12 findings with 0 S001. The
+> rows below are what that pass deliberately did NOT do.
+
+- [ ] **#79 typed-load fixture + fragment audit** — the AST-only harness
+      (`BuildContextFromSource`, empty `types.Info`) degrades `IsQualifierFor`
+      to name matching, which is exactly how a dead rule passed its tests.
+      Add a fixture that loads a real versioned module on disk with full type
+      info, and audit every remaining rule that builds import fragments by
+      hand (`importsPathIn` was fixed on 2026-10-23; the rest are unknown).
+      _(Effort: M)_
+- [ ] **#79 catalog symmetry + limitation doc** — resolve `simple.Command` /
+      `simple.Query` ids so catalog completeness is not event-only, and
+      document that helper indirection matches by BARE helper name (two
+      same-named helpers in different packages can cross-register).
+      _(Effort: S)_
+- [ ] **#71 `ScanWithMeta()` decision** — `WithExact` returns an error when a
+      limit truncates the scan; a caller rendering "showing 100 of N" still
+      has no non-error way to ask. Decide whether a metas return is worth the
+      second surface, and verify `WithExact` composes with `WithCursor`
+      (page 2 of an exact scan). _(Effort: S)_
+- [ ] **#83 baseline hardening** — (a) `--fail-on-stale-baseline` (exit
+      non-zero when baseline entries no longer match anything); (b) a real
+      end-to-end test (fixture repo + checked-in baseline + one new finding →
+      exit 1, then `--update-baseline` → exit 0); (c) a copy-paste CI recipe
+      in `cmd/cqrs-lint/README.md` — a baseline nobody runs has no readers.
+      _(Effort: M)_
+- [ ] **#83 health-score ruling** — baselined findings still count against the
+      health score by design. Decide whether that is the intent (it surprises
+      consumers who baselined something deliberately) and document either way.
+      _(Effort: XS)_
+
 > Point-in-time execution plan (T01–T24 / F001–F096) with per-row resolution
 > markers: `docs/planning/archived/2026-09-06_00-31_cqrs-lint-v5-hardening-pareto-plan.md`.
 > T01–T12, T20–T24, F089, F090(a+b), F091 Tiers 1–3 (incl. P014 ApplyLayout)
@@ -1178,6 +1213,26 @@ replace-free — 10-25 §a2/§a3, now archived).
 
 ## Metaengine — follow-ups
 
+> Cap-primitive harvest (2026-10-23, issue #72 — `WithCap` / `EnforceCap` /
+> `EnforceCaps`). Verified against the MEMORY engine only; the SQL pushdown
+> branch and the temporal `MapDeleteAt` branch are untested, and the error
+> path returns `ErrCapUnsupported` rather than passing silently.
+
+- [ ] **#72 cap coverage on real engines** — one test on a SQL engine
+      (exercises `PushdownMapScan` + `DeleteRows`) and one on a temporal engine
+      (`MapDeleteAt` + `notifyLive`). Until then the primitive is
+      memory-proven only. _(Effort: M)_
+- [ ] **#72 trim cost measurement** — benchmark `EnforceCap` at 10k and 100k
+      rows and append the numbers to the COOKBOOK recipe; no measurement
+      exists, so "keep newest N" is an unquantified write-path cost.
+      _(Effort: S)_
+- [ ] **#72 timer wiring ruling** — decide whether `EnforceCaps` should run on
+      a `system.Timer` by default, and document the wiring either way (a cap
+      that nobody schedules is a primitive with no operator). _(Effort: S)_
+- [ ] **#72 `WithCapOnWrite` variant** — for SQL engines the trim can happen
+      inside the fold instead of as an explicit second pass. Decide whether
+      the extra surface earns its keep. _(Effort: M)_
+
 - [ ] 🔥 **Write the idempotency-retirement ADR + route the decision** — retire
       `idempotency/{kvstore,sqlstore}` (pre-ADR-0142 fossils; parent module
       deleted at ADR-0128) in favor of a `system`-exposed dedup facade over
@@ -1311,14 +1366,32 @@ replace-free — 10-25 §a2/§a3, now archived).
 
 ## CI / Infrastructure
 
-- [ ] 🔥 **Decide gate coverage for `cmd/*` modules (the 82-findings class)** —
-      `cmd/cqrs-lint` (and `cmd/doc-check`, `cmd/api-stability`) are NOT in
-      `testModules`/`lintModules` (flake.nix), so no gate lints or tests them;
-      82 findings + a stale golden accumulated invisibly (2026-10-11 triage).
-      Either add them with dep-budget review (`nix run .#check-arch` after) or
-      document the exclusion rationale in `docs/agents/module-map.md`.
-      Source: docs/status/2026-10-11_19-27 report §f15. _(Effort: M, owner
-      decision on gate membership)_
+- [x] ~~🔥 **Decide gate coverage for `cmd/*` modules (the 82-findings class)**~~
+      — **RESOLVED 2026-10-23**: `cmd/api-stability`, `cmd/cqrs-gen`,
+      `cmd/cqrs-lint`, `cmd/cqrs-bench`, `cmd/cqrs-upgrade` and `cmd/doc-check`
+      are all in `testModules` (flake.nix:216-309), `lintModules` aliases that
+      list, and `#test`/`#lint` exercise them (146 packages, 88/88 modules
+      clean on 2026-10-23). `cmd/cqrs-lint` was added by 70b874dfc.
+      Original concern, kept for context: `cmd/cqrs-lint` (and `cmd/doc-check`,
+      `cmd/api-stability`) were NOT in `testModules`/`lintModules` (flake.nix),
+      so no gate linted or tested them; 82 findings + a stale golden
+      accumulated invisibly (2026-10-11 triage).
+      Source: docs/status/2026-10-11_19-27 report §f15.
+- [ ] **Ratchet guards the 2026-10-23 pass could not finish** — (a) refuse a
+      coverage-floor DECREASE without an accompanying issue reference in
+      `scripts/check-coverage.sh` (today it is a one-line edit with a dated
+      comment, which is too cheap for what a weaker ratchet costs); (b) a
+      `flake.lock` coherence check (a bumped input whose package pins a
+      derivation hash must be re-pinned in the same commit — this is what
+      broke `#check-md-go` on 2026-10-23); (c) extend
+      `scripts/check-nix-hashes.sh` beyond `flake.nix` to every tracked `*.nix`.
+      _(Effort: M)_
+- [ ] **`#verify-serial` fallback tier** — the composed gate requires load1
+      AND load5 < 10 plus a 60s stable tree, which never held on a 32-core
+      shared host at load 15-87 (20 attempts / 3600s, zero launches). A
+      documented serial tier (same gate list, `-p 1`, per-gate timeouts, no
+      aggregate precondition) would give a real composed proof on a loud box.
+      _(Effort: M)_
 - [ ] **tursogo v0.8.2 native binding SEGFAULTS on GitHub-hosted runners (upstream ask)** —
       `TestCheckpointScheduler_StartStop` (and any first `turso_database_new` under
       load) crashes with SIGSEGV inside `tursogo@v0.8.2/bindings_db.go:397` on
