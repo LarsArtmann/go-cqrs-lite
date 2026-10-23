@@ -40,6 +40,10 @@
 | Census table completeness | HOLES (Kernovia, Domination, Rolls-Royce…, accountability-system, standard-bug-tracking-schema, go-credentials-store, nsfw-classifier, vision-review-agent) | who-uses 03:59 |
 | "Free deletes: 11 modules" (10-16 census) | FALSE for 9 of 11 — requires-only census missed in-repo couplings: storage core re-exports view/relational (`storage/view_aliases.go`, `relational_aliases.go`); presets imported by benchkit tests, `cmd/cqrs-bench/factory.go`, `stack/bench` suite | rg + who-uses 2026-10-17 08:3x |
 | Task 39 (delete stack+presets) had no predecessor | HOLE — bench infra must port off presets first | added task 38.0 |
+| Task 1 playbook | DONE 2026-10-23 | `docs/agents/v5-fork-and-delete-playbook.md` (fork procedure + delete procedure + shared gate checklist; absorbs the 10-17 ordering/coupling/count lessons) |
+| Task 2 census artifact | DONE 2026-10-23 | `scripts/census-fleet.sh` (+`--zero-consumers`, `--self-test`) → `docs/evidence/fleet-census-2026-10-23_15-13.json`; fork-aware (mesh-* library forks excluded — they were the ONLY "consumers" of deriver/graph) |
+| Task 3 ghost verdicts | DONE 2026-10-23 | addendum in `docs/planning/2026-10-09_ghost-verdict-memo.md`; executable-now kills: graphadapter + otel/otlp (owner ratification pending); domain boundary recorded (drivers/test-infra are NOT delete candidates) |
+| Phase A task list | HOLE — deriver ABSORB verdict (memo) has no Phase A row | rowed in TODO_LIST; add as task 24b or fold into task 16's absorb wave |
 
 ---
 
@@ -227,8 +231,10 @@ flowchart TD
         C4[crm + exec-stage fix] --> C5[InboxClean] --> C6[bank-sync batch] --> C7[residue 1] --> C8[residue 2]
     end
     subgraph D["Phase D — deletes + cut"]
-        D1[delete-at-zero: continuous] --> D2[stack+presets+deprecated APIs] --> D3[gate pruning] --> D4[v5 docs] --> D5[cut v5.0.0] --> D6[fleet pin wave]
+        D0[bench-infra port off presets 38.0] --> D2[stack+presets+deprecated APIs 39] --> D3[gate pruning] --> D4[v5 docs] --> D5[cut v5.0.0] --> D6[fleet pin wave]
     end
+    %% task 38 DONE 2026-10-17 (transport/http+grpc + idempotency/kvstore deleted).
+    %% delete-at-zero is CONTINUOUS via 38b after every C batch — not a Phase D node.
     subgraph E["Phase E — tail"]
         E1[retry/flightrecorder re-pins]
         E2[tidy sweep]
@@ -246,9 +252,9 @@ flowchart TD
     C1 --> C2 --> C3
     C3 & C2 --> C4
     C6 --> C7 --> C8
-    C8 --> D2
-    C3 & C4 & C5 --> D1
-    D1 & D2 --> D3 --> D4 --> D5 --> D6
+    C8 --> D0
+    C3 & C4 & C5 -.38b continuous sweeps.-> D2
+    D2 --> D3 --> D4 --> D5 --> D6
     E1 & E2 & E3 & E5 -.anytime.-> C
     E4 -.after A20.-> A20
 ```

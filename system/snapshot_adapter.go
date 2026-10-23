@@ -32,8 +32,8 @@ func NewSnapshotAdapter(backend metaengine.SnapshotBackend, collection string) *
 var _ snapshot.SnapshotStore = (*SnapshotAdapter)(nil)
 
 func (a *SnapshotAdapter) Save(ctx context.Context, snap snapshot.Snapshot) error {
-	// Same key format as Load/Delete (ref.StreamKey) so a snapshot saved
-	// here is found by the ref-based reads.
+	// Same key format as Load/Delete (bare ref.StreamKey) so a snapshot
+	// saved here is found by the ref-based reads.
 	key := id.StreamRef{Type: snap.StreamType, ID: snap.StreamID}.StreamKey()
 
 	return a.backend.SnapshotSave(
@@ -46,11 +46,29 @@ func (a *SnapshotAdapter) Save(ctx context.Context, snap snapshot.Snapshot) erro
 }
 
 func (a *SnapshotAdapter) Delete(ctx context.Context, ref id.StreamRef) error {
-	return a.backend.SnapshotDelete(ctx, a.collection, ref.StreamKey())
+	if err := a.backend.SnapshotDelete(ctx, a.collection, ref.StreamKey()); err != nil {
+		return err
+	}
+
+	// Pre-bare deployments may hold a legacy-keyed snapshot; clear both so a
+	// delete is complete regardless of which form the row was written under.
+	if err := a.backend.SnapshotDelete(ctx, a.collection, legacyStreamKey(ref)); err != nil &&
+		!errors.Is(err, metaengine.ErrNotFound) {
+		return err
+	}
+
+	return nil
 }
 
 func (a *SnapshotAdapter) Load(ctx context.Context, ref id.StreamRef) (*snapshot.Snapshot, error) {
 	data, version, err := a.backend.SnapshotLoad(ctx, a.collection, ref.StreamKey())
+	if errors.Is(err, metaengine.ErrNotFound) {
+		// Legacy-keyed snapshot from a pre-bare deployment: still valid
+		// (snapshots are derived; the next Save supersedes it under the
+		// bare key).
+		data, version, err = a.backend.SnapshotLoad(ctx, a.collection, legacyStreamKey(ref))
+	}
+
 	if err != nil {
 		if errors.Is(err, metaengine.ErrNotFound) {
 			return nil, nil //nolint:nilnil // no snapshot is not an error
@@ -76,6 +94,12 @@ func (a *SnapshotAdapter) LoadAtVersion(
 	data, actualVersion, err := a.backend.SnapshotLoadAtVersion(
 		ctx, a.collection, ref.StreamKey(), int64(version),
 	)
+	if errors.Is(err, metaengine.ErrNotFound) {
+		data, actualVersion, err = a.backend.SnapshotLoadAtVersion(
+			ctx, a.collection, legacyStreamKey(ref), int64(version),
+		)
+	}
+
 	if err != nil {
 		if errors.Is(err, metaengine.ErrNotFound) {
 			return nil, nil //nolint:nilnil // no snapshot is not an error

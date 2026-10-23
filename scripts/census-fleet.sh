@@ -106,6 +106,13 @@ summary = {
 	"fleet_root": os.path.abspath(fleet_root),
 	"gomod_files_scanned": scanned,
 	"library_repo_excluded": library_excluded,
+	"exclusions": [
+		"library self + full forks (module path = go-cqrs-lite/*)",
+		"go-cqrs-lite* dirs + .corpus-pins/ snapshots",
+		"vendor/ + node_modules/",
+		"testdata/ fixtures",
+		"replace (=>) lines",
+	],
 	"modules": {
 		sub: {
 			"direct_count": sum(1 for c in cons if not c["indirect"]),
@@ -254,10 +261,11 @@ latest)
 	;;
 *)
 	ts=$(date +%Y-%m-%d_%H-%M)
-	out="${JSON_OUT:-$EVIDENCE_DIR/fleet-census-$ts.json}"
-	[ -n "$JSON_OUT" ] || mkdir -p "$EVIDENCE_DIR"
-	artifact=$(scan_fleet "$FLEET_ROOT" "$out")
 	if [ "$MODE" = "zero" ]; then
+		# report mode: scan to a temp file, never mint a timestamped artifact
+		tmp=$(mktemp)
+		trap 'rm -f "$tmp"' EXIT
+		artifact=$(scan_fleet "$FLEET_ROOT" "$tmp")
 		cands=$(zero_consumers_of "$artifact")
 		if [ -n "$cands" ]; then
 			echo "delete-at-zero candidates (0 fleet requires):"
@@ -267,6 +275,9 @@ latest)
 			echo "no module is at zero fleet consumers"
 		fi
 	else
+		out="${JSON_OUT:-$EVIDENCE_DIR/fleet-census-$ts.json}"
+		[ -n "$JSON_OUT" ] || mkdir -p "$EVIDENCE_DIR"
+		artifact=$(scan_fleet "$FLEET_ROOT" "$out")
 		summary_of "$artifact"
 	fi
 	;;

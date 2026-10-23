@@ -1,6 +1,13 @@
 {
+ "exclusions": [
+  "library self + full forks (module path = go-cqrs-lite/*)",
+  "go-cqrs-lite* dirs + .corpus-pins/ snapshots",
+  "vendor/ + node_modules/",
+  "testdata/ fixtures",
+  "replace (=>) lines"
+ ],
  "fleet_root": "/home/lars/projects",
- "generated_at": "2026-10-23T15:11:19",
+ "generated_at": "2026-10-23T15:13:10",
  "gomod_files_scanned": 803,
  "library_repo_excluded": true,
  "modules": {

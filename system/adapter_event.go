@@ -130,7 +130,12 @@ func (a *EventAdapter) Save(
 	events []event.Event,
 	expectedVersion event.Version,
 ) error {
-	sid := ref.StreamKey()
+	// Sticky stream key (bare for fresh streams; legacy display-form key
+	// when older rows exist — see resolveStreamKey).
+	sid, err := resolveStreamKey(ctx, a.Backend, a.Collection, ref)
+	if err != nil {
+		return fmt.Errorf("event adapter: resolve stream key: %w", err)
+	}
 
 	//art-dupl:accept same-shape ToAny+wrap — adapter-specific types
 	values, err := a.ToAny(events)
@@ -202,13 +207,24 @@ func (a *EventAdapter) AppendBatch(
 		return err
 	}
 
-	return a.Backend.StreamAppend(ctx, a.Collection, ref.StreamKey(), values)
+	// Sticky stream key: append where the stream's rows already live.
+	sid, err := resolveStreamKey(ctx, a.Backend, a.Collection, ref)
+	if err != nil {
+		return fmt.Errorf("event adapter: resolve stream key: %w", err)
+	}
+
+	return a.Backend.StreamAppend(ctx, a.Collection, sid, values)
 }
 
 // ─── EventSource ───
 
 func (a *EventAdapter) Load(ctx context.Context, ref id.StreamRef) ([]event.Event, error) {
-	return a.LoadStream(ctx, ref.StreamKey())
+	key, err := resolveStreamKey(ctx, a.Backend, a.Collection, ref)
+	if err != nil {
+		return nil, fmt.Errorf("event adapter: resolve stream key: %w", err)
+	}
+
+	return a.LoadStream(ctx, key)
 }
 
 // loadVersioned implements the temporal-fast-path-then-fallback pattern shared
@@ -217,12 +233,17 @@ func (a *EventAdapter) Load(ctx context.Context, ref id.StreamRef) ([]event.Even
 func (a *EventAdapter) loadVersioned(
 	ctx context.Context,
 	ref id.StreamRef,
-	temporalRead func() ([]any, error),
+	temporalRead func(collection, key string) ([]any, error),
 	errLabel string,
 	sliceFallback func(all []event.Event) []event.Event,
 ) ([]event.Event, error) {
 	if a.temporal != nil {
-		values, err := temporalRead()
+		key, err := resolveStreamKey(ctx, a.Backend, a.Collection, ref)
+		if err != nil {
+			return nil, fmt.Errorf("event adapter: resolve stream key: %w", err)
+		}
+
+		values, err := temporalRead(a.Collection, key)
 		if err != nil {
 			return nil, fmt.Errorf("event adapter: %s: %w", errLabel, err)
 		}
@@ -245,9 +266,9 @@ func (a *EventAdapter) LoadFromVersion(
 	// is 0-indexed (skip N events), so add 1.
 	return a.loadVersioned(
 		ctx, ref,
-		func() ([]any, error) {
+		func(collection, key string) ([]any, error) {
 			return a.temporal.StreamReadFromVersion(
-				ctx, a.Collection, ref.StreamKey(), int64(version)+1,
+				ctx, collection, key, int64(version)+1,
 			)
 		},
 		"load from version",
@@ -262,9 +283,9 @@ func (a *EventAdapter) LoadToVersion(
 ) ([]event.Event, error) {
 	return a.loadVersioned(
 		ctx, ref,
-		func() ([]any, error) {
+		func(collection, key string) ([]any, error) {
 			return a.temporal.StreamReadAsOfVersion(
-				ctx, a.Collection, ref.StreamKey(), int64(maxVersion),
+				ctx, collection, key, int64(maxVersion),
 			)
 		},
 		"load to version",

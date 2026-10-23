@@ -894,6 +894,8 @@ the boundary. Verified against this repo's source on 2026-10-15.
 
 - [ ] **TestEngineHealth_CatchUpUnderConcurrentApplies load-sensitivity** — failed once under the full metaengine package suite ("primary ticks = 2001, want exactly 2000"); passes 5/5 isolated — genuine timing sensitivity to full-suite contention, no correctness signal observed since. Revisit only if it recurs. **Receipt 2026-09-28: still no recurrence — 15/15 green under `-race` (isolated), full metaengine package suite green ×2 this session (including once with concurrent edits in flight). Keep as observe-only.** _(Effort: S — observe)_
 
+- [ ] **projectionhost `TestLiveCheckpoint_IntervalFlushesAfterElapsed` exact-count assertion (found 2026-10-23)** — the test asserts `checkpoint saves == 3` over a 120 ms cadence window; the full-workspace `-race` sweep produced `saves = 4` (projection `count` was still exactly 5 then 6, so it is NOT double-apply — only one extra checkpoint flush, which can only shrink the at-least-once reprocessing window). Intermittent and non-load-monotonic: failed at load1 ~102, passed in the next sweep at load1 ~312, passes 5/5 isolated, 3/3 whole-package `-race`, 10/10 under 48 synthetic CPU soakers. No mechanism established. A clock seam (or asserting `>= 3` plus the persisted-checkpoint property) would remove the flake; not done because the failure could also hide a real future cadence regression and the mechanism is unproven. Revisit if it recurs in CI. _(Effort: S — observe)_
+
 ## Turso materialized views (ADR-0135) — upstream handoffs
 
 > Created 2026-09-07 (matview operator option shipped; three upstream
@@ -1982,8 +1984,10 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
 > plugmarket demo, sperrmuell-direct, webphone) and `idempotency/sqlstore`
 > (browser-history, DiscordSync, games/KeyCountdown, SwettySwipperWeb/api).
 > ZERO-fleet-consumer modules (die at cut with no migration cost):
-> `storage/view`, `storage/relational`, `transport/http`, `transport/grpc`,
-> `idempotency/kvstore` (in-repo integration tests only). Sequence:
+> `storage/view`, `storage/relational` — **UPDATE 2026-10-17: transport/http,
+> transport/grpc, idempotency/kvstore DELETED (first delete-at-zero
+> application; see the standing rule above)**. _(in-repo integration tests only,
+> until those die with the storage fork)_. Sequence:
 > finish core/v5 (M23 first, then the 23 copy-forwards) → add
 > `cqrs-upgrade --to-v5` import rewrite → cqrs-htmx (shield: 73% of fleet's
 > indirect edges) → go-appkit → app residue → Phase 8 deletions below.
@@ -2014,6 +2018,46 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
 > nsfw-classifier, vision-review-agent import v4 trains; crm-exec-stage/go.mod
 > carries UNRESOLVED MERGE-CONFLICT markers (unparseable).
 
+- [x] **v4→v5 Phase 0 shipped (2026-10-23, plan tasks 1–3):** (1) fork/delete
+      playbook → `docs/agents/v5-fork-and-delete-playbook.md` (fork F1–F13 +
+      delete-at-zero procedure + shared gate checklist; absorbs the 10-17
+      ordering/coupling/count lessons); (2) census tool →
+      `scripts/census-fleet.sh` (`--zero-consumers` delete-trigger report,
+      `--self-test` with fault-injection) + first fork-aware artifact
+      `docs/evidence/fleet-census-2026-10-23_15-13.json` — **it excludes full
+      library forks** (`eventcatalog-hub/work/src/mesh-billing` + `mesh-orders`
+      declare the library's own module path and were the ONLY "consumers" of
+      deriver/graph), `.corpus-pins/` snapshots, testdata fixtures; (3) ghost
+      verdicts re-based → addendum in
+      `docs/planning/2026-10-09_ghost-verdict-memo.md`.
+- [ ] **Owner ratification: delete `metaengine/graphadapter` + `otel/otlp`** —
+      the only zero-fleet + zero-coupling kills left (memo KILL verdicts,
+      2026-10-23 evidence; delete-at-zero domain = deprecated/ghost surface).
+      Both need the full §4 playbook cascade; otel/otlp additionally rewires
+      one doc-check recipe. Driver-family modules at zero today (pg/mysql/
+      dgraph/turso/duckdb/iroh/bbolt engines) are OUT of domain — see the memo
+      addendum's rule-domain boundary. _(Effort: S each, pending GO)_
+- [ ] **Phase A gap: deriver ABSORB row missing** — the ghost memo's ABSORB
+      verdict (deriver → core/v5, ADR-0136 compensation rung) has no Phase A
+      fork task in the 10-17 plan's task table; add as task 24b or fold into
+      the task-16 systemscenario absorb wave. _(Effort: XS to row, M to do)_
+- [ ] **Composite `#verify` still not run since the deletions** — load1/load5
+      never both <10 on this box (10-17 and 10-23 sessions; 87+ at 15:00
+      today). Every constituent gate verified green individually across the
+      10-17 + 10-23 sessions (incl. today's additions: versions-manifest,
+      readme-links/deprecated, adr-numbering, cqrs-upgrade suite, api_surface
+      diff eyeball = deletions-only, go.work.sum kvstore row pruned + rebuild
+      green). Run `nix run .#verify` in the next genuinely quiet window (or
+      the planned `#verify-serial` fallback tier). _(Effort: S, load-gated)_
+- [ ] **Census-side automation artifacts identified (feeds plan task 48):**
+      `~/projects` contains full library forks (`eventcatalog-hub/work/src/
+      mesh-billing`, `mesh-orders` — with .git, module path = this library),
+      `.corpus-pins/go-cqrs-lite@<hash>` snapshots, `.gotmp/tmp.*` scratch
+      modules, `.crm-stage-dedup2`, and duplicate CI checkouts
+      (`ci-siblings/`, `eventcatalog-hub/work/src/cqrs-htmx`). All inflate
+      naive who-uses counts (never falsely zero them); census-fleet.sh
+      excludes forks/pins/testdata. Identify what creates them (owner
+      question pending since the 10-17 report §g/3). _(Effort: S, owner-input)_
 - [x] **Ghost-module tail (ADR-0128 follow-up): codec — RESOLVED by the
       2026-10-16 morning sweep.** The 03:59 `who-uses` run showed 11 repos
       with direct `go-cqrs-lite/codec/v4 v4.4.0` requires — zombie pins with
@@ -2057,10 +2101,13 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       (decision memo:
       `docs/planning/archived/2026-08-22_03-52_core-data-model-v5-execution-plan.md`
       Appendix B). _(Effort: M)_
-- [ ] **Delete `transport/http` + `transport/grpc` modules** (ADR-0127) — final
+- [x] **Delete `transport/http` + `transport/grpc` modules** (ADR-0127) — final
       v4.x tags exist; drop from go.work/flake testModules/api-stability list,
       then delete at the cut. Confirm they die BEFORE anyone renames their
-      proto fields (sweep §4). _(Effort: M)_
+      proto fields (sweep §4). **DONE 2026-10-17** (delete-at-zero first
+      application, with `idempotency/kvstore`; full de-registration cascade +
+      gate trail in
+      `docs/status/2026-10-17_08-56_delete-at-zero-first-application-and-self-review.md`).** _(Effort: M)_
 - [ ] **Delete deprecated tombstone metadata API (ADR-0114 completion)** —
       remove `event.DetectTombstone`/`MarkTombstone`/`MarkRebirth`/
       `TombstoneStatus`/`Metadata.Tombstone`; pre-reqs: type-driven status in

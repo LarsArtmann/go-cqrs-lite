@@ -37,6 +37,7 @@ AUDITED_PUBLIC=(
 	github.com/larsartmann/go-codec
 	github.com/larsartmann/go-cqrs-lite
 	github.com/larsartmann/go-error-family
+	github.com/larsartmann/go-etag
 	github.com/larsartmann/go-finding
 	github.com/larsartmann/go-flightrecorder
 	github.com/larsartmann/go-idempotency
@@ -45,6 +46,7 @@ AUDITED_PUBLIC=(
 	github.com/larsartmann/go-retry
 	github.com/larsartmann/go-sse
 	github.com/larsartmann/go-sqlitestore
+	github.com/larsartmann/httputil
 	github.com/larsartmann/samber-do-auditlog
 	github.com/larsartmann/templ-components
 )

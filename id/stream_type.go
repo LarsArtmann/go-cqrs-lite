@@ -42,9 +42,14 @@ func (r StreamRef) String() string {
 	return r.Type.String() + ":" + r.ID.String()
 }
 
-// StreamKey returns the canonical key for an event stream.
+// StreamKey returns the canonical STORAGE key for an event stream:
+// "<type>:<bare id>". It is the bare wire form on purpose — keys are
+// storage-facing, and the branded display form in `String()` must never
+// reach a database (the 2026-10-17 disk-truth wave; journals written before
+// it keyed rows with the display form and stay readable through the
+// system adapters' sticky legacy-key fallback).
 func (r StreamRef) StreamKey() string {
-	return r.String()
+	return r.Type.String() + ":" + r.ID.Get()
 }
 
 // NewStreamRef creates a StreamRef from a type and ID.
