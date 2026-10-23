@@ -372,3 +372,21 @@ Two micro-disciplines that each cost a failed edit this stream:
   conclusion=cancelled with "##[error]The operation was canceled" — do not
   read "cancelled" as an external kill without checking step timelines
   (`gh api .../jobs/$ID --jq '.steps[]'`).
+- **`golines` disagrees with itself: treefmt vs golangci (hit 2026-10-18,
+  catalog/architecture)** — treefmt runs golines with ITS defaults while
+  golangci's `formatters.golines` is pinned `max-len: 120`, so the two can
+  render the same file differently at the margin: `nix fmt` reports
+  "0 changed" while `golangci-lint` fails the file with "File is not
+  properly formatted (golines)". CURE: run the formatter directly —
+  `golines -w <file>` — then re-run both; do NOT chase the divergence
+  through nix fmt flags. Also do not "fix" it by aligning golangci's
+  max-len to treefmt's default: the CI leg owns the 120 contract.
+- **Arm verify-chains LAST; build binaries to /tmp (2026-10-17,
+  architecture-reference session)** — (a) the verify-chain's 60-second
+  tree-stability window plus the auto-commit daemon's cadence make "arm
+  early, work meanwhile" self-defeating: the chain logged 24 gate refusals
+  and died without ever running `#verify`. Order: finish ALL tree-changing
+  work → commit → go quiet → arm. (b) `go build ./cmd/x/` leaves the
+  binary in the tree and the daemon commits it within ~2 minutes (an
+  8.4 MB artifact slipped into history that way; removed in `0aab92f33`).
+  Always `go build -o /tmp/<name> ./cmd/x/` in this repo.

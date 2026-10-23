@@ -217,7 +217,55 @@ server-rendered HTML).
   `recipes_compile_test.go`. Reword the fence and the gate fails until the
   entry is updated.
 - **`catalog-export -architecture <path>`** writes the reference next to the
-  EventCatalog MDX tree — the copy-paste template consumers start from.
+  EventCatalog MDX tree — the copy-paste template consumers start from. The
+  CLI also carries the selection flags (`-include/-exclude/-never-export
+  kind:id`, `-references`, `-hide`, `-spec <file>`) and `-check`, which
+  prints `Exporter.Inspect`'s report and exits 1 when a selector matched
+  nothing — a redaction that matches nothing is a silent leak risk, so it
+  fails loudly.
+- **Selections (ADR-0160) are a kept-set with three layers.** `Selection.plan`
+  computes `kept` + `banned` + per-resource reasons + not-found selectors.
+  Excludes win over includes inside an included container and never cascade;
+  a domain selector brings its services and those services' messages (the
+  natural closure); `neverExport` beats everything. References modes decide
+  how out-of-scope references render: `ReferencesOmit` (default,
+  byte-identical to no selection), `ReferencesNameOnly` (degrade to plain
+  text names), `ReferencesInclude` (pull one level of pointed-at resources
+  in). `WithHide` suppresses whole reference parts (`owners`, `repository`,
+  `examples`, `specifications`, `docs`) at the resolver choke points —
+  `idx.owners()` returns nil, `collectDocs` returns early — so all render
+  sites disappear together. There is deliberately NO `contacts` constant:
+  no model surface exists for it (the ADR-0160 `x-*` precedent).
+- **Redaction is layered, and the leak test pins the composition.** A banned
+  resource's name never enters `refIndex.names`/`namesByID` (the recording
+  guard), the degrade paths re-check `banned`/`bannedIDs` (defense in
+  depth), and `writeRef` skips zero references entirely.
+  `TestExcludedResourceNameNeverAppears` (frontmatter_test.go) fails only
+  when ALL layers are disabled — mutation-verified. When you touch the name
+  tables or degrade paths, re-run that test.
+- **Selector kind spellings live in `adrKind` (section_meta.go).** The
+  selector/doc/ADR-target spellings are one vocabulary: `domain`, `service`,
+  `command`, `event`, `query`, `channel`, `container` (data store), `flow`,
+  `entity`, `data-product`, `agent`, `decision` (ADR), `team`, `person`
+  (user), `doc`. Internal kinds spell differently (`data-store`, `adr`) —
+  `selectorSpelling` maps between them; `edges()` emits selectors, so a new
+  edge kind MUST round-trip through `adrKind` or it is silently dropped.
+  `exhaustive` forces every new `resourceKind` through `exists`/`closure`/
+  `edges`/`selectorSpelling` — that is registration safety, not noise.
+- **`exhaustruct_v5` demands every field, even zero values, on own-package
+  literals.** A bare `visibility{}` or `resourceRef{}` fails lint; write the
+  full literal (see `visibilityFrom`, `droppedRef`) or a constructor. When a
+  struct grows a field, every explicit literal breaks — that is the point
+  (registration safety), do not add the struct to ignore-patterns.
+- **Decisions recorded (2026-10-18):** (a) NO committed demo artifact — the
+  file is regenerable in ~1 s via `go run ./example/architecture`, a 50 KB
+  committed blob would rot against the code, and the fixture gate
+  (`check-architecture-reference`) already validates the render; (b) NO
+  `simple.ExportArchitecture` facade — `NewExporter(...).Export(cat)` IS the
+  one-liner, a wrapper would mirror every option for no ceremony win, and
+  `simple` is catalog construction, not export plumbing; (c) recipe-gate
+  cold start (~70–100 s: proxy fetch + CGO-flag cache split) stays a
+  DOCUMENTED DEFERRAL — warm runs are 5–15 s and the gate is offline-only.
 - `catalog/.go-arch-lint.yml` registers the package as its own component that
   may depend on `core` only. A new intra-module import needs a matching
   `mayDependOn` entry.

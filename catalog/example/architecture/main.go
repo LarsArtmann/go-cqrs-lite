@@ -17,7 +17,7 @@ import (
 
 type placeOrder struct {
 	OrderID string `json:"order_id" doc:"Order identifier"`
-	Amount  int    `json:"amount" doc:"Total in minor units"`
+	Amount  int    `json:"amount"   doc:"Total in minor units"`
 }
 
 type orderPlaced struct {

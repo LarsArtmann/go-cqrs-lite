@@ -157,6 +157,24 @@ go-cqrs-lite has **two SSE implementations** (ADR-0091: kept separate — differ
 
 ### Catalog exports: render tree vs governance tree
 
+### The architecture reference: one file, whole catalog or redacted slice
+
+`catalog/architecture` renders the catalog as ONE self-contained `.html`
+file — sidebar, per-resource sections, cross-links, Ctrl/Cmd-K search,
+light/dark — with zero dependencies beyond the standard library
+(ADR-0159). Selections (ADR-0160) cut redacted slices of the same file:
+`WithInclude`/`WithExclude`/`WithNeverExport` name resources by
+`(kind, id)` selectors, `WithReferences` picks how out-of-scope
+references render (drop / name-only / pull one level in), `WithHide`
+suppresses whole reference parts, `Exporter.Inspect` reports what is in
+and why (the `-check` exit-1 contract), and `LoadExport` declares a slice
+as a markdown file with YAML frontmatter. Serving path: `docserver`
+`Config.ArchitectureReference` streams the same bytes at
+`/docs/architecture`. Recipe §2.48 (whole reference) and §2.49 (redacted
+slice).
+
+#### Catalog exports: render tree vs governance tree
+
 One catalog, TWO exports. `@eventcatalog/core` resolves composite
 `"<id>-<version>"` refs (its visualiser graph edges use them); the
 `@eventcatalog/linter` indexes bare frontmatter IDs and can never resolve the
