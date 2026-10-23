@@ -4,8 +4,8 @@
 > A12–A24) plus the release/debt chain the 2026-10-23 session created — sequenced onto
 > DELIVERY first, again. Predecessors: [2026-10-17 disk-truth v2](2026-10-17_20-13_SUPERB-disk-truth-pareto-plan.md)
 > (A1–A8 shipped or rowed; see its residue section in TODO_LIST) and the 2026-10-23 session
-> status report (`docs/status/2026-10-23_16-58_disk-truth-tail-session-status.md` — check the
-> exact filename; the session's a–g breakdown is the ground truth this plan consumes).
+> status report (`docs/status/2026-10-23_17-08_disk-truth-tail-session-status.md`; the
+> session's a–g breakdown is the ground truth this plan consumes).
 > `TODO_LIST.md` stays the living source; the "Disk-truth plan residue" section (added
 > 2026-10-23) is this plan's backlog mirror.
 >
