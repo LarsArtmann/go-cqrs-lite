@@ -99,18 +99,45 @@ func ResolveHelperEmitCalls(ctx *AnalysisContext) {
 }
 
 // callTargetIndex resolves the called function's bare name for a call whose
-// Fun is a plain identifier or a selector (pkg.helper / obj.Method), and looks
-// it up in the helper table.
+// Fun is a plain identifier, a selector (pkg.helper / obj.Method), a generic
+// instantiation (helper[T](…)), or a parenthesized form of those, and looks it
+// up in the helper table.
 func callTargetIndex(call *ast.CallExpr, helpers map[string]int) (int, bool) {
-	switch fun := call.Fun.(type) {
-	case *ast.Ident:
-		idx, ok := helpers[fun.Name]
-		return idx, ok
-	case *ast.SelectorExpr:
-		idx, ok := helpers[fun.Sel.Name]
-		return idx, ok
-	default:
+	name := calleeBaseName(call.Fun)
+	if name == "" {
 		return 0, false
+	}
+
+	idx, ok := helpers[name]
+
+	return idx, ok
+}
+
+// calleeBaseName returns the bare identifier a call target bottoms out at
+// (helper, pkg.helper, helper[T]), or "" for more complex callees.
+func calleeBaseName(expr ast.Expr) string {
+	for {
+		paren, ok := expr.(*ast.ParenExpr)
+		if ok {
+			expr = paren.X
+
+			continue
+		}
+
+		break
+	}
+
+	switch fun := expr.(type) {
+	case *ast.Ident:
+		return fun.Name
+	case *ast.SelectorExpr:
+		return fun.Sel.Name
+	case *ast.IndexExpr:
+		return calleeBaseName(fun.X)
+	case *ast.IndexListExpr:
+		return calleeBaseName(fun.X)
+	default:
+		return ""
 	}
 }
 

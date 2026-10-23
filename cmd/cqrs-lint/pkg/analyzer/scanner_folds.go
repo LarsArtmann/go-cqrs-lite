@@ -20,6 +20,7 @@ func scanFuncDecl(ctx *AnalysisContext, gf *GoFile, fn *ast.FuncDecl) {
 	}
 
 	scanEmitHelperFunc(ctx, gf, fn)
+	scanCatalogHelperFunc(ctx, gf, fn)
 
 	if foldInfo := detectFoldFunc(ctx, gf, fn, pos); foldInfo != nil {
 		ctx.Registry.Folds = append(ctx.Registry.Folds, *foldInfo)

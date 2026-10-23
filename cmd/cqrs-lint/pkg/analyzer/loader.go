@@ -236,6 +236,7 @@ func BuildContext(projectRoot string) (*AnalysisContext, error) {
 	filterEventPayloads(ctx)
 	ResolveRegisteredTypeConsts(ctx.Registry)
 	ResolveHelperEmitCalls(ctx)
+	ResolveCatalogHelperCalls(ctx)
 	ResolveEmittedEventTypeConsts(ctx.Registry)
 	ResolveFoldTombstoneCases(ctx.Registry)
 	ResolveHandlerMethods(ctx)
