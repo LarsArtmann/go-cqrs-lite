@@ -15,6 +15,18 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/keycodec"
 )
 
+// adversarialSegment draws strings that actually contain the bytes the
+// escape scheme exists for: NUL (the separator), the escape byte, colons,
+// high runes, and long runs — plain rapid.String() never emits control
+// bytes, so without this the law would vacuously pass.
+func adversarialSegment(rt *rapid.T) string {
+	return rapid.OneOf(
+		rapid.StringOf(rapid.RuneFrom([]rune{'\x00', '\x01', ':', 'a', 'Z', '0', '→', '世'})),
+		rapid.StringOfN(rapid.RuneFrom([]rune{'\x00', '\x01', 'x'}), 130, -1, 300),
+		rapid.Just(""), rapid.Just("\x00"), rapid.Just("\x00\x01\x00"),
+	).Draw(rt, "segment")
+}
+
 func TestEscapeRoundTripTable(t *testing.T) {
 	t.Parallel()
 
@@ -112,7 +124,7 @@ func TestEscapeRoundTripLaw(t *testing.T) {
 	t.Parallel()
 
 	rapid.Check(t, func(rt *rapid.T) {
-		s := rapid.String().Draw(rt, "segment")
+		s := adversarialSegment(rt)
 
 		escaped := keycodec.Escape(s)
 
@@ -132,10 +144,10 @@ func TestV2InjectivityLaw(t *testing.T) {
 	t.Parallel()
 
 	rapid.Check(t, func(rt *rapid.T) {
-		alpha := rapid.String().Draw(rt, "alpha")
-		beta := rapid.String().Draw(rt, "beta")
-		gamma := rapid.String().Draw(rt, "gamma")
-		delta := rapid.String().Draw(rt, "delta")
+		alpha := adversarialSegment(rt)
+		beta := adversarialSegment(rt)
+		gamma := adversarialSegment(rt)
+		delta := adversarialSegment(rt)
 
 		if bytes.Equal(keycodec.MapKeyV2(alpha, beta), keycodec.MapKeyV2(gamma, delta)) {
 			if alpha != gamma || beta != delta {
@@ -151,10 +163,10 @@ func TestV2StreamFamilyInjectivityLaw(t *testing.T) {
 	t.Parallel()
 
 	rapid.Check(t, func(rt *rapid.T) {
-		colA := rapid.String().Draw(rt, "colA")
-		sidA := rapid.String().Draw(rt, "sidA")
-		colB := rapid.String().Draw(rt, "colB")
-		sidB := rapid.String().Draw(rt, "sidB")
+		colA := adversarialSegment(rt)
+		sidA := adversarialSegment(rt)
+		colB := adversarialSegment(rt)
+		sidB := adversarialSegment(rt)
 
 		if bytes.Equal(keycodec.StreamKeyV2(colA, sidA, 7), keycodec.StreamKeyV2(colB, sidB, 7)) {
 			if colA != colB || sidA != sidB {
