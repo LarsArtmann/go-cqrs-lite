@@ -12,7 +12,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.1
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.4.0
 	github.com/larsartmann/go-cqrs-lite/graph/v4 v4.3.4
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.2
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.3
 	github.com/larsartmann/go-cqrs-lite/idempotency/sqlstore/v4 v4.4.3
 	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.6.1
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.19.0

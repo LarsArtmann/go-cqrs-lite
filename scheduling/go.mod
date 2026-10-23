@@ -4,7 +4,7 @@ go 1.27.2
 
 require (
 	github.com/larsartmann/go-branded-id v0.7.0
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.2
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.3
 	github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.3.4
 	github.com/larsartmann/go-error-family v0.12.0
 )

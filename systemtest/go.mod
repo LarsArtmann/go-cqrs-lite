@@ -7,7 +7,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.1
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.8.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.1
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.2
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.3
 	github.com/larsartmann/go-cqrs-lite/metaengine/badgerengine/v4 v4.3.3
 	github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4 v4.4.3
 	github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4 v4.4.3
@@ -16,7 +16,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.7.1
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.7.0
-	github.com/larsartmann/go-cqrs-lite/system/v4 v4.15.1
+	github.com/larsartmann/go-cqrs-lite/system/v4 v4.15.2
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.7.0
 	go.uber.org/goleak v1.3.0
 	modernc.org/sqlite v1.60.1

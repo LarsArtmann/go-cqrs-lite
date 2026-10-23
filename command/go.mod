@@ -6,7 +6,7 @@ require (
 	github.com/gkampitakis/go-snaps v0.5.23
 	github.com/larsartmann/go-codec v0.3.2
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.2
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.2
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.3
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2

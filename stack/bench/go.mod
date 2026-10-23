@@ -7,7 +7,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/benchkit/v4 v4.7.0
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.8.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.1
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.2
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.3
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.3.5
 	github.com/larsartmann/go-cqrs-lite/stack/bbolt/v4 v4.2.3
 	github.com/larsartmann/go-cqrs-lite/stack/duckdb/v4 v4.2.3
