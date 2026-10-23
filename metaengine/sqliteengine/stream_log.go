@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"strings"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
@@ -12,8 +13,7 @@ import (
 
 func (e *sqliteEngine) StreamAppend(ctx context.Context, col, sid string, values []any) error {
 	for _, v := range values {
-		encoded := encodeStreamValue(v)
-		if _, err := e.xc(ctx).exec(ctx, e.queries.streamAppend, col, sid, encoded); err != nil {
+		if err := e.execStreamAppend(ctx, col, sid, encodeStreamValue(v)); err != nil {
 			return err
 		}
 	}
@@ -111,15 +111,46 @@ func (e *sqliteEngine) StreamAppendExpected(
 		}
 
 		for _, v := range values {
-			encoded := encodeStreamValue(v)
-			if _, err := e.xc(ctx).
-				exec(ctx, e.queries.streamAppend, col, sid, encoded); err != nil {
+			if err := e.execStreamAppend(ctx, col, sid, encodeStreamValue(v)); err != nil {
 				return err
 			}
 		}
 
 		return nil
 	})
+}
+
+// execStreamAppend inserts one stream-log row, extracting the typed WAL
+// columns from event envelopes (A11). A UNIQUE violation on the identity
+// indexes is a duplicate append — surfaced as metaengine.ErrVersionConflict
+// so the adapter layer maps it onto the optimistic-concurrency contract.
+func (e *sqliteEngine) execStreamAppend(ctx context.Context, col, sid, encoded string) error {
+	typed, _ := extractTypedStreamRow(encoded)
+
+	_, err := e.xc(ctx).exec(ctx, e.queries.streamAppend,
+		col, sid, encoded,
+		typed.eventID, typed.streamType, typed.version, typed.schemaVersion,
+		typed.payload, typed.encoding, typed.metadata, typed.occurredAt,
+	)
+	if err != nil && isUniqueViolation(err) {
+		return metaengine.ErrVersionConflict
+	}
+
+	return err
+}
+
+func isUniqueViolation(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	msg := err.Error()
+
+	return contains(msg, "UNIQUE constraint failed") || contains(msg, "duplicate key")
+}
+
+func contains(s, substr string) bool {
+	return len(substr) > 0 && len(s) >= len(substr) && strings.Contains(s, substr)
 }
 
 // StreamLoadByEventID returns the single value whose JSON envelope carries
@@ -133,7 +164,9 @@ func (e *sqliteEngine) StreamLoadByEventID(
 ) (any, error) {
 	var valStr string
 
-	err := e.xc(ctx).queryRow(ctx, e.queries.streamLoadByEventID, col, eventID).Scan(&valStr)
+	// Typed event_id first (O(log n) on the partial unique index); the
+	// json_extract branch covers backfill-pending legacy rows only.
+	err := e.xc(ctx).queryRow(ctx, e.queries.streamLoadByEventID, col, eventID, col, eventID).Scan(&valStr)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, metaengine.ErrNotFound

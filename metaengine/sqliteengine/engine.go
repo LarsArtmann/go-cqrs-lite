@@ -119,7 +119,15 @@ func defaultSQLiteQueries() sqliteQuerySet {
 		seq INTEGER PRIMARY KEY AUTOINCREMENT,
 		collection TEXT NOT NULL,
 		stream_id TEXT NOT NULL,
-		value TEXT NOT NULL
+		value TEXT NOT NULL,
+		event_id TEXT,
+		stream_type TEXT,
+		version INTEGER,
+		schema_version INTEGER,
+		payload BLOB,
+		encoding TEXT,
+		metadata TEXT,
+		occurred_at INTEGER
 	);
 	CREATE INDEX IF NOT EXISTS idx_stream_log_stream ON meta_stream_log(collection, stream_id, seq);
 	CREATE INDEX IF NOT EXISTS idx_stream_log_journal ON meta_stream_log(collection, seq);
@@ -145,15 +153,22 @@ func defaultSQLiteQueries() sqliteQuerySet {
 		multiGet:         `SELECT value FROM meta_multimap WHERE collection = ? AND key = ? ORDER BY seq`,
 		logAppend:        `INSERT INTO meta_log (collection, value) VALUES (?, ?)`,
 		logTail:          `SELECT value FROM meta_log WHERE collection = ? ORDER BY id DESC LIMIT ?`,
-		streamAppend:     `INSERT INTO meta_stream_log (collection, stream_id, value) VALUES (?, ?, ?)`,
+		streamAppend: `INSERT INTO meta_stream_log
+			(collection, stream_id, value, event_id, stream_type, version, schema_version, payload, encoding, metadata, occurred_at)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		streamRead:       `SELECT value FROM meta_stream_log WHERE collection = ? AND stream_id = ? ORDER BY seq`,
 		streamVersion:    `SELECT COUNT(*) FROM meta_stream_log WHERE collection = ? AND stream_id = ?`,
-		streamAppendExp:  `INSERT INTO meta_stream_log (collection, stream_id, value) VALUES (?, ?, ?)`,
+		streamAppendExp: `INSERT INTO meta_stream_log
+			(collection, stream_id, value, event_id, stream_type, version, schema_version, payload, encoding, metadata, occurred_at)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		journalReadAll:   `SELECT value FROM meta_stream_log WHERE collection = ? ORDER BY seq`,
 		// afterSeq is a journal position within the collection (seq is a
 		// global AUTOINCREMENT shared across collections — see JournalReadFrom).
 		journalReadFrom:       `SELECT value FROM meta_stream_log WHERE collection = ? ORDER BY seq LIMIT ? OFFSET ?`,
-		streamLoadByEventID:   `SELECT value FROM meta_stream_log WHERE collection = ? AND json_valid(value) AND json_extract(value, '$.id') = ? ORDER BY seq LIMIT 1`,
+		streamLoadByEventID: `SELECT value FROM meta_stream_log WHERE collection = ? AND event_id = ?
+			UNION ALL
+			SELECT value FROM meta_stream_log WHERE collection = ? AND event_id IS NULL AND json_valid(value) AND json_extract(value, '$.id') = ?
+			ORDER BY seq LIMIT 1`,
 		journalReadAllWithSeq: `SELECT seq, value FROM meta_stream_log WHERE collection = ? ORDER BY seq`,
 		// Token resumption: a pure index range seek on
 		// idx_stream_log_journal(collection, seq) — O(log n) per page, and
@@ -182,6 +197,12 @@ func NewSQLiteEngine(database *sql.DB, opts ...EngineOption) (metaengine.Engine,
 
 	if _, err := database.ExecContext(context.Background(), eng.queries.ddl); err != nil {
 		return nil, fmt.Errorf("metaengine: create tables: %w", err)
+	}
+
+	// Typed WAL migration: guarded ALTER + backfill + unique indexes over
+	// legacy databases (fresh ones already match — the call is idempotent).
+	if err := ensureTypedStreamLog(database); err != nil {
+		return nil, err
 	}
 
 	// Enable memory-mapped I/O for faster point lookups on file-backed databases.
