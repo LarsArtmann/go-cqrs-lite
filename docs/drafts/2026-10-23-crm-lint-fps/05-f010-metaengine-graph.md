@@ -11,6 +11,7 @@ Finding site (crm @ 34f26a6): `internal/app/app.go:313` (`buildAdjacency`) — a
 `cmd/cqrs-lint/pkg/rules/adoption/f010_f011.go:23` (@ ec36eb8d2b) — the only escape hatch is importing the standalone graph module:
 
 ```go
+// skip-validate
 for _, sc := range coachingScopes(ctx) {
 	if importsPathIn(sc.files, "go-cqrs-lite/graph") {
 		continue

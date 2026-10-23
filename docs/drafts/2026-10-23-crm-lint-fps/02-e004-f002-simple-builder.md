@@ -30,6 +30,7 @@ func Event[T any](
 `cmd/cqrs-lint/pkg/analyzer/scanner_calls.go:136` (@ ec36eb8d2b) recognizes only the package-level shape:
 
 ```go
+// skip-validate
 case funcName == "Event" && IsQualifierFor(gf, sel, "go-cqrs-lite/catalog"):
 	if len(call.Args) > 0 {
 		if eventTypeStr := StringLit(call.Args[0]); eventTypeStr != "" { … }

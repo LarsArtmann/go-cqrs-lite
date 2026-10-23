@@ -256,6 +256,7 @@ The fix predates this session (absorbed by an earlier auto-commit; current tip `
 
 1. `AppConfig` fields and cmdguard tags:
    ```go
+   // skip-validate
    Baseline       string `default:"" flag:"baseline" help:"Path to a findings baseline file (JSON)" local:"true"`
    UpdateBaseline bool   `default:"false" flag:"update-baseline" help:"Rewrite the baseline from the current findings" local:"true"`
    ```

@@ -14,6 +14,7 @@ Two consequences beyond the count split:
 `cmd/cqrs-lint/pkg/rules/architecture/e003_e007.go:81` (@ ec36eb8d2b) gives every package-level finding the same position:
 
 ```go
+// skip-validate
 f, err := findingTemplate.Builder(
 	"E003",
 	fmt.Sprintf("Package %s mixes %d CQRS concerns …", pkg, len(constructs), …),

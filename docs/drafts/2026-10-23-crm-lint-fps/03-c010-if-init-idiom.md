@@ -17,6 +17,7 @@ The `_` discards the **payload**, not the error — the error is tested by the e
 `cmd/cqrs-lint/pkg/rules/correctness/swallow_helpers.go:85` (@ ec36eb8d2b) matches any `*ast.AssignStmt` that has an `_` LHS and a Decode-family RHS — and never inspects the statement the assignment lives in:
 
 ```go
+// skip-validate
 for _, lhs := range assign.Lhs {
 	id, ok := lhs.(*ast.Ident)
 	if !ok || id.Name != "_" {

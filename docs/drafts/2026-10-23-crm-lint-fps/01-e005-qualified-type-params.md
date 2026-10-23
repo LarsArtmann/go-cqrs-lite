@@ -7,6 +7,7 @@ Every command on a consumer that registers through `system.RegisterCommand` with
 Consumer shape (crm @ 34f26a6, `internal/app/domain.go:196`):
 
 ```go
+// skip-validate
 mustRegister(system.RegisterCommand[deal.LoseCmd, deal.State](sys, deal.CmdLose,
 	func(ctx context.Context, cmd deal.LoseCmd) system.Op[deal.State] { … }))
 ```
