@@ -141,7 +141,15 @@ func (e *pgEngine) init() error {
 			seq BIGSERIAL PRIMARY KEY,
 			collection TEXT NOT NULL,
 			stream_id TEXT NOT NULL,
-			value TEXT NOT NULL
+			value TEXT NOT NULL,
+			event_id TEXT,
+			stream_type TEXT,
+			version BIGINT,
+			schema_version BIGINT,
+			payload BYTEA,
+			encoding TEXT,
+			metadata JSONB,
+			occurred_at BIGINT
 		)`,
 		`CREATE INDEX IF NOT EXISTS idx_stream_log_stream ON meta_stream_log(collection, stream_id, seq)`,
 		`CREATE INDEX IF NOT EXISTS idx_stream_log_journal ON meta_stream_log(collection, seq)`,
@@ -163,6 +171,12 @@ func (e *pgEngine) init() error {
 	}
 
 	if err := execDDLLocked(context.Background(), e.db, ddls); err != nil {
+		return fmt.Errorf("pgengine.init: %w", err)
+	}
+
+	// Typed WAL migration for databases created before the typed columns
+	// existed (ADD COLUMN IF NOT EXISTS is a no-op on fresh schemas).
+	if err := ensureTypedStreamLog(e.db); err != nil {
 		return fmt.Errorf("pgengine.init: %w", err)
 	}
 

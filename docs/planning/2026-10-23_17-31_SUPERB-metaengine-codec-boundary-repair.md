@@ -169,3 +169,102 @@ flowchart TD
 > Appended during execution. See §10 for the final verification matrix.
 
 _(empty at plan creation)_
+
+### 9.1 RED evidence (T1, before any production edit)
+
+`metaengine` (Ginkgo, `encoded_codec_test.go`):
+
+```
+[FAIL] ApplyEncoded payload codecs [It] applies a CBOR payload with a sniffed encoding
+  Expected success, but got an error:
+  batch apply on memory: ... [corruption:metaengine.apply.encoded_decode]
+  decode TaskCreated: json decode into TaskCreated:
+  json: unable to unmarshal JSON number into Go time.Time within "/At"
+[FAIL] ApplyEncoded payload codecs [It] applies a CBOR payload stamped on the Record
+  (same failure)
+214 Passed | 2 Failed
+```
+
+`metaengine/projectionadapter` (`adapter_default_codec_test.go`):
+
+```
+--- FAIL: TestAdapter_DefaultDecode_Codecs/json
+    Handle(json) = ... collection poisoned by fold panic:
+    reflect: Call using map[string]interface {} as type projectionadapter_test.CounterIncremented
+--- FAIL: TestAdapter_DefaultDecode_Codecs/cbor
+    Handle(cbor) = [corruption:projectionadapter.decode_payload]
+    projectionadapter: decode payload for CounterIncremented:
+    jsontext: invalid character '\xa2' at start of value
+```
+
+The JSON sub-case is the important one: the documented `map[string]any`
+zero-config default was ALREADY broken for every typed fold, independent of
+CBOR. That killed the "decode to a generic map" plan before it shipped.
+
+### 9.2 Two design corrections made during execution (against this plan's text)
+
+1. **No schema-free CBOR→JSON normalization.** §1/T2 assumed `AutoDetect` +
+   `TranscodeToJSON` was the fix. The RED run proved it lossy: go-codec's
+   canonical CBOR encodes `time.Time` as an untagged epoch integer
+   (`EncOptions.Time = TimeUnixDynamic`), so the transcoded JSON holds a number
+   that `encoding/json` refuses to unmarshal into `time.Time`. A schema-free
+   transcode therefore cannot be the ingress normal form. Final design: a
+   private `encodedPayload{raw, encoding}` pipeline marker; each fold decodes
+   with `codec.ForEncoding(encoding)` into its own sample type. JSON keeps the
+   historical `jsontext.Value` marker, so EventLog/replication/replay paths are
+   untouched and the public `EventInput.Payload … jsontext.Value` contract holds.
+   The exported `NormalizeEncoded*` helper was dropped (never released); it would
+   have shipped the lossy behaviour as API.
+2. **The adapter delegates instead of decoding.** §3 planned a generic
+   transcode-then-`json.Unmarshal`. The RED output showed the map intermediate is
+   what breaks typed folds, so the no-decoder path now calls
+   `Store.ApplyEncodedRecord` with the raw bytes. Decode failures stay
+   Corruption-classified because the encoded fold path now wraps its own decode
+   errors with `errorfamily.WrapCorruption` (`metaengine.apply.encoded_decode`).
+
+### 9.3 What shipped (per task)
+
+| Task | Result |
+| ---- | ------ |
+| T1 | 3 new test files: `metaengine/encoded_codec_test.go` (Ginkgo: CBOR sniffed, CBOR stamped, JSON regression, non-JSON/CBOR rejection), `metaengine/projectionadapter/adapter_default_codec_test.go` (JSON + CBOR through a nil decoder), `metaengine/stream_codec_test.go` (encode/decode error paths + legacy fallback), `metaengine/cursor_deterministic_test.go` |
+| T2 | `metaengine/encoded.go`: `encodePayload` (AutoDetect / `Record.Encoding`), `encodedPayload` marker, `decodeJSONFoldPayload`, `decodeEncodedFoldPayload`, `corruptionDecodeError`; both `ApplyEncoded*` wired |
+| T3 | `projectionadapter/adapter.go`: no-decoder path → `ApplyEncodedRecord`; stale "zero-dependency boundary" and "map[string]any" docs corrected |
+| T4 | `EncodeStreamValueErr`/`DecodeStreamValueErr`; `EncodeStreamValue` deprecated (still exact-behaviour); write sites migrated in pg (`copyAppend`, `streamInsertBatch`), duckdb, mysql, dgraph; dgraph `StreamAppendExpected`'s ignored `json.Marshal` error fixed |
+| T5 | `Cursor.Encode` → `json.Marshal(v, json.Deterministic(true))` |
+| T6 | `metaengine/go.mod`: go-codec v0.3.2 direct (pulls error-family v0.12.0, aligning the module with event/ and projectionadapter); `DEP_BUDGET[metaengine]` 7 → 8 with rationale |
+| T7 | `metaengine/README.md` (encodings + toolchain + ApplyEncoded), recipes §"Encoded Applies" (both claims were wrong), modules.md one-liner, FAQ entry for the CBOR/DLQ symptom, CHANGELOG Fixed entry |
+| T8 | See §9.4 |
+| T9 | this log + commit |
+
+**Deliberately NOT changed:** persisted bytes (event wire format, engine rows,
+EventLog payloads), `vector_binary.go`, `keycodec/`, `layout_fingerprint.go`,
+read-side `DecodeStreamValue` call sites (their raw-string fallback is pinned by
+a test instead), and `reify`.
+
+### 9.4 Gate matrix (final run)
+
+| Gate | Command | Result |
+| ---- | ------- | ------ |
+| metaengine | `GOWORK=off go test ./... -count=1` | green (216 specs + packages) |
+| projectionadapter | `GOWORK=off go test ./... -count=1` | green |
+| system | `GOWORK=off go test -short ./... -count=1` | green |
+| pg / duckdb / mysql / dgraph / sqlite / bigtable engines | `GOWORK=off go test -short ./... -count=1` | green |
+| builds | `GOWORK=off go build ./...` in all 8 changed modules | green |
+| API surface | `cmd/api-stability --update` + `TestEvery` | golden +2 exports (`EncodeStreamValueErr`, `DecodeStreamValueErr`), meta-tests green |
+| layers/budgets | `scripts/check-module-layers.sh` | green |
+| error taxonomy | `scripts/check-error-taxonomy.sh` | green (542 codes, 4 new documented) |
+| doc references | `cmd/doc-check … SKILL.md references/*.md AGENTS.md` | green (1349 refs) |
+| recipes compile | `go test -run TestRecipes ./cmd/doc-check` | green |
+| formatting | `nix fmt` | applied |
+
+**Pre-existing reds found by the matrix (NOT caused by this change, NOT
+touched — foreign in-flight work):**
+
+- `check-file-size`: `system/adapter_event.go` 351 lines, `metaengine/layout.go`
+  360 lines (uncommitted edits from a parallel session), and
+  `metaengine/sqliteengine/engine.go` grown 663 → 668 against its ratchet.
+- `check-duplication`: 4 new clone groups, all outside this change
+  (`system/adapter_{command,event}.go`, `system/wal_raw_bytes_pin_test.go` vs
+  `queue/conformance/facthelpers.go`, a templ signature group, and
+  `metaengine/keycodec/escape.go`).
+

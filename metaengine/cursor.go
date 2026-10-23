@@ -27,12 +27,15 @@ func (c Cursor) String() string {
 // same URL-safe base64 string, plus any marshal error so the caller can refuse
 // to silently reset pagination. Encode is the correct choice whenever the
 // cursor crosses a process or request boundary.
+//
+// The JSON payload is deterministic (map keys sorted), so equal cursor values
+// always encode to identical bytes — safe as a cache key or ETag component.
 func (c Cursor) Encode() (string, error) {
 	if c.Value == nil {
 		return "", nil
 	}
 
-	encoded, err := json.Marshal(c.Value)
+	encoded, err := json.Marshal(c.Value, json.Deterministic(true))
 	if err != nil {
 		return "", fmt.Errorf("metaengine.Cursor.Encode: marshal cursor value: %w", err)
 	}

@@ -121,8 +121,18 @@ func (e *mysqlEngine) init() error {
 			collection VARCHAR(255) NOT NULL,
 			stream_id VARCHAR(255) NOT NULL,
 			value TEXT NOT NULL,
+			event_id VARCHAR(512),
+			stream_type VARCHAR(255),
+			version BIGINT,
+			schema_version BIGINT,
+			payload BLOB,
+			encoding VARCHAR(64),
+			metadata JSON,
+			occurred_at BIGINT,
 			INDEX idx_stream_log_stream (collection, stream_id, seq),
-			INDEX idx_stream_log_journal (collection, seq)
+			INDEX idx_stream_log_journal (collection, seq),
+			UNIQUE INDEX uq_stream_log_event (collection, event_id),
+			UNIQUE INDEX uq_stream_log_stream_version (collection, stream_id, version)
 		)`,
 		`CREATE TABLE IF NOT EXISTS meta_graph_edges (
 			collection VARCHAR(255) NOT NULL,
@@ -154,6 +164,12 @@ func (e *mysqlEngine) init() error {
 
 			return fmt.Errorf("mysqlengine.init: %w", err)
 		}
+	}
+
+	// Typed WAL migration for databases created before the typed columns
+	// existed (INSTANT ADD COLUMN is a no-op-shape probe on fresh schemas).
+	if err := ensureTypedStreamLog(e.db); err != nil {
+		return fmt.Errorf("mysqlengine.init: %w", err)
 	}
 
 	e.dialect = detectDialect(e.db)

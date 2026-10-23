@@ -80,7 +80,12 @@ func (s *Store) applyAutoLayoutForQuery(meta queryMeta) error {
 	// Typed plan whenever the result type is known: reflection-derived
 	// column types instead of the all-TEXT nameless plan (a "Priority" int
 	// column must compare as BIGINT in engine keyset SQL, not VARCHAR).
-	layoutPlan := BuildLayoutPlanForType(meta.QueryName(), filterFields, sortFields, meta.QueryResultType())
+	layoutPlan := BuildLayoutPlanForType(
+		meta.QueryName(),
+		filterFields,
+		sortFields,
+		meta.QueryResultType(),
+	)
 	if meta.QueryConfig().columnarLayout {
 		rt := meta.QueryResultType()
 		if rt != nil && isStructOrPointerToStruct(rt) {

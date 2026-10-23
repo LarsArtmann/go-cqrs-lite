@@ -20,9 +20,10 @@ func NewEventLog() *EventLog { return &EventLog{} }
 // Record optionally carries the full record context: when set, ApplyBatch and
 // the replay paths (Backfill, Verify, DemoteEngine catch-up) hand Record-aware
 // projections the original StreamID/Version/metadata instead of a synthesized
-// minimal record. Payload may also be the raw JSON bytes produced by
-// ApplyEncoded/ApplyEncodedRecord (stored as jsontext.Value in the EventLog);
-// every dispatch path decodes them per fold before invoke.
+// minimal record. Payload may also be the undecoded bytes handed to
+// ApplyEncoded/ApplyEncodedRecord — JSON stays a jsontext.Value, CBOR becomes
+// an internal encoded marker that still carries its codec; every dispatch path
+// decodes them per fold before invoke.
 type EventInput struct {
 	Type    string
 	Payload any

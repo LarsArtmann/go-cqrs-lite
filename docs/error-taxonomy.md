@@ -765,8 +765,12 @@ errorfamily.Classify(err) // => Conflict
 
 | Error                        | Family        | Code                                      |
 | ---------------------------- | ------------- | ----------------------------------------- |
+| -                            | Corruption    | `metaengine.apply.encoded_codec`          |
+| -                            | Corruption    | `metaengine.apply.encoded_decode`         |
 | ErrBackfillUnsupported       | Rejection     | `metaengine.backfill_unsupported`         |
 | ErrClaimLeaseNotHeld         | Orchestration | `metaengine.claim_lease_not_held`         |
+| -                            | Corruption    | `metaengine.encoded.empty_payload`        |
+| -                            | Corruption    | `metaengine.encoded.unknown_encoding`     |
 | ErrPlannedColumnTypeMismatch | Rejection     | `metaengine.planned_column_type_mismatch` |
 | ErrVectorDimensionMismatch   | Rejection     | `metaengine.vector_dimension_mismatch`    |
 

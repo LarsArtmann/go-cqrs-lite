@@ -166,7 +166,9 @@ func (e *sqliteEngine) StreamLoadByEventID(
 
 	// Typed event_id first (O(log n) on the partial unique index); the
 	// json_extract branch covers backfill-pending legacy rows only.
-	err := e.xc(ctx).queryRow(ctx, e.queries.streamLoadByEventID, col, eventID, col, eventID).Scan(&valStr)
+	err := e.xc(ctx).
+		queryRow(ctx, e.queries.streamLoadByEventID, col, eventID, col, eventID).
+		Scan(&valStr)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, metaengine.ErrNotFound

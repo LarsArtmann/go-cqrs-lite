@@ -18,7 +18,11 @@ func (e *duckdbEngine) StreamAppend(ctx context.Context, col, sid string, values
 	}
 
 	for _, v := range values {
-		encoded := metaengine.EncodeStreamValue(v)
+		encoded, encodeErr := metaengine.EncodeStreamValueErr(v)
+		if encodeErr != nil {
+			return fmt.Errorf("duckdbengine.StreamAppend: %w", encodeErr)
+		}
+
 		if _, err := e.conn(ctx).ExecContext(
 			ctx,
 			`INSERT INTO meta_stream_log (collection, stream_id, value) VALUES ($1, $2, $3)`,
@@ -61,7 +65,11 @@ func (e *duckdbEngine) StreamAppendExpected(
 	}
 
 	for _, v := range values {
-		encoded := metaengine.EncodeStreamValue(v)
+		encoded, encodeErr := metaengine.EncodeStreamValueErr(v)
+		if encodeErr != nil {
+			return fmt.Errorf("duckdbengine.StreamAppendExpected insert: %w", encodeErr)
+		}
+
 		if _, err := e.conn(ctx).ExecContext(
 			ctx,
 			`INSERT INTO meta_stream_log (collection, stream_id, value) VALUES ($1, $2, $3)`,

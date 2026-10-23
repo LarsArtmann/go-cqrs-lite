@@ -2,7 +2,6 @@ package projectionadapter
 
 import (
 	"context"
-	"encoding/json/v2"
 	"fmt"
 	"log/slog"
 
@@ -19,7 +18,10 @@ import (
 // that the metaengine fold handlers expect. The consumer provides this
 // because only they know the concrete types of their events.
 //
-// If nil, the adapter decodes the payload as map[string]any (generic JSON).
+// If nil, the adapter hands the raw payload to Store.ApplyEncodedRecord, which
+// detects the payload codec (JSON or CBOR) and decodes it per fold sample. That
+// zero-config path is correct for every fold; a consumer-supplied decoder is
+// only needed when the fold types cannot be derived from the sample.
 //
 // PayloadDecoder is sufficient for Counter and Set queries that don't need
 // the entity ID. For Map ADT queries (where the entity ID is the projection
@@ -63,12 +65,13 @@ func WithLogger(l *slog.Logger) AdapterOption {
 // events through the standard projection lifecycle (checkpoint, retry, DLQ).
 //
 // The adapter decodes each event's payload via the configured PayloadDecoder
-// (or generic JSON if none), then calls Store.Apply to route the event to
-// all registered queries that listen to it.
+// or EventDecoder. With neither configured it hands the raw bytes to
+// Store.ApplyEncodedRecord, which detects the codec (JSON or CBOR) and decodes
+// per fold sample — no map[string]any intermediate, which typed folds cannot
+// consume.
 //
 // This package is intentionally separate from the core metaengine package
-// to preserve metaengine's zero-dependency boundary — the adapter is the
-// only place that needs event/ and projection/ imports.
+// to keep the core free of event/ and projection/ imports.
 type Adapter struct {
 	store        *metaengine.Store
 	name         string
@@ -136,13 +139,24 @@ func (a *Adapter) Handle(ctx context.Context, evt event.Event) error {
 
 	var err error
 
+	switch {
 	// EventDecoder takes precedence — it has full event context (StreamID, etc.).
-	if a.eventDecoder != nil {
+	case a.eventDecoder != nil:
 		decoded, err = a.eventDecoder(evt)
-	} else if a.decoder != nil {
+	case a.decoder != nil:
 		decoded, err = a.decoder(eventType, payload)
-	} else {
-		err = json.Unmarshal(payload, &decoded)
+	default:
+		// No decoder configured: let the store decode the raw bytes. It
+		// detects JSON vs CBOR and decodes per fold sample, which is the
+		// only shape a typed fold can consume. A decode failure surfaces
+		// as a Corruption-family error (see ApplyEncodedRecord).
+		if applyErr := a.store.ApplyEncodedRecord(
+			ctx, event.AsRecord(evt), payload,
+		); applyErr != nil {
+			return fmt.Errorf("projectionadapter: apply %s: %w", eventType, applyErr)
+		}
+
+		return nil
 	}
 
 	if err != nil {

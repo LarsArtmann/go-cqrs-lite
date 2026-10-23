@@ -66,9 +66,11 @@ func typedEnvelope(t *testing.T, eventID, streamID string, version int) string {
 	return string(data)
 }
 
-const typedStreamID = "01TYPEDSTREAM000000000001"
-const typedEventID1 = "01TYPED0000000000000000001"
-const typedEventID2 = "01TYPED0000000000000000002"
+const (
+	typedStreamID = "01TYPEDSTREAM000000000001"
+	typedEventID1 = "01TYPED0000000000000000001"
+	typedEventID2 = "01TYPED0000000000000000002"
+)
 
 func TestTypedWAL_DuplicateEventAppendConflicts(t *testing.T) {
 	t.Parallel()
@@ -143,7 +145,13 @@ func TestTypedWAL_TypedColumnsFilled(t *testing.T) {
 
 	if eventID != typedEventID1 || streamType != "Task" ||
 		version != 1 || encoding != "cbor" {
-		t.Fatalf("typed identity columns wrong: %q %q %d %q", eventID, streamType, version, encoding)
+		t.Fatalf(
+			"typed identity columns wrong: %q %q %d %q",
+			eventID,
+			streamType,
+			version,
+			encoding,
+		)
 	}
 
 	if len(payload) == 0 {

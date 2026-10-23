@@ -296,11 +296,18 @@ store, _ := metaengine.Plan(engines,
 )
 ```
 
-## JSON Event Payloads
+## Encoded Event Payloads (JSON or CBOR)
 
 ```go
 store.ApplyEncoded(ctx, string(evt.Type()), evt.Payload())
 ```
+
+The codec is detected from the bytes (`codec.AutoDetect`), so the CBOR payload
+that `event.New` produces by default and a JSON payload from a legacy producer
+both apply through the same call. Each fold decodes the bytes with the codec
+that produced them into its own sample type — no schema-free JSON round trip,
+which would lose values such as `time.Time` (CBOR encodes it as an epoch
+integer).
 
 ## Projection Adapter
 
@@ -431,14 +438,19 @@ rationale and rejected alternatives.
 ## Toolchain (Portability)
 
 This module imports `encoding/json/v2`: it requires Go 1.27+ (where the package
-graduated). No build tag or `GOEXPERIMENT` is needed.
+graduated). No build tag or `GOEXPERIMENT` is needed. The module also imports
+[`github.com/larsartmann/go-codec`](https://github.com/larsartmann/go-codec) as
+the Tier -1 codec substrate: `codec.Encoding`, `AutoDetect`, and `ForEncoding`
+are shared with `event/` and the storage engines, so a payload is never
+translated between competing codec inventories.
 
 ## ApplyEncoded (Hot Path for Projections)
 
-`Store.ApplyEncoded` is the zero-copy entry point used by `projectionadapter`
-when wiring a metaengine Store into a `projectionhost.Host`. It accepts a
-JSON-encoded `[]byte` payload directly (no need to unmarshal first), decodes
-it via `encoding/json/v2`, and routes it to all matching fold handlers:
+`Store.ApplyEncoded` is the entry point used by `projectionadapter` when wiring a
+metaengine Store into a `projectionhost.Host`. It accepts the encoded payload
+bytes directly (no need to unmarshal first), detects the codec (JSON or CBOR),
+and routes the payload to all matching fold handlers, each decoding it with the
+codec that produced it:
 
 ```go
 // In a projection.Projection.Handle implementation:
@@ -449,8 +461,10 @@ func (p *myProjection) Handle(ctx context.Context, evt event.Event) error {
 
 This avoids a double-decode (the adapter would otherwise unmarshal to `any`,
 then `Apply` would need to re-inspect the type). The `projectionadapter`
-package is the canonical consumer; direct callers should use `Apply` with a
-typed value unless they are bridging from a raw-payload source.
+package is the canonical consumer — with no decoder configured it delegates here
+instead of producing a `map[string]any` that typed folds cannot consume. Direct
+callers should use `Apply` with a typed value unless they are bridging from a
+raw-payload source.
 
 ## Typed Reads — TypedReader and QueryBuilder
 

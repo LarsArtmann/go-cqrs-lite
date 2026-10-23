@@ -59,7 +59,6 @@ func (p *progressReporter) startHeartbeat() {
 	p.done = make(chan struct{})
 
 	p.wg.Go(func() {
-
 		p.heartbeat()
 	})
 }

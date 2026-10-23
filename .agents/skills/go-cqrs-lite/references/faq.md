@@ -53,6 +53,19 @@ events, _ := event.NewEvents(aggID, "User", 0,
     []event.Type{"user.created"}, []any{UserCreated{Name: "Alice"}})
 ```
 
+### "My CBOR events are dead-lettered as Corruption by the projection adapter"
+
+**Cause (fixed for the built-in paths):** metaengine's encoded ingress used to be JSON-only. `event.New` encodes CBOR by default, so `Store.ApplyEncoded` and a zero-config `projectionadapter.New(name, store, nil)` could not decode the library's own default payload; the adapter classified the failure as `Corruption`, which a host dead-letters.
+
+**Now:** `ApplyEncoded`/`ApplyEncodedRecord` detect the codec (`codec.AutoDetect`) or honor `Record.Encoding`, and each fold decodes with the codec that produced the bytes. An adapter with no decoder delegates to `ApplyEncodedRecord`; it no longer produces a `map[string]any`, which typed folds cannot consume (it panicked in `reflect.Call`).
+
+**If you still hit it:**
+
+- A hand-written `PayloadDecoder` that calls `json.Unmarshal` rejects CBOR: use `event.DecodePayloadAuto[T]`, or pass `nil` and let the store decode.
+- Encodings outside JSON/CBOR are not supported by the encoded entry point: decode them yourself and call `Store.ApplyRecord`.
+
+Note: schema-free CBOR→JSON transcoding is NOT the fix — CBOR encodes `time.Time` as an epoch integer, so the transcoded JSON cannot be decoded back into `time.Time`. Decode with the target type, as the store now does.
+
 ### "Why do my `time.Time` payload fields drift by a few hundred nanoseconds?"
 
 The default CBOR event codec encodes fractional-seconds `time.Time` values as float64 unix seconds (go-codec's `TimeUnixDynamic`): at 2026-era epochs the mantissa leaves ~22 fraction bits, quantizing every round-trip to ≤256 ns (measured 165 ns single-hop, ≤611 ns multi-hop). The SQL journals are NOT the loss point — they store exact JSON strings — the loss enters at the CBOR event hop. Nanosecond-exact options:

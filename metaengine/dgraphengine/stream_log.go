@@ -35,12 +35,18 @@ func (e *dgraphEngine) StreamAppend(
 
 	for i, v := range values {
 		seq := time.Now().UnixNano() + int64(i)
+
+		encoded, encodeErr := metaengine.EncodeStreamValueErr(v)
+		if encodeErr != nil {
+			return fmt.Errorf("dgraphengine.StreamAppend: %w", encodeErr)
+		}
+
 		nodes = append(nodes, map[string]any{
 			"uid":                        fmt.Sprintf("_:sl%d", i),
 			"cqrs.stream_log_collection": col,
 			"cqrs.stream_log_stream":     sid,
 			"cqrs.stream_log_seq":        seq,
-			"cqrs.stream_log_value":      metaengine.EncodeStreamValue(v),
+			"cqrs.stream_log_value":      encoded,
 			"dgraph.type":                []string{"StreamLogEntry"},
 		})
 	}
@@ -250,17 +256,26 @@ func (e *dgraphEngine) StreamAppendExpected(
 
 	for i, v := range values {
 		seq := time.Now().UnixNano() + int64(i)
+
+		encoded, encodeErr := metaengine.EncodeStreamValueErr(v)
+		if encodeErr != nil {
+			return fmt.Errorf("dgraphengine.StreamAppendExpected: %w", encodeErr)
+		}
+
 		nodes = append(nodes, map[string]any{
 			"uid":                        fmt.Sprintf("_:sl%d", i),
 			"cqrs.stream_log_collection": col,
 			"cqrs.stream_log_stream":     sid,
 			"cqrs.stream_log_seq":        seq,
-			"cqrs.stream_log_value":      metaengine.EncodeStreamValue(v),
+			"cqrs.stream_log_value":      encoded,
 			"dgraph.type":                []string{"StreamLogEntry"},
 		})
 	}
 
-	data, _ := json.Marshal(nodes)
+	data, err := json.Marshal(nodes)
+	if err != nil {
+		return fmt.Errorf("dgraphengine.StreamAppendExpected: marshal: %w", err)
+	}
 
 	// expectedVersion is int64 — %d emits only digits, injection-safe.
 	req.Mutations = []*api.Mutation{

@@ -1629,10 +1629,11 @@ adapter := projectionadapter.NewWithDecoder("items", store, decoder)
 
 #### Encoded Applies: projection.Projection → ApplyEncodedRecord (metaengine)
 
-`Store.ApplyEncoded(ctx, type, jsonBytes)` pushes an UNDECODED JSON payload
-through the full fold pipeline — metered, hook-observed, EventLog-recorded,
-shadow-replicated; each fold decodes into its own sample type. Use
-`ApplyEncodedRecord` to ALSO carry the full `record.Record` (StreamID,
+`Store.ApplyEncoded(ctx, type, payloadBytes)` pushes an UNDECODED payload
+(JSON or CBOR — the codec is detected from the bytes) through the full fold
+pipeline — metered, hook-observed, EventLog-recorded, shadow-replicated; each
+fold decodes into its own sample type with the codec that produced the bytes.
+Use `ApplyEncodedRecord` to ALSO carry the full `record.Record` (StreamID,
 Version, Actor, Stamps) into `OnRecord` folds — plain `ApplyEncoded` can only
 synthesize a Type-only Record, so `OnRecord` folds would see empty
 StreamID/Version.
@@ -1660,11 +1661,13 @@ proj := projection.NewProjection(
 
 Caveats:
 
-- `ApplyEncodedRecord` takes **JSON bytes** (`Record.Type` must name the
-  event type — empty is rejected). For CBOR-encoded events (the `event.New`
-  default codec is CBOR), decode into a concrete type first and use
-  `Store.ApplyRecord(ctx, rec, decoded)`; with several event types in one
-  handler, dispatch on `evt.Type()` or give each type its own projection.
+- `ApplyEncodedRecord` takes the encoded **payload bytes** (`Record.Type`
+  must name the event type — empty is rejected). Both JSON and CBOR are
+  accepted: an unknown `Record.Encoding` is sniffed, a known stamp is honored.
+  Folds whose sample is a concrete type decode with the matching codec, so
+  CBOR events from `event.New` (the default) need no manual decode.
+- Encodings outside the JSON/CBOR pair still require a manual decode +
+  `Store.ApplyRecord(ctx, rec, decoded)`.
 - Non-Record-aware folds (`metaengine.On`) work unchanged — they ignore the
   Record context.
 - Prefer `metaengine/projectionadapter` when you want the bridging (host

@@ -27,7 +27,7 @@ func Escape(s string) string {
 	var b strings.Builder
 	b.Grow(len(s))
 
-	for i := 0; i < len(s); i++ {
+	for i := range len(s) {
 		switch s[i] {
 		case 0x00:
 			b.WriteByte(0x01)

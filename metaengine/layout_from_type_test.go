@@ -57,7 +57,10 @@ func TestBuildLayoutPlanFromType_UnknownFieldDegradesToTEXT(t *testing.T) {
 	)
 
 	if plan.Columns[0].Type != "TEXT" {
-		t.Fatalf("unknown-field fallback = %q, want TEXT (name typing is deleted)", plan.Columns[0].Type)
+		t.Fatalf(
+			"unknown-field fallback = %q, want TEXT (name typing is deleted)",
+			plan.Columns[0].Type,
+		)
 	}
 }
 

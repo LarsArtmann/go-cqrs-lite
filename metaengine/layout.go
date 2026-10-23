@@ -196,7 +196,7 @@ func sqlTypeOf(t reflect.Type) (string, error) {
 
 	return "TEXT", fmt.Errorf(
 		"no native SQL mapping for %s — column degrades to TEXT (JSON-encoded); "+
-		"declare an explicit column type if typed scans must survive",
+			"declare an explicit column type if typed scans must survive",
 		t,
 	)
 }
@@ -253,8 +253,17 @@ func BuildLayoutPlanForType(
 			plan.Columns[i].Type = colType
 
 			if advisory != nil {
-				slog.Warn("metaengine: planned column type degraded to TEXT",
-					"collection", collection, "column", c.Name, "go_type", t.String(), "because", advisory)
+				slog.Warn(
+					"metaengine: planned column type degraded to TEXT",
+					"collection",
+					collection,
+					"column",
+					c.Name,
+					"go_type",
+					t.String(),
+					"because",
+					advisory,
+				)
 			}
 		}
 	}
@@ -312,8 +321,17 @@ func BuildColumnarLayoutPlan(collection string, resultType reflect.Type) LayoutP
 			colType, advisory := sqlTypeOf(f.Type)
 
 			if advisory != nil {
-				slog.Warn("metaengine: planned column type degraded to TEXT",
-					"collection", collection, "column", name, "go_type", f.Type.String(), "because", advisory)
+				slog.Warn(
+					"metaengine: planned column type degraded to TEXT",
+					"collection",
+					collection,
+					"column",
+					name,
+					"go_type",
+					f.Type.String(),
+					"because",
+					advisory,
+				)
 			}
 
 			columns = append(columns, PlannedColumn{Name: name, Type: colType})

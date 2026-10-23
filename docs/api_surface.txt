@@ -3077,6 +3077,7 @@ metaengine/func CursorArg
 metaengine/func DecodeFloat
 metaengine/func DecodeFloatResults
 metaengine/func DecodeStreamValue
+metaengine/func DecodeStreamValueErr
 metaengine/func DecodeVectorAuto
 metaengine/func DecodeVectorBinary
 metaengine/func DecodeVectorF32
@@ -3086,6 +3087,7 @@ metaengine/func DeferClose
 metaengine/func DeserializePlan
 metaengine/func DollarPlaceholders
 metaengine/func EncodeStreamValue
+metaengine/func EncodeStreamValueErr
 metaengine/func EncodeVectorBinary
 metaengine/func EncodeVectorF32
 metaengine/func EngineVersionsCells

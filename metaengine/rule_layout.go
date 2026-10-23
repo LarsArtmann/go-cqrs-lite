@@ -36,7 +36,12 @@ func (r *layoutRule) Apply(result *PlanResult, ctx PlanContext) error {
 		// Typed plan whenever the result type is known: reflection-derived
 		// column types instead of the all-TEXT plan (a "Priority" int column
 		// must compare as BIGINT in engine keyset SQL, not VARCHAR).
-		layoutPlan := BuildLayoutPlanForType(rt.QueryName(), filterFields, sortFields, rt.QueryResultType())
+		layoutPlan := BuildLayoutPlanForType(
+			rt.QueryName(),
+			filterFields,
+			sortFields,
+			rt.QueryResultType(),
+		)
 		if rt.QueryConfig().columnarLayout {
 			resultType := rt.QueryResultType()
 			if resultType != nil && isStructOrPointerToStruct(resultType) {

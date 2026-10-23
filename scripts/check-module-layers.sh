@@ -320,12 +320,14 @@ DEP_BUDGET[catalog]=8
 DEP_BUDGET[integration]=21
 DEP_BUDGET[benchkit]=25
 DEP_BUDGET[testutil]=5
-# metaengine: 7 = the four Tier-0-ish primitives (record/id/dedup/errorfamily)
+# metaengine: 8 = the four Tier-0-ish primitives (record/id/dedup/errorfamily)
 # + go-sse (ServeSSE) + claiming (ADR-0142 claimkit: the ONE database/sql
 # claim+dedup runtime every SQL engine embeds; claiming is a zero-runtime
 # statement library, L2) + go-humanize (engine stats/doctor output
-# humanization, 2026-10-08 go-humanize-linter sweep).
-DEP_BUDGET[metaengine]=7
+# humanization, 2026-10-08 go-humanize-linter sweep) + go-codec (Tier -1
+# substrate: encoded ingress decodes CBOR with the codec that produced it —
+# schema-free JSON transcoding cannot carry time.Time).
+DEP_BUDGET[metaengine]=8
 DEP_BUDGET["metaengine/pebbleengine"]=5
 DEP_BUDGET["metaengine/duckdbengine"]=5
 DEP_BUDGET["metaengine/pgengine"]=5
