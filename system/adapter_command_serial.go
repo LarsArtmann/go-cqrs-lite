@@ -33,7 +33,10 @@ func (a *CommandAdapter) encodeCommand(cmd *command.PersistedCommand) (string, e
 		Type:       string(cmd.Type()),
 		StreamID:   cmd.StreamID().Get(),
 		StreamType: string(cmd.StreamType()),
-		ReceivedAt: cmd.ReceivedAt(),
+		// UTC on the wire: local offsets parse back to the same instant but
+		// break lexicographic ORDERING comparisons across rows written in
+		// different zones (the PC-6 trap; pinned by TestWALPin_Command…).
+		ReceivedAt: cmd.ReceivedAt().UTC(),
 		Payload:    cmd.Payload(),
 		Metadata:   metaJSON,
 	}
