@@ -191,8 +191,9 @@ func scanCallExpr(ctx *AnalysisContext, gf *GoFile, call *ast.CallExpr) {
 // handlerTypeFromClosure extracts the handler type from a function literal's
 // parameter list. It finds the first parameter that is a pointer to a named
 // type (e.g., *MyCommand) or a named type (e.g., MyQuery), skipping
-// context.Context parameters. Handles both bare identifiers (*MyCommand) and
-// package-qualified types (*pkg.MyCommand → "MyCommand").
+// context.Context parameters. Handles bare identifiers (*MyCommand),
+// package-qualified types (*pkg.MyCommand → "MyCommand"), and unqualified
+// cross-package params (cmd deal.LoseCmd → "LoseCmd").
 func handlerTypeFromClosure(fn *ast.FuncLit) string {
 	if fn.Type == nil || fn.Type.Params == nil {
 		return ""
@@ -201,15 +202,33 @@ func handlerTypeFromClosure(fn *ast.FuncLit) string {
 	for _, param := range fn.Type.Params.List {
 		switch t := param.Type.(type) {
 		case *ast.StarExpr:
-			return lastIdentSegment(t.X)
+			if name := lastIdentSegment(t.X); name != "" {
+				return name
+			}
 		case *ast.Ident:
-			// Skip context.Context-like params that are just Idents
-			// (context.Context itself is a SelectorExpr, so it won't match here)
 			return t.Name
+		case *ast.SelectorExpr:
+			// context.Context is a SelectorExpr, not a handler type; skip it
+			// and keep looking at the remaining parameters.
+			if isContextSelector(t) {
+				continue
+			}
+
+			return t.Sel.Name
 		}
 	}
 
 	return ""
+}
+
+// isContextSelector reports whether expr is a reference to context.Context.
+func isContextSelector(sel *ast.SelectorExpr) bool {
+	ident, ok := sel.X.(*ast.Ident)
+	if !ok {
+		return false
+	}
+
+	return ident.Name == "context" && sel.Sel.Name == "Context"
 }
 
 // commandTypeFromSystemRegisterCommand extracts the command struct name from

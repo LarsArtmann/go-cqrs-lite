@@ -72,6 +72,8 @@ func inspectBodyForSwallowedError(
 	body *ast.BlockStmt,
 	findings *[]finding.Finding,
 ) {
+	checked := checkedSwallowAssigns(body)
+
 	ast.Inspect(body, func(n ast.Node) bool {
 		assign, ok := n.(*ast.AssignStmt)
 		if !ok {
@@ -79,6 +81,13 @@ func inspectBodyForSwallowedError(
 		}
 
 		if len(assign.Lhs) == 0 {
+			return true
+		}
+
+		// `if _, err := decode(evt); err != nil { ... }` discards the payload,
+		// not the error: the error is tested by the enclosing if. Reporting it
+		// would flag the exact idiom this rule recommends.
+		if checked[assign] {
 			return true
 		}
 

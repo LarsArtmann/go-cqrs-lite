@@ -184,6 +184,57 @@ func register(sys *system.System) {
 	ruletest.AssertRule(t, findings, "E005", 0)
 }
 
+// E005 must also resolve cross-package selector type parameters. The ADR-0123
+// layout puts the composition root in a package different from the domain, so
+// system.RegisterCommand[deal.LoseCmd, deal.State] is the dominant shape.
+// Regression pin for issue #78 (CRM: 25 commands flagged despite registration).
+func TestE005_NoFindingWhenRegisteredViaSystemCrossPackage(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"domain.go": `package main
+
+type LoseCmd struct {
+	*BasicCommand
+	DealID string
+}
+`,
+		"app.go": `package main
+
+import "context"
+
+func register(sys *system.System) {
+	_ = system.RegisterCommand[deal.LoseCmd, deal.State](sys, "deal.lose",
+		func(ctx context.Context, cmd deal.LoseCmd, state deal.State) system.Op[deal.State] {
+			return nil
+		})
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, architecture.NewE005Detector(ctx))
+	ruletest.AssertRule(t, findings, "E005", 0)
+}
+
+// E005 must resolve a qualified non-pointer closure param (c deal.CreateUser)
+// on the closure-handler leg of the registration scanner.
+func TestE005_NoFindingWhenHandlerParamIsQualifiedSelector(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"cmd.go": `package main
+
+type CreateUser struct {
+	*BasicCommand
+	Name string
+}
+
+func register() {
+	command.RegisterTyped(dispatcher, createUserType, func(ctx context.Context, c deal.CreateUser) error {
+		return nil
+	})
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, architecture.NewE005Detector(ctx))
+	ruletest.AssertRule(t, findings, "E005", 0)
+}
+
 // --- E005: Non-CQRS type with Type() method (e.g., pflag.Value) is NOT flagged
 
 func TestE005_NoFindingForPflagValueType(t *testing.T) {
