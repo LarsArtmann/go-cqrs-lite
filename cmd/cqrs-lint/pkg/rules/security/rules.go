@@ -45,7 +45,7 @@ func NewS001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				"private_key",
 			}
 
-			check := func(pos token.Pos, fieldName, display string, expr ast.Expr) {
+			check := func(pos token.Pos, fieldName, display string, expr ast.Expr, isConst bool) {
 				lit, ok := expr.(*ast.BasicLit)
 				if !ok || lit.Kind != token.STRING {
 					return
@@ -60,6 +60,15 @@ func NewS001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					return
 				}
 
+				// Name-shaped literals (pure lowercase snake_case, the shape of
+				// schema vocabulary like "enroll_tokens") are only skipped when
+				// the binding itself says "identifier": a const declaration or a
+				// structural name suffix. Applied unconditionally this would
+				// also skip lowercase API keys, which have the same shape.
+				if lintutil.IsNameShapedValue(val) && (isConst || isSchemaVocabularyName(fieldName)) {
+					return
+				}
+
 				lower := strings.ToLower(fieldName)
 
 				for _, sf := range secretFields {
@@ -68,15 +77,28 @@ func NewS001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					}
 
 					p := ctx.Fset.Position(pos)
+					severity := finding.SeverityCritical
+					suggestion := "Load secrets from environment variables (os.Getenv) or a secret manager, never hardcode them"
+
+					if isConst {
+						// A const cannot be loaded at runtime, so "use env vars"
+						// is unactionable advice. Keep the finding visible, but
+						// out of the build-gating critical band.
+						severity = finding.SeverityWarning
+						suggestion = "A const cannot be read from the environment. If this is schema " +
+							"vocabulary (a collection, table, or queue name), no action is needed. If it " +
+							"is real key material, move it to a var loaded from the environment or a " +
+							"secret manager."
+					}
 
 					f, err := findingTemplate.Builder(
 						"S001",
 						fmt.Sprintf("Potential hardcoded secret in field %q — use environment variables or a secret manager", display),
-						finding.SeverityCritical,
+						severity,
 						finding.Pos(finding.FilePath(p.Filename), p.Line, p.Column),
 					).
 						WithConfidence(finding.ConfidenceMedium).
-						WithSuggestion("Load secrets from environment variables (os.Getenv) or a secret manager, never hardcode them").
+						WithSuggestion(suggestion).
 						WithSnippet(ctx.SourceLine(p.Filename, p.Line)).
 						Build()
 					if err == nil {
@@ -100,7 +122,7 @@ func NewS001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 								break
 							}
 
-							check(node.Pos(), s001LHSName(lhs), s001LHSDisplay(lhs), node.Rhs[i])
+							check(node.Pos(), s001LHSName(lhs), s001LHSDisplay(lhs), node.Rhs[i], false)
 						}
 					case *ast.GenDecl:
 						for _, spec := range node.Specs {
@@ -114,12 +136,12 @@ func NewS001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 									break
 								}
 
-								check(node.Pos(), name.Name, name.Name, vs.Values[i])
+								check(node.Pos(), name.Name, name.Name, vs.Values[i], node.Tok == token.CONST)
 							}
 						}
 					case *ast.KeyValueExpr:
 						if key, ok := node.Key.(*ast.Ident); ok {
-							check(node.Pos(), key.Name, key.Name, node.Value)
+							check(node.Pos(), key.Name, key.Name, node.Value, false)
 						}
 					}
 
@@ -169,4 +191,27 @@ func s001LHSDisplay(lhs ast.Expr) string {
 	}
 
 	return s001LHSName(lhs)
+}
+
+// schemaVocabularySuffixes identify identifiers that name storage or schema
+// artifacts. A name-shaped literal bound to one of these is vocabulary, not
+// credential material.
+var schemaVocabularySuffixes = []string{
+	"Collection", "CollectionName",
+	"Table", "TableName",
+	"Queue", "QueueName",
+	"Bucket", "BucketName",
+	"Topic", "TopicName",
+	"Index", "IndexName",
+	"Schema", "ViewName",
+}
+
+func isSchemaVocabularyName(name string) bool {
+	for _, suffix := range schemaVocabularySuffixes {
+		if strings.HasSuffix(name, suffix) {
+			return true
+		}
+	}
+
+	return false
 }

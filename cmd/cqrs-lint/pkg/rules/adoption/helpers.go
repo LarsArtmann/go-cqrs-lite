@@ -33,6 +33,16 @@ func projectHasCallAny(ctx *analyzer.AnalysisContext, pkgName string, funcNames 
 	return hasCallIn(ctx.GoFiles, pkgName, funcNames...)
 }
 
+// projectHasCallInPath reports whether any non-test file calls one of
+// funcNames on a qualifier whose import path contains pathFragment.
+func projectHasCallInPath(
+	ctx *analyzer.AnalysisContext,
+	pathFragment string,
+	funcNames ...string,
+) bool {
+	return hasCallOnImportedPackage(nonTestFiles(ctx), pathFragment, funcNames...)
+}
+
 // firstCallPos returns the position of the first call to pkgName.funcName
 // in any non-test file.
 func firstCallPos(

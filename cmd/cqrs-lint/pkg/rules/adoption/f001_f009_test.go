@@ -83,6 +83,28 @@ func _() {
 	ruletest.AssertRule(t, findings, "F002", 0)
 }
 
+// F002 must accept catalog/simple.New: it is the canonical thin wrapper over
+// catalog.NewBuilder, so a project documented through it is not undocumented.
+// Regression pin for issue #79.
+func TestF002_NoFindingWithCatalogSimpleBuilder(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"events.go": `package main
+
+func _() {
+	event.New("user.created", sid, st, v, p)
+	event.New("user.updated", sid, st, v, p)
+	event.New("user.deleted", sid, st, v, p)
+	simple.New("users", "1.0.0")
+}
+`,
+	})
+
+	findings := ruletest.RunDetector(t, adoption.NewF002Detector(ctx))
+	ruletest.AssertRule(t, findings, "F002", 0)
+}
+
 func TestF003_ServerWithoutOTel(t *testing.T) {
 	t.Parallel()
 

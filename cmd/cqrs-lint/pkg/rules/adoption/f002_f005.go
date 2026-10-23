@@ -20,7 +20,11 @@ func NewF002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				return nil, nil
 			}
 
-			if projectHasCall(ctx, "catalog", "NewBuilder") {
+			// catalog/simple.New is a thin, canonical wrapper around
+			// catalog.NewBuilder; consumers declaring their whole vocabulary
+			// through the builder are fully documented.
+			if projectHasCall(ctx, "catalog", "NewBuilder") ||
+				projectHasCallInPath(ctx, "go-cqrs-lite/catalog/simple", "New") {
 				return nil, nil
 			}
 

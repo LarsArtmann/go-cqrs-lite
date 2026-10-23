@@ -175,6 +175,65 @@ func TestE004_NoFindingOnEmptyRegistry(t *testing.T) {
 	ruletest.AssertRule(t, findings, "E004", 0)
 }
 
+// E004 must see catalog/v4/simple builder registrations. The builder is the
+// first argument, so the message id sits at index 1; reading index 0 recorded
+// the builder variable and left every simple-declared event invisible.
+// Regression pin for issue #79 (CRM: 21x E004 on a complete catalog).
+func TestE004_NoFindingForCatalogSimpleBuilderLiteral(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"events.go": `package main
+
+func _() {
+	event.New("user.created", sid, st, v, p)
+	simple.Event[UserCreated](b, "user.created", catalog.Sends)
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, architecture.NewE004Detector(ctx))
+	ruletest.AssertRule(t, findings, "E004", 0)
+}
+
+// The simple builder also takes the id as a string(...) conversion of a
+// constant, which must be unwrapped before resolution.
+func TestE004_NoFindingForCatalogSimpleBuilderConst(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"consts.go": `package main
+
+const EventUserUpdated = "user.updated"
+`,
+		"emit.go": `package main
+
+func _() {
+	event.New(EventUserUpdated, sid, st, v, p)
+}
+`,
+		"catalog.go": `package main
+
+func _() {
+	simple.Event[UserUpdated](b, string(EventUserUpdated), catalog.Sends)
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, architecture.NewE004Detector(ctx))
+	ruletest.AssertRule(t, findings, "E004", 0)
+}
+
+// The id is the SECOND argument; an event declared with a different id than the
+// emitted type still reports. Guards against reading the builder as the id.
+func TestE004_DetectsUnregisteredSimpleBuilderEvent(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"events.go": `package main
+
+func _() {
+	event.New("user.created", sid, st, v, p)
+	simple.Event[OtherEvent](b, "other.thing", catalog.Sends)
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, architecture.NewE004Detector(ctx))
+	ruletest.AssertRule(t, findings, "E004", 1)
+}
+
 // --- E005: Command without handler ---
 
 func TestE005_NoFindingOnEmptyRegistry(t *testing.T) {

@@ -22,3 +22,36 @@ func IsURLOrPlaceholder(val string) bool {
 	return strings.HasPrefix(trimmed, "${") ||
 		(strings.HasPrefix(trimmed, "<") && strings.HasSuffix(trimmed, ">"))
 }
+
+// IsNameShapedValue reports whether a string literal is plain schema
+// vocabulary (pure lowercase snake_case, e.g. "enroll_tokens",
+// "user_sessions") rather than credential material. Secret material carries
+// entropy: mixed case, digits mixed with symbols, or length; a name-shaped
+// value is an identifier, not a key.
+//
+// This is a value-side allowlist for substring-based secret heuristics: an
+// identifier like enrollTokensCollection is not a secret just because it
+// contains "token".
+func IsNameShapedValue(val string) bool {
+	if val == "" {
+		return false
+	}
+
+	for i, r := range val {
+		switch {
+		case r >= 'a' && r <= 'z':
+		case r == '_':
+			if i == 0 {
+				return false
+			}
+		case r >= '0' && r <= '9':
+			if i == 0 {
+				return false
+			}
+		default:
+			return false
+		}
+	}
+
+	return true
+}

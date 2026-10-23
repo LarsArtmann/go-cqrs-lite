@@ -56,6 +56,55 @@ func init() {
 	ruletest.AssertRule(t, findings, "S001", 1)
 }
 
+// Schema vocabulary must not be reported: a name-shaped literal bound to a
+// const or to a structural identifier names a table, collection, or queue.
+// Regression pin for issue #74 (webphone: enrollTokensCollection =
+// "enroll_tokens" was a build-gating critical).
+func TestS001_NoFindingForSchemaVocabularyConst(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"readmodels.go": `package main
+
+const enrollTokensCollection = "enroll_tokens"
+`,
+	})
+	findings := ruletest.RunDetector(t, security.NewS001Detector(ctx))
+	ruletest.AssertRule(t, findings, "S001", 0)
+}
+
+func TestS001_NoFindingForSchemaVocabularyVariable(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"readmodels.go": `package main
+
+var transcriptTableName = "transcripts"
+`,
+	})
+	findings := ruletest.RunDetector(t, security.NewS001Detector(ctx))
+	ruletest.AssertRule(t, findings, "S001", 0)
+}
+
+// A genuine secret on a const still surfaces, but as a warning: "use env
+// vars" is unactionable for a compile-time constant.
+func TestS001_ConstSecretIsDowngradedToWarning(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"config.go": `package main
+
+const defaultAPIKey = "sk-Live-9f8e7d6c5b4a"
+`,
+	})
+	findings := ruletest.RunDetector(t, security.NewS001Detector(ctx))
+	ruletest.AssertRule(t, findings, "S001", 1)
+
+	for _, f := range findings {
+		if string(f.Rule) != "S001" {
+			continue
+		}
+
+		if f.Severity != finding.SeverityWarning {
+			t.Errorf("const-bound S001 severity = %v, want warning", f.Severity)
+		}
+	}
+}
+
 // --- S002: Positive test — PII event without encryption ---
 
 func TestS002_DetectsPIIWithoutEncryption(t *testing.T) {
