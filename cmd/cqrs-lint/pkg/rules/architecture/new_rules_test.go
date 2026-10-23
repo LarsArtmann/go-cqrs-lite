@@ -99,6 +99,72 @@ func fold(s State, evt event.Event) (State, error) {
 	ruletest.AssertRule(t, findings, "E003", 1)
 }
 
+// E003 must emit one finding per offending package, each with a unique
+// finding ID anchored at a real source position. Regression pin for issue #81:
+// every finding previously shared go.mod:1:1, so ID-keyed consumers (the CLI's
+// collectFindings, SARIF, result caches) collapsed N packages into one,
+// nondeterministically.
+func TestE003_EmitsDistinctIDsPerPackage(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"alpha.go": `package main
+
+import "github.com/larsartmann/go-cqrs-lite/event/v4"
+
+type CreateAlpha struct {
+	*command.BasicCommand
+}
+
+type AlphaCreated struct {
+	Name string
+}
+
+type AlphaState struct{ Count int }
+
+func fold(s AlphaState, evt event.Event) (AlphaState, error) {
+	return s, nil
+}
+`,
+		"beta.go": `package main
+
+import "github.com/larsartmann/go-cqrs-lite/event/v4"
+
+type CreateBeta struct {
+	*command.BasicCommand
+}
+
+type BetaCreated struct {
+	Name string
+}
+
+type BetaState struct{ Count int }
+
+func fold(s BetaState, evt event.Event) (BetaState, error) {
+	return s, nil
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, architecture.NewE003Detector(ctx))
+	ruletest.AssertRule(t, findings, "E003", 2)
+
+	ids := map[string]bool{}
+
+	for _, f := range findings {
+		if string(f.Rule) != "E003" {
+			continue
+		}
+
+		ids[string(f.ID)] = true
+
+		if f.Position.File == "" || string(f.Position.File) == ctx.ProjectRoot+"/go.mod" {
+			t.Errorf("E003 finding is not anchored at a source file: %+v", f.Position)
+		}
+	}
+
+	if len(ids) != 2 {
+		t.Errorf("E003 finding IDs are not unique per package: got %d distinct IDs for 2 packages", len(ids))
+	}
+}
+
 // --- E004: Event not in catalog ---
 
 func TestE004_NoFindingOnEmptyRegistry(t *testing.T) {

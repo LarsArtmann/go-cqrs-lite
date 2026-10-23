@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"go/ast"
+	"go/token"
 	"slices"
 	"strings"
 
@@ -13,8 +14,13 @@ import (
 )
 
 // E003: Missing module boundary.
-// Detects packages that mix commands, events, folds, and projections —
+// Detects packages that mix commands, events, folds, and projections,
 // suggesting a missing module boundary.
+//
+// Each finding is anchored at the first contributing construct of its package
+// rather than at go.mod:1:1. A shared position made every E003 finding share
+// one finding ID, so ID-keyed consumers collapsed N packages into one
+// (nondeterministically, since the package map iterates randomly).
 //
 //nolint:ireturn // factory returns public interface
 func NewE003Detector(ctx *analyzer.AnalysisContext) finding.Detector {
@@ -23,62 +29,36 @@ func NewE003Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 		func(_ context.Context) ([]finding.Finding, error) {
 			var findings []finding.Finding
 
-			pkgConstructs := make(map[string]map[string]bool)
+			boundaries := newPackageBoundaries()
 
 			for _, cmd := range ctx.Registry.Commands {
-				pkg := cmd.Package
-				if pkgConstructs[pkg] == nil {
-					pkgConstructs[pkg] = make(map[string]bool)
-				}
-
-				pkgConstructs[pkg]["command"] = true
+				boundaries.record(cmd.Package, "command", cmd.File, cmd.Pos)
 			}
 
 			for _, evt := range ctx.Registry.Events {
-				pkg := evt.Package
-				if pkgConstructs[pkg] == nil {
-					pkgConstructs[pkg] = make(map[string]bool)
-				}
-
-				pkgConstructs[pkg]["event"] = true
+				boundaries.record(evt.Package, "event", evt.File, evt.Pos)
 			}
 
 			for _, fold := range ctx.Registry.Folds {
-				pkg := fold.Package
-				if pkgConstructs[pkg] == nil {
-					pkgConstructs[pkg] = make(map[string]bool)
-				}
-
-				pkgConstructs[pkg]["fold"] = true
+				boundaries.record(fold.Package, "fold", fold.File, fold.Pos)
 			}
 
 			for _, proj := range ctx.Registry.Projections {
-				pkg := proj.Package
-				if pkgConstructs[pkg] == nil {
-					pkgConstructs[pkg] = make(map[string]bool)
-				}
-
-				pkgConstructs[pkg]["projection"] = true
+				boundaries.record(proj.Package, "projection", proj.File, proj.Pos)
 			}
 
-			for pkg, constructs := range pkgConstructs {
+			for _, pkg := range boundaries.sortedPackages() {
+				constructs := boundaries.packages[pkg]
 				if len(constructs) < 3 {
 					continue
 				}
 
-				types := make([]string, 0, len(constructs))
-				for t := range constructs {
-					types = append(types, t)
-				}
-
-				slices.Sort(types)
-
 				f, err := findingTemplate.Builder(
 					"E003",
 					fmt.Sprintf("Package %s mixes %d CQRS concerns (%s) — split into domain/infrastructure boundaries",
-						pkg, len(constructs), strings.Join(types, ", ")),
+						pkg, len(constructs), strings.Join(sortedKinds(constructs), ", ")),
 					finding.SeverityWarning,
-					finding.Pos(finding.FilePath(ctx.ProjectRoot+"/go.mod"), 1, 1),
+					boundaries.pos(pkg, ctx.ProjectRoot),
 				).
 					WithCategory(finding.CategoryStructure).
 					WithConfidence(finding.ConfidenceLow).
@@ -93,6 +73,89 @@ func NewE003Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			return findings, nil
 		},
 	)
+}
+
+type constructAnchor struct {
+	file string
+	pos  token.Position
+}
+
+// packageBoundaries accumulates the CQRS construct kinds per package plus the
+// earliest source position that contributed one, so each package's finding has
+// a unique, jumpable location.
+type packageBoundaries struct {
+	packages map[string]map[string]bool
+	anchors  map[string]constructAnchor
+}
+
+func newPackageBoundaries() *packageBoundaries {
+	return &packageBoundaries{
+		packages: make(map[string]map[string]bool),
+		anchors:  make(map[string]constructAnchor),
+	}
+}
+
+func (b *packageBoundaries) record(pkg, kind, file string, pos token.Position) {
+	if b.packages[pkg] == nil {
+		b.packages[pkg] = make(map[string]bool)
+	}
+
+	b.packages[pkg][kind] = true
+
+	anchor, ok := b.anchors[pkg]
+	if !ok || precedes(anchor, constructAnchor{file: file, pos: pos}) {
+		b.anchors[pkg] = constructAnchor{file: file, pos: pos}
+	}
+}
+
+func (b *packageBoundaries) sortedPackages() []string {
+	names := make([]string, 0, len(b.packages))
+	for pkg := range b.packages {
+		names = append(names, pkg)
+	}
+
+	slices.Sort(names)
+
+	return names
+}
+
+// pos returns the package's anchor location, falling back to go.mod:1:1 only
+// when no construct recorded a usable position.
+func (b *packageBoundaries) pos(pkg, projectRoot string) finding.Position {
+	anchor := b.anchors[pkg]
+	if anchor.pos.IsValid() {
+		return finding.Pos(finding.FilePath(anchor.pos.Filename), anchor.pos.Line, anchor.pos.Column)
+	}
+
+	if anchor.file != "" {
+		return finding.Pos(finding.FilePath(anchor.file), 1, 1)
+	}
+
+	return finding.Pos(finding.FilePath(projectRoot+"/go.mod"), 1, 1)
+}
+
+// precedes reports whether a sorts before b by file then position.
+func precedes(a, b constructAnchor) bool {
+	if a.file != b.file {
+		return a.file < b.file
+	}
+
+	if a.pos.Line != b.pos.Line {
+		return a.pos.Line < b.pos.Line
+	}
+
+	return a.pos.Column < b.pos.Column
+}
+
+func sortedKinds(constructs map[string]bool) []string {
+	kinds := make([]string, 0, len(constructs))
+	for kind := range constructs {
+		kinds = append(kinds, kind)
+	}
+
+	slices.Sort(kinds)
+
+	return kinds
 }
 
 // E007: Query without handler.

@@ -132,6 +132,89 @@ func inspectBodyForSwallowedError(
 	})
 }
 
+// checkedSwallowAssigns returns the assignments whose non-blank LHS values are
+// inspected by an adjacent `if`: either the Init of the `if` itself
+// (`if _, err := decode(e); err != nil`), or the statement directly preceding
+// an `if err != nil` guard. Those already handle the error, so C010 must not
+// report them.
+func checkedSwallowAssigns(body *ast.BlockStmt) map[*ast.AssignStmt]bool {
+	checked := make(map[*ast.AssignStmt]bool)
+
+	ast.Inspect(body, func(n ast.Node) bool {
+		switch stmt := n.(type) {
+		case *ast.IfStmt:
+			assign, ok := stmt.Init.(*ast.AssignStmt)
+			if ok && condInspectsAssign(stmt.Cond, assign) {
+				checked[assign] = true
+			}
+		case *ast.BlockStmt:
+			markGuardedSuccessors(stmt.List, checked)
+		}
+
+		return true
+	})
+
+	return checked
+}
+
+// markGuardedSuccessors records assignments in stmts that are followed
+// immediately by an `if` whose condition inspects one of their non-blank LHS.
+func markGuardedSuccessors(stmts []ast.Stmt, checked map[*ast.AssignStmt]bool) {
+	for i := 0; i+1 < len(stmts); i++ {
+		assign, ok := stmts[i].(*ast.AssignStmt)
+		if !ok {
+			continue
+		}
+
+		ifStmt, ok := stmts[i+1].(*ast.IfStmt)
+		if !ok || ifStmt.Init != nil {
+			continue
+		}
+
+		if condInspectsAssign(ifStmt.Cond, assign) {
+			checked[assign] = true
+		}
+	}
+}
+
+// condInspectsAssign reports whether cond references any non-blank identifier
+// assigned by assign.
+func condInspectsAssign(cond ast.Expr, assign *ast.AssignStmt) bool {
+	if cond == nil {
+		return false
+	}
+
+	names := make(map[string]bool)
+
+	for _, lhs := range assign.Lhs {
+		if id, ok := lhs.(*ast.Ident); ok && id.Name != "_" {
+			names[id.Name] = true
+		}
+	}
+
+	if len(names) == 0 {
+		return false
+	}
+
+	found := false
+
+	ast.Inspect(cond, func(n ast.Node) bool {
+		if found {
+			return false
+		}
+
+		if id, ok := n.(*ast.Ident); ok && names[id.Name] {
+			found = true
+
+			return false
+		}
+
+		return true
+	})
+
+	return found
+}
+
 func findBodyParam(fn *ast.FuncDecl) string {
 	if fn.Type == nil || fn.Type.Params == nil {
 		return ""

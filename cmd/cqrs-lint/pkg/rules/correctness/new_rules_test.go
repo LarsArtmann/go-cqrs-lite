@@ -146,6 +146,77 @@ func fold(s State, evt event.Event) (State, error) {
 	ruletest.AssertRule(t, findings, "C010", 1)
 }
 
+// C010 must not flag the canonical checked-decode idiom: the `_` discards the
+// payload, while the error is tested by the enclosing if. Regression pin for
+// issue #80 (CRM: 11 false positives, all this shape).
+func TestC010_NoFindingForCheckedIfInitDecode(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"fold.go": `package main
+
+import "github.com/larsartmann/go-cqrs-lite/event/v4"
+
+type State struct{ Count int }
+type ArchivedPayload struct{ N int }
+
+func fold(s State, evt event.Event) (State, error) {
+	if _, err := event.DecodePayloadAuto[ArchivedPayload](evt); err != nil {
+		return s, err
+	}
+	return s, nil
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, correctness.NewC010Detector(ctx))
+	ruletest.AssertRule(t, findings, "C010", 0)
+}
+
+// The two-line checked form (assignment followed by `if err != nil`) is also
+// handled by construction.
+func TestC010_NoFindingForCheckedTwoLineDecode(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"fold.go": `package main
+
+import "github.com/larsartmann/go-cqrs-lite/event/v4"
+
+type State struct{ Count int }
+type ArchivedPayload struct{ N int }
+
+func fold(s State, evt event.Event) (State, error) {
+	_, err := event.DecodePayloadAuto[ArchivedPayload](evt)
+	if err != nil {
+		return s, err
+	}
+	return s, nil
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, correctness.NewC010Detector(ctx))
+	ruletest.AssertRule(t, findings, "C010", 0)
+}
+
+// An if-init assignment whose condition ignores the error still fires: the
+// suppression is about the error being inspected, not about the statement kind.
+func TestC010_DetectsUncheckedIfInitDecode(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"fold.go": `package main
+
+import "github.com/larsartmann/go-cqrs-lite/event/v4"
+
+type State struct{ Count int }
+type ArchivedPayload struct{ N int }
+
+func fold(s State, evt event.Event) (State, error) {
+	if _, err := event.DecodePayloadAuto[ArchivedPayload](evt); s.Count > 0 {
+		return s, err
+	}
+	return s, nil
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, correctness.NewC010Detector(ctx))
+	ruletest.AssertRule(t, findings, "C010", 1)
+}
+
 func TestC010_NoCrashOnEmptyInput(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"empty.go": `package main
