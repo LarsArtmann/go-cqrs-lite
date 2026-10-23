@@ -969,6 +969,7 @@ cmd/cqrs-lint/pkg/rules/lintutil/func HasWrapVerb
 cmd/cqrs-lint/pkg/rules/lintutil/func IsContextType
 cmd/cqrs-lint/pkg/rules/lintutil/func IsEventPayloadName
 cmd/cqrs-lint/pkg/rules/lintutil/func IsFmtErrorf
+cmd/cqrs-lint/pkg/rules/lintutil/func IsNameShapedValue
 cmd/cqrs-lint/pkg/rules/lintutil/func IsNonCQRSRegisterPackage
 cmd/cqrs-lint/pkg/rules/lintutil/func IsPayloadFileName
 cmd/cqrs-lint/pkg/rules/lintutil/func IsReadModelFileName
@@ -3207,6 +3208,7 @@ metaengine/func Volume
 metaengine/func WatchTyped
 metaengine/func WatchTypedWithSeq
 metaengine/func WithBackfillForce
+metaengine/func WithCap
 metaengine/func WithColumnarLayout
 metaengine/func WithCursor
 metaengine/func WithCursorString
@@ -3218,6 +3220,7 @@ metaengine/func WithDryRun
 metaengine/func WithEngineCapabilityGaps
 metaengine/func WithEngineRole
 metaengine/func WithEventLog
+metaengine/func WithExact
 metaengine/func WithFilter
 metaengine/func WithHooks
 metaengine/func WithIdempotencyCapacity
@@ -3493,6 +3496,8 @@ metaengine/method ApplyRecord
 metaengine/method Avg
 metaengine/method Backfill
 metaengine/method BackfillPlannedTables
+metaengine/method CapOrderBy
+metaengine/method CapRows
 metaengine/method CatchUpEngine
 metaengine/method CatchUpSnapshot
 metaengine/method CellVersioningEnabled
@@ -3525,6 +3530,8 @@ metaengine/method DotGraph
 metaengine/method EffectiveNetworkRTT
 metaengine/method EffectiveReplicationLag
 metaengine/method Encode
+metaengine/method EnforceCap
+metaengine/method EnforceCaps
 metaengine/method EngineNames
 metaengine/method EngineRole
 metaengine/method Err
@@ -4151,6 +4158,8 @@ metaengine/type TrackerOption
 metaengine/type VersioningOption
 metaengine/var ErrAmbiguousKey
 metaengine/var ErrBackfillUnsupported
+metaengine/var ErrCapRequiresMap
+metaengine/var ErrCapUnsupported
 metaengine/var ErrCatchUpUnsupported
 metaengine/var ErrClaimLeaseNotHeld
 metaengine/var ErrDuplicateEvent
@@ -4162,6 +4171,7 @@ metaengine/var ErrNoQueryForName
 metaengine/var ErrNotFound
 metaengine/var ErrPlannedColumnTypeMismatch
 metaengine/var ErrPoisoned
+metaengine/var ErrScanTruncated
 metaengine/var ErrUnknownDriver
 metaengine/var ErrUnknownFoldKind
 metaengine/var ErrUnsupportedADT

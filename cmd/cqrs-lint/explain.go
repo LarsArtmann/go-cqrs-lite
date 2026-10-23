@@ -50,6 +50,7 @@ func renderExplain() string {
 	renderRulesConfig(&b)
 	renderHealthConfig(&b)
 	renderScorecardConfig(&b)
+	renderBaselineConfig(&b)
 	renderResolutionOrder(&b)
 	renderSuppressionSyntax(&b)
 
@@ -180,6 +181,18 @@ var topLevelKeys = []topLevelKey{
 	{"exclude-rules", "string", `""`, "Rule IDs to exclude (comma-separated, e.g. \"C007,A001\")"},
 	{"color", "string", `"auto"`, "Color output: auto, always, never"},
 	{"group-by", "string", `""`, "Group findings by: none, module, aggregate"},
+	{
+		"baseline",
+		"string",
+		`""`,
+		"Path to a findings baseline; only findings absent from it are reported (see BASELINE below)",
+	},
+	{
+		"update-baseline",
+		"bool",
+		`false`,
+		"Rewrite the baseline from this run (requires baseline); exits 0 without reporting",
+	},
 	{"features", "object", "{}", "Override auto-detected feature profile (see FEATURES below)"},
 	{"rules", "object", "{}", "Rule-specific configuration (see RULES below)"},
 	{"health", "object", "{}", "Health-score tuning (see HEALTH below)"},
@@ -399,6 +412,28 @@ func renderScorecardConfig(b *strings.Builder) {
 	b.WriteString("  (run cqrs-lint from the project root); a config in the operator's\n")
 	b.WriteString("  cwd fills only keys the project did not record.\n")
 	b.WriteString("\n\n")
+}
+
+func renderBaselineConfig(b *strings.Builder) {
+	writeSectionHeader(b, "BASELINE")
+
+	b.WriteString("  A checked-in findings baseline records findings you have already adjudicated,\n")
+	b.WriteString("  so a run reports only NEW findings. Matching keys on rule, project-relative\n")
+	b.WriteString("  file, line, and column; moving a finding shows up as one new finding plus\n")
+	b.WriteString("  one shrunk entry, which is the intended drift signal.\n")
+	b.WriteString("\n")
+	b.WriteString("  \"baseline\": \".cqrs-lint-baseline.json\"\n")
+	b.WriteString("  \"update-baseline\": false\n")
+	b.WriteString("\n")
+	b.WriteString("  Behavior:\n")
+	b.WriteString("    - findings present in the baseline are hidden and cannot fail the build\n")
+	b.WriteString("    - findings absent from the baseline are reported and gate the exit code\n")
+	b.WriteString("    - entries with no matching finding print a \"Baseline shrunk\" notice\n")
+	b.WriteString("    - --update-baseline rewrites the file (sorted, deterministic) and exits 0;\n")
+	b.WriteString("      it requires --baseline and preserves existing reason fields\n")
+	b.WriteString("    - the health score still counts baselined findings (baselining never\n")
+	b.WriteString("      inflates the score)\n")
+	b.WriteString("\n")
 }
 
 func renderResolutionOrder(b *strings.Builder) {

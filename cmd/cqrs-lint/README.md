@@ -119,6 +119,7 @@ Every failure mode maps to exit 1; only a clean run maps to 0:
 | Invalid `--format` value (any command, validated up front)       | 1    |
 | Scorecard coverage below `--scorecard-threshold`                 | 1    |
 | Stale suppression directives with `--fail-on-stale-suppressions` | 1    |
+| New error/critical findings absent from the `--baseline` file    | 1    |
 | Package load errors (broken build, unreadable path)              | 1    |
 | Unknown flag on a subcommand                                     | 1    |
 
@@ -332,6 +333,8 @@ for a full interactive reference.
 | `features`       | object | `{}`        | Feature profile overrides (see below)                                                                                  |
 | `rules`          | object | `{}`        | Rule-specific overrides (see below)                                                                                    |
 | `health`         | object | `{}`        | Health-score tuning (see below)                                                                                        |
+| `baseline`       | string | `""`        | Path to a findings baseline; only findings absent from it are reported (see [Findings Baseline](#findings-baseline))   |
+| `update-baseline`| bool   | `false`     | Rewrite the baseline from this run (requires `baseline`); exits 0 without reporting findings                           |
 
 ### `features` keys
 
@@ -625,6 +628,8 @@ Built with [cmdguard](https://github.com/larsartmann/cmdguard) for type-safe fla
 | `--adoption`        |       | false   | Show F-series coaching but exclude them from health score                                                 |
 | `--fp-suspects`     |       | false   | Show only low-confidence findings (likely FPs). Exit code always 0                                        |
 | `--show-suppressed` |       | false   | Show suppressed findings with their suppression reason                                                    |
+| `--baseline`        |       |         | Findings baseline file; only findings absent from it are reported and gate the exit code                  |
+| `--update-baseline` |       | false   | Rewrite the baseline from this run (requires `--baseline`); deterministic and exits 0                      |
 | `--strict-load`     |       | false   | Exit non-zero if any packages failed to load                                                              |
 | `--only`            |       |         | Filter by category or rule IDs (comma-separated)                                                          |
 | `--exclude`         |       |         | Exclude paths (comma-separated)                                                                           |
@@ -793,6 +798,62 @@ Directive syntax notes: any spacing after `//` works (`//cqrs-lint:` or
 `//  cqrs-lint:`); several directives may share one line, each contributing
 its rules; and directive text inside `/* */` block comments or raw strings
 is inert — prose that merely mentions the syntax never suppresses.
+
+### Findings Baseline
+
+Inline suppressions are per-site and rule disables are per-rule. Neither answers
+the recurring drift question after a detector or dependency change:
+
+> "The count moved from 116 to 120 — which findings are NEW?"
+
+A checked-in baseline records findings you have already adjudicated, so a run
+reports only new ones:
+
+```bash
+cqrs-lint . --baseline .cqrs-lint-baseline.json              # report new findings only
+cqrs-lint . --baseline .cqrs-lint-baseline.json --update-baseline   # regenerate
+```
+
+Semantics:
+
+- Findings present in the baseline are **hidden** and cannot fail the build.
+- Findings absent from the baseline are reported normally and gate the exit
+  code (error/critical severity still exits 1).
+- Baseline entries with no matching finding print a **"Baseline shrunk"**
+  notice on stderr, naming each stale entry, so the file can be pruned.
+- `--update-baseline` rewrites the file deterministically (sorted entries,
+  two-space indent, atomic temp-file rename), preserves existing `reason`
+  fields, exits 0, and prints no findings. It requires `--baseline`.
+- The health score still counts baselined findings: baselining changes what is
+  reported, never the score.
+
+Matching keys on rule, file, line, and column. `file` is stored **relative to
+the baseline file's directory**, so the file is portable across machines and
+operating systems. Moving a finding therefore shows up as one new finding plus
+one shrunk entry — the intended drift signal.
+
+The file is plain JSON and can carry a machine-readable disposition log:
+
+```json
+{
+  "version": 1,
+  "tool": "cqrs-lint",
+  "entries": [
+    {
+      "rule": "E003",
+      "file": "internal/app/domain.go",
+      "line": 42,
+      "column": 1,
+      "reason": "commands, events, and folds deliberately colocated"
+    }
+  ]
+}
+```
+
+Unlike `//cqrs-lint:ignore`, which is per-site, the baseline is project-level:
+adoption coaching (F-series) and deliberately colocated packages can be
+adjudicated once without spraying comments across files or disabling the rule
+(and losing the drift signal for genuinely new findings).
 
 ### Reviewing False Positives
 

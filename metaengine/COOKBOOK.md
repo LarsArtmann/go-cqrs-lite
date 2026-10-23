@@ -113,6 +113,78 @@ adapter := projectionadapter.New("items", store, nil,
     projectionadapter.WithEventDecoder(myDecoder))
 ```
 
+### Bounded Collections: Keep the Newest N Rows (`WithCap`)
+
+Transcripts, audit tails, faxes, and token tables all need the same rule:
+"after this append, at most N rows survive, oldest expunged first". Declare it
+once on the query and let the store do the trimming:
+
+```go
+type transcriptSegment struct {
+    ID        string    `json:"id"`
+    CallID    string    `json:"call_id"`
+    CreatedAt time.Time `json:"created_at"`
+}
+
+segments := metaengine.Query[struct{}, transcriptSegment]("segments",
+    metaengine.OnRecord(segmentAdded{}, func(_ record.Record, e segmentAdded) (string, transcriptSegment) {
+        return e.ID, transcriptSegment{ID: e.ID, CallID: e.CallID, CreatedAt: e.CreatedAt}
+    }),
+    // Keep the newest 5,000 rows by `created_at` (descending order keeps the
+    // largest timestamp values; everything older is trimmed).
+    metaengine.WithCap(5_000, "created_at"),
+)
+```
+
+Enforce the cap after a batch append or on a timer — not on every insert:
+
+```go
+// All capped collections in one call (query names sorted; per-query errors joined):
+removed, err := store.EnforceCaps(ctx)
+if err != nil {
+    log.Printf("cap enforcement removed %d rows with errors: %v", removed, err)
+}
+
+// Or one collection:
+removed, err = store.EnforceCap(ctx, "segments")
+```
+
+How it works and what to know:
+
+- `WithCap` is **declaration only**; `EnforceCap`/`EnforceCaps` is the trim.
+  Enforcement is explicit because a per-insert trim would scan on every write
+  (memory and KV engines materialize the whole collection to sort it).
+- Enforcement runs under the query's fold lock, then reads the newest `N` rows
+  (the keep page) and deletes every older page in batches of 500. No converging
+  loop is needed: descending order makes the keep set a prefix.
+- Requirements: a Map projection (insert fold) whose result type carries the
+  query's key type, and a plain sortable column name.
+- **Replay caveat:** trimming deletes projection rows outside the event log.
+  `Reset` + replay restores the full, uncapped collection, so run
+  `EnforceCaps` again after a rebuild. Treat it as compaction, not as a domain
+  event.
+- A write that lands after a trim simply makes the next pass remove one more
+  row; concurrent runs converge.
+
+### Seeing Scan Truncation Instead of Guessing (`WithExact`)
+
+`Scan` returns at most 100 rows without a limit, and the result shape cannot
+tell "exactly these rows" from "the first N of many". Ask for exactness when
+the difference matters:
+
+```go
+rows, err := reader.Scan(ctx, metaengine.WithLimit(500), metaengine.WithExact())
+if errors.Is(err, metaengine.ErrScanTruncated) {
+    // There are more than 500 matching rows. Either raise the limit,
+    // paginate with ScanPage, or scan unbounded with WithLimit(0).
+    return fmt.Errorf("result set too large: %w", err)
+}
+```
+
+`WithExact` composes with `WithLimit`: it answers "was this the whole result?",
+not "return more rows". With `WithLimit(0)` (unbounded) it can never fail. Use
+`ScanPage` when you want the continuation cursor instead of an error.
+
 ## Multi-Query Patterns
 
 ### Fan-Out (Multiple Read Patterns on Same Data)
