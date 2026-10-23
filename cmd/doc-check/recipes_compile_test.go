@@ -233,6 +233,8 @@ func workspaceFor(t *testing.T, root, dir string) string {
 // package against the workspace. This is the gate that turns
 // "reference-verified" snippets into compile-verified ones: when an API
 // drifts, the doc snippet stops building and this test names it.
+//
+//nolint:gocyclo // table-driven compile harness: one branch per classification kind
 func TestRecipesCompile(t *testing.T) {
 	if _, err := exec.LookPath("go"); err != nil {
 		t.Fatalf("go toolchain not on PATH: %v", err)

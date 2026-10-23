@@ -189,14 +189,13 @@ func tsObject(prop catalog.Property) string {
 
 // prettyJSON re-indents a JSON document, falling back to the raw text.
 func prettyJSON(raw []byte) string {
+	out, err := jsontext.AppendFormat(nil, raw, jsontext.WithIndent("  "))
+	if err != nil {
+		return string(raw)
+	}
+
 	var buf bytes.Buffer
-
-	if err := func() error {
-		out, err := jsontext.AppendFormat(nil, raw, jsontext.WithIndent("  "))
-		(&buf).Write(out)
-
-		return err
-	}(); err != nil {
+	if _, err := buf.Write(out); err != nil {
 		return string(raw)
 	}
 

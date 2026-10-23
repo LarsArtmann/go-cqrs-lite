@@ -7,19 +7,23 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4/architecture"
 )
 
+// fixtureVersion is the service/domain version the fixture documents.
+const fixtureVersion = "1.0.0"
+
 type createOrder struct {
-	OrderID string `json:"order_id" doc:"Order identifier"`
+	OrderID string `json:"order_id" doc:"Order identifier"` //nolint:tagliatelle // mirrors the external snake_case API this fixture documents
 	Amount  int    `json:"amount"   doc:"Total in minor units"`
 }
 
 type orderCreated struct {
-	OrderID string `json:"order_id" doc:"Order identifier"`
+	OrderID string `json:"order_id" doc:"Order identifier"` //nolint:tagliatelle // mirrors the external snake_case API this fixture documents
 	Amount  int    `json:"amount"   doc:"Total in minor units"`
 }
 
@@ -28,9 +32,9 @@ type getOrder struct {
 }
 
 func fixtureCatalog() *catalog.Catalog {
-	builder := catalog.NewBuilder("Acme", "1.0.0")
+	builder := catalog.NewBuilder("Acme", fixtureVersion)
 
-	builder.AddService("order-service", "Order Service", "1.0.0", "Takes and tracks orders.",
+	builder.AddService("order-service", "Order Service", fixtureVersion, "Takes and tracks orders.",
 		catalog.Command[createOrder]("create-order",
 			catalog.WithSummary("Create an order."),
 			catalog.MsgOperation("POST", "/orders"),
@@ -49,12 +53,12 @@ func fixtureCatalog() *catalog.Catalog {
 		catalog.ServiceEntities("order"),
 	)
 
-	builder.AddDomain("ordering", "Ordering", "1.0.0", "Everything about orders.", "order-service")
+	builder.AddDomain("ordering", "Ordering", fixtureVersion, "Everything about orders.", "order-service")
 
 	builder.AddChannel(catalog.Channel{
 		ID:      "orders",
 		Name:    "Orders",
-		Version: "1.0.0",
+		Version: fixtureVersion,
 		Summary: "Order lifecycle events.",
 	})
 	builder.ConfigureChannel("orders", catalog.ChannelMessages("order-created"))
@@ -62,7 +66,7 @@ func fixtureCatalog() *catalog.Catalog {
 	builder.AddDataStore(catalog.DataStore{
 		ID:            "order-db",
 		Name:          "Order Database",
-		Version:       "1.0.0",
+		Version:       fixtureVersion,
 		Summary:       "System of record for orders.",
 		Technology:    "postgres@16",
 		Authoritative: true,
@@ -71,7 +75,7 @@ func fixtureCatalog() *catalog.Catalog {
 	builder.AddFlow(catalog.Flow{
 		ID:      "place-order",
 		Name:    "Place an order",
-		Version: "1.0.0",
+		Version: fixtureVersion,
 		Steps: []catalog.FlowStep{
 			{
 				ID:      "create",
@@ -85,7 +89,7 @@ func fixtureCatalog() *catalog.Catalog {
 	builder.AddEntity(catalog.Entity{
 		ID:            "order",
 		Name:          "Order",
-		Version:       "1.0.0",
+		Version:       fixtureVersion,
 		Summary:       "A customer order.",
 		AggregateRoot: true,
 	})
@@ -93,7 +97,7 @@ func fixtureCatalog() *catalog.Catalog {
 	builder.AddADR(catalog.ADR{
 		ID:      "0001-events",
 		Name:    "Model orders with events",
-		Version: "1.0.0",
+		Version: fixtureVersion,
 		Status:  catalog.ADRAccepted,
 		Date:    "2026-01-02",
 		Summary: "Events are the order history.",
@@ -130,6 +134,6 @@ func main() {
 }
 
 func fail(format string, args ...any) {
-	os.Stderr.WriteString("architecture-fixture: " + format + "\n")
+	_, _ = fmt.Fprintf(os.Stderr, "architecture-fixture: "+format+"\n", args...)
 	os.Exit(1)
 }
