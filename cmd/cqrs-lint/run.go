@@ -80,6 +80,19 @@ func run(ctx context.Context, cfg *AppConfig) error {
 		minConfidence,
 	)
 
+	// Findings baseline: hide adjudicated findings and gate the exit code on
+	// NEW findings only. The health score below intentionally keeps using the
+	// full unsuppressed set, so baselining never inflates the score.
+	baseline, err := applyBaseline(cfg, active)
+	if err != nil {
+		return err
+	}
+
+	reported := active
+	if baseline != nil {
+		reported = baseline.Reported
+	}
+
 	printSummary(
 		cfg,
 		actx,
@@ -93,7 +106,13 @@ func run(ctx context.Context, cfg *AppConfig) error {
 	)
 	printFixOutcomes(os.Stderr, cfg, fixOutcomes)
 
-	if err := outputFindings(ctx, active, cfg, len(actx.LoadErrors)); err != nil {
+	// --update-baseline is a maintenance run: the file is the deliverable, so
+	// no findings are printed and the run always succeeds.
+	if baseline != nil && baseline.Updated {
+		return nil
+	}
+
+	if err := outputFindings(ctx, reported, cfg, len(actx.LoadErrors)); err != nil {
 		return fmt.Errorf("output: %w", err)
 	}
 
@@ -137,7 +156,7 @@ func run(ctx context.Context, cfg *AppConfig) error {
 		}
 	}
 
-	return shouldExitWithError(cfg, active)
+	return shouldExitWithError(cfg, reported)
 }
 
 // applyConfigOverrides merges config-declared feature overrides and rule-specific

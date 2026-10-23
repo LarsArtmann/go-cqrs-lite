@@ -127,6 +127,8 @@ type AppConfig struct {
 	FailOnStaleSuppressions bool   `default:"false" flag:"fail-on-stale-suppressions" help:"Exit non-zero if any //cqrs-lint:ignore directives are stale (not suppressing anything)"                      local:"true"`
 	Adoption                bool   `default:"false" flag:"adoption"                   help:"Show F-series adoption coaching but exclude them from health score"                                           local:"true"`
 	Scorecard               bool   `default:"false" flag:"scorecard"                  help:"Print module adoption scorecard (used/missing/coverage); the scorecard subcommand adds --scorecard-threshold" local:"true"`
+	Baseline                string `default:""      flag:"baseline"                   help:"Path to a findings baseline file; only findings absent from it are reported"                                    local:"true" json:"baseline,omitempty"`
+	UpdateBaseline          bool   `default:"false" flag:"update-baseline"            help:"Rewrite the findings baseline from this run (requires --baseline); exits 0"                                     local:"true" json:"update-baseline,omitempty"` //nolint:tagliatelle // CLI config key
 
 	// Features declares which go-cqrs-lite modules the consumer uses.
 	// Each non-nil flag overrides auto-detection. See FeatureProfile docs.
