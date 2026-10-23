@@ -1093,6 +1093,7 @@
                   ${pkgs.bash}/bin/bash "$PWD/scripts/check-cqrs-lint-cli.sh" --self-test
                   ${pkgs.bash}/bin/bash "$PWD/scripts/check-changelog-coverage.sh" --self-test
                   ${pkgs.bash}/bin/bash "$PWD/scripts/probe-proxy-tags.sh" --self-test
+                  ${pkgs.bash}/bin/bash "$PWD/scripts/check-nix-hashes.sh" --self-test
                   CALIB_GATE_LOADAVG_FILE="$(mktemp)" CI=false ${pkgs.bash}/bin/bash -c 'printf "40.0 55.0 1.0 1/1 1\n" > "$CALIB_GATE_LOADAVG_FILE"; if bash "$PWD/scripts/verify-load-guard.sh" >/dev/null 2>&1; then echo "verify-load-guard self-test: loud load must refuse" >&2; exit 1; fi'
                 '';
 
@@ -1355,6 +1356,13 @@
 
             check-file-size = mkApp "check-file-size" [ pkgs.bash pkgs.findutils ] ''
               ${pkgs.bash}/bin/bash "$PWD/scripts/check-file-size.sh" "$@"
+            '';
+
+            # Placeholder-hash tripwire for flake.nix (2026-10-23 incident:
+            # an auto-configure pass rewrote every pinned hash to the all-zero
+            # placeholder and only a realised derivation noticed).
+            check-nix-hashes = mkApp "check-nix-hashes" [ pkgs.bash pkgs.findutils pkgs.gnugrep ] ''
+              ${pkgs.bash}/bin/bash "$PWD/scripts/check-nix-hashes.sh" "$@"
             '';
 
             # check-md-go: docs gate — every live ```go fence must parse or
@@ -1790,6 +1798,10 @@
                   # Loud toolchain gate (W3 Q4 ruling): go.work contract vs
                   # the selected toolchain; fails loud on the GOTOOLCHAIN trap.
                   ${pkgs.bash}/bin/bash "$PWD/scripts/check-go-version.sh" || exit 1
+                  # Placeholder-hash tripwire (2026-10-23): a fake hash in
+                  # flake.nix evaluates fine and only fails minutes into a
+                  # realisation, so catch it in the first second.
+                  ${pkgs.bash}/bin/bash "$PWD/scripts/check-nix-hashes.sh" || exit 1
                   # Advisory verify-window lock (W3 Q5): fail loud on
                   # contention instead of interleaving with another session.
                   # shellcheck disable=SC1091  # sourced lib lives beside the script
@@ -1864,6 +1876,7 @@
               mkApp "verify-fast" [ goPkg pkgs.golangci-lint pkgs.bash pkgs.findutils pkgs.gnugrep pkgs.gcc ]
                 ''
                   export CGO_ENABLED=1
+                  ${pkgs.bash}/bin/bash scripts/check-nix-hashes.sh && \
                   ${pkgs.bash}/bin/bash scripts/verify-docs.sh && \
                   echo "=== Build ===" && ${goPkg}/bin/go build ${tagFlags} ${allPaths} && \
                   echo "=== Vet ===" && ${goPkg}/bin/go vet ${tagFlags} ${modulePaths} && \
