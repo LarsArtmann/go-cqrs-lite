@@ -49,7 +49,8 @@ func scanGenericHandlerCall(ctx *AnalysisContext, call *ast.CallExpr) {
 }
 
 // typeNameFromGenericArg extracts the struct name from a generic type argument
-// expression, stripping a leading pointer indirection: *MyCommand → MyCommand.
+// expression, stripping a leading pointer indirection and any package
+// qualifier: *MyCommand → MyCommand, deal.LoseCmd → LoseCmd.
 func typeNameFromGenericArg(expr ast.Expr) string {
 	if star, ok := expr.(*ast.StarExpr); ok {
 		expr = star.X
@@ -57,6 +58,14 @@ func typeNameFromGenericArg(expr ast.Expr) string {
 
 	if id, ok := expr.(*ast.Ident); ok {
 		return id.Name
+	}
+
+	// Package-qualified type argument: the composition root usually lives in a
+	// different package than the domain (the ADR-0123 layout), so
+	// system.RegisterCommand[deal.LoseCmd, deal.State] must resolve to
+	// "LoseCmd" rather than "".
+	if sel, ok := expr.(*ast.SelectorExpr); ok {
+		return sel.Sel.Name
 	}
 
 	return ""
