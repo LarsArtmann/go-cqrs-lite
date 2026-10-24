@@ -159,6 +159,7 @@ func ensureTypedStreamLog(db *sql.DB) error {
 // casts cannot be guarded in one statement), and readers already fall back
 // to the envelope; the writer fills them for every new row.
 func backfillTypedStreamColumns(db *sql.DB) error {
+	// art-dupl:accept cross-module SQL engine pattern — dep-isolated go.mod modules
 	const stmt = `
 		UPDATE meta_stream_log SET
 			event_id       = value::jsonb->>'id',

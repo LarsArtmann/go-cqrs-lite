@@ -95,6 +95,7 @@ func (a *CommandAdapter) AppendBatch(
 func (a *CommandAdapter) Load(
 	ctx context.Context, ref command.StreamRef,
 ) ([]*command.PersistedCommand, error) {
+	// art-dupl:accept command/event adapters share the resolveStreamKey prologue by design
 	key, err := resolveStreamKey(ctx, a.Backend, a.Collection, ref)
 	if err != nil {
 		return nil, fmt.Errorf("command adapter: resolve stream key: %w", err)

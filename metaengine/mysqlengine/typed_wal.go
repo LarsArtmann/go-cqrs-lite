@@ -203,6 +203,7 @@ func probeStreamLogColumns(db *sql.DB) (map[string]bool, error) {
 // extraction; the regexp guards keep non-numeric envelope fields outside the
 // UNSIGNED casts.
 func backfillTypedStreamColumns(db *sql.DB) error {
+	// art-dupl:accept cross-module SQL engine pattern — dep-isolated go.mod modules
 	const stmt = `
 		UPDATE meta_stream_log SET
 			event_id       = JSON_UNQUOTE(JSON_EXTRACT(value, '$.id')),
