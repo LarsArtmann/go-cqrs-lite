@@ -26,9 +26,14 @@ var sqlImportSignals = map[string]bool{
 
 // engineTierPrefixes are package-path prefixes that OWN their SQL legitimately
 // (ADR-0142): the metaengine substrate and its engines, the claim cores, the
-// queue engines, and the legacy storage/stack tiers that are already
-// sentenced to v5 removal (flagging them would be noise about a known,
-// dated decision — the deletion waves remove them).
+// queue engines, the legacy storage/stack tiers that are already sentenced
+// to v5 removal (flagging them would be noise about a known, dated decision —
+// the deletion waves remove them), the tooling tier (benchkit benchmarks and
+// cmd/* CLIs wire engine databases as harness, not as application state),
+// and the deprecated idempotency/sqlstore (same sentence as
+// scheduling/sqlstore above). Deliberately NOT exempt: middleware/ and
+// projectionhost/ satellite SQL — those are live contract-30 debt the
+// advisory exists to keep visible.
 var engineTierPrefixes = []string{
 	"github.com/larsartmann/go-cqrs-lite/metaengine/",
 	"github.com/larsartmann/go-cqrs-lite/claiming/",
@@ -38,8 +43,11 @@ var engineTierPrefixes = []string{
 	"github.com/larsartmann/go-cqrs-lite/storage/",
 	"github.com/larsartmann/go-cqrs-lite/stack/",
 	"github.com/larsartmann/go-cqrs-lite/scheduling/sqlstore/",
+	"github.com/larsartmann/go-cqrs-lite/idempotency/sqlstore/",
 	"github.com/larsartmann/go-cqrs-lite/testutil/",
 	"github.com/larsartmann/go-cqrs-lite/example/",
+	"github.com/larsartmann/go-cqrs-lite/benchkit/",
+	"github.com/larsartmann/go-cqrs-lite/cmd/",
 }
 
 // E023: satellite-owned SQL beside go-cqrs-lite usage.
