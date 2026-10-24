@@ -218,7 +218,11 @@ func TestExport_GovernanceLintContract(t *testing.T) {
 // federation hub must never mistake mesh-demo content for a real system.
 func TestExport_DemoFlag(t *testing.T) {
 	dir := t.TempDir()
-	if err := exportDomain("orders", dir, exportOptions{plain: true, skipBootstrap: true}); err != nil {
+	if err := exportDomain(
+		"orders",
+		dir,
+		exportOptions{plain: true, skipBootstrap: true},
+	); err != nil {
 		t.Fatalf("export orders: %v", err)
 	}
 

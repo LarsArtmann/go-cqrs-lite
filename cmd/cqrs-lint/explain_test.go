@@ -164,7 +164,8 @@ func TestRenderRuleExplanations(t *testing.T) {
 		if err == nil {
 			t.Fatal("want error for unknown rule ID, got nil")
 		}
-		if !strings.Contains(err.Error(), "ZZZ9") || !strings.Contains(err.Error(), "cqrs-lint rules") {
+		if !strings.Contains(err.Error(), "ZZZ9") ||
+			!strings.Contains(err.Error(), "cqrs-lint rules") {
 			t.Errorf("error should name the ID and point at 'cqrs-lint rules', got: %v", err)
 		}
 	})

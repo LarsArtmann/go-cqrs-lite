@@ -26,5 +26,8 @@ var deprecatedV5Modules = []deprecatedV5Module{ //nolint:gochecknoglobals // sta
 	{fragment: "storage/relational", replacement: "metaengine engines with layout planning"},
 	{fragment: "storage/view", replacement: "metaengine engines with layout planning"},
 	// ADR-0142 I/O rule (2026-10-24): satellite SQL timers retire for the engine path.
-	{fragment: "scheduling/sqlstore", replacement: "scheduling/engine.NewTimerStore over a metaengine.DueClaimer engine"},
+	{
+		fragment:    "scheduling/sqlstore",
+		replacement: "scheduling/engine.NewTimerStore over a metaengine.DueClaimer engine",
+	},
 }

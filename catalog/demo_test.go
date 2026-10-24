@@ -28,7 +28,9 @@ func TestMarkDemo_StampsEveryResourceKind(t *testing.T) {
 	reg.AddDataStore(catalog.DataStore{ID: "orders-db", Name: "Orders DB", Version: "1.0.0"})
 	reg.AddFlow(catalog.Flow{ID: "order-lifecycle", Name: "Order Lifecycle", Version: "1.0.0"})
 	reg.AddEntity(catalog.Entity{ID: "order", Name: "Order", Version: "1.0.0"})
-	reg.AddDataProduct(catalog.DataProduct{ID: "order-facts", Name: "Order Facts", Version: "1.0.0"})
+	reg.AddDataProduct(
+		catalog.DataProduct{ID: "order-facts", Name: "Order Facts", Version: "1.0.0"},
+	)
 	reg.AddAgent(catalog.Agent{ID: "triage-bot", Name: "Triage Bot", Version: "1.0.0"})
 	reg.AddCustomDoc(catalog.CustomDoc{ID: "demo-notes", Title: "Demo Notes", Summary: "Notes"})
 	reg.AddTeam(catalog.Team{ID: "orders-team", Name: "Orders Team"})
@@ -99,15 +101,23 @@ func TestMarkDemo_DoesNotDuplicateBadgeAcrossBuilds(t *testing.T) {
 
 	reg := catalog.NewRegistry("Demo", "1.0.0")
 	reg.AddService(catalog.Service{
-		ID: "svc", Name: "Svc", Version: "1.0.0",
-		Badges: []catalog.Badge{{Content: "Demo", BackgroundColor: "#f59e0b", TextColor: "#1f2937"}},
+		ID:      "svc",
+		Name:    "Svc",
+		Version: "1.0.0",
+		Badges: []catalog.Badge{
+			{Content: "Demo", BackgroundColor: "#f59e0b", TextColor: "#1f2937"},
+		},
 	})
 	reg.MarkDemo()
 
 	for build := range 2 {
 		badges := reg.Build().Services[0].Badges
 		if len(badges) != 1 {
-			t.Errorf("build %d: badges = %v, want the single existing Demo badge untouched", build, badges)
+			t.Errorf(
+				"build %d: badges = %v, want the single existing Demo badge untouched",
+				build,
+				badges,
+			)
 		}
 	}
 }

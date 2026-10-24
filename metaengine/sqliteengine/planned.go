@@ -144,7 +144,10 @@ func execPlannedSet(
 		return err
 	}
 
-	extracted := metaengine.ExtractFields(value, plan.Columns) // art-dupl:accept planned-write parity with duckdbengine/layout_planner.go — engines stay dep-isolated
+	extracted := metaengine.ExtractFields(
+		value,
+		plan.Columns,
+	) // art-dupl:accept planned-write parity with duckdbengine/layout_planner.go — engines stay dep-isolated
 
 	quotedColNames := make([]string, 0, 2+len(plan.Columns))
 	quotedColNames = append(

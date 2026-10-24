@@ -154,7 +154,11 @@ func ensureTypedStreamLog(db *sql.DB) error {
 	}
 
 	for _, idx := range indexes {
-		if _, err := db.ExecContext(context.Background(), idx); err != nil && !isMySQLDuplicateIndex(err) {
+		if _, err := db.ExecContext(
+			context.Background(),
+			idx,
+		); err != nil &&
+			!isMySQLDuplicateIndex(err) {
 			return fmt.Errorf(
 				"mysqlengine typed WAL: unique index failed — the journal contains "+
 					"duplicate event ids or (stream, version) pairs (clean up the duplicates "+

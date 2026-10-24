@@ -25,10 +25,10 @@ func warnOnEmptyDomain(tb logfSink, domain system.DomainConfig) {
 	}
 
 	tb.Logf(
-		"systemscenario: WARNING: DomainConfig is empty (no commands, queries, "+
-			"timers, projections, evolutions, events, or schema declarations) — "+
-			"this scenario boots a HOLLOW composition root, so passing assertions "+
-			"prove nothing about your domain. If a wrapper owns system.New, boot "+
+		"systemscenario: WARNING: DomainConfig is empty (no commands, queries, " +
+			"timers, projections, evolutions, events, or schema declarations) — " +
+			"this scenario boots a HOLLOW composition root, so passing assertions " +
+			"prove nothing about your domain. If a wrapper owns system.New, boot " +
 			"it in the fixture and wrap it with systemscenario.Adopt(sys) instead.",
 	)
 }

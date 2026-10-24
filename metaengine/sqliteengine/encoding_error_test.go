@@ -62,7 +62,7 @@ func assertRejection(t *testing.T, err error, wantCode string) {
 }
 
 const (
-	dbValueEncodeCode    = "sqliteengine.encode_value"
+	dbValueEncodeCode     = "sqliteengine.encode_value"
 	streamValueEncodeCode = "metaengine.encode_stream_value"
 )
 
@@ -153,7 +153,11 @@ func TestSQLite_MapSetAt_RejectsUnrepresentableValue(t *testing.T) {
 	ctx := context.Background()
 	versioned := eng.(metaengine.VersionedWriter)
 
-	assertRejection(t, versioned.MapSetAt(ctx, "tasks", "task-1", make(chan int), time.Now()), dbValueEncodeCode)
+	assertRejection(
+		t,
+		versioned.MapSetAt(ctx, "tasks", "task-1", make(chan int), time.Now()),
+		dbValueEncodeCode,
+	)
 
 	mb := eng.(metaengine.MapBackend)
 
