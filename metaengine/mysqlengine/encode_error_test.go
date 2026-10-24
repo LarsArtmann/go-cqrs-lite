@@ -2,7 +2,9 @@ package mysqlengine
 
 import (
 	"context"
+	"fmt"
 	"testing"
+	"time"
 )
 
 // TestStreamAppend_UnrepresentableValueFailsBeforeWrite pins the batch-encode
@@ -15,7 +17,7 @@ func TestStreamAppend_UnrepresentableValueFailsBeforeWrite(t *testing.T) {
 	t.Cleanup(func() { _ = eng.Close() })
 
 	ctx := context.Background()
-	collection := "encode_error_" + runSuffix
+	collection := fmt.Sprintf("encode_error_%x", time.Now().UnixNano()&0xFFFFFFFF)
 
 	err := eng.StreamAppend(ctx, collection, "s1", []any{
 		map[string]string{"ok": "value"},
