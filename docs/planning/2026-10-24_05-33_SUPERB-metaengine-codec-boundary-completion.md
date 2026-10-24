@@ -421,6 +421,14 @@ missed it (turso inherits the bug by delegation). Now:
   map spec RED (`expected an error, got nil`); restore → green. Full
   sqliteengine suite 30 s green.
 
+**T13 honest scope (corrected 2026-10-24 12:0x).** This closes the SQL engine
+family, not the class. `pebbleengine` / `bboltengine` / `badgerengine` alias
+`encodeJSON = keycodec.EncodeJSON`, which STILL falls back to
+`fmt.Sprintf("%v", v)` on a marshal failure across 22 production write sites
+(map, multimap, log, stream, vector metadata). The first draft of the COOKBOOK
+section implied a fleet-wide fix; it now states the LSM gap explicitly, and the
+TODO row was amended from "graph encoders only" to the real 1/4-fixed scope.
+
 **T14 error-family 0.11 → 0.12 (DONE — no behavior change, no note owed).**
 Source diff plus the upstream CHANGELOG: the only Go change is
 `(*Error).Unwrap` becoming nil-receiver safe (a nil unwraps to nil instead of
@@ -428,7 +436,10 @@ panicking). No API, message, family, or classification change for a non-nil
 error, so it cannot alter this repo's behavior; the bump rides the sqlite
 budget note rather than a CHANGELOG entry of its own.
 
-**T15 gate matrix → §11.8.**
+**T15 gate matrix (PARTIAL) → §11.8.** Every component that CAN run is green;
+`#verify-fast` itself cannot complete while foreign reds exist (it aborts at
+`#lint`), so calling T15 "done" would be an overclaim — the composed gate is
+still owed by whoever lands the foreign fixes.
 
 **T21 harvest (DONE).** `TODO_LIST.md` was clean this time. Harvested six
 owner-gated rows into "Metaengine — follow-ups" (envelope spike, custom-codec
@@ -491,7 +502,7 @@ that can corrupt a read model; the first is a documented contract.
 | **A. In-band string prefix** (`\x01s:` + raw) | string values only | Tiny SQL change, but changes bytes for the ONE case that is rare AND breaks direct-DB readers; legacy lookalike rows stay wrong | Rejected — partial fix, new format without a version |
 | **B. Whole-row envelope** (`{"$","enc","dat"}`) | every value | SQL: value column stops being JSON → planned pushdown dead unless planned tables are exempted (then two formats); KV: natural (already []byte) | Rejected for planned tables; possible for the unplanned map column only |
 | **C. Sibling type column** (`value_type` / `encoding`) | SQL only | In-place `ADD COLUMN` (the typed-WAL precedent, already mechanized per engine), NULL = legacy, zero byte change; **KV engines have no column** → they need B or A, so the fleet diverges | Best SQL answer, incomplete on its own |
-| **D. C + KV in-band tag under keycodec v2** | C on SQL, 1-byte prefix on KV | Every engine agrees (v2 key family already exists, ADR-0154); one tag byte per KV value; SQL gets the column | **Recommended**, but it is a migration project |
+| **D. C + KV in-band value tag** | C on SQL, 1-byte prefix on KV values | Every engine agrees; one tag byte per KV value; SQL gets the column. **Correction (2026-10-24 12:0x):** keycodec v2 is a KEY-grammar family — there is NO value-tag family today. `keycodec.EncodeJSON` is the canonical LSM value encoder and still carries the `%v` fallback, so this option also fixes the 22-site silent-loss gap on pebble/bbolt/badger (see the amended TODO row) | **Recommended**, but it is a migration project |
 | **E. Leave it; document** | current | Zero | Honest baseline (shipped in T12) |
 
 ### 12.4 Recommended shape (if the owner says yes)

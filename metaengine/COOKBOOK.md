@@ -46,10 +46,19 @@ values in a JSON-native shape when the Go type must survive, or wait for the
 stamped engine-value envelope (the ADR-0066 reversal tracked as T16 in
 [`docs/planning/2026-10-24_05-33_SUPERB-metaengine-codec-boundary-completion.md`](../docs/planning/2026-10-24_05-33_SUPERB-metaengine-codec-boundary-completion.md)).
 
-Write paths reject a value JSON cannot represent (channel, function, cyclic
-structure) with a Rejection-classified error **before** any row is written.
-`sqliteengine` (and `turso`, which delegates to it) previously stored a
-`fmt.Sprintf("%v")` placeholder instead; that fallback is gone.
+SQL engine write paths (`sqliteengine`/`turso`, `pgengine`, `duckdbengine`,
+`mysqlengine`, `dgraphengine`) reject a value JSON cannot represent (channel,
+function, cyclic structure) with a Rejection-classified error **before** any row
+is written. `sqliteengine` (and `turso`) previously stored a
+`fmt.Sprintf("%v")` placeholder; that fallback is gone there.
+
+**Known gap:** the LSM engines (`pebbleengine`, `bboltengine`, `badgerengine`)
+still encode values through `keycodec.EncodeJSON`, which falls back to
+`fmt.Sprintf("%v", v)` on a marshal failure — an unrepresentable value is
+stringified instead of rejected. The `memory` engine stores Go values as-is, so
+it is unaffected. Closing this needs `keycodec.EncodeJSON` to return an error
+(22 write sites) or a value tag; it is tracked in `TODO_LIST.md` under the
+Metaengine follow-ups.
 
 ## Counter Patterns
 
