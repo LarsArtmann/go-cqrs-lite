@@ -496,6 +496,43 @@ versioned := event.DecorateStore(eventStore, nil, schema.UpcastSourceTransform(u
 // versioned.Load transparently applies upcasters (all capabilities forwarded)
 ```
 
+### 2.5b Legacy Display-Form IDs Inside Old Payloads (schema)
+
+Pre-2026-10 payloads may carry the branded-ID PREFIXED display form
+(`"TaskMarker:<raw>"`) inside payload FIELDS — today's contract is the BARE
+value (`.Get()` / `ParseStreamID`). Strip them on read with a declared
+`schema.Transform` op; the journal itself is never rewritten (ADR-0143).
+
+```go
+import "github.com/larsartmann/go-cqrs-lite/schema/v4"
+
+chain, err := schema.Compile(
+    schema.Transform("task.blocked", 1, func(fields map[string]any) (map[string]any, error) {
+        if raw, ok := fields["DependencyID"].(string); ok {
+            parsed, err := id.ParseStreamID(raw)
+            if err != nil {
+                return nil, fmt.Errorf("DependencyID %q: %w", raw, err)
+            }
+            fields["DependencyID"] = parsed.Get() // display form in → bare out
+        }
+        return fields, nil
+    }),
+)
+if err != nil {
+    return err
+}
+
+// The compiled chain IS a SourceTransform for every store read path...
+store = event.DecorateStore(store, nil, chain.SourceTransform())
+
+// ...and Chain.Upcasters hands the same op to classic-upcaster consumers.
+upcasters, _ := chain.Upcasters()
+```
+
+The error-return on a non-parseable ID is deliberate: a payload ID that
+parses as NEITHER form is data corruption, and a silent passthrough would
+re-ship it as if it were bare.
+
 ### 2.6 Tamper-Proof Event Streams (signing)
 
 Cryptographic signatures detect tampering in transit and at rest.

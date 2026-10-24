@@ -196,6 +196,7 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       (a 3-token signature group; templ cannot carry directives — baseline-only).
       _(Effort: M — mechanical, but must be done as ONE campaign decision)_
 
+- [x] **A17 taskmanager deriver coverage — VERIFIED 2026-10-24 (receipt):** deriver.go IS exercised on three legs: `TestWorkQueue_AutoAssignEndToEnd` (event→queue→command end-to-end), `TestWorkQueue_AssignmentSurvivesRestart` (durable across restart), and the systemscenario BDD story at systemscenario_test.go:115 ("create → deriver auto-assign → start → complete") asserting the auto-assigned assignee in the created-view check. No gap; suite green.
 - [ ] 🔥 **Run the composed proof for the new package**: `nix run .#verify` +
       `.#verify-ci` in an exclusive window; record dated receipts here.
       STATE 2026-10-18: all code/doc work of the completion plan (A1–A27) has

@@ -119,6 +119,15 @@ var recipeCatalogA = map[string]recipeSpec{
 			"var eventStore event.Store\n",
 		trailers: "_ = versioned",
 	},
+	"### 2.5b Legacy Display-Form IDs Inside Old Payloads (schema) #1": {
+		imports: []string{
+			`"github.com/larsartmann/go-cqrs-lite/schema/v4"`,
+			`"github.com/larsartmann/go-cqrs-lite/event/v4"`,
+			`"github.com/larsartmann/go-cqrs-lite/id/v4"`,
+		},
+		preamble: "var store event.Store\n",
+		trailers: "_ = store\n_ = upcasters",
+	},
 	"### 2.6 Tamper-Proof Event Streams (signing) #1": {
 		imports: []string{
 			`"github.com/larsartmann/go-cqrs-lite/signing/v4"`,
