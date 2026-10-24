@@ -267,4 +267,110 @@ flowchart TD
 
 ## 11. Execution log
 
-_(appended during execution)_
+### 11.1 Wave 1 — ship (T1–T4)
+
+**T1 replay + edge pins (done).** `metaengine/encoded_replay_test.go` covers
+`Verify` replay of CBOR markers, in-place `Backfill` replay, record-level
+sniffing with an unknown stamp, a lying JSON stamp (Corruption), empty payload,
+a `[]byte`-sample fold receiving raw CBOR, garbage bytes, and the
+"unmatched event type is a no-op" contract.
+
+Mutation-verified twice:
+
+| Mutation | Result |
+| -------- | ------ |
+| `decodeRawFoldPayload`: `case encodedPayload: return raw, nil` | RED at the live apply (`reflect: Call using metaengine.encodedPayload`) |
+| `Verify`: `ApplyRecord(ctx, evt.Record, nil)` instead of `evt.Payload` | RED at the Verify assertion (`reflect: Call using zero Value argument`) |
+
+**T2 stored-bytes pins (done).** `metaengine/encoded_internal_test.go` asserts
+the JSON marker is the caller's exact bytes, the CBOR marker carries the
+producer's bytes plus its codec, and both encodings converge on identical
+projection state (`TestApplyEncoded_EncodingsConverge`).
+
+**T3 ADR (done).** `docs/adr/0161-encoded-ingress-producer-codec.md` +
+index row; `check-adr-numbering` green (159 ADRs).
+
+**T4 delivery (done, across several commits).** Pushed to `origin/master`.
+The auto-commit daemon absorbed files repeatedly; three commits carry authored
+messages (`plan:`, `docs(adr):`, `test:`), the rest are `chore:` sweeps.
+
+### 11.2 Wave 2 — harden (T5–T9)
+
+**T5 batch encode helper (done).** `EncodeStreamValuesErr` encodes the whole
+batch before returning, so an unrepresentable value fails BEFORE any row is
+written. Migrated `pgengine` (COPY + chunked INSERT), `duckdbengine`,
+`mysqlengine` (encode before the transaction opens) and `dgraphengine`.
+`TestEncodeStreamValuesErr` pins order, content, and the all-or-nothing error.
+
+**T6 per-engine write-path tests (done).** Four `encode_error_test.go` files;
+DuckDB executes in-memory (proves no partial append), pg/mysql/dgraph use the
+existing DSN-gated skip helpers.
+
+**T7 system-level proof (done).** `system/system_default_decoder_test.go` boots
+`system.New` with no projection decoder of any kind and a CBOR event, then polls
+the projection host until the read model fills. Mutation-verified: replacing the
+adapter delegation with an error makes the test time out (`5.015s`, RED).
+
+**T8 family assertion (done).** `wantCorruption` asserts
+`errorfamily.Classify(err) == Corruption` plus the stable `decode <type>`
+message prefix, applied to every decoded-ingress failure test.
+
+**T9 sniff matrix + fuzz (done).** 14 shapes (6 JSON, 8 CBOR) pin the marker
+type; `FuzzEncodePayload` ran 20 s / 706 656 execs with no crash and no
+unexpected marker.
+
+### 11.3 Wave 3 — measure + document (T10–T11)
+
+**T10 benchmarks (done).** `-benchtime 200ms`, one machine
+(AMD RYZEN AI MAX+ 395):
+
+| Path | ns/op | B/op | allocs/op |
+| ---- | ----- | ---- | --------- |
+| `ApplyEncoded` JSON | 3540 | 2605 | 23 |
+| `ApplyEncoded` CBOR | 3435 | 2625 | 25 |
+| `Apply` (decoded struct) | 4301 | 2416 | 18 |
+| `applyFold` struct | 492 | 80 | 3 |
+| `applyFold` JSON marker | 1173 | 168 | 6 |
+| `decodeRawFoldPayload` CBOR | 356 | 120 | 5 |
+
+CBOR ingress is not slower than JSON. Numbers recorded in
+`metaengine/README.md`; no gate attached.
+
+**T11 docs (done).** `metaengine/COOKBOOK.md` gains a "Payload Encodings"
+section (the skill points consumers at it); `projectionadapter/README.md` no
+longer claims a `map[string]any` default and links ADR-0161; the FAQ entry links
+the ADR; the metaengine README carries the measurement table.
+
+### 11.4 Gate results (this wave)
+
+| Gate | Result |
+| ---- | ------ |
+| `metaengine` full suite | ok |
+| `projectionadapter` | ok |
+| `system -short` | ok |
+| pg / duckdb / mysql / dgraph `-short` | ok |
+| `cmd/doc-check` (SKILL + references + AGENTS) | 1349 refs valid |
+| `check-adr-numbering` | ok |
+| `gofmt -l` on every touched file | clean |
+| api golden | regenerated twice (once for the in-flight WAL helpers, once for `EncodeStreamValuesErr` + `WithLayoutStampsDisabled`) |
+
+### 11.5 Foreign state encountered (recorded, not touched)
+
+- `metaengine/layout_stamp_boot_test.go` referenced a missing
+  `Store.StampLayoutPlanForTest` for a few minutes (came and went with the
+  parallel session's edits); it compiles again as of this log.
+- `metaengine/adttest/stream_wal_conformance.go` and the per-engine
+  `wal_conformance_test.go` / `typed_wal*` files are the parallel session's
+  typed-WAL wave; they moved under my feet several times and twice forced an
+  api-golden regeneration.
+- The auto-commit daemon committed my staged files before `git commit` acquired
+  the ref at least three times; authored-message commits therefore carry less
+  than the full logical change.
+
+### 11.6 Not done in this run (waves 4–5)
+
+T12 (read-side `DecodeStreamValue`), T13 (sqlite `fmt.Sprintf("%v")` fallback),
+T14 (error-family delta review), T15 (full repo gate matrix: `#verify-fast`,
+`#lint`, `#check-coverage`, `#check-modsums`), T16–T20 (owner-gated design), T21
+(TODO_LIST harvest — `TODO_LIST.md` carried a foreign uncommitted edit for the
+whole session, so harvesting was deferred rather than mixing diffs).

@@ -309,6 +309,17 @@ that produced them into its own sample type — no schema-free JSON round trip,
 which would lose values such as `time.Time` (CBOR encodes it as an epoch
 integer).
 
+Measured cost of the encoded path (one machine, `-benchtime 200ms`, not a gate):
+
+| Path | ns/op | B/op | allocs/op |
+| ---- | ----- | ---- | --------- |
+| `ApplyEncoded` JSON | 3540 | 2605 | 23 |
+| `ApplyEncoded` CBOR | 3435 | 2625 | 25 |
+| `Apply` (decoded struct) | 4301 | 2416 | 18 |
+
+CBOR ingress is not slower than JSON ingress; the per-fold codec decode itself
+costs ~356 ns and 5 allocs (`BenchmarkDecodeRawFoldPayloadCBOR`).
+
 ## Projection Adapter
 
 ```go

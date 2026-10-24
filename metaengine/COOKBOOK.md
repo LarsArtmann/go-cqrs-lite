@@ -3,6 +3,30 @@
 Practical recipes for common metaengine patterns. Each recipe is copy-paste
 ready and includes the query declaration, fold handlers, and reader usage.
 
+## Payload Encodings
+
+Events reach the store in one of two ways:
+
+```go
+// 1. Decoded value — the caller already knows the type.
+_ = store.Apply(ctx, "task.created", TaskCreated{ID: "t1"})
+
+// 2. Encoded bytes — the store decodes per fold sample.
+_ = store.ApplyEncoded(ctx, "task.created", evt.Payload())
+```
+
+`ApplyEncoded` / `ApplyEncodedRecord` accept **JSON and CBOR**. The codec is
+taken from `Record.Encoding` when known and detected otherwise, and each fold
+decodes the bytes with the codec that produced them; a JSON normalization step
+would lose values that CBOR represents differently (for example `time.Time`,
+which canonical CBOR writes as an epoch integer). See
+[ADR-0161](../docs/adr/0161-encoded-ingress-producer-codec.md).
+
+Because `event.New` encodes CBOR by default, path 2 is the one to use when
+bridging a raw `event.Event` into a projection. Decode failures classify as
+Corruption, so a projection host with a dead-letter store quarantines poison
+payloads instead of retrying them forever.
+
 ## Counter Patterns
 
 ### Status Count Dashboard

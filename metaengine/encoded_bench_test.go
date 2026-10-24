@@ -5,6 +5,8 @@ import (
 	"encoding/json/jsontext"
 	"testing"
 
+	"github.com/larsartmann/go-codec"
+
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
@@ -97,6 +99,81 @@ func BenchmarkDecodeRawFoldPayloadStruct(b *testing.B) {
 
 		if _, ok := decoded.(benchFoldEvent); !ok {
 			b.Fatalf("struct payload must pass through unchanged, got %T", decoded)
+		}
+	}
+}
+
+// BenchmarkApplyEncoded_JSONVSBCOR is the number the completion plan asked for:
+// the full encoded ingress (detection + marker + per-fold decode) on the same
+// event in both codecs, plus the decoded-struct path as the floor.
+func BenchmarkApplyEncoded_JSONVSBCOR(b *testing.B) {
+	store, _, _ := benchFoldStore(b)
+
+	ctx := context.Background()
+	jsonBytes := []byte(`{"TaskID":"t1","Name":"bench"}`)
+
+	cborBytes, err := codec.CBORCodec{}.Encode(benchFoldEvent{TaskID: "t1", Name: "bench"})
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	b.Run("json", func(b *testing.B) {
+		b.ReportAllocs()
+
+		for b.Loop() {
+			if err := store.ApplyEncoded(ctx, "benchFoldEvent", jsonBytes); err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
+
+	b.Run("cbor", func(b *testing.B) {
+		b.ReportAllocs()
+
+		for b.Loop() {
+			if err := store.ApplyEncoded(ctx, "benchFoldEvent", cborBytes); err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
+
+	b.Run("struct", func(b *testing.B) {
+		b.ReportAllocs()
+
+		for b.Loop() {
+			if err := store.Apply(
+				ctx,
+				"benchFoldEvent",
+				benchFoldEvent{TaskID: "t1", Name: "bench"},
+			); err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
+}
+
+// BenchmarkDecodeRawFoldPayloadCBOR isolates the new marker's per-fold cost.
+func BenchmarkDecodeRawFoldPayloadCBOR(b *testing.B) {
+	store, _, fold := benchFoldStore(b)
+	_ = store
+
+	raw, err := codec.CBORCodec{}.Encode(benchFoldEvent{TaskID: "t1", Name: "bench"})
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	payload := encodedPayload{raw: raw, encoding: codec.EncodingCBOR}
+
+	b.ReportAllocs()
+
+	for b.Loop() {
+		decoded, err := decodeRawFoldPayload(fold, payload)
+		if err != nil {
+			b.Fatal(err)
+		}
+
+		if _, ok := decoded.(benchFoldEvent); !ok {
+			b.Fatalf("CBOR payload must decode to benchFoldEvent, got %T", decoded)
 		}
 	}
 }

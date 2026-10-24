@@ -34,7 +34,8 @@ store, _ := metaengine.Plan(engines, query, folds...)
 
 // 2. Wrap as a projection
 proj := projectionadapter.New("tasks-projection", store, nil)
-// nil decoder → payloads decoded as map[string]any (generic JSON)
+// nil decoder → the store decodes each payload itself: JSON or CBOR, per fold
+// sample type (Store.ApplyEncodedRecord)
 
 // 3. Register with projection host
 host, _ := projectionhost.New(journal, checkpointStore)
@@ -42,10 +43,25 @@ _ = host.Register(proj)
 go host.Start(ctx)
 ```
 
+## Decoding: none by default, and that is fine
+
+With no decoder configured the adapter hands the raw payload bytes to
+`Store.ApplyEncodedRecord`. The store detects the codec (JSON or CBOR) and each
+fold decodes the bytes into its own sample type, so `metaengine.OnRecordTyped`
+folds work without any consumer decoder.
+
+```go
+// Zero-config: correct for typed folds, JSON and CBOR alike.
+proj := projectionadapter.New("tasks", store, nil)
+```
+
+A consumer decoder is only needed when the fold types cannot be derived from
+the sample (for example when the projection expects a shape the event payload
+does not carry).
+
 ## Custom Payload Decoder
 
-By default, the adapter decodes event payloads as `map[string]any`. For typed
-decoding, provide a `PayloadDecoder`:
+Provide a `PayloadDecoder` when you want to control the decode yourself:
 
 ```go
 proj := projectionadapter.New("tasks", store, func(eventType string, payload []byte) (any, error) {
@@ -89,14 +105,16 @@ skill's `references/recipes.md` §2.44 for the end-to-end path).
 
 ## Design Notes
 
-- **Separate package**: This adapter lives in its own module to preserve
-  `metaengine`'s zero-dependency boundary. The core `metaengine` package has
-  no imports from `event/` or `projection/` — this adapter is the only place
-  that bridges them.
+- **Separate package**: This adapter lives in its own module to keep the core
+  `metaengine` package free of `event/` and `projection/` imports. The codec
+  vocabulary itself is shared (both depend on go-codec), so a payload is
+  decoded with the same codec that produced it.
 - **Event types auto-derived**: `New()` calls `store.EventTypes()` to discover
   which event types the planned queries listen to. No manual registration needed.
 - **ADR-0062**: See [`docs/adr/0062-metaengine-dependency-boundary.md`](../../docs/adr/0062-metaengine-dependency-boundary.md)
-  for the design rationale.
+  for the module-boundary rationale, and [ADR-0161](../../docs/adr/0161-encoded-ingress-producer-codec.md)
+  for the decoding contract (why the producer's codec wins over a JSON
+  normalization).
 
 ## Related Modules
 
