@@ -100,6 +100,50 @@ func TestExcludedResourceNameNeverAppears(t *testing.T) {
 	})
 }
 
+// TestLoadExportValidatesReferencesMode pins the references-vocabulary gate
+// (ADR-0160): a typo'd mode is a Rejection and "omit" is a valid spelling of
+// the default.
+func TestLoadExportValidatesReferencesMode(t *testing.T) {
+	dir := t.TempDir()
+
+	write := func(name, references string) string {
+		t.Helper()
+
+		path := filepath.Join(dir, name)
+
+		content := "---\ntitle: Mode slice\ninclude:\n  - kind: domain\n    id: d\nreferences: " +
+			references + "\n---\nbody\n"
+
+		if err := os.WriteFile(path, []byte(content), 0o600); err != nil {
+			t.Fatalf("write fixture: %v", err)
+		}
+
+		return path
+	}
+
+	t.Run("typo is a rejection", func(t *testing.T) {
+		_, err := architecture.LoadExport(write("typo.mdx", "name-onlyx"))
+		if err == nil {
+			t.Fatal("an unknown references mode must be rejected")
+		}
+
+		if !strings.Contains(err.Error(), "references") {
+			t.Errorf("the rejection does not name the offending key: %v", err)
+		}
+	})
+
+	t.Run("omit is a valid spelling of the default", func(t *testing.T) {
+		spec, err := architecture.LoadExport(write("omit.mdx", "omit"))
+		if err != nil {
+			t.Fatalf("LoadExport: %v", err)
+		}
+
+		if spec.References != architecture.ReferencesOmit {
+			t.Errorf("references: %q", spec.References)
+		}
+	})
+}
+
 // TestLoadExportParsesSpec pins the custom-export frontmatter contract:
 // title and include are required, the body becomes the introduction, and
 // x-* selectors are rejected pointing at ADR-0160.

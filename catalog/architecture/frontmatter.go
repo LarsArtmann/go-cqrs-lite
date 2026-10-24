@@ -23,11 +23,15 @@ import (
 //
 //	Read this file with the code.
 type ExportSpec struct {
-	Title        string
-	Description  string
-	Include      []Selector
-	Exclude      []Selector
-	NeverExport  []Selector
+	Title       string
+	Description string
+	Include     []Selector
+	Exclude     []Selector
+	NeverExport []Selector
+	// References is how references to resources outside the kept set
+	// render: "" or "omit" (the default), "name-only" or "include".
+	// LoadExport rejects any other spelling; the CLI's -references flag
+	// stays lenient and treats unknown values as omit.
 	References   ReferencesMode
 	Hide         []HideSection
 	Introduction string
@@ -54,7 +58,8 @@ type specFrontmatter struct {
 // frontmatter between --- fences, then the body as the markdown
 // introduction. A missing title or include list is a Rejection, and so is
 // any "x-*" selector key — ADR-0160 rules custom-property selectors out
-// until the model has a typed custom-property concept.
+// until the model has a typed custom-property concept — and any unknown
+// "references" spelling (want omit, name-only or include).
 func LoadExport(path string) (*ExportSpec, error) {
 	raw, err := os.ReadFile(path)
 	if err != nil {
@@ -159,8 +164,24 @@ func (f specFrontmatter) toSpec(body string) (*ExportSpec, error) {
 	spec.Exclude = exclude
 	spec.NeverExport = never
 
-	if f.References != "" {
-		spec.References = ReferencesMode(f.References)
+	switch f.References {
+	case "":
+		// The zero value is the default omit mode.
+	case "omit":
+		spec.References = ReferencesOmit
+	case string(ReferencesNameOnly):
+		spec.References = ReferencesNameOnly
+	case string(ReferencesInclude):
+		spec.References = ReferencesInclude
+	default:
+		return nil, errorfamily.NewRejection(
+			"catalog.architecture.7",
+			fmt.Sprintf(
+				"architecture: export spec %q has unknown references mode %q (want omit, name-only or include)",
+				spec.Title,
+				f.References,
+			),
+		)
 	}
 
 	spec.Hide = make([]HideSection, 0, len(f.Hide))
