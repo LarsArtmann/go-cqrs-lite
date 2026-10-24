@@ -1211,10 +1211,11 @@
               <div class="text">
                 <strong>Plugins are the design, not an afterthought</strong>
                 <span>
-                  11 engine modules, each dependency-isolated (CGo only for
-                  DuckDB, heavy clients only where needed), each registering
-                  itself with <code>init()</code>. Consumers that import one
-                  engine never pay for another's dependencies.
+                  11 engine modules plus the in-core memory engine, each
+                  dependency-isolated (CGo only for DuckDB, heavy clients only
+                  where needed), each registering itself with
+                  <code>init()</code>. Consumers that import one engine never pay
+                  for another's dependencies.
                 </span>
               </div>
             </div>
@@ -1294,7 +1295,7 @@
             <p>
               Two symptoms prove this is not cosmetic. First, the only engine
               that lives inside the core is the memory engine
-              (<code>memory_*.go</code>), while the other ten are
+              (<code>memory_*.go</code>), while the other eleven are
               dependency-isolated modules; the asymmetry exists because the
               package boundary is the module boundary. Second, every consumer
               that imports <code>metaengine</code> to touch one fold or one
@@ -1350,7 +1351,7 @@
           <div class="issue issue-important">
             <span class="severity severity-important">Important &middot; gate health</span>
             <h3>The file-size ratchet is red right now</h3>
-            <div class="where">scheduling/sqlstore/store.go:363 &middot; system/adapter_event.go:351 &middot; metaengine/layout.go:360</div>
+            <div class="where">scheduling/sqlstore/store.go:363 (382 an hour later, in flight) &middot; system/adapter_event.go:351 &middot; metaengine/layout.go:360</div>
             <p>
               <code>bash scripts/check-file-size.sh</code> reports three new
               offenders against the 350-line maximum, all committed on 2026-10-23
@@ -1362,11 +1363,13 @@
             <p>
               This is also the cheapest possible proof of the review's own
               thesis: the offenders are small, the fixes are mechanical, and
-              leaving them open is a choice.
+              leaving them open is a choice. One of them grew by 19 lines while
+              this review was being written, which is what an unguarded gate
+              buys you.
             </p>
             <div class="callout callout-solution">
               <strong>Fix: split the three files before anything else</strong>
-              363, 351 and 360 lines each need one extraction. Small effort,
+              363, 351 and 360 lines at measurement: each needs one extraction. Small effort,
               immediate green, and it restores the "green means green" contract
               that every other gate depends on.
             </div>
@@ -1875,9 +1878,12 @@
         <section id="appendix">
           <h2><span class="num">10</span>Method &amp; caveats</h2>
           <p>
-            Measurements taken 2026-10-24 from a clean working tree at
-            <code>ed984c6d1</code>. LOC counts include blank and comment lines and
-            exclude <code>vendor/</code> and <code>testdata/</code> unless stated.
+            Structural measurements taken 2026-10-24 from a clean working tree at
+            <code>ed984c6d1</code>. The tree moved during the review (another
+            session is editing <code>scheduling/sqlstore</code>); the file-size
+            gate was re-checked at the end and is still red. LOC counts include
+            blank and comment lines and exclude <code>vendor/</code> and
+            <code>testdata/</code> unless stated.
           </p>
           <div class="table-wrap">
             <table>

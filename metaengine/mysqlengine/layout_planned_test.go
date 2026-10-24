@@ -76,7 +76,11 @@ func TestMySQLPlannedTable_RoundTrip(t *testing.T) {
 	lpa, ok := eng.(metaengine.LayoutPlanApplier)
 	g.Expect(ok).To(gomega.BeTrue(), "mysqlEngine must implement LayoutPlanApplier")
 
-	plan := metaengine.BuildLayoutPlan("planned_roundtrip", []string{"priority"}, nil)
+	type roundtripRow struct {
+		Priority float64 `json:"priority"`
+	}
+
+	plan := metaengine.BuildLayoutPlanFromType[roundtripRow]("planned_roundtrip", []string{"priority"}, nil)
 	g.Expect(lpa.ApplyLayoutPlan(plan)).To(gomega.Succeed())
 
 	// Idempotent: same columns → no-op.
@@ -143,8 +147,13 @@ func TestMySQLPlannedPushdownScan_FilterSortKeyset(t *testing.T) {
 	g.Expect(ok).To(gomega.BeTrue(), "mysqlEngine must implement PushdownScan")
 	lpa := eng.(metaengine.LayoutPlanApplier)
 
+	type scanRow struct {
+		Status   string  `json:"status"`
+		Priority float64 `json:"priority"`
+	}
+
 	g.Expect(lpa.ApplyLayoutPlan(
-		metaengine.BuildLayoutPlan("planned_scan", []string{"status"}, []string{"priority"}),
+		metaengine.BuildLayoutPlanFromType[scanRow]("planned_scan", []string{"status"}, []string{"priority"}),
 	)).To(gomega.Succeed())
 
 	for i := 1; i <= 5; i++ {
@@ -249,8 +258,12 @@ func TestMySQLPlannedMapUpdate_RoundTrip(t *testing.T) {
 	g.Expect(ok).To(gomega.BeTrue(), "mysqlEngine must implement MapUpdater")
 	lpa := eng.(metaengine.LayoutPlanApplier)
 
+	type updRow struct {
+		Count float64 `json:"count"`
+	}
+
 	g.Expect(lpa.ApplyLayoutPlan(
-		metaengine.BuildLayoutPlan("planned_upd", []string{"count"}, nil),
+		metaengine.BuildLayoutPlanFromType[updRow]("planned_upd", []string{"count"}, nil),
 	)).To(gomega.Succeed())
 
 	g.Expect(mb.MapSet(ctx, "planned_upd", "k1",

@@ -2746,7 +2746,8 @@ round: 4.0/5 overall, with Cohesion and Scalability at 3. These rows are the new
 findings.
 
 - [ ] 🔥 **P0: file-size ratchet is RED (3 new offenders)** — `scheduling/sqlstore/store.go`
-      (363), `system/adapter_event.go` (351), `metaengine/layout.go` (360) all exceed
+      (363 at review time, 382 an hour later: actively being edited),
+      `system/adapter_event.go` (351), `metaengine/layout.go` (360) all exceed
       the 350-line max; `bash scripts/check-file-size.sh` exits 1, so `#verify`/CI are
       red for non-feature reasons. Split each to <=350; do NOT re-pin the baseline.
       — source: review findings §1 _(Effort: S)_
@@ -2766,7 +2767,7 @@ findings.
 
 - [ ] **P1: extract `metaengine/memoryengine`** — `memory_*.go` (8 files, 1,382 LOC)
       is the only driver living inside the core package; move it in v5 for symmetry
-      with the other 10 drivers. — source: review findings §1 _(Effort: S-M)_
+      with the other 11 drivers. — source: review findings §1 _(Effort: S-M)_
 
 - [ ] **P1: ship `cqrs-upgrade --to-v5`** — import rewrite (`/v4` -> `core/v5/...`),
       pin bumps, decorator/config migrations, deleted-API report. The tool has zero

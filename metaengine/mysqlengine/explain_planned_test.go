@@ -31,8 +31,13 @@ func TestMySQLPlannedExplain_IndexUsageProofs(t *testing.T) {
 	ex, ok := eng.(metaengine.ExplainableScan)
 	g.Expect(ok).To(gomega.BeTrue(), "mysqlEngine must implement ExplainableScan")
 
+	type explainRow struct {
+		Code     string  `json:"code"`
+		Priority float64 `json:"priority"`
+	}
+
 	g.Expect(lpa.ApplyLayoutPlan(
-		metaengine.BuildLayoutPlan("planned_explain", []string{"code"}, []string{"priority"}),
+		metaengine.BuildLayoutPlanFromType[explainRow]("planned_explain", []string{"code"}, []string{"priority"}),
 	)).To(gomega.Succeed())
 
 	for i := range 500 {
