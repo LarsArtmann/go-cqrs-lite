@@ -2,6 +2,13 @@
 
 Date: 2026-10-17 · Status: Accepted · Supersedes: nothing · Relates to: ADR-0159 (self-contained HTML export), ADR-0111 (Record/type model)
 
+> **Status banner (2026-10-24):** SHIPPED IN FULL — selections, references modes,
+> hide, `Inspect`/`-check`, frontmatter specs, the docserver route, the example
+> and the benchmark all landed 2026-10-17→24. Every ruling below is annotated
+> in the [implementation addendum](#implementation-addendum-2026-10-24) with
+> file:line evidence; nothing was reversed, two surface details deviated as
+> recorded there.
+
 ## Context
 
 ADR-0159 shipped the all-or-nothing reference: every resource in the catalog
@@ -64,3 +71,30 @@ are rejected until the model grows a custom-property concept.**
   catalogs per audience) keep doing that. The export selection solves the
   sharing problem for id-addressable slices; audience metadata remains a
   catalog-per-audience concern until the model says otherwise.
+
+## Implementation addendum (2026-10-24)
+
+Every ruling of the Decision, against what actually shipped:
+
+| Ruling | Status | Evidence |
+|---|---|---|
+| `Selector{Kind, ID}` addresses exactly one resource | DONE | `catalog/architecture/selection.go:16`; kind spellings are the `adrKind` vocabulary (`domain`, `service`, `command`, `event`, `query`, `channel`, `container`, `flow`, `entity`, `data-product`, `agent`, `decision`, `team`, `person`, `doc`) |
+| include brings the natural closure (domain → services → messages); exclude always wins; neverExport beats include | DONE | `catalog/architecture/plan.go:30` (`plan`: ban first, closure second, `neverExport` then `exclude`); pinned by `TestSelectionExcludeWins`, `TestSelectionDomainBringsMembers`, `TestSelectionNeverExportBeatsInclude` |
+| Outside-set resources render only as the references mode allows; nothing outside is reachable by link, sidebar or search index | DONE | modes: `catalog/architecture/references.go:8`; kept-set gating of sections/nav/search: `catalog/architecture/collect.go:84` (`addResource`); the leak probe is `TestExcludedResourceNameNeverAppears` plus the composed-path suite `TestComposedRedactionNeverLeaks` (mutation-verified) |
+| Convenience set builders are derived, not new selector semantics | DONE (as references-pull) | one-level edge pull under `references: include`: `catalog/architecture/edges.go:29` + `plan.go:118`; a DOMINANT deviation from the ADR text: the "set builders" idea shipped as the references pull and the closure, not as separate builder functions — no separate API exists |
+| Report type / proof of the result (`--check`) | DONE | `catalog/architecture/report.go:23` (`ExportReport`: `Included`/`Excluded`/`NotFound`/`Dropped`/`Hidden` + `Failed()` at `report.go:44`), `Inspect` at `report.go:51`; CLI `-check` dry-run exits 1 on any failed dimension: `catalog/cmd/catalog-export/main.go:142` |
+| `.mdx` export files supported, id+kind selectors only, custom-property selectors fail validation loudly | DONE | `LoadExport` (`catalog/architecture/frontmatter.go:63`) rejects `x-*` selectors with a message naming this ADR and (since 2026-10-24) unknown `references` spellings; pinned by `TestLoadExportParsesSpec`, `TestLoadExportValidatesReferencesMode` |
+| No `x-*` frontmatter matching; no `BaseConfig.Properties map[string]any` | UNCHANGED (rejected) | the model grew no custom-property concept; a property-selection need still requires its own typed-model ADR |
+| `hide: [owners, specifications, …]` | DONE, vocabulary narrowed | `catalog/architecture/hide.go:6`: `owners`, `repository`, `examples`, `specifications`, `docs`. Deliberately NO `contacts` — no resource in the model carries contact fields, so a contacts hide would guard nothing (ADR-0159's section inventory) |
+
+Deviations from EventCatalog's surface (deliberate, recorded):
+
+- The CLI loads a spec with `-spec <file>` instead of EventCatalog's
+  `-export/--dir` pairing — the flag composes with the same `-include/
+  -exclude/-never-export/-references/-hide` flags (spec first, flags extend;
+  pinned by `TestSpecAndFlagPrecedence`).
+- `hide` is an exporter option (`WithHide`) as well as frontmatter; the CLI
+  spells sections comma-separated (`-hide owners,docs`).
+- Unknown `references` values in a spec file are a Rejection; on the CLI they
+  degrade to omit (files are maintained artifacts, flags are lenient) —
+  recorded on `ExportSpec.References`.
