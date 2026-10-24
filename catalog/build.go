@@ -108,6 +108,12 @@ func (b *Builder) AddUser(user User) {
 	b.registry.AddUser(user)
 }
 
+// MarkDemo flags every declared resource as demo content; see
+// Registry.MarkDemo.
+func (b *Builder) MarkDemo() {
+	b.registry.MarkDemo()
+}
+
 // AddEntity registers a domain entity in the catalog.
 func (b *Builder) AddEntity(entity Entity) {
 	b.registry.AddEntity(entity)

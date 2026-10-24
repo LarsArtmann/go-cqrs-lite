@@ -32,6 +32,7 @@ type Registry struct {
 	agents       map[AgentID]*Agent
 	customDocs   map[CustomDocID]*CustomDoc
 	secSchemes   map[string]SecurityScheme
+	demo         bool
 }
 
 // NewRegistry creates a new catalog registry with the given title and version.
@@ -54,6 +55,20 @@ func NewRegistry(title, version string) *Registry {
 		customDocs:   make(map[CustomDocID]*CustomDoc),
 		secSchemes:   make(map[string]SecurityScheme),
 	}
+}
+
+// MarkDemo flags every resource declared through this registry as demo
+// content. Build() then stamps the canonical demo badge onto every
+// badge-capable resource (services, messages, domains, channels, data
+// stores, flows, entities, data products, agents, custom docs) and the demo
+// source onto teams and users (EventCatalog has no badges there — source is
+// the rendered provenance field). Call once, right after NewRegistry, so
+// later declarations cannot forget the flag.
+func (r *Registry) MarkDemo() {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	r.demo = true
 }
 
 // SetServiceMeta updates the metadata fields of an existing service.

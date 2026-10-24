@@ -25,5 +25,9 @@ func (r *Registry) Build() *Catalog {
 		cat.SecuritySchemes = append(cat.SecuritySchemes, ss)
 	}
 
+	if r.demo {
+		markDemoCatalog(cat)
+	}
+
 	return cat
 }
