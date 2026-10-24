@@ -1376,7 +1376,7 @@
             <p>
               Tooling and documentation machinery is 32.8% of production LOC.
               <code>cmd/cqrs-lint</code> alone is 1.4x the size of
-              <code>metaengine</code> and 5x <code>system</code>. That is a
+              <code>metaengine</code> and 7x <code>system</code>. That is a
               maintenance-unit problem, not a module problem: the repo's review
               attention, CI budget and release coordination are shared between a
               runtime SDK and two developer tools that have independent
@@ -1420,7 +1420,7 @@
           <div class="issue issue-important">
             <span class="severity severity-important">Medium &middot; release scale</span>
             <h3>101 modules means 101 version trains to coordinate</h3>
-            <div class="where">100 layer entries &middot; 105+ published trains in versions.json &middot; 92-tag release waves</div>
+            <div class="where">100 layer entries &middot; 112 published trains in versions.json &middot; 92-tag release waves</div>
             <p>
               Adding or removing a module requires six registration points
               (go.work, flake testModules, api-stability list, module layers +
@@ -1436,8 +1436,9 @@
               <strong>Fix: collapse the domain core, keep drivers separate</strong>
               v5's one-core-module shape is the right answer: one train for the
               domain, eleven for the drivers, separate trains for products. Also
-              retire the require-dead presets (7 of 9 <code>stack/*</code>
-              modules have zero fleet requires) instead of carrying them.
+              retire the require-dead presets (8 of the 9 <code>stack/*</code>
+              presets have zero fleet requires; only <code>stack/sqlite</code> is used)
+              instead of carrying them.
             </div>
           </div>
 
@@ -1843,8 +1844,8 @@
             <div class="migration-content">
               <h4>Retire the require-dead modules <span class="badge badge-medium">P2 &middot; S</span></h4>
               <p>
-                Seven of nine <code>stack/*</code> presets have zero fleet
-                requires. Apply the existing delete-at-zero rule to them and to
+                Eight of the nine <code>stack/*</code> presets have zero fleet
+                requires (only <code>stack/sqlite</code> is used). Apply the existing delete-at-zero rule to them and to
                 any module whose census count reaches zero, instead of carrying
                 them into v5. Dependency: step 6 (fleet migration first, so the
                 census is final).
@@ -1931,7 +1932,7 @@
         </section>
 
         <footer class="footer">
-          Architecture review #8 &middot; 2026-10-24 &middot; 101 modules,
+          Architecture review &middot; 2026-10-24 &middot; 101 modules,
           249k production LOC, 0 production import cycles &middot; companion
           diagrams: <code>2026-10-24_16-54_architecture-review-current.svg</code>,
           <code>2026-10-24_16-54_architecture-review-improved.svg</code>

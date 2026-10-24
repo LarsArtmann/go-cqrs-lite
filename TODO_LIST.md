@@ -109,6 +109,7 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 [92-tag tail](#92-tag-release-train-tail-2026-09-20-harvest) ·
 [Upstream asks (cqrs-htmx)](#upstream-asks-from-cqrs-htmx-harvested-2026-09-22-docs-health-d1) ·
 [Skill hard-block refocus](#go-cqrs-lite-skill-hard-block-refocus-2026-09-24-harvest) ·
+[Architecture review 2026-10-24](#architecture-review-2026-10-24-harvest) ·
 [Declined](#declined--rejected-do-not-re-litigate)
 
 ## Legend
@@ -2732,6 +2733,72 @@ dprint, ADR-0123 addendum) shipped the same day — completed rows deleted
 - [ ] 🔥 [BLOCKED:tooling] **Execute the evals (currently UNVALIDATED)** (`evals/trigger-eval-set.json`, `evals/evals.json`)
       after the description change — needs the `claude` CLI, currently blocked. — source:
       report §f7 _(Effort: M, tooling-blocked)_
+
+---
+
+## Architecture review (2026-10-24 harvest)
+
+Source: the 2026-10-24 architecture review (modularity + service orientation), with companion D2 diagrams
+`2026-10-24_16-54_architecture-review-current.svg` / `-improved.svg`. The prior
+review (2026-07-09) roadmap is fully resolved (five items as proposed; the outbox
+landed as journal-as-outbox via `watermill.CatchUpSubscriber`). Scores this
+round: 3.9/5 overall, with Cohesion and Scalability at 3. These rows are the new
+findings.
+
+- [ ] 🔥 **P0: file-size ratchet is RED (3 new offenders)** — `scheduling/sqlstore/store.go`
+      (363), `system/adapter_event.go` (351), `metaengine/layout.go` (360) all exceed
+      the 350-line max; `bash scripts/check-file-size.sh` exits 1, so `#verify`/CI are
+      red for non-feature reasons. Split each to <=350; do NOT re-pin the baseline.
+      — source: review findings §1 _(Effort: S)_
+
+- [ ] **P0: rule v4 as fix-only** — no new packages, no new exported symbols, no
+      structural splits in v4; every structural change goes to `core/v5`. This is the
+      precondition for the metaengine split not being done twice. — source: review
+      roadmap step 2 _(Effort: decision)_
+
+- [ ] **P1: split `metaengine` into five v5 packages** — `engine` (SPI, registry,
+      capability audit, health: 28 files), `plan` (cost, layout, calibration: 16),
+      `exec` (execute, dispatch, tx, SSE: 16), `collection` (store, folds, ADTs, typed
+      readers: 48), `diagnostic` (explain, doctor, DX: 13). Dependency rule
+      `collection -> engine <- plan/exec`, diagnostics on top only; ceiling ~300
+      exported symbols per package (today 829 in one package). — source: review
+      findings §1 _(Effort: L)_
+
+- [ ] **P1: extract `metaengine/memoryengine`** — `memory_*.go` (8 files, 1,382 LOC)
+      is the only driver living inside the core package; move it in v5 for symmetry
+      with the other 10 drivers. — source: review findings §1 _(Effort: S-M)_
+
+- [ ] **P1: ship `cqrs-upgrade --to-v5`** — import rewrite (`/v4` -> `core/v5/...`),
+      pin bumps, decorator/config migrations, deleted-API report. The tool has zero
+      `core/v5` awareness today, so no fleet repo can adopt the fork. — source: review
+      findings §2 _(Effort: L)_
+
+- [ ] **P1: finish the 23 copy-forwards in the post-split shape**, then run fleet
+      migration waves (cqrs-htmx = 73% of indirect edges -> go-appkit = 18% -> app
+      residue). — source: review roadmap step 6 _(Effort: L)_
+
+- [ ] **P2: split tooling into its own product line** — `cmd/cqrs-lint` (48.7k prod
+      LOC, 207 rules) + `catalog` exporters (22.2k) are 32.8% of production LOC and
+      share the SDK's CI/release trains; give them their own repo (or at least their
+      own cadence). — source: review findings §4 _(Effort: M-L)_
+
+- [ ] **P2: tier the API golden** — 6,301 exported symbols are one undifferentiated
+      compatibility promise; split into stable-core and experimental sections derived
+      from package boundaries (metaengine family + catalog exporters experimental).
+      — source: review findings §5 _(Effort: M)_
+
+- [ ] **P2: retire require-dead presets and collapse module count** — 8 of the 9
+      `stack/*` presets have zero fleet requires (fleet census 2026-10-23: only
+      `stack/sqlite` is used); apply
+      delete-at-zero after the fleet waves, following the one-core-module shape
+      (101 modules -> 1 core + 11 drivers + products). — source: review findings §6
+      _(Effort: S)_
+
+- [ ] **P3: duplication and naming hygiene** — add `//art-dupl:accept` to the
+      remaining engine families when those files are touched; write the per-family
+      "dialect seam" note; record the two meanings of "engine" (`metaengine.Engine`
+      vs `scheduling/engine`) in `docs/DOMAIN_LANGUAGE.md`. — source: review findings
+      §7 + domain alignment §6 _(Effort: S)_
 
 ---
 
