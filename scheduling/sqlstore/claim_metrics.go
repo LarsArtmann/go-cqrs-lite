@@ -21,6 +21,9 @@ import "time"
 // built-in counters itself — no hooks required: read them via
 // [ClaimingTimerStore.Metrics] from a Doctor-style report or a status
 // endpoint.
+//
+// Deprecated: engine-path observability comes from metaengine engine
+// instrumentation (ADR-0142 I/O rule); removed at v5.0.0.
 type ClaimMetrics struct {
 	// Claimed is called after a Due claim commits, with the number of timers
 	// claimed in that batch (0 when the poll found nothing due).
@@ -35,12 +38,16 @@ type ClaimMetrics struct {
 }
 
 // ClaimOption configures a [ClaimingTimerStore] at construction.
+//
+// Deprecated: removed at v5.0.0 together with the module (ADR-0142 I/O rule).
 type ClaimOption[P any] func(*ClaimingTimerStore[P])
 
 // WithClaimMetrics attaches opt-in observability hooks to the claiming store.
 // Passing ClaimMetrics{} (or calling WithClaimMetrics with all-nil hooks)
 // leaves the user hooks unwired; the built-in counters behind Metrics are
 // maintained regardless.
+//
+// Deprecated: removed at v5.0.0 together with the module (ADR-0142 I/O rule).
 func WithClaimMetrics[P any](m ClaimMetrics) ClaimOption[P] {
 	return func(c *ClaimingTimerStore[P]) { c.metrics = m }
 }
@@ -54,6 +61,8 @@ func WithClaimMetrics[P any](m ClaimMetrics) ClaimOption[P] {
 // Counters are process-local (they reset on restart, like the hooks); they
 // observe THIS store instance only — a second poller on the same timers table
 // keeps its own counts.
+//
+// Deprecated: removed at v5.0.0 together with the module (ADR-0142 I/O rule).
 type ClaimMetricsSnapshot struct {
 	// ClaimedBatches counts committed Due polls, including empty ones.
 	ClaimedBatches int64 `json:"claimedBatches"`

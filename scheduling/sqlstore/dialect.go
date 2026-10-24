@@ -8,6 +8,8 @@ import (
 
 // ErrUnknownDialect is returned when an unsupported [Dialect] is passed to a
 // constructor.
+//
+// Deprecated: removed at v5.0.0 together with the module (ADR-0142 I/O rule).
 var ErrUnknownDialect = errors.New("sqlstore: unknown dialect")
 
 // Dialect selects SQL syntax for table creation and placeholders. Alias of
@@ -15,18 +17,28 @@ var ErrUnknownDialect = errors.New("sqlstore: unknown dialect")
 // values are shared by construction instead of duplicated.
 // idempotency/sqlstore still carries an intentional duplicate whose values
 // MUST match.
+//
+// Deprecated: removed at v5.0.0 together with the module (ADR-0142 I/O rule).
 type Dialect = claiming.Dialect
 
 const (
 	// DialectSQLite uses ? placeholders and stores timestamps as RFC3339 text.
+	//
+	// Deprecated: removed at v5.0.0 together with the module (ADR-0142 I/O rule).
 	DialectSQLite = claiming.DialectSQLite
 	// DialectPostgres uses $N placeholders and native TIMESTAMP WITH TIME ZONE.
+	//
+	// Deprecated: removed at v5.0.0 together with the module (ADR-0142 I/O rule).
 	DialectPostgres = claiming.DialectPostgres
 	// DialectMySQL uses ? placeholders and native DATETIME(3).
+	//
+	// Deprecated: removed at v5.0.0 together with the module (ADR-0142 I/O rule).
 	DialectMySQL = claiming.DialectMySQL
 	// DialectDuckDB is claim-core-only (metaengine/duckdbengine due-claims):
 	// the timer store has no DuckDB query set, so constructors reject it
 	// with [ErrUnknownDialect].
+	//
+	// Deprecated: removed at v5.0.0 together with the module (ADR-0142 I/O rule).
 	DialectDuckDB = claiming.DialectDuckDB
 )
 

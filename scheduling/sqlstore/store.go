@@ -1,6 +1,13 @@
 // Package sqlstore provides a SQL-backed [scheduling.TimerStore] for durable
 // deadline timers that survive process restarts.
 //
+// Deprecated: this module rides satellite-owned SQL and is retired by the
+// all-durable-I/O-through-metaengine rule (ADR-0142 amendment, 2026-10-24):
+// use scheduling/engine.NewTimerStore over any metaengine engine implementing
+// metaengine.DueClaimer — timers become claims on the ONE claim stack
+// (sqlite/postgres/mysql natively via claimkit; KV engines degraded).
+// Nothing is removed in v4; the module is deleted at v5.0.0.
+//
 // Unlike [scheduling.MemoryTimerStore] (in-memory, lost on restart), a SQL
 // store persists timers to disk. This is essential for production sagas like
 // "cancel order after 30 min unpaid" — if the process crashes before the timer
@@ -32,6 +39,9 @@ import (
 // SQLTimerStore is a SQL-backed [scheduling.TimerStore]. Payloads are
 // serialized to JSON and stored in the payload column. The caller owns the
 // *sql.DB; [SQLTimerStore.Close] is a no-op.
+//
+// Deprecated: use scheduling/engine.NewTimerStore over a metaengine.DueClaimer
+// engine (ADR-0142 I/O rule); removed at v5.0.0.
 type SQLTimerStore[P any] struct {
 	db      *sql.DB
 	dialect Dialect
@@ -40,18 +50,27 @@ type SQLTimerStore[P any] struct {
 
 // NewSQLiteStore creates a SQLite-backed timer store and creates the timers
 // table if it does not exist. The caller retains ownership of db.
+//
+// Deprecated: use scheduling/engine.NewTimerStore over a metaengine.DueClaimer
+// engine (ADR-0142 I/O rule); removed at v5.0.0.
 func NewSQLiteStore[P any](ctx context.Context, db *sql.DB) (*SQLTimerStore[P], error) {
 	return newStore[P](ctx, db, DialectSQLite)
 }
 
 // NewPostgresStore creates a Postgres-backed timer store and creates the
 // timers table if it does not exist. The caller retains ownership of db.
+//
+// Deprecated: use scheduling/engine.NewTimerStore over a metaengine.DueClaimer
+// engine (ADR-0142 I/O rule); removed at v5.0.0.
 func NewPostgresStore[P any](ctx context.Context, db *sql.DB) (*SQLTimerStore[P], error) {
 	return newStore[P](ctx, db, DialectPostgres)
 }
 
 // NewMySQLStore creates a MySQL-backed timer store and creates the timers
 // table if it does not exist. The caller retains ownership of db.
+//
+// Deprecated: use scheduling/engine.NewTimerStore over a metaengine.DueClaimer
+// engine (ADR-0142 I/O rule); removed at v5.0.0.
 func NewMySQLStore[P any](ctx context.Context, db *sql.DB) (*SQLTimerStore[P], error) {
 	return newStore[P](ctx, db, DialectMySQL)
 }

@@ -437,6 +437,25 @@ fails unless the plain profile is clean at full severity). Object-form
 refs (`{id, version}`) are not an alternative — core's schema rejects
 them outright.
 
+#### Demo content: `MarkDemo`
+
+Example/demo catalogs must be recognizable as demos at a glance. Call
+`MarkDemo()` once, right after `NewRegistry`/`NewBuilder`:
+
+```go
+reg := catalog.NewRegistry("Orders", "1.0.0")
+reg.MarkDemo() // every declaration below is demo content
+```
+
+`Build()` then stamps every badge-capable resource (services, their
+messages, domains, channels, data stores, flows, entities, data products,
+agents, custom docs) with the canonical `Demo` badge (amber, dark text) and
+sets the `demo` source on teams and users — EventCatalog has no badges
+there, and `source` is the rendered provenance field. The stamp is
+idempotent (an existing `Demo` badge or an explicit source is kept) and
+never mutates the registry: it applies to each built copy. Federation hubs
+union badges by content, so the marker survives cross-source merges.
+
 #### Serving an embedded catalog (no Node at deploy time)
 
 Once a catalog is built (`npm install && npx eventcatalog build`), the static

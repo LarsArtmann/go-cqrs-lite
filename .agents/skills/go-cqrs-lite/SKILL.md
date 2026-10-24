@@ -184,6 +184,13 @@ composite form. Export the DEFAULT tree for rendering; re-export with
 `catalog.WithPlainRefIDs` (and `WithSkipBootstrapFiles` in CI) for linting —
 details in `catalog/README.md` ("Governance exports") and recipes §2.41.
 
+**Demo catalogs:** flag example content with `Registry.MarkDemo()` /
+`Builder.MarkDemo()` (one call after construction) — `Build()` stamps the
+canonical `Demo` badge on every badge-capable resource and the `demo`
+source on users/teams (EC has no badges there). Idempotent; survives hub
+union merges (badges union by content). Details: `catalog/README.md`
+("Demo content").
+
 ---
 
 **Fan-out:** this skill lives in this repo (`.agents/skills/go-cqrs-lite`)

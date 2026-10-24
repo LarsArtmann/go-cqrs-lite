@@ -20,12 +20,18 @@ import (
 // lease expires, so the lease bounds how long a crashed dispatcher delays a
 // timer — and how long concurrent dispatchers are guaranteed not to
 // double-fire it. Alias of [claiming.DefaultLease].
+//
+// Deprecated: use scheduling/engine.NewTimerStore with WithLease over a
+// metaengine.DueClaimer engine (ADR-0142 I/O rule); removed at v5.0.0.
 const DefaultClaimLease = claiming.DefaultLease
 
 // ErrClaimingUnsupported is returned when a claiming store is requested for
 // a dialect that cannot honor the claim contract. MySQL/MariaDB 10.6+
 // (FOR UPDATE SKIP LOCKED — verified live on MariaDB 11.4) IS supported;
 // only unknown dialects are rejected.
+//
+// Deprecated: scheduling/engine rejects incapable engines with
+// ErrEngineNotDueClaimer instead (ADR-0142 I/O rule); removed at v5.0.0.
 var ErrClaimingUnsupported = errors.New(
 	"sqlstore: claiming store requires Postgres, SQLite, or MySQL/MariaDB 10.6+ (FOR UPDATE SKIP LOCKED)",
 )
@@ -45,6 +51,10 @@ var ErrClaimingUnsupported = errors.New(
 // Close pass through. The timers table gains a lease_until column (added
 // idempotently at construction, including for tables created by older
 // versions).
+//
+// Deprecated: use scheduling/engine.NewTimerStore over a metaengine.DueClaimer
+// engine (ADR-0142 I/O rule) — same at-least-once-inside-the-lease semantics
+// on the ONE claim stack; removed at v5.0.0.
 type ClaimingTimerStore[P any] struct {
 	*SQLTimerStore[P]
 
@@ -67,6 +77,9 @@ type ClaimingTimerStore[P any] struct {
 // NewClaimingPostgresStore creates a Postgres-backed claiming timer store.
 // lease is how long a claim fences other pollers (DefaultClaimLease when 0).
 // The caller retains ownership of db.
+//
+// Deprecated: use scheduling/engine.NewTimerStore over a metaengine.DueClaimer
+// engine (ADR-0142 I/O rule); removed at v5.0.0.
 func NewClaimingPostgresStore[P any](
 	ctx context.Context,
 	db *sql.DB,
@@ -79,6 +92,9 @@ func NewClaimingPostgresStore[P any](
 // NewClaimingSQLiteStore creates a SQLite-backed claiming timer store. SQLite
 // has no SKIP LOCKED, but its single-writer model serializes claim
 // transactions, which is equivalent for the no-double-fire guarantee.
+//
+// Deprecated: use scheduling/engine.NewTimerStore over a metaengine.DueClaimer
+// engine (ADR-0142 I/O rule); removed at v5.0.0.
 func NewClaimingSQLiteStore[P any](
 	ctx context.Context,
 	db *sql.DB,
@@ -93,6 +109,9 @@ func NewClaimingSQLiteStore[P any](
 // MariaDB 10.6+; older servers fail the claim query loudly at the first
 // Due. lease is how long a claim fences other pollers (DefaultClaimLease
 // when 0). The caller retains ownership of db.
+//
+// Deprecated: use scheduling/engine.NewTimerStore over a metaengine.DueClaimer
+// engine (ADR-0142 I/O rule); removed at v5.0.0.
 func NewClaimingMySQLStore[P any](
 	ctx context.Context,
 	db *sql.DB,
@@ -275,6 +294,9 @@ func (c *ClaimingTimerStore[P]) scanClaimed(
 // the timer's claim: either the timer was fired/canceled (row gone) or the
 // lease expired and another poller may have re-claimed it. Classified as
 // Orchestration — a distributed-coordination race, not a caller bug.
+//
+// Deprecated: with scheduling/engine the lease is engine-held and fencing is
+// the claimkit epoch; removed at v5.0.0.
 var ErrLeaseNotHeld error = errorfamily.NewOrchestration(
 	"scheduling.sqlstore.lease_not_held",
 	"no live claim for this timer (fired, canceled, or lease expired)",
