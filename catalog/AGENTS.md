@@ -310,6 +310,20 @@ afterwards (the restore line would otherwise bring it back).
   production dependency needs an explicit budget review.
 - test-only deps (go-snaps, ginkgo, gomega) don't count.
 
+## Decisions recorded (2026-10-24, verification-debt plan M10)
+
+- **NO per-route CSP knob on the docserver.** The architecture route serves
+  WITHOUT the CSP header deliberately: the artifact's inline `<style>`/`<script>`
+  pair IS the feature (a self-contained file cannot nonce its inline code
+  without giving up the "open the file directly" property), and the docserver's
+  other routes keep their own headers. A `Config` knob would invite serving a
+  redacted artifact WITH a strict CSP that breaks its own search box; if a
+  consumer needs CSP on that route they serve the file from their own handler.
+- **`title: catalog` sentinel in export specs.** A spec whose frontmatter says
+  `title: catalog` sets no title option, so the exporter falls back to the
+  catalog's own title — one spec file travels across catalogs. Pinned by
+  `TestLoadExportCatalogTitleSentinel`.
+
 ## Corrupted shared toolchain caches (2026-10-23 repair recipe)
 
 `scripts/go-env.sh` points `GOMODCACHE`/`GOPATH` at `/tmp/gomod-verify` and

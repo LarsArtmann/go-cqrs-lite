@@ -68,11 +68,15 @@ func buildCatalog() *catalog.Catalog {
 }
 
 func main() {
+	// outputDirMode is the example's own output directory; the mode is the
+	// policy here.
+	const outputDirMode os.FileMode = 0o750
+
 	out := flag.String("o", ".", "directory the HTML files are written to")
 
 	flag.Parse()
 
-	if err := os.MkdirAll(*out, 0o750); err != nil {
+	if err := os.MkdirAll(*out, outputDirMode); err != nil {
 		fmt.Fprintf(os.Stderr, "create output dir: %v\n", err)
 
 		os.Exit(1)
