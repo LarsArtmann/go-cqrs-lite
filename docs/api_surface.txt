@@ -370,6 +370,7 @@ catalog/method DeriveProducersConsumers
 catalog/method Error
 catalog/method IsSend
 catalog/method IsZero
+catalog/method MarkDemo
 catalog/method Registry
 catalog/method SetChannelOptions
 catalog/method SetDomainOptions
@@ -860,6 +861,7 @@ cmd/cqrs-lint/pkg/rules/architecture/func NewE019Detector
 cmd/cqrs-lint/pkg/rules/architecture/func NewE020Detector
 cmd/cqrs-lint/pkg/rules/architecture/func NewE021Detector
 cmd/cqrs-lint/pkg/rules/architecture/func NewE022Detector
+cmd/cqrs-lint/pkg/rules/architecture/func NewE023Detector
 cmd/cqrs-lint/pkg/rules/boilerplate/func NewB001Detector
 cmd/cqrs-lint/pkg/rules/boilerplate/func NewB002Detector
 cmd/cqrs-lint/pkg/rules/boilerplate/func NewB003Detector

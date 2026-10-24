@@ -202,5 +202,14 @@ func architectureRules() []RuleInfo {
 			Description: "Declared event version ladder has a missing rung: current version N with no op from some version below — stored events at the missing version never upcast (literal forms only; see docs/SCHEMA-COMPATIBILITY.md)",
 			AutoFix:     false,
 		},
+		{
+			ID:          "E023",
+			Name:        "satellite-owned-sql",
+			Category:    "architecture",
+			Severity:    "info",
+			Confidence:  "high",
+			Description: "Package mixes go-cqrs-lite usage with satellite-owned database/sql (or a SQL driver) — the all-I/O-through-metaengine rule (ADR-0142) makes engines the only storage layer; advisory: route durable state through metaengine engines or the system composition root, engine-tier modules are exempt, non-CQRS tables may dismiss",
+			AutoFix:     false,
+		},
 	}
 }

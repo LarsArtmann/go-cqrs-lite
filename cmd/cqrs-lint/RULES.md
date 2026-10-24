@@ -12,7 +12,7 @@ Detectors per category (severities: `error` blocks CI, `warning` reports, `info`
 | [Boilerplate](#boilerplate) | 31 | B001–B031 |
 | [Performance](#performance) | 11 | P001–P015 |
 | [Consistency](#consistency) | 18 | D001–D019 |
-| [Architecture](#architecture) | 22 | E001–E022 |
+| [Architecture](#architecture) | 23 | E001–E023 |
 | [Security](#security) | 10 | S001–S011 |
 | [Testing](#testing) | 8 | T001–T008 |
 | [Version](#version) | 7 | V001–V007 |
@@ -1298,6 +1298,14 @@ Emitted event type carries no schema declaration (schema.Event/EventOf or the sy
 Severity: `warning` · Confidence: `medium` · Auto-fix: no · Category: `architecture`
 
 Declared event version ladder has a missing rung: current version N with no op from some version below — stored events at the missing version never upcast (literal forms only; see docs/SCHEMA-COMPATIBILITY.md)
+
+<a id="e023"></a>
+
+#### E023 — `satellite-owned-sql`
+
+Severity: `info` · Confidence: `high` · Auto-fix: no · Category: `architecture`
+
+Package mixes go-cqrs-lite usage with satellite-owned database/sql (or a SQL driver) — the all-I/O-through-metaengine rule (ADR-0142) makes engines the only storage layer; advisory: route durable state through metaengine engines or the system composition root, engine-tier modules are exempt, non-CQRS tables may dismiss
 
 
 ## Security
