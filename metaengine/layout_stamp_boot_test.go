@@ -1,11 +1,16 @@
 package metaengine_test
 
-// A15 conformance: layout-plan stamping is ON by default — column-add and
-// column-rename each trip the drift WARN on the next boot over the same
-// engine — and WithLayoutStampsDisabled removes both the warning and the
-// stamp writes. Scenario: two Plan() boots over ONE SQLite engine (the
-// stamp persists in the engine's map storage across boots, exactly like a
-// process restart over a real database).
+// A15 conformance: layout-plan stamping is ON by default — a SILENT plan
+// drift (same column names, changed column TYPES: the name-typing-kill
+// corruption class, where "priority" was TEXT and the declaration now says
+// BIGINT) WARNs on the next boot over the same engine — and
+// WithLayoutStampsDisabled removes both the warning and the stamp writes.
+//
+// Boundary, pinned by the engine itself: a column-SET conflict (added or
+// renamed columns) never reaches the stamp — the engine's ApplyLayoutPlan
+// hard-errors on the conflicting plan first, which is the stronger guarantee
+// for that class. The stamp covers exactly what the engine lets through
+// silently.
 
 import (
 	"bytes"
@@ -25,7 +30,16 @@ import (
 
 type stampQueryInput struct{}
 
-type stampResult struct {
+// stampResultStringPriority / stampResultIntPriority share field NAMES; the
+// Priority TYPE differs — the planned column set stays [priority status]
+// while the column TYPES drift (TEXT vs BIGINT after BuildLayoutPlanForType).
+type stampResultStringPriority struct {
+	ID       string
+	Status   string
+	Priority string
+}
+
+type stampResultIntPriority struct {
 	ID       string
 	Status   string
 	Priority int
@@ -37,41 +51,32 @@ type stampEvent struct {
 	Priority int
 }
 
-// stampQueryFields declares the layout surface: filter on "status", plus
-// the given extra declarative fields (the planned-table columns come from
-// the declared filter/sort fields — adding or changing one IS the column
-// drift the stamp must catch).
-type stampQueryFields struct {
-	name string
-	args []any
-}
-
-func stampQuery(fields stampQueryFields) metaengine.QueryDecl[stampQueryInput, stampResult] {
-	base := []any{
+func stampQueryStringPriority() metaengine.QueryDecl[stampQueryInput, stampResultStringPriority] {
+	return metaengine.Query[stampQueryInput, stampResultStringPriority](
+		"stamp_tasks",
 		metaengine.OnRecord(
 			stampEvent{},
-			func(_ record.Record, e stampEvent) (string, stampResult) {
-				return e.ID, stampResult{ID: e.ID, Status: e.Status, Priority: e.Priority}
+			func(_ record.Record, e stampEvent) (string, stampResultStringPriority) {
+				return e.ID, stampResultStringPriority{ID: e.ID, Status: e.Status}
 			},
 		),
-		metaengine.FilterOnField[stampResult]("status", metaengine.FilterEq),
-	}
-
-	return metaengine.Query[stampQueryInput, stampResult](fields.name, append(base, fields.args...)...)
+		metaengine.FilterOnField[stampResultStringPriority]("status", metaengine.FilterEq),
+		metaengine.SortOnField[stampResultStringPriority]("priority", true),
+	)
 }
 
-// The three declarations share the query name (hence the collection): one
-// filter column; a second sort COLUMN ADDED; the filter COLUMN CHANGED.
-var stampFieldsBase = stampQueryFields{name: "stamp_tasks"}
-
-var stampFieldsColumnAdded = stampQueryFields{
-	name: "stamp_tasks",
-	args: []any{metaengine.SortOnField[stampResult]("priority", true)},
-}
-
-var stampFieldsColumnChanged = stampQueryFields{
-	name: "stamp_tasks",
-	args: []any{metaengine.SortOnField[stampResult]("id", true)},
+func stampQueryIntPriority() metaengine.QueryDecl[stampQueryInput, stampResultIntPriority] {
+	return metaengine.Query[stampQueryInput, stampResultIntPriority](
+		"stamp_tasks",
+		metaengine.OnRecord(
+			stampEvent{},
+			func(_ record.Record, e stampEvent) (string, stampResultIntPriority) {
+				return e.ID, stampResultIntPriority(e)
+			},
+		),
+		metaengine.FilterOnField[stampResultIntPriority]("status", metaengine.FilterEq),
+		metaengine.SortOnField[stampResultIntPriority]("priority", true),
+	)
 }
 
 // openStampEngine opens a shared in-memory SQLite engine (one connection so
@@ -127,62 +132,39 @@ func mustBoot(t *testing.T, eng metaengine.Engine, args ...any) {
 	t.Cleanup(func() { _ = store.Close() })
 }
 
-// TestLayoutStamp_ColumnAddTripsDriftWarn pins the default-ON contract: the
-// next boot over the same engine with an ADDED result column warns (stored
-// rows predate the wider schema).
-func TestLayoutStamp_ColumnAddTripsDriftWarn(t *testing.T) {
-	t.Parallel()
-
+// TestLayoutStamp_ColumnTypeDriftTripsWarn pins the default-ON contract: the
+// engine applies a same-names/different-types plan SILENTLY, and the stamp
+// is what surfaces it — the next boot warns that stored rows predate the
+// current schema. These tests are deliberately NOT t.Parallel: they swap
+// the process-global slog default to capture warnings, and parallel
+// siblings swapping it back would race the capture.
+func TestLayoutStamp_ColumnTypeDriftTripsWarn(t *testing.T) {
 	buf := captureWarns(t)
 	eng := openStampEngine(t)
 
-	mustBoot(t, eng, stampQuery(stampFieldsBase))
+	mustBoot(t, eng, stampQueryStringPriority())
 
 	if strings.Contains(buf.String(), "layout stamp drift") {
 		t.Fatalf("initial boot must not warn: %s", buf.String())
 	}
 
-	// A sort column ADDED to the declaration = a new planned-table column.
-	mustBoot(t, eng, stampQuery(stampFieldsColumnAdded))
+	mustBoot(t, eng, stampQueryIntPriority())
 
 	if !strings.Contains(buf.String(), "layout stamp drift") {
-		t.Fatalf("column-add boot must warn: %s", buf.String())
-	}
-}
-
-// TestLayoutStamp_ColumnRenameTripsDriftWarn pins the rename case: a renamed
-// result column is a fingerprint change (remove + add), so the next boot
-// warns too.
-func TestLayoutStamp_ColumnRenameTripsDriftWarn(t *testing.T) {
-	t.Parallel()
-
-	buf := captureWarns(t)
-	eng := openStampEngine(t)
-
-	mustBoot(t, eng, stampQuery(stampFieldsBase))
-	buf.Reset()
-
-	// A DIFFERENT sort column = the planned table's column set changed
-	// (remove + add — the rename shape).
-	mustBoot(t, eng, stampQuery(stampFieldsColumnChanged))
-
-	if !strings.Contains(buf.String(), "layout stamp drift") {
-		t.Fatalf("column-change boot must warn: %s", buf.String())
+		t.Fatalf("type-drift boot must warn: %s", buf.String())
 	}
 }
 
 // TestLayoutStamp_SamePlanDoesNotWarn pins the quiet path: rebooting with the
 // IDENTICAL declaration never warns (every process start re-registers the
-// same queries).
+// same queries). Sequential for the same logger-capture reason.
 func TestLayoutStamp_SamePlanDoesNotWarn(t *testing.T) {
-	t.Parallel()
-
 	buf := captureWarns(t)
 	eng := openStampEngine(t)
 
-	mustBoot(t, eng, stampQuery(stampFieldsBase))
+	mustBoot(t, eng, stampQueryStringPriority())
 	buf.Reset()
-	mustBoot(t, eng, stampQuery(stampFieldsBase))
+	mustBoot(t, eng, stampQueryStringPriority())
 
 	if strings.Contains(buf.String(), "layout stamp drift") {
 		t.Fatalf("identical reboot must not warn: %s", buf.String())
@@ -190,15 +172,14 @@ func TestLayoutStamp_SamePlanDoesNotWarn(t *testing.T) {
 }
 
 // TestLayoutStamp_DisabledOptsOut pins the config inversion: with
-// WithLayoutStampsDisabled, drift stays silent.
+// WithLayoutStampsDisabled, drift stays silent. Sequential for the same
+// logger-capture reason.
 func TestLayoutStamp_DisabledOptsOut(t *testing.T) {
-	t.Parallel()
-
 	buf := captureWarns(t)
 	eng := openStampEngine(t)
 
-	mustBoot(t, eng, metaengine.WithLayoutStampsDisabled(), stampQuery(stampFieldsBase))
-	mustBoot(t, eng, metaengine.WithLayoutStampsDisabled(), stampQuery(stampFieldsColumnAdded))
+	mustBoot(t, eng, metaengine.WithLayoutStampsDisabled(), stampQueryStringPriority())
+	mustBoot(t, eng, metaengine.WithLayoutStampsDisabled(), stampQueryIntPriority())
 
 	if strings.Contains(buf.String(), "layout stamp drift") {
 		t.Fatalf("disabled stamping must stay silent: %s", buf.String())

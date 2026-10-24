@@ -76,3 +76,7 @@ flake source at invocation — a daemon commit landing between the gate's
 STALE tree; a composed-verify failure whose diffs don't reproduce against
 the working tree is this race, not a regression (re-run after the tree
 settles before diagnosing deeper).
+
+## Four-layer compatibility checklist for wire/key format changes (2026-10-23, disk-truth pack)
+
+- **A stored-form change must agree across FOUR layers, and each layer needs its own pin** — (1) the in-memory Go value (branded types, `.Get()` bare form), (2) the envelope (JSON wire fields — base64 payload/metadata stamps), (3) the storage surface (SQL columns, KV keys, secondary indexes), and (4) the derived forms (pagination cursors, signatures, fingerprints, SSE `Last-Event-ID` tokens). A change validated at layers 1–2 but not 3 ships split histories (the sticky-stream-key fix exists because of exactly that); a change at 3 that forgets 4 silently breaks resumptions (cursor-pairing invariant). Checklist per change: enumerate all four layers in the CHANGELOG row, pin layer 2 with a raw-bytes wire pin (reads RAW rows, proven red on the pre-fix tag), pin layer 3 with a typed-column/index pin, and grep layer-4 consumers (`StreamRef.Split()`, `CursorKeyRaw` probes, signing canonical bytes) for the old form. The typed-WAL family (A11–A13) is the worked example: envelope untouched, columns added, indexes enforced, readers fall back.

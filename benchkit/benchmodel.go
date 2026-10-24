@@ -124,7 +124,7 @@ func newJourneyProjection(store kv.Store) projection.Projection {
 	return projection.NewProjection(
 		"bench-journey",
 		func(ctx context.Context, evt event.Event) error {
-			key := countKey(evt.StreamID().String())
+			key := countKey(evt.StreamID().Get())
 
 			current, _, err := readCount(ctx, store, key)
 			if err != nil {
@@ -183,7 +183,7 @@ func newBenchQueryDispatcher(
 			data := make([]CountResult, 0, end-offset)
 
 			for i := offset; i < end; i++ {
-				sid := streamIDs[i].String()
+				sid := streamIDs[i].Get()
 
 				n, _, err := readCount(ctx, store, countKey(sid))
 				if err != nil {

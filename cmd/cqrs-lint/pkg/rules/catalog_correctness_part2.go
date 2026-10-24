@@ -200,5 +200,14 @@ func correctnessRulesPart2() []RuleInfo {
 			Description: "Named []byte type passed as event.New payload — codec-encoded instead of used directly (the direct-use fast path matches only unnamed []byte and jsontext.Value)",
 			AutoFix:     false,
 		},
+		{
+			ID:          "C044",
+			Name:        "branded-id-display-string",
+			Category:    "correctness",
+			Severity:    "warning",
+			Confidence:  "medium",
+			Description: "branded-ID .String() renders the PREFIXED display form — use .Get()/the typed value for keys, SQL args, cursors, and wire payloads (display contexts: logging, fmt formatting, slog attributes are whitelisted)",
+			AutoFix:     false,
+		},
 	}
 }

@@ -102,7 +102,7 @@ func (r *runner) collectStreamIDs(
 ) int {
 	for _, evt := range events {
 		streamID := evt.StreamID()
-		key := streamID.String()
+		key := streamID.Get()
 
 		if _, ok := seen[key]; ok {
 			continue

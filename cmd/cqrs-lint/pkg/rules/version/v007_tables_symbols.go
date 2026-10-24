@@ -20,6 +20,13 @@ var deprecatedV5Symbols = slices.Concat( //nolint:gochecknoglobals // static tab
 )
 
 var deprecatedV5SymbolShells = []deprecatedV5Symbol{ //nolint:gochecknoglobals // static table
+	// 2026-10-23 codec-boundary repair: the error-dropping wrapper is marked
+	// Deprecated in-source (removal at v5) — EncodeStreamValueErr is canonical.
+	{
+		fragment:    "metaengine",
+		symbol:      "EncodeStreamValue",
+		replacement: "metaengine.EncodeStreamValueErr (surfaces the marshal error)",
+	},
 	// ADR-0123: stack root — Bundle + Materialize + projection runner.
 	{fragment: "stack", symbol: "Bundle", replacement: "system.New composition"},
 	{

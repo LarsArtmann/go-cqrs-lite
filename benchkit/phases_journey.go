@@ -105,7 +105,7 @@ func (r *runner) journeyPhase(ctx context.Context) error {
 		queryStart := time.Now()
 
 		result, qErr := query.DispatchTyped[CountResult](
-			ctx, disp, getCountQuery{streamID: streamID.String()},
+			ctx, disp, getCountQuery{streamID: streamID.Get()},
 		)
 
 		queryColl.Record(time.Since(queryStart))

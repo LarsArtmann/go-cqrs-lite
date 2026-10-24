@@ -69,9 +69,13 @@ const MetadataKeyRebirth MetadataKey = "rebirth"
 type TombstoneMark struct {
 	// Status is TombstoneTombstoned for a tombstone event, or
 	// TombstoneActive for a rebirth event.
-	Status TombstoneStatus
+	//
+	// The json tag pins the EXISTING wire field name and the integer wire
+	// form of TombstoneStatus (no MarshalJSON by design); the golden test in
+	// wire_golden_test.go fails on any reshape of stored metadata bytes.
+	Status TombstoneStatus `json:"Status"`
 	// Reason is an optional human-readable note for audit trails.
-	Reason string
+	Reason string `json:"Reason"`
 }
 
 // DetectTombstone inspects an event stream and returns the tombstone status.

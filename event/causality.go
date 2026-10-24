@@ -10,9 +10,13 @@ import (
 // (ADR-0031). It records which command produced this event, replacing the
 // stringly-typed Custom[MetadataKeyCommandType]/Custom[MetadataKeyCommandID]
 // pattern while keeping those entries for v2 backward compatibility.
+//
+// The json tags pin the EXISTING wire field names (they match the default
+// Go names they replaced 1:1) — every SQL metadata column carries these
+// bytes; the golden test in wire_golden_test.go fails on any reshape.
 type Causation struct {
-	CommandType string
-	CommandID   id.CommandID
+	CommandType string       `json:"CommandType"`
+	CommandID   id.CommandID `json:"CommandID"`
 }
 
 type ctxKeyCausality struct{}

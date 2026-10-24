@@ -128,7 +128,7 @@ func (r *runner) readModelPhase(ctx context.Context) error {
 	keys := make([][]byte, profile.Streams)
 
 	for i := range profile.Streams {
-		keys[i] = []byte(r.aggIDs[i].String())
+		keys[i] = []byte(r.aggIDs[i].Get())
 	}
 
 	err = runConcurrent(

@@ -42,7 +42,7 @@ func (r *runner) queryPhase(ctx context.Context) error {
 	streamIDs := r.aggIDs[:dispatchCount]
 
 	for i, sid := range streamIDs {
-		if err := writeCount(ctx, store, countKey(sid.String()), uint64(i+1)); err != nil {
+		if err := writeCount(ctx, store, countKey(sid.Get()), uint64(i+1)); err != nil {
 			return err
 		}
 	}
@@ -58,7 +58,7 @@ func (r *runner) queryPhase(ctx context.Context) error {
 			break // ctx done; report partial results
 		}
 
-		q := getCountQuery{streamID: sid.String()}
+		q := getCountQuery{streamID: sid.Get()}
 
 		start := time.Now()
 

@@ -7,7 +7,7 @@ Detectors per category (severities: `error` blocks CI, `warning` reports, `info`
 
 | Category | Rules | Section |
 |---|---|---|
-| [Correctness](#correctness) | 43 | C001–C043 |
+| [Correctness](#correctness) | 44 | C001–C044 |
 | [API](#api) | 32 | A001–A034 |
 | [Boilerplate](#boilerplate) | 31 | B001–B031 |
 | [Performance](#performance) | 11 | P001–P015 |
@@ -363,6 +363,14 @@ Save called with expectedVersion=0 — optimistic concurrency bypassed for this 
 Severity: `warning` · Confidence: `high` · Auto-fix: no · Category: `correctness`
 
 Named []byte type passed as event.New payload — codec-encoded instead of used directly (the direct-use fast path matches only unnamed []byte and jsontext.Value)
+
+<a id="c044"></a>
+
+#### C044 — `branded-id-display-string`
+
+Severity: `warning` · Confidence: `medium` · Auto-fix: no · Category: `correctness`
+
+branded-ID .String() renders the PREFIXED display form — use .Get()/the typed value for keys, SQL args, cursors, and wire payloads (display contexts: logging, fmt formatting, slog attributes are whitelisted)
 
 
 ## API

@@ -123,7 +123,7 @@ func newKVCountingProjection(store kv.Store) projection.Projection {
 	return projection.NewProjection(
 		"bench-counter",
 		func(ctx context.Context, evt event.Event) error {
-			key := []byte("bench:count:" + evt.StreamID().String())
+			key := []byte("bench:count:" + evt.StreamID().Get())
 
 			val, err := store.Get(ctx, key)
 			if err != nil && !errors.Is(err, kv.ErrNotFound) {

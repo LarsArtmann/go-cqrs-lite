@@ -390,3 +390,7 @@ Two micro-disciplines that each cost a failed edit this stream:
   binary in the tree and the daemon commits it within ~2 minutes (an
   8.4 MB artifact slipped into history that way; removed in `0aab92f33`).
   Always `go build -o /tmp/<name> ./cmd/x/` in this repo.
+
+## /mnt/buildcache disk-full ops runbook (2026-10-23 incident, 53G reclaimed)
+
+- **When `/mnt/buildcache` hits 100%, the failure modes are indirect** — link jobs die with ENOSPC, caches corrupt, and golangci emits PHANTOM lint errors ("undefined:" in files that compile fine). Before diagnosing ANY weird build/lint failure, `df -h /mnt/buildcache`. Reclaim order that worked (53G, 2026-10-23): `trash /mnt/buildcache/golangci-lint` (28G — it fully regenerates), `trash /mnt/buildcache/tmp` (4G, scratch), then `nix run .#build` to warm what matters. The 48G /tmp tmpfs is a DIFFERENT surface (its own gotcha above) — /tmp got wiped MID-SESSION again on 2026-10-23 (MariaDB datadir + a proof worktree vanished between two commands): treat everything under /tmp as already-deleted, keep re-init recipes one copy-paste away, and put proof worktrees under `~/projects/` (e.g. `.cqrs-wt-*`), not /tmp.
