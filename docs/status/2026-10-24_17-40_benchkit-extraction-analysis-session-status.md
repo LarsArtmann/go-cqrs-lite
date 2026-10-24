@@ -155,3 +155,16 @@ Consequences (recorded immediately, original sections above left untouched):
    pluggable over the consumer's own domain, not genericizing them.
 
 Still blocking: **g-Q2** (before/after v5 wave) and **g-Q3** (fleet pin policy). Awaiting instructions.
+
+## Addendum — 2026-10-24 17:55: "are the benchmarking tools outdated?" (checked, verdict: no)
+
+Measured after user alarm. Facts: (1) benchkit's 20 library pins all match latest tags **including
+today's wave** (system v4.15.4, event v4.15.2, cqrs-lint v4.18.0 — all tagged 2026-10-24);
+(2) every benchkit consumer pins v4.7.0 = benchkit's latest tag; (3) `benchkit`, `cmd/cqrs-bench`,
+`metaengine/bench`, `stack/bench` are on `scripts/untagged-trains.txt` (ADR-0152 policy): untagged =
+stop tagging by design — v4.7.0 (2026-10-08) is benchkit's final tag; 68 commits since are
+policy-intended unreleased. The only live gap: renamer sits on frozen v4.7.0 vs master 68 commits
+ahead — escape hatch is "remove from untagged-trains.txt in the same commit that adds the consumer
+need, then tag". This substantially informs g-Q3. Also: go directives are `1.27.2` patch-form
+repo-wide → the AGENTS.md "minor-form since 2026-10-03" note is stale (third doc-drift datum this
+session, joins D3).
