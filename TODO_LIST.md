@@ -2835,3 +2835,30 @@ dprint, ADR-0123 addendum) shipped the same day — completed rows deleted
       (`TestEventAdapter_CBORPayloadRoundTripSQLite`, system module).
       — source: issue #58 _(Effort: XS for the verdict row; M for either
       shape)_
+
+## Consumer deep-dive audit asks (2026-10-24, harvested from the five fleet deep-dives)
+
+- [ ] **catalog: derive the Registry from a booted system's DomainConfig** —
+      every audit that adopted catalog hand-writes a ~40-line registry
+      mirroring the `DomainConfig` already declared for `system.New`
+      (dnsblockd: "manual registry — no system-DomainConfig derivation").
+      A `FactoryFromSystem`-analog for catalog removes the duplicate
+      declaration. Design the reflection surface WITH the catalog owner
+      first (derived-only vs hybrid explicit registration).
+      — source: dnsblockd 2026-10-24 deep-dive §3/§a-5 _(Effort: M)_
+- [ ] **scenario: accept version-carrying decide funcs in `Given`** —
+      consumers with schema-versioned deciders write `adaptDecide` wrappers
+      per test file to bridge into the DSL; a variant constructor would
+      delete the wrapper class.
+      — source: InboxClean 2026-10-24 audit task #33 (scenario_test.go
+      adaptDecide/adaptLabelDecide) _(Effort: S)_
+- [ ] **cqrs-lint: investigate analysis-time regression (2.0s → 7.4s)** —
+      flagged by InboxClean's pre-commit hook between sessions; profile a
+      cold + warm run on a mid-size consumer repo before attributing it to
+      any single rule.
+      — source: InboxClean 2026-10-24 audit task #29 _(Effort: S)_
+- [ ] **Fleet census: invite the five 2026-10-24 auditors to contribute
+      case studies** — CV offered "bench artifacts + sticky-key assertion
+      results" post-cutover; the census tracks adoption counts but not
+      stories. One ask per project, linked from docs/evidence/.
+      — source: CV 2026-10-24 deep-dive §f-50 _(Effort: XS per project)_
