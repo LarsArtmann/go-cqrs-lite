@@ -2675,6 +2675,7 @@ metaengine/adttest/func AssertDueClaimer
 metaengine/adttest/func AssertFactSink
 metaengine/adttest/func AssertTemporalConformance
 metaengine/adttest/func AssertTxIsolationFromForeignContext
+metaengine/adttest/func AssertValueEncodeRejection
 metaengine/adttest/func AssertVectorDimensionGuard
 metaengine/adttest/func AssertWALDuplicateAppendConflicts
 metaengine/adttest/func AssertWALStreamVersionConflict
@@ -3477,6 +3478,7 @@ metaengine/keycodec/func DecodeCounterValue
 metaengine/keycodec/func DecodeJSON
 metaengine/keycodec/func EncodeCounterValue
 metaengine/keycodec/func EncodeJSON
+metaengine/keycodec/func EncodeJSONErr
 metaengine/keycodec/func EncodeKeyStr
 metaengine/keycodec/func Escape
 metaengine/keycodec/func GraphEdgeFwdKey
