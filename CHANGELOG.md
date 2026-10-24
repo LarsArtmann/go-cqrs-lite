@@ -25,6 +25,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
      floor tags were already proxy-invisible). The 10-03 floor-wave rationale
      did NOT retag the root module (doc.go unchanged since v4.0.0; zero
      importable packages) — root stays v4.0.0. -->
+## [Unreleased]
+
+### Added
+
+- **architecture: the redaction features are pinned in COMPOSITION, not just feature-locally.** Four suites cover what only appears when the features combine: `WithHide(HideOwners)` suppresses the owners block of a store that `ReferencesInclude` pulled in (not just the included service's); a spec file's options compose with CLI flags at the `Options()` level — flags extend the spec's excludes and override scalar fields (spec first, flags after, matching the CLI's assembly order); the composed-path leak probe walks the leak fixture through exclude × name-only × include-pull × hide with text-presence assertions (the excluded store's hostile name stays absent as text, link and section in every composition); and `LoadExport`'s new references-vocabulary gate is pinned (see Changed). The compose and leak suites are mutation-verified — killing the owners-hide flips the compose suite red, and disabling the banned-name recording guard TOGETHER with the degrade re-checks flips the leak probe red (a single-site mutant staying green is the layered defense working, the 2026-10-17 lesson).
+- **metaengine: the stored-value wire contract is documented and pinned (no behavior change).** Engine rows hold JSON-typed values (integers read back as `float64`, structs as `map[string]any`), and a STRING that is itself valid JSON reads back as the PARSED value because the row carries no type tag. `DecodeStreamValue` keeps its raw-string fallback and deliberately has no error-returning twin — it cannot tell a plain string from corruption — so the fix belongs to the stamped engine-value envelope (ADR-0066 reversal), not the read path. COOKBOOK "Stored values" records both halves, and two tables pin them: the JSON-shaped-string ambiguity and the plain-string round trip.
+
+### Changed
+
+- **architecture: `LoadExport` rejects unknown `references` spellings (want `omit`, `name-only` or `include`; `omit` is a valid spelling of the default) instead of silently treating a typo as omit.** A typo'd frontmatter was previously indistinguishable from the safe default — a slice that meant to name-only would quietly drop every out-of-scope reference. The rejection is Rejection-classified and names the offending key; the `ExportSpec.References` doc records the vocabulary and the deliberate difference from the CLI's lenient `-references` flag (unknown values there still degrade to omit).
+- **sqliteengine — and turso, which delegates to it — now reject stored values JSON cannot represent instead of writing a `fmt.Sprintf("%v")` placeholder.** Stream appends go through the shared `EncodeStreamValuesErr`, which encodes the WHOLE batch before any row is written, so an unrepresentable value (channel, function, cyclic structure) cannot leave a partial append behind; every map, multimap, log, and versioned-cell write path propagates the encoder error the same way. Both failures are Rejection-classified (`sqliteengine.encode_value`, `metaengine.encode_stream_value`): the input is unstorable and retrying it cannot succeed. `error-family` becomes a direct dependency of `metaengine/sqliteengine` (budget 3 → 4). Pinned by per-surface tests against real in-memory SQLite, including the versioned and layout-planned paths and an all-or-nothing stream batch.
+
+### Fixed
+
+- Nothing yet.
+
 ## [metaengine/v4.20.0, metaengine/sqliteengine/v4.6.0, metaengine/pebbleengine/v4.4.4, metaengine/projectionadapter/v4.6.2, storage/turso/v4.3.5, catalog/v4.10.0, cmd/cqrs-lint/v4.18.0, stack/v4.5.1, otel/v4.5.3, prometheus/v4.3.4, schema/v4.7.1, event/v4.15.2, system/v4.15.4 — 2026-10-24 disk-truth tail wave: constraints everywhere (14 tags)] — 2026-10-24
 
 ### Removed
@@ -108,22 +124,6 @@ Every package-level symbol in `idempotency/kvstore` (`KVBackend`, `Store`, `New`
 
 - **KV engine cursor keys are bare user keys.** bbolt/badger/pebble `MapScan` results previously exposed full storage keys (`m\x00<collection>\x00<key>`) in pagination cursors, leaking the physical layout across the wire; all three now strip the prefix via `keycodec.UserKeyBytes`, matching the memory engine's convention. The adttest `PaginationProbe` registry tracks the unified `CursorKeyRaw` form.
 
-
-## [Unreleased]
-
-### Added
-
-- **architecture: the redaction features are pinned in COMPOSITION, not just feature-locally.** Four suites cover what only appears when the features combine: `WithHide(HideOwners)` suppresses the owners block of a store that `ReferencesInclude` pulled in (not just the included service's); a spec file's options compose with CLI flags at the `Options()` level — flags extend the spec's excludes and override scalar fields (spec first, flags after, matching the CLI's assembly order); the composed-path leak probe walks the leak fixture through exclude × name-only × include-pull × hide with text-presence assertions (the excluded store's hostile name stays absent as text, link and section in every composition); and `LoadExport`'s new references-vocabulary gate is pinned (see Changed). The compose and leak suites are mutation-verified — killing the owners-hide flips the compose suite red, and disabling the banned-name recording guard TOGETHER with the degrade re-checks flips the leak probe red (a single-site mutant staying green is the layered defense working, the 2026-10-17 lesson).
-- **metaengine: the stored-value wire contract is documented and pinned (no behavior change).** Engine rows hold JSON-typed values (integers read back as `float64`, structs as `map[string]any`), and a STRING that is itself valid JSON reads back as the PARSED value because the row carries no type tag. `DecodeStreamValue` keeps its raw-string fallback and deliberately has no error-returning twin — it cannot tell a plain string from corruption — so the fix belongs to the stamped engine-value envelope (ADR-0066 reversal), not the read path. COOKBOOK "Stored values" records both halves, and two tables pin them: the JSON-shaped-string ambiguity and the plain-string round trip.
-
-### Changed
-
-- **architecture: `LoadExport` rejects unknown `references` spellings (want `omit`, `name-only` or `include`; `omit` is a valid spelling of the default) instead of silently treating a typo as omit.** A typo'd frontmatter was previously indistinguishable from the safe default — a slice that meant to name-only would quietly drop every out-of-scope reference. The rejection is Rejection-classified and names the offending key; the `ExportSpec.References` doc records the vocabulary and the deliberate difference from the CLI's lenient `-references` flag (unknown values there still degrade to omit).
-- **sqliteengine — and turso, which delegates to it — now reject stored values JSON cannot represent instead of writing a `fmt.Sprintf("%v")` placeholder.** Stream appends go through the shared `EncodeStreamValuesErr`, which encodes the WHOLE batch before any row is written, so an unrepresentable value (channel, function, cyclic structure) cannot leave a partial append behind; every map, multimap, log, and versioned-cell write path propagates the encoder error the same way. Both failures are Rejection-classified (`sqliteengine.encode_value`, `metaengine.encode_stream_value`): the input is unstorable and retrying it cannot succeed. `error-family` becomes a direct dependency of `metaengine/sqliteengine` (budget 3 → 4). Pinned by per-surface tests against real in-memory SQLite, including the versioned and layout-planned paths and an all-or-nothing stream batch.
-
-### Fixed
-
-- Nothing yet.
 
 ## [systemscenario/v4.2.0 — 2026-10-17 BDD harness depth wave (1 tag)] — 2026-10-17
 
