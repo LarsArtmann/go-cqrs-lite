@@ -382,4 +382,35 @@ delete-at-zero — needs T06 evidence first) and **G4** (lint extraction intent)
 - **2026-10-24 19:2x:** plan created, committed (authored), and pushed. P0
   armed (T01–T05); no task executed yet. Predecessor 12-09 plan remains the
   owner of the value-integrity program — this plan only sequences it.
+- **2026-10-24 20:0x–21:0x — P0 executed (T01–T04) + T06:**
+  - **T01 DONE — SQL planned-path suite RED fixed.** Scope correction: FIVE
+    pg tests were red (not one) — RoundTrip, MisTypedExtract,
+    PushdownScan_Keyset, MapUpdate, Explain_IndexUsageProofs. Root cause: the
+    10-23 all-TEXT layout switch left numeric tests on untyped plans AND the
+    compat table ignored DOUBLE/FLOAT (permissive default masked the mistype
+    pin). Fix: compat table numeric case covers INTEGER/BIGINT/REAL/DOUBLE/
+    FLOAT with all Go int/uint/float widths; red tests converted to
+    `BuildLayoutPlanFromType`. Receipts: pgengine full suite green ×2
+    (ephemeral PG); mysql planned 10/10 PASS verbose + full module green
+    (userspace MariaDB vehicle); check-duplication stayed green.
+    Side-find: `vm-mysql.sh` hostfwd default 33070 was inside
+    `ip_local_port_range` — an exporter's long-lived connection squatted the
+    source port, killing QEMU at every boot (misleading QMP reset); default
+    moved to 23306 + gotchas-testing entry.
+  - **T02/T03 DONE — check-duplication GREEN.** The ~180 ADR-0152 twins had
+    already been annotated by the parallel session (plan's count was stale);
+    only 7 residue groups remained, all resolved with `// art-dupl:accept`
+    directives (cross-module SQL engine twins, adapter prologues, mirror
+    Escape/Unescape, test sugar) — no baseline insert needed. One bad edit
+    (directive INSIDE a backtick SQL string) caught and fixed before commit.
+  - **T04 DONE — 12-09 Wave 1 executed** (see its §11 log for the full
+    receipt): `keycodec.EncodeJSONErr` + 21 LSM site conversions +
+    `adttest.AssertValueEncodeRejection` harness + taxonomy gate row for
+    `metaengine/keycodec` + api golden 6305. CHANGELOG/TODO receipts cut.
+  - **T06 DONE — fleet sqlstore scan + census.** Exactly ONE direct fleet
+    consumer: ChastityAPI `cmd/server/main.go`. **G2 ANSWERED by evidence:
+    delete-at-zero does NOT fire; sqlstore dies at v5.0.0 per its V007
+    sentence; ChastityAPI migrates in the v5 wave.** Census evidence at
+    `docs/evidence/fleet-census-2026-10-24_20-47.json` (53 distinct
+    submodules required by the fleet).
 

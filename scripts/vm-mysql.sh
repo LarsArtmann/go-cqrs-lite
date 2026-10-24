@@ -23,7 +23,13 @@ cd "$REPO_ROOT"
 # shellcheck disable=SC1091  # dynamic path; syntax-checked separately
 source "${SCRIPT_DIR}/lib/shuffle-seed.sh"
 
-HOST_PORT="${MYSQL_VM_PORT:-33070}"
+# 23306 (not 3306/33070): must sit BELOW ip_local_port_range (32768+ on this
+# host). The old default 33070 was INSIDE the ephemeral range, so any local
+# service holding a long-lived connection with source port 33070 (2026-10-24:
+# the node-exporter scrape pair on :9100) made QEMU's hostfwd bind fail at
+# boot — every run died at the QMP handshake with a misleading "Driver exited
+# unexpectedly" (gotchas-testing.md, 2026-10-24).
+HOST_PORT="${MYSQL_VM_PORT:-23306}"
 DRIVER_PID=""
 
 # set -m: each background job gets its OWN process group, so $! is the group
