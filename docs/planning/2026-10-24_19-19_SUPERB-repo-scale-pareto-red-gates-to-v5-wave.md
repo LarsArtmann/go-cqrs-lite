@@ -413,4 +413,19 @@ delete-at-zero — needs T06 evidence first) and **G4** (lint extraction intent)
     sentence; ChastityAPI migrates in the v5 wave.** Census evidence at
     `docs/evidence/fleet-census-2026-10-24_20-47.json` (53 distinct
     submodules required by the fleet).
+  - **T07 DONE (doc-note path) — kv package doc carries the contract-30
+    note** (durable scope = typed layer over engines + caches + MemStore; no
+    new satellite-SQL kv backends; G1 verdict still owner-gated), AGENTS
+    ledger ticked. kv module build+tests green.
+  - **T08 DONE — E023 self-lint + triage.** First pass: 7 in-repo findings →
+    benchkit/, cmd/, idempotency/sqlstore/ joined the exemption table
+    (tooling harness + deprecated-SQL classes); middleware/ +
+    projectionhost/ deliberately stay flagged (3 true-positive advisories =
+    live contract-30 debt the rule exists to keep visible). DiscordSync
+    consumer run fires on its real satellite packages — field signal works.
+    Info-severity pin added (info/warning never gate exit; error does).
+  - **T21.3/T21.4 DONE — AGENTS procedure checklists added**: "Deprecate a
+    Module" (markers→V007→docs trail→golden→SA1019 scoping→census gate) and
+    "Add a Lint Rule" (detector→register→catalog→RULES.md→count pins→golden→
+    suite), both distilled from the 2026-10-24 D1/D2 lessons. doc-check green.
 

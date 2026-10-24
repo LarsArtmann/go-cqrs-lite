@@ -4,12 +4,17 @@ package main
 // stays inside its file-size baseline).
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"strings"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules"
 )
+
+// errUnknownRuleIDs is the static sentinel for unknown explain IDs; the IDs
+// ride the wrapped message.
+var errUnknownRuleIDs = errors.New("unknown rule ID(s)")
 
 // renderRuleExplanations prints the catalog card for each rule ID. Unknown
 // IDs fail loudly instead of silently printing nothing — a fleet audit
@@ -31,7 +36,8 @@ func renderRuleExplanations(w io.Writer, ids []string) error {
 
 	if len(unknown) > 0 {
 		return fmt.Errorf(
-			"unknown rule ID(s): %s — run 'cqrs-lint rules' for the full rule table",
+			"%w: %s — run 'cqrs-lint rules' for the full rule table",
+			errUnknownRuleIDs,
 			strings.Join(unknown, ", "),
 		)
 	}

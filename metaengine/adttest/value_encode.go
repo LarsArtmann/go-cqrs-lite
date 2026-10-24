@@ -35,7 +35,7 @@ func AssertValueEncodeRejection(t *testing.T, eng metaengine.Engine) {
 	assertEncodeValueRejection(t, err, "MapSet")
 
 	if updater, updOK := eng.(metaengine.MapUpdater); updOK {
-		updErr := updater.MapUpdate(ctx, col, "k", func(prev any) any {
+		updErr := updater.MapUpdate(ctx, col, "k", func(_ any) any {
 			return map[string]any{"bad": make(chan int)}
 		})
 		assertEncodeValueRejection(t, updErr, "MapUpdate")

@@ -14,6 +14,8 @@ import (
 // SQL I/O: the stdlib surface plus the first-party driver set the fleet
 // actually uses. Blank side-effect imports count too — registering a driver
 // is still owning SQL.
+//
+//nolint:gochecknoglobals // read-only lookup table
 var sqlImportSignals = map[string]bool{
 	"database/sql":                   true,
 	"modernc.org/sqlite":             true,
@@ -34,6 +36,8 @@ var sqlImportSignals = map[string]bool{
 // scheduling/sqlstore above). Deliberately NOT exempt: middleware/ and
 // projectionhost/ satellite SQL — those are live contract-30 debt the
 // advisory exists to keep visible.
+//
+//nolint:gochecknoglobals // read-only lookup table
 var engineTierPrefixes = []string{
 	"github.com/larsartmann/go-cqrs-lite/metaengine/",
 	"github.com/larsartmann/go-cqrs-lite/claiming/",
