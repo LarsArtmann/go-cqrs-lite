@@ -194,8 +194,7 @@ func isUniqueViolation(err error) bool {
 		return false
 	}
 
-	var st interface{ SQLState() string }
-	if errors.As(err, &st) {
+	if st, ok := errors.AsType[interface{SQLState() string}](err); ok {
 		return st.SQLState() == "23505"
 	}
 
