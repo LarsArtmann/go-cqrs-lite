@@ -31,6 +31,8 @@ import (
 	"strconv"
 	"sync"
 	"sync/atomic"
+
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // Sep is the key separator. Null byte sorts before all printable characters,
@@ -142,7 +144,12 @@ func GraphEdgeRevPrefix(col, to string) []byte {
 }
 
 // EncodeJSON marshals v to JSON, falling back to fmt.Sprintf("%v", v) on error.
-// This is the canonical value-encoding for the LSM engines.
+// This is the lenient path for KEYS and other display-shaped values where a
+// lossy rendering beats a failed operation.
+//
+// Write paths that persist VALUES must use [EncodeJSONErr] instead: a value
+// that cannot round-trip (channel, function, cyclic structure) must fail the
+// write loudly, never silently store its %v rendering into the read model.
 func EncodeJSON(v any) []byte {
 	b, err := json.Marshal(v)
 	if err != nil {
@@ -150,6 +157,21 @@ func EncodeJSON(v any) []byte {
 	}
 
 	return b
+}
+
+// EncodeJSONErr marshals v to JSON, returning a Rejection-classified error
+// when the value is not JSON-representable (channel, function, cyclic
+// structure). This is the canonical value-encoding for engine write paths:
+// the caller's data contradicts the stored-value contract, so retrying
+// cannot succeed.
+func EncodeJSONErr(v any) ([]byte, error) {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return nil, errorfamily.WrapRejection(err, "keycodec.encode_value",
+			fmt.Sprintf("encode value %T", v))
+	}
+
+	return b, nil
 }
 
 // DecodeJSON unmarshals data into a any value, returning the raw string on
