@@ -65,6 +65,20 @@ func (p *progressReporter) startHeartbeat() {
 
 func (p *progressReporter) heartbeat() {
 	for {
+		// Done takes precedence over buffered ticks: the ticker channel
+		// holds a backlog when beats are slower than the interval, and a
+		// plain select picks the tick and the closed done channel uniformly
+		// at random — firing beats AFTER stop was requested (observed as
+		// "writes after stop = 5, want 1" on the parkWriter test,
+		// 2026-10-24). Check done first, then wait on either.
+		select {
+		case <-p.done:
+			p.heart.Stop()
+
+			return
+		default:
+		}
+
 		select {
 		case <-p.heart.C:
 			p.beat()
