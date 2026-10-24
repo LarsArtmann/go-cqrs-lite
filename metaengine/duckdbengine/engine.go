@@ -122,7 +122,15 @@ func (e *duckdbEngine) init() error {
 			seq BIGINT PRIMARY KEY DEFAULT nextval('seq_stream_log'),
 			collection VARCHAR NOT NULL,
 			stream_id VARCHAR NOT NULL,
-			value VARCHAR NOT NULL
+			value VARCHAR NOT NULL,
+			event_id VARCHAR,
+			stream_type VARCHAR,
+			version BIGINT,
+			schema_version BIGINT,
+			payload BLOB,
+			encoding VARCHAR,
+			metadata VARCHAR,
+			occurred_at BIGINT
 		)`,
 		`CREATE TABLE IF NOT EXISTS meta_graph_edges (
 			collection VARCHAR NOT NULL,
@@ -138,6 +146,12 @@ func (e *duckdbEngine) init() error {
 		if _, err := e.db.ExecContext(context.Background(), ddl); err != nil {
 			return fmt.Errorf("duckdbengine.init: %w", err)
 		}
+	}
+
+	// Typed WAL migration for databases created before the typed columns
+	// existed (ADD COLUMN IF NOT EXISTS is a no-op on fresh schemas).
+	if err := ensureTypedStreamLog(e.db); err != nil {
+		return fmt.Errorf("duckdbengine.init: %w", err)
 	}
 
 	if err := e.wireClaimkit(); err != nil {
