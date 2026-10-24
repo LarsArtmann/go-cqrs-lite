@@ -1,104 +1,115 @@
 direction: down
 
-header: |md
+title: |md
   **go-cqrs-lite — CURRENT architecture (2026-10-24)**
   101 modules · 177 packages · 249k production LOC · 6,301 exported symbols · 0 production import cycles
+  Arrows point the way dependencies flow: tooling → composition → infrastructure/metaengine → domain → primitives.
 | {
   shape: text
-  style.font-size: 18
+  style.font-size: 16
+  style.fill: transparent
 }
 
-consumers: Consumers (outside this repo) {
-  fleet: ~35 fleet repos on v4
-  htmx: cqrs-htmx · 73% of indirect edges
-  appkit: go-appkit · 18% of indirect edges
-  examples: example/* · 8 demos
-}
+t67: |md
+  **Tier 6-7 · Tooling & examples — 30% of production LOC**
+  - `cmd/cqrs-lint` 48.7k LOC · 207 rules · 481 exported symbols
+  - `catalog` 22.2k LOC · 19 packages (EventCatalog, architecture HTML, d2, docserver)
+  - `cmd/api-stability` · `cmd/doc-check` · `benchkit` · 8 examples
+| {shape: text}
 
-composition: Composition roots (Tier 5-6) {
-  system: system.New {
-    domain: DomainConfig
-    deploy: DeploymentConfig
-  }
-  stack: stack + 9 presets
-}
+t5: |md
+  **Tier 5-6 · Composition**
+  - `system.New(DomainConfig, DeploymentConfig)` — the one composition root
+  - `stack` + 9 presets (7 preset modules are require-dead per the fleet census)
+| {shape: text}
 
-domain: Domain core (Tier 0-3, dependency-clean) {
-  record: record · Ca 22
-  id: id · Ca 37
-  event: event · Ca 36 · 253 symbols
-  command: command · Ca 19
-  query: query · Ca 12
-  decider: decider · Ca 9
-  snapshot: snapshot · Ca 12
-  schema: schema
-  projectionhost: projectionhost
-}
+infra: |md
+  **Tier 4 · Infrastructure**
+  - `storage` 336 symbols · `watermill` (journal-as-outbox) · `middleware`
+  - `signing` · `encryption` · `otel` · `prometheus` · `metaengine/projectionadapter`
+| {shape: text}
 
-metaengine: "metaengine — ONE package, 9 separable concerns" {
+me: "metaengine — ONE package holding 9 separable concerns" {
   style.stroke: "#e63946"
-  style.stroke-width: 3
-  contract: engine contract + registry + health/rules · 28 files
-  plan: planner + cost + layout · 16 files
-  exec: execution + transactions + SSE · 16 files
-  coll: store + collections + folds · 48 files
-  diag: explain + doctor + dx · 13 files
-  adts: vector / graph / spatial / temporal · 13 files
-  sql: SQL scan + dialect helpers · 11 files
-  mem: in-core memory engine · 8 files
-  size: 166 files · 27,701 LOC · 829 exported symbols (13% of all API)
+  style.stroke-width: 4
+  direction: down
+  contract: |md
+    **Engine contract + registry + health** — 28 files
+    engine.go · registry.go · cap.go · probe.go · engine_health.go · rule_*.go
+  | {shape: text}
+  plan: |md
+    **Planner + cost + layout** — 16 files
+    planner.go · cost.go · layout*.go (8) · priority.go · relayout.go · plan_diff.go
+  | {shape: text}
+  exec: |md
+    **Execution + transactions + SSE** — 16 files
+    execute.go · dispatch.go · runtime_backend.go · transaction.go · sse*.go
+  | {shape: text}
+  coll: |md
+    **Store + collections + folds** — 48 files (largest concern)
+    store*.go (8) · collection.go · fold*.go (7) · infer_*.go (4) · temporal.go · spatial.go
+  | {shape: text}
+  diag: |md
+    **Diagnostics + typed readers** — 13 files
+    explain*.go · doctor*.go · dx.go · typed_reader*.go (6)
+  | {shape: text}
+  adts: |md
+    **ADT implementations** — 13 files
+    vector_*.go (8) · graph_*.go (2) · spatial.go · temporal*.go
+  | {shape: text}
+  sql: |md
+    **SQL scan + dialect helpers** — 11 files
+    scan*.go · cursor.go · sanitize.go · sql_keyset.go · identifier.go · filter_bind.go
+  | {shape: text}
+  mem: |md
+    **In-core memory engine** — 8 files
+    memory_*.go — the only engine that is not its own module
+  | {shape: text}
+  totals: "166 files · 27,701 LOC · 829 exported symbols = 13% of all tracked API"
 }
 
-engines: Engine driver modules (Tier 5) {
-  sqlite: sqliteengine · Ca 7
-  turso: tursoengine
-  pebble: pebbleengine
-  bbolt: bboltengine
-  badger: badgerengine
-  pg: pgengine
-  mysql: mysqlengine
-  duckdb: duckdbengine (CGo)
-  dgraph: dgraphengine
-  bigtable: bigtableengine
-  iroh: irohengine
-}
+engines: |md
+  **Tier 5 · Engine drivers — 11 modules, dependency-isolated**
+  - memory (in core) · sqliteengine (Ca 7) · tursoengine · pebbleengine · bboltengine
+  - badgerengine · pgengine · mysqlengine · duckdbengine (CGo) · dgraphengine · bigtableengine · irohengine
+  - Each module has its own `init()` → `metaengine.RegisterDriver` (database/sql pattern)
+| {shape: text}
 
-infra: Infrastructure (Tier 4) {
-  storage: storage · 336 symbols
-  watermill: watermill · bus + journal-as-outbox
-  adapter: metaengine/projectionadapter
-  crypto: signing + encryption
-  telemetry: otel + prometheus
-  mw: middleware
-}
+t12: |md
+  **Tier 1-2 · Core domain**
+  - `event` (Ca 36, 253 symbols) · `command` (Ca 19) · `query` (Ca 12) · `scheduling` · `metadata`
+  - `schema` · `snapshot` · `projection` · `deriver` · `commandlifecycle` (+`/projections`) · `decider` · `projectionhost`
+| {shape: text}
 
-tooling: Tooling (Tier 6-7, 30% of production LOC) {
-  lint: cmd/cqrs-lint · 48,721 LOC
-  catalog: catalog · 22,246 LOC
-  gates: cmd/api-stability · cmd/doc-check · benchkit
-}
+t0: |md
+  **Tier 0 · Primitives**
+  - `record` (Ca 22) · `id` (Ca 37) · `dedup` · `kv` · `dispatcher` · `claiming`
+| {shape: text}
 
-v5: "v5 fork — core/v5, 9 of 32 packages" {
+v5: "v5 fork — core/v5: 9 of 32 packages" {
   style.stroke-dash: 4
-  mirrors: mirrored: record · id · dedup · kv · dispatcher · metadata · event · command · query
-  missing: missing: decider · middleware · system · metaengine · storage · projectionhost · 17 more
+  direction: down
+  have: |md
+    **Mirrored already (9)** — record · id · dedup · kv · dispatcher · metadata · event · command · query
+  | {shape: text}
+  gap: |md
+    **Still missing (23)** — decider · middleware · system · metaengine · storage · projectionhost + 17
+    `cmd/cqrs-upgrade` has no core/v5 awareness: no fleet repo can migrate yet
+  | {shape: text}
 }
 
-gate: "file-size ratchet: RED — 3 new offenders" {
+gate: "Quality gate RED today: 3 new file-size offenders" {
+  style.fill: "#fde8e9"
   style.stroke: "#e63946"
   style.stroke-width: 2
-  style.fill: "#fde8e9"
 }
 
-consumers.fleet -> composition.system: system.New
-consumers.htmx -> composition.system: system.New
-consumers.examples -> composition.system: system.New
-composition.system -> domain.event: wires store + journal
-composition.system -> metaengine: plans + routes
-composition.system -> infra.watermill: publishes
-metaengine -> engines.sqlite: routes by cost + health
-metaengine -> engines.pg: routes by cost + health
-metaengine -> infra.adapter: folds project events
-tooling.lint -> domain.event: analyzes consumer usage
-v5.mirrors -> domain.event: "mirror copies (drift risk)"
-consumers.fleet -> v5.mirrors: cannot migrate yet
+gate -> t67: blocks #verify
+t67 -> t5: analyzes / renders
+t5 -> t12: wires stores + deciders
+t5 -> me: plans + routes
+engines -> me: implement Engine + RegisterDriver
+infra -> me: projectionadapter bridges folds
+me -> t0: consumes Records
+t12 -> t0: depends on
+v5.have -> t0: hand-mirrored copies
