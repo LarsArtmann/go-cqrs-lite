@@ -616,6 +616,14 @@ for i in "${!tags[@]}"; do
 	run_log "tagged ${tag}"
 done
 
+# --- Refresh versions.json + README train section (same as tag-release.sh) ---
+# Batch waves create tags without running tag-release.sh, so without this the
+# committed manifest trails the tags and every consumer's currency check reads
+# a stale version (2026-10-24 fleet audits).
+if [ -f scripts/check-versions-manifest.sh ]; then
+	bash scripts/check-versions-manifest.sh --update
+fi
+
 # --- Run-log summary: one line per module (TODO M15/e1) ---
 if [ -n "$RUN_LOG" ]; then
 	{

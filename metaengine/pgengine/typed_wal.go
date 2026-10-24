@@ -186,6 +186,13 @@ func backfillTypedStreamColumns(db *sql.DB) error {
 	return nil
 }
 
+// sqlStateCarrier is a driver error exposing its Postgres SQLSTATE code
+// (pgx *pgconn.PgError, lib/pq *pq.Error).
+type sqlStateCarrier interface {
+	error
+	SQLState() string
+}
+
 // isUniqueViolation reports whether err is a Postgres unique-constraint
 // violation (SQLSTATE 23505), via the driver's structured error when
 // available (pgx, lib/pq) and the message text otherwise.
@@ -194,7 +201,7 @@ func isUniqueViolation(err error) bool {
 		return false
 	}
 
-	if st, ok := errors.AsType[interface{SQLState() string}](err); ok {
+	if st, ok := errors.AsType[sqlStateCarrier](err); ok {
 		return st.SQLState() == "23505"
 	}
 
