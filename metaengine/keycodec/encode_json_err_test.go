@@ -12,12 +12,13 @@ func TestEncodeJSONErr(t *testing.T) {
 	t.Run("representable value round-trips", func(t *testing.T) {
 		t.Parallel()
 
+		// encoding/json/v2 preserves map insertion order (v1 sorted keys).
 		b, err := EncodeJSONErr(map[string]any{"status": "open", "n": float64(3)})
 		if err != nil {
 			t.Fatalf("EncodeJSONErr: %v", err)
 		}
 
-		if got := string(b); got != `{"n":3,"status":"open"}` {
+		if got := string(b); got != `{"status":"open","n":3}` {
 			t.Fatalf("encoded = %s", got)
 		}
 	})
