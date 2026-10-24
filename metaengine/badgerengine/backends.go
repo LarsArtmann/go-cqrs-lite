@@ -3,12 +3,14 @@ package badgerengine
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 	"sync/atomic"
 
 	"github.com/dgraph-io/badger/v4"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/keycodec"
 )
 
 // --- SetBackend ---
@@ -115,7 +117,11 @@ func (e *badgerEngine) CounterGet(_ context.Context, col string) (map[string]int
 func (e *badgerEngine) MultiAdd(_ context.Context, col string, key, value any) error {
 	seq := e.nextMmSeq(col)
 	k := multimapKey(col, encodeKeyStr(key), seq)
-	val := encodeJSON(value)
+
+	val, err := keycodec.EncodeJSONErr(value)
+	if err != nil {
+		return fmt.Errorf("badgerengine.MultiAdd: %w", err)
+	}
 
 	return e.db.Update(func(txn *badger.Txn) error {
 		return txn.Set(k, val)
@@ -157,7 +163,11 @@ func (e *badgerEngine) nextMmSeq(col string) int64 {
 func (e *badgerEngine) LogAppend(_ context.Context, col string, value any) error {
 	seq := e.nextLogSeq(col)
 	k := logKey(col, seq)
-	val := encodeJSON(value)
+
+	val, err := keycodec.EncodeJSONErr(value)
+	if err != nil {
+		return fmt.Errorf("badgerengine.LogAppend: %w", err)
+	}
 
 	return e.db.Update(func(txn *badger.Txn) error {
 		return txn.Set(k, val)

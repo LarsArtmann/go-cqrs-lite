@@ -48,10 +48,14 @@ func (e *badgerEngine) StreamAppend(
 
 	return e.db.Update(func(txn *badger.Txn) error {
 		for _, v := range values {
+			valBytes, err := keycodec.EncodeJSONErr(v)
+			if err != nil {
+				return fmt.Errorf("badgerengine.StreamAppend: %w", err)
+			}
+
 			seq := e.nextStreamSeq(col, sid)
 			gseq := e.nextJournalSeq(col)
 
-			valBytes := encodeJSON(v)
 			journalEntry := fmt.Sprintf("%s%s%s", sid, sep, string(valBytes))
 
 			if err := txn.Set(streamKey(col, sid, seq), valBytes); err != nil {
@@ -222,10 +226,14 @@ func (e *badgerEngine) StreamAppendExpected(
 
 	return e.db.Update(func(txn *badger.Txn) error {
 		for _, v := range values {
+			valBytes, encErr := keycodec.EncodeJSONErr(v)
+			if encErr != nil {
+				return fmt.Errorf("badgerengine.StreamAppendExpected: %w", encErr)
+			}
+
 			seq := e.nextStreamSeq(col, sid)
 			gseq := e.nextJournalSeq(col)
 
-			valBytes := encodeJSON(v)
 			journalEntry := fmt.Sprintf("%s%s%s", sid, sep, string(valBytes))
 
 			if err := txn.Set(streamKey(col, sid, seq), valBytes); err != nil {

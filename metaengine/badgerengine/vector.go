@@ -49,7 +49,12 @@ func (e *badgerEngine) VectorInsert(
 	metaKey := keycodec.VectorMetaKey(collection, emb.ID)
 	var metaVal []byte
 	if emb.Metadata != nil {
-		metaVal = encodeJSON(emb.Metadata)
+		metaJSON, err := keycodec.EncodeJSONErr(emb.Metadata)
+		if err != nil {
+			return fmt.Errorf("badgerengine.VectorInsert: metadata: %w", err)
+		}
+
+		metaVal = metaJSON
 	}
 
 	return e.db.Update(func(txn *badger.Txn) error {
