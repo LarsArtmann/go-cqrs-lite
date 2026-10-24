@@ -255,13 +255,18 @@ func (e *sqliteEngine) MapSet(ctx context.Context, col string, key any, value an
 
 	keyStr := encodeKey(key)
 
+	encoded, err := encodeValue(value)
+	if err != nil {
+		return err
+	}
+
 	if _, err := e.xc(ctx).
-		exec(ctx, e.queries.mapSet, col, keyStr, encodeValue(value)); err != nil {
+		exec(ctx, e.queries.mapSet, col, keyStr, encoded); err != nil {
 		return err //nolint:wrapcheck // passthrough
 	}
 
 	if e.versioning {
-		if err := e.recordVersionRow(ctx, col, keyStr, value, time.Now()); err != nil {
+		if err := e.recordVersionRow(ctx, col, keyStr, encoded, time.Now()); err != nil {
 			return err
 		}
 	}
@@ -356,12 +361,17 @@ func (e *sqliteEngine) MapUpdate(
 			return metaengine.DecodeStreamValue(valStr), nil
 		},
 		func(ctx context.Context, tx *sql.Tx, newVal any) error {
-			_, err := tx.ExecContext(
+			encoded, err := encodeValue(newVal)
+			if err != nil {
+				return err
+			}
+
+			_, err = tx.ExecContext(
 				ctx,
 				e.queries.mapSet,
 				col,
 				encodeKey(key),
-				encodeValue(newVal),
+				encoded,
 			)
 
 			return err //nolint:wrapcheck // passthrough

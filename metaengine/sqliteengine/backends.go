@@ -145,6 +145,11 @@ func scanJSONValuesWithKeys(
 // --- metaengine.MultimapBackend ---
 
 func (e *sqliteEngine) MultiAdd(ctx context.Context, col string, key any, value any) error {
+	encoded, err := encodeValue(value)
+	if err != nil {
+		return err
+	}
+
 	seq, err := e.nextMultiSeq(ctx, col)
 	if err != nil {
 		return err
@@ -156,7 +161,7 @@ func (e *sqliteEngine) MultiAdd(ctx context.Context, col string, key any, value 
 		col,
 		encodeKey(key),
 		seq,
-		encodeValue(value),
+		encoded,
 	)
 
 	return err
@@ -215,7 +220,12 @@ func (e *sqliteEngine) nextMultiSeq(ctx context.Context, col string) (int64, err
 // --- metaengine.LogBackend ---
 
 func (e *sqliteEngine) LogAppend(ctx context.Context, col string, value any) error {
-	_, err := e.xc(ctx).exec(ctx, e.queries.logAppend, col, encodeValue(value))
+	encoded, err := encodeValue(value)
+	if err != nil {
+		return err
+	}
+
+	_, err = e.xc(ctx).exec(ctx, e.queries.logAppend, col, encoded)
 
 	return err
 }

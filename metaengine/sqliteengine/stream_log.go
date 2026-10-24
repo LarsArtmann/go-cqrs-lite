@@ -12,8 +12,13 @@ import (
 // --- metaengine.StreamLogBackend ---
 
 func (e *sqliteEngine) StreamAppend(ctx context.Context, col, sid string, values []any) error {
-	for _, v := range values {
-		if err := e.execStreamAppend(ctx, col, sid, encodeStreamValue(v)); err != nil {
+	encoded, err := metaengine.EncodeStreamValuesErr(values)
+	if err != nil {
+		return err
+	}
+
+	for _, s := range encoded {
+		if err := e.execStreamAppend(ctx, col, sid, s); err != nil {
 			return err
 		}
 	}
@@ -98,6 +103,11 @@ func (e *sqliteEngine) StreamAppendExpected(
 	expectedVersion int64,
 	values []any,
 ) error {
+	encoded, err := metaengine.EncodeStreamValuesErr(values)
+	if err != nil {
+		return err
+	}
+
 	return e.RunInTx(ctx, func(ctx context.Context) error {
 		var current int64
 
@@ -110,8 +120,8 @@ func (e *sqliteEngine) StreamAppendExpected(
 			return metaengine.ErrVersionConflict
 		}
 
-		for _, v := range values {
-			if err := e.execStreamAppend(ctx, col, sid, encodeStreamValue(v)); err != nil {
+		for _, s := range encoded {
+			if err := e.execStreamAppend(ctx, col, sid, s); err != nil {
 				return err
 			}
 		}
@@ -220,16 +230,6 @@ func (e *sqliteEngine) StreamReadFromVersion(
 		sid,
 		minVersion-1,
 	)
-}
-
-// encodeStreamValue serializes a value for storage in the stream log TEXT column.
-// Strings are stored as-is; all other types are JSON-encoded via encodeJSON.
-func encodeStreamValue(v any) string {
-	if s, ok := v.(string); ok {
-		return s
-	}
-
-	return encodeJSON(v)
 }
 
 // scanStreamValues executes a query and scans all rows as stream log values.

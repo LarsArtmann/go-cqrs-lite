@@ -57,17 +57,17 @@ func errPlannedNotVersioned(col string) error {
 }
 
 // recordVersionRow inserts one version row (NULL value = tombstone) and trims
-// retention. Caller has already written the latest view.
+// retention. Caller has already written the latest view and passes the encoded
+// value, so an unrepresentable value fails before anything is persisted.
 func (e *sqliteEngine) recordVersionRow(
 	ctx context.Context,
 	col, key string,
-	value any,
+	encoded any,
 	ts time.Time,
 ) error {
 	var valStr any
-	if value != nil {
-		s := encodeValue(value)
-		valStr = s
+	if encoded != nil {
+		valStr = encoded
 	}
 
 	if _, err := e.xc(ctx).exec(

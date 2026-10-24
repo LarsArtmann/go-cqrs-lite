@@ -139,7 +139,11 @@ func execPlannedSet(
 	key any,
 	value any,
 ) error {
-	valueJSON := encodeValue(value)
+	valueJSON, err := encodeValue(value)
+	if err != nil {
+		return err
+	}
+
 	extracted := metaengine.ExtractFields(value, plan.Columns)
 
 	quotedColNames := make([]string, 0, 2+len(plan.Columns))
@@ -164,7 +168,7 @@ func execPlannedSet(
 		metaengine.QuoteIdent(plan.Table), strings.Join(quotedColNames, ", "), placeholder,
 	)
 
-	_, err := exec.ExecContext(ctx, query, args...)
+	_, err = exec.ExecContext(ctx, query, args...)
 
 	return err //nolint:wrapcheck // passthrough
 }
