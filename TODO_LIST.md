@@ -1528,6 +1528,14 @@ replace-free — 10-25 §a2/§a3, now archived).
 
 ## CI / Infrastructure
 
+- [ ] **🔥 `#check-md-go` is un-runnable: the pinned `md-go-validator`
+      derivation no longer builds.** `nix run .#check-md-go` fails in the
+      TOOL's own build, not on a doc: the vendored FOD is missing
+      `github.com/google/pprof@v0.0.0-20261016150608-1facf8f91b50.zip`
+      (reached via `go-finding.test` → ginkgo → `pprof/profile`). Observed
+      2026-10-24 12:00; every doc change since is unvalidated by this gate.
+      Fix: bump/refresh `md-go-validator`'s `vendorHash`/proxy FOD (or the
+      pinned rev), then re-run. _(Effort: S/M, blocks the md-go gate)_
 - [x] ~~🔥 **Decide gate coverage for `cmd/*` modules (the 82-findings class)**~~
       — **RESOLVED 2026-10-23**: `cmd/api-stability`, `cmd/cqrs-gen`,
       `cmd/cqrs-lint`, `cmd/cqrs-bench`, `cmd/cqrs-upgrade` and `cmd/doc-check`

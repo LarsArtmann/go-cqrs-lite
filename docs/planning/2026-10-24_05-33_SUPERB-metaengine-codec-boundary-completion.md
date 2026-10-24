@@ -1,9 +1,9 @@
 # SUPERB Plan: Metaengine Codec Boundary Completion
 
 > **Created:** 2026-10-24 05:33 CEST
-> **Status:** EXECUTING (Scope A)
+> **Status:** WAVES 1–4 EXECUTED (2026-10-24 08:00 and 12:00 CEST — receipts in §11.7–§11.8); T15 is PARTIAL (composed `#verify-fast` blocked by foreign reds); WAVE 5 OWNER-GATED (T16 spike in §12)
 > **Predecessor:** [`2026-10-23_17-31_SUPERB-metaengine-codec-boundary-repair.md`](2026-10-23_17-31_SUPERB-metaengine-codec-boundary-repair.md) (first slice shipped; its §9.4 is the current truth)
-> **Session report:** [`docs/status/2026-10-24_05-27_metaengine-codec-boundary-repair-status.md`](../status/2026-10-24_05-27_metaengine-codec-boundary-repair-status.md)
+> **Session reports:** [`docs/status/2026-10-24_05-27_metaengine-codec-boundary-repair-status.md`](../status/2026-10-24_05-27_metaengine-codec-boundary-repair-status.md) (waves 1–3) and [`docs/status/2026-10-24_12-00_metaengine-codec-boundary-wave4-and-t16-spike-status.md`](../status/2026-10-24_12-00_metaengine-codec-boundary-wave4-and-t16-spike-status.md) (wave 4 + spike)
 > **Scope:** finish the codec boundary work started yesterday: prove the risky parts, record the decision, remove the remaining footguns, and deliver.
 
 ---
