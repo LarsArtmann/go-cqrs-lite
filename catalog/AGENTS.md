@@ -242,7 +242,17 @@ server-rendered HTML).
   depth), and `writeRef` skips zero references entirely.
   `TestExcludedResourceNameNeverAppears` (frontmatter_test.go) fails only
   when ALL layers are disabled — mutation-verified. When you touch the name
-  tables or degrade paths, re-run that test.
+  tables or degrade paths, re-run that test. The composition of the features
+  is pinned separately (`compose_test.go`, 2026-10-24): hide reaches
+  include-pulled sections, spec options compose with CLI flags (spec first,
+  flags extend), and the composed leak probe is mutation-verified the same
+  way (recording guard + degrade re-checks together).
+- **Costs are measured, not assumed (2026-10-24).** Whole-catalog render:
+  ~175 ms warm / 15.65 MB at 1 000 services / 5 000 messages
+  (`BenchmarkExportLargeCatalog`, 2026-10-17). `Inspect` dry-run on the same
+  catalog: ~2–3 ms warm (`BenchmarkInspectLargeCatalog`, loaded 32-core
+  host) — the `-check` CI gate is two orders of magnitude under the render
+  it gates; a hub can afford it per source per build.
 - **Selector kind spellings live in `adrKind` (section_meta.go).** The
   selector/doc/ADR-target spellings are one vocabulary: `domain`, `service`,
   `command`, `event`, `query`, `channel`, `container` (data store), `flow`,

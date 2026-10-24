@@ -95,3 +95,28 @@ func BenchmarkExportLargeCatalog(b *testing.B) {
 
 	b.ReportMetric(float64(size)/1e6, "MB/doc")
 }
+
+// BenchmarkInspectLargeCatalog measures the dry-run report of the same
+// 1 000-service / 5 000-message catalog — the cost a hub pays per source in
+// CI before rendering (ADR-0160 `-check`). Measured 2026-10-24: ~2–3 ms per
+// Inspect warm (32-core host shared with concurrent sessions; the plan +
+// collect + report path, no render) — two orders of magnitude under the
+// ~175 ms render it gates.
+func BenchmarkInspectLargeCatalog(b *testing.B) {
+	cat := largeCatalog(1_000, 5)
+
+	exp := architecture.NewExporter(
+		architecture.WithTitle("Bench"),
+		architecture.WithCommand("bench"),
+		architecture.WithInclude(architecture.Selector{Kind: "domain", ID: "dom-0000"}),
+	)
+
+	b.ResetTimer()
+
+	for range b.N {
+		report := exp.Inspect(cat)
+		if report.Failed() {
+			b.Fatalf("Inspect reported failure: %+v", report)
+		}
+	}
+}

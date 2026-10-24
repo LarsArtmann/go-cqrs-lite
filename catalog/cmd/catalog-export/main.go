@@ -142,7 +142,7 @@ func main() {
 	check := flag.Bool(
 		"check",
 		false,
-		"print the export check report instead of writing files; exits 1 when a selector matches nothing",
+		"print the export check report instead of writing files; exit 0 means every selector matched (safe to export), exit 1 means at least one matched nothing (a silent-leak risk)",
 	)
 	spec := flag.String(
 		"spec",

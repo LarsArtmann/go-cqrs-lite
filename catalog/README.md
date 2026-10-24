@@ -694,6 +694,20 @@ snippet shown on the overview), `WithLogo`, `WithGeneratedAt` (pin it for
 reproducible output). Only the standard library is used, so importing this
 package links nothing new.
 
+A runnable end-to-end demo lives in [`example/architecture`](example/architecture/main.go):
+
+```sh
+go run ./example/architecture   # writes architecture.html + architecture-partner.html (a redacted slice) to the working directory
+```
+
+Redacted slices (ADR-0160): `WithInclude`/`WithExclude`/`WithNeverExport` pick
+resources by `Selector{Kind, ID}`, `WithReferences` controls how out-of-scope
+references render (`omit`, `name-only`, `include`), and `WithHide` suppresses
+reference parts (`owners`, `repository`, `examples`, `specifications`, `docs`).
+`Inspect` dry-runs the policy without rendering; the `catalog-export -check`
+flag prints the same report and exits 1 when a selector matched nothing, so a
+hub can gate every export in CI.
+
 Unlike [`catalog/eventcatalog`](#eventcatalog), which emits an MDX tree for the
 Node EventCatalog CLI, this package renders the final HTML itself. Use both:
 the MDX tree for a hosted catalog, the reference for the copy people can open
@@ -774,6 +788,14 @@ mux.HandleFunc("/health", docserver.HealthCheckHandler(cat))
 | `GET {docs}/static/*`             | Embedded assets (docs-ui.css, favicon, vendored SPAs) |
 | `GET {docs}/architecture`         | Self-contained architecture reference (opt-in: `Config.ArchitectureReference`) |
 
+The opt-in is one line at docserver construction:
+
+```go
+srv := docserver.NewDocsServer(cat, docserver.Config{
+    ArchitectureReference: true,
+})
+```
+
 `{docs}` defaults to `/docs` (override with `Config.DocsPath`). `/docs/` redirects to
 `/docs`; unknown `/docs/*` paths return 404 rather than falling back to the index.
 SPA pages reference assets with absolute DocsPath-anchored URLs and include
@@ -784,11 +806,13 @@ SPA pages reference assets with absolute DocsPath-anchored URLs and include
 Measured on the real render path (2026-10-17, quiet host,
 `go test -bench BenchmarkExportLargeCatalog`): a catalog of **1 000
 services / 5 000 messages** renders in **~175 ms warm / ~0.6 s cold** to a
-**15.65 MB** self-contained HTML file. Sections carry
-`content-visibility: auto`, so the browser only lays out the viewport —
-scrolling and search stay responsive at that size. This is a build-time or
-deploy-time cost, never per request (the docserver route caches per catalog
-instance).
+**15.65 MB** self-contained HTML file. The `Inspect` dry-run over the same
+catalog costs **~2–3 ms** (`BenchmarkInspectLargeCatalog`, 2026-10-24) — the
+CI gate is two orders of magnitude cheaper than the render it checks.
+Sections carry `content-visibility: auto`, so the browser only lays out the
+viewport — scrolling and search stay responsive at that size. This is a
+build-time or deploy-time cost, never per request (the docserver route caches
+per catalog instance).
 
 The architecture route streams the same self-contained HTML file the
 `catalog-export -architecture` command writes (one inline `<style>`/`<script>`
