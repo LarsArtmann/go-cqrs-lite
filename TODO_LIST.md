@@ -1371,19 +1371,18 @@ replace-free — 10-25 §a2/§a3, now archived).
       repeat per engine before quoting them as a routing fact (plan T20).
       _(Effort: M)_
 - [ ] **🔥 Remaining `fmt.Sprintf("%v")` value encoders — the silent-loss class
-      is only 1/4 fixed.** `sqliteengine`/`turso` now reject (Rejection +
-      tests). Still falling back to `fmt.Sprintf("%v", v)`:
-      **(a) the LSM engines** — `pebbleengine`, `bboltengine`, `badgerengine`
-      alias `encodeJSON = keycodec.EncodeJSON`, which stringifies an
-      unrepresentable value; 21 production write sites (map/multimap/log/
-      stream/vector-metadata). Fixing it means `keycodec.EncodeJSON` grows an
-      error-returning twin + migration, exactly the shape T13 used.
-      **(b) the graph encoders** — `mysqlengine/graph.go`,
+      is 3/4 fixed.** `sqliteengine`/`turso` reject (Rejection + tests), and
+      since 2026-10-24 the **LSM engines do too**: `keycodec.EncodeJSONErr`
+      (Rejection `keycodec.encode_value`) replaced the alias on all 21
+      production write sites (pebble/bbolt/badger: map/multimap/log/stream/
+      vector-metadata + MapUpdate), pinned per engine by
+      `adttest.AssertValueEncodeRejection`. **Still open:
+      (b) the graph encoders** — `mysqlengine/graph.go`,
       `duckdbengine/graph.go`, `pgengine/graph.go`, `bigtableengine`. Decide
       whether graph identity follows the same "keys are stringified, values
       must be JSON" rule; if yes, migrate them together.
       The `memory` engine is unaffected (stores Go values as-is).
-      _(Effort: L)_
+      _(Effort: M — only the graph leg remains)_
 
 > Cap-primitive harvest (2026-10-23, issue #72 — `WithCap` / `EnforceCap` /
 > `EnforceCaps`). Verified against the MEMORY engine only; the SQL pushdown
