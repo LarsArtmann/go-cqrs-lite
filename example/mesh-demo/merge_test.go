@@ -232,6 +232,7 @@ func TestExport_DemoFlag(t *testing.T) {
 		data, err := os.ReadFile(filepath.Join(dir, filepath.FromSlash(path)))
 		if err != nil {
 			t.Errorf("read %s: %v", path, err)
+
 			return
 		}
 		for _, sub := range substrs {

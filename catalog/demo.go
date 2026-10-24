@@ -44,6 +44,7 @@ func appendDemoBadge(badges []Badge) []Badge {
 
 	out := make([]Badge, 0, len(badges)+1)
 	out = append(out, badges...)
+
 	return append(out, demoBadge())
 }
 
