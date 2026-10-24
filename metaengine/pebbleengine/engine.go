@@ -375,6 +375,7 @@ func (e *pebbleEngine) MapUpdate(
 		return err
 	}
 
+	// art-dupl:accept cross-module KV engine pattern — dep-isolated go.mod modules
 	newVal := update(prev)
 
 	newValJSON, encErr := keycodec.EncodeJSONErr(newVal)
