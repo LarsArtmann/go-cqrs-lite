@@ -22,7 +22,7 @@ proven); the error-family 0.11→0.12 bump was reviewed and needs no note; the
 harvest and the T16 envelope spike landed; every gate that can run is green on
 the modules I touched. The honest failures are of **claim discipline**, not
 code: my first COOKBOOK wording implied the silent-loss class was fixed
-fleet-wide (the LSM engines are still 22 sites), I initially marked T15 "done"
+fleet-wide (the LSM engines are still 21 sites), I initially marked T15 "done"
 though the composed gate never ran, and I ran `nix fmt` into a live
 `buildflow --fix`, which let the daemon absorb the wave into `chore:` commits.
 All three are corrected in the tree (see §d).
@@ -113,7 +113,7 @@ All three are corrected in the tree (see §d).
 2. **T13 coverage of the class — 1 of 4 engine families.** SQL engines reject;
    `pebbleengine` / `bboltengine` / `badgerengine` still call
    `keycodec.EncodeJSON`, which falls back to `fmt.Sprintf("%v")` across
-   **22 production write sites** (map/multimap/log/stream/vector metadata).
+   **21 production write sites** (map/multimap/log/stream/vector metadata).
    The COOKBOOK now states this gap explicitly; the TODO row was amended from
    "graph encoders only" to the real scope. *Effort: L.*
 3. **No stored-bytes pin for the changed sqlite write path.** Wave 1 pinned
@@ -161,7 +161,7 @@ All three are corrected in the tree (see §d).
 1. **I shipped a fleet-wide overclaim in `metaengine/COOKBOOK.md`.** The first
    wording said write paths reject unrepresentable values and "that fallback is
    gone" — but only the SQL family rejects. `pebble`/`bbolt`/`badger` still
-   stringify through `keycodec.EncodeJSON` (22 sites). Severity: consumer-facing
+   stringify through `keycodec.EncodeJSON` (21 sites). Severity: consumer-facing
    misinformation about a data-integrity guarantee. Root cause: I reasoned from
    the four engines Wave 2 touched instead of grepping the encoding helpers I
    had not touched. Fixed: the section now names the SQL engines, states the
@@ -256,7 +256,7 @@ Format: **task** — *Impact / Effort / Category*.
 9. **`keycodec.EncodeJSONErr` twin + deprecate the silent form.** — *Critical / M / Feature*
 10. **Migrate `pebbleengine` (7 value write sites) to the error twin.** — *High / M / Bug*
 11. **Migrate `bboltengine` (7 value write sites).** — *High / M / Bug*
-12. **Migrate `badgerengine` (8 value write sites).** — *High / M / Bug*
+12. **Migrate `badgerengine` (7 value write sites).** — *High / M / Bug*
 13. **Add per-engine LSM rejection tests mirroring `encoding_error_test.go`.** — *High / M / Test*
 14. **Decide the graph keys-vs-values rule and document it in the COOKBOOK.** — *Medium / S / Documentation*
 15. **Migrate `mysqlengine/graph.go` to the decided rule.** — *Medium / S / Bug*
@@ -319,7 +319,7 @@ Format: **task** — *Impact / Effort / Category*.
    migration project starts now. *Unblocks §f 19–23.*
 2. **Is the LSM `keycodec.EncodeJSON` migration in scope for v4.x?** It needs
    either a new exported `EncodeJSONErr` (additive, safe) or a signature change
-   (breaking) and touches 22 sites plus engine budgets. I cannot decide whether
+   (breaking) and touches 21 sites plus engine budgets. I cannot decide whether
    the silent-loss class justifies new public surface before v5, or whether it
    joins the v5 cut list.
 3. **Can `buildflow --fix` and the auto-commit daemon be paused for a wave?**

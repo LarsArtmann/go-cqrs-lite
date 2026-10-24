@@ -1365,7 +1365,7 @@ replace-free — 10-25 §a2/§a3, now archived).
       tests). Still falling back to `fmt.Sprintf("%v", v)`:
       **(a) the LSM engines** — `pebbleengine`, `bboltengine`, `badgerengine`
       alias `encodeJSON = keycodec.EncodeJSON`, which stringifies an
-      unrepresentable value; 22 production write sites (map/multimap/log/
+      unrepresentable value; 21 production write sites (map/multimap/log/
       stream/vector-metadata). Fixing it means `keycodec.EncodeJSON` grows an
       error-returning twin + migration, exactly the shape T13 used.
       **(b) the graph encoders** — `mysqlengine/graph.go`,

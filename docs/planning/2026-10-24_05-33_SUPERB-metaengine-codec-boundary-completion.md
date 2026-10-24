@@ -424,7 +424,7 @@ missed it (turso inherits the bug by delegation). Now:
 **T13 honest scope (corrected 2026-10-24 12:0x).** This closes the SQL engine
 family, not the class. `pebbleengine` / `bboltengine` / `badgerengine` alias
 `encodeJSON = keycodec.EncodeJSON`, which STILL falls back to
-`fmt.Sprintf("%v", v)` on a marshal failure across 22 production write sites
+`fmt.Sprintf("%v", v)` on a marshal failure across 21 production write sites
 (map, multimap, log, stream, vector metadata). The first draft of the COOKBOOK
 section implied a fleet-wide fix; it now states the LSM gap explicitly, and the
 TODO row was amended from "graph encoders only" to the real 1/4-fixed scope.
