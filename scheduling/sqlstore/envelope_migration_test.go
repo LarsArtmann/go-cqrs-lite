@@ -109,7 +109,7 @@ func TestTimerPayloadEnvelope_MigrationOldToNew(t *testing.T) {
 func insertTimerRow(ctx context.Context, db *sql.DB, id scheduling.TimerID, fireAt time.Time, payload string) error {
 	_, err := db.ExecContext(ctx,
 		`INSERT INTO timers (id, fire_at, payload) VALUES (?, ?, ?)`,
-		id.Get(), fireAt.UTC().Format(time.RFC3339Nano), payload)
+		id.Get(), fireAt.UTC().Format("2006-01-02T15:04:05.000000000Z07:00"), payload)
 
 	return err
 }
