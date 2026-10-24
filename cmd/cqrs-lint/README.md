@@ -380,7 +380,7 @@ catalog severity — nothing silently demotes to `info`).
 
 ## Rule Count
 
-**214 rules** across 10 categories: correctness (44), API misuse (32), boilerplate (31), consistency (18), architecture (22), security (10), performance (11), version (7), testing (8), adoption (31).
+**215 rules** across 10 categories: correctness (44), API misuse (32), boilerplate (31), consistency (18), architecture (23), security (10), performance (11), version (7), testing (8), adoption (31).
 
 The tables below are curated highlights. The complete, generated catalog —
 every rule with severity, confidence, auto-fix support, and doc links — lives
