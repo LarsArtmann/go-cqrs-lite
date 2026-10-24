@@ -27,7 +27,7 @@ const fixtureVersion = "1.0.0"
 // from the package tests).
 const HostileStoreName = "https://internal.example.com/secret/quarterly-revenue"
 
-type createOrder struct {
+type createOrder struct { // art-dupl:accept the fixture command mirrors the export test payload by design (two packages, three fields)
 	OrderID string `json:"order_id" doc:"Order identifier"` //nolint:tagliatelle // mirrors the external snake_case API this fixture documents
 	Amount  int    `json:"amount"   doc:"Total in minor units"`
 }

@@ -35,6 +35,12 @@ const yamlContentType = "text/yaml; charset=utf-8"
 
 // CatalogProvider returns a fresh catalog on each call.
 // Typically wraps catalog.Builder.Build().
+//
+// Stability is load-bearing for the architecture route: the rendered
+// reference is cached per *catalog.Catalog instance, so a provider that
+// returns the SAME instance renders once, while a provider that rebuilds
+// per call pays a full re-render per request (the honest price of
+// freshness — see the README's docserver section).
 type CatalogProvider func() *catalog.Catalog
 
 // Config holds all configuration for the docs server.

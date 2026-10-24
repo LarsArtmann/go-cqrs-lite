@@ -10,7 +10,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4/architecture"
 )
 
-type createOrder struct {
+type createOrder struct { // art-dupl:accept the fixture command mirrors this test payload by design (two packages, three fields)
 	OrderID string `json:"order_id" doc:"Order identifier"`
 	Amount  int    `json:"amount"   doc:"Total in minor units"`
 }

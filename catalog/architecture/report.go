@@ -32,9 +32,13 @@ type ExportReport struct {
 	// A non-empty list is the `-check` failure condition: a redaction that
 	// matches nothing is a silent leak risk.
 	NotFound []ReportEntry
-	// Dropped lists the structured references a kept section makes to
-	// resources outside the kept set; under [ReferencesOmit] they render
-	// nothing, under [ReferencesNameOnly] they degrade to names.
+	// Dropped lists the structured, kind-carrying references a kept section
+	// makes to resources outside the kept set — the same one-level edges the
+	// references include-pull follows (stores, entities, channels, a
+	// channel's messages, flow steps, an ADR's appliesTo targets). Owner
+	// attributions and prose links are not edges and are not counted here.
+	// Under [ReferencesOmit] these render nothing, under
+	// [ReferencesNameOnly] they degrade to names.
 	Dropped []ReportEntry
 	// Hidden lists the suppressed reference parts in canonical order.
 	Hidden []string

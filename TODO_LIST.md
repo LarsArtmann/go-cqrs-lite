@@ -207,6 +207,46 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       STATE 2026-10-18: all code/doc work of the completion plan (A1–A27) has
       landed BEFORE arming the chain this time (arm-the-chain-last lesson);
       the chain runs as this plan's final step. _(Effort: M, observe)_
+      STATE 2026-10-24 (M-plan): the 15:13 10-23 chain timed out after 4 h
+      (81 attempts, load 26–177 vs ceiling 10 + daemon/census tree churn) —
+      never went green; a second chain was armed 06:51 10-24 (parallel
+      session). M3–M11 landed first; the final re-arm rides the quiet tree
+      (receipt recorded here when green).
+
+- [x] **Verification-debt plan M4–M7 — DONE 2026-10-24 (receipts):**
+      (M4) composition + precedence suites in `compose_test.go`
+      (hide×include-pull, spec+flags, references-vocabulary validation with
+      `omit` accepted, composed leak probe) — compose suite mutation-red
+      under the killed owners-hide, leak probe mutation-red under recording
+      guard + degrade re-checks disabled together; (M5) ADR-0160
+      implementation addendum (banner + per-ruling table with file:line
+      evidence, ADR gate green ×2); (M6) `BenchmarkInspectLargeCatalog`
+      ~2–3 ms at 1k/5k (two orders under the render), `-check -h` documents
+      the exit-1 contract, README config snippet + example run line,
+      catalog/AGENTS cost record; (M7) the fixture gate renders a partner
+      slice and asserts the excluded hostile name appears nowhere while
+      name-only still renders other out-of-scope names — `--self-test` now
+      fault-injects 4 corruptions, all caught.
+      STATE 2026-10-24 (M-plan): the 15:13 10-23 chain timed out after 4 h
+      (81 attempts, load 26–177 vs ceiling 10 + daemon/census tree churn) —
+      never went green; a second chain armed 06:51 10-24 by a parallel
+      session. M3–M11 landed first; the final re-arm rides the quiet tree
+      (receipt recorded below when green).
+
+- [x] **Verification-debt plan M4–M7 — DONE 2026-10-24 (receipts):**
+      (M4) composition + precedence suites in `compose_test.go`
+      (hide×include-pull, spec+flags, references-vocabulary validation with
+      `omit` accepted, composed leak probe) — compose suite mutation-red
+      under the killed owners-hide, leak probe mutation-red under recording
+      guard + degrade re-checks disabled together; (M5) ADR-0160
+      implementation addendum (banner + per-ruling table with file:line
+      evidence, ADR gate green ×2); (M6) `BenchmarkInspectLargeCatalog`
+      ~2–3 ms at 1k/5k (two orders under the render), `-check -h` documents
+      the exit-1 contract, README config snippet + example run line,
+      catalog/AGENTS cost record; (M7) the fixture gate renders a partner
+      slice and asserts the excluded hostile name appears nowhere while
+      name-only still renders other out-of-scope names — `--self-test` now
+      fault-injects 4 corruptions, all caught.
 
 - [x] ~~**Link↔anchor integrity test**~~ — **DONE 2026-10-17** (`anchor_test.go`:
       `TestExportLinksResolveToSections` covers hrefs AND search-index `"h"`
