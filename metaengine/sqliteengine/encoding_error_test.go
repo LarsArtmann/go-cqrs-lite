@@ -43,7 +43,9 @@ func openEncodingEngine(
 	return eng
 }
 
-func assertRejection(t *testing.T, err error) {
+// assertRejection also pins the error CODE, so a later refactor cannot move
+// the failure to a different stage while the family stays Rejection.
+func assertRejection(t *testing.T, err error, wantCode string) {
 	t.Helper()
 
 	if err == nil {
@@ -53,7 +55,16 @@ func assertRejection(t *testing.T, err error) {
 	if family := errorfamily.Classify(err); family != errorfamily.Rejection {
 		t.Fatalf("error %v classified as %v, want Rejection", err, family)
 	}
+
+	if code := errorfamily.Code(err); code != wantCode {
+		t.Fatalf("error code = %q, want %q (%v)", code, wantCode, err)
+	}
 }
+
+const (
+	mapEncodeCode    = "sqliteengine.encode_value"
+	streamEncodeCode = "metaengine.encode_stream_value"
+)
 
 // TestSQLite_MapSet_RejectsUnrepresentableValue pins the removal of the
 // fmt.Sprintf("%v") fallback: an unencodable value must fail loudly and must
@@ -65,7 +76,7 @@ func TestSQLite_MapSet_RejectsUnrepresentableValue(t *testing.T) {
 	ctx := context.Background()
 	mb := eng.(metaengine.MapBackend)
 
-	assertRejection(t, mb.MapSet(ctx, "tasks", "task-1", make(chan int)))
+	assertRejection(t, mb.MapSet(ctx, "tasks", "task-1", make(chan int)), mapEncodeCode)
 
 	_, exists, err := mb.MapGet(ctx, "tasks", "task-1")
 	if err != nil {
@@ -90,7 +101,7 @@ func TestSQLite_MapSet_PlannedTable_RejectsUnrepresentableValue(t *testing.T) {
 	ctx := context.Background()
 	mb := eng.(metaengine.MapBackend)
 
-	assertRejection(t, mb.MapSet(ctx, "planned_items", "k-1", func() {}))
+	assertRejection(t, mb.MapSet(ctx, "planned_items", "k-1", func() {}), mapEncodeCode)
 
 	_, exists, err := mb.MapGet(ctx, "planned_items", "k-1")
 	if err != nil {
@@ -118,7 +129,7 @@ func TestSQLite_MapUpdate_RejectsUnrepresentableValue(t *testing.T) {
 	err := updater.MapUpdate(ctx, "tasks", "task-1", func(any) any {
 		return make(chan int)
 	})
-	assertRejection(t, err)
+	assertRejection(t, err, mapEncodeCode)
 
 	got, exists, err := mb.MapGet(ctx, "tasks", "task-1")
 	if err != nil {
@@ -142,7 +153,7 @@ func TestSQLite_MapSetAt_RejectsUnrepresentableValue(t *testing.T) {
 	ctx := context.Background()
 	versioned := eng.(metaengine.VersionedWriter)
 
-	assertRejection(t, versioned.MapSetAt(ctx, "tasks", "task-1", make(chan int), time.Now()))
+	assertRejection(t, versioned.MapSetAt(ctx, "tasks", "task-1", make(chan int), time.Now()), mapEncodeCode)
 
 	mb := eng.(metaengine.MapBackend)
 
@@ -166,7 +177,7 @@ func TestSQLite_StreamAppend_RejectsBatchAtomically(t *testing.T) {
 	sl := eng.(metaengine.StreamLogBackend)
 
 	err := sl.StreamAppend(ctx, "streams", "s-1", []any{"ok", make(chan int)})
-	assertRejection(t, err)
+	assertRejection(t, err, streamEncodeCode)
 
 	version, err := sl.StreamVersion(ctx, "streams", "s-1")
 	if err != nil {
@@ -186,7 +197,7 @@ func TestSQLite_StreamAppendExpected_RejectsBatchAtomically(t *testing.T) {
 	ap := eng.(metaengine.AtomicAppender)
 
 	err := ap.StreamAppendExpected(ctx, "streams", "s-1", 0, []any{"ok", make(chan int)})
-	assertRejection(t, err)
+	assertRejection(t, err, streamEncodeCode)
 
 	version, err := eng.(metaengine.StreamLogBackend).StreamVersion(ctx, "streams", "s-1")
 	if err != nil {
@@ -205,7 +216,7 @@ func TestSQLite_LogAppend_RejectsUnrepresentableValue(t *testing.T) {
 	ctx := context.Background()
 	log := eng.(metaengine.LogBackend)
 
-	assertRejection(t, log.LogAppend(ctx, "events", make(chan int)))
+	assertRejection(t, log.LogAppend(ctx, "events", make(chan int)), streamEncodeCode)
 
 	tail, err := log.LogTail(ctx, "events", 10)
 	if err != nil {
@@ -224,7 +235,7 @@ func TestSQLite_MultiAdd_RejectsUnrepresentableValue(t *testing.T) {
 	ctx := context.Background()
 	mm := eng.(metaengine.MultimapBackend)
 
-	assertRejection(t, mm.MultiAdd(ctx, "tags", "k-1", make(chan int)))
+	assertRejection(t, mm.MultiAdd(ctx, "tags", "k-1", make(chan int)), streamEncodeCode)
 
 	values, err := mm.MultiGet(ctx, "tags", "k-1")
 	if err != nil {
