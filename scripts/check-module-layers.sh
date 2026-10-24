@@ -223,7 +223,8 @@ TEST_PACKAGES="github.com/onsi/gomega github.com/onsi/ginkgo/v2 pgregory.net/rap
 # deps still count against their DEP_BUDGET.
 # cmd/cqrs-lint/testdata/typedfixture: the committed F091 typed-path fixture —
 # a consumer-shaped module that exists only to be linted by cqrs-lint's own
-# tests (replace-based schema dep; never built by the workspace).
+# tests (replace-based schema dep; never built by the workspace). Budget 2
+# since C044: the branded-ID fixtures import id/v4 alongside schema/v4.
 TEST_INFRA_MODULES="event/v4/eventtest testutil testutil/mysqltestcontainer testutil/pgtestcontainer cmd/cqrs-lint/testdata/typedfixture cmd/cqrs-lint/testdata/scanfixture cmd/cqrs-lint/testdata/busfixture"
 
 # Dependency budgets: maximum direct PRODUCTION dependencies per module.
@@ -411,7 +412,7 @@ DEP_BUDGET["example/scheduler-otel-status"]=8
 # is the honest count for a composition example.
 DEP_BUDGET["example/metaengine-quickstart"]=7
 DEP_BUDGET["example/graph-native"]=12 # system+metaengine core, projectionadapter, sqlite+dgraph engines, systemscenario (test)
-DEP_BUDGET["cmd/cqrs-lint/testdata/typedfixture"]=1
+DEP_BUDGET["cmd/cqrs-lint/testdata/typedfixture"]=2
 DEP_BUDGET["cmd/cqrs-lint/testdata/scanfixture"]=1
 DEP_BUDGET["cmd/cqrs-lint/testdata/busfixture"]=1
 DEP_BUDGET["event/v4/eventtest"]=5

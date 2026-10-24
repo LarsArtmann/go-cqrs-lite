@@ -2,7 +2,6 @@ package correctness
 
 import (
 	"context"
-	"fmt"
 	"go/ast"
 	"go/types"
 	"strings"
@@ -89,9 +88,7 @@ func detectBrandedStringCalls(ctx *analyzer.AnalysisContext, gf *analyzer.GoFile
 
 		b := findingTemplate.Builder(
 			"C044",
-			fmt.Sprintf(
-				"branded-ID .String() renders the PREFIXED display form — use .Get()/the typed value for keys, SQL args, cursors, and wire payloads",
-			),
+			"branded-ID .String() renders the PREFIXED display form — use .Get()/the typed value for keys, SQL args, cursors, and wire payloads",
 			finding.SeverityWarning,
 			finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 		).
