@@ -1,0 +1,1980 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Architecture Review 2026-10-24 · go-cqrs-lite (modularity, service orientation)</title>
+    <style>
+      /* =========================================================================
+         BAUHAUS DARK — Dashboard template
+         Design language: form follows function. Primary colors on graphite.
+         Zero external dependencies: system fonts, no CDN, no build step.
+         Token architecture: see references/bauhaus-tokens.md
+         ========================================================================= */
+
+      :root {
+        /* --- Primitive palette (Bauhaus Dark) --- */
+        --color-graphite: #0e0e10;
+        --color-graphite-2: #18181d;
+        --color-graphite-3: #16161a;
+        --color-bone: #f4f4f0;
+        --color-red: #ff6b6b;
+        --color-blue: #6eb5ff;
+        --color-yellow: #f4d35e;
+        --color-amber: #ffb347;
+        --color-hairline: rgba(244, 244, 240, 0.12);
+        --color-hairline-strong: rgba(244, 244, 240, 0.25);
+
+        /* --- Semantic layer (shared vocabulary with editorial template) --- */
+        --surface: var(--color-graphite);
+        --surface-raised: var(--color-graphite-2);
+        --surface-sunken: var(--color-graphite-3);
+        --text: var(--color-bone);
+        --text-muted: rgba(244, 244, 240, 0.72);
+        --text-faint: rgba(244, 244, 240, 0.45);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-amber);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        /* --- Backward-compatible aliases (do not break consumer skills) --- */
+        --bg: var(--surface);
+        --bg-elevated: var(--surface-raised);
+        --bg-sunken: var(--surface-sunken);
+        --bg-card: var(--surface-raised);
+        --bg-code: var(--surface-sunken);
+        --ink: var(--text);
+        --ink-secondary: var(--text-muted);
+        --ink-muted: var(--text-faint);
+        --rose: var(--problem);
+        --rose-glow: color-mix(in srgb, var(--problem) 15%, transparent);
+        --emerald: var(--solution);
+        --emerald-glow: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber-glow: color-mix(in srgb, var(--warning) 15%, transparent);
+        --coral: var(--problem);
+        --coral-light: color-mix(in srgb, var(--problem) 15%, transparent);
+        --teal: var(--solution);
+        --teal-light: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber-light: color-mix(in srgb, var(--warning) 20%, transparent);
+
+        /* --- Shape --- */
+        --radius: 0px; /* Bauhaus default: sharp corners */
+        --radius-sm: 0px;
+
+        /* --- Type stacks (system only — zero external fonts) --- */
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      /* Sticky-header offset for anchor jumps */
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 15px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* --- Accessibility: keyboard focus --- */
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      a:focus-visible {
+        outline-offset: -1px;
+      }
+
+      /* --- Full-bleed top bar --- */
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      /* --- Layout: optional sticky sidebar TOC --- */
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .sidebar a {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        text-decoration: none;
+        padding: 0.45rem 0.75rem;
+        border-left: 2px solid transparent;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+        font-weight: 500;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        color: var(--accent);
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      /* --- Headings --- */
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      h1 {
+        font-size: clamp(1.8rem, 4vw, 2.6rem);
+        line-height: 1.1;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.4rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+        display: flex;
+        align-items: baseline;
+        gap: 0.6rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.06em;
+      }
+      h3 {
+        font-size: 1.1rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 0.98rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+
+      /* --- Hero --- */
+      .hero {
+        padding: 1.5rem 0 1.5rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .hero-badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--surface);
+        background: var(--accent);
+        padding: 0.3rem 0.7rem;
+        margin-bottom: 0.9rem;
+      }
+      .hero-subtitle {
+        font-size: 1.05rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0;
+      }
+
+      /* Bauhaus signature: geometric shape cluster (optional) */
+      .hero-shapes {
+        position: relative;
+        height: 80px;
+        margin-bottom: 1rem;
+      }
+      .hero-shapes .circle {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 56px;
+        height: 56px;
+        background: var(--problem);
+        border-radius: 50%;
+      }
+      .hero-shapes .square {
+        position: absolute;
+        top: 24px;
+        left: 72px;
+        width: 48px;
+        height: 48px;
+        background: var(--solution);
+      }
+      .hero-shapes .tri {
+        position: absolute;
+        top: 8px;
+        left: 140px;
+        width: 0;
+        height: 0;
+        border-left: 28px solid transparent;
+        border-right: 28px solid transparent;
+        border-bottom: 48px solid var(--warning);
+      }
+
+      /* --- General cards --- */
+      .card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
+      }
+
+      /* --- Issue cards --- */
+      .issue {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* --- Severity badges (used inside issue cards) --- */
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+
+      /* --- Inline badges (used in tables) --- */
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.18rem 0.5rem;
+        border: 1px solid var(--border-strong);
+        color: var(--text-muted);
+      }
+      .badge-critical {
+        color: var(--problem);
+        border-color: var(--problem);
+      }
+      .badge-high {
+        color: var(--warning);
+        border-color: var(--warning);
+      }
+      .badge-medium {
+        color: var(--accent);
+        border-color: var(--accent);
+      }
+      .badge-low {
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        color: var(--solution);
+        border-color: var(--solution);
+      }
+
+      /* --- Callouts (used inside issues or standalone) --- */
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.7rem 0.9rem;
+        border-left: 3px solid var(--border-strong);
+        background: color-mix(in srgb, var(--text) 5%, transparent);
+        font-size: 0.9rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 10%, transparent);
+      }
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 10%, transparent);
+      }
+
+      /* --- Stat cards / scorecards (aliased vocabulary) --- */
+      .stat-grid,
+      .scorecard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 0.75rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .stat-card,
+      .score-card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1rem;
+        position: relative;
+      }
+      .stat-card::before,
+      .score-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--border-strong);
+      }
+      .stat-bad,
+      .score-bad {
+        /* default top bar already set */
+      }
+      .stat-bad::before,
+      .score-bad::before {
+        background: var(--problem);
+      }
+      .stat-good::before,
+      .score-good::before {
+        background: var(--solution);
+      }
+      .stat-warn::before,
+      .score-warn::before {
+        background: var(--warning);
+      }
+      .stat-value,
+      .score {
+        font-family: var(--font-heading);
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.03em;
+        color: var(--text);
+      }
+      .stat-bad .stat-value,
+      .score-bad .score {
+        color: var(--problem);
+      }
+      .stat-good .stat-value,
+      .score-good .score {
+        color: var(--solution);
+      }
+      .stat-warn .stat-value,
+      .score-warn .score {
+        color: var(--warning);
+      }
+      .stat-label,
+      .score-card .label {
+        font-family: var(--font-mono);
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-faint);
+        margin-top: 0.5rem;
+      }
+
+      /* --- Strengths list --- */
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.8rem;
+        padding: 0.7rem 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 700;
+        color: var(--solution);
+        font-size: 1.1rem;
+        line-height: 1.4;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+      }
+
+      /* --- Tables --- */
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.9rem;
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--surface-raised);
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-bottom: 1px solid var(--border-strong);
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-bottom: 1px solid var(--border);
+      }
+      tr:hover td {
+        background: var(--surface-raised);
+      }
+
+      /* --- Before/After comparison --- */
+      .compare-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin: 1rem 0 0.5rem;
+      }
+      .compare-before,
+      .compare-after {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0.4rem 0.7rem;
+        color: var(--surface);
+      }
+      .compare-before {
+        background: var(--problem);
+      }
+      .compare-after {
+        background: var(--solution);
+      }
+      .compare-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      .compare-row pre {
+        margin: 0;
+      }
+
+      /* --- Code blocks + syntax highlighting --- */
+      pre {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      p code,
+      li code,
+      td code {
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+      }
+      .tok-keyword {
+        color: var(--accent);
+      } /* func, type, struct, if, return */
+      .tok-type {
+        color: var(--warning);
+      } /* int, string, bool, error */
+      .tok-string {
+        color: var(--solution);
+      } /* "quoted strings" */
+      .tok-comment {
+        color: var(--text-faint);
+        font-style: italic;
+      }
+      .tok-func {
+        color: #74a9ff;
+      } /* function names */
+      .tok-number {
+        color: var(--accent);
+      } /* 42, 3.14 */
+      .tok-generic {
+        color: var(--problem);
+      } /* T, ID in generics */
+      .tok-builtin {
+        color: #4dd9ff;
+      } /* make, len, append */
+      .tok-punct {
+        color: var(--text-muted);
+      } /* { } ( ) ; = : */
+      .tok-attr {
+        color: var(--accent);
+      } /* Nix attribute names */
+
+      /* --- Dependency tree / ASCII diagrams --- */
+      .dep-tree {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.7;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .dep-tree .root {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .dep-tree .ok {
+        color: var(--solution);
+      }
+      .dep-tree .unwanted {
+        color: var(--problem);
+      }
+
+      /* --- Inline node-and-arrow diagrams --- */
+      .diagram {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+      }
+      .node {
+        display: inline-block;
+        padding: 0.35rem 0.7rem;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        font-weight: 600;
+        background: var(--surface-sunken);
+        border: 1px solid var(--border-strong);
+      }
+      .node-core {
+        background: var(--accent);
+        color: var(--surface);
+        border-color: var(--accent);
+      }
+      .node-problem {
+        background: var(--problem);
+        color: var(--surface);
+        border-color: var(--problem);
+      }
+      .node-good {
+        background: var(--solution);
+        color: var(--surface);
+        border-color: var(--solution);
+      }
+      .arrow {
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Grids (responsive) --- */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      /* --- Inline TOC (alternative to sidebar) --- */
+      .toc {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+        padding: 1rem 1.3rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .toc h3 {
+        margin-bottom: 0.5rem;
+      }
+      .toc ul {
+        list-style: none;
+        padding: 0;
+      }
+      .toc li {
+        margin: 0.25rem 0;
+      }
+      .toc a {
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 0.9rem;
+      }
+      .toc a:hover {
+        color: var(--accent);
+      }
+
+      /* --- Migration / numbered steps --- */
+      .migration-step {
+        display: grid;
+        grid-template-columns: 48px 1fr;
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1rem;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+      }
+      .migration-num {
+        font-family: var(--font-mono);
+        font-weight: 800;
+        font-size: 1.5rem;
+        color: var(--accent);
+        line-height: 1;
+      }
+      .migration-content h4 {
+        margin-bottom: 0.2rem;
+      }
+      .migration-content p {
+        margin-bottom: 0;
+        color: var(--text-muted);
+        font-size: 0.92rem;
+      }
+
+      /* --- Footer --- */
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border);
+        font-size: 0.8rem;
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Responsive --- */
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+        .compare-header,
+        .compare-row {
+          grid-template-columns: 1fr;
+        }
+        .stat-grid,
+        .scorecard {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .migration-step {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top-bar">
+      <span>ARCHITECTURE REVIEW</span>
+      <span>2026-10-24</span>
+      <span>go-cqrs-lite</span>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#verdict">Verdict</a>
+          <a href="#series">Since the last review</a>
+          <a href="#evidence">The numbers</a>
+          <a href="#strengths">Strengths</a>
+          <a href="#findings">Findings</a>
+          <a href="#dependencies">Dependencies</a>
+          <a href="#domain">Domain alignment</a>
+          <a href="#scale">Scale &amp; service shape</a>
+          <a href="#target">Target architecture</a>
+          <a href="#roadmap">Action roadmap</a>
+          <a href="#appendix">Method &amp; caveats</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <div class="hero">
+          <div class="hero-shapes">
+            <div class="circle"></div>
+            <div class="square"></div>
+            <div class="tri"></div>
+          </div>
+          <div class="hero-badge">Architecture review &middot; modularity &amp; service orientation</div>
+          <h1>Strong bones, one god package, and two architectures at once</h1>
+          <p class="hero-subtitle">
+            101 Go modules with zero production import cycles and an enforced
+            layer gate. The structural debt is concentrated in two places: a
+            single <code>metaengine</code> package that carries 13% of the
+            entire exported API, and a v4/v5 dual track that makes every fix a
+            two-copy decision.
+          </p>
+        </div>
+
+        <section id="scorecard" class="scorecard">
+          <div class="score-card score-good">
+            <div class="score">4</div>
+            <div class="label">Coupling</div>
+          </div>
+          <div class="score-card score-warn">
+            <div class="score">3</div>
+            <div class="label">Cohesion</div>
+          </div>
+          <div class="score-card score-good">
+            <div class="score">4</div>
+            <div class="label">Modularity</div>
+          </div>
+          <div class="score-card score-good">
+            <div class="score">5</div>
+            <div class="label">Composability</div>
+          </div>
+          <div class="score-card score-warn">
+            <div class="score">3</div>
+            <div class="label">Scalability</div>
+          </div>
+          <div class="score-card score-good">
+            <div class="score">4</div>
+            <div class="label">Service orientation</div>
+          </div>
+          <div class="score-card score-good">
+            <div class="score">5</div>
+            <div class="label">Dependency direction</div>
+          </div>
+          <div class="score-card score-warn">
+            <div class="score">3.9</div>
+            <div class="label">Overall</div>
+          </div>
+        </section>
+
+        <section id="verdict">
+          <h2><span class="num">00</span>Verdict</h2>
+          <p>
+            Measured against the seven-dimension rubric, go-cqrs-lite is a
+            <strong>good architecture with two structural bills coming due</strong>.
+            The parts that usually rot first have not rotted: there are
+            <strong>zero production import cycles</strong> across 101 modules and
+            322 production edges, the module-layer gate passes
+            (<code>scripts/check-module-layers.sh</code>, 100 layer entries), and
+            the domain tier imports nothing but Tier 0/1 primitives
+            (<code>event</code> depends on <code>dispatcher</code>,
+            <code>id</code>, <code>metadata</code>, <code>record</code> and
+            nothing else). Composability is genuinely best-in-class: a new engine
+            is a module plus <code>init() -&gt; metaengine.RegisterDriver</code>,
+            and a new read model is a fold declaration.
+          </p>
+          <p>
+            The bills are cohesion and dual-track cost. One package,
+            <code>metaengine</code>, holds <strong>166 production files,
+            27,701 LOC and 829 exported symbols</strong>, which is 13% of the
+            entire tracked API in a single Go package, spread across nine
+            separable concerns. And the repo is now maintaining two
+            architectures: v4 (101 modules, 214 <code>// Deprecated:</code>
+            markers) and v5 (<code>core/v5</code>, 9 of 32 packages), with
+            byte-identical mirror twins such as <code>event</code> and
+            <code>core/v5/event</code> both exporting exactly 253 symbols.
+          </p>
+          <div class="callout callout-amber">
+            <strong>The bottom line</strong>
+            Do not start another structural program in v4. Make the v5 package
+            split the <em>only</em> structural program (metaengine as five
+            packages, memory engine as its own module), keep v4 fix-only, and
+            ship the missing <code>cqrs-upgrade --to-v5</code> import rewrite so
+            the 23 remaining copy-forwards actually reach the fleet. That
+            converts duplicate maintenance into a one-time migration instead of
+            an endless tax.
+          </div>
+        </section>
+
+        <section id="series">
+          <h2><span class="num">01</span>Since the last review (2026-07-09)</h2>
+          <p>
+            The prior episode (
+            <a href="archive/2026-07-09_05-18_ARCHITECTURE-REVIEW.html">archive/2026-07-09_05-18_ARCHITECTURE-REVIEW.html</a>)
+            scored 7.0/10 over 48 modules and listed six roadmap items. All six
+            are resolved, five of them exactly as proposed. This review therefore
+            does not re-litigate them; it starts from the new constraint the
+            July review could not see: the v4/v5 fork.
+          </p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>July 2026 roadmap item</th>
+                  <th>Status</th>
+                  <th>Evidence</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Extract error taxonomy from <code>event/</code></td>
+                  <td><span class="badge badge-fixed">Done</span></td>
+                  <td>
+                    every module imports
+                    <code>github.com/larsartmann/go-error-family</code> directly;
+                    <code>event/</code> keeps aliases only
+                  </td>
+                </tr>
+                <tr>
+                  <td>Extract shared types so commands stop importing events</td>
+                  <td><span class="badge badge-fixed">Done</span></td>
+                  <td>
+                    <code>record/</code> is Tier 0;
+                    <code>event.Type</code>, <code>command.Type</code>,
+                    <code>query.Type</code> are aliases of
+                    <code>record.Type</code> (<code>record/type.go:8</code>)
+                  </td>
+                </tr>
+                <tr>
+                  <td>Add <code>context.Context</code> to the kv interface</td>
+                  <td><span class="badge badge-fixed">Done</span></td>
+                  <td><code>kv/cache.go</code> and the store interfaces take ctx</td>
+                </tr>
+                <tr>
+                  <td>Split <code>storage/</code> by concern</td>
+                  <td><span class="badge badge-fixed">Done</span></td>
+                  <td>
+                    <code>storage/{sql,eventstore,readmodel,view,relational,bbolt,memory,pebble,turso}</code>
+                  </td>
+                </tr>
+                <tr>
+                  <td>Implement the transactional outbox</td>
+                  <td><span class="badge badge-medium">Done differently</span></td>
+                  <td>
+                    the journal is the outbox: <code>watermill.CatchUpSubscriber</code>
+                    replays from the journal; no separate <code>Forwarder</code> wrapper exists
+                  </td>
+                </tr>
+                <tr>
+                  <td>Document the tier model (was "fake layers")</td>
+                  <td><span class="badge badge-fixed">Done</span></td>
+                  <td>
+                    ADR-0046 plus <code>docs/architecture-understanding/SEVEN-TIER-MODEL.md</code>,
+                    mechanized by the layer gate
+                  </td>
+                </tr>
+                <tr>
+                  <td><em>New since July:</em> v4/v5 dual support</td>
+                  <td><span class="badge badge-high">Open program</span></td>
+                  <td>
+                    ADR-0152; <code>core/v5</code> at 9 of 32 packages (TODO_LIST
+                    v5 section)
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="evidence">
+          <h2><span class="num">02</span>The numbers</h2>
+          <p>
+            Every figure below was regenerated for this review from the working
+            tree (see <a href="#appendix">Method &amp; caveats</a> for the exact
+            commands and their limits).
+          </p>
+          <div class="stat-grid">
+            <div class="stat-card">
+              <div class="stat-value">101</div>
+              <div class="stat-label">Go modules</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">177</div>
+              <div class="stat-label">Packages</div>
+            </div>
+            <div class="stat-card stat-good">
+              <div class="stat-value">0</div>
+              <div class="stat-label">Production cycles</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">322</div>
+              <div class="stat-label">Production edges</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">6,301</div>
+              <div class="stat-label">Exported symbols</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">249k</div>
+              <div class="stat-label">Production LOC</div>
+            </div>
+            <div class="stat-card stat-warn">
+              <div class="stat-value">1.23</div>
+              <div class="stat-label">Test : prod LOC</div>
+            </div>
+            <div class="stat-card stat-warn">
+              <div class="stat-value">214</div>
+              <div class="stat-label">Deprecated markers</div>
+            </div>
+          </div>
+
+          <h3>Afferent / efferent coupling (production imports only)</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Module</th>
+                  <th>Ca (dependents)</th>
+                  <th>Ce (dependencies)</th>
+                  <th>Instability</th>
+                  <th>Reading</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td><code>id</code></td><td>37</td><td>0</td><td>0.00</td><td>maximally stable, correct for Tier 0</td></tr>
+                <tr><td><code>event</code></td><td>36</td><td>4</td><td>0.10</td><td>stable core vocabulary</td></tr>
+                <tr><td><code>metaengine</code></td><td>32</td><td>4</td><td>0.11</td><td>stable but internally 9 concerns</td></tr>
+                <tr><td><code>record</code></td><td>22</td><td>0</td><td>0.00</td><td>structural base, zero deps</td></tr>
+                <tr><td><code>command</code></td><td>19</td><td>4</td><td>0.17</td><td>stable</td></tr>
+                <tr><td><code>snapshot</code> / <code>query</code></td><td>12 / 12</td><td>3 / 4</td><td>0.20 / 0.25</td><td>stable</td></tr>
+                <tr><td><code>otel</code></td><td>12</td><td>0</td><td>0.00</td><td>facade with zero deps, deliberate</td></tr>
+                <tr><td><code>system</code></td><td>8</td><td>14</td><td>0.64</td><td>composition root: high Ce is its job</td></tr>
+                <tr><td><code>storage</code></td><td>7</td><td>11</td><td>0.61</td><td>adapter layer, volatile by design</td></tr>
+                <tr><td><code>projectionhost</code></td><td>3</td><td>6</td><td>0.67</td><td>volatile coordinator</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Where the API surface actually is (docs/api_surface.txt)</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Package</th>
+                  <th>Exported symbols</th>
+                  <th>Share of API</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td><code>metaengine</code></td><td>829</td><td>13.2%</td></tr>
+                <tr><td><code>core/v5/event</code> = <code>event</code> (mirror twins)</td><td>253 each</td><td>4.0% each</td></tr>
+                <tr><td><code>catalog</code></td><td>242</td><td>3.8%</td></tr>
+                <tr><td><code>system</code></td><td>219</td><td>3.5%</td></tr>
+                <tr><td><code>cmd/cqrs-lint/pkg/analyzer</code></td><td>187</td><td>3.0%</td></tr>
+                <tr><td><code>storage</code></td><td>122</td><td>1.9%</td></tr>
+                <tr><td><code>storage/sql</code></td><td>103</td><td>1.6%</td></tr>
+                <tr><td><code>id</code> = <code>core/v5/id</code> (mirror twins)</td><td>94 each</td><td>1.5% each</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="where">
+            6,301 symbols across 82 tracked modules: 2,151 funcs, 1,924 methods,
+            652 structs, 537 consts, 449 named types, 363 vars, 225 interfaces.
+            Median module: 69 symbols.
+          </p>
+
+          <h3>Where the production code actually is</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Module</th>
+                  <th>Production LOC</th>
+                  <th>Test LOC</th>
+                  <th>Note</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td><code>cmd/cqrs-lint</code></td><td>48,721</td><td>41,768</td><td>largest module in the repo, and it is a linter</td></tr>
+                <tr><td><code>metaengine</code></td><td>35,416</td><td>36,774</td><td>166 files in the root package alone</td></tr>
+                <tr><td><code>catalog</code></td><td>22,246</td><td>15,797</td><td>19 packages of documentation/export tooling</td></tr>
+                <tr><td><code>core/v5</code></td><td>10,555</td><td>18,815</td><td>the fork, 9 packages so far</td></tr>
+                <tr><td><code>storage</code></td><td>9,487</td><td>15,653</td><td>plus 9 sibling engine modules</td></tr>
+                <tr><td><code>benchkit</code></td><td>7,759</td><td>5,734</td><td>benchmark SDK</td></tr>
+                <tr><td><code>system</code></td><td>6,975</td><td>10,348</td><td>composition root</td></tr>
+                <tr><td><code>event</code></td><td>3,950</td><td>9,873</td><td>2.5x test-to-prod, healthy</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="where">
+            Tooling and documentation machinery (cqrs-lint + catalog +
+            doc-check + benchkit) is 32.8% of all production LOC. The library
+            proper is the smaller half of the repo.
+          </p>
+        </section>
+
+        <section id="strengths">
+          <h2><span class="num">03</span>What is already excellent</h2>
+          <div class="strengths">
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Zero production import cycles, mechanically enforced</strong>
+                <span>
+                  322 production edges over 101 modules, no cycle. The one
+                  layer-gate script parses every <code>go.mod</code> and rejects
+                  upward dependencies; it currently reports
+                  "Module layer check passed" (100 layer entries).
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Dependency direction is textbook</strong>
+                <span>
+                  Domain modules import only Tier 0/1: <code>event -&gt; dispatcher, id,
+                  metadata, record</code>; <code>command</code> and
+                  <code>query</code> mirror that. Telemetry goes through the
+                  zero-dependency <code>otel</code> facade, so no domain module
+                  imports OpenTelemetry.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Capability interfaces instead of fat interfaces</strong>
+                <span>
+                  225 exported interfaces, and the load-bearing ones are
+                  optional capabilities the planner probes:
+                  <code>AtomicAppender</code>, <code>Transactional</code>,
+                  <code>EngineResetter</code>, <code>DedupStore</code>,
+                  <code>DueClaimer</code>, <code>FactSink</code>,
+                  <code>Prober</code>, <code>VectorPathReporter</code>.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>A real composition root, not a god <code>New()</code></strong>
+                <span>
+                  <code>system.New(DomainConfig, DeploymentConfig)</code> enforces
+                  the consumer/operator split: the consumer never touches
+                  infrastructure, the operator never writes domain code. The
+                  coeffect gate (<code>DomainConfig.Events</code>) and the
+                  safety check run before wiring.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Plugins are the design, not an afterthought</strong>
+                <span>
+                  11 engine modules, each dependency-isolated (CGo only for
+                  DuckDB, heavy clients only where needed), each registering
+                  itself with <code>init()</code>. Consumers that import one
+                  engine never pay for another's dependencies.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Wrapping that cannot silently drop capabilities</strong>
+                <span>
+                  <code>event.DecorateStore</code> /
+                  <code>event.DecorateJournal</code> with sink/source transforms
+                  replaced hand-written wrappers (which had already lost
+                  <code>MultiSink</code> and <code>StreamingJournal</code>
+                  once). This is the right fix for a whole bug class.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>One wire vocabulary across modules</strong>
+                <span>
+                  <code>event.Type</code>, <code>command.Type</code> and
+                  <code>query.Type</code> are aliases of
+                  <code>record.Type</code>, pinned by cross-type comparison
+                  tests. The classic event-vs-command split brain is gone.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Verification depth that most libraries never reach</strong>
+                <span>
+                  1,783 test files against 1,764 production files; an API golden
+                  (6,301 symbols), a duplication gate, a file-size ratchet, an
+                  error-taxonomy drift gate, a doc gate that fails on any
+                  warning, and 207 cqrs-lint rules for consumers.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Deletion discipline exists and is exercised</strong>
+                <span>
+                  transport/http, transport/grpc and idempotency/kvstore were
+                  deleted at zero fleet consumers (ADR-0152 addendum), with
+                  pinned tags left resolvable and migration notes written. That
+                  is rarer than any feature on this list.
+                </span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="findings">
+          <h2><span class="num">04</span>Findings</h2>
+
+          <div class="issue issue-critical">
+            <span class="severity severity-critical">Critical &middot; cohesion</span>
+            <h3>One package holds nine concerns and 13% of the entire API</h3>
+            <div class="where">metaengine/ (166 production files, 27,701 LOC, 829 exported symbols)</div>
+            <p>
+              The <code>metaengine</code> root package contains the engine
+              contract, the registry, the health/quarantine machinery, the cost
+              planner, the layout/calibration logic, the execution runtime, the
+              store and collection layer, the fold inference, the ADT
+              implementations (vector, graph, spatial, as-of), the SQL scan and
+              dialect helpers, the diagnostics surface, the typed readers, and
+              the memory engine itself. Cluster counts from file ownership:
+              store/collections/folds 48 files, engine contract 28, planner 16,
+              execution 16, diagnostics 13, ADTs 13, SQL helpers 11, memory
+              engine 8. All of it shares one namespace and one 829-symbol
+              stability promise.
+            </p>
+            <p>
+              Two symptoms prove this is not cosmetic. First, the only engine
+              that lives inside the core is the memory engine
+              (<code>memory_*.go</code>), while the other ten are
+              dependency-isolated modules; the asymmetry exists because the
+              package boundary is the module boundary. Second, every consumer
+              that imports <code>metaengine</code> to touch one fold or one
+              engine profile inherits the whole surface in godoc, and every
+              internal change regenerates a golden entry inside the largest
+              block of <code>docs/api_surface.txt</code>.
+            </p>
+            <div class="callout callout-solution">
+              <strong>Fix: split in v5, not in v4</strong>
+              Create <code>core/v5/metaengine/{engine,plan,exec,collection,diagnostic}</code>
+              with an enforced rule (<code>collection -&gt; engine &lt;- plan/exec</code>,
+              <code>diagnostic</code> on top, nothing depends on it), move
+              <code>memory_*.go</code> to <code>metaengine/memoryengine</code>,
+              and cap packages at ~300 exported symbols. Doing this in v4 would
+              be a breaking change with no consumer benefit; doing it in v5 costs
+              one migration and prevents a second re-split later.
+            </div>
+          </div>
+
+          <div class="issue issue-important">
+            <span class="severity severity-important">Important &middot; dual track</span>
+            <h3>Two architectures are being maintained at once, and the bridge does not exist</h3>
+            <div class="where">core/v5 (9 of 32 packages) &middot; 214 Deprecated markers &middot; cmd/cqrs-upgrade</div>
+            <p>
+              <code>core/v5</code> mirrors record, id, dedup, kv, dispatcher,
+              metadata, event, command and query by hand. The mirrors are
+              byte-identical in surface: <code>event</code> and
+              <code>core/v5/event</code> both export 253 symbols, <code>id</code>
+              and <code>core/v5/id</code> both 94. The 23 missing packages
+              include every load-bearing one: decider, middleware, system,
+              metaengine, storage, projectionhost. Meanwhile
+              <code>cmd/cqrs-upgrade</code> has no <code>core/v5</code>
+              awareness at all, so even a completed fork could not be adopted by
+              the ~35 fleet repos without hand edits.
+            </p>
+            <p>
+              The cost is not theoretical: every bug fixed in a mirrored package
+              must be fixed twice or consciously dropped on one side, and every
+              new feature forces that same decision. 214
+              <code>// Deprecated:</code> markers show how much surface is
+              already scheduled to disappear.
+            </p>
+            <div class="callout callout-solution">
+              <strong>Fix: fork less, migrate more</strong>
+              Freeze v4 structurally (fix-only), finish the copy-forwards in the
+              post-split package shape, and make
+              <code>cqrs-upgrade --to-v5</code> the gating deliverable: rewrite
+              imports, bump pins, and report decorator/config changes. Until that
+              exists, the v5 fork is pure cost with no consumer.
+            </div>
+          </div>
+
+          <div class="issue issue-important">
+            <span class="severity severity-important">Important &middot; gate health</span>
+            <h3>The file-size ratchet is red right now</h3>
+            <div class="where">scheduling/sqlstore/store.go:363 &middot; system/adapter_event.go:351 &middot; metaengine/layout.go:360</div>
+            <p>
+              <code>bash scripts/check-file-size.sh</code> reports three new
+              offenders against the 350-line maximum, all committed on 2026-10-23
+              and 2026-10-24 by the auto-commit daemon. The gate fails, which
+              means <code>#verify</code> and CI are red for reasons unrelated to
+              any feature. A ratchet that is allowed to stay red stops being a
+              ratchet: the next contributor learns that red is normal.
+            </p>
+            <p>
+              This is also the cheapest possible proof of the review's own
+              thesis: the offenders are small, the fixes are mechanical, and
+              leaving them open is a choice.
+            </p>
+            <div class="callout callout-solution">
+              <strong>Fix: split the three files before anything else</strong>
+              363, 351 and 360 lines each need one extraction. Small effort,
+              immediate green, and it restores the "green means green" contract
+              that every other gate depends on.
+            </div>
+          </div>
+
+          <div class="issue issue-important">
+            <span class="severity severity-important">Important &middot; gravity</span>
+            <h3>The largest module in the library is now a linter</h3>
+            <div class="where">cmd/cqrs-lint: 48,721 production LOC &middot; catalog: 22,246 &middot; analyzer package: 187 symbols</div>
+            <p>
+              Tooling and documentation machinery is 32.8% of production LOC.
+              <code>cmd/cqrs-lint</code> alone is 1.4x the size of
+              <code>metaengine</code> and 5x <code>system</code>. That is a
+              maintenance-unit problem, not a module problem: the repo's review
+              attention, CI budget and release coordination are shared between a
+              runtime SDK and two developer tools that have independent
+              lifecycles and independent consumers.
+            </p>
+            <div class="callout callout-solution">
+              <strong>Fix: separate product lines</strong>
+              Move <code>cmd/cqrs-lint</code> and the <code>catalog</code>
+              exporters into their own repositories (or at minimum a
+              <code>tools/</code> product line with its own release cadence and
+              CI triggers). The core keeps thin gates; the tools stop competing
+              with the SDK for structural care.
+            </div>
+          </div>
+
+          <div class="issue issue-important">
+            <span class="severity severity-important">Medium &middot; API economics</span>
+            <h3>6,301 exported symbols, all equally promised, with no stability tiers</h3>
+            <div class="where">docs/api_surface.txt &middot; 82 tracked modules &middot; median 69 symbols per module</div>
+            <p>
+              The API golden treats every exported symbol as a compatibility
+              promise, which is admirable and correct for a library. But it makes
+              no distinction between the ten symbols a consumer actually calls
+              (<code>system.New</code>, <code>RegisterDecider</code>,
+              <code>Lookup</code>, <code>QuerySet</code>, <code>Evolution</code>,
+              <code>decider.Execute</code>) and the 829 inside
+              <code>metaengine</code> that are mostly planner and engine
+              machinery. The metaengine family carries an
+              "# Experimental" doc stamp, but the golden and the release rules do
+              not encode that difference, so the stamp is advisory only.
+            </p>
+            <div class="callout callout-solution">
+              <strong>Fix: make stability structural</strong>
+              Split the golden into a stable-core set and an experimental set,
+              derive it from the package layout after the metaengine split, and
+              let release policy follow the sections. A doc stamp that the
+              tooling ignores is a comment; a golden section is a contract.
+            </div>
+          </div>
+
+          <div class="issue issue-important">
+            <span class="severity severity-important">Medium &middot; release scale</span>
+            <h3>101 modules means 101 version trains to coordinate</h3>
+            <div class="where">100 layer entries &middot; 105+ published trains in versions.json &middot; 92-tag release waves</div>
+            <p>
+              Adding or removing a module requires six registration points
+              (go.work, flake testModules, api-stability list, module layers +
+              dependency budget, cqrs-lint module catalog, versions manifest).
+              Releases happen in tag waves (a recent one was 90 tags), and
+              <code>batch-release.sh</code>'s <code>verify=ok</code> builds but
+              does not test, so a wave's real verification is a separate
+              per-module sweep. None of this is wrong; it is simply the price of
+              one module per engine and per concern, and the price grows with
+              every split.
+            </p>
+            <div class="callout callout-solution">
+              <strong>Fix: collapse the domain core, keep drivers separate</strong>
+              v5's one-core-module shape is the right answer: one train for the
+              domain, eleven for the drivers, separate trains for products. Also
+              retire the require-dead presets (7 of 9 <code>stack/*</code>
+              modules have zero fleet requires) instead of carrying them.
+            </div>
+          </div>
+
+          <div class="issue issue-nice">
+            <span class="severity severity-nice">Low &middot; duplication hygiene</span>
+            <h3>The accepted-clone baseline is large, and templ files cannot opt out</h3>
+            <div class="where">.art-dupl-baseline.json: 189 accepted groups</div>
+            <p>
+              The concentration is where you would predict: <code>pgengine</code>
+              (9 groups), <code>badgerengine</code> (7 + 6),
+              <code>metaengine/memory_stream_log.go</code> (6),
+              <code>duckdbengine</code> (5), <code>mysqlengine/vector.go</code>
+              (5). Most are deliberate dialect seams, several carry
+              <code>//art-dupl:accept</code> directives, and templ files cannot
+              carry directives at all (HTML comments do not parse), so three
+              docserver templ groups live permanently in the baseline.
+            </p>
+            <div class="callout callout-solution">
+              <strong>Fix: annotate on touch, document the seam</strong>
+              Keep the engine clones, add directives when a file is touched
+              anyway, and write one short "dialect seam" note per engine family so
+              the next reader knows the duplication is a decision rather than an
+              accident.
+            </div>
+          </div>
+        </section>
+
+        <section id="dependencies">
+          <h2><span class="num">05</span>Dependency &amp; coupling analysis</h2>
+          <p>
+            The import graph is the architecture's skeleton, so it was computed
+            twice: once from <code>go.mod</code> requires (what the layer gate
+            sees) and once from actual non-test imports (what the compiler
+            links). Both agree on the important fact.
+          </p>
+          <div class="grid-2">
+            <div class="card card-solution">
+              <h4>Production graph: 0 cycles</h4>
+              <p>
+                322 edges, 101 nodes, zero cycles. The domain tier is clean:
+                <code>event</code>, <code>command</code> and <code>query</code>
+                each import only <code>dispatcher</code>, <code>id</code>,
+                <code>metadata</code> and <code>record</code>.
+              </p>
+            </div>
+            <div class="card card-warning">
+              <h4>Test-only edges: 10 apparent cycles</h4>
+              <p>
+                Counting <code>_test.go</code> imports adds edges such as
+                <code>event &lt;-&gt; event/v4/eventtest</code>,
+                <code>snapshot &lt;-&gt; storage/memory</code> and
+                <code>metaengine &lt;-&gt; metaengine/sqliteengine</code>. These
+                are conformance suites importing the real store they test, not
+                production coupling. They are acceptable, but they do mean the
+                module graph cannot be reasoned about from <code>go.mod</code>
+                alone.
+              </p>
+            </div>
+          </div>
+          <h3>Enforcement that actually runs</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Gate</th>
+                  <th>What it proves</th>
+                  <th>Current state</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>scripts/check-module-layers.sh</code></td>
+                  <td>no upward module dependencies; per-module dependency budgets</td>
+                  <td><span class="badge badge-fixed">Passing</span></td>
+                </tr>
+                <tr>
+                  <td>Dependency budgets</td>
+                  <td>tight per-module production-dep ceilings (dispatcher 0, dedup 0, claiming 1, decider 10, event 13)</td>
+                  <td><span class="badge badge-fixed">Enforced</span></td>
+                </tr>
+                <tr>
+                  <td><code>scripts/check-file-size.sh</code></td>
+                  <td>350-line maximum with a shrink-only ratchet (61 baselined files)</td>
+                  <td><span class="badge badge-critical">Red: 3 new offenders</span></td>
+                </tr>
+                <tr>
+                  <td><code>check-duplication</code></td>
+                  <td>no new clone shapes; 189 accepted groups</td>
+                  <td><span class="badge badge-medium">Baseline pinned</span></td>
+                </tr>
+                <tr>
+                  <td><code>cmd/api-stability</code></td>
+                  <td>6,301 exported symbols cannot vanish or change shape silently</td>
+                  <td><span class="badge badge-fixed">Green</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="domain">
+          <h2><span class="num">06</span>Domain alignment</h2>
+          <p>
+            The one-paragraph test passes almost everywhere: each module can be
+            described in one sentence without "and", and no module is named
+            <code>utils</code>, <code>common</code> or <code>helpers</code>.
+          </p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Domain concept</th>
+                  <th>Home module</th>
+                  <th>Verdict</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>Event / stream fact</td><td><code>event</code></td><td><span class="badge badge-fixed">1:1</span></td></tr>
+                <tr><td>Command / intent</td><td><code>command</code></td><td><span class="badge badge-fixed">1:1</span></td></tr>
+                <tr><td>Query / read request</td><td><code>query</code></td><td><span class="badge badge-fixed">1:1</span></td></tr>
+                <tr><td>Aggregate decision</td><td><code>decider</code></td><td><span class="badge badge-fixed">1:1</span></td></tr>
+                <tr><td>Projection / read model</td><td><code>projection</code>, <code>projectionhost</code></td><td><span class="badge badge-medium">split by role, documented</span></td></tr>
+                <tr><td>Snapshot</td><td><code>snapshot</code></td><td><span class="badge badge-fixed">1:1</span></td></tr>
+                <tr><td>Timer / schedule</td><td><code>scheduling</code> (+ <code>scheduling/engine</code>)</td><td><span class="badge badge-medium">facade named "engine"</span></td></tr>
+                <tr><td>Storage engine</td><td><code>metaengine/*engine</code></td><td><span class="badge badge-fixed">1:1</span></td></tr>
+                <tr><td>Work queue</td><td><code>queue</code> + engines</td><td><span class="badge badge-fixed">1:1</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <h3>Split-brain audit</h3>
+          <div class="grid-2">
+            <div class="card card-solution">
+              <h4>Eliminated: type vocabulary</h4>
+              <p>
+                <code>event.Type</code>, <code>command.Type</code> and
+                <code>query.Type</code> are aliases of <code>record.Type</code>,
+                and the lockstep tests compare across modules. This was a real
+                split brain two years ago and is now structurally impossible.
+              </p>
+            </div>
+            <div class="card card-problem">
+              <h4>Deliberate but time-bounded: v4 vs v5</h4>
+              <p>
+                The fork means every mirrored package exists twice. Within a
+                package the design is single-sourced; across v4/v5 it is not. The
+                exit is the codemod plus the remaining copy-forwards, not a
+                change of mind.
+              </p>
+            </div>
+            <div class="card card-warning">
+              <h4>Two persistence vocabularies, both legitimate</h4>
+              <p>
+                Event streams (<code>event</code> + storage adapters) and
+                planner-managed collections (<code>metaengine</code>) are two
+                models of storage coexisting. This is documented
+                (<code>docs/architecture-understanding/ANALYTICAL-VS-TRANSACTIONAL.md</code>)
+                and is a strength, but it is the first thing a new contributor
+                misreads.
+              </p>
+            </div>
+            <div class="card card-warning">
+              <h4>"Engine" means two different things</h4>
+              <p>
+                <code>metaengine.Engine</code> is a storage backend;
+                <code>scheduling/engine</code> is a TimerStore facade, and
+                <code>scheduling/engine</code> is a module while
+                <code>metaengine/engine.go</code> is a file in a package. Cheap
+                to fix in <code>DOMAIN_LANGUAGE.md</code>, expensive to leave
+                ambiguous.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section id="scale">
+          <h2><span class="num">07</span>Scale and service shape</h2>
+          <p>
+            This is a library, so "service orientation" means: does each module
+            own its data and contract, and could it be extracted or deployed
+            independently if the consumer needed it? The answer is mostly yes,
+            with one honest caveat.
+          </p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Scale axis</th>
+                  <th>Verdict</th>
+                  <th>Evidence</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>New feature (new read model)</td>
+                  <td><span class="badge badge-fixed">Excellent</span></td>
+                  <td>a fold declaration plus an Evolution; no new package</td>
+                </tr>
+                <tr>
+                  <td>New backend</td>
+                  <td><span class="badge badge-fixed">Excellent</span></td>
+                  <td>new module + <code>init()</code> registration; 11 exist</td>
+                </tr>
+                <tr>
+                  <td>Traffic / data growth</td>
+                  <td><span class="badge badge-medium">Good</span></td>
+                  <td>cost planner, health quarantine + reprobe, calibration, reset-and-replay ladder</td>
+                </tr>
+                <tr>
+                  <td>API growth</td>
+                  <td><span class="badge badge-high">Strained</span></td>
+                  <td>6,301 symbols, one undifferentiated golden, 214 deprecations pending removal</td>
+                </tr>
+                <tr>
+                  <td>Team / contributor growth</td>
+                  <td><span class="badge badge-high">Strained</span></td>
+                  <td>101 module boundaries, six registration points per module, tag-wave releases</td>
+                </tr>
+                <tr>
+                  <td>Deployment independence</td>
+                  <td><span class="badge badge-fixed">Good</span></td>
+                  <td>engines and drivers are separate modules, but core and tooling share one repo and one release process</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="callout callout-solution">
+            <strong>The service-orientation read</strong>
+            Module boundaries align with bounded contexts far better than most
+            libraries of this size manage. The weakness is not conceptual
+            coupling; it is that the <em>maintenance unit</em> (repo, CI,
+            release train) is one mixed bag of runtime core, linter, and docs
+            renderer. Splitting the product lines would raise this dimension more
+            than any code change.
+          </div>
+        </section>
+
+        <section id="target">
+          <h2><span class="num">08</span>Target architecture</h2>
+          <p>
+            Diagrams rendered with D2 into this directory:
+            <a href="2026-10-24_16-54_architecture-review-current.svg">current state</a> and
+            <a href="2026-10-24_16-54_architecture-review-improved.svg">target state</a>.
+            The target is not a rewrite: it keeps the driver pattern, the
+            composition root and the capability interfaces, and changes only
+            where boundaries are drawn.
+          </p>
+          <div class="compare-header">
+            <div class="compare-before">Today</div>
+            <div class="compare-after">Target (v5 end state)</div>
+          </div>
+          <div class="compare-row">
+            <div>101 modules, each with its own <code>go.mod</code> and version train</div>
+            <div>1 core module (packages as boundaries) + 11 driver modules + products</div>
+          </div>
+          <div class="compare-row">
+            <div><code>metaengine</code>: 166 files, 27,701 LOC, 829 symbols in one package</div>
+            <div><code>metaengine/{engine,plan,exec,collection,diagnostic}</code>, none above ~300 symbols</div>
+          </div>
+          <div class="compare-row">
+            <div>Memory engine lives inside the core package; 10 other engines are modules</div>
+            <div><code>metaengine/memoryengine</code>, symmetric with every other driver</div>
+          </div>
+          <div class="compare-row">
+            <div>v4 and v5 mirror twins (253 vs 253 symbols for <code>event</code>)</div>
+            <div>One copy of every type; deletion-at-zero removes v4 as consumers leave</div>
+          </div>
+          <div class="compare-row">
+            <div>Linter (48.7k LOC) and docs exporters (22.2k LOC) share the SDK's CI and releases</div>
+            <div>Tooling is its own product line with its own cadence</div>
+          </div>
+          <div class="compare-row">
+            <div>One API golden, 6,301 equally-promised symbols</div>
+            <div>Stable-core golden + experimental golden, derived from package boundaries</div>
+          </div>
+        </section>
+
+        <section id="roadmap">
+          <h2><span class="num">09</span>Action roadmap</h2>
+          <p>
+            Ordered by leverage and by dependency, not by enthusiasm. Steps 1-2
+            are days; steps 3-6 are the v5 program; 7-9 are what makes the
+            result stay good.
+          </p>
+
+          <div class="migration-step">
+            <div class="migration-num">1</div>
+            <div class="migration-content">
+              <h4>Make the quality gate green again <span class="badge badge-critical">P0 &middot; S</span></h4>
+              <p>
+                Split <code>scheduling/sqlstore/store.go</code> (363),
+                <code>system/adapter_event.go</code> (351) and
+                <code>metaengine/layout.go</code> (360) to 350 lines or fewer.
+                Nothing else in this roadmap matters while <code>#verify</code>
+                is red. Dependency: none. Verification:
+                <code>bash scripts/check-file-size.sh</code> exits 0.
+              </p>
+            </div>
+          </div>
+
+          <div class="migration-step">
+            <div class="migration-num">2</div>
+            <div class="migration-content">
+              <h4>Declare v4 a fix-only line <span class="badge badge-high">P0 &middot; decision</span></h4>
+              <p>
+                No new packages, no new exported symbols, no structural splits in
+                v4. Every structural change goes into <code>core/v5</code>. This
+                is a one-paragraph decision with zero implementation cost, and it
+                is the precondition for steps 3-6 not being done twice.
+              </p>
+            </div>
+          </div>
+
+          <div class="migration-step">
+            <div class="migration-num">3</div>
+            <div class="migration-content">
+              <h4>Split metaengine into five v5 packages <span class="badge badge-critical">P1 &middot; L</span></h4>
+              <p>
+                <code>engine</code> (SPI, registry, capability audit, health),
+                <code>plan</code> (cost, layout, calibration, replan),
+                <code>exec</code> (execute, dispatch, tx, SSE, catch-up),
+                <code>collection</code> (store, folds, ADTs, cursors, typed
+                readers), <code>diagnostic</code> (explain, doctor, DX). Rule:
+                <code>collection -&gt; engine &lt;- plan/exec</code>, diagnostics
+                on top only. Cost driver: the 48-file store/collection cluster
+                must be moved without dragging the other four. Dependency: step 2.
+              </p>
+            </div>
+          </div>
+
+          <div class="migration-step">
+            <div class="migration-num">4</div>
+            <div class="migration-content">
+              <h4>Extract the memory engine <span class="badge badge-high">P1 &middot; S-M</span></h4>
+              <p>
+                Move <code>memory_*.go</code> (8 files) to
+                <code>metaengine/memoryengine</code> in v5. Symmetry is the
+                point: it removes the last reason for a driver to live inside the
+                core package, and it shrinks the core by 1,382 LOC. Dependency:
+                step 3 (the engine SPI must already be its own package).
+              </p>
+            </div>
+          </div>
+
+          <div class="migration-step">
+            <div class="migration-num">5</div>
+            <div class="migration-content">
+              <h4>Ship <code>cqrs-upgrade --to-v5</code> <span class="badge badge-critical">P1 &middot; L</span></h4>
+              <p>
+                Import rewrite (<code>/v4</code> to <code>core/v5/...</code>),
+                pin bumps, decorator and config migrations, and a V007-class
+                report for deleted APIs. This is the difference between a fork
+                and a migration. Dependency: none; can run in parallel with
+                steps 3-4, but must land before step 6's fleet waves.
+              </p>
+            </div>
+          </div>
+
+          <div class="migration-step">
+            <div class="migration-num">6</div>
+            <div class="migration-content">
+              <h4>Finish the remaining 23 copy-forwards, then migrate in waves <span class="badge badge-critical">P1 &middot; L</span></h4>
+              <p>
+                Copy forward decider, middleware, system, storage,
+                projectionhost and the rest <em>in the post-split package shape</em>,
+                then run fleet waves in the documented order: cqrs-htmx (73% of
+                indirect edges), go-appkit (18%), then the app residue. Each
+                migrated repo raises the delete-at-zero counter for its v4
+                modules. Dependency: steps 3, 4, 5.
+              </p>
+            </div>
+          </div>
+
+          <div class="migration-step">
+            <div class="migration-num">7</div>
+            <div class="migration-content">
+              <h4>Split the tooling into its own product line <span class="badge badge-medium">P2 &middot; M-L</span></h4>
+              <p>
+                <code>cmd/cqrs-lint</code> (48.7k LOC, 207 rules) and the
+                <code>catalog</code> exporters (22.2k LOC) get their own repo or
+                at least their own release cadence and CI triggers. Keep the
+                in-repo gates thin. Dependency: step 6 (tooling must know the v5
+                module layout before it moves).
+              </p>
+            </div>
+          </div>
+
+          <div class="migration-step">
+            <div class="migration-num">8</div>
+            <div class="migration-content">
+              <h4>Tier the API golden <span class="badge badge-medium">P2 &middot; M</span></h4>
+              <p>
+                Two sections: stable core (composition root, decider, event,
+                command, query, record, id) and experimental (metaengine family,
+                catalog exporters). Derive membership from package boundaries so
+                it cannot drift; let release policy follow the sections.
+                Dependency: step 3 (the split defines the boundaries).
+              </p>
+            </div>
+          </div>
+
+          <div class="migration-step">
+            <div class="migration-num">9</div>
+            <div class="migration-content">
+              <h4>Retire the require-dead modules <span class="badge badge-medium">P2 &middot; S</span></h4>
+              <p>
+                Seven of nine <code>stack/*</code> presets have zero fleet
+                requires. Apply the existing delete-at-zero rule to them and to
+                any module whose census count reaches zero, instead of carrying
+                them into v5. Dependency: step 6 (fleet migration first, so the
+                census is final).
+              </p>
+            </div>
+          </div>
+
+          <div class="migration-step">
+            <div class="migration-num">10</div>
+            <div class="migration-content">
+              <h4>Keep the deliberate duplication deliberate <span class="badge badge-low">P3 &middot; S</span></h4>
+              <p>
+                Add <code>//art-dupl:accept</code> directives to the remaining
+                engine families when those files are touched anyway, and write a
+                one-page "dialect seam" note per engine family (pg, badger,
+                duckdb, mysql, memory) explaining which duplication is a
+                decision. Also document the two meanings of "engine" in
+                <code>DOMAIN_LANGUAGE.md</code>.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section id="appendix">
+          <h2><span class="num">10</span>Method &amp; caveats</h2>
+          <p>
+            Measurements taken 2026-10-24 from a clean working tree at
+            <code>ed984c6d1</code>. LOC counts include blank and comment lines and
+            exclude <code>vendor/</code> and <code>testdata/</code> unless stated.
+          </p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Claim</th>
+                  <th>How it was produced</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Module count, edges, fan-in/out, cycles</td>
+                  <td>
+                    <code>find . -name go.mod</code> plus a parser over production
+                    imports (<code>*_test.go</code> excluded, then included for
+                    the delta)
+                  </td>
+                </tr>
+                <tr>
+                  <td>Layer-gate state, dependency budgets</td>
+                  <td><code>bash scripts/check-module-layers.sh</code> and the <code>DEP_BUDGET</code> table</td>
+                </tr>
+                <tr>
+                  <td>API surface per package</td>
+                  <td><code>docs/api_surface.txt</code> grouped by owning module directory</td>
+                </tr>
+                <tr>
+                  <td>Package sizes and concern clusters</td>
+                  <td>file-level LOC plus explicit filename-group assignment</td>
+                </tr>
+                <tr>
+                  <td>File-size gate state</td>
+                  <td><code>bash scripts/check-file-size.sh</code> (exit 1, three new offenders)</td>
+                </tr>
+                <tr>
+                  <td>Fleet demand</td>
+                  <td><code>docs/evidence/fleet-census-2026-10-23_15-13.json</code> (803 go.mod files scanned)</td>
+                </tr>
+                <tr>
+                  <td>Duplication baseline</td>
+                  <td><code>.art-dupl-baseline.json</code> group count and per-file occurrences</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="callout callout-amber">
+            <strong>Caveats</strong>
+            The API golden tracks 82 of 101 modules (examples, tools and test-only
+            modules are excluded by design), so "82 modules" is the tracked
+            surface, not the module count. LOC counts are line-based, not
+            statement-based. Concern clustering for <code>metaengine</code> is a
+            filename-based assignment; the nine clusters are unambiguous at this
+            granularity but a file can straddle two concerns.
+          </div>
+        </section>
+
+        <footer class="footer">
+          Architecture review #8 &middot; 2026-10-24 &middot; 101 modules,
+          249k production LOC, 0 production import cycles &middot; companion
+          diagrams: <code>2026-10-24_16-54_architecture-review-current.svg</code>,
+          <code>2026-10-24_16-54_architecture-review-improved.svg</code>
+        </footer>
+      </main>
+    </div>
+
+
+<!-- Progressive-enhancement scrollspy. Nav still works without JS via anchor links. -->
+    <script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) {
+            return document.getElementById(id);
+          })
+          .filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (link) {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id,
+                  );
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
+      })();
+    </script>
+  </body>
+</html>
