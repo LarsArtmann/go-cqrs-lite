@@ -23,7 +23,7 @@ A **library, not a framework**: import only the modules you need; compose them.
 
 **I/O rule (owner directive 2026-10-24, extends [ADR-0142](../../../docs/adr/0142-universal-storage-substrate.md)): ALL durable data I/O goes solely through `metaengine`.** Journal, read models, snapshots, checkpoints, timers, dedup, tasks, KV — the engines are the only storage layer. If a needed capability is missing from the engines, do NOT hand-roll storage beside them. Run the A/B gate: **(A)** good reason it is missing (transport is not durable state — brokers/SSE wire stay at their delivery layer; build artifacts are not application state)? Then do not add the feature — prefer not having it over forking the substrate. **(B)** the capability should exist? Design it WITH the owner first — ONE shared runtime per storage class in `metaengine` core / `claimkit` / Map runtimes (never a per-engine reimplementation, never satellite-owned SQL) — land it in metaengine, then build on top.
 
-**Testing such apps:** use [`systemscenario`](references/modules.md) — system-level Given/When/Then over the SAME `DomainConfig`/`DeploymentConfig` the production binary uses (ADR-0153): `systemscenario.System(t, ctx, domain, deploy)` boots a real composition root with a frozen `ManualClock`; `Given().Command(...)`, `When(cmd)`, `WhenEvent`, `WhenQuery`, `TimeAdvances(d)` acts; `Then*`/`ThenQuery*`/`ThenCommands`/`ThenError*` assert events, read models, saga command chains, errors, and fired timers without sleeps. Recipe: [recipes.md §2.43](references/recipes.md); Axon-parity mapping: [advanced.md §6.10](references/advanced.md).
+**Testing such apps:** use [`systemscenario`](references/modules.md) — system-level Given/When/Then over the SAME `DomainConfig`/`DeploymentConfig` the production binary uses (ADR-0153): `systemscenario.System(t, ctx, domain, deploy)` boots a real composition root with a frozen `ManualClock`; `Given().Command(...)`, `When(cmd)`, `WhenEvent`, `WhenQuery`, `TimeAdvances(d)` acts; `Then*`/`ThenQuery*`/`ThenCommands`/`ThenError*` assert events, read models, saga command chains, errors, and fired timers without sleeps. `Adopt` wraps an ALREADY-BOOTED system (wrapper facades own `system.New`); an empty `DomainConfig` logs a hollow-root WARNING instead of passing silently (see [faq.md](references/faq.md)). Recipe: [recipes.md §2.43](references/recipes.md); Axon-parity mapping: [advanced.md §6.10](references/advanced.md).
 
 Core loop: Command→Dispatcher→Handler→Decider(load→fold→decide→save→publish)→EventStore+Bus→Projection→ReadModel→Query.
 
@@ -92,6 +92,14 @@ metrics each phase feeds).
 | Measuring latency percentiles at scale          | Measuring a single operation's ns/op        |
 | Checking codec impact (JSON vs CBOR)            | Checking allocation counts                  |
 | CI performance regression gates                 | Quick local iteration during development    |
+
+**Library lane:** `benchkit/v4` is importable from Go tests two ways —
+`benchkit.FactoryFromSystem(func(ctx) (*system.System, error))` runs the
+full suite against a `system.New` deployment (phases the system does not own
+are skipped with recorded warnings), while the bare `Factory` shape binds
+the deprecated v1 `stack.Bundle` presets and is removed at v5. Prefer the
+CLI at arm's length over a compile-time dependency: the toolkit is
+EXPERIMENTAL (`FEATURES.md`). See `benchkit/README.md`.
 
 ### Routing Decision Matrices
 

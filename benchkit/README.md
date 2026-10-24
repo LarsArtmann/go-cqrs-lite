@@ -2,20 +2,50 @@
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/benchkit/v4.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/benchkit/v4)
 
-Factory-driven benchmarking suite for go-cqrs-lite Bundle presets — the
-performance equivalent of `stack/contracttest`.
+Factory-driven benchmarking suite for go-cqrs-lite — the performance
+equivalent of `stack/contracttest`.
 
-A deployer provides a `Factory` (a function returning a fresh
-`*stack.Bundle` — the deprecated v1 composition root, removed in v5), and
-benchkit runs realistic write, read, read-model, and
-projection workloads while collecting latency percentiles, throughput,
-memory deltas, and storage footprint.
+A deployer provides ONE of two factories, and benchkit runs realistic write,
+read, read-model, and projection workloads while collecting latency
+percentiles, throughput, memory deltas, and storage footprint:
+
+- **`FactoryFromSystem`** — adapt a `*system.System` deployment (the
+  ADR-0123 composition root). Phases the system does not own (kv-backed
+  read models) are SKIPPED with recorded warnings, never fabricated.
+- **`Factory`** — a function returning a fresh `*stack.Bundle` from a
+  `stack/*` preset (the deprecated v1 composition root, removed in v5).
 
 ```bash
 go get github.com/larsartmann/go-cqrs-lite/benchkit/v4
 ```
 
-## Quick start
+## Quick start (system.New — the ADR-0123 default)
+
+```go
+import (
+    "github.com/larsartmann/go-cqrs-lite/benchkit/v4"
+    "github.com/larsartmann/go-cqrs-lite/system/v4"
+)
+
+// SystemFactory mirrors your production system.New call — benchmarks run
+// against the SAME engines the binary uses.
+deploy := func(ctx context.Context) (*system.System, error) {
+    return system.New(ctx, domainConfig(), deploymentConfig())
+}
+
+result, err := benchkit.Run(ctx, benchkit.Config{
+    Profile:     benchkit.ProfileDev,
+    PayloadSize: 256,
+}, benchkit.FactoryFromSystem(deploy))
+if err != nil { ... }
+
+benchkit.PrintReport(os.Stdout, result)
+```
+
+`FactoryFromSystem` works with `benchkit.Compare` the same way — map engine
+names to system factories for a side-by-side of real deployments.
+
+## Quick start (stack presets — legacy v1, removed in v5)
 
 ```go
 import (
