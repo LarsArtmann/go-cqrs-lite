@@ -1,0 +1,74 @@
+direction: down
+
+title: |md
+  # go-cqrs-lite — TARGET architecture
+  **One core module · package-sized boundaries · drivers as plugins · tooling as a separate product**
+| {shape: text}
+
+consumers: |md
+  **Consumers (unchanged API shape)**
+
+  - fleet apps + `cqrs-htmx` + `go-appkit` keep calling `system.New(domain, deployment)`
+  - migration is driven by `cqrs-upgrade --to-v5` (the missing codemod), not by hand edits
+| {shape: text}
+
+core: |md
+  **`core/v5` — ONE module, packages as the real boundaries (ADR-0152 end state)**
+
+  - **prim** — record · id · dedup · kv · dispatcher · metadata
+  - **events** — event · schema · snapshot
+  - **commands** — command · decider · commandlifecycle
+  - **queries** — query · projection · projectionhost
+  - **metaengine/{engine,plan,exec,collection,diagnostic}** — the split below
+  - **system** — `DomainConfig` (consumer) + `DeploymentConfig` (operator) composition root
+  - replaces 101 `go.mod` files: one version train for the domain core
+| {
+  shape: text
+  style.stroke: "#1d3557"
+  style.stroke-width: 4
+}
+
+mepkg: |md
+  **`metaengine` becomes 5 packages with an enforced dependency rule**
+
+  - **engine** — `Engine` SPI, registry, capability audit, health/probe, doctor rules
+  - **plan** — cost model, planner, layout, hysteresis, calibration, replan
+  - **exec** — execute, dispatch, transactions, SSE replay, catch-up
+  - **collection** — store, folds, ADTs (vector/graph/spatial/as-of), cursors, typed readers
+  - **diagnostic** — explain, doctor, DX hooks, benchmarks
+  - direction: `collection → engine ← plan/exec` · `diagnostic` depends on all, nothing depends on it
+  - ceiling: no package above ~300 exported symbols (today: 829 in one)
+  - `memory` engine moves to `metaengine/memoryengine` — symmetry with the other 10 drivers
+| {shape: text}
+
+engines: |md
+  **Engine drivers stay exactly as they are — the best part of the design**
+
+  - 11 dependency-isolated modules, each `init()` → `RegisterDriver` (`database/sql` pattern)
+  - CGo (duckdb) and heavy clients (pg, mysql, pebble, badger) never enter a consumer's graph
+| {shape: text}
+
+tools: |md
+  **Tooling leaves the library's maintenance unit**
+
+  - `cmd/cqrs-lint` (48.7k LOC) · `catalog` exporters (22.2k LOC) → own repo(s) or a `tools/` product line
+  - the core keeps only `cmd/api-stability`-class gates; docs tooling stops competing with the SDK for review time
+| {
+  shape: text
+  style.stroke-dash: 3
+}
+
+outcome: |md
+  **What this buys**
+
+  - 101 modules → 1 core module + 11 drivers + products: one tag wave instead of 92-tag coordination
+  - 829 symbols in one package → ≤300 per package: a change has one obvious home
+  - no v4/v5 mirror twins: one copy of every type, one place to fix a bug
+  - stable vs experimental is a package/repo boundary, not a doc stamp
+| {shape: text}
+
+consumers -> core: system.New
+core -> engines: routes reads/writes
+engines -> core: implement Engine SPI
+tools -> core: analyze / render (read-only)
+core -> outcome: enables
