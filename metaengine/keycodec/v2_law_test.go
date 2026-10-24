@@ -45,10 +45,11 @@ func TestEscapeRoundTripTable(t *testing.T) {
 		{"escape-pair-lookalike", "a\x010b"},
 		{"all-specials", "\x00\x01\x00\x01"},
 		{"long-255-plus", strings.Repeat("x\x00", 130)},
+		//nolint:gosmopolitan // the law under test is byte-level escape, intentionally non-ASCII
 		{
 			"unicode",
 			"héllo→世界\x00ü",
-		}, //nolint:gosmopolitan // the law under test is byte-level escape, intentionally non-ASCII
+		},
 	}
 
 	for _, tc := range cases {
