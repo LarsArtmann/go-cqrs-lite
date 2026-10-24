@@ -417,3 +417,35 @@ inside the `metaengine` module → `cd cmd/api-stability && GOWORK=off go run .
 
 _(append as tasks land: date, task, evidence command + result, mutation
 performed, file:line for the change)_
+
+- **2026-10-24 20:4x — Wave 1 executed (T4–T7; T1–T3 pre-shipped per §1.2):**
+  - **T5** `keycodec.EncodeJSONErr` added (`metaengine/keycodec/keycodec.go`
+    `EncodeJSONErr` func, Rejection code `keycodec.encode_value`);
+    `EncodeJSON` doc split into lenient-key-path vs value-path guidance (no
+    deprecation, per spec). Unit tests pin representable/chan/func/cyclic +
+    family + code (`metaengine/keycodec/encode_json_err_test.go`). Verified
+    empirically that `encoding/json/v2` (this Go floor) RETURNS ERRORS on
+    cyclic values — the cyclic case is covered, not a stack-overflow class.
+  - **T4** `adttest.AssertValueEncodeRejection(t, eng)` harness added
+    (`metaengine/adttest/value_encode.go`): MapSet + MapUpdate surfaces,
+    rerun-safe collection names, pins Rejection family AND the canonical
+    `keycodec.encode_value` code. sqliteengine intentionally NOT wired to the
+    harness — it keeps its stronger dedicated specs with the
+    `sqliteengine.encode_value` code (predates the shared helper; migrating
+    that code is v5-envelope territory, not Wave 1).
+  - **T6/T7** all 21 LSM value sites switched to `EncodeJSONErr`
+    (pebbleengine engine.go×4/vector.go/stream_log.go×2; bboltengine
+    backends.go×2/vector.go/map_backends.go×2/stream_log.go×2; badgerengine
+    map_backends.go×2/vector.go/backends.go×2/stream_log.go×2); the
+    `encodeJSON = keycodec.EncodeJSON` aliases deleted from all three engine
+    var blocks. Per-engine `TestValueEncodeRejection` pins wired via the
+    harness. Evidence: `GOWORK=off go test -count=1 ./...` green — metaengine
+    (39s), pebbleengine, bboltengine (SOAK_SKIP_BOLT=1, 6.3s), badgerengine.
+  - **T5.5/.6** taxonomy: `metaengine/keycodec` added to the error-taxonomy
+    gate (`scripts/check-error-taxonomy.sh` GATED_MODULES, second metaengine
+    row); doc regenerated (`keycodec.encode_value` rowed); gate green (544
+    codes / 20 modules). The regen also absorbed unrelated erraudit-export
+    drift (sentinel-name resolution flips in stack/sqlite rows) — the
+    generator is the source of truth.
+  - api golden regenerated: 6305 exports (+2: `EncodeJSONErr`,
+    `AssertValueEncodeRejection`).
