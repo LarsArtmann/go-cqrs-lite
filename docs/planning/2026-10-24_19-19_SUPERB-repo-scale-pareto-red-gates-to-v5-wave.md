@@ -379,5 +379,7 @@ delete-at-zero — needs T06 evidence first) and **G4** (lint extraction intent)
 
 ## 11. Execution log
 
-- (empty — first execution session updates this section, one dated line per
-  completed task, with receipt pointers)
+- **2026-10-24 19:2x:** plan created, committed (authored), and pushed. P0
+  armed (T01–T05); no task executed yet. Predecessor 12-09 plan remains the
+  owner of the value-integrity program — this plan only sequences it.
+
