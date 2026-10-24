@@ -219,6 +219,48 @@ TL;DR rules (too hot to be one click away):
 4. Run `cd cmd/doc-check && GOWORK=off go run . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md`
 5. Run `nix run .#verify` (or at minimum `nix run .#verify-fast`)
 
+### Deprecate a Module (or Symbol Toward v5)
+
+Learned 2026-10-24 deprecating `scheduling/sqlstore` (21 symbols) — the
+marker edit alone fails CI; the ritual is ONE edit window covering all of:
+
+1. `// Deprecated:` on every package-level symbol + the package doc, each
+   pointing at the replacement AND naming the removal version (v5.0.0).
+2. **Same edit**: `cmd/cqrs-lint/pkg/rules/version/v007_tables.go` entry
+   (whole-module row) — `TestV007_TablesCoverAllV5DeprecationMarkers` enforces
+   bidirectional coverage; a marker without a table row fails the drift gate.
+3. Docs trail, same session: CHANGELOG `[Unreleased]` (cite `pkg.Symbol`s —
+   `bash scripts/check-changelog-symbols.sh` gates them), FEATURES.md row,
+   `docs/agents/module-map.md`, `.agents/skills/go-cqrs-lite/references/modules.md`,
+   banner any example that still demos the API (keeps compiling).
+4. `cd cmd/api-stability && GOWORK=off go run . --update` — deprecation
+   markers change the godoc the golden captures.
+5. Same-package test usage of deprecated symbols is SA1019-safe without
+   `.golangci.yml` exclusions (idempotency/sqlstore precedent); only add an
+   exclusion when OTHER packages must keep using them in v4.
+6. Deletion itself stays gated: run the fleet census
+   (`bash scripts/census-fleet.sh`) — a module with ANY fleet prod consumer
+   (sqlstore had ChastityAPI) waits for v5.0.0, never delete-at-zero.
+
+### Add a Lint Rule (cqrs-lint)
+
+Learned 2026-10-24 shipping E023 — three test failures before the full pin
+set was known. One edit window covering ALL of:
+
+1. Detector: `cmd/cqrs-lint/pkg/rules/architecture/eNNN.go` (+ tests:
+   `eNNN_test.go` behavior fixtures, `eNNN_internal_test.go` for exemption
+   tables). Test-infra trap: `analyzer.BuildContextFromSource` fabricates a
+   UNIQUE `PkgPath` PER FILE (`test.example/<filename>`) — package-level
+   signals must pin `gf.Pkg.PkgPath` to one value manually.
+2. `pkg/rules/register.go` — register after the previous rule.
+3. `pkg/rules/catalog_architecture.go` (or sibling catalog) — ID, name,
+   severity, confidence, short+long description.
+4. Regen docs: `cd cmd/cqrs-lint && GOWORK=off go run . rules --markdown > RULES.md`.
+5. Count pins: `cmd/cqrs-lint/README.md` rule counts AND
+   `pkg/rules/meta_test.go` detector-count (both drift-gated).
+6. `cd cmd/api-stability && GOWORK=off go run . --update` (new exports).
+7. Full suite: `cd cmd/cqrs-lint && GOWORK=off go test ./... -count=1`.
+
 ### Close a Wave / Feature Session
 
 1. **Inventory**: FEATURES.md row upsert + CHANGELOG `[Unreleased]` row for anything user-visible — module registration in 6 gates with zero feature-inventory presence is how drift starts (2026-10-10 lesson).
