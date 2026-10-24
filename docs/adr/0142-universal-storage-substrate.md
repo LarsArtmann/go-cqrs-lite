@@ -223,3 +223,13 @@ bonus + dependency gating + dedup keys — is richer than `DueClaimer`'s), and
 `kv` (no engine adapter; only v5-removed legacy backends implement
 `kv.Store`).
 
+### Verdicts (2026-10-24, owner decisions on the widened scope)
+
+| Open item | Verdict | Consequence |
+| --- | --- | --- |
+| Timers default | **Deprecate `scheduling/sqlstore` now** (was: v5-gated T20 default-flip) | Every package-level symbol carries a `// Deprecated:` notice pointing at `scheduling/engine.NewTimerStore` over a `metaengine.DueClaimer` engine; module deleted at v5.0.0. In-repo exempt demo: `example/scheduler-otel-status` (demonstrates the sqlstore-specific `ClaimMetrics` hooks; banner added, engine-path observability demo replaces it before v5). |
+| Queue task tables | **A-verdict: stay engine-owned**, with a revisit note | Task semantics (priority + age bonus + dependency gating + attempt budgets + token-fenced finalizes) are not a generic ADT; queue engines already ARE metaengine drivers exposing `DueClaimer`/`DedupStore`/`FactSink`. Revisit trigger recorded in TODO_LIST: if a SECOND consumer needs priority-ordered due-claims on engine collections, reopen the DueClaimer-v2 design. |
+| `kv` durable backends | **Under evaluation** | The owner asked for the original design intent of `kv.Store` before deciding between an engine Map adapter and demoting `kv` to in-memory/cache-only. Origin research (ADR-0022/0032 lineage) pending; decision open. |
+| Enforcement | **Approved: cqrs-lint rule** | A rule flagging satellite-owned SQL (e.g. `database/sql` usage outside engine-tier modules) enforces contract 30 mechanically; implementation tracked in TODO_LIST. |
+
+
