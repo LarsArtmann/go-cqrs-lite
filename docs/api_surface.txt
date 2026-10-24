@@ -2673,6 +2673,8 @@ metaengine/adttest/func AssertFactSink
 metaengine/adttest/func AssertTemporalConformance
 metaengine/adttest/func AssertTxIsolationFromForeignContext
 metaengine/adttest/func AssertVectorDimensionGuard
+metaengine/adttest/func AssertWALDuplicateAppendConflicts
+metaengine/adttest/func AssertWALStreamVersionConflict
 metaengine/adttest/func AuditCapability
 metaengine/adttest/func CanonicalizeAny
 metaengine/adttest/func CanonicalizeCounter
