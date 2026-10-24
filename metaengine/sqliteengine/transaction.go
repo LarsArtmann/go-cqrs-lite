@@ -150,7 +150,12 @@ func readModifyWriteCached(
 
 	newVal := update(prev)
 
-	_, err = xc.exec(ctx, setQuery, col, encodeKey(key), encodeValue(newVal))
+	encoded, err := encodeValue(newVal)
+	if err != nil {
+		return err
+	}
+
+	_, err = xc.exec(ctx, setQuery, col, encodeKey(key), encoded)
 
 	return err
 }

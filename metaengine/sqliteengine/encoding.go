@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 func encodeKey(key any) string {
@@ -46,7 +48,8 @@ func encodeKey(key any) string {
 func encodeValue(value any) (string, error) {
 	b, err := json.Marshal(value)
 	if err != nil {
-		return "", fmt.Errorf("sqliteengine: encode value %T: %w", value, err)
+		return "", errorfamily.WrapRejection(err, "sqliteengine.encode_value",
+			fmt.Sprintf("encode map value %T", value))
 	}
 
 	return string(b), nil

@@ -3,6 +3,8 @@ package metaengine
 import (
 	"encoding/json/v2"
 	"fmt"
+
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // EncodeStreamValue encodes a value for storage in a StreamLogBackend.
@@ -24,7 +26,9 @@ func EncodeStreamValue(v any) string {
 
 // EncodeStreamValueErr is [EncodeStreamValue] with the marshal error surfaced,
 // so a write path can refuse to persist a placeholder when the value is not
-// JSON-representable (a channel, a function, a cyclic structure, ...).
+// JSON-representable (a channel, a function, a cyclic structure, ...). The
+// failure is Rejection-classified: the caller supplied input no engine can
+// store, and retrying the same value cannot succeed.
 func EncodeStreamValueErr(v any) (string, error) {
 	if s, ok := v.(string); ok {
 		return s, nil
@@ -32,7 +36,8 @@ func EncodeStreamValueErr(v any) (string, error) {
 
 	data, err := json.Marshal(v)
 	if err != nil {
-		return "", fmt.Errorf("metaengine.EncodeStreamValue: marshal %T: %w", v, err)
+		return "", errorfamily.WrapRejection(err, "metaengine.encode_stream_value",
+			fmt.Sprintf("encode stream value %T", v))
 	}
 
 	return string(data), nil

@@ -131,12 +131,17 @@ func (e *sqliteEngine) MapSetAt(
 
 	keyStr := encodeKey(key)
 
+	encoded, err := encodeValue(value)
+	if err != nil {
+		return err
+	}
+
 	if _, err := e.xc(ctx).
-		exec(ctx, e.queries.mapSet, col, keyStr, encodeValue(value)); err != nil {
+		exec(ctx, e.queries.mapSet, col, keyStr, encoded); err != nil {
 		return fmt.Errorf("map set-at latest: %w", err)
 	}
 
-	return e.recordVersionRow(ctx, col, keyStr, value, ts)
+	return e.recordVersionRow(ctx, col, keyStr, encoded, ts)
 }
 
 func (e *sqliteEngine) MapDeleteAt(
