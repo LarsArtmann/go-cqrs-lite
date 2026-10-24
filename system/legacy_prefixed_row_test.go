@@ -85,7 +85,12 @@ func TestLegacyPrefixedRows_StickyKeyReadAndAppend(t *testing.T) {
 		t.Fatalf("seed legacy row: %v", err)
 	}
 
-	adapter := system.NewEventAdapter(backend, collection)
+	// WithSerialization: a real SQLite-backed deployment persists event
+	// ENVELOPES (the adapter's JSON wrapper), not raw *event.ImmutableEvent
+	// pointers — the engine's encode gate (2026-10-23) rightly rejects
+	// structs it cannot marshal, where the old path silently wrote a
+	// fmt.Sprintf placeholder this test's row counting never noticed.
+	adapter := system.NewEventAdapter(backend, collection, system.WithSerialization())
 
 	// Load through the CURRENT adapter: sticky resolution must find the
 	// legacy-keyed row.
