@@ -428,4 +428,19 @@ delete-at-zero — needs T06 evidence first) and **G4** (lint extraction intent)
     Module" (markers→V007→docs trail→golden→SA1019 scoping→census gate) and
     "Add a Lint Rule" (detector→register→catalog→RULES.md→count pins→golden→
     suite), both distilled from the 2026-10-24 D1/D2 lessons. doc-check green.
+  - **T05 DONE — composed proof green.** `nix run .#verify-fast` EXIT=0,
+    293 module test packages ok, 88/88 modules lint-clean, duplication gate
+    0 new, doc-check 1356 refs valid. WAL raw-byte pins rerun ×2 green;
+    keycodec/adttest/engine suites green (incl. ×5 on the map-order-robust
+    pin). Two chase-downs along the way: (a) the first composed run had 5
+    lint findings (2× exhaustruct on foreign-committed catalog demo
+    literals → scoped `//nolint:exhaustruct_v5` with omitempty rationale;
+    err113 on explain's dynamic error → static sentinel; 2× gochecknoglobals
+    on E023 lookup tables → read-only-table nolint precedent; revive
+    unused-param in the new harness); (b) my MapUpdate conversions minted
+    ONE new clone group (badger↔pebble prologue twins) → accept directives,
+    gate back to 0. Also observed once: `systemscenario` SSE await failed
+    under 100-module parallel load and passed ×3 standalone and in the clean
+    composed run — the known load-sensitivity class, not a regression
+    (pre-session commit also green in a throwaway worktree).
 
