@@ -11,9 +11,11 @@ import (
 	"database/sql"
 	"encoding/json/v2"
 	"errors"
+	"fmt"
 	"net/url"
 	"strings"
 	"testing"
+	"time"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 
@@ -79,14 +81,25 @@ const (
 	pgTypedEventID2 = "01TYPED0000000000000000002"
 )
 
+// runSuffix makes every derived name unique per test-binary run: under the
+// shared POSTGRES_TEST_DSN (CI service container) the database PERSISTS
+// across runs, so a stable name would make the second run's first append
+// conflict with the first run's rows (the adttest rerun-safety lesson —
+// deterministic red on run 2).
+var runSuffix = fmt.Sprintf("%x", time.Now().UnixNano()&0xFFFFFFFF)
+
 // typedCollection derives a run-unique collection from the test name: with
 // POSTGRES_TEST_DSN set there is NO per-test database (the testcontainer path
-// isolates per test; CI's service container does not), so parallel pins must
-// not share the 'events' collection (the adttest tx-iso rerun lesson).
+// isolates per test), so parallel pins must not share the 'events' collection.
 func typedCollection(t *testing.T) string {
-	name := strings.ReplaceAll(strings.ToLower(t.Name()), "_", "")
-	name = strings.ReplaceAll(name, "/", "_")
-	return "events_" + name
+	name := strings.ToLower(t.Name())
+	name = strings.ReplaceAll(name, "_", "")
+	name = strings.ReplaceAll(name, "/", "")
+	if len(name) > 24 {
+		name = name[:24]
+	}
+
+	return "events_" + name + "_" + runSuffix
 }
 
 func TestTypedWAL_DuplicateEventAppendConflicts(t *testing.T) {
