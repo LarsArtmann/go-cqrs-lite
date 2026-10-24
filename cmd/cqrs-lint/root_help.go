@@ -13,7 +13,7 @@ var rootLongHelp = "cqrs-lint — Domain-aware linter for go-cqrs-lite consumers
 	"Usage:\n" +
 	"  cqrs-lint [path] [flags]     Lint Go project for CQRS anti-patterns (default)\n" +
 	"  cqrs-lint rules              List all available rules\n" +
-	"  cqrs-lint explain            Explain the .cqrs-lint.json config format in detail\n" +
+	"  cqrs-lint explain            Explain the .cqrs-lint.json config format in detail; pass rule IDs (e.g. `explain E004`) for per-rule docs\n" +
 	"  cqrs-lint doctor             Show resolved config + detected feature profile\n" +
 	"  cqrs-lint scorecard          Show module adoption scorecard (used/missing/coverage)\n" +
 	"  cqrs-lint init               Create a .cqrs-lint.json with defaults\n" +

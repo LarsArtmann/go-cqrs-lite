@@ -57,6 +57,7 @@ cqrs-lint rules --json
 cqrs-lint init --preset local-cli   # generate a config for a local CLI project
 cqrs-lint init                       # generate a default config skeleton
 cqrs-lint explain                    # full documentation of every config key
+cqrs-lint explain E004 E018          # per-rule documentation cards (ID, severity, description)
 cqrs-lint doctor                     # show resolved config + detected profile
 cqrs-lint doctor --audit-suppressions # active vs stale vs unknown-rule suppressions
 cqrs-lint doctor --prune-suppressions # auto-remove stale whole-line suppressions

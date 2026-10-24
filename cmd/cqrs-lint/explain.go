@@ -3,28 +3,85 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
+	"os"
 	"slices"
 	"strings"
 
 	cmdguard "github.com/larsartmann/cmdguard/v4/pkg/cmdguard/v4"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules"
 )
 
 func setupExplainCommand(cli *cmdguard.CLI[AppConfig]) error {
 	cmd, err := cmdguard.NewCommand(
 		"explain",
 		cmdguard.NoFlags{},
-		func(_ context.Context, _ *AppConfig, _ cmdguard.NoFlags) error {
-			fmt.Print(renderExplain())
-			return nil
+		func(ctx context.Context, _ *AppConfig, _ cmdguard.NoFlags) error {
+			args := cmdguard.ArgsFromContext(ctx)
+			if len(args) == 0 {
+				fmt.Print(renderExplain())
+
+				return nil
+			}
+
+			return renderRuleExplanations(os.Stdout, args)
 		},
 		cmdguard.WithShort(
-			"Explain the .cqrs-lint.json config format, all keys, presets, and features",
+			"Explain the .cqrs-lint.json config format, all keys, presets, and features; "+
+				"pass rule IDs (e.g. `explain E004`) for per-rule documentation",
 		),
-		cmdguard.WithNoArgs(),
+		cmdguard.WithMaximumArgs(8),
 	)
 	return registerCommand(cli, "explain", cmd, err)
+}
+
+// renderRuleExplanations prints the catalog card for each rule ID. Unknown
+// IDs fail loudly instead of silently printing nothing — a fleet audit
+// (2026-10-24) found `explain E004` producing no output, which forced the
+// consumer to grep rule source comments for semantics.
+func renderRuleExplanations(w io.Writer, ids []string) error {
+	var unknown []string
+
+	for _, id := range ids {
+		rule, ok := rules.LookupRule(id)
+		if !ok {
+			unknown = append(unknown, id)
+
+			continue
+		}
+
+		fmt.Fprint(w, renderRuleCard(rule))
+	}
+
+	if len(unknown) > 0 {
+		return fmt.Errorf(
+			"unknown rule ID(s): %s — run 'cqrs-lint rules' for the full rule table",
+			strings.Join(unknown, ", "),
+		)
+	}
+
+	return nil
+}
+
+// renderRuleCard renders one rule's catalog metadata as a standalone card.
+func renderRuleCard(r rules.RuleInfo) string {
+	var b strings.Builder
+
+	writeSectionHeader(&b, r.ID+" — "+r.Name)
+	fmt.Fprintf(&b, "  Category:    %s\n", r.Category)
+	fmt.Fprintf(&b, "  Severity:    %s\n", r.Severity)
+	fmt.Fprintf(&b, "  Confidence:  %s\n", r.Confidence)
+	fmt.Fprintf(&b, "  Auto-fix:    %t\n", r.AutoFix)
+	if r.DocURL != "" {
+		fmt.Fprintf(&b, "  Docs:        %s\n", r.DocURL)
+	}
+	b.WriteString("\n  " + r.Description + "\n")
+	b.WriteString("\n  Run 'cqrs-lint rules' for the full rule table; 'cqrs-lint explain' with\n")
+	b.WriteString("  no arguments documents the config-format reference.\n\n")
+
+	return b.String()
 }
 
 // presetDescriptions maps preset names to human-readable descriptions.

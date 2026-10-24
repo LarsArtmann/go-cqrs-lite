@@ -136,3 +136,49 @@ func findFeatureKey(key string) *featureKey {
 	}
 	return nil
 }
+
+func TestRenderRuleExplanations(t *testing.T) {
+	t.Parallel()
+
+	t.Run("known rule prints a full card", func(t *testing.T) {
+		t.Parallel()
+
+		var b strings.Builder
+		if err := renderRuleExplanations(&b, []string{"E004"}); err != nil {
+			t.Fatalf("renderRuleExplanations(E004): %v", err)
+		}
+
+		out := b.String()
+		for _, want := range []string{"E004", "Category:", "Severity:", "Confidence:", "cqrs-lint rules"} {
+			if !strings.Contains(out, want) {
+				t.Errorf("card missing %q:\n%s", want, out)
+			}
+		}
+	})
+
+	t.Run("unknown rule fails loudly", func(t *testing.T) {
+		t.Parallel()
+
+		var b strings.Builder
+		err := renderRuleExplanations(&b, []string{"ZZZ9"})
+		if err == nil {
+			t.Fatal("want error for unknown rule ID, got nil")
+		}
+		if !strings.Contains(err.Error(), "ZZZ9") || !strings.Contains(err.Error(), "cqrs-lint rules") {
+			t.Errorf("error should name the ID and point at 'cqrs-lint rules', got: %v", err)
+		}
+	})
+
+	t.Run("mixed batch prints known and reports unknown", func(t *testing.T) {
+		t.Parallel()
+
+		var b strings.Builder
+		err := renderRuleExplanations(&b, []string{"E004", "NOPE1"})
+		if err == nil {
+			t.Fatal("want error when any ID is unknown")
+		}
+		if !strings.Contains(b.String(), "E004") {
+			t.Error("known rule card should still print before the error")
+		}
+	})
+}
