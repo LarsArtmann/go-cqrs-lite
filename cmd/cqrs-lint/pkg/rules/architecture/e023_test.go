@@ -28,7 +28,9 @@ func save(db *sql.DB, e event.Event) error { return nil }
 }
 
 // The mixing signal is PACKAGE-level: the SQL file and the library file may
-// be different files of one package.
+// be different files of one package. BuildContextFromSource fabricates a
+// unique PkgPath PER FILE, so the test pins both files to one package path
+// to express the real (shared-PkgPath) shape.
 func TestE023_FiresWhenSplitAcrossFilesOfOnePackage(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"sql.go": `package app
@@ -44,6 +46,9 @@ import "github.com/larsartmann/go-cqrs-lite/event/v4"
 func emit() {}
 `,
 	})
+	for _, gf := range ctx.GoFiles {
+		gf.Pkg.PkgPath = "example.com/app"
+	}
 	findings := ruletest.RunDetector(t, architecture.NewE023Detector(ctx))
 	ruletest.AssertRule(t, findings, "E023", 1)
 }

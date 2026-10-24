@@ -132,10 +132,13 @@ func sqlImportsOf(gf *analyzer.GoFile) []*ast.ImportSpec {
 func packageMixesLibraryAndSQL(ctx *analyzer.AnalysisContext, gf *analyzer.GoFile) bool {
 	files := ctx.GoFiles
 
-	if gf != nil && gf.Pkg != nil {
+	// Group by package PATH, not pointer: syntax-only contexts build one
+	// *packages.Package per file, so pointer identity would fragment a
+	// package into single files and miss cross-file mixing.
+	if gf != nil && gf.Pkg != nil && gf.Pkg.PkgPath != "" {
 		files = nil
 		for _, candidate := range ctx.GoFiles {
-			if candidate.Pkg == gf.Pkg {
+			if candidate.Pkg != nil && candidate.Pkg.PkgPath == gf.Pkg.PkgPath {
 				files = append(files, candidate)
 			}
 		}
