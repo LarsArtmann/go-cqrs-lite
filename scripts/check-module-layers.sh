@@ -335,7 +335,10 @@ DEP_BUDGET["metaengine/pgengine"]=5
 DEP_BUDGET["metaengine/badgerengine"]=2
 DEP_BUDGET["metaengine/dgraphengine"]=3
 DEP_BUDGET["metaengine/graphadapter"]=2
-DEP_BUDGET["metaengine/sqliteengine"]=3
+# 4 = claiming + metaengine + error-family + modernc/sqlite. error-family became
+# direct when the map-value encoder started classifying unrepresentable input
+# as Rejection instead of silently storing a fmt.Sprintf("%v") placeholder.
+DEP_BUDGET["metaengine/sqliteengine"]=4
 DEP_BUDGET["metaengine/projectionadapter"]=10
 DEP_BUDGET["metaengine/otelobserver"]=4
 DEP_BUDGET["otel/otlp"]=5
