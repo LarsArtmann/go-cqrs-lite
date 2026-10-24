@@ -12,8 +12,15 @@ func TestEncodeJSONErr(t *testing.T) {
 	t.Run("representable value round-trips", func(t *testing.T) {
 		t.Parallel()
 
-		// encoding/json/v2 preserves map insertion order (v1 sorted keys).
-		b, err := EncodeJSONErr(map[string]any{"status": "open", "n": float64(3)})
+		// Struct fields emit in declaration order — deterministic. (A map
+		// literal would be flaky: encoding/json/v2 does not sort map keys,
+		// gotchas-language-footguns.)
+		type repRow struct {
+			Status string  `json:"status"`
+			N      float64 `json:"n"`
+		}
+
+		b, err := EncodeJSONErr(repRow{Status: "open", N: 3})
 		if err != nil {
 			t.Fatalf("EncodeJSONErr: %v", err)
 		}
