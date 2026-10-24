@@ -3,6 +3,7 @@ package badgerengine
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/dgraph-io/badger/v4"
 
@@ -14,7 +15,11 @@ import (
 
 func (e *badgerEngine) MapSet(_ context.Context, col string, key, value any) error {
 	k := mapKey(col, encodeKeyStr(key))
-	val := encodeJSON(value)
+
+	val, err := keycodec.EncodeJSONErr(value)
+	if err != nil {
+		return fmt.Errorf("badgerengine.MapSet: %w", err)
+	}
 
 	return e.db.Update(func(txn *badger.Txn) error {
 		return txn.Set(k, val)
@@ -105,8 +110,13 @@ func (e *badgerEngine) MapUpdate(
 
 	newVal := update(prev)
 
+	newValJSON, encErr := keycodec.EncodeJSONErr(newVal)
+	if encErr != nil {
+		return fmt.Errorf("badgerengine.MapUpdate: %w", encErr)
+	}
+
 	return e.db.Update(func(txn *badger.Txn) error {
-		return txn.Set(k, encodeJSON(newVal))
+		return txn.Set(k, newValJSON)
 	})
 }
 

@@ -307,7 +307,6 @@ var (
 	journalKey         = keycodec.JournalKey
 	journalPrefix      = keycodec.JournalPrefix
 	streamSeqMapKey    = keycodec.StreamSeqKey
-	encodeJSON         = keycodec.EncodeJSON
 	decodeJSON         = keycodec.DecodeJSON
 	encodeKeyStr       = keycodec.EncodeKeyStr
 	encodeCounterValue = keycodec.EncodeCounterValue

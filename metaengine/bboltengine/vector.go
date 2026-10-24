@@ -33,7 +33,12 @@ func (e *bboltEngine) VectorInsert(
 	metaKey := keycodec.VectorMetaKey(collection, emb.ID)
 	metaValue := []byte(nil)
 	if emb.Metadata != nil {
-		metaValue = encodeJSON(emb.Metadata)
+		metaJSON, err := keycodec.EncodeJSONErr(emb.Metadata)
+		if err != nil {
+			return fmt.Errorf("bboltengine.VectorInsert: metadata: %w", err)
+		}
+
+		metaValue = metaJSON
 	}
 
 	return e.db.Update(func(tx *bolt.Tx) error {

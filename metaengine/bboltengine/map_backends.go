@@ -3,6 +3,7 @@ package bboltengine
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"slices"
 
 	bolt "go.etcd.io/bbolt"
@@ -16,7 +17,11 @@ import (
 
 func (e *bboltEngine) MapSet(_ context.Context, col string, key, value any) error {
 	k := mapKey(col, encodeKeyStr(key))
-	val := encodeJSON(value)
+
+	val, err := keycodec.EncodeJSONErr(value)
+	if err != nil {
+		return fmt.Errorf("bboltengine.MapSet: %w", err)
+	}
 
 	return e.db.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(bucketName))
@@ -86,9 +91,14 @@ func (e *bboltEngine) MapUpdate(
 
 		newVal := update(prev)
 
+		newValJSON, encErr := keycodec.EncodeJSONErr(newVal)
+		if encErr != nil {
+			return fmt.Errorf("bboltengine.MapUpdate: %w", encErr)
+		}
+
 		return bucket.Put(
 			k,
-			encodeJSON(newVal),
+			newValJSON,
 		) //nolint:wrapcheck // bbolt error is self-describing
 	})
 }
