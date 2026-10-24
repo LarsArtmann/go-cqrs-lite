@@ -42,6 +42,7 @@ GATED_MODULES=(
 	"storage (SQL facade)|storage/eventstore|storage.|22"
 	"storage (SQL facade)|storage/readmodel|storage. kv_sql.|6"
 	"metaengine|metaengine|metaengine."
+	"metaengine|metaengine/keycodec|keycodec."
 )
 
 # Per-module pool-size floor: a gated module whose extraction yields fewer
