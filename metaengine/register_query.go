@@ -108,6 +108,9 @@ func (s *Store) applyAutoLayoutForQuery(meta queryMeta) error {
 		)
 	}
 
+	// A15: stamp the applied plan (default ON, warn-first drift).
+	s.stampLayoutPlan(layoutPlan, meta.QueryEngine())
+
 	return nil
 }
 

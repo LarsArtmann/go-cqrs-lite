@@ -92,3 +92,41 @@ func TestDecodeStreamValue_LegacyFallback(t *testing.T) {
 		t.Fatal("DecodeStreamValue(JSON) = nil, want decoded map")
 	}
 }
+
+func TestEncodeStreamValuesErr(t *testing.T) {
+	t.Parallel()
+
+	t.Run("encodes every value in order", func(t *testing.T) {
+		t.Parallel()
+
+		got, err := metaengine.EncodeStreamValuesErr([]any{"plain", 7, map[string]int{"a": 1}})
+		if err != nil {
+			t.Fatalf("EncodeStreamValuesErr: %v", err)
+		}
+
+		want := []string{"plain", "7", `{"a":1}`}
+
+		if len(got) != len(want) {
+			t.Fatalf("encoded %d values, want %d", len(got), len(want))
+		}
+
+		for i := range want {
+			if got[i] != want[i] {
+				t.Fatalf("encoded[%d] = %q, want %q", i, got[i], want[i])
+			}
+		}
+	})
+
+	t.Run("one unrepresentable value rejects the batch", func(t *testing.T) {
+		t.Parallel()
+
+		got, err := metaengine.EncodeStreamValuesErr([]any{"ok", make(chan int)})
+		if err == nil {
+			t.Fatal("EncodeStreamValuesErr(chan) = nil error")
+		}
+
+		if got != nil {
+			t.Fatalf("encoded values = %v, want nil on error", got)
+		}
+	})
+}

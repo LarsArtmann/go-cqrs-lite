@@ -87,6 +87,9 @@ func (r *layoutRule) Apply(result *PlanResult, ctx PlanContext) error {
 			if err := applyLayoutPlan(rt, layoutPlan, filterFields, sortFields); err != nil {
 				return fmt.Errorf("auto-layout for %q: %w", rt.QueryName(), err)
 			}
+
+			// A15: stamp the applied plan (default ON, warn-first drift).
+			ctx.Store.stampLayoutPlan(layoutPlan, rt.QueryEngine())
 		}
 	}
 

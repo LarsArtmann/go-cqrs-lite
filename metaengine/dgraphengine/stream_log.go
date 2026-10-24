@@ -31,15 +31,15 @@ func (e *dgraphEngine) StreamAppend(
 		return nil
 	}
 
+	encodedValues, encodeErr := metaengine.EncodeStreamValuesErr(values)
+	if encodeErr != nil {
+		return fmt.Errorf("dgraphengine.StreamAppend: %w", encodeErr)
+	}
+
 	nodes := make([]map[string]any, 0, len(values))
 
-	for i, v := range values {
+	for i, encoded := range encodedValues {
 		seq := time.Now().UnixNano() + int64(i)
-
-		encoded, encodeErr := metaengine.EncodeStreamValueErr(v)
-		if encodeErr != nil {
-			return fmt.Errorf("dgraphengine.StreamAppend: %w", encodeErr)
-		}
 
 		nodes = append(nodes, map[string]any{
 			"uid":                        fmt.Sprintf("_:sl%d", i),
@@ -252,15 +252,15 @@ func (e *dgraphEngine) StreamAppendExpected(
 	}`
 	req.Vars = map[string]string{"$col": col, "$sid": sid}
 
+	encodedValues, encodeErr := metaengine.EncodeStreamValuesErr(values)
+	if encodeErr != nil {
+		return fmt.Errorf("dgraphengine.StreamAppendExpected: %w", encodeErr)
+	}
+
 	nodes := make([]map[string]any, 0, len(values))
 
-	for i, v := range values {
+	for i, encoded := range encodedValues {
 		seq := time.Now().UnixNano() + int64(i)
-
-		encoded, encodeErr := metaengine.EncodeStreamValueErr(v)
-		if encodeErr != nil {
-			return fmt.Errorf("dgraphengine.StreamAppendExpected: %w", encodeErr)
-		}
 
 		nodes = append(nodes, map[string]any{
 			"uid":                        fmt.Sprintf("_:sl%d", i),

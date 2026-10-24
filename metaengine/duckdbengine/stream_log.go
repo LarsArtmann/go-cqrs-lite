@@ -54,12 +54,12 @@ func (e *duckdbEngine) StreamAppend(ctx context.Context, col, sid string, values
 		defer e.mu.Unlock()
 	}
 
-	for _, v := range values {
-		encoded, encodeErr := metaengine.EncodeStreamValueErr(v)
-		if encodeErr != nil {
-			return fmt.Errorf("duckdbengine.StreamAppend: %w", encodeErr)
-		}
+	encodedValues, encodeErr := metaengine.EncodeStreamValuesErr(values)
+	if encodeErr != nil {
+		return fmt.Errorf("duckdbengine.StreamAppend: %w", encodeErr)
+	}
 
+	for _, encoded := range encodedValues {
 		if err := e.typedInsertRow(ctx, col, sid, encoded, "StreamAppend"); err != nil {
 			return err
 		}
@@ -97,12 +97,12 @@ func (e *duckdbEngine) StreamAppendExpected(
 		return metaengine.ErrVersionConflict
 	}
 
-	for _, v := range values {
-		encoded, encodeErr := metaengine.EncodeStreamValueErr(v)
-		if encodeErr != nil {
-			return fmt.Errorf("duckdbengine.StreamAppendExpected insert: %w", encodeErr)
-		}
+	encodedValues, encodeErr := metaengine.EncodeStreamValuesErr(values)
+	if encodeErr != nil {
+		return fmt.Errorf("duckdbengine.StreamAppendExpected insert: %w", encodeErr)
+	}
 
+	for _, encoded := range encodedValues {
 		if err := e.typedInsertRow(ctx, col, sid, encoded, "StreamAppendExpected"); err != nil {
 			return err
 		}

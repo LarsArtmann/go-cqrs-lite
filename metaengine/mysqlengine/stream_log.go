@@ -51,13 +51,13 @@ func typedInsertRow(
 }
 
 func (e *mysqlEngine) StreamAppend(ctx context.Context, col, sid string, values []any) error {
-	return e.inTx(ctx, func(conn metaengine.SQLExec) error {
-		for _, v := range values {
-			encoded, encodeErr := metaengine.EncodeStreamValueErr(v)
-			if encodeErr != nil {
-				return fmt.Errorf("mysqlengine.StreamAppend: %w", encodeErr)
-			}
+	encodedValues, encodeErr := metaengine.EncodeStreamValuesErr(values)
+	if encodeErr != nil {
+		return fmt.Errorf("mysqlengine.StreamAppend: %w", encodeErr)
+	}
 
+	return e.inTx(ctx, func(conn metaengine.SQLExec) error {
+		for _, encoded := range encodedValues {
 			if err := typedInsertRow(ctx, conn, col, sid, encoded, "StreamAppend"); err != nil {
 				return err
 			}
@@ -91,12 +91,12 @@ func (e *mysqlEngine) StreamAppendExpected(
 			return metaengine.ErrVersionConflict
 		}
 
-		for _, v := range values {
-			encoded, encodeErr := metaengine.EncodeStreamValueErr(v)
-			if encodeErr != nil {
-				return fmt.Errorf("mysqlengine.StreamAppendExpected insert: %w", encodeErr)
-			}
+		encodedValues, encodeErr := metaengine.EncodeStreamValuesErr(values)
+		if encodeErr != nil {
+			return fmt.Errorf("mysqlengine.StreamAppendExpected insert: %w", encodeErr)
+		}
 
+		for _, encoded := range encodedValues {
 			if err := typedInsertRow(
 				ctx,
 				conn,

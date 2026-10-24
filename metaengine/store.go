@@ -15,36 +15,37 @@ import (
 )
 
 type Store struct {
-	mu                sync.RWMutex
-	foldLocks         *foldLocks // per-query fold locks (shared fold state; see fold_locks.go)
-	engines           []Engine
-	engineRoles       map[string]ProjectionRole             // engine name → role; missing = Active (guarded by mu)
-	replicas          map[string]*replicator                // shadow-engine replicators (guarded by mu)
-	taskSnap          atomic.Pointer[map[string][]foldTask] // immutable event→tasks index (lock-free reads)
-	queries           map[string]queryMeta
-	byInputType       map[string]string
-	plan              *PlanResult
-	poison            *poisonTracker
-	idempotency       *idempotencyTracker
-	meter             *workloadMeter
-	subs              *subscriberHub
-	hooks             *Hooks // observability hooks (nil = no-op)
-	eventLog          *EventLog
-	queryDecls        []any          // original query declarations (for Verify)
-	coalescer         *ReadCoalescer // optional read coalescer (nil = disabled)
-	routingHysteresis float64        // min fractional improvement before suggesting re-route
-	routingMinDelta   float64        // min absolute improvement (ms) before suggesting re-route
-	lastReplanAt      time.Time
-	replanCount       int
-	planHistory       []PlanAuditEntry // bounded audit trail (max maxPlanHistory)
-	routingMu         sync.Mutex       // protects routingSig + routingDiags
-	routingSig        string
-	routingDiags      []Diagnostic
-	priorityConfig    *PriorityConfig                  // operator-driven layout priority (ADR-0124)
-	sharedCollections map[string]bool                  // child types shared across collections (ADR-0124 boundaries)
-	capabilityGaps    map[string]CapabilityGaps        // engine name → documented ADT gaps (persist across Replan)
-	backfillState     map[string]PlannedBackfillResult // collection → last planned-table backfill outcome (Doctor-visible; guarded by mu)
-	defaultLimit      int                              // operator ceiling for un-limited scans (WithDefaultLimit); 0 = built-in 100
+	mu                   sync.RWMutex
+	foldLocks            *foldLocks // per-query fold locks (shared fold state; see fold_locks.go)
+	engines              []Engine
+	engineRoles          map[string]ProjectionRole             // engine name → role; missing = Active (guarded by mu)
+	replicas             map[string]*replicator                // shadow-engine replicators (guarded by mu)
+	taskSnap             atomic.Pointer[map[string][]foldTask] // immutable event→tasks index (lock-free reads)
+	queries              map[string]queryMeta
+	byInputType          map[string]string
+	plan                 *PlanResult
+	poison               *poisonTracker
+	idempotency          *idempotencyTracker
+	meter                *workloadMeter
+	subs                 *subscriberHub
+	hooks                *Hooks // observability hooks (nil = no-op)
+	eventLog             *EventLog
+	queryDecls           []any          // original query declarations (for Verify)
+	coalescer            *ReadCoalescer // optional read coalescer (nil = disabled)
+	routingHysteresis    float64        // min fractional improvement before suggesting re-route
+	routingMinDelta      float64        // min absolute improvement (ms) before suggesting re-route
+	lastReplanAt         time.Time
+	replanCount          int
+	planHistory          []PlanAuditEntry // bounded audit trail (max maxPlanHistory)
+	routingMu            sync.Mutex       // protects routingSig + routingDiags
+	routingSig           string
+	routingDiags         []Diagnostic
+	priorityConfig       *PriorityConfig                  // operator-driven layout priority (ADR-0124)
+	sharedCollections    map[string]bool                  // child types shared across collections (ADR-0124 boundaries)
+	capabilityGaps       map[string]CapabilityGaps        // engine name → documented ADT gaps (persist across Replan)
+	backfillState        map[string]PlannedBackfillResult // collection → last planned-table backfill outcome (Doctor-visible; guarded by mu)
+	defaultLimit         int                              // operator ceiling for un-limited scans (WithDefaultLimit); 0 = built-in 100
+	layoutStampsDisabled bool                             // A15: layout-plan stamping ON by default (warn-first); opts out via WithLayoutStampsDisabled
 
 	// Health-driven deactivation (ADR-0137): per-engine failure tracking and
 	// quarantine. healthMu never nests inside s.mu acquisitions in the other
