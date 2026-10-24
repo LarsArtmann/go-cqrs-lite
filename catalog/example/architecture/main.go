@@ -4,12 +4,15 @@
 //
 // Run:
 //
-//	go run ./example/architecture
+//	go run ./example/architecture            # writes into the working directory
+//	go run ./example/architecture -o /tmp/out # writes into the given directory
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4/architecture"
@@ -65,6 +68,16 @@ func buildCatalog() *catalog.Catalog {
 }
 
 func main() {
+	out := flag.String("o", ".", "directory the HTML files are written to")
+
+	flag.Parse()
+
+	if err := os.MkdirAll(*out, 0o750); err != nil {
+		fmt.Fprintf(os.Stderr, "create output dir: %v\n", err)
+
+		os.Exit(1)
+	}
+
 	cat := buildCatalog()
 
 	whole := architecture.NewExporter(
@@ -73,12 +86,15 @@ func main() {
 		architecture.WithCommand("go run ./example/architecture"),
 	)
 
-	if err := whole.ExportFile(cat, "architecture.html"); err != nil {
+	wholePath := filepath.Join(*out, "architecture.html")
+
+	if err := whole.ExportFile(cat, wholePath); err != nil {
 		fmt.Fprintf(os.Stderr, "architecture export: %v\n", err)
+
 		os.Exit(1)
 	}
 
-	fmt.Println("wrote architecture.html (the whole catalog)")
+	fmt.Println("wrote", wholePath, "(the whole catalog)")
 
 	// The same catalog as a redacted slice: keep one domain, hide the
 	// ownership attribution, let out-of-scope references degrade to names.
@@ -93,10 +109,13 @@ func main() {
 		References:  architecture.ReferencesNameOnly,
 	}).Options()...)...)
 
-	if err := slice.ExportFile(cat, "architecture-partner.html"); err != nil {
+	slicePath := filepath.Join(*out, "architecture-partner.html")
+
+	if err := slice.ExportFile(cat, slicePath); err != nil {
 		fmt.Fprintf(os.Stderr, "slice export: %v\n", err)
+
 		os.Exit(1)
 	}
 
-	fmt.Println("wrote architecture-partner.html (a redacted slice)")
+	fmt.Println("wrote", slicePath, "(a redacted slice)")
 }

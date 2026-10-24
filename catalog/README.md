@@ -697,7 +697,8 @@ package links nothing new.
 A runnable end-to-end demo lives in [`example/architecture`](example/architecture/main.go):
 
 ```sh
-go run ./example/architecture   # writes architecture.html + architecture-partner.html (a redacted slice) to the working directory
+go run ./example/architecture            # writes architecture.html + architecture-partner.html into the working directory
+go run ./example/architecture -o /tmp/out # ... or into the given directory
 ```
 
 Redacted slices (ADR-0160): `WithInclude`/`WithExclude`/`WithNeverExport` pick

@@ -23,6 +23,8 @@ import (
 //
 //	Read this file with the code.
 type ExportSpec struct {
+	// Title is the slice's document title. The sentinel "catalog" uses the
+	// catalog's own title, so one spec file can travel across catalogs.
 	Title       string
 	Description string
 	Include     []Selector
@@ -194,11 +196,15 @@ func (f specFrontmatter) toSpec(body string) (*ExportSpec, error) {
 
 // Options maps the spec onto exporter options. The introduction rides with
 // the title option set separately, because a spec file may want the
-// catalog's own title.
+// catalog's own title — spelled with the "catalog" sentinel, which simply
+// sets no title option so the exporter falls back to the catalog's.
 func (s *ExportSpec) Options() []Option {
 	options := []Option{
-		WithTitle(s.Title),
 		WithInclude(s.Include...),
+	}
+
+	if s.Title != "catalog" {
+		options = append(options, WithTitle(s.Title))
 	}
 
 	if s.Description != "" {

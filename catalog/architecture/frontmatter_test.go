@@ -144,6 +144,32 @@ func TestLoadExportValidatesReferencesMode(t *testing.T) {
 	})
 }
 
+// TestLoadExportCatalogTitleSentinel pins the "catalog" title sentinel: the
+// spec sets no title option, so the exporter falls back to the catalog's own
+// title — one spec file can travel across catalogs (ADR-0160).
+func TestLoadExportCatalogTitleSentinel(t *testing.T) {
+	dir := t.TempDir()
+
+	path := filepath.Join(dir, "sentinel.mdx")
+
+	const content = "---\ntitle: catalog\ninclude:\n  - kind: domain\n    id: ordering\n---\nbody\n"
+
+	if err := os.WriteFile(path, []byte(content), 0o600); err != nil {
+		t.Fatalf("write fixture: %v", err)
+	}
+
+	spec, err := architecture.LoadExport(path)
+	if err != nil {
+		t.Fatalf("LoadExport: %v", err)
+	}
+
+	out := renderSelection(t, spec.Options()...)
+
+	if !strings.Contains(out, "Acme · Architecture reference") {
+		t.Error("the catalog sentinel did not fall back to the catalog's own title")
+	}
+}
+
 // TestLoadExportParsesSpec pins the custom-export frontmatter contract:
 // title and include are required, the body becomes the introduction, and
 // x-* selectors are rejected pointing at ADR-0160.
