@@ -2742,7 +2742,7 @@ Source: the 2026-10-24 architecture review (modularity + service orientation), w
 `2026-10-24_16-54_architecture-review-current.svg` / `-improved.svg`. The prior
 review (2026-07-09) roadmap is fully resolved (five items as proposed; the outbox
 landed as journal-as-outbox via `watermill.CatchUpSubscriber`). Scores this
-round: 3.9/5 overall, with Cohesion and Scalability at 3. These rows are the new
+round: 4.0/5 overall, with Cohesion and Scalability at 3. These rows are the new
 findings.
 
 - [ ] 🔥 **P0: file-size ratchet is RED (3 new offenders)** — `scheduling/sqlstore/store.go`

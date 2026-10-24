@@ -24,18 +24,22 @@ var ErrPlannedColumnTypeMismatch error = errorfamily.NewRejection(
 )
 
 // PlannedColumnTypeCompatible reports whether val's Go type can bind to a
-// planned column of the given declared type. Column types are the SQLite-ish
-// names produced by BuildLayoutPlan ("INTEGER", "REAL", "TEXT"); unknown or
+// planned column of the given declared type. Column types are the canonical
+// names produced by BuildLayoutPlan and sqlTypeOf ("INTEGER", "BIGINT",
+// "REAL", "DOUBLE", "TEXT") plus the engine dialect aliases; unknown or
 // empty types are permissive so hand-built plans never get falsely rejected.
 //
-// Numeric Go values bind to both INTEGER and REAL columns; only Go strings
-// bind to TEXT columns. Everything else (bool, nil, slices, maps) is a
-// mismatch and the caller must surface ErrPlannedColumnTypeMismatch.
+// Numeric Go values bind to numeric columns (INTEGER/BIGINT/REAL/DOUBLE/
+// FLOAT); only Go strings bind to TEXT columns. Everything else (bool, nil,
+// slices, maps) is a mismatch and the caller must surface
+// ErrPlannedColumnTypeMismatch.
 func PlannedColumnTypeCompatible(columnType string, val any) bool {
 	switch strings.ToUpper(columnType) {
-	case "INTEGER", "REAL":
+	case "INTEGER", "BIGINT", "REAL", "DOUBLE", "FLOAT":
 		switch val.(type) {
-		case int, int32, int64, float64:
+		case int, int8, int16, int32, int64,
+			uint, uint8, uint16, uint32, uint64,
+			float32, float64:
 			return true
 		default:
 			return false

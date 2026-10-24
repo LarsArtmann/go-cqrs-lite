@@ -898,7 +898,7 @@
             <div class="label">Dependency direction</div>
           </div>
           <div class="score-card score-warn">
-            <div class="score">3.9</div>
+            <div class="score">4.0</div>
             <div class="label">Overall</div>
           </div>
         </section>
@@ -913,9 +913,11 @@
             322 production edges, the module-layer gate passes
             (<code>scripts/check-module-layers.sh</code>, 100 layer entries), and
             the domain tier imports nothing but Tier 0/1 primitives
-            (<code>event</code> depends on <code>dispatcher</code>,
-            <code>id</code>, <code>metadata</code>, <code>record</code> and
-            nothing else). Composability is genuinely best-in-class: a new engine
+            (the vocabulary modules <code>event</code>, <code>command</code>
+            and <code>query</code> each import only <code>dispatcher</code>,
+            <code>id</code>, <code>metadata</code> and <code>record</code>;
+            <code>decider</code> reaches upward only to <code>snapshot</code>
+            and the zero-dependency <code>otel</code> facade). Composability is genuinely best-in-class: a new engine
             is a module plus <code>init() -&gt; metaengine.RegisterDriver</code>,
             and a new read model is a fold declaration.
           </p>
@@ -1285,8 +1287,9 @@
               the memory engine itself. Cluster counts from file ownership:
               store/collections/folds 48 files, engine contract 28, planner 16,
               execution 16, diagnostics 13, ADTs 13, SQL helpers 11, memory
-              engine 8. All of it shares one namespace and one 829-symbol
-              stability promise.
+              engine 8, and 13 residual files (types, error vocabulary,
+              capability adapters). All of it shares one namespace and one
+              829-symbol stability promise.
             </p>
             <p>
               Two symptoms prove this is not cosmetic. First, the only engine

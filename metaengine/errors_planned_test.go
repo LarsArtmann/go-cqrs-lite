@@ -20,6 +20,15 @@ func TestPlannedColumnTypeCompatible(t *testing.T) {
 		{"REAL", 1.5, true},
 		{"REAL", int64(1), true},
 		{"REAL", "1.5", false},
+		{"BIGINT", int64(3), true},
+		{"BIGINT", "3", false},
+		{"DOUBLE", 1.5, true}, // sqlTypeOf emits DOUBLE for float64 fields
+		{"DOUBLE", int(1), true},
+		{"DOUBLE", "1.5", false},
+		{"FLOAT", float32(1.5), true},
+		{"FLOAT", "1.5", false},
+		{"INTEGER", uint8(3), true},
+		{"INTEGER", float32(3), true},
 		{"TEXT", "x", true},
 		{"TEXT", float64(1), false},
 		{"", float64(1), true}, // unknown type is permissive

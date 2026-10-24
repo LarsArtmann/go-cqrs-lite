@@ -10,8 +10,8 @@
 
 ## TL;DR
 
-1. **metaengine never used go-codec.** There is no commit that removed it. The module was stdlib-only from its first commit because [ADR-0062](../../adr/0062-metaengine-dependency-boundary.md) (2026-07-25) made it "zero-dependency" by decree.
-2. **A second same-day decision removed the incentive to ever revisit it.** [ADR-0066](../../adr/0066-metaengine-reify-fallback.md) chose bare JSON engine values plus a JSON round-trip (`reify`) for cross-engine typed reads, and explicitly **rejected** stamping a serialization format on stored values.
+1. **metaengine never used go-codec.** There is no commit that removed it. The module was stdlib-only from its first commit because [ADR-0062](../adr/0062-metaengine-dependency-boundary.md) (2026-07-25) made it "zero-dependency" by decree.
+2. **A second same-day decision removed the incentive to ever revisit it.** [ADR-0066](../adr/0066-metaengine-reify-fallback.md) chose bare JSON engine values plus a JSON round-trip (`reify`) for cross-engine typed reads, and explicitly **rejected** stamping a serialization format on stored values.
 3. **The premise was later declared wrong, but the correction was narrow.** ADR-0062's 2026-08-06 addendum says the zero-dependency boundary is wrong and that dependencies are justified when they improve the planner. It only re-admitted `record/`. Nobody re-opened the codec question.
 4. **Owner correction during this session (authoritative):** go-codec is **not a leaf dependency and not "Tier 3 importing down"**. It is a **Tier -1 substrate** (conceptually below Tier 0, like the standard library). Therefore there is no architectural objection at all; its absence is **encoding debt**, not a boundary being respected.
 5. **Consequence:** metaengine re-implemented a slice of go-codec badly and in five places, and the strongest evidence is a test that had to pin JSON because production cannot decode the library's own default encoding (CBOR).

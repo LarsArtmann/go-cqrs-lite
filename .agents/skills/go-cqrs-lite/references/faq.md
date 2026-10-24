@@ -62,7 +62,7 @@ events, _ := event.NewEvents(aggID, "User", 0,
 **If you still hit it:**
 
 - A hand-written `PayloadDecoder` that calls `json.Unmarshal` rejects CBOR: use `event.DecodePayloadAuto[T]`, or pass `nil` and let the store decode.
-- Design record: [ADR-0161](../../../docs/adr/0161-encoded-ingress-producer-codec.md).
+- Design record: [ADR-0161](../../../../docs/adr/0161-encoded-ingress-producer-codec.md).
 - Encodings outside JSON/CBOR are not supported by the encoded entry point: decode them yourself and call `Store.ApplyRecord`.
 
 Note: schema-free CBOR→JSON transcoding is NOT the fix — CBOR encodes `time.Time` as an epoch integer, so the transcoded JSON cannot be decoded back into `time.Time`. Decode with the target type, as the store now does.
