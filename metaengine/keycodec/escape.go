@@ -20,7 +20,10 @@ import "strings"
 // Escape renders a key segment free of Sep and of the escape byte (0x01),
 // so joining escaped segments with Sep is injective.
 func Escape(s string) string {
-	if !strings.ContainsAny(s, "\x00\x01") {
+	if !strings.ContainsAny(
+		s,
+		"\x00\x01",
+	) { // art-dupl:accept Escape/Unescape are deliberate mirror twins — the guard+builder prologue is the pairing
 		return s
 	}
 
@@ -47,7 +50,10 @@ func Escape(s string) string {
 // unknown follower byte) pass through literally — Unescape is total, and
 // garbage-in-garbage-out beats an error for scan-side use on foreign data.
 func Unescape(s string) string {
-	if !strings.ContainsRune(s, 0x01) {
+	if !strings.ContainsRune(
+		s,
+		0x01,
+	) { // art-dupl:accept Escape/Unescape are deliberate mirror twins — the guard+builder prologue is the pairing
 		return s
 	}
 

@@ -20,6 +20,7 @@ func (e *duckdbEngine) typedInsertRow(
 	ctx context.Context,
 	col, sid, encoded, op string,
 ) error {
+	// art-dupl:accept cross-module SQL engine pattern — dep-isolated go.mod modules
 	typed, _ := extractTypedStreamRow(encoded)
 
 	var metadata any
@@ -37,6 +38,7 @@ func (e *duckdbEngine) typedInsertRow(
 		typed.eventID, typed.streamType, typed.version, typed.schemaVersion,
 		typed.payload, typed.encoding, metadata, typed.occurredAt,
 	)
+	// art-dupl:accept cross-module SQL engine pattern — dep-isolated go.mod modules
 	if isUniqueViolation(err) {
 		return fmt.Errorf("duckdbengine.%s: %w", op, metaengine.ErrVersionConflict)
 	}

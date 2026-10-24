@@ -236,7 +236,9 @@ func TestWALPin_CommandEnvelopeBareAndRaw(t *testing.T) {
 	}
 }
 
-func equalBytes(a, b []byte) bool {
+func equalBytes(
+	a, b []byte,
+) bool { // art-dupl:accept trivial slice-equality test sugar — cross-module test helpers
 	if len(a) != len(b) {
 		return false
 	}

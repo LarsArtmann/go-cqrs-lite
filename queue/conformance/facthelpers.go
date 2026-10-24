@@ -67,7 +67,9 @@ func contains(detail []byte, reason string) bool {
 }
 
 // equalFactTypes compares two fact-type slices for exact equality.
-func equalFactTypes(got, want []facts.FactType) bool {
+func equalFactTypes(
+	got, want []facts.FactType,
+) bool { // art-dupl:accept trivial slice-equality test sugar — cross-module test helpers
 	if len(got) != len(want) {
 		return false
 	}

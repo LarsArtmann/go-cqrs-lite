@@ -44,7 +44,10 @@ func walEnvelope(t *testing.T, eventID, streamID string, version int) string {
 // optimistic-concurrency contract — instead of silently adding a second
 // journal row. Run it from every engine module's test suite; the scenario is
 // engine-agnostic, only the engine setup differs per module.
-func AssertWALDuplicateAppendConflicts(t *testing.T, eng metaengine.Engine) { // art-dupl:accept conformance scenarios share the harness prologue by design
+func AssertWALDuplicateAppendConflicts(
+	t *testing.T,
+	eng metaengine.Engine,
+) { // art-dupl:accept conformance scenarios share the harness prologue by design
 	t.Helper()
 
 	backend, ok := eng.(metaengine.StreamLogBackend)
@@ -80,7 +83,10 @@ func AssertWALDuplicateAppendConflicts(t *testing.T, eng metaengine.Engine) { //
 // (collection, stream, version) slot must surface
 // metaengine.ErrVersionConflict — the journal is a versioned stream, not a
 // bag of rows. Run it from every engine module's test suite.
-func AssertWALStreamVersionConflict(t *testing.T, eng metaengine.Engine) { // art-dupl:accept conformance scenarios share the harness prologue by design
+func AssertWALStreamVersionConflict(
+	t *testing.T,
+	eng metaengine.Engine,
+) { // art-dupl:accept conformance scenarios share the harness prologue by design
 	t.Helper()
 
 	backend, ok := eng.(metaengine.StreamLogBackend)
