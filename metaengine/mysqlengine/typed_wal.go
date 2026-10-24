@@ -233,8 +233,7 @@ func isUniqueViolation(err error) bool {
 		return false
 	}
 
-	var my *mysql.MySQLError
-	if errors.As(err, &my) {
+	if my, ok := errors.AsType[*mysql.MySQLError](err); ok {
 		return my.Number == 1062
 	}
 
