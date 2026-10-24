@@ -25,7 +25,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
      floor tags were already proxy-invisible). The 10-03 floor-wave rationale
      did NOT retag the root module (doc.go unchanged since v4.0.0; zero
      importable packages) — root stays v4.0.0. -->
-## [Unreleased]
+## [metaengine/v4.20.0, metaengine/sqliteengine/v4.6.0, metaengine/pebbleengine/v4.4.4, metaengine/projectionadapter/v4.6.2, storage/turso/v4.3.5, catalog/v4.10.0, cmd/cqrs-lint/v4.18.0, stack/v4.5.1, otel/v4.5.3, prometheus/v4.3.4, schema/v4.7.1, event/v4.15.2, system/v4.15.4 — 2026-10-24 disk-truth tail wave: constraints everywhere (14 tags)] — 2026-10-24
 
 ### Removed
 
@@ -107,6 +107,17 @@ Every package-level symbol in `idempotency/kvstore` (`KVBackend`, `Store`, `New`
 ### Changed
 
 - **KV engine cursor keys are bare user keys.** bbolt/badger/pebble `MapScan` results previously exposed full storage keys (`m\x00<collection>\x00<key>`) in pagination cursors, leaking the physical layout across the wire; all three now strip the prefix via `keycodec.UserKeyBytes`, matching the memory engine's convention. The adttest `PaginationProbe` registry tracks the unified `CursorKeyRaw` form.
+
+
+## [Unreleased]
+
+### Added
+
+- Nothing yet.
+
+### Fixed
+
+- Nothing yet.
 
 ## [systemscenario/v4.2.0 — 2026-10-17 BDD harness depth wave (1 tag)] — 2026-10-17
 
