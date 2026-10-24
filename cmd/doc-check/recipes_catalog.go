@@ -120,7 +120,9 @@ var recipeCatalogA = map[string]recipeSpec{
 		trailers: "_ = versioned",
 	},
 	"### 2.5b Legacy Display-Form IDs Inside Old Payloads (schema) #1": {
+		errFunc: true,
 		imports: []string{
+			`"fmt"`,
 			`"github.com/larsartmann/go-cqrs-lite/schema/v4"`,
 			`"github.com/larsartmann/go-cqrs-lite/event/v4"`,
 			`"github.com/larsartmann/go-cqrs-lite/id/v4"`,
