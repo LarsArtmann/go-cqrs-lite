@@ -119,7 +119,7 @@ func ensureTypedStreamLog(db *sql.DB) error {
 	for _, col := range typedStreamColumns {
 		name := col[:strings.IndexByte(col, ' ')]
 		if _, err := db.Exec(`ALTER TABLE meta_stream_log ADD COLUMN IF NOT EXISTS ` + col); err != nil {
-			return fmtErr("add column %s", name, err)
+			return fmt.Errorf("duckdbengine typed WAL: add column %s: %w", name, err)
 		}
 	}
 

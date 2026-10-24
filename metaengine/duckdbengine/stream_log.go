@@ -3,6 +3,7 @@ package duckdbengine
 import (
 	"context"
 	"database/sql"
+	"encoding/json/v2"
 	"errors"
 	"fmt"
 
@@ -10,6 +11,42 @@ import (
 )
 
 // --- StreamLogBackend implementation ---
+
+// typedInsertRow executes the 11-column typed WAL insert for one encoded
+// value (A13): the typed columns are extracted from the event envelope, and
+// a unique-constraint violation on the identity indexes maps to
+// metaengine.ErrVersionConflict, the optimistic-concurrency contract.
+func (e *duckdbEngine) typedInsertRow(
+	ctx context.Context,
+	col, sid, encoded, op string,
+) error {
+	typed, _ := extractTypedStreamRow(encoded)
+
+	var metadata any
+	if len(typed.metadata) > 0 && json.Unmarshal(typed.metadata, new(any)) == nil {
+		metadata = string(typed.metadata)
+	}
+
+	_, err := e.conn(ctx).ExecContext(
+		ctx,
+		`INSERT INTO meta_stream_log
+			(collection, stream_id, value, event_id, stream_type, version, schema_version,
+			 payload, encoding, metadata, occurred_at)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+		col, sid, encoded,
+		typed.eventID, typed.streamType, typed.version, typed.schemaVersion,
+		typed.payload, typed.encoding, metadata, typed.occurredAt,
+	)
+	if isUniqueViolation(err) {
+		return fmt.Errorf("duckdbengine.%s: %w", op, metaengine.ErrVersionConflict)
+	}
+
+	if err != nil {
+		return fmt.Errorf("duckdbengine.%s: %w", op, err)
+	}
+
+	return nil
+}
 
 func (e *duckdbEngine) StreamAppend(ctx context.Context, col, sid string, values []any) error {
 	if txFromCtx(ctx) == nil {
@@ -23,12 +60,8 @@ func (e *duckdbEngine) StreamAppend(ctx context.Context, col, sid string, values
 			return fmt.Errorf("duckdbengine.StreamAppend: %w", encodeErr)
 		}
 
-		if _, err := e.conn(ctx).ExecContext(
-			ctx,
-			`INSERT INTO meta_stream_log (collection, stream_id, value) VALUES ($1, $2, $3)`,
-			col, sid, encoded,
-		); err != nil {
-			return fmt.Errorf("duckdbengine.StreamAppend: %w", err)
+		if err := e.typedInsertRow(ctx, col, sid, encoded, "StreamAppend"); err != nil {
+			return err
 		}
 	}
 
@@ -70,12 +103,8 @@ func (e *duckdbEngine) StreamAppendExpected(
 			return fmt.Errorf("duckdbengine.StreamAppendExpected insert: %w", encodeErr)
 		}
 
-		if _, err := e.conn(ctx).ExecContext(
-			ctx,
-			`INSERT INTO meta_stream_log (collection, stream_id, value) VALUES ($1, $2, $3)`,
-			col, sid, encoded,
-		); err != nil {
-			return fmt.Errorf("duckdbengine.StreamAppendExpected insert: %w", err)
+		if err := e.typedInsertRow(ctx, col, sid, encoded, "StreamAppendExpected"); err != nil {
+			return err
 		}
 	}
 
