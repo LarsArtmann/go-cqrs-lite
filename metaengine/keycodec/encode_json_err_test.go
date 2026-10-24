@@ -1,7 +1,6 @@
 package keycodec
 
 import (
-	"errors"
 	"testing"
 
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -24,27 +23,19 @@ func TestEncodeJSONErr(t *testing.T) {
 	})
 
 	// A channel is the canonical non-representable value: the lenient
-	// EncodeJSON would store "0x..." into the read model.
+	// EncodeJSON would store its %v rendering into the read model.
 	t.Run("channel value is a Rejection", func(t *testing.T) {
 		t.Parallel()
 
 		_, err := EncodeJSONErr(make(chan int))
-		if err == nil {
-			t.Fatal("channel value must not encode")
-		}
-
-		assertEncodeValueRejection(t, err, "chan int")
+		assertEncodeValueRejection(t, err)
 	})
 
 	t.Run("function value is a Rejection", func(t *testing.T) {
 		t.Parallel()
 
 		_, err := EncodeJSONErr(func() {})
-		if err == nil {
-			t.Fatal("function value must not encode")
-		}
-
-		assertEncodeValueRejection(t, err, "func()")
+		assertEncodeValueRejection(t, err)
 	})
 
 	t.Run("cyclic value is a Rejection", func(t *testing.T) {
@@ -54,32 +45,24 @@ func TestEncodeJSONErr(t *testing.T) {
 		cyclic["self"] = cyclic
 
 		_, err := EncodeJSONErr(cyclic)
-		if err == nil {
-			t.Fatal("cyclic value must not encode")
-		}
-
-		assertEncodeValueRejection(t, err, "map[string]interface {}")
+		assertEncodeValueRejection(t, err)
 	})
 }
 
-func assertEncodeValueRejection(t *testing.T, err error, goType string) {
+// assertEncodeValueRejection pins family AND code, so a later refactor cannot
+// move the failure to a different stage while the family stays Rejection.
+func assertEncodeValueRejection(t *testing.T, err error) {
 	t.Helper()
 
-	if fam := errorfamily.FamilyOf(err); fam != errorfamily.Rejection {
-		t.Errorf("family = %v, want Rejection (err: %v)", fam, err)
+	if err == nil {
+		t.Fatal("expected an error, got nil")
 	}
 
-	var coded errorfamily.Coded
-	if !errors.As(err, &coded) {
-		t.Fatalf("error must carry an errorfamily code: %v", err)
+	if family := errorfamily.Classify(err); family != errorfamily.Rejection {
+		t.Fatalf("error %v classified as %v, want Rejection", err, family)
 	}
 
-	if code := coded.ErrorCode(); code != "keycodec.encode_value" {
-		t.Errorf("code = %q, want keycodec.encode_value", code)
-	}
-
-	if want := "encode value " + goType; !errorfamily.Is(err, errorfamily.NewRejection("keycodec.encode_value", want)) {
-		// Family + code already pinned above; this is a best-effort message shape check.
-		t.Logf("message shape: %v (want prefix %q)", err, want)
+	if code := errorfamily.Code(err); code != "keycodec.encode_value" {
+		t.Fatalf("error code = %q, want keycodec.encode_value (%v)", code, err)
 	}
 }

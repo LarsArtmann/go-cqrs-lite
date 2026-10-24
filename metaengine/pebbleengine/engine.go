@@ -245,7 +245,6 @@ var (
 	journalKey         = keycodec.JournalKey
 	journalPrefix      = keycodec.JournalPrefix
 	streamSeqKey       = keycodec.StreamSeqKey
-	encodeJSON         = keycodec.EncodeJSON
 	decodeJSON         = keycodec.DecodeJSON
 	encodeKeyStr       = keycodec.EncodeKeyStr
 	encodeCounterValue = keycodec.EncodeCounterValue
@@ -269,7 +268,11 @@ var (
 
 func (e *pebbleEngine) MapSet(_ context.Context, col string, key, value any) error {
 	keyStr := encodeKeyStr(key)
-	valueJSON := encodeJSON(value)
+
+	valueJSON, err := keycodec.EncodeJSONErr(value)
+	if err != nil {
+		return fmt.Errorf("pebbleengine.MapSet: %w", err)
+	}
 
 	// Write secondary index entries if a layout plan exists.
 	e.layoutMu.Lock()
@@ -373,7 +376,11 @@ func (e *pebbleEngine) MapUpdate(
 	}
 
 	newVal := update(prev)
-	newValJSON := encodeJSON(newVal)
+
+	newValJSON, encErr := keycodec.EncodeJSONErr(newVal)
+	if encErr != nil {
+		return fmt.Errorf("pebbleengine.MapUpdate: %w", encErr)
+	}
 
 	// Update secondary index entries if a layout plan exists.
 	e.layoutMu.Lock()
@@ -543,7 +550,12 @@ func (e *pebbleEngine) MultiAdd(_ context.Context, col string, key, value any) e
 	seq := e.nextMmSeq(col)
 	k := multimapKey(col, encodeKeyStr(key), seq)
 
-	return e.db.Set(k, encodeJSON(value), e.writeOptions())
+	valJSON, err := keycodec.EncodeJSONErr(value)
+	if err != nil {
+		return fmt.Errorf("pebbleengine.MultiAdd: %w", err)
+	}
+
+	return e.db.Set(k, valJSON, e.writeOptions())
 }
 
 // iterJSON scans the given prefix range and decodes every value as JSON. The
@@ -595,7 +607,12 @@ func (e *pebbleEngine) LogAppend(_ context.Context, col string, value any) error
 	seq := e.nextLogSeq(col)
 	k := logKey(col, seq)
 
-	return e.db.Set(k, encodeJSON(value), e.writeOptions())
+	valJSON, err := keycodec.EncodeJSONErr(value)
+	if err != nil {
+		return fmt.Errorf("pebbleengine.LogAppend: %w", err)
+	}
+
+	return e.db.Set(k, valJSON, e.writeOptions())
 }
 
 func (e *pebbleEngine) LogTail(_ context.Context, col string, limit int) ([]any, error) {

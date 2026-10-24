@@ -59,7 +59,12 @@ func (e *pebbleEngine) VectorInsert(
 		return nil
 	}
 
-	if err := e.db.Set(metaKey, encodeJSON(emb.Metadata), e.writeOptions()); err != nil {
+	metaJSON, err := keycodec.EncodeJSONErr(emb.Metadata)
+	if err != nil {
+		return fmt.Errorf("pebbleengine.VectorInsert: metadata: %w", err)
+	}
+
+	if err := e.db.Set(metaKey, metaJSON, e.writeOptions()); err != nil {
 		return fmt.Errorf("pebbleengine.VectorInsert: metadata: %w", err)
 	}
 

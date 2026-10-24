@@ -43,10 +43,14 @@ func (e *pebbleEngine) StreamAppend(_ context.Context, col, sid string, values [
 	defer metaengine.DeferClose(batch)
 
 	for _, v := range values {
+		valBytes, err := keycodec.EncodeJSONErr(v)
+		if err != nil {
+			return fmt.Errorf("pebbleengine.StreamAppend: %w", err)
+		}
+
 		seq := e.nextStreamSeq(col, sid)
 		gseq := e.nextJournalSeq(col)
 
-		valBytes := encodeJSON(v)
 		journalEntry := fmt.Sprintf("%s%s%s", sid, sep, string(valBytes))
 
 		_ = batch.Set(streamKey(col, sid, seq), valBytes, nil)
@@ -231,10 +235,14 @@ func (e *pebbleEngine) StreamAppendExpected(
 	defer metaengine.DeferClose(batch)
 
 	for _, v := range values {
+		valBytes, err := keycodec.EncodeJSONErr(v)
+		if err != nil {
+			return fmt.Errorf("pebbleengine.StreamAppendExpected: %w", err)
+		}
+
 		seq := e.nextStreamSeq(col, sid)
 		gseq := e.nextJournalSeq(col)
 
-		valBytes := encodeJSON(v)
 		journalEntry := fmt.Sprintf("%s%s%s", sid, sep, string(valBytes))
 
 		_ = batch.Set(streamKey(col, sid, seq), valBytes, nil)
