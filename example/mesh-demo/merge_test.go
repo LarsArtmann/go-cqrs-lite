@@ -108,6 +108,12 @@ func TestUnionMerge_ManifestsUnionWithoutResourceIDCollisions(t *testing.T) {
 	shared := map[string]bool{
 		"events/order.placed":   true,
 		"events/invoice.issued": true,
+		// Users are global identity records, not bounded-context resources:
+		// both contexts declare the same owner (Lars), and the hub unions
+		// user declarations by design — it already merges users/lars from
+		// bank-sync, crm, and cqrs-htmx. Every other resource stays unique
+		// per source.
+		"users/lars": true,
 	}
 
 	seen := make(map[string]string)
@@ -203,6 +209,38 @@ func TestExport_GovernanceLintContract(t *testing.T) {
 			}
 		}
 	}
+}
+
+// TestExport_DemoFlag pins the MarkDemo() contract end-to-end: every
+// exported resource carries the visible demo marker — the Demo badge on
+// badge-capable resources (services, events, ...), the demo source on
+// users and teams (EventCatalog has no badges there). A reader of the
+// federation hub must never mistake mesh-demo content for a real system.
+func TestExport_DemoFlag(t *testing.T) {
+	dir := t.TempDir()
+	if err := exportDomain("orders", dir, exportOptions{plain: true, skipBootstrap: true}); err != nil {
+		t.Fatalf("export orders: %v", err)
+	}
+
+	assertContains := func(path string, substrs ...string) {
+		t.Helper()
+
+		data, err := os.ReadFile(filepath.Join(dir, filepath.FromSlash(path)))
+		if err != nil {
+			t.Errorf("read %s: %v", path, err)
+			return
+		}
+		for _, sub := range substrs {
+			if !strings.Contains(string(data), sub) {
+				t.Errorf("%s must contain %q:\n%s", path, sub, data)
+			}
+		}
+	}
+
+	assertContains("users/lars.mdx", "name: Lars Artmann", "provider: demo")
+	assertContains("teams/orders-team.mdx", "provider: demo")
+	assertContains("services/orders-svc/index.mdx", "content: Demo")
+	assertContains("events/order.placed/index.mdx", "content: Demo")
 }
 
 func keysOf(m map[string]string) []string {
