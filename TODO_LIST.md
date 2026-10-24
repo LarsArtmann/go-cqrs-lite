@@ -368,6 +368,13 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       (`docserver.Config{ArchitectureReference: true}`), not a build step;
       the CLI export stays available for release artifacts. Rows for both
       repos at their next touch. _(Effort: XS each, other repos)_
+      **IN-REPO READINESS DONE 2026-10-24 (stamp):** the hub's `-check` gate
+      cost is measured (~2–3 ms Inspect at 1k/5k, two orders under the
+      render — `BenchmarkInspectLargeCatalog`); `-check -h` documents the
+      exit-1 CI contract; the fixture gate proves the partner-slice
+      redaction end-to-end; the docserver one-liner, README config snippet,
+      example `-o` flag and the `title: catalog` sentinel are all in.
+      Nothing blocks the three consumer rows.
 
 - [ ] **Owner decision stamped for the pre-existing reds (ANSWERED
       2026-10-18, Q3 of the 10-17 23:15 report; default "fix catalog-local,
