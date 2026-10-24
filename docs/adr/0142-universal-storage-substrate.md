@@ -188,3 +188,38 @@ explicitly refused (`RefusedADTs` with reason, pinned by the
   — no over- or under-declaration (the ADR-0140 audit pattern).
 - Journal-never-disagrees invariant (FactSink): task-state mutation without
   its fact must be unobservable.
+
+## Amendment (2026-10-24, owner directive): scope extended to ALL data I/O; A/B gate formalized
+
+The 2026-09-18 directive said "every durable WRITE rides an engine." The owner
+reaffirmed and widened it: **ALL data I/O — reads included — goes solely
+through metaengine.** For any missing capability, a two-step gate now applies
+before any new I/O is written:
+
+- **(A) Good-reason check.** Is there a good reason metaengine lacks the
+  capability? Transport is not durable state (watermill brokers and the SSE
+  wire layer stay at their delivery layer — their acks/redelivery/ordering
+  are broker law, not storage). Build artifacts are not application state
+  (catalog/docserver/benchkit output). Legacy `storage/*` is already
+  sentenced to v5 removal (ADR-0123). Where the answer is yes, the feature is
+  NOT added — preferring no feature over forking the substrate is the
+  intended outcome, not a failure.
+- **(B) Design-with-owner.** If the capability should exist, it is designed
+  WITH the owner BEFORE implementation, following this ADR's amendment
+  pattern: ONE shared runtime per storage class (metaengine core, `claimkit`
+  for SQL, Map runtimes for KV-shaped engines) — never a per-engine
+  reimplementation, never satellite-owned SQL. The feature is then built on
+  top of the landed engine capability.
+
+Ledger as of 2026-10-24: journal, projections/read models, snapshots
+(`system.SnapshotAdapter` over `SnapshotBackend`), checkpoints (engine Map
+collection default via `resolveCheckpointStore`: custom > engine >
+memory-only fallback), and dedup (`DedupStore`; `idempotency/*` deprecated
+per ADR-0158) ride engines. Open items under the widened scope: timers
+(`scheduling/engine` opt-in; `scheduling/sqlstore` remains the v4 default,
+flip v5-gated T20), queue task tables (engines are metaengine drivers; task
+tables stay engine-owned because their ClaimDue predicate — priority + age
+bonus + dependency gating + dedup keys — is richer than `DueClaimer`'s), and
+`kv` (no engine adapter; only v5-removed legacy backends implement
+`kv.Store`).
+

@@ -180,8 +180,8 @@ func TestExport_GovernanceLintContract(t *testing.T) {
 		contractPath  string
 		memberUserMDX string
 	}{
-		{"orders", "data-products/order-lifecycle/contracts/order-placed.yaml", "users/marta.mdx"},
-		{"billing", "data-products/billing-ledger/contracts/invoice-issued.yaml", "users/juno.mdx"},
+		{"orders", "data-products/order-lifecycle/contracts/order-placed.yaml", "users/lars.mdx"},
+		{"billing", "data-products/billing-ledger/contracts/invoice-issued.yaml", "users/lars.mdx"},
 	} {
 		dir := t.TempDir()
 		if err := exportDomain(

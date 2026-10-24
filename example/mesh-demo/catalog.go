@@ -32,6 +32,10 @@ const (
 // the order.placed contract.
 func buildOrdersCatalog() *catalog.Catalog {
 	reg := catalog.NewRegistry("Orders", ordersCatalogVersion)
+	// Demo content, flagged as such: Build() stamps the Demo badge onto every
+	// resource and the demo source onto users/teams, so the hub renders the
+	// whole context as example data, never as a real system.
+	reg.MarkDemo()
 
 	reg.AddService(catalog.Service{
 		ID: "orders-svc", Name: "Orders Service", Version: ordersCatalogVersion,
@@ -89,10 +93,10 @@ func buildOrdersCatalog() *catalog.Catalog {
 	})
 
 	reg.AddTeam(catalog.Team{
-		ID: ordersTeamID, Name: "Orders Team", Summary: "Owns ordering", Members: []string{"marta"},
+		ID: ordersTeamID, Name: "Orders Team", Summary: "Owns ordering", Members: []string{"lars"},
 	})
 	reg.AddUser(catalog.User{
-		ID: "marta", Name: "Marta Vega", Role: "Lead Engineer", Email: "marta@orders.example.com",
+		ID: "lars", Name: "Lars Artmann", Email: "git@lars.software",
 	})
 
 	// The cross-context lifecycle as a first-class flow — the demo's visible
@@ -168,6 +172,7 @@ func orderLifecycleSteps() []catalog.FlowStep {
 // produces invoice.issued, serves the billing-ledger data product.
 func buildBillingCatalog() *catalog.Catalog {
 	reg := catalog.NewRegistry("Billing", billingCatalogVersion)
+	reg.MarkDemo()
 
 	reg.AddService(catalog.Service{
 		ID: "billing-svc", Name: "Billing Service", Version: billingCatalogVersion,
@@ -217,10 +222,10 @@ func buildBillingCatalog() *catalog.Catalog {
 
 	reg.AddTeam(catalog.Team{
 		ID: billingTeamID, Name: "Billing Team", Summary: "Owns invoicing",
-		Members: []string{"juno"},
+		Members: []string{"lars"},
 	})
 	reg.AddUser(catalog.User{
-		ID: "juno", Name: "Juno Ray", Role: "Staff Engineer", Email: "juno@billing.example.com",
+		ID: "lars", Name: "Lars Artmann", Email: "git@lars.software",
 	})
 
 	return reg.Build()

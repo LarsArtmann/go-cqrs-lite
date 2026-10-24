@@ -128,3 +128,30 @@ No code was changed, so none of these errors touched the tree — they are analy
 ---
 
 **Session state: analysis complete, zero execution. Awaiting instructions on g-Q1/Q2/Q3.**
+
+---
+
+## Decision update — 2026-10-24 17:47 (Q1 answered)
+
+> **Q1 ANSWERED by maintainer:** benchkit's identity is **CQRS / Command- & Event-Sourcing specific** —
+> NOT a general-purpose Go benchmarking product.
+
+Consequences (recorded immediately, original sections above left untouched):
+
+1. **Option B is dead as framed.** The "extract the cqrs-free half as a generic product repo" premise
+   contradicts product intent. The cqrs-free-ness of ~28 production files is an implementation fact,
+   not the product identity.
+2. **This also overrules the 16-56 report's framing for benchkit** (candidate #3 was "cqrs-free core";
+   task F44 "split into cqrs-free core + in-repo adapter" is moot for benchkit under this answer).
+3. **Remaining live options: A′ (co-released CQRS companion repo, cqrs-htmx model — harness + phases
+   move together) vs in-repo (no extraction).** The differentiator is no longer product identity but
+   repo-size/ownership motivation, v5 sequencing (Q2), and fleet pin policy (Q3).
+4. **What survives regardless of repo location** (renamer's pain is real in both worlds):
+   the phase-extension API — combinators **typed for CQRS workloads** (event batches, streams, query
+   decls — not domain-neutral closures), an extensible `Result` envelope, and the `Factory` seam.
+   These are in-repo API improvements first; extraction is optional packaging later.
+5. **Renamer evidence re-read:** it used the cqrs-free half not because it wanted a generic harness but
+   because that was the only usable surface. Under CQRS-specific intent the fix is making CQRS phases
+   pluggable over the consumer's own domain, not genericizing them.
+
+Still blocking: **g-Q2** (before/after v5 wave) and **g-Q3** (fleet pin policy). Awaiting instructions.
