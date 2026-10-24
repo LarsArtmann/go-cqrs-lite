@@ -45,7 +45,7 @@ func TestSystem_NoProjectionDecoder_CBOREvent(t *testing.T) {
 			"raw.created",
 			rawCreated{},
 			func(_ record.Record, e rawCreated) (string, rawView) {
-				return e.ID, rawView{ID: e.ID, Name: e.Name}
+				return e.ID, rawView(e)
 			},
 		),
 	)
