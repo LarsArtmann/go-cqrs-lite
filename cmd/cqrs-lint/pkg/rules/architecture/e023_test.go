@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
-	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lite/v4/pkg/rules/architecture"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/ruletest"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/architecture"
 )
 
 // --- E023: satellite-owned SQL beside go-cqrs-lite usage ---
