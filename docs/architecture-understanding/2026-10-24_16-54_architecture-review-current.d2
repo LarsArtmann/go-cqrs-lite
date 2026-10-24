@@ -1,115 +1,110 @@
 direction: down
 
 title: |md
-  **go-cqrs-lite — CURRENT architecture (2026-10-24)**
-  101 modules · 177 packages · 249k production LOC · 6,301 exported symbols · 0 production import cycles
-  Arrows point the way dependencies flow: tooling → composition → infrastructure/metaengine → domain → primitives.
-| {
-  shape: text
-  style.font-size: 16
-  style.fill: transparent
-}
+  # go-cqrs-lite — CURRENT architecture (2026-10-24)
+  **101 modules · 177 packages · 249k production LOC · 6,301 exported symbols · 0 production import cycles**
 
-t67: |md
-  **Tier 6-7 · Tooling & examples — 30% of production LOC**
-  - `cmd/cqrs-lint` 48.7k LOC · 207 rules · 481 exported symbols
-  - `catalog` 22.2k LOC · 19 packages (EventCatalog, architecture HTML, d2, docserver)
-  - `cmd/api-stability` · `cmd/doc-check` · `benchkit` · 8 examples
+  Arrows follow real import direction: tooling → composition → infrastructure/metaengine → domain → primitives.
 | {shape: text}
 
-t5: |md
-  **Tier 5-6 · Composition**
-  - `system.New(DomainConfig, DeploymentConfig)` — the one composition root
-  - `stack` + 9 presets (7 preset modules are require-dead per the fleet census)
-| {shape: text}
-
-infra: |md
-  **Tier 4 · Infrastructure**
-  - `storage` 336 symbols · `watermill` (journal-as-outbox) · `middleware`
-  - `signing` · `encryption` · `otel` · `prometheus` · `metaengine/projectionadapter`
-| {shape: text}
-
-me: "metaengine — ONE package holding 9 separable concerns" {
-  style.stroke: "#e63946"
-  style.stroke-width: 4
-  direction: down
-  contract: |md
-    **Engine contract + registry + health** — 28 files
-    engine.go · registry.go · cap.go · probe.go · engine_health.go · rule_*.go
-  | {shape: text}
-  plan: |md
-    **Planner + cost + layout** — 16 files
-    planner.go · cost.go · layout*.go (8) · priority.go · relayout.go · plan_diff.go
-  | {shape: text}
-  exec: |md
-    **Execution + transactions + SSE** — 16 files
-    execute.go · dispatch.go · runtime_backend.go · transaction.go · sse*.go
-  | {shape: text}
-  coll: |md
-    **Store + collections + folds** — 48 files (largest concern)
-    store*.go (8) · collection.go · fold*.go (7) · infer_*.go (4) · temporal.go · spatial.go
-  | {shape: text}
-  diag: |md
-    **Diagnostics + typed readers** — 13 files
-    explain*.go · doctor*.go · dx.go · typed_reader*.go (6)
-  | {shape: text}
-  adts: |md
-    **ADT implementations** — 13 files
-    vector_*.go (8) · graph_*.go (2) · spatial.go · temporal*.go
-  | {shape: text}
-  sql: |md
-    **SQL scan + dialect helpers** — 11 files
-    scan*.go · cursor.go · sanitize.go · sql_keyset.go · identifier.go · filter_bind.go
-  | {shape: text}
-  mem: |md
-    **In-core memory engine** — 8 files
-    memory_*.go — the only engine that is not its own module
-  | {shape: text}
-  totals: "166 files · 27,701 LOC · 829 exported symbols = 13% of all tracked API"
-}
-
-engines: |md
-  **Tier 5 · Engine drivers — 11 modules, dependency-isolated**
-  - memory (in core) · sqliteengine (Ca 7) · tursoengine · pebbleengine · bboltengine
-  - badgerengine · pgengine · mysqlengine · duckdbengine (CGo) · dgraphengine · bigtableengine · irohengine
-  - Each module has its own `init()` → `metaengine.RegisterDriver` (database/sql pattern)
-| {shape: text}
-
-t12: |md
-  **Tier 1-2 · Core domain**
-  - `event` (Ca 36, 253 symbols) · `command` (Ca 19) · `query` (Ca 12) · `scheduling` · `metadata`
-  - `schema` · `snapshot` · `projection` · `deriver` · `commandlifecycle` (+`/projections`) · `decider` · `projectionhost`
-| {shape: text}
-
-t0: |md
-  **Tier 0 · Primitives**
-  - `record` (Ca 22) · `id` (Ca 37) · `dedup` · `kv` · `dispatcher` · `claiming`
-| {shape: text}
-
-v5: "v5 fork — core/v5: 9 of 32 packages" {
-  style.stroke-dash: 4
-  direction: down
-  have: |md
-    **Mirrored already (9)** — record · id · dedup · kv · dispatcher · metadata · event · command · query
-  | {shape: text}
-  gap: |md
-    **Still missing (23)** — decider · middleware · system · metaengine · storage · projectionhost + 17
-    `cmd/cqrs-upgrade` has no core/v5 awareness: no fleet repo can migrate yet
-  | {shape: text}
-}
-
-gate: "Quality gate RED today: 3 new file-size offenders" {
+gate: "Quality gate RED today: 3 new file-size offenders (scheduling/sqlstore, system/adapter_event, metaengine/layout)" {
   style.fill: "#fde8e9"
   style.stroke: "#e63946"
   style.stroke-width: 2
 }
 
-gate -> t67: blocks # verify
+t67: |md
+  **Tier 6-7 · Tooling & examples — 30% of production LOC**
+
+  - `cmd/cqrs-lint` — 48.7k LOC, 207 rules, 481 symbols
+    consumer scorecard + modernization ratchet
+  - `catalog` — 22.2k LOC, 19 packages
+    EventCatalog, architecture HTML, d2, docserver exports
+  - `cmd/api-stability` · `cmd/doc-check` · `benchkit`
+| {shape: text}
+
+t5: |md
+  **Tier 5-6 · Composition**
+
+  - `system.New(DomainConfig, DeploymentConfig)` — the one composition root (219 symbols, Ca 8)
+  - `stack` + 9 presets — 7 preset modules are require-dead in the fleet census
+| {shape: text}
+
+infra: |md
+  **Tier 4 · Infrastructure**
+
+  - `storage` (336 symbols) · `watermill` (journal-as-outbox) · `middleware`
+  - `signing` · `encryption` · `otel` · `prometheus` · `metaengine/projectionadapter`
+| {shape: text}
+
+me: |md
+  **Tier 3 · `metaengine` — ONE package holding 9 separable concerns**
+  **166 files · 27,701 production LOC · 829 exported symbols = 13% of all tracked API**
+
+  - **store + collections + folds — 48 files**
+    `store*.go` · `collection.go` · `fold*.go` · `infer_*.go` · `temporal.go`
+  - **engine contract + registry + health — 28 files**
+    `engine.go` · `registry.go` · `cap.go` · `probe.go` · `rule_*.go`
+  - **planner + cost + layout — 16 files**
+    `planner.go` · `cost.go` · `layout*.go` · `priority.go` · `relayout.go`
+  - **execution + transactions + SSE — 16 files**
+    `execute.go` · `dispatch.go` · `runtime_backend.go` · `sse*.go`
+  - **diagnostics + typed readers — 13 files**
+    `explain*.go` · `doctor*.go` · `dx.go` · `typed_reader*.go`
+  - **ADTs: vector / graph / spatial / as-of — 13 files**
+    `vector_*.go` · `graph_*.go` · `spatial.go` · `temporal*.go`
+  - **SQL scan + dialect helpers — 11 files**
+    `scan*.go` · `cursor.go` · `sanitize.go` · `sql_keyset.go`
+  - **in-core memory engine — 8 files**
+    `memory_*.go` — the only engine that is NOT its own module
+| {
+  shape: text
+  style.stroke: "#e63946"
+  style.stroke-width: 4
+}
+
+engines: |md
+  **Tier 5 · Engine drivers — 11 modules, each dependency-isolated**
+
+  - memory (in core) · `sqliteengine` (Ca 7) · `tursoengine` · `pebbleengine` · `bboltengine`
+  - `badgerengine` · `pgengine` · `mysqlengine` · `duckdbengine` (CGo)
+  - `dgraphengine` · `bigtableengine` · `irohengine`
+  - every module has its own `init()` → `metaengine.RegisterDriver` (`database/sql` pattern)
+| {shape: text}
+
+t12: |md
+  **Tier 1-2 · Core domain**
+
+  - `event` (Ca 36, 253 symbols) · `command` (Ca 19) · `query` (Ca 12)
+  - `scheduling` · `metadata` · `schema` · `snapshot` · `projection` · `deriver`
+  - `commandlifecycle` (+`/projections`) · `decider` · `projectionhost`
+| {shape: text}
+
+t0: |md
+  **Tier 0 · Primitives**
+
+  - `record` (Ca 22) · `id` (Ca 37) · `dedup` · `kv` · `dispatcher` · `claiming`
+  - `event.Type`, `command.Type`, `query.Type` are aliases of `record.Type` — one wire vocabulary
+| {shape: text}
+
+v5: |md
+  **v5 fork — `core/v5`, 9 of 32 packages (ADR-0152)**
+
+  - mirrored by hand: record · id · dedup · kv · dispatcher · metadata · event · command · query
+  - still missing: decider · middleware · system · metaengine · storage · projectionhost + 17 more
+  - `cmd/cqrs-upgrade` has no `core/v5` awareness yet, so no fleet repo can migrate
+| {
+  shape: text
+  style.stroke-dash: 3
+}
+
+title -> gate: today
+gate -> t67: blocks #verify
 t67 -> t5: analyzes / renders
 t5 -> t12: wires stores + deciders
 t5 -> me: plans + routes
-engines -> me: implement Engine + RegisterDriver
 infra -> me: projectionadapter bridges folds
+engines -> me: implement Engine + RegisterDriver
 me -> t0: consumes Records
 t12 -> t0: depends on
-v5.have -> t0: hand-mirrored copies
+v5 -> t0: hand-mirrored copies
