@@ -16,16 +16,16 @@ import (
 )
 
 type placeOrder struct {
-	OrderID string `json:"order_id" doc:"Order identifier"`
-	Amount  int    `json:"amount"   doc:"Total in minor units"`
+	OrderID string `json:"orderId" doc:"Order identifier"`
+	Amount  int    `json:"amount"  doc:"Total in minor units"`
 }
 
 type orderPlaced struct {
-	OrderID string `json:"order_id" doc:"Order identifier"`
+	OrderID string `json:"orderId" doc:"Order identifier"`
 }
 
 type getOrder struct {
-	OrderID string `json:"order_id" doc:"Order identifier"`
+	OrderID string `json:"orderId" doc:"Order identifier"`
 }
 
 func buildCatalog() *catalog.Catalog {

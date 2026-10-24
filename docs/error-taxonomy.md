@@ -769,6 +769,7 @@ errorfamily.Classify(err) // => Conflict
 | -                            | Corruption    | `metaengine.apply.encoded_decode`         |
 | ErrBackfillUnsupported       | Rejection     | `metaengine.backfill_unsupported`         |
 | ErrClaimLeaseNotHeld         | Orchestration | `metaengine.claim_lease_not_held`         |
+| -                            | Rejection     | `metaengine.encode_stream_value`          |
 | -                            | Corruption    | `metaengine.encoded.empty_payload`        |
 | -                            | Corruption    | `metaengine.encoded.unknown_encoding`     |
 | ErrPlannedColumnTypeMismatch | Rejection     | `metaengine.planned_column_type_mismatch` |

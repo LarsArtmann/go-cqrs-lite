@@ -53,7 +53,6 @@
 377	./decider/decider.go
 360	./cmd/cqrs-lint/pkg/analyzer/scanner_calls.go
 360	./metaengine/reliability.go
-359	./catalog/types_resources.go
 359	./cmd/cqrs-lint/pkg/rules/consistency/d003_d005.go
 358	./metaengine/duckdbengine/layout_planner.go
 357	./scenario/dsl.go
