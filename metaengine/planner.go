@@ -40,6 +40,7 @@ type planConfig struct {
 	idempotencyCapacity      int                       // dedup ring capacity for ApplyIdempotent; <=0 → unbounded legacy mode
 	defaultLimit             int                       // operator ceiling for un-limited scans (WithDefaultLimit); 0 = built-in 100
 	capabilityGaps           map[string]CapabilityGaps // engine name → documented ADT conformance gaps; suppresses over-declaration diagnostics
+	layoutStampsDisabled     bool                      // A15: layout-plan stamping is ON by default (warn-first drift); this opts out
 }
 
 // Plan creates a storage plan from available engines and declared queries.
@@ -83,11 +84,12 @@ func Plan(engines []Engine, args ...any) (*Store, error) {
 		foldLocks:         newFoldLocks(),
 		engineRoles:       make(map[string]ProjectionRole),
 		replicas:          make(map[string]*replicator),
-		sharedCollections: cfg.sharedCollections,
-		routingHysteresis: defaultRoutingHysteresis(cfg.routingHysteresis),
-		routingMinDelta:   defaultRoutingMinDelta(cfg.routingMinDeltaMs),
-		capabilityGaps:    cfg.capabilityGaps,
-		defaultLimit:      cfg.defaultLimit,
+		sharedCollections:   cfg.sharedCollections,
+		routingHysteresis:   defaultRoutingHysteresis(cfg.routingHysteresis),
+		routingMinDelta:     defaultRoutingMinDelta(cfg.routingMinDeltaMs),
+		capabilityGaps:      cfg.capabilityGaps,
+		defaultLimit:        cfg.defaultLimit,
+		layoutStampsDisabled: cfg.layoutStampsDisabled,
 	}
 
 	for _, q := range queries {

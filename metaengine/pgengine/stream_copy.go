@@ -56,13 +56,13 @@ func (e *pgEngine) copyAppend(ctx context.Context, col, sid string, values []any
 			return errCopyUnavailable
 		}
 
-		rows := make([][]any, len(values))
-		for i, v := range values {
-			encoded, encodeErr := metaengine.EncodeStreamValueErr(v)
-			if encodeErr != nil {
-				return fmt.Errorf("pgengine.copyAppend: %w", encodeErr)
-			}
+		encodedValues, encodeErr := metaengine.EncodeStreamValuesErr(values)
+		if encodeErr != nil {
+			return fmt.Errorf("pgengine.copyAppend: %w", encodeErr)
+		}
 
+		rows := make([][]any, len(encodedValues))
+		for i, encoded := range encodedValues {
 			rows[i] = typedCopyRow(col, sid, encoded)
 		}
 
@@ -132,6 +132,11 @@ func streamInsertBatch(
 	col, sid string,
 	values []any,
 ) error {
+	encodedValues, encodeErr := metaengine.EncodeStreamValuesErr(values)
+	if encodeErr != nil {
+		return fmt.Errorf("pgengine.streamInsertBatch: %w", encodeErr)
+	}
+
 	for start := 0; start < len(values); start += streamAppendRowsPerStmt {
 		end := min(start+streamAppendRowsPerStmt, len(values))
 		chunk := values[start:end]
@@ -143,7 +148,7 @@ func streamInsertBatch(
 			(collection, stream_id, value, event_id, stream_type, version, schema_version,
 			 payload, encoding, metadata, occurred_at) VALUES `)
 
-		for i, v := range chunk {
+		for i := range chunk {
 			if i > 0 {
 				sb.WriteByte(',')
 			}
@@ -153,12 +158,7 @@ func streamInsertBatch(
 				base+1, base+2, base+3, base+4, base+5, base+6,
 				base+7, base+8, base+9, base+10, base+11)
 
-			encoded, encodeErr := metaengine.EncodeStreamValueErr(v)
-			if encodeErr != nil {
-				return fmt.Errorf("pgengine.streamInsertBatch: %w", encodeErr)
-			}
-
-			args = append(args, typedCopyRow(col, sid, encoded)...)
+			args = append(args, typedCopyRow(col, sid, encodedValues[start+i])...)
 		}
 
 		if _, err := conn.ExecContext(ctx, sb.String(), args...); err != nil {

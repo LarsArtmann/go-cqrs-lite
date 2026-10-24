@@ -38,6 +38,26 @@ func EncodeStreamValueErr(v any) (string, error) {
 	return string(data), nil
 }
 
+// EncodeStreamValuesErr encodes a batch of values for storage in a
+// StreamLogBackend. It encodes EVERY value before returning, so an append that
+// cannot represent one of its values fails before any row reaches the engine —
+// the per-row loops in the SQL engines would otherwise leave a partial append
+// behind on an unrepresentable value.
+func EncodeStreamValuesErr(values []any) ([]string, error) {
+	encoded := make([]string, len(values))
+
+	for i, v := range values {
+		s, err := EncodeStreamValueErr(v)
+		if err != nil {
+			return nil, err
+		}
+
+		encoded[i] = s
+	}
+
+	return encoded, nil
+}
+
 // DecodeStreamValue decodes a value from its stored representation.
 // Falls back to returning the raw string if JSON decoding fails.
 // This mirrors the encoding logic in [EncodeStreamValue].
