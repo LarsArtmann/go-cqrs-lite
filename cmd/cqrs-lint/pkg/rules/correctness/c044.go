@@ -62,7 +62,10 @@ var displayContextCalleeNames = map[string]bool{
 	"Attr": true, "String": true, "Any": true,
 }
 
-func detectBrandedStringCalls(ctx *analyzer.AnalysisContext, gf *analyzer.GoFile) []finding.Finding {
+func detectBrandedStringCalls(
+	ctx *analyzer.AnalysisContext,
+	gf *analyzer.GoFile,
+) []finding.Finding {
 	var findings []finding.Finding
 
 	ast.Inspect(gf.AST, func(n ast.Node) bool {

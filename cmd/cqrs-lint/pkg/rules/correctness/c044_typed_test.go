@@ -30,7 +30,9 @@ func buildC044FixtureContext(t *testing.T) *analyzer.AnalysisContext {
 	}
 
 	if !ctx.TypedConfirmations() {
-		t.Fatalf("typed fixture loaded without type info — the fixture's go.mod pins are probably unresolvable")
+		t.Fatalf(
+			"typed fixture loaded without type info — the fixture's go.mod pins are probably unresolvable",
+		)
 	}
 
 	return ctx

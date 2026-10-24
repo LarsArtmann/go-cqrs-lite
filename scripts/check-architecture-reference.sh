@@ -8,11 +8,14 @@
 #   1. self-containment (no external stylesheet/script/font references)
 #   2. anchor integrity (every href="#x" and search-index hit has an id="x")
 #   3. expected section coverage (one section per fixture resource kind)
+#   4. REDACTION (ADR-0160): the partner slice the fixture also renders
+#      carries no trace of the excluded hostile-named store — as text, link
+#      or section — while out-of-scope names still degrade to plain text
 #
 # --self-test plants corrupted copies of a rendered fixture and verifies the
 # assertions actually fail on them (the calibration-gate fault-injection
-# pattern). New goldens/assertions must be mutation-verified before they
-# count as pins.
+# pattern, now four corruptions). New goldens/assertions must be
+# mutation-verified before they count as pins.
 #
 # Workdir override: CHECK_ARCHITECTURE_REFERENCE_DIR=/path (kept on failure).
 set -euo pipefail
@@ -20,12 +23,14 @@ set -euo pipefail
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 work="${CHECK_ARCHITECTURE_REFERENCE_DIR:-$(mktemp -d "${TMPDIR:-/tmp}/arch-reference-validate.XXXXXX")}"
 out="$work/architecture.html"
+slice_out="$work/partner-slice.html"
+hostile="https://internal.example.com/secret/quarterly-revenue"
 
 cleanup_ok() { [[ -n "${CHECK_ARCHITECTURE_REFERENCE_DIR:-}" ]] || rm -rf "$work"; }
 
 self_test() {
-	local bad="$work/bad.html"
-	(cd "$root/catalog" && GOWORK=off go run ./cmd/architecture-fixture "$bad")
+	local bad="$work/bad.html" bad_slice="$work/bad-slice.html"
+	(cd "$root/catalog" && GOWORK=off go run ./cmd/architecture-fixture "$bad" "$bad_slice")
 
 	local failed=0
 	mutate_and_expect_fail() { # $1 = sed program, $2 = label
@@ -36,6 +41,14 @@ self_test() {
 		fi
 		(cd "$root/catalog" && GOWORK=off go run ./cmd/architecture-fixture "$bad")
 	}
+	mutate_slice_and_expect_fail() { # $1 = sed program, $2 = label
+		sed -i "$1" "$bad_slice"
+		if assert_slice "$bad_slice" "$bad" >/dev/null 2>&1; then
+			echo "SELF-TEST FAIL: slice corruption was NOT caught: $2" >&2
+			failed=1
+		fi
+		(cd "$root/catalog" && GOWORK=off go run ./cmd/architecture-fixture "$bad" "$bad_slice")
+	}
 
 	# Corrupt 1: a section id renamed — anchor integrity must catch it.
 	mutate_and_expect_fail 's|id="service-order-service"|id="service-order-service-x"|' "renamed section id"
@@ -43,12 +56,15 @@ self_test() {
 	mutate_and_expect_fail 's|</head>|<link rel="stylesheet" href="https://evil.example/x.css"></head>|' "external stylesheet"
 	# Corrupt 3: a section deleted — coverage must catch it.
 	mutate_and_expect_fail '/id="flow-place-order"/,/<\/section>/d' "missing flow section"
+	# Corrupt 4: the excluded store's name injected into the slice — the
+	# redaction assertion must catch it.
+	mutate_slice_and_expect_fail "s|partner slice|partner slice $hostile|" "excluded name leaked into slice"
 
 	if [[ "$failed" -ne 0 ]]; then
 		exit 1
 	fi
 
-	echo "✓ check-architecture-reference self-test: all corruptions caught"
+	echo "✓ check-architecture-reference self-test: all 4 corruptions caught"
 }
 
 # assert_all runs every assertion against $1; prints failures, returns nonzero.

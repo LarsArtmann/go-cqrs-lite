@@ -12,7 +12,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4 v4.2.3
 	github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.3.1
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.8.0
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.1
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.2
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.4.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.3
 	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.6.2
@@ -58,7 +58,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3 // indirect
-	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.2 // indirect
+	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.4.2 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.1 // indirect
 	github.com/larsartmann/go-sse v0.6.2 // indirect

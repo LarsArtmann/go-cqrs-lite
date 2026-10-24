@@ -67,10 +67,17 @@ func EncodeStreamValuesErr(values []any) ([]string, error) {
 // Falls back to returning the raw string if JSON decoding fails.
 // This mirrors the encoding logic in [EncodeStreamValue].
 //
-// The fallback is intentional: strings are stored unquoted, so a failed JSON
-// decode cannot be distinguished from a legitimate plain-string row here.
-// Callers that already know the row was JSON-encoded and must reject corruption
-// use [DecodeStreamValueErr].
+// The fallback is intentional and permanent at this layer: strings are stored
+// unquoted, so a failed JSON decode cannot be distinguished from a legitimate
+// plain-string row here. There is deliberately no error-returning twin for
+// this path — it would report false corruption for every plain string. The
+// inverse also holds: a STRING value that happens to be valid JSON reads back
+// as the parsed value, not as a string (the row carries no type tag). Fixing
+// that needs the stamped engine-value envelope (ADR-0066 reversal), not a
+// read-side change; see the metaengine COOKBOOK "Stored values" section.
+//
+// Callers that already know the row was JSON-encoded and must reject
+// corruption use [DecodeStreamValueErr].
 func DecodeStreamValue(s string) any {
 	var v any
 	if err := json.Unmarshal([]byte(s), &v); err != nil {

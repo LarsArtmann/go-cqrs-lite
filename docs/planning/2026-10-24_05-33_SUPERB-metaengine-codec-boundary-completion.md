@@ -374,3 +374,159 @@ T14 (error-family delta review), T15 (full repo gate matrix: `#verify-fast`,
 `#lint`, `#check-coverage`, `#check-modsums`), T16–T20 (owner-gated design), T21
 (TODO_LIST harvest — `TODO_LIST.md` carried a foreign uncommitted edit for the
 whole session, so harvesting was deferred rather than mixing diffs).
+
+> **Superseded 2026-10-24 08:00 CEST:** wave 4 was executed in the follow-up
+> session; T12–T15 and T21 are DONE with receipts in §11.7. Wave 5 remains
+> owner-gated, now with the T16 spike in §12 instead of an empty slot.
+
+### 11.7 Wave 4 — close the gaps (T12–T15, T21) — 2026-10-24
+
+**T12 read-side decision (DONE — "documented limitation, no new API").** The
+premise that `DecodeStreamValue` hides *corruption* was wrong: the encoder
+stores strings UNQUOTED, so a failed JSON decode is exactly how a legitimate
+plain string reads back. An error-returning twin would report false corruption
+on every string row. The real defect is the other direction and is inherent to
+an untagged row: a **string that is itself valid JSON** is stored verbatim and
+reads back as the PARSED value (`{"a":1}` → map, `123` → float64, `true` →
+bool, `null` → nil). Fixing it in-band would change persisted bytes for
+strings; that is the envelope decision (T16), not a read-side patch.
+Deliverables: two pin tables in `metaengine/stream_codec_test.go`
+(`TestDecodeStreamValue_JSONShapedStringsAreAmbiguous`,
+`TestDecodeStreamValue_PlainStringsRoundTrip`), a "Stored values" COOKBOOK
+section stating the JSON-typed contract and the limitation, and the
+`DecodeStreamValue` doc comment now names T16 as the only route out.
+
+**T13 sqlite/turso silent fallback (DONE — found a missed Wave-2 site).**
+`StreamAppend` did NOT use `metaengine.EncodeStreamValueErr`: the engine had its
+own `encodeStreamValue` twin calling `encodeJSON`, complete with the
+`fmt.Sprintf("%v")` fallback, so the Wave-2 "four engine write paths" sweep
+missed it (turso inherits the bug by delegation). Now:
+
+- `StreamAppend`/`StreamAppendExpected` call `EncodeStreamValuesErr`, so the
+  WHOLE batch is encoded before any row is written (no partial append);
+- `encodeValue` returns `(string, error)` and every write path propagates it
+  (map set, planned set, map update [cached + tx], multimap add, log append,
+  versioned set/version row) — 8 call sites, all before the first row write;
+- `encodeKey` keeps `%v` stringification, now documented as key identity (keys
+  are labels, matching the memory engine), not caller payload;
+- both failures are errorfamily **Rejection** (`sqliteengine.encode_value`,
+  `metaengine.encode_stream_value`): unstorable input, non-retryable;
+- `error-family` becomes a direct dep of `metaengine/sqliteengine`
+  (`DEP_BUDGET` 3 → 4, rationale inline) — it was already in the graph as an
+  indirect dep, so `go.sum` is unchanged;
+- pinned by `metaengine/sqliteengine/encoding_error_test.go` (9 specs over real
+  in-memory SQLite: map, planned, update, versioned, stream batch,
+  expected-version batch, log, multimap, plus a representable-value guard).
+  Mutation-verified: swallowing the `encodeValue` error in `MapSet` turns the
+  map spec RED (`expected an error, got nil`); restore → green. Full
+  sqliteengine suite 30 s green.
+
+**T14 error-family 0.11 → 0.12 (DONE — no behavior change, no note owed).**
+Source diff plus the upstream CHANGELOG: the only Go change is
+`(*Error).Unwrap` becoming nil-receiver safe (a nil unwraps to nil instead of
+panicking). No API, message, family, or classification change for a non-nil
+error, so it cannot alter this repo's behavior; the bump rides the sqlite
+budget note rather than a CHANGELOG entry of its own.
+
+**T15 gate matrix → §11.8.**
+
+**T21 harvest (DONE).** `TODO_LIST.md` was clean this time. Harvested six
+owner-gated rows into "Metaengine — follow-ups" (envelope spike, custom-codec
+scope, marker unification, exported payload, fleet benchmark, the remaining
+`%v` graph encoders in mysql/duckdb/pg/bigtable) and one Code-Quality row for a
+**generator defect found while regenerating the taxonomy** — see below.
+
+**New finding: `generate-error-taxonomy.sh` sentinel-attribution drift.** The
+generator rewrote the SENTINEL column from live declarations to `-` for
+`ErrNoDatabase` (mysql/postgres/sqlite), `ErrStreamIDMismatch`,
+`ErrStreamTypeMismatch` and `ErrMemorySync` (and shifted the inline-mint
+counters 68 → 71 of 80) even though those `var Err… = errorfamily.New…`
+declarations still exist. The gate compares codes/families, so it stays green
+either way — meaning the regression is silent. The run was reverted and only
+the new `metaengine.encode_stream_value` row was inserted by hand (sorted into
+the table, `check-error-taxonomy.sh` green at 543 codes). Rowed in TODO_LIST
+under Code Quality.
+
+## 12. T16 spike — stamped engine-value envelope (DESIGN ONLY, no code)
+
+**Status:** spike complete, awaiting an owner ruling. Nothing in this section is
+implemented; `DecodeStreamValue` keeps its documented behavior until then.
+
+### 12.1 The defect, precisely
+
+The stream log / map value columns store `any` as TEXT with no type tag:
+
+| Written | Stored | Read back |
+| ------- | ------ | --------- |
+| `"plain"` | `plain` | `"plain"` (JSON decode fails → raw fallback) |
+| `"123"` | `123` | `float64(123)` **(type loss)** |
+| `map[string]int{"a":1}` | `{"a":1}` | `map[string]any{"a": float64(1)}` |
+| `time.Time` | `"2026-…Z"` | `string` |
+
+Two independent losses: Go types are not preserved (by design, JSON-typed
+contract), and a STRING that parses as JSON is indistinguishable from the value
+it parses to (an accident of the format). Only the second is a correctness bug
+that can corrupt a read model; the first is a documented contract.
+
+### 12.2 Constraints any envelope must satisfy
+
+1. **Planned tables must keep raw JSON in `value`.** `ExtractFields` +
+   `json_extract(value, '$.col')` and the pushdown filters read the value column
+   as JSON. Wrapping planned-table values in an envelope breaks every planned
+   read and index.
+2. **No rewrite of existing rows.** ADR-0143 makes the journal the replay
+   source; a reset must not lose data. The envelope must be dual-read: absent /
+   legacy → today's contract.
+3. **Interchangeable engines.** A consumer switching SQLite → Postgres must get
+   the same read semantics. A solution that only SQL engines can express is a
+   split brain, not a fix.
+4. **No per-read allocation regression on the hot path.** The encoded ingress
+   benchmarks are 3.4–3.5 µs/op; a tag lookup must not add a decode.
+5. **No export until a consumer asks.** `EncodedPayload` (T19) stays unexported.
+
+### 12.3 Options and costs
+
+| Option | Shape | Cost | Verdict |
+| ------ | ----- | ---- | ------- |
+| **A. In-band string prefix** (`\x01s:` + raw) | string values only | Tiny SQL change, but changes bytes for the ONE case that is rare AND breaks direct-DB readers; legacy lookalike rows stay wrong | Rejected — partial fix, new format without a version |
+| **B. Whole-row envelope** (`{"$","enc","dat"}`) | every value | SQL: value column stops being JSON → planned pushdown dead unless planned tables are exempted (then two formats); KV: natural (already []byte) | Rejected for planned tables; possible for the unplanned map column only |
+| **C. Sibling type column** (`value_type` / `encoding`) | SQL only | In-place `ADD COLUMN` (the typed-WAL precedent, already mechanized per engine), NULL = legacy, zero byte change; **KV engines have no column** → they need B or A, so the fleet diverges | Best SQL answer, incomplete on its own |
+| **D. C + KV in-band tag under keycodec v2** | C on SQL, 1-byte prefix on KV | Every engine agrees (v2 key family already exists, ADR-0154); one tag byte per KV value; SQL gets the column | **Recommended**, but it is a migration project |
+| **E. Leave it; document** | current | Zero | Honest baseline (shipped in T12) |
+
+### 12.4 Recommended shape (if the owner says yes)
+
+1. SQL engines: add `value_encoding TEXT` (NULL = legacy JSON contract) to
+   `meta_stream_log` and `meta_map` via the existing in-place `ADD COLUMN`
+   migration helper; planned tables keep the raw-JSON column and are explicitly
+   out of scope (their values are always JSON objects by construction).
+2. KV engines: tag value bytes with a codec byte from the keycodec v2 value
+   family; absent tag = legacy.
+3. Write: `EncodeStreamValueErr` grows a companion that returns
+   `(payload string, enc string)`, so all engines share one decision.
+4. Read: `DecodeStreamValue` keeps its signature; it consults the tag when
+   present, falls back to today's logic when absent. No error API is added.
+5. Dual-read window: at least one release; then a `store backfill --values`
+   command (opt-in) rewrites legacy rows, never the journal.
+
+**Cost estimate:** ~12–18 focused hours across 3 waves (SQL DDL + read/write
+per engine; KV tag family; backfill command + conformance rows). The cheap 80 %
+is the SQL column; the expensive 20 % is making the KV engines agree.
+
+### 12.5 Acceptance criteria for the implementation wave
+
+- A string `"123"` survives `MapSet` → `MapGet` as a string on EVERY engine.
+- An existing legacy row (no tag) reads back byte-identically to today.
+- Planned-table filters/sorts still push down (`EXPLAIN` shows the same plan).
+- `ApplyEncoded` benchmarks within noise of the 3540/3435 ns/op baseline.
+- `runTxReadModifyWrite`, `MapUpdateAt`, and the fold `reify` path all see the
+  correct Go type for a tagged string.
+
+### 12.6 Owner questions (unchanged, now scoped)
+
+1. Adopt C+D (recommended) or stay on E for v4.x?
+2. If adopted, is a one-release dual-read window acceptable, or must legacy rows
+   be rewritten at boot (a write on every engine open — refused by default)?
+3. Do custom/encrypted codecs (T17) ride the same tag, or is the tag byte
+   reserved and codecs stay out of scope? (Recommendation: the tag names the
+   codec family; a custom codec register would be a separate ADR.)

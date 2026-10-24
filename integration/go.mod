@@ -9,20 +9,20 @@ require (
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.1
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.8.0
 	github.com/larsartmann/go-cqrs-lite/encryption/v4 v4.4.6
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.1
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.2
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.4.0
 	github.com/larsartmann/go-cqrs-lite/graph/v4 v4.3.4
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.3
 	github.com/larsartmann/go-cqrs-lite/idempotency/sqlstore/v4 v4.4.3
-	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.6.1
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.19.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.6.2
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.20.0
 	github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.7.2
-	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.2
+	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.3
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2
 	github.com/larsartmann/go-cqrs-lite/signing/v4 v4.4.2
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.7.0
-	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.5.0
+	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.5.1
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2
 	github.com/larsartmann/go-cqrs-lite/storage/pebble/v4 v4.4.4
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.11.1

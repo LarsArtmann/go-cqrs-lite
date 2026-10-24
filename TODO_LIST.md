@@ -1286,6 +1286,40 @@ replace-free — 10-25 §a2/§a3, now archived).
 
 ## Metaengine — follow-ups
 
+> Codec-boundary harvest (2026-10-24, from
+> [`docs/planning/2026-10-24_05-33_SUPERB-metaengine-codec-boundary-completion.md`](docs/planning/2026-10-24_05-33_SUPERB-metaengine-codec-boundary-completion.md)
+> waves 1–4; ADR-0161 owns the shipped decision). The ingress, replay pins,
+> stored-value contract and the sqlite/turso write-path rejection all shipped;
+> what remains is the owner-gated tail below.
+
+- [ ] **Stamped engine-value envelope spike (ADR-0066 reversal)** — engine rows
+      carry no type tag, so `DecodeStreamValue` cannot tell a plain string from
+      JSON and a string that is itself valid JSON reads back as the parsed
+      value. Deliverable is a DESIGN + cost estimate (no code): envelope shape,
+      dual-read window, migration/backfill story, per-engine cost. Pinged by
+      the COOKBOOK "Stored values" section and plan T16. _(Effort: L)_
+- [ ] **Custom/encrypted codec scope for read-model values** — decide whether
+      engine-row values stay JSON/CBOR-only forever or accept consumer codecs;
+      the answer shapes the envelope above. _(Effort: S, owner ruling)_
+- [ ] **Unify the two ingress pipeline markers** (`jsontext.Value` for JSON +
+      the unexported `encodedPayload` for CBOR) — two carriers for one contract
+      is a future split brain; needs a compatibility story for the `Payload
+      any` surface before either is exported. Plan T18. _(Effort: M, owner
+      ruling)_
+- [ ] **Export an `EncodedPayload` constructor** for external raw-CBOR replay —
+      only if a consumer actually asks; nobody does today (plan T19).
+      _(Effort: S)_
+- [ ] **Fleet benchmark of the encoded ingress** — the README numbers are
+      metaengine-local (JSON 3540 vs CBOR 3435 ns/op at 200ms benchtime);
+      repeat per engine before quoting them as a routing fact (plan T20).
+      _(Effort: M)_
+- [ ] **Remaining `fmt.Sprintf("%v")` value encoders** — `sqliteengine` is
+      fixed (Rejection + tests), but `mysqlengine/graph.go`,
+      `duckdbengine/graph.go`, `pgengine/graph.go` and `bigtableengine` still
+      keep marshal-with-fallback for GRAPH keys/values. Decide whether graph
+      identity falls under the same "keys are stringified, values must be
+      JSON" rule; if yes, migrate them together. _(Effort: M)_
+
 > Cap-primitive harvest (2026-10-23, issue #72 — `WithCap` / `EnforceCap` /
 > `EnforceCaps`). Verified against the MEMORY engine only; the SQL pushdown
 > branch and the temporal `MapDeleteAt` branch are untested, and the error
@@ -1834,6 +1868,17 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
 
 ## Code Quality
 
+- [ ] **`generate-error-taxonomy.sh` sentinel-attribution drift** — the
+      2026-10-24 run re-attributed `ErrNoDatabase` (mysql/postgres/sqlite),
+      `ErrStreamIDMismatch`, `ErrStreamTypeMismatch` and `ErrMemorySync` from
+      their live sentinels to `-` while the `var Err… = errorfamily.New…`
+      declarations still exist (`stack/{mysql,postgres,sqlite,turso}/
+      view_models.go`, `storage/`), and rewrote the inline-mint counters
+      (68→71 of 80). The run was reverted and only the new code row kept. The
+      gate diffs codes/families, so it stays green either way — the SENTINEL
+      column silently degrades doc quality. Fix the generator (verify the
+      sentinel by AST/grep before writing `-`) or pin it with a golden.
+      _(Effort: S)_
 - [x] **Branching-flow duplicate-type triage follow-ups (2026-10-09)** — the
       465-row duplicate-type analysis was fully triaged
       ([plan](docs/planning/2026-10-09_18-16_SUPERB-branching-flow-triage.md)):

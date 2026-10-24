@@ -3,7 +3,7 @@ module github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/v4
 go 1.27.2
 
 require (
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.19.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.20.0
 	github.com/onsi/gomega v1.44.0
 )
 

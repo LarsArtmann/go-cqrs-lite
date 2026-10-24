@@ -3,8 +3,8 @@ module github.com/larsartmann/go-cqrs-lite/example/scheduler-otel-status
 go 1.27.2
 
 require (
-	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.2
-	github.com/larsartmann/go-cqrs-lite/prometheus/v4 v4.3.3
+	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.3
+	github.com/larsartmann/go-cqrs-lite/prometheus/v4 v4.3.4
 	github.com/larsartmann/go-cqrs-lite/scheduling/sqlstore/v4 v4.1.4
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.7.0
 	modernc.org/sqlite v1.60.1

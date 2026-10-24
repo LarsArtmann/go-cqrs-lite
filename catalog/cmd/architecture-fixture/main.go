@@ -4,6 +4,11 @@
 // properties (self-containment, anchor integrity, section counts) outside
 // the go test process — the same fixture/validate split the ec-fixture
 // command uses for the EventCatalog gate.
+//
+// With a second path argument it also renders a REDACTED partner slice of
+// the same catalog (ADR-0160): one domain in, the hostile-named store
+// excluded, out-of-scope references degraded to names — so the gate can
+// assert the slice carries no trace of the excluded resource.
 package main
 
 import (
@@ -16,6 +21,11 @@ import (
 
 // fixtureVersion is the service/domain version the fixture documents.
 const fixtureVersion = "1.0.0"
+
+// HostileStoreName is the excluded partner-slice store's name: a URL that
+// reads like a secret, so a leak is unambiguous (the leak-fixture pattern
+// from the package tests).
+const HostileStoreName = "https://internal.example.com/secret/quarterly-revenue"
 
 type createOrder struct {
 	OrderID string `json:"order_id" doc:"Order identifier"` //nolint:tagliatelle // mirrors the external snake_case API this fixture documents
@@ -50,6 +60,7 @@ func fixtureCatalog() *catalog.Catalog {
 	builder.ConfigureService("order-service",
 		catalog.ServiceOwners("ordering"),
 		catalog.ServiceWritesTo("order-db"),
+		catalog.ServiceReadsFrom("secret-store"),
 		catalog.ServiceEntities("order"),
 	)
 
@@ -76,6 +87,17 @@ func fixtureCatalog() *catalog.Catalog {
 		Summary:       "System of record for orders.",
 		Technology:    "postgres@16",
 		Authoritative: true,
+	})
+
+	// The hostile-named store: in the whole reference it is a normal
+	// section; the partner slice excludes it, and the gate asserts its name
+	// appears nowhere in the slice.
+	builder.AddDataStore(catalog.DataStore{
+		ID:         "secret-store",
+		Name:       catalog.Name(HostileStoreName),
+		Version:    fixtureVersion,
+		Summary:    "Quarterly revenue, unreleased.",
+		Technology: "postgres@16",
 	})
 
 	builder.AddFlow(catalog.Flow{
@@ -124,8 +146,8 @@ func fixtureCatalog() *catalog.Catalog {
 }
 
 func main() {
-	if len(os.Args) != 2 {
-		failf("usage: architecture-fixture <output.html>")
+	if len(os.Args) < 2 || len(os.Args) > 3 {
+		failf("usage: architecture-fixture <whole.html> [slice.html]")
 	}
 
 	exp := architecture.NewExporter(
@@ -136,6 +158,24 @@ func main() {
 
 	if err := exp.ExportFile(fixtureCatalog(), os.Args[1]); err != nil {
 		failf("render: %v", err)
+	}
+
+	if len(os.Args) == 3 {
+		slice := &architecture.ExportSpec{
+			Title:       "Acme — partner slice",
+			Description: "What partners may see.",
+			Include:     []architecture.Selector{{Kind: "domain", ID: "ordering"}},
+			Exclude:     []architecture.Selector{{Kind: "container", ID: "secret-store"}},
+			References:  architecture.ReferencesNameOnly,
+		}
+
+		sliced := architecture.NewExporter(append([]architecture.Option{
+			architecture.WithCommand("catalog-export -spec partner.mdx"),
+		}, slice.Options()...))
+
+		if err := sliced.ExportFile(fixtureCatalog(), os.Args[2]); err != nil {
+			failf("render slice: %v", err)
+		}
 	}
 }
 

@@ -253,25 +253,7 @@ func (e *sqliteEngine) MapSet(ctx context.Context, col string, key any, value an
 		return e.mapSetPlanned(ctx, plan, key, value)
 	}
 
-	keyStr := encodeKey(key)
-
-	encoded, err := encodeValue(value)
-	if err != nil {
-		return err
-	}
-
-	if _, err := e.xc(ctx).
-		exec(ctx, e.queries.mapSet, col, keyStr, encoded); err != nil {
-		return err //nolint:wrapcheck // passthrough
-	}
-
-	if e.versioning {
-		if err := e.recordVersionRow(ctx, col, keyStr, encoded, time.Now()); err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return e.mapSetEncoded(ctx, col, key, value, time.Now())
 }
 
 func (e *sqliteEngine) MapGet(ctx context.Context, col string, key any) (any, bool, error) {
@@ -366,13 +348,7 @@ func (e *sqliteEngine) MapUpdate(
 				return err
 			}
 
-			_, err = tx.ExecContext(
-				ctx,
-				e.queries.mapSet,
-				col,
-				encodeKey(key),
-				encoded,
-			)
+			_, err = tx.ExecContext(ctx, e.queries.mapSet, col, encodeKey(key), encoded)
 
 			return err //nolint:wrapcheck // passthrough
 		},

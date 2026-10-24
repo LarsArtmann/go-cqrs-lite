@@ -93,6 +93,88 @@ func TestDecodeStreamValue_LegacyFallback(t *testing.T) {
 	}
 }
 
+// TestDecodeStreamValue_JSONShapedStringsAreAmbiguous pins the KNOWN
+// limitation of the untagged stored form: a string value that is itself valid
+// JSON reads back as the parsed value, not as a string. The pin exists so the
+// behavior cannot change silently in either direction; fixing it needs the
+// stamped engine-value envelope (ADR-0066 reversal, plan T16), not a read-side
+// change.
+func TestDecodeStreamValue_JSONShapedStringsAreAmbiguous(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		stored string
+		check  func(t *testing.T, got any)
+	}{
+		{`{"user":"42"}`, func(t *testing.T, got any) {
+			t.Helper()
+
+			if _, ok := got.(map[string]any); !ok {
+				t.Fatalf("object-shaped string decoded to %T, want map[string]any", got)
+			}
+		}},
+		{`[1,2]`, func(t *testing.T, got any) {
+			t.Helper()
+
+			if _, ok := got.([]any); !ok {
+				t.Fatalf("array-shaped string decoded to %T, want []any", got)
+			}
+		}},
+		{`123`, func(t *testing.T, got any) {
+			t.Helper()
+
+			if got != float64(123) {
+				t.Fatalf("numeric string decoded to %#v, want float64(123)", got)
+			}
+		}},
+		{`true`, func(t *testing.T, got any) {
+			t.Helper()
+
+			if got != true {
+				t.Fatalf("boolean string decoded to %#v, want true", got)
+			}
+		}},
+		{`null`, func(t *testing.T, got any) {
+			t.Helper()
+
+			if got != nil {
+				t.Fatalf("null string decoded to %#v, want nil", got)
+			}
+		}},
+	}
+
+	for _, tc := range cases {
+		encoded, err := metaengine.EncodeStreamValueErr(tc.stored)
+		if err != nil {
+			t.Fatalf("EncodeStreamValueErr(%q): %v", tc.stored, err)
+		}
+
+		if encoded != tc.stored {
+			t.Fatalf("string %q stored as %q, want verbatim", tc.stored, encoded)
+		}
+
+		tc.check(t, metaengine.DecodeStreamValue(encoded))
+	}
+}
+
+// TestDecodeStreamValue_PlainStringsRoundTrip guards the other half of the
+// contract: ordinary strings, including anything JSON rejects, survive.
+func TestDecodeStreamValue_PlainStringsRoundTrip(t *testing.T) {
+	t.Parallel()
+
+	for _, want := range []string{"plain", "with space", "tab\there", "leading {", "0x10", ""} {
+		encoded, err := metaengine.EncodeStreamValueErr(want)
+		if err != nil {
+			t.Fatalf("EncodeStreamValueErr(%q): %v", want, err)
+		}
+
+		got := metaengine.DecodeStreamValue(encoded)
+		if got != want {
+			t.Fatalf("round trip of %q = %#v", want, got)
+		}
+	}
+}
+
 func TestEncodeStreamValuesErr(t *testing.T) {
 	t.Parallel()
 

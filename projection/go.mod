@@ -3,7 +3,7 @@ module github.com/larsartmann/go-cqrs-lite/projection/v4
 go 1.27.2
 
 require (
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.1
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.2
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.3
 )
 

@@ -3,8 +3,8 @@ module github.com/larsartmann/go-cqrs-lite/metaengine/otelobserver/v4
 go 1.27.2
 
 require (
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.19.0
-	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.2
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.20.0
+	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.3
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2
 	github.com/larsartmann/go-error-family v0.12.0
 	go.opentelemetry.io/otel v1.47.0

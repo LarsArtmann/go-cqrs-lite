@@ -4,7 +4,7 @@ go 1.27.2
 
 require (
 	cloud.google.com/go/bigtable v1.58.0
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.19.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.20.0
 	google.golang.org/api v0.301.0
 	google.golang.org/grpc v1.84.0
 )

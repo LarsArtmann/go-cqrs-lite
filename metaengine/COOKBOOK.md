@@ -27,6 +27,30 @@ bridging a raw `event.Event` into a projection. Decode failures classify as
 Corruption, so a projection host with a dead-letter store quarantines poison
 payloads instead of retrying them forever.
 
+### Stored values (map and stream-log rows)
+
+Engine rows hold `any` values that `MapBackend`, `LogBackend`, and
+`StreamLogBackend` serialize as text. The stored representation is
+**JSON-typed**:
+
+- strings are stored verbatim and read back verbatim;
+- every other value is JSON-encoded, so integers read back as `float64`,
+  structs as `map[string]any`, and `time.Time` as an RFC 3339 string.
+
+One consequence is not escapable at the read side: a **string that is itself
+valid JSON** (`{"a":1}`, `123`, `true`, `null`) is stored verbatim and reads
+back as the PARSED value, because the row carries no type tag.
+`DecodeStreamValue` therefore keeps its raw-string fallback instead of growing
+an error-returning twin — it cannot tell a plain string from corruption. Store
+values in a JSON-native shape when the Go type must survive, or wait for the
+stamped engine-value envelope (the ADR-0066 reversal tracked as T16 in
+[`docs/planning/2026-10-24_05-33_SUPERB-metaengine-codec-boundary-completion.md`](../docs/planning/2026-10-24_05-33_SUPERB-metaengine-codec-boundary-completion.md)).
+
+Write paths reject a value JSON cannot represent (channel, function, cyclic
+structure) with a Rejection-classified error **before** any row is written.
+`sqliteengine` (and `turso`, which delegates to it) previously stored a
+`fmt.Sprintf("%v")` placeholder instead; that fallback is gone.
+
 ## Counter Patterns
 
 ### Status Count Dashboard

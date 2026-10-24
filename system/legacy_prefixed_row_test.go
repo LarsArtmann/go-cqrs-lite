@@ -95,7 +95,10 @@ func TestLegacyPrefixedRows_StickyKeyReadAndAppend(t *testing.T) {
 	}
 
 	if len(loaded) != 1 {
-		t.Fatalf("legacy stream length = %d, want 1 (sticky resolution missed the row)", len(loaded))
+		t.Fatalf(
+			"legacy stream length = %d, want 1 (sticky resolution missed the row)",
+			len(loaded),
+		)
 	}
 
 	// Append through the CURRENT adapter: the write must CONTINUE under the

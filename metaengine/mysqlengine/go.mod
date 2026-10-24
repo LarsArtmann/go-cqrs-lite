@@ -5,7 +5,7 @@ go 1.27.2
 require (
 	github.com/go-sql-driver/mysql v1.10.1
 	github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.2
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.19.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.20.0
 	github.com/onsi/gomega v1.44.0
 )
 

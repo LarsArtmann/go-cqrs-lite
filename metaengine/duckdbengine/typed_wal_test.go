@@ -150,7 +150,13 @@ func TestTypedWAL_TypedColumnsFilled(t *testing.T) {
 
 	if eventID != duckTypedEventID1 || streamType != "Task" ||
 		version != 1 || encoding != "cbor" {
-		t.Fatalf("typed identity columns wrong: %q %q %d %q", eventID, streamType, version, encoding)
+		t.Fatalf(
+			"typed identity columns wrong: %q %q %d %q",
+			eventID,
+			streamType,
+			version,
+			encoding,
+		)
 	}
 
 	if len(payload) == 0 {

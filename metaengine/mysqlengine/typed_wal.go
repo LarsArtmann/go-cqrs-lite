@@ -132,7 +132,9 @@ func ensureTypedStreamLog(db *sql.DB) error {
 			continue
 		}
 
-		if _, err := db.Exec(`ALTER TABLE meta_stream_log ADD COLUMN ` + col + `, ALGORITHM=INSTANT`); err != nil {
+		if _, err := db.Exec(
+			`ALTER TABLE meta_stream_log ADD COLUMN ` + col + `, ALGORITHM=INSTANT`,
+		); err != nil {
 			return fmt.Errorf(
 				"mysqlengine typed WAL: add column %s: %w — the server cannot add it "+
 					"INSTANTly (a rebuild would lock the journal); resolve manually",

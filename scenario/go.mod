@@ -3,10 +3,10 @@ module github.com/larsartmann/go-cqrs-lite/scenario/v4
 go 1.27.2
 
 require (
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.1
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.2
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.3
-	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.6.1
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.19.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.6.2
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.20.0
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.4.2
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2
 	github.com/larsartmann/go-error-family v0.12.0

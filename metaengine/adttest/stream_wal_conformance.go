@@ -60,7 +60,12 @@ func AssertWALDuplicateAppendConflicts(t *testing.T, eng metaengine.Engine) {
 	ctx := context.Background()
 	env := walEnvelope(t, "01WALDUP0000000000000000001", "01WALSTREAM0000000000001", 1)
 
-	if err := backend.StreamAppend(ctx, col, "Task:01WALSTREAM0000000000001", []any{env}); err != nil {
+	if err := backend.StreamAppend(
+		ctx,
+		col,
+		"Task:01WALSTREAM0000000000001",
+		[]any{env},
+	); err != nil {
 		t.Fatalf("first append: %v", err)
 	}
 
@@ -87,8 +92,14 @@ func AssertWALStreamVersionConflict(t *testing.T, eng metaengine.Engine) {
 
 	ctx := context.Background()
 
-	if err := backend.StreamAppend(ctx, col, "Task:01WALSTREAM0000000000001",
-		[]any{walEnvelope(t, "01WALVER00000000000000000001", "01WALSTREAM0000000000001", 1)}); err != nil {
+	if err := backend.StreamAppend(
+		ctx,
+		col,
+		"Task:01WALSTREAM0000000000001",
+		[]any{
+			walEnvelope(t, "01WALVER00000000000000000001", "01WALSTREAM0000000000001", 1),
+		},
+	); err != nil {
 		t.Fatalf("seed append: %v", err)
 	}
 

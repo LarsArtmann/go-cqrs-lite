@@ -131,8 +131,8 @@ github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.2 h1:19mLTKKDCLrwUDWYVBQp
 github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.2/go.mod h1:YMXWKgNJdM3bNOrgwoER/C2XYUDpXVZpFqJYco34K6U=
 github.com/larsartmann/go-cqrs-lite/encryption/v4 v4.4.6 h1:/9kf4cQbzVRXlaKfrmMUnyQNTHBBf6F/H3sAwtcYs+4=
 github.com/larsartmann/go-cqrs-lite/encryption/v4 v4.4.6/go.mod h1:UbVGTzrjCb94YEOsWulwOvjv7uUlSWCjIVTI31sEDB4=
-github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.1 h1:zibVC2qEmJNS0Csj8zD1FLe0jpW2Mh+5RaeRKUqv9fA=
-github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.1/go.mod h1:Yryp/hRjrY2kADS6s3ouBF5NldOYcEmNZEuS5Oqtf3Y=
+github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.2 h1:9f8JzC0Ud+O1hILNKLsXQgWreDtHcCki/xczl4YGVT0=
+github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.2/go.mod h1:BbipSAKx998DAgHyuvao1uxosCiovgJ3+vi80ZmVkzk=
 github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.4.0 h1:PjI4Y+CPkg2mBG7InAi9y3+czCQsXyIdcjZiGQduq6M=
 github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.4.0/go.mod h1:/Je8mL9pj1BtlAU8XtpBqtrLGHob1TeZpvlobrUmIy8=
 github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.3 h1:MJBJNsp9UEbYvrb1HBvc6Ui94qf56GJzk76XDFbxyLY=
@@ -143,8 +143,8 @@ github.com/larsartmann/go-cqrs-lite/listing/v4 v4.4.4 h1:adCLLEnjEguX5NunGTPVhs/
 github.com/larsartmann/go-cqrs-lite/listing/v4 v4.4.4/go.mod h1:i/uu7dSxW6eLhx2zDZshD3hBqNqXEyKD26R1zSQpRHg=
 github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3 h1:t6+zJntr/N9ah7HEUHab3Xq5cQK5T7Tu7UqGblRZdaw=
 github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3/go.mod h1:RzBMkLnFnOXEx5R5OVj4pRs+cYToWDQbT0BaOFMUutM=
-github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.2 h1:q91s4+q6eoKZDXzil/WV5kTGRFUNbDXiebkMlxiJpcg=
-github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.2/go.mod h1:2tux4v9UUi/ADv6Eb3DH7xaEM58PiBreE1JPHXPC6aw=
+github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.3 h1:LBqGdzokDoygcf97o26XPDz1RJFhV1rLh42yAS1lkQE=
+github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.3/go.mod h1:U38OXil5fqsfaKA0TyLB55+n0u2k7eJt44m8Oa5zXxI=
 github.com/larsartmann/go-cqrs-lite/projection/v4 v4.4.2 h1:G8gewUt+OA5ElZpG8nBy3HLx8KHuh9JZjwz8I+OiXL4=
 github.com/larsartmann/go-cqrs-lite/projection/v4 v4.4.2/go.mod h1:DH8T81EISKuU57IsXuZhV/e2wwK52VlwfH0X2SePSEE=
 github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1 h1:TQXQy2GgpoRNiMFWY4ye6sw8k/PsdJFgQEQxsM4jmNA=
@@ -157,8 +157,8 @@ github.com/larsartmann/go-cqrs-lite/schema/v4 v4.7.0 h1:7JDSpopxhV7BIlZ5iq49WdKr
 github.com/larsartmann/go-cqrs-lite/schema/v4 v4.7.0/go.mod h1:Y49ot/wFEpKDeTw/TaCf7ek+hkMcebPFMDHPRWWlSDk=
 github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.7.0 h1:0pvOQNTZ4ft6UsRA8X01+l+AqELTkW2vKpNa/ZugmTk=
 github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.7.0/go.mod h1:xPlRbFNmRk6ym58R2IGy4d8yLysx2G1t8udljtH310w=
-github.com/larsartmann/go-cqrs-lite/stack/v4 v4.5.0 h1:IAdi9hEixS4tDbf5DsO7D1poOsN0tB6tX3azIm5dPTE=
-github.com/larsartmann/go-cqrs-lite/stack/v4 v4.5.0/go.mod h1:ls5/ERC16jb02ux8YcO1JJ1xlOf7M7udpJa5jWlu3tk=
+github.com/larsartmann/go-cqrs-lite/stack/v4 v4.5.1 h1:CBl+BFfRpWsl4eBBYu4xlLrSAnoT7h28O7chfVW3TDY=
+github.com/larsartmann/go-cqrs-lite/stack/v4 v4.5.1/go.mod h1:gzwZb6uZPcl27eOTfUSLjBMoN8atk9lwuNSiS8ONZDI=
 github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2 h1:h7624nwPbDVqIpCX2xkBd8FPen7hDraHFfVsMFhFdZs=
 github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2/go.mod h1:yl5xmDZ2IbDv6WkBMzbeJ8mNenfWRpXpImfj1gTTTus=
 github.com/larsartmann/go-cqrs-lite/storage/v4 v4.11.1 h1:8I2PL2aKyfnXlkNMY/Qdb+SSHkot7ae+/wMUaQrQi1M=
