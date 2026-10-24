@@ -123,7 +123,9 @@ type Scenario struct {
 // DeploymentConfig a production binary uses, installs command capture,
 // starts the system, and registers cleanup. The returned Scenario drives
 // Given/When/Then chains; a scenario that never runs a Then* assertion fails
-// the test (vacuous-pass guard).
+// the test (vacuous-pass guard). An empty DomainConfig logs a warning — a
+// hollow root passes every assertion while proving nothing (see
+// [warnOnEmptyDomain]).
 func System(
 	tb testing.TB,
 	ctx context.Context,
@@ -132,6 +134,8 @@ func System(
 	opts ...Option,
 ) *Scenario {
 	tb.Helper()
+
+	warnOnEmptyDomain(tb, domain)
 
 	cfg := defaultConfig()
 	for _, opt := range opts {

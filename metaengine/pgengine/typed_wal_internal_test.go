@@ -8,8 +8,8 @@ import (
 
 type fakeSQLStateError struct{ code string }
 
-func (e *fakeSQLStateError) Error() string     { return "pg: " + e.code }
-func (e *fakeSQLStateError) SQLState() string  { return e.code }
+func (e *fakeSQLStateError) Error() string    { return "pg: " + e.code }
+func (e *fakeSQLStateError) SQLState() string { return e.code }
 
 func TestIsUniqueViolation(t *testing.T) {
 	t.Parallel()
