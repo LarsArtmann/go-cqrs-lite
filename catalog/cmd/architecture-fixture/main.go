@@ -146,7 +146,11 @@ func fixtureCatalog() *catalog.Catalog {
 }
 
 func main() {
-	if len(os.Args) < 2 || len(os.Args) > 3 {
+	// argWhole is the minimum argv: the command plus the whole-reference
+	// path; argSlice adds the partner-slice path.
+	const argWhole, argSlice = 2, 3
+
+	if len(os.Args) < argWhole || len(os.Args) > argSlice {
 		failf("usage: architecture-fixture <whole.html> [slice.html]")
 	}
 
@@ -160,7 +164,7 @@ func main() {
 		failf("render: %v", err)
 	}
 
-	if len(os.Args) == 3 {
+	if len(os.Args) == argSlice {
 		slice := &architecture.ExportSpec{
 			Title:       "Acme — partner slice",
 			Description: "What partners may see.",
@@ -171,7 +175,7 @@ func main() {
 
 		sliced := architecture.NewExporter(append([]architecture.Option{
 			architecture.WithCommand("catalog-export -spec partner.mdx"),
-		}, slice.Options()...))
+		}, slice.Options()...)...)
 
 		if err := sliced.ExportFile(fixtureCatalog(), os.Args[2]); err != nil {
 			failf("render slice: %v", err)

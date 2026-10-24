@@ -103,7 +103,7 @@ assert_all() {
 	# Section coverage: one section per fixture resource.
 	for anchor in overview domain-ordering service-order-service \
 		command-create-order event-order-created query-get-order \
-		channel-orders data-store-order-db flow-place-order \
+		channel-orders data-store-order-db data-store-secret-store flow-place-order \
 		entity-order adr-0001-events team-ordering doc-getting-started; do
 		grep -q "id=\"$anchor\"" "$doc" || {
 			echo "FAIL: missing section: $anchor"
@@ -115,8 +115,73 @@ assert_all() {
 	local sections links
 	sections="$(grep -o '<section class="section" id="' "$doc" | wc -l)"
 	links="$(grep -o '<a class="item" href="#' "$doc" | wc -l)"
-	if [[ "$sections" -lt 13 || "$links" -lt 13 ]]; then
-		echo "FAIL: expected ≥13 sections and sidebar entries, got $sections/$links"
+	if [[ "$sections" -lt 14 || "$links" -lt 14 ]]; then
+		echo "FAIL: expected ≥14 sections and sidebar entries, got $sections/$links"
+		rc=1
+	fi
+
+	return "$rc"
+}
+
+# assert_slice runs the shared artifact assertions plus the REDACTION
+# contract (ADR-0160) against the partner slice: $1 = slice, $2 = whole
+# reference (for the fewer-sections comparison). The slice excludes the
+# hostile-named store, so its name must appear nowhere — not as text, not as
+# a link, not as a section, not in the search index — while OTHER
+# out-of-scope names still degrade to plain text (name-only mode).
+assert_slice() {
+	local doc="$1" whole="$2" rc=0
+
+	assert_all "$whole" >/dev/null 2>&1 || {
+		echo "FAIL: the whole reference regressed; the slice comparison is void"
+		return 1
+	}
+
+	# doctype + self-containment + anchor integrity run via the shared
+	# machinery: the cheapest honest route is to reuse assert_all's loops on
+	# the slice for anchors only, inline here.
+	grep -q '<!doctype html>' "$doc" || {
+		echo "FAIL: slice has no doctype"
+		rc=1
+	}
+
+	for forbidden in 'src="http' 'href="http' '<link ' '@import'; do
+		if grep -qF "$forbidden" "$doc"; then
+			echo "FAIL: slice not self-contained: found $forbidden"
+			rc=1
+		fi
+	done
+
+	while IFS= read -r target; do
+		[[ -z "$target" ]] && continue
+		if ! grep -q "id=\"$target\"" "$doc"; then
+			echo "FAIL: slice link points at missing anchor: $target"
+			rc=1
+		fi
+	done < <(grep -o 'href="#[^"]*"' "$doc" | sed 's/href="#//; s/"$//' | sort -u)
+
+	if grep -qF "$hostile" "$doc"; then
+		echo "FAIL: the excluded store's name leaked into the slice"
+		rc=1
+	fi
+
+	if grep -q 'id="data-store-secret-store"' "$doc"; then
+		echo "FAIL: the excluded store has a section in the slice"
+		rc=1
+	fi
+
+	# Name-only liveness: another out-of-scope name still renders as plain
+	# text, so the hostile absence is the exclusion working, not omit mode.
+	if ! grep -qF 'Order Database' "$doc"; then
+		echo "FAIL: slice stopped rendering out-of-scope names (the leak check guards nothing)"
+		rc=1
+	fi
+
+	local slice_sections whole_sections
+	slice_sections="$(grep -o '<section class="section" id="' "$doc" | wc -l)"
+	whole_sections="$(grep -o '<section class="section" id="' "$whole" | wc -l)"
+	if [[ "$slice_sections" -ge "$whole_sections" || "$slice_sections" -lt 5 ]]; then
+		echo "FAIL: slice should have fewer sections than the whole (and ≥5), got $slice_sections vs $whole_sections"
 		rc=1
 	fi
 
@@ -128,14 +193,14 @@ if [[ "${1:-}" == "--self-test" ]]; then
 	exit 0
 fi
 
-echo "==> 1/2 rendering fixture catalog"
-(cd "$root/catalog" && GOWORK=off go run ./cmd/architecture-fixture "$out")
+echo "==> 1/2 rendering fixture catalog (whole + partner slice)"
+(cd "$root/catalog" && GOWORK=off go run ./cmd/architecture-fixture "$out" "$slice_out")
 
-echo "==> 2/2 asserting the artifact ($(wc -c <"$out") bytes)"
-if assert_all "$out"; then
+echo "==> 2/2 asserting the artifacts ($(wc -c <"$out") + $(wc -c <"$slice_out") bytes)"
+if assert_all "$out" && assert_slice "$slice_out" "$out"; then
 	cleanup_ok
-	echo "✓ check-architecture-reference: self-contained, anchors resolve, 13 sections"
+	echo "✓ check-architecture-reference: self-contained, anchors resolve, 14 sections, slice redacts"
 else
-	echo "FAIL: architecture reference failed validation (artifact kept: $out)" >&2
+	echo "FAIL: architecture reference failed validation (artifacts kept: $out $slice_out)" >&2
 	exit 1
 fi
