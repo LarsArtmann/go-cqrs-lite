@@ -380,12 +380,14 @@ linters:
         - .NewCorruption(
         - .NewConflict(
         - .NewOrchestration(
+        - .Newf(
         - .WrapRejection(
         - .WrapTransient(
         - .WrapInfrastructure(
         - .WrapCorruption(
         - .WrapConflict(
         - .WrapOrchestration(
+        - .WithCause(
         - .Scan(
         - (*database/sql.Rows).Err
         - (*database/sql.DB).Query
