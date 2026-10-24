@@ -71,9 +71,11 @@ func typedEnvelope(t *testing.T, eventID, streamID string, version int) string {
 	return string(data)
 }
 
-const duckTypedStreamID = "01TYPEDSTREAM000000000001"
-const duckTypedEventID1 = "01TYPED0000000000000000001"
-const duckTypedEventID2 = "01TYPED0000000000000000002"
+const (
+	duckTypedStreamID = "01TYPEDSTREAM000000000001"
+	duckTypedEventID1 = "01TYPED0000000000000000001"
+	duckTypedEventID2 = "01TYPED0000000000000000002"
+)
 
 func TestTypedWAL_DuplicateEventAppendConflicts(t *testing.T) {
 	t.Parallel()
