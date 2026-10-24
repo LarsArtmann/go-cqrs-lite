@@ -222,7 +222,14 @@ server-rendered HTML).
   kind:id`, `-references`, `-hide`, `-spec <file>`) and `-check`, which
   prints `Exporter.Inspect`'s report and exits 1 when a selector matched
   nothing — a redaction that matches nothing is a silent leak risk, so it
-  fails loudly.
+  fails loudly. **Spec/flag precedence (pinned by
+  `TestSpecAndFlagPrecedence`, 2026-10-24):** the `-spec` file's options
+  apply FIRST, the flags extend them — a flag `-exclude` adds to the spec's,
+  a flag title overrides the spec's (the CLI assembles
+  `WithCommand, ...specOptions, ...flagOptions` in that order). `LoadExport`
+  rejects unknown `references` spellings (want omit, name-only, include;
+  `omit` ≡ default) while the CLI's `-references` flag stays lenient
+  (unknown → omit).
 - **Selections (ADR-0160) are a kept-set with three layers.** `Selection.plan`
   computes `kept` + `banned` + per-resource reasons + not-found selectors.
   Excludes win over includes inside an included container and never cascade;
@@ -302,3 +309,16 @@ afterwards (the restore line would otherwise bring it back).
   go-snaps (via the cattest golden helpers), templ, templ-components. Any new
   production dependency needs an explicit budget review.
 - test-only deps (go-snaps, ginkgo, gomega) don't count.
+
+## Corrupted shared toolchain caches (2026-10-23 repair recipe)
+
+`scripts/go-env.sh` points `GOMODCACHE`/`GOPATH` at `/tmp/gomod-verify` and
+`/tmp/gopath-verify` — shared across sessions, and a half-written extraction
+(usually after a killed verify mid-download) makes every `go` command die with
+`archive/tar: invalid tar header` or `file already exists` from the module
+cache. Repair: `chmod -R u+w /tmp/gomod-verify /tmp/gopath-verify` (the cache
+marks extracted trees read-only, so a straight delete fails), then
+`trash /tmp/gomod-verify /tmp/gopath-verify`, then re-run any `go build` — the
+toolchain re-downloads cleanly. Never `rm -rf` (the safety rule) and never
+hand-edit inside the cache; also build scratch binaries with `-o /tmp/…`
+because the auto-commit daemon absorbs repo-root strays within ~2 minutes.
