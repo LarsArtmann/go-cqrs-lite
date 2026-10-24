@@ -1,6 +1,19 @@
 // Package kv defines a minimal, backend-agnostic interface for embedded
 // key-value stores with ordered iteration and atomic batch writes.
 //
+// # Durable Backing (contract 30 / ADR-0142, status 2026-10-24)
+//
+// Under the all-durable-I/O-through-metaengine rule, NEW durable KV state
+// belongs on a metaengine engine (MapBackend/SetBackend collections), not on
+// a hand-wired kv.Store over a database driver. This package's durable scope
+// going forward is the TYPED layer over engines and caches
+// ([TypedStore], [ViewStore], [Cache]); its only durable implementors today
+// are the legacy storage/pebble and storage/bbolt adapters, which are
+// removed at v5. [NewMemStore] stays the canonical in-memory/testing Store.
+// Whether the durable adapters grow a metaengine Map backing or the package
+// fully demotes to cache/typed layering is the open G1 owner verdict — until
+// then this note IS the guidance: do not add new satellite-SQL kv backends.
+//
 // The interface matches the common denominator across Pebble, BadgerDB, and
 // bbolt: byte-slice keys with lexicographic ordering, prefix iteration, and
 // atomic multi-key batches.
