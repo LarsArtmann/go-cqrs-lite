@@ -37,7 +37,11 @@ func TestMySQLPlannedExplain_IndexUsageProofs(t *testing.T) {
 	}
 
 	g.Expect(lpa.ApplyLayoutPlan(
-		metaengine.BuildLayoutPlanFromType[explainRow]("planned_explain", []string{"code"}, []string{"priority"}),
+		metaengine.BuildLayoutPlanFromType[explainRow](
+			"planned_explain",
+			[]string{"code"},
+			[]string{"priority"},
+		),
 	)).To(gomega.Succeed())
 
 	for i := range 500 {

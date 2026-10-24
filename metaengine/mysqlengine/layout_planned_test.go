@@ -80,7 +80,11 @@ func TestMySQLPlannedTable_RoundTrip(t *testing.T) {
 		Priority float64 `json:"priority"`
 	}
 
-	plan := metaengine.BuildLayoutPlanFromType[roundtripRow]("planned_roundtrip", []string{"priority"}, nil)
+	plan := metaengine.BuildLayoutPlanFromType[roundtripRow](
+		"planned_roundtrip",
+		[]string{"priority"},
+		nil,
+	)
 	g.Expect(lpa.ApplyLayoutPlan(plan)).To(gomega.Succeed())
 
 	// Idempotent: same columns → no-op.
@@ -153,7 +157,11 @@ func TestMySQLPlannedPushdownScan_FilterSortKeyset(t *testing.T) {
 	}
 
 	g.Expect(lpa.ApplyLayoutPlan(
-		metaengine.BuildLayoutPlanFromType[scanRow]("planned_scan", []string{"status"}, []string{"priority"}),
+		metaengine.BuildLayoutPlanFromType[scanRow](
+			"planned_scan",
+			[]string{"status"},
+			[]string{"priority"},
+		),
 	)).To(gomega.Succeed())
 
 	for i := 1; i <= 5; i++ {

@@ -34,7 +34,11 @@ func TestPgPlannedTable_RoundTrip(t *testing.T) {
 		Priority float64 `json:"priority"`
 	}
 
-	plan := metaengine.BuildLayoutPlanFromType[roundtripRow]("planned_roundtrip", []string{"priority"}, nil)
+	plan := metaengine.BuildLayoutPlanFromType[roundtripRow](
+		"planned_roundtrip",
+		[]string{"priority"},
+		nil,
+	)
 	g.Expect(lpa.ApplyLayoutPlan(plan)).To(gomega.Succeed())
 
 	// Idempotent: same columns → no-op.
@@ -97,7 +101,11 @@ func TestPgPlannedTable_MisTypedExtractFailsLoudly(t *testing.T) {
 	}
 
 	g.Expect(lpa.ApplyLayoutPlan(
-		metaengine.BuildLayoutPlanFromType[mistypeRow]("planned_mistype", []string{"priority"}, nil),
+		metaengine.BuildLayoutPlanFromType[mistypeRow](
+			"planned_mistype",
+			[]string{"priority"},
+			nil,
+		),
 	)).To(gomega.Succeed())
 
 	// "priority" is a BIGINT extracted column; a string payload must fail.
@@ -125,7 +133,11 @@ func TestPgPlannedPushdownScan_FilterSortKeyset(t *testing.T) {
 	}
 
 	g.Expect(lpa.ApplyLayoutPlan(
-		metaengine.BuildLayoutPlanFromType[scanRow]("planned_scan", []string{"status"}, []string{"priority"}),
+		metaengine.BuildLayoutPlanFromType[scanRow](
+			"planned_scan",
+			[]string{"status"},
+			[]string{"priority"},
+		),
 	)).To(gomega.Succeed())
 
 	for i := 1; i <= 5; i++ {

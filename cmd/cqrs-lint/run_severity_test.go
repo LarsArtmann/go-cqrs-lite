@@ -71,19 +71,22 @@ func TestShouldExitWithError_InfoAdvisoryNeverGates(t *testing.T) {
 
 	cfg := &AppConfig{}
 
-	infoOnly := []finding.Finding{
-		{ID: "1", Rule: "E023-satellite-owned-sql", Severity: finding.SeverityInfo},
+	info := finding.Finding{
+		ID: "1", Rule: "E023-satellite-owned-sql", Severity: finding.SeverityInfo,
 	}
-	if err := shouldExitWithError(cfg, infoOnly); err != nil {
+	if err := shouldExitWithError(cfg, []finding.Finding{info}); err != nil {
 		t.Errorf("info-only findings must not gate the exit code, got %v", err)
 	}
 
-	withWarning := append(infoOnly, finding.Finding{ID: "2", Severity: finding.SeverityWarning})
-	if err := shouldExitWithError(cfg, withWarning); err != nil {
+	infoAndWarning := []finding.Finding{info, {ID: "2", Severity: finding.SeverityWarning}}
+	if err := shouldExitWithError(cfg, infoAndWarning); err != nil {
 		t.Errorf("info+warning findings must not gate the exit code, got %v", err)
 	}
 
-	withError := append(withWarning, finding.Finding{ID: "3", Severity: finding.SeverityError})
+	withError := append(
+		append([]finding.Finding{}, infoAndWarning...),
+		finding.Finding{ID: "3", Severity: finding.SeverityError},
+	)
 	if err := shouldExitWithError(cfg, withError); !errors.Is(err, errFindingsWithErrors) {
 		t.Errorf("an error-severity finding must gate the exit code, got %v", err)
 	}

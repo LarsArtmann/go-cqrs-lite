@@ -20,7 +20,7 @@ const demoBadgeContent = "Demo"
 // demoBadge is the canonical marker for demo content: amber chip, dark
 // text, readable in both light and dark EventCatalog themes.
 func demoBadge() Badge {
-	return Badge{
+	return Badge{ //nolint:exhaustruct_v5 // Icon/URL are omitempty optional; the demo badge deliberately has neither
 		Content:         demoBadgeContent,
 		BackgroundColor: "#f59e0b",
 		TextColor:       "#1f2937",
@@ -29,7 +29,9 @@ func demoBadge() Badge {
 
 // demoSource marks a team or user record as demo provenance.
 func demoSource() *Source {
-	return &Source{Provider: "demo"}
+	return &Source{ //nolint:exhaustruct_v5 // ID/URL are omitempty optional; synthetic demo provenance has neither
+		Provider: "demo",
+	}
 }
 
 // appendDemoBadge returns a fresh slice with the demo badge appended unless

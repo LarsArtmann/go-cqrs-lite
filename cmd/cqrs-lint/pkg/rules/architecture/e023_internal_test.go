@@ -16,7 +16,7 @@ func TestIsEngineTierPackage(t *testing.T) {
 		"github.com/larsartmann/go-cqrs-lite/storage/pebble":           true,
 		"github.com/larsartmann/go-cqrs-lite/storage/sql":              true,
 		"github.com/larsartmann/go-cqrs-lite/stack/sqlite":             true,
-		"github.com/larsartmann/go-cqrs-lite/scheduling/sqlstore/v4":    true,
+		"github.com/larsartmann/go-cqrs-lite/scheduling/sqlstore/v4":   true,
 		"github.com/larsartmann/go-cqrs-lite/idempotency/sqlstore/v4":  true,
 		"github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer": true,
 		"github.com/larsartmann/go-cqrs-lite/example/taskmanager":      true,

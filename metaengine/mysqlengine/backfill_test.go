@@ -44,7 +44,11 @@ func TestMySQLBackfillPlannedCollection(t *testing.T) {
 	}
 
 	lpa := eng.(metaengine.LayoutPlanApplier)
-	plan := metaengine.BuildLayoutPlanFromType[backfillRow]("backfill_items", []string{"status"}, []string{"amount"})
+	plan := metaengine.BuildLayoutPlanFromType[backfillRow](
+		"backfill_items",
+		[]string{"status"},
+		[]string{"amount"},
+	)
 	g.Expect(lpa.ApplyLayoutPlan(plan)).To(gomega.Succeed())
 
 	// Pre-registration rows are invisible until backfilled.
