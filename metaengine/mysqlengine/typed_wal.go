@@ -1,6 +1,7 @@
 package mysqlengine
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json/v2"
 	"errors"
@@ -132,8 +133,8 @@ func ensureTypedStreamLog(db *sql.DB) error {
 			continue
 		}
 
-		if _, err := db.Exec(
-			`ALTER TABLE meta_stream_log ADD COLUMN ` + col + `, ALGORITHM=INSTANT`,
+		if _, err := db.ExecContext(context.Background(),
+			`ALTER TABLE meta_stream_log ADD COLUMN `+col+`, ALGORITHM=INSTANT`,
 		); err != nil {
 			return fmt.Errorf(
 				"mysqlengine typed WAL: add column %s: %w — the server cannot add it "+
@@ -153,7 +154,7 @@ func ensureTypedStreamLog(db *sql.DB) error {
 	}
 
 	for _, idx := range indexes {
-		if _, err := db.Exec(idx); err != nil && !isMySQLDuplicateIndex(err) {
+		if _, err := db.ExecContext(context.Background(), idx); err != nil && !isMySQLDuplicateIndex(err) {
 			return fmt.Errorf(
 				"mysqlengine typed WAL: unique index failed — the journal contains "+
 					"duplicate event ids or (stream, version) pairs (clean up the duplicates "+
@@ -169,7 +170,7 @@ func ensureTypedStreamLog(db *sql.DB) error {
 // probeStreamLogColumns returns the set of column names meta_stream_log
 // currently has.
 func probeStreamLogColumns(db *sql.DB) (map[string]bool, error) {
-	rows, err := db.Query(`
+	rows, err := db.QueryContext(context.Background(), `
 		SELECT column_name FROM information_schema.columns
 		WHERE table_schema = DATABASE() AND table_name = 'meta_stream_log'`)
 	if err != nil {
@@ -212,7 +213,7 @@ func backfillTypedStreamColumns(db *sql.DB) error {
 		  AND JSON_UNQUOTE(JSON_EXTRACT(value, '$.id')) IS NOT NULL
 		  AND JSON_UNQUOTE(JSON_EXTRACT(value, '$.stream_type')) IS NOT NULL`
 
-	if _, err := db.Exec(stmt); err != nil {
+	if _, err := db.ExecContext(context.Background(), stmt); err != nil {
 		return fmt.Errorf(
 			"mysqlengine typed WAL: backfill: %w — if this is a duplicate-entry error, the "+
 				"journal already contains duplicate event ids or (stream, version) pairs "+

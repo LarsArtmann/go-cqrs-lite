@@ -1,6 +1,7 @@
 package duckdbengine
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json/v2"
 	"fmt"
@@ -118,8 +119,8 @@ var typedStreamColumns = []string{
 func ensureTypedStreamLog(db *sql.DB) error {
 	for _, col := range typedStreamColumns {
 		name := col[:strings.IndexByte(col, ' ')]
-		if _, err := db.Exec(
-			`ALTER TABLE meta_stream_log ADD COLUMN IF NOT EXISTS ` + col,
+		if _, err := db.ExecContext(context.Background(),
+			`ALTER TABLE meta_stream_log ADD COLUMN IF NOT EXISTS `+col,
 		); err != nil {
 			return fmt.Errorf("duckdbengine typed WAL: add column %s: %w", name, err)
 		}
@@ -137,7 +138,7 @@ func ensureTypedStreamLog(db *sql.DB) error {
 	}
 
 	for _, idx := range indexes {
-		if _, err := db.Exec(idx); err != nil {
+		if _, err := db.ExecContext(context.Background(), idx); err != nil {
 			return fmtErr(
 				"unique index failed — the journal contains duplicate event ids or "+
 					"(stream, version) pairs (clean up the duplicates and re-open)",
@@ -167,7 +168,7 @@ func backfillTypedStreamColumns(db *sql.DB) error {
 		  AND json_extract_string(value, '$.id') IS NOT NULL
 		  AND json_extract_string(value, '$.stream_type') IS NOT NULL`
 
-	if _, err := db.Exec(stmt); err != nil {
+	if _, err := db.ExecContext(context.Background(), stmt); err != nil {
 		return fmtErr(
 			"backfill — if this is a constraint violation, the journal already "+
 				"contains duplicate event ids or (stream, version) pairs (clean up "+

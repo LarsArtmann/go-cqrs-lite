@@ -3,7 +3,7 @@ package version
 // V007 table continuation: ADR-0152 core/v5 copy-forward twins of the v4
 // deprecated surface (identical semantics; removed with the v4 train in T26).
 
-var deprecatedV5SymbolV5Twins = []deprecatedV5Symbol{ //nolint:gochecknoglobals // static table
+var deprecatedV5SymbolV5Twins = []deprecatedV5Symbol{ //nolint:gochecknoglobals,dupl // static table; the v4↔v5 twin is a deliberate copy-forward (ADR-0152)
 	// ADR-0152: core/v5 copy-forward twins of the v4 deprecated surface
 	// (identical semantics; removed together with the v4 train in T26).
 	{

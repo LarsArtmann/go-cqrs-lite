@@ -19,7 +19,7 @@ var deprecatedV5Symbols = slices.Concat( //nolint:gochecknoglobals // static tab
 	deprecatedV5SymbolV5Twins,
 )
 
-var deprecatedV5SymbolShells = []deprecatedV5Symbol{ //nolint:gochecknoglobals // static table
+var deprecatedV5SymbolShells = []deprecatedV5Symbol{ //nolint:gochecknoglobals,dupl // static table; the v4↔v5 twin is a deliberate copy-forward (ADR-0152)
 	// 2026-10-23 codec-boundary repair: the error-dropping wrapper is marked
 	// Deprecated in-source (removal at v5) — EncodeStreamValueErr is canonical.
 	{

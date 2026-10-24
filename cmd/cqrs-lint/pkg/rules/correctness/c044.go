@@ -49,7 +49,7 @@ func NewC044Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 // displayContextCalleeNames are the enclosing-call method names under which
 // a branded .String() is display intent (logging, structured attributes,
 // message formatting) rather than a wire/storage leak.
-var displayContextCalleeNames = map[string]bool{
+var displayContextCalleeNames = map[string]bool{ //nolint:gochecknoglobals // static lookup table
 	// log/slog family
 	"Info": true, "Infof": true, "Warn": true, "Warnf": true,
 	"Error": true, "Errorf": true, "Debug": true, "Debugf": true,

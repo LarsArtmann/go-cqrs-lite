@@ -6,7 +6,7 @@ import "strings"
 // segment CONTAINING Sep collides with a different segment split: the pair
 // ("a", "b\x00c") and ("a\x00b", "c") produce the identical map key —
 // cross-collection injection and silent overwrite (the separator-injection
-// bug the v2 family kills). Escape renders a segment free of Sep and of the
+// defect the v2 family kills). Escape renders a segment free of Sep and of the
 // escape byte so every v2 join is unambiguous.
 //
 // Scheme: 0x00 → 0x01 '0', 0x01 → 0x01 '1'; every other byte passes through.
