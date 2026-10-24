@@ -2862,3 +2862,24 @@ dprint, ADR-0123 addendum) shipped the same day — completed rows deleted
       results" post-cutover; the census tracks adoption counts but not
       stories. One ask per project, linked from docs/evidence/.
       — source: CV 2026-10-24 deep-dive §f-50 _(Effort: XS per project)_
+
+## Untagged-API incident (found 2026-10-24 during the fleet-audit follow-up)
+
+- [ ] 🔥 **catalog: cut the next train containing `Registry.MarkDemo`** —
+      the method landed in untagged daemon commit `5952a4562`, but
+      `example/mesh-demo` pins `catalog/v4 v4.10.0` and CALLS it
+      (`catalog.go:38,175`), so the example fails to build against the
+      module proxy (`GOWORK=off go build` in example/mesh-demo: "MarkDemo
+      undefined"). Nothing gates this class today: examples build with the
+      workspace go.work in CI, and `check-example-standalone.sh` audits
+      replace-directives, not API resolution — exactly the
+      "verify the API at the proxy-pinned tag, not the checkout" hazard the
+      InboxClean 2026-10-24 audit told consumers to defend against.
+      — source: this session's build sweep _(Effort: XS to heal at next
+      catalog wave; verify mesh-demo GOWORK=off after)_
+- [ ] **Gate it: build `examplePaths` with `GOWORK=off` against the pinned
+      graph** — one leg in `check-example-standalone.sh` (or the
+      `verify-ci` matrix) compiling every example module standalone would
+      have caught the MarkDemo incident at commit time instead of at
+      consumer time.
+      — source: same incident _(Effort: S)_

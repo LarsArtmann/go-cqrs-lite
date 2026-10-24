@@ -403,12 +403,12 @@ See [CHANGELOG.md](CHANGELOG.md) → System lifecycle hardening.
 
 Axon-5-informed Given/When/Then harness over a REAL `system.New` boot — the same
 `DomainConfig`/`DeploymentConfig` a production binary uses (fixture-from-production-config,
-ADR-0153). Design: [ADR-0153](docs/adr/0153-system-level-bdd-testing-harness-systemscenario.md);
+ADR-0153). Decider-pure twin: `scenario/v4` (Scenario Testing DSL below). Design: [ADR-0153](docs/adr/0153-system-level-bdd-testing-harness-systemscenario.md);
 recipes: [skill recipes §2.43](.agents/skills/go-cqrs-lite/references/recipes.md).
 
 | Feature                 | Detail                                                                                                                                                                                                                                                                                                  | Status |
 | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| Scenario boot           | `System(t, ctx, domain, deploy, opts...)` boots + starts + cleans up; `Adopt(t, ctx, sys)` wraps an externally-booted system (wrapper libraries); vacuous-pass guard (scenario without a Then* fails the test)                                                                                          | 🧪     |
+| Scenario boot           | `System(t, ctx, domain, deploy, opts...)` boots + starts + cleans up; `Adopt(t, ctx, sys)` wraps an externally-booted system (wrapper libraries); vacuous-pass guard (scenario without a Then* fails the test); an empty `DomainConfig` logs a hollow-root WARNING at boot (advisory) | 🧪     |
 | Any-message phases      | `Given(events...)` journal-seeds; `Given().Command(...)` dispatch-seeds; `When(cmd)`, `WhenEvent(evt)` (journal AND publish — projections tail the journal), `WhenQuery(q)`, `TimeAdvances(d)` (ManualClock)                                                                                            | 🧪     |
 | Event assertions        | `Then(types...)` journal diff, `ThenEvents(fn)`, `ThenEventsSatisfy`, `ThenNoEvents`, package-generic `ThenPayload[T]`, `ThenMetadata`; auto-versioned `Event(type, ref, payload)` seeding                                                                                                              | 🧪     |
 | Query assertions        | `ThenQuery(fn, want)` poll-await, `ThenQueryFunc`, `ThenQueryTyped[T]`, `ThenQueryFails(fn, target)` (immediate), `ThenQueryEventuallyFails(fn, target)` (eventual negative — first-class awaitNotFound), `ThenResult`, `ThenSuccess`; timeouts surface the last check message AND the last query error | 🧪     |
@@ -1295,7 +1295,7 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 
 > `import "github.com/larsartmann/go-cqrs-lite/scenario/v4"`
 
-Fluent BDD harness for deciders and projections — no store or bus needed, just pure functions.
+Fluent BDD harness for deciders and projections — no store or bus needed, just pure functions (decider-pure twin of `systemscenario/v4`, the System-Level BDD Testing Harness above).
 
 | Feature                   | Detail                                                                                                                                                                                                                                 | Status |
 | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
