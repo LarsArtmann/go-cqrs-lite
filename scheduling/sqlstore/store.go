@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"time"
 
+	codec "github.com/larsartmann/go-codec"
 	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
@@ -87,7 +88,11 @@ func (s *SQLTimerStore[P]) Close() error { return nil }
 // rows hold the bare JSON of P and decode with an empty actor.
 const timerEnvelopeVersion = 1
 
-// timerEnvelope is the versioned payload-column format (ADR-0044 pattern):
+// timerEnvelope is the versioned payload-column format: the INNER value of
+// the gcdc wrapper (ADR-0044) — {"$":"gcdc","enc":"json","dat":<this>} on
+// every new write; v1-legacy rows hold this struct's bare JSON, v0-legacy
+// rows hold the bare JSON of P, and both still decode (UnwrapDecode's
+// fallback hands them through untouched):
 //
 //	{"v":1,"actor":"user:01JXYZ...","payload":<P>}
 //
@@ -113,7 +118,11 @@ func (s *SQLTimerStore[P]) Schedule(ctx context.Context, t scheduling.Timer[P]) 
 		Payload: t.Payload,
 	}
 
-	payload, err := json.Marshal(envelope)
+	// gcdc envelope (ADR-0044): the timer envelope rides the shared
+	// codec-stamped wrapper — one envelope system with the blind stores.
+	// Legacy rows (v1 hand envelope, v0 bare payload) decode through
+	// UnwrapDecode's fallback unchanged.
+	payload, err := codec.WrapEncode(envelope, codec.JSONCodec{})
 	if err != nil {
 		return errorfamily.WrapCorruption(
 			err,
@@ -316,6 +325,11 @@ var _ scheduling.TimerStore[any] = (*SQLTimerStore[any])(nil)
 // the probe and decode directly as P. Decode failures are classified as
 // corruption — a row whose payload no longer matches P is a corrupt row.
 func decodeTimerPayload[P any](id string, data []byte) (timerEnvelope[P], error) {
+	// Unwrap the gcdc envelope when present (new writes); legacy rows come
+	// back unchanged with the JSON fallback codec (decode-old-wrap-new).
+	_, inner := codec.UnwrapDecode(data, codec.JSONCodec{})
+	data = inner
+
 	var probe struct {
 		Version *int            `json:"v"`
 		Payload *jsontext.Value `json:"payload"`
