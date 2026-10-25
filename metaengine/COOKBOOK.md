@@ -52,13 +52,21 @@ function, cyclic structure) with a Rejection-classified error **before** any row
 is written. `sqliteengine` (and `turso`) previously stored a
 `fmt.Sprintf("%v")` placeholder; that fallback is gone there.
 
-**Known gap:** the LSM engines (`pebbleengine`, `bboltengine`, `badgerengine`)
-still encode values through `keycodec.EncodeJSON`, which falls back to
-`fmt.Sprintf("%v", v)` on a marshal failure — an unrepresentable value is
-stringified instead of rejected. The `memory` engine stores Go values as-is, so
-it is unaffected. Closing this needs `keycodec.EncodeJSON` to return an error
-(22 write sites) or a value tag; it is tracked in `TODO_LIST.md` under the
-Metaengine follow-ups.
+The LSM engines (`pebbleengine`, `bboltengine`, `badgerengine`) reject too:
+their 21 production value write sites encode through `keycodec.EncodeJSONErr`
+(Rejection code `keycodec.encode_value`), and the cross-engine contract is
+pinned by `adttest.AssertValueEncodeRejection`. `keycodec.EncodeJSON` keeps its
+`fmt.Sprintf("%v")` fallback for KEY and display-shaped paths, where a
+placeholder is identity rather than data. The `memory` engine stores Go values
+as-is, so it cannot lose them.
+
+**Still open:** the graph encoders (`mysqlengine`, `duckdbengine`, `pgengine`,
+`bigtableengine`) stringify a non-JSON node/edge value on a marshal failure.
+Decide whether graph identity follows the same "keys are stringified, values
+must be JSON" rule before migrating them; it is tracked in `TODO_LIST.md` under
+the Metaengine follow-ups. Index-key helpers (`sqliteengine.encodeKey`,
+`pebbleengine`'s planned-layout `indexKeyValue`) are identity, not payload, and
+keep the `%v` form deliberately.
 
 ## Counter Patterns
 
