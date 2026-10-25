@@ -127,9 +127,6 @@ func (s *DeciderScenario[Cmd, State]) WhenVersioned(
 	s.decideVersioned = decide
 	s.decide = nil
 
-	var zero Cmd
-	s.cmd = zero
-
 	return s
 }
 
