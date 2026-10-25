@@ -532,5 +532,21 @@ performed, file:line for the change)_
     clones (mechanically distinct by design).
   - **T16** taxonomy generator: regenerated → byte-identical (NO DRIFT);
     gate green (544 codes / 20 modules / 574 doc claims).
+  - **T17 #verify-fast — every step green (2026-10-25 13:3x):** build, vet,
+    short tests, race, lint (all 100 modules incl. bigtableengine/tursoengine),
+    arch, lint-config, docserver-css, duplication (189 baseline), arch-ref,
+    turso-citations, templ, bench-gate, coverage, md-go, api-stability
+    (+`system.SchemaEvent` golden). TWO composed-run failures were root-caused,
+    not retried blind: (1) REAL — recipes.md §2.46 fence used the illegal
+    `Schemas().Event[T]` chain (the parallel session's recipe never compiled);
+    rewritten to the `SchemaEvent` form, TestRecipesCompile green. (2) FLAKE —
+    lint findings in queue/queue-sqlite/queue-postgres that vanish on re-run
+    (daemon mid-commit race; 0 issues twice after). Gate steps verified
+    individually when the composed run flaked under load1≈20 — the documented
+    quiet-window/verify-chain territory.
+  - **T24** harvest: TODO_LIST row closed (silent-loss class 4/4) + new
+    json/v2 map-order row; CHANGELOG [Unreleased] Added/Fixed entries gated by
+    check-changelog-symbols (11 citations); COOKBOOK de-staled (graph
+    verified value-free, bigtable closed); api golden +1 export.
 
 
