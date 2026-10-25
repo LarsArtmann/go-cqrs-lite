@@ -1620,6 +1620,13 @@ replace-free — 10-25 §a2/§a3, now archived).
       removed it). Same class as the documented `go-version-auto-configure`
       skip (AGENTS gotcha #6). Fix: BuildFlow config skip, hook, or a CI check
       failing on `gci` in formatters. Source: 2026-10-11_19-27 §f16.
+      — RECEIPT 2026-10-25: third strike same-day, wider blast radius —
+      `buildflow --fix` (parallel session, `3d8c1bf01`) stripped the depguard
+      block AND the `.buildflow.yml` `env:` disk-cache chain + reset
+      `issues:` limits 50/10→0/0; restored from `3d8c1bf01^`, hash gate +
+      check-lint-config green. `.golangci.yml` coverage is closed (hash
+      golden); `.buildflow.yml` has NO tripwire — extending the hash-golden
+      pattern there is the concrete mechanism proposal for this row.
       _(Effort: S, owner decision on mechanism)_
 - [x] **`Benchmark Regression Detection` CI job: `go-env.sh` mktemp fails on
       the runner** — the job has been red on every push (incl. pre-wave run

@@ -1,0 +1,20 @@
+trust: Config tripwire repair
+gosum: go.sum residue triage
+mutations: 3x mutation receipts
+docsdet: json/v2 determinism rows + gotchas
+changelog: schema-builder Added entry
+readme: metaengine README verify
+p1root: 4% root-causes (badger + queue flake + art-dupl provenance)
+lsmpins: LSM MapUpdate pins x3
+capdrift: engine-capabilities drift
+p20docs: 20% docs pack (godoc + semantics + cookbook + sweep)
+census: SchemaEvent fleet census
+recipe: stored-bytes recipe
+verify: composed verify-chain attempt
+report: final table report
+
+trust -> gosum -> mutations -> docsdet -> changelog -> readme
+readme -> p1root
+p1root -> lsmpins -> capdrift
+capdrift -> p20docs -> census -> recipe -> verify -> report
+mutations -> lsmpins
