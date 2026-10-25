@@ -127,6 +127,123 @@ func TestGiven_When_ThenState(t *testing.T) {
 		ThenState(foldCounter, counterState{}, counterState{Count: 3})
 }
 
+// --- Versioned decide tests (WhenVersioned) ---
+
+// decideIncrementVersioned has the decider.DecideFunc[State] shape exactly —
+// passed to WhenVersioned by name, no adapter. That direct pass is the point
+// of the versioned variant.
+func decideIncrementVersioned(
+	_ counterState,
+	currentVersion event.Version,
+) ([]event.Event, error) {
+	return []event.Event{mustEventAtVersion(evtIncremented, currentVersion+1)}, nil
+}
+
+func mustEventAtVersion(typ event.Type, version event.Version) event.Event {
+	evt, err := event.New(typ, id.NewStreamID(), "Counter", version, map[string]any{"v": 1})
+	if err != nil {
+		panic(err)
+	}
+
+	return evt
+}
+
+func TestGiven_WhenVersioned_ReceivesCurrentVersion(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name       string
+		givenCount int
+		want       event.Version
+	}{
+		{"no given events", 0, 0},
+		{"one given event", 1, 1},
+		{"three given events", 3, 3},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			given := make([]event.Event, tt.givenCount)
+			for i := range given {
+				given[i] = mustEvent(evtIncremented)
+			}
+
+			var got event.Version
+
+			scenario.GivenState[counterState](t, foldCounter, counterState{}, given...).
+				WhenVersioned(func(_ counterState, currentVersion event.Version) ([]event.Event, error) {
+					got = currentVersion
+
+					return nil, nil
+				}).
+				Then()
+			if got != tt.want {
+				t.Errorf("currentVersion = %d, want %d", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestGiven_WhenVersioned_StampsNextVersion(t *testing.T) {
+	t.Parallel()
+	scenario.GivenState[counterState](
+		t, foldCounter, counterState{},
+		mustEvent(evtIncremented),
+		mustEvent(evtIncremented),
+	).
+		WhenVersioned(decideIncrementVersioned).
+		ThenEvents(func(events []event.Event) {
+			if len(events) != 1 {
+				t.Fatalf("ThenEvents: got %d events, want 1", len(events))
+			}
+
+			if got, want := events[0].Version(), event.Version(3); got != want {
+				t.Errorf("emitted version = %d, want %d (current 2 + 1)", got, want)
+			}
+		}).
+		Then(evtIncremented)
+}
+
+func TestGiven_WhenVersioned_ThenError(t *testing.T) {
+	t.Parallel()
+	scenario.GivenState[counterState](t, foldCounter, counterState{}).
+		WhenVersioned(func(_ counterState, _ event.Version) ([]event.Event, error) {
+			return nil, errEvtLimit
+		}).
+		ThenError(errEvtLimit)
+}
+
+func TestGiven_WhenVersioned_ThenState(t *testing.T) {
+	t.Parallel()
+	scenario.GivenState[counterState](
+		t, foldCounter, counterState{},
+		mustEvent(evtIncremented),
+	).
+		WhenVersioned(decideIncrementVersioned).
+		ThenState(foldCounter, counterState{}, counterState{Count: 2})
+}
+
+func TestGiven_When_After_WhenVersioned_LastCallWins(t *testing.T) {
+	t.Parallel()
+	scenario.Given[incrementCmd, counterState](t, foldCounter, counterState{}).
+		WhenVersioned(func(_ counterState, _ event.Version) ([]event.Event, error) {
+			return nil, errEvtLimit
+		}).
+		When(incrementCmd{}, decideIncrement).
+		Then(evtIncremented)
+}
+
+func TestGiven_WhenVersioned_After_When_LastCallWins(t *testing.T) {
+	t.Parallel()
+	scenario.Given[incrementCmd, counterState](t, foldCounter, counterState{}).
+		When(incrementCmd{}, func(counterState, incrementCmd) ([]event.Event, error) {
+			return nil, errEvtLimit
+		}).
+		WhenVersioned(decideIncrementVersioned).
+		Then(evtIncremented)
+}
+
 // --- Projection tests ---
 
 type testProj struct{}

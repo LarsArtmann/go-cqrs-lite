@@ -15,20 +15,33 @@ import (
 // (it receives the stream version for optimistic concurrency). The two
 // intentionally stay separate so this module's dependency footprint stays
 // minimal — importing decider would transitively pull snapshot, otel, and
-// storage/memory into every scenario consumer.
+// storage/memory into every scenario consumer. Version-aware decides that
+// must stamp event versions use [VersionedDecideFunc] via
+// [DeciderScenario.WhenVersioned] instead.
 type DecideFunc[Cmd any, State any] func(state State, cmd Cmd) ([]event.Event, error)
+
+// VersionedDecideFunc is a decide function that receives the aggregate's
+// current version instead of the command. The shape matches
+// decider.DecideFunc[State] on purpose, so a domain decide passes into
+// [DeciderScenario.WhenVersioned] without an adapter; a decide that needs
+// both closes over the command. The version is event.Version(len(given)) —
+// the same count-of-history derivation the decider repository applies to
+// loaded events — so stamping emitted events currentVersion+1, +2, ... yields
+// exactly the versions a real journal will assign.
+type VersionedDecideFunc[State any] func(state State, currentVersion event.Version) ([]event.Event, error)
 
 // --- Decider DSL ---
 
 // DeciderScenario is a fluent Given/When/Then builder for testing deciders.
 type DeciderScenario[Cmd any, State any] struct {
-	apply    func(State, event.Event) (State, error)
-	decide   DecideFunc[Cmd, State]
-	initial  State
-	given    []event.Event
-	cmd      Cmd
-	t        *testing.T
-	asserted bool
+	apply           func(State, event.Event) (State, error)
+	decide          DecideFunc[Cmd, State]
+	decideVersioned VersionedDecideFunc[State]
+	initial         State
+	given           []event.Event
+	cmd             Cmd
+	t               *testing.T
+	asserted        bool
 }
 
 // Given creates a decider scenario with the given fold function and pre-existing events.
@@ -41,7 +54,7 @@ func Given[Cmd, State any](
 ) *DeciderScenario[Cmd, State] {
 	t.Helper()
 
-	s := &DeciderScenario[Cmd, State]{ //nolint:exhaustruct_v5 // cmd+decide set by When()
+	s := &DeciderScenario[Cmd, State]{ //nolint:exhaustruct_v5 // cmd+decide set by When()/WhenVersioned()
 		t:       t,
 		apply:   apply,
 		initial: initial,
@@ -64,7 +77,7 @@ func GivenState[State any](
 ) *DeciderScenario[any, State] {
 	t.Helper()
 
-	s := &DeciderScenario[any, State]{ //nolint:exhaustruct_v5 // cmd+decide set by When()
+	s := &DeciderScenario[any, State]{ //nolint:exhaustruct_v5 // cmd+decide set by When()/WhenVersioned()
 		t:       t,
 		apply:   apply,
 		initial: initial,
@@ -89,13 +102,33 @@ func (s *DeciderScenario[Cmd, State]) requireTerminalAssertion() {
 	})
 }
 
-// When sets the command to execute against the folded state.
+// When sets the command to execute against the folded state. Mutually
+// exclusive with [DeciderScenario.WhenVersioned] — the last call wins.
 func (s *DeciderScenario[Cmd, State]) When(
 	cmd Cmd,
 	decide DecideFunc[Cmd, State],
 ) *DeciderScenario[Cmd, State] {
 	s.cmd = cmd
 	s.decide = decide
+	s.decideVersioned = nil
+
+	return s
+}
+
+// WhenVersioned sets the version-aware decide function to execute against the
+// folded state. It is the drop-in for domain decides shaped like
+// decider.DecideFunc[State]: the current version (derived from the Given
+// events) reaches the decide directly, and the command closes over whatever
+// it needs. Mutually exclusive with [DeciderScenario.When] — the last call
+// wins.
+func (s *DeciderScenario[Cmd, State]) WhenVersioned(
+	decide VersionedDecideFunc[State],
+) *DeciderScenario[Cmd, State] {
+	s.decideVersioned = decide
+	s.decide = nil
+
+	var zero Cmd
+	s.cmd = zero
 
 	return s
 }
@@ -106,8 +139,8 @@ func (s *DeciderScenario[Cmd, State]) When(
 func (s *DeciderScenario[Cmd, State]) requireWhen(methodName string) {
 	s.t.Helper()
 
-	if s.decide == nil {
-		s.t.Fatal("testing: call When() before " + methodName + "()")
+	if s.decide == nil && s.decideVersioned == nil {
+		s.t.Fatal("testing: call When() or WhenVersioned() before " + methodName + "()")
 	}
 
 	s.asserted = true
@@ -144,12 +177,23 @@ func (s *DeciderScenario[Cmd, State]) prepareThen(method string) State {
 func (s *DeciderScenario[Cmd, State]) decideEvents(method string) []event.Event {
 	state := s.prepareThen(method)
 
-	events, err := s.decide(state, s.cmd)
+	events, err := s.runDecide(state)
 	if err != nil {
 		s.t.Fatalf("%s: decide returned error: %v", method, err)
 	}
 
 	return events
+}
+
+// runDecide invokes whichever decide the scenario armed: When's plain
+// [DecideFunc] with the command, or WhenVersioned's [VersionedDecideFunc]
+// with the current version derived from the Given events.
+func (s *DeciderScenario[Cmd, State]) runDecide(state State) ([]event.Event, error) {
+	if s.decideVersioned != nil {
+		return s.decideVersioned(state, event.Version(len(s.given)))
+	}
+
+	return s.decide(state, s.cmd)
 }
 
 // Then asserts that the decide function produced the expected event types.
@@ -194,7 +238,7 @@ func (s *DeciderScenario[Cmd, State]) ThenEvents(
 func (s *DeciderScenario[Cmd, State]) ThenError(target error) {
 	state := s.prepareThen("ThenError")
 
-	_, err := s.decide(state, s.cmd)
+	_, err := s.runDecide(state)
 	if err == nil {
 		s.t.Fatal("ThenError: expected error, got nil")
 	}
@@ -219,7 +263,7 @@ func (s *DeciderScenario[Cmd, State]) ThenState(
 		state = foldOrFatal(s.t, apply, state, evt, "Given: fold failed")
 	}
 
-	events, err := s.decide(state, s.cmd)
+	events, err := s.runDecide(state)
 	if err != nil {
 		s.t.Fatalf("When: decide returned error: %v", err)
 	}

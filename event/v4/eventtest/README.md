@@ -35,6 +35,8 @@ store.SaveFn(func(ctx context.Context, ref id.StreamRef, events []event.Event, e
 | `LoadToTimestampFn(fn)` | Override LoadToTimestamp.                         |
 | `CloseFn(fn)`           | Override Close.                                   |
 | `AppendBatchFn(fn)`     | Override AppendBatch.                             |
+| `ReadAllFn(fn)`         | Override ReadAll (global journal read).           |
+| `ReadFromFn(fn)`        | Override ReadFrom (seekable journal read).        |
 
 ### FakeBus
 
