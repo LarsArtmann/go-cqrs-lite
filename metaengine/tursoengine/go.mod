@@ -8,6 +8,7 @@ require (
 	github.com/larsartmann/go-error-family v0.12.0
 	github.com/onsi/gomega v1.44.0
 	github.com/samber/lo v1.53.0
+	github.com/tursodatabase/turso-go-platform-libs v0.8.2
 	pgregory.net/rapid v1.3.0
 	turso.tech/database/tursogo v0.8.2
 )
@@ -30,7 +31,6 @@ require (
 	github.com/ncruces/go-strftime v1.1.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
-	github.com/tursodatabase/turso-go-platform-libs v0.8.2 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/net v0.61.0 // indirect
