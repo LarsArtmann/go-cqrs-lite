@@ -59,6 +59,7 @@ func TestUserProjection(t *testing.T) {
 | `Given[Cmd, State](...)`            | Func   | Pre-existing events folded into initial state. Returns scenario. |
 | `GivenState[State](...)`            | Func   | Convenience: pins `Cmd` to `any` for state-only tests.           |
 | `.When(cmd, decide)`                | Method | Runs the decide function against the folded state.               |
+| `.WhenVersioned(decide)`            | Method | Version-aware decide: receives the current version derived from the Given events (`decider.DecideFunc[State]` shape — passes directly, no adapter). Last call wins vs `.When`. |
 | `.Then(types...)`                   | Method | Asserts the emitted event types match (order-sensitive).         |
 | `.ThenError(target)`                | Method | Asserts the decide function returned an error matching `target`. |
 | `.ThenState(apply, init, expected)` | Method | Folds produced events, asserts final state via `DeepEqual`.      |
@@ -75,7 +76,7 @@ func TestUserProjection(t *testing.T) {
 
 - **Pure functional approach**: Each `Then*` re-folds given events from scratch, ensuring test isolation.
 - **Type parameters**: `Given[Cmd, State]` binds the command and state types at compile time. `GivenState[State]` is a convenience for state-only scenarios.
-- **Minimal dependencies**: `DecideFunc` is intentionally separate from `decider.DecideFunc` (command-first vs version-first) to avoid importing `snapshot`, `otel`, and `storage/memory`.
+- **Minimal dependencies**: `DecideFunc` is intentionally separate from `decider.DecideFunc` (command-first vs version-first) to avoid importing `snapshot`, `otel`, and `storage/memory`. `WhenVersioned` accepts the `decider.DecideFunc[State]` SHAPE (state + current version) without importing `decider` — domain decides pass directly, and the version is derived from the Given events exactly as the decider repository derives it from loaded history (`event.Version(len(given))`), so emitted event versions cannot drift from what a real journal assigns.
 - **Event types, not payloads**: `.Then()` compares event types only. For payload assertions, inspect the events directly.
 
 ## Related Modules

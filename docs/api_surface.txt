@@ -2335,7 +2335,9 @@ event/v4/eventtest/method LoadToVersionFn
 event/v4/eventtest/method NewTestEvent
 event/v4/eventtest/method Publish
 event/v4/eventtest/method ReadAll
+event/v4/eventtest/method ReadAllFn
 event/v4/eventtest/method ReadFrom
+event/v4/eventtest/method ReadFromFn
 event/v4/eventtest/method Save
 event/v4/eventtest/method SaveFn
 event/v4/eventtest/method Saved
@@ -4801,10 +4803,12 @@ scenario/method ThenNoError
 scenario/method ThenQueryResult
 scenario/method ThenState
 scenario/method When
+scenario/method WhenVersioned
 scenario/struct DeciderScenario
 scenario/struct EquivalenceProbe
 scenario/struct ProjectionScenario
 scenario/type DecideFunc
+scenario/type VersionedDecideFunc
 scheduling/engine/const DefaultLease
 scheduling/engine/func NewTimerStore
 scheduling/engine/func WithCollection
