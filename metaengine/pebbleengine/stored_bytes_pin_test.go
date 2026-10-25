@@ -10,13 +10,19 @@ import (
 // Stored-bytes pins for the value encoder (keycodec.EncodeJSONErr): the bytes
 // Pebble persists must be the value's JSON rendering, never its %v string.
 // Expectations are literal constants on purpose — an expectation derived from
-// the encoder cannot catch an encoder that agrees with itself. encoding/json
-// sorts map keys, so the rendering is deterministic.
+// the encoder cannot catch an encoder that agrees with itself. Values use
+// structs, not maps: encoding/json/v2 does not sort map keys, so map bytes are
+// iteration-order dependent and un-pinnable.
 const (
 	pinValueJSON  = `{"title":"pin","n":7}`
 	pinStringJSON = `"raw-string"`
 	pinIntJSON    = "42"
 )
+
+type pinStruct struct {
+	Title string `json:"title"`
+	N     int    `json:"n"`
+}
 
 func TestStoredBytes_MapSet(t *testing.T) {
 	t.Parallel()
@@ -31,7 +37,7 @@ func TestStoredBytes_MapSet(t *testing.T) {
 		val  any
 		want string
 	}{
-		{"k1", map[string]any{"title": "pin", "n": 7}, pinValueJSON},
+		{"k1", pinStruct{Title: "pin", N: 7}, pinValueJSON},
 		{"k2", "raw-string", pinStringJSON},
 		{"k3", 42, pinIntJSON},
 	}
@@ -64,7 +70,7 @@ func TestStoredBytes_StreamAppend_DecodesTyped(t *testing.T) {
 	sl := eng.(metaengine.StreamLogBackend)
 
 	err := sl.StreamAppend(ctx, "pin_streams", "s-1", []any{
-		map[string]any{"title": "pin", "n": 7},
+		map[string]any{"title": "pin", "n": 7}, // map: typed-decode assert, no byte literal (v2 map order is random)
 		"raw-string",
 		42,
 	})

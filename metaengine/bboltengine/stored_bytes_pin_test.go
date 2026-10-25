@@ -18,7 +18,14 @@ import (
 // keycodec.EncodeKeyStr) are on-disk format contracts — a database written by
 // an older engine version must stay readable, so pinning the literals is the
 // point. Expectations are constants on purpose: an expectation derived from
-// the encoder cannot catch an encoder that agrees with itself.
+// the encoder cannot catch an encoder that agrees with itself. The value is a
+// struct because encoding/json/v2 does not sort map keys (struct field order
+// is the only deterministic shape).
+type pinStruct struct {
+	Title string `json:"title"`
+	N     int    `json:"n"`
+}
+
 func TestStoredBytes_MapSet(t *testing.T) {
 	t.Parallel()
 
@@ -37,7 +44,7 @@ func TestStoredBytes_MapSet(t *testing.T) {
 	ctx := context.Background()
 
 	if err := eng.(metaengine.MapBackend).MapSet(
-		ctx, "pin_map", "k1", map[string]any{"title": "pin", "n": 7},
+		ctx, "pin_map", "k1", pinStruct{Title: "pin", N: 7},
 	); err != nil {
 		t.Fatalf("MapSet: %v", err)
 	}
