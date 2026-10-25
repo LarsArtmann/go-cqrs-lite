@@ -14,6 +14,20 @@ tool_options:
   go-version-auto-configure:
     respect_patch_floor: true
 
+# GOTOOLCHAIN removed 2026-10-07: BuildFlow auto-derives GOTOOLCHAIN=auto
+# when the workspace contract (go 1.27.1) exceeds the host go (1.26.7); in
+# the nix sandbox the pinned go_1_27 already satisfies the directive, so no
+# download is attempted.
+env:
+  # /mnt/buildcache (host go's default cache mount) hit 100% on 2026-09-22 —
+  # every tool write failed with ENOSPC. Use the same disk-backed chain as the
+  # repo's verify apps (docs/agents/gowork-modes.md), all on / which has room.
+  GOCACHE: /home/lars/projects/.gocache-disk
+  GOMODCACHE: /tmp/gomod-verify
+  GOPATH: /tmp/gopath-verify
+  GOLANGCI_LINT_CACHE: /home/lars/projects/.golangci-disk
+  GOTMPDIR: /home/lars/projects/.gotmp
+
 exclude:
   - "**/docserver/static/**"
   - "**/eventcatalog-output/**"
