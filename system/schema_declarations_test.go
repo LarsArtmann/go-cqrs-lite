@@ -135,9 +135,10 @@ func TestSchemaDeclarations_BuilderDerivesDecoderAndChain(t *testing.T) {
 func TestSchemaDeclarations_BuildRejectsDuplicates(t *testing.T) {
 	t.Parallel()
 
-	builder := system.Schemas().
-		Event[userCreatedV2]("user.created", 2).
-		Event[userCreatedV2]("user.created", 3)
+	builder := system.SchemaEvent[userCreatedV2](
+		system.SchemaEvent[userCreatedV2](system.Schemas(), "user.created", 2),
+		"user.created", 3,
+	)
 
 	if _, err := builder.Build(); err == nil {
 		t.Fatal("Build accepted a duplicate event type")
