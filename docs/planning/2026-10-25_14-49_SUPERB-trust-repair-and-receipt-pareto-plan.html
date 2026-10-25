@@ -826,207 +826,224 @@
     </style>
   </head>
   <body>
-    <!-- Full-bleed top bar (optional — remove for quieter reports) -->
+    <!-- Full-bleed top bar -->
     <div class="top-bar">
-      <span>REPORT TYPE</span>
-      <span>YYYY-MM-DD</span>
-      <span>AUTHOR / TEAM</span>
+      <span>PARETO EXECUTION PLAN</span>
+      <span>2026-10-25 14:49 CET</span>
+      <span>go-cqrs-lite &middot; Crush</span>
     </div>
 
     <div class="layout">
-      <!-- Sidebar TOC (hidden below 1024px; use inline .toc if you prefer) -->
       <aside class="sidebar" data-nav>
         <nav>
           <div class="label">Contents</div>
           <a href="#summary">Summary</a>
-          <a href="#findings">Findings</a>
-          <a href="#issues">Issue Cards</a>
-          <a href="#proposal">Proposal</a>
-          <a href="#plan">Plan</a>
+          <a href="#state">Repo State</a>
+          <a href="#tier1">The 1%</a>
+          <a href="#tier4">The 4%</a>
+          <a href="#tier20">The 20%</a>
+          <a href="#owner">Owner-Gated</a>
+          <a href="#routing">Routing</a>
+          <a href="#graph">Execution Graph</a>
         </nav>
       </aside>
 
       <main class="main">
-        <!-- Hero -->
         <div class="hero">
-          <!-- Optional Bauhaus signature: geometric shape cluster. Remove for quieter hero. -->
           <div class="hero-shapes">
             <div class="circle"></div>
             <div class="square"></div>
             <div class="tri"></div>
           </div>
-          <div class="hero-badge">Report Type</div>
-          <h1>Report Title</h1>
+          <div class="hero-badge">Pareto Plan &middot; Full Execution Mode</div>
+          <h1>Trust-Repair &amp; Receipt Wave</h1>
           <p class="hero-subtitle">
-            One-sentence description of what this report covers.
+            Repair the buildflow config damage found live in HEAD, close the
+            value-integrity wave's missing mutation receipts, and drain the
+            14:06 status report's executable NEXT queue &mdash; every task
+            &le;12 min, sorted by impact/effort/customer-value.
           </p>
         </div>
 
-        <!-- Inline TOC (alternative to sidebar; pick one) -->
-        <nav class="toc">
-          <h3>Contents</h3>
-          <ul>
-            <li><a href="#summary">Summary</a></li>
-            <li><a href="#findings">Findings</a></li>
-            <li><a href="#issues">Issue Cards</a></li>
-            <li><a href="#proposal">Proposal</a></li>
-            <li><a href="#plan">Plan</a></li>
-          </ul>
-        </nav>
-
-        <!-- Stats Dashboard -->
         <h2 id="summary"><span class="num">00</span>Summary</h2>
         <div class="stat-grid">
           <div class="stat-card">
-            <div class="stat-value">42</div>
-            <div class="stat-label">Total Items</div>
+            <div class="stat-value">17</div>
+            <div class="stat-label">Executable fine tasks</div>
           </div>
           <div class="stat-card stat-bad">
-            <div class="stat-value">7</div>
-            <div class="stat-label">Critical</div>
+            <div class="stat-value">1</div>
+            <div class="stat-label">P0 damages found in HEAD</div>
           </div>
           <div class="stat-card stat-warn">
             <div class="stat-value">12</div>
-            <div class="stat-label">Warnings</div>
+            <div class="stat-label">Owner-gated rows (plan-only)</div>
           </div>
           <div class="stat-card stat-good">
-            <div class="stat-value">35</div>
-            <div class="stat-label">Resolved</div>
+            <div class="stat-value">4</div>
+            <div class="stat-label">Live plans routed, not duplicated</div>
           </div>
         </div>
 
-        <!-- Findings as Cards -->
-        <h2 id="findings"><span class="num">01</span>Findings</h2>
-
-        <div class="card card-problem">
-          <h4>Critical Issue</h4>
-          <p>Description of the problem and its impact.</p>
-        </div>
-
-        <div class="card card-solution">
-          <h4>Recommended Fix</h4>
-          <p>Description of the solution with rationale.</p>
-        </div>
-
-        <!-- Issue Cards -->
-        <h2 id="issues"><span class="num">02</span>Issue Cards</h2>
-
+        <h2 id="state"><span class="num">01</span>Repo State at Authoring (all measured)</h2>
         <div class="issue issue-critical">
-          <span class="severity severity-critical">Blocking</span>
-          <h3>Critical finding title</h3>
-          <div class="where">path/to/file.go:42-58</div>
+          <span class="severity severity-critical">Found live &middot; REPAIRED</span>
+          <h3>buildflow auto-configure stripped curated config &mdash; absorbed into HEAD by the daemon</h3>
+          <div class="where">commit 3d8c1bf01 &middot; .golangci.yml &minus;111 lines &middot; .buildflow.yml &minus;14 lines</div>
           <p>
-            Describe the problem and cite the code or behavior that proves it.
+            A parallel session's <code>buildflow --fix --build-mode=full</code>
+            (started ~14:31, budget 30 min) deleted the depguard allow-list and
+            the systemscenario carve-out comments, reset
+            <code>issues: max-issues-per-linter/max-same-issues</code> 50/10&rarr;0/0,
+            and stripped the <code>.buildflow.yml</code> <code>env:</code>
+            disk-cache chain (the 2026-09-22 /mnt/buildcache ENOSPC lesson).
+            The auto-commit daemon absorbed everything into HEAD at 14:35.
           </p>
           <div class="callout callout-solution">
-            <strong>Fix</strong>
-            State the concrete recommended action.
+            <strong>Fix executed</strong>
+            Both files restored byte-exact from <code>3d8c1bf01^</code>;
+            <code>check-lint-config</code> rc=0 and
+            <code>check-golangci-hash.sh</code> PASS (74a068c17227&hellip;)
+            prove the golden still pins the curated bytes. Incident 12 +
+            row receipt recorded; the coverage gap (no tripwire on
+            .buildflow.yml) documented as the concrete mechanism proposal
+            for the open durable-guard row.
           </div>
         </div>
-
         <div class="issue issue-important">
-          <span class="severity severity-important">Important</span>
-          <h3>Important finding title</h3>
-          <div class="where">path/to/another.go:12-19</div>
+          <span class="severity severity-important">Trialed</span>
+          <h3>27 modified go.sum files = workspace-mode residue, restored to baseline</h3>
+          <div class="where">listing/go.sum +26 peers</div>
           <p>
-            Explain the risk and why a careful reviewer would hesitate before
-            shipping.
+            Per-module <code>GOWORK=off go mod tidy -diff</code> wants the
+            added lines REMOVED (they are workspace-resolution residue from
+            the same buildflow run). HEAD itself already carries extra
+            /go.mod hashes (pre-existing, harmless to readonly builds);
+            restored all 27 to the committed baseline rather than growing
+            drift the release tooling would see.
           </p>
         </div>
-
         <div class="issue issue-nice">
-          <span class="severity severity-nice">Nice to have</span>
-          <h3>Polish suggestion</h3>
-          <div class="where">docs/ or config</div>
+          <span class="severity severity-nice">Constraint</span>
+          <h3>Host load &asymp;103 on 32 cores &mdash; composed gates are quiet-window-gated</h3>
+          <div class="where">uptime at 14:43 &middot; load1 103.34</div>
           <p>
-            Minor documentation gaps or future-proofing suggestions go here.
+            Sustained load comes from fleet services and parallel sessions
+            (nsfw-classifier, monitor365, paperless, five crush sessions).
+            Per the repo's quiet-window discipline, the composed verify-chain
+            attempt is self-gated and last; small per-module suites are fine.
           </p>
         </div>
 
-        <!-- Strengths -->
-        <h2>Strengths</h2>
-        <div class="strengths">
-          <div class="strength">
-            <div class="check">+</div>
-            <div class="text">
-              <strong>Specific strength</strong>
-              <span>Explain why it matters and what it enables.</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Table with Badges -->
-        <h2>Issue Table</h2>
+        <h2 id="tier1"><span class="num">02</span>The 1% &mdash; Trust &amp; Teeth (&asymp;51% of value)</h2>
         <table>
           <thead>
-            <tr>
-              <th>#</th>
-              <th>Severity</th>
-              <th>Issue</th>
-              <th>Status</th>
-            </tr>
+            <tr><th>#</th><th>Task</th><th>Why it is 51%</th><th>Effort</th><th>Status</th></tr>
           </thead>
           <tbody>
-            <tr>
-              <td>1</td>
-              <td><span class="badge badge-critical">Critical</span></td>
-              <td>Missing error handling</td>
-              <td><span class="badge badge-fixed">Fixed</span></td>
-            </tr>
-            <tr>
-              <td>2</td>
-              <td><span class="badge badge-high">High</span></td>
-              <td>Race condition</td>
-              <td><span class="badge badge-low">Open</span></td>
-            </tr>
+            <tr><td>F1</td><td>Config tripwire repair (restore + prove + record)</td><td>Curated lint policy and the ENOSPC cache chain were silently gone from HEAD; every future run inherited them</td><td>12 min</td><td><span class="badge badge-fixed">Executed</span></td></tr>
+            <tr><td>F2</td><td>go.sum residue triage + restore</td><td>Unexplained tree drift at session start is exactly how the daemon launders damage</td><td>10 min</td><td><span class="badge badge-fixed">Executed</span></td></tr>
+            <tr><td>F3</td><td>Mutation receipts &times;3 (planned-path, turso, bigtable)</td><td>A pin without teeth is the silent lie this wave exists to kill (14:06 report (b)-1)</td><td>3&times;12 min</td><td><span class="badge badge-low">This session</span></td></tr>
+            <tr><td>F4</td><td>json/v2 non-determinism: KEY-blast-radius TODO row + gotchas lessons</td><td>Map-typed storage keys can route one logical key to different bytes per run &mdash; worse than the value finding</td><td>12 min</td><td><span class="badge badge-low">This session</span></td></tr>
+            <tr><td>F5</td><td>CHANGELOG Added entry for the schema builder + symbol gate</td><td>Feature shipped its Fixed entry before its Added one &mdash; changelog fiction</td><td>12 min</td><td><span class="badge badge-low">This session</span></td></tr>
+            <tr><td>F6</td><td>metaengine/README codec section vs LSM closure (T11.2)</td><td>Doc truth: COOKBOOK was verified, README never checked</td><td>10 min</td><td><span class="badge badge-low">This session</span></td></tr>
           </tbody>
         </table>
 
-        <!-- Before/After Comparison -->
-        <h2 id="proposal">Before / After</h2>
-        <div class="compare-header">
-          <div class="compare-before">Before</div>
-          <div class="compare-after">After</div>
-        </div>
-        <div class="compare-row">
-          <div>
-            <pre><code><span class="tok-comment">// Old code</span>
-<span class="tok-keyword">func</span> <span class="tok-func">process</span>(data <span class="tok-type">interface</span>{}) { }</code></pre>
-          </div>
-          <div>
-            <pre><code><span class="tok-comment">// New code</span>
-<span class="tok-keyword">func</span> <span class="tok-func">process</span>[T <span class="tok-type">any</span>](data T) { }</code></pre>
-          </div>
-        </div>
+        <h2 id="tier4"><span class="num">03</span>The 4% &mdash; Root Causes &amp; Pins</h2>
+        <table>
+          <thead>
+            <tr><th>#</th><th>Task</th><th>Why it is 64% with the 1%</th><th>Effort</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>F7</td><td>Badger first-run transient: 100&times; capture loop</td><td>An unexplained red left uncaptured is a signal thrown away</td><td>12&ndash;30 min</td><td><span class="badge badge-low">This session</span></td></tr>
+            <tr><td>F8</td><td>Queue lint flake: correlate with daemon commits, document</td><td>Two composed verify runs died on vanishing lint findings</td><td>12 min</td><td><span class="badge badge-low">This session</span></td></tr>
+            <tr><td>F9</td><td>art-dupl baseline re-pin provenance (git log -p)</td><td>187&rarr;189 groups absorbed in-flight foreign code &mdash; attribution never verified</td><td>5 min</td><td><span class="badge badge-low">This session</span></td></tr>
+            <tr><td>F10</td><td>LSM MapUpdate re-encode pins (pebble, bbolt, badger)</td><td>Only MapSet + stream pinned; the re-encode path is unpinned</td><td>3&times;12 min</td><td><span class="badge badge-low">This session</span></td></tr>
+            <tr><td>F11</td><td>engine-capabilities --update drift check post-bigtable</td><td>Generated doc, cheap, catches silent capability drift</td><td>5 min</td><td><span class="badge badge-low">This session</span></td></tr>
+          </tbody>
+        </table>
 
-        <!-- ASCII Diagram -->
-        <h2>Dependency Tree</h2>
-        <div class="dep-tree">
-          <span class="root">root</span> ├──
-          <span class="ok">wanted-dep</span> └──
-          <span class="unwanted">unwanted-dep</span>
-        </div>
+        <h2 id="tier20"><span class="num">04</span>The 20% &mdash; Consumer Surface &amp; Docs</h2>
+        <table>
+          <thead>
+            <tr><th>#</th><th>Task</th><th>Value</th><th>Effort</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>F12</td><td>system/schema_declarations godoc pass + README/doc.go link</td><td>The new builder feature has no README presence</td><td>12 min</td><td><span class="badge badge-low">This session</span></td></tr>
+            <tr><td>F13</td><td>SchemaSet empty-set semantics + concurrency doc/guard</td><td>Underspecified edges of a day-old API are tomorrow's consumer bugs</td><td>2&times;12 min</td><td><span class="badge badge-low">This session</span></td></tr>
+            <tr><td>F14</td><td>COOKBOOK &ldquo;Stored values&rdquo; pointer to the four pin files + stale-mention sweep</td><td>Pins nobody can find protect nobody</td><td>15 min</td><td><span class="badge badge-low">This session</span></td></tr>
+            <tr><td>F15</td><td>SchemaEvent fleet consumer census</td><td>Feeds the codemod go/no-go (expected zero consumers)</td><td>12 min</td><td><span class="badge badge-low">This session</span></td></tr>
+            <tr><td>F16</td><td>recipes.md &ldquo;pin your engine's stored bytes&rdquo; recipe + catalog + compile</td><td>Turns this wave's hard-won patterns into a consumer recipe</td><td>30&ndash;40 min</td><td><span class="badge badge-low">This session</span></td></tr>
+            <tr><td>F17</td><td>Composed verify-chain green run (durable log)</td><td>The &ldquo;every step green, composed flaked&rdquo; asterisk needs its continuous-green proof</td><td>30+ min, load-gated</td><td><span class="badge badge-low">Attempt</span></td></tr>
+          </tbody>
+        </table>
 
-        <!-- Numbered Steps -->
-        <h2 id="plan"><span class="num">03</span>Migration Plan</h2>
-        <div class="migration-step">
-          <div class="migration-num">1</div>
-          <div class="migration-content">
-            <h4>Add generic type parameter</h4>
-            <p>Update the function signature to accept a type parameter.</p>
-          </div>
-        </div>
-        <div class="migration-step">
-          <div class="migration-num">2</div>
-          <div class="migration-content">
-            <h4>Update all call sites</h4>
-            <p>Pass explicit types at each call site for type safety.</p>
-          </div>
-        </div>
+        <h2 id="owner"><span class="num">05</span>Owner-Gated (plan-only &mdash; cannot be derived from the repo)</h2>
+        <table>
+          <thead>
+            <tr><th>Decision</th><th>Question</th><th>Unblocks</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Q1</td><td>Ratify <code>system.SchemaEvent[T]</code> package-level shape (or fluent per-event builders, or delete feature)</td><td>Schema-declaration train + release</td></tr>
+            <tr><td>Q2</td><td>Adopt <code>json.Deterministic(true)</code> at all value-encoder seams (changes byte layout) vs accept non-determinism</td><td>The determinism sweep touching every engine + all byte pins</td></tr>
+            <tr><td>Q3</td><td>Daemon pause/lease or &ldquo;commit now&rdquo; escape hatch (two full sessions absorbed, zero authored commits)</td><td>Authored history for every future wave</td></tr>
+            <tr><td>I08</td><td>Markdown-format policy (114 drifted files, dprint.json ungated)</td><td>One mechanical commit or a documented exclusion</td></tr>
+            <tr><td>I10</td><td>Declare v4 fix-only (no new packages/symbols/structural splits)</td><td>Prevents the metaengine split being done twice</td></tr>
+            <tr><td>I27/I29</td><td>Tooling product line (cqrs-lint 48.7k LOC + catalog exporters 22.2k = 32.8% of prod LOC)</td><td>Separate repos/cadence decision</td></tr>
+            <tr><td>A9</td><td>keycodec v2 engine adoption as its own migration wave + deployed-DB census</td><td>The last disk-truth item (pebble&rarr;badger&rarr;bbolt&rarr;legacy stores)</td></tr>
+            <tr><td>&sect;12</td><td>Envelope spike (ADR-0066 reversal, stamped engine-value envelope)</td><td>The parked endgame for string/JSON ambiguity</td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="routing"><span class="num">06</span>Routing &mdash; Live Plans Own These; No Re-Dispatch</h2>
+        <table>
+          <thead>
+            <tr><th>Owning plan</th><th>Owns</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>2026-10-24_19-19 repo-scale red-gates-to-v5</td><td>SQL-engine red suite, duplication program, core/v5 completion audit, cqrs-upgrade codemod, delete-at-zero kills, cqrs-lint extraction</td></tr>
+            <tr><td>2026-10-24_19-40 fleet-audit follow-up</td><td>The three file-size splits (shipped 14:06), composed-#verify un-red, nightly truth</td></tr>
+            <tr><td>2026-10-25_04-25 architecture-review follow-up</td><td>Ledger, package-surface gate, cycles gate, arch-metrics, metaengine 5-package split plan, API-golden tiering</td></tr>
+            <tr><td>2026-10-25_04-21 testing improvements</td><td>T01&ndash;T10: coverage floors, ratchets, shuffle leg, goleak gaps, skip inventory, fuzz rotation</td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="graph"><span class="num">07</span>Execution Graph</h2>
+<?xml version="1.0" encoding="utf-8"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" data-d2-version="v0.9.0" preserveAspectRatio="xMinYMin meet" viewBox="0 0 637 2266"><svg class="d2-4074125536 d2-svg" width="637" height="2266" viewBox="-21 -21 637 2266"><rect x="-21" y="-21" width="637" height="2266" rx="0" fill="#FFFFFF" class=" fill-N7" stroke-width="0" /><style type="text/css"><![CDATA[
+.d2-4074125536 .text-bold {
+	font-family: "d2-4074125536-font-bold";
+}
+@font-face {
+	font-family: d2-4074125536-font-bold;
+	src: url("data:application/font-woff;base64,d09GRgABAAAAABH4AAoAAAAAGtgAAguFAAAAAAAAAAAAAAAAAAAAAAAAAABPUy8yAAAA9AAAAGAAAABgXxHXrmNtYXAAAAFUAAAAsQAAAPoEdQX/Z2x5ZgAAAggAAAr3AAAOzCMXICJoZWFkAAANAAAAADYAAAA2G38e1GhoZWEAAA04AAAAJAAAACQKfwXzaG10eAAADVwAAAC9AAAA0GK9Bu5sb2NhAAAOHAAAAGoAAABqaj5mTG1heHAAAA6IAAAAIAAAACAATAD3bmFtZQAADqgAAAMvAAAIKgjwVkFwb3N0AAAR2AAAACAAAAAg/9EAMgADAioCvAAFAAACigJYAAAASwKKAlgAAAFeADIBKQAAAgsHAwMEAwICBGAAAvcAAAADAAAAAAAAAABBREJPACAAIP//Au7/BgAAA9gBESAAAZ8AAAAAAfAClAAAACAAA3icfM07LgUBGAXgb9zBxfV+v8fjcq8xQ8QGJqKjIbMAy7AlPYWKpdiAhkrILyYKlZziNF/OQaIlQUfqFZlM2nRXX65QOnLsVOXcpWu124hf0fsjTlTOXLhSu4mIF20DWvEZH/EV7/EWz/EUj/EQ93HXfP6fROFArtTXc2hX1579n02pQUOGtY0YNaZj3IRJU6bNmDVn3oJFS5atWLVm3YZNmS3bdvgGAAD//wMA+lEmYQAAAHicXFd5cBtZWv/e09G23D50tFqSdbfVLfmQLbVa7Vt2LMvHSD7jI4l8xDWbY+w4IfEQz2xCqJqQgV2HQByCdwOzIZUUsGSoTAWqwoKhoGCW1IZ/yA75BxIWplLUpth4F9XWHraaem3FR/5oP1f3e9/x+37f73sCHQwB4Dl8AzRQDOVgAgZANPqMAVEQOEoWZZljNbKAjNQQNuXv3RVC2lBIW+1d83w4M4My0/jG1sKRzNzcT2daWvKf/NV38lfRue8AYOUXALgLr0AxGAHMlCjwvMDp9RqzaOYEjnpZ8fXy0spSLW3/xZPPnvxB8LtB1N/aGlkUY6fyv4FXtpZu3QIAQBBWcrgBr0ElgM7P81IsHhejVpbiec6v1zMWqxiNy6weTY18bXTs6kjiXd+AXeZq+2rGe4MJ28AInf69UwvfGBb906wrOn3g3TNV9uwsYMgA4DReAcN2xmLUamUsej0niNF4XIrxPMdlHr17fXjo2myds3E0HB5tdOKV5LUzZ673nA9mBwYOBdT4MgDoNV6BEmLFx/gYkeEYH5NBa/lfPn+OyvHKhY++evPCzt7/wiugI3vJ7swqwnhla4N83v6OP8Ur4FG/m61WVozHZbNo5EjaMkdRnCBwbswwmT86aTAZtAaj4fjtK1SxRitNDU/FtNoiCq/knzvb3e52J/JvLb32Dg55bv3857c8Q4Pe11DIexSvQBmwe/KmSFEYoxglqXNc5lX32WRCunHv4nC6ua2tOY1XApMDvVNs/pevXqHZSEMDT/LhlBw24DWoVmsjyFbrtgFBCOP9hWIsVpZVPemRpeNS9CA3HgzXiTVjvla+5WSy8Uz1O94Oga9rqj7YkmpepBvCX3HzfpfHZaoqq0/VxydjtdVT9kqP0+02+m0Hu+PZRkDQp+TwIF4hDNP5eckoGlU6qP/o0cClKzeaZbn1tz+ib95F0/nV2XR6Fp3K37l7EzBUKzn0fbQJduAAWD8vxeKyGiolqIEzRo7wVY7GZUnl2d8mhy6vYi7k6aiS6uebZ44tG7SeniJ7wDzQ6qEnEgOT5T7Bxhx1VS2ezX8pOrmzrHnCUOOysUBw71Ry2IrXwUKqS9DiKM4oMpTqTAVGINhxfoqxWlG3r8ulpc+tal1Jf+tkfevMJB8frw1ZgrTPK+H1+2mHq/1X0mMfJJZT6St13zOVqfypUnJoHW2C4+1e4fy7naJH9u7Tnb2/mgz3OLs5r5RINNjC5ubAON32/sjoUpubnXGlOzsyTPmst5LwEoOg5NAmXgczeN9gRaJmBUncg9KbQv8ke7plJhZqtOtXlw1aRwrbBJO5xsLF6+mvfzD8frvTlv7Tra6Ig1u22L9nKuvq6esGrMb+A7QJNvDsi55AQ/kIs0jsGjFGvCBPz9kDXQstPVP1Wpx/ZkhFpHiEn/7mQ6HWH6fbl0aGlxKJ+aQ5UBwXfYccbtQckupJLghsAGgJPyYr6Sv5LZ6S9jUePnCgaqjLE6uoLHXQle5Dh9DFU7pKaTxG6xd0Oh/vPpf/CEADfqUOU2gT6qEF+lVkeCkmS2rshSUuRlmR4Qri4hcIQCKhl0Wv15CCF0AzFzrPz6tbftI83dhjrvTaHKHmaanW95eDVHFsUnZ5TP7QUPZo8kK/SxBcLkEIRTuEgGj30ZVtTx2Nta1BbWnQUxmt0JqSNa2DQXq+xG9p6q8ylFvNppYucTiMHleHhFAwGKrOr1bZ2QqNxmZ3urax6STFVjkK4g43GSNnVEGnjJ2rlPOd6HDfqsvrDNrw+v1D9pr5qfwT5IsH7Wz+M1AUkAHgP/BTzAMBnIIG+BqAoij/orTCC/V9pPB+ZcenG68DTeohGkVZJFpEMZ3XtH94+8//+ltnEng9v/hPT/L//vc9H5L9Sg6Z8DqUq3jv9Dwhxz+nW1aNxTpKb6ID9JF3MLf1jDUhdEpHkXMAGhfaBJ/qhwgrqfq+DKmdtZP0dioidZp9/ZGhd1Zd3kAD+VOPNjo8dTVBf+RN2g35zwrLG/zQJlj2+tiL37JB683sAIg2Eu66ffht94HKqfK3Jt6uRBQYg6yJ08nk6URiMZlcTNSFw3XhurpCD7ctjY6833Y+09GZJq1MwupUerEVbYIZ3ADsbnRk5vl5gWXMu/JD0nf1CYdPtM7Eva0O3SAfH6+ptgQf4T+JOLjfOje2nKi0D/4uqtoRH6IRvWhTte8F0EmyavZNc4myaNTs1Qh0Um8/4N8WinaidF/uiMSj30/bPKpQuLyRrUlUtasSBb6ga2gTTPvqSPG7CFemecZpsJXaK5xtFrQxEY3odJe02lA0/5+AgFFy6FtoEwSVP7szi9+eWTvGyMRyY8aifxo5zh/wJzw+tyvscLcET441TXgOOGKOpibe2xY6QfOerL2SNRutZgNd1RTqHhdskxarYLOXlXBN4a6p7d4yKjm0iJfI1CWzSuIkWRaJ2uwRZsgOJtPGD8+f51y03cCaZfq98cen9Jcvn/tudUCvndfT27ZalRz6GdoAy1s9YCzI8b8N9626vU7eurpcovH00/NTKJZ/IYUcLtSbr+gO1AIi/YYUtAGlAKJGZAt3DVnUPPzjGx0Gs0FbbDZ0Xr2DNn4YyAhCJvDDfMUb/cQbaAN8b53bY4Er3PUo6saF6w16g15LlRbLlxqLyyktVUzV/+b5+3VUKaWlSqhatPEy0Mvz/dxLde0NvMxXfM6lgsEU97nqrwwA5dAG2AFEs7DHIcXu+ilbu/ZJrcFq0BaZivxrv/ONTxpoltYWW4oFhH80xNQwTA0zpPx4hKllmBrrCLFLK+1oC21A5V4eyPI+KMrwstVX7qBMRYGggfq7Gz0lJoO2yFjcevU+2zj4D3rtGaSrcjnQf3/hTwW4Hu6LfEn7WDWpEYaAkkOv8MdQUuhjKVZoN+HN/XL7+mpFRccuXjxGHnuQZYN2W9BmC9LfvnPn3r07d759NjA9MZH1+7MTE9MBErcbAH2JPwYngCi1Yym2585CzOvJjUJkAsMXU5GQX7YN1c8lE9NSSzZma7X++sHMxZN19RHBMRgVo0fapNOn4xrdBWLXquTQC/wxhN7uC06Kxvd5YSx6IhLE1/9lTnFJVypY3+js7x7vCPJ+2d1fO9c894Esyj2d83Q0OOWsEqqcIeuJet4XcDsO8zVHRiMpq7Yi094yWrONlRkA/Qx/FYoJo80imZ6EPmbJJ5nJIOKY21d0SEs7yqL5//2fv+jrQ0XHPcNuR7wyv7j2FfRr+atn1kgObUoOXsOn5C7O7kH8Ji+KPC+KtCQEJSkoSGRvDTxGPhQBDYAsiUzNTx+fOEHe9yoZFMQvSF+wqviSziRi8CTR3Z3IytGo/PD488uXnx/njz6bf+/ZHCBoUDKoonBGUKtLdIWx6FeyjdFoYzbR3f2Qn3v23vyzo7x6FhCUKrMojj8n/lmzqCl9PPv4tubY5jfJDHUoOU0HXgMBogBIDwKI6KI6NaPoBwQyQOCHafQjHCe5yhInidK2mPzrgwcLDx5MPzrx6NGJRwW9hO+jDeKHzNfOVbSRrwCkfIqbYBQ/JeeNe7AKhMOBQDiMm6o5rpo8RCbI7P4CbUDFPm4Q2dHrqzyhcofBbHCxq97MPxbpFzRaIYR+nDfHD8uktg4lh2bQdSgBdn9V9s6yv0lls6mebLbHznF2O8fRi3NzCwtzc4sjjalUPJ5KNZKclTElh8jvDQ0AhUT0Z2h2LH+bxne3sgDw/wAAAP//AwAGyiVJAAABAAAAAguFoE48E18PPPUAAQPoAAAAANhdoIQAAAAA3WYvNv43/sQIbQPxAAEAAwACAAAAAAAAAAEAAAPY/u8AAAiY/jf+NwhtAAEAAAAAAAAAAAAAAAAAAAA0eJwEwDFKA0EUxvH/+xaCYtQR4xBSpIgjARPETsFM8RpRcECQwG5n4x0EC29g7yFsbL2AzVbeZpvxp28e+QXlOuiWC71RlCgaUTRQ9ELRmlN9cq9DzpVx+yMps9SIZFumiix0g9uEK4u1V8Jtjjcdrg2uFUkZV2ZpH7j9cGLvHOmajfYYNztMJQ60y1iBMwXmCkQFjm1NtgdW1nJnLZf2xH7TMVNgYRMc6pfF2tsrM57r9h8AAP//AwANZx73AAAAAAAALAAsAFAAfACgALYAxgD4AR4BXgF8AbQB5gISAkQCeAKeAwYDKAM0A0ADWAN0A6YDyAP0BCQEWAR4BLQE2gT8BRgFUAV8BawF2AYEBkIGZgZ8BogGoga8BsoG3AbwBvwHEgcwB1YHZgAAAAEAAAA0AJAADABjAAcAAQAAAAAAAAAAAAAAAAAEAAN4nJyUz24bZRTFf05s0wrBAkVVuom+BYsitWNTJVXbrCakVkZEcfC4ICSENLYntuXxzMgzdhqegDVvwVt0xUPwHIg1utfXrl0QBSuKdWbm/jnfued+wAF/sk+leh/4rZ4arnBUvza8x736heF9WvU9w1Ue1X43XGNQWxiu83mtY/gj3lZ/MXyP4+qPhu9zWG0Z/pin1QPDn+w7/jD8Kce8XeIKPOdnwxUOyQ3vccAPhvd5gNWsVHlA03CNzzgyXOcI6DKmJGFMyhDHDWOGzJkRUxASM2PMDTEDHAE+CaW+TYkUOYb/+DYipGRGpBVHlDgSQhIiCkZW8SfNyrjWjtJnpki6+ZSMiOhpxoSIFEfGkIyUmInWKSnJeUmDBgV95ZtTUuBRMCbBI2PGkAZtWlzSZcSYAkdLKwmzkIwbSm6JtL+zCFGmT0xKYazmpAyUp1N+sWYHXOJok2vsZuXLrQqPcXyr2cJNYhxf4um/22C23XfFJmKheoqGPRLleasTHKni0tfnG8UlL3E76bPN5MMaDZSdzHpMj7nOX+YnecIkxblDfEJ1UOge4jjT54BQFfmOgC4XtHlNV599OnTwuaJLwCvNbdPB8RVtrjjXjEDx8ltLHXPF9zi+JtAYqR2bPqK5PL0hN3cLd3GGnGNKrlsgM5bzi/PjnSYsO5RtuaNQV/R1jyRS9kBUkT2LGJorcnXFVLVceaMw/QbmCPla6mzffZdtWNjurbb4jkx32DE3TjK5JaMPTdV7zzO3+ucRMSCjpxF9MqY0KLnTs10TMSfBca4+vtAtKfHXOdLnTl0SM1UGAanWmZHrb2S+CY17f8v3zu4S2byp7uhkfapdukjldGNGr1W91bfQVI43JtCwqWaWIxOWysuTivcl2tviH6r7C73dMp5wRkbC4G83wFM8mhxzwikj7SCVUxZ2OzT1hmjyglM9/YRYo+S+fKM6SYUTPJ5xwgkvePaejismzri4NZfN3j7nnNHm9D+dYhnf5oxX63f/3vVXZdrUszierJ+e7zzFR//DrV/weOu+7OgtIJuzsGrvtuKKiKlwcYebWriHeH8BAAD//wMA9LdPUQAAAwAAAAAAAP/OADIAAAAAAAAAAAAAAAAAAAAAAAAAAA==");
+}]]></style><style type="text/css"><![CDATA[.shape {
+  shape-rendering: geometricPrecision;
+  stroke-linejoin: round;
+}
+.connection {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.blend {
+  mix-blend-mode: multiply;
+  opacity: 0.5;
+}
+
+		.d2-4074125536 .fill-N1{fill:#0A0F25;}
+		.d2-4074125536 .fill-N7{fill:#FFFFFF;}
+		.d2-4074125536 .fill-B1{fill:#0D32B2;}
+		.d2-4074125536 .fill-B6{fill:#F7F8FE;}
+		.d2-4074125536 .stroke-B1{stroke:#0D32B2;}
+		.d2-4074125536 .stroke-B2{stroke:#0D32B2;}.appendix text.text{fill:#0A0F25}.md{--color-fg-default:#0A0F25;--color-fg-muted:#676C7E;--color-fg-subtle:#9499AB;--color-canvas-default:#FFFFFF;--color-canvas-subtle:#EEF1F8;--color-border-default:#0D32B2;--color-border-muted:#0D32B2;--color-neutral-muted:#EEF1F8;--color-accent-fg:#0D32B2;--color-accent-emphasis:#0D32B2;--color-attention-subtle:#676C7E;--color-danger-fg:red;}.light-code{display: block}.dark-code{display: none}]]></style><g class="dHJ1c3Q="><g class="shape" ><rect x="119" y="0" width="199" height="66" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B1 fill-B6" style="stroke-width:2;" /></g><text x="218.5" y="38.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">Config tripwire repair</text></g><g class="Z29zdW0="><g class="shape" ><rect x="119" y="166" width="199" height="66" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B1 fill-B6" style="stroke-width:2;" /></g><text x="218.5" y="204.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">go.sum residue triage</text></g><g class="bXV0YXRpb25z"><g class="shape" ><rect x="123" y="332" width="192" height="66" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B1 fill-B6" style="stroke-width:2;" /></g><text x="219" y="370.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">3x mutation receipts</text></g><g class="ZG9jc2RldA=="><g class="shape" ><rect x="207" y="498" width="301" height="66" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B1 fill-B6" style="stroke-width:2;" /></g><text x="357.5" y="536.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">json/v2 determinism rows + gotchas</text></g><g class="Y2hhbmdlbG9n"><g class="shape" ><rect x="234" y="664" width="246" height="66" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B1 fill-B6" style="stroke-width:2;" /></g><text x="357" y="702.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">schema-builder Added entry</text></g><g class="cmVhZG1l"><g class="shape" ><rect x="239" y="830" width="236" height="66" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B1 fill-B6" style="stroke-width:2;" /></g><text x="357" y="868.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">metaengine README verify</text></g><g class="cDFyb290"><g class="shape" ><rect x="120" y="996" width="475" height="66" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B1 fill-B6" style="stroke-width:2;" /></g><text x="357.5" y="1034.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">4% root-causes (badger + queue flake + art-dupl provenance)</text></g><g class="bHNtcGlucw=="><g class="shape" ><rect x="113" y="1162" width="211" height="66" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B1 fill-B6" style="stroke-width:2;" /></g><text x="218.5" y="1200.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">LSM MapUpdate pins x3</text></g><g class="Y2FwZHJpZnQ="><g class="shape" ><rect x="111" y="1328" width="215" height="66" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B1 fill-B6" style="stroke-width:2;" /></g><text x="218.5" y="1366.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">engine-capabilities drift</text></g><g class="cDIwZG9jcw=="><g class="shape" ><rect x="0" y="1494" width="437" height="66" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B1 fill-B6" style="stroke-width:2;" /></g><text x="218.5" y="1532.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">20% docs pack (godoc + semantics + cookbook + sweep)</text></g><g class="Y2Vuc3Vz"><g class="shape" ><rect x="104" y="1660" width="229" height="66" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B1 fill-B6" style="stroke-width:2;" /></g><text x="218.5" y="1698.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">SchemaEvent fleet census</text></g><g class="cmVjaXBl"><g class="shape" ><rect x="127" y="1826" width="183" height="66" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B1 fill-B6" style="stroke-width:2;" /></g><text x="218.5" y="1864.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">stored-bytes recipe</text></g><g class="dmVyaWZ5"><g class="shape" ><rect x="85" y="1992" width="268" height="66" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B1 fill-B6" style="stroke-width:2;" /></g><text x="219" y="2030.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">composed verify-chain attempt</text></g><g class="cmVwb3J0"><g class="shape" ><rect x="136" y="2158" width="166" height="66" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B1 fill-B6" style="stroke-width:2;" /></g><text x="219" y="2196.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">final table report</text></g><g class="KHRydXN0IC0mZ3Q7IGdvc3VtKVswXQ=="><marker id="mk-d2-4074125536-3488378134" markerWidth="10" markerHeight="12" refX="7" refY="6" viewBox="0 0 10 12" orient="auto" markerUnits="userSpaceOnUse"> <polygon points="0,0 10,6 0,12" fill="#0D32B2" class="connection fill-B1" stroke-width="2" /> </marker><path d="M 218.5 68 C 218.5 106 218.5 126 218.5 162" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-4074125536-3488378134)" mask="url(#d2-4074125536)" /></g><g class="KGdvc3VtIC0mZ3Q7IG11dGF0aW9ucylbMF0="><path d="M 218.5 234 C 218.5 272 218.5 292 218.5 328" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-4074125536-3488378134)" mask="url(#d2-4074125536)" /></g><g class="KG11dGF0aW9ucyAtJmd0OyBkb2NzZGV0KVswXQ=="><path d="M 274.968586 399.022968 C 340.450012 438 357.25 458 357.25 494" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-4074125536-3488378134)" mask="url(#d2-4074125536)" /></g><g class="KGRvY3NkZXQgLSZndDsgY2hhbmdlbG9nKVswXQ=="><path d="M 357.25 566 C 357.25 604 357.25 624 357.25 660" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-4074125536-3488378134)" mask="url(#d2-4074125536)" /></g><g class="KGNoYW5nZWxvZyAtJmd0OyByZWFkbWUpWzBd"><path d="M 357.25 732 C 357.25 770 357.25 790 357.25 826" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-4074125536-3488378134)" mask="url(#d2-4074125536)" /></g><g class="KHJlYWRtZSAtJmd0OyBwMXJvb3QpWzBd"><path d="M 357.25 898 C 357.25 936 357.25 956 357.25 992" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-4074125536-3488378134)" mask="url(#d2-4074125536)" /></g><g class="KHAxcm9vdCAtJmd0OyBsc21waW5zKVswXQ=="><path d="M 357.25 1064 C 357.25 1102 340.450012 1122 276.687172 1159.954065" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-4074125536-3488378134)" mask="url(#d2-4074125536)" /></g><g class="KGxzbXBpbnMgLSZndDsgY2FwZHJpZnQpWzBd"><path d="M 218.5 1230 C 218.5 1268 218.5 1288 218.5 1324" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-4074125536-3488378134)" mask="url(#d2-4074125536)" /></g><g class="KGNhcGRyaWZ0IC0mZ3Q7IHAyMGRvY3MpWzBd"><path d="M 218.5 1396 C 218.5 1434 218.5 1454 218.5 1490" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-4074125536-3488378134)" mask="url(#d2-4074125536)" /></g><g class="KHAyMGRvY3MgLSZndDsgY2Vuc3VzKVswXQ=="><path d="M 218.5 1562 C 218.5 1600 218.5 1620 218.5 1656" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-4074125536-3488378134)" mask="url(#d2-4074125536)" /></g><g class="KGNlbnN1cyAtJmd0OyByZWNpcGUpWzBd"><path d="M 218.5 1728 C 218.5 1766 218.5 1786 218.5 1822" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-4074125536-3488378134)" mask="url(#d2-4074125536)" /></g><g class="KHJlY2lwZSAtJmd0OyB2ZXJpZnkpWzBd"><path d="M 218.5 1894 C 218.5 1932 218.5 1952 218.5 1988" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-4074125536-3488378134)" mask="url(#d2-4074125536)" /></g><g class="KHZlcmlmeSAtJmd0OyByZXBvcnQpWzBd"><path d="M 218.5 2060 C 218.5 2098 218.5 2118 218.5 2154" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-4074125536-3488378134)" mask="url(#d2-4074125536)" /></g><g class="KG11dGF0aW9ucyAtJmd0OyBsc21waW5zKVswXQ=="><path d="M 162.031414 399.022968 C 96.550003 438 79.75 464.600006 79.75 489.5 C 79.75 514.400024 79.75 547.599976 79.75 572.5 C 79.75 597.400024 79.75 630.599976 79.75 655.5 C 79.75 680.400024 79.75 713.599976 79.75 738.5 C 79.75 763.400024 79.75 796.599976 79.75 821.5 C 79.75 846.400024 79.75 879.599976 79.75 904.5 C 79.75 929.400024 79.75 962.599976 79.75 987.5 C 79.75 1012.400024 96.550003 1122 160.312829 1159.954064" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-4074125536-3488378134)" mask="url(#d2-4074125536)" /></g><mask id="d2-4074125536" maskUnits="userSpaceOnUse" x="-21" y="-21" width="637" height="2266">
+<rect x="-21" y="-21" width="637" height="2266" fill="white"></rect>
+
+</mask></svg></svg>
+
 
         <footer class="footer">
-          Generated YYYY-MM-DD &middot; All claims verified against source code
-          where noted
+          Generated 2026-10-25 14:49 CET &middot; Inputs: docs/status/2026-10-25_14-06 (NEXT queue 1&ndash;50),
+          plan &sect;11 receipts &middot; All state claims measured this session &middot; Status column updated at close
         </footer>
       </main>
     </div>
