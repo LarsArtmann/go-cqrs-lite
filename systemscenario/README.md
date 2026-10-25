@@ -65,6 +65,14 @@ via `WithQuietWindow` — failing the moment any event lands inside it.
 
 **Vacuous guard:** a scenario that never runs a `Then*` fails the test.
 
+**Then window is cumulative across acts:** the journal/command baseline is
+taken at the FIRST `When*` of the scenario and is never re-based — a second
+`WhenPhase.Command(...)` extends the assertion window instead of narrowing
+it, so every `Then*` after act N sees everything since act 1. Seed history
+with `Given().Command(...)`, chain acts with `WhenPhase`, and write the
+`Then*` assertions against the whole window; per-act isolation needs a fresh
+scenario.
+
 **Saga capture:** the harness installs an always-on command-capture
 middleware; `ThenCommands` diffs dispatched commands against the act
 baseline — the event→command→event chain of a deriver is assertable
