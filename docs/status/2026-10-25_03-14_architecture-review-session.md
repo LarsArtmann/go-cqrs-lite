@@ -287,3 +287,28 @@ should become backlog.
 - `versions.json` lists 112 trains, including retired directories (by design: tag truth).
 - `event/v4/eventtest` carries a `v0.4.0`-series tag on a `/v4` path (legacy mistag series,
   already documented in the release notes).
+
+---
+
+## Errata (added 2026-10-25 04:3x, during plan authoring)
+
+Non-destructive corrections found while writing
+`docs/planning/2026-10-25_04-25_SUPERB-architecture-review-followup-pareto-plan.md` (Pareto Step 0).
+The original text above is left intact; read these as superseding annotations.
+
+1. **d2 (formatting) was overstated.** I claimed `nix fmt --fail-on-change` is a blocking gate
+   while files are unformatted. Verified on 2026-10-25: `treefmt.programs` = `gofumpt`,
+   `goimports`, `golines`, `nixfmt`; **dprint is not a treefmt program**, and
+   `nix fmt -- --fail-on-change` is **GREEN** (3562 files traversed, 0 changed). A repo-wide
+   `dprint check` reports 114 drifted markdown/JSON/YAML files, but markdown formatting is
+   _ungated_, not broken. The real finding is a policy gap: `dprint.json` exists and CI never
+   runs it. (Plan tasks T15/T18 carry the decision.)
+2. **The 3 file-size offenders are already owned** by
+   `docs/planning/2026-10-24_19-40_…fleet-audit-followup…md` tasks T03–T05 (with T06 offering an
+   owner-baseline alternative). The review's P0 row remains correct as a _finding_; the
+   _action_ belongs to that plan.
+3. **Codemod, delete-at-zero census, cqrs-lint extraction, and the duplication program** are
+   owned by `docs/planning/2026-10-24_19-19_…red-gates-to-v5-wave.md` (T13, T14/T16, T19; the
+   duplication program closed green at 21:0x). They are routed, not re-planned.
+4. **"Section (f) is not yet harvested" stands**, but the 50 items now have a routing table in
+   the plan above (`§4`), including 38 EXEC / 12 ROUTE / 4 OWNER assignments.
