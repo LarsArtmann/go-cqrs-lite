@@ -575,6 +575,11 @@ github.com/dlclark/regexp2/v2 v2.5.2/go.mod h1:avUrQvPaLz2DrFNHJF0taWAFFX2C1GMSS
 github.com/dlclark/regexp2/v2 v2.8.2/go.mod h1:avUrQvPaLz2DrFNHJF0taWAFFX2C1GMSSoeiqFjcBmU=
 github.com/docker/go-connections v0.7.0/go.mod h1:no1qkHdjq7kLMGUXYAduOhYPSJxxvgWBh7ogVvptn3Q=
 github.com/docopt/docopt-go v0.0.0-20180111231733-ee0de3bc6815/go.mod h1:WwZ+bS3ebgob9U8Nd0kOddGdZWjyMGR8Wziv+TBNwSE=
+github.com/duckdb/duckdb-go-bindings/lib/darwin-amd64 v0.10506.0/go.mod h1:EnAvZh1kNJHp5yF+M1ZHNEvapnmt6anq1xXHVrAGqMo=
+github.com/duckdb/duckdb-go-bindings/lib/darwin-arm64 v0.10506.0/go.mod h1:IGLSeEcFhNeZF16aVjQCULD7TsFZKG5G7SyKJAXKp5c=
+github.com/duckdb/duckdb-go-bindings/lib/linux-amd64 v0.10506.0/go.mod h1:KAIynZ0GHCS7X5fRyuFnQMg/SZBPK/bS9OCOVojClxw=
+github.com/duckdb/duckdb-go-bindings/lib/linux-arm64 v0.10506.0/go.mod h1:81SGOYoEUs8qaAfSk1wRfM5oobrIJ5KI7AzYhK6/bvQ=
+github.com/duckdb/duckdb-go-bindings/lib/windows-amd64 v0.10506.0/go.mod h1:K25pJL26ARblGDeuAkrdblFvUen92+CwksLtPEHRqqQ=
 github.com/dustin/go-humanize v1.0.0/go.mod h1:HtrtbFcZ19U5GC7JDqmcUSB87Iq5E25KnS6fMYU6eOk=
 github.com/dustin/go-humanize v1.0.1/go.mod h1:Mu1zIs6XwVuF/gI1OepvI0qD18qycQx+mFykh5fBlto=
 github.com/ebitengine/purego v0.9.1/go.mod h1:iIjxzd6CiRiOG0UyXP+V1+jWqUXVjPKLAI0mRfJZTmQ=
@@ -985,7 +990,6 @@ github.com/larsartmann/cmdguard/spinner v0.2.0 h1:rFOOl20ct+RFQ1hlXbpq1SrIHsx1df
 github.com/larsartmann/cmdguard/spinner v0.2.0/go.mod h1:lfgTUFqiiFaNmtkdieMXbCw2VeC7wSibrjavZagxFp0=
 github.com/larsartmann/go-cqrs-lite/metaengine/bboltengine/v4 v4.1.0/go.mod h1:YAuSkgv9kvx3SYSHVuNKWtds97hadYMjU2LpmpJFn5g=
 github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.1.1/go.mod h1:4V33qjwL3R72tvRGPRM7AlBWMDHeB4JjA5wMG7uBZqU=
-github.com/larsartmann/go-cqrs-lite/prometheus/v4 v4.3.4/go.mod h1:DzKIzHCc7q5lkYrZ+m9HBDUXvCqf7YU0sgeHiHEms7A=
 github.com/larsartmann/go-cqrs-lite/stack/bbolt/v4 v4.0.0-20260806160506-f6bcfb0bcb06/go.mod h1:9YKoAEHR0vW9RGpcYdBuGCGdx+xknagtYoQyjQt8smU=
 github.com/larsartmann/go-cqrs-lite/storage/bbolt/v4 v4.0.0-20260806125330-508e2817469c/go.mod h1:C4d+jVIKNzM5Tfgz2YrlErW7ow8Bt04cAX7wBgHaM/Y=
 github.com/larsartmann/go-datastar/static v0.1.0/go.mod h1:Mkt7d9FrtMiiT3bGpJv+5RRX4+5x1/gJv9YWuFlWaD4=
@@ -1007,6 +1011,7 @@ github.com/larsartmann/templ-components/charts/echarts v1.18.0/go.mod h1:A42WT8H
 github.com/larsartmann/templ-components/charts/echarts v1.19.4/go.mod h1:Ty8IqZ+G/2tu1zUtyPr9+vMazGeG25L49Ver4d0IhuA=
 github.com/larsartmann/templ-components/charts/echarts v1.20.1/go.mod h1:GlfA/0oEY/VE6pOFjbrYFUtV3k2UwTh55BZVddsHIow=
 github.com/larsartmann/templ-components/charts/echarts v1.22.0/go.mod h1:FRgi3D6Q6XRKM7Qo8xCiCj/AicI+ktIdA69Fl+OBS6s=
+github.com/larsartmann/templ-components/charts/echarts v1.23.0/go.mod h1:HCIa5QOO6EfM5Q7EhHG+/qX8m2rEWduDWnm+Wnco5NQ=
 github.com/larsartmann/templ-components/datastar v1.8.2/go.mod h1:0VY3QU6FpWu1kN/EDdU+CaPDEwlLgC6X7VlHXspM2oA=
 github.com/larsartmann/templ-components/datastar v1.11.0/go.mod h1:M4nSh8qGKqD+iJQ8p9mTck67ksTHEeaGX7CMuYCtbmo=
 github.com/larsartmann/templ-components/datastar v1.13.2/go.mod h1:NboBxHnArZlQKaS7k1qqRBowNbQZWnuzC1z0tS9GMGw=
@@ -1016,6 +1021,7 @@ github.com/larsartmann/templ-components/datastar v1.18.0/go.mod h1:bbtwOJTjnSjRJ
 github.com/larsartmann/templ-components/datastar v1.19.4/go.mod h1:6Q9OjombbiCIs8hLmWUj28SvCvuTggD8NcSFvpmnTWA=
 github.com/larsartmann/templ-components/datastar v1.20.1/go.mod h1:yKHjAuIKJNeqd9GkFZk3V4cIEhju7eIQFoTmVm/1Oik=
 github.com/larsartmann/templ-components/datastar v1.22.0/go.mod h1:3nkf/7n+ghCpt04EKE/DEnFOqJQM2IelVROsDoDZqcE=
+github.com/larsartmann/templ-components/datastar v1.23.0/go.mod h1:xDYmrfGY86Og60Ft5REHtlU+AboaUlk5+5e+rDibkbc=
 github.com/larsartmann/templ-components/errorpage v1.8.2/go.mod h1:ExVmotoNgWEtou/PBku44ucNnLQw+R0Uqk8QXUAfxdE=
 github.com/larsartmann/templ-components/errorpage v1.11.0/go.mod h1:bqU2IC/4X7BJTwAe9EgGJAvDRXXYIbegr7ir486RNs4=
 github.com/larsartmann/templ-components/errorpage v1.13.2/go.mod h1:4aQ0u6RIDzxskzfQjAWs+xGovQfmdERaffrlQNmR9IQ=
@@ -1025,6 +1031,7 @@ github.com/larsartmann/templ-components/errorpage v1.18.0/go.mod h1:tO7XyROIfv4I
 github.com/larsartmann/templ-components/errorpage v1.19.4/go.mod h1:BiG9yVe2CGjicQAjZlZR+LyQWKIKSAHHOlJN0hYWGjA=
 github.com/larsartmann/templ-components/errorpage v1.20.1/go.mod h1:vNhOclWTSnxV49YD22BIDfxbnwkt26/LMleT3CTaEZQ=
 github.com/larsartmann/templ-components/errorpage v1.22.0/go.mod h1:ztEropqhWYPZ2IUBivI57eNhYw1q1Pldj9NBHOhWics=
+github.com/larsartmann/templ-components/errorpage v1.23.0/go.mod h1:hpnM4Lc2sQXToKEF37lDxHsuZf2/vS4jNCOaBP5dCY8=
 github.com/leodido/go-urn v1.2.0/go.mod h1:+8+nEpDfqqsY+g338gtMEUOtuK+4dEMhiQEgxpxOKII=
 github.com/leodido/go-urn v1.4.0/go.mod h1:bvxc+MVxLKB4z00jd1z+Dvzr47oO32F/QSNjSBOlFxI=
 github.com/lithammer/fuzzysearch v1.1.8 h1:/HIuJnjHuXS8bKaiTMeeDlW2/AyIWk2brx1V8LFgLN4=
@@ -1792,6 +1799,7 @@ golang.org/x/telemetry v0.0.0-20260508192327-42602be52be6/go.mod h1:Eqhaxk/wZsWE
 golang.org/x/telemetry v0.0.0-20260708182218-49f421fb7959 h1:RJhm5l6Fo4rmEIcndxDllNhhf/fAx8qIm4t6A7vpm2A=
 golang.org/x/telemetry v0.0.0-20260811182544-a038080d80e5/go.mod h1:LVehoXe41cL5SCVQilsV7Gg6BNG+Js6P9PhSbYTIUkQ=
 golang.org/x/telemetry v0.0.0-20260924152758-ed294f943157/go.mod h1:i+ivNqjDnTF3WTElsdk5g9V5DTSBYgdNo7xTU9SDwYA=
+golang.org/x/telemetry v0.0.0-20261009151841-97e8ea77aa2a/go.mod h1:i+ivNqjDnTF3WTElsdk5g9V5DTSBYgdNo7xTU9SDwYA=
 golang.org/x/term v0.0.0-20210220032956-6a3ed077a48d/go.mod h1:bj7SfCRtBDWHUb9snDiAeCFNEtKQo2Wmx5Cou7ajbmo=
 golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b/go.mod h1:jbD1KX2456YbFQfuXm/mYQcufACuNUgVhRMnK/tPxf8=
 golang.org/x/term v0.1.0/go.mod h1:jbD1KX2456YbFQfuXm/mYQcufACuNUgVhRMnK/tPxf8=
@@ -2214,6 +2222,7 @@ google.golang.org/genproto/googleapis/bytestream v0.0.0-20250505200425-f936aa4a6
 google.golang.org/genproto/googleapis/bytestream v0.0.0-20260630182238-925bb5da69e7/go.mod h1:6TABGosqSqU2l1+fJ3jdvOYPPVryeKybxYF0cCZkTBE=
 google.golang.org/genproto/googleapis/bytestream v0.0.0-20260921155816-b14227669459/go.mod h1:RoCpRfcA27uTJ0TZb3Vyad8eLVakUKdLdV2yMdlm2+w=
 google.golang.org/genproto/googleapis/bytestream v0.0.0-20260928230214-8a89bd6388cc/go.mod h1:RoCpRfcA27uTJ0TZb3Vyad8eLVakUKdLdV2yMdlm2+w=
+google.golang.org/genproto/googleapis/bytestream v0.0.0-20261019180522-ce908d29299b/go.mod h1:RoCpRfcA27uTJ0TZb3Vyad8eLVakUKdLdV2yMdlm2+w=
 google.golang.org/genproto/googleapis/rpc v0.0.0-20230525234030-28d5490b6b19/go.mod h1:66JfowdXAEgad5O9NnYcsNPLCPZJD++2L9X0PCMODrA=
 google.golang.org/genproto/googleapis/rpc v0.0.0-20230526203410-71b5a4ffd15e/go.mod h1:66JfowdXAEgad5O9NnYcsNPLCPZJD++2L9X0PCMODrA=
 google.golang.org/genproto/googleapis/rpc v0.0.0-20230530153820-e85fd2cbaebc/go.mod h1:66JfowdXAEgad5O9NnYcsNPLCPZJD++2L9X0PCMODrA=
