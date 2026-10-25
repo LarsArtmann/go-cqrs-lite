@@ -67,3 +67,54 @@ func TestStoredBytes_MapSet(t *testing.T) {
 		t.Fatalf("stored bytes = %q, want %q", stored, want)
 	}
 }
+
+// TestStoredBytes_MapUpdate_ReEncodes pins the update path: the RMW result is
+// re-encoded through the same rejection encoder, so an update-path encoder
+// change cannot hide behind MapSet's pin.
+func TestStoredBytes_MapUpdate_ReEncodes(t *testing.T) {
+	t.Parallel()
+
+	db, err := bolt.Open(filepath.Join(t.TempDir(), "pin-update.db"), 0o600, nil)
+	if err != nil {
+		t.Skipf("bbolt not available: %v", err)
+	}
+
+	t.Cleanup(func() { _ = db.Close() })
+
+	eng, err := bboltengine.NewBboltEngineFromDB(db)
+	if err != nil {
+		t.Fatalf("NewBboltEngineFromDB: %v", err)
+	}
+
+	ctx := context.Background()
+
+	if err := eng.(metaengine.MapBackend).MapSet(
+		ctx, "pin_update", "k1", pinStruct{Title: "pin", N: 7},
+	); err != nil {
+		t.Fatalf("MapSet: %v", err)
+	}
+
+	if err := eng.(metaengine.MapUpdater).MapUpdate(ctx, "pin_update", "k1", func(prev any) any {
+		return pinStruct{Title: "updated", N: 9}
+	}); err != nil {
+		t.Fatalf("MapUpdate: %v", err)
+	}
+
+	k := keycodec.MapKey("pin_update", keycodec.EncodeKeyStr("k1"))
+
+	var stored []byte
+
+	err = db.View(func(tx *bolt.Tx) error {
+		v := tx.Bucket([]byte("cqrs_meta")).Get(k)
+		stored = append([]byte(nil), v...)
+
+		return nil
+	})
+	if err != nil {
+		t.Fatalf("bucket read: %v", err)
+	}
+
+	if want := `{"title":"updated","n":9}`; string(stored) != want {
+		t.Fatalf("stored bytes after update = %q, want %q", stored, want)
+	}
+}

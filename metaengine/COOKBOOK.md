@@ -72,6 +72,15 @@ migrate. Index-key helpers (`sqliteengine.encodeKey`, `pebbleengine`'s
 planned-layout `indexKeyValue`) are identity, not payload, and keep the `%v`
 form deliberately.
 
+**Where the bytes are pinned** (literal expectations read back through raw
+engine reads — copy these when adding an engine or a write path):
+`sqliteengine/stored_bytes_pin_test.go` +
+`sqliteengine/stored_bytes_write_paths_pin_test.go` (planned table + MapUpdate
+re-encode), and `stored_bytes_pin_test.go` in `pebbleengine` / `bboltengine` /
+`badgerengine` (LSM: `RawValueReader`/`FromDB` bucket/txn reads of the
+`keycodec` key layout). Mutation proofs for the encoder seams live with the
+session receipts (`docs/status/2026-10-25_14-06`, plan §11).
+
 ## Counter Patterns
 
 ### Status Count Dashboard

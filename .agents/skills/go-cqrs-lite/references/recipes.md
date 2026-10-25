@@ -56,6 +56,7 @@
 > - [§2.46 Schema Evolution — Named Upcast Ops, Declared Once](#246-schema-evolution--named-upcast-ops-declared-once-schema--system)
 > - [§2.47 Bind a system Query to an HTTP endpoint](#247-bind-a-system-query-to-an-http-endpoint--etag-server-timing-safe-errors-system--go-etag--httputil)
 > - [§2.48 Publish a Self-Contained Architecture Reference](#248-publish-a-self-contained-architecture-reference-catalogarchitecture)
+> - [§2.49 Pin Your Engine's Stored Bytes](#249-pin-your-engines-stored-bytes-sqliteengine--pebbleengine--bboltengine--badgerengine)
 
 ### 2.0 Bundle Presets — one-call infrastructure wiring
 
@@ -3620,3 +3621,79 @@ diffing), and `WithLogo(url)` adds a brand mark — only `http(s):` and
 `data:image/` URLs are rendered, and every catalog string, badge color and
 external URL is escaped or allow-listed on the way in, because the file is meant
 to be handed to people outside the team.
+
+### 2.49 Pin Your Engine's Stored Bytes (sqliteengine / pebbleengine / bboltengine / badgerengine)
+
+Round-trip tests cannot see a PERSISTED-FORM regression: a writer that switches
+a plain string to a quoted JSON string, re-marshals through a different codec,
+or encodes a batch per row still reads back the same Go value. The cure is a
+stored-bytes pin — write one value through the public engine surface, read the
+RAW row back through the engine's own storage handle, and compare against a
+LITERAL byte expectation (deliberately not derived from the encoder, so an
+encoder that agrees with itself is still caught). The sqlite shape:
+
+```go
+import (
+    "context"
+    "database/sql"
+    "strings"
+    "testing"
+
+    _ "modernc.org/sqlite"
+
+    sqliteengine "github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4"
+    metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+)
+
+type pinValue struct {
+    Title string `json:"title"`
+    N     int    `json:"n"`
+}
+
+func TestMyEngineStoresLiteralJSON(t *testing.T) {
+    name := strings.NewReplacer("/", "_").Replace(t.Name())
+
+    db, err := sql.Open("sqlite", "file:"+name+"?mode=memory&cache=shared")
+    if err != nil {
+        t.Fatalf("open sqlite: %v", err)
+    }
+    db.SetMaxOpenConns(1)
+    t.Cleanup(func() { _ = db.Close() })
+
+    eng, err := sqliteengine.NewSQLiteEngine(db)
+    if err != nil {
+        t.Fatalf("NewSQLiteEngine: %v", err)
+    }
+    t.Cleanup(func() { _ = eng.Close() })
+
+    ctx := context.Background()
+    base := eng.(metaengine.MapBackend)
+    if err := base.MapSet(ctx, "pin-map", "k1", pinValue{Title: "pin", N: 7}); err != nil {
+        t.Fatalf("MapSet: %v", err)
+    }
+
+    var key, value string
+    if err := db.QueryRowContext(ctx,
+        `SELECT key, value FROM meta_map WHERE collection = ?`, "pin-map",
+    ).Scan(&key, &value); err != nil {
+        t.Fatalf("query map row: %v", err)
+    }
+
+    if key != "k1" || value != `{"title":"pin","n":7}` {
+        t.Errorf("stored bytes drifted: key=%q value=%q", key, value)
+    }
+}
+```
+
+The LSM twins use the same skeleton with the engine's raw handle instead of a
+SQL query: `pebbleengine` reads through `RawValueReader.GetRawValue`, and
+`bboltengine`/`badgerengine` open a transaction on the handle returned by
+`FromDB` and read the bucket/key the engine wrote (the `keycodec` key layout is
+the on-disk contract being pinned). Live examples to copy:
+`sqliteengine/stored_bytes_pin_test.go`,
+`sqliteengine/stored_bytes_write_paths_pin_test.go` (planned tables + MapUpdate
+re-encode), and `stored_bytes_pin_test.go` in `pebbleengine`, `bboltengine`,
+`badgerengine`. Give every new write path its own pin the session it lands, and
+mutation-proof the pin (temporarily re-encode through a wrapper struct — the
+pin must go red — then restore byte-identical), or the pin documents intent
+without enforcing it.

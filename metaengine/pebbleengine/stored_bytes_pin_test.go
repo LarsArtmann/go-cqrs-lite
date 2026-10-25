@@ -104,3 +104,35 @@ func TestStoredBytes_StreamAppend_DecodesTyped(t *testing.T) {
 		t.Fatalf("stream value 2 = %#v, want 42", got[2])
 	}
 }
+
+// TestStoredBytes_MapUpdate_ReEncodes pins the update path: the RMW result is
+// re-encoded through the same rejection encoder, so an update-path encoder
+// change cannot hide behind MapSet's pin.
+func TestStoredBytes_MapUpdate_ReEncodes(t *testing.T) {
+	t.Parallel()
+
+	eng := mustNewPebbleEngine(t)
+	ctx := context.Background()
+	mb := eng.(metaengine.MapBackend)
+	rr := eng.(metaengine.RawValueReader)
+	mu := eng.(metaengine.MapUpdater)
+
+	if err := mb.MapSet(ctx, "pin_update", "k1", pinStruct{Title: "pin", N: 7}); err != nil {
+		t.Fatalf("MapSet: %v", err)
+	}
+
+	if err := mu.MapUpdate(ctx, "pin_update", "k1", func(prev any) any {
+		return pinStruct{Title: "updated", N: 9}
+	}); err != nil {
+		t.Fatalf("MapUpdate: %v", err)
+	}
+
+	raw, found, err := rr.GetRawValue(ctx, "pin_update", "k1")
+	if err != nil || !found {
+		t.Fatalf("GetRawValue: found=%v err=%v", found, err)
+	}
+
+	if want := `{"title":"updated","n":9}`; string(raw) != want {
+		t.Fatalf("stored bytes after update = %q, want %q", raw, want)
+	}
+}
