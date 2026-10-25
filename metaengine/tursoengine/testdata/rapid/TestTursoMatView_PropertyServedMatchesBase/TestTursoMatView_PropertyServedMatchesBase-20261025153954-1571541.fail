@@ -1,0 +1,99 @@
+# 2026/10/25 15:39:54.777418 [TestTursoMatView_PropertyServedMatchesBase] [rapid] draw txCount: 2
+# 2026/10/25 15:39:54.777426 [TestTursoMatView_PropertyServedMatchesBase] [rapid] draw groups: 2
+# 2026/10/25 15:39:54.935109 [TestTursoMatView_PropertyServedMatchesBase] [rapid] draw rows_tx0: 5
+# 2026/10/25 15:39:54.935121 [TestTursoMatView_PropertyServedMatchesBase] [rapid] draw grp_0_0: 0
+# 2026/10/25 15:39:54.935123 [TestTursoMatView_PropertyServedMatchesBase] [rapid] draw amt_0_0: 0
+# 2026/10/25 15:39:54.935126 [TestTursoMatView_PropertyServedMatchesBase] [rapid] draw grp_0_1: 0
+# 2026/10/25 15:39:54.935126 [TestTursoMatView_PropertyServedMatchesBase] [rapid] draw amt_0_1: 0
+# 2026/10/25 15:39:54.935128 [TestTursoMatView_PropertyServedMatchesBase] [rapid] draw grp_0_2: 0
+# 2026/10/25 15:39:54.935128 [TestTursoMatView_PropertyServedMatchesBase] [rapid] draw amt_0_2: 0
+# 2026/10/25 15:39:54.935131 [TestTursoMatView_PropertyServedMatchesBase] [rapid] draw grp_0_3: 0
+# 2026/10/25 15:39:54.935131 [TestTursoMatView_PropertyServedMatchesBase] [rapid] draw amt_0_3: 0
+# 2026/10/25 15:39:54.935132 [TestTursoMatView_PropertyServedMatchesBase] [rapid] draw grp_0_4: 0
+# 2026/10/25 15:39:54.935133 [TestTursoMatView_PropertyServedMatchesBase] [rapid] draw amt_0_4: 0
+# 2026/10/25 15:39:54.941884 [TestTursoMatView_PropertyServedMatchesBase] [rapid] draw rows_tx1: 5
+# 2026/10/25 15:39:54.941896 [TestTursoMatView_PropertyServedMatchesBase] [rapid] draw grp_1_5: 0
+# 2026/10/25 15:39:54.941897 [TestTursoMatView_PropertyServedMatchesBase] [rapid] draw amt_1_5: 0
+# 2026/10/25 15:39:54.941903 [TestTursoMatView_PropertyServedMatchesBase] [rapid] draw grp_1_6: 0
+# 2026/10/25 15:39:54.941904 [TestTursoMatView_PropertyServedMatchesBase] [rapid] draw amt_1_6: 0
+# 2026/10/25 15:39:54.941906 [TestTursoMatView_PropertyServedMatchesBase] [rapid] draw grp_1_7: 0
+# 2026/10/25 15:39:54.941906 [TestTursoMatView_PropertyServedMatchesBase] [rapid] draw amt_1_7: 0
+# 2026/10/25 15:39:54.941908 [TestTursoMatView_PropertyServedMatchesBase] [rapid] draw grp_1_8: 0
+# 2026/10/25 15:39:54.941909 [TestTursoMatView_PropertyServedMatchesBase] [rapid] draw amt_1_8: 0
+# 2026/10/25 15:39:54.941913 [TestTursoMatView_PropertyServedMatchesBase] [rapid] draw grp_1_9: 0
+# 2026/10/25 15:39:54.941916 [TestTursoMatView_PropertyServedMatchesBase] [rapid] draw amt_1_9: 1
+# 2026/10/25 15:39:54.948038 [TestTursoMatView_PropertyServedMatchesBase] AVG served 0 != expected 0.1
+# 
+v0.4.8#14181273487315671890
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x1
