@@ -5987,6 +5987,7 @@ system/func RawQuery
 system/func RegisterCommand
 system/func RegisterDecider
 system/func RegisterQuery
+system/func SchemaEvent
 system/func Schemas
 system/func Where
 system/func WithClock
@@ -6018,7 +6019,6 @@ system/method Delete
 system/method Done
 system/method Drain
 system/method EngineNames
-system/method Event
 system/method EventStore
 system/method Explain
 system/method Filterable
