@@ -2,9 +2,10 @@
 
 > **Created:** 2026-10-24 19:40 CEST (Saturday)
 > **Status:** READY FOR EXECUTION — P0 carries an ⛔ owner gate (red-gates law); P1 can start immediately
+> **Reviewed:** 2026-10-25 03:27 — all receipts verified against HEAD; §7 red inventory corrected (the 19-19 program's reds RESOLVED by 21:0x; only the file-size trio remains red); errata in §1.1
 > **Author session:** the 19:29 fleet-audit follow-up (status: [`../status/2026-10-24_19-29_consumer-fleet-audit-follow-up-status.md`](../status/2026-10-24_19-29_consumer-fleet-audit-follow-up-status.md))
 > **Predecessors (READ FIRST — this plan builds beside them, does not replace them):**
-> [`2026-10-24_19-19_SUPERB-repo-scale-pareto-red-gates-to-v5-wave.md`](2026-10-24_19-19_SUPERB-repo-scale-pareto-red-gates-to-v5-wave.md) — owns repo-scale v5 sequencing and the OLDER red gates (SQL planned-path suite, `check-duplication` 190 groups). This plan owns the FIVE-AUDIT universe only; where they meet (tag wave vs red gates, file-size trio) the conflict is resolved in §7.
+> [`2026-10-24_19-19_SUPERB-repo-scale-pareto-red-gates-to-v5-wave.md`](2026-10-24_19-19_SUPERB-repo-scale-pareto-red-gates-to-v5-wave.md) — owns repo-scale v5 sequencing and the OLDER red gates (SQL planned-path suite, `check-duplication` 190 groups — both since RESOLVED at HEAD by 21:0x; see §7 correction). This plan owns the FIVE-AUDIT universe only; where they meet (tag wave vs red gates, file-size trio) the conflict is resolved in §7.
 > **Format note:** Markdown + Mermaid per explicit operator instruction (skill default is HTML; operator instruction wins, not propagated).
 
 ---
@@ -34,6 +35,14 @@ and the auditor feedback loop. Plus the §f tail (28 items) from the status repo
 - Status-report §f-25 ("add pool-index row") — **already done** at 19:29; dropped from this plan.
 - Status-report §b-5 suspicion (nightly manifest check silent) — kept as task T11, downgraded from "gate bug" to "unverified workflow state".
 - The 19-19 plan's red-gate law ("nothing tags over red gates") now ALSO covers this plan's file-size trio; see §7 for the P0 conflict and its owner gate.
+
+**Review pass (2026-10-25 03:27, every receipt verified against HEAD):**
+
+- The 19-19 program's reds are GONE: its §11 log records T01 (SQL planned-path suite fixed, commit `7396d262d` 20:47; pg ×2 + mysql 10/10 green), T02/T03 (check-duplication GREEN — the ~180 twins were already annotated; only 7 residue groups, all `art-dupl:accept`), and T05 (`nix run .#verify-fast` EXIT=0). **The file-size trio is now the ONLY red gate** (re-verified: `scripts/check-file-size.sh` exit 1, exactly 3 offenders). §7's owner decision shrinks accordingly — un-red-first is ≈ ½ day, not 1.
+- `system/adapter_event.go` grew 351 → **352** at 19:50 (the 19-19 session's `art-dupl:accept` directive above `Load`, commit `234acaade`) — T04/M14 must move that directive WITH its region when splitting (AGENTS contract 14).
+- **Wave-content coordination gap:** M2's 4-train inventory is stale — the 19-19 program landed further untagged fixes (keycodec, sqliteengine, pebble/bbolt/badger engines, metaengine core) whose trains the owner must ride-or-defer in the same wave; M8's [Unreleased] sweep also carries their CHANGELOG rows now.
+- Coverage-row omissions fixed (§f-13/18/19/21/22 were mapped all along — T11/T12/T23/T24/T25 — but unlisted; "M48" corrected to M41); graph fix: P3 no longer blocks P4.
+- **In-flight mitigation observed (03:3x, concurrent session, not this plan's work):** `example/mesh-demo/go.mod` re-adds the pre-release relative replace (catalog → working tree) with `ALLOWED_REPLACES='taskmanager mesh-demo'` re-baselined in `check-example-standalone.sh` — the same ride-until-tag pattern as the 2026-10-16 errorflow replace. If it lands, mesh-demo's `GOWORK=off` build heals WITHOUT waiting for the catalog tag: §7's "mesh-demo stays unbuildable" urgency softens, M9 becomes "verify the bridge, then verify the replace DIES at the tag wave" (the replace removal must ride T01/M8, or the example pins a stale path forever).
 
 ### 1.2 The result being maximized
 
@@ -93,7 +102,7 @@ benchkit RunSuite, recipes §2.43, FAQ↔cqrs-upgrade), the auditor loop (case s
 | T01 | P0 | **Cut the audit-follow-up wave**: catalog v4.11.x (contains `MarkDemo`) + pgengine patch (`AsType` fix) + systemscenario minor (warning) + cmd/cqrs-lint minor (rule-ID explain) via batch-release.sh (manifest auto-refresh); proxy-smoke every tag | 60–90 | 🔥 highest | M | ⛔ owner (§7) |
 | T02 | P0 | **Post-tag healing**: mesh-demo `GOWORK=off` build green again; re-run `measure-engine-fleet.sh`/census so the auditors' currency tables go current | 30 | high | S | — |
 | T03 | P1 | Split `scheduling/sqlstore/store.go` (382 → ≤350) | 45 | high | M | — |
-| T04 | P1 | Split `system/adapter_event.go` (351 → ≤350) | 45 | high | S | — |
+| T04 | P1 | Split `system/adapter_event.go` (352 → ≤350; move the 19-50 art-dupl directive with its region) | 45 | high | S | — |
 | T05 | P1 | Split `metaengine/layout.go` (360 → ≤350) | 60 | high | M | — |
 | T06 | P1 | OR owner-baseline the trio with written rationale (if a split is structural) — pick per file | 15 | med | XS | ⛔ owner option |
 | T07 | P1 | **`nix run .#verify` composite green** on the post-un-red tree | 60–100 | 🔥 | M | — |
@@ -101,7 +110,7 @@ benchkit RunSuite, recipes §2.43, FAQ↔cqrs-upgrade), the auditor loop (case s
 | T09 | P2 | mysqlengine unique-violation unit test (twin of pgengine's 7 cases) | 30 | med | S | — |
 | T10 | P2 | api-stability golden mechanical no-op check (run + record) | 30 | med | XS | — |
 | T11 | P2 | Nightly truth: verify why `check-versions-manifest --check --remote` stayed silent since 10-17; add file-size + example-build legs to `nightly-gates.yml` | 45 | high | S | — |
-| T12 | P2 | `check-error-taxonomy` + `check-duplication` on session edits; route any red to the 19-19 plan's duplication program | 30 | med | S | — |
+| T12 | P2 | `check-error-taxonomy` + `check-duplication` on session edits — any NEW red is this plan's to fix (the 19-19 duplication program closed green at 21:0x) | 30 | med | S | — |
 | T13 | P3 | AGENTS.md gotchas: untagged-API-in-examples + tag-vs-checkout blast-radius rule | 30 | high | XS | — |
 | T14 | P3 | explain rule cards → link RULES.md / add when-it-fires pointer | 30 | med | XS | — |
 | T15 | P3 | Doc polish batch: benchkit RunSuite `FactoryFromSystem` variant + recipes §2.43 warning mention + FAQ↔cqrs-upgrade linkage | 30 | med | XS | — |
@@ -116,7 +125,7 @@ benchkit RunSuite, recipes §2.43, FAQ↔cqrs-upgrade), the auditor loop (case s
 | T24 | P5 | Commit-history hygiene: retitle-or-accept decision for this week's daemon commits | 30 | low | XS | ⛔ owner |
 | T25 | P5 | Static empty-DomainConfig advisory rule — DESIGN only (E021 sketch; complements the runtime warning) | 45 | low-med | M | — |
 
-Coverage check: §f 1–28 → T01/T02(1,20,28), T08(2), T03–T06(3), T07(4), T10(5), T09(6), T20(7), T16(8), T17(9), T21(10), T18(11), T19(12), T13(14), T14(15), T15(16,17), T15(23-linkage... see §4 M48), T11(24), errata(25), T18(26), T22(27), T02(28) ✅ — plus §b partials (b1→T01/T02, b2→T14, b3→T23, b5→T11, b6→T21) and §d reds (d3→T03–T06, d4→T08).
+Coverage check: §f 1–28 → T01/T02(1,20,28), T08(2), T03–T06(3), T07(4), T10(5), T09(6), T20(7), T16(8), T17(9), T21(10), T18(11), T19(12), T11(13,24), T13(14), T14(15), T15(16,17), T15(23 via M41), T12(18), T23(19), T24(21), T25(22), errata(25), T18(26), T22(27), T02(28, closed by M64) ✅ — plus §b partials (b1→T01/T02, b2→T14, b3→T23, b4→errata 25, b5→T11, b6→T21) and §d reds (d1→T13's blast-radius rule, d2→§e-1/§e-2 process lesson, d3→T03–T06, d4→T08). [gaps 13/18/19/21/22 and M48→M41 fixed in the 2026-10-25 review]
 
 ---
 
@@ -127,7 +136,7 @@ Coverage check: §f 1–28 → T01/T02(1,20,28), T08(2), T03–T06(3), T07(4), T
 | # | Micro-task | ≤min |
 | --- | --- | --- |
 | M1 | Present §7 conflict to owner; get tag-over-red-gates waiver or sequence after P1 | 10 |
-| M2 | Inventory wave contents: list trains whose HEAD > latest tag among {catalog, pgengine, systemscenario, cmd/cqrs-lint} | 10 |
+| M2 | Inventory wave contents: list ALL trains with HEAD > latest tag — seed {catalog, pgengine, systemscenario, cmd/cqrs-lint} + reconcile the 19-19 program's untagged trains (keycodec, sqliteengine, pebble/bbolt/badger, metaengine); owner rides-or-defers each (widened in the 2026-10-25 review) | 12 |
 | M3 | Pre-flight: per-module `GOWORK=off go test -count=1` on the four trains | 12 |
 | M4 | Pre-flight: `check-arch` + `check-file-size` on the four trains | 10 |
 | M5 | Run batch-release.sh for the wave (manifest auto-refreshes) | 10 |
@@ -144,7 +153,7 @@ Coverage check: §f 1–28 → T01/T02(1,20,28), T08(2), T03–T06(3), T07(4), T
 | M11 | `store.go`: read structure, choose split line (claims vs store core) | 10 |
 | M12 | Extract part 1 to new file; build + targeted tests | 12 |
 | M13 | `check-file-size` single-file green; module tests green | 10 |
-| M14 | `adapter_event.go`: read + choose split | 8 |
+| M14 | `adapter_event.go`: read + choose split (the 19-50 art-dupl directive above `Load` moves with its region) | 8 |
 | M15 | Extract; build + module tests; ratchet green | 12 |
 | M16 | `layout.go`: read + choose split | 10 |
 | M17 | Extract; build + tests | 12 |
@@ -169,7 +178,7 @@ Coverage check: §f 1–28 → T01/T02(1,20,28), T08(2), T03–T06(3), T07(4), T
 | M31 | Inspect `nightly-gates.yml` last runs (Actions) for the silent manifest check | 12 |
 | M32 | Add file-size + example-build jobs to nightly matrix | 12 |
 | M33 | `nix run .#check-error-taxonomy` + record | 8 |
-| M34 | `nix run .#check-duplication`; route red rows into the 19-19 duplication program | 12 |
+| M34 | `nix run .#check-duplication`; any NEW red is this plan's to fix (the 19-19 program closed green 21:0x) | 12 |
 
 ### P3 — Doc truth
 
@@ -214,7 +223,7 @@ Coverage check: §f 1–28 → T01/T02(1,20,28), T08(2), T03–T06(3), T07(4), T
 | M61 | Sweep receipt: pass/fail table appended to this plan | 8 |
 | M62 | Retitle-or-accept decision note for daemon commits | 10 |
 | M63 | E021 sketch: detector for `System(t, ctx, system.DomainConfig{}, …)` in tests | 12 |
-| M64 | Post-wave re-read of the five audits' currency tables; mark reconciled | 10 |
+| M64 | Post-wave re-read of the five audits' currency tables; mark reconciled (completes §f-28 / T02's loop) | 10 |
 
 Coverage: every comprehensive task decomposes; M-set covers ALL of §3 with no orphans.
 
@@ -232,14 +241,15 @@ flowchart TD
     P1 --> P2
     P2 --> P3["P3 Doc truth<br/>T13–T15 / M35–M41"]
     P2 --> P4["P4 Owner-design<br/>T16–T20 / M42–M54"]
-    P3 --> P4
+    P3 --> P5
     P4 --> P5["P5 Loop closure<br/>T21–T25 / M55–M64"]
     P5 --> DONE["All five audits' findings<br/>closed or owner-verdicted"]
     P0 -. "mesh-demo heals" .-> DONE
 ```
 
-**Critical path:** GATE0 → P0 → P2 → P4 → P5. P1 and P3 run parallel to P0 whenever the
-waiver fires; if it does not, P1 IS the critical path.
+**Critical path:** GATE0 → P0 → P2 → P4 → P5. P1 runs parallel to P0 whenever the waiver
+fires (P3 trails P2 and overlaps P4 — it no longer blocks it, fixed in the 2026-10-25
+review); if the waiver does not fire, P1 IS the critical path.
 
 ---
 
@@ -259,13 +269,21 @@ waiver fires; if it does not, P1 IS the critical path.
 
 ## 7. Open conflict requiring the owner (resolves M1)
 
+> **2026-10-25 03:27 correction:** this section was written 19:40 against TWO red
+> clusters: (a) the SQL planned-path suite + `check-duplication` 190 groups (the 19-19
+> program's scope) and (b) this plan's file-size trio. The 19-19 session executed its P0
+> by 21:0x and RESOLVED (a) — suite fixed (`7396d262d`; pg ×2 + mysql 10/10 green),
+> duplication gate green (7 residue groups, all `art-dupl:accept`), `#verify-fast`
+> EXIT=0. **(b) is now the ONLY red at HEAD** (re-verified: `check-file-size.sh` exit 1,
+> exactly the trio). The decision stands but got cheaper: option 2 is ≈ ½ day, and
+> option 3's targeted-green premise is already met for the four trains.
+
 The 19-19 plan's law says nothing tags over red gates; HEAD currently carries
-(a) the SQL planned-path suite red and `check-duplication` 190 groups (19-19's program),
-(b) this plan's file-size trio. Meanwhile the pgengine compile fix, the manifest
-refresh, the warning, and the explain fix benefit consumers **only via tags**, and
-mesh-demo stays unbuildable until a catalog tag ships.
+this plan's file-size trio (the only remaining red — see correction above). Meanwhile
+the pgengine compile fix, the manifest refresh, the warning, and the explain fix benefit
+consumers **only via tags**, and mesh-demo stays unbuildable until a catalog tag ships.
 
 **Options:** (1) waiver-scoped fix-wave now (name the trains; accept the unrelated reds
-as documented); (2) un-red first (T03–T07 ≈ 1 day) then tag; (3) split: tag the four
+as documented); (2) un-red first (T03–T07 ≈ ½ day) then tag; (3) split: tag the four
 clean trains after a targeted green on THOSE trains' suites + the file-size trio, defer
 the rest. Owner picks; M1 documents the verdict here.

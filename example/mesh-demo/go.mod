@@ -74,3 +74,10 @@ require (
 	golang.org/x/sync v0.24.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
 )
+
+// Pre-release: catalog.MarkDemo() (the demo-content stamp this example calls)
+// is in the working tree but not in catalog/v4.10.0. The relative replace keeps
+// the GOWORK=off build green and resolves inside a GitHub clone; it dies at the
+// catalog tag wave that publishes MarkDemo (baselined with that reason in
+// scripts/check-example-standalone.sh).
+replace github.com/larsartmann/go-cqrs-lite/catalog/v4 => ../../catalog

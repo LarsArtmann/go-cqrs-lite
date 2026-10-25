@@ -41,7 +41,10 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/go-env.sh"
 #     absolute-path replaces).
 #   mesh-demo — REMOVED 2026-10-16: catalog/v4.9.0 published; the errorflow
 #     pre-release replace died with that tag.
-ALLOWED_REPLACES='taskmanager'
+#   mesh-demo — RE-ADDED 2026-10-25: catalog.MarkDemo() (demo-content stamp)
+#     is unreleased past catalog/v4.10.0; the same relative-replace ride until
+#     the tag that publishes MarkDemo lands (hub clone resolves it as before).
+ALLOWED_REPLACES='taskmanager mesh-demo'
 
 DO_BUILD=0
 if [ "${1:-}" = "--build" ]; then
