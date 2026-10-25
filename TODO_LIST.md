@@ -110,6 +110,7 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 [Upstream asks (cqrs-htmx)](#upstream-asks-from-cqrs-htmx-harvested-2026-09-22-docs-health-d1) ·
 [Skill hard-block refocus](#go-cqrs-lite-skill-hard-block-refocus-2026-09-24-harvest) ·
 [Architecture review 2026-10-24](#architecture-review-2026-10-24-harvest) ·
+[Testing improvements 2026-10-25](#testing-improvements-2026-10-25-plan) ·
 [Declined](#declined--rejected-do-not-re-litigate)
 
 ## Legend
@@ -2950,3 +2951,53 @@ findings.
       have caught the MarkDemo incident at commit time instead of at
       consumer time.
       — source: same incident _(Effort: S)_
+
+## Testing improvements (2026-10-25 plan)
+
+> Pareto plan, 27 medium tasks, 143 twelve-minute subtasks and an execution
+> graph: [`docs/planning/2026-10-25_04-21_SUPERB-testing-improvements-pareto-plan.md`](docs/planning/2026-10-25_04-21_SUPERB-testing-improvements-pareto-plan.md).
+> Source census (50 ideas): [`docs/planning/2026-10-24_50-testing-improvements.md`](docs/planning/2026-10-24_50-testing-improvements.md).
+> Only the 1%/4%/20% tier is rowed here; the tail (plan T10-T27) stays in the
+> plan until a tier above lands, so this ledger does not grow 27 speculative
+> rows in one change.
+
+- [ ] 🔥 **[T01] Coverage floor for every module** — `check-coverage.sh` pins
+      11 of ~97 non-testdata modules; a baseline file covering all of them
+      (plus per-module coverage/test-count artifacts) is the measurement the
+      other gates assume. — plan T01, ideas 1+8 _(Effort: M)_
+- [ ] 🔥 **[T02] Per-package coverage ratchet + untested-export gate** —
+      package drops >1pt and exported symbols with zero test references fail;
+      makes T01 non-gameable. — plan T02, ideas 2+3 _(Effort: M)_
+- [ ] 🔥 **[T03] Unit-test shuffle, seed replay, repeat-mode leg** —
+      `-shuffle=on` exists only in integration legs; extend it to
+      `#test`/`#test-race`, replay a seed via a dedicated app, run the 20
+      stateful packages `-count=5 -cpu=1,4` nightly. — plan T03, ideas 9-11
+      _(Effort: S)_
+- [ ] 🔥 **[T04] `goleak` gap-fill + `time.Sleep` ban** — goleak covers
+      `system`, `metaengine`, `projectionhost`, `systemtest`; fill
+      `watermill`, `scheduling`, `commandlifecycle/projections`, `queue`,
+      `deriver`, plus a lint rule for new sleeps. — plan T04, ideas 12+14
+      _(Effort: S)_
+- [ ] **[T05] Skip inventory, short-mode audit, zero-assertion gate** — 224
+      `t.Skip` sites with no reason baseline and no gate against tests that
+      cannot fail. — plan T05, ideas 4-6 _(Effort: M)_
+- [ ] **[T06] Replay = snapshot = reset, and idempotency per engine** — the
+      library's core determinism promise, currently not pinned as equivalence;
+      includes every `EngineResetter` and the degraded `MapDedupStore`. —
+      plan T06, ideas 23+27+28 _(Effort: M)_
+- [ ] **[T07] `systemscenario` adoption ratchet + async-deriver regression
+      pin** — harness exists (ADR-0153/0154) but nothing measures which
+      composition-root modules use it; add the reentrant-publish pin. —
+      plan T07, ideas 24+25 _(Effort: M)_
+- [ ] **[T08] Fuzz rotation for all 115 targets** — `fuzz.yml` mutates 4
+      targets for 60s; add date-based sharding, persisted corpora, plus
+      codec/envelope and replay-determinism targets. — plan T08, ideas 20-22
+      _(Effort: M)_
+- [ ] **[T09] Absolute latency ceilings per engine** — `benchkit` gates
+      against a prior baseline, so "both got slower" passes; add a quiet-window
+      measured ceiling table that fails independently of the noise gate. —
+      plan T09, idea 33 _(Effort: M)_
+- [ ] **[T10] Mutation-verify gate + gate self-tests** — a new test that does
+      not go red under mutation fails CI; `check-coverage`, `check-file-size`,
+      `check-arch` gain `--self-test`. — plan T10, ideas 49+50 _(Effort: M)_
+
