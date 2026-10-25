@@ -1,0 +1,100 @@
+package pebbleengine_test
+
+import (
+	"context"
+	"testing"
+
+	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+)
+
+// Stored-bytes pins for the value encoder (keycodec.EncodeJSONErr): the bytes
+// Pebble persists must be the value's JSON rendering, never its %v string.
+// Expectations are literal constants on purpose — an expectation derived from
+// the encoder cannot catch an encoder that agrees with itself. encoding/json
+// sorts map keys, so the rendering is deterministic.
+const (
+	pinValueJSON  = `{"title":"pin","n":7}`
+	pinStringJSON = `"raw-string"`
+	pinIntJSON    = "42"
+)
+
+func TestStoredBytes_MapSet(t *testing.T) {
+	t.Parallel()
+
+	eng := mustNewPebbleEngine(t)
+	ctx := context.Background()
+	mb := eng.(metaengine.MapBackend)
+	rr := eng.(metaengine.RawValueReader)
+
+	writes := []struct {
+		key  string
+		val  any
+		want string
+	}{
+		{"k1", map[string]any{"title": "pin", "n": 7}, pinValueJSON},
+		{"k2", "raw-string", pinStringJSON},
+		{"k3", 42, pinIntJSON},
+	}
+
+	for _, w := range writes {
+		if err := mb.MapSet(ctx, "pin_map", w.key, w.val); err != nil {
+			t.Fatalf("MapSet(%s): %v", w.key, err)
+		}
+
+		raw, found, err := rr.GetRawValue(ctx, "pin_map", w.key)
+		if err != nil || !found {
+			t.Fatalf("GetRawValue(%s): found=%v err=%v", w.key, found, err)
+		}
+
+		if string(raw) != w.want {
+			t.Fatalf("stored bytes for %s = %q, want %q", w.key, raw, w.want)
+		}
+	}
+}
+
+// TestStoredBytes_StreamAppend_DecodesTyped pins the stream path at decode
+// level: a %v stringification of the map would round-trip as a flat STRING,
+// not a map. Raw stream bytes live at engine-internal keys, so the pin asserts
+// the decoded shape StreamRead produces from whatever was stored.
+func TestStoredBytes_StreamAppend_DecodesTyped(t *testing.T) {
+	t.Parallel()
+
+	eng := mustNewPebbleEngine(t)
+	ctx := context.Background()
+	sl := eng.(metaengine.StreamLogBackend)
+
+	err := sl.StreamAppend(ctx, "pin_streams", "s-1", []any{
+		map[string]any{"title": "pin", "n": 7},
+		"raw-string",
+		42,
+	})
+	if err != nil {
+		t.Fatalf("StreamAppend: %v", err)
+	}
+
+	got, err := sl.StreamRead(ctx, "pin_streams", "s-1")
+	if err != nil {
+		t.Fatalf("StreamRead: %v", err)
+	}
+
+	if len(got) != 3 {
+		t.Fatalf("stream holds %d values, want 3", len(got))
+	}
+
+	obj, ok := got[0].(map[string]any)
+	if !ok {
+		t.Fatalf("stream value 0 = %T (%v), want map[string]any — the %v fallback stringifies", got[0], got[0], got[0])
+	}
+
+	if obj["title"] != "pin" || obj["n"] != float64(7) {
+		t.Fatalf("stream value 0 = %#v, want {title:pin n:7}", obj)
+	}
+
+	if got[1] != "raw-string" {
+		t.Fatalf("stream value 1 = %#v, want raw-string", got[1])
+	}
+
+	if got[2] != float64(42) {
+		t.Fatalf("stream value 2 = %#v, want 42", got[2])
+	}
+}

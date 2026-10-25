@@ -5,6 +5,7 @@ go 1.27.2
 require (
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.6.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.20.0
+	github.com/larsartmann/go-error-family v0.12.0
 	github.com/onsi/gomega v1.44.0
 	github.com/samber/lo v1.53.0
 	pgregory.net/rapid v1.3.0
@@ -23,7 +24,6 @@ require (
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2 // indirect
-	github.com/larsartmann/go-error-family v0.12.0 // indirect
 	github.com/larsartmann/go-sse v0.6.2 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/mattn/go-sqlite3 v1.14.52 // indirect
