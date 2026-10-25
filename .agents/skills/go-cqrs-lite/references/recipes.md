@@ -3293,11 +3293,11 @@ import (
     "github.com/larsartmann/go-cqrs-lite/system/v4"
 )
 
-decls, err := system.Schemas().
-    Event[UserCreated]("user.created", 2,
-        schema.RenameField("user.created", 1, "name", "displayName")).
-    Event[UserDeleted]("user.deleted", 1).
-    Build()
+decls, err := system.SchemaEvent[UserDeleted](
+    system.SchemaEvent[UserCreated](system.Schemas(), "user.created", 2,
+        schema.RenameField("user.created", 1, "name", "displayName")),
+    "user.deleted", 1,
+).Build()
 if err != nil {
     return err
 }
@@ -3307,6 +3307,10 @@ sys, err := system.New(ctx, system.DomainConfig{
     ProjectionTypeDecoder: decls.TypeDecoder(),
 }, deployment)
 ```
+
+`Event` is a package-level generic (`system.SchemaEvent`) rather than a
+method because Go forbids type parameters on methods — the set rides as the
+first argument, chaining inside-out.
 
 Outside `system.New`, compile the same ops directly and decorate a journal
 (the DiscordSync shape — note the field-map contract: nested maps arrive as
