@@ -501,3 +501,36 @@ performed, file:line for the change)_
     sorted + stable across runs) at the value-encoder seams — TODO_LIST row,
     own wave (touches every engine encoder + byte expectations).
 
+- **2026-10-25 (afternoon, cont.) — T9/T10, T12–T16, one foreign compile
+  repair:**
+  - **T9 CLOSED as verified-no-defect:** all four graph backends
+    (mysql/duckdb/pg/badger) persist ONLY `(collection, from_node, to_node)`
+    identity — no payload value path exists; the `encodeJSONString` /
+    `graphNodeKeyJSON` helpers are key-identity lenient by design (same
+    contract as `encodeKey`/`indexKeyValue`). COOKBOOK + TODO_LIST rows
+    corrected; no code change.
+  - **T10** bigtableengine migrated: cell-value writer →
+    `keycodec.EncodeJSONErr` (`metaengine/bigtableengine/map_backend.go`
+    MapSetAt), local `encodeJSON` `%v` helper deleted, `adttest`
+    `TestValueEncodeRejection` wired on the bttest fake. Suite green.
+  - **FOREIGN COMPILE REPAIR (system):** `SchemaSet.Event[T]` — a generic
+    METHOD, illegal in Go — landed uncompiled via daemon commit (08:40) and
+    left the system module unbuildable at HEAD for ~4.5 h (no active session
+    owned it; pgrep verified). Repaired to package-level
+    `system.SchemaEvent[T]` (set-first arg; name collision with the existing
+    `system.Event` alias forced the prefix); test + example updated; all
+    three schema specs pass; api golden regenerated (+1 export).
+  - **T12** file-size gate GREEN: three NEW offenders (none baselined)
+    split along ownership seams — `metaengine/layout.go` →
+    `layout_typed.go` (type-derived builders), `system/adapter_event.go` →
+    `adapter_event_reads.go` (temporal/by-ID reads),
+    `scheduling/sqlstore/store.go` → `envelope.go` (payload envelope +
+    decoders). All three module suites green; gate reports 0 violations.
+  - **T13** duplication gate GREEN: 0 new clone groups (baseline 189; the
+    morning's docserver-templ signature group was baselined by the parallel
+    session's close-out). The three new byte-pin test files introduced no
+    clones (mechanically distinct by design).
+  - **T16** taxonomy generator: regenerated → byte-identical (NO DRIFT);
+    gate green (544 codes / 20 modules / 574 doc claims).
+
+
