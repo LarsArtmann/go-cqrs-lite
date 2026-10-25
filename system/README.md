@@ -134,6 +134,30 @@ func main() {
 }
 ```
 
+## Declaring Event Schemas (upcasting + typed projection decode)
+
+One declaration list feeds BOTH `DomainConfig.Schema` (upcasting) and
+`DomainConfig.ProjectionTypeDecoder` (typed folds), so the declaration — not
+the wiring — stays the single source of truth:
+
+```go
+set := system.Schemas()
+set = system.SchemaEvent[TaskCreated](set, "task.created", 1)
+set = system.SchemaEvent[TaskRenamed](set, "task.renamed", 2,
+	schema.RenameField("task.renamed", 1, "name", "title"))
+decls, err := set.Build()
+
+domain := system.DomainConfig{
+	Schema:                decls.Declarations(),
+	ProjectionTypeDecoder: decls.TypeDecoder(),
+	// ...Commands, Projections, Evolutions as above
+}
+```
+
+Duplicate event types fail at `Build` (before composition); an empty set is
+legal and opts the project out of upcasting entirely. See
+`SchemaEvent`/`SchemaDeclarations` in `schema_declarations.go`.
+
 ## Two-Engine Deployment (events on disk, projections in memory)
 
 Split roles across engines: the source of truth on a durable engine, the

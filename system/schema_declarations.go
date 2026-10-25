@@ -26,16 +26,17 @@ func (d SchemaDeclarations) TypeDecoder() *projectionadapter.TypeDecoder { retur
 
 // Schemas starts a schema-declaration builder. Each [SchemaEvent] call binds one
 // event type's wire name, CURRENT schema version, upcast ops, AND Go payload
-// type (inferred from Event's type parameter); [SchemaSet.Build] yields both
+// type (inferred from the type parameter); [SchemaSet.Build] yields both
 // DomainConfig inputs from that one list.
 //
-// Go does not permit type parameters on methods, so Event is a package-level
-// generic function taking the set as its first argument — chain it as:
+// Go does not permit type parameters on methods, so SchemaEvent is a
+// package-level generic function taking the set as its first argument:
 //
-//	decls, err := system.Event[UserRenamed]("user.renamed", 1,
-//		system.Event[UserCreated](system.Schemas(), "user.created", 2,
-//			schema.RenameField("user.created", 1, "name", "displayName")),
-//	).Build()
+//	set := system.Schemas()
+//	set = system.SchemaEvent[UserCreated](set, "user.created", 2,
+//		schema.RenameField("user.created", 1, "name", "displayName"))
+//	set = system.SchemaEvent[UserRenamed](set, "user.renamed", 1)
+//	decls, err := set.Build()
 //
 //	sys, err := system.New(ctx, system.DomainConfig{
 //		Schema:                decls.Declarations(),
@@ -49,7 +50,8 @@ func Schemas() *SchemaSet {
 }
 
 // SchemaSet accumulates typed schema declarations. It is not safe for
-// concurrent use; build once during composition.
+// concurrent use — call [SchemaEvent] from one goroutine, before the system
+// boots; build once during composition.
 type SchemaSet struct {
 	schemaDeclarations []schema.EventSchema
 	registrations      []projectionadapter.EventRegistration
@@ -83,8 +85,12 @@ func SchemaEvent[T any](
 	return s
 }
 
-// Build validates the accumulated set (unique, non-empty event types) and
-// returns the declarations plus the derived decoder.
+// Build validates the accumulated set (unique event types) and returns the
+// declarations plus the derived decoder. An EMPTY set is legal and returns
+// zero declarations with a nil decoder — a project that declares no schemas
+// simply opts out of upcasting and typed decoding (the same silence E021
+// keeps for zero-declaration projects); pass both results to DomainConfig
+// unchanged.
 func (s *SchemaSet) Build() (SchemaDeclarations, error) {
 	if len(s.schemaDeclarations) == 0 {
 		return SchemaDeclarations{}, nil
