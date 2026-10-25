@@ -191,12 +191,15 @@ func (e *sqliteEngine) matViewScanScalar(
 }
 
 // matViewScalarAgg serves an unfiltered scalar aggregate from its own scalar
-// view. AVG views store SUM and COUNT columns; the average is the quotient.
+// view. AVG views store SUM and COUNT columns; the average is the quotient
+// promoted to REAL — agg and cnt are INTEGER-typed under SQLite semantics
+// (json_extract yields INTEGER for integral JSON numbers), where int/int
+// truncates (1/10 = 0).
 func (e *sqliteEngine) matViewScalarAgg(ctx context.Context, mv *matView) (float64, error) {
 	selectExpr := "agg"
 
 	if mv.spec.Fn == metaengine.MatViewAvg {
-		selectExpr = "agg / cnt"
+		selectExpr = "agg * 1.0 / cnt"
 	}
 
 	return e.matViewScanScalar(ctx,
@@ -212,7 +215,7 @@ func (e *sqliteEngine) matViewScalarViaGrouped(ctx context.Context, mv *matView)
 
 	switch mv.spec.Fn {
 	case metaengine.MatViewAvg:
-		expr = "SUM(agg) / SUM(cnt)"
+		expr = "SUM(agg) * 1.0 / SUM(cnt)"
 	case metaengine.MatViewCount, metaengine.MatViewSum:
 		expr = "SUM(agg)"
 	case metaengine.MatViewMin:
@@ -235,7 +238,7 @@ func (e *sqliteEngine) matViewGroupedAgg(
 	selectExpr := "grp, agg"
 
 	if mv.spec.Fn == metaengine.MatViewAvg {
-		selectExpr = "grp, agg / cnt"
+		selectExpr = "grp, agg * 1.0 / cnt"
 	}
 
 	query := fmt.Sprintf("SELECT %s FROM %s", selectExpr, metaengine.QuoteIdent(mv.name))
@@ -281,14 +284,14 @@ func (e *sqliteEngine) matViewExplainSQL(
 ) string {
 	if !grouped {
 		if mv.spec.Fn == metaengine.MatViewAvg {
-			return fmt.Sprintf("SELECT agg / cnt FROM %s", metaengine.QuoteIdent(mv.name))
+			return fmt.Sprintf("SELECT agg * 1.0 / cnt FROM %s", metaengine.QuoteIdent(mv.name))
 		}
 
 		return "SELECT agg FROM " + metaengine.QuoteIdent(mv.name)
 	}
 
 	if fn == metaengine.MatViewAvg {
-		return fmt.Sprintf("SELECT grp, agg / cnt FROM %s", metaengine.QuoteIdent(mv.name))
+		return fmt.Sprintf("SELECT grp, agg * 1.0 / cnt FROM %s", metaengine.QuoteIdent(mv.name))
 	}
 
 	return fmt.Sprintf("SELECT grp, agg FROM %s", metaengine.QuoteIdent(mv.name))
