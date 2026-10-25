@@ -1383,6 +1383,17 @@ replace-free — 10-25 §a2/§a3, now archived).
       `json.Marshal(v, json.Deterministic(true))` — confirmed sorted + stable.
       Own wave: touches every encoder + all byte-expectation tests.
       _(Effort: M)_
+- [ ] **🔥 NEW (2026-10-25): map-typed STORAGE KEYS are also non-deterministic
+      under json/v2 — same root cause, worse blast radius.**
+      `EncodeKeyStr`/`encodeKey` on a `map[string]any` key marshals in
+      iteration order, so the SAME logical key can land on DIFFERENT storage
+      keys across runs/replicas: not just unreadable bytes but split reads
+      (a Get misses the row a Set wrote), broken uniqueness, and orphaned
+      rows on delete. Distinct from the value-bytes row above and strictly
+      more dangerous. Same candidate fix (`json.Deterministic(true)` in the
+      key encoders) — fold into the same decision wave, but pin keys FIRST
+      when it lands: key nondeterminism corrupts state, values only
+      byte-identity. _(Effort: S to pin the risk, M in the Q2 wave)_
 
   _Closed 2026-10-25 (was "remaining `fmt.Sprintf("%v")` value encoders"):_ the
   silent-loss class is now 4/4 fixed. sqlite/turso reject (dedicated specs,
