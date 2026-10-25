@@ -320,6 +320,18 @@ Measured cost of the encoded path (one machine, `-benchtime 200ms`, not a gate):
 CBOR ingress is not slower than JSON ingress; the per-fold codec decode itself
 costs ~356 ns and 5 allocs (`BenchmarkDecodeRawFoldPayloadCBOR`).
 
+Stored map/collection VALUES (the `MapSet`/`MapUpdate`/multimap payloads, as
+opposed to event payloads above) carry a rejection contract, not a fallback:
+a value that is not JSON-representable (channel, function, cyclic structure)
+fails the write with a Rejection-classified error before any row lands —
+`keycodec.encode_value` on the LSM family (pebble/bbolt/badger/bigtable), the
+per-engine `encode_value`/`encode_stream_value` codes on the SQL family
+(sqlite delegating for turso). There is deliberately no `%v`-string fallback:
+a Go-syntax placeholder in a read model is silent corruption of caller data.
+This is pinned three ways: per-engine `adttest.AssertValueEncodeRejection`
+specs, literal stored-bytes pins against raw engine reads, and mutation
+proofs that each encoder seam's rejection still reaches the caller.
+
 ## Projection Adapter
 
 ```go
