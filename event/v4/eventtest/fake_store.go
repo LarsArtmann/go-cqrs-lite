@@ -277,6 +277,20 @@ func (s *FakeStore) AppendBatchFn(
 	return s
 }
 
+func (s *FakeStore) ReadAllFn(fn func() ([]event.Event, error)) *FakeStore {
+	s.readAllFn = fn
+
+	return s
+}
+
+func (s *FakeStore) ReadFromFn(
+	fn func(afterEventID id.EventID, limit int) ([]event.Event, error),
+) *FakeStore {
+	s.readFromFn = fn
+
+	return s
+}
+
 func VersionQueryFn(
 	called *bool,
 ) func(id.StreamRef, event.Version) ([]event.Event, error) {

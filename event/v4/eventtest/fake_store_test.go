@@ -296,6 +296,48 @@ func TestFakeStore_ReadFrom_Override(t *testing.T) {
 	}
 }
 
+func TestFakeStore_ReadAllFn_Setter(t *testing.T) {
+	t.Parallel()
+	store := NewFakeStore()
+
+	chained := store.ReadAllFn(func() ([]event.Event, error) {
+		return nil, errors.New("readall setter")
+	})
+
+	if chained != store {
+		t.Fatal("ReadAllFn must return the same *FakeStore for chaining")
+	}
+
+	if _, err := store.ReadAll(
+		context.Background(),
+	); err == nil ||
+		err.Error() != "readall setter" {
+		t.Fatalf("expected setter error, got: %v", err)
+	}
+}
+
+func TestFakeStore_ReadFromFn_Setter(t *testing.T) {
+	t.Parallel()
+	store := NewFakeStore()
+
+	chained := store.ReadFromFn(func(id.EventID, int) ([]event.Event, error) {
+		return nil, errors.New("readfrom setter")
+	})
+
+	if chained != store {
+		t.Fatal("ReadFromFn must return the same *FakeStore for chaining")
+	}
+
+	if _, err := store.ReadFrom(
+		context.Background(),
+		id.EventID{},
+		0,
+	); err == nil ||
+		err.Error() != "readfrom setter" {
+		t.Fatalf("expected setter error, got: %v", err)
+	}
+}
+
 func TestFakeStore_Close_Default(t *testing.T) {
 	t.Parallel()
 	store := NewFakeStore()
