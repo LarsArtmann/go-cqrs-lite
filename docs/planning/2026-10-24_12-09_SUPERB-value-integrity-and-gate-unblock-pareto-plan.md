@@ -419,6 +419,11 @@ _(append as tasks land: date, task, evidence command + result, mutation
 performed, file:line for the change)_
 
 - **2026-10-24 20:4x — Wave 1 executed (T4–T7; T1–T3 pre-shipped per §1.2):**
+  - _Correction (2026-10-25): "T1–T3 pre-shipped" was an overclaim. §1.2
+    covers the stream-codec error API (T2's code) and the SQL write-path
+    rejection, but NOT T2's all-or-nothing mutation proof (T2.1, done below)
+    and NOT T3 (turso delegation proof, done below). T1's sqlite pins landed
+    2026-10-25 morning inside auto-commit `79e968998` (see next entry)._
   - **T5** `keycodec.EncodeJSONErr` added (`metaengine/keycodec/keycodec.go`
     `EncodeJSONErr` func, Rejection code `keycodec.encode_value`);
     `EncodeJSON` doc split into lenient-key-path vs value-path guidance (no
@@ -449,3 +454,50 @@ performed, file:line for the change)_
     generator is the source of truth.
   - api golden regenerated: 6305 exports (+2: `EncodeJSONErr`,
     `AssertValueEncodeRejection`).
+
+- **2026-10-25 (morning + afternoon sessions) — T1 pins, T2 code, T2.1, T3,
+  LSM + planned byte pins; one new defect discovered:**
+  - **T1** sqlite stored-bytes pins
+    (`metaengine/sqliteengine/stored_bytes_pin_test.go`, landed in
+    auto-commit `79e968998`): StreamAppend (3-value batch, caller order,
+    string unquoted), MapSet, MapSetAt (latest == version row). Mutations
+    both RED then restored: (A) removing the string fast-path in
+    `metaengine/stream_codec.go` `EncodeStreamValueErr`; (B) envelope-wrap
+    `json.Marshal(struct{ V any }{value})` in `sqliteengine/encoding.go`.
+    `json.MarshalIndent` does not exist in json/v2 — a compile failure is not
+    a valid mutation.
+  - **T2 (code half)** `encoding_error_test.go` asserts family AND
+    `errorfamily.Code` for all nine surfaces. Corrected premise: codes split
+    sqlite-local value encoder (`sqliteengine.encode_value`: MapSet, planned
+    MapSet, MapUpdate, MapSetAt, LogAppend, MultiAdd) vs shared stream codec
+    (`metaengine.encode_stream_value`: StreamAppend, StreamAppendExpected).
+  - **T2.1** batch all-or-nothing mutation proof: lazy per-row encoding in
+    `StreamAppend` → RED (`stream version = 1, want 0`), restored GREEN.
+    Same mutation inside `StreamAppendExpected`'s RunInTx stays GREEN — the
+    transaction genuinely makes lazy encoding safe there (atomicity is
+    tx-backed); bypassing RunInTx entirely → RED. Tests have teeth for both
+    mechanisms.
+  - **T3** turso delegation proof
+    (`metaengine/tursoengine/value_encode_rejection_test.go`): MapSet →
+    `sqliteengine.encode_value`, StreamAppend → `metaengine.encode_stream_value`
+    + version 0, both through the embedded libSQL driver (not skipped, 0.07s
+    each). errorfamily promoted indirect→direct in tursoengine go.mod.
+    Full short suite green (22s).
+  - **Byte pins, LSM + planned** `stored_bytes_pin_test.go` ×3 engines +
+    `stored_bytes_write_paths_pin_test.go` (sqlite): pebble via
+    `RawValueReader.GetRawValue`, bbolt/badger via `FromDB` raw handles
+    (bucket `cqrs_meta` / `txn.Get`), sqlite planned via
+    `meta_planned_<col>.value` + MapUpdate re-encode. Mutations: envelope-wrap
+    in `keycodec.EncodeJSONErr` → all three LSM byte pins RED (exact
+    `{"V":{...}}` evidence); `%v`-fallback → rejection tests RED. Restored,
+    green, 30× stability runs clean.
+  - **NEW DEFECT DISCOVERED (recorded, not fixed here):** `encoding/json/v2`
+    does NOT sort map keys (v1 did) — persisted bytes for `map[string]any`
+    values are iteration-order dependent across runs (proven: identical
+    3-key map marshaled to two different orders in one process; pebble 2-key
+    pin failed within 50 runs). Pins therefore use structs (declaration
+    order = the only deterministic shape). Verified fix candidate:
+    `json.Marshal(v, json.Deterministic(true))` (stdlib option; confirmed
+    sorted + stable across runs) at the value-encoder seams — TODO_LIST row,
+    own wave (touches every engine encoder + byte expectations).
+
