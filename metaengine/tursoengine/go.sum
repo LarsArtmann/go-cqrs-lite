@@ -133,5 +133,5 @@ modernc.org/token v1.1.0 h1:Xl7Ap9dKaEs5kLoOQeQmPWevfnk/DM5qcLcYlA8ys6Y=
 modernc.org/token v1.1.0/go.mod h1:UGzOrNV1mAFSEB63lOFHIpNRUVMvYTc6yu1SMY/XTDM=
 pgregory.net/rapid v1.3.0 h1:vBvO0VSqti75J1jjYqpgPNBLKMd1+gxa9fYo7vk/Exc=
 pgregory.net/rapid v1.3.0/go.mod h1:dPlE4OBBxgXPqkP79flB6sJL1dx5azpI7HQ9MY9Z7uk=
-turso.tech/database/tursogo v0.0.0-20261025132346-aa93d669c794 h1:pACiKk9Tkzv+/E8Qbc5aw+RriowNIGp4+cEQSPoQnLE=
-turso.tech/database/tursogo v0.0.0-20261025132346-aa93d669c794/go.mod h1:uoos3sy41FIOyh2NxmCczEw/4ZZ4shdSIpvFYe05g88=
+turso.tech/database/tursogo v0.8.2 h1:rZa+ZzsTCj9quht5mpng92BF1c9DKiRZHNUVg8aooiQ=
+turso.tech/database/tursogo v0.8.2/go.mod h1:njSx52Ytbuvzt8y+fnW57BA1s/oPb5x1CN/zDHZpq40=
