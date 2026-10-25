@@ -40,9 +40,9 @@ exclude:
 # The [OVER budget] marker doubles as a noise-drift tripwire.
 warnings_budget:
   markdown-lint: 179000
-  go-auto-upgrade: 1000
+  go-auto-upgrade: 0
   lychee: 700
-  cqrs-lint: 700
+  cqrs-lint: 0 #THIS IS YOUR FUCKING OWN LINTER!
 
 # license-check expects recognizable OSS licenses in every module zip; this
 # repo is PROPRIETARY by design (AGENTS.md consumer-scope decision), so
