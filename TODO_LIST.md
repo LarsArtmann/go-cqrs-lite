@@ -1371,19 +1371,31 @@ replace-free — 10-25 §a2/§a3, now archived).
       metaengine-local (JSON 3540 vs CBOR 3435 ns/op at 200ms benchtime);
       repeat per engine before quoting them as a routing fact (plan T20).
       _(Effort: M)_
-- [ ] **🔥 Remaining `fmt.Sprintf("%v")` value encoders — the silent-loss class
-      is 3/4 fixed.** `sqliteengine`/`turso` reject (Rejection + tests), and
-      since 2026-10-24 the **LSM engines do too**: `keycodec.EncodeJSONErr`
-      (Rejection `keycodec.encode_value`) replaced the alias on all 21
-      production write sites (pebble/bbolt/badger: map/multimap/log/stream/
-      vector-metadata + MapUpdate), pinned per engine by
-      `adttest.AssertValueEncodeRejection`. **Still open:
-      (b) the graph encoders** — `mysqlengine/graph.go`,
-      `duckdbengine/graph.go`, `pgengine/graph.go`, `bigtableengine`. Decide
-      whether graph identity follows the same "keys are stringified, values
-      must be JSON" rule; if yes, migrate them together.
-      The `memory` engine is unaffected (stores Go values as-is).
-      _(Effort: M — only the graph leg remains)_
+- [ ] **🔥 NEW (2026-10-25): `encoding/json/v2` non-deterministic map-key order
+      — persisted `map[string]any` bytes are iteration-order dependent.**
+      Proven during the wave-1 byte-pin work (identical 3-key map marshaled to
+      two different orders in one process; a 2-key byte pin failed within 50
+      runs; Go source `v2_options.go` documents the v1→v2 behavior change).
+      Affects every engine value encoder (`keycodec.EncodeJSONErr`,
+      `sqliteengine.encodeValue`, `metaengine.EncodeStreamValueErr`-backed
+      paths). Byte-level reproducibility (backups, dedup-by-bytes, hash
+      caches) silently lost vs v1. Verified fix form:
+      `json.Marshal(v, json.Deterministic(true))` — confirmed sorted + stable.
+      Own wave: touches every encoder + all byte-expectation tests.
+      _(Effort: M)_
+
+  _Closed 2026-10-25 (was "remaining `fmt.Sprintf("%v")` value encoders"):_ the
+  silent-loss class is now 4/4 fixed. sqlite/turso reject (dedicated specs,
+  `sqliteengine.encode_value`); LSM engines reject on all 21 sites
+  (`keycodec.EncodeJSONErr`, pinned per engine by
+  `adttest.AssertValueEncodeRejection`); **bigtableengine migrated 2026-10-25**
+  (cell-value writer → `EncodeJSONErr`, adttest pin on the `bttest` fake);
+  **graph encoders verified value-free** — `mysqlengine`/`duckdbengine`/
+  `pgengine`/`badgerengine` graph tables carry only
+  `(collection, from_node, to_node)` identity; their stringifier helpers are
+  key-identity lenient by design (same contract as `encodeKey`/
+  `indexKeyValue`). The `memory` engine is unaffected (stores Go values
+  as-is).
 
 > Cap-primitive harvest (2026-10-23, issue #72 — `WithCap` / `EnforceCap` /
 > `EnforceCaps`). Verified against the MEMORY engine only; the SQL pushdown
