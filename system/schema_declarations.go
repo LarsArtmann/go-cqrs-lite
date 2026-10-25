@@ -24,16 +24,18 @@ func (d SchemaDeclarations) Declarations() []schema.EventSchema { return d.decla
 // [DomainConfig.ProjectionTypeDecoder]. It is nil when no event was declared.
 func (d SchemaDeclarations) TypeDecoder() *projectionadapter.TypeDecoder { return d.decoder }
 
-// Schemas starts a schema-declaration builder. Each [SchemaSet.Event] binds
-// one event type's wire name, CURRENT schema version, upcast ops, AND Go
-// payload type; [SchemaSet.Build] yields both DomainConfig inputs from that
-// one list:
+// Schemas starts a schema-declaration builder. Each [SchemaEvent] call binds one
+// event type's wire name, CURRENT schema version, upcast ops, AND Go payload
+// type (inferred from Event's type parameter); [SchemaSet.Build] yields both
+// DomainConfig inputs from that one list.
 //
-//	decls := system.Schemas().
-//		Event[UserCreated]("user.created", 2,
-//			schema.RenameField("user.created", 1, "name", "displayName")).
-//		Event[UserRenamed]("user.renamed", 1).
-//		Build()
+// Go does not permit type parameters on methods, so Event is a package-level
+// generic function taking the set as its first argument — chain it as:
+//
+//	decls, err := system.Event[UserRenamed]("user.renamed", 1,
+//		system.Event[UserCreated](system.Schemas(), "user.created", 2,
+//			schema.RenameField("user.created", 1, "name", "displayName")),
+//	).Build()
 //
 //	sys, err := system.New(ctx, system.DomainConfig{
 //		Schema:                decls.Declarations(),
@@ -54,11 +56,14 @@ type SchemaSet struct {
 	seen               map[event.Type]struct{}
 }
 
-// Event declares one event type: wire name, CURRENT schema version, upcast
-// ops migrating older stored versions toward it, and the Go payload type T
-// (inferred from the type parameter — no sample argument). It returns the
-// builder for chaining.
-func (s *SchemaSet) Event[T any](
+// SchemaEvent declares one event type on the set: wire name, CURRENT schema
+// version, upcast ops migrating older stored versions toward it, and the Go
+// payload type T (inferred from the type parameter — no sample argument). It
+// returns the set for chaining. It is a package-level generic function, not a
+// method, because Go does not permit type parameters on methods (this file
+// landed uncompiled with a generic method on 2026-10-25; repaired same day).
+func SchemaEvent[T any](
+	s *SchemaSet,
 	eventType event.Type,
 	currentVersion event.SchemaVersion,
 	ops ...schema.Op,

@@ -226,4 +226,5 @@ func (a *EventAdapter) Load(ctx context.Context, ref id.StreamRef) ([]event.Even
 
 	return a.LoadStream(ctx, key)
 }
+
 // ReadAll is promoted from AdapterCore and satisfies event.Journal.

@@ -38,11 +38,10 @@ func TestSchemaDeclarations_BuilderDerivesDecoderAndChain(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	decls, err := system.Schemas().
-		Event[userCreatedV2]("user.created", 2,
+	decls, err := system.SchemaEvent[userCreatedV2](system.Schemas(),
+		"user.created", 2,
 		schema.RenameField("user.created", 1, "name", "displayName"),
-	).
-		Build()
+	).Build()
 	if err != nil {
 		t.Fatalf("Build: %v", err)
 	}

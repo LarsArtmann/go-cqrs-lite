@@ -17,12 +17,11 @@ type exampleUserCreated struct {
 // Pass both to system.New — the declaration, not the wiring, stays the single
 // source of truth.
 func ExampleSchemas() {
-	decls, err := system.Schemas().
-		Event[exampleUserCreated]("user.created", 2,
-		schema.RenameField("user.created", 1, "name", "displayName"),
-	).
-		Event[struct{}]("user.deleted", 1).
-		Build()
+	decls, err := system.SchemaEvent[struct{}](
+		system.SchemaEvent[exampleUserCreated](system.Schemas(), "user.created", 2,
+			schema.RenameField("user.created", 1, "name", "displayName")),
+		"user.deleted", 1,
+	).Build()
 	if err != nil {
 		panic(err)
 	}
@@ -31,10 +30,10 @@ func ExampleSchemas() {
 	fmt.Println(decls.TypeDecoder() != nil)
 
 	// Duplicate event types fail at Build, before composition:
-	_, err = system.Schemas().
-		Event[exampleUserCreated]("user.created", 2).
-		Event[struct{}]("user.created", 1).
-		Build()
+	_, err = system.SchemaEvent[struct{}](
+		system.SchemaEvent[exampleUserCreated](system.Schemas(), "user.created", 2),
+		"user.created", 1,
+	).Build()
 	fmt.Println(err != nil)
 
 	// Output:
