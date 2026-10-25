@@ -60,13 +60,17 @@ pinned by `adttest.AssertValueEncodeRejection`. `keycodec.EncodeJSON` keeps its
 placeholder is identity rather than data. The `memory` engine stores Go values
 as-is, so it cannot lose them.
 
-**Still open:** the graph encoders (`mysqlengine`, `duckdbengine`, `pgengine`,
-`bigtableengine`) stringify a non-JSON node/edge value on a marshal failure.
-Decide whether graph identity follows the same "keys are stringified, values
-must be JSON" rule before migrating them; it is tracked in `TODO_LIST.md` under
-the Metaengine follow-ups. Index-key helpers (`sqliteengine.encodeKey`,
-`pebbleengine`'s planned-layout `indexKeyValue`) are identity, not payload, and
-keep the `%v` form deliberately.
+**Closed (2026-10-25):** `bigtableengine` now rejects too — its cell-value
+writer encodes through `keycodec.EncodeJSONErr` (code `keycodec.encode_value`,
+pinned by the same `adttest.AssertValueEncodeRejection` harness against the
+in-process `bttest` fake). The graph encoders (`mysqlengine`, `duckdbengine`,
+`pgengine`, `badgerengine`) were VERIFIED value-free: graph tables/keys carry
+only `(collection, from_node, to_node)` identity — their `encodeJSONString` /
+`graphNodeKeyJSON` helpers stringify node IDENTITY, the same documented
+lenient contract as the index-key helpers below, so there is no value path to
+migrate. Index-key helpers (`sqliteengine.encodeKey`, `pebbleengine`'s
+planned-layout `indexKeyValue`) are identity, not payload, and keep the `%v`
+form deliberately.
 
 ## Counter Patterns
 

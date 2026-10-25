@@ -19,7 +19,6 @@ package bigtableengine
 
 import (
 	"context"
-	"encoding/json/v2"
 	"fmt"
 	"strconv"
 	"time"
@@ -309,19 +308,6 @@ func encodeKey(key any) string {
 	default:
 		return fmt.Sprint(k)
 	}
-}
-
-// encodeJSON serializes a cell value; the decode side is
-// metaengine.DecodeStreamValue, so plain strings round-trip as strings and
-// composite values as JSON.
-func encodeJSON(v any) []byte {
-	//art-dupl:accept 6-line marshal-with-fallback mirrors keycodec's encoder; dep isolation beats cross-module coupling for this size
-	b, err := json.Marshal(v)
-	if err != nil {
-		return []byte(fmt.Sprintf("%v", v))
-	}
-
-	return b
 }
 
 // SetCalibration implements [metaengine.Calibratable].

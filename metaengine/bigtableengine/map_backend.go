@@ -3,11 +3,13 @@ package bigtableengine
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"cloud.google.com/go/bigtable"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/keycodec"
 )
 
 // ms truncation: BigTable cell timestamps are millisecond-granularity —
@@ -77,8 +79,13 @@ func (e *bigtableEngine) MapSetAt(
 	value any,
 	ts time.Time,
 ) error {
+	val, err := keycodec.EncodeJSONErr(value)
+	if err != nil {
+		return fmt.Errorf("bigtableengine.MapSetAt: %w", err)
+	}
+
 	mut := bigtable.NewMutation()
-	mut.Set(family, column, cellTimestamp(ts), encodeJSON(value))
+	mut.Set(family, column, cellTimestamp(ts), val)
 
 	if err := e.tbl.Apply(ctx, rowKey(col, key), mut); err != nil {
 		return wrapOp("map set-at", err)
