@@ -23,6 +23,7 @@ require (
 require (
 	github.com/Masterminds/semver/v3 v3.5.0 // indirect
 	github.com/Oudwins/tailwind-merge-go v0.2.3 // indirect
+	github.com/dustin/go-humanize v1.1.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.6 // indirect
 	github.com/gkampitakis/ciinfo v0.3.4 // indirect
 	github.com/go-faster/errors v0.8.0 // indirect

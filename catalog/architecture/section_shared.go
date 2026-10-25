@@ -1,6 +1,6 @@
 package architecture
 
-import "strconv"
+import "github.com/dustin/go-humanize/english"
 
 // metaLine renders the small "Owned by … · 5 services" line under a title.
 func metaLine(items []markup) markup {
@@ -54,12 +54,7 @@ func countMeta(count int, singular, plural string) markup {
 		return ""
 	}
 
-	word := plural
-	if count == 1 {
-		word = singular
-	}
-
-	return renderInto(func(w *htmlWriter) { w.text(strconv.Itoa(count) + " " + word) })
+	return renderInto(func(w *htmlWriter) { w.text(english.Plural(count, singular, plural)) })
 }
 
 // textMeta renders a plain meta item, or nothing for empty text.
