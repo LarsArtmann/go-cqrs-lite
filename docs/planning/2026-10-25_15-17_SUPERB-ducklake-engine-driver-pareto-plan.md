@@ -404,3 +404,4 @@ flowchart TD
 | Date | Entry |
 | --- | --- |
 | 2026-10-25 15:17 | Plan created (this session). Phase 0 pending owner review. |
+| 2026-10-25 15:2x | Gates at creation: `#check-md-go` green (1520 blocks valid, 84 skipped, 105 baselined archived errors unchanged — no new errors from this plan or the TODO_LIST rows). TODO_LIST harvest section added (4 epic rows, this plan linked). Note: the auto-commit daemon absorbed the initial plan + TODO_LIST edit into `0012ec2bb` together with a parallel session's `tursoengine` go.mod/go.sum drift; this receipt commit carries the authored message. Phase 0 (T01/T02) NOT started — awaiting owner go. |
