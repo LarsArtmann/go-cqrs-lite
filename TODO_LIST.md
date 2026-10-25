@@ -726,6 +726,22 @@ the boundary. Verified against this repo's source on 2026-10-15.
       cursors by hand. _(Effort: M; wire-format change — golden pins
       required)_
 
+## DuckLake engine driver (proposed 2026-10-25)
+
+> Full Pareto plan (24 tasks / 79 micro-tasks, kill-fast spike first):
+> [`docs/planning/2026-10-25_15-17_SUPERB-ducklake-engine-driver-pareto-plan.md`](docs/planning/2026-10-25_15-17_SUPERB-ducklake-engine-driver-pareto-plan.md).
+> Contract-30 B-path: a `ducklake` driver registered INSIDE `metaengine/duckdbengine`
+> (scratch `:memory:` + vendored hermetic extension LOAD + `ATTACH` + `USE`/`search_path`
+> redirect — zero SQL changes, no new module). Iceberg-as-engine was rejected the same
+> day (no SQL CRUD, catalog server, v0.x Arrow-heavy client); DuckLake follows the
+> 2026-07 research §7.2 recommendation. ADR-0162 (draft T02) carries the decisions +
+> ADR-0142 ledger row. Net-new epic — no prior backlog rows existed (grep-verified).
+
+- [ ] **T01-T06 gate + spike: pin external claims (extension channel, exact DuckDB version of `duckdb-go v2.10506.0`), ADR-0162 draft, hermetic vendored-extension LOAD + ATTACH + transparent DDL redirect spike, go/no-go vs kill criteria** — the 1% that decides ~2 weeks vs ~2 months; if D3 fires, close as a documented rejected-ADR. _(Effort: S/M; kill-fast)_
+- [ ] **T07-T10 driver + conformance: `ducklake` driver in duckdbengine, existing suite matrices pointed at it, census + api golden regen** — the 4% that makes it real. _(Effort: M)_
+- [ ] **T11-T19 harden + prove + ship: calibration profile, durability mapping, reset/GC, multi-writer ACID + time-travel pins, system e2e, example, docs wave, REAL-test-verified tag wave** — the 20% to 80%. _(Effort: L)_
+- [ ] **T20-T24 stretch (owner-gated): prefix-injection contingency, postgres catalog, S3/GCS DATA_PATH, parquet export-sink recipe, routing guidance** — the other 20%; park until a named consumer asks (fleet-first policy). _(Effort: M each; decision-gated)_
+
 ## V5 declarative schema evolution (proposed 2026-10-09)
 
 > Research-informed proposal (Axon/AxonIQ upcasting + LiveStore declared-schema/rematerialization model + Equinox/Akka cross-check), primary-source-verified, ruling resolved 2026-10-09 (T2-first sequence adopted): [`docs/planning/2026-10-09_v5-declarative-schema-evolution.md`](docs/planning/2026-10-09_v5-declarative-schema-evolution.md). One declared schema unifying the four disconnected half-mechanisms; both axes ride existing machinery (SourceTransform chains; journal-survives-reset + ConfirmRebuild). **Fleet evidence:** bank-sync wrote a ~45-line upcaster closure + hand-rolled `NewFieldRenameUpcaster` + a `migrate-journal` runbook; DiscordSync maintains a 211-line upcasters package (two type renames + derived-field upcasts); cqrs-htmx surfaces SchemaVersion with zero upcasters. Recommendations for all three open questions are IN the doc §12 (schema/ home via layering; metadata stamp first; promote after named-consumer burn-in).
