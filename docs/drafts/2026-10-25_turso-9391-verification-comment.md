@@ -1,0 +1,1 @@
+Verified from our side, pre-release: built main at aa93d669 (turso_sync_sdk_kit) and ran it through the Go driver with the repro suite from this issue plus the grouped-view property suite — commit wall gone, grouped sums exact at 2k and 27k rows, every defect signature we tracked is gone. will re-run when a tagged release carries it
