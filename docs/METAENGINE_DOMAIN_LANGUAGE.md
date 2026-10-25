@@ -20,7 +20,7 @@ A **cost-based storage planner** (CBO) for event-sourced projections. Given a se
 > | You're comfortable hand-writing projections     | You want auto-projection from Record types (planned, ADR-0116) |
 > | You need multi-table atomic writes (relational) | You want filter/sort pushdown without writing SQL              |
 
-> **Implementation status:** ADRs 0061–0098 are implemented (cost-based planner, 11 ADTs, 9 engines, layouts, persistence, replication, materialize-vs-replay, plan diff/manifest). ADRs 0111–0117 describe the v2 vision: ES-native planning from Record types (ADR-0112, partially implemented via `OnRecord`), tombstone-as-domain-event (ADR-0114, planned), and command lifecycle as event streams (ADR-0117, planned). Terms from unimplemented ADRs are marked **(planned)** below.
+> **Implementation status:** ADRs 0061–0098 are implemented (cost-based planner, 11 ADTs, 13 engines — the live roster lives in [`engine-capabilities.md`](engine-capabilities.md), layouts, persistence, replication, materialize-vs-replay, plan diff/manifest). ADRs 0111–0117 describe the v2 vision: ES-native planning from Record types (ADR-0112, partially implemented via `OnRecord`), tombstone-as-domain-event (ADR-0114, planned), and command lifecycle as event streams (ADR-0117, planned). Terms from unimplemented ADRs are marked **(planned)** below.
 
 ---
 

@@ -9,7 +9,7 @@ require (
 	github.com/onsi/gomega v1.44.0
 	github.com/samber/lo v1.53.0
 	pgregory.net/rapid v1.3.0
-	turso.tech/database/tursogo v0.8.2
+	turso.tech/database/tursogo v0.0.0-20261025132346-aa93d669c794
 )
 
 require (
