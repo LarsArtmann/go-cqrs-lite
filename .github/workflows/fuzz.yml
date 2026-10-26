@@ -1,19 +1,56 @@
 name: Fuzz Nightly
 
 on:
-  # Nightly short-burst fuzzing of the SQL-injection gates. The seed corpus
-  # under storage/sql/testdata/fuzz runs on every CI push via `go test`;
-  # this workflow adds live mutation beyond the seeds.
+  # Nightly fuzzing across the WHOLE inventory, not a hand-picked four.
+  # scripts/fuzz-targets.txt lists all 115 targets (2026-10-26 census) and
+  # scripts/fuzz-rotation.sh rotates a shard per night, so every target runs
+  # at least once every 4 nights while each job stays bounded.
+  #
+  # The seed corpora under */testdata/fuzz/ still run on every push via
+  # `go test`; this workflow adds live mutation beyond the seeds.
   schedule:
     - cron: "30 3 * * *" # 03:30 UTC daily, after the benchmark nightly
-  # Manual trigger
   workflow_dispatch:
+    inputs:
+      seconds:
+        description: "Seconds per fuzz target"
+        required: false
+        default: "60"
+
+permissions:
+  contents: read
 
 jobs:
-  fuzz:
-    name: Fuzz storage/sql injection gates
+  # Fail loudly if the inventory and the tree disagree: a new Fuzz function
+  # that nobody regenerates the inventory for would otherwise never fuzz.
+  inventory:
+    name: Fuzz inventory drift
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+
+      - name: Inventory matches the tree
+        run: |
+          bash scripts/fuzz-rotation.sh --update-targets
+          if ! git diff --exit-code -- scripts/fuzz-targets.txt; then
+            echo "::error::scripts/fuzz-targets.txt is stale - commit the regenerated inventory (a new Fuzz target must be fuzzed, not silently skipped)."
+            exit 1
+          fi
+
+  fuzz:
+    name: Fuzz shard ${{ matrix.shard }}/4
+    runs-on: ubuntu-latest
+    needs: inventory
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -22,29 +59,29 @@ jobs:
         with:
           nix_path: nixpkgs=channel:nixos-unstable
 
-      # NOTE: cachix-action removed 2026-09-03 — with skipPush it only pulls
-      # and the larsartmann cache requires auth, so the step always failed.
+      # go writes new interesting inputs into <pkg>/testdata/fuzz/<Target>/.
+      # Caching them means a crash found on night N is a regression case on
+      # night N+1 without anyone copying files by hand.
+      - name: Restore fuzz corpora
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            **/testdata/fuzz
+          key: fuzz-corpus-${{ matrix.shard }}-${{ github.run_id }}
+          restore-keys: |
+            fuzz-corpus-${{ matrix.shard }}-
 
-      - name: Fuzz identifier + WHERE validation (60s per target)
-        working-directory: storage
-        run: |
-          export GOWORK=off
-          export GOCACHE=/tmp/gocache-fuzz GOMODCACHE=/tmp/gomod-fuzz
-          for target in \
-            FuzzValidateIdentifier_RejectsAllNonIdentifiers \
-            FuzzValidateIdentifier_MetacharacterCombinations \
-            FuzzBuildWhereClauseChecked_NeverPanics \
-            FuzzBuildWhereClauseChecked_MultiCondition; do
-            echo "::group::$target"
-            GOTOOLCHAIN=auto go test \
-              -run "^${target}$" -fuzz "^${target}$" -fuzztime 60s ./sql/
-            echo "::endgroup::"
-          done
+      - name: Fuzz shard ${{ matrix.shard }}
+        env:
+          FUZZ_SECONDS: ${{ github.event.inputs.seconds || '60' }}
+        run: bash scripts/fuzz-rotation.sh --shard "${{ matrix.shard }}/4"
 
       - name: Upload failure corpus on crash
         if: failure()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: fuzz-failure-corpus
-          path: storage/sql/testdata/fuzz/
+          name: fuzz-failure-corpus-shard-${{ matrix.shard }}
+          path: |
+            **/testdata/fuzz/**
           if-no-files-found: ignore
+          retention-days: 30
