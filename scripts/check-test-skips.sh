@@ -20,6 +20,7 @@
 # Usage: bash scripts/check-test-skips.sh [flags]
 #   (default)    fail on a reasonless skip
 #   --report     also print the env-gated-skip route table
+#   --quiet      print only the summary (no route table, no per-site detail)
 #   --self-test  fault-inject the scanner against fixtures
 #   --help
 
@@ -30,6 +31,7 @@ cd "$(git rev-parse --show-toplevel)"
 
 MODE=gate
 REPORT=0
+QUIET=0
 
 die() {
 	echo "::error::$1" >&2
@@ -43,6 +45,7 @@ usage() {
 while [ $# -gt 0 ]; do
 	case "$1" in
 	--report) REPORT=1 ;;
+	--quiet) QUIET=1 ;;
 	--self-test) MODE=selftest ;;
 	--help | -h)
 		usage
@@ -257,6 +260,11 @@ bad="$(grep -c noreason "$tmp/rows.txt" || true)"
 if [ "$REPORT" -eq 1 ]; then
 	route_report "$PWD"
 	echo ""
+fi
+
+if [ "$QUIET" -eq 1 ] && [ "$bad" -eq 0 ]; then
+	echo "✓ $total skip sites, every one carries a reason."
+	exit 0
 fi
 
 if [ "$bad" -gt 0 ]; then
