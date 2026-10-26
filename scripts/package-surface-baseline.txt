@@ -1,0 +1,13 @@
+# Package-surface ratchet baseline (see scripts/check-package-surface.sh).
+# Format: <exported-symbols><TAB><production-files><TAB><package-dir>, symbols desc.
+# Ceilings for NEW packages: 150 symbols / 40 files.
+# Remove an entry once the package sits under BOTH ceilings.
+# Regenerate: bash scripts/check-package-surface.sh --update-baseline
+829	167	metaengine
+253	37	core/v5/event
+253	37	event
+246	27	catalog
+223	48	system
+187	39	cmd/cqrs-lint/pkg/analyzer
+112	47	benchkit
+44	47	cmd/cqrs-lint/pkg/rules/correctness

@@ -1,0 +1,6 @@
+# Package-surface ratchet baseline (SELF-TEST FIXTURE — not the real baseline).
+# Mirrors scripts/package-surface-baseline.txt's shape so the gate exercises the
+# same parse path: <symbols><TAB><files><TAB><package-dir>, symbols desc.
+# `big` is the baselined god package; `small` sits under both ceilings and is
+# therefore absent by design.
+160	3	big
