@@ -604,3 +604,67 @@ explicitly diverged with a reason.
   (3562 files, 0 changed); `check-file-size` RED (3 offenders); `check-doc-links` 0 broken;
   `dprint check` 114 drifted (ungated).
 - Errata E1–E4 correct the status report; E3 is a factual correction of a claim I made there.
+
+---
+
+## 12. Execution addendum (2026-10-26)
+
+This plan was authored at `fbb7281c8`. It was executed against `b2592201b` and later, i.e. after
+~40 commits from parallel sessions and five further live plans. Everything below is measured, not
+recalled. The ledger that carries per-item status is `TODO_LIST.md` §
+"Architecture-review follow-up ledger (2026-10-26)".
+
+### 12.1 Executed here
+
+| Task | Artifact | Receipt |
+| ---- | -------- | ------- |
+| **T01** ledger | `TODO_LIST.md` (52 rows, routing + v5-impact + status), section-index row | 50 `I` rows + `N1`/`N2`; every ROUTE row carries its owning plan task |
+| **T02** package-surface gate | `scripts/check-package-surface.sh`, `scripts/package-surface-baseline.txt`, `scripts/testdata/package-surface/`, flake app, CI step | gate green (8 baselined offenders); `--self-test` 4/4 (new-god, growth, shrink, clean) |
+| **T03** cycle gate | `scripts/check-cycles.sh`, `scripts/testdata/cycles/`, flake app, CI step | 0 cycles / 506 package-level edges / 159 packages; `--self-test` 4/4 incl. the empty-graph refusal |
+| **T04** arch metrics | `scripts/arch-metrics` (+ flake app), JSON/markdown/`--write` | reproduces the review: 1.23 test/prod LOC ratio, memory driver 8 files / 1,382 LOC, API concentration top-5 identical |
+| **T05** metaengine split | `docs/planning/2026-10-26_metaengine-v5-seven-package-split.md` + `docs/adr/0162-metaengine-v5-seven-package-split.md` (indexed) | 167/167 files assigned, 935 exported decls accounted, largest target 248; ADR gate green (160 ADRs) |
+| **T07** discoverability | `docs/architecture-understanding/README.md`, `docs/README.md` links, CHANGELOG `[Unreleased]` row | doc-links 0 broken (1,196 targets / 597 files) |
+| **T08** (partial) | PNG companions for both diagrams, linked from the new README | `d2 … .png` ×2, 5,550×3,304 and 6,420×2,168 |
+| **T12** unrun gates | — | `check-md-go` rc=0 (1,523 blocks), `check-arch` rc=0, `check-coverage` rc=0, `check-duplication` **rc=2 (foreign code, see E7)** |
+| **T17** (partial) | stray 18 MB `cmd/api-stability/api-stability` trashed | `git check-ignore` confirmed it is build output, not source |
+| **T02b** (discovered, not planned) | `check-file-size.sh` wired into `#verify`/`#verify-fast`/CI | was app-only; see E5 |
+
+### 12.2 Errata found while executing
+
+| # | Finding | Consequence |
+| - | ------- | ----------- |
+| **E5** | The 350-line file gate was **app-only**: `flake.nix` defined `#check-file-size` but neither `#verify`, `#verify-fast` nor CI ever called it, so AGENTS.md's "NEW offenders and GROWTH fail CI" was false for six weeks. | Gate wired into both verify chains and CI in this session (cost: three lines each). |
+| **E6** | The plan's P0 (I01–I03, three red files) was **already closed** by the 19-40 plan: the files are now 273 / 230 / 164 lines and the gate is green. | Ledger records them DONE; T23's verification work is pre-empted for those rows. |
+| **E7** | `check-duplication` is **RED on foreign in-flight code**: one NEW 5-line clone group (an `append` loop) between `systemcatalog/derive.go` and `cmd/cqrs-lint/pkg/rules/version/v006.go`; baseline 189 → 190. | Deliberately NOT re-pinned (dirty-tree + foreign-work rule). The owning session must `//art-dupl:accept` or re-pin. Recorded in the ledger (I43). |
+| **E8** | `check-module-layers` went red mid-session: `catalog` gained `templ-components/utils` as a **direct** dependency because templ-components v1.22.0 emits an explicit `utils` import in generated `*_templ.go`. | Budget 8 → 9 with a rationale comment in the script (the sanctioned "explicit budget review" path). |
+| **E9** | `catalog` grew 246 → 251 exported symbols (the `*FromSchema` derivation family from the same systemcatalog work). | Baseline re-pinned by exactly one line; the ≤300 ceiling intent still holds. Growth of a baselined package is supposed to be a review signal — here it is recorded rather than silently absorbed. |
+| **E10** | `TODO_LIST.md` carried one rotted section-index anchor ("Journal fixtures", whose section no longer exists); `check-doc-links.sh` cannot see anchors, only `cmd/doc-check` can. | Row removed; `doc-check` green (1,509 references / 63 packages). |
+| **E11** | `scripts/probe-proxy-tags.sh` had drifted to shfmt 3.13 style while CI pins 3.14.1 (heredoc-then placement). | Reformatted with the pinned shfmt; `shfmt -l scripts/` now clean. |
+| **E12** | Another session's commits landed unformatted (`catalog/*.go`, `systemcatalog/*.go`, a pebble test). | `nix fmt` applied golines formatting; tree is now `--fail-on-change` clean. |
+
+### 12.3 Not executed, and why
+
+| Task | State | Reason |
+| ---- | ----- | ------ |
+| T06 API-golden tiering | open | Depends on T05's boundaries (now available) but is a v5-scoped consumer-promise change. |
+| T09, T10, T11, T13, T14, T15, T16, T18–T24 | open | Listed with owners in the ledger; T15/T18 are owner-gated on Q3, T20 on Q2. |
+| T11 status archival | open, evidence refreshed | `check-doc-links.sh` reports **133 live status reports** (was 124 at planning time); the pile grows faster than the loop runs. |
+| T08 remainder | open | Diagram links already existed in the report; the "flat-node guidance" and "verify prior claims" skill edits are unstarted. |
+
+### 12.4 Verification receipts (2026-10-26, tree `b2592201b`+ dirty formatting fixes)
+
+| Gate | Result |
+| ---- | ------ |
+| `check-package-surface.sh` | green — 8 baselined, ceilings 150/40, self-test 4/4 |
+| `check-cycles.sh` | green — 0 cycles / 506 edges / 159 packages, self-test 4/4 |
+| `check-file-size.sh` | green — 61 baselined, no growth |
+| `check-module-layers.sh` | green — after the catalog budget review (E8) |
+| `check-adr-numbering.sh` | green — 160 ADRs, index in lockstep |
+| `check-doc-links.sh` | green — 1,196 targets / 597 files, 0 broken |
+| `cmd/doc-check` | green — 1,509 references across 63 packages |
+| `check-md-go` | green — 1,523 code blocks, 105 baselined archived errors |
+| `check-arch` | green |
+| `check-coverage` | green — within ±2.0% |
+| `shfmt -l scripts/` (3.14.1) | clean |
+| `nix fmt --fail-on-change` | red on 6 foreign files before formatting, clean after (E12) |
+| `check-duplication` | **RED** — E7, foreign code, owner action required |
