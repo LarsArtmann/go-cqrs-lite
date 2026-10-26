@@ -60,7 +60,7 @@ scan_file() { # $1=file $2=out
 		function flush() {
 			body = buf
 			accepted = (body ~ /\([ \t]*"[^"]/) || (marker != "" && marker ~ /\/\/go-skip:accept[ \t]+[^ \t]/)
-			if (!accepted) printf "%s\t%d\tnoreason\n", file, startline
+			printf "%s\t%d\t%s\n", file, startline, accepted ? "ok" : "noreason"
 			buf = ""; pending = 0; marker = ""
 		}
 		{
@@ -88,13 +88,38 @@ scan_tree() { # $1=root $2=out
 		sed 's|^\./||' | sort)
 }
 
+# apps_for_script FLAKE SCRIPT — names of every flake app whose body references
+# SCRIPT (an app is a `mkApp "name" [...] ''...''` block; several apps may wrap
+# the same script, e.g. ephemeral-X and integration-X).
+apps_for_script() { # $1=flake.nix $2=script path fragment
+	awk -v needle="$2" '
+		/mkApp "[^"]+"/ {
+			match($0, /mkApp "[^"]+"/)
+			name = substr($0, RSTART + 7, RLENGTH - 8)
+			inapp = 1; found = 0
+		}
+		inapp && index($0, needle) > 0 { found = 1 }
+		inapp && /^\.*'"'"';?[[:space:]]*$/ { } # keep awk happy on odd quoting
+		inapp && found && /'"'"';[[:space:]]*$/ { print name; inapp = 0; found = 0 }
+	' "$1" | sort -u
+}
+
 route_report() { # $1=root
-	local envs v wf hit
-	envs="$(cd "$1" && grep -rhoE 'os\.Getenv\("[A-Z0-9_]+"\)' --include='*_test.go' . |
-		grep -v vendor | sed 's/.*"\(.*\)".*/\1/' | sort -u)"
-	printf '%-32s %-10s %s\n' ENV_VAR WORKFLOW OWNER_HINT
-	printf '%-32s %-10s %s\n' ------- -------- ----------
+	local envs v wf hit script call
+	# Only vars that actually gate a skip are routes; the rest are knobs.
+	envs="$(cd "$1" && grep -rl --include='*_test.go' -E '(^|[^A-Za-z0-9_])(t|tb|rt)\.Skip' . |
+		grep -v vendor | grep -v '/testdata/' |
+		xargs grep -hoE 'os\.Getenv\("[A-Z0-9_]+"\)' 2>/dev/null |
+		sed 's/.*"\(.*\)".*/\1/' | sort -u)"
+	printf '%-34s %-12s %s\n' ENV_VAR ROUTE NOTE
+	printf '%-34s %-12s %s\n' ------- ----- -----
 	for v in $envs; do
+		case "$v" in
+		SOAK_SKIP_* | UPDATE_* | HOME | *_DIR | *_CONCURRENCY | *_GOLDEN | CQRS_* | TURSO_IVM_*)
+			printf '%-34s %-12s %s\n' "$v" "knob" "test control, not a route that runs a skipped test"
+			continue
+			;;
+		esac
 		hit=""
 		for wf in "$1"/.github/workflows/*.yml; do
 			if grep -q "$v" "$wf"; then
@@ -102,10 +127,47 @@ route_report() { # $1=root
 				break
 			fi
 		done
-		if [ -z "$hit" ]; then
-			printf '%-32s %-10s %s\n' "$v" "NONE" "no workflow sets this — runs only on a human's box"
+		if [ -n "$hit" ]; then
+			printf '%-34s %-12s %s\n' "$v" "workflow" "$hit"
+			continue
+		fi
+		# Two-hop: the harness script that exports the var must itself be
+		# invoked by a workflow (CI integration legs call scripts, not vars).
+		hit=""
+		for script in "$1"/scripts/*.sh; do
+			grep -q "$v" "$script" 2>/dev/null || continue
+			call="$(basename "$script")"
+			for wf in "$1"/.github/workflows/*.yml; do
+				if grep -q "$call" "$wf"; then
+					hit="$(basename "$wf") via $call"
+					break 2
+				fi
+			done
+		done
+		if [ -n "$hit" ]; then
+			printf '%-34s %-12s %s\n' "$v" "script" "$hit"
+			continue
+		fi
+		# Third hop: CI calls flake apps, which wrap the scripts. Resolve the
+		# app that references the script and require a workflow to invoke it.
+		hit=""
+		for script in "$1"/scripts/*.sh; do
+			grep -q "$v" "$script" 2>/dev/null || continue
+			call="$(basename "$script")"
+			while IFS= read -r app; do
+				[ -n "$app" ] || continue
+				for wf in "$1"/.github/workflows/*.yml; do
+					if grep -q "\.#$app" "$wf"; then
+						hit="$(basename "$wf") via .#$app"
+						break 3
+					fi
+				done
+			done < <(apps_for_script "$1/flake.nix" "scripts/$call")
+		done
+		if [ -n "$hit" ]; then
+			printf '%-34s %-12s %s\n' "$v" "app" "$hit"
 		else
-			printf '%-32s %-10s %s\n' "$v" "yes" "$hit"
+			printf '%-34s %-12s %s\n' "$v" "NONE" "no workflow, script or flake app sets this"
 		fi
 	done
 }
@@ -152,23 +214,23 @@ EOF
 		cat "$tmp/rows.txt" >&2
 		failures=$((failures + 1))
 	fi
-	if ! grep -q 'a_test.go	11	noreason' "$tmp/rows.txt"; then
-		echo "self-test FAIL: TestWithoutReason (line 11) must be flagged" >&2
+	if ! grep -q 'a_test.go	10	noreason' "$tmp/rows.txt"; then
+		echo "self-test FAIL: TestWithoutReason (line 10) must be flagged" >&2
 		failures=$((failures + 1))
 	fi
-	if grep -q 'a_test.go	7	noreason' "$tmp/rows.txt"; then
+	if grep -q 'a_test.go	6	noreason' "$tmp/rows.txt"; then
 		echo "self-test FAIL: a reason string must clear the skip" >&2
 		failures=$((failures + 1))
 	fi
-	if grep -q 'a_test.go	16	noreason' "$tmp/rows.txt"; then
+	if grep -q 'a_test.go	14	noreason' "$tmp/rows.txt"; then
 		echo "self-test FAIL: a multi-line reason must clear the skip" >&2
 		failures=$((failures + 1))
 	fi
-	if grep -q 'a_test.go	25	noreason' "$tmp/rows.txt"; then
+	if grep -q 'a_test.go	21	noreason' "$tmp/rows.txt"; then
 		echo "self-test FAIL: a non-empty //go-skip:accept must clear the skip" >&2
 		failures=$((failures + 1))
 	fi
-	if ! grep -q '	24	noreason' "$tmp/rows.txt"; then
+	if ! grep -q '	26	noreason' "$tmp/rows.txt"; then
 		echo "self-test FAIL: an EMPTY //go-skip:accept must not clear the skip" >&2
 		failures=$((failures + 1))
 	fi

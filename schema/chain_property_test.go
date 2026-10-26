@@ -63,9 +63,7 @@ func TestPropertyChain_VersionMonotonicityAndIdentity(t *testing.T) {
 
 		chain, err := Compile(ops...)
 		if err != nil {
-			//go-skip:accept rapid has no reason argument; generated op lists can
-			// be rejected by Compile (incompatible adjacency) and that rejection
-			// is asserted by its own test, not by this property.
+			//go-skip:accept rapid's Skip takes no reason; Compile rejects incompatible adjacency (covered elsewhere)
 			rt.Skip()
 		}
 
