@@ -51,7 +51,9 @@ func FuzzChainHostilePayloads(f *testing.F) {
 		if err != nil {
 			// Some payloads may be rejected at construction (e.g. invalid
 			// for the raw-bytes path); construction rejects are out of scope.
-			t.Skip("construction rejection is out of scope; the chain must survive accepted payloads")
+			t.Skip(
+				"construction rejection is out of scope; the chain must survive accepted payloads",
+			)
 		}
 
 		got, err := chain.upcastAll([]event.Event{source})

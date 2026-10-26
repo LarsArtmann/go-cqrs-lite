@@ -1086,29 +1086,42 @@
               ${pkgs.bash}/bin/bash "$PWD/scripts/check-arch.sh"
             '';
 
-            check-coverage = mkApp "check-coverage" [ goPkg pkgs.bash pkgs.coreutils pkgs.gawk pkgs.gnugrep pkgs.gnused ] ''
-              ${pkgs.bash}/bin/bash "$PWD/scripts/check-coverage.sh" "$@"
-            '';
+            check-coverage =
+              mkApp "check-coverage" [ goPkg pkgs.bash pkgs.coreutils pkgs.gawk pkgs.gnugrep pkgs.gnused ]
+                ''
+                  ${pkgs.bash}/bin/bash "$PWD/scripts/check-coverage.sh" "$@"
+                '';
 
-            check-untested-exports = mkApp "check-untested-exports" [ pkgs.bash pkgs.coreutils pkgs.gawk pkgs.gnugrep pkgs.findutils ] ''
-              ${pkgs.bash}/bin/bash "$PWD/scripts/check-untested-exports.sh" "$@"
-            '';
+            check-untested-exports =
+              mkApp "check-untested-exports" [ pkgs.bash pkgs.coreutils pkgs.gawk pkgs.gnugrep pkgs.findutils ]
+                ''
+                  ${pkgs.bash}/bin/bash "$PWD/scripts/check-untested-exports.sh" "$@"
+                '';
 
-            check-test-sleeps = mkApp "check-test-sleeps" [ pkgs.bash pkgs.coreutils pkgs.gawk pkgs.gnugrep pkgs.findutils ] ''
-              ${pkgs.bash}/bin/bash "$PWD/scripts/check-test-sleeps.sh" "$@"
-            '';
+            check-test-sleeps =
+              mkApp "check-test-sleeps" [ pkgs.bash pkgs.coreutils pkgs.gawk pkgs.gnugrep pkgs.findutils ]
+                ''
+                  ${pkgs.bash}/bin/bash "$PWD/scripts/check-test-sleeps.sh" "$@"
+                '';
 
-            check-test-skips = mkApp "check-test-skips" [ pkgs.bash pkgs.coreutils pkgs.gawk pkgs.gnugrep pkgs.findutils ] ''
-              ${pkgs.bash}/bin/bash "$PWD/scripts/check-test-skips.sh" "$@"
-            '';
+            check-test-skips =
+              mkApp "check-test-skips" [ pkgs.bash pkgs.coreutils pkgs.gawk pkgs.gnugrep pkgs.findutils ]
+                ''
+                  ${pkgs.bash}/bin/bash "$PWD/scripts/check-test-skips.sh" "$@"
+                '';
 
-            check-systemscenario-adoption = mkApp "check-systemscenario-adoption" [ pkgs.bash pkgs.coreutils pkgs.gawk pkgs.gnugrep pkgs.findutils pkgs.gnused ] ''
-              ${pkgs.bash}/bin/bash "$PWD/scripts/check-systemscenario-adoption.sh" "$@"
-            '';
+            check-systemscenario-adoption =
+              mkApp "check-systemscenario-adoption"
+                [ pkgs.bash pkgs.coreutils pkgs.gawk pkgs.gnugrep pkgs.findutils pkgs.gnused ]
+                ''
+                  ${pkgs.bash}/bin/bash "$PWD/scripts/check-systemscenario-adoption.sh" "$@"
+                '';
 
-            fuzz-rotation = mkApp "fuzz-rotation" [ goPkg pkgs.bash pkgs.coreutils pkgs.gawk pkgs.gnugrep pkgs.gnused ] ''
-              ${pkgs.bash}/bin/bash "$PWD/scripts/fuzz-rotation.sh" "$@"
-            '';
+            fuzz-rotation =
+              mkApp "fuzz-rotation" [ goPkg pkgs.bash pkgs.coreutils pkgs.gawk pkgs.gnugrep pkgs.gnused ]
+                ''
+                  ${pkgs.bash}/bin/bash "$PWD/scripts/fuzz-rotation.sh" "$@"
+                '';
 
             check-depguard = mkApp "check-depguard" [ pkgs.bash pkgs.findutils pkgs.gnugrep ] ''
               ${pkgs.bash}/bin/bash "$PWD/scripts/check-depguard.sh"

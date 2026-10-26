@@ -32,7 +32,9 @@ func FuzzJSONCodec_Roundtrip(f *testing.F) {
 
 		var decoded any
 		if err := codec.Decode([]byte(input), &decoded); err != nil {
-			t.Skip("input is not a JSON document the codec accepts; this target asserts roundtrip, not rejection")
+			t.Skip(
+				"input is not a JSON document the codec accepts; this target asserts roundtrip, not rejection",
+			)
 		}
 
 		encoded, err := codec.Encode(decoded)
@@ -66,14 +68,18 @@ func FuzzDecodePayload_Roundtrip(f *testing.F) {
 		streamID := id.NewStreamID()
 		evt, err := event.NewEvent("UserCreated", streamID, "User", 1, []byte(input))
 		if err != nil {
-			t.Skip("payload rejected at construction (encoding/size guard); that rejection has its own tests")
+			t.Skip(
+				"payload rejected at construction (encoding/size guard); that rejection has its own tests",
+			)
 		}
 
 		codec := codecpkg.JSONCodec{}
 
 		result, err := event.DecodePayload[fuzzPayload](evt, codec)
 		if err != nil {
-			t.Skip("decoded JSON does not satisfy the typed payload contract; not a roundtrip input")
+			t.Skip(
+				"decoded JSON does not satisfy the typed payload contract; not a roundtrip input",
+			)
 		}
 
 		if result.Name == "" && input != `{}` && input != `{"name":"","email":""}` {
@@ -91,7 +97,9 @@ func FuzzEvent_PayloadIsolation(f *testing.F) {
 		streamID := id.NewStreamID()
 		evt, err := event.NewEvent("TestEvent", streamID, "Test", 1, payload)
 		if err != nil {
-			t.Skip("payload rejected at construction (encoding/size guard); isolation is asserted on accepted payloads")
+			t.Skip(
+				"payload rejected at construction (encoding/size guard); isolation is asserted on accepted payloads",
+			)
 		}
 
 		got := evt.Payload()
