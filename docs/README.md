@@ -221,6 +221,10 @@ The authoritative module index with README links lives in the **[project README]
 ## Diagrams
 
 - [Module Architecture](architecture-understanding/) — D2 diagrams of current and target architecture
+- [Architecture understanding](architecture-understanding/README.md) — the scored review series
+  (latest: 2026-10-24, **4.0/5**), cross-domain mappings, and the tier model
+- [Architecture-review follow-up ledger](../TODO_LIST.md#architecture-review-follow-up-ledger-2026-10-26)
+  — all 52 findings rowed with an owner: 15 closed, 8 routed to other plans, 6 owner-gated
 - [Perfect World Modules](perfect-world-modules.svg) — Ideal module layout
 - [Web Client Communication](web-client-communication.svg) — Client → Server event flow
 
