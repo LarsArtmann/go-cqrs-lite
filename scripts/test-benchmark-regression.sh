@@ -281,6 +281,43 @@ check "restored guard tree passes again" 0 $?
 "$GATE" --baseline "$tmp/base1" --current "$tmp/cur1" >/dev/null 2>&1
 check "compare-only mode skips the guards" 0 $?
 
+# --- absolute ceilings (2026-10-26): a breach fails independently of the
+# delta gate. The fixture deliberately sets the ceiling BELOW the current
+# median while the medians match, proving the two checks are separate.
+: >"$tmp/base-ceil"
+fixture "$tmp/base-ceil" 100 100 100
+: >"$tmp/cur-ceil"
+fixture "$tmp/cur-ceil" 100 100 100
+printf '# name\tceiling_ns\tbaseline_ns\tfactor\tgenerated\nBenchmarkGate\t90\t100\t0.9\t2026-10-26\n' >"$tmp/ceil-tight"
+"$GATE" --baseline "$tmp/base-ceil" --current "$tmp/cur-ceil" \
+	--ceilings "$tmp/ceil-tight" >"$tmp/ceil-out" 2>&1
+check "ceiling breach fails even when the delta is zero" 1 $?
+if grep -q "CEILING BREACH" "$tmp/ceil-out"; then
+	echo "PASS: ceiling breach is named separately from the delta gate"
+else
+	echo "FAIL: CEILING BREACH line missing"
+	failures=$((failures + 1))
+fi
+
+# A generous ceiling passes, and a missing table only warns.
+printf '# name\tceiling_ns\tbaseline_ns\tfactor\tgenerated\nBenchmarkGate\t1000\t100\t10\t2026-10-26\n' >"$tmp/ceil-loose"
+"$GATE" --baseline "$tmp/base-ceil" --current "$tmp/cur-ceil" \
+	--ceilings "$tmp/ceil-loose" >/dev/null 2>&1
+check "a generous ceiling passes" 0 $?
+"$GATE" --baseline "$tmp/base-ceil" --current "$tmp/cur-ceil" \
+	--ceilings "$tmp/does-not-exist" >/dev/null 2>&1
+check "a missing ceiling table only warns" 0 $?
+
+# --write-ceilings multiplies the baseline medians by the factor.
+"$GATE" --baseline "$tmp/base-ceil" --current "$tmp/cur-ceil" \
+	--write-ceilings "$tmp/ceil-generated" --ceiling-factor 3 >/dev/null 2>&1
+if awk -F'\t' '$1 == "BenchmarkGate" && $2 == 300 { found = 1 } END { exit !found }' "$tmp/ceil-generated"; then
+	echo "PASS: --write-ceilings stamps factor x baseline"
+else
+	echo "FAIL: generated ceiling is not 3x the baseline median"
+	failures=$((failures + 1))
+fi
+
 echo ""
 if [[ $failures -gt 0 ]]; then
 	echo "FAIL: $failures fixture test(s) failed"
