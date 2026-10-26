@@ -19,6 +19,7 @@ type config struct {
 	name      string
 	summary   string
 	owners    []string
+	overrides map[string]catalog.MessageConfig
 	curator   func(*catalog.Builder)
 }
 
@@ -81,9 +82,28 @@ func WithCurator(fn func(*catalog.Builder)) Option {
 	}
 }
 
+// WithMessageOverrides supplies curated message configs BY ID: derivation
+// skips deriving the given ids and registers the curated configs instead.
+// Use it where a message deserves more than derivation can know — a typed
+// payload schema with doc tags, a curated display name, a summary. The
+// override set is deliberately explicit (map key = message id): the derived
+// inventory stays the source of truth for WHAT exists, the overrides only
+// enrich HOW chosen messages document.
+func WithMessageOverrides(overrides map[string]catalog.MessageConfig) Option {
+	return func(c *config) {
+		if c.overrides == nil {
+			c.overrides = make(map[string]catalog.MessageConfig, len(overrides))
+		}
+
+		for id, msg := range overrides {
+			c.overrides[id] = msg
+		}
+	}
+}
+
 // resolveOptions applies opts over the defaults.
 func resolveOptions(opts []Option) config {
-	cfg := config{
+	cfg := config{ //nolint:exhaustruct_v5 // option-driven: unset fields are zero by design
 		title:   defaultTitle,
 		version: defaultVersion,
 	}
