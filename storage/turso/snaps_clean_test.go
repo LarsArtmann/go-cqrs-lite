@@ -1,7 +1,6 @@
 package turso
 
 import (
-	"os"
 	"testing"
 
 	"github.com/gkampitakis/go-snaps/snaps"
