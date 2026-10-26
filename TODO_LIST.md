@@ -3082,47 +3082,160 @@ re-checked by T23, never re-executed.
 > Pareto plan, 27 medium tasks, 143 twelve-minute subtasks and an execution
 > graph: [`docs/planning/2026-10-25_04-21_SUPERB-testing-improvements-pareto-plan.md`](docs/planning/2026-10-25_04-21_SUPERB-testing-improvements-pareto-plan.md).
 > Source census (50 ideas): [`docs/planning/2026-10-24_50-testing-improvements.md`](docs/planning/2026-10-24_50-testing-improvements.md).
-> Only the 1%/4%/20% tier is rowed here; the tail (plan T10-T27) stays in the
-> plan until a tier above lands, so this ledger does not grow 27 speculative
-> rows in one change.
+> **Status 2026-10-26:** the 1%, the 4% and five of the seven 20% tasks shipped
+> (T01-T04, T07-T09); T05 shipped its skip half and recorded an erratum for the
+> zero-assertion half; T06 was verified as already covered. The tail (T10-T27)
+> stays rowed below as the remaining work.
 
-- [ ] 🔥 **[T01] Coverage floor for every module** — `check-coverage.sh` pins
-      11 of ~97 non-testdata modules; a baseline file covering all of them
-      (plus per-module coverage/test-count artifacts) is the measurement the
-      other gates assume. — plan T01, ideas 1+8 _(Effort: M)_
-- [ ] 🔥 **[T02] Per-package coverage ratchet + untested-export gate** —
-      package drops >1pt and exported symbols with zero test references fail;
-      makes T01 non-gameable. — plan T02, ideas 2+3 _(Effort: M)_
-- [ ] 🔥 **[T03] Unit-test shuffle, seed replay, repeat-mode leg** —
-      `-shuffle=on` exists only in integration legs; extend it to
-      `#test`/`#test-race`, replay a seed via a dedicated app, run the 20
-      stateful packages `-count=5 -cpu=1,4` nightly. — plan T03, ideas 9-11
+- [x] 🔥 **[T01] Coverage floor for every module** — **DONE 2026-10-26.**
+      `scripts/coverage-baseline.txt` (89 modules, aggregate statements,
+      89/89 rows) + `check-coverage.sh` rewritten: measures ONE workspace-wide
+      coverprofile, attributes every file to its deepest module dir, fails on
+      regression beyond tolerance, on a `testModules` entry with no row, on a
+      dangling row, on a package that lost its tests, and on coverage data
+      vanishing. `--update` is the only way to move a number, `--report` writes
+      CI artifacts (`module-coverage.tsv`, `pkg-coverage.tsv`,
+      `coverage-report.md`, uploaded by ci.yml), `--self-test` fault-injects
+      9 cases. Receipt: `bash scripts/check-coverage.sh --self-test` green;
+      gate green against the measured profile; a 3-point planted drop is red.
+      — plan T01, ideas 1+8
+- [x] 🔥 **[T02] Per-package ratchet + untested-export gate** — **DONE
+      2026-10-26.** `scripts/coverage-package-baseline.txt` (168 packages, 1pt
+      local tolerance, same lower bound as modules) makes "the module held
+      while one package rotted" red. `scripts/check-untested-exports.sh` +
+      `scripts/untested-exports-baseline.txt`: **1,088 of 6,334** exported
+      symbols (17.2%) are named by no test; the list is frozen and shrink-only,
+      a NEW untested export fails, `--self-test` fault-injects 5 cases.
+      Receipt: removing one baseline row turns the gate red naming that symbol.
+      — plan T02, ideas 2+3
+- [x] 🔥 **[T03] Unit-test shuffle, seed replay, repeat-mode leg** — **DONE
+      2026-10-26.** `#test`/`#test-race` now run through
+      `scripts/go-test-shuffled.sh`, which mints and logs an explicit seed
+      (`build/shuffle-seeds.log`), prints the exact replay command, and
+      re-prints it on failure. `#rerun-shuffle-seed -- <seed> [paths]` replays
+      one order; `#test-repeat` runs 20 stateful modules `-count=5 -cpu=1,4`
+      and is wired into `nightly-gates.yml` as its own job. `SHUFFLE=off` is
+      the bisect escape hatch. — plan T03, ideas 9-11
+- [x] 🔥 **[T04] `goleak` gap-fill + `time.Sleep` ban** — **DONE 2026-10-26.**
+      goleak now covers 13 modules that spawn goroutines in production code:
+      added to `watermill`, `storage/{pebble,turso,bbolt}`, `deriver`,
+      `scheduling`, `decider`, `middleware`, `stack`, `systemscenario` (on top
+      of the four that had it); ginkgo's interrupt handler is the single
+      documented ignore. `scripts/check-test-sleeps.sh` +
+      `scripts/test-sleeps-baseline.txt` freeze **182** sleeps across 85 files
+      (new or growing counts fail; `//go-sleep:accept <reason>` exempts a
+      deliberate window). Receipt: all 13 modules green with goleak;
+      sleep gate green and its 6-case self-test mutation-verified.
+      — plan T04, ideas 12+14
+- [x] **[T05] Skip inventory + short-mode audit** — **PARTIAL/DONE 2026-10-26.**
+      `scripts/check-test-skips.sh` requires a reason on all **238** skip
+      sites (217 `t.Skip*`/`tb.Skip`/`rt.Skip` at census; the reasonless tail
+      was fixed by hand in 6 files). `--report` prints the env-gated-skip route
+      table and found two REAL unrouted suites: **NATS** (`.#integration-nats`
+      existed, no workflow ran it — a CI job is now added) and **MySQL**
+      (`.#integration-mysql-vm` still unrouted, rowed below). **ERRATUM
+      (zero-assertion gate):** a text scan cannot distinguish "no assertion"
+      from "asserts via a package helper" — a prototype flagged 1,300 of 7,556
+      tests, nearly all false positives. The honest detector of a test that
+      cannot fail is mutation (T10), so T05 ships the skip half and T10 owns
+      this. — plan T05, ideas 4-6
+- [ ] **[T05-route] Route the MySQL integration suite** — `MYSQL_TEST_DSN`
+      gates `stack/mysql`, `queue/mysql`, `metaengine/mysqlengine` tests and
+      only `scripts/vm-mysql*.sh` sets it; no workflow runs
+      `.#integration-mysql-vm`. Either add the QEMU job (~131s, needs KVM) or
+      record MySQL as local-only. Found by `check-test-skips.sh --report`.
       _(Effort: S)_
-- [ ] 🔥 **[T04] `goleak` gap-fill + `time.Sleep` ban** — goleak covers
-      `system`, `metaengine`, `projectionhost`, `systemtest`; fill
-      `watermill`, `scheduling`, `commandlifecycle/projections`, `queue`,
-      `deriver`, plus a lint rule for new sleeps. — plan T04, ideas 12+14
-      _(Effort: S)_
-- [ ] **[T05] Skip inventory, short-mode audit, zero-assertion gate** — 224
-      `t.Skip` sites with no reason baseline and no gate against tests that
-      cannot fail. — plan T05, ideas 4-6 _(Effort: M)_
-- [ ] **[T06] Replay = snapshot = reset, and idempotency per engine** — the
-      library's core determinism promise, currently not pinned as equivalence;
-      includes every `EngineResetter` and the degraded `MapDedupStore`. —
-      plan T06, ideas 23+27+28 _(Effort: M)_
-- [ ] **[T07] `systemscenario` adoption ratchet + async-deriver regression
-      pin** — harness exists (ADR-0153/0154) but nothing measures which
-      composition-root modules use it; add the reentrant-publish pin. —
-      plan T07, ideas 24+25 _(Effort: M)_
-- [ ] **[T08] Fuzz rotation for all 115 targets** — `fuzz.yml` mutates 4
-      targets for 60s; add date-based sharding, persisted corpora, plus
-      codec/envelope and replay-determinism targets. — plan T08, ideas 20-22
+- [x] **[T06] Replay = snapshot = reset, idempotency per engine** — **VERIFIED
+      ALREADY COVERED 2026-10-26 (no new code).** Snapshot-vs-replay: decider
+      `decider_snapshot_test.go` + `systemscenario` snapshot-deployment
+      equivalence (`TestScenario_SnapshotDeploymentJournalEquivalence`).
+      Reset: `ResetEngine_ClearsEveryADT` in 9 engines + `reset_matview` for
+      turso. Idempotency: `adttest.AssertDedupStore` + `AssertWALDuplicateAppendConflicts`.
+      CatchUp: `metaengine/engine_failover_test.go` + `catchup_stress_test.go`.
+      The plan's assumed gap did not exist; recorded so it is not re-dispatched.
+      — plan T06, ideas 23+27+28
+- [x] **[T07] `systemscenario` adoption ratchet + async-deriver pin** — **DONE
+      2026-10-26.** The reentrant-publish pin already existed
+      (`watermill/reentrancy_test.go`, ADR-0154). New
+      `scripts/check-systemscenario-adoption.sh` +
+      `scripts/systemscenario-adoption-allowlist.txt`: 9 modules boot a system,
+      **7 are allowlisted with a reason** (system/systemtest/systemcatalog/
+      benchkit/cmd-doc-check/metaengine/system-integration), an unlisted
+      offender or a stale row fails, `--report` prints the adoption table.
+      — plan T07, ideas 24+25
+- [x] **[T08] Fuzz rotation for all 115 targets** — **DONE 2026-10-26.**
+      `scripts/fuzz-targets.txt` (115 targets, module+package attributed),
+      `scripts/fuzz-rotation.sh` (date-based 4-way sharding, `--all`,
+      `--shard N/M`, `--seconds`, `--self-test`), and `fuzz.yml` rewritten:
+      inventory-drift job + 4 shards + corpus cache across nights + failure
+      corpus artifacts. Receipt: a 29-target shard ran clean
+      (`✓ fuzz rotation: 29 target(s) clean`). Envelope fuzz targets are OUT
+      OF SCOPE here — `codec.WrapEncode` lives in the external `go-codec`
+      module. — plan T08, ideas 20-22
+- [x] **[T09] Absolute latency ceilings per engine** — **DONE 2026-10-26.**
+      `benchmarks/latency-ceilings.txt` (21 gate benchmarks, 3x the committed
+      baseline) generated by `benchmark-regression.sh --write-ceilings`, and
+      the gate now fails on a breach INDEPENDENTLY of the delta compare (which
+      cannot see "both runs got slower"). Five new fixture cases pin it,
+      including a breach at zero delta. — plan T09, idea 33
+- [ ] **[T10] Mutation-verify gate** — a new test that does not go red under
+      mutation fails CI. Now also owns T05's zero-assertion idea (see the
+      erratum): mutation is the only honest detector of a test that cannot
+      fail. Needs tooling evaluation (gremlin vs mutants vs AST operator swap)
+      and PR-scoped time-boxing. — plan T10, ideas 4+49+50 _(Effort: M)_
+- [ ] **[T12] Flake ledger classification** — **PARTIAL 2026-10-26.**
+      `autoretry.yml` now classifies a retried-green run as FLAKY (reads
+      attempt 1's failed job list, writes the run summary + a
+      `flaky-ledger-<run>` artifact) and `scripts/flaky-tests.txt` exists as
+      the ledger. Remaining: the per-package runtime budget parsed from
+      `go test -json`. — plan T12, ideas 15+16 _(Effort: S)_
+- [ ] **[T13] `synctest` migration wave 1** — 0 usages; `scheduling` ticker
+      and deadline tests still use wall-clock margins. Keep
+      `scheduling.WithClock` for system-level scenarios (ADR-0153 D4) and use
+      `synctest` for package-level timer tests only. — plan T13, idea 13
+      _(Effort: L)_
+- [ ] **[T14] Planner model-based test** — randomized capability sets via
+      `rapid` asserting plan == reference model, including hysteresis and
+      quarantine exclusion. — plan T14, idea 18 _(Effort: L)_
+- [ ] **[T15] Differential engine harness** — one operation script across all
+      engines with a reviewed divergence allowlist. — plan T15, idea 19
+      _(Effort: L)_
+- [ ] **[T16] Error-taxonomy behaviour tests + deprecation pins** — every
+      documented code has a family+wrapping test. — plan T16, ideas 30+32
       _(Effort: M)_
-- [ ] **[T09] Absolute latency ceilings per engine** — `benchkit` gates
-      against a prior baseline, so "both got slower" passes; add a quiet-window
-      measured ceiling table that fails independently of the noise gate. —
-      plan T09, idea 33 _(Effort: M)_
-- [ ] **[T10] Mutation-verify gate + gate self-tests** — a new test that does
-      not go red under mutation fails CI; `check-coverage`, `check-file-size`,
-      `check-arch` gain `--self-test`. — plan T10, ideas 49+50 _(Effort: M)_
-
+- [ ] **[T17] Executable examples, tag fixtures, promoted recipes** — the
+      `GOWORK=off examplePaths` leg is still the one TODO_LIST row this
+      absorbs (MarkDemo incident). — plan T17, ideas 7+29+31 _(Effort: M)_
+- [ ] **[T18] Tail-latency concurrency matrix** — P99 ceilings for
+      singleflight, WAL, projection fan-out and SSE under fixed concurrency
+      (nightly, quiet window). — plan T18, idea 34 _(Effort: M)_
+- [ ] **[T19] Heap, goroutine and disk budgets** — replay/SSE heap ceilings,
+      post-Close goroutine baseline, per-engine disk growth. — plan T19,
+      ideas 35+36+38 _(Effort: M)_
+- [ ] **[T20] Crash-consistency tests** — `kill -9` mid-write on
+      sqlite/pebble/bbolt, reopen, assert no gaps or duplicates. — plan T20,
+      idea 37 _(Effort: L)_
+- [ ] **[T21] Error-injecting capability wrapper** — Nth-call failure per
+      error family with contract tests proving optional capabilities are
+      forwarded, not dropped. Underpins T22/T23. — plan T21, idea 41
+      _(Effort: M)_
+- [ ] **[T22] Broker partition, redelivery, DLQ, outbox crash matrix** —
+      Redis/NATS disconnect, duplicate delivery, poison-to-DLQ, and the
+      commit-publish crash window. — plan T22, idea 42 _(Effort: L)_
+- [ ] **[T23] Quarantine-and-recover property** — reroute after N failures,
+      reactivation only after a clean `CatchUpEngine` rebuild. — plan T23,
+      idea 43 _(Effort: M)_
+- [ ] **[T24] Context-cancellation matrix + crypto negative corpus** — five
+      blocking APIs x four context states; tamper matrix must yield
+      `Corruption`, never a panic. — plan T24, ideas 44+45 _(Effort: M)_
+- [ ] **[T25] HTTP injection pins, span shape, companion auth flows** — SSE
+      CRLF, docserver traversal, span names, cqrs-htmx auth E2E. — plan T25,
+      ideas 46-48 _(Effort: M)_
+- [ ] **[T26] Weekly heavy soaks + race completeness** — bbolt/dgraph/duckdb
+      soaks weekly; race module set == `testModules`. — plan T26, ideas 39+40
+      _(Effort: S)_
+- [ ] **[T27] `rapid` expansion to codec, envelope and `record`** — the
+      decider already has deterministic-apply/version/accumulation properties;
+      what is missing is codec roundtrip, envelope idempotence and
+      `record.ParseEncoding` totality, each mutation-proven. — plan T27,
+      idea 17 _(Effort: M)_

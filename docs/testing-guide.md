@@ -34,8 +34,23 @@ cd event && GOWORK=off go test ./... -count=1
 # Coverage for one module
 cd decider && GOWORK=off go test -cover ./...
 
-# Coverage drift check (compares actual vs AGENTS.md claims)
+# Coverage floor for every module AND every package (89 modules, 168 packages)
 nix run .#check-coverage
+
+# The rest of the hygiene gates (all run in #verify and CI)
+nix run .#check-untested-exports    # exported API named by no test (frozen debt list)
+nix run .#check-test-sleeps         # 182 frozen time.Sleep sites; new ones fail
+nix run .#check-test-skips          # every skip needs a reason; --report routes env gates
+nix run .#check-systemscenario-adoption  # boot a system in a test -> use the harness or say why
+
+# Shuffled suites: seed is logged, replay is one command
+nix run .#test                       # -shuffle=<minted seed>, logged
+nix run .#rerun-shuffle-seed -- 123456789 ./event/...
+nix run .#test-repeat                # -count=5 -cpu=1,4 over 20 stateful modules (nightly)
+
+# Fuzzing: rotate through all 115 targets (every target within 4 nights)
+nix run .#fuzz-rotation -- --shard 1/4
+nix run .#fuzz-rotation -- --list
 ```
 
 ## Integration tests (database)
@@ -204,3 +219,55 @@ gap.
 Optional artifacts: `--report DIR` writes `module-coverage.tsv`,
 `pkg-coverage.tsv` and `coverage-report.md`; CI uploads them as the
 `coverage-report` artifact on every run.
+
+## Flake gates
+
+Three gates make the difference between "the suite is green" and "the suite
+would catch a problem":
+
+| Gate | Fails on | Notes |
+| --- | --- | --- |
+| `check-test-sleeps` | a new `time.Sleep` in a test, or a growing count in a baselined file | Poll the condition (`Eventually`, a channel, a clock advance). A real quiet window keeps `//go-sleep:accept <reason>`. |
+| `check-test-skips` | a skip with no reason (or an empty `//go-skip:accept`) | `--report` prints the env-var route table: a skip gated on an env var that no workflow (or routed flake app) sets only runs on a human's box. That report is how the NATS and MySQL integration suites were found to be unrouted. |
+| `check-test-assertions` | — not implemented (see below) | A text scan flagged 1,300 of 7,556 tests, nearly all false positives (they assert through package helpers). Mutation testing is the honest detector; it is TODO_LIST row T10. |
+
+`-shuffle` is on by default for unit suites. Every run logs an explicit seed to
+`build/shuffle-seeds.log`; a failure prints the exact replay command. `SHUFFLE=off`
+exists only for bisecting a seed loop.
+
+Goroutine leaks are enforced by `goleak.VerifyTestMain` in every module that
+spawns goroutines in production code (13 at the 2026-10-26 census: `watermill`,
+`storage/{pebble,turso,bbolt}`, `deriver`, `scheduling`, `decider`, `middleware`,
+`stack`, `systemscenario`, `metaengine`, `projectionhost`, `system`,
+`systemtest`). Ginkgo's signal handler is the single documented ignore.
+
+## Fuzzing
+
+`scripts/fuzz-targets.txt` inventories all 115 targets (`--update-targets`
+regenerates it; the nightly `inventory` job fails when it is stale, so a new
+`func Fuzz*` cannot silently skip fuzzing). The nightly runs four shards, one per
+day of a four-day rotation: target `i` belongs to shard `i % 4`, and night
+`day-of-year % 4` runs the matching one. Corpora persist through the actions
+cache, so a crash found tonight is a regression case tomorrow.
+
+## Performance ceilings
+
+`scripts/benchmark-regression.sh` has two independent failure modes:
+
+- the **delta gate** (default 25% median regression vs the committed baseline),
+  which cannot see both runs being slow, and
+- the **absolute ceiling** (`benchmarks/latency-ceilings.txt`, 21 gate
+  benchmarks at 3x the committed baseline). Regenerate with
+  `./scripts/benchmark-regression.sh --write-ceilings benchmarks/latency-ceilings.txt`
+  after an accepted baseline move. Hardware- and runner-specific, like the
+  baseline itself.
+
+## System-level tests
+
+`systemscenario` (ADR-0153) is the system tier: `system.New` with a journal, a
+projection host and a bus, then assertions on observable outcomes. A module
+whose tests boot a real system must use it or be allowlisted with a reason
+(`scripts/systemscenario-adoption-allowlist.txt`). At the 2026-10-26 census nine
+modules boot a system and seven are allowlisted (unit-level composition-root
+tests, real-engine crash/durability suites, and derivation tests with no
+dispatch).
