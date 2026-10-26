@@ -78,6 +78,11 @@ jobs:
           nix run .#check-test-sleeps -- --self-test
           nix run .#check-test-sleeps
 
+      - name: Test-skip reasons (self-test, then the tree)
+        run: |
+          nix run .#check-test-skips -- --self-test
+          nix run .#check-test-skips
+
       - name: Duplication check
         run: nix run .#check-duplication
 
@@ -950,6 +955,32 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: shuffle-seeds-pg
+          path: build/shuffle-seeds.log
+          if-no-files-found: ignore
+
+    timeout-minutes: 10
+
+  # NATS JetStream broker tests — ephemeral nixpkgs nats-server, no Docker/VM.
+  # The suite existed (scripts/ephemeral-nats.sh + .#integration-nats) but NO
+  # workflow ever ran it: every NATS_URL-gated test skipped on CI, so the NATS
+  # adapter was only ever exercised on a developer's laptop. The skip-route
+  # report in scripts/check-test-skips.sh --report is what surfaced it.
+  nats-integration:
+    name: NATS Broker Integration (ephemeral)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa
+
+      - name: Run watermill broker tests against ephemeral NATS JetStream
+        run: nix run .#integration-nats
+
+      - name: Upload shuffle seeds
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: shuffle-seeds-nats
           path: build/shuffle-seeds.log
           if-no-files-found: ignore
 
