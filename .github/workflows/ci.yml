@@ -52,7 +52,26 @@ jobs:
         run: nix run .#vet
 
       - name: Test
-        run: nix run .#test
+        run: GT_JSON=1 nix run .#test
+
+      # The event stream is the input to the per-package runtime budget below
+      # and survives a red run for post-mortem (which package got slow first).
+      - name: Upload test event stream
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: test-json
+          path: build/test-json/
+          if-no-files-found: ignore
+
+      - name: Per-package runtime budget (self-test, then this run)
+        run: |
+          nix run .#check-test-runtime -- --self-test
+          # The budget was measured on the maintainer host; a CI runner is a
+          # different machine class, so widen here rather than let machine
+          # speed masquerade as a regression. The tight gate is the local and
+          # nightly run.
+          TEST_RUNTIME_FACTOR=3 TEST_RUNTIME_FLOOR=30 nix run .#check-test-runtime
 
       - name: Test with race detector
         run: nix run .#test-race
@@ -82,6 +101,11 @@ jobs:
         run: |
           nix run .#check-test-skips -- --self-test
           nix run .#check-test-skips
+
+      - name: Test-matrix completeness (self-test, then the flake)
+        run: |
+          nix run .#check-test-matrix -- --self-test
+          nix run .#check-test-matrix
 
       - name: Systemscenario adoption ratchet
         run: |

@@ -1,0 +1,57 @@
+# Weekly heavy soaks — the tests too expensive for any per-push gate.
+#
+# They exist and are valuable (they found the bbolt and Dgraph heap behavior
+# that no short test sees), but their cost is why nobody ever ran them: the
+# bbolt AutoCRUD soak alone measures 8-20 minutes under load, and the composed
+# `#verify` deliberately sets SOAK_SKIP_BOLT=1 to survive its own timeout.
+# `-short` skips DuckDB's CGo soak too. The result was a set of soaks that were
+# green because they never executed.
+#
+# A weekly slot is the honest home: slow enough to be off the critical path,
+# frequent enough that a regression is caught within seven days.
+#
+# Cache policy: intentionally NO magic-nix-cache-action (the throttled
+# dependency that red the whole CI matrix; see ci.yml's cache-policy note).
+name: Weekly Soaks
+
+on:
+  schedule:
+    - cron: "0 5 * * 0" # Sundays 05:00 UTC (after the nightly gates)
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: weekly-soaks
+  cancel-in-progress: false
+
+jobs:
+  soaks:
+    name: Engine soaks (bbolt, DuckDB, Dgraph)
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa
+
+      # Embedded engines: no external service, just the soak's own load. This
+      # is the leg that must stay under its own timeout — a soak that hangs is
+      # itself the finding.
+      - name: bbolt + DuckDB AutoCRUD soaks
+        run: nix run .#soak-weekly
+
+      # Dgraph's soak runs against a live server; the ephemeral harness boots
+      # one, and TEST_ARGS narrows the package's default suite to the soak.
+      - name: Dgraph AutoCRUD soak (ephemeral Dgraph)
+        run: TEST_ARGS='-run TestSoak' nix run .#integration-dgraph
+
+      - name: Upload shuffle seeds
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: shuffle-seeds-soaks
+          path: build/shuffle-seeds.log
+          if-no-files-found: ignore
+          retention-days: 30

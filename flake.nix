@@ -1010,6 +1010,17 @@
               ${pkgs.bash}/bin/bash "$PWD/scripts/rerun-shuffle-seed.sh" "$@"
             '';
 
+            # Weekly heavy soaks (weekly-soaks.yml): the AutoCRUD soaks that
+            # #verify and #test skip by design (SOAK_SKIP_BOLT, -short) because
+            # one of them alone can exceed a verify attempt's budget. Embedded
+            # engines only; Dgraph's soak needs the ephemeral harness and is a
+            # separate step.
+            soak-weekly = mkApp "soak-weekly" goModules ''
+              export CGO_ENABLED=1 GT_TIMEOUT=40m
+              export GT_LABEL=soak-weekly GT_PATHS="./metaengine/bboltengine/... ./metaengine/duckdbengine/..."
+              ${pkgs.bash}/bin/bash "$PWD/scripts/go-test-shuffled.sh" -run 'TestSoak' "$@"
+            '';
+
             # Repeat/parallelism leg: order-dependent and shared-state bugs
             # surface as -count>1 or -cpu=1,4, not as a single shuffled pass.
             # Runs nightly (nightly-gates.yml), not on every push.
@@ -1108,6 +1119,24 @@
               mkApp "check-test-skips" [ pkgs.bash pkgs.coreutils pkgs.gawk pkgs.gnugrep pkgs.findutils ]
                 ''
                   ${pkgs.bash}/bin/bash "$PWD/scripts/check-test-skips.sh" "$@"
+                '';
+
+            # Per-package wall-clock budgets from a `go test -json` stream
+            # (produced by GT_JSON=1 nix run .#test). Catches a package that
+            # changed CLASS (seconds to minutes), not a 20% wobble.
+            check-test-runtime =
+              mkApp "check-test-runtime" [ pkgs.bash pkgs.coreutils pkgs.gawk pkgs.gnugrep pkgs.gnused pkgs.findutils ]
+                ''
+                  ${pkgs.bash}/bin/bash "$PWD/scripts/check-test-runtime.sh" "$@"
+                '';
+
+            # The test matrix must be COMPLETE, never curated: #test/#test-race
+            # GT_PATHS still derive from testModules, lint covers the same set,
+            # and every repeat module still exists.
+            check-test-matrix =
+              mkApp "check-test-matrix" [ pkgs.bash pkgs.coreutils pkgs.gawk pkgs.gnugrep pkgs.gnused pkgs.findutils ]
+                ''
+                  ${pkgs.bash}/bin/bash "$PWD/scripts/check-test-matrix.sh" "$@"
                 '';
 
             check-systemscenario-adoption =
@@ -1985,6 +2014,7 @@
                   echo "=== Untested Exports ===" && nix run .#check-untested-exports && \
                   echo "=== Test Sleeps ===" && nix run .#check-test-sleeps && \
                   echo "=== Test Skips ===" && nix run .#check-test-skips && \
+                  echo "=== Test Matrix ===" && nix run .#check-test-matrix && \
                   echo "=== Systemscenario Adoption ===" && nix run .#check-systemscenario-adoption && \
                   echo "=== Check Error Taxonomy ===" && nix run .#check-error-taxonomy && \
                   echo "=== Check md-go ===" && nix run .#check-md-go && \
@@ -2058,6 +2088,7 @@
                   echo "=== Untested Exports ===" && nix run .#check-untested-exports && \
                   echo "=== Test Sleeps ===" && nix run .#check-test-sleeps && \
                   echo "=== Test Skips ===" && nix run .#check-test-skips && \
+                  echo "=== Test Matrix ===" && nix run .#check-test-matrix && \
                   echo "=== Systemscenario Adoption ===" && nix run .#check-systemscenario-adoption && \
                   echo "=== Check md-go ===" && nix run .#check-md-go && \
                   echo "=== API Stability ===" && nix run .#check-api-stability && \

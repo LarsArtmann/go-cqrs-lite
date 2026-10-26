@@ -15,8 +15,8 @@
 #   (default)          compare the newest build/test-json/*.json to the baseline
 #   --json FILE        compare this event stream (repeatable)
 #   --baseline FILE    budget file (default scripts/test-runtime-baseline.txt)
-#   --factor N         budget multiplier (default 2.0)
-#   --floor N          seconds of absolute slack (default 20)
+#   --factor N         budget multiplier (default 2.0; TEST_RUNTIME_FACTOR)
+#   --floor N          seconds of absolute slack (default 20; TEST_RUNTIME_FLOOR)
 #   --update           rewrite the budget file from the measured stream
 #   --quiet            only the verdict
 #   --self-test        fault-inject the comparison against fixtures
@@ -36,8 +36,11 @@ export LC_ALL=C
 cd "$(git rev-parse --show-toplevel)"
 
 BASELINE="scripts/test-runtime-baseline.txt"
-FACTOR=2.0
-FLOOR=20
+# The baseline is measured on THIS host, so the gate is tight here. A CI
+# runner is a different machine class: it may widen via the env vars below and
+# the local/nightly run stays the tight gate.
+FACTOR="${TEST_RUNTIME_FACTOR:-2.0}"
+FLOOR="${TEST_RUNTIME_FLOOR:-20}"
 MODE=gate
 QUIET=0
 JSON_FILES=()
