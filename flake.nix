@@ -300,6 +300,7 @@
             "core/v5"
             "system"
             "system/integration"
+            "systemcatalog"
             "systemscenario"
             "systemtest"
           ];

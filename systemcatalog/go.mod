@@ -4,7 +4,11 @@ go 1.27.2
 
 require (
 	github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.10.0
+	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.1
+	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.8.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.2
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.3
+	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.7.1
 	github.com/larsartmann/go-cqrs-lite/system/v4 v4.15.4
 	github.com/larsartmann/go-error-family v0.12.0
 )
@@ -30,13 +34,10 @@ require (
 	github.com/knadh/koanf/v2 v2.3.8 // indirect
 	github.com/larsartmann/go-branded-id v0.7.0 // indirect
 	github.com/larsartmann/go-codec v0.3.2 // indirect
-	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4 v4.2.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.3.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.8.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.2 // indirect
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.6.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.20.0 // indirect
@@ -45,7 +46,6 @@ require (
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.7.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2 // indirect
-	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.7.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.7.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.7.0 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.1 // indirect

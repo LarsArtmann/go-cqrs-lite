@@ -93,6 +93,7 @@ use (
 	./storage/turso
 	./system
 	./system/integration
+	./systemcatalog
 	./systemscenario
 	./systemtest
 	./testutil
