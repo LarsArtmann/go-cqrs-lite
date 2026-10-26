@@ -14,6 +14,7 @@ package system
 import (
 	"context"
 	"io"
+	"reflect"
 	"sync"
 	"time"
 
@@ -161,6 +162,12 @@ type System struct {
 
 	// handlerCount tracks registered command handlers for introspection.
 	cmdHandlerCount int
+
+	// cmdTypes/qryTypes record registered command/query payload types for
+	// introspection ([CommandRegistrations]/[QueryRegistrations]) — the
+	// runtime-inventory surface documentation bridges derive from.
+	cmdTypes map[command.Type]reflect.Type
+	qryTypes map[query.Type]reflect.Type
 
 	// safetyReport holds the construction-time safety diagnostics (SCREAM
 	// blocked construction; WARN+OVERRIDE and ADVISORY findings are kept here

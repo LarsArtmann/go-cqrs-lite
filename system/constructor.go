@@ -54,6 +54,8 @@ func New(
 		clock:        options.clock,
 		repos:        make(map[string]any),
 		deciders:     make(map[string]any),
+		cmdTypes:     make(map[command.Type]reflect.Type),
+		qryTypes:     make(map[query.Type]reflect.Type),
 		cmdDisp:      command.NewDispatcher(),
 		qryDisp:      query.NewDispatcher(),
 	}

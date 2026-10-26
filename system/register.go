@@ -3,6 +3,7 @@ package system
 import (
 	"context"
 	"fmt"
+	"reflect"
 
 	"github.com/larsartmann/go-codec"
 
@@ -97,6 +98,7 @@ func RegisterCommand[Cmd command.Command, State any](
 ) error {
 	sys.mu.Lock()
 	sys.cmdHandlerCount++
+	sys.cmdTypes[name] = reflect.TypeFor[Cmd]()
 	sys.mu.Unlock()
 
 	return sys.cmdDisp.Register(name, func(ctx context.Context, cmd command.Command) error {
@@ -130,6 +132,10 @@ func RegisterQuery[Q any, R any](
 	name string,
 	handler func(ctx context.Context, q Q) (R, error),
 ) error {
+	sys.mu.Lock()
+	sys.qryTypes[query.Type(name)] = reflect.TypeFor[Q]()
+	sys.mu.Unlock()
+
 	return sys.qryDisp.Register(
 		query.Type(name),
 		func(ctx context.Context, q query.Query) (any, error) {
