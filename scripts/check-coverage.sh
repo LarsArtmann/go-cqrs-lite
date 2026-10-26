@@ -144,22 +144,36 @@ collect() {
 
 	if [ -n "$PROFILE_IN" ]; then
 		[ -f "$PROFILE_IN" ] || die "--profile '$PROFILE_IN' does not exist"
-		cp "$PROFILE_IN" "$wd/merged.out"
+		# In-place reuse (the profile already IS $wd/merged.out) must not cp
+		# onto itself.
+		if [ ! "$PROFILE_IN" -ef "$wd/merged.out" ]; then
+			cp "$PROFILE_IN" "$wd/merged.out"
+		fi
 	else
 		echo "==> Measuring coverage across $(wc -l <"$wd/modules.txt") modules (this is the test run)" >&2
+		# SOAK_SKIP_BOLT keeps the 8-20 minute bbolt soak out of the gate the
+		# same way #verify does; the soak has dedicated runs.
+		#
+		# A failing test does NOT abort the measurement: coverage is a
+		# measurement, and test success is already gated by #test and
+		# #test-race (the pre-2026-10-26 script tolerated failures for the
+		# same reason). Load-sensitive suites — benchkit's 90s journey budget
+		# is the documented example — would otherwise turn the coverage gate
+		# into a second, flakier test gate. The warning is loud so a suite
+		# that is systematically broken cannot hide behind a green number.
 		local -a pargs=()
 		if [ -n "${COVERAGE_TEST_P:-}" ]; then
 			pargs=(-p "$COVERAGE_TEST_P")
 		fi
-		# SOAK_SKIP_BOLT keeps the 8-20 minute bbolt soak out of the gate the
-		# same way #verify does; the soak has dedicated runs.
 		if ! SOAK_SKIP_BOLT=1 CGO_ENABLED=1 go test "${paths[@]}" \
 			-count=1 -timeout=30m -covermode=set \
 			-coverprofile="$wd/merged.out" "${pargs[@]}" >"$wd/test.log" 2>&1; then
-			echo "::error::go test failed during the coverage measurement; tail of $wd/test.log:" >&2
-			tail -20 "$wd/test.log" >&2
-			exit 1
+			local failed
+			failed="$(grep -c '^--- FAIL' "$wd/test.log" || true)"
+			echo "::warning::$failed test(s) failed during the coverage measurement; coverage is still measured (test success is gated by #test / #test-race):" >&2
+			grep '^--- FAIL' "$wd/test.log" | head -20 >&2
 		fi
+		[ -s "$wd/merged.out" ] || die "go test produced no coverprofile — see $wd/test.log"
 	fi
 
 	if ! go list -f '{{.ImportPath}}|{{.Dir}}|{{len .TestGoFiles}}|{{len .XTestGoFiles}}' \
