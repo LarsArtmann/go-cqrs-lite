@@ -115,25 +115,45 @@ func TestREADMEClaim_ModuleCountFloor(t *testing.T) {
 }
 
 // TestREADMEClaim_CoverageFloors verifies every per-module coverage claim in
-// the README against the check-coverage.sh baseline map: a README claim may
-// UNDERSTATE the baseline (rounding down is honest) but never exceed it.
+// the README against the coverage baseline file: a README claim may UNDERSTATE
+// the baseline (rounding down is honest) but never exceed it.
 func TestREADMEClaim_CoverageFloors(t *testing.T) {
 	t.Parallel()
 
-	baselineData, err := os.ReadFile(filepath.Join(".", "..", "..", "scripts", "check-coverage.sh"))
+	baselineData, err := os.ReadFile(
+		filepath.Join(".", "..", "..", "scripts", "coverage-baseline.txt"),
+	)
 	if err != nil {
-		t.Fatalf("read check-coverage.sh: %v", err)
+		t.Fatalf("read scripts/coverage-baseline.txt: %v", err)
 	}
 
-	baselineLine := regexp.MustCompile(`\[([a-zA-Z/_-]+)\]=(\d+(?:\.\d+)?)`)
+	// Baseline rows are TAB separated:
+	//   module	pct	packages	notest	measured	mode
+	// `pct` is `none` for a module with no test statements, which is not a
+	// numeric claim and must never be read as 0.
 	baselines := map[string]float64{}
-	for _, m := range baselineLine.FindAllStringSubmatch(string(baselineData), -1) {
-		v, parseErr := strconv.ParseFloat(m[2], 64)
-		if parseErr != nil {
-			t.Fatalf("parse baseline %s: %v", m[2], parseErr)
+
+	for line := range strings.SplitSeq(string(baselineData), "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
 		}
 
-		baselines[m[1]] = v
+		fields := strings.Split(line, "\t")
+		if len(fields) < 2 || fields[1] == "none" {
+			continue
+		}
+
+		v, parseErr := strconv.ParseFloat(fields[1], 64)
+		if parseErr != nil {
+			t.Fatalf("parse baseline %q: %v", fields[1], parseErr)
+		}
+
+		baselines[fields[0]] = v
+	}
+
+	if len(baselines) == 0 {
+		t.Fatal("scripts/coverage-baseline.txt parsed to zero floors — did the format change?")
 	}
 
 	claimLine := regexp.MustCompile(`\b(event|decider|dispatcher)\s+(\d+)%`)

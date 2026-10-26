@@ -169,9 +169,38 @@ Shared test suites that every implementation must pass:
 
 ## Coverage
 
-Core modules: 70–96% (decider 95.9%, storage/memory 94.2%, schema 89.9%).
-Newer modules: 70–86% (kv 71.9%, codec 70.2%). Coverage is checked for drift
-against AGENTS.md by `scripts/check-coverage.sh` (`nix run .#check-coverage`).
+Every module in `flake.nix` `testModules` (89 at the 2026-10-26 census) has a
+**floor** in `scripts/coverage-baseline.txt`. Before that date the gate pinned
+11 modules, so 78 modules could lose their tests without a red run.
 
-Run `nix run .#check-coverage -- --update` to recompute and print the
-AGENTS.md-ready values, then update the `EXPECTED` map in the script.
+```bash
+nix run .#check-coverage                       # gate: every module vs its floor
+nix run .#check-coverage -- --update           # rewrite the floors (quiet window!)
+nix run .#check-coverage -- --report build/coverage --quiet   # CI artifacts
+nix run .#check-coverage -- --self-test        # fault-inject the compare logic
+nix run .#check-coverage -- --profile x.out    # reuse a merged coverprofile
+```
+
+What the gate fails on: a regression beyond the lower tolerance (`-2.0` points
+locally, `-6.0` on CI where timeout-skipped tests measure 3-5 points lower), a
+module in `testModules` with **no** baseline row, a baseline row that no longer
+resolves to a module, a module that gained a package **without tests**, and
+coverage data vanishing for a module that had some. Upward drift is reported
+`STALE` but does not fail — new tests are never a defect.
+
+Measurement mode is `aggregate`: one workspace test run emits a merged
+coverprofile and a module's percentage is covered/total **statements** for the
+files it owns (deepest module directory wins, so `metaengine/pgengine` is never
+counted inside `metaengine`). The old implementation took the *first package's*
+coverage line, which in a multi-package module is an arbitrary package — that is
+why the pre-2026-10-26 numbers (e.g. metaengine 83.9) do not match the aggregate
+ones (70.7).
+
+`notest` in each row counts packages with no test files: the floor cannot be
+satisfied by adding untested packages. A row with mode `none` records a module
+with no test statements at all as an explicit decision instead of an invisible
+gap.
+
+Optional artifacts: `--report DIR` writes `module-coverage.tsv`,
+`pkg-coverage.tsv` and `coverage-report.md`; CI uploads them as the
+`coverage-report` artifact on every run.

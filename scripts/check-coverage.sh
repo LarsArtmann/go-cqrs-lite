@@ -354,8 +354,8 @@ run_gate() {
 
 	sort -t'|' -k1,1n -k2,2 "$out" |
 		awk -F'|' -v quiet="$quiet" '
-			$5 != "ok" { printf "%-44s %8s -> %-8s %-9s %s\n", $2, $3, $4, $5, $6; next }
-			quiet == 0 { printf "%-44s %8s -> %-8s %-9s\n", $2, $3, $4, $5 }
+			$5 != "ok" { printf "%-44s %9s %9s  %-9s %s\n", $2, $3, $4, $5, $6; next }
+			quiet == 0 { printf "%-44s %9s %9s  %-9s\n", $2, $3, $4, $5 }
 		'
 	return "$rc"
 }
@@ -476,8 +476,8 @@ if [ -n "$REPORT_DIR" ]; then
 	echo "==> wrote $REPORT_DIR/{module,pkg}-coverage.tsv and coverage-report.md" >&2
 fi
 
-printf '%-44s %8s %10s %-9s %s\n' MODULE BASELINE ACTUAL STATUS NOTE
-printf '%-44s %8s %10s %-9s %s\n' ------ -------- ------ ------ ----
+printf '%-44s %9s %9s  %-9s %s\n' MODULE BASELINE ACTUAL STATUS NOTE
+printf '%-44s %9s %9s  %-9s %s\n' ------ -------- ------ ------ ----
 if run_gate "$WORKDIR" "$BASELINE" "$WORKDIR/modules.txt" "$QUIET"; then
 	echo ""
 	echo "✓ All $(grep -vc '^#' "$BASELINE") module floors hold (+${TOLERANCE}% / -${LOWER_TOLERANCE}%)."

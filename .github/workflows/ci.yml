@@ -88,8 +88,22 @@ jobs:
       - name: Depguard check (go.mod vs depguard allow list)
         run: nix run .#check-depguard
 
-      - name: Coverage drift check
-        run: nix run .#check-coverage
+      - name: Coverage floor (every module) plus per-module report
+        run: nix run .#check-coverage -- --report build/coverage --quiet
+
+      # The per-module table is the measurement record for the run: without it
+      # a floor can only be argued from a log line, and a module that silently
+      # stopped contributing statements is invisible after the job ends.
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: coverage-report
+          path: |
+            build/coverage/module-coverage.tsv
+            build/coverage/pkg-coverage.tsv
+            build/coverage/coverage-report.md
+          retention-days: 30
 
       - name: CHANGELOG honesty gate
         run: bash scripts/check-changelog-symbols.sh

@@ -1042,7 +1042,7 @@
               ${pkgs.bash}/bin/bash "$PWD/scripts/check-arch.sh"
             '';
 
-            check-coverage = mkApp "check-coverage" [ goPkg pkgs.bash ] ''
+            check-coverage = mkApp "check-coverage" [ goPkg pkgs.bash pkgs.coreutils pkgs.gawk pkgs.gnugrep pkgs.gnused ] ''
               ${pkgs.bash}/bin/bash "$PWD/scripts/check-coverage.sh" "$@"
             '';
 
