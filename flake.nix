@@ -2044,6 +2044,10 @@
                   echo "=== Check Templ ===" && nix run .#check-templ && \
                   echo "=== Check Bench Gate ===" && nix run .#check-bench-gate && \
                   echo "=== Check Coverage ===" && nix run .#check-coverage && \
+                  echo "=== Untested Exports ===" && nix run .#check-untested-exports && \
+                  echo "=== Test Sleeps ===" && nix run .#check-test-sleeps && \
+                  echo "=== Test Skips ===" && nix run .#check-test-skips && \
+                  echo "=== Systemscenario Adoption ===" && nix run .#check-systemscenario-adoption && \
                   echo "=== Check md-go ===" && nix run .#check-md-go && \
                   echo "=== API Stability ===" && nix run .#check-api-stability && \
                   echo "✅ All fast verification checks passed (soak tests skipped)"
