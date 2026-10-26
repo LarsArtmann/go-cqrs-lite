@@ -1,0 +1,18 @@
+# test-skip-routes.txt — env-gated skips that are DELIBERATELY unrouted.
+#
+# check-test-skips.sh fails when a skip-gating env var has no route (no
+# workflow sets it, no workflow calls a script that sets it, and no workflow
+# invokes a flake app that wraps such a script). A skip with no route is a
+# test that is green because it never runs.
+#
+# Two legitimate answers to that failure:
+#   1. Add the route (a workflow job, a script, or an app the workflow calls).
+#      This is what MYSQL_TEST_DSN got on 2026-10-27 — the mysql-integration
+#      CI job runs .#integration-mysql-vm, which sets the DSN.
+#   2. Record the decision here, with the reason, when the route is genuinely
+#      impossible or refused (hardware, licence, cost, owner ruling).
+#
+# Format: <ENV_VAR><TAB><reason>  (one row per var; # comments ignored)
+#
+# Keep this file EMPTY unless (2) applies. Every row is a suite that never runs
+# in CI — the reason must say who decided that and why.

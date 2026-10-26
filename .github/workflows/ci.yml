@@ -991,6 +991,38 @@ jobs:
 
     timeout-minutes: 10
 
+  # MySQL integration: the Go suites gated by MYSQL_TEST_DSN (stack/mysql,
+  # idempotency/sqlstore, metaengine/mysqlengine) had NO route at all — only
+  # a human running scripts/vm-mysql.sh ever set the DSN, so those suites were
+  # green by never executing (found by `check-test-skips.sh --report`,
+  # 2026-10-26). The nixos-vm-tests matrix runs the mysql-vm NixOS HEALTH
+  # check, which proves mysqld boots, not that the driver works. This job
+  # boots the same QEMU VM with MySQL port-forwarded and runs the Go tests on
+  # the host.
+  mysql-integration:
+    name: MySQL Driver Integration (QEMU VM)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa
+
+      # /dev/kvm turns the boot into ~131s instead of a 10-50x slower
+      # software-emulated one; the runner provides it, and the script warns
+      # (does not fail) when it is missing.
+      - name: Run MySQL suites against a NixOS QEMU VM
+        run: nix run .#integration-mysql-vm
+
+      - name: Upload shuffle seeds
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: shuffle-seeds-mysql
+          path: build/shuffle-seeds.log
+          if-no-files-found: ignore
+
+    timeout-minutes: 30
+
   # Redis Streams broker tests — ephemeral nixpkgs redis, no Docker/VM.
   # Covers the watermill adapter edges gochannel cannot catch: Nack
   # redelivery, consumer-group exactly-once, 2 MiB payload integrity.

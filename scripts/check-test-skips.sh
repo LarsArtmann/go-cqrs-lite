@@ -32,6 +32,9 @@ cd "$(git rev-parse --show-toplevel)"
 MODE=gate
 REPORT=0
 QUIET=0
+# Deliberate local-only decisions: <ENV_VAR><TAB><reason>. Empty by design —
+# every row is a suite that never runs CI, so the reason must carry a decision.
+ROUTES_FILE="scripts/test-skip-routes.txt"
 
 die() {
 	echo "::error::$1" >&2
@@ -108,71 +111,99 @@ apps_for_script() { # $1=flake.nix $2=script path fragment
 }
 
 route_report() { # $1=root
-	local envs v wf hit script call
-	# Only vars that actually gate a skip are routes; the rest are knobs.
-	envs="$(cd "$1" && grep -rl --include='*_test.go' -E '(^|[^A-Za-z0-9_])(t|tb|rt)\.Skip' . |
-		grep -v vendor | grep -v '/testdata/' |
-		xargs grep -hoE 'os\.Getenv\("[A-Z0-9_]+"\)' 2>/dev/null |
-		sed 's/.*"\(.*\)".*/\1/' | sort -u)"
+	local v class note
 	printf '%-34s %-12s %s\n' ENV_VAR ROUTE NOTE
 	printf '%-34s %-12s %s\n' ------- ----- -----
-	for v in $envs; do
-		case "$v" in
-		SOAK_SKIP_* | UPDATE_* | HOME | *_DIR | *_CONCURRENCY | *_GOLDEN | CQRS_* | TURSO_IVM_*)
-			printf '%-34s %-12s %s\n' "$v" "knob" "test control, not a route that runs a skipped test"
-			continue
-			;;
-		esac
-		hit=""
-		for wf in "$1"/.github/workflows/*.yml; do
-			if grep -q "$v" "$wf"; then
-				hit="$(basename "$wf")"
-				break
-			fi
-		done
-		if [ -n "$hit" ]; then
-			printf '%-34s %-12s %s\n' "$v" "workflow" "$hit"
-			continue
+	for v in $(skip_env_vars "$1"); do
+		IFS=$'\t' read -r class note <<<"$(route_for "$1" "$v")"
+		printf '%-34s %-12s %s\n' "$v" "$class" "$note"
+	done
+}
+
+# skip_env_vars ROOT — only vars that actually gate a skip are routes; the
+# rest are knobs (UPDATE_GOLDEN and friends).
+skip_env_vars() { # $1=root
+	(cd "$1" && grep -rl --include='*_test.go' -E '(^|[^A-Za-z0-9_])(t|tb|rt)\.Skip' . |
+		grep -v vendor | grep -v '/testdata/' |
+		xargs grep -hoE 'os\.Getenv\("[A-Z0-9_]+"\)' 2>/dev/null |
+		sed 's/.*"\(.*\)".*/\1/' | sort -u)
+}
+
+# route_for ROOT VAR — print "<class>\t<note>", class being one of
+# knob | local-only | workflow | script | app | NONE.
+#
+# The hops matter: CI rarely sets an env var inline. It calls an app, the app
+# wraps a script, and the script exports the var. A route is only real when
+# every hop resolves, which is why this walks them instead of grepping one
+# file.
+route_for() { # $1=root $2=var
+	local root="$1" v="$2" wf script call app reason
+	case "$v" in
+	SOAK_SKIP_* | UPDATE_* | HOME | *_DIR | *_CONCURRENCY | *_GOLDEN | CQRS_* | TURSO_IVM_*)
+		printf 'knob\ttest control, not a route that runs a skipped test\n'
+		return 0
+		;;
+	esac
+	# Documented local-only decisions come first, so a deliberate choice is
+	# not reported as an accident.
+	if [ -f "$root/$ROUTES_FILE" ]; then
+		reason="$(awk -F'\t' -v v="$v" '$1 == v { print $2; exit }' "$root/$ROUTES_FILE")"
+		if [ -n "$reason" ]; then
+			printf 'local-only\t%s\n' "$reason"
+			return 0
 		fi
-		# Two-hop: the harness script that exports the var must itself be
-		# invoked by a workflow (CI integration legs call scripts, not vars).
-		hit=""
-		for script in "$1"/scripts/*.sh; do
-			grep -q "$v" "$script" 2>/dev/null || continue
-			call="$(basename "$script")"
-			for wf in "$1"/.github/workflows/*.yml; do
-				if grep -q "$call" "$wf"; then
-					hit="$(basename "$wf") via $call"
-					break 2
-				fi
-			done
-		done
-		if [ -n "$hit" ]; then
-			printf '%-34s %-12s %s\n' "$v" "script" "$hit"
-			continue
-		fi
-		# Third hop: CI calls flake apps, which wrap the scripts. Resolve the
-		# app that references the script and require a workflow to invoke it.
-		hit=""
-		for script in "$1"/scripts/*.sh; do
-			grep -q "$v" "$script" 2>/dev/null || continue
-			call="$(basename "$script")"
-			while IFS= read -r app; do
-				[ -n "$app" ] || continue
-				for wf in "$1"/.github/workflows/*.yml; do
-					if grep -q "\.#$app" "$wf"; then
-						hit="$(basename "$wf") via .#$app"
-						break 3
-					fi
-				done
-			done < <(apps_for_script "$1/flake.nix" "scripts/$call")
-		done
-		if [ -n "$hit" ]; then
-			printf '%-34s %-12s %s\n' "$v" "app" "$hit"
-		else
-			printf '%-34s %-12s %s\n' "$v" "NONE" "no workflow, script or flake app sets this"
+	fi
+	for wf in "$root"/.github/workflows/*.yml; do
+		[ -e "$wf" ] || continue
+		if grep -q "$v" "$wf"; then
+			printf 'workflow\t%s\n' "$(basename "$wf")"
+			return 0
 		fi
 	done
+	# Two-hop: the harness script that exports the var must itself be
+	# invoked by a workflow (CI integration legs call scripts, not vars).
+	for script in "$root"/scripts/*.sh; do
+		[ -e "$script" ] || continue
+		grep -q "$v" "$script" 2>/dev/null || continue
+		call="$(basename "$script")"
+		for wf in "$root"/.github/workflows/*.yml; do
+			[ -e "$wf" ] || continue
+			if grep -q "$call" "$wf"; then
+				printf 'script\t%s via %s\n' "$(basename "$wf")" "$call"
+				return 0
+			fi
+		done
+	done
+	# Third hop: CI calls flake apps, which wrap the scripts. Resolve the app
+	# that references the script and require a workflow to invoke it.
+	for script in "$root"/scripts/*.sh; do
+		[ -e "$script" ] || continue
+		grep -q "$v" "$script" 2>/dev/null || continue
+		call="$(basename "$script")"
+		while IFS= read -r app; do
+			[ -n "$app" ] || continue
+			for wf in "$root"/.github/workflows/*.yml; do
+				[ -e "$wf" ] || continue
+				if grep -q "\.#$app" "$wf"; then
+					printf 'app\t%s via .#%s\n' "$(basename "$wf")" "$app"
+					return 0
+				fi
+			done
+		done < <(apps_for_script "$root/flake.nix" "scripts/$call")
+	done
+	printf 'NONE\tno workflow, script or flake app runs this\n'
+}
+
+# list_unrouted ROOT — "<var>\t<note>" for every env-gated skip with no route.
+list_unrouted() { # $1=root
+	local v class note
+	for v in $(skip_env_vars "$1"); do
+		IFS=$'\t' read -r class note <<<"$(route_for "$1" "$v")"
+		if [ "$class" = "NONE" ]; then
+			printf '%s\t%s\n' "$v" "$note"
+		fi
+	done
+	return 0
 }
 
 self_test() {
