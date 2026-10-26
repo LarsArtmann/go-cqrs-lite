@@ -235,11 +235,12 @@ would catch a problem":
 `build/shuffle-seeds.log`; a failure prints the exact replay command. `SHUFFLE=off`
 exists only for bisecting a seed loop.
 
-Goroutine leaks are enforced by `goleak.VerifyTestMain` in every module that
-spawns goroutines in production code (13 at the 2026-10-26 census: `watermill`,
+Goroutine leaks are enforced by `goleak.VerifyTestMain` in 14 modules; 13 of
+them spawn goroutines in production code (`watermill`,
 `storage/{pebble,turso,bbolt}`, `deriver`, `scheduling`, `decider`, `middleware`,
-`stack`, `systemscenario`, `metaengine`, `projectionhost`, `system`,
-`systemtest`). Ginkgo's signal handler is the single documented ignore.
+`stack`, `systemscenario`, `metaengine`, `projectionhost`, `system`) and the
+fourteenth is the test-only `systemtest`. Ginkgo's signal handler is the single
+documented ignore.
 
 ## Fuzzing
 
