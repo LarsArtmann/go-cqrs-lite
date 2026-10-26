@@ -21,6 +21,7 @@
 # Usage:
 #   bash scripts/check-cycles.sh              # gate: exit 1 on any cycle
 #   bash scripts/check-cycles.sh --json       # machine-readable summary
+#   bash scripts/check-cycles.sh --edges      # "<pkg><TAB><dep>" TSV (arch-metrics input)
 #   bash scripts/check-cycles.sh --self-test  # planted-cycle mutation proof
 #
 # Env overrides:
@@ -243,11 +244,15 @@ case "${1:-}" in
 --json)
 	run_gate --json
 	;;
+--edges)
+	# "<pkg><TAB><dep>" TSV for downstream metric tools (scripts/arch-metrics).
+	edges
+	;;
 "")
 	run_gate
 	;;
 *)
-	echo "unknown argument: $1 (expected --json or --self-test)" >&2
+	echo "unknown argument: $1 (expected --json, --edges or --self-test)" >&2
 	exit 2
 	;;
 esac

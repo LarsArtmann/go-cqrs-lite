@@ -29,6 +29,8 @@
 # Usage:
 #   bash scripts/check-package-surface.sh                  # gate (default)
 #   bash scripts/check-package-surface.sh --report         # top-N markdown table
+#   bash scripts/check-package-surface.sh --tsv            # full "<dir> TAB <symbols> TAB <files>" map
+#   bash scripts/check-package-surface.sh --json           # the same map as JSON
 #   bash scripts/check-package-surface.sh --update-baseline
 #   bash scripts/check-package-surface.sh --self-test      # mutation proof
 #
@@ -128,6 +130,32 @@ write_baseline() {
 		' "$syms" "$files" | sort -t$'\t' -k1,1nr -k3,3
 	} >"$BASELINE"
 	echo "Baseline written: $(grep -cv '^#' "$BASELINE") offender(s)."
+}
+
+tsv_dump() {
+	WORK="$(mktemp -d)"
+	local syms="$WORK/syms" files="$WORK/files"
+	symbol_counts >"$syms"
+	file_counts >"$files"
+	join -t$'\t' -a1 -a2 -e0 -o '0,1.2,2.2' \
+		<(sort -t$'\t' -k1,1 "$syms") \
+		<(sort -t$'\t' -k1,1 "$files") |
+		sort -t$'\t' -k1,1
+}
+
+json_dump() {
+	WORK="$(mktemp -d)"
+	local syms="$WORK/syms" files="$WORK/files"
+	symbol_counts >"$syms"
+	file_counts >"$files"
+	join -t$'\t' -a1 -a2 -e0 -o '0,1.2,2.2' \
+		<(sort -t$'\t' -k1,1 "$syms") \
+		<(sort -t$'\t' -k1,1 "$files") |
+		sort -t$'\t' -k1,1 |
+		awk -F'\t' 'BEGIN { printf "{\"packages\":{" } {
+			if (NR > 1) printf ","
+			printf "\"%s\":{\"symbols\":%d,\"files\":%d}", $1, $2, $3
+		} END { printf "}}\n" }'
 }
 
 report() {
@@ -283,6 +311,12 @@ case "${1:-}" in
 --report)
 	report
 	;;
+--json)
+	json_dump
+	;;
+--tsv)
+	tsv_dump
+	;;
 --self-test)
 	self_test
 	;;
@@ -290,7 +324,7 @@ case "${1:-}" in
 	gate
 	;;
 *)
-	echo "unknown argument: $1 (expected --report, --update-baseline or --self-test)" >&2
+	echo "unknown argument: $1 (expected --report, --tsv, --json, --update-baseline or --self-test)" >&2
 	exit 2
 	;;
 esac
