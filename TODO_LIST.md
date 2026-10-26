@@ -2877,7 +2877,7 @@ Re-verified against HEAD on 2026-10-26: the three red file-size offenders were s
 | I08 | Markdown-format policy | OWNER | T15 | any time | OWNER — Q3 (dprint policy: add to treefmt, or document the exclusion) |
 | I09 | Format-once if approved | OWNER | T15 | any time | OWNER — Q3 (only if A is chosen) |
 | I10 | v4 fix-only declaration | OWNER | T21 | before v5 | OWNER — v4 fix-only declaration still unratified; the new package-surface ratchet makes v4 growth visible but does not forbid it |
-| I11 | Metaengine 5-package split plan | EXEC | T05 | before v5 (done) | DONE 2026-10-26 — `docs/planning/2026-10-26_metaengine-v5-five-package-split.md` + ADR draft (T05) |
+| I11 | Metaengine 5-package split plan | EXEC | T05 | before v5 (done) | DONE 2026-10-26 — [`docs/planning/2026-10-26_metaengine-v5-seven-package-split.md`](docs/planning/2026-10-26_metaengine-v5-seven-package-split.md) + [ADR-0162](docs/adr/0162-metaengine-v5-seven-package-split.md): 167/167 files, 7 packages, largest 248 symbols |
 | I12 | v5-order-impact on TODO rows | EXEC | T01 | n/a | DONE 2026-10-26 — this ledger carries a v5-impact column for all 52 items |
 | I13 | Codemod mapping table | EXEC (additive to 19-19 T13) | T22 | v5 pre-work | OPEN — T22 (codemod mapping table); additive pre-work to 19-19 T13 |
 | I14 | Codemod implementation | ROUTE → 19-19 T13 | T23 | v5 | ROUTE → 19-19 T13 — verified open: `cmd/cqrs-upgrade` still has no `core/v5` reference |

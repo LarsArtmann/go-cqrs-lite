@@ -197,7 +197,9 @@ emit_markdown() {
 	printf '| Exported symbols (tracked modules) | %d |\n\n' "$T_SYMS"
 
 	printf '## Module coupling — top 15 by fan-in\n\n'
-	printf 'Instability I = fan-out / (fan-in + fan-out): 0 = stable core, 1 = volatile edge.\n\n'
+	printf 'Instability I = fan-out / (fan-in + fan-out): 0 = stable core, 1 = volatile edge.\n'
+	printf 'Counts are MODULE-level collapses of the package edges above (self-edges dropped), so a\n'
+	printf 'module that imports another through three packages counts once.\n\n'
 	printf '| Module | Fan-in | Fan-out | I |\n| ------ | -----: | ------: | -: |\n'
 	sort -t$'\t' -k8,8nr "$WORK/rows.tsv" | head -15 |
 		while IFS=$'\t' read -r m _ _ _ _ _ _ fi fo; do
