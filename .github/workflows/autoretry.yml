@@ -1,7 +1,17 @@
-# One automatic retry for infrastructure-transient failures: when CI or
-# Nightly Gates fails on attempt 1, re-run ONLY the failed jobs once. The
-# attempt==1 guard is the loop bound — a second failure stands, so flaky
-# tests get no extra chances and billing sees at most one extra partial run.
+# One automatic retry for infrastructure-transient failures, plus a FLAKY
+# classification for what the retry hid.
+#
+# Retry policy: when CI or Nightly Gates fails on attempt 1, re-run ONLY the
+# failed jobs once. The attempt==1 guard is the loop bound — a second failure
+# stands, so genuinely broken code gets no extra chances and billing sees at
+# most one extra partial run.
+#
+# Classification: a retry that goes green is the flake signal the old workflow
+# threw away ("retried-green is indistinguishable from clean"). The
+# classify-retry job reads attempt 1's failed job list, prints it into the run
+# summary as FLAKY, and uploads it as the flaky-ledger artifact so the trend is
+# recorded somewhere durable. It never fails the run: classification is
+# reporting, not a gate (a gate on flakes would just teach people to rerun).
 name: Autoretry
 
 on:
@@ -28,3 +38,81 @@ jobs:
         run: |
           echo "Run $REPO#$RUN_ID (attempt 1) failed; re-running failed jobs once."
           gh api -X POST "/repos/$REPO/actions/runs/$RUN_ID/rerun-failed-jobs"
+
+  classify-retry:
+    name: Classify retried run (FLAKY vs still broken)
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.run_attempt > 1
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Record which jobs needed the retry
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          REPO: ${{ github.repository }}
+          ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+          CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          WORKFLOW: ${{ github.event.workflow_run.name }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          BRANCH: ${{ github.event.workflow_run.head_branch }}
+          RUN_URL: ${{ github.event.workflow_run.html_url }}
+        run: |
+          set -euo pipefail
+          mkdir -p build
+          ledger="build/flaky-ledger-${RUN_ID}-attempt${ATTEMPT}.txt"
+          {
+            echo "workflow=${WORKFLOW}"
+            echo "run=${RUN_URL}"
+            echo "sha=${HEAD_SHA}"
+            echo "branch=${BRANCH}"
+            echo "attempt=${ATTEMPT}"
+            echo "conclusion=${CONCLUSION}"
+            echo "failed_jobs_in_attempt_1:"
+          } >"$ledger"
+
+          # Attempt 1 is the only place the ORIGINAL failures are recorded; a
+          # later attempt's job list shows the retried (usually green) state.
+          gh api "/repos/${REPO}/actions/runs/${RUN_ID}/attempts/1/jobs" --paginate \
+            --jq '.jobs[] | select(.conclusion == "failure") | .name' >>"$ledger" || true
+
+          jobs="$(sed -n '/failed_jobs_in_attempt_1:/,$p' "$ledger" | tail -n +2)"
+          if [ -z "$jobs" ]; then
+            echo "No attempt-1 failures recorded; nothing to classify."
+            exit 0
+          fi
+
+          if [ "$CONCLUSION" = "success" ]; then
+            {
+              echo "## FLAKY: retried run went green"
+              echo ""
+              echo "These jobs failed on attempt 1 and passed after one automatic retry."
+              echo "That is a flake signal, not a clean run:"
+              echo ""
+              printf -- '- `%s`\n' $jobs
+              echo ""
+              echo 'Add a row to `scripts/flaky-tests.txt` (owner + seed if known) and fix the cause.'
+            } >>"$GITHUB_STEP_SUMMARY"
+            echo "::warning::FLAKY: ${WORKFLOW} needed a retry; failed on attempt 1: $(echo "$jobs" | tr '\n' ' ')"
+          else
+            {
+              echo "## Still red after retry"
+              echo ""
+              echo "Attempt 1 failures (retry did not help - treat as a real failure):"
+              echo ""
+              printf -- '- `%s`\n' $jobs
+            } >>"$GITHUB_STEP_SUMMARY"
+            echo "::error::Still red after retry: $(echo "$jobs" | tr '\n' ' ')"
+          fi
+
+      - name: Upload flaky ledger
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: flaky-ledger-${{ github.event.workflow_run.id }}
+          path: build/flaky-ledger-*.txt
+          if-no-files-found: ignore
+          retention-days: 90

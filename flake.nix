@@ -1102,6 +1102,14 @@
               ${pkgs.bash}/bin/bash "$PWD/scripts/check-test-skips.sh" "$@"
             '';
 
+            check-systemscenario-adoption = mkApp "check-systemscenario-adoption" [ pkgs.bash pkgs.coreutils pkgs.gawk pkgs.gnugrep pkgs.findutils pkgs.gnused ] ''
+              ${pkgs.bash}/bin/bash "$PWD/scripts/check-systemscenario-adoption.sh" "$@"
+            '';
+
+            fuzz-rotation = mkApp "fuzz-rotation" [ goPkg pkgs.bash pkgs.coreutils pkgs.gawk pkgs.gnugrep pkgs.gnused ] ''
+              ${pkgs.bash}/bin/bash "$PWD/scripts/fuzz-rotation.sh" "$@"
+            '';
+
             check-depguard = mkApp "check-depguard" [ pkgs.bash pkgs.findutils pkgs.gnugrep ] ''
               ${pkgs.bash}/bin/bash "$PWD/scripts/check-depguard.sh"
             '';
@@ -1957,6 +1965,7 @@
                   echo "=== Untested Exports ===" && nix run .#check-untested-exports && \
                   echo "=== Test Sleeps ===" && nix run .#check-test-sleeps && \
                   echo "=== Test Skips ===" && nix run .#check-test-skips && \
+                  echo "=== Systemscenario Adoption ===" && nix run .#check-systemscenario-adoption && \
                   echo "=== Check Error Taxonomy ===" && nix run .#check-error-taxonomy && \
                   echo "=== Check md-go ===" && nix run .#check-md-go && \
                   echo "=== Doc Check ===" && (cd cmd/doc-check && GOWORK=off ${goPkg}/bin/go run . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md ../../README.md ../../*/README.md ../../*/*/README.md ../../*/*/*/README.md ../../TODO_LIST.md ../../ROADMAP.md ../../FEATURES.md ../../CONTRIBUTING.md ../../docs/DOMAIN_LANGUAGE.md ../../docs/METAENGINE_DOMAIN_LANGUAGE.md) && \

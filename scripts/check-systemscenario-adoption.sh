@@ -67,8 +67,10 @@ adoption() { # $1=root $2=out
 	[ -n "$mods_longest" ] || die "could not read testModules from flake.nix"
 
 	{
-		(cd "$1" && grep -rl --include='*_test.go' 'system\.New(' . | grep -v '^./vendor/' | sed 's|^\./||')
-		(cd "$1" && grep -rl --include='*_test.go' 'systemscenario' . | grep -v '^./vendor/' | sed 's|^\./||')
+		(cd "$1" && { grep -rl --include='*_test.go' 'system\.New(' . || true; } |
+			grep -v '^./vendor/' | sed 's|^\./||')
+		(cd "$1" && { grep -rl --include='*_test.go' 'systemscenario' . || true; } |
+			grep -v '^./vendor/' | sed 's|^\./||')
 	} | sort -u |
 		awk -v mods="$mods_longest" '
 			{
@@ -82,8 +84,8 @@ adoption() { # $1=root $2=out
 	: >"$2"
 	while IFS= read -r mod; do
 		local boots sites
-		boots="$(cd "$1" && grep -rl --include='*_test.go' 'system\.New(' "$mod" 2>/dev/null | wc -l)"
-		sites="$(cd "$1" && grep -rho --include='*_test.go' 'systemscenario\.[A-Z][A-Za-z0-9_]*' "$mod" 2>/dev/null | wc -l)"
+		boots="$(cd "$1" && { grep -rl --include='*_test.go' 'system\.New(' "$mod" 2>/dev/null || true; } | wc -l)"
+		sites="$(cd "$1" && { grep -rho --include='*_test.go' 'systemscenario\.[A-Z][A-Za-z0-9_]*' "$mod" 2>/dev/null || true; } | wc -l)"
 		printf '%s\t%s\t%s\n' "$mod" "$boots" "$sites" >>"$2"
 	done <"$2.modules"
 }

@@ -1,0 +1,15 @@
+# Flake ledger — one row per test/job that failed and then passed on retry.
+# Appended by hand (or copied from the `flaky-ledger-<run>` CI artifact) after
+# `.github/workflows/autoretry.yml` classifies a retried run as FLAKY.
+#
+# Why a file and not just the artifact: an artifact expires, a row keeps the
+# pattern visible. A flake that is never written down is re-diagnosed from
+# scratch by the next person, which is exactly what the 2026-10 test audits
+# kept paying for.
+#
+# Format (TAB separated):
+#   <test or job>	<owner>	<first seen YYYY-MM-DD>	<seed / run URL>	<status>
+# status: open | cured (with the cure in the seed/url column)
+#
+# Nothing here yet: the nightly repeat leg (#test-repeat) and the shuffle-seed
+# replay were introduced 2026-10-26, and no row has been classified since.

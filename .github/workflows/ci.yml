@@ -83,6 +83,11 @@ jobs:
           nix run .#check-test-skips -- --self-test
           nix run .#check-test-skips
 
+      - name: Systemscenario adoption ratchet
+        run: |
+          nix run .#check-systemscenario-adoption -- --self-test
+          nix run .#check-systemscenario-adoption
+
       - name: Duplication check
         run: nix run .#check-duplication
 
