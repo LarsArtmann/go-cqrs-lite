@@ -129,6 +129,13 @@ skip_env_vars() { # $1=root
 		sed 's/.*"\(.*\)".*/\1/' | sort -u)
 }
 
+# code_mentions NEEDLE FILE — a real mention, not prose. Comment lines are
+# stripped in BOTH workflow and script hops: a comment that documents a var
+# (this file had one while it was being written) must not manufacture a route.
+code_mentions() { # $1=needle $2=file
+	grep -v '^[[:space:]]*#' "$2" | grep -q -- "$1"
+}
+
 # route_for ROOT VAR — print "<class>\t<note>", class being one of
 # knob | local-only | workflow | script | app | NONE.
 #
@@ -155,7 +162,7 @@ route_for() { # $1=root $2=var
 	fi
 	for wf in "$root"/.github/workflows/*.yml; do
 		[ -e "$wf" ] || continue
-		if grep -q "$v" "$wf"; then
+		if code_mentions "$v" "$wf"; then
 			printf 'workflow\t%s\n' "$(basename "$wf")"
 			return 0
 		fi
@@ -164,11 +171,11 @@ route_for() { # $1=root $2=var
 	# invoked by a workflow (CI integration legs call scripts, not vars).
 	for script in "$root"/scripts/*.sh; do
 		[ -e "$script" ] || continue
-		grep -q "$v" "$script" 2>/dev/null || continue
+		code_mentions "$v" "$script" || continue
 		call="$(basename "$script")"
 		for wf in "$root"/.github/workflows/*.yml; do
 			[ -e "$wf" ] || continue
-			if grep -q "$call" "$wf"; then
+			if code_mentions "$call" "$wf"; then
 				printf 'script\t%s via %s\n' "$(basename "$wf")" "$call"
 				return 0
 			fi
@@ -178,13 +185,13 @@ route_for() { # $1=root $2=var
 	# that references the script and require a workflow to invoke it.
 	for script in "$root"/scripts/*.sh; do
 		[ -e "$script" ] || continue
-		grep -q "$v" "$script" 2>/dev/null || continue
+		code_mentions "$v" "$script" || continue
 		call="$(basename "$script")"
 		while IFS= read -r app; do
 			[ -n "$app" ] || continue
 			for wf in "$root"/.github/workflows/*.yml; do
 				[ -e "$wf" ] || continue
-				if grep -q "\.#$app" "$wf"; then
+				if code_mentions ".#$app" "$wf"; then
 					printf 'app\t%s via .#%s\n' "$(basename "$wf")" "$app"
 					return 0
 				fi
@@ -269,11 +276,102 @@ EOF
 		failures=$((failures + 1))
 	fi
 
+	# --- route classification -------------------------------------------
+	# A reasoned skip still needs a route. Build a miniature repo with one
+	# workflow, one harness script and one flake app, then assert each hop
+	# resolves and an unrouted var is reported as such.
+	local rroot="$tmp/route-root" cls note
+	mkdir -p "$rroot/.github/workflows" "$rroot/scripts"
+	cat >"$rroot/flake.nix" <<'EOF'
+{
+  apps = {
+    integration-fixture =
+      mkApp "integration-fixture"
+        [ ]
+        ''
+          bash "$PWD/scripts/fixture-db.sh" "$@"
+        '';
+  };
+}
+EOF
+	cat >"$rroot/scripts/fixture-db.sh" <<'EOF'
+#!/usr/bin/env bash
+export FIXTURE_APP_DSN="x"
+EOF
+	cat >"$rroot/scripts/fixture-script.sh" <<'EOF'
+#!/usr/bin/env bash
+export FIXTURE_SCRIPT_DSN="x"
+EOF
+	cat >"$rroot/.github/workflows/fixture.yml" <<'EOF'
+jobs:
+  inline:
+    steps:
+      - run: FIXTURE_INLINE_DSN=x go test ./...
+      - run: bash scripts/fixture-script.sh
+      - run: nix run .#integration-fixture
+EOF
+	cat >"$rroot/fixture_test.go" <<'EOF'
+package a
+
+import (
+	"os"
+	"testing"
+)
+
+func TestInline(t *testing.T) {
+	if os.Getenv("FIXTURE_INLINE_DSN") == "" {
+		t.Skip("needs the inline DSN")
+	}
+}
+
+func TestNowhere(t *testing.T) {
+	if os.Getenv("FIXTURE_NOWHERE_DSN") == "" {
+		t.Skip("needs a DSN no workflow sets")
+	}
+}
+EOF
+	IFS=$'\t' read -r cls note <<<"$(route_for "$rroot" FIXTURE_INLINE_DSN)"
+	[ "$cls" = "workflow" ] || {
+		echo "self-test FAIL: inline workflow var must classify as workflow, got '$cls'" >&2
+		failures=$((failures + 1))
+	}
+	IFS=$'\t' read -r cls note <<<"$(route_for "$rroot" FIXTURE_SCRIPT_DSN)"
+	[ "$cls" = "script" ] || {
+		echo "self-test FAIL: script-wrapped var must classify as script, got '$cls'" >&2
+		failures=$((failures + 1))
+	}
+	IFS=$'\t' read -r cls note <<<"$(route_for "$rroot" FIXTURE_APP_DSN)"
+	[ "$cls" = "app" ] || {
+		echo "self-test FAIL: app-wrapped var must classify as app, got '$cls'" >&2
+		failures=$((failures + 1))
+	}
+	IFS=$'\t' read -r cls note <<<"$(route_for "$rroot" FIXTURE_NOWHERE_DSN)"
+	[ "$cls" = "NONE" ] || {
+		echo "self-test FAIL: unrouted var must classify as NONE, got '$cls'" >&2
+		failures=$((failures + 1))
+	}
+	IFS=$'\t' read -r cls note <<<"$(route_for "$rroot" SOAK_SKIP_FIXTURE)"
+	[ "$cls" = "knob" ] || {
+		echo "self-test FAIL: a knob must never be treated as a route, got '$cls'" >&2
+		failures=$((failures + 1))
+	}
+	printf 'FIXTURE_NOWHERE_DSN\tthe owner ruled this leg local-only (fixture)\n' >"$rroot/scripts/test-skip-routes.txt"
+	IFS=$'\t' read -r cls note <<<"$(route_for "$rroot" FIXTURE_NOWHERE_DSN)"
+	[ "$cls" = "local-only" ] || {
+		echo "self-test FAIL: an allowlisted var must classify as local-only, got '$cls'" >&2
+		failures=$((failures + 1))
+	}
+	rm "$rroot/scripts/test-skip-routes.txt"
+	if [ -z "$(list_unrouted "$rroot")" ]; then
+		echo "self-test FAIL: an unrouted DSN must be reported by list_unrouted" >&2
+		failures=$((failures + 1))
+	fi
+
 	if [ "$failures" -gt 0 ]; then
 		echo "::error::check-test-skips self-test: $failures case(s) failed" >&2
 		exit 1
 	fi
-	echo "✓ check-test-skips self-test: 6/6 fault-injection cases behave"
+	echo "✓ check-test-skips self-test: 6/6 skip-reason + 7/7 route cases behave"
 }
 
 if [ "$MODE" = "selftest" ]; then
@@ -293,11 +391,6 @@ if [ "$REPORT" -eq 1 ]; then
 	echo ""
 fi
 
-if [ "$QUIET" -eq 1 ] && [ "$bad" -eq 0 ]; then
-	echo "✓ $total skip sites, every one carries a reason."
-	exit 0
-fi
-
 if [ "$bad" -gt 0 ]; then
 	echo "::error::$bad of $total skip site(s) carry no reason:"
 	sed 's/^/  /' <(grep noreason "$tmp/rows.txt")
@@ -306,4 +399,24 @@ if [ "$bad" -gt 0 ]; then
 	echo 'or annotate: //go-skip:accept <reason> (for APIs with no reason argument)'
 	exit 1
 fi
+
+# Route enforcement: a reasoned skip whose env var no workflow can ever set is
+# still a test that never runs. Reasoning is necessary, not sufficient.
+unrouted="$(list_unrouted "$PWD")"
+if [ -n "$unrouted" ]; then
+	echo ""
+	echo "::error::env-gated skip(s) with NO route — these suites never run in CI:"
+	printf '%s\n' "$unrouted" | sed 's/^/  /'
+	echo ""
+	echo "Either wire a route (a workflow job invoking a script or a flake app"
+	echo "that sets the var), or record the decision with its reason in"
+	echo "$ROUTES_FILE."
+	exit 1
+fi
+
+if [ "$QUIET" -eq 1 ]; then
+	echo "✓ $total skip sites reasoned; every env-gated skip has a route."
+	exit 0
+fi
 echo "✓ $total skip sites, every one carries a reason (or an //go-skip:accept annotation)."
+echo "✓ every env-gated skip has a route that runs it (or a recorded local-only decision)."

@@ -17,6 +17,8 @@
 #   GT_TIMEOUT   per-package timeout (default 30m)
 #   GT_COUNT     -count value (default 1)
 #   GT_CPU       -cpu value (optional, e.g. 1,4)
+#   GT_JSON=1    emit `go test -json` events to build/test-json/<label>-<ts>.json
+#                (feeds scripts/check-test-runtime.sh); GT_JSON_OUT overrides
 #   SHUFFLE=off  disable shuffling (escape hatch for a bisect)
 #   SHUFFLE_SEED explicit seed (replay); otherwise a fresh one is minted
 #
@@ -63,7 +65,17 @@ else
 fi
 
 status=0
-CGO_ENABLED=1 go test "${args[@]}" "${PATHS[@]}" "$@" || status=$?
+if [ "${GT_JSON:-0}" = "1" ]; then
+	# -json for the runtime budget (T12): one stream, tee'd so a human still
+	# sees progress while scripts/check-test-runtime.sh gets per-package
+	# Elapsed values. PIPESTATUS keeps go test's exit code authoritative.
+	json_out="${GT_JSON_OUT:-build/test-json/${LABEL}-$(date -u +%Y%m%dT%H%M%SZ).json}"
+	mkdir -p "$(dirname "$json_out")"
+	CGO_ENABLED=1 go test "${args[@]}" -json "${PATHS[@]}" "$@" | tee "$json_out" || status=${PIPESTATUS[0]}
+	echo "==> JSON event stream: $json_out" >&2
+else
+	CGO_ENABLED=1 go test "${args[@]}" "${PATHS[@]}" "$@" || status=$?
+fi
 
 if [ "$status" -ne 0 ] && [ "${SHUFFLE:-on}" != "off" ]; then
 	{
