@@ -3,6 +3,7 @@ package decider_test
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/larsartmann/go-codec"
 	. "github.com/onsi/ginkgo/v2"
@@ -48,13 +49,24 @@ func bddCounterDecider() decider.Decider[bddCounter] {
 	}
 }
 
+// makeCounterEvent builds a Counter payload event for fixtures.
+//
+// It deliberately does NOT use Gomega: Gomega's default fail handler is
+// registered by the Ginkgo bootstrap (RunSpecs), so an Expect here panics the
+// moment a plain `go test` test runs first — which -shuffle makes routine
+// (found 2026-10-26 by the new shuffled-by-default #test: the ref-causation
+// property test ran before TestDeciderBDD and died with "haven't registered
+// Gomega's fail handler"). A panic with context keeps the helper usable from
+// any test in the package.
 func makeCounterEvent(
 	eventType event.Type,
 	streamID id.StreamID,
 	version event.Version,
 ) event.Event {
 	evt, err := event.NewEvent(eventType, streamID, "Counter", version, []byte(`{}`))
-	Expect(err).ToNot(HaveOccurred())
+	if err != nil {
+		panic(fmt.Sprintf("makeCounterEvent(%s, v%d): %v", eventType, version, err))
+	}
 
 	return evt
 }
