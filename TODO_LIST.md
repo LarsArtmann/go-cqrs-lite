@@ -110,6 +110,7 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 [Upstream asks (cqrs-htmx)](#upstream-asks-from-cqrs-htmx-harvested-2026-09-22-docs-health-d1) ·
 [Skill hard-block refocus](#go-cqrs-lite-skill-hard-block-refocus-2026-09-24-harvest) ·
 [Architecture review 2026-10-24](#architecture-review-2026-10-24-harvest) ·
+[Review follow-up ledger](#architecture-review-follow-up-ledger-2026-10-26) ·
 [Testing improvements 2026-10-25](#testing-improvements-2026-10-25-plan) ·
 [Declined](#declined--rejected-do-not-re-litigate)
 
@@ -2852,6 +2853,79 @@ findings.
       §7 + domain alignment §6 _(Effort: S)_
 
 ---
+
+## Architecture-review follow-up ledger (2026-10-26)
+
+Source: the 2026-10-24 review (`docs/architecture-understanding/2026-10-24_16-54_architecture-review.html`)
+→ 50 findings in `docs/status/2026-10-25_03-14_architecture-review-session.md` §f
+→ routing plan `docs/planning/2026-10-25_04-25_SUPERB-architecture-review-followup-pareto-plan.md`.
+Every one of the 52 items is rowed here so none can rot in a timestamped report. The routing
+column is authoritative: **ROUTE** items are owned by another live plan and are verify-only here,
+**OWNER** items wait on a decision only the owner can make, **OPEN** items are this plan's work.
+
+Re-verified against HEAD on 2026-10-26: the three red file-size offenders were split by the
+19-40 plan (now 273 / 230 / 164 lines), so I01–I03 closed between the plan and this ledger.
+
+| Item | Finding | Routing | Task | v5 impact | Status 2026-10-26 |
+| ---- | ------- | ------- | ---- | --------- | ----------------- |
+| I01 | Split `scheduling/sqlstore/store.go` (382) | ROUTE → 19-40 T03 | T23 | v4 (done) | DONE 2026-10-26 — `store.go` is 273 lines; `check-file-size.sh` green (61 baselined, no growth) |
+| I02 | Split `system/adapter_event.go` (352) | ROUTE → 19-40 T04 | T23 | v4 (done) | DONE 2026-10-26 — `system/adapter_event.go` is 230 lines; file-size gate green |
+| I03 | Split `metaengine/layout.go` (360) | ROUTE → 19-40 T05 | T23 | v4 (done) | DONE 2026-10-26 — `metaengine/layout.go` is 164 lines; file-size gate green |
+| I04 | Staged file-size pre-commit leg | EXEC | T18 | before v5 | OPEN — T18 (pre-commit growth guards); note the FILE-SIZE gate itself was unwired until 2026-10-26, so the hook gap is wider than assumed |
+| I05 | Package-surface gate | EXEC | T02 | before v5 (done) | DONE 2026-10-26 — `scripts/check-package-surface.sh` + baseline, `--self-test` 4/4, wired into `#verify`/`#verify-fast`/CI |
+| I06 | Production-cycle gate | EXEC | T03 | before v5 (done) | DONE 2026-10-26 — `scripts/check-cycles.sh`, 0 cycles / 506 package edges, `--self-test` 4/4, wired into `#verify`/`#verify-fast`/CI |
+| I07 | Arch-metrics script | EXEC | T04 | before v5 (done) | DONE 2026-10-26 — `scripts/arch-metrics` (markdown / `--json` / `--write`), composes the two gates above |
+| I08 | Markdown-format policy | OWNER | T15 | any time | OWNER — Q3 (dprint policy: add to treefmt, or document the exclusion) |
+| I09 | Format-once if approved | OWNER | T15 | any time | OWNER — Q3 (only if A is chosen) |
+| I10 | v4 fix-only declaration | OWNER | T21 | before v5 | OWNER — v4 fix-only declaration still unratified; the new package-surface ratchet makes v4 growth visible but does not forbid it |
+| I11 | Metaengine 5-package split plan | EXEC | T05 | before v5 (done) | DONE 2026-10-26 — `docs/planning/2026-10-26_metaengine-v5-five-package-split.md` + ADR draft (T05) |
+| I12 | v5-order-impact on TODO rows | EXEC | T01 | n/a | DONE 2026-10-26 — this ledger carries a v5-impact column for all 52 items |
+| I13 | Codemod mapping table | EXEC (additive to 19-19 T13) | T22 | v5 pre-work | OPEN — T22 (codemod mapping table); additive pre-work to 19-19 T13 |
+| I14 | Codemod implementation | ROUTE → 19-19 T13 | T23 | v5 | ROUTE → 19-19 T13 — verified open: `cmd/cqrs-upgrade` still has no `core/v5` reference |
+| I15 | Codemod fixture tests | ROUTE → 19-19 T13 | T23 | v5 | ROUTE → 19-19 T13 — open with I14 |
+| I16 | Verify 9/32 `core/v5` packages | EXEC | T19 | before v5 | OPEN — T19; measured 2026-10-26: `core/v5` has 9 packages (command, dedup, dispatcher, event, id, kv, metadata, query, record) + 4 test sub-packages |
+| I17 | Inventory 23 missing packages | EXEC | T19 | before v5 | OPEN — T19 (the 23-missing inventory with consumer counts) |
+| I18 | `stack/*` preset census/retire | ROUTE → 19-19 T14/T16 | T23 | v5 | ROUTE → 19-19 T14/T16 — census 2026-10-24: `stack/sqlite` 4 direct, `stack/v4` 7 direct / 30 indirect; the other presets are absent from the tracked set |
+| I19 | Fate of `storage/view`/`relational`/`listing` | ROUTE → 19-19 T14 | T23 | v5 | ROUTE → 19-19 T14 — open |
+| I20 | Census awareness of `core/v5` | ROUTE-ADJACENT → 19-19 T06 | T23 | v5 | ROUTE-ADJACENT → 19-19 T06 — open |
+| I21 | API-golden tiering | EXEC | T06 | v5 | OPEN — T06 (API-golden tiering; consumer-facing promise split) |
+| I22 | `api-stability` dual-section emit | EXEC | T06 | v5 | OPEN — T06 (dual-section emit + cross-section-move guard) |
+| I23 | "engine" disambiguation | EXEC | T09 | before v5 | OPEN — T09 (`engine` is still two concepts in DOMAIN_LANGUAGE.md: metaengine.Engine and scheduling/engine) |
+| I24 | Dialect-seam notes | EXEC | T09 | before v5 | OPEN — T09 (per-family dialect-seam notes) |
+| I25 | `art-dupl:accept` directives | ROUTE → 19-19 T02/T03 | T23 | n/a | ROUTE → 19-19 T02/T03 — duplication program reported closed green; verify-only (T12) |
+| I26 | Split `pkg/analyzer` | ROUTE → 19-19 T19 | T23 | after v5 | ROUTE → 19-19 T19 — open |
+| I27 | Tooling product-line decision | OWNER | T20 | after v5 | OWNER — Q2 (tooling product line) |
+| I28 | Extract `cmd/cqrs-lint` | ROUTE → 19-19 T19 | T23 | after v5 | ROUTE → 19-19 T19 — open (`cmd/cqrs-lint` still in-repo at ~49k LOC) |
+| I29 | Extract `catalog` exporters | OWNER | T20 | after v5 | OWNER — Q2 (catalog exporters, ~22k LOC) |
+| I30 | `architecture-understanding/README.md` | EXEC | T07 | n/a | DONE 2026-10-26 — `docs/architecture-understanding/README.md` created with every report rowed (T07) |
+| I31 | Link review from `docs/README.md` | EXEC | T07 | n/a | DONE 2026-10-26 — linked from `docs/README.md` (T07) |
+| I32 | CHANGELOG docs row | EXEC | T07 | n/a | DONE 2026-10-26 — CHANGELOG `[Unreleased]` docs row (T07) |
+| I33 | Embed diagram in report | EXEC | T08 | n/a | OPEN — T08 (report embeds the diagram) |
+| I34 | PNG companions | EXEC | T08 | n/a | OPEN — T08 (PNG companions) |
+| I35 | D2 flat-node guidance in skill | EXEC | T08 | n/a | OPEN — T08 (flat-node D2 guidance in the skill) |
+| I36 | Filename-convention alignment | EXEC | T14 | n/a | OPEN — T14 (two skills disagree on the session-slug format) |
+| I37 | "Verify prior claims" skill checklist | EXEC | T08 | n/a | OPEN — T08 ("verify prior claims" checklist in the review skill) |
+| I38 | Provenance markers | EXEC | T13 | n/a | OPEN — T08/T13 (measured vs inherited provenance markers) |
+| I39 | TODO↔finding cross-links | EXEC | T01, T13 | n/a | DONE 2026-10-26 — this ledger links every item to its finding and to the owning plan task |
+| I40 | Foreign-work ownership convention | EXEC | T16 | n/a | OPEN — T16 (foreign-work ownership convention) |
+| I41 | Run `check-md-go` | EXEC | T12 | before v5 | PENDING — running in T12; result recorded there |
+| I42 | Run `check-arch` | EXEC | T12 | before v5 | PENDING — running in T12; result recorded there |
+| I43 | Run `check-duplication` | EXEC | T12 | before v5 | PENDING — running in T12; result recorded there |
+| I44 | Run `check-coverage` | EXEC | T12 | before v5 | PENDING — running in T12; result recorded there |
+| I45 | Format-gate investigation | EXEC (re-framed per E3) | T15 | n/a | DONE (investigation) 2026-10-25 — E3: treefmt runs gofumpt/goimports/golines/nixfmt only; dprint is ungated, 114 files drifted. Remaining ACTION is owner-gated under I08 |
+| I46 | Archive status reports | EXEC | T11 | n/a | OPEN — T11 (124 live status reports; archival loop documented, never run) |
+| I47 | Remove stray 18 MB binary | EXEC | T17 | n/a | DONE 2026-10-26 — 18 MB `cmd/api-stability/api-stability` (gitignored build output) trashed (T17) |
+| I48 | `stack/metaengine` census naming | EXEC | T17 | n/a | OPEN — T17 (census classification wording for `stack/metaengine`) |
+| I49 | Layer-gate prod/test edges | EXEC | T10 | before v5 | OPEN — T10 (layer gate cannot distinguish test-only requires from production ones) |
+| I50 | Next-review trigger | EXEC | T24 | n/a | OPEN — T24 (next-review trigger + metric-diff procedure) |
+| N1 | No markdown gate despite `dprint.json` | OWNER | T15 | n/a | OWNER — Q3 (same decision as I08) |
+| N2 | Cross-plan ledger (duplicate-dispatch risk) | EXEC | T01 | n/a | DONE 2026-10-26 — this ledger IS the cross-plan index (see the routing column) |
+
+**Counts 2026-10-26:** 52 items = **15 closed** (I01–I03, I05–I07, I11, I12, I30–I32, I39,
+I45-investigation, I47, N2) + **8 routed** to the two live plans (I14, I15, I18–I20, I25, I26, I28)
++ **6 owner-gated** (I08, I09 and N1 share Q3; I10, I27, I29) + **4 pending** gate runs (I41–I44)
++ **19 open** with a named task in the plan. Every ROUTE row is verify-only here: they are re-checked
+by T23, never re-executed.
 
 ## Declined / Rejected (do not re-litigate)
 

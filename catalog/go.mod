@@ -9,6 +9,7 @@ go 1.27.2
 
 require (
 	github.com/a-h/templ v0.3.1070
+	github.com/dustin/go-humanize v1.1.0
 	github.com/gkampitakis/go-snaps v0.5.23
 	github.com/go-faster/yaml v0.4.6
 	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.7.1
@@ -23,7 +24,6 @@ require (
 require (
 	github.com/Masterminds/semver/v3 v3.5.0 // indirect
 	github.com/Oudwins/tailwind-merge-go v0.2.3 // indirect
-	github.com/dustin/go-humanize v1.1.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.6 // indirect
 	github.com/gkampitakis/ciinfo v0.3.4 // indirect
 	github.com/go-faster/errors v0.8.0 // indirect
