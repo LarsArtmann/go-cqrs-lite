@@ -1959,7 +1959,14 @@
                   # packages at full parallelism under load 30+ (2026-09-19/20,
                   # three burned verify attempts). Override upward in a quiet
                   # window: VERIFY_TEST_P=$(nproc) nix run .#verify
-                  echo "=== Test ===" && ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -count=1 -timeout=10m -p "''${VERIFY_TEST_P:-4}" && \
+                  # Coverage REUSE (2026-10-27): the Test step emits the merged
+                  # coverprofile, so check-coverage consumes it instead of
+                  # re-running the whole suite (that duplicate pass cost 8-12
+                  # min per verify). Same run, same measurement — only once.
+                  # Escape hatch: delete build/coverage/merged.out and the
+                  # gate re-measures on its own.
+                  mkdir -p build/coverage && \
+                  echo "=== Test (coverage-producing) ===" && ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -count=1 -timeout=10m -p "''${VERIFY_TEST_P:-4}" -covermode=atomic -coverprofile=build/coverage/merged.out && \
                   echo "=== Race ===" && ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -race -count=1 -timeout=12m -p "''${VERIFY_TEST_P:-4}" && \
                   echo "=== Lint ===" && nix run .#lint && \
                   echo "=== Check Arch ===" && nix run .#check-arch && \
@@ -1973,7 +1980,7 @@
                   echo "=== Check Turso Version Citations ===" && nix run .#check-turso-version && \
                   echo "=== Check Templ ===" && nix run .#check-templ && \
                   echo "=== Check Bench Gate ===" && nix run .#check-bench-gate && \
-                  echo "=== Check Coverage ===" && nix run .#check-coverage && \
+                  echo "=== Check Coverage ===" && if [ -s build/coverage/merged.out ]; then nix run .#check-coverage -- --profile build/coverage/merged.out; else echo "::warning::no coverprofile from the Test step — re-measuring" >&2; nix run .#check-coverage; fi && \
                   echo "=== API Stability ===" && nix run .#check-api-stability && \
                   echo "=== Untested Exports ===" && nix run .#check-untested-exports && \
                   echo "=== Test Sleeps ===" && nix run .#check-test-sleeps && \
@@ -2043,6 +2050,10 @@
                   echo "=== Check Turso Version Citations ===" && nix run .#check-turso-version && \
                   echo "=== Check Templ ===" && nix run .#check-templ && \
                   echo "=== Check Bench Gate ===" && nix run .#check-bench-gate && \
+                  # NOT reused like #verify does: this app's test steps are
+                  # -short, and short-mode coverage is a DIFFERENT (lower)
+                  # number than the full-run baseline the floor file records.
+                  # Feeding it in would fail every floor for the wrong reason.
                   echo "=== Check Coverage ===" && nix run .#check-coverage && \
                   echo "=== Untested Exports ===" && nix run .#check-untested-exports && \
                   echo "=== Test Sleeps ===" && nix run .#check-test-sleeps && \
