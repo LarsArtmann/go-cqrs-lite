@@ -84,7 +84,7 @@ func FuzzValidateIdentifier_RejectsAllNonIdentifiers(f *testing.F) {
 
 	f.Fuzz(func(t *testing.T, input string) {
 		if !utf8.ValidString(input) {
-			t.Skip()
+			t.Skip("fuzz mutates raw bytes; invalid UTF-8 is outside the codec contract")
 		}
 
 		got := sqlpkg.ValidateIdentifier(input)
@@ -165,7 +165,7 @@ func FuzzValidateIdentifier_MetacharacterCombinations(f *testing.F) {
 
 	f.Fuzz(func(t *testing.T, input string) {
 		if !utf8.ValidString(input) {
-			t.Skip()
+			t.Skip("fuzz mutates raw bytes; invalid UTF-8 is outside the codec contract")
 		}
 
 		if sqlpkg.ValidateIdentifier(input) {
@@ -211,7 +211,7 @@ func FuzzBuildWhereClauseChecked_NeverPanics(f *testing.F) {
 
 	f.Fuzz(func(t *testing.T, column, _ string, _ int64) {
 		if !utf8.ValidString(column) {
-			t.Skip()
+			t.Skip("fuzz mutates raw bytes; invalid UTF-8 is outside the identifier contract")
 		}
 
 		conditions := []kv.Condition{
@@ -276,7 +276,7 @@ func FuzzBuildWhereClauseChecked_MultiCondition(f *testing.F) {
 	f.Fuzz(
 		func(t *testing.T, col1 string, op1 uint8, val1 int64, col2 string, op2 uint8, val2 int64) {
 			if !utf8.ValidString(col1) || !utf8.ValidString(col2) {
-				t.Skip()
+				t.Skip("fuzz mutates raw bytes; invalid UTF-8 is outside the identifier contract")
 			}
 
 			conditions := []kv.Condition{
