@@ -1381,11 +1381,9 @@
             # Production import-cycle gate, package granularity (test-only edges
             # excluded by construction). Makes the review's "0 production
             # cycles" number a maintained invariant instead of a snapshot.
-            check-cycles =
-              mkApp "check-cycles" [ goPkg pkgs.bash pkgs.coreutils pkgs.gawk pkgs.gnugrep ]
-                ''
-                  ${pkgs.bash}/bin/bash "$PWD/scripts/check-cycles.sh" "$@"
-                '';
+            check-cycles = mkApp "check-cycles" [ goPkg pkgs.bash pkgs.coreutils pkgs.gawk pkgs.gnugrep ] ''
+              ${pkgs.bash}/bin/bash "$PWD/scripts/check-cycles.sh" "$@"
+            '';
 
             # Reproducible architecture measurements (markdown / JSON / --write
             # snapshot into docs/evidence/): module + package counts, production
@@ -1394,15 +1392,16 @@
             # composed from check-cycles + check-package-surface so runs cannot
             # disagree with the gates.
             arch-metrics =
-              mkApp "arch-metrics" [
-                goPkg
-                pkgs.bash
-                pkgs.coreutils
-                pkgs.gawk
-                pkgs.gnugrep
-                pkgs.findutils
-                pkgs.diffutils
-              ]
+              mkApp "arch-metrics"
+                [
+                  goPkg
+                  pkgs.bash
+                  pkgs.coreutils
+                  pkgs.gawk
+                  pkgs.gnugrep
+                  pkgs.findutils
+                  pkgs.diffutils
+                ]
                 ''
                   ${pkgs.bash}/bin/bash "$PWD/scripts/arch-metrics" "$@"
                 '';
@@ -1930,16 +1929,17 @@
             # verify-fast: same as verify but passes -short to skip soak tests
             # (benchkit 35s soak suite). Use for rapid iteration during development.
             verify-fast =
-              mkApp "verify-fast" [
-                goPkg
-                pkgs.golangci-lint
-                pkgs.bash
-                pkgs.coreutils
-                pkgs.findutils
-                pkgs.gawk
-                pkgs.gnugrep
-                pkgs.gcc
-              ]
+              mkApp "verify-fast"
+                [
+                  goPkg
+                  pkgs.golangci-lint
+                  pkgs.bash
+                  pkgs.coreutils
+                  pkgs.findutils
+                  pkgs.gawk
+                  pkgs.gnugrep
+                  pkgs.gcc
+                ]
                 ''
                   export CGO_ENABLED=1
                   ${pkgs.bash}/bin/bash scripts/check-nix-hashes.sh && \

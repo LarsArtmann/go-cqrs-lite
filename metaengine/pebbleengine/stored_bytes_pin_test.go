@@ -70,7 +70,10 @@ func TestStoredBytes_StreamAppend_DecodesTyped(t *testing.T) {
 	sl := eng.(metaengine.StreamLogBackend)
 
 	err := sl.StreamAppend(ctx, "pin_streams", "s-1", []any{
-		map[string]any{"title": "pin", "n": 7}, // map: typed-decode assert, no byte literal (v2 map order is random)
+		map[string]any{
+			"title": "pin",
+			"n":     7,
+		}, // map: typed-decode assert, no byte literal (v2 map order is random)
 		"raw-string",
 		42,
 	})
@@ -89,7 +92,12 @@ func TestStoredBytes_StreamAppend_DecodesTyped(t *testing.T) {
 
 	obj, ok := got[0].(map[string]any)
 	if !ok {
-		t.Fatalf("stream value 0 = %T (%v), want map[string]any — the %v fallback stringifies", got[0], got[0], got[0])
+		t.Fatalf(
+			"stream value 0 = %T (%v), want map[string]any — the %v fallback stringifies",
+			got[0],
+			got[0],
+			got[0],
+		)
 	}
 
 	if obj["title"] != "pin" || obj["n"] != float64(7) {

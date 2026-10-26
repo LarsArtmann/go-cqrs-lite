@@ -263,6 +263,10 @@ catalog/eventcatalog/struct Exporter
 catalog/eventcatalog/struct StaticServer
 catalog/eventcatalog/type Option
 catalog/eventcatalog/type StaticOption
+catalog/func AssertCommandInventory
+catalog/func AssertEventInventory
+catalog/func AssertInventory
+catalog/func AssertQueryInventory
 catalog/func ChannelAddress
 catalog/func ChannelBadges
 catalog/func ChannelDeliveryGuarantee
@@ -348,6 +352,7 @@ catalog/huma/func ToMessages
 catalog/huma/struct HumaOperation
 catalog/interface Exporter
 catalog/interface MessageConfig
+catalog/interface TestingT
 catalog/method AddADR
 catalog/method AddAgent
 catalog/method AddChannel
@@ -6170,6 +6175,7 @@ systemcatalog/func DeriveInto
 systemcatalog/func FromDomainConfig
 systemcatalog/func FromSystem
 systemcatalog/func WithCurator
+systemcatalog/func WithMessageOverrides
 systemcatalog/func WithServiceID
 systemcatalog/func WithServiceName
 systemcatalog/func WithServiceOwners
@@ -6177,6 +6183,7 @@ systemcatalog/func WithServiceSummary
 systemcatalog/func WithTitle
 systemcatalog/func WithVersion
 systemcatalog/type Option
+systemcatalog/var ErrCatalogValidation
 systemscenario/func Adopt
 systemscenario/func AssertJournalEquivalence
 systemscenario/func DelayedDriver

@@ -81,7 +81,13 @@ func assertInventory(
 
 	var report strings.Builder
 
-	fmt.Fprintf(&report, "catalog %s inventory drifted (want %d, got %d):", kindLabel, len(sortedWant), len(actual))
+	fmt.Fprintf(
+		&report,
+		"catalog %s inventory drifted (want %d, got %d):",
+		kindLabel,
+		len(sortedWant),
+		len(actual),
+	)
 
 	if len(missing) > 0 {
 		fmt.Fprintf(&report, "\n  missing (declared in want, absent from catalog): %s",
@@ -93,7 +99,9 @@ func assertInventory(
 			strings.Join(unexpected, ", "))
 	}
 
-	report.WriteString("\n  fix: update the want list if the change is intended, otherwise fix the derivation/hand-maintained list")
+	report.WriteString(
+		"\n  fix: update the want list if the change is intended, otherwise fix the derivation/hand-maintained list",
+	)
 
 	t.Errorf("%s", report.String())
 }

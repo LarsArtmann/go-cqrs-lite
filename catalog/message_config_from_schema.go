@@ -22,7 +22,12 @@ func CommandFromSchema(id MessageID, sch *Schema, opts ...MessageOption) Message
 // explicit (Sends or Receives). sch may be nil — DomainConfig-derived
 // catalogs know event identities and versions but not payload field shapes
 // (those live in schema.EventSchema wire declarations, not Go types).
-func EventFromSchema(id MessageID, direction Direction, sch *Schema, opts ...MessageOption) MessageConfig {
+func EventFromSchema(
+	id MessageID,
+	direction Direction,
+	sch *Schema,
+	opts ...MessageOption,
+) MessageConfig {
 	return newMessageBuilderFromSchema(EventMessage, id, direction, sch, opts)
 }
 

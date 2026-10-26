@@ -78,7 +78,6 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 ## Section index
 
 [Legend](#legend) ·
-[Journal fixtures (testfixtures lessons)](#journal-fixtures-testfixtures-lessons-harvested-2026-10-17) ·
 [Architecture reference HTML export](#architecture-reference-html-export-harvested-2026-10-17) ·
 [GitHub issue backlog](#github-issue-backlog-2026-09-30-plan) ·
 [New consumer issues](#new-consumer-issues-2026-10-03-triage) ·
@@ -2908,10 +2907,10 @@ Re-verified against HEAD on 2026-10-26: the three red file-size offenders were s
 | I38 | Provenance markers | EXEC | T13 | n/a | OPEN — T08/T13 (measured vs inherited provenance markers) |
 | I39 | TODO↔finding cross-links | EXEC | T01, T13 | n/a | DONE 2026-10-26 — this ledger links every item to its finding and to the owning plan task |
 | I40 | Foreign-work ownership convention | EXEC | T16 | n/a | OPEN — T16 (foreign-work ownership convention) |
-| I41 | Run `check-md-go` | EXEC | T12 | before v5 | PENDING — running in T12; result recorded there |
-| I42 | Run `check-arch` | EXEC | T12 | before v5 | PENDING — running in T12; result recorded there |
-| I43 | Run `check-duplication` | EXEC | T12 | before v5 | PENDING — running in T12; result recorded there |
-| I44 | Run `check-coverage` | EXEC | T12 | before v5 | PENDING — running in T12; result recorded there |
+| I41 | Run `check-md-go` | EXEC | T12 | before v5 | DONE 2026-10-26 — `nix run .#check-md-go` rc=0: all 1,523 code blocks valid (84 skipped), 105 baselined archived errors suppressed |
+| I42 | Run `check-arch` | EXEC | T12 | before v5 | DONE 2026-10-26 — `nix run .#check-arch` rc=0: all architecture checks passed (layers + intra-module) |
+| I43 | Run `check-duplication` | EXEC | T12 | before v5 | RED 2026-10-26 — `nix run .#check-duplication` rc=2: 1 NEW clone group (5-line append loop) between `systemcatalog/derive.go` and `cmd/cqrs-lint/pkg/rules/version/v006.go`; FOREIGN in-flight code, baseline 189→190. Not re-pinned here (dirty-tree guard + foreign work): owner session must `//art-dupl:accept` or re-pin |
+| I44 | Run `check-coverage` | EXEC | T12 | before v5 | DONE 2026-10-26 — `nix run .#check-coverage` rc=0: all coverage claims within ±2.0% tolerance |
 | I45 | Format-gate investigation | EXEC (re-framed per E3) | T15 | n/a | DONE (investigation) 2026-10-25 — E3: treefmt runs gofumpt/goimports/golines/nixfmt only; dprint is ungated, 114 files drifted. Remaining ACTION is owner-gated under I08 |
 | I46 | Archive status reports | EXEC | T11 | n/a | OPEN — T11 (124 live status reports; archival loop documented, never run) |
 | I47 | Remove stray 18 MB binary | EXEC | T17 | n/a | DONE 2026-10-26 — 18 MB `cmd/api-stability/api-stability` (gitignored build output) trashed (T17) |
@@ -2921,11 +2920,13 @@ Re-verified against HEAD on 2026-10-26: the three red file-size offenders were s
 | N1 | No markdown gate despite `dprint.json` | OWNER | T15 | n/a | OWNER — Q3 (same decision as I08) |
 | N2 | Cross-plan ledger (duplicate-dispatch risk) | EXEC | T01 | n/a | DONE 2026-10-26 — this ledger IS the cross-plan index (see the routing column) |
 
-**Counts 2026-10-26:** 52 items = **15 closed** (I01–I03, I05–I07, I11, I12, I30–I32, I39,
-I45-investigation, I47, N2) + **8 routed** to the two live plans (I14, I15, I18–I20, I25, I26, I28)
-+ **6 owner-gated** (I08, I09 and N1 share Q3; I10, I27, I29) + **4 pending** gate runs (I41–I44)
-+ **19 open** with a named task in the plan. Every ROUTE row is verify-only here: they are re-checked
-by T23, never re-executed.
+**Counts 2026-10-26:** 52 items = **18 closed** (I01–I03, I05–I07, I11, I12, I30–I32, I39, I41,
+I42, I44, I45-investigation, I47, N2) + **1 red on foreign code** (I43: a new 5-line clone between
+`systemcatalog/derive.go` and the cqrs-lint v006 rule — the owning session must accept or re-pin;
+deliberately NOT re-pinned here, per the dirty-tree/foreign-work rule) + **8 routed** to the two live
+plans (I14, I15, I18–I20, I25, I26, I28) + **6 owner-gated** (I08, I09 and N1 share Q3; I10, I27,
+I29) + **19 open** with a named task in the plan. Every ROUTE row is verify-only here: they are
+re-checked by T23, never re-executed.
 
 ## Declined / Rejected (do not re-litigate)
 

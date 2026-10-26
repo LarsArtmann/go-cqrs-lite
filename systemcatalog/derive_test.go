@@ -2,6 +2,7 @@ package systemcatalog
 
 import (
 	"context"
+	"encoding/json/v2"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
@@ -35,7 +36,7 @@ type createTaskCmd struct {
 
 func (c createTaskCmd) Type() command.Type    { return "task.create" }
 func (c createTaskCmd) StreamID() id.StreamID { return fixtureStream }
-func (c createTaskCmd) ID() id.CommandID       { return fixtureCmdID }
+func (c createTaskCmd) ID() id.CommandID      { return fixtureCmdID }
 
 type listTasksQuery struct {
 	Owner string `json:"owner"`
@@ -56,8 +57,8 @@ func fixtureDomain() system.DomainConfig {
 				},
 			})
 
-				system.RegisterCommand[createTaskCmd, string](sys, "task.create",
-					func(ctx context.Context, cmd createTaskCmd) system.Op[string] {
+			system.RegisterCommand[createTaskCmd, string](sys, "task.create",
+				func(ctx context.Context, cmd createTaskCmd) system.Op[string] {
 					return system.Execute(ctx, fixtureStream, "Task",
 						func(_ string, ver event.Version) ([]event.Event, error) {
 							evt, err := event.New(evtCreated, fixtureStream, "Task", ver+1,
@@ -211,6 +212,80 @@ func TestFromDomainConfig_CuratorSurvives(t *testing.T) {
 
 	if len(cat.Services[0].Owners) != 1 || cat.Services[0].Owners[0] != "lars" {
 		t.Errorf("service owners = %v, want [lars]", cat.Services[0].Owners)
+	}
+}
+
+// ─── Message overrides (curated wins, derivation fills) ───
+
+func TestFromDomainConfig_MessageOverrides(t *testing.T) {
+	cat, err := FromDomainConfig(context.Background(), fixtureDomain(),
+		WithTitle("Task Service"),
+		WithMessageOverrides(map[string]catalog.MessageConfig{
+			"task.create": catalog.Command[createTaskCmd]("task.create",
+				catalog.WithName("Create Task (curated)"),
+				catalog.WithSummary("Curated summary wins over derivation."),
+			),
+		}),
+	)
+	if err != nil {
+		t.Fatalf("FromDomainConfig: %v", err)
+	}
+
+	svc := cat.Services[0]
+	if len(svc.Commands) != 1 {
+		t.Fatalf("commands = %d, want 1", len(svc.Commands))
+	}
+
+	cmd := svc.Commands[0]
+	if cmd.Name != "Create Task (curated)" {
+		t.Errorf("override name = %q, want curated name", cmd.Name)
+	}
+
+	if cmd.Summary != "Curated summary wins over derivation." {
+		t.Errorf("override summary = %q, want curated summary", cmd.Summary)
+	}
+
+	// Non-overridden messages stay derived.
+	if len(svc.Events) != 2 || string(svc.Events[1].ID) != "task.created" {
+		t.Errorf("non-overridden events must stay derived, got %+v", svc.Events)
+	}
+
+	if violations := cat.Validate(); len(violations) > 0 {
+		t.Errorf("overridden catalog invalid: %v", violations)
+	}
+}
+
+// TestFromDomainConfig_RoundTripStable locks the curated-merge contract:
+// deriving twice with the same overrides and curator produces identical
+// bytes — curation is an input to derivation, never a mutation of its
+// output, so re-derivation can never lose or scramble curated resources.
+func TestFromDomainConfig_RoundTripStable(t *testing.T) {
+	derive := func() string {
+		cat, err := FromDomainConfig(context.Background(), fixtureDomain(),
+			WithTitle("Task Service"),
+			WithServiceOwners("lars"),
+			WithMessageOverrides(map[string]catalog.MessageConfig{
+				"task.created": catalog.Event[struct{ Title string }](
+					catalog.MessageID(string(evtCreated)), catalog.Sends),
+			}),
+			WithCurator(func(b *catalog.Builder) {
+				b.AddUser(catalog.User{ID: "lars", Name: "Lars"})
+			}),
+		)
+		if err != nil {
+			t.Fatalf("FromDomainConfig: %v", err)
+		}
+
+		raw, err := json.Marshal(cat, json.Deterministic(true))
+		if err != nil {
+			t.Fatalf("marshal: %v", err)
+		}
+
+		return string(raw)
+	}
+
+	if first, second := derive(), derive(); first != second {
+		t.Error("re-derivation with identical inputs must be byte-stable")
 	}
 }
 
