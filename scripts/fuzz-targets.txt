@@ -81,6 +81,7 @@ metaengine	.	FuzzMapUpdate_ConcurrentCounter
 metaengine	.	FuzzMapUpdate_CreateOrUpdate
 metaengine/bboltengine	.	FuzzMapSetGet
 metaengine/pebbleengine	.	FuzzScanRawValues
+record	.	FuzzParseEncodingTotality
 scheduling/sqlstore	.	FuzzDecodeDueTimer
 schema	.	FuzzChainHostilePayloads
 schema	.	FuzzNewUpcaster_NilFunc

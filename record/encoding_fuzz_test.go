@@ -34,30 +34,30 @@ func TestParseEncodingInvariants(t *testing.T) {
 		name := enc.String()
 
 		wantName, isCanonical := canonical[enc]
-		switch {
-		case isCanonical && name != wantName:
-			t.Fatalf("Encoding(%d).String() = %q, want %q", raw, name, wantName)
-		case !isCanonical && enc != record.EncodingUnknown && name != "":
-			t.Fatalf("Encoding(%d).String() = %q, want \"\" for a non-canonical value", raw, name)
-		}
-
-		if enc == record.EncodingUnknown {
-			if name != "" {
-				t.Fatalf("EncodingUnknown.String() = %q, want \"\"", name)
+		if isCanonical {
+			if name != wantName {
+				t.Fatalf("Encoding(%d).String() = %q, want %q", raw, name, wantName)
 			}
-			if _, err := record.ParseEncoding(name); !errors.Is(err, record.ErrUnknownEncoding) {
-				t.Fatalf("ParseEncoding(\"\") error = %v, want ErrUnknownEncoding (the empty name is not a codec)", err)
+
+			got, err := record.ParseEncoding(name)
+			if err != nil {
+				t.Fatalf("ParseEncoding(%q) failed for canonical name: %v", name, err)
+			}
+			if got != enc {
+				t.Fatalf("ParseEncoding(%q) = %d, want %d", name, got, enc)
 			}
 
 			continue
 		}
 
-		got, err := record.ParseEncoding(name)
-		if err != nil {
-			t.Fatalf("ParseEncoding(%q) failed for canonical name: %v", name, err)
+		// Every other value — the zero EncodingUnknown and any number nobody
+		// has assigned — must render as "", and "" must never parse: it means
+		// "no codec stamp", which is not a codec name.
+		if name != "" {
+			t.Fatalf("Encoding(%d).String() = %q, want \"\" for a non-canonical value", raw, name)
 		}
-		if got != enc {
-			t.Fatalf("ParseEncoding(%q) = %d, want %d", name, got, enc)
+		if _, err := record.ParseEncoding(name); !errors.Is(err, record.ErrUnknownEncoding) {
+			t.Fatalf("ParseEncoding(%q) error = %v, want ErrUnknownEncoding (the empty name is not a codec)", name, err)
 		}
 	}
 }
