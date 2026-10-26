@@ -641,6 +641,7 @@ recalled. The ledger that carries per-item status is `TODO_LIST.md` §
 | **E10** | `TODO_LIST.md` carried one rotted section-index anchor ("Journal fixtures", whose section no longer exists); `check-doc-links.sh` cannot see anchors, only `cmd/doc-check` can. | Row removed; `doc-check` green (1,509 references / 63 packages). |
 | **E11** | `scripts/probe-proxy-tags.sh` had drifted to shfmt 3.13 style while CI pins 3.14.1 (heredoc-then placement). | Reformatted with the pinned shfmt; `shfmt -l scripts/` now clean. |
 | **E12** | Another session's commits landed unformatted (`catalog/*.go`, `systemcatalog/*.go`, a pebble test). | `nix fmt` applied golines formatting; tree is now `--fail-on-change` clean. |
+| **E13** | `check-depguard` is **RED** on foreign in-flight work: `metaengine/tursoengine` now requires `turso-go-platform-libs` v0.8.2 directly and the depguard allow-list has no entry for it. | NOT fixed here: the allow-list lives in `.golangci.yml`, whose hash is itself gated (`check-golangci-hash.sh`), and the turso dependency is another session's active change. Owner action: add the allow-list entry, re-pin the config hash, run `check-depguard`. |
 
 ### 12.3 Not executed, and why
 
@@ -667,4 +668,5 @@ recalled. The ledger that carries per-item status is `TODO_LIST.md` §
 | `check-coverage` | green — within ±2.0% |
 | `shfmt -l scripts/` (3.14.1) | clean |
 | `nix fmt --fail-on-change` | red on 6 foreign files before formatting, clean after (E12) |
+| `check-depguard` | **RED** — E13, foreign code, owner action required |
 | `check-duplication` | **RED** — E7, foreign code, owner action required |
