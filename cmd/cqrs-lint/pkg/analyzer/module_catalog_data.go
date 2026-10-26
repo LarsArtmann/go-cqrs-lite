@@ -294,6 +294,14 @@ func buildDefaultCatalog() []ModuleEntry {
 			Suggestion:  "End-to-end BDD scenarios: dispatch, journal diffs, query awaits, saga capture",
 		},
 		{
+			Key:         "systemcatalog",
+			DisplayName: "System Catalog Derivation",
+			Category:    CategoryDocumentation,
+			ImportHints: []string{"go-cqrs-lite/systemcatalog"},
+			Description: "Derives architecture catalogs from system.DomainConfig + runtime registration records",
+			Suggestion:  "Replace hand-copied message lists with derived catalogs (FromDomainConfig/FromSystem)",
+		},
+		{
 			Key:         "core/v5",
 			DisplayName: "Core (v5)",
 			Category:    CategoryCore,

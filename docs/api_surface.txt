@@ -272,6 +272,7 @@ catalog/func ChannelParameters
 catalog/func ChannelProtocols
 catalog/func ChannelRoutes
 catalog/func Command
+catalog/func CommandFromSchema
 catalog/func Consumers
 catalog/func DELETE
 catalog/func DomainAttachments
@@ -284,6 +285,7 @@ catalog/func DomainSends
 catalog/func DomainSubDomains
 catalog/func DomainUbiquitousLanguage
 catalog/func Event
+catalog/func EventFromSchema
 catalog/func FromTypedSchema
 catalog/func HttpStatusDescription
 catalog/func Key
@@ -303,6 +305,7 @@ catalog/func ParseMessageID
 catalog/func ParseServiceID
 catalog/func Producers
 catalog/func Query
+catalog/func QueryFromSchema
 catalog/func Response
 catalog/func SchemaFromReflect
 catalog/func SchemaFromType
@@ -6012,6 +6015,7 @@ system/method CacheStats
 system/method Clock
 system/method Close
 system/method CommandDispatcher
+system/method CommandRegistrations
 system/method CommandStore
 system/method Declarations
 system/method Dedup
@@ -6056,6 +6060,7 @@ system/method PublisherByName
 system/method PublisherFor
 system/method Publishers
 system/method QueryDispatcher
+system/method QueryRegistrations
 system/method QueryStore
 system/method ReadAll
 system/method ReadAllQueries
@@ -6090,6 +6095,7 @@ system/struct CacheTierInfo
 system/struct CachedEventStore
 system/struct CommandAdapter
 system/struct CommandLifecycleResult
+system/struct CommandRegistration
 system/struct CountInput
 system/struct DeploymentConfig
 system/struct DispatcherInfo
@@ -6108,6 +6114,7 @@ system/struct PriorityConfig
 system/struct ProjectionHostInfo
 system/struct ProjectionSpec
 system/struct QueryAdapter
+system/struct QueryRegistration
 system/struct RealClock
 system/struct ScanInput
 system/struct SchemaDeclarations
@@ -6159,6 +6166,17 @@ system/var ErrUnknownInstanceRole
 system/var ErrUnknownPublishTarget
 system/var ErrUnsafeChange
 system/var ErrUnsupportedValueType
+systemcatalog/func DeriveInto
+systemcatalog/func FromDomainConfig
+systemcatalog/func FromSystem
+systemcatalog/func WithCurator
+systemcatalog/func WithServiceID
+systemcatalog/func WithServiceName
+systemcatalog/func WithServiceOwners
+systemcatalog/func WithServiceSummary
+systemcatalog/func WithTitle
+systemcatalog/func WithVersion
+systemcatalog/type Option
 systemscenario/func Adopt
 systemscenario/func AssertJournalEquivalence
 systemscenario/func DelayedDriver

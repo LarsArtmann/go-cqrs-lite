@@ -113,6 +113,12 @@ LAYER[systemtest]=7
 # test-infrastructure tier like systemtest/eventtest, but a published library
 # consumers import (api-stability tracked).
 LAYER[systemscenario]=7
+# systemcatalog (7): the catalog×system derivation bridge
+# (docs/planning/2026-10-26_systemcatalog-adapter-design.md) — derives
+# architecture catalogs from system.DomainConfig + runtime registration
+# records. Tooling tier beside catalog; imports system (6) + catalog (7),
+# downward-legal.
+LAYER[systemcatalog]=7
 LAYER[catalog]=7
 LAYER[integration]=7
 LAYER["stack/bench"]=7
@@ -374,6 +380,10 @@ DEP_BUDGET[systemtest]=6
 #   test-only import before those production files; in-repo Tier 3, already
 #   an indirect dep of system)
 DEP_BUDGET[systemscenario]=9
+# systemcatalog: 4 = system + catalog + event (in-repo) + go-error-family
+# (classified rejections for nil builder/system inputs). command/query/schema
+# types flow through system's accessor signatures without direct imports.
+DEP_BUDGET[systemcatalog]=4
 # core/v5: skeleton starts at 0; each v5 move wave (T07/T09/T10) bumps this
 # to the union of the merged trains' production deps. Intra-repo v4 deps do
 # not count — merged trains become same-module packages.
