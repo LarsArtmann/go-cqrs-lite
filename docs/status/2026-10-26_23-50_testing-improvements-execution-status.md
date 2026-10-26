@@ -258,6 +258,14 @@ All of them are rowed in `TODO_LIST.md` § Testing improvements with effort and 
 11. **Numbers in the plan and in this session differ** (skip sites 217 vs 238) because the
     scanner also counts `tb.Skip`/`rt.Skip` and subtest sites. Both numbers are documented;
     neither is wrong, but a reader comparing them deserves the note.
+12. **DISCLOSED NEAR-MISS: I trashed a whole rapid-seed directory instead of one file** —
+    `trash decider/testdata/rapid/TestExecuteCommandRefCausationProperty` removed both the
+    new failure artefact AND a pre-existing, tracked 2026-09-13 seed. Caught immediately by
+    `git status` (`D` on both), restored with `git restore -- <dir>`; the decider suite
+    re-ran green with both files present. The 2026-10-26 seed is kept deliberately: it now
+    passes and pins the ordering fix. Lesson: `trash` a FILE, never a directory that may
+    hold committed content — the daemon had already committed my artefact, so "it is only
+    my own garbage" was false.
 
 ---
 
