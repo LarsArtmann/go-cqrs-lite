@@ -112,6 +112,11 @@ jobs:
           nix run .#check-systemscenario-adoption -- --self-test
           nix run .#check-systemscenario-adoption
 
+      - name: Error-taxonomy behaviour ratchet (self-test, then the tree)
+        run: |
+          nix run .#check-error-taxonomy-tests -- --self-test
+          nix run .#check-error-taxonomy-tests
+
       - name: Duplication check
         run: nix run .#check-duplication
 

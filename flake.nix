@@ -1141,6 +1141,14 @@
                   ${pkgs.bash}/bin/bash "$PWD/scripts/check-test-matrix.sh" "$@"
                 '';
 
+            # Ratchet: a NEW documented error code must be named by a test.
+            # The 540-code historical tail is frozen, shrink-only.
+            check-error-taxonomy-tests =
+              mkApp "check-error-taxonomy-tests" [ pkgs.bash pkgs.coreutils pkgs.gawk pkgs.gnugrep pkgs.findutils ]
+                ''
+                  ${pkgs.bash}/bin/bash "$PWD/scripts/check-error-taxonomy-tests.sh" "$@"
+                '';
+
             check-systemscenario-adoption =
               mkApp "check-systemscenario-adoption"
                 [ pkgs.bash pkgs.coreutils pkgs.gawk pkgs.gnugrep pkgs.findutils pkgs.gnused ]
@@ -2019,6 +2027,7 @@
                   echo "=== Test Matrix ===" && nix run .#check-test-matrix && \
                   echo "=== Systemscenario Adoption ===" && nix run .#check-systemscenario-adoption && \
                   echo "=== Check Error Taxonomy ===" && nix run .#check-error-taxonomy && \
+                  echo "=== Error Taxonomy Tests ===" && nix run .#check-error-taxonomy-tests && \
                   echo "=== Check md-go ===" && nix run .#check-md-go && \
                   echo "=== Doc Check ===" && (cd cmd/doc-check && GOWORK=off ${goPkg}/bin/go run . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md ../../README.md ../../*/README.md ../../*/*/README.md ../../*/*/*/README.md ../../TODO_LIST.md ../../ROADMAP.md ../../FEATURES.md ../../CONTRIBUTING.md ../../docs/DOMAIN_LANGUAGE.md ../../docs/METAENGINE_DOMAIN_LANGUAGE.md) && \
                   echo "✅ All verification checks passed"
