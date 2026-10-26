@@ -48,7 +48,9 @@ graph_source() {
 		return
 	fi
 	# shellcheck disable=SC1091  # the shared env chain lives beside this script
-	source "$REPO_ROOT/scripts/go-env.sh"
+	# go-env.sh echoes one line per variable it changes (on stderr); a gate
+	# should report a verdict, not an env diff. Silence both streams.
+	source "$REPO_ROOT/scripts/go-env.sh" >/dev/null 2>&1
 
 	local patterns="./..."
 	local dir
@@ -71,7 +73,10 @@ edges() {
 			pkg = substr($1, length(prefix) + 1)
 			if (pkg == "") next
 			for (i = 2; i <= NF; i++) {
-				if (index($i, prefix) != 1) next
+				# `continue`, never `next`: `next` skips the REST OF THE RECORD,
+				# which silently drops every in-repo dep that follows an external
+				# one (this produced a 22-edge graph from a 506-edge reality).
+				if (index($i, prefix) != 1) continue
 				dep = substr($i, length(prefix) + 1)
 				if (dep == "" || dep == pkg) continue
 				seen[pkg SUBSEP dep] = 1
@@ -98,7 +103,10 @@ run_gate() {
 	fi
 
 	local nodes edges_n
-	nodes="$({ cut -f1 "$edge_file"; cut -f2 "$edge_file"; } | sort -u | wc -l)"
+	nodes="$({
+		cut -f1 "$edge_file"
+		cut -f2 "$edge_file"
+	} | sort -u | wc -l)"
 	edges_n="$(wc -l <"$edge_file")"
 
 	# Iterative-free recursive DFS with three-colour marking. 177 packages /
@@ -149,7 +157,10 @@ run_gate() {
 		if [ "${color[$node]:-0}" = 0 ]; then
 			dfs "$node"
 		fi
-	done < <({ cut -f1 "$edge_file"; cut -f2 "$edge_file"; } | sort -u)
+	done < <({
+		cut -f1 "$edge_file"
+		cut -f2 "$edge_file"
+	} | sort -u)
 
 	local cycles="${#cycle_by_key[@]}"
 
@@ -171,7 +182,7 @@ run_gate() {
 			echo "::error::Production cycles are unbuildable by construction in Go; a cycle here means the two packages were merged into one module by accident or a test-only edge leaked into production."
 			exit 1
 		fi
-		echo "✓ import-cycle gate: 0 production cycles ($nodes packages, $edges_n package-level edges; test-only edges excluded by construction)."
+		echo "✓ import-cycle gate: 0 production cycles ($nodes packages with in-repo imports, $edges_n package-level edges; test-only edges excluded by construction)."
 	fi
 
 	[ "$cycles" -eq 0 ]

@@ -72,6 +72,19 @@ jobs:
       - name: Architecture check (layers + intra-module)
         run: nix run .#check-arch
 
+      - name: File-size ratchet (350-line cap, baselined offenders)
+        run: nix run .#check-file-size
+
+      - name: Package-surface ratchet (self-test, then the real tree)
+        run: |
+          nix run .#check-package-surface -- --self-test
+          nix run .#check-package-surface
+
+      - name: Production import-cycle gate (self-test, then the real tree)
+        run: |
+          nix run .#check-cycles -- --self-test
+          nix run .#check-cycles
+
       - name: Depguard check (go.mod vs depguard allow list)
         run: nix run .#check-depguard
 

@@ -1359,6 +1359,34 @@
               ${pkgs.bash}/bin/bash "$PWD/scripts/check-file-size.sh" "$@"
             '';
 
+            # Per-package API-surface ratchet (2026-10-24 architecture review
+            # finding #1: metaengine held 829 exported symbols and 167 files in
+            # ONE package = 13% of the library API in a single namespace; the
+            # 350-line file ratchet bounded files, never packages). Policy and
+            # --self-test cases: scripts/check-package-surface.sh.
+            check-package-surface =
+              mkApp "check-package-surface"
+                [
+                  pkgs.bash
+                  pkgs.coreutils
+                  pkgs.gawk
+                  pkgs.gnused
+                  pkgs.gnugrep
+                  pkgs.findutils
+                ]
+                ''
+                  ${pkgs.bash}/bin/bash "$PWD/scripts/check-package-surface.sh" "$@"
+                '';
+
+            # Production import-cycle gate, package granularity (test-only edges
+            # excluded by construction). Makes the review's "0 production
+            # cycles" number a maintained invariant instead of a snapshot.
+            check-cycles =
+              mkApp "check-cycles" [ goPkg pkgs.bash pkgs.coreutils pkgs.gawk pkgs.gnugrep ]
+                ''
+                  ${pkgs.bash}/bin/bash "$PWD/scripts/check-cycles.sh" "$@"
+                '';
+
             # Placeholder-hash tripwire for flake.nix (2026-10-23 incident:
             # an auto-configure pass rewrote every pinned hash to the all-zero
             # placeholder and only a realised derivation noticed).
@@ -1786,7 +1814,9 @@
                   goPkg
                   pkgs.golangci-lint
                   pkgs.bash
+                  pkgs.coreutils
                   pkgs.findutils
+                  pkgs.gawk
                   pkgs.gnugrep
                   pkgs.gcc
                   pkgs.util-linux
@@ -1803,6 +1833,12 @@
                   # flake.nix evaluates fine and only fails minutes into a
                   # realisation, so catch it in the first second.
                   ${pkgs.bash}/bin/bash "$PWD/scripts/check-nix-hashes.sh" || exit 1
+                  # Cheap structural ratchets, deliberately BEFORE the 20-minute
+                  # build: file-size (previously app-only, so AGENTS.md's "fails
+                  # CI" was false), package surface, production import cycles.
+                  ${pkgs.bash}/bin/bash scripts/check-file-size.sh || exit 1
+                  ${pkgs.bash}/bin/bash scripts/check-package-surface.sh || exit 1
+                  ${pkgs.bash}/bin/bash scripts/check-cycles.sh || exit 1
                   # Advisory verify-window lock (W3 Q5): fail loud on
                   # contention instead of interleaving with another session.
                   # shellcheck disable=SC1091  # sourced lib lives beside the script
@@ -1874,10 +1910,22 @@
             # verify-fast: same as verify but passes -short to skip soak tests
             # (benchkit 35s soak suite). Use for rapid iteration during development.
             verify-fast =
-              mkApp "verify-fast" [ goPkg pkgs.golangci-lint pkgs.bash pkgs.findutils pkgs.gnugrep pkgs.gcc ]
+              mkApp "verify-fast" [
+                goPkg
+                pkgs.golangci-lint
+                pkgs.bash
+                pkgs.coreutils
+                pkgs.findutils
+                pkgs.gawk
+                pkgs.gnugrep
+                pkgs.gcc
+              ]
                 ''
                   export CGO_ENABLED=1
                   ${pkgs.bash}/bin/bash scripts/check-nix-hashes.sh && \
+                  ${pkgs.bash}/bin/bash scripts/check-file-size.sh && \
+                  ${pkgs.bash}/bin/bash scripts/check-package-surface.sh && \
+                  ${pkgs.bash}/bin/bash scripts/check-cycles.sh && \
                   ${pkgs.bash}/bin/bash scripts/verify-docs.sh && \
                   echo "=== Build ===" && ${goPkg}/bin/go build ${tagFlags} ${allPaths} && \
                   echo "=== Vet ===" && ${goPkg}/bin/go vet ${tagFlags} ${modulePaths} && \
