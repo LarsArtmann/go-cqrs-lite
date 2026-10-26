@@ -264,5 +264,6 @@ watermill/     — Watermill protocol adapter
 | [0159](0159-go-native-architecture-reference-html-export.md) | Publish the architecture reference as self-contained HTML, rendered in Go | 2026-10-17 | Accepted |
 | [0160](0160-architecture-reference-selections-kind-id-selectors.md) | Architecture-reference selections select resources by kind and id, not by custom properties | 2026-10-17 | Accepted |
 | [0161](0161-encoded-ingress-producer-codec.md) | Encoded ingress decodes with the producer's codec, not a schema-free JSON transcode | 2026-10-24 | Accepted |
+| [0162](0162-metaengine-v5-seven-package-split.md) | Metaengine v5 splits into seven packages instead of one 829-symbol package | 2026-10-26 | Proposed |
 
 > **Note:** ADRs 0036, 0041, and 0138 were never assigned (gaps in numbering).

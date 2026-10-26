@@ -13,6 +13,14 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
 )
 
+// ErrCatalogValidation mirrors catalog.simple's validation sentinel: a
+// derived catalog that fails validation is a programming error in the
+// derivation or the overrides, surfaced with the violations attached.
+var ErrCatalogValidation error = errorfamily.NewRejection(
+	"systemcatalog.validation_failed",
+	"systemcatalog: derived catalog failed validation",
+)
+
 // FromDomainConfig derives a catalog by booting an EPHEMERAL in-memory
 // system from domain (the same recipe systemscenario.Memory uses), letting
 // system.New run the Commands/Queries registration closures, reading the
@@ -64,7 +72,7 @@ func FromSystem(
 	cat := builder.Build()
 
 	if violations := cat.Validate(); len(violations) > 0 {
-		return cat, fmt.Errorf("systemcatalog: derived catalog invalid: %v", violations)
+		return cat, fmt.Errorf("%w: %v", ErrCatalogValidation, violations)
 	}
 
 	return cat, nil
@@ -103,7 +111,7 @@ func DeriveInto(
 		cfg.name,
 		cfg.version,
 		cfg.summary,
-		derivedMessages(sys, domain)...,
+		derivedMessages(sys, domain, cfg.overrides)...,
 	)
 
 	if len(cfg.owners) > 0 {
@@ -119,21 +127,41 @@ func DeriveInto(
 
 // derivedMessages collects the full message inventory: registered commands
 // (sorted), registered queries (sorted), then the declared event universe
-// (sorted) with Schema versions stamped where declared.
-func derivedMessages(sys *system.System, domain system.DomainConfig) []catalog.MessageConfig {
+// (sorted) with Schema versions stamped where declared. A message whose id
+// has a curated override is emitted as the override instead (curated wins,
+// derivation fills the rest).
+func derivedMessages(
+	sys *system.System,
+	domain system.DomainConfig,
+	overrides map[string]catalog.MessageConfig,
+) []catalog.MessageConfig {
 	msgs := make([]catalog.MessageConfig, 0,
-		len(domain.Events)+len(domain.Schema)+4)
+		len(domain.Events)+len(domain.Schema)+len(overrides))
 
 	for _, reg := range sys.CommandRegistrations() {
+		id := string(reg.Type)
+
+		if override, curated := overrides[id]; curated {
+			msgs = append(msgs, override)
+			continue
+		}
+
 		msgs = append(msgs, catalog.CommandFromSchema(
-			catalog.MessageID(string(reg.Type)),
+			catalog.MessageID(id),
 			schemaForType(reg.PayloadType),
 		))
 	}
 
 	for _, reg := range sys.QueryRegistrations() {
+		id := string(reg.Type)
+
+		if override, curated := overrides[id]; curated {
+			msgs = append(msgs, override)
+			continue
+		}
+
 		msgs = append(msgs, catalog.QueryFromSchema(
-			catalog.MessageID(string(reg.Type)),
+			catalog.MessageID(id),
 			schemaForType(reg.PayloadType),
 		))
 	}
@@ -144,6 +172,13 @@ func derivedMessages(sys *system.System, domain system.DomainConfig) []catalog.M
 	}
 
 	for _, evtType := range eventUniverse(domain) {
+		id := string(evtType)
+
+		if override, curated := overrides[id]; curated {
+			msgs = append(msgs, override)
+			continue
+		}
+
 		version, declared := schemaVersions[evtType]
 
 		var opts []catalog.MessageOption
@@ -152,7 +187,7 @@ func derivedMessages(sys *system.System, domain system.DomainConfig) []catalog.M
 		}
 
 		msgs = append(msgs, catalog.EventFromSchema(
-			catalog.MessageID(string(evtType)),
+			catalog.MessageID(id),
 			catalog.Sends,
 			nil,
 			opts...,
@@ -212,14 +247,14 @@ func schemaForType(t reflect.Type) *catalog.Schema {
 // memoryDeployment mirrors systemscenario.Memory: two memory engines
 // (primary + timers) so DomainConfig.Timers closures resolve out of the box.
 func memoryDeployment() system.DeploymentConfig {
-	return system.DeploymentConfig{
+	return system.DeploymentConfig{ //nolint:exhaustruct_v5 // minimal ephemeral boot; the rest is operator concern
 		Engines: map[string]system.EngineConfig{
-			"primary": {Driver: "memory"},
-			"timers":  {Driver: "memory"},
+			"primary": {Driver: "memory"}, //nolint:exhaustruct_v5 // memory needs no DSN
+			"timers":  {Driver: "memory"}, //nolint:exhaustruct_v5 // memory needs no DSN
 		},
 		Instances: []system.InstanceConfig{
-			{Role: system.RoleSourceOfTruth, Engine: "primary"},
-			{Role: system.RoleProjections, Engine: "primary"},
+			{Role: system.RoleSourceOfTruth, Engine: "primary"}, //nolint:exhaustruct_v5 // role+engine is the minimal instance
+			{Role: system.RoleProjections, Engine: "primary"},   //nolint:exhaustruct_v5 // role+engine is the minimal instance
 		},
 	}
 }
