@@ -1387,6 +1387,26 @@
                   ${pkgs.bash}/bin/bash "$PWD/scripts/check-cycles.sh" "$@"
                 '';
 
+            # Reproducible architecture measurements (markdown / JSON / --write
+            # snapshot into docs/evidence/): module + package counts, production
+            # import edges, fan-in/out, instability, LOC split, API concentration.
+            # Not a gate: it is the measurement layer every review and gate cites,
+            # composed from check-cycles + check-package-surface so runs cannot
+            # disagree with the gates.
+            arch-metrics =
+              mkApp "arch-metrics" [
+                goPkg
+                pkgs.bash
+                pkgs.coreutils
+                pkgs.gawk
+                pkgs.gnugrep
+                pkgs.findutils
+                pkgs.diffutils
+              ]
+                ''
+                  ${pkgs.bash}/bin/bash "$PWD/scripts/arch-metrics" "$@"
+                '';
+
             # Placeholder-hash tripwire for flake.nix (2026-10-23 incident:
             # an auto-configure pass rewrote every pinned hash to the all-zero
             # placeholder and only a realised derivation noticed).

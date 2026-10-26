@@ -1,0 +1,240 @@
+#!/usr/bin/env bash
+# arch-metrics — reproducible architecture measurements for this repo.
+#
+# WHY: every number in the 2026-10-24 architecture review (module/package
+# counts, import edges, fan-in/out, instability, LOC split, API concentration)
+# came out of ad-hoc heredocs. Reproducing a review therefore cost hours of
+# re-derivation and could not be diffed. This script is the one committed
+# source for those numbers: run it, diff two runs, and a review becomes a
+# 5-minute delta instead of a 3-hour re-measurement.
+#
+# It COMPOSES the two gates instead of re-implementing them:
+#   scripts/check-package-surface.sh --tsv    -> per-package symbols + files
+#   scripts/check-cycles.sh --edges/--json    -> production import graph
+# so a metrics run and a gate run can never disagree.
+#
+# Usage:
+#   bash scripts/arch-metrics                 # markdown report to stdout
+#   bash scripts/arch-metrics --json          # JSON to stdout
+#   bash scripts/arch-metrics --write         # JSON snapshot into docs/evidence/
+#
+# Measurement scope (deliberately identical in all modes):
+#   - modules: go.work `use` entries + the root module
+#   - packages: production .go files (test/generated/vendor/testdata excluded)
+#   - import graph: non-test imports, package granularity (see check-cycles.sh)
+#   - LOC: physical lines, production and test counted separately
+#   - API: exported symbols per the tracked-module golden (docs/api_surface.txt)
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
+MODE="${1:-markdown}"
+
+WORK="$(mktemp -d)"
+cleanup() { rm -rf "$WORK"; }
+trap cleanup EXIT
+
+modules() {
+	{
+		echo "."
+		sed -n '/^use (/,/^)/p' go.work | grep -oE '\./[a-zA-Z0-9/_.-]+' | sed 's|^\./||'
+	} | sort -u
+}
+
+modules >"$WORK/modules"
+MODULE_STR="$(paste -sd' ' "$WORK/modules")"
+
+# Longest-module-prefix resolution: a file/package belongs to the DEEPEST
+# module whose directory contains it, so nested modules are never double
+# counted (the root module contains every path in the tree).
+PICK_FN='
+function pick(path,   i, d, l, best, bl) {
+	best = "."; bl = 0
+	for (i = 1; i <= nmods; i++) {
+		d = mods[i]
+		if (d == ".") continue
+		l = length(d)
+		if (length(path) >= l && substr(path, 1, l) == d && (length(path) == l || substr(path, l + 1, 1) == "/") && l > bl) {
+			best = d; bl = l
+		}
+	}
+	return best
+}
+'
+
+# ── import graph ───────────────────────────────────────────────────────────
+bash scripts/check-cycles.sh --edges >"$WORK/edges.tsv"
+bash scripts/check-cycles.sh --json >"$WORK/graph.json"
+bash scripts/check-package-surface.sh --tsv >"$WORK/packages.tsv"
+
+# ── module-level coupling (fan-in / fan-out, self-edges removed) ───────────
+awk -v mods_str="$MODULE_STR" "$PICK_FN"'
+	BEGIN { nmods = split(mods_str, mods, " ") }
+	{
+		a = pick($1); b = pick($2)
+		if (a == b) next
+		pair[a SUBSEP b] = 1
+	}
+	END {
+		for (k in pair) {
+			split(k, p, SUBSEP)
+			out[p[1]]++; in_[p[2]]++
+			seen[p[1]] = 1; seen[p[2]] = 1
+		}
+		for (m in seen) printf "%s\t%d\t%d\n", m, in_[m] + 0, out[m] + 0
+	}' "$WORK/edges.tsv" | sort >"$WORK/coupling.tsv"
+
+# ── LOC + file counts per module ───────────────────────────────────────────
+find . -name '*.go' \
+	-not -path './.git/*' \
+	-not -path './vendor/*' \
+	-not -path '*/node_modules/*' \
+	-not -path '*/testdata/*' \
+	-print0 |
+	xargs -0 wc -l |
+	awk -v mods_str="$MODULE_STR" "$PICK_FN"'
+		BEGIN { nmods = split(mods_str, mods, " ") }
+		$2 == "total" { next }
+		{
+			path = $2
+			while (substr(path, 1, 2) == "./") path = substr(path, 3)
+			if (path ~ /^\.\//) next
+			m = pick(path)
+			if (path ~ /_test\.go$/) { tf[m]++; tl[m] += $1 }
+			else { pf[m]++; pl[m] += $1 }
+			seen[m] = 1
+		}
+		END {
+			for (m in seen) printf "%s\t%d\t%d\t%d\t%d\n", m, pf[m] + 0, pl[m] + 0, tf[m] + 0, tl[m] + 0
+		}' | sort >"$WORK/loc.tsv"
+
+# ── packages + exported symbols per module ─────────────────────────────────
+awk -v mods_str="$MODULE_STR" "$PICK_FN"'
+	BEGIN { nmods = split(mods_str, mods, " ") }
+	{
+		m = pick($1)
+		pkgs[m]++; syms[m] += $2; files[m] += $3
+		seen[m] = 1
+	}
+	END {
+		for (m in seen) printf "%s\t%d\t%d\n", m, pkgs[m], syms[m]
+	}' "$WORK/packages.tsv" | sort >"$WORK/pkgstats.tsv"
+
+# ── combined per-module table ──────────────────────────────────────────────
+# One awk pass, three keyed inputs, the module list as the record source is
+# unnecessary: the module universe IS the union of all three, and a module with
+# no packages cannot exist. `modules` is still joined so an empty-but-present
+# module directory shows up as a zero row instead of vanishing.
+awk -F'\t' -v OFS='\t' '
+	FILENAME == ARGV[1] { pf[$1] = $2; pl[$1] = $3; tf[$1] = $4; tl[$1] = $5; next }
+	FILENAME == ARGV[2] { pk[$1] = $2; sy[$1] = $3; next }
+	FILENAME == ARGV[3] { fi[$1] = $2; fo[$1] = $3; next }
+	{
+		m = $1
+		print m, pk[m] + 0, pf[m] + 0, pl[m] + 0, tf[m] + 0, tl[m] + 0, sy[m] + 0, fi[m] + 0, fo[m] + 0
+	}' "$WORK/loc.tsv" "$WORK/pkgstats.tsv" "$WORK/coupling.tsv" "$WORK/modules" |
+	sort >"$WORK/rows.tsv"
+
+READ_GRAPH="$(cat "$WORK/graph.json")"
+
+totals() {
+	awk -F'\t' '
+		{ pk += $2; pf += $3; pl += $4; tf += $5; tl += $6; sy += $7 }
+		END { printf "%d\t%d\t%d\t%d\t%d\t%d\n", pk, pf, pl, tf, tl, sy }' "$WORK/rows.tsv"
+}
+IFS=$'\t' read -r T_PKGS T_PFILES T_PLOC T_TFILES T_TLOC T_SYMS < <(totals)
+T_MODULES="$(wc -l <"$WORK/modules")"
+GRAPH_NODES="$(printf '%s' "$READ_GRAPH" | sed -n 's/.*"packages":\([0-9]*\).*/\1/p')"
+GRAPH_EDGES="$(printf '%s' "$READ_GRAPH" | sed -n 's/.*"edges":\([0-9]*\).*/\1/p')"
+GRAPH_CYCLES="$(printf '%s' "$READ_GRAPH" | sed -n 's/.*"cycles":\([0-9]*\).*/\1/p')"
+
+ratio() {
+	awk -v a="$1" -v b="$2" 'BEGIN { if (b == 0) { print "0.00" } else { printf "%.2f", a / b } }'
+}
+
+json_str() { printf '"%s"' "$(printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g')"; }
+
+emit_json() {
+	local ts
+	ts="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+	printf '{\n'
+	printf '  "generated_at": %s,\n' "$(json_str "$ts")"
+	printf '  "basis_commit": %s,\n' "$(json_str "$(git rev-parse --short HEAD)")"
+	printf '  "modules": %d,\n' "$T_MODULES"
+	printf '  "packages": %d,\n' "$T_PKGS"
+	printf '  "import_graph": {"packages": %d, "edges": %d, "cycles": %d},\n' \
+		"$GRAPH_NODES" "$GRAPH_EDGES" "$GRAPH_CYCLES"
+	printf '  "loc": {"production": %d, "test": %d, "test_to_production_ratio": %s},\n' \
+		"$T_PLOC" "$T_TLOC" "$(ratio "$T_TLOC" "$T_PLOC")"
+	printf '  "files": {"production": %d, "test": %d},\n' "$T_PFILES" "$T_TFILES"
+	printf '  "api_surface": {"exported_symbols": %d},\n' "$T_SYMS"
+	printf '  "by_module": [\n'
+	local first=1 m pk pf pl tf tl sy fi fo inst
+	while IFS=$'\t' read -r m pk pf pl tf tl sy fi fo; do
+		[ "$first" -eq 1 ] || printf ',\n'
+		first=0
+		inst="$(ratio "$fo" "$((fi + fo))")"
+		printf '    {"module": %s, "packages": %d, "production_files": %d, "production_loc": %d, "test_files": %d, "test_loc": %d, "exported_symbols": %d, "fan_in": %d, "fan_out": %d, "instability": %s}' \
+			"$(json_str "$m")" "$pk" "$pf" "$pl" "$tf" "$tl" "$sy" "$fi" "$fo" "$inst"
+	done <"$WORK/rows.tsv"
+	printf '\n  ]\n}\n'
+}
+
+emit_markdown() {
+	printf '# Architecture metrics\n\n'
+	printf 'Basis commit `%s`, generated %s.\n\n' "$(git rev-parse --short HEAD)" "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+	printf '| Metric | Value |\n| ------ | ----: |\n'
+	printf '| Modules (go.work use entries + root) | %d |\n' "$T_MODULES"
+	printf '| Packages | %d |\n' "$T_PKGS"
+	printf '| Production files | %d |\n' "$T_PFILES"
+	printf '| Test files | %d |\n' "$T_TFILES"
+	printf '| Production LOC | %d |\n' "$T_PLOC"
+	printf '| Test LOC | %d |\n' "$T_TLOC"
+	printf '| Test/production LOC ratio | %s |\n' "$(ratio "$T_TLOC" "$T_PLOC")"
+	printf '| Package import edges (production) | %d |\n' "$GRAPH_EDGES"
+	printf '| Production import cycles | %d |\n' "$GRAPH_CYCLES"
+	printf '| Exported symbols (tracked modules) | %d |\n\n' "$T_SYMS"
+
+	printf '## Module coupling — top 15 by fan-in\n\n'
+	printf 'Instability I = fan-out / (fan-in + fan-out): 0 = stable core, 1 = volatile edge.\n\n'
+	printf '| Module | Fan-in | Fan-out | I |\n| ------ | -----: | ------: | -: |\n'
+	sort -t$'\t' -k8,8nr "$WORK/rows.tsv" | head -15 |
+		while IFS=$'\t' read -r m _ _ _ _ _ _ fi fo; do
+			printf '| `%s` | %d | %d | %s |\n' "$m" "$fi" "$fo" "$(ratio "$fo" "$((fi + fo))")"
+		done
+
+	printf '\n## Largest modules by production LOC — top 15\n\n'
+	printf '| Module | Packages | Prod LOC | Test LOC | Prod files | Symbols |\n'
+	printf '| ------ | -------: | -------: | -------: | ---------: | ------: |\n'
+	sort -t$'\t' -k4,4nr "$WORK/rows.tsv" | head -15 |
+		while IFS=$'\t' read -r m pk pf pl tf tl sy _ _; do
+			printf '| `%s` | %d | %d | %d | %d | %d |\n' "$m" "$pk" "$pl" "$tl" "$pf" "$sy"
+		done
+
+	printf '\n## API-surface concentration — top 10 packages\n\n'
+	printf '| Package | Exported symbols | Production files |\n| ------- | ---------------: | ---------------: |\n'
+	sort -t$'\t' -k2,2nr "$WORK/packages.tsv" | head -10 |
+		while IFS=$'\t' read -r p sy f; do
+			printf '| `%s` | %d | %d |\n' "$p" "$sy" "$f"
+		done
+}
+
+case "$MODE" in
+--json)
+	emit_json
+	;;
+--write)
+	mkdir -p docs/evidence
+	out="docs/evidence/arch-metrics-$(date -u +%Y-%m-%d_%H-%M).json"
+	emit_json >"$out"
+	echo "wrote $out"
+	;;
+markdown)
+	emit_markdown
+	;;
+*)
+	echo "unknown argument: $MODE (expected nothing, --json or --write)" >&2
+	exit 2
+	;;
+esac
