@@ -186,11 +186,11 @@ gate() {
 			continue
 		fi
 		if [ "$ns" -gt "${base_sym[$dir]}" ]; then
-			echo "::error::${dir}: exported symbols grew ${base_sym[$dir]} → $ns (ratchet: baselined packages may only shrink)."
+			echo "::error::${dir}: exported symbols grew ${base_sym[$dir]} → $ns (ratchet: baselined packages may only shrink; split the package, or re-pin with --update-baseline after review)."
 			failed=true
 		fi
 		if [ "$nf" -gt "${base_fil[$dir]}" ]; then
-			echo "::error::${dir}: production files grew ${base_fil[$dir]} → $nf (ratchet: baselined packages may only shrink)."
+			echo "::error::${dir}: production files grew ${base_fil[$dir]} → $nf (ratchet: baselined packages may only shrink; split the package, or re-pin with --update-baseline after review)."
 			failed=true
 		fi
 		if [ "$ns" -le "$LIMIT_SYMBOLS" ] && [ "$nf" -le "$LIMIT_FILES" ]; then
