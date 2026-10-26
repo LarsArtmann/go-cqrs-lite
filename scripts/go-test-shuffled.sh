@@ -1,0 +1,79 @@
+#!/usr/bin/env bash
+# go-test-shuffled.sh — the one `go test` runner behind #test and #test-race.
+#
+# Why: `-shuffle=on` prints its seed only on the FIRST line of output, so a
+# failure caused by test order was effectively unreproducible unless someone
+# scrolled back through CI logs. This runner mints an EXPLICIT seed, logs it
+# (build/shuffle-seeds.log, same helper the integration scripts use) and prints
+# the exact replay command, so any red run is reproducible by construction.
+#
+# It also refuses the silent-random case: with no seed in the environment the
+# seed exists as a number in the log before go test starts, not as a hope.
+#
+# Usage: bash scripts/go-test-shuffled.sh [extra go test args...]
+#   GT_LABEL     label for the seed log (default "test")
+#   GT_PATHS     space-separated package patterns (required)
+#   GT_RACE=1    add -race
+#   GT_TIMEOUT   per-package timeout (default 30m)
+#   GT_COUNT     -count value (default 1)
+#   GT_CPU       -cpu value (optional, e.g. 1,4)
+#   SHUFFLE=off  disable shuffling (escape hatch for a bisect)
+#   SHUFFLE_SEED explicit seed (replay); otherwise a fresh one is minted
+#
+# Replay: nix run .#rerun-shuffle-seed -- <seed>
+
+set -euo pipefail
+
+cd "$(git rev-parse --show-toplevel)"
+
+# shellcheck source=lib/shuffle-seed.sh
+source "$PWD/scripts/lib/shuffle-seed.sh"
+# shellcheck source=go-env.sh
+source "$PWD/scripts/go-env.sh"
+
+LABEL="${GT_LABEL:-test}"
+TIMEOUT="${GT_TIMEOUT:-30m}"
+COUNT="${GT_COUNT:-1}"
+[ -n "${GT_PATHS:-}" ] || {
+	echo "::error::GT_PATHS is empty — run this through nix run .#test / .#test-race" >&2
+	exit 2
+}
+read -r -a PATHS <<<"$GT_PATHS"
+
+args=()
+if [ -n "${GT_TAGS:-}" ]; then
+	args+=(-tags="$GT_TAGS")
+fi
+if [ "${GT_RACE:-0}" = "1" ]; then
+	args+=(-race)
+fi
+args+=(-count="$COUNT" -timeout="$TIMEOUT")
+if [ -n "${GT_CPU:-}" ]; then
+	args+=(-cpu="$GT_CPU")
+fi
+if [ "${SHUFFLE:-on}" = "off" ]; then
+	echo "==> shuffle DISABLED (SHUFFLE=off) — order-dependent failures cannot be caught in this run" >&2
+else
+	seed="${SHUFFLE_SEED:-}"
+	if [ -z "$seed" ]; then
+		seed="$(new_shuffle_seed)"
+	fi
+	log_shuffle_seed "$LABEL" "$seed"
+	args+=(-shuffle="$seed")
+fi
+
+status=0
+CGO_ENABLED=1 go test "${args[@]}" "${PATHS[@]}" "$@" || status=$?
+
+if [ "$status" -ne 0 ] && [ "${SHUFFLE:-on}" != "off" ]; then
+	{
+		echo ""
+		echo "::error::${LABEL} failed under shuffle seed ${seed}."
+		echo "Replay exactly this order:"
+		echo "  nix run .#rerun-shuffle-seed -- ${seed}"
+		echo "Narrow it to one package (the failing one is named above):"
+		echo "  nix run .#rerun-shuffle-seed -- ${seed} ./<module>/..."
+	} >&2
+fi
+
+exit "$status"

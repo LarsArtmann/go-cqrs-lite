@@ -156,3 +156,29 @@ jobs:
         run: |
           bash scripts/probe-proxy-tags.sh --self-test
           bash scripts/probe-proxy-tags.sh
+
+  # Order-dependent / shared-state bugs (testing plan T03.4): the stateful
+  # suites run five times each under -cpu=1,4 with a logged shuffle seed. A
+  # single shuffled pass cannot see a sequence that only fails when the
+  # scheduler interleaves differently, and the per-push CI cannot afford the
+  # tenfold runtime, so this leg lives here. Failure output names the seed;
+  # `nix run .#rerun-shuffle-seed -- <seed> ./<module>/...` replays it.
+  repeat-leg:
+    name: Repeat leg (-count=5, -cpu=1,4) over stateful packages
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa
+
+      - name: Repeat leg
+        run: nix run .#test-repeat
+
+      - name: Upload shuffle seeds
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: shuffle-seeds-repeat
+          path: build/shuffle-seeds.log
+          retention-days: 30

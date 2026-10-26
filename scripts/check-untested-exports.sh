@@ -147,12 +147,13 @@ self_test() {
 	# shellcheck disable=SC2064  # $tmp must expand now, not at trap time
 	trap "rm -rf '$tmp'" EXIT
 
-	# Corpus: TestAlpha names Alpha; nothing names Gamma.
-	printf '%s\n' "TestAlpha" "Beta" >"$tmp/corpus.txt"
+	# Corpus: Alpha and Beta are named by tests; nothing names Gamma.
+	# Matching is EXACT, so `TestAlpha` does not count as naming Alpha.
+	printf '%s\n' "TestAlpha" "Alpha" "Beta" >"$tmp/corpus.txt"
 	printf '%s\n' "mod/func Alpha" "mod/func Beta" "mod/func Gamma" >"$tmp/surface.txt"
 	untested "$tmp/surface.txt" "$tmp/corpus.txt" "$tmp/current.txt"
 
-	if ! grep -qx "mod/func Gamma" "$tmp/current.txt" || [ "$(wc -l <"$tmp/current.txt")" -ne 1 ]; then
+	if ! grep -qx "mod/func Gamma" "$tmp/current.txt" || [ "$(grep -c . "$tmp/current.txt")" -ne 1 ]; then
 		echo "self-test FAIL: corpus filtering must keep exactly the unreferenced symbol" >&2
 		failures=$((failures + 1))
 	fi
@@ -166,22 +167,21 @@ self_test() {
 	fi
 
 	# A NEW untested export: red, and named.
-	printf '%s\n' "mod/func Delta" >>"$tmp/current.txt"
+	printf '%s\n' "mod/func Delta" >"$tmp/current-new.txt"
+	printf '%s\n' "mod/func Gamma" >>"$tmp/current-new.txt"
 	rc=0
-	compare_rows "$tmp/current.txt" "$tmp/blkeys.txt" "$tmp/rows.txt" || rc=$?
+	compare_rows "$tmp/current-new.txt" "$tmp/blkeys.txt" "$tmp/rows.txt" || rc=$?
 	if [ "$rc" -eq 0 ] || ! grep -q "NEW mod/func Delta" "$tmp/rows.txt"; then
 		echo "self-test FAIL: a new untested export must be red and named" >&2
 		failures=$((failures + 1))
 	fi
 
-	# A pruned row: stale, not a failure.
-	printf '%s\n' "mod/func Beta" >>"$tmp/bl.txt"
-	baseline_keys "$tmp/bl.txt" >"$tmp/blkeys.txt"
+	# A row that gained a test: STALE, not a failure.
+	printf '%s\n' "mod/func Gamma" "mod/func Beta" >"$tmp/bl-stale.txt"
+	baseline_keys "$tmp/bl-stale.txt" >"$tmp/blstale.txt"
 	rc=0
-	out="$(compare_rows "$tmp/current.txt" "$tmp/blkeys.txt" "$tmp/rows.txt")" || rc=$?
-	if [ "$rc" -eq 0 ] && grep -q "STALE mod/func Beta" "$tmp/rows.txt"; then
-		: # expected when Delta is absent from current
-	else
+	compare_rows "$tmp/current.txt" "$tmp/blstale.txt" "$tmp/rows.txt" || rc=$?
+	if [ "$rc" -ne 0 ] || ! grep -q "STALE mod/func Beta" "$tmp/rows.txt"; then
 		echo "self-test FAIL: a symbol that gained a test must report STALE without failing" >&2
 		failures=$((failures + 1))
 	fi

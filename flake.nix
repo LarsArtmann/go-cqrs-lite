@@ -306,6 +306,32 @@
           ];
           modulePaths = builtins.concatStringsSep " " (map (m: "./${m}/...") testModules);
 
+          # Stateful modules for the nightly repeat leg (#test-repeat): suites
+          # that own mutable state, ticking clocks, connections or goroutines,
+          # where -count>1 / -cpu=1,4 / shuffle actually change the outcome.
+          repeatModules = map (m: "./${m}/...") [
+            "decider"
+            "event"
+            "command"
+            "query"
+            "commandlifecycle"
+            "commandlifecycle/projections"
+            "dedup"
+            "idempotency/sqlstore"
+            "kv"
+            "metaengine"
+            "metaengine/sqliteengine"
+            "projectionhost"
+            "scheduling"
+            "scheduling/engine"
+            "snapshot"
+            "storage/memory"
+            "storage/pebble"
+            "storage/bbolt"
+            "system"
+            "watermill"
+          ];
+
           # All modules are linted.
           lintModules = testModules;
 
@@ -968,12 +994,30 @@
           apps = {
             test = mkApp "test" goModules ''
               export CGO_ENABLED=1
-              ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -count=1 -timeout=30m "$@"
+              export GT_LABEL=test GT_TIMEOUT=30m GT_PATHS="${modulePaths}" GT_TAGS="${builtins.concatStringsSep "," goTags}"
+              ${pkgs.bash}/bin/bash "$PWD/scripts/go-test-shuffled.sh" "$@"
             '';
 
             test-race = mkApp "test-race" goModules ''
               export CGO_ENABLED=1
-              ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -race -count=1 -timeout=30m "$@"
+              export GT_LABEL=test-race GT_RACE=1 GT_TIMEOUT=30m GT_PATHS="${modulePaths}" GT_TAGS="${builtins.concatStringsSep "," goTags}"
+              ${pkgs.bash}/bin/bash "$PWD/scripts/go-test-shuffled.sh" "$@"
+            '';
+
+            # Replay one recorded shuffle order (see build/shuffle-seeds.log).
+            rerun-shuffle-seed = mkApp "rerun-shuffle-seed" goModules ''
+              export CGO_ENABLED=1 GT_PATHS="${modulePaths}" GT_TAGS="${builtins.concatStringsSep "," goTags}"
+              ${pkgs.bash}/bin/bash "$PWD/scripts/rerun-shuffle-seed.sh" "$@"
+            '';
+
+            # Repeat/parallelism leg: order-dependent and shared-state bugs
+            # surface as -count>1 or -cpu=1,4, not as a single shuffled pass.
+            # Runs nightly (nightly-gates.yml), not on every push.
+            test-repeat = mkApp "test-repeat" goModules ''
+              export CGO_ENABLED=1
+              export GT_LABEL=test-repeat GT_TIMEOUT=20m GT_COUNT="''${GT_COUNT:-5}" GT_CPU="''${GT_CPU:-1,4}"
+              export GT_PATHS="${builtins.concatStringsSep " " repeatModules}"
+              ${pkgs.bash}/bin/bash "$PWD/scripts/go-test-shuffled.sh" "$@"
             '';
 
             build = mkApp "build" goModules ''
@@ -1044,6 +1088,10 @@
 
             check-coverage = mkApp "check-coverage" [ goPkg pkgs.bash pkgs.coreutils pkgs.gawk pkgs.gnugrep pkgs.gnused ] ''
               ${pkgs.bash}/bin/bash "$PWD/scripts/check-coverage.sh" "$@"
+            '';
+
+            check-untested-exports = mkApp "check-untested-exports" [ pkgs.bash pkgs.coreutils pkgs.gawk pkgs.gnugrep pkgs.findutils ] ''
+              ${pkgs.bash}/bin/bash "$PWD/scripts/check-untested-exports.sh" "$@"
             '';
 
             check-depguard = mkApp "check-depguard" [ pkgs.bash pkgs.findutils pkgs.gnugrep ] ''
@@ -1898,6 +1946,7 @@
                   echo "=== Check Bench Gate ===" && nix run .#check-bench-gate && \
                   echo "=== Check Coverage ===" && nix run .#check-coverage && \
                   echo "=== API Stability ===" && nix run .#check-api-stability && \
+                  echo "=== Untested Exports ===" && nix run .#check-untested-exports && \
                   echo "=== Check Error Taxonomy ===" && nix run .#check-error-taxonomy && \
                   echo "=== Check md-go ===" && nix run .#check-md-go && \
                   echo "=== Doc Check ===" && (cd cmd/doc-check && GOWORK=off ${goPkg}/bin/go run . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md ../../README.md ../../*/README.md ../../*/*/README.md ../../*/*/*/README.md ../../TODO_LIST.md ../../ROADMAP.md ../../FEATURES.md ../../CONTRIBUTING.md ../../docs/DOMAIN_LANGUAGE.md ../../docs/METAENGINE_DOMAIN_LANGUAGE.md) && \

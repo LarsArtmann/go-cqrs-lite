@@ -63,6 +63,16 @@ jobs:
       - name: API stability check
         run: nix run .#check-api-stability
 
+      # Self-tests first (a gate that cannot go red is decoration), then the
+      # real tree. Both are pure file analysis: no build, no test run.
+      - name: Untested-export ratchet
+        run: |
+          nix run .#check-untested-exports -- --self-test
+          nix run .#check-untested-exports -- --quiet
+
+      - name: Coverage-floor compare self-test
+        run: nix run .#check-coverage -- --self-test
+
       - name: Duplication check
         run: nix run .#check-duplication
 
