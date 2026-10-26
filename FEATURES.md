@@ -421,6 +421,26 @@ recipes: [skill recipes §2.43](.agents/skills/go-cqrs-lite/references/recipes.m
 
 ---
 
+## Catalog Derivation Bridge 🧪 EXPERIMENTAL
+
+> `import "github.com/larsartmann/go-cqrs-lite/systemcatalog/v4"`
+
+Derives architecture catalogs from declared + runtime truth — `system.DomainConfig`
+plus the registrations its closures produce — so fleet consumers stop hand-copying
+message inventories that drift. Design:
+[2026-10-26 adapter design note](docs/planning/2026-10-26_systemcatalog-adapter-design.md);
+plan: [SUPERB Pareto plan](docs/planning/2026-10-26_11-21_SUPERB-catalog-truth-derivation-pareto-plan.md).
+
+| Feature             | Detail                                                                                                                                                                                  | Status |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| One-call derivation | `FromDomainConfig(ctx, domain, opts...)` boots an ephemeral memory system, runs the registration closures, derives, closes — coeffect-gate errors surface honestly                                | 🧪     |
+| Live derivation     | `FromSystem(sys, domain, opts...)` from an already-booted system; `DeriveInto(b, sys, domain)` onto an existing builder                                                                       | 🧪     |
+| Message inventory   | Commands/queries from `system.CommandRegistrations()`/`QueryRegistrations()` with reflected payload schemas; events from `DomainConfig.Events` ∪ `Schema`, declared schema versions stamped     | 🧪     |
+| Curated merge       | `WithMessageOverrides` (curated wins by id), `WithCurator(fn)` (flows/users/data stores), `WithServiceOwners`; derivation adds truth, never culls curated resources; byte-stable re-derivation  | 🧪     |
+| Drift gate pairing  | Compose with `catalog.AssertInventory` (inventory drift = build failure) — the flagship conversion template lives in the invoices repo                                                          | 🧪     |
+
+---
+
 ## Benchmarking Toolkit 🧪 EXPERIMENTAL
 
 > `import "github.com/larsartmann/go-cqrs-lite/benchkit/v4"`

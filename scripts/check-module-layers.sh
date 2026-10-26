@@ -323,7 +323,12 @@ DEP_BUDGET["stack/bench"]=25
 # v1.18 split the icon set into its own module), +1 schema/v4 (T1b of the
 # v5 schema-evolution plan: FromTypedSchema renders governance exports from
 # typed schema declarations — schema is the downward import, system stays out).
-DEP_BUDGET[catalog]=8
+# catalog: 9 = templ + templ-components (+ icons + utils) for the docserver
+# export, go-snaps + go-faster/yaml for snapshot/golden tests, schema (Tier 2),
+# go-error-family, go-humanize. The 9th (templ-components/utils) became DIRECT
+# when templ-components v1.22.0 started emitting an explicit utils import in
+# generated *_templ.go files (2026-10-26; before that it was transitive).
+DEP_BUDGET[catalog]=9
 DEP_BUDGET[integration]=21
 DEP_BUDGET[benchkit]=25
 DEP_BUDGET[testutil]=5

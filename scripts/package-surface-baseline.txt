@@ -6,7 +6,7 @@
 829	167	metaengine
 253	37	core/v5/event
 253	37	event
-246	28	catalog
+251	28	catalog
 223	48	system
 187	39	cmd/cqrs-lint/pkg/analyzer
 112	47	benchkit
