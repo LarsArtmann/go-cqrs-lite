@@ -1,17 +1,18 @@
 #!/usr/bin/env bash
-# check-coverage.sh — coverage FLOOR for every module in the workspace.
+# check-coverage.sh — coverage FLOORS for every module and every package.
 #
 # Why this exists: before 2026-10-26 this gate pinned 11 of 89 test modules,
 # so 78 modules could lose their tests entirely and nothing went red. A gate
 # that measures 12% of the surface is a claim, not a check. The floors live in
-# scripts/coverage-baseline.txt, one row per module in flake.nix `testModules`,
-# and the gate fails on:
+# scripts/coverage-baseline.txt (one row per module in flake.nix `testModules`)
+# and scripts/coverage-package-baseline.txt (one row per package), and the gate
+# fails on:
 #
-#   * a module regression beyond the lower tolerance,
-#   * a module in `testModules` with no baseline row (unmeasured surface),
-#   * a baseline row that no longer resolves to a module (dangling key),
-#   * a module that gained a package WITHOUT tests (the floor cannot be met by
-#     adding untested packages),
+#   * a module/package regression beyond the lower tolerance,
+#   * a module/package that has no baseline row (unmeasured surface),
+#   * a baseline row that no longer resolves to a module/package (dangling key),
+#   * a package that lost its tests (the module percentage can hold while a
+#     package rots, because the module denominator grows with the rest),
 #   * coverage data vanishing for a module that had some (tests deleted).
 #
 # Upward drift beyond the tolerance is reported as STALE but does not fail:
@@ -19,19 +20,22 @@
 # people to re-pin until green.
 #
 # Usage: bash scripts/check-coverage.sh [flags]
-#   (default)        measure, compare against the baseline, exit non-zero on drift
-#   --update         re-measure and REWRITE scripts/coverage-baseline.txt
-#   --profile FILE   consume an existing merged coverprofile instead of running tests
-#   --report DIR     also write module/package TSV and a markdown table into DIR
-#   --quiet          print only rows that are not ok
-#   --self-test      fault-inject the compare logic against fixtures (no Go needed)
+#   (default)         measure, compare modules AND packages, exit non-zero on drift
+#   --update          re-measure and REWRITE both baseline files
+#   --profile FILE    consume an existing merged coverprofile instead of running tests
+#   --report DIR      also write TSV/markdown artifacts into DIR
+#   --quiet           print only rows that are not ok
+#   --self-test       fault-inject the compare logic against fixtures (no Go needed)
 #   --help
 #
 # Environment:
-#   COVERAGE_BASELINE   baseline path (default scripts/coverage-baseline.txt)
-#   COVERAGE_WORKDIR    scratch dir (default build/coverage)
-#   COVERAGE_TOLERANCE  upward tolerance in points (default 2.0)
-#   COVERAGE_TEST_P     go test -p value for the measurement run (optional)
+#   COVERAGE_BASELINE          module baseline (default scripts/coverage-baseline.txt)
+#   COVERAGE_PACKAGE_BASELINE  package baseline (default scripts/coverage-package-baseline.txt)
+#   COVERAGE_WORKDIR           scratch dir (default build/coverage)
+#   COVERAGE_TOLERANCE         module upward tolerance in points (default 2.0)
+#   COVERAGE_PACKAGE_TOLERANCE package upward tolerance (default 1.0)
+#   COVERAGE_LOWER_TOLERANCE   override the lower tolerance for both
+#   COVERAGE_TEST_P            go test -p value for the measurement run (optional)
 #
 # Measurement mode is `aggregate`: one workspace-wide test run emits a merged
 # coverprofile, and a module's percentage is covered/total STATEMENTS for the
@@ -41,8 +45,10 @@
 # arbitrary package, not the module.
 #
 # The measurement is load-sensitive (timeout-skipped tests measure 3-5 points
-# lower on a loaded box, deterministically on GitHub runners), so the baseline
-# is pinned from quiet-window runs and CI widens only the LOWER bound.
+# lower on a loaded box, deterministically on GitHub runners), so the baselines
+# are pinned from quiet-window runs and CI widens only the LOWER bound. That
+# also makes the 1-point PACKAGE rule a local/quiet-window rule: on CI a skipped
+# test in a tiny package moves the number further than that.
 
 set -euo pipefail
 export LC_ALL=C
@@ -57,8 +63,10 @@ cd "$(git rev-parse --show-toplevel)"
 source "$PWD/scripts/go-env.sh"
 
 BASELINE="${COVERAGE_BASELINE:-scripts/coverage-baseline.txt}"
+PKG_BASELINE="${COVERAGE_PACKAGE_BASELINE:-scripts/coverage-package-baseline.txt}"
 WORKDIR="${COVERAGE_WORKDIR:-build/coverage}"
 TOLERANCE="${COVERAGE_TOLERANCE:-2.0}"
+PKG_TOLERANCE="${COVERAGE_PACKAGE_TOLERANCE:-1.0}"
 # CI lower-bound allowance (2026-10-14): GitHub runners are the documented
 # "loaded box" class of the header note — timeout-skipped tests measure
 # 3-5 points lower DETERMINISTICALLY (run 38619781576 measured the exact
@@ -205,7 +213,9 @@ attribute_packages() {
 
 # attribute_coverage sums profile statements per package. A profile entry is
 #   <importpath>/<file>.go:<start>,<end> <numStmt> <count>
-# and the package is the dirname of <importpath>/<file>.go.
+# and the package is the dirname of <importpath>/<file>.go. Every attributed
+# package gets a row, including ones that contribute no statements (pct `none`),
+# so "this package lost its tests" is visible instead of absent.
 attribute_coverage() {
 	local wd="$1"
 	awk -F'|' '
@@ -226,7 +236,8 @@ attribute_coverage() {
 		}
 		END {
 			for (p in mod)
-				printf "%s|%s|%d|%d|%d\n", p, mod[p], cov[p] + 0, tot[p] + 0, has[p]
+				if (mod[p] != "")
+					printf "%s|%s|%d|%d|%d\n", p, mod[p], cov[p] + 0, tot[p] + 0, has[p]
 		}' "$wd/pkgmap.txt" "$wd/merged.out" | sort >"$wd/pkg-coverage.txt"
 }
 
@@ -266,19 +277,33 @@ measure() {
 	rollup_modules "$wd"
 }
 
-# --- baseline format -------------------------------------------------------
-# Comment lines start with '#'. Data rows are TAB separated:
+# --- floor files -----------------------------------------------------------
+# Both baseline files are TAB separated data rows after a '#' comment header:
 #   module	pct	packages	notest	measured	mode
-# `mode` is `aggregate` for a numeric floor or `none` for a module with no test
-# statements at all (explicitly allowlisted, so an untested module is a
-# recorded decision instead of an invisible gap).
+#   package	pct	notest			measured	mode
+# `mode` is `aggregate` for a numeric floor, `none` for a unit with no test
+# statements at all (an explicit record instead of an invisible gap).
 
-baseline_rows() {
-	[ -f "$1" ] || return 0
+module_actual() { # wd -> key|pct|notest
+	awk -F'\t' '$1 != "" { print $1 "|" $2 "|" $6 }' "$1/module-coverage.txt"
+}
+
+package_actual() { # wd -> key|pct|notest
+	awk -F'|' '$2 != "" {
+		pct = ($4 + 0 > 0) ? sprintf("%.1f", 100 * $3 / $4) : "none"
+		printf "%s|%s|%d\n", $1, pct, ($5 + 0 == 0) ? 1 : 0
+	}' "$1/pkg-coverage.txt"
+}
+
+module_baseline_rows() { # file -> key|pct|notest|mode
 	awk -F'\t' '/^#/ || NF == 0 { next } { print $1 "|" $2 "|" $4 "|" $6 }' "$1"
 }
 
-write_baseline() {
+package_baseline_rows() { # file -> key|pct|notest|mode
+	awk -F'\t' '/^#/ || NF == 0 { next } { print $1 "|" $2 "|" $3 "|" $5 }' "$1"
+}
+
+write_module_baseline() {
 	local wd="$1" out="$2" date
 	date="$(date +%Y-%m-%d)"
 	{
@@ -301,87 +326,109 @@ write_baseline() {
 	} >"$out"
 }
 
-# run_gate compares a module-coverage file against a baseline.
-# Args: WD BASELINE MODULES_FILE QUIET
-# Exit: 0 when nothing regressed, 1 on any drift/dangling/unmeasured row.
-run_gate() {
-	local wd="$1" baseline="$2" modules_file="$3" quiet="$4"
-	local bl="$wd/.baseline-join.txt" act="$wd/.actual-join.txt" out="$wd/.gate-rows.txt"
-	baseline_rows "$baseline" >"$bl"
-	awk -F'\t' '$1 != "" { print $1 "|" $2 "|" $6 }' "$wd/module-coverage.txt" >"$act"
+write_package_baseline() {
+	local wd="$1" out="$2" date
+	date="$(date +%Y-%m-%d)"
+	{
+		printf '%s\n' \
+			"# Package-level coverage floors — one row per package in a testModules module." \
+			"# Generated by: bash scripts/check-coverage.sh --update" \
+			"# Do NOT hand-edit. A module floor cannot see a single rotting package," \
+			"# because the module denominator grows with the rest of the code." \
+			"#" \
+			"# package	pct	notest	measured	mode" \
+			"# notest  = 1 when the package has no test files at all" \
+			"# mode    = aggregate (numeric floor) | none (no test statements)"
+		awk -F'|' -v d="$date" '
+			{
+				has = $5 + 0
+				pct = ($4 + 0 > 0) ? sprintf("%.1f", 100 * $3 / $4) : "none"
+				mode = (pct == "none") ? "none" : "aggregate"
+				printf "%s\t%s\t%d\t%s\t%s\n", $1, pct, (has == 0) ? 1 : 0, d, mode
+			}' "$wd/pkg-coverage.txt" | sort
+	} >"$out"
+}
 
-	local rc=0
-	awk -F'|' -v tol="$TOLERANCE" -v ltol="$LOWER_TOLERANCE" \
-		-v mods_file="$modules_file" -v bl_file="$bl" '
-		FILENAME == mods_file { mods[++nmod] = $1; inlist[$1] = 1; next }
+# compare_floors joins a key list, a prepared baseline and prepared actuals.
+# Args: KEYS PREPARED_BASELINE PREPARED_ACTUAL QUIET UP_TOL LOWER_TOL LABEL
+# Exit: 0 when nothing regressed, 1 on any drift/dangling/unmeasured row.
+compare_floors() {
+	local keys="$1" bl_in="$2" act_in="$3" quiet="$4" tol="$5" ltol="$6" label="$7"
+	local out rc=0
+	out="$(mktemp)"
+	awk -F'|' -v tol="$tol" -v ltol="$ltol" -v label="$label" \
+		-v keys_file="$keys" -v bl_file="$bl_in" '
+		FILENAME == keys_file { keys[++n] = $1; inlist[$1] = 1; next }
 		FILENAME == bl_file { bl[$1] = $2; bnotest[$1] = $3; bmode[$1] = $4; bseen[$1] = 1; next }
 		{ act[$1] = $2; anotest[$1] = $3 }
 		END {
 			fail = 0
-			for (i = 1; i <= nmod; i++) {
-				m = mods[i]
-				if (!(m in bseen)) {
-					printf "0|%s|-|%s|MISSING|module has no baseline row (unmeasured surface)\n", m, act[m]
+			for (i = 1; i <= n; i++) {
+				k = keys[i]
+				if (!(k in bseen)) {
+					printf "0|%s|%s|-|%s|MISSING|no baseline row (unmeasured surface); add it with --update\n", label, k, act[k]
 					fail = 1
 					continue
 				}
-				status = "ok"; note = ""; a = act[m]; b = bl[m]
+				status = "ok"; note = ""; a = act[k]; b = bl[k]
 				aclass = (a == "none" || a == "") ? "none" : "num"
-				if (bmode[m] == "none") {
-					if (aclass == "num") { status = "STALE"; note = "module gained tests; refresh with --update" }
+				if (bmode[k] == "none") {
+					if (aclass == "num") { status = "STALE"; note = "gained tests; refresh with --update" }
 				} else if (aclass == "none") {
-					status = "DRIFT"; note = "coverage data vanished (tests deleted or packages removed)"
+					status = "DRIFT"; note = "coverage data vanished (tests deleted or code removed)"
 				} else {
 					d = a - b
 					if (-d > ltol) { status = "DRIFT"; note = "regression beyond lower tolerance" }
 					else if (d > tol) { status = "STALE"; note = "improved; refresh with --update" }
 				}
-				if (status != "DRIFT" && anotest[m] + 0 > bnotest[m] + 0) {
+				if (status != "DRIFT" && anotest[k] + 0 > bnotest[k] + 0) {
 					status = "DRIFT"
-					note = "packages without tests grew: " bnotest[m] " -> " anotest[m]
+					note = "lost its tests (notest " bnotest[k] " -> " anotest[k] ")"
 				}
 				if (status == "DRIFT") fail = 1
 				flag = (status == "ok") ? 1 : 0
-				printf "%d|%s|%s|%s|%s|%s\n", flag, m, b, a, status, note
+				printf "%d|%s|%s|%s|%s|%s|%s\n", flag, label, k, b, a, status, note
 			}
-			for (m in bseen)
-				if (!(m in inlist)) {
-					printf "0|%s|%s|-|DANGLING|baseline row resolves to no testModules entry\n", m, bl[m]
+			for (k in bseen)
+				if (!(k in inlist)) {
+					printf "0|%s|%s|%s|-|DANGLING|baseline row resolves to nothing\n", label, k, bl[k]
 					fail = 1
 				}
 			exit fail
-		}' "$modules_file" "$bl" "$act" >"$out" || rc=$?
+		}' "$keys" "$bl_in" "$act_in" >"$out" || rc=$?
 
-	sort -t'|' -k1,1n -k2,2 "$out" |
+	sort -t'|' -k1,1n -k3,3 "$out" |
 		awk -F'|' -v quiet="$quiet" '
-			$5 != "ok" { printf "%-44s %9s %9s  %-9s %s\n", $2, $3, $4, $5, $6; next }
-			quiet == 0 { printf "%-44s %9s %9s  %-9s\n", $2, $3, $4, $5 }
+			$6 != "ok" { printf "%-7s %-58s %6s %6s  %-9s %s\n", $2, $3, $4, $5, $6, $7; next }
+			quiet == 0 { printf "%-7s %-58s %6s %6s  %-9s\n", $2, $3, $4, $5, $6 }
 		'
+	rm -f "$out"
 	return "$rc"
 }
 
 # --- self-test -------------------------------------------------------------
 # Fault-injection proof that the compare logic can go red. The fixtures replay
-# the production code path (module-coverage.txt + baseline + modules.txt), so a
-# green self-test means the gate is wired to fail for the right reasons.
+# the production code path (keys + baseline + actuals), so a green self-test
+# means the gate is wired to fail for the right reasons.
 self_test() {
 	local tmp failures=0 rc out
 	tmp="$(mktemp -d)"
 	# shellcheck disable=SC2064  # $tmp must expand now, not at trap time
 	trap "rm -rf '$tmp'" EXIT
 
-	_fixture() { # $1=dir $2=modules $3=module-coverage rows $4=baseline rows
+	_fixture() { # $1=dir $2=keys $3=actual rows $4=baseline rows
 		mkdir -p "$1"
-		printf '%s\n' "$2" >"$1/modules.txt"
-		printf '%s\n' "$3" >"$1/module-coverage.txt"
-		{
-			printf '# fixture baseline\n# module\tpct\tpackages\tnotest\tmeasured\tmode\n'
-			printf '%s\n' "$4"
-		} >"$1/baseline.txt"
+		printf '%s\n' "$2" >"$1/keys.txt"
+		printf '%s\n' "$3" >"$1/actual.txt"
+		printf '%s\n' "$4" >"$1/baseline.txt"
+	}
+
+	_gate() { # $1=dir $2=up tolerance $3=lower tolerance
+		compare_floors "$1/keys.txt" "$1/baseline.txt" "$1/actual.txt" 1 "$2" "$3" unit
 	}
 
 	_expect_green() { # $1=dir $2=label
-		if ! run_gate "$1" "$1/baseline.txt" "$1/modules.txt" 1 >/dev/null; then
+		if ! _gate "$1" 0.5 0.5 >/dev/null; then
 			echo "self-test FAIL: $2 must be green" >&2
 			failures=$((failures + 1))
 		fi
@@ -389,7 +436,7 @@ self_test() {
 
 	_expect_red() { # $1=dir $2=label $3=expected status
 		rc=0
-		out="$(run_gate "$1" "$1/baseline.txt" "$1/modules.txt" 1)" || rc=$?
+		out="$(_gate "$1" 0.5 0.5)" || rc=$?
 		if [ "$rc" -eq 0 ]; then
 			echo "self-test FAIL: $2 must be red" >&2
 			failures=$((failures + 1))
@@ -400,51 +447,58 @@ self_test() {
 	}
 
 	# Happy path: matching numbers.
-	_fixture "$tmp/ok" "alpha" "alpha	80.0	8	10	1	0" "alpha	80.0	1	0	2026-10-26	aggregate"
+	_fixture "$tmp/ok" "alpha" "alpha|80.0|0" "alpha|80.0|0|aggregate"
 	_expect_green "$tmp/ok" "matching numbers"
 
-	# Regression: -3.0 points.
-	_fixture "$tmp/drift" "alpha" "alpha	77.0	7	10	1	0" "alpha	80.0	1	0	2026-10-26	aggregate"
+	# Regression beyond the lower tolerance.
+	_fixture "$tmp/drift" "alpha" "alpha|77.0|0" "alpha|80.0|0|aggregate"
 	_expect_red "$tmp/drift" "a 3-point regression" "DRIFT"
 
 	# Improvement: green, labelled STALE.
-	_fixture "$tmp/stale" "alpha" "alpha	90.0	9	10	1	0" "alpha	80.0	1	0	2026-10-26	aggregate"
+	_fixture "$tmp/stale" "alpha" "alpha|90.0|0" "alpha|80.0|0|aggregate"
 	rc=0
-	out="$(run_gate "$tmp/stale" "$tmp/stale/baseline.txt" "$tmp/stale/modules.txt" 1)" || rc=$?
+	out="$(_gate "$tmp/stale" 0.5 0.5)" || rc=$?
 	if [ "$rc" -ne 0 ] || ! printf '%s' "$out" | grep -q STALE; then
 		echo "self-test FAIL: an improvement must be green and STALE" >&2
 		failures=$((failures + 1))
 	fi
 
-	# Dangling baseline row: a deleted module.
-	_fixture "$tmp/dangling" "alpha" "alpha	80.0	8	10	1	0" \
-		"alpha	80.0	1	0	2026-10-26	aggregate
-ghost	50.0	1	0	2026-10-26	aggregate"
+	# Dangling baseline row: a deleted unit.
+	_fixture "$tmp/dangling" "alpha" "alpha|80.0|0" \
+		"alpha|80.0|0|aggregate
+ghost|50.0|0|aggregate"
 	_expect_red "$tmp/dangling" "a dangling baseline row" "DANGLING"
 
-	# Unmeasured module: in testModules, absent from the baseline.
+	# Unmeasured unit: present in the tree, absent from the baseline.
 	_fixture "$tmp/unmeasured" "alpha
-beta" "alpha	80.0	8	10	1	0
-beta	70.0	7	10	1	0" "alpha	80.0	1	0	2026-10-26	aggregate"
-	_expect_red "$tmp/unmeasured" "an unmeasured module" "MISSING"
+beta" "alpha|80.0|0
+beta|70.0|0" "alpha|80.0|0|aggregate"
+	_expect_red "$tmp/unmeasured" "an unmeasured unit" "MISSING"
 
-	# Untested-package growth: same percentage, more packages without tests.
-	_fixture "$tmp/notest" "alpha" "alpha	80.0	8	10	3	1" "alpha	80.0	3	0	2026-10-26	aggregate"
-	_expect_red "$tmp/notest" "packages without tests growing" "DRIFT"
+	# A package that lost its tests while the percentage held.
+	_fixture "$tmp/notest" "alpha" "alpha|80.0|1" "alpha|80.0|0|aggregate"
+	_expect_red "$tmp/notest" "a unit that lost its tests" "DRIFT"
 
-	# Data vanished: module had numbers, now contributes no statements.
-	_fixture "$tmp/vanished" "alpha" "alpha	none	0	0	1	1" "alpha	80.0	1	0	2026-10-26	aggregate"
+	# Data vanished: unit had numbers, now contributes no statements.
+	_fixture "$tmp/vanished" "alpha" "alpha|none|1" "alpha|80.0|0|aggregate"
 	_expect_red "$tmp/vanished" "vanished coverage data" "DRIFT"
 
-	# Explicitly untested module stays green (a recorded decision, not a gap).
-	_fixture "$tmp/none" "alpha" "alpha	none	0	0	1	1" "alpha	none	1	1	2026-10-26	none"
-	_expect_green "$tmp/none" "an allowlisted untested module"
+	# Explicitly untested unit stays green (a recorded decision, not a gap).
+	_fixture "$tmp/none" "alpha" "alpha|none|1" "alpha|none|1|none"
+	_expect_green "$tmp/none" "an allowlisted untested unit"
+
+	# Tolerance is actually read: the same -3.0 drop is green at -6.0.
+	_fixture "$tmp/ci" "alpha" "alpha|77.0|0" "alpha|80.0|0|aggregate"
+	if ! _gate "$tmp/ci" 0.5 6.0 >/dev/null; then
+		echo "self-test FAIL: the lower tolerance must widen the allowance on CI" >&2
+		failures=$((failures + 1))
+	fi
 
 	if [ "$failures" -gt 0 ]; then
 		echo "::error::check-coverage self-test: $failures case(s) failed" >&2
 		exit 1
 	fi
-	echo "✓ check-coverage self-test: 8/8 fault-injection cases behave"
+	echo "✓ check-coverage self-test: 9/9 fault-injection cases behave"
 }
 
 if [ "$MODE" = "selftest" ]; then
@@ -455,11 +509,13 @@ fi
 measure "$WORKDIR"
 
 if [ "$MODE" = "update" ]; then
-	write_baseline "$WORKDIR" "$BASELINE"
+	write_module_baseline "$WORKDIR" "$BASELINE"
+	write_package_baseline "$WORKDIR" "$PKG_BASELINE"
 	echo "✓ Wrote $(grep -vc '^#' "$BASELINE") module floors to $BASELINE"
+	echo "✓ Wrote $(grep -vc '^#' "$PKG_BASELINE") package floors to $PKG_BASELINE"
 	echo "  Quote the measured numbers in the commit message; do not hand-edit rows."
-	printf '%-44s %8s %10s %8s %8s\n' MODULE COVERED TOTAL PCT NOTEST
-	awk -F'\t' '{ printf "%-44s %8d %10d %8s %8d\n", $1, $3, $4, $2, $6 }' "$WORKDIR/module-coverage.txt"
+	printf '%-52s %8s %10s %8s %8s\n' MODULE COVERED TOTAL PCT NOTEST
+	awk -F'\t' '{ printf "%-52s %8d %10d %8s %8d\n", $1, $3, $4, $2, $6 }' "$WORKDIR/module-coverage.txt"
 	exit 0
 fi
 
@@ -476,14 +532,37 @@ if [ -n "$REPORT_DIR" ]; then
 	echo "==> wrote $REPORT_DIR/{module,pkg}-coverage.tsv and coverage-report.md" >&2
 fi
 
-printf '%-44s %9s %9s  %-9s %s\n' MODULE BASELINE ACTUAL STATUS NOTE
-printf '%-44s %9s %9s  %-9s %s\n' ------ -------- ------ ------ ----
-if run_gate "$WORKDIR" "$BASELINE" "$WORKDIR/modules.txt" "$QUIET"; then
+[ -f "$BASELINE" ] || die "module baseline '$BASELINE' is missing — run: bash scripts/check-coverage.sh --update"
+[ -f "$PKG_BASELINE" ] || die "package baseline '$PKG_BASELINE' is missing — run: bash scripts/check-coverage.sh --update"
+
+bl_tmp="$(mktemp)"
+pkgbl_tmp="$(mktemp)"
+act_tmp="$(mktemp)"
+pkgact_tmp="$(mktemp)"
+pkgkeys_tmp="$(mktemp)"
+trap 'rm -f "$bl_tmp" "$pkgbl_tmp" "$act_tmp" "$pkgact_tmp" "$pkgkeys_tmp"' EXIT
+
+module_baseline_rows "$BASELINE" >"$bl_tmp"
+package_baseline_rows "$PKG_BASELINE" >"$pkgbl_tmp"
+module_actual "$WORKDIR" >"$act_tmp"
+package_actual "$WORKDIR" >"$pkgact_tmp"
+package_actual "$WORKDIR" | cut -d'|' -f1 >"$pkgkeys_tmp"
+
+printf '%-7s %-58s %6s %6s  %-9s %s\n' SCOPE UNIT BASELINE ACTUAL STATUS NOTE
+printf '%-7s %-58s %6s %6s  %-9s %s\n' ----- ---- -------- ------ ------ ----
+
+status=0
+compare_floors "$WORKDIR/modules.txt" "$bl_tmp" "$act_tmp" "$QUIET" \
+	"$TOLERANCE" "$LOWER_TOLERANCE" module || status=1
+compare_floors "$pkgkeys_tmp" "$pkgbl_tmp" "$pkgact_tmp" "$QUIET" \
+	"$PKG_TOLERANCE" "$LOWER_TOLERANCE" package || status=1
+
+if [ "$status" -eq 0 ]; then
 	echo ""
-	echo "✓ All $(grep -vc '^#' "$BASELINE") module floors hold (+${TOLERANCE}% / -${LOWER_TOLERANCE}%)."
+	echo "✓ All $(grep -vc '^#' "$BASELINE") module and $(grep -vc '^#' "$PKG_BASELINE") package floors hold (+${TOLERANCE}%/${PKG_TOLERANCE}% / -${LOWER_TOLERANCE}%)."
 	exit 0
 fi
 echo ""
-echo "::error::coverage drifted beyond +${TOLERANCE}%/-${LOWER_TOLERANCE}% tolerance."
+echo "::error::coverage drifted beyond the tolerances (+${TOLERANCE}% module / +${PKG_TOLERANCE}% package, -${LOWER_TOLERANCE}%)."
 echo "Regressions: fix the tests. Intentional re-baseline: bash scripts/check-coverage.sh --update"
 exit 1
