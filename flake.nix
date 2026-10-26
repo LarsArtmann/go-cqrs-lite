@@ -1125,7 +1125,8 @@
             # (produced by GT_JSON=1 nix run .#test). Catches a package that
             # changed CLASS (seconds to minutes), not a 20% wobble.
             check-test-runtime =
-              mkApp "check-test-runtime" [ pkgs.bash pkgs.coreutils pkgs.gawk pkgs.gnugrep pkgs.gnused pkgs.findutils ]
+              mkApp "check-test-runtime"
+                [ pkgs.bash pkgs.coreutils pkgs.gawk pkgs.gnugrep pkgs.gnused pkgs.findutils ]
                 ''
                   ${pkgs.bash}/bin/bash "$PWD/scripts/check-test-runtime.sh" "$@"
                 '';
@@ -1134,7 +1135,8 @@
             # GT_PATHS still derive from testModules, lint covers the same set,
             # and every repeat module still exists.
             check-test-matrix =
-              mkApp "check-test-matrix" [ pkgs.bash pkgs.coreutils pkgs.gawk pkgs.gnugrep pkgs.gnused pkgs.findutils ]
+              mkApp "check-test-matrix"
+                [ pkgs.bash pkgs.coreutils pkgs.gawk pkgs.gnugrep pkgs.gnused pkgs.findutils ]
                 ''
                   ${pkgs.bash}/bin/bash "$PWD/scripts/check-test-matrix.sh" "$@"
                 '';
