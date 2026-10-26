@@ -73,6 +73,11 @@ jobs:
       - name: Coverage-floor compare self-test
         run: nix run .#check-coverage -- --self-test
 
+      - name: Test-sleep ratchet
+        run: |
+          nix run .#check-test-sleeps -- --self-test
+          nix run .#check-test-sleeps
+
       - name: Duplication check
         run: nix run .#check-duplication
 

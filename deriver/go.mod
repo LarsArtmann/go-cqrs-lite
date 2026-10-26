@@ -7,6 +7,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.2
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.3
 	github.com/larsartmann/go-error-family v0.12.0
+	go.uber.org/goleak v1.3.0
 )
 
 require (
@@ -18,5 +19,4 @@ require (
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
-	go.uber.org/goleak v1.3.0 // indirect
 )
