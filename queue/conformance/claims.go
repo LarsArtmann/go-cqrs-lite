@@ -98,20 +98,26 @@ func (s *suite) pinExpiryReclaim(t *testing.T) {
 	// The lease must comfortably cover the pre-expiry probe even under
 	// -race slowdowns (a 40ms lease raced the probe and flaked); the
 	// expiry wait then exceeds it by a fixed margin.
-	_, err := e.store.ClaimDue(t.Context(), "crashed", 500*time.Millisecond)
-	if err != nil {
+	const lease = 500 * time.Millisecond
+
+	claimedAt := time.Now()
+
+	if _, err := e.store.ClaimDue(t.Context(), "crashed", lease); err != nil {
 		t.Fatal(err)
 	}
 
 	// Before expiry, the lease fences everyone.
-	if _, err := e.store.ClaimDue(
-		t.Context(),
-		"w2",
-		time.Minute,
-	); !errors.Is(
-		err,
-		queue.ErrNoTaskDue,
-	) {
+	_, err := e.store.ClaimDue(t.Context(), "w2", time.Minute)
+	if !errors.Is(err, queue.ErrNoTaskDue) {
+		// A starved machine (a 27-minute engine soak in a sibling package is
+		// enough) can deschedule this process for longer than the lease, which
+		// makes "before expiry" unobservable rather than violated. Measuring
+		// elapsed time is the only honest discriminator: the assertion is
+		// strict whenever we actually were inside the lease.
+		if elapsed := time.Since(claimedAt); elapsed >= lease {
+			t.Skipf("pre-expiry probe ran %v after the claim, past the %v lease — "+
+				"the process was descheduled, so lease fencing is untestable in this run", elapsed, lease)
+		}
 		t.Fatalf("pre-expiry claim: error = %v, want ErrNoTaskDue", err)
 	}
 

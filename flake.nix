@@ -992,14 +992,21 @@
           };
 
           apps = {
+            # SOAK_SKIP_BOLT: the bbolt AutoCRUD soak measures 8-20 minutes
+            # (27 minutes observed 2026-10-27 on a loaded host) and, running in
+            # the same `go test` invocation, starves every OTHER package — that
+            # run produced two load-induced failures elsewhere (benchkit's
+            # journey budget and a lease-expiry probe). Soaks belong to
+            # #soak-weekly, which is where they actually get executed; this app
+            # is the per-push truth and must stay representative of normal load.
             test = mkApp "test" goModules ''
-              export CGO_ENABLED=1
+              export CGO_ENABLED=1 SOAK_SKIP_BOLT=1
               export GT_LABEL=test GT_TIMEOUT=30m GT_PATHS="${modulePaths}" GT_TAGS="${builtins.concatStringsSep "," goTags}"
               ${pkgs.bash}/bin/bash "$PWD/scripts/go-test-shuffled.sh" "$@"
             '';
 
             test-race = mkApp "test-race" goModules ''
-              export CGO_ENABLED=1
+              export CGO_ENABLED=1 SOAK_SKIP_BOLT=1
               export GT_LABEL=test-race GT_RACE=1 GT_TIMEOUT=30m GT_PATHS="${modulePaths}" GT_TAGS="${builtins.concatStringsSep "," goTags}"
               ${pkgs.bash}/bin/bash "$PWD/scripts/go-test-shuffled.sh" "$@"
             '';
