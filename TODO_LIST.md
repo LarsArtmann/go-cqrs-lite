@@ -3082,10 +3082,17 @@ re-checked by T23, never re-executed.
 > Pareto plan, 27 medium tasks, 143 twelve-minute subtasks and an execution
 > graph: [`docs/planning/2026-10-25_04-21_SUPERB-testing-improvements-pareto-plan.md`](docs/planning/2026-10-25_04-21_SUPERB-testing-improvements-pareto-plan.md).
 > Source census (50 ideas): [`docs/planning/2026-10-24_50-testing-improvements.md`](docs/planning/2026-10-24_50-testing-improvements.md).
-> **Status 2026-10-26:** the 1%, the 4% and five of the seven 20% tasks shipped
-> (T01-T04, T07-T09); T05 shipped its skip half and recorded an erratum for the
-> zero-assertion half; T06 was verified as already covered. The tail (T10-T27)
-> stays rowed below as the remaining work.
+> **Status 2026-10-27:** the 1%, the 4% and six of the seven 20% tasks shipped
+> (T01-T05, T07-T09, plus the T05-route follow-up); T06 was verified as already
+> covered; T12, T16 (ratchet half), T21, T26 and T27 landed in the second pass.
+> The tail (T10, T13-T15, T17-T20, T22-T25) stays rowed below as the remaining
+> work, each with what blocks it.
+>
+> Second pass (2026-10-27) also closed the verification gaps the first pass
+> left: two consecutive green shuffled `#test` runs (7.3 and 7.2 minutes, seeds
+> logged, full output kept in `build/test-logs/`), `#test-repeat` executed,
+> composed `#verify` executed, `check-modsums` fixed for all nine modules,
+> `check-depguard` verified green, and `nix fmt --fail-on-change` clean.
 
 - [x] 🔥 **[T01] Coverage floor for every module** — **DONE 2026-10-26.**
       `scripts/coverage-baseline.txt` (89 modules, aggregate statements,
@@ -3185,6 +3192,15 @@ re-checked by T23, never re-executed.
       the gate now fails on a breach INDEPENDENTLY of the delta compare (which
       cannot see "both runs got slower"). Five new fixture cases pin it,
       including a breach at zero delta. — plan T09, idea 33
+- [x] 🔥 **[T03.5] Two consecutive green shuffled runs (closing proof)** — **DONE
+      2026-10-27:** seeds 181394667509926 (525s) and 61496612585225 (429s), both
+      zero FAIL, full output kept in `build/test-logs/`. Reaching that state
+      required three real fixes the runs exposed: `#test` no longer runs the
+      27-minute bbolt soak (it starved sibling packages), package parallelism is
+      capped at 4 (`GT_P`), and benchkit's Compare budgets scale with ambient
+      load (four Compare-based timeouts were fixed 10s/30s/30s/150s). A fourth
+      failure was a MISSING API golden after adding `testutil` exports — the gate
+      caught it, the golden was regenerated in the same pass.
 - [ ] **[T10] Mutation-verify gate** — a new test that does not go red under
       mutation fails CI. Now also owns T05's zero-assertion idea (see the
       erratum): mutation is the only honest detector of a test that cannot
@@ -3235,10 +3251,19 @@ re-checked by T23, never re-executed.
 - [ ] **[T20] Crash-consistency tests** — `kill -9` mid-write on
       sqlite/pebble/bbolt, reopen, assert no gaps or duplicates. — plan T20,
       idea 37 _(Effort: L)_
-- [ ] **[T21] Error-injecting capability wrapper** — Nth-call failure per
-      error family with contract tests proving optional capabilities are
-      forwarded, not dropped. Underpins T22/T23. — plan T21, idea 41
-      _(Effort: M)_
+- [x] **[T21] Error-injecting capability wrapper** — **DONE 2026-10-27.**
+      `testutil.NewFaultInjector(inner event.Store, rules...)` fails the Nth
+      call of a NAMED store method (`At` 1-based, `0` = every call) and forwards
+      every other call. `FaultRule.Method` is validated at construction (unknown
+      name, nil error, negative At all panic — a rule that can never fire is a
+      test that proves nothing), `Calls(method)` exposes the per-method counter,
+      and every optional capability (MultiSink, Journal, SeekableJournal,
+      StreamingJournal, BackwardsSource, Closer) is forwarded with a typed
+      `ErrCapabilityUnavailable` + `Capabilities()` for the case the inner store
+      lacks it — the ADR-0126 lesson (hand-written wrappers dropping MultiSink)
+      in its test-double form. Contract tests: 7 cases including a vocabulary
+      sweep (all 13 method names construct) and a behavioural forwarding proof
+      (not just type assertions). Underpins T22/T23. — plan T21, idea 41
 - [ ] **[T22] Broker partition, redelivery, DLQ, outbox crash matrix** —
       Redis/NATS disconnect, duplicate delivery, poison-to-DLQ, and the
       commit-publish crash window. — plan T22, idea 42 _(Effort: L)_
