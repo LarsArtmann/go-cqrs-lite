@@ -81,8 +81,11 @@ func TestTamperMatrix_RejectedWithStableSentinel(t *testing.T) {
 			}
 
 			if family := errorfamily.Classify(err); family != errorfamily.Rejection {
-				t.Fatalf("tamper error family = %v, want Rejection (TODAY's pinned behaviour — see the "+
-					"FAMILY TENSION note; a deliberate reclassification to Corruption must update this test)", family)
+				t.Fatalf(
+					"tamper error family = %v, want Rejection (TODAY's pinned behaviour — see the "+
+						"FAMILY TENSION note; a deliberate reclassification to Corruption must update this test)",
+					family,
+				)
 			}
 		})
 	}

@@ -223,7 +223,10 @@ func eventUniverse(domain system.DomainConfig) []event.Type {
 		}
 
 		seen[evtType] = struct{}{}
-		universe = append(universe, evtType) //art-dupl:accept sorted-union idiom; twin is v006's key collector
+		universe = append(
+			universe,
+			evtType,
+		) //art-dupl:accept sorted-union idiom; twin is v006's key collector
 	}
 
 	slices.Sort(universe)
