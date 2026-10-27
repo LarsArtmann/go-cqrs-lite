@@ -23,7 +23,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/scenario/v4 v4.4.3
 	github.com/larsartmann/go-cqrs-lite/signing/v4 v4.4.2
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.7.0
-	github.com/larsartmann/go-cqrs-lite/system/v4 v4.15.4
+	github.com/larsartmann/go-cqrs-lite/system/v4 v4.16.0
 	github.com/larsartmann/go-cqrs-lite/systemscenario/v4 v4.2.1
 	github.com/larsartmann/go-error-family v0.12.0
 	github.com/larsartmann/go-etag/server v0.6.1

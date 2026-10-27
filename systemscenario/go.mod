@@ -17,7 +17,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.7.0
 	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.7.1
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.7.0
-	github.com/larsartmann/go-cqrs-lite/system/v4 v4.15.4
+	github.com/larsartmann/go-cqrs-lite/system/v4 v4.16.0
 	github.com/larsartmann/go-error-family v0.12.0
 	go.uber.org/goleak v1.3.0
 	pgregory.net/rapid v1.3.0
