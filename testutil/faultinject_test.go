@@ -215,7 +215,9 @@ func TestFaultInjector_ForwardsCapabilities(t *testing.T) {
 
 	inner := &journalStore{}
 
-	var injector *testutil.FaultInjector = testutil.NewFaultInjector(inner)
+	var injector *testutil.FaultInjector
+
+	injector = testutil.NewFaultInjector(inner)
 	ctx := context.Background()
 	ref := testRef()
 

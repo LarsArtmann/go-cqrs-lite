@@ -38,20 +38,19 @@ const (
 	MethodClose           = "Close"
 )
 
-var knownMethods = map[string]bool{
-	MethodSave:            true,
-	MethodAppendBatch:     true,
-	MethodLoad:            true,
-	MethodLoadFromVersion: true,
-	MethodLoadToVersion:   true,
-	MethodLoadToTimestamp: true,
-	MethodSaveMultiBatch:  true,
-	MethodReadAll:         true,
-	MethodReadFrom:        true,
-	MethodReadStream:      true,
-	MethodReadStreamFrom:  true,
-	MethodLoadBackwards:   true,
-	MethodClose:           true,
+// isKnownMethod reports whether name is a store method the injector can fail.
+// A switch, not a package-level map: a global map is mutable shared state, and
+// this list is a closed vocabulary that must never grow at runtime.
+func isKnownMethod(name string) bool {
+	switch name {
+	case MethodSave, MethodAppendBatch, MethodLoad, MethodLoadFromVersion,
+		MethodLoadToVersion, MethodLoadToTimestamp, MethodSaveMultiBatch,
+		MethodReadAll, MethodReadFrom, MethodReadStream, MethodReadStreamFrom,
+		MethodLoadBackwards, MethodClose:
+		return true
+	default:
+		return false
+	}
 }
 
 // FaultRule injects Err instead of calling the inner store at one point in a
@@ -102,7 +101,7 @@ func NewFaultInjector(inner event.Store, rules ...FaultRule) *FaultInjector {
 	}
 
 	for _, rule := range rules {
-		if !knownMethods[rule.Method] {
+		if !isKnownMethod(rule.Method) {
 			panic(fmt.Sprintf("testutil: FaultRule.Method %q is not a store method", rule.Method))
 		}
 
@@ -124,6 +123,7 @@ func NewFaultInjector(inner event.Store, rules ...FaultRule) *FaultInjector {
 	return &FaultInjector{
 		inner: inner,
 		rules: rules,
+		mu:    sync.Mutex{},
 		calls: map[string]int{},
 	}
 }
@@ -205,7 +205,7 @@ func (f *FaultInjector) Save(
 		return err
 	}
 
-	return f.inner.Save(ctx, ref, events, expectedVersion)
+	return f.inner.Save(ctx, ref, events, expectedVersion) //nolint:wrapcheck // deliberate pass-through: the injector must not rewrite the inner error
 }
 
 // AppendBatch appends without a concurrency check.
@@ -218,7 +218,7 @@ func (f *FaultInjector) AppendBatch(
 		return err
 	}
 
-	return f.inner.AppendBatch(ctx, ref, events)
+	return f.inner.AppendBatch(ctx, ref, events) //nolint:wrapcheck // deliberate pass-through: the injector must not rewrite the inner error
 }
 
 // Load retrieves every event of a stream.
@@ -227,7 +227,7 @@ func (f *FaultInjector) Load(ctx context.Context, ref id.StreamRef) ([]event.Eve
 		return nil, err
 	}
 
-	return f.inner.Load(ctx, ref)
+	return f.inner.Load(ctx, ref) //nolint:wrapcheck // deliberate pass-through: the injector must not rewrite the inner error
 }
 
 // LoadFromVersion retrieves events after version (exclusive).
@@ -240,7 +240,7 @@ func (f *FaultInjector) LoadFromVersion(
 		return nil, err
 	}
 
-	return f.inner.LoadFromVersion(ctx, ref, version)
+	return f.inner.LoadFromVersion(ctx, ref, version) //nolint:wrapcheck // deliberate pass-through: the injector must not rewrite the inner error
 }
 
 // LoadToVersion retrieves events up to and including maxVersion.
@@ -253,7 +253,7 @@ func (f *FaultInjector) LoadToVersion(
 		return nil, err
 	}
 
-	return f.inner.LoadToVersion(ctx, ref, maxVersion)
+	return f.inner.LoadToVersion(ctx, ref, maxVersion) //nolint:wrapcheck // deliberate pass-through: the injector must not rewrite the inner error
 }
 
 // LoadToTimestamp retrieves events where OccurredAt <= maxTime.
@@ -266,5 +266,5 @@ func (f *FaultInjector) LoadToTimestamp(
 		return nil, err
 	}
 
-	return f.inner.LoadToTimestamp(ctx, ref, maxTime)
+	return f.inner.LoadToTimestamp(ctx, ref, maxTime) //nolint:wrapcheck // deliberate pass-through: the injector must not rewrite the inner error
 }

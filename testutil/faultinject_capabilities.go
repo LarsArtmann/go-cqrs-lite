@@ -7,13 +7,13 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
-// Capability forwarding lives in its own file so the base store wrapper stays
-// readable: every optional interface (ADR-0126) is a deliberate addition here,
-// and an interface that is missing from this file is a capability the injector
-// silently drops.
-//
 // SaveMultiBatch forwards to the inner MultiSink, or fails loudly when the
 // wrapped store has none.
+//
+// Capability forwarding lives in its own file so the base store wrapper stays
+// readable: every optional interface (ADR-0126) is a deliberate addition here,
+// and an interface missing from this file is a capability the injector silently
+// drops.
 func (f *FaultInjector) SaveMultiBatch(ctx context.Context, entries []event.MultiBatchEntry) error {
 	if err := f.arm(MethodSaveMultiBatch); err != nil {
 		return err
@@ -24,7 +24,7 @@ func (f *FaultInjector) SaveMultiBatch(ctx context.Context, entries []event.Mult
 		return unavailable(MethodSaveMultiBatch)
 	}
 
-	return multi.SaveMultiBatch(ctx, entries)
+	return multi.SaveMultiBatch(ctx, entries) //nolint:wrapcheck // deliberate pass-through
 }
 
 // ReadAll forwards to the inner Journal.
@@ -38,7 +38,7 @@ func (f *FaultInjector) ReadAll(ctx context.Context) ([]event.Event, error) {
 		return nil, unavailable(MethodReadAll)
 	}
 
-	return journal.ReadAll(ctx)
+	return journal.ReadAll(ctx) //nolint:wrapcheck // deliberate pass-through
 }
 
 // ReadFrom forwards to the inner SeekableJournal.
@@ -56,11 +56,13 @@ func (f *FaultInjector) ReadFrom(
 		return nil, unavailable(MethodReadFrom)
 	}
 
-	return seekable.ReadFrom(ctx, afterEventID, limit)
+	return seekable.ReadFrom(ctx, afterEventID, limit) //nolint:wrapcheck // deliberate pass-through
 }
 
 // ReadStream forwards to the inner StreamingJournal.
-func (f *FaultInjector) ReadStream(ctx context.Context) (event.EventIterator, error) {
+func (f *FaultInjector) ReadStream( //nolint:ireturn // mirrors event.StreamingJournal, which returns the interface by contract
+	ctx context.Context,
+) (event.EventIterator, error) {
 	if err := f.arm(MethodReadStream); err != nil {
 		return nil, err
 	}
@@ -70,11 +72,11 @@ func (f *FaultInjector) ReadStream(ctx context.Context) (event.EventIterator, er
 		return nil, unavailable(MethodReadStream)
 	}
 
-	return streaming.ReadStream(ctx)
+	return streaming.ReadStream(ctx) //nolint:wrapcheck // deliberate pass-through
 }
 
 // ReadStreamFrom forwards to the inner StreamingJournal.
-func (f *FaultInjector) ReadStreamFrom(
+func (f *FaultInjector) ReadStreamFrom( //nolint:ireturn // mirrors event.StreamingJournal, which returns the interface by contract
 	ctx context.Context,
 	afterEventID id.EventID,
 	limit int,
@@ -88,7 +90,7 @@ func (f *FaultInjector) ReadStreamFrom(
 		return nil, unavailable(MethodReadStreamFrom)
 	}
 
-	return streaming.ReadStreamFrom(ctx, afterEventID, limit)
+	return streaming.ReadStreamFrom(ctx, afterEventID, limit) //nolint:wrapcheck // deliberate pass-through
 }
 
 // LoadBackwards forwards to the inner BackwardsSource.
@@ -105,7 +107,7 @@ func (f *FaultInjector) LoadBackwards(
 		return nil, unavailable(MethodLoadBackwards)
 	}
 
-	return backwards.LoadBackwards(ctx, ref)
+	return backwards.LoadBackwards(ctx, ref) //nolint:wrapcheck // deliberate pass-through
 }
 
 // Close forwards to the inner store when it is closable.
@@ -119,5 +121,5 @@ func (f *FaultInjector) Close() error {
 		return nil
 	}
 
-	return closer.Close()
+	return closer.Close() //nolint:wrapcheck // deliberate pass-through
 }

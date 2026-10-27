@@ -31,7 +31,10 @@ func cancellationMatrix(t *testing.T) map[string]context.Context {
 	canceled, cancel := context.WithCancel(context.Background())
 	cancel()
 
-	expired, expiredCancel := context.WithDeadline(context.Background(), time.Now().Add(-time.Second))
+	expired, expiredCancel := context.WithDeadline(
+		context.Background(),
+		time.Now().Add(-time.Second),
+	)
 	t.Cleanup(expiredCancel)
 
 	return map[string]context.Context{
@@ -46,7 +49,11 @@ func TestContextCancellation_ReadPathSurfacesTheError(t *testing.T) {
 	store, _ := roleTestStore(t)
 
 	// Seed with a live context so the only reason to fail is cancellation.
-	if err := store.Apply(context.Background(), "role_item_created", roleItemCreated{ID: "a", Name: "A"}); err != nil {
+	if err := store.Apply(
+		context.Background(),
+		"role_item_created",
+		roleItemCreated{ID: "a", Name: "A"},
+	); err != nil {
 		t.Fatalf("seed Apply: %v", err)
 	}
 
@@ -59,7 +66,10 @@ func TestContextCancellation_ReadPathSurfacesTheError(t *testing.T) {
 				t.Fatalf("query with a %s context returned no error", name)
 			}
 			if !errors.Is(err, context.Canceled) && !errors.Is(err, context.DeadlineExceeded) {
-				t.Fatalf("query error = %v, want it to wrap context.Canceled or context.DeadlineExceeded", err)
+				t.Fatalf(
+					"query error = %v, want it to wrap context.Canceled or context.DeadlineExceeded",
+					err,
+				)
 			}
 		})
 	}
@@ -77,18 +87,31 @@ func TestContextCancellation_WritePathNeverPanicsAndStaysUsable(t *testing.T) {
 			// Each of these must return without panicking. The error is
 			// deliberately not asserted: see the KNOWN GAP note above.
 			_ = store.Apply(ctx, "role_item_created", roleItemCreated{ID: "c", Name: "C"})
-			_ = store.ApplyIdempotent(ctx, "idem-cancel-1", "role_item_created", roleItemCreated{ID: "d", Name: "D"})
+			_ = store.ApplyIdempotent(
+				ctx,
+				"idem-cancel-1",
+				"role_item_created",
+				roleItemCreated{ID: "d", Name: "D"},
+			)
 			_ = store.InTransaction(ctx, func(context.Context) error { return nil })
 			_ = store.ApplyBatch(ctx, nil)
 
 			// The store must still serve a normal request afterwards: a
 			// canceled call that poisons shared state would be far worse than
 			// one that returns nil.
-			if err := store.Apply(context.Background(), "role_item_created", roleItemCreated{ID: "after", Name: "After"}); err != nil {
+			if err := store.Apply(
+				context.Background(),
+				"role_item_created",
+				roleItemCreated{ID: "after", Name: "After"},
+			); err != nil {
 				t.Fatalf("Apply after a %s call failed: %v", name, err)
 			}
 
-			if _, err := store.ExecuteQueryByName(context.Background(), "role_items", roleFindItem{ID: "after"}); err != nil {
+			if _, err := store.ExecuteQueryByName(
+				context.Background(),
+				"role_items",
+				roleFindItem{ID: "after"},
+			); err != nil {
 				t.Fatalf("query after a %s call failed: %v", name, err)
 			}
 		})
@@ -128,7 +151,11 @@ func TestContextCancellation_CancelInsideTransaction(t *testing.T) {
 		t.Fatalf("InTransaction error = %v, want nil or context.Canceled", err)
 	}
 
-	if applyErr := store.Apply(context.Background(), "role_item_created", roleItemCreated{ID: "post-tx", Name: "P"}); applyErr != nil {
+	if applyErr := store.Apply(
+		context.Background(),
+		"role_item_created",
+		roleItemCreated{ID: "post-tx", Name: "P"},
+	); applyErr != nil {
 		t.Fatalf("Apply after a canceled transaction failed: %v", applyErr)
 	}
 }
