@@ -57,7 +57,11 @@ func TestParseEncodingInvariants(t *testing.T) {
 			t.Fatalf("Encoding(%d).String() = %q, want \"\" for a non-canonical value", raw, name)
 		}
 		if _, err := record.ParseEncoding(name); !errors.Is(err, record.ErrUnknownEncoding) {
-			t.Fatalf("ParseEncoding(%q) error = %v, want ErrUnknownEncoding (the empty name is not a codec)", name, err)
+			t.Fatalf(
+				"ParseEncoding(%q) error = %v, want ErrUnknownEncoding (the empty name is not a codec)",
+				name,
+				err,
+			)
 		}
 	}
 }
@@ -79,7 +83,11 @@ func FuzzParseEncodingTotality(f *testing.F) {
 				t.Fatalf("ParseEncoding(%q) error = %v, want ErrUnknownEncoding", name, err)
 			}
 			if enc != record.EncodingUnknown {
-				t.Fatalf("ParseEncoding(%q) returned %d with an error, want EncodingUnknown", name, enc)
+				t.Fatalf(
+					"ParseEncoding(%q) returned %d with an error, want EncodingUnknown",
+					name,
+					enc,
+				)
 			}
 
 			return

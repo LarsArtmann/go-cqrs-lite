@@ -1151,7 +1151,8 @@
             # Ratchet: a NEW documented error code must be named by a test.
             # The 540-code historical tail is frozen, shrink-only.
             check-error-taxonomy-tests =
-              mkApp "check-error-taxonomy-tests" [ pkgs.bash pkgs.coreutils pkgs.gawk pkgs.gnugrep pkgs.findutils ]
+              mkApp "check-error-taxonomy-tests"
+                [ pkgs.bash pkgs.coreutils pkgs.gawk pkgs.gnugrep pkgs.findutils ]
                 ''
                   ${pkgs.bash}/bin/bash "$PWD/scripts/check-error-taxonomy-tests.sh" "$@"
                 '';

@@ -126,7 +126,15 @@ func TestFaultInjector_RuleFiresAtConfiguredCall(t *testing.T) {
 		t.Fatalf("first Save must reach the inner store, got %v", err)
 	}
 
-	if err := injector.Save(ctx, ref, []event.Event{newEvent(t, 2)}, 1); !errors.Is(err, errInjected) {
+	if err := injector.Save(
+		ctx,
+		ref,
+		[]event.Event{newEvent(t, 2)},
+		1,
+	); !errors.Is(
+		err,
+		errInjected,
+	) {
 		t.Fatalf("second Save = %v, want the injected error", err)
 	}
 
@@ -139,7 +147,10 @@ func TestFaultInjector_RuleFiresAtConfiguredCall(t *testing.T) {
 	}
 
 	if len(inner.events) != 2 {
-		t.Fatalf("inner store received %d events, want 2 (the failing call must not reach it)", len(inner.events))
+		t.Fatalf(
+			"inner store received %d events, want 2 (the failing call must not reach it)",
+			len(inner.events),
+		)
 	}
 }
 
@@ -174,7 +185,15 @@ func TestFaultInjector_OtherMethodsUnaffected(t *testing.T) {
 	ctx := context.Background()
 	ref := testRef()
 
-	if err := injector.Save(ctx, ref, []event.Event{newEvent(t, 1)}, 0); !errors.Is(err, errInjected) {
+	if err := injector.Save(
+		ctx,
+		ref,
+		[]event.Event{newEvent(t, 1)},
+		0,
+	); !errors.Is(
+		err,
+		errInjected,
+	) {
 		t.Fatalf("Save = %v, want the injected error", err)
 	}
 
@@ -209,7 +228,10 @@ func TestFaultInjector_ForwardsCapabilities(t *testing.T) {
 	}
 
 	if capabilities.MultiSink || capabilities.StreamingJournal || capabilities.BackwardsSource {
-		t.Fatalf("capabilities = %+v, want no MultiSink/Streaming/Backwards (the inner store has none)", capabilities)
+		t.Fatalf(
+			"capabilities = %+v, want no MultiSink/Streaming/Backwards (the inner store has none)",
+			capabilities,
+		)
 	}
 
 	if _, err := injector.ReadAll(ctx); err != nil {
@@ -250,16 +272,37 @@ func TestFaultInjector_MissingCapabilityIsLoud(t *testing.T) {
 		t.Fatalf("ReadAll on a store with no Journal = %v, want ErrCapabilityUnavailable", err)
 	}
 
-	if err := injector.SaveMultiBatch(ctx, nil); !errors.Is(err, testutil.ErrCapabilityUnavailable) {
-		t.Fatalf("SaveMultiBatch on a store with no MultiSink = %v, want ErrCapabilityUnavailable", err)
+	if err := injector.SaveMultiBatch(
+		ctx,
+		nil,
+	); !errors.Is(
+		err,
+		testutil.ErrCapabilityUnavailable,
+	) {
+		t.Fatalf(
+			"SaveMultiBatch on a store with no MultiSink = %v, want ErrCapabilityUnavailable",
+			err,
+		)
 	}
 
 	if _, err := injector.ReadStream(ctx); !errors.Is(err, testutil.ErrCapabilityUnavailable) {
-		t.Fatalf("ReadStream on a store with no StreamingJournal = %v, want ErrCapabilityUnavailable", err)
+		t.Fatalf(
+			"ReadStream on a store with no StreamingJournal = %v, want ErrCapabilityUnavailable",
+			err,
+		)
 	}
 
-	if _, ok := any(injector).(event.StreamingJournal); ok {
-		t.Fatal("test harness assumption broken: the injector no longer implements StreamingJournal")
+	// The injector ALWAYS implements the interface (Go cannot build conditional
+	// method sets), which is exactly why Capabilities() exists: the honesty
+	// check is there, not in the type assertion.
+	if _, ok := any(injector).(event.StreamingJournal); !ok {
+		t.Fatal(
+			"the injector stopped implementing StreamingJournal — the documented design is implemented-and-guarded",
+		)
+	}
+
+	if injector.Capabilities().StreamingJournal {
+		t.Fatal("Capabilities() claims StreamingJournal for an inner store that has none")
 	}
 }
 

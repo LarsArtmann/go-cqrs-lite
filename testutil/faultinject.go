@@ -14,26 +14,28 @@ import (
 // ErrCapabilityUnavailable is returned when a caller uses an optional store
 // capability that the wrapped store does not implement. It exists so a
 // missing capability is a loud, typed failure instead of a silent one.
-var ErrCapabilityUnavailable = errors.New("testutil: wrapped store does not implement this capability")
+var ErrCapabilityUnavailable = errors.New(
+	"testutil: wrapped store does not implement this capability",
+)
 
 // The method names accepted by FaultRule.Method. Strings (not constants of a
 // custom type) keep the call sites readable and let a typo fail at
 // construction: NewFaultInjector panics on an unknown name, because a rule that
 // never fires is a test that silently proves nothing.
 const (
-	MethodSave             = "Save"
-	MethodAppendBatch      = "AppendBatch"
-	MethodLoad             = "Load"
-	MethodLoadFromVersion  = "LoadFromVersion"
-	MethodLoadToVersion    = "LoadToVersion"
-	MethodLoadToTimestamp  = "LoadToTimestamp"
-	MethodSaveMultiBatch   = "SaveMultiBatch"
-	MethodReadAll          = "ReadAll"
-	MethodReadFrom         = "ReadFrom"
-	MethodReadStream       = "ReadStream"
-	MethodReadStreamFrom   = "ReadStreamFrom"
-	MethodLoadBackwards    = "LoadBackwards"
-	MethodClose            = "Close"
+	MethodSave            = "Save"
+	MethodAppendBatch     = "AppendBatch"
+	MethodLoad            = "Load"
+	MethodLoadFromVersion = "LoadFromVersion"
+	MethodLoadToVersion   = "LoadToVersion"
+	MethodLoadToTimestamp = "LoadToTimestamp"
+	MethodSaveMultiBatch  = "SaveMultiBatch"
+	MethodReadAll         = "ReadAll"
+	MethodReadFrom        = "ReadFrom"
+	MethodReadStream      = "ReadStream"
+	MethodReadStreamFrom  = "ReadStreamFrom"
+	MethodLoadBackwards   = "LoadBackwards"
+	MethodClose           = "Close"
 )
 
 var knownMethods = map[string]bool{
@@ -109,7 +111,13 @@ func NewFaultInjector(inner event.Store, rules ...FaultRule) *FaultInjector {
 		}
 
 		if rule.At < 0 {
-			panic(fmt.Sprintf("testutil: FaultRule for %s has a negative At (%d)", rule.Method, rule.At))
+			panic(
+				fmt.Sprintf(
+					"testutil: FaultRule for %s has a negative At (%d)",
+					rule.Method,
+					rule.At,
+				),
+			)
 		}
 	}
 
@@ -201,7 +209,11 @@ func (f *FaultInjector) Save(
 }
 
 // AppendBatch appends without a concurrency check.
-func (f *FaultInjector) AppendBatch(ctx context.Context, ref id.StreamRef, events []event.Event) error {
+func (f *FaultInjector) AppendBatch(
+	ctx context.Context,
+	ref id.StreamRef,
+	events []event.Event,
+) error {
 	if err := f.arm(MethodAppendBatch); err != nil {
 		return err
 	}
@@ -337,7 +349,10 @@ func (f *FaultInjector) ReadStreamFrom(
 }
 
 // LoadBackwards forwards to the inner BackwardsSource.
-func (f *FaultInjector) LoadBackwards(ctx context.Context, ref id.StreamRef) ([]event.Event, error) {
+func (f *FaultInjector) LoadBackwards(
+	ctx context.Context,
+	ref id.StreamRef,
+) ([]event.Event, error) {
 	if err := f.arm(MethodLoadBackwards); err != nil {
 		return nil, err
 	}

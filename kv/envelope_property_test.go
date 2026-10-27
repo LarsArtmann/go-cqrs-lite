@@ -7,6 +7,7 @@ import (
 	"pgregory.net/rapid"
 
 	"github.com/larsartmann/go-codec"
+
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 )
 
@@ -109,7 +110,12 @@ func TestProperty_LegacyRawCodecBytesStillDecode(t *testing.T) {
 						kv.WithTypedCodec[testUser, testID](read))
 					got, err := reader.Get(ctx, id)
 					if err != nil {
-						rt.Fatalf("legacy %s bytes unreadable by a %s store: %v", encName, readName, err)
+						rt.Fatalf(
+							"legacy %s bytes unreadable by a %s store: %v",
+							encName,
+							readName,
+							err,
+						)
 					}
 					if *got != user {
 						rt.Fatalf("legacy decode mismatch: wrote %+v, read %+v", user, *got)
