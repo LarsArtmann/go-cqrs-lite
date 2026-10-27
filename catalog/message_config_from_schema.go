@@ -49,7 +49,7 @@ func newMessageBuilderFromSchema(
 	sch *Schema,
 	opts []MessageOption,
 ) MessageConfig {
-	msgBuilder := &messageBuilder{ //nolint:exhaustruct_v5 // option-driven defaults below
+	msgBuilder := &messageBuilder{
 		kind:      kind,
 		id:        id,
 		name:      humanizeMessageID(string(id)),
@@ -76,7 +76,7 @@ func humanizeMessageID(id string) string {
 	for i, word := range words {
 		runes := []rune(word)
 		if len(runes) > 0 && runes[0] >= 'a' && runes[0] <= 'z' {
-			runes[0] = rune(runes[0] - 'a' + 'A')
+			runes[0] = runes[0] - 'a' + 'A'
 		}
 
 		words[i] = string(runes)

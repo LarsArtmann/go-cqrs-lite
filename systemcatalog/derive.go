@@ -143,6 +143,7 @@ func derivedMessages(
 
 		if override, curated := overrides[id]; curated {
 			msgs = append(msgs, override)
+
 			continue
 		}
 
@@ -157,6 +158,7 @@ func derivedMessages(
 
 		if override, curated := overrides[id]; curated {
 			msgs = append(msgs, override)
+
 			continue
 		}
 
@@ -176,6 +178,7 @@ func derivedMessages(
 
 		if override, curated := overrides[id]; curated {
 			msgs = append(msgs, override)
+
 			continue
 		}
 
@@ -253,14 +256,14 @@ func memoryDeployment() system.DeploymentConfig {
 			"timers":  {Driver: "memory"}, //nolint:exhaustruct_v5 // memory needs no DSN
 		},
 		Instances: []system.InstanceConfig{
-			{
+			{ //nolint:exhaustruct_v5 // role+engine is the minimal instance
 				Role:   system.RoleSourceOfTruth,
 				Engine: "primary",
-			}, //nolint:exhaustruct_v5 // role+engine is the minimal instance
-			{
+			},
+			{ //nolint:exhaustruct_v5 // role+engine is the minimal instance
 				Role:   system.RoleProjections,
 				Engine: "primary",
-			}, //nolint:exhaustruct_v5 // role+engine is the minimal instance
+			},
 		},
 	}
 }

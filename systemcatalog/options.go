@@ -1,6 +1,7 @@
 package systemcatalog
 
 import (
+	"maps"
 	"strings"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
@@ -95,9 +96,7 @@ func WithMessageOverrides(overrides map[string]catalog.MessageConfig) Option {
 			c.overrides = make(map[string]catalog.MessageConfig, len(overrides))
 		}
 
-		for id, msg := range overrides {
-			c.overrides[id] = msg
-		}
+		maps.Copy(c.overrides, overrides)
 	}
 }
 
