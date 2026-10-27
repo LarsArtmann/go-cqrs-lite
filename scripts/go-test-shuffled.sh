@@ -65,9 +65,16 @@ fi
 # run_once (below) invoking the binary N times, which is what -count does
 # anyway, just without Ginkgo's veto.
 args+=(-count=1 -timeout="$TIMEOUT" -p "$P")
+
+# -cpu takes ONE value per invocation: Ginkgo v2 rejects a LIST ("RunSpecs more
+# than once"), so `-cpu=1,4` broke the same five suites that `-count=5` broke.
+# The repeat leg cycles the values one per iteration instead, giving both
+# dimensions without the veto. A single GT_CPU value behaves as before.
+cpu_values=()
 if [ -n "${GT_CPU:-}" ]; then
-	args+=(-cpu="$GT_CPU")
+	IFS=',' read -r -a cpu_values <<<"$GT_CPU"
 fi
+
 if [ "${SHUFFLE:-on}" = "off" ]; then
 	echo "==> shuffle DISABLED (SHUFFLE=off) — order-dependent failures cannot be caught in this run" >&2
 else
@@ -76,8 +83,24 @@ else
 		seed="$(new_shuffle_seed)"
 	fi
 	log_shuffle_seed "$LABEL" "$seed"
-	args+=(-shuffle="$seed")
 fi
+
+# run_args ITER — the full go test argument list for one invocation.
+run_args() { # $1=iteration (1-based)
+	local iter="$1"
+	local -a out=("${args[@]}")
+
+	if [ "${#cpu_values[@]}" -gt 0 ]; then
+		local idx=$(((iter - 1) % ${#cpu_values[@]}))
+		out+=(-cpu="${cpu_values[$idx]}")
+	fi
+
+	if [ "${SHUFFLE:-on}" != "off" ]; then
+		out+=(-shuffle="$seed_for_iteration")
+	fi
+
+	printf '%s\n' "${out[@]}"
+}
 
 # Always keep the evidence. A red run used to survive only as whatever
 # scrolled past, which is why the 2026-10-27 failure needed a full replay to
@@ -108,7 +131,9 @@ if [ "${GT_JSON:-0}" = "1" ]; then
 	json_out="${GT_JSON_OUT:-build/test-json/${LABEL}-${STAMP}.json}"
 	mkdir -p "$(dirname "$json_out")"
 	status=0
-	CGO_ENABLED=1 go test "${args[@]}" -json "${PATHS[@]}" "$@" | tee "$json_out" || status=${PIPESTATUS[0]}
+	seed_for_iteration="$seed"
+	mapfile -t json_args < <(run_args 1)
+	CGO_ENABLED=1 go test "${json_args[@]}" -json "${PATHS[@]}" "$@" | tee "$json_out" || status=${PIPESTATUS[0]}
 	echo "==> JSON event stream: $json_out" >&2
 
 	if [ "$status" -ne 0 ] && [ "${SHUFFLE:-on}" != "off" ]; then
@@ -123,9 +148,11 @@ run_once() { # $1=iteration number (1-based)
 	local iter="$1"
 	shift
 	local log_out
-	log_out="${GT_LOG_OUT:-build/test-logs/${LABEL}-${STAMP}-i${iter}-${seed:-noshuffle}.log}"
+	log_out="${GT_LOG_OUT:-build/test-logs/${LABEL}-${STAMP}-i${iter}-${seed_for_iteration:-noshuffle}.log}"
 	mkdir -p "$(dirname "$log_out")"
-	if CGO_ENABLED=1 go test "${args[@]}" "${PATHS[@]}" "$@" 2>&1 | tee "$log_out"; then
+	local -a iter_args
+	mapfile -t iter_args < <(run_args "$iter")
+	if CGO_ENABLED=1 go test "${iter_args[@]}" "${PATHS[@]}" "$@" 2>&1 | tee "$log_out"; then
 		echo "==> Full output: $log_out" >&2
 		return 0
 	fi
@@ -137,26 +164,23 @@ status=0
 if [ "$COUNT" = "1" ]; then
 	run_once 1 "$@" || status=1
 else
-	echo "==> Repeating ${COUNT}x (one process per iteration; -count is pinned to 1 for Ginkgo)" >&2
+	echo "==> Repeating ${COUNT}x, one process per iteration (-count and multi-value -cpu are rejected by Ginkgo)" >&2
 	for ((iter = 1; iter <= COUNT; iter++)); do
-		if [ "$iter" -gt 1 ] && [ "${SHUFFLE:-on}" != "off" ] && [ -z "${SHUFFLE_SEED:-}" ]; then
-			# Fresh order per repetition is the point of a repeat leg; a caller
-			# that pinned SHUFFLE_SEED asked for one specific order, so keep it.
-			seed="$(new_shuffle_seed)"
-			log_shuffle_seed "${LABEL}-i${iter}" "$seed"
-			replay_seed="$seed"
-			# Rebuild the shuffle flag in place: args ends with -shuffle=<old>.
-			args=("${args[@]/#-shuffle=*/-shuffle=$seed}")
-		elif [ -n "${SHUFFLE_SEED:-}" ]; then
-			replay_seed="$SHUFFLE_SEED"
+		if [ -n "${SHUFFLE_SEED:-}" ]; then
+			# A caller that pinned the seed asked for one specific order.
+			seed_for_iteration="$SHUFFLE_SEED"
+		elif [ "$iter" -eq 1 ] || [ "${SHUFFLE:-on}" = "off" ]; then
+			seed_for_iteration="$seed"
 		else
-			replay_seed="$seed"
+			# Fresh order per repetition is the point of a repeat leg.
+			seed_for_iteration="$(new_shuffle_seed)"
+			log_shuffle_seed "${LABEL}-i${iter}" "$seed_for_iteration"
 		fi
-		echo "==> Iteration ${iter}/${COUNT} (seed ${replay_seed})" >&2
+		echo "==> Iteration ${iter}/${COUNT} (seed ${seed_for_iteration})" >&2
 		if ! run_once "$iter" "$@"; then
 			status=1
 			if [ "${SHUFFLE:-on}" != "off" ]; then
-				print_replay "$replay_seed"
+				print_replay "$seed_for_iteration"
 			fi
 			break
 		fi
