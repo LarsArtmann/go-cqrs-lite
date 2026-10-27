@@ -1,3 +1,4 @@
+//nolint:wrapcheck // deliberate pass-through: this wrapper must not rewrite the inner error
 package testutil
 
 import (
@@ -24,7 +25,7 @@ func (f *FaultInjector) SaveMultiBatch(ctx context.Context, entries []event.Mult
 		return unavailable(MethodSaveMultiBatch)
 	}
 
-	return multi.SaveMultiBatch(ctx, entries) //nolint:wrapcheck // deliberate pass-through
+	return multi.SaveMultiBatch(ctx, entries)
 }
 
 // ReadAll forwards to the inner Journal.
@@ -38,7 +39,7 @@ func (f *FaultInjector) ReadAll(ctx context.Context) ([]event.Event, error) {
 		return nil, unavailable(MethodReadAll)
 	}
 
-	return journal.ReadAll(ctx) //nolint:wrapcheck // deliberate pass-through
+	return journal.ReadAll(ctx)
 }
 
 // ReadFrom forwards to the inner SeekableJournal.
@@ -56,7 +57,7 @@ func (f *FaultInjector) ReadFrom(
 		return nil, unavailable(MethodReadFrom)
 	}
 
-	return seekable.ReadFrom(ctx, afterEventID, limit) //nolint:wrapcheck // deliberate pass-through
+	return seekable.ReadFrom(ctx, afterEventID, limit)
 }
 
 // ReadStream forwards to the inner StreamingJournal.
@@ -72,7 +73,7 @@ func (f *FaultInjector) ReadStream( //nolint:ireturn // mirrors event.StreamingJ
 		return nil, unavailable(MethodReadStream)
 	}
 
-	return streaming.ReadStream(ctx) //nolint:wrapcheck // deliberate pass-through
+	return streaming.ReadStream(ctx)
 }
 
 // ReadStreamFrom forwards to the inner StreamingJournal.
@@ -90,7 +91,11 @@ func (f *FaultInjector) ReadStreamFrom( //nolint:ireturn // mirrors event.Stream
 		return nil, unavailable(MethodReadStreamFrom)
 	}
 
-	return streaming.ReadStreamFrom(ctx, afterEventID, limit) //nolint:wrapcheck // deliberate pass-through
+	return streaming.ReadStreamFrom(
+		ctx,
+		afterEventID,
+		limit,
+	)
 }
 
 // LoadBackwards forwards to the inner BackwardsSource.
@@ -107,7 +112,7 @@ func (f *FaultInjector) LoadBackwards(
 		return nil, unavailable(MethodLoadBackwards)
 	}
 
-	return backwards.LoadBackwards(ctx, ref) //nolint:wrapcheck // deliberate pass-through
+	return backwards.LoadBackwards(ctx, ref)
 }
 
 // Close forwards to the inner store when it is closable.
@@ -121,5 +126,5 @@ func (f *FaultInjector) Close() error {
 		return nil
 	}
 
-	return closer.Close() //nolint:wrapcheck // deliberate pass-through
+	return closer.Close()
 }

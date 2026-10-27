@@ -290,6 +290,24 @@ cache, so a crash found tonight is a regression case tomorrow.
   after an accepted baseline move. Hardware- and runner-specific, like the
   baseline itself.
 
+## Failure injection (stubs that cannot lie)
+
+`testutil.NewFaultInjector(inner, rules...)` wraps any `event.Store` and fails
+the Nth call of a NAMED method, forwarding everything else:
+
+```go
+store := testutil.NewFaultInjector(inner,
+	testutil.FaultRule{Method: testutil.MethodSave, At: 2, Err: errBackendDown},
+)
+```
+
+`At` is 1-based (`0` = every call). The wrapper forwards `MultiSink`, `Journal`,
+`SeekableJournal`, `StreamingJournal`, `BackwardsSource` and `Closer`, and
+`Capabilities()` reports which of those the wrapped store actually implements —
+a missing one returns `ErrCapabilityUnavailable` instead of a silent zero value.
+An invalid rule (unknown method, nil error, negative index) panics at
+construction: a rule that can never fire is a test that proves nothing.
+
 ## System-level tests
 
 `systemscenario` (ADR-0153) is the system tier: `system.New` with a journal, a

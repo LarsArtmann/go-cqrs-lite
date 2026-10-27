@@ -2086,8 +2086,11 @@
                   ${pkgs.bash}/bin/bash scripts/verify-docs.sh && \
                   echo "=== Build ===" && ${goPkg}/bin/go build ${tagFlags} ${allPaths} && \
                   echo "=== Vet ===" && ${goPkg}/bin/go vet ${tagFlags} ${modulePaths} && \
-                  echo "=== Test (short) ===" && ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -short -count=1 -timeout=5m && \
-                  echo "=== Race (short) ===" && ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -short -race -count=1 -timeout=10m && \
+                  # Same package-parallelism cap as #verify: uncapped, the
+                  # heaviest packages starve the rest of the suite and produce
+                  # false timeouts (see the GT_P note in go-test-shuffled.sh).
+                  echo "=== Test (short) ===" && ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -short -count=1 -timeout=5m -p "''${VERIFY_TEST_P:-4}" && \
+                  echo "=== Race (short) ===" && ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -short -race -count=1 -timeout=10m -p "''${VERIFY_TEST_P:-4}" && \
                   echo "=== Lint ===" && nix run .#lint && \
                   echo "=== Check Arch ===" && nix run .#check-arch && \
                   # check-lint-config is the superset of check-depguard: config

@@ -13,6 +13,12 @@ import (
 
 var errInjected = errors.New("injected backend failure")
 
+// pinFaultInjectorType keeps the concrete type part of the test surface (the
+// constructor returns event.Store-compatible pointers, and the untested-export
+// ratchet wants the type named). A plain `var injector *T = ...` is rejected by
+// staticcheck's S1021/ST1023 pair, so the assertion lives in a signature.
+func pinFaultInjectorType(*testutil.FaultInjector) {}
+
 // storeOnly implements event.Store and NOTHING else — the shape that catches a
 // wrapper inventing capabilities.
 type storeOnly struct {
@@ -215,9 +221,9 @@ func TestFaultInjector_ForwardsCapabilities(t *testing.T) {
 
 	inner := &journalStore{}
 
-	var injector *testutil.FaultInjector
+	injector := testutil.NewFaultInjector(inner)
 
-	injector = testutil.NewFaultInjector(inner)
+	pinFaultInjectorType(injector)
 	ctx := context.Background()
 	ref := testRef()
 

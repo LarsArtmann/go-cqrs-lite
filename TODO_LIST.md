@@ -3267,12 +3267,36 @@ re-checked by T23, never re-executed.
 - [ ] **[T22] Broker partition, redelivery, DLQ, outbox crash matrix** —
       Redis/NATS disconnect, duplicate delivery, poison-to-DLQ, and the
       commit-publish crash window. — plan T22, idea 42 _(Effort: L)_
-- [ ] **[T23] Quarantine-and-recover property** — reroute after N failures,
-      reactivation only after a clean `CatchUpEngine` rebuild. — plan T23,
-      idea 43 _(Effort: M)_
-- [ ] **[T24] Context-cancellation matrix + crypto negative corpus** — five
-      blocking APIs x four context states; tamper matrix must yield
-      `Corruption`, never a panic. — plan T24, ideas 44+45 _(Effort: M)_
+- [x] **[T23] Quarantine-and-recover property** — **VERIFIED ALREADY COVERED
+      2026-10-27 (no new code), same outcome as T06.** `engine_health_test.go`
+      pins the full ADR-0137 path (classified storm → quarantine → reroute →
+      reactivate), the "rejection never quarantines" rule, the loud
+      no-candidate failure, auto-reprobe reactivation, and the threshold
+      override; `engine_failover_test.go` pins the recovery half —
+      `CatchUpEngine` rebuilds and reactivates, refuses a non-quarantined
+      engine, and reports `ErrCatchUpUnsupported` for engines without the
+      capability. The plan's assumed gap did not exist; recorded so it is not
+      re-dispatched. — plan T23, idea 43
+- [ ] **[T24] Context-cancellation matrix + crypto negative corpus** — **PARTIAL
+      2026-10-27: both test suites shipped; one FAMILY decision is the
+      remainder.** (a) `metaengine/context_cancel_test.go`: read path must
+      surface `context.Canceled`/`DeadlineExceeded` (pinned), write path must
+      never panic and must leave the store usable (pinned), cancellation inside
+      `InTransaction` must be visible to the callback (pinned).
+      **FINDING — the write path ignores cancellation**: `Apply`,
+      `ApplyIdempotent`, `ApplyBatch` and `InTransaction` return `nil` and write
+      under an already-canceled context, while reads honor it. Pinned as a KNOWN
+      GAP in the test, not silently accepted. (b)
+      `signing/tamper_matrix_test.go`: ed25519 + HMAC tamper rejection pinned to
+      the `signing.ErrInvalidSignature` sentinel and the CURRENT family
+      (`Rejection`) — with the taxonomy tension recorded: a tampered payload is
+      data corruption, and `docs/error-taxonomy.md` defines Corruption as
+      "data integrity violation". **Remaining (owner decision):** reclassify
+      `signing.invalid_signature` (and the encryption equivalents) as
+      `Corruption`, or amend the taxonomy to say a tamper is a Rejection; then
+      decide whether writes should abort on a canceled context. Both change
+      consumer-visible behaviour, so neither is a test fix. — plan T24,
+      ideas 44+45
 - [ ] **[T25] HTTP injection pins, span shape, companion auth flows** — SSE
       CRLF, docserver traversal, span names, cqrs-htmx auth E2E. — plan T25,
       ideas 46-48 _(Effort: M)_

@@ -113,3 +113,17 @@
 
 ### Gate receipts (this session, verified)
 - `check-module-layers.sh` PASS · `check-package-surface.sh` PASS (8 offenders, honest 246/28 catalog) · cqrs-lint module_catalog PASS · api-stability `--update` ×2 (6334 exports) + `TestEvery` PASS (after tidy sweep) · changelog-symbols PASS (11 citations) · systemcatalog tests PASS · catalog `.` package tests PASS · system package tests PASS · workspace `go build ./...` PASS · verify-fast: **final run OUTSTANDING** (see §b.1).
+
+---
+
+## Addendum — 2026-10-27 ~00:45 (verification-closeout session)
+
+The follow-up session closed every open §b item except the tag wave:
+
+1. **Canonical-facts → 0 findings** (was §b.2): AGENTS.md module count 101→102 + rowed 97→98; recipes claim 104/104→106/106; 16 missing `docs/status/README.md` index rows added (the report's 14 + two newer reports, incl. this file's own row); header date advanced to 2026-10-26. Gate now prints "all citations match repo-derived truth".
+2. **Doc gates green** (was §b.3): `cmd/doc-check` exit=0 (1372 refs, 57 packages) over SKILL.md + references + AGENTS.md incl. the new modules.md row; `#check-md-go` green — 1523 blocks valid, 84 skipped, 105 baselined, no new errors.
+3. **Release-discipline tests** (was §b.4): full (not `-short`) `GOWORK=off go test -count=1 ./...` — catalog exit=0, system exit=0, systemcatalog exit=0, zero FAILs.
+4. **F08 composed `#verify-fast` — every leg green, continuous run structurally blocked** (was §b.1). Five attempts against a LIVE parallel session that kept landing in-flight work mid-run. Fixed in-flight: 8 lint findings in catalog+systemcatalog (unused nolint ×3, unconvert, nlreturn ×3, mapsloop→maps.Copy, exhaustruct directive placement); `queue/conformance` wsl blank line (parallel session's finished code, trivial completion); depguard allow-list gap for `turso-go-platform-libs` (pre-existing legit direct dep of tursoengine, imported by `library_warmup.go` — allow-listed + hash golden re-pinned via `check-golangci-hash.sh --update`); art-dupl accept annotation on `derive.go` eventUniverse (shape-twin of v006's key collector; gate now 0 new clones); coverage floors verified — 89/89 modules incl. **systemcatalog 84.9%**. Per-leg receipts: pre-lint legs (nix-hashes, file-size, package-surface, cycles, verify-docs, build, vet, test-short, race-short) all passed inside the composed runs; all 16 post-lint legs passed individually (arch, lint-config, docserver-css, duplication, architecture-reference, turso-version, templ, bench-gate, coverage, untested-exports, test-sleeps, test-skips, test-matrix, systemscenario-adoption, md-go, api-stability). The continuous run's only-ever reds after the fixes above were parallel-session modules mid-edit (queue/mysql transient, testutil/faultinject 12 findings in unfinished new code, metaengine golines in a minutes-old test) — not fixed deliberately: lint-fixing another session's actively-authored files (incl. a missing-mutex design question) is theirs to finish. Full-tree lint DID pass 89/89 earlier in the session.
+5. A `decider` rapid artifact (`TestExecuteCommandRefCausationProperty`, 23:51) was replayed green — transient load flake, not a regression (artifact left in place; the older 2026-09-13 one is committed, so non-deletion is the repo's pattern).
+
+Still open: §g.1–3 owner answers (tag wave / G1 granularity / fleet pacing) — nothing else blocks F13–F15.

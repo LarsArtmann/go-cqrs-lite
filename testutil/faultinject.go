@@ -1,3 +1,4 @@
+//nolint:wrapcheck // deliberate pass-through: this wrapper must not rewrite the inner error
 package testutil
 
 import (
@@ -205,7 +206,12 @@ func (f *FaultInjector) Save(
 		return err
 	}
 
-	return f.inner.Save(ctx, ref, events, expectedVersion) //nolint:wrapcheck // deliberate pass-through: the injector must not rewrite the inner error
+	return f.inner.Save(
+		ctx,
+		ref,
+		events,
+		expectedVersion,
+	)
 }
 
 // AppendBatch appends without a concurrency check.
@@ -218,7 +224,11 @@ func (f *FaultInjector) AppendBatch(
 		return err
 	}
 
-	return f.inner.AppendBatch(ctx, ref, events) //nolint:wrapcheck // deliberate pass-through: the injector must not rewrite the inner error
+	return f.inner.AppendBatch(
+		ctx,
+		ref,
+		events,
+	)
 }
 
 // Load retrieves every event of a stream.
@@ -227,7 +237,10 @@ func (f *FaultInjector) Load(ctx context.Context, ref id.StreamRef) ([]event.Eve
 		return nil, err
 	}
 
-	return f.inner.Load(ctx, ref) //nolint:wrapcheck // deliberate pass-through: the injector must not rewrite the inner error
+	return f.inner.Load(
+		ctx,
+		ref,
+	)
 }
 
 // LoadFromVersion retrieves events after version (exclusive).
@@ -240,7 +253,11 @@ func (f *FaultInjector) LoadFromVersion(
 		return nil, err
 	}
 
-	return f.inner.LoadFromVersion(ctx, ref, version) //nolint:wrapcheck // deliberate pass-through: the injector must not rewrite the inner error
+	return f.inner.LoadFromVersion(
+		ctx,
+		ref,
+		version,
+	)
 }
 
 // LoadToVersion retrieves events up to and including maxVersion.
@@ -253,7 +270,11 @@ func (f *FaultInjector) LoadToVersion(
 		return nil, err
 	}
 
-	return f.inner.LoadToVersion(ctx, ref, maxVersion) //nolint:wrapcheck // deliberate pass-through: the injector must not rewrite the inner error
+	return f.inner.LoadToVersion(
+		ctx,
+		ref,
+		maxVersion,
+	)
 }
 
 // LoadToTimestamp retrieves events where OccurredAt <= maxTime.
@@ -266,5 +287,9 @@ func (f *FaultInjector) LoadToTimestamp(
 		return nil, err
 	}
 
-	return f.inner.LoadToTimestamp(ctx, ref, maxTime) //nolint:wrapcheck // deliberate pass-through: the injector must not rewrite the inner error
+	return f.inner.LoadToTimestamp(
+		ctx,
+		ref,
+		maxTime,
+	)
 }
