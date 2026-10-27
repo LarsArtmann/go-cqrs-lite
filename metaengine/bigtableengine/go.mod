@@ -5,7 +5,7 @@ go 1.27.2
 require (
 	cloud.google.com/go/bigtable v1.58.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.20.0
-	google.golang.org/api v0.301.0
+	google.golang.org/api v0.308.0
 	google.golang.org/grpc v1.84.0
 )
 
@@ -63,7 +63,7 @@ require (
 	golang.org/x/time v0.16.0 // indirect
 	google.golang.org/genproto v0.0.0-20261005182115-fad411399dd8 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20261005182115-fad411399dd8 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20261005182115-fad411399dd8 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20261019180522-ce908d29299b // indirect
 	google.golang.org/protobuf v1.36.12 // indirect
 	rsc.io/binaryregexp v0.2.0 // indirect
 )
