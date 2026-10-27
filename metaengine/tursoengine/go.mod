@@ -8,9 +8,9 @@ require (
 	github.com/larsartmann/go-error-family v0.12.0
 	github.com/onsi/gomega v1.44.0
 	github.com/samber/lo v1.53.0
-	github.com/tursodatabase/turso-go-platform-libs v0.8.2
+	github.com/tursodatabase/turso-go-platform-libs v0.8.3
 	pgregory.net/rapid v1.3.0
-	turso.tech/database/tursogo v0.8.2
+	turso.tech/database/tursogo v0.8.3
 )
 
 require (
@@ -36,10 +36,10 @@ require (
 	golang.org/x/net v0.61.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
 	golang.org/x/text v0.43.0 // indirect
-	modernc.org/libc v1.77.1 // indirect
+	modernc.org/libc v1.79.0 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
-	modernc.org/sqlite v1.60.1 // indirect
+	modernc.org/sqlite v1.61.0 // indirect
 )
 
 // Sibling replaces for unpublished symbols (MaterializedViewSpec, WithMaterializedViews); stripped by scripts/tag-release.sh at cut time. Replaces do NOT cascade — all are needed (claiming reached via the sqliteengine replace is untagged).
