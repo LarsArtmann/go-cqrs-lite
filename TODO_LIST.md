@@ -3094,6 +3094,7 @@ re-checked by T23, never re-executed.
 > composed `#verify` executed, `check-modsums` fixed for all nine modules,
 > `check-depguard` verified green, and `nix fmt --fail-on-change` clean.
 
+- [ ] 🔴 **BLOCKING — stale-read TOCTOU in `system.CachedEventStore` (found 2026-10-27 09:41 by the un-forced `#verify`).** `Load` checks the stream's write generation (`system/cache.go:136`, under `c.mu`) and then calls `c.cache.Set` **outside** that lock (`cache.go:87`); `beginWrite`/`endWrite` call `c.cache.Invalidate` outside the lock too (`cache.go:103-107`, `119-123`). A reader whose `Set` lands after a write's `Invalidate` leaves a **pre-save snapshot** cached, so a post-save `Load` serves fewer events than were committed. Receipt: `TestCachedEventStore_ConcurrentLoadSaveNeverServesPreSaveSnapshot` failed with `got 4 events, want 5` inside `#verify`'s race leg; 5/5 pass standalone unloaded, i.e. the window needs CPU starvation to widen — a real defect, not noise. **Fix:** make gen-check + `Set` and the write path's `Invalidate` one critical section (sketch in `docs/status/2026-10-27_09-45_testing-improvements-session-retrospective.md` §0.4), add a deterministic regression test (hook between check and Set), then re-run `#verify` un-forced. _(Effort: S)_
 - [x] 🔥 **[T01] Coverage floor for every module** — **DONE 2026-10-26.**
       `scripts/coverage-baseline.txt` (89 modules, aggregate statements,
       89/89 rows) + `check-coverage.sh` rewritten: measures ONE workspace-wide

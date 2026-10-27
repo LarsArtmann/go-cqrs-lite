@@ -241,7 +241,7 @@ Modules release on independent per-module version trains (`<module>/vX.Y.Z` git 
 | --- | --- |
 | . | `v4.0.0` *(untagged per ADR-0152)* |
 | benchkit | `benchkit/v4.7.0` *(untagged per ADR-0152)* |
-| catalog | `catalog/v4.10.0` |
+| catalog | `catalog/v4.11.0` |
 | claiming | `claiming/v4.0.2` |
 | cmd/api-stability | `cmd/api-stability/v4.4.2` *(untagged per ADR-0152)* |
 | cmd/cqrs-bench | `cmd/cqrs-bench/v4.3.4` *(untagged per ADR-0152)* |
