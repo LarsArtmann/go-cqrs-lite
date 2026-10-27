@@ -17,6 +17,13 @@
 #   GT_TIMEOUT   per-package timeout (default 30m)
 #   GT_COUNT     -count value (default 1)
 #   GT_CPU       -cpu value (optional, e.g. 1,4)
+#   GT_P         how many PACKAGES run in parallel (default 4). Without a cap
+#                go test uses NumCPU and the heaviest packages (duckdbengine
+#                ~218s, tursoengine ~173s of CGo work) starve everything else
+#                into false timeouts — observed 2026-10-27: four systemscenario
+#                awaits and benchkit's journey budget failed purely because the
+#                host was oversubscribed. #verify has capped at 4 for the same
+#                reason since 2026-09-19.
 #   GT_JSON=1    emit `go test -json` events to build/test-json/<label>-<ts>.json
 #                (feeds scripts/check-test-runtime.sh); GT_JSON_OUT overrides
 #   SHUFFLE=off  disable shuffling (escape hatch for a bisect)
@@ -36,6 +43,7 @@ source "$PWD/scripts/go-env.sh"
 LABEL="${GT_LABEL:-test}"
 TIMEOUT="${GT_TIMEOUT:-30m}"
 COUNT="${GT_COUNT:-1}"
+P="${GT_P:-4}"
 [ -n "${GT_PATHS:-}" ] || {
 	echo "::error::GT_PATHS is empty — run this through nix run .#test / .#test-race" >&2
 	exit 2
@@ -49,7 +57,7 @@ fi
 if [ "${GT_RACE:-0}" = "1" ]; then
 	args+=(-race)
 fi
-args+=(-count="$COUNT" -timeout="$TIMEOUT")
+args+=(-count="$COUNT" -timeout="$TIMEOUT" -p "$P")
 if [ -n "${GT_CPU:-}" ]; then
 	args+=(-cpu="$GT_CPU")
 fi
