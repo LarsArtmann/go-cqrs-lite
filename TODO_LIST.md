@@ -3217,7 +3217,14 @@ re-checked by T23, never re-executed.
       floor, STALE reported for faster packages, NEW packages fail closed so a
       suite cannot appear without a budget). CI widens to 3x/30s because a
       runner is a different machine class; the tight gate is local/nightly.
-      Self-test 6/6 fault-injected. — plan T12, ideas 15+16
+      Self-test 6/6 fault-injected. **Repeat leg fixed and proven 2026-10-27:**
+      `#test-repeat` had NEVER worked — Ginkgo v2 rejects both `-count>1` and
+      multi-value `-cpu`, and five of the twenty repeat modules are Ginkgo
+      suites. The runner now repeats at PROCESS level (one invocation per
+      iteration, `-count` pinned to 1, `-cpu` cycled one value per iteration,
+      fresh seed per iteration unless pinned) and `GT_COUNT=2` over the whole
+      list is green with zero FAIL lines in both iteration logs.
+      — plan T12, ideas 15+16
 - [ ] **[T13] `synctest` migration wave 1** — 0 usages; `scheduling` ticker
       and deadline tests still use wall-clock margins. Keep
       `scheduling.WithClock` for system-level scenarios (ADR-0153 D4) and use

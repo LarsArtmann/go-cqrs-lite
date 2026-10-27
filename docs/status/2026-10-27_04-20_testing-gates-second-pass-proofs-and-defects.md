@@ -41,6 +41,7 @@ Two smaller ones from the same runs: a lease-expiry conformance case that assert
 | 12 | **Both foreign reds closed** | `check-modsums`: 9 modules tidied (`integration` + 8 examples) → "102 modules tidy". `check-depguard`: green, 149 deps covered. |
 | 13 | **Composed `#verify-fast`: GREEN in 866 s** | Includes Test Matrix, Test Skips (routes), Untested Exports, Test Sleeps, coverage floors, md-go, API stability, duplication, arch, lint. `#verify-fast` also gained the `-p 4` cap it was missing. |
 | 14 | **T03.5 closing proof** | Two consecutive green shuffled runs on the final tree: seed `181394667509926` (525 s) and `61496612585225` (429 s), zero FAIL, logs retained. |
+| 15 | **The repeat leg now actually repeats — and is proven** | After the Ginkgo fix, `nix run .#test-repeat` with `GT_COUNT=2` ran **both** iterations across all 20 stateful modules (including the five Ginkgo suites) with **zero FAIL lines** in either log (`build/test-logs/test-repeat-20261027T040629Z-i{1,2}-*.log`). A full `GT_COUNT=5` run was not attempted under this host's load; the mechanism, not the duration, was the open question. |
 
 ---
 
