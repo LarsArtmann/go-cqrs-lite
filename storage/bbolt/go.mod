@@ -23,10 +23,11 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.6 // indirect
 	github.com/gkampitakis/ciinfo v0.3.4 // indirect
-	github.com/gkampitakis/go-snaps v0.5.23 // indirect
+	github.com/gkampitakis/go-snaps v0.5.24 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/goccy/go-yaml v1.19.2 // indirect
+	github.com/google/pprof v0.0.0-20261016150608-1facf8f91b50 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
@@ -34,11 +35,11 @@ require (
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3 // indirect
 	github.com/maruel/natural v1.3.0 // indirect
-	github.com/maypok86/otter/v2 v2.3.0 // indirect
+	github.com/maypok86/otter/v2 v2.4.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
+	github.com/onsi/ginkgo/v2 v2.33.1 // indirect
 	github.com/rogpeppe/go-internal v1.16.0 // indirect
 	github.com/sergi/go-diff v1.4.0 // indirect
-	github.com/stretchr/testify v1.12.1 // indirect
 	github.com/tidwall/gjson v1.20.0 // indirect
 	github.com/tidwall/match v1.2.0 // indirect
 	github.com/tidwall/pretty v1.2.2 // indirect
@@ -52,8 +53,8 @@ require (
 	go.opentelemetry.io/otel/sdk v1.47.0 // indirect
 	go.opentelemetry.io/otel/sdk/metric v1.47.0 // indirect
 	go.opentelemetry.io/otel/trace v1.47.0 // indirect
-	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/sys v0.49.0 // indirect
+	golang.org/x/tools v0.52.0 // indirect
 )
 
 // Sibling replace for the unpublished otel symbol (DBSystem); stripped by

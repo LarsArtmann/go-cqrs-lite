@@ -17,6 +17,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/dustin/go-humanize v1.1.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.6 // indirect
+	github.com/gkampitakis/go-snaps v0.5.24 // indirect
 	github.com/larsartmann/go-branded-id v0.7.0 // indirect
 	github.com/larsartmann/go-codec v0.3.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.3.0 // indirect
@@ -24,7 +25,10 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3 // indirect
 	github.com/larsartmann/go-sse v0.6.2 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
+	github.com/onsi/ginkgo/v2 v2.33.1 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.opentelemetry.io/otel v1.47.0 // indirect
 	go.opentelemetry.io/otel/trace v1.47.0 // indirect
+	golang.org/x/tools v0.52.0 // indirect
+	modernc.org/sqlite v1.61.0 // indirect
 )
