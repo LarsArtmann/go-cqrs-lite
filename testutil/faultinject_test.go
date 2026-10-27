@@ -214,7 +214,8 @@ func TestFaultInjector_ForwardsCapabilities(t *testing.T) {
 	t.Parallel()
 
 	inner := &journalStore{}
-	injector := testutil.NewFaultInjector(inner)
+
+	var injector *testutil.FaultInjector = testutil.NewFaultInjector(inner)
 	ctx := context.Background()
 	ref := testRef()
 
@@ -303,6 +304,43 @@ func TestFaultInjector_MissingCapabilityIsLoud(t *testing.T) {
 
 	if injector.Capabilities().StreamingJournal {
 		t.Fatal("Capabilities() claims StreamingJournal for an inner store that has none")
+	}
+}
+
+// TestFaultInjector_EveryMethodNameAccepted walks the whole rule vocabulary:
+// every documented method name must construct, so a constant added to the API
+// without teaching the injector about it fails here instead of failing in a
+// consumer's outage test at 3am.
+func TestFaultInjector_EveryMethodNameAccepted(t *testing.T) {
+	t.Parallel()
+
+	methods := []string{
+		testutil.MethodSave,
+		testutil.MethodAppendBatch,
+		testutil.MethodLoad,
+		testutil.MethodLoadFromVersion,
+		testutil.MethodLoadToVersion,
+		testutil.MethodLoadToTimestamp,
+		testutil.MethodSaveMultiBatch,
+		testutil.MethodReadAll,
+		testutil.MethodReadFrom,
+		testutil.MethodReadStream,
+		testutil.MethodReadStreamFrom,
+		testutil.MethodLoadBackwards,
+		testutil.MethodClose,
+	}
+
+	for _, method := range methods {
+		// Construction panics on an unknown name (see the bad-rule test), so
+		// simply getting here proves the name is in the known set.
+		injector := testutil.NewFaultInjector(&storeOnly{}, testutil.FaultRule{
+			Method: method,
+			At:     1,
+			Err:    errInjected,
+		})
+		if injector == nil {
+			t.Fatalf("NewFaultInjector returned nil for %s", method)
+		}
 	}
 }
 
