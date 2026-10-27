@@ -118,6 +118,7 @@ func (s *suite) pinExpiryReclaim(t *testing.T) {
 			t.Skipf("pre-expiry probe ran %v after the claim, past the %v lease — "+
 				"the process was descheduled, so lease fencing is untestable in this run", elapsed, lease)
 		}
+
 		t.Fatalf("pre-expiry claim: error = %v, want ErrNoTaskDue", err)
 	}
 

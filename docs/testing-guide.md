@@ -40,7 +40,10 @@ nix run .#check-coverage
 # The rest of the hygiene gates (all run in #verify and CI)
 nix run .#check-untested-exports    # exported API named by no test (frozen debt list)
 nix run .#check-test-sleeps         # 182 frozen time.Sleep sites; new ones fail
-nix run .#check-test-skips          # every skip needs a reason; --report routes env gates
+nix run .#check-test-skips          # every skip needs a reason AND a route that runs it
+nix run .#check-test-matrix         # #test/#lint sets still derive from testModules
+nix run .#check-test-runtime        # per-package wall-clock budgets (needs a GT_JSON=1 run)
+nix run .#check-error-taxonomy-tests  # a NEW documented error code must be named by a test
 nix run .#check-systemscenario-adoption  # boot a system in a test -> use the harness or say why
 
 # Shuffled suites: seed is logged, replay is one command
@@ -48,10 +51,25 @@ nix run .#test                       # -shuffle=<minted seed>, logged
 nix run .#rerun-shuffle-seed -- 123456789 ./event/...
 nix run .#test-repeat                # -count=5 -cpu=1,4 over 20 stateful modules (nightly)
 
-# Fuzzing: rotate through all 115 targets (every target within 4 nights)
+# Per-package runtime budget: the JSON event stream is the input
+GT_JSON=1 nix run .#test                          # -> build/test-json/*.json
+nix run .#check-test-runtime                      # newest stream vs the budgets
+nix run .#check-test-runtime -- --update          # accept new budgets (prints the delta)
+
+# Heavy soaks: too slow for any per-push gate, run weekly (weekly-soaks.yml)
+nix run .#soak-weekly                             # bbolt + DuckDB AutoCRUD
+TEST_ARGS='-run TestSoak' nix run .#integration-dgraph
+
+# Fuzzing: rotate through all 116 targets (every target within 4 nights)
 nix run .#fuzz-rotation -- --shard 1/4
 nix run .#fuzz-rotation -- --list
 ```
+
+`#test`/`#test-race` cap PACKAGE parallelism at 4 (`GT_P`). Uncapped, the
+heaviest packages (duckdbengine ~218s, tursoengine ~173s of CGo work) starve
+everything else: an uncapped run on 2026-10-27 produced four systemscenario
+await timeouts and a benchkit journey-budget failure with no code change behind
+them. `GT_P=$(nproc)` is the documented override for a dedicated machine.
 
 ## Integration tests (database)
 
@@ -228,12 +246,21 @@ would catch a problem":
 | Gate | Fails on | Notes |
 | --- | --- | --- |
 | `check-test-sleeps` | a new `time.Sleep` in a test, or a growing count in a baselined file | Poll the condition (`Eventually`, a channel, a clock advance). A real quiet window keeps `//go-sleep:accept <reason>`. |
-| `check-test-skips` | a skip with no reason (or an empty `//go-skip:accept`) | `--report` prints the env-var route table: a skip gated on an env var that no workflow (or routed flake app) sets only runs on a human's box. That report is how the NATS and MySQL integration suites were found to be unrouted. |
+| `check-test-skips` | a skip with no reason (or an empty `//go-skip:accept`), AND an env-gated skip with no route | The route table is now enforced: each gating var is resolved through three hops (workflow → script → flake app) and `NONE` fails the gate. `scripts/test-skip-routes.txt` is where a deliberate local-only decision is recorded with its reason (empty today). This is how the NATS and MySQL suites were found unrouted — MySQL now has a CI job. |
+| `check-test-matrix` | `#test`/`#test-race` GT_PATHS leaving `${modulePaths}`, `modulePaths` leaving `testModules`, `lintModules` diverging, a `repeatModules` entry naming a dead module | A curated matrix passes every downstream gate over a smaller set. |
+| `check-test-runtime` | a package over its budget (2x + 20s locally, 3x + 30s on CI), or a package with no budget row | Input is `GT_JSON=1 nix run .#test`. Catches a package changing class (seconds → minutes), not a 20% wobble. Faster packages report STALE; budgets move only through `--update`. |
+| `check-error-taxonomy-tests` | a NEW documented error code that no test names, or a baseline row whose code left the doc | 540 of 546 documented codes are frozen debt; the ratchet stops the tail growing. Name-based by design — a test that cannot fail still needs mutation (TODO row T10). |
 | `check-test-assertions` | — not implemented (see below) | A text scan flagged 1,300 of 7,556 tests, nearly all false positives (they assert through package helpers). Mutation testing is the honest detector; it is TODO_LIST row T10. |
 
 `-shuffle` is on by default for unit suites. Every run logs an explicit seed to
 `build/shuffle-seeds.log`; a failure prints the exact replay command. `SHUFFLE=off`
 exists only for bisecting a seed loop.
+
+Heavy soaks are deliberately OUT of `#test`: the bbolt AutoCRUD soak measures
+8-20 minutes (27 observed on a loaded host) and, running in the same `go test`
+invocation, starves sibling packages. `#test`/`#test-race` set
+`SOAK_SKIP_BOLT=1`; `weekly-soaks.yml` is where bbolt, DuckDB and Dgraph soaks
+actually run.
 
 Goroutine leaks are enforced by `goleak.VerifyTestMain` in 14 modules; 13 of
 them spawn goroutines in production code (`watermill`,
@@ -244,7 +271,7 @@ documented ignore.
 
 ## Fuzzing
 
-`scripts/fuzz-targets.txt` inventories all 115 targets (`--update-targets`
+`scripts/fuzz-targets.txt` inventories all 116 targets (`--update-targets`
 regenerates it; the nightly `inventory` job fails when it is stale, so a new
 `func Fuzz*` cannot silently skip fuzzing). The nightly runs four shards, one per
 day of a four-day rotation: target `i` belongs to shard `i % 4`, and night
