@@ -63,6 +63,8 @@ jobs:
           name: test-json
           path: build/test-json/
           if-no-files-found: ignore
+          # The stream is ~18 MB per run; it is diagnostic, not archival.
+          retention-days: 7
 
       - name: Per-package runtime budget (self-test, then this run)
         run: |
