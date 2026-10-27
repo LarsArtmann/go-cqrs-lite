@@ -19,6 +19,8 @@ Every one of these was green in the previous report's own framing, and every one
 | 4 | **benchkit's Compare budgets were fixed numbers.** Four `Compare`-based tests used literal 10 s / 30 s / 30 s / 150 s deadlines while every other timing ceiling in that package already used `loadScaledCeiling`. | `TestCompare_ThreeBackends` failed at 151.2 s in two separate runs, then passed in 24.8 s standalone. | A test that measures the machine, not the code. |
 | 5 | **The API golden was missing 32 exports.** Adding `testutil` exports without regenerating `docs/api_surface.txt`. | `#test` failed on `TestAPISurfaceCheck`: "6334 expected, 6366 actual". | Caught by design — this one is in the table as evidence the gate works, not as a defect. |
 
+Two more found on the RACE leg (after the fixes above made it runnable): a `systemscenario` SSE await used a literal 5 s wire budget that `-race` blew, and benchkit's four Compare budgets were scaled by ambient load but blind to the race detector — which inflates CPU 5-10× **inside this process**, so `/proc/loadavg` does not move and the factor stays 1. Both now combine race and load (`compareCeiling = loadScaledCeiling(soakTestScale(base))`); the race leg went from red in two places to **green in 506 s**.
+
 Two smaller ones from the same runs: a lease-expiry conformance case that asserted "before expiry" with no guard against being descheduled past its own 500 ms lease, and a `nix fmt` run whose `golines` formatter was **killed by load** (`signal: terminated`) — the formatter was fine, the machine was not.
 
 ---
@@ -41,7 +43,8 @@ Two smaller ones from the same runs: a lease-expiry conformance case that assert
 | 12 | **Both foreign reds closed** | `check-modsums`: 9 modules tidied (`integration` + 8 examples) → "102 modules tidy". `check-depguard`: green, 149 deps covered. |
 | 13 | **Composed `#verify-fast`: GREEN in 866 s** | Includes Test Matrix, Test Skips (routes), Untested Exports, Test Sleeps, coverage floors, md-go, API stability, duplication, arch, lint. `#verify-fast` also gained the `-p 4` cap it was missing. |
 | 14 | **T03.5 closing proof** | Two consecutive green shuffled runs on the final tree: seed `181394667509926` (525 s) and `61496612585225` (429 s), zero FAIL, logs retained. |
-| 15 | **The repeat leg now actually repeats — and is proven** | After the Ginkgo fix, `nix run .#test-repeat` with `GT_COUNT=2` ran **both** iterations across all 20 stateful modules (including the five Ginkgo suites) with **zero FAIL lines** in either log (`build/test-logs/test-repeat-20261027T040629Z-i{1,2}-*.log`). A full `GT_COUNT=5` run was not attempted under this host's load; the mechanism, not the duration, was the open question. |
+| 15 | **Race leg green (506 s, 0 FAIL)** | After the two race-aware ceiling fixes, `#test-race` over all 89 modules passed with zero failures — the leg that had never been witnessed in this session. |
+| 16 | **The repeat leg now actually repeats — and is proven** | After the Ginkgo fix, `nix run .#test-repeat` with `GT_COUNT=2` ran **both** iterations across all 20 stateful modules (including the five Ginkgo suites) with **zero FAIL lines** in either log (`build/test-logs/test-repeat-20261027T040629Z-i{1,2}-*.log`). A full `GT_COUNT=5` run was not attempted under this host's load; the mechanism, not the duration, was the open question. |
 
 ---
 
