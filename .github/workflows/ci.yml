@@ -58,7 +58,7 @@ jobs:
       # and survives a red run for post-mortem (which package got slow first).
       - name: Upload test event stream
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: test-json
           path: build/test-json/
@@ -152,7 +152,7 @@ jobs:
       # stopped contributing statements is invisible after the job ends.
       - name: Upload coverage report
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: coverage-report
           path: |
@@ -621,7 +621,7 @@ jobs:
       # median-based gate that fails the build. This job is informational.
 
       - name: Upload benchmark results
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: benchmark-results
           path: benchmark-results.txt
@@ -988,7 +988,7 @@ jobs:
       # Shuffle seeds make failed orderings replayable — never lose them.
       - name: Upload shuffle seeds
         if: failure()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: shuffle-seeds-pg
           path: build/shuffle-seeds.log
@@ -1014,7 +1014,7 @@ jobs:
 
       - name: Upload shuffle seeds
         if: failure()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: shuffle-seeds-nats
           path: build/shuffle-seeds.log
@@ -1046,7 +1046,7 @@ jobs:
 
       - name: Upload shuffle seeds
         if: failure()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: shuffle-seeds-mysql
           path: build/shuffle-seeds.log
@@ -1070,7 +1070,7 @@ jobs:
 
       - name: Upload shuffle seeds
         if: failure()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: shuffle-seeds-redis
           path: build/shuffle-seeds.log
