@@ -3,7 +3,7 @@
 **Session:** 2026-10-26 23:50 → 2026-10-27 04:20 CET (continuation of the 23-50 report)
 **Branch:** `master` (auto-commit daemon active; this pass produced one authored commit — `verify: measure coverage once instead of running the suite twice`)
 **Scope:** finish what the previous pass left unverified, then work the remaining plan tail (T10–T27).
-**One-line verdict:** the previous pass's major gap — "the composed gate was never run" — is **closed for `#verify-fast`** (green, 866 s, every new gate wired in), the two "foreign reds" are **gone** (`check-modsums` fixed for all 9 modules, `check-depguard` green), and running the legs for real exposed **five defects that only execution could find**. Full `#verify` remains **blocked by host load from other sessions** (load5 67–456 across the evening, ceiling is 10), not by anything in the tree.
+**One-line verdict:** the previous pass's two headline gaps are **both closed** — the composed **`#verify` passed end to end (1289 s)**, and so did `#verify-fast` (866 s) and the race leg (506 s) — while the two "foreign reds" are **gone** (`check-modsums` fixed for all 9 modules, `check-depguard` green). Running the legs for real exposed **seven defects that only execution could find**, including three that made the repeat and race legs red for reasons that had nothing to do with the code.
 
 ---
 
@@ -18,6 +18,8 @@ Every one of these was green in the previous report's own framing, and every one
 | 3 | **Uncapped package parallelism.** `go test` defaults to `NumCPU`; duckdbengine (231 s of CGo) plus tursoengine (173 s) starved the rest and produced four `systemscenario` await timeouts and a benchkit budget failure **with no code change behind them**. | Same run, failure messages all read `context deadline exceeded`. | Flaky main-branch CI attributed to "the tests are just flaky" — the least fixable-looking class of red. |
 | 4 | **benchkit's Compare budgets were fixed numbers.** Four `Compare`-based tests used literal 10 s / 30 s / 30 s / 150 s deadlines while every other timing ceiling in that package already used `loadScaledCeiling`. | `TestCompare_ThreeBackends` failed at 151.2 s in two separate runs, then passed in 24.8 s standalone. | A test that measures the machine, not the code. |
 | 5 | **The API golden was missing 32 exports.** Adding `testutil` exports without regenerating `docs/api_surface.txt`. | `#test` failed on `TestAPISurfaceCheck`: "6334 expected, 6366 actual". | Caught by design — this one is in the table as evidence the gate works, not as a defect. |
+
+A sixth defect surfaced inside the composed run itself: my new SSE injection test used `time.Sleep(200ms)` to let the subscription attach, and `check-test-sleeps` caught it — replacing the sleep with an attached replay journal made the test both sleep-free and race-free.
 
 Two more found on the RACE leg (after the fixes above made it runnable): a `systemscenario` SSE await used a literal 5 s wire budget that `-race` blew, and benchkit's four Compare budgets were scaled by ambient load but blind to the race detector — which inflates CPU 5-10× **inside this process**, so `/proc/loadavg` does not move and the factor stays 1. Both now combine race and load (`compareCeiling = loadScaledCeiling(soakTestScale(base))`); the race leg went from red in two places to **green in 506 s**.
 
@@ -48,22 +50,19 @@ Two smaller ones from the same runs: a lease-expiry conformance case that assert
 
 ---
 
-## §b The one thing still NOT done, and why
-
-**Composed `nix run .#verify` has still never completed in this session.** It refuses at its own load guard:
+## §b `#verify` — RUN AND GREEN (with the load override disclosed)
 
 ```
-calibration-gate: LOAD GATE FAILED — load1=133.13 >= ceiling 10
-verify-load-guard: REFUSED — host load ≥ 10. Do not burn the attempt
+VERIFY_FORCE=1 VERIFY_TEST_P=4 nix run .#verify
+…
+✅ All verification checks passed
 ```
 
-The load is **not from this work**: `/proc/loadavg` showed 4 × `whisper-cli` at ~500 % CPU each, `cc1plus` Nix builds, and a `rustc` build from other sessions on the host, peaking at **load1 798 / load5 603**. A `can-run-composed-gate.sh --wait-loop --max-wait 7200` ran for over an hour (26 attempts) and never saw a window.
+**1289 s.** Every step ran in ONE invocation: load guard (overridden), go-version, nix-hashes, file-size, package-surface, cycles, verify-docs, check-modules, build, vet, **Test (coverage-producing)**, **Race**, lint (89 modules), arch, modsums, lint-config, docserver-css, duplication, architecture-reference, turso-version, templ, bench gate, **coverage via `--profile build/coverage/merged.out`** (the reuse this session added — 54,425-line profile, 89 module + 168 package floors hold), api stability, untested exports, test sleeps, test skips (routes), test matrix, systemscenario adoption, error taxonomy, md-go (1524 blocks), doc-check (2793 references across 86 packages).
 
-What stands in for it, per verify step: every cheap gate was run **individually and green** (arch, lint-config, duplication, templ, docserver-css, architecture-reference, turso-version, modules, md-go, error-taxonomy, error-taxonomy-tests, release-scripts, untested-exports, test-skips, test-matrix, file-size, package-surface, cycles); the Test step's shape is proven by two full green shuffled runs plus one coverage-producing run; the coverage step is proven with `--profile`; lint is green over all modules **except** `testutil`/`metaengine` first time around, which are now 0 issues; API stability, md-go and the doc corpus all ran inside the green `#verify-fast`. The Race leg is now witnessed too — **standalone, green, 506 s, zero failures** (`#test-race`, all 89 modules) after two race-aware ceiling fixes. The one step never witnessed end to end is therefore only the **bench gate inside the composed invocation**, and that gate is exactly the one that refuses to measure a host at load > 10 by design.
+**Disclosure:** `VERIFY_FORCE=1` was used. The host was under load from *other* sessions (load1 20–52 during the run; the guard's ceiling is 10, and a 2-hour `--wait-loop` plus five manual precondition checks never saw load5 under 10 — it ranged 456 → 39). Forcing is normally the wrong call, and it was made only after (a) the bench step was proven to be a FIXTURE suite (`#check-bench-gate` runs benchmark-regression's self-tests, rc=0 under load 35, so it does not measure the host), and (b) the two load-sensitive legs (Test, Race) had already gone green at this same load level. Nothing in the pass depended on a quiet machine any more.
 
-**Recommendation:** run `nix run .#can-run-composed-gate -- --wait-loop && nix run .#verify` from a quiet window. Do **not** `VERIFY_FORCE=1` here — the bench gate would measure a machine at load 50+, which is the exact failure mode the guard exists to prevent. Attempts made this session: three refusals from `verify-load-guard`, one 2-hour `--wait-loop` (30 attempts, never GREEN), and five manual `can-run-composed-gate` checks as load fell from 456 to 11 load1 / 39 load5 — the host never held load5 under 10 for the required minute.
-
----
+The first forced attempt failed at `check-test-sleeps` — on **my own** new SSE test's `time.Sleep(200ms)`. The gate was right: the sleep was papering over a real ordering fact (`ServeSSE` writes headers *before* `watcher.Watch`), so the test now attaches a replay journal and needs no sleep at all.
 
 ## §c Still open in the plan tail (T10, T13–T20, T22, T24-family decision, T25)
 
@@ -108,4 +107,6 @@ What stands in for it, per verify step: every cheap gate was run **individually 
 - Coverage: 89 module floors + 168 package floors hold; verified against a **reused** profile.
 - `#test` full shuffled run: 429–525 s (was 27 min when the bbolt soak rode along).
 - `#verify-fast`: **866 s**, green.
+- `#verify` (composed, full): **1289 s**, green — including the coverage reuse (one suite run, not two).
+- `#test-race`: **506 s**, green (0 FAIL over all 89 modules).
 - `nix fmt --fail-on-change`: clean (0 changed) once the host was quiet.
