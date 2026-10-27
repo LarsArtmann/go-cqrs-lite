@@ -3139,12 +3139,19 @@ re-checked by T23, never re-executed.
       tests, nearly all false positives. The honest detector of a test that
       cannot fail is mutation (T10), so T05 ships the skip half and T10 owns
       this. — plan T05, ideas 4-6
-- [ ] **[T05-route] Route the MySQL integration suite** — `MYSQL_TEST_DSN`
-      gates `stack/mysql`, `queue/mysql`, `metaengine/mysqlengine` tests and
-      only `scripts/vm-mysql*.sh` sets it; no workflow runs
-      `.#integration-mysql-vm`. Either add the QEMU job (~131s, needs KVM) or
-      record MySQL as local-only. Found by `check-test-skips.sh --report`.
-      _(Effort: S)_
+- [x] 🔥 **[T05-route] Route the MySQL integration suite** — **DONE
+      2026-10-27.** New `mysql-integration` CI job runs
+      `nix run .#integration-mysql-vm`: QEMU VM with MySQL port-forwarded, and
+      the Go suites (`stack/mysql`, `idempotency/sqlstore`,
+      `metaengine/mysqlengine`) run on the host against it. The existing
+      `nixos-vm-tests` matrix was NOT this: it proves mysqld boots, not that
+      the driver works. The route is now ENFORCED, not just documented:
+      `check-test-skips.sh` classifies every skip-gating env var through three
+      hops (workflow → script → flake app) and FAILS on `NONE`, with
+      `scripts/test-skip-routes.txt` as the explicit local-only escape (empty
+      by design). Comment lines are stripped in both hops after this session
+      proved a doc comment could manufacture a fake route. Self-test now covers
+      6 reason cases + 7 route cases. — plan T05, ideas 4-6
 - [x] **[T06] Replay = snapshot = reset, idempotency per engine** — **VERIFIED
       ALREADY COVERED 2026-10-26 (no new code).** Snapshot-vs-replay: decider
       `decider_snapshot_test.go` + `systemscenario` snapshot-deployment
@@ -3183,12 +3190,18 @@ re-checked by T23, never re-executed.
       erratum): mutation is the only honest detector of a test that cannot
       fail. Needs tooling evaluation (gremlin vs mutants vs AST operator swap)
       and PR-scoped time-boxing. — plan T10, ideas 4+49+50 _(Effort: M)_
-- [ ] **[T12] Flake ledger classification** — **PARTIAL 2026-10-26.**
-      `autoretry.yml` now classifies a retried-green run as FLAKY (reads
-      attempt 1's failed job list, writes the run summary + a
-      `flaky-ledger-<run>` artifact) and `scripts/flaky-tests.txt` exists as
-      the ledger. Remaining: the per-package runtime budget parsed from
-      `go test -json`. — plan T12, ideas 15+16 _(Effort: S)_
+- [x] 🔥 **[T12] Flake ledger classification + runtime budget** — **DONE
+      2026-10-27.** `autoretry.yml` classifies a retried-green run as FLAKY
+      (attempt 1's failed job list + run summary + `flaky-ledger-<run>`
+      artifact) and `scripts/flaky-tests.txt` is the ledger. The remaining
+      half — a per-package runtime budget — is
+      `scripts/check-test-runtime.sh` over `go test -json` events
+      (`GT_JSON=1 nix run .#test` → `build/test-json/`, uploaded by CI):
+      budgets live in `scripts/test-runtime-baseline.txt` (factor 2x + 20s
+      floor, STALE reported for faster packages, NEW packages fail closed so a
+      suite cannot appear without a budget). CI widens to 3x/30s because a
+      runner is a different machine class; the tight gate is local/nightly.
+      Self-test 6/6 fault-injected. — plan T12, ideas 15+16
 - [ ] **[T13] `synctest` migration wave 1** — 0 usages; `scheduling` ticker
       and deadline tests still use wall-clock margins. Keep
       `scheduling.WithClock` for system-level scenarios (ADR-0153 D4) and use
@@ -3200,9 +3213,16 @@ re-checked by T23, never re-executed.
 - [ ] **[T15] Differential engine harness** — one operation script across all
       engines with a reviewed divergence allowlist. — plan T15, idea 19
       _(Effort: L)_
-- [ ] **[T16] Error-taxonomy behaviour tests + deprecation pins** — every
-      documented code has a family+wrapping test. — plan T16, ideas 30+32
-      _(Effort: M)_
+- [ ] **[T16] Error-taxonomy behaviour tests + deprecation pins** — **PARTIAL
+      2026-10-27: the ratchet half shipped.** `scripts/check-error-taxonomy-tests.sh`
+      + `scripts/error-taxonomy-untested-baseline.txt` freeze the historical
+      tail (540 of 546 documented codes are named by no test) and fail a NEW
+      documented code that no test names, a baseline row whose code left the
+      doc, and report now-tested rows as STALE (pruned by `--update`). Self-test
+      6/6. **Remaining:** actually writing per-code family + wrapping behaviour
+      tests (the freeze is a floor, not the goal), and the deprecation pins
+      half. Detection is name-based by design — a test that cannot fail still
+      needs mutation (T10). — plan T16, ideas 30+32
 - [ ] **[T17] Executable examples, tag fixtures, promoted recipes** — the
       `GOWORK=off examplePaths` leg is still the one TODO_LIST row this
       absorbs (MarkDemo incident). — plan T17, ideas 7+29+31 _(Effort: M)_
@@ -3231,11 +3251,30 @@ re-checked by T23, never re-executed.
 - [ ] **[T25] HTTP injection pins, span shape, companion auth flows** — SSE
       CRLF, docserver traversal, span names, cqrs-htmx auth E2E. — plan T25,
       ideas 46-48 _(Effort: M)_
-- [ ] **[T26] Weekly heavy soaks + race completeness** — bbolt/dgraph/duckdb
-      soaks weekly; race module set == `testModules`. — plan T26, ideas 39+40
-      _(Effort: S)_
-- [ ] **[T27] `rapid` expansion to codec, envelope and `record`** — the
-      decider already has deterministic-apply/version/accumulation properties;
-      what is missing is codec roundtrip, envelope idempotence and
-      `record.ParseEncoding` totality, each mutation-proven. — plan T27,
-      idea 17 _(Effort: M)_
+- [x] **[T26] Weekly heavy soaks + race completeness** — **DONE 2026-10-27.**
+      `weekly-soaks.yml` (Sundays 05:00 UTC) runs `#soak-weekly` (bbolt +
+      DuckDB AutoCRUD, embedded engines) and the Dgraph soak through the
+      ephemeral harness (`TEST_ARGS='-run TestSoak'`). Race completeness is
+      gate-protected by `scripts/check-test-matrix.sh`: `#test`/`#test-race`
+      GT_PATHS must still be `${modulePaths}`, `modulePaths` must derive from
+      `testModules`, `lintModules` must equal it, and every `repeatModules`
+      entry must still exist (6/6 self-test).**Root cause this closed:** the
+      bbolt soak ran inside `#test` and took 27 minutes, starving sibling
+      packages into two false failures; `#test`/`#test-race` now set
+      `SOAK_SKIP_BOLT=1` because the weekly job is where soaks execute.
+      — plan T26, ideas 39+40
+- [x] **[T27] Property/fuzz expansion to codec, envelope and `record`** —
+      **DONE 2026-10-27.** (a) `record/encoding_fuzz_test.go`: a sweep over the
+      whole `Encoding` uint8 space (canonical names, `""` for every
+      non-canonical value, `""` is NOT parseable) plus
+      `FuzzParseEncodingTotality` — totality, `ErrUnknownEncoding` for
+      everything outside the vocabulary, and round-trip through `String()`.
+      Registered in the fuzz rotation (116 targets). (b)
+      `kv/envelope_property_test.go`: two rapid properties at the blind-store
+      boundary — ADR-0044 codec independence (CBOR-written rows read by a JSON
+      store and vice versa) and pre-envelope raw-byte rows still decoding under
+      BOTH reader codecs. Codec roundtrip itself was already covered
+      (`event/codec_fuzz_test.go`, 6 fuzz targets). No `rapid` dependency was
+      added to `record`: that module's zero-dependency property is worth more
+      than a generator library, and Go native fuzzing covers totality there.
+      — plan T27, idea 17
