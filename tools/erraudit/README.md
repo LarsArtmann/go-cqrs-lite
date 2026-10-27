@@ -37,4 +37,19 @@ scripts/erraudit-sweep.sh <path-to-built-binary>
 Zero-baseline expectation: 2026-09-13 (22 modules) and re-verified
 2026-10-16 (104 modules, v0.7.0) — `erraudit lint ./... --enforce-go-error-family
 --type-aware` exits 0 everywhere. The sweep script is
-`scripts/erraudit-sweep.sh`.
+`scripts/erraudit-sweep.sh`. Re-verified 2026-10-27 (102 modules, nix
+erraudit build 61a744c): gate flags clean everywhere.
+
+**`--max` is NOT the gate configuration.** `erraudit lint ./... --max`
+(= `--type-aware --no-suppress --explain --disable-extensions` + every
+`--enforce-*` check) additionally enables `--enforce-generic-return`, which
+flags EVERY function returning the `error` interface. Audited 2026-10-27:
+801 findings across 67 modules, 100% of that class, zero
+errors.As/errors.Is/coded-errors/deferred-close/oops findings — this check
+is off by default because "returning error is standard Go practice" (the
+binary's own help text), and the repo's error architecture is the
+go-error-family 6-family taxonomy, not per-function error types. Expect
+~800 findings under `--max`; use `scripts/erraudit-sweep.sh` for gate
+parity. `--no-suppress` surfacing nothing is the honest-zero proof: there
+are zero `//nolint:legacyerrors` suppressions in the tree.
+
