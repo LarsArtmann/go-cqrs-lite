@@ -191,10 +191,12 @@ func TestRun_SQLite_ReadModelAndJournal(t *testing.T) {
 }
 
 func TestCompare(t *testing.T) {
-	// 150s: the benchmark suite takes ~36s under -race standalone; under the
-	// verify race phase (all packages parallel, CPU oversubscribed) it can
-	// blow past a 60s budget. Headroom is cheap, flakes are not.
-	ctx, cancel := parallelTimeoutCtx(t, 150*time.Second)
+	// ~36s under -race standalone; the previous fixed 150s blew past itself on
+	// 2026-10-27 with no code change, because the suite runs four PACKAGES in
+	// parallel and duckdbengine's 231s of CGo work held the CPU. Scale with the
+	// ambient load like the other timing ceilings here — a fixed number is a
+	// flake waiting for a busy host.
+	ctx, cancel := parallelTimeoutCtx(t, loadScaledCeiling(150*time.Second))
 	defer cancel()
 
 	results, err := Compare(ctx, Config{

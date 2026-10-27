@@ -26,6 +26,7 @@
 #                reason since 2026-09-19.
 #   GT_JSON=1    emit `go test -json` events to build/test-json/<label>-<ts>.json
 #                (feeds scripts/check-test-runtime.sh); GT_JSON_OUT overrides
+#   GT_LOG_OUT   full-output log path (default build/test-logs/<label>-<ts>-<seed>.log)
 #   SHUFFLE=off  disable shuffling (escape hatch for a bisect)
 #   SHUFFLE_SEED explicit seed (replay); otherwise a fresh one is minted
 #
@@ -72,17 +73,25 @@ else
 	args+=(-shuffle="$seed")
 fi
 
+# Always keep the evidence. A red run used to survive only as whatever
+# scrolled past, which is why the 2026-10-27 failure needed a full replay to
+# even name the package — and the replay passed, so the log would have been the
+# only record that it ever failed.
+STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 status=0
 if [ "${GT_JSON:-0}" = "1" ]; then
 	# -json for the runtime budget (T12): one stream, tee'd so a human still
 	# sees progress while scripts/check-test-runtime.sh gets per-package
 	# Elapsed values. PIPESTATUS keeps go test's exit code authoritative.
-	json_out="${GT_JSON_OUT:-build/test-json/${LABEL}-$(date -u +%Y%m%dT%H%M%SZ).json}"
+	json_out="${GT_JSON_OUT:-build/test-json/${LABEL}-${STAMP}.json}"
 	mkdir -p "$(dirname "$json_out")"
 	CGO_ENABLED=1 go test "${args[@]}" -json "${PATHS[@]}" "$@" | tee "$json_out" || status=${PIPESTATUS[0]}
 	echo "==> JSON event stream: $json_out" >&2
 else
-	CGO_ENABLED=1 go test "${args[@]}" "${PATHS[@]}" "$@" || status=$?
+	log_out="${GT_LOG_OUT:-build/test-logs/${LABEL}-${STAMP}-${seed:-noshuffle}.log}"
+	mkdir -p "$(dirname "$log_out")"
+	CGO_ENABLED=1 go test "${args[@]}" "${PATHS[@]}" "$@" 2>&1 | tee "$log_out" || status=${PIPESTATUS[0]}
+	echo "==> Full output: $log_out" >&2
 fi
 
 if [ "$status" -ne 0 ] && [ "${SHUFFLE:-on}" != "off" ]; then
