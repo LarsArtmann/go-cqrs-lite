@@ -1438,6 +1438,28 @@ Fluent BDD harness for deciders and projections — no store or bus needed, just
 | Simulation framework | `EventGenerator` — single/multi-stream event generation for testing            | ✅     |
 | OTel integration     | End-to-end OpenTelemetry tracing verification                                  | ✅     |
 
+### Suite-integrity gates ✅ FULLY_FUNCTIONAL
+
+The gates that decide whether a green suite means anything. Each carries its own
+fault-injection self-test, so a gate that can no longer go red is itself a
+failure.
+
+| Gate                        | Detail                                                                                                                                                                                                                          | Status |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| Coverage floors             | 89 modules + 168 packages, one workspace coverprofile, five failure classes, `--profile` reuse so `#verify` measures once                                                                                                        | ✅     |
+| Untested-export ratchet     | 1,088 of 6,334 exported symbols frozen (shrink-only); a new symbol named by no test fails                                                                                                                                          | ✅     |
+| Shuffle + seed replay       | `-shuffle` by default, seed logged and replayable, `#test-repeat` nightly at `-count=5 -cpu=1,4`                                                                                                                                   | ✅     |
+| Package parallelism cap     | `-p 4` by default (`GT_P`): without it duckdbengine/tursoengine starve the rest of the suite into false timeouts                                                                                                                   | ✅     |
+| goleak                      | 14 modules; ginkgo's interrupt handler is the single ignore                                                                                                                                                                        | ✅     |
+| Sleep ratchet               | 182 `time.Sleep` sites frozen, `//go-sleep:accept <reason>` for a deliberate window                                                                                                                                                 | ✅     |
+| Skip reasons + routes       | 238 sites need a reason; every skip-gating env var must resolve workflow → script → flake app, or be recorded local-only in `scripts/test-skip-routes.txt`                                                                          | ✅     |
+| Test-matrix completeness    | `#test`/`#test-race`/lint/repeat sets must derive from `testModules`; a curated matrix fails                                                                                                                                        | ✅     |
+| Runtime budgets             | Per-package wall-clock budgets from `go test -json` (168 rows), 2x + 20s locally / 3x + 30s on CI                                                                                                                                  | ✅     |
+| Error-code behaviour ratchet| A NEW documented error code must be named by a test; 540 of 546 historical codes frozen                                                                                                                                            | ✅     |
+| Fuzz rotation               | 116 targets, four-night rotation, inventory-drift job, cached corpora                                                                                                                                                              | ✅     |
+| Latency ceilings            | 21 gate benchmarks at 3x baseline, independent of the delta compare                                                                                                                                                                | ✅     |
+| Soaks (weekly)              | bbolt + DuckDB AutoCRUD + Dgraph via the ephemeral harness, `weekly-soaks.yml`; deliberately outside `#test`                                                                                                                       | ✅     |
+
 ---
 
 ## Examples 💡 DEMO
