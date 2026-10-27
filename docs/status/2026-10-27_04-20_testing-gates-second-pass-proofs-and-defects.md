@@ -101,7 +101,7 @@ The first forced attempt failed at `check-test-sleeps` — on **my own** new SSE
 ## §f Numbers, for the record
 
 - Fuzz inventory: 115 → **116** targets.
-- Exported API: 6,334 → **6,366** symbols (32 new, all `testutil`), all named by a test except the frozen tail (1,086 rows now, prune-able to 1,084).
+- Exported API: 6,334 → **6,367** symbols (32 `testutil` + `systemscenario.RaceEnabled`); 1,086 are untested and frozen, 2 of those rows report STALE because the name-based detector matched this session's new `Capabilities` symbols against `stack`'s unrelated ones.
 - Skip sites: 238 with reasons; **0** unrouted env gates.
 - Runtime budgets: **168** packages; slowest duckdbengine 231.6 s, benchkit 180.5 s, cqrs-bench 123.3 s.
 - Coverage: 89 module floors + 168 package floors hold; verified against a **reused** profile.
