@@ -22,6 +22,17 @@ func loadScaledCeiling(base time.Duration) time.Duration {
 	return base * time.Duration(ambientLoadFactor())
 }
 
+// compareCeiling is the ceiling for a Compare/benchmark-journey budget: BOTH
+// dimensions apply. Ambient load is what loadScaledCeiling measures; the race
+// detector is what it cannot see (it inflates CPU 5-10x without moving
+// /proc/loadavg, because the inflation is inside this process). A 150s
+// journey that fits easily when idle still blew its deadline at exactly 150.4s
+// on the 2026-10-27 #test-race leg with load1≈20 and GOMAXPROCS 28 — the load
+// factor was clamped to 1 and the detector was invisible.
+func compareCeiling(base time.Duration) time.Duration {
+	return loadScaledCeiling(soakTestScale(base))
+}
+
 // ambientLoadFactor returns max(1, load1/GOMAXPROCS), capped at 8, using the
 // same /proc/loadavg reader as Environment.LoadAvg1 (detectLoadAvg1).
 // Non-Linux hosts and unreadable files yield 0 → factor 1 (fixed ceilings,

@@ -196,7 +196,7 @@ func TestCompare(t *testing.T) {
 	// parallel and duckdbengine's 231s of CGo work held the CPU. Scale with the
 	// ambient load like the other timing ceilings here — a fixed number is a
 	// flake waiting for a busy host.
-	ctx, cancel := parallelTimeoutCtx(t, loadScaledCeiling(150*time.Second))
+	ctx, cancel := parallelTimeoutCtx(t, compareCeiling(150*time.Second))
 	defer cancel()
 
 	results, err := Compare(ctx, Config{
@@ -226,7 +226,7 @@ func TestCompare(t *testing.T) {
 }
 
 func TestCompare_WithFailure(t *testing.T) {
-	ctx, cancel := parallelTimeoutCtx(t, loadScaledCeiling(10*time.Second))
+	ctx, cancel := parallelTimeoutCtx(t, compareCeiling(10*time.Second))
 	defer cancel()
 
 	results, err := Compare(ctx, Config{
@@ -274,7 +274,7 @@ func TestPrintReport(t *testing.T) {
 }
 
 func TestPrintComparison(t *testing.T) {
-	ctx, cancel := parallelTimeoutCtx(t, loadScaledCeiling(30*time.Second))
+	ctx, cancel := parallelTimeoutCtx(t, compareCeiling(30*time.Second))
 	defer cancel()
 
 	results, _ := Compare(ctx, Config{
@@ -317,7 +317,7 @@ func TestWriteJSON(t *testing.T) {
 }
 
 func TestPrintMarkdown(t *testing.T) {
-	ctx, cancel := parallelTimeoutCtx(t, loadScaledCeiling(30*time.Second))
+	ctx, cancel := parallelTimeoutCtx(t, compareCeiling(30*time.Second))
 	defer cancel()
 
 	results, _ := Compare(ctx, Config{
@@ -934,7 +934,7 @@ func TestCompare_ThreeBackends(t *testing.T) {
 	// (memory+sqlite CGO+pebble) blew the old 60s deadline under CI runner
 	// contention (observed 60.36s deadline-exceeded on 2026-10-14) while
 	// taking ~30s locally under host load.
-	ctx, cancel := parallelTimeoutCtx(t, loadScaledCeiling(150*time.Second))
+	ctx, cancel := parallelTimeoutCtx(t, compareCeiling(150*time.Second))
 	defer cancel()
 
 	dir := t.TempDir()
