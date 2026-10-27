@@ -288,7 +288,10 @@ if [ "$QUIET" -eq 0 ]; then
 	echo ""
 	printf '%-9s %-58s %8s %8s %8s\n' STATUS PACKAGE ELAPSED BASE LIMIT
 	printf '%-9s %-58s %8s %8s %8s\n' ------- ------- ------- ---- -----
-	printf '%s\n' "$rows" | grep -v '^$' | awk -F'\t' '{ printf "%-9s %-58s %8s %8s %8s\n", $1, $2, $3, $4, $5 }'
+	# No rows is the good case; awk handles an empty input without a pipeline
+	# status to worry about (grep returns 1 on no match, which pipefail+errexit
+	# would turn into a silent early exit).
+	printf '%s\n' "$rows" | awk -F'\t' 'NF > 1 { printf "%-9s %-58s %8s %8s %8s\n", $1, $2, $3, $4, $5 }'
 	echo ""
 	echo "Slowest 10 packages in this run:"
 	sort -t"$(printf '\t')" -k2,2gr "$tmp/measured.txt" | head -10 |
