@@ -3297,9 +3297,21 @@ re-checked by T23, never re-executed.
       decide whether writes should abort on a canceled context. Both change
       consumer-visible behaviour, so neither is a test fix. — plan T24,
       ideas 44+45
-- [ ] **[T25] HTTP injection pins, span shape, companion auth flows** — SSE
-      CRLF, docserver traversal, span names, cqrs-htmx auth E2E. — plan T25,
-      ideas 46-48 _(Effort: M)_
+- [ ] **[T25] HTTP injection pins, span shape, companion auth flows** —
+      **PARTIAL 2026-10-27 (verified, not written).** (a) SPAN SHAPE IS COVERED:
+      `integration/otel_span_tree_test.go` asserts the exact name sequence
+      (`command.handle → decider.execute → decider.load`) AND the parent links,
+      `integration/otel_integration_test.go` pins `command.handle`, and
+      `middleware/span_tree_test.go` covers the middleware layer. (b) DOCSERVER
+      TRAVERSAL has no surface to pin: static assets are served from an
+      `embed.FS` (`Docserver.StaticFS()` → `http.FileServer`), and an embedded FS
+      rejects `..` by construction — a test would be asserting net/http.
+      **Remaining:** (c) SSE CRLF — no test injects a payload containing
+      `\r\n\r\n` to prove the writer cannot forge an event boundary
+      (`metaengine.ServeSSE` delegates serialization to the external `go-sse`,
+      so the risk is in our framing loop, `metaengine/sse_loop.go`); (d) the
+      cqrs-htmx auth E2E lives in the COMPANION repo and belongs to its own
+      suite, not here. — plan T25, ideas 46-48
 - [x] **[T26] Weekly heavy soaks + race completeness** — **DONE 2026-10-27.**
       `weekly-soaks.yml` (Sundays 05:00 UTC) runs `#soak-weekly` (bbolt +
       DuckDB AutoCRUD, embedded engines) and the Dgraph soak through the
