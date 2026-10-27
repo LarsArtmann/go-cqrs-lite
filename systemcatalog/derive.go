@@ -223,7 +223,7 @@ func eventUniverse(domain system.DomainConfig) []event.Type {
 		}
 
 		seen[evtType] = struct{}{}
-		universe = append(universe, evtType) //art-dupl:accept sorted-dedup-union idiom; shape-twin is cqrs-lint's key collector, not shared logic
+		universe = append(universe, evtType) //art-dupl:accept sorted-union idiom; twin is v006's key collector
 	}
 
 	slices.Sort(universe)
