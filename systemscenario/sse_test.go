@@ -38,7 +38,16 @@ func TestSSE_TaskViewStreamsOverHTTP(t *testing.T) {
 			TaskView{ID: ref.ID.String(), Title: "renamed", Status: "pending"},
 		)
 
-	sub.Await(t, 5*time.Second, "renamed task view", func(v TaskView) bool {
+	// 5s is a wire budget, not a code budget: under -race the detector plus a
+	// loaded host can miss it with nothing wrong (observed 2026-10-27 on the
+	// #test-race leg). Relax it the way the repo relaxes every other timing
+	// threshold.
+	awaitBudget := 5 * time.Second
+	if systemscenario.RaceEnabled {
+		awaitBudget = 30 * time.Second
+	}
+
+	sub.Await(t, awaitBudget, "renamed task view", func(v TaskView) bool {
 		return v.Title == "renamed" && v.Status == "pending"
 	})
 

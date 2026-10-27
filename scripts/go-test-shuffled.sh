@@ -85,6 +85,10 @@ else
 	log_shuffle_seed "$LABEL" "$seed"
 fi
 
+# The single-invocation path (COUNT=1) uses this too, so the log name carries
+# the real seed instead of "noshuffle".
+seed_for_iteration="$seed"
+
 # run_args ITER — the full go test argument list for one invocation.
 run_args() { # $1=iteration (1-based)
 	local iter="$1"

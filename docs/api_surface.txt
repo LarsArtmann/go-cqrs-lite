@@ -6184,6 +6184,7 @@ systemcatalog/func WithTitle
 systemcatalog/func WithVersion
 systemcatalog/type Option
 systemcatalog/var ErrCatalogValidation
+systemscenario/const RaceEnabled
 systemscenario/func Adopt
 systemscenario/func AssertJournalEquivalence
 systemscenario/func DelayedDriver
