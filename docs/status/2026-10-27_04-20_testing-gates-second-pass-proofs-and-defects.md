@@ -75,7 +75,7 @@ What stands in for it, per verify step: every cheap gate was run **individually 
 | T20 crash consistency (`kill -9`) | not started | L; needs subprocess orchestration per engine. |
 | T22 broker crash matrix | not started | Redis/NATS disconnect + DLQ + commit-publish window; T21's injector now makes the in-process half feasible, the broker half needs live brokers. |
 | T24 family decision | **owner** | A tamper currently classifies as `Rejection`, not `Corruption`. Changing a public error family changes consumer branching. |
-| T25 HTTP/span/auth pins | not started | SSE CRLF, docserver traversal, span shape, cqrs-htmx auth E2E (companion repo). |
+| T25 HTTP/span/auth pins | **partial (2 of 3 in-repo)** | Span shape is already covered (`integration/otel_span_tree_test.go` pins names AND parents). SSE CRLF is now pinned by `metaengine/sse_injection_test.go` — a value containing `\r\n\r\nid: 999` stays inside one `data:` field (my first version of that test asserted substrings and reported a FAKE vulnerability; the JSON-escaped CRLF is in the payload text, not the wire framing). Docserver has no traversal surface (`embed.FS` rejects `..` by construction). Remaining: cqrs-htmx auth E2E lives in the companion repo. |
 
 ---
 

@@ -68,23 +68,34 @@ func TestSSE_PayloadCannotForgeEventBoundary(t *testing.T) {
 	time.Sleep(200 * time.Millisecond)
 
 	forged := "innocuous\r\n\r\nid: 999\r\nevent: forged\r\ndata: injected"
-	if err := store.Apply(ctx, "task_created", testTask{ID: "inject-1", Title: forged}); err != nil {
+	if err := store.Apply(
+		ctx,
+		"task_created",
+		testTask{ID: "inject-1", Title: forged},
+	); err != nil {
 		t.Fatalf("apply: %v", err)
 	}
 
 	raw := readUntil(t, conn, "injected")
 
-	if strings.Contains(raw, "id: 999") {
-		t.Fatalf("payload forged an SSE id field — the value escaped its data field:\n%q", raw)
+	// Assert on LINE STARTS, not substrings: the value is JSON-encoded, so the
+	// payload's CRLF arrives as the two-character escape `\r\n` INSIDE one
+	// `data:` line. A substring check would fire on that escaped text and
+	// report a fake vulnerability (it did, first run). What matters is that no
+	// REAL line begins with a field name the payload chose.
+	body := raw[strings.Index(raw, "\r\n\r\n"):]
+	for _, forgedLine := range []string{"\nid: 999", "\nevent: forged"} {
+		if strings.Contains(body, forgedLine) {
+			t.Fatalf("payload forged the SSE line %q — a newline escaped its data field:\n%q",
+				strings.TrimPrefix(forgedLine, "\n"), raw)
+		}
 	}
 
-	if strings.Contains(raw, "event: forged") {
-		t.Fatalf("payload forged an SSE event type — the value escaped its data field:\n%q", raw)
-	}
-
-	// Exactly one event block (one `id:` line) must have been written for one
-	// applied value. A forged boundary would produce a second block.
-	if got := strings.Count(raw, "\nid: "); got != 1 {
+	// Exactly one event block must have been written for one applied value: a
+	// blank line terminates an event, so the body must contain exactly one.
+	// (This watcher has no replay attached, so no `id:` field is written —
+	// counting blank lines is the boundary metric that works in both shapes.)
+	if got := strings.Count(body, "\n\n"); got != 1 {
 		t.Fatalf("wrote %d event blocks for one applied value, want 1:\n%q", got, raw)
 	}
 }

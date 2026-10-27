@@ -3306,12 +3306,15 @@ re-checked by T23, never re-executed.
       TRAVERSAL has no surface to pin: static assets are served from an
       `embed.FS` (`Docserver.StaticFS()` → `http.FileServer`), and an embedded FS
       rejects `..` by construction — a test would be asserting net/http.
-      **Remaining:** (c) SSE CRLF — no test injects a payload containing
-      `\r\n\r\n` to prove the writer cannot forge an event boundary
-      (`metaengine.ServeSSE` delegates serialization to the external `go-sse`,
-      so the risk is in our framing loop, `metaengine/sse_loop.go`); (d) the
-      cqrs-htmx auth E2E lives in the COMPANION repo and belongs to its own
-      suite, not here. — plan T25, ideas 46-48
+      (c) SSE CRLF IS PINNED: `metaengine/sse_injection_test.go` applies a value
+      containing `\r\n\r\nid: 999\r\nevent: forged` and asserts, on line
+      starts and event-block count, that the payload cannot forge a field or a
+      second event — protection comes from JSON-encoding the value, so CRLF
+      reaches the wire only as the escaped `\r\n` inside one `data:` line (the
+      first version of this test asserted substrings and reported a FAKE
+      vulnerability; the note in the test says so).
+      **Remaining:** (d) the cqrs-htmx auth E2E lives in the COMPANION repo and
+      belongs to its own suite, not here. — plan T25, ideas 46-48
 - [x] **[T26] Weekly heavy soaks + race completeness** — **DONE 2026-10-27.**
       `weekly-soaks.yml` (Sundays 05:00 UTC) runs `#soak-weekly` (bbolt +
       DuckDB AutoCRUD, embedded engines) and the Dgraph soak through the
