@@ -31,6 +31,14 @@ func TestSSE_PayloadCannotForgeEventBoundary(t *testing.T) {
 	}
 
 	watcher := NewWatcher[testTask](store, "tasks")
+
+	// Replay attached on purpose: ServeSSE writes the response headers BEFORE
+	// it calls watcher.Watch (metaengine/sse.go), so a test that applies the
+	// value "after the client connected" can still race the subscription. A
+	// recorded value is replayed to a late subscriber, which makes this test
+	// independent of that ordering — and needs no sleep to paper over it.
+	watcher.WithReplay(100)
+
 	defer watcher.Close()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -62,10 +70,6 @@ func TestSSE_PayloadCannotForgeEventBoundary(t *testing.T) {
 	if _, err := conn.Write([]byte("GET /events HTTP/1.0\r\nHost: localhost\r\n\r\n")); err != nil {
 		t.Fatalf("write request: %v", err)
 	}
-
-	// Let the subscription attach before the value is applied, otherwise the
-	// event may be missed and the assertion would pass for the wrong reason.
-	time.Sleep(200 * time.Millisecond)
 
 	forged := "innocuous\r\n\r\nid: 999\r\nevent: forged\r\ndata: injected"
 	if err := store.Apply(
