@@ -13,17 +13,14 @@ set -euo pipefail
 #
 # Install/update with: nix run .#install-hooks
 
-# Mandatory disk-backed cache env chain (docs/agents/gowork-modes.md), go
-# builds inside the hook otherwise land on default caches that ENOSPC-rot.
-export GOCACHE="${GOCACHE:-/home/lars/projects/.gocache-disk}"
-export GOMODCACHE="${GOMODCACHE:-/tmp/gomod-verify}"
-export GOPATH="${GOPATH:-/tmp/gopath-verify}"
-export GOTOOLCHAIN="${GOTOOLCHAIN:-auto}"
-export GOTMPDIR="${GOTMPDIR:-/home/lars/projects/.gotmp}"
-export TMPDIR="${TMPDIR:-/home/lars/projects/.gotmp}"
-
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
+
+# Forced env overrides via scripts/go-env.sh (docs/agents/gowork-modes.md):
+# the ambient session env can carry GOTOOLCHAIN=local (nixpkgs Go wrapper)
+# and /mnt/buildcache cache paths (87% full) — `${VAR:-default}` forms let
+# those poison the hook's build leg (the 2026-09-22 --no-verify class).
+source "$ROOT/scripts/go-env.sh"
 
 staged() {
 	git diff --cached --name-only --diff-filter=ACMR | grep -E "$1" || true

@@ -34,14 +34,19 @@ It force-overrides exactly these (silent when already correct) — spell the
 raw exports only where sourcing is impossible:
 
 ```
-export GOCACHE=/home/lars/projects/.gocache-disk GOMODCACHE=/tmp/gomod-verify GOPATH=/tmp/gopath-verify GOTOOLCHAIN=auto GOLANGCI_LINT_CACHE=/home/lars/projects/.golangci-disk GOTMPDIR=/home/lars/projects/.gotmp TMPDIR=/home/lars/projects/.gotmp
+export GOCACHE=$HOME/.cache/go-build GOMODCACHE=$HOME/go/pkg/mod GOPATH=$HOME/go GOTOOLCHAIN=auto GOLANGCI_LINT_CACHE=$HOME/.cache/golangci-lint GOTMPDIR=$HOME/.cache/go-tmp TMPDIR=$HOME/.cache/go-tmp
 ```
 
 Adopted by: the pre-commit hook, `check-coverage.sh`,
 `benchmark-regression.sh`, `preflight-composed.sh`. The force-override
 matters: the ambient session env can carry `GOTOOLCHAIN=local` (the nixpkgs
 Go wrapper default) and caches pointed at `/mnt/buildcache` (100% full on
-2026-09-22) — set-before-use forms let that poison through.
+2026-09-22) — set-before-use forms let that poison through. Retargeted
+2026-10-28 (SystemNix docs/todo/storage.md row 184): the old
+/home/lars/projects/.gocache-disk chain churned the snapshotted QLC root
+subvol; the chain now forces go's real defaults onto unsnapshotted ~/.cache
+(@cache-home), with build scratch in ~/.cache/go-tmp — off the shared 48G
+/tmp tmpfs and off /mnt/buildcache.
 
 Build tag: NONE since Go 1.27 graduated `encoding/json/v2` (2026-09-19 sweep).
 The former `-tags "goexperiment.jsonv2"` / `GOEXPERIMENT=jsonv2` are no-ops and

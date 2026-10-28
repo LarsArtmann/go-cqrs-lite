@@ -19,14 +19,16 @@ tool_options:
 # the nix sandbox the pinned go_1_27 already satisfies the directive, so no
 # download is attempted.
 env:
-  # /mnt/buildcache (host go's default cache mount) hit 100% on 2026-09-22 —
-  # every tool write failed with ENOSPC. Use the same disk-backed chain as the
-  # repo's verify apps (docs/agents/gowork-modes.md), all on / which has room.
-  GOCACHE: /home/lars/projects/.gocache-disk
-  GOMODCACHE: /tmp/gomod-verify
-  GOPATH: /tmp/gopath-verify
-  GOLANGCI_LINT_CACHE: /home/lars/projects/.golangci-disk
-  GOTMPDIR: /home/lars/projects/.gotmp
+  # Ambient shells export /mnt/buildcache cache paths (87% full — the
+  # 2026-09-22 ENOSPC class); force go's real defaults (unsnapshotted
+  # ~/.cache = @cache-home) + disk-backed scratch off the 48G /tmp tmpfs.
+  # Mirrors scripts/go-env.sh (docs/agents/gowork-modes.md).
+  GOCACHE: /home/lars/.cache/go-build
+  GOMODCACHE: /home/lars/go/pkg/mod
+  GOPATH: /home/lars/go
+  GOLANGCI_LINT_CACHE: /home/lars/.cache/golangci-lint
+  GOTMPDIR: /home/lars/.cache/go-tmp
+  TMPDIR: /home/lars/.cache/go-tmp
 
 exclude:
   - "**/docserver/static/**"

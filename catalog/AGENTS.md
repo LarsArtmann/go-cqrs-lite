@@ -324,15 +324,16 @@ afterwards (the restore line would otherwise bring it back).
   catalog's own title — one spec file travels across catalogs. Pinned by
   `TestLoadExportCatalogTitleSentinel`.
 
-## Corrupted shared toolchain caches (2026-10-23 repair recipe)
+## Corrupted shared toolchain caches (2026-10-23 repair recipe; paths updated 2026-10-28)
 
-`scripts/go-env.sh` points `GOMODCACHE`/`GOPATH` at `/tmp/gomod-verify` and
-`/tmp/gopath-verify` — shared across sessions, and a half-written extraction
-(usually after a killed verify mid-download) makes every `go` command die with
+`GOMODCACHE`/`GOPATH` sit at go's defaults (`~/go/pkg/mod`, `~/go`) — shared
+across ALL sessions and repos, and a half-written extraction (usually after a
+killed verify mid-download) makes every `go` command die with
 `archive/tar: invalid tar header` or `file already exists` from the module
-cache. Repair: `chmod -R u+w /tmp/gomod-verify /tmp/gopath-verify` (the cache
-marks extracted trees read-only, so a straight delete fails), then
-`trash /tmp/gomod-verify /tmp/gopath-verify`, then re-run any `go build` — the
-toolchain re-downloads cleanly. Never `rm -rf` (the safety rule) and never
-hand-edit inside the cache; also build scratch binaries with `-o /tmp/…`
-because the auto-commit daemon absorbs repo-root strays within ~2 minutes.
+cache. Repair: `go clean -modcache` (handles the read-only bits itself), or
+manually `chmod -R u+w ~/go/pkg/mod` (the cache marks extracted trees
+read-only, so a straight delete fails), then `trash ~/go/pkg/mod`, then re-run
+any `go build` — the toolchain re-downloads cleanly. Never `rm -rf` (the
+safety rule) and never hand-edit inside the cache; also build scratch binaries
+with `-o /tmp/…` because the auto-commit daemon absorbs repo-root strays
+within ~2 minutes.

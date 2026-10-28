@@ -15,8 +15,9 @@
 #   # or, from anywhere:
 #   source /home/lars/projects/go-cqrs-lite/scripts/go-env.sh
 #
-# Behavior: overrides GOTOOLCHAIN (local -> auto), redirects the cache
-# chain to the disk-backed paths from gowork-modes.md, echoes one line per
+# Behavior: overrides GOTOOLCHAIN (local -> auto), forces the cache chain
+# onto go's real defaults under ~/.cache and ~/go (the ambient session env
+# exports /mnt/buildcache paths), echoes one line per
 # variable it actually changed (silent when the env is already correct).
 # GOFLAGS/GOWORK are deliberately NOT set here — the GOWORK decision table
 # (docs/agents/gowork-modes.md) is per-command-class, not ambient.
@@ -44,30 +45,30 @@ go_env_set() {
 # older than the workspace contract (1.27.1) — the false-fail class.
 go_env_set GOTOOLCHAIN auto
 
-# Cache chain off /mnt/buildcache (full disk, 2026-09-22) onto the paths
-# the verify apps use — all on / with headroom. The /home/lars-backed caches
-# are conditional: GitHub-hosted runners have no /home/lars, and a GOCACHE
-# pointing at an uncreatable path kills every go build ("mkdir /home/lars:
-# permission denied" — the 2026-10-14 Benchmark Regression Detection class,
-# same probe as the tmpdir fallback below). Runners keep go's defaults.
-cqrs_cache_root=/home/lars/projects
-if mkdir -p "$cqrs_cache_root" 2>/dev/null && [ -w "$cqrs_cache_root" ]; then
-	mkdir -p "$cqrs_cache_root/.gocache-disk" "$cqrs_cache_root/.golangci-disk" 2>/dev/null || true
-	go_env_set GOCACHE "$cqrs_cache_root/.gocache-disk"
-	go_env_set GOLANGCI_LINT_CACHE "$cqrs_cache_root/.golangci-disk"
-fi
-unset -v cqrs_cache_root
-go_env_set GOMODCACHE /tmp/gomod-verify
-go_env_set GOPATH /tmp/gopath-verify
+# Cache chain pinned to go's REAL defaults (retargeted 2026-10-28, SystemNix
+# docs/todo/storage.md row 184): the ambient session env exports
+# /mnt/buildcache paths (87% full — the 2026-09-22 ENOSPC class), so the
+# defaults must be FORCED, never left to the ambient env. The old
+# /home/lars/projects/.gocache-disk chain churned the snapshotted QLC root
+# subvol; ~/.cache is the unsnapshotted @cache-home subvol. GOLANGCI_LINT_CACHE
+# must stay explicit: golangci derives it from GOCACHE's parent otherwise and
+# lands on /mnt/buildcache (ambient bleed).
+go_env_set GOCACHE "$HOME/.cache/go-build"
+go_env_set GOMODCACHE "$HOME/go/pkg/mod"
+go_env_set GOPATH "$HOME/go"
+go_env_set GOLANGCI_LINT_CACHE "$HOME/.cache/golangci-lint"
 
-# Temp dirs: prefer the shared disk path, but fall back to the system default
-# when it cannot exist — GitHub-hosted runners have no /home/lars, and a
-# GOTMPDIR pointing at an uncreatable path breaks every mktemp in the job
-# (the 2026-10-13 Benchmark Regression Detection failure class).
-cqrs_tmpdir=/home/lars/projects/.gotmp
+# Build scratch stays off the shared 48G /tmp tmpfs (the ENOSPC link-job
+# class) and off /mnt/buildcache: a private dir under unsnapshotted
+# ~/.cache. go does NOT create GOTMPDIR itself, so probe-then-set with a
+# system-tmp fallback keeps foreign hosts (CI runners) working.
+cqrs_tmpdir="$HOME/.cache/go-tmp"
 if mkdir -p "$cqrs_tmpdir" 2>/dev/null && [ -w "$cqrs_tmpdir" ]; then
 	go_env_set GOTMPDIR "$cqrs_tmpdir"
 	go_env_set TMPDIR "$cqrs_tmpdir"
+else
+	go_env_set GOTMPDIR /tmp
+	go_env_set TMPDIR /tmp
 fi
 unset -v cqrs_tmpdir
 
