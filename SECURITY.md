@@ -19,7 +19,7 @@ responsibly:
 3. Include a proof of concept or steps to reproduce if possible.
 4. You will receive an acknowledgment within 48 hours.
 
-## Security Features
+## Security Practices
 
 The library provides opt-in security modules:
 
