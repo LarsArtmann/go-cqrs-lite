@@ -92,9 +92,6 @@ const (
 
 	// OpTransform is [schema.Transform].
 	OpTransform = "Transform"
-
-	// OpRenameType is [schema.RenameType].
-	OpRenameType = "RenameType"
 )
 
 // Finding is one classified difference.
