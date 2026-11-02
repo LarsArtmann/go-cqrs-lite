@@ -11,6 +11,15 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
+// Clean-room recheck of the tq row-683 report: a counter fold emitting a
+// composite-shaped Delta key ("api|pending") was reported to write a stray
+// parent-aggregate row ("api|") through Plan+ApplyRecord while a direct
+// CounterBackend.CounterIncrement stored the key verbatim. This harness could
+// NOT reproduce the truncation at metaengine v4.17.0/sqliteengine v4.5.3 nor
+// at the current pins (metaengine v4.19+ / sqliteengine v4.6): both shapes
+// land exactly the emitted keys. Kept as the re-run harness if the report
+// resurfaces with a fuller recipe.
+
 type ev struct {
 	Project string
 	From    string
@@ -18,8 +27,6 @@ type ev struct {
 }
 
 type in struct{}
-
-var sep = "|"
 
 type row struct {
 	ID     string
@@ -43,51 +50,55 @@ var tasksQuery = metaengine.Query[listIn, row]("tasks",
 
 var countsQuery = metaengine.Query[in, map[string]int64]("counts",
 	metaengine.OnRecordTyped("seed", ev{}, func(_ record.Record, e ev) metaengine.Delta {
-		return metaengine.Delta{e.Project + sep + "pending": 1}
+		return metaengine.Delta{e.Project + "|pending": 1}
 	}),
 	metaengine.OnRecordTyped("T", ev{}, func(_ record.Record, e ev) metaengine.Delta {
-		return metaengine.Delta{e.Project + sep + "running": 1, e.Project + sep + e.From: -1}
+		return metaengine.Delta{e.Project + "|running": 1, e.Project + "|" + e.From: -1}
 	}),
 )
 
 func TestCounterKeyCompositeRepro(t *testing.T) {
-	for _, sep := range []string{"|", "_", "\x1f"} {
-		t.Logf("=== separator %q ===\n", sep)
-		run(sep)
-	}
-}
-
-func run(sep string) {
 	ctx := context.Background()
 	dsn := "/tmp/counterkey-repro.db"
-	_ = os.Remove(dsn)
+	if err := os.Remove(dsn); err != nil && !os.IsNotExist(err) {
+		t.Fatal(err)
+	}
 
 	eng, err := sqliteengine.NewSQLiteEngineFromDSN(dsn)
 	must(t, err)
 	st, err := metaengine.Plan([]metaengine.Engine{eng}, tasksQuery, countsQuery)
 	must(t, err)
 
-	_ = st
-	_ = sep
-
-	must(st.ApplyRecord(ctx, record.Record{Type: "seed"}, ev{Project: "api"}))
-	must(st.ApplyRecord(ctx, record.Record{Type: "T"}, ev{Project: "api", From: "pending"}))
+	must(t, st.ApplyRecord(ctx, record.Record{Type: "seed"}, ev{Project: "api", At: 1}))
+	must(
+		t,
+		st.ApplyRecord(ctx, record.Record{Type: "T"}, ev{Project: "api", From: "pending", At: 2}),
+	)
 
 	cb, ok := eng.(metaengine.CounterBackend)
-	must2(t, ok)
+	if !ok {
+		t.Fatal("engine is not a CounterBackend")
+	}
 	got, err := cb.CounterGet(ctx, "counts")
 	must(t, err)
 	t.Logf("counters after seed+transition: %v", got)
 
-	// literal repro shape: from-only single-key delta through a fresh store
 	dsn2 := "/tmp/counterkey-repro2.db"
-	_ = os.Remove(dsn2)
+	if err := os.Remove(dsn2); err != nil && !os.IsNotExist(err) {
+		t.Fatal(err)
+	}
 	eng2, err := sqliteengine.NewSQLiteEngineFromDSN(dsn2)
 	must(t, err)
 	st2, err := metaengine.Plan([]metaengine.Engine{eng2}, countsQuery)
 	must(t, err)
-	must(st2.ApplyRecord(ctx, record.Record{Type: "T"}, ev{Project: "api", From: "pending"}))
-	cb2, _ := eng2.(metaengine.CounterBackend)
+	must(
+		t,
+		st2.ApplyRecord(ctx, record.Record{Type: "T"}, ev{Project: "api", From: "pending", At: 3}),
+	)
+	cb2, ok := eng2.(metaengine.CounterBackend)
+	if !ok {
+		t.Fatal("engine is not a CounterBackend")
+	}
 	got2, err := cb2.CounterGet(ctx, "counts")
 	must(t, err)
 	t.Logf("from-only delta store: %v", got2)
@@ -95,36 +106,26 @@ func run(sep string) {
 	dump(t, dsn)
 }
 
-func dump(t interface{ Logf(string, ...interface{}) }, dsn string) {
+func dump(t *testing.T, dsn string) {
 	db, err := sql.Open("sqlite", dsn)
-	if err != nil {
-		t.Logf("open dump db: %v", err)
-		return
-	}
+	must(t, err)
 	rows, err := db.Query(
 		`SELECT collection, key, value FROM meta_counter ORDER BY collection, key`,
 	)
 	must(t, err)
+	defer func() { _ = rows.Close() }()
 	for rows.Next() {
 		var c, k string
 		var v int64
-		if err := rows.Scan(&c, &k, &v); err != nil {
-		t.Logf("scan: %v", err)
-		return
-	}
-		t.Logf("row: %s %q = %d\n", c, k, v)
+		must(t, rows.Scan(&c, &k, &v))
+		t.Logf("row: %s %q = %d", c, k, v)
 	}
 	must(t, rows.Err())
 }
 
 func must(t *testing.T, err error) {
+	t.Helper()
 	if err != nil {
-		panic(err)
-	}
-}
-
-func must2(t *testing.T, b bool) {
-	if !b {
-		panic("not a CounterBackend")
+		t.Fatal(err)
 	}
 }
