@@ -449,7 +449,7 @@ func AddBlocker(cmd BlockBy) decider.DecideFunc[TaskState] {
 		}
 
 		evt, err := event.New(evtTaskBlockedBy, cmd.ID, streamType, v.Increment(),
-			TaskBlockedByPayload{DependencyID: cmd.DependencyID.String()})
+			TaskBlockedByPayload{DependencyID: cmd.DependencyID.Get()})
 		if err != nil {
 			return nil, errorfamily.Newf(
 				errorfamily.Infrastructure,
@@ -483,7 +483,7 @@ func RemoveBlocker(cmd UnblockBy) decider.DecideFunc[TaskState] {
 		}
 
 		evt, err := event.New(evtTaskUnblocked, cmd.ID, streamType, v.Increment(),
-			TaskUnblockedPayload{DependencyID: cmd.DependencyID.String()})
+			TaskUnblockedPayload{DependencyID: cmd.DependencyID.Get()})
 		if err != nil {
 			return nil, errorfamily.Newf(
 				errorfamily.Infrastructure,

@@ -12,7 +12,7 @@ Detectors per category (severities: `error` blocks CI, `warning` reports, `info`
 | [Boilerplate](#boilerplate) | 31 | B001–B031 |
 | [Performance](#performance) | 11 | P001–P015 |
 | [Consistency](#consistency) | 18 | D001–D019 |
-| [Architecture](#architecture) | 23 | E001–E023 |
+| [Architecture](#architecture) | 24 | E001–E024 |
 | [Security](#security) | 10 | S001–S011 |
 | [Testing](#testing) | 8 | T001–T008 |
 | [Version](#version) | 7 | V001–V007 |
@@ -1306,6 +1306,14 @@ Declared event version ladder has a missing rung: current version N with no op f
 Severity: `info` · Confidence: `high` · Auto-fix: no · Category: `architecture`
 
 Package mixes go-cqrs-lite usage with satellite-owned database/sql (or a SQL driver) — the all-I/O-through-metaengine rule (ADR-0142) makes engines the only storage layer; advisory: route durable state through metaengine engines or the system composition root, engine-tier modules are exempt, non-CQRS tables may dismiss
+
+<a id="e024"></a>
+
+#### E024 — `branded-id-string-display-form`
+
+Severity: `warning` · Confidence: `high` · Auto-fix: no · Category: `architecture`
+
+branded-ID .String() outside display contexts — cbid.ID markers with Name() render "Marker:value" (StreamID, TimerID) and id.ActorID.String() drops the kind, so keys/columns/wire reads break; use .Get()/PrefixedString() instead; slog/log/attribute/fmt.Errorf args and Parse*ID round-trips are whitelisted; dismiss genuine display uses via //cqrs-lint:ignore(E024) or a scorecard waiver
 
 
 ## Security

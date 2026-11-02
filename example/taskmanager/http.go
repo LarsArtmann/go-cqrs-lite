@@ -95,7 +95,7 @@ func (s *Server) handleCreateTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSON(w, http.StatusCreated, map[string]string{"id": taskID.String()})
+	writeJSON(w, http.StatusCreated, map[string]string{"id": taskID.Get()})
 }
 
 // apiListTasksQuery is the typed query behind GET /api/tasks — registered
