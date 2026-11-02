@@ -95,7 +95,11 @@ func TestRunBaselineThenCheck(t *testing.T) {
 
 	var out, errOut bytes.Buffer
 
-	code := run([]string{"baseline", "--catalog", catalogPath, "--out", baselinePath}, &out, &errOut)
+	code := run(
+		[]string{"baseline", "--catalog", catalogPath, "--out", baselinePath},
+		&out,
+		&errOut,
+	)
 	if code != exitOK {
 		t.Fatalf("baseline: exit = %d (%s)", code, errOut.String())
 	}
@@ -107,7 +111,11 @@ func TestRunBaselineThenCheck(t *testing.T) {
 	out.Reset()
 	errOut.Reset()
 
-	code = run([]string{"check", "--catalog", catalogPath, "--baseline", baselinePath}, &out, &errOut)
+	code = run(
+		[]string{"check", "--catalog", catalogPath, "--baseline", baselinePath},
+		&out,
+		&errOut,
+	)
 	if code != exitOK {
 		t.Fatalf("clean check: exit = %d (%s)", code, errOut.String())
 	}
@@ -126,8 +134,15 @@ func TestRunCheckFailsOnBreakingChangeWithoutVersionBump(t *testing.T) {
 	var out, errOut bytes.Buffer
 
 	if code := run(
-		[]string{"baseline", "--catalog", writeJSON(t, dir, "old.json", testCatalog("1.0.0", "a", "b")), "--out", baselinePath},
-		&out, &errOut,
+		[]string{
+			"baseline",
+			"--catalog",
+			writeJSON(t, dir, "old.json", testCatalog("1.0.0", "a", "b")),
+			"--out",
+			baselinePath,
+		},
+		&out,
+		&errOut,
 	); code != exitOK {
 		t.Fatalf("baseline: exit = %d (%s)", code, errOut.String())
 	}
@@ -136,8 +151,15 @@ func TestRunCheckFailsOnBreakingChangeWithoutVersionBump(t *testing.T) {
 	errOut.Reset()
 
 	code := run(
-		[]string{"check", "--catalog", writeJSON(t, dir, "new.json", testCatalog("1.0.0", "a")), "--baseline", baselinePath},
-		&out, &errOut,
+		[]string{
+			"check",
+			"--catalog",
+			writeJSON(t, dir, "new.json", testCatalog("1.0.0", "a")),
+			"--baseline",
+			baselinePath,
+		},
+		&out,
+		&errOut,
 	)
 
 	if code != exitFail {
@@ -158,8 +180,15 @@ func TestRunCheckMissingBaseline(t *testing.T) {
 	var out, errOut bytes.Buffer
 
 	code := run(
-		[]string{"check", "--catalog", catalogPath, "--baseline", filepath.Join(dir, "absent.json")},
-		&out, &errOut,
+		[]string{
+			"check",
+			"--catalog",
+			catalogPath,
+			"--baseline",
+			filepath.Join(dir, "absent.json"),
+		},
+		&out,
+		&errOut,
 	)
 
 	if code != exitUsage {
@@ -190,7 +219,11 @@ func TestRunValidate(t *testing.T) {
 	out.Reset()
 	errOut.Reset()
 
-	if code := run([]string{"validate", "--catalog", writeJSON(t, dir, "dirty.json", dirty)}, &out, &errOut); code != exitFail {
+	if code := run(
+		[]string{"validate", "--catalog", writeJSON(t, dir, "dirty.json", dirty)},
+		&out,
+		&errOut,
+	); code != exitFail {
 		t.Fatalf("dirty validate: exit = %d, want %d", code, exitFail)
 	}
 
@@ -208,7 +241,11 @@ func TestRunConflicts(t *testing.T) {
 
 	var out, errOut bytes.Buffer
 
-	if code := run([]string{"conflicts", "--left", left, "--right", right}, &out, &errOut); code != exitFail {
+	if code := run(
+		[]string{"conflicts", "--left", left, "--right", right},
+		&out,
+		&errOut,
+	); code != exitFail {
 		t.Fatalf("conflicting catalogs: exit = %d, want %d", code, exitFail)
 	}
 
@@ -219,7 +256,11 @@ func TestRunConflicts(t *testing.T) {
 	out.Reset()
 	errOut.Reset()
 
-	if code := run([]string{"conflicts", "--left", left, "--right", left}, &out, &errOut); code != exitOK {
+	if code := run(
+		[]string{"conflicts", "--left", left, "--right", left},
+		&out,
+		&errOut,
+	); code != exitOK {
 		t.Fatalf("self-union: exit = %d (%s)", code, errOut.String())
 	}
 }

@@ -90,9 +90,15 @@ func messageConflicts(a, b *catalog.Catalog) []Conflict {
 
 		if l.kind != r.kind {
 			conflicts = append(conflicts, Conflict{
-				Path:   path,
-				Kind:   ConflictKindMismatch,
-				Detail: fmt.Sprintf("declared as %q in %s but %q in %s", l.kind, l.service, r.kind, r.service),
+				Path: path,
+				Kind: ConflictKindMismatch,
+				Detail: fmt.Sprintf(
+					"declared as %q in %s but %q in %s",
+					l.kind,
+					l.service,
+					r.kind,
+					r.service,
+				),
 			})
 		}
 

@@ -51,8 +51,19 @@ func extract(ctx *cue.Context, doc string, cfg *jsonschema.Config) (cue.Value, e
 	return out, out.Err()
 }
 
-// nil means "old is an instance of new", i.e. the change is additive.
-err := newV.Subsume(oldV, opts...)
+// isCompatible asks the question the policy asks. A nil error means "old is an
+// instance of new", i.e. the change is additive.
+func isCompatible(ctx *cue.Context, oldDoc, newDoc string, opts ...cue.Option) (bool, error) {
+	oldV, err := extract(ctx, oldDoc, &jsonschema.Config{})
+	if err != nil {
+		return false, err
+	}
+	newV, err := extract(ctx, newDoc, &jsonschema.Config{})
+	if err != nil {
+		return false, err
+	}
+	return newV.Subsume(oldV, opts...) == nil, nil
+}
 ```
 
 Six configurations were measured: `jsonschema.Config{}` ("open") and `Config{Strict: true}`
@@ -133,6 +144,15 @@ SCORE                            21/24           22/24           16/24          
 
 Two facts decide it.
 
+**5.0 Scope note: three fixtures are outside this repository's model.** `catalog/schema.Schema`
+carries `Type`, `Properties`, `Required`, `Items`, `Examples`, `Parameters`; `Property` carries
+`Type`, `Description`, `Format`, `Properties`, `Items`, `Required`, `Default`, `Enum`, `Nullable`,
+`Deprecated`, `Pattern`, `Examples`. There is **no closedness field and no `maxLength` field**, so
+H1 (`close additionalProperties`), H2 (`open additionalProperties`) and H6 (`add maxLength`) cannot
+appear in a catalog this repo renders — they are included to measure the primitive broadly, not as
+differ-parity rows. Everything in the argument below is drawn from the **21 representable rows**,
+where CUE's best configuration scores **19/21** and its two residuals are exactly H7 and H9.
+
 **5.1 Every residual miss is a false `compatible`.** The gate's whole purpose is to refuse a
 release that moved a shape without the owed op. A false `breaking` wastes a human's time. A false
 `compatible` **licenses shipping a replay-breaking change**. The error is asymmetric, so the
@@ -146,6 +166,9 @@ UNSAFE MISSES (said compatible, policy says breaking)
   strict/bare      3: H1, H7, H9
   strict/raw       2: H7, H9
 ```
+
+On the 21 representable rows (`open/raw`, the best configuration) the misses are **H7 and H9 only** —
+both false `compatible`.
 
 **5.2 The two remaining misses are structural, not tuning.** No option combination reaches them:
 
@@ -167,6 +190,15 @@ precisely backwards: those are the three rows the policy spends an op on.
 
 **5.4 `Strict` is disqualified on extraction, not accuracy.** `Config{Strict: true}` rejects
 `"format":"int32"`, so the policy's own "widen int32 → int64" row cannot even be extracted.
+
+**5.5 The shipped differ, measured on the same 21 rows.** For comparison, `catalog/compat` scores
+**21/21** on the representable fixtures, with **zero false `compatible`** results. Pinned by
+`catalog/compat/spike_parity_test.go`. Reaching 21/21 required one fix that the spike surfaced: a
+widened integer *format* (`int32` → `int64`) was being reported as needing an op because the differ
+treated every `Format` change generically. The policy's own "Widening an int field" row says it is
+additive, so `diffFormat` now orders the known integer widths and only forgives widening; narrowing
+(`int64` → `int32`) and unbounded → bounded still block. That is the whole argument in miniature: the
+differ can be taught a policy row, whereas CUE cannot be taught to see `format` at all.
 
 ## 6. Incidental API findings (worth recording once)
 
@@ -192,8 +224,9 @@ configuration. It is a NO-GO because:
 2. its errors point in the unsafe direction, where a gate does real damage.
 
 The shipped fallback is `catalog/compat`: a structural walk over two `catalog/schema.Schema` trees.
-It has no dependencies, sees `Format`/`Items`/`Pattern` as first-class fields, and classifies all 24
-fixtures plus a 25-case table test in the shipped suite.
+It has no dependencies, sees `Format`/`Items`/`Pattern` as first-class fields, classifies **21/21** of
+the representable fixtures with no false `compatible`, and is pinned row-for-row by
+`spike_parity_test.go` alongside the existing 25-case policy table.
 
 ## 8. Reopen triggers
 

@@ -86,10 +86,17 @@ func wantEventDirection(svcID catalog.ServiceID, evt catalog.Message) []catalog.
 		return nil
 	}
 
-	return []catalog.Violation{{
-		Path:    messagePath(svcID, "event", evt) + ".direction",
-		Message: fmt.Sprintf("an event must be %q or %q, got %q", catalog.Sends, catalog.Receives, evt.Direction),
-	}}
+	return []catalog.Violation{
+		{
+			Path: messagePath(svcID, "event", evt) + ".direction",
+			Message: fmt.Sprintf(
+				"an event must be %q or %q, got %q",
+				catalog.Sends,
+				catalog.Receives,
+				evt.Direction,
+			),
+		},
+	}
 }
 
 func validateChannelRefs(c *catalog.Catalog) []catalog.Violation {

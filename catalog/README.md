@@ -20,6 +20,7 @@ go get github.com/larsartmann/go-cqrs-lite/catalog/v4
 | `catalog/d2`           | D2 diagram text exporter                                                  |
 | `catalog/docserver`    | HTTP handlers for serving docs (index page, OpenAPI/AsyncAPI UI, D2 view) |
 | `catalog/simple`       | Single-service builder facade (streamlined API)                           |
+| `catalog/compat`       | Schema-compatibility classifier: what a payload-shape change owes         |
 
 ## Dependencies
 
@@ -35,6 +36,36 @@ never reach your build:
 
 If you only use the spec exporters (`asyncapi`, `openapi`, `eventcatalog`,
 `d2`) you do not link templ or templ-components at all.
+
+`catalog/compat` adds no dependency: it reads `catalog/schema` values only.
+
+## Schema compatibility
+
+[`docs/SCHEMA-COMPATIBILITY.md`](../docs/SCHEMA-COMPATIBILITY.md) states the
+policy for payload-shape evolution: some changes are additive (old events still
+decode), others owe an explicit op. `compat` makes that policy executable.
+
+```go
+report := compat.Compat(previousSchema, nextSchema)
+if report.Class.IsBreaking() {
+	for _, f := range report.Blocking() {
+		fmt.Println(f.Path, f.Op, f.Message) // names the op the change owes
+	}
+}
+```
+
+`compat.CompatCatalog(old, next)` does the same across two catalogs and blocks on
+exactly one thing: a breaking shape change whose message version did not move.
+`compat.Conflicts(a, b)` reports what would collide if two catalogs merged, and
+`compat.Validate(c)` adds cross-resource invariants on top of
+`Catalog.ValidateCoeffects`.
+
+Gate it in CI with
+`nix run .#check-schema-compat -- --catalog your.json --baseline compat-baseline.json`;
+`--update-baseline` refreshes the snapshot when a change is intended. It is
+deliberately **not** a CUE bridge: CUE's subsumption check was measured and
+rejected (22/24 on a 24-fixture spike, both residual misses false *compatible*).
+See [ADR-0163](../docs/adr/0163-schema-compatibility-structural-differ-over-cue.md).
 
 ## Quick Start
 

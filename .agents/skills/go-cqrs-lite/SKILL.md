@@ -199,6 +199,26 @@ source on users/teams (EC has no badges there). Idempotent; survives hub
 union merges (badges union by content). Details: `catalog/README.md`
 ("Demo content").
 
+### Schema compatibility: did this payload change owe an op?
+
+`docs/SCHEMA-COMPATIBILITY.md` states the policy; `catalog/compat` executes it.
+`compat.Compat(old, next)` walks two `schema.Schema` trees and classifies every
+difference, naming the op it owes (`OpAddField`, `OpRemoveField`,
+`OpRenameField`, `OpTransform`). `compat.CompatCatalog` lifts this to catalog
+granularity and blocks on exactly one thing: a breaking shape change whose
+message version did not move. `compat.Conflicts(a, b)` reports what would
+collide if two catalogs merged; `compat.Validate(c)` adds cross-resource
+invariants on top of `Catalog.ValidateCoeffects`.
+
+Wire it as a gate:
+`nix run .#check-schema-compat -- --catalog your.json --baseline compat-baseline.json`.
+
+It is deliberately **not** a CUE bridge. Driving `encoding/jsonschema` into a
+CUE subsumption check scored 22/24 on a 24-fixture fidelity spike, and both
+residual misses were false *compatible* (a `format` swap, a newly constrained
+array `items`) — the one direction a release gate must never be wrong in.
+Evidence: `docs/evidence/2026-11-02_cue-subsume-spike.md`; decision ADR-0163.
+
 ---
 
 **Fan-out:** this skill lives in this repo (`.agents/skills/go-cqrs-lite`)

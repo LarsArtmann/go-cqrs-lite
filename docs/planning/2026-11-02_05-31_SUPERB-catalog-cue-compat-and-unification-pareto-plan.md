@@ -1,5 +1,12 @@
 # SUPERB Plan: catalog × CUE — executable compatibility policy, unification, declarative invariants
 
+> **Status (2026-11-02, executed): G0 came back NO-GO, the recorded fallback shipped, everything CUE-specific did not.**
+> Current truth lives in [ADR-0163](../adr/0163-schema-compatibility-structural-differ-over-cue.md),
+> [`docs/evidence/2026-11-02_cue-subsume-spike.md`](../evidence/2026-11-02_cue-subsume-spike.md), and
+> `catalog/compat/`. This document is the dated record of what was intended; §"Execution addendum"
+> at the end records per-task what actually happened, with evidence. The original text below is
+> unchanged, including the parts that turned out to be wrong.
+
 **Date:** 2026-11-02 05:31
 **Trigger:** owner question "How could `catalog/` benefit from https://cuelang.org/?"
 **Goal:** Turn the repo's *prose* schema-compatibility policy into a *mechanical classifier*, add unification-based conflict detection for catalog merges, and offer a declarative cross-resource catalog validator. All of it optional, isolated, and never a second source of truth.
@@ -43,10 +50,15 @@ Rules this plan will not break:
 | Gate | Question | Default if unanswered | Blocks |
 | --- | --- | --- | --- |
 | **G0** | Does `jsonschema.Extract` + `Value.Subsume` classify the 3 policy classes (additive / bump-required / breaking) **correctly on all 12 fixtures**, including the open-struct cases? | **NO-GO.** Ship the ADR + spike artifact, stop. Fallback design recorded: hand-rolled structural differ behind the same `Compat` signature. | **T04–T26** |
+| *G0 outcome (2026-11-02)* | **NO-GO, for a different reason than anticipated.** The primitive is stronger than feared — 22/24 on 24 fixtures with `Config{}` + `cue.Raw()`, and every additive row correct. It fails on soundness instead: the two residual misses (`format` swap, newly constrained array `items`) are false *compatible*, the unsafe direction. See [evidence](../evidence/2026-11-02_cue-subsume-spike.md). | Fallback taken, as recorded | closed |
 | **G1** | Home: `catalog/cue` or `schema/cue`? | **`catalog/cue`** (Layer 7 tooling). `schema/` is Tier 2 and must stay dependency-light; `catalog` already imports `schema`. | T18, T21 |
+| *G1 outcome (2026-11-02)* | **Superseded.** No new module: the package is `catalog/compat` **inside** the existing `catalog` module, because G0 removed the only reason to isolate it (there is no CUE dependency to quarantine). A new module would have bought eight gate registrations and zero consumer benefit. | — | closed |
 | **G2** | Baseline artifact: committed JSON vs derive from the last git tag? | **Committed `catalog/compat-baseline.json` + `--update-baseline`**, matching every other baseline in this repo (coverage, file-size, fuzz targets). | T07, T08 |
+| *G2 outcome (2026-11-02)* | **Mechanism DONE, artifact NOT SHIPPED.** `Baseline`/`NewBaseline`/`CompareBaseline`/`WriteFile`/`ParseBaseline` and the `--update-baseline` CLI exist (`catalog/compat/baseline.go`); no `compat-baseline.json` is committed because the repo has no catalog of its own to gate — see the open owner question. | Partial | T07 |
 | **G3** | Merge ambition: detector-only unification, or full `Catalog` round-trip merge? | **Detector-only.** `Unify` produces conflict paths; the Go-side merge stays untouched. A decode-merge is a lossy round-trip risk (custom ID types, `Parameters json:"-"`, derived `Kind`). | T12, T13 |
+| *G3 outcome (2026-11-02)* | **DONE, re-scoped.** `Conflicts(a, b)` shipped (`catalog/compat/conflicts.go`). `Registry.Conflicts()` was **dropped deliberately**: global duplicate-ID detection already exists in `Catalog.Validate` (`seenMsgIDs`), so a second detector would be the split brain this plan exists to avoid. There is also no CUE `Unify` step — the detection is structural. | Done | T12, T13 |
 | **G4** | Is a pre-v1 (v0.x) dependency acceptable at all? | **Yes, isolated.** Pin exactly, document upgrade cadence, keep the public surface CUE-free (plain structs + errors). | T23 |
+| *G4 outcome (2026-11-02)* | **Moot.** No v0.x dependency entered the tree. CUE was measured in a scratch module and never linked by any shipped package, so the supply-chain question never arose. | Moot | closed |
 
 ---
 
@@ -391,3 +403,54 @@ Miss any one of these and the failure appears only inside an expensive `#verify`
 ## Addenda (appended as work lands)
 
 - **2026-11-02:** plan authored. No code changed. G0 not yet run.
+
+---
+
+## Execution addendum — 2026-11-02 (session result)
+
+Per-task outcome. Statuses are DONE / DIFFERENT / PARTIAL / NOT SHIPPED, with evidence paths so a
+later reader can check the claim instead of trusting it.
+
+| Task | Status | What actually happened |
+| --- | --- | --- |
+| T01 G0 spike | **DONE** | 24 fixtures × 6 configurations, `cuelang.org/go v0.17.1`. Best `Config{}` + `cue.Raw()` = 22/24, all misses false `compatible`. `cue.Final()` = 16/24. Artifact: [`docs/evidence/2026-11-02_cue-subsume-spike.md`](../evidence/2026-11-02_cue-subsume-spike.md). |
+| T02 ADR | **DONE** | [ADR-0163](../adr/0163-schema-compatibility-structural-differ-over-cue.md), Accepted. |
+| T03 Gate record | **DONE** | Gate table above carries a dated outcome row per gate. |
+| T04 Module scaffold | **DIFFERENT** | No `catalog/cue` module. Package lives at `catalog/compat` in the existing `catalog` module, so zero go.work / `testModules` / layer-map / api-stability registration work was needed. |
+| T05 `Compat` | **DONE, CUE-free** | `catalog/compat/{class,finding,diff,diff_fields,diff_values,paths}.go`. 19 `Kind` constants, 4 `Op` constants, `Report.Blocking()/OK()`. |
+| T06 `CompatCatalog` | **DONE** | `catalog/compat/catalog.go`. Blocking rule is exactly one: `KindVersionNotBumped` (breaking shape change with the message version unchanged). A breaking change *with* a bump passes — whether the owed op exists is `schema.EventSchema`'s job and cqrs-lint E021/E022's enforcement. |
+| T07 Baseline | **PARTIAL** | `baseline.go` (format v1, deterministic marshal, compare, `--update-baseline`) + CLI subcommand shipped. No committed `compat-baseline.json`: this repo owns no catalog, so the gate currently runs on fixtures and `--self-test` only. Open owner question: gate a real consumer catalog, or stay self-test-only. |
+| T08 Gate script | **DONE** | `scripts/check-schema-compat.sh` + 4 JSON fixtures + **6** `--self-test` mutation legs (breaking caught and named, additive passes, missing baseline exits 2 naming the file, refreshed baseline green, clean validates, dangling channel rejected by name). Planned 4 legs; 6 landed. |
+| T09 Wire the gate | **DONE** | flake `#check-schema-compat`; `-- --self-test` added to `#verify` and `#verify-fast`; `ci.yml` leg after the error-taxonomy gate. |
+| T10 Fingerprint bridge | **NOT SHIPPED (parked)** | `schema/` cannot import `catalog/` (tier direction), so a `DriftReport` compat verdict needs the dependency inverted or the verdict computed in `catalog`. Parked with that trigger; see `TODO_LIST.md`. |
+| T11 api-stability | **DONE** | Golden regenerated (6,367 → 6,421 exports). |
+| T12 `Conflicts(a, b)` | **DONE, structural** | `conflicts.go`: version / schema / kind / service mismatches. No CUE `Unify` step, since there is no CUE. |
+| T13 `Registry.Conflicts()` | **DROPPED deliberately** | Global duplicate-ID detection already exists in `Catalog.Validate` (`seenMsgIDs`). A second detector is the split brain this plan exists to prevent. |
+| T14 Property/fuzz tests | **PARTIAL** | Determinism, idempotent-union and schema-equality pins landed (`baseline_test.go`, `conflicts_test.go`). Symmetry fuzz and the 200-message round-trip did not. |
+| T15 `cue.Validate` | **DONE, structural** | `invariants.go`: `Validate(c)` delegates to `Catalog.ValidateCoeffects` verbatim (it already existed — discovered mid-session and the design was changed to compose rather than duplicate) and adds three cross-resource rules: unique message IDs, direction legality, channel/data-store reference resolvability. |
+| T16 Invariant reconciliation | **DONE** | `TestValidateDelegatesCoeffects` + `TestValidateDoesNotDuplicateCatalogValidate` pin the composition and assert no rule is re-implemented. |
+| T17 Benchmarks | **NOT SHIPPED** | No `Compat` benchmarks committed. |
+| T18 Docs | **PARTIAL** | `catalog/compat/doc.go` records why-not-CUE with the real numbers; the four-doc trail (catalog README/AGENTS, `references/modules.md`, `SKILL.md`) is not yet updated. |
+| T19 Recipes | **NOT SHIPPED** | No recipes.md fence. |
+| T20 Inventory sync | **PARTIAL** | api-stability and the coverage baselines are updated; CHANGELOG / FEATURES rows pending. |
+| T21 ADR finalize | **DONE** | `check-adr-numbering` green before and after (161 ADRs, index in lockstep). |
+| T22 Fleet-consumer proof | **NOT SHIPPED** | No consumer catalog was gated. |
+| T23 Supply chain | **MOOT** | No CUE dependency entered the tree. The 24 MB binary and eleven indirect deps stayed in `/tmp`. |
+| T24 Release prep | **NOT SHIPPED** | Not a release session. |
+| T25 Plan closure | **DONE** | This addendum + `TODO_LIST.md` harvest. |
+| T26 Parked row | **DONE** | `TODO_LIST.md` carries "CUE as schema source of truth" with the three reopen triggers. |
+
+### Corrections to the plan's own reasoning (recorded, not silently rewritten)
+
+1. **The G0 hypothesis was pessimistic in the wrong direction.** The plan expected CUE to be
+   *inaccurate*. It is accurate on additive rows and on most breaking rows; it fails by being
+   *unsound* on two specific rows. The NO-GO survives, but the argument changed from "it cannot
+   classify" to "it can classify, and where it cannot it says yes".
+2. **`Catalog.ValidateCoeffects` already existed.** The plan assumed coeffect validation had to be
+   built. Composing it turned T15 from "implement four invariants" into "delegate one, add three".
+3. **A new module was never justified.** Noticing that the only dependency to quarantine was the one
+   G0 rejected collapsed T04 to zero registrations.
+4. **The differ had a real bug the spike surfaced.** `int32` → `int64` (a policy-additive row) was
+   reported as needing an op because every `Format` change was treated generically. Fixed in
+   `diffFormat`; pinned by `spike_parity_test.go`.
+

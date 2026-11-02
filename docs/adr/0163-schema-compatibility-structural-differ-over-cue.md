@@ -72,6 +72,11 @@ Three findings settle it:
    `compatible` licenses shipping a replay-breaking change. A gate whose failure mode is "silently
    approve" is worse than no gate, so the tolerance is zero rather than "nearly all".
 
+Three of the 24 fixtures (`close additionalProperties`, `open additionalProperties`, `add maxLength`)
+test dimensions this repository's schema model does not carry, so they measure the primitive broadly
+rather than forming differ-parity rows. On the **21 representable** fixtures CUE's best configuration
+scores **19/21** and the shipped differ scores **21/21** with zero false `compatible`.
+
 `cue.Final()` — the option that reads most naturally, since a released schema *is* closed — is the
 worst of the six (16/24), converting `remove field`, `rename field` and `add required field` into
 "compatible". That is exactly backwards.

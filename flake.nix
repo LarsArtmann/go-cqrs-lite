@@ -1249,11 +1249,9 @@
             # message version did not move; `validate` runs the cross-resource
             # invariants no other function owns. Consumers point it at their own
             # catalog + committed baseline; this repo runs its --self-test.
-            check-schema-compat =
-              mkApp "check-schema-compat" [ goPkg pkgs.bash ]
-                ''
-                  ${pkgs.bash}/bin/bash "$PWD/scripts/check-schema-compat.sh" "$@"
-                '';
+            check-schema-compat = mkApp "check-schema-compat" [ goPkg pkgs.bash ] ''
+              ${pkgs.bash}/bin/bash "$PWD/scripts/check-schema-compat.sh" "$@"
+            '';
 
             # calibration-drift: live-latency calibration baseline write/compare
             # (the nightly artifact loop; load-gated by calibration-gate.sh).

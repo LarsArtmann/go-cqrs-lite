@@ -52,11 +52,14 @@ func diffEnumValues(path string, old, new []string, b *reportBuilder) {
 		}
 
 		b.add(Finding{
-			Path:    path,
-			Kind:    KindEnumNarrowed,
-			Class:   ClassNeedsVersionBump,
-			Op:      OpTransform,
-			Message: fmt.Sprintf("enum value %q removed: stored values may no longer validate", value),
+			Path:  path,
+			Kind:  KindEnumNarrowed,
+			Class: ClassNeedsVersionBump,
+			Op:    OpTransform,
+			Message: fmt.Sprintf(
+				"enum value %q removed: stored values may no longer validate",
+				value,
+			),
 		})
 	}
 }
@@ -148,11 +151,16 @@ func diffConstraint(path, name, old, new string, b *reportBuilder) {
 	}
 
 	b.add(Finding{
-		Path:    path,
-		Kind:    KindConstraintAdded,
-		Class:   ClassNeedsVersionBump,
-		Op:      OpTransform,
-		Message: fmt.Sprintf("%s constraint changed %q -> %q: stored values may no longer validate", name, old, new),
+		Path:  path,
+		Kind:  KindConstraintAdded,
+		Class: ClassNeedsVersionBump,
+		Op:    OpTransform,
+		Message: fmt.Sprintf(
+			"%s constraint changed %q -> %q: stored values may no longer validate",
+			name,
+			old,
+			new,
+		),
 	})
 }
 
@@ -168,9 +176,9 @@ func diffAdvisory(path string, old, new schema.Property, b *reportBuilder) {
 
 	if old.Default != new.Default {
 		b.add(Finding{
-			Path:    path,
-			Kind:    KindDefaultChanged,
-			Class:   ClassAdditive,
+			Path:  path,
+			Kind:  KindDefaultChanged,
+			Class: ClassAdditive,
 			Message: fmt.Sprintf(
 				"documented default changed %q -> %q (wire shape unaffected)",
 				old.Default,

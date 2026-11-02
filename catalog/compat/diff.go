@@ -98,11 +98,23 @@ func typeVerdict(old, new schema.Type) (Kind, Class, bool) {
 func typeMessage(old, new schema.Type, class Class) string {
 	switch class {
 	case ClassIncomparable:
-		return fmt.Sprintf("type is undeclared or opaque (%q -> %q): cannot relate the shapes", old, new)
+		return fmt.Sprintf(
+			"type is undeclared or opaque (%q -> %q): cannot relate the shapes",
+			old,
+			new,
+		)
 	case ClassAdditive:
-		return fmt.Sprintf("type widened %q -> %q: every old value is still representable", old, new)
+		return fmt.Sprintf(
+			"type widened %q -> %q: every old value is still representable",
+			old,
+			new,
+		)
 	default:
-		return fmt.Sprintf("type changed %q -> %q: stored values do not decode into the new shape", old, new)
+		return fmt.Sprintf(
+			"type changed %q -> %q: stored values do not decode into the new shape",
+			old,
+			new,
+		)
 	}
 }
 

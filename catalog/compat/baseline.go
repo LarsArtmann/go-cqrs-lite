@@ -142,7 +142,14 @@ func CompareBaseline(baseline *Baseline, c *catalog.Catalog) Report {
 			continue
 		}
 
-		diffMessage(&b, key, catalog.Version(old.Version), old.Schema, newMsg.Version, newMsg.Schema)
+		diffMessage(
+			&b,
+			key,
+			catalog.Version(old.Version),
+			old.Schema,
+			newMsg.Version,
+			newMsg.Schema,
+		)
 	}
 
 	for key := range current {

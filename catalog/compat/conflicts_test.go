@@ -17,7 +17,12 @@ func TestConflictsIdempotentUnion(t *testing.T) {
 		t.Fatalf("self-union must be conflict-free, got %v", conflicts)
 	}
 
-	if conflicts := Conflicts(cat, catalogWithEvents(eventMsg("order_placed", "1.0.0", oneField))); len(conflicts) != 0 {
+	if conflicts := Conflicts(
+		cat,
+		catalogWithEvents(eventMsg("order_placed", "1.0.0", oneField)),
+	); len(
+		conflicts,
+	) != 0 {
 		t.Fatalf("identical declarations must be conflict-free, got %v", conflicts)
 	}
 }

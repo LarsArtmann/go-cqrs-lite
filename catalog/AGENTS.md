@@ -310,6 +310,38 @@ afterwards (the restore line would otherwise bring it back).
   production dependency needs an explicit budget review.
 - test-only deps (go-snaps, ginkgo, gomega) don't count.
 
+## Decisions recorded (2026-11-02, catalog × CUE plan)
+
+- **`compat` is a structural walk, NOT a CUE bridge.** `jsonschema.Extract` +
+  CUE subsumption was measured over 24 policy fixtures × 6 configurations: best
+  22/24 (`Config{}` + `cue.Raw()`), and both residual misses — a `format` swap
+  and a newly constrained array `items` — were false *compatible*, the unsafe
+  direction for a release gate. `cue.Final()` is worse (16/24, calling
+  remove/rename/add-required "compatible"). Evidence:
+  [`docs/evidence/2026-11-02_cue-subsume-spike.md`](../docs/evidence/2026-11-02_cue-subsume-spike.md);
+  decision: [ADR-0163](../docs/adr/0163-schema-compatibility-structural-differ-over-cue.md).
+  Do not re-litigate without the three reopen triggers.
+- **`compat` lives in THIS module, not a sibling.** With no CUE dependency to
+  quarantine there was nothing for a `catalog/cue` module to isolate, so a new
+  module would have bought eight gate registrations and no consumer benefit.
+- **Exactly one class blocks: `KindVersionNotBumped`.** A breaking shape change
+  *with* a version bump passes on purpose — whether the owed op actually exists
+  is `schema.EventSchema`'s job and cqrs-lint E021/E022's enforcement. Widening
+  that rule would duplicate the ladder checker.
+- **`Validate` composes, never duplicates.** `Catalog.ValidateCoeffects` owns
+  coeffect derivation, `Catalog.Validate` owns global duplicate-ID detection
+  (so there is deliberately no `Registry.Conflicts()`), and `compat.Validate`
+  adds only the three rules nobody else owns: unique message IDs across the
+  catalog, direction legality, and channel/data-store reference resolvability.
+  `TestValidateDoesNotDuplicateCatalogValidate` pins that.
+- **Integer format widening is additive.** `int32` → `int64` is the policy's own
+  additive row, so `diffFormat` orders the known widths (`int8/16/32/64`) and
+  forgives widening only. Narrowing and unbounded → bounded still block.
+  `spike_parity_test.go` pins both directions.
+- **No committed `compat-baseline.json` yet.** The mechanism ships, but this
+  repo owns no catalog to gate; the script runs fixtures + `--self-test` only.
+  Open owner question in `TODO_LIST.md`.
+
 ## Decisions recorded (2026-10-24, verification-debt plan M10)
 
 - **NO per-route CSP knob on the docserver.** The architecture route serves

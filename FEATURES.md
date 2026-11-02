@@ -980,6 +980,23 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 | Service config      | `ServiceBadges`, `ServiceRepository`, `ServiceWritesTo`, `ServiceReadsFrom`, `ServiceEntities`, `ServiceSpecifications`, `ServiceAttachments`, `ServiceOwners` | ✅     |
 | ID parsing          | `ParseServiceID`, `ParseDomainID`, `ParseMessageID`, `ParseChannelID`                                                                                          | ✅     |
 
+> `import "github.com/larsartmann/go-cqrs-lite/catalog/v4/compat"`
+
+| Feature              | Detail                                                                                                                                                                    | Status |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| Schema compatibility | `Compat(old, new)` classifies every difference against `docs/SCHEMA-COMPATIBILITY.md` and names the op it owes (`OpAddField`/`OpRemoveField`/`OpRenameField`/`OpTransform`) | ✅     |
+| Catalog comparison   | `CompatCatalog(old, new)` — exactly one class blocks: a breaking shape change whose message version did not move (`KindVersionNotBumped`)                                   | ✅     |
+| Merge conflicts      | `Conflicts(a, b)` — version, schema, kind and service mismatches between two catalogs, as structured `Conflict` values                                                      | ✅     |
+| Invariants           | `Validate(c)` — composes `Catalog.ValidateCoeffects`, then adds unique message IDs, direction legality, and channel/data-store reference resolvability                       | ✅     |
+| Baseline artifact    | `Baseline` / `ParseBaseline` / `CompareBaseline` — deterministic JSON snapshot of rendered schemas, the format behind `scripts/check-schema-compat.sh`                      | ⚠️     |
+| Gate wiring          | `nix run .#check-schema-compat` (6 `--self-test` mutation legs) runs in `#verify`, `#verify-fast` and CI                                                                   | ✅     |
+
+> **Not a CUE bridge.** `jsonschema.Extract` + CUE subsumption was measured and rejected: 22/24 on a
+> 24-fixture spike, and both residual misses were false *compatible*. See ADR-0163 and
+> [`docs/evidence/2026-11-02_cue-subsume-spike.md`](docs/evidence/2026-11-02_cue-subsume-spike.md).
+> The baseline artifact is ⚠️ because no `compat-baseline.json` is committed: this repo owns no
+> catalog, so the gate currently exercises fixtures and `--self-test` only.
+
 > `import "github.com/larsartmann/go-cqrs-lite/catalog/v4/asyncapi"`
 
 | Feature             | Detail                                                                                                      | Status |

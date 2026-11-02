@@ -18,7 +18,6 @@ func TestCompatPolicyTable(t *testing.T) {
 		new  *schema.Schema
 		want Class
 	}{
-
 		{
 			name: "add optional field",
 			old:  rootObj(map[string]schema.Property{"a": strProp()}),
@@ -27,7 +26,11 @@ func TestCompatPolicyTable(t *testing.T) {
 		},
 		{
 			name: "add optional nested field",
-			old:  rootObj(map[string]schema.Property{"a": objProp(map[string]schema.Property{"x": strProp()})}),
+			old: rootObj(
+				map[string]schema.Property{
+					"a": objProp(map[string]schema.Property{"x": strProp()}),
+				},
+			),
 			new: rootObj(map[string]schema.Property{
 				"a": objProp(map[string]schema.Property{"x": strProp(), "y": strProp()}),
 			}),
@@ -35,7 +38,11 @@ func TestCompatPolicyTable(t *testing.T) {
 		},
 		{
 			name: "add field inside array items",
-			old:  rootObj(map[string]schema.Property{"xs": arrProp(objProp(map[string]schema.Property{"x": strProp()}))}),
+			old: rootObj(
+				map[string]schema.Property{
+					"xs": arrProp(objProp(map[string]schema.Property{"x": strProp()})),
+				},
+			),
 			new: rootObj(map[string]schema.Property{
 				"xs": arrProp(objProp(map[string]schema.Property{"x": strProp(), "y": strProp()})),
 			}),
@@ -62,13 +69,17 @@ func TestCompatPolicyTable(t *testing.T) {
 		{
 			name: "become nullable",
 			old:  rootObj(map[string]schema.Property{"a": strProp()}),
-			new:  rootObj(map[string]schema.Property{"a": {Type: schema.TypeString, Nullable: true}}),
+			new: rootObj(
+				map[string]schema.Property{"a": {Type: schema.TypeString, Nullable: true}},
+			),
 			want: ClassAdditive,
 		},
 		{
 			name: "mark deprecated",
 			old:  rootObj(map[string]schema.Property{"a": strProp()}),
-			new:  rootObj(map[string]schema.Property{"a": {Type: schema.TypeString, Deprecated: true}}),
+			new: rootObj(
+				map[string]schema.Property{"a": {Type: schema.TypeString, Deprecated: true}},
+			),
 			want: ClassAdditive,
 		},
 		{
@@ -98,7 +109,11 @@ func TestCompatPolicyTable(t *testing.T) {
 		},
 		{
 			name: "restructure flatten",
-			old:  rootObj(map[string]schema.Property{"a": objProp(map[string]schema.Property{"x": strProp()})}),
+			old: rootObj(
+				map[string]schema.Property{
+					"a": objProp(map[string]schema.Property{"x": strProp()}),
+				},
+			),
 			new:  rootObj(map[string]schema.Property{"a_x": strProp()}),
 			want: ClassNeedsVersionBump,
 		},
@@ -122,14 +137,18 @@ func TestCompatPolicyTable(t *testing.T) {
 		},
 		{
 			name: "become non-nullable",
-			old:  rootObj(map[string]schema.Property{"a": {Type: schema.TypeString, Nullable: true}}),
+			old: rootObj(
+				map[string]schema.Property{"a": {Type: schema.TypeString, Nullable: true}},
+			),
 			new:  rootObj(map[string]schema.Property{"a": strProp()}),
 			want: ClassNeedsVersionBump,
 		},
 		{
 			name: "add pattern constraint",
 			old:  rootObj(map[string]schema.Property{"a": strProp()}),
-			new:  rootObj(map[string]schema.Property{"a": {Type: schema.TypeString, Pattern: "^a"}}),
+			new: rootObj(
+				map[string]schema.Property{"a": {Type: schema.TypeString, Pattern: "^a"}},
+			),
 			want: ClassNeedsVersionBump,
 		},
 		{
@@ -146,8 +165,12 @@ func TestCompatPolicyTable(t *testing.T) {
 		},
 		{
 			name: "change format",
-			old:  rootObj(map[string]schema.Property{"a": {Type: schema.TypeString, Format: "date"}}),
-			new:  rootObj(map[string]schema.Property{"a": {Type: schema.TypeString, Format: "email"}}),
+			old: rootObj(
+				map[string]schema.Property{"a": {Type: schema.TypeString, Format: "date"}},
+			),
+			new: rootObj(
+				map[string]schema.Property{"a": {Type: schema.TypeString, Format: "email"}},
+			),
 			want: ClassNeedsVersionBump,
 		},
 		{
@@ -282,7 +305,10 @@ func TestCompatPathConventions(t *testing.T) {
 func TestReportStringAndOK(t *testing.T) {
 	t.Parallel()
 
-	clean := Compat(rootObj(map[string]schema.Property{"a": strProp()}), rootObj(map[string]schema.Property{"a": strProp()}))
+	clean := Compat(
+		rootObj(map[string]schema.Property{"a": strProp()}),
+		rootObj(map[string]schema.Property{"a": strProp()}),
+	)
 	if !clean.OK() {
 		t.Fatalf("identical shapes should be OK, got %s", clean)
 	}

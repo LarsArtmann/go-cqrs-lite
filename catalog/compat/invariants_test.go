@@ -8,15 +8,17 @@ import (
 
 func validCatalog() *catalog.Catalog {
 	return &catalog.Catalog{
-		Title:     "orders",
-		Version:   "1.0.0",
-		Channels:  []catalog.Channel{{ID: "events", Name: "events", Messages: []catalog.MessageID{"order_placed"}}},
+		Title:   "orders",
+		Version: "1.0.0",
+		Channels: []catalog.Channel{
+			{ID: "events", Name: "events", Messages: []catalog.MessageID{"order_placed"}},
+		},
 		DataStores: []catalog.DataStore{{ID: "orders_db", Name: "orders_db"}},
 		Services: []catalog.Service{{
-			ID:        "orders",
-			Name:      "Orders",
-			Version:   "1.0.0",
-			WritesTo:  []catalog.DataStoreID{"orders_db"},
+			ID:       "orders",
+			Name:     "Orders",
+			Version:  "1.0.0",
+			WritesTo: []catalog.DataStoreID{"orders_db"},
 			Events: []catalog.Message{{
 				Kind:      catalog.EventMessage,
 				ID:        "order_placed",

@@ -5,6 +5,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/larsartmann/go-cqrs-lite/catalog/v4/schema"
 )
 
 func TestNewBaselineRendersCatalog(t *testing.T) {
@@ -23,7 +25,8 @@ func TestNewBaselineRendersCatalog(t *testing.T) {
 		t.Fatalf("catalog identity not captured: %+v", baseline)
 	}
 
-	if ids := baseline.MessageIDs(); len(ids) != 2 || ids[0] != "order_placed" || ids[1] != "order_shipped" {
+	if ids := baseline.MessageIDs(); len(ids) != 2 || ids[0] != "order_placed" ||
+		ids[1] != "order_shipped" {
 		t.Fatalf("MessageIDs() = %v, want sorted ids", ids)
 	}
 
@@ -111,6 +114,66 @@ func TestParseBaselineMissingFile(t *testing.T) {
 	_, err := ParseBaseline(path)
 	if err == nil || !strings.Contains(err.Error(), path) {
 		t.Fatalf("error must name the missing file, got %v", err)
+	}
+}
+
+func TestParseBaselineRoundTripsExplicitMessages(t *testing.T) {
+	t.Parallel()
+
+	// Construct the row explicitly rather than through NewBaseline: this pins
+	// the on-disk contract (field names, the schema pointer, the key/id
+	// agreement) rather than whatever the renderer happens to emit today.
+	original := &Baseline{
+		FormatVersion:  BaselineFormatVersion,
+		Catalog:        "orders",
+		CatalogVersion: "3.1.0",
+		Messages: map[string]BaselineMessage{
+			"order_placed": {
+				Kind:    "event",
+				ID:      "order_placed",
+				Version: "1.2.0",
+				Schema:  rootObj(map[string]schema.Property{"id": strProp()}, "id"),
+			},
+			"order_cancelled": {
+				Kind:    "event",
+				ID:      "order_cancelled",
+				Version: "1.0.0",
+			},
+		},
+	}
+
+	path := filepath.Join(t.TempDir(), "compat-baseline.json")
+	if err := original.WriteFile(path); err != nil {
+		t.Fatalf("WriteFile: %v", err)
+	}
+
+	parsed, err := ParseBaseline(path)
+	if err != nil {
+		t.Fatalf("ParseBaseline: %v", err)
+	}
+
+	if parsed.FormatVersion != BaselineFormatVersion {
+		t.Fatalf("FormatVersion = %d, want %d", parsed.FormatVersion, BaselineFormatVersion)
+	}
+
+	withSchema := parsed.Messages["order_placed"]
+	if withSchema.Version != "1.2.0" {
+		t.Fatalf("order_placed version = %q, want 1.2.0", withSchema.Version)
+	}
+
+	if withSchema.Schema == nil {
+		t.Fatal("order_placed lost its schema through the round trip")
+	}
+
+	if !propertiesEqual(withSchema.Schema.Properties["id"], strProp()) {
+		t.Fatalf("order_placed schema = %+v, want the original property", withSchema.Schema)
+	}
+
+	if parsed.Messages["order_cancelled"].Schema != nil {
+		t.Fatalf(
+			"order_cancelled schema = %+v, want nil",
+			parsed.Messages["order_cancelled"].Schema,
+		)
 	}
 }
 

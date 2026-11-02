@@ -209,7 +209,12 @@ func emitReport(command string, report compat.Report, stdout, stderr io.Writer) 
 		fmt.Fprintf(stderr, "::error::%s: %s\n", finding.Path, finding.Message)
 	}
 
-	fmt.Fprintf(stderr, "catalog-compat: %s failed with %d blocking finding(s)\n", command, len(blocking))
+	fmt.Fprintf(
+		stderr,
+		"catalog-compat: %s failed with %d blocking finding(s)\n",
+		command,
+		len(blocking),
+	)
 
 	return exitFail
 }
