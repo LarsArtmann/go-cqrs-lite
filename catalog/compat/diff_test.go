@@ -261,8 +261,8 @@ func TestCompatPathConventions(t *testing.T) {
 		"lines":    arrProp(objProp(map[string]schema.Property{"sku": strProp()})),
 	})
 	new := rootObj(map[string]schema.Property{
-		"shipping": objProp(map[string]schema.Property{"postcode": strProp()}),
-		"lines":    arrProp(objProp(map[string]schema.Property{"code": strProp()})),
+		"shipping": objProp(map[string]schema.Property{"postcode": intProp()}),
+		"lines":    arrProp(objProp(map[string]schema.Property{"code": intProp()})),
 	})
 
 	report := Compat(old, new)

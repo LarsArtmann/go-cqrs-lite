@@ -70,7 +70,17 @@ func TestValidateEventDirectionRequired(t *testing.T) {
 	cat := validCatalog()
 	cat.Services[0].Events[0].Direction = ""
 
-	if violations := Validate(cat); len(violations) != 1 {
+	violations := Validate(cat)
+
+	found := false
+
+	for _, violation := range violations {
+		if violation.Path == "services[orders].event[order_placed].direction" {
+			found = true
+		}
+	}
+
+	if !found {
 		t.Fatalf("an event without a direction must be flagged, got %v", violations)
 	}
 }
