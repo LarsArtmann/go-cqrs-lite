@@ -130,15 +130,42 @@ func e024IsDisplayCall(gf *analyzer.GoFile, call *ast.CallExpr) bool {
 
 	ident, ok := sel.X.(*ast.Ident)
 	if !ok {
-		return false
+		return e024IsLoggerMethod(sel.Sel.Name)
 	}
 
 	if path, resolved := analyzer.ResolveQualifierTyped(gf, ident); resolved {
+		if path == "" {
+			// A resolved NON-package ident (a local/logger variable) is a
+			// method call, not a qualified package call.
+			return e024IsLoggerMethod(sel.Sel.Name)
+		}
+
 		return e024IsDisplayImportPath(path, sel.Sel.Name)
 	}
 
-	return e024DisplayQualifierFallback(ident.Name, sel.Sel.Name)
+	if e024DisplayQualifierFallback(ident.Name, sel.Sel.Name) {
+		return true
+	}
+
+	return e024IsLoggerMethod(sel.Sel.Name)
 }
+
+// e024LoggerMethodVerbs are method names a logger instance uses (slog.Logger,
+// zap, logr). "Error" is deliberately absent from the method-call path — a
+// domain method named Error taking a string is too ambiguous — while the
+// package-qualified slog.Error stays whitelisted via the import-path check.
+//
+//nolint:gochecknoglobals // read-only lookup table
+var e024LoggerMethodVerbs = map[string]bool{
+	"Info": true, "Infof": true, "Debug": true, "Debugf": true,
+	"Warn": true, "Warnf": true, "Warning": true,
+	"Fatal": true, "Fatalf": true, "Panic": true, "Panicf": true,
+	"Log": true, "LogAttrs": true,
+	"Print": true, "Printf": true, "Println": true,
+}
+
+// e024IsLoggerMethod reports whether name is a logger-instance method verb.
+func e024IsLoggerMethod(name string) bool { return e024LoggerMethodVerbs[name] }
 
 // e024IsDisplayImportPath classifies a resolved package path + callee name.
 func e024IsDisplayImportPath(path, name string) bool {
@@ -227,6 +254,11 @@ func e024ReceiverNamed(gf *analyzer.GoFile, sel *ast.SelectorExpr) *types.Named 
 	if ptr, isPtr := t.(*types.Pointer); isPtr {
 		t = ptr.Elem()
 	}
+
+	// Branded IDs reach call sites as type ALIASES (id.StreamID =
+	// cbid.ID[StreamMarker, string]); go/types keeps the alias node, so unwrap
+	// it before the Named assertion or every alias-typed receiver goes blind.
+	t = types.Unalias(t)
 
 	named, isNamed := t.(*types.Named)
 	if !isNamed || named.Obj() == nil || named.Obj().Pkg() == nil {

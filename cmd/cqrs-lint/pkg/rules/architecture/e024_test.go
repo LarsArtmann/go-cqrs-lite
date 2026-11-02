@@ -135,11 +135,7 @@ func TestE024_SilentOnNonBrandedStringers(t *testing.T) {
 		"stub/go-branded-id/id.go": e024StubBrandedID,
 		"plain.go": `package main
 
-import (
-	"strings"
-
-	cbid "test.example/stub/go-branded-id"
-)
+import "strings"
 
 type Plain string
 
