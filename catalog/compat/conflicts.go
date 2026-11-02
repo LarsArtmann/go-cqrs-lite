@@ -188,8 +188,13 @@ func schemasEqual(a, b *catalog.Schema) bool {
 
 func renderSchema(s *schema.Schema) ([]byte, error) {
 	if s == nil {
-		return nil, nil //nolint:nilerr // absence is a comparable value, not an error
+		return nil, nil
 	}
 
-	return schema.ToJSON(s)
+	rendered, err := schema.ToJSON(s)
+	if err != nil {
+		return nil, fmt.Errorf("compat: render schema: %w", err)
+	}
+
+	return rendered, nil
 }

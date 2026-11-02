@@ -158,7 +158,7 @@ func validateDataStoreRefs(c *catalog.Catalog) []catalog.Violation {
 		stores[store.ID] = true
 	}
 
-	var violations []catalog.Violation
+	violations := make([]catalog.Violation, 0, len(c.Services))
 
 	for _, svc := range c.Services {
 		violations = append(violations, danglingStores(svc, stores)...)

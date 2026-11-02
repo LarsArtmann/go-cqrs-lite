@@ -109,13 +109,15 @@ func typeMessage(old, next schema.Type, class Class) string {
 			old,
 			next,
 		)
-	default:
+	case ClassUnchanged, ClassNeedsVersionBump:
 		return fmt.Sprintf(
 			"type changed %q -> %q: stored values do not decode into the new shape",
 			old,
 			next,
 		)
 	}
+
+	return fmt.Sprintf("type %q -> %q", old, next)
 }
 
 // diffProperty compares one property node: its object-shaped parts plus the

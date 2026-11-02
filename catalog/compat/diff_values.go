@@ -98,16 +98,23 @@ func diffConstraints(path string, old, next schema.Property, b *reportBuilder) {
 // renders. Only these formats can be ordered, so anything else (a
 // timestamp-shaped integer format, say) reports false and falls through to the
 // generic constraint rule rather than guessing.
+const (
+	widthInt8  = 8
+	widthInt16 = 16
+	widthInt32 = 32
+	widthInt64 = 64
+)
+
 func integerWidth(format string) (int, bool) {
 	switch format {
 	case "int8":
-		return 8, true
+		return widthInt8, true
 	case "int16":
-		return 16, true
+		return widthInt16, true
 	case "int32":
-		return 32, true
+		return widthInt32, true
 	case "int64":
-		return 64, true
+		return widthInt64, true
 	default:
 		return 0, false
 	}

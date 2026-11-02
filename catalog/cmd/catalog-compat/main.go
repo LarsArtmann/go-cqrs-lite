@@ -74,13 +74,13 @@ Exit codes: 0 clean, 1 gate failure, 2 usage or I/O error.
 }
 
 func runBaseline(args []string, stdout, stderr io.Writer) int {
-	fs := flag.NewFlagSet("baseline", flag.ContinueOnError)
-	fs.SetOutput(stderr)
+	flags := flag.NewFlagSet("baseline", flag.ContinueOnError)
+	flags.SetOutput(stderr)
 
-	catalogPath := fs.String("catalog", "", "catalog JSON file")
-	outPath := fs.String("out", defaultBaselineName, "baseline file to write")
+	catalogPath := flags.String("catalog", "", "catalog JSON file")
+	outPath := flags.String("out", defaultBaselineName, "baseline file to write")
 
-	if err := fs.Parse(args); err != nil {
+	if err := flags.Parse(args); err != nil {
 		return exitUsage
 	}
 
@@ -102,13 +102,13 @@ func runBaseline(args []string, stdout, stderr io.Writer) int {
 }
 
 func runCheck(args []string, stdout, stderr io.Writer) int {
-	fs := flag.NewFlagSet("check", flag.ContinueOnError)
-	fs.SetOutput(stderr)
+	flags := flag.NewFlagSet("check", flag.ContinueOnError)
+	flags.SetOutput(stderr)
 
-	catalogPath := fs.String("catalog", "", "catalog JSON file")
-	baselinePath := fs.String("baseline", defaultBaselineName, "baseline file to compare against")
+	catalogPath := flags.String("catalog", "", "catalog JSON file")
+	baselinePath := flags.String("baseline", defaultBaselineName, "baseline file to compare against")
 
-	if err := fs.Parse(args); err != nil {
+	if err := flags.Parse(args); err != nil {
 		return exitUsage
 	}
 
@@ -130,12 +130,12 @@ func runCheck(args []string, stdout, stderr io.Writer) int {
 }
 
 func runValidate(args []string, stdout, stderr io.Writer) int {
-	fs := flag.NewFlagSet("validate", flag.ContinueOnError)
-	fs.SetOutput(stderr)
+	flags := flag.NewFlagSet("validate", flag.ContinueOnError)
+	flags.SetOutput(stderr)
 
-	catalogPath := fs.String("catalog", "", "catalog JSON file")
+	catalogPath := flags.String("catalog", "", "catalog JSON file")
 
-	if err := fs.Parse(args); err != nil {
+	if err := flags.Parse(args); err != nil {
 		return exitUsage
 	}
 
@@ -161,13 +161,13 @@ func runValidate(args []string, stdout, stderr io.Writer) int {
 }
 
 func runConflicts(args []string, stdout, stderr io.Writer) int {
-	fs := flag.NewFlagSet("conflicts", flag.ContinueOnError)
-	fs.SetOutput(stderr)
+	flags := flag.NewFlagSet("conflicts", flag.ContinueOnError)
+	flags.SetOutput(stderr)
 
-	leftPath := fs.String("left", "", "left catalog JSON file")
-	rightPath := fs.String("right", "", "right catalog JSON file")
+	leftPath := flags.String("left", "", "left catalog JSON file")
+	rightPath := flags.String("right", "", "right catalog JSON file")
 
-	if err := fs.Parse(args); err != nil {
+	if err := flags.Parse(args); err != nil {
 		return exitUsage
 	}
 

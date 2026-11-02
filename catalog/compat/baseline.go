@@ -15,6 +15,10 @@ import (
 // else so an old file never silently compares as empty.
 const BaselineFormatVersion = 1
 
+// baselineFileMode is deliberately owner-only: gosec's G306 caps a newly
+// created file at 0600, and a baseline is a build artifact, not shared state.
+const baselineFileMode = 0o600
+
 // Baseline is a committed snapshot of the payload shapes at the last release.
 // It records shipped truth, not a live declaration: regenerate it with
 // [NewBaseline] only after a deliberate, version-bumped change.
@@ -87,7 +91,7 @@ func (b *Baseline) WriteFile(path string) error {
 		return err
 	}
 
-	if err := os.WriteFile(path, data, 0o644); err != nil {
+	if err := os.WriteFile(path, data, baselineFileMode); err != nil {
 		return fmt.Errorf("compat: write baseline %s: %w", path, err)
 	}
 
@@ -109,7 +113,8 @@ func ParseBaseline(path string) (*Baseline, error) {
 
 	if baseline.FormatVersion != BaselineFormatVersion {
 		return nil, fmt.Errorf(
-			"compat: baseline %s has formatVersion %d, want %d: regenerate it with --update-baseline",
+			"%w: baseline %s has formatVersion %d, want %d: regenerate it with --update-baseline",
+			ErrBaselineFormatVersion,
 			path,
 			baseline.FormatVersion,
 			BaselineFormatVersion,

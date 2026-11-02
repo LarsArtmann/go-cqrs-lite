@@ -9,20 +9,20 @@ import (
 func diffProperties(old, next objectShape, b *reportBuilder) {
 	removed, added := splitProperties(old.props, next.props)
 
-	for from, to := range pairRenames(removed, added) {
+	for previousName, nextName := range pairRenames(removed, added) {
 		b.add(Finding{
-			Path:  joinPath(old.path, from),
+			Path:  joinPath(old.path, previousName),
 			Kind:  KindFieldRenamed,
 			Class: ClassNeedsVersionBump,
 			Op:    OpRenameField,
 			Message: fmt.Sprintf(
 				"field renamed to %q with an unchanged shape: declare RenameField",
-				to,
+				nextName,
 			),
 		})
 
-		delete(removed, from)
-		delete(added, to)
+		delete(removed, previousName)
+		delete(added, nextName)
 	}
 
 	diffFieldSets(old.path, removed, added, stringSet(next.required), b)
@@ -178,14 +178,14 @@ func pairRenames(removed, added map[string]schema.Property) map[string]string {
 
 	used := make(map[string]bool, len(added))
 
-	for _, from := range sortedKeys(removed) {
-		for _, to := range sortedKeys(added) {
-			if used[to] || !propertiesEqual(removed[from], added[to]) {
+	for _, previousName := range sortedKeys(removed) {
+		for _, nextName := range sortedKeys(added) {
+			if used[nextName] || !propertiesEqual(removed[previousName], added[nextName]) {
 				continue
 			}
 
-			pairs[from] = to
-			used[to] = true
+			pairs[previousName] = nextName
+			used[nextName] = true
 
 			break
 		}
