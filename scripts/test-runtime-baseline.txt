@@ -12,9 +12,11 @@ github.com/larsartmann/go-cqrs-lite/catalog/v4	0.014
 github.com/larsartmann/go-cqrs-lite/catalog/v4/architecture	0.188
 github.com/larsartmann/go-cqrs-lite/catalog/v4/asyncapi	0.015
 github.com/larsartmann/go-cqrs-lite/catalog/v4/cmd/architecture-fixture	0
+github.com/larsartmann/go-cqrs-lite/catalog/v4/cmd/catalog-compat	0.008
 github.com/larsartmann/go-cqrs-lite/catalog/v4/cmd/catalog-export	0
 github.com/larsartmann/go-cqrs-lite/catalog/v4/cmd/ec-fixture	0
 github.com/larsartmann/go-cqrs-lite/catalog/v4/cmd/go-cqrs-lite-catalog	0.008
+github.com/larsartmann/go-cqrs-lite/catalog/v4/compat	0.008
 github.com/larsartmann/go-cqrs-lite/catalog/v4/d2	0.006
 github.com/larsartmann/go-cqrs-lite/catalog/v4/docserver	0.116
 github.com/larsartmann/go-cqrs-lite/catalog/v4/eventcatalog	0.153
