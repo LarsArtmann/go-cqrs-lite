@@ -64,7 +64,7 @@ func TestE024_FiresOnStorageKeyAndSprintfAndActorID(t *testing.T) {
 	t.Parallel()
 
 	ctx, cleanup := analyzer.BuildContextWithTypes(t, "1.26", map[string]string{
-		"stub/go-branded-id/id.go": e024StubBrandedID,
+		"stub/go-branded-id/id.go":   e024StubBrandedID,
 		"stub/go-cqrs-lite/id/id.go": e024StubID,
 		"keys.go": `package main
 
@@ -91,8 +91,8 @@ func TestE024_SilentInDisplayPositions(t *testing.T) {
 	t.Parallel()
 
 	ctx, cleanup := analyzer.BuildContextWithTypes(t, "1.26", map[string]string{
-		"stub/go-branded-id/id.go":  e024StubBrandedID,
-		"stub/go-cqrs-lite/id/id.go": e024StubID,
+		"stub/go-branded-id/id.go":    e024StubBrandedID,
+		"stub/go-cqrs-lite/id/id.go":  e024StubID,
 		"stub/attribute/attribute.go": e024StubAttribute,
 		"display.go": `package main
 
@@ -186,7 +186,7 @@ func TestE024_FiresThroughPointerReceiver(t *testing.T) {
 	t.Parallel()
 
 	ctx, cleanup := analyzer.BuildContextWithTypes(t, "1.26", map[string]string{
-		"stub/go-branded-id/id.go":  e024StubBrandedID,
+		"stub/go-branded-id/id.go":   e024StubBrandedID,
 		"stub/go-cqrs-lite/id/id.go": e024StubID,
 		"ptr.go": `package main
 
@@ -207,7 +207,7 @@ func TestE024_SilentOnTestFiles(t *testing.T) {
 	t.Parallel()
 
 	ctx, cleanup := analyzer.BuildContextWithTypes(t, "1.26", map[string]string{
-		"stub/go-branded-id/id.go":  e024StubBrandedID,
+		"stub/go-branded-id/id.go":   e024StubBrandedID,
 		"stub/go-cqrs-lite/id/id.go": e024StubID,
 		"keys_test.go": `package main
 
