@@ -167,6 +167,9 @@ jobs:
       - name: Error-taxonomy drift gate
         run: nix run .#check-error-taxonomy
 
+      - name: Schema-compatibility gate self-test
+        run: nix run .#check-schema-compat -- --self-test
+
       - name: md-go-validator docs gate
         run: nix run .#check-md-go
 
