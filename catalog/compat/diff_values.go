@@ -87,8 +87,48 @@ func diffNullable(path string, old, new bool, b *reportBuilder) {
 }
 
 func diffConstraints(path string, old, new schema.Property, b *reportBuilder) {
-	diffConstraint(path, "format", old.Format, new.Format, b)
+	diffFormat(path, old, new, b)
 	diffConstraint(path, "pattern", old.Pattern, new.Pattern, b)
+}
+
+// integerWidths maps the integer formats this repository renders to their bit
+// widths. Only formats in this table can be ordered, so anything else (a
+// timestamp-shaped integer format, say) falls through to the generic
+// constraint rule rather than guessing.
+var integerWidths = map[string]int{
+	"int8":  8,
+	"int16": 16,
+	"int32": 32,
+	"int64": 64,
+}
+
+// diffFormat treats a widened integer format as additive, because every stored
+// value stays representable. This is the policy's own row ("Widening an int
+// field (int32 -> int64)"); the generic constraint rule would otherwise report
+// a needed op for a change that requires none.
+func diffFormat(path string, old, new schema.Property, b *reportBuilder) {
+	if old.Format == new.Format {
+		return
+	}
+
+	if oldWidth, oldOK := integerWidths[old.Format]; oldOK {
+		if newWidth, newOK := integerWidths[new.Format]; newOK && newWidth > oldWidth {
+			b.add(Finding{
+				Path:  path,
+				Kind:  KindTypeChanged,
+				Class: ClassAdditive,
+				Message: fmt.Sprintf(
+					"integer format widened %q -> %q: every stored value stays representable",
+					old.Format,
+					new.Format,
+				),
+			})
+
+			return
+		}
+	}
+
+	diffConstraint(path, "format", old.Format, new.Format, b)
 }
 
 func diffConstraint(path, name, old, new string, b *reportBuilder) {

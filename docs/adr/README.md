@@ -265,5 +265,6 @@ watermill/     — Watermill protocol adapter
 | [0160](0160-architecture-reference-selections-kind-id-selectors.md) | Architecture-reference selections select resources by kind and id, not by custom properties | 2026-10-17 | Accepted |
 | [0161](0161-encoded-ingress-producer-codec.md) | Encoded ingress decodes with the producer's codec, not a schema-free JSON transcode | 2026-10-24 | Accepted |
 | [0162](0162-metaengine-v5-seven-package-split.md) | Metaengine v5 splits into seven packages instead of one 829-symbol package | 2026-10-26 | Proposed |
+| [0163](0163-schema-compatibility-structural-differ-over-cue.md) | Schema compatibility is a structural differ over the schema model, not a CUE subsume | 2026-11-02 | Accepted |
 
 > **Note:** ADRs 0036, 0041, and 0138 were never assigned (gaps in numbering).
