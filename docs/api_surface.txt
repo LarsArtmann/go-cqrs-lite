@@ -225,6 +225,7 @@ catalog/compat/struct Finding
 catalog/compat/struct Report
 catalog/compat/type Class
 catalog/compat/type Kind
+catalog/compat/var ErrBaselineFormatVersion
 catalog/const ADRAccepted
 catalog/const ADRAppliesToAgent
 catalog/const ADRAppliesToChannel
