@@ -192,22 +192,8 @@ const (
 // instances whose marker has no Name(), where String() already returns the
 // bare value — is not flagged.
 func e024BrandedStringKind(gf *analyzer.GoFile, sel *ast.SelectorExpr) (e024BrandedKind, string) {
-	if gf == nil || gf.Pkg == nil || gf.Pkg.TypesInfo == nil {
-		return e024BrandedNone, ""
-	}
-
-	tv, ok := gf.Pkg.TypesInfo.Types[sel.X]
-	if !ok || tv.Type == nil {
-		return e024BrandedNone, ""
-	}
-
-	t := tv.Type
-	if ptr, isPtr := t.(*types.Pointer); isPtr {
-		t = ptr.Elem()
-	}
-
-	named, isNamed := t.(*types.Named)
-	if !isNamed || named.Obj() == nil || named.Obj().Pkg() == nil {
+	named := e024ReceiverNamed(gf, sel)
+	if named == nil {
 		return e024BrandedNone, ""
 	}
 
@@ -223,6 +209,31 @@ func e024BrandedStringKind(gf *analyzer.GoFile, sel *ast.SelectorExpr) (e024Bran
 	}
 
 	return e024BrandedNone, ""
+}
+
+// e024ReceiverNamed resolves the named type behind a .String() receiver,
+// unwrapping pointers; nil when the type cannot be resolved.
+func e024ReceiverNamed(gf *analyzer.GoFile, sel *ast.SelectorExpr) *types.Named {
+	if gf == nil || gf.Pkg == nil || gf.Pkg.TypesInfo == nil {
+		return nil
+	}
+
+	tv, ok := gf.Pkg.TypesInfo.Types[sel.X]
+	if !ok || tv.Type == nil {
+		return nil
+	}
+
+	t := tv.Type
+	if ptr, isPtr := t.(*types.Pointer); isPtr {
+		t = ptr.Elem()
+	}
+
+	named, isNamed := t.(*types.Named)
+	if !isNamed || named.Obj() == nil || named.Obj().Pkg() == nil {
+		return nil
+	}
+
+	return named
 }
 
 // e024CBIDKind classifies one cbid.ID instance by its marker type argument.

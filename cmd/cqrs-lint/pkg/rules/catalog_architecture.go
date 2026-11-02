@@ -211,5 +211,14 @@ func architectureRules() []RuleInfo {
 			Description: "Package mixes go-cqrs-lite usage with satellite-owned database/sql (or a SQL driver) — the all-I/O-through-metaengine rule (ADR-0142) makes engines the only storage layer; advisory: route durable state through metaengine engines or the system composition root, engine-tier modules are exempt, non-CQRS tables may dismiss",
 			AutoFix:     false,
 		},
+		{
+			ID:          "E024",
+			Name:        "branded-id-string-display-form",
+			Category:    "architecture",
+			Severity:    "warning",
+			Confidence:  "high",
+			Description: "branded-ID .String() outside display contexts — cbid.ID markers with Name() render \"Marker:value\" (StreamID, TimerID) and id.ActorID.String() drops the kind, so keys/columns/wire reads break; use .Get()/PrefixedString() instead; slog/log/attribute/fmt.Errorf args and Parse*ID round-trips are whitelisted; dismiss genuine display uses via //cqrs-lint:ignore(E024) or a scorecard waiver",
+			AutoFix:     false,
+		},
 	}
 }
