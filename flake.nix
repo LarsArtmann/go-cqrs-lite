@@ -1244,6 +1244,17 @@
                   ${pkgs.bash}/bin/bash "$PWD/scripts/check-error-taxonomy.sh"
                 '';
 
+            # check-schema-compat: turns docs/SCHEMA-COMPATIBILITY.md into a
+            # build failure. `check` blocks a breaking payload change whose
+            # message version did not move; `validate` runs the cross-resource
+            # invariants no other function owns. Consumers point it at their own
+            # catalog + committed baseline; this repo runs its --self-test.
+            check-schema-compat =
+              mkApp "check-schema-compat" [ goPkg pkgs.bash ]
+                ''
+                  ${pkgs.bash}/bin/bash "$PWD/scripts/check-schema-compat.sh" "$@"
+                '';
+
             # calibration-drift: live-latency calibration baseline write/compare
             # (the nightly artifact loop; load-gated by calibration-gate.sh).
             calibration-drift = mkApp "calibration-drift" [ goPkg pkgs.bash pkgs.git ] ''
@@ -2036,6 +2047,7 @@
                   echo "=== Systemscenario Adoption ===" && nix run .#check-systemscenario-adoption && \
                   echo "=== Check Error Taxonomy ===" && nix run .#check-error-taxonomy && \
                   echo "=== Error Taxonomy Tests ===" && nix run .#check-error-taxonomy-tests && \
+                  echo "=== Check Schema Compat ===" && nix run .#check-schema-compat -- --self-test && \
                   echo "=== Check md-go ===" && nix run .#check-md-go && \
                   echo "=== Doc Check ===" && (cd cmd/doc-check && GOWORK=off ${goPkg}/bin/go run . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md ../../README.md ../../*/README.md ../../*/*/README.md ../../*/*/*/README.md ../../TODO_LIST.md ../../ROADMAP.md ../../FEATURES.md ../../CONTRIBUTING.md ../../docs/DOMAIN_LANGUAGE.md ../../docs/METAENGINE_DOMAIN_LANGUAGE.md) && \
                   echo "✅ All verification checks passed"
@@ -2112,6 +2124,7 @@
                   echo "=== Test Skips ===" && nix run .#check-test-skips && \
                   echo "=== Test Matrix ===" && nix run .#check-test-matrix && \
                   echo "=== Systemscenario Adoption ===" && nix run .#check-systemscenario-adoption && \
+                  echo "=== Check Schema Compat ===" && nix run .#check-schema-compat -- --self-test && \
                   echo "=== Check md-go ===" && nix run .#check-md-go && \
                   echo "=== API Stability ===" && nix run .#check-api-stability && \
                   echo "✅ All fast verification checks passed (soak tests skipped)"
