@@ -172,6 +172,8 @@ func e024IsDisplayImportPath(path, name string) bool {
 	switch path {
 	case "log", "log/slog":
 		return true
+	case "fmt":
+		return name == "Errorf" // error text is human-facing; Sprintf builds keys
 	}
 
 	last := path

@@ -18,7 +18,7 @@ func TestE024IsDisplayImportPath(t *testing.T) {
 		"slog attribute constructor":  {path: "log/slog", name: "String", want: true},
 		"otel attribute":              {path: "go.opentelemetry.io/otel/attribute", name: "String", want: true},
 		"stub attribute":              {path: "test.example/stub/attribute", name: "String", want: true},
-		"fmt errorf":                  {path: "fmt", name: "Errorf", want: false},
+		"fmt errorf":                  {path: "fmt", name: "Errorf", want: true},
 		"fmt sprintf":                 {path: "fmt", name: "Sprintf", want: false},
 		"strings":                     {path: "strings", name: "ToUpper", want: false},
 		"id parse round-trip":         {path: "test.example/stub/go-cqrs-lite/id", name: "ParseStreamID", want: true},

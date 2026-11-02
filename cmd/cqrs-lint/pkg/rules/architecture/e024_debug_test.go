@@ -14,6 +14,8 @@ func TestE024DebugDisplay(t *testing.T) {
 
 type ID[B any, V comparable] struct{ value V }
 
+func NewID[B any, V comparable](v V) ID[B, V] { return ID[B, V]{value: v} }
+
 func (id ID[B, V]) String() string { return "stub" }
 `,
 		"stub/go-cqrs-lite/id/id.go": `package id
