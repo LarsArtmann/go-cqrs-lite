@@ -255,6 +255,14 @@ linters:
         - github.com/larsartmann/go-cqrs-lite/metaengine/v4\.EngineProfile
         - github.com/larsartmann/go-cqrs-lite/storage/v4/pebble\.storeBase
         - github.com/larsartmann/go-cqrs-lite/storage/v4/bbolt\.storeBase
+        # compat.Finding: Op applies only to findings that owe a migration op,
+        # and Blocking only to a breaking change with an unchanged version, so
+        # both zero values are meaningful and spelling them at every literal
+        # would invite setting Blocking on an additive finding.
+        - github.com/larsartmann/go-cqrs-lite/catalog/v4/compat\.Finding
+        # compat.Baseline: Catalog and CatalogVersion are omitempty identity
+        # fields, and NewBaseline(nil) intentionally yields a valid empty file.
+        - github.com/larsartmann/go-cqrs-lite/catalog/v4/compat\.Baseline
     funlen:
       lines: 200
       statements: 100

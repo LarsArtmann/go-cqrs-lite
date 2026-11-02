@@ -6,11 +6,11 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4/schema"
 )
 
-func diffEnum(path string, old, new []string, b *reportBuilder) {
+func diffEnum(path string, old, next []string, b *reportBuilder) {
 	switch {
-	case len(old) == 0 && len(new) == 0:
+	case len(old) == 0 && len(next) == 0:
 		return
-	case len(new) == 0:
+	case len(next) == 0:
 		b.add(Finding{
 			Path:    path,
 			Kind:    KindEnumWidened,
@@ -26,14 +26,14 @@ func diffEnum(path string, old, new []string, b *reportBuilder) {
 			Message: "enum constraint added: previously accepted values are now rejected",
 		})
 	default:
-		diffEnumValues(path, old, new, b)
+		diffEnumValues(path, old, next, b)
 	}
 }
 
-func diffEnumValues(path string, old, new []string, b *reportBuilder) {
-	oldSet, newSet := stringSet(old), stringSet(new)
+func diffEnumValues(path string, old, next []string, b *reportBuilder) {
+	oldSet, newSet := stringSet(old), stringSet(next)
 
-	for _, value := range new {
+	for _, value := range next {
 		if oldSet[value] {
 			continue
 		}
@@ -64,12 +64,12 @@ func diffEnumValues(path string, old, new []string, b *reportBuilder) {
 	}
 }
 
-func diffNullable(path string, old, new bool, b *reportBuilder) {
-	if old == new {
+func diffNullable(path string, old, next bool, b *reportBuilder) {
+	if old == next {
 		return
 	}
 
-	if new {
+	if next {
 		b.add(Finding{
 			Path:    path,
 			Kind:    KindNullableWidened,
@@ -89,33 +89,41 @@ func diffNullable(path string, old, new bool, b *reportBuilder) {
 	})
 }
 
-func diffConstraints(path string, old, new schema.Property, b *reportBuilder) {
-	diffFormat(path, old, new, b)
-	diffConstraint(path, "pattern", old.Pattern, new.Pattern, b)
+func diffConstraints(path string, old, next schema.Property, b *reportBuilder) {
+	diffFormat(path, old, next, b)
+	diffConstraint(path, "pattern", old.Pattern, next.Pattern, b)
 }
 
-// integerWidths maps the integer formats this repository renders to their bit
-// widths. Only formats in this table can be ordered, so anything else (a
-// timestamp-shaped integer format, say) falls through to the generic
-// constraint rule rather than guessing.
-var integerWidths = map[string]int{
-	"int8":  8,
-	"int16": 16,
-	"int32": 32,
-	"int64": 64,
+// integerWidth reports the bit width of the integer formats this repository
+// renders. Only these formats can be ordered, so anything else (a
+// timestamp-shaped integer format, say) reports false and falls through to the
+// generic constraint rule rather than guessing.
+func integerWidth(format string) (int, bool) {
+	switch format {
+	case "int8":
+		return 8, true
+	case "int16":
+		return 16, true
+	case "int32":
+		return 32, true
+	case "int64":
+		return 64, true
+	default:
+		return 0, false
+	}
 }
 
 // diffFormat treats a widened integer format as additive, because every stored
 // value stays representable. This is the policy's own row ("Widening an int
 // field (int32 -> int64)"); the generic constraint rule would otherwise report
 // a needed op for a change that requires none.
-func diffFormat(path string, old, new schema.Property, b *reportBuilder) {
-	if old.Format == new.Format {
+func diffFormat(path string, old, next schema.Property, b *reportBuilder) {
+	if old.Format == next.Format {
 		return
 	}
 
-	if oldWidth, oldOK := integerWidths[old.Format]; oldOK {
-		if newWidth, newOK := integerWidths[new.Format]; newOK && newWidth > oldWidth {
+	if oldWidth, ok := integerWidth(old.Format); ok {
+		if nextWidth, nextOK := integerWidth(next.Format); nextOK && nextWidth > oldWidth {
 			b.add(Finding{
 				Path:  path,
 				Kind:  KindTypeChanged,
@@ -123,7 +131,7 @@ func diffFormat(path string, old, new schema.Property, b *reportBuilder) {
 				Message: fmt.Sprintf(
 					"integer format widened %q -> %q: every stored value stays representable",
 					old.Format,
-					new.Format,
+					next.Format,
 				),
 			})
 
@@ -131,15 +139,15 @@ func diffFormat(path string, old, new schema.Property, b *reportBuilder) {
 		}
 	}
 
-	diffConstraint(path, "format", old.Format, new.Format, b)
+	diffConstraint(path, "format", old.Format, next.Format, b)
 }
 
-func diffConstraint(path, name, old, new string, b *reportBuilder) {
-	if old == new {
+func diffConstraint(path, name, old, next string, b *reportBuilder) {
+	if old == next {
 		return
 	}
 
-	if new == "" {
+	if next == "" {
 		b.add(Finding{
 			Path:    path,
 			Kind:    KindConstraintRemoved,
@@ -159,13 +167,13 @@ func diffConstraint(path, name, old, new string, b *reportBuilder) {
 			"%s constraint changed %q -> %q: stored values may no longer validate",
 			name,
 			old,
-			new,
+			next,
 		),
 	})
 }
 
-func diffAdvisory(path string, old, new schema.Property, b *reportBuilder) {
-	if !old.Deprecated && new.Deprecated {
+func diffAdvisory(path string, old, next schema.Property, b *reportBuilder) {
+	if !old.Deprecated && next.Deprecated {
 		b.add(Finding{
 			Path:    path,
 			Kind:    KindDeprecated,
@@ -174,7 +182,7 @@ func diffAdvisory(path string, old, new schema.Property, b *reportBuilder) {
 		})
 	}
 
-	if old.Default != new.Default {
+	if old.Default != next.Default {
 		b.add(Finding{
 			Path:  path,
 			Kind:  KindDefaultChanged,
@@ -182,7 +190,7 @@ func diffAdvisory(path string, old, new schema.Property, b *reportBuilder) {
 			Message: fmt.Sprintf(
 				"documented default changed %q -> %q (wire shape unaffected)",
 				old.Default,
-				new.Default,
+				next.Default,
 			),
 		})
 	}

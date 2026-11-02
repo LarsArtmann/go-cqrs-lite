@@ -19,10 +19,10 @@ import (
 // [ClassNeedsVersionBump] but does not block, because only the declaration
 // (schema.EventSchema) can show whether the upcast op exists; cqrs-lint E021
 // and E022 own that half of the policy.
-func CompatCatalog(old, new *catalog.Catalog) Report {
+func CompatCatalog(old, next *catalog.Catalog) Report {
 	var b reportBuilder
 
-	oldMsgs, newMsgs := indexMessages(old), indexMessages(new)
+	oldMsgs, newMsgs := indexMessages(old), indexMessages(next)
 
 	for key, oldMsg := range oldMsgs {
 		newMsg, ok := newMsgs[key]
