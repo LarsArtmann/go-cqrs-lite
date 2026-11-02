@@ -3,8 +3,8 @@ module counterkey
 go 1.27.2
 
 require (
-	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.6.0
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.20.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.5.3
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.19.0
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2
 )
 
@@ -25,9 +25,3 @@ require (
 	modernc.org/memory v1.12.1 // indirect
 	modernc.org/sqlite v1.60.1 // indirect
 )
-
-replace github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ../../metaengine_v417/metaengine
-
-replace github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 => ../../sqliteengine_v453/metaengine/sqliteengine
-
-replace github.com/larsartmann/go-cqrs-lite/record/v4 => ../../metaengine_v417/record
