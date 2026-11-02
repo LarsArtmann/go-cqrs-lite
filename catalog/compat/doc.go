@@ -21,11 +21,21 @@
 // # Why no CUE
 //
 // The design was originally to delegate subtyping to CUE's
-// encoding/jsonschema.Extract plus cue.Value.Subsume. A fidelity spike over
-// the policy's own twelve fixture rows classified at most 7 of 10 shape
-// fixtures correctly in every option combination, and misclassified every
-// additive case, including "add an optional field" (the policy's first row).
-// The evidence and the reopen trigger live in
-// docs/evidence/2026-11-02_cue-subsume-spike.md and ADR-0161. The structural
-// walk below is that spike's recorded fallback.
+// encoding/jsonschema.Extract plus cue.Value.Subsume, whose own documentation
+// says it "tests whether v is a backwards compatible (newer) API version of
+// w". A fidelity spike over 24 fixtures taken from the policy's own rows
+// scored 22/24 in the best configuration (Config{} plus cue.Raw()), which is
+// not good enough because both residual misses report "compatible" for a
+// change the policy calls breaking: a format swap (date-time to uuid) and a
+// newly constrained array item list. CUE cannot see either, since format is
+// not a constraint and an open list subsumes a constrained one. The
+// plausible-sounding cue.Final() option is worse still (16/24, turning
+// remove-field, rename-field and add-required-field into "compatible").
+//
+// A false "compatible" licenses shipping a replay-breaking change, so the
+// error is asymmetric and the tolerance is zero. The evidence and the reopen
+// triggers live in docs/evidence/2026-11-02_cue-subsume-spike.md and
+// ADR-0163. The structural walk below is that spike's recorded fallback: it
+// sees Format, Items, Pattern and Enum as first-class fields because it walks
+// this repository's own schema model.
 package compat
