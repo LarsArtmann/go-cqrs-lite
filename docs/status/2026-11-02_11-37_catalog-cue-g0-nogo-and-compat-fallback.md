@@ -1,5 +1,30 @@
 # Status: catalog × CUE — G0 NO-GO and the structural-differ fallback
 
+> **⚠️ CORRECTION (2026-11-02 14:47, later session).** This report's central
+> factual claim about G0 is **WRONG** and is corrected here rather than deleted,
+> because how it went wrong matters.
+>
+> §a and §d say `jsonschema.Extract` + `cue.Value.Subsume` "classified at most 7
+> of 10 fixtures" and "misclassified every additive case including adding an
+> optional field". A fresh, reproducible re-run of the spike over **24 fixtures ×
+> 6 configurations** (pinned `cuelang.org/go v0.17.1`) found the opposite: the
+> best configuration (`Config{}` + `cue.Raw()`) scores **22/24** and classifies
+> **every** additive row correctly. The real defect is different and narrower:
+> the two residual misses — a `format` swap and a newly constrained array
+> `items` — are false *compatible*, i.e. wrong in the unsafe direction. And the
+> option this report treats as an also-ran, `cue.Final()`, is worse than stated
+> (16/24, calling remove/rename/add-required "compatible").
+>
+> The **verdict (NO-GO) still stands**, but for a soundness reason rather than an
+> accuracy reason. The numbers in this file were produced by a spike whose
+> direction handling was unreliable; treat them as withdrawn. Current truth:
+> [`docs/evidence/2026-11-02_cue-subsume-spike.md`](../evidence/2026-11-02_cue-subsume-spike.md),
+> [ADR-0163](../adr/0163-schema-compatibility-structural-differ-over-cue.md), and
+> [`docs/status/2026-11-02_14-47_catalog-compat-cue-reverification-and-lint-debt.md`](2026-11-02_14-47_catalog-compat-cue-reverification-and-lint-debt.md).
+>
+> Everything else in this file (the shipped package, the gate, the split-brain
+> traps, the missing tail) held up.
+
 **Date:** 2026-11-02 11:37
 **Basis:** working tree on `master`, head `d57965f48` (all files below were absorbed
 by the auto-commit daemon as `chore: auto-commit` commits; the only uncommitted
