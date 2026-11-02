@@ -1,0 +1,28 @@
+{
+  "title": "orders",
+  "version": "1.0.0",
+  "services": [
+    {
+      "id": "orders",
+      "name": "Orders",
+      "version": "1.0.0",
+      "events": [
+        {
+          "kind": "event",
+          "id": "order_placed",
+          "name": "Order Placed",
+          "version": "1.0.0",
+          "direction": "sends",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "order_id": { "type": "string" },
+              "total": { "type": "number" }
+            },
+            "required": ["order_id"]
+          }
+        }
+      ]
+    }
+  ]
+}
