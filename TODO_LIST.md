@@ -762,6 +762,15 @@ the boundary. Verified against this repo's source on 2026-10-15.
 - [x] **Housekeeping tail** — DONE 2026-10-10 (plan M24–M25): kv/id/event import-scoping on the three most-copied fences (remaining union-warnings are core/v5-mirror informational until v5 lands); **RevisionSnapshotFilter lead DROPPED — no primary source anywhere in the fleet**; fence-convention + parallel-session re-view notes in gotchas-tooling-build.md; runbook note below; this prune.
 - [ ] **Post-tag adoption tail**: apply the bank-sync snapshot patch (M13) + drop DiscordSync's `map[any]any` workaround branch + collapse cqrs-htmx's homegrown UpcasterRegistry onto the chain — all blocked ONLY on the next schema/decider/snapshot tag wave (owner Q2).
 
+## Catalog × CUE (proposed 2026-11-02, gated)
+
+> Plan: [`docs/planning/2026-11-02_05-31_SUPERB-catalog-cue-compat-and-unification-pareto-plan.md`](docs/planning/2026-11-02_05-31_SUPERB-catalog-cue-compat-and-unification-pareto-plan.md) — 26 medium / 86 fine tasks. Successor to the **T6 compat policy** above: makes [`docs/SCHEMA-COMPATIBILITY.md`](docs/SCHEMA-COMPATIBILITY.md) *executable* instead of prose. CUE stays optional and isolated in `catalog/cue`; `catalog/` and `schema/` gain no dependency and no second source of truth.
+
+- [ ] **G0 fidelity spike (STOP/GO)** — `jsonschema.Extract` + `Value.Subsume` must classify all 12 policy fixtures (open structs, enums, nested, arrays) correctly. NO-GO ships the ADR + evidence only; fallback is a structural differ behind the same signature. Everything below is blocked on this.
+- [ ] **`catalog/cue.Compat` + `compat-baseline.json` + `#check-schema-compat`** — a breaking payload change without a declared op becomes a build failure.
+- [ ] **Unification conflict detection (`Registry.Conflicts`) + declarative catalog invariants (`cue.Validate`)** — additive only; `AddService` and `catalog.Validate()` semantics untouched.
+- [ ] **Parked, do not start:** CUE as schema source of truth (needs a named consumer ask AND `jsonschema.Generate` out of experimental).
+
 ## BDD harness adoption wave (executing 2026-10-09)
 
 > The harness shipped + verified 2026-10-09 (27/27 tasks of the
