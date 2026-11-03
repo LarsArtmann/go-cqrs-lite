@@ -120,12 +120,17 @@ func FuzzStreamStatus_MarshalOnly(f *testing.F) {
 				return
 			}
 
+			typeVal, err := id.ParseStreamType(streamType)
+			if err != nil {
+				return
+			}
+
 			status := listing.Status(statusInt)
 
 			original := listing.StreamStatus{
 				Ref: listing.StreamListing{
 					ID:          idVal,
-					Type:        id.StreamType(streamType),
+					Type:        typeVal,
 					Version:     event.Version(version),
 					EventCount:  eventCount,
 					LastEventAt: time.Unix(0, 0).UTC(),

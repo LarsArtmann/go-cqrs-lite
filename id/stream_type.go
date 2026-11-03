@@ -2,6 +2,7 @@ package id
 
 import (
 	"fmt"
+	"unicode/utf8"
 
 	errorfamily "github.com/larsartmann/go-error-family"
 )
@@ -22,10 +23,16 @@ var ErrEmptyStreamType error = errorfamily.NewRejection(
 )
 
 // ParseStreamType validates and returns a StreamType.
-// Returns an error if empty.
+// Returns an error if empty or not valid UTF-8 (json/v2 refuses to marshal
+// invalid UTF-8, so admitting it here would only defer the failure to a
+// later marshal).
 func ParseStreamType(s string) (StreamType, error) {
 	if s == "" {
 		return "", ErrEmptyStreamType
+	}
+
+	if !utf8.ValidString(s) {
+		return "", errorfamily.NewRejection("id.stream_type_not_utf8", "stream type must be valid UTF-8")
 	}
 
 	return StreamType(s), nil

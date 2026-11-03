@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	cbid "github.com/larsartmann/go-branded-id"
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -31,8 +32,8 @@ func (StreamMarker) Name() string { return "StreamMarker" }
 //   - DeriveStreamID() creates a deterministic SHA-256 hash — for stable
 //     IDs in idempotent workflows (e.g., "lock:user1:resource2").
 //   - StreamIDFrom() accepts any Stringer — for consumer-side branded IDs.
-//   - ParseStreamID() accepts any non-empty string — for legacy data,
-//     migration imports, and domain-specific naming schemes.
+//   - ParseStreamID() accepts any non-empty valid-UTF-8 string — for legacy
+//     data, migration imports, and domain-specific naming schemes.
 //
 // Forcing ULID-backing would break DeriveStreamID (SHA-256 hashes are not
 // ULIDs) and prevent consumers from using meaningful domain identifiers.
@@ -57,8 +58,10 @@ func NewStreamID() StreamID {
 }
 
 // ParseStreamID converts a string to a StreamID.
-// Accepts any non-empty string — not limited to ULID format.
+// Accepts any non-empty valid-UTF-8 string — not limited to ULID format.
 // This supports ULID-based IDs, SHA-256 derived IDs, and domain-specific IDs.
+// Invalid UTF-8 is rejected: json/v2 refuses to marshal it, so admitting it
+// here would only move the failure to a later, harder-to-diagnose marshal.
 //
 // A leading brand prefix from String() ("StreamMarker:...") is stripped, so
 // the round-trip law holds: ParseStreamID(id.String()) == id. String() is a
@@ -76,6 +79,15 @@ func ParseStreamID(s string) (StreamID, error) {
 			errorfamily.Rejection,
 			"id.parse_stream_empty",
 			"cannot parse empty string as StreamID",
+		)
+	}
+
+	if !utf8.ValidString(s) {
+		var zero StreamID
+
+		return zero, errorfamily.NewRejection(
+			"id.parse_stream_not_utf8",
+			"cannot parse invalid UTF-8 string as StreamID",
 		)
 	}
 
