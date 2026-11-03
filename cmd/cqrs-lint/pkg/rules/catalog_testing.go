@@ -74,5 +74,14 @@ func testingRules() []RuleInfo {
 			Description: "Test file imports a production store instead of eventtest/memory fakes",
 			AutoFix:     false,
 		},
+		{
+			ID:          "T009",
+			Name:        "hand-booted-system-in-tests",
+			Category:    "testing",
+			Severity:    "info",
+			Confidence:  "medium",
+			Description: "Test boots a real system via system.New instead of the systemscenario harness — hand-rolled boots drift from the composition root (ADR-0153; consumer twin of the in-repo adoption gate)",
+			AutoFix:     false,
+		},
 	}
 }

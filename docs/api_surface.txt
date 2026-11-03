@@ -1085,6 +1085,7 @@ cmd/cqrs-lint/pkg/rules/testrules/func NewT005Detector
 cmd/cqrs-lint/pkg/rules/testrules/func NewT006Detector
 cmd/cqrs-lint/pkg/rules/testrules/func NewT007Detector
 cmd/cqrs-lint/pkg/rules/testrules/func NewT008Detector
+cmd/cqrs-lint/pkg/rules/testrules/func NewT009Detector
 cmd/cqrs-lint/pkg/rules/version/func NewV001Detector
 cmd/cqrs-lint/pkg/rules/version/func NewV002Detector
 cmd/cqrs-lint/pkg/rules/version/func NewV003Detector
@@ -2737,6 +2738,7 @@ metadata/type CustomData
 metaengine/adttest/func AssertConcurrentScanDuringWrite
 metaengine/adttest/func AssertConcurrentVectorInsert
 metaengine/adttest/func AssertDedupStore
+metaengine/adttest/func AssertDeterministicMapEncoding
 metaengine/adttest/func AssertDueClaimer
 metaengine/adttest/func AssertFactSink
 metaengine/adttest/func AssertTemporalConformance

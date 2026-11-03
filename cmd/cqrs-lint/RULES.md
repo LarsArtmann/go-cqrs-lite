@@ -14,7 +14,7 @@ Detectors per category (severities: `error` blocks CI, `warning` reports, `info`
 | [Consistency](#consistency) | 18 | D001–D019 |
 | [Architecture](#architecture) | 23 | E001–E023 |
 | [Security](#security) | 10 | S001–S011 |
-| [Testing](#testing) | 8 | T001–T008 |
+| [Testing](#testing) | 9 | T001–T009 |
 | [Version](#version) | 7 | V001–V007 |
 | [Adoption](#adoption) | 32 | F001–F032 |
 
@@ -1456,6 +1456,14 @@ No save→load round-trip test for event stores
 Severity: `warning` · Confidence: `high` · Auto-fix: no · Category: `testing`
 
 Test file imports a production store instead of eventtest/memory fakes
+
+<a id="t009"></a>
+
+#### T009 — `hand-booted-system-in-tests`
+
+Severity: `info` · Confidence: `medium` · Auto-fix: no · Category: `testing`
+
+Test boots a real system via system.New instead of the systemscenario harness — hand-rolled boots drift from the composition root (ADR-0153; consumer twin of the in-repo adoption gate)
 
 
 ## Version

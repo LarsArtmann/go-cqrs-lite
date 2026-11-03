@@ -7,6 +7,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/adoption"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/architecture"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/resilience"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/testrules"
 )
 
 // appendConsumerCoaching registers the consumer-coaching detectors: rules
@@ -71,5 +72,9 @@ func appendConsumerCoaching(
 		adoption.NewF031Detector(ctx),
 		// Catalog documentation is mandatory (owner policy 2026-11-03)
 		adoption.NewF032Detector(ctx),
+		// systemscenario coaching (ADR-0153) — consumer-side twin of the
+		// in-repo check-systemscenario-adoption gate, which owns self-lint
+		// through its reasoned allowlist
+		testrules.NewT009Detector(ctx),
 	)
 }

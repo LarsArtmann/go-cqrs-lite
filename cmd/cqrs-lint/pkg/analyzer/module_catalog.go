@@ -183,7 +183,7 @@ func (e ModuleEntry) CategoryPriority() int {
 }
 
 // DefaultCatalog is the canonical universe of adoptable go-cqrs-lite modules.
-// It contains 6 core (infrastructure) entries and 32 scored (adoptable) entries.
+// It contains 7 core (infrastructure) entries and 36 scored (adoptable) entries.
 //
 //nolint:gochecknoglobals // read-only catalog data
 var DefaultCatalog = Catalog{entries: buildDefaultCatalog()}

@@ -381,7 +381,7 @@ catalog severity — nothing silently demotes to `info`).
 
 ## Rule Count
 
-**216 rules** across 10 categories: correctness (44), API misuse (32), boilerplate (31), consistency (18), architecture (23), security (10), performance (11), version (7), testing (8), adoption (32).
+**217 rules** across 10 categories: correctness (44), API misuse (32), boilerplate (31), consistency (18), architecture (23), security (10), performance (11), version (7), testing (9), adoption (32).
 
 The tables below are curated highlights. The complete, generated catalog —
 every rule with severity, confidence, auto-fix support, and doc links — lives
@@ -569,7 +569,8 @@ are not detectors; listing one in `rules.disable` is a silent no-op.
 | T005 | projection-without-error-test     | Info     | Projections have no error-path tests for malformed payloads                 |
 | T006 | decider-without-conflict-test     | Info     | Decider scenario tests only cover happy paths, not conflict/error scenarios |
 | T007 | no-event-roundtrip-test           | Info     | No save→load round-trip test for event stores                               |
-| T008 | test-imports-production-store     | Warning  | Test file imports a production store instead of eventtest/memory fakes      |
+| T008 | test-imports-production-store   | Warning  | Test file imports a production store instead of eventtest/memory fakes                                    |
+| T009 | hand-booted-system-in-tests      | Info     | Test boots a real system via system.New instead of the systemscenario harness (ADR-0153)                    |
 
 ## Adoption Rules
 
@@ -949,7 +950,7 @@ _ "github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/toolspec"
 full mode reports findings and measures Repair by re-detecting — BuildFlow
 does not trust self-reported fix counts).
 
-Detect runs all 216 rules with the working directory from the toolsdk context;
+Detect runs all 217 rules with the working directory from the toolsdk context;
 Repair applies the same safe C-series structural rewrites as `--fix`.
 
 ## CI Integration
