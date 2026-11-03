@@ -12,7 +12,7 @@ dedup/publish-integrity clusters, and five executed SUPERB plans, all
 RESOLVED-BY-ROUTING-bannered). The 13th pass (2026-10-11) archived the
 09-28..09-30 accumulation (7 status reports + 8 planning artifacts + 6
 reviews, manifest in docs/status/README.md), killed 31 rows of live-index
-rot, and harvested the 10-11 tails into the rows below). The 14th pass (2026-11-03)
+rot, and harvested the 10-11 tails into the rows below. The 14th pass (2026-11-03)
 deleted the 114 done rows — their shipped work is recorded in CHANGELOG (recent waves
 in `[Unreleased]`) — and re-rowed the five open tails found inside them.
 The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
@@ -651,8 +651,9 @@ the boundary. Verified against this repo's source on 2026-10-15.
       — `AggregateOn(fn, column, group)` as a QueryOption stamped on `QueryDecl`,
       `MatViewSpecReporter` capability, scalar-covered-first scope. REMAINING:
       ratification + implementation — routing v1: scalar-covered shapes price O(1) (matview-served), grouped shapes stay O(N) with a Doctor note (upstream defect A makes grouped routing unsafe). Also: routing grouped shapes would be UNSAFE until upstream fixes defect A — scope the first cut to scalar-covered shapes only. Tracked jointly with M20 (b)/(c) in Metaengine follow-ups. — source: archived 19-25 §f29, 05-33 §f32, SUPERB S28/05-51 §f16-17
-      **Premise update 2026-10-25: defect A is verified FIXED at source by the #10129 rewrite (receipt above)** — the "grouped routing unsafe" constraint is engine-version-conditional, not permanent: once the flip row above lands, grouped-covered shapes can price O(groups) too. Keep the scalar-first scoping for v1; revisit the grouped cut as part of the flip follow-up.
+      **Premise update 2026-10-25: defect A is verified FIXED at source by the #10129 rewrite (receipt: the from-source verification recorded in CHANGELOG [Unreleased]'s `TURSO_TEST_SYSTEM_LIB` entry; the flip row in the Turso section carries the procedure)** — the "grouped routing unsafe" constraint is engine-version-conditional, not permanent: once the flip row above lands, grouped-covered shapes can price O(groups) too. Keep the scalar-first scoping for v1; revisit the grouped cut as part of the flip follow-up.
       _(Effort: M)_
+
 ---
 
 ## Cordis spatiotemporal-composability follow-ups (2026-09-10)
@@ -869,8 +870,7 @@ replace-free — 10-25 §a2/§a3, now archived).
 >       a drain/sync/flush call). NOTE the gate's devShell sets GOWORK=off
 >       and reports "none import go-cqrs-lite" when invoked outside the
 >       flake app — run via `nix run .#check-cqrs-lint`.
-> - [x] Global binary rolled twice: P015-capable (2026-10-12 morning),
->       then doctor-fix rebuild — always rebuild from cmd/cqrs-lint with
+> - ~~Global binary rolled twice: P015-capable (2026-10-12 morning), then doctor-fix rebuild.~~ Standing rebuild recipe: from `cmd/cqrs-lint` with
 >       `GOPATH=/home/lars/go go build -o /home/lars/go/bin/cqrs-lint .`.
 >       — source: 2026-10-12 N05 fleet-roll session + 12-26 status report
 
