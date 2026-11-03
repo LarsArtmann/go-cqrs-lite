@@ -159,6 +159,9 @@ median() {
 }
 
 # bench row: module|bench_suffix|pattern_label (bench suffix "" = Get)
+# sqliteengine's aggregate-pattern bench is named _CounterGet (the LSM
+# engines call the same pattern _CounterScan): seed N counters, read them
+# all back, divide by N — both feed ReadCosts.NsPerAggregate.
 ROWS=$(
 	cat <<'EOT'
 badgerengine|Get|point_lookup
@@ -175,7 +178,7 @@ pebbleengine|_CounterScan|aggregate
 pebbleengine|_FullScan|scan
 sqliteengine|_PointLookup|point_lookup
 sqliteengine|_FilteredScan|filtered_scan
-sqliteengine|_CounterScan|aggregate
+sqliteengine|_CounterGet|aggregate
 sqliteengine|_FullScan|scan
 EOT
 )
