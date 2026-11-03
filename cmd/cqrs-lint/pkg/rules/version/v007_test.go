@@ -268,3 +268,33 @@ import . "github.com/larsartmann/go-cqrs-lite/event/v4"
 // detector correctly falls back to the import-table scan (broken-build
 // survival). ResolveQualifierTyped is pinned directly with synthesized type
 // info in pkg/analyzer/type_helpers_test.go.
+
+// TestV007_DeprecationDemoExampleExempt pins the reasoned whole-module
+// exemption: the scheduler-otel-status example exists to demo the deprecated
+// scheduling/sqlstore ClaimMetrics hooks through their deprecation window,
+// so V007 must stay silent on that exact module path — while the same source
+// under a consumer module path still fires.
+func TestV007_DeprecationDemoExampleExempt(t *testing.T) {
+	source := `package main
+
+import "github.com/larsartmann/go-cqrs-lite/scheduling/sqlstore/v4"
+
+func main() {
+	_, _ = sqlstore.NewClaimingSQLiteStore[struct{}]("file:t.db")
+}
+`
+
+	t.Run("exempt example module path is silent", func(t *testing.T) {
+		ctx := analyzer.BuildContextFromSource(t, map[string]string{"main.go": source})
+		ctx.ModulePath = "github.com/larsartmann/go-cqrs-lite/example/scheduler-otel-status"
+		findings := ruletest.RunDetector(t, NewV007Detector(ctx))
+		ruletest.AssertRule(t, findings, "V007", 0)
+	})
+
+	t.Run("same source under a consumer path still fires", func(t *testing.T) {
+		ctx := analyzer.BuildContextFromSource(t, map[string]string{"main.go": source})
+		ctx.ModulePath = "example.com/consumer/app"
+		findings := ruletest.RunDetector(t, NewV007Detector(ctx))
+		ruletest.AssertRule(t, findings, "V007", 1)
+	})
+}

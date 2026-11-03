@@ -31,3 +31,15 @@ var deprecatedV5Modules = []deprecatedV5Module{ //nolint:gochecknoglobals // sta
 		replacement: "scheduling/engine.NewTimerStore over a metaengine.DueClaimer engine",
 	},
 }
+
+// exemptedExampleModules lists example apps whose WHOLE PURPOSE is demoing a
+// deprecated surface through its deprecation window. V007 fires on examples
+// by design (they are the consumer copy-paste surface), so a deprecation-demo
+// example needs an explicit, reasoned exemption instead of a silent gate
+// skip in CI. Each entry dies with its example at the v5 cut — the liveness
+// test in v007_drift_test.go fails if the module directory disappears while
+// the exemption stays.
+var exemptedExampleModules = map[string]string{ //nolint:gochecknoglobals // static table
+	"github.com/larsartmann/go-cqrs-lite/example/scheduler-otel-status":
+		"deprecation-window demo of scheduling/sqlstore ClaimMetrics (ADR-0142; deleted with sqlstore at v5)",
+}

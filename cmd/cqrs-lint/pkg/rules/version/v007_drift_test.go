@@ -2,6 +2,8 @@ package version
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 	"testing"
@@ -133,6 +135,24 @@ func TestV007_FragmentSpaceMatchesDetector(t *testing.T) {
 		got, ok := cqrsModuleOf(tc.importPath)
 		if !ok || got != tc.wantFrag {
 			t.Errorf("cqrsModuleOf(%q) = %q, %v; want %q", tc.importPath, got, ok, tc.wantFrag)
+		}
+	}
+}
+
+// TestV007_ExampleExemptionsHaveLiveModules: every exemptedExampleModules
+// entry must point at a module directory that still exists — the exemption
+// dies with its example at the v5 cut, and a stale entry after that deletion
+// is exactly the rot this catches.
+func TestV007_ExampleExemptionsHaveLiveModules(t *testing.T) {
+	root, err := repoRootFromCwd()
+	if err != nil {
+		t.Fatalf("repo root: %v", err)
+	}
+
+	for modulePath := range exemptedExampleModules {
+		dir := strings.TrimPrefix(modulePath, "github.com/larsartmann/go-cqrs-lite/") + "/go.mod"
+		if _, statErr := os.Stat(filepath.Join(root, dir)); statErr != nil {
+			t.Errorf("exempted example %s has no go.mod at %s — remove the stale exemption", modulePath, dir)
 		}
 	}
 }

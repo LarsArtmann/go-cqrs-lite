@@ -77,6 +77,13 @@ func NewV007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				return nil, nil
 			}
 
+			// Reasoned whole-module exemption for deprecation-demo examples
+			// (see exemptedExampleModules): the demo's purpose is exercising
+			// the deprecated surface through its window.
+			if _, exempt := exemptedExampleModules[ctx.ModulePath]; exempt {
+				return nil, nil
+			}
+
 			var out []finding.Finding
 
 			for _, gf := range ctx.GoFiles {
