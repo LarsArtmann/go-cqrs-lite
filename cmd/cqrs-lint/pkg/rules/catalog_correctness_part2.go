@@ -205,8 +205,8 @@ func correctnessRulesPart2() []RuleInfo {
 			Name:        "branded-id-display-string",
 			Category:    "correctness",
 			Severity:    "warning",
-			Confidence:  "medium",
-			Description: "branded-ID .String() renders the PREFIXED display form — use .Get()/the typed value for keys, SQL args, cursors, and wire payloads (display contexts: logging, fmt formatting, slog attributes are whitelisted)",
+			Confidence:  "high",
+			Description: "branded-ID .String() renders the PREFIXED display form — use .Get()/the typed value for keys, SQL args, cursors, and wire payloads (display contexts whitelisted at any nesting depth: logging, fmt formatting, slog/otel attributes, Parse*ID round-trips; marker-less cbid instances and id passthroughs stay silent; ActorID/StreamRef get boundary-specific guidance)",
 			AutoFix:     false,
 		},
 	}

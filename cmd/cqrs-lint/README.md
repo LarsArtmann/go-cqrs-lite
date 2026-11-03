@@ -381,7 +381,7 @@ catalog severity — nothing silently demotes to `info`).
 
 ## Rule Count
 
-**216 rules** across 10 categories: correctness (44), API misuse (32), boilerplate (31), consistency (18), architecture (24), security (10), performance (11), version (7), testing (8), adoption (31).
+**215 rules** across 10 categories: correctness (44), API misuse (32), boilerplate (31), consistency (18), architecture (23), security (10), performance (11), version (7), testing (8), adoption (31).
 
 The tables below are curated highlights. The complete, generated catalog —
 every rule with severity, confidence, auto-fix support, and doc links — lives
@@ -948,7 +948,7 @@ _ "github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/toolspec"
 full mode reports findings and measures Repair by re-detecting — BuildFlow
 does not trust self-reported fix counts).
 
-Detect runs all 216 rules with the working directory from the toolsdk context;
+Detect runs all 215 rules with the working directory from the toolsdk context;
 Repair applies the same safe C-series structural rewrites as `--fix`.
 
 ## CI Integration

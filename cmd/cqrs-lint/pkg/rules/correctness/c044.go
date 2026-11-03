@@ -3,6 +3,7 @@ package correctness
 import (
 	"context"
 	"go/ast"
+	"go/token"
 	"go/types"
 	"strings"
 
@@ -20,7 +21,18 @@ import (
 // lookups, the getting-started example, the meta_stream_log stream-key path,
 // PG snapshot binds — 2026-08..10). This rule flags those calls WARN-first:
 // the display intent is legitimate in logging and message-formatting
-// positions, so those are whitelisted; hard severity waits for v5.
+// positions, so those are whitelisted (arguments of display calls are
+// whitelisted at ANY nesting depth); hard severity waits for v5.
+//
+// Precision carve-outs (2026-11-03 strengthening, FP control):
+//   - cbid.ID instances whose marker does NOT implement BrandNamer render the
+//     BARE value in String() — not flagged (id.EventID and the ULID family).
+//   - id/v4 benign passthroughs (StreamType.String, ActorKind.String) — not
+//     flagged; the lossy id overrides (ActorID drops the kind, StreamRef
+//     composes the display form) ARE flagged with tailored guidance.
+//   - id Parse*ID(s.String()) re-parses per the documented round-trip law —
+//     whitelisted.
+//   - log-attribute packages (log/slog, otel attribute) — whitelisted.
 //
 //nolint:ireturn // factory returns public interface
 func NewC044Detector(ctx *analyzer.AnalysisContext) finding.Detector {
@@ -34,7 +46,7 @@ func NewC044Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					continue
 				}
 
-				if gf.Pkg == nil || gf.Pkg.TypesInfo == nil {
+				if gf.Pkg == nil || gf.Pkg.TypesInfo == nil || gf.AST == nil {
 					continue
 				}
 
@@ -51,22 +63,36 @@ func NewC044Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 // message formatting) rather than a wire/storage leak.
 var displayContextCalleeNames = map[string]bool{ //nolint:gochecknoglobals // static lookup table
 	// log/slog family
-	"Info": true, "Infof": true, "Warn": true, "Warnf": true,
+	"Info": true, "Infof": true, "Warn": true, "Warnf": true, "Warning": true,
 	"Error": true, "Errorf": true, "Debug": true, "Debugf": true,
-	"Log": true, "Logf": true,
+	"Log": true, "Logf": true, "LogAttrs": true,
 	// stdlib log family
-	"Printf": true, "Print": true, "Println": true, "Fatalf": true, "Panicf": true,
+	"Printf": true, "Print": true, "Println": true, "Fatalf": true, "Fatal": true,
+	"Panicf": true, "Panic": true,
 	// fmt display formatting (Sprintf/Errorf render for humans)
 	"Sprintf": true, "Fprintf": true,
 	// slog attribute construction
 	"Attr": true, "String": true, "Any": true,
 }
 
+// brandedStringClass partitions flagged receivers by what makes them lossy
+// outside display contexts — the message and the fix differ per class.
+type brandedStringClass int
+
+const (
+	brandedStringNone brandedStringClass = iota
+	brandedStringDisplay
+	brandedStringActor
+	brandedStringRef
+)
+
 func detectBrandedStringCalls(
 	ctx *analyzer.AnalysisContext,
 	gf *analyzer.GoFile,
 ) []finding.Finding {
 	var findings []finding.Finding
+
+	ranges := displayArgRanges(gf)
 
 	ast.Inspect(gf.AST, func(n ast.Node) bool {
 		call, ok := n.(*ast.CallExpr)
@@ -79,26 +105,18 @@ func detectBrandedStringCalls(
 			return true
 		}
 
-		if !brandedStringMethod(gf.Pkg.TypesInfo, sel) {
+		class := brandedStringClassOf(gf.Pkg.TypesInfo, sel)
+		if class == brandedStringNone {
 			return true
 		}
 
-		if enclosedInDisplayCall(gf.AST, call) {
-			return true
+		for _, r := range ranges {
+			if call.Pos() >= r.start && call.Pos() <= r.end {
+				return true
+			}
 		}
 
-		pos := ctx.Fset.Position(call.Pos())
-
-		b := findingTemplate.Builder(
-			"C044",
-			"branded-ID .String() renders the PREFIXED display form — use .Get()/the typed value for keys, SQL args, cursors, and wire payloads",
-			finding.SeverityWarning,
-			finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
-		).
-			WithConfidence(finding.ConfidenceMedium).
-			WithSnippet(ctx.SourceLine(pos.Filename, pos.Line))
-
-		if f, err := b.Build(); err == nil {
+		if f, err := c044Finding(ctx, call, class); err == nil {
 			findings = append(findings, f)
 		}
 
@@ -108,33 +126,156 @@ func detectBrandedStringCalls(
 	return findings
 }
 
-// brandedStringMethod reports whether sel resolves to the String method
-// DECLARED by the branded-ID packages (go-branded-id's generic ID, or the
-// id package's display overrides) — i.e. .String() on a branded receiver.
-func brandedStringMethod(info *types.Info, sel *ast.SelectorExpr) bool {
+// brandedStringClassOf resolves the .String() method's DECLARING receiver
+// type: the generic cbid.ID (display form only when its marker is a
+// BrandNamer), or the lossy id-package overrides. Benign passthroughs
+// (StreamType, ActorKind, marker-less cbid instances) classify as None.
+func brandedStringClassOf(info *types.Info, sel *ast.SelectorExpr) brandedStringClass {
 	obj, ok := info.ObjectOf(sel.Sel).(*types.Func)
 	if !ok {
-		return false
+		return brandedStringNone
 	}
 
 	sig, ok := obj.Type().(*types.Signature)
 	if !ok || sig.Recv() == nil {
-		return false
+		return brandedStringNone
 	}
 
 	named, ok := resolveNamed(sig.Recv().Type())
 	if !ok || named.Obj() == nil || named.Obj().Pkg() == nil {
-		return false
+		return brandedStringNone
 	}
 
 	switch named.Obj().Pkg().Path() {
-	case "github.com/larsartmann/go-branded-id",
-		"github.com/larsartmann/go-cqrs-lite/id/v4",
+	case "github.com/larsartmann/go-branded-id":
+		if !receiverMarkerIsBrandNamer(info, sel) {
+			return brandedStringNone
+		}
+
+		return brandedStringDisplay
+	case "github.com/larsartmann/go-cqrs-lite/id/v4",
 		"github.com/larsartmann/go-cqrs-lite/core/v5/id":
+		switch named.Obj().Name() {
+		case "ActorID":
+			return brandedStringActor
+		case "StreamRef":
+			return brandedStringRef
+		}
+
+		return brandedStringNone
+	default:
+		return brandedStringNone
+	}
+}
+
+// brandNamerIface is the { Name() string } marker contract from
+// go-branded-id; only markers implementing it make String() prefixed.
+//
+//nolint:gochecknoglobals // read-only type-level constant
+var brandNamerIface = types.NewInterfaceType([]*types.Func{
+	types.NewFunc(
+		token.NoPos, nil, "Name",
+		types.NewSignatureType(
+			nil, nil, nil,
+			nil,
+			types.NewTuple(types.NewVar(token.NoPos, nil, "", types.Typ[types.String])),
+			false,
+		),
+	),
+}, nil).Complete()
+
+// receiverMarkerIsBrandNamer checks the CALL-SITE receiver instance: method
+// declarations carry uninstantiated receivers, so the marker type argument
+// is read from the receiver expression's type (id.StreamID et al. arrive as
+// instantiated aliases).
+func receiverMarkerIsBrandNamer(info *types.Info, sel *ast.SelectorExpr) bool {
+	tv, ok := info.Types[sel.X]
+	if !ok || tv.Type == nil {
+		return false
+	}
+
+	t := types.Unalias(tv.Type)
+	if ptr, isPtr := t.(*types.Pointer); isPtr {
+		t = types.Unalias(ptr.Elem())
+	}
+
+	named, ok := t.(*types.Named)
+	if !ok || named.TypeArgs().Len() == 0 {
+		return false
+	}
+
+	marker := named.TypeArgs().At(0)
+
+	return types.Implements(marker, brandNamerIface) ||
+		types.Implements(types.NewPointer(marker), brandNamerIface)
+}
+
+// displaySpan is one whitelisted display-expression span.
+type displaySpan struct{ start, end token.Pos }
+
+// displayArgRanges records the spans of arguments passed to display-context
+// calls; a .String() anywhere inside such a span is display by construction,
+// at any nesting depth (strings.ToUpper(s.String()) inside slog.Info).
+func displayArgRanges(gf *analyzer.GoFile) []displaySpan {
+	var spans []displaySpan
+
+	ast.Inspect(gf.AST, func(n ast.Node) bool {
+		call, ok := n.(*ast.CallExpr)
+		if !ok || !isDisplayContextCall(gf.AST, call) {
+			return true
+		}
+
+		for _, arg := range call.Args {
+			spans = append(spans, displaySpan{start: arg.Pos(), end: arg.End()})
+		}
+
+		return true
+	})
+
+	return spans
+}
+
+// isDisplayContextCall classifies one call as display (logging, structured
+// attributes, message formatting, or an ID re-parse round-trip).
+func isDisplayContextCall(file *ast.File, call *ast.CallExpr) bool {
+	switch fun := call.Fun.(type) {
+	case *ast.Ident:
+		return displayContextCalleeNames[fun.Name]
+	case *ast.SelectorExpr:
+		if strings.HasPrefix(fun.Sel.Name, "Parse") &&
+			strings.Contains(importPathOf(file, fun), "go-cqrs-lite/id") {
+			return true // documented round-trip law: ParseStreamID strips the prefix
+		}
+
+		if !displayContextCalleeNames[fun.Sel.Name] {
+			return false
+		}
+
+		if path := importPathOf(file, fun); path != "" {
+			return isDisplayImportPath(path)
+		}
+
 		return true
 	default:
 		return false
 	}
+}
+
+// isDisplayImportPath matches logging and formatting packages: stdlib log,
+// log/slog (and vendored slog variants), fmt, and log-attribute packages
+// (go.opentelemetry.io/otel/attribute and peers).
+func isDisplayImportPath(path string) bool {
+	last := path[strings.LastIndex(path, "/")+1:]
+
+	if last == "attribute" {
+		return true
+	}
+
+	return path == "log" || path == "fmt" ||
+		strings.HasPrefix(path, "log/") ||
+		strings.Contains(path, "/slog") ||
+		strings.Contains(path, "/log") ||
+		strings.Contains(path, "/fmt")
 }
 
 func resolveNamed(t types.Type) (*types.Named, bool) {
@@ -147,77 +288,6 @@ func resolveNamed(t types.Type) (*types.Named, bool) {
 	return named, ok
 }
 
-// enclosedInDisplayCall reports whether the .String() call appears as a
-// direct argument of a logging/formatting call (the display whitelist).
-func enclosedInDisplayCall(file *ast.File, target *ast.CallExpr) bool {
-	enclosing := findEnclosingCallArg(file, target)
-	if enclosing == nil {
-		return false
-	}
-
-	callee, ok := enclosing.Fun.(*ast.SelectorExpr)
-	if !ok {
-		if ident, ok := enclosing.Fun.(*ast.Ident); ok {
-			return displayContextCalleeNames[ident.Name]
-		}
-
-		return false
-	}
-
-	name := callee.Sel.Name
-	if !displayContextCalleeNames[name] {
-		return false
-	}
-
-	// The whitelisted name must belong to a logging/formatting package or
-	// receiver: the import path (or the receiver's type) mentions log/slog,
-	// fmt, or a logging-ish name. Conservative: also accept when the X
-	// expression text carries no package (method on a logger receiver).
-	if path := importPathOf(file, callee); path != "" {
-		return isDisplayImportPath(path)
-	}
-
-	return true
-}
-
-// isDisplayImportPath matches logging and formatting packages: stdlib log,
-// log/slog (and vendored slog variants), fmt.
-func isDisplayImportPath(path string) bool {
-	return path == "log" || path == "fmt" ||
-		strings.HasPrefix(path, "log/") ||
-		strings.Contains(path, "/slog") ||
-		strings.Contains(path, "/log") ||
-		strings.Contains(path, "/fmt")
-}
-
-// findEnclosingCallArg returns the CallExpr, if any, that has target as a
-// direct argument.
-func findEnclosingCallArg(file *ast.File, target *ast.CallExpr) *ast.CallExpr {
-	var found *ast.CallExpr
-
-	ast.Inspect(file, func(n ast.Node) bool {
-		if found != nil {
-			return false
-		}
-
-		call, ok := n.(*ast.CallExpr)
-		if !ok || call == target {
-			return true
-		}
-
-		for _, arg := range call.Args {
-			if arg == ast.Node(target) {
-				found = call
-				return false
-			}
-		}
-
-		return true
-	})
-
-	return found
-}
-
 // importPathOf resolves the import path behind a selector's X identifier
 // when it is a package name.
 func importPathOf(file *ast.File, sel *ast.SelectorExpr) string {
@@ -228,7 +298,6 @@ func importPathOf(file *ast.File, sel *ast.SelectorExpr) string {
 
 	for _, imp := range file.Imports {
 		path := strings.Trim(imp.Path.Value, `"`)
-
 		if imp.Name != nil {
 			if imp.Name.Name == ident.Name {
 				return path
@@ -243,4 +312,34 @@ func importPathOf(file *ast.File, sel *ast.SelectorExpr) string {
 	}
 
 	return ""
+}
+
+func c044Finding(
+	ctx *analyzer.AnalysisContext,
+	call *ast.CallExpr,
+	class brandedStringClass,
+) (finding.Finding, error) {
+	pos := ctx.Fset.Position(call.Pos())
+
+	msg := "branded-ID .String() renders the PREFIXED display form — " +
+		"use .Get()/the typed value for keys, SQL args, cursors, and wire payloads"
+	if class == brandedStringActor {
+		msg = "id.ActorID.String() drops the actor kind — use PrefixedString() at " +
+			"serialization boundaries (ParseActorID reads it back) or carry the typed value"
+	}
+
+	if class == brandedStringRef {
+		msg = "StreamRef.String() is the display composite — storage/stream keys use " +
+			"StreamKey() (the bare form); display positions are whitelisted"
+	}
+
+	return findingTemplate.Builder(
+		"C044",
+		msg,
+		finding.SeverityWarning,
+		finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
+	).
+		WithConfidence(finding.ConfidenceHigh).
+		WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
+		Build()
 }

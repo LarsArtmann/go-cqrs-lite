@@ -38,9 +38,11 @@ func buildC044FixtureContext(t *testing.T) *analyzer.AnalysisContext {
 	return ctx
 }
 
-// TestC044_Fixtures pins the 3-good/3-bad contract: the three leak positions
-// (SQL arg, cursor key concat, map key) fire exactly once each; the three
-// display positions (slog argument, log.Printf, fmt.Sprintf) stay silent.
+// TestC044_Fixtures pins the bad/good contract: the five leak positions
+// (SQL arg, cursor key concat, map key, ActorID kind-drop, StreamRef display
+// composite) fire exactly once each; the six display/benign positions
+// (slog argument, log.Printf, fmt.Sprintf, bare ULID-backed EventID, nested
+// display argument, ParseStreamID round-trip) stay silent.
 func TestC044_Fixtures(t *testing.T) {
 	ctx := buildC044FixtureContext(t)
 
@@ -62,21 +64,64 @@ func TestC044_Fixtures(t *testing.T) {
 			bad++
 		case strings.Contains(f.Snippet, "projection[s.String()]"):
 			bad++
+		case strings.Contains(f.Snippet, "a.String()"):
+			bad++
+		case strings.Contains(f.Snippet, "r.String()"):
+			bad++
 		case strings.Contains(f.Snippet, "slog.Info(") ||
 			strings.Contains(f.Snippet, "log.Printf(") ||
-			strings.Contains(f.Snippet, "fmt.Sprintf("):
+			strings.Contains(f.Snippet, "fmt.Sprintf(") ||
+			strings.Contains(f.Snippet, "e.String()") ||
+			strings.Contains(f.Snippet, "strings.ToUpper(s.String())") ||
+			strings.Contains(f.Snippet, "id.ParseStreamID(s.String())"):
 			good++
 		default:
 			t.Fatalf("unexpected C044 finding outside the fixture contract: %+v", f)
 		}
 	}
 
-	if bad != 3 {
-		t.Fatalf("C044 must fire on exactly the 3 leak fixtures, fired on %d: %+v", bad, findings)
+	if bad != 5 {
+		t.Fatalf("C044 must fire on exactly the 5 leak fixtures, fired on %d: %+v", bad, findings)
 	}
 
 	if good != 0 {
-		t.Fatalf("C044 must stay silent on the 3 display fixtures, fired on %d", good)
+		t.Fatalf("C044 must stay silent on the 6 display/benign fixtures, fired on %d", good)
+	}
+}
+
+// TestC044_ActorAndRefMessages pin the boundary-specific guidance: ActorID
+// points at PrefixedString, StreamRef at StreamKey.
+func TestC044_ActorAndRefMessages(t *testing.T) {
+	ctx := buildC044FixtureContext(t)
+
+	findings := ruletest.RunDetector(t, NewC044Detector(ctx))
+
+	actor, ref := false, false
+
+	for _, f := range findings {
+		if !strings.Contains(string(f.Position.File), "c044fixture.go") {
+			continue
+		}
+
+		if strings.Contains(f.Snippet, "a.String()") {
+			if !strings.Contains(f.Message, "PrefixedString") {
+				t.Fatalf("ActorID finding must point at PrefixedString, got: %s", f.Message)
+			}
+
+			actor = true
+		}
+
+		if strings.Contains(f.Snippet, "r.String()") {
+			if !strings.Contains(f.Message, "StreamKey") {
+				t.Fatalf("StreamRef finding must point at StreamKey, got: %s", f.Message)
+			}
+
+			ref = true
+		}
+	}
+
+	if !actor || !ref {
+		t.Fatalf("expected ActorID and StreamRef findings, got actor=%v ref=%v", actor, ref)
 	}
 }
 
