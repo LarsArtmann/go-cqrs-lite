@@ -16,7 +16,7 @@ require (
 	github.com/larsartmann/go-codec v0.3.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.3.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.3 // indirect
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.4 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2 // indirect
 	github.com/larsartmann/go-error-family v0.12.0 // indirect
 	github.com/larsartmann/go-sse v0.6.2 // indirect

@@ -98,9 +98,14 @@ collect_stale() {
 		dir="${gomod#./}"
 		dir="${dir%/go.mod}"
 
-		grep -E '^[[:space:]]*github\.com/larsartmann/go-cqrs-lite/[^ ]+ v[0-9]+\.[0-9]+\.[0-9]+$' \
+		# The trailing ([[:space:]]+// indirect)? group is load-bearing: a
+		# require WITHOUT it never matches indirect pins, so the 2026-11-03
+		# sweep bumped every DIRECT id/v4 pin while 21 modules' INDIRECT
+		# id pins stayed stale and check-modsums (nightly) caught what the
+		# sweep's own verify loop never saw.
+		grep -E '^[[:space:]]*github\.com/larsartmann/go-cqrs-lite/[^ ]+ v[0-9]+\.[0-9]+\.[0-9]+([[:space:]]+// indirect)?$' \
 			"$gomod" 2>/dev/null |
-			while read -r dep ver; do
+			while read -r dep ver _; do
 				case "$dep" in
 				*/eventtest) continue ;;
 				esac
@@ -266,6 +271,17 @@ refresh_goldens
 remaining=$(collect_stale | grep -c . || true)
 if [ "$remaining" -gt 0 ]; then
 	echo "ERROR: $remaining pin(s) still stale after sweep (tag missing or loop bug)"
+	exit 1
+fi
+
+# The sweep's per-module tidy only runs for modules the stale list named —
+# tidy also RAISES indirect pins, so a swept direct pin can leave unswept
+# siblings' go.sum stale. Assert global modsum tidiness here so "sweep
+# complete" can never print over a tree the nightly Module-sums gate would
+# flag a day later (the 2026-11-03 lesson: 21 modules, found by CI not by
+# the sweep).
+if [ "$NO_BUILD" -eq 0 ] && ! bash "$(dirname "${BASH_SOURCE[0]}")/check-modsums.sh" >/dev/null 2>&1; then
+	echo "ERROR: sweep left some modules untidy (go.mod/go.sum mismatch) — run scripts/check-modsums.sh for the list"
 	exit 1
 fi
 
