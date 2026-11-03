@@ -60,6 +60,11 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 > [`.d2`](docs/planning/2026-10-08_14-59_SUPERB-v5-goal-pareto-plan.d2)). This
 > file remains the living source of truth.
 >
+> **Current plan (2026-11-03 18:52):**
+> [`docs/planning/2026-11-03_18-52_SUPERB-full-backlog-pareto-plan.md`](docs/planning/2026-11-03_18-52_SUPERB-full-backlog-pareto-plan.md)
+> (full-backlog cut: 27 medium tasks T01–T27 / 139 fine tasks; the 1% = CI
+> trust floor T01–T02 + owner decisions T03; T01–T05, T07, T09 harvested and
+> executing — receipts in the section below and the 22-15 status report).
 > **Current plan (2026-11-03 20:04):**
 > [`docs/planning/2026-11-03_20-04_SUPERB-red-to-green-trust-pareto-plan.md`](docs/planning/2026-11-03_20-04_SUPERB-red-to-green-trust-pareto-plan.md)
 > (Pareto over ALL 218 open rows post-sweep: the 1% = the `CachedEventStore`
@@ -148,13 +153,47 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 
 ---
 
+## Full-backlog Pareto plan (2026-11-03 18-52, EXECUTING — T09 harvest 2026-11-04)
+
+> Plan: [`docs/planning/2026-11-03_18-52_SUPERB-full-backlog-pareto-plan.md`](docs/planning/2026-11-03_18-52_SUPERB-full-backlog-pareto-plan.md) (T01–T27, full-backlog cut). Sibling cut: the 20-04 trust plan (M-tasks) re-sequences the same backlog; execution receipts land under T-numbering ([status 22-15](docs/status/2026-11-03_22-15_pareto-t01-trust-floor-execution.md), [status 22-24](docs/status/2026-11-03_22-24_cqrs-lint-f032-catalog-mandate-t009-test-framework-map.md)). DONE and deleted from this section: T01–T04 (trust floor, receipts in CHANGELOG `[Unreleased]` Fixed/Changed + the 22-15 report), T05 (determinism: 5 write sites + `adttest.AssertDeterministicMapEncoding` wired pebble/sqlite real + bbolt/badger skip, LSM suites green), T07 (canonical-facts green). Claim rows before executing (22-15 §e.2 lesson).
+
+- [ ] **🔥 T01.5 close-out: confirm CI green on a post-fix master commit** — the 21:27/21:52 runs were mid-wave red (fmt drift, untidy sums, stale pins — all fixed and locally green 2026-11-04; shellcheck 15 findings fixed, package-surface re-pinned 47→48 for the c044 split, 103/103 tidy, pins swept). The next full CI run on the settled tree is the T01 receipt; QEMU MySQL leg is the long pole (~90 min).
+- [ ] **🔥 cqrs-lint ≥ v4.20.0 tag carrying T009** (`hand-booted-system-in-tests`, green but UNRELEASED — the E023-unreleased pattern; foreign 22-24 §b) + after tagging: fleet census sweep for consumers pinning `< v4.19.0` (they cannot see F032's catalog mandate) and row their bumps. _(Effort: S)_
+- [ ] **T06 doc-truth automation:** (a) `readme_compile_test.go` pinning README quick-start fences (compile-verified like recipes.md); (b) teach `check-canonical-facts.sh` to strip backticks before the go.mod-count regex + `--self-test`; (c) sweep remaining backticked counts in DOC_SET files. Kills the two drift classes the 22-15 session found by hand. _(Effort: M)_
+- [ ] **T08 cqrs-upgrade `--to-v5` slice 1:** AST import rewrite `/v4` → `core/v5/...` (design table first), unit tests, strict-gate integration, dry-run receipts on cqrs-htmx + go-appkit + bank-sync. The single highest-leverage v5 item. _(Effort: M→L)_
+- [ ] **T10 stack/* deletion wave:** fleet census scoped to `stack/*` (4 direct consumers of stack/sqlite named), migration notes, then delete stack + 8 presets across the 6 registration gates. _(Effort: M)_
+- [ ] **T11 v5 read-tier deletions:** Materialize, RelationalProjection, view store, GraphProjection; tombstone metadata API (ADR-0114 completion); ADR-0126 compat shells + `BuildWhereClause` + `NewStreamRef` validation. _(Effort: M)_
+- [ ] **T12/T13 metaengine shape:** extract `memoryengine` package behind same API; five-package carve ADR (`engine` SPI / planner / runtime / adt / support) — UNBLOCKED by the 2026-11-03 promotion ruling (below). _(Effort: L)_
+- [ ] **T14 V5-MIGRATION-GUIDE before/after sections** (rides T08's rewrite table). _(Effort: S/M)_
+- [ ] **T15 encryption-at-rest ADR-0139 completion:** config surface + engine keyprovider seam design. _(Effort: M)_
+- [ ] **T16 mutation-verify gate:** tool pick + harness on 3 pilot tests, then CI-wire the ratchet for NEW tests. _(Effort: M)_
+- [ ] **T17 synctest pilots:** scheduling ticker tests first, two more conversions, gotchas-doc pattern row. _(Effort: S/M)_
+- [ ] **T18 planner MBT:** rapid-based capability-set MBT (20 seeds) + invariant fuzzing. _(Effort: M)_
+- [ ] **T19 differential engine harness:** op-script DSL on memory+sqlite, extend to pebble/bbolt/badger + pairwise diff, `#test-engine-diff` nightly wiring. (Determinism groundwork shipped in T05.) _(Effort: L)_
+- [ ] **T20 cqrs-lint perf:** profile the 3.7× regression (2.0s→7.4s) on a fleet repo, fix + bench-pin the hot path. _(Effort: M)_
+- [ ] **T21 FilterOps + AsyncAPI:** FilterContains/FilterPrefix across planner+memory+SQL+adttest; AsyncAPI response schemas + protocol bindings. _(Effort: M)_
+- [ ] **T22 BDD tails:** cqrs-htmx sqlite-lifecycle systemscenario variant; `scenario` testing.TB refactor + TimeAdvancesTo sugar. _(Effort: S/M)_
+- [ ] **T23 catalog Registry bridge:** wire `systemcatalog.FromSystem` into the catalog Registry + drift test; scenario version-carrying Given decide funcs (`scenario.WhenVersioned` shipped — verify remaining half). _(Effort: M)_
+- [ ] **T24 tag-wave housekeeping:** catalog train carrying `Registry.MarkDemo` (gated on T26), graph-native README manifest row, #26 retract-watch confirmation. _(Effort: S)_
+- [ ] **T25 composed quiet-window `#verify`** via `scripts/verify-chain.sh`; record the S04 receipt. _(Effort: S/M)_
+- [ ] **T26 untagged-API CI gate:** examplePaths built against published pins — an untagged exported-symbol change fails CI before consumers do. _(Effort: S/M)_
+- [ ] **🔥 T27 metaengine promotion wave — COMMISSIONED (owner ruling 2026-11-03, below):** per-module evidence table for the 16 engine-family stamps (census consumers, suite status, caveats) → stamp flips → FEATURES/SKILL/matrix alignment → api-stability regen (17 doc.go files incl. family parent). _(Effort: M)_
+- [ ] **Owner disposition: `scratch/` directory in-tree vs out** (scratch/counterkey is rowed LAYER 7/budget 6 pending this; 22-15 §g residue). _(Effort: XS, owner decision)_
+- [ ] **ActorID invalid-UTF-8 hole** — same class as the StreamID fix (id/v4.7.4), but constructors cannot validate without signature changes; needs a design decision (options: `ParseActorID` boundary like StreamID vs constructor-returning-error vs documented invariant). _(Effort: S, design decision)_
+- [ ] **api-stability count stragglers:** if 6,423 exports persists post-wave, sweep FEATURES/SKILL references (AGENTS row already updated). _(Effort: XS)_
+- [ ] **F032/T009 rule quality (foreign 22-24 §f):** F032 anchor-candidate sorting (path, position) determinism; T009 TypesInfo qualifier resolution (F031 precedent); F032 systemcatalog-without-import call detection; F032/T009 suppression-integration rows. _(Effort: S)_
+
+**Owner rulings (2026-11-03, T03.2):**
+- [ ] **metaengine promotion scope = ALL 16 engine-family modules.** Promote every Experimental doc.go stamp to Stable via the T27 evidence-table wave (per-module census consumers, suite status, caveats → stamp flips → FEATURES/SKILL/matrix alignment → api-stability regen; 17 doc.go files incl. the family parent). This resolves the SKILL.md "planner surface stable" vs 16 Experimental stamps split brain in favor of the SKILL. Unblocks T13 (five-package carve ADR proceeds on a stable surface) and T12 scope.
+- [ ] **Authored commits ARE authorized at phase boundaries on commissioned plans.** Ends the daemon-absorbs-everything default for commissioned waves (4 consecutive fully-`chore:` waves incl. release-tag prep): hand-commit with real messages at each phase boundary; the daemon still absorbs intra-phase edits. Recorded in AGENTS.md Ground Rules.
+
+---
+
 ## Disk-truth plan residue (harvested 2026-10-23, plan `docs/planning/2026-10-17_20-13_SUPERB-disk-truth-pareto-plan.md`; tail closed 2026-10-24)
 
 - [ ] 🔥 **keycodec v2 adoption: dual-read windows on the LSM engines + legacy KV stores (plan A9 — the ONE remaining disk-truth item, deliberately its own migration wave).** The codec half SHIPPED and is now TAGGED (metaengine/v4.20.0: v2 builders + escape laws + injection kill); the ENGINE half is an L-effort migration per store, each with its own verification: (a) `metaengine/pebbleengine` (reference): swap the engine.go alias block to V2, `getAny(v2, v1)` fallback on exact-key reads (raw_reader.go MapGet, engine.go SetContains/MapSet-oldVal ×2, sort_index.go:237, layout_planner.go:243), dual concatenated prefix scans (v1 range first — seq families order by seq tail and v2 seqs continue past the v1 max, so concatenation is correct; map scans re-sort in SortPaginate), `seq_seeding.go` must scan BOTH tags, `reset.go` resetTagPrefixes must cover both ranges (journal families stay reset-immune per ADR-0143), and the planned-layout secondary index (`sortIndexKey` — its own `:`-joined grammar has the SAME injection) needs its own escaped v2; (b) replicate to `metaengine/badgerengine` + `metaengine/bboltengine` (same-shape twins); (c) legacy `storage/pebble` eventKey `"{prefix}{type}:{id}:{version}"` + `storage/bbolt` journal keys: colon-injection class, same escape treatment + dual-read + bbolt `cqrs_journal_idx` rekey; (d) README migration notes in both legacy stores (G3: dual-read window one release, then drop v1 ranges). Acceptance: per-engine conformance green + a legacy v1 fixture (pre-v2 bytes readable post-upgrade). Context for the next session: the typed-WAL wave (2026-10-24) established the migration-pin patterns to copy (scratch-DB legacy pins, run-unique collections, serializer-generated fixtures).
 - [ ] **cqrs-htmx: run its test battery green against the aligned pins to close C03** (open tail of the 2026-10-24 C02/C03 chain) — a parallel session aligned cqrs-htmx's metaengine/schema/catalog pins concurrently with this repo's 14-tag wave; the go-appkit legs were verified green in-repo, but cqrs-htmx's own suite run was never observed. One full `go test ./...` in that repo against system/v4.15.4 closes it.
 - [x] **OWNER QUESTION (rowed 2026-10-23; ANSWERED 2026-11-03: PARKED as TBD): deployed-DB census** — which production databases carry prefixed stream keys/rows? Determines permanent sticky-key fallback vs. re-key migration + v1-range drop (G3). **Owner 2026-11-03: no enumeration available (TBD) — park.** The sticky-key pin (`system/legacy_prefixed_row_test.go`, 2026-10-24) keeps the legacy path WORKING; re-open only with a deployed-DB list or a concrete re-key need.
-- [ ] **OWNER RULING (2026-11-03, Pareto T03.2): metaengine promotion scope = ALL 16 engine-family modules.** Promote every Experimental doc.go stamp to Stable via the T27 evidence-table wave (per-module census consumers, suite status, caveats → stamp flips → FEATURES/SKILL/matrix alignment → api-stability regen; 17 doc.go files incl. the family parent). This resolves the SKILL.md "planner surface stable" vs 16 Experimental stamps split brain in favor of the SKILL. Unblocks T13 (five-package carve ADR proceeds on a stable surface) and T12 scope.
-- [ ] **OWNER RULING (2026-11-03, Pareto T03.2): authored commits ARE authorized at phase boundaries on commissioned plans.** Ends the daemon-absorbs-everything default for commissioned waves (4 consecutive fully-`chore:` waves incl. release-tag prep): hand-commit with real messages at each phase boundary; the daemon still absorbs intra-phase edits. Recorded in AGENTS.md Ground Rules.
 - [ ] **OWNER QUESTION (rowed 2026-10-23, still open): A9 scheduling confirmation** — keycodec-v2 engine adoption as its own migration wave (recommended; the only remaining disk-truth item) vs. pulling it ahead. See the A9 row above.
 > Source review: `github.com/go-testfixtures/testfixtures` (v3, MIT, 1.2k stars,
 > active since 2016 — Rails-style YAML DB fixtures: wipe + load per test).
