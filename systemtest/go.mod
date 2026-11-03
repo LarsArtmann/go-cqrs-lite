@@ -7,7 +7,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.1
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.8.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.2
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.3
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.4
 	github.com/larsartmann/go-cqrs-lite/metaengine/badgerengine/v4 v4.3.3
 	github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4 v4.4.4
 	github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4 v4.4.3

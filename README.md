@@ -357,7 +357,7 @@ Modules release on independent per-module version trains (`<module>/vX.Y.Z` git 
 | example/taskmanager | `example/taskmanager/v3.7.1` *(untagged per ADR-0152)* |
 | flightrecorder | `flightrecorder/v4.0.0` |
 | graph | `graph/v4.3.4` *(untagged per ADR-0152)* |
-| id | `id/v4.7.3` |
+| id | `id/v4.7.4` |
 | idempotency | `idempotency/v4.4.0` |
 | idempotency/kvstore | `idempotency/kvstore/v4.3.3` *(untagged per ADR-0152)* |
 | idempotency/sqlstore | `idempotency/sqlstore/v4.4.3` *(untagged per ADR-0152)* |

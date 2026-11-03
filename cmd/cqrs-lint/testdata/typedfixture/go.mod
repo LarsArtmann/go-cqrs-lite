@@ -3,8 +3,8 @@ module example.com/typedfixture
 go 1.27.2
 
 require (
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.3
-	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.7.0
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.4
+	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.7.1
 )
 
 require (
