@@ -26,6 +26,7 @@ F021 metaengine query <unknown> has 11 fold declarations — high write amplific
 F026 metaengine.NewReader used for Scans but WithPrefetch never called — every Scan page fetch hits the underlying store individually
 F028 Project uses slog but never calls slog.SetDefault — the default logger is unconfigured (Text to stderr)
 F031 Scan without WithLimit silently truncates at 100 rows — larger collections return wrong (partial) results
+F032 Project uses go-cqrs-lite but never imports go-cqrs-lite/catalog — catalog-driven documentation is not wired
 S010 Bus has encryption/signing middleware but store is not wrapped — events stored in cleartext
 V003 queue/sqlite/v4 is on v4.0.x — 3 minor versions behind latest (v4.3.x), missing bug fixes and features
 V003 queue/v4 is on v4.0.x — 3 minor versions behind latest (v4.3.x), missing bug fixes and features
