@@ -3094,7 +3094,10 @@ decoder := projectionadapter.NewTypeDecoder(
 
 Wire through the composition root — `system.RawQuery` carries the query
 declaration; blank-import the engine modules your deployment may use (they
-self-register, database/sql style — ADR-0123 §3). The coeffect gate
+self-register, database/sql style — ADR-0123 §3). "Raw" means hand-declared,
+NOT raw SQL: the QueryDecl still plans through metaengine engines; a satellite
+SQL path (sqlc, database/sql, a driver) beside the system is ADR-0142 debt
+flagged by cqrs-lint E023. The coeffect gate
 (`DomainConfig.Events`) reads `RawQuery` folds (`metaengine.Fold.EventType`,
 system ≥ v4.13.0), so a RawQuery-only domain can declare its full Events
 universe for typo protection; only non-`QueryDecl` passthroughs stay opaque.

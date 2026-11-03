@@ -128,6 +128,12 @@ host and the timers, returns `system.ErrAlreadyStarted` on a second call, and
 belongs BEFORE the first command dispatch. `sys.ProjectionHost().Start(ctx)`
 remains the narrow seam for starting only the host.
 
+NOTE: `system.RawQuery` means hand-declared, NOT raw SQL — the wrapped
+`metaengine.QueryDecl` still plans and executes through metaengine engines.
+Keeping a second satellite persistence path beside the system (sqlc,
+`database/sql`, a SQL driver) violates the all-durable-I/O-through-metaengine
+rule (ADR-0142); cqrs-lint flags that mix as E023 `satellite-owned-sql`.
+
 **The domain code never changes when the operator swaps engines** — memory → sqlite →
 postgres → pebble is one `EngineConfig` line plus the driver's blank import. This is the
 library's north star: **developers declare Commands + Events + Queries and their

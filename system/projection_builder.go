@@ -50,6 +50,13 @@ func (rawQuerySpec) isProjectionDeclaration() {}
 
 // RawQuery wraps a raw metaengine.QueryDecl so it can be used in
 // DomainConfig.Projections alongside auto-generated projections.
+//
+// WARNING: "raw" means hand-declared, NOT raw SQL. The wrapped QueryDecl
+// still plans and executes through metaengine engines — this is never a door
+// to satellite SQL. Owning database/sql (or sqlc, or a SQL driver) beside
+// the library keeps a second persistence path beside the substrate and
+// violates the all-durable-I/O-through-metaengine rule (ADR-0142); cqrs-lint
+// flags that mix as E023 satellite-owned-sql.
 func RawQuery(decl any) ProjectionDeclaration {
 	return rawQuerySpec{decl: decl}
 }

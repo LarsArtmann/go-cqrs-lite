@@ -483,6 +483,13 @@ folds (`metaengine.Fold.EventType`), so a RawQuery-only domain composes
 cleanly with a declared `Events` universe; only non-`QueryDecl` passthroughs
 stay opaque. Full recipe: the skill's `references/recipes.md` §2.44.
 
+WARNING: "raw" in `RawQuery` means hand-declared, NOT raw SQL. The wrapped
+`metaengine.QueryDecl` still plans and executes through metaengine engines.
+Keeping a second, satellite persistence path beside the system (sqlc,
+`database/sql`, a SQL driver for read models) violates the library's
+all-durable-I/O-through-metaengine rule (ADR-0142) — cqrs-lint's E023
+`satellite-owned-sql` advisory exists to flag exactly that mix.
+
 ### YAML
 
 ```yaml
