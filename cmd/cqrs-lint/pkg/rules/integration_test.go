@@ -75,12 +75,13 @@ var taskmanagerGoldenProfile = map[string]int{
 	"C015": 1,
 	"C023": 6,
 	"C026": 2,
-	// C044: 0 since 2026-11-03 — the rule's first real catch healed the three
-	// taskmanager leaks it had pinned (two event payloads + one HTTP JSON id
-	// now use .Get()); the strengthening (nested whitelist, marker check)
-	// added no new findings there. Was 3 since the C044 wave (2026-10-24,
-	// commit b78476219) — the rule landed without a golden update then.
-	"C044": 0,
+	// C044 left the golden 2026-11-03: the rule's first real catch healed the
+	// three taskmanager leaks it had pinned (two event payloads + one HTTP
+	// JSON id now use .Get()), and the strengthening (nested whitelist,
+	// marker check) added no new findings there. It fired 3 since the C044
+	// wave (2026-10-24, b78476219) — which landed without a golden update.
+	// Zero-fire entries cannot live here: the LOST check below reads absence
+	// from byRule as regression.
 	"D013": 1,
 	"E003": 1,
 	"E014": 1,
