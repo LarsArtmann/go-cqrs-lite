@@ -1,0 +1,6 @@
+go test fuzz v1
+string("\xdf")
+string("0")
+int64(0)
+uint(0)
+int(-1)
