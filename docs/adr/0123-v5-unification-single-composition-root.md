@@ -1,7 +1,7 @@
 # ADR-0123: v5 Unification — Single Composition Root, Universal Engines, Auto-Projection
 
 **Date:** 2026-08-09
-**Status:** Proposed
+**Status:** Accepted (2026-11-03 — the direction has been executed since 2026-09: the fleet composes on `system.New` (38 direct consumers, census 2026-10-24), the `stack` presets are deprecated toward v5, and ADR-0152's accepted dual-support rollout builds on this ADR. Status synced from Proposed at `system`'s promotion out of EXPERIMENTAL.)
 **Supersedes:** stack.Bundle (Tier 5), simpleBus, BusDriverFactory
 **Builds on:** ADR-0111 (Record type), ADR-0112 (ES-native metaengine), ADR-0113 (delete GraphBackend), ADR-0116 (layered auto-projection)
 

@@ -91,6 +91,7 @@
 ## g) Questions I cannot answer myself
 
 1. **README positioning of `system/`:** FEATURES.md marks `system` 🧪 EXPERIMENTAL while ADR-0123 + SKILL.md hard-mandate it for all new apps; my README now teaches it as THE quick start with only the v5 heads-up (no experimental caveat). Which is the official public story — mandate (current README) or caveat?
+   > **RESOLVED 2026-11-03 (same day, follow-up session):** owner answered "system/ is the future and I think not EXPERIMENTAL any more" — evidence audit agreed (fleet census 38 direct consumers; deriver-deadlock fix shipped 2026-10-10/ADR-0154; suite green incl. -race). Promoted: FEATURES.md header + 29 rows + matrix row → FULLY_FUNCTIONAL/Production, ADR-0123 Proposed → Accepted, SKILL.md/modules.md labels updated, CHANGELOG row added. The README's mandate framing now matches the labels.
 2. **Permanent compile pin for the README quick start:** wanted? If yes, which harness — a `readme_compile_test.go` beside the existing docs-compile pattern (cheap), or extending the doc-check/recipes temp-module harness to README (stronger, ~100 s cold CI cost)?
 3. **Ownership of the two unindexed parallel-session status reports** (16-22, 16-55; canonical-facts stays red until indexed): may I read + summarize + index them, or must their owning sessions do it?
 
