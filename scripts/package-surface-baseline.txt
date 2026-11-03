@@ -10,4 +10,4 @@
 223	48	system
 187	39	cmd/cqrs-lint/pkg/analyzer
 112	47	benchkit
-44	47	cmd/cqrs-lint/pkg/rules/correctness
+44	48	cmd/cqrs-lint/pkg/rules/correctness
