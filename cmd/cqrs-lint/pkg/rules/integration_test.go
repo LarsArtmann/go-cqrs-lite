@@ -75,10 +75,12 @@ var taskmanagerGoldenProfile = map[string]int{
 	"C015": 1,
 	"C023": 6,
 	"C026": 2,
-	// C044: 3 since the C044 branded-ID fixtures wave (2026-10-24, commit
-	// b78476219) — the rule landed with its typedfixture budget bump but the
-	// taskmanager golden profile was not updated in the same change.
-	"C044": 3,
+	// C044: 0 since 2026-11-03 — the rule's first real catch healed the three
+	// taskmanager leaks it had pinned (two event payloads + one HTTP JSON id
+	// now use .Get()); the strengthening (nested whitelist, marker check)
+	// added no new findings there. Was 3 since the C044 wave (2026-10-24,
+	// commit b78476219) — the rule landed without a golden update then.
+	"C044": 0,
 	"D013": 1,
 	"E003": 1,
 	"E014": 1,

@@ -221,7 +221,7 @@ func displayArgRanges(gf *analyzer.GoFile) []displaySpan {
 
 	ast.Inspect(gf.AST, func(n ast.Node) bool {
 		call, ok := n.(*ast.CallExpr)
-		if !ok || !isDisplayContextCall(gf.AST, call) {
+		if !ok || !isDisplayContextCall(gf, call) {
 			return true
 		}
 
@@ -236,14 +236,16 @@ func displayArgRanges(gf *analyzer.GoFile) []displaySpan {
 }
 
 // isDisplayContextCall classifies one call as display (logging, structured
-// attributes, message formatting, or an ID re-parse round-trip).
-func isDisplayContextCall(file *ast.File, call *ast.CallExpr) bool {
+// attributes, message formatting, or an ID re-parse round-trip). Qualifier
+// resolution is TYPED first (aliased imports and versioned module paths —
+// …/id/v4 binds as `id`, which the import-table name match cannot see),
+// with the syntactic import table as fallback for syntax-only contexts.
+func isDisplayContextCall(gf *analyzer.GoFile, call *ast.CallExpr) bool {
 	switch fun := call.Fun.(type) {
 	case *ast.Ident:
 		return displayContextCalleeNames[fun.Name]
 	case *ast.SelectorExpr:
-		if strings.HasPrefix(fun.Sel.Name, "Parse") &&
-			strings.Contains(importPathOf(file, fun), "go-cqrs-lite/id") {
+		if isIDReparseCall(gf, fun) {
 			return true // documented round-trip law: ParseStreamID strips the prefix
 		}
 
@@ -251,7 +253,15 @@ func isDisplayContextCall(file *ast.File, call *ast.CallExpr) bool {
 			return false
 		}
 
-		if path := importPathOf(file, fun); path != "" {
+		if path, resolved := qualifierImportPath(gf, fun); resolved {
+			if path == "" {
+				return true // method on a logger/formatting receiver
+			}
+
+			return isDisplayImportPath(path)
+		}
+
+		if path := importPathOf(gf.AST, fun); path != "" {
 			return isDisplayImportPath(path)
 		}
 
@@ -259,6 +269,33 @@ func isDisplayContextCall(file *ast.File, call *ast.CallExpr) bool {
 	default:
 		return false
 	}
+}
+
+// isIDReparseCall reports whether sel is an id-module Parse* constructor
+// call — re-parsing a display-form string per the documented round-trip law.
+func isIDReparseCall(gf *analyzer.GoFile, sel *ast.SelectorExpr) bool {
+	if !strings.HasPrefix(sel.Sel.Name, "Parse") {
+		return false
+	}
+
+	if path, resolved := qualifierImportPath(gf, sel); resolved {
+		return analyzer.PathContainsFragment(path, "go-cqrs-lite/id")
+	}
+
+	return strings.Contains(importPathOf(gf.AST, sel), "go-cqrs-lite/id")
+}
+
+// qualifierImportPath resolves a selector's package qualifier through the
+// type checker; resolved=false means type info is unavailable and the caller
+// must fall back to the syntactic import table. A resolved EMPTY path means
+// the identifier is a value (logger receiver), not a package.
+func qualifierImportPath(gf *analyzer.GoFile, sel *ast.SelectorExpr) (path string, resolved bool) {
+	ident, ok := sel.X.(*ast.Ident)
+	if !ok {
+		return "", false
+	}
+
+	return analyzer.ResolveQualifierTyped(gf, ident)
 }
 
 // isDisplayImportPath matches logging and formatting packages: stdlib log,
