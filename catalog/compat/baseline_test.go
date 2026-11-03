@@ -1,6 +1,7 @@
 package compat
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -99,6 +100,10 @@ func TestParseBaselineRejectsUnknownFormat(t *testing.T) {
 	_, err := ParseBaseline(path)
 	if err == nil {
 		t.Fatal("want an error for an unknown formatVersion")
+	}
+
+	if !errors.Is(err, ErrBaselineFormatVersion) {
+		t.Fatalf("error must wrap ErrBaselineFormatVersion, got %v", err)
 	}
 
 	if !strings.Contains(err.Error(), "--update-baseline") {
