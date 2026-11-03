@@ -32,7 +32,10 @@ func ParseStreamType(s string) (StreamType, error) {
 	}
 
 	if !utf8.ValidString(s) {
-		return "", errorfamily.NewRejection("id.stream_type_not_utf8", "stream type must be valid UTF-8")
+		return "", errorfamily.NewRejection(
+			"id.stream_type_not_utf8",
+			"stream type must be valid UTF-8",
+		)
 	}
 
 	return StreamType(s), nil

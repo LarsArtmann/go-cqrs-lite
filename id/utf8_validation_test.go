@@ -29,7 +29,11 @@ func TestParseStreamID_RejectsInvalidUTF8(t *testing.T) {
 			}
 
 			if errorfamily.Classify(err) != errorfamily.Rejection {
-				t.Errorf("ParseStreamID(%q) family = %v, want Rejection", input, errorfamily.Classify(err))
+				t.Errorf(
+					"ParseStreamID(%q) family = %v, want Rejection",
+					input,
+					errorfamily.Classify(err),
+				)
 			}
 
 			var code string
