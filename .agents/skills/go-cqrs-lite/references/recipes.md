@@ -3094,9 +3094,10 @@ decoder := projectionadapter.NewTypeDecoder(
 
 Wire through the composition root — `system.RawQuery` carries the query
 declaration; blank-import the engine modules your deployment may use (they
-self-register, database/sql style — ADR-0123 §3). NOTE: the coeffect gate
-(`DomainConfig.Events`) cannot see through `RawQuery`, so declare an Events
-universe only when you also use `Evolve`/`Lookup` declarations.
+self-register, database/sql style — ADR-0123 §3). The coeffect gate
+(`DomainConfig.Events`) reads `RawQuery` folds (`metaengine.Fold.EventType`,
+system ≥ v4.13.0), so a RawQuery-only domain can declare its full Events
+universe for typo protection; only non-`QueryDecl` passthroughs stay opaque.
 
 ```go
 import (

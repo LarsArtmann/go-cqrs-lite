@@ -29,11 +29,10 @@ func graphDomain() system.DomainConfig {
 		Commands:              registerCommands,
 		Projections:           projection,
 		ProjectionTypeDecoder: typeDecoder,
-		// NOTE: no Events universe here. The coeffect gate cannot see through
-		// system.RawQuery declarations (they are opaque to it), so declaring
-		// Events would only emit unconsumed-event advisories for exactly the
-		// types these folds consume. Evolve/Lookup declarations DO feed the
-		// gate — declare Events when using those.
+		// NOTE: no Events universe here, though it would compose cleanly:
+		// since system v4.13.0 the coeffect gate reads system.RawQuery folds
+		// (metaengine.Fold.EventType), so declaring Events would add typo
+		// protection without unconsumed advisories.
 	}
 }
 

@@ -1057,7 +1057,12 @@ the boundary. Verified against this repo's source on 2026-10-15.
 every consumer (`pin-sweep --check --remote` green; tags verified
 replace-free — 10-25 §a2/§a3, now archived).
 
-- [ ] **Coeffect gate is blind to `RawQuery`-declared folds — product fix** —
+- [x] **Coeffect gate is blind to `RawQuery`-declared folds — product fix** —
+      SHIPPED 2026-10-12 (M08, system v4.13.0): `buildProjections` extracts
+      event types from `rawQuerySpec` folds via `rawQueryConsumedTypes`
+      (`system/projection_builder.go`) and feeds them into the coeffect
+      universe; pinned by `system/coeffect_gate_test.go` (consumed folds pass,
+      undeclared still dangle). Originally:
       `system`'s coeffect validation (`DomainConfig.Events` /
       `ErrDanglingEventSubscription`, ADR context: the gate's three-tier
       contract) cannot see event types consumed by folds inside

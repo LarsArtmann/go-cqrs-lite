@@ -478,10 +478,10 @@ domain := system.DomainConfig{
 }
 ```
 
-NOTE: the coeffect gate cannot see through `RawQuery` declarations — declare
-`Events` only when you also use `Evolve`/`Lookup` declarations whose
-subscriptions the gate should validate. Full recipe: the skill's
-`references/recipes.md` §2.44.
+NOTE: since system v4.13.0 the coeffect gate reads a `RawQuery` projection's
+folds (`metaengine.Fold.EventType`), so a RawQuery-only domain composes
+cleanly with a declared `Events` universe; only non-`QueryDecl` passthroughs
+stay opaque. Full recipe: the skill's `references/recipes.md` §2.44.
 
 ### YAML
 
