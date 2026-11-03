@@ -44,7 +44,7 @@ sys, err := system.New(ctx,
 
 Full walkthrough: [`core.md` → 60-second quickstart](references/core.md#60-second-quickstart--hello-cqrs-composition-root-systemnew). Design rationale: [ADR-0123 — v5 unification, single composition root](../../../docs/adr/0123-v5-unification-single-composition-root.md).
 
-> **Experimental status:** `system` is marked experimental in the repo's `FEATURES.md` (the module code and its README carry no marker — 2026-09-15 adoption research §2.4). It is production-capable today, but the v5 cut renames some constructors (see [`faq.md`](references/faq.md)). `metaengine` is the stable shared surface.
+> **Stability:** `system` is the fleet's production composition root — promoted out of EXPERIMENTAL 2026-11-03 (owner decision; `FEATURES.md` updated: 38 direct fleet consumers per the 2026-10-24 census, full suite green incl. `-race`, the deriver-bus deadlock fix shipped 2026-10-10 via `deriver.WithAsyncDispatch` / ADR-0154). The module code and README never carried an experimental marker. The v5 cut renames some constructors (see [`faq.md`](references/faq.md)) — `cmd/cqrs-upgrade` makes the migration mechanical. `metaengine`'s planner surface is stable; its per-engine modules still carry EXPERIMENTAL doc.go stamps.
 
 - [`recipes.md`](references/recipes.md) — event sourcing, persistence, snapshots, signing, encryption, OTel, system-level BDD tests (§2.43), binding queries to HTTP endpoints with ETag/Server-Timing (§2.47)
 - [`readmodels.md`](references/readmodels.md) — projections, SQL views, tier selection
