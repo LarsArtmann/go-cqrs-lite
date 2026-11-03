@@ -28,7 +28,9 @@ func AssertDeterministicMapEncoding(t *testing.T, eng metaengine.Engine) {
 
 	raw, ok := eng.(metaengine.RawValueReader)
 	if !ok {
-		t.Skipf("engine does not implement RawValueReader — encoder-level determinism pins cover it")
+		t.Skipf(
+			"engine does not implement RawValueReader — encoder-level determinism pins cover it",
+		)
 	}
 
 	col := fmt.Sprintf("valdet_%d", time.Now().UnixNano())
@@ -75,7 +77,8 @@ func AssertDeterministicMapEncoding(t *testing.T, eng metaengine.Engine) {
 	if !bytes.Equal(raw1, raw2) {
 		t.Fatalf(
 			"same map value persisted as different bytes:\n k1: %s\n k2: %s\n(map-key sorting lost? json.Deterministic(true) missing on the write path)",
-			raw1, raw2,
+			raw1,
+			raw2,
 		)
 	}
 
@@ -90,6 +93,10 @@ func AssertDeterministicMapEncoding(t *testing.T, eng metaengine.Engine) {
 	}
 
 	if !bytes.Equal(raw1, again) {
-		t.Fatalf("rewriting the same value changed the stored bytes:\n before: %s\n after:  %s", raw1, again)
+		t.Fatalf(
+			"rewriting the same value changed the stored bytes:\n before: %s\n after:  %s",
+			raw1,
+			again,
+		)
 	}
 }

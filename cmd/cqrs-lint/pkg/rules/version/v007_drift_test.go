@@ -152,7 +152,11 @@ func TestV007_ExampleExemptionsHaveLiveModules(t *testing.T) {
 	for modulePath := range exemptedExampleModules {
 		dir := strings.TrimPrefix(modulePath, "github.com/larsartmann/go-cqrs-lite/") + "/go.mod"
 		if _, statErr := os.Stat(filepath.Join(root, dir)); statErr != nil {
-			t.Errorf("exempted example %s has no go.mod at %s — remove the stale exemption", modulePath, dir)
+			t.Errorf(
+				"exempted example %s has no go.mod at %s — remove the stale exemption",
+				modulePath,
+				dir,
+			)
 		}
 	}
 }

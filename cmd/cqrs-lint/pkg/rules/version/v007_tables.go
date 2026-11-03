@@ -40,6 +40,5 @@ var deprecatedV5Modules = []deprecatedV5Module{ //nolint:gochecknoglobals // sta
 // test in v007_drift_test.go fails if the module directory disappears while
 // the exemption stays.
 var exemptedExampleModules = map[string]string{ //nolint:gochecknoglobals // static table
-	"github.com/larsartmann/go-cqrs-lite/example/scheduler-otel-status":
-		"deprecation-window demo of scheduling/sqlstore ClaimMetrics (ADR-0142; deleted with sqlstore at v5)",
+	"github.com/larsartmann/go-cqrs-lite/example/scheduler-otel-status": "deprecation-window demo of scheduling/sqlstore ClaimMetrics (ADR-0142; deleted with sqlstore at v5)",
 }

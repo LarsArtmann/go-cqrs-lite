@@ -147,7 +147,12 @@ func (sp *SerializablePlan) MarshalJSON() ([]byte, error) {
 // SerializeToJSON is a convenience that serializes a PlanResult directly to JSON.
 func SerializeToJSON(result *PlanResult, engines []Engine) ([]byte, error) {
 	sp := Serialize(result, engines)
-	data, err := json.Marshal(sp, json.Deterministic(true), jsontext.WithIndentPrefix(""), jsontext.WithIndent("  "))
+	data, err := json.Marshal(
+		sp,
+		json.Deterministic(true),
+		jsontext.WithIndentPrefix(""),
+		jsontext.WithIndent("  "),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("metaengine.SerializeToJSON: %w", err)
 	}
