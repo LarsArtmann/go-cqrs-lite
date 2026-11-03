@@ -281,5 +281,14 @@ func adoptionRules() []RuleInfo {
 			Description: "Reader Scan without WithLimit silently truncates at 100 rows — pass WithLimit(n)/WithLimit(0) or set the WithDefaultLimit operator ceiling (G-T14)",
 			AutoFix:     false,
 		},
+		{
+			ID:          "F032",
+			Name:        "no-catalog-import",
+			Category:    "adoption",
+			Severity:    "error",
+			Confidence:  "high",
+			Description: "Project uses go-cqrs-lite but never imports go-cqrs-lite/catalog — catalog-driven documentation (AsyncAPI, OpenAPI, D2, EventCatalog) is not wired; systemcatalog satisfies (owner policy 2026-11-03)",
+			AutoFix:     false,
+		},
 	}
 }

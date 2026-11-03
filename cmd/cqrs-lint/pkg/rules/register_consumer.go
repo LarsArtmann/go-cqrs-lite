@@ -69,5 +69,7 @@ func appendConsumerCoaching(
 		adoption.NewF030Detector(ctx),
 		// Scan-truncation nudge (G-T14)
 		adoption.NewF031Detector(ctx),
+		// Catalog documentation is mandatory (owner policy 2026-11-03)
+		adoption.NewF032Detector(ctx),
 	)
 }
