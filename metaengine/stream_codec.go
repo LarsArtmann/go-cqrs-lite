@@ -34,7 +34,10 @@ func EncodeStreamValueErr(v any) (string, error) {
 		return s, nil
 	}
 
-	data, err := json.Marshal(v)
+	// Deterministic: the canonical stream encoding must produce identical
+	// bytes for identical logical values across engines and runs (json/v2
+	// dropped v1's implicit map-key sorting — the 2026-10-25 finding).
+	data, err := json.Marshal(v, json.Deterministic(true))
 	if err != nil {
 		return "", errorfamily.WrapRejection(err, "metaengine.encode_stream_value",
 			fmt.Sprintf("encode stream value %T", v))

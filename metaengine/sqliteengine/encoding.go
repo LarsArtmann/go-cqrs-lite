@@ -28,7 +28,7 @@ func encodeKey(key any) string {
 	case uint32:
 		return strconv.FormatUint(uint64(k), 10)
 	default:
-		b, err := json.Marshal(key)
+		b, err := json.Marshal(key, json.Deterministic(true))
 		if err != nil {
 			// Keys are identifiers, not caller payload: a non-JSON-representable
 			// key falls back to its %v form, matching the memory engine's key
@@ -46,7 +46,10 @@ func encodeKey(key any) string {
 // writing a Go-syntax placeholder would silently corrupt the read model. The
 // error surfaces instead, before any row is written.
 func encodeValue(value any) (string, error) {
-	b, err := json.Marshal(value)
+	// Deterministic: the same logical write must land as the same TEXT bytes
+	// (json/v2 dropped v1's implicit map-key sorting — the 2026-10-25
+	// nondeterminism finding, pinned by keycodec's determinism tests).
+	b, err := json.Marshal(value, json.Deterministic(true))
 	if err != nil {
 		return "", errorfamily.WrapRejection(err, "sqliteengine.encode_value",
 			fmt.Sprintf("encode map value %T", value))

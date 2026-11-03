@@ -129,11 +129,14 @@ func Serialize(result *PlanResult, engines []Engine) *SerializablePlan {
 	return sp
 }
 
-// MarshalJSON serializes a SerializablePlan to JSON bytes.
+// MarshalJSON serializes a SerializablePlan to JSON bytes. Deterministic:
+// persisted plans are diffed across saves (audit/rollback); map-typed fields
+// must encode in sorted-key order or every save looks changed (json/v2
+// dropped v1's implicit map-key sorting).
 func (sp *SerializablePlan) MarshalJSON() ([]byte, error) {
 	type alias SerializablePlan
 
-	data, err := json.Marshal((*alias)(sp))
+	data, err := json.Marshal((*alias)(sp), json.Deterministic(true))
 	if err != nil {
 		return nil, fmt.Errorf("serializable.MarshalJSON: %w", err)
 	}
@@ -144,7 +147,7 @@ func (sp *SerializablePlan) MarshalJSON() ([]byte, error) {
 // SerializeToJSON is a convenience that serializes a PlanResult directly to JSON.
 func SerializeToJSON(result *PlanResult, engines []Engine) ([]byte, error) {
 	sp := Serialize(result, engines)
-	data, err := json.Marshal(sp, jsontext.WithIndentPrefix(""), jsontext.WithIndent("  "))
+	data, err := json.Marshal(sp, json.Deterministic(true), jsontext.WithIndentPrefix(""), jsontext.WithIndent("  "))
 	if err != nil {
 		return nil, fmt.Errorf("metaengine.SerializeToJSON: %w", err)
 	}

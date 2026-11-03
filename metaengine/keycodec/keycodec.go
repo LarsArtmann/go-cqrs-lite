@@ -143,7 +143,10 @@ func GraphEdgeRevPrefix(col, to string) []byte {
 	return []byte("edger" + Sep + col + Sep + to + Sep)
 }
 
-// EncodeJSON marshals v to JSON, falling back to fmt.Sprintf("%v", v) on error.
+// EncodeJSON marshals v to JSON deterministically (map keys sorted —
+// json/v2 dropped v1's implicit sorting, and stable bytes are what makes
+// storage KEYS built from map-typed values comparable across runs), falling
+// back to fmt.Sprintf("%v", v) on error.
 // This is the lenient path for KEYS and other display-shaped values where a
 // lossy rendering beats a failed operation.
 //
@@ -151,7 +154,7 @@ func GraphEdgeRevPrefix(col, to string) []byte {
 // that cannot round-trip (channel, function, cyclic structure) must fail the
 // write loudly, never silently store its %v rendering into the read model.
 func EncodeJSON(v any) []byte {
-	b, err := json.Marshal(v)
+	b, err := json.Marshal(v, json.Deterministic(true))
 	if err != nil {
 		return []byte(fmt.Sprintf("%v", v))
 	}
@@ -159,13 +162,17 @@ func EncodeJSON(v any) []byte {
 	return b
 }
 
-// EncodeJSONErr marshals v to JSON, returning a Rejection-classified error
-// when the value is not JSON-representable (channel, function, cyclic
-// structure). This is the canonical value-encoding for engine write paths:
-// the caller's data contradicts the stored-value contract, so retrying
-// cannot succeed.
+// EncodeJSONErr marshals v to JSON deterministically (map keys sorted),
+// returning a Rejection-classified error when the value is not
+// JSON-representable (channel, function, cyclic structure). This is the
+// canonical value-encoding for engine write paths: the caller's data
+// contradicts the stored-value contract, so retrying cannot succeed.
+// Deterministic bytes are a stored-value contract too — the same logical
+// write must land as the same bytes in every engine, or byte-level pins,
+// split reads, and differential engine comparisons all go flaky
+// (encoding/json/v2 dropped v1's implicit map-key sorting).
 func EncodeJSONErr(v any) ([]byte, error) {
-	b, err := json.Marshal(v)
+	b, err := json.Marshal(v, json.Deterministic(true))
 	if err != nil {
 		return nil, errorfamily.WrapRejection(err, "keycodec.encode_value",
 			fmt.Sprintf("encode value %T", v))
