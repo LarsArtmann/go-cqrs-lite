@@ -2,6 +2,10 @@
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/scheduling/sqlstore/v4.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/scheduling/sqlstore/v4)
 
+> **Deprecated: removed in v5.0.0.** Use `scheduling/engine.NewTimerStore` over a
+> metaengine `DueClaimer` engine instead (ADR-0142). Every symbol below keeps
+> working through v4.x.
+
 Adapts any `database/sql`-compatible database (SQLite, PostgreSQL, MySQL) into a `scheduling.TimerStore[P]` for durable deadline timers that survive process restarts.
 
 ```bash

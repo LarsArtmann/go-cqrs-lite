@@ -31,16 +31,15 @@ A composable library of 90+ independently-versioned modules. Import exactly what
 One diagram, the whole library:
 
 ```text
-              you declare                              the system wires
-┌──────────────────────────────────┐   ┌─────────────────────────────────────────────┐
-│ Command · Event · State · Decide │   │ store · bus · projection host · engines ·   │
-│                │                 │   │ snapshots · timers · health · lifecycle     │
-│                ▼                 │   │                │                             │
-│  Command → Dispatcher → Decider ────▶  Event Journal → Projections → Read Models  │
-│                                  │   │                │                             │
-│  Query · Fold (read model)  ────────▶│                ▼                             │
-│                                  │   │   query answers, routed by measured cost   │
-└──────────────────────────────────┘   └─────────────────────────────────────────────┘
+what you declare           what system.New wires
+────────────────           ────────────────────
+Commands                   Dispatcher (typed handlers)
+Events                ───▶ Decider (load · fold · decide)
+State + Apply              Event Journal (immutable, versioned)
+One fold per               Projection Host (replay · crash-restart ·
+read model                 checkpoints · dead-letter)
+                           metaengine (queries routed by measured
+                           cost across interchangeable engines)
 ```
 
 - **You write**: commands, events, state fold (`Apply`), decide logic, and one fold per read model.
@@ -279,7 +278,7 @@ Every module is independently importable and has its own `go.mod`. Here are the 
 
 | Module                  | Purpose                                                                       |
 | ----------------------- | ----------------------------------------------------------------------------- |
-| **system**              | Composition root: `New(ctx, DomainConfig, DeploymentConfig)` wires everything  |
+| **system**              | Composition root: `system.New(ctx, DomainConfig, DeploymentConfig)` wires everything |
 | **metaengine**          | Cost-based storage planner; Map/Graph/Vector/Log/Set/Counter read-model ADTs  |
 | **metaengine/*engine**  | 11 self-registering drivers: sqlite, postgres, mysql, pebble, bbolt, …        |
 | **event**               | Immutable events, store/bus interfaces, event sourcing                        |
