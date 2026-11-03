@@ -73,9 +73,11 @@ func TestParseStreamType_RejectsInvalidUTF8(t *testing.T) {
 		t.Errorf("ParseStreamType family = %v, want Rejection", errorfamily.Classify(err))
 	}
 
-	var coded interface{ Code() string }
-
-	if !errors.As(err, &coded) {
+	coded, ok := errors.AsType[interface {
+		error
+		Code() string
+	}](err)
+	if !ok {
 		t.Fatalf("ParseStreamType error should carry a code: %v", err)
 	}
 
