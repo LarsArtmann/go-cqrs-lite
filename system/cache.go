@@ -26,6 +26,10 @@ type CachedEventStore struct {
 
 	mu   sync.Mutex
 	gens map[string]uint64
+
+	// gapHook, when non-nil, runs between the generation check and cache.Set
+	// (test seam that pins the check-and-Set window deterministically).
+	gapHook func()
 }
 
 // NewCachedEventStore wraps an event.Store with a read-through cache.
@@ -84,6 +88,10 @@ func (c *CachedEventStore) Load(ctx context.Context, ref id.StreamRef) ([]event.
 	// Only cache when no write began or completed during the store read;
 	// otherwise this snapshot is (or may be) pre-save and must not survive.
 	if c.generationUnchanged(key, gen) {
+		if c.gapHook != nil {
+			c.gapHook()
+		}
+
 		c.cache.Set(key, events)
 	}
 
