@@ -8,6 +8,7 @@ import (
 )
 
 func sortedKeys[V any](m map[string]V) []string {
+	// art-dupl:accept the collect-and-sort map-keys idiom is irreducible Go; twins in diagnostics/plan_diff are the same 6-line idiom, not shared logic
 	keys := make([]string, 0, len(m))
 	for key := range m {
 		keys = append(keys, key)
@@ -19,6 +20,7 @@ func sortedKeys[V any](m map[string]V) []string {
 }
 
 func stringSet(values []string) map[string]bool {
+	// art-dupl:accept the build-a-set idiom is irreducible Go; the plan_diff twin is the same idiom, not shared logic
 	set := make(map[string]bool, len(values))
 	for _, value := range values {
 		set[value] = true

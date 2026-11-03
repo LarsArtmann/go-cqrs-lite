@@ -74,12 +74,14 @@ Exit codes: 0 clean, 1 gate failure, 2 usage or I/O error.
 }
 
 func runBaseline(args []string, stdout, stderr io.Writer) int {
+	// art-dupl:accept per-subcommand flag-set boilerplate (name differs, flags differ); flag.NewFlagSet setup is irreducible CLI scaffolding
 	flags := flag.NewFlagSet("baseline", flag.ContinueOnError)
 	flags.SetOutput(stderr)
 
 	catalogPath := flags.String("catalog", "", "catalog JSON file")
 	outPath := flags.String("out", defaultBaselineName, "baseline file to write")
 
+	// art-dupl:accept flags.Parse-then-exitUsage is the stdlib flag contract, identical by construction in every subcommand
 	if err := flags.Parse(args); err != nil {
 		return exitUsage
 	}

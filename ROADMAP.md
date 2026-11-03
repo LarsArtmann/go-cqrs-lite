@@ -12,7 +12,7 @@ v4.8.1 + the `/v4`-suffix guard in tag-release.sh), `cmd/cqrs-lint/v4.9.0`
 wave (09-07: `otel/v4.4.0`, `cmd/cqrs-upgrade/v4.0.0`, coordinated
 15-module re-tag 09-08) — with three broken versions
 retracted + repaired same-day on 08-16. **v5 unification in progress**
-(ADR-0123). 104 `go.mod` files (incl. root; count gate-derived — 2026-10-11 recount; the backticked form is invisible to the gate, fix by hand). The
+(ADR-0123). 103 `go.mod` files (incl. root; count gate-derived — 2026-11-03 recount; the backticked form is invisible to the gate, fix by hand). The
 `[Unreleased]` window carries the 2026-09-06..10-11 waves (see the Release
 History row below for the full set).
 See CHANGELOG `[Unreleased]` for the full per-entry detail.

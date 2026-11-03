@@ -1518,7 +1518,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 ## Module Maturity Matrix
 
 > 103 `go.mod` files across the workspace (multi-module `go.work`; count gate-derived via `scripts/check-canonical-facts.sh`; census
-> re-verified 2026-09-21 by scripted diff against the matrix — M13). External
+> re-verified 2026-11-03 by scripted diff against the matrix — M13). External
 > modules (`go-codec`, `go-retry`, `go-idempotency`, `go-flightrecorder`) are
 > consumed from their own repos (ADR-0128). Four matrix rows name sub-packages
 > without their own `go.mod` (storage/sql, metaengine/adttest,

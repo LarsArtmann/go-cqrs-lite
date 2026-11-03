@@ -80,6 +80,7 @@ func ParseStreamID(s string) (StreamID, error) {
 		)
 	}
 
+	// art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train (region start moved by the v4 UTF-8 boundary fix); removed with v4 in T26
 	return cbid.NewID[StreamMarker](s), nil
 }
 

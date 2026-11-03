@@ -29,6 +29,7 @@ func ParseStreamType(s string) (StreamType, error) {
 		return "", ErrEmptyStreamType
 	}
 
+	// art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train (region start moved by the v4 UTF-8 boundary fix); removed with v4 in T26
 	return StreamType(s), nil
 }
 
