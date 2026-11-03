@@ -6,16 +6,16 @@
 <a href="https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/event/v4"><img src="https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/event/v4.svg" alt="Go Reference"></a>
 <a href="https://github.com/LarsArtmann/go-cqrs-lite/actions/workflows/ci.yml"><img src="https://github.com/LarsArtmann/go-cqrs-lite/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
 <a href="LICENSE"><img src="https://img.shields.io/badge/license-Proprietary-red.svg" alt="License: Proprietary"></a>
-<a href="https://github.com/larsartmann/templ-components"><img src="https://img.shields.io/badge/GOTH-stack-8A2BE2?style=flat-square" alt="Part of the GOTH stack"></a>
+<a href="https://github.com/LarsArtmann/templ-components"><img src="https://img.shields.io/badge/GOTH-stack-8A2BE2?style=flat-square" alt="Part of the GOTH stack"></a>
 </p>
 
 <p align="center">
-<a href="SKILL.md">Guide (SKILL.md)</a> · <a href="https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/event/v4">API Reference</a> · <a href="example/getting-started/">Getting Started</a> · <a href="docs/">Docs</a>
+<a href="SKILL.md">Guide (SKILL.md)</a> · <a href="https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/event/v4">API Reference</a> · <a href="#quick-start">Quick Start</a> · <a href="example/">Examples</a> · <a href="docs/">Docs</a>
 </p>
 
 ---
 
-A composable library of 90+ independently-versioned modules. Import exactly what you need: nothing is forced on you — no transport, no broker, no database driver. Wire your own stack, or grab a zero-config preset.
+A composable library of 90+ independently-versioned modules. Import exactly what you need: nothing is forced on you — no transport, no broker, no database driver. Declare your domain, pick your engines at deployment time, and let the composition root wire the rest.
 
 > Using this library with an AI assistant? [`SKILL.md`](SKILL.md) is the single-source guide — module decision matrix, copy-paste recipes, and conventions.
 
@@ -26,25 +26,47 @@ A composable library of 90+ independently-versioned modules. Import exactly what
 > HTMX response building) for a complete server-rendered Go web stack with zero
 > framework lock-in.
 
+## The pipeline
+
+One diagram, the whole library:
+
+```text
+              you declare                              the system wires
+┌──────────────────────────────────┐   ┌─────────────────────────────────────────────┐
+│ Command · Event · State · Decide │   │ store · bus · projection host · engines ·   │
+│                │                 │   │ snapshots · timers · health · lifecycle     │
+│                ▼                 │   │                │                             │
+│  Command → Dispatcher → Decider ────▶  Event Journal → Projections → Read Models  │
+│                                  │   │                │                             │
+│  Query · Fold (read model)  ────────▶│                ▼                             │
+│                                  │   │   query answers, routed by measured cost   │
+└──────────────────────────────────┘   └─────────────────────────────────────────────┘
+```
+
+- **You write**: commands, events, state fold (`Apply`), decide logic, and one fold per read model.
+- **`system.New` wires**: event store, bus, projection host (crash-restart, checkpoints, dead-letter), snapshots, timers, health, lifecycle — and routes every query to the right engine.
+- **Operators decide**: which engines back each role (SQLite in dev, Postgres in prod — same binary, one config line).
+
 ## Why go-cqrs-lite?
 
 Most Go CQRS libraries are **frameworks** — they own your transport, your broker, your SQL driver, and your project layout. go-cqrs-lite is a **library**. You import only what you need and compose your own stack. Nothing is hidden behind magic.
 
 - **Event Sourcing is first-class** — immutable events, branded IDs, optimistic concurrency, time-travel queries, and schema evolution via upcasters. Not an afterthought bolted onto a CRUD layer.
-- **Library, not framework** — no transport, broker, or driver is forced on you. Use standard `net/http`, gRPC, Watermill, NATS — your choice. The `stack/` presets wire sensible defaults when you want zero-config.
-- **Pure-Go by default** — SQLite, Pebble, and bbolt engines need no C compiler. CGo is quarantined inside the single DuckDB module; everyone else never notices.
-- **Multi-module isolation** — each module has its own `go.mod` with minimal deps. Import `event` alone (10 module deps — only 3 third-party) or the full `stack/sqlite` preset. Your dependency tree stays clean.
+- **Declare the domain, deploy the engines** — `system.New(ctx, DomainConfig, DeploymentConfig)` separates what the developer writes (commands, events, folds) from what the operator picks (engines, durability, topology) in two compiler-enforced config types. Swap SQLite → Postgres → Pebble by changing one line; the domain code never notices.
+- **Cost-based query planner** — `metaengine` routes each query to the cheapest engine that supports it (11 interchangeable drivers), with live latency measurement, health-driven rerouting, and an `EXPLAIN`-style doctor.
+- **Library, not framework** — no transport, broker, or driver is forced on you. Use standard `net/http`, gRPC, Watermill, NATS — your choice.
+- **Pure-Go by default** — SQLite, Pebble, bbolt, Postgres, and MySQL engines need no C compiler. CGo is quarantined inside the single DuckDB module; everyone else never notices.
+- **Multi-module isolation** — each module has its own `go.mod` with minimal deps. Import `event` alone: 10 first-party modules plus CBOR — the only third-party production dependency. Your dependency tree stays clean.
 - **Production primitives, not stubs** — event signing (HMAC-SHA256, Ed25519, multisig), payload encryption (XChaCha20-Poly1305, AES-256-GCM, key rotation), OTel tracing and metrics, and a Prometheus bridge.
 - **Honest error taxonomy** — a 6-family classification (Rejection / Conflict / Transient / Infrastructure / Orchestration / Corruption) with sentinel errors and `%w` wrapping. No panics in production paths.
 - **Strong types throughout** — branded IDs make it impossible to mix up an `OrderID` with a `UserID`. The type system catches mistakes the compiler can express.
-- **SQL-backed read models** — `SQLViewStore` gives each projection its own table with real, queryable columns: server-side `WHERE`, `ORDER BY`, pagination, indexes, and `COUNT`. Opaque KV-blob read models cannot do this. (Deprecated in v5 — metaengine auto-projection replaces it.)
 
 ## Who is this for?
 
 - **Go backend engineers adopting event sourcing** who want proven primitives — stores, buses, upcasters, snapshots — without surrendering their project layout to a framework.
 - **DDD practitioners** who model behavior as pure functions (the Decider pattern) and want optimistic concurrency and branded IDs out of the box.
-- **Platform engineers embedding CQRS into existing services** — import the `event` module alone (3 third-party deps, the rest are first-party larsartmann modules), or compose upward as needs grow.
-- **Teams that choose storage at deployment time** — swap SQLite, Postgres, MySQL, Pebble, bbolt, Dgraph, or DuckDB behind the same domain code.
+- **Platform engineers embedding CQRS into existing services** — import the modules you need (the `event` module's only third-party production dependency is CBOR), or compose upward as needs grow.
+- **Teams that choose storage at deployment time** — declare folds once; let operators bind memory, SQLite, Turso, Pebble, bbolt, Badger, DuckDB, Postgres, MySQL, Dgraph, or Bigtable behind the same domain code.
 - **AI-assisted development teams** — [`SKILL.md`](SKILL.md) gives coding agents a verified, single-source API guide instead of hallucinated APIs.
 
 ## How it compares
@@ -53,6 +75,8 @@ Most Go CQRS libraries are **frameworks** — they own your transport, your brok
 | ------------------------------------------- | :----------: | :------------------: | :-------------------------------------------------------------: | :-------------------------------------------------------------------: |
 | **Library (not framework)**                 |      ✓       |          ✓           |                             Partial                             |                                Partial                                |
 | **Event sourcing**                          |      ✓       |                      |                                ✓                                |                              Via plugins                              |
+| **Deployment-time engine choice**           |      ✓       |                      |                                ✗                                |                                   ✗                                   |
+| **Cost-based query planner**                |      ✓       |                      |                                ✗                                |                                   ✗                                   |
 | **Per-module go.mod**                       |      ✓       |                      |                                ✗                                |                                   ✗                                   |
 | **Branded, mix-up-proof IDs**               |      ✓       |                      |                                ✗                                |                                   ✗                                   |
 | **Event signing** (HMAC, Ed25519, multisig) |      ✓       |                      |                                ✗                                |                                   ✗                                   |
@@ -60,7 +84,6 @@ Most Go CQRS libraries are **frameworks** — they own your transport, your brok
 | **Schema evolution** (upcasters)            |      ✓       |                      |                                ✗                                |                                   ✗                                   |
 | **Auto-docs** (AsyncAPI, OpenAPI, D2)       |      ✓       |                      |                                ✗                                |                                   ✗                                   |
 | **Managed projection host** (crash-restart) |      ✓       |                      |                             Partial                             |                                   ✗                                   |
-| **One-call storage presets**                |      ✓       |                      |                                ✗                                |                                   ✗                                   |
 
 An empty cell means "you build it yourself." Claims verified against each project's repository (August 2026) — the links are there so you can check the cells.
 
@@ -75,138 +98,202 @@ Skip this library if:
 
 ## Install
 
+New applications build on the composition root ([ADR-0123](docs/adr/0123-v5-unification-single-composition-root.md)):
+
 ```bash
-go get github.com/larsartmann/go-cqrs-lite/event/v4
-go get github.com/larsartmann/go-cqrs-lite/decider/v4
-go get github.com/larsartmann/go-cqrs-lite/command/v4
-go get github.com/larsartmann/go-cqrs-lite/id/v4
+go get github.com/larsartmann/go-cqrs-lite/system/v4
+go get github.com/larsartmann/go-cqrs-lite/metaengine/v4
+# plus one blank import per engine you deploy, e.g. SQLite:
+go get github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4
 ```
 
-Each module has its own `go.mod` — import only what you need and your dependency tree stays lean.
+Every module also releases on its own version train — import layers individually when you need them (`event`, `command`, `decider`, `id`, …) and your dependency tree stays lean. If you pin several, upgrade with the supported sweep pattern (per-module `go get …@latest` + `go mod tidy` + hermetic `GOWORK=off go build`/`go vet`, gated on tag existence) — see the skill FAQ's "How do I upgrade many go-cqrs-lite modules at once?". `cmd/cqrs-upgrade` scans your modules for v5-removed surfaces before you sweep.
 
-Modules release on independent version trains. If you pin several, upgrade with the supported sweep pattern (per-module `go get …@latest` + `go mod tidy` + hermetic `GOWORK=off go build`/`go vet`, gated on tag existence) — see the skill FAQ's "How do I upgrade many go-cqrs-lite modules at once?". `cmd/cqrs-upgrade` scans your modules for v5-removed surfaces before you sweep.
+## Quick Start
 
-## Quick Start (3 steps)
+The recommended path for new code: declare a domain, declare read models as folds, boot one composition root. (Condensed from [`example/getting-started/`](example/getting-started/) — a complete, tested, runnable version of exactly this.)
 
-### 1. Define your domain
+### 1. Declare the domain — events, state, decide logic
 
 ```go
-type UserState struct{ Name string }
-type UserCreated struct{ Name string }
+type Incremented struct {
+	Amount int `json:"amount"`
+}
+
+type CounterState struct{ Value int }
+
+func applyCounter(s CounterState, evt event.Event) (CounterState, error) {
+	if evt.Type() != "counter.incremented" {
+		return s, nil
+	}
+	p, err := event.DecodePayloadAuto[Incremented](evt)
+	if err != nil {
+		return s, err
+	}
+	s.Value += p.Amount
+	return s, nil
+}
+
+type IncrementCmd struct {
+	*command.BasicCommand
+
+	Amount int
+}
 ```
 
-### 2. Event-source with a Decider
-
-The Decider pattern uses pure functions: load state, apply events, decide new events, save, publish.
+### 2. Declare the read model — one fold per event type
 
 ```go
-import (
-    "context"
-    "fmt"
+type CounterView struct {
+	Value int `json:"value"`
+}
 
-    "github.com/larsartmann/go-cqrs-lite/command/v4"
-    "github.com/larsartmann/go-cqrs-lite/decider/v4"
-    "github.com/larsartmann/go-cqrs-lite/event/v4"
-    "github.com/larsartmann/go-cqrs-lite/id/v4"
-    "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
-    cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v4"
+type counterLookup struct{} // query-input type; reads key by fold-returned stream ID
+
+counterViews := metaengine.Query[counterLookup, CounterView]("counter_views",
+	// first event creates the view …
+	metaengine.OnRecordTyped("counter.incremented",
+		projectionadapter.EventWithID[Incremented]{},
+		func(_ record.Record, e projectionadapter.EventWithID[Incremented]) (string, CounterView) {
+			return e.ID, CounterView{Value: e.Payload.Amount}
+		}),
+	// … later events update it
+	metaengine.OnRecordTyped("counter.incremented",
+		projectionadapter.EventWithID[Incremented]{},
+		func(_ record.Record, e projectionadapter.EventWithID[Incremented], prev CounterView) CounterView {
+			prev.Value += e.Payload.Amount
+			return prev
+		}),
 )
-
-type CreateUser struct {
-    *command.BasicCommand
-    Name string
-}
-
-func main() {
-    ctx := context.Background()
-    store := memory.NewMemoryStore()
-    bus := cqrswatermill.NewEventBus()
-
-    d := decider.Decider[UserState]{
-        Initial: UserState{},
-        Apply: func(s UserState, e event.Event) (UserState, error) {
-            p, _ := event.DecodePayloadAuto[UserCreated](e)
-            s.Name = p.Name
-            return s, nil
-        },
-    }
-    repo, _ := decider.NewRepository(store, bus, d)
-
-    cmds := command.NewDispatcher()
-    streamID := id.NewStreamID()
-    _ = command.RegisterTyped(cmds, "user.create",
-        func(ctx context.Context, cmd *CreateUser) error {
-            return repo.ExecuteRef(ctx, id.NewStreamRef("User", cmd.StreamID()),
-                func(s UserState, v event.Version) ([]event.Event, error) {
-                    return event.NewEvents(cmd.StreamID(), "User", v,
-                        []event.Type{"user.created"}, []any{UserCreated{Name: cmd.Name}})
-                })
-        })
-
-    basic, _ := command.New("user.create", streamID)
-    _ = cmds.Dispatch(ctx, &CreateUser{BasicCommand: basic, Name: "Alice"})
-
-    state, _, _ := repo.LoadRef(ctx, id.NewStreamRef("User", streamID))
-    fmt.Printf("User: %s\n", state.Name) // User: Alice
-}
 ```
 
-### 3. Go to production with one call
-
-Swap in-memory for persistent storage — change **one line**, keep the domain code identical:
+### 3. Boot the system — and never touch infrastructure again
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4"
-
-bundle, err := sqlite.New("app.db")
-// Events, commands, queries, snapshots, checkpoints, read models — all persisted.
-// Event bus wired (watermill GoChannel for in-process pub/sub).
-defer bundle.Close()
+sys, err := system.New(ctx,
+	system.DomainConfig{ // what the developer writes
+		Commands: func(sys *system.System) {
+			_ = system.RegisterDecider(sys, "Counter", decider.Decider[CounterState]{
+				Initial: CounterState{},
+				Apply:   applyCounter,
+			})
+			_ = system.RegisterCommand[IncrementCmd, CounterState](sys, "counter.increment",
+				func(cmdCtx context.Context, cmd IncrementCmd) system.Op[CounterState] {
+					return system.Execute(cmdCtx, cmd.StreamID(), "Counter",
+						func(_ CounterState, v event.Version) ([]event.Event, error) {
+							evt, err := event.New("counter.incremented", cmd.StreamID(), "Counter",
+								v.Increment(), Incremented{Amount: cmd.Amount})
+							if err != nil {
+								return nil, err
+							}
+							return []event.Event{evt}, nil
+						})
+				})
+		},
+		Projections: []system.ProjectionDeclaration{system.RawQuery(counterViews)},
+	},
+	system.DeploymentConfig{ // what the operator picks
+		Engines: map[string]system.EngineConfig{
+			"primary": {Driver: "memory"}, // dev
+			// "primary": {Driver: "sqlite", DSN: "app.db"}, // production — one line
+		},
+		Instances: []system.InstanceConfig{
+			{Role: system.RoleSourceOfTruth, Engine: "primary"},
+			{Role: system.RoleProjections, Engine: "primary"},
+		},
+	},
+)
 ```
 
-Eight presets cover every deployment shape (all deprecated in v5 — `system.System` becomes the one composition root, see the heads-up below):
+Dispatch a command, read the projected view:
 
-| Preset           | When to use                                       |
-| ---------------- | ------------------------------------------------- |
-| `stack/memory`   | Tests and local dev — everything in RAM           |
-| `stack/sqlite`   | Embedded single-file persistence                  |
-| `stack/pebble`   | High-throughput embedded KV (PebbleDB + CBOR)     |
-| `stack/bbolt`    | Embedded single-file B+tree KV (pure Go)          |
-| `stack/duckdb`   | Embedded columnar OLAP (analytical workloads)     |
-| `stack/postgres` | Distributed, with connection pooling + timeouts   |
-| `stack/mysql`    | MySQL/MariaDB with pure-Go driver                 |
-| `stack/turso`    | Embedded Turso Database with optional remote sync |
+```go
+basic, _ := command.New("counter.increment", counterID)
+_ = sys.CommandDispatcher().Dispatch(ctx,
+	IncrementCmd{BasicCommand: basic, Amount: 5})
 
-> **Heads-up (v5):** the `stack/*` presets and the v1 read-model tiers
-> (`stack.Materialize`, `SQLViewStore`, `RelationalProjection`,
-> `GraphProjection`) are deprecated and will be **removed in v5**
+reader := metaengine.NewReader[CounterView](sys.MetaEngine(), "counter_views")
+view, found, _ := reader.Get(ctx, counterID.Get()) // projection catches up async
+```
+
+**That is the whole mental model.** Store, bus, projection host (replay + live tail + crash-restart + dead-letter), engine registration, health, and shutdown are wired by `system.New`. Run the full example:
+
+```bash
+git clone https://github.com/LarsArtmann/go-cqrs-lite && cd go-cqrs-lite/example/getting-started
+GOWORK=off go run main.go   # → Counter <ulid>: value=10 (expected 10)
+```
+
+> **Heads-up (v5):** the older `stack/*` presets and v1 read-model tiers
+> (`stack.Materialize`, `SQLViewStore`, `RelationalProjection`, `GraphProjection`)
+> are deprecated and will be **removed in v5**
 > ([ADR-0123](docs/adr/0123-v5-unification-single-composition-root.md)) —
-> `system.System` becomes the single composition root and metaengine
-> auto-projection serves read models. Everything above works unchanged
-> through v4.x; new projects can already adopt `system/` + `metaengine`.
-> Canonical v5-removal list:
+> they work unchanged through v4.x, but new code should start on
+> `system/` + `metaengine` as shown above. Canonical v5-removal list:
 > [FAQ — "Will the v5 cut break my imports?"](.agents/skills/go-cqrs-lite/references/faq.md#will-the-v5-cut-break-my-imports-what-is-going-away).
 
-See [`example/getting-started/`](example/getting-started/) for a single-file tour of the v5 composition path (`system.New` + metaengine folds, with a test that proves the one-line engine swap), [`example/graph-native/`](example/graph-native/) for graph-native reads (follow-network `Edge`/`EdgeRemoval` folds, depth-limited traversals, retraction — BDD-verified), [`example/metaengine-quickstart/`](example/metaengine-quickstart/) for the deployment-time story (declare folds and queries, then let the operator pick the engines in a `cqrs.yaml` — maps, graph, and vector demos included), and [`example/taskmanager/`](example/taskmanager/) for a complete HTTP service (CQRS/ES, projections, signing, SSE, snapshots).
+## Engines: storage is a deployment decision
+
+All durable I/O — journal, read models, snapshots, checkpoints, timers, dedup — rides one engine layer ([ADR-0142](docs/adr/0142-universal-storage-substrate.md)). Drivers self-register `database/sql`-style via blank import; `DeploymentConfig` binds them to roles; the planner routes each query to the cheapest engine that supports it.
+
+| Driver     | Module                      | Build    | Strengths                                         |
+| ---------- | --------------------------- | -------- | ------------------------------------------------- |
+| `memory`   | in-core                     | pure Go  | tests, defaults, zero setup                       |
+| `sqlite`   | `metaengine/sqliteengine`   | pure Go  | embedded single-file persistence                  |
+| `turso`    | `metaengine/tursoengine`    | pure Go  | embedded Turso Database, optional page encryption |
+| `pebble`   | `metaengine/pebbleengine`   | pure Go  | high-throughput embedded LSM                      |
+| `bbolt`    | `metaengine/bboltengine`    | pure Go  | single-file B+tree                                |
+| `badger`   | `metaengine/badgerengine`   | pure Go  | embedded KV with prefix scans                     |
+| `postgres` | `metaengine/pgengine`       | pure Go  | distributed, pooling, `WITH RECURSIVE` graph CTEs |
+| `mysql`    | `metaengine/mysqlengine`    | pure Go  | MySQL/MariaDB (pure-Go driver)                    |
+| `dgraph`   | `metaengine/dgraphengine`   | pure Go  | native graph traversal                            |
+| `bigtable` | `metaengine/bigtableengine` | pure Go  | GCP Bigtable                                      |
+| `duckdb`   | `metaengine/duckdbengine`   | CGo      | embedded columnar OLAP, vector search             |
+| —          | `metaengine/irohengine`     | pure Go  | CRDT replication across nodes (programmatic, p2p) |
+
+Read models are ADTs, not opaque blobs: Map (CRUD), Graph (edges, traversals), Vector (k-NN), Log, Set, Counter — the planner picks SQL pushdown where the engine supports it and scans otherwise. Full per-capability matrix (generated from source): [`docs/engine-capabilities.md`](docs/engine-capabilities.md). Deployment-from-YAML demo: [`example/metaengine-quickstart/`](example/metaengine-quickstart/).
+
+## Prefer explicit wiring? (v4 composition)
+
+The layers under the composition root are independently importable — some v4 surfaces predate `system/` and remain fully supported through v4.x:
+
+- **Manual tutorial**: [`docs/getting-started.md`](docs/getting-started.md) — decider, repository, dispatcher wired by hand (compile-verified in CI).
+- **Minimal example**: [`example/readme-quickstart/`](example/readme-quickstart/) — command + decider, no system layer.
+- **`stack/*` presets** (deprecated, removed in v5): one-call bundles that wire store + bus + read models per backend — `stack/memory`, `stack/sqlite`, `stack/pebble`, `stack/bbolt`, `stack/duckdb`, `stack/postgres`, `stack/mysql`, `stack/turso`. Existing v4 code keeps working; `cmd/cqrs-upgrade` lists what to migrate before v5.
+
+## Examples
+
+| Example                                                   | Shows                                                                                          |
+| --------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| [`getting-started`](example/getting-started/)             | single-file `system.New` tour; a test proves the one-line engine swap                          |
+| [`taskmanager`](example/taskmanager/)                     | flagship HTTP service: ES, projections, middleware, signing, SSE, snapshots, OTel              |
+| [`metaengine-quickstart`](example/metaengine-quickstart/) | deployment-time story: folds + queries, engine picks from a `cqrs.yaml`, map/graph/vector demos |
+| [`graph-native`](example/graph-native/)                   | follow-network graph reads, deletion-as-domain-event, BDD-verified                             |
+| [`mesh-demo`](example/mesh-demo/)                         | two bounded contexts wired only through replicated event contracts (data mesh)                 |
+| [`goal-shaped-app`](example/goal-shaped-app/)             | the library's north star, runnable: declare commands/events/queries, operators place the data  |
+| [`readme-quickstart`](example/readme-quickstart/)         | minimal command + decider without the system layer                                             |
+| [`scheduler-otel-status`](example/scheduler-otel-status/) | durable deadline timers + OTel/Prometheus claim observability                                  |
 
 ## Key modules
 
 Every module is independently importable and has its own `go.mod`. Here are the most important ones — see [AGENTS.md](AGENTS.md) for the full module catalog and [FEATURES.md](FEATURES.md) for the feature inventory.
 
-| Module             | Purpose                                                               |
-| ------------------ | --------------------------------------------------------------------- |
-| **event**          | Immutable events, store/bus interfaces, event sourcing                |
-| **command**        | Typed command dispatch, middleware, audit journal, pub/sub bus        |
-| **query**          | Typed query dispatch, pagination, audit journal                       |
-| **decider**        | Pure-function event-sourcing pattern: load, apply, decide, save       |
-| **id**             | Branded IDs backed by ULID                                            |
-| **storage**        | SQL event/snapshot/checkpoint stores (PostgreSQL, SQLite)             |
-| **storage/pebble** | Embedded KV: event/snapshot/checkpoint stores (PebbleDB + CBOR)       |
-| **projectionhost** | Managed projection lifecycle: crash-restart, checkpoints, dead-letter |
-| **middleware**     | Logging, retry, validation, recovery, circuit breaker, OTel           |
-| **kv**             | Layer-0 KV abstraction: `kv.Store`, `TypedStore[T,K]`, `Cache`        |
-| **catalog**        | Auto-generate AsyncAPI 3.0, EventCatalog, OpenAPI, D2 from Go types   |
-| **stack/sqlite**   | One-call preset: SQLite + event bus + read models + projections       |
+| Module                  | Purpose                                                                       |
+| ----------------------- | ----------------------------------------------------------------------------- |
+| **system**              | Composition root: `New(ctx, DomainConfig, DeploymentConfig)` wires everything  |
+| **metaengine**          | Cost-based storage planner; Map/Graph/Vector/Log/Set/Counter read-model ADTs  |
+| **metaengine/*engine**  | 11 self-registering drivers: sqlite, postgres, mysql, pebble, bbolt, …        |
+| **event**               | Immutable events, store/bus interfaces, event sourcing                        |
+| **command**             | Typed command dispatch, middleware, audit journal, pub/sub bus                |
+| **query**               | Typed query dispatch, pagination, audit journal                               |
+| **decider**             | Pure-function event-sourcing pattern: load, apply, decide, save               |
+| **id**                  | Branded IDs backed by ULID                                                    |
+| **projectionhost**      | Managed projection lifecycle: crash-restart, checkpoints, dead-letter         |
+| **scheduling**          | Durable deadline timers (cancellations, retries, manual clock for tests)      |
+| **watermill**           | Broker pub/sub bridge (NATS, Kafka, Redis Streams) + catch-up subscriber      |
+| **middleware**          | Logging, retry, validation, recovery, circuit breaker, OTel                   |
+| **kv**                  | Layer-0 KV abstraction: `kv.Store`, `TypedStore[T,K]`, `Cache`                |
+| **catalog**             | Auto-generate AsyncAPI 3.0, EventCatalog, OpenAPI, D2 from Go types           |
+| **systemscenario**      | BDD Given/When/Then over a real `system.New` boot, deterministic manual clock |
 
 ## Key dependencies
 
@@ -223,7 +310,7 @@ Each module declares its own `go.mod`; this is the greatest-hits across the libr
 
 ## Maturity
 
-90+ modules on `/v4` import paths (98 `go.mod` files incl. root — count gate-derived via `scripts/check-canonical-facts.sh`). Core modules carry roughly 84–96% test coverage (event 89%, decider 95%, id 86%, dispatcher 87%). The library covers the full CQRS/ES lifecycle: event sourcing with branded IDs, command/query dispatch, pure-function deciders, three projection tiers (document/KV, relational/SQL, graph), durable deadline scheduling, dead-letter quarantine, managed projection hosting, event signing and encryption, OTel tracing and metrics, auto-documentation generation, and a domain-aware linter (cqrs-lint).
+90+ modules on `/v4` import paths (103 go.mod files incl. root — gate-derived via `scripts/check-canonical-facts.sh`). Core modules carry roughly 86–96% test coverage (event 90%, decider 96%, id 86%, dispatcher 88%). The library covers the full CQRS/ES lifecycle: event sourcing with branded IDs, command/query dispatch, pure-function deciders, cost-based query planning across interchangeable engines, durable deadline scheduling, dead-letter quarantine, managed projection hosting, event signing and encryption, OTel tracing and metrics, auto-documentation generation, and a domain-aware linter (cqrs-lint).
 
 **Migrating from v3?** Read the **[Migration Guide](docs/migration/MIGRATION-GUIDE.md)** — covers the v4 breaking changes (codec defaults, API cleanup, path migration). For v2-to-v3 changes, see the **[v3 Migration Guide](docs/migration/V3_MIGRATION.md)**.
 
