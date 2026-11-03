@@ -3,6 +3,7 @@ package system
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4/eventtest"
@@ -54,6 +55,15 @@ func TestCachedEventStore_CheckSetGapWriteCannotStrandStaleSnapshot(t *testing.T
 			t, "cache.gap", ref.ID, ref.Type, 5, []byte(`{"kind":"gap"}`),
 		)})
 	}()
+
+	// Buggy ordering: the write completes while the reader is parked between
+	// check and Set, so its invalidations cannot remove the snapshot the
+	// reader is about to cache. Fixed ordering: the write cannot complete
+	// (the reader holds the critical-section mutex), so the timeout fires.
+	select {
+	case <-writeDone:
+	case <-time.After(1 * time.Second):
+	}
 
 	close(releaseGap)
 
