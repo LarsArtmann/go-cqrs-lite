@@ -72,6 +72,7 @@ use (
 	./scheduling/engine
 	./scheduling/sqlstore
 	./schema
+	./scratch/counterkey
 	./signing
 	./snapshot
 	./stack
