@@ -106,7 +106,11 @@ func runCheck(args []string, stdout, stderr io.Writer) int {
 	flags.SetOutput(stderr)
 
 	catalogPath := flags.String("catalog", "", "catalog JSON file")
-	baselinePath := flags.String("baseline", defaultBaselineName, "baseline file to compare against")
+	baselinePath := flags.String(
+		"baseline",
+		defaultBaselineName,
+		"baseline file to compare against",
+	)
 
 	if err := flags.Parse(args); err != nil {
 		return exitUsage
