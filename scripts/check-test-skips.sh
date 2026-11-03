@@ -214,7 +214,7 @@ list_unrouted() { # $1=root
 }
 
 self_test() {
-	local tmp failures=0 rc out
+	local tmp failures=0
 	tmp="$(mktemp -d)"
 	# shellcheck disable=SC2064
 	trap "rm -rf '$tmp'" EXIT

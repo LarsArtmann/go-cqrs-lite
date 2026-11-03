@@ -88,7 +88,7 @@ run_target() { # $1=module $2=package-rel $3=target
 	local pattern="./${pkg}/"
 	[ "$pkg" = "." ] && pattern="."
 	printf '==> %s %s %s (%ss)\n' "$mod" "$pkg" "$target" "$SECONDS_PER_TARGET"
-	if (cd "$mod" && GOWORK=off GOFLAGS= GOTOOLCHAIN=auto go test \
+	if (cd "$mod" && GOWORK=off GOFLAGS='' GOTOOLCHAIN=auto go test \
 		-run "^${target}$" -fuzz "^${target}$" \
 		-fuzztime "${SECONDS_PER_TARGET}s" "$pattern"); then
 		return 0

@@ -46,6 +46,7 @@ self_test() {
 	tmp="$(mktemp -d)"
 	# Single quotes would expand only at exit, when the local is gone; embed
 	# the path now instead.
+	# shellcheck disable=SC2064  # $tmp must expand now, not at trap time
 	trap "rm -rf '$tmp'" EXIT
 
 	bin="$tmp/catalog-compat"

@@ -252,7 +252,7 @@ selftest)
 	self_test
 	;;
 latest)
-	latest=$(ls -1 "$EVIDENCE_DIR"/fleet-census-*.json 2>/dev/null | sort | tail -1)
+	latest=$(find "$EVIDENCE_DIR" -maxdepth 1 -name 'fleet-census-*.json' 2>/dev/null | sort | tail -1)
 	[ -n "${latest:-}" ] || {
 		echo "no fleet-census artifact in $EVIDENCE_DIR yet" >&2
 		exit 1

@@ -53,17 +53,17 @@ graph_source() {
 	# should report a verdict, not an env diff. Silence both streams.
 	source "$REPO_ROOT/scripts/go-env.sh" >/dev/null 2>&1
 
-	local patterns="./..."
+	local -a patterns=("./...")
 	local dir
 	local use_dirs
 	use_dirs="$(sed -n '/^use (/,/^)/p' go.work | grep -oE '\./[a-zA-Z0-9/_.-]+' || true)"
 	while IFS= read -r dir; do
-		[ -n "$dir" ] && patterns="$patterns $dir/..."
+		[ -n "$dir" ] && patterns+=("$dir/...")
 	done <<<"$use_dirs"
 
 	# `Imports` is the non-test import list; `-e` would hide broken modules, so
 	# a resolution failure is a hard error rather than a silent empty graph.
-	go list -f '{{.ImportPath}}{{range .Imports}} {{.}}{{end}}' $patterns
+	go list -f '{{.ImportPath}}{{range .Imports}} {{.}}{{end}}' "${patterns[@]}"
 }
 
 # edges: "<pkg><TAB><dep>", repo-relative, in-repo only.
@@ -114,7 +114,7 @@ run_gate() {
 	# ~500 edges today: recursion depth is bounded by the longest acyclic path,
 	# far below any bash stack concern.
 	declare -A adj=() color=() cycle_by_key=()
-	local pkg dep pair
+	local pkg dep
 	while IFS=$'\t' read -r pkg dep; do
 		adj["$pkg"]="${adj["$pkg"]:-} $dep"
 	done <"$edge_file"

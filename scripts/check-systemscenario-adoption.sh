@@ -115,7 +115,7 @@ compare_sets() { # CURRENT_ALLOWED_FROM_ALLOWLIST OFFENDERS OUT
 }
 
 self_test() {
-	local tmp failures=0 rc out
+	local tmp failures=0 rc
 	tmp="$(mktemp -d)"
 	# shellcheck disable=SC2064
 	trap "rm -rf '$tmp'" EXIT
@@ -227,5 +227,5 @@ echo "::error::systemscenario adoption drift:"
 sed 's/^/  /' "$tmp/rows.txt"
 echo ""
 echo "Adopt the harness (systemscenario.New/Given/When/Then) or record why not:"
-echo "  add '<module>\\t<reason>' to $ALLOWLIST"
+printf "  add '<module>\\t<reason>' to %s\n" "$ALLOWLIST"
 exit 1

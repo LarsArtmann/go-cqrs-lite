@@ -124,7 +124,7 @@ write_baseline() { # $1=current census, $2=out
 }
 
 self_test() {
-	local tmp failures=0 rc out
+	local tmp failures=0 rc
 	tmp="$(mktemp -d)"
 	# shellcheck disable=SC2064
 	trap "rm -rf '$tmp'" EXIT

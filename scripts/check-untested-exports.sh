@@ -142,7 +142,7 @@ write_baseline() { # $1=current keys, $2=out, $3=existing baseline (for reasons)
 }
 
 self_test() {
-	local tmp failures=0 rc out
+	local tmp failures=0 rc
 	tmp="$(mktemp -d)"
 	# shellcheck disable=SC2064  # $tmp must expand now, not at trap time
 	trap "rm -rf '$tmp'" EXIT

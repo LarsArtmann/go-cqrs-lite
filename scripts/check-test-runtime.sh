@@ -235,7 +235,7 @@ tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 
 if [ "${#JSON_FILES[@]}" -eq 0 ]; then
-	newest="$(ls -1t build/test-json/*.json 2>/dev/null | head -1 || true)"
+	newest="$(find build/test-json -maxdepth 1 -name '*.json' -printf '%T@ %p\n' 2>/dev/null | sort -n | tail -1 | cut -d' ' -f2-)"
 	[ -n "$newest" ] || die "no event stream found — run GT_JSON=1 nix run .#test first, or pass --json FILE"
 	JSON_FILES=("$newest")
 fi
