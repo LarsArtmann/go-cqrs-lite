@@ -59,6 +59,23 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 > → W6 closure; graph:
 > [`.d2`](docs/planning/2026-10-08_14-59_SUPERB-v5-goal-pareto-plan.d2)). This
 > file remains the living source of truth.
+>
+> **Current plan (2026-11-03 20:04):**
+> [`docs/planning/2026-11-03_20-04_SUPERB-red-to-green-trust-pareto-plan.md`](docs/planning/2026-11-03_20-04_SUPERB-red-to-green-trust-pareto-plan.md)
+> (Pareto over ALL 218 open rows post-sweep: the 1% = the `CachedEventStore`
+> TOCTOU race + file-size-ratchet green + the E023 `cqrs-lint v4.19.0` and
+> `Registry.MarkDemo` catalog trains; the 4% = the composed-proof re-record
+> (3 rows, one act) + hygiene/proof-gate infrastructure (todo-hygiene gate,
+> md-go FOD repair, lint-config guards, fleet go.sum, stale-premise sweep);
+> the 20% = json/v2 determinism (KEYS first), idempotency-retirement ADR,
+> Wave-III trains, arch P0/P1 quick wins, A9 keycodec pebble leg,
+> quiet-window batch, cursor issuance, docs/recipes truth; the remaining
+> 80% = v5 program, consumer asks, demand-gated spikes, owner-blocked park;
+> 27 medium tasks / 139 fine tasks with a mermaid execution graph. Errata
+> already folded: L512 stale premise, L1025 fold-into-L1315, L2389 partially
+> superseded by `scenario.WhenVersioned`. Supersedes the sequencing (not the
+> content) of the plans below; the v5-cut-readiness checklist remains the
+> cut-order authority.)
 
 > **DONE (2026-10-10):** Graph-native adoption closure + operator-story wave
 > (plan
@@ -1269,6 +1286,8 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       about HOW messages move. Keep bindings dep-free (string-typed options),
       no watermill import. — source: 2026-10-04 asyncapi review _(Effort: M-L)_
 
+- [ ] **TODO_LIST hygiene gate (`check-todo-list-hygiene.sh`)** — fail on any `- [x]`/`> - [x]` checkbox, byte-identical duplicate blocks (normalized-text hash), and dangling `above/below` receipt pointers; `--self-test` fault-injects all three. Encodes the 2026-11-03 sweep's debt class (114 stale done rows, one byte-identical M4–M7 duplicate that survived three docs-health passes, two hand-fixed dangling pointers, one blockquote-form survivor). Plan M05 (2026-11-03 20:04).
+- [ ] **Stale-premise detector for TODO_LIST** — parse "blocked on / blocked ONLY on … tag" rows and check the cited tags against `versions.json` + `git tag`; fails (or reports) when a blocking premise has shipped. First catch: the "Post-tag adoption tail" row stayed "blocked" three weeks after its tags shipped (2026-10-12 trust wave II). Plan M11 (2026-11-03 20:04).
 - [ ] 🔥 **CI triage: master red across ~15+ jobs, no green run in the last
       30.** Classified 2026-09-11 (run 34548534824), RE-CLASSIFIED
       2026-09-13 (run 34747274058, full log triage): (a) FIXED same-day —
