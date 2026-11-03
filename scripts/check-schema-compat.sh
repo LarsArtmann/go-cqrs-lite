@@ -36,7 +36,7 @@ USAGE
 # catalog module, so GOWORK=off keeps the resolution identical to a consumer's.
 build_cli() {
 	local out="$1"
-	( cd "$repo_root/catalog" && GOWORK=off go build -o "$out" ./cmd/catalog-compat )
+	(cd "$repo_root/catalog" && GOWORK=off go build -o "$out" ./cmd/catalog-compat)
 }
 
 # self_test runs the mutation legs. Every leg asserts a DIFFERENT failure mode,
@@ -123,11 +123,27 @@ update_baseline=0
 
 while [ $# -gt 0 ]; do
 	case "$1" in
-		--catalog) catalog_path="${2:-}"; shift 2 ;;
-		--baseline) baseline_path="${2:-}"; shift 2 ;;
-		--update-baseline) update_baseline=1; shift ;;
-		-h|--help) usage; exit 0 ;;
-		*) echo "::error::unknown argument: $1" >&2; usage; exit 2 ;;
+	--catalog)
+		catalog_path="${2:-}"
+		shift 2
+		;;
+	--baseline)
+		baseline_path="${2:-}"
+		shift 2
+		;;
+	--update-baseline)
+		update_baseline=1
+		shift
+		;;
+	-h | --help)
+		usage
+		exit 0
+		;;
+	*)
+		echo "::error::unknown argument: $1" >&2
+		usage
+		exit 2
+		;;
 	esac
 done
 

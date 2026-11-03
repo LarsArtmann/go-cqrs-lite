@@ -142,6 +142,11 @@ LAYER["cmd/cqrs-lint/testdata/typedfixture"]=7
 LAYER["cmd/cqrs-lint/testdata/scanfixture"]=7
 LAYER["cmd/cqrs-lint/testdata/busfixture"]=7
 LAYER["event/v4/eventtest"]=7
+# scratch/counterkey: cross-engine repro (test-only, no product code). Rowed
+# so the gate stays green while its disposition is pending — owner question
+# T07.3 in docs/planning/2026-11-03_18-52_SUPERB-full-backlog-pareto-plan.md:
+# keep as in-tree repro or move scratch/ out of the tree.
+LAYER["scratch/counterkey"]=7
 LAYER["testutil/mysqltestcontainer"]=5
 LAYER["testutil/pgtestcontainer"]=5
 # testutil is test-only infrastructure used from _test.go files across layers.
@@ -417,6 +422,9 @@ DEP_BUDGET["example/mesh-demo"]=8
 # direct dep is httputil/server_timing, added with the Server-Timing HTTP
 # surface (2026-10-15 repair) and pinned by its HTTP integration tests.
 DEP_BUDGET["example/taskmanager"]=26
+# counterkey repro: 4 engines + metaengine + record, all first-party; the
+# point of the scratch is cross-engine comparison, test-only.
+DEP_BUDGET["scratch/counterkey"]=6
 DEP_BUDGET["example/getting-started"]=10
 # goal-shaped-app is the Goal story: types-only domain + system composition
 # root with BOTH swap targets compiled in (sqliteengine + pgengine) —

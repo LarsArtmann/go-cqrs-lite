@@ -92,8 +92,10 @@ jobs:
               echo "These jobs failed on attempt 1 and passed after one automatic retry."
               echo "That is a flake signal, not a clean run:"
               echo ""
+              # shellcheck disable=SC2016,SC2086 # literal markdown backticks; word-splitting over the job list is the point
               printf -- '- `%s`\n' $jobs
               echo ""
+              # shellcheck disable=SC2016 # literal markdown backticks
               echo 'Add a row to `scripts/flaky-tests.txt` (owner + seed if known) and fix the cause.'
             } >>"$GITHUB_STEP_SUMMARY"
             echo "::warning::FLAKY: ${WORKFLOW} needed a retry; failed on attempt 1: $(echo "$jobs" | tr '\n' ' ')"
@@ -103,6 +105,7 @@ jobs:
               echo ""
               echo "Attempt 1 failures (retry did not help - treat as a real failure):"
               echo ""
+              # shellcheck disable=SC2016,SC2086 # literal markdown backticks; word-splitting over the job list is the point
               printf -- '- `%s`\n' $jobs
             } >>"$GITHUB_STEP_SUMMARY"
             echo "::error::Still red after retry: $(echo "$jobs" | tr '\n' ' ')"
