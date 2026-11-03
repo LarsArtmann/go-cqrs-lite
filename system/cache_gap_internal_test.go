@@ -60,19 +60,25 @@ func TestCachedEventStore_CheckSetGapWriteCannotStrandStaleSnapshot(t *testing.T
 	// check and Set, so its invalidations cannot remove the snapshot the
 	// reader is about to cache. Fixed ordering: the write cannot complete
 	// (the reader holds the critical-section mutex), so the timeout fires.
+	gapTimedOut := false
 	select {
 	case <-writeDone:
 	case <-time.After(1 * time.Second):
+		gapTimedOut = true
 	}
 
 	close(releaseGap)
 
-	if err := <-writeDone; err != nil {
-		t.Fatalf("gap AppendBatch: %v", err)
+	if gapTimedOut {
+		if err := <-writeDone; err != nil {
+			t.Fatalf("gap AppendBatch: %v", err)
+		}
 	}
 	if err := <-loadDone; err != nil {
 		t.Fatalf("gap Load: %v", err)
 	}
+
+	cached.gapHook = nil
 
 	events, err := cached.Load(ctx, ref)
 	if err != nil {

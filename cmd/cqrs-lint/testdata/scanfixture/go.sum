@@ -30,8 +30,8 @@ github.com/larsartmann/go-codec v0.3.2 h1:6josVkKRls+9CrXkH8AyCS4uOgJ0oIOvPMl4XF
 github.com/larsartmann/go-codec v0.3.2/go.mod h1:nDkfIZOg49OrpIbZE1fXpQZ6Mmyho35NprMMB3Cq+a8=
 github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.2 h1:yakAjC4K02sVvudipDP/fhLfSXDuo5rnNBY+hDou34Y=
 github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.2/go.mod h1:7TQ7fSd6bRqd7lYSTDMPIDCDZtzU/r3KqivP9m1M7gk=
-github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.3 h1:MJBJNsp9UEbYvrb1HBvc6Ui94qf56GJzk76XDFbxyLY=
-github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.3/go.mod h1:XW80FYXKndVG3LfgsCK3r65CHty8OKwDXlPmuytZqMU=
+github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.4 h1:nzPCdZNJKxJjjB6gmfdux7YXPUSqWGcodY/DhCbBSwY=
+github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.4/go.mod h1:XW80FYXKndVG3LfgsCK3r65CHty8OKwDXlPmuytZqMU=
 github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.6.0 h1:r+cZwYRxXkax9MvSJEetA5fgynx8iThIpzKxP/c96Sc=
 github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.6.0/go.mod h1:qvCN4kS7Go2F6lP97j8jex4mBvZWCV+qvKI3d60Se5M=
 github.com/larsartmann/go-error-family v0.12.0 h1:HEtocvwaPe9udDusqDqV0pxN9Wx98KHQBK0MEHZupzg=

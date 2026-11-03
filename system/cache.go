@@ -14,9 +14,12 @@ import (
 
 // CachedEventStore wraps an event.Store with a read-through cache.
 //
-// Write ordering: Save and AppendBatch drop the cached entry BEFORE the
-// store write and again after it, and Load only repopulates the cache when
-// no write touched the stream in between (the generation guard below).
+// Write ordering: Save and AppendBatch run their generation bump and cache
+// invalidation as ONE critical section (mu) before the store write and one
+// after it, and Load's generation check and cache repopulation are likewise
+// one critical section with them. A write can therefore never complete
+// between a reader's check and its Set — the stale-snapshot stranding the
+// two-step ordering allowed is unrepresentable.
 // Invalidation alone — before or after the write — leaves a window where a
 // concurrent Load re-populates the pre-save snapshot and serves it forever.
 type CachedEventStore struct {
@@ -87,36 +90,37 @@ func (c *CachedEventStore) Load(ctx context.Context, ref id.StreamRef) ([]event.
 
 	// Only cache when no write began or completed during the store read;
 	// otherwise this snapshot is (or may be) pre-save and must not survive.
-	if c.generationUnchanged(key, gen) {
+	// Check and Set share the write paths' critical section: a write that
+	// completes after the check lands its Invalidate after this Set.
+	c.mu.Lock()
+	if c.gens[key] == gen {
 		if c.gapHook != nil {
 			c.gapHook()
 		}
 
 		c.cache.Set(key, events)
 	}
+	c.mu.Unlock()
 
 	return events, nil
 }
 
-// advanceGeneration bumps the stream's write generation under the cache lock.
-func (c *CachedEventStore) advanceGeneration(key string) {
-	c.mu.Lock()
-	c.gens[key]++
-	c.mu.Unlock()
-}
-
 // beginWrite opens a write: the generation advances and the cached entry is
 // dropped BEFORE the store write, so no reader is served the pre-write
-// snapshot while the write is in flight.
+// snapshot while the write is in flight. Bump and invalidation are one
+// critical section with Load's check-and-Set.
 func (c *CachedEventStore) beginWrite(key string) {
-	c.advanceGeneration(key)
-
+	c.mu.Lock()
+	c.gens[key]++
 	c.cache.Invalidate(key)
+	c.mu.Unlock()
 }
 
 // endWrite closes a write: the entry is dropped again (a concurrent Load may
 // have repopulated during the store write) and the generation advances so
-// in-flight Loads never cache a pre-write snapshot.
+// in-flight Loads never cache a pre-write snapshot. Drop and bump are one
+// critical section with Load's check-and-Set: a Load whose check passed can
+// never Set after this Invalidate runs.
 //
 // Generation entries are intentionally never deleted: an absent entry must
 // unambiguously mean "never written" (generation 0). Pruning would let a
@@ -125,9 +129,10 @@ func (c *CachedEventStore) beginWrite(key string) {
 // streams ever written through this process — the same order as the store's
 // own stream index.
 func (c *CachedEventStore) endWrite(key string) {
+	c.mu.Lock()
 	c.cache.Invalidate(key)
-
-	c.advanceGeneration(key)
+	c.gens[key]++
+	c.mu.Unlock()
 }
 
 // readGeneration snapshots the stream's write generation before a store read.
@@ -136,16 +141,6 @@ func (c *CachedEventStore) readGeneration(key string) uint64 {
 	defer c.mu.Unlock()
 
 	return c.gens[key]
-}
-
-// generationUnchanged reports whether no write began or completed since gen
-// was captured. Absent means generation 0 (never written) — see endWrite for
-// why entries are never pruned.
-func (c *CachedEventStore) generationUnchanged(key string, gen uint64) bool {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-
-	return c.gens[key] == gen
 }
 
 func (c *CachedEventStore) LoadFromVersion(
