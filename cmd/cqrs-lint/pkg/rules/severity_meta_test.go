@@ -54,7 +54,7 @@ func buildHelperMediated() map[string]string {
 		"B030": "built via boilerplate helper",
 		"B031": "built via boilerplate helper",
 	}
-	for i := 1; i <= 8; i++ {
+	for i := 1; i <= 9; i++ {
 		m[fmt.Sprintf("E%03d", i+7)] = "built via singleFinding helper"
 		m[fmt.Sprintf("T%03d", i)] = "built via testing helper"
 	}

@@ -51,10 +51,10 @@ func NewT009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				WithCategory(finding.CategoryTesting).
 				WithConfidence(finding.ConfidenceMedium).
 				WithSuggestion(
-					"Use systemscenario.System(t, ctx, domain, deploy) to boot the same "+
-						"DomainConfig/DeploymentConfig as production with a frozen clock — Given/When/Then, "+
-						"journal diffs, query awaits, saga capture (ADR-0153); systemscenario.Adopt wraps a "+
-						"system you must boot yourself. Suppress with //cqrs-lint:ignore(T009) <reason> when a "+
+					"Use systemscenario.System(t, ctx, domain, deploy) to boot the same " +
+						"DomainConfig/DeploymentConfig as production with a frozen clock — Given/When/Then, " +
+						"journal diffs, query awaits, saga capture (ADR-0153); systemscenario.Adopt wraps a " +
+						"system you must boot yourself. Suppress with //cqrs-lint:ignore(T009) <reason> when a " +
 						"lower-level boot is deliberate.",
 				).
 				WithSnippet(ctx.SourceLine(gf.Path, pos.Line)).
