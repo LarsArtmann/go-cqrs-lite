@@ -95,3 +95,7 @@ Landed as docs: `StreamLogBackend.JournalReadFrom` is now marked Deprecated (adv
 ## 113
 
 Fixed on master: `kv.NewCacheForViewStore` wraps any `ViewStore` (shallow-copy default, `kv.WithCacheCopyFunc` for deep copies), `Has` falls back to Get when the store lacks the capability, and `NewCache` behavior is unchanged (`kv/view_cache.go`). cqrs-htmx can drop its hand-rolled adapter on the next train.
+
+## 114
+
+Verified on master — real gap: `metaengine/cap.go` `EnforceCap` is collection-global (the key extractor addresses rows for deletion, nothing groups), and no per-group variant exists anywhere. Proposal shape looks right. One build note: SQL engines get this via `ROW_NUMBER() OVER (PARTITION BY ...)` (sqlite/turso/duckdb/pg fine, MySQL 8+ only), memory needs a Go-side grouping path — so it lands as an engine-capability split, not one shared core loop. Leaving open as next-wave feature work.
