@@ -155,7 +155,12 @@ func rewriteV5ImportsInFile(path string, dryRun bool) ([]v5ImportChange, []strin
 		to, folded := v5ImportTable[path2]
 		switch {
 		case folded:
-			spans = append(spans, span{start: imp.Path.Pos() - 1, end: imp.Path.End() - 1, from: path2, to: to})
+			spans = append(spans, span{
+				start: fset.Position(imp.Path.Pos()).Offset,
+				end:   fset.Position(imp.Path.End()).Offset,
+				from:  path2,
+				to:    to,
+			})
 		case isCqrsV4Import(path2):
 			remaining[path2] = true
 		}
