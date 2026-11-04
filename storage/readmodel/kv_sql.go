@@ -273,7 +273,11 @@ func (b *sqlKVBatch) Set(ctx context.Context, key, value []byte) error {
 }
 
 func (b *sqlKVBatch) Delete(ctx context.Context, key []byte) error {
-	q := fmt.Sprintf("DELETE FROM %s WHERE key = %s", kvTableName, b.store.Dialect.Placeholder(1)) // #nosec G201 -- interpolates SQL identifiers (constants/caller schema config), never end-user input; values use placeholders
+	q := fmt.Sprintf(
+		"DELETE FROM %s WHERE key = %s",
+		kvTableName,
+		b.store.Dialect.Placeholder(1),
+	) // #nosec G201 -- interpolates SQL identifiers (constants/caller schema config), never end-user input; values use placeholders
 
 	_, err := b.tx.ExecContext(ctx, q, key)
 	return wrapTransientOrOK(err, "kv_sql.batch_delete", "batch delete in KV store")

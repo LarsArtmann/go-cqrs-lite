@@ -149,11 +149,17 @@ func (v Version) Sub(n int) (Version, error) {
 		return 0, fmt.Errorf("%w: %d - %d", ErrVersionUnderflow, v, n)
 	}
 
-	return v - Version(n), nil // #nosec G115 -- Version values are stream positions far below int width
+	return v - Version(
+		n,
+	), nil // #nosec G115 -- Version values are stream positions far below int width
 }
 
 // Mod returns v modulo n.
-func (v Version) Mod(n int) int { return int(v) % n } // #nosec G115 -- Version values are stream positions far below int width
+func (v Version) Mod(
+	n int,
+) int {
+	return int(v) % n
+} // #nosec G115 -- Version values are stream positions far below int width
 
 // Cmp compares two Versions. Returns -1, 0, or +1.
 func (v Version) Cmp(other Version) int {

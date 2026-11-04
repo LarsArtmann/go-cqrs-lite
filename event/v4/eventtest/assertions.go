@@ -119,7 +119,9 @@ func AssertEventType(t *testing.T, events []event.Event, index int, want string)
 func AssertEventVersion(t *testing.T, events []event.Event, index, want int) {
 	t.Helper()
 
-	if got := int(events[index].Version()); got != want { // #nosec G115 -- test fixture version, small by construction
+	if got := int(
+		events[index].Version(),
+	); got != want { // #nosec G115 -- test fixture version, small by construction
 		t.Errorf("events[%d].Version = %d, want %d", index, got, want)
 	}
 }

@@ -34,7 +34,9 @@ func ResolveCursorTimestamp(
 
 	query := fmt.Sprintf( // #nosec G201 -- interpolates SQL identifiers (constants/caller schema config), never end-user input; values use placeholders
 		`SELECT %s FROM %s WHERE id = %s`,
-		timestampColumn, table, dialect.Placeholder(1),
+		timestampColumn,
+		table,
+		dialect.Placeholder(1),
 	)
 
 	var ts any

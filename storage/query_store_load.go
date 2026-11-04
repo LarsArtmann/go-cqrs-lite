@@ -28,7 +28,9 @@ func (s *SQLQueryStore) LoadQueries(
 	p1 := s.Dialect.Placeholder(1)
 	sqlText := fmt.Sprintf( // #nosec G201 -- interpolates SQL identifiers (constants/caller schema config), never end-user input; values use placeholders
 		`SELECT %s FROM %s WHERE received_at > %s ORDER BY received_at ASC`,
-		sqlpkg.QueryColumns, sqlpkg.TableQueries, p1,
+		sqlpkg.QueryColumns,
+		sqlpkg.TableQueries,
+		p1,
 	)
 
 	rows, err := s.DB.QueryContext(ctx, sqlText, s.Dialect.FormatTime(after))

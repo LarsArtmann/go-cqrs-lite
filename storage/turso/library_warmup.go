@@ -83,7 +83,11 @@ func withTursoLibraryLock(ping func() error) error {
 func acquireTursoLockFile(lockPath string) (*os.File, bool) {
 	deadline := time.Now().Add(tursoLibraryWarmupTimeout)
 	for {
-		lock, err := os.OpenFile(lockPath, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0o600) // #nosec G304 -- path derives from operator env (TURSO_GO_CACHE_DIR) / user cache dir, not request input
+		lock, err := os.OpenFile(
+			lockPath,
+			os.O_CREATE|os.O_EXCL|os.O_WRONLY,
+			0o600,
+		) // #nosec G304 -- path derives from operator env (TURSO_GO_CACHE_DIR) / user cache dir, not request input
 		if err == nil {
 			return lock, true
 		}

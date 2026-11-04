@@ -152,7 +152,10 @@ func (s *sqlSink) UpsertCols(
 
 	query := fmt.Sprintf( // #nosec G201 -- interpolates SQL identifiers (constants/caller schema config), never end-user input; values use placeholders
 		"INSERT INTO %s (%s) VALUES (%s) %s",
-		table, strings.Join(cols, ", "), pholders, conflictClause,
+		table,
+		strings.Join(cols, ", "),
+		pholders,
+		conflictClause,
 	)
 
 	if _, err := s.tx.ExecContext(ctx, query, vals...); err != nil {
@@ -214,7 +217,10 @@ func (s *sqlSink) UpsertExpr(
 
 	query := fmt.Sprintf( // #nosec G201 -- interpolates SQL identifiers (constants/caller schema config), never end-user input; values use placeholders
 		"INSERT INTO %s (%s) VALUES (%s) %s",
-		table, strings.Join(cols, ", "), pholders, conflictClause,
+		table,
+		strings.Join(cols, ", "),
+		pholders,
+		conflictClause,
 	)
 
 	if _, err := s.tx.ExecContext(ctx, query, args...); err != nil {

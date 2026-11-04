@@ -114,7 +114,14 @@ func ReconstructEventWithAdoptedPayload(
 		[]Option{WithMetadata(metadata)},
 	)
 
-	return buildEvent(eventType, aggID, aggType, Version(version), payload, opts), nil // #nosec G115 -- reconstructed stream version, non-negative domain value
+	return buildEvent(
+		eventType,
+		aggID,
+		aggType,
+		Version(version),
+		payload,
+		opts,
+	), nil // #nosec G115 -- reconstructed stream version, non-negative domain value
 }
 
 func reconstructEvent(

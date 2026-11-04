@@ -91,7 +91,9 @@ func (s *SQLTimerStore[P]) Schedule(ctx context.Context, t scheduling.Timer[P]) 
 	// id = id for MySQL).
 	query := fmt.Sprintf( // #nosec G201 -- interpolates SQL identifiers (constants/caller schema config), never end-user input; values use placeholders
 		`INSERT INTO timers (id, fire_at, payload) VALUES (%s, %s, %s) %s`,
-		s.Dialect.Placeholder(1), s.Dialect.Placeholder(2), s.Dialect.Placeholder(3),
+		s.Dialect.Placeholder(1),
+		s.Dialect.Placeholder(2),
+		s.Dialect.Placeholder(3),
 		s.Dialect.OnConflictDoNothing("id"),
 	)
 
@@ -191,7 +193,9 @@ func (s *SQLTimerStore[P]) deleteTimer(
 	ctx, span := s.startSpan(ctx, spanName, id.String())
 	defer span.End()
 
-	query := "DELETE FROM timers WHERE id = " + s.Dialect.Placeholder(1) // #nosec G202 -- concatenates constant/config SQL identifiers; values use placeholders
+	query := "DELETE FROM timers WHERE id = " + s.Dialect.Placeholder(
+		1,
+	) // #nosec G202 -- concatenates constant/config SQL identifiers; values use placeholders
 
 	if _, err := s.DB.ExecContext(ctx, query, id); err != nil {
 		cqrsotel.RecordError(span, err)

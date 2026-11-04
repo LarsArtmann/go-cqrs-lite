@@ -227,7 +227,11 @@ func newTestEvents(
 	aggID := id.NewStreamID()
 	evts := make([]event.Event, len(versions))
 	for i, v := range versions {
-		evts[i] = cfg.NewTestEvent(t, aggID, event.Version(v)) // #nosec G115 -- test fixture version, small by construction
+		evts[i] = cfg.NewTestEvent(
+			t,
+			aggID,
+			event.Version(v),
+		) // #nosec G115 -- test fixture version, small by construction
 	}
 
 	return aggID, evts

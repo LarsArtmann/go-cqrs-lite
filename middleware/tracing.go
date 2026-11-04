@@ -75,7 +75,9 @@ func EventTracing(tracer cqrsotel.Tracer) event.Middleware {
 					attrs,
 					cqrsotel.AttrInt64(
 						cqrsotel.AttrStreamVersion,
-						int64(evt.Version()), // #nosec G115 -- stream version fits int64 by construction
+						int64(
+							evt.Version(),
+						), // #nosec G115 -- stream version fits int64 by construction
 					),
 				)
 			},

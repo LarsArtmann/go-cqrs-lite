@@ -140,10 +140,12 @@ func (s *SnapshotStore) loadSnapshot(
 		result = &snapshot.Snapshot{
 			StreamType: id.StreamType(ss.StreamType),
 			StreamID:   ss.StreamID,
-			Version:    event.Version(ss.Version), // #nosec G115 -- snapshot version, non-negative domain value
-			State:      slices.Clone(ss.State),
-			Encoding:   ss.Encoding,
-			CreatedAt:  time.Unix(0, ss.CreatedAt).UTC(),
+			Version: event.Version(
+				ss.Version,
+			), // #nosec G115 -- snapshot version, non-negative domain value
+			State:     slices.Clone(ss.State),
+			Encoding:  ss.Encoding,
+			CreatedAt: time.Unix(0, ss.CreatedAt).UTC(),
 		}
 
 		return nil

@@ -26,7 +26,9 @@ func DeleteByStream(
 ) error {
 	query := fmt.Sprintf( // #nosec G201 -- interpolates SQL identifiers (constants/caller schema config), never end-user input; values use placeholders
 		"DELETE FROM %s WHERE stream_type = %s AND stream_id = %s",
-		table, placeholder1, placeholder2,
+		table,
+		placeholder1,
+		placeholder2,
 	)
 
 	_, err := db.ExecContext(ctx, query, string(ref.Type), ref.ID)
