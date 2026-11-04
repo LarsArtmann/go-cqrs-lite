@@ -17,8 +17,10 @@ applied require would not resolve.
 | go-appkit   | 12      | 308              | 84                      | 13                             |
 | bank-sync   | 5       | 459              | 137                     | 20                             |
 
-Full per-module reports: captured in the session's `/tmp/v5-<repo>.txt`;
-the numbers above are their aggregates.
+Full per-module reports are re-derivable at any time by rerunning the command
+above; the numbers here are their aggregates (session-captured in ephemeral
+`/tmp/v5-<repo>.txt`, deliberately not committed — the command is the source
+of truth, not the snapshot).
 
 ## What the receipts prove
 
