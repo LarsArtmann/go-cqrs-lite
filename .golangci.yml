@@ -853,6 +853,11 @@ linters:
           - varnamelen
           - wrapcheck
           - forbidigo
+          - wsl_v5
+          - nlreturn
+          - gocyclo
+          - cyclop
+          - maintidx
       # Declarative rule tables: three sibling files of pure RuleInfo literals
       # (catalog_api / catalog_adoption / catalog_boilerplate). dupl pair
       # anchoring flips between the twins, which ping-pongs per-file
@@ -861,11 +866,6 @@ linters:
       - path: cmd/cqrs-lint/pkg/rules/catalog_(api|adoption|boilerplate)\.go$
         linters:
           - dupl
-          - wsl_v5
-          - nlreturn
-          - gocyclo
-          - cyclop
-          - maintidx
       - path: cmd/cqrs-upgrade/
         linters:
           - contextcheck
