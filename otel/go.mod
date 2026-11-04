@@ -3,7 +3,7 @@ module github.com/larsartmann/go-cqrs-lite/otel/v4
 go 1.27.2
 
 require (
-	github.com/gkampitakis/go-snaps v0.5.23
+	github.com/gkampitakis/go-snaps v0.5.24
 	github.com/onsi/gomega v1.44.0
 	github.com/samber/lo v1.53.0
 	go.opentelemetry.io/otel v1.47.0
