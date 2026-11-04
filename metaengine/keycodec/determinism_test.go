@@ -12,7 +12,7 @@ import (
 // means the same logical write lands as different rows/keys across runs,
 // which breaks byte-level comparisons, split reads, and cache identity.
 // The fix form is json.Deterministic(true) (verified 2026-10-25, rowed in
-// TODO_LIST; pinned here 2026-11-03).
+// the backlog; pinned here 2026-11-03).
 func TestEncodeJSONMapValuesAreDeterministic(t *testing.T) {
 	t.Parallel()
 

@@ -108,7 +108,7 @@ func ValidateScorecardModulePins(pins map[string]bool) error {
 		case !scored[ModuleKey(key)]:
 			return fmt.Errorf(
 				"%w: unknown module key %q (must be a scored catalog key)",
-			ErrScorecardWaiver,
+				ErrScorecardWaiver,
 				key,
 			)
 		case !used:

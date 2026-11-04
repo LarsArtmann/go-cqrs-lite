@@ -231,8 +231,15 @@ func rematchOrphanedReasons(
 			dropped += len(orphans)
 
 			for _, o := range orphans {
-				warn("cqrs-lint: --update-baseline drops reason %q on %s %s:%d:%d — %d moved findings with differing reasons share this file; re-annotate manually\n",
-					o.Reason, o.Rule, o.File, o.Line, o.Column, len(orphans))
+				warn(
+					"cqrs-lint: --update-baseline drops reason %q on %s %s:%d:%d — %d moved findings with differing reasons share this file; re-annotate manually\n",
+					o.Reason,
+					o.Rule,
+					o.File,
+					o.Line,
+					o.Column,
+					len(orphans),
+				)
 			}
 		}
 	}

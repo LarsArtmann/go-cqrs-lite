@@ -124,7 +124,7 @@ func (cs *Cache[T, K]) Get(ctx context.Context, id K) (*T, error) {
 
 	val, err := cs.store.Get(ctx, id)
 	if err != nil {
-		return nil, err
+		return nil, err //nolint:wrapcheck // transparent cache proxy
 	}
 
 	cached, err := cs.copy(val)
@@ -149,7 +149,7 @@ func (cs *Cache[T, K]) Has(ctx context.Context, id K) (bool, error) {
 	if hasser, ok := cs.store.(interface {
 		Has(ctx context.Context, key K) (bool, error)
 	}); ok {
-		return hasser.Has(ctx, id)
+		return hasser.Has(ctx, id) //nolint:wrapcheck // transparent cache proxy
 	}
 
 	_, err := cs.store.Get(ctx, id)
@@ -158,7 +158,7 @@ func (cs *Cache[T, K]) Has(ctx context.Context, id K) (bool, error) {
 			return false, nil
 		}
 
-		return false, err
+		return false, err //nolint:wrapcheck // transparent cache proxy
 	}
 
 	return true, nil
@@ -168,10 +168,10 @@ func (cs *Cache[T, K]) Has(ctx context.Context, id K) (bool, error) {
 // The cache stores a private deep copy of val, so mutating val after Set
 // returns never affects subsequent reads.
 func (cs *Cache[T, K]) Set(ctx context.Context, id K, val *T) error {
-	err := cs.store.Set(ctx, id, val)
-	if err != nil {
-		return err
-	}
+err := cs.store.Set(ctx, id, val)
+if err != nil {
+	return err //nolint:wrapcheck // transparent cache proxy
+}
 
 	cached, err := cs.copy(val)
 	if err != nil {
@@ -189,10 +189,10 @@ func (cs *Cache[T, K]) Set(ctx context.Context, id K, val *T) error {
 
 // Delete removes the value from the store and invalidates the cache entry.
 func (cs *Cache[T, K]) Delete(ctx context.Context, id K) error {
-	err := cs.store.Delete(ctx, id)
-	if err != nil {
-		return err
-	}
+err := cs.store.Delete(ctx, id)
+if err != nil {
+	return err //nolint:wrapcheck // transparent cache proxy
+}
 
 	cs.cache.Invalidate(id.String())
 

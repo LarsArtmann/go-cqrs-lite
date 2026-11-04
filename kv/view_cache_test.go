@@ -55,7 +55,7 @@ func (f *fakeViewStore) Delete(_ context.Context, key stringKey) error {
 }
 
 func (f *fakeViewStore) Scan(_ context.Context, prefix []byte) ([]*testView, error) {
-	var out []*testView
+	out := make([]*testView, 0, len(f.values))
 
 	for _, v := range f.values {
 		out = append(out, v)

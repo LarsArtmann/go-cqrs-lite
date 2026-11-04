@@ -139,7 +139,13 @@ func TestEntriesFromFindings_MovedLineCarriesReason(t *testing.T) {
 		Version: baselineVersion,
 		Tool:    "cqrs-lint",
 		Entries: []baselineEntry{
-			{Rule: "A032", File: "machineapi/api.go", Line: 40, Column: 1, Reason: "hand-rolled dispatch is deliberate"},
+			{
+				Rule:   "A032",
+				File:   "machineapi/api.go",
+				Line:   40,
+				Column: 1,
+				Reason: "hand-rolled dispatch is deliberate",
+			},
 		},
 	}
 

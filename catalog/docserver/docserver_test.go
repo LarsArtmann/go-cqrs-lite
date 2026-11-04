@@ -333,8 +333,8 @@ func TestDocsServer_RegisterRoutes_SkipIndexRoute(t *testing.T) {
 	t.Parallel()
 
 	srv := NewDocsServer(testProvider, Config{
-		ServiceName:   "Test Service",
-		Version:       "1.0.0",
+		ServiceName:    "Test Service",
+		Version:        "1.0.0",
 		SkipIndexRoute: true,
 	})
 

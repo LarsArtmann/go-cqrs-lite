@@ -13,20 +13,23 @@ func applyDisplayNameFallbacks(cat *Catalog) {
 		svc := &cat.Services[i]
 
 		for j := range svc.Commands {
-			svc.Commands[j].fallbackName()
+			fallbackName(&svc.Commands[j])
 		}
 
 		for j := range svc.Events {
-			svc.Events[j].fallbackName()
+			fallbackName(&svc.Events[j])
 		}
 
 		for j := range svc.Queries {
-			svc.Queries[j].fallbackName()
+			fallbackName(&svc.Queries[j])
 		}
 	}
 }
 
-func (m *Message) fallbackName() {
+// fallbackName back-fills m.Name from the message ID (see
+// applyDisplayNameFallbacks). A free function, not a method, so Message keeps
+// a single value-receiver method set.
+func fallbackName(m *Message) {
 	if m.Name != "" || m.ID == "" {
 		return
 	}

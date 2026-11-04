@@ -223,6 +223,7 @@ func (ds *DocsServer) RegisterRoutes(mux *http.ServeMux) {
 			http.Redirect(w, r, prefix, http.StatusPermanentRedirect)
 		})
 	}
+
 	mux.HandleFunc("GET "+prefix+"/openapi", ds.serveOpenAPIHTML)
 	mux.HandleFunc("GET "+prefix+"/openapi.json", ds.serveOpenAPIJSON)
 	mux.HandleFunc("GET "+prefix+"/openapi.yaml", ds.serveOpenAPIYAML)
