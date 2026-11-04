@@ -167,7 +167,7 @@ func (s *SQLSnapshotStore) scanSnapshot(
 			return nil, errorfamily.WrapRejection(
 				snapshot.ErrSnapshotNotFound,
 				"storage.snapshot_not_found",
-				fmt.Sprintf("%s/%s at v%d", ref.Type, ref.ID, event.Version(version)),
+				fmt.Sprintf("%s/%s at v%d", ref.Type, ref.ID, event.Version(version)), // #nosec G115 -- version scanned back from storage, non-negative domain value
 			)
 		}
 		return nil, errorfamily.WrapInfrastructure(err, "storage.scan_snapshot",
@@ -183,7 +183,7 @@ func (s *SQLSnapshotStore) scanSnapshot(
 	}
 	return &snapshot.Snapshot{
 		StreamID: ref.ID, StreamType: ref.Type,
-		Version: event.Version(version), State: stateBytes, CreatedAt: createdAt,
+		Version: event.Version(version), State: stateBytes, CreatedAt: createdAt, // #nosec G115 -- version scanned back from storage, non-negative domain value
 	}, nil
 }
 

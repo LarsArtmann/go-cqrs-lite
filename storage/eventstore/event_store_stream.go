@@ -99,7 +99,7 @@ func (s *SQLEventStore) readStream(
 	}
 
 	p1, p2 := s.Dialect.Placeholder(1), s.Dialect.Placeholder(2)
-	query := fmt.Sprintf(
+	query := fmt.Sprintf( // #nosec G201 -- interpolates SQL identifiers (constants/caller schema config), never end-user input; values use placeholders
 		"SELECT %s FROM %s WHERE aggregate_type = %s AND aggregate_id = %s %s",
 		sqlpkg.EventColumns, sqlpkg.TableEvents, p1, p2, where,
 	)

@@ -71,7 +71,7 @@ func (s *SQLKVStore) upsertSQL() string {
 
 // Get returns the value for key, or [kv.ErrNotFound] if no row exists.
 func (s *SQLKVStore) Get(ctx context.Context, key []byte) ([]byte, error) {
-	q := fmt.Sprintf(
+	q := fmt.Sprintf( // #nosec G201 -- interpolates SQL identifiers (constants/caller schema config), never end-user input; values use placeholders
 		"SELECT value FROM %s WHERE %s = %s",
 		kvTableName,
 		s.Dialect.QuoteIdentifier("key"),
@@ -95,7 +95,7 @@ func (s *SQLKVStore) Get(ctx context.Context, key []byte) ([]byte, error) {
 
 // Has reports whether a row exists for key.
 func (s *SQLKVStore) Has(ctx context.Context, key []byte) (bool, error) {
-	q := fmt.Sprintf(
+	q := fmt.Sprintf( // #nosec G201 -- interpolates SQL identifiers (constants/caller schema config), never end-user input; values use placeholders
 		"SELECT 1 FROM %s WHERE %s = %s",
 		kvTableName,
 		s.Dialect.QuoteIdentifier("key"),
@@ -125,7 +125,7 @@ func (s *SQLKVStore) Set(ctx context.Context, key, value []byte) error {
 
 // Delete removes key. Deleting a missing key is a no-op.
 func (s *SQLKVStore) Delete(ctx context.Context, key []byte) error {
-	q := fmt.Sprintf(
+	q := fmt.Sprintf( // #nosec G201 -- interpolates SQL identifiers (constants/caller schema config), never end-user input; values use placeholders
 		"DELETE FROM %s WHERE %s = %s",
 		kvTableName,
 		s.Dialect.QuoteIdentifier("key"),
@@ -273,7 +273,7 @@ func (b *sqlKVBatch) Set(ctx context.Context, key, value []byte) error {
 }
 
 func (b *sqlKVBatch) Delete(ctx context.Context, key []byte) error {
-	q := fmt.Sprintf("DELETE FROM %s WHERE key = %s", kvTableName, b.store.Dialect.Placeholder(1))
+	q := fmt.Sprintf("DELETE FROM %s WHERE key = %s", kvTableName, b.store.Dialect.Placeholder(1)) // #nosec G201 -- interpolates SQL identifiers (constants/caller schema config), never end-user input; values use placeholders
 
 	_, err := b.tx.ExecContext(ctx, q, key)
 	return wrapTransientOrOK(err, "kv_sql.batch_delete", "batch delete in KV store")

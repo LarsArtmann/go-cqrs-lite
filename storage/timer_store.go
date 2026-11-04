@@ -89,7 +89,7 @@ func (s *SQLTimerStore[P]) Schedule(ctx context.Context, t scheduling.Timer[P]) 
 	// is a no-op rather than a duplicate fire. Uses dialect-specific conflict
 	// handling (ON CONFLICT DO NOTHING for PG/SQLite, ON DUPLICATE KEY UPDATE
 	// id = id for MySQL).
-	query := fmt.Sprintf(
+	query := fmt.Sprintf( // #nosec G201 -- interpolates SQL identifiers (constants/caller schema config), never end-user input; values use placeholders
 		`INSERT INTO timers (id, fire_at, payload) VALUES (%s, %s, %s) %s`,
 		s.Dialect.Placeholder(1), s.Dialect.Placeholder(2), s.Dialect.Placeholder(3),
 		s.Dialect.OnConflictDoNothing("id"),
@@ -114,7 +114,7 @@ func (s *SQLTimerStore[P]) Due(ctx context.Context, now time.Time) ([]scheduling
 	ctx, span := s.startSpan(ctx, "timer.due", "")
 	defer span.End()
 
-	query := fmt.Sprintf(
+	query := fmt.Sprintf( // #nosec G201 -- interpolates SQL identifiers (constants/caller schema config), never end-user input; values use placeholders
 		`SELECT id, fire_at, payload FROM timers WHERE fire_at <= %s ORDER BY fire_at ASC`,
 		s.Dialect.Placeholder(1),
 	)
@@ -191,7 +191,7 @@ func (s *SQLTimerStore[P]) deleteTimer(
 	ctx, span := s.startSpan(ctx, spanName, id.String())
 	defer span.End()
 
-	query := "DELETE FROM timers WHERE id = " + s.Dialect.Placeholder(1)
+	query := "DELETE FROM timers WHERE id = " + s.Dialect.Placeholder(1) // #nosec G202 -- concatenates constant/config SQL identifiers; values use placeholders
 
 	if _, err := s.DB.ExecContext(ctx, query, id); err != nil {
 		cqrsotel.RecordError(span, err)

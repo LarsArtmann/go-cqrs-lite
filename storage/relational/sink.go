@@ -194,7 +194,7 @@ func (s *sqlSink) Upsert(ctx context.Context, table string, row Row, conflictCol
 		conflictClause = s.dialect.OnConflictDoNothing(cols[0])
 	}
 
-	query := fmt.Sprintf(
+	query := fmt.Sprintf( // #nosec G201 -- interpolates SQL identifiers (constants/caller schema config), never end-user input; values use placeholders
 		"INSERT INTO %s (%s) VALUES (%s) %s",
 		table, strings.Join(cols, ", "), pholders, conflictClause,
 	)
@@ -215,7 +215,7 @@ func (s *sqlSink) Ensure(ctx context.Context, table string, row Row) error {
 
 	pholders := placeholders(s.dialect, len(cols))
 
-	query := fmt.Sprintf(
+	query := fmt.Sprintf( // #nosec G201 -- interpolates SQL identifiers (constants/caller schema config), never end-user input; values use placeholders
 		"INSERT INTO %s (%s) VALUES (%s) %s",
 		table, strings.Join(cols, ", "), pholders, s.dialect.OnConflictDoNothing(cols[0]),
 	)
@@ -250,7 +250,7 @@ func (s *sqlSink) Update(ctx context.Context, table string, set, match Row) erro
 	where, whereArgs := eqWhere(matchCols, matchVals, s.dialect, len(args)+1)
 	args = append(args, whereArgs...)
 
-	query := fmt.Sprintf("UPDATE %s SET %s WHERE %s", table, strings.Join(pairs, ", "), where)
+	query := fmt.Sprintf("UPDATE %s SET %s WHERE %s", table, strings.Join(pairs, ", "), where) // #nosec G201 -- interpolates SQL identifiers (constants/caller schema config), never end-user input; values use placeholders
 
 	if _, err := s.tx.ExecContext(ctx, query, args...); err != nil {
 		return errorfamily.WrapTransient(err, "relational.sink_update",
@@ -268,7 +268,7 @@ func (s *sqlSink) DeleteWhere(ctx context.Context, table string, match Row) erro
 
 	where, whereArgs := eqWhere(matchCols, matchVals, s.dialect, 1)
 
-	query := fmt.Sprintf("DELETE FROM %s WHERE %s", table, where)
+	query := fmt.Sprintf("DELETE FROM %s WHERE %s", table, where) // #nosec G201 -- interpolates SQL identifiers (constants/caller schema config), never end-user input; values use placeholders
 
 	if _, err := s.tx.ExecContext(ctx, query, whereArgs...); err != nil {
 		return errorfamily.WrapTransient(err, "relational.sink_delete",
@@ -286,7 +286,7 @@ func (s *sqlSink) QueryOne(ctx context.Context, table, column string, match Row)
 
 	where, whereArgs := eqWhere(matchCols, matchVals, s.dialect, 1)
 
-	query := fmt.Sprintf("SELECT %s FROM %s WHERE %s LIMIT 1", column, table, where)
+	query := fmt.Sprintf("SELECT %s FROM %s WHERE %s LIMIT 1", column, table, where) // #nosec G201 -- interpolates SQL identifiers (constants/caller schema config), never end-user input; values use placeholders
 
 	var result any
 

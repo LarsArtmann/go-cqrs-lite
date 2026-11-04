@@ -24,7 +24,7 @@ func DeleteByStream(
 	placeholder2 string,
 	what string,
 ) error {
-	query := fmt.Sprintf(
+	query := fmt.Sprintf( // #nosec G201 -- interpolates SQL identifiers (constants/caller schema config), never end-user input; values use placeholders
 		"DELETE FROM %s WHERE stream_type = %s AND stream_id = %s",
 		table, placeholder1, placeholder2,
 	)
@@ -213,7 +213,7 @@ func insertMultiValues(
 		)
 	}
 
-	query := fmt.Sprintf(
+	query := fmt.Sprintf( // #nosec G201 -- interpolates SQL identifiers (constants/caller schema config), never end-user input; values use placeholders
 		`INSERT INTO %s (id, event_type, aggregate_type, aggregate_id, version, schema_version, payload, payload_encoding, metadata, occurred_at) VALUES %s`,
 		TableEvents,
 		strings.Join(valueGroups, ", "),

@@ -145,7 +145,7 @@ func ConfigureSQLitePool(db *sql.DB) { db.SetMaxOpenConns(1) }
 //
 // Valid levels: "FULL", "NORMAL", "OFF" (SQLite is case-insensitive).
 func SQLiteSetSynchronous(ctx context.Context, db *sql.DB, level string) error {
-	pragma := "PRAGMA synchronous=" + level
+	pragma := "PRAGMA synchronous=" + level // #nosec G202 -- level is a developer-supplied PRAGMA keyword per documented contract
 
 	if _, err := db.ExecContext(ctx, pragma); err != nil {
 		return errorfamily.WrapInfrastructure(err, "storage.set_synchronous", "exec "+pragma)

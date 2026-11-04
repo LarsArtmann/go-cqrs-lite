@@ -77,6 +77,6 @@ func appendPrefixed(buf, lenBuf []byte, s string) []byte {
 func putUint32(b []byte, n int) {
 	binary.BigEndian.PutUint32(
 		b,
-		uint32(n), //nolint:gosec // bounded by signing context
+		uint32(n), // #nosec G115 -- bounded by signing context
 	)
 }

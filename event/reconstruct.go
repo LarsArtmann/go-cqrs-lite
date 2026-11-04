@@ -99,7 +99,7 @@ func ReconstructEventWithAdoptedPayload(
 		eventType,
 		aggID,
 		aggType,
-		Version(version),
+		Version(version), // #nosec G115 -- reconstructed stream version, non-negative domain value
 		payload,
 	); err != nil {
 		return nil, errorfamily.WrapCorruption(err, errCodePrefix+".reconstruct_event",
@@ -114,7 +114,7 @@ func ReconstructEventWithAdoptedPayload(
 		[]Option{WithMetadata(metadata)},
 	)
 
-	return buildEvent(eventType, aggID, aggType, Version(version), payload, opts), nil
+	return buildEvent(eventType, aggID, aggType, Version(version), payload, opts), nil // #nosec G115 -- reconstructed stream version, non-negative domain value
 }
 
 func reconstructEvent(
@@ -135,7 +135,7 @@ func reconstructEvent(
 		eventType,
 		aggID,
 		aggType,
-		Version(version),
+		Version(version), // #nosec G115 -- reconstructed stream version, non-negative domain value
 		payload,
 		opts...,
 	)

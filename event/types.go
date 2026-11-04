@@ -105,7 +105,7 @@ func ParseVersion(v uint64) (Version, error) {
 }
 
 // Int returns the underlying int value.
-func (v Version) Int() int { return int(v) }
+func (v Version) Int() int { return int(v) } // #nosec G115 -- Version values are stream positions far below int width
 
 // UInt64 returns the underlying uint64 value.
 func (v Version) UInt64() uint64 { return uint64(v) }
@@ -145,15 +145,15 @@ func (v Version) Add(n uint) Version { return v + Version(n) }
 // Sub returns a new Version decremented by n.
 // Returns ErrVersionUnderflow if the result would be negative.
 func (v Version) Sub(n int) (Version, error) {
-	if Version(n) > v {
+	if Version(n) > v { // #nosec G115 -- Version values are stream positions far below int width
 		return 0, fmt.Errorf("%w: %d - %d", ErrVersionUnderflow, v, n)
 	}
 
-	return v - Version(n), nil
+	return v - Version(n), nil // #nosec G115 -- Version values are stream positions far below int width
 }
 
 // Mod returns v modulo n.
-func (v Version) Mod(n int) int { return int(v) % n }
+func (v Version) Mod(n int) int { return int(v) % n } // #nosec G115 -- Version values are stream positions far below int width
 
 // Cmp compares two Versions. Returns -1, 0, or +1.
 func (v Version) Cmp(other Version) int {

@@ -37,7 +37,7 @@ func (s *SQLEventStore) LoadByEventID(
 	defer span.End()
 
 	p1 := s.Dialect.Placeholder(1)
-	query := fmt.Sprintf("SELECT %s FROM %s WHERE id = %s LIMIT 1",
+	query := fmt.Sprintf("SELECT %s FROM %s WHERE id = %s LIMIT 1", // #nosec G201 -- interpolates SQL identifiers (constants/caller schema config), never end-user input; values use placeholders
 		sqlpkg.EventColumns, sqlpkg.TableEvents, p1)
 
 	rows, err := s.DB.QueryContext(ctx, query, eventID.String())

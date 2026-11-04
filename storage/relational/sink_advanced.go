@@ -96,7 +96,7 @@ func (s *sqlSink) Increment(
 			s.dialect.ExcludedRef(counterCol),
 		),
 	}
-	query := fmt.Sprintf(
+	query := fmt.Sprintf( // #nosec G201 -- interpolates SQL identifiers (constants/caller schema config), never end-user input; values use placeholders
 		"INSERT INTO %s (%s) VALUES (%s) %s",
 		table,
 		strings.Join(allCols, ", "),
@@ -150,7 +150,7 @@ func (s *sqlSink) UpsertCols(
 		conflictClause = s.dialect.OnConflictDoNothing(cols[0])
 	}
 
-	query := fmt.Sprintf(
+	query := fmt.Sprintf( // #nosec G201 -- interpolates SQL identifiers (constants/caller schema config), never end-user input; values use placeholders
 		"INSERT INTO %s (%s) VALUES (%s) %s",
 		table, strings.Join(cols, ", "), pholders, conflictClause,
 	)
@@ -212,7 +212,7 @@ func (s *sqlSink) UpsertExpr(
 
 	pholders := placeholders(s.dialect, len(cols))
 
-	query := fmt.Sprintf(
+	query := fmt.Sprintf( // #nosec G201 -- interpolates SQL identifiers (constants/caller schema config), never end-user input; values use placeholders
 		"INSERT INTO %s (%s) VALUES (%s) %s",
 		table, strings.Join(cols, ", "), pholders, conflictClause,
 	)

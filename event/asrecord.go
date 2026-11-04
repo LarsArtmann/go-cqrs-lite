@@ -95,7 +95,7 @@ func AsRecord(evt Event) record.Record {
 		Payload:    evt.Payload(),
 		StreamID:   record.NewStreamRefOrZero(streamType, evt.StreamID().Get()),
 		StreamType: streamType,
-		Version:    int64(evt.Version()),
+		Version:    int64(evt.Version()), // #nosec G115 -- stream version fits int64 by construction
 		MetaData: record.CommonMetadata{
 			CorrelationID:   metadata.BrandedString(tracing.CorrelationID),
 			CausationID:     causationID,

@@ -155,7 +155,7 @@ func scanStreamStatuses(rows *sql.Rows) ([]listing.StreamStatus, error) {
 			Ref: listing.StreamListing{
 				ID:         parsedID,
 				Type:       id.StreamType(streamType),
-				Version:    event.Version(version),
+				Version:    event.Version(version), // #nosec G115 -- version scanned back from storage, non-negative domain value
 				EventCount: count,
 			},
 			Status: listing.Status(statusInt),

@@ -67,7 +67,7 @@ func SharedCheckpointSave(
 	d Dialect,
 ) error {
 	if cp.IsZero() {
-		query := "DELETE FROM " + TableCheckpoints + " WHERE projection_name = " + d.Placeholder(1)
+		query := "DELETE FROM " + TableCheckpoints + " WHERE projection_name = " + d.Placeholder(1) // #nosec G202 -- concatenates constant/config SQL identifiers; values use placeholders
 
 		if _, err := db.ExecContext(ctx, query, projectionName); err != nil {
 			return errorfamily.WrapInfrastructure(err, "storage.save_checkpoint",

@@ -170,7 +170,7 @@ func (p *RelationalProjection) Reset(ctx context.Context) error {
 	for i := range p.schema.Tables {
 		t := p.schema.Tables[i]
 
-		if _, err := p.db.ExecContext(ctx, "DELETE FROM "+t.Name); err != nil {
+		if _, err := p.db.ExecContext(ctx, "DELETE FROM "+t.Name); err != nil { // #nosec G202 -- t.Name is developer schema config, not end-user input
 			return errorfamily.WrapTransient(err, "relational.projection_reset",
 				fmt.Sprintf("projection %q: delete from %s", p.name, t.Name))
 		}

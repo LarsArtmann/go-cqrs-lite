@@ -180,7 +180,7 @@ func probeInformationSchemaColumns(
 	table string,
 	limitToCurrentSchema bool,
 ) ([]string, error) {
-	query := "SELECT column_name FROM information_schema.columns WHERE table_name = " + d.Placeholder(
+	query := "SELECT column_name FROM information_schema.columns WHERE table_name = " + d.Placeholder( // #nosec G202 -- concatenates constant/config SQL identifiers; values use placeholders
 		1,
 	)
 	if limitToCurrentSchema {

@@ -86,7 +86,7 @@ func QueryRows[T any](
 	aggID any,
 ) ([]T, error) {
 	p1, p2 := d.Placeholder(1), d.Placeholder(2)
-	query := fmt.Sprintf(
+	query := fmt.Sprintf( // #nosec G201 -- interpolates SQL identifiers (constants/caller schema config), never end-user input; values use placeholders
 		"SELECT %s FROM %s WHERE aggregate_type = %s AND aggregate_id = %s %s",
 		cfg.Columns, cfg.Table, p1, p2, p.Where,
 	)

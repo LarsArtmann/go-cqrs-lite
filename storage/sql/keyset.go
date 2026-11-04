@@ -32,7 +32,7 @@ func ResolveCursorTimestamp(
 		return nil, false, err
 	}
 
-	query := fmt.Sprintf(
+	query := fmt.Sprintf( // #nosec G201 -- interpolates SQL identifiers (constants/caller schema config), never end-user input; values use placeholders
 		`SELECT %s FROM %s WHERE id = %s`,
 		timestampColumn, table, dialect.Placeholder(1),
 	)

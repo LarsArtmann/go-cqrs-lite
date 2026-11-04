@@ -79,7 +79,7 @@ func (r *JournalReader[T]) ReadAll(ctx context.Context) ([]T, error) {
 		return nil, err
 	}
 
-	query := `SELECT ` + r.AllColumns + `
+	query := `SELECT ` + r.AllColumns + ` // #nosec G202 -- AllColumns is a constant column list
 		FROM ` + r.Table + ` ORDER BY ` + r.TimestampColumn + ` ASC`
 
 	rows, err := r.DB.QueryContext(ctx, query)
@@ -237,7 +237,7 @@ func (r *JournalReader[T]) LoadFromStart(ctx context.Context, limit int) ([]T, e
 	}
 
 	p1 := r.Dialect.Placeholder(1)
-	query := `SELECT ` + r.AllColumns + `
+	query := `SELECT ` + r.AllColumns + ` // #nosec G202 -- AllColumns is a constant column list
 		FROM ` + r.Table + ` ORDER BY ` + r.TimestampColumn + ` ASC LIMIT ` + p1
 
 	rows, err := r.DB.QueryContext(ctx, query, limit)
