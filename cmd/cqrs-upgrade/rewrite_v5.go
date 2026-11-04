@@ -24,19 +24,19 @@ import (
 // excluded); TestV5TableMatchesCoreTree pins the table to that tree, so
 // extending the fold forces a deliberate table update here.
 var v5ImportTable = map[string]string{
-	"github.com/larsartmann/go-cqrs-lite/command/v4":            "github.com/larsartmann/go-cqrs-lite/core/v5/command",
+	"github.com/larsartmann/go-cqrs-lite/command/v4":             "github.com/larsartmann/go-cqrs-lite/core/v5/command",
 	"github.com/larsartmann/go-cqrs-lite/command/v4/commandtest": "github.com/larsartmann/go-cqrs-lite/core/v5/command/commandtest",
-	"github.com/larsartmann/go-cqrs-lite/dedup/v4":              "github.com/larsartmann/go-cqrs-lite/core/v5/dedup",
-	"github.com/larsartmann/go-cqrs-lite/dispatcher/v4":         "github.com/larsartmann/go-cqrs-lite/core/v5/dispatcher",
-	"github.com/larsartmann/go-cqrs-lite/event/v4":              "github.com/larsartmann/go-cqrs-lite/core/v5/event",
-	"github.com/larsartmann/go-cqrs-lite/id/v4":                 "github.com/larsartmann/go-cqrs-lite/core/v5/id",
-	"github.com/larsartmann/go-cqrs-lite/id/v4/idtest":          "github.com/larsartmann/go-cqrs-lite/core/v5/id/idtest",
-	"github.com/larsartmann/go-cqrs-lite/kv/v4":                 "github.com/larsartmann/go-cqrs-lite/core/v5/kv",
-	"github.com/larsartmann/go-cqrs-lite/kv/v4/viewstoretest":   "github.com/larsartmann/go-cqrs-lite/core/v5/kv/viewstoretest",
-	"github.com/larsartmann/go-cqrs-lite/metadata/v4":           "github.com/larsartmann/go-cqrs-lite/core/v5/metadata",
-	"github.com/larsartmann/go-cqrs-lite/query/v4":              "github.com/larsartmann/go-cqrs-lite/core/v5/query",
-	"github.com/larsartmann/go-cqrs-lite/query/v4/querytest":    "github.com/larsartmann/go-cqrs-lite/core/v5/query/querytest",
-	"github.com/larsartmann/go-cqrs-lite/record/v4":             "github.com/larsartmann/go-cqrs-lite/core/v5/record",
+	"github.com/larsartmann/go-cqrs-lite/dedup/v4":               "github.com/larsartmann/go-cqrs-lite/core/v5/dedup",
+	"github.com/larsartmann/go-cqrs-lite/dispatcher/v4":          "github.com/larsartmann/go-cqrs-lite/core/v5/dispatcher",
+	"github.com/larsartmann/go-cqrs-lite/event/v4":               "github.com/larsartmann/go-cqrs-lite/core/v5/event",
+	"github.com/larsartmann/go-cqrs-lite/id/v4":                  "github.com/larsartmann/go-cqrs-lite/core/v5/id",
+	"github.com/larsartmann/go-cqrs-lite/id/v4/idtest":           "github.com/larsartmann/go-cqrs-lite/core/v5/id/idtest",
+	"github.com/larsartmann/go-cqrs-lite/kv/v4":                  "github.com/larsartmann/go-cqrs-lite/core/v5/kv",
+	"github.com/larsartmann/go-cqrs-lite/kv/v4/viewstoretest":    "github.com/larsartmann/go-cqrs-lite/core/v5/kv/viewstoretest",
+	"github.com/larsartmann/go-cqrs-lite/metadata/v4":            "github.com/larsartmann/go-cqrs-lite/core/v5/metadata",
+	"github.com/larsartmann/go-cqrs-lite/query/v4":               "github.com/larsartmann/go-cqrs-lite/core/v5/query",
+	"github.com/larsartmann/go-cqrs-lite/query/v4/querytest":     "github.com/larsartmann/go-cqrs-lite/core/v5/query/querytest",
+	"github.com/larsartmann/go-cqrs-lite/record/v4":              "github.com/larsartmann/go-cqrs-lite/core/v5/record",
 }
 
 // v4CqrsPrefix is the shared prefix of every go-cqrs-lite v4 import path.
@@ -89,7 +89,8 @@ func runV5Pass(dir string, dryRun bool) v5ModuleReport {
 		if d.IsDir() {
 			name := d.Name()
 
-			if path != dir && (name == "vendor" || name == "testdata" || name == ".git" || name == "node_modules") {
+			if path != dir &&
+				(name == "vendor" || name == "testdata" || name == ".git" || name == "node_modules") {
 				return filepath.SkipDir
 			}
 
@@ -203,6 +204,7 @@ func sortedKeys(m map[string]bool) []string {
 
 	return keys
 }
+
 // runV5Mode executes --to-v5 over dirs and prints the human report; with
 // --strict it fails on errored modules or not-yet-folded v4 imports.
 func runV5Mode(cfg config, dirs []string) error {

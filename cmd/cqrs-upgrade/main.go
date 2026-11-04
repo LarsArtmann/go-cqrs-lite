@@ -87,9 +87,13 @@ func parseFlags(args []string) (config, error) {
 		"clamp every bump target to at most this version (semver, e.g. v4.13.0); never downgrades")
 	fs.BoolVar(&cfg.workspace, "workspace", false,
 		"upgrade every module under dir (skips vendor/, testdata/, .git/)")
-	fs.BoolVar(&cfg.toV5, "to-v5", false,
+	fs.BoolVar(
+		&cfg.toV5,
+		"to-v5",
+		false,
 		"v5 migration pass: rewrite imports of the folded v4 trains to their core/v5 twins (ADR-0152); "+
-			"go.mod requires are reported, not edited (core/v5 is untagged); combine with --dry-run for a per-file diff")
+			"go.mod requires are reported, not edited (core/v5 is untagged); combine with --dry-run for a per-file diff",
+	)
 
 	if err := fs.Parse(args); err != nil {
 		return cfg, err

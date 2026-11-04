@@ -59,7 +59,10 @@ func loadReadmeBlocks(t *testing.T) []RecipeBlock {
 	}
 	blocks := extractGoBlocks(string(md))
 	if len(blocks) < 4 {
-		t.Fatalf("extracted only %d Go fences - extraction is broken or the quick-start was rewritten", len(blocks))
+		t.Fatalf(
+			"extracted only %d Go fences - extraction is broken or the quick-start was rewritten",
+			len(blocks),
+		)
 	}
 
 	return blocks
@@ -116,7 +119,11 @@ func TestReadmeQuickStartCompiles(t *testing.T) {
 	); err != nil {
 		t.Fatalf("write go.mod: %v", err)
 	}
-	if err := os.WriteFile(filepath.Join(dir, "go.work"), []byte(workspaceFor(t, root, dir)), 0o644); err != nil {
+	if err := os.WriteFile(
+		filepath.Join(dir, "go.work"),
+		[]byte(workspaceFor(t, root, dir)),
+		0o644,
+	); err != nil {
 		t.Fatalf("write go.work: %v", err)
 	}
 	pkgDir := filepath.Join(dir, "quickstart")
@@ -138,5 +145,9 @@ func TestReadmeQuickStartCompiles(t *testing.T) {
 	if err != nil {
 		t.Fatalf("go build of the README quick-start failed:\n%s", out)
 	}
-	t.Logf("compiled README quick-start (%d fences, %d lines)", len(blocks), strings.Count(joined.Code, "\n")+1)
+	t.Logf(
+		"compiled README quick-start (%d fences, %d lines)",
+		len(blocks),
+		strings.Count(joined.Code, "\n")+1,
+	)
 }

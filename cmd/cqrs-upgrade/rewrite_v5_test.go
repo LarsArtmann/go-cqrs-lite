@@ -71,7 +71,11 @@ func TestV5TableMatchesCoreTree(t *testing.T) {
 	sort.Strings(treeTargets)
 
 	if strings.Join(tableTargets, "\n") != strings.Join(treeTargets, "\n") {
-		t.Errorf("table targets and core/v5 tree disagree:\ntable: %v\ntree:  %v", tableTargets, treeTargets)
+		t.Errorf(
+			"table targets and core/v5 tree disagree:\ntable: %v\ntree:  %v",
+			tableTargets,
+			treeTargets,
+		)
 	}
 }
 
@@ -125,12 +129,16 @@ func TestRewriteV5ImportsApply(t *testing.T) {
 		t.Fatalf("rewrite: %v", err)
 	}
 	if len(changes) != 3 {
-		t.Fatalf("want 3 changes (command, aliased id, blank viewstoretest), got %d: %+v", len(changes), changes)
+		t.Fatalf(
+			"want 3 changes (command, aliased id, blank viewstoretest), got %d: %+v",
+			len(changes),
+			changes,
+		)
 	}
 	want := map[string]string{
-		"github.com/larsartmann/go-cqrs-lite/command/v4":           "github.com/larsartmann/go-cqrs-lite/core/v5/command",
-		"github.com/larsartmann/go-cqrs-lite/id/v4":                "github.com/larsartmann/go-cqrs-lite/core/v5/id",
-		"github.com/larsartmann/go-cqrs-lite/kv/v4/viewstoretest":  "github.com/larsartmann/go-cqrs-lite/core/v5/kv/viewstoretest",
+		"github.com/larsartmann/go-cqrs-lite/command/v4":          "github.com/larsartmann/go-cqrs-lite/core/v5/command",
+		"github.com/larsartmann/go-cqrs-lite/id/v4":               "github.com/larsartmann/go-cqrs-lite/core/v5/id",
+		"github.com/larsartmann/go-cqrs-lite/kv/v4/viewstoretest": "github.com/larsartmann/go-cqrs-lite/core/v5/kv/viewstoretest",
 	}
 	for _, c := range changes {
 		if want[c.From] != c.To {
@@ -164,7 +172,10 @@ func TestRewriteV5ImportsApply(t *testing.T) {
 	if !strings.Contains(src, `"github.com/larsartmann/go-cqrs-lite/event/v4"`) {
 		t.Error("the const string must NOT be rewritten")
 	}
-	if !strings.Contains(src, "// github.com/larsartmann/go-cqrs-lite/event/v4 in a comment stays put.") {
+	if !strings.Contains(
+		src,
+		"// github.com/larsartmann/go-cqrs-lite/event/v4 in a comment stays put.",
+	) {
 		t.Error("the comment must NOT be rewritten")
 	}
 	if !strings.Contains(src, `"github.com/larsartmann/go-cqrs-lite/system/v4"`) {
@@ -234,15 +245,30 @@ func TestStrictV5GateError(t *testing.T) {
 		wantNil bool
 		wantErr string
 	}{
-		{"not strict ignores everything", false,
-			[]v5ModuleReport{{Error: "boom", RemainingV4: []string{"x/v4"}}}, true, ""},
-		{"errored module fails first", true,
-			[]v5ModuleReport{{Error: "boom"}}, false, "module error"},
-		{"remaining v4 fails", true,
-			[]v5ModuleReport{{RemainingV4: []string{"github.com/larsartmann/go-cqrs-lite/system/v4"}}},
-			false, "not-yet-folded"},
-		{"clean passes", true,
-			[]v5ModuleReport{{FilesScanned: 3}}, true, ""},
+		{
+			"not strict ignores everything", false,
+			[]v5ModuleReport{{Error: "boom", RemainingV4: []string{"x/v4"}}},
+			true, "",
+		},
+		{
+			"errored module fails first", true,
+			[]v5ModuleReport{{Error: "boom"}},
+			false, "module error",
+		},
+		{
+			"remaining v4 fails",
+			true,
+			[]v5ModuleReport{
+				{RemainingV4: []string{"github.com/larsartmann/go-cqrs-lite/system/v4"}},
+			},
+			false,
+			"not-yet-folded",
+		},
+		{
+			"clean passes", true,
+			[]v5ModuleReport{{FilesScanned: 3}},
+			true, "",
+		},
 	}
 	for _, tc := range cases {
 		err := strictV5GateError(tc.strict, tc.reports)
