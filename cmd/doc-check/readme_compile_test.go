@@ -32,15 +32,15 @@ var readmeFences = map[string]struct{}{
 // and trailers blanking the locals the prose never consumes.
 var readmeQuickStart = recipeSpec{
 	imports: []string{
-		"context",
-		"\"github.com/larsartmann/go-cqrs-lite/command/v4\"",
-		"\"github.com/larsartmann/go-cqrs-lite/decider/v4\"",
-		"\"github.com/larsartmann/go-cqrs-lite/event/v4\"",
-		"\"github.com/larsartmann/go-cqrs-lite/id/v4\"",
-		"\"github.com/larsartmann/go-cqrs-lite/metaengine/v4\"",
-		"\"github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4\"",
-		"\"github.com/larsartmann/go-cqrs-lite/record/v4\"",
-		"\"github.com/larsartmann/go-cqrs-lite/system/v4\"",
+		`"context"`,
+		`"github.com/larsartmann/go-cqrs-lite/command/v4"`,
+		`"github.com/larsartmann/go-cqrs-lite/decider/v4"`,
+		`"github.com/larsartmann/go-cqrs-lite/event/v4"`,
+		`"github.com/larsartmann/go-cqrs-lite/id/v4"`,
+		`"github.com/larsartmann/go-cqrs-lite/metaengine/v4"`,
+		`"github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4"`,
+		`"github.com/larsartmann/go-cqrs-lite/record/v4"`,
+		`"github.com/larsartmann/go-cqrs-lite/system/v4"`,
 	},
 	preamble: "var ctx = context.Background()\n\nvar counterID = id.NewStreamID()",
 	trailers: "\t_ = err\n\t_ = view\n\t_ = found",
@@ -120,7 +120,7 @@ func TestReadmeQuickStartCompiles(t *testing.T) {
 		t.Fatalf("write snippet: %v", err)
 	}
 
-	cmd := exec.Command("go", "build", "./...")
+	cmd := exec.Command("go", "build", "-o", os.DevNull, "./...")
 	cmd.Dir = dir
 	cmd.Env = append(os.Environ(),
 		"GOWORK="+filepath.Join(dir, "go.work"),
