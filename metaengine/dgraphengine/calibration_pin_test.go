@@ -57,8 +57,6 @@ func TestRealProfile_ReadCostsPinned(t *testing.T) {
 // scripts/calibration-drift.sh (enable with CALIB_DUMP=1). DSN-guarded via
 // the live-server construction skip so the drift script can cover live
 // remote windows (07-43 §f26).
-//
-// art-dupl:accept per-engine dump of own profile constants (dep-isolated modules)
 func TestCalibrationConstantsDump(t *testing.T) {
 	if os.Getenv("CALIB_DUMP") != "1" {
 		t.Skip("set CALIB_DUMP=1 to dump the shipped calibration constants")

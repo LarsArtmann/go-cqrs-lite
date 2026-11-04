@@ -191,13 +191,13 @@ func (e *mysqlEngine) ApplyLayout(collection string, filterFields, sortFields []
 // scanMySQLJSONValuesWithKeys executes the query and decodes each row's JSON
 // value alongside its key column — the pair keyset scans need to tiebreak and
 // mint compound cursors.
-// art-dupl:accept cross-module SQL engine pattern — separate go.mod
 func scanMySQLJSONValuesWithKeys(
 	ctx context.Context,
 	db metaengine.SQLExec,
 	query string,
 	args ...any,
 ) ([]any, []string, error) {
+	//art-dupl:accept cross-module SQL engine pattern — separate go.mod
 	rows, err := db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, nil, fmt.Errorf("mysqlengine scan: %w", err)

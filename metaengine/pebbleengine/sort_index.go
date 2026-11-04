@@ -23,6 +23,7 @@ func sortIndexFieldPrefix(col, field string) []byte {
 
 // sortIndexKey builds the full sort index key for a field value + primary key.
 // Format: "o{sep}{col}{sep}{field}{sep}{encodedValue}{sep}{primaryKey}".
+// art-dupl:accept shape-only match on a four-string parameter list, no shared behavior
 func sortIndexKey(col, field, encodedValue, primaryKey string) []byte {
 	return []byte("o" + sep + col + sep + field + sep + encodedValue + sep + primaryKey)
 }

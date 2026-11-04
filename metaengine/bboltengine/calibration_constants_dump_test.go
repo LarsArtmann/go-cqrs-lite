@@ -10,8 +10,6 @@ import (
 // profile is the single source of truth for calibrated constants: the drift
 // script compares fresh benches against exactly the values the planner
 // routes on, so the numbers cannot drift between code and gate.
-//
-// art-dupl:accept per-engine dump of own profile constants (dep-isolated modules)
 func TestCalibrationConstantsDump(t *testing.T) {
 	if os.Getenv("CALIB_DUMP") != "1" {
 		t.Skip("set CALIB_DUMP=1 to dump the shipped calibration constants")

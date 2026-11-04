@@ -21,10 +21,7 @@ import (
 func AssertDeterministicMapEncoding(t *testing.T, eng metaengine.Engine) {
 	t.Helper()
 
-	mb, ok := eng.(metaengine.MapBackend)
-	if !ok {
-		t.Skipf("engine does not implement metaengine.MapBackend")
-	}
+	mb := requireMapBackend(t, eng)
 
 	raw, ok := eng.(metaengine.RawValueReader)
 	if !ok {

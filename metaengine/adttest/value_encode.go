@@ -20,10 +20,7 @@ import (
 func AssertValueEncodeRejection(t *testing.T, eng metaengine.Engine) {
 	t.Helper()
 
-	mb, ok := eng.(metaengine.MapBackend)
-	if !ok {
-		t.Skipf("engine does not implement metaengine.MapBackend")
-	}
+	mb := requireMapBackend(t, eng)
 
 	// Run-unique collection: a fixed name lets a previous run's rows make the
 	// next run's asserts flaky on persistent database surfaces (the adttest
