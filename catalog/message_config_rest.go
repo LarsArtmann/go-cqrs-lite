@@ -37,6 +37,66 @@ func WithOperation[T any](method Method, path, successCode string) MessageOption
 	}
 }
 
+// WithTypedParam adds an HTTP parameter with an explicit schema, so consumer
+// contract docs can express non-string parameters (integer limits, boolean
+// flags, enums) instead of the untyped string [WithParam] declares. A nil
+// prop degrades to the untyped-string behavior of [WithParam].
+func WithTypedParam(
+	name, location, description string,
+	required bool,
+	prop *Property,
+) MessageOption {
+	return func(m *messageBuilder) {
+		if m.schema == nil {
+			m.schema = &Schema{Type: TypeObject, Properties: map[string]Property{}}
+		}
+
+		if m.schema.Parameters == nil {
+			m.schema.Parameters = []Parameter{}
+		}
+
+		m.schema.Parameters = append(m.schema.Parameters, Parameter{
+			Name: name, In: location, Description: description, Required: required, Schema: prop,
+		})
+	}
+}
+
+// WithResponseHeader declares a header on a response, so header contracts
+// such as 429 + Retry-After become typed fields instead of prose inside the
+// response description (which codegen tools cannot see). When no response
+// with the given status code exists yet, a bare one is created so the header
+// is never silently dropped.
+func WithResponseHeader(statusCode, name, description string) MessageOption {
+	return func(m *messageBuilder) {
+		for i := range m.responses {
+			if m.responses[i].StatusCode == statusCode {
+				m.responses[i].Headers = append(m.responses[i].Headers, ResponseHeader{
+					Name: name, Description: description,
+				})
+
+				return
+			}
+		}
+
+		m.responses = append(m.responses, ResponseSpec{
+			StatusCode: statusCode,
+			Headers:    []ResponseHeader{{Name: name, Description: description}},
+		})
+	}
+}
+
+// WithRequestBodyContent overrides the request-body media type exporters
+// assume (application/json) — e.g. "multipart/form-data" for file-upload
+// endpoints, which previously could not be represented at all. A nil sch
+// keeps the auto-derived message schema; for multipart bodies the schema
+// describes the parts.
+func WithRequestBodyContent(mediaType string, sch *Schema) MessageOption {
+	return func(m *messageBuilder) {
+		m.bodyMediaType = mediaType
+		m.bodySchema = sch
+	}
+}
+
 // HttpStatusDescription returns a human-readable description for the given HTTP
 // status code, suitable for use as an OpenAPI Response.description. It covers
 // the common 2xx success codes; unknown codes fall back to "Success" so the

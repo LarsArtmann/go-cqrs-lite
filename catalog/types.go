@@ -152,6 +152,12 @@ type Message struct {
 	Badges      []Badge           `json:"badges,omitempty"`
 	Repository  *Repository       `json:"repository,omitempty"`
 	Security    []string          `json:"security,omitempty"`
+	// RequestBodyMediaType overrides the request-body media type exporters
+	// assume (application/json) — e.g. "multipart/form-data" for uploads.
+	RequestBodyMediaType string `json:"requestBodyMediaType,omitempty"`
+	// RequestBodySchema overrides the request-body schema; nil keeps the
+	// auto-derived message schema.
+	RequestBodySchema *Schema `json:"requestBodySchema,omitempty"`
 }
 
 type Service struct {

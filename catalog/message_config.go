@@ -36,6 +36,10 @@ type messageBuilder struct {
 	badges    []Badge
 	repo      *Repository
 	security  []string
+	channels  []ChannelID
+
+	bodyMediaType string
+	bodySchema    *Schema
 }
 
 func (m *messageBuilder) apply(serviceID ServiceID, reg *Registry) {
@@ -57,6 +61,10 @@ func (m *messageBuilder) apply(serviceID ServiceID, reg *Registry) {
 		Badges:     m.badges,
 		Repository: m.repo,
 		Security:   m.security,
+		Channels:   m.channels,
+
+		RequestBodyMediaType: m.bodyMediaType,
+		RequestBodySchema:    m.bodySchema,
 	}
 
 	switch m.kind {
@@ -97,6 +105,16 @@ func WithVersion(version string) MessageOption {
 func Owners(owners ...string) MessageOption {
 	return func(m *messageBuilder) {
 		m.owners = owners
+	}
+}
+
+// Channels links the message to declared channels. The Channel side of the
+// association is declared via Builder.AddChannel + ChannelMessages; without
+// this option there was no supported way to set the message→channel direction,
+// leaving the docserver's message-page channel links permanently empty.
+func Channels(ids ...ChannelID) MessageOption {
+	return func(m *messageBuilder) {
+		m.channels = append(m.channels, ids...)
 	}
 }
 
@@ -150,6 +168,8 @@ func WithResponse(statusCode, description string) MessageOption {
 }
 
 // WithParam adds an HTTP parameter to this message.
+// The parameter exports as an untyped string; use [WithTypedParam] to declare
+// an integer, boolean, enum, or any other typed shape.
 func WithParam(name, location, description string, required bool) MessageOption {
 	return func(m *messageBuilder) {
 		if m.schema == nil {

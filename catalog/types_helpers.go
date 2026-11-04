@@ -41,6 +41,16 @@ type ResponseSpec struct {
 	Description string           `json:"description,omitempty"`
 	Schema      *Schema          `json:"schema,omitempty"`
 	Examples    []jsontext.Value `json:"examples,omitempty"`
+	Headers     []ResponseHeader `json:"headers,omitempty"`
+}
+
+// ResponseHeader declares a header the response carries, so header contracts
+// like 429 + Retry-After are typed instead of prose inside the description.
+// An empty Type renders as the OpenAPI default for headers: an untyped string.
+type ResponseHeader struct {
+	Name        string `json:"name"`
+	Description string `json:"description,omitempty"`
+	Type        string `json:"type,omitempty"`
 }
 
 // SecurityScheme defines an authentication method for the API.
