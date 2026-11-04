@@ -35,6 +35,14 @@ var (
 	// never reached the deprecation scan — unscanned is unproven, so --strict
 	// must fail instead of passing on the silence.
 	errStrictModuleFailed = errors.New("--strict: module error")
+	// errStrictV5Remaining fires when --to-v5 --strict still sees cqrs v4
+	// imports with no folded core/v5 twin: the module's migration to the v5
+	// core is incomplete, so v5-readiness is unproven.
+	errStrictV5Remaining = errors.New(
+		"--strict --to-v5: not-yet-folded go-cqrs-lite v4 imports remain")
+	// errStrictV5ModuleFailed fires when the --to-v5 pass itself errored on a
+	// module (unreadable file, unparseable source). Unscanned is unproven.
+	errStrictV5ModuleFailed = errors.New("--strict --to-v5: module error")
 )
 
 func main() {
@@ -53,6 +61,7 @@ type config struct {
 	jsonOut   bool
 	to        string
 	workspace bool
+	toV5      bool
 }
 
 // parseFlags builds the config from args. dir defaults to the working
@@ -78,6 +87,9 @@ func parseFlags(args []string) (config, error) {
 		"clamp every bump target to at most this version (semver, e.g. v4.13.0); never downgrades")
 	fs.BoolVar(&cfg.workspace, "workspace", false,
 		"upgrade every module under dir (skips vendor/, testdata/, .git/)")
+	fs.BoolVar(&cfg.toV5, "to-v5", false,
+		"v5 migration pass: rewrite imports of the folded v4 trains to their core/v5 twins (ADR-0152); "+
+			"go.mod requires are reported, not edited (core/v5 is untagged); combine with --dry-run for a per-file diff")
 
 	if err := fs.Parse(args); err != nil {
 		return cfg, err
@@ -124,6 +136,10 @@ func run(_ context.Context, args []string) error {
 		if err != nil {
 			return err
 		}
+	}
+
+	if cfg.toV5 {
+		return runV5Mode(cfg, dirs)
 	}
 
 	reports := make([]moduleReport, 0, len(dirs))
