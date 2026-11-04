@@ -61,7 +61,7 @@ func (b *Backend) DiskUsage() uint64 {
 	var total uint64
 
 	for _, lvl := range m.Levels {
-		total += uint64(lvl.Size)
+		total += uint64(lvl.Size) // #nosec G115 -- level sizes are non-negative by construction
 	}
 
 	total += m.WAL.PhysicalSize

@@ -106,7 +106,7 @@ func (s *EventStore) Save(
 			}
 
 			expectedEvtVersion := expectedVersion.Int() + i + 1
-			if evt.Version() != event.Version(expectedEvtVersion) {
+			if evt.Version() != event.Version(expectedEvtVersion) { // #nosec G115 -- expected next stream version, small by construction
 				return errorfamily.WrapConflict(ErrVersionMismatch, "bbolt.version_mismatch",
 					fmt.Sprintf("expected %d, got %d", expectedEvtVersion, evt.Version()))
 			}
@@ -117,7 +117,7 @@ func (s *EventStore) Save(
 					fmt.Sprintf("serialize event %d for %s %s", i, ref.Type, ref.ID))
 			}
 
-			ek := eventKey(ref, event.Version(expectedEvtVersion))
+			ek := eventKey(ref, event.Version(expectedEvtVersion)) // #nosec G115 -- expected next stream version, small by construction
 			if err := eventsBucket.Put(ek, data); err != nil {
 				return errorfamily.WrapInfrastructure(err, "bbolt.put_event",
 					fmt.Sprintf("put event %d", i))

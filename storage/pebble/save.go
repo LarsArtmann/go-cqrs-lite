@@ -103,12 +103,12 @@ func (a *EventStore) writeEventsToBatch(
 		}
 
 		expectedEventVersion := expectedVersion.Int() + i + 1
-		if evt.Version() != event.Version(expectedEventVersion) {
+		if evt.Version() != event.Version(expectedEventVersion) { // #nosec G115 -- expected next stream version, small by construction
 			return errorfamily.WrapConflict(ErrVersionMismatch, "pebble.version_mismatch",
 				fmt.Sprintf("expected %d, got %d", expectedEventVersion, evt.Version()))
 		}
 
-		key := a.eventKey(ref, event.Version(expectedEventVersion))
+		key := a.eventKey(ref, event.Version(expectedEventVersion)) // #nosec G115 -- expected next stream version, small by construction
 
 		err = a.serializeAndAddToBatchWithJournal(batch, key, evt)
 		if err != nil {

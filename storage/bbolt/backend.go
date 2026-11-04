@@ -223,5 +223,5 @@ func (b *Backend) DiskUsage() (uint64, error) {
 			"stat bbolt file "+b.db.Path())
 	}
 
-	return uint64(st.Size()), nil
+	return uint64(st.Size()), nil // #nosec G115 -- file sizes are non-negative by construction
 }
