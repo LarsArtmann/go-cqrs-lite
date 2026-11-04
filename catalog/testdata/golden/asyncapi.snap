@@ -8,13 +8,6 @@
     "version": "1.0.0"
   },
   "defaultContentType": "application/json",
-  "servers": {
-    "production": {
-      "host": "localhost:9092",
-      "protocol": "kafka",
-      "description": "Message broker"
-    }
-  },
   "channels": {
     "commands.CreateOrder": {
       "address": "order-svc.commands.create.order",
@@ -228,11 +221,6 @@ info:
     title: E-Commerce API
     version: 1.0.0
 defaultContentType: application/json
-servers:
-    production:
-        host: localhost:9092
-        protocol: kafka
-        description: Message broker
 channels:
     commands.CreateOrder:
         address: order-svc.commands.create.order

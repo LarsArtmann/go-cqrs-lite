@@ -157,7 +157,10 @@ func TestAddChannel_Facade(t *testing.T) {
 
 	b := simple.New("Test", "1.0.0")
 	b.AddChannel(catalog.Channel{ID: "crm.journal", Name: "CRM Journal"})
-	cat := b.BuildE()
+	cat, err := b.BuildE()
+	if err != nil {
+		t.Fatalf("BuildE: %v", err)
+	}
 
 	if len(cat.Channels) != 1 {
 		t.Fatalf("expected 1 channel via facade, got %d", len(cat.Channels))
@@ -173,7 +176,10 @@ func TestAddDataStore_Facade(t *testing.T) {
 
 	b := simple.New("Test", "1.0.0")
 	b.AddDataStore(catalog.DataStore{ID: "db", Name: "Primary DB"})
-	cat := b.BuildE()
+	cat, err := b.BuildE()
+	if err != nil {
+		t.Fatalf("BuildE: %v", err)
+	}
 
 	if len(cat.DataStores) != 1 {
 		t.Fatalf("expected 1 data store via facade, got %d", len(cat.DataStores))
@@ -185,7 +191,10 @@ func TestQuery_EmptyTypeName_FallsBackToID(t *testing.T) {
 
 	b := simple.New("Test", "1.0.0")
 	simple.Query[struct{}](b, "crm.count")
-	cat := b.BuildE()
+	cat, err := b.BuildE()
+	if err != nil {
+		t.Fatalf("BuildE: %v", err)
+	}
 
 	if len(cat.Services[0].Queries) != 1 {
 		t.Fatalf("expected 1 query, got %d", len(cat.Services[0].Queries))

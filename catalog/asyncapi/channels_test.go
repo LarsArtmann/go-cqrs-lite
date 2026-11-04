@@ -92,10 +92,12 @@ func TestExporter_Export_MessageChannelLink(t *testing.T) {
 	)
 	reg.AddCommand("crm", basicCommand("contact.update"))
 	reg.AddChannel(catalog.Channel{
-		ID:      "crm.http",
-		Name:    "CRM HTTP",
-		Address: "api",
+		ID:       "crm.http",
+		Name:     "CRM HTTP",
+		Address:  "api",
+		Messages: []catalog.MessageID{"contact.update"},
 	})
+	cat := reg.Build()
 
 	b := cattest.NewTestRegistry(
 		catalog.Service{ID: "crm", Name: "CRM", Version: "1.0.0"},
@@ -106,6 +108,11 @@ func TestExporter_Export_MessageChannelLink(t *testing.T) {
 		Name:     "contact.update",
 		Version:  "1.0.0",
 		Channels: []catalog.ChannelID{"crm.http"},
+	})
+	b.AddChannel(catalog.Channel{
+		ID:      "crm.http",
+		Name:    "CRM HTTP",
+		Address: "api",
 	})
 	catMsgLinked := b.Build()
 

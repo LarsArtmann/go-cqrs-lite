@@ -47,6 +47,9 @@ func copyMessage(m Message) Message {
 		Badges:      copyBadges(m.Badges),
 		Repository:  copyRepository(m.Repository),
 		Security:    copySlice(m.Security),
+
+		RequestBodyMediaType: m.RequestBodyMediaType,
+		RequestBodySchema:    m.RequestBodySchema,
 	}
 }
 
@@ -83,6 +86,7 @@ func copyResponseSpecs(specs []ResponseSpec) []ResponseSpec {
 			Description: s.Description,
 			Schema:      s.Schema,
 			Examples:    copySlice(s.Examples),
+			Headers:     copySlice(s.Headers),
 		}
 	}
 

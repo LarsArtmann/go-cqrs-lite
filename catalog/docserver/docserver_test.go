@@ -329,6 +329,43 @@ func TestDocsServer_RegisterRoutes(t *testing.T) {
 	}
 }
 
+func TestDocsServer_RegisterRoutes_SkipIndexRoute(t *testing.T) {
+	t.Parallel()
+
+	srv := NewDocsServer(testProvider, Config{
+		ServiceName:   "Test Service",
+		Version:       "1.0.0",
+		SkipIndexRoute: true,
+	})
+
+	mux := http.NewServeMux()
+	srv.RegisterRoutes(mux)
+
+	// The consumer claims the exact landing route on the ROOT mux; with
+	// SkipIndexRoute this must neither panic (duplicate pattern) nor shadow.
+	consumerClaimsIndex := false
+	mux.HandleFunc("GET /docs", func(w http.ResponseWriter, _ *http.Request) {
+		consumerClaimsIndex = true
+		w.WriteHeader(http.StatusOK)
+	})
+
+	recorder := httptest.NewRecorder()
+	mux.ServeHTTP(recorder, newTestRequest("/docs"))
+
+	if recorder.Code != http.StatusOK || !consumerClaimsIndex {
+		t.Errorf("consumer index route must own GET /docs, got %d (claimed=%v)",
+			recorder.Code, consumerClaimsIndex)
+	}
+
+	// Sub-pages keep working under the consumer-owned prefix.
+	specRecorder := httptest.NewRecorder()
+	mux.ServeHTTP(specRecorder, newTestRequest("/docs/openapi.json"))
+
+	if specRecorder.Code != http.StatusOK {
+		t.Errorf("/docs/openapi.json: expected 200, got %d", specRecorder.Code)
+	}
+}
+
 func TestDocsServer_StaticFS(t *testing.T) {
 	srv := testServer(t)
 	fsys := srv.StaticFS()
