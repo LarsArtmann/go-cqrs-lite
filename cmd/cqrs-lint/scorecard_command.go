@@ -99,6 +99,15 @@ func runScorecard(
 		testImports,
 		analyzer.DefaultCatalog,
 	)
+	pins, err := resolveScorecardModulePins(cfg)
+	if err != nil {
+		return fmt.Errorf("scorecard: %w", err)
+	}
+
+	if err := analyzer.ApplyModulePins(usage, pins); err != nil {
+		return fmt.Errorf("scorecard: %w", err)
+	}
+
 	waivers, err := resolveScorecardWaivers(cfg)
 	if err != nil {
 		return fmt.Errorf("scorecard: %w", err)

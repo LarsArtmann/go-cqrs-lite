@@ -8,7 +8,8 @@ import (
 
 // ScorecardSettings is the scorecard subset of .cqrs-lint.json: recorded
 // refusals for catalog modules that genuinely have no use case in this
-// project. A waiver moves the row out of MISSING into a visible WAIVED
+// project, plus explicit usage pins for modules whose usage import detection
+// cannot see. A waiver moves the row out of MISSING into a visible WAIVED
 // partition — the refusal is recorded with its justification and revisit
 // trigger instead of evaporating into prose the tool never sees again.
 type ScorecardSettings struct {
@@ -16,6 +17,14 @@ type ScorecardSettings struct {
 	// ValidateScorecardWaivers at config load time; the scorecard
 	// additionally refuses to waive rows that are used or irrelevant.
 	Waivers []ScorecardWaiver `json:"waivers,omitempty"`
+
+	// Modules pins module usage explicitly, overriding import detection for
+	// composition-root consumers: `"modules": {"projectionhost": true}``
+	// marks the module used when the system composition root wires it behind
+	// an accessor (sys.ProjectionHost()) no import scan can attribute. Only
+	// true is meaningful — false is rejected because recording a refusal is
+	// what waivers are for, with a reason and a revisit trigger.
+	Modules map[string]bool `json:"modules,omitempty"`
 }
 
 // ScorecardWaiver is one recorded refusal of one scorecard module.
@@ -75,6 +84,40 @@ func ValidateScorecardWaivers(waivers []ScorecardWaiver) error {
 			return fmt.Errorf("%w for %q: reason must not be empty", ErrScorecardWaiver, w.Key)
 		}
 		seen[w.Key] = true
+	}
+
+	return nil
+}
+
+// ValidateScorecardModulePins checks usage pins against the default catalog:
+// keys must be known scored modules, and only true is accepted — a false pin
+// is a refusal, which waivers record properly (with a reason and a revisit
+// trigger) instead of a bare boolean.
+func ValidateScorecardModulePins(pins map[string]bool) error {
+	if len(pins) == 0 {
+		return nil
+	}
+
+	scored := make(map[ModuleKey]bool, len(DefaultCatalog.Scored()))
+	for _, e := range DefaultCatalog.Scored() {
+		scored[e.Key] = true
+	}
+
+	for key, used := range pins {
+		switch {
+		case !scored[ModuleKey(key)]:
+			return fmt.Errorf(
+				"%w: unknown module key %q (must be a scored catalog key)",
+			ErrScorecardWaiver,
+				key,
+			)
+		case !used:
+			return fmt.Errorf(
+				"%w for %q: false pins are not supported — record a waiver with a reason instead",
+				ErrScorecardWaiver,
+				key,
+			)
+		}
 	}
 
 	return nil

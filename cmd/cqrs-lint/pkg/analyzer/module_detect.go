@@ -181,3 +181,39 @@ func UsedKeys(usage map[ModuleKey]ModuleUsage) []ModuleKey {
 	}
 	return keys
 }
+
+// modulePinEvidence is the provenance marker for usage coming from an
+// explicit .cqrs-lint.json scorecard.modules pin instead of an import scan.
+const modulePinEvidence = "pinned in .cqrs-lint.json (scorecard.modules)"
+
+// ApplyModulePins upgrades absent modules to used per the project's explicit
+// scorecard.modules pins — the config-pins-beat-detection contract for
+// composition-root consumers: when system.New wires a module behind an
+// accessor (sys.ProjectionHost()), no import the consumer could add would
+// attribute the usage, so the declared pin is the truth. A module detection
+// already found via imports keeps its import evidence: a pin corroborates,
+// it does not erase. Unknown keys are rejected loudly.
+func ApplyModulePins(
+	usage map[ModuleKey]ModuleUsage,
+	pins map[string]bool,
+) error {
+	if err := ValidateScorecardModulePins(pins); err != nil {
+		return err
+	}
+
+	for key := range pins {
+		moduleKey := ModuleKey(key)
+		entry, exists := usage[moduleKey]
+		if !exists || entry.Status >= UsageImported {
+			continue
+		}
+
+		usage[moduleKey] = ModuleUsage{
+			Key:      moduleKey,
+			Status:   UsageImported,
+			Evidence: modulePinEvidence,
+		}
+	}
+
+	return nil
+}

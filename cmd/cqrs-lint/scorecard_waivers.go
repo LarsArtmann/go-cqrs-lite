@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"maps"
 	"slices"
 	"strings"
 
@@ -30,6 +31,32 @@ func resolveScorecardWaivers(cfg *AppConfig) ([]analyzer.ScorecardWaiver, error)
 			merged = append(merged, w)
 		}
 	}
+	return merged, nil
+}
+
+// resolveScorecardModulePins merges the two module-pin sources with the same
+// project-wins convention as resolveScorecardWaivers: the scored project's
+// .cqrs-lint.json pins win per key, the CLI-level config fills the rest.
+func resolveScorecardModulePins(cfg *AppConfig) (map[string]bool, error) {
+	project, found, err := analyzer.LoadProjectConfig(cfg.Path)
+	if err != nil {
+		return nil, err
+	}
+	if !found {
+		return cfg.ScorecardSettings.Modules, nil
+	}
+
+	merged := maps.Clone(project.Scorecard.Modules)
+	if merged == nil {
+		merged = make(map[string]bool, len(cfg.ScorecardSettings.Modules))
+	}
+
+	for key, used := range cfg.ScorecardSettings.Modules {
+		if _, exists := merged[key]; !exists {
+			merged[key] = used
+		}
+	}
+
 	return merged, nil
 }
 

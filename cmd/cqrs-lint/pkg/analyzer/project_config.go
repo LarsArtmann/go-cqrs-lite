@@ -77,6 +77,10 @@ func LoadProjectConfig(dir string) (ProjectConfig, bool, error) {
 		return ProjectConfig{}, true, fmt.Errorf("%s: %w", path, err)
 	}
 
+	if err := ValidateScorecardModulePins(cfg.Scorecard.Modules); err != nil {
+		return ProjectConfig{}, true, fmt.Errorf("%s: %w", path, err)
+	}
+
 	return cfg, true, nil
 }
 
