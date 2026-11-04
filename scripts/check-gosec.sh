@@ -37,15 +37,15 @@ GOSEC_OUT="${GOSEC_OUT:-gosec.sarif}"
 
 # The core-module scan set, identical to the CI leg's scope since 2026-06.
 GOSEC_MODULES=(
-  ./event/...
-  ./command/...
-  ./query/...
-  ./decider/...
-  ./storage/...
-  ./middleware/...
-  ./signing/...
-  ./listing/...
-  ./transport/http/...
+	./event/...
+	./command/...
+	./query/...
+	./decider/...
+	./storage/...
+	./middleware/...
+	./signing/...
+	./listing/...
+	./transport/http/...
 )
 
 # The runtime `go` must stay on the same toolchain line as the gosec binary's
@@ -55,23 +55,23 @@ export GOTOOLCHAIN=local
 # One scratch directory removed on exit.
 WORK=""
 cleanup() {
-  [[ -n "$WORK" && -d "$WORK" ]] && rm -rf "$WORK"
+	[[ -n "$WORK" && -d "$WORK" ]] && rm -rf "$WORK"
 }
 trap cleanup EXIT
 
 self_test() {
-  WORK="$(mktemp -d)"
-  export GOCACHE="$WORK/gocache"
-  export GOFLAGS=-mod=mod
+	WORK="$(mktemp -d)"
+	export GOCACHE="$WORK/gocache"
+	export GOFLAGS=-mod=mod
 
-  # Fixture 1 — clean module: the gate machinery must pass it.
-  mkdir -p "$WORK/clean"
-  cat >"$WORK/clean/go.mod" <<'EOF'
+	# Fixture 1 — clean module: the gate machinery must pass it.
+	mkdir -p "$WORK/clean"
+	cat >"$WORK/clean/go.mod" <<'EOF'
 module selftest.example/gosec-clean
 
 go 1.27
 EOF
-  cat >"$WORK/clean/main.go" <<'EOF'
+	cat >"$WORK/clean/main.go" <<'EOF'
 package main
 
 import "fmt"
@@ -79,14 +79,14 @@ import "fmt"
 func main() { fmt.Println("clean") }
 EOF
 
-  # Fixture 2 — planted G402 (InsecureSkipVerify): the gate MUST flag it.
-  mkdir -p "$WORK/vuln"
-  cat >"$WORK/vuln/go.mod" <<'EOF'
+	# Fixture 2 — planted G402 (InsecureSkipVerify): the gate MUST flag it.
+	mkdir -p "$WORK/vuln"
+	cat >"$WORK/vuln/go.mod" <<'EOF'
 module selftest.example/gosec-vuln
 
 go 1.27
 EOF
-  cat >"$WORK/vuln/main.go" <<'EOF'
+	cat >"$WORK/vuln/main.go" <<'EOF'
 package main
 
 import (
@@ -100,34 +100,34 @@ func main() {
 }
 EOF
 
-  local clean_rc=0 vuln_rc=0 vuln_hits=0
-  (cd "$WORK/clean" && GOWORK=off "$GOSEC_BIN" -fmt json -out "$WORK/clean.json" ./...) \
-    || clean_rc=$?
-  if [[ "$clean_rc" -ne 0 ]]; then
-    echo "self-test FAIL: clean fixture reported rc=$clean_rc (expected 0)"
-    return 1
-  fi
+	local clean_rc=0 vuln_rc=0 vuln_hits=0
+	(cd "$WORK/clean" && GOWORK=off "$GOSEC_BIN" -fmt json -out "$WORK/clean.json" ./...) ||
+		clean_rc=$?
+	if [[ "$clean_rc" -ne 0 ]]; then
+		echo "self-test FAIL: clean fixture reported rc=$clean_rc (expected 0)"
+		return 1
+	fi
 
-  (cd "$WORK/vuln" && GOWORK=off "$GOSEC_BIN" -fmt json -out "$WORK/vuln.json" ./...) \
-    || vuln_rc=$?
-  if [[ "$vuln_rc" -eq 0 ]]; then
-    echo "self-test FAIL: planted G402 fixture passed (gate cannot fail — useless)"
-    return 1
-  fi
-  vuln_hits="$(python3 -c "
+	(cd "$WORK/vuln" && GOWORK=off "$GOSEC_BIN" -fmt json -out "$WORK/vuln.json" ./...) ||
+		vuln_rc=$?
+	if [[ "$vuln_rc" -eq 0 ]]; then
+		echo "self-test FAIL: planted G402 fixture passed (gate cannot fail — useless)"
+		return 1
+	fi
+	vuln_hits="$(python3 -c "
 import json
 print(sum(1 for i in json.load(open('$WORK/vuln.json'))['Issues'] if i['rule_id'] == 'G402'))")"
-  if [[ "$vuln_hits" -lt 1 ]]; then
-    echo "self-test FAIL: non-zero rc but no G402 finding named (rc=$vuln_rc)"
-    return 1
-  fi
+	if [[ "$vuln_hits" -lt 1 ]]; then
+		echo "self-test FAIL: non-zero rc but no G402 finding named (rc=$vuln_rc)"
+		return 1
+	fi
 
-  echo "self-test OK: clean fixture green, planted G402 flagged (rc=$vuln_rc, hits=$vuln_hits)"
+	echo "self-test OK: clean fixture green, planted G402 flagged (rc=$vuln_rc, hits=$vuln_hits)"
 }
 
 if [[ "${1:-}" == "--self-test" ]]; then
-  self_test
-  exit 0
+	self_test
+	exit 0
 fi
 
 "$GOSEC_BIN" -fmt sarif -out "$GOSEC_OUT" "${GOSEC_MODULES[@]}"
