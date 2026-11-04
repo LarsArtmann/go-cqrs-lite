@@ -416,6 +416,17 @@ func filterFindings(
 	var librarySuppressed []finding.Finding
 	allFindings, librarySuppressed = filterLibrarySelfLint(allFindings, actx.IsLibrarySelfLint())
 
+	// Waived scorecard modules suppress their adoption findings: the waiver
+	// in .cqrs-lint.json is the adjudication, so the finding renders under
+	// --show-suppressed with the recorded reason + trigger instead of forcing
+	// the baseline or a package-clause directive to hold the refusal.
+	waivers, err := resolveScorecardWaivers(cfg)
+	if err == nil {
+		var waiverSuppressed []finding.Finding
+		allFindings, waiverSuppressed = filterWaivedAdoption(allFindings, waivers)
+		librarySuppressed = append(librarySuppressed, waiverSuppressed...)
+	}
+
 	// Apply rules.severity-overrides (preset defaults + explicit config).
 	// Runs BEFORE domain bias so the financial escalation still wins on top
 	// of an explicit override, and both compose (only ever escalate).
