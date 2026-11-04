@@ -2,12 +2,9 @@ package main
 
 import (
 	"context"
-	"encoding/json/jsontext"
-	"encoding/json/v2"
 	"errors"
 	"flag"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -295,35 +292,6 @@ func scanDeprecations(dir string, rep moduleReport) moduleReport {
 	return rep
 }
 
-// printReport renders one module's human-readable output.
-func printReport(r moduleReport) {
-	switch {
-	case r.Error != "":
-		fmt.Printf("error: %s\n", r.Error)
-	case r.NoPins:
-		fmt.Printf("no direct go-cqrs-lite pins found in %s\n", filepath.Join(r.Dir, "go.mod"))
-		if r.ScanErr != nil {
-			fmt.Printf("deprecation report: scan failed — %v (v5-readiness unknown)\n", r.ScanErr)
-		} else {
-			printDeprecations(os.Stdout, r.Deprecations)
-		}
-	default:
-		printBumps(r.Bumps)
-		if r.ScanErr != nil {
-			fmt.Printf("deprecation report: scan failed — %v (v5-readiness unknown)\n", r.ScanErr)
-		} else {
-			printDeprecations(os.Stdout, r.Deprecations)
-		}
-	}
-
-	printSuggestions(os.Stdout, r.Suggestions)
-}
-
-// printBumps renders the plan table for both dry-run and apply runs.
-func printBumps(bumps []bump) {
-	fmt.Println(strings.ReplaceAll(formatBumps(bumps), "\t", "  "))
-}
-
 // hasStrictViolation reports whether any module has v5-removed API usage.
 func hasStrictViolation(reports []moduleReport) bool {
 	return countStrictViolations(reports) > 0
@@ -340,18 +308,4 @@ func countStrictViolations(reports []moduleReport) int {
 	}
 
 	return n
-}
-
-// emitJSON writes the full report as one deterministic JSON document.
-// Struct-field order (no maps) keeps the output byte-stable for CI diffs.
-func emitJSON(w io.Writer, reports []moduleReport) error {
-	wire := make([]moduleJSON, 0, len(reports))
-
-	for _, r := range reports {
-		wire = append(wire, r.toJSON())
-	}
-
-	enc := jsontext.NewEncoder(w, jsontext.WithIndent("  "))
-
-	return json.MarshalEncode(enc, wire)
 }
