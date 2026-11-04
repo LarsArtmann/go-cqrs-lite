@@ -407,3 +407,36 @@ func TestValidate_Response2xxWithSchema_NoViolation(t *testing.T) {
 		}
 	}
 }
+
+func TestValidate_Response204WithoutSchema_NoViolation(t *testing.T) {
+	t.Parallel()
+
+	for _, status := range []string{"204", "304"} {
+		cat := &Catalog{
+			Title:   "Test",
+			Version: "1.0.0",
+			Services: []Service{
+				{
+					ID: "svc",
+					Commands: []Message{
+						{
+							ID:   "cmd.a",
+							Kind: CommandMessage,
+							Name: "A",
+							Responses: []ResponseSpec{
+								{StatusCode: status, Description: "No Content"},
+							},
+						},
+					},
+				},
+			},
+		}
+
+		violations := cat.Validate()
+		for _, v := range violations {
+			if strings.Contains(v.Message, "2xx response has no body schema") {
+				t.Fatalf("status %s must be exempt (no body by HTTP semantics), got: %v", status, v)
+			}
+		}
+	}
+}

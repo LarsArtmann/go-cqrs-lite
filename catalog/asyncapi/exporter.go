@@ -48,14 +48,20 @@ func WithDescription(desc string) Option {
 }
 
 // NewExporter creates an AsyncAPI exporter with the given service name and version.
+//
+// No server is fabricated by default: a document without [WithServer] omits
+// the servers object entirely rather than inventing a kafka broker the
+// deployment may not have (a previous version defaulted to
+// kafka/localhost:9092, which every non-kafka consumer had to suppress via
+// [WithServer] with an empty host).
 func NewExporter(serviceName, version string, opts ...Option) *Exporter {
-	e := &Exporter{
+	e := &Exporter{ //nolint:exhaustruct_v5 // server fields stay empty until WithServer
 		serviceName: serviceName,
 		version:     version,
 		description: "",
-		protocol:    "kafka",
-		host:        "localhost:9092",
-		serverName:  "production",
+		protocol:    "",
+		host:        "",
+		serverName:  "",
 	}
 
 	for _, opt := range opts {

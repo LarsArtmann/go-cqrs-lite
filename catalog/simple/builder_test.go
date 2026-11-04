@@ -152,6 +152,55 @@ func TestAddMessage_Alternative(t *testing.T) {
 	assertCatalogCommandCount(t, cat, 1, "expected 1 command via AddMessage")
 }
 
+func TestAddChannel_Facade(t *testing.T) {
+	t.Parallel()
+
+	b := simple.New("Test", "1.0.0")
+	b.AddChannel(catalog.Channel{ID: "crm.journal", Name: "CRM Journal"})
+	cat := b.BuildE()
+
+	if len(cat.Channels) != 1 {
+		t.Fatalf("expected 1 channel via facade, got %d", len(cat.Channels))
+	}
+
+	if cat.Channels[0].ID != "crm.journal" {
+		t.Errorf("expected channel ID 'crm.journal', got %q", cat.Channels[0].ID)
+	}
+}
+
+func TestAddDataStore_Facade(t *testing.T) {
+	t.Parallel()
+
+	b := simple.New("Test", "1.0.0")
+	b.AddDataStore(catalog.DataStore{ID: "db", Name: "Primary DB"})
+	cat := b.BuildE()
+
+	if len(cat.DataStores) != 1 {
+		t.Fatalf("expected 1 data store via facade, got %d", len(cat.DataStores))
+	}
+}
+
+func TestQuery_EmptyTypeName_FallsBackToID(t *testing.T) {
+	t.Parallel()
+
+	b := simple.New("Test", "1.0.0")
+	simple.Query[struct{}](b, "crm.count")
+	cat := b.BuildE()
+
+	if len(cat.Services[0].Queries) != 1 {
+		t.Fatalf("expected 1 query, got %d", len(cat.Services[0].Queries))
+	}
+
+	name := string(cat.Services[0].Queries[0].Name)
+	if name == "" {
+		t.Fatal("expected non-empty display name for nameless query, got blank")
+	}
+
+	if name != "Crm Count" {
+		t.Errorf("expected fallback name 'Crm Count', got %q", name)
+	}
+}
+
 func TestBuild_MultipleMessages(t *testing.T) {
 	t.Parallel()
 

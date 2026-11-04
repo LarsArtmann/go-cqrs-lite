@@ -278,11 +278,13 @@ func camelCaseToHuman(s string) string {
 
 	var result strings.Builder
 
-	for i, r := range s {
+	runes := []rune(s)
+
+	for i, r := range runes {
 		switch {
 		case i == 0:
 			result.WriteRune(unicode.ToUpper(r))
-		case unicode.IsUpper(r):
+		case unicode.IsUpper(r) && startsWord(runes, i):
 			result.WriteRune(' ')
 			result.WriteRune(r)
 		default:
@@ -291,4 +293,19 @@ func camelCaseToHuman(s string) string {
 	}
 
 	return result.String()
+}
+
+// startsWord reports whether the uppercase rune at runes[i] begins a new word
+// rather than continuing an initialism run (ID, URL, API...). Standard camel
+// splitter rule: a word starts on a lower-to-upper transition, after a digit,
+// or when the uppercase rune is followed by a lowercase one (the last rune of
+// an initialism run before the next camel word, e.g. the S in "IDSet").
+func startsWord(runes []rune, i int) bool {
+	prev := runes[i-1]
+
+	if unicode.IsLower(prev) || unicode.IsDigit(prev) {
+		return true
+	}
+
+	return unicode.IsUpper(prev) && i+1 < len(runes) && unicode.IsLower(runes[i+1])
 }

@@ -29,5 +29,7 @@ func (r *Registry) Build() *Catalog {
 		markDemoCatalog(cat)
 	}
 
+	applyDisplayNameFallbacks(cat)
+
 	return cat
 }

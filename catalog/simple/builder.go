@@ -266,6 +266,23 @@ func (b *Builder) AddDomain(
 	return b
 }
 
+// AddChannel registers a channel (messaging address) on the underlying
+// builder. Single-service catalogs with one channel are the common case, so
+// the facade owns this wrapper alongside the other resource adders;
+// InnerBuilder() is no longer required for a one-channel catalog.
+func (b *Builder) AddChannel(ch catalog.Channel) *Builder {
+	b.inner.AddChannel(ch)
+
+	return b
+}
+
+// AddDataStore registers a data store on the underlying builder.
+func (b *Builder) AddDataStore(ds catalog.DataStore) *Builder {
+	b.inner.AddDataStore(ds)
+
+	return b
+}
+
 // WithOperation attaches HTTP endpoint metadata to a message.
 // The OpenAPI exporter uses this to generate accurate paths.
 //

@@ -169,7 +169,10 @@ func validateOperation(seenOpPaths map[string]string, path string, msg Message) 
 	}
 
 	for _, resp := range msg.Responses {
-		if len(resp.StatusCode) == 3 && resp.StatusCode[0] == '2' && resp.Schema == nil {
+		// 204 and 304 prohibit a body by HTTP semantics (RFC 9110 sections
+		// 15.3.5 / 15.4.5), so a nil schema is the truthful declaration there.
+		if len(resp.StatusCode) == 3 && resp.StatusCode[0] == '2' &&
+			resp.Schema == nil && resp.StatusCode != "204" && resp.StatusCode != "304" {
 			violations = append(violations, Violation{
 				Path:    fmt.Sprintf("%s.responses[%s]", path, resp.StatusCode),
 				Message: "2xx response has no body schema",

@@ -75,6 +75,9 @@ func TestToPascal(t *testing.T) {
 		{"x", "X"},
 		{"CreateOrder", "Createorder"},
 		{"AlreadyPascal", "Alreadypascal"},
+		{"commands.wire.hooks.fax", "CommandsWireHooksFax"},
+		{"event.contact.created", "EventContactCreated"},
+		{"dotted.mixed_with-hyphens", "DottedMixedWithHyphens"},
 	}
 
 	for _, tt := range tests {

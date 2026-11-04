@@ -67,14 +67,17 @@ func ToKebab(s string) string {
 	return ToSeparated(s, '-')
 }
 
-// ToPascal converts a space/underscore/hyphen-separated string to PascalCase.
+// ToPascal converts a space/underscore/hyphen/dot-separated string to PascalCase.
+// Dots count as word separators because dotted message IDs (e.g.
+// "commands.wire.hooks.fax") must not leak into generated identifiers such as
+// OpenAPI operationIds, which codegen tools use verbatim as method names.
 func ToPascal(s string) string {
 	if s == "" {
 		return ""
 	}
 
 	words := strings.FieldsFunc(s, func(r rune) bool {
-		return r == ' ' || r == '_' || r == '-'
+		return r == ' ' || r == '_' || r == '-' || r == '.'
 	})
 
 	var result strings.Builder
