@@ -191,7 +191,7 @@ func (d *delayedEngine) JournalReadFrom(
 		return nil, err
 	}
 
-	return backend.JournalReadFrom(ctx, collection, afterSeq, limit)
+	return backend.JournalReadFrom(ctx, collection, afterSeq, limit) //nolint:staticcheck // wraps the deprecated position-based capability for chaos injection; removal rides v5
 }
 
 func (d *delayedEngine) StreamAppendExpected(

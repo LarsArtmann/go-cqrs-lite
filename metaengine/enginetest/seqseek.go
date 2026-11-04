@@ -174,7 +174,7 @@ func RunSeqSeekableStreamLogTestIn(t *testing.T, eng metaengine.Engine, col stri
 	// journal has no deletions, so position k and the token of entry k-1
 	// must resume at the same place.
 	for k := 1; k <= len(withSeq); k++ {
-		byPos, err := slb.JournalReadFrom(ctx, col, int64(k), 0)
+		byPos, err := slb.JournalReadFrom(ctx, col, int64(k), 0) //nolint:staticcheck // agreement check: position-based resume vs token-based resume
 		if err != nil {
 			t.Fatalf("JournalReadFrom(%d): %v", k, err)
 		}

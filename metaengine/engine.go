@@ -493,6 +493,14 @@ type StreamLogBackend interface {
 	// raw seq values re-delivers entries when collections interleave. Engines
 	// with a shared seq counter must implement the skip via OFFSET (or
 	// equivalent) over the collection-filtered, seq-ordered result.
+	//
+	// Deprecated: the OFFSET skip re-walks every skipped row — O(afterSeq)
+	// per call, quadratic total work for a polling tail follower — and the
+	// name suggests seq units the parameter does not have. Tail followers
+	// should resume via [SeqSeekableStreamLog.JournalReadFromSeq] (O(log n)
+	// index seek, gap-safe seq tokens) on engines that implement it; this
+	// method remains the position-based fallback for engines without seq
+	// tokens.
 	JournalReadFrom(
 		ctx context.Context,
 		collection string,

@@ -10,8 +10,9 @@ import (
 )
 
 // NewFromDSN creates a SQLite-backed engine from a DSN string, applying
-// production PRAGMAs (WAL mode + busy_timeout), setting MaxOpenConns(1) for
-// SQLite safety, and creating the engine tables — all in one call.
+// production PRAGMAs (WAL mode, busy_timeout, and a 64 MiB page cache),
+// setting MaxOpenConns(1) for SQLite safety, and creating the engine tables
+// — all in one call.
 //
 //	eng, db, err := sqliteengine.NewFromDSN("app.db")
 //	defer db.Close()
@@ -19,6 +20,19 @@ import (
 //
 // For in-memory databases, pass ":memory:". The caller owns the *sql.DB;
 // closing the engine does NOT close the database.
+//
+// MaxOpenConns(1) is deliberate: it serializes writes into the WAL ordering
+// the engine's conflict contract assumes — but it serializes READS too, so a
+// long scan blocks every other query behind it. WAL supports concurrent
+// readers with modernc sqlite; raise the ceiling on the returned handle
+// (db.SetMaxOpenConns(n)) for read-heavy deployments, accepting that writes
+// may then queue behind busy_timeout retries instead of the pool.
+//
+// The cache_size pragma (negative KiB form) keeps SQLite's default 2 MB page
+// cache from thrashing scan-heavy databases — a measured 536 MB journal
+// re-read 8.16 GB from disk in 43 minutes on the 2 MB default. A later
+// `PRAGMA cache_size=...` on the returned handle overrides it (SQLite
+// last-write-wins).
 func NewFromDSN(dsn string) (metaengine.Engine, *sql.DB, error) {
 	db, err := sql.Open("sqlite", dsn)
 	if err != nil {
@@ -30,6 +44,7 @@ func NewFromDSN(dsn string) (metaengine.Engine, *sql.DB, error) {
 	for _, pragma := range []string{
 		"PRAGMA journal_mode=WAL",
 		"PRAGMA busy_timeout=5000",
+		"PRAGMA cache_size=-65536",
 	} {
 		if _, err := db.ExecContext(context.Background(), pragma); err != nil {
 			_ = db.Close()
@@ -105,9 +120,12 @@ func NewSQLiteEngineFromDSNWith(
 
 	var synchronousValue string
 
+	// cache_size defaults to 64 MiB (negative-KiB form) BEFORE caller pragmas
+	// so a caller-supplied cache_size overrides it (last-write-wins).
 	applied := append([]string{
 		"journal_mode=WAL",
 		"busy_timeout=5000",
+		"cache_size=-65536",
 	}, pragmas...)
 
 	for _, pragma := range applied {
