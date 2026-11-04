@@ -177,9 +177,27 @@ func TestEntriesFromFindings_SharedReasonReattachesToAllMoved(t *testing.T) {
 		Version: baselineVersion,
 		Tool:    "cqrs-lint",
 		Entries: []baselineEntry{
-			{Rule: "V007", File: "identity/identity.go", Line: 11, Column: 1, Reason: "v4 train, migrate at v5"},
-			{Rule: "V007", File: "identity/identity.go", Line: 33, Column: 1, Reason: "v4 train, migrate at v5"},
-			{Rule: "V007", File: "identity/identity.go", Line: 56, Column: 1, Reason: "v4 train, migrate at v5"},
+			{
+				Rule:   "V007",
+				File:   "identity/identity.go",
+				Line:   11,
+				Column: 1,
+				Reason: "v4 train, migrate at v5",
+			},
+			{
+				Rule:   "V007",
+				File:   "identity/identity.go",
+				Line:   33,
+				Column: 1,
+				Reason: "v4 train, migrate at v5",
+			},
+			{
+				Rule:   "V007",
+				File:   "identity/identity.go",
+				Line:   56,
+				Column: 1,
+				Reason: "v4 train, migrate at v5",
+			},
 		},
 	}
 
@@ -214,11 +232,21 @@ func TestEntriesFromFindings_DifferingReasonsStayBareAndWarn(t *testing.T) {
 	}
 
 	warned := false
-	entries := entriesFromFindings(findings, root, prior, func(_ string, _ ...any) { warned = true })
+	entries := entriesFromFindings(
+		findings,
+		root,
+		prior,
+		func(_ string, _ ...any) { warned = true },
+	)
 
 	for _, entry := range entries {
 		if entry.Reason != "" {
-			t.Fatalf("ambiguous rematch must stay bare, got %q on %s:%d", entry.Reason, entry.File, entry.Line)
+			t.Fatalf(
+				"ambiguous rematch must stay bare, got %q on %s:%d",
+				entry.Reason,
+				entry.File,
+				entry.Line,
+			)
 		}
 	}
 
@@ -238,12 +266,23 @@ func TestEntriesFromFindings_VanishedFindingWarns(t *testing.T) {
 		Version: baselineVersion,
 		Tool:    "cqrs-lint",
 		Entries: []baselineEntry{
-			{Rule: "E009", File: "svc/gone.go", Line: 9, Column: 1, Reason: "deleted file, keep for archaeology"},
+			{
+				Rule:   "E009",
+				File:   "svc/gone.go",
+				Line:   9,
+				Column: 1,
+				Reason: "deleted file, keep for archaeology",
+			},
 		},
 	}
 
 	warned := false
-	entries := entriesFromFindings([]finding.Finding{kept}, root, prior, func(_ string, _ ...any) { warned = true })
+	entries := entriesFromFindings(
+		[]finding.Finding{kept},
+		root,
+		prior,
+		func(_ string, _ ...any) { warned = true },
+	)
 
 	if len(entries) != 1 || entries[0].Reason != "" {
 		t.Fatalf("unrelated entries must stay bare: %+v", entries)

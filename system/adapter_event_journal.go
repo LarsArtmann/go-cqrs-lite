@@ -30,7 +30,12 @@ func (a *EventAdapter) ReadFrom(
 		afterSeq = seq
 	}
 
-	values, err := a.Backend.JournalReadFrom(ctx, a.Collection, afterSeq, limit) //nolint:staticcheck // deliberate position-based fallback for engines without SeqSeekableStreamLog
+	values, err := a.Backend.JournalReadFrom(
+		ctx,
+		a.Collection,
+		afterSeq,
+		limit,
+	) //nolint:staticcheck // deliberate position-based fallback for engines without SeqSeekableStreamLog
 	if err != nil {
 		return nil, fmt.Errorf("event adapter: read from: %w", err)
 	}

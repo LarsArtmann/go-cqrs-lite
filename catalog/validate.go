@@ -169,11 +169,10 @@ func validateOperation(seenOpPaths map[string]string, path string, msg Message) 
 	}
 
 	for _, resp := range msg.Responses {
-		// 204 and 304 prohibit a body by HTTP semantics (RFC 9110 sections
-		// 15.3.5 / 15.4.5), so a nil schema is the truthful declaration there.
-		bodyless := resp.StatusCode == "204" || resp.StatusCode == "304" //nolint:usestdlibvars // string domain, not the stdlib ints
+		// Bodyless statuses are exempt: a nil schema is the truthful
+		// declaration there (see isBodylessStatus).
 		if len(resp.StatusCode) == 3 && resp.StatusCode[0] == '2' &&
-			resp.Schema == nil && !bodyless {
+			resp.Schema == nil && !isBodylessStatus(resp.StatusCode) {
 			violations = append(violations, Violation{
 				Path:    fmt.Sprintf("%s.responses[%s]", path, resp.StatusCode),
 				Message: "2xx response has no body schema",
@@ -182,6 +181,14 @@ func validateOperation(seenOpPaths map[string]string, path string, msg Message) 
 	}
 
 	return violations
+}
+
+// isBodylessStatus reports the status codes that prohibit a response body
+// by HTTP semantics (RFC 9110 sections 15.3.5 / 15.4.5): 204 No Content and
+// 304 Not Modified. For these, a nil response schema is the truthful
+// declaration, not a missing contract.
+func isBodylessStatus(code string) bool {
+	return code == "204" || code == "304"
 }
 
 func validateOperationDetails(

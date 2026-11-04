@@ -18,7 +18,11 @@ func TestFilterWaivedAdoption_SuppressesWaivedModuleFindings(t *testing.T) {
 	}
 
 	active, waived := filterWaivedAdoption(findings, []analyzer.ScorecardWaiver{
-		{Key: "otel", Reason: "single-process CLI, no tracing budget", Trigger: "second service lands"},
+		{
+			Key:     "otel",
+			Reason:  "single-process CLI, no tracing budget",
+			Trigger: "second service lands",
+		},
 	})
 
 	if len(active) != 1 || string(active[0].Rule) != "F019" {

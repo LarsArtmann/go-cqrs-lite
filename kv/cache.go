@@ -168,10 +168,10 @@ func (cs *Cache[T, K]) Has(ctx context.Context, id K) (bool, error) {
 // The cache stores a private deep copy of val, so mutating val after Set
 // returns never affects subsequent reads.
 func (cs *Cache[T, K]) Set(ctx context.Context, id K, val *T) error {
-err := cs.store.Set(ctx, id, val)
-if err != nil {
-	return err //nolint:wrapcheck // transparent cache proxy
-}
+	err := cs.store.Set(ctx, id, val)
+	if err != nil {
+		return err //nolint:wrapcheck // transparent cache proxy
+	}
 
 	cached, err := cs.copy(val)
 	if err != nil {
@@ -189,10 +189,10 @@ if err != nil {
 
 // Delete removes the value from the store and invalidates the cache entry.
 func (cs *Cache[T, K]) Delete(ctx context.Context, id K) error {
-err := cs.store.Delete(ctx, id)
-if err != nil {
-	return err //nolint:wrapcheck // transparent cache proxy
-}
+	err := cs.store.Delete(ctx, id)
+	if err != nil {
+		return err //nolint:wrapcheck // transparent cache proxy
+	}
 
 	cs.cache.Invalidate(id.String())
 

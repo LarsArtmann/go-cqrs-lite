@@ -184,7 +184,12 @@ func (c *AdapterCore[T]) ReadFromAfter(
 		return c.entriesToItems(entries)
 	}
 
-	values, err := c.Backend.JournalReadFrom(ctx, c.Collection, afterSeq, limit) //nolint:staticcheck // deliberate position-based fallback for engines without SeqSeekableStreamLog
+	values, err := c.Backend.JournalReadFrom(
+		ctx,
+		c.Collection,
+		afterSeq,
+		limit,
+	) //nolint:staticcheck // deliberate position-based fallback for engines without SeqSeekableStreamLog
 	if err != nil {
 		return nil, fmt.Errorf("%s adapter: read from: %w", c.Noun, err)
 	}

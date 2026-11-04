@@ -51,7 +51,9 @@ func TestParseStreamID_RejectsInvalidUTF8(t *testing.T) {
 func TestParseStreamID_AcceptsMultibyteUTF8(t *testing.T) {
 	t.Parallel()
 
-	parsed, err := ParseStreamID("café-主键") //nolint:gosmopolitan // intentional non-ASCII key under test
+	parsed, err := ParseStreamID(
+		"café-主键",
+	) //nolint:gosmopolitan // intentional non-ASCII key under test
 	if err != nil {
 		t.Fatalf("ParseStreamID(multibyte) error = %v", err)
 	}

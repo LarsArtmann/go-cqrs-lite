@@ -179,7 +179,7 @@ func RunSeqSeekableStreamLogTestIn(t *testing.T, eng metaengine.Engine, col stri
 			col,
 			int64(k),
 			0,
-		) //nolint:staticcheck // agreement check: position-based resume vs token-based resume
+		) //nolint:staticcheck // position resume agreement
 		if err != nil {
 			t.Fatalf("JournalReadFrom(%d): %v", k, err)
 		}

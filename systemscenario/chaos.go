@@ -181,6 +181,8 @@ func (d *delayedEngine) JournalReadAll(ctx context.Context, collection string) (
 	return backend.JournalReadAll(ctx, collection)
 }
 
+// JournalReadFrom forwards the deprecated position-based read so chaos
+// injection covers it too; removal rides v5 with the deprecated capability.
 func (d *delayedEngine) JournalReadFrom(
 	ctx context.Context, collection string, afterSeq int64, limit int,
 ) ([]any, error) {
@@ -191,12 +193,7 @@ func (d *delayedEngine) JournalReadFrom(
 		return nil, err
 	}
 
-	return backend.JournalReadFrom(
-		ctx,
-		collection,
-		afterSeq,
-		limit,
-	) //nolint:staticcheck // wraps the deprecated position-based capability for chaos injection; removal rides v5
+	return backend.JournalReadFrom(ctx, collection, afterSeq, limit)
 }
 
 func (d *delayedEngine) StreamAppendExpected(

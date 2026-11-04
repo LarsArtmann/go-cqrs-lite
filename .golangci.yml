@@ -591,6 +591,7 @@ linters:
         linters:
           - cyclop
           - gocyclo
+          - maintidx
           - exhaustruct_v5
           - forcetypeassert
           - gocognit
