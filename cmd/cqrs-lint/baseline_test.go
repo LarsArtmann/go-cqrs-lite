@@ -29,7 +29,7 @@ func writeFixtureBaseline(t *testing.T, root string, findings []finding.Finding)
 
 	path := filepath.Join(root, ".cqrs-lint-baseline.json")
 
-	if err := writeBaseline(path, entriesFromFindings(findings, root, nil)); err != nil {
+	if err := writeBaseline(path, entriesFromFindings(findings, root, nil, nil)); err != nil {
 		t.Fatalf("writeBaseline: %v", err)
 	}
 
@@ -48,7 +48,7 @@ func TestBaselineSplit_ClassifiesKnownNewAndStale(t *testing.T) {
 	doc := &baselineDocument{
 		Version: baselineVersion,
 		Tool:    "cqrs-lint",
-		Entries: entriesFromFindings([]finding.Finding{knownA, knownB, removed}, root, nil),
+		Entries: entriesFromFindings([]finding.Finding{knownA, knownB, removed}, root, nil, nil),
 	}
 
 	outcome := splitBaseline(doc, []finding.Finding{knownA, knownB, fresh}, root)
@@ -77,7 +77,7 @@ func TestBaselineKeys_ArePortableAcrossRoots(t *testing.T) {
 	findingA := baselineFinding(rootA, "internal/x.go", "E004", 5, 3, finding.SeverityInfo)
 	findingB := baselineFinding(rootB, "internal/x.go", "E004", 5, 3, finding.SeverityInfo)
 
-	entries := entriesFromFindings([]finding.Finding{findingA}, rootA, nil)
+	entries := entriesFromFindings([]finding.Finding{findingA}, rootA, nil, nil)
 	doc := &baselineDocument{Version: baselineVersion, Tool: "cqrs-lint", Entries: entries}
 
 	outcome := splitBaseline(doc, []finding.Finding{findingB}, rootB)
@@ -106,7 +106,7 @@ func TestEntriesFromFindings_PreservesReasonsAndSorts(t *testing.T) {
 		},
 	}
 
-	entries := entriesFromFindings([]finding.Finding{first, second}, root, prior)
+	entries := entriesFromFindings([]finding.Finding{first, second}, root, prior, nil)
 
 	if len(entries) != 2 {
 		t.Fatalf("entries = %d, want 2", len(entries))
@@ -126,6 +126,128 @@ func TestEntriesFromFindings_PreservesReasonsAndSorts(t *testing.T) {
 	}
 }
 
+// A line shift moves the finding to a new key; the exact-key pass alone drops
+// the reason (the crm hit: 6 of 60 entries went bare). The rematch must carry
+// the reason to the moved entry when the (rule, file) group is unambiguous.
+func TestEntriesFromFindings_MovedLineCarriesReason(t *testing.T) {
+	t.Parallel()
+
+	root := t.TempDir()
+	moved := baselineFinding(root, "machineapi/api.go", "A032", 41, 1, finding.SeverityWarning)
+
+	prior := &baselineDocument{
+		Version: baselineVersion,
+		Tool:    "cqrs-lint",
+		Entries: []baselineEntry{
+			{Rule: "A032", File: "machineapi/api.go", Line: 40, Column: 1, Reason: "hand-rolled dispatch is deliberate"},
+		},
+	}
+
+	entries := entriesFromFindings([]finding.Finding{moved}, root, prior, nil)
+
+	if len(entries) != 1 {
+		t.Fatalf("entries = %d, want 1", len(entries))
+	}
+
+	if entries[0].Reason != "hand-rolled dispatch is deliberate" {
+		t.Errorf("moved entry lost its reason: %q", entries[0].Reason)
+	}
+}
+
+// The crm shape: five V007 findings in one file sharing one reason string,
+// several lines shifted. One shared verdict re-attaches to all of them.
+func TestEntriesFromFindings_SharedReasonReattachesToAllMoved(t *testing.T) {
+	t.Parallel()
+
+	root := t.TempDir()
+
+	findings := []finding.Finding{
+		baselineFinding(root, "identity/identity.go", "V007", 12, 1, finding.SeverityWarning),
+		baselineFinding(root, "identity/identity.go", "V007", 34, 1, finding.SeverityWarning),
+		baselineFinding(root, "identity/identity.go", "V007", 57, 1, finding.SeverityWarning),
+	}
+
+	prior := &baselineDocument{
+		Version: baselineVersion,
+		Tool:    "cqrs-lint",
+		Entries: []baselineEntry{
+			{Rule: "V007", File: "identity/identity.go", Line: 11, Column: 1, Reason: "v4 train, migrate at v5"},
+			{Rule: "V007", File: "identity/identity.go", Line: 33, Column: 1, Reason: "v4 train, migrate at v5"},
+			{Rule: "V007", File: "identity/identity.go", Line: 56, Column: 1, Reason: "v4 train, migrate at v5"},
+		},
+	}
+
+	entries := entriesFromFindings(findings, root, prior, nil)
+
+	for _, entry := range entries {
+		if entry.Reason != "v4 train, migrate at v5" {
+			t.Fatalf("entry %s:%d lost the shared reason: %q", entry.File, entry.Line, entry.Reason)
+		}
+	}
+}
+
+// Two moved same-file findings with DIFFERENT reasons stay bare and the loss
+// is warned about — a wrong auto-assignment would corrupt the audit record.
+func TestEntriesFromFindings_DifferingReasonsStayBareAndWarn(t *testing.T) {
+	t.Parallel()
+
+	root := t.TempDir()
+
+	findings := []finding.Finding{
+		baselineFinding(root, "svc/a.go", "V007", 30, 1, finding.SeverityWarning),
+		baselineFinding(root, "svc/a.go", "V007", 44, 1, finding.SeverityWarning),
+	}
+
+	prior := &baselineDocument{
+		Version: baselineVersion,
+		Tool:    "cqrs-lint",
+		Entries: []baselineEntry{
+			{Rule: "V007", File: "svc/a.go", Line: 20, Column: 1, Reason: "reason one"},
+			{Rule: "V007", File: "svc/a.go", Line: 34, Column: 1, Reason: "reason two"},
+		},
+	}
+
+	warned := false
+	entries := entriesFromFindings(findings, root, prior, func(_ string, _ ...any) { warned = true })
+
+	for _, entry := range entries {
+		if entry.Reason != "" {
+			t.Fatalf("ambiguous rematch must stay bare, got %q on %s:%d", entry.Reason, entry.File, entry.Line)
+		}
+	}
+
+	if !warned {
+		t.Fatal("dropped reasons must be warned about, got silence")
+	}
+}
+
+// A prior reason whose finding vanished entirely is warned, never silent.
+func TestEntriesFromFindings_VanishedFindingWarns(t *testing.T) {
+	t.Parallel()
+
+	root := t.TempDir()
+	kept := baselineFinding(root, "svc/b.go", "E004", 5, 3, finding.SeverityInfo)
+
+	prior := &baselineDocument{
+		Version: baselineVersion,
+		Tool:    "cqrs-lint",
+		Entries: []baselineEntry{
+			{Rule: "E009", File: "svc/gone.go", Line: 9, Column: 1, Reason: "deleted file, keep for archaeology"},
+		},
+	}
+
+	warned := false
+	entries := entriesFromFindings([]finding.Finding{kept}, root, prior, func(_ string, _ ...any) { warned = true })
+
+	if len(entries) != 1 || entries[0].Reason != "" {
+		t.Fatalf("unrelated entries must stay bare: %+v", entries)
+	}
+
+	if !warned {
+		t.Fatal("vanished reason must be warned about")
+	}
+}
+
 func TestWriteBaseline_IsDeterministic(t *testing.T) {
 	t.Parallel()
 
@@ -138,7 +260,7 @@ func TestWriteBaseline_IsDeterministic(t *testing.T) {
 		baselineFinding(root, "m.go", "C010", 20, 1, finding.SeverityWarning),
 	}
 
-	entries := entriesFromFindings(findings, root, nil)
+	entries := entriesFromFindings(findings, root, nil, nil)
 
 	if err := writeBaseline(path, entries); err != nil {
 		t.Fatalf("first write: %v", err)

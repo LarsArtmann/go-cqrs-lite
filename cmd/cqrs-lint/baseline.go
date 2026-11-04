@@ -99,10 +99,20 @@ func splitBaseline(doc *baselineDocument, findings []finding.Finding, root strin
 // entriesFromFindings renders the current findings as baseline entries,
 // preserving reasons recorded in the previous document (a regenerated baseline
 // must not silently drop the operator's adjudication notes).
+//
+// A line shift moves a finding to a new key, so the exact-key reason lookup
+// alone loses the reason (the crm hit: 6 of 60 entries went bare after two
+// file shifts). After the exact pass, orphaned prior reasons (prior entries
+// whose key matched no current finding) are re-attached to reason-less entries
+// of the same (rule, file) — but only when the rematch is unambiguous: all
+// orphaned reasons for that (rule, file) are identical (the common
+// shared-verdict case), or there is exactly one orphan and one candidate.
+// Anything still dropped is reported through warn so the loss is never silent.
 func entriesFromFindings(
 	findings []finding.Finding,
 	root string,
 	prior *baselineDocument,
+	warn func(format string, args ...any),
 ) []baselineEntry {
 	reasons := make(map[baselineKey]string)
 
@@ -134,9 +144,100 @@ func entriesFromFindings(
 		})
 	}
 
+	rematchOrphanedReasons(entries, prior, warn)
+
 	slices.SortFunc(entries, compareBaselineEntries)
 
 	return entries
+}
+
+// rematchOrphanedReasons re-attaches prior reasons whose exact key vanished
+// (the finding moved lines) to reason-less current entries of the same
+// (rule, file). Mutates entries in place and reports every reason that could
+// not be re-attached unambiguously. Returns the number of reasons dropped.
+func rematchOrphanedReasons(
+	entries []baselineEntry,
+	prior *baselineDocument,
+	warn func(format string, args ...any),
+) int {
+	if prior == nil {
+		return 0
+	}
+
+	if warn == nil {
+		warn = func(string, ...any) {}
+	}
+
+	currentKeys := make(map[baselineKey]bool, len(entries))
+	for _, entry := range entries {
+		currentKeys[entry.key()] = true
+	}
+
+	type groupKey struct {
+		rule string
+		file string
+	}
+
+	orphaned := make(map[groupKey][]baselineEntry)
+
+	for _, entry := range prior.Entries {
+		if entry.Reason == "" || currentKeys[entry.key()] {
+			continue
+		}
+
+		group := groupKey{rule: entry.Rule, file: entry.File}
+		orphaned[group] = append(orphaned[group], entry)
+	}
+
+	dropped := 0
+
+	for group, orphans := range orphaned {
+		candidates := make([]*baselineEntry, 0)
+
+		for i := range entries {
+			e := &entries[i]
+			if e.Rule == group.rule && e.File == group.file && e.Reason == "" {
+				candidates = append(candidates, e)
+			}
+		}
+
+		allSameReason := true
+
+		for _, o := range orphans[1:] {
+			if o.Reason != orphans[0].Reason {
+				allSameReason = false
+
+				break
+			}
+		}
+
+		switch {
+		case len(candidates) == 0:
+			dropped += len(orphans)
+
+			for _, o := range orphans {
+				warn("cqrs-lint: --update-baseline drops reason %q on %s %s:%d:%d — the finding vanished\n",
+					o.Reason, o.Rule, o.File, o.Line, o.Column)
+			}
+		case allSameReason:
+			reason := orphans[0].Reason
+
+			for _, c := range candidates {
+				c.Reason = reason
+			}
+		case len(orphans) == 1 && len(candidates) == 1:
+			candidates[0].Reason = orphans[0].Reason
+		default:
+			dropped += len(orphans)
+
+			for _, o := range orphans {
+				warn("cqrs-lint: --update-baseline drops reason %q on %s %s:%d:%d — %d moved findings with differing reasons share this file; re-annotate manually\n",
+					o.Reason, o.Rule, o.File, o.Line, o.Column, len(orphans))
+			}
+		}
+	}
+
+	return dropped
 }
 
 // compareBaselineEntries orders entries deterministically for a stable file:
@@ -197,7 +298,9 @@ func applyBaseline(cfg *AppConfig, active []finding.Finding) (*baselineRun, erro
 			return nil, err
 		}
 
-		entries := entriesFromFindings(active, root, prior)
+		entries := entriesFromFindings(active, root, prior, func(format string, args ...any) {
+			fmt.Fprintf(os.Stderr, format, args...)
+		})
 
 		if err := writeBaseline(absPath, entries); err != nil {
 			return nil, err
