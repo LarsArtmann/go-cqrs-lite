@@ -4,10 +4,10 @@
 # Remove an entry once the package sits under BOTH ceilings.
 # Regenerate: bash scripts/check-package-surface.sh --update-baseline
 829	167	metaengine
+256	29	catalog
 253	37	core/v5/event
 253	37	event
-251	28	catalog
 223	48	system
-187	39	cmd/cqrs-lint/pkg/analyzer
+189	39	cmd/cqrs-lint/pkg/analyzer
 112	47	benchkit
 44	48	cmd/cqrs-lint/pkg/rules/correctness

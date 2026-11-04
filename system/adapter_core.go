@@ -185,12 +185,12 @@ func (c *AdapterCore[T]) ReadFromAfter(
 	}
 
 	// Deliberate position-based fallback for engines without SeqSeekableStreamLog.
-	values, err := c.Backend.JournalReadFrom(
+	values, err := c.Backend.JournalReadFrom( //nolint:staticcheck
 		ctx,
 		c.Collection,
 		afterSeq,
 		limit,
-	) //nolint:staticcheck
+	)
 	if err != nil {
 		return nil, fmt.Errorf("%s adapter: read from: %w", c.Noun, err)
 	}

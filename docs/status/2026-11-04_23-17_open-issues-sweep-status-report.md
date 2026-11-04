@@ -115,3 +115,20 @@ Nothing shipped broken. Honest near-misses, all caught in-session by tests/gates
 ---
 
 *Verified by: full per-module suites (catalog, kv, id, scenario, cmd/cqrs-lint, system, systemscenario, metaengine), api-stability golden, changelog/md-go gates, asyncapi goldens. Not yet verified: golangci, the #verify composite, consumer replays.*
+
+---
+
+## Addendum — 2026-11-05 00:20 CET (continuation session)
+
+1. **doc-check re-run: GREEN** (1372 refs valid, identical output to the pre-edit run).
+2. **Review comments: POSTED — on 23 issues, not 25.** #98–#100 and #105–#108 are PR numbers, not issues; the "25" was a miscount. 20 fixed-here verdicts + #104 documented + 2 already-fixed (#84 → a52cb26fa, #85 → 79c8b1cbf) + 1 answered-intended (#103). Comment-only, no closes — close-vs-comment stays the owner's call (§g Q1). Drafts + posted texts: `docs/drafts/2026-11-04_issue-sweep-verdict-comments.md`; all 23 verified landed (comment count + body match), voice-checked via check-draft.
+3. **Lint: was RED, now GREEN across all 8 changed modules** (catalog, kv, id, metaengine, metaengine/sqliteengine, cmd/cqrs-lint, system, systemscenario). The handoff's "unverified nolint guesses" were wrong in exactly the ways lint exposed:
+   - `systemscenario/chaos.go` + the `validate.go` 204/304 nolints were UNUSED (staticcheck/usestdlibvars never fire on those shapes) — removed; `isBodylessStatus(code string) bool` helper carries the RFC note now.
+   - Root cause of the nolint carnage: **treefmt-golines (~100 cols) vs golangci-golines (120) disagree**; any 101–120-col line gets split by `nix fmt`, detaching closing-line nolints (SA1019 fires at the OPENING line). Stable forms: nolint on the opening line of an already-split call (system adapters), or ≤100-col single lines (everything else).
+   - enginetest: ONE `journalReadFromFallback` helper (seqseek.go) holds the single SA1019 suppression; all 4 call sites are clean short lines.
+   - exhaustruct: `message_config_rest.go` joined the existing builder-family exclusion (same file family as `message_config.go`); `catalog/compat/` got its own block (diff engine builds partial Findings by design — parallel-session debt, master CI was already red on it); `maintidx` joined cyclop/gocyclo in the metaengine/ carve-out (same complexity class).
+   - kv cache passthroughs: inline `//nolint:wrapcheck // transparent cache proxy` (watermill/testutil precedent); id test: key-variable restructure for gosmopolitan.
+4. **File-size ratchet: GREEN.** run.go folded back to exactly 532 via `suppressAdjudicated`; baseline.go split (rematch → `baseline_rematch.go`, 283); filters.go extracted (waiver adoption → `waiver_adoption.go`, 451); enginetest.go 930 ≤ 935.
+5. **Package-surface: re-pinned** (the ratchet's own after-review path): catalog 251→256 symbols / 28→29 files (Channels, WithTypedParam, WithResponseHeader, WithRequestBodyContent, ResponseHeader + display_name.go), analyzer 187→189 (ApplyModulePins, ValidateScorecardModulePins) — the sweep's deliberate, golden-verified, CHANGELOG'd API.
+6. **Gates green this session:** nix fmt idempotent (×2), scoped golangci ×8, check-file-size, check-package-surface, golangci config verify, doc-check. Tests re-run green: catalog, kv, id, metaengine, cmd/cqrs-lint, systemscenario + system, metaengine/sqliteengine after the harness edits.
+7. **Still owner-decided:** §g Q1 (close the 23), Q2 (build `WithMaxOpenConns`), Q3 (hand-commit the wave) — plus a full `#verify` run in its exclusivity window before the next tag wave.
