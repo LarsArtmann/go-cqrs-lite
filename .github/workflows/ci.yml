@@ -1122,8 +1122,11 @@ jobs:
           modules=$(find . -name go.mod -not -path './vendor/*' | sed 's|/go.mod||' | sed 's|^\./||' | sort)
           status=0
           for m in $modules; do
-            if ! (cd "$m" && erraudit lint ./... --enforce-go-error-family --type-aware); then
-              echo "::error module=$m::error-policy findings — run 'erraudit lint ./... --enforce-go-error-family --type-aware' in $m" >&2
+            # --disable-extensions matches scripts/erraudit-sweep.sh (the local
+            # mirror): extension audits lint vendored JS (catalog/docserver/
+            # static bundles) and cannot gate a Go error-policy leg.
+            if ! (cd "$m" && erraudit lint ./... --enforce-go-error-family --type-aware --disable-extensions); then
+              echo "::error module=$m::error-policy findings — run 'erraudit lint ./... --enforce-go-error-family --type-aware --disable-extensions' in $m" >&2
               status=1
             fi
           done

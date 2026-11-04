@@ -4,17 +4,44 @@
 # module and reports rc + finding counts per module. rc legend: 0 clean,
 # 2 findings (gate failure), 1 analysis error, other = crash.
 #
-# Usage: scripts/erraudit-sweep.sh [erraudit-binary] (default: erraudit on PATH)
+# Usage: scripts/erraudit-sweep.sh [erraudit-binary] (default: built from the
+#        SAME vendored tarball CI pins — tools/erraudit/*-src.tgz; pass a path
+#        to override, e.g. a dev checkout)
 # Env:   GOEXPERIMENT=jsonv2 is REQUIRED (encoding/json/v2); GOWORK is forced off.
+#
+# Version-skew guard (2026-11-04): a NEWER erraudit on PATH started auditing
+# vendored JS (catalog/docserver/static) that the pinned v0.7.0 does not see —
+# the mirror went red while CI stayed green. The mirror therefore builds from
+# the vendored source by default so local and CI verdicts share one binary.
 set -uo pipefail
 
-ERRAUDIT="${1:-erraudit}"
-command -v "$ERRAUDIT" >/dev/null 2>&1 || {
+repo_root=$(cd "$(dirname "$0")/.." && pwd)
+vendored_tarball=$(ls "$repo_root"/tools/erraudit/erraudit-*-src.tgz 2>/dev/null | sort | tail -1)
+
+if [ $# -ge 1 ]; then
+	ERRAUDIT="$1"
+elif command -v "$repo_root/build/erraudit-sweep/erraudit" >/dev/null 2>&1 &&
+	[ -n "$vendored_tarball" ] &&
+	[ "$repo_root/build/erraudit-sweep/erraudit" -nt "$vendored_tarball" ]; then
+	ERRAUDIT="$repo_root/build/erraudit-sweep/erraudit"
+elif [ -n "$vendored_tarball" ]; then
+	rm -rf "$repo_root/build/erraudit-sweep/src"
+	mkdir -p "$repo_root/build/erraudit-sweep/src"
+	tar xzf "$vendored_tarball" -C "$repo_root/build/erraudit-sweep/src"
+	(cd "$repo_root/build/erraudit-sweep/src" &&
+		env GOWORK=off GOFLAGS= go build -o "$repo_root/build/erraudit-sweep/erraudit" ./cmd/erraudit) || {
+		echo "failed to build vendored erraudit from $vendored_tarball" >&2
+		exit 1
+	}
+	ERRAUDIT="$repo_root/build/erraudit-sweep/erraudit"
+else
+	ERRAUDIT="erraudit"
+fi
+command -v "$ERRAUDIT" >/dev/null 2>&1 || [ -x "$ERRAUDIT" ] || {
 	echo "erraudit not found: $ERRAUDIT" >&2
 	exit 1
 }
 
-repo_root=$(cd "$(dirname "$0")/.." && pwd)
 report_dir="$repo_root/build/erraudit-sweep"
 mkdir -p "$report_dir"
 
