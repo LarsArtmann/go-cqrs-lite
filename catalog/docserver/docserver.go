@@ -93,6 +93,14 @@ type Config struct {
 	// table. The file is re-read per request, so regenerated exports show
 	// up on refresh.
 	EventCatalogErrorsFile string
+
+	// SkipIndexRoute leaves `GET <DocsPath>` (and the `/<DocsPath>/{$}`
+	// redirect) to the consumer when the consumer's own landing page owns
+	// that exact route. Without this, mounting on the root mux either
+	// shadows the consumer's page or panics on the duplicate exact pattern;
+	// consumers wanting the generated index can still mount [DocsServer.Index]
+	// themselves. Off by default: existing deployments keep their routes.
+	SkipIndexRoute bool
 }
 
 // AsyncAPIServerConfig configures the AsyncAPI server entry.
@@ -206,13 +214,15 @@ func (ds *DocsServer) StaticFS() http.FileSystem {
 func (ds *DocsServer) RegisterRoutes(mux *http.ServeMux) {
 	prefix := ds.config.DocsPath
 
-	mux.HandleFunc("GET "+prefix, ds.serveIndex)
-	// Exact trailing-slash convenience only: "/docs/" redirects to "/docs".
-	// No subtree catch-all, so unknown /docs/* paths 404 instead of serving
-	// the index with a wrong relative-asset base.
-	mux.HandleFunc("GET "+prefix+"/{$}", func(w http.ResponseWriter, r *http.Request) {
-		http.Redirect(w, r, prefix, http.StatusPermanentRedirect)
-	})
+	if !ds.config.SkipIndexRoute {
+		mux.HandleFunc("GET "+prefix, ds.serveIndex)
+		// Exact trailing-slash convenience only: "/docs/" redirects to "/docs".
+		// No subtree catch-all, so unknown /docs/* paths 404 instead of serving
+		// the index with a wrong relative-asset base.
+		mux.HandleFunc("GET "+prefix+"/{$}", func(w http.ResponseWriter, r *http.Request) {
+			http.Redirect(w, r, prefix, http.StatusPermanentRedirect)
+		})
+	}
 	mux.HandleFunc("GET "+prefix+"/openapi", ds.serveOpenAPIHTML)
 	mux.HandleFunc("GET "+prefix+"/openapi.json", ds.serveOpenAPIJSON)
 	mux.HandleFunc("GET "+prefix+"/openapi.yaml", ds.serveOpenAPIYAML)
