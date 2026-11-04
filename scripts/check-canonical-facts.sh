@@ -67,13 +67,17 @@ check_gomod_count() {
 		while IFS= read -r line; do
 			# Backticks are stripped BEFORE matching (2026-11-04, T06): prose
 			# forms like "103 `go.mod` files" were invisible to the old regex,
-			# so backticked counts rotted until someone audited by hand.
-			cited=$(printf '%s' "$line" | tr -d '`' | grep -oE '[0-9]+ go\.mod' | grep -oE '^[0-9]+')
-			if [[ -n "$cited" && "$cited" != "$derived" ]]; then
-				echo "✗ $doc cites '$cited go.mod' but the repo has $derived" >&2
-				echo "  line: $line" >&2
-				failures=$((failures + 1))
-			fi
+			# so backticked counts rotted until someone audited by hand. Each
+			# match on the line is checked independently: a line may cite the
+			# count twice (an example sentence quoting the form) without the
+			# two matches concatenating into a false drift finding.
+			while IFS= read -r cited; do
+				if [[ -n "$cited" && "$cited" != "$derived" ]]; then
+					echo "✗ $doc cites '$cited go.mod' but the repo has $derived" >&2
+					echo "  line: $line" >&2
+					failures=$((failures + 1))
+				fi
+			done < <(printf '%s' "$line" | tr -d '`' | grep -oE '[0-9]+ go\.mod' | grep -oE '^[0-9]+')
 		done < <(grep -nE '[0-9]+[[:space:]]*`?go\.mod' "$dir/$doc" || true)
 	done
 	echo "  go.mod count: derived=$derived"
@@ -316,6 +320,29 @@ self_test() {
 		echo "  ✓ PASS: honest backticked go.mod count passes"
 	else
 		echo "  ✗ FAIL: honest backticked count flagged (strip over-matching, got $failures)"
+	fi
+
+	# Leg 1d positive: one line citing the SAME count twice (the AGENTS
+	# example sentence quotes the form it describes) must pass — the
+	# matches are checked individually, never concatenated.
+	failures=0
+	printf '# t\n\n5 go.mod files today and 5 `go.mod` files tomorrow, 1/1 classified.\n' >"$tmp/AGENTS.md"
+	run_all "$tmp" >/dev/null 2>&1
+	if [[ $failures -eq 0 ]]; then
+		echo "  ✓ PASS: same count cited twice on one line passes"
+	else
+		echo "  ✗ FAIL: repeated honest count flagged (matches concatenated, got $failures)"
+	fi
+
+	# Leg 1e mutation: TWO DIFFERENT counts on one line — the drifted one
+	# must still be caught per-match.
+	failures=0
+	printf '# t\n\n5 go.mod files today but 9 `go.mod` files last week, 1/1 classified.\n' >"$tmp/AGENTS.md"
+	run_all "$tmp" >/dev/null 2>&1
+	if [[ $failures -gt 0 ]]; then
+		echo "  ✓ PASS: mixed counts on one line still caught"
+	else
+		echo "  ✗ FAIL: drifted second count on a mixed line invisible"
 	fi
 
 	# Leg 2 mutation: module missing from map.
