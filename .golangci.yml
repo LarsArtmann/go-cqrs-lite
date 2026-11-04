@@ -591,7 +591,6 @@ linters:
         linters:
           - cyclop
           - gocyclo
-          - maintidx
           - exhaustruct_v5
           - forcetypeassert
           - gocognit
@@ -716,17 +715,7 @@ linters:
           - nolintlint
           - wrapcheck
           - staticcheck
-      # The message-config builders grow Schema/ResponseSpec literals
-      # field-by-field behind their option functions; exhaustive literals would
-      # restate zero values the options exist to set. message_config_rest.go is
-      # the same builder family (REST-specific options).
-      - path: catalog/(message_config|message_config_rest|registry_build)\.go$
-        linters:
-          - exhaustruct_v5
-      # catalog/compat builds Baseline/Finding literals field-by-field as the
-      # diff engine discovers each difference; exhaustive literals would
-      # defeat the incremental comparison design.
-      - path: catalog/compat/
+      - path: catalog/(message_config|registry_build)\.go$
         linters:
           - exhaustruct_v5
       - path: catalog/registry.go$

@@ -121,6 +121,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [system/v4.16.0, catalog/v4.11.0, systemcatalog/v4.0.0 — 2026-10-26 catalog-truth derivation wave (3 tags)] — 2026-10-27
 
+> RECONCILIATION NOTE (2026-11-04): the `systemcatalog/v4.0.0` tag claimed by this
+> entry was never pushed with the wave — it was cut 2026-11-04 at `d372c42ba`
+> (the `catalog/v4.11.0` release commit, where `systemcatalog/go.mod` requires
+> `catalog/v4.11.0`, the wave-coherent version) after verifying systemcatalog
+> builds + tests green there. The rest of the D7/D8 reconciliation (whole-train
+> tag coherence; master's daemon line has drifted far past every release tag —
+> e.g. metaengine ~5k .go diff lines past `metaengine/v4.20.0` toward master's
+> tip) remains open owner work; no commit is yet release-line-coherent across
+> the full train.
+
 ### Added
 
 - **systemcatalog: catalogs are DERIVED from declared + runtime truth, not hand-copied.** New module `systemcatalog/v4` (design: `docs/planning/2026-10-26_systemcatalog-adapter-design.md`): `FromDomainConfig` boots an ephemeral in-memory system, runs the `DomainConfig` registration closures, and derives the message inventory — commands/queries from the runtime registration records with payload schemas reflected from the registered Go types, events from `DomainConfig.Events` ∪ `DomainConfig.Schema` with declared schema versions stamped. `FromSystem` derives from an already-booted system; `DeriveInto` layers derivation onto an existing builder. Curated metadata survives by construction: `WithMessageOverrides` (curated message configs win by id), `WithCurator` (flows, users, data stores), `WithServiceOwners`. The adapter owns the `system → catalog` edge so `catalog` stays dep-free (G2) and one service per deployable is the default (G1).
