@@ -1076,7 +1076,7 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 | AsyncAPI rendering | AsyncAPI React for event documentation                                                        | ✅     |
 | D2 source view     | HTML view + raw `d2.txt` endpoint with copy/download                                          | ✅     |
 | Raw spec serving   | JSON/YAML endpoints for both OpenAPI and AsyncAPI                                             | ✅     |
-| Routing semantics  | Exact `/docs/` redirect; unknown `/docs/*` paths 404                                          | ✅     |
+| Routing semantics  | Exact `/docs/` redirect; unknown `/docs/*` paths 404; `Config.SkipIndexRoute` leaves `GET <prefix>` to a consumer-owned landing page | ✅     |
 | Catalog provider   | `CatalogProvider` func — generates fresh catalog on each request                              | ✅     |
 | Embedded assets    | UI stylesheet, favicon, SPA bundles embedded via `embed.FS` — zero external file dependencies | ✅     |
 
@@ -1438,6 +1438,8 @@ Fluent BDD harness for deciders and projections — no store or bus needed, just
 | `rules` subcommand | Full rule catalog: `--json` (stable fields for editor/tooling integration) and `--markdown` (generates the anchored `RULES.md` reference page — 204 `<a id>` anchors, byte-fresh vs the in-code catalog, every DocURL resolves) | ✅ |
 | `doctor` JSON + safe fix | `doctor --format json` emits resolved config/feature profile/suppression audit as JSON; `doctor --fix --dry-run` plans stale-suppression removal without touching files | ✅ |
 | Scorecard deprecated panel | Runs the V007/F030 detectors and reports counts + remediation in text/JSON/markdown; library presets disable V007+F030 for compat-surface parity (policy-tested) | ✅ |
+| Scorecard waivers | `.cqrs-lint.json` `scorecard.waivers` record per-module refusals (mandatory reason, optional revisit trigger that fires a re-litigation notice when its profile signal arrives); a waiver ALSO suppresses its module's adoption finding into `--show-suppressed` (2026-11-04) | ✅ |
+| Scorecard module pins | `scorecard.modules` in `.cqrs-lint.json` marks composition-root-wired modules used over import detection (config-pins-beat-detection; `false` rejected in favor of waivers) | ✅ |
 | Severity overrides | `rules.severity-overrides` (`RulesConfig.SeverityOverrides`) with fixed precedence catalog → preset → config → domain bias → `--min-severity`; invalid severities dropped WITH a warning, unknown rule IDs warned. `v5-ready` preset = sugar for `{"V007": "error"}` (2026-09-07) | ✅ |
 | V007 dot-import flagging | Any dot-import of a go-cqrs-lite module fires V007 at the import position ("hides v5-removed-API usage — name the import"); non-CQRS dot-imports stay silent (F090a, 2026-09-07) | ✅ |
 | Typed qualifier resolution | `analyzer.ResolveQualifierTyped` + `IsQualifierFor`/`IsEventTypeParam` — alias-fold-blindness dead for V007 and fold detection; typed answer authoritative, string scan only when type info is missing (F091 Tier 1, 2026-09-07) | ✅ |
