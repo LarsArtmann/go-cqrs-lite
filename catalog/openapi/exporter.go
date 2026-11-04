@@ -16,13 +16,14 @@ const (
 )
 
 // Exporter renders a [catalog.Catalog] as an OpenAPI 3.0.3 document.
-// Construct one with [NewExporter] and customise it with [WithDescription]
-// and [WithBasePath] options.
+// Construct one with [NewExporter] and customise it with [WithDescription],
+// [WithBasePath], and [WithOpenAPIVersion] options.
 type Exporter struct {
 	title       string
 	version     string
 	description string
 	basePath    string
+	specVersion string
 }
 
 // Option configures an [Exporter] using the functional-options pattern.
@@ -42,14 +43,25 @@ func WithBasePath(path string) Option {
 	}
 }
 
+// WithOpenAPIVersion overrides the emitted OpenAPI specification version
+// (default "3.0.3"). Opting into "3.1.0" is a string swap: 3.0 documents are
+// largely valid 3.1, so consumers pinned to 3.1-only tooling can emit 3.1
+// without waiting for genuinely 3.1-native constructs in this exporter.
+func WithOpenAPIVersion(version string) Option {
+	return func(e *Exporter) {
+		e.specVersion = version
+	}
+}
+
 // NewExporter creates an [Exporter] with the given document title and version,
 // applying any provided options. The default base path is "/api".
 func NewExporter(title, version string, opts ...Option) *Exporter {
-	e := &Exporter{
+	e := &Exporter{ //nolint:exhaustruct_v5 // specVersion defaults below
 		title:       title,
 		version:     version,
 		description: "",
 		basePath:    "/api",
+		specVersion: openAPIVersion,
 	}
 
 	for _, opt := range opts {
@@ -63,7 +75,7 @@ func NewExporter(title, version string, opts ...Option) *Exporter {
 // path operation per command/query/event and one component schema per entity.
 func (e *Exporter) Export(cat *catalog.Catalog) *Document {
 	doc := &Document{
-		OpenAPI: openAPIVersion,
+		OpenAPI: cmp.Or(e.specVersion, openAPIVersion),
 		Info: catalog.DocumentInfo{
 			Title:       e.title,
 			Version:     e.version,
@@ -135,6 +147,24 @@ func jsonContentWithExample(schema any, examples []jsontext.Value) map[string]Me
 	return map[string]MediaType{contentType: mediaType}
 }
 
+// requestBodyContent renders a request body's content map. Messages without
+// a media-type override get application/json with the auto-derived schema;
+// [catalog.WithRequestBodyContent] (e.g. multipart/form-data uploads) keys the
+// map by the declared media type and may replace the schema with one that
+// describes the parts.
+func requestBodyContent(msg catalog.Message, schemaRef any) map[string]MediaType {
+	if msg.RequestBodyMediaType == "" {
+		return jsonContentWithExample(schemaRef, msg.Examples)
+	}
+
+	mediaType := MediaType{Schema: schemaRef}
+	if msg.RequestBodySchema != nil {
+		mediaType.Schema = schemaToAny(msg.RequestBodySchema)
+	}
+
+	return map[string]MediaType{msg.RequestBodyMediaType: mediaType}
+}
+
 func responseWithContent(desc string, schema any) *Response {
 	return &Response{
 		Description: desc,
@@ -164,7 +194,7 @@ func (e *Exporter) addCommand(
 		Deprecated:  msg.Deprecated,
 		RequestBody: &RequestBody{
 			Description: string(msg.Name) + " request",
-			Content:     jsonContentWithExample(schemaRef, msg.Examples),
+			Content:     requestBodyContent(msg, schemaRef),
 			Required:    true,
 		},
 		Responses: e.buildResponses(
@@ -228,7 +258,7 @@ func (e *Exporter) addEvent(
 		Deprecated:  msg.Deprecated,
 		RequestBody: &RequestBody{
 			Description: string(msg.Name) + " event payload",
-			Content:     jsonContentWithExample(schemaRef, msg.Examples),
+			Content:     requestBodyContent(msg, schemaRef),
 			Required:    true,
 		},
 		Responses: e.buildResponses(

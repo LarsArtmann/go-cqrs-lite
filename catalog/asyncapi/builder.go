@@ -20,7 +20,7 @@ func (e *Exporter) Export(cat *catalog.Catalog) *Document {
 		}
 	}
 
-	exportMessages(e, doc, cat)
+	exportMessages(e, doc, cat, buildChannelIndex(cat))
 
 	return doc
 }
@@ -44,10 +44,10 @@ func (e *Exporter) newDocument() *Document {
 	}
 }
 
-func exportMessages(e *Exporter, doc *Document, cat *catalog.Catalog) {
+func exportMessages(e *Exporter, doc *Document, cat *catalog.Catalog, idx channelIndex) {
 	for _, svc := range cat.Services {
 		for _, cmd := range svc.Commands {
-			e.addMessage(doc, svc.ID, cmd, kindCommand, withAction(actionReceive))
+			e.addMessage(doc, svc.ID, cmd, kindCommand, idx, withAction(actionReceive))
 		}
 
 		for _, evt := range svc.Events {
@@ -56,20 +56,20 @@ func exportMessages(e *Exporter, doc *Document, cat *catalog.Catalog) {
 				action = actionReceive
 			}
 
-			e.addMessage(doc, svc.ID, evt, kindEvent, withAction(action))
+			e.addMessage(doc, svc.ID, evt, kindEvent, idx, withAction(action))
 		}
 
 		for _, q := range svc.Queries {
-			e.addMessage(doc, svc.ID, q, kindQuery)
+			e.addMessage(doc, svc.ID, q, kindQuery, idx)
 		}
 	}
 
-	exportAgentMessages(e, doc, cat)
+	exportAgentMessages(e, doc, cat, idx)
 }
 
 // exportAgentMessages resolves agent Sends/Receives refs to actual messages
 // from the catalog and adds operations for each agent.
-func exportAgentMessages(_ *Exporter, doc *Document, cat *catalog.Catalog) {
+func exportAgentMessages(_ *Exporter, doc *Document, cat *catalog.Catalog, idx channelIndex) {
 	if len(cat.Agents) == 0 {
 		return
 	}
@@ -83,7 +83,7 @@ func exportAgentMessages(_ *Exporter, doc *Document, cat *catalog.Catalog) {
 				continue
 			}
 
-			addAgentOperation(doc, agent.ID, msg, actionSend)
+			addAgentOperation(doc, agent.ID, msg, actionSend, idx)
 		}
 
 		for _, ref := range agent.Receives {
@@ -92,22 +92,29 @@ func exportAgentMessages(_ *Exporter, doc *Document, cat *catalog.Catalog) {
 				continue
 			}
 
-			addAgentOperation(doc, agent.ID, msg, actionReceive)
+			addAgentOperation(doc, agent.ID, msg, actionReceive, idx)
 		}
 	}
 }
 
 // addAgentOperation creates an operation for an agent's send/receive of a message.
 // Uses agent-specific operation keys to avoid collisions with service operations.
-func addAgentOperation(doc *Document, agentID catalog.AgentID, msg catalog.Message, action string) {
+func addAgentOperation(
+	doc *Document,
+	agentID catalog.AgentID,
+	msg catalog.Message,
+	action string,
+	idx channelIndex,
+) {
 	messageID := catalog.Key(msg)
 	kind := messageKindForKind(msg.Kind)
-	channelKey := string(kind) + "." + string(messageID)
 	componentKey := string(msg.Kind) + "." + string(messageID)
 	ref := "#/components/messages/" + componentKey
 
 	ensureMessageComponent(doc, msg, componentKey)
-	ensureChannel(doc, agentID, msg, kind, channelKey, componentKey, ref)
+
+	channelKey, emitChannel := channelFor(idx, doc, string(agentID), msg, kind, messageID)
+	emitChannel(componentKey, ref)
 
 	opName := action + "." + string(agentID) + "." + string(messageID)
 
@@ -142,30 +149,6 @@ func ensureMessageComponent(doc *Document, msg catalog.Message, componentKey str
 		doc.Components.Schemas[componentKey] = SchemaToAny(msg.Schema)
 	} else {
 		doc.Components.Schemas[componentKey] = SchemaToAny(nil)
-	}
-}
-
-func ensureChannel(
-	doc *Document,
-	ownerID catalog.AgentID,
-	msg catalog.Message,
-	kind messageKind,
-	channelKey, componentKey, ref string,
-) {
-	if _, exists := doc.Channels[channelKey]; exists {
-		return
-	}
-
-	doc.Channels[channelKey] = Channel{
-		Address: fmt.Sprintf(
-			"%s.%s.%s",
-			ownerID,
-			kind,
-			dotSeparated(string(catalog.Key(msg))),
-		),
-		Title:       string(msg.Name) + " " + singularKind(kind) + " Channel",
-		Description: string(msg.Summary),
-		Messages:    map[string]Ref{componentKey: {Ref: ref}},
 	}
 }
 
@@ -207,6 +190,7 @@ func (e *Exporter) addMessage(
 	serviceID catalog.ServiceID,
 	msg catalog.Message,
 	kind messageKind,
+	idx channelIndex,
 	opts ...messageOption,
 ) {
 	cfg := &messageConfig{action: actionReceive}
@@ -216,28 +200,35 @@ func (e *Exporter) addMessage(
 	}
 
 	messageID := catalog.Key(msg)
-	channelKey := string(kind) + "." + string(messageID)
 	componentKey := string(msg.Kind) + "." + string(messageID)
 	ref := "#/components/messages/" + componentKey
-	opRef := "#/channels/" + channelKey + "/messages/" + componentKey
 
-	addChannel(doc, serviceID, msg, kind, channelKey, componentKey, ref)
+	channelKey, emitChannel := channelFor(idx, doc, string(serviceID), msg, kind, messageID)
+	emitChannel(componentKey, ref)
+
+	opRef := "#/channels/" + channelKey + "/messages/" + componentKey
 	addOperation(doc, serviceID, msg, kind, cfg, channelKey, opRef, messageID)
 
 	e.addMessageSchema(doc, msg)
 }
 
-func addChannel(
+// ensureSyntheticChannel emits the fallback per-message channel shape used
+// when no catalog-declared channel is linked to the message.
+func ensureSyntheticChannel(
 	doc *Document,
-	serviceID catalog.ServiceID,
+	owner string,
 	msg catalog.Message,
 	kind messageKind,
 	channelKey, componentKey, ref string,
 ) {
+	if _, exists := doc.Channels[channelKey]; exists {
+		return
+	}
+
 	doc.Channels[channelKey] = Channel{
 		Address: fmt.Sprintf(
 			"%s.%s.%s",
-			serviceID,
+			owner,
 			kind,
 			dotSeparated(string(catalog.Key(msg))),
 		),

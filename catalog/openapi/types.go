@@ -55,6 +55,15 @@ type RequestBody struct {
 type Response struct {
 	Description string               `json:"description"`
 	Content     map[string]MediaType `json:"content,omitempty"`
+	Headers     map[string]Header    `json:"headers,omitempty"`
+}
+
+// Header declares a response header (OpenAPI Header Object: description plus
+// schema). Rendered from [catalog.ResponseSpec.Headers] so contracts like
+// 429 + Retry-After are typed instead of description prose.
+type Header struct {
+	Description string `json:"description,omitempty"`
+	Schema      any    `json:"schema,omitempty"`
 }
 
 type MediaType struct {

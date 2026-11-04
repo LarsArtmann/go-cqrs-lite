@@ -1,6 +1,7 @@
 package openapi
 
 import (
+	"cmp"
 	"fmt"
 	"log"
 	"strings"
@@ -82,6 +83,19 @@ func (e *Exporter) buildTypedResponses(doc *Document, msg catalog.Message) map[s
 	for _, resp := range msg.Responses {
 		openapiResp := &Response{
 			Description: resp.Description,
+		}
+
+		if len(resp.Headers) > 0 {
+			openapiResp.Headers = make(map[string]Header, len(resp.Headers))
+
+			for _, h := range resp.Headers {
+				openapiResp.Headers[h.Name] = Header{
+					Description: h.Description,
+					Schema: map[string]any{
+						"type": cmp.Or(h.Type, "string"),
+					},
+				}
+			}
 		}
 
 		if resp.Schema != nil {
@@ -237,11 +251,17 @@ func extractTaggedParameters(path string, params []catalog.Parameter) (string, [
 		}
 
 		if p.Schema != nil {
-			op.Schema = map[string]any{
+			schemaMap := map[string]any{
 				"type":        string(p.Schema.Type),
 				"description": p.Schema.Description,
 				"format":      p.Schema.Format,
 			}
+
+			if len(p.Schema.Enum) > 0 {
+				schemaMap["enum"] = p.Schema.Enum
+			}
+
+			op.Schema = schemaMap
 		}
 
 		result = append(result, op)
