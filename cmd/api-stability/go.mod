@@ -4,7 +4,7 @@ go 1.27.2
 
 require (
 	github.com/larsartmann/cmdguard/v4 v4.1.0
-	github.com/larsartmann/go-error-family v0.11.0
+	github.com/larsartmann/go-error-family v0.12.0
 	github.com/spf13/cobra v1.10.2
 )
 

@@ -6,8 +6,8 @@ require (
 	github.com/fxamacker/cbor/v2 v2.9.6
 	github.com/gkampitakis/go-snaps v0.5.23
 	github.com/larsartmann/go-branded-id v0.7.0
-	github.com/larsartmann/go-codec v0.3.1
-	github.com/larsartmann/go-error-family v0.11.0
+	github.com/larsartmann/go-codec v0.3.2
+	github.com/larsartmann/go-error-family v0.12.0
 	github.com/maypok86/otter/v2 v2.3.0
 	github.com/oklog/ulid/v2 v2.1.2
 	github.com/onsi/ginkgo/v2 v2.33.0
