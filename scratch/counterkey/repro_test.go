@@ -43,6 +43,7 @@ var tasksQuery = metaengine.Query[listIn, row]("tasks",
 	}),
 	metaengine.OnRecordTyped("T", ev{}, func(_ record.Record, e ev, prev row) row {
 		prev.Status = "running"
+
 		return prev
 	}),
 	metaengine.WithColumnarLayout(),

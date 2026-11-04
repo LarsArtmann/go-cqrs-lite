@@ -96,7 +96,7 @@ func (s *SQLDeadLetterStore) Handle(ctx context.Context, entry DeadLetterEntry) 
 		" (kind, type, aggregate_id, error_text, error_code, error_family, attempts, failed_at) VALUES (" +
 		s.placeholders(
 			8,
-		) + ")" //nolint:mnd // 8 columns
+		) + ")"
 
 	_, _ = s.db.ExecContext(
 		ctx,

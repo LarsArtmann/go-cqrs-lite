@@ -65,13 +65,16 @@ check_gomod_count() {
 	for doc in "${docs[@]}"; do
 		[[ -f "$dir/$doc" ]] || continue
 		while IFS= read -r line; do
-			cited=$(printf '%s' "$line" | grep -oE '[0-9]+ go\.mod' | grep -oE '^[0-9]+')
+			# Backticks are stripped BEFORE matching (2026-11-04, T06): prose
+			# forms like "103 `go.mod` files" were invisible to the old regex,
+			# so backticked counts rotted until someone audited by hand.
+			cited=$(printf '%s' "$line" | tr -d '`' | grep -oE '[0-9]+ go\.mod' | grep -oE '^[0-9]+')
 			if [[ -n "$cited" && "$cited" != "$derived" ]]; then
 				echo "✗ $doc cites '$cited go.mod' but the repo has $derived" >&2
 				echo "  line: $line" >&2
 				failures=$((failures + 1))
 			fi
-		done < <(grep -nE '[0-9]+ go\.mod' "$dir/$doc" || true)
+		done < <(grep -nE '[0-9]+[[:space:]]*`?go\.mod' "$dir/$doc" || true)
 	done
 	echo "  go.mod count: derived=$derived"
 }
@@ -293,6 +296,26 @@ self_test() {
 		echo "  ✓ PASS: wrong go.mod count caught"
 	else
 		echo "  ✗ FAIL: wrong go.mod count not caught"
+	fi
+
+	# Leg 1b mutation: wrong BACKTICKED go.mod count — the T06 strip must see it.
+	failures=0
+	printf '# t\n\n99 `go.mod` files and 1/1 classified\n' >"$tmp/AGENTS.md"
+	run_all "$tmp" >/dev/null 2>&1
+	if [[ $failures -gt 0 ]]; then
+		echo "  ✓ PASS: wrong backticked go.mod count caught"
+	else
+		echo "  ✗ FAIL: backticked count drift invisible (backtick strip broken)"
+	fi
+
+	# Leg 1c positive: honest BACKTICKED count passes (no false positive).
+	failures=0
+	printf '# t\n\n5 `go.mod` files and 1/1 classified\n' >"$tmp/AGENTS.md"
+	run_all "$tmp" >/dev/null 2>&1
+	if [[ $failures -eq 0 ]]; then
+		echo "  ✓ PASS: honest backticked go.mod count passes"
+	else
+		echo "  ✗ FAIL: honest backticked count flagged (strip over-matching, got $failures)"
 	fi
 
 	# Leg 2 mutation: module missing from map.

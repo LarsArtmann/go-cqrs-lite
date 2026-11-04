@@ -20,10 +20,10 @@ import (
 // deliberate catalog edit (the recipes.md TestRecipesCatalogCoversFile
 // pattern, applied to the repo's front door).
 var readmeFences = map[string]struct{}{
-	"### 1. Declare the domain — events, state, decide logic #1":         {},
-	"### 2. Declare the read model — one fold per event type #1":        {},
-	"### 3. Boot the system — and never touch infrastructure again #1":  {},
-	"### 3. Boot the system — and never touch infrastructure again #2":  {},
+	"### 1. Declare the domain — events, state, decide logic #1":       {},
+	"### 2. Declare the read model — one fold per event type #1":       {},
+	"### 3. Boot the system — and never touch infrastructure again #1": {},
+	"### 3. Boot the system — and never touch infrastructure again #2": {},
 }
 
 // readmeQuickStart is the compile spec for the concatenated fences: the
@@ -73,7 +73,11 @@ func TestReadmeFencesClassified(t *testing.T) {
 	for _, b := range blocks {
 		key := recipeKey(b)
 		if _, ok := readmeFences[key]; !ok {
-			t.Errorf("unclassified README Go fence %s (line %d) - add it to readmeFences and extend readmeQuickStart if it joins the narrative", key, b.Line)
+			t.Errorf(
+				"unclassified README Go fence %s (line %d) - add it to readmeFences and extend readmeQuickStart if it joins the narrative",
+				key,
+				b.Line,
+			)
 
 			continue
 		}
@@ -105,7 +109,11 @@ func TestReadmeQuickStartCompiles(t *testing.T) {
 	joined := RecipeBlock{Code: strings.Join(bodies, "\n\n")}
 
 	dir := t.TempDir()
-	if err := os.WriteFile(filepath.Join(dir, "go.mod"), []byte("module readmecompile\n\ngo 1.27\n"), 0o644); err != nil {
+	if err := os.WriteFile(
+		filepath.Join(dir, "go.mod"),
+		[]byte("module readmecompile\n\ngo 1.27\n"),
+		0o644,
+	); err != nil {
 		t.Fatalf("write go.mod: %v", err)
 	}
 	if err := os.WriteFile(filepath.Join(dir, "go.work"), []byte(workspaceFor(t, root, dir)), 0o644); err != nil {

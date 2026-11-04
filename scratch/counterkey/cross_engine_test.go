@@ -34,21 +34,25 @@ func engineFactories(t *testing.T) []engineFactory {
 			dir := t.TempDir()
 			eng, err := pebbleengine.NewPebbleEngine(filepath.Join(dir, "db"))
 			must(t, err)
+
 			return eng
 		}},
 		{"badger", func(t *testing.T) metaengine.Engine {
 			dir := t.TempDir()
 			eng, err := badgerengine.NewBadgerEngine(filepath.Join(dir, "db"))
 			must(t, err)
+
 			return eng
 		}},
 		{"duckdb", func(t *testing.T) metaengine.Engine {
 			dsn := filepath.Join(t.TempDir(), "db.duckdb")
 			eng, err := duckdbengine.New(dsn)
 			must(t, err)
+
 			return eng
 		}},
 	}
+
 	return factories
 }
 
