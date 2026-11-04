@@ -29,7 +29,7 @@ func TestEncodeJSONMapValuesAreDeterministic(t *testing.T) {
 
 	first := EncodeJSONErrBytesForTest(t, value)
 
-	for i := 0; i < 50; i++ {
+	for i := range 50 {
 		again := EncodeJSONErrBytesForTest(t, value)
 		if !bytes.Equal(first, again) {
 			t.Fatalf(

@@ -55,7 +55,6 @@ func engineFactories(t *testing.T) []engineFactory {
 func TestCounterKeyCompositeCrossEngine(t *testing.T) {
 	ctx := context.Background()
 	for _, f := range engineFactories(t) {
-		f := f
 		t.Run(f.name, func(t *testing.T) {
 			eng := f.open(t)
 
