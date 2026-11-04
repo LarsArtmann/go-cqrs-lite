@@ -61,7 +61,9 @@ func NewF032Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				WithSnippet(ctx.SourceLine(gf.Path, pos.Line)).
 				Build()
 			if err != nil {
-				return nil, nil
+				// A finding that fails to build is a detector defect; surface it
+				// instead of silently dropping the report.
+				return nil, err
 			}
 
 			return []finding.Finding{f}, nil

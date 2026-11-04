@@ -95,8 +95,8 @@ var taskmanagerGoldenProfile = map[string]int{
 	// F032: 1 since 2026-11-03 — taskmanager is a real consumer using
 	// system+metaengine with no catalog/systemcatalog import, so the
 	// mandatory-documentation rule fires exactly once (anchored at the first
-	// library import). Wiring systemcatalog into the example is rowed in
-	// TODO_LIST; until then this pin records honest detector behavior.
+	// library import). Wiring systemcatalog into the example is rowed in the
+	// backlog; until then this pin records honest detector behavior.
 	"F032": 1,
 	"S010": 1,
 	// V003: 2 since trust wave II (2026-10-12) — taskmanager's settled pins

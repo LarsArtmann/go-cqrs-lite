@@ -853,6 +853,14 @@ linters:
           - varnamelen
           - wrapcheck
           - forbidigo
+      # Declarative rule tables: three sibling files of pure RuleInfo literals
+      # (catalog_api / catalog_adoption / catalog_boilerplate). dupl pair
+      # anchoring flips between the twins, which ping-pongs per-file
+      # //nolint:dupl directives between used and unused (nolintlint) — the
+      # shape-match is intentional, contract-19 class.
+      - path: cmd/cqrs-lint/pkg/rules/catalog_(api|adoption|boilerplate)\.go$
+        linters:
+          - dupl
           - wsl_v5
           - nlreturn
           - gocyclo
