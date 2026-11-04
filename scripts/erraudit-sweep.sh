@@ -17,23 +17,28 @@ set -uo pipefail
 
 repo_root=$(cd "$(dirname "$0")/.." && pwd)
 vendored_tarball=$(ls "$repo_root"/tools/erraudit/erraudit-*-src.tgz 2>/dev/null | sort | tail -1)
+report_dir="$repo_root/build/erraudit-sweep"
+# Extract the vendored source OUTSIDE the repo tree: a go.mod under build/
+# pollutes every module-count predicate (canonical-facts 103-vs-104, sweep's
+# own module total — both bitten 2026-11-04).
+build_dir="${XDG_CACHE_HOME:-$HOME/.cache}/erraudit-sweep"
+mkdir -p "$report_dir" "$build_dir"
 
 if [ $# -ge 1 ]; then
 	ERRAUDIT="$1"
-elif command -v "$repo_root/build/erraudit-sweep/erraudit" >/dev/null 2>&1 &&
-	[ -n "$vendored_tarball" ] &&
-	[ "$repo_root/build/erraudit-sweep/erraudit" -nt "$vendored_tarball" ]; then
-	ERRAUDIT="$repo_root/build/erraudit-sweep/erraudit"
+elif [ -n "$vendored_tarball" ] && [ -x "$build_dir/erraudit" ] &&
+	[ "$build_dir/erraudit" -nt "$vendored_tarball" ]; then
+	ERRAUDIT="$build_dir/erraudit"
 elif [ -n "$vendored_tarball" ]; then
-	rm -rf "$repo_root/build/erraudit-sweep/src"
-	mkdir -p "$repo_root/build/erraudit-sweep/src"
-	tar xzf "$vendored_tarball" -C "$repo_root/build/erraudit-sweep/src"
-	(cd "$repo_root/build/erraudit-sweep/src" &&
-		env GOWORK=off GOFLAGS= go build -o "$repo_root/build/erraudit-sweep/erraudit" ./cmd/erraudit) || {
+	rm -rf "$build_dir/src"
+	mkdir -p "$build_dir/src"
+	tar xzf "$vendored_tarball" -C "$build_dir/src"
+	(cd "$build_dir/src" &&
+		env GOWORK=off GOFLAGS= go build -o "$build_dir/erraudit" ./cmd/erraudit) || {
 		echo "failed to build vendored erraudit from $vendored_tarball" >&2
 		exit 1
 	}
-	ERRAUDIT="$repo_root/build/erraudit-sweep/erraudit"
+	ERRAUDIT="$build_dir/erraudit"
 else
 	ERRAUDIT="erraudit"
 fi
@@ -41,9 +46,6 @@ command -v "$ERRAUDIT" >/dev/null 2>&1 || [ -x "$ERRAUDIT" ] || {
 	echo "erraudit not found: $ERRAUDIT" >&2
 	exit 1
 }
-
-report_dir="$repo_root/build/erraudit-sweep"
-mkdir -p "$report_dir"
 
 fail=0
 total=0
