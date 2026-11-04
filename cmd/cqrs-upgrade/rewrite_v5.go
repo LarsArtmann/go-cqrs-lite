@@ -14,6 +14,7 @@ import (
 	"go/token"
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -173,8 +174,9 @@ func rewriteV5ImportsInFile(path string, dryRun bool) ([]v5ImportChange, []strin
 
 	changes := make([]v5ImportChange, 0, len(spans))
 	out := string(src)
-	for i := len(spans) - 1; i >= 0; i-- {
-		s := spans[i]
+	// Descending offsets keep later spans' positions valid while earlier
+	// ones are replaced; prepending preserves document order in changes.
+	for _, s := range slices.Backward(spans) {
 		out = out[:s.start] + `"` + s.to + `"` + out[s.end:]
 		changes = append([]v5ImportChange{{From: s.from, To: s.to}}, changes...)
 	}
