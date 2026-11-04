@@ -194,6 +194,16 @@ func stdQueryInit(
 	return initialArgs(col, plan), initialArgIndex(plan), plan
 }
 
+// plannedQueryInit initialises the planned (layout-plan) query builder state:
+// a fresh SQL builder plus the bind args and placeholder cursor seeded from
+// the plan. Used by every "planned" path function that builds SQL against
+// the planned table.
+func plannedQueryInit(plan metaengine.LayoutPlan) (*strings.Builder, []any, int) {
+	b := &strings.Builder{}
+
+	return b, initialArgs(plan.Collection, plan), initialArgIndex(plan)
+}
+
 // ---------------------------------------------------------------------------
 // AggregateReader (scalar aggregates: COUNT, SUM, MIN, MAX, AVG)
 // ---------------------------------------------------------------------------
@@ -244,17 +254,14 @@ func (e *duckdbEngine) aggregatePlanned(
 	column string,
 	filters []metaengine.FilterSpec,
 ) (float64, error) {
-	var b strings.Builder
+	b, args, argIdx := plannedQueryInit(plan)
 
-	args := initialArgs(plan.Collection, plan)
-	argIdx := initialArgIndex(plan)
-
-	fmt.Fprintf(&b, "SELECT %s %s", aggExpr(fn, column, plan), fromClause(plan.Collection, plan))
+	fmt.Fprintf(b, "SELECT %s %s", aggExpr(fn, column, plan), fromClause(plan.Collection, plan))
 
 	whereStarted := false
 
 	for _, f := range filters {
-		appendDuckDBFilter(&b, &args, &argIdx, &whereStarted, f, plan)
+		appendDuckDBFilter(b, &args, &argIdx, &whereStarted, f, plan)
 	}
 
 	return e.scanScalar(ctx, b.String(), args, plan.Collection, fn, column)
@@ -330,10 +337,7 @@ func (e *duckdbEngine) groupedAggregatePlanned(
 	groupBy string,
 	filters []metaengine.FilterSpec,
 ) (map[string]float64, error) {
-	var b strings.Builder
-
-	args := initialArgs(plan.Collection, plan)
-	argIdx := initialArgIndex(plan)
+	b, args, argIdx := plannedQueryInit(plan)
 
 	gExpr := groupExpr(groupBy, plan)
 
@@ -343,7 +347,7 @@ func (e *duckdbEngine) groupedAggregatePlanned(
 	whereStarted := false
 
 	for _, f := range filters {
-		appendDuckDBFilter(&b, &args, &argIdx, &whereStarted, f, plan)
+		appendDuckDBFilter(b, &args, &argIdx, &whereStarted, f, plan)
 	}
 
 	fmt.Fprintf(&b, " GROUP BY group_key")
@@ -420,10 +424,7 @@ func (e *duckdbEngine) multiAggregatePlanned(
 	specs []metaengine.AggregateSpec,
 	filters []metaengine.FilterSpec,
 ) (map[string]float64, error) {
-	var b strings.Builder
-
-	args := initialArgs(plan.Collection, plan)
-	argIdx := initialArgIndex(plan)
+	b, args, argIdx := plannedQueryInit(plan)
 
 	selectCols := make([]string, len(specs))
 	for i, s := range specs {
@@ -435,7 +436,7 @@ func (e *duckdbEngine) multiAggregatePlanned(
 	}
 
 	fmt.Fprintf(
-		&b,
+		b,
 		"SELECT %s %s",
 		strings.Join(selectCols, ", "),
 		fromClause(plan.Collection, plan),
@@ -444,7 +445,7 @@ func (e *duckdbEngine) multiAggregatePlanned(
 	whereStarted := false
 
 	for _, f := range filters {
-		appendDuckDBFilter(&b, &args, &argIdx, &whereStarted, f, plan)
+		appendDuckDBFilter(b, &args, &argIdx, &whereStarted, f, plan)
 	}
 
 	return e.scanMulti(ctx, b.String(), args, specs)
@@ -531,10 +532,7 @@ func (e *duckdbEngine) multiGroupedAggregatePlanned(
 	groupBy string,
 	filters []metaengine.FilterSpec,
 ) ([]metaengine.GroupedAggregateRow, error) {
-	var b strings.Builder
-
-	args := initialArgs(plan.Collection, plan)
-	argIdx := initialArgIndex(plan)
+	b, args, argIdx := plannedQueryInit(plan)
 
 	gExpr := groupExpr(groupBy, plan)
 
@@ -551,7 +549,7 @@ func (e *duckdbEngine) multiGroupedAggregatePlanned(
 	}
 
 	fmt.Fprintf(
-		&b,
+		b,
 		"SELECT %s %s",
 		strings.Join(selectCols, ", "),
 		fromClause(plan.Collection, plan),
@@ -560,7 +558,7 @@ func (e *duckdbEngine) multiGroupedAggregatePlanned(
 	whereStarted := false
 
 	for _, f := range filters {
-		appendDuckDBFilter(&b, &args, &argIdx, &whereStarted, f, plan)
+		appendDuckDBFilter(b, &args, &argIdx, &whereStarted, f, plan)
 	}
 
 	fmt.Fprintf(&b, " GROUP BY group_key")
@@ -626,13 +624,10 @@ func (e *duckdbEngine) distinctPlanned(
 	column string,
 	filters []metaengine.FilterSpec,
 ) ([]any, error) {
-	var b strings.Builder
-
-	args := initialArgs(plan.Collection, plan)
-	argIdx := initialArgIndex(plan)
+	b, args, argIdx := plannedQueryInit(plan)
 
 	fmt.Fprintf(
-		&b,
+		b,
 		"SELECT DISTINCT %s AS dv %s",
 		columnExpr(column, plan),
 		fromClause(plan.Collection, plan),
@@ -641,7 +636,7 @@ func (e *duckdbEngine) distinctPlanned(
 	whereStarted := false
 
 	for _, f := range filters {
-		appendDuckDBFilter(&b, &args, &argIdx, &whereStarted, f, plan)
+		appendDuckDBFilter(b, &args, &argIdx, &whereStarted, f, plan)
 	}
 
 	return metaengine.ScanDistinctValues(

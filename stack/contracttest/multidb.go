@@ -83,6 +83,20 @@ func RunMultiDBSuite(t *testing.T, factory MultiDBFactory) {
 	t.Run("FullRouting", func(t *testing.T) { testFullRouting(t, factory) })
 }
 
+// newMultiDBTest calls the multi-DB factory and fails the test on error. The
+// multi-DB suite manages Bundle lifetime explicitly (Close is part of the
+// routing proof), so unlike newBundle it registers no Cleanup.
+func newMultiDBTest(t *testing.T, factory MultiDBFactory) *MultiDBTest {
+	t.Helper()
+
+	mt, err := factory(t)
+	if err != nil {
+		t.Fatalf("factory: %v", err)
+	}
+
+	return mt
+}
+
 // testFullRouting is the comprehensive routing proof. It writes all three
 // concern types through one Bundle, closes it, and verifies mutual exclusion:
 // events are ONLY in the event DB, commands ONLY in the query DB, views ONLY
@@ -90,10 +104,7 @@ func RunMultiDBSuite(t *testing.T, factory MultiDBFactory) {
 func testFullRouting(t *testing.T, factory MultiDBFactory) {
 	t.Helper()
 
-	mt, err := factory(t)
-	if err != nil {
-		t.Fatalf("factory: %v", err)
-	}
+	mt := newMultiDBTest(t, factory)
 
 	ctx := context.Background()
 	aggID := id.NewStreamID()
