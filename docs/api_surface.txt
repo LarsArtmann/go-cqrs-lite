@@ -330,6 +330,7 @@ catalog/func ChannelOwners
 catalog/func ChannelParameters
 catalog/func ChannelProtocols
 catalog/func ChannelRoutes
+catalog/func Channels
 catalog/func Command
 catalog/func CommandFromSchema
 catalog/func Consumers
@@ -389,8 +390,11 @@ catalog/func WithExample
 catalog/func WithName
 catalog/func WithOperation
 catalog/func WithParam
+catalog/func WithRequestBodyContent
 catalog/func WithResponse
+catalog/func WithResponseHeader
 catalog/func WithSummary
+catalog/func WithTypedParam
 catalog/func WithVersion
 catalog/httptyped/func Command
 catalog/httptyped/func CreatedResponse
@@ -445,12 +449,14 @@ catalog/method ValidateCoeffects
 catalog/openapi/func NewExporter
 catalog/openapi/func WithBasePath
 catalog/openapi/func WithDescription
+catalog/openapi/func WithOpenAPIVersion
 catalog/openapi/method Export
 catalog/openapi/method MarshalJSON
 catalog/openapi/method MarshalYAML
 catalog/openapi/struct Components
 catalog/openapi/struct Document
 catalog/openapi/struct Exporter
+catalog/openapi/struct Header
 catalog/openapi/struct MediaType
 catalog/openapi/struct Operation
 catalog/openapi/struct Parameter
@@ -491,7 +497,9 @@ catalog/simple/func WithServiceName
 catalog/simple/func WithServiceOwners
 catalog/simple/func WithServiceSummary
 catalog/simple/method AddAgent
+catalog/simple/method AddChannel
 catalog/simple/method AddDataProduct
+catalog/simple/method AddDataStore
 catalog/simple/method AddDomain
 catalog/simple/method AddEntity
 catalog/simple/method AddMessage
@@ -541,6 +549,7 @@ catalog/struct Ref
 catalog/struct Registry
 catalog/struct Repository
 catalog/struct ResourceGroup
+catalog/struct ResponseHeader
 catalog/struct ResponseSpec
 catalog/struct SchemaPointer
 catalog/struct SecurityScheme
@@ -707,6 +716,7 @@ cmd/cqrs-lint/pkg/analyzer/func AllMonetaryKinds
 cmd/cqrs-lint/pkg/analyzer/func AllSnapshotKinds
 cmd/cqrs-lint/pkg/analyzer/func AllStoreKinds
 cmd/cqrs-lint/pkg/analyzer/func AllTracingKinds
+cmd/cqrs-lint/pkg/analyzer/func ApplyModulePins
 cmd/cqrs-lint/pkg/analyzer/func ApplySeverityOverrides
 cmd/cqrs-lint/pkg/analyzer/func BaseTypeName
 cmd/cqrs-lint/pkg/analyzer/func BuildContext
@@ -760,6 +770,7 @@ cmd/cqrs-lint/pkg/analyzer/func StripJSONC
 cmd/cqrs-lint/pkg/analyzer/func StripVersionSegments
 cmd/cqrs-lint/pkg/analyzer/func UsedKeys
 cmd/cqrs-lint/pkg/analyzer/func ValidPresetNames
+cmd/cqrs-lint/pkg/analyzer/func ValidateScorecardModulePins
 cmd/cqrs-lint/pkg/analyzer/func ValidateScorecardWaivers
 cmd/cqrs-lint/pkg/analyzer/method All
 cmd/cqrs-lint/pkg/analyzer/method AnyStoreDistributed
@@ -2621,9 +2632,11 @@ kv/const OpLt
 kv/const OpLte
 kv/const OpNeq
 kv/func NewCache
+kv/func NewCacheForViewStore
 kv/func NewMemStore
 kv/func NewTypedStore
 kv/func WithCacheCapacity
+kv/func WithCacheCopyFunc
 kv/func WithCacheTTL
 kv/func WithTypedCodec
 kv/func WithTypedKeyFunc
