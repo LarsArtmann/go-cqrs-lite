@@ -3,7 +3,7 @@ module github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4
 go 1.27.2
 
 require (
-	github.com/jackc/pgx/v5 v5.11.0
+	github.com/jackc/pgx/v5 v5.12.0
 	github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.2
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.20.0
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2
@@ -28,7 +28,7 @@ require (
 	github.com/dustin/go-humanize v1.1.0 // indirect
 	github.com/ebitengine/purego v0.11.1 // indirect
 	github.com/felixge/httpsnoop v1.1.0 // indirect
-	github.com/fxamacker/cbor/v2 v2.9.6 // indirect
+	github.com/fxamacker/cbor/v2 v2.10.0 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
@@ -39,7 +39,7 @@ require (
 	github.com/jackc/puddle/v2 v2.2.3 // indirect
 	github.com/klauspost/compress v1.20.1 // indirect
 	github.com/larsartmann/go-branded-id v0.7.0 // indirect
-	github.com/larsartmann/go-codec v0.3.2 // indirect
+	github.com/larsartmann/go-codec v0.3.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.4 // indirect
 	github.com/larsartmann/go-error-family v0.12.0 // indirect

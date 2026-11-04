@@ -3,7 +3,7 @@ module github.com/larsartmann/go-cqrs-lite/event/v4/eventtest
 go 1.27.2
 
 require (
-	github.com/gkampitakis/go-snaps v0.5.23
+	github.com/gkampitakis/go-snaps v0.5.25
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.2
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.4
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.7.0
@@ -11,13 +11,13 @@ require (
 )
 
 require (
-	github.com/fxamacker/cbor/v2 v2.9.6 // indirect
+	github.com/fxamacker/cbor/v2 v2.10.0 // indirect
 	github.com/gkampitakis/ciinfo v0.3.4 // indirect
 	github.com/goccy/go-yaml v1.19.2 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/larsartmann/go-branded-id v0.7.0 // indirect
-	github.com/larsartmann/go-codec v0.3.2 // indirect
+	github.com/larsartmann/go-codec v0.3.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2 // indirect

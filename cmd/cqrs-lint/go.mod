@@ -3,28 +3,28 @@ module github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4
 go 1.27.2
 
 require (
-	github.com/larsartmann/cmdguard/v4 v4.1.0
+	github.com/larsartmann/cmdguard/v4 v4.2.0
 	github.com/larsartmann/go-finding v1.15.0
 	github.com/larsartmann/go-finding/pipeline v1.15.0
-	github.com/larsartmann/go-finding/toolsdk v1.15.0
-	github.com/larsartmann/go-output v0.38.4
-	github.com/larsartmann/go-output/delimited v0.38.4
-	github.com/larsartmann/go-output/table v0.38.4
+	github.com/larsartmann/go-finding/toolsdk v1.16.0
+	github.com/larsartmann/go-output v0.38.7
+	github.com/larsartmann/go-output/delimited v0.38.7
+	github.com/larsartmann/go-output/table v0.38.7
 	github.com/spf13/cobra v1.10.2
-	golang.org/x/tools v0.51.0
+	golang.org/x/tools v0.52.0
 )
 
 require (
 	charm.land/fang/v2 v2.0.1 // indirect
 	charm.land/lipgloss/v2 v2.0.6 // indirect
-	github.com/LarsArtmann/gogenfilter/v3 v3.6.1 // indirect
+	github.com/LarsArtmann/gogenfilter/v3 v3.7.0 // indirect
 	github.com/a-h/templ v0.3.1070 // indirect
-	github.com/bmatcuk/doublestar/v4 v4.10.2 // indirect
+	github.com/bmatcuk/doublestar/v4 v4.10.4 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/charmbracelet/colorprofile v0.4.3 // indirect
-	github.com/charmbracelet/ultraviolet v0.0.0-20261008173134-6b8d4baf91b4 // indirect
+	github.com/charmbracelet/ultraviolet v0.0.0-20261023060817-a45b7c86333f // indirect
 	github.com/charmbracelet/x/ansi v0.11.9 // indirect
-	github.com/charmbracelet/x/exp/charmtone v0.1.0 // indirect
+	github.com/charmbracelet/x/exp/charmtone v0.1.1 // indirect
 	github.com/charmbracelet/x/term v0.2.2 // indirect
 	github.com/charmbracelet/x/termios v0.1.1 // indirect
 	github.com/charmbracelet/x/windows v0.2.2 // indirect
@@ -40,20 +40,20 @@ require (
 	github.com/knadh/koanf/parsers/json v1.0.1 // indirect
 	github.com/knadh/koanf/parsers/toml v0.1.0 // indirect
 	github.com/knadh/koanf/parsers/yaml v1.1.1 // indirect
-	github.com/knadh/koanf/v2 v2.3.8 // indirect
-	github.com/larsartmann/go-atomic-write v0.6.0 // indirect
+	github.com/knadh/koanf/v2 v2.4.1 // indirect
+	github.com/larsartmann/go-atomic-write v0.6.1 // indirect
 	github.com/larsartmann/go-branded-id v0.7.0 // indirect
-	github.com/larsartmann/go-error-family v0.11.0 // indirect
+	github.com/larsartmann/go-error-family v0.12.0 // indirect
 	github.com/larsartmann/go-ndjson v0.0.1 // indirect
-	github.com/larsartmann/go-output/d2 v0.38.4 // indirect
-	github.com/larsartmann/go-output/daghtml v0.38.3 // indirect
-	github.com/larsartmann/go-output/escape v0.38.3 // indirect
-	github.com/larsartmann/go-output/graph v0.38.4 // indirect
-	github.com/larsartmann/go-output/markdown v0.38.4 // indirect
-	github.com/larsartmann/go-output/markup v0.38.4 // indirect
-	github.com/larsartmann/go-output/plantuml v0.38.4 // indirect
-	github.com/larsartmann/go-output/serialization v0.38.4 // indirect
-	github.com/larsartmann/go-output/tree v0.38.4 // indirect
+	github.com/larsartmann/go-output/d2 v0.38.7 // indirect
+	github.com/larsartmann/go-output/daghtml v0.38.7 // indirect
+	github.com/larsartmann/go-output/escape v0.38.7 // indirect
+	github.com/larsartmann/go-output/graph v0.38.7 // indirect
+	github.com/larsartmann/go-output/markdown v0.38.7 // indirect
+	github.com/larsartmann/go-output/markup v0.38.7 // indirect
+	github.com/larsartmann/go-output/plantuml v0.38.7 // indirect
+	github.com/larsartmann/go-output/serialization v0.38.7 // indirect
+	github.com/larsartmann/go-output/tree v0.38.7 // indirect
 	github.com/larsartmann/samber-do-auditlog v0.11.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.4.1 // indirect
 	github.com/mattn/go-runewidth v0.0.31 // indirect
@@ -71,12 +71,11 @@ require (
 	github.com/samber/go-type-to-string v1.8.0 // indirect
 	github.com/segmentio/asm v1.2.1 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
-	github.com/xo/terminfo v1.2.0 // indirect
+	github.com/xo/terminfo v1.3.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	go.yaml.in/yaml/v3 v3.0.5 // indirect
+	go.yaml.in/yaml/v3 v3.0.6 // indirect
 	golang.org/x/exp v0.0.0-20261009195045-ca0d7ba23607 // indirect
 	golang.org/x/mod v0.42.0 // indirect
-	golang.org/x/net v0.61.0 // indirect
 	golang.org/x/sync v0.24.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
 	golang.org/x/term v0.47.0 // indirect

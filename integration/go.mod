@@ -5,7 +5,7 @@ go 1.27.2
 require (
 	github.com/cockroachdb/pebble v1.1.5
 	github.com/duckdb/duckdb-go/v2 v2.10506.0
-	github.com/larsartmann/go-codec v0.3.2
+	github.com/larsartmann/go-codec v0.3.3
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.1
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.8.0
 	github.com/larsartmann/go-cqrs-lite/encryption/v4 v4.4.6
@@ -72,10 +72,10 @@ require (
 	github.com/duckdb/duckdb-go-bindings/lib/windows-amd64 v0.10506.0 // indirect
 	github.com/dustin/go-humanize v1.1.0 // indirect
 	github.com/failsafe-go/failsafe-go v0.9.8 // indirect
-	github.com/fxamacker/cbor/v2 v2.9.6 // indirect
+	github.com/fxamacker/cbor/v2 v2.10.0 // indirect
 	github.com/getsentry/sentry-go v0.50.0 // indirect
 	github.com/gkampitakis/ciinfo v0.3.4 // indirect
-	github.com/gkampitakis/go-snaps v0.5.23 // indirect
+	github.com/gkampitakis/go-snaps v0.5.24 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect

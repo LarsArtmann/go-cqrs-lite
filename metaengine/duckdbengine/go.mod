@@ -3,7 +3,7 @@ module github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4
 go 1.27.2
 
 require (
-	github.com/duckdb/duckdb-go/v2 v2.10506.0
+	github.com/duckdb/duckdb-go/v2 v2.20000.0
 	github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.2
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.20.0
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2
@@ -12,22 +12,17 @@ require (
 require (
 	github.com/andybalholm/brotli v1.2.6 // indirect
 	github.com/apache/arrow-go/v18 v18.8.0 // indirect
-	github.com/duckdb/duckdb-go-bindings v0.10506.0 // indirect
-	github.com/duckdb/duckdb-go-bindings/lib/darwin-amd64 v0.10506.0 // indirect
-	github.com/duckdb/duckdb-go-bindings/lib/darwin-arm64 v0.10506.0 // indirect
-	github.com/duckdb/duckdb-go-bindings/lib/linux-amd64 v0.10506.0 // indirect
-	github.com/duckdb/duckdb-go-bindings/lib/linux-arm64 v0.10506.0 // indirect
-	github.com/duckdb/duckdb-go-bindings/lib/windows-amd64 v0.10506.0 // indirect
+	github.com/duckdb/duckdb-go-bindings v0.20000.0 // indirect
 	github.com/dustin/go-humanize v1.1.0 // indirect
-	github.com/fxamacker/cbor/v2 v2.9.6 // indirect
+	github.com/fxamacker/cbor/v2 v2.10.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
-	github.com/goccy/go-json v0.11.2 // indirect
+	github.com/goccy/go-json v0.12.0 // indirect
 	github.com/google/flatbuffers v25.12.19+incompatible // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/klauspost/compress v1.20.1 // indirect
-	github.com/klauspost/cpuid/v2 v2.4.0 // indirect
+	github.com/klauspost/compress v1.20.3 // indirect
+	github.com/klauspost/cpuid/v2 v2.4.2 // indirect
 	github.com/larsartmann/go-branded-id v0.7.0 // indirect
-	github.com/larsartmann/go-codec v0.3.2 // indirect
+	github.com/larsartmann/go-codec v0.3.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.4 // indirect
 	github.com/larsartmann/go-error-family v0.12.0 // indirect
@@ -36,7 +31,12 @@ require (
 	github.com/pierrec/lz4/v4 v4.1.33 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/zeebo/xxh3 v1.1.0 // indirect
-	golang.org/x/exp v0.0.0-20261009195045-ca0d7ba23607 // indirect
+	go.duckdb.org/libduckdb/darwin-amd64 v0.20000.0 // indirect
+	go.duckdb.org/libduckdb/darwin-arm64 v0.20000.0 // indirect
+	go.duckdb.org/libduckdb/linux-amd64 v0.20000.0 // indirect
+	go.duckdb.org/libduckdb/linux-arm64 v0.20000.0 // indirect
+	go.duckdb.org/libduckdb/windows-amd64 v0.20000.0 // indirect
+	golang.org/x/exp v0.0.0-20261014143641-f0251eb4aa3e // indirect
 	golang.org/x/sys v0.49.0 // indirect
 )
 

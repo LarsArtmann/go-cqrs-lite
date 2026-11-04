@@ -3,8 +3,8 @@ module github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/quic/v4
 go 1.27.2
 
 require (
-	git.coopcloud.tech/decentral1se/iroh-go v0.0.0-20260830120307-d6233351aba3
-	github.com/fxamacker/cbor/v2 v2.9.6
+	git.coopcloud.tech/decentral1se/iroh-go v0.0.0-20261031183554-a7240a653000
+	github.com/fxamacker/cbor/v2 v2.10.0
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/v4 v4.3.2
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.20.0
@@ -16,7 +16,7 @@ require (
 	github.com/dustin/go-humanize v1.1.0 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/larsartmann/go-branded-id v0.7.0 // indirect
-	github.com/larsartmann/go-codec v0.3.2 // indirect
+	github.com/larsartmann/go-codec v0.3.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2 // indirect
 	github.com/larsartmann/go-error-family v0.12.0 // indirect
 	github.com/larsartmann/go-sse v0.6.2 // indirect

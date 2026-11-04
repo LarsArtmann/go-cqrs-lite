@@ -4,7 +4,7 @@ go 1.27.2
 
 require (
 	github.com/failsafe-go/failsafe-go v0.9.8
-	github.com/gkampitakis/go-snaps v0.5.23
+	github.com/gkampitakis/go-snaps v0.5.24
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.1
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.2
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.2
@@ -14,8 +14,8 @@ require (
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1
 	github.com/larsartmann/go-error-family v0.12.0
 	github.com/larsartmann/go-flightrecorder v0.2.1
-	github.com/larsartmann/go-idempotency v0.3.1
-	github.com/larsartmann/go-retry v0.8.0
+	github.com/larsartmann/go-idempotency v0.3.2
+	github.com/larsartmann/go-retry v0.9.0
 	github.com/onsi/ginkgo/v2 v2.33.0
 	github.com/onsi/gomega v1.44.0
 	github.com/samber/lo v1.53.0
@@ -29,10 +29,10 @@ require (
 
 require (
 	github.com/Masterminds/semver/v3 v3.5.0 // indirect
-	github.com/bits-and-blooms/bitset v1.26.0 // indirect
+	github.com/bits-and-blooms/bitset v1.29.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/dustin/go-humanize v1.1.0 // indirect
-	github.com/fxamacker/cbor/v2 v2.9.6 // indirect
+	github.com/fxamacker/cbor/v2 v2.10.0 // indirect
 	github.com/gkampitakis/ciinfo v0.3.4 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
@@ -44,7 +44,7 @@ require (
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/larsartmann/go-branded-id v0.7.0 // indirect
-	github.com/larsartmann/go-codec v0.3.2 // indirect
+	github.com/larsartmann/go-codec v0.3.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.7.0 // indirect

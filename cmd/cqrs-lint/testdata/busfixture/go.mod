@@ -2,12 +2,12 @@ module example.com/busfixture
 
 go 1.27.2
 
-require github.com/larsartmann/go-cqrs-lite/event/v4 v4.0.0
+require github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.2
 
 require (
-	github.com/fxamacker/cbor/v2 v2.9.6 // indirect
+	github.com/fxamacker/cbor/v2 v2.10.0 // indirect
 	github.com/larsartmann/go-branded-id v0.7.0 // indirect
-	github.com/larsartmann/go-codec v0.3.2 // indirect
+	github.com/larsartmann/go-codec v0.3.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.4 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3 // indirect
