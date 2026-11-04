@@ -77,9 +77,10 @@ produced three mid-flight commits with red gates). Correct order:
 3. **Rewire in-repo consumers** (tests, fixtures, catalogs) onto surviving modules.
 4. **De-register everywhere** (checklist in §4, delete column).
 5. **Derive counts by measurement** — `find . -name go.mod -not -path './vendor/*' | wc -l` —
-   before writing any module count into AGENTS.md/module-map. The canonical-facts gate regex only
-   catches un-backticked `N go.mod` forms; backticked prose counts are invisible to the gate, so
-   hand-verify those. Never arithmetic-guess from a previous number (the old number may itself be
+   before writing any module count into AGENTS.md/module-map. The canonical-facts gate strips
+   backticks before matching (2026-11-04), so backticked prose counts are checked too — but the
+   gate only sees the five DOC_SET files; counts elsewhere still need hand-verification. Never
+   arithmetic-guess from a previous number (the old number may itself be
    drifted).
 6. **Regen goldens:** `cd cmd/api-stability && GOWORK=off go run . --update`; eyeball the diff —
    removals must be exactly the deleted module's packages, additions must be attributable.

@@ -107,7 +107,7 @@ cd cmd/doc-check && GOWORK=off go run . ../../SKILL.md ../../.agents/skills/go-c
 | Bench         | `nix run .#bench` (full sweep) · `./scripts/benchmark-regression.sh` (gates: load + per-metric noise via `benchkit.RunRepeated`/`MetricVariation` + median ns/op 25% — rename-guarded, CI fails on breach)                                                                                                                                                                                                                              |
 | CI            | GitHub Actions: ci.yml (Nix-based, build/vet/test/lint/race/coverage + GOWORK=off per-module; error-audit job builds the vendored erraudit tarball in `tools/erraudit/` — private module, no secret needed; bump = refresh tarball + checksum, see its README; local mirror of the gate loop: `scripts/erraudit-sweep.sh`)                                                                                                                                                                                                                                  |
 
-Multi-module Go workspace (`go.work`) with 103 `go.mod` files (incl. root; count gate-derived via `check-canonical-facts.sh` — its regex only catches the un-backticked `N go.mod` form, so fix backticked prose counts by hand). Verify: `find . -name go.mod -not -path './vendor/*' | wc -l`
+Multi-module Go workspace (`go.work`) with 103 `go.mod` files (incl. root; count gate-derived via `check-canonical-facts.sh`, which strips backticks before matching since 2026-11-04 — backticked prose counts like "103 `go.mod` files" are checked too). Verify: `find . -name go.mod -not -path './vendor/*' | wc -l`
 
 Per-module isolation: `cd event && GOWORK=off go test ./... -count=1`
 
