@@ -54,15 +54,25 @@ func RunSuite(t *testing.T, factory Factory) {
 	t.Run("CloseIdempotent", func(t *testing.T) { testCloseIdempotent(t, factory) })
 }
 
+// requireFactory calls factory and fails the test on error, returning its
+// result. The one shared guard behind newBundle and newMultiDBTest.
+func requireFactory[T any](t *testing.T, factory func(*testing.T) (T, error)) T {
+	t.Helper()
+
+	value, err := factory(t)
+	if err != nil {
+		t.Fatalf("factory: %v", err)
+	}
+
+	return value
+}
+
 // newBundle calls the factory and registers Close as t.Cleanup, reducing
 // boilerplate repeated in every contract subtest.
 func newBundle(t *testing.T, factory Factory) *stack.Bundle {
 	t.Helper()
 
-	b, err := factory(t)
-	if err != nil {
-		t.Fatalf("factory: %v", err)
-	}
+	b := requireFactory(t, factory)
 
 	//cqrs-lint:ignore(C023) library code or intentional pattern
 	t.Cleanup(func() { _ = b.Close() })

@@ -341,7 +341,7 @@ func (e *duckdbEngine) groupedAggregatePlanned(
 
 	gExpr := groupExpr(groupBy, plan)
 
-	fmt.Fprintf(&b, "SELECT %s AS group_key, %s AS agg_val %s",
+	fmt.Fprintf(b, "SELECT %s AS group_key, %s AS agg_val %s",
 		gExpr, aggExpr(fn, column, plan), fromClause(plan.Collection, plan))
 
 	whereStarted := false
@@ -350,7 +350,7 @@ func (e *duckdbEngine) groupedAggregatePlanned(
 		appendDuckDBFilter(b, &args, &argIdx, &whereStarted, f, plan)
 	}
 
-	fmt.Fprintf(&b, " GROUP BY group_key")
+	fmt.Fprintf(b, " GROUP BY group_key")
 
 	return e.scanGrouped(ctx, b.String(), args)
 }
@@ -561,7 +561,7 @@ func (e *duckdbEngine) multiGroupedAggregatePlanned(
 		appendDuckDBFilter(b, &args, &argIdx, &whereStarted, f, plan)
 	}
 
-	fmt.Fprintf(&b, " GROUP BY group_key")
+	fmt.Fprintf(b, " GROUP BY group_key")
 
 	return e.scanMultiGrouped(ctx, b.String(), args, specs)
 }

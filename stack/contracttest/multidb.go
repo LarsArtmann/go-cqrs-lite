@@ -89,12 +89,7 @@ func RunMultiDBSuite(t *testing.T, factory MultiDBFactory) {
 func newMultiDBTest(t *testing.T, factory MultiDBFactory) *MultiDBTest {
 	t.Helper()
 
-	mt, err := factory(t)
-	if err != nil {
-		t.Fatalf("factory: %v", err)
-	}
-
-	return mt
+	return requireFactory(t, factory)
 }
 
 // testFullRouting is the comprehensive routing proof. It writes all three
