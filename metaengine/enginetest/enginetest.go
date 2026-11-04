@@ -161,7 +161,12 @@ func RunStreamLogBackendTestIn(t *testing.T, eng metaengine.Engine, col string) 
 	}
 
 	// Verify JournalReadFrom.
-	from2, err := slb.JournalReadFrom(ctx, col, 2, 0) //nolint:staticcheck // tests the deprecated fallback path
+	from2, err := slb.JournalReadFrom(
+		ctx,
+		col,
+		2,
+		0,
+	) //nolint:staticcheck // tests the deprecated fallback path
 	if err != nil {
 		t.Fatalf("JournalReadFrom: %v", err)
 	}
@@ -195,7 +200,12 @@ func RunStreamLogBackendTestIn(t *testing.T, eng metaengine.Engine, col string) 
 	}
 
 	// Journal for col is now e1..e4, a1..a3 (7 entries). Position 5 is a1.
-	from5, err := slb.JournalReadFrom(ctx, col, 5, 0) //nolint:staticcheck // tests the deprecated fallback path
+	from5, err := slb.JournalReadFrom(
+		ctx,
+		col,
+		5,
+		0,
+	) //nolint:staticcheck // tests the deprecated fallback path
 	if err != nil {
 		t.Fatalf("JournalReadFrom interleaved: %v", err)
 	}
@@ -205,7 +215,12 @@ func RunStreamLogBackendTestIn(t *testing.T, eng metaengine.Engine, col string) 
 			"(positional skip; raw-seq filtering re-delivers a1)", from5)
 	}
 
-	limited, err := slb.JournalReadFrom(ctx, col, 4, 1) //nolint:staticcheck // tests the deprecated fallback path
+	limited, err := slb.JournalReadFrom(
+		ctx,
+		col,
+		4,
+		1,
+	) //nolint:staticcheck // tests the deprecated fallback path
 	if err != nil {
 		t.Fatalf("JournalReadFrom interleaved limited: %v", err)
 	}

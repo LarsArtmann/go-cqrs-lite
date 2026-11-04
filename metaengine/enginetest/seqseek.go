@@ -216,4 +216,17 @@ func RunSeqSeekableStreamLogTestIn(t *testing.T, eng metaengine.Engine, col stri
 			}
 		}
 	}
+
+	// journalReadFromFallback calls the deprecated position-based read
+	// deliberately — the harness pins its behavior while seq-token resume takes
+	// over tail following. Single home for the SA1019 suppression.
+	func journalReadFromFallback(
+		slb metaengine.StreamLogBackend,
+		ctx context.Context,
+		col string,
+		after int64,
+		limit int,
+	) ([]any, error) {
+		return slb.JournalReadFrom(ctx, col, after, limit) //nolint:staticcheck // deprecated fallback under test
+	}
 }
