@@ -652,7 +652,7 @@ jobs:
 
       - name: Run gosec on core modules
         run: |
-          nix-shell -p gosec --run "gosec -fmt sarif -out gosec.sarif ./event/... ./command/... ./query/... ./decider/... ./storage/... ./middleware/... ./signing/... ./listing/... ./transport/http/..."
+          nix run .#check-gosec
 
       - name: Upload SARIF to GitHub
         uses: github/codeql-action/upload-sarif@c3400c2f38909e0dcf3c3a41f2030a8217be5d3e

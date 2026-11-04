@@ -1518,6 +1518,24 @@
               ${pkgs.bash}/bin/bash "$PWD/scripts/check-cycles.sh" "$@"
             '';
 
+            # Security scan over the core module trees (CI parity). gosec is
+            # rebuilt with the go1.27 builder on purpose: the stock nixpkgs
+            # binary is compiled with an older toolchain whose importer cannot
+            # read go1.27 export data, so generics-heavy deps (otter/v2,
+            # failsafe-go) fail type-checking and exit non-zero even with zero
+            # findings (2026-11-04). go_1_27 + GOTOOLCHAIN=local (set inside
+            # the script) keep writer and reader on the same toolchain line.
+            check-gosec =
+              mkApp "check-gosec"
+                [
+                  (pkgs.gosec.override { buildGoModule = pkgs.buildGo127Module; })
+                  goPkg
+                  pkgs.bash
+                ]
+                ''
+                  ${pkgs.bash}/bin/bash "$PWD/scripts/check-gosec.sh" "$@"
+                '';
+
             # Reproducible architecture measurements (markdown / JSON / --write
             # snapshot into docs/evidence/): module + package counts, production
             # import edges, fan-in/out, instability, LOC split, API concentration.
