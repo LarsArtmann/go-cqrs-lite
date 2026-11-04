@@ -986,6 +986,8 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 | Rich resource model | Services, Domains, Channels, DataStores, Flows, Teams, Users — with badges, owners, repositories, specifications                                               | ✅     |
 | ADR resources       | `AddADR` — architecture decision records with status lifecycle, appliesTo resource pointers, supersedes/amends/related ADR chains; emitted to `adrs/<id>/index.mdx` with schema-validated frontmatter | ✅     |
 | Message config      | `Command[T]()`, `Event[T]()`, `Query[T]()` — generic message registration with options                                                                         | ✅     |
+| Message options     | `Channels` (message→channel links), `WithTypedParam` (integer/enum params), `WithResponseHeader` (typed response headers), `WithRequestBodyContent` (multipart) | ✅     |
+| Display names       | Nameless messages derive a title from their ID at build (`crm.count` → "Crm Count"); initialisms stay whole (`External ID Set Payload`) | ✅     |
 | Channel config      | `ChannelAddress`, `ChannelProtocols`, `ChannelMessages`, `ChannelDeliveryGuarantee`, `ChannelRoutes`, `ChannelOwners`, `ChannelBadges`                         | ✅     |
 | Domain config       | `DomainSends`, `DomainReceives`, `DomainEntities`, `DomainBadges`, `DomainOwners`, `DomainAttachments`                                                         | ✅     |
 | Service config      | `ServiceBadges`, `ServiceRepository`, `ServiceWritesTo`, `ServiceReadsFrom`, `ServiceEntities`, `ServiceSpecifications`, `ServiceAttachments`, `ServiceOwners` | ✅     |
@@ -1015,8 +1017,9 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 | Document generation | `Exporter.Export(catalog)` produces full AsyncAPI 3.0 `Document`                                            | ✅     |
 | YAML output         | `Document.MarshalYAML()` — uses `go-faster/yaml`                                                            | ✅     |
 | JSON output         | `Document.MarshalJSON()` — type-alias trick to avoid recursion                                              | ✅     |
-| Server config       | `WithServer(name, host, protocol)` option (defaults: kafka, localhost:9092)                                 | ✅     |
+| Server config       | `WithServer(name, host, protocol)` option; NO server is fabricated when unset (2026-11-04)                 | ✅     |
 | Channel mapping     | Commands → `receive`, Events with `Sends` → `send`, Events with `Receives` → `receive`, Queries → `receive` | ✅     |
+| Declared channels   | Messages linked to catalog-declared Channels export on the declared address/name/guarantee; synthetic fallback for unlinked | ✅     |
 
 > `import "github.com/larsartmann/go-cqrs-lite/catalog/v4/eventcatalog"`
 
@@ -1057,7 +1060,7 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 
 | Feature             | Detail                                                            | Status |
 | ------------------- | ----------------------------------------------------------------- | ------ |
-| Document generation | `Exporter.Export(catalog)` produces full OpenAPI 3.0.3 `Document` | ✅     |
+| Document generation | `Exporter.Export(catalog)` produces full OpenAPI 3.0.3 `Document` (`WithOpenAPIVersion` swaps to 3.1.0); response headers (`WithResponseHeader`) and multipart request bodies (`WithRequestBodyContent`) are renderable | ✅     |
 | JSON output         | `Document` serializes to JSON                                     | ✅     |
 | Schema generation   | Auto-generates JSON Schema from catalog types                     | ✅     |
 | Base path support   | `WithBasePath(path)` option for API path prefix                   | ✅     |
@@ -1404,7 +1407,7 @@ Fluent BDD harness for deciders and projections — no store or bus needed, just
 | Suppression comments | `//cqrs-lint:ignore(rule-id) reason` (space after `//` supported, comma-separated IDs supported) | ✅ |
 | Block-level suppression | `//cqrs-lint:ignore-start` / `//cqrs-lint:ignore-end` for range suppression (ADR-0088) | ✅ |
 | Stale suppression detection | `DetectStaleSuppressions` flags suppression comments where no finding fires | ✅ |
-| Findings baseline | `--baseline <file>` hides adjudicated findings (rule + project-relative file:line:col, optional `reason`) and gates the exit code on NEW findings only; entries that stopped matching print a "baseline shrunk" notice; `--update-baseline` rewrites deterministically, preserves reasons, requires `--baseline`, exits 0. Health score unchanged (baselining never inflates it) | ✅ |
+| Findings baseline | `--baseline <file>` hides adjudicated findings (rule + project-relative file:line:col, optional `reason`) and gates the exit code on NEW findings only; entries that stopped matching print a "baseline shrunk" notice; `--update-baseline` rewrites deterministically, preserves reasons (unambiguous rematch for line-shifted entries) and warns before dropping any reason, requires `--baseline`, exits 0. Health score unchanged (baselining never inflates it) | ✅ |
 | CLI features | `--only C001,C002`, `--exclude`, `--color`, `--verbose`, `--health-score`, `init`, `--min-confidence` | ✅ |
 | Config file | `.cqrs-lint.json` via cmdguard; presets (local-cli, library, server, full-stack) | ✅ |
 | Config presets | `local-cli`, `library`, `server`, `full-stack` — sugar over feature flags | ✅ |

@@ -178,7 +178,10 @@ cached, _ := kv.NewCache(store,
 
 Every `Get` returns an isolated deep copy (each `*T` is private), so
 concurrent readers can safely mutate results. For immutable hot paths where
-copies are waste, use `kv.TypedStore` directly.
+copies are waste, use `kv.TypedStore` directly. SQL view stores with real
+columns are not `*kv.TypedStore` — front them with `kv.NewCacheForViewStore`
+(shallow-copy isolation by default; `kv.WithCacheCopyFunc` for views carrying
+slices/maps callers mutate).
 
 #### Shared database (events + reads in one \*sql.DB)
 
@@ -787,13 +790,15 @@ Two contract details worth knowing:
   addressed to `$message.header#/replyTo` on a dedicated `<query>.replies`
   channel; the response message's schema is opaque (the catalog does not model
   query response types). Commands/events never carry a reply.
-- **Point `WithServer` at your REAL watermill backend.** The exporter defaults
-  to a kafka server on localhost:9092, but the document is only honest when the
-  server mirrors what the service actually runs — pass the watermill backend's
-  coordinates explicitly (`asyncapi.WithServer("production", "nats.example:4222",
+- **Point `WithServer` at your REAL watermill backend.** A document built
+  without `WithServer` omits the servers object entirely (no broker is
+  fabricated); the document is only honest when the declared server mirrors
+  what the service actually runs — pass the watermill backend's coordinates
+  explicitly (`asyncapi.WithServer("production", "nats.example:4222",
   "nats")` for NATS JetStream, `"redis"` for Redis Streams, `"amqp"` for
-  RabbitMQ; `WithServer("production", "", "kafka")` suppresses servers
-  entirely for REST-only catalogs).
+  RabbitMQ). Messages linked to catalog-declared channels (via
+  `catalog.Channels` or a Channel listing the message) export on the declared
+  channel's address instead of a synthetic per-message one.
 
 Serve everything over HTTP with the docserver (templ-components UI, embedded
 assets, dark mode):
