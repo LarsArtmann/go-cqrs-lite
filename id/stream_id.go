@@ -47,6 +47,10 @@ func (StreamMarker) Name() string { return "StreamMarker" }
 // String comparison of ULID-formatted StreamIDs preserves chronological
 // order (Crockford base32 is designed for this), so standard sorting works
 // correctly for ULID-generated IDs.
+//
+// KEYING: String() renders the display form "StreamMarker:<value>" (the
+// marker implements Name()); use Get() for map keys, storage rows, and every
+// persisted boundary. See the package doc section "Keys and persistence".
 type StreamID = cbid.ID[StreamMarker, string]
 
 // NewStreamID generates a new StreamID backed by a ULID string.

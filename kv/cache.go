@@ -2,6 +2,7 @@ package kv
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -23,18 +24,23 @@ var (
 	)
 )
 
-// Cache wraps a [TypedStore] with an in-memory Otter cache (ADR-0032).
+// Cache wraps a [TypedStore] (or any [ViewStore], via [NewCacheForViewStore])
+// with an in-memory Otter cache (ADR-0032).
 //
 // Get checks the cache first; on miss it delegates to the underlying store and
 // caches the result. Set and Delete are write-through: they update the store
-// first, then the cache. Has checks the cache first; on miss it delegates.
+// first, then the cache. Has checks the cache first; on miss it delegates
+// (falling back to Get + ErrNotFound for stores without a Has method).
 // Scan always bypasses the cache.
 //
-// Values are copy-isolated: Get returns a deep copy (one codec round-trip via
-// the TypedStore's codec) and Set caches a private copy, so mutations by one
-// caller never leak into the cache or other readers. A cache hit therefore
-// costs roughly one decode; consumers with immutable values and hot read paths
-// that must avoid that cost should use the underlying [TypedStore] directly.
+// Copy isolation depends on the constructor: caches built by [NewCache] over a
+// [TypedStore] deep-copy via the store's codec (one encode+decode per Get);
+// caches built by [NewCacheForViewStore] default to a SHALLOW struct copy,
+// which is safe for the scalar-shaped views SQL read models typically use —
+// reference-bearing views (slices, maps, pointers) must pass
+// [WithCacheCopyFunc] or accept shared references. A cache hit therefore
+// costs one copy; consumers with immutable values and hot read paths that
+// must avoid even that should use the underlying store directly.
 //
 // CONSISTENCY MODEL: the cache assumes a SINGLE WRITER going through this
 // Cache instance. Writers that bypass it (Cache.Store(), Cache.Backend(),
@@ -46,35 +52,50 @@ var (
 //
 // The cache is safe for concurrent use (Otter is lock-free for reads).
 type Cache[T any, K fmt.Stringer] struct {
-	store *TypedStore[T, K]
-	cache *otter.Cache[string, *T]
+	store  ViewStore[T, K]
+	cache  *otter.Cache[string, *T]
+	copyFn func(*T) (*T, error)
 }
 
 // CacheOption configures a [Cache].
-type CacheOption[T any, K fmt.Stringer] func(*cacheConfig)
+type CacheOption[T any, K fmt.Stringer] func(*cacheConfig[T])
 
-type cacheConfig struct {
+type cacheConfig[T any] struct {
 	capacity int
 	ttl      time.Duration
+	copyFn   func(*T) (*T, error)
 }
 
 // WithCacheCapacity sets the maximum number of entries the cache will hold before
 // eviction (TinyLFU admission policy). Default: 1000.
 func WithCacheCapacity[T any, K fmt.Stringer](n int) CacheOption[T, K] {
-	return func(c *cacheConfig) { c.capacity = n }
+	return func(c *cacheConfig[T]) { c.capacity = n }
 }
 
 // WithCacheTTL sets the time-to-live for cache entries after write.
 // Entries expire and are evicted lazily on next access or by background
 // maintenance. Default: no expiration (entries live until evicted by capacity).
 func WithCacheTTL[T any, K fmt.Stringer](d time.Duration) CacheOption[T, K] {
-	return func(c *cacheConfig) { c.ttl = d }
+	return func(c *cacheConfig[T]) { c.ttl = d }
+}
+
+// WithCacheCopyFunc overrides how cached values are isolated per caller.
+// Only meaningful with [NewCacheForViewStore]: caches over a [TypedStore]
+// always deep-copy via the store's codec, while view-store caches default to
+// a shallow struct copy. Pass a deep copy for views carrying slices, maps, or
+// pointers that callers mutate; returning the input unchanged opts out of
+// isolation entirely for consumers with immutable views.
+func WithCacheCopyFunc[T any, K fmt.Stringer](fn func(*T) *T) CacheOption[T, K] {
+	return func(c *cacheConfig[T]) {
+		c.copyFn = func(val *T) (*T, error) { return fn(val), nil }
+	}
 }
 
 // NewCache creates a Cache wrapping the given TypedStore.
 //
 // The cache is configured via options. By default it holds up to 1000 entries
 // with no TTL. Use [WithCacheCapacity] and [WithCacheTTL] to customize.
+// Values are deep-copied via the store's codec on every Get.
 //
 // Call [Cache.Close] when done to release cache resources.
 func NewCache[T any, K fmt.Stringer](
@@ -85,32 +106,9 @@ func NewCache[T any, K fmt.Stringer](
 		return nil, ErrNilTypedStore
 	}
 
-	cfg := cacheConfig{capacity: defaultCacheCapacity, ttl: 0}
-
-	for _, opt := range opts {
-		opt(&cfg)
-	}
-
-	if cfg.capacity <= 0 {
-		return nil, errorfamily.WrapRejection(ErrInvalidCacheCap,
-			"kv.cache.invalid_capacity",
-			fmt.Sprintf("capacity must be positive, got %d", cfg.capacity))
-	}
-
-	otterOpts := &otter.Options[string, *T]{ //nolint:exhaustruct_v5 // only MaximumSize needed by default
-		MaximumSize: cfg.capacity,
-	}
-
-	if cfg.ttl > 0 {
-		otterOpts.ExpiryCalculator = otter.ExpiryWriting[string, *T](cfg.ttl)
-	}
-
-	cache := otter.Must(otterOpts)
-
-	return &Cache[T, K]{
-		store: store,
-		cache: cache,
-	}, nil
+	return newCache[T, K](store, func(val *T) (*T, error) {
+		return codecCopy(store.codec, val)
+	}, opts...)
 }
 
 // Get returns the value for id, checking the cache first.
@@ -140,18 +138,30 @@ func (cs *Cache[T, K]) Get(ctx context.Context, id K) (*T, error) {
 }
 
 // Has reports whether a value exists for id.
-// Checks the cache first; on miss, delegates to the underlying store.
+// Checks the cache first; on miss, delegates to the underlying store. Stores
+// without a Has method (plain [ViewStore]) fall back to Get, distinguishing
+// only found vs [ErrNotFound].
 func (cs *Cache[T, K]) Has(ctx context.Context, id K) (bool, error) {
 	if _, ok := cs.cache.GetIfPresent(id.String()); ok {
 		return true, nil
 	}
 
-	has, err := cs.store.Has(ctx, id)
+	if hasser, ok := cs.store.(interface {
+		Has(ctx context.Context, key K) (bool, error)
+	}); ok {
+		return hasser.Has(ctx, id)
+	}
+
+	_, err := cs.store.Get(ctx, id)
 	if err != nil {
+		if errors.Is(err, ErrNotFound) {
+			return false, nil
+		}
+
 		return false, err
 	}
 
-	return has, nil
+	return true, nil
 }
 
 // Set writes val to the store and updates the cache (write-through).
@@ -199,8 +209,15 @@ func (cs *Cache[T, K]) Scan(ctx context.Context, prefix []byte) ([]*T, error) {
 	return results, nil
 }
 
-// Backend returns the underlying [Store].
-func (cs *Cache[T, K]) Backend() Store { return cs.store.Backend() }
+// Backend returns the underlying [Store], or nil when the cache was built
+// over a plain [ViewStore] with no backend to expose.
+func (cs *Cache[T, K]) Backend() Store {
+	if b, ok := cs.store.(interface{ Backend() Store }); ok {
+		return b.Backend()
+	}
+
+	return nil
+}
 
 // Invalidate drops the cached entry for id, forcing the next Get to read
 // through to the store. Call it after writing through a handle that bypasses
@@ -216,35 +233,22 @@ func (cs *Cache[T, K]) InvalidateAll() {
 	cs.cache.InvalidateAll()
 }
 
-// copy deep-clones val via the TypedStore's codec so cached entries are never
-// shared with callers. Types that cannot round-trip their codec already fail
-// in TypedStore.Get, so failures here indicate the same class of breakage.
+// copy isolates val per the cache's copy strategy (codec deep copy for
+// TypedStore caches, shallow struct copy or [WithCacheCopyFunc] for
+// view-store caches).
 func (cs *Cache[T, K]) copy(val *T) (*T, error) {
-	data, err := cs.store.codec.Encode(val)
-	if err != nil {
-		return nil, errorfamily.WrapCorruption(
-			err,
-			"kv.cache.copy_encode",
-			"copy value for cache isolation",
-		)
-	}
-
-	var out T
-
-	err = cs.store.codec.Decode(data, &out)
-	if err != nil {
-		return nil, errorfamily.WrapCorruption(
-			err,
-			"kv.cache.copy_decode",
-			"copy value for cache isolation",
-		)
-	}
-
-	return &out, nil
+	return cs.copyFn(val)
 }
 
-// Store returns the underlying unwrapped [TypedStore].
-func (cs *Cache[T, K]) Store() *TypedStore[T, K] { return cs.store }
+// Store returns the underlying unwrapped [TypedStore], or nil when the cache
+// was built over a plain [ViewStore] (see [NewCacheForViewStore]).
+func (cs *Cache[T, K]) Store() *TypedStore[T, K] {
+	if ts, ok := cs.store.(*TypedStore[T, K]); ok {
+		return ts
+	}
+
+	return nil
+}
 
 // Close is currently a no-op. Otter v2 manages cleanup via finalizers.
 // Retained for API stability — future otter versions may require explicit cleanup.
