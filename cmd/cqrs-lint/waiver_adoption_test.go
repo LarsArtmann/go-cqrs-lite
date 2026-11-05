@@ -7,6 +7,7 @@ import (
 	"github.com/larsartmann/go-finding"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules"
 )
 
 func TestFilterWaivedAdoption_SuppressesWaivedModuleFindings(t *testing.T) {
@@ -96,5 +97,47 @@ func TestFilterWaivedAdoption_AllSevenMappings(t *testing.T) {
 	if len(waiverAdoptionRules) != len(expected) {
 		t.Errorf("mapping grew without a test: %d entries, test pins %d",
 			len(waiverAdoptionRules), len(expected))
+	}
+}
+
+// TestWaiverAdoptionRulesHandMapPinned pins the hand-map POLICY (M24 source
+// review): adoption catalog entries carry no machine-readable module key
+// (their module link lives in prose), so waiverAdoptionRules cannot be
+// GENERATED from the catalog. This companion to AllSevenMappings kills the
+// drift classes a generator would: every waiver key must be a real
+// module-catalog key, every rule value must be a real adoption rule ID, and
+// no rule may be mapped twice (one waiver must not silence two modules'
+// findings).
+func TestWaiverAdoptionRulesHandMapPinned(t *testing.T) {
+	t.Parallel()
+
+	moduleKeys := make(map[string]bool)
+	for _, entry := range analyzer.DefaultCatalog.All() {
+		moduleKeys[entry.Key] = true
+	}
+
+	adoptionRuleIDs := make(map[string]bool)
+	for _, rule := range rules.AllRules() {
+		if rule.Category == "adoption" {
+			adoptionRuleIDs[rule.ID] = true
+		}
+	}
+
+	seenRules := make(map[string]string, len(waiverAdoptionRules))
+
+	for key, rule := range waiverAdoptionRules {
+		if !moduleKeys[key] {
+			t.Errorf("waiver key %q is not a module-catalog key", key)
+		}
+
+		if !adoptionRuleIDs[rule] {
+			t.Errorf("waiver rule %q (key %q) is not an adoption rule ID", rule, key)
+		}
+
+		if other, dup := seenRules[rule]; dup {
+			t.Errorf("rule %q mapped from both %q and %q — one waiver must not silence two modules' findings", rule, other, key)
+		}
+
+		seenRules[rule] = key
 	}
 }

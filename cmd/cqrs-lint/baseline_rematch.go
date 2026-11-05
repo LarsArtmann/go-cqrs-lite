@@ -1,5 +1,7 @@
 package main
 
+import "strconv"
+
 // rematchOrphanedReasons re-attaches prior reasons whose exact key vanished
 // (the finding moved lines) to reason-less current entries of the same
 // (rule, file). Mutates entries in place and reports every reason that could
@@ -65,14 +67,8 @@ func rematchOrphanedReasons(
 			dropped += len(orphans)
 
 			for _, o := range orphans {
-				warn(
-					"cqrs-lint: --update-baseline drops reason %q on %s %s:%d:%d — the finding vanished\n",
-					o.Reason,
-					o.Rule,
-					o.File,
-					o.Line,
-					o.Column,
-				)
+				loc := o.Rule + " " + o.File + ":" + strconv.Itoa(o.Line) + ":" + strconv.Itoa(o.Column)
+				warn("cqrs-lint: --update-baseline drops reason "+strconv.Quote(o.Reason)+" on "+loc+" — the finding vanished\n")
 			}
 		case allSameReason:
 			reason := orphans[0].Reason
@@ -86,15 +82,10 @@ func rematchOrphanedReasons(
 			dropped += len(orphans)
 
 			for _, o := range orphans {
-				warn(
-					"cqrs-lint: --update-baseline drops reason %q on %s %s:%d:%d — %d moved findings with differing reasons share this file; re-annotate manually\n",
-					o.Reason,
-					o.Rule,
-					o.File,
-					o.Line,
-					o.Column,
-					len(orphans),
-				)
+				loc := o.Rule + " " + o.File + ":" + strconv.Itoa(o.Line) + ":" + strconv.Itoa(o.Column)
+				warn("cqrs-lint: --update-baseline drops reason " + strconv.Quote(o.Reason) + " on " + loc +
+					" — "+strconv.Itoa(len(orphans))+
+					" moved findings with differing reasons share this file; re-annotate manually\n")
 			}
 		}
 	}
