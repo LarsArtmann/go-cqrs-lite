@@ -25,12 +25,24 @@ type scenarioConfig struct {
 
 const defaultAwaitTimeout = 5 * time.Second
 
+// defaultConfig relaxes the await timeout under the race detector: -race adds
+// a 5-20x slowdown on top of loaded-host scheduling, and the projection
+// pipeline can legitimately need more than 5s to catch up (observed 2026-11-05:
+// TestProperty_ReadModelMatchesFold one event behind at the 5s deadline with
+// nothing wrong). This mirrors the per-test RaceEnabled relaxation the SSE
+// await already carried (2026-10-27); WithAwaitTimeout stays authoritative.
 func defaultConfig() scenarioConfig {
-	return scenarioConfig{awaitTimeout: defaultAwaitTimeout}
+	timeout := defaultAwaitTimeout
+	if RaceEnabled {
+		timeout = 30 * time.Second
+	}
+
+	return scenarioConfig{awaitTimeout: timeout}
 }
 
 // WithAwaitTimeout sets how long poll-awaiting assertions (ThenQuery, and
-// every assertion after TimeAdvances) wait before failing. Default: 5s.
+// every assertion after TimeAdvances) wait before failing. Default: 5s
+// (30s under -race, where projection catch-up needs a wider budget).
 func WithAwaitTimeout(d time.Duration) Option {
 	return func(c *scenarioConfig) {
 		if d > 0 {
