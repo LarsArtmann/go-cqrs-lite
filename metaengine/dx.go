@@ -144,8 +144,9 @@ func (w *Watcher[V]) addWatcherEntry(key any) *watcherEntry {
 
 // Watch returns a channel that receives updated values. The optional key
 // parameter filters notifications to that specific key only; pass nil to
-// receive all changes in the collection. The channel is buffered (1) and
-// drops notifications if the consumer is slow.
+// receive all changes in the collection. The channel is buffered (1) with
+// latest-wins delivery: when the consumer is slow, the newest value evicts
+// the oldest buffered one, so the channel never holds stale state.
 // Callers must close the watcher when done (via Close).
 func (w *Watcher[V]) Watch(ctx context.Context, key any) <-chan V {
 	ch := make(chan V, 1)

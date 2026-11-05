@@ -41,15 +41,8 @@ func (h *subscriberHub) unregisterReplay(collection string) {
 // notify sends a value update to all watchers of a collection that
 // match the given key. A watcher with a nil key receives all notifications;
 // a watcher with a non-nil key receives only notifications for that key.
-// Non-blocking: if a watcher's channel is full, the notification is dropped.
-//
-// When a replay recorder is registered for the collection, the value is
-// recorded with a monotonic sequence number and sent as a watcherNotification
-// wrapper so WatchWithSeq can recover the seq.
-// notify sends a value update to all watchers of a collection that
-// match the given key. A watcher with a nil key receives all notifications;
-// a watcher with a non-nil key receives only notifications for that key.
-// Non-blocking: if a watcher's channel is full, the notification is dropped.
+// Delivery is latest-wins: if a watcher's channel is full, the oldest
+// buffered notification is evicted so the newest state always gets through.
 //
 // The hub mutex is held for the entire iteration (including channel sends)
 // so that Watcher.Close — which closes channels under the same lock via
@@ -81,16 +74,34 @@ func (h *subscriberHub) notify(collection string, key any, value any) {
 		}
 
 		if recorder != nil {
-			select {
-			case entry.ch <- notif:
-			default: // drop if consumer is slow
-			}
+			sendLatest(entry, notif)
 		} else {
-			select {
-			case entry.ch <- value:
-			default: // drop if consumer is slow
-			}
+			sendLatest(entry, value)
 		}
+	}
+}
+
+// sendLatest delivers val to an entry channel with latest-wins semantics:
+// when the buffer is full, the OLDEST buffered notification is evicted to
+// make room for the newest. Watcher channels carry projection state, where
+// the newest value subsumes every older one, and the SSE pipeline downstream
+// (forwardWithDropOld) applies the same rule — dropping the newest value
+// instead would leave a slow consumer stuck on stale state forever.
+func sendLatest(entry *watcherEntry, val any) {
+	select {
+	case entry.ch <- val:
+		return
+	default:
+	}
+
+	select {
+	case <-entry.ch: // evict the stale buffered value
+	default:
+	}
+
+	select {
+	case entry.ch <- val:
+	default:
 	}
 }
 

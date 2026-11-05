@@ -72,6 +72,13 @@ func WithSSEReplayLimit(n int) SSEOption {
 // ServeSSE streams Watcher notifications as Server-Sent Events over HTTP.
 // Each value change is JSON-encoded and sent as an SSE "data" event.
 //
+// Ordering guarantee: the watcher subscription is registered BEFORE the
+// response status is committed. A client that has observed the 200 status
+// can therefore never miss a write that raced its connect — the newest
+// value is buffered for it (latest-wins delivery) rather than lost. The
+// connection still sees only future changes; clients needing missed
+// history across disconnects must attach a replay journal (WithReplay).
+//
 // Backpressure: the SSE pipeline uses a ring buffer (default 64). When the
 // client is slow and the buffer fills, the oldest unread event is dropped.
 // A timeout option closes the stream after a maximum duration.
@@ -117,18 +124,24 @@ func ServeSSE[V any](
 		return errSSENoFlusher
 	}
 
-	sse.SetHeaders(w)
-	w.Header().Set("X-Accel-Buffering", "no") // disable nginx buffering
-
-	w.WriteHeader(http.StatusOK)
-	flusher.Flush()
-
 	replay := watcher.Replay()
 	if replay != nil {
 		return serveSSEReplay(w, r, flusher, watcher, replay, cfg)
 	}
 
 	return serveSSEPlain(w, r, flusher, watcher, cfg)
+}
+
+// subscribeSSEHeaders commits the SSE response status AFTER the watcher
+// subscription is registered. Header commit is the moment the client first
+// observes the stream as live (its request unblocks); doing it after
+// registration is what makes ServeSSE's ordering guarantee hold.
+func subscribeSSEHeaders(w http.ResponseWriter, flusher http.Flusher) {
+	sse.SetHeaders(w)
+	w.Header().Set("X-Accel-Buffering", "no") // disable nginx buffering
+
+	w.WriteHeader(http.StatusOK)
+	flusher.Flush()
 }
 
 // serveSSEPlain is the non-reconnection path: no id field, no dedup.
@@ -142,7 +155,12 @@ func serveSSEPlain[V any](
 	ctx := r.Context()
 
 	buf := make(chan V, cfg.MaxBuffer)
+
+	// Subscribe BEFORE committing the response status (see ServeSSE's
+	// ordering guarantee).
 	watchCh := watcher.Watch(ctx, nil)
+
+	subscribeSSEHeaders(w, flusher)
 
 	go forwardWithDropOld(ctx, watchCh, buf, nil)
 
@@ -177,9 +195,13 @@ func serveSSEReplay[V any](
 ) error {
 	ctx := r.Context()
 
-	// Phase 0: Subscribe FIRST to buffer live events arriving during replay.
+	// Phase 0: Subscribe FIRST to buffer live events arriving during replay —
+	// and before the response status is committed (see ServeSSE's ordering
+	// guarantee), so a client that has seen 200 cannot miss the handoff.
 	buf := make(chan SeqValue[V], cfg.MaxBuffer)
 	watchCh := watcher.WatchWithSeq(ctx, nil)
+
+	subscribeSSEHeaders(w, flusher)
 
 	// Phase 1: Replay missed events from the journal.
 	dedupRing, err := replayMissedEvents(w, r, replay, cfg)
