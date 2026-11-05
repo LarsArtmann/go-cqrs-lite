@@ -333,22 +333,22 @@ func (e *sqliteEngine) MapUpdate(
 
 	return runTxReadModifyWrite(
 		ctx, e.db, update,
-		func(ctx context.Context, tx *sql.Tx) (any, error) {
+		func(ctx context.Context, exec metaengine.SQLExec) (any, error) {
 			var valStr string
-			if err := tx.QueryRowContext(ctx, e.queries.mapGet, col, encodeKey(key)).
+			if err := exec.QueryRowContext(ctx, e.queries.mapGet, col, encodeKey(key)).
 				Scan(&valStr); err != nil {
 				return nil, err //nolint:wrapcheck // ErrNoRows handled by caller
 			}
 
 			return metaengine.DecodeStreamValue(valStr), nil
 		},
-		func(ctx context.Context, tx *sql.Tx, newVal any) error {
+		func(ctx context.Context, exec metaengine.SQLExec, newVal any) error {
 			encoded, err := encodeValue(newVal)
 			if err != nil {
 				return err
 			}
 
-			_, err = tx.ExecContext(ctx, e.queries.mapSet, col, encodeKey(key), encoded)
+			_, err = exec.ExecContext(ctx, e.queries.mapSet, col, encodeKey(key), encoded)
 
 			return err //nolint:wrapcheck // passthrough
 		},

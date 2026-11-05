@@ -231,9 +231,9 @@ func (e *sqliteEngine) mapUpdatePlanned(
 
 	return runTxReadModifyWrite(
 		ctx, e.db, update,
-		func(ctx context.Context, tx *sql.Tx) (any, error) {
+		func(ctx context.Context, exec metaengine.SQLExec) (any, error) {
 			var valStr string
-			if err := tx.QueryRowContext(
+			if err := exec.QueryRowContext(
 				ctx,
 				fmt.Sprintf(
 					"SELECT value FROM %s WHERE key = ?",
@@ -246,42 +246,35 @@ func (e *sqliteEngine) mapUpdatePlanned(
 
 			return metaengine.DecodeStreamValue(valStr), nil
 		},
-		func(ctx context.Context, tx *sql.Tx, newVal any) error {
-			return execPlannedSet(ctx, tx, plan, key, newVal)
+		func(ctx context.Context, exec metaengine.SQLExec, newVal any) error {
+			return execPlannedSet(ctx, exec, plan, key, newVal)
 		},
 	)
 }
 
-// runTxReadModifyWrite wraps a read-modify-write cycle in a single transaction
-// so concurrent updates on the same key cannot interleave. The readFn may
+// runTxReadModifyWrite wraps a read-modify-write cycle in a single
+// transaction so concurrent updates on the same key cannot interleave. The
+// transaction is opened BEGIN IMMEDIATE (see runImmediateTx) so the
+// read-then-write upgrade can never hit SQLITE_BUSY_SNAPSHOT. The readFn may
 // return sql.ErrNoRows (treated as nil prev); all other errors propagate.
 func runTxReadModifyWrite(
 	ctx context.Context,
 	db *sql.DB,
 	update func(prev any) any,
-	readFn func(ctx context.Context, tx *sql.Tx) (any, error),
-	writeFn func(ctx context.Context, tx *sql.Tx, newVal any) error,
+	readFn func(ctx context.Context, exec metaengine.SQLExec) (any, error),
+	writeFn func(ctx context.Context, exec metaengine.SQLExec, newVal any) error,
 ) error {
-	tx, err := db.BeginTx(ctx, nil)
-	if err != nil {
-		return err //nolint:wrapcheck // passthrough
-	}
+	return runImmediateTx(ctx, db, func(ctx context.Context, exec metaengine.SQLExec) error {
+		prev, readErr := readFn(ctx, exec)
 
-	defer func() { _ = tx.Rollback() }()
+		if readErr != nil && !errors.Is(readErr, sql.ErrNoRows) {
+			return readErr
+		}
 
-	prev, readErr := readFn(ctx, tx)
+		newVal := update(prev)
 
-	if readErr != nil && !errors.Is(readErr, sql.ErrNoRows) {
-		return readErr
-	}
-
-	newVal := update(prev)
-
-	if err := writeFn(ctx, tx, newVal); err != nil {
-		return err
-	}
-
-	return tx.Commit() //nolint:wrapcheck // passthrough
+		return writeFn(ctx, exec, newVal)
+	})
 }
 
 func (e *sqliteEngine) pushdownMapScanPlanned(

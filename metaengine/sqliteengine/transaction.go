@@ -62,10 +62,59 @@ func (c *txStmtCache) query(ctx context.Context, query string, args ...any) (*sq
 	return c.tx.QueryContext(ctx, query, args...) //nolint:wrapcheck
 }
 
-// txExecutor wraps a *sql.Tx and its txStmtCache.
+// txExecutor wraps an ambient transaction executor and its txStmtCache.
 type txExecutor struct {
-	tx    *sql.Tx
+	tx    metaengine.SQLExec
 	cache *txStmtCache
+}
+
+// runImmediateTx runs fn inside a write transaction opened with BEGIN
+// IMMEDIATE on a dedicated pooled connection. A DEFERRED transaction that
+// reads before writing can fail with SQLITE_BUSY_SNAPSHOT when another
+// connection commits between its read and its write upgrade — an error
+// busy_timeout cannot retry, because waiting cannot refresh a stale snapshot
+// (observed on CI 2026-11-05, shuffle seed 119160053384665: "writer
+// StreamAppendExpected: database is locked (5) (SQLITE_BUSY)"). Taking the
+// write lock before the first read closes that entire error class; lock
+// contention then waits under busy_timeout instead of failing fast. The
+// final COMMIT/ROLLBACK runs on a cancel-stripped context so it always
+// reaches the server, even when fn's context expired mid-transaction.
+func runImmediateTx(
+	ctx context.Context,
+	db *sql.DB,
+	fn func(ctx context.Context, exec metaengine.SQLExec) error,
+) error {
+	conn, err := db.Conn(ctx)
+	if err != nil {
+		return fmt.Errorf("sqliteengine: acquire tx conn: %w", err)
+	}
+	defer func() { _ = conn.Close() }()
+
+	finish := func(statement string) error {
+		_, err := conn.ExecContext(context.WithoutCancel(ctx), statement)
+
+		return err //nolint:wrapcheck // caller wraps with the statement name
+	}
+
+	if _, err := conn.ExecContext(ctx, "BEGIN IMMEDIATE"); err != nil {
+		return fmt.Errorf("sqliteengine: begin immediate tx: %w", err)
+	}
+
+	fnErr := fn(ctx, conn)
+
+	if fnErr != nil {
+		_ = finish("ROLLBACK")
+
+		return fnErr
+	}
+
+	if err := finish("COMMIT"); err != nil {
+		_ = finish("ROLLBACK")
+
+		return fmt.Errorf("sqliteengine: commit tx: %w", err)
+	}
+
+	return nil
 }
 
 // RunInTx executes fn within a database transaction. If fn returns nil, the
@@ -85,25 +134,12 @@ func (e *sqliteEngine) RunInTx(ctx context.Context, fn func(context.Context) err
 	e.txMu.Lock()
 	defer e.txMu.Unlock()
 
-	tx, err := e.db.BeginTx(ctx, nil)
-	if err != nil {
-		return fmt.Errorf("sqliteengine: begin tx: %w", err)
-	}
-
-	txC := &txExecutor{
-		tx:    tx,
-		cache: &txStmtCache{tx: tx},
-	}
-
-	fnErr := fn(context.WithValue(ctx, txMarker{}, txC))
-
-	if fnErr != nil {
-		_ = tx.Rollback()
-
-		return fnErr
-	}
-
-	return tx.Commit() //nolint:wrapcheck
+	return runImmediateTx(ctx, e.db, func(ctx context.Context, exec metaengine.SQLExec) error {
+		return fn(context.WithValue(ctx, txMarker{}, &txExecutor{
+			tx:    exec,
+			cache: &txStmtCache{tx: exec},
+		}))
+	})
 }
 
 // txFromCtx returns the transaction executor carried by ctx, or nil when
