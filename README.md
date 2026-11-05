@@ -251,6 +251,33 @@ All durable I/O — journal, read models, snapshots, checkpoints, timers, dedup 
 
 Read models are ADTs, not opaque blobs: Map (CRUD), Graph (edges, traversals), Vector (k-NN), Log, Set, Counter — the planner picks SQL pushdown where the engine supports it and scans otherwise. Full per-capability matrix (generated from source): [`docs/engine-capabilities.md`](docs/engine-capabilities.md). Deployment-from-YAML demo: [`example/metaengine-quickstart/`](example/metaengine-quickstart/).
 
+### Optional engine interfaces: token-resumable journal reads
+
+Engines expose optional capabilities beyond the base `Engine` profile; callers
+type-assert them. The newest is `metaengine.SeqSeekableStreamLog` — journal
+reads that resume by token instead of position:
+
+```go
+if seekable, ok := eng.(metaengine.SeqSeekableStreamLog); ok {
+	entries, _ := seekable.JournalReadAllWithSeq(ctx, "orders")
+	last := entries[len(entries)-1].Seq // opaque, strictly increasing token
+	// ... later, exactly after that entry — an index range seek, not OFFSET:
+	next, _ := seekable.JournalReadFromSeq(ctx, "orders", last, 500)
+	_ = next
+}
+```
+
+`StreamLogBackend.JournalReadFrom` takes a POSITION (forcing OFFSET-style skips
+on engines with shared sequence counters); `JournalReadFromSeq` takes a TOKEN
+previously returned by the engine, so resuming is a pure
+`WHERE collection = ? AND seq > ?` index seek — O(log n) per page and
+gap-tolerant by construction. Tokens are engine-instance-local: never persist a
+Seq across engine migrations or restarts; long-lived checkpoints store the
+domain cursor (e.g. event ID), not the raw Seq.
+
+Implemented by: memory, sqlite (incl. turso), pebble, bbolt, badger, postgres,
+mysql.
+
 ## Prefer explicit wiring? (v4 composition)
 
 The layers under the composition root are independently importable — some v4 surfaces predate `system/` and remain fully supported through v4.x:

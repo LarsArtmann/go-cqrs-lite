@@ -24,12 +24,15 @@ var readmeFences = map[string]struct{}{
 	"### 2. Declare the read model — one fold per event type #1":       {},
 	"### 3. Boot the system — and never touch infrastructure again #1": {},
 	"### 3. Boot the system — and never touch infrastructure again #2": {},
+	"### Optional engine interfaces: token-resumable journal reads #1": {},
 }
 
 // readmeQuickStart is the compile spec for the concatenated fences: the
 // imports a consumer pasting the whole quick-start needs, the two free
 // variables the README prose leaves implicit (a context and a stream ID),
-// and trailers blanking the locals the prose never consumes.
+// and trailers blanking the locals the prose never consumes. The engines
+// section's SeqSeekable fence joins the concatenation; its `eng` free
+// variable rides the same preamble.
 var readmeQuickStart = recipeSpec{
 	imports: []string{
 		`"context"`,
@@ -42,7 +45,7 @@ var readmeQuickStart = recipeSpec{
 		`"github.com/larsartmann/go-cqrs-lite/record/v4"`,
 		`"github.com/larsartmann/go-cqrs-lite/system/v4"`,
 	},
-	preamble: "var ctx = context.Background()\n\nvar counterID = id.NewStreamID()",
+	preamble: "var ctx = context.Background()\n\nvar counterID = id.NewStreamID()\n\nvar eng metaengine.Engine",
 	trailers: "\t_ = err\n\t_ = view\n\t_ = found",
 	errFunc:  true,
 }

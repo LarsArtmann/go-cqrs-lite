@@ -113,7 +113,7 @@ func TestWaiverAdoptionRulesHandMapPinned(t *testing.T) {
 
 	moduleKeys := make(map[string]bool)
 	for _, entry := range analyzer.DefaultCatalog.All() {
-		moduleKeys[entry.Key] = true
+		moduleKeys[string(entry.Key)] = true
 	}
 
 	adoptionRuleIDs := make(map[string]bool)

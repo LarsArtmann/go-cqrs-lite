@@ -20,6 +20,13 @@ func RunSeqSeekableStreamLogTest(t *testing.T, eng metaengine.Engine) {
 // RunSeqSeekableStreamLogTestIn is RunSeqSeekableStreamLogTest with a
 // caller-chosen collection, for engines whose storage outlives a single test.
 //
+// Engines that CANNOT seek by token can still pass the journal-read contract
+// through the position-based fallback this package exercises elsewhere
+// (JournalReadFrom over the StreamLog suite): correctness is unchanged, only
+// the resume cost differs (O(offset) skips vs O(log n) index seeks). This
+// helper asserts the token path for engines that DECLARE the capability; the
+// shared StreamLog suite covers the rest.
+//
 // The contract:
 //  1. JournalReadAllWithSeq matches JournalReadAll (same values, same order)
 //     with strictly increasing Seq tokens starting at >= 1
