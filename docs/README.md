@@ -195,6 +195,7 @@ The authoritative module index with README links lives in the **[project README]
 | [0160](adr/0160-architecture-reference-selections-kind-id-selectors.md) | Architecture-reference selections select resources by kind and id, not by custom properties | Accepted                                  |
 | [0161](adr/0161-encoded-ingress-producer-codec.md) | Encoded ingress decodes with the producer's codec, not a schema-free JSON transcode | Accepted                                  |
 | [0162](adr/0162-metaengine-v5-seven-package-split.md) | Metaengine v5 splits into seven packages instead of one 829-symbol package | Proposed                                  |
+| [0163](adr/0163-schema-compatibility-structural-differ-over-cue.md) | Schema compatibility is a structural differ over the schema model, not a CUE subsume | Accepted                                  |
 | [0100](adr/0100-redesign-scope-parallel.md)                           | Redesign scope: parallel (new alongside old)                                         | Accepted                                            |
 | [0101](adr/0101-backend-abstraction-n-instance.md)                    | Backend abstraction: N-instance metaengine                                           | Accepted                                            |
 | [0102](adr/0102-admin-interface-introspection-only.md)                | Admin web interface: introspection API only                                          | Accepted                                            |
