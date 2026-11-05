@@ -106,9 +106,7 @@ func (s *EventStore) Save(
 			}
 
 			expectedEvtVersion := expectedVersion.Int() + i + 1
-			if evt.Version() != event.Version(
-				expectedEvtVersion,
-			) { // #nosec G115 -- expected next stream version, small by construction
+			if evt.Version() != event.Version(expectedEvtVersion) { // #nosec G115 -- next version is small
 				return errorfamily.WrapConflict(ErrVersionMismatch, "bbolt.version_mismatch",
 					fmt.Sprintf("expected %d, got %d", expectedEvtVersion, evt.Version()))
 			}

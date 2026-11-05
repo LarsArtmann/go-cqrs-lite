@@ -189,11 +189,9 @@ func (s *SQLSnapshotStore) scanSnapshot(
 	return &snapshot.Snapshot{
 		StreamID:   ref.ID,
 		StreamType: ref.Type,
-		Version: event.Version(
-			version,
-		),
-		State:     stateBytes,
-		CreatedAt: createdAt, // #nosec G115 -- version scanned back from storage, non-negative domain value
+		Version:    event.Version(version), // #nosec G115 -- version scanned from storage, non-negative
+		State:      stateBytes,
+		CreatedAt:  createdAt,
 	}, nil
 }
 

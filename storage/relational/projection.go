@@ -172,8 +172,8 @@ func (p *RelationalProjection) Reset(ctx context.Context) error {
 
 		if _, err := p.db.ExecContext(
 			ctx,
-			"DELETE FROM "+t.Name,
-		); err != nil { // #nosec G202 -- t.Name is developer schema config, not end-user input
+			"DELETE FROM "+t.Name, // #nosec G202 -- t.Name is developer schema config, not user input
+		); err != nil {
 			return errorfamily.WrapTransient(err, "relational.projection_reset",
 				fmt.Sprintf("projection %q: delete from %s", p.name, t.Name))
 		}

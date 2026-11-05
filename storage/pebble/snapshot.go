@@ -275,12 +275,10 @@ func (s *serializableSnapshot) toSnapshot(ref id.StreamRef) *snapshot.Snapshot {
 	return &snapshot.Snapshot{
 		StreamID:   ref.ID,
 		StreamType: ref.Type,
-		Version: event.Version(
-			s.Version,
-		), // #nosec G115 -- snapshot version, non-negative domain value
-		State:     s.State,
-		Encoding:  s.Encoding,
-		CreatedAt: time.Unix(0, s.CreatedAt).UTC(),
+		Version:    event.Version(s.Version), // #nosec G115 -- snapshot version, non-negative
+		State:      s.State,
+		Encoding:   s.Encoding,
+		CreatedAt:  time.Unix(0, s.CreatedAt).UTC(),
 	}
 }
 
