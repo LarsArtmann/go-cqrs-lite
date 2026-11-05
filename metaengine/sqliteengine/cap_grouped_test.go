@@ -35,6 +35,16 @@ func TestSQLiteGroupedCap(t *testing.T) {
 		t.Parallel()
 		adttest.AssertGroupedCapContract(t, newVersionedSQLite(t))
 	})
+
+	// Plain WithCap on a SQL engine exercises the Go trim path over
+	// map[string]any scan items (SQL engines decode rows via
+	// DecodeStreamValue, not typed structs) — the path that panicked before
+	// FieldValueAt taught the extractors both renderings.
+	t.Run("plain_cap_map_items", func(t *testing.T) {
+		t.Parallel()
+
+		adttest.AssertPlainCapContract(t, newEngine(t))
+	})
 }
 
 // TestSQLiteTrimGroupedCap_Refusals pins the two pushdown refusal branches:

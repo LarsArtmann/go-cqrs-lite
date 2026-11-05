@@ -1,6 +1,6 @@
 package main
 
-// Recipe catalog, part B4: recipes.md §2.48–§2.49 (the tail of section 2,
+// Recipe catalog, part B4: recipes.md §2.48–§2.50 (the tail of section 2,
 // split out of part B3 to keep files under the 350-line file cap).
 
 var recipeCatalogB4 = map[string]recipeSpec{
@@ -22,5 +22,24 @@ var recipeCatalogB4 = map[string]recipeSpec{
 			`sqliteengine "github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4"`,
 			`metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"`,
 		},
+	},
+	"### 2.50 Per-Group Caps — keep the newest N rows PER owner (`WithCapPerGroup`, ADR-0164) #1": {
+		imports: []string{
+			`"context"`,
+			`"github.com/larsartmann/go-cqrs-lite/metaengine/v4"`,
+			`"github.com/larsartmann/go-cqrs-lite/record/v4"`,
+		},
+		preamble: "type TranscriptRecorded struct {\n" +
+			"\tID, Owner string\n" +
+			"\tStartedAt int64\n" +
+			"}\n" +
+			"type TranscriptView struct {\n" +
+			"\tID, Owner string\n" +
+			"\tStartedAt int64\n" +
+			"}\n" +
+			"var eng metaengine.Engine\n" +
+			"var ctx context.Context\n",
+		errFunc:  true,
+		trailers: "_ = removed\n_ = err",
 	},
 }

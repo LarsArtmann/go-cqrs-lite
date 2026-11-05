@@ -3706,3 +3706,47 @@ re-encode), and `stored_bytes_pin_test.go` in `pebbleengine`, `bboltengine`,
 mutation-proof the pin (temporarily re-encode through a wrapper struct — the
 pin must go red — then restore byte-identical), or the pin documents intent
 without enforcing it.
+
+### 2.50 Per-Group Caps — keep the newest N rows PER owner (`WithCapPerGroup`, ADR-0164)
+
+`WithCap` bounds a WHOLE collection. Retention rules that are per KEY GROUP
+(per-owner quotas, per-tenant windows) declare `WithCapPerGroup(groupCol,
+perGroupRows)` on top of the same query: WithCap's order-by column picks the
+newest rows WITHIN each group, WithCap's maxRows stays the collection-global
+ceiling, and the two compose (one owner's flood never evicts another owner's
+rows):
+
+```go
+transcripts := metaengine.Query[struct{}, TranscriptView]("call_transcripts",
+	metaengine.OnRecord(TranscriptRecorded{}, func(_ record.Record, e TranscriptRecorded) (string, TranscriptView) {
+		return e.ID, TranscriptView{ID: e.ID, Owner: e.Owner, StartedAt: e.StartedAt}
+	}),
+	// each caller keeps their newest 5000 transcripts; the collection
+	// never exceeds 50_000 rows total.
+	metaengine.WithCap(50_000, "StartedAt"),
+	metaengine.WithCapPerGroup("Owner", 5000),
+)
+
+store, err := metaengine.Plan([]metaengine.Engine{eng}, transcripts)
+if err != nil {
+	return err
+}
+
+// After a batch append or on a timer — grouped pass and global pass in one
+// call (or trim ONLY the grouped bound with store.EnforceCapGrouped(ctx,
+// "call_transcripts")):
+removed, err := store.EnforceCaps(ctx)
+```
+
+Rules the declaration must satisfy (rejected at `Plan` time): a `WithCap`
+base on the same query, a Map projection whose result type carries both the
+query's key type and a field matching `groupCol` (field name or json tag,
+case-insensitive), and plain-identifier column names (they flow into engine
+SQL). Engines implementing `metaengine.CapGroupTrimmer` (sqlite/turso) trim
+every group in ONE window-function `DELETE ... RETURNING key` — deleted keys
+notify live SSE subscribers; every other engine (and cell-versioned engines,
+whose history a bulk delete would bypass) falls back to the store's portable
+Go scan with identical observable behavior. The replay caveat of §Bounded
+collections carries over: reset + replay restores full rows, so re-run
+`EnforceCaps` after a rebuild.
+
