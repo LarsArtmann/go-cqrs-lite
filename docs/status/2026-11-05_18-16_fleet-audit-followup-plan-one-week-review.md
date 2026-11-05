@@ -29,6 +29,7 @@
 3. **T11:** file-size IS now in `ci.yml` (2 legs) ✅; the nightly-matrix extension is NOT (no file-size/example legs in `nightly-gates.yml`), and the silent-manifest question (why `--check --remote` stayed quiet) remains unverified.
 4. **T15:** recipes.md §2.43 hollow-root warning note still missing (faq entry done).
 5. **Today's M04/M05:** verify attempt 13 externally interrupted (88 packages, zero real test failures before the SIGINT); CI green-on-master receipt still needs one clean relaunch + push.
+6. **T17 half-shipped:** `scenario.WhenVersioned` shipped; the Registry-bridge + verify-remaining-half work is rowed (TODO_LIST:177, the 11-03 plan's T23).
 
 ## c) NOT STARTED (plan leftovers — T13/T14/T18/T24/T25 un-rowed; T17/T20 WERE re-derived by the 11-03 plan at TODO_LIST:177/:174)
 
