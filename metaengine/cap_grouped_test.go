@@ -274,7 +274,7 @@ func TestWithCapPerGroup_MatchesJSONTagCaseInsensitively(t *testing.T) {
 
 	query := metaengine.Query[struct{}, taggedItem]("grouped_tagged",
 		metaengine.OnRecord(groupedEvent{}, func(_ record.Record, e groupedEvent) (string, taggedItem) {
-			return e.ID, taggedItem{ID: e.ID, Owner: e.Owner, Seq: e.Seq}
+			return e.ID, taggedItem(e)
 		}),
 		metaengine.WithCap(8, "Seq"),
 		metaengine.WithCapPerGroup("TENANT_ID", 2),

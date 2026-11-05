@@ -27,7 +27,9 @@ info() { printf 'lint-scope: %s\n' "$*"; }
 
 GOLANGCI_BIN="${GOLANGCI_BIN:-golangci-lint}"
 GOLANGCI_CONFIG="${GOLANGCI_CONFIG:-}"
-LINT_SCOPE_ROOT="${LINT_SCOPE_ROOT:-$PWD}"
+# Default the repo root to the git toplevel so the script works from any
+# directory inside the repo (the flake app always runs it from the root).
+LINT_SCOPE_ROOT="${LINT_SCOPE_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || printf '%s' "$PWD")}"
 
 run_scope() {
 	local root="$1" config="$2"

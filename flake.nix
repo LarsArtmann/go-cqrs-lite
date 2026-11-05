@@ -1457,6 +1457,17 @@
               exec ${pkgs.golangci-lint}/bin/golangci-lint run                 ./...
             '';
 
+            # lint-scope: the CHANGED-SET lint gate — same per-module
+            # invocation and ✅/❌ summary as #lint, over only the modules
+            # named in GT_LINT_MODULES, so a task window that touched three
+            # modules does not wait behind the ~98-module sweep:
+            #   GT_LINT_MODULES="metaengine metaengine/sqliteengine" nix run .#lint-scope
+            # Self-test: nix run .#lint-scope -- --self-test (fixture modules
+            # + failure-summary shape; scripts/lint-scope.sh owns the loop).
+            lint-scope = mkApp "lint-scope" [ goPkg pkgs.golangci-lint pkgs.bash pkgs.coreutils ] ''
+              ${pkgs.bash}/bin/bash "$PWD/scripts/lint-scope.sh" "$@"
+            '';
+
             # load-sweep: run timing-assertion tests under deliberate CPU load
             # BEFORE #verify — front-loads discovery of load-sensitive flakes
             # (the 12:39 session burned two ~20min gate cycles on these).
