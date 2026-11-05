@@ -699,6 +699,13 @@
               "-local"
               "github.com/larsartmann/go-cqrs-lite"
             ];
+            # Unify golines' max line length with golangci-lint's
+            # formatters.golines max-len: 120 (see .golangci.yml). treefmt's
+            # golines defaults to 100, so any 101-120 col line got split by
+            # `nix fmt` while golangci considered it formatted — the
+            # nolint-detachment formatter war documented in TODO_LIST:294
+            # (burned 5 lint/fmt rounds on 2026-11-04/05). Cured 2026-11-05.
+            settings.formatter.golines.options = [ "--max-len=120" ];
           };
 
           devShells.default = pkgs.mkShellNoCC {
