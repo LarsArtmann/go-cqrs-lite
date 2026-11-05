@@ -9,6 +9,12 @@
 #       * an ADR file without exactly one index row (matched by link target)
 #       * an index row whose link target does not exist
 #       * index title != the file's H1 title (both minus the "ADR-NNNN:" prefix)
+#   - main-index coverage drift vs docs/README.md (the 2026-11-05 split brain:
+#     a row landed in only ONE of the two indexes and every cheap gate stayed
+#     green until a real #verify failed 97 minutes into a quiet window):
+#       * an ADR file without exactly one row in docs/README.md
+#       * a adr/NNNN-*.md table link in docs/README.md pointing at no file
+#     (default docs/adr mode only; --adr-dir fixtures have no main index)
 # WARNS (exit 0) on:
 #   - numbering gaps outside the documented never-assigned set (README note);
 #     gaps are history, not errors — but undocumented ones deserve a note.
@@ -164,6 +170,39 @@ run_checks() {
 	return 0
 }
 
+# main_index_check <main-index> <adr-dir> — every ADR file must have exactly
+# one table row in the MAIN docs index (docs/README.md, matched by its
+# adr/NNNN-slug.md link target), and every such table link must point at a
+# real file. This mirrors the #verify doc-assertion so the split-brain class
+# (row in one index only) fails at THIS cheap gate too, not just inside a
+# 30-minute verify.
+main_index_check() {
+	local main_index="$1" dir="$2"
+	[ -f "$main_index" ] || {
+		echo "FAIL: no main docs index at $main_index" >&2
+		return 1
+	}
+
+	local f num rows target
+	while IFS= read -r f; do
+		num=${f%%-*}
+		rows=$(grep -cE "\| \[$num\]\(adr/$f\) +\|" "$main_index" || true)
+		if [ "$rows" -ne 1 ]; then
+			echo "FAIL: $dir/$f has $rows rows in $main_index (want exactly 1). BOTH docs/README.md and docs/adr/README.md must index every ADR — one-index-only rows are the 2026-11-05 split-brain class" >&2
+			return 1
+		fi
+	done < <(adr_files "$dir")
+
+	while IFS= read -r target; do
+		[ -n "$target" ] || continue
+		if [ ! -f "$dir/${target#adr/}" ]; then
+			echo "FAIL: $main_index links to missing ADR file: $target" >&2
+			return 1
+		fi
+	done < <(grep -oE '\| \[[0-9]{4}\]\(adr/[^)]+\)' "$main_index" | sed -E 's/.*\(([^)]+)\)/\1/')
+	return 0
+}
+
 self_test() {
 	local tmp fixture
 	tmp=$(mktemp -d)
@@ -252,6 +291,57 @@ self_test() {
 		return 1
 	fi
 
+	info "self-test: main-index (docs/README.md) coverage"
+	mk_fixture clean
+	main_ok="$fixture/MAIN.md"
+	{
+		printf '| ADR | Title | Status |\n'
+		printf '| --- | --- | --- |\n'
+		printf '| [0001](adr/0001-first.md) | First Decision | Accepted |\n'
+		printf '| [0002](adr/0002-second.md) | Second Decision | Accepted |\n'
+	} >"$main_ok"
+	if main_index_check "$main_ok" "$fixture" >/dev/null 2>"$tmp/err"; then
+		echo "  PASS: clean main-index coverage passes"
+	else
+		echo "  FAIL(self-test): clean main-index fixture must pass" >&2
+		cat "$tmp/err" >&2
+		return 1
+	fi
+
+	main_missing="$fixture/MAIN-MISSING.md"
+	printf '| [0002](adr/0002-second.md) | Second Decision | Accepted |\n' >"$main_missing"
+	if main_index_check "$main_missing" "$fixture" >"$tmp/out" 2>&1; then
+		echo "  FAIL(self-test): missing main-index row must fail" >&2
+		return 1
+	else
+		grep -q "rows in" "$tmp/out" &&
+			echo "  PASS: missing main-index row fails (the split-brain class)" ||
+			{
+				echo "  FAIL(self-test): violation message missing" >&2
+				cat "$tmp/out" >&2
+				return 1
+			}
+	fi
+
+	main_dangling="$fixture/MAIN-DANGLING.md"
+	{
+		printf '| [0001](adr/0001-first.md) | First Decision | Accepted |\n'
+		printf '| [0002](adr/0002-second.md) | Second Decision | Accepted |\n'
+		printf '| [0009](adr/0009-ghost.md) | Ghost | Accepted |\n'
+	} >"$main_dangling"
+	if main_index_check "$main_dangling" "$fixture" >"$tmp/out" 2>&1; then
+		echo "  FAIL(self-test): dangling main-index link must fail" >&2
+		return 1
+	else
+		grep -q "missing ADR file" "$tmp/out" &&
+			echo "  PASS: dangling main-index link fails" ||
+			{
+				echo "  FAIL(self-test): violation message missing" >&2
+				cat "$tmp/out" >&2
+				return 1
+			}
+	fi
+
 	rm -rf "$tmp"
 	trap - EXIT
 	info "self-test: all mutations detected"
@@ -263,5 +353,8 @@ if [ "${SELF_TEST:-0}" = "1" ]; then
 fi
 
 run_checks "$ADR_DIR"
+if [ "$ADR_DIR" = "docs/adr" ]; then
+	main_index_check "docs/README.md" "$ADR_DIR"
+fi
 local_count=$(adr_files "$ADR_DIR" | wc -l | tr -d ' ')
-info "OK: no duplicates, index in lockstep ($local_count ADRs)"
+info "OK: no duplicates, both indexes in lockstep ($local_count ADRs)"

@@ -1,4 +1,4 @@
-# ADR-0164: Per-group projection caps (implements #114)
+# ADR-0164: Per-group projection caps: WithCapPerGroup bounds each key group under the WithCap global ceiling
 
 | Field      | Value                                                                        |
 | ---------- | ---------------------------------------------------------------------------- |
