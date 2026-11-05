@@ -119,7 +119,7 @@ func NewCache[T any, K fmt.Stringer](
 // Negative results (ErrNotFound) are NOT cached. The returned value is a deep
 // copy owned by the caller; mutating it never affects the cache.
 func (cs *Cache[T, K]) Get(ctx context.Context, id K) (*T, error) {
-	key := id.String()
+	key := id.String() // art-dupl:accept ADR-0152 twin
 
 	if val, ok := cs.cache.GetIfPresent(key); ok {
 		return cs.copy(val)
@@ -159,7 +159,7 @@ func (cs *Cache[T, K]) Has(ctx context.Context, id K) (bool, error) {
 // The cache stores a private deep copy of val, so mutating val after Set
 // returns never affects subsequent reads.
 func (cs *Cache[T, K]) Set(ctx context.Context, id K, val *T) error {
-	err := cs.store.Set(ctx, id, val)
+	err := cs.store.Set(ctx, id, val) // art-dupl:accept ADR-0152 twin
 	if err != nil {
 		return err
 	}

@@ -54,6 +54,16 @@ type ScorecardWaiver struct {
 // callers can match with errors.Is.
 var ErrScorecardWaiver = errors.New("scorecard waiver")
 
+// scoredModuleKeys builds the scored-module lookup set shared by waiver and
+// pin validation.
+func scoredModuleKeys() map[ModuleKey]bool {
+	scored := make(map[ModuleKey]bool, len(DefaultCatalog.Scored()))
+	for _, e := range DefaultCatalog.Scored() {
+		scored[e.Key] = true
+	}
+	return scored
+}
+
 // ValidateScorecardWaivers checks waivers against the default catalog:
 // keys must be known scored modules, reasons must be non-empty, and keys
 // must be unique. Returns the first violation wrapped with the key.
@@ -62,10 +72,7 @@ func ValidateScorecardWaivers(waivers []ScorecardWaiver) error {
 		return nil
 	}
 
-	scored := make(map[ModuleKey]bool, len(DefaultCatalog.Scored()))
-	for _, e := range DefaultCatalog.Scored() {
-		scored[e.Key] = true
-	}
+	scored := scoredModuleKeys()
 
 	seen := make(map[string]bool, len(waivers))
 	for _, w := range waivers {
@@ -98,10 +105,7 @@ func ValidateScorecardModulePins(pins map[string]bool) error {
 		return nil
 	}
 
-	scored := make(map[ModuleKey]bool, len(DefaultCatalog.Scored()))
-	for _, e := range DefaultCatalog.Scored() {
-		scored[e.Key] = true
-	}
+	scored := scoredModuleKeys()
 
 	for key, used := range pins {
 		switch {
