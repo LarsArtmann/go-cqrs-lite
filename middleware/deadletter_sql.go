@@ -42,6 +42,10 @@ type SQLDeadLetterStore struct {
 
 const tableDeadLetters = "dead_letters"
 
+// deadLetterInsertColumns mirrors the column list of the INSERT in
+// RecordDeadLetter; kept next to the query so schema changes update both.
+const deadLetterInsertColumns = 8
+
 // NewSQLDeadLetterStore creates a SQL-backed dead-letter store and auto-creates
 // the dead_letters table. The dialect must be "sqlite" or "postgres".
 func NewSQLDeadLetterStore(db *sql.DB, dialect string) (*SQLDeadLetterStore, error) {
@@ -95,7 +99,7 @@ func (s *SQLDeadLetterStore) Handle(ctx context.Context, entry DeadLetterEntry) 
 	query := "INSERT INTO " + tableDeadLetters + // #nosec G202 -- constant table name; values use placeholders
 		" (kind, type, aggregate_id, error_text, error_code, error_family, attempts, failed_at) VALUES (" +
 		s.placeholders(
-			8,
+			deadLetterInsertColumns,
 		) + ")"
 
 	_, _ = s.db.ExecContext(

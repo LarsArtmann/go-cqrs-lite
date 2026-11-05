@@ -591,6 +591,7 @@ linters:
         linters:
           - cyclop
           - gocyclo
+          - maintidx
           - exhaustruct_v5
           - forcetypeassert
           - gocognit
@@ -715,7 +716,12 @@ linters:
           - nolintlint
           - wrapcheck
           - staticcheck
-      - path: catalog/(message_config|registry_build)\.go$
+      # Builder-family files: partial literals are the builder's job
+      # (compat.Baseline/Finding, MessageConfig REST headers/responses).
+      - path: catalog/compat/
+        linters:
+          - exhaustruct_v5
+      - path: catalog/(message_config|message_config_rest|registry_build)\.go$
         linters:
           - exhaustruct_v5
       - path: catalog/registry.go$

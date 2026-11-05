@@ -193,7 +193,7 @@ func (d *delayedEngine) JournalReadFrom(
 		return nil, err
 	}
 
-	return backend.JournalReadFrom(ctx, collection, afterSeq, limit)
+	return backend.JournalReadFrom(ctx, collection, afterSeq, limit) //nolint:staticcheck // deprecated pin, v5 removal
 }
 
 func (d *delayedEngine) StreamAppendExpected(

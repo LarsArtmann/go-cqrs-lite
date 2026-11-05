@@ -116,7 +116,7 @@ func TestStreamLog_JournalReadFrom(t *testing.T) {
 	}
 
 	// Skip exactly one entry — sparse UnixNano seqs must not leak through.
-	fromFirst, err := sl.JournalReadFrom(ctx, col, 1, 0)
+	fromFirst, err := sl.JournalReadFrom(ctx, col, 1, 0) //nolint:staticcheck // deprecated fallback pin
 	if err != nil {
 		t.Fatalf("JournalReadFrom(1, 0): %v", err)
 	}
@@ -131,7 +131,7 @@ func TestStreamLog_JournalReadFrom(t *testing.T) {
 	}
 
 	// Limit check: first entry only.
-	limited, err := sl.JournalReadFrom(ctx, col, 0, 1)
+	limited, err := sl.JournalReadFrom(ctx, col, 0, 1) //nolint:staticcheck // deprecated fallback pin
 	if err != nil {
 		t.Fatalf("JournalReadFrom(0, 1): %v", err)
 	}
@@ -145,7 +145,7 @@ func TestStreamLog_JournalReadFrom(t *testing.T) {
 	}
 
 	// Resuming past the end returns empty, not an error.
-	past, err := sl.JournalReadFrom(ctx, col, 3, 0)
+	past, err := sl.JournalReadFrom(ctx, col, 3, 0) //nolint:staticcheck // deprecated fallback pin
 	if err != nil {
 		t.Fatalf("JournalReadFrom(3, 0): %v", err)
 	}
