@@ -24,6 +24,10 @@ type QueryConfig struct {
 	// Bounded projection policy (see WithCap). Enforced by Store.EnforceCap.
 	capRows    int
 	capOrderBy string
+
+	// Per-group bound on top of WithCap (see WithCapPerGroup, ADR-0164).
+	capGroupCol  string
+	capGroupRows int
 }
 
 // CapRows returns the declared keep-newest cap for this query; 0 means the
@@ -33,6 +37,14 @@ func (c QueryConfig) CapRows() int { return c.capRows }
 // CapOrderBy returns the column that orders the cap: the newest rows by this
 // column are the ones retained.
 func (c QueryConfig) CapOrderBy() string { return c.capOrderBy }
+
+// CapGroupCol returns the group column of a per-group cap; "" means the cap
+// is collection-global.
+func (c QueryConfig) CapGroupCol() string { return c.capGroupCol }
+
+// CapGroupRows returns the declared keep-newest cap PER GROUP; 0 means the
+// cap is collection-global.
+func (c QueryConfig) CapGroupRows() int { return c.capGroupRows }
 
 // WithCap declares a bounded projection: at most maxRows rows are retained,
 // ordered by orderBy (descending, so the largest orderBy values survive).
@@ -47,6 +59,24 @@ func WithCap(maxRows int, orderBy string) QueryOption {
 	return func(c *QueryConfig) {
 		c.capRows = maxRows
 		c.capOrderBy = orderBy
+	}
+}
+
+// WithCapPerGroup declares a per-group bound on top of WithCap: each distinct
+// value of groupCol keeps at most perGroupRows rows (the WithCap order-by
+// column picks the newest within each group), while WithCap's maxRows stays
+// the collection-global ceiling — the two compose. Trim with
+// [Store.EnforceCapGrouped], [Store.EnforceCap], or [Store.EnforceCaps].
+//
+// The declaration REQUIRES a WithCap on the same query (its orderBy orders
+// survivors within groups), a Map projection whose result type carries both
+// the query's key type and a field matching groupCol (field name or json
+// tag, case-insensitive), and plain-identifier column names (they flow into
+// engine SQL). perGroupRows <= 0 disables the grouped bound.
+func WithCapPerGroup(groupCol string, perGroupRows int) QueryOption {
+	return func(c *QueryConfig) {
+		c.capGroupCol = groupCol
+		c.capGroupRows = perGroupRows
 	}
 }
 

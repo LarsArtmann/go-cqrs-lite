@@ -83,6 +83,10 @@ func validateCapConfig(q queryMeta) error {
 		return fmt.Errorf("query %q: %w: %w", q.QueryName(), errCapKeyUnavailable, err)
 	}
 
+	if err := validateCapGroupedConfig(q); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -166,6 +170,20 @@ func (s *Store) EnforceCap(ctx context.Context, queryName string) (int, error) {
 		return 0, fmt.Errorf("metaengine.EnforceCap(%q): %w", queryName, errUnsupportedPattern)
 	}
 
+	// Grouped pre-pass (ADR-0164): trim each group to its per-group bound
+	// first; the keep-page scan below then enforces the global ceiling on
+	// what survived. Both run under the fold lock this function already holds
+	// — enforceGroupedTrim never locks.
+	removed := 0
+
+	if cfg.capGroupRows > 0 {
+		grouped, groupErr := s.enforceGroupedTrim(ctx, q)
+		removed += grouped
+		if groupErr != nil {
+			return removed, groupErr
+		}
+	}
+
 	// Keep page: the newest capRows rows. hasMore means older rows exist and
 	// every row after this cursor is a trim victim.
 	_, hasMore, cursor, err := capScanPage(
@@ -177,14 +195,12 @@ func (s *Store) EnforceCap(ctx context.Context, queryName string) (int, error) {
 		nil,
 	)
 	if err != nil {
-		return 0, fmt.Errorf("metaengine.EnforceCap(%q): keep scan: %w", queryName, err)
+		return removed, fmt.Errorf("metaengine.EnforceCap(%q): keep scan: %w", queryName, err)
 	}
 
 	if !hasMore {
-		return 0, nil
+		return removed, nil
 	}
-
-	removed := 0
 
 	for {
 		items, more, next, scanErr := capScanPage(

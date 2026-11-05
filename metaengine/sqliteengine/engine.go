@@ -651,4 +651,5 @@ var (
 	_ metaengine.Calibratable      = (*sqliteEngine)(nil)
 	_ metaengine.TrackerHost       = (*sqliteEngine)(nil)
 	_ metaengine.Prober            = (*sqliteEngine)(nil)
+	_ metaengine.CapGroupTrimmer   = (*sqliteEngine)(nil)
 )
