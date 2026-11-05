@@ -157,7 +157,7 @@ func capGroupExtractor(q queryMeta) (func(any) any, error) {
 	jsonName := JSONFieldName(t.Field(idx))
 
 	return func(value any) any {
-		return FieldValueAt(value, idx, jsonName)
+		return fieldValueAt(value, idx, jsonName)
 	}, nil
 }
 

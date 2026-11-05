@@ -2754,6 +2754,8 @@ metaengine/adttest/func AssertDedupStore
 metaengine/adttest/func AssertDeterministicMapEncoding
 metaengine/adttest/func AssertDueClaimer
 metaengine/adttest/func AssertFactSink
+metaengine/adttest/func AssertGroupedCapContract
+metaengine/adttest/func AssertPlainCapContract
 metaengine/adttest/func AssertTemporalConformance
 metaengine/adttest/func AssertTxIsolationFromForeignContext
 metaengine/adttest/func AssertValueEncodeRejection
@@ -3304,6 +3306,7 @@ metaengine/func WatchTyped
 metaengine/func WatchTypedWithSeq
 metaengine/func WithBackfillForce
 metaengine/func WithCap
+metaengine/func WithCapPerGroup
 metaengine/func WithColumnarLayout
 metaengine/func WithCursor
 metaengine/func WithCursorString
@@ -3371,6 +3374,7 @@ metaengine/graphadapter/struct Adapter
 metaengine/interface AggregateReader
 metaengine/interface AtomicAppender
 metaengine/interface Calibratable
+metaengine/interface CapGroupTrimmer
 metaengine/interface CellHistoryReader
 metaengine/interface CellVersioningToggle
 metaengine/interface Closer
@@ -3617,6 +3621,8 @@ metaengine/method ApplyRecord
 metaengine/method Avg
 metaengine/method Backfill
 metaengine/method BackfillPlannedTables
+metaengine/method CapGroupCol
+metaengine/method CapGroupRows
 metaengine/method CapOrderBy
 metaengine/method CapRows
 metaengine/method CatchUpEngine
@@ -3652,6 +3658,7 @@ metaengine/method EffectiveNetworkRTT
 metaengine/method EffectiveReplicationLag
 metaengine/method Encode
 metaengine/method EnforceCap
+metaengine/method EnforceCapGrouped
 metaengine/method EnforceCaps
 metaengine/method EngineNames
 metaengine/method EngineRole
@@ -4104,6 +4111,7 @@ metaengine/sqliteengine/method StreamReadAsOfVersion
 metaengine/sqliteengine/method StreamReadFromVersion
 metaengine/sqliteengine/method StreamScan
 metaengine/sqliteengine/method StreamVersion
+metaengine/sqliteengine/method TrimGroupedCap
 metaengine/sqliteengine/method VectorCollections
 metaengine/sqliteengine/method VectorCount
 metaengine/sqliteengine/method VectorInsert
@@ -4281,6 +4289,7 @@ metaengine/type TrackerOption
 metaengine/type VersioningOption
 metaengine/var ErrAmbiguousKey
 metaengine/var ErrBackfillUnsupported
+metaengine/var ErrCapGroupPushdownUnsupported
 metaengine/var ErrCapRequiresMap
 metaengine/var ErrCapUnsupported
 metaengine/var ErrCatchUpUnsupported

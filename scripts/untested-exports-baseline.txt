@@ -544,8 +544,6 @@ metaengine/keycodec/func VectorMetaPrefix
 metaengine/keycodec/func VectorMetaPrefixV2
 metaengine/keycodec/func VectorPrefix
 metaengine/keycodec/func VectorPrefixV2
-metaengine/method CapOrderBy
-metaengine/method CapRows
 metaengine/method CellVersioningEnabled
 metaengine/method ColumnNames
 metaengine/method EffectiveNetworkRTT

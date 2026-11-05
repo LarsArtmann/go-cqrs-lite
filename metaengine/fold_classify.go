@@ -156,7 +156,7 @@ func buildKeyExtractor(eventSample any, keyType reflect.Type, exclude ...string)
 	jsonName := JSONFieldName(t.Field(idx))
 
 	return func(event any) any {
-		return FieldValueAt(event, idx, jsonName)
+		return fieldValueAt(event, idx, jsonName)
 	}, nil
 }
 

@@ -115,7 +115,7 @@ func JSONFieldName(f reflect.StructField) string {
 	return f.Name
 }
 
-// FieldValueAt extracts one struct field (by index idx, with its JSON name
+// fieldValueAt extracts one struct field (by index idx, with its JSON name
 // for the map rendering) from a scanned collection item. Engines render scan
 // items in either shape: the typed struct (memory engine) or the decoded JSON
 // document, map[string]any (SQL engines via [DecodeStreamValue]). Cap
@@ -123,7 +123,7 @@ func JSONFieldName(f reflect.StructField) string {
 // JSON key exactly first, then case-insensitively. A miss yields nil: the
 // declaration-time validation guarantees the field exists on the type, so a
 // miss means a corrupt row, and the downstream delete names nil loudly.
-func FieldValueAt(value any, idx int, jsonName string) any {
+func fieldValueAt(value any, idx int, jsonName string) any {
 	v := reflect.ValueOf(value)
 	if v.Kind() == reflect.Pointer {
 		v = v.Elem()

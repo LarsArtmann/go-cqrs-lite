@@ -15,6 +15,80 @@ type groupedCapEvent struct {
 	Seq   int
 }
 
+type plainCapEvent struct {
+	ID  string
+	Seq int
+}
+
+type plainCapItem struct {
+	ID  string
+	Seq int
+}
+
+// AssertPlainCapContract pins the plain WithCap contract (keep-newest-N,
+// #72) on one engine, with the Go trim path over whatever item rendering the
+// engine produces — SQL engines hand back decoded JSON documents
+// (map[string]any), not typed structs, and the key extractor must read both.
+func AssertPlainCapContract(t *testing.T, eng metaengine.Engine) {
+	t.Helper()
+
+	suffix := fmt.Sprintf("_%d", time.Now().UnixNano())
+
+	query := metaengine.Query[struct{}, plainCapItem]("plain_cap_items"+suffix,
+		metaengine.OnRecord(plainCapEvent{}, func(_ record.Record, e plainCapEvent) (string, plainCapItem) {
+			return e.ID, plainCapItem(e)
+		}),
+		metaengine.WithCap(3, "Seq"),
+	)
+
+	store, err := metaengine.Plan([]metaengine.Engine{eng}, query)
+	if err != nil {
+		t.Fatalf("Plan: %v", err)
+	}
+
+	defer func() { _ = store.Close() }()
+
+	ctx := t.Context()
+
+	for i := 1; i <= 6; i++ {
+		evt := plainCapEvent{ID: fmt.Sprintf("e%d", i), Seq: i}
+		if err := store.Apply(ctx, "plainCapEvent", evt); err != nil {
+			t.Fatalf("Apply e%d: %v", i, err)
+		}
+	}
+
+	name := "plain_cap_items" + suffix
+
+	removed, err := store.EnforceCap(ctx, name)
+	if err != nil {
+		t.Fatalf("EnforceCap: %v", err)
+	}
+
+	if removed != 3 {
+		t.Fatalf("EnforceCap removed %d rows, want 3", removed)
+	}
+
+	reader := metaengine.NewReader[plainCapItem](store, name)
+
+	rows, err := reader.Scan(ctx, metaengine.WithLimit(0), metaengine.WithSort("Seq", false))
+	if err != nil {
+		t.Fatalf("Scan: %v", err)
+	}
+
+	if len(rows) != 3 || rows[0].Seq != 4 || rows[2].Seq != 6 {
+		t.Fatalf("after trim: %+v, want Seq 4,5,6 (newest three survive)", rows)
+	}
+
+	again, err := store.EnforceCap(ctx, name)
+	if err != nil {
+		t.Fatalf("second EnforceCap: %v", err)
+	}
+
+	if again != 0 {
+		t.Fatalf("second EnforceCap removed %d rows, want 0 (idempotent)", again)
+	}
+}
+
 type groupedCapItem struct {
 	ID    string
 	Owner string
