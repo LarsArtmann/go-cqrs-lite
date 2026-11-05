@@ -24,16 +24,17 @@ import (
 // MaxOpenConns(1) is deliberate: it serializes writes into the WAL ordering
 // the engine's conflict contract assumes — but it serializes READS too, so a
 // long scan blocks every other query behind it. WAL supports concurrent
-// readers with modernc sqlite; raise the ceiling on the returned handle
-// (db.SetMaxOpenConns(n)) for read-heavy deployments, accepting that writes
-// may then queue behind busy_timeout retries instead of the pool.
+// readers with modernc sqlite; raise the ceiling with
+// [WithMaxOpenConns] (or on the returned handle, db.SetMaxOpenConns(n)) for
+// read-heavy deployments, accepting that writes may then queue behind
+// busy_timeout retries instead of the pool.
 //
 // The cache_size pragma (negative KiB form) keeps SQLite's default 2 MB page
 // cache from thrashing scan-heavy databases — a measured 536 MB journal
 // re-read 8.16 GB from disk in 43 minutes on the 2 MB default. A later
 // `PRAGMA cache_size=...` on the returned handle overrides it (SQLite
 // last-write-wins).
-func NewFromDSN(dsn string) (metaengine.Engine, *sql.DB, error) {
+func NewFromDSN(dsn string, opts ...EngineOption) (metaengine.Engine, *sql.DB, error) {
 	db, err := sql.Open("sqlite", dsn)
 	if err != nil {
 		return nil, nil, fmt.Errorf("sqliteengine: open sqlite %q: %w", dsn, err)
@@ -53,7 +54,7 @@ func NewFromDSN(dsn string) (metaengine.Engine, *sql.DB, error) {
 		}
 	}
 
-	eng, err := NewSQLiteEngine(db)
+	eng, err := NewSQLiteEngine(db, opts...)
 	if err != nil {
 		_ = db.Close()
 
@@ -101,7 +102,7 @@ func NewSQLiteEngineFromDSN(dsn string, pragmas ...string) (metaengine.Engine, e
 
 // NewSQLiteEngineFromDSNWith is the options-aware variant of
 // [NewSQLiteEngineFromDSN]: same pragma handling, plus EngineOption
-// capabilities (e.g. WithMaterializedViews).
+// capabilities (e.g. WithMaterializedViews, WithMaxOpenConns).
 func NewSQLiteEngineFromDSNWith(
 	dsn string,
 	pragmas []string,
