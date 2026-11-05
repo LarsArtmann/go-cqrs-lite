@@ -171,8 +171,8 @@ func (s *SQLSnapshotStore) scanSnapshot(
 					"%s/%s at v%d",
 					ref.Type,
 					ref.ID,
-					event.Version(version),
-				), // #nosec G115 -- version scanned back from storage, non-negative domain value
+					event.Version(version), // #nosec G115 -- version scanned from storage, non-negative
+				),
 			)
 		}
 		return nil, errorfamily.WrapInfrastructure(err, "storage.scan_snapshot",

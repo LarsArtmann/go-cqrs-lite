@@ -52,10 +52,15 @@ GOSEC_MODULES=(
 # importer (see WHY): forbid the auto-download that would out-write the reader.
 export GOTOOLCHAIN=local
 
-# One scratch directory removed on exit.
+# One scratch directory removed on exit. The if-form matters: an && chain
+# with a false left side returns 1, and a failing EXIT trap overrides the
+# script's own success exit (proven 2026-11-05: gate mode was red-by-
+# construction, "0 findings" with rc=1).
 WORK=""
 cleanup() {
-	[[ -n "$WORK" && -d "$WORK" ]] && rm -rf "$WORK"
+	if [[ -n "$WORK" && -d "$WORK" ]]; then
+		rm -rf "$WORK"
+	fi
 }
 trap cleanup EXIT
 
