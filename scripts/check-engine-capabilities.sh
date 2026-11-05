@@ -123,7 +123,7 @@ note_for() {
 
 # derive_table <root> — prints the generated markdown for the tree at <root>.
 derive_table() {
-	local root="$1" rows="" dir mod driver delegate graph removal undirected build note driver_disp
+	local root="$1" rows="" dir mod driver delegate graph removal undirected capgroup build note driver_disp
 	for dir in "$root"/metaengine "$root"/metaengine/*engine "$root"/metaengine/graphadapter; do
 		[ -d "$dir" ] || continue
 		[ -n "$(prod_files "$dir")" ] || continue
@@ -132,9 +132,11 @@ derive_table() {
 		graph=no
 		removal=no
 		undirected=no
+		capgroup=no
 		has_method "$dir" GraphAddEdge && graph=yes
 		has_method "$dir" GraphRemoveEdge && removal=yes
 		has_method "$dir" GraphNeighborsUndirected && undirected=yes
+		has_method "$dir" TrimGroupedCap && capgroup=yes
 		if [ "$graph" = no ] && [ "$mod" != metaengine ]; then
 			delegate=$(delegates_to "$root" "$dir" || true)
 			if [ -n "$delegate" ]; then
@@ -143,11 +145,17 @@ derive_table() {
 				has_method "$root/metaengine/$delegate" GraphNeighborsUndirected && undirected="via $delegate"
 			fi
 		fi
+		if [ "$capgroup" = no ] && [ "$mod" != metaengine ]; then
+			delegate=${delegate:-$(delegates_to "$root" "$dir" || true)}
+			if [ -n "${delegate:-}" ]; then
+				has_method "$root/metaengine/$delegate" TrimGroupedCap && capgroup="via $delegate"
+			fi
+		fi
 		if cgo_gated "$dir"; then build=CGo; else build='pure Go'; fi
 		note=$(note_for "$mod")
 		if [ -n "$driver" ]; then driver_disp="\`$driver\`"; else driver_disp='— (programmatic)'; fi
 		rows="$rows
-| $mod | $driver_disp | $graph | $removal | $undirected | $build | $note |"
+| $mod | $driver_disp | $graph | $removal | $undirected | $capgroup | $build | $note |"
 	done
 
 	cat <<EOF
@@ -155,7 +163,7 @@ derive_table() {
      table. Regenerate: scripts/check-engine-capabilities.sh --update
      (flake: nix run .#check-engine-capabilities -- --update). The gate fails
      when source and this table drift — re-run after touching any
-     metaengine/*/register.go or engine graph method. -->
+     metaengine/*/register.go or engine capability method. -->
 
 # Engine Capabilities — single source
 
@@ -166,14 +174,17 @@ engines** (irohengine, graphadapter) are constructed in code and have no
 registry driver. Capabilities are interface-detected at runtime the same way
 this table detects them at rest: \`GraphAddEdge\` (graph), \`GraphRemoveEdge\`
 (edge removal — required by \`EdgeRemoval\` folds), \`GraphNeighborsUndirected\`
-(undirected traversal — \`metaengine.HasUndirectedGraphSupport\`).
+(undirected traversal — \`metaengine.HasUndirectedGraphSupport\`),
+\`TrimGroupedCap\` (per-group projection-cap pushdown —
+\`metaengine.CapGroupTrimmer\`, ADR-0164; engines without it use the store's
+portable Go trim).
 Delegating engines (turso) inherit their delegate's capabilities.
 
 Other docs LINK here instead of restating per-engine facts: ADR-0157 D2,
 advanced.md §6.13, system/README, metaengine/COOKBOOK.md.
 
-| Module | Registry driver | Graph | Edge removal | Undirected | Build | Notes |
-| --- | --- | --- | --- | --- | --- | --- |$rows
+| Module | Registry driver | Graph | Edge removal | Undirected | Grouped-cap trim | Build | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- |$rows
 EOF
 }
 
@@ -237,6 +248,16 @@ self_test() {
 		return 1
 	fi
 	echo "  PASS: undirected capability loss detected"
+	mk_fixture
+	derive_table "$root" >"$doc"
+
+	printf 'package bboltengine\nfunc (e *b) TrimGroupedCap() {}\n' >"$root/metaengine/bboltengine/cap.go"
+	if run_gate "$root" "$doc" >/dev/null 2>&1; then
+		echo "  FAIL(self-test): bbolt grouped-cap growth undetected" >&2
+		return 1
+	fi
+	echo "  PASS: grouped-cap capability growth detected"
+	rm -f "$root/metaengine/bboltengine/cap.go"
 	mk_fixture
 	derive_table "$root" >"$doc"
 

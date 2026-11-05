@@ -99,8 +99,8 @@ func TestWithCapPerGroup_EnforceCapGroupedStandalone(t *testing.T) {
 		t.Fatalf("after grouped trim: %d rows, want 3 (global cap 100 untouched)", len(rows))
 	}
 
-	if rows[0].ID != "a3" || rows[1].ID != "a2" || rows[2].ID != "b1" {
-		t.Fatalf("survivors %v, want a3,a2,b1 (newest per group)", rows)
+	if rows[0].ID != "b1" || rows[1].ID != "a2" || rows[2].ID != "a3" {
+		t.Fatalf("survivors %v, want b1,a2,a3 ascending (a keeps its newest 2)", rows)
 	}
 }
 

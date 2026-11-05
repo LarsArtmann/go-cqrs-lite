@@ -198,7 +198,7 @@ func (s *Store) enforceGroupedTrim(ctx context.Context, q queryMeta) (int, error
 	queryName := q.QueryName()
 	cfg := q.QueryConfig()
 
-	keyOf, err := capKeyExtractor(q)
+	keyOf, err := capKeyExtractor(q, cfg.capGroupCol)
 	if err != nil {
 		return 0, fmt.Errorf("metaengine.EnforceCapGrouped(%q): %w", queryName, err)
 	}

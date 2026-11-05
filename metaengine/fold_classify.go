@@ -3,6 +3,7 @@ package metaengine
 import (
 	"fmt"
 	"reflect"
+	"strings"
 )
 
 // ── ADT classification ──
@@ -116,20 +117,31 @@ func ensureKeyExtractor(f extractorFold, keyType reflect.Type) error {
 	return nil
 }
 
-func buildKeyExtractor(eventSample any, keyType reflect.Type) (any, error) {
+// buildKeyExtractor finds the struct field matching the key type and returns
+// a func extracting it. Optional exclude names skip fields first (matched by
+// field name or json tag, case-insensitive): a per-group cap (ADR-0164)
+// excludes its group column, because grouping by the key field itself is
+// degenerate and the exclusion resolves otherwise type-ambiguous keys
+// (string ID + string Owner).
+func buildKeyExtractor(eventSample any, keyType reflect.Type, exclude ...string) (any, error) {
 	t := derefType(eventSample)
 
 	foundIdx := -1
 
 	for i := range t.NumField() {
-		if !t.Field(i).IsExported() {
+		f := t.Field(i)
+		if !f.IsExported() {
 			continue
 		}
 
-		if t.Field(i).Type == keyType {
+		if isExcludedField(f, exclude...) {
+			continue
+		}
+
+		if f.Type == keyType {
 			if foundIdx >= 0 {
 				return nil, fmt.Errorf("%w: type %s in %s (%s, %s)",
-					errAmbiguousKey, keyType, t.Name(), t.Field(foundIdx).Name, t.Field(i).Name)
+					errAmbiguousKey, keyType, t.Name(), t.Field(foundIdx).Name, f.Name)
 			}
 
 			foundIdx = i
@@ -150,4 +162,21 @@ func buildKeyExtractor(eventSample any, keyType reflect.Type) (any, error) {
 
 		return v.Field(idx).Interface()
 	}, nil
+}
+
+// isExcludedField reports whether f matches any of the excluded column
+// names, by field name or json tag, case-insensitively — the same matching
+// capGroupExtractor and ExtractFields apply.
+func isExcludedField(f reflect.StructField, exclude ...string) bool {
+	for _, name := range exclude {
+		if name == "" {
+			continue
+		}
+
+		if strings.EqualFold(JSONFieldName(f), name) || strings.EqualFold(f.Name, name) {
+			return true
+		}
+	}
+
+	return false
 }

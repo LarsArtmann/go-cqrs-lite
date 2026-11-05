@@ -67,6 +67,14 @@ const capTrimBatchSize = 500
 // cannot be trimmed at all.
 func validateCapConfig(q queryMeta) error {
 	cfg := q.QueryConfig()
+
+	// Grouped validation runs FIRST: a WithCapPerGroup without its WithCap
+	// base must be rejected even though the plain-cap checks below return
+	// early for capRows <= 0.
+	if err := validateCapGroupedConfig(q); err != nil {
+		return err
+	}
+
 	if cfg.capRows <= 0 {
 		return nil
 	}
@@ -79,12 +87,8 @@ func validateCapConfig(q queryMeta) error {
 		return fmt.Errorf("query %q: %w (ADT %s)", q.QueryName(), errCapRequiresMap, q.QueryADT())
 	}
 
-	if _, err := capKeyExtractor(q); err != nil {
+	if _, err := capKeyExtractor(q, cfg.capGroupCol); err != nil {
 		return fmt.Errorf("query %q: %w: %w", q.QueryName(), errCapKeyUnavailable, err)
-	}
-
-	if err := validateCapGroupedConfig(q); err != nil {
-		return err
 	}
 
 	return nil
@@ -92,8 +96,11 @@ func validateCapConfig(q queryMeta) error {
 
 // capKeyExtractor builds a value-to-key extractor from the query's insert fold:
 // the fold declares both the key type and the result value type, and the
-// trimmed rows arrive as values (never as event payloads).
-func capKeyExtractor(q queryMeta) (func(any) any, error) {
+// trimmed rows arrive as values (never as event payloads). excludeGroupCol
+// ("" for plain caps) skips the group column of a per-group cap: grouping
+// by the key field itself is degenerate, and the exclusion resolves
+// otherwise type-ambiguous result types (string ID + string Owner, ADR-0164).
+func capKeyExtractor(q queryMeta, excludeGroupCol string) (func(any) any, error) {
 	var ins *insertFold
 
 	for _, fold := range q.QueryFolds() {
@@ -127,7 +134,7 @@ func capKeyExtractor(q queryMeta) (func(any) any, error) {
 
 	sample := reflect.New(valueType).Interface()
 
-	extractor, err := buildKeyExtractor(sample, ins.keyType)
+	extractor, err := buildKeyExtractor(sample, ins.keyType, excludeGroupCol)
 	if err != nil {
 		return nil, err
 	}
@@ -156,7 +163,7 @@ func (s *Store) EnforceCap(ctx context.Context, queryName string) (int, error) {
 		return 0, nil
 	}
 
-	keyOf, err := capKeyExtractor(q)
+	keyOf, err := capKeyExtractor(q, cfg.capGroupCol)
 	if err != nil {
 		return 0, fmt.Errorf("metaengine.EnforceCap(%q): %w", queryName, err)
 	}
