@@ -1698,6 +1698,7 @@ golang.org/x/oauth2 v0.36.0/go.mod h1:YDBUJMTkDnJS+A4BP4eZBjCqtokkg1hODuPjwiGPO7
 golang.org/x/perf v0.0.0-20250813145418-2f7363a06fe1 h1:stGRioFgvBd3x8HoGVg9bb41lLTWLjBMFT/dMB7f4mQ=
 golang.org/x/perf v0.0.0-20260825160852-19be9d8e6c70/go.mod h1:ihD/LfJrdVe40PFEzKgix8YPzoXS4LFO4elW9HAFNqo=
 golang.org/x/perf v0.0.0-20260929162123-406019bb8b68/go.mod h1:Pth32a9JhKKavemj73LtFqHHyyMhqz+K7tUZcG5tTWM=
+golang.org/x/perf v0.0.0-20261009192801-be2c69fb417e/go.mod h1:xYyp99KTTskT614A1S1+yZiv1SUHKA71nswXA2C32pU=
 golang.org/x/sync v0.0.0-20180314180146-1d60e4601c6f/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
 golang.org/x/sync v0.0.0-20181108010431-42b317875d0f/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
 golang.org/x/sync v0.0.0-20181221193216-37e7f081c4d4/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
