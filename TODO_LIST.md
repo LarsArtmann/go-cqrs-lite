@@ -135,7 +135,8 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 [Architecture review 2026-10-24](#architecture-review-2026-10-24-harvest) ·
 [Review follow-up ledger](#architecture-review-follow-up-ledger-2026-10-26) ·
 [Testing improvements 2026-10-25](#testing-improvements-2026-10-25-plan) ·
-[Declined](#declined--rejected-do-not-re-litigate)
+[Declined](#declined--rejected-do-not-re-litigate) ·
+[Post-sweep release](#post-sweep-release--adoption-harvested-2026-11-05-plan-docsplanning2026-11-05_01-48_superb-post-sweep-release-and-adoption-pareto-planmd)
 
 ## Legend
 
@@ -2575,3 +2576,16 @@ re-checked by T23, never re-executed.
       vulnerability; the note in the test says so).
       **Remaining:** (d) the cqrs-htmx auth E2E lives in the COMPANION repo and
       belongs to its own suite, not here. — plan T25, ideas 46-48
+
+## Post-sweep release & adoption (harvested 2026-11-05, plan `docs/planning/2026-11-05_01-48_SUPERB-post-sweep-release-and-adoption-pareto-plan.md`)
+
+- [ ] 🔥 **Unify golines threshold — the CURE for the TODO_LIST:294 lesson:** flake.nix treefmt `golines max-len = 120` (currently default 100, fighting `.golangci.yml`'s 120; the 2026-11-04/05 sweep burned 5 lint/fmt rounds re-deriving the documented conflict). Then full `nix fmt` + scoped-lint re-prove + fmt-idempotence ×2. _(Effort: S; the 1% → 51% block with the tag wave below)_
+- [ ] **Tag wave for the open-issues sweep** (after full `#lint` + `#verify` + CI-green confirmation): catalog, kv, id, metaengine, sqliteengine, cmd/cqrs-lint — 20+ fixes across 24 issues are UNRELEASED. Pre-ritual: changed-set per-module `GOWORK=off go test` + fleet census (the 2026-10-06 lesson); post-ritual: versions-manifest + README gates + `go get` smoke. Merges T01.5 (CI-green receipt on origin/master). _(Effort: M)_
+- [ ] **#114 `EnforceCapGrouped`** — per-group cap (`ROW_NUMBER() OVER (PARTITION BY groupCol ...)` on SQL engines — sqlite/turso/duckdb/pg; MySQL 8+ only; Go grouping path for memory), `WithCapPerGroup` declaration, adttest pin, capabilities regen. Verified real on master 2026-11-05 (cap.go: `EnforceCap` collection-global, key extractor never groups). Consumer: webphone per-owner quotas. _(Effort: M→L)_
+- [ ] **Consumer adoption of the wave** (gated on the tag wave): cqrs-htmx delete `usermgmt/view_cache.go` → `kv.NewCacheForViewStore`; crm drop 7 waiver-dup baseline entries + `projectionhost` scorecard pin; webphone `WithResponseHeader`/multipart/`WithTypedParam`/drop `WithServer` suppression; Kith CRM `MaxOpenConns` raise + read-storm re-measure; BuildFlow cqrs-lint pin → wave tag. _(Effort: M total, per-repo S)_
+- [ ] **Owner gates from the sweep** (status report 01-14 §g): close-policy for the 23 commented issues; `WithMaxOpenConns(n)` build-vs-doc-only; hand-commit ruling for the wave boundary. _(Effort: XS each, decision)_
+- [ ] **Scoped-lint flake app** (`GT_LINT_MODULES` or `#lint-scope`) — sessions keep hand-replicating the `#lint` inner loop over changed modules (done ad-hoc twice this week). _(Effort: S/M)_
+- [ ] **Gotcha bullets** (docs/agents/gotchas-tooling-build.md): (a) nolint on the OPENING line of multi-line calls — closing-line directives detach when treefmt splits; (b) plan-vs-reality COUNT RECONCILIATION (the "25 issues" handoff vs 23 real nearly hid #114); link both to TODO_LIST:294. _(Effort: XS)_
+- [ ] **`waiverAdoptionRules` hand-map split brain** — 7 waiver→rule pairs duplicate knowledge the rule catalog owns; generate from catalog or document the hand-map policy. Also: de-explode `baseline.go` `warn(...)` to string-concat form. _(Effort: S/M)_
+- [ ] **Verify session-author claims** (status report 01-14 §d4): re-read the two new `.golangci.yml` exclusion comments against `catalog/compat` source; spot-check daemon-committed drafts/addendum; FEATURES display-name row covers `display_name.go`. _(Effort: XS)_
+- [ ] **Pragma-override golden** — `NewSQLiteEngineFromDSNWith` caller-pragma-override-wins beyond construction success (#111 residue). _(Effort: XS)_
