@@ -473,7 +473,7 @@ surface (`materialized_views` in EngineConfig YAML). Full recipe: `recipes.md`
 > rows exist than the limit returned). Pitfall details: `faq.md`
 > ("metaengine `Scan` only returns 100 rows — where are the rest?").
 
-> **Upstream correctness caveat (tursogo ≤ v0.8.2):** SCALAR views
+> **Upstream correctness caveat (tursogo ≤ v0.8.3):** SCALAR views
 > (SUM/COUNT/MIN/MAX/AVG without `GroupBy`) are exact in every test; GROUPED
 > views return silently wrong sums beyond a single transaction's rows and
 > collapse at ~27k view-maintained rows. Grouped specs are therefore REFUSED

@@ -16,7 +16,7 @@
 set -uo pipefail
 
 repo_root=$(cd "$(dirname "$0")/.." && pwd)
-vendored_tarball=$(ls "$repo_root"/tools/erraudit/erraudit-*-src.tgz 2>/dev/null | sort | tail -1)
+vendored_tarball=$(find "$repo_root/tools/erraudit" -maxdepth 1 -name 'erraudit-*-src.tgz' 2>/dev/null | sort | tail -1)
 report_dir="$repo_root/build/erraudit-sweep"
 # Extract the vendored source OUTSIDE the repo tree: a go.mod under build/
 # pollutes every module-count predicate (canonical-facts 103-vs-104, sweep's

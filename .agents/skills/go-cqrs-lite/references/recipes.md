@@ -2256,7 +2256,7 @@ filtered scan 779 µs vs meta_map 874 µs; CounterGet equal within noise
 > Shipped in the 2026-09-08 release train: `system/v4.7.0` + `metaengine/v4.13.0`
 >
 > - `metaengine/sqliteengine/v4.3.0` + `metaengine/tursoengine/v4.1.0`. Caveat:
->   `group_by` materialized views on tursogo ≤ v0.8.2 are unsafe beyond a
+>   `group_by` materialized views on tursogo ≤ v0.8.3 are unsafe beyond a
 >   single transaction's rows (upstream IVM defect — see the tursoengine module
 >   notes); scalar views are the safe shape.
 
