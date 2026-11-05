@@ -154,13 +154,10 @@ func capGroupExtractor(q queryMeta) (func(any) any, error) {
 		return nil, fmt.Errorf("%w: %q on %s", errCapGroupColumnMissing, col, t)
 	}
 
-	return func(value any) any {
-		v := reflect.ValueOf(value)
-		if v.Kind() == reflect.Pointer {
-			v = v.Elem()
-		}
+	jsonName := JSONFieldName(t.Field(idx))
 
-		return v.Field(idx).Interface()
+	return func(value any) any {
+		return FieldValueAt(value, idx, jsonName)
 	}, nil
 }
 

@@ -153,14 +153,10 @@ func buildKeyExtractor(eventSample any, keyType reflect.Type, exclude ...string)
 	}
 
 	idx := foundIdx
+	jsonName := JSONFieldName(t.Field(idx))
 
 	return func(event any) any {
-		v := reflect.ValueOf(event)
-		if v.Kind() == reflect.Pointer {
-			v = v.Elem()
-		}
-
-		return v.Field(idx).Interface()
+		return FieldValueAt(event, idx, jsonName)
 	}, nil
 }
 

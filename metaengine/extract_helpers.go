@@ -115,6 +115,39 @@ func JSONFieldName(f reflect.StructField) string {
 	return f.Name
 }
 
+// FieldValueAt extracts one struct field (by index idx, with its JSON name
+// for the map rendering) from a scanned collection item. Engines render scan
+// items in either shape: the typed struct (memory engine) or the decoded JSON
+// document, map[string]any (SQL engines via [DecodeStreamValue]). Cap
+// enforcement walks both shapes with this helper — the map branch matches the
+// JSON key exactly first, then case-insensitively. A miss yields nil: the
+// declaration-time validation guarantees the field exists on the type, so a
+// miss means a corrupt row, and the downstream delete names nil loudly.
+func FieldValueAt(value any, idx int, jsonName string) any {
+	v := reflect.ValueOf(value)
+	if v.Kind() == reflect.Pointer {
+		v = v.Elem()
+	}
+
+	if v.Kind() == reflect.Struct {
+		return v.Field(idx).Interface()
+	}
+
+	if m, ok := value.(map[string]any); ok {
+		if raw, hit := m[jsonName]; hit {
+			return raw
+		}
+
+		for k, raw := range m {
+			if strings.EqualFold(k, jsonName) {
+				return raw
+			}
+		}
+	}
+
+	return nil
+}
+
 // PlansColumnCompatible checks whether two layout plans have matching
 // column names (order-independent). Used to detect layout conflicts.
 func PlansColumnCompatible(a, b LayoutPlan) bool {

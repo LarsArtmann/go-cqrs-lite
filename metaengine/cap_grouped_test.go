@@ -161,6 +161,26 @@ func TestWithCapPerGroup_EnforceCapsCoversGrouped(t *testing.T) {
 	}
 }
 
+// The config accessors round-trip the declaration; zero values mean
+// collection-global.
+func TestWithCapPerGroup_ConfigAccessors(t *testing.T) {
+	t.Parallel()
+
+	cfg := groupedQuery("grouped_accessors", 8, 2).QueryConfig()
+	if cfg.CapGroupCol() != "Owner" || cfg.CapGroupRows() != 2 {
+		t.Fatalf("grouped accessors: col %q rows %d, want Owner/2", cfg.CapGroupCol(), cfg.CapGroupRows())
+	}
+
+	if cfg.CapRows() != 8 || cfg.CapOrderBy() != "Seq" {
+		t.Fatalf("base cap accessors: rows %d order %q, want 8/Seq", cfg.CapRows(), cfg.CapOrderBy())
+	}
+
+	plain := cappedQuery(3, "Seq").QueryConfig()
+	if plain.CapGroupCol() != "" || plain.CapGroupRows() != 0 {
+		t.Fatalf("plain cap: group col %q rows %d, want zero values", plain.CapGroupCol(), plain.CapGroupRows())
+	}
+}
+
 // A grouped declaration without its WithCap base is rejected at Plan time.
 func TestWithCapPerGroup_RejectsMissingWithCap(t *testing.T) {
 	t.Parallel()
