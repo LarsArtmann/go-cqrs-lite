@@ -27,20 +27,31 @@ type groupedCapItem struct {
 // idempotent, and EnforceCap's global ceiling still applies above it. The
 // engine exercises its own enforcement path (window-function pushdown where
 // implemented, the store's Go scan otherwise) — the observable contract is
-// identical. Run from every engine suite.
-func AssertGroupedCapContract(t *testing.T, eng metaengine.Engine) {
+// identical. Run from every engine suite. Extra query options (e.g.
+// WithColumnarLayout) are appended to the declaration so a suite can steer
+// the layout onto the path under test.
+func AssertGroupedCapContract(
+	t *testing.T,
+	eng metaengine.Engine,
+	opts ...metaengine.QueryOption,
+) {
 	t.Helper()
 
 	suffix := fmt.Sprintf("_%d", time.Now().UnixNano())
 
-	query := metaengine.Query[struct{}, groupedCapItem](
-		"grouped_cap_items"+suffix,
+	args := []any{
 		metaengine.OnRecord(groupedCapEvent{}, func(_ record.Record, e groupedCapEvent) (string, groupedCapItem) {
 			return e.ID, groupedCapItem(e)
 		}),
 		metaengine.WithCap(8, "Seq"),
 		metaengine.WithCapPerGroup("Owner", 2),
-	)
+	}
+
+	for _, opt := range opts {
+		args = append(args, opt)
+	}
+
+	query := metaengine.Query[struct{}, groupedCapItem]("grouped_cap_items"+suffix, args...)
 
 	store, err := metaengine.Plan([]metaengine.Engine{eng}, query)
 	if err != nil {
