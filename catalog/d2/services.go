@@ -85,7 +85,13 @@ func (e *Exporter) writeServices(buf *strings.Builder, cat *catalog.Catalog) {
 
 		fmt.Fprintf(buf, "%s: {\n", serviceDisplayID)
 		fmt.Fprintf(buf, "  class: service\n")
-		fmt.Fprintf(buf, "  label: %q\n  direction: %s\n\n", svc.Name, e.direction)
+		fmt.Fprintf(buf, "  label: %q\n", svc.Name)
+
+		if e.direction != "" {
+			fmt.Fprintf(buf, "  direction: %s\n", e.direction)
+		}
+
+		buf.WriteString("\n")
 
 		for _, cmd := range svc.Commands {
 			e.writeMessageNode(buf, cmd, "command", shapeRectangle)
