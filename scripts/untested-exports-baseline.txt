@@ -735,7 +735,6 @@ queue/func NewClaimToken
 queue/interface FactTx
 queue/mysql/func NewEngineFromDB
 queue/mysql/func WithMaxIdleConns
-queue/mysql/func WithMaxOpenConns
 queue/mysql/method CancelOwned
 queue/mysql/method CancelRequested
 queue/mysql/method CancelRunning

@@ -4027,6 +4027,7 @@ metaengine/projectionadapter/type AdapterOption
 metaengine/projectionadapter/type EventDecoder
 metaengine/projectionadapter/type PayloadDecoder
 metaengine/projectionadapter/var ErrNoFoldForEventType
+metaengine/sqliteengine/func DBStats
 metaengine/sqliteengine/func NewFromDSN
 metaengine/sqliteengine/func NewPlannedSQLiteEngine
 metaengine/sqliteengine/func NewSQLiteEngine
@@ -4036,6 +4037,7 @@ metaengine/sqliteengine/func OwnDB
 metaengine/sqliteengine/func PlanFromDSN
 metaengine/sqliteengine/func WithCellVersioning
 metaengine/sqliteengine/func WithMaterializedViews
+metaengine/sqliteengine/func WithMaxOpenConns
 metaengine/sqliteengine/func WithRetention
 metaengine/sqliteengine/interface ProberSetter
 metaengine/sqliteengine/method Aggregate
