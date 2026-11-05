@@ -20,9 +20,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"maps"
 	"reflect"
-	"slices"
 	"time"
 )
 
@@ -265,22 +263,6 @@ func (s *Store) EnforceCaps(ctx context.Context) (int, error) {
 	}
 
 	return total, errors.Join(errs...)
-}
-
-// cappedQueryNames returns the sorted names of queries declaring WithCap.
-func (s *Store) cappedQueryNames() []string {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
-	capped := make(map[string]struct{}, len(s.queries))
-
-	for name, q := range s.queries {
-		if q.QueryConfig().capRows > 0 {
-			capped[name] = struct{}{}
-		}
-	}
-
-	return slices.Sorted(maps.Keys(capped))
 }
 
 // capScanPage reads one descending page of a collection ordered by column.

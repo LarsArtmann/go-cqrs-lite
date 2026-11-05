@@ -10,7 +10,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"maps"
 	"reflect"
+	"slices"
 	"strings"
 )
 
@@ -275,4 +277,24 @@ func (s *Store) enforceGroupedTrim(ctx context.Context, q queryMeta) (int, error
 
 		cursor = next
 	}
+}
+
+// cappedQueryNames returns the sorted names of queries declaring WithCap
+// (grouped declarations ride a WithCap base, so they are included and reach
+// their grouped pass through EnforceCap's composition). Lives here, next to
+// the grouped enforcement it also feeds, to keep cap.go inside the
+// 350-line file ratchet.
+func (s *Store) cappedQueryNames() []string {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	capped := make(map[string]struct{}, len(s.queries))
+
+	for name, q := range s.queries {
+		if q.QueryConfig().capRows > 0 {
+			capped[name] = struct{}{}
+		}
+	}
+
+	return slices.Sorted(maps.Keys(capped))
 }

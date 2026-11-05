@@ -68,7 +68,11 @@ func rematchOrphanedReasons(
 
 			for _, o := range orphans {
 				loc := o.Rule + " " + o.File + ":" + strconv.Itoa(o.Line) + ":" + strconv.Itoa(o.Column)
-				warn("cqrs-lint: --update-baseline drops reason "+strconv.Quote(o.Reason)+" on "+loc+" — the finding vanished\n")
+				warn(
+					"cqrs-lint: --update-baseline drops reason " + strconv.Quote(
+						o.Reason,
+					) + " on " + loc + " — the finding vanished\n",
+				)
 			}
 		case allSameReason:
 			reason := orphans[0].Reason
@@ -84,7 +88,7 @@ func rematchOrphanedReasons(
 			for _, o := range orphans {
 				loc := o.Rule + " " + o.File + ":" + strconv.Itoa(o.Line) + ":" + strconv.Itoa(o.Column)
 				warn("cqrs-lint: --update-baseline drops reason " + strconv.Quote(o.Reason) + " on " + loc +
-					" — "+strconv.Itoa(len(orphans))+
+					" — " + strconv.Itoa(len(orphans)) +
 					" moved findings with differing reasons share this file; re-annotate manually\n")
 			}
 		}

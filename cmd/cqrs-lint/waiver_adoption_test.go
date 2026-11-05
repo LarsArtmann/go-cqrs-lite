@@ -135,7 +135,12 @@ func TestWaiverAdoptionRulesHandMapPinned(t *testing.T) {
 		}
 
 		if other, dup := seenRules[rule]; dup {
-			t.Errorf("rule %q mapped from both %q and %q — one waiver must not silence two modules' findings", rule, other, key)
+			t.Errorf(
+				"rule %q mapped from both %q and %q — one waiver must not silence two modules' findings",
+				rule,
+				other,
+				key,
+			)
 		}
 
 		seenRules[rule] = key
