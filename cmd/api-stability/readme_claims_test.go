@@ -67,7 +67,10 @@ func TestREADMEClaim_EventThirdPartyDeps(t *testing.T) {
 	}
 
 	readme := readmePath(t)
-	for _, claim := range []string{"only 3 third-party", "3 third-party deps"} {
+	for _, claim := range []string{
+		"only third-party production dependency. Your dependency tree stays clean",
+		"only third-party production dependency is CBOR",
+	} {
 		if !strings.Contains(readme, claim) {
 			t.Errorf("README is missing the %q dependency claim", claim)
 		}

@@ -54,7 +54,7 @@ func TestEveryGoModDirIsInModulesList(t *testing.T) {
 		}
 		// Skip hidden dirs and vendor.
 		name := info.Name()
-		if name == ".git" || name == "vendor" ||
+		if name == ".git" || name == "vendor" || name == "scratch" ||
 			(len(name) > 0 && name[0] == '.' && path != projectRoot) {
 			return filepath.SkipDir
 		}
@@ -99,7 +99,7 @@ func walkGoModDirs(t *testing.T, projectRoot string, visit func(rel string)) {
 			return nil
 		}
 		name := info.Name()
-		if name == ".git" || name == "vendor" ||
+		if name == ".git" || name == "vendor" || name == "scratch" ||
 			(len(name) > 0 && name[0] == '.' && path != projectRoot) {
 			return filepath.SkipDir
 		}
@@ -868,7 +868,7 @@ func TestEveryModuleGoSumIsTidy(t *testing.T) {
 			return nil
 		}
 		name := info.Name()
-		if name == ".git" || name == "vendor" ||
+		if name == ".git" || name == "vendor" || name == "scratch" ||
 			(len(name) > 0 && name[0] == '.' && path != projectRoot) {
 			return filepath.SkipDir
 		}
