@@ -1651,6 +1651,7 @@
                 -not -path './vendor/*' \
                 -not -path './.git/*' \
                 -not -path './example/*' \
+                -not -path './scratch/*' \
                 -exec dirname {} \; | sed 's|^\./||' | sort)
               if [ "$failed" = true ]; then
                 echo "Add missing modules to testModules in flake.nix"
