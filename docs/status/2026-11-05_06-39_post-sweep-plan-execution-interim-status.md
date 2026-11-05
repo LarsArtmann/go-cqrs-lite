@@ -1,0 +1,74 @@
+# Post-Sweep Plan Execution — Interim Status (2026-11-05 06:39 CET)
+
+**Session lineage:** continuation of the 2026-11-05 plan (`docs/planning/2026-11-05_01-48_SUPERB-post-sweep-release-and-adoption-pareto-plan.md`, M01–M26). User directive: execute the whole list, verify each step, do not stop. This report covers 02:00–06:39 CET of the M01–M07 trust chain plus the owner gates. A `#verify` run (attempt 11) is LIVE as of this writing; the tag wave (M07) is deliberately NOT cut until it lands.
+
+**Scope line.** Everything claimed below was verified by command output in-session unless marked otherwise. Two external facts are still pending receipts: the live `#verify` and the CI run on `9c4dddcb1` (in_progress ~55 min).
+
+---
+
+## a) FULLY DONE (verified)
+
+1. **M01 — golines threshold unified.** `flake.nix` treefmt `settings.formatter.golines.options = ["--max-len=120"]` (with a dated rationale comment); full `nix fmt` = 0 changed across 3655 files; second run 301 ms, 0 changed (idempotence ×2); scoped golangci over the 8 sweep modules green.
+2. **M02 — full `#lint` 89/89 modules clean.** Required three real fixes: `middleware/deadletter_sql.go` magic-number → `deadLetterInsertColumns` constant; `metaengine/dgraphengine/stream_log_test.go` 3× deprecated `JournalReadFrom` → reasoned inline nolints; `systemscenario/chaos.go` wrapper delegation → trailing nolint (opening-line form).
+3. **`.golangci.yml` daemon-revert repaired.** Commit `5053e9e9c` (00:29, parallel-session buffer) had silently deleted BOTH sweep exhaustruct exclusions and the metaengine `maintidx` carve-out — 26 findings fired on the next lint. Restored all three, re-pinned the hash golden (`check-golangci-hash.sh --update`), config-verify green. This was the "one edit silently didn't land" class wearing a new hat: a parallel writer reverting adjudicated config mid-session.
+4. **M03 — gate batch fully green.** `check-untested-exports` (2 stale rows pruned; M09's new exports test-named), `check-duplication` (3 new clone groups: `scoredModuleKeys()` extracted in cqrs-lint, two `//art-dupl:accept ADR-0152 twin` trailing directives on the kv v5 copy-forward regions — the old file-header directive is inert under the 5-line window), `check-gosec` (10 G115/G202 findings: all were closing-line `#nosec` annotations relocated by the OLD 100-col golines — merged to stable single-line forms ≤120 cols; plus a REAL gate bug fixed: `check-gosec.sh`'s EXIT trap returned 1 on success when WORK was empty — gate was red-by-construction), `check-test-sleeps`, `check-test-skips`, `check-md-go` (1529 blocks), `check-changelog-symbols` (37→39 citations honest).
+5. **go-jose Dependabot alert #136 — dismissed as inaccurate.** The alert claimed root `go.mod`; the only workspace occurrence is `metaengine/bigtableengine` at **v4.1.8** (≥ patched 4.1.6). Scoped `govulncheck` on that module: 0 reachable vulnerabilities. Dismissed via API with the evidence comment. The plan's "bump to 4.1.6" was written from the alert text alone — plan-vs-reality verification mattered again.
+6. **M08 — 23 issues closed (owner-ruled "close the fixed ones now").** #84–#97, #101–#104, #109–#113 closed `completed` (closing comments reference the posted verdicts + next release train); #103 closed `not planned` (intended behavior, law-test-pinned). Only #114 remains open (in-flight feature). Verified via `gh issue list`: exactly 1 open.
+7. **M09 — `WithMaxOpenConns` BUILT (owner-ruled).** `metaengine/sqliteengine/pool.go`: `WithMaxOpenConns(n)` EngineOption (n≤0 keeps the serialized default — 0-means-unlimited deliberately not honored), `DBStats(eng)` accessor for owning-constructor callers; `NewFromDSN` gained a backward-compatible `...EngineOption` variadic; 3 tests (raise to 4/8, non-positive keeps 1, default stays 1) green; full sqliteengine suite green (21.5 s); api golden regenerated (6440 exports); package-surface green without re-pin; CHANGELOG `[Unreleased]` bullet added and citation-verified.
+8. **RED-CI ROOT CAUSE FOUND AND FIXED — `go.work` was deleted from git.** Daemon commit `306c076ad` (2026-11-04 06:45) dropped the tracked `go.work` (113 lines) while a dormant `go.work` line sat in BOTH the repo `.gitignore` and the GLOBAL `~/.config/git/ignore` — tracked files override ignore until some flow re-evaluates them; the daemon absorb finally fired the landmine. Every ci.yml clone since 11-04 failed (13 jobs: treefmt "could not find go.work", cycles gate "import graph is empty", workspace-sync red) while ALL local gates stayed green against the untracked disk copy — a full tree/git split brain, and the actual explanation of the "red-CI era" the plan inherited. Fix: byte-identical `go.work` restored to the index (verified by diff against `306c076ad~1`), repo-level `!go.work` negation added so the global landmine cannot re-fire here, pushed as `9c4dddcb1`. My hand-commit lost a race to the daemon's absorb (HEAD moved during the 5-minute pre-commit hook) — the content landed regardless.
+9. **Meta-gate drift repaired (all verified green):** ADR 0163 index row added to root `docs/README.md` (the parallel session had indexed only the ADR-dir README); `scratch/counterkey` (a parallel test-only repro module, in-tree since 11-02) excluded from the api-stability walkers + `check-modules` find; mirror-lockstep drift for the sweep's two new kv exports classified as register rows (pending-mirror: the v5 twin needs the ViewStore+copyFn Cache restructure, not a mechanical copy); README coverage claims rounded DOWN to floors (event 89/decider 95/dispatcher 87); `idempotency/sqlstore` + 14 more modules `go mod tidy`-ed (pprof/sqlite transitive drift); README third-party-dep claim phrases re-pinned to the rewritten README's wording.
+10. **M20 — gotchas updated.** The golines-disagrees entry now records the SHIPPED CURE (and marks the per-file `golines -w` workaround obsolete); plan-vs-reality count-reconciliation bullet added (the #114 near-miss).
+11. **M25 — author-claim verification pass.** Sweep drafts file intact (24/24 sections); 23-17 report addendum present; FEATURES display-names row (line 990) covers `display_name.go`; `.golangci.yml` exclusion comments re-proven load-bearing live (26 findings without them).
+12. **M22 (partial) — TODO_LIST harvested:** 5 rows ticked with outcome evidence; 2 new rows appended (the observe-only race-leg flake below; the go.work incident + lesson).
+
+## b) PARTIALLY DONE
+
+1. **M04 — `#verify`: attempt 11 RUNNING (launched 06:34:54, window 7.77/15.44).** Ten prior attempts across ~3.5 h: two died on the ADR-index gap (fixed), two on the counterkey check-modules hard-fail (fixed), one on the meta-test cluster (fixed), one on a 0.12-over-ceiling load5 refusal, two on the advisory verify-lock held by a parallel session's own verify, one WRAPPED the wrapper with a bad flag, and **attempt 8 ran 14 minutes deep and failed on a real finding** (below). Every deterministic failure found by those attempts is now fixed; the composite is one clean run away.
+2. **M05 — CI green confirmation:** the run on `9c4dddcb1` (the go.work restoration + all session fixes) has been in_progress ~55 min; the four prior ci.yml failures are all explained by the go.work split brain (verified: `git show f506844bf:go.work` → does not exist).
+3. **M16 — #114 design DRAFTED** (`/tmp/adr-0164-draft.md`, ready to land as ADR-0164): `WithCapPerGroup(groupCol, maxRows, orderBy)` declaration + `Store.EnforceCapGrouped` + `CapGroupTrimmer` engine capability (window-function pushdown) + Go grouping fallback + registration-time validation + adttest pin plan. Research verified against `cap.go`, sqliteengine's `meta_map`/planned-table shapes, and `LayoutPlan.DDL()`.
+4. **M22 (rest):** the plan §3/§6/§7 verification-receipt rows and errata annotations are still to be written once M04–M07 conclude.
+
+## c) NOT STARTED
+
+M06 (pre-release ritual: changed-set per-module tests + fleet census), **M07 (tag wave: catalog v4.13.0, kv v4.4.0, id v4.7.5, metaengine v4.20.1, sqliteengine v4.7.0 — now carrying WithMaxOpenConns — cqrs-lint v4.21.0; draft triples in `/tmp/m07-wave-draft.txt`, versions still to be re-derived from `git log <tag>..HEAD` per module), M11–M15 (consumer adoption; repos read: cqrs-htmx adapter confirmed deletable — `kv.NewCacheForViewStore` exists; crm baseline already EMPTY per the 11-03 doctrine so M12 narrows to the `scorecard.modules` projectionhost pin; webphone sites located; Kith == the crm repo (M12+M14 same tree); BuildFlow pins cqrs-lint v4.18.0 indirect + vendorHash implications noted), M17–M19 (#114 implementation), M21 (scoped-lint app), M23 (content drafted at `/tmp/m23-draft.md`), M24, M26.
+
+## d) TOTALLY FUCKED UP (honest ledger)
+
+1. **Exit-code pollution, twice.** `cmd | tail -3; echo $?` captures `tail`'s rc, not the gate's — I shipped a "gosec RC" and a "duplication RC" reading before catching the pattern. Fixed by re-running with true rc capture. Same shape as the documented `tail -1` gate-reading trap; I knew the rule and still tripped it fresh.
+2. **`gh issue close --json` does not exist.** All 23 closes failed once (usage spam) before the flag-free retry. Should have read `gh issue close --help` before batching.
+3. **The verify window war consumed ~3.5 hours across 11 attempts.** Extenuations are real (parallel nix flake checks, a 599% go compile, a HOST REBOOT at ~03:15 that killed every background job, a verify-lock collision with a parallel session, load floor 12–16 from llama/crm/clickhouse/crush fleet), but my launcher strategy was also wrong three times: a wrapper flag that doesn't exist (`--poll`), a ceiling copied from the guard default into a host whose floor exceeds it, and a 30 s poll interval that kept losing the window to bursts. The working form (tight 5 s poll + sub-ceiling margin + lock awareness) should have been the FIRST form.
+4. **Attempt-8 misdiagnosis lag.** The -race-leg failure initially looked like my regression; it took three local reproduction rounds (plain, -count=3, -race -count=5 — all green) before I classified it as observe-only. Correct outcome, slow path.
+5. **`pool.go` was found EMPTY immediately after writing it** (daemon/parallel race); rewrote in full. Also one edit tool rejection on CHANGELOG (stale read) and one on the multiedit (needed View first) — the re-read discipline tax.
+6. **A staged hand-commit lost the race** to the daemon's absorb during the 5-minute pre-commit hook (my go.work fix landed inside the daemon's `chore:` commit instead of the authored message). Content intact; history legibility for THE key fix of the night is worse than intended.
+
+## e) WHAT TO IMPROVE
+
+1. **A verify-launcher script belongs in the repo.** Tonight's tight-poll + margin + lock-awareness + ceiling logic is exactly `scripts/quiet-window-run.sh`'s job but with the wrong defaults for this host; the gap between the two cost hours. Row it (or teach quiet-window-run a `--poll-interval` and a `--margin`).
+2. **The ignore-cascade landmine class needs a tripwire.** `git ls-files` vs disk is a one-liner; a pre-push check "tracked file vanished but exists on disk + ignored" would have caught go.work 24 h and four red CI runs earlier. Same for the daemon-reverted `.golangci.yml` (the hash golden DID catch it — but only when someone ran the gate).
+3. **`gh` flag verification before batching** (read help once, then loop).
+4. **Load-receipt provenance discipline:** keep VERIFY_MAX_LOAD justified-per-run in the log line, not just the env.
+
+## f) NEXT THINGS (ordered)
+
+1. Watch verify attempt 11 to completion; triage any finding (the deterministic classes are all fixed).
+2. Watch CI on `9c4dddcb1` to conclusion; pull per-job verdicts via `gh api .../jobs` (the per_page=100 endpoint 502s; direct job-ID queries work).
+3. M06 pre-release ritual: changed-set per-module `GOWORK=off go test` (catalog, kv, id, metaengine, sqliteengine, cqrs-lint, middleware, event+eventtest, storage/*, core/v5, systemscenario, system) + `bash scripts/census-fleet.sh`.
+4. M07 tag wave per the draft triples (re-derive each version from `git log <tag>..HEAD` first; sqliteengine carries WithMaxOpenConns now) → `batch-release.sh` → versions-manifest + README gates → push tags → `go get` smoke per module.
+5. M11 cqrs-htmx: delete `usermgmt/view_cache.go` (182 lines) → `kv.NewCacheForViewStore`; run its suite; hand-commit at the boundary.
+6. M12/M14 crm: add `scorecard.modules` projectionhost (+graph if wiring shows it) pin; raise MaxOpenConns via the new option + re-measure the read storm.
+7. M13 webphone: `WithResponseHeader` on 429 lanes, multipart transcribe, `WithTypedParam` pagination, drop `WithServer("","","")` when the exporter allows.
+8. M15 BuildFlow: cqrs-lint pin → wave tag; vendorHash re-pin; CI green.
+9. Land ADR-0164 from `/tmp/adr-0164-draft.md` (`nix run .#check-adr-numbering` before AND after).
+10. M17–M19: implement `EnforceCapGrouped` per the ADR (sqlite/turso window path, memory Go path, adttest pin, capabilities regen, recipes fence, comment+close #114).
+11. M21 scoped-lint app (`GT_LINT_MODULES`), M23 docs batch (`/tmp/m23-draft.md`), M24 warn de-explosion + waiverAdoptionRules generation policy, M26 pragma golden.
+12. M22 finish: tick plan §7 receipts; errata rows for the go-jose no-op and crm-baseline-already-empty plan drift.
+13. Row the verify-launcher improvement (e.1) and the ignore-cascade tripwire (e.2) in TODO_LIST.
+14. Post-wave: re-run `check-versions-manifest.sh --check` + `check-readme-links.sh` nightly gates once.
+
+## g) QUESTIONS (cannot resolve myself)
+
+1. **The `-race`-leg systemscenario failure (attempt 8):** projection dead-lettered a `task.updated` decode — "cannot unmarshal positive integer into TaskUpdated.Title" — i.e. garbage bytes where an all-string payload should be; the SAME code passed the plain test leg 40 min earlier and passes local `-race -count=5`. No race REPORT was emitted. I classified it observe-only (rowed with recurrence policy: escalate on a second occurrence). Is a load-shaped decode-buffer pathology in `projectionadapter`/`DecodePayloadAuto` worth a proactive hunt NOW, or does the recurrence policy stand?
+2. **`scratch/counterkey` disposition:** I excluded it from the meta-gate walkers (it rows in check-module-layers as "test-only cross-engine repro"). Keep in-tree-excluded, or move `scratch/` out of the repo? (Existing owner-gated row; tonight only neutralized the gate friction.)
+3. **Verify economics under a multi-session host:** tonight's honest launch needed `VERIFY_MAX_LOAD=16` (floor 12–16). Should the repo adopt a documented per-host ceiling (env/config) instead of the hard-coded 10, or should the tag wave keep requiring a genuine sub-10 window even if that means waiting for the fleet to idle?
+
+*Snapshot for the executing session; living truth in TODO_LIST.md. Verify attempt 11 result and CI conclusion are the two open receipts.*
