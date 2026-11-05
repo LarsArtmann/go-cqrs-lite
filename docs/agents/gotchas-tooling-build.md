@@ -375,14 +375,27 @@ Two micro-disciplines that each cost a failed edit this stream:
   read "cancelled" as an external kill without checking step timelines
   (`gh api .../jobs/$ID --jq '.steps[]'`).
 - **`golines` disagrees with itself: treefmt vs golangci (hit 2026-10-18,
-  catalog/architecture)** — treefmt runs golines with ITS defaults while
-  golangci's `formatters.golines` is pinned `max-len: 120`, so the two can
-  render the same file differently at the margin: `nix fmt` reports
-  "0 changed" while `golangci-lint` fails the file with "File is not
-  properly formatted (golines)". CURE: run the formatter directly —
-  `golines -w <file>` — then re-run both; do NOT chase the divergence
-  through nix fmt flags. Also do not "fix" it by aligning golangci's
-  max-len to treefmt's default: the CI leg owns the 120 contract.
+  catalog/architecture; CURED 2026-11-05)** — treefmt ran golines with ITS
+  defaults (max-len 100) while golangci's `formatters.golines` is pinned
+  `max-len: 120`, so the two rendered the same file differently at the
+  margin: `nix fmt` reports "0 changed" while `golangci-lint` fails the
+  file with "File is not properly formatted (golines)" — and worse, any
+  101-120 col line got SPLIT by `nix fmt`, relocating trailing nolint
+  comments and silently un-suppressing findings (5 lint/fmt rounds burned
+  2026-11-04/05 re-deriving this; TODO_LIST:294 had documented it since
+  2026-10-25 — read the lesson rows FIRST). CURE (shipped): treefmt's
+  golines now carries `--max-len=120` in `flake.nix` (the
+  `settings.formatter.golines.options` block), aligning both formatters.
+  If the divergence ever returns, check that option block first; the old
+  per-file workaround (`golines -w <file>` directly) is obsolete.
+- **Plan-vs-reality count reconciliation (2026-11-04, #114 near-miss)** —
+  a handoff or plan claiming "N open issues" is a STALE PROJECTION, not a
+  fact: the sweep trusted "25", the live count was 23 issues + 1 (#114,
+  caught only on a final re-count). Before any sweep/triage session:
+  enumerate with the tool (`gh issue list --limit 300 --json number`),
+  reconcile against the claimed count, and treat every discrepancy as a
+  hidden item. Same rule applies to module counts, tag counts, and gate
+  counts in handoff docs.
 - **Arm verify-chains LAST; build binaries to /tmp (2026-10-17,
   architecture-reference session)** — (a) the verify-chain's 60-second
   tree-stability window plus the auto-commit daemon's cadence make "arm
