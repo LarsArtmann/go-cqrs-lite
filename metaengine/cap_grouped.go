@@ -98,7 +98,7 @@ func isPlainIdent(name string) bool {
 		return false
 	}
 
-	for i := 0; i < len(name); i++ {
+	for i := range len(name) {
 		c := name[i]
 
 		switch {

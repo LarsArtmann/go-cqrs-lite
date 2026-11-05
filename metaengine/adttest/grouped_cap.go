@@ -113,13 +113,14 @@ func AssertGroupedCapContract(
 
 	suffix := fmt.Sprintf("_%d", time.Now().UnixNano())
 
-	args := []any{
+	args := make([]any, 0, 3+len(opts))
+	args = append(args,
 		metaengine.OnRecord(groupedCapEvent{}, func(_ record.Record, e groupedCapEvent) (string, groupedCapItem) {
 			return e.ID, groupedCapItem(e)
 		}),
 		metaengine.WithCap(8, "Seq"),
 		metaengine.WithCapPerGroup("Owner", 2),
-	}
+	)
 
 	for _, opt := range opts {
 		args = append(args, opt)

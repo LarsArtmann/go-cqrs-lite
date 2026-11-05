@@ -38,6 +38,7 @@ func TestSubscriberHub_NotifyLatestWins(t *testing.T) {
 // committed — the earliest a client can observe the stream as live.
 type headerProbingRecorder struct {
 	*httptest.ResponseRecorder
+
 	onStatus func()
 }
 
