@@ -58,7 +58,7 @@ func (e *dgraphEngine) RunInTx(ctx context.Context, fn func(context.Context) err
 			// Aborted = rolled back, nothing committed: the caller may
 			// safely retry the WHOLE RunInTx — metaengine.IsTransientCommit
 			// consumers (the Store batch apply) already do.
-			err = transientCommit{err: err}
+			err = transientCommitError{err: err}
 		}
 
 		return fmt.Errorf("dgraphengine.RunInTx: commit: %w", err)
@@ -73,21 +73,21 @@ type txMarker struct{}
 // txActive is the marker value stored under txMarker.
 type txActive struct{}
 
-// transientCommit marks a conflict-aborted RunInTx commit — rolled back,
+// transientCommitError marks a conflict-aborted RunInTx commit — rolled back,
 // nothing committed — as retriable-as-a-whole
 // (metaengine.TransientCommitError). Aborts under concurrent committers
 // are Dgraph's documented "Please retry" class; the CI flake lineage
 // (2026-11-06, two consecutive runs) made the Store batch apply retry.
-type transientCommit struct{ err error }
+type transientCommitError struct{ err error }
 
-func (e transientCommit) Error() string { return e.err.Error() }
+func (e transientCommitError) Error() string { return e.err.Error() }
 
-func (e transientCommit) Unwrap() error { return e.err }
+func (e transientCommitError) Unwrap() error { return e.err }
 
-func (e transientCommit) TransientCommit() {}
+func (e transientCommitError) TransientCommit() {}
 
 // Compile-time proof that transientCommit satisfies the retriable marker.
-var _ metaengine.TransientCommitError = transientCommit{}
+var _ metaengine.TransientCommitError = transientCommitError{}
 
 // writeTx returns the transaction a write op must use: the active RunInTx
 // transaction, or nil meaning "own standalone txn" (the op commits itself

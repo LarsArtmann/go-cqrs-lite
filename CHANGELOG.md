@@ -29,7 +29,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 
+- `metaengine` Store batch apply now retries a `Transactional` engine's `RunInTx` up to 4× (jittered backoff) when the commit fails as a transient nothing-committed abort — Dgraph conflict-aborts during projection applies (two consecutive CI-flaked runs, 2026-11-06) no longer fail the apply; any other error still surfaces after one attempt.
+
 ### Added
+
+- `metaengine.TransientCommitError` + `metaengine.IsTransientCommit`: the retriable-as-a-whole commit-abort marker a transactional engine attaches when a commit conflict-aborted with NOTHING committed; `metaengine/dgraphengine` marks its conflict-aborted `RunInTx` commits with it.
 
 ## [metaengine/v4.22.0, metaengine/sqliteengine/v4.7.1, system/v4.17.0 — 2026-11-06 MaxOpenConns plumbing wave (3 tags)] — 2026-11-06
 - **system + metaengine + sqliteengine: the pool ceiling is deployment config now — `system.EngineConfig.MaxOpenConns` flows through `metaengine.DriverConfig.MaxOpenConns` to the sqlite driver's `sqliteengine.WithMaxOpenConns` (issue #112 follow-up, the Kith read-storm class).** `system.New`'s `EngineConfig` gains a `max_open_conns` koanf field (YAML/TOML operators raise the ceiling without code); `metaengine.DriverConfig` carries it to every registered driver; the sqlite driver factory applies it only when raised (>0) — the serialized `MaxOpenConns(1)` default stays deliberate, and engines without a pool ignore the field. Pinned by the driver-factory test proving `sqliteengine.DBStats` reports 1 by default and the raised ceiling when set. This closes the plumbing gap that kept `sqliteengine.WithMaxOpenConns` constructor-only (composition-root deployments could not reach it).

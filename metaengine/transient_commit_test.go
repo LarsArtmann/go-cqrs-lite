@@ -10,6 +10,8 @@ import (
 // markedAbort is a minimal TransientCommitError for tests.
 type markedAbort struct{ err error }
 
+var _ TransientCommitError = markedAbort{}
+
 func (e markedAbort) Error() string    { return e.err.Error() }
 func (e markedAbort) Unwrap() error    { return e.err }
 func (e markedAbort) TransientCommit() {}

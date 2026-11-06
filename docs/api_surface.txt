@@ -3027,6 +3027,7 @@ metaengine/dgraphengine/func WithContentionObserver
 metaengine/dgraphengine/method Close
 metaengine/dgraphengine/method CounterGet
 metaengine/dgraphengine/method CounterIncrement
+metaengine/dgraphengine/method Error
 metaengine/dgraphengine/method GraphAddEdge
 metaengine/dgraphengine/method GraphNeighbors
 metaengine/dgraphengine/method GraphNeighborsUndirected
@@ -3055,6 +3056,8 @@ metaengine/dgraphengine/method StreamAppend
 metaengine/dgraphengine/method StreamAppendExpected
 metaengine/dgraphengine/method StreamRead
 metaengine/dgraphengine/method StreamVersion
+metaengine/dgraphengine/method TransientCommit
+metaengine/dgraphengine/method Unwrap
 metaengine/dgraphengine/method VectorCollections
 metaengine/dgraphengine/method VectorCount
 metaengine/dgraphengine/method VectorInsert
@@ -3199,6 +3202,7 @@ metaengine/func HasGraphSupport
 metaengine/func HasUndirectedGraphSupport
 metaengine/func Infer
 metaengine/func InferFromNamedEvents
+metaengine/func IsTransientCommit
 metaengine/func ItemFieldByName
 metaengine/func JSONFieldName
 metaengine/func LastDecodedRowCursor
@@ -3430,6 +3434,7 @@ metaengine/interface Tracer
 metaengine/interface TrackerHost
 metaengine/interface TransactMeasurer
 metaengine/interface Transactional
+metaengine/interface TransientCommitError
 metaengine/interface VectorBackend
 metaengine/interface VectorCounter
 metaengine/interface VectorFilterBackend
