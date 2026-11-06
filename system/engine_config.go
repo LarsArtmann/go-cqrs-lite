@@ -31,6 +31,15 @@ type EngineConfig struct {
 	// developers never declare views. Unsupported engines fail construction
 	// loudly.
 	MaterializedViews []MaterializedViewConfig `koanf:"materialized_views"`
+
+	// MaxOpenConns raises the engine's database/sql pool ceiling (the Kith
+	// read-storm class, issue #112). SQLite-family engines default to
+	// MaxOpenConns(1) — writes serialize into WAL ordering, and one long scan
+	// blocks every query behind it; a positive value lets WAL's concurrent
+	// readers through while writes queue behind busy_timeout retries. Zero
+	// (the default) keeps the engine's deliberate default. Engines without a
+	// pool ignore the field.
+	MaxOpenConns int `koanf:"max_open_conns"`
 }
 
 // MaterializedViewConfig is the operator-facing YAML shape for one

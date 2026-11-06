@@ -32,6 +32,7 @@ func createEngineFromDriver(
 		Priority:          cfg.Priority,
 		Durability:        durability,
 		MaterializedViews: matViews,
+		MaxOpenConns:      cfg.MaxOpenConns,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("system: driver %q create: %w", cfg.Driver, err)

@@ -34,6 +34,16 @@ type DriverConfig struct {
 	// maintenance) derive and create the views at construction. Empty (the
 	// default) changes nothing.
 	MaterializedViews []MaterializedViewSpec
+
+	// MaxOpenConns is the operator's pool ceiling for engines that own a
+	// database/sql handle. SQLite-family engines default to
+	// MaxOpenConns(1) — writes serialize into WAL ordering, and one long
+	// scan blocks every query behind it. Read-heavy deployments (the Kith
+	// read-storm class, issue #112) raise it: WAL allows concurrent
+	// readers, and writes then queue behind busy_timeout retries. Zero or
+	// negative keeps the engine's default (for SQLite that is the
+	// deliberate 1). Engines without a pool ignore the field.
+	MaxOpenConns int
 }
 
 // DriverFactory creates an Engine from a DriverConfig. Implementations are

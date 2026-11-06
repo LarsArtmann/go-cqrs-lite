@@ -23,8 +23,12 @@ func init() {
 			// Engine API takes no ctx (same as benchkit/phases_metaengine_sqlite.go).
 			// Materialized-view specs flow through so unsupported engines fail
 			// construction loudly instead of silently ignoring the operator.
+			// MaxOpenConns flows through only when raised (>0): the
+			// serialized default is deliberate, so zero stays zero here and
+			// NewSQLiteEngineFromDSNWith keeps MaxOpenConns(1).
 			return NewSQLiteEngineFromDSNWith(cfg.DSN, pragmas,
-				WithMaterializedViews(cfg.MaterializedViews)) //nolint:contextcheck,wrapcheck
+				WithMaterializedViews(cfg.MaterializedViews),
+				WithMaxOpenConns(cfg.MaxOpenConns)) //nolint:contextcheck,wrapcheck
 		},
 	)
 }
