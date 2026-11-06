@@ -2,7 +2,7 @@ module example.com/scanfixture
 
 go 1.27.2
 
-require github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.20.0
+require github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.22.0
 
 require (
 	github.com/dustin/go-humanize v1.1.0 // indirect
