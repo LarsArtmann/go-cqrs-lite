@@ -87,8 +87,8 @@ github.com/jackc/pgpassfile v1.0.0 h1:/6Hmqy13Ss2zCq62VdNG8tM1wchn8zjSGOBJ6icpsI
 github.com/jackc/pgpassfile v1.0.0/go.mod h1:CEx0iS5ambNFdcRtxPj5JhEz+xB6uRky5eyVu/W2HEg=
 github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 h1:iCEnooe7UlwOQYpKFhBabPMi4aNAfoODPEFNiAnClxo=
 github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761/go.mod h1:5TJZWKEWniPve33vlWYSoGYefn3gLQRzjfDlhSJ9ZKM=
-github.com/jackc/pgx/v5 v5.11.0 h1:IzBBtyK9AHqf98cctWFifYSci2hgQR/cd56wB4p+ogg=
-github.com/jackc/pgx/v5 v5.11.0/go.mod h1:mal1tBGAFfLHvZzaYh77YS/eC6IX9OWbRV1QIIM0Jn4=
+github.com/jackc/pgx/v5 v5.12.0 h1:hWwax8YiGT0YiN50U1oIDn5kgR7KC2tG3rmavwpPkxY=
+github.com/jackc/pgx/v5 v5.12.0/go.mod h1:u2Fi6no03HCSBYE+ZVdLxbwdu3xyi2vU+K/YNJioSds=
 github.com/jackc/puddle/v2 v2.2.3 h1:f8HoREISb3l5eO9coPgK7U3hKLhWGokOFVcThl5jrao=
 github.com/jackc/puddle/v2 v2.2.3/go.mod h1:vriiEXHvEE654aYKXXjOvZM39qJ0q+azkZFrfEOc3H4=
 github.com/klauspost/compress v1.20.1 h1:T7kKElXUMXrUJ2E9QhQhxFtcK5rPyLdsGZvdbLMPdiQ=
@@ -129,8 +129,8 @@ github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.2 h1:9f8JzC0Ud+O1hILNKLsXQgWr
 github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.2/go.mod h1:BbipSAKx998DAgHyuvao1uxosCiovgJ3+vi80ZmVkzk=
 github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.4.0 h1:PjI4Y+CPkg2mBG7InAi9y3+czCQsXyIdcjZiGQduq6M=
 github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.4.0/go.mod h1:/Je8mL9pj1BtlAU8XtpBqtrLGHob1TeZpvlobrUmIy8=
-github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.4 h1:nzPCdZNJKxJjjB6gmfdux7YXPUSqWGcodY/DhCbBSwY=
-github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.4/go.mod h1:XW80FYXKndVG3LfgsCK3r65CHty8OKwDXlPmuytZqMU=
+github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.5 h1:HD1Ia+txmSzTEoZQg6YK7Gs4iy6CFS87wpBs/e+CUZk=
+github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.5/go.mod h1:N2V2WfonHDcjwoJSHhIyudrKBsCUFtEj/iUuWEj7BZo=
 github.com/larsartmann/go-cqrs-lite/kv/v4 v4.3.4 h1:qjyuwN170cnhKGPh9xw1chMYRaxNa/EGHha06f6ptz0=
 github.com/larsartmann/go-cqrs-lite/kv/v4 v4.3.4/go.mod h1:1XDFlK75nxp4QA5TbUItuTnoKdVItDk2a4EXckdRfaU=
 github.com/larsartmann/go-cqrs-lite/listing/v4 v4.4.4 h1:adCLLEnjEguX5NunGTPVhs/MYWtvmpW7Why8SMpu8MM=
@@ -139,10 +139,10 @@ github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3 h1:t6+zJntr/N9ah7HEUHab3X
 github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3/go.mod h1:RzBMkLnFnOXEx5R5OVj4pRs+cYToWDQbT0BaOFMUutM=
 github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.6.2 h1:71gH8/W/Ov0puUCTovsKhAbBfoy02NHd6gmsQKPfPRY=
 github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.6.2/go.mod h1:B4ch2X6azeMtNZGLd721Nke3eT5sB2INLPM49GBq5Bk=
-github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.6.0 h1:r+cZwYRxXkax9MvSJEetA5fgynx8iThIpzKxP/c96Sc=
-github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.6.0/go.mod h1:qvCN4kS7Go2F6lP97j8jex4mBvZWCV+qvKI3d60Se5M=
-github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.20.0 h1:ipQhE84VKWnFRLo25TQ17EBxHnk5czuKXg0f9uSwLro=
-github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.20.0/go.mod h1:AUHJC62M1ttvuiO/qhLUlsYskjnRzY1hOeInqPJ73Os=
+github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.7.1 h1:XGYLdeI1NUpf0n1NJHwqZ3PY1iX/T55SHCX7Z8BRHM0=
+github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.7.1/go.mod h1:jHxjZiCBDBoUUew6lOGPe2DOTVtprIOfNrBPruT47JQ=
+github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.22.0 h1:/91gL8sH/W3IbjNwfhbgLwA15OME/9i+qW3snlnkVsA=
+github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.22.0/go.mod h1:McuePGx2GeA8jPGO7W8YsTaOCt5ctDl45cB8DA5oBcE=
 github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.7.2 h1:Vzel6eXmS9dum1Pi7tdViiOlSzcH02ajCUXYK6LL5HQ=
 github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.7.2/go.mod h1:2ecijvSEDd4Tz0vCermNDRktU5+UARhuYFyc5rOYZxU=
 github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.3 h1:LBqGdzokDoygcf97o26XPDz1RJFhV1rLh42yAS1lkQE=
