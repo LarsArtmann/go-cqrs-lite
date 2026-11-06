@@ -294,8 +294,13 @@ if [ "$QUIET" -eq 0 ]; then
 	printf '%s\n' "$rows" | awk -F'\t' 'NF > 1 { printf "%-9s %-58s %8s %8s %8s\n", $1, $2, $3, $4, $5 }'
 	echo ""
 	echo "Slowest 10 packages in this run:"
+	# Display-only: `|| true` guards the pipefail+errexit EPIPE trap — head
+	# exits after 10 lines and sort can take SIGPIPE (exit 2 "write error" on
+	# some coreutils) before the verdict block runs, aborting the whole gate
+	# with the display's exit code (CI 2026-11-06: flake-check leg died at
+	# "sort: fflush failed: Broken pipe" with zero BREACH/NEW rows).
 	sort -t"$(printf '\t')" -k2,2gr "$tmp/measured.txt" | head -10 |
-		awk -F'\t' '{ printf "  %8.1fs  %s\n", $2, $1 }'
+		awk -F'\t' '{ printf "  %8.1fs  %s\n", $2, $1 }' || true
 	echo ""
 fi
 
