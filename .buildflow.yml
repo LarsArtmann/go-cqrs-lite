@@ -49,5 +49,17 @@ warnings_budget:
 # license-check expects recognizable OSS licenses in every module zip; this
 # repo is PROPRIETARY by design (AGENTS.md consumer-scope decision), so
 # go-licenses fails deterministically on the LarsArtmann module set.
+#
+# templ-generate resolves `templ` from PATH, which floats independently of the
+# catalog lib pin (a-h/templ v0.3.1070): on 2026-11-06 the system templ
+# v0.3.1114 regenerated catalog/docserver/*_templ.go with the 1100-era API
+# (templruntime.NewAttributeExpression — undefined against the pinned lib) via
+# the pre-commit hook, and the auto-commit daemon fossilized it; three CI
+# whipsaw rounds (660f5e64d, f79e37fcf) followed. Codegen verification is
+# owned by the flake's check-templ gate (nixpkgs templ, pinned via flake.lock);
+# regenerate manually with the devShell binary (TODO_LIST "templ generator-pin
+# vs library-pin split brain" row). Re-enable only when the lib re-bump lands
+# (nixpkgs ships a true 1100-era generator) — together with the pin bump.
 skip_steps:
   - license-check
+  - templ-generate
