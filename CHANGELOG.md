@@ -30,6 +30,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Changed
 
 ### Added
+- **system + metaengine + sqliteengine: the pool ceiling is deployment config now — `system.EngineConfig.MaxOpenConns` flows through `metaengine.DriverConfig.MaxOpenConns` to the sqlite driver's `sqliteengine.WithMaxOpenConns` (issue #112 follow-up, the Kith read-storm class).** `system.New`'s `EngineConfig` gains a `max_open_conns` koanf field (YAML/TOML operators raise the ceiling without code); `metaengine.DriverConfig` carries it to every registered driver; the sqlite driver factory applies it only when raised (>0) — the serialized `MaxOpenConns(1)` default stays deliberate, and engines without a pool ignore the field. Pinned by the driver-factory test proving `sqliteengine.DBStats` reports 1 by default and the raised ceiling when set. This closes the plumbing gap that kept `sqliteengine.WithMaxOpenConns` constructor-only (composition-root deployments could not reach it).
+
 
 ## [catalog/v4.13.0, kv/v4.4.0, id/v4.7.5, metaengine/v4.21.0, metaengine/sqliteengine/v4.7.0, cmd/cqrs-lint/v4.21.0, systemscenario/v4.3.0 — 2026-11-06 post-sweep issue wave (7 tags)] — 2026-11-06
 

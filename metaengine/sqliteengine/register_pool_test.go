@@ -29,7 +29,7 @@ func TestDriverFactory_MaxOpenConnsFlowsThrough(t *testing.T) {
 	}
 
 	eng, err = factory(context.Background(), metaengine.DriverConfig{
-		DSN:         t.TempDir() + "/pool-raised.db",
+		DSN:          t.TempDir() + "/pool-raised.db",
 		MaxOpenConns: 8,
 	})
 	if err != nil {
