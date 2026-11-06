@@ -2,8 +2,12 @@ package mysqlengine_test
 
 import (
 	"context"
+	"database/sql/driver"
+	"errors"
 	"os"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/onsi/gomega"
 
@@ -24,7 +28,7 @@ func mustNewMySQLEngine(tb testing.TB) metaengine.Engine {
 		tb.Skip("MYSQL_TEST_DSN not set — skipping MySQL integration test")
 	}
 
-	eng, err := mysqlengine.New(dsn)
+	eng, err := newEngineWithRetry(tb, dsn)
 	if err != nil {
 		if mysqlSkipClass(err) {
 			tb.Skipf("MySQL not available: %v", err)
@@ -36,6 +40,48 @@ func mustNewMySQLEngine(tb testing.TB) metaengine.Engine {
 	tb.Cleanup(func() { _ = eng.Close() })
 
 	return eng
+}
+
+// newEngineWithRetry constructs the engine, retrying dead-connection
+// errors: the QEMU VM's MySQL intermittently resets handshaking/pooled
+// connections under runner load ("invalid connection" / "connection reset
+// by peer" — 4 consecutive CI failures 2026-11-06 across two test
+// surfaces), and mysqlengine.New's schema init rides one connection.
+// Bounded so a genuinely broken server still fails loudly (OQ-10 policy:
+// retry rides out transients, it never converts a persistent defect into
+// a pass or a skip).
+func newEngineWithRetry(tb testing.TB, dsn string) (metaengine.Engine, error) {
+	tb.Helper()
+
+	const attempts = 4
+
+	var (
+		eng metaengine.Engine
+		err error
+	)
+
+	for range attempts {
+		eng, err = mysqlengine.New(dsn)
+		if err == nil || !deadConnectionClass(err) {
+			return eng, err
+		}
+
+		time.Sleep(250 * time.Millisecond)
+	}
+
+	return eng, err
+}
+
+// deadConnectionClass matches the stale/reset connection class — the
+// server answered once but the socket died (go-sql-driver "invalid
+// connection", database/sql ErrBadConn, TCP reset). Distinct from
+// mysqlSkipClass's never-reachable markers, which stay skips.
+func deadConnectionClass(err error) bool {
+	msg := strings.ToLower(err.Error())
+
+	return errors.Is(err, driver.ErrBadConn) ||
+		strings.Contains(msg, "invalid connection") ||
+		strings.Contains(msg, "connection reset by peer")
 }
 
 func TestMySQLDriverRegistered(t *testing.T) {
@@ -57,7 +103,7 @@ func TestMySQLEngineProfile(t *testing.T) {
 
 	g := gomega.NewWithT(t)
 
-	eng, err := mysqlengine.New(dsn)
+	eng, err := newEngineWithRetry(t, dsn)
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
 	defer func() { _ = eng.Close() }()
@@ -77,7 +123,7 @@ func TestMySQLHealthCheck(t *testing.T) {
 
 	g := gomega.NewWithT(t)
 
-	eng, err := mysqlengine.New(dsn)
+	eng, err := newEngineWithRetry(t, dsn)
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
 	defer func() { _ = eng.Close() }()

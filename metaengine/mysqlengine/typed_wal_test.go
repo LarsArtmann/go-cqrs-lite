@@ -31,7 +31,7 @@ func openTypedWALMySQL(t *testing.T) (metaengine.Engine, *sql.DB) {
 		t.Skip("MYSQL_TEST_DSN not set — skipping MySQL integration test")
 	}
 
-	eng, err := mysqlengine.New(dsn)
+	eng, err := newEngineWithRetry(t, dsn)
 	if err != nil {
 		if mysqlSkipClass(err) {
 			t.Skipf("MySQL not available: %v", err)

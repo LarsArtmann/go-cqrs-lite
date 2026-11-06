@@ -3,7 +3,6 @@ package mysqlengine_test
 import (
 	"testing"
 
-	mysqlengine "github.com/larsartmann/go-cqrs-lite/metaengine/mysqlengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/adttest"
 )
@@ -23,7 +22,7 @@ func TestMySQLPlannedOpsMatrix(t *testing.T) {
 			Create: func(t *testing.T) metaengine.Engine {
 				t.Helper()
 
-				eng, err := mysqlengine.New(mysqlTestDSN())
+				eng, err := newEngineWithRetry(t, mysqlTestDSN())
 				if err != nil {
 					if mysqlSkipClass(err) {
 						t.Skipf("MySQL not available: %v", err)
