@@ -89,7 +89,10 @@ var taskmanagerGoldenProfile = map[string]int{
 	"F009": 1,
 	"F013": 1,
 	"F021": 2,
-	"F026": 1,
+	// F026 left the golden 2026-11-06 (issue #115): the rule now coaches only
+	// CURSOR-paginated scans, and taskmanager's api_list_tasks is a one-shot
+	// filtered Scan — a prefetch cache would pay its doubled fetch for no
+	// benefit there, so the finding was a false positive, not a regression.
 	"F028": 1,
 	"F031": 1,
 	// F032: 1 since 2026-11-03 — taskmanager is a real consumer using
