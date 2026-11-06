@@ -781,6 +781,18 @@ errorfamily.Classify(err) // => Conflict
 
 <!-- generate-error-taxonomy:end -->
 
+### storage (SQL facade)
+
+Manual claim (outside the generated region): the pinned erraudit v0.7.0
+export cannot yet link this mint, but the source mints it
+(`storage/turso/sync.go`, `errorfamily.WrapInfrastructure(err, "storage.turso_stats", ...)`)
+and check-error-taxonomy's rg pool demands it. Retire this row when the
+vendored erraudit pin bumps past the fix.
+
+| Error | Family         | Code                  |
+| ----- | -------------- | --------------------- |
+| -     | Infrastructure | `storage.turso_stats` |
+
 ## Default Classification
 
 Errors that are not constructed via the taxonomy constructors (plain `errors.New`,
