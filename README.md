@@ -354,12 +354,12 @@ Modules release on independent per-module version trains (`<module>/vX.Y.Z` git 
 | --- | --- |
 | . | `v4.0.0` *(untagged per ADR-0152)* |
 | benchkit | `benchkit/v4.7.0` *(untagged per ADR-0152)* |
-| catalog | `catalog/v4.12.0` |
+| catalog | `catalog/v4.13.0` |
 | claiming | `claiming/v4.0.2` |
 | cmd/api-stability | `cmd/api-stability/v4.4.2` *(untagged per ADR-0152)* |
 | cmd/cqrs-bench | `cmd/cqrs-bench/v4.3.4` *(untagged per ADR-0152)* |
 | cmd/cqrs-gen | `cmd/cqrs-gen/v4.3.3` *(untagged per ADR-0152)* |
-| cmd/cqrs-lint | `cmd/cqrs-lint/v4.20.0` |
+| cmd/cqrs-lint | `cmd/cqrs-lint/v4.21.0` |
 | cmd/cqrs-upgrade | `cmd/cqrs-upgrade/v4.1.2` *(untagged per ADR-0152)* |
 | cmd/doc-check | `cmd/doc-check/v4.3.3` *(untagged per ADR-0152)* |
 | codec | `codec/v4.4.0` |
@@ -384,16 +384,16 @@ Modules release on independent per-module version trains (`<module>/vX.Y.Z` git 
 | example/taskmanager | `example/taskmanager/v3.7.1` *(untagged per ADR-0152)* |
 | flightrecorder | `flightrecorder/v4.0.0` |
 | graph | `graph/v4.3.4` *(untagged per ADR-0152)* |
-| id | `id/v4.7.4` |
+| id | `id/v4.7.5` |
 | idempotency | `idempotency/v4.4.0` |
 | idempotency/kvstore | `idempotency/kvstore/v4.3.3` *(untagged per ADR-0152)* |
 | idempotency/sqlstore | `idempotency/sqlstore/v4.4.3` *(untagged per ADR-0152)* |
 | integration | `integration/v4.2.3` *(untagged per ADR-0152)* |
-| kv | `kv/v4.3.5` |
+| kv | `kv/v4.4.0` |
 | listing | `listing/v4.4.4` |
 | memory | `memory/v2.6.0` |
 | metadata | `metadata/v4.7.3` |
-| metaengine | `metaengine/v4.20.0` |
+| metaengine | `metaengine/v4.21.0` |
 | metaengine/badgerengine | `metaengine/badgerengine/v4.3.3` *(untagged per ADR-0152)* |
 | metaengine/bboltengine | `metaengine/bboltengine/v4.3.3` *(untagged per ADR-0152)* |
 | metaengine/bench | `metaengine/bench/v4.1.2` *(untagged per ADR-0152)* |
@@ -409,7 +409,7 @@ Modules release on independent per-module version trains (`<module>/vX.Y.Z` git 
 | metaengine/pebbleengine | `metaengine/pebbleengine/v4.4.4` |
 | metaengine/pgengine | `metaengine/pgengine/v4.4.3` *(untagged per ADR-0152)* |
 | metaengine/projectionadapter | `metaengine/projectionadapter/v4.6.2` |
-| metaengine/sqliteengine | `metaengine/sqliteengine/v4.6.0` |
+| metaengine/sqliteengine | `metaengine/sqliteengine/v4.7.0` |
 | metaengine/tursoengine | `metaengine/tursoengine/v4.2.3` *(untagged per ADR-0152)* |
 | middleware | `middleware/v4.7.2` |
 | otel | `otel/v4.5.3` |
@@ -453,7 +453,8 @@ Modules release on independent per-module version trains (`<module>/vX.Y.Z` git 
 | sync | `sync/v0.2.0` |
 | system | `system/v4.16.0` |
 | system/integration | `system/integration/v4.0.2` *(untagged per ADR-0152)* |
-| systemscenario | `systemscenario/v4.2.1` |
+| systemcatalog | `systemcatalog/v4.0.0` |
+| systemscenario | `systemscenario/v4.3.0` |
 | systemtest | `systemtest/v4.0.0` *(untagged per ADR-0152)* |
 | testhelpers | `testhelpers/v1.7.1` |
 | testing | `testing/v3.3.0` |
