@@ -142,13 +142,11 @@ func (s *Store) replayableEvents() ([]EventInput, error) {
 // while [ErrCollectionCountMismatch] and [ErrVerifyDrift] are the drift it
 // exists to detect. Use [Store.EventLogAttached] to skip the call entirely.
 func (s *Store) Verify(ctx context.Context, engines []Engine) error {
+	// err carries ErrNoEventLog; a nil err with no events is the genuine
+	// nothing-recorded-yet no-op, so both collapse to the same early return.
 	events, err := s.replayableEvents()
-	if err != nil {
+	if err != nil || len(events) == 0 {
 		return err
-	}
-
-	if len(events) == 0 {
-		return nil
 	}
 
 	if s.queryDecls == nil {

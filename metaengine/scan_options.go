@@ -1,15 +1,15 @@
 package metaengine
 
 type scanConfig struct {
-	filters  []FilterSpec
-	orGroups [][]FilterSpec
-	sort     *SortSpec
-	sortCols []SortColumn
-	cursor   any
-	limit    int
-	exact    bool
-	ranges   []RangeSpec
-	inSpecs  []InSpec
+	filters     []FilterSpec
+	orGroups    [][]FilterSpec
+	sort        *SortSpec
+	sortCols    []SortColumn
+	cursor      any
+	limit       int
+	exact       bool
+	ranges      []RangeSpec
+	inSpecs     []InSpec
 	prefetch    *PrefetchCache
 	prefetchSet bool
 }

@@ -154,13 +154,11 @@ func (s *Store) RemoveEngine(ctx context.Context, name string) error {
 // An attached but still-empty log IS a genuine no-op and returns nil. Use
 // [Store.EventLogAttached] when "no log" is an expected deployment shape.
 func (s *Store) Backfill(ctx context.Context, opts ...BackfillOption) error {
+	// Same prologue contract as Verify: no attached log is ErrNoEventLog, an
+	// attached-but-still-empty log is nothing to replay.
 	events, err := s.replayableEvents()
-	if err != nil {
+	if err != nil || len(events) == 0 {
 		return err
-	}
-
-	if len(events) == 0 {
-		return nil
 	}
 
 	cfg := backfillConfig{}
