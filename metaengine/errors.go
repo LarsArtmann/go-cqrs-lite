@@ -3,6 +3,8 @@ package metaengine
 import (
 	"errors"
 	"fmt"
+
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // Package-level sentinel errors. Dynamic call sites wrap these with engine
@@ -79,13 +81,10 @@ var (
 	errUnsupportedSpatialReads = errors.New("engine does not support Spatial reads")
 	errUnsupportedSpatialOps   = errors.New("engine does not support Spatial operations")
 
-	// Verify / consistency errors.
-	errNoEventLog = errors.New(
-		"metaengine.Verify: no event log attached — call WithEventLog first",
-	)
-	errNoQueryDecls            = errors.New("metaengine.Verify: no query declarations stored")
-	errCollectionCountMismatch = errors.New("metaengine.Verify: collection count mismatch")
-	errVerifyDrift             = errors.New("metaengine.Verify: collection row-count drift")
+	// Verify / consistency errors live in the exported block below
+	// (ErrNoEventLog, ErrNoQueryDecls, ErrCollectionCountMismatch,
+	// ErrVerifyDrift): an exported method returning a sentinel callers cannot
+	// match is a dead end, so these are classified AND exported.
 
 	// SwapEngine error.
 	errSwapEngineNotFound = errors.New("metaengine.SwapEngine: engine not found")
@@ -193,4 +192,44 @@ var (
 	// the scan limit returned. It makes an otherwise silent truncation loud:
 	// callers that need the complete set can raise the limit or use WithLimit(0).
 	ErrScanTruncated = errScanTruncated
+
+	// --- Verify / consistency errors ---
+	//
+	// Store.Verify can end in four structurally different ways. They are
+	// exported AND classified so a health/doctor command can branch on the
+	// outcome with errors.Is instead of string matching, and tell "verification
+	// cannot run here" (the first two) apart from the drift it exists to
+	// detect (the last two). See also Store.EventLogAttached.
+
+	// ErrNoEventLog is returned by Store.Verify and Store.Backfill when no
+	// event log is attached (WithEventLog was never called — under
+	// system.New there is none, so both are structural no-ops there).
+	// Rejection family: retrying cannot help, the deployment has to change.
+	ErrNoEventLog error = errorfamily.NewRejection(
+		"metaengine.no_event_log",
+		"metaengine: no event log attached — call WithEventLog first",
+	)
+
+	// ErrNoQueryDecls is returned by Store.Verify when the store holds no
+	// query declarations to replay against (Plan stored none).
+	ErrNoQueryDecls error = errorfamily.NewRejection(
+		"metaengine.no_query_decls",
+		"metaengine.Verify: no query declarations stored",
+	)
+
+	// ErrCollectionCountMismatch is returned by Store.Verify when the replayed
+	// store materialized fewer collections than the live store.
+	ErrCollectionCountMismatch error = errorfamily.NewCorruption(
+		"metaengine.collection_count_mismatch",
+		"metaengine.Verify: collection count mismatch",
+	)
+
+	// ErrVerifyDrift is returned (wrapped, with the live/replay row counts) by
+	// Store.Verify when a collection's live row count disagrees with the
+	// replay — the drift Verify exists to find. Corruption family: the
+	// projection state no longer follows from its journal.
+	ErrVerifyDrift error = errorfamily.NewCorruption(
+		"metaengine.verify_drift",
+		"metaengine.Verify: collection row-count drift",
+	)
 )

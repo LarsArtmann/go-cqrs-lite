@@ -111,12 +111,26 @@ func WithEventLog(store *Store, log *EventLog) {
 	store.eventLog = log
 }
 
+// EventLogAttached reports whether an event log is attached — that is, whether
+// replay-based operations ([Store.Verify], [Store.Backfill]) can do anything at
+// all. It exists so a health or doctor command can ask the question WITHOUT
+// provoking [ErrNoEventLog] and then having to interpret it.
+func (s *Store) EventLogAttached() bool {
+	return s.eventLog != nil
+}
+
 // Verify replays all recorded events into a verification engine and compares
 // the row counts against the live store. Returns nil if consistent.
 // Requires WithEventLog and the original query declarations stored on Plan.
+//
+// The outcome is machine-branchable: [ErrNoEventLog] and [ErrNoQueryDecls] mean
+// verification could not run here (structural no-op / misconfiguration — under
+// system.New no event log is attached, so Verify is always a no-op there),
+// while [ErrCollectionCountMismatch] and [ErrVerifyDrift] are the drift it
+// exists to detect. Use [Store.EventLogAttached] to skip the call entirely.
 func (s *Store) Verify(ctx context.Context, engines []Engine) error {
-	if s.eventLog == nil {
-		return errNoEventLog
+	if !s.EventLogAttached() {
+		return ErrNoEventLog
 	}
 
 	events := s.eventLog.Events()
@@ -125,7 +139,7 @@ func (s *Store) Verify(ctx context.Context, engines []Engine) error {
 	}
 
 	if s.queryDecls == nil {
-		return errNoQueryDecls
+		return ErrNoQueryDecls
 	}
 
 	freshStore, err := Plan(engines, s.queryDecls...)
@@ -152,7 +166,7 @@ func (s *Store) Verify(ctx context.Context, engines []Engine) error {
 
 	for i := range liveCols {
 		if i >= len(freshCols) {
-			return errCollectionCountMismatch
+			return ErrCollectionCountMismatch
 		}
 
 		liveEng, _ := s.collectionEngine(liveCols[i].Name)
@@ -164,7 +178,7 @@ func (s *Store) Verify(ctx context.Context, engines []Engine) error {
 		if liveCount != freshCount {
 			return fmt.Errorf(
 				"%w in %q — live has %d rows, replay has %d",
-				errVerifyDrift, liveCols[i].Name, liveCount, freshCount,
+				ErrVerifyDrift, liveCols[i].Name, liveCount, freshCount,
 			)
 		}
 	}
