@@ -32,7 +32,7 @@ require (
 	github.com/DataDog/zstd v1.5.7 // indirect
 	github.com/Microsoft/go-winio v0.6.4 // indirect
 	github.com/ThreeDotsLabs/watermill v1.5.3 // indirect
-	github.com/a-h/templ v0.3.1100 // indirect
+	github.com/a-h/templ v0.3.1070 // indirect
 	github.com/apache/arrow-go/v18 v18.8.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bits-and-blooms/bitset v1.29.0 // indirect
