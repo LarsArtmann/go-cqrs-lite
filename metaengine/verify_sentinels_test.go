@@ -35,15 +35,22 @@ func verifyNotesQuery() metaengine.QueryDecl[verifyFind, verifyNote] {
 func newVerifyStore(t *testing.T) *metaengine.Store {
 	t.Helper()
 
-	store, err := metaengine.Plan(
-		[]metaengine.Engine{metaengine.NewMemoryEngine()},
-		verifyNotesQuery(),
-	)
+	store, _ := newVerifyStoreAndEngine(t)
+
+	return store
+}
+
+func newVerifyStoreAndEngine(t *testing.T) (*metaengine.Store, metaengine.Engine) {
+	t.Helper()
+
+	eng := metaengine.NewMemoryEngine()
+
+	store, err := metaengine.Plan([]metaengine.Engine{eng}, verifyNotesQuery())
 	if err != nil {
 		t.Fatalf("Plan: %v", err)
 	}
 
-	return store
+	return store, eng
 }
 
 // TestVerifySentinels_ExportedAndClassified pins the contract behind issue
@@ -136,7 +143,10 @@ func TestVerify_DriftIsBranchable(t *testing.T) {
 	t.Parallel()
 
 	eng := metaengine.NewMemoryEngine()
-	store := newVerifyStore(t)
+	store, err := metaengine.Plan([]metaengine.Engine{eng}, verifyNotesQuery())
+	if err != nil {
+		t.Fatalf("Plan: %v", err)
+	}
 
 	metaengine.WithEventLog(store, metaengine.NewEventLog())
 
@@ -160,7 +170,7 @@ func TestVerify_DriftIsBranchable(t *testing.T) {
 
 	// Verify replays the log into a FRESH store; the live store keeps the rogue
 	// row, so the row counts disagree.
-	err := store.Verify(ctx, []metaengine.Engine{metaengine.NewMemoryEngine()})
+	err = store.Verify(ctx, []metaengine.Engine{metaengine.NewMemoryEngine()})
 	if !errors.Is(err, metaengine.ErrVerifyDrift) {
 		t.Fatalf("Verify error = %v, want ErrVerifyDrift", err)
 	}

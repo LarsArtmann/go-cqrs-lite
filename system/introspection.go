@@ -258,6 +258,12 @@ func (s *System) ProjectionPlan() *metaengine.SerializablePlan {
 
 // VerifyProjections checks the consistency of the projection layer plan
 // against the configured engines. Returns nil if no projection store exists.
+//
+// The composition root attaches no event log to the projection store, so with a
+// projection store configured this returns metaengine.ErrNoEventLog — Verify
+// has nothing to replay. That is a structural no-op, not drift: branch on
+// errors.Is(err, metaengine.ErrNoEventLog) in health/doctor code, and treat
+// metaengine.ErrVerifyDrift/ErrCollectionCountMismatch as real inconsistency.
 func (s *System) VerifyProjections(ctx context.Context) error {
 	if s.projStore == nil {
 		return nil

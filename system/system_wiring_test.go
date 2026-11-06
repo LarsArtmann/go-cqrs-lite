@@ -2,6 +2,7 @@ package system_test
 
 import (
 	"context"
+	"errors"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -85,10 +86,12 @@ func TestSystem_ProjectionPlan_WithProjectionStore(t *testing.T) {
 		t.Fatal("expected non-nil plan with projection store")
 	}
 
-	// Verify returns an error without an event log attached — that's expected
-	// here since the test doesn't dispatch events. The important thing is it
-	// doesn't panic.
-	_ = sys.VerifyProjections(ctx)
+	// The composition root attaches no event log to the projection store, so
+	// Verify is a structural no-op here — and that must be BRANCHABLE rather
+	// than a message to grep (issue #116).
+	if err := sys.VerifyProjections(ctx); !errors.Is(err, metaengine.ErrNoEventLog) {
+		t.Fatalf("VerifyProjections error = %v, want metaengine.ErrNoEventLog", err)
+	}
 
 	explain := sys.ProjectionExplain()
 	if explain == "" {
