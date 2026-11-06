@@ -149,10 +149,13 @@ func (s *Store) RemoveEngine(ctx context.Context, name string) error {
 // replaying these would silently double-count or duplicate data. To override
 // (e.g. when the target projections are known-empty), pass WithBackfillForce().
 //
-// If no EventLog is attached, Backfill returns nil without error.
+// If no EventLog is attached there is nothing to replay from, so Backfill
+// returns [ErrNoEventLog] instead of reporting success for work it never did.
+// An attached but still-empty log IS a genuine no-op and returns nil. Use
+// [Store.EventLogAttached] when "no log" is an expected deployment shape.
 func (s *Store) Backfill(ctx context.Context, opts ...BackfillOption) error {
-	if s.eventLog == nil {
-		return nil
+	if !s.EventLogAttached() {
+		return ErrNoEventLog
 	}
 
 	events := s.eventLog.Events()
