@@ -3330,6 +3330,7 @@ metaengine/func WithLimit
 metaengine/func WithMetrics
 metaengine/func WithNetworkRTT
 metaengine/func WithOr
+metaengine/func WithPrefetch
 metaengine/func WithPriorityConfig
 metaengine/func WithProbeAlpha
 metaengine/func WithProbeContext
@@ -3664,6 +3665,7 @@ metaengine/method EngineNames
 metaengine/method EngineRole
 metaengine/method Err
 metaengine/method Error
+metaengine/method EventLogAttached
 metaengine/method EventSample
 metaengine/method EventType
 metaengine/method EventTypes
@@ -4294,10 +4296,13 @@ metaengine/var ErrCapRequiresMap
 metaengine/var ErrCapUnsupported
 metaengine/var ErrCatchUpUnsupported
 metaengine/var ErrClaimLeaseNotHeld
+metaengine/var ErrCollectionCountMismatch
 metaengine/var ErrDuplicateEvent
 metaengine/var ErrExecuteTypeMismatch
 metaengine/var ErrKeyTypeMismatch
 metaengine/var ErrLayoutConflict
+metaengine/var ErrNoEventLog
+metaengine/var ErrNoQueryDecls
 metaengine/var ErrNoQueryForInputType
 metaengine/var ErrNoQueryForName
 metaengine/var ErrNotFound
@@ -4310,6 +4315,7 @@ metaengine/var ErrUnsupportedADT
 metaengine/var ErrUnsupportedDurability
 metaengine/var ErrUnsupportedPattern
 metaengine/var ErrVectorDimensionMismatch
+metaengine/var ErrVerifyDrift
 metaengine/var ErrVersionConflict
 metaengine/var V1StabilizationChecklist
 middleware/const KindCommand
