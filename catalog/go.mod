@@ -14,7 +14,7 @@ require (
 	github.com/go-faster/yaml v0.4.6
 	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.7.1
 	github.com/larsartmann/go-error-family v0.12.0
-	github.com/larsartmann/templ-components v1.27.0
+	github.com/larsartmann/templ-components v1.26.0
 	github.com/larsartmann/templ-components/icons v1.27.0
 	github.com/larsartmann/templ-components/utils v1.27.0
 	github.com/onsi/ginkgo/v2 v2.33.1
