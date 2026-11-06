@@ -701,6 +701,23 @@ func TestPrefetchCache_WithCursorString_CacheHit(t *testing.T) {
 		t.Fatalf("cursor.Encode: %v", err)
 	}
 
+	// Page 1 must have populated the cache. Emptying the engine right after is
+	// what proves page 2 is SERVED from it instead of read back from the store.
+	if got := cache.Len(); got != 1 {
+		t.Fatalf("cache holds %d pages after page 1, want 1", got)
+	}
+
+	mb, ok := eng.(MapBackend)
+	if !ok {
+		t.Fatal("memory engine does not implement MapBackend")
+	}
+
+	for i := range 8 {
+		if err := mb.MapDelete(ctx, "tasks", testTaskID(fmt.Sprintf("ch%d", i))); err != nil {
+			t.Fatalf("MapDelete ch%d: %v", i, err)
+		}
+	}
+
 	// Page 2 via WithCursorString — should be a cache hit.
 	page2, _, err := reader.ScanPage(
 		ctx,
@@ -714,13 +731,6 @@ func TestPrefetchCache_WithCursorString_CacheHit(t *testing.T) {
 
 	if len(page2) != 3 {
 		t.Fatalf("expected 3 items on page2, got %d", len(page2))
-	}
-
-	// Verify cache has the entry (not just that the scan worked).
-	// The key should be the encoded cursor.
-	expectedKey := prefetchCursorKey("tasks", cursor1)
-	if cache.Get(expectedKey) == nil {
-		t.Error("expected cache hit for encoded cursor key")
 	}
 
 	// Also verify the WithCursor path hits the same cache entry.

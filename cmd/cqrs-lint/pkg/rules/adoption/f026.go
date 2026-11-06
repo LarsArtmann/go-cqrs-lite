@@ -10,13 +10,19 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 )
 
-// F026 detects CQRS projects that use metaengine.NewReader but never call
-// metaengine.WithPrefetch. Without prefetch, every Scan page fetch hits the
-// underlying store individually. WithPrefetch batches cursor-page reads to
-// reduce round-trips, especially important for SQL-backed engines. Point-Get
-// reads do not use the prefetch cache (typed_reader.go), so readers that only
-// Get are not coached — the gate is an actual .Scan call site
-// (nsfw-classifier feedback, 2026-10-03).
+// F026 detects CQRS projects that use metaengine.NewReader but never attach a
+// PrefetchCache. Without one, every Scan page fetch hits the underlying store
+// individually; a cache batches cursor-page reads to reduce round-trips,
+// especially important for SQL-backed engines. Point-Get reads do not use the
+// prefetch cache (typed_reader.go), so readers that only Get are not coached —
+// the gate is an actual .Scan call site (nsfw-classifier feedback, 2026-10-03).
+//
+// Either attach form satisfies the rule: the reader-level
+// `reader.WithPrefetch(cache)` (the form that has existed since early v4) or the
+// per-call `metaengine.WithPrefetch(cache)` scan option (metaengine ≥ v4.21.0).
+// The check is receiver-agnostic because the reader form has no package
+// identifier to match on, and it resolves import aliases so
+// `metaeng "…/metaengine/v4"` is seen too.
 //
 // Fires only when the project imports metaengine (HasMetaengine).
 //
@@ -28,16 +34,18 @@ func NewF026Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			var out []finding.Finding
 
 			for _, sc := range coachingScopes(ctx) {
-				if !importsPathIn(sc.files, "go-cqrs-lite/metaengine") &&
-					!sc.profile.HasMetaengine {
+				importsMetaengine := importsPathIn(sc.files, "go-cqrs-lite/metaengine")
+				if !importsMetaengine && !sc.profile.HasMetaengine {
 					continue
 				}
 
-				if !hasCallIn(sc.files, "metaengine", "NewReader") {
+				localNames := importLocalNames(sc.files, "go-cqrs-lite/metaengine")
+
+				if !hasCallToLocal(sc.files, localNames, "NewReader") {
 					continue
 				}
 
-				if hasCallIn(sc.files, "metaengine", "WithPrefetch") {
+				if hasCallToNameAnywhere(sc.files, "WithPrefetch") {
 					continue
 				}
 
@@ -45,7 +53,7 @@ func NewF026Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					continue
 				}
 
-				pos, ok := firstNewReaderPosIn(ctx.Fset, sc.files)
+				pos, ok := firstNewReaderPosIn(ctx.Fset, sc.files, localNames)
 				if !ok {
 					continue
 				}
@@ -53,13 +61,13 @@ func NewF026Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				out = append(out, singleInfoFinding(
 					ctx,
 					"F026",
-					"metaengine.NewReader used for Scans but WithPrefetch never called — "+
+					"metaengine.NewReader used for Scans but no PrefetchCache is attached — "+
 						"every Scan page fetch hits the underlying store individually",
-					"Pass metaengine.WithPrefetch(n) to reader.Scan calls to "+
-						"batch cursor-page reads and reduce round-trips, especially "+
-						"for SQL engines. Point-Get only readers need no prefetch. "+
-						"Example: reader.Scan(ctx, metaengine.WithPrefetch(100), "+
-						"metaengine.WithLimit(50))",
+					"Attach a cache once: reader := metaengine.NewReader[V](store, \"q\")"+
+						".WithPrefetch(metaengine.NewPrefetchCache()), or per call with "+
+						"metaengine.WithPrefetch(cache) alongside WithLimit/WithCursor "+
+						"(metaengine v4.21.0+). Either batches cursor-page reads, cutting "+
+						"round-trips on SQL engines. Point-Get only readers need no prefetch.",
 					pos, finding.ConfidenceLow,
 				)...)
 			}
@@ -72,6 +80,7 @@ func NewF026Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 func firstNewReaderPosIn(
 	fset *token.FileSet,
 	files []*analyzer.GoFile,
+	localNames map[string]bool,
 ) (token.Position, bool) {
 	for _, gf := range files {
 		if gf.IsTest {
@@ -100,11 +109,12 @@ func firstNewReaderPosIn(
 			}
 
 			ident, ok := sel.X.(*ast.Ident)
-			if !ok || ident.Name != "metaengine" {
+			if !ok || !localNames[ident.Name] {
 				return true
 			}
 
 			hit = call
+
 			return false
 		})
 
