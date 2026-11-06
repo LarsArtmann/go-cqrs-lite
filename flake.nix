@@ -864,7 +864,7 @@
 
               src = mkCqrsLintSource pkgs;
 
-              vendorHash = "sha256-5RcdyWcXxRjaVGgoeuyAh5c3DGe9ceOzUdzk8uGkYCY=";
+              vendorHash = "sha256-AAvV7ijL5UPB0ac5lARIaeKdsUPLSXJdZGsmoahwNY4=";
               proxyVendor = true;
 
               subPackages = [ "." ];
@@ -921,7 +921,7 @@
 
               # Re-pinned 2026-10-24: md-go-validator input moved on master
               # again (same class as the 2026-09-29/10-04/10-11/10-13/10-17 shifts).
-              vendorHash = "sha256-0B+mcM0vCcyckwl+z4XciO2OciD0Qsi8QWtwj1GkjzA=";
+              vendorHash = "sha256-I21bkdgBHYjCXn298jnBRawJ104CNcwfr8/InwMoauw=";
               proxyVendor = true;
 
               subPackages = [ "cmd/md-go-validator" ];
