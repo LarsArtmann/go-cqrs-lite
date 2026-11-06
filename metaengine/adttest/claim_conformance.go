@@ -5,8 +5,10 @@ package adttest
 
 import (
 	"context"
+	"database/sql/driver"
 	"errors"
 	"fmt"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -19,6 +21,18 @@ import (
 // persistent engines (same suffix trick as Scenarios()).
 func claimConformanceCollection(base string) string {
 	return fmt.Sprintf("%s_claims_%d", base, time.Now().UnixNano())
+}
+
+// isDeadConnection matches the stale/reset pooled-connection class (the
+// QEMU VM MySQL CI lineage): database/sql ErrBadConn, go-sql-driver's
+// "invalid connection", or a TCP reset. A claim that died on a dead conn
+// cannot have committed.
+func isDeadConnection(err error) bool {
+	msg := strings.ToLower(err.Error())
+
+	return errors.Is(err, driver.ErrBadConn) ||
+		strings.Contains(msg, "invalid connection") ||
+		strings.Contains(msg, "connection reset by peer")
 }
 
 // AssertDueClaimer runs the DueClaimer conformance suite against every
@@ -263,12 +277,29 @@ func AssertDueClaimer( //nolint:maintidx // linear conformance narrative
 
 				for worker := range 4 {
 					wg.Go(func() {
-						claimed, err := claimer.ClaimDue(ctx, metaengine.ClaimDueRequest{
-							Collection: col,
-							Owner:      fmt.Sprintf("w%d", worker),
-							Lease:      time.Minute,
-							Now:        now,
-						})
+						// A stale pooled connection ("invalid connection", reset
+						// by peer — the QEMU VM MySQL lineage, CI 2026-11-05/06)
+						// kills the claim tx before it commits, so retrying cannot
+						// double-claim; bounded so a live defect still fails.
+						var (
+							claimed []metaengine.DueClaim
+							err     error
+						)
+
+						for attempt := range 5 {
+							claimed, err = claimer.ClaimDue(ctx, metaengine.ClaimDueRequest{
+								Collection: col,
+								Owner:      fmt.Sprintf("w%d", worker),
+								Lease:      time.Minute,
+								Now:        now,
+							})
+							if err == nil || attempt == 4 || !isDeadConnection(err) {
+								break
+							}
+
+							time.Sleep(25 * time.Millisecond)
+						}
+
 						if err != nil {
 							t.Errorf("concurrent claim: %v", err)
 
