@@ -79,7 +79,7 @@ func isMajorVersionSegment(segment string) bool {
 		return false
 	}
 
-	for i := 1; i < len(segment); i++ {
+	for i := 1; i < len(segment); i++ { //art-dupl:accept digit scan, not a rule-ID validator
 		if segment[i] < '0' || segment[i] > '9' {
 			return false
 		}

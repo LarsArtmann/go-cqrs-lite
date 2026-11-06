@@ -119,6 +119,19 @@ func (s *Store) EventLogAttached() bool {
 	return s.eventLog != nil
 }
 
+// replayableEvents is the shared prologue of every replay-based operation
+// (Verify, Backfill): it reports what there is to replay, and the ONE reason
+// there may be nothing — [ErrNoEventLog] when no log is attached at all. An
+// attached log that has recorded nothing yet is a genuine no-op and yields an
+// empty slice, not an error.
+func (s *Store) replayableEvents() ([]EventInput, error) {
+	if !s.EventLogAttached() {
+		return nil, ErrNoEventLog
+	}
+
+	return s.eventLog.Events(), nil
+}
+
 // Verify replays all recorded events into a verification engine and compares
 // the row counts against the live store. Returns nil if consistent.
 // Requires WithEventLog and the original query declarations stored on Plan.
@@ -129,11 +142,11 @@ func (s *Store) EventLogAttached() bool {
 // while [ErrCollectionCountMismatch] and [ErrVerifyDrift] are the drift it
 // exists to detect. Use [Store.EventLogAttached] to skip the call entirely.
 func (s *Store) Verify(ctx context.Context, engines []Engine) error {
-	if !s.EventLogAttached() {
-		return ErrNoEventLog
+	events, err := s.replayableEvents()
+	if err != nil {
+		return err
 	}
 
-	events := s.eventLog.Events()
 	if len(events) == 0 {
 		return nil
 	}

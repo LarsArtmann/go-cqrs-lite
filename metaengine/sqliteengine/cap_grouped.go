@@ -22,7 +22,7 @@ func capGroupIdent(name string) bool {
 	}
 
 	for i := 0; i < len(name); i++ {
-		c := name[i]
+		c := name[i] //art-dupl:accept module-boundary twin (see metaengine/cap_grouped.go)
 
 		switch {
 		case c >= 'a' && c <= 'z', c >= 'A' && c <= 'Z', c == '_':
