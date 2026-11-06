@@ -29,8 +29,13 @@ func NewReader[V any](store *Store, collection string) *TypedReader[V] {
 }
 
 // WithPrefetch attaches a PrefetchCache to the reader for cursor-based
-// pagination caching. When set, Scan results beyond the requested limit are
+// pagination caching. When set, ScanPage results beyond the requested limit are
 // cached for the next page request, eliminating redundant engine round-trips.
+//
+// This is the reader-level default; [WithPrefetch] (the scan option) attaches a
+// cache to individual calls and wins over it — including an explicit nil, which
+// scans uncached once. Cache keys are shape-qualified, so a page cached for one
+// filter/sort is never served to a scan of another shape.
 func (r *TypedReader[V]) WithPrefetch(cache *PrefetchCache) *TypedReader[V] {
 	r.prefetch = cache
 
