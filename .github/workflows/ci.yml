@@ -72,8 +72,13 @@ jobs:
           # The budget was measured on the maintainer host; a CI runner is a
           # different machine class, so widen here rather than let machine
           # speed masquerade as a regression. The tight gate is the local and
-          # nightly run.
-          TEST_RUNTIME_FACTOR=3 TEST_RUNTIME_FLOOR=30 nix run .#check-test-runtime
+          # nightly run. Floor is 60 (not 30): DB-backed suites (pgengine,
+          # stack/mysql) SKIP locally (0.07s baseline rows) but run their
+          # real integration paths on runners, and doc-check's recipes
+          # harness is cold-cache bound — 2026-11-06 all three breached a
+          # 30s floor on a slow shared runner while the tree was green
+          # locally.
+          TEST_RUNTIME_FACTOR=3 TEST_RUNTIME_FLOOR=60 nix run .#check-test-runtime
 
       - name: Test with race detector
         run: nix run .#test-race
