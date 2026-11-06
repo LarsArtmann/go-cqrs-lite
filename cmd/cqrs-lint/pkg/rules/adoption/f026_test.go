@@ -56,18 +56,23 @@ func _() {
 	ruletest.AssertRule(t, findings, "F026", 0)
 }
 
+// TestF026_NoFindingWithPrefetch uses the reader-level form: the shape that has
+// existed since the cache shipped.
 func TestF026_NoFindingWithPrefetch(t *testing.T) {
 	t.Parallel()
 
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"main.go": `package main
 
-import metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+import (
+	"context"
+
+	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+)
 
 func _() {
-	r := metaengine.NewReader[any](nil, "items")
-	_ = r
-	_ = metaengine.WithPrefetch(100)
+	r := metaengine.NewReader[any](nil, "items").WithPrefetch(metaengine.NewPrefetchCache())
+	_, _ = r.Scan(context.Background(), metaengine.WithLimit(10))
 }
 `,
 	})
@@ -75,6 +80,60 @@ func _() {
 
 	findings := ruletest.RunDetector(t, adoption.NewF026Detector(ctx))
 	ruletest.AssertRule(t, findings, "F026", 0)
+}
+
+// TestF026_NoFindingWithPrefetchScanOption covers the per-call form the rule
+// coaches (metaengine >= v4.21.0).
+func TestF026_NoFindingWithPrefetchScanOption(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+import (
+	"context"
+
+	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+)
+
+func _() {
+	r := metaengine.NewReader[any](nil, "items")
+	_, _ = r.Scan(context.Background(),
+		metaengine.WithPrefetch(metaengine.NewPrefetchCache()),
+		metaengine.WithLimit(10))
+}
+`,
+	})
+	ctx.FeatureProfile.HasMetaengine = true
+
+	findings := ruletest.RunDetector(t, adoption.NewF026Detector(ctx))
+	ruletest.AssertRule(t, findings, "F026", 0)
+}
+
+// TestF026_AliasedImportStillDetected pins the alias fix: `metaeng` must not
+// smuggle a reader past the rule.
+func TestF026_AliasedImportStillDetected(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+import (
+	"context"
+
+	metaeng "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+)
+
+func _() {
+	r := metaeng.NewReader[any](nil, "items")
+	_, _ = r.Scan(context.Background())
+}
+`,
+	})
+	ctx.FeatureProfile.HasMetaengine = true
+
+	findings := ruletest.RunDetector(t, adoption.NewF026Detector(ctx))
+	ruletest.AssertRule(t, findings, "F026", 1)
 }
 
 func TestF026_NoFindingWithoutMetaengine(t *testing.T) {

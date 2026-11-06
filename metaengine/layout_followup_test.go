@@ -216,7 +216,7 @@ var _ = Describe("Layout planning follow-ups (ADR-0124 Phase 6b)", func() {
 			Expect(err).NotTo(HaveOccurred())
 		})
 
-		It("returns nil when no EventLog attached", func() {
+		It("returns ErrNoEventLog when no EventLog attached", func() {
 			mem := metaengine.NewMemoryEngine()
 			defer mem.Close()
 
@@ -224,8 +224,10 @@ var _ = Describe("Layout planning follow-ups (ADR-0124 Phase 6b)", func() {
 			Expect(err).NotTo(HaveOccurred())
 			defer store.Close()
 
+			Expect(store.EventLogAttached()).To(BeFalse())
+
 			err = store.Backfill(context.Background())
-			Expect(err).NotTo(HaveOccurred())
+			Expect(err).To(MatchError(metaengine.ErrNoEventLog))
 		})
 	})
 

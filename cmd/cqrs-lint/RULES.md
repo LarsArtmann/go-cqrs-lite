@@ -1739,7 +1739,7 @@ Manual count/aggregation (for-range + count++/sum +=) with a SQL store but no me
 
 Severity: `info` · Confidence: `low` · Auto-fix: no · Category: `adoption`
 
-metaengine.NewReader used but WithPrefetch never called — every Scan/Get hits the underlying store individually
+metaengine.NewReader used for Scans but no PrefetchCache attached — every Scan page fetch hits the underlying store individually
 
 <a id="f027"></a>
 

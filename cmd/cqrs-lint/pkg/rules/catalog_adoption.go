@@ -233,7 +233,7 @@ func adoptionRules() []RuleInfo {
 			Category:    "adoption",
 			Severity:    "info",
 			Confidence:  "low",
-			Description: "metaengine.NewReader used but WithPrefetch never called — every Scan/Get hits the underlying store individually",
+			Description: "metaengine.NewReader used for Scans but no PrefetchCache attached — every Scan page fetch hits the underlying store individually",
 			AutoFix:     false,
 		},
 		{
