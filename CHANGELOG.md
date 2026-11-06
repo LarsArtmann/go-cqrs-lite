@@ -27,6 +27,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
      importable packages) — root stays v4.0.0. -->
 ## [Unreleased]
 
+### Changed
+
+### Added
+
 ## [catalog/v4.13.0, kv/v4.4.0, id/v4.7.5, metaengine/v4.21.0, metaengine/sqliteengine/v4.7.0, cmd/cqrs-lint/v4.21.0, systemscenario/v4.3.0 — 2026-11-06 post-sweep issue wave (7 tags)] — 2026-11-06
 
 ### Changed

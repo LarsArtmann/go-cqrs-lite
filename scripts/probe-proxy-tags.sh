@@ -109,11 +109,12 @@ probe_module() {
 	tmp="$(mktemp)"
 	trap 'rm -f "$tmp"' RETURN
 
-	if ! python3 - "$mod" "$latest" "$tmp" <<'PYEOF' 2>/dev/null; then
+	if ! python3 - "$mod" "$latest" "$tmp" <<'PYEOF' 2>/dev/null
 import sys, urllib.request
 mod, ver, out = sys.argv[1], sys.argv[2], sys.argv[3]
 urllib.request.urlretrieve(f"https://proxy.golang.org/{mod}/@v/{ver}.zip", out)
 PYEOF
+	then
 		echo "✗ $mod@$latest: zip download failed" >&2
 		failures=$((failures + 1))
 		return
