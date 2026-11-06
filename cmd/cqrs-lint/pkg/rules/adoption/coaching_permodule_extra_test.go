@@ -354,7 +354,7 @@ import (
 )
 func main() {
 	r := metaengine.NewReader[string](nil, "col")
-	_, _ = r.Scan(context.Background())
+	_, _, _ = r.ScanPage(context.Background(), metaengine.WithLimit(10))
 }
 `
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{

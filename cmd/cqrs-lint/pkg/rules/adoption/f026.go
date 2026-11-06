@@ -49,7 +49,7 @@ func NewF026Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					continue
 				}
 
-				if !hasScanCall(sc.files) {
+				if !hasCursorPaginationCall(sc.files) {
 					continue
 				}
 
@@ -61,8 +61,9 @@ func NewF026Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				out = append(out, singleInfoFinding(
 					ctx,
 					"F026",
-					"metaengine.NewReader used for Scans but no PrefetchCache is attached — "+
-						"every Scan page fetch hits the underlying store individually",
+					"metaengine.NewReader used for cursor-paginated Scans but no "+
+						"PrefetchCache is attached — every page fetch hits the underlying "+
+						"store individually",
 					"Attach a cache once: reader := metaengine.NewReader[V](store, \"q\")"+
 						".WithPrefetch(metaengine.NewPrefetchCache()), or per call with "+
 						"metaengine.WithPrefetch(cache) alongside WithLimit/WithCursor "+

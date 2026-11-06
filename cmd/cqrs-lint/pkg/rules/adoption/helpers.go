@@ -80,39 +80,14 @@ func astInspectCalls(root ast.Node, fn func(*ast.CallExpr) bool) {
 	})
 }
 
-// hasScanCall reports whether any non-test file contains a method call named
-// Scan (receiver-agnostic, syntactic). Used to gate prefetch coaching (F026)
-// on readers that actually iterate — point-Get-only readers gain nothing from
-// the prefetch cache.
-func hasScanCall(files []*analyzer.GoFile) bool {
-	for _, gf := range files {
-		if gf.IsTest {
-			continue
-		}
-
-		found := false
-
-		ast.Inspect(gf.AST, func(n ast.Node) bool {
-			if found {
-				return false
-			}
-
-			call, ok := n.(*ast.CallExpr)
-			if !ok {
-				return true
-			}
-
-			sel, ok := analyzer.SelectorFromExpr(call.Fun)
-			if !ok || sel.Sel.Name != "Scan" {
-				return true
-			}
-
-			found = true
-
-			return false
-		})
-
-		if found {
+// hasCursorPaginationCall reports whether any non-test file PAGINATES a typed
+// reader: a ScanPage call, or an explicit WithCursor/WithCursorString. It gates
+// prefetch coaching (F026), which only pays off across pages — a one-shot Scan
+// gains nothing from the cache and pays a doubled fetch (the cache doubles the
+// limit to stage the next page), so coaching it was a trap.
+func hasCursorPaginationCall(files []*analyzer.GoFile) bool {
+	for _, name := range []string{"ScanPage", "WithCursor", "WithCursorString"} {
+		if hasCallToNameAnywhere(files, name) {
 			return true
 		}
 	}

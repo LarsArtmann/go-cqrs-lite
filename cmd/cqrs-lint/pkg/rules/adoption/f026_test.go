@@ -22,7 +22,7 @@ import (
 
 func _() {
 	r := metaengine.NewReader[any](nil, "items")
-	_, _ = r.Scan(context.Background())
+	_, _, _ = r.ScanPage(context.Background(), metaengine.WithLimit(10))
 }
 `,
 	})
@@ -126,7 +126,7 @@ import (
 
 func _() {
 	r := metaeng.NewReader[any](nil, "items")
-	_, _ = r.Scan(context.Background())
+	_, _, _ = r.ScanPage(context.Background(), metaeng.WithLimit(10))
 }
 `,
 	})
@@ -134,6 +134,35 @@ func _() {
 
 	findings := ruletest.RunDetector(t, adoption.NewF026Detector(ctx))
 	ruletest.AssertRule(t, findings, "F026", 1)
+}
+
+// TestF026_NoFindingForOneShotScan pins the precision fix: a single filtered
+// Scan (no cursor, no next page) gains nothing from a prefetch cache and would
+// pay its doubled fetch, so it is not coached (the example/taskmanager shape).
+func TestF026_NoFindingForOneShotScan(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+import (
+	"context"
+
+	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+)
+
+func _() {
+	r := metaengine.NewReader[any](nil, "items")
+	_, _ = r.Scan(context.Background(),
+		metaengine.WithSort("priority", true),
+		metaengine.WithLimit(10))
+}
+`,
+	})
+	ctx.FeatureProfile.HasMetaengine = true
+
+	findings := ruletest.RunDetector(t, adoption.NewF026Detector(ctx))
+	ruletest.AssertRule(t, findings, "F026", 0)
 }
 
 func TestF026_NoFindingWithoutMetaengine(t *testing.T) {
