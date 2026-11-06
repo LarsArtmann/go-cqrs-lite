@@ -378,7 +378,7 @@ func (s *Store) dispatchFoldsCoreLocked(
 		}
 
 		if tx, ok := eng.(Transactional); ok {
-			if err := tx.RunInTx(ctx, applyAll); err != nil {
+			if err := runInTxWithRetry(ctx, tx, applyAll); err != nil {
 				return fmt.Errorf("batch apply on %s: %w", eng.Profile().Name, err)
 			}
 		} else {
