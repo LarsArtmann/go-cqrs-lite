@@ -10,6 +10,20 @@ type scanConfig struct {
 	exact    bool
 	ranges   []RangeSpec
 	inSpecs  []InSpec
+	prefetch    *PrefetchCache
+	prefetchSet bool
+}
+
+// prefetchCacheFor resolves the cache a scan should use: an explicit
+// [WithPrefetch] scan option wins over the reader-level
+// [TypedReader.WithPrefetch] default (including an explicit nil, which turns
+// caching off for that call).
+func (c scanConfig) prefetchCacheFor(readerDefault *PrefetchCache) *PrefetchCache {
+	if c.prefetchSet {
+		return c.prefetch
+	}
+
+	return readerDefault
 }
 
 // RangeSpec declares a range filter (SQL BETWEEN) on a column.
@@ -129,5 +143,30 @@ func WithCursorString(s string) ScanOption {
 		}
 
 		c.cursor = cursor
+	}
+}
+
+// WithPrefetch attaches a [PrefetchCache] to individual Scan/ScanPage calls
+// (metaengine ≥ v4.21.0). It is the per-call form of
+// [TypedReader.WithPrefetch]: the reader-level cache stays the default and an
+// explicit option wins, so a shared cache can be threaded through a reader that
+// is itself long-lived, or through several readers of the same collection.
+//
+// The option makes the scan fetch twice its limit and cache the overflow rows
+// under the next-page cursor key, which the following call with the same cache,
+// collection and cursor is then served from — one cache per concurrent
+// pagination walk, not one per reader. Pass nil to scan without caching even
+// when the reader has a default cache.
+//
+//	reader := metaengine.NewReader[Item](store, "items")
+//	cache := metaengine.NewPrefetchCache()
+//	page1, cur, _ := reader.ScanPage(ctx, metaengine.WithPrefetch(cache),
+//	    metaengine.WithLimit(50))
+//	page2, _, _ := reader.ScanPage(ctx, metaengine.WithPrefetch(cache),
+//	    metaengine.WithLimit(50), metaengine.WithCursor(cur.Value))
+func WithPrefetch(cache *PrefetchCache) ScanOption {
+	return func(c *scanConfig) {
+		c.prefetch = cache
+		c.prefetchSet = true
 	}
 }

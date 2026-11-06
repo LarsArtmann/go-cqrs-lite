@@ -81,10 +81,13 @@ func (r *TypedReader[V]) scanItemsConfigured(
 		}
 	}
 
-	// PrefetchCache: serve from cache when a cursor key matches.
-	if r.prefetch != nil && cfg.cursor != nil {
+	// PrefetchCache: serve from cache when a cursor key matches. The cache is
+	// the scan option's when one was passed, else the reader's default.
+	cache := cfg.prefetchCacheFor(r.prefetch)
+
+	if cache != nil && cfg.cursor != nil {
 		cacheKey := prefetchCursorKey(r.collection, cfg.cursor)
-		if cached := r.prefetch.Get(cacheKey); cached != nil {
+		if cached := cache.Get(cacheKey); cached != nil {
 			result := make([]V, 0, len(cached))
 
 			for _, row := range cached {
@@ -105,7 +108,7 @@ func (r *TypedReader[V]) scanItemsConfigured(
 	// When a PrefetchCache is attached, fetch double the limit so trimAndCache
 	// can cache a full next page (not just 1 overflow row).
 	fetchLimit := cfg.limit
-	if r.prefetch != nil && cfg.limit > 0 {
+	if cache != nil && cfg.limit > 0 {
 		fetchLimit = cfg.limit * 2
 	}
 

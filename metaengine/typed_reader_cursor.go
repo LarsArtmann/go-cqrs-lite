@@ -49,7 +49,7 @@ func (r *TypedReader[V]) ScanPage(ctx context.Context, opts ...ScanOption) ([]V,
 		return result, nil, nil
 	}
 
-	if r.prefetch == nil && meta.nextCursor != nil {
+	if cfg.prefetchCacheFor(r.prefetch) == nil && meta.nextCursor != nil {
 		if meta.hasMore {
 			return result, &Cursor{Value: meta.nextCursor}, nil
 		}
@@ -67,7 +67,9 @@ func (r *TypedReader[V]) ScanPage(ctx context.Context, opts ...ScanOption) ([]V,
 // cursor key is derived from the last returned item's sort field (or the item
 // itself when no sort is specified).
 func (r *TypedReader[V]) trimAndCache(result []V, cfg scanConfig) []V {
-	if r.prefetch != nil && cfg.limit > 0 && len(result) > cfg.limit {
+	cache := cfg.prefetchCacheFor(r.prefetch)
+
+	if cache != nil && cfg.limit > 0 && len(result) > cfg.limit {
 		cursorVal := extractCursorValue(result[cfg.limit-1], cfg)
 		nextKey := prefetchCursorKey(r.collection, cursorVal)
 		extra := make([]any, len(result)-cfg.limit)
@@ -76,7 +78,7 @@ func (r *TypedReader[V]) trimAndCache(result []V, cfg scanConfig) []V {
 			extra[i] = v
 		}
 
-		r.prefetch.Put(nextKey, extra)
+		cache.Put(nextKey, extra)
 	}
 
 	return trimToLimit(result, cfg.limit)
