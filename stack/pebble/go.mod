@@ -6,8 +6,8 @@ require (
 	github.com/cockroachdb/pebble v1.1.5
 	github.com/larsartmann/go-codec v0.3.3
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.2
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.4
-	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.3.5
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.5
+	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.5.1
 	github.com/larsartmann/go-cqrs-lite/storage/pebble/v4 v4.4.4
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.7.0

@@ -6,7 +6,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.1
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.8.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.2
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.4
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.5
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.7.0
 )

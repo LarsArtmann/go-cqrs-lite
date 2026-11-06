@@ -4,7 +4,7 @@ go 1.27.2
 
 require (
 	github.com/duckdb/duckdb-go/v2 v2.20000.0
-	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.3.5
+	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.5.1
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.11.1
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.7.0
@@ -39,7 +39,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.8.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.2 // indirect
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.4 // indirect
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.5 // indirect
 	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.4.4 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.3 // indirect

@@ -6,8 +6,8 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metaengine/badgerengine/v4 v4.3.3
 	github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4 v4.3.3
 	github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4 v4.4.4
-	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.6.0
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.20.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.7.1
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.22.0
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2
 )
 
