@@ -393,7 +393,7 @@ Modules release on independent per-module version trains (`<module>/vX.Y.Z` git 
 | listing | `listing/v4.4.4` |
 | memory | `memory/v2.6.0` |
 | metadata | `metadata/v4.7.3` |
-| metaengine | `metaengine/v4.21.0` |
+| metaengine | `metaengine/v4.22.0` |
 | metaengine/badgerengine | `metaengine/badgerengine/v4.3.3` *(untagged per ADR-0152)* |
 | metaengine/bboltengine | `metaengine/bboltengine/v4.3.3` *(untagged per ADR-0152)* |
 | metaengine/bench | `metaengine/bench/v4.1.2` *(untagged per ADR-0152)* |
@@ -409,7 +409,7 @@ Modules release on independent per-module version trains (`<module>/vX.Y.Z` git 
 | metaengine/pebbleengine | `metaengine/pebbleengine/v4.4.4` |
 | metaengine/pgengine | `metaengine/pgengine/v4.4.3` *(untagged per ADR-0152)* |
 | metaengine/projectionadapter | `metaengine/projectionadapter/v4.6.2` |
-| metaengine/sqliteengine | `metaengine/sqliteengine/v4.7.0` |
+| metaengine/sqliteengine | `metaengine/sqliteengine/v4.7.1` |
 | metaengine/tursoengine | `metaengine/tursoengine/v4.2.3` *(untagged per ADR-0152)* |
 | middleware | `middleware/v4.7.2` |
 | otel | `otel/v4.5.3` |
@@ -451,7 +451,7 @@ Modules release on independent per-module version trains (`<module>/vX.Y.Z` git 
 | storage/pebble | `storage/pebble/v4.4.4` *(untagged per ADR-0152)* |
 | storage/turso | `storage/turso/v4.3.5` |
 | sync | `sync/v0.2.0` |
-| system | `system/v4.16.0` |
+| system | `system/v4.17.0` |
 | system/integration | `system/integration/v4.0.2` *(untagged per ADR-0152)* |
 | systemcatalog | `systemcatalog/v4.0.0` |
 | systemscenario | `systemscenario/v4.3.0` |
