@@ -9,23 +9,22 @@ import "sync"
 // Thread-safe: safe for concurrent use from multiple goroutines.
 //
 // Attach it one of two ways — either is enough, the cache is what carries the
-// state, not the reader:
+// state, not the TypedReader:
 //
-//	// (a) reader-level default, for a long-lived reader
-//	reader := metaengine.NewReader[Item](store, "items").
+//	// (a) as the reader's default, for a long-lived TypedReader
+//	r := metaengine.NewReader[Item](store, "items").
 //	    WithPrefetch(metaengine.NewPrefetchCache())
 //
-//	// (b) per scan call, when the reader is created per request
-//	reader.ScanPage(ctx, metaengine.WithPrefetch(cache),
+//	// (b) per scan call, when a TypedReader is created per request
+//	r.ScanPage(ctx, metaengine.WithPrefetch(cache),
 //	    metaengine.WithLimit(50), metaengine.WithCursor(cur.Value))
 //
-// Row caching is exact-boundary: the scan fetches 2×limit and the overflow is
-// keyed by the NEXT page's cursor, so only a call that passes the same cache,
-// collection and cursor is served from it (the engine never serves a cached
-// page with different filters or sort — key the cache per query shape if you
-// paginate more than one shape over the same collection). There is no eviction
-// beyond [PrefetchCache.Clear]: one cache per pagination walk, cleared when the
-// walk ends, is the intended lifecycle.
+// Keys are SHAPE-qualified (collection + filters + sort + cursor), so a page
+// cached for one query shape is never served to another — the same cursor value
+// under a different filter or sort is a different key. The scan fetches 2×limit
+// and caches the overflow under the next page's cursor. There is no eviction
+// beyond [PrefetchCache.Clear] (watch [PrefetchCache.Len]): one cache per
+// pagination walk, cleared when the walk ends, is the intended lifecycle.
 type PrefetchCache struct {
 	mu    sync.RWMutex
 	pages map[string][]any // cursor key → cached rows

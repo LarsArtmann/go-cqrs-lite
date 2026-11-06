@@ -23,7 +23,7 @@ F009 Time-based patterns detected (timers, deadlines, expirations) but schedulin
 F013 Manual HTTP handlers for dispatch but no delivery module is used — hand-rolled HTTP lacks broker fanout, SSE delivery, and trace-context propagation
 F021 metaengine query "task_counts_by_status" has 4 fold declarations — high write amplification may degrade ingest throughput (each event triggers multiple engine writes)
 F021 metaengine query <unknown> has 11 fold declarations — high write amplification may degrade ingest throughput (each event triggers multiple engine writes)
-F026 metaengine.NewReader used for Scans but WithPrefetch never called — every Scan page fetch hits the underlying store individually
+F026 metaengine.NewReader used for Scans but no PrefetchCache is attached — every Scan page fetch hits the underlying store individually
 F028 Project uses slog but never calls slog.SetDefault — the default logger is unconfigured (Text to stderr)
 F031 Scan without WithLimit silently truncates at 100 rows — larger collections return wrong (partial) results
 F032 Project uses go-cqrs-lite but never imports go-cqrs-lite/catalog — catalog-driven documentation is not wired

@@ -2,6 +2,7 @@ package adoption
 
 import (
 	"go/ast"
+	"slices"
 	"strings"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
@@ -63,12 +64,12 @@ func importLocalNames(files []*analyzer.GoFile, fragments ...string) map[string]
 func packageNameFromPath(path string) string {
 	segments := strings.Split(path, "/")
 
-	for i := len(segments) - 1; i >= 0; i-- {
-		if segments[i] == "" || isMajorVersionSegment(segments[i]) {
+	for _, segment := range slices.Backward(segments) {
+		if segment == "" || isMajorVersionSegment(segment) {
 			continue
 		}
 
-		return segments[i]
+		return segment
 	}
 
 	return ""
