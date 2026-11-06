@@ -115,9 +115,9 @@ func TestServeSSE_SubscribesBeforeHeaders(t *testing.T) {
 		select {
 		case <-ticker.C:
 			if strings.Contains(probing.snapshot(), "race") {
-			cancel()
+				cancel()
 
-			return
+				return
 			}
 		case <-deadline:
 			cancel()

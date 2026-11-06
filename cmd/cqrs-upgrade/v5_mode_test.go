@@ -97,10 +97,10 @@ func TestRunV5PassAppliesRewrite(t *testing.T) {
 
 func TestRunV5PassSkipsScannedDirs(t *testing.T) {
 	dir := writeV5Tree(t, map[string]string{
-		"main.go":            v5PlainGo,
-		"vendor/v.go":        v5MixedGo,
-		"testdata/td.go":     v5MixedGo,
-		"node_modules/n.go":  v5MixedGo,
+		"main.go":           v5PlainGo,
+		"vendor/v.go":       v5MixedGo,
+		"testdata/td.go":    v5MixedGo,
+		"node_modules/n.go": v5MixedGo,
 	})
 
 	rep := runV5Pass(dir, true)
@@ -182,8 +182,8 @@ func TestPrintReportBranches(t *testing.T) {
 
 	done = captureStdout(t)
 	printReport(moduleReport{
-		Dir:    "/somewhere",
-		NoPins: true,
+		Dir:     "/somewhere",
+		NoPins:  true,
 		ScanErr: errors.New("load exploded"),
 	})
 	out := string(done())
