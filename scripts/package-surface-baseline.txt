@@ -3,7 +3,7 @@
 # Ceilings for NEW packages: 150 symbols / 40 files.
 # Remove an entry once the package sits under BOTH ceilings.
 # Regenerate: bash scripts/check-package-surface.sh --update-baseline
-836	168	metaengine
+841	169	metaengine
 256	29	catalog
 253	37	core/v5/event
 253	37	event

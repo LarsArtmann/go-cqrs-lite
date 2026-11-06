@@ -658,6 +658,13 @@ The `PrefetchCache` is thread-safe and normalizes cache keys through
 `Cursor.Encode()`, so `WithCursor(raw)` and `WithCursorString(encoded)`
 hit the same cache entry.
 
+A reader created per request opts in per call with the
+`metaengine.WithPrefetch(cache)` scan option (metaengine v4.21.0+);
+`WithPrefetch(nil)` turns caching off for a single call. Keys are
+SHAPE-qualified (collection + filters + sort + cursor), so a page cached for one
+filter/sort is never served to a different query shape, and `cache.Len()` shows
+whether the cache is actually being used.
+
 ---
 
 ### 6.16b Failure Modes — read first

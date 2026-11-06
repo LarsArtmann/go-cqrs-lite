@@ -399,6 +399,19 @@ the probe's value into `ThenQueryFunc` (return `found` as the result, assert
 wave after systemscenario v4.0.0 — until then the probe adapter is the
 tag-compatible pattern). Deletion-as-event background: ADR-0114.
 
+### "Why does `VerifyProjections` always fail under `system.New`?"
+
+Because the composition root attaches no event log to the projection store, so
+`metaengine.Store.Verify` has nothing to replay. That is a structural no-op, not
+drift, and it is branchable instead of a string to grep:
+`errors.Is(err, metaengine.ErrNoEventLog)`. The four Verify outcomes are exported
+sentinels — `ErrNoEventLog` / `ErrNoQueryDecls` (Rejection: the deployment has to
+change) and `ErrCollectionCountMismatch` / `ErrVerifyDrift` (Corruption: the
+projection state no longer follows from its journal). Skip the call entirely with
+`store.EventLogAttached()` when "no log" is the expected deployment shape.
+`Store.Backfill` reports the same sentinel instead of returning nil for work it
+never did; an attached-but-empty log is the genuine no-op.
+
 ## Command-side pitfalls
 
 ### "Why don't my events record which command caused them?"

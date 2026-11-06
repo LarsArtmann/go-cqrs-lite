@@ -1156,6 +1156,16 @@ Both `WithCursor(raw)` and `WithCursorString(encoded)` produce identical
 PrefetchCache keys because the cache normalizes through `Cursor.Encode()`.
 The `PrefetchCache` is thread-safe (RWMutex).
 
+A reader created per request (the HTTP-handler shape) opts in per call instead:
+`reader.ScanPage(ctx, metaengine.WithPrefetch(cache), ...)` (metaengine
+v4.21.0+) attaches the cache to that scan, and an explicit
+`metaengine.WithPrefetch(nil)` turns caching off for one call even when the
+reader carries a default. Cache keys are SHAPE-qualified — collection + filters
++ sort + cursor — so a page cached for one filter/sort is never served to a
+scan of another shape. `cache.Len()` reports how many pages are cached; the
+cache only evicts on `Clear()`, so one cache per pagination walk is the
+lifecycle.
+
 ### 2.18 Flight Recorder — Capture Trace on Slow/Error (flightrecorder + middleware)
 
 Buffer the last few seconds of execution trace in memory. When an operation
