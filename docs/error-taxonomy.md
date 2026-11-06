@@ -783,15 +783,17 @@ errorfamily.Classify(err) // => Conflict
 
 ### storage (SQL facade)
 
-Manual claim (outside the generated region): the pinned erraudit v0.7.0
-export cannot yet link this mint, but the source mints it
-(`storage/turso/sync.go`, `errorfamily.WrapInfrastructure(err, "storage.turso_stats", ...)`)
-and check-error-taxonomy's rg pool demands it. Retire this row when the
-vendored erraudit pin bumps past the fix.
+Manual claims (outside the generated region): the pinned erraudit v0.7.0
+export cannot yet link these turso-sync mints, but the source mints them
+(`storage/turso/sync.go`) and check-error-taxonomy's rg pool demands them.
+Retire these rows when the vendored erraudit pin bumps past the fix.
 
-| Error | Family         | Code                  |
-| ----- | -------------- | --------------------- |
-| -     | Infrastructure | `storage.turso_stats` |
+| Error | Family         | Code                     |
+| ----- | -------------- | ------------------------ |
+| -     | Infrastructure | `storage.turso_stats`    |
+| -     | Rejection      | `storage.turso_memory_sync` |
+| -     | Infrastructure | `storage.turso_pull`     |
+| -     | Infrastructure | `storage.open_turso_sync` |
 
 ## Default Classification
 

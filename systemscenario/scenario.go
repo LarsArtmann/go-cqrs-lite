@@ -25,6 +25,10 @@ type scenarioConfig struct {
 
 const defaultAwaitTimeout = 5 * time.Second
 
+// raceAwaitTimeout is the -race widening of defaultAwaitTimeout (see
+// defaultConfig for the rationale).
+const raceAwaitTimeout = 30 * time.Second
+
 // defaultConfig relaxes the await timeout under the race detector: -race adds
 // a 5-20x slowdown on top of loaded-host scheduling, and the projection
 // pipeline can legitimately need more than 5s to catch up (observed 2026-11-05:
@@ -34,7 +38,7 @@ const defaultAwaitTimeout = 5 * time.Second
 func defaultConfig() scenarioConfig {
 	timeout := defaultAwaitTimeout
 	if RaceEnabled {
-		timeout = 30 * time.Second
+		timeout = raceAwaitTimeout
 	}
 
 	return scenarioConfig{awaitTimeout: timeout}

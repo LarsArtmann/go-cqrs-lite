@@ -42,6 +42,7 @@ func writeV5Tree(t *testing.T, files map[string]string) string {
 			t.Fatalf("write %s: %v", path, err)
 		}
 	}
+
 	return dir
 }
 
