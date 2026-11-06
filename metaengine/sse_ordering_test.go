@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 )
@@ -35,16 +36,41 @@ func TestSubscriberHub_NotifyLatestWins(t *testing.T) {
 }
 
 // headerProbingRecorder fires onStatus the moment the response status is
-// committed — the earliest a client can observe the stream as live.
+// committed — the earliest a client can observe the stream as live. Write
+// is intercepted into a mutex-guarded snapshot: the SSE handler goroutine
+// keeps writing the embedded recorder's Body after the test starts polling,
+// and bytes.Buffer is not safe for concurrent read/write — polling
+// rec.Body.String() directly is a -race failure (found by #verify run17,
+// 2026-11-06), not a production defect.
 type headerProbingRecorder struct {
 	*httptest.ResponseRecorder
 
 	onStatus func()
+
+	mu  sync.Mutex
+	got strings.Builder
 }
 
 func (r *headerProbingRecorder) WriteHeader(code int) {
 	r.onStatus()
 	r.ResponseRecorder.WriteHeader(code)
+}
+
+func (r *headerProbingRecorder) Write(p []byte) (int, error) {
+	r.mu.Lock()
+	r.got.Write(p)
+	r.mu.Unlock()
+
+	return r.ResponseRecorder.Write(p)
+}
+
+// snapshot returns everything streamed so far, safe to call while the
+// handler is still writing.
+func (r *headerProbingRecorder) snapshot() string {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	return r.got.String()
 }
 
 // TestServeSSE_SubscribesBeforeHeaders pins ServeSSE's ordering guarantee:
@@ -88,14 +114,14 @@ func TestServeSSE_SubscribesBeforeHeaders(t *testing.T) {
 	for {
 		select {
 		case <-ticker.C:
-			if strings.Contains(rec.Body.String(), "race") {
-				cancel()
+			if strings.Contains(probing.snapshot(), "race") {
+			cancel()
 
-				return
+			return
 			}
 		case <-deadline:
 			cancel()
-			t.Fatalf("value written at header-commit time never streamed; body so far: %q", rec.Body.String())
+			t.Fatalf("value written at header-commit time never streamed; body so far: %q", probing.snapshot())
 		}
 	}
 }
