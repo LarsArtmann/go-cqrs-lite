@@ -1,7 +1,9 @@
 package conformance
 
 import (
+	"database/sql/driver"
 	"errors"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -45,6 +47,16 @@ func (s *suite) pinFencing(t *testing.T) {
 
 	for w := range workers {
 		wg.Go(func() {
+			// A stale pooled connection kills the claim transaction before
+			// it commits, so nothing was claimed: retrying cannot
+			// double-claim. QEMU VM suites hit this under runner load (3
+			// consecutive CI failures 2026-11-06); a healthy engine
+			// recovers within a few retries, a broken one exhausts them and
+			// still fails the test.
+			const maxConnRetries = 5
+
+			connRetries := 0
+
 			for {
 				c, err := e.store.ClaimDue(t.Context(), claimer(w), time.Minute)
 				if errors.Is(err, queue.ErrNoTaskDue) {
@@ -52,6 +64,14 @@ func (s *suite) pinFencing(t *testing.T) {
 				}
 
 				if err != nil {
+					if connRetries < maxConnRetries && isDeadConnection(err) {
+						connRetries++
+
+						time.Sleep(25 * time.Millisecond)
+
+						continue
+					}
+
 					t.Errorf("worker %d claim: %v", w, err)
 
 					return
@@ -84,6 +104,13 @@ func (s *suite) pinFencing(t *testing.T) {
 // claimer names worker w deterministically.
 func claimer(w int) string {
 	return "w" + string(rune('0'+w))
+}
+
+// isDeadConnection reports whether err is a stale pooled connection:
+// database/sql's ErrBadConn or go-sql-driver's "invalid connection", which
+// carries no sentinel constant importable without a driver dependency.
+func isDeadConnection(err error) bool {
+	return errors.Is(err, driver.ErrBadConn) || strings.Contains(err.Error(), "invalid connection")
 }
 
 // pinExpiryReclaim pins the crash story: a lease that lapses re-opens
