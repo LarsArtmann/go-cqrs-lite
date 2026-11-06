@@ -3,6 +3,7 @@ package metaengine
 import (
 	"context"
 	"fmt"
+	"strings"
 )
 
 // pageMeta carries engine pagination metadata out of the scan paths so
@@ -71,7 +72,7 @@ func (r *TypedReader[V]) trimAndCache(result []V, cfg scanConfig) []V {
 
 	if cache != nil && cfg.limit > 0 && len(result) > cfg.limit {
 		cursorVal := extractCursorValue(result[cfg.limit-1], cfg)
-		nextKey := prefetchCursorKey(r.collection, cursorVal)
+		nextKey := prefetchCacheKey(r.collection, cfg, cursorVal)
 		extra := make([]any, len(result)-cfg.limit)
 
 		for i, v := range result[cfg.limit:] {
@@ -109,13 +110,61 @@ func rawCursorValue(cursor any) any {
 	return cursor
 }
 
-// prefetchCursorKey builds the PrefetchCache lookup key from a collection name
-// and cursor value. The cursor is normalized to a *Cursor and encoded via
-// [Cursor.Encode], producing an opaque base64 string that is HTTP-safe and
-// deterministic regardless of whether the caller passed a raw value
-// (WithCursor) or an encoded string (WithCursorString). Both trimAndCache
-// (cache write) and the prefetch check in Scan (cache read) use this function,
-// ensuring the key formats always match.
+// prefetchCacheKey is the full identity of a cached page: the query SHAPE it
+// was produced for (collection + filters + sort) plus the cursor it starts at.
+//
+// The shape half is load-bearing: cached rows are only valid for the identical
+// filter/sort/replay shape, so a page cached for one query must never be served
+// to a scan of another that happens to share a cursor value. Both trimAndCache
+// (cache write) and the prefetch check in Scan (cache read) build the key
+// through this function, so the two can never disagree.
+func prefetchCacheKey(collection string, cfg scanConfig, cursorVal any) string {
+	var b strings.Builder
+
+	b.WriteString(collection)
+	b.WriteString("|sort:")
+	writeSortShape(&b, cfg.sort)
+
+	b.WriteString("|sortcols:")
+	for _, sc := range cfg.sortCols {
+		writeSortShape(&b, &sc)
+	}
+
+	b.WriteString("|filters:")
+	for _, f := range cfg.filters {
+		fmt.Fprintf(&b, "%s;%s;%s;%v|", f.Column, f.InputColumn, f.Op, f.Value)
+	}
+
+	b.WriteString("|or:")
+	for _, group := range cfg.orGroups {
+		for _, f := range group {
+			fmt.Fprintf(&b, "%s;%s;%s;%v,", f.Column, f.InputColumn, f.Op, f.Value)
+		}
+
+		b.WriteString("/")
+	}
+
+	b.WriteString("|cursor:")
+	b.WriteString(prefetchCursorKey(collection, cursorVal))
+
+	return b.String()
+}
+
+func writeSortShape(b *strings.Builder, spec *SortSpec) {
+	if spec == nil {
+		b.WriteString("-,")
+
+		return
+	}
+
+	fmt.Fprintf(b, "%s;%t,", spec.Column, spec.Desc)
+}
+
+// prefetchCursorKey builds the cursor half of the PrefetchCache lookup key from
+// a collection name and cursor value. The cursor is normalized to a *Cursor and
+// encoded via [Cursor.Encode], producing an opaque base64 string that is
+// HTTP-safe and deterministic regardless of whether the caller passed a raw
+// value (WithCursor) or an encoded string (WithCursorString).
 func prefetchCursorKey(collection string, cursorVal any) string {
 	var c *Cursor
 

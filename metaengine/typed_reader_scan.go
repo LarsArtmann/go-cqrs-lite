@@ -81,12 +81,38 @@ func (r *TypedReader[V]) scanItemsConfigured(
 		}
 	}
 
-	// PrefetchCache: serve from cache when a cursor key matches. The cache is
+	// Expand range specs into filter pairs for pushdown/raw paths.
+	for _, rg := range cfg.ranges {
+		cfg.filters = append(
+			cfg.filters,
+			FilterSpec{Column: rg.Column, Op: FilterGe, Value: rg.Low},
+			FilterSpec{Column: rg.Column, Op: FilterLe, Value: rg.High},
+		)
+	}
+
+	// Expand IN specs into FilterIn FilterSpecs so pushdown/raw paths
+	// handle them. Without this, WithIn is silently dropped on
+	// RawScanReader and PushdownScan paths (data correctness bug).
+	for _, in := range cfg.inSpecs {
+		cfg.filters = append(cfg.filters, FilterSpec{
+			Column: in.Column,
+			Op:     FilterIn,
+			Value:  in.Values,
+		})
+	}
+
+	// IN specs are now merged into filters — clear so closure fallback
+	// doesn't double-evaluate.
+	cfg.inSpecs = nil
+
+	// PrefetchCache: serve from cache when this call's shape + cursor key
+	// matches. Resolved AFTER the range/IN expansion so the cache-read shape and
+	// the cache-write shape (trimAndCache) are the same filters. The cache is
 	// the scan option's when one was passed, else the reader's default.
 	cache := cfg.prefetchCacheFor(r.prefetch)
 
 	if cache != nil && cfg.cursor != nil {
-		cacheKey := prefetchCursorKey(r.collection, cfg.cursor)
+		cacheKey := prefetchCacheKey(r.collection, cfg, cfg.cursor)
 		if cached := cache.Get(cacheKey); cached != nil {
 			result := make([]V, 0, len(cached))
 
@@ -111,30 +137,6 @@ func (r *TypedReader[V]) scanItemsConfigured(
 	if cache != nil && cfg.limit > 0 {
 		fetchLimit = cfg.limit * 2
 	}
-
-	// Expand range specs into filter pairs for pushdown/raw paths.
-	for _, rg := range cfg.ranges {
-		cfg.filters = append(
-			cfg.filters,
-			FilterSpec{Column: rg.Column, Op: FilterGe, Value: rg.Low},
-			FilterSpec{Column: rg.Column, Op: FilterLe, Value: rg.High},
-		)
-	}
-
-	// Expand IN specs into FilterIn FilterSpecs so pushdown/raw paths
-	// handle them. Without this, WithIn is silently dropped on
-	// RawScanReader and PushdownScan paths (data correctness bug).
-	for _, in := range cfg.inSpecs {
-		cfg.filters = append(cfg.filters, FilterSpec{
-			Column: in.Column,
-			Op:     FilterIn,
-			Value:  in.Values,
-		})
-	}
-
-	// IN specs are now merged into filters — clear so closure fallback
-	// doesn't double-evaluate.
-	cfg.inSpecs = nil
 
 	eng, ok := r.store.collectionEngine(r.collection)
 	if !ok {
