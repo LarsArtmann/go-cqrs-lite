@@ -26,9 +26,9 @@ type TransientCommitError interface {
 // transient, nothing-committed transaction abort that the caller may retry
 // as a whole.
 func IsTransientCommit(err error) bool {
-	var target TransientCommitError
+	_, ok := errors.AsType[TransientCommitError](err)
 
-	return errors.As(err, &target)
+	return ok
 }
 
 // txCommitRetry bounds whole-transaction retries on transient commit
