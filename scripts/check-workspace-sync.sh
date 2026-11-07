@@ -57,6 +57,9 @@ for mod in $go_work_modules; do
 	[ "$mod" = "." ] && continue
 	# Skip cmd modules (not tested, only built)
 	[[ "$mod" == cmd/* ]] && continue
+	# Skip scratch repro sandboxes (flake.nix coverage check also exempts
+	# ./scratch/* via -not -path './scratch/*')
+	[[ "$mod" == scratch/* ]] && continue
 	# Skip test helper packages
 	is_excluded "$mod" && continue
 	# Check if in tested set
