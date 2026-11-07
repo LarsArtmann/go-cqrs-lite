@@ -1,0 +1,1998 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Datastar, Client-Side — deep research for go-cqrs-lite</title>
+    <style>
+      /* =========================================================================
+         BAUHAUS LIGHT — Editorial template
+         Design language: form follows function. Primary colors on warm paper.
+         Zero external dependencies: system fonts, no CDN, no build step.
+         Token architecture: see references/bauhaus-tokens.md
+         ========================================================================= */
+
+      :root {
+        /* --- Primitive palette (Bauhaus Light) --- */
+        --color-paper: #f4f4f0;
+        --color-paper-2: #ffffff;
+        --color-paper-3: #e8e8e2;
+        --color-ink: #111111;
+        --color-red: #e63946;
+        --color-blue: #1d3557;
+        --color-yellow: #f4d35e;
+        --color-hairline: rgba(17, 17, 17, 0.14);
+        --color-hairline-strong: rgba(17, 17, 17, 0.3);
+
+        /* --- Semantic layer (shared vocabulary with dark template) --- */
+        --surface: var(--color-paper);
+        --surface-raised: var(--color-paper-2);
+        --surface-sunken: var(--color-paper-3);
+        --text: var(--color-ink);
+        --text-muted: rgba(17, 17, 17, 0.72);
+        --text-faint: rgba(17, 17, 17, 0.5);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-red);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        /* --- Backward-compatible aliases (do not break consumer skills) --- */
+        --bg: var(--surface);
+        --bg-elevated: var(--surface-raised);
+        --bg-sunken: var(--surface-sunken);
+        --bg-card: var(--surface-raised);
+        --bg-code: var(--surface-sunken);
+        --ink: var(--text);
+        --ink-secondary: var(--text-muted);
+        --ink-muted: var(--text-faint);
+        --rose: var(--problem);
+        --rose-glow: color-mix(in srgb, var(--problem) 15%, transparent);
+        --emerald: var(--solution);
+        --emerald-glow: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber: var(--warning);
+        --amber-glow: color-mix(in srgb, var(--warning) 15%, transparent);
+        --amber-light: color-mix(in srgb, var(--warning) 22%, transparent);
+        --coral: var(--problem);
+        --coral-light: color-mix(in srgb, var(--problem) 12%, transparent);
+        --teal: var(--solution);
+        --teal-light: color-mix(in srgb, var(--solution) 12%, transparent);
+
+        /* --- Shape --- */
+        --radius: 0px;
+        --radius-sm: 0px;
+
+        /* --- Type stacks (system only — zero external fonts) --- */
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 16px;
+        line-height: 1.65;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* --- Accessibility: keyboard focus --- */
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      a:focus-visible {
+        outline-offset: -1px;
+      }
+
+      /* --- Full-bleed top bar --- */
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      /* --- Layout: optional sticky sidebar TOC --- */
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--text);
+      }
+      .sidebar a {
+        font-size: 0.86rem;
+        color: var(--text);
+        text-decoration: none;
+        padding: 0.5rem 0.75rem;
+        border-left: 4px solid transparent;
+        font-weight: 600;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+        color: var(--accent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      /* --- Headings --- */
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        color: var(--text);
+      }
+      h1 {
+        font-size: clamp(1.9rem, 4.5vw, 2.8rem);
+        line-height: 1.05;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.5rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 3px solid var(--text);
+        display: flex;
+        align-items: baseline;
+        gap: 0.7rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+      h3 {
+        font-size: 1.15rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 1rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+
+      /* --- Hero --- */
+      .hero {
+        padding: 1.5rem 0 2rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 3px solid var(--text);
+      }
+      .eyebrow {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: var(--accent);
+        margin-bottom: 0.9rem;
+      }
+      .subtitle {
+        font-size: 1.1rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0 0 1rem;
+      }
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      .tag {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        padding: 0.25rem 0.6rem;
+        background: var(--surface-sunken);
+        color: var(--text);
+        border: 1px solid var(--border-strong);
+      }
+      .tag.amber {
+        background: var(--warning);
+        border-color: var(--warning);
+        color: var(--text);
+      }
+      .tag.teal {
+        background: var(--solution);
+        border-color: var(--solution);
+        color: var(--surface);
+      }
+
+      /* Bauhaus signature: geometric shape cluster (optional) */
+      .hero-shapes {
+        position: relative;
+        height: 90px;
+        margin-bottom: 1.2rem;
+      }
+      .hero-shapes .circle {
+        position: absolute;
+        top: 0;
+        right: 180px;
+        width: 64px;
+        height: 64px;
+        background: var(--problem);
+        border-radius: 50%;
+      }
+      .hero-shapes .square {
+        position: absolute;
+        top: 26px;
+        right: 90px;
+        width: 56px;
+        height: 56px;
+        background: var(--solution);
+      }
+      .hero-shapes .tri {
+        position: absolute;
+        top: 8px;
+        right: 0;
+        width: 0;
+        height: 0;
+        border-left: 32px solid transparent;
+        border-right: 32px solid transparent;
+        border-bottom: 56px solid var(--warning);
+      }
+      .hero-shapes .bar {
+        position: absolute;
+        bottom: 0;
+        right: 230px;
+        width: 100px;
+        height: 14px;
+        background: var(--text);
+      }
+
+      /* --- Scorecard / stat cards --- */
+      .scorecard,
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 0;
+        margin: 1.5rem 0 2rem;
+        border: 3px solid var(--text);
+      }
+      .score-card,
+      .stat-card {
+        padding: 1.3rem 1rem;
+        text-align: center;
+        border-right: 3px solid var(--text);
+        background: var(--surface-raised);
+      }
+      .score-card:last-child,
+      .stat-card:last-child {
+        border-right: none;
+      }
+
+      .score,
+      .stat-value {
+        font-family: var(--font-heading);
+        font-size: 2.6rem;
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -0.04em;
+      }
+      .score-card .label,
+      .stat-label {
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        margin-top: 0.5rem;
+      }
+      /* Semantic state classes — no nth-child decoration, no !important */
+      .score-good,
+      .stat-good {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .score-warn,
+      .stat-warn {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .score-bad,
+      .stat-bad {
+        background: var(--problem);
+        color: var(--surface);
+      }
+
+      /* --- General cards --- */
+      .card {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+      }
+
+      /* --- Issue cards --- */
+      .issue {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* --- Severity badges --- */
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.22rem 0.6rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+
+      /* --- Inline badges --- */
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        border: 1px solid var(--text);
+        color: var(--text);
+      }
+      .badge-critical {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .badge-high {
+        background: var(--warning);
+      }
+      .badge-medium {
+        background: var(--surface-sunken);
+      }
+      .badge-low {
+        background: var(--surface-raised);
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        background: var(--solution);
+        color: var(--surface);
+      }
+
+      /* --- Callouts --- */
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.8rem 1rem;
+        border: 1px solid var(--border-strong);
+        border-left: 4px solid var(--border-strong);
+        background: var(--surface-sunken);
+        font-size: 0.92rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-teal,
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 10%,
+          var(--surface-raised)
+        );
+      }
+      .callout-amber,
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 18%,
+          var(--surface-raised)
+        );
+      }
+
+      /* --- Strengths --- */
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.9rem;
+        padding: 0.75rem 0;
+        border-bottom: 2px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        color: var(--solution);
+        font-size: 1.3rem;
+        line-height: 1.3;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.92rem;
+      }
+
+      /* --- Tables --- */
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.92rem;
+        border: 2px solid var(--text);
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--text);
+        color: var(--surface);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-right: 1px solid var(--border-strong);
+      }
+      th:last-child {
+        border-right: none;
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-top: 1px solid var(--border);
+        border-right: 1px solid var(--border);
+      }
+      td:last-child {
+        border-right: none;
+      }
+      tr:nth-child(even) td {
+        background: var(--surface-sunken);
+      }
+      table.compare td.yes {
+        color: var(--solution);
+        font-weight: 700;
+      }
+      table.compare td.no {
+        color: var(--problem);
+        font-weight: 700;
+      }
+
+      /* --- Code blocks + syntax highlighting --- */
+      pre {
+        background: var(--text);
+        color: var(--surface);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+        border: 2px solid var(--text);
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      p code,
+      li code,
+      td code {
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+      }
+      .tok-keyword {
+        color: var(--warning);
+      }
+      .tok-type {
+        color: var(--warning);
+      }
+      .tok-string {
+        color: #95e1d3;
+      }
+      .tok-comment {
+        color: rgba(244, 244, 240, 0.45);
+        font-style: italic;
+      }
+      .tok-func {
+        color: #6eb5ff;
+      }
+      .tok-number {
+        color: var(--warning);
+      }
+      .tok-generic {
+        color: var(--problem);
+      }
+      .tok-builtin {
+        color: #6eb5ff;
+      }
+      .tok-punct {
+        color: rgba(244, 244, 240, 0.7);
+      }
+      .tok-attr {
+        color: var(--warning);
+      }
+
+      /* --- Dependency tree / ASCII diagrams --- */
+      .dep-tree {
+        background: var(--surface-sunken);
+        border: 2px solid var(--text);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.7;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .dep-tree .root {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .dep-tree .ok {
+        color: var(--solution);
+      }
+      .dep-tree .unwanted {
+        color: var(--problem);
+      }
+
+      /* --- Inline node-and-arrow diagrams --- */
+      .diagram {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+      }
+      .node {
+        display: inline-block;
+        padding: 0.4rem 0.75rem;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        font-weight: 700;
+        background: var(--surface-sunken);
+        border: 1px solid var(--text);
+      }
+      .node-core {
+        background: var(--accent);
+        color: var(--surface);
+      }
+      .node-problem {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .node-good {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .arrow {
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Grids --- */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      /* --- Inline TOC --- */
+      .toc {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+        padding: 1rem 1.3rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .toc h3 {
+        margin-bottom: 0.5rem;
+      }
+      .toc ul {
+        list-style: none;
+        padding: 0;
+      }
+      .toc li {
+        margin: 0.25rem 0;
+      }
+      .toc a {
+        color: var(--text);
+        text-decoration: none;
+        font-size: 0.92rem;
+        font-weight: 600;
+      }
+      .toc a:hover {
+        color: var(--accent);
+      }
+
+      /* --- Migration / numbered steps --- */
+      .migration-step {
+        display: grid;
+        grid-template-columns: 56px 1fr;
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1.1rem;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+      }
+      .migration-num {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        font-size: 1.8rem;
+        color: var(--accent);
+        line-height: 1;
+      }
+      .migration-content h4 {
+        margin-bottom: 0.2rem;
+      }
+      .migration-content p {
+        margin-bottom: 0;
+        color: var(--text-muted);
+        font-size: 0.94rem;
+      }
+
+      /* --- Before/After comparison --- */
+      .compare-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin: 1rem 0 0.5rem;
+      }
+      .compare-before,
+      .compare-after {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0.4rem 0.7rem;
+        color: var(--surface);
+      }
+      .compare-before {
+        background: var(--problem);
+      }
+      .compare-after {
+        background: var(--solution);
+      }
+      .compare-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      .compare-row pre {
+        margin: 0;
+      }
+
+      /* --- Footer --- */
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 3px solid var(--text);
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Responsive --- */
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+        .compare-header,
+        .compare-row {
+          grid-template-columns: 1fr;
+        }
+        .scorecard,
+        .stat-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-right: none;
+        }
+        .score-card:nth-child(1),
+        .stat-card:nth-child(1),
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-bottom: 3px solid var(--text);
+        }
+        .migration-step {
+          grid-template-columns: 1fr;
+        }
+        .hero-shapes {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top-bar">
+      <span>DEEP RESEARCH</span>
+      <span>2026-11-07</span>
+      <span>go-cqrs-lite / client-side</span>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#summary">Summary</a>
+          <a href="#what">What Datastar is</a>
+          <a href="#protocol">The protocol</a>
+          <a href="#gohalf">The Go half</a>
+          <a href="#surface">Today's surface</a>
+          <a href="#opportunities">Opportunities</a>
+          <a href="#limits">Where it breaks</a>
+          <a href="#plan">Rollout plan</a>
+          <a href="#appendix">Appendix</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <header class="hero">
+          <div class="hero-shapes">
+            <div class="bar"></div>
+            <div class="circle"></div>
+            <div class="square"></div>
+            <div class="tri"></div>
+          </div>
+          <div class="eyebrow">DEEP RESEARCH &middot; 2026-11-07 &middot; DEEPSEEK V4.1 FLASH</div>
+          <h1>Datastar, Client-Side</h1>
+          <p class="subtitle">
+            What an SSE-driven hypermedia runtime would change in a Go CQRS
+            library, what it would cost, and where it would be a mistake. Every
+            claim below was verified against the Datastar v1.0.4 client bundle,
+            the official v1.2.2 Go SDK, or this repository's source.
+          </p>
+          <div class="meta">
+            <span class="tag amber">Scope: docserver &middot; metaengine SSE &middot; catalog exports</span>
+            <span class="tag">Datastar v1.0.4 &middot; bundle 33,553 B</span>
+            <span class="tag teal">Verdict: adopt narrowly</span>
+          </div>
+        </header>
+
+        <section id="scorecard" class="scorecard">
+          <div class="score-card score-good">
+            <div class="score">4</div>
+            <div class="label">Fleet pieces already built</div>
+          </div>
+          <div class="score-card score-good">
+            <div class="score">6</div>
+            <div class="label">Genuine opportunities</div>
+          </div>
+          <div class="score-card score-warn">
+            <div class="score">3</div>
+            <div class="label">Costs to accept</div>
+          </div>
+          <div class="score-card score-bad">
+            <div class="score">2</div>
+            <div class="label">Hard non-fits</div>
+          </div>
+        </section>
+
+        <section id="summary">
+          <h2><span class="num">00</span>Summary</h2>
+          <p>
+            Datastar is not a JavaScript framework in the Svelte/React sense. It
+            is a <strong>wire protocol plus a 33 KB attribute interpreter</strong>:
+            the server sends HTML fragments and JSON "signals" over SSE, the
+            browser morphs them into the DOM. There is no client-side state
+            machine to write, no API layer to shape, and no build step.
+          </p>
+          <p>
+            For this repository that lands in a very specific place. go-cqrs-lite
+            already owns the one thing Datastar needs &mdash; a
+            <code>Watcher[V]</code> over a materialized read model, with replay,
+            backpressure, and heartbeats, exposed as
+            <code>metaengine.ServeSSE</code> at
+            <code>metaengine/sse.go:111</code>. Today that endpoint emits
+            <em>unnamed SSE events carrying JSON</em>, which is the lowest-value
+            possible contract: every consumer writes the same JSON&rarr;DOM
+            renderer again. Datastar replaces exactly that step.
+          </p>
+          <div class="callout callout-amber">
+            <strong>The bottom line</strong>
+            Adopt Datastar as <em>one more encoder</em> on top of the existing SSE
+            machinery, not as a rewrite. Ship it as a Tier&nbsp;4 sibling module
+            (<code>metaengine/datastaradapter</code>, beside
+            <code>projectionadapter</code>), and stop there. Do <strong>not</strong>
+            move HTML rendering into <code>metaengine</code> core, and do
+            <strong>not</strong> convert the offline
+            <code>catalog/architecture</code> export &mdash; that artifact's whole
+            reason to exist is that it works with no server.
+          </div>
+          <p>
+            The single highest-leverage change is small: teach the SSE writer to
+            emit <code>event: datastar-patch-elements</code> with a rendered
+            fragment instead of a JSON blob. Everything downstream &mdash; replay,
+            <code>Last-Event-ID</code> resume, drop-old backpressure, timeouts
+            &mdash; is already implemented and already correct.
+          </p>
+        </section>
+
+        <section id="what">
+          <h2><span class="num">01</span>What Datastar actually is</h2>
+          <p>
+            The project is by Star Federation (Delaney Gillilan), MIT licensed.
+            1.0 GA landed 2026-04-16; the current client release is
+            <strong>v1.0.4</strong>, published 2026-09-21. You load one ES module;
+            everything else is attributes on the HTML you were already sending.
+            A commercial <em>Pro</em> tier ($349 solo / $1,299 team) gates about a
+            dozen attributes and actions &mdash; the design below avoids all of
+            them.
+          </p>
+
+          <table class="compare">
+            <thead>
+              <tr>
+                <th>Property</th>
+                <th>Value</th>
+                <th>Evidence</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Client bundle</td>
+                <td>33,553 B raw &middot; <strong>13,365 B gzip</strong> &middot; single file &middot; zero runtime deps</td>
+                <td><code>go-datastar/static/datastar.js</code> header <code>// Datastar v1.0.4</code>; gzip measured, not marketed</td>
+              </tr>
+              <tr>
+                <td>Vendored inside it</td>
+                <td>an idiomorph-derived morph algorithm + an Azure <code>fetch-event-source</code>-derived SSE parser</td>
+                <td>both credited in the upstream source; still no npm dependency either way</td>
+              </tr>
+              <tr>
+                <td>Install</td>
+                <td><code>&lt;script type="module" src="/datastar.js"&gt;&lt;/script&gt;</code></td>
+                <td>official guide; self-hostable verbatim</td>
+              </tr>
+              <tr>
+                <td>Transport</td>
+                <td>SSE over <code>fetch()</code> &mdash; <strong>not</strong> <code>EventSource</code></td>
+                <td>zero <code>EventSource</code> occurrences in the v1.0.4 bundle</td>
+              </tr>
+              <tr>
+                <td>Server&rarr;client vocabulary</td>
+                <td>2 event types only: <code>datastar-patch-elements</code>, <code>datastar-patch-signals</code></td>
+                <td><code>data-star.dev/reference/sse_events</code></td>
+              </tr>
+              <tr>
+                <td>Client&rarr;server payload</td>
+                <td>all signals as <code>{datastar: {...}}</code> JSON body (or query param for <code>@get</code>)</td>
+                <td><code>data-star.dev/reference/actions#backend-actions</code></td>
+              </tr>
+              <tr>
+                <td>Signals beginning with <code>_</code></td>
+                <td>never sent to the backend by default</td>
+                <td>same reference, <code>filterSignals</code> defaults</td>
+              </tr>
+              <tr>
+                <td>CSP</td>
+                <td>default needs <code>'unsafe-eval'</code>; <strong>CSP mode</strong> via <code>&lt;html data-nonce&gt;</code> needs only a nonce</td>
+                <td><code>data-star.dev/reference/security#csp-mode</code></td>
+              </tr>
+              <tr>
+                <td>Official Go SDK</td>
+                <td><code>github.com/starfederation/datastar-go</code> v1.2.2, Go 1.24+</td>
+                <td>pkg.go.dev; version cited by <code>go-datastar</code> README</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="callout callout-teal">
+            <strong>The distinction that matters here</strong>
+            htmx swaps HTML on <em>request</em>. Datastar patches DOM on a
+            <em>standing stream</em>. A CQRS library's core value proposition &mdash;
+            a read model that changes as events land &mdash; is precisely a
+            standing stream. That is why this question is worth a report: the fit
+            is structural, not cosmetic.
+          </div>
+          <p>
+            Credibility check, since "new framework" is a fair objection: the
+            documented production case is <strong>Instabooks</strong>, a
+            QuickBooks-Online competitor rewritten <em>from React to Datastar</em>
+            by a team including David Nolen (long-time ClojureScript lead) and
+            Anders Murphy. Beyond that the project publishes no customer list, so
+            treat any broader adoption claim as unverified. The 1.0 line, a
+            cross-SDK conformance suite, and 15+ backend SDKs are the substantive
+            signals.
+          </p>
+
+          <p>
+            The obvious alternative is htmx &mdash; and the fleet already ships a
+            full htmx integration. The difference that matters for a CQRS
+            backend:
+          </p>
+          <table>
+            <thead>
+              <tr>
+                <th></th>
+                <th>htmx 2.x</th>
+                <th>Datastar 1.0</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Morphing</td>
+                <td>extension (idiomorph)</td>
+                <td>built in, <code>outer</code> is the default</td>
+              </tr>
+              <tr>
+                <td>Server&rarr;client <em>state</em></td>
+                <td class="no">no &mdash; you swap an HTML chunk and stash values in hidden inputs</td>
+                <td class="yes"><code>datastar-patch-signals</code>, RFC&nbsp;7386 merge patch</td>
+              </tr>
+              <tr>
+                <td>Client&rarr;server payload</td>
+                <td>form encoding</td>
+                <td>one JSON <code>{datastar: …}</code> object, decoded into a Go struct</td>
+              </tr>
+              <tr>
+                <td>Stream-first ergonomics</td>
+                <td>SSE is an extension (<code>hx-ext</code>, <code>sse-swap</code>)</td>
+                <td>SSE is the primary transport</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="protocol">
+          <h2><span class="num">02</span>The protocol, precisely</h2>
+          <p>
+            Three things make up Datastar: signals (reactive state), attributes
+            (declarative bindings), and the patch events (how the server mutates
+            both). Everything else is convenience.
+          </p>
+
+          <h3>The two patch events, verbatim</h3>
+          <p>
+            This is the entire server&rarr;client contract. Your backend writes
+            these bytes and nothing else:
+          </p>
+          <pre><code>event: datastar-patch-elements
+data: selector #feed
+data: mode prepend
+data: useViewTransition true
+data: viewTransitionSelector #main
+data: elements &lt;tr id="user-42"&gt;
+data: elements   &lt;td&gt;ada@example.com&lt;/td&gt;
+data: elements &lt;/tr&gt;
+
+event: datastar-patch-signals
+data: signals {projectionLagMs: 12, backlog: 0}
+
+</code></pre>
+          <p>
+            Two newlines terminate each event. The <code>elements</code> line is
+            the only required field for the first event; every option has a
+            default. Modes: <code>outer</code> (default, morph),
+            <code>inner</code>, <code>replace</code>, <code>prepend</code>,
+            <code>append</code>, <code>before</code>, <code>after</code>,
+            <code>remove</code>. Extra data lines:
+            <code>namespace svg|mathml</code>, <code>useViewTransition</code>,
+            <code>viewTransitionSelector</code>. Signals are removed by setting
+            them to <code>null</code>; <code>onlyIfMissing true</code> makes a
+            patch a default-only seed.
+          </p>
+
+          <div class="callout callout-amber">
+            <strong>Morphing is ID-based &mdash; this is the one rule to obey</strong>
+            "Morphs elements by matching top-level elements based on their ID."
+            Put a stable <code>id</code> on every top-level patched element, and
+            on any descendant whose state (focus, listeners, CSS transitions)
+            must survive. A table row without an id will be torn down and rebuilt
+            on every patch.
+          </div>
+
+          <h3>Attribute vocabulary</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Attribute</th>
+                <th>Role</th>
+                <th>Shape</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>data-signals</code></td>
+                <td>declare / patch reactive state</td>
+                <td><code>data-signals:foo.bar="1"</code> or <code>data-signals="{foo:{bar:1}}"</code>; <code>__ifmissing</code> seeds without clobbering</td>
+              </tr>
+              <tr>
+                <td><code>data-computed</code></td>
+                <td>read-only derived signal (memoized)</td>
+                <td><code>data-computed:total="$a + $b"</code></td>
+              </tr>
+              <tr>
+                <td><code>data-bind</code></td>
+                <td>two-way binding to an input's value</td>
+                <td><code>&lt;input data-bind:q&gt;</code>; type is preserved from the predefined signal; <code>__prop</code>/<code>__event</code> for custom elements</td>
+              </tr>
+              <tr>
+                <td><code>data-on</code></td>
+                <td>event listener with an expression</td>
+                <td><code>data-on:click="$open = true"</code>; <code>evt</code> is in scope</td>
+              </tr>
+              <tr>
+                <td><code>data-text</code> / <code>data-show</code> / <code>data-class</code> / <code>data-attr</code> / <code>data-style</code></td>
+                <td>reactive DOM writes</td>
+                <td>all take one expression, or a key/value object for multiples</td>
+              </tr>
+              <tr>
+                <td><code>data-indicator</code></td>
+                <td>a signal that is true while a fetch is in flight</td>
+                <td><code>data-indicator:fetching</code> &rarr; <code>data-attr:disabled="$fetching"</code></td>
+              </tr>
+              <tr>
+                <td><code>data-init</code></td>
+                <td>run on load <em>and</em> on every patch-in</td>
+                <td><code>data-init="@get('/feed')"</code> &mdash; the "open the stream" hook</td>
+              </tr>
+              <tr>
+                <td><code>data-on-interval</code> / <code>data-on-intersect</code></td>
+                <td>polling and viewport triggers</td>
+                <td><code>__duration.5s</code>, <code>__half</code>, <code>__once</code>, <code>__exit</code></td>
+              </tr>
+              <tr>
+                <td><code>data-ignore</code> / <code>data-ignore-morph</code> / <code>data-preserve-attr</code></td>
+                <td>opt-outs and morph escape hatches</td>
+                <td>for third-party widgets, and for <code>&lt;details open&gt;</code> state</td>
+              </tr>
+              <tr>
+                <td><code>data-json-signals</code></td>
+                <td>live signal inspector in the page</td>
+                <td><code>&lt;pre data-json-signals&gt;&lt;/pre&gt;</code> &mdash; a real debugging tool, not an afterthought</td>
+              </tr>
+              <tr>
+                <td>Pro-only</td>
+                <td><code>data-persist</code>, <code>data-animate</code>, <code>data-custom-validity</code>, <code>data-on-raf</code>, <code>data-on-resize</code>, <code>data-query-string</code>, <code>data-replace-url</code>, <code>data-scroll-into-view</code>, <code>data-view-transition</code>, <code>data-match-media</code></td>
+                <td>paid bundle; do not design around them</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>Actions</h3>
+          <p>
+            <code>@get</code>, <code>@post</code>, <code>@put</code>,
+            <code>@patch</code>, <code>@delete</code>, plus <code>@query</code>
+            (RFC&nbsp;10008 <code>QUERY</code>: signals in the body, safe and
+            idempotent &mdash; a genuinely good fit for CQRS queries). Helpers:
+            <code>@peek()</code> (read without subscribing),
+            <code>@setAll()</code>, <code>@toggleAll()</code>.
+          </p>
+          <p>
+            Every action takes one options object, and the response
+            <code>Content-Type</code> decides everything else:
+          </p>
+          <table>
+            <thead>
+              <tr>
+                <th>Response type</th>
+                <th>Interpretation</th>
+                <th>Optional headers</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>text/event-stream</code></td>
+                <td>Datastar patch events (the normal streaming case)</td>
+                <td>&mdash;</td>
+              </tr>
+              <tr>
+                <td><code>text/html</code></td>
+                <td>elements to patch, one-shot</td>
+                <td><code>datastar-selector</code>, <code>datastar-mode</code>, <code>datastar-use-view-transition</code></td>
+              </tr>
+              <tr>
+                <td><code>application/json</code></td>
+                <td>signals to patch</td>
+                <td><code>datastar-only-if-missing</code></td>
+              </tr>
+              <tr>
+                <td><code>text/javascript</code></td>
+                <td>code to execute</td>
+                <td><code>datastar-script-attributes</code></td>
+              </tr>
+            </tbody>
+          </table>
+          <p>
+            Fetch reliability is built in and configurable per call:
+            <code>retry</code> (<code>auto</code>|&lt;code&gt;error&lt;/code&gt;|&lt;code&gt;always&lt;/code&gt;|&lt;code&gt;never&lt;/code&gt;),
+            <code>retryInterval</code> (1s), <code>retryScaler</code> (2),
+            <code>retryMaxWait</code> (30s), <code>retryMaxCount</code> (10),
+            <code>requestCancellation</code>
+            (<code>auto</code>|&lt;code&gt;cleanup&lt;/code&gt;|&lt;code&gt;disabled&lt;/code&gt;|AbortController),
+            and <code>openWhenHidden</code>. Lifecycle events
+            (<code>datastar-fetch</code> with <code>started</code>,
+            <code>finished</code>, <code>error</code>, <code>retrying</code>,
+            <code>retries-failed</code>) make error UX possible without custom JS.
+          </p>
+
+          <h3>Resume works &mdash; and that is the whole reason a CQRS bridge is cheap</h3>
+          <p>
+            Datastar is <code>fetch</code>-based, so it cannot inherit
+            <code>EventSource</code>'s automatic <code>Last-Event-ID</code>
+            behaviour. It reimplements it instead. The v1.0.4 bundle tracks the
+            SSE <code>id:</code> field and replays it as a
+            <code>last-event-id</code> request header on the next attempt:
+          </p>
+          <pre><code>// minified, deobfuscated shape — datastar.js v1.0.4
+W ? _["last-event-id"] = W : delete _["last-event-id"]</code></pre>
+          <p>
+            That single detail is what makes the existing replay path reusable
+            unchanged. <code>metaengine</code> already writes
+            <code>id: &lt;seq&gt;</code> on every event when a replay journal is
+            attached (<code>metaengine/sse.go:227</code>) and already honours the
+            request header (<code>metaengine/sse.go:252</code>). A Datastar client
+            speaking to that endpoint gets the same resume a browser
+            <code>EventSource</code> gets today.
+          </p>
+          <div class="callout callout-amber">
+            <strong>The trap: a clean close does not reconnect</strong>
+            Datastar retries on a thrown fetch error, on a retryable HTTP status,
+            and when a hidden tab becomes visible again. It does <em>not</em>
+            reconnect when the server closes the stream politely &mdash; the fetch
+            resolves and the stream just ends. That collides directly with
+            <code>metaengine.WithSSETimeout</code>
+            (<code>metaengine/sse.go:49</code>): a timeout closes the connection
+            with no error, so a Datastar client would sit on a dead stream with no
+            indication. The adapter must either default the timeout to zero or
+            send a final patch whose <code>data-init</code> re-opens the stream.
+            This is a real footgun, not a theoretical one, and it must be a test.
+          </div>
+        </section>
+
+        <section id="gohalf">
+          <h2><span class="num">03</span>The Go half &mdash; what the fleet already owns</h2>
+          <p>
+            The most important finding of this study is that adopting Datastar
+            here is <strong>not a greenfield decision</strong>. Four layers
+            already exist in the sibling fleet, and this repository already
+            depends on two of them.
+          </p>
+
+          <div class="diagram">
+            <span class="node node-core">go-sse v0.6.2</span>
+            <span class="arrow">&rarr;</span>
+            <span class="node node-good">go-datastar v0.6.3</span>
+            <span class="arrow">&rarr;</span>
+            <span class="node node-good">cqrs-htmx/datastar</span>
+            <span class="arrow">&rarr;</span>
+            <span class="node">your handlers</span>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Layer</th>
+                <th>Module</th>
+                <th>What it gives you</th>
+                <th>In-go-cqrs-lite today</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>SSE wire</td>
+                <td><code>github.com/larsartmann/go-sse</code> v0.6.2</td>
+                <td><code>sse.Event{Event, Data, ID, Retry}</code>, <code>WriteEvent</code> (multi-line aware), <code>SetHeaders</code>, <code>WriteHeartbeat</code>, branded <code>EventID</code>, <code>Broadcaster[T]</code></td>
+                <td>already the only serializer used by <code>metaengine</code> (ADR-0097)</td>
+              </tr>
+              <tr>
+                <td>Datastar protocol</td>
+                <td><code>github.com/larsartmann/go-datastar</code> v0.6.3</td>
+                <td>patches as <em>values</em> (<code>Patch.Event() sse.Event</code>), <code>/broadcast</code> hub with replay, <code>/static</code> embedded client (v1.0.4), <code>ScriptHandler()</code> with ETag, <code>datastartest</code> harness</td>
+                <td>not yet &mdash; and this is the natural dependency</td>
+              </tr>
+              <tr>
+                <td>CQRS adapter</td>
+                <td><code>cqrs-htmx/datastar/v4</code></td>
+                <td>event-bus <code>EventBridge</code>, signal decoding, SSE response builder, script serving</td>
+                <td>no &mdash; handler-layer concern, stays there</td>
+              </tr>
+              <tr>
+                <td>UI components</td>
+                <td><code>templ-components/datastar</code> + <code>templ-components/utils/wire</code></td>
+                <td><code>SDKScript</code> (nonce-aware), <code>LiveRegion</code>, <code>PolledRegion</code>, <code>Indicator</code>, <code>LoadingButton</code>, <code>SSEErrorHandling</code>; <code>wire.Action</code> renders htmx <em>or</em> Datastar from one spec; <code>wire.Handler(PatchTarget)</code> emits the response headers</td>
+                <td><strong>already a dependency</strong>: <code>catalog/go.mod:17-19</code> pins <code>templ-components</code>, <code>/icons</code>, <code>/utils</code> at v1.27.0</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="callout callout-teal">
+            <strong>Consequence: the dependency cost of a Datastar docserver is one module</strong>
+            <code>templ-components/utils/wire</code> is in
+            <code>templ-components/utils</code>, which <code>catalog/go.mod</code>
+            already requires. <code>templ-components/datastar</code> requires only
+            <code>templ</code>, <code>templ-components/utils</code>, and
+            <code>go-datastar/static</code> &mdash; and that last one is a
+            <strong>58-byte go.mod</strong> wrapping one 33 KB JS file. Total new
+            transitive surface: essentially zero.
+          </div>
+
+          <p>
+            There is also a design precedent worth copying: <code>go-datastar</code>
+            chose <em>patches as values</em> over the official SDK's
+            connection-bound method calls, precisely so a patch can be broadcast,
+            stored, filtered, and replayed. The official
+            <code>datastar-go</code> v1.2.2 cannot do that:
+            <code>datastar.NewSSE(w, r)</code> writes straight to the wire. For a
+            library whose whole architecture is "events are values, projections
+            are values, replays are values", the fleet's own library is the
+            correct dependency, and its wire output is golden-tested to be
+            byte-identical to the official one.
+          </p>
+        </section>
+
+        <section id="surface">
+          <h2><span class="num">04</span>Today's client-side surface in this repo</h2>
+          <p>
+            Six browser-facing things exist. Not one of them uses htmx, only one
+            ships hand-written JavaScript, and exactly one example consumes
+            <code>ServeSSE</code>. Note what is <em>gone</em>:
+            <code>transport/http.SSEBroker</code> was <strong>deleted</strong> in
+            <code>8e39faad5</code> (2026-10-17) &mdash; earlier than the v5 plan
+            &mdash; so <code>ServeSSE</code> is now the only first-party
+            browser-stream surface.
+          </p>
+          <table>
+            <thead>
+              <tr>
+                <th>Surface</th>
+                <th>What it serves</th>
+                <th>HTML tech</th>
+                <th>Client JS</th>
+                <th>SSE</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>catalog/docserver</code></td>
+                <td>index, event catalog, Scalar/AsyncAPI SPAs, D2 view, errors page</td>
+                <td>templ + templ-components, embedded CSS, <code>HTMXSrc = HTMXNone</code></td>
+                <td>none of its own (theme toggle + mobile nav only)</td>
+                <td class="no">no</td>
+              </tr>
+              <tr>
+                <td><code>catalog/architecture</code> export</td>
+                <td>one self-contained .html reference file</td>
+                <td>hand-built <code>htmlWriter</code>, inlined CSS + JS</td>
+                <td>9,143 B <code>reference.js</code> + 532 B <code>theme.js</code>, inlined</td>
+                <td class="no">no &mdash; by design</td>
+              </tr>
+              <tr>
+                <td><code>metaengine.ServeSSE[V]</code></td>
+                <td>read-model value changes</td>
+                <td>none (raw SSE)</td>
+                <td>consumer writes an <code>EventSource</code> handler</td>
+                <td class="yes">yes</td>
+              </tr>
+              <tr>
+                <td><code>catalog/eventcatalog.StaticServer</code></td>
+                <td>a pre-built EventCatalog site from an <code>fs.FS</code></td>
+                <td>generated static HTML/JS</td>
+                <td>whatever the built site ships</td>
+                <td class="no">no</td>
+              </tr>
+              <tr>
+                <td><code>systemscenario</code> SSE harness</td>
+                <td>test double for <code>ServeSSE</code></td>
+                <td>in-process HTTP server + streaming client</td>
+                <td>none</td>
+                <td class="yes">yes (tests only)</td>
+              </tr>
+              <tr>
+                <td><code>example/taskmanager</code></td>
+                <td>the <strong>only</strong> in-repo consumer of <code>ServeSSE</code></td>
+                <td><code>http.go:57</code> mounts <code>metaengine.ServeSSE(v.taskViews, ...)</code></td>
+                <td>none in-repo (the client is hypothetical)</td>
+                <td class="yes">yes</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>The SSE contract being emitted today</h3>
+          <p>
+            <code>metaengine/sse.go</code> is a genuinely careful piece of
+            engineering: subscribe-before-commit ordering so a client that has
+            seen <code>200</code> can never miss a raced write, replay with dedup
+            against the live handoff, drop-old backpressure, heartbeats,
+            <code>X-Accel-Buffering: no</code>. The output, though, is
+            deliberately minimal:
+          </p>
+          <pre><code><span class="tok-comment">// metaengine/sse.go:173 — the entire client-facing contract</span>
+data: {"ID":"user-42","Email":"ada@example.com","Plan":"pro"}
+</code></pre>
+          <p>
+            Unnamed event, JSON payload, no semantics. Every consumer &mdash; a
+            dashboard, an admin panel, a live table &mdash; must rebuild the
+            renderer. That is the gap Datastar fills, and the gap is exactly one
+            function wide.
+          </p>
+
+          <h3>And the one place Datastar must never go</h3>
+          <p>
+            <code>catalog/architecture/assets/reference.js</code> opens with a
+            sentence that is a design constraint, not a comment:
+          </p>
+          <pre><code>There is no fetch, no framework and no build step: the whole point of
+this export is that it keeps working from an email attachment years from now.</code></pre>
+          <p>
+            Datastar is structurally the opposite: it needs a live server, a
+            stream, and an interpreter. Any proposal to "modernize" that artifact
+            with Datastar destroys its only differentiator. It renders through
+            <code>architectureCache</code> and is served with its own CSP
+            deliberately not applied (<code>catalog/docserver/architecture.go:44-48</code>).
+            Leave it alone.
+          </p>
+        </section>
+
+        <section id="opportunities">
+          <h2><span class="num">05</span>Six opportunities, ranked</h2>
+          <p>
+            Ordered by payoff per unit of risk. Item 0 is the one that will still
+            matter in two years.
+          </p>
+
+          <div class="issue issue-critical" id="op-0">
+            <span class="severity severity-critical">Highest leverage &middot; library surface</span>
+            <h3>0. A Datastar encoder beside <code>ServeSSE</code></h3>
+            <div class="where">
+              new module <code>metaengine/datastaradapter/</code> &middot; sibling of
+              <code>projectionadapter/</code>, <code>graphadapter/</code>,
+              <code>keycodec/</code>, <code>otelobserver/</code>
+            </div>
+            <p>
+              A consumer with a live read model currently gets JSON and writes a
+              renderer. Give them a second encoder that takes the same
+              <code>*Watcher[V]</code> and the same options, and emits Datastar
+              patches built from a caller-supplied render function. Every hard
+              problem &mdash; ordering, replay, dedup, backpressure, timeouts,
+              heartbeats &mdash; is already solved in <code>metaengine/sse.go</code>
+              and is reused verbatim.
+            </p>
+            <pre><code><span class="tok-comment">// metaengine/datastaradapter/datastar.go — the whole idea</span>
+<span class="tok-keyword">type</span> <span class="tok-type">Renderer</span>[V any] <span class="tok-keyword">func</span>(v V) <span class="tok-type">string</span>
+
+<span class="tok-comment">// ServeDatastar streams read-model changes as datastar-patch-elements.</span>
+<span class="tok-keyword">func</span> <span class="tok-func">ServeDatastar</span>[V any](
+    w http.<span class="tok-type">ResponseWriter</span>, r *http.<span class="tok-type">Request</span>,
+    watcher *metaengine.<span class="tok-type">Watcher</span>[V],
+    render <span class="tok-type">Renderer</span>[V],
+    opts ...metaengine.<span class="tok-type">SSEOption</span>,
+) <span class="tok-type">error</span>
+
+<span class="tok-comment">// EventsPatch turns HTML into the wire payload go-sse already knows</span>
+<span class="tok-comment">// how to split: one `elements ` prefix per line.</span>
+<span class="tok-keyword">func</span> <span class="tok-func">ElementsPatch</span>(html <span class="tok-type">string</span>, id <span class="tok-type">sse.EventID</span>) sse.<span class="tok-type">Event</span> </code></pre>
+            <p>
+              Why a sibling module and not a new option on <code>ServeSSE</code>:
+              <code>metaengine</code> is a storage/query planner and must not learn
+              what HTML is. The four existing adapters set the pattern; this is the
+              fifth. Dependency budget: <code>metaengine</code> + <code>go-sse</code>
+              + <code>go-datastar</code>, nothing else.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Test contract to ship with it</strong>
+              Mirror <code>systemscenario/sse.go</code>: boot an in-process server,
+              connect as a real client, assert the parsed patch events. Then pin the
+              bytes with a golden &mdash; and do not invent the goldens. Upstream
+              ships a cross-SDK conformance corpus at
+              <code>sdk/test/get-cases/*/{input.json,output.txt}</code> precisely so
+              every SDK emits identical bytes; adopting those fixtures as the
+              adapter's golden makes the output verifiable against
+              <code>starfederation/datastar-go</code> instead of against our own
+              opinion of the spec.
+            </div>
+          </div>
+
+          <div class="issue issue-important" id="op-1">
+            <span class="severity severity-important">Biggest in-repo UX win</span>
+            <h3>1. Make the event catalog searchable without page reloads</h3>
+            <div class="where">
+              <code>catalog/docserver/eventcatalog_handlers.go</code> &middot;
+              <code>GET {docs}/eventcatalog</code> + 5 detail routes
+            </div>
+            <p>
+              The catalog surface is today a set of full-page navigations: filter
+              a list, click a message, lose the filter, press back. With signals
+              the filter becomes a <code>data-bind</code> on one input, and the
+              result list becomes a server-rendered fragment patched into
+              <code>#results</code>. Server-side filtering stays authoritative
+              (no catalog JSON shipped to the browser), which also keeps the page
+              small on large catalogs.
+            </p>
+            <pre><code>&lt;<span class="tok-attr">input</span> <span class="tok-attr">type</span>=<span class="tok-string">"search"</span>
+       <span class="tok-attr">data-bind</span>:q
+       <span class="tok-attr">data-on</span>:input__debounce.250ms=<span class="tok-string">"@get('/docs/eventcatalog/results')"</span>
+       <span class="tok-attr">data-indicator</span>:<span class="tok-attr">searching</span>&gt;
+
+&lt;<span class="tok-attr">div</span> <span class="tok-attr">id</span>=<span class="tok-string">"results"</span> <span class="tok-attr">data-show</span>=<span class="tok-string">"!$searching"</span>&gt;
+  &lt;!-- server-rendered rows, morphed in --&gt;
+&lt;/<span class="tok-attr">div</span>&gt;</code></pre>
+            <p>
+              The handler returns <code>text/html</code> plus
+              <code>datastar-selector: #results</code> and
+              <code>datastar-mode: inner</code> &mdash; which is exactly what
+              <code>wire.Handler(PatchTarget{...})</code> in
+              <code>templ-components/utils/wire</code> already emits, and the
+              catalog module already depends on that module.
+            </p>
+          </div>
+
+          <div class="issue issue-important" id="op-2">
+            <span class="severity severity-important">Near-zero code</span>
+            <h3>2. Flip the docserver transport with <code>wire.Action</code></h3>
+            <div class="where">
+              <code>catalog/docserver/*.templ</code> &middot; <code>docsPageProps</code>
+            </div>
+            <p>
+              <code>templ-components</code> already renders one typed
+              <code>wire.Action</code> as <em>either</em> htmx attributes
+              <em>or</em> Datastar attributes, selected by
+              <code>Transport: TransportDatastar</code> (ADR-0030 in that repo).
+              The docserver currently opts out of both runtimes
+              (<code>HTMXSrc = HTMXNone</code>), so turning on Datastar means:
+              serve the runtime via <code>datastar.SDKScript</code>, pass
+              <code>Transport: wire.TransportDatastar</code>, and keep every other
+              component byte-identical. This is the cheapest possible pilot and
+              it de-risks opportunity 1.
+            </p>
+            <div class="callout callout-amber">
+              <strong>One CSP detail, and it is good news</strong>
+              <code>docserver</code> ships <code>script-src 'self' 'nonce-…'</code>
+              with no <code>'unsafe-eval'</code>
+              (<code>catalog/docserver/csp.go:50-66</code>). Datastar's default
+              expression mode uses the <code>Function()</code> constructor and
+              would be blocked. Its <strong>CSP mode</strong> needs no eval: put
+              <code>data-nonce="&lt;same nonce&gt;"</code> on the
+              <code>&lt;html&gt;</code> element and Datastar applies that nonce
+              when compiling expressions. <code>layout.PageProps</code> has
+              <code>HTMLDataAttrs templ.Attributes</code> documented for exactly
+              this. The existing per-request nonce plumbing
+              (<code>templ.GetNonce</code>) is the same value &mdash; no second
+              nonce system.
+            </div>
+          </div>
+
+          <div class="issue issue-nice" id="op-3">
+            <span class="severity severity-nice">Documentation value</span>
+            <h3>3. One reference consumer app</h3>
+            <div class="where"><code>example/</code> &middot; next to <code>goal-shaped-app</code></div>
+            <p>
+              The repo has zero HTML examples. A small
+              <code>example/live-dashboard</code> that wires
+              <code>system.New</code> + one <code>metaengine.Watcher</code> +
+              <code>ServeDatastar</code> + a 30-line templ page would do more for
+              adoption than any amount of prose &mdash; and it becomes the fixture
+              that keeps the adapter honest. Register it under
+              <code>examplePaths</code> (build-only), never <code>testModules</code>.
+            </p>
+          </div>
+
+          <div class="issue issue-nice" id="op-4">
+            <span class="severity severity-nice">Small but real</span>
+            <h3>4. Publish the wire contract in the skill</h3>
+            <div class="where">
+              <code>.agents/skills/go-cqrs-lite/references/advanced.md</code> &sect;6.15
+            </div>
+            <p>
+              The SSE decision matrix in <code>SKILL.md</code> currently offers
+              two browser options (raw events via <code>go-sse</code>, read-model
+              values via <code>ServeSSE</code>) and one of them arrives as
+              meaningless JSON. A third row &mdash; "browser needs a live
+              <em>view</em>" &rarr; <code>ServeDatastar</code> &mdash; closes the
+              matrix. Remember <code>cmd/doc-check</code>.
+            </p>
+          </div>
+
+          <div class="issue issue-nice" id="op-5">
+            <span class="severity severity-nice">Explicit non-goal</span>
+            <h3>5. Do not convert <code>catalog/architecture</code></h3>
+            <div class="where"><code>catalog/architecture/assets/reference.js</code></div>
+            <p>
+              Recorded here so the question does not get re-asked in six months:
+              the offline artifact wins by having no runtime. A
+              "Datastar-powered" variant of the same reference (served, not
+              attached) is defensible <em>as a separate export mode</em>, if a
+              consumer ever asks for live catalog browsing without running
+              docserver. Not before.
+            </p>
+          </div>
+        </section>
+
+        <section id="limits">
+          <h2><span class="num">06</span>Where it breaks &mdash; the honest list</h2>
+
+          <div class="strengths">
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Morphing is only as good as your IDs</strong>
+                <span>
+                  Rows without stable ids are destroyed and rebuilt, taking focus,
+                  listeners, and open <code>&lt;details&gt;</code> with them. The
+                  modern mitigation is the platform, not the framework:
+                  <code>moveBefore()</code> preserves state on a reparent
+                  (Chrome/Edge 133+, Firefox 144+; no Safari), with feature
+                  detection required. <code>data-preserve-attr</code>,
+                  <code>data-ignore-morph</code>, and per-row
+                  <code>view-transition-name</code> are the escape hatches to
+                  document. Two hard constraints if you enable
+                  <code>useViewTransition</code>: at most one element per name
+                  before <em>and</em> after a transition (a duplicate silently
+                  degrades to an instant swap, no error), and nothing routes focus
+                  for you &mdash; a transition that reveals a detail pane must move
+                  focus to its heading itself.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Signals are shipped on every request</strong>
+                <span>
+                  A <code>@get</code> puts every non-<code>_</code> signal in the
+                  query string; other methods put them in the body. A naive
+                  implementation with a 5,000-row signal array will hurt.
+                  Server-side filtering (opportunity 1) avoids this by keeping the
+                  dataset out of signals entirely.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Expressions are JavaScript in attributes</strong>
+                <span>
+                  This is an XSS surface if user data is ever interpolated into an
+                  expression. The rule is the same one the fleet already applies to
+                  templ: static expressions, user values only through signals, and
+                  <code>data-ignore</code> as a last resort. CSP mode does not make
+                  untrusted expressions safe &mdash; the docs say so outright.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>There is no client-side router</strong>
+                <span>
+                  <code>data-replace-url</code> and <code>data-query-string</code>
+                  are Pro. A multi-page admin UI stays multi-page (which is fine
+                  here: docserver's pages are documents, not views of an app).
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Design the stream as idempotent state, not as a feed</strong>
+                <span>
+                  Because a hidden tab tears the stream down and re-issues it, and
+                  because a clean close is not retried, upstream's own guidance for
+                  CQRS is a "fat morph": send the complete desired state of the
+                  region on every patch instead of appending deltas. Our read-model
+                  watcher makes that natural &mdash; <code>Watcher[V]</code> hands
+                  you the current value, not a diff &mdash; but the adapter's
+                  documentation must say it, because append-shaped patches
+                  (<code>mode append</code> to an event log) will visibly duplicate
+                  after a reconnect.
+                </span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Heartbeats: an advantage of our stack, not theirs</strong>
+                <span>
+                  The official SDK has no keepalive helper at all &mdash; its writer
+                  is unexported, so you cannot emit a bare
+                  <code>: keepalive</code> comment through it. go-sse has
+                  <code>WriteHeartbeat</code>, and
+                  <code>metaengine.WithSSEHeartbeat</code> already wires it. Another
+                  reason to build on <code>go-datastar</code> + <code>go-sse</code>
+                  rather than the upstream SDK.
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="callout callout-amber">
+            <strong>The one architectural boundary to defend</strong>
+            Datastar makes it tempting to put HTML rendering inside
+            <code>metaengine</code>. Resist. Rendering belongs to the adapter layer
+            for the same reason <code>projectionadapter</code> exists: the
+            substrate must stay JSON-shaped, engine-agnostic, and
+            testable without a browser.
+          </div>
+        </section>
+
+        <section id="plan">
+          <h2><span class="num">07</span>Rollout plan and decision matrix</h2>
+
+          <div class="migration-step">
+            <div class="migration-num">1</div>
+            <div class="migration-content">
+              <h4>P0 &mdash; adapter module + parity test</h4>
+              <p>
+                <code>metaengine/datastaradapter</code>: renderer func, two event
+                builders, one <code>ServeDatastar</code>. Reuse
+                <code>metaengine</code>'s SSE options as-is. Ship alongside a
+                <code>systemscenario</code>-style contract test and a wire golden.
+                Register in the six module gates (go.work, <code>testModules</code>,
+                api-stability, layer table + dep budget, linter catalog, golden).
+              </p>
+            </div>
+          </div>
+          <div class="migration-step">
+            <div class="migration-num">2</div>
+            <div class="migration-content">
+              <h4>P1 &mdash; docserver pilot on one surface</h4>
+              <p>
+                Event catalog filter only. Turn on
+                <code>datastar.SDKScript</code> with the existing nonce,
+                <code>data-nonce</code> on <code>&lt;html&gt;</code> via
+                <code>HTMLDataAttrs</code>, one <code>wire.Action</code>. Keep
+                every route's no-JS fallback (the current full-page link) intact.
+              </p>
+            </div>
+          </div>
+          <div class="migration-step">
+            <div class="migration-num">3</div>
+            <div class="migration-content">
+              <h4>P2 &mdash; example + docs</h4>
+              <p>
+                <code>example/live-dashboard</code>, the SKILL.md matrix row, and
+                an ADR if the adapter's contract is meant to be permanent. Run
+                <code>nix run .#check-adr-numbering</code> before and after.
+              </p>
+            </div>
+          </div>
+
+          <h3>Decision matrix</h3>
+          <table class="compare">
+            <thead>
+              <tr>
+                <th>Option</th>
+                <th>Value</th>
+                <th>Cost</th>
+                <th>Verdict</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Reader-model SSE encoder (adapter module)</td>
+                <td class="yes">High &mdash; changes the default consumer experience</td>
+                <td>~300 LOC + 1 module in the gates</td>
+                <td class="yes">Do it</td>
+              </tr>
+              <tr>
+                <td>docserver interactive catalog</td>
+                <td class="yes">High &mdash; the one UI everyone actually opens</td>
+                <td>1 new module dep, 2-3 handlers</td>
+                <td class="yes">Do it, after P0</td>
+              </tr>
+              <tr>
+                <td>Full datastar rewrite of docserver (SPA)</td>
+                <td class="no">Low &mdash; pages are documents</td>
+                <td>High, and it breaks no-JS</td>
+                <td class="no">No</td>
+              </tr>
+              <tr>
+                <td>Datastar in <code>metaengine</code> core</td>
+                <td class="no">Negative &mdash; couples storage to HTML</td>
+                <td>Permanent boundary erosion</td>
+                <td class="no">No</td>
+              </tr>
+              <tr>
+                <td>Convert <code>catalog/architecture</code></td>
+                <td class="no">Negative &mdash; destroys the offline artifact</td>
+                <td>&mdash;</td>
+                <td class="no">No</td>
+              </tr>
+              <tr>
+                <td>Build a second protocol implementation in-repo</td>
+                <td class="no">Negative &mdash; <code>go-datastar</code> exists and is golden-tested</td>
+                <td>Duplication + drift</td>
+                <td class="no">No</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="appendix">
+          <h2><span class="num">08</span>Appendix</h2>
+
+          <h3>Verified-facts ledger</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Claim</th>
+                <th>How verified</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Client v1.0.4, 33,553 B raw / 13,365 B gzip, no deps</td>
+                <td>bundle header + <code>wc -c</code> on <code>go-datastar/static/datastar.js</code>; gzip measured locally</td>
+              </tr>
+              <tr>
+                <td>1.0 GA was 2026-04-16; current 1.0.4</td>
+                <td>GitHub releases API for <code>starfederation/datastar</code></td>
+              </tr>
+              <tr>
+                <td>Only two patch event types; exact field names</td>
+                <td><code>data-star.dev/reference/sse_events</code>, quoted verbatim above</td>
+              </tr>
+              <tr>
+                <td>Default CSP needs <code>'unsafe-eval'</code>; nonce mode needs none</td>
+                <td><code>data-star.dev/reference/security</code></td>
+              </tr>
+              <tr>
+                <td>Fetch-based, no <code>EventSource</code></td>
+                <td>zero occurrences in the v1.0.4 bundle</td>
+              </tr>
+              <tr>
+                <td>Resume via <code>last-event-id</code> on retry</td>
+                <td>deobfuscated assignment in the v1.0.4 bundle (shown above)</td>
+              </tr>
+              <tr>
+                <td>A clean server close does <em>not</em> trigger a reconnect</td>
+                <td>upstream <code>library/src/plugins/actions/fetch.ts</code> control flow: resolve-and-dispose vs retry-on-throw</td>
+              </tr>
+              <tr>
+                <td>Byte-exact goldens exist upstream and are reusable</td>
+                <td><code>starfederation/datastar@sdk/test/get-cases/*/output.txt</code> + <code>sdk/ADR.md</code></td>
+              </tr>
+              <tr>
+                <td>The official SDK has no heartbeat/comment writer</td>
+                <td>read of <code>datastar-go/datastar/sse.go</code> at v1.2.2: unexported writer, no ping helper</td>
+              </tr>
+              <tr>
+                <td>Official Go SDK v1.2.2, API shape</td>
+                <td>SDK README + <code>go-datastar</code> README's upstream check (2026-11-07)</td>
+              </tr>
+              <tr>
+                <td><code>metaengine.ServeSSE</code> emits unnamed JSON events; replay writes <code>id:</code></td>
+                <td><code>metaengine/sse.go:173</code>, <code>:227</code>, <code>:252</code></td>
+              </tr>
+              <tr>
+                <td>docserver enforces nonce CSP with no eval</td>
+                <td><code>catalog/docserver/csp.go:50-66</code></td>
+              </tr>
+              <tr>
+                <td>docserver renders no htmx and no datastar</td>
+                <td><code>catalog/docserver/layout.templ:21</code> (<code>HTMXSrc = layout.HTMXNone</code>)</td>
+              </tr>
+              <tr>
+                <td><code>wire</code> and the datastar component package already exist upstream</td>
+                <td><code>templ-components</code> FEATURES.md; <code>catalog/go.mod:17-19</code></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>Protocol cheat sheet for a Go handler</h3>
+          <pre><code><span class="tok-comment">// 1. headers + flush</span>
+w.Header().<span class="tok-func">Set</span>(<span class="tok-string">"Content-Type"</span>, <span class="tok-string">"text/event-stream"</span>)
+w.Header().<span class="tok-func">Set</span>(<span class="tok-string">"Cache-Control"</span>, <span class="tok-string">"no-cache"</span>)
+w.Header().<span class="tok-func">Set</span>(<span class="tok-string">"X-Accel-Buffering"</span>, <span class="tok-string">"no"</span>)
+w.<span class="tok-func">WriteHeader</span>(http.StatusOK)
+w.(http.<span class="tok-type">Flusher</span>).<span class="tok-func">Flush</span>()
+
+<span class="tok-comment">// 2. read signals (POST body / GET query param)</span>
+<span class="tok-keyword">var</span> sig <span class="tok-keyword">struct</span> { Q <span class="tok-type">string</span> `json:<span class="tok-string">"q"</span>` }
+_ = datastar.<span class="tok-func">ReadSignals</span>(r, &amp;sig)
+
+<span class="tok-comment">// 3. patch — or, in this repo, hand a Patch to the broadcaster</span>
+sse.<span class="tok-func">WriteEvent</span>(w, patch.<span class="tok-func">Event</span>())</code></pre>
+
+          <h3>Sources</h3>
+          <ul>
+            <li><code>https://data-star.dev/reference/attributes</code>, <code>/actions</code>, <code>/sse_events</code>, <code>/sdks</code>, <code>/security</code></li>
+            <li><code>https://github.com/starfederation/datastar</code> (release v1.0.4, 2026-09-21; 1.0 GA 2026-04-16), <code>sdk/ADR.md</code>, <code>sdk/test/get-cases/</code>, and <code>/datastar-go</code> v1.2.2</li>
+            <li><code>github.com/larsartmann/go-datastar</code> v0.6.3 (README, <code>patch.go</code>, <code>static/</code>)</li>
+            <li><code>github.com/larsartmann/go-sse</code> v0.6.2 (<code>event.go:91-108</code>, <code>:167</code>)</li>
+            <li><code>github.com/larsartmann/templ-components</code> v1.27.0 (<code>datastar/</code>, <code>utils/wire</code>, <code>layout/base.templ:158</code>)</li>
+            <li>This repo: <code>metaengine/sse.go</code>, <code>metaengine/dx.go</code>, <code>catalog/docserver/*</code>, <code>catalog/architecture/assets/reference.js</code></li>
+            <li>Chrome guidance consulted: <code>move-dom-element-without-losing-state</code>, <code>same-document-transitions</code></li>
+          </ul>
+
+          <h3>Open questions this study did not settle</h3>
+          <ul>
+            <li>Whether the adapter should also offer a <em>signal</em> encoder (JSON value &rarr; <code>datastar-patch-signals</code>) for consumers who want client-side rendering with server-side truth. Cheap to add, but two encoders need two contracts.</li>
+            <li>Whether <code>cqrs-htmx/datastar</code>'s <code>EventBridge</code> should move down into the adapter, or stay a handler-layer convenience. Duplicating the bridge in two repos is the failure mode to avoid.</li>
+            <li>How a Datastar client behaves against <code>WithSSEReplayLimit</code>-capped replay when the missed window is larger than the cap: silent gap or full re-fetch. Needs a browser test, not a reading of the code.</li>
+          </ul>
+        </section>
+
+        <footer class="footer">
+          <p>
+            Generated 2026-11-07 &middot; Datastar v1.0.4 client &middot;
+            go-datastar v0.6.3 &middot; go-sse v0.6.2 &middot;
+            templ-components v1.27.0 &middot; every claim above traced to a file or
+            an official reference
+          </p>
+        </footer>
+      </main>
+    </div>
+
+    <script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) {
+            return document.getElementById(id);
+          })
+          .filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (link) {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id,
+                  );
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
+      })();
+    </script>
+  </body>
+</html>
