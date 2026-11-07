@@ -11,6 +11,17 @@
       url = "github:numtide/treefmt-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    # templ generator, pinned by tag: the emitted *_templ.go must match the
+    # templ RUNTIME the go.mod files resolve (fleet floor v0.3.1100 — the
+    # 2026-11-05 alignment). nixpkgs ships an older templ (v0.3.1020) whose
+    # codegen emits templ.JoinURLErrs/ResolveAttributeValue calls that the
+    # v0.3.1100 runtime removed; gating on it flipped catalog/docserver
+    # back to 1020-era form three times (whipsaw rounds 1-3, see 17687ea56)
+    # and broke every consumer workspace. Drop this pin when nixpkgs ships
+    # templ >= 0.3.1100.
+    templ = {
+      url = "git+https://github.com/a-h/templ?ref=refs/tags/v0.3.1100";
+    };
     # NOTE: deliberately NOT github:nix-systems/default — that list includes
     # x86_64-darwin, which nixpkgs unstable (26.11+) no longer supports; keeping
     # it failed every flake-wide walk (flake show / flake check / tooling
@@ -77,6 +88,7 @@
       self,
       flake-parts,
       treefmt-nix,
+      templ,
       go-nix-helpers,
       go-finding,
       cmdguard,
@@ -201,11 +213,13 @@
         {
           config,
           pkgs,
+          system,
           ...
         }:
         let
           inherit (pkgs) lib;
           goPkg = goToolchain pkgs;
+          templPkg = templ.packages.${system}.default;
 
           # Empty since Go 1.27 graduated encoding/json/v2 — the
           # "goexperiment.jsonv2" build tag and GOEXPERIMENT=jsonv2 are
@@ -728,7 +742,7 @@
               pkgs.mariadb.client
               pkgs.tailwindcss_4
               pkgs.actionlint
-              pkgs.templ
+              templPkg
             ];
 
             GOWORK = "off";
@@ -1306,12 +1320,13 @@
                 '';
 
             # check-templ: templ codegen-drift gate — fails when a *_templ.go
-            # no longer matches its .templ source. The nixpkgs templ version
-            # is the pin recorded in the treefmt excludes (v0.3.1020).
-            check-templ = mkApp "check-templ" [ pkgs.templ goPkg pkgs.bash pkgs.findutils pkgs.gnugrep ] ''
+            # no longer matches its .templ source. Runs the TAG-PINNED templ
+            # generator (templPkg, v0.3.1100 — see the templ input); the
+            # nixpkgs templ emits pre-1100 code and must not gate this tree.
+            check-templ = mkApp "check-templ" [ templPkg goPkg pkgs.bash pkgs.findutils pkgs.gnugrep ] ''
               echo "==> templ codegen drift (catalog/docserver)"
               cd catalog/docserver
-              ${pkgs.templ}/bin/templ generate -check -log-level error
+              ${templPkg}/bin/templ generate -check -log-level error
               cd "$OLDPWD"
               echo "==> templ FileName cwd tripwire"
               ${pkgs.bash}/bin/bash "$PWD/scripts/check-templ-paths.sh"

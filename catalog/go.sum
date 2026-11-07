@@ -2,8 +2,8 @@ github.com/Masterminds/semver/v3 v3.5.0 h1:kQceYJfbupGfZOKZQg0kou0DgAKhzDg2NZPAw
 github.com/Masterminds/semver/v3 v3.5.0/go.mod h1:4V+yj/TJE1HU9XfppCwVMZq3I84lprf4nC11bSS5beM=
 github.com/Oudwins/tailwind-merge-go v0.2.3 h1:RCiZ/DlLpoJnE5QSs1sRPDtIs3We0RQpsLH7bBWfbUI=
 github.com/Oudwins/tailwind-merge-go v0.2.3/go.mod h1:kkZodgOPvZQ8f7SIrlWkG/w1g9JTbtnptnePIh3V72U=
-github.com/a-h/templ v0.3.1070 h1:3iCOXHXqFXa99OQzgkUOLJbNzv/QjFGLwKZkBAg+ADA=
-github.com/a-h/templ v0.3.1070/go.mod h1:iIqB3g2RHBe/WlnPwa+Bvhh1TKXHWLRnBD9NWHOLm78=
+github.com/a-h/templ v0.3.1100 h1:lQhjVs1IL+M6QWUvojaFBd21+kzwATppSyWkWB9oHoM=
+github.com/a-h/templ v0.3.1100/go.mod h1:j1WAOR7749mlo1AxFLQ7qbDFW5VwyoqszRTlKqEHN9M=
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
@@ -72,8 +72,8 @@ github.com/larsartmann/templ-components/htmx v1.26.0 h1:1QVH6zMtAc3tlyBq4Zqvjgwe
 github.com/larsartmann/templ-components/htmx v1.26.0/go.mod h1:I5BKr+NnfvIAlB8F7ev04zZThjwy6rWNTAIOywAfln0=
 github.com/larsartmann/templ-components/icons v1.26.0 h1:lPG2vAAK3tahIExmnaFvGv/9yZ+3atcVjwDJPFu/2uc=
 github.com/larsartmann/templ-components/icons v1.26.0/go.mod h1:oA3LciVPlAODIsb8kB3xKWrooEd5E/615qz+ATukWT8=
-github.com/larsartmann/templ-components/utils v1.26.0 h1:3nkTviHf6z5rQMuIcitAdwP32nhfLWzJfQuOAjoQJoc=
-github.com/larsartmann/templ-components/utils v1.26.0/go.mod h1:BURiNlU0euT637JDbo1klsPuJeBQ30flHZs1STunT+w=
+github.com/larsartmann/templ-components/utils v1.27.0 h1:hcMPzj4s/zvi/Lmd3qIL5i1zrSLwNZxRfgtDrAGo1LI=
+github.com/larsartmann/templ-components/utils v1.27.0/go.mod h1:xoFOtJotCmMvhoClHVGMghnR1JjVc+BEh/YZDRKpZr0=
 github.com/maruel/natural v1.3.0 h1:VsmCsBmEyrR46RomtgHs5hbKADGRVtliHTyCOLFBpsg=
 github.com/maruel/natural v1.3.0/go.mod h1:v+Rfd79xlw1AgVBjbO0BEQmptqb5HvL/k9GRHB7ZKEg=
 github.com/mfridman/tparse v0.18.0 h1:wh6dzOKaIwkUGyKgOntDW4liXSo37qg5AXbIhkMV3vE=
