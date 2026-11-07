@@ -1,10 +1,5 @@
 module github.com/larsartmann/go-cqrs-lite/catalog/v4
 
-// Dev-time sibling replace: keeps GOWORK=off dev builds resolving the
-// working-tree schema instead of the latest tag (TypedEventSchema shipped in
-// schema/v4.7.0). tag-release.sh strips local replaces at tag time.
-replace github.com/larsartmann/go-cqrs-lite/schema/v4 => ../schema
-
 go 1.27.2
 
 require (
