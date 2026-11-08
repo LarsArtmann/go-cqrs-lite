@@ -3,16 +3,13 @@ package indexing
 import (
 	"context"
 
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/trace"
-
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 )
 
 // Tracer returns the package-level OTel tracer for indexing operations.
 // Uses the global TracerProvider; returns a no-op tracer when no
 // provider is configured.
-func Tracer() trace.Tracer {
+func Tracer() cqrsotel.Tracer {
 	return cqrsotel.NewTracer("turso-indexing")
 }
 
@@ -42,27 +39,27 @@ const (
 func startIndexingSpan(
 	ctx context.Context,
 	spanName string,
-	opts ...trace.SpanStartOption,
-) (context.Context, trace.Span) {
+	opts ...cqrsotel.SpanStartOption,
+) (context.Context, cqrsotel.Span) {
 	return cqrsotel.StartSpan(
 		ctx,
 		Tracer(),
 		spanName,
-		trace.SpanKindClient,
+		cqrsotel.SpanKindClient,
 		opts...,
 	)
 }
 
 // endSpan ends a span and records any error.
-func endSpan(span trace.Span, err error) {
+func endSpan(span cqrsotel.Span, err error) {
 	cqrsotel.EndWithError(span, err)
 }
 
 // recordIndexAttributes attaches standard index metadata to a span.
-func recordIndexAttributes(span trace.Span, idx Index) {
+func recordIndexAttributes(span cqrsotel.Span, idx Index) {
 	span.SetAttributes(
-		attribute.String(AttrIndexName, idx.Name),
-		attribute.String(AttrIndexTable, idx.Table),
-		attribute.Bool(AttrIndexUnique, idx.Unique),
+		cqrsotel.AttrString(AttrIndexName, idx.Name),
+		cqrsotel.AttrString(AttrIndexTable, idx.Table),
+		cqrsotel.AttrBool(AttrIndexUnique, idx.Unique),
 	)
 }

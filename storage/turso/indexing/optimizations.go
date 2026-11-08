@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	errorfamily "github.com/larsartmann/go-error-family"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/trace"
+
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 )
 
 // Pragma is a SQLite-compatible PRAGMA setting.
@@ -41,7 +41,7 @@ func ApplyOptimizationsTraced(ctx context.Context, db *sql.DB) error {
 	_, span := startIndexingSpan(
 		ctx,
 		SpanOptimizationsApply,
-		trace.WithAttributes(attribute.Int("indexing.pragma.count", len(DefaultOptimizations()))),
+		cqrsotel.WithAttributes(cqrsotel.AttrInt("indexing.pragma.count", len(DefaultOptimizations()))),
 	)
 	defer endSpan(span, nil)
 

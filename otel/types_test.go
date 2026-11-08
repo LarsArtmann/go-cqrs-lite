@@ -41,6 +41,7 @@ func TestAttrHelpers(t *testing.T) {
 	g.Expect(AttrInt("k", 42).Value.AsInt64()).To(gomega.Equal(int64(42)))
 	g.Expect(AttrInt64("k", 99).Value.AsInt64()).
 		To(gomega.Equal(int64(99)))
+	g.Expect(AttrBool("k", true).Value.AsBool()).To(gomega.BeTrue())
 }
 
 func TestCounterMetricHelpers(t *testing.T) {

@@ -5,8 +5,6 @@ import (
 	"time"
 
 	flightrecorder "github.com/larsartmann/go-flightrecorder"
-	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/trace"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
@@ -62,8 +60,8 @@ func defaultOptions() hostOptions {
 // tracer returns the OTel tracer for projectionhost. Lazily fetched from the
 // global provider so consumers can set up their provider after calling New.
 // Returns a no-op tracer when no provider is configured.
-func tracer() trace.Tracer {
-	return otel.GetTracerProvider().Tracer(cqrsotel.ComponentTracer("projectionhost"))
+func tracer() cqrsotel.Tracer {
+	return cqrsotel.NewTracer("projectionhost")
 }
 
 // WithMaxRestarts sets the maximum number of restarts per worker before it

@@ -55,6 +55,10 @@ func AttrInt64(key string, value int64) KeyValue {
 	return attribute.Int64(key, value)
 }
 
+func AttrBool(key string, value bool) KeyValue {
+	return attribute.Bool(key, value)
+}
+
 // Semantic convention attribute keys for OTel resource identification.
 // Use these with resource.NewWithAttributes when configuring TracerProvider/MeterProvider.
 const (

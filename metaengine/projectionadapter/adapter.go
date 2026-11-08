@@ -6,9 +6,8 @@ import (
 	"log/slog"
 
 	errorfamily "github.com/larsartmann/go-error-family"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/trace"
 
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/projection/v4"
@@ -126,12 +125,12 @@ func (a *Adapter) Handle(ctx context.Context, evt event.Event) error {
 	eventType := string(evt.Type())
 	payload := evt.Payload()
 
-	if span := trace.SpanFromContext(ctx); span.IsRecording() {
+	if span := cqrsotel.SpanFromContext(ctx); span.IsRecording() {
 		span.SetAttributes(
-			attribute.String("projectionadapter.event_type", eventType),
-			attribute.String("projectionadapter.stream_id", evt.StreamID().String()),
-			attribute.String("projectionadapter.stream_type", string(evt.StreamType())),
-			attribute.Int64("projectionadapter.version", int64(evt.Version())),
+			cqrsotel.AttrString("projectionadapter.event_type", eventType),
+			cqrsotel.AttrString("projectionadapter.stream_id", evt.StreamID().String()),
+			cqrsotel.AttrString("projectionadapter.stream_type", string(evt.StreamType())),
+			cqrsotel.AttrInt64("projectionadapter.version", int64(evt.Version())),
 		)
 	}
 

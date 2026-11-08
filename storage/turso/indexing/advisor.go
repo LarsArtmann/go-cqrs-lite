@@ -8,8 +8,6 @@ import (
 	"sync"
 
 	errorfamily "github.com/larsartmann/go-error-family"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/trace"
 
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
@@ -118,7 +116,7 @@ func (a *Advisor) AnalyzeQuery(
 	ctx, span := startIndexingSpan(
 		ctx,
 		SpanAdvisorAnalyzeQuery,
-		trace.WithAttributes(attribute.String("db.statement", query)),
+		cqrsotel.WithAttributes(cqrsotel.AttrString("db.statement", query)),
 	)
 	defer endSpan(span, nil)
 
@@ -131,7 +129,7 @@ func (a *Advisor) AnalyzeQuery(
 	}
 
 	recs := a.recommendationsFromPlan(plan, query)
-	span.SetAttributes(attribute.Int(AttrRecommendationCount, len(recs)))
+	span.SetAttributes(cqrsotel.AttrInt(AttrRecommendationCount, len(recs)))
 
 	return recs, nil
 }

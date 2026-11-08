@@ -7,8 +7,6 @@ import (
 	"sync"
 
 	errorfamily "github.com/larsartmann/go-error-family"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/trace"
 
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 )
@@ -95,7 +93,7 @@ func (a *AutoIndexer) IsEnabled() bool {
 
 // rejectIfDisabled returns a rejection error when the auto-indexer is not
 // enabled, recording it on the span. Returns nil when enabled.
-func (a *AutoIndexer) rejectIfDisabled(span trace.Span) error {
+func (a *AutoIndexer) rejectIfDisabled(span cqrsotel.Span) error {
 	if a.IsEnabled() {
 		return nil
 	}
@@ -114,7 +112,7 @@ func (a *AutoIndexer) Apply(ctx context.Context, recs []Recommendation) error {
 	ctx, span := startIndexingSpan(
 		ctx,
 		SpanAutoIndexerApply,
-		trace.WithAttributes(attribute.Int(AttrRecommendationCount, len(recs))),
+		cqrsotel.WithAttributes(cqrsotel.AttrInt(AttrRecommendationCount, len(recs))),
 	)
 	defer endSpan(span, nil)
 
@@ -146,7 +144,7 @@ func (a *AutoIndexer) Apply(ctx context.Context, recs []Recommendation) error {
 		created++
 	}
 
-	span.SetAttributes(attribute.Int("indexing.index.created", created))
+	span.SetAttributes(cqrsotel.AttrInt("indexing.index.created", created))
 
 	if err := a.maybeAnalyze(ctx); err != nil {
 		cqrsotel.RecordError(span, err)
@@ -181,7 +179,7 @@ func (a *AutoIndexer) ApplyRecommended(ctx context.Context) error {
 		return wrappedErr
 	}
 
-	span.SetAttributes(attribute.Int(AttrRecommendationCount, len(recs)))
+	span.SetAttributes(cqrsotel.AttrInt(AttrRecommendationCount, len(recs)))
 
 	return a.Apply(ctx, recs)
 }
@@ -222,7 +220,7 @@ func (a *AutoIndexer) ApplyCQRSIndexes(ctx context.Context) error {
 		created++
 	}
 
-	span.SetAttributes(attribute.Int("indexing.index.created", created))
+	span.SetAttributes(cqrsotel.AttrInt("indexing.index.created", created))
 
 	if err := a.maybeAnalyze(ctx); err != nil {
 		cqrsotel.RecordError(span, err)
@@ -251,7 +249,7 @@ func (a *AutoIndexer) Drop(ctx context.Context, indexes ...Index) error {
 	ctx, span := startIndexingSpan(
 		ctx,
 		SpanAutoIndexerDrop,
-		trace.WithAttributes(attribute.Int("indexing.index.count", len(indexes))),
+		cqrsotel.WithAttributes(cqrsotel.AttrInt("indexing.index.count", len(indexes))),
 	)
 	defer endSpan(span, nil)
 
@@ -281,7 +279,7 @@ func (a *AutoIndexer) Drop(ctx context.Context, indexes ...Index) error {
 		dropped++
 	}
 
-	span.SetAttributes(attribute.Int("indexing.index.dropped", dropped))
+	span.SetAttributes(cqrsotel.AttrInt("indexing.index.dropped", dropped))
 
 	return nil
 }
