@@ -255,9 +255,12 @@ jobs:
           name: benchmark-baseline
           path: baseline/
 
-  # Calibration drift: fresh per-pattern benches vs shipped ReadCosts
-  # constants (docs/benchmarks/calibration-2026-08-30.md). Warns >25%,
-  # fails >=100% (2x). Nightly + manual; dedicated runner assumed.
+  # Calibration drift: fresh per-pattern benches vs the previous run's
+  # runner-class baseline (actions/cache, same `calib-` namespace as
+  # nightly-gates.yml). Warns >25%, fails >=100% (2x). Comparing against the
+  # shipped ReadCosts constants on a shared GitHub runner failed nightly for
+  # the wrong reason: every engine drifted together with the host, not the
+  # code. Nightly + manual.
   calibration-drift:
     name: Calibration Drift (ReadCosts)
     runs-on: ubuntu-latest
@@ -274,16 +277,43 @@ jobs:
       # cachix-action removed 2026-09-03: with skipPush it only pulls and
       # the larsartmann cache requires auth, so the step always failed.
 
+      - name: Calibration date
+        id: date
+        run: date -u +%F > "$GITHUB_OUTPUT"
+
+      # Rolling runner-class baseline (same calib- cache namespace as
+      # nightly-gates.yml): today's key, restore-keys falls back to the most
+      # recent calibration. Without this, --baseline has nothing to compare.
+      - name: Restore previous calibration baseline
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: build/calibration-baseline.txt
+          key: calib-${{ steps.date.outputs.date }}
+          restore-keys: |
+            calib-
+
       - name: Run calibration drift check
         run: |
-          bash scripts/calibration-drift.sh
+          set -o pipefail
+          mkdir -p build
+          if [ ! -f build/calibration-baseline.txt ]; then
+            echo "no runner-class baseline yet — this run establishes one; comparison starts next run" | tee build/calibration-drift.log
+          else
+            bash scripts/calibration-drift.sh --baseline build/calibration-baseline.txt 2>&1 | tee build/calibration-drift.log
+          fi
 
-      - name: Upload drift log on failure
+      # Only a green comparison refreshes the baseline: a failed drift gate must
+      # freeze the prior baseline until the regression is fixed, or night N+1
+      # compares against the regression itself and goes green.
+      - name: Refresh calibration baseline for the next run
+        if: success()
+        run: nix run .#calibration-drift -- --write-baseline build/calibration-baseline.txt
+
+      - name: Upload drift log
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: calibration-drift
-          path: |
-            /tmp/calibration-drift-*.log
-          if-no-files-found: ignore
+          path: build/calibration-drift.log
+          if-no-files-found: warn
           retention-days: 30
