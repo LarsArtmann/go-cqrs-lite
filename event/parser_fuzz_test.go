@@ -41,21 +41,25 @@ func FuzzParseStreamType(f *testing.F) {
 	f.Add("")
 	f.Add("User")
 	f.Add("A")
+	f.Add("\xfc")
 	f.Add(strings.Repeat("Z", 1024))
 
 	f.Fuzz(func(t *testing.T, input string) {
 		typ, err := id.ParseStreamType(input)
-		if input == "" {
+		if input == "" || !utf8.ValidString(input) {
 			if err == nil {
-				t.Error("expected error for empty input")
+				t.Errorf("expected rejection for invalid input %q", input)
 			}
-		} else {
-			if err != nil {
-				t.Errorf("unexpected error: %v", err)
-			}
-			if string(typ) != input {
-				t.Errorf("id.ParseStreamType: got %q, want %q", typ, input)
-			}
+
+			return
+		}
+
+		if err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
+
+		if string(typ) != input {
+			t.Errorf("id.ParseStreamType: got %q, want %q", typ, input)
 		}
 	})
 }

@@ -11,19 +11,20 @@ import (
 )
 
 // FuzzParseAggregateID is a broader variant of FuzzParse: it accepts ANY
-// non-empty string (not just ULID), per the StreamID contract.
+// non-empty valid-UTF-8 string (not just ULID), per the StreamID contract.
 func FuzzParseAggregateID(f *testing.F) {
 	f.Add("01H4S2Z4QX8N1P5K3M7R9T0V2W")
 	f.Add("")
 	f.Add("lock_user1_user2")
 	f.Add("any-non-empty-string-with-special!@#$%^&*()")
+	f.Add("\xf9")
 	f.Add(strings.Repeat("x", 1024))
 
 	f.Fuzz(func(t *testing.T, input string) {
 		parsed, err := id.ParseStreamID(input)
-		if input == "" {
+		if input == "" || !utf8.ValidString(input) {
 			if err == nil {
-				t.Error("expected error for empty input")
+				t.Errorf("expected rejection for invalid input %q", input)
 			}
 
 			return
@@ -141,14 +142,24 @@ func FuzzAggregateID_JSON_Roundtrip(f *testing.F) {
 func FuzzAggregateIDFrom(f *testing.F) {
 	f.Add("stringer-value")
 	f.Add("")
+	f.Add("\xc4")
 	f.Add(strings.Repeat("z", 1024))
 
 	f.Fuzz(func(t *testing.T, input string) {
 		s := stringerFunc(func() string { return input })
 		got := id.StreamIDFrom(s)
 
-		if got.Get() != input {
-			t.Errorf("StreamIDFrom: got %q, want %q", got.Get(), input)
+		if input == "" || !utf8.ValidString(input) {
+			if got.Get() != "" {
+				t.Errorf("StreamIDFrom: invalid input %q produced %q, want zero", input, got.Get())
+			}
+
+			return
+		}
+
+		want := strings.TrimPrefix(input, id.StreamMarker{}.Name()+":")
+		if got.Get() != want {
+			t.Errorf("StreamIDFrom: got %q, want %q", got.Get(), want)
 		}
 	})
 }
@@ -236,24 +247,21 @@ func FuzzParse_TypeSafety(f *testing.F) {
 		"01H4S2Z4QX8N1P5K3M7R9T0V",      // truncated
 		"01H4S2Z4QX8N1P5K3M7R9T0V2W!!!", // extra bytes
 		"01h4s2z4qx8n1p5k3m7r9t0v2w",    // lowercase
+		"\xb6",                          // invalid UTF-8
 	} {
 		f.Add(s)
 	}
 
 	f.Fuzz(func(t *testing.T, input string) {
-		// Parse for both StreamID (strict ULID) and StreamID (string)
 		_, aggErr := id.ParseStreamID(input)
 		_, ulidErr := id.Parse[id.StreamID](input)
 
-		// ParseAggregateID only rejects empty
-		if input == "" {
+		if input == "" || !utf8.ValidString(input) {
 			if aggErr == nil {
-				t.Error("ParseAggregateID accepted empty")
+				t.Errorf("ParseAggregateID accepted invalid input %q", input)
 			}
-		} else {
-			if aggErr != nil {
-				t.Errorf("ParseAggregateID unexpectedly rejected %q: %v", input, aggErr)
-			}
+		} else if aggErr != nil {
+			t.Errorf("ParseAggregateID unexpectedly rejected %q: %v", input, aggErr)
 		}
 
 		// Parse[id.StreamID] (the strict ULID path) — depends on whether
