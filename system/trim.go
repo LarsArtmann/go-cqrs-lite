@@ -16,6 +16,11 @@ import (
 // simply was not built over an erasable journal.
 var ErrTrimUnavailable = errors.New("system: journal trimming is not available on the configured event store")
 
+// snapshotsCollection is the system's snapshot namespace on the engine's
+// snapshot table — the same name buildSnapshotStore wires (roles.go) and
+// TrimStream/TrimJournalBefore co-trim against.
+const snapshotsCollection = "snapshots"
+
 // trimBackend resolves the stream-log backend and its journal collection from
 // the wired event store. Both trim surfaces are maintenance-only: they read
 // the immutable adapter wiring (set once in New), so no System lock is taken.
@@ -52,7 +57,7 @@ func (s *System) TrimStream(ctx context.Context, ref id.StreamRef) (int64, error
 		return 0, fmt.Errorf("system: trim %s: resolve stream key: %w", ref, err)
 	}
 
-	removed, err := trimmer.TrimStream(ctx, collection, sid)
+	removed, err := trimmer.TrimStream(ctx, collection, snapshotsCollection, sid)
 	if err != nil {
 		return removed, fmt.Errorf("system: trim %s: %w", ref, err)
 	}
@@ -76,7 +81,7 @@ func (s *System) TrimJournalBefore(ctx context.Context, cutoff time.Time) (int64
 		return 0, fmt.Errorf("%w: backend %T implements metaengine.JournalSweeper nowhere", ErrTrimUnavailable, backend)
 	}
 
-	removed, err := sweeper.TrimJournalBefore(ctx, collection, cutoff)
+	removed, err := sweeper.TrimJournalBefore(ctx, collection, snapshotsCollection, cutoff)
 	if err != nil {
 		return removed, fmt.Errorf("system: sweep journal before %s: %w", cutoff.Format(time.RFC3339), err)
 	}

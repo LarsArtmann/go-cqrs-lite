@@ -15,7 +15,7 @@ import (
 // event and its folds settle the semantics first; this erases the bytes).
 // Runs inside RunInTx, so it serializes against concurrent appends on the
 // engine's transaction mutex instead of racing them.
-func (e *sqliteEngine) TrimStream(ctx context.Context, col, sid string) (int64, error) {
+func (e *sqliteEngine) TrimStream(ctx context.Context, col, snapshotCol, sid string) (int64, error) {
 	var removed int64
 
 	err := e.RunInTx(ctx, func(ctx context.Context) error {
@@ -31,11 +31,13 @@ func (e *sqliteEngine) TrimStream(ctx context.Context, col, sid string) (int64, 
 			return fmt.Errorf("sqliteengine: trim stream %s/%s: rows affected: %w", col, sid, err)
 		}
 
-		if _, err := e.xd(ctx).ExecContext(ctx,
-			`DELETE FROM meta_snapshot WHERE collection = ? AND stream_id = ?`,
-			col, sid,
-		); err != nil {
-			return fmt.Errorf("sqliteengine: trim snapshot %s/%s: %w", col, sid, err)
+		if snapshotCol != "" {
+			if _, err := e.xd(ctx).ExecContext(ctx,
+				`DELETE FROM meta_snapshot WHERE collection = ? AND stream_id = ?`,
+				snapshotCol, sid,
+			); err != nil {
+				return fmt.Errorf("sqliteengine: trim snapshot %s/%s: %w", snapshotCol, sid, err)
+			}
 		}
 
 		return nil
@@ -54,18 +56,20 @@ func (e *sqliteEngine) TrimStream(ctx context.Context, col, sid string) (int64, 
 // Implements metaengine.JournalSweeper. Rows without a typed occurred_at
 // (legacy, NULL) are conservatively kept. occurred_at carries no index: the
 // sweep is a maintenance scan, sized by journal width, not a hot path.
-func (e *sqliteEngine) TrimJournalBefore(ctx context.Context, col string, cutoff time.Time) (int64, error) {
+func (e *sqliteEngine) TrimJournalBefore(ctx context.Context, col, snapshotCol string, cutoff time.Time) (int64, error) {
 	var removed int64
 
 	err := e.RunInTx(ctx, func(ctx context.Context) error {
-		if _, err := e.xd(ctx).ExecContext(ctx,
-			`DELETE FROM meta_snapshot WHERE collection = ? AND stream_id IN (
-				SELECT DISTINCT stream_id FROM meta_stream_log
-				WHERE collection = ? AND occurred_at IS NOT NULL AND occurred_at < ?
-			)`,
-			col, col, cutoff.UnixNano(),
-		); err != nil {
-			return fmt.Errorf("sqliteengine: sweep snapshots %s: %w", col, err)
+		if snapshotCol != "" {
+			if _, err := e.xd(ctx).ExecContext(ctx,
+				`DELETE FROM meta_snapshot WHERE collection = ? AND stream_id IN (
+					SELECT DISTINCT stream_id FROM meta_stream_log
+					WHERE collection = ? AND occurred_at IS NOT NULL AND occurred_at < ?
+				)`,
+				snapshotCol, col, cutoff.UnixNano(),
+			); err != nil {
+				return fmt.Errorf("sqliteengine: sweep snapshots %s: %w", snapshotCol, err)
+			}
 		}
 
 		res, err := e.xd(ctx).ExecContext(ctx,

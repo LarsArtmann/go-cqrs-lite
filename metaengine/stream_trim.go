@@ -22,10 +22,13 @@ import (
 // trimmed rows simply never re-reads them.
 type StreamTrimmer interface {
 	// TrimStream deletes every journal row of one stream plus its snapshot
-	// row, atomically, and returns the number of journal rows removed. The
-	// stream afterwards behaves as never-written: the next append with
-	// expected version 0 succeeds as a fresh stream.
-	TrimStream(ctx context.Context, collection, streamID string) (int64, error)
+	// row (looked up under snapshotCollection, the caller's snapshot
+	// namespace — engines store snapshots beside streams, keyed by their own
+	// collection name; "" skips the co-trim), atomically, and returns the
+	// number of journal rows removed. The stream afterwards behaves as
+	// never-written: the next append with expected version 0 succeeds as a
+	// fresh stream.
+	TrimStream(ctx context.Context, collection, snapshotCollection, streamID string) (int64, error)
 }
 
 // JournalSweeper is the age-based journal erasure capability (#118): physical
@@ -40,7 +43,7 @@ type StreamTrimmer interface {
 // NULL occurred_at) are conservatively KEPT.
 type JournalSweeper interface {
 	// TrimJournalBefore deletes every journal row whose occurred_at is older
-	// than cutoff (plus the co-trimmed snapshots) and returns the number of
-	// journal rows removed.
-	TrimJournalBefore(ctx context.Context, collection string, cutoff time.Time) (int64, error)
+	// than cutoff (plus the co-trimmed snapshots under snapshotCollection)
+	// and returns the number of journal rows removed.
+	TrimJournalBefore(ctx context.Context, collection, snapshotCollection string, cutoff time.Time) (int64, error)
 }

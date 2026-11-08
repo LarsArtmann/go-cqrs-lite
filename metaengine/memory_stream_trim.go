@@ -11,7 +11,7 @@ import (
 // (trimmed stream folds to nothing, next append is a fresh stream) is the
 // same, and tests ride it. The memory engine keeps no snapshots, so there is
 // nothing to co-trim.
-func (m *memoryEngine) TrimStream(_ context.Context, col, sid string) (int64, error) {
+func (m *memoryEngine) TrimStream(_ context.Context, col, _, sid string) (int64, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 

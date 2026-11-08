@@ -101,8 +101,11 @@ func TestSystem_TrimStream_ErasesStreamAndSnapshot(t *testing.T) {
 		t.Fatalf("TrimStream removed %d rows, want 2", removed)
 	}
 
-	if _, err := sys.EventStore().Load(ctx, refA); !errors.Is(err, event.ErrStreamNotFound) {
-		t.Fatalf("Load after trim: err=%v, want ErrStreamNotFound", err)
+	// The adapter maps a missing stream to an EMPTY load (the decider
+	// repository's fresh-state contract), so the erased stream's observable
+	// shape is zero events — not an error.
+	if loaded, err := sys.EventStore().Load(ctx, refA); err != nil || len(loaded) != 0 {
+		t.Fatalf("Load after trim: (%d events, %v), want (0, <nil>)", len(loaded), err)
 	}
 
 	journalReader, ok := sys.EventStore().(event.Journal)
@@ -185,8 +188,8 @@ func TestSystem_TrimStream_MemoryEngineTrims(t *testing.T) {
 		t.Fatalf("memory TrimStream removed %d, want 2", removed)
 	}
 
-	if _, err := sys.EventStore().Load(ctx, ref); !errors.Is(err, event.ErrStreamNotFound) {
-		t.Fatalf("Load after memory trim: err=%v, want ErrStreamNotFound", err)
+	if loaded, err := sys.EventStore().Load(ctx, ref); err != nil || len(loaded) != 0 {
+		t.Fatalf("Load after memory trim: (%d events, %v), want (0, <nil>)", len(loaded), err)
 	}
 
 	if _, err := sys.TrimJournalBefore(ctx, time.Now()); !errors.Is(err, system.ErrTrimUnavailable) {
@@ -253,8 +256,8 @@ func TestSystem_TrimJournalBefore_SweepsOldRowsAndCoTrimsSnapshots(t *testing.T)
 		t.Fatalf("future cutoff removed %d rows, want 2", removed)
 	}
 
-	if _, err := sys.EventStore().Load(ctx, ref); !errors.Is(err, event.ErrStreamNotFound) {
-		t.Fatalf("Load after sweep: err=%v, want ErrStreamNotFound", err)
+	if loaded, err := sys.EventStore().Load(ctx, ref); err != nil || len(loaded) != 0 {
+		t.Fatalf("Load after sweep: (%d events, %v), want (0, <nil>)", len(loaded), err)
 	}
 
 	if snap := sys.SnapshotStore(); snap != nil {

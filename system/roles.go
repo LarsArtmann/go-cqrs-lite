@@ -276,5 +276,5 @@ func buildSnapshotStore(eng metaengine.Engine) (snapshot.SnapshotStore, error) {
 		return nil, fmt.Errorf("%w: engine %q", ErrNotSnapshotBackend, eng.Profile().Name)
 	}
 
-	return NewSnapshotAdapter(snapBackend, "snapshots"), nil
+	return NewSnapshotAdapter(snapBackend, snapshotsCollection), nil
 }

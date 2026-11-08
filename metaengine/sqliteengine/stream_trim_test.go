@@ -80,13 +80,13 @@ func TestSQLiteTrimJournalBefore(t *testing.T) {
 	for _, sid := range []string{"old-stream", "mixed-stream", "fresh-stream"} {
 		if _, err := db.Exec(
 			`INSERT INTO meta_snapshot (collection, stream_id, version, data) VALUES (?, ?, ?, ?)`,
-			"events", sid, 1, []byte("{}"),
+			"snapshots", sid, 1, []byte("{}"),
 		); err != nil {
 			t.Fatalf("insert snapshot %s: %v", sid, err)
 		}
 	}
 
-	removed, err := sweeper.TrimJournalBefore(ctx, "events", now.Add(-24*time.Hour))
+	removed, err := sweeper.TrimJournalBefore(ctx, "events", "snapshots", now.Add(-24*time.Hour))
 	if err != nil {
 		t.Fatalf("TrimJournalBefore: %v", err)
 	}
@@ -110,17 +110,17 @@ func TestSQLiteTrimJournalBefore(t *testing.T) {
 	}
 
 	if got := countRows(t, db,
-		`SELECT COUNT(*) FROM meta_snapshot WHERE collection = 'events' AND stream_id = 'old-stream'`); got != 0 {
+		`SELECT COUNT(*) FROM meta_snapshot WHERE collection = 'snapshots' AND stream_id = 'old-stream'`); got != 0 {
 		t.Fatalf("swept stream's snapshot kept %d, want 0 (co-trimmed)", got)
 	}
 
 	if got := countRows(t, db,
-		`SELECT COUNT(*) FROM meta_snapshot WHERE collection = 'events' AND stream_id = 'mixed-stream'`); got != 0 {
+		`SELECT COUNT(*) FROM meta_snapshot WHERE collection = 'snapshots' AND stream_id = 'mixed-stream'`); got != 0 {
 		t.Fatalf("partially swept stream's snapshot kept %d, want 0 (co-trimmed)", got)
 	}
 
 	if got := countRows(t, db,
-		`SELECT COUNT(*) FROM meta_snapshot WHERE collection = 'events' AND stream_id = 'fresh-stream'`); got != 1 {
+		`SELECT COUNT(*) FROM meta_snapshot WHERE collection = 'snapshots' AND stream_id = 'fresh-stream'`); got != 1 {
 		t.Fatalf("untouched stream's snapshot kept %d, want 1", got)
 	}
 }
@@ -159,12 +159,12 @@ func TestSQLiteTrimStream(t *testing.T) {
 
 	if _, err := db.Exec(
 		`INSERT INTO meta_snapshot (collection, stream_id, version, data) VALUES (?, ?, ?, ?)`,
-		"events", "gone", 2, []byte("{}"),
+		"snapshots", "gone", 2, []byte("{}"),
 	); err != nil {
 		t.Fatalf("insert snapshot: %v", err)
 	}
 
-	removed, err := trimmer.TrimStream(ctx, "events", "gone")
+	removed, err := trimmer.TrimStream(ctx, "events", "snapshots", "gone")
 	if err != nil {
 		t.Fatalf("TrimStream: %v", err)
 	}
@@ -179,7 +179,7 @@ func TestSQLiteTrimStream(t *testing.T) {
 	}
 
 	if got := countRows(t, db,
-		`SELECT COUNT(*) FROM meta_snapshot WHERE collection = 'events' AND stream_id = 'gone'`); got != 0 {
+		`SELECT COUNT(*) FROM meta_snapshot WHERE collection = 'snapshots' AND stream_id = 'gone'`); got != 0 {
 		t.Fatalf("trimmed stream's snapshot kept %d, want 0", got)
 	}
 
