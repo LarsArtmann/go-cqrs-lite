@@ -206,6 +206,9 @@ jobs:
 
       - name: Run gate benchmarks
         run: |
+          # pipefail: a compile error or panic inside any suite must fail the
+          # step, not tee an empty/partial current.txt into a green compare.
+          set -o pipefail
           # Subshells keep each suite rooted in its own module while
           # current.txt lands at the repo root where the compare step reads
           # it. The previous single-cd form hopped ../metaengine/tursoengine
@@ -279,7 +282,7 @@ jobs:
 
       - name: Calibration date
         id: date
-        run: date -u +%F > "$GITHUB_OUTPUT"
+        run: echo "date=$(date -u +%F)" >> "$GITHUB_OUTPUT"
 
       # Rolling runner-class baseline (same calib- cache namespace as
       # nightly-gates.yml): today's key, restore-keys falls back to the most

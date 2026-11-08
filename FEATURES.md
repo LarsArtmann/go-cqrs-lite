@@ -1515,7 +1515,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 | Feature                       | Description                                         |
 | ----------------------------- | --------------------------------------------------- |
 | Documentation site            | Docusaurus/MkDocs/Hugo site                         |
-| Transport adapters            | gRPC ✅, NATS/ValKey (ADR-0025 accepted, no code)   |
+| Transport adapters            | NATS/ValKey (ADR-0025 accepted, no code); gRPC deleted 2026-10-17 |
 | Distributed projection runner | Leader election, multi-node coordination — raw idea |
 
 ---

@@ -7,9 +7,9 @@ import (
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
-	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 	"github.com/larsartmann/go-cqrs-lite/projection/v4"
 )
 

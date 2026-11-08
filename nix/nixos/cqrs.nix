@@ -63,7 +63,13 @@ let
             options = {
               collection = mkOption { type = types.str; };
               fn = mkOption {
-                type = types.enum [ "COUNT" "SUM" "MIN" "MAX" "AVG" ];
+                type = types.enum [
+                  "COUNT"
+                  "SUM"
+                  "MIN"
+                  "MAX"
+                  "AVG"
+                ];
               };
               column = mkOption {
                 type = types.nullOr types.str;
@@ -110,7 +116,13 @@ let
         description = "Mixed engine pool for projections instances.";
       };
       durability = mkOption {
-        type = types.nullOr (types.enum [ "strict" "normal" "relaxed" ]);
+        type = types.nullOr (
+          types.enum [
+            "strict"
+            "normal"
+            "relaxed"
+          ]
+        );
         default = null;
       };
       publish = mkOption {
@@ -126,10 +138,13 @@ let
 
   sanitizeIdent =
     s:
-    replaceStrings [
-      "-"
-      "."
-    ] [ "_" "_" ] s;
+    replaceStrings
+      [
+        "-"
+        "."
+      ]
+      [ "_" "_" ]
+      s;
 
   # Auto-provisioned DSN per engine, or the explicit one.
   resolveDSN =
@@ -209,48 +224,56 @@ let
       {
         engines = mapAttrs (renderEngine name) dep.engines;
         instances =
-          if dep.instances != [ ] then map renderInstance dep.instances
-          else if dep.standardTopology && dep.engines != { } then standardInstances dep
-          else [ ];
+          if dep.instances != [ ] then
+            map renderInstance dep.instances
+          else if dep.standardTopology && dep.engines != { } then
+            standardInstances dep
+          else
+            [ ];
       }
       // optionalAttrs (dep.buses != { }) {
         buses = mapAttrs (
-          _: bus: clean { driver = bus.driver; url = bus.url; mode = bus.mode; }
+          _: bus:
+          clean {
+            driver = bus.driver;
+            url = bus.url;
+            mode = bus.mode;
+          }
         ) dep.buses;
       }
       // optionalAttrs (dep.acknowledgeWarnings != [ ]) {
         acknowledge_warnings = dep.acknowledgeWarnings;
       }
       // optionalAttrs (dep.manifestPath != null) { manifest_path = dep.manifestPath; }
-      // optionalAttrs (
-        dep.priority.global != null || dep.priority.perEngine != { } || dep.priority.perQuery != { }
-      ) {
-        priority = clean {
-          global = dep.priority.global;
-          perEngine = if dep.priority.perEngine != { } then dep.priority.perEngine else null;
-          perQuery = if dep.priority.perQuery != { } then dep.priority.perQuery else null;
-        };
-      }
+      //
+        optionalAttrs
+          (dep.priority.global != null || dep.priority.perEngine != { } || dep.priority.perQuery != { })
+          {
+            priority = clean {
+              global = dep.priority.global;
+              perEngine = if dep.priority.perEngine != { } then dep.priority.perEngine else null;
+              perQuery = if dep.priority.perQuery != { } then dep.priority.perQuery else null;
+            };
+          }
     );
 
   # Every (deployment, engine) pair that needs postgres provisioning.
-  postgresProvisions =
-    filter (p: p != null) (
-      flatten (
+  postgresProvisions = filter (p: p != null) (
+    flatten (
+      mapAttrsToList (
+        name: dep:
         mapAttrsToList (
-          name: dep:
-          mapAttrsToList (
-            engineName: eng:
-            if eng.driver == "postgres" && eng.dsn == null then
-              {
-                ident = sanitizeIdent "${name}_${engineName}";
-              }
-            else
-              null
-          ) dep.engines
-        ) cfg.deployments
-      )
-    );
+          engineName: eng:
+          if eng.driver == "postgres" && eng.dsn == null then
+            {
+              ident = sanitizeIdent "${name}_${engineName}";
+            }
+          else
+            null
+        ) dep.engines
+      ) cfg.deployments
+    )
+  );
 
   enabledDeployments = filterAttrs (_: dep: dep.enable) cfg.deployments;
 in
@@ -262,82 +285,85 @@ in
           { name, ... }:
           {
             options = {
-            enable = mkOption {
-              type = types.bool;
-              default = true;
-              description = "Render this deployment's config (and provision its databases).";
-            };
-            engines = mkOption {
-              type = types.attrsOf (types.submodule engineOptions);
-              default = { };
-              description = "Named storage engine declarations.";
-            };
-            buses = mkOption {
-              type = types.attrsOf (
-                types.submodule {
+              enable = mkOption {
+                type = types.bool;
+                default = true;
+                description = "Render this deployment's config (and provision its databases).";
+              };
+              engines = mkOption {
+                type = types.attrsOf (types.submodule engineOptions);
+                default = { };
+                description = "Named storage engine declarations.";
+              };
+              buses = mkOption {
+                type = types.attrsOf (
+                  types.submodule {
+                    options = {
+                      driver = mkOption {
+                        type = types.str;
+                        default = "gochannel";
+                      };
+                      url = mkOption {
+                        type = types.nullOr types.str;
+                        default = null;
+                      };
+                      mode = mkOption {
+                        type = types.nullOr types.str;
+                        default = null;
+                        description = "Introspection-only; removed at v5.";
+                      };
+                    };
+                  }
+                );
+                default = { };
+              };
+              instances = mkOption {
+                type = types.listOf (types.submodule instanceOptions);
+                default = [ ];
+                description = "Explicit instances; leave empty with standardTopology for the canonical preset.";
+              };
+              standardTopology = mkOption {
+                type = types.bool;
+                default = true;
+                description = "Fill the canonical three-instance topology when instances is empty.";
+              };
+              acknowledgeWarnings = mkOption {
+                type = types.listOf types.str;
+                default = [ ];
+              };
+              manifestPath = mkOption {
+                type = types.nullOr types.str;
+                default = null;
+              };
+              priority = mkOption {
+                type = types.submodule {
                   options = {
-                    driver = mkOption {
-                      type = types.str;
-                      default = "gochannel";
-                    };
-                    url = mkOption {
-                      type = types.nullOr types.str;
+                    global = mkOption {
+                      type = types.nullOr priorityType;
                       default = null;
                     };
-                    mode = mkOption {
-                      type = types.nullOr types.str;
-                      default = null;
-                      description = "Introspection-only; removed at v5.";
+                    perEngine = mkOption {
+                      type = types.attrsOf priorityType;
+                      default = { };
                     };
-                  };
-                }
-              );
-              default = { };
-            };
-            instances = mkOption {
-              type = types.listOf (types.submodule instanceOptions);
-              default = [ ];
-              description = "Explicit instances; leave empty with standardTopology for the canonical preset.";
-            };
-            standardTopology = mkOption {
-              type = types.bool;
-              default = true;
-              description = "Fill the canonical three-instance topology when instances is empty.";
-            };
-            acknowledgeWarnings = mkOption {
-              type = types.listOf types.str;
-              default = [ ];
-            };
-            manifestPath = mkOption {
-              type = types.nullOr types.str;
-              default = null;
-            };
-            priority = mkOption {
-              type = types.submodule {
-                options = {
-                  global = mkOption {
-                    type = types.nullOr priorityType;
-                    default = null;
-                  };
-                  perEngine = mkOption {
-                    type = types.attrsOf priorityType;
-                    default = { };
-                  };
-                  perQuery = mkOption {
-                    type = types.attrsOf priorityType;
-                    default = { };
+                    perQuery = mkOption {
+                      type = types.attrsOf priorityType;
+                      default = { };
+                    };
                   };
                 };
+                default = { };
               };
-              default = { };
+              configPath = mkOption {
+                type = types.str;
+                readOnly = true;
+                description = "Path of the rendered DeploymentConfig JSON for CQRS_DEPLOYMENT_CONFIG.";
+              };
             };
-            configPath = mkOption {
-              type = types.str;
-              readOnly = true;
-              description = "Path of the rendered DeploymentConfig JSON for CQRS_DEPLOYMENT_CONFIG.";
-            };
-          };
-        }
+
+            config.configPath = "/etc/cqrs/${name}/deployment.json";
+          }
+        )
       );
       default = { };
       description = "go-cqrs-lite DeploymentConfigs rendered per deployment (ADR-0165).";
@@ -351,41 +377,41 @@ in
   };
 
   config = {
-    cqrs.lib.hardenedService =
-      name:
-      {
-        environment.CQRS_DEPLOYMENT_CONFIG = "/etc/cqrs/${name}/deployment.json";
-        serviceConfig = {
-          User = "cqrs-${name}";
-          Group = "cqrs-${name}";
-          StateDirectory = "cqrs-${name}";
-          NoNewPrivileges = true;
-          ProtectSystem = "strict";
-          ProtectHome = true;
-          PrivateTmp = true;
-          PrivateDevices = true;
-          ProtectKernelTunables = true;
-          ProtectKernelModules = true;
-          ProtectControlGroups = true;
-          RestrictAddressFamilies = [
-            "AF_INET"
-            "AF_INET6"
-            "AF_UNIX"
-          ];
-          RestrictNamespaces = true;
-          RestrictRealtime = true;
-          LockPersonality = true;
-          MemoryDenyWriteExecute = true;
-          SystemCallArchitectures = "native";
-        };
+    cqrs.lib.hardenedService = name: {
+      environment.CQRS_DEPLOYMENT_CONFIG = "/etc/cqrs/${name}/deployment.json";
+      serviceConfig = {
+        User = "cqrs-${name}";
+        Group = "cqrs-${name}";
+        StateDirectory = "cqrs-${name}";
+        NoNewPrivileges = true;
+        ProtectSystem = "strict";
+        ProtectHome = true;
+        PrivateTmp = true;
+        PrivateDevices = true;
+        ProtectKernelTunables = true;
+        ProtectKernelModules = true;
+        ProtectControlGroups = true;
+        RestrictAddressFamilies = [
+          "AF_INET"
+          "AF_INET6"
+          "AF_UNIX"
+        ];
+        RestrictNamespaces = true;
+        RestrictRealtime = true;
+        LockPersonality = true;
+        MemoryDenyWriteExecute = true;
+        SystemCallArchitectures = "native";
       };
+    };
 
     environment.etc = mapAttrs' (
-      name: dep: nameValuePair "cqrs/${name}/deployment.json" { text = builtins.toJSON (renderDeployment name dep); }
+      name: dep:
+      nameValuePair "cqrs/${name}/deployment.json" { text = builtins.toJSON (renderDeployment name dep); }
     ) enabledDeployments;
 
     users.users = mapAttrs' (
-      name: _: nameValuePair "cqrs-${name}" {
+      name: _:
+      nameValuePair "cqrs-${name}" {
         isSystemUser = true;
         group = "cqrs-${name}";
       }
