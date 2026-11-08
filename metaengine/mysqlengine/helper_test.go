@@ -66,7 +66,9 @@ func newEngineWithRetry(tb testing.TB, dsn string) (metaengine.Engine, error) {
 			return eng, err
 		}
 
-		time.Sleep(250 * time.Millisecond)
+		time.Sleep(
+			250 * time.Millisecond,
+		) //go-sleep:accept retry backoff for the QEMU MySQL dead-conn class documented above
 	}
 
 	return eng, err

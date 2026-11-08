@@ -11,6 +11,7 @@ suppresses the whole rule to use the tool at all.
 The shape (from github.com/LarsArtmann/timesheets `internal/domain/catalog.go`):
 
 ```go
+// skip-validate
 func messageID(t string) catalog.MessageID {
 	return catalog.MessageID(t)
 }
@@ -33,8 +34,8 @@ Source: `df033ea5e`, `cmd/cqrs-lint/`.
 2. The wrapper-helper replay (`scanCatalogHelperFunc`,
    `pkg/analyzer/scanner_catalog_helpers.go:34`) covers the generic-helper
    shape: a function forwarding one of its params into `catalog.Event`.
-   `messageID` is not that — its body converts its param's *type*, and its
-   *return value* is the id argument at the call site. Neither path
+   `messageID` is not that — its body converts its param's _type_, and its
+   _return value_ is the id argument at the call site. Neither path
    resolves `messageID(string(...))` to the constant inside.
 
 ## Suggestion

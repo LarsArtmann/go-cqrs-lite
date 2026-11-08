@@ -1290,14 +1290,7 @@ replace-free — 10-25 §a2/§a3, now archived).
 
 ## CI / Infrastructure
 
-- [ ] **🔥 `#check-md-go` is un-runnable: the pinned `md-go-validator`
-      derivation no longer builds.** `nix run .#check-md-go` fails in the
-      TOOL's own build, not on a doc: the vendored FOD is missing
-      `github.com/google/pprof@v0.0.0-20261016150608-1facf8f91b50.zip`
-      (reached via `go-finding.test` → ginkgo → `pprof/profile`). Observed
-      2026-10-24 12:00; every doc change since is unvalidated by this gate.
-      Fix: bump/refresh `md-go-validator`'s `vendorHash`/proxy FOD (or the
-      pinned rev), then re-run. _(Effort: S/M, blocks the md-go gate)_
+- [x] **🔥 `#check-md-go` un-runnable (observed 2026-10-24) — RESOLVED 2026-11-08 18:30:** the FOD premise was STALE — the derivation builds again on current master (pinned rev `13a0e78`, binary version-identified; whether an intervening flake refresh or upstream master movement fixed the missing `pprof` zip was not re-archaeologized). The ACTUAL failure the gate carried: 2 live-draft fences born red from commit `bf3afcde6` (E004 local value-converter opacity draft, illustrative foreign-repo fragment with a literal `...`) — annotated `// skip-validate` per policy (drafts are LIVE; baseline refused them correctly). Receipt: `nix run .#check-md-go` → `All 1532 code blocks valid (86 skipped)`, `no new errors (105 baselined archived error(s))`; baseline untouched (the --update-baseline attempt was restored — it had refused to capture live-doc errors, proving the policy leg).
 - [ ] **Ratchet guards the 2026-10-23 pass could not finish** — (a) refuse a
       coverage-floor DECREASE without an accompanying issue reference in
       `scripts/check-coverage.sh` (today it is a one-line edit with a dated
