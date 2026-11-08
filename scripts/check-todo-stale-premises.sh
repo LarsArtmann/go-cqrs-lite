@@ -84,10 +84,11 @@ todo="${1:-TODO_LIST.md}"
 	exit 1
 }
 
-tags="$(mktemp)" && trap 'rm -f "$tags"' EXIT
+tags="$(mktemp)"
+out="$(mktemp)"
+trap 'rm -f "$tags" "$out"' EXIT
 git tag -l >"$tags"
 
-out="$(mktemp)" && trap2='rm -f "$out"' # shellcheck disable=SC2034
 n="$(detect "$todo" "$tags" "$out")"
 if [ "$n" -gt 0 ]; then
 	cat "$out"
