@@ -112,6 +112,19 @@ func (e *duckdbEngine) ExplainAggregateQuery(
 	collection string,
 	opts metaengine.ExplainAggregateOptions,
 ) (string, []any) {
+	// fn values are interpolated verbatim into the emitted SQL; explain only
+	// emits whitelisted fns. Fn is enforced only for the scalar form —
+	// spec-based and Distinct explains legitimately leave it empty.
+	if len(opts.Specs) == 0 && opts.Distinct == "" && !metaengine.IsValidAggregateFn(opts.Fn) {
+		return "/* rejected: invalid aggregate fn */", nil
+	}
+
+	for _, s := range opts.Specs {
+		if !metaengine.IsValidAggregateFn(s.Fn) {
+			return "/* rejected: invalid aggregate fn */", nil
+		}
+	}
+
 	plan, hasPlan := e.lookupPlan(collection)
 	if !hasPlan {
 		plan = metaengine.LayoutPlan{}

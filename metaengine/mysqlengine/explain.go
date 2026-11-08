@@ -155,7 +155,9 @@ func (e *mysqlEngine) aggExpr(fn metaengine.AggregateFn, column string) string {
 	case metaengine.AggregateAvg:
 		return fmt.Sprintf("AVG(%s)", field)
 	default:
-		return fmt.Sprintf("SUM(%s)", field)
+		// A silent SUM default made any typo or hostile fn value LOOK like a
+		// legitimate SUM answer in emitted SQL; explain must not fabricate.
+		return "/* rejected: invalid aggregate fn */"
 	}
 }
 

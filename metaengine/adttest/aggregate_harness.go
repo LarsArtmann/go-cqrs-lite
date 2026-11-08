@@ -2,7 +2,9 @@ package adttest
 
 import (
 	"context"
+	"errors"
 	"sort"
+	"strings"
 	"testing"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
@@ -199,6 +201,47 @@ func RunAggregateMatrix(t *testing.T, factories []Factory) {
 
 			if sql == "" {
 				t.Errorf("%s ExplainAggregateQuery returned empty SQL", fx.name)
+			}
+		}
+	})
+
+	// HostileFnRejected pins the aggregate-fn whitelist: AggregateFn is a
+	// plain string alias interpolated into engine SQL verbatim, so an
+	// unconstrained value is a SQL-injection vector. Every SQL engine must
+	// reject it with a classified error (metaengine.invalid_aggregate_fn,
+	// errors.Is metaengine.ErrInvalidAggregateFn) instead of executing.
+	t.Run("HostileFnRejected", func(t *testing.T) {
+		t.Parallel()
+
+		hostile := metaengine.AggregateFn("COUNT(*) FROM meta_map; DROP TABLE meta_map; --")
+
+		for _, fx := range engines {
+			ar, ok := fx.eng.(metaengine.AggregateReader)
+			if !ok {
+				t.Skipf("%s does not implement AggregateReader", fx.name)
+			}
+
+			got, err := ar.Aggregate(ctx, "items", hostile, "price", nil)
+			if err == nil {
+				t.Fatalf("%s.Aggregate EXECUTED a hostile aggregate fn (returned %v)", fx.name, got)
+			}
+
+			if !errors.Is(err, metaengine.ErrInvalidAggregateFn) {
+				t.Errorf("%s.Aggregate hostile-fn error does not wrap metaengine.ErrInvalidAggregateFn: %v", fx.name, err)
+			}
+
+			if mar, ok := fx.eng.(metaengine.MultiAggregateReader); ok {
+				if _, err := mar.MultiAggregate(ctx, "items",
+					[]metaengine.AggregateSpec{{Fn: hostile, Column: "price"}}, nil); err == nil {
+					t.Fatalf("%s.MultiAggregate EXECUTED a hostile spec fn", fx.name)
+				}
+			}
+
+			if ea, ok := fx.eng.(metaengine.ExplainableAggregate); ok {
+				sql, _ := ea.ExplainAggregateQuery(ctx, "items", metaengine.ExplainAggregateOptions{Fn: hostile})
+				if !strings.Contains(sql, "invalid aggregate fn") {
+					t.Errorf("%s.ExplainAggregateQuery emitted hostile fn without the rejection marker: %s", fx.name, sql)
+				}
 			}
 		}
 	})

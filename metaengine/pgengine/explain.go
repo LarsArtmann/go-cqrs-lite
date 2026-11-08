@@ -83,8 +83,8 @@ func (e *pgEngine) ExplainAggregateQuery(
 ) (string, []any) {
 	// fn values are interpolated verbatim into the emitted SQL; explain only
 	// emits whitelisted fns. Fn is enforced only for the scalar form —
-	// spec-based explains legitimately leave it empty.
-	if len(opts.Specs) == 0 && !metaengine.IsValidAggregateFn(opts.Fn) {
+	// spec-based and Distinct explains legitimately leave it empty.
+	if len(opts.Specs) == 0 && opts.Distinct == "" && !metaengine.IsValidAggregateFn(opts.Fn) {
 		return "/* rejected: invalid aggregate fn */", nil
 	}
 
