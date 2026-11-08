@@ -63,7 +63,7 @@ func FuzzParseStreamType(f *testing.F) {
 
 // FuzzParseSchemaVersion ensures SchemaVersion parses correctly for any int.
 func FuzzParseSchemaVersion(f *testing.F) {
-	f.Add(int(0))
+	f.Add(int(0)) // art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train
 	f.Add(int(1))
 	f.Add(int(-1))
 	f.Add(int(math.MaxInt32))

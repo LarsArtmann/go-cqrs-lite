@@ -49,7 +49,7 @@ func FuzzParseAggregateID(f *testing.F) {
 // FuzzDeriveAggregateID_Deterministic verifies that DeriveAggregateID is
 // pure: same namespace + keys always produce the same ID.
 func FuzzDeriveAggregateID_Deterministic(f *testing.F) {
-	f.Add("lock", "u1", "r1")
+	f.Add("lock", "u1", "r1") // art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train
 	f.Add("", "", "")
 	f.Add("ns", "k", "")
 	f.Add(strings.Repeat("a", 100), "b", strings.Repeat("c", 100))

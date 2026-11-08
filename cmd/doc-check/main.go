@@ -39,6 +39,7 @@ var (
 	errNoReferences     = errors.New("no Go references found")
 	errBrokenNav        = errors.New("broken doc navigation (anchors/§ cross-refs)")
 	errArityMismatch    = errors.New("doc call arity mismatch(es)")
+	errAmbiguousAlias   = errors.New("unknown ambiguous package alias(es)")
 )
 
 type AppConfig struct {
@@ -160,7 +161,7 @@ func run(files []string, jsonOut, listAllAmbiguous bool) error {
 	// repo-wide package-name index; same-named packages cannot cross-resolve.
 	res := newResolver(repoRoot)
 
-	brokenRefs, totalRefs, warnings, ambiguities := verifyBlocks(
+	brokenRefs, totalRefs, warnings, ambiguities, unknownAmbiguities := verifyBlocks(
 		allBlocks,
 		allImports,
 		res,
@@ -181,6 +182,10 @@ func run(files []string, jsonOut, listAllAmbiguous bool) error {
 
 	for _, a := range ambiguities {
 		log.Printf("  ⚠ ambiguous: %s", a)
+	}
+
+	for _, a := range unknownAmbiguities {
+		log.Printf("  ✗ UNKNOWN ambiguity (not a v4↔core/v5 mirror): %s", a)
 	}
 
 	if jsonOut {
@@ -226,6 +231,19 @@ func run(files []string, jsonOut, listAllAmbiguous bool) error {
 			"%w: %d warning(s) — fix them or extend the skip-list",
 			errWarningsFound,
 			len(warnings),
+		)
+	}
+
+	// Unknown-ambiguity tripwire (policy 2026-11-08): a multi-dir alias that is
+	// NOT a v4↔core/v5 copy-forward mirror (ADR-0152) means a reference
+	// silently union-verified across unrelated packages — the doc may be
+	// teaching the wrong module. Mirror ambiguities stay informational (both
+	// trees are identical-by-contract until the v5 cut); anything else fails.
+	if len(unknownAmbiguities) > 0 {
+		return fmt.Errorf(
+			"%w: %d alias(es) map to multiple non-mirror packages — scope the block import or register the mirror",
+			errAmbiguousAlias,
+			len(unknownAmbiguities),
 		)
 	}
 

@@ -121,3 +121,79 @@ func TestImportDir_StripsVersionSuffixes(t *testing.T) {
 		}
 	}
 }
+
+// newMirrorRepo builds a repo root with a v4 package and its core/v5
+// copy-forward twin sharing one package name (the ADR-0152 shape).
+func newMirrorRepo(t *testing.T) string {
+	t.Helper()
+
+	root := t.TempDir()
+
+	writePkg(t, filepath.Join(root, "kv"), "kv", "type Cache struct{}")
+	writePkg(t, filepath.Join(root, "core", "v5", "kv"), "kv", "type Cache struct{}")
+
+	return root
+}
+
+func TestMirrorAliasDirs(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		dirs []string
+		want bool
+	}{
+		{[]string{"kv", "core/v5/kv"}, true},
+		{[]string{"core/v5/query", "query"}, true},
+		{[]string{"kv", "core/v5/query"}, false},
+		{[]string{"alpha/sqlstore", "beta/sqlstore"}, false},
+		{[]string{"core/v5/kv", "core/v5/query"}, false},
+		{[]string{"kv"}, false},
+		{[]string{"kv", "core/v5/kv", "other/kv"}, false},
+	}
+
+	for _, tc := range cases {
+		if got := mirrorAliasDirs(tc.dirs); got != tc.want {
+			t.Errorf("mirrorAliasDirs(%v) = %v, want %v", tc.dirs, got, tc.want)
+		}
+	}
+}
+
+func TestVerifyBlocks_MirrorAmbiguityIsKnownNotUnknown(t *testing.T) {
+	t.Parallel()
+
+	res := newResolver(newMirrorRepo(t))
+
+	blocks := []block{{
+		file: "doc.md", line: 1,
+		refs: []ref{{pkg: "kv", symbol: "Cache", file: "doc.md", line: 3}},
+	}}
+
+	_, _, _, ambiguities, unknownAmbiguities := verifyBlocks(blocks, nil, res, false)
+
+	if len(ambiguities) != 1 {
+		t.Fatalf("ambiguities = %d, want 1 (mirror pair still reported)", len(ambiguities))
+	}
+
+	if len(unknownAmbiguities) != 0 {
+		t.Fatalf("unknownAmbiguities = %d, want 0 for a v4↔core/v5 mirror: %v",
+			len(unknownAmbiguities), unknownAmbiguities)
+	}
+}
+
+func TestVerifyBlocks_NonMirrorAmbiguityIsUnknown(t *testing.T) {
+	t.Parallel()
+
+	res := newResolver(newTestRepo(t))
+
+	blocks := []block{{
+		file: "doc.md", line: 1,
+		refs: []ref{{pkg: "sqlstore", symbol: "BetaStore", file: "doc.md", line: 3}},
+	}}
+
+	_, _, _, ambiguities, unknownAmbiguities := verifyBlocks(blocks, nil, res, false)
+
+	if len(ambiguities) != 1 || len(unknownAmbiguities) != 1 {
+		t.Fatalf("ambiguities = %d, unknownAmbiguities = %d; want 1/1 for a non-mirror pair "+
+			"(the fatal class)", len(ambiguities), len(unknownAmbiguities))
+	}
+}

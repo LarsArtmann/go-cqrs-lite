@@ -191,21 +191,48 @@ type brokenRef struct {
 	Symbol string `json:"symbol"`
 }
 
+// mirrorAliasDirs reports whether an alias's repo dirs are exactly the v4
+// package and its core/v5 copy-forward twin (ADR-0152). Union-verified
+// references through such an alias are EXPECTED while both trees live; any
+// other multi-dir alias is an UNKNOWN ambiguity and fails the gate.
+func mirrorAliasDirs(dirs []string) bool {
+	if len(dirs) != 2 {
+		return false
+	}
+
+	a, b := filepath.Clean(dirs[0]), filepath.Clean(dirs[1])
+	const core = "core/v5/"
+
+	if strings.HasPrefix(a, core) != strings.HasPrefix(b, core) {
+		coreDir, plainDir := a, b
+		if strings.HasPrefix(b, core) {
+			coreDir, plainDir = b, a
+		}
+
+		return strings.TrimPrefix(coreDir, core) == plainDir
+	}
+
+	return false
+}
+
 // verifyBlocks checks every reference block-scoped and returns the broken
 // references, the total, any parse warnings for the zero-warning gate, and
 // no-import references that resolved through an ambiguous multi-package
-// alias union. With listAllAmbiguous, EVERY union-resolved reference is
-// reported (default: one line per alias — the first instance only, which
-// hides how many sites a cleanup must touch).
+// alias union, split into all ambiguities and the UNKNOWN subset (non-mirror
+// multi-dir aliases — fatal). With listAllAmbiguous, EVERY union-resolved
+// reference is reported (default: one line per alias — the first instance
+// only, which hides how many sites a cleanup must touch).
 func verifyBlocks(
 	blocks []block,
 	allImports []string,
 	res *resolver,
 	listAllAmbiguous bool,
-) ([]brokenRef, int, []string, []string) {
+) ([]brokenRef, int, []string, []string, []string) {
 	var brokenRefs []brokenRef
 
 	var ambiguities []string
+
+	var unknownAmbiguities []string
 
 	warnings := make([]string, 0, len(allImports))
 
@@ -235,7 +262,8 @@ func verifyBlocks(
 			if viaUnion && len(res.aliasDirs[ref.pkg]) > 1 &&
 				(listAllAmbiguous || !seenAmbiguous[ref.pkg]) {
 				seenAmbiguous[ref.pkg] = true
-				ambiguities = append(ambiguities, fmt.Sprintf(
+
+				msg := fmt.Sprintf(
 					"alias %q maps to %d repo packages (%s) — %s:%d verified via union; "+
 						"import the package in the block to scope the reference",
 					ref.pkg,
@@ -243,12 +271,18 @@ func verifyBlocks(
 					strings.Join(res.aliasDirs[ref.pkg], ", "),
 					ref.file,
 					ref.line,
-				))
+				)
+
+				ambiguities = append(ambiguities, msg)
+
+				if !mirrorAliasDirs(res.aliasDirs[ref.pkg]) {
+					unknownAmbiguities = append(unknownAmbiguities, msg)
+				}
 			}
 		}
 	}
 
-	return brokenRefs, total, warnings, ambiguities
+	return brokenRefs, total, warnings, ambiguities, unknownAmbiguities
 }
 
 // dedupe preserves first-seen order.
