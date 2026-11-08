@@ -200,7 +200,7 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 - [ ] **Brutal-audit follow-up A5 — deleted-transport residue sweep** — sweep the remaining live docs/comments naming deleted `transport/http` (taskmanager comments, `metaengine/sse.go`/README, the watermill catchup helper, and `docs/DOMAIN_LANGUAGE.md`); classify `docs/migration/MIGRATION-GUIDE.md`. Source: same report.
 - [ ] **Brutal-audit follow-up A6 — ambiguous-alias warning policy** — reconcile the documented doc-check warning contract with the six v4/core mirror alias warnings: scope fences, explicitly allow the class, or make warnings fatal. Source: same report.
 - [ ] **Brutal-audit follow-up A7 — red-nightly rollup signal** — surface one aggregate failure when Nightly Gates, Fuzz Nightly, Benchmarks, Soaks, or push CI is red, so recent Autoretry successes cannot mask them. Source: same report.
-- [ ] **Brutal-audit follow-up A8 — residue pack** — close the remaining report follow-ups: go-directive/BuildFlow prose drift, root-artifact generator hunt, `StreamIDFrom` zero-ID semantics, 879-finding mechanical triage incl. the 46 direct OTel imports, evidence-upload integrity incl. `if-no-files-found` policy, research/index hygiene, and the owed brutal-review HTML. Source: same report.
+- [ ] **Brutal-audit follow-up A8 — residue pack** — close the remaining report follow-ups: go-directive/BuildFlow prose drift, root-artifact generator hunt, `StreamIDFrom` zero-ID semantics, 879-finding mechanical triage incl. confirming the 46 direct OTel imports are confined to sanctioned modules/exceptions, evidence-upload integrity incl. `if-no-files-found` policy, research/index hygiene, and the owed brutal-review HTML. Source: same report.
 
 ---
 

@@ -177,7 +177,7 @@
 
 | # | Task | Impact | Effort | Category |
 |---|------|--------|--------|----------|
-| 1 | Run clean `nix run .#verify` (or `#verify-fast` first) on the post-fix tree and record the receipt | Critical | M | Quality |
+| 1 | Run clean `nix run .#verify` (or `#verify-fast` first) on the post-fix tree and record the receipt <!-- fresh:skip routed via TODO_LIST Brutal-audit follow-up A1 --> | Critical | M | Quality |
 | 2 | Harvest this report's f-list into TODO_LIST/CHANGELOG per docs-health before it entombs | Critical | S | Documentation |
 | 3 | Add CHANGELOG `[Unreleased]` rows for the fuzz-contract repair, deleted-module doc truth wave, root-junk deletion, and calibration workflow fix | High | S | Documentation |
 | 4 | Push fixes / trigger CI after owner instruction; confirm the three nightly classes close | Critical | S | Release |
@@ -217,7 +217,7 @@
 | 38 | Add a CI check that every `actions/upload-artifact` path has produced a non-empty artifact at least once | Medium | M | CI |
 | 39 | Change `if-no-files-found: ignore` on evidence artifacts to `warn`/`error` where loss matters | Medium | XS | CI |
 | 40 | Record the two consecutive benchmark false-failure runs in the calibration provenance doc as the motivating incident | Medium | XS | Documentation |
-| 41 | Add a self-test leg proving calibration baseline refresh is skipped on drift failure | High | S | Testing |
+| 41 | Add a self-test leg proving calibration baseline refresh is skipped on drift failure <!-- fresh:skip routed via TODO_LIST Brutal-audit follow-up A2 --> | High | S | Testing |
 | 42 | Add a self-test leg proving cold-cache calibration run establishes a baseline without comparing | High | S | Testing |
 | 43 | Hand-commit the next phase boundary (do not let the daemon absorb it) per the owner ruling | Medium | XS | Process |
 | 44 | Probe subagent provider availability with a cheap call before any multi-agent fan-out | Medium | XS | Process |
