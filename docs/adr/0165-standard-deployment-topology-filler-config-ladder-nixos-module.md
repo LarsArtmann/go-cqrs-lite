@@ -145,3 +145,19 @@ adopted NOW (F43): its workspace replaces system to the local tree, so its
 Deployment` keeps explicit instances BY DESIGN (Standard pools projections
 over every engine; the split topology exists to keep the journal file free of
 projection writes — the passthrough contract is what makes both coexist).
+
+> **Deferrals closed 2026-11-08 (same day, tail session).** The parallel
+> journal-trim wave tagged `system/v4.18.0` WITH this arc's `Standard`
+> (proxy-verified); all three deferred items landed the same evening:
+> (a+c) the example's replace and baseline row are gone —
+> `packages.standard-topology-example` (plain `buildGoModule`) builds from
+> the published pins and the `cqrs-vm` test runs it as the service user
+> against the rendered config (dispatch over the peer socket, projection
+> fold into the sqlite state dir, view read back, plus a config-readability
+> assert and a deterministic `ensureUsers` wait — the earlier green was
+> timing luck, provisioning rides ExecStartPost); (b) go-appkit's
+> `defaultDeployment` returns `system.Standard(...)` (pinned by
+> `TestDefaultDeployment_StandardTopology`, suite green) and cqrs-htmx's
+> published `system` pins rose to v4.18.0 with its changelog row written
+> (fleet sweep: no external repo consumes the `Recommended*` presets — the
+> shape change is contained).

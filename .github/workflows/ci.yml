@@ -189,6 +189,13 @@ jobs:
       - name: NixOS module eval pin (ADR-0165)
         run: nix build .#checks.x86_64-linux.cqrs-nixos-eval -L
 
+      # The untagged-API incident gate (2026-10-24): every example must
+      # BUILD GOWORK=off against its published pins with local replaces
+      # stripped — an untagged exported-symbol change fails here, at
+      # commit time, instead of at consumer time.
+      - name: Example standalone build (published pins, replaces stripped)
+        run: bash scripts/check-example-standalone.sh --build
+
       - name: Engine capability single-source gate
         run: nix run .#check-engine-capabilities
 
