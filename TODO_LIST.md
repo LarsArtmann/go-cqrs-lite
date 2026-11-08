@@ -201,6 +201,17 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 
 ---
 
+## Standard deployment topology & NixOS (ADR-0165, opened 2026-11-08)
+
+- [x] **ADR-0165** — data-filler preset + config-format ladder (Go > Nix attrsets > CUE > YAML wire; NO runtime CUE dep) + first-party `nixosModules.cqrs` with auto-provisioning. Owner decisions 2026-11-08: module in THIS repo, DB auto-provision YES.
+- [ ] **`system.Standard(d)` filler** — stamp source-of-truth + queries-audit + projections-pool instances when `Instances` empty; idempotent passthrough otherwise. _(Effort: S)_
+- [ ] **`LoadConfig` JSON branch** — `.json` extension → stdlib parse into koanf confmap; makes `cue export --out json` output loadable verbatim. Zero new deps. _(Effort: XS)_
+- [ ] **`system/config.cue`** — DeploymentConfig schema with standard topology as CUE defaults + `scripts/check-cue-config.sh` drift pin against the Go struct surface (field names + koanf tags). _(Effort: S)_
+- [ ] **`nixosModules.cqrs`** — `nix/nixos/cqrs.nix`: `cqrs.deployments.<name>` attrsets → rendered config; postgres DB/user auto-provision when no explicit DSN; sqlite → StateDirectory file; explicit DSN always wins; `cqrs.lib.hardenedService` shared hardening defaults. Flake output stays eval-clean on stable NixOS. _(Effort: M)_
+- [ ] **`example/standard-topology/` + VM test** — runnable demo of Go-filler + CUE export + NixOS module; `vm-test.nix` proves provisioning end-to-end. _(Effort: M)_
+
+---
+
 ## Fleet-audit follow-up plan tail (harvested 2026-11-05 from `docs/status/2026-11-05_18-16_fleet-audit-followup-plan-one-week-review.md`; plan: `docs/planning/2026-10-24_19-40_SUPERB-fleet-audit-followup-pareto-plan.md`)
 
 - [x] **Wave tail: pgengine + systemscenario trains — DISPOSITIONED 2026-11-05 22:05 (not a tag fold):** pgengine is on `scripts/untagged-trains.txt` (ADR-0152 zero-consumer rule) — batch-release REFUSES it, so its AsType fix rides untagged master by policy; no action possible or needed (bug never tagged). systemscenario is NOT on the list and has REAL untagged exports since v4.2.1 (`systemscenario.RaceEnabled`, `race_on.go`/`race_off.go`, `empty_domain.go` hollow-root warning, `chaos.go`) ⇒ folded into the M07 wave as **systemscenario v4.3.0** (new export ⇒ minor, not patch). Verified via `git for-each-ref` + `git log <tag>..HEAD -- <path>` 2026-11-05.
