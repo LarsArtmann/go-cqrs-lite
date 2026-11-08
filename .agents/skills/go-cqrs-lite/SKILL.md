@@ -109,17 +109,17 @@ go-cqrs-lite has **two SSE implementations** (ADR-0091: kept separate — differ
 
 | You want to push…                                             | Module           | Function            | Source                                | Replay                                           | Key features                                                                                                                                                     |
 | ------------------------------------------------------------- | ---------------- | ------------------- | ------------------------------------- | ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Raw domain events** to browser/HTTP client                  | `transport/http` | `SSEBroker`         | `event.Bus` + `event.SeekableJournal` | Journal-backed (**durable**)                     | **DEPRECATED** (ADR-0127) — use `go-sse` or `watermill/`; until v5: event filter, CBOR→JSON transform, byte budget, `BackfillHandler`, `Last-Event-ID` reconnect |
+| **Raw domain events** to browser/HTTP client                  | *(deleted `transport/http`)* | `SSEBroker` (removed 2026-10-17) | —                                     | —                                                | **DELETED** (ADR-0127; zero-consumer delete-at-zero; pinned v4 tags still resolve from the proxy) — compose [`go-sse`](https://github.com/larsartmann/go-sse) over `event.Bus` + `event.SeekableJournal`, or use `watermill.CatchUpSubscriber` for a server-side bridge |
 | **Materialized query results** (read-model values) to browser | `metaengine`     | `ServeSSE[V]`       | `Watcher[V]` (Store collection)       | In-memory ring (`SSEReplay[V]`, **recent-only**) | Heartbeat keepalive, `Last-Event-ID` reconnect, drop-old backpressure, timeout                                                                                   |
 | **Events to a server-side worker/projection** (not a browser) | `watermill`      | `CatchUpSubscriber` | `event.SeekableJournal` + live sub    | Checkpoint store (**durable**)                   | Crash-restart, routes through any broker (NATS/Kafka/Redis), ordered delivery                                                                                    |
 
-**Rule of thumb (v5-first — `transport/http.SSEBroker` is DEPRECATED per ADR-0127 and removed in v5):**
+**Rule of thumb (`transport/http.SSEBroker` was DELETED 2026-10-17 under ADR-0127's zero-consumer delete-at-zero; its pinned v4 tags remain proxy-resolvable for old consumers):**
 
-- Browser needs the **event log** (audit feed, notification stream, event-sourced UI) → `go-sse` directly (the wire-format layer the deprecated broker already used internally), or `watermill.CatchUpSubscriber` for a server-side bridge. Do NOT start new code on `transport/http.SSEBroker`.
+- Browser needs the **event log** (audit feed, notification stream, event-sourced UI) → compose [`go-sse`](https://github.com/larsartmann/go-sse) directly over the journal/bus (the wire-format layer the deleted broker used internally), or use `watermill.CatchUpSubscriber` for a server-side bridge. There is no importable `transport/http.SSEBroker` on current master.
 - Browser needs the **current read-model state** (live-updating table/dashlet built from a `metaengine.Store`) → `metaengine.ServeSSE` (survives v5).
 - Server-side projection/integration that must survive crashes → `watermill.CatchUpSubscriber` + `projectionhost.Host` (both survive v5).
 
-**Do NOT merge the two browser-facing implementations** — `SSEBroker` replays from a durable journal (survives restart, cross-process), while `ServeSSE` replays from an in-process ring buffer (cheap, recent-only, lost on restart). See `advanced.md` §6.15–6.16 for the full comparison and code.
+**Do NOT revive the browser-facing broker as a module** — the deletion was an ADR-0152 zero-consumer ruling: `go-sse` owns the durable journal/replay wire path, while `metaengine.ServeSSE` streams recent materialized values from an in-process ring (cheap, recent-only, lost on restart). See `advanced.md` §6.15–6.16 for the surviving comparison.
 
 #### Read models: Which tier?
 

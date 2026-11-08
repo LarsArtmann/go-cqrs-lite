@@ -165,6 +165,13 @@ cmd/cqrs-bench/cqrs-bench
 # by accident once (2b602b55e) and deleted (0a85573d2). Never track it.
 /t/
 
+# Root artifacts from shell redirection mistakes (auto-commit daemon absorbed
+# them once: --help EventCatalog export, an awk debug prefix, a failed command
+# transcript). Never track them again.
+/--help/
+/awk
+/check
+
 # Build artifact: the cqrs-upgrade binary must never be committed (10MB)
 cmd/cqrs-upgrade/cqrs-upgrade
 

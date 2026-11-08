@@ -946,19 +946,25 @@ asks for it. Risk of doing it now: creates an unused module that rots.
 ### Stack HTTP/gRPC Server Convenience (DEFERRED — Coupling)
 
 One-call options like `stack.WithHTTPServer()` or `stack.WithGRPCServer()` that
-wire an SSEBroker or gRPC server to the Bundle. The manual wiring is ~5 lines.
+wire an SSE endpoint or a gRPC server to the Bundle. The manual wiring is ~5 lines.
 Adding options couples stack/ to `net/http` and `google.golang.org/grpc` — the
 stack package currently has zero transport deps. `sqlite.WithStack()` covers
-the passthrough use case without coupling.
+the passthrough use case without coupling. (The former `transport/http` and
+`transport/grpc` modules were deleted 2026-10-17, so this idea now means
+go-sse/watermill composition, not reviving them.)
 
 ### SSE Code Consolidation (DEFERRED — Different Semantics)
 
+> **Superseded in part 2026-10-17:** `transport/http/sse.go` was deleted with
+> its module; only `metaengine/sse.go` and the external `go-sse` wire-format
+> library remain. The historical rationale is retained below.
+
 Extracting a shared `sse` helper package from `metaengine/sse.go` and
-`transport/http/sse.go`. The two implementations serve different layers:
+`transport/http/sse.go`. The two implementations served different layers:
 `metaengine/sse.go` watches a Store collection for mutations (collection-watch
-→ replay), while `transport/http/sse.go` bridges an `event.Bus` to HTTP clients
-(bus-to-client). Merging risks a leaky abstraction. Cross-reference comments
-were added to both files instead.
+→ replay), while the former `transport/http/sse.go` bridged an `event.Bus` to
+HTTP clients (bus-to-client). Merging risked a leaky abstraction.
+Cross-reference comments were added to both files instead.
 
 > **Update 2026-08-03:** The ADR review session discovered `go-sse` exists as
 > a standalone library; both SSE implementations now consume it internally for

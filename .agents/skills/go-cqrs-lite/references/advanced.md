@@ -567,13 +567,18 @@ provider, handler, _ = prometheus.Setup(prometheus.WithRegistry(myRegistry))
 
 ### 6.15 SSE Streaming vs CatchUpSubscriber — Which Replay Path?
 
-Both `transport/http.SSEBroker` (deprecated, ADR-0127 — prefer `go-sse` or
-`watermill/`) and `watermill.CatchUpSubscriber` solve the
+> **Deletion notice (2026-10-17):** `transport/http` was deleted under ADR-0127 +
+> ADR-0152's zero-consumer rule; only old pinned v4 tags still resolve from the
+> module proxy. The `SSEBroker` column below is **historical migration context**.
+> On current master, compose [`go-sse`](https://github.com/larsartmann/go-sse)
+> over `event.Bus` + `event.SeekableJournal` for browser event-log streaming.
+
+`go-sse` (current) and `watermill.CatchUpSubscriber` solve the
 **catch-up problem**: deliver historical events (replay) then seamlessly
 transition to live events. They share the same dedup ring and batched journal
 read patterns. **Pick based on where events need to arrive:**
 
-| Need                              | SSEBroker (`transport/http`)                                                          | CatchUpSubscriber (`watermill`)                                                                  |
+| Need                              | `go-sse` endpoint (historical `SSEBroker` shape)                                        | CatchUpSubscriber (`watermill`)                                                                  |
 | --------------------------------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
 | **Destination**                   | Browser / HTTP client (text/event-stream)                                             | Watermill message channel (in-process or broker)                                                 |
 | **Transport**                     | HTTP/1.1 or HTTP/2, unidirectional                                                    | Any Watermill subscriber (GoChannel, NATS, Kafka, Redis)                                         |
@@ -588,7 +593,7 @@ read patterns. **Pick based on where events need to arrive:**
 
 **Rule of thumb:**
 
-- **Browser/client-facing** → `SSEBroker`. Built-in `Last-Event-ID` reconnection, heartbeat keepalives, advisory events on timeout. Pair with a reverse proxy (Nginx/Cloudflare) that supports SSE.
+- **Browser/client-facing** → compose `go-sse` (the deleted broker's wire/replay patterns — `Last-Event-ID`, heartbeats, replay budgets — are the migration blueprint). Pair with a reverse proxy (Nginx/Cloudflare) that supports SSE.
 - **Server-side projections / integrations** → `CatchUpSubscriber` + `projectionhost.Host`. Survives crashes, checkpoint-persisted, routes through any Watermill-compatible broker for multi-instance scaling.
 
 **Both are ordered within a single client/subscription.** Neither is a queue — use Watermill with a real broker (NATS/Kafka) if you need competing consumers.
@@ -599,19 +604,17 @@ read patterns. **Pick based on where events need to arrive:**
 `example/taskmanager` for the correct pattern.
 
 **Payload transforms (CBOR→JSON for browsers):** When events use CBOR encoding,
-browsers cannot parse the raw bytes. `http.WithPayloadTransform(fn)` applies a
-transform on **all three SSE delivery paths** — live stream, journal replay,
-and reconnect backfill. For pull-based REST endpoints (not streaming), use
-`http.BackfillHandlerWithTransform(journal, fn)` — same transform contract,
-delivered as a JSON array response. `BackfillHandler(journal)` is shorthand for
-`BackfillHandlerWithTransform(journal, nil)`. The transform receives the full
-`event.Event` and returns `[]byte` for the wire; it must be read-only (no
-mutation).
+browsers cannot parse the raw bytes. Apply one payload transform on **every
+delivery path** — live stream, journal replay, and reconnect backfill — using
+the current `codec.TranscodeToJSON` primitive (recipes §2.15); the deleted
+broker's `WithPayloadTransform`/`BackfillHandlerWithTransform` were wrappers
+around that same contract. The transform receives the event/payload and returns
+wire bytes; it must be read-only (no mutation).
 
 ### 6.16 Metaengine SSE Streaming & Cursor Pagination (metaengine)
 
 The metaengine ships its own lightweight SSE streaming and pagination,
-separate from the `transport/http` SSE broker. Use it when you want to
+separate from a browser event-log endpoint. Use it when you want to
 stream **projected values** (not raw events) directly from a `metaengine.Store`.
 
 **SSE with Last-Event-ID reconnection:**
@@ -629,9 +632,9 @@ http.HandleFunc("/events", func(w http.ResponseWriter, r *http.Request) {
 })
 ```
 
-Key differences from `transport/http` SSE:
+Key differences from a raw event-log endpoint (the deleted `transport/http.SSEBroker` shape):
 
-| Aspect            | `metaengine.ServeSSE`                  | `transport/http.SSEBroker`  |
+| Aspect            | `metaengine.ServeSSE`                  | raw event-log endpoint (go-sse) |
 | ----------------- | -------------------------------------- | --------------------------- |
 | **Source**        | Watcher (projected values)             | Event bus (raw events)      |
 | **Replay**        | In-memory ring buffer (`SSEReplay[V]`) | Journal-backed (persistent) |

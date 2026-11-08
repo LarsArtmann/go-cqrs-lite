@@ -1,9 +1,16 @@
 # ADR-0127: Deprecate transport/* Modules — External Delivery via watermill/ + go-sse
 
 **Date:** 2026-08-14
-**Status:** Accepted
+**Status:** Accepted — decision executed 2026-10-17 (both modules deleted)
 **Supersedes:** ADR-0025 (transport adapter strategy) in full
 **Builds on:** ADR-0123 (v5 unification horizon)
+
+> **Execution note (2026-10-17):** the planned "removal at v5" was pulled
+> forward by ADR-0152's zero-consumer delete-at-zero rule. `transport/http`
+> and `transport/grpc` were deleted in commit `8e39faad5`; the pinned v4 tags
+> (`transport/http/v4.3.5`, `transport/grpc/v4.3.3`) still resolve from the
+> module proxy for consumers that have not migrated. The replacement table
+> below is current.
 
 ---
 
@@ -58,15 +65,18 @@ Four facts argue against both:
 
 ## Consequences
 
-- Consumers on `transport/http` SSE keep compiling until v5; migration is
+- Consumers on `transport/http` SSE: the module is deleted from current
+  master; pinned v4 tags keep old builds compiling while migration proceeds —
   go-sse (`metaengine.ServeSSE` for read-model push) or watermill for broker
   fanout.
-- Consumers on `transport/grpc` bridge their dispatcher over grpc-go
-  directly; the adapter is thin by design.
+- Consumers on `transport/grpc`: the module is likewise deleted; bridge their
+  dispatcher over grpc-go directly (the adapter is thin by design) or use the
+  watermill command bus.
 - cqrs-lint no longer counts transport/* as scored modules (catalog shrank
   34 → 32 scored entries).
-- The v5 cut (ADR-0123 Phase 8) deletes both modules; the v5 migration
-  guide covers the mapping table above.
+- The v5 cut no longer needs to delete these modules — ADR-0152's delete-at-zero
+  rule already did, after the 2026-10-17 census found zero fleet consumers; the
+  v5 migration guide covers the mapping table above.
 
 ## Migration
 

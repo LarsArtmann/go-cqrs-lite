@@ -223,9 +223,9 @@ on a typo'd driver.
 | Derive commands reactively from events                                | `deriver`                                                                                                                                   | advanced §6.12  |
 | Build graph/traversal read models (nodes + edges)                     | `graph`                                                                                                                                     | advanced §6.13  |
 | Expose CQRS metrics via Prometheus `/metrics`                         | `prometheus`                                                                                                                                | advanced §6.14  |
-| Stream events to browsers via SSE                                     | `go-sse` (or deprecated `transport/http` `SSEBroker` until v5)                                                                              | advanced §6.15  |
-| Replay events to reconnecting clients (catch-up)                      | `watermill` (`CatchUpSubscriber`) — or `go-sse` Last-Event-ID                                                                               | advanced §6.15  |
-| Pull-based event backfill (REST endpoint)                             | deprecated `transport/http` (`BackfillHandler`) until v5 — or `watermill` catch-up                                                          | advanced §6.15  |
+| Stream events to browsers via SSE                                     | `go-sse` over the journal/bus, or `metaengine.ServeSSE` for projected values (the former `transport/http.SSEBroker` was deleted 2026-10-17)                                      | advanced §6.15  |
+| Replay events to reconnecting clients (catch-up)                      | `watermill` (`CatchUpSubscriber`) with a checkpoint store, or `go-sse` `Last-Event-ID` over the journal                                     | advanced §6.15  |
+| Pull-based event backfill (REST endpoint)                             | compose a `net/http` handler over `event.SeekableJournal` (the deleted `transport/http.BackfillHandler` is no longer importable)            | advanced §6.15  |
 | Capture execution trace on slow/error operations                      | `flightrecorder` + `middleware`                                                                                                             | recipes §2.18   |
 
 > **recipes §2, modules §5, advanced §6** live in the on-demand `references/` files. This is the progressive-disclosure design — this file holds the decision material needed on every trigger; the references hold long copy-paste recipes loaded only when needed.
@@ -520,7 +520,7 @@ Layer 1: event/ (→id, codec), command/ (→id, dispatcher), query/ (→dispatc
 Layer 2: schema/ (→event), snapshot/ (→event), graph/ (→event), projection/ (→event), deriver/ (→event, command)
 Layer 3: decider/ (→event, snapshot), scenario/ (→event, id, projection), projectionhost/ (→event, id, projection)
 Layer 4: storage/memory/, signing/, encryption/, otel/
-Layer 5: middleware/, storage/, listing/, watermill/, storage/pebble/, storage/turso/, prometheus/ (transport/http+grpc deprecated, ADR-0127)
+Layer 5: middleware/, storage/, listing/, watermill/, storage/pebble/, storage/turso/, prometheus/ (transport/http+grpc deleted 2026-10-17, ADR-0127)
 Layer 6: integration/, catalog/, examples/, cmd/cqrs-gen, cmd/api-stability, cmd/doc-check
 ```
 
