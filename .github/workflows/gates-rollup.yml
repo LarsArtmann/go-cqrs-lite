@@ -1,0 +1,42 @@
+# Aggregate red/green rollup across the scheduled and push gate workflows.
+#
+# The 2026-11-08 brutal-audit finding: green Autoretry runs masked three red
+# nightly classes (Nightly Gates, Fuzz Nightly, Benchmarks calibration) for
+# days because no single signal aggregates them. This job turns RED whenever
+# the latest COMPLETED run of any required workflow failed — naming the owner
+# in the log — so a red nightly is visible within 6 hours even while push CI
+# stays green.
+#
+# The workflow list lives in scripts/check-gates-rollup.sh (REQUIRED_WORKFLOWS)
+# — edit it there, not here. Self-test: scripts/check-gates-rollup.sh --self-test
+# (planted fixtures prove: all-green passes, one red fails naming the owner,
+# in-progress runs are ignored).
+name: Gates Rollup
+
+on:
+  schedule:
+    - cron: "0 */6 * * *" # every 6 hours
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: gates-rollup
+  cancel-in-progress: true
+
+jobs:
+  rollup:
+    name: Aggregate gate status
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Run the rollup
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          bash scripts/check-gates-rollup.sh --self-test
+          bash scripts/check-gates-rollup.sh

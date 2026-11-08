@@ -55,7 +55,7 @@ check_docs() {
 	shift
 	local out="${CSM_OUTFILE:-/dev/stdout}"
 	: >"$out"
-	local doc line claim rel fails=0 lineno
+	local doc line rel fails=0 lineno
 	local -a matches
 	for doc in "$@"; do
 		[ -f "$doc" ] || continue
@@ -127,7 +127,7 @@ MD
 fi
 
 # ── real mode ──────────────────────────────────────────────────────────────
-cd "$(git rev-parse --show-toplevel)"
+cd "$(git rev-parse --show-toplevel)" || exit 1
 root="."
 docs=(
 	.agents/skills/go-cqrs-lite/SKILL.md
