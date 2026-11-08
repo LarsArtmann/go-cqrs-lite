@@ -6,13 +6,21 @@
 # projections pooled over every declared engine) when `standardTopology` is
 # true, and auto-provisions databases for engines without an explicit `dsn`:
 #
-#   driver "postgres" -> services.postgresql database + user
-#                        cqrs_<name>_<engine> over 127.0.0.1
+#   driver "postgres" -> services.postgresql database + role
+#                        cqrs_<name>_<engine>, reached over the
+#                        /run/postgresql unix socket via PEER auth.
+#                        nixpkgs' default pg_hba is md5 (password) on TCP, so
+#                        the module adds a pg_ident map cqrs_peer
+#                        (cqrs-<name> -> cqrs_<name>_<engine>) plus a
+#                        database-and-role-scoped pg_hba line ahead of the
+#                        defaults: the service MUST run as user cqrs-<name>
+#                        (cqrs.lib.hardenedService already sets that).
 #   driver "sqlite"   -> file under /var/lib/cqrs/<name>/
 #
-# An explicit `dsn` ALWAYS wins and provisions nothing. Auto-provisioned
-# postgres relies on the NixOS default localhost trust authentication —
-# hardened hosts should provision nothing and pass explicit DSNs.
+# An explicit `dsn` ALWAYS wins and provisions nothing. Peer auth means no
+# password ever lands in the store or in the rendered config; hosts that
+# cannot run the service as cqrs-<name> should provision nothing and pass
+# explicit DSNs.
 #
 # The service UNIT stays app-owned: fold `cqrs.lib.hardenedService "<name>"`
 # into your systemd.services."<app>" definition for the user/group,
@@ -146,13 +154,15 @@ let
       [ "_" "_" ]
       s;
 
-  # Auto-provisioned DSN per engine, or the explicit one.
+  # Auto-provisioned DSN per engine, or the explicit one. Postgres rides the
+  # unix socket with peer auth (no password, no TCP); the service user is
+  # mapped onto the role by the pg_ident entry below.
   resolveDSN =
     name: engineName: eng:
     if eng.dsn != null then
       eng.dsn
     else if eng.driver == "postgres" then
-      "postgres://cqrs_${sanitizeIdent "${name}_${engineName}"}@127.0.0.1/cqrs_${sanitizeIdent "${name}_${engineName}"}"
+      "postgres:///cqrs_${sanitizeIdent "${name}_${engineName}"}?host=/run/postgresql&user=cqrs_${sanitizeIdent "${name}_${engineName}"}"
     else if eng.driver == "sqlite" then
       "/var/lib/cqrs/${name}/${engineName}.db"
     else
@@ -266,7 +276,10 @@ let
           engineName: eng:
           if eng.driver == "postgres" && eng.dsn == null then
             {
-              ident = sanitizeIdent "${name}_${engineName}";
+              # Service (peer) user and the provisioned role/database, which
+              # share a name so ensureDBOwnership applies.
+              osUser = "cqrs-${name}";
+              dbUser = "cqrs_${sanitizeIdent "${name}_${engineName}"}";
             }
           else
             null
@@ -421,11 +434,17 @@ in
 
     services.postgresql = mkIf (postgresProvisions != [ ]) {
       enable = true;
-      ensureDatabases = map (p: "cqrs_${p.ident}") postgresProvisions;
+      ensureDatabases = map (p: p.dbUser) postgresProvisions;
       ensureUsers = map (p: {
-        name = "cqrs_${p.ident}";
+        name = p.dbUser;
         ensureDBOwnership = true;
       }) postgresProvisions;
+      # Peer-auth wiring: each hba line is scoped to exactly its database+role
+      # pair so the nixpkgs defaults (incl. the postgres superuser line, which
+      # sorts after unmarked rules) keep matching everything else; the map
+      # lets service user cqrs-<name> take role cqrs_<name>_<engine>.
+      authentication = concatMapStrings (p: "local ${p.dbUser} ${p.dbUser} peer map=cqrs_peer\n") postgresProvisions;
+      identMap = concatMapStrings (p: "cqrs_peer ${p.osUser} ${p.dbUser}\n") postgresProvisions;
     };
   };
 }
