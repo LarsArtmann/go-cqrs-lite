@@ -81,6 +81,15 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 > superseded by `scenario.WhenVersioned`. Supersedes the sequencing (not the
 > content) of the plans below; the v5-cut-readiness checklist remains the
 > cut-order authority.)
+>
+> **Current plan (2026-11-08 17:25, EXECUTING):**
+> [`docs/planning/2026-11-08_17-25_SUPERB-full-send-trust-green-execution-cut-pareto-plan.md`](docs/planning/2026-11-08_17-25_SUPERB-full-send-trust-green-execution-cut-pareto-plan.md)
+> (full-send execution cut over the 270 open rows inventoried 17:22: supersedes
+> the same-day 16:12 episode-7 plan's sequencing after the ADR-0165 sibling arc
+> landed (its M28 hardening legs done) and the owner commissioned push + full
+> execution; inherits M01–M29/F001–F188 numbering, adds M30 + F189–F193; the
+> 1% = push + origin/CI/calibration/fuzz receipts + composed `#verify` on the
+> now-freezable tree; per-row owner gates route to one decision sheet.)
 
 > **DONE (2026-10-10):** Graph-native adoption closure + operator-story wave
 > (plan
