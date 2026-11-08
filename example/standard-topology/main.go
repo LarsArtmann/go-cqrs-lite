@@ -25,6 +25,7 @@ import (
 func main() {
 	configPath := flag.String("config", os.Getenv("CQRS_DEPLOYMENT_CONFIG"),
 		"deployment config (.yaml/.json); empty = built-in sqlite default")
+
 	flag.Parse()
 
 	if err := run(context.Background(), *configPath); err != nil {
@@ -98,6 +99,14 @@ func runStory(ctx context.Context, sys *system.System) (NoteView, error) {
 	return awaitNote(ctx, sys, cmd.StreamID().Get())
 }
 
+// noteAwaitTimeout bounds how long the story waits for the projection host
+// to fold the created note before the example fails.
+const noteAwaitTimeout = 5 * time.Second
+
+// notePollInterval is how often awaitNote re-reads the projection between
+// folds.
+const notePollInterval = 50 * time.Millisecond
+
 // awaitNote polls note.get until the projection host folded the event — any
 // lookup miss just means the fold has not landed yet.
 func awaitNote(ctx context.Context, sys *system.System, noteID string) (NoteView, error) {
@@ -108,11 +117,11 @@ func awaitNote(ctx context.Context, sys *system.System, noteID string) (NoteView
 
 	q := GetNote{BasicQuery: basic, ID: noteID}
 
-	for deadline := time.Now().Add(5 * time.Second); time.Now().Before(deadline); time.Sleep(50 * time.Millisecond) {
+	for deadline := time.Now().Add(noteAwaitTimeout); time.Now().Before(deadline); time.Sleep(notePollInterval) {
 		if view, qerr := system.DispatchQuery[GetNote, NoteView](ctx, sys, q); qerr == nil {
 			return view, nil
 		}
 	}
 
-	return NoteView{}, fmt.Errorf("note %s never appeared in the read model", noteID)
+	return NoteView{}, fmt.Errorf("note %s never appeared in the read model: %w", noteID, context.DeadlineExceeded)
 }

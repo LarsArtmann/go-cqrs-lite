@@ -11,7 +11,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
 )
 
-var errNoteExists = errors.New("note already exists")
+var errNoteNotFound = errors.New("note not found")
 
 // registerCommands wires the decider and the single command.
 func registerCommands(sys *system.System) {
@@ -58,7 +58,7 @@ func registerQueries(sys *system.System) {
 			}
 
 			if !found {
-				return NoteView{}, fmt.Errorf("note %s not found", q.ID)
+				return NoteView{}, fmt.Errorf("%w: %s", errNoteNotFound, q.ID)
 			}
 
 			return view, nil
