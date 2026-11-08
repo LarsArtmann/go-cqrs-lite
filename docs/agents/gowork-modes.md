@@ -69,3 +69,14 @@ heavy session"; baseline-producing benches need "the host quiet" because their
 NUMBERS become committed constants (a load-9 verify window would poison a
 SearchQuery median but is harmless to a test-pass verdict). Do not "unify" the
 ceilings; widen either one only with a recorded reason.
+
+## NEVER bare `go work sync` here (2026-11-08, 174-file lesson)
+
+Adding a workspace module needs ONLY the `use` line. A bare `go work sync`
+rewrote 174 go.mod/go.sum files across the fleet (templ 1070→1100 require
+bumps — the exact whipsaw class the flake's templ pin exists to prevent) and
+left go.sum entries missing so every `GOWORK=off` per-module run failed; the
+auto-commit daemon then absorbed the churn into a `chore:` commit within
+minutes, forcing a surgical `git restore --source=HEAD~1 -- <.mod/.sum set>`
+extraction. If a sync is ever truly needed, it is a reviewed, whole-session
+change — never a side effect of registering an example.
