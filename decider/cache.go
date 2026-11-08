@@ -3,6 +3,8 @@ package decider
 import (
 	"github.com/maypok86/otter/v2"
 
+	"github.com/larsartmann/go-codec"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
@@ -22,10 +24,15 @@ const DefaultStateCacheCapacity = 128
 // after V (via store.LoadFromVersion) and folds them onto the cached state,
 // producing the current state in O(new events) instead of O(total events).
 //
-// States stored in the cache must be treated as immutable by the consumer.
+// States returned by the default cache's Get are codec-cloned per caller:
+// mutating a returned state never aliases the cached instance (owner ruling
+// 2026-11-08, brutal-episode7 B1 — Get used to hand out the live cached
+// instance while concurrent loads folded onto it, a data race).
 type StateCache[State any] interface {
 	// Get retrieves the cached state and version for the given stream.
-	// Returns ok=false if the stream is not in the cache.
+	// Returns ok=false if the stream is not in the cache. Implementations
+	// MUST NOT return an instance that aliases internal cache state for
+	// pointer/slice/map-shaped State values.
 	Get(ref id.StreamRef) (state State, version event.Version, ok bool)
 
 	// Put stores the state and version for the given stream.
@@ -74,7 +81,42 @@ func (c *otterCache[State]) Get(ref id.StreamRef) (State, event.Version, bool) {
 		return zero, 0, false
 	}
 
-	return entry.state, entry.version, true
+	// Clone BEFORE returning: callers (and concurrent incremental loads
+	// folding new events onto the returned state) must never mutate the
+	// shared cached instance. A state that cannot round-trip the clone codec
+	// is treated as a miss — the full-load path stays correct, and the
+	// uncloneable entry is dropped so it cannot mask the fallback forever.
+	cloned, err := cloneState(entry.state)
+	if err != nil {
+		c.cache.Invalidate(ref.String())
+
+		var zero State
+
+		return zero, 0, false
+	}
+
+	return cloned, entry.version, true
+}
+
+// cloneState deep-clones a cached state via a codec round-trip (the kv.Cache
+// isolation pattern). CBOR matches the repository-wide default codec.
+func cloneState[State any](state State) (State, error) {
+	data, err := (codec.CBORCodec{}).Encode(state)
+	if err != nil {
+		var zero State
+
+		return zero, err
+	}
+
+	var out State
+
+	if err := (codec.CBORCodec{}).Decode(data, &out); err != nil {
+		var zero State
+
+		return zero, err
+	}
+
+	return out, nil
 }
 
 func (c *otterCache[State]) Put(ref id.StreamRef, state State, version event.Version) {

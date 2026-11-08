@@ -37,6 +37,7 @@ golden="$config_root/system/testdata/standard-topology.golden.yaml"
 triple="$config_root/system/testdata/standard-instance-triple.json"
 dep_fixture="$config_root/system/testdata/deployment-fixture.cue"
 dep_golden="$config_root/system/testdata/deployment-explicit.golden.yaml"
+dep_golden_json="$config_root/system/testdata/deployment-explicit.golden.json"
 go_sources=("$config_root/system/config_types.go" "$config_root/system/engine_config.go")
 
 fail() {
@@ -89,6 +90,15 @@ run_checks() {
 	diff -u "$dep_golden" "$tmp_eval" >/dev/null \
 		|| fail "deployment golden drift: explicit instances must pass through unfilled (differs from $dep_golden)"
 
+	# JSON twin of the deployment golden — the exact artifact the Go suite
+	# loads through LoadConfig (config_roundtrip_test.go), pinned here so the
+	# fixture and the Go-side artifact cannot drift apart.
+	"$cue_bin" eval -e deployment --out json "$config_cue" "$dep_fixture" >"$tmp_eval" 2>/dev/null \
+		|| fail "cue eval -e deployment --out json failed"
+
+	diff -u "$dep_golden_json" "$tmp_eval" >/dev/null \
+		|| fail "deployment JSON golden drift: differs from $dep_golden_json (regenerate: cue eval -e deployment --out json system/config.cue system/testdata/deployment-fixture.cue)"
+
 	local go_tags cue_fields
 	go_tags="$(extract_go_tags)"
 	cue_fields="$(extract_cue_fields)"
@@ -115,6 +125,7 @@ self_test() {
 	cp "$triple" "$fixture_dir/system/testdata/"
 	cp "$dep_fixture" "$fixture_dir/system/testdata/"
 	cp "$dep_golden" "$fixture_dir/system/testdata/"
+	cp "$dep_golden_json" "$fixture_dir/system/testdata/"
 	cp "${go_sources[@]}" "$fixture_dir/system/"
 
 	local fails=0
@@ -148,9 +159,11 @@ self_test() {
 		"sed -i 's/\"events\",/\"bogus\",/' '$fixture_dir/system/testdata/standard-instance-triple.json'"
 	expect_fail "deployment-golden-corrupted" \
 		"sed -i 's/durability: strict/durability: relaxed/' '$fixture_dir/system/testdata/deployment-explicit.golden.yaml'"
+	expect_fail "deployment-golden-json-corrupted" \
+		"sed -i 's/\"source-of-truth\",/\"bogus\",/' '$fixture_dir/system/testdata/deployment-explicit.golden.json'"
 
 	[ "$fails" -eq 0 ] || exit 1
-	echo "self-test: OK (6 fault injections caught)"
+	echo "self-test: OK (7 fault injections caught)"
 }
 
 tmp_eval="$(mktemp /tmp/cue-config-eval.XXXXXX.yaml)" || exit 1

@@ -175,3 +175,37 @@ func TestRoundTrip_CueGoldenJSON(t *testing.T) {
 		t.Fatalf("expected WAL instances on primary, got %+v", cfg.Instances[:2])
 	}
 }
+
+// TestRoundTrip_CueDeploymentExplicitJSON pins the schema-only `deployment`
+// entry's explicit passthrough: the JSON twin of
+// deployment-explicit.golden.yaml (same cue eval, gated by
+// check-cue-config.sh) loads through LoadConfig as EXACTLY the declared
+// shape — no standard filler, no pool expansion (ADR-0165: explicit is
+// explicit; the filler is opt-in via system.Standard or the `standard`
+// entry, never implicit).
+func TestRoundTrip_CueDeploymentExplicitJSON(t *testing.T) {
+	t.Parallel()
+
+	cfg := loadConfigFile(t, "deployment-explicit.golden.json")
+
+	if len(cfg.Engines) != 1 || cfg.Engines["primary"].Driver != "sqlite" || cfg.Engines["primary"].DSN != "file:app.db" {
+		t.Fatalf("unexpected engines: %+v", cfg.Engines)
+	}
+
+	if len(cfg.Instances) != 2 {
+		t.Fatalf("explicit passthrough must not fill: want 2 declared instances, got %d", len(cfg.Instances))
+	}
+
+	sot := cfg.Instances[0]
+	if sot.Role != system.RoleSourceOfTruth || sot.Engine != "primary" {
+		t.Fatalf("unexpected source-of-truth instance: %+v", sot)
+	}
+	if sot.Durability != system.DurabilityStrict {
+		t.Fatalf("durability must pass through verbatim: got %q", sot.Durability)
+	}
+
+	proj := cfg.Instances[1]
+	if proj.Role != system.RoleProjections || len(proj.Engines) != 1 || proj.Engines[0] != "primary" {
+		t.Fatalf("unexpected projections instance: %+v", proj)
+	}
+}

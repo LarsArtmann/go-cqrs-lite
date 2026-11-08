@@ -16,6 +16,10 @@ import (
 
 	// Registers the "sqlite" metaengine driver (database/sql pattern).
 	_ "github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4"
+
+	// Registers the "postgres" metaengine driver — the VM test runs this
+	// binary against a NixOS-provisioned postgres over peer auth.
+	_ "github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4"
 )
 
 func main() {
