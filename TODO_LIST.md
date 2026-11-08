@@ -204,10 +204,10 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 ## Standard deployment topology & NixOS (ADR-0165, opened 2026-11-08)
 
 - [x] **ADR-0165** — data-filler preset + config-format ladder (Go > Nix attrsets > CUE > YAML wire; NO runtime CUE dep) + first-party `nixosModules.cqrs` with auto-provisioning. Owner decisions 2026-11-08: module in THIS repo, DB auto-provision YES.
-- [ ] **`system.Standard(d)` filler** — stamp source-of-truth + queries-audit + projections-pool instances when `Instances` empty; idempotent passthrough otherwise. _(Effort: S)_
-- [ ] **`LoadConfig` JSON branch** — `.json` extension → stdlib parse into koanf confmap; makes `cue export --out json` output loadable verbatim. Zero new deps. _(Effort: XS)_
-- [ ] **`system/config.cue`** — DeploymentConfig schema with standard topology as CUE defaults + `scripts/check-cue-config.sh` drift pin against the Go struct surface (field names + koanf tags). _(Effort: S)_
-- [ ] **`nixosModules.cqrs`** — `nix/nixos/cqrs.nix`: `cqrs.deployments.<name>` attrsets → rendered config; postgres DB/user auto-provision when no explicit DSN; sqlite → StateDirectory file; explicit DSN always wins; `cqrs.lib.hardenedService` shared hardening defaults. Flake output stays eval-clean on stable NixOS. _(Effort: M)_
+- [x] **`system.Standard(d)` filler** — stamp source-of-truth + queries-audit + projections-pool instances when `Instances` empty; idempotent passthrough otherwise. _(Effort: S)_
+- [x] **`LoadConfig` JSON branch** — `.json` extension → stdlib parse into koanf confmap; makes `cue export --out json` output loadable verbatim. Zero new deps. _(Effort: XS)_
+- [x] **`system/config.cue`** — DeploymentConfig schema with standard topology as CUE defaults + `scripts/check-cue-config.sh` drift pin against the Go struct surface (field names + koanf tags). _(Effort: S)_
+- [x] **`nixosModules.cqrs`** — shipped 2026-11-08 (module + flake output + full nixosSystem eval proof: standard topology stamped, postgres DB/user + sqlite DSN auto-provisioned, hardenedService fragment); VM test rides the example row below — `nix/nixos/cqrs.nix`: `cqrs.deployments.<name>` attrsets → rendered config; postgres DB/user auto-provision when no explicit DSN; sqlite → StateDirectory file; explicit DSN always wins; `cqrs.lib.hardenedService` shared hardening defaults. Flake output stays eval-clean on stable NixOS. _(Effort: M)_
 - [ ] **`example/standard-topology/` + VM test** — runnable demo of Go-filler + CUE export + NixOS module; `vm-test.nix` proves provisioning end-to-end. _(Effort: M)_
 
 ---

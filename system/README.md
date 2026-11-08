@@ -158,6 +158,26 @@ Duplicate event types fail at `Build` (before composition); an empty set is
 legal and opts the project out of upcasting entirely. See
 `SchemaEvent`/`SchemaDeclarations` in `schema_declarations.go`.
 
+## Standard Topology (one call, ADR-0165)
+
+Most deployments want the same three tiers: a command/event WAL, a query
+audit log, and one-to-N projection stores. `Standard` stamps exactly that
+when `Instances` is empty — `source-of-truth` + a dedicated `queries`
+instance on the WAL engine ("primary" when declared, else the sorted-first
+name), and a `projections` instance pooling every declared engine. It is a
+data filler, not a builder: configs that already declare instances pass
+through unchanged, and engines/durability/priorities stay operator-owned.
+
+```go
+sys, err := system.New(ctx, domain, system.Standard(deployment))
+```
+
+The same preset exists as CUE defaults (`config.cue` in this module —
+`cue eval -e standard --out yaml`, no runtime CUE dependency) and as the
+`nixosModules.cqrs` NixOS module from the repo flake (config rendering +
+postgres/sqlite auto-provisioning; `cqrs.lib.hardenedService` supplies the
+systemd fragment — the service unit stays app-owned).
+
 ## Two-Engine Deployment (events on disk, projections in memory)
 
 Split roles across engines: the source of truth on a durable engine, the
@@ -227,9 +247,11 @@ recipes: [metaengine/COOKBOOK.md](../metaengine/COOKBOOK.md) and
 
 ## Operator Config File (koanf YAML + env overrides)
 
-`LoadConfig` reads the deployment from YAML and applies `CQRS_` env overrides
-(`CQRS_ENGINES__PRIMARY__DRIVER=postgres` — double underscore maps to the koanf
-delimiter). Operators swap engines at deployment time; the binary never changes:
+`LoadConfig` reads the deployment from YAML — or JSON, picked by the `.json`
+extension (stdlib decoding; `cue export --out json` output loads verbatim) —
+and applies `CQRS_` env overrides (`CQRS_ENGINES__PRIMARY__DRIVER=postgres` —
+double underscore maps to the koanf delimiter). Operators swap engines at
+deployment time; the binary never changes:
 
 ```go
 deployment, err := system.LoadConfig("/etc/myapp/cqrs.yaml")

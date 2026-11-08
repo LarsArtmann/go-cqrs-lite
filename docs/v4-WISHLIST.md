@@ -3,7 +3,7 @@
 > **Status:** SHIPPED. v4.0.0 tagged 2026-07-11. All items below were executed.
 > See [CHANGELOG.md](../CHANGELOG.md) `[4.0.0]` for release notes and
 > [docs/migration/MIGRATION-GUIDE.md](migration/MIGRATION-GUIDE.md) for migration steps.
-> **Current major:** v4.0.0 (58 `go.mod` files)
+> **Current major:** v4.0.0 (58 `go.mod` files at creation 2026-06-29 — historical; the live count is gate-derived, see the root README)
 > **Created:** 2026-06-29
 
 ---

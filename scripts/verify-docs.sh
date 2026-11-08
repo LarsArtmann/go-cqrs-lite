@@ -41,19 +41,43 @@ fi
 
 # ── P6-31: Module count in docs matches actual ─────────────────────────────
 echo "=== Module count check ==="
-actual_count=$(find . -name go.mod -not -path './vendor/*' | wc -l)
+actual_count=$(find . -name go.mod -not -path './vendor/*' | wc -l | tr -d ' ')
 echo "actual module count: $actual_count"
+# Stale literals alone (28|48|49|52) cannot catch a NEW wrong number — the
+# 2026-11-08 audit found this gate echoed the actual count without using it.
+# Any total go.mod-file claim in living docs must equal the repo-derived truth
+# (check-canonical-facts.sh covers its own citation set; this covers the
+# plain-prose phrasing in the core doc set).
+count_claims=$(grep -rnoE '[0-9]+[[:space:]]*(`go\.mod`|go\.mod)[[:space:]]+files' \
+	--include='*.md' \
+	README.md AGENTS.md FEATURES.md CONTRIBUTING.md docs/README.md \
+	docs/v4-WISHLIST.md ROADMAP.md TODO_LIST.md 2>/dev/null |
+	grep -v 'archive/' || true)
+bad_claims=$(printf '%s\n' "$count_claims" |
+	awk -v actual="$actual_count" '
+		match($0, /[0-9]+[ \t]*(`go\.mod`|go\.mod)[ \t]+files/) {
+			claim = substr($0, RSTART, RLENGTH)
+			num = claim
+			sub(/[^0-9].*/, "", num)
+			if (num + 0 != actual + 0) {
+				print
+			}
+		}')
 stale_refs=$(grep -rnE '\b(28|48|49|52)\s*(go\.mod|modules)' \
 	--include='*.md' \
 	README.md AGENTS.md FEATURES.md CONTRIBUTING.md docs/README.md \
 	docs/v4-WISHLIST.md ROADMAP.md TODO_LIST.md 2>/dev/null |
 	grep -v 'archive/' || true)
-if [ -n "$stale_refs" ]; then
+if [ -n "$bad_claims" ]; then
+	echo "FAIL: total go.mod-count claims that do not match the actual count (${actual_count}):"
+	echo "$bad_claims"
+	errors=$((errors + 1))
+elif [ -n "$stale_refs" ]; then
 	echo "FAIL: Stale module count references found:"
 	echo "$stale_refs"
 	errors=$((errors + 1))
 else
-	echo "OK: no stale module count references in core docs"
+	echo "OK: all module-count claims match the actual count (${actual_count})"
 fi
 
 # ── P6-32: License in README matches LICENSE file ───────────────────────────
