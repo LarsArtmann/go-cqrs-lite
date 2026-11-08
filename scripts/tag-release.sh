@@ -679,6 +679,16 @@ fi
 
 temp_msg="chore(release): strip replace directives for ${tag}"
 git commit -m "$temp_msg" --no-verify 2>/dev/null || true
+# A failed strip commit must never reach the tag: it would point at a go.mod
+# still carrying local replace directives (the poisoned-tag class). `|| true`
+# covers only the legitimate nothing-staged case, so a still-dirty index with
+# an unmoved HEAD is fatal (HEAD is checked against original_head from :533).
+if [ "$(git rev-parse HEAD)" = "$original_head" ] && ! git diff --cached --quiet; then
+	echo "ERROR: the replace-strip commit failed while go.mod/go.sum changes"
+	echo "remain staged — the tag would point at an UNSTRIPPED go.mod."
+	restore_working_tree
+	exit 1
+fi
 
 echo "Creating annotated tag: ${tag}"
 git tag -a "$tag" -m "${tag}: ${description}"

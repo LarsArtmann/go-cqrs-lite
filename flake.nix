@@ -1622,6 +1622,26 @@
                   ${pkgs.bash}/bin/bash "$PWD/scripts/check-md-go.sh" "$@"
                 '';
 
+            # check-cue-config: pin system/config.cue against the Go
+            # DeploymentConfig surface (ADR-0165) — cue vet + golden preset
+            # eval + bidirectional koanf-tag drift. --self-test for the
+            # fixture mutations.
+            check-cue-config =
+              mkApp "check-cue-config"
+                [
+                  pkgs.bash
+                  pkgs.coreutils
+                  pkgs.gnugrep
+                  pkgs.gnused
+                  pkgs.gawk
+                  pkgs.diffutils
+                  pkgs.ripgrep
+                  pkgs.cue
+                ]
+                ''
+                  ${pkgs.bash}/bin/bash "$PWD/scripts/check-cue-config.sh" "$@"
+                '';
+
             # check-adr-numbering: ADR numbering integrity — duplicate
             # numbers (INCLUDING untracked parallel-session files — the
             # 2026-10-10 double-0155 collision class), index lockstep

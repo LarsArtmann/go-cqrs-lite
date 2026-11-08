@@ -586,7 +586,19 @@ for tag in "${tags[@]}"; do
 	tag_list="${tag_list}${tag}, "
 done
 tag_list="${tag_list%, }"
+strip_base="$(git rev-parse HEAD)"
 git commit -m "chore(release): strip replace directives for batch release: ${tag_list}" --no-verify 2>/dev/null || true
+# A failed strip commit must never reach the tag loop: tags would point at
+# go.mods still carrying replace directives (the poisoned-tag class this
+# script exists to prevent). `|| true` covers only the legitimate
+# nothing-staged case, so a still-dirty index with an unmoved HEAD is fatal.
+if [ "$(git rev-parse HEAD)" = "$strip_base" ] && ! git diff --cached --quiet; then
+	echo "ERROR: the replace-strip commit failed while go.mod/go.sum changes"
+	echo "remain staged — every tag created now would point at UNSTRIPPED"
+	echo "go.mods. Aborting; the staged strip stays in the index for inspection."
+	run_log "FAIL strip commit did not move HEAD with staged changes"
+	exit 1
+fi
 
 # --- Create all annotated tags from the stripped commit ---
 created=()
