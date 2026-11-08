@@ -147,6 +147,17 @@ else
 	echo "OK: all claimed module paths resolve"
 fi
 
+# ── TODO_LIST hygiene gate (2026-11-08, M22/F050) ───────────────────────────
+# Done rows must be dated + fresh, no byte-identical duplicate list items
+# (the 2026-11-03 sweep's debt classes as mechanical failures).
+echo "=== TODO_LIST hygiene gate ==="
+if ! bash scripts/check-todo-list-hygiene.sh; then
+	echo "FAIL: TODO_LIST.md hygiene violations — date or delete the flagged rows"
+	errors=$((errors + 1))
+else
+	echo "OK: TODO_LIST.md clean"
+fi
+
 # ── Summary ────────────────────────────────────────────────────────────────
 echo ""
 if [ "$errors" -eq 0 ]; then

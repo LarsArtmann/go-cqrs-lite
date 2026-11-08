@@ -10,12 +10,12 @@
 #      STALE_DAYS (default 14) fail — the header policy deletes finished
 #      rows at docs-health passes, so ancient [x] rows are rot.
 #   2. Byte-identical duplicate list items (whitespace-normalized) fail.
-#   3. Dangling "the <X> row above/below" pointers fail when <X> appears
-#      nowhere else in the file (the definition vanished; the pointer stayed).
+# "the X row above/below" pointers are deliberately NOT gated — descriptive
+# pointer phrases rarely repeat literally and the naive rule false-positived
+# on first run (2026-11-08); they stay a docs-health human-audit item.
 #
 # Self-test (--self-test) plants a fixture TODO file exercising every rule:
-# dated-recent pass, undated fail, stale fail, duplicate fail, dangling
-# pointer fail, resolvable pointer pass.
+# dated-recent pass, undated fail, stale fail, duplicate fail.
 #
 # Usage: check-todo-list-hygiene.sh [--self-test]
 set -uo pipefail
@@ -39,8 +39,12 @@ check_file() {
 			fails=$((fails + 1))
 			continue
 		fi
+		# Closure date = a date within ~40 chars after a closure keyword; the
+		# LAST bare date is only the fallback — receipts often END with older
+		# historical citations (e.g. "the documented 2026-10-01 lesson").
 		local d
-		d="$(grep -oE '20[0-9]{2}-[0-9]{2}-[0-9]{2}' <<<"$line" | head -1)"
+		d="$(grep -oiE '(DONE|ANSWERED|RESOLVED|shipped|RULED|VERIFIED|FIXED|CLOSED|PARKED)[^0-9]{0,40}20[0-9]{2}-[0-9]{2}-[0-9]{2}' <<<"$line" | grep -oE '20[0-9]{2}-[0-9]{2}-[0-9]{2}' | head -1)"
+		[ -z "$d" ] && d="$(grep -oE '20[0-9]{2}-[0-9]{2}-[0-9]{2}' <<<"$line" | tail -1)"
 		if [[ "$d" < "$(date -u -d "$TODAY -$STALE_DAYS days" +%Y-%m-%d 2>/dev/null || echo 0000-00-00)" ]]; then
 			echo "FAIL: ${file}:${lineno}: done checkbox dated $d is older than ${STALE_DAYS}d — delete the row (header policy)" >>"$out"
 			fails=$((fails + 1))
@@ -62,21 +66,6 @@ check_file() {
 		fi
 	done <"$file"
 
-	# Rule 3: dangling "the <X> row above/below" pointers.
-	lineno=0
-	while IFS= read -r line; do
-		lineno=$((lineno + 1))
-		grep -qiE 'the .+ row (above|below)' <<<"$line" || continue
-		local phrase
-		phrase="$(sed -nE 's/.*[Tt]he (.+) row (above|below).*/\1/p' <<<"$line" | head -1)"
-		[ -z "$phrase" ] && continue
-		# The pointer must reference a phrase that exists OUTSIDE this line.
-		if [ "$(grep -cF "$phrase" "$file")" -le 1 ]; then
-			echo "FAIL: ${file}:${lineno}: 'the ${phrase} row' points at nothing else in the file — dangling pointer" >>"$out"
-			fails=$((fails + 1))
-		fi
-	done <"$file"
-
 	echo "$fails"
 }
 
@@ -94,7 +83,6 @@ if [ "${1:-}" = "--self-test" ]; then
 - [x] stale done row — DONE ${old} should have been deleted
 - [ ] alpha row with unique text
 - [ ] alpha row with unique text
-The M07 wave row above carries the receipts.
 MD
 	out="$tmp/out"
 	fails="$(check_file "$fixture" "$out")"
@@ -103,15 +91,7 @@ MD
 	grep -q 'without a YYYY-MM-DD' "$out" || { echo "SELF-TEST FAIL: undated rule did not fire"; rc=1; }
 	grep -q 'older than' "$out" || { echo "SELF-TEST FAIL: stale rule did not fire"; rc=1; }
 	grep -q 'byte-identical duplicate' "$out" || { echo "SELF-TEST FAIL: duplicate rule did not fire"; rc=1; }
-	grep -q 'dangling' "$out" && { echo "SELF-TEST FAIL: resolvable pointer (M07 wave exists twice) must pass"; rc=1; }
-
-	# Mutation leg: same fixture with a pointer to a vanished row.
-	echo "The ZZZ vanished row above." >>"$fixture"
-	out2="$tmp/out2"
-	fails2="$(check_file "$fixture" "$out2")"
-	[ "$fails2" -eq 4 ] || { echo "SELF-TEST FAIL: dangling-pointer rule did not fire (expected 4 failures, got $fails2)"; rc=1; }
-
-	[ "$rc" -eq 0 ] && echo "check-todo-list-hygiene self-test: OK (dated pass; undated/stale/duplicate/dangling fail)"
+	[ "$rc" -eq 0 ] && echo "check-todo-list-hygiene self-test: OK (dated pass; undated/stale/duplicate fail)"
 	exit "$rc"
 fi
 
@@ -126,4 +106,4 @@ if [ "$fails" -gt 0 ]; then
 	echo "check-todo-list-hygiene: $fails violation(s) in $target"
 	exit 1
 fi
-echo "check-todo-list-hygiene: $target clean (dated done rows, no duplicates, no dangling pointers)"
+echo "check-todo-list-hygiene: $target clean (done rows dated + fresh, no duplicate items)"
