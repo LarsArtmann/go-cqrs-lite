@@ -219,6 +219,14 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 - [x] **`nixosModules.cqrs`** — shipped 2026-11-08 (module + flake output + full nixosSystem eval proof: standard topology stamped, postgres DB/user + sqlite DSN auto-provisioned, hardenedService fragment); VM test rides the example row below — `nix/nixos/cqrs.nix`: `cqrs.deployments.<name>` attrsets → rendered config; postgres DB/user auto-provision when no explicit DSN; sqlite → StateDirectory file; explicit DSN always wins; `cqrs.lib.hardenedService` shared hardening defaults. Flake output stays eval-clean on stable NixOS. _(Effort: M)_
 - [ ] **`example/standard-topology/` + VM test** — runnable demo of Go-filler + CUE export + NixOS module; `vm-test.nix` proves provisioning end-to-end. _(Effort: M)_
 
+### 2026-11-08 status-report harvest (from `docs/status/2026-11-08_16-06_standard-topology-nixos-cue-adr0165-status.md`)
+
+- [ ] 🔥 **Verify nixpkgs postgres localhost auth default** (read the nixpkgs module source — if 127.0.0.1 is not trust, auto-provisioned DSNs fail at connect; decide peer-socket vs password vs documented-trust with the owner) + record the PG version floor for `ensureDBOwnership`. _(Effort: S)_
+- [ ] 🔥 **Cross-layer round-trip tests** — feed the NixOS module's rendered JSON AND `cue export --out json` output through `system.LoadConfig` (today each layer is tested against hand-written fixtures, never against sibling layers' real output). _(Effort: S)_
+- [ ] **Committed eval test for `nixosModules.cqrs`** (flake checks leg + `nix flake check` pass) — the module currently has zero automated regression protection. _(Effort: S/M)_
+- [ ] **Preset cross-equivalence pin** — one test asserting Go-`Standard` == CUE-`standard` == Nix-`standardInstances` instance shapes (three twins, only field NAMES are drift-pinned today; the semantic split brain is human-checked). _(Effort: M)_
+- [ ] **CI/verify wiring for `#check-cue-config`** + compile-verify module-README fences + unify sqlite DSN form (`file:` prefix) across examples. _(Effort: S)_
+
 ---
 
 ## Fleet-audit follow-up plan tail (harvested 2026-11-05 from `docs/status/2026-11-05_18-16_fleet-audit-followup-plan-one-week-review.md`; plan: `docs/planning/2026-10-24_19-40_SUPERB-fleet-audit-followup-pareto-plan.md`)
