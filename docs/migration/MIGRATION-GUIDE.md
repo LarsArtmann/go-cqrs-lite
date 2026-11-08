@@ -3,6 +3,15 @@
 > **Audience:** Consumers of `go-cqrs-lite` upgrading from v3 to v4.
 > v4 contains four breaking changes: module path migration, deprecated alias
 > removal, codec default flip (JSON → CBOR), and BackfillHandler consolidation.
+>
+> **HISTORICAL DOCUMENT (banner added 2026-11-08):** this guide describes the
+> v3→v4 transition as it shipped and is kept as a period record. Some symbols
+> it references no longer exist on master: `transport/http` (incl.
+> `BackfillHandler`/`SSEBroker`) and `transport/grpc` were deleted 2026-10-17
+> (ADR-0127, zero-consumer delete-at-zero; old pinned tags still resolve from
+> the module proxy). For current-surface guidance see the
+> [skill references](../../.agents/skills/go-cqrs-lite/references/core.md) and
+> `docs/V5-MIGRATION-GUIDE.md` for the upcoming v5 cut.
 
 ---
 

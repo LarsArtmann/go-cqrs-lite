@@ -85,7 +85,7 @@ the bus — do not double-close it in plugin teardown.
 | Need | Use |
 | --- | --- |
 | Events to server-side workers/projections across processes | `watermill.CatchUpSubscriber` + `projectionhost.Host` |
-| Raw events to browsers | `go-sse` (or deprecated `transport/http.SSEBroker` until v5) |
+| Raw events to browsers | `go-sse` composed over the journal/bus (the former `transport/http.SSEBroker` was deleted 2026-10-17; pinned v4 tags still resolve) |
 | Materialized read-model state to browsers | `metaengine.ServeSSE[V]` |
 | Command distribution across processes | `watermill.NewCommandBus(watermill.WithCommandBackend(...))` |
 | Queries | stay in-process (`query.Dispatcher`); watermill's requestreply is RPC-over-messages, not a query bus |

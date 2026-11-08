@@ -594,8 +594,10 @@ http.HandleFunc("/tasks/stream", func(w http.ResponseWriter, r *http.Request) {
 })
 ```
 
-For raw domain event streaming (bus-to-client), use
-`transport/http.SSEBroker` instead. See
+For raw domain event streaming (bus-to-client), bridge `event.Bus` through
+the [watermill/](../watermill/) module (any broker) or serve via
+[go-sse](https://github.com/larsartmann/go-sse) directly (the former
+`transport/http.SSEBroker` was deleted 2026-10-17). See
 [ADR-0079](../docs/adr/0079-sse-consolidation.md) for the rationale.
 
 ## Optional Engine Interfaces

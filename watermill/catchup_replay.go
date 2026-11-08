@@ -34,7 +34,7 @@ func (s *CatchUpSubscriber) replayPhase(ctx context.Context, sub *catchUpSubscri
 	}
 
 	// Replay in fixed-size batches so memory stays bounded regardless of
-	// journal size (same pattern as transport/http.SSEBroker). Each batch is
+	// journal size. Each batch is
 	// fetched, forwarded, and checkpointed before the next is loaded.
 	const batchSize = 500
 

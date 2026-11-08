@@ -53,8 +53,7 @@ func (s *Server) routes() *http.ServeMux {
 
 // handleEvents streams TaskView updates as Server-Sent Events. Clients
 // reconnect with the Last-Event-ID header to replay missed updates. Built on
-// go-sse via metaengine.ServeSSE (ADR-0127); replaces the deprecated
-// transport/http.SSEBroker.
+// go-sse via metaengine.ServeSSE (ADR-0127).
 func (s *Server) handleEvents(w http.ResponseWriter, r *http.Request) {
 	_ = metaengine.ServeSSE(w, r, s.taskWatcher,
 		metaengine.WithSSEHeartbeat(sseHeartbeatSecs*time.Second),

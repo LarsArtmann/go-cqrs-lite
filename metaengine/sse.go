@@ -18,8 +18,8 @@ import (
 // (collection-watch + replay from journal), built on
 // github.com/larsartmann/go-sse. For streaming raw domain events to HTTP
 // clients, bridge event.Bus through the watermill/ module (any broker) or
-// serve via go-sse directly; the deprecated transport/http.SSEBroker is
-// removed at v5 (ADR-0127).
+// serve via go-sse directly (the former transport/http.SSEBroker was deleted
+// 2026-10-17, ADR-0127).
 type SSEConfig struct {
 	// Timeout is the maximum duration the SSE stream stays open.
 	// Zero means no timeout (stream until client disconnects).

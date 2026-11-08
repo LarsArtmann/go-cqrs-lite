@@ -244,8 +244,7 @@ func NewServer(cfg Config, logger *slog.Logger) (*Server, error) {
 
 	// ── SSE: live read-model updates via metaengine watcher (ADR-0127) ──
 	// Streams TaskView changes over go-sse (metaengine.ServeSSE), with
-	// Last-Event-ID reconnection via the replay journal. Replaces the
-	// deprecated transport/http.SSEBroker raw-event stream.
+	// Last-Event-ID reconnection via the replay journal.
 	if sys.MetaEngine() != nil {
 		srv.taskWatcher = metaengine.NewWatcher[TaskView](sys.MetaEngine(), taskViewCollection)
 		srv.taskWatcher.WithReplay(sseReplayCapacity)

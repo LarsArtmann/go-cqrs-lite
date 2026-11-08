@@ -252,10 +252,11 @@ event/command type names but can be overridden here.
 
 **`transport`** — true when an external-delivery layer is imported: the
 `watermill/` bridge (any broker backend), `go-sse`, cqrs-htmx, or a legacy
-deprecated `transport/http` / `transport/grpc` import. When true, adoption
+`transport/http` / `transport/grpc` import (deleted from master 2026-10-17,
+ADR-0127; old pins still resolve from the proxy). When true, adoption
 rules that suggest adopting a delivery module are suppressed. Independently,
-F030 flags any deprecated `transport/*` import with its ADR-0127 migration
-path (warning severity, removed at v5).
+F030 flags any `transport/*` import with its ADR-0127 migration
+path (warning severity).
 
 **`server-local`** — true when a server (HTTP or gRPC) is detected but lacks
 production signals (no TLS, no graceful `Shutdown`, no health endpoint). This
