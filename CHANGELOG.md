@@ -29,6 +29,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 
+- **testing: the id/event fuzz harnesses pin the real parser contract again.** `id.ParseStreamID`/`id.ParseStreamType` (and the `id.StreamIDFrom`/`id.AggregateIDFrom` wrappers they feed) reject invalid UTF-8, but four harnesses still asserted the obsolete accept-any-non-empty-string contract, so every Fuzz Nightly since the parser change failed as a stale-contract alarm (`FuzzParseAggregateID`, `FuzzParse_TypeSafety`, `FuzzAggregateIDFrom`, `FuzzParseStreamType`). Assertions corrected and explicit invalid-UTF-8 seeds committed so the rejection contract cannot silently regress.
+- **docs: deleted-transport truth sweep.** `transport/http` + `transport/grpc` were deleted 2026-10-17, but the skill (SKILL.md + the core/advanced/modules/faq references), ADR-0127, and ROADMAP still taught them as "deprecated until v5" — three weeks of fleet agents being taught deleted API. All corrected; go-sse/watermill are named as the live delivery path.
+- **ci: the Benchmarks workflow compares calibration drift against a runner-class baseline** — a cached baseline restore, cold-run establishment, `--baseline` comparison, refresh only on success, and a real uploaded drift log; the absolute shipped constants were being compared on a shared runner, false-failing every engine nightly with an empty artifact.
+- **repo: accidental root junk removed** (a 29-file EventCatalog export under a literal `--help/` directory, plus `awk`/`check` shell transcripts) with exact ignore rules so auto-committed shell output cannot land in the tree root again.
+- **ci/deps: two drift repairs caught by the push CI** — cmd/cqrs-lint's go-finding/pipeline pin bumped v1.15.0 → v1.15.1 (pin-sweep leg), and the generated region of the error-taxonomy doc regenerated for the new turso codes (both taxonomy gates green; sibling-pins check green).
 - `metaengine` Store batch apply now retries a `Transactional` engine's `RunInTx` up to 4× (jittered backoff) when the commit fails as a transient nothing-committed abort — Dgraph conflict-aborts during projection applies (two consecutive CI-flaked runs, 2026-11-06) no longer fail the apply; any other error still surfaces after one attempt.
 
 ### Added

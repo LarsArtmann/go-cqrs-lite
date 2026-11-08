@@ -1,6 +1,7 @@
 package system
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"strconv"
@@ -12,7 +13,9 @@ import (
 	"github.com/knadh/koanf/v2"
 )
 
-// LoadConfig loads a DeploymentConfig from a YAML file and env var overrides.
+// LoadConfig loads a DeploymentConfig from a YAML file (or a JSON file,
+// picked by the .json extension — stdlib decoding, no new dependency) and
+// env var overrides.
 //
 // The YAML structure mirrors DeploymentConfig (koanf struct tags):
 //
@@ -59,9 +62,16 @@ import (
 func LoadConfig(path string) (DeploymentConfig, error) {
 	k := koanf.New(".")
 
-	// 1. Load YAML file if a path is provided.
+	// 1. Load the config file if a path is provided. YAML is the default
+	// parser; a .json suffix switches to stdlib JSON so `cue export --out
+	// json` output is loadable verbatim (ADR-0165 config ladder).
 	if path != "" {
-		if err := k.Load(file.Provider(path), yaml.Parser()); err != nil {
+		parser := koanf.Parser(yaml.Parser())
+		if strings.HasSuffix(path, ".json") {
+			parser = stdlibJSONParser{}
+		}
+
+		if err := k.Load(file.Provider(path), parser); err != nil {
 			return DeploymentConfig{}, fmt.Errorf("system: load config %q: %w", path, err)
 		}
 	}
@@ -122,6 +132,23 @@ func LoadConfig(path string) (DeploymentConfig, error) {
 	}
 
 	return cfg, nil
+}
+
+// stdlibJSONParser is a koanf.Parser over encoding/json — the JSON branch
+// of LoadConfig without a parser-module dependency.
+type stdlibJSONParser struct{}
+
+func (stdlibJSONParser) Unmarshal(b []byte) (map[string]any, error) {
+	var out map[string]any
+	if err := json.Unmarshal(b, &out); err != nil {
+		return nil, err
+	}
+
+	return out, nil
+}
+
+func (stdlibJSONParser) Marshal(m map[string]any) ([]byte, error) {
+	return json.Marshal(m)
 }
 
 // applyLegacyEnvOverrides handles the old CQRS_DEFAULT_DRIVER/CQRS_DEFAULT_DSN

@@ -83,6 +83,63 @@ acknowledge_warnings:
 	}
 }
 
+func TestLoadConfig_JSON(t *testing.T) {
+	t.Parallel()
+
+	jsonCfg := `{
+  "engines": {
+    "primary": {"driver": "sqlite", "dsn": "file:test.db"}
+  },
+  "instances": [
+    {"role": "source-of-truth", "engine": "primary", "durability": "strict"}
+  ]
+}`
+
+	path := filepath.Join(t.TempDir(), "config.json")
+	if err := os.WriteFile(path, []byte(jsonCfg), 0o600); err != nil {
+		t.Fatalf("write config: %v", err)
+	}
+
+	cfg, err := system.LoadConfig(path)
+	if err != nil {
+		t.Fatalf("LoadConfig: %v", err)
+	}
+
+	if cfg.Engines["primary"].Driver != "sqlite" {
+		t.Fatalf("expected sqlite driver, got %s", cfg.Engines["primary"].Driver)
+	}
+
+	if cfg.Engines["primary"].DSN != "file:test.db" {
+		t.Fatalf("expected file:test.db, got %s", cfg.Engines["primary"].DSN)
+	}
+
+	if cfg.Instances[0].Role != system.RoleSourceOfTruth {
+		t.Fatalf("expected source-of-truth, got %s", cfg.Instances[0].Role)
+	}
+
+	if cfg.Instances[0].Durability != system.DurabilityStrict {
+		t.Fatalf("expected strict durability, got %s", cfg.Instances[0].Durability)
+	}
+}
+
+func TestLoadConfig_JSONEnvOverrideStillWins(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "config.json")
+	if err := os.WriteFile(path, []byte(`{"engines":{"primary":{"driver":"memory"}}}`), 0o600); err != nil {
+		t.Fatalf("write config: %v", err)
+	}
+
+	t.Setenv("CQRS_ENGINES__PRIMARY__DRIVER", "sqlite")
+
+	cfg, err := system.LoadConfig(path)
+	if err != nil {
+		t.Fatalf("LoadConfig: %v", err)
+	}
+
+	if cfg.Engines["primary"].Driver != "sqlite" {
+		t.Fatalf("env override lost: driver = %s", cfg.Engines["primary"].Driver)
+	}
+}
+
 func TestLoadConfig_EmptyPath(t *testing.T) {
 	t.Parallel()
 
