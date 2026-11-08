@@ -241,13 +241,21 @@ func RunAggregateMatrix(t *testing.T, factories []Factory) {
 			}
 
 			if !errors.Is(err, metaengine.ErrInvalidAggregateFn) {
-				t.Errorf("%s.Aggregate hostile-fn error does not wrap metaengine.ErrInvalidAggregateFn: %v", fx.name, err)
+				t.Errorf(
+					"%s.Aggregate hostile-fn error does not wrap metaengine.ErrInvalidAggregateFn: %v",
+					fx.name,
+					err,
+				)
 			}
 
 			// The classified code must survive to the consumer: assert the
 			// documented taxonomy code in the rendered error.
 			if !strings.Contains(err.Error(), "metaengine.invalid_aggregate_fn") {
-				t.Errorf("%s.Aggregate hostile-fn error does not carry the metaengine.invalid_aggregate_fn code: %v", fx.name, err)
+				t.Errorf(
+					"%s.Aggregate hostile-fn error does not carry the metaengine.invalid_aggregate_fn code: %v",
+					fx.name,
+					err,
+				)
 			}
 
 			if mar, ok := fx.eng.(metaengine.MultiAggregateReader); ok {
@@ -260,7 +268,11 @@ func RunAggregateMatrix(t *testing.T, factories []Factory) {
 			if ea, ok := fx.eng.(metaengine.ExplainableAggregate); ok {
 				sql, _ := ea.ExplainAggregateQuery(ctx, "items", metaengine.ExplainAggregateOptions{Fn: hostile})
 				if !strings.Contains(sql, "invalid aggregate fn") {
-					t.Errorf("%s.ExplainAggregateQuery emitted hostile fn without the rejection marker: %s", fx.name, sql)
+					t.Errorf(
+						"%s.ExplainAggregateQuery emitted hostile fn without the rejection marker: %s",
+						fx.name,
+						sql,
+					)
 				}
 			}
 		}

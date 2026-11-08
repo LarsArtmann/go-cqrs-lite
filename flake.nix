@@ -802,11 +802,12 @@
             # ADR-0165 NixOS module evaluation pin (both linux arches from any
             # host — pure evaluation, no VM): rendered DeploymentConfig JSON,
             # postgres provisioning incl. peer-auth wiring, hardenedService.
-            cqrs-nixos-eval = pkgs.runCommand "cqrs-nixos-eval" { }
-              (import ./nix/nixos/eval-test.nix {
-                inherit pkgs;
-                module = import ./nix/nixos/cqrs.nix;
-              }).script;
+            cqrs-nixos-eval =
+              pkgs.runCommand "cqrs-nixos-eval" { }
+                (import ./nix/nixos/eval-test.nix {
+                  inherit pkgs;
+                  module = import ./nix/nixos/cqrs.nix;
+                }).script;
             # goimports shells out to `go`; the wrapped formatter would try to
             # DOWNLOAD go1.27 in the network-less sandbox because go.work
             # requires it. Provide the go_1_27 toolchain (DiscordSync flake
@@ -1643,6 +1644,7 @@
                   pkgs.gnused
                   pkgs.gawk
                   pkgs.diffutils
+                  pkgs.jq
                   pkgs.ripgrep
                   pkgs.cue
                 ]
@@ -2124,6 +2126,7 @@
                   echo "=== Check Architecture Reference ===" && nix run .#check-architecture-reference && \
                   echo "=== Check Turso Version Citations ===" && nix run .#check-turso-version && \
                   echo "=== Check Templ ===" && nix run .#check-templ && \
+                  echo "=== Check CUE Config ===" && nix run .#check-cue-config && \
                   echo "=== Check Bench Gate ===" && nix run .#check-bench-gate && \
                   echo "=== Check Coverage ===" && if [ -s build/coverage/merged.out ]; then nix run .#check-coverage -- --profile build/coverage/merged.out; else echo "::warning::no coverprofile from the Test step — re-measuring" >&2; nix run .#check-coverage; fi && \
                   echo "=== API Stability ===" && nix run .#check-api-stability && \
@@ -2200,6 +2203,7 @@
                   echo "=== Check Architecture Reference ===" && nix run .#check-architecture-reference && \
                   echo "=== Check Turso Version Citations ===" && nix run .#check-turso-version && \
                   echo "=== Check Templ ===" && nix run .#check-templ && \
+                  echo "=== Check CUE Config ===" && nix run .#check-cue-config && \
                   echo "=== Check Bench Gate ===" && nix run .#check-bench-gate && \
                   # NOT reused like #verify does: this app's test steps are
                   # -short, and short-mode coverage is a DIFFERENT (lower)

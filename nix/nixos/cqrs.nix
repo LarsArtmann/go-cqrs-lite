@@ -113,6 +113,11 @@ let
           "projections"
         ];
       };
+      collections = mkOption {
+        type = types.listOf types.str;
+        default = [ ];
+        description = "Collection names this instance serves (introspection-only; pinned to system.Standard by the shared fixture).";
+      };
       engine = mkOption {
         type = types.nullOr types.str;
         default = null;
@@ -198,6 +203,7 @@ let
         role = inst.role;
         engine = inst.engine;
       }
+      // optionalAttrs (inst.collections != [ ]) { collections = inst.collections; }
       // optionalAttrs (inst.engines != [ ]) { engines = inst.engines; }
       // optionalAttrs (inst.durability != null) { durability = inst.durability; }
       // optionalAttrs (inst.publish != [ ]) { publish = inst.publish; }
@@ -205,7 +211,10 @@ let
 
   # The Nix twin of system.Standard: WAL + query audit log on the WAL engine
   # ("primary" when declared, else the sorted-first name — Nix can sort),
-  # projections over every declared engine.
+  # projections over every declared engine. Semantics are pinned to the Go
+  # twin by system/testdata/standard-instance-triple.json, which the Go
+  # suite, the CUE gate, and the Nix eval test all assert against
+  # (ADR-0165 equivalence pin).
   standardInstances =
     dep:
     let
@@ -216,14 +225,23 @@ let
     [
       {
         role = "source-of-truth";
+        collections = [
+          "events"
+          "commands"
+          "queries"
+          "snapshots"
+          "checkpoints"
+        ];
         engine = wal;
       }
       {
         role = "queries";
+        collections = [ "queries" ];
         engine = wal;
       }
       {
         role = "projections";
+        collections = [ "projections" ];
         engines = sorted;
       }
     ];
@@ -443,7 +461,9 @@ in
       # pair so the nixpkgs defaults (incl. the postgres superuser line, which
       # sorts after unmarked rules) keep matching everything else; the map
       # lets service user cqrs-<name> take role cqrs_<name>_<engine>.
-      authentication = concatMapStrings (p: "local ${p.dbUser} ${p.dbUser} peer map=cqrs_peer\n") postgresProvisions;
+      authentication = concatMapStrings (
+        p: "local ${p.dbUser} ${p.dbUser} peer map=cqrs_peer\n"
+      ) postgresProvisions;
       identMap = concatMapStrings (p: "cqrs_peer ${p.osUser} ${p.dbUser}\n") postgresProvisions;
     };
   };

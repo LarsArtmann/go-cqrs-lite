@@ -4,6 +4,10 @@
 #   1. cue vet — the schema parses and evaluates (comprehensions included).
 #   2. golden eval — `standard` rendered from the fixture matches the
 #      committed golden YAML (the CUE preset cannot silently change shape).
+#   3. instance-triple pin — `standard.instances` equals the SHARED fixture
+#      standard-instance-triple.json, which the Go suite (system.Standard)
+#      and the NixOS eval test assert against too: the three preset twins
+#      cannot drift apart (ADR-0165 equivalence pin).
 #   3. drift pin — the set of koanf tags in system/config_types.go +
 #      system/engine_config.go equals the set of field names in the CUE
 #      definitions, bidirectionally: a Go field without CUE, or CUE without
@@ -30,6 +34,7 @@ cue_bin="${CUE_BIN:-cue}"
 config_cue="$config_root/system/config.cue"
 fixture="$config_root/system/testdata/standard-fixture.cue"
 golden="$config_root/system/testdata/standard-topology.golden.yaml"
+triple="$config_root/system/testdata/standard-instance-triple.json"
 go_sources=("$config_root/system/config_types.go" "$config_root/system/engine_config.go")
 
 fail() {
@@ -67,6 +72,13 @@ run_checks() {
 	diff -u "$golden" "$tmp_eval" >/dev/null \
 		|| fail "golden drift: standard preset eval differs from $golden"
 
+	local instances_json
+	instances_json="$($cue_bin eval -e standard.instances --out json "$config_cue" "$fixture" 2>/dev/null)" \
+		|| fail "cue eval -e standard.instances failed"
+
+	diff -u <(jq -S . "$triple") <(jq -S . <<<"$instances_json") >/dev/null \
+		|| fail "instance-triple drift: standard.instances differs from $triple (shared with the Go suite and the NixOS eval test — ADR-0165 pin)"
+
 	local go_tags cue_fields
 	go_tags="$(extract_go_tags)"
 	cue_fields="$(extract_cue_fields)"
@@ -78,7 +90,7 @@ run_checks() {
 	[ -z "$go_only" ] || fail "koanf tags missing from config.cue: $(echo "$go_only" | tr '\n' ' ')"
 	[ -z "$cue_only" ] || fail "config.cue fields with no koanf tag: $(echo "$cue_only" | tr '\n' ' ')"
 
-	echo "check-cue-config: OK (vet + golden + drift pin over $(echo "$go_tags" | wc -l) fields)"
+	echo "check-cue-config: OK (vet + golden + triple pin + drift pin over $(echo "$go_tags" | wc -l) fields)"
 }
 
 self_test() {
@@ -90,6 +102,7 @@ self_test() {
 	cp "$repo_root/system/config.cue" "$fixture_dir/system/"
 	cp "$fixture" "$fixture_dir/system/testdata/"
 	cp "$golden" "$fixture_dir/system/testdata/"
+	cp "$triple" "$fixture_dir/system/testdata/"
 	cp "${go_sources[@]}" "$fixture_dir/system/"
 
 	local fails=0
@@ -119,9 +132,11 @@ self_test() {
 		"printf 'type driftProbe struct{ Bogus string \`koanf:\"bogus\"\` }\n' >> '$fixture_dir/system/engine_config.go'"
 	expect_fail "golden-corrupted" \
 		"sed -i 's/role: source-of-truth/role: events/' '$fixture_dir/system/testdata/standard-topology.golden.yaml'"
+	expect_fail "triple-corrupted" \
+		"sed -i 's/\"events\",/\"bogus\",/' '$fixture_dir/system/testdata/standard-instance-triple.json'"
 
 	[ "$fails" -eq 0 ] || exit 1
-	echo "self-test: OK (4 fault injections caught)"
+	echo "self-test: OK (5 fault injections caught)"
 }
 
 tmp_eval="$(mktemp /tmp/cue-config-eval.XXXXXX.yaml)" || exit 1

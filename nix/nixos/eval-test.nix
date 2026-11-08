@@ -80,9 +80,7 @@ let
           rendered = cfg.environment.etc."cqrs/demo/deployment.json".text;
           pg = cfg.services.postgresql;
           svc = cfg.cqrs.lib.hardenedService "demo";
-          check =
-            cond: msg:
-            if cond then null else throw "cqrs-nixos-eval[${system}]: ${msg}";
+          check = cond: msg: if cond then null else throw "cqrs-nixos-eval[${system}]: ${msg}";
         in
         [
           (check (builtins.fromJSON rendered == expected) "rendered deployment JSON drifted")
@@ -92,8 +90,7 @@ let
             map (u: {
               name = u.name;
               owns = u.ensureDBOwnership;
-            }) pg.ensureUsers
-            == [
+            }) pg.ensureUsers == [
               {
                 name = "cqrs_demo_primary";
                 owns = true;
@@ -105,7 +102,9 @@ let
           (check (svc.serviceConfig.User == "cqrs-demo") "hardenedService user mismatch")
           (check (svc.serviceConfig.Group == "cqrs-demo") "hardenedService group mismatch")
           (check (svc.serviceConfig.StateDirectory == "cqrs-demo") "hardenedService StateDirectory mismatch")
-          (check (svc.environment.CQRS_DEPLOYMENT_CONFIG == "/etc/cqrs/demo/deployment.json") "hardenedService config env mismatch")
+          (check (
+            svc.environment.CQRS_DEPLOYMENT_CONFIG == "/etc/cqrs/demo/deployment.json"
+          ) "hardenedService config env mismatch")
           (check (svc.serviceConfig.ProtectSystem == "strict") "hardenedService sandboxing mismatch")
         ]
       )

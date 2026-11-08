@@ -6,6 +6,9 @@
             "pragmas": [
                 "journal_mode=wal"
             ]
+        },
+        "proj": {
+            "driver": "memory"
         }
     },
     "instances": [
@@ -33,7 +36,8 @@
                 "projections"
             ],
             "engines": [
-                "primary"
+                "primary",
+                "proj"
             ]
         }
     ]

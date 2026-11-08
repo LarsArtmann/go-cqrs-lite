@@ -18,7 +18,10 @@ func TestRejectInvalidAggregateFn(t *testing.T) {
 	}
 
 	if !strings.Contains(err.Error(), "metaengine.invalid_aggregate_fn") {
-		t.Fatalf("RejectInvalidAggregateFn hostile value: error does not carry the metaengine.invalid_aggregate_fn code: %v", err)
+		t.Fatalf(
+			"RejectInvalidAggregateFn hostile value: error does not carry the metaengine.invalid_aggregate_fn code: %v",
+			err,
+		)
 	}
 
 	for _, fn := range []metaengine.AggregateFn{

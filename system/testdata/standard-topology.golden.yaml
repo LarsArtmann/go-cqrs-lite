@@ -4,6 +4,8 @@ engines:
     dsn: file:app.db
     pragmas:
       - journal_mode=wal
+  proj:
+    driver: memory
 instances:
   - role: source-of-truth
     collections:
@@ -22,3 +24,4 @@ instances:
       - projections
     engines:
       - primary
+      - proj

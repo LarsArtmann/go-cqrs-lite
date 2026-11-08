@@ -181,6 +181,14 @@ jobs:
       - name: ADR numbering gate
         run: nix run .#check-adr-numbering
 
+      - name: CUE deployment-config gate (self-test, then the tree)
+        run: |
+          nix run .#check-cue-config -- --self-test
+          nix run .#check-cue-config
+
+      - name: NixOS module eval pin (ADR-0165)
+        run: nix build .#checks.x86_64-linux.cqrs-nixos-eval -L
+
       - name: Engine capability single-source gate
         run: nix run .#check-engine-capabilities
 
