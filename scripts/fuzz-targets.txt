@@ -114,3 +114,4 @@ storage/pebble	.	FuzzCheckpointStore_Roundtrip
 storage/pebble	.	FuzzDeserializeEvent
 storage/pebble	.	FuzzSerializeDeserializeRoundtrip
 storage/pebble	.	FuzzSnapshotStore_Roundtrip
+system	.	FuzzLoadConfigJSON
