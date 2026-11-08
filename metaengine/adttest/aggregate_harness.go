@@ -244,6 +244,12 @@ func RunAggregateMatrix(t *testing.T, factories []Factory) {
 				t.Errorf("%s.Aggregate hostile-fn error does not wrap metaengine.ErrInvalidAggregateFn: %v", fx.name, err)
 			}
 
+			// The classified code must survive to the consumer: assert the
+			// documented taxonomy code in the rendered error.
+			if !strings.Contains(err.Error(), "metaengine.invalid_aggregate_fn") {
+				t.Errorf("%s.Aggregate hostile-fn error does not carry the metaengine.invalid_aggregate_fn code: %v", fx.name, err)
+			}
+
 			if mar, ok := fx.eng.(metaengine.MultiAggregateReader); ok {
 				if _, err := mar.MultiAggregate(ctx, "items",
 					[]metaengine.AggregateSpec{{Fn: hostile, Column: "price"}}, nil); err == nil {

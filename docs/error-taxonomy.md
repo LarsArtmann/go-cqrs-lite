@@ -774,6 +774,7 @@ errorfamily.Classify(err) // => Conflict
 | -                            | Rejection     | `metaengine.encode_stream_value`          |
 | -                            | Corruption    | `metaengine.encoded.empty_payload`        |
 | -                            | Corruption    | `metaengine.encoded.unknown_encoding`     |
+| -                            | Rejection     | `metaengine.invalid_aggregate_fn`         |
 | ErrNoEventLog                | Rejection     | `metaengine.no_event_log`                 |
 | ErrNoQueryDecls              | Rejection     | `metaengine.no_query_decls`               |
 | ErrPlannedColumnTypeMismatch | Rejection     | `metaengine.planned_column_type_mismatch` |
@@ -781,7 +782,7 @@ errorfamily.Classify(err) // => Conflict
 | ErrVerifyDrift               | Corruption    | `metaengine.verify_drift`                 |
 
 - Unreferenced named errors (dead-sentinel candidates): `ErrCollectionCountMismatch`, `ErrDuplicateEvent`, `ErrFrameTooLarge`, `ErrGraphBackendNotImplemented`, `ErrMapUpdaterNotImplemented`, `ErrNoEventLog`, `ErrNoProber`, `ErrNoQueryDecls`, `ErrScanBackendNotImplemented`, `ErrSearchBackendNotImplemented`, `ErrSpatialBackendNotImplemented`, `ErrTransportClosed`, `ErrVectorBackendNotImplemented`, `_`, `errCannotInferADT`, `errEdgeRemoval`, `errNoEngine`, `errNoQuery`, `errNotBinaryVector`, `errQuicTransportClosed`, `errSSENoFlusher`, `errTransportClosed`, `errUndirectedGraph`, `errUnsupportedCounterOps`, `errUnsupportedCounterReads`, `errUnsupportedGraphOps`, `errUnsupportedGraphReads`, `errUnsupportedLogOps`, `errUnsupportedLogReads`, `errUnsupportedMapOps`, `errUnsupportedMultiReads`, `errUnsupportedMultimapOps`, `errUnsupportedSearchOps`, `errUnsupportedSearchReads`, `errUnsupportedSetOps`, `errUnsupportedSpatialOps`, `errUnsupportedSpatialReads`, `errUnsupportedVectorFilters`, `errUnsupportedVectorOps`, `errUnsupportedVectorReads`
-- 6 of 14 codes are inline mints (no named sentinel)
+- 7 of 15 codes are inline mints (no named sentinel)
 
 <!-- generate-error-taxonomy:end -->
 
