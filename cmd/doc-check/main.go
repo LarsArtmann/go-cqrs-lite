@@ -107,34 +107,40 @@ func fileArgs(_ *cobra.Command, args []string) error {
 	return nil
 }
 
+// discoverFiles returns the default doc set: the canonical skill + agent docs,
+// every skill reference file, and every module README (consumer-facing API
+// surface since 2026-09-29, M13 — their quick-start fences get the same
+// reference + arity drift checks as the skill docs; depth 1-3 covers them
+// all, e.g. event/, storage/memory/, metaengine/irohengine/loopback/).
+func discoverFiles() []string {
+	root := findRepoRoot()
+	files := []string{
+		filepath.Join(root, "SKILL.md"),
+		filepath.Join(root, "AGENTS.md"),
+		filepath.Join(root, "docs/DOMAIN_LANGUAGE.md"),
+		filepath.Join(root, "docs/METAENGINE_DOMAIN_LANGUAGE.md"),
+	}
+
+	if refFiles, err := filepath.Glob(
+		filepath.Join(root, ".agents/skills/*/references/*.md"),
+	); err == nil {
+		files = append(files, refFiles...)
+	}
+
+	for _, pattern := range []string{
+		"*/README.md", "*/*/README.md", "*/*/*/README.md",
+	} {
+		if readmeFiles, err := filepath.Glob(filepath.Join(root, pattern)); err == nil {
+			files = append(files, readmeFiles...)
+		}
+	}
+
+	return files
+}
+
 func run(files []string, jsonOut, listAllAmbiguous bool) error {
 	if len(files) == 0 {
-		// Auto-discover from the repo root so the tool works regardless of CWD
-		// (cmd/doc-check is its own module, so it's often run from inside cmd/doc-check/).
-		root := findRepoRoot()
-		files = []string{
-			filepath.Join(root, "SKILL.md"),
-			filepath.Join(root, "AGENTS.md"),
-			filepath.Join(root, "docs/DOMAIN_LANGUAGE.md"),
-			filepath.Join(root, "docs/METAENGINE_DOMAIN_LANGUAGE.md"),
-		}
-		// Auto-discover skill reference files so split SKILL.md content stays checked.
-		if refFiles, err := filepath.Glob(
-			filepath.Join(root, ".agents/skills/*/references/*.md"),
-		); err == nil {
-			files = append(files, refFiles...)
-		}
-		// Module READMEs are consumer-facing API surface (2026-09-29, M13):
-		// their quick-start fences get the same reference + arity drift
-		// checks as the skill docs. Depth 1-3 covers every module README
-		// (e.g. event/, storage/memory/, metaengine/irohengine/loopback/).
-		for _, pattern := range []string{
-			"*/README.md", "*/*/README.md", "*/*/*/README.md",
-		} {
-			if readmeFiles, err := filepath.Glob(filepath.Join(root, pattern)); err == nil {
-				files = append(files, readmeFiles...)
-			}
-		}
+		files = discoverFiles()
 	}
 
 	// Resolve repo root by walking up from the first file's directory.

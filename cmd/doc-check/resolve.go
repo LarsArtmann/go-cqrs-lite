@@ -200,13 +200,14 @@ func mirrorAliasDirs(dirs []string) bool {
 		return false
 	}
 
-	a, b := filepath.Clean(dirs[0]), filepath.Clean(dirs[1])
+	left, right := filepath.Clean(dirs[0]), filepath.Clean(dirs[1])
+
 	const core = "core/v5/"
 
-	if strings.HasPrefix(a, core) != strings.HasPrefix(b, core) {
-		coreDir, plainDir := a, b
-		if strings.HasPrefix(b, core) {
-			coreDir, plainDir = b, a
+	if strings.HasPrefix(left, core) != strings.HasPrefix(right, core) {
+		coreDir, plainDir := left, right
+		if strings.HasPrefix(right, core) {
+			coreDir, plainDir = right, left
 		}
 
 		return strings.TrimPrefix(coreDir, core) == plainDir

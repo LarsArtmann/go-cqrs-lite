@@ -37,7 +37,11 @@ func run(ctx context.Context, configPath string) error {
 		return fmt.Errorf("load deployment: %w", err)
 	}
 
-	sys, err := system.New(ctx, domain(), system.Standard(deployment)) // art-dupl:accept canonical system boot, deliberately mirrors example/goal-shaped-app
+	sys, err := system.New(
+		ctx,
+		domain(),
+		system.Standard(deployment),
+	) // art-dupl:accept canonical system boot, deliberately mirrors example/goal-shaped-app
 	if err != nil {
 		return fmt.Errorf("compose system: %w", err)
 	}

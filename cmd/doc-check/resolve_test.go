@@ -168,7 +168,7 @@ func TestVerifyBlocks_MirrorAmbiguityIsKnownNotUnknown(t *testing.T) {
 		refs: []ref{{pkg: "kv", symbol: "Cache", file: "doc.md", line: 3}},
 	}}
 
-	_, _, _, ambiguities, unknownAmbiguities := verifyBlocks(blocks, nil, res, false)
+	_, _, _, ambiguities, unknownAmbiguities := verifyBlocks(blocks, nil, res, false) //nolint:dogsled // fixture asserts the last two returns only
 
 	if len(ambiguities) != 1 {
 		t.Fatalf("ambiguities = %d, want 1 (mirror pair still reported)", len(ambiguities))
@@ -190,7 +190,7 @@ func TestVerifyBlocks_NonMirrorAmbiguityIsUnknown(t *testing.T) {
 		refs: []ref{{pkg: "sqlstore", symbol: "BetaStore", file: "doc.md", line: 3}},
 	}}
 
-	_, _, _, ambiguities, unknownAmbiguities := verifyBlocks(blocks, nil, res, false)
+	_, _, _, ambiguities, unknownAmbiguities := verifyBlocks(blocks, nil, res, false) //nolint:dogsled // fixture asserts the last two returns only
 
 	if len(ambiguities) != 1 || len(unknownAmbiguities) != 1 {
 		t.Fatalf("ambiguities = %d, unknownAmbiguities = %d; want 1/1 for a non-mirror pair "+

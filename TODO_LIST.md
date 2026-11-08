@@ -219,6 +219,24 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 - [x] **Brutal-episode7 follow-up B2 — fix the broken AGENTS.md:367 cross-ref** — DONE 2026-11-08 17:26: the citation said `recipes.md` §2.11 (bare filename, unresolvable from repo root); §2.11 IS the live-latency recipe — repointed at the full path `.agents/skills/go-cqrs-lite/references/recipes.md`. Receipt: canonical scan `cd cmd/doc-check && GOWORK=off go run . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md` → `✓ All 1389 references valid across 57 package(s)` (was: 1 broken anchor, exit 1). NOTE: doc-check on AGENTS.md ALONE still exits 1 BY DESIGN — the zero-Go-samples guard ("no fenced go blocks → NOT verified"), not a broken ref. Source: `docs/status/2026-11-08_16-00_brutal-episode7-oteli-injection-gate-repairs-status.md`.
 - [ ] **Brutal-episode7 follow-up B3 — StreamRef dual-definition ADR (v5 window)** — record.StreamRef (`Type/EntityID`, empty type legal) vs id.StreamRef (struct, `:`-joined, empty type illegal) formally disagree once record.NewStreamRef gains validation; resolve wire shape + validity rules before the v5 cut. Source: the episode-7 report.
 
+## irohengine testing ladder & dnsblockd fit (harvested 2026-11-08 from `docs/status/2026-11-08_16-35_irohengine-testing-ladder-dnsblockd-fit-session.md`)
+
+> Read-only session: verified the 3-tier testing answer (in-process / loopback / quic),
+> recorded dnsblockd's Candidate-3 rejection (its own gossip-transport deep-dive), wrote the
+> report + status-index row. 50 §f asks harvested into the grouped rows below; full detail
+> lives in the report. Fleet fact for the M10 ghost census: ZERO irohengine consumers, all
+> three modules TAGGED (root v4.3.2, loopback v4.0.5, quic v4.2.3), no `DeploymentConfig`
+> boot path, `census-fleet.sh --zero-consumers` never run.
+
+- [ ] [BLOCKED:owner Q1] **irohengine fate ruling — keep / commission boot path / park** per the ADR-0152 playbook; gates ~20 §f items (patch trains only-on-real-fix, ADR-0142 refused-list row if parked, capability-gap census extension). Feeds the M10 ghost-engine census. The census leg itself is un-gated: run `bash scripts/census-fleet.sh --zero-consumers` + dated receipt. _(Effort: S census now; ruling XS)_
+- [ ] [BLOCKED:owner Q3] **Verification slice: pay now or accept plain-green** — `-race` over the 3 iroh modules + receipts; verify CI actually executes the quic CGo leg (local pass ≠ CI, static-lib provenance); worst-of-30 P99 rerun under quiet window. _(Effort: S-M)_
+- [ ] [BLOCKED:owner Q2] **dnsblockd triggers vs rejection-final** — persist the Candidate-3 re-confirmation in THAT repo, check revisit-trigger status (8 nodes / WAN / dynamic membership); if a trigger fires, spike the LOOPBACK tier, not quic. Foreign repo, coordinate. _(Effort: S)_
+- [ ] **Cheap verification tails on the trio** (executable, no gate): re-run `check-cycles`/`check-arch`; `check-untested-exports` on the trio; `-short` skip route for `quic/pool_stress_test.go` in `check-test-skips`; `test-runtime-baseline.txt` rows vs 0.27/2.09/1.65s; 3 `//art-dupl:accept` directives still suppress; `check-engine-capabilities` regen for the iroh row. _(Effort: S total, sliceable)_
+- [ ] **iroh testing-pyramid recipe + doc staleness** — `recipes.md` pyramid recipe + TestRecipes catalog entry; correct the stale "iroh×3 UNTAGGED" notes (all tagged); `modules.md`/`advanced.md` pyramid pointers; ADR-0096 pinned-fork addendum; `transport.go:141` production sleep → gotchas row. _(Effort: S-M)_
+- [ ] **iroh depth pins** — journal-survives-reset pin (ADR-0136/0143) in `reset_test.go`; partition/heal coverage vs dnsblockd's 50%-drop chaos class; loopback latency-test gap (rationale or add); log-shape pin for expected quic WARNs; run + record the quic/loopback benches. _(Effort: M, sliceable)_
+- [ ] **systemscenario-over-iroh feasibility (design row)** — a programmatic (non-RegisterDriver) engine in `DeploymentConfig`? Verify or document the seam; T11.3 "iroh-via-local" (2026-10-25 plan) implement-or-close with a dated ruling. _(Effort: M design)_
+- [ ] **Process lessons (cross-repo)** — the `rg -r` trap → crush-config `references/lessons.md` (3rd strike, foreign repo commit); evidence-class labeling + "claims I made" checklist habits rowed into the next brutal-review template. _(Effort: XS)_
+
 ## Standard deployment topology & NixOS (ADR-0165, opened 2026-11-08)
 
 - [x] **ADR-0165** — data-filler preset + config-format ladder (Go > Nix attrsets > CUE > YAML wire; NO runtime CUE dep) + first-party `nixosModules.cqrs` with auto-provisioning. Owner decisions 2026-11-08: module in THIS repo, DB auto-provision YES.
