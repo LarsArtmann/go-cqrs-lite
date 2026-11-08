@@ -67,10 +67,9 @@ func TestProperty_Standard_Idempotent(t *testing.T) {
 // deterministic across boots.
 func TestProperty_Standard_PermutationInvariant(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
-		names := rapid.SliceOfDistinct(cfgNameGen, func(s string) string { return s }).Draw(rt, "names")
-		if len(names) < 2 {
-			rt.SkipNow()
-		}
+		names := rapid.SliceOfNDistinct(
+			cfgNameGen, 2, 5, func(s string) string { return s },
+		).Draw(rt, "names")
 
 		canon := system.Standard(configFor(names))
 		canonJSON := mustMarshal(rt, canon)
