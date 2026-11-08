@@ -5,7 +5,7 @@ go 1.27.2
 require (
 	github.com/larsartmann/cmdguard/v4 v4.2.0
 	github.com/larsartmann/go-finding v1.15.1
-	github.com/larsartmann/go-finding/pipeline v1.15.0
+	github.com/larsartmann/go-finding/pipeline v1.15.1
 	github.com/larsartmann/go-finding/toolsdk v1.16.0
 	github.com/larsartmann/go-output v0.38.7
 	github.com/larsartmann/go-output/delimited v0.38.7
@@ -76,7 +76,6 @@ require (
 	go.yaml.in/yaml/v3 v3.0.6 // indirect
 	golang.org/x/exp v0.0.0-20261014143641-f0251eb4aa3e // indirect
 	golang.org/x/mod v0.42.0 // indirect
-	golang.org/x/net v0.62.0 // indirect
 	golang.org/x/sync v0.24.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
 	golang.org/x/term v0.47.0 // indirect
