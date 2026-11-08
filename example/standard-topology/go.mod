@@ -8,9 +8,9 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.2
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.5
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.7.1
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.22.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.23.0
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1
-	github.com/larsartmann/go-cqrs-lite/system/v4 v4.17.0
+	github.com/larsartmann/go-cqrs-lite/system/v4 v4.18.0
 )
 
 require (
@@ -86,8 +86,3 @@ require (
 	modernc.org/memory v1.12.1 // indirect
 	modernc.org/sqlite v1.61.1 // indirect
 )
-
-// system.Standard is unreleased past system/v4.17.0; this relative replace
-// rides until the system tag wave lands (baselined in
-// scripts/check-example-standalone.sh — drop it when the tag publishes).
-replace github.com/larsartmann/go-cqrs-lite/system/v4 => ../../system

@@ -46,10 +46,10 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/go-env.sh"
 #     the tag that publishes MarkDemo lands (hub clone resolves it as before).
 #   mesh-demo — REMOVED 2026-11-03: catalog/v4.12.0 published (MarkDemo +
 #     compat); the pre-release replace died with that tag.
-#   standard-topology — ADDED 2026-11-08: system.Standard (ADR-0165) is
-#     unreleased past system/v4.17.0; one relative replace rides until the
-#     system tag wave lands (drop it when the tag publishes).
-ALLOWED_REPLACES='taskmanager standard-topology'
+#   standard-topology — ADDED 2026-11-08, REMOVED same day: system/v4.18.0
+#     published (ADR-0165 Standard shipped in the journal-trim wave's tag);
+#     the pre-release replace died with that tag.
+ALLOWED_REPLACES='taskmanager'
 
 DO_BUILD=0
 if [ "${1:-}" = "--build" ]; then

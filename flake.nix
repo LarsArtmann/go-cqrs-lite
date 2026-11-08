@@ -1321,7 +1321,7 @@
                   ${pkgs.bash}/bin/bash "$PWD/scripts/check-changelog-coverage.sh" --self-test
                   ${pkgs.bash}/bin/bash "$PWD/scripts/probe-proxy-tags.sh" --self-test
                   ${pkgs.bash}/bin/bash "$PWD/scripts/check-nix-hashes.sh" --self-test
-                  CALIB_GATE_LOADAVG_FILE="$(mktemp)" CI=false ${pkgs.bash}/bin/bash -c 'printf "40.0 55.0 1.0 1/1 1\n" > "$CALIB_GATE_LOADAVG_FILE"; if bash "$PWD/scripts/verify-load-guard.sh" >/dev/null 2>&1; then echo "verify-load-guard self-test: loud load must refuse" >&2; exit 1; fi'
+                  CALIB_GATE_LOADAVG_FILE="$(mktemp)" CI=false ${pkgs.bash}/bin/bash -c 'printf "40.0 55.0 1.0 1/1 1\n" > "$CALIB_GATE_LOADAVG_FILE"; bash "$PWD/scripts/verify-load-guard.sh" >/dev/null 2>&1; rc=$?; if [ "$rc" -ne 12 ]; then echo "verify-load-guard self-test: loud load must refuse with rc=12, got $rc" >&2; exit 1; fi'
                 '';
 
             # check-tag-audit: fail on NEW path-vs-tag violations (proxy-
@@ -2131,7 +2131,7 @@
                   # In-verify load threshold (M05): refuse the launch under
                   # load instead of burning the attempt 30+ min deep. Retry
                   # recipe and VERIFY_FORCE=1 escape hatch printed on refusal.
-                  ${pkgs.bash}/bin/bash "$PWD/scripts/verify-load-guard.sh" || exit 1
+                  ${pkgs.bash}/bin/bash "$PWD/scripts/verify-load-guard.sh" || exit $?
                   # Loud toolchain gate (W3 Q4 ruling): go.work contract vs
                   # the selected toolchain; fails loud on the GOTOOLCHAIN trap.
                   ${pkgs.bash}/bin/bash "$PWD/scripts/check-go-version.sh" || exit 1

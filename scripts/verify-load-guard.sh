@@ -12,7 +12,12 @@
 #
 # Fixture hook (self-test only): CALIB_GATE_LOADAVG_FILE (calibration-gate pattern).
 #
-# Exit codes: 0 = quiet enough (or forced, or CI), 1 = loud — do not launch.
+# Exit codes: 0 = quiet enough (or forced, or CI), 12 = loud — the
+# load-guard-refusal class verify-chain.sh retries (2026-11-08 defect fix:
+# this guard used to exit 1, which the chain treats as a REAL gate failure,
+# so a single evening load spike killed the whole chain at 18:31 instead of
+# storm-riding it; 12 is now the contract on both ends and the flake #verify
+# head passes it through unmodified).
 set -uo pipefail
 
 CEILING="${VERIFY_MAX_LOAD:-10}"
@@ -38,4 +43,4 @@ echo "verify-load-guard: REFUSED — host load ≥ ${CEILING}. Do not burn the a
 echo "  retry recipe : nix run .#can-run-composed-gate -- --wait-loop && nix run .#verify"
 echo "  preflight    : bash scripts/preflight-composed.sh   (fix cheap reds first)"
 echo "  override     : VERIFY_FORCE=1 nix run .#verify"
-exit 1
+exit 12

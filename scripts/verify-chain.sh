@@ -183,6 +183,18 @@ self_test() {
 	[ ! -f "$tmp/cov5" ]
 	check "coverage never ran when gate red" $?
 
+	# T6 (2026-11-08 incident): the load guard refuses the VERIFY step
+	# itself (rc=12 through the flake passthrough) -> retried, not killed.
+	# The incident chain saw rc=1 there (guard exited 1, flake `|| exit 1`)
+	# and died mid-storm; the rc=12 contract on both ends is what
+	# storm-riding depends on.
+	counter_stub "$tmp/ver6" 1 12
+	VERIFY_CHAIN_GATE_CMD="$tmp/pass" VERIFY_CHAIN_COVERAGE_CMD="$tmp/pass" \
+		VERIFY_CHAIN_VERIFY_CMD="$tmp/ver6.stub" VERIFY_CHAIN_RETRY_SLEEP=0 \
+		bash "$SCRIPT_DIR/verify-chain.sh" >/dev/null 2>&1
+	check "verify-step guard refusal retried to green" $?
+	check_eq "verify step attempted twice (refusal + green)" "$(cat "$tmp/ver6")" "2"
+
 	if [ "$rc" -eq 0 ]; then
 		echo "  ✓ verify-chain self-test passed"
 	else
