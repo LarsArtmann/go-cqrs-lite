@@ -188,7 +188,8 @@ func TestRoundTrip_CueDeploymentExplicitJSON(t *testing.T) {
 
 	cfg := loadConfigFile(t, "deployment-explicit.golden.json")
 
-	if len(cfg.Engines) != 1 || cfg.Engines["primary"].Driver != "sqlite" || cfg.Engines["primary"].DSN != "file:app.db" {
+	if len(cfg.Engines) != 1 || cfg.Engines["primary"].Driver != "sqlite" ||
+		cfg.Engines["primary"].DSN != "file:app.db" {
 		t.Fatalf("unexpected engines: %+v", cfg.Engines)
 	}
 

@@ -112,7 +112,9 @@ func TestSQLiteEnforceCapDoesNotDeadlockAgainstFolds(t *testing.T) {
 	select {
 	case <-finished:
 	case <-time.After(60 * time.Second):
-		t.Fatal("EnforceCap racing fold dispatches did not complete within 60s — fold-lock/connection lock-order regression")
+		t.Fatal(
+			"EnforceCap racing fold dispatches did not complete within 60s — fold-lock/connection lock-order regression",
+		)
 	}
 
 	close(errs)

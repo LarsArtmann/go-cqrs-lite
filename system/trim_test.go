@@ -83,10 +83,10 @@ func TestSystem_TrimStream_ErasesStreamAndSnapshot(t *testing.T) {
 
 	if sys.SnapshotStore() != nil {
 		if err := sys.SnapshotStore().Save(ctx, snapshot.Snapshot{
-			StreamID: streamA,
+			StreamID:   streamA,
 			StreamType: "TrimProbe",
-			Version:   2,
-			State:     []byte(`{"state":"a"}`),
+			Version:    2,
+			State:      []byte(`{"state":"a"}`),
 		}); err != nil {
 			t.Fatalf("snapshot save A: %v", err)
 		}
@@ -229,10 +229,10 @@ func TestSystem_TrimJournalBefore_SweepsOldRowsAndCoTrimsSnapshots(t *testing.T)
 
 	if sys.SnapshotStore() != nil {
 		if err := sys.SnapshotStore().Save(ctx, snapshot.Snapshot{
-			StreamID:  ref.ID,
+			StreamID:   ref.ID,
 			StreamType: "TrimProbe",
-			Version:   2,
-			State:     []byte(`{"state":"s"}`),
+			Version:    2,
+			State:      []byte(`{"state":"s"}`),
 		}); err != nil {
 			t.Fatalf("snapshot save: %v", err)
 		}

@@ -56,7 +56,11 @@ func (e *sqliteEngine) TrimStream(ctx context.Context, col, snapshotCol, sid str
 // Implements metaengine.JournalSweeper. Rows without a typed occurred_at
 // (legacy, NULL) are conservatively kept. occurred_at carries no index: the
 // sweep is a maintenance scan, sized by journal width, not a hot path.
-func (e *sqliteEngine) TrimJournalBefore(ctx context.Context, col, snapshotCol string, cutoff time.Time) (int64, error) {
+func (e *sqliteEngine) TrimJournalBefore(
+	ctx context.Context,
+	col, snapshotCol string,
+	cutoff time.Time,
+) (int64, error) {
 	var removed int64
 
 	err := e.RunInTx(ctx, func(ctx context.Context) error {
