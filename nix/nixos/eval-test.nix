@@ -17,6 +17,9 @@
 {
   pkgs,
   module,
+  # Optional: the flake.nixosModules.default import — when non-null its
+  # render must be byte-identical to `module`'s (F39 alias pin).
+  defaultModule ? null,
   # Shared instance-triple fixture (system/testdata/standard-instance-triple.json):
   # the SAME file the Go suite (system.Standard) and the CUE gate assert
   # against — the three preset twins cannot drift apart (ADR-0165 pin).
@@ -106,7 +109,78 @@ let
 
   rendered = (evalFor "x86_64-linux").environment.etc."cqrs/demo/deployment.json".text;
 
-  ok = all (c: c == null) assertions;
+  # F35: standardTopology = false with no explicit instances renders an EMPTY
+  # instance list — the filler is opt-out per deployment.
+  evalOptOut =
+    (import (pkgs.path + "/nixos/lib/eval-config.nix") {
+      system = null;
+      modules = [
+        { nixpkgs.hostPlatform = "x86_64-linux"; }
+        { system.stateVersion = "26.11"; }
+        module
+        {
+          cqrs.deployments.off = {
+            standardTopology = false;
+            engines.primary.driver = "postgres";
+          };
+        }
+      ];
+    }).config;
+
+  # F36: an explicit dsn wins and provisions NOTHING (postgres stays off).
+  evalExplicitDSN =
+    (import (pkgs.path + "/nixos/lib/eval-config.nix") {
+      system = null;
+      modules = [
+        { nixpkgs.hostPlatform = "x86_64-linux"; }
+        { system.stateVersion = "26.11"; }
+        module
+        {
+          cqrs.deployments.demo.engines.primary = {
+            driver = "postgres";
+            dsn = "postgres://external.example.com/app";
+          };
+        }
+      ];
+    }).config;
+
+  # F39: the flake.nixosModules.default alias renders byte-identically to
+  # nixosModules.cqrs (the alias site lives in flake.nix; the module passed
+  # here is the default-alias import).
+  evalDefaultAlias =
+    if defaultModule == null then
+      null
+    else
+      (import (pkgs.path + "/nixos/lib/eval-config.nix") {
+        system = null;
+        modules = [
+          { nixpkgs.hostPlatform = "x86_64-linux"; }
+          { system.stateVersion = "26.11"; }
+          defaultModule
+          {
+            cqrs.deployments.demo.engines = {
+              primary.driver = "postgres";
+              proj.driver = "sqlite";
+            };
+          }
+        ];
+      }).config.environment.etc."cqrs/demo/deployment.json".text;
+
+  extraAssertions = [
+    ((builtins.fromJSON evalOptOut.environment.etc."cqrs/off/deployment.json".text).instances == [ ]
+      || throw "cqrs-nixos-eval[standardTopology=false]: instances must be empty")
+    (evalOptOut.services.postgresql.enable
+      || throw "cqrs-nixos-eval[standardTopology=false]: engine provisioning must stay on (it is independent of the instance filler)")
+    (!evalExplicitDSN.services.postgresql.enable
+      || throw "cqrs-nixos-eval[explicit-dsn]: postgres must stay off when dsn is explicit")
+    ((builtins.fromJSON evalExplicitDSN.environment.etc."cqrs/demo/deployment.json".text).engines.primary.dsn
+      == "postgres://external.example.com/app"
+      || throw "cqrs-nixos-eval[explicit-dsn]: explicit dsn lost")
+    (evalDefaultAlias == null || evalDefaultAlias == rendered
+      || throw "cqrs-nixos-eval[default-alias]: renders differently from nixosModules.cqrs")
+  ];
+
+  ok = all (c: c == null) assertions && all (v: v == true) extraAssertions;
 
   script =
     if ok then

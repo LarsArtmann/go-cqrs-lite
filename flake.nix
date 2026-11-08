@@ -866,6 +866,7 @@
                 (import ./nix/nixos/eval-test.nix {
                   inherit pkgs;
                   module = import ./nix/nixos/cqrs.nix;
+                  defaultModule = import ./nix/nixos/cqrs.nix;
                   tripleFixture = ./system/testdata/standard-instance-triple.json;
                 }).script;
             # goimports shells out to `go`; the wrapped formatter would try to

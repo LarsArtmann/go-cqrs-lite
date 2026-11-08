@@ -35,6 +35,8 @@ config_cue="$config_root/system/config.cue"
 fixture="$config_root/system/testdata/standard-fixture.cue"
 golden="$config_root/system/testdata/standard-topology.golden.yaml"
 triple="$config_root/system/testdata/standard-instance-triple.json"
+dep_fixture="$config_root/system/testdata/deployment-fixture.cue"
+dep_golden="$config_root/system/testdata/deployment-explicit.golden.yaml"
 go_sources=("$config_root/system/config_types.go" "$config_root/system/engine_config.go")
 
 fail() {
@@ -79,6 +81,14 @@ run_checks() {
 	diff -u <(jq -S . "$triple") <(jq -S . <<<"$instances_json") >/dev/null \
 		|| fail "instance-triple drift: standard.instances differs from $triple (shared with the Go suite and the NixOS eval test — ADR-0165 pin)"
 
+	# The schema-only `deployment` entry passes explicit instances through
+	# VERBATIM — the standard filler is never implicit there.
+	"$cue_bin" eval -e deployment --out yaml "$config_cue" "$dep_fixture" >"$tmp_eval" 2>/dev/null \
+		|| fail "cue eval -e deployment failed"
+
+	diff -u "$dep_golden" "$tmp_eval" >/dev/null \
+		|| fail "deployment golden drift: explicit instances must pass through unfilled (differs from $dep_golden)"
+
 	local go_tags cue_fields
 	go_tags="$(extract_go_tags)"
 	cue_fields="$(extract_cue_fields)"
@@ -103,6 +113,8 @@ self_test() {
 	cp "$fixture" "$fixture_dir/system/testdata/"
 	cp "$golden" "$fixture_dir/system/testdata/"
 	cp "$triple" "$fixture_dir/system/testdata/"
+	cp "$dep_fixture" "$fixture_dir/system/testdata/"
+	cp "$dep_golden" "$fixture_dir/system/testdata/"
 	cp "${go_sources[@]}" "$fixture_dir/system/"
 
 	local fails=0
@@ -134,9 +146,11 @@ self_test() {
 		"sed -i 's/role: source-of-truth/role: events/' '$fixture_dir/system/testdata/standard-topology.golden.yaml'"
 	expect_fail "triple-corrupted" \
 		"sed -i 's/\"events\",/\"bogus\",/' '$fixture_dir/system/testdata/standard-instance-triple.json'"
+	expect_fail "deployment-golden-corrupted" \
+		"sed -i 's/durability: strict/durability: relaxed/' '$fixture_dir/system/testdata/deployment-explicit.golden.yaml'"
 
 	[ "$fails" -eq 0 ] || exit 1
-	echo "self-test: OK (5 fault injections caught)"
+	echo "self-test: OK (6 fault injections caught)"
 }
 
 tmp_eval="$(mktemp /tmp/cue-config-eval.XXXXXX.yaml)" || exit 1

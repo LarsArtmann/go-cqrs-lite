@@ -485,4 +485,13 @@ in
       identMap = concatMapStrings (p: "cqrs_peer ${p.osUser} ${p.dbUser}\n") postgresProvisions;
     };
   };
+
+  meta = {
+    maintainers = [
+      {
+        name = "Lars Artmann";
+        github = "LarsArtmann";
+      }
+    ];
+  };
 }

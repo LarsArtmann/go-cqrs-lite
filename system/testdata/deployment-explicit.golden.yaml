@@ -1,0 +1,11 @@
+engines:
+  primary:
+    driver: sqlite
+    dsn: file:app.db
+instances:
+  - role: source-of-truth
+    engine: primary
+    durability: strict
+  - role: projections
+    engines:
+      - primary
