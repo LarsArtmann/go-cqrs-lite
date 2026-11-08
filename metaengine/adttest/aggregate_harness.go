@@ -210,16 +210,30 @@ func RunAggregateMatrix(t *testing.T, factories []Factory) {
 	// unconstrained value is a SQL-injection vector. Every SQL engine must
 	// reject it with a classified error (metaengine.invalid_aggregate_fn,
 	// errors.Is metaengine.ErrInvalidAggregateFn) instead of executing.
+	// Engines that do not implement the interfaces are noted, not fatal —
+	// but at least ONE implementing engine is required, otherwise the pin
+	// would silently verify nothing.
 	t.Run("HostileFnRejected", func(t *testing.T) {
 		t.Parallel()
 
 		hostile := metaengine.AggregateFn("COUNT(*) FROM meta_map; DROP TABLE meta_map; --")
 
+		if !metaengine.IsValidAggregateFn(metaengine.AggregateCount) ||
+			!metaengine.IsValidAggregateFn(metaengine.AggregateAvg) ||
+			metaengine.IsValidAggregateFn(hostile) {
+			t.Fatal("IsValidAggregateFn whitelist is broken (constant rejected or hostile value accepted)")
+		}
+
+		checked := 0
+
 		for _, fx := range engines {
-			ar, ok := fx.eng.(metaengine.AggregateReader)
-			if !ok {
-				t.Skipf("%s does not implement AggregateReader", fx.name)
+			ar, arOK := fx.eng.(metaengine.AggregateReader)
+			if !arOK {
+				t.Logf("%s does not implement AggregateReader; hostile-fn pin skipped for it", fx.name)
+
+				continue
 			}
+			checked++
 
 			got, err := ar.Aggregate(ctx, "items", hostile, "price", nil)
 			if err == nil {
@@ -243,6 +257,10 @@ func RunAggregateMatrix(t *testing.T, factories []Factory) {
 					t.Errorf("%s.ExplainAggregateQuery emitted hostile fn without the rejection marker: %s", fx.name, sql)
 				}
 			}
+		}
+
+		if checked == 0 {
+			t.Skip("no engine in this factory list implements AggregateReader; hostile-fn pin verified nothing")
 		}
 	})
 }
