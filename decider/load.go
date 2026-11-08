@@ -23,7 +23,10 @@ func (r *Repository[State]) loadFromStore(
 				return r.store.Load(ctx, ref)
 			}
 
-			key := ref.Type.String() + "/" + ref.ID.String()
+			// Keying follows the id package contract: persist/map keys use
+			// Get() (the bare branded value), never the "Marker:value"
+			// display form of String().
+			key := ref.Type.String() + "/" + ref.ID.Get()
 
 			// The shared load runs detached from any single caller's
 			// cancellation: without this, the leader's cancelled context

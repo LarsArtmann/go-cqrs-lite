@@ -31,11 +31,12 @@ const vectorEntryQuery = `query entry($col: string, $id: string) {
 }`
 
 // formatVectorValues renders values as the quoted JSON string Dgraph's
-// float32vector predicates accept ("[1.0, 2.0]").
+// float32vector predicates accept ("[1.0, 2.0]"). The wrap carries the
+// engine label so the caller wraps once without nesting an unlabeled error.
 func formatVectorValues(values []float32) (string, error) {
 	data, err := json.Marshal(values)
 	if err != nil {
-		return "", fmt.Errorf("marshal values: %w", err)
+		return "", fmt.Errorf("dgraphengine.formatVectorValues: %w", err)
 	}
 
 	return string(data), nil
@@ -68,7 +69,7 @@ func (e *dgraphEngine) VectorInsert(
 
 	valuesStr, err := formatVectorValues(emb.Values)
 	if err != nil {
-		return fmt.Errorf("dgraphengine.VectorInsert: %w", err)
+		return err // already label-wrapped by the helper
 	}
 
 	create := map[string]any{
