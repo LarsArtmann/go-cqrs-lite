@@ -3399,6 +3399,7 @@ metaengine/interface FactSink
 metaengine/interface Fold
 metaengine/interface GroupedAggregateReader
 metaengine/interface HealthChecker
+metaengine/interface JournalSweeper
 metaengine/interface KeyScanBackend
 metaengine/interface LayoutPlanApplier
 metaengine/interface LayoutPlanEvolver
@@ -3430,6 +3431,7 @@ metaengine/interface SpatialBackend
 metaengine/interface StatSink
 metaengine/interface StreamLogBackend
 metaengine/interface StreamTemporalReader
+metaengine/interface StreamTrimmer
 metaengine/interface StreamingScan
 metaengine/interface TraceSink
 metaengine/interface Tracer
@@ -3848,6 +3850,7 @@ metaengine/method String
 metaengine/method Sum
 metaengine/method SupportsADT
 metaengine/method SwapEngine
+metaengine/method TrimStream
 metaengine/method Unwrap
 metaengine/method Valid
 metaengine/method Validate
@@ -4121,6 +4124,8 @@ metaengine/sqliteengine/method StreamReadFromVersion
 metaengine/sqliteengine/method StreamScan
 metaengine/sqliteengine/method StreamVersion
 metaengine/sqliteengine/method TrimGroupedCap
+metaengine/sqliteengine/method TrimJournalBefore
+metaengine/sqliteengine/method TrimStream
 metaengine/sqliteengine/method VectorCollections
 metaengine/sqliteengine/method VectorCount
 metaengine/sqliteengine/method VectorInsert
@@ -6187,6 +6192,8 @@ system/method StreamID
 system/method StreamType
 system/method TimerEngine
 system/method ToAny
+system/method TrimJournalBefore
+system/method TrimStream
 system/method TypeDecoder
 system/method Unmarshal
 system/method UseCommandMiddleware
@@ -6265,6 +6272,7 @@ system/var ErrRacySaveRefused
 system/var ErrSeekableJournalMissing
 system/var ErrShutdownDependencyInvalid
 system/var ErrSystemStopped
+system/var ErrTrimUnavailable
 system/var ErrUnknownBusDriver
 system/var ErrUnknownEngine
 system/var ErrUnknownInstanceRole
