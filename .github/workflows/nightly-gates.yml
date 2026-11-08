@@ -132,6 +132,11 @@ jobs:
           bash scripts/check-versions-manifest.sh --self-test
           bash scripts/check-versions-manifest.sh --check --remote
 
+      # ADR-0165 NixOS module end-to-end (Q2 decision: nightly, not push —
+      # the QEMU boot costs ~4min and the eval-level pin already rides ci.yml).
+      - name: cqrs NixOS module VM test
+        run: nix build .#checks.x86_64-linux.cqrs-vm -L
+
       # Report-only per the 2026-09-18 trigger-policy decision: push-blocking
       # stays on the per-push CI leg; the nightly only surfaces drift.
       - name: Pin sweep (report-only)

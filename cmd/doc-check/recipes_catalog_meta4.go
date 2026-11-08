@@ -42,4 +42,14 @@ var recipeCatalogB4 = map[string]recipeSpec{
 		errFunc:  true,
 		trailers: "_ = removed\n_ = err",
 	},
+	"### 2.51 The Deployment Ladder — same preset from Go, CUE, or NixOS (`system.Standard`, ADR-0165) #1": {
+		imports: []string{
+			`"context"`,
+			`"fmt"`,
+			`"github.com/larsartmann/go-cqrs-lite/system/v4"`,
+		},
+		preamble: "var ctx = context.Background()\n" +
+			"var domain system.DomainConfig\n",
+		trailers: "_ = sys\n_ = err",
+	},
 }

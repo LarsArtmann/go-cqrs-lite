@@ -816,3 +816,34 @@ for alongside the schema declarations. The depth-spec suite's upcaster test
 type with ops, one consumed type via `Events`. See also recipes.md §2.43
 (upcasting + the coeffect gate note).
 
+
+## How do I move the query audit log to its own engine?
+
+Declare the `queries` instance explicitly — that is the entire change. The
+standard topology (ADR-0165) keeps the query audit log on the WAL engine as a
+NAMED concern precisely so this move is one line: `system.Standard` only
+fills instances when you declare NONE, so adding an explicit instance list
+replaces the preset wholesale. Point the `queries` role at a different engine
+name and keep everything else identical:
+
+```yaml
+engines:
+  primary:
+    driver: postgres
+    dsn: "postgres:///app?host=/run/postgresql&user=app"
+  audit:
+    driver: sqlite
+    dsn: "file:/var/lib/app/audit.db"
+instances:
+  - role: source-of-truth
+    engine: primary
+  - role: queries
+    engine: audit
+  - role: projections
+    engines: [primary, audit]
+```
+
+`system.Standard` is a no-op passthrough over that config (it only fills an
+EMPTY instance list), so the same Go code boots both topologies. The
+NixOS twin honors the same escape hatch: `cqrs.deployments.<name>.instances`
+set explicitly suppresses the `standardTopology` filler.

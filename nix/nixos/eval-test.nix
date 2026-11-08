@@ -55,7 +55,7 @@ let
       };
       proj = {
         driver = "sqlite";
-        dsn = "/var/lib/cqrs/demo/proj.db";
+        dsn = "file:/var/lib/cqrs/demo/proj.db";
       };
     };
     instances = builtins.fromJSON (builtins.readFile tripleFixture);

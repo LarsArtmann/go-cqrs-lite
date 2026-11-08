@@ -3760,3 +3760,55 @@ Go scan with identical observable behavior. The replay caveat of §Bounded
 collections carries over: reset + replay restores full rows, so re-run
 `EnforceCaps` after a rebuild.
 
+
+### 2.51 The Deployment Ladder — same preset from Go, CUE, or NixOS (`system.Standard`, ADR-0165)
+
+Declare engines ONLY; `Standard` fills the canonical three-instance topology:
+source-of-truth + queries (the query audit log — a named concern that can
+later move to its own engine by changing one name) on the WAL engine
+(`"primary"` when declared, else the alphabetically first), projections
+pooled over EVERY declared engine.
+
+```go
+// Engines only: the operator's entire storage declaration. Standard fills
+// the instance triple; a config that already declares Instances passes
+// through unchanged, and one with no Engines falls back to in-memory with
+// the sot.implicit_memory advisory.
+deploy := system.Standard(system.DeploymentConfig{
+	Engines: map[string]system.EngineConfig{
+		"primary": {Driver: "sqlite", DSN: "file:notes.db"},
+	},
+})
+
+fmt.Println(len(deploy.Instances)) // 3: source-of-truth, queries, projections
+
+sys, err := system.New(ctx, domain, deploy)
+```
+
+The same preset exists in two operator-facing twins:
+
+**CUE** (`system/config.cue`, no runtime CUE dependency — render with
+`cue eval -e standard --out json system/config.cue your-deployment.cue`):
+
+```cue
+package cqrs
+
+standard: engines: primary: {driver: "sqlite", dsn: "file:notes.db"}
+```
+
+**NixOS** (`nixosModules.cqrs` from the repo flake — renders
+`/etc/cqrs/demo/deployment.json`, auto-provisions postgres (peer-auth over
+`/run/postgresql` via a pg_ident map — no passwords anywhere) and sqlite
+files under `/var/lib/cqrs/<name>/`, and exports
+`cqrs.lib.hardenedService "<name>"` as the systemd fragment):
+
+```nix
+cqrs.deployments.demo.engines.primary.driver = "postgres";
+```
+
+Every rung loads back through `system.LoadConfig` (the NixOS module exports
+`CQRS_DEPLOYMENT_CONFIG` pointing at its rendered JSON), and all three twins
+are pinned to one shared instance-triple fixture
+(`system/testdata/standard-instance-triple.json`) asserted by the Go suite,
+the `#check-cue-config` gate, and the `cqrs-nixos-eval` flake check — they
+cannot drift apart. Runnable whole app: `example/standard-topology`.

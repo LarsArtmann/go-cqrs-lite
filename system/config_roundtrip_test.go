@@ -68,7 +68,7 @@ func TestRoundTrip_NixOSRenderedJSON(t *testing.T) {
 		t.Fatalf("expected peer-socket DSN %q, got %q", wantDSN, cfg.Engines["primary"].DSN)
 	}
 
-	if cfg.Engines["proj"].Driver != "sqlite" || cfg.Engines["proj"].DSN != "/var/lib/cqrs/demo/proj.db" {
+	if cfg.Engines["proj"].Driver != "sqlite" || cfg.Engines["proj"].DSN != "file:/var/lib/cqrs/demo/proj.db" {
 		t.Fatalf("unexpected proj engine: %+v", cfg.Engines["proj"])
 	}
 

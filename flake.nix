@@ -490,7 +490,7 @@
               assert '"role":"source-of-truth"' in cfg, cfg
               assert '"role":"queries"' in cfg, cfg
               assert '"role":"projections"' in cfg, cfg
-              assert "/var/lib/cqrs/demo/proj.db" in cfg, cfg
+              assert "file:/var/lib/cqrs/demo/proj.db" in cfg, cfg
 
               # 2. THE contract: the service user connects via peer auth
               #    (pg_ident map cqrs_peer: cqrs-demo -> cqrs_demo_primary).

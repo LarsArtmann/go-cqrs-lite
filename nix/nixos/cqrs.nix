@@ -169,7 +169,7 @@ let
     else if eng.driver == "postgres" then
       "postgres:///cqrs_${sanitizeIdent "${name}_${engineName}"}?host=/run/postgresql&user=cqrs_${sanitizeIdent "${name}_${engineName}"}"
     else if eng.driver == "sqlite" then
-      "/var/lib/cqrs/${name}/${engineName}.db"
+      "file:/var/lib/cqrs/${name}/${engineName}.db"
     else
       null;
 
