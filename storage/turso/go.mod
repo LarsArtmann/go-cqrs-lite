@@ -78,3 +78,6 @@ require (
 )
 
 replace github.com/larsartmann/go-cqrs-lite/record/v4 => ../../record
+
+// Sibling replace for unpublished otel surface (AttrBool); stripped by scripts/tag-release.sh at cut time (otel+storage/turso co-release).
+replace github.com/larsartmann/go-cqrs-lite/otel/v4 => ../../otel

@@ -1,0 +1,24 @@
+engines:
+  primary:
+    driver: sqlite
+    dsn: file:app.db
+    pragmas:
+      - journal_mode=wal
+instances:
+  - role: source-of-truth
+    collections:
+      - events
+      - commands
+      - queries
+      - snapshots
+      - checkpoints
+    engine: primary
+  - role: queries
+    collections:
+      - queries
+    engine: primary
+  - role: projections
+    collections:
+      - projections
+    engines:
+      - primary

@@ -4467,6 +4467,7 @@ otel/const StatusError
 otel/const StatusSuccess
 otel/func AddSpanEvent
 otel/func AggregateAttrs
+otel/func AttrBool
 otel/func AttrInt
 otel/func AttrInt64
 otel/func AttrString
@@ -6090,6 +6091,7 @@ system/func RegisterDecider
 system/func RegisterQuery
 system/func SchemaEvent
 system/func Schemas
+system/func Standard
 system/func Where
 system/func WithClock
 system/func WithCommandLifecycle
@@ -6144,6 +6146,7 @@ system/method LoadStream
 system/method LoadToTimestamp
 system/method LoadToVersion
 system/method ManageTimers
+system/method Marshal
 system/method MetaEngine
 system/method Names
 system/method Now
@@ -6182,6 +6185,7 @@ system/method StreamType
 system/method TimerEngine
 system/method ToAny
 system/method TypeDecoder
+system/method Unmarshal
 system/method UseCommandMiddleware
 system/method VerifyProjections
 system/method WorkerStatus
