@@ -170,7 +170,7 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 > Plan: [`docs/planning/2026-11-03_18-52_SUPERB-full-backlog-pareto-plan.md`](docs/planning/2026-11-03_18-52_SUPERB-full-backlog-pareto-plan.md) (T01–T27, full-backlog cut). Sibling cut: the 20-04 trust plan (M-tasks) re-sequences the same backlog; execution receipts land under T-numbering ([status 22-15](docs/status/2026-11-03_22-15_pareto-t01-trust-floor-execution.md), [status 22-24](docs/status/2026-11-03_22-24_cqrs-lint-f032-catalog-mandate-t009-test-framework-map.md)). DONE and deleted from this section: T01–T04 (trust floor, receipts in CHANGELOG `[Unreleased]` Fixed/Changed + the 22-15 report), T05 (determinism: 5 write sites + `adttest.AssertDeterministicMapEncoding` wired pebble/sqlite real + bbolt/badger skip, LSM suites green), T07 (canonical-facts green), **gosec CI leg (2026-11-04)**: 54 findings dispositioned — 52 `// #nosec GXXX -- reason` trailing annotations (identifier-interpolation G201/G202 where values are parameterized; bounded int↔Version G115s), turso warmup 0o755→0o750 real fix + G304 reason, two stale `//nolint:gosec` comments migrated (raw gosec ignores the golangci dialect); root cause of the never-green leg: nixpkgs gosec is 1.26-compiled and cannot read go1.27 export data (otter/failsafe SSA failures drove the exit code even at 0 findings) — fixed hermetically by `nix run .#check-gosec` (gosec rebuilt with `buildGo127Module`, `go_1_27` + `GOTOOLCHAIN=local`, `--self-test` plants a G402), **T009 tag (2026-11-04)**: `cmd/cqrs-lint/v4.20.0` pushed, proxy-verified, clean-dir `go install` probe green — carries T009 + V007 whole-module exemptions; versions.json + README manifest refreshed (112 trains); BuildFlow census residue rowed below. Claim rows before executing (22-15 §e.2 lesson).
 
 - [ ] **🔥 T01.5 close-out: confirm CI green on a post-fix master commit** — the 21:27/21:52 runs were mid-wave red (fmt drift, untidy sums, stale pins — all fixed and locally green 2026-11-04; shellcheck 15 findings fixed, package-surface re-pinned 47→48 for the c044 split, 103/103 tidy, pins swept; gosec leg fixed via `#check-gosec`, ci.yml now calls `nix run .#check-gosec`). Receipt = first FULL run on origin/master carrying the gosec fix (local work 02:44–03:57 CET was ahead of the daemon's last origin push at 02:20; Dependabot-branch runs don't count). QEMU MySQL leg is the long pole (~90 min).
-- [ ] **T10 stack/* deletion wave:** fleet census scoped to `stack/*` (4 direct consumers of stack/sqlite named), migration notes, then delete stack + 8 presets across the 6 registration gates. _(Effort: M)_
+- [ ] __T10 stack/_ deletion wave:_* fleet census scoped to `stack/*` (4 direct consumers of stack/sqlite named), migration notes, then delete stack + 8 presets across the 6 registration gates. _(Effort: M)_
 - [ ] **T11 v5 read-tier deletions:** Materialize, RelationalProjection, view store, GraphProjection; tombstone metadata API (ADR-0114 completion); ADR-0126 compat shells + `BuildWhereClause` + `NewStreamRef` validation. _(Effort: M)_
 - [ ] **T12/T13 metaengine shape:** extract `memoryengine` package behind same API; five-package carve ADR (`engine` SPI / planner / runtime / adt / support) — UNBLOCKED by the 2026-11-03 promotion ruling (below). _(Effort: L)_
 - [ ] **T14 V5-MIGRATION-GUIDE before/after sections** (rides T08's rewrite table). _(Effort: S/M)_
@@ -195,6 +195,7 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 - [ ] **F032/T009 rule quality (foreign 22-24 §f):** F032 anchor-candidate sorting (path, position) determinism; T009 TypesInfo qualifier resolution (F031 precedent); F032 systemcatalog-without-import call detection; F032/T009 suppression-integration rows. _(Effort: S)_
 
 **Owner rulings (2026-11-03, T03.2):**
+
 - [ ] **metaengine promotion scope = ALL 16 engine-family modules.** Promote every Experimental doc.go stamp to Stable via the T27 evidence-table wave (per-module census consumers, suite status, caveats → stamp flips → FEATURES/SKILL/matrix alignment → api-stability regen; 17 doc.go files incl. the family parent). This resolves the SKILL.md "planner surface stable" vs 16 Experimental stamps split brain in favor of the SKILL. Unblocks T13 (five-package carve ADR proceeds on a stable surface) and T12 scope.
 - [ ] **Authored commits ARE authorized at phase boundaries on commissioned plans.** Ends the daemon-absorbs-everything default for commissioned waves (4 consecutive fully-`chore:` waves incl. release-tag prep): hand-commit with real messages at each phase boundary; the daemon still absorbs intra-phase edits. Recorded in AGENTS.md Ground Rules.
 
@@ -202,7 +203,7 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 
 - [ ] 🔥 **Brutal-audit follow-up A1 — post-repair trust receipts** — re-run the composed quality chain on a frozen tree, then obtain successful outcomes for workflow runs `42445543709`, `42443401875`, and `42441847588` after the repairs reach origin; record the clean post-fix-tree `#verify`/`#verify-fast` receipt. Source: `docs/status/2026-11-08_08-52_brutal-audit-ci-fuzz-doc-drift-status.md`.
 - [ ] 🔥 **Brutal-audit follow-up A2 — calibration baseline workflow proof** — dispatch the benchmark workflow cold then warm; prove cache restore/compare, `build/calibration-drift.log` upload, baseline freeze on drift failure, and add cold-run + freeze self-tests proving calibration baseline refresh is skipped on drift failure. Source: same report.
-- [ ] **Brutal-audit follow-up A3 — id/event fuzz corpus adoption** — download the failed shard artifacts, commit minimized seeds, exercise every affected target in fuzz mode, and add the parser-contract/harness/seed same-edit rule. Source: same report.
+- [x] **Brutal-audit follow-up A3 — id/event fuzz corpus adoption** — DONE 2026-11-08 18:05: downloaded all 3 shard artifacts of failed run `42443401875` (61 entries, `build/fuzz-corpus-1108/`); the 4 failing targets' minimized inputs are exactly the four invalid-UTF-8 bytes (`\xc4` FuzzAggregateIDFrom, `\xb6` FuzzParse_TypeSafety, `\xf9` FuzzParseAggregateID, `\xfc` FuzzParseStreamType) — committed as durable seed files under `id/testdata/fuzz/...` + `event/testdata/fuzz/...` (harness `f.Add`s already carried them from the 11-08 morning session). Every affected target exercised in FUZZ MODE 20s each: all PASS (879K/1.87M execs on the id pair; no new failures — the 11-03 rejection-contract fix holds). Same-edit rule added to `docs/agents/gotchas-testing.md` (contract change ⇒ harness + seeds + testdata entry + 20s fuzz smoke in one edit; artifacts via `gh run download`). Source: same report.
 - [x] 🔥 **Brutal-audit follow-up A4 — skill importable-module existence check** — DONE 2026-11-08 17:40: `scripts/check-skill-modules.sh` resolves every `github.com/larsartmann/go-cqrs-lite/<path>` claim in SKILL.md + both skills' references against disk (deepest-existing-dir walk up to a `go.mod`; package-inside-module OK; lines marked delet/remov/former/no-longer-importable/historical are exempt — honest deletion notices stay legal). `--self-test` plants a fixture repo: live module claim + package claim + marked-deleted claim pass, unmarked dangling claim FAILS (the mutation proof — first run caught its own fixture bug). Wired as a verify-docs.sh leg (inherited by `#verify`/`#verify-fast`/CI). Receipt: self-test OK; real mode green (11 docs, 0 dangling — the 2026-11-08 doc-truth wave left the set honest). Source: same report.
 - [x] **Brutal-audit follow-up A5 — deleted-transport residue sweep** — DONE 2026-11-08 17:30: nine live lies fixed — taskmanager `http.go`+`setup.go` stale "replaces the deprecated transport/http.SSEBroker" comments dropped; `metaengine/sse.go` doc comment ("removed at v5" was FALSE — it was deleted 2026-10-17) corrected; `metaengine/README.md` actively-wrong "use transport/http.SSEBroker instead" guidance repointed at watermill/go-sse; `watermill/catchup_replay.go` stale comparison dropped; `docs/DOMAIN_LANGUAGE.md` Heartbeat+Backfill rows repointed at `metaengine.WithSSEHeartbeat` / `Watcher.WithReplay`+`CatchUpSubscriber`; watermill-skill `internals.md` "deprecated until v5" fixed; `cmd/cqrs-lint/README.md` transport profile wording truthed; `docs/migration/MIGRATION-GUIDE.md` classified HISTORICAL (dated banner). SKILL.md + skill references were already honest DELETED notices (verified, untouched). Receipts: metaengine+watermill+taskmanager `GOWORK=off go build ./...` green; canonical doc-check 1,389/1,389 refs valid. Source: `docs/status/2026-11-08_08-52_brutal-audit-ci-fuzz-doc-drift-status.md`.
 - [x] **Brutal-audit follow-up A6 — ambiguous-alias warning policy** — RESOLVED 2026-11-08 17:32 (policy: mirror-aware split): `cmd/doc-check` now classifies multi-dir aliases via `mirrorAliasDirs` — a v4↔core/v5 copy-forward twin pair (ADR-0152) is the SANCTIONED informational class (all six live warnings are exactly that: event, command, query, dispatcher, id, kv); any UNKNOWN ambiguity is now FATAL (`errAmbiguousAlias`, new tripwire in main.go). The documented "fails on ANY warning" contract is amended in AGENTS.md contract #20 to name both classes. Receipts: 3 new unit tests (`TestMirrorAliasDirs`, `TestVerifyBlocks_MirrorAmbiguityIsKnownNotUnknown`, `TestVerifyBlocks_NonMirrorAmbiguityIsUnknown` — the last is the mutation proof for the fatal class); full doc-check suite green 17.7s; canonical scan exit 0, 1,389 refs valid, six mirrors logged informational. Source: same report.
@@ -259,7 +260,6 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 - [ ] **Release wave: system v4.18.0 (minor — `Standard` is a new export)** — receipts gathered 2026-11-08 (see the completion status report); at tag time ALSO: (a) drop example/standard-topology's pre-release replace + its check-example-standalone baseline row, (b) switch go-appkit `defaultDeployment` to `system.Standard` + suite, (c) revisit the VM-binary leg (plain buildGoModule becomes possible). NO tag without owner. _(Effort: M)_
 - [x] **ADR-0165 addendum + arc close-out** — done 2026-11-08 (addendum with nixpkgs citations + receipts; plan reconcile banner; status report `docs/status/2026-11-08_17-30_standard-topology-completion-arc-status.md`). _(Effort: XS)_
 
-
 ---
 
 ## Fleet-audit follow-up plan tail (harvested 2026-11-05 from `docs/status/2026-11-05_18-16_fleet-audit-followup-plan-one-week-review.md`; plan: `docs/planning/2026-10-24_19-40_SUPERB-fleet-audit-followup-pareto-plan.md`)
@@ -297,29 +297,30 @@ DONE this arc (receipts in CHANGELOG `[Unreleased]`, ADR-0164, and the §"Bounde
 - [ ] **cqrs-htmx: run its test battery green against the aligned pins to close C03** (open tail of the 2026-10-24 C02/C03 chain) — a parallel session aligned cqrs-htmx's metaengine/schema/catalog pins concurrently with this repo's 14-tag wave; the go-appkit legs were verified green in-repo, but cqrs-htmx's own suite run was never observed. One full `go test ./...` in that repo against system/v4.15.4 closes it.
 - [x] **OWNER QUESTION (rowed 2026-10-23; ANSWERED 2026-11-03: PARKED as TBD): deployed-DB census** — which production databases carry prefixed stream keys/rows? Determines permanent sticky-key fallback vs. re-key migration + v1-range drop (G3). **Owner 2026-11-03: no enumeration available (TBD) — park.** The sticky-key pin (`system/legacy_prefixed_row_test.go`, 2026-10-24) keeps the legacy path WORKING; re-open only with a deployed-DB list or a concrete re-key need.
 - [ ] **OWNER QUESTION (rowed 2026-10-23, still open): A9 scheduling confirmation** — keycodec-v2 engine adoption as its own migration wave (recommended; the only remaining disk-truth item) vs. pulling it ahead. See the A9 row above.
+
 > Source review: `github.com/go-testfixtures/testfixtures` (v3, MIT, 1.2k stars,
 > active since 2016 — Rails-style YAML DB fixtures: wipe + load per test).
 > Every claim below verified against repo source/README on 2026-10-17.
 
 - [ ] 🔥 **Journal dump⇄load round-trip** (their `Dumper` analog): capture a
-  journal/stream segment into a portable TYPED file (envelope-stamped
-  JSON/CBOR per ADR-0044 — not stringly YAML maps) and replay it as a
-  `systemscenario` Given / fresh-engine seed. Kills the "hand-write 47 events
-  to reproduce a bug" pain. Ship with: default test-target guard +
-  `Dangerous`-prefixed opt-outs (their `EnsureTestDatabase` regexp-`test` check
-  + `DangerousSkipTestDatabaseCheck` naming pattern), parse-once/reuse (their
-  `New()` builds all INSERT SQL up front), and watermark-based skip (their
-  per-table `md5(json_agg(t.*))` checksum skips reloading unchanged tables —
-  the journal analog is a position watermark). _(Effort: L)_
+      journal/stream segment into a portable TYPED file (envelope-stamped
+      JSON/CBOR per ADR-0044 — not stringly YAML maps) and replay it as a
+      `systemscenario` Given / fresh-engine seed. Kills the "hand-write 47 events
+      to reproduce a bug" pain. Ship with: default test-target guard +
+      `Dangerous`-prefixed opt-outs (their `EnsureTestDatabase` regexp-`test` check
+  - `DangerousSkipTestDatabaseCheck` naming pattern), parse-once/reuse (their
+    `New()` builds all INSERT SQL up front), and watermark-based skip (their
+    per-table `md5(json_agg(t.*))` checksum skips reloading unchanged tables —
+    the journal analog is a position watermark). _(Effort: L)_
 - [ ] **Consumer-facing test-isolation strategy doc**: their
-  `dbtests/examples.md` + 4 runnable examples (sequential shared DB /
-  per-test disposable DB / txdb / PG template DBs via `CREATE DATABASE ...
+      `dbtests/examples.md` + 4 runnable examples (sequential shared DB /
+      per-test disposable DB / txdb / PG template DBs via `CREATE DATABASE ...
   TEMPLATE`) is a curated decision matrix we lack for consumers. Add a
-  recipes/testing section with the 4 strategies (txdb caveat: DDL-heavy setup
-  degrades it — our engines CREATE TABLE at New) PLUS our differentiator they
-  cannot have: **reset-by-replay** (fresh engine + journal CatchUp rebuild
-  instead of wipe — events are facts, re-derivation is the cheap reset).
-  _(Effort: S)_
+      recipes/testing section with the 4 strategies (txdb caveat: DDL-heavy setup
+      degrades it — our engines CREATE TABLE at New) PLUS our differentiator they
+      cannot have: **reset-by-replay** (fresh engine + journal CatchUp rebuild
+      instead of wipe — events are facts, re-derivation is the cheap reset).
+      _(Effort: S)_
 
 ## Architecture reference HTML export (harvested 2026-10-17)
 
@@ -562,11 +563,11 @@ verify-before-filing pass (plan task T7.4); these rows land them on OUR side of
 the boundary. Verified against this repo's source on 2026-10-15.
 
 - [ ] **Flows pilot: one mesh-demo context flow (hub T9)** — the live hub
-  catalog renders "Flows: 0"; v5's swimlanes/grouping consume flow resources
-  no source emits. `example/mesh-demo` is ours: design one context flow
-  (orders gate) and emit it via the existing `catalog.Flow` support (shipped
-  2026-09-24 wave, incl. `Flow.Owners`). bank-sync's flow is the sibling
-  pilot in its own repo. _(Effort: M; can start now)_
+      catalog renders "Flows: 0"; v5's swimlanes/grouping consume flow resources
+      no source emits. `example/mesh-demo` is ours: design one context flow
+      (orders gate) and emit it via the existing `catalog.Flow` support (shipped
+      2026-09-24 wave, incl. `Flow.Owners`). bank-sync's flow is the sibling
+      pilot in its own repo. _(Effort: M; can start now)_
   - **2026-10-15 (receipt): SHIPPED** — the orders catalog declares
     `order-lifecycle` (customer → orders-svc → order.placed → Billing
     Service external node → invoice.issued → orders-svc → order.completed),
@@ -588,31 +589,31 @@ the boundary. Verified against this repo's source on 2026-10-15.
 ## EventCatalog v5 bump follow-ups (2026-10-15, harvested from the 20-18 status report)
 
 - [ ] **Warn-budget hardening for `check-eventcatalog`** — the gate greps only
-  hard failures and tolerates ALL warns; assert the KNOWN broken-link
-  signature (channels/data-products/entities sidebar changelog links, 4
-  fixture pages) so any NEW warn fails loudly instead of relying on a human
-  reading build.log. The 2026-09-23 backlog idea, now cheap: the expected
-  signature is documented in the gate header. _(Effort: S)_
+      hard failures and tolerates ALL warns; assert the KNOWN broken-link
+      signature (channels/data-products/entities sidebar changelog links, 4
+      fixture pages) so any NEW warn fails loudly instead of relying on a human
+      reading build.log. The 2026-09-23 backlog idea, now cheap: the expected
+      signature is documented in the gate header. _(Effort: S)_
 - [ ] **config-with-changelogs golden** — `eventcatalog-config.snap`'s fixture
-  catalog carries NO changelogs, so the bumped exporter's
-  `changelog: { enabled: true }` emission is covered by the render gate only,
-  not by a golden; add a config golden over a catalog WITH changelogs.
-  _(Effort: S)_
+      catalog carries NO changelogs, so the bumped exporter's
+      `changelog: { enabled: true }` emission is covered by the render gate only,
+      not by a golden; add a config golden over a catalog WITH changelogs.
+      _(Effort: S)_
 - [ ] **Upstream issues to file (verify-before-filing gate first):** (a) the
-  3-collection sidebar changelog WARN under v5 (repro: any catalog with
-  changelog enabled; gate log excerpts on hand); (b) upstream ask: extend the
-  changelog page route's `itemTypes` to channels/data-products/entities.
-  _(Effort: S each; blocked on the verify pass)_
+      3-collection sidebar changelog WARN under v5 (repro: any catalog with
+      changelog enabled; gate log excerpts on hand); (b) upstream ask: extend the
+      changelog page route's `itemTypes` to channels/data-products/entities.
+      _(Effort: S each; blocked on the verify pass)_
 - [ ] **ROADMAP `[Unreleased]` wave prose** — the CHANGELOG carries the v5-pin
-  bump row; the ROADMAP top `[Unreleased]` highlights bullet does not yet
-  mention it (wave-prose lag class). _(Effort: XS)_
+      bump row; the ROADMAP top `[Unreleased]` highlights bullet does not yet
+      mention it (wave-prose lag class). _(Effort: XS)_
 - [ ] **Pin-bump procedure baseline numbers** — record node/npm versions +
-  expected page counts (98 default / 108 with agents+changelog) in
-  catalog/AGENTS.md so future bumps can detect silent page drops.
-  _(Effort: XS)_
+      expected page counts (98 default / 108 with agents+changelog) in
+      catalog/AGENTS.md so future bumps can detect silent page drops.
+      _(Effort: XS)_
 - [ ] **`-race` pass for catalog/eventcatalog after the guard drop** — the
-  post-change suites ran plain only; the race detector never saw the new
-  emission path. _(Effort: XS)_
+      post-change suites ran plain only; the race detector never saw the new
+      emission path. _(Effort: XS)_
 
 ---
 
@@ -674,7 +675,7 @@ the boundary. Verified against this repo's source on 2026-10-15.
 
 ## Catalog × CUE (executed 2026-11-02 — G0 NO-GO, fallback shipped)
 
-> Plan: [`docs/planning/2026-11-02_05-31_SUPERB-catalog-cue-compat-and-unification-pareto-plan.md`](docs/planning/2026-11-02_05-31_SUPERB-catalog-cue-compat-and-unification-pareto-plan.md) — executed; see its "Execution addendum" for the per-task truth. Verdict: [ADR-0163](docs/adr/0163-schema-compatibility-structural-differ-over-cue.md) + [G0 evidence](docs/evidence/2026-11-02_cue-subsume-spike.md). CUE was measured and rejected: 22/24 best case, and both residual misses are false *compatible*, the unsafe direction. Nothing CUE-specific entered the tree; the oracle is the structural walk in `catalog/compat`.
+> Plan: [`docs/planning/2026-11-02_05-31_SUPERB-catalog-cue-compat-and-unification-pareto-plan.md`](docs/planning/2026-11-02_05-31_SUPERB-catalog-cue-compat-and-unification-pareto-plan.md) — executed; see its "Execution addendum" for the per-task truth. Verdict: [ADR-0163](docs/adr/0163-schema-compatibility-structural-differ-over-cue.md) + [G0 evidence](docs/evidence/2026-11-02_cue-subsume-spike.md). CUE was measured and rejected: 22/24 best case, and both residual misses are false _compatible_, the unsafe direction. Nothing CUE-specific entered the tree; the oracle is the structural walk in `catalog/compat`.
 
 - [ ] **Decide the gate's subject** (open owner question) — the baseline mechanism shipped but no `compat-baseline.json` is committed, because this repo owns no catalog. Either (a) commit a demo/fixture catalog as the gate's subject, or (b) keep the gate self-test-only and let consumers run it on their own catalogs. Blocks the gate from ever catching a real regression in this repo.
 - [ ] **T10 fingerprint bridge (parked)** — a compat verdict on `schema.EventSchema`'s drift report. Blocked by tier direction: `schema/` cannot import `catalog/`. Reopen trigger: either invert the dependency, or compute the verdict in `catalog` and expose it as a catalog-level `DriftReport` companion.
@@ -715,6 +716,7 @@ the boundary. Verified against this repo's source on 2026-10-15.
 - [ ] **cqrs-lint catalog counts test** — the systemscenario catalog entry may need an adoption-
       suggestions coverage bump (`TestCatalogHasExpectedCounts`). — source: 14:40 §f31 _(Effort: XS;
       fold into T23's rule work)_
+
 ## BDD depth-spec follow-ups (2026-10-17 plan)
 
 > Snapshot plan with Pareto layers, 26 medium tasks, fine breakdown and
@@ -865,6 +867,7 @@ replace-free — 10-25 §a2/§a3, now archived).
 > session — deliberately not harvested here.
 
 - [ ] **M10–M11 cmdguard upstream proposals** — DRAFTS DONE 2026-10-03 (`docs/planning/2026-10-03_cmdguard-upstream-proposals-draft.md`, 4 proposals, claims verified vs v4.0.2 source). FILING REMAINS USER-GATED.
+
 > nsfw-classifier feedback harvest (2026-10-03): the fixed items live in
 > CHANGELOG `[Unreleased]` + the reviews under `docs/feedback/archived/2026-10-03_*`.
 > Deliberately deferred:
@@ -1032,8 +1035,8 @@ replace-free — 10-25 §a2/§a3, now archived).
 >       and reports "none import go-cqrs-lite" when invoked outside the
 >       flake app — run via `nix run .#check-cqrs-lint`.
 > - ~~Global binary rolled twice: P015-capable (2026-10-12 morning), then doctor-fix rebuild.~~ Standing rebuild recipe: from `cmd/cqrs-lint` with
->       `GOPATH=/home/lars/go go build -o /home/lars/go/bin/cqrs-lint .`.
->       — source: 2026-10-12 N05 fleet-roll session + 12-26 status report
+>   `GOPATH=/home/lars/go go build -o /home/lars/go/bin/cqrs-lint .`.
+>   — source: 2026-10-12 N05 fleet-roll session + 12-26 status report
 
 > **M20 quiet-window verify receipt (2026-10-12, N05/M20 session).** The
 > campaign surfaced and fixed TWO verify blockers in the changed set:
@@ -2375,60 +2378,60 @@ column is authoritative: **ROUTE** items are owned by another live plan and are 
 Re-verified against HEAD on 2026-10-26: the three red file-size offenders were split by the
 19-40 plan (now 273 / 230 / 164 lines), so I01–I03 closed between the plan and this ledger.
 
-| Item | Finding | Routing | Task | v5 impact | Status 2026-10-26 |
-| ---- | ------- | ------- | ---- | --------- | ----------------- |
-| I01 | Split `scheduling/sqlstore/store.go` (382) | ROUTE → 19-40 T03 | T23 | v4 (done) | DONE 2026-10-26 — `store.go` is 273 lines; `check-file-size.sh` green (61 baselined, no growth) |
-| I02 | Split `system/adapter_event.go` (352) | ROUTE → 19-40 T04 | T23 | v4 (done) | DONE 2026-10-26 — `system/adapter_event.go` is 230 lines; file-size gate green |
-| I03 | Split `metaengine/layout.go` (360) | ROUTE → 19-40 T05 | T23 | v4 (done) | DONE 2026-10-26 — `metaengine/layout.go` is 164 lines; file-size gate green |
-| I04 | Staged file-size pre-commit leg | EXEC | T18 | before v5 | OPEN — T18 (pre-commit growth guards); note the FILE-SIZE gate itself was unwired until 2026-10-26, so the hook gap is wider than assumed |
-| I05 | Package-surface gate | EXEC | T02 | before v5 (done) | DONE 2026-10-26 — `scripts/check-package-surface.sh` + baseline, `--self-test` 4/4, wired into `#verify`/`#verify-fast`/CI |
-| I06 | Production-cycle gate | EXEC | T03 | before v5 (done) | DONE 2026-10-26 — `scripts/check-cycles.sh`, 0 cycles / 506 package edges, `--self-test` 4/4, wired into `#verify`/`#verify-fast`/CI |
-| I07 | Arch-metrics script | EXEC | T04 | before v5 (done) | DONE 2026-10-26 — `scripts/arch-metrics` (markdown / `--json` / `--write`), composes the two gates above |
-| I08 | Markdown-format policy | OWNER | T15 | any time | OWNER — Q3 (dprint policy: add to treefmt, or document the exclusion) |
-| I09 | Format-once if approved | OWNER | T15 | any time | OWNER — Q3 (only if A is chosen) |
-| I10 | v4 fix-only declaration | OWNER | T21 | before v5 | OWNER — v4 fix-only declaration still unratified; the new package-surface ratchet makes v4 growth visible but does not forbid it |
-| I11 | Metaengine 5-package split plan | EXEC | T05 | before v5 (done) | DONE 2026-10-26 — [`docs/planning/2026-10-26_metaengine-v5-seven-package-split.md`](docs/planning/2026-10-26_metaengine-v5-seven-package-split.md) + [ADR-0162](docs/adr/0162-metaengine-v5-seven-package-split.md): 167/167 files, 7 packages, largest 248 symbols |
-| I12 | v5-order-impact on TODO rows | EXEC | T01 | n/a | DONE 2026-10-26 — this ledger carries a v5-impact column for all 52 items |
-| I13 | Codemod mapping table | EXEC (additive to 19-19 T13) | T22 | v5 pre-work | OPEN — T22 (codemod mapping table); additive pre-work to 19-19 T13 |
-| I14 | Codemod implementation | ROUTE → 19-19 T13 | T23 | v5 | ROUTE → 19-19 T13 — verified open: `cmd/cqrs-upgrade` still has no `core/v5` reference |
-| I15 | Codemod fixture tests | ROUTE → 19-19 T13 | T23 | v5 | ROUTE → 19-19 T13 — open with I14 |
-| I16 | Verify 9/32 `core/v5` packages | EXEC | T19 | before v5 | OPEN — T19; measured 2026-10-26: `core/v5` has 9 packages (command, dedup, dispatcher, event, id, kv, metadata, query, record) + 4 test sub-packages |
-| I17 | Inventory 23 missing packages | EXEC | T19 | before v5 | OPEN — T19 (the 23-missing inventory with consumer counts) |
-| I18 | `stack/*` preset census/retire | ROUTE → 19-19 T14/T16 | T23 | v5 | ROUTE → 19-19 T14/T16 — census 2026-10-24: `stack/sqlite` 4 direct, `stack/v4` 7 direct / 30 indirect; the other presets are absent from the tracked set |
-| I19 | Fate of `storage/view`/`relational`/`listing` | ROUTE → 19-19 T14 | T23 | v5 | ROUTE → 19-19 T14 — open |
-| I20 | Census awareness of `core/v5` | ROUTE-ADJACENT → 19-19 T06 | T23 | v5 | ROUTE-ADJACENT → 19-19 T06 — open |
-| I21 | API-golden tiering | EXEC | T06 | v5 | OPEN — T06 (API-golden tiering; consumer-facing promise split) |
-| I22 | `api-stability` dual-section emit | EXEC | T06 | v5 | OPEN — T06 (dual-section emit + cross-section-move guard) |
-| I23 | "engine" disambiguation | EXEC | T09 | before v5 | OPEN — T09 (`engine` is still two concepts in DOMAIN_LANGUAGE.md: metaengine.Engine and scheduling/engine) |
-| I24 | Dialect-seam notes | EXEC | T09 | before v5 | OPEN — T09 (per-family dialect-seam notes) |
-| I25 | `art-dupl:accept` directives | ROUTE → 19-19 T02/T03 | T23 | n/a | ROUTE → 19-19 T02/T03 — duplication program reported closed green; verify-only (T12) |
-| I26 | Split `pkg/analyzer` | ROUTE → 19-19 T19 | T23 | after v5 | ROUTE → 19-19 T19 — open |
-| I27 | Tooling product-line decision | OWNER | T20 | after v5 | OWNER — Q2 (tooling product line) |
-| I28 | Extract `cmd/cqrs-lint` | ROUTE → 19-19 T19 | T23 | after v5 | ROUTE → 19-19 T19 — open (`cmd/cqrs-lint` still in-repo at ~49k LOC) |
-| I29 | Extract `catalog` exporters | OWNER | T20 | after v5 | OWNER — Q2 (catalog exporters, ~22k LOC) |
-| I30 | `architecture-understanding/README.md` | EXEC | T07 | n/a | DONE 2026-10-26 — `docs/architecture-understanding/README.md` created with every report rowed (T07) |
-| I31 | Link review from `docs/README.md` | EXEC | T07 | n/a | DONE 2026-10-26 — linked from `docs/README.md` (T07) |
-| I32 | CHANGELOG docs row | EXEC | T07 | n/a | DONE 2026-10-26 — CHANGELOG `[Unreleased]` docs row (T07) |
-| I33 | Embed diagram in report | EXEC | T08 | n/a | OPEN — T08 (report embeds the diagram) |
-| I34 | PNG companions | EXEC | T08 | n/a | OPEN — T08 (PNG companions) |
-| I35 | D2 flat-node guidance in skill | EXEC | T08 | n/a | OPEN — T08 (flat-node D2 guidance in the skill) |
-| I36 | Filename-convention alignment | EXEC | T14 | n/a | OPEN — T14 (two skills disagree on the session-slug format) |
-| I37 | "Verify prior claims" skill checklist | EXEC | T08 | n/a | OPEN — T08 ("verify prior claims" checklist in the review skill) |
-| I38 | Provenance markers | EXEC | T13 | n/a | OPEN — T08/T13 (measured vs inherited provenance markers) |
-| I39 | TODO↔finding cross-links | EXEC | T01, T13 | n/a | DONE 2026-10-26 — this ledger links every item to its finding and to the owning plan task |
-| I40 | Foreign-work ownership convention | EXEC | T16 | n/a | OPEN — T16 (foreign-work ownership convention) |
-| I41 | Run `check-md-go` | EXEC | T12 | before v5 | DONE 2026-10-26 — `nix run .#check-md-go` rc=0: all 1,523 code blocks valid (84 skipped), 105 baselined archived errors suppressed |
-| I42 | Run `check-arch` | EXEC | T12 | before v5 | DONE 2026-10-26 — `nix run .#check-arch` rc=0: all architecture checks passed (layers + intra-module) |
-| I43 | Run `check-duplication` | EXEC | T12 | before v5 | RED 2026-10-26 — `nix run .#check-duplication` rc=2: 1 NEW clone group (5-line append loop) between `systemcatalog/derive.go` and `cmd/cqrs-lint/pkg/rules/version/v006.go`; FOREIGN in-flight code, baseline 189→190. Not re-pinned here (dirty-tree guard + foreign work): owner session must `//art-dupl:accept` or re-pin |
-| I44 | Run `check-coverage` | EXEC | T12 | before v5 | DONE 2026-10-26 — `nix run .#check-coverage` rc=0: all coverage claims within ±2.0% tolerance |
-| I45 | Format-gate investigation | EXEC (re-framed per E3) | T15 | n/a | DONE (investigation) 2026-10-25 — E3: treefmt runs gofumpt/goimports/golines/nixfmt only; dprint is ungated, 114 files drifted. Remaining ACTION is owner-gated under I08 |
-| I46 | Archive status reports | EXEC | T11 | n/a | OPEN — T11 (124 live status reports; archival loop documented, never run) |
-| I47 | Remove stray 18 MB binary | EXEC | T17 | n/a | DONE 2026-10-26 — 18 MB `cmd/api-stability/api-stability` (gitignored build output) trashed (T17) |
-| I48 | `stack/metaengine` census naming | EXEC | T17 | n/a | OPEN — T17 (census classification wording for `stack/metaengine`) |
-| I49 | Layer-gate prod/test edges | EXEC | T10 | before v5 | OPEN — T10 (layer gate cannot distinguish test-only requires from production ones) |
-| I50 | Next-review trigger | EXEC | T24 | n/a | OPEN — T24 (next-review trigger + metric-diff procedure) |
-| N1 | No markdown gate despite `dprint.json` | OWNER | T15 | n/a | OWNER — Q3 (same decision as I08) |
-| N2 | Cross-plan ledger (duplicate-dispatch risk) | EXEC | T01 | n/a | DONE 2026-10-26 — this ledger IS the cross-plan index (see the routing column) |
+| Item | Finding                                       | Routing                      | Task     | v5 impact        | Status 2026-10-26                                                                                                                                                                                                                                                                                                             |
+| ---- | --------------------------------------------- | ---------------------------- | -------- | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| I01  | Split `scheduling/sqlstore/store.go` (382)    | ROUTE → 19-40 T03            | T23      | v4 (done)        | DONE 2026-10-26 — `store.go` is 273 lines; `check-file-size.sh` green (61 baselined, no growth)                                                                                                                                                                                                                               |
+| I02  | Split `system/adapter_event.go` (352)         | ROUTE → 19-40 T04            | T23      | v4 (done)        | DONE 2026-10-26 — `system/adapter_event.go` is 230 lines; file-size gate green                                                                                                                                                                                                                                                |
+| I03  | Split `metaengine/layout.go` (360)            | ROUTE → 19-40 T05            | T23      | v4 (done)        | DONE 2026-10-26 — `metaengine/layout.go` is 164 lines; file-size gate green                                                                                                                                                                                                                                                   |
+| I04  | Staged file-size pre-commit leg               | EXEC                         | T18      | before v5        | OPEN — T18 (pre-commit growth guards); note the FILE-SIZE gate itself was unwired until 2026-10-26, so the hook gap is wider than assumed                                                                                                                                                                                     |
+| I05  | Package-surface gate                          | EXEC                         | T02      | before v5 (done) | DONE 2026-10-26 — `scripts/check-package-surface.sh` + baseline, `--self-test` 4/4, wired into `#verify`/`#verify-fast`/CI                                                                                                                                                                                                    |
+| I06  | Production-cycle gate                         | EXEC                         | T03      | before v5 (done) | DONE 2026-10-26 — `scripts/check-cycles.sh`, 0 cycles / 506 package edges, `--self-test` 4/4, wired into `#verify`/`#verify-fast`/CI                                                                                                                                                                                          |
+| I07  | Arch-metrics script                           | EXEC                         | T04      | before v5 (done) | DONE 2026-10-26 — `scripts/arch-metrics` (markdown / `--json` / `--write`), composes the two gates above                                                                                                                                                                                                                      |
+| I08  | Markdown-format policy                        | OWNER                        | T15      | any time         | OWNER — Q3 (dprint policy: add to treefmt, or document the exclusion)                                                                                                                                                                                                                                                         |
+| I09  | Format-once if approved                       | OWNER                        | T15      | any time         | OWNER — Q3 (only if A is chosen)                                                                                                                                                                                                                                                                                              |
+| I10  | v4 fix-only declaration                       | OWNER                        | T21      | before v5        | OWNER — v4 fix-only declaration still unratified; the new package-surface ratchet makes v4 growth visible but does not forbid it                                                                                                                                                                                              |
+| I11  | Metaengine 5-package split plan               | EXEC                         | T05      | before v5 (done) | DONE 2026-10-26 — [`docs/planning/2026-10-26_metaengine-v5-seven-package-split.md`](docs/planning/2026-10-26_metaengine-v5-seven-package-split.md) + [ADR-0162](docs/adr/0162-metaengine-v5-seven-package-split.md): 167/167 files, 7 packages, largest 248 symbols                                                           |
+| I12  | v5-order-impact on TODO rows                  | EXEC                         | T01      | n/a              | DONE 2026-10-26 — this ledger carries a v5-impact column for all 52 items                                                                                                                                                                                                                                                     |
+| I13  | Codemod mapping table                         | EXEC (additive to 19-19 T13) | T22      | v5 pre-work      | OPEN — T22 (codemod mapping table); additive pre-work to 19-19 T13                                                                                                                                                                                                                                                            |
+| I14  | Codemod implementation                        | ROUTE → 19-19 T13            | T23      | v5               | ROUTE → 19-19 T13 — verified open: `cmd/cqrs-upgrade` still has no `core/v5` reference                                                                                                                                                                                                                                        |
+| I15  | Codemod fixture tests                         | ROUTE → 19-19 T13            | T23      | v5               | ROUTE → 19-19 T13 — open with I14                                                                                                                                                                                                                                                                                             |
+| I16  | Verify 9/32 `core/v5` packages                | EXEC                         | T19      | before v5        | OPEN — T19; measured 2026-10-26: `core/v5` has 9 packages (command, dedup, dispatcher, event, id, kv, metadata, query, record) + 4 test sub-packages                                                                                                                                                                          |
+| I17  | Inventory 23 missing packages                 | EXEC                         | T19      | before v5        | OPEN — T19 (the 23-missing inventory with consumer counts)                                                                                                                                                                                                                                                                    |
+| I18  | `stack/*` preset census/retire                | ROUTE → 19-19 T14/T16        | T23      | v5               | ROUTE → 19-19 T14/T16 — census 2026-10-24: `stack/sqlite` 4 direct, `stack/v4` 7 direct / 30 indirect; the other presets are absent from the tracked set                                                                                                                                                                      |
+| I19  | Fate of `storage/view`/`relational`/`listing` | ROUTE → 19-19 T14            | T23      | v5               | ROUTE → 19-19 T14 — open                                                                                                                                                                                                                                                                                                      |
+| I20  | Census awareness of `core/v5`                 | ROUTE-ADJACENT → 19-19 T06   | T23      | v5               | ROUTE-ADJACENT → 19-19 T06 — open                                                                                                                                                                                                                                                                                             |
+| I21  | API-golden tiering                            | EXEC                         | T06      | v5               | OPEN — T06 (API-golden tiering; consumer-facing promise split)                                                                                                                                                                                                                                                                |
+| I22  | `api-stability` dual-section emit             | EXEC                         | T06      | v5               | OPEN — T06 (dual-section emit + cross-section-move guard)                                                                                                                                                                                                                                                                     |
+| I23  | "engine" disambiguation                       | EXEC                         | T09      | before v5        | OPEN — T09 (`engine` is still two concepts in DOMAIN_LANGUAGE.md: metaengine.Engine and scheduling/engine)                                                                                                                                                                                                                    |
+| I24  | Dialect-seam notes                            | EXEC                         | T09      | before v5        | OPEN — T09 (per-family dialect-seam notes)                                                                                                                                                                                                                                                                                    |
+| I25  | `art-dupl:accept` directives                  | ROUTE → 19-19 T02/T03        | T23      | n/a              | ROUTE → 19-19 T02/T03 — duplication program reported closed green; verify-only (T12)                                                                                                                                                                                                                                          |
+| I26  | Split `pkg/analyzer`                          | ROUTE → 19-19 T19            | T23      | after v5         | ROUTE → 19-19 T19 — open                                                                                                                                                                                                                                                                                                      |
+| I27  | Tooling product-line decision                 | OWNER                        | T20      | after v5         | OWNER — Q2 (tooling product line)                                                                                                                                                                                                                                                                                             |
+| I28  | Extract `cmd/cqrs-lint`                       | ROUTE → 19-19 T19            | T23      | after v5         | ROUTE → 19-19 T19 — open (`cmd/cqrs-lint` still in-repo at ~49k LOC)                                                                                                                                                                                                                                                          |
+| I29  | Extract `catalog` exporters                   | OWNER                        | T20      | after v5         | OWNER — Q2 (catalog exporters, ~22k LOC)                                                                                                                                                                                                                                                                                      |
+| I30  | `architecture-understanding/README.md`        | EXEC                         | T07      | n/a              | DONE 2026-10-26 — `docs/architecture-understanding/README.md` created with every report rowed (T07)                                                                                                                                                                                                                           |
+| I31  | Link review from `docs/README.md`             | EXEC                         | T07      | n/a              | DONE 2026-10-26 — linked from `docs/README.md` (T07)                                                                                                                                                                                                                                                                          |
+| I32  | CHANGELOG docs row                            | EXEC                         | T07      | n/a              | DONE 2026-10-26 — CHANGELOG `[Unreleased]` docs row (T07)                                                                                                                                                                                                                                                                     |
+| I33  | Embed diagram in report                       | EXEC                         | T08      | n/a              | OPEN — T08 (report embeds the diagram)                                                                                                                                                                                                                                                                                        |
+| I34  | PNG companions                                | EXEC                         | T08      | n/a              | OPEN — T08 (PNG companions)                                                                                                                                                                                                                                                                                                   |
+| I35  | D2 flat-node guidance in skill                | EXEC                         | T08      | n/a              | OPEN — T08 (flat-node D2 guidance in the skill)                                                                                                                                                                                                                                                                               |
+| I36  | Filename-convention alignment                 | EXEC                         | T14      | n/a              | OPEN — T14 (two skills disagree on the session-slug format)                                                                                                                                                                                                                                                                   |
+| I37  | "Verify prior claims" skill checklist         | EXEC                         | T08      | n/a              | OPEN — T08 ("verify prior claims" checklist in the review skill)                                                                                                                                                                                                                                                              |
+| I38  | Provenance markers                            | EXEC                         | T13      | n/a              | OPEN — T08/T13 (measured vs inherited provenance markers)                                                                                                                                                                                                                                                                     |
+| I39  | TODO↔finding cross-links                      | EXEC                         | T01, T13 | n/a              | DONE 2026-10-26 — this ledger links every item to its finding and to the owning plan task                                                                                                                                                                                                                                     |
+| I40  | Foreign-work ownership convention             | EXEC                         | T16      | n/a              | OPEN — T16 (foreign-work ownership convention)                                                                                                                                                                                                                                                                                |
+| I41  | Run `check-md-go`                             | EXEC                         | T12      | before v5        | DONE 2026-10-26 — `nix run .#check-md-go` rc=0: all 1,523 code blocks valid (84 skipped), 105 baselined archived errors suppressed                                                                                                                                                                                            |
+| I42  | Run `check-arch`                              | EXEC                         | T12      | before v5        | DONE 2026-10-26 — `nix run .#check-arch` rc=0: all architecture checks passed (layers + intra-module)                                                                                                                                                                                                                         |
+| I43  | Run `check-duplication`                       | EXEC                         | T12      | before v5        | RED 2026-10-26 — `nix run .#check-duplication` rc=2: 1 NEW clone group (5-line append loop) between `systemcatalog/derive.go` and `cmd/cqrs-lint/pkg/rules/version/v006.go`; FOREIGN in-flight code, baseline 189→190. Not re-pinned here (dirty-tree guard + foreign work): owner session must `//art-dupl:accept` or re-pin |
+| I44  | Run `check-coverage`                          | EXEC                         | T12      | before v5        | DONE 2026-10-26 — `nix run .#check-coverage` rc=0: all coverage claims within ±2.0% tolerance                                                                                                                                                                                                                                 |
+| I45  | Format-gate investigation                     | EXEC (re-framed per E3)      | T15      | n/a              | DONE (investigation) 2026-10-25 — E3: treefmt runs gofumpt/goimports/golines/nixfmt only; dprint is ungated, 114 files drifted. Remaining ACTION is owner-gated under I08                                                                                                                                                     |
+| I46  | Archive status reports                        | EXEC                         | T11      | n/a              | OPEN — T11 (124 live status reports; archival loop documented, never run)                                                                                                                                                                                                                                                     |
+| I47  | Remove stray 18 MB binary                     | EXEC                         | T17      | n/a              | DONE 2026-10-26 — 18 MB `cmd/api-stability/api-stability` (gitignored build output) trashed (T17)                                                                                                                                                                                                                             |
+| I48  | `stack/metaengine` census naming              | EXEC                         | T17      | n/a              | OPEN — T17 (census classification wording for `stack/metaengine`)                                                                                                                                                                                                                                                             |
+| I49  | Layer-gate prod/test edges                    | EXEC                         | T10      | before v5        | OPEN — T10 (layer gate cannot distinguish test-only requires from production ones)                                                                                                                                                                                                                                            |
+| I50  | Next-review trigger                           | EXEC                         | T24      | n/a              | OPEN — T24 (next-review trigger + metric-diff procedure)                                                                                                                                                                                                                                                                      |
+| N1   | No markdown gate despite `dprint.json`        | OWNER                        | T15      | n/a              | OWNER — Q3 (same decision as I08)                                                                                                                                                                                                                                                                                             |
+| N2   | Cross-plan ledger (duplicate-dispatch risk)   | EXEC                         | T01      | n/a              | DONE 2026-10-26 — this ledger IS the cross-plan index (see the routing column)                                                                                                                                                                                                                                                |
 
 **Counts 2026-10-26:** 52 items = **18 closed** (I01–I03, I05–I07, I11, I12, I30–I32, I39, I41,
 I42, I44, I45-investigation, I47, N2) + **1 red on foreign code** (I43: a new 5-line clone between
