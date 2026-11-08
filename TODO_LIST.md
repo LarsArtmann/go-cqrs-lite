@@ -2564,15 +2564,16 @@ re-checked by T23, never re-executed.
 
 ## Untagged-API incident (found 2026-10-24 during the fleet-audit follow-up)
 
-- [ ] **Gate it: wire the example-standalone BUILD leg into CI** — the
-      healing for the MarkDemo incident class exists as
-      `check-example-standalone.sh --build` (strips local replaces, builds
-      every example GOWORK=off against the pinned graph — proven 2026-11-03
-      when it verified mesh-demo against the proxy-served catalog/v4.12.0),
-      but the script is wired NOWHERE: no workflow, no flake app, no
-      `#verify` leg references it, so nothing runs it at commit/CI time —
-      the exact gap that let the incident reach consumer time. Remaining:
-      a CI step (or `#verify-fast` leg) that runs `--build`.
+- [x] **Gate it: wire the example-standalone BUILD leg into CI** — DONE
+      2026-11-08 (ADR-0165 tail session): ci.yml gains the step
+      "Example standalone build (published pins, replaces stripped)" right
+      after the NixOS eval pin step, running
+      `bash scripts/check-example-standalone.sh --build`. Local receipt
+      before wiring: all 5 examples build standalone (incl.
+      `standard-topology` with its new pgengine dep) and the audit reports
+      0 findings. The `#verify` leg stays unwired deliberately: the
+      composed gate is load-guarded and `--build` duplicates CI's clean
+      checkout anyway.
       — source: same incident _(Effort: S)_
 
 ## Testing improvements (2026-10-25 plan)
