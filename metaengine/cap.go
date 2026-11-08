@@ -146,7 +146,10 @@ func capKeyExtractor(q queryMeta, excludeGroupCol string) (func(any) any, error)
 // its cap (or the query declares no cap).
 //
 // Call it after a batch append or on a timer. It is safe to call concurrently
-// with writes: the trim runs under the query's fold lock, and a write that
+// with writes: the trim runs under the query's fold lock, inside the engine's
+// transaction when the engine is transactional — the same connection → fold
+// lock order the fold path holds (see withCapTrimTx), so a trim can never
+// deadlock against a concurrent fold batch on a bounded pool. A write that
 // lands after the trim simply makes the next pass remove one more row. It is
 // NOT part of event replay: rebuilding the projection restores every row, so
 // run EnforceCap again after a reset + replay.
@@ -166,81 +169,115 @@ func (s *Store) EnforceCap(ctx context.Context, queryName string) (int, error) {
 		return 0, fmt.Errorf("metaengine.EnforceCap(%q): %w", queryName, err)
 	}
 
-	lock := s.foldLocks.get(q.QueryName())
-	lock.Lock()
-	defer lock.Unlock()
-
 	eng := q.QueryEngine()
 	if eng == nil {
 		return 0, fmt.Errorf("metaengine.EnforceCap(%q): %w", queryName, errUnsupportedPattern)
 	}
 
-	// Grouped pre-pass (ADR-0164): trim each group to its per-group bound
-	// first; the keep-page scan below then enforces the global ceiling on
-	// what survived. Both run under the fold lock this function already holds
-	// — enforceGroupedTrim never locks.
 	removed := 0
 
-	if cfg.capGroupRows > 0 {
-		grouped, groupErr := s.enforceGroupedTrim(ctx, q)
-		removed += grouped
-		if groupErr != nil {
-			return removed, groupErr
+	trimErr := s.withCapTrimTx(ctx, eng, queryName, func(ctx context.Context) error {
+		// Grouped pre-pass (ADR-0164): trim each group to its per-group bound
+		// first; the keep-page scan below then enforces the global ceiling on
+		// what survived. Both run under the fold lock this closure already
+		// holds — enforceGroupedTrim never locks.
+		if cfg.capGroupRows > 0 {
+			grouped, groupErr := s.enforceGroupedTrim(ctx, q)
+			removed += grouped
+			if groupErr != nil {
+				return groupErr
+			}
 		}
-	}
 
-	// Keep page: the newest capRows rows. hasMore means older rows exist and
-	// every row after this cursor is a trim victim.
-	_, hasMore, cursor, err := capScanPage(
-		ctx,
-		eng,
-		q.QueryName(),
-		cfg.capOrderBy,
-		cfg.capRows,
-		nil,
-	)
-	if err != nil {
-		return removed, fmt.Errorf("metaengine.EnforceCap(%q): keep scan: %w", queryName, err)
-	}
-
-	if !hasMore {
-		return removed, nil
-	}
-
-	for {
-		items, more, next, scanErr := capScanPage(
-			ctx, eng, q.QueryName(), cfg.capOrderBy, capTrimBatchSize, cursor,
+		// Keep page: the newest capRows rows. hasMore means older rows exist and
+		// every row after this cursor is a trim victim.
+		_, hasMore, cursor, err := capScanPage(
+				ctx,
+				eng,
+				q.QueryName(),
+				cfg.capOrderBy,
+				cfg.capRows,
+				nil,
 		)
-		if scanErr != nil {
-			return removed, fmt.Errorf(
-				"metaengine.EnforceCap(%q): trim scan: %w",
-				queryName,
-				scanErr,
-			)
+		if err != nil {
+			return fmt.Errorf("metaengine.EnforceCap(%q): keep scan: %w", queryName, err)
 		}
 
-		for _, item := range items {
-			if deleteErr := s.capDelete(ctx, q, keyOf(item)); deleteErr != nil {
-				return removed, fmt.Errorf("metaengine.EnforceCap(%q): %w", queryName, deleteErr)
+		if !hasMore {
+			return nil
+		}
+
+		for {
+			items, more, next, scanErr := capScanPage(
+					ctx, eng, q.QueryName(), cfg.capOrderBy, capTrimBatchSize, cursor,
+			)
+			if scanErr != nil {
+				return fmt.Errorf(
+					"metaengine.EnforceCap(%q): trim scan: %w",
+					queryName,
+				scanErr,
+				)
 			}
 
-			removed++
-		}
+			for _, item := range items {
+				if deleteErr := s.capDelete(ctx, q, keyOf(item)); deleteErr != nil {
+					return fmt.Errorf("metaengine.EnforceCap(%q): %w", queryName, deleteErr)
+				}
 
-		if !more {
-			return removed, nil
-		}
+				removed++
+			}
 
-		if next == nil {
-			return removed, fmt.Errorf(
-				"metaengine.EnforceCap(%q): %w",
-				queryName,
-				errCapCursorMissing,
-			)
-		}
+			if !more {
+				return nil
+			}
 
-		cursor = next
+			if next == nil {
+				return fmt.Errorf(
+					"metaengine.EnforceCap(%q): %w",
+					queryName,
+					errCapCursorMissing,
+				)
+			}
+
+			cursor = next
+		}
+	})
+	if trimErr != nil {
+		return removed, trimErr
 	}
+
+	return removed, nil
+}
+
+// withCapTrimTx runs a cap trim under the query's fold lock, acquiring the
+// engine's transaction — and with it the pooled connection — BEFORE the lock
+// whenever the engine is transactional. The fold path's order is fixed:
+// dispatchFoldsCoreLocked opens the engine transaction (connection first,
+// RunInTx) and takes each query's fold lock INSIDE it; a trim that instead
+// held the fold lock across engine scans and deletes inverted that order and
+// could deadlock against a concurrent fold batch whenever the connection pool
+// was exhausted — the fold held a connection wanting the fold lock, the trim
+// held the fold lock wanting a connection (observed as order-dependent 60-600s
+// hangs in webphone's projection host over sqliteengine). Matching the fold
+// path's order — transaction first, fold lock inside — closes the cycle for
+// every transactional engine; non-transactional engines keep the plain fold
+// lock, whose holders never wait on a pool.
+func (s *Store) withCapTrimTx(ctx context.Context, eng Engine, queryName string, trim func(context.Context) error) error {
+	lock := s.foldLocks.get(queryName)
+
+	if tx, ok := eng.(Transactional); ok {
+		return runInTxWithRetry(ctx, tx, func(ctx context.Context) error {
+			lock.Lock()
+			defer lock.Unlock()
+
+			return trim(ctx)
+		})
+	}
+
+	lock.Lock()
+	defer lock.Unlock()
+
+	return trim(ctx)
 }
 
 // EnforceCaps trims every collection that declares a WithCap policy, in

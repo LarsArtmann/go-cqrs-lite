@@ -171,8 +171,9 @@ func capGroupExtractor(q queryMeta) (func(any) any, error) {
 //
 // Same contract as [Store.EnforceCap]: call it after a batch append or on a
 // timer, it is safe to call concurrently with writes (the query's fold lock
-// serializes trims), and it is NOT part of replay — reset + replay restores
-// full rows, so run it again after a rebuild.
+// serializes trims, taken inside the engine's transaction — withCapTrimTx
+// keeps the fold path's connection → lock order), and it is NOT part of
+// replay — reset + replay restores full rows, so run it again after a rebuild.
 func (s *Store) EnforceCapGrouped(ctx context.Context, queryName string) (int, error) {
 	q, ok := s.lookupQuery(queryName)
 	if !ok {
@@ -183,11 +184,21 @@ func (s *Store) EnforceCapGrouped(ctx context.Context, queryName string) (int, e
 		return 0, nil
 	}
 
-	lock := s.foldLocks.get(queryName)
-	lock.Lock()
-	defer lock.Unlock()
+	eng := q.QueryEngine()
+	if eng == nil {
+		return 0, fmt.Errorf("metaengine.EnforceCapGrouped(%q): %w", queryName, errUnsupportedPattern)
+	}
 
-	return s.enforceGroupedTrim(ctx, q)
+	removed := 0
+
+	trimErr := s.withCapTrimTx(ctx, eng, queryName, func(ctx context.Context) error {
+		n, trimErr := s.enforceGroupedTrim(ctx, q)
+		removed = n
+
+		return trimErr
+	})
+
+	return removed, trimErr
 }
 
 // enforceGroupedTrim is the grouped trim over an already-resolved query: the
