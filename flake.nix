@@ -209,6 +209,15 @@
         treefmt-nix.flakeModule
       ];
 
+      # NixOS support for go-cqrs-lite deployments (ADR-0165): the module
+      # renders DeploymentConfig JSON per deployment, fills the standard
+      # topology, and auto-provisions postgres/sqlite. The service UNIT stays
+      # app-owned (cqrs.lib.hardenedService provides the fragment).
+      flake.nixosModules = {
+        cqrs = import ./nix/nixos/cqrs.nix;
+        default = import ./nix/nixos/cqrs.nix;
+      };
+
       perSystem =
         {
           config,
