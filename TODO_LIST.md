@@ -226,6 +226,12 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 - [ ] **Committed eval test for `nixosModules.cqrs`** (flake checks leg + `nix flake check` pass) — the module currently has zero automated regression protection. _(Effort: S/M)_
 - [ ] **Preset cross-equivalence pin** — one test asserting Go-`Standard` == CUE-`standard` == Nix-`standardInstances` instance shapes (three twins, only field NAMES are drift-pinned today; the semantic split brain is human-checked). _(Effort: M)_
 - [ ] **CI/verify wiring for `#check-cue-config`** + compile-verify module-README fences + unify sqlite DSN form (`file:` prefix) across examples. _(Effort: S)_
+- [ ] **Extra NixOS pins** — `standardTopology=false` + explicit-DSN-wins eval tests, CUE `deployment`-entry golden, aarch64 eval, `nixosModules.default` alias test, module meta docs. _(Effort: S)_
+- [ ] **Fuzz + property** — `LoadConfig` `.json` fuzz seeds; rapid property: `Standard` idempotent + engine-name permutation invariant. _(Effort: S)_
+- [ ] **Chassis adoption (owner-gated)** — cqrs-htmx + go-appkit switch to `system.Standard`, simplify 3-instance configs to engines-only; cross-repo suites. _(Effort: M)_
+- [ ] **Release wave: system v4.18.0 (minor — `Standard` is a new export)** — `#verify-fast` + full `#verify` + `#check-coverage` receipts, CHANGELOG cut; NO tag without owner. _(Effort: M)_
+- [ ] **ADR-0165 addendum + arc close-out** — auth facts (nixpkgs source citation), eval-test receipts, final status report + HARVEST. _(Effort: XS)_
+
 
 ---
 
