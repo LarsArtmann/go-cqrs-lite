@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Report Title</title>
+    <title>Brutal Self-Review — go-cqrs-lite — 2026-11-08</title>
     <style>
       /* =========================================================================
          BAUHAUS DARK — Dashboard template
@@ -828,9 +828,9 @@
   <body>
     <!-- Full-bleed top bar (optional — remove for quieter reports) -->
     <div class="top-bar">
-      <span>REPORT TYPE</span>
-      <span>YYYY-MM-DD</span>
-      <span>AUTHOR / TEAM</span>
+      <span>BRUTAL SELF-REVIEW</span>
+      <span>2026-11-08</span>
+      <span>go-cqrs-lite &middot; episode 7</span>
     </div>
 
     <div class="layout">
@@ -849,184 +849,429 @@
       <main class="main">
         <!-- Hero -->
         <div class="hero">
-          <!-- Optional Bauhaus signature: geometric shape cluster. Remove for quieter hero. -->
           <div class="hero-shapes">
             <div class="circle"></div>
             <div class="square"></div>
             <div class="tri"></div>
           </div>
-          <div class="hero-badge">Report Type</div>
-          <h1>Report Title</h1>
+          <div class="hero-badge">Brutal Self-Review &middot; Episode 7</div>
+          <h1>What the repo got wrong, and what today&rsquo;s session fixed about it</h1>
           <p class="hero-subtitle">
-            One-sentence description of what this report covers.
+            First brutal self-review in seven weeks (previous: 2026-09-19). Method: CI as the primary source of truth,
+            four scoped audit legs (core, metaengine/storage, tests/release/docs, mechanical adjudication), and every
+            inherited claim re-verified against source &mdash; five of them turned out to be false.
           </p>
         </div>
 
-        <!-- Inline TOC (alternative to sidebar; pick one) -->
         <nav class="toc">
           <h3>Contents</h3>
           <ul>
             <li><a href="#summary">Summary</a></li>
             <li><a href="#findings">Findings</a></li>
-            <li><a href="#issues">Issue Cards</a></li>
-            <li><a href="#proposal">Proposal</a></li>
+            <li><a href="#issues">Open Defects</a></li>
+            <li><a href="#fixed">Fixed This Session</a></li>
+            <li><a href="#false">False Leads Killed</a></li>
+            <li><a href="#strengths">Strengths</a></li>
+            <li><a href="#proposal">Before / After</a></li>
             <li><a href="#plan">Plan</a></li>
           </ul>
         </nav>
 
-        <!-- Stats Dashboard -->
         <h2 id="summary"><span class="num">00</span>Summary</h2>
         <div class="stat-grid">
           <div class="stat-card">
-            <div class="stat-value">42</div>
-            <div class="stat-label">Total Items</div>
-          </div>
-          <div class="stat-card stat-bad">
-            <div class="stat-value">7</div>
-            <div class="stat-label">Critical</div>
-          </div>
-          <div class="stat-card stat-warn">
-            <div class="stat-value">12</div>
-            <div class="stat-label">Warnings</div>
+            <div class="stat-value">32</div>
+            <div class="stat-label">Verified findings</div>
           </div>
           <div class="stat-card stat-good">
-            <div class="stat-value">35</div>
-            <div class="stat-label">Resolved</div>
+            <div class="stat-value">21</div>
+            <div class="stat-label">Fixed this session (gates green)</div>
+          </div>
+          <div class="stat-card stat-bad">
+            <div class="stat-value">10</div>
+            <div class="stat-label">Open defects (tracked below)</div>
+          </div>
+          <div class="stat-card stat-warn">
+            <div class="stat-value">6</div>
+            <div class="stat-label">Inherited claims proven FALSE</div>
           </div>
         </div>
 
-        <!-- Findings as Cards -->
-        <h2 id="findings"><span class="num">01</span>Findings</h2>
-
-        <div class="card card-problem">
-          <h4>Critical Issue</h4>
-          <p>Description of the problem and its impact.</p>
+        <div class="card card-warning">
+          <h4>Session constraints you should know</h4>
+          <p>
+            A <strong>parallel session is actively editing <code>system/</code></strong> (CUE config loader, ADR-0163/0165).
+            I did not touch their files, did not re-pin ratchets absorbing their in-flight work (except the one
+            package-surface re-pin that also absorbed system&rsquo;s 48&rarr;49 file growth &mdash; noted honestly), and
+            <strong>did not run a composed <code>#verify</code></strong> because the tree cannot stay frozen while they
+            work. I also <strong>did not push</strong> &mdash; no authorization this session. The composed verification
+            and the push are the first two plan steps.
+          </p>
         </div>
 
         <div class="card card-solution">
-          <h4>Recommended Fix</h4>
-          <p>Description of the solution with rationale.</p>
+          <h4>Series continuity</h4>
+          <p>
+            Episode 6 (2026-09-19) flagged: loopback transport ignored, engine modules bypassed, close helper
+            mis-tiered, duplicated scan/paginate helpers. All four landed in the interim waves (transport deleted
+            2026-10-17; DeferClose across 105 sites; scan helpers centralized in metaengine core with badger as the
+            one remaining tail). Nothing from episode 6 was lost &mdash; this episode adds 32 new verified findings.
+          </p>
         </div>
 
-        <!-- Issue Cards -->
-        <h2 id="issues"><span class="num">02</span>Issue Cards</h2>
+        <h2 id="findings"><span class="num">01</span>Findings &mdash; what was fucked up</h2>
+
+        <div class="card card-problem">
+          <h4>1. The parser contract changed and the fuzz harnesses kept testing the old one</h4>
+          <p>
+            <code>id.ParseStreamID</code>/<code>id.ParseStreamType</code> correctly began rejecting invalid UTF-8,
+            but four harnesses still asserted accept-any-non-empty-string. Every Fuzz Nightly since then failed as a
+            stale-contract alarm, while &ldquo;green Autoretry&rdquo; runs masked it. Fixed: assertions corrected,
+            invalid-UTF-8 seeds committed.
+          </p>
+        </div>
+
+        <div class="card card-problem">
+          <h4>2. An exported named-string type interpolated raw into SQL on three engines</h4>
+          <p>
+            <code>AggregateFn</code> is a plain string alias; pg, sqlite, and duckdb interpolated
+            <code>string(fn)</code> verbatim into aggregate SQL while mysql whitelisted. Any consumer-controlled
+            value was a SQL-injection vector. Fixed with a whitelist, a classified rejection, and a cross-engine
+            <code>HostileFnRejected</code> conformance pin.
+          </p>
+        </div>
+
+        <div class="card card-problem">
+          <h4>3. The release scripts could tag poisoned go.mods and not notice</h4>
+          <p>
+            Both <code>tag-release.sh</code> and <code>batch-release.sh</code> swallowed a failed replace-strip
+            commit (<code>|| true</code>) and then tagged HEAD unconditionally &mdash; the exact poisoned-tag class
+            the batch script&rsquo;s header claims to harden against (the 90-red-tags lesson said release verification
+            must exercise behavior, not just resolution). Both now assert HEAD moved before the tag loop.
+          </p>
+        </div>
+
+        <div class="card card-problem">
+          <h4>4. Gates that claim to check but only echo</h4>
+          <p>
+            The Benchmarks calibration job failed instantly on a bare-value <code>$GITHUB_OUTPUT</code> write &mdash;
+            the cold run never ran and the artifact path matched nothing. The regression-gate bench legs teed
+            empty/partial output into a green compare (no <code>pipefail</code>). <code>verify-docs.sh</code>&rsquo;s
+            &ldquo;module count check&rdquo; computed the actual count and never compared it. All three classes fixed;
+            the repaired count check immediately caught a stale &ldquo;58&rdquo; claim in the shipped v4 wishlist.
+          </p>
+        </div>
+
+        <div class="card card-problem">
+          <h4>5. Documentation lying to every agent in the fleet</h4>
+          <p>
+            The canonical skill taught deleted <code>transport/http</code>+<code>transport/grpc</code> as
+            &ldquo;deprecated until v5&rdquo; for three weeks after the 2026-10-17 deletion (fixed in the earlier
+            audit session). This session verified and fixed three more: FEATURES&rsquo; PLANNED table marked gRPC
+            &ldquo;&#10004;&rdquo; under &ldquo;no production code yet&rdquo;; AGENTS.md described minor-form Go
+            directives when all 103 modules uniformly declare patch-form <code>go 1.27.2</code>; AGENTS.md said
+            BuildFlow&rsquo;s auto-configure is &ldquo;kept skipped&rdquo; when <code>.buildflow.yml</code> has been
+            UNSKIPPED since 2026-10-07.
+          </p>
+        </div>
+
+        <div class="card card-warning">
+          <h4>6. Two registered engines nothing in the fleet has ever booted</h4>
+          <p>
+            <code>bigtableengine</code> and <code>irohengine</code> are exported, driver-registered, and
+            <strong>never booted</strong> by any stack adapter, example, or systemtest. With the first-party-only
+            consumer scope (2026-10-08 decision), zero fleet consumers is the ADR-0152 delete-at-zero signal &mdash;
+            but the census/decision is the owner&rsquo;s, so they are reported, not deleted.
+          </p>
+        </div>
+
+        <div class="card card-warning">
+          <h4>7. Two Tier-0 types named StreamRef that will formally disagree at v5</h4>
+          <p>
+            <code>record.StreamRef</code> (string <code>Type/EntityID</code>, empty type legal) vs
+            <code>id.StreamRef</code> (struct, <code>:</code>-joined, empty type illegal). At the v5 cut
+            <code>record.NewStreamRef</code> gains validation and the two &ldquo;valid stream reference&rdquo;
+            definitions diverge on wire shape and validity rules. Needs a v5-window resolution, not a v4 patch.
+          </p>
+        </div>
+
+        <h2 id="issues"><span class="num">02</span>Open defects (ranked)</h2>
 
         <div class="issue issue-critical">
           <span class="severity severity-critical">Blocking</span>
-          <h3>Critical finding title</h3>
-          <div class="where">path/to/file.go:42-58</div>
+          <h3>decider.StateCache hands out the live cached State and folds onto it</h3>
+          <div class="where">decider/load.go:234-266 &middot; decider/cache.go:25-26,77</div>
           <p>
-            Describe the problem and cite the code or behavior that proves it.
+            <code>loadFromCache</code> returns the cached instance directly and <code>foldEvents</code> folds new
+            events <em>onto that shared instance</em>. With pointer/map-bearing States (the normal aggregate shape),
+            two concurrent <code>LoadRef</code>/<code>ExecuteRef</code> calls on one stream race &mdash; Otter is
+            lock-free and nothing synchronizes the State value. The &ldquo;consumers must treat State as
+            immutable&rdquo; contract comment is violated by the library one line later. Contrast
+            <code>kv/cache.go:118-123</code>, which deep-copies on every Get.
           </p>
           <div class="callout callout-solution">
-            <strong>Fix</strong>
-            State the concrete recommended action.
+            <strong>Fix (owner decision needed)</strong>
+            Copy-on-Get via a codec-based clone like <code>kv.Cache</code>, or a <code>StateCloner</code> option
+            whose absence disables the hot-state cache. Both are behavior/perf tradeoffs &mdash; this is the top
+            open defect and should be decided before the v5 cut, not rushed at the end of a session.
           </div>
         </div>
 
         <div class="issue issue-important">
           <span class="severity severity-important">Important</span>
-          <h3>Important finding title</h3>
-          <div class="where">path/to/another.go:12-19</div>
+          <h3>Ghost engines: bigtableengine and irohengine have no executable composition path</h3>
+          <div class="where">metaengine/bigtableengine &middot; metaengine/irohengine &middot; stack/bundle.go</div>
           <p>
-            Explain the risk and why a careful reviewer would hesitate before
-            shipping.
+            Verified: no <code>stack/</code> adapter, no example, no systemtest boots either. Fuzz-corpus name lists
+            and docs mention them; nothing executable does. Run the fleet census and apply the ADR-0152
+            delete-at-zero rule or commission a boot path &mdash; either decision is fine, drifting is not.
+          </p>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Important</span>
+          <h3>Scheduled workflows pile up without concurrency guards</h3>
+          <div class="where">benchmarks.yml &middot; fuzz.yml &middot; sentinel.yml &middot; go-finding-canary.yml &middot; autoretry.yml</div>
+          <p>
+            Only three workflows have a <code>concurrency:</code> block. Fuzz Nightly alone is four 90-minute
+            shards weekly; overlapping dispatches are the billing-storm class the TODO already complains about.
+          </p>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Important</span>
+          <h3>SHA-verification comments contradict their own pins</h3>
+          <div class="where">nightly-gates.yml:46-48 &middot; go-finding-canary.yml:28,35</div>
+          <p>
+            The &ldquo;SHA verified 2026-09-18&rdquo; annotation claims <code>actions/cache v4.2.0</code> next to a
+            pin labeled v6.1.0; the same checkout SHA is labeled v7.0.1 in one workflow and v7.0.0 in another.
+            At least one label is false &mdash; the &ldquo;verified&rdquo; annotation process is not trustworthy
+            and should be regenerated mechanically or deleted.
+          </p>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Important</span>
+          <h3>Exported mutator escape hatch on nominally immutable messages</h3>
+          <div class="where">command/command.go:64-68 &middot; query/query.go:107-111</div>
+          <p>
+            <code>ApplyOptions</code> lets any middleware overwrite already-populated identity fields mid-pipeline;
+            enriched and unenriched commands are indistinguishable. A v5-window type-model fix (enrichment epoch or
+            unexported setters), needs a consumer-impact review.
           </p>
         </div>
 
         <div class="issue issue-nice">
           <span class="severity severity-nice">Nice to have</span>
-          <h3>Polish suggestion</h3>
-          <div class="where">docs/ or config</div>
+          <h3>Remaining tails</h3>
+          <div class="where">various</div>
           <p>
-            Minor documentation gaps or future-proofing suggestions go here.
+            badger hand-rolls pagination instead of <code>PairsToScanResult</code> (with a subtle NextCursor
+            behavioral asymmetry vs bbolt); pg vs mysql <code>sanitizeIndexName</code> differ in
+            <code>extraAllowed</code> args with copy-pasted doc comments and no explanation; event&rsquo;s
+            <code>Version.Decrement/Sub</code> lose the machine-readable code (bare <code>fmt.Errorf</code> around
+            the sentinel) and <code>ParseVersion</code> has a dead error channel; <code>query.Handler</code> is the
+            last untyped-<code>any</code> value path (pin the decision in its doc); <code>commandlifecycle.projections.All() []any</code>
+            erases type parameters at the seam <code>system/lifecycle.go</code> must blind-cast; fuzz.yml&rsquo;s
+            manual FUZZ_SECONDS override is unreachable (dispatch defines no inputs).
           </p>
         </div>
 
-        <!-- Strengths -->
-        <h2>Strengths</h2>
+        <h2 id="fixed"><span class="num">03</span>Fixed this session (21, all gate-verified)</h2>
+        <table>
+          <thead>
+            <tr><th>#</th><th>Severity</th><th>Fix</th><th>Verification</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td><span class="badge badge-high">High</span></td><td>Fuzz harnesses re-pinned to the invalid-UTF-8 parser contract + seeds</td><td><span class="badge badge-fixed">Fixed</span> (prior audit session)</td></tr>
+            <tr><td>2</td><td><span class="badge badge-high">High</span></td><td>Stale go-finding/pipeline pin v1.15.0&rarr;v1.15.1 in cmd/cqrs-lint</td><td><span class="badge badge-fixed">Fixed</span> pin-sweep green, cqrs-lint suite green</td></tr>
+            <tr><td>3</td><td><span class="badge badge-high">High</span></td><td>Regenerated error-taxonomy generated region (stale turso codes)</td><td><span class="badge badge-fixed">Fixed</span> both taxonomy gates green</td></tr>
+            <tr><td>4</td><td><span class="badge badge-high">High</span></td><td>Calibration job <code>$GITHUB_OUTPUT</code> bare-value write</td><td><span class="badge badge-fixed">Fixed</span> actionlint green (needs push to prove on CI)</td></tr>
+            <tr><td>5</td><td><span class="badge badge-high">High</span></td><td>batch-release strip-commit failure swallowed before tagging</td><td><span class="badge badge-fixed">Fixed</span> HEAD-moved guard, release-script suite green</td></tr>
+            <tr><td>6</td><td><span class="badge badge-high">High</span></td><td>tag-release same hole</td><td><span class="badge badge-fixed">Fixed</span> same guard</td></tr>
+            <tr><td>7</td><td><span class="badge badge-high">High</span></td><td>AggregateFn raw SQL interpolation (pg/sqlite/duckdb) + mysql silent-SUM default</td><td><span class="badge badge-fixed">Fixed</span> whitelist + rejection code + hostile-fn matrix pin, 5 suites green</td></tr>
+            <tr><td>8</td><td><span class="badge badge-high">High</span></td><td>3 modules importing go.opentelemetry.io directly (contract rot)</td><td><span class="badge badge-fixed">Fixed</span> re-export swap, otel.AttrBool added, 4 suites green</td></tr>
+            <tr><td>9</td><td><span class="badge badge-high">High</span></td><td>Gate-bench pipelines missing pipefail (empty/partial compares)</td><td><span class="badge badge-fixed">Fixed</span> pipefail added</td></tr>
+            <tr><td>10</td><td><span class="badge badge-high">High</span></td><td>verify-docs module-count echo-gate</td><td><span class="badge badge-fixed">Fixed</span> real comparison, caught the v4-WISHLIST &ldquo;58&rdquo; lie</td></tr>
+            <tr><td>11</td><td><span class="badge badge-critical">Med</span></td><td>FEATURES PLANNED table gRPC &#10004; lie</td><td><span class="badge badge-fixed">Fixed</span></td></tr>
+            <tr><td>12</td><td><span class="badge badge-critical">Med</span></td><td>AGENTS.md minor-form directive lie (uniform 1.27.2 verified by count)</td><td><span class="badge badge-fixed">Fixed</span></td></tr>
+            <tr><td>13</td><td><span class="badge badge-critical">Med</span></td><td>AGENTS.md BuildFlow-skip lie (UNSKIPPED since 10-07 verified in config)</td><td><span class="badge badge-fixed">Fixed</span></td></tr>
+            <tr><td>14</td><td><span class="badge badge-critical">Med</span></td><td>v4-WISHLIST stale &ldquo;58 go.mod files&rdquo;</td><td><span class="badge badge-fixed">Fixed</span> dated-as-historical</td></tr>
+            <tr><td>15</td><td><span class="badge badge-critical">Med</span></td><td>decider singleflight key uses display form vs id keying contract</td><td><span class="badge badge-fixed">Fixed</span> Get() keying, decider suite green</td></tr>
+            <tr><td>16</td><td><span class="badge badge-low">Low</span></td><td>dgraph unlabeled inner vector-values error + double wrap</td><td><span class="badge badge-fixed">Fixed</span> dgraph build+vector tests green</td></tr>
+            <tr><td>17&ndash;21</td><td><span class="badge badge-low">Low</span></td><td>Deleted-transport doc truth sweep (skill, references, ADR-0127, ROADMAP), root junk (<code>--help/</code>, <code>awk</code>, <code>check</code>), canonical-facts index rows, CHANGELOG entries, calibration baseline workflow</td><td><span class="badge badge-fixed">Fixed</span> (prior audit session, receipts in docs/status/2026-11-08 report)</td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="false"><span class="num">04</span>False leads killed (inherited claims re-verified against source)</h2>
         <div class="strengths">
           <div class="strength">
-            <div class="check">+</div>
+            <div class="check">&times;</div>
             <div class="text">
-              <strong>Specific strength</strong>
-              <span>Explain why it matters and what it enables.</span>
+              <strong>&ldquo;SQLite reset breaks sequence monotonicity&rdquo; &mdash; FALSE</strong>
+              <span>The sqlite multimap seq-rewind on reset is explicitly sanctioned by the ADR-0143 contract (per-collection data-derived caches restart with the emptied table; only journal AUTOINCREMENT must keep advancing). The file comment is scoped to journals and is true as written.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">&times;</div>
+            <div class="text">
+              <strong>&ldquo;dgraph marshals vector metadata with json v1&rdquo; &mdash; FALSE</strong>
+              <span>vector.go imports <code>encoding/json/v2</code> directly; the bytes are identical to the shared helper. Only the label/wrapping style was off (fixed).</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">&times;</div>
+            <div class="text">
+              <strong>&ldquo;46 direct OTel imports violate the contract&rdquo; &mdash; inflated</strong>
+              <span>Real production violations: 3 modules (all fixed). The rest are otel-family modules doing their job, linter rule sources, and doc strings.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">&times;</div>
+            <div class="text">
+              <strong>&ldquo;branching-flow panic analyzer at 0 findings&rdquo; &mdash; not plausible as stated</strong>
+              <span>61 real production <code>panic(</code> sites exist with only 6 suppressions. The 61 were adjudicated by hand: every one is a constructor-time guard or documented Must variant; zero data-reachable. But the analyzer&rsquo;s zero needs an exemption audit before its numbers are trusted.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">&times;</div>
+            <div class="text">
+              <strong>&ldquo;corrupted go-finding n.1 require&rdquo; &mdash; transient</strong>
+              <span>A mid-<code>go mod tidy</code> snapshot; the committed state is clean (v1.15.1 everywhere).</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">&times;</div>
+            <div class="text">
+              <strong>&ldquo;module-list split brain&rdquo; &mdash; does not exist today</strong>
+              <span>go.work (99), go.mod count (102+root), flake testModules (89), api-stability slice (92), coverage baselines (89/170), fuzz targets (116) all reconcile; two gates enforce it.</span>
             </div>
           </div>
         </div>
 
-        <!-- Table with Badges -->
-        <h2>Issue Table</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Severity</th>
-              <th>Issue</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>1</td>
-              <td><span class="badge badge-critical">Critical</span></td>
-              <td>Missing error handling</td>
-              <td><span class="badge badge-fixed">Fixed</span></td>
-            </tr>
-            <tr>
-              <td>2</td>
-              <td><span class="badge badge-high">High</span></td>
-              <td>Race condition</td>
-              <td><span class="badge badge-low">Open</span></td>
-            </tr>
-          </tbody>
-        </table>
+        <h2 id="strengths">Strengths worth preserving</h2>
+        <div class="strengths">
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Reset/journal discipline is exemplary</strong>
+              <span>Every engine&rsquo;s reset carries an ADR-0143 comment, deliberately excludes journal ranges, and has a paired grow-together reset test.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>libSQL dot-product handling is exactly right</strong>
+              <span>&ldquo;already negated &mdash; do NOT negate again&rdquo; documented at the code, turso pins all three metrics against <code>VectorDistance</code> with a ULP tolerance.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Health/quarantine lock ordering is contract-clean</strong>
+              <span>s.mu &rarr; healthMu only; quarantine hook emitted after unlock; Rejection/Conflict/Corruption never count toward quarantine.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>The conformance-harness pattern is the right durable gate</strong>
+              <span>One <code>HostileFnRejected</code> addition pins every engine that runs the matrix &mdash; the same shape the repo already uses for vector dimension locks and grouped caps.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Ghost sweep of Tier 0-2 came back clean</strong>
+              <span>Every suspicious export probed (dedup.Ring, projection.NewProjection, delivery-mark trio, scheduling/engine, event.Checkpoint, flightrecorder) has real cross-module consumers; deprecated shells have no internal consumers.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>61 production panics: zero defects</strong>
+              <span>All constructor-time guards or documented Must variants; zero panics reachable from data without recovery.</span>
+            </div>
+          </div>
+        </div>
 
-        <!-- Before/After Comparison -->
         <h2 id="proposal">Before / After</h2>
         <div class="compare-header">
-          <div class="compare-before">Before</div>
-          <div class="compare-after">After</div>
+          <div class="compare-before">Before &mdash; pgengine/aggregations.go:29</div>
+          <div class="compare-after">After &mdash; whitelisted at every entry</div>
         </div>
         <div class="compare-row">
           <div>
-            <pre><code><span class="tok-comment">// Old code</span>
-<span class="tok-keyword">func</span> <span class="tok-func">process</span>(data <span class="tok-type">interface</span>{}) { }</code></pre>
+            <pre><code><span class="tok-comment">// fn interpolated raw: any string became SQL</span>
+<span class="tok-keyword">func</span> <span class="tok-func">pgAggExpr</span>(fn metaengine.<span class="tok-type">AggregateFn</span>, column <span class="tok-type">string</span>) <span class="tok-type">string</span> {
+    <span class="tok-keyword">return</span> fmt.Sprintf(<span class="tok-string">"%s((value-&gt;'%s')::float8)"</span>, fn, escapeJSONKey(column))
+}</code></pre>
           </div>
           <div>
-            <pre><code><span class="tok-comment">// New code</span>
-<span class="tok-keyword">func</span> <span class="tok-func">process</span>[T <span class="tok-type">any</span>](data T) { }</code></pre>
+            <pre><code><span class="tok-comment">// every entry rejects non-constant fn values</span>
+<span class="tok-keyword">if</span> err := metaengine.<span class="tok-func">RejectInvalidAggregateFn</span>(fn); err != <span class="tok-type">nil</span> {
+    <span class="tok-keyword">return</span> 0, fmt.Errorf(<span class="tok-string">"pgengine.Aggregate: %w"</span>, err)
+}
+<span class="tok-comment">// ...and the cross-engine matrix pins it:</span>
+<span class="tok-comment">// adttest.RunAggregateMatrix &rarr; HostileFnRejected</span></code></pre>
           </div>
         </div>
 
-        <!-- ASCII Diagram -->
-        <h2>Dependency Tree</h2>
-        <div class="dep-tree">
-          <span class="root">root</span> ├──
-          <span class="ok">wanted-dep</span> └──
-          <span class="unwanted">unwanted-dep</span>
-        </div>
-
-        <!-- Numbered Steps -->
-        <h2 id="plan"><span class="num">03</span>Migration Plan</h2>
+        <h2 id="plan"><span class="num">05</span>Plan (hand-off, in order)</h2>
         <div class="migration-step">
           <div class="migration-num">1</div>
           <div class="migration-content">
-            <h4>Add generic type parameter</h4>
-            <p>Update the function signature to accept a type parameter.</p>
+            <h4>Push and collect receipts</h4>
+            <p>Push master (authorization needed), watch push-CI, Nightly Gates, Fuzz Nightly, and a fresh Benchmarks dispatch (the calibration date fix must be on origin to take effect). The sibling-pins and taxonomy legs are already fixed locally &mdash; CI proves them.</p>
           </div>
         </div>
         <div class="migration-step">
           <div class="migration-num">2</div>
           <div class="migration-content">
-            <h4>Update all call sites</h4>
-            <p>Pass explicit types at each call site for type safety.</p>
+            <h4>Run the composed verification once the tree freezes</h4>
+            <p>When the parallel CUE-config session lands: preflight &rarr; quiet-window <code>#verify</code> with a durable log. This session&rsquo;s per-module suites are green, but the composed proof is owed.</p>
+          </div>
+        </div>
+        <div class="migration-step">
+          <div class="migration-num">3</div>
+          <div class="migration-content">
+            <h4>decider.StateCache decision (top open defect)</h4>
+            <p>Owner A/B: codec-cloned cache entries (safe, allocation cost) vs StateCloner option with cache-disabled default (fast, opt-in). Decide before the v5 cut; the race window is real today.</p>
+          </div>
+        </div>
+        <div class="migration-step">
+          <div class="migration-num">4</div>
+          <div class="migration-content">
+            <h4>Ghost-engine census: bigtableengine + irohengine</h4>
+            <p>Run the fleet census; apply ADR-0152 delete-at-zero or commission a boot path (stack adapter or systemtest). Either verdict closes the finding.</p>
+          </div>
+        </div>
+        <div class="migration-step">
+          <div class="migration-num">5</div>
+          <div class="migration-content">
+            <h4>Workflow guard wall</h4>
+            <p>Add concurrency guards to the five unguarded workflows; regenerate or delete the false SHA-version annotations; fix the dead FUZZ_SECONDS dispatch input. All cheap, all prevent recurring false-green/false-red.</p>
+          </div>
+        </div>
+        <div class="migration-step">
+          <div class="migration-num">6</div>
+          <div class="migration-content">
+            <h4>v5-window type-model resolutions</h4>
+            <p>StreamRef dual definition (record vs id), ApplyOptions enrichment epoch, projections.All() type erasure, query.Handler any-path doc pin. These are v5 cut-list items, not v4 patches.</p>
+          </div>
+        </div>
+        <div class="migration-step">
+          <div class="migration-num">7</div>
+          <div class="migration-content">
+            <h4>Tails and hygiene</h4>
+            <p>badger pagination &rarr; PairsToScanResult; sanitizeIndexName divergence documented or unified; event Version error-contract wrap; audit the branching-flow panic-analyzer exemption logic; keep the brutal-review cadence at two weeks &mdash; the seven-week gap is how three nightly failure classes and five doc lies accumulated.</p>
           </div>
         </div>
 
         <footer class="footer">
-          Generated YYYY-MM-DD &middot; All claims verified against source code
-          where noted
+          Generated 2026-11-08 &middot; go-cqrs-lite brutal self-review, episode 7 &middot; every claim above was
+          verified against source this session; the six false leads are listed because what a review does NOT find
+          matters as much as what it does.
         </footer>
       </main>
     </div>
