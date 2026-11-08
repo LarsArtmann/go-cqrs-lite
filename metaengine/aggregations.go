@@ -1,6 +1,12 @@
 package metaengine
 
-import "context"
+import (
+	"context"
+	"errors"
+	"fmt"
+
+	errorfamily "github.com/larsartmann/go-error-family"
+)
 
 // AggregateFn is a SQL aggregate function name.
 type AggregateFn string
@@ -12,6 +18,37 @@ const (
 	AggregateMax   AggregateFn = "MAX"
 	AggregateAvg   AggregateFn = "AVG"
 )
+
+// ErrInvalidAggregateFn is wrapped by every aggregate-fn rejection; errors.Is
+// it to distinguish a bad fn value from engine failures.
+var ErrInvalidAggregateFn = errors.New("invalid aggregate function")
+
+// IsValidAggregateFn reports whether fn is one of the five Aggregate*
+// constants. AggregateFn is a plain string alias that engines interpolate
+// into SQL verbatim, so any unconstrained value is a SQL-injection vector
+// (2026-11-08 audit: pg/sqlite/duckdb interpolated raw, mysql whitelisted).
+// Engines MUST guard every SQL-building aggregate entry with this.
+func IsValidAggregateFn(fn AggregateFn) bool {
+	switch fn {
+	case AggregateCount, AggregateSum, AggregateMin, AggregateMax, AggregateAvg:
+		return true
+	default:
+		return false
+	}
+}
+
+// RejectInvalidAggregateFn returns a classified Rejection error wrapping
+// ErrInvalidAggregateFn for any fn IsValidAggregateFn rejects, nil otherwise.
+// Engines call it at their aggregate entries and wrap the result with their
+// own label per the shared-plumbing contract.
+func RejectInvalidAggregateFn(fn AggregateFn) error {
+	if IsValidAggregateFn(fn) {
+		return nil
+	}
+
+	return errorfamily.WrapRejection(ErrInvalidAggregateFn, "metaengine.invalid_aggregate_fn",
+		fmt.Sprintf("invalid aggregate function %q: use the AggregateCount/Sum/Min/Max/Avg constants", string(fn)))
+}
 
 // AggregateReader is an optional capability: engines that support SQL-level
 // aggregation (COUNT, SUM, MIN, MAX, AVG) implement this to avoid loading

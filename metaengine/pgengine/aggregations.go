@@ -70,6 +70,10 @@ func (e *pgEngine) Aggregate(
 	column string,
 	filters []metaengine.FilterSpec,
 ) (float64, error) {
+	if err := metaengine.RejectInvalidAggregateFn(fn); err != nil {
+		return 0, fmt.Errorf("pgengine.Aggregate: %w", err)
+	}
+
 	var b strings.Builder
 
 	args := []any{col}
@@ -101,6 +105,10 @@ func (e *pgEngine) GroupedAggregate(
 	groupBy string,
 	filters []metaengine.FilterSpec,
 ) (map[string]float64, error) {
+	if err := metaengine.RejectInvalidAggregateFn(fn); err != nil {
+		return nil, fmt.Errorf("pgengine.GroupedAggregate: %w", err)
+	}
+
 	var b strings.Builder
 
 	args := []any{col}
@@ -163,6 +171,12 @@ func (e *pgEngine) MultiAggregate(
 ) (map[string]float64, error) {
 	if len(specs) == 0 {
 		return nil, errors.New("pgengine.MultiAggregate: no specs provided")
+	}
+
+	for i, s := range specs {
+		if err := metaengine.RejectInvalidAggregateFn(s.Fn); err != nil {
+			return nil, fmt.Errorf("pgengine.MultiAggregate spec %d: %w", i, err)
+		}
 	}
 
 	var b strings.Builder
