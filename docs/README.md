@@ -198,6 +198,7 @@ The authoritative module index with README links lives in the **[project README]
 | [0163](adr/0163-schema-compatibility-structural-differ-over-cue.md) | Schema compatibility is a structural differ over the schema model, not a CUE subsume | Accepted                                  |
 | [0164](adr/0164-per-group-projection-caps.md) | Per-group projection caps: WithCapPerGroup bounds each key group under the WithCap global ceiling | Accepted                                  |
 | [0165](adr/0165-standard-deployment-topology-filler-config-ladder-nixos-module.md) | Standard deployment topology — a data filler, a config-format ladder, and a first-party NixOS module | Accepted                                  |
+| [0166](adr/0166-one-streamref-id-struct-canonical-record-aliases.md) | One StreamRef — the id struct is canonical, record aliases it | Proposed                                  |
 | [0100](adr/0100-redesign-scope-parallel.md)                           | Redesign scope: parallel (new alongside old)                                         | Accepted                                            |
 | [0101](adr/0101-backend-abstraction-n-instance.md)                    | Backend abstraction: N-instance metaengine                                           | Accepted                                            |
 | [0102](adr/0102-admin-interface-introspection-only.md)                | Admin web interface: introspection API only                                          | Accepted                                            |

@@ -525,6 +525,15 @@
               machine.start()
               machine.wait_for_unit("postgresql")
 
+              # 0. Provisioning settles AFTER the unit is active (ensureUsers
+              #    rides ExecStartPost): poll until the role exists, or the
+              #    peer-auth asserts below race first-boot provisioning (the
+              #    2026-11-08 rerun caught the green-twice timing luck).
+              machine.wait_until_succeeds(
+                "sudo -u postgres psql -tAc"
+                " \"SELECT 1 FROM pg_roles WHERE rolname='cqrs_demo_primary'\" | grep -q 1"
+              )
+
               # 1. The rendered DeploymentConfig is on disk with the
               #    peer-socket DSN and the standard instance triple.
               cfg = machine.succeed("cat /etc/cqrs/demo/deployment.json")
