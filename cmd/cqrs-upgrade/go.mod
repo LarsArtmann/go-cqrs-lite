@@ -8,10 +8,8 @@ require (
 )
 
 require (
-	github.com/google/pprof v0.0.0-20261105003125-4bf881d7fb0b // indirect
 	github.com/larsartmann/go-error-family v0.12.0 // indirect
 	github.com/larsartmann/go-finding v1.15.1 // indirect
-	github.com/onsi/ginkgo/v2 v2.34.0 // indirect
 	golang.org/x/sync v0.24.0 // indirect
 	golang.org/x/tools v0.52.0 // indirect
 )

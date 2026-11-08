@@ -459,6 +459,64 @@
             '';
           };
 
+          # NixOS VM test (ADR-0165): flake.nixosModules.cqrs boots with a
+          # standard-topology deployment — rendered config on disk, postgres
+          # provisioned, and the PEER-AUTH contract proven on hardware: the
+          # service user cqrs-demo reaches its role over the unix socket via
+          # the module's pg_ident map, nobody else does. The example binary
+          # itself rides the system/v4.18.0 tag (drop of the pre-release
+          # replace makes a plain buildGoModule package possible then).
+          cqrsServiceTest = pkgs.testers.runNixOSTest {
+            name = "cqrs-nixos-module";
+
+            nodes.machine =
+              {
+                config,
+                ...
+              }:
+              {
+                imports = [ ./nix/vm/cqrs.nix ];
+                environment.systemPackages = [ config.services.postgresql.finalPackage ];
+              };
+
+            testScript = ''
+              machine.start()
+              machine.wait_for_unit("postgresql")
+
+              # 1. The rendered DeploymentConfig is on disk with the
+              #    peer-socket DSN and the standard instance triple.
+              cfg = machine.succeed("cat /etc/cqrs/demo/deployment.json")
+              assert "postgres:///cqrs_demo_primary?host=/run/postgresql&user=cqrs_demo_primary" in cfg, cfg
+              assert '"role":"source-of-truth"' in cfg, cfg
+              assert '"role":"queries"' in cfg, cfg
+              assert '"role":"projections"' in cfg, cfg
+              assert "/var/lib/cqrs/demo/proj.db" in cfg, cfg
+
+              # 2. THE contract: the service user connects via peer auth
+              #    (pg_ident map cqrs_peer: cqrs-demo -> cqrs_demo_primary).
+              out = machine.succeed(
+                "sudo -u cqrs-demo psql -h /run/postgresql"
+                " -U cqrs_demo_primary -d cqrs_demo_primary -tAc 'SELECT 1'"
+              ).strip()
+              assert out == "1", f"peer-auth query returned {out!r}"
+
+              # 3. The provisioned role OWNS the database (ensureDBOwnership).
+              owner = machine.succeed(
+                "sudo -u postgres psql -tAc \"SELECT pg_get_userbyid(datdba)"
+                " FROM pg_database WHERE datname='cqrs_demo_primary'\""
+              ).strip()
+              assert owner == "cqrs_demo_primary", f"owner is {owner!r}"
+
+              # 4. The map is scoped: another OS user must NOT reach the role.
+              machine.fail(
+                "sudo -u postgres psql -h /run/postgresql"
+                " -U cqrs_demo_primary -d cqrs_demo_primary -tAc 'SELECT 1'"
+              )
+
+              print("cqrs NixOS module: config + peer-auth provisioning verified")
+            '';
+          };
+
           # NixOS VM test: verify the MySQL/MariaDB module boots correctly.
           mysqlServiceTest = pkgs.testers.runNixOSTest {
             name = "mysql-service-health";
@@ -848,6 +906,8 @@
             duckdb-vm = duckdbTest;
             # Turso libSQL server health (remote sync path).
             turso-vm = tursoTest;
+            # ADR-0165 NixOS module: rendered config + peer-auth provisioning.
+            cqrs-vm = cqrsServiceTest;
             # Dgraph distributed graph DB health (Zero+Alpha, DQL).
             dgraph-vm = dgraphTest;
           };
