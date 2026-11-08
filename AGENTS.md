@@ -364,7 +364,7 @@ ES-native planner depends on the `Record` type ([ADR-0111](docs/adr/0111-record-
 
 Remote engines (PG, MySQL, Dgraph, Turso) declare compile-time RTT priors; the live system replaces them with runtime observations so the cost-based planner routes on honest data. Surface: `Prober`/`TransactMeasurer` capability interfaces, `ProbeEngine` background loop + `LatencyTracker` (EWMA/P50/P95/P99), `Calibration.ApplyCalibration` (precedence: compile-time defaults -> calibration priors -> live measurement), `Store.Replan`/`CheckRouting`/`StartAutoReplan` + `WithRoutingHysteresis`/`WithRoutingMinDelta`, `NsForRead` RTT amortization (a 10K-row scan pays RTT once), and `GetEngineStats`/`Doctor`/`EXPLAIN` diagnostics.
 
-Design doc: [`METAENGINE-LIVE-LATENCY-MODEL.md`](docs/planning/METAENGINE-LIVE-LATENCY-MODEL.md). Recipe: `recipes.md` §2.11.
+Design doc: [`METAENGINE-LIVE-LATENCY-MODEL.md`](docs/planning/METAENGINE-LIVE-LATENCY-MODEL.md). Recipe: [`.agents/skills/go-cqrs-lite/references/recipes.md`](.agents/skills/go-cqrs-lite/references/recipes.md) §2.11.
 
 ### User's vision statement (the north star)
 
