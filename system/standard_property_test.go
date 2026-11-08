@@ -26,7 +26,7 @@ func FuzzLoadConfigJSON(f *testing.F) {
 	f.Add([]byte(`{"engines":`))
 	f.Add([]byte(`not json at all`))
 	f.Add([]byte(``))
-	f.Add([]byte(`{"engines":{"日本語":{"driver":"sqlite","dsn":"file:café.db"}}}`))
+	f.Add([]byte(`{"engines":{"caf\u00e9":{"driver":"sqlite","dsn":"file:caf\u00e9.db"}}}`))
 	f.Add(bytes.Repeat([]byte(`{"a":{"b":`), 200))
 	f.Add([]byte(`{"instances":[{"role":"bogus","engine":"x"}]}`))
 

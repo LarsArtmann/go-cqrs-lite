@@ -47,27 +47,23 @@ let
     options = {
       driver = mkOption {
         type = types.str;
-        description = mdDoc
-          "metaengine driver name (sqlite, memory, pebble, duckdb, postgres, turso, ...).";
+        description = mdDoc "metaengine driver name (sqlite, memory, pebble, duckdb, postgres, turso, ...).";
       };
       dsn = mkOption {
         type = types.nullOr types.str;
         default = null;
-        description = mdDoc
-          "Explicit connection string. Null triggers auto-provisioning for postgres/sqlite.";
+        description = mdDoc "Explicit connection string. Null triggers auto-provisioning for postgres/sqlite.";
       };
       pragmas = mkOption {
         type = types.listOf types.str;
         default = [ ];
         example = [ "journal_mode=wal" ];
-        description = mdDoc
-          "SQLite pragmas.";
+        description = mdDoc "SQLite pragmas.";
       };
       priority = mkOption {
         type = types.nullOr priorityType;
         default = null;
-        description = mdDoc
-          "Layout-planning objective for this engine.";
+        description = mdDoc "Layout-planning objective for this engine.";
       };
       materializedViews = mkOption {
         type = types.listOf (
@@ -95,14 +91,12 @@ let
           }
         );
         default = [ ];
-        description = mdDoc
-          "Operator-owned aggregate accelerations (sqlite/turso engines).";
+        description = mdDoc "Operator-owned aggregate accelerations (sqlite/turso engines).";
       };
       maxOpenConns = mkOption {
         type = types.ints.unsigned;
         default = 0;
-        description = mdDoc
-          "database/sql pool ceiling (0 keeps the engine default).";
+        description = mdDoc "database/sql pool ceiling (0 keeps the engine default).";
       };
     };
   };
@@ -122,20 +116,17 @@ let
       collections = mkOption {
         type = types.listOf types.str;
         default = [ ];
-        description = mdDoc
-          "Collection names this instance serves (introspection-only; pinned to system.Standard by the shared fixture).";
+        description = mdDoc "Collection names this instance serves (introspection-only; pinned to system.Standard by the shared fixture).";
       };
       engine = mkOption {
         type = types.nullOr types.str;
         default = null;
-        description = mdDoc
-          "Single named engine (mutually exclusive with engines).";
+        description = mdDoc "Single named engine (mutually exclusive with engines).";
       };
       engines = mkOption {
         type = types.listOf types.str;
         default = [ ];
-        description = mdDoc
-          "Mixed engine pool for projections instances.";
+        description = mdDoc "Mixed engine pool for projections instances.";
       };
       durability = mkOption {
         type = types.nullOr (
@@ -150,8 +141,7 @@ let
       publish = mkOption {
         type = types.listOf types.str;
         default = [ ];
-        description = mdDoc
-          "Bus names events fan out to (must exist in buses).";
+        description = mdDoc "Bus names events fan out to (must exist in buses).";
       };
     };
   };
@@ -329,14 +319,12 @@ in
               enable = mkOption {
                 type = types.bool;
                 default = true;
-                description = mdDoc
-                  "Render this deployment's config (and provision its databases).";
+                description = mdDoc "Render this deployment's config (and provision its databases).";
               };
               engines = mkOption {
                 type = types.attrsOf (types.submodule engineOptions);
                 default = { };
-                description = mdDoc
-                  "Named storage engine declarations.";
+                description = mdDoc "Named storage engine declarations.";
               };
               buses = mkOption {
                 type = types.attrsOf (
@@ -353,8 +341,7 @@ in
                       mode = mkOption {
                         type = types.nullOr types.str;
                         default = null;
-                        description = mdDoc
-                          "Introspection-only; removed at v5.";
+                        description = mdDoc "Introspection-only; removed at v5.";
                       };
                     };
                   }
@@ -364,14 +351,12 @@ in
               instances = mkOption {
                 type = types.listOf (types.submodule instanceOptions);
                 default = [ ];
-                description = mdDoc
-                  "Explicit instances; leave empty with standardTopology for the canonical preset.";
+                description = mdDoc "Explicit instances; leave empty with standardTopology for the canonical preset.";
               };
               standardTopology = mkOption {
                 type = types.bool;
                 default = true;
-                description = mdDoc
-                  "Fill the canonical three-instance topology when instances is empty.";
+                description = mdDoc "Fill the canonical three-instance topology when instances is empty.";
               };
               acknowledgeWarnings = mkOption {
                 type = types.listOf types.str;
@@ -403,8 +388,7 @@ in
               configPath = mkOption {
                 type = types.str;
                 readOnly = true;
-                description = mdDoc
-                  "Path of the rendered DeploymentConfig JSON for CQRS_DEPLOYMENT_CONFIG.";
+                description = mdDoc "Path of the rendered DeploymentConfig JSON for CQRS_DEPLOYMENT_CONFIG.";
               };
             };
 
@@ -413,15 +397,13 @@ in
         )
       );
       default = { };
-      description = mdDoc
-        "go-cqrs-lite DeploymentConfigs rendered per deployment (ADR-0165).";
+      description = mdDoc "go-cqrs-lite DeploymentConfigs rendered per deployment (ADR-0165).";
     };
 
     lib.hardenedService = mkOption {
       type = types.functionTo types.attrs;
       readOnly = true;
-      description = mdDoc
-        "name -> systemd service fragment: user/group, StateDirectory, config env, sandboxing.";
+      description = mdDoc "name -> systemd service fragment: user/group, StateDirectory, config env, sandboxing.";
     };
   };
 

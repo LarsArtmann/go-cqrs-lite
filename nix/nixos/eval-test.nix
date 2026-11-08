@@ -167,17 +167,28 @@ let
       }).config.environment.etc."cqrs/demo/deployment.json".text;
 
   extraAssertions = [
-    ((builtins.fromJSON evalOptOut.environment.etc."cqrs/off/deployment.json".text).instances == [ ]
-      || throw "cqrs-nixos-eval[standardTopology=false]: instances must be empty")
-    (evalOptOut.services.postgresql.enable
-      || throw "cqrs-nixos-eval[standardTopology=false]: engine provisioning must stay on (it is independent of the instance filler)")
-    (!evalExplicitDSN.services.postgresql.enable
-      || throw "cqrs-nixos-eval[explicit-dsn]: postgres must stay off when dsn is explicit")
-    ((builtins.fromJSON evalExplicitDSN.environment.etc."cqrs/demo/deployment.json".text).engines.primary.dsn
-      == "postgres://external.example.com/app"
-      || throw "cqrs-nixos-eval[explicit-dsn]: explicit dsn lost")
-    (evalDefaultAlias == null || evalDefaultAlias == rendered
-      || throw "cqrs-nixos-eval[default-alias]: renders differently from nixosModules.cqrs")
+    (
+      (builtins.fromJSON evalOptOut.environment.etc."cqrs/off/deployment.json".text).instances == [ ]
+      || throw "cqrs-nixos-eval[standardTopology=false]: instances must be empty"
+    )
+    (
+      evalOptOut.services.postgresql.enable
+      || throw "cqrs-nixos-eval[standardTopology=false]: engine provisioning must stay on (it is independent of the instance filler)"
+    )
+    (
+      !evalExplicitDSN.services.postgresql.enable
+      || throw "cqrs-nixos-eval[explicit-dsn]: postgres must stay off when dsn is explicit"
+    )
+    (
+      (builtins.fromJSON evalExplicitDSN.environment.etc."cqrs/demo/deployment.json".text)
+      .engines.primary.dsn == "postgres://external.example.com/app"
+      || throw "cqrs-nixos-eval[explicit-dsn]: explicit dsn lost"
+    )
+    (
+      evalDefaultAlias == null
+      || evalDefaultAlias == rendered
+      || throw "cqrs-nixos-eval[default-alias]: renders differently from nixosModules.cqrs"
+    )
   ];
 
   ok = all (c: c == null) assertions && all (v: v == true) extraAssertions;
