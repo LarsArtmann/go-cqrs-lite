@@ -89,3 +89,59 @@ but it does not earn a runtime dependency either.
 - `system/config.cue` — schema + defaults; `scripts/check-cue-config.sh` drift pin
 - `nix/nixos/cqrs.nix` — the module; `flake.nix` — `nixosModules.cqrs` output
 - `example/standard-topology/` — runnable demo + `example/standard-topology/vm-test.nix`
+
+---
+
+## Addendum — completion session, 2026-11-08 (post-plan `2026-11-08_16-11`)
+
+The completion arc (14 medium tasks) landed same-day. Facts that supersed or
+sharpen the original text:
+
+**Postgres auth truth (P01).** The original auto-provisioning assumed nixpkgs
+localhost `trust` auth. Verified against the pinned nixpkgs source
+(`nixos/modules/services/databases/postgresql.nix:688-697`): the default
+`pg_hba` is `local all all peer` + `host all all 127.0.0.1/32 md5` — TCP
+requires a password the module never had. The sanctioned path is exactly what
+`ensureUsers` documents (option description, lines ~493-497): peer
+authentication, "the Unix user with the same name only, and that without the
+need for a password"; `ensureDBOwnership` is a plain
+`ALTER DATABASE ... OWNER TO` (line 102-105) with no version floor. Because
+the service runs as ONE OS user per deployment (`cqrs-<name>`) while roles
+are per-engine (`cqrs_<name>_<engine>`), peer auth alone cannot work either —
+the module now adds a `cqrs_peer` pg_ident map plus a database-and-role-
+scoped `local` hba line ahead of the defaults, and renders socket DSNs
+(`postgres:///cqrs_<name>_<engine>?host=/run/postgresql&user=...`; libpq's
+compiled default socket dir IS `/run/postgresql`, verified in the store
+binary). No password exists anywhere in the store or the rendered config.
+Proven on hardware: `cqrs-vm` boots QEMU, `SELECT 1` as `cqrs-demo` over the
+socket, ownership check, wrong-OS-user rejected with the map-miss log line.
+
+**Equivalence pin (P05).** The three preset twins assert one shared fixture,
+`system/testdata/standard-instance-triple.json`: the Go suite
+(`TestStandard_InstanceTripleMatchesSharedFixture`), the CUE gate
+(`#check-cue-config`, `standard.instances` diff, 6-fault self-test), and the
+NixOS eval check. The Nix twin GAINED the `collections` field the Go and CUE
+twins already stamped — a real split brain the pin caught by design.
+
+**Committed protection (P03/P04).** `nix/nixos/eval-test.nix` evaluates the
+module on BOTH x86_64-linux and aarch64-linux from any host (pure evaluation)
+and asserts: rendered JSON (against the shared triple), `ensureDatabases`/
+`ensureUsers`/ownership, the peer-auth hba+ident lines, and the
+`hardenedService` fragment — mutation-tested both directions. Wired as flake
+check `cqrs-nixos-eval` + CI step; `#check-cue-config` rides
+`#verify`/`#verify-fast` + ci.yml; `cqrs-vm` rides the nightly workflow
+(Q2 decision: nightly, not push — the QEMU boot costs ~4 min).
+
+**Deferred to the v4.18.0 tag wave.** (a) The example binary inside the VM:
+`example/standard-topology` carries a pre-release `replace` to the local
+system module until `Standard` is published, so a nix-built package is
+deliberately post-tag (a plain `buildGoModule` works once the replace dies);
+(b) the go-appkit adoption of `Standard` (its modules pin published tags —
+`defaultDeployment` in `cqrs/eventservice.go` is the site); (c) dropping the
+example's replace + its `check-example-standalone` baseline row. cqrs-htmx
+adopted NOW (F43): its workspace replaces system to the local tree, so its
+`RecommendedMemory/SQLite/*Deployment` presets already return
+`system.Standard(...)` shapes — suite green — while `RecommendedSplitSQLite
+Deployment` keeps explicit instances BY DESIGN (Standard pools projections
+over every engine; the split topology exists to keep the journal file free of
+projection writes — the passthrough contract is what makes both coexist).

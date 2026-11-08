@@ -1,5 +1,31 @@
 # SUPERB — ADR-0165 Standard-Topology Completion Pareto Plan (2026-11-08 16:11 CET)
 
+> **Status (2026-11-08, executed same-day): COMPLETE — all 14 medium tasks
+> closed.** Per-task verdicts: P01 ✅ (nixpkgs default is `md5` on TCP +
+> `peer` on socket — postgresql.nix:688-697; switched to socket DSNs +
+> pg_ident map, no passwords anywhere). P02 ✅ (round-trip tests load the
+> NixOS-rendered JSON + CUE golden through LoadConfig). P03 ✅
+> (`nix/nixos/eval-test.nix`, both linux arches, mutation-proven; flake check
+> `cqrs-nixos-eval`). P04 ✅ (`#check-cue-config` in `#verify`, `#verify-fast`,
+> ci.yml; eval check as CI step). P05 ✅ (shared
+> `standard-instance-triple.json` asserted by Go + CUE + Nix; the pin caught
+> the Nix twin missing `collections`). P06 ✅ (`example/standard-topology`,
+> full 6-gate registration, standalone-audit baseline row for the pre-release
+> replace). P07 ✅ CORE (`cqrs-vm` QEMU test proves rendered config +
+> provisioning + peer-auth contract + scoping; nightly CI leg) — the
+> example-binary-in-VM leg is DELIBERATELY deferred to the v4.18.0 tag (the
+> pre-release replace blocks a plain buildGoModule package until then).
+> P08 ✅ (md-go already covers module READMEs repo-wide — 1532 blocks
+> verified; sqlite `file:` DSN unified; mdDoc pass). P09 ✅ (see §receipts;
+> v4.18.0 cut prepped, NO tag per owner gate). P10 ✅ (recipes §2.51 ladder +
+> FAQ audit-log-engine entry). P11 ✅ (opt-out, explicit-DSN, deployment
+> golden, both-arch eval, default alias, maintainers meta). P12 ✅
+> (FuzzLoadConfigJSON — 117th target; rapid idempotence + permutation
+> properties). P13 ✅ PARTIAL-BY-DESIGN (cqrs-htmx adopted + suites green;
+> go-appkit BLOCKED on the tag — it pins published versions; rowed in
+> TODO_LIST). P14 ✅ (this banner + ADR-0165 addendum + status report).
+> Q1/Q2/Q3 defaults all confirmed: peer-socket / nightly / opportunistic.
+
 **Scope:** close out the ADR-0165 arc opened this session (`docs/status/2026-11-08_16-06_standard-topology-nixos-cue-adr0165-status.md` §f + TODO_LIST §"Standard deployment topology & NixOS" harvest, 2026-11-08). NOT the full 266-row backlog — that is owned by [`2026-11-08_12-28_SUPERB-full-backlog-trust-to-v5-pareto-plan.md`](2026-11-08_12-28_SUPERB-full-backlog-trust-to-v5-pareto-plan.md) (written before these rows existed; verified no overlap — its only "CUE" rows are the catalog arc, M17).
 
 **Shipped already (do not re-plan):** `system.Standard` + tests, LoadConfig JSON branch, `system/config.cue` + golden + `#check-cue-config` gate (+self-test), `nixosModules.cqrs` (eval-proven), ADR-0165 + both indexes, CHANGELOG/FEATURES/TODO/skill/README docs, api golden, scoped gates green.
