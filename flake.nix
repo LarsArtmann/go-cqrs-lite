@@ -459,13 +459,52 @@
             '';
           };
 
+          # ADR-0165 example binary (F24): example/standard-topology is a
+          # standalone module with NO local replaces (proxy-resolvable since
+          # system/v4.18.0), so a plain buildGoModule package works. The
+          # cqrs-vm NixOS test runs it against the module's rendered config
+          # — the full story: dispatch over postgres peer auth, projection
+          # fold into the sqlite file, query read back.
+          standardTopologyExample = (pkgs.buildGoModule.override { go = goPkg; }) {
+            pname = "standard-topology";
+            inherit version;
+
+            src = "${self}/example/standard-topology";
+
+            vendorHash = "sha256-xD7rMjkrAs6Z17jkOsUpzilXPsMPbJ5pnAoA3t1RD1o=";
+
+            proxyVendor = true;
+            subPackages = [ "." ];
+
+            ldflags = [
+              "-s"
+              "-w"
+            ];
+
+            env = {
+              CGO_ENABLED = "0";
+              GOWORK = "off";
+            };
+
+            preBuild = ''
+              export HOME=$TMPDIR
+              go mod tidy
+            '';
+
+            doCheck = false;
+
+            meta = {
+              description = "ADR-0165 standard-topology example binary (NixOS module test leg)";
+              mainProgram = "standard-topology";
+              platforms = pkgs.lib.platforms.unix;
+            };
+          };
+
           # NixOS VM test (ADR-0165): flake.nixosModules.cqrs boots with a
           # standard-topology deployment — rendered config on disk, postgres
-          # provisioned, and the PEER-AUTH contract proven on hardware: the
-          # service user cqrs-demo reaches its role over the unix socket via
-          # the module's pg_ident map, nobody else does. The example binary
-          # itself rides the system/v4.18.0 tag (drop of the pre-release
-          # replace makes a plain buildGoModule package possible then).
+          # provisioned, the PEER-AUTH contract proven on hardware, the
+          # config readable by the service user, and the example binary
+          # running the full story against the rendered config.
           cqrsServiceTest = pkgs.testers.runNixOSTest {
             name = "cqrs-nixos-module";
 
@@ -476,7 +515,10 @@
               }:
               {
                 imports = [ ./nix/vm/cqrs.nix ];
-                environment.systemPackages = [ config.services.postgresql.finalPackage ];
+                environment.systemPackages = [
+                  config.services.postgresql.finalPackage
+                  standardTopologyExample
+                ];
               };
 
             testScript = ''
@@ -513,7 +555,33 @@
                 " -U cqrs_demo_primary -d cqrs_demo_primary -tAc 'SELECT 1'"
               )
 
-              print("cqrs NixOS module: config + peer-auth provisioning verified")
+              # 5. Config readability by the SERVICE user (f-13): the
+              #    module renders /etc/cqrs/<name>/deployment.json
+              #    world-readable — the service fragment's config env var
+              #    must actually be loadable by the user that runs it.
+              readable = machine.succeed(
+                "sudo -u cqrs-demo cat /etc/cqrs/demo/deployment.json"
+              )
+              assert "cqrs_demo_primary" in readable, readable
+
+              # 6. The example binary runs the FULL story against the
+              #    rendered config (F24): load deployment.json, compose the
+              #    system, dispatch note.create over the postgres peer
+              #    socket, fold the projection into the sqlite state dir,
+              #    read the view back. The state dir is pre-created exactly
+              #    as systemd StateDirectory would own it for the real
+              #    service (the test VM composes no ExecStart).
+              machine.succeed(
+                "install -d -o cqrs-demo -g cqrs-demo /var/lib/cqrs/demo"
+              )
+              story = machine.succeed(
+                "sudo -u cqrs-demo sh -c 'cd /tmp && standard-topology"
+                " --config /etc/cqrs/demo/deployment.json'"
+              )
+              assert "standard topology works" in story, story
+              assert "NoteView" in story, story
+
+              print("cqrs NixOS module: config + peer-auth provisioning + example binary verified")
             '';
           };
 
@@ -914,6 +982,11 @@
           };
 
           packages = {
+            # ADR-0165 example binary (consumed by the cqrs-vm NixOS test;
+            # buildable standalone since the pre-release replace died with
+            # system/v4.18.0).
+            standard-topology-example = standardTopologyExample;
+
             # No-op default package so `nix build .` (BuildFlow's full mode) succeeds.
             # This is a Go library with no single binary; real artifacts live in apps.*
             # and are invoked via `nix run .#<app>`. Pattern mirrors cqrs-htmx/flake.nix.

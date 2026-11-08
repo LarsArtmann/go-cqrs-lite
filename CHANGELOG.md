@@ -27,6 +27,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
      importable packages) — root stays v4.0.0. -->
 ## [Unreleased]
 
+### Fixed
+
+- **decider: `StateCache.Get` now returns a codec-cloned state per caller (owner ruling 2026-11-08, brutal-episode7 B1).** The default Otter cache handed out the LIVE cached instance while concurrent incremental loads folded new events onto it (`decider.loadFromCache`) — a data race and shared-state corruption for pointer/slice/map-shaped states. `Get` now deep-clones through a codec round-trip (the `kv.Cache` isolation pattern, CBOR); a state that cannot round-trip is treated as a miss (the full-load path stays correct) and its entry is invalidated. Pinned by `TestStateCache_ConcurrentGetMutateNoRace` under `-race` plus caller-isolation and uncloneable-miss tests; the `StateCache` interface contract now REQUIRES implementations not to alias internal state.
+
 ### Changed
 
 - **nixos: auto-provisioned postgres uses peer authentication, not the imagined TCP trust — the module now ships the pg_ident/pg_hba wiring that makes its DSNs actually connect.** nixpkgs' default `pg_hba` is `md5` on 127.0.0.1 (passwords the module never had), so the auto-provisioned DSN switched to the unix socket (`postgres:///cqrs_<name>_<engine>?host=/run/postgresql&user=cqrs_<name>_<engine>`) with a scoped `local` hba line and a `cqrs_peer` ident map (`cqrs-<name>` -> `cqrs_<name>_<engine>`): no password ever lands in the store or the rendered config, and the service-user contract is exactly what `cqrs.lib.hardenedService` already sets. Proven on hardware by the `cqrs-vm` NixOS VM test (rendered config, `SELECT 1` as `cqrs-demo` over the socket, `ensureDBOwnership` owner check, wrong-OS-user rejected; nightly CI leg) — the eval pin covers both linux architectures.

@@ -434,9 +434,10 @@ DEP_BUDGET["example/getting-started"]=10
 DEP_BUDGET["example/goal-shaped-app"]=11 # multi-engine demo (sqlite+pg+turso) is the point of the app
 DEP_BUDGET["example/readme-quickstart"]=6
 # standard-topology is the ADR-0165 demo: engines-only config +
-# system.Standard + sqlite — command/decider/event/id/metaengine/query/system
-# + 1 driver = 8 first-party deps.
-DEP_BUDGET["example/standard-topology"]=8
+# system.Standard + the two drivers its VM-test leg runs against
+# (sqlite projections + postgres primary over peer auth) —
+# command/decider/event/id/metaengine/query/system + 2 drivers = 9.
+DEP_BUDGET["example/standard-topology"]=9
 DEP_BUDGET["example/scheduler-otel-status"]=8
 # metaengine-quickstart demos the full strategic surface: system + metaengine
 # + sqliteengine + projectionadapter + event/id/record — 7 first-party deps
