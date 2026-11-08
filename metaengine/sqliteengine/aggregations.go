@@ -18,6 +18,10 @@ func (e *sqliteEngine) Aggregate(
 	column string,
 	filters []metaengine.FilterSpec,
 ) (float64, error) {
+	if err := metaengine.RejectInvalidAggregateFn(fn); err != nil {
+		return 0, fmt.Errorf("sqliteengine.Aggregate: %w", err)
+	}
+
 	if plan, ok := e.plans[col]; ok {
 		return e.aggregatePlanned(ctx, plan, fn, column, filters)
 	}

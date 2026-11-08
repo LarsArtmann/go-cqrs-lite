@@ -29,6 +29,10 @@ func (e *sqliteEngine) GroupedAggregate(
 	groupBy string,
 	filters []metaengine.FilterSpec,
 ) (map[string]float64, error) {
+	if err := metaengine.RejectInvalidAggregateFn(fn); err != nil {
+		return nil, fmt.Errorf("sqliteengine.GroupedAggregate: %w", err)
+	}
+
 	if plan, ok := e.plans[col]; ok {
 		return e.groupedAggregatePlanned(ctx, plan, fn, column, groupBy, filters)
 	}
@@ -126,6 +130,12 @@ func (e *sqliteEngine) MultiAggregate(
 		return nil, errors.New("sqliteengine.MultiAggregate: no specs provided")
 	}
 
+	for i, s := range specs {
+		if err := metaengine.RejectInvalidAggregateFn(s.Fn); err != nil {
+			return nil, fmt.Errorf("sqliteengine.MultiAggregate spec %d: %w", i, err)
+		}
+	}
+
 	if plan, ok := e.plans[col]; ok {
 		return e.multiAggregatePlanned(ctx, plan, specs, filters)
 	}
@@ -219,6 +229,12 @@ func (e *sqliteEngine) MultiGroupedAggregate(
 ) ([]metaengine.GroupedAggregateRow, error) {
 	if len(specs) == 0 {
 		return nil, errors.New("sqliteengine.MultiGroupedAggregate: no specs provided")
+	}
+
+	for i, s := range specs {
+		if err := metaengine.RejectInvalidAggregateFn(s.Fn); err != nil {
+			return nil, fmt.Errorf("sqliteengine.MultiGroupedAggregate spec %d: %w", i, err)
+		}
 	}
 
 	if plan, ok := e.plans[col]; ok {

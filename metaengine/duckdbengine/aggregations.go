@@ -215,6 +215,10 @@ func (e *duckdbEngine) Aggregate(
 	column string,
 	filters []metaengine.FilterSpec,
 ) (float64, error) {
+	if err := metaengine.RejectInvalidAggregateFn(fn); err != nil {
+		return 0, fmt.Errorf("duckdbengine.Aggregate: %w", err)
+	}
+
 	if plan, ok := e.lookupPlan(col); ok {
 		return e.aggregatePlanned(ctx, plan, fn, column, filters)
 	}
@@ -296,6 +300,10 @@ func (e *duckdbEngine) GroupedAggregate(
 	groupBy string,
 	filters []metaengine.FilterSpec,
 ) (map[string]float64, error) {
+	if err := metaengine.RejectInvalidAggregateFn(fn); err != nil {
+		return nil, fmt.Errorf("duckdbengine.GroupedAggregate: %w", err)
+	}
+
 	if plan, ok := e.lookupPlan(col); ok {
 		return e.groupedAggregatePlanned(ctx, plan, fn, column, groupBy, filters)
 	}
@@ -381,6 +389,12 @@ func (e *duckdbEngine) MultiAggregate(
 ) (map[string]float64, error) {
 	if len(specs) == 0 {
 		return nil, errors.New("duckdbengine.MultiAggregate: no specs provided")
+	}
+
+	for i, s := range specs {
+		if err := metaengine.RejectInvalidAggregateFn(s.Fn); err != nil {
+			return nil, fmt.Errorf("duckdbengine.MultiAggregate spec %d: %w", i, err)
+		}
 	}
 
 	if plan, ok := e.lookupPlan(col); ok {
@@ -480,6 +494,12 @@ func (e *duckdbEngine) MultiGroupedAggregate(
 ) ([]metaengine.GroupedAggregateRow, error) {
 	if len(specs) == 0 {
 		return nil, errors.New("duckdbengine.MultiGroupedAggregate: no specs provided")
+	}
+
+	for i, s := range specs {
+		if err := metaengine.RejectInvalidAggregateFn(s.Fn); err != nil {
+			return nil, fmt.Errorf("duckdbengine.MultiGroupedAggregate spec %d: %w", i, err)
+		}
 	}
 
 	if plan, ok := e.lookupPlan(col); ok {

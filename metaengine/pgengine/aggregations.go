@@ -222,6 +222,12 @@ func (e *pgEngine) MultiGroupedAggregate(
 		return nil, errors.New("pgengine.MultiGroupedAggregate: no specs provided")
 	}
 
+	for i, s := range specs {
+		if err := metaengine.RejectInvalidAggregateFn(s.Fn); err != nil {
+			return nil, fmt.Errorf("pgengine.MultiGroupedAggregate spec %d: %w", i, err)
+		}
+	}
+
 	var b strings.Builder
 
 	args := []any{col}
