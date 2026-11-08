@@ -136,6 +136,7 @@ LAYER["example/getting-started"]=7
 LAYER["example/goal-shaped-app"]=7
 LAYER["example/readme-quickstart"]=7
 LAYER["example/scheduler-otel-status"]=7
+LAYER["example/standard-topology"]=7
 LAYER["example/metaengine-quickstart"]=7
 LAYER["example/graph-native"]=7
 LAYER["cmd/cqrs-lint/testdata/typedfixture"]=7
@@ -432,6 +433,10 @@ DEP_BUDGET["example/getting-started"]=10
 # (the snapshot-story demo strategy line) = 10.
 DEP_BUDGET["example/goal-shaped-app"]=11 # multi-engine demo (sqlite+pg+turso) is the point of the app
 DEP_BUDGET["example/readme-quickstart"]=6
+# standard-topology is the ADR-0165 demo: engines-only config +
+# system.Standard + sqlite — command/decider/event/id/metaengine/query/system
+# + 1 driver = 8 first-party deps.
+DEP_BUDGET["example/standard-topology"]=8
 DEP_BUDGET["example/scheduler-otel-status"]=8
 # metaengine-quickstart demos the full strategic surface: system + metaengine
 # + sqliteengine + projectionadapter + event/id/record — 7 first-party deps

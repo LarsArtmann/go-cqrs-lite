@@ -233,6 +233,7 @@ func TestCatalogEveryGoWorkModuleCovered(t *testing.T) {
 		"example/metaengine-quickstart":  "example project",
 		"example/readme-quickstart":      "example project",
 		"example/scheduler-otel-status":  "example project",
+		"example/standard-topology":     "example project",
 		"example/taskmanager":            "example project",
 		"idempotency/sqlstore":           "sub-package (covered by idempotency)",
 		"integration":                    "cross-module integration tests",

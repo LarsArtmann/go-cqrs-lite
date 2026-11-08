@@ -42,6 +42,7 @@ func TestEveryGoModDirIsInModulesList(t *testing.T) {
 		"example/metaengine-quickstart":       "example application",
 		"example/readme-quickstart":           "example application",
 		"example/scheduler-otel-status":       "example application",
+		"example/standard-topology":   "example application",
 		"example/taskmanager":                 "example application",
 	}
 
@@ -181,6 +182,7 @@ func TestEveryGoModDirIsInTestModules(t *testing.T) {
 		"example/metaengine-quickstart":       "example application",
 		"example/readme-quickstart":           "example application",
 		"example/scheduler-otel-status":       "example application",
+		"example/standard-topology":   "example application",
 		"example/taskmanager":                 "example application",
 	}
 
@@ -751,6 +753,7 @@ func TestMultiPackageModulesHaveArchLintConfig(t *testing.T) {
 		"example/graph-native":          "example application",
 		"example/metaengine-quickstart": "example application",
 		"example/readme-quickstart":     "example application",
+		"example/standard-topology": "example application",
 		"example/taskmanager":           "example application",
 	}
 
@@ -855,6 +858,7 @@ func TestEveryModuleGoSumIsTidy(t *testing.T) {
 		"example/metaengine-quickstart":       "example application",
 		"example/readme-quickstart":           "example application",
 		"example/scheduler-otel-status":       "example application",
+		"example/standard-topology":   "example application",
 		"example/taskmanager":                 "example application",
 	}
 

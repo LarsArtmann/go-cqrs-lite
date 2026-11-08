@@ -368,6 +368,7 @@
             "example/metaengine-quickstart"
             "example/readme-quickstart"
             "example/scheduler-otel-status"
+            "example/standard-topology"
             "example/taskmanager"
           ];
 
