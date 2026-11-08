@@ -118,9 +118,9 @@
 21. Wrap event `Version.Decrement/Sub` errors with errorfamily (restore machine-readable code); move `ErrVersionUnderflow` to errors.go; fix `ParseVersion`'s dead error channel.
 22. Gate the echo-gate class: grep-based detector for computed-but-unused check variables in scripts (verify-docs pattern).
 23. Run the M04 fuzz-corpus download + minimized-seed commit even before the next red nightly.
-24. M07 hygiene: route the 9 unrouted docs-gates rows; purge the 15 done-checkbox rows.
-25. Start the archive wave for the 170 unarchived status/review reports (first batch, F044–F047).
-26. Wire the TODO hygiene detector (duplicate/pointer/checkbox) into a cheap gate (F051–F052).
+24. M07 hygiene: route the 9 unrouted docs-gates rows; purge the 15 done-checkbox rows. <!-- fresh:skip --> owned by Pareto M07/F040-F042 (planned 2026-11-08 12:28)
+25. Start the archive wave for the 170 unarchived status/review reports (first batch, F044–F047). <!-- fresh:skip --> owned by Pareto M07/F044-F047
+26. Wire the TODO hygiene detector (duplicate/pointer/checkbox) into a cheap gate (F051–F052). <!-- fresh:skip --> owned by Pareto M22/F051-F052
 27. Add the stale-premise detector against versions.json/tags (F053–F054).
 28. M08 release wave: re-derive untagged drift, changed-set tests in batches, dependency-ordered tags, smokes (F061–F074).
 29. Add the untagged-API CI gate (examplePaths vs published pins) + mutation-test it (F072–F073).
@@ -137,12 +137,12 @@
 40. Add a "kill exclusive gate before edit" + phase-boundary hand-commit reminder to the plan-execution checklist (F055–F057).
 41. Document the daemon auto-push behavior in AGENTS.md (sessions assume origin is frozen; it is not).
 42. Root-junk generator fix: find the EventCatalog export path that wrote `--help/` (F059) — the ignore rule is a bandage.
-43. Harvest the report's §f into TODO_LIST (being done with this file — keep it green).
+43. Harvest the report's §f into TODO_LIST (being done with this file — keep it green). <!-- fresh:skip --> self-fulfilling: B1-B3 rows added in the same pass
 44. Annotate the two pre-existing `fresh:skip` rows if the freshness gate trips on this report's items (same-session fix).
 45. M17 catalog truth tail: compat-gate subject decision (F099–F100).
 46. M18 architecture-reference residue dispositions (F054–F060 of the plan).
-47. M24 upstream matrix: check latest Turso tag for the matview rewrite (F139–F141).
-48. M25 calibration campaign once trust receipts are in (F145–F147).
+47. M24 upstream matrix: check latest Turso tag for the matview rewrite (F139–F141). <!-- fresh:skip --> owned by Pareto M24/F139-F141
+48. M25 calibration campaign once trust receipts are in (F145–F147). <!-- fresh:skip --> owned by Pareto M25/F145-F147
 49. M26 flake watch: SSE ring-drop instrumentation + projectionhost checkpoint recurrence (F142–F144).
 50. Schedule the next brutal self-review for ~2026-11-22 (two-week cadence — the single highest-leverage process fix).
 

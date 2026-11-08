@@ -103,6 +103,7 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 
 [Legend](#legend) ·
 [Brutal-audit follow-ups](#brutal-audit-follow-ups-harvested-2026-11-08-from-docsstatus2026-11-08_08-52_brutal-audit-ci-fuzz-doc-drift-statusmd) ·
+[Brutal-episode7 follow-ups](#brutal-episode7-follow-ups-harvested-2026-11-08-from-docsstatus2026-11-08_16-00_brutal-episode7-oteli-injection-gate-repairs-statusmd) ·
 [Architecture reference HTML export](#architecture-reference-html-export-harvested-2026-10-17) ·
 [GitHub issue backlog](#github-issue-backlog-2026-09-30-plan) ·
 [New consumer issues](#new-consumer-issues-2026-10-03-triage) ·
@@ -200,6 +201,14 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 - [ ] **Brutal-audit follow-up A8 — residue pack** — close the remaining report follow-ups: go-directive/BuildFlow prose drift, root-artifact generator hunt, `StreamIDFrom` zero-ID semantics, 879-finding mechanical triage incl. confirming the 46 direct OTel imports are confined to sanctioned modules/exceptions, evidence-upload integrity incl. `if-no-files-found` policy, research/index hygiene, and the owed brutal-review HTML. Source: same report.
 
 ---
+
+---
+
+## Brutal-episode7 follow-ups (harvested 2026-11-08 from `docs/status/2026-11-08_16-00_brutal-episode7-oteli-injection-gate-repairs-status.md`)
+
+- [ ] 🔥 **Brutal-episode7 follow-up B1 — decider StateCache race: decision + fix** — the load cache hands out the live cached State and foldEvents folds onto that shared instance (`decider/load.go:234-266`, `decider/cache.go:25-26,77`); owner A/B: codec-cloned Get (kv.Cache pattern) vs a StateCloner option with cache-disabled default; implement the chosen shape and pin it with a concurrent LoadRef/ExecuteRef race test. Source: `docs/status/2026-11-08_16-00_brutal-episode7-oteli-injection-gate-repairs-status.md` + `docs/reviews/2026-11-08_13-20_brutal-self-review.html`.
+- [ ] **Brutal-episode7 follow-up B2 — fix the broken AGENTS.md:367 cross-ref** — doc-check fails on AGENTS.md alone (broken §2.11 cross-ref found by the 2026-11-08 session); repoint the citation at the real recipes section. Source: the episode-7 report.
+- [ ] **Brutal-episode7 follow-up B3 — StreamRef dual-definition ADR (v5 window)** — record.StreamRef (`Type/EntityID`, empty type legal) vs id.StreamRef (struct, `:`-joined, empty type illegal) formally disagree once record.NewStreamRef gains validation; resolve wire shape + validity rules before the v5 cut. Source: the episode-7 report.
 
 ## Standard deployment topology & NixOS (ADR-0165, opened 2026-11-08)
 
