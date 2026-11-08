@@ -1,26 +1,42 @@
 {
-  "engines": {
-    "primary": {
-      "driver": "postgres",
-      "dsn": "postgres:///cqrs_demo_primary?host=/run/postgresql&user=cqrs_demo_primary"
+    "engines": {
+        "primary": {
+            "driver": "postgres",
+            "dsn": "postgres:///cqrs_demo_primary?host=/run/postgresql&user=cqrs_demo_primary"
+        },
+        "proj": {
+            "driver": "sqlite",
+            "dsn": "/var/lib/cqrs/demo/proj.db"
+        }
     },
-    "proj": {
-      "driver": "sqlite",
-      "dsn": "/var/lib/cqrs/demo/proj.db"
-    }
-  },
-  "instances": [
-    {
-      "engine": "primary",
-      "role": "source-of-truth"
-    },
-    {
-      "engine": "primary",
-      "role": "queries"
-    },
-    {
-      "engines": ["primary", "proj"],
-      "role": "projections"
-    }
-  ]
+    "instances": [
+        {
+            "collections": [
+                "events",
+                "commands",
+                "queries",
+                "snapshots",
+                "checkpoints"
+            ],
+            "engine": "primary",
+            "role": "source-of-truth"
+        },
+        {
+            "collections": [
+                "queries"
+            ],
+            "engine": "primary",
+            "role": "queries"
+        },
+        {
+            "collections": [
+                "projections"
+            ],
+            "engines": [
+                "primary",
+                "proj"
+            ],
+            "role": "projections"
+        }
+    ]
 }

@@ -17,6 +17,10 @@
 {
   pkgs,
   module,
+  # Shared instance-triple fixture (system/testdata/standard-instance-triple.json):
+  # the SAME file the Go suite (system.Standard) and the CUE gate assert
+  # against — the three preset twins cannot drift apart (ADR-0165 pin).
+  tripleFixture,
 }:
 let
   inherit (pkgs.lib) flatten all hasInfix;
@@ -40,7 +44,9 @@ let
 
   # The exact deployment the round-trip fixture (system/testdata/
   # standard-topology.nixos-rendered.json) is generated from: keep the two in
-  # lockstep — compare via fromJSON so key order never matters.
+  # lockstep — compare via fromJSON so key order never matters. Instances come
+  # from the shared triple fixture, not inline, so the Nix twin is pinned to
+  # the same bytes as the Go and CUE twins.
   expected = {
     engines = {
       primary = {
@@ -52,23 +58,7 @@ let
         dsn = "/var/lib/cqrs/demo/proj.db";
       };
     };
-    instances = [
-      {
-        engine = "primary";
-        role = "source-of-truth";
-      }
-      {
-        engine = "primary";
-        role = "queries";
-      }
-      {
-        engines = [
-          "primary"
-          "proj"
-        ];
-        role = "projections";
-      }
-    ];
+    instances = builtins.fromJSON (builtins.readFile tripleFixture);
   };
 
   assertions = flatten (

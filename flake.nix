@@ -807,6 +807,7 @@
                 (import ./nix/nixos/eval-test.nix {
                   inherit pkgs;
                   module = import ./nix/nixos/cqrs.nix;
+                  tripleFixture = ./system/testdata/standard-instance-triple.json;
                 }).script;
             # goimports shells out to `go`; the wrapped formatter would try to
             # DOWNLOAD go1.27 in the network-less sandbox because go.work

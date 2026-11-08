@@ -1,8 +1,11 @@
 package system_test
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
+	"reflect"
+	"slices"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
@@ -85,6 +88,50 @@ func TestRoundTrip_NixOSRenderedJSON(t *testing.T) {
 	if proj.Role != system.RoleProjections || len(proj.Engines) != 2 ||
 		proj.Engines[0] != "primary" || proj.Engines[1] != "proj" {
 		t.Fatalf("unexpected projections instance: %+v", proj)
+	}
+
+	if want := []string{
+		"events",
+		"commands",
+		"queries",
+		"snapshots",
+		"checkpoints",
+	}; !slices.Equal(
+		cfg.Instances[0].Collections,
+		want,
+	) {
+		t.Fatalf("NixOS twin source-of-truth collections: want %v, got %v", want, cfg.Instances[0].Collections)
+	}
+}
+
+// TestStandard_InstanceTripleMatchesSharedFixture is the Go leg of the
+// ADR-0165 cross-layer equivalence pin: system.Standard must produce exactly
+// the instance triple in testdata/standard-instance-triple.json — the same
+// bytes the CUE gate (scripts/check-cue-config.sh) and the NixOS eval test
+// (nix/nixos/eval-test.nix) assert against. Engine names primary+proj are
+// load-bearing: the fixture pins the projections pool order.
+func TestStandard_InstanceTripleMatchesSharedFixture(t *testing.T) {
+	t.Parallel()
+
+	data, err := os.ReadFile(filepath.Join("testdata", "standard-instance-triple.json"))
+	if err != nil {
+		t.Fatalf("read fixture: %v", err)
+	}
+
+	var want []system.InstanceConfig
+	if err := json.Unmarshal(data, &want); err != nil {
+		t.Fatalf("fixture is not a valid instance triple: %v", err)
+	}
+
+	got := system.Standard(system.DeploymentConfig{
+		Engines: map[string]system.EngineConfig{
+			"primary": {Driver: "sqlite", DSN: "file:app.db"},
+			"proj":    {Driver: "memory"},
+		},
+	}).Instances
+
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("Standard drifted from the shared fixture:\ngot:  %#v\nwant: %#v", got, want)
 	}
 }
 
