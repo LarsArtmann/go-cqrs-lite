@@ -135,6 +135,18 @@ else
 	echo "OK: no stale '5-family' references in living docs"
 fi
 
+# ── Skill module-existence gate (2026-11-08, brutal-audit A4) ───────────────
+# Every go-cqrs-lite module path the skill docs claim as live must resolve to
+# a module/package on disk unless the mentioning line marks it deleted. Closes
+# the transport/http class (deleted 2026-10-17, documented as live ~3 weeks).
+echo "=== Skill module-existence gate ==="
+if ! bash scripts/check-skill-modules.sh; then
+	echo "FAIL: skill docs claim module paths that resolve to nothing on disk"
+	errors=$((errors + 1))
+else
+	echo "OK: all claimed module paths resolve"
+fi
+
 # ── Summary ────────────────────────────────────────────────────────────────
 echo ""
 if [ "$errors" -eq 0 ]; then
