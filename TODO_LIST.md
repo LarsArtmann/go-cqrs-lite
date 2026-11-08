@@ -102,6 +102,7 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 ## Section index
 
 [Legend](#legend) ·
+[Brutal-audit follow-ups](#brutal-audit-follow-ups-harvested-2026-11-08-from-docsstatus2026-11-08_08-52_brutal-audit-ci-fuzz-doc-drift-statusmd) ·
 [Architecture reference HTML export](#architecture-reference-html-export-harvested-2026-10-17) ·
 [GitHub issue backlog](#github-issue-backlog-2026-09-30-plan) ·
 [New consumer issues](#new-consumer-issues-2026-10-03-triage) ·
@@ -189,6 +190,17 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 **Owner rulings (2026-11-03, T03.2):**
 - [ ] **metaengine promotion scope = ALL 16 engine-family modules.** Promote every Experimental doc.go stamp to Stable via the T27 evidence-table wave (per-module census consumers, suite status, caveats → stamp flips → FEATURES/SKILL/matrix alignment → api-stability regen; 17 doc.go files incl. the family parent). This resolves the SKILL.md "planner surface stable" vs 16 Experimental stamps split brain in favor of the SKILL. Unblocks T13 (five-package carve ADR proceeds on a stable surface) and T12 scope.
 - [ ] **Authored commits ARE authorized at phase boundaries on commissioned plans.** Ends the daemon-absorbs-everything default for commissioned waves (4 consecutive fully-`chore:` waves incl. release-tag prep): hand-commit with real messages at each phase boundary; the daemon still absorbs intra-phase edits. Recorded in AGENTS.md Ground Rules.
+
+## Brutal-audit follow-ups (harvested 2026-11-08 from `docs/status/2026-11-08_08-52_brutal-audit-ci-fuzz-doc-drift-status.md`)
+
+- [ ] 🔥 **Brutal-audit follow-up A1 — post-repair trust receipts** — re-run the composed quality chain on a frozen tree, then obtain successful outcomes for workflow runs `42445543709`, `42443401875`, and `42441847588` after the repairs reach origin; record the clean post-fix-tree `#verify`/`#verify-fast` receipt. Source: `docs/status/2026-11-08_08-52_brutal-audit-ci-fuzz-doc-drift-status.md`.
+- [ ] 🔥 **Brutal-audit follow-up A2 — calibration baseline workflow proof** — dispatch the benchmark workflow cold then warm; prove cache restore/compare, `build/calibration-drift.log` upload, baseline freeze on drift failure, and add cold-run + freeze self-tests proving calibration baseline refresh is skipped on drift failure. Source: same report.
+- [ ] **Brutal-audit follow-up A3 — id/event fuzz corpus adoption** — download the failed shard artifacts, commit minimized seeds, exercise every affected target in fuzz mode, and add the parser-contract/harness/seed same-edit rule. Source: same report.
+- [ ] 🔥 **Brutal-audit follow-up A4 — skill importable-module existence check** — add a gate that resolves every module path claimed live by `SKILL.md` + skill references against `go.work`, preventing another deleted raw-event broker from surviving as importable documentation. Source: same report.
+- [ ] **Brutal-audit follow-up A5 — deleted-transport residue sweep** — sweep the remaining live docs/comments naming deleted `transport/http` (taskmanager comments, `metaengine/sse.go`/README, the watermill catchup helper, and `docs/DOMAIN_LANGUAGE.md`); classify `docs/migration/MIGRATION-GUIDE.md`. Source: same report.
+- [ ] **Brutal-audit follow-up A6 — ambiguous-alias warning policy** — reconcile the documented doc-check warning contract with the six v4/core mirror alias warnings: scope fences, explicitly allow the class, or make warnings fatal. Source: same report.
+- [ ] **Brutal-audit follow-up A7 — red-nightly rollup signal** — surface one aggregate failure when Nightly Gates, Fuzz Nightly, Benchmarks, Soaks, or push CI is red, so recent Autoretry successes cannot mask them. Source: same report.
+- [ ] **Brutal-audit follow-up A8 — residue pack** — close the remaining report follow-ups: go-directive/BuildFlow prose drift, root-artifact generator hunt, `StreamIDFrom` zero-ID semantics, 879-finding mechanical triage incl. the 46 direct OTel imports, evidence-upload integrity incl. `if-no-files-found` policy, research/index hygiene, and the owed brutal-review HTML. Source: same report.
 
 ---
 
