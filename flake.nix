@@ -799,6 +799,14 @@
 
           checks = {
             build = config.packages.default;
+            # ADR-0165 NixOS module evaluation pin (both linux arches from any
+            # host — pure evaluation, no VM): rendered DeploymentConfig JSON,
+            # postgres provisioning incl. peer-auth wiring, hardenedService.
+            cqrs-nixos-eval = pkgs.runCommand "cqrs-nixos-eval" { }
+              (import ./nix/nixos/eval-test.nix {
+                inherit pkgs;
+                module = import ./nix/nixos/cqrs.nix;
+              }).script;
             # goimports shells out to `go`; the wrapped formatter would try to
             # DOWNLOAD go1.27 in the network-less sandbox because go.work
             # requires it. Provide the go_1_27 toolchain (DiscordSync flake
