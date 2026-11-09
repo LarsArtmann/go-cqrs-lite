@@ -642,9 +642,9 @@ if [ -n "$RUN_LOG" ]; then
 		echo "# summary — one line per module; smoke results land in smoke-*.log via --smoke-all"
 		for i in "${!tags[@]}"; do
 			# build=ok, NOT verify=ok: the wave verified BUILD + smoke probes,
-		# never the test suites — the 2026-10-06 90-tag wave shipped red
-		# suites through exactly this label (AGENTS "Verify Before Release").
-		echo "SUMMARY ${modules[$i]} ${versions[$i]} tagged=yes build=ok smoke=pending"
+			# never the test suites — the 2026-10-06 90-tag wave shipped red
+			# suites through exactly this label (AGENTS "Verify Before Release").
+			echo "SUMMARY ${modules[$i]} ${versions[$i]} tagged=yes build=ok smoke=pending"
 		done
 	} >>"$RUN_LOG"
 fi

@@ -20,6 +20,11 @@ trap 'rm -rf "$tmp"' EXIT
 # Fixture runs must never drop fake superseded-baseline archives into the
 # REAL dated series (docs/benchmarks/baselines/) — redirect the archive dir.
 export BENCH_GATE_ARCHIVE_DIR="$tmp/archives"
+# Same isolation for the default ceiling table: threshold fixtures use
+# fixture benchmark names that must never join the repo's real table
+# (pre-existing leak — silently unchecked before, a hard FAIL since the
+# vacuous-guard landed).
+export BENCH_CEILINGS="$tmp/no-default-ceilings"
 
 failures=0
 check() {
@@ -307,6 +312,14 @@ check "a generous ceiling passes" 0 $?
 "$GATE" --baseline "$tmp/base-ceil" --current "$tmp/cur-ceil" \
 	--ceilings "$tmp/does-not-exist" >/dev/null 2>&1
 check "a missing ceiling table only warns" 0 $?
+
+# A ceiling table whose names match NOTHING in the current run is a vacuous
+# guard — renamed gate benchmarks must fail loudly, not pass silently
+# (audit finding 2026-11-09).
+printf '# name\tceiling_ns\tbaseline_ns\tfactor\tgenerated\nBenchmarkRenamedAway\t1000\t100\t10\t2026-10-26\n' >"$tmp/ceil-wrong-names"
+"$GATE" --baseline "$tmp/base-ceil" --current "$tmp/cur-ceil" \
+	--ceilings "$tmp/ceil-wrong-names" >/dev/null 2>&1
+check "a ceiling table matching zero current names fails (vacuous guard)" 1 $?
 
 # --write-ceilings multiplies the baseline medians by the factor.
 "$GATE" --baseline "$tmp/base-ceil" --current "$tmp/cur-ceil" \
