@@ -230,7 +230,7 @@ type CacheConfig struct {
 type InstanceConfig struct {
 	// Role classifies this instance: RoleEvents, RoleCommands, RoleQueries,
 	// RoleSnapshots, RoleProjections, or RoleSourceOfTruth (combined).
-	Role InstanceRole `koanf:"role" json:"role"`
+	Role InstanceRole `json:"role" koanf:"role"`
 
 	// Collections lists the collection names this instance serves. It is
 	// introspection-only: surfaced in Introspection() and topology output,
@@ -238,36 +238,36 @@ type InstanceConfig struct {
 	// are wired. For RoleEvents, this is typically ["events"]. For
 	// RoleSourceOfTruth, it may be ["events", "commands", "queries",
 	// "snapshots", "checkpoints"].
-	Collections []string `koanf:"collections" json:"collections"`
+	Collections []string `json:"collections" koanf:"collections"`
 
 	// Engine is the named engine for a single-engine instance.
 	// Mutually exclusive with Engines.
-	Engine string `koanf:"engine" json:"engine"`
+	Engine string `json:"engine" koanf:"engine"`
 
 	// Engines lists named engines for a mixed-pool instance (projection layer).
 	// The metaengine planner routes freely within the pool.
 	// Mutually exclusive with Engine.
-	Engines []string `koanf:"engines" json:"engines"`
+	Engines []string `json:"engines" koanf:"engines"`
 
 	// Durability is the persistence tier for this instance: strict, normal,
 	// or relaxed. Empty means unspecified — engine defaults. All instances
 	// sharing an engine must agree on the tier; the resolved tier is applied
 	// at engine construction (e.g. SQLite PRAGMA synchronous). Engines
 	// without per-tier behavior fail construction on an explicit tier.
-	Durability DurabilityTier `koanf:"durability" json:"durability"`
+	Durability DurabilityTier `json:"durability" koanf:"durability"`
 
 	// Publish lists bus names that events from this instance are published to.
 	// Events fan-out to all listed buses (D9: multi-bus support).
-	Publish []string `koanf:"publish" json:"publish"`
+	Publish []string `json:"publish" koanf:"publish"`
 
 	// Subscribe is reserved and NOT read: the projection host consumes from
 	// the deployment's bus topology directly, so per-instance subscriptions
 	// are not (yet) wired. Parsed for backward compatibility; per-instance
 	// subscription may arrive at v5.
-	Subscribe []string `koanf:"subscribe" json:"subscribe"`
+	Subscribe []string `json:"subscribe" koanf:"subscribe"`
 
 	// Cache configures an optional read-through cache tier.
-	Cache *CacheConfig `koanf:"cache" json:"cache"`
+	Cache *CacheConfig `json:"cache" koanf:"cache"`
 }
 
 // InstanceRole classifies a metaengine.Store instance by its function.

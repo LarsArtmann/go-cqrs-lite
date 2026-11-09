@@ -175,6 +175,7 @@ func DeriveStreamID(namespace string, keys ...string) StreamID {
 func StreamIDFrom(s fmt.Stringer) StreamID {
 	if s == nil {
 		var zero StreamID
+
 		return zero
 	}
 
