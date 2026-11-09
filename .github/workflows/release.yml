@@ -35,6 +35,12 @@ jobs:
       - name: Resolve tagged module
         run: |
           MOD="${GITHUB_REF_NAME%/*}"
+          # A root-module tag (v4.0.1, no slash) strips to the tag itself —
+          # resolve to the repo root instead of cd-ing into a nonexistent
+          # directory (audit finding 2026-11-09).
+          if [ "$MOD" = "$GITHUB_REF_NAME" ]; then
+            MOD="."
+          fi
           echo "MOD=$MOD" >> "$GITHUB_ENV"
           echo "Tagged module: $MOD"
 

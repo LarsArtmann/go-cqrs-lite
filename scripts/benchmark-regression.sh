@@ -698,6 +698,14 @@ if [[ "$had_baseline" == true ]]; then
 						printf "\nSummary: %d ceiling breach(es) out of %d checked\n", breaches, checked
 						exit 1
 					}
+					if (checked == 0) {
+						# A ceiling table with ZERO name matches means every
+						# gate benchmark was renamed (or the table rotted) — the
+						# join silently compared nothing and the guard was
+						# vacuous (audit finding 2026-11-09).
+						print "CEILING GUARD VACUOUS: 0 of the current benchmark names matched the ceiling table — regenerate with --write-ceilings after verifying the renames"
+						exit 1
+					}
 					printf "  all %d checked benchmark(s) under their ceiling\n", checked
 				}' || ceiling_status=$?
 	else

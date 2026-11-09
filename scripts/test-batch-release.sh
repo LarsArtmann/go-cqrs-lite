@@ -156,8 +156,8 @@ check "no build artifacts left behind" bash -c "test ! -e \"\$0/good/good\" && t
 check "worktree go.mod keeps the local replace" bash -c "grep -q 'replace github.com/example/fixture/dead => ../dead' \"\$0/good/go.mod\"" "$TMPROOT/t3"
 check "tagged go.mod has the replace stripped" bash -c "! git -C \"\$0\" show good/v2.0.2:good/go.mod | grep -q 'replace github.com/example/fixture/dead'" "$TMPROOT/t3"
 check "smoke hint printed" bash -c "printf '%s' \"\$0\" | grep -q -- '--smoke good v2.0.2'" "$out"
-check "run log summary (main module)" bash -c "grep -q '^SUMMARY good v2.0.2 tagged=yes verify=ok smoke=pending' \"\$0\"/batch-*.log" "$TMPROOT/t3-logs"
-check "run log summary (library module)" bash -c "grep -q '^SUMMARY libx v2.0.1 tagged=yes verify=ok smoke=pending' \"\$0\"/batch-*.log" "$TMPROOT/t3-logs"
+check "run log summary (main module)" bash -c "grep -q '^SUMMARY good v2.0.2 tagged=yes build=ok smoke=pending' \"\$0\"/batch-*.log" "$TMPROOT/t3-logs"
+check "run log summary (library module)" bash -c "grep -q '^SUMMARY libx v2.0.1 tagged=yes build=ok smoke=pending' \"\$0\"/batch-*.log" "$TMPROOT/t3-logs"
 check "run log records phases + clean exit" bash -c "grep -q 'strip done good' \"\$0\"/batch-*.log && grep -q 'verify ok good' \"\$0\"/batch-*.log && grep -q 'tagged good/v2.0.2' \"\$0\"/batch-*.log && grep -q 'run ended rc=0' \"\$0\"/batch-*.log" "$TMPROOT/t3-logs"
 check "log dir override keeps repo clean" bash -c "test ! -e \"\$0/build\"" "$TMPROOT/t3"
 
