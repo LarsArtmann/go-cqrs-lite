@@ -1,0 +1,58 @@
+# 2026/11/09 06:50:02.281474 [TestProperty_Standard_PermutationInvariant] [rapid] draw names: []string{"pl2", "s0610", "e60"}
+# 2026/11/09 06:50:02.281483 [TestProperty_Standard_PermutationInvariant] [rapid] draw perm: 2
+# 2026/11/09 06:50:02.281495 [TestProperty_Standard_PermutationInvariant] instances differ under permutation [s0610 pl2 e60]:
+# canon {"Engines":{"pl2":{"Driver":"sqlite","DSN":"file:pl2.db","Pragmas":[],"Priority":"","MaterializedViews":[],"MaxOpenConns":0},"s0610":{"Driver":"sqlite","DSN":"file:s0610.db","Pragmas":[],"Priority":"","MaterializedViews":[],"MaxOpenConns":0},"e60":{"Driver":"sqlite","DSN":"file:e60.db","Pragmas":[],"Priority":"","MaterializedViews":[],"MaxOpenConns":0}},"Buses":{},"Instances":[{"Role":"source-of-truth","Collections":["events","commands","queries","snapshots","checkpoints"],"Engine":"e60","Engines":[],"Durability":"","Publish":[],"Subscribe":[],"Cache":null},{"Role":"queries","Collections":["queries"],"Engine":"e60","Engines":[],"Durability":"","Publish":[],"Subscribe":[],"Cache":null},{"Role":"projections","Collections":["projections"],"Engine":"","Engines":["e60","pl2","s0610"],"Durability":"","Publish":[],"Subscribe":[],"Cache":null}],"AcknowledgeWarnings":[],"ManifestPath":"","Priority":null}
+# got   {"Engines":{"s0610":{"Driver":"sqlite","DSN":"file:s0610.db","Pragmas":[],"Priority":"","MaterializedViews":[],"MaxOpenConns":0},"pl2":{"Driver":"sqlite","DSN":"file:pl2.db","Pragmas":[],"Priority":"","MaterializedViews":[],"MaxOpenConns":0},"e60":{"Driver":"sqlite","DSN":"file:e60.db","Pragmas":[],"Priority":"","MaterializedViews":[],"MaxOpenConns":0}},"Buses":{},"Instances":[{"Role":"source-of-truth","Collections":["events","commands","queries","snapshots","checkpoints"],"Engine":"e60","Engines":[],"Durability":"","Publish":[],"Subscribe":[],"Cache":null},{"Role":"queries","Collections":["queries"],"Engine":"e60","Engines":[],"Durability":"","Publish":[],"Subscribe":[],"Cache":null},{"Role":"projections","Collections":["projections"],"Engine":"","Engines":["e60","pl2","s0610"],"Durability":"","Publish":[],"Subscribe":[],"Cache":null}],"AcknowledgeWarnings":[],"ManifestPath":"","Priority":null}
+# 
+v0.4.8#13739390647334945100
+0x1713f7abe385fb
+0x0
+0x1c827d0af689d6
+0xf
+0x15d7894eedbed
+0x0
+0xc790db075ec75
+0x15
+0x7697e32d17e26
+0x0
+0x6066c2b52c308
+0x2
+0x84a18c5022e1a
+0x9d59bc7cfedae
+0x0
+0x1a375c60527860
+0x12
+0x1807d8215d40e
+0x0
+0x31ba9bde2fda1
+0x0
+0x1faa3b5457320c
+0x0
+0x762da447918b4
+0x6
+0x1e247010b31f06
+0x0
+0x2e1170d97e97b
+0x1
+0x1152d4101ebfbe
+0x0
+0x66dc8f55d676f
+0x0
+0x2212865acad40
+0x1a78dc92df13f4
+0x0
+0x1a4e09f5ce3ce6
+0x4
+0x12c4956c1555fe
+0x0
+0xc0cc87cf98a13
+0x6
+0x17c40963cef05e
+0x0
+0xeb9da0149f31
+0x0
+0x805e4cd40cf02
+0x1d4a2ab4d48e9
+0x1090a75250ee2b
+0x72aeaa671f638
+0x2
