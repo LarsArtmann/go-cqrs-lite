@@ -48,10 +48,19 @@ case "${1:-}" in
 	;;
 esac
 
-BANNER_RE='RESOLVED-BY-ROUTING|ARCHIVED\.|CLOSED|EXECUTED banner|PROPOSED→EXECUTED|KEEP-LIVE'
+BANNER_RE='RESOLVED-BY-ROUTING|ARCHIVED\.|CLOSED|PROPOSED→EXECUTED|KEEP-LIVE'
+# Banner-position verb forms (2026-11-09): the docs-health passes write
+# resolution banners as `> **VERB …` with a wider verb set than BANNER_RE
+# knew (EXECUTED/RULED/ROUTED/POINT-IN-TIME/…); the gate drifted narrower
+# than practice and flagged five honestly-bannered archives nightly.
+# Anchored to the blockquote+bold banner position so prose bold (e.g. a
+# phase table's **EXECUTED**) never satisfies the marker.
+BANNER_LINE_RE='^> ?\*\*(RESOLVED(-BY[- ]? ?ROUTING)?|ARCHIVED|EXECUTED|SUPERSEDED|ANNOTATED|RULED|ROUTED|POINT-IN-TIME|DONE|FIXED)'
 
 has_marker() {
-	grep -qE "$BANNER_RE" "$1" || grep -q '~~' "$1"
+	grep -qE "$BANNER_RE" "$1" && return 0
+	grep -qE "$BANNER_LINE_RE" "$1" && return 0
+	grep -q '~~' "$1"
 }
 
 in_baseline() {
@@ -137,6 +146,32 @@ self_test() {
 		echo "  ✓ PASS: marker removal re-fails the gate"
 	else
 		echo "  ✗ FAIL: stripped marker not caught (rc=$rc)"
+		local bad=1
+	fi
+
+	# Banner-verb variants (2026-11-09 widening): the docs-health verb forms
+	# must pass, and prose bold NOT at banner position must still fail.
+	printf '# r\n> **EXECUTED (docs-health 13th pass, 2026-10-11):** shipped. Archived.\n' \
+		>"$tmp/docs/status/archived/verb-executed.md"
+	printf '# r\n> **RULED — SUPERSEDED (pass):** answered elsewhere.\n' \
+		>"$tmp/docs/status/archived/verb-ruled.md"
+	printf '# r\nPhases: **EXECUTED** in full, prose bold only, no banner.\n' \
+		>"$tmp/docs/status/archived/prose-bold.md"
+	CHECK_DOCS_ROOT="$tmp" CHECK_DOCS_BASELINE="$tmp/baseline.txt" "$0" >/dev/null 2>&1
+	rc=$?
+	if [[ $rc == 1 ]]; then
+		echo "  ✓ PASS: prose-bold-only archive still fails (anchoring holds)"
+	else
+		echo "  ✗ FAIL: prose bold satisfied the marker — anchor broken (rc=$rc)"
+		local bad=1
+	fi
+	printf 'docs/status/archived/prose-bold.md\ndocs/status/archived/struck.md\n' >>"$tmp/baseline.txt"
+	CHECK_DOCS_ROOT="$tmp" CHECK_DOCS_BASELINE="$tmp/baseline.txt" "$0" >/dev/null 2>&1
+	rc=$?
+	if [[ $rc == 0 ]]; then
+		echo "  ✓ PASS: EXECUTED/RULED banner verbs accepted"
+	else
+		echo "  ✗ FAIL: banner-verb widening not effective (rc=$rc)"
 		local bad=1
 	fi
 
