@@ -359,7 +359,9 @@ func (s *Store) Close() error {
 	}
 
 	var firstErr error
-	for _, eng := range s.engines {
+	// Snapshot: Close releases s.mu before closing engines, and
+	// AddEngine/RemoveEngine may splice the live slice concurrently.
+	for _, eng := range s.enginesSnapshot() {
 		if err := eng.Close(); err != nil && firstErr == nil {
 			firstErr = err
 		}
@@ -566,8 +568,11 @@ func (s *Store) applyIdempotentFeed(ctx context.Context, eventType string, paylo
 // Note: with multiple transactional engines, each gets its own transaction.
 // Cross-engine atomicity is NOT guaranteed (two-phase commit is not supported).
 func (s *Store) InTransaction(ctx context.Context, fn func(context.Context) error) error {
-	// Find the first transactional engine and delegate to it.
-	for _, eng := range s.engines {
+	// Find the first transactional engine and delegate to it. The snapshot
+	// copy is required: AddEngine/RemoveEngine splice s.engines at runtime,
+	// and lock-free iteration over the live slice raced them (audit
+	// 2026-11-09).
+	for _, eng := range s.enginesSnapshot() {
 		if tx, ok := eng.(Transactional); ok {
 			return tx.RunInTx(ctx, fn) //nolint:wrapcheck
 		}

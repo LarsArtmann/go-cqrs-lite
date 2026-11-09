@@ -83,8 +83,10 @@ func (s *Store) routableLocked() []Engine {
 
 		if role, ok := s.engineRoles[name]; !ok || role.routable() {
 			// Quarantined engines keep their assignments but are never
-			// re-planned onto (ADR-0137).
-			if !s.engineQuarantinedLocked(name) {
+			// re-planned onto (ADR-0137). healthMu is NOT held here (callers
+			// hold s.mu only), so the safe wrapper takes it — reading
+			// s.health lock-free raced health transitions (audit 2026-11-09).
+			if !s.engineQuarantined(name) {
 				out = append(out, eng)
 			}
 		}
