@@ -327,5 +327,9 @@ jobs:
         with:
           name: calibration-drift
           path: build/calibration-drift.log
-          if-no-files-found: warn
+          # Evidence class (A8 policy 2026-11-09): this log IS the calibration
+          # receipt — a green run that uploads nothing must fail loudly, not
+          # pass with silently absent evidence. Failure-corpus artifacts stay
+          # `ignore` (no crash → no corpus is healthy).
+          if-no-files-found: error
           retention-days: 30
