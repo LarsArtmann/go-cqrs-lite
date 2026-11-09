@@ -2564,8 +2564,8 @@ re-checked by T23, never re-executed.
 
 ## Untagged-API incident (found 2026-10-24 during the fleet-audit follow-up)
 
-- [x] **Gate it: wire the example-standalone BUILD leg into CI** — DONE
-      2026-11-08 (ADR-0165 tail session): ci.yml gains the step
+- [x] **Gate it: wire the example-standalone BUILD leg into CI** — DONE 2026-11-08
+      (ADR-0165 tail session): ci.yml gains the step
       "Example standalone build (published pins, replaces stripped)" right
       after the NixOS eval pin step, running
       `bash scripts/check-example-standalone.sh --build`. Local receipt
