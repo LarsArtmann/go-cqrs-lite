@@ -22,6 +22,13 @@ on:
 permissions:
   actions: write
 
+# One retry decision per source run: two Autoretry firings for the same
+# CI run (e.g. a pushed fix completing while the first fires) must not
+# double-rerun it. Different source runs retry independently.
+concurrency:
+  group: autoretry-${{ github.event.workflow_run.id }}
+  cancel-in-progress: false
+
 jobs:
   retry-failed-jobs-once:
     name: Rerun failed jobs (once)
@@ -47,7 +54,7 @@ jobs:
       actions: read
       contents: read
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Record which jobs needed the retry
         env:
@@ -113,7 +120,7 @@ jobs:
 
       - name: Upload flaky ledger
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: flaky-ledger-${{ github.event.workflow_run.id }}
           path: build/flaky-ledger-*.txt

@@ -15,6 +15,12 @@ permissions:
   contents: read
   actions: read
 
+# Never cancel a sentinel run; a queued one waits its turn (the job is
+# short, and cancelling the green-recency alarm would look like silence).
+concurrency:
+  group: sentinel
+  cancel-in-progress: false
+
 jobs:
   green-recency:
     name: Master CI green within 3 days
@@ -43,9 +49,9 @@ jobs:
     name: EventCatalog render validation
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa
+      - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa # v23
 
       # Render-validates the EventCatalog exporter output. npm install is
       # network-bound and ~minutes slow, which is why it runs nightly rather
@@ -60,9 +66,9 @@ jobs:
     name: cqrs-upgrade dogfood (v5-readiness)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa
+      - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa # v23
 
       # The tool upgrades its own repo, dry-run + strict: --strict fails on
       # ANY v5-removed API usage across the 84 workspace modules (the

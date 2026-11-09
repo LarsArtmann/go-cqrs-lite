@@ -22,6 +22,11 @@ on:
 permissions:
   contents: read
 
+# Weekly canary is short; a newer run supersedes an in-flight one.
+concurrency:
+  group: go-finding-canary
+  cancel-in-progress: true
+
 jobs:
   canary:
     runs-on: ubuntu-latest
