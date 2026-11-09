@@ -4,9 +4,10 @@
 # the released tag, so an upstream regression or breaking change surfaces here
 # (a small weekly fire) instead of at the next release bump (a big surprise).
 #
-# NOTE: GitHub Actions on this repo is currently billing-blocked (TODO_LIST.md
-# "Actions billing"); the schedule stays dormant until that is fixed. Use
-# workflow_dispatch to run it manually once billing works.
+# NOTE: the scheduled leg ran red for four consecutive weeks (2026-10-12 →
+# 2026-11-09) on a broken relative path (../ vs ../../) before this file was
+# fixed — if it is red again, check the checkout path first, then whether a
+# pin-behavior test legitimately caught upstream drift.
 #
 # The replace directives point every go-finding module at one master checkout
 # (master is a multi-module repo: core, pipeline, analysis, toolsdk,
@@ -29,7 +30,7 @@ jobs:
 
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
-          go-version: "1.26.x"
+          go-version: "1.27.x"
 
       - name: Check out go-finding@master
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -41,7 +42,9 @@ jobs:
       - name: Point cqrs-lint at go-finding@master
         working-directory: cmd/cqrs-lint
         run: |
-          MASTER="$(cd ../go-finding-master && pwd)"
+          # actions/checkout path is relative to $GITHUB_WORKSPACE, so from
+          # cmd/cqrs-lint the sibling checkout lives two levels up.
+          MASTER="$(cd ../../go-finding-master && pwd)"
           go mod edit \
             -replace=github.com/larsartmann/go-finding="$MASTER" \
             -replace=github.com/larsartmann/go-finding/pipeline="$MASTER/pipeline"
