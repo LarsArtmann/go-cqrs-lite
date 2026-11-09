@@ -331,13 +331,14 @@ it refuses to pretend it worked when it didn't:
 host.Stop()
 
 // 2. Reset: clears every checkpoint AND asks each projection to clear itself.
-err := host.Reset(ctx)
+//    Reset is PER-PROJECTION (name argument), not whole-host:
+err := host.Reset(ctx, "users")
 //    - projection implements projectionhost.Resettable → state cleared, silent success
 //    - non-Resettable → checkpoint cleared, state NOT cleared:
 //      Reset logs a WARN naming the projection (silent-partial-revert guard,
 //      v4.x; becomes a hard error at v5). Silence it ONLY when the handler is
 //      idempotent or you clear state out-of-band:
-err = host.Reset(ctx, projectionhost.WithKeepStaleState())
+err = host.Reset(ctx, "users", projectionhost.WithKeepStaleState())
 
 // 3. Rebuild: Start replays the ENTIRE journal from zero onto clean state.
 host.Start(ctx)

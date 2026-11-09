@@ -2465,7 +2465,7 @@ any `*key*`/`authToken`/`token` param on local AND remote DSNs.
 
 Read models are replayable by construction — the inverse of "project" is
 "clear + replay the journal". The one-call flow (`host.Stop()` →
-`host.Reset(ctx)` → `host.Start(ctx)`) — including the non-`Resettable`
+`host.Reset(ctx, name)` → `host.Start(ctx)`) — including the non-`Resettable`
 warn guard, `projectionhost.WithKeepStaleState()`, the
 `metaengine.Store.Reset` / `EngineResetter` capability ladder, and
 `ResetResult.Partial()` inspection — has its own recipe in
