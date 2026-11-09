@@ -192,6 +192,8 @@ mirrored workspace) or a documented skip. Adding/rewording a fence without a cat
 usually a real doc lie) — do not paper over it with a skip; first cold run ≈ 100 s (proxy fetch +
 CGO-flag cache split), warm ≈ 5–15 s.
 
+**Verify-before-filing rows** (fanned from go-taskqueue 2026-11-10): two-tick convention — separate unchecked "rebuild repro vs latest upstream" and "file upstream" items, never a fused RESOLVED-WITHOUT-FILING row; cross-engine repros must NAME the engine or the row is not filable. Details: [`gotchas-testing.md`](docs/agents/gotchas-testing.md).
+
 **Gate-script self-tests**: scripts that gate CI carry their own `--self-test` (see
 `calibration-gate.sh`: fault injection via `CALIB_GATE_LOADAVG_FILE` pointing the load probe at a
 planted temp fixture — never a live tracked file; subprocess re-invocation; golden diff for
