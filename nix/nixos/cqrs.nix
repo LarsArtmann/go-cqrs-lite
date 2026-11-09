@@ -177,18 +177,18 @@ let
     name: engineName: eng:
     clean (
       {
-        driver = eng.driver;
+        inherit (eng) driver;
         dsn = resolveDSN name engineName eng;
       }
-      // optionalAttrs (eng.pragmas != [ ]) { pragmas = eng.pragmas; }
-      // optionalAttrs (eng.priority != null) { priority = eng.priority; }
+      // optionalAttrs (eng.pragmas != [ ]) { inherit (eng) pragmas; }
+      // optionalAttrs (eng.priority != null) { inherit (eng) priority; }
       // optionalAttrs (eng.materializedViews != [ ]) {
         materialized_views = map (
           mv:
           clean {
-            collection = mv.collection;
-            fn = mv.fn;
-            column = mv.column;
+            inherit (mv) collection;
+            inherit (mv) fn;
+            inherit (mv) column;
             group_by = mv.groupBy;
           }
         ) eng.materializedViews;
@@ -200,13 +200,13 @@ let
     inst:
     clean (
       {
-        role = inst.role;
-        engine = inst.engine;
+        inherit (inst) role;
+        inherit (inst) engine;
       }
-      // optionalAttrs (inst.collections != [ ]) { collections = inst.collections; }
-      // optionalAttrs (inst.engines != [ ]) { engines = inst.engines; }
-      // optionalAttrs (inst.durability != null) { durability = inst.durability; }
-      // optionalAttrs (inst.publish != [ ]) { publish = inst.publish; }
+      // optionalAttrs (inst.collections != [ ]) { inherit (inst) collections; }
+      // optionalAttrs (inst.engines != [ ]) { inherit (inst) engines; }
+      // optionalAttrs (inst.durability != null) { inherit (inst) durability; }
+      // optionalAttrs (inst.publish != [ ]) { inherit (inst) publish; }
     );
 
   # The Nix twin of system.Standard: WAL + query audit log on the WAL engine
@@ -263,9 +263,9 @@ let
         buses = mapAttrs (
           _: bus:
           clean {
-            driver = bus.driver;
-            url = bus.url;
-            mode = bus.mode;
+            inherit (bus) driver;
+            inherit (bus) url;
+            inherit (bus) mode;
           }
         ) dep.buses;
       }

@@ -81,7 +81,7 @@ let
           (check (pg.ensureDatabases == [ "cqrs_demo_primary" ]) "ensureDatabases mismatch")
           (check (
             map (u: {
-              name = u.name;
+              inherit (u) name;
               owns = u.ensureDBOwnership;
             }) pg.ensureUsers == [
               {

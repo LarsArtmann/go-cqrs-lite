@@ -9,8 +9,8 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.2
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.5
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.4.0
-	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.7.1
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.22.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.8.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.23.0
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.4.2
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.7.1
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1
@@ -22,7 +22,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4 v4.3.5
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.5.1
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2
-	github.com/larsartmann/go-cqrs-lite/system/v4 v4.17.0
+	github.com/larsartmann/go-cqrs-lite/system/v4 v4.18.0
 	github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.2.3
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.7.0
 	github.com/larsartmann/go-error-family v0.12.0
