@@ -252,7 +252,7 @@ check_go_directives() {
 		[[ -f "$path" ]] || continue
 		val=$(awk '$1 == "go" {print $2; exit}' "$path")
 		[[ -n "${val:-}" ]] || continue
-		seen["$val"]+="${path#$dir/} "
+		seen["$val"]+="${path#"$dir"/} "
 	done < <(
 		find "$dir" -name go.mod -not -path '*/vendor/*'
 		echo "$dir/go.work"
