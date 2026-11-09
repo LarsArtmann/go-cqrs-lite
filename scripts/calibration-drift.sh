@@ -18,6 +18,16 @@
 # apples-to-apples with its own previous run (same pattern as benchmarks.yml's
 # baseline artifact). Regenerate the artifact with --write-baseline FILE.
 #
+# PROVENANCE (failed-run lineage, kept so the false-red classes stay named):
+# scheduled Benchmarks runs 42332942484 (2026-11-07) and 42441847588
+# (2026-11-08) failed the pre-runner-class-baseline design (all engines
+# drifting 62-147% against shipped constants = shared-host noise, not code);
+# dispatch 42477839931 (2026-11-08) failed pre-date-fix (the calib-YYYY-MM-DD
+# cache key restored a STALE day-tagged baseline). The runner-class baseline
+# + date-keyed restore landed 2026-11-08; first COLD-then-WARM green proof:
+# dispatches 42564460721 + 42566687686 (2026-11-09, zero drift warnings on
+# the warm compare). Contract pins: scripts/test-calibration-freeze.sh.
+#
 # Usage: scripts/calibration-drift.sh [--baseline FILE | --write-baseline FILE] [MODULE ...]
 # Default modules: metaengine/{badger,bbolt,pebble,sqlite}engine (in-memory,
 # no DSN needed). count=3 per bench, run 1 discarded, median of the rest.
