@@ -234,20 +234,20 @@ GOWORK=off go run main.go   # → Counter <ulid>: value=10 (expected 10)
 
 All durable I/O — journal, read models, snapshots, checkpoints, timers, dedup — rides one engine layer ([ADR-0142](docs/adr/0142-universal-storage-substrate.md)). Drivers self-register `database/sql`-style via blank import; `DeploymentConfig` binds them to roles; the planner routes each query to the cheapest engine that supports it.
 
-| Driver     | Module                      | Build    | Strengths                                         |
-| ---------- | --------------------------- | -------- | ------------------------------------------------- |
-| `memory`   | in-core                     | pure Go  | tests, defaults, zero setup                       |
-| `sqlite`   | `metaengine/sqliteengine`   | pure Go  | embedded single-file persistence                  |
-| `turso`    | `metaengine/tursoengine`    | pure Go  | embedded Turso Database, optional page encryption |
-| `pebble`   | `metaengine/pebbleengine`   | pure Go  | high-throughput embedded LSM                      |
-| `bbolt`    | `metaengine/bboltengine`    | pure Go  | single-file B+tree                                |
-| `badger`   | `metaengine/badgerengine`   | pure Go  | embedded KV with prefix scans                     |
-| `postgres` | `metaengine/pgengine`       | pure Go  | distributed, pooling, `WITH RECURSIVE` graph CTEs |
-| `mysql`    | `metaengine/mysqlengine`    | pure Go  | MySQL/MariaDB (pure-Go driver)                    |
-| `dgraph`   | `metaengine/dgraphengine`   | pure Go  | native graph traversal                            |
-| `bigtable` | `metaengine/bigtableengine` | pure Go  | GCP Bigtable                                      |
-| `duckdb`   | `metaengine/duckdbengine`   | CGo      | embedded columnar OLAP, vector search             |
-| —          | `metaengine/irohengine`     | pure Go  | CRDT replication across nodes (programmatic, p2p) |
+| Driver     | Module                      | Build   | Strengths                                         |
+| ---------- | --------------------------- | ------- | ------------------------------------------------- |
+| `memory`   | in-core                     | pure Go | tests, defaults, zero setup                       |
+| `sqlite`   | `metaengine/sqliteengine`   | pure Go | embedded single-file persistence                  |
+| `turso`    | `metaengine/tursoengine`    | pure Go | embedded Turso Database, optional page encryption |
+| `pebble`   | `metaengine/pebbleengine`   | pure Go | high-throughput embedded LSM                      |
+| `bbolt`    | `metaengine/bboltengine`    | pure Go | single-file B+tree                                |
+| `badger`   | `metaengine/badgerengine`   | pure Go | embedded KV with prefix scans                     |
+| `postgres` | `metaengine/pgengine`       | pure Go | distributed, pooling, `WITH RECURSIVE` graph CTEs |
+| `mysql`    | `metaengine/mysqlengine`    | pure Go | MySQL/MariaDB (pure-Go driver)                    |
+| `dgraph`   | `metaengine/dgraphengine`   | pure Go | native graph traversal                            |
+| `bigtable` | `metaengine/bigtableengine` | pure Go | GCP Bigtable                                      |
+| `duckdb`   | `metaengine/duckdbengine`   | CGo     | embedded columnar OLAP, vector search             |
+| —          | `metaengine/irohengine`     | pure Go | CRDT replication across nodes (programmatic, p2p) |
 
 Read models are ADTs, not opaque blobs: Map (CRUD), Graph (edges, traversals), Vector (k-NN), Log, Set, Counter — the planner picks SQL pushdown where the engine supports it and scans otherwise. Full per-capability matrix (generated from source): [`docs/engine-capabilities.md`](docs/engine-capabilities.md). Deployment-from-YAML demo: [`example/metaengine-quickstart/`](example/metaengine-quickstart/).
 
@@ -288,38 +288,38 @@ The layers under the composition root are independently importable — some v4 s
 
 ## Examples
 
-| Example                                                   | Shows                                                                                          |
-| --------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| [`getting-started`](example/getting-started/)             | single-file `system.New` tour; a test proves the one-line engine swap                          |
-| [`taskmanager`](example/taskmanager/)                     | flagship HTTP service: ES, projections, middleware, signing, SSE, snapshots, OTel              |
+| Example                                                   | Shows                                                                                           |
+| --------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| [`getting-started`](example/getting-started/)             | single-file `system.New` tour; a test proves the one-line engine swap                           |
+| [`taskmanager`](example/taskmanager/)                     | flagship HTTP service: ES, projections, middleware, signing, SSE, snapshots, OTel               |
 | [`metaengine-quickstart`](example/metaengine-quickstart/) | deployment-time story: folds + queries, engine picks from a `cqrs.yaml`, map/graph/vector demos |
-| [`graph-native`](example/graph-native/)                   | follow-network graph reads, deletion-as-domain-event, BDD-verified                             |
-| [`mesh-demo`](example/mesh-demo/)                         | two bounded contexts wired only through replicated event contracts (data mesh)                 |
-| [`goal-shaped-app`](example/goal-shaped-app/)             | the library's north star, runnable: declare commands/events/queries, operators place the data  |
-| [`readme-quickstart`](example/readme-quickstart/)         | minimal command + decider without the system layer                                             |
-| [`scheduler-otel-status`](example/scheduler-otel-status/) | durable deadline timers + OTel/Prometheus claim observability                                  |
+| [`graph-native`](example/graph-native/)                   | follow-network graph reads, deletion-as-domain-event, BDD-verified                              |
+| [`mesh-demo`](example/mesh-demo/)                         | two bounded contexts wired only through replicated event contracts (data mesh)                  |
+| [`goal-shaped-app`](example/goal-shaped-app/)             | the library's north star, runnable: declare commands/events/queries, operators place the data   |
+| [`readme-quickstart`](example/readme-quickstart/)         | minimal command + decider without the system layer                                              |
+| [`scheduler-otel-status`](example/scheduler-otel-status/) | durable deadline timers + OTel/Prometheus claim observability                                   |
 
 ## Key modules
 
 Every module is independently importable and has its own `go.mod`. Here are the most important ones — see [AGENTS.md](AGENTS.md) for the full module catalog and [FEATURES.md](FEATURES.md) for the feature inventory.
 
-| Module                  | Purpose                                                                       |
-| ----------------------- | ----------------------------------------------------------------------------- |
-| **system**              | Composition root: `system.New(ctx, DomainConfig, DeploymentConfig)` wires everything |
-| **metaengine**          | Cost-based storage planner; Map/Graph/Vector/Log/Set/Counter read-model ADTs  |
-| **metaengine/*engine**  | 11 self-registering drivers: sqlite, postgres, mysql, pebble, bbolt, …        |
-| **event**               | Immutable events, store/bus interfaces, event sourcing                        |
-| **command**             | Typed command dispatch, middleware, audit journal, pub/sub bus                |
-| **query**               | Typed query dispatch, pagination, audit journal                               |
-| **decider**             | Pure-function event-sourcing pattern: load, apply, decide, save               |
-| **id**                  | Branded IDs backed by ULID                                                    |
-| **projectionhost**      | Managed projection lifecycle: crash-restart, checkpoints, dead-letter         |
-| **scheduling**          | Durable deadline timers (cancellations, retries, manual clock for tests)      |
-| **watermill**           | Broker pub/sub bridge (NATS, Kafka, Redis Streams) + catch-up subscriber      |
-| **middleware**          | Logging, retry, validation, recovery, circuit breaker, OTel                   |
-| **kv**                  | Layer-0 KV abstraction: `kv.Store`, `TypedStore[T,K]`, `Cache`                |
-| **catalog**             | Auto-generate AsyncAPI 3.0, EventCatalog, OpenAPI, D2 from Go types           |
-| **systemscenario**      | BDD Given/When/Then over a real `system.New` boot, deterministic manual clock |
+| Module                 | Purpose                                                                              |
+| ---------------------- | ------------------------------------------------------------------------------------ |
+| **system**             | Composition root: `system.New(ctx, DomainConfig, DeploymentConfig)` wires everything |
+| **metaengine**         | Cost-based storage planner; Map/Graph/Vector/Log/Set/Counter read-model ADTs         |
+| *_metaengine/_engine__ | 11 self-registering drivers: sqlite, postgres, mysql, pebble, bbolt, …               |
+| **event**              | Immutable events, store/bus interfaces, event sourcing                               |
+| **command**            | Typed command dispatch, middleware, audit journal, pub/sub bus                       |
+| **query**              | Typed query dispatch, pagination, audit journal                                      |
+| **decider**            | Pure-function event-sourcing pattern: load, apply, decide, save                      |
+| **id**                 | Branded IDs backed by ULID                                                           |
+| **projectionhost**     | Managed projection lifecycle: crash-restart, checkpoints, dead-letter                |
+| **scheduling**         | Durable deadline timers (cancellations, retries, manual clock for tests)             |
+| **watermill**          | Broker pub/sub bridge (NATS, Kafka, Redis Streams) + catch-up subscriber             |
+| **middleware**         | Logging, retry, validation, recovery, circuit breaker, OTel                          |
+| **kv**                 | Layer-0 KV abstraction: `kv.Store`, `TypedStore[T,K]`, `Cache`                       |
+| **catalog**            | Auto-generate AsyncAPI 3.0, EventCatalog, OpenAPI, D2 from Go types                  |
+| **systemscenario**     | BDD Given/When/Then over a real `system.New` boot, deterministic manual clock        |
 
 ## Key dependencies
 
@@ -350,121 +350,123 @@ Modules release on independent per-module version trains (`<module>/vX.Y.Z` git 
 <summary>Module → latest published tag (generated — do not edit by hand)</summary>
 
 <!-- versions-manifest:begin -->
-| Module | Latest published tag |
-| --- | --- |
-| . | `v4.0.0` *(untagged per ADR-0152)* |
-| benchkit | `benchkit/v4.7.0` *(untagged per ADR-0152)* |
-| catalog | `catalog/v4.14.0` |
-| claiming | `claiming/v4.0.2` |
-| cmd/api-stability | `cmd/api-stability/v4.4.2` *(untagged per ADR-0152)* |
-| cmd/cqrs-bench | `cmd/cqrs-bench/v4.3.4` *(untagged per ADR-0152)* |
-| cmd/cqrs-gen | `cmd/cqrs-gen/v4.3.3` *(untagged per ADR-0152)* |
-| cmd/cqrs-lint | `cmd/cqrs-lint/v4.21.0` |
-| cmd/cqrs-upgrade | `cmd/cqrs-upgrade/v4.1.2` *(untagged per ADR-0152)* |
-| cmd/doc-check | `cmd/doc-check/v4.3.3` *(untagged per ADR-0152)* |
-| codec | `codec/v4.4.0` |
-| command | `command/v4.14.1` |
-| commandlifecycle | `commandlifecycle/v4.3.1` |
-| commandlifecycle/projections | `commandlifecycle/projections/v4.2.3` |
-| core | `core/v1.6.0` |
-| cqrs-lite | `cqrs-lite/v0.1.1` |
-| decider | `decider/v4.8.0` |
-| dedup | `dedup/v4.3.0` |
-| deriver | `deriver/v4.5.0` |
-| dispatcher | `dispatcher/v4.5.2` |
-| encryption | `encryption/v4.4.6` |
-| event | `event/v4.15.2` |
-| event/v3/eventtest | `event/v3/eventtest/v3.7.4` |
-| event/v4/eventtest | `event/v4/eventtest/v0.4.0` |
-| example/getting-started | `example/getting-started/v4.1.0` *(untagged per ADR-0152)* |
-| example/goal-shaped-app | `example/goal-shaped-app/v0.1.2` *(untagged per ADR-0152)* |
-| example/metaengine-quickstart | `example/metaengine-quickstart/v0.1.3` *(untagged per ADR-0152)* |
-| example/readme-quickstart | `example/readme-quickstart/v0.2.3` *(untagged per ADR-0152)* |
-| example/scheduler-otel-status | `example/scheduler-otel-status/v0.1.2` *(untagged per ADR-0152)* |
-| example/taskmanager | `example/taskmanager/v3.7.1` *(untagged per ADR-0152)* |
-| flightrecorder | `flightrecorder/v4.0.0` |
-| graph | `graph/v4.3.4` *(untagged per ADR-0152)* |
-| id | `id/v4.7.5` |
-| idempotency | `idempotency/v4.4.0` |
-| idempotency/kvstore | `idempotency/kvstore/v4.3.3` *(untagged per ADR-0152)* |
-| idempotency/sqlstore | `idempotency/sqlstore/v4.4.3` *(untagged per ADR-0152)* |
-| integration | `integration/v4.2.3` *(untagged per ADR-0152)* |
-| kv | `kv/v4.4.0` |
-| listing | `listing/v4.4.4` |
-| memory | `memory/v2.6.0` |
-| metadata | `metadata/v4.7.3` |
-| metaengine | `metaengine/v4.22.0` |
-| metaengine/badgerengine | `metaengine/badgerengine/v4.3.3` *(untagged per ADR-0152)* |
-| metaengine/bboltengine | `metaengine/bboltengine/v4.3.3` *(untagged per ADR-0152)* |
-| metaengine/bench | `metaengine/bench/v4.1.2` *(untagged per ADR-0152)* |
-| metaengine/bigtableengine | `metaengine/bigtableengine/v4.0.2` *(untagged per ADR-0152)* |
-| metaengine/dgraphengine | `metaengine/dgraphengine/v4.3.3` *(untagged per ADR-0152)* |
-| metaengine/duckdbengine | `metaengine/duckdbengine/v4.3.3` *(untagged per ADR-0152)* |
-| metaengine/graphadapter | `metaengine/graphadapter/v4.1.3` *(untagged per ADR-0152)* |
-| metaengine/irohengine | `metaengine/irohengine/v4.3.2` *(untagged per ADR-0152)* |
-| metaengine/irohengine/loopback | `metaengine/irohengine/loopback/v4.0.5` *(untagged per ADR-0152)* |
-| metaengine/irohengine/quic | `metaengine/irohengine/quic/v4.2.3` *(untagged per ADR-0152)* |
-| metaengine/mysqlengine | `metaengine/mysqlengine/v4.3.3` *(untagged per ADR-0152)* |
-| metaengine/otelobserver | `metaengine/otelobserver/v4.0.2` *(untagged per ADR-0152)* |
-| metaengine/pebbleengine | `metaengine/pebbleengine/v4.4.4` |
-| metaengine/pgengine | `metaengine/pgengine/v4.4.3` *(untagged per ADR-0152)* |
-| metaengine/projectionadapter | `metaengine/projectionadapter/v4.6.2` |
-| metaengine/sqliteengine | `metaengine/sqliteengine/v4.7.1` |
-| metaengine/tursoengine | `metaengine/tursoengine/v4.2.3` *(untagged per ADR-0152)* |
-| middleware | `middleware/v4.7.2` |
-| otel | `otel/v4.5.3` |
-| otel/otlp | `otel/otlp/v4.0.2` *(untagged per ADR-0152)* |
-| pebble | `pebble/v2.6.0` |
-| projection | `projection/v4.4.2` |
-| projectionhost | `projectionhost/v4.7.1` |
-| prometheus | `prometheus/v4.3.4` |
-| query | `query/v4.10.1` |
-| queue | `queue/v4.0.3` |
-| queue/mysql | `queue/mysql/v4.0.3` *(untagged per ADR-0152)* |
-| queue/postgres | `queue/postgres/v4.0.3` |
-| queue/sqlite | `queue/sqlite/v4.0.3` |
-| record | `record/v4.6.2` |
-| retry | `retry/v4.3.0` |
-| saga | `saga/v1.0.0` |
-| scenario | `scenario/v4.4.3` |
-| scheduling | `scheduling/v4.7.0` |
-| scheduling/engine | `scheduling/engine/v4.0.2` |
-| scheduling/sqlstore | `scheduling/sqlstore/v4.1.4` |
-| schema | `schema/v4.7.1` |
-| signing | `signing/v4.4.2` |
-| snapshot | `snapshot/v4.7.0` |
-| stack | `stack/v4.5.1` |
-| stack/bbolt | `stack/bbolt/v4.2.3` *(untagged per ADR-0152)* |
-| stack/bench | `stack/bench/v4.3.2` *(untagged per ADR-0152)* |
-| stack/duckdb | `stack/duckdb/v4.2.3` *(untagged per ADR-0152)* |
-| stack/memory | `stack/memory/v4.4.3` *(untagged per ADR-0152)* |
-| stack/metaengine | `stack/metaengine/v4.0.0` *(untagged per ADR-0152)* |
-| stack/mysql | `stack/mysql/v4.2.3` *(untagged per ADR-0152)* |
-| stack/pebble | `stack/pebble/v4.4.3` *(untagged per ADR-0152)* |
-| stack/postgres | `stack/postgres/v4.4.3` *(untagged per ADR-0152)* |
-| stack/sqlite | `stack/sqlite/v4.3.5` |
-| stack/turso | `stack/turso/v4.4.3` *(untagged per ADR-0152)* |
-| storage | `storage/v4.11.1` |
-| storage/backuptest | `storage/backuptest/v4.2.3` *(untagged per ADR-0152)* |
-| storage/bbolt | `storage/bbolt/v4.2.3` |
-| storage/memory | `storage/memory/v4.6.2` |
-| storage/pebble | `storage/pebble/v4.4.4` *(untagged per ADR-0152)* |
-| storage/turso | `storage/turso/v4.3.5` |
-| sync | `sync/v0.2.0` |
-| system | `system/v4.17.0` |
-| system/integration | `system/integration/v4.0.2` *(untagged per ADR-0152)* |
-| systemcatalog | `systemcatalog/v4.0.0` |
-| systemscenario | `systemscenario/v4.3.0` |
-| systemtest | `systemtest/v4.0.0` *(untagged per ADR-0152)* |
-| testhelpers | `testhelpers/v1.7.1` |
-| testing | `testing/v3.3.0` |
-| testutil | `testutil/v4.3.4` |
-| testutil/mysqltestcontainer | `testutil/mysqltestcontainer/v4.0.0` *(untagged per ADR-0152)* |
-| testutil/pgtestcontainer | `testutil/pgtestcontainer/v4.2.3` |
-| transport/grpc | `transport/grpc/v4.3.3` *(untagged per ADR-0152)* |
-| transport/http | `transport/http/v4.3.5` *(untagged per ADR-0152)* |
-| turso | `turso/v2.6.0` |
-| watermill | `watermill/v4.7.0` |
+
+| Module                         | Latest published tag                                              |
+| ------------------------------ | ----------------------------------------------------------------- |
+| .                              | `v4.0.0` _(untagged per ADR-0152)_                                |
+| benchkit                       | `benchkit/v4.7.0` _(untagged per ADR-0152)_                       |
+| catalog                        | `catalog/v4.14.0`                                                 |
+| claiming                       | `claiming/v4.0.2`                                                 |
+| cmd/api-stability              | `cmd/api-stability/v4.4.2` _(untagged per ADR-0152)_              |
+| cmd/cqrs-bench                 | `cmd/cqrs-bench/v4.3.4` _(untagged per ADR-0152)_                 |
+| cmd/cqrs-gen                   | `cmd/cqrs-gen/v4.3.3` _(untagged per ADR-0152)_                   |
+| cmd/cqrs-lint                  | `cmd/cqrs-lint/v4.21.0`                                           |
+| cmd/cqrs-upgrade               | `cmd/cqrs-upgrade/v4.1.2` _(untagged per ADR-0152)_               |
+| cmd/doc-check                  | `cmd/doc-check/v4.3.3` _(untagged per ADR-0152)_                  |
+| codec                          | `codec/v4.4.0`                                                    |
+| command                        | `command/v4.14.1`                                                 |
+| commandlifecycle               | `commandlifecycle/v4.3.1`                                         |
+| commandlifecycle/projections   | `commandlifecycle/projections/v4.2.3`                             |
+| core                           | `core/v1.6.0`                                                     |
+| cqrs-lite                      | `cqrs-lite/v0.1.1`                                                |
+| decider                        | `decider/v4.8.0`                                                  |
+| dedup                          | `dedup/v4.3.0`                                                    |
+| deriver                        | `deriver/v4.5.0`                                                  |
+| dispatcher                     | `dispatcher/v4.5.2`                                               |
+| encryption                     | `encryption/v4.4.6`                                               |
+| event                          | `event/v4.15.2`                                                   |
+| event/v3/eventtest             | `event/v3/eventtest/v3.7.4`                                       |
+| event/v4/eventtest             | `event/v4/eventtest/v0.4.0`                                       |
+| example/getting-started        | `example/getting-started/v4.1.0` _(untagged per ADR-0152)_        |
+| example/goal-shaped-app        | `example/goal-shaped-app/v0.1.2` _(untagged per ADR-0152)_        |
+| example/metaengine-quickstart  | `example/metaengine-quickstart/v0.1.3` _(untagged per ADR-0152)_  |
+| example/readme-quickstart      | `example/readme-quickstart/v0.2.3` _(untagged per ADR-0152)_      |
+| example/scheduler-otel-status  | `example/scheduler-otel-status/v0.1.2` _(untagged per ADR-0152)_  |
+| example/taskmanager            | `example/taskmanager/v3.7.1` _(untagged per ADR-0152)_            |
+| flightrecorder                 | `flightrecorder/v4.0.0`                                           |
+| graph                          | `graph/v4.3.4` _(untagged per ADR-0152)_                          |
+| id                             | `id/v4.7.5`                                                       |
+| idempotency                    | `idempotency/v4.4.0`                                              |
+| idempotency/kvstore            | `idempotency/kvstore/v4.3.3` _(untagged per ADR-0152)_            |
+| idempotency/sqlstore           | `idempotency/sqlstore/v4.4.3` _(untagged per ADR-0152)_           |
+| integration                    | `integration/v4.2.3` _(untagged per ADR-0152)_                    |
+| kv                             | `kv/v4.4.0`                                                       |
+| listing                        | `listing/v4.4.4`                                                  |
+| memory                         | `memory/v2.6.0`                                                   |
+| metadata                       | `metadata/v4.7.3`                                                 |
+| metaengine                     | `metaengine/v4.23.0`                                              |
+| metaengine/badgerengine        | `metaengine/badgerengine/v4.3.3` _(untagged per ADR-0152)_        |
+| metaengine/bboltengine         | `metaengine/bboltengine/v4.3.3` _(untagged per ADR-0152)_         |
+| metaengine/bench               | `metaengine/bench/v4.1.2` _(untagged per ADR-0152)_               |
+| metaengine/bigtableengine      | `metaengine/bigtableengine/v4.0.2` _(untagged per ADR-0152)_      |
+| metaengine/dgraphengine        | `metaengine/dgraphengine/v4.3.3` _(untagged per ADR-0152)_        |
+| metaengine/duckdbengine        | `metaengine/duckdbengine/v4.3.3` _(untagged per ADR-0152)_        |
+| metaengine/graphadapter        | `metaengine/graphadapter/v4.1.3` _(untagged per ADR-0152)_        |
+| metaengine/irohengine          | `metaengine/irohengine/v4.3.2` _(untagged per ADR-0152)_          |
+| metaengine/irohengine/loopback | `metaengine/irohengine/loopback/v4.0.5` _(untagged per ADR-0152)_ |
+| metaengine/irohengine/quic     | `metaengine/irohengine/quic/v4.2.3` _(untagged per ADR-0152)_     |
+| metaengine/mysqlengine         | `metaengine/mysqlengine/v4.3.3` _(untagged per ADR-0152)_         |
+| metaengine/otelobserver        | `metaengine/otelobserver/v4.0.2` _(untagged per ADR-0152)_        |
+| metaengine/pebbleengine        | `metaengine/pebbleengine/v4.4.4`                                  |
+| metaengine/pgengine            | `metaengine/pgengine/v4.4.3` _(untagged per ADR-0152)_            |
+| metaengine/projectionadapter   | `metaengine/projectionadapter/v4.6.2`                             |
+| metaengine/sqliteengine        | `metaengine/sqliteengine/v4.8.0`                                  |
+| metaengine/tursoengine         | `metaengine/tursoengine/v4.2.3` _(untagged per ADR-0152)_         |
+| middleware                     | `middleware/v4.7.2`                                               |
+| otel                           | `otel/v4.5.3`                                                     |
+| otel/otlp                      | `otel/otlp/v4.0.2` _(untagged per ADR-0152)_                      |
+| pebble                         | `pebble/v2.6.0`                                                   |
+| projection                     | `projection/v4.4.2`                                               |
+| projectionhost                 | `projectionhost/v4.7.1`                                           |
+| prometheus                     | `prometheus/v4.3.4`                                               |
+| query                          | `query/v4.10.1`                                                   |
+| queue                          | `queue/v4.0.3`                                                    |
+| queue/mysql                    | `queue/mysql/v4.0.3` _(untagged per ADR-0152)_                    |
+| queue/postgres                 | `queue/postgres/v4.0.3`                                           |
+| queue/sqlite                   | `queue/sqlite/v4.0.3`                                             |
+| record                         | `record/v4.6.2`                                                   |
+| retry                          | `retry/v4.3.0`                                                    |
+| saga                           | `saga/v1.0.0`                                                     |
+| scenario                       | `scenario/v4.4.3`                                                 |
+| scheduling                     | `scheduling/v4.7.0`                                               |
+| scheduling/engine              | `scheduling/engine/v4.0.2`                                        |
+| scheduling/sqlstore            | `scheduling/sqlstore/v4.1.4`                                      |
+| schema                         | `schema/v4.7.1`                                                   |
+| signing                        | `signing/v4.4.2`                                                  |
+| snapshot                       | `snapshot/v4.7.0`                                                 |
+| stack                          | `stack/v4.5.1`                                                    |
+| stack/bbolt                    | `stack/bbolt/v4.2.3` _(untagged per ADR-0152)_                    |
+| stack/bench                    | `stack/bench/v4.3.2` _(untagged per ADR-0152)_                    |
+| stack/duckdb                   | `stack/duckdb/v4.2.3` _(untagged per ADR-0152)_                   |
+| stack/memory                   | `stack/memory/v4.4.3` _(untagged per ADR-0152)_                   |
+| stack/metaengine               | `stack/metaengine/v4.0.0` _(untagged per ADR-0152)_               |
+| stack/mysql                    | `stack/mysql/v4.2.3` _(untagged per ADR-0152)_                    |
+| stack/pebble                   | `stack/pebble/v4.4.3` _(untagged per ADR-0152)_                   |
+| stack/postgres                 | `stack/postgres/v4.4.3` _(untagged per ADR-0152)_                 |
+| stack/sqlite                   | `stack/sqlite/v4.3.5`                                             |
+| stack/turso                    | `stack/turso/v4.4.3` _(untagged per ADR-0152)_                    |
+| storage                        | `storage/v4.11.1`                                                 |
+| storage/backuptest             | `storage/backuptest/v4.2.3` _(untagged per ADR-0152)_             |
+| storage/bbolt                  | `storage/bbolt/v4.2.3`                                            |
+| storage/memory                 | `storage/memory/v4.6.2`                                           |
+| storage/pebble                 | `storage/pebble/v4.4.4` _(untagged per ADR-0152)_                 |
+| storage/turso                  | `storage/turso/v4.3.5`                                            |
+| sync                           | `sync/v0.2.0`                                                     |
+| system                         | `system/v4.18.0`                                                  |
+| system/integration             | `system/integration/v4.0.2` _(untagged per ADR-0152)_             |
+| systemcatalog                  | `systemcatalog/v4.0.0`                                            |
+| systemscenario                 | `systemscenario/v4.3.0`                                           |
+| systemtest                     | `systemtest/v4.0.0` _(untagged per ADR-0152)_                     |
+| testhelpers                    | `testhelpers/v1.7.1`                                              |
+| testing                        | `testing/v3.3.0`                                                  |
+| testutil                       | `testutil/v4.3.4`                                                 |
+| testutil/mysqltestcontainer    | `testutil/mysqltestcontainer/v4.0.0` _(untagged per ADR-0152)_    |
+| testutil/pgtestcontainer       | `testutil/pgtestcontainer/v4.2.3`                                 |
+| transport/grpc                 | `transport/grpc/v4.3.3` _(untagged per ADR-0152)_                 |
+| transport/http                 | `transport/http/v4.3.5` _(untagged per ADR-0152)_                 |
+| turso                          | `turso/v2.6.0`                                                    |
+| watermill                      | `watermill/v4.7.0`                                                |
+
 <!-- versions-manifest:end -->
 
 </details>
