@@ -180,8 +180,8 @@ self_test() {
 		echo "  ✗ FAIL: red gate fails the chain" >&2
 		rc=1
 	fi
-	[ ! -f "$tmp/cov5" ]
-	check "coverage never ran when gate red" $?
+	if [ -f "$tmp/cov5" ]; then cov_ran=1; else cov_ran=0; fi
+	check "coverage never ran when gate red" "$cov_ran"
 
 	# T6 (2026-11-08 incident): the load guard refuses the VERIFY step
 	# itself (rc=12 through the flake passthrough) -> retried, not killed.

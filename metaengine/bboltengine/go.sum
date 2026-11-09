@@ -34,8 +34,8 @@ github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.3.0 h1:p5wGOfVWc+lqEi1yVM4/rfH1p
 github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.3.0/go.mod h1:AbQjMKQWyXaz0lDe4/9Xryvmq6FzwlfuQNaCKR5KizI=
 github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.5 h1:HD1Ia+txmSzTEoZQg6YK7Gs4iy6CFS87wpBs/e+CUZk=
 github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.5/go.mod h1:N2V2WfonHDcjwoJSHhIyudrKBsCUFtEj/iUuWEj7BZo=
-github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.7.1 h1:XGYLdeI1NUpf0n1NJHwqZ3PY1iX/T55SHCX7Z8BRHM0=
-github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.7.1/go.mod h1:jHxjZiCBDBoUUew6lOGPe2DOTVtprIOfNrBPruT47JQ=
+github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.8.0 h1:fXFwFiQkgL0eb9Zt34J5LalEydPMT1qJBhcnHzXRgus=
+github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.8.0/go.mod h1:ttAdAszMm4ZBT2prMC+dxAiqFlM2+ecvXrxJi4iF//w=
 github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2 h1:YtlkO7+wTXNTzskWbqf2xKAZC+HGe+gp0oejzJahqhg=
 github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2/go.mod h1:JFGAWfaNItRWzmUBog4Q3aZOhSGmtWHeP55pBlPE0g0=
 github.com/larsartmann/go-error-family v0.12.0 h1:HEtocvwaPe9udDusqDqV0pxN9Wx98KHQBK0MEHZupzg=
