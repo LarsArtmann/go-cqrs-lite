@@ -4,19 +4,20 @@
 # FIXME/XXX/BUG-class markers fail; TODO/NOTE/OPTIMIZE do not block commits.
 todo_min_severity: warning
 
-# go-version-auto-configure UNSKIPPED 2026-10-07: every directive is
-# minor-form (go 1.27) since the supply-side re-tags, and gvac v0.2.5 adds
-# respect_patch_floor — a deliberate patch pin at or below the installed
-# toolchain (the W3 Q4 contract, docs/agents/gowork-modes.md) is now
-# policy, not drift. The directive-downgrade waves it once caused are
-# structurally over (the tidy gate + the option both guard them).
+# go-version-auto-configure UNSKIPPED 2026-10-07: directives moved to
+# PATCH-form (go 1.27.2) across all 104 go.mod + go.work on 2026-11-08
+# (AGENTS.md contract #10), and gvac v0.2.5 adds respect_patch_floor —
+# a deliberate patch pin at or below the installed toolchain (the W3 Q4
+# contract, docs/agents/gowork-modes.md) is now policy, not drift. The
+# directive-downgrade waves it once caused are structurally over (the
+# tidy gate + the option both guard them).
 tool_options:
   go-version-auto-configure:
     respect_patch_floor: true
 
 # GOTOOLCHAIN removed 2026-10-07: BuildFlow auto-derives GOTOOLCHAIN=auto
-# when the workspace contract (go 1.27.1) exceeds the host go (1.26.7); in
-# the nix sandbox the pinned go_1_27 already satisfies the directive, so no
+# when the workspace contract (go 1.27.2) exceeds the host go; in the nix
+# sandbox the pinned go_1_27 already satisfies the directive, so no
 # download is attempted.
 env:
   # Ambient shells export /mnt/buildcache cache paths (87% full — the

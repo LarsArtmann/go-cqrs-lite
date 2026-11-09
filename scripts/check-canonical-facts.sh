@@ -31,6 +31,11 @@
 #      (identifiers listed in metaengine.AllADTs()) — the 10-vs-11-vs-12
 #      count rot this leg killed lived in ROADMAP/FEATURES/skill refs.
 #      Each unit must be cited at least once across the doc set.
+#   6. go-directive uniformity (2026-11-09, brutal-audit item 20): every
+#      go.mod `go` directive AND go.work's must be one identical value, and
+#      AGENTS.md's Quick Reference "Go X.Y.Z (uniform ... directive)" claim
+#      must cite exactly that value. The minor-form → patch-form move
+#      (1.27 → 1.27.2) survived a week of stale prose before this existed.
 #
 # Usage:
 #   scripts/check-canonical-facts.sh             # gate
@@ -237,6 +242,50 @@ check_engine_counts() {
 	echo "  engine counts: engines=$engines (modules=$engine_modules+core) drivers=$drivers planner-ADTs=$adts"
 }
 
+# check_go_directives (fact 6): uniform go directive across every go.mod
+# + go.work, cross-checked against the AGENTS.md Quick Reference claim.
+check_go_directives() {
+	local dir="$1"
+	local -A seen=()
+	local path val uniform
+	while IFS= read -r path; do
+		[[ -f "$path" ]] || continue
+		val=$(awk '$1 == "go" {print $2; exit}' "$path")
+		[[ -n "${val:-}" ]] || continue
+		seen["$val"]+="${path#$dir/} "
+	done < <(
+		find "$dir" -name go.mod -not -path '*/vendor/*'
+		echo "$dir/go.work"
+	)
+
+	if [[ ${#seen[@]} -eq 0 ]]; then
+		echo "✗ go-directive leg found no directives to verify" >&2
+		failures=$((failures + 1))
+		return
+	fi
+
+	if [[ ${#seen[@]} -gt 1 ]]; then
+		echo "✗ go directives are NOT uniform:" >&2
+		local v
+		for v in "${!seen[@]}"; do
+			echo "    go $v → ${seen[$v]}" >&2
+		done
+		failures=$((failures + 1))
+		return
+	fi
+
+	uniform="${!seen[*]}"
+	echo "  go directive: uniform $uniform across all go.mod + go.work"
+
+	local cited
+	cited=$(grep -oE 'Go [0-9]+\.[0-9]+(\.[0-9]+)? \(uniform' "$dir/AGENTS.md" 2>/dev/null |
+		head -1 | grep -oE '[0-9]+(\.[0-9]+){1,2}' || true)
+	if [[ -n "${cited:-}" && "$cited" != "$uniform" ]]; then
+		echo "✗ AGENTS.md Quick Reference cites Go $cited but every directive is $uniform" >&2
+		failures=$((failures + 1))
+	fi
+}
+
 run_all() {
 	local dir="$1"
 	echo "━━━ canonical facts ($dir) ━━━"
@@ -245,6 +294,7 @@ run_all() {
 	check_recipes_count "$dir"
 	check_status_index "$dir"
 	check_engine_counts "$dir"
+	check_go_directives "$dir"
 }
 
 self_test() {
@@ -252,11 +302,14 @@ self_test() {
 	tmp="$(mktemp -d)"
 	trap 'rm -rf "${tmp:-}"' EXIT
 
-	# Minimal fake repo carrying one of each fact shape.
+	# Minimal fake repo carrying one of each fact shape. go.mod files carry
+	# the uniform directive from the start (fact 6 asserts on every run_all).
 	mkdir -p "$tmp/cmd/doc-check" "$tmp/docs/agents" "$tmp/docs/status/archived" \
 		"$tmp/storage/memory" "$tmp/one" "$tmp/two" "$tmp/three"
-	touch "$tmp/go.mod" "$tmp/one/go.mod" "$tmp/two/go.mod" "$tmp/three/go.mod" \
-		"$tmp/storage/memory/go.mod"
+	for m in "$tmp" "$tmp/one" "$tmp/two" "$tmp/three" "$tmp/storage/memory"; do
+		printf 'go 1.27.2\n' >"$m/go.mod"
+	done
+	printf 'go 1.27.2\n' >"$tmp/go.work"
 	printf '| Module | Role | Notes |\n| --- | --- | --- |\n| `storage/memory/` | x | y |\n| `one/` | x | y |\n| `two/` | x | y |\n| `three/` | x | y |\n' \
 		>"$tmp/docs/agents/module-map.md"
 	printf 'var recipeCatalogA = map[string]recipeSpec{\n\t"r1": {\n\t\tpreamble: "x",\n\t},\n}\n' \
@@ -416,6 +469,44 @@ self_test() {
 	else
 		echo "  ✗ FAIL: honest engine counts should pass (got $failures failures)"
 	fi
+
+	# Leg 6a positive: uniform directives pass. The two metaengine go.mods
+	# raise the fixture's module count 5->7 and must be rowed in the map.
+	failures=0
+	mkdir -p "$tmp/metaengine/fakeengine"
+	printf 'go 1.27.2\n' >"$tmp/metaengine/go.mod"
+	printf 'go 1.27.2\n' >"$tmp/metaengine/fakeengine/go.mod"
+	printf '# t\n\n7 go.mod files and 1/1 classified\n' >"$tmp/AGENTS.md"
+	printf '| Module | Role | Notes |\n| --- | --- | --- |\n| `storage/memory/` | x | y |\n| `one/` | x | y |\n| `two/` | x | y |\n| `three/` | x | y |\n| `metaengine/` | x | y |\n| `metaengine/fakeengine/` | x | y |\n' \
+		>"$tmp/docs/agents/module-map.md"
+	run_all "$tmp" >/dev/null 2>&1
+	if [[ $failures -eq 0 ]]; then
+		echo "  ✓ PASS: uniform go directives pass"
+	else
+		echo "  ✗ FAIL: uniform directives flagged (got $failures failures)"
+	fi
+
+	# Leg 6b mutation: one module drifts to a different directive.
+	failures=0
+	printf 'go 1.26.0\n' >"$tmp/two/go.mod"
+	run_all "$tmp" >/dev/null 2>&1
+	if [[ $failures -gt 0 ]]; then
+		echo "  ✓ PASS: non-uniform directive caught"
+	else
+		echo "  ✗ FAIL: directive drift invisible"
+	fi
+	printf 'go 1.27.2\n' >"$tmp/two/go.mod"
+
+	# Leg 6c mutation: AGENTS cites a stale version against uniform directives.
+	failures=0
+	printf '# t\n\n7 go.mod files and 1/1 classified. Go 1.27.0 (uniform PATCH-form directive across all go.mod + go.work, verified 2026-11-08).\n' >"$tmp/AGENTS.md"
+	run_all "$tmp" >/dev/null 2>&1
+	if [[ $failures -gt 0 ]]; then
+		echo "  ✓ PASS: stale AGENTS Go-version claim caught"
+	else
+		echo "  ✗ FAIL: stale Go-version citation invisible"
+	fi
+	printf '# t\n\n7 go.mod files and 1/1 classified\n' >"$tmp/AGENTS.md"
 
 	if [[ "${honest_failed:-0}" == 1 ]]; then
 		echo "self-test: base leg failed"
