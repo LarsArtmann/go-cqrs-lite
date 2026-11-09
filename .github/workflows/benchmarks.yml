@@ -1,14 +1,14 @@
 name: Benchmarks
 
 on:
-  # Run on pushes to master that touch benchkit or benchmark code
+  # Run on pushes to master that touch benchkit/v4 or benchmark code
   push:
     branches: [master]
     paths:
-      - "benchkit/**"
-      - "stack/bench/**"
-      - "metaengine/**"
-      - "cmd/cqrs-bench/**"
+      - "benchkit/v4/**"
+      - "stack/bench/v4/**"
+      - "metaengine/v4/**"
+      - "cmd/cqrs-bench/v4/**"
       - "scripts/bench-matrix.sh"
       - ".github/workflows/benchmarks.yml"
   # Nightly schedule for full benchmarks
@@ -44,13 +44,13 @@ jobs:
       # cachix-action removed 2026-09-03: with skipPush it only pulls and
       # the larsartmann cache requires auth, so the step always failed.
 
-      - name: Build benchkit
+      - name: Build benchkit/v4
         run: nix run .#build
 
       - name: Run memory benchmark
         run: |
           go run \
-            ./cmd/cqrs-bench run \
+            ./cmd/cqrs-bench/v4 run \
             --backend memory \
             --profile dev \
             --repeat 3 \
@@ -59,7 +59,7 @@ jobs:
       - name: Run raw sink comparison
         run: |
           go run \
-            ./cmd/cqrs-bench run \
+            ./cmd/cqrs-bench/v4 run \
             --backend memory \
             --profile dev \
             --repeat 3 \
@@ -67,7 +67,7 @@ jobs:
 
   # Go benchmarks: run standard testing.B benchmarks
   go-bench:
-    name: Go Benchmarks (stack/bench)
+    name: Go Benchmarks (stack/bench/v4)
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -80,7 +80,7 @@ jobs:
 
       - name: Run Go benchmarks
         run: |
-          cd stack/bench && \
+          cd stack/bench/v4 && \
           go test \
             -bench=. -benchmem -benchtime=100x -count=1 \
             -timeout 5m
@@ -108,7 +108,7 @@ jobs:
       - name: Memory benchmark (small profile, 5 repeats)
         run: |
           go run \
-            ./cmd/cqrs-bench run \
+            ./cmd/cqrs-bench/v4 run \
             --backend memory \
             --profile small \
             --repeat 5 \
@@ -118,7 +118,7 @@ jobs:
       - name: SQLite benchmark (small profile, 5 repeats)
         run: |
           go run \
-            ./cmd/cqrs-bench run \
+            ./cmd/cqrs-bench/v4 run \
             --backend sqlite \
             --profile small \
             --repeat 5 \
@@ -128,7 +128,7 @@ jobs:
       - name: Pebble benchmark (small profile, 5 repeats)
         run: |
           go run \
-            ./cmd/cqrs-bench run \
+            ./cmd/cqrs-bench/v4 run \
             --backend pebble \
             --profile small \
             --repeat 5 \
@@ -138,7 +138,7 @@ jobs:
       - name: Multi-backend comparison
         run: |
           go run \
-            ./cmd/cqrs-bench compare \
+            ./cmd/cqrs-bench/v4 compare \
             --profile small \
             --format markdown \
             --output benchmarks/comparison.md
@@ -146,7 +146,7 @@ jobs:
       - name: Scaling sweep (workers)
         run: |
           go run \
-            ./cmd/cqrs-bench sweep \
+            ./cmd/cqrs-bench/v4 sweep \
             --param workers \
             --values 1,2,4,8,16 \
             --backend memory \
@@ -210,7 +210,7 @@ jobs:
           name: benchmark-baseline
           path: baseline/
 
-      - name: Noise gate (benchkit per-metric CoV on headline metrics)
+      - name: Noise gate (benchkit/v4 per-metric CoV on headline metrics)
         run: ./scripts/benchmark-regression.sh --noise-only
 
       - name: Run gate benchmarks
@@ -220,21 +220,21 @@ jobs:
           set -o pipefail
           # Subshells keep each suite rooted in its own module while
           # current.txt lands at the repo root where the compare step reads
-          # it. The previous single-cd form hopped ../metaengine/tursoengine
-          # from stack/bench (nonexistent path) and teed to stack/current.txt.
-          (cd stack/bench && \
+          # it. The previous single-cd form hopped ../metaengine/tursoengine/v4
+          # from stack/bench/v4 (nonexistent path) and teed to stack/v4/current.txt.
+          (cd stack/bench/v4 && \
           go test \
             -bench='BenchmarkFullPipeline_Memory|BenchmarkBenchkitSuite_Memory$' \
             -run='^$' -benchmem -benchtime=10x -count=5 \
             -timeout 10m) 2>&1 | tee current.txt
           # SQLite backend path (2026-09-16 decision: the second gate-set
           # entry rides along with the per-metric noise gate).
-          (cd stack/bench && \
+          (cd stack/bench/v4 && \
           go test \
             -bench='BenchmarkBenchkitSuite_SQLite$' \
             -run='^$' -benchmem -benchtime=10x -count=5 \
             -timeout 10m) 2>&1 | tee -a current.txt
-          (cd metaengine/tursoengine && \
+          (cd metaengine/tursoengine/v4 && \
           go test \
             -bench='BenchmarkMatViewRead/agg=[A-Z]+/scale=1k' \
             -run='^$' -benchmem -benchtime=100x -count=9 \
@@ -290,7 +290,7 @@ jobs:
       # the larsartmann cache requires auth, so the step always failed.
 
       - name: Calibration date
-        id: date
+        id/v4: date
         run: echo "date=$(date -u +%F)" >> "$GITHUB_OUTPUT"
 
       # Rolling runner-class baseline (same calib- cache namespace as

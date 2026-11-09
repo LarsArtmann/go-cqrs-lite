@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # check-eventcatalog: render-validate the EventCatalog exporter output.
 #
-# Replaces the manual /tmp/ec-validate flow: generate a fixture catalog,
+# Replaces the manual /tmp/ec-validate flow: generate a fixture catalog/v4,
 # npm install (network required, pinned by the exporter's package.json to
 # @eventcatalog/core ^5), run `npx eventcatalog build`, and FAIL if the
 # build errors or logs unresolved content references.
@@ -14,7 +14,7 @@
 # KNOWN cosmetic WARN signature (do NOT treat as a regression): the build
 # logs broken sidebar links /docs/{channels,data-products,entities}/<id>/<version>/changelog
 # — the sidebar builders emit Changelog links for 3 collections whose page
-# route has no changelog handler (catalog/AGENTS.md "Known upstream WARN").
+# route has no changelog handler (catalog/v4/AGENTS.md "Known upstream WARN").
 # Link-validation WARNS but the build completes; this gate fails only on
 # hard errors.
 #
@@ -27,8 +27,8 @@ log="$work/build.log"
 
 echo "==> workdir: $work"
 
-echo "==> 1/3 generating catalog fixture (default profile)"
-(cd "$root/catalog" && GOWORK=off go run ./cmd/ec-fixture "$work")
+echo "==> 1/3 generating catalog/v4 fixture (default profile)"
+(cd "$root/catalog/v4" && GOWORK=off go run ./cmd/ec-fixture "$work")
 
 cd "$work"
 
@@ -103,7 +103,7 @@ echo "==> linter leg: @eventcatalog/linter on the plain-refs profile"
 # best-practices/owner-required — fully re-armed at error severity.
 plain="$work-plain"
 mkdir -p "$plain"
-(cd "$root/catalog" && GOWORK=off go run ./cmd/ec-fixture "$plain" plain)
+(cd "$root/catalog/v4" && GOWORK=off go run ./cmd/ec-fixture "$plain" plain)
 # The linter install is lockfile-pinned (scripts/testdata/eventcatalog-linter):
 # `npm ci` installs EXACTLY the committed package-lock.json — no ad-hoc
 # @version drift, transitive deps included. Bump = edit package.json +

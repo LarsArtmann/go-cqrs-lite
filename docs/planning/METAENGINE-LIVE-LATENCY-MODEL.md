@@ -539,14 +539,14 @@ Findings:
   NetworkRTT, explicitly defers auto-calibration
 - [Read Costs per Operation Variance](archived/2026-08-04_07-00_READ-COSTS-PER-OPERATION-VARIANCE.md) —
   fixes ReadCosts, marks them "compile-time, do not evolve at runtime… acceptable for now"
-- [irohengine/latency.go](../../metaengine/irohengine/latency.go) — live `LatencyCollector`
+- [irohengine/latency.go](../../metaengine/irohengine/v4/latency.go) — live `LatencyCollector`
   (window + stats), the seed of this design
-- [metaengine/reliability.go](../../metaengine/reliability.go) — `Calibration`/`Calibratable`/
+- [metaengine/reliability.go](../../metaengine/v4/reliability.go) — `Calibration`/`Calibratable`/
   `CalibrateEngine` (cold calibration)
-- [metaengine/cost.go](../../metaengine/cost.go) — `estimateCost` (additive RTT)
-- [metaengine/planner.go](../../metaengine/planner.go) — profile consumption at plan time
-- [metaengine/store.go](../../metaengine/store.go) — per-query `QueryCost` snapshot
-- [metaengine/irohengine/engine.go](../../metaengine/irohengine/engine.go) — measured profile
+- [metaengine/cost.go](../../metaengine/v4/cost.go) — `estimateCost` (additive RTT)
+- [metaengine/planner.go](../../metaengine/v4/planner.go) — profile consumption at plan time
+- [metaengine/store.go](../../metaengine/v4/store.go) — per-query `QueryCost` snapshot
+- [metaengine/irohengine/engine.go](../../metaengine/irohengine/v4/engine.go) — measured profile
   (ReplicationLag=ConvergenceP99, NetworkRTT=DeliveryP50*2)
 - [Operator-Driven Layout Planning](METAENGINE-LAYOUT-PLANNING-MODEL.md) — extends this model:
   operator priorities weight the cost model's embed-vs-normalize scoring. The

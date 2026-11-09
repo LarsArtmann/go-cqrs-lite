@@ -23,7 +23,7 @@
 #   bash scripts/preflight-composed.sh --list              # phase names only
 #
 # Self-test fixture hook: PREFLIGHT_FAKE_RC_<PHASE-UPPERCASE> forces a phase's
-# exit code without running its command (hermetic; never set in normal use).
+# exit code without running its command/v4 (hermetic; never set in normal use).
 #
 # Exit codes: 0 = all phases green, 1 = a phase failed (remedy printed),
 # 2 = usage (unknown phase in ONLY/SKIP).
@@ -31,16 +31,16 @@ set -uo pipefail
 
 # Forced go env chain (T05): the phases shell out to `nix run .#check-*`
 # apps that inherit THIS shell's env — under the ambient GOTOOLCHAIN=local
-# + full /mnt/buildcache caches the api-stability watermill tidy check dies
+# + full /mnt/buildcache caches the api-stability watermill/v4 tidy check dies
 # with ENOSPC and reads as a false "not tidy" failure (observed 2026-09-22).
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/go-env.sh"
 
 PHASES=(
 	"lint-config|nix run .#check-lint-config|intentional config change? scripts/check-golangci-hash.sh --update and commit BOTH .golangci.yml + the golden; unexpected? git diff .golangci.yml then git restore .golangci.yml"
-	"templ|nix run .#check-templ|regenerate from the right cwd: (cd catalog/docserver && templ generate); never from the repo root (FileName metadata bakes the cwd)"
+	"templ|nix run .#check-templ|regenerate from the right cwd: (cd catalog/v4/docserver && templ generate); never from the repo root (FileName metadata/v4 bakes the cwd)"
 	"bench-gate|nix run .#check-bench-gate|a fixture failure means benchmark-regression.sh semantics drifted — fix the script or the fixture, never the expectation"
 	"coverage|nix run .#check-coverage|coverage dropped below the floor — add tests in the named module(s) or run nix run .#check-coverage -- --update if the floor moved deliberately"
-	"api-stability|nix run .#check-api-stability|API surface changed without a golden regen: cd cmd/api-stability && GOWORK=off go run . --update (same edit rule, AGENTS contract)"
+	"api-stability|nix run .#check-api-stability|API surface changed without a golden regen: cd cmd/api-stability/v4 && GOWORK=off go run . --update (same edit rule, AGENTS contract)"
 	"duplication|nix run .#check-duplication|new clone group: consolidate, or annotate //art-dupl:accept <reason> on/above the region's first line, or re-pin baseline for structural shifts"
 	"go-version|bash scripts/check-go-version.sh|go directive/toolchain drift: never hand-edit directives; BuildFlow's go-version-auto-configure is disabled in .buildflow.yml for cause (F154)"
 	"turso-version|nix run .#check-turso-version|a live turso-go citation outran TursoGoIVMVerifiedThrough — update the constant + its evidence, or revert the citation"

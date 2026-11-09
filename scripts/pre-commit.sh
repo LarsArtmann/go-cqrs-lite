@@ -34,7 +34,7 @@ STAGED_NON_DOC=$(echo "$STAGED_ALL" | grep -vE '\.(md|html|d2|svg|txt|yaml|yml)$
 # Formats ONLY the staged files, then re-stages the results: honest commits in
 # multi-writer trees no longer fail on other sessions' in-flight files (the
 # old whole-tree `git diff --quiet` gate forced --no-verify in exactly that
-# scenario). No staged files (empty commit) skips the pass.
+# scenario/v4). No staged files (empty commit) skips the pass.
 if [ "${#STAGED_LIST[@]}" -gt 0 ]; then
 	echo "==> nix fmt (staged files only: ${#STAGED_LIST[@]} file(s))"
 	if ! nix fmt -- "${STAGED_LIST[@]}" >/dev/null; then
@@ -95,8 +95,8 @@ if grep -R 'fmt\.Printf' --include='*.go' . |
 fi
 
 echo "==> Checking api_surface.txt is up to date"
-if ! (cd cmd/api-stability && GOWORK=off go run .); then
-	echo "ERROR: docs/api_surface.txt is stale. Run: cd cmd/api-stability && GOWORK=off go run . --update"
+if ! (cd cmd/api-stability/v4 && GOWORK=off go run .); then
+	echo "ERROR: docs/api_surface.txt is stale. Run: cd cmd/api-stability/v4 && GOWORK=off go run . --update"
 	exit 1
 fi
 
@@ -122,9 +122,13 @@ fi
 
 if [ -n "$(staged 'scripts/.*\.sh$')" ]; then
 	echo "==> shellcheck on scripts/ (commit touches scripts/)"
-	if ! nix-shell -p shellcheck --run 'shellcheck scripts/*.sh'; then
-		echo "ERROR: shellcheck findings in scripts (repo gate is zero findings)"
-		exit 1
+	# nix-shell needs NIX_PATH (a channel); the flake registry works without
+	# one, so fall back to `nix shell` when the channel is absent.
+	if ! nix-shell -p shellcheck --run 'shellcheck scripts/*.sh' 2>/dev/null; then
+		if ! nix shell nixpkgs#shellcheck -c shellcheck scripts/*.sh; then
+			echo "ERROR: shellcheck findings in scripts (repo gate is zero findings)"
+			exit 1
+		fi
 	fi
 fi
 
@@ -155,6 +159,15 @@ if [ -n "$(staged 'flake\.nix$|^scripts/check-module-layers\.sh$')" ] ||
 	echo "==> Module-layers check (flake.nix / layer script / module set changed)"
 	if ! bash scripts/check-module-layers.sh; then
 		echo "ERROR: module layer classification drifted. See scripts/check-module-layers.sh"
+		exit 1
+	fi
+fi
+
+if [ -n "$(staged '^go\.work$|^scripts/check-go-work-paths\.sh$')" ] ||
+	[ -n "$(git diff --cached --name-only --diff-filter=AD -- '*/go.mod' | head -1)" ]; then
+	echo "==> go.work use-path alignment check (go.work / module set changed)"
+	if ! bash scripts/check-go-work-paths.sh; then
+		echo "ERROR: go.work use-path basenames must match module path last segments (module X/v4 lives at dir X/v4). See scripts/check-go-work-paths.sh"
 		exit 1
 	fi
 fi

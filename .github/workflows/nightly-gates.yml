@@ -36,7 +36,7 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa # v23
 
       - name: Nightly date
-        id: date
+        id/v4: date
         run: |
           echo "date=$(date -u +%F)" >> "$GITHUB_OUTPUT"
           echo "dow=$(date -u +%u)" >> "$GITHUB_OUTPUT"

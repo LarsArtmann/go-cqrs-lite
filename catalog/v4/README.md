@@ -1,0 +1,928 @@
+# catalog — API Documentation Generation from Go Types
+
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/catalog/v4.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/catalog/v4)
+
+Automatically generate [AsyncAPI 3.0](https://www.asyncapi.com/) specs, [EventCatalog](https://www.eventcatalog.dev/) documentation, [OpenAPI/Swagger](https://swagger.io/specification/) specs, and [D2](https://d2lang.com/) architecture diagrams from your Go CQRS types.
+
+```bash
+go get github.com/larsartmann/go-cqrs-lite/catalog/v4
+```
+
+## Packages
+
+| Package                | Purpose                                                                   |
+| ---------------------- | ------------------------------------------------------------------------- |
+| `catalog`              | Registry, schema reflection, builder, typed IDs                           |
+| `catalog/architecture` | Self-contained HTML "architecture reference" (one file, no Node)          |
+| `catalog/asyncapi`     | AsyncAPI 3.0 YAML/JSON exporter                                           |
+| `catalog/eventcatalog` | EventCatalog MDX file generator                                           |
+| `catalog/openapi`      | OpenAPI 3.0 YAML/JSON exporter                                            |
+| `catalog/d2`           | D2 diagram text exporter                                                  |
+| `catalog/docserver`    | HTTP handlers for serving docs (index page, OpenAPI/AsyncAPI UI, D2 view) |
+| `catalog/simple`       | Single-service builder facade (streamlined API)                           |
+| `catalog/compat`       | Schema-compatibility classifier: what a payload-shape change owes         |
+
+## Dependencies
+
+Production dependencies only — test-only packages (Ginkgo, Gomega, go-snaps)
+never reach your build:
+
+| Dependency                                                            | Used by               | Role                                             |
+| --------------------------------------------------------------------- | --------------------- | ------------------------------------------------ |
+| [`go-error-family`](https://github.com/larsartmann/go-error-family)   | all packages          | Classified error taxonomy (Rejection/Conflict/…) |
+| [`go-faster/yaml`](https://github.com/go-faster/yaml)                 | `asyncapi`, `openapi` | Fast YAML emission for specs                     |
+| [`a-h/templ`](https://github.com/a-h/templ)                           | `docserver`           | Type-safe HTML component rendering               |
+| [`templ-components`](https://github.com/larsartmann/templ-components) | `docserver`           | Prebuilt docs UI components (layout, cards, nav) |
+
+If you only use the spec exporters (`asyncapi`, `openapi`, `eventcatalog`,
+`d2`) you do not link templ or templ-components at all.
+
+`catalog/compat` adds no dependency: it reads `catalog/schema` values only.
+
+## Schema compatibility
+
+[`docs/SCHEMA-COMPATIBILITY.md`](docs/SCHEMA-COMPATIBILITY.md) states the
+policy for payload-shape evolution: some changes are additive (old events still
+decode), others owe an explicit op. `compat` makes that policy executable.
+
+```go
+report := compat.Compat(previousSchema, nextSchema)
+if report.Class.IsBreaking() {
+	for _, f := range report.Blocking() {
+		fmt.Println(f.Path, f.Op, f.Message) // names the op the change owes
+	}
+}
+```
+
+`compat.CompatCatalog(old, next)` does the same across two catalogs and blocks on
+exactly one thing: a breaking shape change whose message version did not move.
+`compat.Conflicts(a, b)` reports what would collide if two catalogs merged, and
+`compat.Validate(c)` adds cross-resource invariants on top of
+`Catalog.ValidateCoeffects`.
+
+Gate it in CI with
+`nix run .#check-schema-compat -- --catalog your.json --baseline compat-baseline.json`;
+`--update-baseline` refreshes the snapshot when a change is intended. It is
+deliberately **not** a CUE bridge: CUE's subsumption check was measured and
+rejected (22/24 on a 24-fixture spike, both residual misses false *compatible*).
+See [ADR-0163](docs/adr/0163-schema-compatibility-structural-differ-over-cue.md).
+
+## Quick Start
+
+```go
+package main
+
+import (
+    "github.com/larsartmann/go-cqrs-lite/catalog/v4"
+    "github.com/larsartmann/go-cqrs-lite/catalog/v4/asyncapi"
+    "github.com/larsartmann/go-cqrs-lite/catalog/v4/eventcatalog"
+)
+
+type CreateOrder struct {
+    ProductID string `json:"product_id" doc:"ID of the product"`
+    Quantity  int    `json:"quantity" doc:"Number of items"`
+}
+
+type OrderCreated struct {
+    OrderID string `json:"order_id" doc:"The new order ID"`
+}
+
+func main() {
+    reg := catalog.NewRegistry("Order Service", "1.0.0")
+
+    reg.AddService(catalog.Service{
+        ID: "order-service", Name: "Order Service",
+    })
+    reg.AddCommand("order-service", catalog.Message{
+        ID: "create-order", Name: "CreateOrder", Version: "1.0.0",
+        Summary:   "Place a new order",
+        Schema:    catalog.SchemaFromType[CreateOrder](),
+        Direction: catalog.Receives,
+    })
+    reg.AddEvent("order-service", catalog.Message{
+        ID: "order-created", Name: "OrderCreated", Version: "1.0.0",
+        Summary:   "An order was placed",
+        Schema:    catalog.SchemaFromType[OrderCreated](),
+        Direction: catalog.Sends,
+    })
+
+    c := reg.Build()
+
+    // AsyncAPI 3.0 YAML
+    doc := asyncapi.Exporter{}.Export(c)
+    yamlBytes, _ := doc.MarshalYAML()
+
+    // EventCatalog MDX files
+    ec := eventcatalog.NewExporter("./eventcatalog")
+    _ = ec.Export(c)
+}
+```
+
+## Builder API (Fluent)
+
+```go
+builder := catalog.NewBuilder("User Service", "1.0.0")
+
+builder.AddService("user-svc", "User Service", "1.0.0", "Manages users",
+    catalog.Command[CreateUserCmd]("user.create"),
+    catalog.Event[UserCreatedEvent]("user.created", catalog.Sends),
+    catalog.Query[GetUserQuery]("user.get"),
+)
+
+builder.AddDomain("identity", "Identity", "1.0.0",
+    "User identity management", "user-svc")
+
+cat := builder.Build()
+```
+
+### Service Options
+
+```go
+builder.ConfigureService("user-svc",
+    catalog.ServiceBadges(catalog.Badge{Label: "owner", Color: "blue"}),
+    catalog.ServiceRepository("go", "https://github.com/org/user-svc"),
+    catalog.ServiceOwners("team-backend"),
+)
+```
+
+## Schema Reflection
+
+`SchemaFromType[T]()` inspects Go struct fields and produces JSON Schema:
+
+```go
+type User struct {
+    Email string `json:"email" doc:"User email" format:"email"`
+    Age   int    `json:"age" doc:"User age"`
+}
+
+schema := catalog.SchemaFromType[User]()
+// {"type":"object","properties":{"email":{"type":"string","description":"User email","format":"email"},...}}
+```
+
+### Supported Struct Tags
+
+| Tag           | Example                    | Effect                         |
+| ------------- | -------------------------- | ------------------------------ |
+| `json`        | `json:"name,omitempty"`    | Field name + required/optional |
+| `doc`         | `doc:"User email"`         | Description                    |
+| `description` | `description:"User email"` | Alias for `doc`                |
+| `format`      | `format:"email"`           | JSON Schema format             |
+| `enum`        | `enum:"active,inactive"`   | Enum values                    |
+| `default`     | `default:"active"`         | Default value                  |
+| `query`       | `query:"limit"`            | OpenAPI query parameter        |
+| `path`        | `path:"userId"`            | OpenAPI path parameter         |
+| `header`      | `header:"X-API-Key"`       | OpenAPI header parameter       |
+| `cookie`      | `cookie:"session"`         | OpenAPI cookie parameter       |
+
+## REST API Documentation
+
+Catalog generates **real OpenAPI specs for REST endpoints**, not just event documentation.
+
+### Operations (`MsgOperation`)
+
+Map any command or query to an HTTP endpoint:
+
+```go
+builder.AddService("user-svc", "User Service", "1.0.0", "Manages users",
+    catalog.Command[CreateUserCmd]("user.create",
+        catalog.MsgOperation("POST", "/api/v2/users", "201", "400"),
+        catalog.Response[UserDTO]("201", "User created"),
+        catalog.Response[ErrorBody]("400", "Validation error"),
+        catalog.MsgSecurity("bearerAuth"),
+    ),
+    catalog.Query[ListUsersQuery]("user.list",
+        catalog.MsgOperation("GET", "/api/v2/users"),
+    ),
+)
+```
+
+The OpenAPI exporter renders these as real paths with the correct HTTP method, status codes, and response schemas. GET and POST on the same path coexist in one `PathItem`.
+
+### Typed Responses
+
+Add response schemas auto-derived from Go types:
+
+```go
+catalog.Command[CreateUserCmd]("user.create",
+    catalog.Response[UserDTO]("201", "Created"),     // schema from UserDTO
+    catalog.Response[ErrorBody]("400", "Bad Request"), // schema from ErrorBody
+    catalog.WithResponse("204", "No Content"),        // no body schema
+)
+```
+
+### Security Schemes
+
+Define authentication methods and attach them to messages:
+
+```go
+reg.AddSecurityScheme(catalog.SecurityScheme{
+    ID: "bearerAuth", Type: "http", Scheme: "bearer", BearerFormat: "JWT",
+})
+
+builder.AddService("api", "API", "1.0.0", "...",
+    catalog.Command[CreateUserCmd]("user.create",
+        catalog.MsgSecurity("bearerAuth"),
+    ),
+)
+```
+
+### Validation
+
+`Catalog.Validate()` detects duplicate operation paths, missing response schemas, and incomplete operations:
+
+```go
+cat := builder.Build()
+violations := cat.Validate()
+// violations: []Violation with Path + Message for each issue
+```
+
+### CLI
+
+```bash
+go run ./cmd/go-cqrs-lite-catalog -format openapi -o ./docs
+go run ./cmd/go-cqrs-lite-catalog -format d2 -o ./docs
+```
+
+### Shortcut Constructors
+
+For REST-heavy services, use the method-specific shortcuts to reduce boilerplate:
+
+```go
+// DELETE[T] / PUT[T] / PATCH[T] pre-tag the message with the HTTP method + path
+builder.AddService("user-svc", "User Service", "1.0.0", "Users",
+    catalog.DELETE[struct{}]("user.delete", "/api/users/{id}"),
+    catalog.PUT[UpdateUserCmd]("user.replace", "/api/users/{id}"),
+    catalog.PATCH[PatchUserCmd]("user.patch", "/api/users/{id}"),
+)
+
+// WithOperation[T] combines MsgOperation + Response[T] in one call
+catalog.Command[CreateUserCmd]("user.create",
+    catalog.WithOperation[UserDTO]("POST", "/api/users", "201"),
+)
+```
+
+### Output Formats
+
+**OpenAPI** — Each operation becomes a path entry with method, responses, and security:
+
+```json
+{
+  "paths": {
+    "/api/users": {
+      "post": {
+        "operationId": "postUserCreate",
+        "responses": {
+          "201": { "description": "User created", "content": { "application/json": { ... } } }
+        }
+      },
+      "get": { "operationId": "getUserList", ... }
+    }
+  }
+}
+```
+
+**AsyncAPI** — REST operations appear as HTTP-channel messages tagged `http:GET` / `http:POST`:
+
+```yaml
+channels:
+  /api/users:
+    address: /api/users
+    messages:
+      user.create:
+        contentType: application/json
+        payload: { ... }
+```
+
+**D2** — Operation labels render on service diagram edges:
+
+```
+order-svc -> order-svc: [POST /api/orders] Create Order
+order-svc -> order-svc: [GET /api/orders/{id}] Get Order
+```
+
+### Response Precedence
+
+When multiple response sources are configured, the exporter applies this precedence:
+
+1. **`Message.Responses`** (explicit `ResponseSpec` entries) — highest priority
+2. **`Operation.StatusCodes`** (from `MsgOperation("POST", path, "201", "400")`)
+3. **Exporter defaults** (200+400 for commands, 200+404 for queries) — lowest priority
+
+### Parameter Extraction
+
+Query and path parameters are auto-extracted from the message schema:
+
+- **ID fields** — A field named `id` or `*_id` becomes a path parameter (`/{id}`)
+- **Explicit parameters** — `Schema.Parameters` with `In: "query"|"path"|"header"` gives full control
+
+```go
+type ListUsersQuery struct {
+    Limit int `json:"limit"`
+}
+// → GET /api/users?limit={limit}
+```
+
+## Optional Packages
+
+| Package             | Purpose                                                        |
+| ------------------- | -------------------------------------------------------------- |
+| `catalog/httptyped` | Generic typed request/response envelopes (no framework needed) |
+| `catalog/huma`      | Experimental Huma router adapter (no direct Huma dependency)   |
+
+## Registry API
+
+| Method                        | Description                           |
+| ----------------------------- | ------------------------------------- |
+| `NewRegistry(title, version)` | Create a new registry                 |
+| `AddService(svc)`             | Register a service (merges if exists) |
+| `AddCommand(serviceID, msg)`  | Add a command to a service            |
+| `AddEvent(serviceID, msg)`    | Add an event to a service             |
+| `AddQuery(serviceID, msg)`    | Add a query to a service              |
+| `AddDomain(domain)`           | Register a domain                     |
+| `Build()`                     | Produce immutable `*Catalog`          |
+
+## Exporters
+
+### AsyncAPI 3.0
+
+```go
+doc := asyncapi.Exporter{}.Export(catalog)
+yamlBytes, err := doc.MarshalYAML()
+jsonBytes, err := doc.MarshalJSON()
+```
+
+Maps CQRS types to AsyncAPI operations:
+
+- Commands → `action: receive`
+- Events with `Sends` → `action: send`
+- Events with `Receives` → `action: receive`
+- Queries → `action: receive` **+ `reply`** (request/reply: replies are addressed to `$message.header#/replyTo` on a dedicated `<query>.replies` channel; the response message's schema is intentionally opaque because the catalog does not model query response types)
+
+### EventCatalog
+
+```go
+ec := eventcatalog.NewExporter("./eventcatalog")
+err := ec.Export(catalog)
+```
+
+Writes MDX files with YAML frontmatter, auto-deriving producers/consumers from message directions.
+Generates `llms.txt` and `schemas.txt` for AI consumption. The generated `package.json`
+pins `@eventcatalog/core` to a known-good version (`^5.1.0` — BSL 1.1, Free Use for
+LarsArtmann confirmed; see `AGENTS.md`) so `npm install` in the
+output directory is reproducible; `eventcatalog.config.js` includes a stable `cId`
+derived from the catalog title.
+
+Messages are written to the canonical top-level EventCatalog directories and
+deduplicated: a message shared by several services is written once and linked
+from each service page.
+
+#### Feeding the federation hub (catalog.home.lan)
+
+The LarsArtmann architecture hub (_eventcatalog-hub_ — a private repo mirrored
+on the home Forgejo at `forgejo.home.lan/lars/eventcatalog-hub`,
+served at `catalog.home.lan`) federates every service's exported tree into ONE
+EventCatalog site: CI clones each source repo, runs a HEADLESS export command,
+union-merges the trees, and builds the static site. To onboard a service:
+
+1. Provide a headless export — a command that writes the complete MDX tree and
+   exits 0 (no server, no TTY). Three working shapes:
+   - a `catalog` subcommand on your service CLI (bank-sync:
+     `bank-sync catalog --format eventcatalog -o work/out/bank-sync`),
+   - an `-export-only` flag on a docs demo (cqrs-htmx:
+     `catalog-demo -eventcatalog <dir> -export-only`),
+   - the copy-paste template `catalog/cmd/catalog-export/main.go` in this
+     repo — drop it into your repo, replace `buildCatalog()`, done.
+2. Add the repo to the hub's `sources.json` (`name`/`repo`/`forgejo`/`branch`/
+   `build`/`export`/`tree` fields; see that file for live examples).
+3. Register directions (`Sends`/`Receives`) faithfully — the hub union-merges
+   producers/consumers across sources, so cross-service links render only if
+   both sides declare them.
+
+The merged hub build is the union of per-source exports; per-repo dev UX stays
+whatever the repo wants (a docs server, specs on an admin page, …). Only the
+CI-facing export command is part of the contract.
+
+#### Diffing builds with `catalog.index.json`
+
+Every export writes a machine-readable manifest, `catalog.index.json`, to the
+export root — one entry per exported resource with `id`, `kind`, `version`,
+and `path`:
+
+```json
+{
+  "schemaVersion": 1,
+  "resources": [
+    {
+      "id": "order-svc",
+      "kind": "services",
+      "version": "1.0.0",
+      "path": "services/order-svc/index.mdx"
+    }
+  ]
+}
+```
+
+Entries are deterministically ordered (canonical kind order, then ID), so
+re-exporting an unchanged catalog produces a byte-identical file. Hubs use it
+for cheap change detection and PR gates — diff two exports' manifests instead
+of walking MDX frontmatter:
+
+- **resource added/removed** → new/missing entries,
+- **contract bump** → changed `version`,
+- **no semantic change** → identical manifests (formatting-only MDX churn is
+  invisible).
+
+The manifest only lists resources (not schema/changelog sidecars) and is
+written last, so it never describes a half-written tree. Consumers should
+reject `schemaVersion` values above their own.
+
+#### Hub CI exports: `WithSkipBootstrapFiles`
+
+Federation hubs own their OWN `eventcatalog.config.js` and `package.json`
+(site title, pinned core version, dependencies). Per-source exports that
+also carry them would fight the hub's during a union-merge. Hub CI export
+commands therefore pass:
+
+```go
+ec := eventcatalog.NewExporter(outDir, eventcatalog.WithSkipBootstrapFiles())
+```
+
+Exactly the two bootstrap files are omitted; every resource, the manifest,
+`llms.txt`, and `schemas.txt` are byte-identical to a default export. Local
+dev exports keep the default so the output directory remains directly
+buildable (`npm install && npx eventcatalog build`).
+
+#### Governance exports: `WithPlainRefIDs`
+
+Producers/consumers and channel message pointers have TWO incompatible
+consumers:
+
+| Consumer               | Resolves                             | Default refs     | `WithPlainRefIDs`                |
+| ---------------------- | ------------------------------------ | ---------------- | -------------------------------- |
+| `@eventcatalog/core`   | composite `<id>-<version>` entry IDs | ✓                | logs `Invalid content reference` |
+| `@eventcatalog/linter` | bare frontmatter IDs                 | every ref errors | ✓                                |
+
+One catalog, two exports: hubs RENDER the default tree and LINT a
+plain-ref export (the `check-eventcatalog` gate does exactly this and
+fails unless the plain profile is clean at full severity). Object-form
+refs (`{id, version}`) are not an alternative — core's schema rejects
+them outright.
+
+#### Demo content: `MarkDemo`
+
+Example/demo catalogs must be recognizable as demos at a glance. Call
+`MarkDemo()` once, right after `NewRegistry`/`NewBuilder`:
+
+```go
+reg := catalog.NewRegistry("Orders", "1.0.0")
+reg.MarkDemo() // every declaration below is demo content
+```
+
+`Build()` then stamps every badge-capable resource (services, their
+messages, domains, channels, data stores, flows, entities, data products,
+agents, custom docs) with the canonical `Demo` badge (amber, dark text) and
+sets the `demo` source on teams and users — EventCatalog has no badges
+there, and `source` is the rendered provenance field. The stamp is
+idempotent (an existing `Demo` badge or an explicit source is kept) and
+never mutates the registry: it applies to each built copy. Federation hubs
+union badges by content, so the marker survives cross-source merges.
+
+#### Serving an embedded catalog (no Node at deploy time)
+
+Once a catalog is built (`npm install && npx eventcatalog build`), the static
+site in `dist/` can be baked into your Go binary and served from it —
+`catalog/eventcatalog` ships [`StaticServer`](v4/eventcatalog/server.go) for
+exactly this:
+
+```go
+import (
+    "embed"
+    "io/fs"
+    "net/http"
+
+    "github.com/larsartmann/go-cqrs-lite/catalog/v4/eventcatalog"
+)
+
+//go:embed eventcatalog/dist
+var dist embed.FS
+
+func main() {
+    sub, _ := fs.Sub(dist, "eventcatalog/dist")
+    srv, _ := eventcatalog.NewStaticServer(sub)
+    http.Handle("/", srv.Handler())
+    _ = http.ListenAndServe(":8080", nil)
+}
+```
+
+`StaticServer` does the static-site routing the Astro output expects:
+directory indexes (`/docs/foo/`), the canonical trailing-slash redirect
+(`/docs/foo` → `/docs/foo/`), extensionless HTML (`/docs/foo` →
+`docs/foo.html`), a custom `404.html`, and long-lived caching for the
+content-hashed `_astro/` bundles. Directory listings are never generated.
+
+Options: `WithNotFoundFile(name)` (default `404.html`) and
+`WithImmutableAssetPrefixes(prefixes...)` (default `_astro/`). Astro emits
+root-absolute asset URLs, so mount the handler at a root path.
+
+`//go:embed` needs the files on disk at compile time, and Astro's `dist/` is
+normally gitignored — so either commit the built site or copy it to a
+non-ignored directory (e.g. `eventcatalog-site/`) in your build step before
+`go build`.
+
+#### Versioning your catalog
+
+EventCatalog renders per-resource versions and changelogs; the exporter maps
+them 1:1 (the `Version` field, `Changelog []Change` entries — each `{Version,
+Date, Summary}`). Guidance:
+
+- Bump a message's `Version` when its CONTRACT changes (fields added/removed/
+  renamed, semantics) — not on every code change. Point consumers at the
+  version they actually handle (`Ref{ID, Version}`).
+- Add a `Changelog` entry for every version bump so the rendered history
+  explains the change (the exporter writes `changelog.mdx` sidecars and
+  enables changelog pages when safe).
+- Service `Version` follows the service's own release cadence; it feeds the
+  rendered badge, not compatibility decisions.
+
+#### Full Resource Coverage
+
+The exporter supports all EventCatalog resource types:
+
+| Resource      | Exported To                                                                  | Notes                                                                                                                                                                   |
+| ------------- | ---------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Messages      | `commands/<id>/index.mdx`, `events/<id>/index.mdx`, `queries/<id>/index.mdx` | Top-level dirs, deduplicated across services                                                                                                                            |
+| Services      | `services/<id>/index.mdx`                                                    | With messages, specs, data stores, external flag, base config (sidebar, styles, editUrl, draft, visualiser)                                                             |
+| Domains       | `domains/<id>/index.mdx`                                                     | With ubiquitous language, sub-domains, data products, base config                                                                                                       |
+| Entities      | `entities/<id>/index.mdx`                                                    | DDD entities: aggregateRoot, identifier, properties with references/relationTypes                                                                                       |
+| Data Products | `data-products/<id>/index.mdx`                                               | Data mesh products with inputs/outputs, output contracts, hidden flag                                                                                                   |
+| Agents        | `agents/<id>/index.mdx`                                                      | AI agents with sends/receives, model, tools, data stores                                                                                                                |
+| Channels      | `channels/<id>/index.mdx`                                                    | With protocols, parameters, routes, delivery guarantees                                                                                                                 |
+| Data Stores   | `containers/<id>/index.mdx`                                                  | Databases/caches with authoritative, accessMode, classification (EventCatalog 4.x collects them from `containers/`)                                                     |
+| Flows         | `flows/<id>/index.mdx`                                                       | Step types: service, message, agent, dataProduct, actor, externalSystem, custom; data stores map to `container`, sub-flows to `flow` (EventCatalog has no channel step) |
+| ADRs          | `adrs/<id>/index.mdx`                                                        | Architecture decision records: status, date, decisionMakers, appliesTo `{type, id, version?}` pointers to 15 resource kinds, supersedes/supersededBy/amends/amendedBy/related ADR pointers; status/type/date validated at export |
+| Teams         | `teams/<id>.mdx`                                                             | With external source sync, hidden, readOnly; role/avatar ride `x-` custom properties (EventCatalog teams have no such fields)                                           |
+| Users         | `users/<id>.mdx`                                                             | With external source sync, hidden, readOnly                                                                                                                             |
+| Custom Docs   | `docs/<slug>/index.mdx`                                                      | Global documentation pages (ADRs, architecture docs); core 5.x routes them standalone at `/docs/custom/<slug>/` (community too; 4.x needed enterprise)                     |
+
+#### Format fidelity
+
+The output is verified against the pinned `@eventcatalog/core` zod schemas
+(`nix run .#check-eventcatalog` builds a fixture covering every resource
+kind). Details worth knowing:
+
+- Message `Labels` and `Responses` are preserved as `x-labels`/`x-responses`
+  custom properties — EventCatalog has no native fields for them.
+- Message `Changelog` is written as a `changelog.mdx` sidecar file, and the
+  generated `eventcatalog.config.js` enables `changelog: { enabled: true }`
+  whenever the catalog carries changelogs (the core 4.6.3 crash on agent
+  changelog pages that used to keep the flag off for agent catalogs is
+  fixed as of 5.1.1).
+- Message examples are written as `examples/example-N.json` files — the
+  format EventCatalog's example loader reads.
+- `BaseConfig.ResourceGroups` cannot be expressed (EventCatalog needs typed
+  resource pointers) and fails the export with a clear Rejection error.
+
+#### DDD Ubiquitous Language
+
+```go
+builder.AddDomain("orders", "Orders", "1.0.0", "Order management", "order-svc")
+builder.ConfigureDomain("orders",
+    catalog.DomainUbiquitousLanguage(
+        catalog.UbiquitousLanguageTerm{Name: "Order", Description: "A customer purchase request"},
+        catalog.UbiquitousLanguageTerm{Name: "Fulfillment", Description: "Completing an order"},
+    ),
+    catalog.DomainSubDomains("checkout", "shipping"),
+    catalog.DomainDataProducts("order-analytics"),
+)
+```
+
+#### External Services
+
+```go
+builder.AddService("stripe", "Stripe", "1.0.0", "")
+builder.ConfigureService("stripe", catalog.ServiceExternalSystem())
+```
+
+#### Entities, Data Products, Agents
+
+```go
+builder.AddEntity(catalog.Entity{
+    ID: "order", Name: "Order", Version: "1.0.0",
+    AggregateRoot: true,
+    Identifier:    "orderId",
+    Properties: []catalog.EntityProperty{
+        {Name: "orderId", Type: "string", Required: true},
+        {Name: "customerId", Type: "string", References: "Customer", RelationType: "many-to-one"},
+    },
+    Schema: catalog.SchemaFromType[Order]()})
+
+builder.AddDataProduct(catalog.DataProduct{ID: "metrics", Name: "Metrics", Version: "1.0.0",
+    Inputs:  []catalog.Ref{{ID: "OrderCreated"}},
+    Outputs: []catalog.Ref{{ID: "MetricsReady"}}})
+
+builder.AddAgent(catalog.Agent{ID: "fraud-bot", Name: "Fraud Bot", Version: "1.0.0",
+    Summary: "Reviews risky payments",
+    Receives: []catalog.Ref{{ID: "PaymentInitiated", Version: "1.0.0"}},
+    Sends:    []catalog.Ref{{ID: "FraudReviewCompleted", Version: "1.0.0"}},
+    ReadsFrom: []catalog.DataStoreID{"fraud-db"},
+    Model: &catalog.AgentModel{Provider: "OpenAI", Name: "gpt-4.1", Version: "2025-04-14"},
+    Tools: []catalog.AgentTool{
+        {Name: "Risk lookup", Type: "mcp", URL: "https://mcp.example.com/risk"},
+    },
+})
+```
+
+#### Flow Step Types
+
+Flows support all EventCatalog step types — service, message, channel, actor,
+external system, custom, **agent**, **data store**, **data product**, and **sub-flow**:
+
+```go
+builder.AddFlow(catalog.Flow{
+    ID: "checkout", Name: "Checkout Flow", Version: "1.0.0",
+    Steps: []catalog.FlowStep{
+        {ID: "1", Title: "Agent validates", Agent: &catalog.FlowStepRef{ID: "checkout-bot"}},
+        {ID: "2", Title: "Read inventory", DataStore: &catalog.FlowStepRef{ID: "inv-db"},
+            NextStep: &catalog.FlowEdge{ID: "3"}},
+        {ID: "3", Title: "Publish metrics", DataProduct: &catalog.FlowStepRef{ID: "sales-data"}},
+    },
+})
+```
+
+#### Architecture Decision Records
+
+ADRs render as first-class EventCatalog resources (`adrs/<id>/index.mdx`,
+routed at `/docs/adrs/<id>/<version>`) with status grouping, appliesTo
+links, and ADR-to-ADR chains — unlike `CustomDoc`, which only produces a
+prose page. The exporter rejects statuses, dates, and appliesTo types the
+EventCatalog schema does not know:
+
+```go
+builder.AddADR(catalog.ADR{
+    ID: "sqlite-single-writer", Name: "SQLite single-writer event store",
+    Version: "1.0.0", Status: catalog.ADRAccepted, Date: "2026-10-15",
+    Summary: "One writer per database file keeps the sync window simple",
+    Owners:  []string{"lars"},
+    AppliesTo: []catalog.ADRResourceRef{
+        {Type: catalog.ADRAppliesToService, ID: "bank-sync", Version: "1.0.0"},
+        {Type: catalog.ADRAppliesToEvent, ID: "BalanceUpdated"},
+    },
+    Supersedes: []catalog.ADRRef{{ID: "sqlite-async-replication"}},
+    Body: "## Context\n...\n\n## Decision\n...\n\n## Consequences\n...",
+})
+```
+
+#### Custom Documentation Pages
+
+```go
+builder.AddCustomDoc(catalog.CustomDoc{
+    ID:      "adr-001",
+    Title:   "ADR-001: Event Sourcing",
+    Summary: "Why we chose event sourcing",
+    Slug:    "adrs/adr-001",
+    Content: "## Decision\nWe adopted event sourcing for auditability.",
+})
+```
+
+#### Message Deprecation
+
+```go
+// Simple boolean deprecation
+reg.AddEvent("svc", catalog.Message{
+    ID: "old-event", Name: "OldEvent", Version: "1.0.0",
+    Deprecated: true,
+})
+
+// Structured deprecation with date and message
+reg.AddEvent("svc", catalog.Message{
+    ID: "old-event", Name: "OldEvent", Version: "1.0.0",
+    Deprecation: &catalog.DeprecationInfo{
+        Date:    &time.Now(),
+        Message: "Use new-event instead",
+    },
+})
+```
+
+#### External Team/User Sync
+
+```go
+builder.AddUser(catalog.User{
+    ID: "alice", Name: "Alice",
+    Source: &catalog.Source{Provider: "github", ID: "alice@org"},
+    ReadOnly: true,
+})
+```
+
+### Architecture Reference (self-contained HTML)
+
+Render the whole catalog as ONE HTML file: a filterable sidebar, a section per
+domain, service, message, channel, data store, flow, entity, data product,
+agent, decision, team, person and documentation page, every relationship as an
+in-link, message attributes with an example payload, a TypeScript type and the
+raw schema, and full-text search (Ctrl/Cmd-K) with light and dark themes.
+
+The file carries its own CSS and JS, so it needs no server, no Node toolchain
+and no network: attach it to an email, keep it with an audit, or serve it from
+any static host.
+
+```go
+import "github.com/larsartmann/go-cqrs-lite/catalog/v4/architecture"
+
+html, err := architecture.NewExporter(
+    architecture.WithTitle("Acme"),
+    architecture.WithDescription("Acme's architecture."),
+    architecture.WithCommand("catalog-export -architecture architecture.html"),
+).Export(cat)
+// -> []byte, self-contained
+
+// or write it straight to disk
+err = architecture.NewExporter().ExportFile(cat, "architecture.html")
+```
+
+Options: `WithTitle`, `WithDescription`, `WithCommand` (the "regenerate this"
+snippet shown on the overview), `WithLogo`, `WithGeneratedAt` (pin it for
+reproducible output). Only the standard library is used, so importing this
+package links nothing new.
+
+A runnable end-to-end demo lives in [`example/architecture`](v4/example/architecture/main.go):
+
+```sh
+go run ./example/architecture            # writes architecture.html + architecture-partner.html into the working directory
+go run ./example/architecture -o /tmp/out # ... or into the given directory
+```
+
+Redacted slices (ADR-0160): `WithInclude`/`WithExclude`/`WithNeverExport` pick
+resources by `Selector{Kind, ID}`, `WithReferences` controls how out-of-scope
+references render (`omit`, `name-only`, `include`), and `WithHide` suppresses
+reference parts (`owners`, `repository`, `examples`, `specifications`, `docs`).
+`Inspect` dry-runs the policy without rendering; the `catalog-export -check`
+flag prints the same report and exits 1 when a selector matched nothing, so a
+hub can gate every export in CI.
+
+Unlike [`catalog/eventcatalog`](#eventcatalog), which emits an MDX tree for the
+Node EventCatalog CLI, this package renders the final HTML itself. Use both:
+the MDX tree for a hosted catalog, the reference for the copy people can open
+without access to it.
+
+### OpenAPI
+
+```go
+doc := openapi.Exporter{}.Export(catalog)
+yamlBytes, _ := doc.MarshalYAML()
+```
+
+### D2 Diagrams
+
+```go
+text := d2.NewExporter().Export(catalog)
+```
+
+## Branded ID Types
+
+The catalog module provides typed IDs for catalog entries, preventing accidental
+mixing of identifier types at compile time:
+
+```go
+type ServiceID string     // catalog.ServiceID
+type DomainID string      // catalog.DomainID
+type MessageID string     // catalog.MessageID
+type ChannelID string     // catalog.ChannelID
+type DataStoreID string   // catalog.DataStoreID
+type FlowID string        // catalog.FlowID
+type TeamID string        // catalog.TeamID
+type UserID string        // catalog.UserID
+type EntityID string      // catalog.EntityID
+type DataProductID string // catalog.DataProductID
+type AgentID string       // catalog.AgentID
+type CustomDocID string   // catalog.CustomDocID
+```
+
+## docserver — HTTP Handlers
+
+Serve auto-generated API documentation from a `*catalog.Catalog` via stdlib `net/http`.
+HTML pages are rendered with [templ-components](https://github.com/larsartmann/templ-components)
+(dark-mode aware, no htmx required) and the compiled stylesheet ships as an embedded
+static asset, so the docserver needs no external files:
+
+```go
+import "github.com/larsartmann/go-cqrs-lite/catalog/v4/docserver"
+
+// Full docs server: index page, OpenAPI/AsyncAPI JSON+YAML+HTML UI,
+// D2 diagram view + raw text, catalog JSON, embedded static assets.
+ds := docserver.NewDocsServer(func() *catalog.Catalog {
+    return builder.Build()
+}, docserver.Config{
+    ServiceName: "Order Service",
+    Version:     "1.0.0",
+})
+
+mux := http.NewServeMux()
+ds.RegisterRoutes(mux)
+
+// Standalone handlers (no DocsServer needed)
+mux.HandleFunc("/diagram.d2", docserver.D2Handler(cat))
+mux.HandleFunc("/health", docserver.HealthCheckHandler(cat))
+```
+
+### Routes
+
+| Route                             | Content                                               |
+| --------------------------------- | ----------------------------------------------------- |
+| `GET {docs}`                      | Index page: stats, artifact links, service cards      |
+| `GET {docs}/openapi`              | OpenAPI reference rendered with Scalar                |
+| `GET {docs}/asyncapi`             | AsyncAPI reference rendered with AsyncAPI React       |
+| `GET {docs}/d2`                   | D2 diagram source view with copy/download             |
+| `GET {docs}/openapi.{json,yaml}`  | Raw OpenAPI spec                                      |
+| `GET {docs}/asyncapi.{json,yaml}` | Raw AsyncAPI spec                                     |
+| `GET {docs}/d2.txt`               | Raw D2 diagram text                                   |
+| `GET {docs}/catalog.json`         | Raw catalog snapshot                                  |
+| `GET {docs}/static/*`             | Embedded assets (docs-ui.css, favicon, vendored SPAs) |
+| `GET {docs}/architecture`         | Self-contained architecture reference (opt-in: `Config.ArchitectureReference`) |
+
+The opt-in is one line at docserver construction:
+
+```go
+srv := docserver.NewDocsServer(cat, docserver.Config{
+    ArchitectureReference: true,
+})
+```
+
+`{docs}` defaults to `/docs` (override with `Config.DocsPath`). `/docs/` redirects to
+`/docs`; unknown `/docs/*` paths return 404 rather than falling back to the index.
+SPA pages reference assets with absolute DocsPath-anchored URLs and include
+`<noscript>` fallbacks linking the raw specs, so they work behind any router prefix.
+
+### Scale
+
+Measured on the real render path (2026-10-17, quiet host,
+`go test -bench BenchmarkExportLargeCatalog`): a catalog of **1 000
+services / 5 000 messages** renders in **~175 ms warm / ~0.6 s cold** to a
+**15.65 MB** self-contained HTML file. The `Inspect` dry-run over the same
+catalog costs **~2–3 ms** (`BenchmarkInspectLargeCatalog`, 2026-10-24) — the
+CI gate is two orders of magnitude cheaper than the render it checks.
+Sections carry `content-visibility: auto`, so the browser only lays out the
+viewport — scrolling and search stay responsive at that size. This is a
+build-time or deploy-time cost, never per request (the docserver route caches
+per catalog instance).
+
+The architecture route streams the same self-contained HTML file the
+`catalog-export -architecture` command writes (one inline `<style>`/`<script>`
+pair, no external assets — it works without JavaScript, the search box just
+stays empty). It is served without the docserver CSP header because the
+artifact nonces nothing: its inline scripts are the feature. The render is
+cached per `*catalog.Catalog` instance, so a provider that returns a stable
+instance renders once; a provider that rebuilds per call pays a re-render per
+request, which is the honest price of freshness.
+
+### EventCatalog File Generation
+
+```go
+// Write MDX files at startup for the EventCatalog CLI to serve.
+err := docserver.GenerateEventCatalog(cat, "./eventcatalog")
+```
+
+## simple — Single-Service Builder Facade
+
+Most services document a single application. The `simple` package reduces ceremony:
+
+```go
+import "github.com/larsartmann/go-cqrs-lite/catalog/v4/simple"
+
+b := simple.New("User Service", "1.0.0")
+simple.Command[RegisterUserCmd](b, "register-user",
+    simple.WithOperation("POST", "/api/users"))
+simple.Event[UserRegisteredEvent](b, "user.registered", catalog.Sends)
+cat := b.Build()
+```
+
+Access the underlying `catalog.Builder` via `b.InnerBuilder()` for multi-service catalogs.
+
+## Dependencies
+
+| Dependency         | Purpose                          |
+| ------------------ | -------------------------------- |
+| `go-faster/yaml`   | YAML marshaling                  |
+| `templ-components` | docserver HTML UI components     |
+| `a-h/templ`        | HTML templating (code-generated) |
+
+## Regenerating docserver templ code — canonical cwd contract
+
+`templ generate` bakes the invocation cwd into the generated `_templ.go`
+FileName metadata. ALWAYS run it from `catalog/docserver/`, never from the
+repo root:
+
+```bash
+(cd catalog/docserver && templ generate)
+```
+
+Running it anywhere else produces code that fails `nix run .#check-templ`
+(the drift + FileName tripwire legs) even though it compiles. This is the
+documented workaround for BuildFlow's pre-commit templ step running from the
+repo root (external bug, filed upstream).
+
+## Related Modules
+
+- [**command**](command/v4/README.md) — Generates docs for command types
+- [**event**](event/v4/README.md) — Generates docs for event types
+- [**query**](query/v4/README.md) — Generates docs for query types
+- [**dispatcher**](dispatcher/v4/README.md) — `CatalogDispatcher` for introspection

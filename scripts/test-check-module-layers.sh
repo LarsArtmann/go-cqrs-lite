@@ -25,7 +25,7 @@ TMPDIR=$(mktemp -d)
 trap 'rm -rf "$TMPDIR"' EXIT
 
 # Create a fake lower-tier module that imports a higher-tier module
-# (e.g., event (L1) importing decider (L3) — a layer violation)
+# (e.g., event/v4 (L1) importing decider/v4 (L3) — a layer violation)
 mkdir -p "$TMPDIR/event"
 cat >"$TMPDIR/event/go.mod" <<'EOF'
 module github.com/larsartmann/go-cqrs-lite/event/v4

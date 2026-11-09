@@ -25,7 +25,7 @@ jobs:
           cache: true
 
       # Verify ONLY the tagged module. The old all-modules loop could never
-      # pass on public runners: cmd/cqrs-lint requires the PRIVATE
+      # pass on public runners: cmd/cqrs-lint/v4 requires the PRIVATE
       # github.com/larsartmann/go-finding, which has no CI credentials
       # (every tag run since 2026-08-29 died at `git ls-remote` exit 128).
       # The full matrix is ci.yml's job on master pushes; a tag run only
@@ -45,20 +45,20 @@ jobs:
           echo "Tagged module: $MOD"
 
       - name: Build tagged module
-        if: env.MOD != 'cmd/cqrs-lint'
+        if: env.MOD != 'cmd/cqrs-lint/v4'
         run: (cd "$MOD" && GOWORK=off go build ./...)
 
       - name: Test tagged module
-        if: env.MOD != 'cmd/cqrs-lint'
+        if: env.MOD != 'cmd/cqrs-lint/v4'
         run: (cd "$MOD" && GOWORK=off go test -race ./...)
 
       - name: Run govulncheck on tagged module
-        if: env.MOD != 'cmd/cqrs-lint'
+        if: env.MOD != 'cmd/cqrs-lint/v4'
         run: |
           go install golang.org/x/vuln/cmd/govulncheck@latest
           (cd "$MOD" && GOWORK=off govulncheck ./...)
 
-      # cmd/cqrs-lint depends on the private go-finding repo; its builds are
+      # cmd/cqrs-lint/v4 depends on the private go-finding repo; its builds are
       # verified locally (tag-release.sh standalone gate) and by CI legs that
       # have credentials. Skipping here is deliberate, not an oversight.
 

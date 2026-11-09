@@ -2,7 +2,7 @@
 # Error-taxonomy drift gate: every errorfamily code minted by the gated
 # modules must be documented in docs/error-taxonomy.md with the family the
 # source actually constructs, and every documented code must still exist.
-# The watermill table "lied for weeks" (parse failures labeled Corruption;
+# The watermill/v4 table "lied for weeks" (parse failures labeled Corruption;
 # actually Rejection) because the tables were hand-maintained — this gate
 # extracts the ground truth from errorfamily.(New|Wrap)<Family>("code", …)
 # call sites and diffs it against the doc in both directions (the
@@ -23,26 +23,26 @@ doc="$repo_root/docs/error-taxonomy.md"
 
 # doc-section-title | module dir (relative to repo root) | code prefixes
 GATED_MODULES=(
-	"middleware|middleware|middleware. deadletter."
-	"graph|graph|graph."
-	"storage/relational|storage/relational|relational."
-	"projectionhost|projectionhost|projectionhost."
-	"claiming|claiming|claiming."
-	"queue|queue|queue."
-	"watermill|watermill|watermill."
-	"storage/pebble|storage/pebble|pebble."
-	"core/event|event|event."
-	"core/command|command|command."
-	"core/query|query|query."
-	"storage/view|storage/view|storage.view.|10"
-	"stack|stack|stack. bbolt_preset. duckdb. duckdb_preset. memory. mysql. mysql_preset. pebble_preset. postgres. postgres_preset. sqlite. sqlite_preset. turso. turso_preset.|50"
-	"deriver|deriver|deriver.|2"
-	"storage (SQL facade)|storage|storage. backend. listing.|30|1"
-	"storage (SQL facade)|storage/sql|storage. sql.|24"
-	"storage (SQL facade)|storage/eventstore|storage.|22"
-	"storage (SQL facade)|storage/readmodel|storage. kv_sql.|6"
-	"metaengine|metaengine|metaengine."
-	"metaengine|metaengine/keycodec|keycodec."
+	"middleware/v4|middleware/v4|middleware. deadletter."
+	"graph/v4|graph/v4|graph."
+	"storage/v4/relational|storage/v4/relational|relational."
+	"projectionhost/v4|projectionhost/v4|projectionhost."
+	"claiming/v4|claiming/v4|claiming."
+	"queue/v4|queue/v4|queue."
+	"watermill/v4|watermill/v4|watermill."
+	"storage/pebble/v4|storage/pebble/v4|pebble."
+	"core/event|event/v4|event."
+	"core/command|command/v4|command."
+	"core/query|query/v4|query."
+	"storage/v4/view|storage/v4/view|storage.view.|10"
+	"stack/v4|stack/v4|stack. bbolt_preset. duckdb. duckdb_preset. memory. mysql. mysql_preset. pebble_preset. postgres. postgres_preset. sqlite. sqlite_preset. turso. turso_preset.|50"
+	"deriver/v4|deriver/v4|deriver.|2"
+	"storage/v4 (SQL facade)|storage/v4|storage. backend. listing.|30|1"
+	"storage/v4 (SQL facade)|storage/v4/sql|storage. sql.|24"
+	"storage/v4 (SQL facade)|storage/v4/eventstore|storage.|22"
+	"storage/v4 (SQL facade)|storage/v4/readmodel|storage. kv_sql.|6"
+	"metaengine/v4|metaengine/v4|metaengine."
+	"metaengine/v4|metaengine/v4/keycodec|keycodec."
 )
 
 # Per-module pool-size floor: a gated module whose extraction yields fewer

@@ -75,7 +75,10 @@ check_docs() {
 				rel="${rel#/}"
 				# Strip a trailing major-version segment (/v4, /v5, /v3).
 				rel="$(sed -E 's,/v[0-9]+$,,;' <<<"$rel")"
-				if ! resolve_claim "$root" "$rel"; then
+				# A trailing major-version segment may be part of the module dir
+				# itself (module X/v4 lives at dir X/v4) or a bare version suffix on
+				# the import path — accept either shape.
+				if ! resolve_claim "$root" "$rel" && ! resolve_claim "$root" "${rel}/v${m##*/v}"; then
 					echo "FAIL: ${doc}:${lineno}: claims $m but '$rel' resolves to no module on disk" >>"$out"
 					fails=$((fails + 1))
 				fi
@@ -116,7 +119,7 @@ MD
 		echo "SELF-TEST FAIL: the marked-deleted claim must be exempt"
 		rc=1
 	fi
-	if grep -q 'event' "$out"; then
+	if grep -q 'event/v4' "$out"; then
 		echo "SELF-TEST FAIL: live module/package claims must pass"
 		rc=1
 	fi

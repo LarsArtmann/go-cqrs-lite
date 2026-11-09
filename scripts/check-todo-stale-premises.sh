@@ -3,7 +3,7 @@
 # already shipped.
 #
 # The motivating rot: the "Post-tag adoption tail" row stayed "blocked ONLY on
-# the next schema/decider/snapshot tag wave" for three weeks AFTER its tags
+# the next schema/v4/decider/snapshot tag wave" for three weeks AFTER its tags
 # shipped (2026-10-12 finding). This detector parses rows that claim to be
 # blocked on a tag and checks every cited vX.Y.Z against the local tag list
 # (mirrors origin via the versions-manifest nightly gate): a cited tag that
@@ -53,7 +53,7 @@ v4.7.5
 v4.12.0
 TAGS
 	cat >"$tmp/TODO_LIST.md" <<'MD'
-- [ ] [BLOCKED] post-tag tail — blocked ONLY on the next schema/decider/snapshot tag wave (v4.12.0 cited as the expected tag)
+- [ ] [BLOCKED] post-tag tail — blocked ONLY on the next schema/v4/decider/snapshot tag wave (v4.12.0 cited as the expected tag)
 - [ ] blocked on a tag that has NOT shipped (v9.9.9)
 - [ ] open row citing v4.7.5 as historical context only — skip
 MD

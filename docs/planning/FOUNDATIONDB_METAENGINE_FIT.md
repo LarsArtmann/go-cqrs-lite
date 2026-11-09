@@ -690,7 +690,7 @@ behavior of the future multi-version client in this workload.
 _Sources:_ [apple.github.io/foundationdb](https://apple.github.io/foundationdb/) (v7.3.79 docs),
 [pkg.go.dev fdb package](https://pkg.go.dev/github.com/apple/foundationdb/bindings/go/src/fdb),
 [upstream bindings/go README](https://raw.githubusercontent.com/apple/foundationdb/main/bindings/go/README.md),
-[metaengine README](../../metaengine/README.md) and engine contract
+[metaengine README](../../metaengine/v4/README.md) and engine contract
 (`metaengine/engine.go`, `metaengine/types.go`, `metaengine/pgengine/engine.go`,
 `metaengine/pebbleengine/engine.go`, `metaengine/irohengine/README.md`,
 `metaengine/duckdbengine/doc.go`).

@@ -22,8 +22,8 @@ package main
 import (
 	"fmt"
 
-	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/analyzer"
-	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/pkg/rules"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules"
 )
 
 func main() {
@@ -34,7 +34,7 @@ func main() {
 GOEOF
 
 # Run it from the cqrs-lint module directory.
-ACTUAL=$(cd "$REPO_ROOT/cmd/cqrs-lint" &&
+ACTUAL=$(cd "$REPO_ROOT/cmd/cqrs-lint/v4" &&
 	GOWORK=off go run "$TMPDIR/count.go" 2>/dev/null) || {
 	echo "ERROR: could not get rule count from AllRules()"
 	exit 1

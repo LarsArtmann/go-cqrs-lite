@@ -5,7 +5,7 @@
 > (`metaengine/v4`), deeply integrated via `stack.WithMetaEngine`. The
 > "separate project" framing below reflects the original ambition, not the
 > current architecture. The module is fully functional — see the
-> [README](../../metaengine/README.md) for the shipped API.
+> [README](../../metaengine/v4/README.md) for the shipped API.
 
 > **ADDENDUM 2026-08-06 (v2 vision):** The metaengine is now classified as a
 > **Tier 3 Aggregation** module (ADR-0046 addendum), not a Tier 0 primitive.

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Schema-compatibility gate: turns docs/SCHEMA-COMPATIBILITY.md into a build
-# failure. Two questions, both answered by catalog/cmd/catalog-compat:
+# failure. Two questions, both answered by catalog/v4/cmd/catalog-compat:
 #
 #   check     — did a payload shape change breakingly without the message
 #               version moving? (the policy's "write an op, bump the version"
@@ -33,10 +33,10 @@ USAGE
 }
 
 # build_cli <output-path> — one build per invocation; the CLI lives in the
-# catalog module, so GOWORK=off keeps the resolution identical to a consumer's.
+# catalog/v4 module, so GOWORK=off keeps the resolution identical to a consumer's.
 build_cli() {
 	local out="$1"
-	(cd "$repo_root/catalog" && GOWORK=off go build -o "$out" ./cmd/catalog-compat)
+	(cd "$repo_root/catalog/v4" && GOWORK=off go build -o "$out" ./cmd/catalog-compat)
 }
 
 # self_test runs the mutation legs. Every leg asserts a DIFFERENT failure mode,
@@ -93,10 +93,10 @@ self_test() {
 		fail=1
 	fi
 
-	# Leg 5: validate must accept a clean catalog and reject a dangling
+	# Leg 5: validate must accept a clean catalog/v4 and reject a dangling
 	# channel reference, so the invariant half of the gate is proven too.
 	if ! "$bin" validate --catalog "$self_test_fixtures/old.json" >"$tmp/out5" 2>"$tmp/err5"; then
-		echo "::error::self-test leg 5: a clean catalog failed validation: $(cat "$tmp/err5")" >&2
+		echo "::error::self-test leg 5: a clean catalog/v4 failed validation: $(cat "$tmp/err5")" >&2
 		fail=1
 	elif "$bin" validate --catalog "$self_test_fixtures/dangling-channel.json" >"$tmp/out6" 2>"$tmp/err6"; then
 		echo "::error::self-test leg 5: a dangling channel reference passed validation" >&2

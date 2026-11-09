@@ -60,6 +60,6 @@ func main() {
 
 ## Related Modules
 
-- [**projectionhost**](../../../projectionhost/README.md) — Uses the ring for replay-to-live deduplication
-- [**watermill**](../../../watermill/README.md) — `CatchUpSubscriber` uses the ring at the replay-to-live boundary
+- [**projectionhost**](../../../projectionhost/v4/README.md) — Uses the ring for replay-to-live deduplication
+- [**watermill**](../../../watermill/v4/README.md) — `CatchUpSubscriber` uses the ring at the replay-to-live boundary
 - **transport/http** — REMOVED 2026-10-17 (zero-consumer delete); its `SSEBroker` used the ring for SSE reconnection dedup

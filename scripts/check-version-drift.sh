@@ -13,8 +13,11 @@ set -euo pipefail
 
 cd "$(git rev-parse --show-toplevel)"
 
+# Module dirs carry a /v4 segment now, so a shallow glob misses them —
+# walk the whole tree (module X/v4 lives at dir X/v4).
 drift=$(
-	grep -rhE 'go-cqrs-lite/.*/v[0-9]+ v[0-9]' ./*/go.mod 2>/dev/null |
+	find . -name go.mod -not -path './vendor/*' -print0 2>/dev/null |
+		xargs -0 grep -hE 'go-cqrs-lite/.*/v[0-9]+ v[0-9]' 2>/dev/null |
 		grep -oE 'go-cqrs-lite/[^ ]+/v[0-9]+ v[0-9]+\.[0-9]+\.[0-9]+' |
 		sort -u |
 		awk '

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shuffle-seed.sh — shared shuffle-seed helpers for integration scripts.
+# shuffle-seed.sh — shared shuffle-seed helpers for integration/v4 scripts.
 # Source from an ephemeral/vm script; do NOT execute directly.
 #
 # Why: `go test -shuffle=on` picks a random seed that is only visible as
@@ -10,7 +10,7 @@
 #
 #   go test -shuffle=<seed> -tags "..." ./...
 #
-# Usage inside an integration script:
+# Usage inside an integration/v4 script:
 #   source "$(dirname "$0")/lib/shuffle-seed.sh"
 #   SEED=$(new_shuffle_seed)
 #   log_shuffle_seed "dgraphengine" "$SEED"

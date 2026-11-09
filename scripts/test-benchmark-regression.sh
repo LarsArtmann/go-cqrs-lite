@@ -92,7 +92,7 @@ else
 	failures=$((failures + 1))
 fi
 
-# --- 6. the save+compare self-comparison trap: baseline snapshot before save ---
+# --- 6. the save+compare self-comparison trap: baseline snapshot/v4 before save ---
 : >"$tmp/base6"
 fixture "$tmp/base6" 100 100 100
 : >"$tmp/cur6"
@@ -124,7 +124,7 @@ check "vanished/new benchmark names never fail the gate" 0 $?
 {
 	echo "goos: linux"
 	echo "PASS"
-	echo "ok  	stack/bench	1.2s"
+	echo "ok  	stack/bench/v4	1.2s"
 	fixture "$tmp/cur8" 100 100
 } >/dev/null
 "$GATE" --baseline "$tmp/base7" --current "$tmp/cur8" >/dev/null 2>&1
@@ -147,7 +147,7 @@ fi
 "$GATE" --baseline "$tmp/save-titled" --current "$tmp/cur8" >/dev/null 2>&1
 check "header-prefixed baseline still parses" 0 $?
 
-# --- 10-16. benchkit noise gate + load gate (2026-09-16 per-metric CI gating) ---
+# --- 10-16. benchkit/v4 noise gate + load gate (2026-09-16 per-metric CI gating) ---
 # noise_json writes a cqrs-bench `--format json` result fixture; entries are
 # "name:cov" pairs (cov as a fraction, as MetricVariation serializes it).
 noise_json() { # noise_json FILE [name:cov]...
@@ -252,7 +252,7 @@ BENCH_GATE_GUARD_ROOT="$GUARD_REPO" "$GATE" --noise-only \
 check "guards pass when every gate-set benchmark exists" 0 $?
 
 # Mutation 1: rename a gate benchmark (delete BenchmarkBenchkitSuite_SQLite)
-# — the second stack/bench set entry then matches zero funcs and must fail
+# — the second stack/bench/v4 set entry then matches zero funcs and must fail
 # BEFORE any benchmarking.
 mv "$GUARD_REPO/stack/bench/bench_test.go" "$tmp/bench_test.go.bak"
 cat >"$GUARD_REPO/stack/bench/bench_test.go" <<'EOF'

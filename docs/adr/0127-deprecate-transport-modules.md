@@ -92,6 +92,6 @@ Four facts argue against both:
 
 **Related:** [ADR-0025](0025-transport-adapter-strategy.md) (superseded),
 [ADR-0123](0123-v5-unification-single-composition-root.md) (v5 cut),
-[`watermill/`](../../watermill/) module,
+[`watermill/`](../../watermill/v4) module,
 [`docs/planning/nats-transport-design.md`](../planning/nats-transport-design.md)
 (JetStream recipe).

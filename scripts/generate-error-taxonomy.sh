@@ -95,7 +95,7 @@ while IFS='|' read -r section dir prefixes floor maxdepth; do
 done < <(sed -n '/^GATED_MODULES=(/,/^)$/s/^[[:space:]]*"\(.*\)".*/\1/p' "$gate")
 
 # Nested modules: a gated dir may not be a module root itself
-# (storage/relational lives inside the storage module). Run erraudit from
+# (storage/v4/relational lives inside the storage/v4 module). Run erraudit from
 # the enclosing module root with a subpath pattern — module boundaries are
 # hard, ./... from a root never crosses them.
 run_args_for_dir() {
@@ -116,7 +116,7 @@ run_args_for_dir() {
 
 # Whole-tree entries cover every nested module under the dir. erraudit's
 # --modules=all fan-out resolves patterns in the root module's context and
-# dies on module boundaries (queue/mysql), so the fan-out is done here:
+# dies on module boundaries (queue/mysql/v4), so the fan-out is done here:
 # one standalone run per module — nested modules only ever load their own
 # go.sum that way.
 modules_under_dir() {

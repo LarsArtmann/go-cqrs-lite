@@ -168,7 +168,7 @@ route_for() { # $1=root $2=var
 		fi
 	done
 	# Two-hop: the harness script that exports the var must itself be
-	# invoked by a workflow (CI integration legs call scripts, not vars).
+	# invoked by a workflow (CI integration/v4 legs call scripts, not vars).
 	for script in "$root"/scripts/*.sh; do
 		[ -e "$script" ] || continue
 		code_mentions "$v" "$script" || continue
@@ -409,7 +409,7 @@ if [ -n "$unrouted" ]; then
 	printf '%s\n' "$unrouted" | sed 's/^/  /'
 	echo ""
 	echo "Either wire a route (a workflow job invoking a script or a flake app"
-	echo "that sets the var), or record the decision with its reason in"
+	echo "that sets the var), or record/v4 the decision with its reason in"
 	echo "$ROUTES_FILE."
 	exit 1
 fi

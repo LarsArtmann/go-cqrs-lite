@@ -58,9 +58,9 @@ goroutine 56 [sync.WaitGroup.Wait] — delivery supervisor waiting on 57
    (`subscribersByTopicLock`, watermill `pubsub.go:106-113`; held across the whole
    publish via `defer Unlock`) and blocks in `waitForAckFromSubscribers` because
    `watermill.NewEventBus` configures `BlockPublishUntilSubscriberAck: true`
-   ([`watermill/event_bus.go:92`](../../watermill/event_bus.go)).
+   ([`watermill/event_bus.go:92`](../../watermill/v4/event_bus.go)).
 2. The subscriber is our **single event-loop goroutine**
-   ([`watermill/event_bus_internals.go:77`](../../watermill/event_bus_internals.go)),
+   ([`watermill/event_bus_internals.go:77`](../../watermill/v4/event_bus_internals.go)),
    which processes one message at a time; it is inside the deriver handler.
 3. The deriver handler dispatches the derived command; its handler emits
    `task.archived`; the journal-bus path calls the nested `Publish`, which blocks

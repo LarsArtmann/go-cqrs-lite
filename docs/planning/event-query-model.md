@@ -12,8 +12,8 @@
 >   cost-based planning, hot-reload APIs (`AddEngine`/`SwapEngine`/`Replan`), command-lifecycle log.
 > - **Not shipped:** query log and session log (§10), multi-projection reads (§15 D3),
 >   dual-read cutover (§14). (`StreamingScan` was wired 2026-09-13 — see §15 D2.)
-> - **Current truth:** [`metaengine/README.md`](../../metaengine/README.md) (API surface),
->   [`commandlifecycle/`](../../commandlifecycle/) (the command log, shipped as ADR-0117).
+> - **Current truth:** [`metaengine/README.md`](../../metaengine/v4/README.md) (API surface),
+>   [`commandlifecycle/`](../../commandlifecycle/v4) (the command log, shipped as ADR-0117).
 > - **Audit trail:** [12:10 audit](../status/archived/2026-09-13_12-10_metaengine-event-query-model-doc-audit.md) ·
 >   [15:55 deep dive](../status/2026-09-13_15-55_event-query-model-not-shipped-vs-reality.md) ·
 >   [T02 source-verification notes](../status/2026-09-13_17-40_event-query-model-t02-verification-notes.md).
@@ -1123,8 +1123,8 @@ for cutover.
 
 ### Where current truth lives
 
-- [`metaengine/README.md`](../../metaengine/README.md) — module overview and API surface.
-- [`commandlifecycle/`](../../commandlifecycle/) — command-log implementation (ADR-0117).
+- [`metaengine/README.md`](../../metaengine/v4/README.md) — module overview and API surface.
+- [`commandlifecycle/`](../../commandlifecycle/v4) — command-log implementation (ADR-0117).
 - Audits: [12:10 audit](../status/archived/2026-09-13_12-10_metaengine-event-query-model-doc-audit.md) ·
   [15:55 deep dive](../status/2026-09-13_15-55_event-query-model-not-shipped-vs-reality.md) ·
   [T02 verification notes](../status/2026-09-13_17-40_event-query-model-t02-verification-notes.md).

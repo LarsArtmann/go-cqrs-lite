@@ -8,7 +8,7 @@
 # GT_LINT_MODULES (space-separated repo-relative module dirs).
 #
 # Usage:
-#   GT_LINT_MODULES="metaengine metaengine/sqliteengine" nix run .#lint-scope
+#   GT_LINT_MODULES="metaengine/v4 metaengine/sqliteengine/v4" nix run .#lint-scope
 #   scripts/lint-scope.sh --self-test
 #
 # Env:

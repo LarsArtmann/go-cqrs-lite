@@ -13,7 +13,7 @@
 #
 # Usage: bash scripts/check-test-runtime.sh [flags]
 #   (default)          compare the newest build/test-json/*.json to the baseline
-#   --json FILE        compare this event stream (repeatable)
+#   --json FILE        compare this event/v4 stream (repeatable)
 #   --baseline FILE    budget file (default scripts/test-runtime-baseline.txt)
 #   --factor N         budget multiplier (default 2.0; TEST_RUNTIME_FACTOR)
 #   --floor N          seconds of absolute slack (default 20; TEST_RUNTIME_FLOOR)
@@ -89,7 +89,7 @@ while [ $# -gt 0 ]; do
 done
 
 # elapsed_by_package OUT FILES... — "package<TAB>seconds" for every package
-# that reported a terminal event. go test -json emits one such event per
+# that reported a terminal event. go test -json emits one such event/v4 per
 # package; Test events carry a "Test" key and are excluded by construction.
 elapsed_by_package() { # $1=out, rest=json files
 	local out="$1"
@@ -236,7 +236,7 @@ trap 'rm -rf "$tmp"' EXIT
 
 if [ "${#JSON_FILES[@]}" -eq 0 ]; then
 	newest="$(find build/test-json -maxdepth 1 -name '*.json' -printf '%T@ %p\n' 2>/dev/null | sort -n | tail -1 | cut -d' ' -f2-)"
-	[ -n "$newest" ] || die "no event stream found — run GT_JSON=1 nix run .#test first, or pass --json FILE"
+	[ -n "$newest" ] || die "no event/v4 stream found — run GT_JSON=1 nix run .#test first, or pass --json FILE"
 	JSON_FILES=("$newest")
 fi
 for f in "${JSON_FILES[@]}"; do

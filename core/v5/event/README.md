@@ -143,12 +143,12 @@ type CheckinSubmitted struct {
 
 - [**command**](../command/README.md) — Command dispatch, typed handlers, middleware
 - [**query**](../query/README.md) — Query dispatch, typed results, pagination
-- [**decider**](../../../decider/README.md) — Pure-function aggregate pattern (recommended)
+- [**decider**](../../../decider/v4/README.md) — Pure-function aggregate pattern (recommended)
 - [**id**](../id/README.md) — Branded IDs: `id.Of[T]` backed by ULID
 - [**go-codec**](https://github.com/larsartmann/go-codec) — Payload encoding (JSON, CBOR, Raw) for `DecodePayload`
-- [**schema**](../../../schema/README.md) — Upcasting and schema evolution
-- [**snapshot**](../../../snapshot/README.md) — Snapshot persistence
-- [**signing**](../../../signing/README.md) — Event signing (HMAC, Ed25519)
-- [**encryption**](../../../encryption/README.md) — Payload encryption (XChaCha20, AES-GCM)
-- [**middleware**](../../../middleware/README.md) — Logging, retry, tracing, metrics
-- [**projection**](../../../projection/README.md) — Read-model projections from event streams
+- [**schema**](../../../schema/v4/README.md) — Upcasting and schema evolution
+- [**snapshot**](../../../snapshot/v4/README.md) — Snapshot persistence
+- [**signing**](../../../signing/v4/README.md) — Event signing (HMAC, Ed25519)
+- [**encryption**](../../../encryption/v4/README.md) — Payload encryption (XChaCha20, AES-GCM)
+- [**middleware**](../../../middleware/v4/README.md) — Logging, retry, tracing, metrics
+- [**projection**](../../../projection/v4/README.md) — Read-model projections from event streams

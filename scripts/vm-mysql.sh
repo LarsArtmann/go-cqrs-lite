@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# vm-mysql.sh — Start a NixOS QEMU VM with MySQL/MariaDB and run integration tests.
+# vm-mysql.sh — Start a NixOS QEMU VM with MySQL/MariaDB and run integration/v4 tests.
 #
 # Uses the runNixOSTest driver (not eval-config.nix) for reliable service
 # management. The driver boots the VM, waits for MySQL to be ready,
@@ -7,8 +7,8 @@
 # port-forwarded database.
 #
 # Usage:
-#   nix run .#integration-mysql-vm                    # run all MySQL integration tests
-#   nix run .#integration-mysql-vm -- ./stack/mysql/...
+#   nix run .#integration-mysql-vm                    # run all MySQL integration/v4 tests
+#   nix run .#integration-mysql-vm -- ./stack/mysql/v4/...
 set -euo pipefail
 
 KEEP_ALIVE=false
@@ -138,22 +138,22 @@ if [ $# -gt 0 ]; then
 		go test -shuffle="$SEED" "$@" -count=1 -v
 	fi
 else
-	echo "==> Running all MySQL integration tests"
+	echo "==> Running all MySQL integration/v4 tests"
 	echo ""
-	echo "--- stack/mysql ---"
+	echo "--- stack/mysql/v4 ---"
 	SEED=$(new_shuffle_seed)
-	log_shuffle_seed "stack/mysql" "$SEED"
+	log_shuffle_seed "stack/mysql/v4" "$SEED"
 	(
-		cd stack/mysql
+		cd stack/mysql/v4
 		CGO_ENABLED=1 GOWORK=off \
 			go test -shuffle="$SEED" ./... -count=1 -v 2>&1
 	)
 	echo ""
-	echo "--- idempotency/sqlstore ---"
+	echo "--- idempotency/sqlstore/v4 ---"
 	SEED=$(new_shuffle_seed)
-	log_shuffle_seed "idempotency/sqlstore" "$SEED"
+	log_shuffle_seed "idempotency/sqlstore/v4" "$SEED"
 	(
-		cd idempotency/sqlstore
+		cd idempotency/sqlstore/v4
 		# QEMU slirp port-forwarding resets bursts of simultaneous MySQL
 		# connections; 10 contenders still prove row-lock serialization.
 		# POSTGRES_TEST_DSN keeps the package TestMain (pgtestcontainer) off
@@ -162,32 +162,32 @@ else
 		# connections; the -run filter means no PG test ever uses this DSN.
 		CGO_ENABLED=1 GOWORK=off MYSQL_TEST_CONCURRENCY=10 \
 			POSTGRES_TEST_DSN="postgres://mysql-vm-leg@127.0.0.1:1/no-pg-here" \
-			go test -tags "integration" -shuffle="$SEED" -run TestIntegration_MySQL ./... -count=1 -v 2>&1
+			go test -tags "integration/v4" -shuffle="$SEED" -run TestIntegration_MySQL ./... -count=1 -v 2>&1
 	)
 	echo ""
-	echo "--- metaengine/mysqlengine (capability conformance + ADT matrix) ---"
+	echo "--- metaengine/mysqlengine/v4 (capability conformance + ADT matrix) ---"
 	SEED=$(new_shuffle_seed)
-	log_shuffle_seed "metaengine/mysqlengine" "$SEED"
+	log_shuffle_seed "metaengine/mysqlengine/v4" "$SEED"
 	(
-		cd metaengine/mysqlengine
+		cd metaengine/mysqlengine/v4
 		CGO_ENABLED=1 GOWORK=off ADTTEST_CAS_RACERS=10 \
 			go test -shuffle="$SEED" ./... -count=1 -v 2>&1
 	)
 	echo ""
-	echo "--- scheduling/sqlstore (MySQL claiming via SKIP LOCKED) ---"
+	echo "--- scheduling/sqlstore/v4 (MySQL claiming/v4 via SKIP LOCKED) ---"
 	SEED=$(new_shuffle_seed)
-	log_shuffle_seed "scheduling/sqlstore" "$SEED"
+	log_shuffle_seed "scheduling/sqlstore/v4" "$SEED"
 	(
-		cd scheduling/sqlstore
+		cd scheduling/sqlstore/v4
 		CGO_ENABLED=1 GOWORK=off \
-			go test -tags "integration" -shuffle="$SEED" -run TestClaimingMySQL ./... -count=1 -v 2>&1
+			go test -tags "integration/v4" -shuffle="$SEED" -run TestClaimingMySQL ./... -count=1 -v 2>&1
 	)
 	echo ""
-	echo "--- queue/mysql (work-queue conformance + ADR-0142 engine surface) ---"
+	echo "--- queue/mysql/v4 (work-queue conformance + ADR-0142 engine surface) ---"
 	SEED=$(new_shuffle_seed)
-	log_shuffle_seed "queue/mysql" "$SEED"
+	log_shuffle_seed "queue/mysql/v4" "$SEED"
 	(
-		cd queue/mysql
+		cd queue/mysql/v4
 		CGO_ENABLED=1 GOWORK=off ADTTEST_CAS_RACERS=10 \
 			go test -shuffle="$SEED" ./... -count=1 -v 2>&1
 	)

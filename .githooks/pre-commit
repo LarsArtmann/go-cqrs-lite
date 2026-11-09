@@ -105,8 +105,8 @@ if grep -R 'fmt\.Printf' --include='*.go' . |
 fi
 
 echo "==> Checking api_surface.txt is up to date"
-if ! (cd cmd/api-stability && GOWORK=off go run -tags "goexperiment.jsonv2" .); then
-	echo "ERROR: docs/api_surface.txt is stale. Run: cd cmd/api-stability && GOWORK=off go run -tags 'goexperiment.jsonv2' . --update"
+if ! (cd cmd/api-stability/v4 && GOWORK=off go run -tags "goexperiment.jsonv2" .); then
+	echo "ERROR: docs/api_surface.txt is stale. Run: cd cmd/api-stability/v4 && GOWORK=off go run -tags 'goexperiment.jsonv2' . --update"
 	exit 1
 fi
 
@@ -145,9 +145,14 @@ fi
 
 if [ -n "$(staged 'scripts/.*\.sh$')" ]; then
 	echo "==> shellcheck on scripts/ (commit touches scripts/)"
-	if ! nix-shell -p shellcheck --run 'shellcheck scripts/*.sh scripts/lib/*.sh'; then
-		echo "ERROR: shellcheck findings in scripts (repo gate is zero findings)"
-		exit 1
+	# nix-shell needs NIX_PATH (a channel); the flake registry resolves
+	# nixpkgs# without one, so fall back to `nix shell` when the channel is
+	# absent (2026-11-09: bare checkouts hit "file 'nixpkgs' was not found").
+	if ! nix-shell -p shellcheck --run 'shellcheck scripts/*.sh scripts/lib/*.sh' 2>/dev/null; then
+		if ! nix shell nixpkgs#shellcheck -c shellcheck scripts/*.sh scripts/lib/*.sh; then
+			echo "ERROR: shellcheck findings in scripts (repo gate is zero findings)"
+			exit 1
+		fi
 	fi
 fi
 

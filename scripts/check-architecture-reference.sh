@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# check-architecture-reference: render-validate the catalog/architecture HTML
+# check-architecture-reference: render-validate the catalog/v4/architecture HTML
 # export outside the go test process.
 #
-# Renders a small but complete fixture catalog via
-# catalog/cmd/architecture-fixture, then asserts the properties the package
+# Renders a small but complete fixture catalog/v4 via
+# catalog/v4/cmd/architecture-fixture, then asserts the properties the package
 # promises its consumers:
 #   1. self-containment (no external stylesheet/script/font references)
 #   2. anchor integrity (every href="#x" and search-index hit has an id="x")
@@ -30,7 +30,7 @@ cleanup_ok() { [[ -n "${CHECK_ARCHITECTURE_REFERENCE_DIR:-}" ]] || rm -rf "$work
 
 self_test() {
 	local bad="$work/bad.html" bad_slice="$work/bad-slice.html"
-	(cd "$root/catalog" && GOWORK=off go run ./cmd/architecture-fixture "$bad" "$bad_slice")
+	(cd "$root/catalog/v4" && GOWORK=off go run ./cmd/architecture-fixture "$bad" "$bad_slice")
 
 	local failed=0
 	mutate_and_expect_fail() { # $1 = sed program, $2 = label
@@ -39,7 +39,7 @@ self_test() {
 			echo "SELF-TEST FAIL: corruption was NOT caught: $2" >&2
 			failed=1
 		fi
-		(cd "$root/catalog" && GOWORK=off go run ./cmd/architecture-fixture "$bad")
+		(cd "$root/catalog/v4" && GOWORK=off go run ./cmd/architecture-fixture "$bad")
 	}
 	mutate_slice_and_expect_fail() { # $1 = sed program, $2 = label
 		sed -i "$1" "$bad_slice"
@@ -47,7 +47,7 @@ self_test() {
 			echo "SELF-TEST FAIL: slice corruption was NOT caught: $2" >&2
 			failed=1
 		fi
-		(cd "$root/catalog" && GOWORK=off go run ./cmd/architecture-fixture "$bad" "$bad_slice")
+		(cd "$root/catalog/v4" && GOWORK=off go run ./cmd/architecture-fixture "$bad" "$bad_slice")
 	}
 
 	# Corrupt 1: a section id renamed — anchor integrity must catch it.
@@ -193,8 +193,8 @@ if [[ "${1:-}" == "--self-test" ]]; then
 	exit 0
 fi
 
-echo "==> 1/2 rendering fixture catalog (whole + partner slice)"
-(cd "$root/catalog" && GOWORK=off go run ./cmd/architecture-fixture "$out" "$slice_out")
+echo "==> 1/2 rendering fixture catalog/v4 (whole + partner slice)"
+(cd "$root/catalog/v4" && GOWORK=off go run ./cmd/architecture-fixture "$out" "$slice_out")
 
 echo "==> 2/2 asserting the artifacts ($(wc -c <"$out") + $(wc -c <"$slice_out") bytes)"
 if assert_all "$out" && assert_slice "$slice_out" "$out"; then

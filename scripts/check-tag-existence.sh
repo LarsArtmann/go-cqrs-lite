@@ -29,7 +29,7 @@ missing=0
 while IFS=' ' read -r mod ver; do
 	# Convert module path + version to tag.
 	# Example: "go-cqrs-lite/event/v4" + "v4.4.0" → "event/v4.4.0"
-	# Example: "go-cqrs-lite/storage/pebble/v4" + "v4.1.0" → "storage/pebble/v4.1.0"
+	# Example: "go-cqrs-lite/storage/pebble/v4" + "v4.1.0" → "storage/v4/pebble/v4.1.0"
 	# Rule: strip "go-cqrs-lite/" prefix and trailing "/vN" suffix, then append "/<version>"
 	modpath="${mod#go-cqrs-lite/}"
 	modpath="${modpath%/v[0-9]*}"

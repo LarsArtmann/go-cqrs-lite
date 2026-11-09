@@ -21,6 +21,6 @@ if ! scripts/calibration-gate.sh --provenance dgraph; then
 fi
 
 nix run .#ephemeral-dgraph -- bash -c \
-	'cd metaengine/dgraphengine && GOWORK=off go test -run "^$" \
+	'cd metaengine/dgraphengine/v4 && GOWORK=off go test -run "^$" \
 	 -bench "BenchmarkCalibration_DgraphScaled|BenchmarkCalibration_DgraphSearchQuery" \
 	 -benchtime 20x -count 5 .'

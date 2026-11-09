@@ -40,7 +40,7 @@
 # Measurement mode is `aggregate`: one workspace-wide test run emits a merged
 # coverprofile, and a module's percentage is covered/total STATEMENTS for the
 # files it owns (deepest module directory wins, so nested modules such as
-# metaengine/pgengine are never double counted). The pre-2026-10-26 version
+# metaengine/pgengine/v4 are never double counted). The pre-2026-10-26 version
 # took the FIRST package's coverage line, which in a multi-package module is an
 # arbitrary package, not the module.
 #
@@ -165,7 +165,7 @@ collect() {
 		# A failing test does NOT abort the measurement: coverage is a
 		# measurement, and test success is already gated by #test and
 		# #test-race (the pre-2026-10-26 script tolerated failures for the
-		# same reason). Load-sensitive suites — benchkit's 90s journey budget
+		# same reason). Load-sensitive suites — benchkit/v4's 90s journey budget
 		# is the documented example — would otherwise turn the coverage gate
 		# into a second, flakier test gate. The warning is loud so a suite
 		# that is systematically broken cannot hide behind a green number.

@@ -19,7 +19,7 @@
 # the mention asserts behavior (idea #4, the zero-assertion gate, covers that).
 # False negatives (a name that coincidentally appears) are acceptable for a
 # ratchet; false positives are not, which is why the whole repo's tests count —
-# a symbol exercised by an integration or system-level test IS tested.
+# a symbol exercised by an integration/v4 or system-level test IS tested.
 #
 # Usage: bash scripts/check-untested-exports.sh [flags]
 #   (default)     verify against the frozen list; exit 1 on any new symbol
@@ -118,7 +118,7 @@ write_baseline() { # $1=current keys, $2=out, $3=existing baseline (for reasons)
 			"# give the symbol a test and --update prunes the row." \
 			"#" \
 			"# To accept a new symbol deliberately, add its row by hand with a reason:" \
-			"#   metaengine/func Thing   # reason: only reachable through the docs demo" \
+			"#   metaengine/v4/func Thing   # reason: only reachable through the docs demo" \
 			"# --update preserves a trailing reason on rows that survive." \
 			"#" \
 			"# Format: <module>/<kind> <Name>"
@@ -207,7 +207,7 @@ if [ "$MODE" = "selftest" ]; then
 	exit 0
 fi
 
-[ -f "$SURFACE" ] || die "API surface '$SURFACE' is missing — run: cd cmd/api-stability && GOWORK=off go run . --update"
+[ -f "$SURFACE" ] || die "API surface '$SURFACE' is missing — run: cd cmd/api-stability/v4 && GOWORK=off go run . --update"
 
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT

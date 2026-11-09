@@ -58,7 +58,7 @@ err = pub.Publish(ctx, placeOrderCmd)
 The full broker matrix (NATS JetStream / Redis Streams / Kafka / RabbitMQ),
 ordering and redelivery semantics, and the transactional-outbox pattern
 (journal-as-outbox, ADR-0016/0146) live in
-[watermill/README.md](../watermill/README.md) and the
+[watermill/README.md](../watermill/v4/README.md) and the
 [watermill skill](../.agents/skills/watermill/SKILL.md).
 
 ## Timeline

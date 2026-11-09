@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# fp-sweep.sh — run the cqrs-lint binary over local consumer repos and record
+# fp-sweep.sh — run the cqrs-lint binary over local consumer repos and record/v4
 # the per-repo finding distribution plus the low-confidence (FP-suspect) rate.
 #
 # Purpose (adoption plan task C25): a baseline false-positive-rate measurement
@@ -14,7 +14,7 @@
 #   default repos: the locally-available members of the IMPROVEMENT_IDEAS
 #   consumer reference table; --out writes markdown (default: stdout).
 #
-# The binary is built from this checkout (cmd/cqrs-lint) — sweep results are
+# The binary is built from this checkout (cmd/cqrs-lint/v4) — sweep results are
 # only comparable when produced by the same binary build. Requires jq.
 
 set -euo pipefail
@@ -60,7 +60,7 @@ command -v jq >/dev/null 2>&1 || {
 
 BIN=$(mktemp /tmp/cqrs-lint-fp-sweep.XXXXXX)
 trap 'rm -f "$BIN"' EXIT
-(cd cmd/cqrs-lint && GOWORK=off go build -o "$BIN" .)
+(cd cmd/cqrs-lint/v4 && GOWORK=off go build -o "$BIN" .)
 
 {
 	echo "# cqrs-lint FP sweep — $(date -u +%Y-%m-%dT%H:%M:%SZ)"

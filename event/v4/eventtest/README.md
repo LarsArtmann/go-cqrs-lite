@@ -118,5 +118,5 @@ func TestMyStore(t *testing.T) {
 
 ## Related Modules
 
-- [**event**](../../README.md) — The package under test
-- [**id/idtest**](../../../id/README.md) — Branded-ID test helpers used by event factories
+- [**event**](../README.md) — The package under test
+- [**id/idtest**](../../../id/v4/README.md) — Branded-ID test helpers used by event factories

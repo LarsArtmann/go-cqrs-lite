@@ -20,7 +20,7 @@
 #   - the full tag appears as a delimiter-bounded token anywhere in the
 #     section (train bodies list every module in backticks), or
 #   - the tag's last two path components do (brace-shorthand groups like
-#     `metaengine/{badgerengine/v4.2.0, …}` list inner tags without the
+#     `metaengine/v4/{badgerengine/v4.2.0, …}` list inner tags without the
 #     module prefix).
 # No match = skip with a warning (never fabricate notes).
 #
@@ -49,7 +49,7 @@ command -v gh >/dev/null 2>&1 || {
 }
 
 extract_section() {
-	tag="$1"                          # full tag, e.g. metaengine/badgerengine/v4.2.0
+	tag="$1"                          # full tag, e.g. metaengine/v4/badgerengine/v4.2.0
 	tail2="${tag#*/}"                 # badgerengine/v4.2.0 (last two path components)
 	[ "$tail2" = "$tag" ] && tail2="" # single-component tag: no shorthand form
 	awk -v tag="$tag" -v tail2="$tail2" -v ptr="$1" '

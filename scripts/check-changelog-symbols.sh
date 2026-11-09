@@ -21,7 +21,7 @@
 #   c) the repo source has a directory named `alias` declaring the exported
 #      symbol — the fallback for true subpackage citations the module-root
 #      golden cannot see (e.g. enginetest.RunSeqSeekableStreamLogTest: a
-#      package INSIDE the metaengine module, not a module root itself).
+#      package INSIDE the metaengine/v4 module, not a module root itself).
 # <kind> ∈ func|method|type|struct|interface|const|var.
 #
 # Usage: bash scripts/check-changelog-symbols.sh
@@ -124,7 +124,7 @@ if [ "$errors" -gt 0 ]; then
 	echo "Found $errors cited symbol(s) that do not exist."
 	echo "Either the entry describes reverted work (delete/correct it), or the"
 	echo "symbol name is wrong, or docs/api_surface.txt is stale"
-	echo "(cd cmd/api-stability && GOWORK=off go run . --update)."
+	echo "(cd cmd/api-stability/v4 && GOWORK=off go run . --update)."
 	exit 1
 fi
 

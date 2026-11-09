@@ -140,7 +140,7 @@ This is acceptable because:
 
 ## References
 
-- [`AllADTs()`](../../metaengine/enum_validation.go:9) — canonical 10-ADT registry
-- [`EngineProfile.Supports`](../../metaengine/engine.go:13) — the map to extend
+- [`AllADTs()`](../../metaengine/v4/enum_validation.go:9) — canonical 10-ADT registry
+- [`EngineProfile.Supports`](../../metaengine/v4/engine.go:13) — the map to extend
 - [DDIA Ch1](https://dataintensive.net/) — performance, latency, brute-force vs indexed
 - [`meta-engine-design.md`](meta-engine-design.md) — canonical planner design

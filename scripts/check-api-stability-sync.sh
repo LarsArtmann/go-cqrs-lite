@@ -5,8 +5,8 @@ set -euo pipefail
 
 cd "$(git rev-parse --show-toplevel)"
 
-# Modules tracked by cmd/api-stability/main.go
-tracked_modules=$(grep -oE '"[a-z][a-z0-9/_-]*"' cmd/api-stability/main.go |
+# Modules tracked by cmd/api-stability/v4/main.go
+tracked_modules=$(grep -oE '"[a-z][a-z0-9/_-]*"' cmd/api-stability/v4/main.go |
 	tr -d '"' | grep -v '^\.' | sort -u)
 
 # Modules in go.work that should be tracked (exclude test helpers, cmd, examples)
@@ -15,16 +15,16 @@ go_work_modules=$(grep -oE '\./[a-zA-Z0-9/_-]+' go.work | sed 's|^\./||' | sort 
 # Modules intentionally excluded from API stability tracking
 EXCLUDE=(
 	"event/v4/eventtest"
-	"query/querytest"
-	"id/idtest"
-	"kv/viewstoretest"
-	"stack/contracttest"
-	"stack/sqlopt"
-	"graph/graphtest"
+	"query/v4/querytest"
+	"id/v4/idtest"
+	"kv/v4/viewstoretest"
+	"stack/v4/contracttest"
+	"stack/v4/sqlopt"
+	"graph/v4/graphtest"
 	"example/getting-started"
 	"example/taskmanager"
-	"stack/bench"
-	"integration"
+	"stack/bench/v4"
+	"integration/v4"
 )
 
 is_excluded() {
@@ -47,10 +47,10 @@ for mod in $go_work_modules; do
 done
 
 if [ -n "$missing" ]; then
-	echo "WARN: modules in go.work but NOT tracked by cmd/api-stability/main.go:"
+	echo "WARN: modules in go.work but NOT tracked by cmd/api-stability/v4/main.go:"
 	echo -e "$missing"
 	echo ""
-	echo "Add them to the modules slice in cmd/api-stability/main.go."
+	echo "Add them to the modules slice in cmd/api-stability/v4/main.go."
 	echo "(Some modules may be intentionally untracked — review before adding.)"
 	exit 1
 fi

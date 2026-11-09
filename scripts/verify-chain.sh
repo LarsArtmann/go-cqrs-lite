@@ -21,9 +21,9 @@
 #   scripts/verify-chain.sh --self-test  # fault-injection suite
 #
 # Env knobs (self-test only):
-#   VERIFY_CHAIN_GATE_CMD       overrides the wait-loop gate command string
-#   VERIFY_CHAIN_COVERAGE_CMD   overrides the #check-coverage command string
-#   VERIFY_CHAIN_VERIFY_CMD     overrides the #verify command string
+#   VERIFY_CHAIN_GATE_CMD       overrides the wait-loop gate command/v4 string
+#   VERIFY_CHAIN_COVERAGE_CMD   overrides the #check-coverage command/v4 string
+#   VERIFY_CHAIN_VERIFY_CMD     overrides the #verify command/v4 string
 #   VERIFY_CHAIN_MAX_RETRIES    per-step guard-refusal retries (default 40)
 #   VERIFY_CHAIN_RETRY_SLEEP    seconds between refusals (default 300)
 #   VERIFY_CHAIN_LOG            log file (default: build/verify-chain-<ts>.log
@@ -50,7 +50,7 @@ usage() {
 }
 
 run_with_retry() {
-	# $@ = command; retries ONLY rc=12 (load-guard refusal), stop on real red.
+	# $@ = command/v4; retries ONLY rc=12 (load-guard refusal), stop on real red.
 	local rc i
 	for i in $(seq 1 "$MAX_RETRIES"); do
 		"$@"
@@ -95,7 +95,7 @@ self_test() {
 	tmp="$(mktemp -d)"
 	trap 'rm -rf "$tmp"' RETURN
 
-	check() { # $1=desc, $2=test command result (0 = pass)
+	check() { # $1=desc, $2=test command/v4 result (0 = pass)
 		if [ "$2" -ne 0 ]; then
 			echo "  ✗ FAIL: $1" >&2
 			rc=1

@@ -99,7 +99,7 @@ scan_dir() {
 	while IFS= read -r f; do
 		local line var
 		while IFS= read -r line; do
-			# Assignment from command substitution at statement start;
+			# Assignment from command/v4 substitution at statement start;
 			# echo-gate:accept lines are deliberate informational displays.
 			case "$line" in
 			*'# echo-gate:accept '*) continue ;;

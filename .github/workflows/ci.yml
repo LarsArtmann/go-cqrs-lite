@@ -54,9 +54,9 @@ jobs:
       - name: Test
         run: GT_JSON=1 nix run .#test
 
-      # The event stream is the input to the per-package runtime budget below
+      # The event/v4 stream is the input to the per-package runtime budget below
       # and survives a red run for post-mortem (which package got slow first).
-      - name: Upload test event stream
+      - name: Upload test event/v4 stream
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -73,8 +73,8 @@ jobs:
           # different machine class, so widen here rather than let machine
           # speed masquerade as a regression. The tight gate is the local and
           # nightly run. Floor is 60 (not 30): DB-backed suites (pgengine,
-          # stack/mysql) SKIP locally (0.07s baseline rows) but run their
-          # real integration paths on runners, and doc-check's recipes
+          # stack/mysql/v4) SKIP locally (0.07s baseline rows) but run their
+          # real integration/v4 paths on runners, and doc-check's recipes
           # harness is cold-cache bound — 2026-11-06 all three breached a
           # 30s floor on a slow shared runner while the tree was green
           # locally.
@@ -152,7 +152,7 @@ jobs:
       - name: Coverage floor (every module) plus per-module report
         run: nix run .#check-coverage -- --report build/coverage --quiet
 
-      # The per-module table is the measurement record for the run: without it
+      # The per-module table is the measurement record/v4 for the run: without it
       # a floor can only be argued from a log line, and a module that silently
       # stopped contributing statements is invisible after the job ends.
       - name: Upload coverage report
@@ -207,7 +207,7 @@ jobs:
 
       - name: Doc cross-reference check
         run:
-          cd cmd/doc-check && GOWORK=off go run .
+          cd cmd/doc-check/v4 && GOWORK=off go run .
       # No explicit args needed: auto-discovers repo root + all .agents/skills/*/references/*.md
 
       - name: Documentation assertions
@@ -218,7 +218,7 @@ jobs:
           # No stale module counts in core docs (dynamic whitelist)
           actual_count=$(find . -name go.mod -not -path './vendor/*' | wc -l)
           # Check "N go.mod files" patterns (unambiguously total count)
-          # shellcheck disable=SC2016  # backticks are a regex, not command substitution
+          # shellcheck disable=SC2016  # backticks are a regex, not command/v4 substitution
           grep -rnoE '\b[0-9]+\s*`?go\.mod`?\s*files?' --include='*.md' \
             README.md AGENTS.md FEATURES.md CONTRIBUTING.md docs/README.md \
             docs/v4-WISHLIST.md ROADMAP.md TODO_LIST.md 2>/dev/null \
@@ -279,9 +279,9 @@ jobs:
         run: |
           nix develop -c bash -c '
             set -e
-            cd stack/duckdb && GOWORK=off CGO_ENABLED=1 go build ./...
-            cd ../../cmd/cqrs-bench && GOWORK=off CGO_ENABLED=1 go build ./...
-            cd ../../stack/duckdb && GOWORK=off CGO_ENABLED=1 go vet ./...
+            cd stack/duckdb/v4 && GOWORK=off CGO_ENABLED=1 go build ./...
+            cd ../../cmd/cqrs-bench/v4 && GOWORK=off CGO_ENABLED=1 go build ./...
+            cd ../../stack/duckdb/v4 && GOWORK=off CGO_ENABLED=1 go vet ./...
           '
 
       # Infra retry-once (2026-09-25, CI tail (c)): the CGo/Dgraph legs die
@@ -291,17 +291,17 @@ jobs:
         run: |
           nix develop -c bash -c '
             set -e
-            cd stack/duckdb && GOWORK=off CGO_ENABLED=1 go test ./... -count=1
+            cd stack/duckdb/v4 && GOWORK=off CGO_ENABLED=1 go test ./... -count=1
           ' || (echo "::warning::first attempt failed — retrying once (infra-transient class)" && sleep 30 && nix develop -c bash -c '
             set -e
-            cd stack/duckdb && GOWORK=off CGO_ENABLED=1 go test ./... -count=1
+            cd stack/duckdb/v4 && GOWORK=off CGO_ENABLED=1 go test ./... -count=1
           ')
 
       - name: Build + Test Iroh QUIC (CGo required, pre-compiled static lib)
         run: |
           nix develop -c bash -c '
             set -e
-            cd metaengine/irohengine/quic && GOWORK=off CGO_ENABLED=1 go build ./...
+            cd metaengine/irohengine/quic/v4 && GOWORK=off CGO_ENABLED=1 go build ./...
             GOWORK=off CGO_ENABLED=1 go vet ./...
             GOWORK=off CGO_ENABLED=1 go test ./... -count=1
           '
@@ -336,7 +336,7 @@ jobs:
         run: |
           nix develop -c bash -c '
             set -e
-            cd metaengine/irohengine/quic && GOWORK=off CGO_ENABLED=1 \
+            cd metaengine/irohengine/quic/v4 && GOWORK=off CGO_ENABLED=1 \
               go test -race -count=3 \
               -run TestQuicConvergenceSuite ./... -timeout=10m
           '
@@ -388,7 +388,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Find all go.mod modules
-        id: set-modules
+        id/v4: set-modules
         run: |
           # Root module has no packages (proven no-op leg) and the cqrs-lint
           # typedfixture is testdata with zero test files — both burn a
@@ -396,7 +396,7 @@ jobs:
           # nowhere else.
           modules=$(find . -name go.mod -not -path './vendor/*' \
             | sed 's|/go.mod||' | sed 's|^\./||' | sort \
-            | grep -v -e '^\.$' -e '^cmd/cqrs-lint/testdata/' \
+            | grep -v -e '^\.$' -e '^cmd/cqrs-lint/v4/testdata/' \
             | jq -R . | jq -s -c .)
           echo "modules=$modules" >> "$GITHUB_OUTPUT"
 
@@ -431,7 +431,7 @@ jobs:
 
       - name: Run cqrs-lint on its own source (self-lint auto-detected)
         run: |
-          cd cmd/cqrs-lint && GOWORK=off go run . . --strict-load --fail-on-stale-suppressions
+          cd cmd/cqrs-lint/v4 && GOWORK=off go run . . --strict-load --fail-on-stale-suppressions
 
     timeout-minutes: 15
   cqrs-lint-examples:
@@ -444,7 +444,7 @@ jobs:
 
       - name: Lint every example — V007 (v5-removed APIs) must be silent
         run: |
-          cd cmd/cqrs-lint
+          cd cmd/cqrs-lint/v4
           status=0
           for ex in ../../example/*/; do
             echo "::group::Linting $ex"
@@ -475,7 +475,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      # Plain setup-go (not the nix stack) so the gate has a `go` binary
+      # Plain setup-go (not the nix stack/v4) so the gate has a `go` binary
       # satisfying the go.work floor — without it the job died three times
       # on `go: downloading go1.27.1` (the same toolchain-download trap the
       # other plain-go jobs already fixed this way).
@@ -490,7 +490,7 @@ jobs:
           # that only ever "ran" its toolchain download. Pin the real
           # per-package floor to the Tier-1 core instead (GOWORK=off,
           # per-module cwd; each module holds its own packages).
-          core=(event command query metadata scheduling)
+          core=(event/v4 command/v4 query/v4 metadata/v4 scheduling/v4)
           failed=false
           for m in "${core[@]}"; do
             pushd "$m" >/dev/null
@@ -523,7 +523,7 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa # v23
 
       - name: Verify API surface matches golden file
-        run: cd cmd/api-stability && GOWORK=off go run .
+        run: cd cmd/api-stability/v4 && GOWORK=off go run .
 
     timeout-minutes: 15
   replace-directives:
@@ -541,7 +541,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      # Plain setup-go (not the nix stack) so the gate survives nix cache
+      # Plain setup-go (not the nix stack/v4) so the gate survives nix cache
       # throttling and actually has a `go` binary on PATH — the nix
       # installer alone never provided one, failing the job in seconds.
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
@@ -575,7 +575,7 @@ jobs:
   # `go mod tidy -diff` asserts completeness without writing anything. The
   # repo-level meta-test (TestEveryModuleGoSumIsTidy) covers plain go test
   # runs; this job pins it as an independent CI fact. Plain setup-go (not the
-  # nix stack) so the gate survives nix cache throttling.
+  # nix stack/v4) so the gate survives nix cache throttling.
   modsums:
     name: Module go.mod/go.sum Tidy (cold-cache safety)
     runs-on: ubuntu-latest
@@ -595,7 +595,7 @@ jobs:
   # type-checked and linted like everything else. Resolves each hit to its
   # module root (some tagged files live in nested packages).
   integration-tag-lint:
-    name: "Lint integration-tagged files (build tag: integration)"
+    name: "Lint integration-tagged files (build tag: integration/v4)"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -614,8 +614,8 @@ jobs:
           done < <(find . -name '*_integration_test.go' -not -path './vendor/*' -not -path './.git/*') |
             sort -u |
             while IFS= read -r mod; do
-              echo "==> Linting $mod (tags: integration)"
-              nix run .#lint-module -- "$mod" integration
+              echo "==> Linting $mod (tags: integration/v4)"
+              nix run .#lint-module -- "$mod" integration/v4
             done
 
     timeout-minutes: 25
@@ -652,8 +652,8 @@ jobs:
 
     # 2026-10-14 evidence: runs 38592413377/38619781576 hit the old 15m wall
     # mid-sweep; with the 45m trial, 113 packages finished in ~29m
-    # (scheduling 306s, stack/bench 274s) and the sweep then spent 16+ min
-    # inside metaengine/bench (31 bench funcs; go test serializes benched
+    # (scheduling/v4 306s, stack/bench/v4 274s) and the sweep then spent 16+ min
+    # inside metaengine/bench/v4 (31 bench funcs; go test serializes benched
     # packages) with the whole engine family still pending — realistic total
     # 80-105m cold. The internal go timeout is 30m PER PACKAGE (#bench), so
     # no single hang runs away; 120m covers the sweep. Slimming this
@@ -733,7 +733,7 @@ jobs:
         run: |
           # codec was extracted to the external go-cqrs-lite/go-codec repo
           # (ADR-0128); only in-repo core modules compile here.
-          for mod in id dispatcher event command query decider; do
+          for mod in id/v4 dispatcher/v4 event/v4 command/v4 query/v4 decider/v4; do
             echo "==> WASM build: $mod"
             (cd "$mod" && GOOS=js GOARCH=wasm GOWORK=off go build ./...)
           done
@@ -824,7 +824,7 @@ jobs:
       - name: Dry-run cqrs-upgrade against the getting-started consumer
         run: |
           nix-shell -p go --run '
-            cd cmd/cqrs-upgrade &&
+            cd cmd/cqrs-upgrade/v4 &&
             go build -o /tmp/cqrs-upgrade . &&
             /tmp/cqrs-upgrade --dry-run --strict ../../example/getting-started
           '
@@ -854,24 +854,24 @@ jobs:
 
       - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa # v23
 
-      - name: Run PostgreSQL integration tests
+      - name: Run PostgreSQL integration/v4 tests
         env:
           DATABASE_URL: postgres://cqrs:cqrs@localhost:5432/cqrs_test?sslmode=disable
           POSTGRES_TEST_DSN: postgres://cqrs:cqrs@localhost:5432/cqrs_test?sslmode=disable
         run: |
-          # Storage: event/command/query/snapshot stores + relational projections.
-          # The relational test (storage/relational/pg_test.go) was previously
+          # Storage: event/v4/command/query/snapshot stores + relational projections.
+          # The relational test (storage/v4/relational/pg_test.go) was previously
           # gated behind a postgres_integration tag that CI never passed — now
           # unified under -tags=integration.
-          cd storage && GOWORK=off go test -tags=integration -v -count=1 \
+          cd storage/v4 && GOWORK=off go test -tags=integration/v4 -v -count=1 \
             -run TestPostgres ./...
-          # stack/postgres uses pgx directly (PgxListener + PostgresBus wiring).
-          # -tags=integration enables the LISTEN/NOTIFY round-trip tests that
+          # stack/postgres/v4 uses pgx directly (PgxListener + PostgresBus wiring).
+          # -tags=integration/v4 enables the LISTEN/NOTIFY round-trip tests that
           # validate the full preset against a real Postgres instance.
           #
           # Locally (without POSTGRES_TEST_DSN), testcontainers-go spins up a
           # postgres:16-alpine container automatically — no manual setup needed.
-          cd ../stack/postgres && GOWORK=off go test -tags=integration -v -count=1 ./...
+          cd ../stack/postgres/v4 && GOWORK=off go test -tags=integration/v4 -v -count=1 ./...
 
     timeout-minutes: 15
   turso-sync:
@@ -892,7 +892,7 @@ jobs:
           TURSO_SYNC_URL: ${{ secrets.TURSO_SYNC_URL }}
           TURSO_SYNC_TOKEN: ${{ secrets.TURSO_SYNC_TOKEN }}
         run: |
-          cd stack/turso && GOWORK=off go test -v -count=1 -run TestNewSync ./...
+          cd stack/turso/v4 && GOWORK=off go test -v -count=1 -run TestNewSync ./...
 
     timeout-minutes: 15
   skill-health:
@@ -958,23 +958,23 @@ jobs:
 
       - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa # v23
 
-      - name: Verify catalog golden files are up-to-date
+      - name: Verify catalog/v4 golden files are up-to-date
         run: |
-          cd catalog
+          cd catalog/v4
           GOWORK=off go test ./asyncapi/ ./eventcatalog/ ./openapi/ ./d2/ \
             -run TestGolden -count=1 -update 2>&1 | tee /dev/null
           if ! git diff --exit-code -- testdata/golden/; then
             echo "::error::Catalog golden files are stale. Run:"
-            echo "::error::  cd catalog && GOWORK=off go test ./asyncapi/ ./eventcatalog/ ./openapi/ ./d2/ -run TestGolden -update"
+            echo "::error::  cd catalog/v4 && GOWORK=off go test ./asyncapi/ ./eventcatalog/ ./openapi/ ./d2/ -run TestGolden -update"
             echo "::error::Then commit the refreshed golden files."
             git diff --stat -- testdata/golden/
             exit 1
           fi
-          echo "✓ All catalog golden files are fresh"
+          echo "✓ All catalog/v4 golden files are fresh"
 
     timeout-minutes: 15
 
-  # NixOS VM-based integration tests — no Docker required.
+  # NixOS VM-based integration/v4 tests — no Docker required.
   # Matrix runs PG and MySQL in parallel for faster CI feedback.
   nixos-vm-tests:
     name: NixOS VM Test (${{ matrix.db }})
@@ -993,8 +993,8 @@ jobs:
 
     timeout-minutes: 15
 
-  # Ephemeral PostgreSQL integration tests — fastest path, no VM, no Docker.
-  # Starts PG from nixpkgs in a temp dir and runs Go integration tests against it.
+  # Ephemeral PostgreSQL integration/v4 tests — fastest path, no VM, no Docker.
+  # Starts PG from nixpkgs in a temp dir and runs Go integration/v4 tests against it.
   ephemeral-pg-tests:
     name: Ephemeral PG Integration Tests
     runs-on: ubuntu-latest
@@ -1003,16 +1003,16 @@ jobs:
 
       - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa # v23
 
-      - name: Run PG integration tests via ephemeral PostgreSQL
+      - name: Run PG integration/v4 tests via ephemeral PostgreSQL
         run: nix run .#integration-pg -- -short
 
-      # Queue conformance over a real networked engine (queue M4 tail (f),
-      # 2026-09-25): explicit queue/postgres matrix entry — the ephemeral PG
+      # Queue conformance over a real networked engine (queue/v4 M4 tail (f),
+      # 2026-09-25): explicit queue/postgres/v4 matrix entry — the ephemeral PG
       # script exports POSTGRES_TEST_DSN for its module set.
       - name: Queue postgres conformance (explicit matrix entry)
         run: nix run .#integration-pg -- -short
         env:
-          PG_MODULES: queue/postgres
+          PG_MODULES: queue/postgres/v4
 
       # Shuffle seeds make failed orderings replayable — never lose them.
       - name: Upload shuffle seeds
@@ -1038,7 +1038,7 @@ jobs:
 
       - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa # v23
 
-      - name: Run watermill broker tests against ephemeral NATS JetStream
+      - name: Run watermill/v4 broker tests against ephemeral NATS JetStream
         run: nix run .#integration-nats
 
       - name: Upload shuffle seeds
@@ -1051,8 +1051,8 @@ jobs:
 
     timeout-minutes: 10
 
-  # MySQL integration: the Go suites gated by MYSQL_TEST_DSN (stack/mysql,
-  # idempotency/sqlstore, metaengine/mysqlengine) had NO route at all — only
+  # MySQL integration/v4: the Go suites gated by MYSQL_TEST_DSN (stack/mysql/v4,
+  # idempotency/sqlstore/v4, metaengine/mysqlengine/v4) had NO route at all — only
   # a human running scripts/vm-mysql.sh ever set the DSN, so those suites were
   # green by never executing (found by `check-test-skips.sh --report`,
   # 2026-10-26). The nixos-vm-tests matrix runs the mysql-vm NixOS HEALTH
@@ -1084,7 +1084,7 @@ jobs:
     timeout-minutes: 30
 
   # Redis Streams broker tests — ephemeral nixpkgs redis, no Docker/VM.
-  # Covers the watermill adapter edges gochannel cannot catch: Nack
+  # Covers the watermill/v4 adapter edges gochannel cannot catch: Nack
   # redelivery, consumer-group exactly-once, 2 MiB payload integrity.
   redis-integration:
     name: Redis Broker Integration (ephemeral)
@@ -1094,7 +1094,7 @@ jobs:
 
       - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa # v23
 
-      - name: Run watermill broker tests via ephemeral Redis
+      - name: Run watermill/v4 broker tests via ephemeral Redis
         run: nix run .#integration-redis
 
       - name: Upload shuffle seeds
@@ -1149,7 +1149,7 @@ jobs:
           status=0
           for m in $modules; do
             # --disable-extensions matches scripts/erraudit-sweep.sh (the local
-            # mirror): extension audits lint vendored JS (catalog/docserver/
+            # mirror): extension audits lint vendored JS (catalog/v4/docserver/
             # static bundles) and cannot gate a Go error-policy leg.
             if ! (cd "$m" && erraudit lint ./... --enforce-go-error-family --type-aware --disable-extensions); then
               echo "::error module=$m::error-policy findings — run 'erraudit lint ./... --enforce-go-error-family --type-aware --disable-extensions' in $m" >&2

@@ -13,11 +13,11 @@
 #
 # A pre-push zip-content guard additionally rejects tags whose tree would
 # render a malformed module zip (control-character paths, blobs over 4 MiB) —
-# the metaengine/tursoengine/v4.2.0 poisoned-tag class (2026-09-24) is
+# the metaengine/v4/tursoengine/v4.2.0 poisoned-tag class (2026-09-24) is
 # detectable before the push makes it proxy-irreversible.
 #
 # A "local" replace is any directive whose target is a filesystem path —
-# relative (../event) or absolute (/home/lars/projects/go-finding). Both the
+# relative (../event/v4) or absolute (/home/lars/projects/go-finding). Both the
 # go-cqrs-lite/* dev replaces AND sibling-repo replaces (go-finding, go-must)
 # are dev-only and must be stripped, or a published go.mod points consumers at
 # a path that does not exist on their machine.
@@ -26,10 +26,10 @@
 #   ./scripts/tag-release.sh <module-path> <version> <description> [--dry-run]
 #
 # Examples:
-#   ./scripts/tag-release.sh event v4.0.1 "Fix event payload marshaling"
-#   ./scripts/tag-release.sh cmd/cqrs-lint v0.1.0 "First release: 60 rules"
+#   ./scripts/tag-release.sh event/v4 v4.0.1 "Fix event/v4 payload marshaling"
+#   ./scripts/tag-release.sh cmd/cqrs-lint/v4 v0.1.0 "First release: 60 rules"
 #   ./scripts/tag-release.sh retry v4.0.0 "First release: zero-dep retry"
-#   ./scripts/tag-release.sh metaengine v4.0.0 "First release" --dry-run
+#   ./scripts/tag-release.sh metaengine/v4 v4.0.0 "First release" --dry-run
 #
 # --dry-run: strip + tidy + verify, print what WOULD be tagged, then exit
 # without creating any commit or tag. Use to preview a release safely. The
@@ -71,10 +71,10 @@ usage() {
 	echo "       $0 --smoke <module-path> <version>"
 	echo "       $0 --audit [--baseline <file>] [--write-baseline]"
 	echo "Examples:"
-	echo "  $0 event v4.0.1 \"Fix event payload marshaling\""
-	echo "  $0 cmd/cqrs-lint v0.1.0 \"First release\""
-	echo "  $0 metaengine v4.0.0 \"First release\" --dry-run"
-	echo "  $0 --smoke cmd/cqrs-lint v4.10.0   # AFTER pushing the tag"
+	echo "  $0 event/v4 v4.0.1 \"Fix event/v4 payload marshaling\""
+	echo "  $0 cmd/cqrs-lint/v4 v0.1.0 \"First release\""
+	echo "  $0 metaengine/v4 v4.0.0 \"First release\" --dry-run"
+	echo "  $0 --smoke cmd/cqrs-lint/v4 v4.10.0   # AFTER pushing the tag"
 	echo "  $0 --audit                         # all-modules path-vs-tag audit"
 }
 
@@ -129,13 +129,13 @@ proxy_smoke_check() {
 
 # tag_zip_content_check <tag>: reject a tag whose tree would produce a
 # malformed proxy zip, BEFORE the push makes it irreversible. The observed
-# class (metaengine/tursoengine/v4.2.0: zip contained files with \x06 control
+# class (metaengine/v4/tursoengine/v4.2.0: zip contained files with \x06 control
 # characters — every consumer 'go get' failed with "malformed file path";
 # only retraction fixes a served tag). Guard classes:
 #   1. any path with bytes outside printable ASCII — control characters are
 #      invisible in everyday git status output (git merely quotes the path)
 #   2. any blob over 4 MiB — nothing legitimate in this repo comes close
-#      (largest tracked asset: catalog/docserver/static/scalar.js, 3.7 MiB);
+#      (largest tracked asset: catalog/v4/docserver/static/scalar.js, 3.7 MiB);
 #      bulk binary junk is exactly what poisoned the tag above. If a >4 MiB
 #      asset is ever intentional, raise the threshold consciously — never
 #      by deleting the guard.
@@ -240,7 +240,7 @@ smoke_install_and_run() {
 # The issue-#20 class, repo-wide: a tag whose module path (as declared in
 # the go.mod AT that tag) does not match the tag's major version can never
 # be served by the module proxy — `@latest` silently resolves to an older,
-# pre-suffix version instead (cmd/cqrs-lint shipped v4.2.0-v4.7.0 this way).
+# pre-suffix version instead (cmd/cqrs-lint/v4 shipped v4.2.0-v4.7.0 this way).
 # This replays the same guard the per-release flow enforces over EVERY tag
 # of EVERY module, so a whole history of invisible tags surfaces at once.
 audit_all_tags() {
@@ -289,8 +289,8 @@ audit_all_tags() {
 
 		while IFS= read -r tag; do
 			[ -z "$tag" ] && continue
-			# The "<dir>/*" glob also matches DEEPER nested tags (storage/*
-			# matches storage/memory/v4.5.0); a module owns only tags of the
+			# The "<dir>/*" glob also matches DEEPER nested tags (storage/v4/*
+			# matches storage/v4/memory/v4.5.0); a module owns only tags of the
 			# exact form "<dir>/<version>" — deeper ones belong to nested
 			# modules and are audited under their own go.mod.
 			case "${tag#"$dir"/}" in
@@ -367,7 +367,7 @@ audit_all_tags() {
 		echo "Baseline audit: ${violations} violation(s) total, ${new_violations} NEW, ${stale_entries} fixed."
 		if [ "$new_violations" -gt 0 ]; then
 			echo "NEW violations are not in ${baseline_file}; they gate CI. Fix the"
-			echo "tag (deprecation stub, see cmd/cqrs-lint/v0.2.1) or, only after an"
+			echo "tag (deprecation stub, see cmd/cqrs-lint/v4/v0.2.1) or, only after an"
 			echo "explicit ruling that the violation is known-dead, re-pin the baseline."
 			return 1
 		fi
@@ -378,7 +378,7 @@ audit_all_tags() {
 		echo "FAIL tags were never servable by the module proxy; @latest on the"
 		echo "affected paths resolves to an older version instead. If the path is"
 		echo "dead (superseded by a /vN path), ship a deprecation stub tag (see"
-		echo "cmd/cqrs-lint/v0.2.1 and cmd/cqrs-bench/v0.1.1). For CI, gate on NEW"
+		echo "cmd/cqrs-lint/v4/v0.2.1 and cmd/cqrs-bench/v4/v0.1.1). For CI, gate on NEW"
 		echo "violations only: --audit --baseline scripts/audit-tag-baseline.txt."
 		return 1
 	fi
@@ -453,7 +453,7 @@ fi
 # The proxy refuses any tag whose major version does not match the module
 # path declared in the go.mod at that tag. A v4 tag over a suffix-less
 # module path is INVISIBLE to the proxy: @latest silently resolves to the
-# newest pre-suffix version instead (cmd/cqrs-lint shipped v4.2.0-v4.7.0
+# newest pre-suffix version instead (cmd/cqrs-lint/v4 shipped v4.2.0-v4.7.0
 # this way; `go install ...@latest` served v0.2.0 for years). v0/v1 tags
 # require the opposite: no /vN suffix at all. The decision logic lives in
 # path_matches_major (shared with --audit); only the messaging is local.
@@ -546,7 +546,7 @@ undo_temp_commit() {
 # --- Strip LOCAL replace directives (single module) ---
 #
 # A replace is local iff its target starts with '.' (relative path such as
-# ../event) or '/' (absolute path such as /home/lars/projects/go-finding).
+# ../event/v4) or '/' (absolute path such as /home/lars/projects/go-finding).
 # We extract the LHS import path and drop it with `go mod edit -dropreplace`.
 #
 # `|| true` after the grep is mandatory: grep exits 1 when the file has no
@@ -606,7 +606,7 @@ if grep -q "00010101000000" "$gomod"; then
 	exit 1
 fi
 
-# (The old cmd/cqrs-lint version-constant bump block is gone: resolvedVersion()
+# (The old cmd/cqrs-lint/v4 version-constant bump block is gone: resolvedVersion()
 # now reports the toolchain-embedded version (debug.ReadBuildInfo), so a cut
 # no longer needs to mutate any source file — and the sed that poisoned
 # v4.8.0 with an unquoted const cannot happen again.)

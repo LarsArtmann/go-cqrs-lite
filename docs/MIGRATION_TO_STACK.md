@@ -216,4 +216,4 @@ See [ADR-0034](adr/0034-session-store-boundary.md) for the session store boundar
 - [PRESETS.md](./PRESETS.md) — Available presets and their options
 - [INFRASTRUCTURE_RECOMMENDATIONS.md](./INFRASTRUCTURE_RECOMMENDATIONS.md) — Which DB fits which concern
 - [example/taskmanager](../example/taskmanager/) — Working example of the recommended pattern
-- [stack/contracttest](../stack/contracttest/) — Contract test suite for preset verification
+- [stack/contracttest](../stack/v4/contracttest) — Contract test suite for preset verification

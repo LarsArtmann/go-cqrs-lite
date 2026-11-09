@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# quiet-window-run.sh — run a load-sensitive command only inside a quiet window.
+# quiet-window-run.sh — run a load-sensitive command/v4 only inside a quiet window.
 #
 # Waits until load1 AND load5 are both below --ceiling, then runs CMD. A
 # non-zero CMD exit is retried up to --attempts times (each attempt re-waits
 # for a fresh quiet window) unless --no-retry: a scarce quiet window should
 # not be wasted on a single unlucky failure, but a deterministically failing
-# command must not be retried forever. Per-attempt output is appended to
-# --log. The wrapped command is expected to run its own quality gates
+# command/v4 must not be retried forever. Per-attempt output is appended to
+# --log. The wrapped command/v4 is expected to run its own quality gates
 # (benchmark-regression.sh, calibration-gate.sh, ...); this tool only owns
 # the window and the retry budget.
 #
@@ -18,19 +18,19 @@
 # Options:
 #   --ceiling N      load1/load5 must both be < N (default: 5)
 #   --deadline SECS  give up after this many seconds total (default: 21600)
-#   --attempts N     max command attempts (default: 3)
-#   --no-retry       run the command exactly once
+#   --attempts N     max command/v4 attempts (default: 3)
+#   --no-retry       run the command/v4 exactly once
 #   --log FILE       append per-attempt output (default: temp file, kept and
 #                    its path printed at the end)
 #   --self-test      fault-injection suite: planted loadavg fixtures and
 #                    counter-fixture commands (never touches /proc/loadavg)
-#   --               the command to run (required except with --self-test)
+#   --               the command/v4 to run (required except with --self-test)
 #
 # Env: QUIET_WINDOW_LOADAVG_FILE — point the load probe at a fixture file
 # instead of /proc/loadavg. Internal hook for --self-test only — do not set
 # in normal use.
 #
-# Exit codes: 0 = command passed inside a quiet window; 1 = command failed
+# Exit codes: 0 = command/v4 passed inside a quiet window; 1 = command/v4 failed
 # on every attempt (last attempt's output is at the end of the log); 2 =
 # usage; 3 = deadline hit before any attempt ran.
 set -uo pipefail
@@ -95,11 +95,11 @@ window_open() {
 
 run_command() {
 	if [[ $SELFTEST == 1 ]]; then
-		echo "quiet-window-run: --self-test runs its own scenarios; do not pass a command"
+		echo "quiet-window-run: --self-test runs its own scenarios; do not pass a command/v4"
 		usage
 	fi
 	if [[ $# -eq 0 ]]; then
-		echo "quiet-window-run: no command given (use -- CMD)" >&2
+		echo "quiet-window-run: no command/v4 given (use -- CMD)" >&2
 		usage
 	fi
 	[[ -n "$LOG" ]] || LOG="$(mktemp /tmp/quiet-window-run.XXXXXX.log)"
@@ -110,7 +110,7 @@ run_command() {
 	for ((attempt = 1; attempt <= ATTEMPTS; attempt++)); do
 		while ! window_open; do
 			if ((SECONDS > deadline)); then
-				echo "[$(stamp)] DEADLINE: no quiet window (ceiling=$CEILING) within ${DEADLINE_SECS}s; command NOT run. Log: $LOG"
+				echo "[$(stamp)] DEADLINE: no quiet window (ceiling=$CEILING) within ${DEADLINE_SECS}s; command/v4 NOT run. Log: $LOG"
 				exit 3
 			fi
 			sleep 30
@@ -124,7 +124,7 @@ run_command() {
 			exit 0
 		fi
 	done
-	echo "[$(stamp)] === FAIL: command failed on all $ATTEMPTS attempt(s) (log: $LOG)"
+	echo "[$(stamp)] === FAIL: command/v4 failed on all $ATTEMPTS attempt(s) (log: $LOG)"
 	exit 1
 }
 
@@ -161,15 +161,15 @@ EOF
 		fi
 	}
 
-	# 1. quiet fixture + passing command -> 0
+	# 1. quiet fixture + passing command/v4 -> 0
 	QUIET_WINDOW_LOADAVG_FILE="$quiet_file" "$0" --no-retry --log "$dir/1.log" -- true >/dev/null 2>&1
 	check "quiet+pass" 0 $?
 
-	# 2. loud fixture forever + 3s deadline -> 3, command never ran
+	# 2. loud fixture forever + 3s deadline -> 3, command/v4 never ran
 	QUIET_WINDOW_LOADAVG_FILE="$loud_file" "$0" --deadline 3 --log "$dir/2.log" -- true >/dev/null 2>&1
 	check "never-quiet deadline" 3 $?
 	if grep -q "attempt" "$dir/2.log" 2>/dev/null; then
-		echo "FAIL never-quiet deadline: command ran despite deadline"
+		echo "FAIL never-quiet deadline: command/v4 ran despite deadline"
 		rc_total=1
 	fi
 
@@ -183,11 +183,11 @@ EOF
 			rc_total=1
 		}
 
-	# 4. always-failing command, attempts 2 -> 1
+	# 4. always-failing command/v4, attempts 2 -> 1
 	QUIET_WINDOW_LOADAVG_FILE="$quiet_file" "$0" --attempts 2 --log "$dir/4.log" -- false >/dev/null 2>&1
 	check "always-fail exhausted" 1 $?
 
-	# 5. no command -> usage exit 2
+	# 5. no command/v4 -> usage exit 2
 	QUIET_WINDOW_LOADAVG_FILE="$quiet_file" "$0" >/dev/null 2>&1
 	check "usage" 2 $?
 

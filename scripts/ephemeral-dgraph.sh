@@ -6,12 +6,12 @@
 #
 # NOTE: the `dgraph` binary only exists on PATH inside the Nix app
 # (`nix run .#integration-dgraph`). Direct `bash scripts/ephemeral-dgraph.sh`
-# fails with "dgraph: command not found" unless dgraph is on your PATH.
+# fails with "dgraph: command/v4 not found" unless dgraph is on your PATH.
 # Prefer: nix run .#integration-dgraph
 #
 # Usage (when dgraph is on PATH, e.g. inside the nix app):
 #   bash scripts/ephemeral-dgraph.sh                # run dgraphengine tests
-#   bash scripts/ephemeral-dgraph.sh go test ./...  # arbitrary go command
+#   bash scripts/ephemeral-dgraph.sh go test ./...  # arbitrary go command/v4
 #
 # Environment:
 #   DGRAPH_ALPHA_GRPC — override Alpha gRPC port (default: auto-select)
@@ -182,19 +182,19 @@ echo "==> Logs in $DGRAPH_DIR"
 # shellcheck disable=SC1091  # dynamic path; syntax-checked separately
 source "$(dirname "$0")/lib/shuffle-seed.sh"
 
-# Run the requested command, or default to running dgraphengine tests.
+# Run the requested command/v4, or default to running dgraphengine tests.
 # Unified ephemeral-script contract (2026-10-01): args → verbatim exec with
 # the broker env exported; no args → the curated default suite.
 if [ $# -gt 0 ]; then
 	echo "==> Running: $*"
 	"$@"
 else
-	echo "==> Running dgraphengine integration tests"
+	echo "==> Running dgraphengine integration/v4 tests"
 	TEST_TIMEOUT="${TEST_TIMEOUT:-600}"
 	SEED=$(new_shuffle_seed)
 	log_shuffle_seed "dgraphengine" "$SEED"
 	(
-		cd metaengine/dgraphengine
+		cd metaengine/dgraphengine/v4
 		# shellcheck disable=SC2086  # TEST_ARGS/TEST_ARGS2 are multi-word go-test passthroughs by contract
 		CGO_ENABLED=1 GOWORK=off \
 			timeout -k 15 "$TEST_TIMEOUT" \

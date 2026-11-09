@@ -15,7 +15,7 @@
 # Logs: /var/tmp/cqrs-nightly/<UTC-date>-lint.log (LINT-ROT marker = triage)
 #
 # --self-test: composition checks + fault injection via NIGHTLY_LINT_CMD
-# (a failing stub command must make the gate report failure).
+# (a failing stub command/v4 must make the gate report failure).
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -44,7 +44,7 @@ if [ "${1:-}" = "--self-test" ]; then
 		failures=$((failures + 1))
 	fi
 
-	# Fault injection: a failing lint command must FAIL the gate.
+	# Fault injection: a failing lint command/v4 must FAIL the gate.
 	tmp="$(mktemp -d)"
 	printf '#!/usr/bin/env bash\necho "planted lint failure" >&2\nexit 1\n' >"$tmp/stub-lint"
 	chmod +x "$tmp/stub-lint"
@@ -80,7 +80,7 @@ LOG="${NIGHTLY_LINT_LOG:-$LOGDIR/$(date -u +%Y-%m-%d)-lint.log}"
 mkdir -p "$(dirname "$LOG")"
 cd "$REPO" || exit 2
 
-# The lint command this gate runs. Default: the repo's canonical lint gate
+# The lint command/v4 this gate runs. Default: the repo's canonical lint gate
 # (nix run .#lint per-module golangci-lint sweep). Overridable for self-test.
 run_lint() {
 	if [ -n "${NIGHTLY_LINT_CMD:-}" ]; then

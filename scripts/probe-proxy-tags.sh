@@ -2,7 +2,7 @@
 # probe-proxy-tags.sh — weekly "the module proxy serves every module's
 # latest tag, and the zip is REAL" probe.
 #
-# The poisoned-tag class (binary-junk zip in metaengine/tursoengine/v4.2.0,
+# The poisoned-tag class (binary-junk zip in metaengine/v4/tursoengine/v4.2.0,
 # 2026-09-24) ships SILENTLY: consumers get a broken download while every
 # in-repo gate stays green, and tag-release.sh's zip-content guard protects
 # only FUTURE tags. This probe re-verifies the PUBLISHED surface:
@@ -50,7 +50,7 @@ check_zip() {
 		return
 	fi
 
-	# Zip listing paths are <full-module-path>@<v>/go.mod — the module
+	# Zip listing/v4 paths are <full-module-path>@<v>/go.mod — the module
 	# path itself contains slashes, so anchor on the @version segment.
 	if ! grep -qE '@v[^/]+/go\.mod$' <<<"$entries"; then
 		echo "✗ $mod@latest: zip has no root go.mod (junk or mis-rooted archive)" >&2

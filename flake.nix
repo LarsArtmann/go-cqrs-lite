@@ -28,7 +28,7 @@
     # discovery) on the unsupported-system evaluation error. The supported
     # systems are inlined in mkFlake below.
 
-    # Build infrastructure for distributable CLI packages (cmd/cqrs-lint, etc.)
+    # Build infrastructure for distributable CLI packages (cmd/cqrs-lint/v4, etc.)
     # flake=false tarballs fetched via GitHub (HTTPS) — used as local replace
     # targets by mkPreparedSource so the Nix sandbox can build deps without
     # network access. Only go-finding is private (GOPRIVATE); the rest are
@@ -137,7 +137,7 @@
           "daghtml"
           "delimited"
           "escape"
-          "graph"
+          "graph/v4"
           "markdown"
           "markup"
           "plantuml"
@@ -157,14 +157,14 @@
           goPkg = goToolchain pkgs;
         };
 
-      # Prepared source for building cmd/cqrs-lint as a distributable binary.
+      # Prepared source for building cmd/cqrs-lint/v4 as a distributable binary.
       mkCqrsLintSource =
         pkgs:
         mkPreparedSourceFn pkgs {
           name = "cqrs-lint";
           inherit version;
           src = builtins.path {
-            path = ./cmd/cqrs-lint;
+            path = ./cmd/cqrs-lint/v4;
             name = "source";
             filter =
               path: _type:
@@ -237,95 +237,95 @@
           tagFlags = builtins.concatStringsSep " " (map (t: "-tags=${t}") goTags);
 
           testModules = [
-            "event"
-            "command"
-            "commandlifecycle"
-            "commandlifecycle/projections"
-            "query"
-            "decider"
-            "id"
-            "dispatcher"
-            "schema"
-            "snapshot"
-            "dedup"
-            "deriver"
-            "graph"
-            "metadata"
-            "projection"
-            "projectionhost"
-            "queue"
-            "queue/sqlite"
-            "queue/postgres"
-            "queue/mysql"
-            "record"
-            "scenario"
-            "scheduling"
-            "claiming"
-            "scheduling/engine"
-            "scheduling/sqlstore"
-            "storage/memory"
-            "storage/pebble"
-            "storage/turso"
-            "catalog"
-            "middleware"
-            "integration"
-            "prometheus"
-            "signing"
-            "storage"
-            "storage/backuptest"
-            "storage/bbolt"
-            "watermill"
-            "encryption"
-            "kv"
-            "listing"
-            "otel"
-            "otel/otlp"
-            "testutil"
-            "testutil/mysqltestcontainer"
-            "testutil/pgtestcontainer"
-            "stack"
-            "stack/bbolt"
-            "stack/memory"
-            "stack/metaengine"
-            "stack/sqlite"
-            "stack/duckdb"
-            "stack/pebble"
-            "stack/postgres"
-            "stack/mysql"
-            "stack/turso"
-            "stack/bench"
-            "benchkit"
-            "cmd/api-stability"
-            "cmd/cqrs-gen"
-            "cmd/cqrs-lint"
-            "cmd/cqrs-bench"
-            "cmd/cqrs-upgrade"
-            "cmd/doc-check"
-            "idempotency/sqlstore"
-            "metaengine"
-            "metaengine/badgerengine"
-            "metaengine/bench"
-            "metaengine/bboltengine"
-            "metaengine/dgraphengine"
-            "metaengine/duckdbengine"
-            "metaengine/graphadapter"
-            "metaengine/pebbleengine"
-            "metaengine/otelobserver"
-            "metaengine/projectionadapter"
-            "metaengine/sqliteengine"
-            "metaengine/bigtableengine"
-            "metaengine/tursoengine"
-            "metaengine/pgengine"
-            "metaengine/irohengine"
-            "metaengine/irohengine/loopback"
-            "metaengine/irohengine/quic"
-            "metaengine/mysqlengine"
+            "event/v4"
+            "command/v4"
+            "commandlifecycle/v4"
+            "commandlifecycle/projections/v4"
+            "query/v4"
+            "decider/v4"
+            "id/v4"
+            "dispatcher/v4"
+            "schema/v4"
+            "snapshot/v4"
+            "dedup/v4"
+            "deriver/v4"
+            "graph/v4"
+            "metadata/v4"
+            "projection/v4"
+            "projectionhost/v4"
+            "queue/v4"
+            "queue/sqlite/v4"
+            "queue/postgres/v4"
+            "queue/mysql/v4"
+            "record/v4"
+            "scenario/v4"
+            "scheduling/v4"
+            "claiming/v4"
+            "scheduling/engine/v4"
+            "scheduling/sqlstore/v4"
+            "storage/memory/v4"
+            "storage/pebble/v4"
+            "storage/turso/v4"
+            "catalog/v4"
+            "middleware/v4"
+            "integration/v4"
+            "prometheus/v4"
+            "signing/v4"
+            "storage/v4"
+            "storage/backuptest/v4"
+            "storage/bbolt/v4"
+            "watermill/v4"
+            "encryption/v4"
+            "kv/v4"
+            "listing/v4"
+            "otel/v4"
+            "otel/otlp/v4"
+            "testutil/v4"
+            "testutil/mysqltestcontainer/v4"
+            "testutil/pgtestcontainer/v4"
+            "stack/v4"
+            "stack/bbolt/v4"
+            "stack/memory/v4"
+            "stack/metaengine/v4"
+            "stack/sqlite/v4"
+            "stack/duckdb/v4"
+            "stack/pebble/v4"
+            "stack/postgres/v4"
+            "stack/mysql/v4"
+            "stack/turso/v4"
+            "stack/bench/v4"
+            "benchkit/v4"
+            "cmd/api-stability/v4"
+            "cmd/cqrs-gen/v4"
+            "cmd/cqrs-lint/v4"
+            "cmd/cqrs-bench/v4"
+            "cmd/cqrs-upgrade/v4"
+            "cmd/doc-check/v4"
+            "idempotency/sqlstore/v4"
+            "metaengine/v4"
+            "metaengine/badgerengine/v4"
+            "metaengine/bench/v4"
+            "metaengine/bboltengine/v4"
+            "metaengine/dgraphengine/v4"
+            "metaengine/duckdbengine/v4"
+            "metaengine/graphadapter/v4"
+            "metaengine/pebbleengine/v4"
+            "metaengine/otelobserver/v4"
+            "metaengine/projectionadapter/v4"
+            "metaengine/sqliteengine/v4"
+            "metaengine/bigtableengine/v4"
+            "metaengine/tursoengine/v4"
+            "metaengine/pgengine/v4"
+            "metaengine/irohengine/v4"
+            "metaengine/irohengine/loopback/v4"
+            "metaengine/irohengine/quic/v4"
+            "metaengine/mysqlengine/v4"
             "core/v5"
-            "system"
-            "system/integration"
-            "systemcatalog"
-            "systemscenario"
-            "systemtest"
+            "system/v4"
+            "system/integration/v4"
+            "systemcatalog/v4"
+            "systemscenario/v4"
+            "systemtest/v4"
           ];
           modulePaths = builtins.concatStringsSep " " (map (m: "./${m}/...") testModules);
 
@@ -333,26 +333,26 @@
           # that own mutable state, ticking clocks, connections or goroutines,
           # where -count>1 / -cpu=1,4 / shuffle actually change the outcome.
           repeatModules = map (m: "./${m}/...") [
-            "decider"
-            "event"
-            "command"
-            "query"
-            "commandlifecycle"
-            "commandlifecycle/projections"
-            "dedup"
-            "idempotency/sqlstore"
-            "kv"
-            "metaengine"
-            "metaengine/sqliteengine"
-            "projectionhost"
-            "scheduling"
-            "scheduling/engine"
-            "snapshot"
-            "storage/memory"
-            "storage/pebble"
-            "storage/bbolt"
-            "system"
-            "watermill"
+            "decider/v4"
+            "event/v4"
+            "command/v4"
+            "query/v4"
+            "commandlifecycle/v4"
+            "commandlifecycle/projections/v4"
+            "dedup/v4"
+            "idempotency/sqlstore/v4"
+            "kv/v4"
+            "metaengine/v4"
+            "metaengine/sqliteengine/v4"
+            "projectionhost/v4"
+            "scheduling/v4"
+            "scheduling/engine/v4"
+            "snapshot/v4"
+            "storage/memory/v4"
+            "storage/pebble/v4"
+            "storage/bbolt/v4"
+            "system/v4"
+            "watermill/v4"
           ];
 
           # All modules are linted.
@@ -461,7 +461,7 @@
 
           # ADR-0165 example binary (F24): example/standard-topology is a
           # standalone module with NO local replaces (proxy-resolvable since
-          # system/v4.18.0), so a plain buildGoModule package works. The
+          # system v4.18.0), so a plain buildGoModule package works. The
           # cqrs-vm NixOS test runs it against the module's rendered config
           # — the full story: dispatch over postgres peer auth, projection
           # fold into the sqlite file, query read back.
@@ -644,11 +644,11 @@
 
           # NixOS nspawn container test: same MySQL health checks as mysqlServiceTest
           # but ~10x faster (~15s vs ~131s) because systemd-nspawn shares the host
-          # kernel — no full QEMU VM boot. Requires the `uid-range` system feature
+          # kernel — no full QEMU VM boot. Requires the `uid-range` systemd feature
           # and `auto-allocate-uids` on the host (see AGENTS.md → nspawn setup).
 
           # DuckDB CGo VM test: verify the DuckDB C++ engine works in a hermetic
-          # NixOS VM. Tests columnar operations used by the metaengine/duckdbengine.
+          # NixOS VM. Tests columnar operations used by the metaengine/v4/duckdbengine.
           duckdbTest = pkgs.testers.runNixOSTest {
             name = "duckdb-cgo-health";
 
@@ -670,7 +670,7 @@
               machine.succeed("duckdb /tmp/test.db -c \"INSERT INTO events VALUES ('user.created', '{\\\"name\\\":\\\"bob\\\"}', 1)\"")
               machine.succeed("duckdb /tmp/test.db -c \"INSERT INTO events VALUES ('user.updated', '{\\\"name\\\":\\\"alice2\\\"}', 2)\"")
 
-              # GROUP BY aggregation (used by metaengine counter ADT)
+              # GROUP BY aggregation (used by metaengine/v4 counter ADT)
               result = machine.succeed("duckdb /tmp/test.db -s \"SELECT type, COUNT(*) FROM events GROUP BY type ORDER BY type\"")
               assert "user.created" in result and "user.updated" in result, f"GROUP BY failed: {result}"
 
@@ -678,7 +678,7 @@
               result = machine.succeed("duckdb /tmp/test.db -s \"SELECT payload->>'name' FROM events WHERE version = 1 ORDER BY 1\"")
               assert "alice" in result and "bob" in result, f"JSON extraction failed: {result}"
 
-              # SUM / AVG aggregation (used by metaengine counter ADT)
+              # SUM / AVG aggregation (used by metaengine/v4 counter ADT)
               result = machine.succeed("duckdb /tmp/test.db -s \"SELECT SUM(version) FROM events\"")
               assert "4" in result, f"SUM aggregation failed: {result}"
 
@@ -687,7 +687,7 @@
           };
 
           # Turso libSQL server VM test: verify sqld boots and serves queries.
-          # This validates the remote sync path used by storage/turso/sync.go.
+          # This validates the remote sync path used by storage/turso/v4/sync.go.
           tursoTest = pkgs.testers.runNixOSTest {
             name = "turso-libsql-health";
 
@@ -844,7 +844,7 @@
               # breaking every nix-fmt/BuildFlow format run. Verified
               # 2026-10-10: gofumpt v0.12.0 is upstream latest. Drop this
               # exclude when formatter releases with generic-methods support land.
-              "system/schema_declarations.go"
+              "system/v4/schema_declarations.go"
             ];
             programs = {
               gofumpt.enable = true;
@@ -944,7 +944,7 @@
                   inherit pkgs;
                   module = import ./nix/nixos/cqrs.nix;
                   defaultModule = import ./nix/nixos/cqrs.nix;
-                  tripleFixture = ./system/testdata/standard-instance-triple.json;
+                  tripleFixture = ./system/v4/testdata/standard-instance-triple.json;
                 }).script;
             # goimports shells out to `go`; the wrapped formatter would try to
             # DOWNLOAD go1.27 in the network-less sandbox because go.work
@@ -976,7 +976,7 @@
             postgres-vm = pgServiceTest;
             mysql-vm = mysqlServiceTest;
             # nspawn variant intentionally NOT a check: it needs the uid-range
-            # system feature (opt-in via scripts/enable-nspawn-support.sh) and
+            # systemd feature (opt-in via scripts/enable-nspawn-support.sh) and
             # failed every `nix flake check`/BuildFlow run on hosts without it.
             # mysql-vm covers the same health test portably; the
             # `nix run .#integration-mysql-nspawn` app (QEMU fallback) remains.
@@ -993,7 +993,7 @@
           packages = {
             # ADR-0165 example binary (consumed by the cqrs-vm NixOS test;
             # buildable standalone since the pre-release replace died with
-            # system/v4.18.0).
+            # system v4.18.0).
             standard-topology-example = standardTopologyExample;
 
             # No-op default package so `nix build .` (BuildFlow's full mode) succeeds.
@@ -1025,14 +1025,14 @@
               };
             };
 
-            # QEMU VM images for integration testing (Linux only).
+            # QEMU VM images for integration/v4 testing (Linux only).
             # Build: nix build .#pg-vm or .#mysql-vm
             # Run:   result/bin/run-nixos-vm
             pg-vm = pgVM;
             mysql-vm = mysqlVM;
 
             # Domain-aware linter for go-cqrs-lite consumers.
-            # Built from cmd/cqrs-lint/ which has its own go.mod (standalone module).
+            # Built from cmd/cqrs-lint/v4/ which has its own go.mod (standalone module).
             # Only go-finding is replaced via mkPreparedSource (private repo);
             # all other LarsArtmann deps are public and served by proxy.golang.org.
             cqrs-lint = (pkgs.buildGoModule.override { go = goPkg; }) {
@@ -1208,7 +1208,7 @@
             # separate step.
             soak-weekly = mkApp "soak-weekly" goModules ''
               export CGO_ENABLED=1 GT_TIMEOUT=40m
-              export GT_LABEL=soak-weekly GT_PATHS="./metaengine/bboltengine/... ./metaengine/duckdbengine/..."
+              export GT_LABEL=soak-weekly GT_PATHS="./metaengine/bboltengine/v4/... ./metaengine/duckdbengine/v4/..."
               ${pkgs.bash}/bin/bash "$PWD/scripts/go-test-shuffled.sh" -run 'TestSoak' "$@"
             '';
 
@@ -1367,7 +1367,7 @@
             # proxy resolution, V007 scan) against real modules every night.
             # --dry-run so the run can never mutate go.mods.
             check-upgrade-dogfood = mkApp "check-upgrade-dogfood" [ goPkg pkgs.bash ] ''
-              ${pkgs.bash}/bin/bash -c 'set -euo pipefail; go run ./cmd/cqrs-upgrade --workspace --dry-run --strict .'
+              ${pkgs.bash}/bin/bash -c 'set -euo pipefail; go run ./cmd/cqrs-upgrade/v4 --workspace --dry-run --strict .'
             '';
 
             # check-release-scripts: smoke tests for the release tooling
@@ -1434,7 +1434,7 @@
             # build failure. `check` blocks a breaking payload change whose
             # message version did not move; `validate` runs the cross-resource
             # invariants no other function owns. Consumers point it at their own
-            # catalog + committed baseline; this repo runs its --self-test.
+            # catalog/v4 + committed baseline; this repo runs its --self-test.
             check-schema-compat = mkApp "check-schema-compat" [ goPkg pkgs.bash ] ''
               ${pkgs.bash}/bin/bash "$PWD/scripts/check-schema-compat.sh" "$@"
             '';
@@ -1490,7 +1490,7 @@
             # nixpkgs templ emits pre-1100 code and must not gate this tree.
             check-templ = mkApp "check-templ" [ templPkg goPkg pkgs.bash pkgs.findutils pkgs.gnugrep ] ''
               echo "==> templ codegen drift (catalog/docserver)"
-              cd catalog/docserver
+              cd catalog/v4/docserver
               ${templPkg}/bin/templ generate -check -log-level error
               cd "$OLDPWD"
               echo "==> templ FileName cwd tripwire"
@@ -1526,9 +1526,9 @@
               ${pkgs.bash}/bin/bash "$PWD/scripts/check-eventcatalog.sh"
             '';
 
-            # check-architecture-reference: render-validate the catalog/architecture
+            # check-architecture-reference: render-validate the catalog/v4/architecture
             # self-contained HTML export outside the go test process — renders a
-            # fixture catalog and asserts self-containment, anchor integrity and
+            # fixture catalog/v4 and asserts self-containment, anchor integrity and
             # section coverage. --self-test fault-injects corruptions.
             check-architecture-reference = mkApp "check-architecture-reference" [ goPkg pkgs.bash ] ''
               ${pkgs.bash}/bin/bash "$PWD/scripts/check-architecture-reference.sh"
@@ -1540,7 +1540,7 @@
             # missing bundle fetch.
             check-csp = mkApp "check-csp" [ goPkg pkgs.chromium pkgs.bash ] ''
               export CQRS_BROWSER=${pkgs.chromium}/bin/chromium
-              cd catalog
+              cd catalog/v4
               GOWORK=off go test -run TestCSPBrowser -count=1 -v ./docserver/
             '';
 
@@ -1616,8 +1616,8 @@
             '';
 
             # lint-module: per-task lint gate for ONE module —
-            #   nix run .#lint-module -- metaengine/pgengine
-            #   nix run .#lint-module -- scheduling/sqlstore integration
+            #   nix run .#lint-module -- metaengine/pgengine/v4
+            #   nix run .#lint-module -- scheduling/sqlstore/v4 integration/v4
             # (optional 2nd arg: extra build tags, e.g. `integration`, so
             # *_integration_test.go files are type-checked and linted too —
             # the official gate used to miss findings hidden behind the tag).
@@ -1641,7 +1641,7 @@
             # invocation and ✅/❌ summary as #lint, over only the modules
             # named in GT_LINT_MODULES, so a task window that touched three
             # modules does not wait behind the ~98-module sweep:
-            #   GT_LINT_MODULES="metaengine metaengine/sqliteengine" nix run .#lint-scope
+            #   GT_LINT_MODULES="metaengine/v4 metaengine/sqliteengine/v4" nix run .#lint-scope
             # Self-test: nix run .#lint-scope -- --self-test (fixture modules
             # + failure-summary shape; scripts/lint-scope.sh owns the loop).
             lint-scope = mkApp "lint-scope" [ goPkg pkgs.golangci-lint pkgs.bash pkgs.coreutils ] ''
@@ -1691,7 +1691,7 @@
             '';
 
             # Per-package API-surface ratchet (2026-10-24 architecture review
-            # finding #1: metaengine held 829 exported symbols and 167 files in
+            # finding #1: metaengine/v4 held 829 exported symbols and 167 files in
             # ONE package = 13% of the library API in a single namespace; the
             # 350-line file ratchet bounded files, never packages). Policy and
             # --self-test cases: scripts/check-package-surface.sh.
@@ -1778,7 +1778,7 @@
                   ${pkgs.bash}/bin/bash "$PWD/scripts/check-md-go.sh" "$@"
                 '';
 
-            # check-cue-config: pin system/config.cue against the Go
+            # check-cue-config: pin system/v4/config.cue against the Go
             # DeploymentConfig surface (ADR-0165) — cue vet + golden preset
             # eval + bidirectional koanf-tag drift. --self-test for the
             # fixture mutations.
@@ -1820,7 +1820,7 @@
 
             # check-engine-capabilities: engine capability single-source
             # gate — docs/engine-capabilities.md is GENERATED from the
-            # source census (register.go drivers, graph/removal/undirected
+            # source census (register.go drivers, graph/v4/removal/undirected
             # method probes, delegation, CGo) and must not drift.
             # --self-test for the fixture mutations, --update to regenerate.
             check-engine-capabilities =
@@ -1850,7 +1850,7 @@
                   if [ "$moddir" = "$exp" ]; then
                     found=true; break
                   fi
-                  # Parent coverage: moddir starts with exp/ (e.g. event/v4/eventtest under event)
+                  # Parent coverage: moddir starts with exp/ (e.g. event/v4/eventtest under event/v4)
                   case "$moddir" in
                     "$exp"/*) found=true; break ;;
                   esac
@@ -1873,7 +1873,7 @@
             '';
 
             check-wasm = mkApp "check-wasm" goModules ''
-              wasmMods="id dispatcher event command query decider"
+              wasmMods="id/v4 dispatcher/v4 event/v4 command/v4 query/v4 decider/v4"
               failed=0
               for mod in $wasmMods; do
                 echo "==> WASM build: $mod"
@@ -1884,7 +1884,7 @@
 
             check-api-stability = mkApp "check-api-stability" goModules ''
               echo "==> API surface check (with -race)"
-              (cd cmd/api-stability && GOWORK=off ${goPkg}/bin/go test -race -count=1 ./...)
+              (cd cmd/api-stability/v4 && GOWORK=off ${goPkg}/bin/go test -race -count=1 ./...)
             '';
 
             # check-duplication: CI gate that fails if new code clones are
@@ -1975,13 +1975,13 @@
                 echo "=== Vet ===" && ${goPkg}/bin/go vet ${tagFlags} ${modulePaths}
                 echo "=== Test ===" && ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -count=1
                 echo "=== Check Arch ===" && nix run .#check-arch
-                echo "=== API Stability ===" && (cd cmd/api-stability && GOWORK=off ${goPkg}/bin/go run .)
+                echo "=== API Stability ===" && (cd cmd/api-stability/v4 && GOWORK=off ${goPkg}/bin/go run .)
                 echo "✅ All CI checks passed"
               '
             '';
 
             # check-modsums: per-module `go mod tidy -diff` gate — every
-            # go.mod/go.sum pair must be exactly what the module graph
+            # go.mod/go.sum pair must be exactly what the module graph/v4
             # requires. Kills the missing-go.sum-hash class (builds green
             # under a warm cache, red in cold-cache CI/consumer builds).
             check-modsums = mkApp "check-modsums" [ goPkg pkgs.bash pkgs.findutils ] ''
@@ -2033,10 +2033,10 @@
                 '';
 
             # Ephemeral Redis Streams broker (nixpkgs, no Docker/VM) for the
-            # watermill adapter tests (TestRedisStreamRoundtrip + broker-edge
+            # watermill/v4 adapter tests (TestRedisStreamRoundtrip + broker-edge
             # suite). Mirrors .#integration-pg.
             # Usage: nix run .#integration-redis
-            #        nix run .#integration-redis -- go test -C watermill -run TestRedis ./...
+            #        nix run .#integration-redis -- go test -C watermill/v4 -run TestRedis ./...
             integration-redis =
               mkApp "integration-redis"
                 [
@@ -2048,10 +2048,10 @@
                 '';
 
             # Ephemeral NATS JetStream broker (nixpkgs, no Docker/VM) for the
-            # watermill adapter tests (TestNatsJetStreamRoundtrip + the NATS
+            # watermill/v4 adapter tests (TestNatsJetStreamRoundtrip + the NATS
             # broker-edge suite). Mirrors .#integration-redis.
             # Usage: nix run .#integration-nats
-            #        nix run .#integration-nats -- go test -C watermill -run TestNats ./...
+            #        nix run .#integration-nats -- go test -C watermill/v4 -run TestNats ./...
             integration-nats =
               mkApp "integration-nats"
                 [
@@ -2182,7 +2182,7 @@
               bash "$PWD/scripts/ephemeral-dgraph.sh" "$@"
             '';
 
-            # Dgraph integration tests — starts ephemeral Dgraph, runs tests, tears down.
+            # Dgraph integration/v4 tests — starts ephemeral Dgraph, runs tests, tears down.
             # Usage: nix run .#integration-dgraph
             #        nix run .#integration-dgraph -- -run TestDgraph_ScanBackend
             integration-dgraph = mkApp "integration-dgraph" [ goPkg pkgs.dgraph ] ''
@@ -2286,7 +2286,7 @@
                   echo "=== Error Taxonomy Tests ===" && nix run .#check-error-taxonomy-tests && \
                   echo "=== Check Schema Compat ===" && nix run .#check-schema-compat -- --self-test && \
                   echo "=== Check md-go ===" && nix run .#check-md-go && \
-                  echo "=== Doc Check ===" && (cd cmd/doc-check && GOWORK=off ${goPkg}/bin/go run . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md ../../README.md ../../*/README.md ../../*/*/README.md ../../*/*/*/README.md ../../TODO_LIST.md ../../ROADMAP.md ../../FEATURES.md ../../CONTRIBUTING.md ../../docs/DOMAIN_LANGUAGE.md ../../docs/METAENGINE_DOMAIN_LANGUAGE.md) && \
+                  echo "=== Doc Check ===" && (cd cmd/doc-check/v4 && GOWORK=off ${goPkg}/bin/go run . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md ../../README.md ../../*/README.md ../../*/*/README.md ../../*/*/*/README.md ../../TODO_LIST.md ../../ROADMAP.md ../../FEATURES.md ../../CONTRIBUTING.md ../../docs/DOMAIN_LANGUAGE.md ../../docs/METAENGINE_DOMAIN_LANGUAGE.md) && \
                   echo "✅ All verification checks passed"
                 '';
 
@@ -2295,7 +2295,7 @@
             # non-zero on ANY broken reference, parse warning, or alias
             # ambiguity.
             doc-check = mkApp "doc-check" [ goPkg pkgs.bash ] ''
-              cd cmd/doc-check
+              cd cmd/doc-check/v4
               GOWORK=off ${goPkg}/bin/go run . \
                 ../../SKILL.md \
                 ../../.agents/skills/go-cqrs-lite/references/*.md \

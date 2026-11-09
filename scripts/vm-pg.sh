@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# vm-pg.sh — Start a NixOS QEMU VM with PostgreSQL and run integration tests.
+# vm-pg.sh — Start a NixOS QEMU VM with PostgreSQL and run integration/v4 tests.
 #
 # Uses the runNixOSTest driver (not eval-config.nix) for reliable service
 # management. The driver boots the VM, waits for PostgreSQL to be ready,
@@ -7,8 +7,8 @@
 # port-forwarded database.
 #
 # Usage:
-#   nix run .#integration-pg-vm                          # run all PG integration tests
-#   nix run .#integration-pg-vm -- ./storage/...         # specific package
+#   nix run .#integration-pg-vm                          # run all PG integration/v4 tests
+#   nix run .#integration-pg-vm -- ./storage/v4/...         # specific package
 #   nix run .#integration-pg-vm -- -run TestPostgresEventStore  # specific test
 set -euo pipefail
 
@@ -98,31 +98,31 @@ if [ $# -gt 0 ]; then
 		echo "==> Running: go $*"
 		go "$@"
 	elif [[ "$1" == ./...* ]] || [[ "$1" == ./* ]]; then
-		echo "==> Running: go test -tags=integration $*"
-		go test -tags "integration" "$@" -count=1 -v
+		echo "==> Running: go test -tags=integration/v4 $*"
+		go test -tags "integration/v4" "$@" -count=1 -v
 	else
 		# Strip leading "-run " if user passed it explicitly
 		TEST_PATTERN="${*#-run }"
-		echo "==> Running integration tests matching: $TEST_PATTERN"
-		go test -tags "integration" \
-			./storage/... ./stack/postgres/... ./metaengine/pgengine/... ./projectionhost/... ./scheduling/sqlstore/... ./benchkit/... \
+		echo "==> Running integration/v4 tests matching: $TEST_PATTERN"
+		go test -tags "integration/v4" \
+			./storage/v4/... ./stack/postgres/v4/... ./metaengine/pgengine/v4/... ./projectionhost/v4/... ./scheduling/sqlstore/v4/... ./benchkit/v4/... \
 			-count=1 -v -run "$TEST_PATTERN"
 	fi
 else
-	echo "==> Running all PostgreSQL integration tests"
+	echo "==> Running all PostgreSQL integration/v4 tests"
 	FAILED=0
-	for mod in storage stack/postgres metaengine/pgengine projectionhost scheduling/sqlstore benchkit; do
+	for mod in storage/v4 stack/postgres/v4 metaengine/pgengine/v4 projectionhost/v4 scheduling/sqlstore/v4 benchkit/v4; do
 		echo ""
 		echo "--- $mod ---"
 		(
 			cd "$mod"
 			CGO_ENABLED=1 GOWORK=off \
-				go test -tags "integration" ./... -count=1 -v 2>&1
+				go test -tags "integration/v4" ./... -count=1 -v 2>&1
 		) || FAILED=1
 	done
 	if [ "$FAILED" -ne 0 ]; then
 		echo ""
-		echo "❌ Some integration tests failed"
+		echo "❌ Some integration/v4 tests failed"
 		exit 1
 	fi
 fi

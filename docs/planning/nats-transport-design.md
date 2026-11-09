@@ -1,7 +1,7 @@
 # NATS JetStream Transport Design
 
 > **Date:** 2026-07-25 · **Status:** Design (Tier 4 expansion)
-> **Related:** [ADR-0025](../adr/0025-transport-adapter-strategy.md), [watermill/](../../watermill/)
+> **Related:** [ADR-0025](../adr/0025-transport-adapter-strategy.md), [watermill/](../../watermill/v4)
 
 ---
 

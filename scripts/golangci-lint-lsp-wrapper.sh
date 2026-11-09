@@ -9,7 +9,7 @@
 # sets its own value, but ambient wins in some launch paths — this wrapper
 # makes the pin unconditional.
 #
-# Install: point the LSP "command" in ~/.config/crush/crush.json at this file
+# Install: point the LSP "command/v4" in ~/.config/crush/crush.json at this file
 # (the repo copy is scripts/golangci-lint-lsp-wrapper.sh; copy or symlink it
 # somewhere on PATH, e.g. ~/.local/bin/).
 

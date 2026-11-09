@@ -6,7 +6,7 @@
 #
 # Usage:
 #   bash scripts/ephemeral-redis.sh                # run Watermill tests
-#   bash scripts/ephemeral-redis.sh go test ./...  # arbitrary go command
+#   bash scripts/ephemeral-redis.sh go test ./...  # arbitrary go command/v4
 #
 # Environment:
 #   REDIS_PORT — override the port (default: auto-select free port)
@@ -56,16 +56,16 @@ done
 export REDIS_URL="redis://127.0.0.1:$REDIS_PORT"
 echo "==> REDIS_URL=$REDIS_URL"
 
-# Run the requested command
+# Run the requested command/v4
 if [ $# -gt 0 ]; then
 	echo "==> Running: $*"
 	"$@"
 else
-	echo "==> Running watermill broker tests (default; pass a command to override)"
+	echo "==> Running watermill/v4 broker tests (default; pass a command/v4 to override)"
 	SEED=$(new_shuffle_seed)
-	log_shuffle_seed "watermill" "$SEED"
+	log_shuffle_seed "watermill/v4" "$SEED"
 	(
-		cd watermill
+		cd watermill/v4
 		GOWORK=off go test -shuffle="$SEED" ./... -count=1 -v
 	)
 fi

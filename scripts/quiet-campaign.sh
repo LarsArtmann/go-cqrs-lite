@@ -66,7 +66,7 @@ while [[ $# -gt 0 ]]; do
 	esac
 done
 
-DGRAPH_BENCH='cd metaengine/dgraphengine && GOWORK=off go test -run "^$" -bench BenchmarkCalibration_DgraphScaled -benchtime 20x -count 3 .'
+DGRAPH_BENCH='cd metaengine/dgraphengine/v4 && GOWORK=off go test -run "^$" -bench BenchmarkCalibration_DgraphScaled -benchtime 20x -count 3 .'
 
 leg_commands() {
 	# prints: <leg-name>\t<command...>
@@ -146,7 +146,7 @@ self_test() {
 		rc_total=1
 	fi
 
-	# 2. custom -- cmd replaces the dgraph leg command
+	# 2. custom -- cmd replaces the dgraph leg command/v4
 	QUIET_WINDOW_LOADAVG_FILE="$quiet_file" "$0" --dry-run --legs dgraph -- echo-marker >"$dir/2.out" 2>&1
 	if grep -q 'echo-marker' "$dir/2.out"; then
 		echo "ok   custom cmd overrides dgraph leg"

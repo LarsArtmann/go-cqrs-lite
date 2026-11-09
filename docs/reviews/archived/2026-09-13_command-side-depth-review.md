@@ -34,7 +34,7 @@
 
 ### Gap 1 — The Decider has no Decide (structural second-class-ness)
 
-[`decider/decider.go:99`](../../../decider/decider.go):
+[`decider/decider.go:99`](../../../decider/v4/decider.go):
 
 ```go
 // DecideFunc is the signature for a decision function.

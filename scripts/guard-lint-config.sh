@@ -4,7 +4,7 @@
 # Problem (incidents 2026-08-30 .. 2026-10-14, four recurrences of the
 # depguard-block deletion alone): parallel sessions run golangci-lint
 # langservers whose clients apply config "fixes", rewriting .golangci.yml to
-# a shape an older schema view likes (depguard.rules stripped, gci re-added).
+# a shape an older schema/v4 view likes (depguard.rules stripped, gci re-added).
 # The auto-commit daemon absorbs the rewrite with --no-verify (hooks are dead
 # on its path), so corruption reaches origin and CI reds on #check-lint-config
 # within minutes, ~45 min of manual surgery per incident.

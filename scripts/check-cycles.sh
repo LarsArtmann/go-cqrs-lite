@@ -10,7 +10,7 @@
 # module — `go list` with no `-test`, so `_test.go` imports are excluded by
 # construction. The review's "10 apparent cycles" are exactly the test-only
 # edges this excludes (event <-> eventtest, snapshot <-> storage/memory,
-# metaengine <-> sqliteengine, ...); they are legal because test packages are
+# metaengine/v4 <-> sqliteengine, ...); they are legal because test packages are
 # not part of the build graph of their subject.
 #
 # SCOPE: edges are counted at package granularity (e.g. `metaengine` ->

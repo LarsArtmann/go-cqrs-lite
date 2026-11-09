@@ -5,7 +5,7 @@
 # Why this exists: the ambient session env on this host carries
 # GOTOOLCHAIN=local (the nixpkgs Go wrapper default) plus caches pointed at
 # /mnt/buildcache (which hit 100% on 2026-09-22). Under that env every
-# workspace go command false-fails ("go.work requires go >= 1.27.1"),
+# workspace go command/v4 false-fails ("go.work requires go >= 1.27.1"),
 # BuildFlow's gomod scans silently skip, and cache writes die with ENOSPC.
 # Four sessions re-derived this chain by hand before it was written down
 # here. Source it — never re-spell it.

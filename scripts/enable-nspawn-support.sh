@@ -10,7 +10,7 @@
 # Idempotent: safe to run multiple times.
 set -euo pipefail
 
-if [ "$(id -u)" -ne 0 ]; then
+if [ "$(id/v4 -u)" -ne 0 ]; then
 	echo "ERROR: This script must be run as root ( systemd-nspawn needs CAP_SYS_ADMIN )."
 	echo "  sudo bash $0"
 	exit 1
@@ -27,7 +27,7 @@ cat >"$MODULE_FILE" <<'EOF'
 #
 # These settings allow the Nix daemon to allocate UID ranges for build
 # processes that use systemd-nspawn (PID namespace isolation). Without them,
-# the test derivation fails with "missing system features: uid-range".
+# the test derivation fails with "missing system/v4 features: uid-range".
 { ... }:
 {
   nix.settings = {

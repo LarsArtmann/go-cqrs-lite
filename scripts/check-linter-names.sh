@@ -2,7 +2,7 @@
 # Deprecated-linter-name tripwire: every linter named in .golangci.yml
 # (linters.enable, linters.disable, and every linters.settings key) must be
 # a linter the installed golangci-lint knows. `golangci-lint config verify`
-# catches schema drift, but a RENAMED linter can silently become a no-op
+# catches schema/v4 drift, but a RENAMED linter can silently become a no-op
 # setting (the gci incident class, 2026-08-30) — this gate makes renames loud.
 set -euo pipefail
 

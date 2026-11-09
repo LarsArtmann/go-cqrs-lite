@@ -53,7 +53,7 @@ go run . gate
 
 Each context exports its OWN EventCatalog tree — the hub union-merges them
 (`catalog.home.lan`; see [catalog/README.md "Feeding the federation
-hub"](../../catalog/README.md)):
+hub"](../../catalog/v4/README.md)):
 
 ```bash
 go run . export -domain orders  -out work/out/orders  -skip-bootstrap
@@ -62,7 +62,7 @@ go run . export -domain billing -out work/out/billing -skip-bootstrap
 
 For governance linting (`@eventcatalog/linter`), export the plain-refs
 variant instead — the two ref formats exist because core and linter resolve
-different ID shapes (see [catalog/README.md "Governance exports"](../../catalog/README.md)):
+different ID shapes (see [catalog/README.md "Governance exports"](../../catalog/v4/README.md)):
 
 ```bash
 go run . export -domain orders -out work/lint/orders -plain -skip-bootstrap

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ephemeral-pg.sh — Start an ephemeral PostgreSQL instance from nixpkgs.
 #
-# Replaces Docker/testcontainers for local integration testing.
+# Replaces Docker/testcontainers for local integration/v4 testing.
 # No Docker daemon, no VM, no network — just a process from the Nix store.
 #
 # Portability: Linux (NixOS) verified. macOS: static review 2026-08-16 found
@@ -14,9 +14,9 @@
 # there, check `unix_socket_directories` permissions first.
 #
 # Usage:
-#   nix run .#integration-pg                           # run all PG integration tests
+#   nix run .#integration-pg                           # run all PG integration/v4 tests
 #   nix run .#integration-pg -- -run TestPostgresEventStore_CRUD  # specific test
-#   nix run .#integration-pg -- go test ./storage/...  # arbitrary go command
+#   nix run .#integration-pg -- go test ./storage/v4/...  # arbitrary go command/v4
 #
 # Environment:
 #   PG_PORT       — override the port (default: auto-select free port)
@@ -96,10 +96,10 @@ echo "==> PostgreSQL ready: $POSTGRES_TEST_DSN"
 
 # Determine what to run.
 # Per-module GOWORK=off is required because the multi-module workspace
-# doesn't resolve integration build tags correctly in workspace mode.
+# doesn't resolve integration/v4 build tags correctly in workspace mode.
 # PG_MODULES is env-overridable for targeted loops without the 7-module
-# sweep:  PG_MODULES="metaengine/pgengine" ./scripts/ephemeral-pg.sh go test ...
-PG_MODULES="${PG_MODULES:-storage stack/postgres metaengine/pgengine projectionhost scheduling/sqlstore idempotency/sqlstore benchkit}"
+# sweep:  PG_MODULES="metaengine/pgengine/v4" ./scripts/ephemeral-pg.sh go test ...
+PG_MODULES="${PG_MODULES:-storage stack/postgres/v4 metaengine/pgengine/v4 projectionhost/v4 scheduling/sqlstore/v4 idempotency/sqlstore/v4 benchkit/v4}"
 
 # shellcheck disable=SC1091  # dynamic path; syntax-checked separately
 source "$(dirname "$0")/lib/shuffle-seed.sh"
@@ -107,10 +107,10 @@ source "$(dirname "$0")/lib/shuffle-seed.sh"
 # Unified ephemeral-script contract (2026-10-01, flags amendment 2026-10-13):
 #   args starting with `-` → go-test FLAGS for the curated module loop below
 #     (CI calls `nix run .#integration-pg -- -short`; a lone flag was
-#     previously exec'd as a command — the 2026-10-13 "-short: command not
+#     previously exec'd as a command/v4 — the 2026-10-13 "-short: command/v4 not
 #     found" CI failure class);
 #   any other args → verbatim exec with the broker env exported
-#     (ephemeral-redis/nats style), e.g. PG_MODULES=storage
+#     (ephemeral-redis/nats style), e.g. PG_MODULES=storage/v4
 #     ./scripts/ephemeral-pg.sh go test -run X ./...;
 #   no args → the curated module loop below, unflagged.
 GO_TEST_FLAGS=()
@@ -133,13 +133,13 @@ else
 			cd "$mod"
 			CGO_ENABLED=1 GOWORK=off \
 				timeout "$TEST_TIMEOUT" \
-				go test -tags "integration" -shuffle="$SEED" ./... \
+				go test -tags "integration/v4" -shuffle="$SEED" ./... \
 				-count=1 -v "${GO_TEST_FLAGS[@]}" 2>&1
 		) || FAILED=1
 	done
 	if [ "$FAILED" -ne 0 ]; then
 		echo ""
-		echo "❌ Some integration tests failed"
+		echo "❌ Some integration/v4 tests failed"
 		exit 1
 	fi
 fi

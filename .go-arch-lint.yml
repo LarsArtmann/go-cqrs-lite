@@ -43,27 +43,27 @@ excludeFiles:
   - "^.*example/.*$"
 
 components:
-  id: { in: id/** }
-  dispatcher: { in: dispatcher/** }
-  kv: { in: kv/** }
-  event: { in: event/** }
-  command: { in: command/** }
-  query: { in: query/** }
-  schema: { in: schema/** }
-  snapshot: { in: snapshot/** }
-  graph: { in: graph/** }
-  decider: { in: decider/** }
-  signing: { in: signing/** }
-  encryption: { in: encryption/** }
-  otel: { in: otel/** }
-  storage: { in: storage/** }
-  middleware: { in: middleware/** }
-  listing: { in: listing/** }
-  watermill: { in: watermill/** }
-  prometheus: { in: prometheus/** }
-  stack: { in: stack/** }
-  catalog: { in: catalog/** }
-  integration: { in: integration/** }
+  id: { in: id/v4/** }
+  dispatcher: { in: dispatcher/v4/** }
+  kv: { in: kv/v4/** }
+  event: { in: event/v4/** }
+  command: { in: command/v4/** }
+  query: { in: query/v4/** }
+  schema: { in: schema/v4/** }
+  snapshot: { in: snapshot/v4/** }
+  graph: { in: graph/v4/** }
+  decider: { in: decider/v4/** }
+  signing: { in: signing/v4/** }
+  encryption: { in: encryption/v4/** }
+  otel: { in: otel/v4/** }
+  storage: { in: storage/v4/** }
+  middleware: { in: middleware/v4/** }
+  listing: { in: listing/v4/** }
+  watermill: { in: watermill/v4/** }
+  prometheus: { in: prometheus/v4/** }
+  stack: { in: stack/v4/** }
+  catalog: { in: catalog/v4/** }
+  integration: { in: integration/v4/** }
   cmd: { in: cmd/** }
 
 # The deps section mirrors the layer model in scripts/check-module-layers.sh.

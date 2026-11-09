@@ -20,14 +20,14 @@ TAGS=""
 RUN_PATTERN='Latency|Timer|Deadline'
 # Modules containing timing-assertion tests (Test.*(Latency|Timer|Deadline)).
 TIMING_MODULES=(
-	benchkit
-	cmd/cqrs-lint
-	decider
-	event
-	metaengine
-	middleware
-	scheduling
-	storage
+	benchkit/v4
+	cmd/cqrs-lint/v4
+	decider/v4
+	event/v4
+	metaengine/v4
+	middleware/v4
+	scheduling/v4
+	storage/v4
 )
 
 nproc_cmd="$(command -v nproc || echo true)"

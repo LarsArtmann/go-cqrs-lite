@@ -323,7 +323,7 @@ linters:
       check-return: false
       ignore-names:
         - g
-        - id
+        - id/v4
         - r
         - t
         - w
@@ -459,7 +459,7 @@ linters:
         text: unused
         linters:
           - unused
-      - path: (kv|otel|stack|decider|schema|snapshot|graph|projectionhost|catalog|middleware|transport)/
+      - path: (kv/v4|otel/v4|stack/v4|decider/v4|schema/v4|snapshot/v4|graph/v4|projectionhost/v4|catalog/v4|middleware/v4|transport)/
         linters:
           - ireturn
       - path: internal/cattest/
@@ -469,7 +469,7 @@ linters:
           - gosec
           - err113
           - goconst
-      - path: queue/conformance/
+      - path: queue/v4/conformance/
         linters:
           - mnd
       - text: 'embedlit: embedded field type can be removed from struct literal'
@@ -487,7 +487,7 @@ linters:
       - path: schema.*\.go$
         linters:
           - exhaustruct_v5
-      - path: integration/
+      - path: integration/v4/
         linters:
           - staticcheck
           - gocognit
@@ -496,23 +496,23 @@ linters:
           - forbidigo
           - exhaustruct_v5
           - wrapcheck
-      - path: (storage|listing|watermill|stack/sqlite)/.*\.go$
+      - path: (storage/v4|listing/v4|watermill/v4|stack/sqlite/v4)/.*\.go$
         text: 'SA1019: .*event/v4\.(MarkTombstone|TombstoneStatus|TombstoneMark|DetectTombstone|MarkRebirth|MetadataKeyTombstone|MetadataKeyRebirth) is deprecated'
         linters:
           - staticcheck
-      - path: benchkit/phases_projection\.go$
+      - path: benchkit/v4/phases_projection\.go$
         text: Function `Stop` should pass the context parameter
         linters:
           - contextcheck
-      - path: (stack|storage|graph|benchkit|cmd/cqrs-bench|example|integration|record|metadata|event|command|query|metaengine|commandlifecycle|decider)/.*\.go$
+      - path: (stack/v4|storage/v4|graph/v4|benchkit/v4|cmd/cqrs-bench/v4|example|integration/v4|record/v4|metadata/v4|event/v4|command/v4|query/v4|metaengine/v4|commandlifecycle/v4|decider/v4)/.*\.go$
         text: 'SA1019: .*removed in v5.*'
         linters:
           - staticcheck
-      - path: (event|metadata)/.*_test\.go$
+      - path: (event/v4|metadata/v4)/.*_test\.go$
         text: 'SA1019: .*EnsureCustom.*is deprecated'
         linters:
           - staticcheck
-      - path: (middleware|idempotency)/.*_test\.go$
+      - path: (middleware/v4|idempotency)/.*_test\.go$
         text: 'SA1019: .*(NewMemoryStore|MemoryStore) is deprecated'
         linters:
           - staticcheck
@@ -520,7 +520,7 @@ linters:
         text: 'SA1019: .*metaengine\.DedupStore.*'
         linters:
           - staticcheck
-      - path: id/
+      - path: id/v4/
         linters:
           - err113
           - errcheck
@@ -529,25 +529,25 @@ linters:
           - recvcheck
           - wrapcheck
           - nolintlint
-      - path: record/
+      - path: record/v4/
         linters:
           - modernize
           - recvcheck
-      - path: (metaengine|queue)/(.*/)?register\.go$
+      - path: (metaengine/v4|queue/v4)/(.*/)?register\.go$
         linters:
           - gochecknoinits
-      - path: cmd/cqrs-lint/pkg/rules/.*/template\.go$
+      - path: cmd/cqrs-lint/v4/pkg/rules/.*/template\.go$
         linters:
           - gochecknoglobals
-      - path: cmd/cqrs-lint/pkg/toolspec/toolspec\.go$
+      - path: cmd/cqrs-lint/v4/pkg/toolspec/toolspec\.go$
         linters:
           - gochecknoinits
-      - path: metaengine/mysqlengine/
+      - path: metaengine/mysqlengine/v4/
         linters:
           - sqlclosecheck
           - wrapcheck
           - varnamelen
-      - path: system/
+      - path: system/v4/
         linters:
           - exhaustruct_v5
           - wrapcheck
@@ -568,26 +568,26 @@ linters:
           - gocyclo
           - cyclop
           - maintidx
-      # systemscenario is the system-tier BDD HARNESS (ADR-0153), the same
-      # class of carve-out as system/ above: the DSL deliberately captures the
-      # scenario context on the Scenario struct (containedctx), shutdown
+      # systemscenario/v4 is the system-tier BDD HARNESS (ADR-0153), the same
+      # class of carve-out as system/v4/ above: the DSL deliberately captures the
+      # scenario/v4 context on the Scenario struct (containedctx), shutdown
       # closes on a fresh Background context so cleanup survives a cancelled
-      # scenario context — documented on the method (contextcheck), presets
+      # scenario/v4 context — documented on the method (contextcheck), presets
       # build minimal deployment literals by design (exhaustruct_v5), and the
       # harness exposes injected engine/system interfaces (ireturn).
-      - path: systemscenario/
+      - path: systemscenario/v4/
         linters:
           - containedctx
           - contextcheck
           - exhaustruct_v5
           - ireturn
       # chaos.go's DelayedDriver is a transparent forwarding proxy: engine
-      # error identities MUST pass through unwrapped — scenario assertions
+      # error identities MUST pass through unwrapped — scenario/v4 assertions
       # match engine sentinels through the wrapper.
-      - path: systemscenario/chaos\.go$
+      - path: systemscenario/v4/chaos\.go$
         linters:
           - wrapcheck
-      - path: metaengine/
+      - path: metaengine/v4/
         linters:
           - cyclop
           - gocyclo
@@ -613,7 +613,7 @@ linters:
           - nolintlint
           - containedctx
           - modernize
-      - path: metaengine/irohengine/
+      - path: metaengine/irohengine/v4/
         linters:
           - exhaustruct_v5
           - wrapcheck
@@ -621,31 +621,31 @@ linters:
           - gochecknoglobals
           - predeclared
           - gocritic
-      - path: metaengine/irohengine/(quic/)?demo/
+      - path: metaengine/irohengine/v4/(quic/)?demo/
         linters:
           - forbidigo
           - errcheck
           - gocritic
           - revive
           - unused
-      - path: metaengine/irohengine/demo/
+      - path: metaengine/irohengine/v4/demo/
         linters:
           - forbidigo
           - errcheck
-      - path: metaengine/duckdbengine/
+      - path: metaengine/duckdbengine/v4/
         linters:
           - wrapcheck
           - varnamelen
           - wsl_v5
           - sqlclosecheck
           - prealloc
-      - path: metaengine/pgengine/
+      - path: metaengine/pgengine/v4/
         linters:
           - wrapcheck
           - varnamelen
           - sqlclosecheck
           - wsl_v5
-      - path: metaengine/pebbleengine/
+      - path: metaengine/pebbleengine/v4/
         linters:
           - wrapcheck
           - makezero
@@ -654,7 +654,7 @@ linters:
           - varnamelen
           - gosec
           - gochecknoglobals
-      - path: storage/
+      - path: storage/v4/
         linters:
           - dupl
           - exhaustruct_v5
@@ -695,13 +695,13 @@ linters:
           - unqueryvet
           - staticcheck
           - varnamelen
-      - path: command/commandtest/
+      - path: command/v4/commandtest/
         linters:
           - mnd
-      - path: query/querytest/
+      - path: query/v4/querytest/
         linters:
           - mnd
-      - path: catalog/eventcatalog/
+      - path: catalog/v4/eventcatalog/
         linters:
           - dupl
           - exhaustruct_v5
@@ -709,7 +709,7 @@ linters:
           - nonamedreturns
           - varnamelen
           - wsl_v5
-      - path: catalog/(d2|asyncapi|openapi|docserver|httptyped|huma|cmd)/
+      - path: catalog/v4/(d2|asyncapi|openapi|docserver|httptyped|huma|cmd)/
         linters:
           - exhaustruct_v5
           - nlreturn
@@ -718,60 +718,60 @@ linters:
           - staticcheck
       # Builder-family files: partial literals are the builder's job
       # (compat.Baseline/Finding, MessageConfig REST headers/responses).
-      - path: catalog/compat/
+      - path: catalog/v4/compat/
         linters:
           - exhaustruct_v5
-      - path: catalog/(message_config|message_config_rest|registry_build)\.go$
+      - path: catalog/v4/(message_config|message_config_rest|registry_build)\.go$
         linters:
           - exhaustruct_v5
-      - path: catalog/registry.go$
+      - path: catalog/v4/registry.go$
         linters:
           - exhaustruct_v5
-      - path: catalog/registry_copy.go$
+      - path: catalog/v4/registry_copy.go$
         linters:
           - varnamelen
-      - path: catalog/registry_helpers.go$
+      - path: catalog/v4/registry_helpers.go$
         linters:
           - varnamelen
-      - path: catalog/.*_test.go$
+      - path: catalog/v4/.*_test.go$
         linters:
           - usestdlibvars
           - nolintlint
           - varnamelen
-      - path: projection/
+      - path: projection/v4/
         linters:
           - exhaustruct_v5
           - tagliatelle
           - nlreturn
           - ireturn
-      - path: projection/runner\.go$
+      - path: projection/v4/runner\.go$
         linters:
           - wrapcheck
           - err113
-      - path: encryption/
+      - path: encryption/v4/
         linters:
           - ireturn
           - wrapcheck
           - nolintlint
-      - path: encryption/.*_test.go$
+      - path: encryption/v4/.*_test.go$
         linters:
           - contextcheck
           - varnamelen
-      - path: encryption/store.go$
+      - path: encryption/v4/store.go$
         linters:
           - wrapcheck
-      - path: encryption/(aesgcm|xchacha20|envelope)\.go$
+      - path: encryption/v4/(aesgcm|xchacha20|envelope)\.go$
         linters:
           - nlreturn
           - dupword
           - forcetypeassert
           - wsl_v5
-      - path: signing/
+      - path: signing/v4/
         linters:
           - ireturn
           - wrapcheck
           - nolintlint
-      - path: watermill/
+      - path: watermill/v4/
         linters:
           - wsl_v5
           - wrapcheck
@@ -792,33 +792,33 @@ linters:
       - path: transport/http/sse_event\.go$
         linters:
           - err113
-      - path: stack/materialize\.go$
+      - path: stack/v4/materialize\.go$
         linters:
           - wrapcheck
           - nestif
-      - path: stack/contracttest/
+      - path: stack/v4/contracttest/
         linters:
           - errcheck
           - goconst
           - varnamelen
-      - path: stack/accessors\.go$
+      - path: stack/v4/accessors\.go$
         linters:
           - err113
           - exhaustruct_v5
           - wrapcheck
-      - path: stack/(turso|pebble)/preset\.go$
+      - path: stack/v4/(turso|pebble)/preset\.go$
         linters:
           - exhaustruct_v5
           - err113
           - contextcheck
           - wrapcheck
-      - path: stack/bench/
+      - path: stack/bench/v4/
         linters:
           - containedctx
           - gocognit
           - nilerr
           - unconvert
-      - path: benchkit/
+      - path: benchkit/v4/
         linters:
           - errcheck
           - exhaustruct_v5
@@ -830,7 +830,7 @@ linters:
           - nonamedreturns
           - tagliatelle
           - wrapcheck
-      - path: cmd/cqrs-gen/
+      - path: cmd/cqrs-gen/v4/
         linters:
           - dupl
           - exhaustruct_v5
@@ -845,7 +845,7 @@ linters:
           - dupword
           - forbidigo
           - gosec
-      - path: cmd/cqrs-lint/
+      - path: cmd/cqrs-lint/v4/
         linters:
           - exhaustruct_v5
           - funlen
@@ -869,10 +869,10 @@ linters:
       # anchoring flips between the twins, which ping-pongs per-file
       # //nolint:dupl directives between used and unused (nolintlint) — the
       # shape-match is intentional, contract-19 class.
-      - path: cmd/cqrs-lint/pkg/rules/catalog_(api|adoption|boilerplate)\.go$
+      - path: cmd/cqrs-lint/v4/pkg/rules/catalog_(api|adoption|boilerplate)\.go$
         linters:
           - dupl
-      - path: cmd/cqrs-upgrade/
+      - path: cmd/cqrs-upgrade/v4/
         linters:
           - contextcheck
           - exhaustruct_v5
@@ -885,7 +885,7 @@ linters:
           - varnamelen
           - wrapcheck
           - wsl_v5
-      - path: cmd/cqrs-bench/
+      - path: cmd/cqrs-bench/v4/
         linters:
           - errcheck
           - exhaustruct_v5
@@ -900,26 +900,26 @@ linters:
           - err113
           - nolintlint
           - contextcheck
-      - path: cmd/doc-check/
+      - path: cmd/doc-check/v4/
         linters:
           - gosec
           - err113
           - exhaustruct_v5
           - gochecknoglobals
           - goconst
-      - path: cmd/api-stability/
+      - path: cmd/api-stability/v4/
         linters:
           - gocognit
-      - path: integration/full_flow_test.go
+      - path: integration/v4/full_flow_test.go
         linters:
           - gocyclo
-      - path: stack/sqlite/view_models_integration_test.go
+      - path: stack/sqlite/v4/view_models_integration_test.go
         linters:
           - gocyclo
-      - path: scheduling/sqlstore/property_test.go
+      - path: scheduling/sqlstore/v4/property_test.go
         linters:
           - gocognit
-      - path: system/
+      - path: system/v4/
         linters:
           - err113
           - goconst
@@ -938,16 +938,16 @@ linters:
           - wrapcheck
           - wsl_v5
           - embeddedstructfieldcheck
-      - path: kv/viewstoretest/
+      - path: kv/v4/viewstoretest/
         linters:
           - gocognit
           - errcheck
-      - path: command/
+      - path: command/v4/
         linters:
           - wrapcheck
           - exhaustruct_v5
           - nolintlint
-      - path: query/
+      - path: query/v4/
         linters:
           - wrapcheck
           - exhaustruct_v5
@@ -955,7 +955,7 @@ linters:
       - path: sync/
         linters:
           - modernize
-      - path: catalog/docserver/
+      - path: catalog/v4/docserver/
         linters:
           - contextcheck
           - godoclint
@@ -963,11 +963,11 @@ linters:
       - \.gen\.go$
       - \.pb\.go$
       - _templ\.go$
-      - event/
+      - event/v4/
       - event/v4/eventtest/
       - fake_.*\.go$
-      - metaengine/sqliteengine/
-      - storage/view/
+      - metaengine/sqliteengine/v4/
+      - storage/v4/view/
       - vendor/
 formatters:
   enable:
@@ -982,11 +982,11 @@ formatters:
     paths:
       - \.pb\.go$
       - _templ\.go$
-      - event/
+      - event/v4/
       - event/v4/eventtest/
       - fake_.*\.go$
-      - metaengine/sqliteengine/
-      - storage/view/
+      - metaengine/sqliteengine/v4/
+      - storage/v4/view/
 issues:
   max-issues-per-linter: 50
   max-same-issues: 10

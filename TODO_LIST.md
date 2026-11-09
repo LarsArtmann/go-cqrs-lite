@@ -588,7 +588,7 @@ mesh-demo onboarding) lives in the eventcatalog-hub repo. Execution evidence:
 
 EventCatalog v5 (released 2026-09-24) moved to BSL 1.1; v4 stays MIT but receives
 critical-security fixes only until ~2027-03-24, then EOL. Full analysis in
-[`catalog/AGENTS.md`](catalog/AGENTS.md) ("Upstream v5 licence shift"). Nothing
+[`catalog/AGENTS.md`](catalog/v4/AGENTS.md) ("Upstream v5 licence shift"). Nothing
 breaks today — the `^4.6.3` caret never jumps majors. Decision deadline: before
 v4 EOL (March 2027).
 

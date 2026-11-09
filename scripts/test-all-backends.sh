@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# test-all-backends.sh — Run tests across ALL storage backends in one command.
+# test-all-backends.sh — Run tests across ALL storage/v4 backends in one command.
 #
 # Covers: SQLite, Pebble, bbolt (embedded), DuckDB (CGo), PostgreSQL + MySQL
-# (external, via test-integration.sh auto-detection), Dgraph (graph DB).
+# (external, via test-integration.sh auto-detection), Dgraph (graph/v4 DB).
 #
 # Usage:
 #   bash scripts/test-all-backends.sh                # all backends
@@ -35,16 +35,16 @@ while [[ $# -gt 0 ]]; do
 done
 
 EMBEDDED_MODULES=(
-	"storage"
-	"storage/pebble"
-	"storage/bbolt"
-	"stack/sqlite"
-	"stack/pebble"
-	"stack/bbolt"
+	"storage/v4"
+	"storage/pebble/v4"
+	"storage/bbolt/v4"
+	"stack/sqlite/v4"
+	"stack/pebble/v4"
+	"stack/bbolt/v4"
 )
 
 CGO_MODULES=(
-	"stack/duckdb"
+	"stack/duckdb/v4"
 )
 
 OVERALL_FAILED=0
@@ -67,9 +67,9 @@ run_module() {
 run_dgraph() {
 	local timeout="${TEST_TIMEOUT:-300}"
 	echo ""
-	echo "--- metaengine/dgraphengine (timeout ${timeout}s) ---"
+	echo "--- metaengine/dgraphengine/v4 (timeout ${timeout}s) ---"
 	bash "$SCRIPT_DIR/ephemeral-dgraph.sh" \
-		bash -c "cd metaengine/dgraphengine && \
+		bash -c "cd metaengine/dgraphengine/v4 && \
             CGO_ENABLED=1 GOWORK=off \
             timeout '$timeout' \
             go test ./... \
@@ -106,7 +106,7 @@ if [ "$RUN_EXTERNAL" = true ]; then
 	fi
 
 	echo ""
-	echo ">>> Phase 4: External graph backend (Dgraph)"
+	echo ">>> Phase 4: External graph/v4 backend (Dgraph)"
 	if ! run_dgraph; then
 		OVERALL_FAILED=1
 	fi

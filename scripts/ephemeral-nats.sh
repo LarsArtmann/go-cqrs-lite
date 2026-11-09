@@ -6,7 +6,7 @@
 #
 # Usage:
 #   bash scripts/ephemeral-nats.sh                # run Watermill tests
-#   bash scripts/ephemeral-nats.sh go test ./...  # arbitrary go command
+#   bash scripts/ephemeral-nats.sh go test ./...  # arbitrary go command/v4
 #
 # Environment:
 #   NATS_PORT — override the port (default: auto-select free port)
@@ -67,12 +67,12 @@ done
 export NATS_URL="nats://127.0.0.1:$NATS_PORT"
 echo "==> NATS_URL=$NATS_URL"
 
-# Run the requested command
+# Run the requested command/v4
 if [ $# -gt 0 ]; then
 	echo "==> Running: $*"
 	"$@"
 else
-	echo "==> No command specified. NATS is running at $NATS_URL"
+	echo "==> No command/v4 specified. NATS is running at $NATS_URL"
 	echo "    Set NATS_URL and run your tests in another terminal."
 	echo "    Press Ctrl+C to stop."
 	wait "$NATS_PID"

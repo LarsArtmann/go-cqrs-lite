@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# reset-db.sh — reset shared test databases before an integration test loop.
+# reset-db.sh — reset shared test databases before an integration/v4 test loop.
 #
 # Integration tests provision per-test databases (test_1, test_2, ...) and
 # drop them on cleanup, but crashed or interrupted runs leave them behind,

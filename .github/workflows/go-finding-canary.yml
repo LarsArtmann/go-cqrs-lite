@@ -45,10 +45,10 @@ jobs:
           path: go-finding-master
 
       - name: Point cqrs-lint at go-finding@master
-        working-directory: cmd/cqrs-lint
+        working-directory: cmd/cqrs-lint/v4
         run: |
           # actions/checkout path is relative to $GITHUB_WORKSPACE, so from
-          # cmd/cqrs-lint the sibling checkout lives two levels up.
+          # cmd/cqrs-lint/v4 the sibling checkout lives two levels up.
           MASTER="$(cd ../../go-finding-master && pwd)"
           go mod edit \
             -replace=github.com/larsartmann/go-finding="$MASTER" \
@@ -56,7 +56,7 @@ jobs:
           go mod tidy
 
       - name: Build + test against master
-        working-directory: cmd/cqrs-lint
+        working-directory: cmd/cqrs-lint/v4
         run: |
           GOWORK=off go build ./...
           GOWORK=off go test -count=1 . ./pkg/...

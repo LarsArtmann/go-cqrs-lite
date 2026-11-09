@@ -18,7 +18,7 @@
 #   - --update-baseline re-pins the snapshot. Structural shifts only, and the
 #     resulting baseline diff is reviewed like a golden.
 #
-# SYMBOL SOURCE: docs/api_surface.txt — the cmd/api-stability golden for the
+# SYMBOL SOURCE: docs/api_surface.txt — the cmd/api-stability/v4 golden for the
 # modules it tracks. That file is itself gated (api-stability meta-tests,
 # #check-api-stability, CI "API stability check"), so the counts cannot drift
 # silently. Packages from untracked modules (some cmd/, example/, test-helper
@@ -83,7 +83,7 @@ symbol_counts() {
 			n = split(head, parts, "/")
 			if (n < 2) next                      # "<kind> <Name>" at a module root
 			kind = parts[n]
-			if (!(kind in valid)) next           # defensive: unknown record shape
+			if (!(kind in valid)) next           # defensive: unknown record/v4 shape
 			pkg = parts[1]
 			for (j = 2; j < n; j++) pkg = pkg "/" parts[j]
 			seen[pkg]++
@@ -176,7 +176,7 @@ report() {
 
 gate() {
 	if [ ! -f "$API_FILE" ]; then
-		echo "::error::$API_FILE missing (regenerate: cd cmd/api-stability && GOWORK=off go run . --update)."
+		echo "::error::$API_FILE missing (regenerate: cd cmd/api-stability/v4 && GOWORK=off go run . --update)."
 		exit 1
 	fi
 	if [ ! -f "$BASELINE" ]; then

@@ -135,8 +135,8 @@ The rule also appends a `RuleTraceEntry` for EXPLAIN debuggability.
 - [DDIA Ch1](https://dataintensive.net/) — performance, RTT, latency
 - [DDIA Ch5](https://dataintensive.net/) — replication modes, replication lag
 - [CALM Theorem](https://link.springer.com/chapter/10.1007/978-3-642-04243-6_27) — monotonicity → eventual consistency
-- [`replication.go`](../../metaengine/replication.go) — implementation
-- [`rule_replication.go`](../../metaengine/rule_replication.go) — planner rule
+- [`replication.go`](../../metaengine/v4/replication.go) — implementation
+- [`rule_replication.go`](../../metaengine/v4/rule_replication.go) — planner rule
 - [Plan doc](../planning/archived/2026-08-03_00-51_SUPERB-METAENGINE-REPLICATION-MODEL-CORRECTION.md) — full execution plan
 - [Design exploration](../planning/meta-engine-eventual-consistency-and-iroh.md) — Iroh + eventual consistency
 - [Naming crisis detail](../status/archived/2026-08-03_00-46_metaengine-iroh-eventual-consistency-design.md) — the 5-round review journey

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Tripwire: templ generate bakes the invocation cwd into _templ.go FileName
-# metadata. Generated from catalog/docserver/ the names are bare filenames
+# metadata. Generated from catalog/v4/docserver/ the names are bare filenames
 # (FileName: `d2view.templ`); generated from anywhere else they carry path
 # fragments, and `nix run .#check-templ` then reports permanent drift no
 # matter how fresh the codegen is (AGENTS gotcha, 2026-09-08).
@@ -12,10 +12,10 @@ repo_root="$(cd "$(dirname "$0")/.." && pwd)"
 status=0
 
 while IFS= read -r -d '' gen; do
-	# shellcheck disable=SC2016  # backticks are a regex, not command substitution
+	# shellcheck disable=SC2016  # backticks are a regex, not command/v4 substitution
 	if grep -nE 'FileName: `[^`]*[/\\][^`]*`' "$gen"; then
 		echo "ERROR: $(basename "$gen") was generated from the wrong cwd — FileName carries a path." >&2
-		echo "       Regenerate with: (cd catalog/docserver && templ generate)" >&2
+		echo "       Regenerate with: (cd catalog/v4/docserver && templ generate)" >&2
 		status=1
 	fi
 done < <(find "$repo_root" -name '*_templ.go' -not -path '*/vendor/*' -print0)

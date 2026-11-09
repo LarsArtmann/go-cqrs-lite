@@ -152,7 +152,7 @@ with open(sys.argv[1], encoding="utf-8") as fh:
 	fleet = json.load(fh)["modules"]
 repo_root = sys.argv[2]
 # non-candidate product dirs: the future module, tools, examples, suites
-NON_CANDIDATES = {"core", "cmd", "example", "integration", "systemtest", "benchkit"}
+NON_CANDIDATES = {"core", "cmd", "example", "integration/v4", "systemtest/v4", "benchkit/v4"}
 consumed = {re.sub(r"/v\d+$", "", sub) for sub in fleet}
 
 mods = []
@@ -223,7 +223,7 @@ idm = mods["id/v4"]
 assert idm["indirect_count"] == 1 and idm["direct_count"] == 0, idm
 dec = mods["decider/v4"]
 assert dec["direct_count"] == 1 and dec["consumers"][0]["version"] == "v4.3.1", dec
-assert "idempotency/kvstore/v4" not in mods, "pin snapshot (go-cqrs-lite@hash) must be excluded"
+assert "idempotency/kvstore/v4" not in mods, "pin snapshot/v4 (go-cqrs-lite@hash) must be excluded"
 assert "codec/v4" not in mods, "testdata fixture must be excluded"
 assert "deriver/v4" not in mods, "full fork of the library (module path = library path) must be excluded"
 assert "appC" not in json.dumps(mods), "clean repo must not appear"

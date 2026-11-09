@@ -4,7 +4,7 @@
 # Kills the missing-go.sum-hash class at the root: a go.mod edited without a
 # matching go.sum update builds fine under a warm module cache but fails in
 # any cold-cache consumer or CI leg. `go mod tidy -diff` asserts go.mod and
-# go.sum are exactly what the module graph requires WITHOUT writing anything,
+# go.sum are exactly what the module graph/v4 requires WITHOUT writing anything,
 # so the gate cannot paper over drift the way a writing tidy would.
 #
 # Run: nix run .#check-modsums

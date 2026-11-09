@@ -9,7 +9,7 @@
 #
 # Allowed (documented) exceptions:
 #   - pre-release replace stripping is a WAVE decision (mesh-demo's
-#     `replace ../../catalog` is deliberate until the catalog tag lands);
+#     `replace ../../catalog` is deliberate until the catalog/v4 tag lands);
 #     such cases are baselined below with their reason and MUST carry the
 #     same comment in their go.mod.
 #
@@ -30,12 +30,12 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/go-env.sh"
 
 # Deliberate local replaces (example name => reason). Keep SHORT: each
 # entry dies at the tag wave that obsoletes it.
-#   taskmanager — 4 sibling replaces (queue, queue/sqlite, claiming,
-#     metaengine) ride until the queue/metaengine tag waves land (TODO:
+#   taskmanager — 4 sibling replaces (queue/v4, queue/sqlite/v4, claiming/v4,
+#     metaengine/v4) ride until the queue/v4/metaengine tag waves land (TODO:
 #     release-train tail; the same consumer-purity play as
 #     scheduler-otel-status).
-#   mesh-demo — RE-ADDED 2026-10-16: one catalog replace rides until the
-#     catalog tag with the errorflow API (WithErrorflowFile) lands; the
+#   mesh-demo — RE-ADDED 2026-10-16: one catalog/v4 replace rides until the
+#     catalog/v4 tag with the errorflow API (WithErrorflowFile) lands; the
 #     eventcatalog-hub builds mesh-demo from GitHub where the relative
 #     replace resolves inside the clone (drop_machine_replaces only strips
 #     absolute-path replaces).

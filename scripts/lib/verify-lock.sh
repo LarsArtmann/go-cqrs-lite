@@ -8,7 +8,7 @@
 # VERIFY_LOCK=0 skips it entirely — the lock coordinates willing sessions.
 #
 # The lock lives OUTSIDE the worktree (${TMPDIR}/go-cqrs-lite-verify-<roothash>.lock):
-# machine-local scheduling state must not pollute `git status` (the
+# machine-local scheduling/v4 state must not pollute `git status` (the
 # tag-release smoke test asserts a fully clean tree), and a shared host's
 # clones of this repo then serialize against ONE lock, which is the point.
 # flock releases on process death, so there is no stale-lock state to

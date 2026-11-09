@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# test-integration.sh — one-command integration test runner.
+# test-integration.sh — one-command integration/v4 test runner.
 #
 # Auto-detects the best available strategy for each database and runs all
-# integration tests. Works in any environment: Nix devShell, plain Docker,
+# integration/v4 tests. Works in any environment: Nix devShell, plain Docker,
 # CI with external databases, or bare Linux with KVM.
 #
 # Strategy priority (fastest first):
@@ -31,11 +31,11 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$REPO_ROOT"
 
-PG_MODULES="storage stack/postgres metaengine/pgengine projectionhost scheduling/sqlstore benchkit"
-# metaengine/mysqlengine joined 2026-09-06: its TestCapabilityConformance + ADT
+PG_MODULES="storage/v4 stack/postgres/v4 metaengine/pgengine/v4 projectionhost/v4 scheduling/sqlstore/v4 benchkit/v4"
+# metaengine/mysqlengine/v4 joined 2026-09-06: its TestCapabilityConformance + ADT
 # matrix only execute against a real server, which is exactly what this gate
 # provisions (capability-conformance wiring, TODO Phase 7).
-MYSQL_MODULES="stack/mysql metaengine/mysqlengine"
+MYSQL_MODULES="stack/mysql/v4 metaengine/mysqlengine/v4"
 
 # ─── Argument Parsing ─────────────────────────────────────────────────────────
 
@@ -96,7 +96,7 @@ has_docker() {
 }
 
 has_nspawn() {
-	[ "$(id -u)" -eq 0 ] && command -v systemd-nspawn &>/dev/null
+	[ "$(id/v4 -u)" -eq 0 ] && command -v systemd-nspawn &>/dev/null
 }
 
 is_linux() {
@@ -228,13 +228,13 @@ run_pg_modules() {
 			cd "$mod"
 			CGO_ENABLED=1 GOWORK=off \
 				timeout "$timeout" \
-				go test -tags "integration" ./... \
+				go test -tags "integration/v4" ./... \
 				-count=1 -v "${EXTRA_ARGS[@]}" 2>&1
 		) || failed=1
 	done
 	if [ "$failed" -ne 0 ]; then
 		echo ""
-		echo "FAILED: Some PostgreSQL integration tests failed"
+		echo "FAILED: Some PostgreSQL integration/v4 tests failed"
 		return 1
 	fi
 }
@@ -307,7 +307,7 @@ run_mysql_modules() {
 	done
 	if [ "$failed" -ne 0 ]; then
 		echo ""
-		echo "FAILED: Some MySQL integration tests failed"
+		echo "FAILED: Some MySQL integration/v4 tests failed"
 		return 1
 	fi
 }
@@ -407,8 +407,8 @@ fi
 
 echo ""
 if [ "$OVERALL_FAILED" -ne 0 ]; then
-	echo "FAILED: Some integration tests failed"
+	echo "FAILED: Some integration/v4 tests failed"
 	exit 1
 fi
 
-echo "All integration tests passed"
+echo "All integration/v4 tests passed"

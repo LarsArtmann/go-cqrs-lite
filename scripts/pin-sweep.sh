@@ -101,7 +101,7 @@ collect_stale() {
 		# The trailing ([[:space:]]+// indirect)? group is load-bearing: a
 		# require WITHOUT it never matches indirect pins, so the 2026-11-03
 		# sweep bumped every DIRECT id/v4 pin while 21 modules' INDIRECT
-		# id pins stayed stale and check-modsums (nightly) caught what the
+		# id/v4 pins stayed stale and check-modsums (nightly) caught what the
 		# sweep's own verify loop never saw.
 		grep -E '^[[:space:]]*github\.com/larsartmann/go-cqrs-lite/[^ ]+ v[0-9]+\.[0-9]+\.[0-9]+([[:space:]]+// indirect)?$' \
 			"$gomod" 2>/dev/null |
@@ -142,7 +142,7 @@ collect_stale() {
 # these, and a stale external pin silently freezes the behavior pins the
 # cqrs-lint suite depends on. Latest = highest version on the module proxy.
 external_stale() {
-	local gomod="cmd/cqrs-lint/go.mod"
+	local gomod="cmd/cqrs-lint/v4/go.mod"
 	[ -f "$gomod" ] || return 0
 
 	local dep ver latest candidates
@@ -180,9 +180,9 @@ compile_check() {
 refresh_goldens() {
 	echo "==> refreshing cqrs-lint goldens (taskmanager finding list + rule profile)"
 
-	(cd cmd/cqrs-lint && CQRS_LINT_UPDATE_GOLDEN=1 GOWORK=off go test -tags "$GO_TAGS" -run TestLintExampleTaskmanager . >/dev/null)
+	(cd cmd/cqrs-lint/v4 && CQRS_LINT_UPDATE_GOLDEN=1 GOWORK=off go test -tags "$GO_TAGS" -run TestLintExampleTaskmanager . >/dev/null)
 
-	(cd cmd/cqrs-lint && CQRS_LINT_UPDATE_GOLDEN=1 GOWORK=off go test -tags "$GO_TAGS" -run TestIntegration_TaskmanagerExpectedFindings ./pkg/rules/ >/dev/null)
+	(cd cmd/cqrs-lint/v4 && CQRS_LINT_UPDATE_GOLDEN=1 GOWORK=off go test -tags "$GO_TAGS" -run TestIntegration_TaskmanagerExpectedFindings ./pkg/rules/ >/dev/null)
 }
 
 stale=$(collect_stale || true)
@@ -206,7 +206,7 @@ if [ "$MODE" = check ]; then
 			echo "::error::stale external pin: $dir requires $dep@$ver but $latest is published"
 		done
 
-		echo "stale external pin(s) — bump cmd/cqrs-lint's go-finding requires"
+		echo "stale external pin(s) — bump cmd/cqrs-lint/v4's go-finding requires"
 		exit 1
 	fi
 

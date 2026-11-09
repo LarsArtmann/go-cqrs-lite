@@ -57,7 +57,7 @@ CGO_ENABLED=1 go test -tags "$TAGS" \
 	-bench='BenchmarkFullPipeline_Backends' \
 	-benchtime="$BENCHTIME" -count="$COUNT" -benchmem \
 	-timeout 30m \
-	./stack/bench/... 2>&1 | tee "${OUTPUT:+/tmp/matrix_pipeline.txt}"
+	./stack/bench/v4/... 2>&1 | tee "${OUTPUT:+/tmp/matrix_pipeline.txt}"
 
 # ─── Durability Tiers ───
 echo ""
@@ -67,7 +67,7 @@ CGO_ENABLED=1 go test -tags "$TAGS" \
 	-bench='BenchmarkDurabilityTiers_SQLite' \
 	-benchtime="$BENCHTIME" -count="$COUNT" -benchmem \
 	-timeout 30m \
-	./stack/bench/... 2>&1 | tee "${OUTPUT:+/tmp/matrix_durability.txt}"
+	./stack/bench/v4/... 2>&1 | tee "${OUTPUT:+/tmp/matrix_durability.txt}"
 
 # ─── Codec Pipeline ───
 echo ""
@@ -77,7 +77,7 @@ CGO_ENABLED=1 go test -tags "$TAGS" \
 	-bench='BenchmarkCodecPipeline_WriteRead' \
 	-benchtime="$BENCHTIME" -count="$COUNT" -benchmem \
 	-timeout 30m \
-	./stack/bench/... 2>&1 | tee "${OUTPUT:+/tmp/matrix_codec.txt}"
+	./stack/bench/v4/... 2>&1 | tee "${OUTPUT:+/tmp/matrix_codec.txt}"
 
 # ─── Batch Size Sweep ───
 echo ""
@@ -87,7 +87,7 @@ CGO_ENABLED=1 go test -tags "$TAGS" \
 	-bench='BenchmarkBatchSizeSweep_SQLite' \
 	-benchtime="$BENCHTIME" -count="$COUNT" -benchmem \
 	-timeout 30m \
-	./stack/bench/... 2>&1 | tee "${OUTPUT:+/tmp/matrix_batch.txt}"
+	./stack/bench/v4/... 2>&1 | tee "${OUTPUT:+/tmp/matrix_batch.txt}"
 
 # ─── Metaengine Promise ───
 echo ""
@@ -97,7 +97,7 @@ CGO_ENABLED=1 go test -tags "$TAGS" \
 	-bench='BenchmarkMultiQuery_ReadMix|BenchmarkPlanner_PlanLatency|BenchmarkColumnarScan_DuckDB|BenchmarkPushdownScan_DuckDB' \
 	-benchtime="$BENCHTIME" -count="$COUNT" -benchmem \
 	-timeout 30m \
-	./metaengine/bench/... 2>&1 | tee "${OUTPUT:+/tmp/matrix_metaengine.txt}"
+	./metaengine/bench/v4/... 2>&1 | tee "${OUTPUT:+/tmp/matrix_metaengine.txt}"
 
 if [[ -n "$OUTPUT" ]]; then
 	# Combine all results into a single output file.

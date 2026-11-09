@@ -29,7 +29,7 @@
 # the warm compare). Contract pins: scripts/test-calibration-freeze.sh.
 #
 # Usage: scripts/calibration-drift.sh [--baseline FILE | --write-baseline FILE] [MODULE ...]
-# Default modules: metaengine/{badger,bbolt,pebble,sqlite}engine (in-memory,
+# Default modules: metaengine/v4/{badger,bbolt,pebble,sqlite}engine (in-memory,
 # no DSN needed). count=3 per bench, run 1 discarded, median of the rest.
 set -euo pipefail
 

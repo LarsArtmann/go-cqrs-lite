@@ -7,7 +7,7 @@
 # driver version in many places (Doctor WARN, guard pin, gotchas, skill
 # references, ADR, FEATURES, TODO_LIST). Without this gate every
 # re-verification was a multi-site whack-a-mole. The canonical value lives
-# ONLY in metaengine/materialized_view_versions.go; this script fails when a
+# ONLY in metaengine/v4/materialized_view_versions.go; this script fails when a
 # live citation names a different version (stale OR ahead-of-verified).
 #
 # Point-in-time records (CHANGELOG history, docs/research drafts,
@@ -110,11 +110,11 @@ scan_pins() {
 }
 
 LIVE_FILES=(
-	metaengine/materialized_view_doctor_test.go
-	metaengine/tursoengine/matview_property_test.go
-	metaengine/tursoengine/matview_bench_test.go
-	metaengine/tursoengine/ivm_repro_test.go
-	metaengine/tursoengine/README.md
+	metaengine/v4/materialized_view_doctor_test.go
+	metaengine/tursoengine/v4/matview_property_test.go
+	metaengine/tursoengine/v4/matview_bench_test.go
+	metaengine/tursoengine/v4/ivm_repro_test.go
+	metaengine/tursoengine/v4/README.md
 	FEATURES.md
 	TODO_LIST.md
 	docs/agents/gotchas-tooling-build.md
@@ -188,8 +188,8 @@ echo "=== Turso Version Citation Check ==="
 
 if ! scan_citations "$ROOT" "${LIVE_FILES[@]}"; then
 	echo ""
-	echo "Fix: re-verify live (metaengine/tursoengine suite behind -tags ivmrepro), then"
-	echo "bump TursoGoIVMVerifiedThrough in metaengine/materialized_view_versions.go and"
+	echo "Fix: re-verify live (metaengine/tursoengine/v4 suite behind -tags ivmrepro), then"
+	echo "bump TursoGoIVMVerifiedThrough in metaengine/v4/materialized_view_versions.go and"
 	echo "update the files above in the same change — see docs/turso-go-ivm-fix-flip-runbook.md."
 	exit 1
 fi

@@ -1,0 +1,46 @@
+# testutil — Shared Test Helpers
+
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/testutil/v4.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/testutil/v4)
+
+Cross-module test utilities: test-friendly command constructors (tb.Fatalf on error, zero panics) and no-op handlers for use in test suites across the go-cqrs-lite ecosystem.
+
+```bash
+go get github.com/larsartmann/go-cqrs-lite/testutil/v4
+```
+
+## Quick Start
+
+```go
+import (
+    "testing"
+
+    "github.com/larsartmann/go-cqrs-lite/command/v4"
+    "github.com/larsartmann/go-cqrs-lite/testutil/v4"
+)
+
+// Build a command in tests (calls t.Fatalf on invalid input — no panics)
+cmd := testutil.NewCmd(t, "user.create", aggID)
+
+// Use in test setup
+dispatcher := command.NewDispatcher()
+dispatcher.Register("ping", testutil.NoopCommandHandler())
+```
+
+## API
+
+| Function                              | Purpose                                               |
+| ------------------------------------- | ----------------------------------------------------- |
+| `NewCmd(tb, cmdType, aggID, opts...)` | Wraps `command.New`, calls `tb.Fatalf` on error       |
+| `NoopCommandHandler()`                | Returns a `command.Handler` that always returns `nil` |
+
+## Dependencies
+
+| Dependency                      | Purpose                          |
+| ------------------------------- | -------------------------------- |
+| [command](command/v4/README.md) | Command types and `BasicCommand` |
+| [id](id/v4/README.md)           | `AggregateID` type               |
+
+## Related Modules
+
+- [command](command/v4/README.md) — Command dispatch and typed handlers
+- [id](id/v4/README.md) — Branded IDs

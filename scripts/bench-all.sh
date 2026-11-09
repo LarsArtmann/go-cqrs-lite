@@ -7,8 +7,8 @@
 #
 # Usage:
 #   scripts/bench-all.sh              # run all benchmarks
-#   scripts/bench-all.sh --quick      # skip slow modules (duckdb, integration)
-#   scripts/bench-all.sh --module event  # run a single module
+#   scripts/bench-all.sh --quick      # skip slow modules (duckdb, integration/v4)
+#   scripts/bench-all.sh --module event/v4  # run a single module
 #   scripts/bench-all.sh --count 3    # run each benchmark 3 times (CoV analysis)
 #   scripts/bench-all.sh --benchtime 5x  # set benchtime per benchmark
 #
@@ -75,11 +75,11 @@ mapfile -t MODULES < <(
 
 # Slow modules skipped in --quick mode (exact paths, no glob fragility)
 SLOW_MODULES=(
-	"metaengine/bench"
-	"metaengine/duckdbengine"
-	"metaengine/pgengine"
-	"integration"
-	"stack/bench"
+	"metaengine/bench/v4"
+	"metaengine/duckdbengine/v4"
+	"metaengine/pgengine/v4"
+	"integration/v4"
+	"stack/bench/v4"
 )
 
 is_slow_module() {

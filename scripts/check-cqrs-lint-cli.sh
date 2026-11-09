@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # check-cqrs-lint-cli.sh — binary-level contract probes for the cqrs-lint CLI.
 #
-# The in-process tests (cmd/cqrs-lint/subcommand_consistency_test.go,
+# The in-process tests (cmd/cqrs-lint/v4/subcommand_consistency_test.go,
 # contract_enforcement_test.go) pin the subcommand flag contract at the API
 # level; this script pins it at the BINARY level: the exact exit codes and
 # stdout shapes a shell user or CI pipeline sees. The probes encode the
@@ -152,7 +152,7 @@ run_rejected_probe() {
 run_probes() {
 	local bin="$1" failed=0
 
-	# Rejected-class probes wrap their binary invocation into a full command
+	# Rejected-class probes wrap their binary invocation into a full command/v4
 	# via the WORK_DIR-scoped helpers above; dispatch by name.
 	probe_rules_json "$bin" || failed=1
 	if ! run_rejected_probe "scorecard --format csv" \
@@ -267,7 +267,7 @@ main() {
 		# shellcheck source=/dev/null
 		source "$SCRIPT_DIR/go-env.sh" >/dev/null 2>&1 || true
 		bin="$WORK_DIR/cqrs-lint"
-		if ! (cd "$REPO_ROOT/cmd/cqrs-lint" && GOWORK=off go build -o "$bin" .); then
+		if ! (cd "$REPO_ROOT/cmd/cqrs-lint/v4" && GOWORK=off go build -o "$bin" .); then
 			echo "✗ check-cqrs-lint-cli: build failed" >&2
 			exit 1
 		fi

@@ -2,7 +2,7 @@
 
 > **⚠️ SUPERSEDED — this module will never be built.**
 > ADR-0025 was corrected on 2026-06-28: broker transports are served by the
-> existing [`watermill/`](../../watermill/) bridge, not native modules. Inject
+> existing [`watermill/`](../../watermill/v4) bridge, not native modules. Inject
 > any Watermill-compatible backend (NATS JetStream, Redis Streams, Kafka, …)
 > via `watermill.NewEventPublisher(publisher, topic)` or the
 > `EventBus`/`CommandBus` `WithBackend()` / `WithCommandBackend()` options

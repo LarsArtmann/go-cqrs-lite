@@ -1,0 +1,1004 @@
+# cqrs-lint — Domain-Aware Linter for go-cqrs-lite
+
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4)
+
+A domain-aware linter for [go-cqrs-lite](https://github.com/larsartmann/go-cqrs-lite) consumers.
+
+It finds bugs, API misuse, and boilerplate that generic linters cannot detect — because these are CQRS-specific patterns that require understanding the library's types, conventions, and architecture.
+
+> **Purpose (read before proposing changes):** cqrs-lint exists to get consumer
+> projects to use go-cqrs-lite in the most modern, most complete way possible.
+> The scorecard grade is a ratchet with teeth BY DESIGN — never soften or
+> relabel it into comfort. When a grade hurts, the fix is to make the rows
+> honest (composition credit), auditable (waivers), and aimed at the right
+> target (the modernity axis) — not to defang the pressure.
+
+## Quickstart
+
+```bash
+# Install
+go install github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4@latest
+
+# Or build from source
+go build -o cqrs-lint ./cmd/cqrs-lint
+
+# Lint your project
+cqrs-lint ./...
+
+# JSON output for CI
+cqrs-lint ./... --format json
+
+# SARIF for GitHub Code Scanning
+cqrs-lint ./... --format sarif > results.sarif
+
+# Fast mode (Critical/High rules only, for pre-commit)
+cqrs-lint --fast ./...
+
+# Health score
+cqrs-lint --health-score ./...
+
+# Filter by severity and confidence
+cqrs-lint --min-severity error --min-confidence high ./...
+
+# Apply auto-fixes (with dry-run preview first)
+cqrs-lint --fix --dry-run ./...
+cqrs-lint --fix ./...
+# --fix prints a per-finding report to stderr: what was applied, refused,
+# conflicted, or failed — e.g. "Fix report: 3 fixable finding(s): 2 applied, 1 refused"
+
+# List available rules
+cqrs-lint rules
+
+# Machine-readable rule catalog (id, severity, confidence, autofix, docUrl)
+cqrs-lint rules --json
+
+# Config file support (auto-loaded from .cqrs-lint.json)
+# .cqrs-lint.json supports // line comments and /* block comments */ (JSONC)
+cqrs-lint init --preset local-cli   # generate a config for a local CLI project
+cqrs-lint init                       # generate a default config skeleton
+cqrs-lint explain                    # full documentation of every config key
+cqrs-lint explain E004 E018          # per-rule documentation cards (ID, severity, description)
+cqrs-lint doctor                     # show resolved config + detected profile
+cqrs-lint doctor --audit-suppressions # active vs stale vs unknown-rule suppressions
+cqrs-lint doctor --prune-suppressions # auto-remove stale whole-line suppressions
+cqrs-lint scorecard                  # module adoption scorecard (Used/Missing/Irrelevant)
+cqrs-lint scorecard --format sarif   # SARIF output for CI/Code Scanning integration
+cqrs-lint --scorecard                # same via flag (identical output, no --scorecard-threshold gate)
+cqrs-lint --group-by aggregate ./... # group findings by aggregate/domain
+cqrs-lint ./...
+```
+
+### Subcommand flag contract
+
+The CLI has one shared flag vocabulary; every command honors it the same way:
+
+- `--path`, `--format` (`-o`), `--color`, `--min-severity`, `--min-confidence`
+  are global: they work on every command and are also read from
+  `.cqrs-lint.json`. Each command validates `--format` against the formats it
+  supports and rejects anything else up front
+  (lint: text/json/sarif/markdown/csv/tsv · scorecard: text/json/markdown/sarif ·
+  doctor: text/json · rules: text/json/markdown, plus the legacy `--json`/
+  `--markdown` shorthands).
+- Lint-run-only flags (`--fix`, `--dry-run`, `--fast`, `--only`, `--exclude`,
+  `--exclude-rules`, `--group-by`, `--quiet`, `--scorecard`, …) exist on the
+  root command only: passing them to a subcommand is an unknown-flag error,
+  never a silently ignored no-op.
+- `cqrs-lint init --path DIR` writes `DIR/.cqrs-lint.json` (error if DIR is
+  missing), instead of always writing to the current directory.
+- `rules --json` and `--markdown` (legacy shorthands) beat `--format`; when
+  both are set, `--markdown` wins.
+
+### Flag consumption matrix
+
+cmdguard persistence is all-or-nothing per flag, so every subcommand ACCEPTS
+the shared flags — but each consumes only its row. Everything else is
+accepted-and-ignored (a config file's `"format": "json"` therefore never
+breaks `cqrs-lint version` in CI):
+
+| Command     | Consumes                        | Accepted-and-ignored                                                        |
+| ----------- | ------------------------------- | --------------------------------------------------------------------------- |
+| lint (root) | all shared flags                | —                                                                           |
+| `rules`     | `--format`, `--color`           | `--path`, `--min-severity`, `--min-confidence`, `--typed-info`              |
+| `doctor`    | `--format`, `--path`            | `--color`, `--min-severity`, `--min-confidence`, `--typed-info`             |
+| `scorecard` | `--format`, `--color`, `--path` | `--min-severity`, `--min-confidence`, `--typed-info`                        |
+| `init`      | `--path`                        | `--format`, `--color`, `--min-severity`, `--min-confidence`, `--typed-info` |
+| `version`   | — (`--verbose` is its own)      | all shared flags                                                            |
+| `changelog` | —                               | all shared flags                                                            |
+| `explain`   | —                               | all shared flags                                                            |
+
+Doctor prints the resolved `--color` value as part of its effective-settings
+panel but does not colorize its output.
+
+### Exit codes
+
+Every failure mode maps to exit 1; only a clean run maps to 0:
+
+| Condition                                                        | Exit |
+| ---------------------------------------------------------------- | ---- |
+| Clean run (no error/critical findings)                           | 0    |
+| Error or critical findings                                       | 1    |
+| Invalid `--format` value (any command, validated up front)       | 1    |
+| Scorecard coverage below `--scorecard-threshold`                 | 1    |
+| Stale suppression directives with `--fail-on-stale-suppressions` | 1    |
+| New error/critical findings absent from the `--baseline` file    | 1    |
+| Package load errors (broken build, unreadable path)              | 1    |
+| Unknown flag on a subcommand                                     | 1    |
+
+These are pinned at the binary level by `scripts/check-cqrs-lint-cli.sh`
+(run directly, or via its `--self-test` inside `nix run .#check-release-scripts`).
+
+## Scorecard
+
+`cqrs-lint scorecard` partitions the library catalog into **Used / Missing /
+Irrelevant / Waived**, computes adoption coverage over the profile-relevant
+denominator, and grades it. The grade has teeth by design: it exists to pull
+consumers toward maximal, most-modern library usage.
+
+### Composition credit (honest rows)
+
+Usage detection is import-based, but a backend wired through composition is
+in use even without a direct stack import. When the feature profile detects a
+backend signal — a `metaengine/*engine` import, a raw database-driver import,
+or a `system.New` composition — the corresponding persistence rows
+(`stack/sqlite`, `stack/memory`, `storage`, …) are credited as **used** with
+an Evidence string naming the wiring path (`composed via metaengine sqlite
+engine import`, `composed via system.New (wired internally)`). Direct imports
+always win, and profile-irrelevant rows are never credited. A lying MISSING
+row licenses dismissing every row — credit keeps the remaining ones honest.
+
+### Waivers (auditable refusals)
+
+A module that genuinely has no use case in your domain can be waived in
+`.cqrs-lint.json`. A waiver is a recorded refusal, not a silencer: the row
+renders in a **WAIVED** section with its reason and revisit trigger, waived
+rows leave the coverage denominator (declared not-applicable, like the
+automatic Irrelevant partition but on purpose), and waiving a used or
+profile-irrelevant module is a hard error.
+
+```jsonc
+{
+  "scorecard": {
+    "waivers": [
+      {
+        "key": "graph", // scored catalog key
+        "reason": "no traversal-heavy read models", // mandatory
+        "trigger": "variable-depth queries appear" // revisit condition
+      }
+    ]
+  }
+}
+```
+
+A waiver without a trigger renders with a visible "no revisit trigger
+recorded" suffix, and waivers that dominate the scorecard add a
+review-justifications recommendation. When the trigger fires, re-litigate —
+waive again only if the reason still holds. Waivers are read from the scored
+project's own `.cqrs-lint.json` (a config in the operator's cwd fills only
+unrecorded keys), and when a detectable trigger condition arrives — a server,
+an async bus, or a transport appears in the profile — the waiver row is
+flagged `TRIGGER LIKELY FIRED` with a re-litigation recommendation.
+`--scorecard-threshold` gates the **waiver-adjusted** coverage: waived rows
+leave the denominator, so a recorded refusal never fails the gate.
+
+### Modernity grade (the right target)
+
+Adoption coverage measures breadth; **modernity** measures whether the usage
+sits on the canonical path. Both print in the summary banner:
+
+- **Modern** — v5-clean AND composed via `system.New`, or metaengine with
+  declarative pushdown (`FilterOnField`/`SortOnField`).
+- **Partial** — v5-clean but on neither canonical path.
+- **Legacy** — a v5-removed surface in use: v5-removed APIs, deprecated
+  transports, or stack-surface imports (engine presets + `stack.Bundle`,
+  deleted per ADR-0123 — `system.New` becomes the only composition root).
+  Migrate before the v5 cut.
+
+In multi-module projects both axes score **project-wide**: stack-surface
+imports, `system.New` wiring, and pushdown signals are unioned across every
+`go.mod` in the tree (composition often lives in a dedicated submodule —
+`cqrs-htmx/systemadapter`, `go-appkit/cqrs` — while the primary module
+carries none of it).
+
+A focused app at low breadth but Modern is a perfect consumer — the scorecard
+must not coach it into feature bloat.
+
+### Config resolution order (path vs cwd)
+
+The scorecard resolves its inputs in a fixed order so scoring a project from
+anywhere yields the same verdict:
+
+1. `<path>/.cqrs-lint.json` (the scored project's own config) — its `preset`
+   and its `scorecard.waivers` WIN.
+2. The operator's cwd config fills only keys the project did not record
+   (cmdguard's loader).
+
+Run `cqrs-lint explain` for the rendered walkthrough of these rules —
+including waiver expiry semantics and the trigger-firing advisory.
+
+## Feature Profiles
+
+cqrs-lint auto-detects which go-cqrs-lite features your project uses and adapts
+its rules accordingly. Run `cqrs-lint doctor` to see what was detected:
+
+```bash
+cqrs-lint doctor
+```
+
+You can override auto-detection in `.cqrs-lint.json`:
+
+```json
+{
+  "features": {
+    "store": "sqlite",
+    "command-flow": "sync",
+    "server": false,
+    "soft-delete": true,
+    "tracing": "off",
+    "snapshot": "off",
+    "domain": "financial",
+    "transport": false,
+    "server-local": false
+  }
+}
+```
+
+Each flag maps to a go-cqrs-lite module. Rules that depend on deployment
+context (S002 encryption, S003 signing, A015 global mutable, A016 idempotency,
+B014 OTel) consult these flags instead of guessing.
+
+**`domain`** — `"financial"` escalates security and money-handling rules to
+error severity. Also supports `"internal"` and `"security"`. Auto-detected from
+event/command type names but can be overridden here.
+
+**`transport`** — true when an external-delivery layer is imported: the
+`watermill/` bridge (any broker backend), `go-sse`, cqrs-htmx, or a legacy
+`transport/http` / `transport/grpc` import (deleted from master 2026-10-17,
+ADR-0127; old pins still resolve from the proxy). When true, adoption
+rules that suggest adopting a delivery module are suppressed. Independently,
+F030 flags any `transport/*` import with its ADR-0127 migration
+path (warning severity).
+
+**`server-local`** — true when a server (HTTP or gRPC) is detected but lacks
+production signals (no TLS, no graceful `Shutdown`, no health endpoint). This
+classifies CLI tools with embedded dashboards correctly, suppressing
+server-only rules (health checks, Prometheus, transport suggestions).
+
+### Presets
+
+For convenience, named presets set common flag combinations. Generate a config
+with `cqrs-lint init --preset <name>`:
+
+```bash
+cqrs-lint init --preset local-cli   # writes {"preset": "local-cli"} to .cqrs-lint.json
+cqrs-lint init                       # writes a clean default skeleton
+```
+
+Or set the preset directly in `.cqrs-lint.json`:
+
+```json
+{
+  "preset": "local-cli"
+}
+```
+
+Each preset pins feature flags AND disables rules that are known false-positives
+for that project type. Explicit `features` flags always override preset values;
+explicit `rules.disable` entries are added on top (union).
+
+| Preset              | Features                                                                    | Rule defaults                                                                                                                                                                                                          | Severity floor |
+| ------------------- | --------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- |
+| `local-cli`         | `server: false`, `tracing: off`                                             | F004, F009, F013, F017                                                                                                                                                                                                 | `warning`      |
+| `production`        | `server: true`, `tracing: on`                                               | (none)                                                                                                                                                                                                                 | (default)      |
+| `library`           | `server: false`, `command-flow: read-only`, `tracing: off`, `snapshot: off` | E003, E016, F002, F006, F010, F011, F015, F022, F023, F024, F025, F026, F030, F031, S002, S003, V007                                                                                                                   | (default)      |
+| `library-framework` | `server: false`, `command-flow: read-only`, `tracing: off`, `snapshot: off` | E003, E016, F001, F002, F003, F004, F005, F006, F007, F008, F009, F010, F011, F012, F013, F014, F015, F016, F017, F018, F019, F020, F021, F022, F023, F024, F025, F026, F027, F028, F029, F030, F031, S002, S003, V007 | (default)      |
+| `read-only`         | `command-flow: read-only`                                                   | (none)                                                                                                                                                                                                                 | (default)      |
+| `v5-ready`          | (none)                                                                      | (none)                                                                                                                                                                                                                 | (default)      |
+
+The `v5-ready` preset is the opt-in escalation for a completed (or deadline-
+bound) v5 migration: V007 (v5-removed-API usage) findings are rewritten from
+`warning` to `error`, so `--min-severity error` CI jobs block on them. It
+disables nothing. Add more via `rules.severity-overrides` in
+`.cqrs-lint.json` — explicit config entries win over the preset's.
+
+cqrs-lint warns on unknown preset names (typos), unknown disabled rule IDs,
+and unknown severity-override rule IDs, so misconfigurations surface
+immediately instead of silently doing nothing.
+
+### Non-consumer projects
+
+A repository that does not import go-cqrs-lite at all is not a CQRS
+project: detect and the toolsdk/BuildFlow provider path agree on a
+zero-findings clean verdict (since v4.13.1, issue #42) instead of firing
+the adoption-coaching rules A009/A018 at it. Only load errors are loud —
+a broken module graph must never render as a clean bill of health. A
+repo that imports go-cqrs-lite only through TOOLING (cqrs-lint's own
+repo does, via the toolsdk self-registration import) still counts as a
+consumer for A009/A018, so keep those two disables in its config.
+
+## Configuration Reference
+
+All keys are optional. The file is auto-loaded from `.cqrs-lint.json` in the
+current directory. **Comments are supported** — the file uses JSONC format
+(`//` line comments and `/* block comments */` are stripped before parsing).
+Generate one with `cqrs-lint init [--preset <name>]`, or run `cqrs-lint explain`
+for a full interactive reference.
+
+### Top-level keys
+
+| Key              | Type   | Default     | Description                                                                                                            |
+| ---------------- | ------ | ----------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `preset`         | string | `""` (none) | Preset name: `local-cli`, `production`, `library`, `library-framework`, `read-only`, `v5-ready`                        |
+| `min-severity`   | string | `"info"`    | Minimum severity shown: `info`, `warning`, `error`, `critical`                                                         |
+| `min-confidence` | string | `"low"`     | Minimum confidence shown: `none`, `low`, `medium`, `high`, `full`, or decimal `0.0`–`1.0`; keeps findings >= the floor |
+| `format`         | string | `"text"`    | Output format: `text`, `json`, `sarif`, `markdown`                                                                     |
+| `exclude`        | string | `""`        | Comma-separated paths to exclude                                                                                       |
+| `features`       | object | `{}`        | Feature profile overrides (see below)                                                                                  |
+| `rules`          | object | `{}`        | Rule-specific overrides (see below)                                                                                    |
+| `health`         | object | `{}`        | Health-score tuning (see below)                                                                                        |
+| `baseline`       | string | `""`        | Path to a findings baseline; only findings absent from it are reported (see [Findings Baseline](#findings-baseline))   |
+| `update-baseline`| bool   | `false`     | Rewrite the baseline from this run (requires `baseline`); exits 0 without reporting findings                           |
+
+### `features` keys
+
+Each key overrides auto-detection. Set only the ones you want to pin.
+
+| Key            | Type   | Values                                                                       |
+| -------------- | ------ | ---------------------------------------------------------------------------- |
+| `store`        | string | `sqlite`, `postgres`, `mysql`, `pebble`, `memory`, `turso`, `custom`, `none` |
+| `command-flow` | string | `read-only`, `sync`, `commands`                                              |
+| `server`       | bool   | `true` if a network listener is present                                      |
+| `soft-delete`  | bool   | `true` if tombstone events are emitted                                       |
+| `tracing`      | string | `off`, `on`                                                                  |
+| `snapshot`     | string | `off`, `on`                                                                  |
+| `domain`       | string | `financial` (escalates security/money rules), `internal`, `security`         |
+| `monetary`     | string | `on`, `off`, `unknown` (default) — declares whether the project handles      |
+|                |        | money; `off` downgrades C008 to Info and skips S006 entirely, `on` keeps     |
+|                |        | C008's Warning regardless of naming, `unknown` defers to the heuristics      |
+| `transport`    | bool   | `true` if watermill/, go-sse, cqrs-htmx, or deprecated transport/* imported  |
+| `server-local` | bool   | `true` if server lacks production signals                                    |
+| `async-bus`    | bool   | `true` if a distributed (Watermill) bus is wired                             |
+
+### `rules` keys
+
+| Key                            | Type              | Description                                               |
+| ------------------------------ | ----------------- | --------------------------------------------------------- |
+| `disable`                      | string[]          | Rule IDs to suppress project-wide                         |
+| `severity-overrides`           | map[string]string | Rule ID → severity rewrite (e.g. `{"V007": "error"}`)     |
+| `external-api-struct-prefixes` | string[]          | Struct prefixes mirroring external APIs (suppresses D002) |
+| `c008-ignore-fields`           | string[]          | Field names to exclude from C008 (case-insensitive)       |
+| `c008-ignore-structs`          | string[]          | Struct names to exclude entirely from C008                |
+
+Severity overrides resolve in a fixed order (later wins per rule ID):
+catalog → preset → parent config → local config → domain bias →
+`--min-severity` (filter only, never rewrites severity). Unknown rule IDs
+warn; invalid severity values are dropped with a warning (the rule keeps its
+catalog severity — nothing silently demotes to `info`).
+
+### `health` keys
+
+| Key        | Type | Default | Description                                                                   |
+| ---------- | ---- | ------- | ----------------------------------------------------------------------------- |
+| `info-cap` | int  | `20`    | Max health-score penalty from Info findings. `0` = default, negative = no cap |
+
+## Rule Count
+
+**217 rules** across 10 categories: correctness (44), API misuse (32), boilerplate (31), consistency (18), architecture (23), security (10), performance (11), version (7), testing (9), adoption (32).
+
+The tables below are curated highlights. The complete, generated catalog —
+every rule with severity, confidence, auto-fix support, and doc links — lives
+in [`RULES.md`](v4/RULES.md); regenerate with `cqrs-lint rules --markdown > RULES.md`.
+
+**Rule ID numbering gaps:** IDs A028, A031, P002–P005, S004, and D004 are
+intentionally unused — reserved for future rules in their categories. They
+are not detectors; listing one in `rules.disable` is a silent no-op.
+
+## Correctness Rules (bugs)
+
+| ID   | Rule                                      | Severity | Description                                                                                            |
+| ---- | ----------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------ |
+| C001 | missing-tx-commit                         | Critical | Transaction wrapper returns nil instead of tx.Commit()                                                 |
+| C002 | broken-command-id                         | Critical | Command ID() returns zero value — breaks idempotency                                                   |
+| C003 | silent-unknown-event-fold                 | Error    | Fold function silently ignores unknown event types                                                     |
+| C004 | checkpoint-before-async-complete          | Error    | Projection launches async work — checkpoint may save early                                             |
+| C005 | raw-json-unmarshal-payload                | Error    | Raw json.Unmarshal on event payload instead of DecodePayloadAuto                                       |
+| C006 | manual-version-arithmetic                 | Warning  | event.Version(x.Int()+1) instead of x.Increment()                                                      |
+| C007 | time-now-in-decider                       | Warning  | time.Now() inside decider — non-deterministic                                                          |
+| C008 | float64-for-money                         | Warning  | float64 field with monetary name — use decimal or cents                                                |
+| C009 | panic-in-production                       | Warning  | panic() in production code — use error returns                                                         |
+| C010 | swallowed-error-in-fold                   | Warning  | Error from decode/unmarshal discarded in fold                                                          |
+| C011 | nondeterministic-decider                  | Warning  | rand.* call inside decider — non-deterministic replay                                                  |
+| C012 | missing-error-return-in-with-tx           | Critical | withTx ignores body error — failures silently lost                                                     |
+| C013 | time-time-in-event-payload                | Warning  | time.Time field in event payload loses timezone via CBOR epoch encoding                                |
+| C014 | time-local-usage                          | Warning  | time.Local causes silent data corruption across timezone boundaries                                    |
+| C015 | unchecked-close                           | Warning  | Close() error discarded — resource leak or silent data loss risk                                       |
+| C016 | background-in-handler                     | Warning  | context.Background()/TODO() in a handler with a ctx param — discards cancellation, timeouts, tracing   |
+| C017 | inmem-store-persistent-eventstore         | Error    | In-memory snapshot/checkpoint/dead-letter/timer store with persistent event store — lost on restart    |
+| C018 | silent-journal-fallback                   | Error    | memory.NewMemoryStore() as journal fallback — projections replay from empty journal                    |
+| C019 | multiple-repos-same-aggregate             | Warning  | Multiple Repository instances for the same aggregate type — wastes singleflight/cache                  |
+| C020 | panic-in-handler                          | Error    | panic() in bus.Subscribe/SubscribeAll handler — crashes the bus/projection host                        |
+| C021 | mutex-held-during-decode                  | Warning  | Payload decode while mutex is held — serializes all event processing                                   |
+| C022 | context-discarded                         | Warning  | `_ = ctx` explicitly discards context — breaks cancellation, timeouts, tracing                         |
+| C023 | shutdown-error-ignored                    | Warning  | Stop/Close/Shutdown error ignored — pending events or resources may be lost                            |
+| C024 | dual-write-without-rollback               | Error    | In-memory mutation + DB write without transaction — state diverges on failure                          |
+| C025 | bare-errorf-in-cqrs                       | Warning  | fmt.Errorf without %w in CQRS code — loses error classification                                        |
+| C026 | idempotency-ttl-mismatch                  | Warning  | Literal TTL passed but a TTL constant is defined and not used — dead/misleading code                   |
+| C027 | bus-subscription-alongside-projectionhost | Warning  | bus.Subscribe alongside projectionhost — events may be processed twice                                 |
+| C028 | swallowed-cqrs-error                      | Warning  | Error from Dispatch/Execute/Load/Register discarded — operation failures indicate real problems        |
+| C029 | queryidempotency-nil-keyextractor         | Error    | QueryIdempotency with nil keyExtractor panics at runtime — queries have no default identity            |
+| C030 | no-ctx-cancel-in-loop                     | Warning  | Infinite loop without context cancellation — goroutine leaks on shutdown                               |
+| C038 | event-type-typo                           | Error    | Emitted event type string is a likely typo of a fold case label — event silently dropped during replay |
+| C039 | goroutine-leak-in-handler                 | Warning  | Unmanaged goroutine inside event/command handler — resource leak and ordering violation                |
+| C040 | dead-fold-case                            | Warning  | Fold switch case handles an event type that is never emitted via event.New — dead code or a typo       |
+| C041 | save-ignores-expectedversion              | Warning  | Store.Save called without checking expected version — optimistic concurrency violation                 |
+| C042 | save-with-literal-zero-version            | Warning  | Store.Save with literal 0 as expected version — bypasses concurrency check                             |
+| C043 | named-byte-slice-payload                  | Warning  | Named []byte passed as event.New payload — codec-encoded instead of used directly                      |
+
+## API Misuse Rules
+
+| ID   | Rule                                        | Severity | Description                                                                         |
+| ---- | ------------------------------------------- | -------- | ----------------------------------------------------------------------------------- |
+| A001 | manual-command-interface                    | Error    | Manual Type()/ID()/AggregateID() instead of BasicCommand                            |
+| A002 | newevent-manual-marshal                     | Warning  | event.NewEvent with json.Marshal — use event.New                                    |
+| A003 | explicit-codec-in-decode                    | Info     | Explicit codec — use DecodePayloadAuto                                              |
+| A004 | untyped-dispatch-register                   | Warning  | Type assertion in handler — use RegisterTyped                                       |
+| A005 | custom-projection-runner                    | Warning  | Manual bus.SubscribeAll — use projectionhost                                        |
+| A006 | adapter-layer-wrapping                      | Info     | WrapEvent/UnwrapEvent adapter methods                                               |
+| A007 | dual-model-oo-functional                    | Error    | Both OO aggregates and functional deciders                                          |
+| A008 | parallel-type-system                        | Error    | Custom AggregateID/Version types duplicating library                                |
+| A009 | missing-stack-preset                        | Info     | No stack/ preset — manual wiring is error-prone                                     |
+| A010 | custom-error-types                          | Warning  | Custom error interface duplicating go-error-family                                  |
+| A011 | inconsistent-json-key-casing-event-payloads | Info     | Event payload structs with mixed JSON key casing                                    |
+| A012 | missing-tombstone-handling                  | Info     | Fold function does not check for tombstone events                                   |
+| A013 | pointer-vs-value-basic-command              | Warning  | Embeds BasicCommand by value — cannot satisfy command.Command                       |
+| A014 | deprecated-api-usage                        | Warning  | Calls to deprecated APIs (Register)                                                 |
+| A015 | global-mutable-state                        | Error    | Global mutable variable — race condition risk                                       |
+| A016 | missing-idempotency-middleware              | Warning  | Command dispatcher lacks idempotency middleware                                     |
+| A017 | missing-snapshot-strategy                   | Warning  | Repository without snapshot strategy — slow aggregates                              |
+| A018 | no-actual-event-sourcing                    | Info     | Imports go-cqrs-lite but never calls Save/Publish                                   |
+| A019 | vendored-cqrs                               | Warning  | Vendored copy of go-cqrs-lite detected                                              |
+| A027 | repeated-withcodec                          | Info     | event.WithCodec called 3+ times in one file — set codec once via event.DefaultCodec |
+| A030 | incomplete-snapshot-config                  | Error    | WithSnapshotStrategy without WithSnapshotStore — ErrIncompleteSnapshotConfig        |
+| A032 | string-id-instead-of-branded                | Warning  | Struct field named *ID with type string/int — use id.Of[T] branded ID               |
+| A033 | branded-id-string-roundtrip                 | Warning  | `id.Parse[T](x.String())` — pointless branded-ID roundtrip, discards typed value    |
+| A034 | metaengine-execute-untyped                  | Warning  | metaengine.Execute returns any — use ExecuteTyped[Q,R] for compile-time type safety |
+
+## Boilerplate Rules
+
+| ID   | Rule                            | Severity | Description                                                                           |
+| ---- | ------------------------------- | -------- | ------------------------------------------------------------------------------------- |
+| B001 | single-event-helper             | Info     | Use event.Single() instead                                                            |
+| B002 | manual-repository-wiring        | Info     | Use stack preset instead                                                              |
+| B003 | subscribeall-large-switch       | Info     | Split into separate projections                                                       |
+| B004 | command-constructor-boilerplate | Info     | Command with many fields — use cqrs-gen                                               |
+| B005 | fold-switch-boilerplate         | Info     | Fold uses switch — consider decider.StrictApply                                       |
+| B006 | duplicate-fk-stub-sql           | Info     | Duplicated foreign-key SQL — centralize                                               |
+| B007 | repeated-handler-registration   | Info     | 3+ consecutive registrations — table-driven                                           |
+| B008 | manual-retry-implementation     | Warning  | Manual retry loop — use retry.Do                                                      |
+| B009 | emit-function-boilerplate       | Info     | Hand-written emit helper wrapping event.New                                           |
+| B010 | catalog-event-list-boilerplate  | Info     | 3+ catalog.Event calls — use cqrs-gen                                                 |
+| B011 | must-marshal-helper             | Info     | mustMarshal helper — use event.New                                                    |
+| B012 | make-event-helper               | Info     | Hand-written makeEvent helper — use event.New                                         |
+| B013 | missing-correlation-enricher    | Warning  | Repository without correlation enricher                                               |
+| B014 | missing-otel-middleware         | Info     | Bus/dispatcher lacks OTel tracing                                                     |
+| B015 | missing-test-utilities          | Info     | Project has tests but no testutil imports                                             |
+| B021 | fold-without-strictapply        | Warning  | Fold function silently ignores unknown events — use decider.StrictApply               |
+| B023 | missing-command-middleware      | Warning  | Command dispatcher has no middleware — panics in handlers crash the process           |
+| B024 | missing-bus-recovery            | Warning  | Event bus has no recovery middleware — panics in handlers crash the bus               |
+| B025 | missing-state-cache             | Info     | Repository without WithStateCache — hot streams benefit from incremental loads        |
+| B026 | missing-catalog-registration    | Info     | 3+ event types but no catalog import — documentation generation unavailable           |
+| B027 | hardcoded-stream-type           | Info     | Hardcoded stream-type string literal — use a constant                                 |
+| B028 | manual-goroutine-dispatch       | Info     | Manual goroutine dispatch instead of deriver.AsHandler — loses idempotency            |
+| B029 | missing-retry-middleware        | Info     | Bus/dispatcher without retry middleware — transient failures propagate to callers     |
+| B030 | missing-circuit-breaker         | Info     | Bus/dispatcher without circuit breaker middleware — cascading failures not isolated   |
+| B031 | missing-dead-letter-config      | Info     | projectionhost.New without WithDeadLetterStore — poison events cause terminal failure |
+
+## Consistency Rules
+
+| ID   | Rule                         | Severity | Description                                                                                                      |
+| ---- | ---------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------- |
+| D001 | inconsistent-event-naming    | Info     | Mixed dot notation and PascalCase                                                                                |
+| D002 | inconsistent-json-casing     | Info     | Mixed camelCase and snake_case JSON tags (excludes external-API mirrors — see [Rule Overrides](#rule-overrides)) |
+| D003 | inconsistent-logging-library | Info     | Project mixes multiple logging libraries                                                                         |
+| D005 | stale-documentation-version  | Warning  | Docs reference different version than go.mod                                                                     |
+| D006 | missing-errorfamily          | Info     | errors.New or fmt.Errorf without %w bypasses the 6-family error taxonomy                                         |
+| D011 | nil-payload-event            | Warning  | Event created with nil payload — cannot be decoded, provides no audit trail                                      |
+| D012 | raw-print-in-handler         | Info     | Raw fmt/log print in CQRS handler — use structured logging (slog)                                                |
+| D018 | stale-catalog-entries        | Info     | Event types in code but not registered in catalog — documentation drift                                          |
+| D019 | stale-spec-freshness         | Info     | Spec/schema files older than the event types they describe — documentation may be outdated                       |
+
+## Architecture Rules
+
+| ID   | Rule                               | Severity | Description                                                                              |
+| ---- | ---------------------------------- | -------- | ---------------------------------------------------------------------------------------- |
+| E001 | layer-violation                    | Error    | Tier-0 module imports Tier-3+ module                                                     |
+| E002 | circular-dependency                | Error    | Two modules import each other                                                            |
+| E003 | missing-module-boundary            | Warning  | All CQRS code in one package                                                             |
+| E004 | event-not-in-catalog               | Info     | Event type emitted but not in catalog                                                    |
+| E005 | command-without-handler            | Warning  | Command type defined but never registered                                                |
+| E006 | event-without-projection           | Info     | Event emitted but no projection handles it                                               |
+| E007 | query-without-handler              | Info     | Query type defined but never registered                                                  |
+| E018 | projection-without-emitter         | Warning  | Projection handles an event nothing emits or catalogs — typo class                       |
+| E019 | data-product-without-contract      | Info     | Declared data product serves outputs without a data contract                             |
+| E020 | handrolled-system-boot-in-test     | Info     | Test file boots `system.New` without adopting the systemscenario harness                 |
+| E021 | emitted-without-schema-declaration | Warning  | Emitted event type carries no schema declaration — upcasting and typed decoding skip it  |
+| E022 | schema-ladder-gap                  | Warning  | Declared event version ladder misses a rung — stored events at that version never upcast |
+
+## Security Rules
+
+| ID   | Rule                                      | Severity | Description                                                                          |
+| ---- | ----------------------------------------- | -------- | ------------------------------------------------------------------------------------ |
+| S001 | hardcoded-secrets                         | Critical | Potential hardcoded secret in string literal                                         |
+| S002 | missing-encryption-for-sensitive-payloads | Error    | PII event payloads without encryption middleware                                     |
+| S003 | missing-event-signing                     | Warning  | Event store without signing middleware                                               |
+| S006 | financial-data-without-encryption         | Warning  | Financial data in structs without encryption module                                  |
+| S007 | in-memory-session-store                   | Warning  | In-memory session/token store loses state on restart                                 |
+| S008 | asymmetric-signing                        | Error    | SignMiddleware without VerifyMiddleware (or vice versa) — signing is decorative      |
+| S009 | asymmetric-encryption                     | Error    | EncryptMiddleware without DecryptMiddleware (or vice versa) — events break consumers |
+
+## Performance Rules
+
+| ID   | Rule                        | Severity | Description                                                                       |
+| ---- | --------------------------- | -------- | --------------------------------------------------------------------------------- |
+| P001 | load-in-subscribeall        | Error    | repo.Load inside SubscribeAll handler — O(N²) replay                              |
+| P007 | manual-retry-bitshift       | Error    | Manual retry loop with bitshift backoff — corrupts time.Duration                  |
+| P008 | projectionhost-no-batchsize | Info     | projectionhost.New without WithBatchSize — throughput bottleneck on large streams |
+| P009 | json-codec-large-payloads   | Info     | Large event payload using JSON codec — CBOR is ~35% smaller                       |
+| P010 | no-snapshot-large-aggregate | Warning  | Collection-type state without snapshot strategy or cache — expensive reloads      |
+| P015 | journal-readall-in-query-handler | Warning  | journal.ReadAll reachable from a query handler — folds the entire journal per query (O(journal) on the request path) |
+| P006 | polling-loop-short-interval | Info     | time.Sleep <100ms inside a for-loop — busy-poll pattern                           |
+
+## Version Rules
+
+| ID   | Rule                        | Severity | Description                                                                                                                                      |
+| ---- | --------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| V001 | mixed-major-versions        | Error    | Project mixes v3 and v4 go-cqrs-lite modules — APIs are incompatible                                                                             |
+| V002 | unpinned-version            | Warning  | go-cqrs-lite dependency pinned to a pseudo-version instead of a tagged release                                                                   |
+| V003 | version-lag                 | Info     | go-cqrs-lite version more than 2 minor versions behind latest known release                                                                      |
+| V004 | vendored-third-party        | Warning  | Vendored go-cqrs-lite code in third_party/ — bypasses go.mod updates                                                                             |
+| V005 | eventtest-vendored-mismatch | Warning  | Vendored eventtest alongside go-cqrs-lite imports — version mismatch workaround                                                                  |
+| V006 | mixed-version-pins          | Warning  | go-cqrs-lite modules within the same major version pinned to different releases                                                                  |
+| V007 | v5-removed-api-usage        | Warning  | References APIs removed at v5 (stack presets, Materialize, relational/view tiers, VersionedStore shells, tombstone helpers — ADR-0114/0123/0126) |
+
+## Testing Rules
+
+| ID   | Rule                              | Severity | Description                                                                 |
+| ---- | --------------------------------- | -------- | --------------------------------------------------------------------------- |
+| T001 | no-scenario-tests-for-deciders    | Info     | Project defines deciders but has no scenario.Given BDD tests                |
+| T002 | no-scenario-tests-for-projections | Info     | Project defines projections but has no scenario.GivenProjection tests       |
+| T003 | no-eventtest-imports              | Info     | Project uses events but lacks eventtest fake stores/buses in tests          |
+| T004 | no-golden-snapshot-tests          | Info     | Catalog/documentation output has no snapshot tests                          |
+| T005 | projection-without-error-test     | Info     | Projections have no error-path tests for malformed payloads                 |
+| T006 | decider-without-conflict-test     | Info     | Decider scenario tests only cover happy paths, not conflict/error scenarios |
+| T007 | no-event-roundtrip-test           | Info     | No save→load round-trip test for event stores                               |
+| T008 | test-imports-production-store   | Warning  | Test file imports a production store instead of eventtest/memory fakes                                    |
+| T009 | hand-booted-system-in-tests      | Info     | Test boots a real system via system.New instead of the systemscenario harness (ADR-0153)                    |
+
+## Adoption Rules
+
+Adoption rules (F-series) are advisory: they suggest modules and patterns that improve the project but don't indicate bugs. Use `--adoption` to show them separately from the health score.
+
+The scorecard that grades these uses the same rule: importing IS adoption — in `_test.go` files as anywhere else (#69). Test-file imports are collected through a dedicated pass (the typed package load skips test files), so test-only modules like `systemscenario` and `scenario` count as Used, not Missing.
+
+| ID   | Rule                             | Severity | Description                                                                                                        |
+| ---- | -------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------ |
+| F001 | no-domain-delete-event           | Info     | Delete operations without a domain deletion event — consider emitting a "entity.deleted" event for audit trail     |
+| F002 | no-catalog-documentation         | Info     | 3+ event types but no catalog.NewBuilder — event documentation not generated                                       |
+| F003 | no-otel-tracing                  | Info     | Server-mode project with no OpenTelemetry tracing                                                                  |
+| F004 | no-prometheus-metrics            | Info     | Server-mode project with no Prometheus metrics                                                                     |
+| F005 | no-schema-upcasters              | Info     | Evolving event schemas but no schema.NewUpcaster — version migrations not handled                                  |
+| F006 | no-encryption-for-sensitive-data | Info     | Event payload with PII fields but no encryption module — sensitive data in plaintext                               |
+| F007 | no-idempotency-middleware        | Info     | Command dispatcher without idempotency middleware — duplicate commands under at-least-once delivery                |
+| F008 | no-cbor-codec                    | Info     | Event-heavy project using JSON codec — CBOR is ~35% smaller                                                        |
+| F009 | no-scheduling-module             | Info     | Time-based patterns (timers, deadlines) but no scheduling module — hand-rolled timers are fragile                  |
+| F010 | no-graph-projections             | Info     | Graph-traversal patterns but no graph module — recursive SQL CTEs are slow for deep traversals                     |
+| F011 | no-relational-projections        | Info     | Multi-statement SQL projections without storage.RelationalProjection — manual writes lack atomicity                |
+| F012 | no-deriver-module                | Info     | Saga-like SubscribeAll + command dispatch but no deriver module                                                    |
+| F013 | no-transport-module              | Info     | Manual HTTP handlers for dispatch but no delivery module (watermill/go-sse/cqrs-htmx)                              |
+| F014 | no-kv-cache                      | Info     | kv.NewTypedStore without kv.NewCache — read model hits backing store on every read                                 |
+| F015 | no-metaengine                    | Info     | 3+ query registrations but no metaengine cost-based planner — SQL pushdown and layout optimization unavailable     |
+| F016 | no-listing-module                | Info     | Many aggregate types but no listing module — stream status tracking unavailable                                    |
+| F017 | no-dedup-module                  | Info     | Bus subscriptions without dedup module — duplicate event delivery not handled at stream boundaries                 |
+| F018 | metaengine-filteron-pushdown     | Info     | metaengine.FilterOn (closure-based) prevents SQL pushdown — use FilterOnField for WHERE-clause pushdown            |
+| F019 | metaengine-missing-volume-hint   | Info     | metaengine queries lack Volume hint — cost-based planner cannot optimize engine selection                          |
+| F020 | metaengine-sorton-pushdown       | Info     | metaengine.SortOn (closure-based) prevents SQL ORDER BY pushdown — use SortOnField for indexed sort                |
+| F021 | metaengine-write-amplification   | Info     | single metaengine.Query has 3+ fold args (per-query, not global) — high write amplification may degrade ingest     |
+| F022 | manual-sort-no-pushdown          | Info     | Manual in-memory sorting with a SQL store but no metaengine — all rows loaded into Go memory for sorting           |
+| F023 | manual-filter-no-pushdown        | Info     | Manual in-memory filtering (for-range + if + append) with a SQL store but no metaengine                            |
+| F024 | manual-pagination-no-pushdown    | Info     | Manual pagination (slice[offset:offset+limit]) with a SQL store but no metaengine                                  |
+| F025 | manual-count-no-counter-adt      | Info     | Manual count/aggregation (for-range + count++/sum +=) with a SQL store but no metaengine — full collection scanned |
+| F026 | no-metaengine-prefetch           | Info     | metaengine.NewReader used but WithPrefetch never called — every Scan/Get hits the underlying store individually    |
+| F027 | missing-otel-sdk-init            | Info     | Server-mode project with no cqrsotel.Setup call — traces are no-op                                                 |
+| F028 | missing-slog-setdefault          | Info     | Server-mode project using slog without slog.SetDefault — default logger has no structured output                   |
+| F029 | missing-span-creation            | Info     | OTel import but no span creation in handlers — distributed traces are empty                                        |
+| F030 | deprecated-transport-import      | Warning  | Deprecated transport/* import — removed at v5; migrate per ADR-0127                                                |
+| F031 | scan-without-limit               | Warning  | Reader Scan without WithLimit silently truncates at 100 rows — pass WithLimit or set WithDefaultLimit (G-T14)      |
+| F032 | no-catalog-import                | Error    | Project uses go-cqrs-lite but never imports go-cqrs-lite/catalog — catalog documentation not wired (systemcatalog satisfies) |
+
+## CLI
+
+Built with [cmdguard](https://github.com/larsartmann/cmdguard) for type-safe flag parsing, config file support, and subcommands.
+
+### Flags
+
+| Flag                | Short | Default | Description                                                                                               |
+| ------------------- | ----- | ------- | --------------------------------------------------------------------------------------------------------- |
+| `--format`          | `-o`  | text    | Output format: text, json, sarif, markdown                                                                |
+| `--min-severity`    |       | info    | Minimum severity: info, warning, error, critical                                                          |
+| `--min-confidence`  |       | low     | Minimum confidence: none, low, medium, high, full, or decimal 0.0-1.0 (>= floor)                          |
+| `--fix`             |       | false   | Apply auto-fixes; prints a per-finding outcome report (applied/refused/conflict/invalid/failed) to stderr |
+| `--dry-run`         |       | false   | Show fixes without applying                                                                               |
+| `--fast`            |       | false   | Run only Critical correctness rules                                                                       |
+| `--health-score`    |       | false   | Print the health score after findings                                                                     |
+| `--adoption`        |       | false   | Show F-series coaching but exclude them from health score                                                 |
+| `--fp-suspects`     |       | false   | Show only low-confidence findings (likely FPs). Exit code always 0                                        |
+| `--show-suppressed` |       | false   | Show suppressed findings with their suppression reason                                                    |
+| `--baseline`        |       |         | Findings baseline file; only findings absent from it are reported and gate the exit code                  |
+| `--update-baseline` |       | false   | Rewrite the baseline from this run (requires `--baseline`); deterministic and exits 0                      |
+| `--strict-load`     |       | false   | Exit non-zero if any packages failed to load                                                              |
+| `--only`            |       |         | Filter by category or rule IDs (comma-separated)                                                          |
+| `--exclude`         |       |         | Exclude paths (comma-separated)                                                                           |
+| `--color`           |       | auto    | Colored output: auto, always, never                                                                       |
+| `--verbose`         |       | false   | Verbose output (module grouping, stats)                                                                   |
+| `--quiet`           | `-q`  | false   | Suppress non-finding output                                                                               |
+| `--config`          | `-c`  |         | Path to config file                                                                                       |
+
+### Config File
+
+A `.cqrs-lint.json` file in the project root is auto-loaded. The format is
+**JSONC** — `//` line comments and `/* block comments */` are supported:
+
+```jsonc
+{
+  // Output JSON for CI pipelines
+  "format": "json",
+
+  /* Hide info-level findings — only show warnings and errors */
+  "min-severity": "warning",
+  "min-confidence": "medium",
+
+  "fast": false,
+}
+```
+
+Run `cqrs-lint explain` for a complete reference of every key, type, default,
+and valid value. Run `cqrs-lint doctor` to see the fully resolved configuration
+(preset + config + auto-detection) and detected feature profile.
+
+### Health Scoring
+
+The `--health-score` flag computes a 0-100 score from findings. Two fairness
+adjustments prevent heuristic noise from drowning real bugs:
+
+- **Confidence weighting** — each finding's deduction is scaled by its confidence:
+
+  | Confidence  | Multiplier | Example                  |
+  | ----------- | ---------- | ------------------------ |
+  | High / Full | 1.0 (100%) | Structural pattern match |
+  | Medium      | 0.75 (75%) | Name + shape heuristic   |
+  | Low         | 0.5 (50%)  | Coincidental field name  |
+  | none        | 1.0 (100%) | Preserves prior behavior |
+
+- **Severity deductions** — Critical: -10, Error: -5, Warning: -2, Info: -1
+  (before confidence weighting).
+
+- **Info cap** — total Info deductions are capped (default 20) so a chatty style
+  rule can't outweigh a Critical correctness bug. Tunable via:
+
+  ```json
+  {
+    "health": {
+      "info-cap": 15
+    }
+  }
+  ```
+
+  When the cap applies, `--verbose` output shows the raw vs capped deduction.
+
+When rules are disabled via config or preset, the score output lists how many
+findings each disabled rule would have contributed — disabled rules stay
+excluded from scoring, but the omission is visible:
+
+```text
+Excluded from score by config: A004 (1), C008 (3)
+```
+
+### Rule Overrides
+
+Some rules read project-specific overrides from the `"rules"` key so you can
+tell cqrs-lint about intentional patterns it would otherwise flag.
+
+**D002 — external-API struct prefixes**
+
+D002 flags files that mix `camelCase` and `snake_case` JSON tags. If your code
+mirrors an external API (Discord, Stripe, GitHub) whose snake_case tags you
+can't change, exclude those structs so they don't count toward the mix:
+
+```json
+{
+  "rules": {
+    "external-api-struct-prefixes": ["Discord", "Stripe", "GitHub"]
+  }
+}
+```
+
+Every struct whose name starts with a listed prefix is treated as an external
+mirror. For one-off cases, use the in-source marker instead (see
+[Suppression](#suppression)). Both mechanisms stack.
+
+Run `cqrs-lint doctor` to confirm your overrides were loaded.
+
+**C008 — ignore float64 fields and structs**
+
+C008 flags `float64` fields with monetary names. If some are intentionally
+float64 (cost estimates, metrics, observability counters), exclude them:
+
+```json
+{
+  "rules": {
+    "c008-ignore-fields": ["CostEstimate", "PriceIndex"],
+    "c008-ignore-structs": ["PricingMetrics", "CostEstimate"]
+  }
+}
+```
+
+`c008-ignore-fields` skips individual field names (case-insensitive substring
+match). `c008-ignore-structs` skips entire structs — all float64 fields in a
+matched struct are ignored.
+
+## Suppression
+
+Inline suppression for false positives:
+
+```go
+//cqrs-lint:ignore(C007) wall-clock is domain logic
+now := time.Now()
+```
+
+**D002 external-API marker** — excludes a single struct from the mixed-casing
+check when its snake_case JSON tags mirror an external API:
+
+```go
+//cqrs-lint:external-api
+type DiscordMessage struct {
+	Content string `json:"content"`
+	GuildID string `json:"guild_id"`
+}
+```
+
+The marker works on both single `type Foo struct{}` declarations and grouped
+`type ( ... )` blocks (place it on the struct's own doc line inside the group).
+For bulk exclusion prefer the `rules.external-api-struct-prefixes` config above.
+
+Suppressed findings are excluded from all output formats, the health score, and
+the error-exit check. The lint run prints a count of suppressed findings to
+stderr for visibility.
+
+### Stale Suppressions
+
+Every lint run warns on stderr when a suppression no longer suppresses anything
+(the rule stopped firing at that location) or references an unknown rule ID —
+in every output format, so `--format json` stdout stays parseable. `--quiet`
+silences the warnings; `--fail-on-stale-suppressions` turns them into a
+non-zero exit for CI.
+
+To review all suppressions at once and clean up the stale ones:
+
+```bash
+cqrs-lint doctor --audit-suppressions   # report: active vs stale vs unknown
+cqrs-lint doctor --prune-suppressions   # delete stale whole-line directives
+```
+
+`--fix` only removes directives that occupy an entire line. Trailing-on-code
+directives (sharing a line with code), block markers
+(`ignore-start`/`ignore-end`), and unknown-rule references are never rewritten —
+the report lists them for manual cleanup.
+
+Structural block-directive issues are reported too: a stray `ignore-end`
+without a start, and an `ignore-start` never closed (which silently
+suppresses everything to end-of-file). `--fail-on-stale-suppressions` treats
+both as failures.
+
+Directive syntax notes: any spacing after `//` works (`//cqrs-lint:` or
+`//  cqrs-lint:`); several directives may share one line, each contributing
+its rules; and directive text inside `/* */` block comments or raw strings
+is inert — prose that merely mentions the syntax never suppresses.
+
+### Findings Baseline
+
+Inline suppressions are per-site and rule disables are per-rule. Neither answers
+the recurring drift question after a detector or dependency change:
+
+> "The count moved from 116 to 120 — which findings are NEW?"
+
+A checked-in baseline records findings you have already adjudicated, so a run
+reports only new ones:
+
+```bash
+cqrs-lint . --baseline .cqrs-lint-baseline.json              # report new findings only
+cqrs-lint . --baseline .cqrs-lint-baseline.json --update-baseline   # regenerate
+```
+
+Semantics:
+
+- Findings present in the baseline are **hidden** and cannot fail the build.
+- Findings absent from the baseline are reported normally and gate the exit
+  code (error/critical severity still exits 1).
+- Baseline entries with no matching finding print a **"Baseline shrunk"**
+  notice on stderr, naming each stale entry, so the file can be pruned.
+- `--update-baseline` rewrites the file deterministically (sorted entries,
+  two-space indent, atomic temp-file rename), preserves existing `reason`
+  fields, exits 0, and prints no findings. It requires `--baseline`.
+- The health score still counts baselined findings: baselining changes what is
+  reported, never the score.
+
+Matching keys on rule, file, line, and column. `file` is stored **relative to
+the baseline file's directory**, so the file is portable across machines and
+operating systems. Moving a finding therefore shows up as one new finding plus
+one shrunk entry — the intended drift signal.
+
+The file is plain JSON and can carry a machine-readable disposition log:
+
+```json
+{
+  "version": 1,
+  "tool": "cqrs-lint",
+  "entries": [
+    {
+      "rule": "E003",
+      "file": "internal/app/domain.go",
+      "line": 42,
+      "column": 1,
+      "reason": "commands, events, and folds deliberately colocated"
+    }
+  ]
+}
+```
+
+Unlike `//cqrs-lint:ignore`, which is per-site, the baseline is project-level:
+adoption coaching (F-series) and deliberately colocated packages can be
+adjudicated once without spraying comments across files or disabling the rule
+(and losing the drift signal for genuinely new findings).
+
+### Reviewing False Positives
+
+Use `--fp-suspects` to surface only low-confidence findings — the ones most
+likely to be false positives:
+
+```bash
+cqrs-lint --fp-suspects --path ./...
+```
+
+This filters to findings below Medium confidence and prints them with a
+header explaining they are advisory. The exit code is always 0 in this mode,
+making it safe to run in CI alongside the normal lint step. Review the
+suspects and suppress confirmed false positives with `//cqrs-lint:ignore(RULE)`.
+
+## Auto-Fix
+
+Rules with `[auto-fixable]` can be applied automatically:
+
+```bash
+cqrs-lint --fix --dry-run ./...  # preview
+cqrs-lint --fix ./...            # apply
+```
+
+C001 (missing tx commit), C003 (silent fold), and C006 (manual version arithmetic) are auto-fixable.
+
+## Architecture
+
+Built on three foundation libraries:
+
+- **[go-finding](https://github.com/larsartmann/go-finding)** — Finding model, Detector interface, Pipeline (parallel execution, fix engine), output formats (SARIF/JSON/text/markdown)
+- **[cmdguard](https://github.com/larsartmann/cmdguard)** — Type-safe CLI with struct-tag flags, config file loading, subcommands
+- **go-cqrs-lite AST patterns** — CQRS-specific AST scanning
+
+## Library Functions
+
+cqrs-lint also ships library functions that eliminate boilerplate at the source:
+
+### event.Single()
+
+```go
+return event.Single("user.created", cmd.AggregateID(), "User", s.Version.Increment(), UserCreated{Name: cmd.Name})
+```
+
+### decider.StrictApply()
+
+```go
+d := decider.Decider[State]{
+    Initial: State{},
+    Apply: decider.StrictApply(fold, []event.Type{"user.created", "user.updated"}),
+}
+```
+
+## Rule Development
+
+Each rule is a `finding.Detector` in its own file (`c001.go`, `a001.go`, etc.):
+
+```go
+func NewC006Detector(ctx *analyzer.AnalysisContext) finding.Detector {
+    return finding.NamedDetectorFunc("C006-manual-version-arithmetic", func(_ context.Context) ([]finding.Finding, error) {
+        // AST inspection logic
+    })
+}
+```
+
+Register it in `pkg/rules/register.go`. Write tests using `analyzer.BuildContextFromSource`.
+
+## BuildFlow Integration
+
+cqrs-lint ships a go-finding toolsdk Spec (`pkg/toolspec`) that registers it
+into BuildFlow's tool registry on import. To consume it from a BuildFlow
+checkout:
+
+1. Require the module (v4.11.0 or later, first release carrying the Spec):
+
+   ```
+   go get github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4@v4.11.0
+   ```
+
+2. Add one blank import to BuildFlow's `tools/providers/sdk_imports.go` — the
+   import IS the registration:
+
+   ```go
+   ```
+
+// skip-validate
+_ "github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/toolspec"
+
+````
+3. Run the loop in a consumer repo (`buildflow --build-mode=dev` includes it;
+full mode reports findings and measures Repair by re-detecting — BuildFlow
+does not trust self-reported fix counts).
+
+Detect runs all 217 rules with the working directory from the toolsdk context;
+Repair applies the same safe C-series structural rewrites as `--fix`.
+
+## CI Integration
+
+### GitHub Actions (SARIF upload)
+
+```yaml
+# .github/workflows/cqrs-lint.yml
+name: cqrs-lint
+on: [push, pull_request]
+jobs:
+lint:
+ runs-on: ubuntu-latest
+ steps:
+   - uses: actions/checkout@v4
+   - uses: actions/setup-go@v5
+     with:
+       go-version: stable
+   - name: Install cqrs-lint
+     run: go install github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4@latest
+   - name: Run cqrs-lint
+     run: cqrs-lint --format sarif --path ./... > results.sarif
+   - uses: github/codeql-action/upload-sarif@v3
+     with:
+       sarif_file: results.sarif
+````
+
+### Health-score gate
+
+Fail CI when the score drops below a threshold:
+
+```bash
+cqrs-lint --health-score --path ./...
+# Outputs just the numeric score — use in a script:
+SCORE=$(cqrs-lint --health-score --path ./...)
+[ "$SCORE" -ge 75 ] || exit 1
+```
+
+### Pre-commit hook
+
+```bash
+# .git/hooks/pre-commit
+cqrs-lint --fast --path ./... || exit 1
+```
+
+## Related Modules
+
+- [**cqrs-gen**](cqrs-gen/README.md) — Code generator for typed handler registration
+- [**doc-check**](doc-check/README.md) — Documentation verifier (complementary CI tool)
+- [**api-stability**](api-stability/README.md) — API surface checker (golden file comparison)

@@ -4,7 +4,7 @@
 # Owns two committed artifacts, always regenerated together:
 #   versions.json  — machine-readable manifest: {"modules": {"<dir>": "<latest tag>"}}
 #                    Key "." is the repo-root module train; every other key is the
-#                    repo-relative module dir (e.g. "stack/postgres"). Value is the
+#                    repo-relative module dir (e.g. "stack/postgres/v4"). Value is the
 #                    FULL git tag (version = ${tag##*/}).
 #   README.md      — the "<!-- versions-manifest:begin/end -->" section (a collapsed
 #                    <details> table, human-readable cousin of the manifest).

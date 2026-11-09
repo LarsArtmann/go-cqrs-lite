@@ -10,7 +10,7 @@
 #
 # This script DERIVES the truth from source into docs/engine-capabilities.md:
 #   - registry drivers: metaengine.RegisterDriver("name", ...) in
-#     metaengine/register.go + metaengine/*/register.go (filesystem scan —
+#     metaengine/v4/register.go + metaengine/*/v4/register.go (filesystem scan —
 #     an untracked engine module from a parallel session is caught too)
 #   - Graph / Edge removal / Undirected: the engine implements the method the
 #     metaengine capability asserts assert (GraphAddEdge / GraphRemoveEdge /
@@ -68,8 +68,8 @@ has_method() {
 }
 
 # registry_driver <module-dir> — the driver name registered by this module's
-# register.go (the documented convention: metaengine/register.go +
-# metaengine/*/register.go), or empty. RegisterDriver("name" may span lines,
+# register.go (the documented convention: metaengine/v4/register.go +
+# metaengine/*/v4/register.go), or empty. RegisterDriver("name" may span lines,
 # so scan 3 lines after each call; scanning only register.go keeps comment
 # mentions of other driver names in core files out of the census.
 registry_driver() {
@@ -88,7 +88,7 @@ cgo_gated() {
 # module's production files call (the turso→sqlite pattern), or empty.
 delegates_to() {
 	local root="$1" dir="$2" other pkg
-	for other in "$root"/metaengine/*engine; do
+	for other in "$root"/metaengine/*engine/v4; do
 		[ -d "$other" ] || continue
 		[ "$other" = "$dir" ] && continue
 		pkg=$(basename "$other")
@@ -104,19 +104,19 @@ delegates_to() {
 # else is derived). Keyed by module dir name.
 note_for() {
 	case "$1" in
-	metaengine) printf 'in-process default; no persistence' ;;
-	sqliteengine) printf 'recursive CTE + iterative fallback; modernc pure-Go driver' ;;
-	tursoengine) printf 'wraps the sqlite engine (embedded Turso Database driver)' ;;
-	pgengine) printf 'WITH RECURSIVE; pgx' ;;
-	mysqlengine) printf 'WITH RECURSIVE 8.0+, probed iterative fallback' ;;
-	duckdbengine) printf 'WITH RECURSIVE; CGo — registration behind //go:build cgo' ;;
-	badgerengine) printf 'prefix-scan BFS over adjacency keys' ;;
-	bboltengine) printf 'no ADTGraph — graph queries fail unsupported' ;;
-	pebbleengine) printf 'no ADTGraph — graph queries fail unsupported' ;;
-	dgraphengine) printf 'native n(depth:) @recurse; dgo gRPC' ;;
-	bigtableengine) printf 'heavy GCP deps (~3 direct); no ADTGraph; excluded from convenience-set discussion (ADR-0157)' ;;
-	irohengine) printf 'CRDT-replicated wrapper (Replicated(local)); NO registry driver — programmatic only' ;;
-	graphadapter) printf 'graph-memory; programmatic only (not a DeploymentConfig driver); directed-only, flat node identity' ;;
+	metaengine/v4) printf 'in-process default; no persistence' ;;
+	metaengine/sqliteengine/v4) printf 'recursive CTE + iterative fallback; modernc pure-Go driver' ;;
+	metaengine/tursoengine/v4) printf 'wraps the sqlite engine (embedded Turso Database driver)' ;;
+	metaengine/pgengine/v4) printf 'WITH RECURSIVE; pgx' ;;
+	metaengine/mysqlengine/v4) printf 'WITH RECURSIVE 8.0+, probed iterative fallback' ;;
+	metaengine/duckdbengine/v4) printf 'WITH RECURSIVE; CGo — registration behind //go:build cgo' ;;
+	metaengine/badgerengine/v4) printf 'prefix-scan BFS over adjacency keys' ;;
+	metaengine/bboltengine/v4) printf 'no ADTGraph — graph queries fail unsupported' ;;
+	metaengine/pebbleengine/v4) printf 'no ADTGraph — graph queries fail unsupported' ;;
+	metaengine/dgraphengine/v4) printf 'native n(depth:) @recurse; dgo gRPC' ;;
+	metaengine/bigtableengine/v4) printf 'heavy GCP deps (~3 direct); no ADTGraph; excluded from convenience-set discussion (ADR-0157)' ;;
+	metaengine/irohengine/v4) printf 'CRDT-replicated wrapper (Replicated(local)); NO registry driver — programmatic only' ;;
+	metaengine/graphadapter/v4) printf 'graph-memory; programmatic only (not a DeploymentConfig driver); directed-only, flat node identity' ;;
 	*) printf '' ;;
 	esac
 }
@@ -124,10 +124,10 @@ note_for() {
 # derive_table <root> — prints the generated markdown for the tree at <root>.
 derive_table() {
 	local root="$1" rows="" dir mod driver delegate graph removal undirected capgroup build note driver_disp
-	for dir in "$root"/metaengine "$root"/metaengine/*engine "$root"/metaengine/graphadapter; do
+	for dir in "$root"/metaengine/v4 "$root"/metaengine/*engine/v4 "$root"/metaengine/graphadapter/v4; do
 		[ -d "$dir" ] || continue
 		[ -n "$(prod_files "$dir")" ] || continue
-		mod=$(basename "$dir")
+		mod="${dir#"$root"/}"
 		driver=$(registry_driver "$dir")
 		graph=no
 		removal=no
@@ -137,18 +137,18 @@ derive_table() {
 		has_method "$dir" GraphRemoveEdge && removal=yes
 		has_method "$dir" GraphNeighborsUndirected && undirected=yes
 		has_method "$dir" TrimGroupedCap && capgroup=yes
-		if [ "$graph" = no ] && [ "$mod" != metaengine ]; then
+		if [ "$graph" = no ] && [ "$mod" != metaengine/v4 ]; then
 			delegate=$(delegates_to "$root" "$dir" || true)
 			if [ -n "$delegate" ]; then
-				has_method "$root/metaengine/$delegate" GraphAddEdge && graph="via $delegate"
-				has_method "$root/metaengine/$delegate" GraphRemoveEdge && removal="via $delegate"
-				has_method "$root/metaengine/$delegate" GraphNeighborsUndirected && undirected="via $delegate"
+				has_method "$root/metaengine/$delegate/v4" GraphAddEdge && graph="via $delegate"
+				has_method "$root/metaengine/$delegate/v4" GraphRemoveEdge && removal="via $delegate"
+				has_method "$root/metaengine/$delegate/v4" GraphNeighborsUndirected && undirected="via $delegate"
 			fi
 		fi
-		if [ "$capgroup" = no ] && [ "$mod" != metaengine ]; then
+		if [ "$capgroup" = no ] && [ "$mod" != metaengine/v4 ]; then
 			delegate=${delegate:-$(delegates_to "$root" "$dir" || true)}
 			if [ -n "${delegate:-}" ]; then
-				has_method "$root/metaengine/$delegate" TrimGroupedCap && capgroup="via $delegate"
+				has_method "$root/metaengine/$delegate/v4" TrimGroupedCap && capgroup="via $delegate"
 			fi
 		fi
 		if cgo_gated "$dir"; then build=CGo; else build='pure Go'; fi

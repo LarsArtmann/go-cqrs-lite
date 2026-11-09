@@ -821,7 +821,7 @@ replayed projections keep their original temporal order.
 Copy-paste wiring (per-engine versioning options, `MapGetAsOf`, `MapHistory`):
 [recipes.md](recipes.md) §2.37. Engine capability matrix incl. BigTable's
 GC-policy retention knob:
-[`metaengine/bigtableengine/README.md`](../../../../metaengine/bigtableengine/README.md).
+[`metaengine/bigtableengine/README.md`](../../../../metaengine/bigtableengine/v4/README.md).
 Design: [ADR-0141](../../../../docs/adr/0141-native-temporal-versioned-cells.md).
 
 ### 6.21 Data Products: Ports, Replication, and Contract Evolution
@@ -856,7 +856,7 @@ message `Version` when the payload SHAPE changes, add a `Changelog` entry
 so the rendered history explains it, and keep old consumers whole with
 `schema` upcasting (`UpcastSourceTransform` — register `v1 → v2` payload
 rewriters so stored events decode into the current Go type; see
-[schema module](../../../../schema/)). EventCatalog renders every version
+[schema module](../../../../schema/v4)). EventCatalog renders every version
 side-by-side; consumers pin the version they actually handle
 (`Ref{ID, Version}`). The golden rule: contracts only ever WIDEN within a
 major version — additive fields, never renames; breaking changes are a new

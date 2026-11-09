@@ -113,11 +113,11 @@ self_test() {
 
 	cat >"$tmp/good.nix" <<'EOF'
           testModules = [
-            "event"
-            "command"
+            "event/v4"
+            "command/v4"
           ];
           repeatModules = map (m: "./${m}/...") [
-            "event"
+            "event/v4"
           ];
           lintModules = testModules;
           modulePaths = map (m: "./${m}/...") testModules;
@@ -135,7 +135,7 @@ EOF
 	fi
 
 	# Fault 1: the race leg narrowed to one hand-picked path.
-	sed 's|export GT_LABEL=test-race GT_RACE=1 GT_PATHS="${modulePaths}"|export GT_LABEL=test-race GT_RACE=1 GT_PATHS="./event/..."|' \
+	sed 's|export GT_LABEL=test-race GT_RACE=1 GT_PATHS="${modulePaths}"|export GT_LABEL=test-race GT_RACE=1 GT_PATHS="./event/v4/..."|' \
 		"$tmp/good.nix" >"$tmp/narrow-race.nix"
 	findings="$(audit "$tmp/narrow-race.nix")"
 	printf '%s\n' "$findings" | grep -q '^B	#test-race GT_PATHS' || {
@@ -153,7 +153,7 @@ EOF
 	}
 
 	# Fault 3: modulePaths hand-written instead of derived.
-	sed 's|modulePaths = map (m: "./${m}/...") testModules;|modulePaths = [ "./event/..." ];|' \
+	sed 's|modulePaths = map (m: "./${m}/...") testModules;|modulePaths = [ "./event/v4/..." ];|' \
 		"$tmp/good.nix" >"$tmp/handwritten.nix"
 	findings="$(audit "$tmp/handwritten.nix")"
 	printf '%s\n' "$findings" | grep -q '^C	' || {
@@ -162,7 +162,7 @@ EOF
 	}
 
 	# Fault 4: lintModules narrowed.
-	sed 's|lintModules = testModules;|lintModules = [ "event" ];|' "$tmp/good.nix" >"$tmp/lint.nix"
+	sed 's|lintModules = testModules;|lintModules = [ "event/v4" ];|' "$tmp/good.nix" >"$tmp/lint.nix"
 	findings="$(audit "$tmp/lint.nix")"
 	printf '%s\n' "$findings" | grep -q '^D	' || {
 		echo "self-test FAIL: a narrowed lint set must be caught" >&2
@@ -172,11 +172,11 @@ EOF
 	# Fault 5: repeatModules names a module that no longer exists.
 	cat >"$tmp/repeat.nix" <<'EOF2'
           testModules = [
-            "event"
-            "command"
+            "event/v4"
+            "command/v4"
           ];
           repeatModules = map (m: "./${m}/...") [
-            "event"
+            "event/v4"
             "deleted-module"
           ];
           lintModules = testModules;
@@ -223,5 +223,5 @@ printf '%s\n' "$findings" | sed 's/^/::error::  /'
 echo ""
 echo "A curated matrix passes every downstream gate over a SMALLER set —"
 echo "that is the failure mode this check exists for. Restore the derivation"
-echo "from testModules rather than listing paths by hand."
+echo "from testModules rather than listing/v4 paths by hand."
 exit 1

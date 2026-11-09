@@ -32,7 +32,7 @@ classify='
 def v5key(f): f | sub("^core/v5/"; "") | split("/")[0];
 group_by(.Group)
 | map(. as $g | {
-    id: $g[0].Group,
+    id/v4: $g[0].Group,
     rows: $g,
     n: ($g | length),
     n_v5: ([$g[] | select(.File | startswith("core/v5/"))] | length),

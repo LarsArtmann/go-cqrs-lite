@@ -4,7 +4,7 @@
 # Builds two throwaway blank-import probe modules in a temp dir and reports
 # binary size, unique module count, and `go mod graph` edge count:
 #   1. sqlite-only  — the minimal durable deployment candidate
-#   2. all-10       — core metaengine (memory) + the 9 pure-Go engine modules
+#   2. all-10       — core metaengine/v4 (memory) + the 9 pure-Go engine modules
 #                     (duckdb excluded: CGo; bigtable excluded: heavy GCP)
 #
 # Reference numbers (2026-10-10, go1.27.1, linux/amd64, proxy-resolved tagged
@@ -30,16 +30,16 @@ MODE="proxy"
 [ "${1:-}" = "--tree" ] && MODE="tree"
 
 ENGINES=(
-	metaengine
-	metaengine/sqliteengine
-	metaengine/tursoengine
-	metaengine/pgengine
-	metaengine/mysqlengine
-	metaengine/badgerengine
-	metaengine/bboltengine
-	metaengine/pebbleengine
-	metaengine/dgraphengine
-	metaengine/irohengine
+	metaengine/v4
+	metaengine/sqliteengine/v4
+	metaengine/tursoengine/v4
+	metaengine/pgengine/v4
+	metaengine/mysqlengine/v4
+	metaengine/badgerengine/v4
+	metaengine/bboltengine/v4
+	metaengine/pebbleengine/v4
+	metaengine/dgraphengine/v4
+	metaengine/irohengine/v4
 )
 
 imports_for() { # comma-joined subset name list -> import block body
@@ -80,7 +80,7 @@ run_probe() { # <slug> <display-name> <import-paths...>
 		local size modules edges
 		size=$(stat -c%s probe)
 		modules=$(go list -m all | tail -n +2 | wc -l | tr -d ' ')
-		edges=$(go mod graph | wc -l | tr -d ' ')
+		edges=$(go mod graph/v4 | wc -l | tr -d ' ')
 		printf '| %s | %s | %s | %s |\n' "$name" "$size B" "$modules" "$edges"
 	)
 	rm -rf "$dir"
@@ -88,7 +88,7 @@ run_probe() { # <slug> <display-name> <import-paths...>
 }
 
 echo "mode: $MODE (ADR-0157 reference: sqlite-only 12,747,630 B / 64 / 168; all-10 68,185,216 B / 221 / 871)"
-echo "| probe | binary size | unique modules | go mod graph edges |"
+echo "| probe | binary size | unique modules | go mod graph/v4 edges |"
 echo "| --- | --- | --- | --- |"
-run_probe "sqlite-only" "sqlite engine only" metaengine/sqliteengine
+run_probe "sqlite-only" "sqlite engine only" metaengine/sqliteengine/v4
 run_probe "all-10" "all 10 pure-Go engines" "${ENGINES[@]}"

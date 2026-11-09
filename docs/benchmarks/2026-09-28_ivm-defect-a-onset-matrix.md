@@ -1,7 +1,7 @@
 # IVM Defect-A Onset Matrix (turso-go grouped-view delta loss)
 
 **Date:** 2026-09-28
-**Harness:** [`metaengine/tursoengine/ivm_bisect_test.go`](../../metaengine/tursoengine/ivm_bisect_test.go) (build tag `ivmrepro`, opt-in env `TURSO_IVM_BISECT=1`)
+**Harness:** [`metaengine/tursoengine/ivm_bisect_test.go`](../../metaengine/tursoengine/v4/ivm_bisect_test.go) (build tag `ivmrepro`, opt-in env `TURSO_IVM_BISECT=1`)
 **Invocation:**
 
 ```bash

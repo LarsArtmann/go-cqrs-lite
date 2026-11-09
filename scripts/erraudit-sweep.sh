@@ -10,7 +10,7 @@
 # Env:   GOEXPERIMENT=jsonv2 is REQUIRED (encoding/json/v2); GOWORK is forced off.
 #
 # Version-skew guard (2026-11-04): a NEWER erraudit on PATH started auditing
-# vendored JS (catalog/docserver/static) that the pinned v0.7.0 does not see —
+# vendored JS (catalog/v4/docserver/static) that the pinned v0.7.0 does not see —
 # the mirror went red while CI stayed green. The mirror therefore builds from
 # the vendored source by default so local and CI verdicts share one binary.
 set -uo pipefail

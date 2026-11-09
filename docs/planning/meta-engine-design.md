@@ -6,7 +6,7 @@
 > TypedReader, and QueryBuilder. Features described here that do NOT exist yet:
 > `projection.Declare[V,K]`, `store.Users.ByStatus()` typed accessor generation,
 > operator YAML config, plugin registry, auto-denormalization. See the
-> [README](../../metaengine/README.md) for what actually ships.
+> [README](../../metaengine/v4/README.md) for what actually ships.
 
 > **ADDENDUM 2026-08-06 (v2 vision):** The v2 architecture (ADRs 0111–0117)
 > evolves this design in three ways: (1) the planner reasons over typed

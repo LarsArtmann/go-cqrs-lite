@@ -4,8 +4,8 @@
 # Why: `-shuffle=on` prints its seed only on the FIRST line of output, so a
 # failure caused by test order was effectively unreproducible unless someone
 # scrolled back through CI logs. This runner mints an EXPLICIT seed, logs it
-# (build/shuffle-seeds.log, same helper the integration scripts use) and prints
-# the exact replay command, so any red run is reproducible by construction.
+# (build/shuffle-seeds.log, same helper the integration/v4 scripts use) and prints
+# the exact replay command/v4, so any red run is reproducible by construction.
 #
 # It also refuses the silent-random case: with no seed in the environment the
 # seed exists as a number in the log before go test starts, not as a hope.
@@ -20,8 +20,8 @@
 #   GT_P         how many PACKAGES run in parallel (default 4). Without a cap
 #                go test uses NumCPU and the heaviest packages (duckdbengine
 #                ~218s, tursoengine ~173s of CGo work) starve everything else
-#                into false timeouts — observed 2026-10-27: four systemscenario
-#                awaits and benchkit's journey budget failed purely because the
+#                into false timeouts — observed 2026-10-27: four systemscenario/v4
+#                awaits and benchkit/v4's journey budget failed purely because the
 #                host was oversubscribed. #verify has capped at 4 for the same
 #                reason since 2026-09-19.
 #   GT_JSON=1    emit `go test -json` events to build/test-json/<label>-<ts>.json
@@ -60,8 +60,8 @@ if [ "${GT_RACE:-0}" = "1" ]; then
 fi
 # -count is ALWAYS 1: Ginkgo v2 refuses any other value ("Ginkgo does not
 # support using go test -count to rerun suites"), which made the entire
-# repeat leg red on its 2026-10-27 first real execution — decider, event,
-# command, query and metaengine are Ginkgo suites. Repetition is done by
+# repeat leg red on its 2026-10-27 first real execution — decider/v4, event/v4,
+# command/v4, query/v4 and metaengine/v4 are Ginkgo suites. Repetition is done by
 # run_once (below) invoking the binary N times, which is what -count does
 # anyway, just without Ginkgo's veto.
 args+=(-count=1 -timeout="$TIMEOUT" -p "$P")
@@ -109,7 +109,7 @@ run_args() { # $1=iteration (1-based)
 # Always keep the evidence. A red run used to survive only as whatever
 # scrolled past, which is why the 2026-10-27 failure needed a full replay to
 # even name the package — and the replay passed, so the log would have been the
-# only record that it ever failed.
+# only record/v4 that it ever failed.
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 
 if [ "${GT_JSON:-0}" = "1" ] && [ "$COUNT" != "1" ]; then
@@ -138,7 +138,7 @@ if [ "${GT_JSON:-0}" = "1" ]; then
 	seed_for_iteration="$seed"
 	mapfile -t json_args < <(run_args 1)
 	CGO_ENABLED=1 go test "${json_args[@]}" -json "${PATHS[@]}" "$@" | tee "$json_out" || status=${PIPESTATUS[0]}
-	echo "==> JSON event stream: $json_out" >&2
+	echo "==> JSON event/v4 stream: $json_out" >&2
 
 	if [ "$status" -ne 0 ] && [ "${SHUFFLE:-on}" != "off" ]; then
 		print_replay "$seed"

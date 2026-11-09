@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# check-cue-config.sh — pin system/config.cue against the Go DeploymentConfig
+# check-cue-config.sh — pin system/v4/config.cue against the Go DeploymentConfig
 # surface (ADR-0165). Three checks:
 #   1. cue vet — the schema parses and evaluates (comprehensions included).
 #   2. golden eval — `standard` rendered from the fixture matches the
@@ -8,8 +8,8 @@
 #      standard-instance-triple.json, which the Go suite (system.Standard)
 #      and the NixOS eval test assert against too: the three preset twins
 #      cannot drift apart (ADR-0165 equivalence pin).
-#   3. drift pin — the set of koanf tags in system/config_types.go +
-#      system/engine_config.go equals the set of field names in the CUE
+#   3. drift pin — the set of koanf tags in system/v4/config_types.go +
+#      system/v4/engine_config.go equals the set of field names in the CUE
 #      definitions, bidirectionally: a Go field without CUE, or CUE without
 #      Go, both fail.
 #
@@ -97,7 +97,7 @@ run_checks() {
 		fail "cue eval -e deployment --out json failed"
 
 	diff -u "$dep_golden_json" "$tmp_eval" >/dev/null ||
-		fail "deployment JSON golden drift: differs from $dep_golden_json (regenerate: cue eval -e deployment --out json system/config.cue system/testdata/deployment-fixture.cue)"
+		fail "deployment JSON golden drift: differs from $dep_golden_json (regenerate: cue eval -e deployment --out json system/v4/config.cue system/v4/testdata/deployment-fixture.cue)"
 
 	local go_tags cue_fields
 	go_tags="$(extract_go_tags)"

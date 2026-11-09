@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build the docserver UI stylesheet (catalog/docserver/static/docs-ui.css)
+# Build the docserver UI stylesheet (catalog/v4/docserver/static/docs-ui.css)
 # from docs-ui.src.css + templ-components sources.
 #
 # Usage:
@@ -54,7 +54,7 @@ tailwindcss -i "$TMP_DIR/docs-ui.entry.css" -o "$TMP_DIR/docs-ui.css" --minify
 
 if [ "${1:-}" = "--check" ]; then
 	if ! diff -u "$OUT_CSS" "$TMP_DIR/docs-ui.css"; then
-		echo "ERROR: catalog/docserver/static/docs-ui.css is stale." >&2
+		echo "ERROR: catalog/v4/docserver/static/docs-ui.css is stale." >&2
 		echo "Fix: nix run .#build-docserver-css (or edit docs-ui.src.css) and commit." >&2
 		exit 1
 	fi

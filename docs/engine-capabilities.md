@@ -24,16 +24,16 @@ advanced.md §6.13, system/README, metaengine/COOKBOOK.md.
 
 | Module | Registry driver | Graph | Edge removal | Undirected | Grouped-cap trim | Build | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| metaengine | `memory` | yes | yes | yes | no | pure Go | in-process default; no persistence |
-| badgerengine | `badger` | yes | yes | yes | no | pure Go | prefix-scan BFS over adjacency keys |
-| bboltengine | `bbolt` | no | no | no | no | pure Go | no ADTGraph — graph queries fail unsupported |
-| bigtableengine | `bigtable` | no | no | no | no | pure Go | heavy GCP deps (~3 direct); no ADTGraph; excluded from convenience-set discussion (ADR-0157) |
-| dgraphengine | `dgraph` | yes | yes | yes | no | pure Go | native n(depth:) @recurse; dgo gRPC |
-| duckdbengine | `duckdb` | yes | no | no | no | CGo | WITH RECURSIVE; CGo — registration behind //go:build cgo |
-| irohengine | — (programmatic) | yes | yes | yes | no | pure Go | CRDT-replicated wrapper (Replicated(local)); NO registry driver — programmatic only |
-| mysqlengine | `mysql` | yes | yes | yes | no | pure Go | WITH RECURSIVE 8.0+, probed iterative fallback |
-| pebbleengine | `pebble` | no | no | no | no | pure Go | no ADTGraph — graph queries fail unsupported |
-| pgengine | `postgres` | yes | yes | yes | no | pure Go | WITH RECURSIVE; pgx |
-| sqliteengine | `sqlite` | yes | yes | yes | yes | pure Go | recursive CTE + iterative fallback; modernc pure-Go driver |
-| tursoengine | `turso` | via sqliteengine | via sqliteengine | via sqliteengine | via sqliteengine | pure Go | wraps the sqlite engine (embedded Turso Database driver) |
-| graphadapter | — (programmatic) | yes | yes | no | via sqliteengine | pure Go | graph-memory; programmatic only (not a DeploymentConfig driver); directed-only, flat node identity |
+| metaengine/v4 | `memory` | yes | yes | yes | no | pure Go | in-process default; no persistence |
+| metaengine/badgerengine/v4 | `badger` | yes | yes | yes | no | pure Go | prefix-scan BFS over adjacency keys |
+| metaengine/bboltengine/v4 | `bbolt` | no | no | no | no | pure Go | no ADTGraph — graph queries fail unsupported |
+| metaengine/bigtableengine/v4 | `bigtable` | no | no | no | no | pure Go | heavy GCP deps (~3 direct); no ADTGraph; excluded from convenience-set discussion (ADR-0157) |
+| metaengine/dgraphengine/v4 | `dgraph` | yes | yes | yes | no | pure Go | native n(depth:) @recurse; dgo gRPC |
+| metaengine/duckdbengine/v4 | `duckdb` | yes | no | no | no | CGo | WITH RECURSIVE; CGo — registration behind //go:build cgo |
+| metaengine/irohengine/v4 | — (programmatic) | yes | yes | yes | no | pure Go | CRDT-replicated wrapper (Replicated(local)); NO registry driver — programmatic only |
+| metaengine/mysqlengine/v4 | `mysql` | yes | yes | yes | no | pure Go | WITH RECURSIVE 8.0+, probed iterative fallback |
+| metaengine/pebbleengine/v4 | `pebble` | no | no | no | no | pure Go | no ADTGraph — graph queries fail unsupported |
+| metaengine/pgengine/v4 | `postgres` | yes | yes | yes | no | pure Go | WITH RECURSIVE; pgx |
+| metaengine/sqliteengine/v4 | `sqlite` | yes | yes | yes | yes | pure Go | recursive CTE + iterative fallback; modernc pure-Go driver |
+| metaengine/tursoengine/v4 | `turso` | no | no | no | no | pure Go | wraps the sqlite engine (embedded Turso Database driver) |
+| metaengine/graphadapter/v4 | — (programmatic) | yes | yes | no | no | pure Go | graph-memory; programmatic only (not a DeploymentConfig driver); directed-only, flat node identity |

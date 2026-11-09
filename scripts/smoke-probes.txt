@@ -9,4 +9,4 @@
 # tool's real invocation works. The install itself is always the hard gate.
 #
 # Format:  <module-path> <args...>
-cmd/cqrs-lint version
+cmd/cqrs-lint/v4 version

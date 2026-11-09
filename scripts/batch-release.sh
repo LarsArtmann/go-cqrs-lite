@@ -5,7 +5,7 @@
 # (see tag-release.sh's header for the failure classes):
 #   - path-vs-tag guard per triple: a tag whose major version does not match
 #     the module path declared in the go.mod is INVISIBLE to the module
-#     proxy (cmd/cqrs-lint shipped v4.2.0-v4.7.0 this way).
+#     proxy (cmd/cqrs-lint/v4 shipped v4.2.0-v4.7.0 this way).
 #   - Only the TAGGED modules' go.mods are touched, and only LOCAL
 #     (path-targeted) replaces are stripped. Sibling go.mods are irrelevant
 #     to each tag's consumers — the proxy reads only the tagged module's own
@@ -91,9 +91,9 @@
 #
 # Example:
 #   ./scripts/batch-release.sh \
-#     "event v4.0.3 Patch release" \
-#     "command v4.0.1 Patch release" \
-#     "cmd/cqrs-lint v0.3.0 Scanner accuracy overhaul"
+#     "event/v4 v4.0.3 Patch release" \
+#     "command/v4 v4.0.1 Patch release" \
+#     "cmd/cqrs-lint/v4 v0.3.0 Scanner accuracy overhaul"
 set -euo pipefail
 
 # scripts/go-env.sh (T05): self-source the env chain — batch cuts run go
@@ -129,8 +129,8 @@ usage() {
 	echo "       $0 --audit"
 	echo "       $0 --smoke-all <file-with-module-version-lines>"
 	echo "Example:"
-	echo "  $0 \"event v4.0.3 Patch release\" \"command v4.0.1 Patch release\""
-	echo "  $0 --dry-run \"event v4.0.3 Patch release\""
+	echo "  $0 \"event/v4 v4.0.3 Patch release\" \"command/v4 v4.0.1 Patch release\""
+	echo "  $0 --dry-run \"event/v4 v4.0.3 Patch release\""
 	echo "  $0 --lockstep v5.0.0-alpha.1 --from-manifest wave.txt   # wave.txt: 'core/v5 First v5 wave'"
 	echo "  $0 --audit   # all-modules path-vs-tag audit (via tag-release.sh)"
 }
@@ -374,7 +374,7 @@ for arg in "${ARGS[@]}"; do
 	*)
 		echo "ERROR: malformed triple \"${arg}\""
 		echo "Each argument must be ONE quoted string: \"<module> <version> <description>\""
-		echo "(e.g. \"event v4.0.3 Patch release\") — got version \"${version}\"."
+		echo "(e.g. \"event/v4 v4.0.3 Patch release\") — got version \"${version}\"."
 		run_log "guard FAIL ${module}: malformed triple (version \"${version}\")"
 		exit 1
 		;;
@@ -481,7 +481,7 @@ trap on_exit EXIT
 # --- Strip LOCAL replace directives from the TAGGED modules only ---
 #
 # A replace is local iff its target starts with '.' (relative path such as
-# ../event) or '/' (absolute path such as /home/lars/projects/go-finding).
+# ../event/v4) or '/' (absolute path such as /home/lars/projects/go-finding).
 # Sibling-repo dev replaces must be stripped too, or a published go.mod
 # points consumers at a path that does not exist on their machine. `|| true`
 # after grep is mandatory under pipefail: grep exits 1 when a go.mod has no

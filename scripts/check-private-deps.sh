@@ -2,7 +2,7 @@
 # check-private-deps.sh — no workspace go.mod may require a dependency the
 # Go module proxy cannot serve.
 #
-# A require on a PRIVATE repository breaks every workspace-wide go command
+# A require on a PRIVATE repository breaks every workspace-wide go command/v4
 # on machines without credentials (CI module loading exits 128 at the auth
 # prompt) and breaks consumers who tidy against our examples. The taskmanager
 # class: go-must is private past v0.1.0, so examples carry local helper

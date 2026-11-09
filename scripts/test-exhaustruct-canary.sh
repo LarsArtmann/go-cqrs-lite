@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # exhaustruct_v5 canary: prove every ignore-patterns entry in .golangci.yml
 # still matches its target type under the INSTALLED golangci-lint's
-# exhaustruct semantics. `config verify` catches schema drift, and
+# exhaustruct semantics. `config verify` catches schema/v4 drift, and
 # check-linter-names.sh catches renames — but a SEMANTICS change (the v4
 # short-name -> v5 full-type-name switch that created exhaustruct_v5) can
 # silently turn every ignore-pattern into a no-op: the linter starts
@@ -9,7 +9,7 @@
 #
 # Two layers:
 #   1. Static: each ignore-pattern entry is present in .golangci.yml and its
-#      target type still exists (stack in-repo; bbolt via the module cache
+#      target type still exists (stack/v4 in-repo; bbolt via the module cache
 #      when available — WARN-only so nix sandboxes without a Go module cache
 #      still pass).
 #   2. Behavioral (hermetic stdlib fixture, offline): a temp module
@@ -38,9 +38,9 @@ for pattern in "os/exec.Cmd" "go.etcd.io/bbolt.Options" \
 done
 
 if grep -q "^type Capabilities struct" "$repo_root/stack/capabilities.go"; then
-	echo "  target exists: stack/v4.Capabilities (stack/capabilities.go)"
+	echo "  target exists: stack/v4.Capabilities (stack/v4/capabilities.go)"
 else
-	echo "FAIL: stack/v4.Capabilities no longer declared in stack/capabilities.go — update the ignore-pattern" >&2
+	echo "FAIL: stack/v4.Capabilities no longer declared in stack/v4/capabilities.go — update the ignore-pattern" >&2
 	status=1
 fi
 

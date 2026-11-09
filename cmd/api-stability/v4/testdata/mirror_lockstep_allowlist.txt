@@ -1,0 +1,20 @@
+# Mirror lockstep drift register (ADR-0152 dual-support)
+#
+# One row per line: <v4-module> <side> <symbol> <reason...>
+#   side=v4: symbol exists only on the v4 side — transition lag, or a
+#            never-mirror verdict for surface that dies at the v5 cut.
+#   side=v5: symbol exists only on the core/v5 side — deliberate v5
+#            evolution (the audit trail for divergence decisions).
+# A trailing "/..." on <symbol> covers a whole subpackage subtree.
+#
+# Enforced by TestMirrorLockstep in cmd/api-stability/mirror_lockstep_test.go:
+# any drift NOT classified here fails CI, and rows that no longer cover any
+# drift fail as stale — prune them when the sides reconverge. The per-pair
+# lag/evolved counts in the test log are the v4→v5 migration ratchet.
+
+event/v4 v4 eventtest/... pending-mirror: eventtest suite not yet forked into core/v5/event (ADR-0152 transition lag; closure = eventtest + snapshot + storage/memory, test-coupled — see TODO_LIST M23)
+kv/v4 v4 func NewCacheForViewStore pending-mirror: view-store cache landed in v4 kv (issue #113, 2026-11-04 sweep); core/v5/kv Cache still holds *TypedStore — folding requires the ViewStore+copyFn restructure, part of the kv mirror wave, not a mechanical copy
+kv/v4 v4 func WithCacheCopyFunc pending-mirror: same restructure as NewCacheForViewStore — the v5 cacheConfig has no copyFn field yet
+command/v4 v4 commandtest/... pending-mirror: commandtest suite helpers relabeled under the module dir (v4-layout rename wave, 2026-11-09); no v5 fork yet
+id/v4 v4 idtest/... pending-mirror: idtest suite helpers relabeled under the module dir (v4-layout rename wave, 2026-11-09)
+query/v4 v4 querytest/... pending-mirror: querytest suite helpers relabeled under the module dir (v4-layout rename wave, 2026-11-09)

@@ -12,7 +12,7 @@
 #   ./scripts/benchmark-regression.sh --current results.txt            # compare pre-computed output (CI)
 #   ./scripts/benchmark-regression.sh --save benchmarks/benchmark-baseline.txt  # refresh local baseline
 #   ./scripts/benchmark-regression.sh --force-save ...             # save even after a noise-gate failure
-#   ./scripts/benchmark-regression.sh --noise-only                     # run only the benchkit noise gate
+#   ./scripts/benchmark-regression.sh --noise-only                     # run only the benchkit/v4 noise gate
 #
 # Options:
 #   --baseline FILE   baseline results file (default: benchmarks/benchmark-baseline.txt)
@@ -34,8 +34,8 @@
 #   --ceiling-factor N
 #                     multiple of the baseline median a run may reach (default 3)
 #   --bench REGEX     go test -bench pattern (default: the CI gate set; overrides
-#                     the default gate sets with a single stack/bench run)
-#   --dir PATH        package dir to benchmark in (default: stack/bench; same
+#                     the default gate sets with a single stack/bench/v4 run)
+#   --dir PATH        package dir to benchmark in (default: stack/bench/v4; same
 #                     single-set override semantics as --bench)
 #   --count N         benchmark repetitions feeding the median (default: 5)
 #   --benchtime T     go test -benchtime value (default: 100x — short samples
@@ -43,8 +43,8 @@
 #                     concurrent builds/LSP; CI passes its own 10x)
 #   --max-load N      load-gate ceiling for load1/load5 (default: CPU count)
 #   --skip-load-gate  do not abort on an oversubscribed machine
-#   --noise-only      run only the benchkit noise gate, skip the go-test gate sets
-#   --skip-noise-gate do not run the benchkit noise gate in live mode
+#   --noise-only      run only the benchkit/v4 noise gate, skip the go-test gate sets
+#   --skip-noise-gate do not run the benchkit/v4 noise gate in live mode
 #   --noise-current FILE
 #                     pre-computed `cqrs-bench run --format json` result for the
 #                     noise gate (skips running the noise benchmark)
@@ -111,7 +111,7 @@ KNOWN_UNSTABLE=(
 # The gate set is an EXPLICIT allowlist of "DIR::BENCH_REGEX[::BENCHTIME[::COUNT]]"
 # entries, deliberately NOT auto-discovered:
 # widening it (e.g. `.`) would pull in load-sensitive benchmarks like
-# watermill's BenchmarkCatchUp_ReplayThroughput and flake the CI regression
+# watermill/v4's BenchmarkCatchUp_ReplayThroughput and flake the CI regression
 # gate on shared runners. New gate benchmarks must be added here on purpose,
 # with load-aware budgets (loadScaledCeiling/soakTestScale) inside their own
 # package. `BenchmarkBenchkitSuite_Memory$` is anchored so the _Small variant
@@ -120,17 +120,17 @@ KNOWN_UNSTABLE=(
 # so 1k IS the steady-state number; ≥10k is un-benched by upstream seeding
 # constraint, see the bench file).
 GATE_SETS=(
-	"stack/bench::BenchmarkFullPipeline_Memory|BenchmarkBenchkitSuite_Memory$"
-	"stack/bench::BenchmarkBenchkitSuite_SQLite$"
-	"metaengine/tursoengine::BenchmarkMatViewRead/agg=[A-Z]+/scale=1k::100x::9"
-	"metaengine/claimkit::BenchmarkClaimDue_ClaimKit|BenchmarkTimerRoundTrip_ClaimKit|BenchmarkDedupCheckAndRecord_FreshKeys_ClaimKit|BenchmarkDedupCheckAndRecord_LiveWindowHit"
+	"stack/bench/v4::BenchmarkFullPipeline_Memory|BenchmarkBenchkitSuite_Memory$"
+	"stack/bench/v4::BenchmarkBenchkitSuite_SQLite$"
+	"metaengine/tursoengine/v4::BenchmarkMatViewRead/agg=[A-Z]+/scale=1k::100x::9"
+	"metaengine/v4/claimkit::BenchmarkClaimDue_ClaimKit|BenchmarkTimerRoundTrip_ClaimKit|BenchmarkDedupCheckAndRecord_FreshKeys_ClaimKit|BenchmarkDedupCheckAndRecord_LiveWindowHit"
 )
 BENCH_OVERRIDE=""
 DIR_OVERRIDE=""
 COUNT="5"
 BENCHTIME="100x"
 
-# ── benchkit per-metric noise gate (2026-09-16 decision: per-metric CI
+# ── benchkit/v4 per-metric noise gate (2026-09-16 decision: per-metric CI
 # gating over A/B-by-revision benchstat — the median compare's known
 # weakness is a loud machine, not a missing A/B workflow) ──
 # A median compare cannot tell a real regression from scheduler wait. The
@@ -322,7 +322,7 @@ gate_set_guard() {
 # sources: the cqrs-bench 'run' subcommand, the backend name in the factory
 # switch, and the profile name in benchkit. A rename would otherwise surface
 # later as an opaque 'cqrs-bench run exited non-zero'. Matching is
-# identifier-grade (2026-09-29, benchkit debt (h)): the double-quote anchors
+# identifier-grade (2026-09-29, benchkit/v4 debt (h)): the double-quote anchors
 # require the exact identifier, and _test.go files are EXCLUDED — a target
 # renamed in production but still mentioned in a test must fail the guard,
 # not silently pass it.
@@ -333,17 +333,17 @@ noise_target_guard() {
 	local failed=0
 
 	if ! grep -q -- '"run"' "$root/cmd/cqrs-bench/main.go" 2>/dev/null; then
-		echo "NOISE TARGET GUARD FAILED — cqrs-bench 'run' subcommand not found in cmd/cqrs-bench/main.go"
+		echo "NOISE TARGET GUARD FAILED — cqrs-bench 'run' subcommand not found in cmd/cqrs-bench/v4/main.go"
 		failed=1
 	fi
 
 	if ! grep -rEq --exclude='*_test.go' -- "\"$NOISE_BACKEND\"" "$root/cmd/cqrs-bench" --include='*.go' 2>/dev/null; then
-		echo "NOISE TARGET GUARD FAILED — backend '$NOISE_BACKEND' not found in cmd/cqrs-bench sources"
+		echo "NOISE TARGET GUARD FAILED — backend '$NOISE_BACKEND' not found in cmd/cqrs-bench/v4 sources"
 		failed=1
 	fi
 
 	if ! grep -rEq --exclude='*_test.go' -- "\"$NOISE_PROFILE\"" "$root/benchkit" --include='*.go' 2>/dev/null; then
-		echo "NOISE TARGET GUARD FAILED — profile '$NOISE_PROFILE' not found in benchkit sources"
+		echo "NOISE TARGET GUARD FAILED — profile '$NOISE_PROFILE' not found in benchkit/v4 sources"
 		failed=1
 	fi
 
@@ -358,8 +358,8 @@ noise_target_guard() {
 # load_gate aborts before any benchmarking when the machine is already
 # oversubscribed (calibration-gate.sh v2 rule: load1 AND load5 must sit
 # under the ceiling — load1-only let a burst-draining host pass while still
-# noisy). Default ceiling is the CPU count: benchkit flags runs at the same
-# line, so the gate refuses exactly the runs benchkit would stamp NOISY.
+# noisy). Default ceiling is the CPU count: benchkit/v4 flags runs at the same
+# line, so the gate refuses exactly the runs benchkit/v4 would stamp NOISY.
 load_gate() {
 	if [[ "$SKIP_LOAD_GATE" == 1 ]]; then
 		echo "==> Load gate: skipped (--skip-load-gate)"
@@ -470,8 +470,8 @@ run_noise_benchmark() {
 
 	echo "==> Building cqrs-bench for the noise gate"
 
-	if ! (cd "$REPO_ROOT" && GOTOOLCHAIN=auto go build -o "$out" ./cmd/cqrs-bench); then
-		echo "NOISE GATE FAILED — could not build ./cmd/cqrs-bench"
+	if ! (cd "$REPO_ROOT" && GOTOOLCHAIN=auto go build -o "$out" ./cmd/cqrs-bench/v4); then
+		echo "NOISE GATE FAILED — could not build ./cmd/cqrs-bench/v4"
 
 		return 1
 	fi
@@ -760,7 +760,7 @@ if [[ ${ceiling_status:-0} -ne 0 ]]; then
 fi
 
 if [[ $noise_status -ne 0 ]]; then
-	echo "FAIL: benchkit noise gate (see above)"
+	echo "FAIL: benchkit/v4 noise gate (see above)"
 	exit 1
 fi
 

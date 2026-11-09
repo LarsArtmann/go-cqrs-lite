@@ -7,7 +7,7 @@
 #
 # Usage:
 #   bash scripts/rerun-shuffle-seed.sh <seed>                  # whole suite
-#   bash scripts/rerun-shuffle-seed.sh <seed> ./event/...      # one module
+#   bash scripts/rerun-shuffle-seed.sh <seed> ./event/v4/...      # one module
 #   bash scripts/rerun-shuffle-seed.sh <seed> -race            # race mode
 #   GT_LABEL=test-race ... (label only affects the seed log)
 #

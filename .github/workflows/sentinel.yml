@@ -57,7 +57,7 @@ jobs:
       # network-bound and ~minutes slow, which is why it runs nightly rather
       # than per push. Dependency pinning decision (committed package-lock)
       # is tracked in TODO_LIST.
-      - name: Build the fixture catalog and fail on render errors
+      - name: Build the fixture catalog/v4 and fail on render errors
         run: nix run .#check-eventcatalog
 
     timeout-minutes: 20

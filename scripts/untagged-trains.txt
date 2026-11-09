@@ -7,10 +7,10 @@
 #     (2026-10-08 who-uses audit, Appendix B) plus internal tools and examples
 #     that never needed release trains in the first place.
 #   - Driver-tier rule: engines/drivers/transports TAG ON FIRST CONSUMER.
-#     While listed here, a driver is capability-proven by its integration
+#     While listed here, a driver is capability-proven by its integration/v4
 #     suites only. When a fleet app starts importing one, remove it here in
 #     the same commit that adds the consumer, then tag.
-#   - Exception: cmd/cqrs-lint keeps its release train (cross-repo consumers:
+#   - Exception: cmd/cqrs-lint/v4 keeps its release train (cross-repo consumers:
 #     buildflow, gomend).
 #
 # Consumed by scripts/lib/release_common.sh (is_untagged — the guard both
@@ -23,12 +23,12 @@
 .
 
 # internal tools — local modules, no release train needed
-benchkit
-cmd/api-stability
-cmd/cqrs-bench
-cmd/cqrs-gen
-cmd/cqrs-upgrade
-cmd/doc-check
+benchkit/v4
+cmd/api-stability/v4
+cmd/cqrs-bench/v4
+cmd/cqrs-gen/v4
+cmd/cqrs-upgrade/v4
+cmd/doc-check/v4
 
 # examples — usage demos, not deployments
 example/getting-started
@@ -40,53 +40,53 @@ example/scheduler-otel-status
 example/taskmanager
 
 # test suites — repo-local by design
-integration
-system/integration
-systemtest
-testutil/mysqltestcontainer
+integration/v4
+system/integration/v4
+systemtest/v4
+testutil/mysqltestcontainer/v4
 
 # driver tier — tag on first consumer
-metaengine/badgerengine
-metaengine/bboltengine
-metaengine/bench
-metaengine/bigtableengine
-metaengine/dgraphengine
-metaengine/duckdbengine
-metaengine/graphadapter
-metaengine/irohengine
-metaengine/irohengine/loopback
-metaengine/irohengine/quic
-metaengine/mysqlengine
-metaengine/otelobserver
-metaengine/pgengine
-metaengine/tursoengine
-queue/mysql
-storage/backuptest
-storage/pebble
+metaengine/badgerengine/v4
+metaengine/bboltengine/v4
+metaengine/bench/v4
+metaengine/bigtableengine/v4
+metaengine/dgraphengine/v4
+metaengine/duckdbengine/v4
+metaengine/graphadapter/v4
+metaengine/irohengine/v4
+metaengine/irohengine/loopback/v4
+metaengine/irohengine/quic/v4
+metaengine/mysqlengine/v4
+metaengine/otelobserver/v4
+metaengine/pgengine/v4
+metaengine/tursoengine/v4
+queue/mysql/v4
+storage/backuptest/v4
+storage/pebble/v4
 
 # deprecated presets — removed at v5 (ADR-0123); no new tags
-stack/bbolt
-stack/bench
-stack/duckdb
-stack/memory
-stack/metaengine
-stack/mysql
-stack/pebble
-stack/postgres
-stack/turso
+stack/bbolt/v4
+stack/bench/v4
+stack/duckdb/v4
+stack/memory/v4
+stack/metaengine/v4
+stack/mysql/v4
+stack/pebble/v4
+stack/postgres/v4
+stack/turso/v4
 
 # ghost verdicts pending T02 owner sign-off (docs/adr/0152 addendum):
 # kill / keep-driver / absorb — untagged under every outcome until a consumer
-# deriver REMOVED 2026-10-09: consumer arrived — systemscenario/v4 (ADR-0153)
-# requires it in its module graph (saga fixture uses WithAsyncDispatch,
-# ADR-0154), and systemscenario is fleet-consumed (cqrs-htmx, go-appkit).
+# deriver/v4 REMOVED 2026-10-09: consumer arrived — systemscenario/v4 (ADR-0153)
+# requires it in its module graph/v4 (saga fixture uses WithAsyncDispatch,
+# ADR-0154), and systemscenario/v4 is fleet-consumed (cqrs-htmx, go-appkit).
 # Tag-on-first-consumer rule satisfied; owner approved via adoption-wave Q1.
-graph
+graph/v4
 # idempotency/{kvstore,sqlstore} ghost verdict RESOLVED by ADR-0158
 # (2026-10-12): deprecated at v4.x, deleted at v5.0.0; migration target is
-# the metaengine.DedupStore capability wired through system (System.Dedup()).
+# the metaengine.DedupStore capability wired through system/v4 (System.Dedup()).
 idempotency/kvstore
-idempotency/sqlstore
-otel/otlp
+idempotency/sqlstore/v4
+otel/otlp/v4
 transport/grpc
 transport/http

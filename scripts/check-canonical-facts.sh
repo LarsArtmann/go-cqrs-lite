@@ -12,11 +12,11 @@
 #      `find . -name go.mod -not -path './vendor/*' | wc -l`.
 #   2. module-map census — every non-wildcard module dir with a go.mod
 #      must appear as a row/token in docs/agents/module-map.md (the
-#      example/* and metaengine/*engine wildcards are accepted only
+#      example/* and metaengine/v4/*engine wildcards are accepted only
 #      because the census banner documents their membership).
 #   3. recipes classification — the "<N>/<N> classified" claim in
 #      AGENTS.md must equal the recipeCatalog map entries in
-#      cmd/doc-check/recipes_catalog*.go.
+#      cmd/doc-check/v4/recipes_catalog*.go.
 #   4. status index (docs-health 10th-pass §e): every live report in
 #      docs/status/ (excl. README.md) must have a row in the live index
 #      and vice versa (18 unindexed 09-22+ reports survived two passes);
@@ -25,7 +25,7 @@
 #      hand-maintained navigation (cross-tree move basis, not derivable
 #      from disk) — the intro claim is the pinned number.
 #   5. engine/ADT counts (M14): "<N> engine implementations" (dep-isolated
-#      metaengine/*engine dirs + the in-core memory engine), "<N>
+#      metaengine/v4/*engine dirs + the in-core memory engine), "<N>
 #      self-registering drivers" (register.go files calling RegisterDriver;
 #      irohengine deliberately does not register), and "<N> planner ADTs"
 #      (identifiers listed in metaengine.AllADTs()) — the 10-vs-11-vs-12
@@ -109,9 +109,9 @@ for line in out.split('\n'):
     real.add(mod)
 missing = {r for r in real if r not in rows and '*' not in r
            and not r.startswith('example/')
-           and not re.match(r'metaengine/\w+engine$', r)
-           and not r.startswith('stack/')}
-# stack presets are rowed in combined rows (multi-module lines) — the
+           and not re.match(r'metaengine/\w+engine/v4$', r)
+           and not r.startswith('stack/v4/')}
+# stack/v4 presets are rowed in combined rows (multi-module lines) — the
 # backtick scan already caught them individually; anything left is real.
 if missing:
     print(f"✗ module-map census: unrowed modules: {', '.join(sorted(missing))}", file=sys.stderr)
@@ -126,7 +126,7 @@ PYEOF
 check_recipes_count() {
 	local dir="$1"
 	local derived
-	derived=$(grep -hE '^\s*"[^"]+":\s*\{' "$dir"/cmd/doc-check/recipes_catalog*.go | awk 'END {print NR}')
+	derived=$(grep -hE '^\s*"[^"]+":\s*\{' "$dir"/cmd/doc-check/v4/recipes_catalog*.go | awk 'END {print NR}')
 
 	local cited
 	cited=$(grep -oE '[0-9]+/[0-9]+ classified' "$dir/AGENTS.md" | head -1 | grep -oE '^[0-9]+' || true)
@@ -134,10 +134,10 @@ check_recipes_count() {
 		echo "✗ AGENTS.md carries no '<N>/<N> classified' recipes claim — gate cannot verify it" >&2
 		failures=$((failures + 1))
 	elif [[ "$cited" != "$derived" ]]; then
-		echo "✗ AGENTS.md claims '$cited/$cited classified' but the recipes catalog has $derived entries" >&2
+		echo "✗ AGENTS.md claims '$cited/$cited classified' but the recipes catalog/v4 has $derived entries" >&2
 		failures=$((failures + 1))
 	fi
-	echo "  recipes catalog: derived=$derived cited=${cited:-none}"
+	echo "  recipes catalog/v4: derived=$derived cited=${cited:-none}"
 }
 
 # check_status_index: docs/status/README.md live index ↔ disk, and the
@@ -195,8 +195,8 @@ check_status_index() {
 	fi
 }
 
-# check_engine_counts (fact 5, M14): the three metaengine count units are
-# derived from the repo — engine implementations = metaengine/*engine
+# check_engine_counts (fact 5, M14): the three metaengine/v4 count units are
+# derived from the repo — engine implementations = metaengine/v4/*engine
 # directories + the in-core memory engine (memory_engine.go); self-
 # registering drivers = register.go files that call RegisterDriver;
 # planner ADTs = the identifier list inside metaengine.AllADTs(). Docs may
@@ -206,10 +206,10 @@ check_engine_counts() {
 	local dir="$1" docs=("${DOC_SET[@]}")
 	local engine_modules=0 memory_core=0 engines drivers adts
 	engine_modules=$(find "$dir/metaengine" -mindepth 1 -maxdepth 1 -type d -name '*engine' 2>/dev/null | wc -l | tr -d ' ')
-	[[ -f "$dir/metaengine/memory_engine.go" ]] && memory_core=1
+	[[ -f "$dir/metaengine/v4/memory_engine.go" ]] && memory_core=1
 	engines=$((engine_modules + memory_core))
 	drivers=$(grep -rl 'RegisterDriver(' "$dir/metaengine" --include='register.go' 2>/dev/null | wc -l | tr -d ' ')
-	adts=$(awk '/^func AllADTs/,/^}/' "$dir/metaengine/enum_validation.go" 2>/dev/null | grep -oE '\bADT[A-Z][A-Za-z]*' | sort -u | wc -l | tr -d ' ')
+	adts=$(awk '/^func AllADTs/,/^}/' "$dir/metaengine/v4/enum_validation.go" 2>/dev/null | grep -oE '\bADT[A-Z][A-Za-z]*' | sort -u | wc -l | tr -d ' ')
 
 	local cited_total=0 bad=0
 	local -A derived=(["engine implementations"]="$engines" ["self-registering drivers"]="$drivers" ["planner ADTs"]="$adts")
@@ -304,7 +304,7 @@ self_test() {
 
 	# Minimal fake repo carrying one of each fact shape. go.mod files carry
 	# the uniform directive from the start (fact 6 asserts on every run_all).
-	mkdir -p "$tmp/cmd/doc-check" "$tmp/docs/agents" "$tmp/docs/status/archived" \
+	mkdir -p "$tmp/cmd/doc-check/v4" "$tmp/docs/agents" "$tmp/docs/status/archived" \
 		"$tmp/storage/memory" "$tmp/one" "$tmp/two" "$tmp/three"
 	for m in "$tmp" "$tmp/one" "$tmp/two" "$tmp/three" "$tmp/storage/memory"; do
 		printf 'go 1.27.2\n' >"$m/go.mod"
@@ -313,7 +313,7 @@ self_test() {
 	printf '| Module | Role | Notes |\n| --- | --- | --- |\n| `storage/memory/` | x | y |\n| `one/` | x | y |\n| `two/` | x | y |\n| `three/` | x | y |\n' \
 		>"$tmp/docs/agents/module-map.md"
 	printf 'var recipeCatalogA = map[string]recipeSpec{\n\t"r1": {\n\t\tpreamble: "x",\n\t},\n}\n' \
-		>"$tmp/cmd/doc-check/recipes_catalog.go"
+		>"$tmp/cmd/doc-check/v4/recipes_catalog.go"
 	printf '# t\n\n5 go.mod files and 1/1 classified\n' >"$tmp/AGENTS.md"
 	printf '# t\n' >"$tmp/README.md"
 	printf '# t\n' >"$tmp/ROADMAP.md"
@@ -323,14 +323,14 @@ self_test() {
 	printf '# a\n\nFiles per day across the 1 archived snapshots.\n' >"$tmp/docs/status/archived/README.md"
 	touch "$tmp/docs/status/archived/2026-01-01_00-00_a.md"
 
-	# Fact-5 fixture: minimal metaengine with one engine module, the in-core
+	# Fact-5 fixture: minimal metaengine/v4 with one engine module, the in-core
 	# memory engine, one registering driver, and a 2-entry AllADTs list.
-	mkdir -p "$tmp/metaengine/fakeengine"
-	touch "$tmp/metaengine/memory_engine.go"
+	mkdir -p "$tmp/metaengine/fakeengine" "$tmp/metaengine/v4"
+	touch "$tmp/metaengine/v4/memory_engine.go"
 	printf 'package metaengine\n\nfunc RegisterDriver(name string, open func()) {}\n\nfunc init() { RegisterDriver("memory", func() {}) }\n' \
-		>"$tmp/metaengine/register.go"
+		>"$tmp/metaengine/v4/register.go"
 	printf 'package metaengine\n\nfunc AllADTs() []ADT {\n\treturn []ADT{\n\t\tADTMap, ADTSet,\n\t}\n}\n' \
-		>"$tmp/metaengine/enum_validation.go"
+		>"$tmp/metaengine/v4/enum_validation.go"
 	printf '# t\n\n2 engine implementations, 1 self-registering drivers, 2 planner ADTs.\n' \
 		>"$tmp/FEATURES.md"
 
@@ -470,10 +470,10 @@ self_test() {
 		echo "  ✗ FAIL: honest engine counts should pass (got $failures failures)"
 	fi
 
-	# Leg 6a positive: uniform directives pass. The two metaengine go.mods
+	# Leg 6a positive: uniform directives pass. The two metaengine/v4 go.mods
 	# raise the fixture's module count 5->7 and must be rowed in the map.
 	failures=0
-	mkdir -p "$tmp/metaengine/fakeengine"
+	mkdir -p "$tmp/metaengine/fakeengine" "$tmp/metaengine/v4"
 	printf 'go 1.27.2\n' >"$tmp/metaengine/go.mod"
 	printf 'go 1.27.2\n' >"$tmp/metaengine/fakeengine/go.mod"
 	printf '# t\n\n7 go.mod files and 1/1 classified\n' >"$tmp/AGENTS.md"

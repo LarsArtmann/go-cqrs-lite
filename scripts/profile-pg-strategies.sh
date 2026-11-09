@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# profile-pg-strategies.sh — Measure startup time of PG integration strategies.
+# profile-pg-strategies.sh — Measure startup time of PG integration/v4 strategies.
 # Times the ephemeral nixpkgs approach vs Docker testcontainers.
 #
 # Usage:
@@ -35,9 +35,9 @@ done
 EPHEMERAL_TIME=""
 TC_TIME=""
 
-# Use a real test in stack/postgres that connects to the DB. Running it
+# Use a real test in stack/postgres/v4 that connects to the DB. Running it
 # forces full DB lifecycle: start → connect → test → stop.
-TEST_MODULE="stack/postgres"
+TEST_MODULE="stack/postgres/v4"
 TEST_PATTERN="TestNew_ProducesWorkingBundle"
 
 echo "=== PostgreSQL Strategy Profiling ==="
@@ -55,7 +55,7 @@ if [ "$RUN_EPHEMERAL" = true ]; then
 	PGDATA_CACHE=$(mktemp -d /tmp/cqrs-pg-prof-XXXXXX)
 	export PGDATA_CACHE
 	bash "$SCRIPT_DIR/ephemeral-pg.sh" go test \
-		-tags "integration" \
+		-tags "integration/v4" \
 		-run "$TEST_PATTERN" -count=1 -v \
 		"./$TEST_MODULE/..." 2>&1 | tail -5
 	rm -rf "$PGDATA_CACHE"
@@ -79,7 +79,7 @@ if [ "$RUN_TESTCONTAINERS" = true ]; then
 		(
 			cd "$TEST_MODULE"
 			CGO_ENABLED=1 GOWORK=off \
-				go test -tags "integration" \
+				go test -tags "integration/v4" \
 				-run "$TEST_PATTERN" -count=1 -v ./... 2>&1 | tail -5
 		) || true
 

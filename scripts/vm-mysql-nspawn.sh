@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # vm-mysql-nspawn.sh — Start a systemd-nspawn container with MySQL/MariaDB and
-# run integration tests. ~10x faster than QEMU (~15s vs ~131s) because nspawn
+# run integration/v4 tests. ~10x faster than QEMU (~15s vs ~131s) because nspawn
 # shares the host kernel — no full VM boot.
 #
 # HOW IT WORKS:
@@ -10,12 +10,12 @@
 #   4. Go tests run on the host against the container's MySQL
 #
 # For the CHECK path (nix build .#checks.x86_64-linux.mysql-nspawn), the host
-# needs `uid-range` system feature + `auto-allocate-uids`. Run
+# needs `uid-range` systemd feature + `auto-allocate-uids`. Run
 # scripts/enable-nspawn-support.sh once to enable.
 #
 # Usage:
 #   sudo bash scripts/vm-mysql-nspawn.sh                     # run all MySQL tests
-#   sudo bash scripts/vm-mysql-nspawn.sh -- ./stack/mysql/...
+#   sudo bash scripts/vm-mysql-nspawn.sh -- ./stack/mysql/v4/...
 #   sudo nix run .#integration-mysql-nspawn                   # same via nix
 #
 # If nspawn is not available, falls back to the QEMU VM script.
@@ -49,7 +49,7 @@ check_nspawn() {
 	fi
 
 	# Root privileges (systemd-nspawn requires CAP_SYS_ADMIN)
-	if [ "$(id -u)" -ne 0 ]; then
+	if [ "$(id/v4 -u)" -ne 0 ]; then
 		errors+=("not running as root (use: sudo bash scripts/vm-mysql-nspawn.sh)")
 	fi
 
@@ -157,49 +157,49 @@ if [ $# -gt 0 ]; then
 		go test -shuffle="$SEED" "$@" -count=1 -v
 	fi
 else
-	echo "==> Running all MySQL integration tests"
+	echo "==> Running all MySQL integration/v4 tests"
 	echo ""
-	echo "--- stack/mysql ---"
+	echo "--- stack/mysql/v4 ---"
 	SEED=$(new_shuffle_seed)
-	log_shuffle_seed "stack/mysql" "$SEED"
+	log_shuffle_seed "stack/mysql/v4" "$SEED"
 	(
-		cd stack/mysql
+		cd stack/mysql/v4
 		CGO_ENABLED=1 GOWORK=off \
 			go test -shuffle="$SEED" ./... -count=1 -v 2>&1
 	)
 	echo ""
-	echo "--- idempotency/sqlstore ---"
+	echo "--- idempotency/sqlstore/v4 ---"
 	SEED=$(new_shuffle_seed)
-	log_shuffle_seed "idempotency/sqlstore" "$SEED"
+	log_shuffle_seed "idempotency/sqlstore/v4" "$SEED"
 	(
-		cd idempotency/sqlstore
+		cd idempotency/sqlstore/v4
 		CGO_ENABLED=1 GOWORK=off \
-			go test -tags "integration" -shuffle="$SEED" -run TestIntegration_MySQL ./... -count=1 -v 2>&1
+			go test -tags "integration/v4" -shuffle="$SEED" -run TestIntegration_MySQL ./... -count=1 -v 2>&1
 	)
 	echo ""
-	echo "--- metaengine/mysqlengine (capability conformance + ADT matrix) ---"
+	echo "--- metaengine/mysqlengine/v4 (capability conformance + ADT matrix) ---"
 	SEED=$(new_shuffle_seed)
-	log_shuffle_seed "metaengine/mysqlengine" "$SEED"
+	log_shuffle_seed "metaengine/mysqlengine/v4" "$SEED"
 	(
-		cd metaengine/mysqlengine
+		cd metaengine/mysqlengine/v4
 		CGO_ENABLED=1 GOWORK=off ADTTEST_CAS_RACERS=10 \
 			go test -shuffle="$SEED" ./... -count=1 -v 2>&1
 	)
 	echo ""
-	echo "--- scheduling/sqlstore (MySQL claiming via SKIP LOCKED) ---"
+	echo "--- scheduling/sqlstore/v4 (MySQL claiming/v4 via SKIP LOCKED) ---"
 	SEED=$(new_shuffle_seed)
-	log_shuffle_seed "scheduling/sqlstore" "$SEED"
+	log_shuffle_seed "scheduling/sqlstore/v4" "$SEED"
 	(
-		cd scheduling/sqlstore
+		cd scheduling/sqlstore/v4
 		CGO_ENABLED=1 GOWORK=off \
-			go test -tags "integration" -shuffle="$SEED" -run TestClaimingMySQL ./... -count=1 -v 2>&1
+			go test -tags "integration/v4" -shuffle="$SEED" -run TestClaimingMySQL ./... -count=1 -v 2>&1
 	)
 	echo ""
-	echo "--- queue/mysql (work-queue conformance + ADR-0142 engine surface) ---"
+	echo "--- queue/mysql/v4 (work-queue conformance + ADR-0142 engine surface) ---"
 	SEED=$(new_shuffle_seed)
-	log_shuffle_seed "queue/mysql" "$SEED"
+	log_shuffle_seed "queue/mysql/v4" "$SEED"
 	(
-		cd queue/mysql
+		cd queue/mysql/v4
 		CGO_ENABLED=1 GOWORK=off ADTTEST_CAS_RACERS=10 \
 			go test -shuffle="$SEED" ./... -count=1 -v 2>&1
 	)
