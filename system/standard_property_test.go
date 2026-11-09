@@ -2,7 +2,7 @@ package system_test
 
 import (
 	"bytes"
-	"encoding/json"
+	"encoding/json/v2"
 	"os"
 	"path/filepath"
 	"slices"

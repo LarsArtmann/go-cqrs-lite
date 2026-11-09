@@ -3,7 +3,7 @@ module github.com/larsartmann/go-cqrs-lite/metaengine/tursoengine/v4
 go 1.27.2
 
 require (
-	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.7.1
+	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.8.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.23.0
 	github.com/larsartmann/go-error-family v0.12.0
 	github.com/onsi/gomega v1.44.0

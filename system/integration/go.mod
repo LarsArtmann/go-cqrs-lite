@@ -9,7 +9,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.2
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.5
 	github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4 v4.3.3
-	github.com/larsartmann/go-cqrs-lite/system/v4 v4.17.0
+	github.com/larsartmann/go-cqrs-lite/system/v4 v4.18.0
 )
 
 require (
@@ -47,7 +47,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.6.2 // indirect
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.22.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.23.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.4.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.7.1 // indirect
