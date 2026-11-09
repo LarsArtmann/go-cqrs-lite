@@ -1191,11 +1191,17 @@ jobs:
           scripts/generate-error-taxonomy.sh --check
 
 concurrency:
-  # Cancel-in-progress is PR-only: the auto-commit daemon pushes master
-  # every ~40 minutes while a full CI matrix needs ~2 hours, so a blanket
-  # cancel starved master CI into zero completed runs ever (2026-11-09
-  # finding: 23 of the last 30 push runs cancelled, 0 successes total).
-  # On master the newest pending run replaces older pending ones, so the
-  # latest commit still reaches a verdict without infinite queuing.
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  # The auto-commit daemon pushes master every ~40 minutes while a full CI
+  # matrix needs ~2 hours. A shared group + cancel starved master CI into
+  # zero completed runs EVER (23 of 30 push runs cancelled, 2026-11-09) —
+  # and an expression-based cancel-in-progress did NOT protect a running
+  # push run (run 42565472010 was cancelled mid-flight despite the
+  # PR-only expression). So: push runs get a UNIQUE per-run group (nothing
+  # shares it ⇒ nothing can cancel it; at most a couple of matrices run in
+  # parallel during daemon bursts), while PR runs share a per-ref group
+  # with cancel so superseded PR pushes cancel out.
+  group: >-
+    ${{ github.event_name == 'push' &&
+    format('{0}-run-{1}', github.workflow, github.run_number) ||
+    format('{0}-{1}', github.workflow, github.ref) }}
+  cancel-in-progress: true
