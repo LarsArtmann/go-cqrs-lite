@@ -87,17 +87,33 @@ MD
 	out="$tmp/out"
 	fails="$(check_file "$fixture" "$out")"
 	rc=0
-	[ "$fails" -eq 3 ] || { echo "SELF-TEST FAIL: expected 3 failures (undated, stale, duplicate), got $fails"; cat "$out"; rc=1; }
-	grep -q 'without a YYYY-MM-DD' "$out" || { echo "SELF-TEST FAIL: undated rule did not fire"; rc=1; }
-	grep -q 'older than' "$out" || { echo "SELF-TEST FAIL: stale rule did not fire"; rc=1; }
-	grep -q 'byte-identical duplicate' "$out" || { echo "SELF-TEST FAIL: duplicate rule did not fire"; rc=1; }
+	[ "$fails" -eq 3 ] || {
+		echo "SELF-TEST FAIL: expected 3 failures (undated, stale, duplicate), got $fails"
+		cat "$out"
+		rc=1
+	}
+	grep -q 'without a YYYY-MM-DD' "$out" || {
+		echo "SELF-TEST FAIL: undated rule did not fire"
+		rc=1
+	}
+	grep -q 'older than' "$out" || {
+		echo "SELF-TEST FAIL: stale rule did not fire"
+		rc=1
+	}
+	grep -q 'byte-identical duplicate' "$out" || {
+		echo "SELF-TEST FAIL: duplicate rule did not fire"
+		rc=1
+	}
 	[ "$rc" -eq 0 ] && echo "check-todo-list-hygiene self-test: OK (dated pass; undated/stale/duplicate fail)"
 	exit "$rc"
 fi
 
 cd "$(git rev-parse --show-toplevel)" || exit 1
 target="${1:-TODO_LIST.md}"
-[ -f "$target" ] || { echo "check-todo-list-hygiene: $target not found"; exit 1; }
+[ -f "$target" ] || {
+	echo "check-todo-list-hygiene: $target not found"
+	exit 1
+}
 
 out="$(mktemp)" && trap 'rm -f "$out"' EXIT
 fails="$(check_file "$target" "$out")"

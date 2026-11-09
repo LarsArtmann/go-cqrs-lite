@@ -31,7 +31,7 @@ TIMING_MODULES=(
 )
 
 nproc_cmd="$(command -v nproc || echo true)"
-total_cores=$("$nproc_cmd" 2>/dev/null || echo 2)
+total_cores=$("$nproc_cmd" 2>/dev/null || echo 2) # echo-gate:accept informational — soaker-core banner; load verdict comes from the loadavg gate
 SOAKER_CORES="${SOAKER_CORES:-$((total_cores > 2 ? total_cores - 1 : 1))}"
 
 echo "==> Starting $SOAKER_CORES CPU soaker(s) ($total_cores cores total)"

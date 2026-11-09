@@ -226,7 +226,7 @@ if [ "$pool_src" = rg ]; then
 	done
 fi
 sort -u "$tmp_pool" -o "$tmp_pool"
-total_codes=$(wc -l <"$tmp_pool")
+total_codes=$(wc -l <"$tmp_pool") # echo-gate:accept informational — count in the OK summary; bidirectional compare owns the verdict
 
 declare -A src_family=()
 declare -A src_pair=()

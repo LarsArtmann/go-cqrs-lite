@@ -169,8 +169,8 @@ for mod in "${MODULES[@]}"; do
 done
 
 ELAPSED=$((SECONDS - START_TIME))
-ELAPSED_MIN=$((ELAPSED / 60))
-ELAPSED_SEC=$((ELAPSED % 60))
+ELAPSED_MIN=$((ELAPSED / 60)) # echo-gate:accept informational — elapsed banner; wall-clock provenance only
+ELAPSED_SEC=$((ELAPSED % 60)) # echo-gate:accept informational — elapsed banner; wall-clock provenance only
 
 echo ""
 echo "============================================"

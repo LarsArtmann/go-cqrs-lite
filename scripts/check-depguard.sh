@@ -139,5 +139,5 @@ if [ "$MISSING" -gt 0 ]; then
 	exit 1
 fi
 
-TOTAL_REQUIRES=$(wc -l <"$REQUIRES_FILE")
+TOTAL_REQUIRES=$(wc -l <"$REQUIRES_FILE") # echo-gate:accept informational — count in the OK summary; coverage verdict branches elsewhere
 echo "OK: all $TOTAL_REQUIRES unique direct dependencies are covered by the depguard allow list."

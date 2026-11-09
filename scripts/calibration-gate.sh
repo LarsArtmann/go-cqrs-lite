@@ -79,7 +79,7 @@ LOAD1=$(load1)
 LOAD5=$(load5)
 LOADAVG=$(cat "$LOADAVG_FILE" 2>/dev/null || echo "unknown")
 UPTIME=$(uptime 2>/dev/null || echo "unknown")
-WHEN=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+WHEN=$(date -u +%Y-%m-%dT%H:%M:%SZ) # echo-gate:accept informational — timestamp banner for the receipt line; not a check result
 
 over_ceiling() {
 	# $1 = load value, $2 = label (load1/load5) for the failure message.

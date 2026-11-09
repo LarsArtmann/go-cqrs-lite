@@ -89,5 +89,5 @@ if [ "$failed" = true ]; then
 	exit 1
 fi
 
-offenders=$(grep -c $'\t' "$BASELINE" || true)
+offenders=$(grep -c $'\t' "$BASELINE" || true) # echo-gate:accept informational — baselined-offender count in the OK summary; ratchet logic owns the verdict
 echo "✓ file-size ratchet: no new offenders, no growth ($offenders baselined historical offender(s), target ≤ $LIMIT)."

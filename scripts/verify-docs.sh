@@ -158,6 +158,18 @@ else
 	echo "OK: TODO_LIST.md clean"
 fi
 
+# ── Echo-gate detector (2026-11-08, M22/F064-066) ──────────────────────────
+# A check variable computed but only echoed is gate theater — it can never
+# fail. The verify-docs module-count instance (fixed) is the reference catch;
+# informational displays carry an `# echo-gate:accept` reason on the assignment.
+echo "=== Echo-gate detector (scripts/) ==="
+if ! bash scripts/check-echo-gates.sh; then
+	echo "FAIL: scripts/ contains echo gates — branch on the flagged variables or annotate with '# echo-gate:accept <reason>'"
+	errors=$((errors + 1))
+else
+	echo "OK: no echo gates in scripts/"
+fi
+
 # ── Summary ────────────────────────────────────────────────────────────────
 echo ""
 if [ "$errors" -eq 0 ]; then

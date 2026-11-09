@@ -40,7 +40,8 @@ aggregate() { # <runs-json> → prints "workflow|conclusion|createdAt|url" rows,
 			  else
 				"\($w)|\(.conclusion // "?")|\(.createdAt)|\(.url // "")"
 			  end' <<<"$json")"
-		conclusion="${row#*|}"; conclusion="${conclusion%%|*}"
+		conclusion="${row#*|}"
+		conclusion="${conclusion%%|*}"
 		echo "$row"
 		[ "$conclusion" = "failure" ] && rc=$((rc + 1))
 	done
@@ -81,8 +82,14 @@ if [ "$SELF_TEST" -eq 1 ]; then
 	exit 0
 fi
 
-command -v gh >/dev/null 2>&1 || { echo "check-gates-rollup: gh CLI required"; exit 1; }
-command -v jq >/dev/null 2>&1 || { echo "check-gates-rollup: jq required"; exit 1; }
+command -v gh >/dev/null 2>&1 || {
+	echo "check-gates-rollup: gh CLI required"
+	exit 1
+}
+command -v jq >/dev/null 2>&1 || {
+	echo "check-gates-rollup: jq required"
+	exit 1
+}
 
 json="$(gh run list --limit 100 --json workflowName,status,conclusion,createdAt,url 2>/dev/null)"
 if [ -z "$json" ] || [ "$json" = "[]" ]; then

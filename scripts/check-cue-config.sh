@@ -50,54 +50,54 @@ cue_ok() {
 }
 
 extract_go_tags() {
-	rg -o 'koanf:"[A-Za-z_]+"' "${go_sources[@]}" 2>/dev/null \
-		| sed 's/.*koanf:"\([A-Za-z_]*\)".*/\1/' | sort -u
+	rg -o 'koanf:"[A-Za-z_]+"' "${go_sources[@]}" 2>/dev/null |
+		sed 's/.*koanf:"\([A-Za-z_]*\)".*/\1/' | sort -u
 }
 
 extract_cue_fields() {
 	# Field-name lines inside the CUE file: `name:` or `name?:` at any indent.
 	# The two top-level entry points (deployment, standard) are values, not
 	# schema fields — excluded from the pin.
-	sed -n 's/^[[:space:]]*\([A-Za-z_][A-Za-z0-9_]*\)[?]*:.*$/\1/p' "$config_cue" \
-		| grep -vx -e deployment -e standard \
-		| sort -u
+	sed -n 's/^[[:space:]]*\([A-Za-z_][A-Za-z0-9_]*\)[?]*:.*$/\1/p' "$config_cue" |
+		grep -vx -e deployment -e standard |
+		sort -u
 }
 
 run_checks() {
 	cue_ok || fail "cue binary not found (run via: nix run .#check-cue-config)"
 
-	"$cue_bin" vet "$config_cue" "$fixture" >/dev/null 2>&1 \
-		|| fail "cue vet rejected the schema/fixture pair"
+	"$cue_bin" vet "$config_cue" "$fixture" >/dev/null 2>&1 ||
+		fail "cue vet rejected the schema/fixture pair"
 
-	"$cue_bin" eval -e standard --out yaml "$config_cue" "$fixture" >"$tmp_eval" 2>/dev/null \
-		|| fail "cue eval -e standard failed"
+	"$cue_bin" eval -e standard --out yaml "$config_cue" "$fixture" >"$tmp_eval" 2>/dev/null ||
+		fail "cue eval -e standard failed"
 
-	diff -u "$golden" "$tmp_eval" >/dev/null \
-		|| fail "golden drift: standard preset eval differs from $golden"
+	diff -u "$golden" "$tmp_eval" >/dev/null ||
+		fail "golden drift: standard preset eval differs from $golden"
 
 	local instances_json
-	instances_json="$($cue_bin eval -e standard.instances --out json "$config_cue" "$fixture" 2>/dev/null)" \
-		|| fail "cue eval -e standard.instances failed"
+	instances_json="$($cue_bin eval -e standard.instances --out json "$config_cue" "$fixture" 2>/dev/null)" ||
+		fail "cue eval -e standard.instances failed"
 
-	diff -u <(jq -S . "$triple") <(jq -S . <<<"$instances_json") >/dev/null \
-		|| fail "instance-triple drift: standard.instances differs from $triple (shared with the Go suite and the NixOS eval test — ADR-0165 pin)"
+	diff -u <(jq -S . "$triple") <(jq -S . <<<"$instances_json") >/dev/null ||
+		fail "instance-triple drift: standard.instances differs from $triple (shared with the Go suite and the NixOS eval test — ADR-0165 pin)"
 
 	# The schema-only `deployment` entry passes explicit instances through
 	# VERBATIM — the standard filler is never implicit there.
-	"$cue_bin" eval -e deployment --out yaml "$config_cue" "$dep_fixture" >"$tmp_eval" 2>/dev/null \
-		|| fail "cue eval -e deployment failed"
+	"$cue_bin" eval -e deployment --out yaml "$config_cue" "$dep_fixture" >"$tmp_eval" 2>/dev/null ||
+		fail "cue eval -e deployment failed"
 
-	diff -u "$dep_golden" "$tmp_eval" >/dev/null \
-		|| fail "deployment golden drift: explicit instances must pass through unfilled (differs from $dep_golden)"
+	diff -u "$dep_golden" "$tmp_eval" >/dev/null ||
+		fail "deployment golden drift: explicit instances must pass through unfilled (differs from $dep_golden)"
 
 	# JSON twin of the deployment golden — the exact artifact the Go suite
 	# loads through LoadConfig (config_roundtrip_test.go), pinned here so the
 	# fixture and the Go-side artifact cannot drift apart.
-	"$cue_bin" eval -e deployment --out json "$config_cue" "$dep_fixture" >"$tmp_eval" 2>/dev/null \
-		|| fail "cue eval -e deployment --out json failed"
+	"$cue_bin" eval -e deployment --out json "$config_cue" "$dep_fixture" >"$tmp_eval" 2>/dev/null ||
+		fail "cue eval -e deployment --out json failed"
 
-	diff -u "$dep_golden_json" "$tmp_eval" >/dev/null \
-		|| fail "deployment JSON golden drift: differs from $dep_golden_json (regenerate: cue eval -e deployment --out json system/config.cue system/testdata/deployment-fixture.cue)"
+	diff -u "$dep_golden_json" "$tmp_eval" >/dev/null ||
+		fail "deployment JSON golden drift: differs from $dep_golden_json (regenerate: cue eval -e deployment --out json system/config.cue system/testdata/deployment-fixture.cue)"
 
 	local go_tags cue_fields
 	go_tags="$(extract_go_tags)"
