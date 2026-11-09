@@ -35,6 +35,20 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 
 **Decided this week (context, not re-openable here):** irohengine + bigtableengine = KEEP BOTH (2026-11-08); system v4.18.0 tagged (2026-11-08); StateCache Get = codec-cloned (2026-11-08); ADR-0166 StreamRef = Proposed, ratify at v5.
 
+## Per-module deep audits (2026-11-09, the owed brutal-audit scopes — ALL FOUR RUN)
+
+> Four staggered read-only audit subagents (provider-preflight staggered per the new gotcha).
+> Verified-real findings were fixed same-session (commits 4806cbec1..6e9d2ca31); retracted
+> findings are named so the next auditor doesn't re-chase them.
+
+- [x] **decider/id audit — DONE 2026-11-09**: `StateCache.Put` aliased caller state on intake (the B1 fix covered only egress — `LoadRef` returns the very instance it Puts, so caller mutations poisoned the cache); fixed with intake clone + `TestStateCache_PutIsolatesCacheFromCaller`. `StreamIDFrom(nil)` panicked instead of returning the documented zero value; nil guard + twin pins (`TestStreamIDFrom_NilIsZero` in id + core/v5/id).
+- [x] **metaengine audit — DONE 2026-11-09**: `routableLocked` read `s.health` without `healthMu` (race vs health transitions — safe wrapper now); `InTransaction`/`Close` iterated the live `s.engines` slice while `AddEngine`/`RemoveEngine` splice it (snapshot now); full `-race` suite green (152s). RETRACTED: the "stale meta_facts comment" (site doesn't exist).
+- [x] **verification/release audit — DONE 2026-11-09**: benchmark ceiling guard vacuous on renamed benchmarks (checked==0 now FAILs + fixture isolation + pin); release.yml root-tag resolution; fuzz corpus save-on-failure (explicit `cache/save` with `if: always()`); batch-release `verify=ok` label → truthful `build=ok`; fuzz-rotation + verify-chain + calibration-freeze self-tests wired into `#check-release-scripts`.
+- [x] **docs audit — DONE 2026-11-09**: 2 verified lies fixed (`host.Reset` arity in recipes+readmodels; core.md transport/grpc row marked DELETED). 13 of 15 findings RETRACTED on verification — the generated capability doc, canonical-facts, ADR indexes, and source all agree; the truth gates held.
+- [ ] **ADR-0137 hardening residue (audit follow-ups, rowed)**: (a) `TypedReader` reads bypass the quarantine reroute (`typed_reader.go:36` calls `q.QueryEngine()` directly — dead-engine reads instead of reroute); (b) write-path failures never feed engine health (`dispatchFoldsCoreLocked` discards fold errors — quarantine sees only probe/read failures); (c) `RegisterStdlibDefaults` fail-open means engines using stdlib importers start with NO health classification (legacy-import dependency); (d) `JournalReader` engines with unbounded latest-version scan (`scanLatest` loop) vs WAL-bounded cores. _(Effort: M each; (a)+(b) are the ADR-0137 "hard v5" enablers)_
+- [ ] **Verify-chain rc=12 through-nix proof (audit J6)**: the retry-only-rc=12 contract is pinned at the script level but never proven through `nix run .#verify`'s exit-code passthrough — one fault-injection run through the flake app would close it. _(Effort: S)_
+- [ ] **Release changed-set test contract (audit J1-full)**: `batch-release.sh --verify` still runs builds, not suites; the label is now truthful (`build=ok`) but the OWED change is a `--changed-set-tests` leg running per-module `go test` over the tag set before tagging. _(Effort: M; blocks on the next wave to exercise it)_
+
 > **Prioritized execution plan (2026-09-08):**
 > [`docs/planning/archived/2026-09-08_17-45_SUPERB-pareto-execution-plan.md`](docs/planning/archived/2026-09-08_17-45_SUPERB-pareto-execution-plan.md)
 > ranked the then-list into Pareto waves (W0 release train → W1 trust →
