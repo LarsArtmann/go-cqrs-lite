@@ -17,6 +17,24 @@ deleted the 114 done rows — their shipped work is recorded in CHANGELOG (recen
 in `[Unreleased]`) — and re-rowed the five open tails found inside them.
 The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 
+## OWNER DECISION SHEET (consolidated 2026-11-09 — F049/F186)
+
+> Every open owner-gated decision in ONE place, freshest first. Answers go to the
+> owning rows below; this sheet is the queue, not the record.
+
+| # | Decision | Options | Where it lands |
+|---|----------|---------|----------------|
+| D1 | **License**: relicense OSS (unblocks pkg.go.dev docs) vs stay PROPRIETARY (docs stay local-only) | OSS / accept-hidden | row ~1379 (F153) |
+| D2 | **Markdown format policy**: add dprint to treefmt vs document the exclusion | adopt / document | I08+N1 (dprint.json exists ungated) |
+| D3 | **A9 scheduling**: keycodec-v2 engine adoption as its own migration wave (recommended) vs pull ahead | own-wave / ahead | row ~307 |
+| D4 | **Nightly lint + lint-config systemd timers**: enable both on this machine (two one-liners) | enable / leave | rows ~639 + ~1582 |
+| D5 | **iroh verification slice**: pay `-race` receipts + CI-quic-leg proof now vs accept plain-green | pay / accept | row ~241 (Q3) |
+| D6 | **v4 fix-only declaration**: ratify before v5 or keep implicit | ratify / implicit | I10 |
+| D7 | **Tooling product line** (cqrs-lint ~49k LOC) + **catalog exporters** (~22k LOC): extract post-v5 or fold | extract / fold | I27 + I29 |
+| D8 | **dnsblockd foreign repo**: persist Candidate-3 re-confirmation there (coordinate) | do / defer | row ~242 (Q2) |
+
+**Decided this week (context, not re-openable here):** irohengine + bigtableengine = KEEP BOTH (2026-11-08); system v4.18.0 tagged (2026-11-08); StateCache Get = codec-cloned (2026-11-08); ADR-0166 StreamRef = Proposed, ratify at v5.
+
 > **Prioritized execution plan (2026-09-08):**
 > [`docs/planning/archived/2026-09-08_17-45_SUPERB-pareto-execution-plan.md`](docs/planning/archived/2026-09-08_17-45_SUPERB-pareto-execution-plan.md)
 > ranked the then-list into Pareto waves (W0 release train → W1 trust →
