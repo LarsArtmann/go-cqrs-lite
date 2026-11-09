@@ -111,3 +111,33 @@ func TestStateCache_ConcurrentGetMutateNoRace(t *testing.T) {
 
 	wg.Wait()
 }
+
+// TestStateCache_PutIsolatesCacheFromCaller pins the intake side of the
+// clone contract (audit finding 2026-11-09): the caller keeps a reference
+// to the state it hands over — LoadRef returns the very instance it Put —
+// so mutating it after Put must never poison the cached entry or the
+// states later callers receive.
+func TestStateCache_PutIsolatesCacheFromCaller(t *testing.T) {
+	cache := decider.NewStateCache[*pointerState](8)
+	ref := id.NewStreamRef("Put", id.NewStreamID())
+
+	state := &pointerState{Items: []string{"journal-true"}, Tags: map[string]int{"n": 1}}
+	cache.Put(ref, state, event.Version(1))
+
+	// Caller mutates its own instance afterwards.
+	state.Items[0] = "mutated"
+	state.Tags["n"] = 99
+
+	got, version, ok := cache.Get(ref)
+	if !ok {
+		t.Fatal("expected hit after Put")
+	}
+
+	if got.Items[0] != "journal-true" || got.Tags["n"] != 1 {
+		t.Fatalf("cache was poisoned by caller mutation: items=%v tags=%v", got.Items, got.Tags)
+	}
+
+	if version != event.Version(1) {
+		t.Fatalf("version: want 1, got %d", version)
+	}
+}

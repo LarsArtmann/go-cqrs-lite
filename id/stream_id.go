@@ -178,14 +178,20 @@ func DeriveStreamID(namespace string, keys ...string) StreamID {
 // A leading brand prefix from String() is stripped (ParseStreamID semantics),
 // so the raw value stays bare regardless of the source's display form.
 //
-// Zero-ID contract: if s is nil, or s.String() is empty or invalid UTF-8,
-// the returned StreamID is the zero value (empty backing) and the parse
-// error is discarded — constructor ergonomics over loudness. Converting
-// UNTRUSTED Stringers? Call ParseStreamID(s.String()) directly and surface
-// its error instead. Zero StreamIDs are rejected downstream by
+// Zero-ID contract: if s is nil (the untyped nil literal), or s.String()
+// is empty or invalid UTF-8, the returned StreamID is the zero value (empty
+// backing) and the parse error is discarded — constructor ergonomics over
+// loudness. A typed-nil Stringer still panics inside String(), same as fmt.
+// Converting UNTRUSTED Stringers? Call ParseStreamID(s.String()) directly
+// and surface its error instead. Zero StreamIDs are rejected downstream by
 // StreamRef.Validate() (code id.nil_stream_id) and checkable with
 // StreamID.IsZero().
 func StreamIDFrom(s fmt.Stringer) StreamID {
+	if s == nil {
+		var zero StreamID
+		return zero
+	}
+
 	id, _ := ParseStreamID(s.String())
 
 	return id

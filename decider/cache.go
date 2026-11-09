@@ -27,7 +27,11 @@ const DefaultStateCacheCapacity = 128
 // States returned by the default cache's Get are codec-cloned per caller:
 // mutating a returned state never aliases the cached instance (owner ruling
 // 2026-11-08, brutal-episode7 B1 — Get used to hand out the live cached
-// instance while concurrent loads folded onto it, a data race).
+// instance while concurrent loads folded onto it, a data race). Put clones
+// on intake for the same reason: the caller keeps mutating the instance it
+// handed over (the full-load path returns its own state object), so the
+// cache must own a private copy (audit finding 2026-11-09 — the B1 fix
+// covered only egress).
 type StateCache[State any] interface {
 	// Get retrieves the cached state and version for the given stream.
 	// Returns ok=false if the stream is not in the cache. Implementations
@@ -120,7 +124,18 @@ func cloneState[State any](state State) (State, error) {
 }
 
 func (c *otterCache[State]) Put(ref id.StreamRef, state State, version event.Version) {
-	c.cache.Set(ref.String(), &cacheEntry[State]{state: state, version: version})
+	// Put is the intake mirror of Get's clone: callers keep a reference to
+	// the state they hand over (LoadRef returns the very instance it Put),
+	// so storing it by value would alias caller mutations into the cache.
+	// A state that cannot round-trip the clone codec is NOT cached (the
+	// full-load path stays the source of truth; Get's uncloneable-miss
+	// handling stays symmetric).
+	private, err := cloneState(state)
+	if err != nil {
+		return
+	}
+
+	c.cache.Set(ref.String(), &cacheEntry[State]{state: private, version: version})
 }
 
 func (c *otterCache[State]) Invalidate(ref id.StreamRef) {
