@@ -3,9 +3,8 @@ package id_test
 import (
 	"testing"
 
-	id "github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
-
 
 // TestStreamIDFrom_NilIsZero pins the zero-ID contract's nil clause: the
 // untyped nil literal returns the zero StreamID instead of panicking inside
