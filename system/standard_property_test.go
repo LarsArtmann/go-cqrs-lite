@@ -117,7 +117,11 @@ func configFor(names []string) system.DeploymentConfig {
 func mustMarshal(rt *rapid.T, d system.DeploymentConfig) []byte {
 	rt.Helper()
 
-	data, err := json.Marshal(d)
+	// Deterministic(true) sorts map keys: encoding/json/v2 emits maps in
+	// iteration order by default, so a byte-compare of two marshals of the
+	// same Engines map is randomly ordered without it (the repeat-leg
+	// failure class of 2026-11-09). The adapters already marshal this way.
+	data, err := json.Marshal(d, json.Deterministic(true))
 	if err != nil {
 		rt.Fatalf("marshal deployment: %v", err)
 	}

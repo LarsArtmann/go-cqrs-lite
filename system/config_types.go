@@ -230,7 +230,7 @@ type CacheConfig struct {
 type InstanceConfig struct {
 	// Role classifies this instance: RoleEvents, RoleCommands, RoleQueries,
 	// RoleSnapshots, RoleProjections, or RoleSourceOfTruth (combined).
-	Role InstanceRole `koanf:"role"`
+	Role InstanceRole `koanf:"role" json:"role"`
 
 	// Collections lists the collection names this instance serves. It is
 	// introspection-only: surfaced in Introspection() and topology output,
@@ -238,36 +238,36 @@ type InstanceConfig struct {
 	// are wired. For RoleEvents, this is typically ["events"]. For
 	// RoleSourceOfTruth, it may be ["events", "commands", "queries",
 	// "snapshots", "checkpoints"].
-	Collections []string `koanf:"collections"`
+	Collections []string `koanf:"collections" json:"collections"`
 
 	// Engine is the named engine for a single-engine instance.
 	// Mutually exclusive with Engines.
-	Engine string `koanf:"engine"`
+	Engine string `koanf:"engine" json:"engine"`
 
 	// Engines lists named engines for a mixed-pool instance (projection layer).
 	// The metaengine planner routes freely within the pool.
 	// Mutually exclusive with Engine.
-	Engines []string `koanf:"engines"`
+	Engines []string `koanf:"engines" json:"engines"`
 
 	// Durability is the persistence tier for this instance: strict, normal,
 	// or relaxed. Empty means unspecified — engine defaults. All instances
 	// sharing an engine must agree on the tier; the resolved tier is applied
 	// at engine construction (e.g. SQLite PRAGMA synchronous). Engines
 	// without per-tier behavior fail construction on an explicit tier.
-	Durability DurabilityTier `koanf:"durability"`
+	Durability DurabilityTier `koanf:"durability" json:"durability"`
 
 	// Publish lists bus names that events from this instance are published to.
 	// Events fan-out to all listed buses (D9: multi-bus support).
-	Publish []string `koanf:"publish"`
+	Publish []string `koanf:"publish" json:"publish"`
 
 	// Subscribe is reserved and NOT read: the projection host consumes from
 	// the deployment's bus topology directly, so per-instance subscriptions
 	// are not (yet) wired. Parsed for backward compatibility; per-instance
 	// subscription may arrive at v5.
-	Subscribe []string `koanf:"subscribe"`
+	Subscribe []string `koanf:"subscribe" json:"subscribe"`
 
 	// Cache configures an optional read-through cache tier.
-	Cache *CacheConfig `koanf:"cache"`
+	Cache *CacheConfig `koanf:"cache" json:"cache"`
 }
 
 // InstanceRole classifies a metaengine.Store instance by its function.
