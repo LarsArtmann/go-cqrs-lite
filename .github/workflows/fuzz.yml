@@ -42,6 +42,10 @@ jobs:
 
       - name: Inventory matches the tree
         run: |
+          # The rotation self-test runs before the inventory check: its
+          # fixture mutations are the canary for the sharding logic itself
+          # (audit finding 2026-11-09 — it was shipped but never wired).
+          bash scripts/fuzz-rotation.sh --self-test
           bash scripts/fuzz-rotation.sh --update-targets
           if ! git diff --exit-code -- scripts/fuzz-targets.txt; then
             echo "::error::scripts/fuzz-targets.txt is stale - commit the regenerated inventory (a new Fuzz target must be fuzzed, not silently skipped)."
@@ -76,6 +80,19 @@ jobs:
           key: fuzz-corpus-${{ matrix.shard }}-${{ github.run_id }}
           restore-keys: |
             fuzz-corpus-${{ matrix.shard }}-
+
+      # The cache ACTION only saves its post-step on job success — a crash
+      # found late in the shard wrote its corpus into testdata but the
+      # post-step SKIPPED it, so the next night re-discovered the same crash
+      # instead of regressing on it (audit finding 2026-11-09). An explicit
+      # save with if: always() closes the carryover gap.
+      - name: Save fuzz corpora (even on failure)
+        if: always()
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            **/testdata/fuzz
+          key: fuzz-corpus-${{ matrix.shard }}-${{ github.run_id }}
 
       - name: Fuzz shard ${{ matrix.shard }}
         env:

@@ -1398,6 +1398,8 @@
                   ${pkgs.bash}/bin/bash "$PWD/scripts/nightly-bench.sh" --self-test
                   ${pkgs.bash}/bin/bash "$PWD/scripts/nightly-lint.sh" --self-test
                   ${pkgs.bash}/bin/bash "$PWD/scripts/test-benchmark-regression.sh"
+                  ${pkgs.bash}/bin/bash "$PWD/scripts/verify-chain.sh" --self-test
+                  ${pkgs.bash}/bin/bash "$PWD/scripts/test-calibration-freeze.sh"
                   ${pkgs.bash}/bin/bash "$PWD/scripts/check-buildcache-capacity.sh" --self-test
                   ${pkgs.bash}/bin/bash "$PWD/scripts/check-cqrs-lint-cli.sh" --self-test
                   ${pkgs.bash}/bin/bash "$PWD/scripts/check-changelog-coverage.sh" --self-test
