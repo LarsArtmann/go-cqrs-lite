@@ -424,3 +424,31 @@ Two micro-disciplines that each cost a failed edit this stream:
 ## Queue-module lint findings that vanish on re-run — daemon race DISPROVEN, capture is the cure (2026-10-25)
 
 - **The 10-25 composed-verify lint flake (queue/queue-sqlite/queue-postgres findings gone on immediate re-run ×2) was NOT the auto-commit daemon racing the linter**: git-log correlation shows ZERO daemon commits touching `queue/*` during the 12:50–14:06 flake window (today's queue-touching commits: 03:28, 07:17, then 14:14+ — all outside it). Remaining suspects, unproven: host resource pressure (load1 ≈100 from parallel sessions during the window) stressing golangci typecheck, or a same-shape transient as the badger first-run pin failure. Both incidents now share the standing order: **an uncaptured one-off failure is lost evidence** — on next recurrence, capture the FULL golangci output to a file BEFORE re-running (`nix run .#lint-module ... 2>&1 | tee build/lint-flake-<ts>.log`), then decide. The findings text from 10-25 is unrecoverable (clipped by `tail`), so this row records a disproven hypothesis and a capture protocol, not a root cause.
+## A rebuilt binary blocks the push only after the module moves (2026-11-11)
+
+- **Symptom**: `git push` dies with `GH001: Large files detected` /
+  `File cmd/cqrs-bench/v4/cqrs-bench is 164.10 MB`, so `git sync` stops with
+  "pre-receive hook declined". Root cause is NOT the build: the 2026-11-10
+  move of `cmd/*` modules under `cmd/*/v4/` left the fixed `.gitignore`
+  entries (`cmd/cqrs-bench/cqrs-bench`, `cmd/cqrs-upgrade/cqrs-upgrade`)
+  matching nothing, so the auto-commit daemon's `git add -A` heuristic
+  tracked five rebuilt binaries (api-stability 18 MB, cqrs-bench 164 MB,
+  cqrs-gen 18 MB, cqrs-upgrade 11 MB, doc-check 18 MB) in ONE
+  `chore: auto-commit` commit. The 100 MB pre-receive limit is what finally
+  surfaced it; four of the five would have been accepted silently.
+- **Fix that landed**: `.gitignore` now globs the module directory
+  (`cmd/*/*/cqrs-bench` etc.) instead of a fixed pre-move path, and the
+  in-flight commits were rewritten with
+  `git filter-branch --index-filter 'git rm -r --cached --ignore-unmatch <paths>' -- origin/master..master`
+  (only the 13 unpushed commits; `origin/master` stayed an ancestor, so the
+  push stayed a fast-forward — no force push).
+- **Before rewriting, prove the scope**: `git ls-tree -r -l <ref>` over
+  `origin/master..master` piped through `awk '$4 > 50000000'` shows every
+  oversized blob; `git ls-tree -r origin/master --name-only` shows which of
+  them the remote already has (those are NOT fixable without rewriting
+  published history + every release tag — `example/standard-topology/*` and
+  the root `standard-topology` binary are in that permanent class).
+- **Standing rule**: after ANY `cmd/*`/`example/*` directory move, re-check
+  `git check-ignore --no-index -v <new-binary-path>` for each tool before the
+  next push (`--no-index` is required: `git check-ignore` says nothing for a
+  path git is already tracking).
