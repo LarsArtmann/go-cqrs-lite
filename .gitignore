@@ -155,6 +155,19 @@ example/getting-started/getting-started
 example/readme-quickstart/readme-quickstart
 cmd/cqrs-bench/cqrs-bench
 
+# Compiled tool binaries. The tool modules moved under cmd/<tool>/v4/ on
+# 2026-11-10 and the pre-move exact paths above stopped matching, so the
+# auto-commit daemon's `git add -A` heuristic tracked 5 rebuilt binaries; the
+# 164 MiB cmd/cqrs-bench/v4/cqrs-bench then tripped GitHub's 100 MiB
+# pre-receive limit (2026-11-11, GH001) and blocked the push. Match the module
+# directory with a glob, never a fixed path, so the next move cannot resurrect it.
+cmd/*/*/api-stability
+cmd/*/*/cqrs-bench
+cmd/*/*/cqrs-gen
+cmd/*/*/cqrs-lint
+cmd/*/*/cqrs-upgrade
+cmd/*/*/doc-check
+
 # Compiled binaries
 /cqrs-bench
 /getting-started
