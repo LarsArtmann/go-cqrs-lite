@@ -18,4 +18,3 @@ require (
 )
 
 replace github.com/larsartmann/go-cqrs-lite/event/v4 => ../../../../../event/v4
-
