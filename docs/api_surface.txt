@@ -3516,6 +3516,7 @@ metaengine/v4/enginetest/func RunAtomicAppenderTest
 metaengine/v4/enginetest/func RunAtomicAppenderTestIn
 metaengine/v4/enginetest/func RunAutoCRUDSoak
 metaengine/v4/enginetest/func RunConcurrentTxTest
+metaengine/v4/enginetest/func RunCounterKeyCompositeTest
 metaengine/v4/enginetest/func RunKeysetExactEndTest
 metaengine/v4/enginetest/func RunKeysetPaginationTest
 metaengine/v4/enginetest/func RunPushdownStandardTiesTest
