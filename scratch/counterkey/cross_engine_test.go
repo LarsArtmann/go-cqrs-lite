@@ -2,22 +2,33 @@ package counterkey
 
 import (
 	"context"
+	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/badgerengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/bboltengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/mysqlengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/tursoengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // Cross-engine sweep closing the search space the sqlite-only recheck left
-// open: the 04-18 "truncate to first component" report never named its engine,
-// so the composite-key harness shape runs against every pure-Go backend plus
-// duckdb. Expected outcome for each backend: the emitted Delta keys land
-// verbatim ("api|pending", "api|running"); no truncated parent row ("api|").
-// CGO_ENABLED=1 is required for the duckdb binding; the others build pure.
+// open: the 04-18 "truncate to first component" report never named its
+// engine, so the composite-key harness shape runs against every backend that
+// can hold a counter store. Expected outcome for each backend: the emitted
+// Delta keys land verbatim ("api|pending", "api|running"); no truncated
+// parent row ("api|"). Engines without a CounterBackend (turso — its folds
+// have no counter store to inspect) skip BEFORE any fold runs: a counter
+// query on a non-CounterBackend engine errors by design, so the capability
+// assertion must precede Plan/ApplyRecord. CGO_ENABLED=1 is required for the
+// duckdb binding; the others build pure. The pg and mysql legs read the
+// canonical engine-suite env rails (POSTGRES_TEST_DSN, MYSQL_TEST_DSN — e.g.
+// "root:pass@tcp(localhost:3306)/test?parseTime=true") and skip when unset.
 
 type engineFactory struct {
 	name string
@@ -51,6 +62,39 @@ func engineFactories(t *testing.T) []engineFactory {
 
 			return eng
 		}},
+		{"bbolt", func(t *testing.T) metaengine.Engine {
+			dir := t.TempDir()
+			eng, err := bboltengine.NewBboltEngine(filepath.Join(dir, "db"))
+			must(t, err)
+
+			return eng
+		}},
+		{"turso", func(t *testing.T) metaengine.Engine {
+			eng, err := tursoengine.New(filepath.Join(t.TempDir(), "db"))
+			must(t, err)
+
+			return eng
+		}},
+		{"pg", func(t *testing.T) metaengine.Engine {
+			dsn := os.Getenv("POSTGRES_TEST_DSN")
+			if dsn == "" {
+				t.Skip("POSTGRES_TEST_DSN not set — skipping pg counter-key leg")
+			}
+			eng, err := pgengine.New(dsn)
+			must(t, err)
+
+			return eng
+		}},
+		{"mysql", func(t *testing.T) metaengine.Engine {
+			dsn := os.Getenv("MYSQL_TEST_DSN")
+			if dsn == "" {
+				t.Skip("MYSQL_TEST_DSN not set — skipping mysql counter-key leg")
+			}
+			eng, err := mysqlengine.New(dsn)
+			must(t, err)
+
+			return eng
+		}},
 	}
 
 	return factories
@@ -61,6 +105,11 @@ func TestCounterKeyCompositeCrossEngine(t *testing.T) {
 	for _, f := range engineFactories(t) {
 		t.Run(f.name, func(t *testing.T) {
 			eng := f.open(t)
+
+			cb, ok := eng.(metaengine.CounterBackend)
+			if !ok {
+				t.Skipf("engine %s does not implement CounterBackend — no counter store to inspect, class structurally out of reach", f.name)
+			}
 
 			st, err := metaengine.Plan([]metaengine.Engine{eng}, tasksQuery, countsQuery)
 			must(t, err)
@@ -74,10 +123,6 @@ func TestCounterKeyCompositeCrossEngine(t *testing.T) {
 				),
 			)
 
-			cb, ok := eng.(metaengine.CounterBackend)
-			if !ok {
-				t.Skipf("engine %s does not implement CounterBackend", f.name)
-			}
 			got, err := cb.CounterGet(ctx, "counts")
 			must(t, err)
 			t.Logf("counters after seed+transition: %v", got)
