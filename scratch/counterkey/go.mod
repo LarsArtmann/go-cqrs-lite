@@ -4,14 +4,19 @@ go 1.27.2
 
 require (
 	github.com/larsartmann/go-cqrs-lite/metaengine/badgerengine/v4 v4.3.3
+	github.com/larsartmann/go-cqrs-lite/metaengine/bboltengine/v4 v4.3.3
 	github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4 v4.3.3
+	github.com/larsartmann/go-cqrs-lite/metaengine/mysqlengine/v4 v4.3.3
 	github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4 v4.4.4
+	github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4 v4.4.3
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.8.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/tursoengine/v4 v4.2.3
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.23.0
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2
 )
 
 require (
+	filippo.io/edwards25519 v1.2.0 // indirect
 	github.com/DataDog/zstd v1.5.7 // indirect
 	github.com/apache/arrow-go/v18 v18.8.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
@@ -32,16 +37,22 @@ require (
 	github.com/duckdb/duckdb-go-bindings/lib/windows-amd64 v0.10506.0 // indirect
 	github.com/duckdb/duckdb-go/v2 v2.10506.0 // indirect
 	github.com/dustin/go-humanize v1.1.0 // indirect
+	github.com/ebitengine/purego v0.11.1 // indirect
 	github.com/fxamacker/cbor/v2 v2.10.0 // indirect
 	github.com/getsentry/sentry-go v0.50.0 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
+	github.com/go-sql-driver/mysql v1.10.1 // indirect
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
 	github.com/goccy/go-json v0.11.2 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/snappy v1.0.0 // indirect
 	github.com/google/flatbuffers v25.12.19+incompatible // indirect
 	github.com/google/uuid v1.6.0 // indirect
+	github.com/jackc/pgpassfile v1.0.0 // indirect
+	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
+	github.com/jackc/pgx/v5 v5.12.0 // indirect
+	github.com/jackc/puddle/v2 v2.2.3 // indirect
 	github.com/klauspost/compress v1.20.1 // indirect
 	github.com/klauspost/cpuid/v2 v2.4.0 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
@@ -63,14 +74,17 @@ require (
 	github.com/prometheus/procfs v0.22.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/rogpeppe/go-internal v1.16.0 // indirect
+	github.com/tursodatabase/turso-go-platform-libs v0.8.1 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/zeebo/xxh3 v1.1.0 // indirect
+	go.etcd.io/bbolt v1.5.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/otel v1.47.0 // indirect
 	go.opentelemetry.io/otel/log v1.47.0 // indirect
 	go.opentelemetry.io/otel/metric v1.47.0 // indirect
 	go.opentelemetry.io/otel/trace v1.47.0 // indirect
 	golang.org/x/exp v0.0.0-20261009195045-ca0d7ba23607 // indirect
+	golang.org/x/sync v0.24.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
 	golang.org/x/text v0.43.0 // indirect
 	google.golang.org/protobuf v1.36.12 // indirect
@@ -78,4 +92,5 @@ require (
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
 	modernc.org/sqlite v1.61.1 // indirect
+	turso.tech/database/tursogo v0.8.1 // indirect
 )

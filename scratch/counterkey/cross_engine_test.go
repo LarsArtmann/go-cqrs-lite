@@ -22,12 +22,13 @@ import (
 // engine, so the composite-key harness shape runs against every backend that
 // can hold a counter store. Expected outcome for each backend: the emitted
 // Delta keys land verbatim ("api|pending", "api|running"); no truncated
-// parent row ("api|"). Engines without a CounterBackend (turso — its folds
-// have no counter store to inspect) skip BEFORE any fold runs: a counter
-// query on a non-CounterBackend engine errors by design, so the capability
-// assertion must precede Plan/ApplyRecord. CGO_ENABLED=1 is required for the
-// duckdb binding; the others build pure. The pg and mysql legs read the
-// canonical engine-suite env rails (POSTGRES_TEST_DSN, MYSQL_TEST_DSN — e.g.
+// parent row ("api|"). Engines without a CounterBackend skip BEFORE any fold
+// runs: a counter query on a non-CounterBackend engine errors by design, so
+// the capability assertion must precede Plan/ApplyRecord (turso participates
+// — it delegates storage to the sqlite engine, counter backend included).
+// CGO_ENABLED=1 is required for the duckdb binding; the others build pure.
+// The pg and mysql legs read the canonical engine-suite env rails
+// (POSTGRES_TEST_DSN, MYSQL_TEST_DSN — e.g.
 // "root:pass@tcp(localhost:3306)/test?parseTime=true") and skip when unset.
 
 type engineFactory struct {
