@@ -2,10 +2,16 @@ package counterkey
 
 import (
 	"context"
+	"crypto/rand"
+	"database/sql"
+	"encoding/hex"
 	"os"
 	"path/filepath"
 	"testing"
 
+	mysql "github.com/go-sql-driver/mysql"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/badgerengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/bboltengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4"
@@ -81,24 +87,87 @@ func engineFactories(t *testing.T) []engineFactory {
 			if dsn == "" {
 				t.Skip("POSTGRES_TEST_DSN not set — skipping pg counter-key leg")
 			}
-			eng, err := pgengine.New(dsn)
-			must(t, err)
 
-			return eng
+			return pgUniqueEngine(t, dsn)
 		}},
 		{"mysql", func(t *testing.T) metaengine.Engine {
 			dsn := os.Getenv("MYSQL_TEST_DSN")
 			if dsn == "" {
 				t.Skip("MYSQL_TEST_DSN not set — skipping mysql counter-key leg")
 			}
-			eng, err := mysqlengine.New(dsn)
-			must(t, err)
 
-			return eng
+			return mysqlUniqueEngine(t, dsn)
 		}},
 	}
 
 	return factories
+}
+
+// pgUniqueEngine / mysqlUniqueEngine provision a throwaway DATABASE per
+// subtest run so repeated runs against a shared POSTGRES_TEST_DSN /
+// MYSQL_TEST_DSN never inherit prior runs' counter rows (the -count>1
+// pollution class; the engine suites isolate per collection via
+// ScopedCollection — the harness isolates at database level instead).
+
+func randomToken(t *testing.T) string {
+	t.Helper()
+	var tok [4]byte
+	_, err := rand.Read(tok[:])
+	must(t, err)
+
+	return hex.EncodeToString(tok[:])
+}
+
+func pgUniqueEngine(t *testing.T, dsn string) metaengine.Engine {
+	t.Helper()
+	cfg, err := pgx.ParseConfig(dsn)
+	must(t, err)
+	adminDB, err := sql.Open("pgx", dsn)
+	must(t, err)
+	name := "counterkey_" + randomToken(t)
+	if _, err := adminDB.Exec("CREATE DATABASE " + name); err != nil {
+		_ = adminDB.Close()
+		t.Fatalf("CREATE DATABASE %s: %v", name, err)
+	}
+	cfg.Database = name
+	engDB, err := sql.Open("pgx", stdlib.RegisterConnConfig(cfg))
+	must(t, err)
+	eng, err := pgengine.NewFromDB(engDB)
+	must(t, err)
+	t.Cleanup(func() {
+		_ = engDB.Close()
+		_, _ = adminDB.Exec("DROP DATABASE IF EXISTS " + name + " WITH (FORCE)")
+		_ = adminDB.Close()
+	})
+
+	return eng
+}
+
+func mysqlUniqueEngine(t *testing.T, dsn string) metaengine.Engine {
+	t.Helper()
+	cfg, err := mysql.ParseDSN(dsn)
+	must(t, err)
+	adminCfg := *cfg
+	adminCfg.DBName = ""
+	adminDB, err := sql.Open("mysql", adminCfg.FormatDSN())
+	must(t, err)
+	name := "counterkey_" + randomToken(t)
+	if _, err := adminDB.Exec("CREATE DATABASE " + name); err != nil {
+		_ = adminDB.Close()
+		t.Fatalf("CREATE DATABASE %s: %v", name, err)
+	}
+	cfg.DBName = name
+	engDB, err := sql.Open("mysql", cfg.FormatDSN())
+	must(t, err)
+	eng, err := mysqlengine.NewFromDB(engDB)
+	must(t, err)
+	t.Cleanup(func() {
+		_ = engDB.Close()
+		_, _ = adminDB.Exec("DROP DATABASE IF EXISTS " + name)
+		_ = adminDB.Close()
+	})
+
+	return eng
 }
 
 func TestCounterKeyCompositeCrossEngine(t *testing.T) {
