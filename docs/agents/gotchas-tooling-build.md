@@ -256,6 +256,15 @@ parse with an older go/parser generation and fail with
   sibling-replace consumers with `unknown revision 000000000000` — an
   intra-repo-replaced require MUST pin at the newest REAL tag (e.g.
   `metaengine/sqliteengine/v4 v4.5.3`); never normalize it.
+  UPDATE 2026-11-10: the special-casing landed — BuildFlow's
+  `isWithinRepoReplace` (pseudo_version_hygiene.go) constrains ONLY `.`
+  /`./dir` replace targets; `../sibling` dev-overrides like this repo's
+  engine replaces are deliberately exempt, so the entry cannot fire on
+  them (verified live: `buildflow doctor` rc=0, check ✓ over 101
+  go.mods, tag-pinned `sqliteengine v4.8.0`). The never-normalize
+  doctrine above STANDS; the "ignore that doctor entry" instruction is
+  retired — a future FAIL of this check names a REAL `./`-replace drift
+  and must be fixed, not ignored.
 - **Scope BuildFlow runs when only one step is needed — the full dev
   pipeline rewrites go.sums repo-wide** — its `go-work-*` steps rewrote
   21 modules' go.sums in one run (2026-10-12, re-tidied by hand), and
