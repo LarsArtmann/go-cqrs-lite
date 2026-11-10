@@ -59,6 +59,7 @@ func startProjectionSpan(
 func startReadSpan(ctx context.Context, name string) cqrsotel.Span {
 	_, span := cqrsotel.StartSpan(ctx, tracer(), name, cqrsotel.SpanKindClient,
 		cqrsotel.WithAttributes(cqrsotel.DBSystem(bboltComponent)))
+
 	return span
 }
 
@@ -68,6 +69,7 @@ func startLimitSpan(ctx context.Context, spanName string, limit int) cqrsotel.Sp
 		cqrsotel.WithAttributes(
 			cqrsotel.DBSystem(bboltComponent),
 			cqrsotel.AttrInt("limit", limit)))
+
 	return span
 }
 
@@ -79,10 +81,12 @@ func finalizeScan[T any](
 ) ([]T, error) {
 	if err != nil { //art-dupl:accept cross-module OTel error recording — separate go.mod
 		cqrsotel.RecordError(span, err)
+
 		return nil, errorfamily.Wrap(err, familyOrInfrastructure(err), code, msg)
 	}
 
 	span.SetAttributes(cqrsotel.AttrInt(countAttr, len(itemsOut)))
+
 	return itemsOut, nil
 }
 
@@ -101,5 +105,6 @@ func familyOrInfrastructure(err error) errorfamily.Family {
 
 func reportScanErr(span cqrsotel.Span, err error, code, msg string) error {
 	cqrsotel.RecordError(span, err)
+
 	return errorfamily.Wrap(err, familyOrInfrastructure(err), code, msg)
 }

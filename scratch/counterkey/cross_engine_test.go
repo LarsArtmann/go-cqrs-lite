@@ -178,7 +178,10 @@ func TestCounterKeyCompositeCrossEngine(t *testing.T) {
 
 			cb, ok := eng.(metaengine.CounterBackend)
 			if !ok {
-				t.Skipf("engine %s does not implement CounterBackend — no counter store to inspect, class structurally out of reach", f.name)
+				t.Skipf(
+					"engine %s does not implement CounterBackend — no counter store to inspect, class structurally out of reach",
+					f.name,
+				)
 			}
 
 			st, err := metaengine.Plan([]metaengine.Engine{eng}, tasksQuery, countsQuery)

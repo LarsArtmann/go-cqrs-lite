@@ -55,6 +55,7 @@ func TestSoak_RecordPipeline_100K(t *testing.T) {
 		if err := json.Unmarshal(payload, &item); err != nil {
 			return nil, err
 		}
+
 		return item, nil
 	}
 

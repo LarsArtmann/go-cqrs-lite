@@ -26,6 +26,7 @@ func marshalCBOROrErr(v any, code, msg string) ([]byte, error) {
 	if err != nil {
 		return nil, errorfamily.WrapCorruption(err, code, msg)
 	}
+
 	return data, nil
 }
 
@@ -50,9 +51,11 @@ func unmarshalCBOROrJSON(data []byte, target any, code, msg string) error {
 			target,
 		) //nolint:nolintlint // legacy JSON fallback for backward compat
 	}
+
 	if err != nil {
 		return errorfamily.WrapCorruption(err, code, msg)
 	}
+
 	return nil
 }
 

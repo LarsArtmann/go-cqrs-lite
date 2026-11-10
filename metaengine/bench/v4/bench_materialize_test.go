@@ -153,6 +153,7 @@ func TestPromise_MaterializeVsReplay_PredictionAccuracy(t *testing.T) {
 			for _, d := range store.Plan().Diagnostics {
 				if strings.Contains(d.Message, tt.wantDiag) {
 					found = true
+
 					break
 				}
 			}

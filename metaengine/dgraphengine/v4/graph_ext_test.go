@@ -31,6 +31,7 @@ func sortedExtNeighbors(items []any) []string {
 		}
 	}
 	sort.Strings(out)
+
 	return out
 }
 

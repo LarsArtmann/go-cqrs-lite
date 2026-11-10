@@ -134,6 +134,7 @@ func (t *QuicTransport) Ticket() (string, error) {
 	t.mu.RLock()
 	closed := t.closed
 	t.mu.RUnlock()
+
 	if closed {
 		return "", errQuicTransportClosed
 	}
@@ -142,6 +143,7 @@ func (t *QuicTransport) Ticket() (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to generate ticket: %w", err)
 	}
+
 	return ticket.String(), nil
 }
 
@@ -155,6 +157,7 @@ func (t *QuicTransport) NodeID() string {
 func (t *QuicTransport) PeerCount() int {
 	t.mu.RLock()
 	defer t.mu.RUnlock()
+
 	return len(t.conns)
 }
 
@@ -164,9 +167,11 @@ func (t *QuicTransport) PeerCount() int {
 func (t *QuicTransport) StreamsOpenedForPeer(peerID string) int64 {
 	t.mu.RLock()
 	defer t.mu.RUnlock()
+
 	if pc, ok := t.conns[peerID]; ok {
 		return pc.streamsOpened.Load()
 	}
+
 	return 0
 }
 
@@ -177,6 +182,7 @@ func (t *QuicTransport) Connect(ticketStr string) error {
 	t.mu.RLock()
 	closed := t.closed
 	t.mu.RUnlock()
+
 	if closed {
 		return errQuicTransportClosed
 	}
@@ -185,6 +191,7 @@ func (t *QuicTransport) Connect(ticketStr string) error {
 	if err != nil {
 		return fmt.Errorf("invalid ticket: %w", err)
 	}
+
 	addr := ticket.EndpointAddr()
 
 	conn, err := t.endpoint.Connect(addr, t.alpn)
@@ -193,6 +200,7 @@ func (t *QuicTransport) Connect(ticketStr string) error {
 	}
 
 	peerID := conn.RemoteId().String()
+
 	t.mu.Lock()
 	t.conns[peerID] = &peerConn{conn: conn, peerID: peerID}
 	t.mu.Unlock()
@@ -225,6 +233,7 @@ func (t *QuicTransport) Publish(_ context.Context, op irohengine.WriteOp) error 
 		wg.Add(1)
 		go func(pc *peerConn) {
 			defer wg.Done()
+
 			if t.cfg.poolStreams {
 				t.sendOpPooled(pc, data)
 			} else {
@@ -232,6 +241,7 @@ func (t *QuicTransport) Publish(_ context.Context, op irohengine.WriteOp) error 
 			}
 		}(pc)
 	}
+
 	wg.Wait()
 
 	return nil
@@ -254,8 +264,10 @@ func (t *QuicTransport) sendOp(conn *iroh_ffi.Connection, data []byte) {
 	if err != nil {
 		slog.Warn("quic sendOp: OpenBi failed",
 			slog.String("peer", conn.RemoteId().String()), slog.Any("err", err))
+
 		return
 	}
+
 	_ = stream.Send().WriteAll(data)
 	_ = stream.Send().Finish()
 
@@ -273,7 +285,9 @@ func (t *QuicTransport) sendOp(conn *iroh_ffi.Connection, data []byte) {
 func (t *QuicTransport) Subscribe(handler func(op irohengine.WriteOp)) error {
 	t.mu.Lock()
 	defer t.mu.Unlock()
+
 	t.subs = append(t.subs, handler)
+
 	return nil
 }
 
@@ -283,9 +297,12 @@ func (t *QuicTransport) Close() error {
 	t.mu.Lock()
 	if t.closed {
 		t.mu.Unlock()
+
 		return nil
 	}
+
 	t.closed = true
+
 	conns := make([]*iroh_ffi.Connection, 0, len(t.conns))
 	for _, pc := range t.conns {
 		conns = append(conns, pc.conn)
@@ -305,14 +322,17 @@ func (t *QuicTransport) Close() error {
 	for _, conn := range conns {
 		_ = conn.Close(0, []byte("shutdown"))
 	}
+
 	_ = t.endpoint.Close()
 
 	// Wait for accept loop to finish
 	done := make(chan struct{})
+
 	go func() {
 		t.acceptWG.Wait()
 		close(done)
 	}()
+
 	select {
 	case <-done:
 	case <-time.After(5 * time.Second):

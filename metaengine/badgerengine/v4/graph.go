@@ -124,6 +124,7 @@ func (e *badgerEngine) GraphNeighbors(
 	start := graphNodeKey(node)
 	visited := map[string]bool{start: true}
 	frontier := []string{start}
+
 	var result []any
 
 	err := e.db.View(func(txn *badger.Txn) error {
@@ -177,6 +178,7 @@ func (e *badgerEngine) GraphNeighborsUndirected(
 	start := graphNodeKey(node)
 	visited := map[string]bool{start: true}
 	frontier := []string{start}
+
 	var result []any
 
 	err := e.db.View(func(txn *badger.Txn) error {

@@ -1,6 +1,7 @@
 package event_test
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/core/v5/event"
@@ -16,9 +17,9 @@ func TestV3CompatAliases(t *testing.T) {
 
 	// Type aliases cross-assign to the canonical id package types.
 	streamID := id.NewStreamID()
-	var _ id.StreamID = event.AggregateID(streamID)
-	var _ id.StreamType = event.AggregateType("User")
-	var _ id.StreamRef = event.AggregateRef(id.NewStreamRef("User", streamID))
+	_ = event.AggregateID(streamID)
+	_ = event.AggregateType("User")
+	_ = event.AggregateRef(id.NewStreamRef("User", streamID))
 
 	// v3-compat constructor and parser re-exports.
 	ref := event.NewAggregateRef(id.StreamType("Order"), streamID)
@@ -60,15 +61,15 @@ func TestDeprecatedEventMethods(t *testing.T) {
 func TestDeprecatedErrorSentinels(t *testing.T) {
 	t.Parallel()
 
-	if event.ErrNilAggregateID != event.ErrNilStreamID {
+	if !errors.Is(event.ErrNilAggregateID, event.ErrNilStreamID) {
 		t.Error("ErrNilAggregateID is not ErrNilStreamID")
 	}
 
-	if event.ErrEmptyAggregateType != event.ErrEmptyStreamType {
+	if !errors.Is(event.ErrEmptyAggregateType, event.ErrEmptyStreamType) {
 		t.Error("ErrEmptyAggregateType is not ErrEmptyStreamType")
 	}
 
-	if event.ErrAggregateNotFound != event.ErrStreamNotFound {
+	if !errors.Is(event.ErrAggregateNotFound, event.ErrStreamNotFound) {
 		t.Error("ErrAggregateNotFound is not ErrStreamNotFound")
 	}
 }

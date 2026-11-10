@@ -86,7 +86,7 @@ func (e *mysqlEngine) GraphNeighborsUndirected(
 	}
 
 	if depth == 1 {
-		return e.graphNeighborsUndirectedDepth1(ctx, col, node) //nolint:wrapcheck
+		return e.graphNeighborsUndirectedDepth1(ctx, col, node)
 	}
 
 	if e.graphCTE {
@@ -140,7 +140,6 @@ func (e *mysqlEngine) graphNeighborsUndirectedIterative(
 	node any,
 	depth int,
 ) ([]any, error) {
-	//nolint:wrapcheck // metaengine.GraphBFS wraps adjacency errors with the label prefix
 	return metaengine.GraphBFS(ctx, node, depth, "mysqlengine.graphWalk", encodeNodeKey,
 		func(ctx context.Context, n string) ([]string, error) {
 			return e.graphNeighborsBothDirections(ctx, col, n)
@@ -166,14 +165,14 @@ func (e *mysqlEngine) graphNeighborsBothDirections(
 	for rows.Next() {
 		var nb string
 		if err := rows.Scan(&nb); err != nil {
-			return nil, err //nolint:wrapcheck // wrapped by caller
+			return nil, err
 		}
 
 		outgoing = append(outgoing, nb)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, err //nolint:wrapcheck // wrapped by caller
+		return nil, err
 	}
 
 	return outgoing, nil
@@ -184,17 +183,18 @@ func (e *mysqlEngine) graphNeighborsBothDirections(
 func scanGraphRows(rows *sql.Rows) ([]any, error) {
 	// art-dupl:accept database/sql single-column drain; sqliteengine twin is dep-isolated
 	var result []any
+
 	for rows.Next() {
 		var nb string
 		if err := rows.Scan(&nb); err != nil {
-			return nil, err //nolint:wrapcheck // wrapped by caller
+			return nil, err
 		}
 
 		result = append(result, nb)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, err //nolint:wrapcheck // wrapped by caller
+		return nil, err
 	}
 
 	if result == nil {

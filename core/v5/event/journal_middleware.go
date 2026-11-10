@@ -84,6 +84,7 @@ func (j *decoratedJournal) ReadFrom(
 	limit int,
 ) ([]Event, error) {
 	events, err := seekableReadFrom(ctx, j.inner, afterEventID, limit, "journal")
+
 	return j.applySource(events, err)
 }
 
@@ -148,6 +149,7 @@ func (it *transformingIterator) Next() (Event, error) {
 
 				break
 			}
+
 			if err != nil {
 				return nil, err
 			}

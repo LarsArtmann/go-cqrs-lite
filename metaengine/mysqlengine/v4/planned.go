@@ -218,6 +218,7 @@ func execPlannedUpsert(
 	}
 
 	updates := make([]string, 0, 1+len(plan.Columns))
+
 	updates = append(updates, "value = VALUES(value)")
 	for _, c := range plan.Columns {
 		updates = append(updates,

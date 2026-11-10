@@ -34,6 +34,7 @@ func TestLoopbackADTMatrix(t *testing.T) {
 					irohengine.WithTransport(tr),
 				)
 				t.Cleanup(func() { _ = eng.Close() })
+
 				return eng
 			},
 		},

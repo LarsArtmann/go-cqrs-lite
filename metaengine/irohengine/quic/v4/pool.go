@@ -42,8 +42,10 @@ func (t *QuicTransport) sendOpPooled(pc *peerConn, data []byte) {
 		if err != nil {
 			slog.Warn("quic sendOpPooled: OpenBi failed",
 				slog.String("peer", pc.peerID), slog.Any("err", err))
+
 			return
 		}
+
 		pc.stream = stream
 		pc.streamsOpened.Add(1)
 
@@ -51,6 +53,7 @@ func (t *QuicTransport) sendOpPooled(pc *peerConn, data []byte) {
 		// (pooled sender to non-pooled receiver would otherwise silently hang).
 		if err := pc.stream.Send().WriteAll([]byte{pooledStreamMagic}); err != nil {
 			t.evictPooledStream(pc)
+
 			return
 		}
 	}
@@ -58,10 +61,13 @@ func (t *QuicTransport) sendOpPooled(pc *peerConn, data []byte) {
 	// Write frame: [4-byte length][payload]
 	if err := pc.stream.Send().WriteAll(frameHeader(len(data))); err != nil {
 		t.evictPooledStream(pc)
+
 		return
 	}
+
 	if err := pc.stream.Send().WriteAll(data); err != nil {
 		t.evictPooledStream(pc)
+
 		return
 	}
 
@@ -69,16 +75,21 @@ func (t *QuicTransport) sendOpPooled(pc *peerConn, data []byte) {
 	ackHeader, err := pc.stream.Recv().ReadExact(frameHeaderSize)
 	if err != nil {
 		t.evictPooledStream(pc)
+
 		return
 	}
+
 	ackSize, err := parseFrameHeader(ackHeader)
 	if err != nil {
 		t.evictPooledStream(pc)
+
 		return
 	}
+
 	if ackSize > 0 {
 		if _, err := pc.stream.Recv().ReadExact(ackSize); err != nil {
 			t.evictPooledStream(pc)
+
 			return
 		}
 	}
@@ -115,11 +126,14 @@ func (t *QuicTransport) handlePooledStream(
 	if err != nil {
 		return
 	}
+
 	if magic[0] != pooledStreamMagic {
 		slog.Error("quic handlePooledStream: protocol mismatch — non-pooled sender " +
 			"connected to pooled receiver; the receiver has WithStreamPooling enabled " +
 			"but the sender does not")
+
 		_ = stream.Send().Finish() // unblock sender's ReadToEnd so it doesn't hang
+
 		return
 	}
 
@@ -129,6 +143,7 @@ func (t *QuicTransport) handlePooledStream(
 		if err != nil {
 			return // stream closed
 		}
+
 		size, err := parseFrameHeader(header)
 		if err != nil {
 			return
@@ -164,6 +179,7 @@ func (t *QuicTransport) handlePooledStream(
 		t.mu.RLock()
 		subs := t.subs
 		t.mu.RUnlock()
+
 		for _, s := range subs {
 			s(op)
 		}

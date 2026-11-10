@@ -65,6 +65,7 @@ const mysqlCTEProbeSQL = `WITH RECURSIVE cqrs_cte_probe(x) AS (
 // probeRecursiveCTE reports whether the server executes recursive CTEs.
 func probeRecursiveCTE(db *sql.DB) bool {
 	var got int
+
 	return db.QueryRowContext(context.Background(), mysqlCTEProbeSQL).Scan(&got) == nil
 }
 
@@ -101,7 +102,7 @@ func (e *mysqlEngine) GraphNeighbors(
 	}
 
 	if depth == 1 {
-		return e.graphNeighborsDepth1(ctx, col, node) //nolint:wrapcheck
+		return e.graphNeighborsDepth1(ctx, col, node)
 	}
 
 	if e.graphCTE {
@@ -137,11 +138,11 @@ func (e *mysqlEngine) queryGraphRows(
 ) ([]any, error) {
 	rows, err := e.conn(ctx).QueryContext(ctx, query, args...)
 	if err != nil {
-		return nil, err //nolint:wrapcheck // wrapped by caller
+		return nil, err
 	}
 	defer metaengine.DeferClose(rows)
 
-	return scanGraphRows(rows) //nolint:wrapcheck // wrapped by caller
+	return scanGraphRows(rows)
 }
 
 // graphNeighborsCTE resolves the depth-limited neighborhood in a single
@@ -170,7 +171,6 @@ func (e *mysqlEngine) graphNeighborsIterative(
 	node any,
 	depth int,
 ) ([]any, error) {
-	//nolint:wrapcheck // metaengine.GraphBFS wraps adjacency errors with the label prefix
 	return metaengine.GraphBFS(ctx, node, depth, "mysqlengine.graphWalk", encodeNodeKey,
 		func(ctx context.Context, n string) ([]string, error) {
 			return e.queryGraphNeighbors(ctx, col, n)
@@ -187,6 +187,7 @@ func (e *mysqlEngine) queryGraphNeighbors(
 	if err != nil {
 		return nil, err
 	}
+
 	defer metaengine.DeferClose(rows)
 
 	var neighbors []string

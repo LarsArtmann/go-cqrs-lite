@@ -138,5 +138,6 @@ func measureLatency(iterations int, fn func()) time.Duration {
 	for range iterations {
 		fn()
 	}
+
 	return time.Since(start) / time.Duration(iterations)
 }

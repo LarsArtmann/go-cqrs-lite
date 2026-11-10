@@ -280,6 +280,7 @@ func TestAdvisor_ScanDetection_Golden(t *testing.T) { //nolint:tparallel // subt
 			for i := range recs {
 				if recs[i].Index.Name == tt.wantIdxName {
 					found = &recs[i]
+
 					break
 				}
 			}

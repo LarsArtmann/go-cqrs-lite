@@ -64,6 +64,7 @@ func Register[E any](eventType event.Type, _ E) EventRegistration {
 
 			if len(evt.Payload()) > 0 {
 				var err error
+
 				p, err = event.DecodePayloadAuto[E](evt)
 				if err != nil {
 					return nil, fmt.Errorf("projectionadapter: decode %s: %w", t, err)
@@ -89,6 +90,7 @@ func RegisterString[E any](eventType string, _ E) EventRegistration {
 
 			if len(evt.Payload()) > 0 {
 				var err error
+
 				p, err = event.DecodePayloadAuto[E](evt)
 				if err != nil {
 					return nil, fmt.Errorf("projectionadapter: decode %s: %w", eventType, err)

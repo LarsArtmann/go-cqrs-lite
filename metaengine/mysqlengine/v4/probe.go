@@ -19,6 +19,7 @@ const MySQL_NetworkRTT = 1 * time.Millisecond
 // art-dupl:accept intentional cross-module duplicate — separate go.mod
 func (e *mysqlEngine) Probe(ctx context.Context) (time.Duration, error) {
 	start := time.Now()
+
 	if err := e.db.PingContext(ctx); err != nil {
 		return 0, err
 	}
@@ -35,6 +36,7 @@ func (e *mysqlEngine) Probe(ctx context.Context) (time.Duration, error) {
 // art-dupl:accept intentional cross-module duplicate — separate go.mod
 func (e *mysqlEngine) MeasureTransact(ctx context.Context) (time.Duration, error) {
 	start := time.Now()
+
 	_, err := e.db.ExecContext(ctx,
 		`SELECT value FROM meta_map WHERE collection = ? AND `+"`key`"+` = ? LIMIT 1`,
 		"__probe", "__probe",

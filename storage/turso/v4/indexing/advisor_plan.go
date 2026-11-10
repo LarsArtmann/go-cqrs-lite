@@ -139,7 +139,7 @@ func (a *Advisor) userTables(ctx context.Context) ([]string, error) {
 		tables = append(tables, name)
 	}
 
-	return tables, rows.Err() //nolint:wrapcheck // transparent delegation
+	return tables, rows.Err()
 }
 
 func (a *Advisor) deduplicate(recs []Recommendation) []Recommendation {

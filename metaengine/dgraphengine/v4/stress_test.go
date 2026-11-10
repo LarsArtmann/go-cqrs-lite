@@ -109,12 +109,14 @@ func TestGraphRAG_ConcurrentStress(t *testing.T) {
 				if err != nil {
 					t.Errorf("goroutine %d query %d: SearchQuery %q: %v",
 						goroutineID, q, query, err)
+
 					return
 				}
 
 				if len(results) == 0 {
 					t.Errorf("goroutine %d query %d: SearchQuery %q returned 0 results",
 						goroutineID, q, query)
+
 					return
 				}
 
@@ -124,12 +126,14 @@ func TestGraphRAG_ConcurrentStress(t *testing.T) {
 					if err != nil {
 						t.Errorf("goroutine %d: GraphNeighbors %s: %v",
 							goroutineID, r.ID, err)
+
 						return
 					}
 					// Verify non-empty expansion (each entity has 3+ neighbors).
 					if len(neighbors) == 0 {
 						t.Errorf("goroutine %d: GraphNeighbors %s returned 0 neighbors",
 							goroutineID, r.ID)
+
 						return
 					}
 				}

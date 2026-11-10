@@ -91,6 +91,7 @@ func New(addr string, opts ...Option) (metaengine.Engine, error) {
 
 	if err := eng.init(); err != nil {
 		client.Close()
+
 		return nil, err
 	}
 
@@ -237,6 +238,7 @@ func (e *dgraphEngine) Profile() metaengine.EngineProfile {
 // Implements [metaengine.HealthChecker] for Kubernetes-style liveness probes.
 func (e *dgraphEngine) HealthCheck(ctx context.Context) error {
 	_, err := e.client.NewTxn().Query(ctx, `{ health(func: uid(0x1)) { uid } }`)
+
 	return err
 }
 

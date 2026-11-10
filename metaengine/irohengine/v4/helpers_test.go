@@ -29,6 +29,7 @@ func newTwoNodeCluster(t *testing.T) (nodeA, nodeB metaengine.Engine) {
 		_ = nodeA.Close()
 		_ = nodeB.Close()
 	})
+
 	return nodeA, nodeB
 }
 
@@ -41,6 +42,7 @@ type manualClock struct {
 func newManualClock(start time.Time) *manualClock {
 	c := &manualClock{}
 	c.now.Store(start.UnixNano())
+
 	return c
 }
 
@@ -51,6 +53,7 @@ func (c *manualClock) Now() time.Time {
 // Advance moves the clock forward by d and returns the new time.
 func (c *manualClock) Advance(d time.Duration) time.Time {
 	newNanos := c.now.Add(int64(d))
+
 	return time.Unix(0, newNanos)
 }
 
@@ -79,5 +82,6 @@ func newTwoNodeClusterWithClock(
 		_ = nodeA.Close()
 		_ = nodeB.Close()
 	})
+
 	return nodeA, nodeB
 }

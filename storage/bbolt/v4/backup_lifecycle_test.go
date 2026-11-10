@@ -43,6 +43,7 @@ func bboltBackupFactory() backuptest.Factory {
 
 			if err := db.View(func(tx *bolt.Tx) error {
 				_, err := tx.WriteTo(f)
+
 				return err
 			}); err != nil {
 				t.Fatalf("backup: %v", err)

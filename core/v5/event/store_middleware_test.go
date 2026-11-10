@@ -27,6 +27,7 @@ func (s *fullStore) Save(
 	_ Version,
 ) error {
 	s.saved = append(s.saved, events...)
+
 	return nil
 }
 
@@ -36,11 +37,13 @@ func (s *fullStore) AppendBatch(
 	events []Event,
 ) error {
 	s.saved = append(s.saved, events...)
+
 	return nil
 }
 
 func (s *fullStore) SaveMultiBatch(_ context.Context, _ []MultiBatchEntry) error {
 	s.multiSaved++
+
 	return nil
 }
 
@@ -51,6 +54,7 @@ func (s *fullStore) snapshot(events []Event) ([]Event, error) {
 
 	out := make([]Event, len(events))
 	copy(out, events)
+
 	return out, nil
 }
 
@@ -100,6 +104,7 @@ func (s *fullStore) LoadBackwards(_ context.Context, _ id.StreamRef) ([]Event, e
 
 func (s *fullStore) Close() error {
 	s.closed = true
+
 	return nil
 }
 
@@ -113,6 +118,7 @@ func (s *bareStore) Save(
 	_ Version,
 ) error {
 	s.saved = append(s.saved, events...)
+
 	return nil
 }
 
@@ -123,6 +129,7 @@ func (s *bareStore) AppendBatch(_ context.Context, _ id.StreamRef, _ []Event) er
 func (s *bareStore) Load(_ context.Context, _ id.StreamRef) ([]Event, error) {
 	out := make([]Event, len(s.saved))
 	copy(out, s.saved)
+
 	return out, nil
 }
 
@@ -193,7 +200,7 @@ func TestDecorateStore_NilStore_Panics(t *testing.T) {
 		}
 	}()
 
-	_ = DecorateStore(nil, nil, nil) //nolint:staticcheck // testing the panic
+	_ = DecorateStore(nil, nil, nil)
 }
 
 func TestDecorateStore_SinkTransform(t *testing.T) {
@@ -286,6 +293,7 @@ func TestDecorateStore_SourceTransformReadErrorPassthrough(t *testing.T) {
 	called := false
 	store := DecorateStore(inner, nil, func(events []Event) ([]Event, error) {
 		called = true
+
 		return events, nil
 	})
 

@@ -115,6 +115,7 @@ func TestDuckDBWatcher_WithReplayRecordsTypedValue(t *testing.T) {
 					t.Fatalf("Plan: %v", err)
 				}
 				watcher := metaengine.NewWatcher[watcherTask](store, "duckdb_replay_tasks")
+
 				return store, watcher
 			},
 			Apply: func(ctx context.Context, store *metaengine.Store, payload watcherTask) error {

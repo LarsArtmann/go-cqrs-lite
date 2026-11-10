@@ -64,6 +64,7 @@ func dollarPH(n int) string {
 	for i := range n {
 		parts[i] = fmt.Sprintf("$%d", i+1)
 	}
+
 	return strings.Join(parts, ",")
 }
 
@@ -143,6 +144,7 @@ func (h rowCalibHarness) createNormTables(parent, child string) error {
 			return fmt.Errorf("ddl: %w", err)
 		}
 	}
+
 	return nil
 }
 
@@ -178,6 +180,7 @@ func (h rowCalibHarness) seedNorm(parent, child string, n int) error {
 			}
 		}
 	}
+
 	return tx.Commit()
 }
 
@@ -236,6 +239,7 @@ func rmwReplaceChildren(prev any) any {
 		map[string]any{"sku": "GIZMO-003", "qty": 3, "price": 3.42},
 		map[string]any{"sku": "EXTRA-999", "qty": 1, "price": 5.0},
 	}
+
 	return m
 }
 
@@ -290,6 +294,7 @@ func BenchmarkRowLayoutCalibration_EmbedWrite(b *testing.B) {
 func scanJoinRows(rows *sql.Rows, err error) error {
 	if err != nil {
 		_ = rows.Close()
+
 		return err
 	}
 	defer func() { _ = rows.Close() }()
@@ -302,6 +307,7 @@ func scanJoinRows(rows *sql.Rows, err error) error {
 			return err
 		}
 	}
+
 	return rows.Err()
 }
 

@@ -45,6 +45,7 @@ func (e *mysqlEngine) ResetEngine(ctx context.Context) error {
 	defer e.mu.Unlock()
 
 	e.layoutMu.Lock()
+
 	planned := make([]string, 0, len(e.plans))
 	for _, plan := range e.plans {
 		planned = append(planned, plan.Table)
@@ -82,7 +83,7 @@ func (e *mysqlEngine) ResetEngine(ctx context.Context) error {
 func rollbackReturning(tx *sql.Tx, cause error) error {
 	_ = tx.Rollback()
 
-	return cause //nolint:wrapcheck // caller already wrapped the cause
+	return cause
 }
 
 // Compile-time assertion: the engine satisfies the reset capability.

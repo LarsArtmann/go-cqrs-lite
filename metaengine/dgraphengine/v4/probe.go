@@ -18,6 +18,7 @@ const DG_NetworkRTT = 2 * time.Millisecond
 // client→Dgraph reachability latency, not consensus commit latency.
 func (e *dgraphEngine) Probe(ctx context.Context) (time.Duration, error) {
 	start := time.Now()
+
 	if _, err := e.client.NewTxn().Query(ctx, `{ health(func: uid(0x1)) { uid } }`); err != nil {
 		return 0, err
 	}
@@ -34,6 +35,7 @@ func (e *dgraphEngine) Probe(ctx context.Context) (time.Duration, error) {
 // data.
 func (e *dgraphEngine) MeasureTransact(ctx context.Context) (time.Duration, error) {
 	start := time.Now()
+
 	_, err := e.client.NewTxn().Query(ctx,
 		`{ q(func: eq(collection, "__probe")) @filter(eq(key, "__probe")) { uid } }`)
 	if err != nil {

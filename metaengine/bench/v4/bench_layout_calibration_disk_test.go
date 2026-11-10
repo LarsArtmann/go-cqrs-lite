@@ -84,6 +84,7 @@ func mustDiskJSON(b *testing.B, v any) []byte {
 	if err != nil {
 		b.Fatal(err)
 	}
+
 	return raw
 }
 

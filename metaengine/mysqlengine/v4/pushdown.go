@@ -37,6 +37,7 @@ func (e *mysqlEngine) PushdownMapScan(
 	}
 
 	var b strings.Builder
+
 	args := []any{collection}
 
 	b.WriteString("SELECT CAST(value AS CHAR), `key` FROM meta_map WHERE collection = ?")
@@ -155,6 +156,7 @@ func (e *mysqlEngine) ApplyLayout(collection string, filterFields, sortFields []
 	}
 
 	seen := make(map[string]bool)
+
 	allFields := append(append([]string{}, filterFields...), sortFields...)
 
 	for _, field := range allFields {

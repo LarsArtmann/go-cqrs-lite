@@ -17,18 +17,22 @@ func (e *replicatedEngine) applyRemote(op WriteOp) {
 		if !e.isLWWNewer(op.Collection, op.Key, op.Timestamp) {
 			return
 		}
+
 		if mb, ok := e.local.(metaengine.MapBackend); ok {
 			_ = mb.MapSet(ctx, op.Collection, op.Key, op.Value)
 		}
+
 		e.recordLWW(op.Collection, op.Key, op.Timestamp)
 
 	case OpMapDelete:
 		if !e.isLWWNewer(op.Collection, op.Key, op.Timestamp) {
 			return
 		}
+
 		if mb, ok := e.local.(metaengine.MapBackend); ok {
 			_ = mb.MapDelete(ctx, op.Collection, op.Key)
 		}
+
 		e.recordLWW(op.Collection, op.Key, op.Timestamp)
 
 	case OpSetAdd:

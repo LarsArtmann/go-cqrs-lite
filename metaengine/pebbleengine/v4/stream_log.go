@@ -26,12 +26,14 @@ import (
 func (e *pebbleEngine) nextStreamSeq(col, sid string) int64 {
 	k := streamSeqKey(col, sid)
 	actual, _ := e.streamSeq.LoadOrStore(k, &atomic.Int64{})
+
 	return actual.(*atomic.Int64).Add(1)
 }
 
 // nextJournalSeq returns the next global journal sequence for a collection.
 func (e *pebbleEngine) nextJournalSeq(col string) int64 {
 	actual, _ := e.journalSeq.LoadOrStore(col, &atomic.Int64{})
+
 	return actual.(*atomic.Int64).Add(1)
 }
 
@@ -146,7 +148,7 @@ func (e *pebbleEngine) journalEntries(
 // entryValues strips the resume tokens, keeping only the values.
 func entryValues(entries []metaengine.StreamLogEntry, err error) ([]any, error) {
 	if err != nil {
-		return nil, err //nolint:wrapcheck // passthrough
+		return nil, err
 	}
 
 	values := make([]any, len(entries))

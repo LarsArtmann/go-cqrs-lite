@@ -104,7 +104,7 @@ func TestTursoEncryption_SecondADTRoundTrip(t *testing.T) {
 		t.Fatalf("reopen: %v", err)
 	}
 
-	defer eng2.Close() //nolint:errcheck // test cleanup
+	defer eng2.Close()
 
 	counters, err := eng2.(metaengine.CounterBackend).CounterGet(t.Context(), "counts")
 	if err != nil {
@@ -148,7 +148,7 @@ func TestTursoEncryption_MatViewServesAggregate(t *testing.T) {
 		t.Fatalf("open encrypted engine with matview: %v", err)
 	}
 
-	defer eng.Close() //nolint:errcheck // test cleanup
+	defer eng.Close()
 
 	mb := eng.(metaengine.MapBackend)
 	for i := range 3 {

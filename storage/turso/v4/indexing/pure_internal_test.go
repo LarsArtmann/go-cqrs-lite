@@ -183,6 +183,7 @@ func TestScanTableRegex(t *testing.T) {
 			if tt.match {
 				if m == nil {
 					t.Errorf("expected match for %q", tt.detail)
+
 					return
 				}
 				if m[1] != tt.table {

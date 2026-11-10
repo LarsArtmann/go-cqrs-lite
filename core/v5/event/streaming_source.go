@@ -105,5 +105,6 @@ func (s *SliceIterator) Next() (Event, error) {
 func (s *SliceIterator) Close() error {
 	s.closed = true
 	s.events = nil
+
 	return nil
 }

@@ -16,7 +16,7 @@ func init() {
 				return nil, err
 			}
 
-			return NewPebbleEngine(cfg.DSN, opts...) //nolint:wrapcheck // factory passthrough
+			return NewPebbleEngine(cfg.DSN, opts...)
 		},
 	)
 }

@@ -292,7 +292,6 @@ func (e *mysqlEngine) inTx(ctx context.Context, fn func(metaengine.SQLExec) erro
 	}
 
 	fnErr := fn(tx)
-
 	if fnErr != nil {
 		_ = tx.Rollback()
 

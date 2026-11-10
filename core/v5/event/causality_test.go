@@ -212,6 +212,7 @@ func TestCommandCausalityEnricher_PropagatesAcrossGoroutines(t *testing.T) {
 			gotType, gotID, ok := CommandCausalityFromContext(ctx)
 			if !ok {
 				t.Error("causality missing in goroutine")
+
 				return
 			}
 

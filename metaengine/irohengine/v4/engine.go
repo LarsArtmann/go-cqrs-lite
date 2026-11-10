@@ -26,16 +26,21 @@ func lwwKey(collection string, key any) string {
 
 func (e *replicatedEngine) isLWWNewer(collection string, key any, ts time.Time) bool {
 	k := lwwKey(collection, key) //art-dupl:accept same-file mutex guard idiom
+
 	e.mu.Lock()
 	defer e.mu.Unlock()
+
 	existing := e.timestamps[k]
+
 	return ts.After(existing) || ts.Equal(existing)
 }
 
 func (e *replicatedEngine) recordLWW(collection string, key any, ts time.Time) {
 	k := lwwKey(collection, key)
+
 	e.mu.Lock()
 	defer e.mu.Unlock()
+
 	if ts.After(e.timestamps[k]) {
 		e.timestamps[k] = ts
 	}
@@ -59,6 +64,7 @@ func (e *replicatedEngine) Profile() metaengine.EngineProfile {
 	p := e.local.Profile()
 	p.Name = "iroh(" + p.Name + ")"
 	p.Replication = metaengine.ReplicationLeaderless
+
 	if e.latency != nil {
 		snap := e.latency.LatencySnapshot()
 		p.ReplicationLag = snap.ConvergenceP99
@@ -91,6 +97,7 @@ func (e *replicatedEngine) Close() error {
 	if e.cfg.transport != nil {
 		_ = e.cfg.transport.Close()
 	}
+
 	return e.local.Close()
 }
 
@@ -124,6 +131,7 @@ func (e *replicatedEngine) publish(ctx context.Context, op WriteOp) {
 	if e.cfg.transport == nil {
 		return
 	}
+
 	op.ID = nextOpID()
 	op.PublishedAt = e.cfg.clock.Now()
 	_ = e.cfg.transport.Publish(ctx, op)
@@ -139,13 +147,16 @@ func (e *replicatedEngine) MapSet(
 ) error {
 	now := e.cfg.clock.Now()
 	e.recordLWW(collection, key, now)
+
 	if err := e.local.(metaengine.MapBackend).MapSet(ctx, collection, key, value); err != nil {
 		return err
 	}
+
 	e.publish(ctx, WriteOp{
 		Collection: collection, Kind: OpMapSet, Author: e.cfg.author,
 		Timestamp: now, Key: key, Value: value,
 	})
+
 	return nil
 }
 
@@ -160,13 +171,16 @@ func (e *replicatedEngine) MapGet(
 func (e *replicatedEngine) MapDelete(ctx context.Context, collection string, key any) error {
 	now := e.cfg.clock.Now()
 	e.recordLWW(collection, key, now)
+
 	if err := e.local.(metaengine.MapBackend).MapDelete(ctx, collection, key); err != nil {
 		return err
 	}
+
 	e.publish(ctx, WriteOp{
 		Collection: collection, Kind: OpMapDelete, Author: e.cfg.author,
 		Timestamp: now, Key: key,
 	})
+
 	return nil
 }
 
@@ -181,6 +195,7 @@ func (e *replicatedEngine) MapUpdate(
 	if mu, ok := e.local.(metaengine.MapUpdater); ok {
 		return mu.MapUpdate(ctx, collection, key, update)
 	}
+
 	return ErrMapUpdaterNotImplemented
 }
 
@@ -190,10 +205,12 @@ func (e *replicatedEngine) SetAdd(ctx context.Context, collection string, key an
 	if err := e.local.(metaengine.SetBackend).SetAdd(ctx, collection, key); err != nil {
 		return err
 	}
+
 	e.publish(ctx, WriteOp{
 		Collection: collection, Kind: OpSetAdd, Author: e.cfg.author,
 		Timestamp: e.cfg.clock.Now(), Key: key,
 	})
+
 	return nil
 }
 
@@ -219,10 +236,12 @@ func (e *replicatedEngine) CounterIncrement(
 	); err != nil {
 		return err
 	}
+
 	e.publish(ctx, WriteOp{
 		Collection: collection, Kind: OpCounterInc, Author: e.cfg.author,
 		Timestamp: e.cfg.clock.Now(), Delta: deltas,
 	})
+
 	return nil
 }
 
@@ -249,10 +268,12 @@ func (e *replicatedEngine) MultiAdd(
 	); err != nil {
 		return err
 	}
+
 	e.publish(ctx, WriteOp{
 		Collection: collection, Kind: OpMultiAdd, Author: e.cfg.author,
 		Timestamp: e.cfg.clock.Now(), Key: key, Value: value,
 	})
+
 	return nil
 }
 
@@ -270,10 +291,12 @@ func (e *replicatedEngine) LogAppend(ctx context.Context, collection string, val
 	if err := e.local.(metaengine.LogBackend).LogAppend(ctx, collection, value); err != nil {
 		return err
 	}
+
 	e.publish(ctx, WriteOp{
 		Collection: collection, Kind: OpLogAppend, Author: e.cfg.author,
 		Timestamp: e.cfg.clock.Now(), Value: value,
 	})
+
 	return nil
 }
 

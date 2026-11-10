@@ -23,6 +23,7 @@ const (
 
 func mustNoErr(t *testing.T, err error) {
 	t.Helper()
+
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -35,6 +36,7 @@ func waitForMap(
 	expected any,
 ) {
 	t.Helper()
+
 	deadline := time.Now().Add(pollTimeout)
 	for time.Now().Before(deadline) {
 		val, ok, err := node.(metaengine.MapBackend).MapGet(
@@ -42,8 +44,10 @@ func waitForMap(
 		if err == nil && ok && reflect.DeepEqual(val, expected) {
 			return
 		}
+
 		time.Sleep(pollInterval)
 	}
+
 	val, ok, _ := node.(metaengine.MapBackend).MapGet(
 		context.Background(), collection, key)
 	t.Fatalf("timeout: %s/%s expected %v (got ok=%v val=%v)",
@@ -57,6 +61,7 @@ func waitForCounter(
 	expected int64,
 ) {
 	t.Helper()
+
 	deadline := time.Now().Add(pollTimeout)
 	for time.Now().Before(deadline) {
 		counts, err := node.(metaengine.CounterBackend).CounterGet(
@@ -64,8 +69,10 @@ func waitForCounter(
 		if err == nil && counts[counter] == expected {
 			return
 		}
+
 		time.Sleep(pollInterval)
 	}
+
 	counts, _ := node.(metaengine.CounterBackend).CounterGet(
 		context.Background(), collection)
 	t.Fatalf("timeout: %s/%s expected %d (got %v)",
@@ -78,6 +85,7 @@ func waitForSetContains(
 	collection, value string,
 ) {
 	t.Helper()
+
 	deadline := time.Now().Add(pollTimeout)
 	for time.Now().Before(deadline) {
 		contains, err := node.(metaengine.SetBackend).SetContains(
@@ -85,8 +93,10 @@ func waitForSetContains(
 		if err == nil && contains {
 			return
 		}
+
 		time.Sleep(pollInterval)
 	}
+
 	t.Fatalf("timeout: %s does not contain %q", collection, value)
 }
 
@@ -97,6 +107,7 @@ func waitForLogTail(
 	expected []string,
 ) {
 	t.Helper()
+
 	deadline := time.Now().Add(pollTimeout)
 	for time.Now().Before(deadline) {
 		entries, err := node.(metaengine.LogBackend).LogTail(
@@ -104,8 +115,10 @@ func waitForLogTail(
 		if err == nil && sameLogTail(entries, expected) {
 			return
 		}
+
 		time.Sleep(pollInterval)
 	}
+
 	entries, _ := node.(metaengine.LogBackend).LogTail(
 		context.Background(), collection, len(expected))
 	t.Fatalf("timeout: %s tail expected %v (got %v)",
@@ -119,6 +132,7 @@ func waitForMultimap(
 	expected []string,
 ) {
 	t.Helper()
+
 	deadline := time.Now().Add(pollTimeout)
 	for time.Now().Before(deadline) {
 		vals, err := node.(metaengine.MultimapBackend).MultiGet(
@@ -126,8 +140,10 @@ func waitForMultimap(
 		if err == nil && sameSetAny(vals, expected) {
 			return
 		}
+
 		time.Sleep(pollInterval)
 	}
+
 	vals, _ := node.(metaengine.MultimapBackend).MultiGet(
 		context.Background(), collection, key)
 	t.Fatalf("timeout: %s/%s expected %v (got %v)",
@@ -152,6 +168,7 @@ func waitForGraphNeighbors(
 	expected []string,
 ) {
 	t.Helper()
+
 	deadline := time.Now().Add(pollTimeout)
 	for time.Now().Before(deadline) {
 		neighbors, err := node.(graphCapable).GraphNeighbors(
@@ -159,8 +176,10 @@ func waitForGraphNeighbors(
 		if err == nil && sameSetAny(neighbors, expected) {
 			return
 		}
+
 		time.Sleep(pollInterval)
 	}
+
 	neighbors, _ := node.(graphCapable).GraphNeighbors(
 		context.Background(), collection, start, depth)
 	t.Fatalf("timeout: %s neighbors of %s (depth %d) expected %v (got %v)",
@@ -173,16 +192,19 @@ func sameSetAny(actual []any, expected []string) bool {
 	if len(actual) != len(expected) {
 		return false
 	}
+
 	expectedSet := make(map[string]bool, len(expected))
 	for _, v := range expected {
 		expectedSet[v] = true
 	}
+
 	for _, v := range actual {
 		s, ok := v.(string)
 		if !ok || !expectedSet[s] {
 			return false
 		}
 	}
+
 	return true
 }
 
@@ -207,10 +229,12 @@ func sameLogTail(actual []any, expected []string) bool {
 		}
 
 		matched := false
+
 		for i, want := range remaining {
 			if s == want {
 				remaining = append(remaining[:i], remaining[i+1:]...)
 				matched = true
+
 				break
 			}
 		}

@@ -115,6 +115,7 @@ func (e *mysqlEngine) vectorScan(
 	if err != nil {
 		return nil, fmt.Errorf("mysqlengine.vectorScan: %w", err)
 	}
+
 	defer metaengine.DeferClose(rows)
 
 	var results []metaengine.VectorResult

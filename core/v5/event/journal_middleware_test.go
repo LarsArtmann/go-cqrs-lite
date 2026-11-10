@@ -67,7 +67,7 @@ type seekableOnlyJournal struct {
 }
 
 func (j *seekableOnlyJournal) ReadAll(context.Context) ([]Event, error) {
-	out := make([]Event, len(j.events)) //nolint:gocritic // test fake
+	out := make([]Event, len(j.events))
 	copy(out, j.events)
 
 	return out, nil
@@ -85,7 +85,7 @@ func (j *seekableOnlyJournal) ReadFrom(
 type readAllOnlyJournal struct{ events []Event }
 
 func (j *readAllOnlyJournal) ReadAll(context.Context) ([]Event, error) {
-	out := make([]Event, len(j.events)) //nolint:gocritic // test fake
+	out := make([]Event, len(j.events))
 	copy(out, j.events)
 
 	return out, nil
@@ -145,7 +145,7 @@ func TestDecorateJournal_NilJournal_Panics(t *testing.T) {
 		}
 	}()
 
-	_ = DecorateJournal(nil, passthrough) //nolint:staticcheck // testing the panic
+	_ = DecorateJournal(nil, passthrough)
 }
 
 func TestDecorateJournal_ReadAll_AppliesTransform(t *testing.T) {

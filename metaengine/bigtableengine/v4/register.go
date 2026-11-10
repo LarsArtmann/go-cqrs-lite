@@ -28,7 +28,7 @@ func init() {
 				project,
 				instance,
 				table,
-			) //nolint:wrapcheck // factory errors flow to the caller verbatim
+			)
 		},
 	)
 }

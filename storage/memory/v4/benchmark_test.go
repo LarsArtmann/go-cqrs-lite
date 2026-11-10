@@ -168,6 +168,7 @@ func BenchmarkMemoryStore_ConcurrentWriters(b *testing.B) {
 							errOnce.Do(func() {
 								firstErr = fmt.Errorf("Save w=%d i=%d: %w", workerID, i, err)
 							})
+
 							return
 						}
 					}

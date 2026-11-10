@@ -56,6 +56,7 @@ func TestIntegration_AutoInsert_ThroughAdapter(t *testing.T) {
 	decoder := func(eventType string, payload []byte) (any, error) {
 		var e taskCreated
 		err := json.Unmarshal(payload, &e)
+
 		return e, err
 	}
 
@@ -172,12 +173,15 @@ func TestIntegration_AutoCRUD_FullLifecycle_ThroughAdapter(t *testing.T) {
 		switch eventType {
 		case "docCreated":
 			var e docCreated
+
 			return e, json.Unmarshal(payload, &e)
 		case "docUpdated":
 			var e docUpdated
+
 			return e, json.Unmarshal(payload, &e)
 		case "docDeleted":
 			var e docDeleted
+
 			return e, json.Unmarshal(payload, &e)
 		default:
 			return nil, nil

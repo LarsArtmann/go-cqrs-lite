@@ -65,6 +65,7 @@ func NewInProcessNetwork(opts ...InProcessNetworkOption) *InProcessNetwork {
 	for _, opt := range opts {
 		opt(n)
 	}
+
 	return n
 }
 
@@ -91,18 +92,21 @@ func (n *InProcessNetwork) Join(nodeID string) Transport {
 		subs:    make([]func(op WriteOp), 0),
 	}
 	n.peers[nodeID] = pt
+
 	return pt
 }
 
 func (n *InProcessNetwork) getOtherPeers(from string) []*peerTransport {
 	n.mu.RLock()
 	defer n.mu.RUnlock()
+
 	peers := make([]*peerTransport, 0, len(n.peers)-1)
 	for _, p := range n.peers {
 		if p.nodeID != from {
 			peers = append(peers, p)
 		}
 	}
+
 	return peers
 }
 
@@ -113,10 +117,13 @@ func (n *InProcessNetwork) getOtherPeers(from string) []*peerTransport {
 
 func (n *InProcessNetwork) deliver(from string, op WriteOp) {
 	n.mu.RLock()
+
 	if n.closed {
 		n.mu.RUnlock()
+
 		return
 	}
+
 	n.mu.RUnlock()
 
 	peers := n.getOtherPeers(from)
@@ -124,8 +131,10 @@ func (n *InProcessNetwork) deliver(from string, op WriteOp) {
 		return
 	}
 
-	var wg sync.WaitGroup
-	var maxLatency atomic.Int64
+	var (
+		wg         sync.WaitGroup
+		maxLatency atomic.Int64
+	)
 
 	for _, p := range peers {
 		if n.dropRate > 0 &&
@@ -149,6 +158,7 @@ func (n *InProcessNetwork) deliver(from string, op WriteOp) {
 			p.deliver(op)
 
 			applyLatency := int64(time.Since(op.PublishedAt))
+
 			for {
 				cur := maxLatency.Load()
 				if applyLatency <= cur || maxLatency.CompareAndSwap(cur, applyLatency) {
@@ -178,14 +188,18 @@ func (pt *peerTransport) Publish(_ context.Context, op WriteOp) error {
 	if op.PublishedAt.IsZero() {
 		op.PublishedAt = time.Now()
 	}
+
 	pt.network.deliver(pt.nodeID, op)
+
 	return nil
 }
 
 func (pt *peerTransport) Subscribe(handler func(op WriteOp)) error {
 	pt.mu.Lock()
 	defer pt.mu.Unlock()
+
 	pt.subs = append(pt.subs, handler)
+
 	return nil
 }
 
@@ -193,7 +207,9 @@ func (pt *peerTransport) Close() error {
 	//art-dupl:accept idiomatic mutex close-guard — unrelated modules
 	pt.mu.Lock()
 	defer pt.mu.Unlock()
+
 	pt.closed = true
+
 	return nil
 }
 
@@ -207,6 +223,7 @@ func (pt *peerTransport) deliver(op WriteOp) {
 	pt.mu.RLock()
 	subs := pt.subs
 	pt.mu.RUnlock()
+
 	for _, s := range subs {
 		s(op)
 	}
@@ -226,6 +243,7 @@ type LivenessReporter interface {
 func (n *InProcessNetwork) Shutdown() {
 	n.mu.Lock() //art-dupl:accept mutex-guarded close across modules is idiomatic, not a clone
 	defer n.mu.Unlock()
+
 	n.closed = true
 }
 

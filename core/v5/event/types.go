@@ -260,7 +260,9 @@ func (v *Version) UnmarshalJSON(b []byte) error {
 	if err := json.Unmarshal(b, &n); err != nil {
 		return err
 	}
+
 	*v = Version(n)
+
 	return nil
 }
 
@@ -271,6 +273,8 @@ func (sv *SchemaVersion) UnmarshalJSON(b []byte) error {
 	if err := json.Unmarshal(b, &n); err != nil {
 		return err
 	}
+
 	*sv = SchemaVersion(n)
+
 	return nil
 }

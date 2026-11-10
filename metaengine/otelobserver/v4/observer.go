@@ -137,7 +137,7 @@ func (o *Observer) Hooks() metaengine.Hooks {
 func Attach(store *metaengine.Store, meter cqrsotel.Meter) (*Observer, error) {
 	o, err := New(meter)
 	if err != nil {
-		return nil, err //nolint:wrapcheck // already instrument-scoped
+		return nil, err
 	}
 
 	metaengine.WithHooks(store, store.CurrentHooks().Merge(o.Hooks()))

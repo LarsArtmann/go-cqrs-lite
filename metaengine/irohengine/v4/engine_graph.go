@@ -46,13 +46,16 @@ func (e *replicatedEngine) writeEdge(
 ) error {
 	now := e.cfg.clock.Now()
 	e.recordLWW(collection, graphLWWKey(edge.From, edge.To), now)
+
 	if err := apply(); err != nil {
 		return err
 	}
+
 	e.publish(ctx, WriteOp{
 		Collection: collection, Kind: kind, Author: e.cfg.author,
 		Timestamp: now, Key: edge.From, Value: edge.To,
 	})
+
 	return nil
 }
 
@@ -70,6 +73,7 @@ func (e *replicatedEngine) GraphAddEdge(
 	if !ok {
 		return ErrGraphBackendNotImplemented
 	}
+
 	return e.writeEdge(ctx, collection, edge, OpGraphAddEdge, func() error {
 		return gb.GraphAddEdge(ctx, collection, edge)
 	})
@@ -88,6 +92,7 @@ func (e *replicatedEngine) GraphRemoveEdge(
 	if !ok {
 		return ErrGraphBackendNotImplemented
 	}
+
 	return e.writeEdge(ctx, collection, edge, OpGraphRemoveEdge, func() error {
 		return gx.GraphRemoveEdge(ctx, collection, edge)
 	})
@@ -98,9 +103,11 @@ func (e *replicatedEngine) applyRemoteGraphAdd(op WriteOp) {
 	if !e.isLWWNewer(op.Collection, graphLWWKey(op.Key, op.Value), op.Timestamp) {
 		return
 	}
+
 	if gb, ok := e.local.(graphCapable); ok {
 		_ = gb.GraphAddEdge(context.Background(), op.Collection, edgeFromOp(op))
 	}
+
 	e.recordLWW(op.Collection, graphLWWKey(op.Key, op.Value), op.Timestamp)
 }
 
@@ -111,8 +118,10 @@ func (e *replicatedEngine) applyRemoteGraphRemove(op WriteOp) {
 	if !e.isLWWNewer(op.Collection, graphLWWKey(op.Key, op.Value), op.Timestamp) {
 		return
 	}
+
 	if gx, ok := e.local.(graphExtCapable); ok {
 		_ = gx.GraphRemoveEdge(context.Background(), op.Collection, edgeFromOp(op))
 	}
+
 	e.recordLWW(op.Collection, graphLWWKey(op.Key, op.Value), op.Timestamp)
 }

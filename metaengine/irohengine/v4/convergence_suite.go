@@ -38,6 +38,7 @@ func RunConvergenceSuite(t *testing.T, factory ClusterFactory) {
 
 	t.Run("MapConvergence", func(t *testing.T) {
 		t.Parallel()
+
 		ctx := context.Background()
 		nodeA, nodeB := factory(t)
 
@@ -48,6 +49,7 @@ func RunConvergenceSuite(t *testing.T, factory ClusterFactory) {
 
 	t.Run("Bidirectional", func(t *testing.T) {
 		t.Parallel()
+
 		ctx := context.Background()
 		nodeA, nodeB := factory(t)
 
@@ -60,6 +62,7 @@ func RunConvergenceSuite(t *testing.T, factory ClusterFactory) {
 
 	t.Run("CounterConvergence", func(t *testing.T) {
 		t.Parallel()
+
 		ctx := context.Background()
 		nodeA, nodeB := factory(t)
 
@@ -74,6 +77,7 @@ func RunConvergenceSuite(t *testing.T, factory ClusterFactory) {
 
 	t.Run("SetConvergence", func(t *testing.T) {
 		t.Parallel()
+
 		ctx := context.Background()
 		nodeA, nodeB := factory(t)
 
@@ -86,6 +90,7 @@ func RunConvergenceSuite(t *testing.T, factory ClusterFactory) {
 
 	t.Run("LogConvergence", func(t *testing.T) {
 		t.Parallel()
+
 		ctx := context.Background()
 		nodeA, nodeB := factory(t)
 
@@ -97,6 +102,7 @@ func RunConvergenceSuite(t *testing.T, factory ClusterFactory) {
 
 	t.Run("MultimapConvergence", func(t *testing.T) {
 		t.Parallel()
+
 		ctx := context.Background()
 		nodeA, nodeB := factory(t)
 
@@ -113,6 +119,7 @@ func RunConvergenceSuite(t *testing.T, factory ClusterFactory) {
 
 	t.Run("GraphConvergence", func(t *testing.T) {
 		t.Parallel()
+
 		ctx := context.Background()
 		nodeA, nodeB := factory(t)
 
@@ -127,6 +134,7 @@ func RunConvergenceSuite(t *testing.T, factory ClusterFactory) {
 
 	t.Run("GraphEdgeRemovalConvergence", func(t *testing.T) {
 		t.Parallel()
+
 		ctx := context.Background()
 		nodeA, nodeB := factory(t)
 

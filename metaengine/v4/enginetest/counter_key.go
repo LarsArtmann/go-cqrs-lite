@@ -41,21 +41,32 @@ func RunCounterKeyCompositeTest(t *testing.T, eng metaengine.Engine) {
 
 	cb, ok := eng.(metaengine.CounterBackend)
 	if !ok {
-		t.Skipf("engine %s does not implement CounterBackend — no counter store to inspect, class structurally out of reach", engineName(eng))
+		t.Skipf(
+			"engine %s does not implement CounterBackend — no counter store to inspect, class structurally out of reach",
+			engineName(eng),
+		)
 	}
 
 	countsName := ScopedCollection("counterkey-counts-" + engineName(eng))
 
 	tasksQuery := metaengine.Query[counterKeyListIn, counterKeyRow](
-		ScopedCollection("counterkey-tasks-" + engineName(eng)),
-		metaengine.OnRecordTyped("seed", counterKeyEvent{}, func(_ record.Record, e counterKeyEvent) (int64, counterKeyRow) {
-			return e.At, counterKeyRow{ID: e.Project, Status: "pending"}
-		}),
-		metaengine.OnRecordTyped("T", counterKeyEvent{}, func(_ record.Record, e counterKeyEvent, prev counterKeyRow) counterKeyRow {
-			prev.Status = "running"
+		ScopedCollection("counterkey-tasks-"+engineName(eng)),
+		metaengine.OnRecordTyped(
+			"seed",
+			counterKeyEvent{},
+			func(_ record.Record, e counterKeyEvent) (int64, counterKeyRow) {
+				return e.At, counterKeyRow{ID: e.Project, Status: "pending"}
+			},
+		),
+		metaengine.OnRecordTyped(
+			"T",
+			counterKeyEvent{},
+			func(_ record.Record, e counterKeyEvent, prev counterKeyRow) counterKeyRow {
+				prev.Status = "running"
 
-			return prev
-		}),
+				return prev
+			},
+		),
 		metaengine.WithColumnarLayout(),
 	)
 

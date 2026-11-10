@@ -147,6 +147,7 @@ func TestGraphEdgeLWW_StaleAddDoesNotResurrect(t *testing.T) {
 			irohengine.WithClock(clock),
 		)
 		t.Cleanup(func() { _ = eng.Close() })
+
 		return eng
 	}
 	nodeA := join("a", mainClock)

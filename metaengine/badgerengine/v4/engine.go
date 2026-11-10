@@ -120,11 +120,13 @@ func NewBadgerEngine(dir string, engineOpts ...Option) (metaengine.Engine, error
 	//art-dupl:accept seedSeqCounters constructor ladder — cross-module engine init idiom, dep-isolated go.mod
 	if err := eng.seedSeqCounters(); err != nil {
 		_ = db.Close()
+
 		return nil, fmt.Errorf("badgerengine: seed seq counters: %w", err)
 	}
 
 	if err := eng.wireMapRuntimes(); err != nil {
 		_ = db.Close()
+
 		return nil, err
 	}
 

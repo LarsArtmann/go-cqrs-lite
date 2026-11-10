@@ -124,7 +124,10 @@ func TestResetEngine_LayoutSurvivesAndRebuilds(t *testing.T) {
 
 	sc := eng.(metaengine.ScanBackend)
 	res, err := sc.MapScan(ctx, "tasks",
-		func(item any) bool { m, _ := item.(map[string]any); return m["status"] == "done" },
+		func(item any) bool {
+			m, _ := item.(map[string]any)
+			return m["status"] == "done"
+		},
 		nil, nil, 10,
 	)
 	if err != nil {

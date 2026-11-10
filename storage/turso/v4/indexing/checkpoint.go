@@ -91,6 +91,7 @@ func (s *CheckpointScheduler) Stop() {
 	s.stopped = true
 
 	var done chan struct{}
+
 	if s.stop != nil {
 		close(s.stop)
 		s.stop = nil

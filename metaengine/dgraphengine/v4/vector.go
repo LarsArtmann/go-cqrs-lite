@@ -51,12 +51,12 @@ func (e *dgraphEngine) VectorInsert(
 	emb metaengine.Embedding,
 ) error {
 	if err := e.ensureVectorSchema(ctx); err != nil {
-		return err //nolint:wrapcheck // already actionable
+		return err
 	}
 
 	established, err := e.establishedVectorDimension(ctx, collection)
 	if err != nil {
-		return err //nolint:wrapcheck // wrapped by the probe helper
+		return err
 	}
 
 	if err := metaengine.CheckVectorDimension(

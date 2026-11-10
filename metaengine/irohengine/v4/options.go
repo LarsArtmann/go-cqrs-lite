@@ -112,6 +112,7 @@ func Replicated(local metaengine.Engine, opts ...Option) metaengine.Engine {
 		if lp, ok := cfg.transport.(LatencyProvider); ok {
 			eng.latency = lp
 		}
+
 		_ = cfg.transport.Subscribe(eng.applyRemote)
 	}
 

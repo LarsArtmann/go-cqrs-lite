@@ -71,6 +71,7 @@ func (a *KVAdapter) Get(_ context.Context, key []byte) ([]byte, error) {
 		}
 
 		result = slices.Clone(val)
+
 		return nil
 	})
 
@@ -95,6 +96,7 @@ func (a *KVAdapter) Has(_ context.Context, key []byte) (bool, error) {
 		}
 
 		found = bucket.Get(key) != nil
+
 		return nil
 	})
 
@@ -155,6 +157,7 @@ func (a *KVAdapter) NewIterator(_ context.Context, prefix []byte) (kv.Iterator, 
 	bucket := tx.Bucket([]byte(bucketKV))
 	if bucket == nil {
 		_ = tx.Rollback()
+
 		return &emptyIterator{}, nil
 	}
 
@@ -178,6 +181,7 @@ func (a *KVAdapter) NewIterator(_ context.Context, prefix []byte) (kv.Iterator, 
 
 func (a *KVAdapter) Close() error {
 	a.closed.Store(true)
+
 	return nil
 }
 
@@ -198,10 +202,12 @@ func (a *KVAdapter) SetIfAbsent(_ context.Context, key, value []byte) (bool, err
 
 		if bucket.Get(key) != nil {
 			inserted = false
+
 			return nil
 		}
 
 		inserted = true
+
 		return bucket.Put(key, value)
 	})
 

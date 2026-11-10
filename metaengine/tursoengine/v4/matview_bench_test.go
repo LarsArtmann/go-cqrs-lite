@@ -65,7 +65,7 @@ func openBenchEngine(
 	var lastErr error
 
 	for attempt := range attempts {
-		eng, err := tursoengine.New( //nolint:contextcheck // constructor takes no ctx
+		eng, err := tursoengine.New(
 			filepath.Join(dir, fmt.Sprintf("%s_%d.db", name, attempt)),
 			tursoengine.WithMaterializedViews(specs),
 			tursoengine.WithKnownGroupedViewBug(), // specs include grouped: upstream defect deliberately exercised
@@ -458,7 +458,7 @@ func BenchmarkMatViewWrite(b *testing.B) {
 
 	for _, mode := range modes {
 		b.Run(mode.name, func(b *testing.B) {
-			eng, err := tursoengine.New( //nolint:contextcheck // constructor takes no ctx
+			eng, err := tursoengine.New(
 				filepath.Join(dir, "write_"+mode.name+".db"),
 				tursoengine.WithMaterializedViews(mode.specs),
 				tursoengine.WithKnownGroupedViewBug(), // specs include grouped: upstream defect deliberately exercised

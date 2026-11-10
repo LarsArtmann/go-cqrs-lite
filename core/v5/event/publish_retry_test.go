@@ -30,6 +30,7 @@ func (f *failingPublisher) Publish(_ context.Context, _ ...event.Event) error {
 		return f.err
 	}
 	f.published.Add(1)
+
 	return nil
 }
 
@@ -51,6 +52,7 @@ func newTestEvents(t *testing.T, n int) []event.Event {
 		}
 		events = append(events, evt)
 	}
+
 	return events
 }
 

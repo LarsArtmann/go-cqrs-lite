@@ -30,6 +30,7 @@ func dropAll() bool {
 
 	if err := client.Alter(ctx, &api.Operation{DropAll: true}); err != nil {
 		log.Printf("dgraphengine TestMain: DropAll failed: %v", err)
+
 		return false
 	}
 

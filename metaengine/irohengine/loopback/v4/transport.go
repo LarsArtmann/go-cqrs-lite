@@ -86,6 +86,7 @@ var errTransportClosed = errors.New("transport closed")
 // collapsing sub-second LWW comparisons into ties.
 var opEncMode = func() cbor.EncMode {
 	em, _ := cbor.EncOptions{Time: cbor.TimeUnixDynamic}.EncMode()
+
 	return em
 }()
 
@@ -148,6 +149,7 @@ func (t *LoopbackTransport) Connect(addr string) error {
 	t.mu.RLock()
 	closed := t.closed
 	t.mu.RUnlock()
+
 	if closed {
 		return errTransportClosed
 	}
@@ -170,6 +172,7 @@ func (t *LoopbackTransport) Connect(addr string) error {
 func (t *LoopbackTransport) PeerCount() int {
 	t.mu.RLock()
 	defer t.mu.RUnlock()
+
 	return len(t.conns)
 }
 
@@ -207,7 +210,9 @@ func (t *LoopbackTransport) Subscribe(handler func(op irohengine.WriteOp)) error
 	//art-dupl:accept transport Subscribe lock idiom — loopback/quic twins by contract
 	t.mu.Lock()
 	defer t.mu.Unlock()
+
 	t.subs = append(t.subs, handler)
+
 	return nil
 }
 
@@ -217,8 +222,10 @@ func (t *LoopbackTransport) Close() error {
 	t.mu.Lock()
 	if t.closed {
 		t.mu.Unlock()
+
 		return nil
 	}
+
 	t.closed = true
 	conns := slices.Collect(maps.Values(t.conns))
 	t.mu.Unlock()
@@ -226,13 +233,16 @@ func (t *LoopbackTransport) Close() error {
 	for _, c := range conns {
 		_ = c.Close()
 	}
+
 	_ = t.listener.Close()
 
 	done := make(chan struct{})
+
 	go func() {
 		t.acceptWG.Wait()
 		close(done)
 	}()
+
 	select {
 	case <-done:
 	case <-time.After(5 * time.Second):
@@ -254,6 +264,7 @@ func (t *LoopbackTransport) LatencySnapshot() irohengine.LatencySnapshot {
 
 	sorted := irohengine.SortDurations(samples)
 	p50 := sorted[len(sorted)/2]
+
 	return irohengine.LatencySnapshot{
 		DeliveryP50:    p50,
 		DeliveryP99:    sorted[irohengine.PercentileIdx(len(sorted), 0.99)],

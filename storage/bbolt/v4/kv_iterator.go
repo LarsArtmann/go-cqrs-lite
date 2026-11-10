@@ -36,11 +36,13 @@ func (it *bboltIterator) Next() bool {
 
 	if it.k == nil {
 		it.finished = true
+
 		return false
 	}
 
 	if len(it.prefix) > 0 && !bytes.HasPrefix(it.k, it.prefix) {
 		it.finished = true
+
 		return false
 	}
 
@@ -89,11 +91,13 @@ type batchOp struct {
 
 func (b *bboltBatch) Set(_ context.Context, key, value []byte) error {
 	b.ops = append(b.ops, batchOp{key: key, value: value})
+
 	return nil
 }
 
 func (b *bboltBatch) Delete(_ context.Context, key []byte) error {
 	b.ops = append(b.ops, batchOp{key: key, delete: true})
+
 	return nil
 }
 
@@ -123,11 +127,13 @@ func (b *bboltBatch) Commit(_ context.Context) error {
 
 func (b *bboltBatch) Rollback() error {
 	b.ops = nil
+
 	return nil
 }
 
 func (b *bboltBatch) Close() error {
 	b.ops = nil
+
 	return nil
 }
 

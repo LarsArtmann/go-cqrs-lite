@@ -137,6 +137,7 @@ func (s *EventStore) LoadToVersion(
 	}
 
 	span.SetAttributes(cqrsotel.AttrInt("event.count", len(events)))
+
 	return events, nil
 }
 
@@ -187,5 +188,6 @@ func (s *EventStore) LoadToTimestamp(
 	}
 
 	span.SetAttributes(cqrsotel.AttrInt("event.count", len(events)))
+
 	return events, nil
 }

@@ -36,11 +36,13 @@ func (it *bboltEventIterator) Next() (event.Event, error) {
 
 	if it.firstErr != nil {
 		it.finished = true
+
 		return nil, it.firstErr
 	}
 
 	if it.limit > 0 && it.yielded >= it.limit {
 		it.finished = true
+
 		return nil, io.EOF
 	}
 
@@ -55,16 +57,19 @@ func (it *bboltEventIterator) Next() (event.Event, error) {
 
 		if it.k == nil {
 			it.finished = true
+
 			return nil, io.EOF
 		}
 
 		if len(it.prefix) > 0 && !bytes.HasPrefix(it.k, it.prefix) {
 			it.finished = true
+
 			return nil, io.EOF
 		}
 
 		if len(it.upper) > 0 && string(it.k) >= string(it.upper) {
 			it.finished = true
+
 			return nil, io.EOF
 		}
 
@@ -80,10 +85,12 @@ func (it *bboltEventIterator) Next() (event.Event, error) {
 		if err != nil {
 			it.finished = true
 			it.firstErr = err
+
 			return nil, err
 		}
 
 		it.yielded++
+
 		return evt, nil
 	}
 }
@@ -111,6 +118,7 @@ func (s *EventStore) newJournalIterator(
 	bucket := tx.Bucket([]byte(bucketJournal))
 	if bucket == nil {
 		_ = tx.Rollback()
+
 		return &bboltEventIterator{finished: true}, nil
 	}
 
@@ -147,6 +155,7 @@ func (s *EventStore) newStreamEventIterator(
 	bucket := tx.Bucket([]byte(bucketEvents))
 	if bucket == nil {
 		_ = tx.Rollback()
+
 		return &bboltEventIterator{finished: true}, nil
 	}
 

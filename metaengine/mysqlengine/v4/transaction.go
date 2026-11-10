@@ -42,7 +42,6 @@ func (e *mysqlEngine) RunInTx(ctx context.Context, fn func(context.Context) erro
 	}
 
 	fnErr := fn(context.WithValue(ctx, txMarker{}, tx))
-
 	if fnErr != nil {
 		_ = tx.Rollback()
 

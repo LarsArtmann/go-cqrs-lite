@@ -64,6 +64,7 @@ func (e *replicatedEngine) MapScan(
 	if sb, ok := e.local.(metaengine.ScanBackend); ok {
 		return sb.MapScan(ctx, collection, filterFn, sortFunc, cursor, limit)
 	}
+
 	return metaengine.ScanResult{}, ErrScanBackendNotImplemented
 }
 
@@ -77,6 +78,7 @@ func (e *replicatedEngine) VectorInsert(
 	if vb, ok := e.local.(metaengine.VectorBackend); ok {
 		return vb.VectorInsert(ctx, collection, emb)
 	}
+
 	return ErrVectorBackendNotImplemented
 }
 
@@ -90,6 +92,7 @@ func (e *replicatedEngine) VectorSearch(
 	if vb, ok := e.local.(metaengine.VectorBackend); ok {
 		return vb.VectorSearch(ctx, collection, query, k, metric)
 	}
+
 	return nil, ErrVectorBackendNotImplemented
 }
 
@@ -101,6 +104,7 @@ func (e *replicatedEngine) VectorSearchPath() string {
 	if vp, ok := e.local.(metaengine.VectorPathReporter); ok {
 		return vp.VectorSearchPath()
 	}
+
 	return ""
 }
 
@@ -114,6 +118,7 @@ func (e *replicatedEngine) SearchInsert(
 	if sb, ok := e.local.(metaengine.SearchBackend); ok {
 		return sb.SearchInsert(ctx, collection, doc)
 	}
+
 	return ErrSearchBackendNotImplemented
 }
 
@@ -125,6 +130,7 @@ func (e *replicatedEngine) SearchQuery(
 	if sb, ok := e.local.(metaengine.SearchBackend); ok {
 		return sb.SearchQuery(ctx, collection, query, limit)
 	}
+
 	return nil, ErrSearchBackendNotImplemented
 }
 
@@ -138,6 +144,7 @@ func (e *replicatedEngine) SpatialInsert(
 	if sb, ok := e.local.(metaengine.SpatialBackend); ok {
 		return sb.SpatialInsert(ctx, collection, pt)
 	}
+
 	return ErrSpatialBackendNotImplemented
 }
 
@@ -150,6 +157,7 @@ func (e *replicatedEngine) SpatialRange(
 	if sb, ok := e.local.(metaengine.SpatialBackend); ok {
 		return sb.SpatialRange(ctx, collection, x, y, radius, limit)
 	}
+
 	return nil, ErrSpatialBackendNotImplemented
 }
 
@@ -173,6 +181,7 @@ func (e *replicatedEngine) GraphNeighbors(
 	if gb, ok := e.local.(graphCapable); ok {
 		return gb.GraphNeighbors(ctx, collection, node, depth)
 	}
+
 	return nil, ErrGraphBackendNotImplemented
 }
 
@@ -200,6 +209,7 @@ func (e *replicatedEngine) GraphNeighborsUndirected(
 	if gx, ok := e.local.(graphExtCapable); ok {
 		return gx.GraphNeighborsUndirected(ctx, collection, node, depth)
 	}
+
 	return nil, ErrGraphBackendNotImplemented
 }
 
@@ -216,5 +226,6 @@ func (e *replicatedEngine) VectorSearchFiltered(
 	if vf, ok := e.local.(metaengine.VectorFilterBackend); ok {
 		return vf.VectorSearchFiltered(ctx, collection, query, k, metric, filters)
 	}
+
 	return nil, ErrVectorBackendNotImplemented
 }

@@ -20,6 +20,7 @@ var errFrameTooLarge = irohengine.ErrFrameTooLarge
 func frameHeader(size int) []byte {
 	h := make([]byte, frameHeaderSize)
 	binary.BigEndian.PutUint32(h, uint32(size))
+
 	return h
 }
 
@@ -29,11 +30,13 @@ func parseFrameHeader(header []byte) (uint32, error) {
 		return 0, fmt.Errorf("frame header must be %d bytes, got %d: %w",
 			frameHeaderSize, len(header), errInvalidFrameHeader)
 	}
+
 	size := binary.BigEndian.Uint32(header)
 	if size > maxOpSize {
 		return 0, fmt.Errorf("frame size %d exceeds max %d: %w",
 			size, maxOpSize, errFrameTooLarge)
 	}
+
 	return size, nil
 }
 

@@ -32,7 +32,7 @@ func (e *badgerEngine) VectorInsert(
 	//art-dupl:accept dialect twin — dimension-lock insert body mirrors the sibling LSM engine (dep-isolated modules)
 	established, err := e.firstVectorDimension(collection)
 	if err != nil {
-		return err //nolint:wrapcheck // wrapped by the probe helper
+		return err
 	}
 
 	if err := metaengine.CheckVectorDimension(
@@ -47,7 +47,9 @@ func (e *badgerEngine) VectorInsert(
 	val := metaengine.EncodeVectorBinary(emb.Values)
 
 	metaKey := keycodec.VectorMetaKey(collection, emb.ID)
+
 	var metaVal []byte
+
 	if emb.Metadata != nil {
 		metaJSON, err := keycodec.EncodeJSONErr(emb.Metadata)
 		if err != nil {
@@ -217,6 +219,7 @@ func (e *badgerEngine) firstVectorDimension(collection string) (int, error) {
 		defer iter.Close()
 
 		iter.Rewind()
+
 		if !iter.Valid() {
 			return nil
 		}

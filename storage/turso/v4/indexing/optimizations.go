@@ -3,7 +3,7 @@ package indexing
 import (
 	"context"
 	"database/sql"
-	"fmt"
+	"strconv"
 	"strings"
 
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -56,7 +56,7 @@ func ApplyWAL(ctx context.Context, db *sql.DB) error {
 // SetCacheSize sets the SQLite page cache size in pages (negative = KiB).
 func SetCacheSize(ctx context.Context, db *sql.DB, pages int) error {
 	return applyPragmas(ctx, db, []Pragma{
-		{Name: "cache_size", Value: fmt.Sprintf("%d", pages)},
+		{Name: "cache_size", Value: strconv.Itoa(pages)},
 	})
 }
 
@@ -64,7 +64,7 @@ func SetCacheSize(ctx context.Context, db *sql.DB, pages int) error {
 // Size is in bytes; 0 disables. Typical: 256MB (268435456).
 func SetMemoryMap(ctx context.Context, db *sql.DB, size int64) error {
 	return applyPragmas(ctx, db, []Pragma{
-		{Name: "mmap_size", Value: fmt.Sprintf("%d", size)},
+		{Name: "mmap_size", Value: strconv.FormatInt(size, 10)},
 	})
 }
 
@@ -93,7 +93,7 @@ func Analyze(ctx context.Context, db *sql.DB) error {
 
 // AnalyzeTable runs ANALYZE on a specific table.
 func AnalyzeTable(ctx context.Context, db *sql.DB, table string) error {
-	_, err := db.ExecContext(ctx, fmt.Sprintf("ANALYZE %s", table))
+	_, err := db.ExecContext(ctx, "ANALYZE "+table)
 	if err != nil {
 		return errorfamily.WrapInfrastructure(err, "indexing.analyze_table",
 			"run ANALYZE "+table)

@@ -10,6 +10,7 @@ import (
 // art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 type Metadata struct {
 	metadata.Tracing
+
 	Source    Source                 `json:"source,omitempty"`
 	IPAddress IPAddress              `json:"ipAddress,omitempty"`
 	UserAgent UserAgent              `json:"userAgent,omitempty"`
@@ -49,11 +50,14 @@ func (m Metadata) Clone() Metadata {
 // Custom. The original Metadata is not modified.
 func (m Metadata) WithCustom(key MetadataKey, value string) Metadata {
 	cp := m
+
 	cp.Custom = maps.Clone(m.Custom)
 	if cp.Custom == nil {
 		cp.Custom = make(map[MetadataKey]string)
 	}
+
 	cp.Custom[key] = value
+
 	return cp
 }
 

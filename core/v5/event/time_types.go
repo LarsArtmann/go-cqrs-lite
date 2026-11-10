@@ -104,6 +104,7 @@ func (i *Instant) UnmarshalJSON(data []byte) error {
 	}
 
 	i.t = t.UTC()
+
 	return nil
 }
 
@@ -132,6 +133,7 @@ func (i *Instant) UnmarshalCBOR(data []byte) error {
 	}
 
 	i.t = time.Unix(0, nanos).UTC()
+
 	return nil
 }
 
@@ -255,13 +257,17 @@ func (w WallTime) IsValid() bool {
 	if w.Hour < 0 || w.Hour > 23 {
 		return false
 	}
+
 	if w.Minute < 0 || w.Minute > 59 {
 		return false
 	}
+
 	if w.Location == "" {
 		return false
 	}
+
 	_, err := time.LoadLocation(w.Location)
+
 	return err == nil
 }
 
@@ -309,8 +315,10 @@ func (w *WallTime) UnmarshalCBOR(data []byte) error {
 			"wall_time: failed to unmarshal CBOR",
 		)
 	}
+
 	w.Hour = raw.Hour
 	w.Minute = raw.Minute
 	w.Location = raw.Location
+
 	return nil
 }

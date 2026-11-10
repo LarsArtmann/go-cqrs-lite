@@ -98,6 +98,7 @@ func (a *EventStore) startLoadSpan(
 	ref id.StreamRef,
 ) (cqrsotel.Span, []byte, []byte) {
 	_, span := startStreamSpan(ctx, spanName, ref)
+
 	return span, a.streamPrefix(ref), a.streamUpperBound(ref)
 }
 
@@ -112,6 +113,7 @@ func (a *EventStore) startLoadFromVersionSpan(
 ) (cqrsotel.Span, []byte, []byte) {
 	_, span := startStreamSpan(ctx, spanName, ref,
 		cqrsotel.AttrInt(cqrsotel.AttrStreamVersion, version.Int()))
+
 	return span, a.eventKey(ref, version+1), a.streamUpperBound(ref)
 }
 

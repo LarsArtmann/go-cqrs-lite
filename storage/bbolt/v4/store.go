@@ -93,6 +93,7 @@ func (s *EventStore) Save(
 		}
 
 		eventsBucket := tx.Bucket([]byte(bucketEvents))
+
 		journalBucket := tx.Bucket([]byte(bucketJournal))
 		if eventsBucket == nil || journalBucket == nil {
 			return errorfamily.NewInfrastructure("bbolt.bucket_missing",
@@ -159,6 +160,7 @@ func (s *EventStore) AppendBatch(
 
 	err := s.writeTx(func(tx *bolt.Tx) error {
 		eventsBucket := tx.Bucket([]byte(bucketEvents))
+
 		journalBucket := tx.Bucket([]byte(bucketJournal))
 		if eventsBucket == nil || journalBucket == nil {
 			return errorfamily.NewInfrastructure("bbolt.bucket_missing",
@@ -224,6 +226,7 @@ func (s *EventStore) currentVersion(tx *bolt.Tx, ref id.StreamRef) (int, error) 
 func parseVersionFromKey(key []byte) (int, error) {
 	//art-dupl:accept intentional cross-module duplicate — separate go.mod
 	str := string(key)
+
 	lastColon := len(str) - (versionDigits + 1)
 	if lastColon < 0 || str[lastColon] != ':' {
 		return 0, errorfamily.NewCorruption("bbolt.invalid_key_format",

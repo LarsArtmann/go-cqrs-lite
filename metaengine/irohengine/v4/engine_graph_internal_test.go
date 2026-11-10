@@ -27,6 +27,7 @@ func (l *addOnlyGraphLocal) GraphAddEdge(
 	edge metaengine.Edge,
 ) error {
 	l.added = append(l.added, edge)
+
 	return nil
 }
 

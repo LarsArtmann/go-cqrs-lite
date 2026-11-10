@@ -45,6 +45,7 @@ func warmTursoLibrary() error {
 		db, err := sql.Open("turso", ":memory:")
 		if err != nil {
 			errTursoLibraryWarmup = fmt.Errorf("open warmup connection: %w", err)
+
 			return
 		}
 		defer func() { _ = db.Close() }()
@@ -82,6 +83,7 @@ func withTursoLibraryLock(ping func() error) error {
 // reports whether the lock is held.
 func acquireTursoLockFile(lockPath string) (*os.File, bool) {
 	deadline := time.Now().Add(tursoLibraryWarmupTimeout)
+
 	for {
 		lock, err := os.OpenFile(
 			lockPath,
@@ -91,9 +93,11 @@ func acquireTursoLockFile(lockPath string) (*os.File, bool) {
 		if err == nil {
 			return lock, true
 		}
+
 		if !errors.Is(err, os.ErrExist) || time.Now().After(deadline) {
 			return nil, false
 		}
+
 		time.Sleep(25 * time.Millisecond)
 	}
 }

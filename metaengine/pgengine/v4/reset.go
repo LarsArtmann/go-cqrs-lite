@@ -77,7 +77,7 @@ func (e *pgEngine) ResetEngine(ctx context.Context) error {
 func rollbackReturning(tx *sql.Tx, cause error) error {
 	_ = tx.Rollback()
 
-	return cause //nolint:wrapcheck // caller already wrapped the cause
+	return cause
 }
 
 // Compile-time assertion: the engine satisfies the reset capability.

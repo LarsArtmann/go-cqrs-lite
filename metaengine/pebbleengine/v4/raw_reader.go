@@ -140,6 +140,7 @@ func (e *pebbleEngine) ScanRawValues(
 	}
 
 	var next any
+
 	if sortSpec != nil && len(pairs) > 0 {
 		last := pairs[len(pairs)-1]
 		next = metaengine.LastDecodedRowCursor(last.value, sortSpec.Column, last.key)
@@ -169,6 +170,7 @@ func rawHitsResult(
 	}
 
 	var next any
+
 	if len(hits) > 0 {
 		last := hits[len(hits)-1]
 		next = metaengine.LastDecodedRowCursor(

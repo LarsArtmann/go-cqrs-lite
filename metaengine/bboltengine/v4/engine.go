@@ -201,6 +201,7 @@ func NewBboltEngineFromDB(db *bolt.DB) (metaengine.Engine, error) {
 func (e *bboltEngine) init() error {
 	return e.db.Update(func(tx *bolt.Tx) error {
 		_, err := tx.CreateBucketIfNotExists([]byte(bucketName))
+
 		return err //nolint:wrapcheck // bbolt error is self-describing
 	})
 }
@@ -294,7 +295,7 @@ func (e *bboltEngine) HealthCheck(_ context.Context) error {
 // var.
 var (
 	mapKey             = keycodec.MapKey //art-dupl:accept keycodec alias across engine modules
-	setKey             = keycodec.SetKey //nolint:unused // used in backends.go
+	setKey             = keycodec.SetKey
 	counterKey         = keycodec.CounterKey
 	counterPrefix      = keycodec.CounterPrefix
 	multimapKey        = keycodec.MultimapKey

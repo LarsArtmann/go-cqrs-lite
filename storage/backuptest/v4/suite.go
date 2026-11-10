@@ -94,24 +94,28 @@ func RunFullLifecycle(t *testing.T, f Factory) {
 
 	loadedA, err := restored.EventStore().Load(ctx, refA)
 	must(t, "load restored A", err)
+
 	if len(loadedA) != 1 {
 		t.Errorf("restored stream A: %d events, want 1 (pre-backup only)", len(loadedA))
 	}
 
 	loadedB, err := restored.EventStore().Load(ctx, refB)
 	must(t, "load restored B", err)
+
 	if len(loadedB) != 2 {
 		t.Errorf("restored stream B: %d events, want 2", len(loadedB))
 	}
 
 	loadedSnap, err := restored.SnapshotStore().Load(ctx, refA)
 	must(t, "load restored snapshot", err)
+
 	if loadedSnap.Version.Int() != 1 {
 		t.Errorf("restored snapshot version = %d, want 1", loadedSnap.Version.Int())
 	}
 
 	loadedCP, err := restored.CheckpointStore().Load(ctx, "users-projection")
 	must(t, "load restored checkpoint", err)
+
 	if loadedCP.EventID != cpEventID {
 		t.Errorf(
 			"restored checkpoint EventID = %s, want %s (pre-backup)",
@@ -129,6 +133,7 @@ func RunFullLifecycle(t *testing.T, f Factory) {
 
 	loadedA2, err := restored.EventStore().Load(ctx, refA)
 	must(t, "load after new write", err)
+
 	if len(loadedA2) != 2 {
 		t.Errorf("after new write: %d events, want 2", len(loadedA2))
 	}
@@ -165,6 +170,7 @@ func RunIncrementalCheckpoints(t *testing.T, f Factory) {
 
 	loaded1, err := r1.EventStore().Load(ctx, ref)
 	must(t, "load backup1", err)
+
 	if len(loaded1) != 1 {
 		t.Errorf("backup1: %d events, want 1", len(loaded1))
 	}
@@ -174,6 +180,7 @@ func RunIncrementalCheckpoints(t *testing.T, f Factory) {
 
 	loaded2, err := r2.EventStore().Load(ctx, ref)
 	must(t, "load backup2", err)
+
 	if len(loaded2) != 2 {
 		t.Errorf("backup2: %d events, want 2", len(loaded2))
 	}

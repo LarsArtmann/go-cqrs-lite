@@ -16,7 +16,7 @@ func init() {
 				return nil, err
 			}
 
-			return NewBadgerEngine(cfg.DSN, opts...) //nolint:wrapcheck // factory passthrough
+			return NewBadgerEngine(cfg.DSN, opts...)
 		},
 	)
 }

@@ -15,6 +15,7 @@ const latencyWindowSize = 512
 func SortDurations(d []time.Duration) []time.Duration {
 	cp := append([]time.Duration(nil), d...)
 	slices.Sort(cp)
+
 	return cp
 }
 

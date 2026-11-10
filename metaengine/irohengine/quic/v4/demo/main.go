@@ -21,6 +21,7 @@ func main() {
 	ticket := flag.String("ticket", "", "coordinator ticket (required for node mode)")
 	waitFor := flag.Int("wait-nodes", 1, "coordinator: number of nodes to wait for")
 	writeCount := flag.Int("writes", 5, "number of keys to write")
+
 	flag.Parse()
 
 	switch *mode {
@@ -31,6 +32,7 @@ func main() {
 			fmt.Fprintln(os.Stderr, "ERROR: --ticket is required for node mode")
 			os.Exit(1)
 		}
+
 		runNode(*ticket, *writeCount)
 	default:
 		printUsage()
@@ -99,24 +101,30 @@ func runCoordinator(waitFor, writeCount int) {
 		if transport.PeerCount() >= waitFor {
 			break
 		}
+
 		time.Sleep(200 * time.Millisecond)
 	}
+
 	if transport.PeerCount() < waitFor {
 		fmt.Fprintf(os.Stderr, "ERROR: timeout waiting for nodes (got %d/%d)\n",
 			transport.PeerCount(), waitFor)
 		os.Exit(1)
 	}
+
 	fmt.Printf("  ✓ %d node(s) connected!\n\n", transport.PeerCount())
 
 	time.Sleep(1 * time.Second)
 
 	fmt.Printf("  Writing %d keys...\n", writeCount)
+
 	for i := range writeCount {
 		key := fmt.Sprintf("coord-key-%d", i)
+
 		val := fmt.Sprintf("value-from-coordinator-%d", i)
 		if err := engine.(metaengine.MapBackend).MapSet(ctx, "demo", key, val); err != nil {
 			fmt.Fprintf(os.Stderr, "ERROR: MapSet %s: %v\n", key, err)
 		}
+
 		fmt.Printf("    wrote %s = %s\n", key, val)
 	}
 
@@ -127,6 +135,7 @@ func runCoordinator(waitFor, writeCount int) {
 	printMapContents(ctx, engine, "demo")
 
 	profile := engine.Profile()
+
 	fmt.Println("\n  ── Real QUIC Measurements ──")
 	fmt.Printf("  Replication: %s\n", profile.Replication)
 	fmt.Printf("  ReplicationLag (P99): %s\n", formatDuration(profile.ReplicationLag))
@@ -160,22 +169,27 @@ func runNode(ticket string, writeCount int) {
 	fmt.Printf("  Node ID: %s\n", transport.NodeID())
 
 	fmt.Println("  Connecting to coordinator...")
+
 	if err := transport.Connect(ticket); err != nil {
 		fmt.Fprintf(os.Stderr, "ERROR: connect failed: %v\n", err)
 		os.Exit(1)
 	}
+
 	time.Sleep(500 * time.Millisecond)
 	fmt.Printf("  ✓ Connected! Peers: %d\n", transport.PeerCount())
 
 	time.Sleep(1 * time.Second)
 
 	fmt.Printf("\n  Writing %d keys...\n", writeCount)
+
 	for i := range writeCount {
 		key := fmt.Sprintf("node-key-%d", i)
+
 		val := fmt.Sprintf("value-from-node-%d", i)
 		if err := engine.(metaengine.MapBackend).MapSet(ctx, "demo", key, val); err != nil {
 			fmt.Fprintf(os.Stderr, "ERROR: MapSet %s: %v\n", key, err)
 		}
+
 		fmt.Printf("    wrote %s = %s\n", key, val)
 	}
 
@@ -186,6 +200,7 @@ func runNode(ticket string, writeCount int) {
 	printMapContents(ctx, engine, "demo")
 
 	profile := engine.Profile()
+
 	fmt.Println("\n  ── Real QUIC Measurements ──")
 	fmt.Printf("  Replication: %s\n", profile.Replication)
 	fmt.Printf("  ReplicationLag (P99): %s\n", formatDuration(profile.ReplicationLag))
@@ -203,9 +218,11 @@ func formatDuration(d time.Duration) string {
 	if d == 0 {
 		return "0s (no samples yet)"
 	}
+
 	if d < time.Microsecond {
 		return "<1us (localhost)"
 	}
+
 	return d.String()
 }
 
@@ -224,17 +241,22 @@ func printMapContents(ctx context.Context, engine metaengine.Engine, collection 
 	)
 	if err != nil {
 		fmt.Printf("    (scan error: %v)\n", err)
+
 		return
 	}
+
 	if len(scanResult.Items) == 0 {
 		fmt.Println("    (no keys yet)")
+
 		return
 	}
+
 	for _, item := range scanResult.Items {
 		s := fmt.Sprintf("%v", item)
 		if len(s) > 80 {
 			s = s[:77] + "..."
 		}
+
 		fmt.Printf("    %s\n", s)
 	}
 }

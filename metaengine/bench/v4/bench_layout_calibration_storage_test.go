@@ -31,6 +31,7 @@ func dollarTuple(row, cols int) string {
 	for i := range cols {
 		parts[i] = fmt.Sprintf("$%d", row*cols+i+1)
 	}
+
 	return strings.Join(parts, ",")
 }
 
@@ -91,6 +92,7 @@ func embedValueType(kind string) string {
 func createEmbedTable(db *sql.DB, table, kind string) error {
 	_, err := db.Exec(fmt.Sprintf(
 		"CREATE TABLE %s (k VARCHAR(64) PRIMARY KEY, v %s)", table, embedValueType(kind)))
+
 	return err
 }
 
@@ -105,6 +107,7 @@ func seedEmbedTable(db *sql.DB, tuple phTuple, table string, n int) error {
 		}
 		rows = append(rows, []any{order.ID, string(raw)})
 	}
+
 	return chunkedInsert(db, tuple, "INSERT INTO "+table+" (k, v) VALUES ", rows)
 }
 
@@ -116,6 +119,7 @@ func fileSize(tb testing.TB, path string) int64 {
 	if err != nil {
 		tb.Fatalf("stat %s: %v", path, err)
 	}
+
 	return info.Size()
 }
 
@@ -250,6 +254,7 @@ func pgTableSize(tb testing.TB, db *sql.DB, table string) int64 {
 	if err := db.QueryRow("SELECT pg_total_relation_size($1)", table).Scan(&size); err != nil {
 		tb.Fatalf("pg size %s: %v", table, err)
 	}
+
 	return size
 }
 
@@ -301,6 +306,7 @@ func mysqlTableSize(tb testing.TB, db *sql.DB, table string) int64 {
 	if err != nil {
 		tb.Fatalf("mysql size %s: %v", table, err)
 	}
+
 	return size.Int64
 }
 

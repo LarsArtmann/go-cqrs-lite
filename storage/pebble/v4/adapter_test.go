@@ -628,6 +628,7 @@ func TestKVAdapter_SetIfAbsent_ConcurrentExactlyOneWinner(t *testing.T) {
 			ok, err := cw.SetIfAbsent(context.Background(), []byte("contested"), []byte("won"))
 			if err != nil {
 				t.Errorf("SetIfAbsent: %v", err)
+
 				return
 			}
 			if ok {

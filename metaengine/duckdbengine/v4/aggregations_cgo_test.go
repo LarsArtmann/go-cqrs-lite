@@ -684,7 +684,6 @@ func TestDuckDB_Aggregate_EmptyPlannedCollection(t *testing.T) {
 
 // --- ExplainableAggregate ---
 
-//nolint:tparallel // subtests share a mutable DuckDB engine instance (layout plans)
 func TestDuckDB_ExplainAggregateQuery(t *testing.T) {
 	eng := mustNewDuckEngine(t)
 

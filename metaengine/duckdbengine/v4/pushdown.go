@@ -174,6 +174,7 @@ func (e *duckdbEngine) pushdownMapScanPlanned(
 // E.g. "status" → "$.status". Single quotes are escaped.
 func jsonPath(field string) string {
 	escaped := strings.ReplaceAll(field, "'", "''")
+
 	return "$." + escaped
 }
 

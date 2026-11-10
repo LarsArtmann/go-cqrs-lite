@@ -185,6 +185,7 @@ func (e *dgraphEngine) GraphNeighbors(
 		key := fmt.Sprint(n)
 		if !seen[key] {
 			seen[key] = true
+
 			result = append(result, n)
 		}
 	}

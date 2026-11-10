@@ -51,6 +51,7 @@ func (e *flaky) MapGet(
 	mb, ok := e.Engine.(metaengine.MapBackend)
 	if !ok {
 		tErr := errorfamily.Newf(errorfamily.Infrastructure, "obs.3", "engine lacks MapBackend")
+
 		return nil, false, tErr
 	}
 
@@ -71,7 +72,7 @@ func (e *flaky) Probe(context.Context) (time.Duration, error) {
 // capable (interface embedding does not promote EngineResetter).
 func (e *flaky) ResetEngine(ctx context.Context) error {
 	if r, ok := e.Engine.(metaengine.EngineResetter); ok {
-		return r.ResetEngine(ctx) //nolint:wrapcheck // passthrough delegation
+		return r.ResetEngine(ctx)
 	}
 
 	return nil

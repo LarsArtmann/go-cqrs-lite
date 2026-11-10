@@ -23,6 +23,7 @@ func waitForPeers(t *testing.T, transports []*loopback.LoopbackTransport, expect
 		for _, tr := range transports {
 			if tr.PeerCount() < expected {
 				allReady = false
+
 				break
 			}
 		}
@@ -74,6 +75,7 @@ func TestLoopbackConvergenceSuite(t *testing.T) {
 		nodeA, nodeB, _, _ := setupTwoNodeLoopback(t)
 		t.Cleanup(func() { _ = nodeA.Close() })
 		t.Cleanup(func() { _ = nodeB.Close() })
+
 		return nodeA, nodeB
 	})
 }

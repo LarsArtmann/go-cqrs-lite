@@ -35,6 +35,7 @@ func NewDate(year int, month time.Month, day int) (Date, error) {
 	if t.Year() != year || t.Month() != month || t.Day() != day {
 		return Date{}, fmt.Errorf("%w: %04d-%02d-%02d", ErrInvalidDate, year, int(month), day)
 	}
+
 	return Date{Year: year, Month: month, Day: day}, nil
 }
 
@@ -45,6 +46,7 @@ func NewDateMust(year int, month time.Month, day int) Date {
 	if err != nil {
 		panic(err)
 	}
+
 	return d
 }
 
@@ -58,6 +60,7 @@ func NewDateFromString(s string) (Date, error) {
 			fmt.Sprintf("date: failed to parse %q", s),
 		)
 	}
+
 	return Date{Year: t.Year(), Month: t.Month(), Day: t.Day()}, nil
 }
 
@@ -76,9 +79,11 @@ func (d Date) Before(other Date) bool {
 	if d.Year != other.Year {
 		return d.Year < other.Year
 	}
+
 	if d.Month != other.Month {
 		return d.Month < other.Month
 	}
+
 	return d.Day < other.Day
 }
 

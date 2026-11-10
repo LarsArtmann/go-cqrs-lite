@@ -206,6 +206,7 @@ func TestPostgres_MultiGroupedAggregate(t *testing.T) {
 		exp, ok := want[row.Group]
 		if !ok {
 			t.Errorf("unexpected group %q", row.Group)
+
 			continue
 		}
 
@@ -238,6 +239,7 @@ func TestPostgres_DistinctValues(t *testing.T) {
 		s, ok := v.(string)
 		if !ok {
 			t.Errorf("distinct value %v is %T, not string", v, v)
+
 			continue
 		}
 

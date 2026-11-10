@@ -65,7 +65,7 @@ func (e *dgraphEngine) vectorScan(
 	filters []metaengine.VectorFilter,
 ) ([]metaengine.VectorResult, error) {
 	if err := e.ensureVectorSchema(ctx); err != nil {
-		return nil, err //nolint:wrapcheck // already actionable
+		return nil, err
 	}
 
 	var out vectorRows
@@ -103,7 +103,7 @@ func (e *dgraphEngine) vectorScan(
 // [metaengine.VectorCounter].
 func (e *dgraphEngine) VectorCount(ctx context.Context, collection string) (int64, error) {
 	if err := e.ensureVectorSchema(ctx); err != nil {
-		return 0, err //nolint:wrapcheck // already actionable
+		return 0, err
 	}
 
 	var out struct {
@@ -131,7 +131,7 @@ func (e *dgraphEngine) VectorCount(ctx context.Context, collection string) (int6
 // Implements the enumeration member of [metaengine.VectorCounter].
 func (e *dgraphEngine) VectorCollections(ctx context.Context) ([]string, error) {
 	if err := e.ensureVectorSchema(ctx); err != nil {
-		return nil, err //nolint:wrapcheck // already actionable
+		return nil, err
 	}
 
 	var out struct {

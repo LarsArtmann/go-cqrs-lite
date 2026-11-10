@@ -125,7 +125,7 @@ func newULID() ulid.ULID {
 		var entropy [10]byte
 		copy(entropy[:6], epoch.prefix[:])
 
-		seq := uint32(s) //nolint:gosec // G115: low 32 bits are the per-epoch seq suffix
+		seq := uint32(s)
 		binary.BigEndian.PutUint32(entropy[6:], seq)
 		_ = id.SetEntropy(entropy[:])
 

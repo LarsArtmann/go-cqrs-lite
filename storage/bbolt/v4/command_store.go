@@ -156,6 +156,7 @@ func (s *CommandStore) Load(
 	}
 
 	span.SetAttributes(cqrsotel.AttrInt("command.count", len(cmds)))
+
 	return cmds, nil
 }
 
@@ -190,6 +191,7 @@ func (s *CommandStore) loadByTimestamp(
 	before bool,
 ) ([]*command.PersistedCommand, error) {
 	prefix := commandStreamPrefix(ref)
+
 	var cmds []*command.PersistedCommand
 
 	err := s.db.View(func(tx *bolt.Tx) error {
@@ -225,6 +227,7 @@ func (s *CommandStore) loadByTimestamp(
 	}
 
 	span.SetAttributes(cqrsotel.AttrInt("command.count", len(cmds)))
+
 	return cmds, nil
 }
 
@@ -249,6 +252,7 @@ func (s *CommandStore) ReadAll(ctx context.Context) ([]*command.PersistedCommand
 			return nil
 		})
 	})
+
 	return finishBucketRead(span, err, "bbolt.command_read_all",
 		"read all commands from journal", "command.count", cmds)
 }
@@ -264,6 +268,7 @@ func (s *CommandStore) ReadFrom(
 	defer span.End()
 
 	seekKey := commandJournalKey(afterCmdID)
+
 	var cmds []*command.PersistedCommand
 
 	err := s.db.View(func(tx *bolt.Tx) error {
@@ -291,6 +296,7 @@ func (s *CommandStore) ReadFrom(
 
 		return nil
 	})
+
 	return finishBucketRead(span, err, "bbolt.command_read_from",
 		"read commands from journal position", "command.count", cmds)
 }

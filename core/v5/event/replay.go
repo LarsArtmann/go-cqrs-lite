@@ -37,5 +37,6 @@ func ProcessingModeFrom(ctx context.Context) ProcessingMode {
 // IsReplay reports whether the context is marked as a replay context.
 func IsReplay(ctx context.Context) bool {
 	val, _ := ctx.Value(replayKey).(bool)
+
 	return val
 }

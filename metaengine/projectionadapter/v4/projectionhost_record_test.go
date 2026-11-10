@@ -59,6 +59,7 @@ func TestProjectionHost_RecordAwareLifecycle(t *testing.T) {
 
 	decoder := func(eventType string, payload []byte) (any, error) {
 		var e itemEvent
+
 		return e, json.Unmarshal(payload, &e)
 	}
 
@@ -158,6 +159,7 @@ func TestProjectionHost_CheckpointAdvances(t *testing.T) {
 
 	decoder := func(eventType string, payload []byte) (any, error) {
 		var e cpEvent
+
 		return e, json.Unmarshal(payload, &e)
 	}
 

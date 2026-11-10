@@ -158,7 +158,7 @@ func (a *AutoIndexer) maybeAnalyze(ctx context.Context) error {
 		return nil
 	}
 
-	return Analyze(ctx, a.db) //nolint:wrapcheck // transparent delegation
+	return Analyze(ctx, a.db)
 }
 
 // ApplyRecommended runs MissingIndexes and applies all recommendations.
@@ -210,13 +210,14 @@ func (a *AutoIndexer) ApplyCQRSIndexes(ctx context.Context) error {
 
 		if err := a.createIndex(ctx, idx); err != nil {
 			wrappedErr := errorfamily.WrapInfrastructure(err, "indexing.create_cqrs_index",
-				fmt.Sprintf("create CQRS index %s", idx.Name))
+				"create CQRS index "+idx.Name)
 			cqrsotel.RecordError(span, wrappedErr)
 
 			return wrappedErr
 		}
 
 		recordIndexAttributes(span, idx)
+
 		created++
 	}
 
@@ -231,7 +232,7 @@ func (a *AutoIndexer) ApplyCQRSIndexes(ctx context.Context) error {
 
 // Recommendations returns current recommendations without applying them.
 func (a *AutoIndexer) Recommendations(ctx context.Context) ([]Recommendation, error) {
-	return a.advisor.MissingIndexes(ctx) //nolint:wrapcheck // transparent delegation
+	return a.advisor.MissingIndexes(ctx)
 }
 
 // Close releases any resources held by the AutoIndexer.
@@ -269,13 +270,14 @@ func (a *AutoIndexer) Drop(ctx context.Context, indexes ...Index) error {
 		_, err := a.db.ExecContext(ctx, ddl)
 		if err != nil {
 			wrappedErr := errorfamily.WrapInfrastructure(err, "indexing.drop_index",
-				fmt.Sprintf("drop index %s", idx.Name))
+				"drop index "+idx.Name)
 			cqrsotel.RecordError(span, wrappedErr)
 
 			return wrappedErr
 		}
 
 		a.hooksConfig.fireAfterDrop(ctx, idx, a)
+
 		dropped++
 	}
 
@@ -287,7 +289,7 @@ func (a *AutoIndexer) Drop(ctx context.Context, indexes ...Index) error {
 // RecommendAndApply combines MissingIndexes and ApplyRecommended in one call.
 // Convenience for the most common auto-indexing workflow.
 func (a *AutoIndexer) RecommendAndApply(ctx context.Context) error {
-	return a.ApplyRecommended(ctx) //nolint:wrapcheck // transparent delegation
+	return a.ApplyRecommended(ctx)
 }
 
 func (a *AutoIndexer) createIndex(ctx context.Context, idx Index) error {
@@ -314,7 +316,7 @@ func (a *AutoIndexer) createIndex(ctx context.Context, idx Index) error {
 			return nil
 		}
 
-		return err //nolint:wrapcheck // caller wraps with context
+		return err
 	}
 
 	a.hooksConfig.fireAfterCreate(ctx, idx, a)

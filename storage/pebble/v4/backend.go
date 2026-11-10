@@ -88,11 +88,13 @@ func newBackend(
 		opt(&cfg)
 	}
 
-	var storeOpts []StoreOption
-	var commandOpts []CommandStoreOption
-	var queryOpts []QueryStoreOption
-	var snapshotOpts []SnapshotOption
-	var checkpointOpts []CheckpointOption
+	var (
+		storeOpts      []StoreOption
+		commandOpts    []CommandStoreOption
+		queryOpts      []QueryStoreOption
+		snapshotOpts   []SnapshotOption
+		checkpointOpts []CheckpointOption
+	)
 
 	kvOpts := []KVOption{WithBorrowedDB()}
 

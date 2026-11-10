@@ -40,7 +40,7 @@ func TestVectorSearch_LegacyJSONPayloadReadable(t *testing.T) {
 		bucket := tx.Bucket([]byte(bucketName))
 		for id, payload := range legacy {
 			if err := bucket.Put(keycodec.VectorKey(col, id), []byte(payload)); err != nil {
-				return err //nolint:wrapcheck // bbolt error is self-describing
+				return err
 			}
 		}
 

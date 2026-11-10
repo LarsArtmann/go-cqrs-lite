@@ -164,6 +164,7 @@ func (e *mysqlEngine) CounterIncrement(
 
 	for i, key := range keys {
 		placeholders[i] = "(?, ?, ?)"
+
 		args = append(args, col, key, deltas[key])
 	}
 

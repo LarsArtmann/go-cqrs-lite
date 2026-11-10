@@ -172,6 +172,7 @@ func extractStringField(items []any, field string) []string {
 			}
 		}
 	}
+
 	return vals
 }
 
@@ -184,5 +185,6 @@ func extractFloatField(items []any, field string) []float64 {
 			}
 		}
 	}
+
 	return vals
 }

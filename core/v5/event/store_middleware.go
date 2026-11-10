@@ -210,6 +210,7 @@ func (s *decoratedStore) ReadFrom(
 	limit int,
 ) ([]Event, error) {
 	events, err := seekableReadFrom(ctx, s.inner, afterEventID, limit, "store")
+
 	return s.applySource(events, err)
 }
 

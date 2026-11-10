@@ -133,6 +133,7 @@ func NewPebbleEngine(dir string, opts ...Option) (metaengine.Engine, error) {
 
 	dbOpts := &pebble.Options{DisableWAL: cfg.disableWAL}
 	persistence := metaengine.PersistencePersistent
+
 	if dir == "" {
 		dbOpts.FS = vfs.NewMem()
 		persistence = metaengine.PersistenceVolatile
@@ -155,12 +156,14 @@ func NewPebbleEngine(dir string, opts ...Option) (metaengine.Engine, error) {
 	if persistence == metaengine.PersistencePersistent {
 		if err := eng.seedSeqCounters(); err != nil {
 			_ = db.Close()
+
 			return nil, fmt.Errorf("pebbleengine: seed seq counters: %w", err)
 		}
 	}
 
 	if err := eng.wireMapRuntimes(); err != nil {
 		_ = db.Close()
+
 		return nil, err
 	}
 

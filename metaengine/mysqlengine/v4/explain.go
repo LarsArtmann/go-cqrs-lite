@@ -143,6 +143,7 @@ func (e *mysqlEngine) appendExplainFilter(
 
 func (e *mysqlEngine) aggExpr(fn metaengine.AggregateFn, column string) string {
 	field := e.jsonFieldExpr(column)
+
 	switch fn {
 	case metaengine.AggregateCount:
 		return "COUNT(*)"

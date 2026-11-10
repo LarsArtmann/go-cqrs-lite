@@ -19,6 +19,7 @@ func WithCodec(c codec.Codec) Option {
 		if e.opts == nil {
 			e.opts = &eventOptions{}
 		}
+
 		e.opts.newCodec = c
 	}
 }
@@ -143,6 +144,7 @@ func WithClock(clock Clock) Option {
 		if e.opts == nil {
 			e.opts = &eventOptions{}
 		}
+
 		e.opts.clock = clock
 	}
 }
@@ -166,6 +168,7 @@ func WithDeadline(t time.Time) Option {
 		if e.opts == nil {
 			e.opts = &eventOptions{}
 		}
+
 		e.opts.deadline = t
 	}
 }

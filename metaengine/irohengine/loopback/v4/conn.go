@@ -17,11 +17,13 @@ var opDecMode = func() cbor.DecMode {
 	dm, _ := cbor.DecOptions{
 		DefaultMapType: reflect.TypeFor[map[string]any](),
 	}.DecMode()
+
 	return dm
 }()
 
 func (t *LoopbackTransport) acceptLoop() {
 	defer t.acceptWG.Done()
+
 	for {
 		conn, err := t.listener.Accept()
 		if err != nil {
@@ -31,9 +33,12 @@ func (t *LoopbackTransport) acceptLoop() {
 		t.mu.Lock()
 		if t.closed {
 			t.mu.Unlock()
+
 			_ = conn.Close()
+
 			return
 		}
+
 		t.conns[conn.RemoteAddr().String()] = conn
 		t.mu.Unlock()
 
@@ -68,6 +73,7 @@ func (t *LoopbackTransport) handleConnection(conn net.Conn) {
 		t.mu.RLock()
 		subs := t.subs
 		t.mu.RUnlock()
+
 		for _, s := range subs {
 			s(op)
 		}
@@ -77,6 +83,7 @@ func (t *LoopbackTransport) handleConnection(conn net.Conn) {
 func (t *LoopbackTransport) recordLatency(d time.Duration) {
 	t.latencyMu.Lock()
 	defer t.latencyMu.Unlock()
+
 	t.latencyMs = append(t.latencyMs, d)
 	if len(t.latencyMs) > rttWindowSize {
 		t.latencyMs = t.latencyMs[len(t.latencyMs)-rttWindowSize:]
@@ -87,9 +94,11 @@ func (t *LoopbackTransport) markSeen(opID string) bool {
 	//art-dupl:accept transport twin — loopback/quic dedup-ring guards are dep-isolated mirrors
 	t.dedupMu.Lock()
 	defer t.dedupMu.Unlock()
+
 	if t.dedupRing.Has(opID) {
 		return false
 	}
+
 	t.dedupRing.Add(opID)
 
 	return true

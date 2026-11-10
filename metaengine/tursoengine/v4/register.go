@@ -90,6 +90,7 @@ func redactDSN(dsn string) string {
 				q.Set(key, "[redacted]")
 			}
 		}
+
 		u.RawQuery = q.Encode()
 	}
 
@@ -182,6 +183,7 @@ func New(dsn string, opts ...Option) (metaengine.Engine, error) {
 		if prober, ok := eng.(sqliteengine.ProberSetter); ok {
 			prober.SetProber(func(ctx context.Context) (time.Duration, error) {
 				start := time.Now()
+
 				if err := db.PingContext(ctx); err != nil {
 					return 0, err
 				}

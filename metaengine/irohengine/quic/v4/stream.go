@@ -13,6 +13,7 @@ import (
 
 func (t *QuicTransport) acceptLoop() {
 	defer t.acceptWG.Done()
+
 	for {
 		incomingPtr := t.endpoint.AcceptNext()
 		if incomingPtr == nil || *incomingPtr == nil {
@@ -23,6 +24,7 @@ func (t *QuicTransport) acceptLoop() {
 		if err != nil {
 			continue
 		}
+
 		conn, err := accepting.Connect()
 		if err != nil {
 			continue
@@ -33,9 +35,12 @@ func (t *QuicTransport) acceptLoop() {
 		t.mu.Lock()
 		if t.closed {
 			t.mu.Unlock()
+
 			_ = conn.Close(0, []byte("closing"))
+
 			return
 		}
+
 		t.conns[peerID] = &peerConn{conn: conn, peerID: peerID}
 		t.mu.Unlock()
 
@@ -49,6 +54,7 @@ func (t *QuicTransport) handleConnection(conn *iroh_ffi.Connection, peerID strin
 		if err != nil {
 			return // connection closed
 		}
+
 		if t.cfg.poolStreams {
 			go t.handlePooledStream(conn, peerID, stream)
 		} else {
@@ -74,7 +80,9 @@ func (t *QuicTransport) handleStream(
 	if firstByte[0] == pooledStreamMagic {
 		slog.Error("quic handleStream: protocol mismatch — pooled sender connected " +
 			"to non-pooled receiver; enable WithStreamPooling on both nodes")
+
 		_ = stream.Send().Finish() // unblock sender's ReadExact so it doesn't hang
+
 		return
 	}
 
@@ -83,6 +91,7 @@ func (t *QuicTransport) handleStream(
 	if err != nil {
 		return
 	}
+
 	data := make([]byte, 0, 1+len(rest))
 	data = append(data, firstByte...)
 	data = append(data, rest...)
@@ -110,6 +119,7 @@ func (t *QuicTransport) handleStream(
 	t.mu.RLock()
 	subs := t.subs
 	t.mu.RUnlock()
+
 	for _, s := range subs {
 		s(op)
 	}
@@ -127,10 +137,13 @@ func (t *QuicTransport) markSeen(opID string) bool {
 	//art-dupl:accept transport twin — loopback/quic dedup-ring guards are dep-isolated mirrors
 	t.dedupMu.Lock()
 	defer t.dedupMu.Unlock()
+
 	if t.dedupRing.Has(opID) {
 		return false
 	}
+
 	t.dedupRing.Add(opID)
+
 	return true
 }
 
@@ -142,12 +155,15 @@ func (t *QuicTransport) relayToOthers(sourcePeerID string, op irohengine.WriteOp
 	}
 
 	t.mu.RLock()
+
 	var targets []*peerConn
+
 	for id, pc := range t.conns {
 		if id != sourcePeerID {
 			targets = append(targets, pc)
 		}
 	}
+
 	t.mu.RUnlock()
 
 	for _, pc := range targets {

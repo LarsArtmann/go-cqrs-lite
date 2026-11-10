@@ -80,6 +80,7 @@ func AsRecord(evt Event) record.Record {
 
 	causationID := metadata.BrandedString(tracing.CausationID)
 	cause := record.Cause{}
+
 	if md.Causation != nil && !md.Causation.CommandID.IsZero() {
 		causationID = md.Causation.CommandID.String()
 		cause = record.Cause{Kind: record.CauseCommand, ID: md.Causation.CommandID.String()}

@@ -26,6 +26,7 @@ func TestMapUpdateDoesNotReplicate(t *testing.T) {
 		if n, ok := prev.(int); ok {
 			return n + 1
 		}
+
 		return 1
 	})).To(gomega.Succeed())
 

@@ -42,8 +42,10 @@ func Stats(ctx context.Context, db *sql.DB) ([]IndexUsageStats, error) {
 	var stats []IndexUsageStats
 
 	for rows.Next() {
-		var stat IndexUsageStats
-		var sqlDDL string
+		var (
+			stat   IndexUsageStats
+			sqlDDL string
+		)
 
 		if err := rows.Scan(&stat.Name, &stat.Table, &sqlDDL); err != nil {
 			return nil, errorfamily.WrapInfrastructure(err, "indexing.scan_index",
@@ -70,7 +72,7 @@ func Stats(ctx context.Context, db *sql.DB) ([]IndexUsageStats, error) {
 func UnusedIndexes(ctx context.Context, db *sql.DB) ([]Index, error) {
 	all, err := Stats(ctx, db)
 	if err != nil {
-		return nil, err //nolint:wrapcheck // transparent delegation
+		return nil, err
 	}
 
 	var unused []Index
@@ -91,12 +93,14 @@ func UnusedIndexes(ctx context.Context, db *sql.DB) ([]Index, error) {
 
 func extractIndexedColumns(sqlDDL string) []string {
 	open := strings.Index(sqlDDL, "(")
+
 	close := strings.Index(sqlDDL, ")")
 	if open < 0 || close < 0 || close <= open {
 		return nil
 	}
 
 	cols := strings.Split(sqlDDL[open+1:close], ",")
+
 	out := make([]string, 0, len(cols))
 	for _, c := range cols {
 		c = strings.TrimSpace(c)
@@ -188,7 +192,9 @@ func parseStat1Rows(stat string) int64 {
 	for part := range strings.FieldsSeq(stat) {
 		if strings.HasPrefix(part, "rows=") {
 			var n int64
+
 			_, _ = fmt.Sscanf(part, "rows=%d", &n)
+
 			return n
 		}
 	}

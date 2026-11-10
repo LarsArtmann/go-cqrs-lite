@@ -49,10 +49,12 @@ func TestWithIndexingHooks(t *testing.T) {
 		indexing.WithIndexingHooks(
 			indexing.WithBeforeCreateHook(func(_ context.Context, hctx indexing.HookContext) error {
 				created = append(created, "before:"+hctx.Index.Name)
+
 				return nil
 			}),
 			indexing.WithAfterCreateHook(func(_ context.Context, hctx indexing.HookContext) error {
 				created = append(created, "after:"+hctx.Index.Name)
+
 				return nil
 			}),
 		),

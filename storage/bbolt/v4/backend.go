@@ -171,9 +171,11 @@ func newBackend(database *bolt.DB, logger *slog.Logger, opts ...BackendOption) (
 		events.enableBatchCommit()
 		snap.enableBatchCommit()
 		checkpt.enableBatchCommit()
+
 		if adapter, ok := readMods.(*KVAdapter); ok {
 			adapter.enableBatchCommit()
 		}
+
 		cmds.enableBatchCommit()
 		queries.enableBatchCommit()
 	}

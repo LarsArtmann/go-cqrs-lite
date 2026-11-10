@@ -187,6 +187,7 @@ func (e *bboltEngine) journalEntries(
 	startKey := journalKey(col, afterSeq+1)
 
 	var result []metaengine.StreamLogEntry
+
 	count := 0
 
 	err := e.db.View(func(tx *bolt.Tx) error {
@@ -229,7 +230,7 @@ func (e *bboltEngine) journalEntries(
 // entryValues strips the resume tokens, keeping only the values.
 func entryValues(entries []metaengine.StreamLogEntry, err error) ([]any, error) {
 	if err != nil {
-		return nil, err //nolint:wrapcheck // passthrough
+		return nil, err
 	}
 
 	values := make([]any, len(entries))

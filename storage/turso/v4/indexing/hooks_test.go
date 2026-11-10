@@ -2,6 +2,7 @@ package indexing
 
 import (
 	"context"
+	"errors"
 	"testing"
 )
 
@@ -14,18 +15,22 @@ func TestWithIndexingHooks(t *testing.T) {
 	hooks := hooks{}
 	WithBeforeCreateHook(func(ctx context.Context, hctx HookContext) error {
 		beforeCreateCalled = true
+
 		return nil
 	})(&hooks)
 	WithAfterCreateHook(func(ctx context.Context, hctx HookContext) error {
 		afterCreateCalled = true
+
 		return nil
 	})(&hooks)
 	WithBeforeDropHook(func(ctx context.Context, hctx HookContext) error {
 		beforeDropCalled = true
+
 		return nil
 	})(&hooks)
 	WithAfterDropHook(func(ctx context.Context, hctx HookContext) error {
 		afterDropCalled = true
+
 		return nil
 	})(&hooks)
 
@@ -68,7 +73,7 @@ func TestBeforeCreateHookVeto(t *testing.T) {
 	})(&hooks)
 
 	err := hooks.fireBeforeCreate(context.Background(), Index{Name: "test"}, nil)
-	if err != ErrTestVeto {
+	if !errors.Is(err, ErrTestVeto) {
 		t.Fatalf("expected veto error, got: %v", err)
 	}
 }
@@ -82,7 +87,7 @@ func TestBeforeDropHookVeto(t *testing.T) {
 	})(&hooks)
 
 	err := hooks.fireBeforeDrop(context.Background(), Index{Name: "test"}, nil)
-	if err != ErrTestVeto {
+	if !errors.Is(err, ErrTestVeto) {
 		t.Fatalf("expected veto error, got: %v", err)
 	}
 }
@@ -100,6 +105,7 @@ func TestHookEventTypes(t *testing.T) {
 	var captured HookEvent
 	trackEvent := func(ctx context.Context, hctx HookContext) error {
 		captured = hctx.Event
+
 		return nil
 	}
 
@@ -139,10 +145,12 @@ func TestMultipleHooksCalledInOrder(t *testing.T) {
 	hooks := hooks{}
 	WithBeforeCreateHook(func(ctx context.Context, hctx HookContext) error {
 		order = append(order, "first")
+
 		return nil
 	})(&hooks)
 	WithBeforeCreateHook(func(ctx context.Context, hctx HookContext) error {
 		order = append(order, "second")
+
 		return nil
 	})(&hooks)
 

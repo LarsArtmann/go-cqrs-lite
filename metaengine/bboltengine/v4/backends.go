@@ -21,7 +21,8 @@ func (e *bboltEngine) SetAdd(_ context.Context, col string, key any) error {
 
 	return e.db.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(bucketName))
-		return bucket.Put(k, []byte{}) //nolint:wrapcheck // bbolt error is self-describing
+
+		return bucket.Put(k, []byte{})
 	})
 }
 
@@ -111,7 +112,8 @@ func (e *bboltEngine) MultiAdd(_ context.Context, col string, key, value any) er
 
 	return e.db.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(bucketName))
-		return bucket.Put(k, val) //nolint:wrapcheck // bbolt error is self-describing
+
+		return bucket.Put(k, val)
 	})
 }
 
@@ -154,7 +156,8 @@ func (e *bboltEngine) LogAppend(_ context.Context, col string, value any) error 
 
 	return e.db.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(bucketName))
-		return bucket.Put(k, val) //nolint:wrapcheck // bbolt error is self-describing
+
+		return bucket.Put(k, val)
 	})
 }
 

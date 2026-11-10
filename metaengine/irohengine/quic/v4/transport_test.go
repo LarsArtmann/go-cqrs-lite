@@ -27,6 +27,7 @@ type quicManualClock struct {
 func newQuicManualClock(start time.Time) *quicManualClock {
 	c := &quicManualClock{}
 	c.now.Store(start.UnixNano())
+
 	return c
 }
 
@@ -48,6 +49,7 @@ func waitForPeers(t *testing.T, transports []*quic.QuicTransport, expected int) 
 		for _, tr := range transports {
 			if tr.PeerCount() < expected {
 				allReady = false
+
 				break
 			}
 		}
@@ -116,6 +118,7 @@ func setupTwoNodeQuic(t *testing.T) (
 	g.Expect(tB.Connect(ticketA)).To(gomega.Succeed())
 
 	waitForPeers(t, []*quic.QuicTransport{tA, tB}, 1)
+
 	return nodeA, nodeB, tA, tB
 }
 
@@ -149,6 +152,7 @@ func TestQuicConvergenceSuite(t *testing.T) {
 		t.Cleanup(func() { _ = nodeB.Close() })
 		t.Cleanup(func() { _ = tA.Close() })
 		t.Cleanup(func() { _ = tB.Close() })
+
 		return nodeA, nodeB
 	})
 }
@@ -242,6 +246,7 @@ func TestQuicMapUpdateDoesNotReplicate(t *testing.T) {
 	c.G.Expect(c.NodeA.(metaengine.MapUpdater).MapUpdate(c.Ctx, "counters", "c1",
 		func(prev any) any {
 			n, _ := prev.(int)
+
 			return n + 1
 		})).To(gomega.Succeed())
 
@@ -295,6 +300,7 @@ func setupTwoNodeQuicPooled(t *testing.T) (
 	g.Expect(tB.Connect(ticketA)).To(gomega.Succeed())
 
 	waitForPeers(t, []*quic.QuicTransport{tA, tB}, 1)
+
 	return nodeA, nodeB, tA, tB
 }
 

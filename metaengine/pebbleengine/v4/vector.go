@@ -31,7 +31,7 @@ func (e *pebbleEngine) VectorInsert(
 	//art-dupl:accept dialect twin — dimension-lock insert body mirrors the sibling LSM engine (dep-isolated modules)
 	established, err := e.firstVectorDimension(collection)
 	if err != nil {
-		return err //nolint:wrapcheck // wrapped by the probe helper
+		return err
 	}
 
 	if err := metaengine.CheckVectorDimension(
@@ -85,6 +85,7 @@ func (e *pebbleEngine) VectorSearch(
 	if err != nil {
 		return nil, fmt.Errorf("pebbleengine.VectorSearch: %w", err)
 	}
+
 	defer metaengine.DeferClose(iter)
 
 	var results []metaengine.VectorResult
@@ -129,6 +130,7 @@ func (e *pebbleEngine) VectorSearchFiltered(
 	if err != nil {
 		return nil, fmt.Errorf("pebbleengine.VectorSearchFiltered: %w", err)
 	}
+
 	defer metaengine.DeferClose(iter)
 
 	var results []metaengine.VectorResult
@@ -169,8 +171,9 @@ func (e *pebbleEngine) vectorMetadata(collection, id string) (map[string]any, er
 	if errors.Is(err, pebble.ErrNotFound) {
 		return nil, nil //nolint:nilnil // no metadata stored is not an error
 	}
+
 	if err != nil {
-		return nil, err //nolint:wrapcheck // wrapped by caller
+		return nil, err
 	}
 	defer metaengine.DeferClose(closer)
 

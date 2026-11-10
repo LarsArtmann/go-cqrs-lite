@@ -91,6 +91,7 @@ func (e *bboltEngine) seedMultimapSeqs(
 		}
 
 		rest := k[tagLen:]
+
 		before, _, ok := bytes.Cut(rest, []byte{0})
 		if !ok {
 			continue

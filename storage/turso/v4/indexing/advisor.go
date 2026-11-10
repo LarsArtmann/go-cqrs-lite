@@ -3,7 +3,6 @@ package indexing
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"regexp"
 	"sync"
 
@@ -148,7 +147,7 @@ func (a *Advisor) AnalyzeTable(
 		recs, err := a.AnalyzeQuery(ctx, pat.Query, pat.Args...)
 		if err != nil {
 			return nil, errorfamily.WrapInfrastructure(err, "indexing.analyze_table",
-				fmt.Sprintf("analyze table %s", table))
+				"analyze table "+table)
 		}
 
 		all = append(all, recs...)
@@ -211,7 +210,7 @@ func (a *Advisor) ExistingIndexes(ctx context.Context) error {
 	a.existing = newExisting
 	a.mu.Unlock()
 
-	return rows.Err() //nolint:wrapcheck // transparent delegation
+	return rows.Err()
 }
 
 // HasIndex reports whether an index with the given name already exists.

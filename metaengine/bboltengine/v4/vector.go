@@ -32,6 +32,7 @@ func (e *bboltEngine) VectorInsert(
 	k := keycodec.VectorKey(collection, emb.ID)
 	metaKey := keycodec.VectorMetaKey(collection, emb.ID)
 	metaValue := []byte(nil)
+
 	if emb.Metadata != nil {
 		metaJSON, err := keycodec.EncodeJSONErr(emb.Metadata)
 		if err != nil {
@@ -46,7 +47,7 @@ func (e *bboltEngine) VectorInsert(
 
 		established, err := firstVectorDimension(bucket, collection)
 		if err != nil {
-			return err //nolint:wrapcheck // already wrapped
+			return err
 		}
 
 		if err := metaengine.CheckVectorDimension(
@@ -62,10 +63,10 @@ func (e *bboltEngine) VectorInsert(
 		}
 
 		if metaValue == nil {
-			return bucket.Delete(metaKey) //nolint:wrapcheck // bbolt error is self-describing
+			return bucket.Delete(metaKey)
 		}
 
-		return bucket.Put(metaKey, metaValue) //nolint:wrapcheck // bbolt error is self-describing
+		return bucket.Put(metaKey, metaValue)
 	})
 }
 

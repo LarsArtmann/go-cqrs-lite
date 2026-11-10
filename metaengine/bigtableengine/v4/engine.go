@@ -244,8 +244,10 @@ func (e *bigtableEngine) HealthCheck(ctx context.Context) error {
 // ResetEngine implements [metaengine.EngineResetter]: deletes every row in
 // the table (a full wipe — BigTable has no cheaper table-wide truncate).
 func (e *bigtableEngine) ResetEngine(ctx context.Context) error {
-	var muts []*bigtable.Mutation
-	var keys []string
+	var (
+		muts []*bigtable.Mutation
+		keys []string
+	)
 
 	err := e.tbl.ReadRows(ctx, bigtable.InfiniteRange(""), func(row bigtable.Row) bool {
 		m := bigtable.NewMutation()
@@ -282,7 +284,7 @@ func (e *bigtableEngine) applyAll(
 
 	for _, rowErr := range errs {
 		if rowErr != nil {
-			return rowErr //nolint:wrapcheck // first row error surfaces
+			return rowErr
 		}
 	}
 

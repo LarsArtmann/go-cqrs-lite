@@ -191,6 +191,7 @@ func stdQueryInit(
 	col string,
 ) ([]any, int, metaengine.LayoutPlan) { //nolint:unparam // plan is always zero for the no-layout path
 	plan := metaengine.LayoutPlan{}
+
 	return initialArgs(col, plan), initialArgIndex(plan), plan
 }
 

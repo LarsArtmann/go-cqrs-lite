@@ -104,6 +104,6 @@ func (a *Adapter) GraphRemoveEdge(
 			Type: collection,
 			From: fromRef,
 			To:   toRef,
-		}) //nolint:wrapcheck // driver error is self-describing
+		})
 	})
 }

@@ -25,7 +25,8 @@ func (e *bboltEngine) MapSet(_ context.Context, col string, key, value any) erro
 
 	return e.db.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(bucketName))
-		return bucket.Put(k, val) //nolint:wrapcheck // bbolt error is self-describing
+
+		return bucket.Put(k, val)
 	})
 }
 
@@ -39,6 +40,7 @@ func (e *bboltEngine) MapGet(_ context.Context, col string, key any) (any, bool,
 
 	err := e.db.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(bucketName))
+
 		val := bucket.Get(k)
 		if val == nil {
 			return nil
@@ -58,7 +60,8 @@ func (e *bboltEngine) MapDelete(_ context.Context, col string, key any) error {
 
 	return e.db.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(bucketName))
-		return bucket.Delete(k) //nolint:wrapcheck // bbolt error is self-describing
+
+		return bucket.Delete(k)
 	})
 }
 
@@ -99,7 +102,7 @@ func (e *bboltEngine) MapUpdate(
 		return bucket.Put(
 			k,
 			newValJSON,
-		) //nolint:wrapcheck // bbolt error is self-describing
+		)
 	})
 }
 

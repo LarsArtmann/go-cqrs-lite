@@ -11,6 +11,7 @@ import (
 func (e *ImmutableEvent) Clone() *ImmutableEvent {
 	//art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 	var clonedOpts *eventOptions
+
 	if e.opts != nil {
 		cloned := *e.opts
 		clonedOpts = &cloned
@@ -87,6 +88,7 @@ func buildEvent(
 		if evt.opts != nil && evt.opts.clock != nil {
 			clk = evt.opts.clock
 		}
+
 		evt.occurredAt = clk()
 	}
 

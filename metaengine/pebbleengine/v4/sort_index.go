@@ -188,6 +188,7 @@ func (e *pebbleEngine) scanWithSortIndex(
 
 			if runGroup == nil || !bytes.Equal(group, runGroup) {
 				flushRun()
+
 				runGroup = append(runGroup[:0], group...)
 			}
 

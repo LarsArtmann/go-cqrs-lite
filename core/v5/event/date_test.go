@@ -34,6 +34,7 @@ func TestNewDate(t *testing.T) {
 				if err == nil {
 					t.Fatalf("expected error, got %v", d)
 				}
+
 				return
 			}
 			if err != nil {

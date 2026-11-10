@@ -153,6 +153,7 @@ func TestAdversarialDQLInjection(t *testing.T) {
 					i,
 					attack,
 				)
+
 				continue
 			}
 

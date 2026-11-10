@@ -25,7 +25,7 @@ func TestContentionObserver_CalledPerRetry(t *testing.T) {
 	err := eng.retryOnContention(t.Context(), false, func() error {
 		calls++
 		if calls <= 2 {
-			return errAborted //nolint:staticcheck // verbatim server message
+			return errAborted
 		}
 
 		return nil
@@ -64,7 +64,7 @@ func TestContentionObserver_NilObserverDisabled(t *testing.T) {
 	eng := &dgraphEngine{} // contentionObserver nil
 
 	if err := eng.retryOnContention(t.Context(), false, func() error {
-		return errAborted //nolint:staticcheck // verbatim server message
+		return errAborted
 	}); err == nil {
 		t.Fatal("single-attempt contention must surface the error")
 	}
@@ -82,7 +82,6 @@ func TestWithContentionObserver_WiresEngine(t *testing.T) {
 	}
 }
 
-//nolint:staticcheck // verbatim server message below
 var errNonContention error = &staticError{
 	"rpc error: code = PermissionDenied desc = not contention",
 }

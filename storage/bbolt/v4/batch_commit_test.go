@@ -66,6 +66,7 @@ func TestBatchCommit_ConcurrentWritersIdenticalJournal(t *testing.T) {
 					)
 					if err != nil {
 						errs <- err
+
 						return
 					}
 					evts[i] = evt
@@ -73,6 +74,7 @@ func TestBatchCommit_ConcurrentWritersIdenticalJournal(t *testing.T) {
 
 				if err := store.AppendBatch(ctx, ref, evts); err != nil {
 					errs <- err
+
 					return
 				}
 			}
@@ -159,6 +161,7 @@ func TestBatchCommit_ConflictingSaveDoesNotPoisonGroup(t *testing.T) {
 		}
 		if errorfamily.Classify(res) == errorfamily.Conflict || errors.Is(res, ErrVersionMismatch) {
 			conflictSeen = true
+
 			continue
 		}
 		t.Fatalf("unexpected error: %v", res)

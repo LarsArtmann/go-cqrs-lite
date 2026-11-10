@@ -126,11 +126,13 @@ func dirSizeBytes(tb testing.TB, dir string) int64 {
 			}
 			total += info.Size()
 		}
+
 		return nil
 	})
 	if err != nil {
 		tb.Fatalf("storage calib: walk %s: %v", dir, err)
 	}
+
 	return total
 }
 
@@ -235,10 +237,12 @@ func bboltUsedBytes(tb testing.TB, db *bolt.DB) int64 {
 	var size int64
 	err := db.View(func(tx *bolt.Tx) error {
 		size = tx.Size()
+
 		return nil
 	})
 	if err != nil {
 		tb.Fatalf("storage calib: bbolt size: %v", err)
 	}
+
 	return size
 }

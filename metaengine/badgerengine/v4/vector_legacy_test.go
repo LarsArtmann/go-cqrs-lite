@@ -39,7 +39,7 @@ func TestVectorSearch_LegacyJSONPayloadReadable(t *testing.T) {
 	err = e.db.Update(func(txn *badger.Txn) error {
 		for id, payload := range legacy {
 			if err := txn.Set(keycodec.VectorKey(col, id), []byte(payload)); err != nil {
-				return err //nolint:wrapcheck // badger error is self-describing
+				return err
 			}
 		}
 
@@ -60,7 +60,7 @@ func TestVectorSearch_LegacyJSONPayloadReadable(t *testing.T) {
 	err = e.db.View(func(txn *badger.Txn) error {
 		item, err := txn.Get(keycodec.VectorKey(col, "fresh"))
 		if err != nil {
-			return err //nolint:wrapcheck // badger error is self-describing
+			return err
 		}
 
 		return item.Value(func(raw []byte) error {

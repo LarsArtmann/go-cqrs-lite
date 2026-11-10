@@ -85,6 +85,7 @@ func findOrderQuery() metaengine.QueryDecl[FindOrderInput, OrderView] {
 			func(_ record.Record, e ItemAdded, prev OrderView) OrderView {
 				prev.Items = append(prev.Items, e.ProductID)
 				prev.TotalCents += e.PriceCents
+
 				return prev
 			},
 		),
@@ -92,6 +93,7 @@ func findOrderQuery() metaengine.QueryDecl[FindOrderInput, OrderView] {
 			OrderShipped{},
 			func(_ record.Record, e OrderShipped, prev OrderView) OrderView {
 				prev.Status = "shipped"
+
 				return prev
 			},
 		),
@@ -99,6 +101,7 @@ func findOrderQuery() metaengine.QueryDecl[FindOrderInput, OrderView] {
 			OrderCancelled{},
 			func(_ record.Record, e OrderCancelled, prev OrderView) OrderView {
 				prev.Status = "cancelled"
+
 				return prev
 			},
 		),
@@ -128,6 +131,7 @@ func listOrdersByStatusQuery() metaengine.QueryDecl[ListOrdersByStatusInput, Ord
 			OrderShipped{},
 			func(_ record.Record, e OrderShipped, prev OrderView) OrderView {
 				prev.Status = "shipped"
+
 				return prev
 			},
 		),
@@ -135,6 +139,7 @@ func listOrdersByStatusQuery() metaengine.QueryDecl[ListOrdersByStatusInput, Ord
 			OrderCancelled{},
 			func(_ record.Record, e OrderCancelled, prev OrderView) OrderView {
 				prev.Status = "cancelled"
+
 				return prev
 			},
 		),
@@ -337,6 +342,7 @@ func memorySQLitePool() promiseEnginePool {
 		engines: func() []metaengine.Engine {
 			eng, db := newSQLiteEngine()
 			dbs = append(dbs, func() { _ = db.Close() })
+
 			return []metaengine.Engine{metaengine.NewMemoryEngine(), eng}
 		},
 		cleanup: func() {
@@ -363,6 +369,7 @@ func planPromiseStore(tb testing.TB, engines []metaengine.Engine) *metaengine.St
 	if err != nil {
 		tb.Fatalf("Plan: %v", err)
 	}
+
 	return store
 }
 

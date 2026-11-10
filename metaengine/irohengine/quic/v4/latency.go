@@ -28,6 +28,7 @@ func (t *QuicTransport) LatencySnapshot() irohengine.LatencySnapshot {
 
 	sorted := irohengine.SortDurations(samples)
 	rtt := sorted[len(sorted)/2] // P50
+
 	return irohengine.LatencySnapshot{
 		DeliveryP50:    rtt / 2, // one-way approx RTT/2
 		DeliveryP99:    sorted[irohengine.PercentileIdx(len(sorted), 0.99)] / 2,
@@ -38,6 +39,7 @@ func (t *QuicTransport) LatencySnapshot() irohengine.LatencySnapshot {
 func (t *QuicTransport) recordRTT(d time.Duration) {
 	t.rttMu.Lock()
 	defer t.rttMu.Unlock()
+
 	t.rttSamples = append(t.rttSamples, d)
 	if len(t.rttSamples) > rttWindowSize {
 		t.rttSamples = t.rttSamples[len(t.rttSamples)-rttWindowSize:]
@@ -52,6 +54,7 @@ func (t *QuicTransport) recordRTT(d time.Duration) {
 // collapsing sub-second LWW comparisons into ties.
 var opEncMode = func() cbor.EncMode {
 	em, _ := cbor.EncOptions{Time: cbor.TimeUnixDynamic}.EncMode()
+
 	return em
 }()
 
@@ -87,6 +90,7 @@ func normalizeAny(v any) any {
 		if x <= math.MaxInt64 {
 			return int(x)
 		}
+
 		return x
 	case int64:
 		return int(x)
@@ -94,11 +98,13 @@ func normalizeAny(v any) any {
 		for i, elem := range x {
 			x[i] = normalizeAny(elem)
 		}
+
 		return x
 	case map[string]any:
 		for k, elem := range x {
 			x[k] = normalizeAny(elem)
 		}
+
 		return x
 	default:
 		return v
@@ -111,5 +117,6 @@ var opDecMode = func() cbor.DecMode {
 	dm, _ := cbor.DecOptions{
 		DefaultMapType: reflect.TypeFor[map[string]any](),
 	}.DecMode()
+
 	return dm
 }()

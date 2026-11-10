@@ -147,6 +147,7 @@ func DecodePayloads[T any](events []Event, c codec.Codec) ([]T, error) {
 
 func validateEncodingMatch(evt Event, c codec.Codec) error {
 	evtEnc := evt.Encoding()
+
 	codecEnc := c.Encoding()
 	if evtEnc != codecEnc {
 		return errorfamily.Newf(Rejection, "event.encoding_mismatch",

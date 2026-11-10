@@ -214,6 +214,7 @@ func TestAsRecord_IDAndEncoding(t *testing.T) {
 		if err != nil {
 			t.Fatalf("New: %v", err)
 		}
+
 		return evt
 	}
 

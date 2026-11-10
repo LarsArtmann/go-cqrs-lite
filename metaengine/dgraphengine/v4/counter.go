@@ -63,6 +63,7 @@ func (e *dgraphEngine) counterIncrementBatch(
 
 	if len(deltas) <= 20 {
 		parts := make([]string, 0, len(deltas))
+
 		i := 0
 		for key := range deltas {
 			varName := fmt.Sprintf("$key%d", i)
@@ -70,6 +71,7 @@ func (e *dgraphEngine) counterIncrementBatch(
 			vars[varName] = key
 			i++
 		}
+
 		q = fmt.Sprintf(`query counters($col: string, %s) {
 			counter(func: eq(cqrs.counter_collection, $col)) @filter(%s) {
 				uid
@@ -143,6 +145,7 @@ func (e *dgraphEngine) counterIncrementBatch(
 // Blank node labels must match [a-zA-Z_][a-zA-Z0-9_]*.
 func sanitizeKey(s string) string {
 	var b strings.Builder
+
 	for _, r := range s {
 		if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') ||
 			(r >= '0' && r <= '9') || r == '_' {
@@ -163,6 +166,7 @@ func keyVarDecls(n int) []string {
 	for i := range n {
 		decls[i] = fmt.Sprintf("$key%d: string", i)
 	}
+
 	return decls
 }
 

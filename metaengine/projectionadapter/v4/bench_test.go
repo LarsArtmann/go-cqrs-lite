@@ -44,6 +44,7 @@ func BenchmarkHandle_ApplyRecord(b *testing.B) {
 
 	decoder := func(eventType string, payload []byte) (any, error) {
 		var e benchItemRecord
+
 		return e, json.Unmarshal(payload, &e)
 	}
 
@@ -98,6 +99,7 @@ func BenchmarkHandle_AutoInsert(b *testing.B) {
 
 	decoder := func(eventType string, payload []byte) (any, error) {
 		var e autoEvent
+
 		return e, json.Unmarshal(payload, &e)
 	}
 

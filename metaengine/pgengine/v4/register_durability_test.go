@@ -31,7 +31,7 @@ func TestRegisterDriver_InvalidDurabilityTier(t *testing.T) {
 // (skips without a testcontainer runtime).
 func TestRegisterDriver_DurabilityTiers(
 	t *testing.T,
-) { //nolint:dupl // dep-isolated engine modules each need their own registration durability test
+) {
 	t.Parallel()
 
 	factory, err := metaengine.LookupDriver("postgres")

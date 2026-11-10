@@ -69,6 +69,7 @@ func BenchmarkBboltMapScanFiltered(b *testing.B) {
 								return s >= threshold
 							}
 						}
+
 						return false
 					},
 					nil, nil, 10,

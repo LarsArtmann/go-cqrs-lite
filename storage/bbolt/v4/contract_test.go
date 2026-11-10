@@ -422,5 +422,6 @@ func newStreamEvent(
 
 	aggID := id.NewStreamID()
 	evt := cfg.NewTestEvent(t, aggID, 1)
+
 	return aggID, evt
 }

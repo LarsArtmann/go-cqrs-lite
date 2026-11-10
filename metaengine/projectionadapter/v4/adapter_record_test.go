@@ -73,6 +73,7 @@ func TestAdapter_OnRecordFold_ReceivesRealMetadata(t *testing.T) {
 	decoder := func(eventType string, payload []byte) (any, error) {
 		var e itemEvent
 		err := json.Unmarshal(payload, &e)
+
 		return e, err
 	}
 
@@ -176,6 +177,7 @@ func TestAdapter_OnRecordFold_LegacyOnStillWorks(t *testing.T) {
 	decoder := func(eventType string, payload []byte) (any, error) {
 		var e plainEvent
 		err := json.Unmarshal(payload, &e)
+
 		return e, err
 	}
 
@@ -249,6 +251,7 @@ func TestAdapter_TemporalStampsSurviveApplyRecord(t *testing.T) {
 		if err := json.Unmarshal(payload, &e); err != nil {
 			return nil, err
 		}
+
 		return e, nil
 	}
 
@@ -269,6 +272,7 @@ func TestAdapter_TemporalStampsSurviveApplyRecord(t *testing.T) {
 		if err != nil {
 			t.Fatalf("event.New: %v", err)
 		}
+
 		return evt
 	}
 

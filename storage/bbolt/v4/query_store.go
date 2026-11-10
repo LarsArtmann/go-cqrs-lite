@@ -87,6 +87,7 @@ func (s *QueryStore) LoadQueries(
 	}
 
 	span.SetAttributes(cqrsotel.AttrInt("query.count", len(queries)))
+
 	return queries, nil
 }
 
@@ -111,6 +112,7 @@ func (s *QueryStore) ReadAllQueries(ctx context.Context) ([]*query.PersistedQuer
 			return nil
 		})
 	})
+
 	return finishBucketRead(span, err, "bbolt.query_read_all",
 		"read all queries", "query.count", queries)
 }
@@ -126,6 +128,7 @@ func (s *QueryStore) ReadQueriesFrom(
 	defer span.End()
 
 	seekKey := queryKey(afterReqID)
+
 	var queries []*query.PersistedQuery
 
 	err := s.db.View(func(tx *bolt.Tx) error {
@@ -152,6 +155,7 @@ func (s *QueryStore) ReadQueriesFrom(
 
 		return nil
 	})
+
 	return finishBucketRead(span, err, "bbolt.query_read_from",
 		"read queries from position", "query.count", queries)
 }

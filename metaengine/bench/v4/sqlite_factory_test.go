@@ -20,6 +20,7 @@ func newSQLiteEngine() (metaengine.Engine, *sql.DB) {
 	if err != nil {
 		panic(err)
 	}
+
 	return eng, db
 }
 
@@ -37,5 +38,6 @@ func newPlannedSQLiteEngine(
 	if err != nil {
 		t.Fatalf("NewPlannedSQLiteEngine: %v", err)
 	}
+
 	return eng, db
 }

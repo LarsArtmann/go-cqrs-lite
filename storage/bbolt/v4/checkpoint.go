@@ -81,12 +81,14 @@ func (s *CheckpointStore) Load(
 		bucket := tx.Bucket([]byte(bucketCheckpoints))
 		if bucket == nil {
 			result = event.Checkpoint{EventID: id.EventID{}}
+
 			return nil
 		}
 
 		val := bucket.Get([]byte(projectionName))
 		if val == nil {
 			result = event.Checkpoint{EventID: id.EventID{}}
+
 			return nil
 		}
 

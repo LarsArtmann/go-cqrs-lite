@@ -23,6 +23,7 @@ func sortedGraphNeighbors(items []any) []string {
 		}
 	}
 	sort.Strings(out)
+
 	return out
 }
 

@@ -20,6 +20,7 @@ var errFrameTooLarge = irohengine.ErrFrameTooLarge
 func writeFrame(w io.Writer, data []byte) error {
 	header := make([]byte, frameHeaderSize)
 	binary.BigEndian.PutUint32(header, uint32(len(data)))
+
 	if _, err := w.Write(header); err != nil {
 		return fmt.Errorf("write frame header: %w", err)
 	}
