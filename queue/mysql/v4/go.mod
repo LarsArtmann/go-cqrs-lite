@@ -77,12 +77,8 @@ require (
 
 replace github.com/larsartmann/go-cqrs-lite/queue/v4 => ../../v4
 
-
 replace github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ../../../metaengine/v4
-
 
 replace github.com/larsartmann/go-cqrs-lite/claiming/v4 => ../../../claiming/v4
 
-
 replace github.com/larsartmann/go-cqrs-lite/testutil/mysqltestcontainer/v4 => ../../../testutil/mysqltestcontainer/v4
-

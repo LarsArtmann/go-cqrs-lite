@@ -36,12 +36,8 @@ require (
 // scripts/tag-release.sh at cut time.
 replace github.com/larsartmann/go-cqrs-lite/scheduling/v4 => ../../v4
 
-
 replace github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ../../../metaengine/v4
-
 
 replace github.com/larsartmann/go-cqrs-lite/claiming/v4 => ../../../claiming/v4
 
-
 replace github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 => ../../../metaengine/sqliteengine/v4
-

@@ -43,6 +43,4 @@ require (
 // Sibling replace for unpublished metaengine symbols (planned-table capabilities); stripped by scripts/tag-release.sh at cut time.
 replace github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ../../v4
 
-
 replace github.com/larsartmann/go-cqrs-lite/claiming/v4 => ../../../claiming/v4
-

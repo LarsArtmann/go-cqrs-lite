@@ -45,9 +45,6 @@ require (
 // Sibling replaces for unpublished symbols (MaterializedViewSpec, WithMaterializedViews); stripped by scripts/tag-release.sh at cut time. Replaces do NOT cascade — all are needed (claiming reached via the sqliteengine replace is untagged).
 replace github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 => ../../sqliteengine/v4
 
-
 replace github.com/larsartmann/go-cqrs-lite/claiming/v4 => ../../../claiming/v4
 
-
 replace github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ../../v4
-

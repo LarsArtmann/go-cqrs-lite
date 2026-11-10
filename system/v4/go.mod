@@ -104,22 +104,16 @@ require (
 // Sibling replace for unpublished metaengine surface (e.g. BackfillPlannedTables); stripped by scripts/tag-release.sh at cut time. MaterializedViewSpec is published since metaengine/v4.14.0.
 replace github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ../../metaengine/v4
 
-
 // Sibling replace for unpublished schema fingerprint surface (FingerprintStamp, FingerprintMetadataKey, EventSchema.Fingerprint); stripped by tag-release.sh at cut time (schema+system co-release).
 replace github.com/larsartmann/go-cqrs-lite/schema/v4 => ../../schema/v4
 
-
 replace github.com/larsartmann/go-cqrs-lite/claiming/v4 => ../../claiming/v4
-
 
 replace github.com/larsartmann/go-cqrs-lite/scheduling/engine/v4 => ../../scheduling/engine/v4
 
-
 replace github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 => ../../metaengine/sqliteengine/v4
-
 
 // Sibling replace for the EventWithID bare-key contract (ID = StreamID.Get(),
 // not the String() display form); stripped by tag-release.sh at cut time
 // (projectionadapter+system co-release).
 replace github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 => ../../metaengine/projectionadapter/v4
-

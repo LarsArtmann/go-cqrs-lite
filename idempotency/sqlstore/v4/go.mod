@@ -89,6 +89,4 @@ require (
 
 replace github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ../../../metaengine/v4
 
-
 replace github.com/larsartmann/go-cqrs-lite/claiming/v4 => ../../../claiming/v4
-

@@ -96,9 +96,6 @@ require (
 // engine modules carrying the calibration are tagged.
 replace github.com/larsartmann/go-cqrs-lite/metaengine/bboltengine/v4 => ../../bboltengine/v4
 
-
 replace github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4 => ../../pebbleengine/v4
 
-
 replace github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ../../v4
-

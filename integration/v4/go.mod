@@ -47,9 +47,7 @@ require (
 // tag-release script strips these replaces at cut time.
 replace github.com/larsartmann/go-cqrs-lite/encryption/v4 => ../../encryption/v4
 
-
 replace github.com/larsartmann/go-cqrs-lite/snapshot/v4 => ../../snapshot/v4
-
 
 require (
 	github.com/Azure/go-ansiterm v0.0.0-20261013165250-51075c6ea6bc // indirect

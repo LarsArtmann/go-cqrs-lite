@@ -28,4 +28,3 @@ require (
 )
 
 replace github.com/larsartmann/go-cqrs-lite/record/v4 => ../../record/v4
-

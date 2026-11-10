@@ -60,4 +60,3 @@ require (
 // Sibling replace for the unpublished otel symbol (DBSystem); stripped by
 // scripts/tag-release.sh at cut time.
 replace github.com/larsartmann/go-cqrs-lite/otel/v4 => ../../../otel/v4
-

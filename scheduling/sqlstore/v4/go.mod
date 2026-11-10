@@ -93,6 +93,4 @@ require (
 // cut time.
 replace github.com/larsartmann/go-cqrs-lite/claiming/v4 => ../../../claiming/v4
 
-
 replace github.com/larsartmann/go-cqrs-lite/record/v4 => ../../../record/v4
-

@@ -7,7 +7,6 @@ go 1.27.2
 // local replaces at tag time (snapshot+decider co-release).
 replace github.com/larsartmann/go-cqrs-lite/snapshot/v4 => ../../snapshot/v4
 
-
 require (
 	github.com/larsartmann/go-codec v0.3.3
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.2

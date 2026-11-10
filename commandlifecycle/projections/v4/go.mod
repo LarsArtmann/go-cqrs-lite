@@ -31,4 +31,3 @@ require (
 )
 
 replace github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 => ../../v4
-

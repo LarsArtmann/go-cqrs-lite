@@ -80,6 +80,4 @@ require (
 // tag-release.sh at cut time (systemcatalog+system+catalog co-release).
 replace github.com/larsartmann/go-cqrs-lite/system/v4 => ../../system/v4
 
-
 replace github.com/larsartmann/go-cqrs-lite/catalog/v4 => ../../catalog/v4
-

@@ -85,8 +85,6 @@ require (
 // scripts/tag-release.sh at cut time.
 replace github.com/larsartmann/go-cqrs-lite/otel/v4 => ../../../otel/v4
 
-
 // Sibling replace for unpublished record symbols (DeferClose, ADR-0144);
 // stripped by scripts/tag-release.sh at cut time.
 replace github.com/larsartmann/go-cqrs-lite/record/v4 => ../../../record/v4
-
