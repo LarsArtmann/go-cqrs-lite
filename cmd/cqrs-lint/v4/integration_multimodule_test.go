@@ -3,10 +3,30 @@ package main
 import (
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 )
+
+// sharedBuildContext memoizes the monorepo-wide packages.Load: two tests
+// each paid ~58s of module-graph type-checking sequentially, which put the
+// package right at the 120s per-binary CI timeout (the offline "hang" was
+// a budget timeout, not a hang). Both tests only read the context, so a
+// once-guarded shared value is safe under t.Parallel.
+var (
+	sharedCtxOnce sync.Once
+	sharedCtx     *analyzer.AnalysisContext
+	sharedCtxErr  error
+)
+
+func buildContextOnce(repoRoot string) (*analyzer.AnalysisContext, error) {
+	sharedCtxOnce.Do(func() {
+		sharedCtx, sharedCtxErr = analyzer.BuildContext(repoRoot)
+	})
+
+	return sharedCtx, sharedCtxErr
+}
 
 // skipUnderRace: Go 1.27's reworked go/types (under.go/cycles.go lazy
 // resolution) races with x/tools go/packages' parallel type checking — a
@@ -43,7 +63,7 @@ func TestMultiModuleBuildContext_PartitionsProfiles(t *testing.T) {
 
 	repoRoot := filepath.Join("..", "..", "..")
 
-	ctx, err := analyzer.BuildContext(repoRoot)
+	ctx, err := buildContextOnce(repoRoot)
 	if err != nil {
 		t.Fatalf("BuildContext(%s): %v", repoRoot, err)
 	}
@@ -118,7 +138,7 @@ func TestMultiModuleBuildContext_FileAttribution(t *testing.T) {
 
 	repoRoot := filepath.Join("..", "..", "..")
 
-	ctx, err := analyzer.BuildContext(repoRoot)
+	ctx, err := buildContextOnce(repoRoot)
 	if err != nil {
 		t.Fatalf("BuildContext(%s): %v", repoRoot, err)
 	}

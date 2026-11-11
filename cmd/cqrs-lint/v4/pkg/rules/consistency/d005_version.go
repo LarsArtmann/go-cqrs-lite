@@ -186,6 +186,13 @@ func extractCQRSVersion(content, modVersion string, pinned map[string]string) st
 				continue
 			}
 
+			// Skip era-suffixed tokens ("v4.13.0-era") — the suffix glues the
+			// version to a historical framing word, the written equivalent of
+			// a lead-in cue (#127).
+			if strings.HasSuffix(field, "-era") {
+				continue
+			}
+
 			// Skip import paths: version preceded by / (e.g. cqrs-htmx/v4.2.0)
 			if idx := strings.Index(line, field); idx > 0 && line[idx-1] == '/' {
 				continue
@@ -253,10 +260,14 @@ var historicalCues = map[string]struct{}{
 // non-connector token contains "go-cqrs-lite", or — with a per-module pin
 // set — is a pinned module shortname ("system v4.7.0", "decider v4.6.0");
 // the caller's line-level go-cqrs-lite gate scopes that form to cqrs
-// lines. The phrase introducing the mention carries no historical cue.
+// lines. The phrase introducing the mention carries no historical cue —
+// the same ≤2-token cue scan guards BOTH attachment forms (#127: a cue
+// before a shortname marks the version a past state exactly as it does
+// before the full mention).
 func attachedToCQRSMention(fields []string, i int, pinned map[string]string) bool {
 	mentionIdx := -1
 	moduleMention := false
+	moduleIdx := -1
 
 	for j := i - 1; j >= 0 && i-j <= 4; j-- {
 		lower := strings.ToLower(fields[j])
@@ -271,6 +282,7 @@ func attachedToCQRSMention(fields []string, i int, pinned map[string]string) boo
 			short := strings.Trim(lower, ".,;:!?")
 			if _, ok := pinned[short]; ok {
 				moduleMention = true
+				moduleIdx = j
 			}
 		}
 
@@ -278,6 +290,22 @@ func attachedToCQRSMention(fields []string, i int, pinned map[string]string) boo
 	}
 
 	if moduleMention {
+		// The shortname's lead-in often carries the full go-cqrs-lite
+		// qualifier ("migrated the go-cqrs-lite catalog v4.13.0 docs"),
+		// so the cue walk skips qualifier mentions and connector words
+		// instead of counting them against the window.
+		for j := moduleIdx - 1; j >= 0 && moduleIdx-j <= 4; j-- {
+			lower := strings.ToLower(fields[j])
+
+			if _, ok := connectorWords[lower]; ok || strings.Contains(lower, "go-cqrs-lite") {
+				continue
+			}
+
+			if _, ok := historicalCues[lower]; ok {
+				return false
+			}
+		}
+
 		return true
 	}
 

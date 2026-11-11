@@ -299,6 +299,72 @@ func TestExtractCQRSVersion_AnyPinMatchFresh(t *testing.T) {
 	}
 }
 
+// --- shortname-attached historical cues (#127: the moduleMention branch
+// returned early and never consulted historicalCues, forcing consumers to
+// phrase history around the rule) ---
+
+// TestExtractCQRSVersion_HistoricalShortnameMention: a historical cue
+// within two tokens before a pinned shortname drops the claim, exactly as
+// it does before the full go-cqrs-lite mention.
+func TestExtractCQRSVersion_HistoricalShortnameMention(t *testing.T) {
+	t.Parallel()
+
+	pins := map[string]string{
+		"catalog": "v4.14.0",
+	}
+
+	content := "# App\n\nWe migrated the go-cqrs-lite catalog v4.13.0 docs in October.\n"
+	got := extractCQRSVersion(content, "v4.14.0", pins)
+	if got != "v4.14.0" {
+		t.Fatalf(
+			"extractCQRSVersion historical shortname = %q, want %q ('migrated' cue must drop the claim)",
+			got,
+			"v4.14.0",
+		)
+	}
+}
+
+// TestExtractCQRSVersion_PresentTenseShortnameMentionKept: without a cue,
+// a shortname-attached stale version stays a finding — the cue scan must
+// not swallow current claims.
+func TestExtractCQRSVersion_PresentTenseShortnameMentionKept(t *testing.T) {
+	t.Parallel()
+
+	pins := map[string]string{
+		"catalog": "v4.14.0",
+	}
+
+	content := "# App\n\nUses go-cqrs-lite catalog v4.13.0 for exports.\n"
+	got := extractCQRSVersion(content, "v4.14.0", pins)
+	if got != "v4.13.0" {
+		t.Fatalf(
+			"extractCQRSVersion present shortname = %q, want %q (no cue: stale claim must survive)",
+			got,
+			"v4.13.0",
+		)
+	}
+}
+
+// TestExtractCQRSVersion_EraSuffixedTokenSkipped: "v4.13.0-era" glues the
+// version to a historical framing word; the suffix is cue-equivalent.
+func TestExtractCQRSVersion_EraSuffixedTokenSkipped(t *testing.T) {
+	t.Parallel()
+
+	pins := map[string]string{
+		"catalog": "v4.14.0",
+	}
+
+	content := "# App\n\nThe go-cqrs-lite stack keeps the v4.13.0-era catalog alignment.\n"
+	got := extractCQRSVersion(content, "v4.14.0", pins)
+	if got != "v4.14.0" {
+		t.Fatalf(
+			"extractCQRSVersion era-suffixed = %q, want %q ('-era' suffix must drop the claim)",
+			got,
+			"v4.14.0",
+		)
+	}
+}
+
 // TestReadGoModCQRSVersionSet_PrefersDirectOverIndirect pins the per-module
 // direct-over-indirect preference and the shortname derivation.
 func TestReadGoModCQRSVersionSet_PrefersDirectOverIndirect(t *testing.T) {
