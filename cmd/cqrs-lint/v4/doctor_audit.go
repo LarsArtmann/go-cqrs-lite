@@ -37,6 +37,17 @@ func runSuppressionAudit(
 		fixResult := applyOrPlanFix(entries, dryRun)
 		renderFixSummary(os.Stdout, fixResult, dryRun)
 		entries = dropRemovedEntries(entries, fixResult.Removed)
+
+		// Belt-and-braces for false-stale verdicts (issue #126): re-run
+		// detection over the post-prune tree — a directive whose rule now
+		// fires was NOT stale, and failing loudly beats leaving a live
+		// finding unsuppressed. Dry-runs change no files, so only real
+		// prunes need the guard.
+		if !dryRun {
+			if err := verifyPruneRemovedNothingLive(ctx, cfg, actx, fixResult.Removed); err != nil {
+				return err
+			}
+		}
 	}
 
 	renderSuppressionAudit(os.Stdout, entries)
@@ -73,6 +84,51 @@ func computeSuppressionAudit(
 	}
 
 	return suppression.AuditSuppressions(goFilePaths, allFindings, knownRuleIDs), nil
+}
+
+// verifyPruneRemovedNothingLive re-runs the detection pipeline after a
+// real prune and fails when any removed directive's rule fires at (or
+// around) its old position: the stale verdict those removals rode on was
+// wrong, and the working-tree now carries unsuppressed findings the user
+// never asked for.
+func verifyPruneRemovedNothingLive(
+	ctx context.Context,
+	cfg *AppConfig,
+	actx *analyzer.AnalysisContext,
+	removed []suppression.SuppressionAuditEntry,
+) error {
+	if len(removed) == 0 {
+		return nil
+	}
+
+	verifyCfg := *cfg
+	verifyCfg.Fix = false
+	verifyCfg.DryRun = false
+
+	result, _, err := runPipeline(ctx, &verifyCfg, rules.RegisterAll(actx))
+	if err != nil {
+		return fmt.Errorf("prune verification re-run: %w", err)
+	}
+
+	findings := collectFindings(result)
+
+	var revived []string
+	for _, entry := range removed {
+		if suppression.WouldSuppress(findings, entry.File, entry.Line, entry.Rule) {
+			revived = append(revived, fmt.Sprintf("%s:%d [%s]",
+				shortenPath(entry.File), entry.Line, entry.Rule))
+		}
+	}
+
+	if len(revived) > 0 {
+		return fmt.Errorf(
+			"%w: pruned suppressions whose rules still fire — RESTORE these directives, the stale verdict was wrong: %s",
+			errSuppressionAudit,
+			strings.Join(revived, ", "),
+		)
+	}
+
+	return nil
 }
 
 // applyOrPlanFix removes stale directives from disk, or — with dryRun — only

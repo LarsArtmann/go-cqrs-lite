@@ -133,6 +133,11 @@ func BuildContext(projectRoot string) (*AnalysisContext, error) {
 	// per-module features then evaluated against the primary module's profile
 	// (the doctor audit on browser-history lost the api module's HasServer,
 	// classifying two working B029/B030 suppressions stale; fixed 2026-10-12).
+	// The SECOND layer of the same failure class (issue #126, InboxClean
+	// 2026-11-10): a root INSIDE a module found no go.mod at all, degraded to
+	// partial-module feature detection, and misclassified working B029/B030/
+	// B014 directives stale — fixed by findEnclosingGoModDir resolving the
+	// owning module upward (see the subtree note below).
 	absRoot, err := filepath.Abs(projectRoot)
 	if err != nil {
 		return nil, fmt.Errorf("resolve project root: %w", err)
