@@ -82,6 +82,7 @@ func (PostgresDialect) SnapshotSchema() string {
     stream_id    TEXT NOT NULL,
     version         INTEGER NOT NULL,
     state           JSONB NOT NULL,
+    state_shape     TEXT NOT NULL DEFAULT '',
     created_at      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     PRIMARY KEY (stream_type, stream_id)
 );`

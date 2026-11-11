@@ -92,7 +92,11 @@ func SQLiteInitSchema(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 
-	return MigrateSnapshotColumnsToStream(ctx, db, sqlpkg.SQLiteDialect{})
+	if err := MigrateSnapshotColumnsToStream(ctx, db, sqlpkg.SQLiteDialect{}); err != nil {
+		return err
+	}
+
+	return MigrateSnapshotStateShapeColumn(ctx, db, sqlpkg.SQLiteDialect{})
 }
 
 // SQLiteEnableWAL enables Write-Ahead Logging for better read concurrency and
@@ -175,7 +179,11 @@ func PostgresInitSchema(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 
-	return MigrateSnapshotColumnsToStream(ctx, db, sqlpkg.PostgresDialect{})
+	if err := MigrateSnapshotColumnsToStream(ctx, db, sqlpkg.PostgresDialect{}); err != nil {
+		return err
+	}
+
+	return MigrateSnapshotStateShapeColumn(ctx, db, sqlpkg.PostgresDialect{})
 }
 
 // EnsurePostgresSynchronousCommit appends synchronous_commit=<on|off> to the
@@ -257,7 +265,11 @@ func DuckDBInitSchema(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 
-	return MigrateSnapshotColumnsToStream(ctx, db, sqlpkg.DuckDBDialect{})
+	if err := MigrateSnapshotColumnsToStream(ctx, db, sqlpkg.DuckDBDialect{}); err != nil {
+		return err
+	}
+
+	return MigrateSnapshotStateShapeColumn(ctx, db, sqlpkg.DuckDBDialect{})
 }
 
 func MySQLInitSchema(ctx context.Context, db *sql.DB) error {
@@ -268,7 +280,11 @@ func MySQLInitSchema(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 
-	return MigrateSnapshotColumnsToStream(ctx, db, sqlpkg.MySQLDialect{})
+	if err := MigrateSnapshotColumnsToStream(ctx, db, sqlpkg.MySQLDialect{}); err != nil {
+		return err
+	}
+
+	return MigrateSnapshotStateShapeColumn(ctx, db, sqlpkg.MySQLDialect{})
 }
 
 // splitMySQLDDL splits a multi-statement DDL schema into individual statements

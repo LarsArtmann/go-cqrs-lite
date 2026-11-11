@@ -75,6 +75,65 @@ func MigrateSnapshotColumnsToStream(ctx context.Context, db *sql.DB, d sqlpkg.Di
 	return nil
 }
 
+// MigrateSnapshotStateShapeColumn adds the state_shape column to the
+// snapshots table for databases created before the stamp was persisted
+// (issue #117: stamped snapshots loaded back unstamped, silently defeating
+// WithSnapshotStateVersion's discard guard on SQL deployments).
+//
+// The migration is idempotent and safe to run on every boot: it is a no-op
+// when the column is already present (fresh databases get it from the
+// SnapshotSchema DDL). Pre-existing rows keep the '' default, which is the
+// documented absent-stamp-accepted semantics, so no backfill is needed.
+//
+// ALTER TABLE ... ADD COLUMN ... NOT NULL DEFAULT '' is supported by
+// PostgreSQL, SQLite, DuckDB, and MySQL (the MySQL column is VARCHAR(255)
+// because MySQL forbids plain defaults on TEXT columns).
+func MigrateSnapshotStateShapeColumn(ctx context.Context, db *sql.DB, d sqlpkg.Dialect) error {
+	columns, err := probeTableColumns(ctx, db, d, sqlpkg.TableSnapshots)
+	if err != nil {
+		return errorfamily.WrapInfrastructure(
+			err,
+			"storage.snapshot_state_shape_probe",
+			"probe snapshots table columns for the state_shape stamp",
+		)
+	}
+
+	if slices.Contains(columns, "state_shape") {
+		return nil
+	}
+
+	stmt := "ALTER TABLE " + sqlpkg.TableSnapshots + " ADD COLUMN state_shape " +
+		snapshotStateShapeColumnDef(d)
+	if _, err := db.ExecContext(ctx, stmt); err != nil {
+		// Concurrent InitSchema: another runner may have added the column
+		// between our probe and ALTER. Re-probe — a present column means
+		// success regardless of who wrote it.
+		if columns, probeErr := probeTableColumns(ctx, db, d, sqlpkg.TableSnapshots); probeErr == nil &&
+			slices.Contains(columns, "state_shape") {
+			return nil
+		}
+
+		return errorfamily.WrapInfrastructure(
+			err,
+			"storage.snapshot_state_shape_add",
+			"exec "+stmt,
+		)
+	}
+
+	return nil
+}
+
+// snapshotStateShapeColumnDef returns the dialect-specific column definition
+// for the state_shape stamp. MySQL cannot carry a plain default on TEXT
+// columns, so it gets VARCHAR(255); every other dialect uses TEXT/VARCHAR.
+func snapshotStateShapeColumnDef(d sqlpkg.Dialect) string {
+	if _, ok := d.(sqlpkg.MySQLDialect); ok {
+		return "VARCHAR(255) NOT NULL DEFAULT ''"
+	}
+
+	return "TEXT NOT NULL DEFAULT ''"
+}
+
 // probeTableColumns lists the column names of table using the introspection
 // the dialect supports: PRAGMA table_info on SQLite-family servers,
 // information_schema.columns everywhere else.

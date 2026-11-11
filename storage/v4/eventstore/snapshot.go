@@ -60,28 +60,31 @@ func (s *SQLSnapshotStore) Save(ctx context.Context, snap snapshot.Snapshot) err
 		)...,
 	)
 	defer span.End()
-	p1, p2, p3, p4, p5 := s.Dialect.Placeholder(1), s.Dialect.Placeholder(2),
-		s.Dialect.Placeholder(3), s.Dialect.Placeholder(4), s.Dialect.Placeholder(5)
+	p1, p2, p3, p4, p5, p6 := s.Dialect.Placeholder(1), s.Dialect.Placeholder(2),
+		s.Dialect.Placeholder(3), s.Dialect.Placeholder(4), s.Dialect.Placeholder(5),
+		s.Dialect.Placeholder(6)
 	setExprs := []string{
 		"version = " + s.Dialect.ExcludedRef("version"),
 		"state = " + s.Dialect.ExcludedRef("state"),
+		"state_shape = " + s.Dialect.ExcludedRef("state_shape"),
 		"created_at = " + s.Dialect.ExcludedRef("created_at"),
 	}
 	query := fmt.Sprintf(
-		`INSERT INTO `+sqlpkg.TableSnapshots+` (stream_type, stream_id, version, state, created_at)
-		VALUES (%s, %s, %s, %s, %s) %s`,
+		`INSERT INTO `+sqlpkg.TableSnapshots+` (stream_type, stream_id, version, state, state_shape, created_at)
+		VALUES (%s, %s, %s, %s, %s, %s) %s`,
 		p1,
 		p2,
 		p3,
 		p4,
 		p5,
+		p6,
 		s.Dialect.OnConflictDoUpdate([]string{"stream_type", "stream_id"}, setExprs),
 	)
 	// Bind state as a string, not []byte: pgx sends []byte as bytea, which
 	// PostgreSQL rejects for the JSONB state column ("invalid input syntax
 	// for type json"). Text binds parse as JSON on every dialect.
 	_, err := s.DB.ExecContext(ctx, query, string(snap.StreamType), snap.StreamID,
-		snap.Version.Int(), string(snap.State), s.Dialect.FormatTime(snap.CreatedAt))
+		snap.Version.Int(), string(snap.State), snap.StateShape, s.Dialect.FormatTime(snap.CreatedAt))
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 		return errorfamily.WrapInfrastructure(err, "storage.save_snapshot",
@@ -135,7 +138,7 @@ func (s *SQLSnapshotStore) querySnapshotAtVersion(
 	maxVersion event.Version,
 ) (*snapshot.Snapshot, error) {
 	p1, p2, p3 := s.Dialect.Placeholder(1), s.Dialect.Placeholder(2), s.Dialect.Placeholder(3)
-	query := fmt.Sprintf(`SELECT version, state, created_at FROM `+sqlpkg.TableSnapshots+`
+	query := fmt.Sprintf(`SELECT version, state, state_shape, created_at FROM `+sqlpkg.TableSnapshots+`
 		WHERE stream_type = %s AND stream_id = %s AND version <= %s
 		ORDER BY version DESC LIMIT 1`, p1, p2, p3)
 	return s.scanSnapshot(
@@ -149,7 +152,7 @@ func (s *SQLSnapshotStore) querySnapshot(
 	ref id.StreamRef,
 ) (*snapshot.Snapshot, error) {
 	p1, p2 := s.Dialect.Placeholder(1), s.Dialect.Placeholder(2)
-	query := fmt.Sprintf(`SELECT version, state, created_at FROM `+sqlpkg.TableSnapshots+`
+	query := fmt.Sprintf(`SELECT version, state, state_shape, created_at FROM `+sqlpkg.TableSnapshots+`
 		WHERE stream_type = %s AND stream_id = %s`, p1, p2)
 	return s.scanSnapshot(s.DB.QueryRowContext(ctx, query, string(ref.Type), ref.ID), ref)
 }
@@ -160,8 +163,9 @@ func (s *SQLSnapshotStore) scanSnapshot(
 ) (*snapshot.Snapshot, error) {
 	var version int
 	var stateBytes []byte
+	var stateShape string
 	timeDest := s.Dialect.ScanTimeDest()
-	err := row.Scan(&version, &stateBytes, timeDest)
+	err := row.Scan(&version, &stateBytes, &stateShape, timeDest)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, errorfamily.WrapRejection(
@@ -191,6 +195,7 @@ func (s *SQLSnapshotStore) scanSnapshot(
 		StreamType: ref.Type,
 		Version:    event.Version(version), // #nosec G115 -- version scanned from storage, non-negative
 		State:      stateBytes,
+		StateShape: stateShape,
 		CreatedAt:  createdAt,
 	}, nil
 }

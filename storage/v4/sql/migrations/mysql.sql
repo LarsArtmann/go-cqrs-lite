@@ -40,6 +40,7 @@ CREATE TABLE IF NOT EXISTS snapshots (
     stream_id    VARCHAR(255) NOT NULL,
     version         INTEGER NOT NULL,
     state           JSON NOT NULL,
+    state_shape     VARCHAR(255) NOT NULL DEFAULT '',
     created_at      DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     PRIMARY KEY (stream_type, stream_id)
 );
