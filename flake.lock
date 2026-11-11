@@ -3,11 +3,11 @@
     "cmdguard": {
       "flake": false,
       "locked": {
-        "lastModified": 1794385730,
-        "narHash": "sha256-qGmw12VNAYK/pH+J+dFuxC0pIuw+pSNoJ6e8RtPGbJY=",
+        "lastModified": 1794411671,
+        "narHash": "sha256-ViY6NQOCudaLrS0qF+9Bg/vRhxiPva/wkMA6d0xCIQ4=",
         "owner": "LarsArtmann",
         "repo": "cmdguard",
-        "rev": "81b7a038e10fff072377196b02a40e9dff4a00b3",
+        "rev": "ba6a7a8fb55baf6ac22a83d146877208d3546004",
         "type": "github"
       },
       "original": {
