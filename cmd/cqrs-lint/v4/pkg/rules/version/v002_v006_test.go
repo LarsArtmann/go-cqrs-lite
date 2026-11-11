@@ -1,6 +1,7 @@
 package version_test
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"strings"
@@ -166,7 +167,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/systemcatalog/v4 v4.0.0
 )
 `)
-	findings := ruletest.RunDetector(t, version.NewV003DetectorWithLatest(t, ctx,
+	findings := ruletest.RunDetector(t, version.NewV003DetectorWithLatest(ctx,
 		func(context.Context, string) (int, bool) { return 0, true }))
 	ruletest.AssertRule(t, findings, "V003", 0)
 }
@@ -184,7 +185,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.0.0
 )
 `)
-	findings := ruletest.RunDetector(t, version.NewV003DetectorWithLatest(t, ctx,
+	findings := ruletest.RunDetector(t, version.NewV003DetectorWithLatest(ctx,
 		func(context.Context, string) (int, bool) { return 0, false }))
 	ruletest.AssertRule(t, findings, "V003", 1)
 }
@@ -202,7 +203,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.3.0
 )
 `)
-	findings := ruletest.RunDetector(t, version.NewV003DetectorWithLatest(t, ctx,
+	findings := ruletest.RunDetector(t, version.NewV003DetectorWithLatest(ctx,
 		func(context.Context, string) (int, bool) { return 23, true }))
 	ruletest.AssertRule(t, findings, "V003", 1)
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"go/token"
 	"io/fs"
+	"os"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -143,8 +144,24 @@ func BuildContext(projectRoot string) (*AnalysisContext, error) {
 		return nil, fmt.Errorf("find modules: %w", err)
 	}
 
+	// Subtree-of-a-module runs (issue #126): when no go.mod sits at or under
+	// the requested root, the root is INSIDE a module whose go.mod lives
+	// above. Feature flags are module-scoped facts (HasServer lives in the
+	// module's cmd/, not in the internal/ package being linted), so feature
+	// detection must see the whole ENCLOSING module while findings and
+	// scanning stay scoped to the requested subtree (the Go ./... subtree
+	// convention). Without this, a doctor --audit-suppressions run from a
+	// subdirectory misprofiled every per-file-gated rule and classified
+	// working B029/B030/B014 suppressions stale — and --prune-suppressions
+	// would have deleted live directives on that verdict.
+	featureScopeRoot := ""
 	if len(modDirs) == 0 {
-		modDirs = []string{projectRoot}
+		if enclosing, ok := findEnclosingGoModDir(projectRoot); ok {
+			modDirs = []string{enclosing}
+			featureScopeRoot = projectRoot
+		} else {
+			modDirs = []string{projectRoot}
+		}
 	}
 
 	fset := token.NewFileSet()
@@ -159,6 +176,11 @@ func BuildContext(projectRoot string) (*AnalysisContext, error) {
 	// *packages.Package does not carry its module dir, so we capture it here for
 	// per-module feature detection (DetectFeaturesPerModule).
 	packagesByModule := map[string][]*packages.Package{}
+
+	// featureFiles feeds feature detection. In subtree runs it carries the
+	// whole enclosing module's files even though only the subtree is
+	// scanned into the registry.
+	var featureFiles []*GoFile
 
 	for _, dir := range modDirs {
 		pkgs, err := loadFromDir(dir, fset)
@@ -216,6 +238,14 @@ func BuildContext(projectRoot string) (*AnalysisContext, error) {
 					IsTest:    strings.HasSuffix(path, "_test.go"),
 					ModuleDir: dir,
 				}
+				featureFiles = append(featureFiles, goFile)
+
+				if featureScopeRoot != "" && !isUnderDir(path, featureScopeRoot) {
+					// Outside the requested subtree: feature detection sees it,
+					// scanning and findings do not.
+					continue
+				}
+
 				ctx.GoFiles = append(ctx.GoFiles, goFile)
 
 				if !goFile.IsTest {
@@ -249,14 +279,44 @@ func BuildContext(projectRoot string) (*AnalysisContext, error) {
 	// ListenAndServe no longer flips server=true for the library module), and
 	// the PRIMARY module's profile (shallowest dir, typically the project root)
 	// is exposed via FeatureProfile for global detectors + doctor output.
-	if len(modDirs) > 1 {
+	switch {
+	case featureScopeRoot != "":
+		// Subtree run: one profile for the whole enclosing module, keyed by
+		// its dir so ProfileForFile's longest-prefix match resolves every
+		// subtree file to it.
+		full := detectFeatureSignals(ctx.Packages, featureFiles, ctx.Registry)
+		ctx.FeatureProfiles = map[string]FeatureProfile{modDirs[0]: full}
+		ctx.FeatureProfile = full
+	case len(modDirs) > 1:
 		ctx.FeatureProfiles = DetectFeaturesPerModule(ctx, packagesByModule)
 		ctx.FeatureProfile = primaryModuleProfile(ctx.FeatureProfiles, projectRoot, modDirs)
-	} else {
+	default:
 		ctx.FeatureProfile = DetectFeatures(ctx)
 	}
 
 	return ctx, nil
+}
+
+// findEnclosingGoModDir walks UP from root's parent to the filesystem root
+// looking for the nearest go.mod — the module that owns a root sitting
+// inside a module (no go.mod at or under it). This mirrors how the go tool
+// resolves module context for commands run from a subdirectory.
+func findEnclosingGoModDir(root string) (string, bool) {
+	for dir := filepath.Dir(root); ; dir = filepath.Dir(dir) {
+		if stat, err := os.Stat(filepath.Join(dir, "go.mod")); err == nil && !stat.IsDir() {
+			return dir, true
+		}
+
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			return "", false
+		}
+	}
+}
+
+// isUnderDir reports whether path equals dir or lives underneath it.
+func isUnderDir(path, dir string) bool {
+	return path == dir || strings.HasPrefix(path, dir+string(os.PathSeparator))
 }
 
 // primaryModuleProfile selects the profile of the project's primary module from
