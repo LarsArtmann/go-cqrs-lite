@@ -290,7 +290,7 @@ jobs:
       # the larsartmann cache requires auth, so the step always failed.
 
       - name: Calibration date
-        id/v4: date
+        id: date
         run: echo "date=$(date -u +%F)" >> "$GITHUB_OUTPUT"
 
       # Rolling runner-class baseline (same calib- cache namespace as

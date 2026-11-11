@@ -388,7 +388,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Find all go.mod modules
-        id/v4: set-modules
+        id: set-modules
         run: |
           # Root module has no packages (proven no-op leg) and the cqrs-lint
           # typedfixture is testdata with zero test files — both burn a
