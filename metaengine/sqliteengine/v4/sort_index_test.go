@@ -50,7 +50,7 @@ func TestWithSortIndex_CreatesExpressionIndex(t *testing.T) {
 	wantExpr := "json_extract(value, '$.last_seen')"
 	var name, sqlText string
 	err := db.QueryRow(
-		`SELECT name, sql FROM sqlite_master WHERE type = 'index' AND name = ?`, "idx_map_sort_captures__last_seen",
+		`SELECT name, sql FROM sqlite_master WHERE type = 'index' AND name = ?`, "idx_map_sort_captures___last_seen",
 	).Scan(&name, &sqlText)
 	if err != nil {
 		t.Fatalf("index not created: %v", err)
@@ -77,7 +77,7 @@ func TestWithSortIndex_NormalizesBareFieldName(t *testing.T) {
 
 	var sqlText string
 	if err := db.QueryRow(
-		`SELECT sql FROM sqlite_master WHERE type = 'index' AND name = 'idx_map_sort_captures__last_seen'`,
+		`SELECT sql FROM sqlite_master WHERE type = 'index' AND name = 'idx_map_sort_captures___last_seen'`,
 	).Scan(&sqlText); err != nil {
 		t.Fatalf("index not created: %v", err)
 	}
@@ -112,7 +112,7 @@ func TestWithSortIndex_PlannerUsesIndex(t *testing.T) {
 		t.Fatalf("EXPLAIN QUERY PLAN: %v", err)
 	}
 
-	if !strings.Contains(plan, "idx_map_sort_captures__last_seen") {
+	if !strings.Contains(plan, "idx_map_sort_captures___last_seen") {
 		t.Errorf("planner did not use the sort index; plan: %s (query: %s)", plan, query)
 	}
 }
@@ -129,10 +129,11 @@ func TestWithSortIndex_ScanResultsIdentical(t *testing.T) {
 	indexed, _ := newSortIndexEngine(t, WithSortIndex("captures", "$.last_seen", true))
 
 	seed := func(e metaengine.Engine) {
+		mb := e.(metaengine.MapBackend) //nolint:forcetypeassert // engine under test implements it
 		for i := 50; i >= 1; i-- {
 			key := fmt.Sprintf("cap-%02d", i)
 			value := fmt.Sprintf(`{"id":%q,"last_seen":%d}`, key, 1000-i)
-			if err := e.MapSet(ctx, "captures", key, value); err != nil {
+			if err := mb.MapSet(ctx, "captures", key, value); err != nil {
 				t.Fatalf("MapSet: %v", err)
 			}
 		}
@@ -147,8 +148,9 @@ func TestWithSortIndex_ScanResultsIdentical(t *testing.T) {
 
 		var cursor any
 
+		reader := e.(metaengine.RawScanReader) //nolint:forcetypeassert // engine under test implements it
 		for {
-			res, err := e.ScanRawValues(ctx, "captures", nil, sortSpec, cursor, 7)
+			res, err := reader.ScanRawValues(ctx, "captures", nil, sortSpec, cursor, 7)
 			if err != nil {
 				t.Fatalf("ScanRawValues: %v", err)
 			}

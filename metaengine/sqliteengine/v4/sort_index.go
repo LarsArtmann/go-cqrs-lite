@@ -108,9 +108,14 @@ func mapSortIndexName(collection, path string) string {
 	return "idx_map_sort_" + sanitize(collection) + "_" + sanitize(path)
 }
 
-// ddl renders the CREATE INDEX statement — the partial-index form of
-// idx_stream_log_event_id (engine DDL), scoped to one collection and its
-// extracted field.
+// ddl renders the CREATE INDEX statement. The trailing key column mirrors
+// the scans' ORDER BY tiebreak (expr, then key ASC) so the index fully
+// satisfies the ordering — without it the planner keeps the PK scan plus a
+// temp B-tree. Unlike the journal's idx_stream_log_event_id, the index is
+// NOT partial: a partial json_valid(value) index is unusable for these
+// scans (their WHERE does not imply the predicate), and meta_map values are
+// engine-encoded JSON by construction, so the expression never sees
+// non-JSON rows.
 func (idx mapSortIndex) ddl() string {
 	dir := ""
 	if idx.desc {
@@ -119,12 +124,12 @@ func (idx mapSortIndex) ddl() string {
 
 	// Escape single quotes exactly like jsonPath does, so the index
 	// expression stays byte-identical to the scans' json_extract argument.
-	escaped := strings.ReplaceAll(idx.path, "'", "''")
+	esc := strings.ReplaceAll(idx.path, "'", "''")
 
 	return fmt.Sprintf(
-		"CREATE INDEX IF NOT EXISTS %s ON meta_map(collection, json_extract(value, '%s')%s) WHERE json_valid(value)",
+		"CREATE INDEX IF NOT EXISTS %s ON meta_map(collection, json_extract(value, '%s')%s, key)",
 		metaengine.QuoteIdent(idx.name),
-		escaped,
+		esc,
 		dir,
 	)
 }
