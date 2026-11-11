@@ -1121,7 +1121,12 @@ func TestHost_Reset_WhileRunning_ReturnsError(t *testing.T) {
 	_ = host.Stop()
 }
 
-func TestHost_LiveCheckpointFailure_StopsWorker(t *testing.T) {
+// TestHost_LiveCheckpointFailure_DoesNotStopWorker pins issue #128's
+// contract: a live-phase checkpoint save failure is housekeeping, not a
+// projection failure — the worker stays live and keeps processing. Failing
+// the handler would fail the publisher's dispatch for an already-journaled,
+// already-applied event (the old behavior; inverted durability).
+func TestHost_LiveCheckpointFailure_DoesNotStopWorker(t *testing.T) {
 	t.Parallel()
 
 	journal := &memoryJournal{}
@@ -1136,7 +1141,6 @@ func TestHost_LiveCheckpointFailure_StopsWorker(t *testing.T) {
 		journal, cpStore,
 		projectionhost.WithSubscriber(liveSub),
 		projectionhost.WithBatchSize(10),
-		projectionhost.WithMaxRestarts(0), // don't restart — we want to see the failure
 	)
 	_ = host.Register(proj)
 
@@ -1149,19 +1153,26 @@ func TestHost_LiveCheckpointFailure_StopsWorker(t *testing.T) {
 		return proj.count.Load() == 1
 	})
 
-	// Send a live event — checkpoint save should fail and worker should stop.
+	// Send live events — checkpoint saves fail, but the worker must stay
+	// live and keep processing (the failed flush retries each event and at
+	// shutdown).
+	liveSub.send(makeEvent("task.live"))
 	liveSub.send(makeEvent("task.live"))
 
 	requireEventually(t, 3*time.Second, func() bool {
-		states := host.Status()
-		for _, s := range states {
-			if s.Status == projectionhost.WorkerFailed || s.Status == projectionhost.WorkerStopped {
-				return true
-			}
+		return proj.count.Load() == 3
+	})
+
+	for _, s := range host.Status() {
+		if s.Name != "live-cp-fail" {
+			continue
 		}
 
-		return false
-	})
+		if s.Status != projectionhost.WorkerLive {
+			t.Errorf("worker status = %v, want WorkerLive (checkpoint failure must not stop the worker)",
+				s.Status)
+		}
+	}
 
 	liveSub.close()
 	cancel()
