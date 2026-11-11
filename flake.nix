@@ -121,7 +121,7 @@
       # no-ops for modules a target does not use.
       preparedDeps = {
         "github.com/larsartmann/go-finding" = go-finding;
-        "github.com/larsartmann/cmdguard/v4" = cmdguard;
+        "github.com/larsartmann/cmdguard/v5" = cmdguard;
         "github.com/larsartmann/go-output" = go-output;
         "github.com/LarsArtmann/gogenfilter/v3" = gogenfilter;
         "github.com/larsartmann/go-branded-id" = go-branded-id;
