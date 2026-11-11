@@ -149,6 +149,70 @@ require (
 	ruletest.AssertRule(t, findings, "V003", 0)
 }
 
+// --- V003 per-module latest (issue #129: a submodule whose own version
+// line never reached the fleet maximum was flagged with an
+// unresolvable @latest suggestion) ---
+
+// TestV003_PinEqualsModuleLatestStaysSilent: systemcatalog/v4 pinned at
+// v4.0.0 — its OWN latest per the proxy — must not fire.
+func TestV003_PinEqualsModuleLatestStaysSilent(t *testing.T) {
+	t.Parallel()
+
+	ctx := ctxWithGoMod(t, `module example.com/app
+
+go 1.26.4
+
+require (
+	github.com/larsartmann/go-cqrs-lite/systemcatalog/v4 v4.0.0
+)
+`)
+	findings := ruletest.RunDetector(t, version.NewV003DetectorWithLatest(t, ctx,
+		func(context.Context, string) (int, bool) { return 0, true }))
+	ruletest.AssertRule(t, findings, "V003", 0)
+}
+
+// TestV003_ProxyFailureFallsBackToFleetConstant: an unreachable proxy
+// keeps the fleet-wide fallback judgment (today's offline behavior).
+func TestV003_ProxyFailureFallsBackToFleetConstant(t *testing.T) {
+	t.Parallel()
+
+	ctx := ctxWithGoMod(t, `module example.com/app
+
+go 1.26.4
+
+require (
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.0.0
+)
+`)
+	findings := ruletest.RunDetector(t, version.NewV003DetectorWithLatest(t, ctx,
+		func(context.Context, string) (int, bool) { return 0, false }))
+	ruletest.AssertRule(t, findings, "V003", 1)
+}
+
+// TestV003_NamesTheModulesOwnLatest: the finding names the module's real
+// latest, not the fleet constant.
+func TestV003_NamesTheModulesOwnLatest(t *testing.T) {
+	t.Parallel()
+
+	ctx := ctxWithGoMod(t, `module example.com/app
+
+go 1.26.4
+
+require (
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.3.0
+)
+`)
+	findings := ruletest.RunDetector(t, version.NewV003DetectorWithLatest(t, ctx,
+		func(context.Context, string) (int, bool) { return 23, true }))
+	ruletest.AssertRule(t, findings, "V003", 1)
+
+	for _, f := range findings {
+		if f.Rule == "V003" && !strings.Contains(f.Message, "v4.23.x") {
+			t.Errorf("finding must name the module's own latest v4.23.x; got %q", f.Message)
+		}
+	}
+}
+
 // --- V004: vendored-third-party ---
 
 func TestV004_DetectsThirdPartyCQRS(t *testing.T) {
