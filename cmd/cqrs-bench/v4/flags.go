@@ -4,7 +4,7 @@ import (
 	"os"
 	"time"
 
-	cmdguard "github.com/larsartmann/cmdguard/v4/pkg/cmdguard/v4"
+	cmdguard "github.com/larsartmann/cmdguard/v5/pkg/cmdguard/v5"
 	"github.com/larsartmann/go-codec"
 
 	"github.com/larsartmann/go-cqrs-lite/benchkit/v4"

@@ -62,7 +62,7 @@ func scanGenDecl(ctx *AnalysisContext, gf *GoFile, decl *ast.GenDecl) {
 			continue
 		}
 
-		info := CommandInfo{
+		info := CommandMetadata{
 			Name:    ts.Name.Name,
 			Package: gf.Pkg.PkgPath,
 			File:    gf.Path,
@@ -83,7 +83,7 @@ func scanGenDecl(ctx *AnalysisContext, gf *GoFile, decl *ast.GenDecl) {
 	}
 }
 
-func scanStructFields(st *ast.StructType, info *CommandInfo) {
+func scanStructFields(st *ast.StructType, info *CommandMetadata) {
 	if st.Fields == nil {
 		return
 	}
@@ -108,7 +108,7 @@ func scanStructFields(st *ast.StructType, info *CommandInfo) {
 	}
 }
 
-func isCommandType(info *CommandInfo) bool {
+func isCommandType(info *CommandMetadata) bool {
 	return info.HasBasicCmd || info.ManualID
 }
 

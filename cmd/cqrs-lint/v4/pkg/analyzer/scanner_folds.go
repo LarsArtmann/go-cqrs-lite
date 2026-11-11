@@ -88,14 +88,14 @@ func findOrCreateCommand(
 	name string,
 	gf *GoFile,
 	pos token.Position,
-) *CommandInfo {
+) *CommandMetadata {
 	for i := range ctx.Registry.Commands {
 		if ctx.Registry.Commands[i].Name == name {
 			return &ctx.Registry.Commands[i]
 		}
 	}
 
-	ctx.Registry.Commands = append(ctx.Registry.Commands, CommandInfo{
+	ctx.Registry.Commands = append(ctx.Registry.Commands, CommandMetadata{
 		Name:    name,
 		Package: gf.Pkg.PkgPath,
 		File:    gf.Path,

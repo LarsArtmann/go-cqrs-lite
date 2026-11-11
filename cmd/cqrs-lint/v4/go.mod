@@ -3,7 +3,7 @@ module github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4
 go 1.27.2
 
 require (
-	github.com/larsartmann/cmdguard/v4 v4.2.0
+	github.com/larsartmann/cmdguard/v5 v4.2.0
 	github.com/larsartmann/go-finding v1.15.1
 	github.com/larsartmann/go-finding/pipeline v1.15.1
 	github.com/larsartmann/go-finding/toolsdk v1.16.0

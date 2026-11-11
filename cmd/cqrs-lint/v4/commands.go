@@ -8,7 +8,7 @@ import (
 	"runtime"
 	"strings"
 
-	cmdguard "github.com/larsartmann/cmdguard/v4/pkg/cmdguard/v4"
+	cmdguard "github.com/larsartmann/cmdguard/v5/pkg/cmdguard/v5"
 	output "github.com/larsartmann/go-output"
 )
 
