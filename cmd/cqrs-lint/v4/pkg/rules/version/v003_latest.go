@@ -29,6 +29,8 @@ const proxyFetchTimeout = 1500 * time.Millisecond
 // latestByModuleCache memoizes proxy answers for the process lifetime —
 // one module path is asked at most once per run however many rules consult
 // it.
+//
+//nolint:gochecknoglobals // process-lifetime read-through cache, set once per module path
 var latestByModuleCache sync.Map // string → int
 
 // latestMinorFetch is the seam detector tests stub; the default respects
@@ -39,12 +41,16 @@ var latestMinorFetch = latestMinorFromProxy
 
 // latestMinorFor returns the module's latest v4 minor: the proxy's answer
 // when one is available, otherwise the fleet-wide fallback constant.
-func latestMinorFor(modulePath string, fetch func(context.Context, string) (int, bool)) int {
+func latestMinorFor(
+	ctx context.Context,
+	modulePath string,
+	fetch func(context.Context, string) (int, bool),
+) int {
 	if fetch == nil {
 		return latestKnownMinor
 	}
 
-	if minor, ok := fetch(context.Background(), modulePath); ok && minor >= 0 {
+	if minor, ok := fetch(ctx, modulePath); ok && minor >= 0 {
 		return minor
 	}
 
@@ -62,7 +68,11 @@ func latestMinorFromProxy(ctx context.Context, modulePath string) (int, bool) {
 	}
 
 	if cached, ok := latestByModuleCache.Load(modulePath); ok {
-		return cached.(int), true
+		if minor, ok := cached.(int); ok {
+			return minor, true
+		}
+
+		return 0, false
 	}
 
 	base := firstProxyBase()
@@ -109,7 +119,7 @@ func fetchLatestMinorFromBase(ctx context.Context, base, modulePath string) (int
 	}
 
 	var latest struct {
-		Version string `json:"Version"`
+		Version string `json:"Version"` //nolint:tagliatelle // the module proxy wire contract spells the field "Version"
 	}
 	if err := json.Unmarshal(body, &latest); err != nil || latest.Version == "" {
 		return 0, false

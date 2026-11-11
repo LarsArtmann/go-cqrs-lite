@@ -51,7 +51,7 @@ func newV003Detector(
 ) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"V003-version-lag",
-		func(_ context.Context) ([]finding.Finding, error) {
+		func(detectorCtx context.Context) ([]finding.Finding, error) {
 			if ctx.ProjectRoot == "" {
 				return nil, nil
 			}
@@ -77,7 +77,7 @@ func newV003Detector(
 					continue
 				}
 
-				latestMinor := latestMinorFor(req.Path, fetch)
+				latestMinor := latestMinorFor(detectorCtx, req.Path, fetch)
 				lag := latestMinor - minor
 				if lag <= 2 {
 					continue
