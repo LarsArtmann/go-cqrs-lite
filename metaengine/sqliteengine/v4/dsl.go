@@ -1,9 +1,7 @@
 package sqliteengine
 
 import (
-	"context"
 	"database/sql"
-	"fmt"
 	"strings"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"

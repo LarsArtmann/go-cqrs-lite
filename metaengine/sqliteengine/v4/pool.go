@@ -15,6 +15,12 @@ import (
 // ceiling is safe for reads; writes may then queue behind busy_timeout
 // retries instead of the pool. Raise it ONLY when the deployment is
 // read-dominated.
+//
+// The production pragmas (busy_timeout, cache_size) hold on EVERY pooled
+// connection: the DSN constructors apply them per connection at Connect
+// (issue #128) — a raised ceiling does not reintroduce busy_timeout=0
+// connections. A caller-supplied pool ([NewSQLiteEngine]) applies its own
+// pragmas; the engine cannot retrofit them there.
 
 // WithMaxOpenConns raises the database handle's connection-pool ceiling above
 // the constructors' serialized default of 1. Usable with
