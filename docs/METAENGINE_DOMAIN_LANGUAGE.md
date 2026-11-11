@@ -448,8 +448,8 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/keycodec"
 
 	// Sub-packages (no own go.mod — part of metaengine/v4)
-	"github.com/larsartmann/go-cqrs-lite/metaengine/adttest"
-	"github.com/larsartmann/go-cqrs-lite/metaengine/enginetest"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/adttest"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/enginetest"
 
 	// Engine modules (each own go.mod)
 	"github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4"

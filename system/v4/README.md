@@ -141,6 +141,8 @@ One declaration list feeds BOTH `DomainConfig.Schema` (upcasting) and
 the wiring — stays the single source of truth:
 
 ```go
+import "github.com/larsartmann/go-cqrs-lite/schema/v4"
+
 set := system.Schemas()
 set = system.SchemaEvent[TaskCreated](set, "task.created", 1)
 set = system.SchemaEvent[TaskRenamed](set, "task.renamed", 2,
