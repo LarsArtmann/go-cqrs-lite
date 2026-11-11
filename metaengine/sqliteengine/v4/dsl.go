@@ -10,9 +10,9 @@ import (
 )
 
 // NewFromDSN creates a SQLite-backed engine from a DSN string, applying
-// production PRAGMAs (WAL mode, busy_timeout, and a 64 MiB page cache),
-// setting MaxOpenConns(1) for SQLite safety, and creating the engine tables
-// — all in one call.
+// production PRAGMAs (WAL mode, busy_timeout, and a 64 MiB page cache) to
+// EVERY pooled connection, setting MaxOpenConns(1) for SQLite safety, and
+// creating the engine tables — all in one call.
 //
 //	eng, db, err := sqliteengine.NewFromDSN("app.db")
 //	defer db.Close()
@@ -27,7 +27,9 @@ import (
 // readers with modernc sqlite; raise the ceiling with
 // [WithMaxOpenConns] (or on the returned handle, db.SetMaxOpenConns(n)) for
 // read-heavy deployments, accepting that writes may then queue behind
-// busy_timeout retries instead of the pool.
+// busy_timeout retries instead of the pool. The pragmas hold on every
+// pooled connection, raised ceiling or not — busy_timeout and cache_size
+// are per-connection settings in SQLite, applied at Connect (issue #128).
 //
 // The cache_size pragma (negative KiB form) keeps SQLite's default 2 MB page
 // cache from thrashing scan-heavy databases — a measured 536 MB journal
@@ -35,23 +37,13 @@ import (
 // `PRAGMA cache_size=...` on the returned handle overrides it (SQLite
 // last-write-wins).
 func NewFromDSN(dsn string, opts ...EngineOption) (metaengine.Engine, *sql.DB, error) {
-	db, err := sql.Open("sqlite", dsn)
+	db, err := openPragmaPool(dsn, []string{
+		"journal_mode=WAL",
+		"busy_timeout=5000",
+		"cache_size=-65536",
+	})
 	if err != nil {
-		return nil, nil, fmt.Errorf("sqliteengine: open sqlite %q: %w", dsn, err)
-	}
-
-	db.SetMaxOpenConns(1)
-
-	for _, pragma := range []string{
-		"PRAGMA journal_mode=WAL",
-		"PRAGMA busy_timeout=5000",
-		"PRAGMA cache_size=-65536",
-	} {
-		if _, err := db.ExecContext(context.Background(), pragma); err != nil {
-			_ = db.Close()
-
-			return nil, nil, fmt.Errorf("sqliteengine: %s: %w", pragma, err)
-		}
+		return nil, nil, err
 	}
 
 	eng, err := NewSQLiteEngine(db, opts...)
@@ -101,8 +93,9 @@ func NewSQLiteEngineFromDSN(dsn string, pragmas ...string) (metaengine.Engine, e
 }
 
 // NewSQLiteEngineFromDSNWith is the options-aware variant of
-// [NewSQLiteEngineFromDSN]: same pragma handling, plus EngineOption
-// capabilities (e.g. WithMaterializedViews, WithMaxOpenConns).
+// [NewSQLiteEngineFromDSN]: same pragma handling (every pooled connection;
+// see [NewFromDSN]), plus EngineOption capabilities (e.g.
+// WithMaterializedViews, WithMaxOpenConns).
 func NewSQLiteEngineFromDSNWith(
 	dsn string,
 	pragmas []string,
@@ -111,13 +104,6 @@ func NewSQLiteEngineFromDSNWith(
 	if dsn == "" {
 		dsn = ":memory:"
 	}
-
-	db, err := sql.Open("sqlite", dsn)
-	if err != nil {
-		return nil, fmt.Errorf("sqliteengine: open sqlite %q: %w", dsn, err)
-	}
-
-	db.SetMaxOpenConns(1)
 
 	var synchronousValue string
 
@@ -136,12 +122,9 @@ func NewSQLiteEngineFromDSNWith(
 		}
 	}
 
-	for _, pragma := range applied {
-		if _, err := db.ExecContext(context.Background(), "PRAGMA "+pragma); err != nil {
-			_ = db.Close()
-
-			return nil, fmt.Errorf("sqliteengine: pragma %q: %w", pragma, err)
-		}
+	db, err := openPragmaPool(dsn, applied)
+	if err != nil {
+		return nil, err
 	}
 
 	eng, err := NewSQLiteEngine(db, opts...)
