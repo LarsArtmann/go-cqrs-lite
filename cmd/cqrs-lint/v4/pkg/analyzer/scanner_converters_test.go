@@ -78,6 +78,47 @@ func emit() {
 	}
 }
 
+// ResolveConverterRoutedEventIDs is idempotent: a second run over an
+// already-drained registry is a no-op (the pending list is cleared), so
+// pipeline orderings that resolve twice can never double-record.
+func TestResolveConverterRoutedEventIDs_Idempotent(t *testing.T) {
+	t.Parallel()
+
+	ctx := BuildContextFromSource(t, map[string]string{
+		"catalog.go": `package domain
+
+import (
+	catalog "github.com/larsartmann/go-cqrs-lite/catalog/v4"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+)
+
+const EventCreated event.Type = "timesheet.created"
+
+func messageID(t string) catalog.MessageID {
+	return catalog.MessageID(t)
+}
+
+func declare() {
+	catalog.Event[struct{}](messageID(string(EventCreated)), catalog.Sends)
+}
+`,
+	})
+
+	before := len(ctx.Registry.EventTypesInCatalog)
+	ResolveConverterRoutedEventIDs(ctx)
+
+	if len(ctx.Registry.EventTypesInCatalog) != before {
+		t.Errorf(
+			"second resolve run changed the catalog: %d → %d",
+			before, len(ctx.Registry.EventTypesInCatalog),
+		)
+	}
+
+	if ctx.Registry.pendingConverterEventIDs != nil {
+		t.Error("pending converter ids must be drained")
+	}
+}
+
 // A func with more than one statement is NOT a converter — recording it
 // would let unrelated same-named calls inline their arguments.
 func TestConverterScanRejectsMultiStatementFuncs(t *testing.T) {
