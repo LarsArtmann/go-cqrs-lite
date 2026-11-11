@@ -82,10 +82,10 @@ func MigrateSnapshotColumnsToStream(ctx context.Context, db *sql.DB, d sqlpkg.Di
 //
 // The migration is idempotent and safe to run on every boot: it is a no-op
 // when the column is already present (fresh databases get it from the
-// SnapshotSchema DDL). Pre-existing rows keep the '' default, which is the
+// SnapshotSchema DDL). Pre-existing rows keep the ” default, which is the
 // documented absent-stamp-accepted semantics, so no backfill is needed.
 //
-// ALTER TABLE ... ADD COLUMN ... NOT NULL DEFAULT '' is supported by
+// ALTER TABLE ... ADD COLUMN ... NOT NULL DEFAULT ” is supported by
 // PostgreSQL, SQLite, DuckDB, and MySQL (the MySQL column is VARCHAR(255)
 // because MySQL forbids plain defaults on TEXT columns).
 func MigrateSnapshotStateShapeColumn(ctx context.Context, db *sql.DB, d sqlpkg.Dialect) error {
