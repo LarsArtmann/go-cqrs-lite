@@ -27,9 +27,9 @@ var externalRequireVersions = map[string]string{
 
 func loadRecipeBlocks(t *testing.T) []RecipeBlock {
 	t.Helper()
-	root, err := filepath.Abs(filepath.Join("..", ".."))
-	if err != nil {
-		t.Fatalf("repo root: %v", err)
+	root := findRepoRootFromPath(".")
+	if root == "" {
+		t.Fatal("could not locate the repo root from the test working directory")
 	}
 	md, err := os.ReadFile(filepath.Join(root, filepath.FromSlash(recipesRelPath)))
 	if err != nil {
@@ -239,9 +239,9 @@ func TestRecipesCompile(t *testing.T) {
 	if _, err := exec.LookPath("go"); err != nil {
 		t.Fatalf("go toolchain not on PATH: %v", err)
 	}
-	root, err := filepath.Abs(filepath.Join("..", ".."))
-	if err != nil {
-		t.Fatalf("repo root: %v", err)
+	root := findRepoRootFromPath(".")
+	if root == "" {
+		t.Fatal("could not locate the repo root from the test working directory")
 	}
 	dir := t.TempDir()
 	if keep := os.Getenv("RECIPES_COMPILE_KEEP"); keep != "" {

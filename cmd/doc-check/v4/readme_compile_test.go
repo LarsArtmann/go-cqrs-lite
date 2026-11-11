@@ -52,9 +52,9 @@ var readmeQuickStart = recipeSpec{
 
 func loadReadmeBlocks(t *testing.T) []RecipeBlock {
 	t.Helper()
-	root, err := filepath.Abs(filepath.Join("..", ".."))
-	if err != nil {
-		t.Fatalf("repo root: %v", err)
+	root := findRepoRootFromPath(".")
+	if root == "" {
+		t.Fatal("could not locate the repo root from the test working directory")
 	}
 	md, err := os.ReadFile(filepath.Join(root, "README.md"))
 	if err != nil {
@@ -102,9 +102,9 @@ func TestReadmeQuickStartCompiles(t *testing.T) {
 	if _, err := exec.LookPath("go"); err != nil {
 		t.Fatalf("go toolchain not on PATH: %v", err)
 	}
-	root, err := filepath.Abs(filepath.Join("..", ".."))
-	if err != nil {
-		t.Fatalf("repo root: %v", err)
+	root := findRepoRootFromPath(".")
+	if root == "" {
+		t.Fatal("could not locate the repo root from the test working directory")
 	}
 
 	blocks := loadReadmeBlocks(t)

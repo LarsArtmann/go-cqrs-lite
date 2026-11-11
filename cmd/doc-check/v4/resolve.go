@@ -214,6 +214,11 @@ func mirrorAliasDirs(dirs []string) bool {
 			coreDir, plainDir = right, left
 		}
 
+		// The plain side carries its version segment since the 2026-11-10
+		// module-dir move (event/v4); the pre-move layout (event) stays
+		// recognized.
+		plainDir = strings.TrimSuffix(plainDir, "/v4")
+
 		return strings.TrimPrefix(coreDir, core) == plainDir
 	}
 

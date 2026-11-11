@@ -186,7 +186,8 @@ func TestMirrorAliasDirs(t *testing.T) {
 		want bool
 	}{
 		{[]string{"kv", "core/v5/kv"}, true},
-		{[]string{"core/v5/query", "query"}, true},
+		{[]string{"kv/v4", "core/v5/kv"}, true},
+		{[]string{"core/v5/query", "query/v4"}, true},
 		{[]string{"kv", "core/v5/query"}, false},
 		{[]string{"alpha/sqlstore", "beta/sqlstore"}, false},
 		{[]string{"core/v5/kv", "core/v5/query"}, false},

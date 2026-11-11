@@ -48,14 +48,14 @@ var adtCoverageWaivers = map[string]string{
 // table. It keeps the recipe book from silently drifting away from the ADT
 // surface as new ADTs land.
 func TestRecipeADTCoverage(t *testing.T) {
-	root, err := filepath.Abs(filepath.Join("..", ".."))
-	if err != nil {
-		t.Fatalf("repo root: %v", err)
+	root := findRepoRootFromPath(".")
+	if root == "" {
+		t.Fatal("could not locate the repo root from the test working directory")
 	}
 
-	adts := parseAllADTs(t, filepath.Join(root, "metaengine", "enum_validation.go"))
+	adts := parseAllADTs(t, filepath.Join(root, "metaengine", "v4", "enum_validation.go"))
 	if len(adts) == 0 {
-		t.Fatal("parsed zero ADTs from metaengine/enum_validation.go — parser is broken")
+		t.Fatal("parsed zero ADTs from metaengine/v4/enum_validation.go — parser is broken")
 	}
 
 	md, err := os.ReadFile(filepath.Join(root, filepath.FromSlash(recipesRelPath)))
