@@ -52,7 +52,7 @@ func SnapshotStateCodec(cipher EncrypterDecrypter, keyID KeyID) (StateTransforms
 //
 // The returned transforms also carry NeedsRewrite/Reencrypt, so consumers can
 // opt into re-encrypt-on-read write-back via snapshot's
-// [github.com/larsartmann/go-cqrs-lite/snapshot/v4.NewRewritingTransformedStore]:
+// [github.com/larsartmann/go-cqrs-lite/snapshot/v5.NewRewritingTransformedStore]:
 // every load of a retired-key snapshot re-encrypts it under the active key
 // and persists the result, converging the store without a maintenance window.
 func RotatingSnapshotStateCodec(

@@ -213,7 +213,7 @@ func setup(bus *Bus) {
 	}
 }
 
-// T20-5: embedded-field expressions used to land in CommandInfo.Fields mixed
+// T20-5: embedded-field expressions used to land in CommandMetadata.Fields mixed
 // with real member names; consumers had to guess which entries were names.
 // Names and embeds are now separate slices.
 func TestScanStructFields_SplitsNamesFromEmbeds(t *testing.T) {
