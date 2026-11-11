@@ -1490,7 +1490,7 @@ go-cqrs-lite dependency pinned to a pseudo-version instead of a tagged release
 
 Severity: `info` · Confidence: `high` · Auto-fix: no · Category: `version`
 
-go-cqrs-lite version more than 2 minor versions behind latest known release
+go-cqrs-lite version more than 2 minor versions behind the module's own latest release (per-module proxy truth; fleet constant offline)
 
 <a id="v004"></a>
 

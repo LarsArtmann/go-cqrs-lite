@@ -26,7 +26,7 @@ func versionRules() []RuleInfo {
 			Category:    "version",
 			Severity:    "info",
 			Confidence:  "high",
-			Description: "go-cqrs-lite version more than 2 minor versions behind latest known release",
+			Description: "go-cqrs-lite version more than 2 minor versions behind the module's own latest release (per-module proxy truth; fleet constant offline)",
 			AutoFix:     false,
 		},
 		{

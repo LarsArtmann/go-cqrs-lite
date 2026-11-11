@@ -752,6 +752,7 @@ cmd/cqrs-lint/v4/pkg/analyzer/func PathContainsFragment
 cmd/cqrs-lint/v4/pkg/analyzer/func ReceiverIsEventBus
 cmd/cqrs-lint/v4/pkg/analyzer/func ReceiverTypeName
 cmd/cqrs-lint/v4/pkg/analyzer/func ResolveCatalogHelperCalls
+cmd/cqrs-lint/v4/pkg/analyzer/func ResolveConverterRoutedEventIDs
 cmd/cqrs-lint/v4/pkg/analyzer/func ResolveEmittedEventTypeConsts
 cmd/cqrs-lint/v4/pkg/analyzer/func ResolveFeatureProfile
 cmd/cqrs-lint/v4/pkg/analyzer/func ResolveFoldTombstoneCases
@@ -1100,6 +1101,7 @@ cmd/cqrs-lint/v4/pkg/rules/testrules/func NewT009Detector
 cmd/cqrs-lint/v4/pkg/rules/version/func NewV001Detector
 cmd/cqrs-lint/v4/pkg/rules/version/func NewV002Detector
 cmd/cqrs-lint/v4/pkg/rules/version/func NewV003Detector
+cmd/cqrs-lint/v4/pkg/rules/version/func NewV003DetectorWithLatest
 cmd/cqrs-lint/v4/pkg/rules/version/func NewV004Detector
 cmd/cqrs-lint/v4/pkg/rules/version/func NewV005Detector
 cmd/cqrs-lint/v4/pkg/rules/version/func NewV006Detector
@@ -1119,6 +1121,7 @@ cmd/cqrs-lint/v4/pkg/suppression/func NewSuppressionFilter
 cmd/cqrs-lint/v4/pkg/suppression/func ParseSuppressions
 cmd/cqrs-lint/v4/pkg/suppression/func PlanStaleInlineSuppressions
 cmd/cqrs-lint/v4/pkg/suppression/func RemoveStaleInlineSuppressions
+cmd/cqrs-lint/v4/pkg/suppression/func WouldSuppress
 cmd/cqrs-lint/v4/pkg/suppression/struct FixResult
 cmd/cqrs-lint/v4/pkg/suppression/struct StaleSuppression
 cmd/cqrs-lint/v4/pkg/suppression/struct SuppressionAuditEntry
@@ -3250,6 +3253,7 @@ metaengine/sqliteengine/v4/func WithCellVersioning
 metaengine/sqliteengine/v4/func WithMaterializedViews
 metaengine/sqliteengine/v4/func WithMaxOpenConns
 metaengine/sqliteengine/v4/func WithRetention
+metaengine/sqliteengine/v4/func WithSortIndex
 metaengine/sqliteengine/v4/interface ProberSetter
 metaengine/sqliteengine/v4/method Aggregate
 metaengine/sqliteengine/v4/method ApplyLayout
@@ -5763,6 +5767,7 @@ storage/v4/func EnsurePostgresStatementTimeout
 storage/v4/func EnsurePostgresSynchronousCommit
 storage/v4/func EnsureSQLiteDSNBusyTimeout
 storage/v4/func MigrateSnapshotColumnsToStream
+storage/v4/func MigrateSnapshotStateShapeColumn
 storage/v4/func MySQLInitSchema
 storage/v4/func NewAggregateProjection
 storage/v4/func NewDuckDBBackend
