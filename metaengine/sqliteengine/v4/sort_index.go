@@ -23,12 +23,12 @@ type mapSortIndex struct {
 //	eng, err := sqliteengine.NewSQLiteEngine(db,
 //		sqliteengine.WithSortIndex("captures", "$.last_seen", true))
 //
-// NewSQLiteEngine emits the same CREATE INDEX IF NOT EXISTS form the journal
-// already carries (idx_stream_log_event_id), partial on json_valid(value):
+// NewSQLiteEngine emits a CREATE INDEX IF NOT EXISTS mirroring the scans'
+// ORDER BY exactly (the expression, then the key tiebreak — without the
+// trailing key column the planner keeps the PK scan plus a temp B-tree):
 //
 //	CREATE INDEX IF NOT EXISTS idx_map_sort_<collection>_<field>
-//	  ON meta_map(collection, json_extract(value, '$.last_seen') DESC)
-//	  WHERE json_valid(value);
+//	  ON meta_map(collection, json_extract(value, '$.last_seen') DESC, key);
 //
 // Measured on a 100k-row store, a 61-row keyset page on the indexed sort
 // column drops from ~58ms (full-collection scan + temp B-tree) to ~0.2ms

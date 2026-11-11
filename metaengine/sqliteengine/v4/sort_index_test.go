@@ -3,6 +3,7 @@ package sqliteengine
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"testing"
@@ -56,10 +57,14 @@ func TestWithSortIndex_CreatesExpressionIndex(t *testing.T) {
 		t.Fatalf("index not created: %v", err)
 	}
 
-	for _, want := range []string{"ON meta_map", wantExpr, "DESC", "WHERE json_valid(value)"} {
+	for _, want := range []string{"ON meta_map", wantExpr, "DESC", ", key)"} {
 		if !strings.Contains(sqlText, want) {
 			t.Errorf("index DDL missing %q: %s", want, sqlText)
 		}
+	}
+
+	if strings.Contains(sqlText, "WHERE") {
+		t.Errorf("the index must NOT be partial — a json_valid WHERE is unusable for scans that do not imply it: %s", sqlText)
 	}
 
 	if len(e.sortIndexes) != 1 {
@@ -133,7 +138,7 @@ func TestWithSortIndex_ScanResultsIdentical(t *testing.T) {
 		for i := 50; i >= 1; i-- {
 			key := fmt.Sprintf("cap-%02d", i)
 			value := fmt.Sprintf(`{"id":%q,"last_seen":%d}`, key, 1000-i)
-			if err := mb.MapSet(ctx, "captures", key, value); err != nil {
+			if err := mb.MapSet(ctx, "captures", key, json.RawMessage(value)); err != nil {
 				t.Fatalf("MapSet: %v", err)
 			}
 		}
