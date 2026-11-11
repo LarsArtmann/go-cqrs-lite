@@ -131,7 +131,7 @@ func scanReceiverIsMetaengine(gf *analyzer.GoFile, sel *ast.SelectorExpr) bool {
 	}
 
 	// Type strings render full import paths
-	// (github.com/larsartmann/go-cqrs-lite/metaengine/v4.TypedReader[...]);
+	// (github.com/larsartmann/go-cqrs-lite/metaengine/v5.TypedReader[...]);
 	// match the module path segment, which stdlib types (bufio.Scanner,
 	// database/sql rows) never contain.
 	return strings.Contains(recvType.String(), "cqrs-lite/metaengine")
