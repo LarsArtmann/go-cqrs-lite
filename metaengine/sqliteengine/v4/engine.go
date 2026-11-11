@@ -43,6 +43,11 @@ type sqliteEngine struct {
 	// at construction.
 	matViews   []matView
 	matViewErr error
+	// sortIndexes holds operator-declared meta_map expression indexes
+	// (WithSortIndex, issue #122); sortIndexErr captures a declaration
+	// validation failure surfaced at construction.
+	sortIndexes  []mapSortIndex
+	sortIndexErr error
 	// Cell versioning (ADR-0141): when true, map writes on non-planned
 	// collections also record timestamped versions in meta_cell_versions;
 	// versionRetention trims history per write when set.
@@ -211,6 +216,10 @@ func NewSQLiteEngine(database *sql.DB, opts ...EngineOption) (metaengine.Engine,
 	_, _ = database.ExecContext(context.Background(), `PRAGMA mmap_size = 268435456`)
 
 	if err := eng.createMatViews(context.Background()); err != nil {
+		return nil, err
+	}
+
+	if err := eng.createSortIndexes(context.Background()); err != nil {
 		return nil, err
 	}
 

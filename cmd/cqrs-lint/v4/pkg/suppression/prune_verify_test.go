@@ -22,14 +22,14 @@ func TestWouldSuppress_PositionWindow(t *testing.T) {
 	}
 
 	at := func(line int) finding.Finding {
-		f, _ := finding.New(
+		return finding.NewFinding(
 			"B029",
+			"cqrs-lint",
 			"bus var without breaker",
 			finding.SeverityWarning,
 			finding.Pos(finding.FilePath(file), line, 1),
+			finding.ConfidenceHigh,
 		)
-
-		return f
 	}
 
 	findings := []finding.Finding{at(5)}
