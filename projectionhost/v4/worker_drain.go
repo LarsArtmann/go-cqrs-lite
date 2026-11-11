@@ -216,7 +216,19 @@ func (w *worker) liveHandler(ctx context.Context) event.Handler {
 		}
 
 		if saveErr := w.recordLiveCheckpoint(ctx, evt); saveErr != nil {
-			return saveErr
+			// The event is already journaled and applied; the checkpoint is
+			// bookkeeping that only bounds reprocessing. Failing the handler
+			// here would fail the publisher's dispatch (in-process buses run
+			// handlers synchronously; EventBus sets
+			// BlockPublishUntilSubscriberAck) for a write that IS durable.
+			// recordLiveCheckpoint staged the checkpoint before flushing, so
+			// cpHasPending stays set: the next live event retries the save
+			// and Stop's flushPendingCheckpoint gives the final retry
+			// (issue #128).
+			w.logger.Warn("live checkpoint save failed; will retry on next event",
+				"projection", w.name,
+				"event_id", evt.ID().String(),
+				"error", saveErr)
 		}
 
 		w.markSeen(evt.ID())
