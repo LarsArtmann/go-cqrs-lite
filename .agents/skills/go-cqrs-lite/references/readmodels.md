@@ -487,6 +487,29 @@ surface (`materialized_views` in EngineConfig YAML). Full recipe: `recipes.md`
 > as the recommended shape until upstream fixes it. Details:
 > `docs/research/2026-09-07_turso-go-ivm-commit-failure-issue-draft.md`.
 
+#### Sort-key expression indexes for large `meta_map` collections
+
+Sorted and keyset-paginated standard scans order by
+`json_extract(value, '$.field')` — without a supporting index every page
+sorts the whole collection (linear in collection size). `sqliteengine`
+accepts opt-in per-collection expression indexes that make those scans
+index-ordered (issue #122; measured 58.5ms → ~0.2ms per 61-row page at 100k
+rows):
+
+```go
+import "github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4"
+
+eng, _ := sqliteengine.NewSQLiteEngine(db,
+    sqliteengine.WithSortIndex("captures", "$.last_seen", true), // DESC: newest-first
+)
+```
+
+The emitted index mirrors the scans' ORDER BY exactly (expression, then the
+`key` tiebreak). Consumer-owned cost decision: every row rewrite maintains
+the index — opt in per collection, not globally. A collection migrated to a
+planned table (`LayoutPlanApplier`, recipes §2.27/2.28) ignores the index
+harmlessly; planned real-column tables are the heavier, faster alternative.
+
 #### Bounded collections: keep the newest N rows (`WithCap` + `EnforceCaps`)
 
 For "keep the newest N rows" read models (transcripts, audit tails, token
