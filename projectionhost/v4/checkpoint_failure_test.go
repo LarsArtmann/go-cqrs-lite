@@ -184,6 +184,7 @@ func TestLiveCheckpoint_SaveFailureDoesNotFailHandler(t *testing.T) {
 	// subsumes the failed event 1 — checkpoints only move forward).
 	requireEventually(t, 3*time.Second, func() bool {
 		cp, err := cpStore.Load(context.Background(), "cadence")
+
 		return err == nil && cp.EventID == evt2.ID()
 	})
 
