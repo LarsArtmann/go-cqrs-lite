@@ -3,11 +3,12 @@ package sqliteengine
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"strings"
 	"testing"
 	"time"
+
+	"encoding/json/jsontext"
 
 	_ "modernc.org/sqlite"
 
@@ -141,7 +142,7 @@ func TestWithSortIndex_ScanResultsIdentical(t *testing.T) {
 		for i := 50; i >= 1; i-- {
 			key := fmt.Sprintf("cap-%02d", i)
 			value := fmt.Sprintf(`{"id":%q,"last_seen":%d}`, key, 1000-i)
-			if err := mb.MapSet(ctx, "captures", key, json.RawMessage(value)); err != nil {
+			if err := mb.MapSet(ctx, "captures", key, jsontext.Value(value)); err != nil {
 				t.Fatalf("MapSet: %v", err)
 			}
 		}
