@@ -69,6 +69,9 @@ Both default to off (save-per-event). On crash or `Stop()`, pending checkpoints 
 flushed; only a hard crash can lose progress, in which case **at most n−1 live events
 are reprocessed on restart** — the same at-least-once contract as the replay→live
 overlap. Catch-up (drain) phase always saves per batch, independent of these knobs.
+A FAILED live checkpoint save never fails the dispatch (issue #128): the already-
+journaled event is applied, the failure degrades to a warn log, and the staged
+checkpoint retries on the next live event and at `Stop()`.
 
 **The at-least-once delivery contract (folds must be idempotent).** Every
 projection path — journal replay, the drain→live overlap, and crash

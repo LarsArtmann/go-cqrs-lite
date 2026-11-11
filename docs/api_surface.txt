@@ -810,7 +810,7 @@ cmd/cqrs-lint/v4/pkg/analyzer/method Validate
 cmd/cqrs-lint/v4/pkg/analyzer/struct AnalysisContext
 cmd/cqrs-lint/v4/pkg/analyzer/struct CQRSRegistry
 cmd/cqrs-lint/v4/pkg/analyzer/struct Catalog
-cmd/cqrs-lint/v4/pkg/analyzer/struct CommandInfo
+cmd/cqrs-lint/v4/pkg/analyzer/struct CommandMetadata
 cmd/cqrs-lint/v4/pkg/analyzer/struct ConfigFeatures
 cmd/cqrs-lint/v4/pkg/analyzer/struct DataProductInfo
 cmd/cqrs-lint/v4/pkg/analyzer/struct DeciderInfo
@@ -3256,6 +3256,7 @@ metaengine/sqliteengine/v4/method ApplyLayout
 metaengine/sqliteengine/v4/method ApplyLayoutPlan
 metaengine/sqliteengine/v4/method CellVersioningEnabled
 metaengine/sqliteengine/v4/method Close
+metaengine/sqliteengine/v4/method Connect
 metaengine/sqliteengine/v4/method CounterGet
 metaengine/sqliteengine/v4/method CounterIncrement
 metaengine/sqliteengine/v4/method DistinctValues
