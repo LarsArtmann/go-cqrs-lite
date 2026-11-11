@@ -65,17 +65,19 @@ func TestFetchLatestMinorFromBase_NonV4AndGarbage(t *testing.T) {
 func TestLatestMinorFor_Fallbacks(t *testing.T) {
 	t.Parallel()
 
-	if got := latestMinorFor("m", nil); got != latestKnownMinor {
+	ctx := context.Background()
+
+	if got := latestMinorFor(ctx, "m", nil); got != latestKnownMinor {
 		t.Errorf("nil fetch must fall back to the constant; got %d", got)
 	}
 
-	if got := latestMinorFor("m", func(context.Context, string) (int, bool) {
+	if got := latestMinorFor(ctx, "m", func(context.Context, string) (int, bool) {
 		return 0, false
 	}); got != latestKnownMinor {
 		t.Errorf("failed fetch must fall back to the constant; got %d", got)
 	}
 
-	if got := latestMinorFor("m", func(context.Context, string) (int, bool) {
+	if got := latestMinorFor(ctx, "m", func(context.Context, string) (int, bool) {
 		return 23, true
 	}); got != 23 {
 		t.Errorf("successful fetch must win; got %d", got)

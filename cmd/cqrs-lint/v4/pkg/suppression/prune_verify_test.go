@@ -38,11 +38,11 @@ func TestWouldSuppress_PositionWindow(t *testing.T) {
 		line int
 		want bool
 	}{
-		"directive on the finding line":        {5, true},
-		"directive on the line above":           {4, true},
-		"directive on the line below":           {6, true}, // trailing style leniency
-		"directive two lines above (in code)":   {3, false},
-		"directive on a distant line":           {1, false},
+		"directive on the finding line":      {5, true},
+		"directive on the line above":        {4, true},
+		"directive on the line below":        {6, true}, // trailing style leniency
+		"directive two lines above (in code)": {3, false},
+		"directive on a distant line":         {1, false},
 	}
 
 	for name, tc := range cases {
