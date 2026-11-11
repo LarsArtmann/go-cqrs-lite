@@ -126,6 +126,7 @@ func TestResetEngine_LayoutSurvivesAndRebuilds(t *testing.T) {
 	res, err := sc.MapScan(ctx, "tasks",
 		func(item any) bool {
 			m, _ := item.(map[string]any)
+
 			return m["status"] == "done"
 		},
 		nil, nil, 10,
