@@ -122,6 +122,22 @@ type CQRSRegistry struct {
 	// catalog). Name-matched like emitHelperParams.
 	catalogHelperParams map[string]int
 
+	// converterFuncParams records local single-return converter functions
+	// whose whole body is a pure conversion of one parameter
+	// (`func messageID(t string) catalog.MessageID { return catalog.MessageID(t) }`).
+	// Id arguments routed through such a func at catalog/emission/schema call
+	// sites resolve by inlining the call with its argument in
+	// ResolveConverterRoutedEventIDs. Without it a converter-mediated
+	// vocabulary stayed invisible and E004 flagged every emitted event on a
+	// complete catalog (issue #121, timesheets). Name-matched like
+	// emitHelperParams.
+	converterFuncParams map[string]bool
+
+	// pendingConverterEventIDs carries id arguments that were call
+	// expressions at scan time — unresolvable until every converter
+	// declaration is known. Drained by ResolveConverterRoutedEventIDs.
+	pendingConverterEventIDs []pendingConverterEventID
+
 	// TypesWithTypeMethod records struct type names that have a Type() method.
 	// Used by E007 to distinguish real CQRS query types (which implement
 	// query.Query's Type() method) from DTOs whose name happens to end in "Query".
@@ -180,6 +196,7 @@ func NewCQRSRegistry() *CQRSRegistry {
 		TypesWithTypeMethod:    make(map[string]bool),
 		emitHelperParams:       make(map[string]int),
 		catalogHelperParams:    make(map[string]int),
+		converterFuncParams:    make(map[string]bool),
 	}
 }
 

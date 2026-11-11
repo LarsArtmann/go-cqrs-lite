@@ -235,6 +235,7 @@ func BuildContext(projectRoot string) (*AnalysisContext, error) {
 
 	filterEventPayloads(ctx)
 	ResolveRegisteredTypeConsts(ctx.Registry)
+	ResolveConverterRoutedEventIDs(ctx)
 	ResolveHelperEmitCalls(ctx)
 	ResolveCatalogHelperCalls(ctx)
 	ResolveEmittedEventTypeConsts(ctx.Registry)

@@ -46,6 +46,10 @@ func scanCallExpr(ctx *AnalysisContext, gf *GoFile, call *ast.CallExpr) {
 					ctx.Registry.pendingEmittedEventTypeRefs,
 					pendingEventTypeRef{constName: name, file: gf.Path, line: pos.Line},
 				)
+			} else {
+				// Call-shaped id (a local converter func): resolved after
+				// every converter declaration is known.
+				deferConverterEventID(ctx, call.Args[0], gf, pos.Line, destEmitted)
 			}
 		}
 
@@ -63,6 +67,8 @@ func scanCallExpr(ctx *AnalysisContext, gf *GoFile, call *ast.CallExpr) {
 					ctx.Registry.pendingEmittedEventTypeRefs,
 					pendingEventTypeRef{constName: name, file: gf.Path, line: pos.Line},
 				)
+			} else {
+				deferConverterEventID(ctx, call.Args[0], gf, pos.Line, destEmitted)
 			}
 		}
 
@@ -110,6 +116,8 @@ func scanCallExpr(ctx *AnalysisContext, gf *GoFile, call *ast.CallExpr) {
 				ctx.Registry.pendingCatalogEventTypeRefs,
 				pendingEventTypeRef{constName: name, file: gf.Path, line: pos.Line},
 			)
+		} else {
+			deferConverterEventID(ctx, expr, gf, pos.Line, destCatalog)
 		}
 
 	case funcName == "Register" && !IsQualifierFor(gf, sel, "go-cqrs-lite/event"):

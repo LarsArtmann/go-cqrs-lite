@@ -41,6 +41,8 @@ func recordSchemaDeclaredEvent(
 			ctx.Registry.pendingSchemaEventTypeRefs,
 			pendingEventTypeRef{constName: name, file: gf.Path, line: pos.Line},
 		)
+	} else {
+		deferConverterEventID(ctx, call.Args[0], gf, pos.Line, destSchema)
 	}
 }
 

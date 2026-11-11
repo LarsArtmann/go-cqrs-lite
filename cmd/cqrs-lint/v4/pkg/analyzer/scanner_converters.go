@@ -24,7 +24,7 @@ import "go/ast"
 // package-qualified conversion, param one of the function's own parameters.
 // Name-matched like emitHelperParams (cross-package collisions are a
 // documented limitation).
-func scanConverterFunc(ctx *AnalysisContext, fn *ast.FuncDecl) {
+func scanConverterFunc(ctx *AnalysisContext, _ *GoFile, fn *ast.FuncDecl) {
 	if fn.Name == nil || fn.Body == nil || fn.Recv != nil || fn.Type == nil || fn.Type.Params == nil {
 		return
 	}

@@ -42,5 +42,9 @@ func recordCatalogEventType(ctx *AnalysisContext, gf *GoFile, pos token.Position
 			ctx.Registry.pendingCatalogEventTypeRefs,
 			pendingEventTypeRef{constName: name, file: gf.Path, line: pos.Line},
 		)
+
+		return
 	}
+
+	deferConverterEventID(ctx, expr, gf, pos.Line, destCatalog)
 }
