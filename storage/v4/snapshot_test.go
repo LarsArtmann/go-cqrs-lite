@@ -57,7 +57,7 @@ func TestSQLSnapshotStore_Save(t *testing.T) {
 	}
 
 	mock.ExpectExec(`INSERT INTO snapshots`).
-		WithArgs("User", snap.StreamID, 5, string(snap.State), snap.CreatedAt).
+		WithArgs("User", snap.StreamID, 5, string(snap.State), "", snap.CreatedAt).
 		WillReturnResult(sqlmock.NewResult(0, 1))
 
 	err := s.Save(context.Background(), snap)
@@ -99,10 +99,10 @@ func expectSnapshotLoadRows(
 	name string,
 	createdAt time.Time,
 ) {
-	mock.ExpectQuery(`SELECT version, state, created_at FROM snapshots`).
+	mock.ExpectQuery(`SELECT version, state, state_shape, created_at FROM snapshots`).
 		WithArgs("User", streamID).
-		WillReturnRows(sqlmock.NewRows([]string{"version", "state", "created_at"}).
-			AddRow(3, []byte(`{"name":"`+name+`"}`), createdAt))
+		WillReturnRows(sqlmock.NewRows([]string{"version", "state", "state_shape", "created_at"}).
+			AddRow(3, []byte(`{"name":"`+name+`"}`), "", createdAt))
 }
 
 func TestSQLSnapshotStore_Load(t *testing.T) {
@@ -138,7 +138,7 @@ func TestSQLSnapshotStore_Load_NotFound(t *testing.T) {
 	s, mock := newTestSnapshotStore(t)
 	streamID := idtest.ParseStreamID(t, "01HGW5FPJPYK5RE8ACZDesWMY2")
 
-	mock.ExpectQuery(`SELECT version, state, created_at FROM snapshots`).
+	mock.ExpectQuery(`SELECT version, state, state_shape, created_at FROM snapshots`).
 		WithArgs("User", streamID).
 		WillReturnError(sql.ErrNoRows)
 
@@ -158,7 +158,7 @@ func TestSQLSnapshotStore_Load_QueryError(t *testing.T) {
 	s, mock := newTestSnapshotStore(t)
 	streamID := idtest.ParseStreamID(t, "01HGW5FPJPYK5RE8ACZDesWMY2")
 
-	mock.ExpectQuery(`SELECT version, state, created_at FROM snapshots`).
+	mock.ExpectQuery(`SELECT version, state, state_shape, created_at FROM snapshots`).
 		WithArgs("User", streamID).
 		WillReturnError(errors.New("connection lost"))
 
@@ -201,10 +201,10 @@ func expectSnapshotLoadAtVersion(
 ) {
 	t.Helper()
 
-	mock.ExpectQuery(`SELECT version, state, created_at FROM snapshots`).
+	mock.ExpectQuery(`SELECT version, state, state_shape, created_at FROM snapshots`).
 		WithArgs("User", streamID, maxVersion).
-		WillReturnRows(sqlmock.NewRows([]string{"version", "state", "created_at"}).
-			AddRow(3, []byte(`{"name":"`+name+`"}`), createdAt))
+		WillReturnRows(sqlmock.NewRows([]string{"version", "state", "state_shape", "created_at"}).
+			AddRow(3, []byte(`{"name":"`+name+`"}`), "", createdAt))
 }
 
 func TestSQLSnapshotStore_LoadAtVersion_NotFound(t *testing.T) {
@@ -225,7 +225,7 @@ func TestSQLSnapshotStore_LoadAtVersion_NotFound(t *testing.T) {
 			s, mock := newTestSnapshotStore(t)
 			streamID := idtest.ParseStreamID(t, "01HGW5FPJPYK5RE8ACZDesWMY2")
 
-			mock.ExpectQuery(`SELECT version, state, created_at FROM snapshots`).
+			mock.ExpectQuery(`SELECT version, state, state_shape, created_at FROM snapshots`).
 				WithArgs("User", streamID, tt.version.Int()).
 				WillReturnError(sql.ErrNoRows)
 
@@ -282,7 +282,10 @@ func TestSnapshotSchema_ContainsExpectedDDL(t *testing.T) {
 
 	schema := SnapshotSchema()
 
-	for _, want := range []string{"CREATE TABLE", "snapshots", "stream_type", "stream_id", "version", "state"} {
+	for _, want := range []string{
+		"CREATE TABLE", "snapshots", "stream_type", "stream_id",
+		"version", "state", "state_shape",
+	} {
 		if !strings.Contains(schema, want) {
 			t.Errorf("schema missing %q", want)
 		}

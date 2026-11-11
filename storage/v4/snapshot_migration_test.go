@@ -84,6 +84,12 @@ func TestMigrateSnapshotColumnsToStream_SQLite(t *testing.T) {
 		t.Fatalf("re-migrate (idempotency): %v", err)
 	}
 
+	// The store now selects state_shape; a boot order that renamed the
+	// legacy columns also adds the stamp column (SQLiteInitSchema runs both).
+	if err := MigrateSnapshotStateShapeColumn(ctx, db, sqlpkg.SQLiteDialect{}); err != nil {
+		t.Fatalf("migrate state_shape: %v", err)
+	}
+
 	store, err := NewSQLiteSnapshotStore(db)
 	if err != nil {
 		t.Fatalf("new snapshot store: %v", err)
