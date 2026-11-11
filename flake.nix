@@ -1041,7 +1041,7 @@
 
               src = mkCqrsLintSource pkgs;
 
-              vendorHash = "sha256-jxGg7XaLM0TYgmqzB/5XC84PDdkkpOeWHWogbVL5zJY=";
+              vendorHash = "sha256-144yHjI2pE6zybH4rTNhOBTUG1iHKh9/ag9j6dYCvUU=";
               proxyVendor = true;
 
               subPackages = [ "." ];
