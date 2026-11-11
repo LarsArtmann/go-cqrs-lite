@@ -2207,16 +2207,16 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
 > "system is a category error for a library, metaengine wrong-shaped for
 > GraphRAG"). Feedback #3 (fail-closed Save) and #5 (doc.go stamps) are FIXED
 > and released in the 2026-09-21 v4.9.0 wave; #2 → Turso §, #4 → v5 §,
-> #6 → metaengine rows, #1/#7/#8 → ROADMAP. Source:
+> #6 → metaengine rows, #1/#7/#8 → ROADMAP. Source: **Consumer ack 2026-11-11:** feedback #2 shipped since (fail-closed grouped matviews, CHANGELOG `ErrGroupedViewBugRefused` + `WithKnownGroupedViewBug`, pinned by `TestTursoMatView_GroupedSpecRefusedWithoutOptIn`); the consumer re-ran its decision matrix on system v4.18/metaengine v4.23 and HELD its verdict (go-graph-rag `docs/research/2026-11-10_metaengine-system-reevaluation.md`, its issue #2 closed).
 > [`docs/feedback/reviewed/archived/2026-09-15_go-graph-rag_metaengine-system-evaluation-feedback.md`](docs/feedback/reviewed/archived/2026-09-15_go-graph-rag_metaengine-system-evaluation-feedback.md)
 
-- [ ] [RULED 2026-10-08] **Update the go-graph-rag consumer** — **COMMS
+- [x] [RULED 2026-10-08] **Update the go-graph-rag consumer** — **COMMS
       APPROVED** (blanket authorization; github-voice + the shipped-fix receipts):
       tell the consumer feedback #3 + #5 are fixed and released
       (`system/v4.9.0` `ErrRacySaveRefused`/`WithRacySave`/
       `ErrEventSaveNotAtomic` + the 17 `# Experimental` doc.go stamps); invite a
       re-test on v4.9.0. Executes in the T25 filings/comms pack. — source:
-      23-24 followups §f5/§f40 _(Effort: S)_
+      23-24 followups §f5/§f40 _(Effort: S)_ -> **DONE 2026-11-11:** the consumer re-tested on its own initiative (re-evaluation artifact + closed issue, linked in the section header above): verdict held, receipts recorded; nothing further to send.
 - [ ] [RULED 2026-10-08] **goal-shaped-app postgres e2e CI leg** — **RULED:
       ephemeral PG in the examples CI job** (the `#integration-pg`
       ephemeral-server pattern, no services container needed; billing-gated
