@@ -73,8 +73,13 @@ fallbacks — keep both when adding pages.
   then EOL. Offsetting: v5 is one product — enterprise features fold in,
   including routing standalone custom docs pages (verified: v5 community
   builds route them at `/docs/custom/<slug>/`).
-  **BUMPED 2026-10-15: the pin is `^5.1.0`** (spike-verified end-to-end;
-  procedure + evidence in the pin-bump bullet below).
+  **BUMPED 2026-10-15 to `^5.1.0` (spike-verified end-to-end; procedure +
+  evidence in the pin-bump bullet below); BUMPED 2026-11-11 to `^5.9.1`**
+  (minor-bump within the caret's 5.x line: the invoices committed tree
+  already pins `^5.9.1` and was render-verified there 2026-11-10 — 316
+  pages, link-check green; the ec-fixture render gate was NOT re-run for
+  this minor bump due to host IO pressure, re-run it on the next MAJOR
+  bump or the next calm-IO window).
 - **First-party v5 consumer exists: eventcatalog-hub (2026-10-15).** The hub
   runs core `^5.0.1` and builds our v4-format exported trees under its
   link-validation-as-CI-gate — empirical evidence that v5 parses our emitted

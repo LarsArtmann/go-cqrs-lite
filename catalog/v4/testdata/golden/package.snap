@@ -2,7 +2,7 @@
 [TestGolden_EventCatalog_PackageJSON - 1]
 {
   "dependencies": {
-    "@eventcatalog/core": "^5.1.0"
+    "@eventcatalog/core": "^5.9.1"
   },
   "description": "E-Commerce event catalog",
   "name": "e-commerce",

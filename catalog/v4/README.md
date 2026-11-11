@@ -367,7 +367,7 @@ err := ec.Export(catalog)
 
 Writes MDX files with YAML frontmatter, auto-deriving producers/consumers from message directions.
 Generates `llms.txt` and `schemas.txt` for AI consumption. The generated `package.json`
-pins `@eventcatalog/core` to a known-good version (`^5.1.0` — BSL 1.1, Free Use for
+pins `@eventcatalog/core` to a known-good version (`^5.9.1` — BSL 1.1, Free Use for
 LarsArtmann confirmed; see `AGENTS.md`) so `npm install` in the
 output directory is reproducible; `eventcatalog.config.js` includes a stable `cId`
 derived from the catalog title.

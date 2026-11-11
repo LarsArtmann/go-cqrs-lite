@@ -18,7 +18,7 @@ const (
 	// jumps majors, so a major bump stays a deliberate, verified change: run
 	// the render gate against the new major BEFORE landing (procedure in
 	// catalog/AGENTS.md).
-	eventCatalogCoreVersion = "^5.1.0"
+	eventCatalogCoreVersion = "^5.9.1"
 	indexFile               = "index.mdx"
 	schemaPathKey           = "schemas/schema.json"
 )
