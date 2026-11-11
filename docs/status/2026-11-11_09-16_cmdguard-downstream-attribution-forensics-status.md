@@ -177,3 +177,44 @@ Per Lars's instruction this is scoped to THIS session's run, not a codebase-wide
 ---
 
 *Report generated per status-report skill (`.md` default per docs/decisions/2026-10-27). Not committed by hand — auto-commit daemon absorbs it (harness rule: no commit without explicit request).*
+
+---
+
+## Addendum (2026-11-11 ~12:40) — ruling executed: fix landed in project-dependency-graph
+
+Lars ruled: *"who-uses is a fucking ~/projects/project-dependency-graph/ responsibility"* — the
+attribution behavior is the tool's to own, not a go-cqrs-lite documentation problem. The fix was
+implemented in project-dependency-graph the same session (Q1/Q2 resolved by the ruling):
+
+**Semantics shipped:** go.work aggregates retain per-member requires (`types.Module.MemberDeps`,
+new field, built in `discovery/workspace.go`). `graph.ConsumersFromModules` folds a member
+consumer onto a target only when that member's OWN dependency closure reaches the target
+(proven fold); when the target IS the aggregate, folds stay identity-based (importing any member
+consumes that repo — the `cqrs-htmx/setup` visibility case). Members without provenance do not
+fold; zero-dep members are stored so "proven empty" ≠ "no provenance" (the record-module trap:
+a zero-dep member missing from the index pushed its keys through the aggregate-union fallback and
+resurrected the bleed mid-implementation — caught by tracing, covered by the new tests).
+
+**Verified results (A/B against a binary built at the pre-fix commit `6b80811f`):**
+
+| Query | Before | After | Removed |
+| ----- | ------ | ----- | ------- |
+| `who-uses cmdguard` | 77 consumers (45 phantom `via go-cqrs-lite/*`) | 34 (32 direct + 2 true indirect) | all 45 fabrications |
+| `who-uses cqrs-htmx` | 26 | 26 (unchanged — intended folds intact) | 0 |
+| `who-uses go-cqrs-lite` (submodule expansion) | inflated per-module counts | −1 phantom per library module (dnsblockd-style rows); `cmd/cqrs-lint` 58 → 2 real | fabrications |
+| `who-uses go-appkit` | 34 | 33; `via` now names the provable member (`setup`), not an arbitrary fold edge (`identity-model`) | 1 |
+
+The 2 surviving cmdguard indirect rows are module-graph-true, hand-verified against disk:
+`bank-sync → go-credentials-store` (gcs go.mod:8 requires cmdguard for its in-module CLI) and
+`branching-flow → samber-linter` (samber-linter go.mod:8 = cmdguard CLI). `why KeyHolderAI->cmdguard`
+now correctly answers "no path". All 6 modules build + race-test green; graph/discovery/types lint
+clean (2 pre-existing `wrapcheck` findings in `dep.go`/`focus.go` — untouched, not this change).
+
+**Residual notes:** (1) heuristic commit `05e5b1ae` swept a FOREIGN flake.nix edit (cmdguard input
+pin tag→SHA `56fd69b4`, likely a parallel session) together with this session's source changes —
+flagged for the maintainer; no history rewritten because of the detected concurrency.
+(2) `project-dependency-graph/go.work` carries stale sibling `use` entries
+(`../go-cqrs-lite/catalog` — pre-restructure paths) that flood discovery with skip warnings;
+harmless noise, cleanup candidate. (3) Full change record: CHANGELOG `[Unreleased] Fixed` +
+README + AGENTS.md in project-dependency-graph; 4 new regression tests in
+`graph/consumers_from_modules_test.go` pin the incident shape.
