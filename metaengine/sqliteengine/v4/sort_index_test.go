@@ -64,7 +64,10 @@ func TestWithSortIndex_CreatesExpressionIndex(t *testing.T) {
 	}
 
 	if strings.Contains(sqlText, "WHERE") {
-		t.Errorf("the index must NOT be partial — a json_valid WHERE is unusable for scans that do not imply it: %s", sqlText)
+		t.Errorf(
+			"the index must NOT be partial — a json_valid WHERE is unusable for scans that do not imply it: %s",
+			sqlText,
+		)
 	}
 
 	if len(e.sortIndexes) != 1 {

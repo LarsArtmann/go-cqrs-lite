@@ -27,7 +27,7 @@ import (
 // ALTER TABLE ... RENAME COLUMN is supported by PostgreSQL, SQLite (>= 3.25),
 // DuckDB, MySQL (>= 8.0), and MariaDB (>= 10.5).
 func MigrateSnapshotColumnsToStream(ctx context.Context, db *sql.DB, d sqlpkg.Dialect) error {
-	columns, err := probeTableColumns(ctx, db, d, sqlpkg.TableSnapshots)
+	columns, err := probeSnapshotTableColumns(ctx, db, d)
 	if err != nil {
 		return errorfamily.WrapInfrastructure(
 			err,
@@ -89,7 +89,7 @@ func MigrateSnapshotColumnsToStream(ctx context.Context, db *sql.DB, d sqlpkg.Di
 // PostgreSQL, SQLite, DuckDB, and MySQL (the MySQL column is VARCHAR(255)
 // because MySQL forbids plain defaults on TEXT columns).
 func MigrateSnapshotStateShapeColumn(ctx context.Context, db *sql.DB, d sqlpkg.Dialect) error {
-	columns, err := probeTableColumns(ctx, db, d, sqlpkg.TableSnapshots)
+	columns, err := probeSnapshotTableColumns(ctx, db, d)
 	if err != nil {
 		return errorfamily.WrapInfrastructure(
 			err,
@@ -108,7 +108,7 @@ func MigrateSnapshotStateShapeColumn(ctx context.Context, db *sql.DB, d sqlpkg.D
 		// Concurrent InitSchema: another runner may have added the column
 		// between our probe and ALTER. Re-probe — a present column means
 		// success regardless of who wrote it.
-		if columns, probeErr := probeTableColumns(ctx, db, d, sqlpkg.TableSnapshots); probeErr == nil &&
+		if columns, probeErr := probeSnapshotTableColumns(ctx, db, d); probeErr == nil &&
 			slices.Contains(columns, "state_shape") {
 			return nil
 		}
@@ -134,22 +134,19 @@ func snapshotStateShapeColumnDef(d sqlpkg.Dialect) string {
 	return "TEXT NOT NULL DEFAULT ''"
 }
 
-// probeTableColumns lists the column names of table using the introspection
-// the dialect supports: PRAGMA table_info on SQLite-family servers,
-// information_schema.columns everywhere else.
-func probeTableColumns(
-	ctx context.Context,
-	db *sql.DB,
-	d sqlpkg.Dialect,
-	table string,
-) ([]string, error) {
+// probeSnapshotTableColumns lists the snapshots table's column names using
+// the introspection the dialect supports: PRAGMA table_info on
+// SQLite-family servers, information_schema.columns everywhere else.
+// Every snapshot migration probes the one table — the name is fixed here,
+// not threaded as a constant parameter.
+func probeSnapshotTableColumns(ctx context.Context, db *sql.DB, d sqlpkg.Dialect) ([]string, error) {
 	if _, ok := d.(sqlpkg.SQLiteDialect); ok {
-		return probeSQLiteColumns(ctx, db, table)
+		return probeSQLiteColumns(ctx, db, sqlpkg.TableSnapshots)
 	}
 
 	_, isMySQL := d.(sqlpkg.MySQLDialect)
 
-	return probeInformationSchemaColumns(ctx, db, d, table, isMySQL)
+	return probeInformationSchemaColumns(ctx, db, d, sqlpkg.TableSnapshots, isMySQL)
 }
 
 // rejectMixedSnapshotColumns handles a probe that found BOTH spellings of
@@ -185,7 +182,7 @@ func snapshotRenameSettled(ctx context.Context, db *sql.DB, d sqlpkg.Dialect) bo
 	deadline := time.Now().Add(waitTotal)
 
 	for {
-		columns, err := probeTableColumns(ctx, db, d, sqlpkg.TableSnapshots)
+		columns, err := probeSnapshotTableColumns(ctx, db, d)
 		if err == nil &&
 			!slices.Contains(
 				columns,

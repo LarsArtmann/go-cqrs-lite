@@ -12,6 +12,7 @@ import (
 	mysql "github.com/go-sql-driver/mysql"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/stdlib"
+
 	"github.com/larsartmann/go-cqrs-lite/metaengine/badgerengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/bboltengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4"
