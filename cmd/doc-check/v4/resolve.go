@@ -335,7 +335,7 @@ func (r *resolver) fullDir(imp string) string {
 	full := filepath.Join(r.repoRoot, dir)
 
 	if _, err := os.Stat(full); os.IsNotExist(err) {
-		if stripped := strings.TrimSuffix(dir, "/v4"); stripped != dir {
+		if stripped, found := strings.CutSuffix(dir, "/v4"); found {
 			full = filepath.Join(r.repoRoot, stripped)
 		}
 	}
