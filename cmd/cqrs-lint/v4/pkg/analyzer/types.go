@@ -27,8 +27,8 @@ type SchemaLadder struct {
 	OpVersions map[int]EventEmission // source version → op call site
 }
 
-// CommandMetadata describes a command type found in the analyzed code.
-type CommandMetadata struct {
+// CommandInfo describes a command type found in the analyzed code.
+type CommandInfo struct {
 	Name             string // struct type name
 	Package          string // import path
 	File             string // file path

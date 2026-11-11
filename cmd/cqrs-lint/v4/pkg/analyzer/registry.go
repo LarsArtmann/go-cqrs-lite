@@ -5,7 +5,7 @@ import "go/ast"
 // CQRSRegistry holds the cross-referenced analysis of all CQRS constructs
 // found in the analyzed project.
 type CQRSRegistry struct {
-	Commands    []CommandMetadata
+	Commands    []CommandInfo
 	Events      []EventInfo
 	Folds       []FoldInfo
 	Deciders    []DeciderInfo
@@ -192,7 +192,7 @@ type pendingEventTypeRef struct {
 }
 
 // CommandByName finds a command by struct type name.
-func (r *CQRSRegistry) CommandByName(name string) *CommandMetadata {
+func (r *CQRSRegistry) CommandByName(name string) *CommandInfo {
 	for i := range r.Commands {
 		if r.Commands[i].Name == name {
 			return &r.Commands[i]

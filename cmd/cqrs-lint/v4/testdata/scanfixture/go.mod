@@ -18,9 +18,6 @@ require (
 
 replace github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ../../../../../metaengine/v4
 
-
 replace github.com/larsartmann/go-cqrs-lite/dedup/v4 => ../../../../../dedup/v4
 
-
 replace github.com/larsartmann/go-cqrs-lite/record/v4 => ../../../../../record/v4
-

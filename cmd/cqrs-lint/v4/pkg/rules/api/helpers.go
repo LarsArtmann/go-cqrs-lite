@@ -7,7 +7,7 @@ import (
 )
 
 // hasMethod checks if a command type has a method with the given name.
-func hasMethod(ctx *analyzer.AnalysisContext, cmd analyzer.CommandMetadata, methodName string) bool {
+func hasMethod(ctx *analyzer.AnalysisContext, cmd analyzer.CommandInfo, methodName string) bool {
 	for _, gf := range ctx.GoFiles {
 		if gf.Path != cmd.File || gf.IsTest {
 			continue

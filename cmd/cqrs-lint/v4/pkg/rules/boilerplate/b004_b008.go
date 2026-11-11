@@ -25,7 +25,7 @@ func NewB004Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 			for _, cmd := range ctx.Registry.Commands {
 				// Embeds count toward the size heuristic (pre-split behavior:
-				// CommandMetadata.Fields held both names and embed exprs — T20-5 kept
+				// CommandInfo.Fields held both names and embed exprs — T20-5 kept
 				// the count semantics, only the access changed).
 				fieldCount := len(cmd.Fields) + len(cmd.Embeds)
 				if fieldCount < 3 {

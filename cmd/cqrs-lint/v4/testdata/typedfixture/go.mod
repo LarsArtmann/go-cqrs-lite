@@ -21,4 +21,3 @@ require (
 )
 
 replace github.com/larsartmann/go-cqrs-lite/schema/v4 => ../../../../../schema/v4
-
