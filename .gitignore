@@ -197,3 +197,5 @@ example/goal-shaped-app/goal-shaped-app
 example/scheduler-otel-status/scheduler-otel-status
 catalog/cmd/ec-fixture/ec-fixture
 catalog/cmd/catalog-export/catalog-export
+/standard-topology
+example/standard-topology/standard-topology
