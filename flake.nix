@@ -2286,7 +2286,7 @@
                   echo "=== Error Taxonomy Tests ===" && nix run .#check-error-taxonomy-tests && \
                   echo "=== Check Schema Compat ===" && nix run .#check-schema-compat -- --self-test && \
                   echo "=== Check md-go ===" && nix run .#check-md-go && \
-                  echo "=== Doc Check ===" && (cd cmd/doc-check/v4 && GOWORK=off ${goPkg}/bin/go run . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md ../../README.md ../../*/README.md ../../*/*/README.md ../../*/*/*/README.md ../../TODO_LIST.md ../../ROADMAP.md ../../FEATURES.md ../../CONTRIBUTING.md ../../docs/DOMAIN_LANGUAGE.md ../../docs/METAENGINE_DOMAIN_LANGUAGE.md) && \
+                  echo "=== Doc Check ===" && (cd cmd/doc-check/v4 && GOWORK=off ${goPkg}/bin/go run . ../../../SKILL.md ../../../.agents/skills/go-cqrs-lite/references/*.md ../../../AGENTS.md ../../../README.md ../../../*/README.md ../../../*/*/README.md ../../../*/*/*/README.md ../../../TODO_LIST.md ../../../ROADMAP.md ../../../FEATURES.md ../../../CONTRIBUTING.md ../../../docs/DOMAIN_LANGUAGE.md ../../../docs/METAENGINE_DOMAIN_LANGUAGE.md) && \
                   echo "✅ All verification checks passed"
                 '';
 
@@ -2297,19 +2297,19 @@
             doc-check = mkApp "doc-check" [ goPkg pkgs.bash ] ''
               cd cmd/doc-check/v4
               GOWORK=off ${goPkg}/bin/go run . \
-                ../../SKILL.md \
-                ../../.agents/skills/go-cqrs-lite/references/*.md \
-                ../../AGENTS.md \
-                ../../README.md \
-                ../../*/README.md \
-                ../../*/*/README.md \
-                ../../*/*/*/README.md \
-                ../../TODO_LIST.md \
-                ../../ROADMAP.md \
-                ../../FEATURES.md \
-                ../../CONTRIBUTING.md \
-                ../../docs/DOMAIN_LANGUAGE.md \
-                ../../docs/METAENGINE_DOMAIN_LANGUAGE.md
+                ../../../SKILL.md \
+                ../../../.agents/skills/go-cqrs-lite/references/*.md \
+                ../../../AGENTS.md \
+                ../../../README.md \
+                ../../../*/README.md \
+                ../../../*/*/README.md \
+                ../../../*/*/*/README.md \
+                ../../../TODO_LIST.md \
+                ../../../ROADMAP.md \
+                ../../../FEATURES.md \
+                ../../../CONTRIBUTING.md \
+                ../../../docs/DOMAIN_LANGUAGE.md \
+                ../../../docs/METAENGINE_DOMAIN_LANGUAGE.md
             '';
 
             # verify-fast: same as verify but passes -short to skip soak tests

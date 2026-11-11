@@ -48,7 +48,7 @@ Consumers import what they need and compose their own stack. Not a framework —
 **Contributing to the skill:** edit the `.md` files under `.agents/skills/go-cqrs-lite/`, then verify:
 
 ```bash
-cd cmd/doc-check && GOWORK=off go run . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md
+cd cmd/doc-check/v4 && GOWORK=off go run . ../../../SKILL.md ../../../.agents/skills/go-cqrs-lite/references/*.md ../../../AGENTS.md
 ```
 
 ## Quick Reference
@@ -101,7 +101,7 @@ cd cmd/doc-check && GOWORK=off go run . ../../SKILL.md ../../.agents/skills/go-c
 | Versions gate | `bash scripts/check-versions-manifest.sh [--check|--update]` (versions.json + the README module→tag manifest vs local tags; `--check` fails on drift — kept fresh by a nightly gate                                                                                                                                                                                                                                                                                                                                                                                       |
 | Rel. tests    | `nix run .#check-release-scripts` (tag-release.sh + batch-release.sh smoke tests vs fixture repos; also a CI leg)                                                                                                                                                                                                                                                                                                                       |
 | README gates  | `bash scripts/check-readme-links.sh` + `bash scripts/check-readme-deprecated.sh` (link integrity + deprecated-symbol honesty; nightly)                                                                                                                                                                                                                                                                                                  |
-| Recipe gate   | `cd cmd/doc-check && GOWORK=off go test -run TestRecipes .` (recipes.md fenced-Go blocks compile-verified; 108/108 classified, coverage ratchet)                                                                                                                                                                                                                                                                                          |
+| Recipe gate   | `cd cmd/doc-check/v4 && GOWORK=off go test -run TestRecipes .` (recipes.md fenced-Go blocks compile-verified; 108/108 classified, coverage ratchet)                                                                                                                                                                                                                                                                                          |
 | CSP check     | `nix run .#check-csp` (docserver CSP policy, browser-validated)                                                                                                                                                                                                                                                                                                                                                                         |
 | EventCat      | `nix run .#check-eventcatalog` (EventCatalog export render-validation)                                                                                                                                                                                                                                                                                                                                                                  |
 | ArchRef gate  | `nix run .#check-architecture-reference` (catalog/architecture HTML export: self-containment + anchor integrity + section coverage + the partner slice's REDACTION contract — the excluded hostile name appears nowhere while other out-of-scope names still degrade; `--self-test` fault-injects 4 corruptions)                                                                                                                                                                                                |
@@ -233,7 +233,7 @@ Split by topic; edit the topic file, never inline here:
 1. Make the code change
 2. Immediately: `cd cmd/api-stability && GOWORK=off go run . --update` (regenerate golden)
 3. Update any affected skill references (`.agents/skills/go-cqrs-lite/references/*.md`)
-4. Run `cd cmd/doc-check && GOWORK=off go run . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md`
+4. Run `cd cmd/doc-check/v4 && GOWORK=off go run . ../../../SKILL.md ../../../.agents/skills/go-cqrs-lite/references/*.md ../../../AGENTS.md`
 5. Run `nix run .#verify` (or at minimum `nix run .#verify-fast`)
 
 ### Deprecate a Module (or Symbol Toward v5)
