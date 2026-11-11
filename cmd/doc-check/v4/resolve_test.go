@@ -106,12 +106,14 @@ func TestParsePackageExports_ReturnsClause(t *testing.T) {
 	}
 }
 
-func TestImportDir_StripsVersionSuffixes(t *testing.T) {
+func TestImportDir_KeepsVersionSuffixInDir(t *testing.T) {
 	t.Parallel()
 
 	cases := []struct{ in, want string }{
-		{repoImportPrefix + "event/v4", "event"},
-		{repoImportPrefix + "scheduling/sqlstore/v4", "scheduling/sqlstore"},
+		{repoImportPrefix + "event/v4", "event/v4"},
+		{repoImportPrefix + "scheduling/sqlstore/v4", "scheduling/sqlstore/v4"},
+		{repoImportPrefix + "core/v5/event", "core/v5/event"},
+		{repoImportPrefix + "event/v4/eventtest", "event/v4/eventtest"},
 		{repoImportPrefix + "v3", "."},
 	}
 
@@ -119,6 +121,47 @@ func TestImportDir_StripsVersionSuffixes(t *testing.T) {
 		if got := importDir(tc.in); got != tc.want {
 			t.Errorf("importDir(%q) = %q, want %q", tc.in, got, tc.want)
 		}
+	}
+}
+
+// TestFullDir_ResolvesLiveTreeLayout is the live-tree regression pin for the
+// 2026-11-10 module-dir move (0e4fbb3d2): modules live at event/v4/, and the
+// resolver must find their exports there. The pre-move importDir trimmed the
+// /v4 suffix and pointed at versionless directories that no longer hold Go
+// files — every doc reference then failed as "not found" while the
+// string-pure importDir test kept passing.
+func TestFullDir_ResolvesLiveTreeLayout(t *testing.T) {
+	t.Parallel()
+
+	repo := findRepoRootFromPath(".")
+	if repo == "" {
+		t.Fatal("could not locate the repo root from the test's working directory")
+	}
+
+	res := newResolver(repo)
+
+	for _, imp := range []string{
+		repoImportPrefix + "event/v4",
+		repoImportPrefix + "system/v4",
+		repoImportPrefix + "metaengine/sqliteengine/v4",
+	} {
+		exports, clause, warns := parsePackageExports(res.fullDir(imp))
+		if len(exports) == 0 {
+			t.Errorf("%s: no exports resolved under %s (warnings: %v)", imp, res.fullDir(imp), warns)
+		}
+
+		if got := filepath.Base(res.fullDir(imp)); got == "v4" && clause == "" {
+			t.Errorf("%s: resolved to a version directory with no package", imp)
+		}
+	}
+
+	if res.fullDir(repoImportPrefix+"event/v4") == "" {
+		t.Fatal("fullDir returned empty")
+	}
+
+	exports, _, _ := parsePackageExports(res.fullDir(repoImportPrefix + "event/v4"))
+	if !exports["New"] {
+		t.Error("event.New not found under the live event/v4 tree — the resolver points at the wrong directory")
 	}
 }
 

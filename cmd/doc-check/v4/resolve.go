@@ -86,12 +86,16 @@ func (r *resolver) resolveVia(b block, ref ref) (bool, bool) {
 }
 
 // blockPaths returns the block's import paths whose package name matches the
-// reference alias (package clause or directory base name).
+// reference alias (package clause or directory base name). The base fallback
+// trims a trailing version segment: the canonical directories are event/v4,
+// so filepath.Base alone would yield "v4", never the package name.
 func (r *resolver) blockPaths(b block, alias string) []string {
 	var out []string
 
 	for _, imp := range b.imports {
-		if r.clauses[imp] == alias || filepath.Base(importDir(imp)) == alias {
+		dir := strings.TrimSuffix(importDir(imp), "/v4")
+
+		if r.clauses[imp] == alias || filepath.Base(dir) == alias {
 			out = append(out, imp)
 		}
 	}
@@ -303,26 +307,30 @@ func dedupe(items []string) []string {
 	return out
 }
 
-// importDir maps an import path to its repo-relative directory.
+// importDir maps an import path to its repo-relative directory. The version
+// suffix STAYS in the directory: since the 2026-11-10 module-dir move
+// (0e4fbb3d2) the trees live at event/v4/, cmd/cqrs-lint/v4/, etc., matching
+// their go.mod module paths. [resolver.fullDir] still falls back to the
+// versionless legacy layout (event/) for pre-move checkouts.
 func importDir(imp string) string {
 	dir := strings.TrimPrefix(imp, repoImportPrefix)
-	dir = strings.TrimSuffix(dir, "/v4")
 
-	if dir == "v3" {
+	if dir == "v3" || dir == "v4" {
 		dir = "."
 	}
 
 	return dir
 }
 
-// fullDir resolves an import path to a filesystem directory, applying the
-// historical /v4/ in-path fallback when the canonical directory is absent.
+// fullDir resolves an import path to a filesystem directory, falling back
+// to the pre-2026-11-10 versionless layout (event/ instead of event/v4/)
+// when the canonical directory is absent.
 func (r *resolver) fullDir(imp string) string {
 	dir := importDir(imp)
 	full := filepath.Join(r.repoRoot, dir)
 
 	if _, err := os.Stat(full); os.IsNotExist(err) {
-		if stripped := strings.Replace(dir, "/v4/", "/", 1); stripped != dir {
+		if stripped := strings.TrimSuffix(dir, "/v4"); stripped != dir {
 			full = filepath.Join(r.repoRoot, stripped)
 		}
 	}
