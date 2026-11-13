@@ -55,7 +55,7 @@ instances:
 		t.Fatalf("system.New with cell_versioning: %v", err)
 	}
 
-	defer sys.Close() //nolint:errcheck // test teardown
+	defer sys.Close()
 }
 
 // A malformed cell_versioning must fail construction with a clear error
