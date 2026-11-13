@@ -945,17 +945,18 @@
             LOC) being assembled while 18 legacy fleet consumers and ~20k LOC of
             deprecated-but-shipped modules (stack, idempotency stores, kv views) still
             ride the v4 train. Meanwhile the quality gate is red at HEAD with 255
-            error-severity findings — 235 of them file-size violations concentrated in
-            <code>metaengine</code>'s 153k-LOC module tree.
+            error-severity findings — 235 of them file-size violations scattered
+            repo-wide against the 350-line ratchet (one finding per file, test files
+            heavily represented).
           </p>
           <div class="callout callout-amber">
             <strong>The bottom line</strong>
             Ship-grade core, honest docs, world-class testing — the two real risks are
             (1) the unfinished v4&rarr;v5 dual-train carrying ~20k LOC of deprecated
-            surface plus 20 unmigrated fleet consumers, and (2) a tripped quality gate
-            whose 235 file-size findings mark <code>metaengine</code> as the place where
-            the architecture is under the most pressure. Land the v5 cut, migrate the
-            legacy twenty, and split the oversized metaengine files; the score goes to
+            surface plus 18 unmigrated fleet directories, and (2) a tripped quality
+            gate whose 235 file-size findings are scattered across the repo — the
+            ratchet is broadly tripped, not localized. Land the v5 cut, migrate the
+            legacy twenty, and split the oversized files; the score goes to
             ~85 without inventing anything new.
           </div>
         </section>
@@ -1058,9 +1059,10 @@
               <div class="text">
                 <strong>Docs that tell the truth</strong>
                 <span
-                  >An independent claims-audit (docs/quality/2026-11-12_claim-verification.md)
-                  found 0 dead API references in 37 sampled claims and 100% valid
-                  internal doc links — doc claims are re-verified against code, not
+                  >doc-check verifies every import path and qualified symbol named in
+                  Markdown (zero-warning policy), check-md-go forces every live Go
+                  fence to parse, and README gates enforce link integrity and
+                  deprecated-symbol honesty — doc claims are machine-verified, not
                   aspirational.</span
                 >
               </div>
@@ -1087,10 +1089,12 @@
               cqrs-lint (7), docs-gates (5), 8 more across 6 further tools
             </div>
             <p>
-              The findings gate fails with 255 findings at error severity. 235 are
-              file-size violations, concentrated in <code>metaengine</code> (153,696
-              LOC across 18 sub-go.mod files — sqliteengine alone 53k, graphengine
-              34k). Seven cqrs-lint violations mean the library's own 217-rule
+              The findings gate fails with 255 findings at error severity. 235
+              are file-size violations — one per oversized file, scattered across
+              the whole repo (watermill, catalog, cmd/cqrs-lint, core/v5,
+              signing, systemscenario, metaengine among them) against the repo's
+              350-line ratchet, with test files heavily represented. Seven
+              cqrs-lint violations mean the library's own 217-rule
               architecture linter flags its own code. docs-gates reports the
               "annotate" gate red — old status reports await annotation. None of
               this breaks the 7,340 passing tests; all of it erodes the gate's
@@ -1098,10 +1102,11 @@
             </p>
             <div class="callout callout-teal">
               <strong>Fix: triage by class, not by count</strong>
-              Split the 20 largest metaengine files (target &le;800 lines each),
-              run <code>docs-gates annotate</code> to clear the annotation
-              backlog, and fix-or-waive the seven cqrs-lint findings. The gate
-              going green again is a one-session job per class.
+              Split the 235 oversized files down toward the 350-line ratchet
+              (test files included), run <code>docs-gates annotate</code> to clear
+              the annotation backlog, and fix-or-waive the seven cqrs-lint
+              findings. The gate going green again is a one-session job per
+              class.
             </div>
           </div>
 
@@ -1488,7 +1493,7 @@ sys, err := system.<span class="tok-function">New</span>(ctx,
                 <td class="yes">Low — those modules survive</td>
               </tr>
               <tr>
-                <td>10 go.mods incl. AudibleSync, DiscordSync, games, github-local-sync</td>
+                <td>10 go.mods incl. InboxClean, browser-history, games, github-local-sync</td>
                 <td>Require removed idempotency/v4 v4.4.0</td>
                 <td class="no">Latent breakage on clean rebuild</td>
               </tr>
@@ -1575,7 +1580,7 @@ sys, err := system.<span class="tok-function">New</span>(ctx,
               <tr><td>2</td><td>Metaengine planner + engines</td><td class="no">Mixed</td><td>153k LOC, cost-based planner; per-engine modules experimental</td></tr>
               <tr><td>3</td><td>Event-sourcing core (event/decider/command/query)</td><td class="yes">Strong</td><td>Mature since ADR-0001; foundation of every consumer</td></tr>
               <tr><td>4</td><td>Read models &amp; projections</td><td class="yes">Strong</td><td>projectionhost, OnRecord folds, planned tables, matviews</td></tr>
-              <tr><td>5</td><td>Graph ADT</td><td class="no">Mixed</td><td>graphengine 34k LOC + metaengine graphadapter; thin direct adoption (0 direct graph/v4 consumers)</td></tr>
+              <tr><td>5</td><td>Graph ADT</td><td class="no">Mixed</td><td>graph.GraphDriver + metaengine graphadapter (pgengine recursive CTEs); thin direct adoption (0 direct graph/v4 consumers)</td></tr>
               <tr><td>6</td><td>Schema evolution</td><td class="yes">Strong</td><td>schema/v4 upcasters + fingerprinting + compat gate</td></tr>
               <tr><td>7</td><td>Catalog &amp; docs generation</td><td class="yes">Strong</td><td>43k LOC, 23 fleet consumers, HTML reference ADR-0159/0160</td></tr>
               <tr><td>8</td><td>Testing stack</td><td class="yes">Strong</td><td>55% test LOC, 7,340 test funcs, systemscenario ADR-0153</td></tr>
@@ -1631,7 +1636,7 @@ buildflow -s file-size-check --format finding    <span class="tok-comment"># 235
 
 <span class="tok-comment"># Fleet census</span>
 rg -l 'larsartmann/go-cqrs-lite' --glob 'go.mod' /home/lars/projects/ | grep -v go-cqrs-lite/ \
-  | cut -d/ -f5 | sort -u | wc -l                <span class="tok-comment"># referencing dirs (dedup mirrors manually)</span>
+  | cut -d/ -f5 | sort -u | wc -l                <span class="tok-comment"># 60 raw dirs; minus fixtures/testdata = 58; minus mirrors = 51 projects</span>
 rg -l 'go-cqrs-lite/idempotency/v4 ' --glob 'go.mod' /home/lars/projects/ | grep -v go-cqrs-lite/ | wc -l  <span class="tok-comment"># 10 stale requires</span></code></pre>
 
           <h2><span class="num">08</span>Appendix C — Method, series &amp; supersession</h2>
