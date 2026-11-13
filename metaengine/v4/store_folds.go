@@ -6,8 +6,6 @@ package metaengine
 // replays rebuild the true temporal order.
 
 import (
-	"os"
-	"runtime/debug"
 	"context"
 	"errors"
 	"fmt"
@@ -46,9 +44,6 @@ func (s *Store) applyFold(
 
 	defer func() {
 		if r := recover(); r != nil {
-			if os.Getenv("TOUCHBASE_DEBUG_STACK") != "" {
-				fmt.Fprintf(os.Stderr, "FOLD PANIC STACK: %v\n%s\n", r, debug.Stack())
-			}
 			// Folds signal structured failures by panicking with an error
 			// value (the fold signature has no error channel). Wrapping that
 			// error with %w keeps its chain, so downstream classification
