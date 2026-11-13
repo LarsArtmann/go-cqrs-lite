@@ -58,7 +58,7 @@ func TestCreateEngineFromDriver_CellVersioning(t *testing.T) {
 	if err != nil {
 		t.Fatalf("createEngineFromDriver: %v", err)
 	}
-	defer versioned.Close() //nolint:errcheck // test teardown
+	defer versioned.Close()
 
 	if !metaengine.EngineVersionsCells(versioned) {
 		t.Fatal("EngineVersionsCells = false, want the config to enable versioning")
@@ -71,7 +71,7 @@ func TestCreateEngineFromDriver_CellVersioning(t *testing.T) {
 	if err != nil {
 		t.Fatalf("createEngineFromDriver (plain): %v", err)
 	}
-	defer plain.Close() //nolint:errcheck // test teardown
+	defer plain.Close()
 
 	if metaengine.EngineVersionsCells(plain) {
 		t.Fatal("EngineVersionsCells(plain) = true, want nil config to leave versioning off")
