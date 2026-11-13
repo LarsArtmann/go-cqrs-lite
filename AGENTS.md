@@ -112,6 +112,10 @@ Multi-module Go workspace (`go.work`) with 104 `go.mod` files (incl. root; count
 
 Per-module isolation: `cd event && GOWORK=off go test ./... -count=1`
 
+## Deep-Dive Reports
+
+- **2026-11-13 library deep dive** (`docs/research/2026-11-13_go-cqrs-lite-deep-dive.html`, screenshot in `docs/assets/`): health **72/100 (high)** at HEAD `3946b7fe6` — strong core, testing, catalog/tooling; top risks are the unfinished v4→v5 dual-train (~20k LOC deprecated surface, 18 legacy fleet dirs of 55, 10 go.mods on the removed `idempotency/v4`) and a red gate (255 error findings, 235 file-size @ metaengine). Supersedes the 2026-07-23 ecosystem audit (58/100). Refresh triggers: v5 module cut, fleet census crossing 40 modern consumers, or +1,000 commits. `docs/research/` still has no index README (report Finding 5).
+
 ## Module Map
 
 Full table (modules, internal notes): [`docs/agents/module-map.md`](docs/agents/module-map.md). Consumer-facing lookup: [`references/modules.md`](.agents/skills/go-cqrs-lite/references/modules.md).
