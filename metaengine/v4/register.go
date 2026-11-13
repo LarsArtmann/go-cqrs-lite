@@ -26,6 +26,17 @@ func init() {
 			)
 		}
 
+		// ADR-0141 cell versioning: version chains are an in-memory
+		// capability, enabled through the versioning constructor (the
+		// retention policy trims the chain on write).
+		if cfg.CellVersioning != nil {
+			if err := cfg.CellVersioning.Validate(); err != nil {
+				return nil, fmt.Errorf("driver %q cell_versioning: %w", "memory", err)
+			}
+
+			return NewMemoryEngineWithVersioning(WithRetention(*cfg.CellVersioning)), nil
+		}
+
 		return NewMemoryEngine(), nil
 	})
 }

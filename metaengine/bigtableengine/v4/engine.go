@@ -70,6 +70,18 @@ func New(
 	project, instance, table string,
 	clientOpts ...option.ClientOption,
 ) (metaengine.Engine, error) {
+	return dial(ctx, project, instance, table, nil, clientOpts)
+}
+
+// dial is New's body parameterized over engine Options, so the driver
+// factory can translate DriverConfig.CellVersioning into the native GC
+// policy while sharing New's dialing and ownership wiring.
+func dial(
+	ctx context.Context,
+	project, instance, table string,
+	engineOpts []Option,
+	clientOpts []option.ClientOption,
+) (metaengine.Engine, error) {
 	admin, err := bigtable.NewAdminClient(ctx, project, instance, clientOpts...)
 	if err != nil {
 		return nil, fmt.Errorf("bigtableengine: admin client: %w", err)
@@ -82,7 +94,7 @@ func New(
 		return nil, fmt.Errorf("bigtableengine: data client: %w", err)
 	}
 
-	eng, err := newWithClients(ctx, admin, client, table)
+	eng, err := newWithClients(ctx, admin, client, table, engineOpts...)
 	if err != nil {
 		_ = admin.Close()
 		_ = client.Close()

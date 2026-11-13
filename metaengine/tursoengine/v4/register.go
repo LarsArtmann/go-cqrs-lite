@@ -157,9 +157,17 @@ func New(dsn string, opts ...Option) (metaengine.Engine, error) {
 
 	db.SetMaxOpenConns(1)
 
+	sqliteOpts := []sqliteengine.EngineOption{
+		sqliteengine.WithMaterializedViews(cfg.matViewSpecs),
+	}
+	if cfg.cellVersioning != nil {
+		sqliteOpts = append(sqliteOpts,
+			sqliteengine.WithCellVersioning(sqliteengine.WithRetention(*cfg.cellVersioning)))
+	}
+
 	eng, err := sqliteengine.NewSQLiteEngine(
 		db,
-		sqliteengine.WithMaterializedViews(cfg.matViewSpecs),
+		sqliteOpts...,
 	) //nolint:contextcheck,wrapcheck // takes *sql.DB
 	if err != nil {
 		_ = db.Close()
@@ -205,6 +213,16 @@ func init() {
 			}
 
 			opts := []Option{WithMaterializedViews(cfg.MaterializedViews)}
+
+			// ADR-0141 temporal cells ride the SQLite storage core, so the
+			// turso driver supports them like sqlite does.
+			if cfg.CellVersioning != nil {
+				if err := cfg.CellVersioning.Validate(); err != nil {
+					return nil, fmt.Errorf("driver %q cell_versioning: %w", "turso", err)
+				}
+
+				opts = append(opts, WithCellVersioning(*cfg.CellVersioning))
+			}
 
 			return New(cfg.DSN, opts...) //nolint:contextcheck // constructor doesn't take ctx
 		},

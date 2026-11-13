@@ -53,6 +53,18 @@ func WithMaterializedViews(specs []metaengine.MaterializedViewSpec) Option {
 	}
 }
 
+// WithCellVersioning enables BigTable-style versioned cells (ADR-0141) on
+// the engine's SQLite storage core: every Map write also records a
+// timestamped version row, enabling as-of reads and cell history. The zero
+// policy versions with keep-everything retention — pass a RetentionPolicy
+// to bound it.
+func WithCellVersioning(policy metaengine.RetentionPolicy) Option {
+	return func(o *options) {
+		p := policy
+		o.cellVersioning = &p
+	}
+}
+
 // withExperimentalViews appends the "views" experimental-feature flag to an
 // embedded DSN (e.g. ":memory:?experimental=views"). An existing
 // experimental list is MERGED (comma-separated), so a DSN already carrying

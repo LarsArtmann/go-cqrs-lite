@@ -26,9 +26,24 @@ func init() {
 			// MaxOpenConns flows through only when raised (>0): the
 			// serialized default is deliberate, so zero stays zero here and
 			// NewSQLiteEngineFromDSNWith keeps MaxOpenConns(1).
-			return NewSQLiteEngineFromDSNWith(cfg.DSN, pragmas,
+			opts := []EngineOption{
 				WithMaterializedViews(cfg.MaterializedViews),
-				WithMaxOpenConns(cfg.MaxOpenConns)) //nolint:contextcheck,wrapcheck
+				WithMaxOpenConns(cfg.MaxOpenConns),
+			}
+
+			// ADR-0141 temporal cells: a non-nil policy switches the engine
+			// into versioned-cell mode with the operator's retention bound
+			// (zero policy = keep everything).
+			if cfg.CellVersioning != nil {
+				if err := cfg.CellVersioning.Validate(); err != nil {
+					return nil, fmt.Errorf("driver %q cell_versioning: %w", "sqlite", err)
+				}
+
+				opts = append(opts, WithCellVersioning(WithRetention(*cfg.CellVersioning)))
+			}
+
+			return NewSQLiteEngineFromDSNWith(cfg.DSN, pragmas,
+				opts...) //nolint:contextcheck,wrapcheck
 		},
 	)
 }
