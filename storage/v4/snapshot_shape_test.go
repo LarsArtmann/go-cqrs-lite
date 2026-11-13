@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"strings"
 	"testing"
 	"time"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v4/idtest"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 func newShapeTestStore(t *testing.T) *SQLSnapshotStore {
@@ -159,5 +161,59 @@ func TestMigrateSnapshotStateShapeColumn_SQLite(t *testing.T) {
 	// Idempotent: a second boot is a no-op, not an error.
 	if err := MigrateSnapshotStateShapeColumn(ctx, db, sqlpkg.SQLiteDialect{}); err != nil {
 		t.Fatalf("second migration run: %v", err)
+	}
+}
+
+// TestMigrateSnapshotStateShapeColumn_ProbeFailure pins the failure family of
+// the column probe: a database that cannot answer the probe surfaces as an
+// Infrastructure error carrying storage.snapshot_state_shape_probe, never as a
+// raw sql error or a silent nil.
+func TestMigrateSnapshotStateShapeColumn_ProbeFailure(t *testing.T) {
+	db, err := OpenSQLiteInMemory()
+	if err != nil {
+		t.Fatalf("open sqlite: %v", err)
+	}
+	if err := db.Close(); err != nil {
+		t.Fatalf("close sqlite: %v", err)
+	}
+
+	err = MigrateSnapshotStateShapeColumn(context.Background(), db, sqlpkg.SQLiteDialect{})
+	if err == nil {
+		t.Fatal("expected probe failure on a closed database, got nil")
+	}
+	if errorfamily.Classify(err) != errorfamily.Infrastructure {
+		t.Fatalf("expected Infrastructure family, got %v (%v)", errorfamily.Classify(err), err)
+	}
+	if !strings.Contains(err.Error(), "storage.snapshot_state_shape_probe") {
+		t.Fatalf("error does not name the probe code: %v", err)
+	}
+}
+
+// TestMigrateSnapshotStateShapeColumn_AddFailure pins the failure family of
+// the ALTER: a snapshots relation that cannot take the new column (here: a
+// view, which SQLite refuses to ALTER) surfaces as an Infrastructure error
+// carrying storage.snapshot_state_shape_add.
+func TestMigrateSnapshotStateShapeColumn_AddFailure(t *testing.T) {
+	db, err := OpenSQLiteInMemory()
+	if err != nil {
+		t.Fatalf("open sqlite: %v", err)
+	}
+	t.Cleanup(func() { _ = db.Close() })
+
+	// A view named snapshots: the column probe succeeds (views report
+	// columns), but ALTER TABLE ... ADD COLUMN is refused on views.
+	if _, err := db.Exec(`CREATE VIEW snapshots AS SELECT 1 AS aggregate_id`); err != nil {
+		t.Fatalf("create snapshots view: %v", err)
+	}
+
+	err = MigrateSnapshotStateShapeColumn(context.Background(), db, sqlpkg.SQLiteDialect{})
+	if err == nil {
+		t.Fatal("expected ALTER failure on a view, got nil")
+	}
+	if errorfamily.Classify(err) != errorfamily.Infrastructure {
+		t.Fatalf("expected Infrastructure family, got %v (%v)", errorfamily.Classify(err), err)
+	}
+	if !strings.Contains(err.Error(), "storage.snapshot_state_shape_add") {
+		t.Fatalf("error does not name the add code: %v", err)
 	}
 }
