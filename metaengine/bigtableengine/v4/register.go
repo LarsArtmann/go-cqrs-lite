@@ -31,6 +31,7 @@ func init() {
 			// onto the column-family GC policy (ADR-0141 §1's analog of
 			// client-side retention trimming).
 			var engineOpts []Option
+
 			if cfg.CellVersioning != nil {
 				if err := cfg.CellVersioning.Validate(); err != nil {
 					return nil, fmt.Errorf("driver %q cell_versioning: %w", "bigtable", err)
@@ -47,7 +48,7 @@ func init() {
 				instance,
 				table,
 				engineOpts,
-			) //nolint:wrapcheck // factory passthrough
+			)
 		},
 	)
 }

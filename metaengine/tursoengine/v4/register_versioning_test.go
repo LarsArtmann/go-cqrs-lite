@@ -15,7 +15,7 @@ func TestNew_WithCellVersioning(t *testing.T) {
 	if err != nil {
 		t.Fatalf("New: %v", err)
 	}
-	defer eng.Close() //nolint:errcheck // test teardown
+	defer eng.Close()
 
 	if !metaengine.EngineVersionsCells(eng) {
 		t.Fatal("EngineVersionsCells = false, want WithCellVersioning to enable versioning")
