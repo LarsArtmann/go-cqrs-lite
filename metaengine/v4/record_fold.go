@@ -251,6 +251,8 @@ func onRecordFold[E any](eventType string, sample E, handler any) Fold {
 			}
 
 		default:
+			rejectSliceOfFoldUnit("OnRecord", eventType, outType)
+
 			invoke := func(rec record.Record, event any) any {
 				return callWithRecord(rec, event)[0].Interface()
 			}

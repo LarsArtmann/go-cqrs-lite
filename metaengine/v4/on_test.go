@@ -103,6 +103,51 @@ var _ = Describe("On constructor", func() {
 			}).To(PanicWith(MatchRegexp("unsupported handler signature")))
 		})
 	})
+
+	When("the handler returns a slice of a canonical fold unit", func() {
+		It("panics instead of silently classifying the batch as a Set fold", func() {
+			Expect(func() {
+				metaengine.OnRecord(sample, func(_ record.Record, e event) []metaengine.Edge {
+					return []metaengine.Edge{{From: e.ID, To: e.Name}}
+				})
+			}).To(PanicWith(MatchRegexp(
+				"slice of a canonical fold unit.*misrouted into a Set collection",
+			)))
+		})
+
+		It("names the two working shapes", func() {
+			Expect(func() {
+				metaengine.OnRecord(sample, func(_ record.Record, _ event) []metaengine.Edge {
+					return nil
+				})
+			}).To(PanicWith(MatchRegexp("one event per relation.*Map/Multimap")))
+		})
+
+		It("rejects every canonical unit, not just Edge", func() {
+			Expect(func() {
+				metaengine.OnRecord(sample, func(_ record.Record, _ event) []metaengine.Embedding {
+					return nil
+				})
+			}).To(PanicWith(MatchRegexp("slice of a canonical fold unit")))
+		})
+
+		It("still constructs Set folds from a slice key of non-unit elements", func() {
+			fold := metaengine.OnRecord(sample, func(_ record.Record, e event) []string {
+				return []string{e.ID}
+			})
+			Expect(fold.Kind()).To(Equal(metaengine.FoldSet))
+		})
+	})
+
+	When("the deprecated On constructor gets the same slice shape", func() {
+		It("panics identically", func() {
+			Expect(func() {
+				metaengine.On(sample, func(_ event) []metaengine.Edge {
+					return nil
+				})
+			}).To(PanicWith(MatchRegexp("metaengine.On\\(event\\): handler return type \\[\\]metaengine.Edge")))
+		})
+	})
 })
 
 var _ = Describe("Remove sentinel", func() {

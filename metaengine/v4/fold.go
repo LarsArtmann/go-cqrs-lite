@@ -429,6 +429,8 @@ func classifySingleReturn[E any](
 		return &appendFold{eventType: eventType, sample: sample, invoke: reflectCall1[Append](hv)}
 
 	default:
+		rejectSliceOfFoldUnit("On", eventType, outType)
+
 		return &setFold{
 			eventType: eventType,
 			sample:    sample,
@@ -437,6 +439,47 @@ func classifySingleReturn[E any](
 				return hv.Call([]reflect.Value{reflect.ValueOf(event)})[0].Interface()
 			},
 		}
+	}
+}
+
+// canonicalFoldUnits are the single-value fold results the constructor
+// switches on: a handler returning ONE of these per event is classified into
+// its dedicated fold kind. Used by rejectSliceOfFoldUnit to spot the batch
+// lookalikes ([]Edge, []Embedding, ...) that must never reach the Set
+// fallback.
+var canonicalFoldUnits = []reflect.Type{
+	reflect.TypeFor[Delta](),
+	reflect.TypeFor[Edge](),
+	reflect.TypeFor[EdgeRemoval](),
+	reflect.TypeFor[Embedding](),
+	reflect.TypeFor[IndexedText](),
+	reflect.TypeFor[Point](),
+	reflect.TypeFor[Skip](),
+	reflect.TypeFor[MultiEntry](),
+	reflect.TypeFor[Append](),
+}
+
+// rejectSliceOfFoldUnit panics when a single-return fold handler returns a
+// slice whose element type is a canonical fold unit ([]Edge, []Embedding,
+// ...). The shape reads as a batch fan-out, but the fold contract produces
+// ONE unit per event: routing it through the Set fallback would silently
+// misfile the whole slice as a set key and drop every unit while
+// construction, planning, apply, and rebuild all report success (issue
+// #130). Custom key types keep flowing through the Set fallback unchanged.
+func rejectSliceOfFoldUnit(construct, eventType string, outType reflect.Type) {
+	if outType.Kind() != reflect.Slice {
+		return
+	}
+
+	for _, unit := range canonicalFoldUnits {
+		if outType.Elem() != unit {
+			continue
+		}
+
+		panic(fmt.Sprintf(
+			"metaengine.%s(%s): handler return type %s is a slice of a canonical fold unit — a fold produces ONE unit per event, so this shape would be silently misrouted into a Set collection keyed by the whole slice (issue #130). Emit one event per relation at the write side, or fold the batch into a Map/Multimap collection and derive the units in a second pass",
+			construct, eventType, outType,
+		))
 	}
 }
 
