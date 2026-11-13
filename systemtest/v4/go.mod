@@ -118,3 +118,14 @@ require (
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
 )
+
+// Pre-tag sibling adoption (unreleased ADR-0141 config-surface symbols,
+// issue #131): system.EngineConfig.CellVersioning,
+// metaengine.DriverConfig.CellVersioning / RejectCellVersioning, and the
+// sqliteengine driver translation exist only on disk until the next tag
+// wave. Drop these replaces in the wave's replace-strip sweep.
+replace (
+	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 => ../../metaengine/sqliteengine/v4
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ../../metaengine/v4
+	github.com/larsartmann/go-cqrs-lite/system/v4 => ../../system/v4
+)
