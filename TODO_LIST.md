@@ -49,6 +49,22 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 - [ ] **Verify-chain rc=12 through-nix proof (audit J6)**: the retry-only-rc=12 contract is pinned at the script level but never proven through `nix run .#verify`'s exit-code passthrough — one fault-injection run through the flake app would close it. _(Effort: S)_
 - [ ] **Release changed-set test contract (audit J1-full)**: `batch-release.sh --verify` still runs builds, not suites; the label is now truthful (`build=ok`) but the OWED change is a `--changed-set-tests` leg running per-module `go test` over the tag set before tagging. _(Effort: M; blocks on the next wave to exercise it)_
 
+## Post-issue-wave close-out (found 2026-11-13 during the 21-12 plan cut)
+
+> The 11-11/11-13 issue-fix waves (#117–#131) shipped ~35 fixes with no composed
+> verify, no release tags, and five unharvested status reports. Rows below are
+> the plan-cut's first-hand findings (21:12 CET); owning mediums live in the
+> [21-12 plan](docs/planning/2026-11-13_21-12_SUPERB-truth-green-release-train-v5-runway-pareto-plan.md).
+
+- [ ] 🔥 **Harvest the five unharvested status reports** (11-11 09:16, 12:41, 16:42, 20-24; 11-13 14-54) — their §f lists are entombed in timestamped files (the 07-37 entombment lesson); docs-health HARVEST mode. Includes flipping stale-open rows that carry DONE receipts (A8 residue, custom-exports row). _(Effort: M)_
+- [ ] 🔥 **Close #130/#131** — implementations landed on master 2026-11-13 20-22; evidence comments + close ritual owed. _(Effort: XS)_
+- [ ] 🔥 **Red-gate trio (verified 21:12)**: `check-file-size` — `cmd/cqrs-lint/v4/pkg/analyzer/loader.go` 377 (NEW), `cmd/cqrs-lint/v4/doctor_audit.go` 360 (NEW), `metaengine/sqliteengine/v4/engine.go` 663→664 growth; `check-error-taxonomy` red on a stack/v4 extraction (provenance unknown, previously unrowed); `check-md-go` red on 4 fences inside the untracked `docs/drafts/` issue drafts. _(Effort: S/M)_
+- [ ] 🔥 **Origin-truth triage (2026-11-13)**: CI push `43475265912`, Gates Rollup `43479191413` (schedule), Benchmarks `43475265565`, and Release `43446210196` (catalog/v4.15.0 tag push, 34s) ALL failed today; job-level triage owed (API 502 blocked it at plan time). Autoretry green ×2 masks nothing — the rollup names the owners. _(Effort: M)_
+- [ ] 🔥 **Release wave R11-13**: storage/v4, cmd/cqrs-lint, sqliteengine, metaengine, system, tursoengine (+ the untagged backlog) with changed-set tests per the J1-full contract; consumer flips ride the tags (cqrs-htmx snapshot_shape test + pin, timesheets ignore-start drop, crm serialized-subtest mitigation check). _(Effort: M)_
+- [ ] **Watermill racing-close repeat-leg hang** — nightly repeat leg hangs 20m on the runner, green locally ×2 (11-09 §c1); budget-tune (per-test timeout) or deeper scheduler diagnosis. _(Effort: S, decision)_
+- [ ] **BuildFlow file-size threshold reconciliation** — the 11-13 deep dive measured 235 BuildFlow file-size findings (its stricter threshold) vs the repo's own 350 ratchet (green at 61 baselined); align the tool config to the repo gate or adopt the stricter threshold as a deliberate decision. _(Effort: S, decision)_
+- [ ] **`docs/research/` index README** (deep-dive Finding 5) — the research series has no index. _(Effort: XS)_
+
 > **Prioritized execution plan (2026-09-08):**
 > [`docs/planning/archived/2026-09-08_17-45_SUPERB-pareto-execution-plan.md`](docs/planning/archived/2026-09-08_17-45_SUPERB-pareto-execution-plan.md)
 > ranked the then-list into Pareto waves (W0 release train → W1 trust →
@@ -121,7 +137,23 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 > landed (its M28 hardening legs done) and the owner commissioned push + full
 > execution; inherits M01–M29/F001–F188 numbering, adds M30 + F189–F193; the
 > 1% = push + origin/CI/calibration/fuzz receipts + composed `#verify` on the
-> now-freezable tree; per-row owner gates route to one decision sheet.)
+> now-freezable tree; per-row owner gates route to one decision sheet. Its 1%/4%
+> tiers executed — receipts in the 11-09 08-01 report and the brutal-audit
+> follow-ups section below.)
+>
+> **Current plan (2026-11-13 21:12, EXECUTING):**
+> [`docs/planning/2026-11-13_21-12_SUPERB-truth-green-release-train-v5-runway-pareto-plan.md`](docs/planning/2026-11-13_21-12_SUPERB-truth-green-release-train-v5-runway-pareto-plan.md)
+> (truth-green release-train cut over the 265 open rows inventoried 21:12 — after
+> five issue-wave sessions (11-09..11-13) shipped ~35 fixes with NO composed
+> verify, no release tags, red gates, and five unharvested status reports;
+> inherits M/F numbering (M31–M57 / F194–F343, 27 medium / 150 fine tasks); the
+> 1% = harvest + #130/#131 close + red-gate trio + origin-truth triage + composed
+> `#verify` + release wave R11-13; the 4% = decision sheet v2 + hardening tails +
+> docs-health 15th pass + gate-truth reconciliation + flake disposition; the 20% =
+> v5 runway (deletions, codemod, promotion, A9, json/v2 determinism, testing
+> rigor, cqrs-lint, BDD/consumer, catalog); supersedes the sequencing (not the
+> content) of the plans below; the v5-cut-readiness checklist remains the
+> cut-order authority.)
 
 > **DONE (2026-10-10):** Graph-native adoption closure + operator-story wave
 > (plan
@@ -179,7 +211,8 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 [Review follow-up ledger](#architecture-review-follow-up-ledger-2026-10-26) ·
 [Testing improvements 2026-10-25](#testing-improvements-2026-10-25-plan) ·
 [Declined](#declined--rejected-do-not-re-litigate) ·
-[Post-sweep release](#post-sweep-release--adoption-harvested-2026-11-05-plan-docsplanning2026-11-05_01-48_superb-post-sweep-release-and-adoption-pareto-planmd)
+[Post-sweep release](#post-sweep-release--adoption-harvested-2026-11-05-plan-docsplanning2026-11-05_01-48_superb-post-sweep-release-and-adoption-pareto-planmd) ·
+[Post-issue-wave close-out](#post-issue-wave-close-out-found-2026-11-13-during-the-21-12-plan-cut)
 
 ## Legend
 
