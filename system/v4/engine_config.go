@@ -40,6 +40,52 @@ type EngineConfig struct {
 	// (the default) keeps the engine's deliberate default. Engines without a
 	// pool ignore the field.
 	MaxOpenConns int `koanf:"max_open_conns"`
+
+	// CellVersioning enables ADR-0141 temporal versioned cells on this
+	// engine (issue #131): every Map write also records a timestamped
+	// version, enabling as-of reads and cell history without replaying the
+	// event log. Nil (the default) leaves the engine unversioned. Engines
+	// that cannot version cells fail construction loudly on any non-nil
+	// value (the same contract Durability enforces); BigTable versions
+	// natively and maps the retention onto its GC policy.
+	CellVersioning *CellVersioningConfig `koanf:"cell_versioning"`
+}
+
+// CellVersioningConfig is the operator-facing YAML shape for temporal
+// versioned cells (see metaengine.RetentionPolicy).
+type CellVersioningConfig struct {
+	// MaxVersions keeps at most the newest N versions per cell
+	// (0 = unlimited, 1 = latest-only).
+	MaxVersions int `koanf:"max_versions"`
+
+	// MaxAge drops versions older than this duration relative to each
+	// write, as a Go duration string (e.g. "720h"; empty or "0s" =
+	// unlimited).
+	MaxAge string `koanf:"max_age"`
+}
+
+// retention translates the operator config into the metaengine retention
+// policy, parsing and validating the MaxAge duration string.
+func (c *CellVersioningConfig) retention() (*metaengine.RetentionPolicy, error) {
+	policy := &metaengine.RetentionPolicy{MaxVersions: c.MaxVersions}
+
+	if c.MaxAge != "" {
+		maxAge, err := time.ParseDuration(c.MaxAge)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"max_age must be a Go duration string (e.g. \"720h\"), got %q: %w",
+				c.MaxAge, err,
+			)
+		}
+
+		policy.MaxAge = maxAge
+	}
+
+	if err := policy.Validate(); err != nil {
+		return nil, err
+	}
+
+	return policy, nil
 }
 
 // MaterializedViewConfig is the operator-facing YAML shape for one

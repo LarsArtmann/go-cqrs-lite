@@ -26,6 +26,17 @@ func createEngineFromDriver(
 		return nil, err
 	}
 
+	var cellVersioning *metaengine.RetentionPolicy
+	if cfg.CellVersioning != nil {
+		cellVersioning, err = cfg.CellVersioning.retention()
+		if err != nil {
+			return nil, fmt.Errorf(
+				"system: engine %q cell_versioning: %w",
+				labelOr(cfg.Driver, 0), err,
+			)
+		}
+	}
+
 	eng, err := factory(ctx, metaengine.DriverConfig{
 		DSN:               cfg.DSN,
 		Pragmas:           cfg.Pragmas,
@@ -33,6 +44,7 @@ func createEngineFromDriver(
 		Durability:        durability,
 		MaterializedViews: matViews,
 		MaxOpenConns:      cfg.MaxOpenConns,
+		CellVersioning:    cellVersioning,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("system: driver %q create: %w", cfg.Driver, err)
