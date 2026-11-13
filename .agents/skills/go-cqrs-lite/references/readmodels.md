@@ -394,16 +394,19 @@ There are **three projection tiers** — pick by read-access pattern:
 > traversals: [recipes.md §2.44](recipes.md#244-graph-native-read-models--edge-folds-traversal-retraction-system--metaengine),
 > reference app [`example/graph-native`](../../../../example/graph-native/domain.go),
 > engine matrix [advanced.md §6.13](advanced.md#613-graph-native-read-models-metaengine-graph-adt-legacy-graph).
+> Edge folds are ONE Edge per event occurrence — a fold returning `[]Edge`
+> silently stores nothing (verified v4.23.0); see the fan-out entry in
+> [faq.md](faq.md).
 
 > **Benchmarking a tier choice?** Single runs are point estimates. Measure
 > with `cqrs-bench --repeat N` and check the per-metric cross-run CoV
 > (`Variation:` section / `MetricVariation`) before believing any "tier X is
 > faster" claim — see SKILL.md §Benchmarking and `recipes.md` §2.40.
 
-| Tier            | Module                               | Writes ONE event to…       | Best for                                          |
-| --------------- | ------------------------------------ | -------------------------- | ------------------------------------------------- |
-| **Document/KV** | `stack.Materialize` + `kv.ViewStore` | one record in one table    | single-entity lookups, CRUD-style reads           |
-| **Relational**  | `storage.RelationalProjection`       | several related SQL tables | multi-table joins, WHERE/ORDER BY, set predicates |
+| Tier            | Module                                                                        | Writes ONE event to…       | Best for                                          |
+| --------------- | ----------------------------------------------------------------------------- | -------------------------- | ------------------------------------------------- |
+| **Document/KV** | `stack.Materialize` + `kv.ViewStore`                                          | one record in one table    | single-entity lookups, CRUD-style reads           |
+| **Relational**  | `storage.RelationalProjection`                                                | several related SQL tables | multi-table joins, WHERE/ORDER BY, set predicates |
 | **Graph**       | `metaengine` Graph ADT (modern); `graph.GraphProjection` (legacy, removed v5) | nodes + edges              | variable-depth traversal, path-finding, adjacency |
 
 `SQLViewStore` (above) is the document tier with queryable columns — still one

@@ -816,7 +816,6 @@ for alongside the schema declarations. The depth-spec suite's upcaster test
 type with ops, one consumed type via `Events`. See also recipes.md §2.43
 (upcasting + the coeffect gate note).
 
-
 ## How do I move the query audit log to its own engine?
 
 Declare the `queries` instance explicitly — that is the entire change. The
@@ -872,10 +871,17 @@ per event occurrence (`edgeFold` in metaengine; advanced.md §6.13). An
 event that carries a LIST of relations (e.g. a batch of facts → N skill
 edges) has three shapes: emit one event per relation at the write side
 (journal grows, replay stays exact); fold into a Multimap/Map collection
-and derive edges in a second pass; or check for multi-value fold support
-in YOUR pinned metaengine version before assuming it (unverified in
-v4.23.0 at the time of writing). The same arity question applies to
-vector folds (`func(E) Embedding`).
+and derive edges in a second pass; or check multi-value fold support in
+YOUR pinned version. VERIFIED 2026-11-13 on metaengine v4.23.0: a fold
+returning `[]Edge` is a SILENT NO-OP — it constructs, plans, and applies
+without error and stores ZERO edges (the unknown return type falls through
+`onRecordFold`'s classifier). Loud rejection is an upstream gap; until it
+ships, treat any non-canonical fold return as suspect and assert stored
+row counts in specs. The same single-value arity applies to vector folds
+(`func(E) Embedding`) and the same silent-drop risk to non-canonical
+shapes generally. Also mind dispatch: `ExecuteTyped` routes by input
+struct TYPE — two queries sharing an input type shadow each other; use
+`ExecuteTypedByName` or distinct input types.
 
 ## Vector folds re-run on every rebuild — what does that cost?
 
