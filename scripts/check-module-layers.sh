@@ -9,49 +9,49 @@ set -euo pipefail
 
 # Layer definitions (higher layers may depend on lower layers only)
 declare -A LAYER
-LAYER[id / v4]=0
-LAYER[dispatcher / v4]=0
-LAYER[kv / v4]=0
-LAYER[dedup / v4]=0
-LAYER[event / v4]=1
-LAYER[command / v4]=1
-LAYER[query / v4]=1
-LAYER[scheduling / v4]=1
-LAYER[metadata / v4]=1
-LAYER[schema / v4]=2
-LAYER[snapshot / v4]=2
-LAYER[projection / v4]=2
-LAYER[deriver / v4]=2
-LAYER[commandlifecycle / v4]=2
+LAYER["id/v4"]=0
+LAYER["dispatcher/v4"]=0
+LAYER["kv/v4"]=0
+LAYER["dedup/v4"]=0
+LAYER["event/v4"]=1
+LAYER["command/v4"]=1
+LAYER["query/v4"]=1
+LAYER["scheduling/v4"]=1
+LAYER["metadata/v4"]=1
+LAYER["schema/v4"]=2
+LAYER["snapshot/v4"]=2
+LAYER["projection/v4"]=2
+LAYER["deriver/v4"]=2
+LAYER["commandlifecycle/v4"]=2
 LAYER["commandlifecycle/projections/v4"]=3
-LAYER[listing / v4]=3
-LAYER[decider / v4]=3
-LAYER[graph / v4]=3
-LAYER[scenario / v4]=3
-LAYER[projectionhost / v4]=3
+LAYER["listing/v4"]=3
+LAYER["decider/v4"]=3
+LAYER["graph/v4"]=3
+LAYER["scenario/v4"]=3
+LAYER["projectionhost/v4"]=3
 # claiming/v4: dialect-correct claim/lease SQL STATEMENT library — zero runtime
 # deps (errorfamily only), owns NO store. Consumed downward by metaengine/v4
 # claimkit (L3, ADR-0142), scheduling/sqlstore/v4 and the queue/v4 engines (L5).
 # Layer 2 (contract/utility, like queue/v4 at L3 minus the domain tie): the
 # original L4 classification predated ADR-0142, when only L5 stores used it.
-LAYER[claiming / v4]=2
+LAYER["claiming/v4"]=2
 # queue/v4: the durable work-queue CONTRACT (task/journal/queue packages,
 # no engine). Engines implement it over claiming/v4; semantically a domain
 # contract like decider/v4, and dep-light (errorfamily only).
-LAYER[queue / v4]=3
+LAYER["queue/v4"]=3
 LAYER["queue/sqlite/v4"]=5
 LAYER["queue/postgres/v4"]=5
 LAYER["queue/mysql/v4"]=5
-LAYER[signing / v4]=4
-LAYER[encryption / v4]=4
-LAYER[otel / v4]=4
+LAYER["signing/v4"]=4
+LAYER["encryption/v4"]=4
+LAYER["otel/v4"]=4
 LAYER["otel/otlp/v4"]=4
 LAYER["storage/memory/v4"]=4
-LAYER[middleware / v4]=5
-LAYER[storage / v4]=5
+LAYER["middleware/v4"]=5
+LAYER["storage/v4"]=5
 # listing/v4 is Aggregation (Tier 3) — depends on event/v4/id, not infrastructure
-LAYER[watermill / v4]=5
-LAYER[prometheus / v4]=5
+LAYER["watermill/v4"]=5
+LAYER["prometheus/v4"]=5
 LAYER["storage/pebble/v4"]=5
 LAYER["storage/bbolt/v4"]=5
 LAYER["storage/backuptest/v4"]=5
@@ -75,17 +75,17 @@ LAYER["metaengine/bigtableengine/v4"]=5
 LAYER["metaengine/irohengine/v4"]=5
 LAYER["metaengine/irohengine/loopback/v4"]=5
 LAYER["metaengine/irohengine/quic/v4"]=5
-LAYER[record / v4]=0
+LAYER["record/v4"]=0
 LAYER["scheduling/sqlstore/v4"]=5
 # scheduling/engine/v4: TimerStore facade over any DueClaimer engine (ADR-0142) —
 # bridges scheduling/v4 (L1) to metaengine/v4 engines (L5), same tier as sqlstore.
 LAYER["scheduling/engine/v4"]=5
-LAYER[testutil / v4]=5
+LAYER["testutil/v4"]=5
 # NOTE: testutil/v4 is also referenced as a direct dep in some lower-tier modules'
 # go.mod (projectionhost/v4, transport/http, etc.) for test helpers. The
 # EXCEPTIONS map handles those. See comment below for modules that intentionally
 # omit testutil/v4 from LAYER.
-LAYER[stack / v4]=6
+LAYER["stack/v4"]=6
 LAYER["stack/memory/v4"]=6
 LAYER["stack/metaengine/v4"]=6
 LAYER["stack/sqlite/v4"]=6
@@ -95,7 +95,7 @@ LAYER["stack/postgres/v4"]=6
 LAYER["stack/duckdb/v4"]=6
 LAYER["stack/mysql/v4"]=6
 LAYER["stack/turso/v4"]=6
-LAYER[system / v4]=6
+LAYER["system/v4"]=6
 # core/v5 (5): the merged v5 core module (ADR-0152) — Tier 0-3 domain plus
 # the composition surface as PACKAGES of one module. Labelled at the driver
 # tier (5) so engines/storage drivers (L4/L5) may depend on it as equal-or-
@@ -108,22 +108,22 @@ LAYER["system/integration/v4"]=7
 # systemtest/v4 (7): the Feedback-#4 split — system/v4's real-engine suites moved
 # here so system/v4 consumers pull no engine implementation. Test-only
 # module: no production consumers.
-LAYER[systemtest / v4]=7
+LAYER["systemtest/v4"]=7
 # systemscenario/v4 (7): consumer-facing system-level BDD harness (ADR-0153);
 # test-infrastructure tier like systemtest/v4/eventtest, but a published library
 # consumers import (api-stability tracked).
-LAYER[systemscenario / v4]=7
+LAYER["systemscenario/v4"]=7
 # systemcatalog/v4 (7): the catalog×system/v4 derivation bridge
 # (docs/planning/2026-10-26_systemcatalog-adapter-design.md) — derives
 # architecture catalogs from system.DomainConfig + runtime registration
 # records. Tooling tier beside catalog/v4; imports system/v4 (6) + catalog/v4 (7),
 # downward-legal.
-LAYER[systemcatalog / v4]=7
-LAYER[catalog / v4]=7
-LAYER[integration / v4]=7
+LAYER["systemcatalog/v4"]=7
+LAYER["catalog/v4"]=7
+LAYER["integration/v4"]=7
 LAYER["stack/bench/v4"]=7
 LAYER["metaengine/bench/v4"]=7
-LAYER[benchkit / v4]=7
+LAYER["benchkit/v4"]=7
 LAYER["cmd/cqrs-gen/v4"]=7
 LAYER["cmd/cqrs-lint/v4"]=7
 LAYER["cmd/cqrs-bench/v4"]=7
@@ -154,7 +154,7 @@ LAYER["testutil/pgtestcontainer/v4"]=5
 # It has LAYER[testutil/v4]=5 above, but lower-tier modules that import it from
 # _test.go files get exceptions below. This avoids false layer violations while
 # still budgeting its production deps.
-LAYER[metaengine / v4]=3
+LAYER["metaengine/v4"]=3
 # idempotency/sqlstore/v4: SQL STORES over go-idempotency — storage/v4
 # infrastructure by nature, and since ADR-0142 its NewFromEngine facade
 # depends on metaengine/v4 (L3) legitimately (an SQL store adapting to the
@@ -178,52 +178,52 @@ declare -A EXCEPTIONS
 
 # event/v4 (L1) — all three test-only: schema/v4 (upcaster tests), snapshot/v4
 # (errors-taxonomy test), storage/memory/v4 (stream/BDD/example tests)
-EXCEPTIONS[event / v4]="schema/v4 snapshot/v4 storage/memory/v4"
+EXCEPTIONS["event/v4"]="schema/v4 snapshot/v4 storage/memory/v4"
 
 # schema/v4 (L2) — test-only: VersionedStore integration/v4 + golden tests
-EXCEPTIONS[schema / v4]="storage/memory/v4"
+EXCEPTIONS["schema/v4"]="storage/memory/v4"
 
 # snapshot/v4 (L2) — storage/memory/v4 test-only (constructor roundtrip tests);
 # same test-cycle shape as event↔snapshot/v4 above.
-EXCEPTIONS[snapshot / v4]="storage/memory/v4"
+EXCEPTIONS["snapshot/v4"]="storage/memory/v4"
 
 # decider/v4 (L3) — storage/memory/v4 test-only (bench/BDD/example tests);
 # otel/v4 PRODUCTION (tracing in decider.go, load.go, otel.go, wait_for_version.go)
-EXCEPTIONS[decider / v4]="storage/memory/v4 otel/v4"
+EXCEPTIONS["decider/v4"]="storage/memory/v4 otel/v4"
 
 # query/v4 (L1) — storage/memory/v4 test-only (typed store tests).
 # NOTE: snapshot/v4 appears as // indirect in query/v4/go.mod (transitive via
 # event/v4) but the awk filter on line 318 skips indirect deps, so it never
 # reaches this exception map. Do NOT add snapshot/v4 here — it would silently
 # suppress a real violation if snapshot/v4 is ever promoted to direct.
-EXCEPTIONS[query / v4]="storage/memory/v4"
+EXCEPTIONS["query/v4"]="storage/memory/v4"
 
 # command/v4 (L1) — storage/memory/v4 test-only (store suite + typed store tests).
 # Same indirect-snapshot note as query/v4 above.
-EXCEPTIONS[command / v4]="storage/memory/v4"
+EXCEPTIONS["command/v4"]="storage/memory/v4"
 
 # listing/v4 (L3) — test-only: middleware/v4/BDD/example/benchmark tests
-EXCEPTIONS[listing / v4]="storage/memory/v4"
+EXCEPTIONS["listing/v4"]="storage/memory/v4"
 
 # commandlifecycle/v4 (L2) — test-only: middleware/v4 (retry integration/v4 tests),
 # storage/memory/v4 (recorder + middleware/v4 tests)
-EXCEPTIONS[commandlifecycle / v4]="middleware/v4 storage/memory/v4"
+EXCEPTIONS["commandlifecycle/v4"]="middleware/v4 storage/memory/v4"
 
 # projectionhost/v4 (L3) — storage/memory/v4 test-only (integration/v4/stress tests);
 # storage/v4 test-only (pg_integration_test.go, sql_checkpoint_test.go);
 # otel/v4 PRODUCTION (tracing in worker.go, options.go, worker_drain.go).
 # (testutil/v4 + testutil/pgtestcontainer/v4 are covered by TEST_INFRA_MODULES.)
-EXCEPTIONS[projectionhost / v4]="storage/memory/v4 otel/v4 storage/v4"
+EXCEPTIONS["projectionhost/v4"]="storage/memory/v4 otel/v4 storage/v4"
 
 # metaengine/v4 (L3) — metaengine/sqliteengine/v4 test-only (cross-engine ADT
 # matrix + concurrency-gap tests reference the real SQLite engine for parity)
-EXCEPTIONS[metaengine / v4]="metaengine/sqliteengine/v4"
+EXCEPTIONS["metaengine/v4"]="metaengine/sqliteengine/v4"
 
 # scenario/v4 (L3) — metaengine/projectionadapter/v4 test-only: the
 # observational-equivalence tests (fixed sequence + rapid property) assert
 # the ADR-0136 property against the real 80%-path adapter, not a mock;
 # metaengine/v4 itself is same-layer (L3→L3, no exception needed).
-EXCEPTIONS[scenario / v4]="metaengine/projectionadapter/v4"
+EXCEPTIONS["scenario/v4"]="metaengine/projectionadapter/v4"
 
 # Test-only packages that don't count against production dep budgets.
 # These are test infrastructure (assertions, PBT, mocking) used across all modules.
@@ -244,38 +244,38 @@ TEST_INFRA_MODULES="event/v4/eventtest testutil/v4 testutil/mysqltestcontainer/v
 # Budgets are intentionally tight — new deps require explicit review.
 # Test-only deps (gomega, rapid, ginkgo) are excluded from the count.
 declare -A DEP_BUDGET
-DEP_BUDGET[id / v4]=3
-DEP_BUDGET[dispatcher / v4]=0
+DEP_BUDGET["id/v4"]=3
+DEP_BUDGET["dispatcher/v4"]=0
 # kv/v4: 4 = codec + errorfamily + otter + record/v4 (ADR-0144 — record.DeferClose
 # is the Tier-0 lifecycle primitive kv/v4's iter/batch close paths share;
 # internal primitive, not external sprawl — same precedent as storage/pebble/v4).
-DEP_BUDGET[kv / v4]=4
-DEP_BUDGET[dedup / v4]=0
-DEP_BUDGET[event / v4]=13
-DEP_BUDGET[command / v4]=8
-DEP_BUDGET[query / v4]=8
-DEP_BUDGET[scheduling / v4]=2
+DEP_BUDGET["kv/v4"]=4
+DEP_BUDGET["dedup/v4"]=0
+DEP_BUDGET["event/v4"]=13
+DEP_BUDGET["command/v4"]=8
+DEP_BUDGET["query/v4"]=8
+DEP_BUDGET["scheduling/v4"]=2
 # metadata/v4: 2 = id/v4 + record/v4 (the ADR-0111 structural Actor/stamp types —
 # record/v4 is the Tier-0 base metadata/v4's CommonMetadata embeds since the
 # 2026-08-22 extraction; the =1 predates it).
-DEP_BUDGET[metadata / v4]=2
-DEP_BUDGET[schema / v4]=4
-DEP_BUDGET[snapshot / v4]=5
-DEP_BUDGET[projection / v4]=2
-DEP_BUDGET[deriver / v4]=4
-DEP_BUDGET[commandlifecycle / v4]=6
+DEP_BUDGET["metadata/v4"]=2
+DEP_BUDGET["schema/v4"]=4
+DEP_BUDGET["snapshot/v4"]=5
+DEP_BUDGET["projection/v4"]=2
+DEP_BUDGET["deriver/v4"]=4
+DEP_BUDGET["commandlifecycle/v4"]=6
 DEP_BUDGET["commandlifecycle/projections/v4"]=4
-DEP_BUDGET[decider / v4]=10
-DEP_BUDGET[graph / v4]=3
-DEP_BUDGET[scenario / v4]=3
+DEP_BUDGET["decider/v4"]=10
+DEP_BUDGET["graph/v4"]=3
+DEP_BUDGET["scenario/v4"]=3
 # projectionhost/v4: 10 = the prior 9 + record/v4 (ADR-0144 DeferClose in the DLQ
 # row-scanning paths; internal primitive, not external sprawl).
-DEP_BUDGET[projectionhost / v4]=10
+DEP_BUDGET["projectionhost/v4"]=10
 # claiming/v4: 1 = go-error-family only (the modernc.org/sqlite require is
 # test-only, round-trip claim test).
-DEP_BUDGET[claiming / v4]=1
+DEP_BUDGET["claiming/v4"]=1
 # queue/v4: 1 = go-error-family only (sentinel classification).
-DEP_BUDGET[queue / v4]=1
+DEP_BUDGET["queue/v4"]=1
 # queue/sqlite/v4: 4 = queue/v4 contract + modernc sqlite driver + claiming/v4
 # (engine-owned claim SQL in the claiming/v4 SHAPE) + metaengine/v4 (NewEngine
 # driver registration, ADR-0142 T09 — the engine joins the operator registry).
@@ -288,20 +288,20 @@ DEP_BUDGET["queue/postgres/v4"]=4
 # (NewEngine driver registration, same ADR-0142 T09 pair as the sibling
 # engines; DSN-gated conformance is test-only).
 DEP_BUDGET["queue/mysql/v4"]=4
-DEP_BUDGET[signing / v4]=5
-DEP_BUDGET[encryption / v4]=5
-DEP_BUDGET[otel / v4]=7
-DEP_BUDGET[middleware / v4]=13
+DEP_BUDGET["signing/v4"]=5
+DEP_BUDGET["encryption/v4"]=5
+DEP_BUDGET["otel/v4"]=7
+DEP_BUDGET["middleware/v4"]=13
 # storage/v4: 14 = the prior 12 + record/v4 promoted from indirect (via event/v4) to
 # direct (DeferClose in snapshot_migration.go, ADR-0144; internal primitive)
 # + go-sqlitestore (sqlite_helpers.go delegates the canonical SQLite engine
 # bootstrap to the shared engine; added 2026-09-22 without its budget bump).
-DEP_BUDGET[storage / v4]=14
-DEP_BUDGET[listing / v4]=6
-DEP_BUDGET[watermill / v4]=9
+DEP_BUDGET["storage/v4"]=14
+DEP_BUDGET["listing/v4"]=6
+DEP_BUDGET["watermill/v4"]=9
 # codec is required for CBORToJSONTransform (SSE CBOR->JSON adapter composes
 # the codec.TranscodeToJSON primitive — ADR-0052, deletes per-consumer dupes).
-DEP_BUDGET[prometheus / v4]=5
+DEP_BUDGET["prometheus/v4"]=5
 # pebble/bbolt: +1 (11) for the direct record/v4 dep — the snapshot/v4
 # encoding stamp (record.Encoding, 2026-08-22 T17/T18) promotes the Tier-0
 # primitive from indirect (via event/v4) to direct. Internal primitive, not
@@ -311,7 +311,7 @@ DEP_BUDGET["storage/bbolt/v4"]=11
 DEP_BUDGET["storage/backuptest/v4"]=3
 DEP_BUDGET["storage/turso/v4"]=10
 DEP_BUDGET["storage/memory/v4"]=8
-DEP_BUDGET[stack / v4]=18
+DEP_BUDGET["stack/v4"]=18
 DEP_BUDGET["stack/memory/v4"]=10
 DEP_BUDGET["stack/metaengine/v4"]=4 # typed bridge: stack/v4 + metaengine/v4 only (issue #36)
 DEP_BUDGET["stack/sqlite/v4"]=10
@@ -335,10 +335,10 @@ DEP_BUDGET["stack/bench/v4"]=25
 # go-error-family, go-humanize. The 9th (templ-components/utils) became DIRECT
 # when templ-components v1.22.0 started emitting an explicit utils import in
 # generated *_templ.go files (2026-10-26; before that it was transitive).
-DEP_BUDGET[catalog / v4]=9
-DEP_BUDGET[integration / v4]=21
-DEP_BUDGET[benchkit / v4]=25
-DEP_BUDGET[testutil / v4]=5
+DEP_BUDGET["catalog/v4"]=9
+DEP_BUDGET["integration/v4"]=21
+DEP_BUDGET["benchkit/v4"]=25
+DEP_BUDGET["testutil/v4"]=5
 # metaengine/v4: 8 = the four Tier-0-ish primitives (record/v4/id/dedup/errorfamily)
 # + go-sse (ServeSSE) + claiming/v4 (ADR-0142 claimkit: the ONE database/sql
 # claim+dedup/v4 runtime every SQL engine embeds; claiming/v4 is a zero-runtime
@@ -346,7 +346,7 @@ DEP_BUDGET[testutil / v4]=5
 # humanization, 2026-10-08 go-humanize-linter sweep) + go-codec (Tier -1
 # substrate: encoded ingress decodes CBOR with the codec that produced it —
 # schema-free JSON transcoding cannot carry time.Time).
-DEP_BUDGET[metaengine / v4]=8
+DEP_BUDGET["metaengine/v4"]=8
 DEP_BUDGET["metaengine/pebbleengine/v4"]=5
 DEP_BUDGET["metaengine/duckdbengine/v4"]=5
 DEP_BUDGET["metaengine/pgengine/v4"]=5
@@ -374,12 +374,12 @@ DEP_BUDGET["scheduling/engine/v4"]=3
 # system/v4: 21 = the prior 20 + schema/v4 (DomainConfig.Schema payload-contract
 # declarations compiled and applied at the composition root, 2026-10-09 T1 —
 # Tier 5 → Tier 2, downward and legal).
-DEP_BUDGET[system / v4]=21
+DEP_BUDGET["system/v4"]=21
 DEP_BUDGET["system/integration/v4"]=7
 # systemtest/v4: 6 = system/v4 + metaengine/v4 core + the four engine drivers whose
 # suites it owns (goleak is test-only); the point of the module is engine
 # coverage, so a high budget is the design, not sprawl.
-DEP_BUDGET[systemtest / v4]=6
+DEP_BUDGET["systemtest/v4"]=6
 # systemscenario/v4: 9 = system/v4 + event/v4 + command/v4 + query/v4 + id/v4 (all in-repo)
 # + go-error-family (fleet-standard classification, ThenErrorFamily)
 # + go-snaps (ThenGolden snapshots — the eventtest LAYER-7 precedent allows
@@ -391,11 +391,11 @@ DEP_BUDGET[systemtest / v4]=6
 #   directly — RegisterDriver/LookupDriver, NewWatcher, ServeSSE; it was a
 #   test-only import before those production files; in-repo Tier 3, already
 #   an indirect dep of system/v4)
-DEP_BUDGET[systemscenario / v4]=9
+DEP_BUDGET["systemscenario/v4"]=9
 # systemcatalog/v4: 4 = system/v4 + catalog/v4 + event/v4 (in-repo) + go-error-family
 # (classified rejections for nil builder/system inputs). command/v4/query/schema
 # types flow through system/v4's accessor signatures without direct imports.
-DEP_BUDGET[systemcatalog / v4]=4
+DEP_BUDGET["systemcatalog/v4"]=4
 # core/v5: skeleton starts at 0; each v5 move wave (T07/T09/T10) bumps this
 # to the union of the merged trains' production deps. Intra-repo v4 deps do
 # not count — merged trains become same-module packages.
@@ -449,7 +449,7 @@ DEP_BUDGET["cmd/cqrs-lint/v4/testdata/typedfixture"]=2
 DEP_BUDGET["cmd/cqrs-lint/v4/testdata/scanfixture"]=1
 DEP_BUDGET["cmd/cqrs-lint/v4/testdata/busfixture"]=1
 DEP_BUDGET["event/v4/eventtest"]=5
-DEP_BUDGET[record / v4]=0
+DEP_BUDGET["record/v4"]=0
 DEP_BUDGET["testutil/mysqltestcontainer/v4"]=2
 DEP_BUDGET["testutil/pgtestcontainer/v4"]=3
 DEP_BUDGET["metaengine/bench/v4"]=5
