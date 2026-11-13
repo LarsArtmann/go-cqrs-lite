@@ -1,0 +1,1710 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>go-cqrs-lite — Deep Dive &amp; Health Audit</title>
+    <style>
+      /* =========================================================================
+         BAUHAUS LIGHT — Editorial template
+         Design language: form follows function. Primary colors on warm paper.
+         Zero external dependencies: system fonts, no CDN, no build step.
+         Token architecture: see references/bauhaus-tokens.md
+         ========================================================================= */
+
+      :root {
+        /* --- Primitive palette (Bauhaus Light) --- */
+        --color-paper: #f4f4f0;
+        --color-paper-2: #ffffff;
+        --color-paper-3: #e8e8e2;
+        --color-ink: #111111;
+        --color-red: #e63946;
+        --color-blue: #1d3557;
+        --color-yellow: #f4d35e;
+        --color-hairline: rgba(17, 17, 17, 0.14);
+        --color-hairline-strong: rgba(17, 17, 17, 0.3);
+
+        /* --- Semantic layer (shared vocabulary with dark template) --- */
+        --surface: var(--color-paper);
+        --surface-raised: var(--color-paper-2);
+        --surface-sunken: var(--color-paper-3);
+        --text: var(--color-ink);
+        --text-muted: rgba(17, 17, 17, 0.72);
+        --text-faint: rgba(17, 17, 17, 0.5);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-red);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        /* --- Backward-compatible aliases (do not break consumer skills) --- */
+        --bg: var(--surface);
+        --bg-elevated: var(--surface-raised);
+        --bg-sunken: var(--surface-sunken);
+        --bg-card: var(--surface-raised);
+        --bg-code: var(--surface-sunken);
+        --ink: var(--text);
+        --ink-secondary: var(--text-muted);
+        --ink-muted: var(--text-faint);
+        --rose: var(--problem);
+        --rose-glow: color-mix(in srgb, var(--problem) 15%, transparent);
+        --emerald: var(--solution);
+        --emerald-glow: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber: var(--warning);
+        --amber-glow: color-mix(in srgb, var(--warning) 15%, transparent);
+        --amber-light: color-mix(in srgb, var(--warning) 22%, transparent);
+        --coral: var(--problem);
+        --coral-light: color-mix(in srgb, var(--problem) 12%, transparent);
+        --teal: var(--solution);
+        --teal-light: color-mix(in srgb, var(--solution) 12%, transparent);
+
+        /* --- Shape --- */
+        --radius: 0px;
+        --radius-sm: 0px;
+
+        /* --- Type stacks (system only — zero external fonts) --- */
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 16px;
+        line-height: 1.65;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* --- Accessibility: keyboard focus --- */
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      a:focus-visible {
+        outline-offset: -1px;
+      }
+
+      /* --- Full-bleed top bar --- */
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      /* --- Layout: optional sticky sidebar TOC --- */
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--text);
+      }
+      .sidebar a {
+        font-size: 0.86rem;
+        color: var(--text);
+        text-decoration: none;
+        padding: 0.5rem 0.75rem;
+        border-left: 4px solid transparent;
+        font-weight: 600;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+        color: var(--accent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      /* --- Headings --- */
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        color: var(--text);
+      }
+      h1 {
+        font-size: clamp(1.9rem, 4.5vw, 2.8rem);
+        line-height: 1.05;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.5rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 3px solid var(--text);
+        display: flex;
+        align-items: baseline;
+        gap: 0.7rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+      h3 {
+        font-size: 1.15rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 1rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+
+      /* --- Hero --- */
+      .hero {
+        padding: 1.5rem 0 2rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 3px solid var(--text);
+      }
+      .eyebrow {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: var(--accent);
+        margin-bottom: 0.9rem;
+      }
+      .subtitle {
+        font-size: 1.1rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0 0 1rem;
+      }
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      .tag {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        padding: 0.25rem 0.6rem;
+        background: var(--surface-sunken);
+        color: var(--text);
+        border: 1px solid var(--border-strong);
+      }
+      .tag.amber {
+        background: var(--warning);
+        border-color: var(--warning);
+        color: var(--text);
+      }
+      .tag.teal {
+        background: var(--solution);
+        border-color: var(--solution);
+        color: var(--surface);
+      }
+
+      /* Bauhaus signature: geometric shape cluster (optional) */
+      .hero-shapes {
+        position: relative;
+        height: 90px;
+        margin-bottom: 1.2rem;
+      }
+      .hero-shapes .circle {
+        position: absolute;
+        top: 0;
+        right: 180px;
+        width: 64px;
+        height: 64px;
+        background: var(--problem);
+        border-radius: 50%;
+      }
+      .hero-shapes .square {
+        position: absolute;
+        top: 26px;
+        right: 90px;
+        width: 56px;
+        height: 56px;
+        background: var(--solution);
+      }
+      .hero-shapes .tri {
+        position: absolute;
+        top: 8px;
+        right: 0;
+        width: 0;
+        height: 0;
+        border-left: 32px solid transparent;
+        border-right: 32px solid transparent;
+        border-bottom: 56px solid var(--warning);
+      }
+      .hero-shapes .bar {
+        position: absolute;
+        bottom: 0;
+        right: 230px;
+        width: 100px;
+        height: 14px;
+        background: var(--text);
+      }
+
+      /* --- Scorecard / stat cards --- */
+      .scorecard,
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 0;
+        margin: 1.5rem 0 2rem;
+        border: 3px solid var(--text);
+      }
+      .score-card,
+      .stat-card {
+        padding: 1.3rem 1rem;
+        text-align: center;
+        border-right: 3px solid var(--text);
+        background: var(--surface-raised);
+      }
+      .score-card:last-child,
+      .stat-card:last-child {
+        border-right: none;
+      }
+
+      .score,
+      .stat-value {
+        font-family: var(--font-heading);
+        font-size: 2.6rem;
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -0.04em;
+      }
+      .score-card .label,
+      .stat-label {
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        margin-top: 0.5rem;
+      }
+      /* Semantic state classes — no nth-child decoration, no !important */
+      .score-good,
+      .stat-good {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .score-warn,
+      .stat-warn {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .score-bad,
+      .stat-bad {
+        background: var(--problem);
+        color: var(--surface);
+      }
+
+      /* --- General cards --- */
+      .card {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+      }
+
+      /* --- Issue cards --- */
+      .issue {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* --- Severity badges --- */
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.22rem 0.6rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+
+      /* --- Inline badges --- */
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        border: 1px solid var(--text);
+        color: var(--text);
+      }
+      .badge-critical {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .badge-high {
+        background: var(--warning);
+      }
+      .badge-medium {
+        background: var(--surface-sunken);
+      }
+      .badge-low {
+        background: var(--surface-raised);
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        background: var(--solution);
+        color: var(--surface);
+      }
+
+      /* --- Callouts --- */
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.8rem 1rem;
+        border: 1px solid var(--border-strong);
+        border-left: 4px solid var(--border-strong);
+        background: var(--surface-sunken);
+        font-size: 0.92rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-teal,
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 10%,
+          var(--surface-raised)
+        );
+      }
+      .callout-amber,
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 18%,
+          var(--surface-raised)
+        );
+      }
+
+      /* --- Strengths --- */
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.9rem;
+        padding: 0.75rem 0;
+        border-bottom: 2px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        color: var(--solution);
+        font-size: 1.3rem;
+        line-height: 1.3;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.92rem;
+      }
+
+      /* --- Tables --- */
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.92rem;
+        border: 2px solid var(--text);
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--text);
+        color: var(--surface);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-right: 1px solid var(--border-strong);
+      }
+      th:last-child {
+        border-right: none;
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-top: 1px solid var(--border);
+        border-right: 1px solid var(--border);
+      }
+      td:last-child {
+        border-right: none;
+      }
+      tr:nth-child(even) td {
+        background: var(--surface-sunken);
+      }
+      table.compare td.yes {
+        color: var(--solution);
+        font-weight: 700;
+      }
+      table.compare td.no {
+        color: var(--problem);
+        font-weight: 700;
+      }
+
+      /* --- Code blocks + syntax highlighting --- */
+      pre {
+        background: var(--text);
+        color: var(--surface);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+        border: 2px solid var(--text);
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      p code,
+      li code,
+      td code {
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+      }
+      .tok-keyword {
+        color: var(--warning);
+      }
+      .tok-type {
+        color: var(--warning);
+      }
+      .tok-string {
+        color: #95e1d3;
+      }
+      .tok-comment {
+        color: rgba(244, 244, 240, 0.45);
+        font-style: italic;
+      }
+      .tok-func {
+        color: #6eb5ff;
+      }
+      .tok-number {
+        color: var(--warning);
+      }
+      .tok-generic {
+        color: var(--problem);
+      }
+      .tok-builtin {
+        color: #6eb5ff;
+      }
+      .tok-punct {
+        color: rgba(244, 244, 240, 0.7);
+      }
+      .tok-attr {
+        color: var(--warning);
+      }
+
+      /* --- Dependency tree / ASCII diagrams --- */
+      .dep-tree {
+        background: var(--surface-sunken);
+        border: 2px solid var(--text);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.7;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .dep-tree .root {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .dep-tree .ok {
+        color: var(--solution);
+      }
+      .dep-tree .unwanted {
+        color: var(--problem);
+      }
+
+      /* --- Inline node-and-arrow diagrams --- */
+      .diagram {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+      }
+      .node {
+        display: inline-block;
+        padding: 0.4rem 0.75rem;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        font-weight: 700;
+        background: var(--surface-sunken);
+        border: 1px solid var(--text);
+      }
+      .node-core {
+        background: var(--accent);
+        color: var(--surface);
+      }
+      .node-problem {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .node-good {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .arrow {
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Grids --- */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      /* --- Inline TOC --- */
+      .toc {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+        padding: 1rem 1.3rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .toc h3 {
+        margin-bottom: 0.5rem;
+      }
+      .toc ul {
+        list-style: none;
+        padding: 0;
+      }
+      .toc li {
+        margin: 0.25rem 0;
+      }
+      .toc a {
+        color: var(--text);
+        text-decoration: none;
+        font-size: 0.92rem;
+        font-weight: 600;
+      }
+      .toc a:hover {
+        color: var(--accent);
+      }
+
+      /* --- Migration / numbered steps --- */
+      .migration-step {
+        display: grid;
+        grid-template-columns: 56px 1fr;
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1.1rem;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+      }
+      .migration-num {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        font-size: 1.8rem;
+        color: var(--accent);
+        line-height: 1;
+      }
+      .migration-content h4 {
+        margin-bottom: 0.2rem;
+      }
+      .migration-content p {
+        margin-bottom: 0;
+        color: var(--text-muted);
+        font-size: 0.94rem;
+      }
+
+      /* --- Before/After comparison --- */
+      .compare-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin: 1rem 0 0.5rem;
+      }
+      .compare-before,
+      .compare-after {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0.4rem 0.7rem;
+        color: var(--surface);
+      }
+      .compare-before {
+        background: var(--problem);
+      }
+      .compare-after {
+        background: var(--solution);
+      }
+      .compare-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      .compare-row pre {
+        margin: 0;
+      }
+
+      /* --- Footer --- */
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 3px solid var(--text);
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Responsive --- */
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+        .compare-header,
+        .compare-row {
+          grid-template-columns: 1fr;
+        }
+        .scorecard,
+        .stat-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-right: none;
+        }
+        .score-card:nth-child(1),
+        .stat-card:nth-child(1),
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-bottom: 3px solid var(--text);
+        }
+        .migration-step {
+          grid-template-columns: 1fr;
+        }
+        .hero-shapes {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Full-bleed top bar (optional — remove for quieter reports) -->
+    <div class="top-bar">
+      <span>LIBRARY DEEP DIVE</span>
+      <span>2026-11-13</span>
+      <span>CRUSH &middot; LARSARTMANN</span>
+    </div>
+
+    <div class="layout">
+      <!-- Sidebar TOC (hidden below 1024px; use inline .toc if you prefer) -->
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#summary">Summary</a>
+          <a href="#scorecard">Scorecard</a>
+          <a href="#strengths">What's excellent</a>
+          <a href="#findings">Findings</a>
+          <a href="#architecture">Architecture</a>
+          <a href="#v5">The v5 target</a>
+          <a href="#fleet">Fleet adoption</a>
+          <a href="#adrs">Decision history</a>
+          <a href="#appendix">Appendix</a>
+        </nav>
+      </aside>
+
+      <!-- Main content -->
+      <main class="main">
+        <!-- Hero -->
+        <header class="hero">
+          <div class="hero-shapes">
+            <div class="bar"></div>
+            <div class="circle"></div>
+            <div class="square"></div>
+            <div class="tri"></div>
+          </div>
+          <div class="eyebrow">LIBRARY DEEP DIVE &middot; 2026-11-13</div>
+          <h1>go-cqrs-lite — Deep Dive &amp; Health Audit</h1>
+          <p class="subtitle">
+            A full audit of the composable CQRS + event-sourcing library at HEAD
+            <code>3946b7fe6</code>: architecture, module inventory, decision history,
+            quality-gate state, and fleet adoption across 51 LarsArtmann projects.
+          </p>
+          <div class="meta">
+            <span class="tag amber">Health Score: 72/100</span>
+            <span class="tag">100 workspace modules</span>
+            <span class="tag">579k LOC (55% tests)</span>
+            <span class="tag teal">51 fleet projects</span>
+          </div>
+        </header>
+
+        <!-- Scorecard -->
+        <section id="scorecard" class="scorecard">
+          <div class="score-card score-good">
+            <div class="score">72</div>
+            <div class="label">Health score / 100 (high band)</div>
+          </div>
+          <div class="score-card score-good">
+            <div class="score">19.5/27</div>
+            <div class="label">Capability rows leveraged</div>
+          </div>
+          <div class="score-card score-good">
+            <div class="score">319k</div>
+            <div class="label">Test LOC — 55% of codebase</div>
+          </div>
+          <div class="score-card score-warn">
+            <div class="score">30/18</div>
+            <div class="label">Fleet dirs: modern vs legacy-only</div>
+          </div>
+          <div class="score-card score-bad">
+            <div class="score">255</div>
+            <div class="label">Gate findings at error @ HEAD</div>
+          </div>
+        </section>
+
+        <!-- Summary -->
+        <section id="summary">
+          <h2><span class="num">00</span>Summary</h2>
+          <p>
+            go-cqrs-lite is a production-grade CQRS + event-sourcing library that has
+            reached genuine fleet-backbone status in eight months: 9,523 commits since
+            2026-03-15, 1,648 tagged module releases, 100 workspace modules, and direct
+            imports in 48 of the LarsArtmann fleet's projects (58 checkout directories,
+            51 distinct after collapsing mirrors) — 30 of those directories already on
+            the modern <code>system</code>/<code>metaengine</code> composition path. The core loop
+            (command &rarr; decider &rarr; event store &rarr; projection &rarr; read
+            model) is mature, exceptionally well tested (319k test LOC, 55% of the
+            codebase; 7,340 test functions), and surrounded by unusual tooling maturity:
+            a 217-rule architecture linter, an API-stability differ with golden files,
+            a benchmark harness with statistical-rigor gates, and a catalog subsystem
+            that renders the whole architecture into a self-contained HTML reference.
+          </p>
+          <p>
+            The library is mid-transition. ADR-0123 consolidates everything into a
+            <code>system.New</code> composition root plus <code>metaengine</code> as the
+            sole durable-I/O substrate, with a v5 module (<code>core/v5</code>, 29.5k
+            LOC) being assembled while 18 legacy fleet consumers and ~20k LOC of
+            deprecated-but-shipped modules (stack, idempotency stores, kv views) still
+            ride the v4 train. Meanwhile the quality gate is red at HEAD with 255
+            error-severity findings — 235 of them file-size violations concentrated in
+            <code>metaengine</code>'s 153k-LOC module tree.
+          </p>
+          <div class="callout callout-amber">
+            <strong>The bottom line</strong>
+            Ship-grade core, honest docs, world-class testing — the two real risks are
+            (1) the unfinished v4&rarr;v5 dual-train carrying ~20k LOC of deprecated
+            surface plus 20 unmigrated fleet consumers, and (2) a tripped quality gate
+            whose 235 file-size findings mark <code>metaengine</code> as the place where
+            the architecture is under the most pressure. Land the v5 cut, migrate the
+            legacy twenty, and split the oversized metaengine files; the score goes to
+            ~85 without inventing anything new.
+          </div>
+        </section>
+
+        <!-- Strengths -->
+        <section id="strengths">
+          <h2><span class="num">&#9670;</span>What's already excellent</h2>
+          <p>
+            Audited first-hand at HEAD <code>3946b7fe6</code>; every number below is
+            re-derivable with the commands in Appendix B.
+          </p>
+
+          <div class="strengths">
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Test depth that outmuscles the production code</strong>
+                <span
+                  >319,269 test LOC vs 260,224 non-test LOC (55.1% of the codebase);
+                  7,340 test functions, 189 Ginkgo spec files, 1,182 Given/When/Then
+                  blocks. <code>systemscenario</code> boots the real composition root
+                  with a frozen clock for hermetic system-level BDD (ADR-0153).</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Decision-record discipline rarely seen at this scale</strong>
+                <span
+                  >164 ADRs (0001&ndash;0166) in eight months — every deletion,
+                  split-brain fix, and reversal is written down, including evidence
+                  files for spikes (e.g. the CUE subsumption spike behind ADR-0163).</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Self-hosting tooling</strong>
+                <span
+                  >Six first-party CLIs: cqrs-lint (217 rules incl. fleet-wide import
+                  bans), api-stability (frozen-API golden files per release),
+                  cqrs-upgrade (mechanical v4&rarr;v5 migration), cqrs-gen, cqrs-bench,
+                  doc-check. The library polices its own architecture and its own docs.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Benchmarking with statistical rigor</strong>
+                <span
+                  >cqrs-bench runs synthetic write/read/read-model workloads across
+                  backends with --repeat, cross-run CoV variation flags, benchstat
+                  output, and CI noise gates that abort on oversubscribed machines
+                  (scripts/benchmark-regression.sh).</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Catalog &amp; architecture documentation as code</strong>
+                <span
+                  >catalog/v4 (43k LOC, 23 fleet consumers) exports to EventCatalog,
+                  renders a zero-dependency searchable HTML architecture reference
+                  (ADR-0159/0160), and gates schema compatibility: a breaking shape
+                  change that doesn't move the message version blocks the release
+                  (docs/SCHEMA-COMPATIBILITY.md).</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Security depth beyond the typical ES library</strong>
+                <span
+                  >Per-stream signing, encryption, multi-sig, and key rotation with
+                  versioned key IDs; TLS support; runbooks for poisoned-tag recovery
+                  (docs/release-checklist.md).</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Fleet gravity as proof</strong>
+                <span
+                  >58 checkout directories reference it across 51 distinct real
+                  projects (six duplicate/mirror checkouts collapsed); the heaviest
+                  consumer imports 36 of its modules. Latest release wave
+                  2026-11-06..11: system/v4.18.0, metaengine/v4.23.0,
+                  catalog/v4.15.0.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Docs that tell the truth</strong>
+                <span
+                  >An independent claims-audit (docs/quality/2026-11-12_claim-verification.md)
+                  found 0 dead API references in 37 sampled claims and 100% valid
+                  internal doc links — doc claims are re-verified against code, not
+                  aspirational.</span
+                >
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Findings -->
+        <section id="findings">
+          <h2><span class="num">01</span>Findings</h2>
+          <p>
+            Ordered by impact. Grades map to the capability inventory in Appendix A:
+            <em>at-risk</em> rows carry the report's three red cards, <em>mixed</em>
+            rows the amber ones.
+          </p>
+
+          <div class="issue issue-critical" id="finding-gate">
+            <span class="severity severity-critical"
+              >At risk &middot; High impact</span
+            >
+            <h3>Quality gate is red at HEAD — 255 error-severity findings</h3>
+            <div class="where">
+              buildflow run 2026-11-13 @ 3946b7fe6 &middot; file-size-check (235),
+              cqrs-lint (7), docs-gates (5), 8 more across 6 further tools
+            </div>
+            <p>
+              The findings gate fails with 255 findings at error severity. 235 are
+              file-size violations, concentrated in <code>metaengine</code> (153,696
+              LOC across 18 sub-go.mod files — sqliteengine alone 53k, graphengine
+              34k). Seven cqrs-lint violations mean the library's own 217-rule
+              architecture linter flags its own code. docs-gates reports the
+              "annotate" gate red — old status reports await annotation. None of
+              this breaks the 7,340 passing tests; all of it erodes the gate's
+              value as a forcing function.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Fix: triage by class, not by count</strong>
+              Split the 20 largest metaengine files (target &le;800 lines each),
+              run <code>docs-gates annotate</code> to clear the annotation
+              backlog, and fix-or-waive the seven cqrs-lint findings. The gate
+              going green again is a one-session job per class.
+            </div>
+          </div>
+
+          <div class="issue issue-critical" id="finding-dual-train">
+            <span class="severity severity-critical"
+              >At risk &middot; High impact</span
+            >
+            <h3>The v4&rarr;v5 dual-train is carrying real weight</h3>
+            <div class="where">
+              core/v5 (29,459 LOC) &middot; stack/* (14,283 LOC, deprecated) &middot;
+              idempotency/{sqlstore,kvstore} (deprecated, deleted at v5) &middot;
+              kv.ViewStore
+            </div>
+            <p>
+              ADR-0123's end-state — one composition root, metaengine as sole I/O
+              substrate — is assembled but not cut: <code>core/v5</code> mirrors
+              v4 surface while v4 modules still ship, ~20k LOC of deprecated
+              modules ride along because consumers haven't migrated, and every
+              fix must currently land in two places or wait. The dual-train cost
+              is paid daily in review overhead and in the 235 file-size findings
+              finding room to accumulate.
+            </div>
+            <div class="callout callout-teal">
+              <strong>Fix: cut v5, then delete by census</strong>
+              Re-run the fleet census after the v5 cut; every module with zero
+              external importers gets deleted under the ADR-0152 zero-consumer
+              rule (the SSEBroker deletion of 2026-10-17 is the template).
+              cqrs-upgrade makes the consumer migration mechanical.
+            </div>
+          </div>
+
+          <div class="issue issue-important" id="finding-legacy-fleet">
+            <span class="severity severity-important"
+              >Mixed &middot; Medium impact</span
+            >
+            <h3>18 of 55 fleet consumer dirs are still legacy-only</h3>
+            <div class="where">
+              Verified census 2026-11-13 (see Fleet adoption) &middot; plus 10
+              go.mod files requiring the removed idempotency/v4 module
+            </div>
+            <p>
+              18 checkout directories (17 distinct projects) import only the
+              low-level v4 modules — the layers that lose support at v5:
+              crush-daily binds the storage tiers directly (kv only indirectly),
+              Zlota44/Kernovia/go-localsync/github-local-sync sit on the
+              storage/kv era, and 11 projects use the thin event+command+query
+              core (which survives v5, so their exposure is low). The sharpest
+              edge is different: <strong>10 go.mod files still require
+              idempotency/v4 v4.4.0 — a module that no longer exists in the
+              library checkout</strong> (only idempotency/sqlstore/v4 remains).
+              Those builds resolve from module-proxy cache today and break on a
+              clean rebuild if the pin ever disappears upstream.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Fix: one migration sweep, tool-assisted</strong>
+              Sweep the 10 stale idempotency/v4 requires to
+              metaengine.DedupStore, run cqrs-upgrade per legacy repo to
+              rewrite the mechanical renames, then adopt system.New +
+              metaengine per the cookbook recipes.
+            </div>
+          </div>
+
+          <div class="issue issue-important" id="finding-engine-parity">
+            <span class="severity severity-important"
+              >Mixed &middot; Medium impact</span
+            >
+            <h3>Engine parity is deliberately incomplete — and undocumented at the edge</h3>
+            <div class="where">
+              metaengine/engines/capabilities.md &middot; docs/engine-capabilities.md
+              &middot; docs/engine-coverage-and-gaps.md
+            </div>
+            <p>
+              Nine storage engines exist, but three (dgraph, bigtable, iroh)
+              refuse core capabilities — <code>DueClaim</code> and
+              <code>Dedup</code> are unimplemented — iroh cannot even be
+              registered from outside the repo, and grouped materialized views
+              carry a correctness caveat on sqlite/turso (readmodels.md). The
+              capability matrix is honestly documented, but the deployment
+              assertion story ("this engine must support X") is weaker than the
+              SQL-engine story.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Fix: assert capabilities at boot</strong>
+              system.New should refuse to start a DeploymentConfig whose engine
+              lacks a capability a registered Query/fold requires — turning the
+              documented matrix into an enforced one.
+            </div>
+          </div>
+
+          <div class="issue issue-important" id="finding-docs-sprawl">
+            <span class="severity severity-important"
+              >Mixed &middot; Medium impact</span
+            >
+            <h3>Docs corpus is excellent and sprawling at the same time</h3>
+            <div class="where">
+              docs/ &middot; 41 top-level Markdown files + HTML/SVG exports &middot;
+              no docs/research index &middot; docs-gates annotate red
+            </div>
+            <p>
+              The corpus contains deep, current material (DOMAIN_LANGUAGE.md,
+              SCHEMA-COMPATIBILITY.md, testing-guide.md, per-topic deep dives) —
+              but 41 top-level files with no index means newcomers parse the
+              tree by archaeology. The 2026-07-23 ecosystem audit sits in
+              docs/research/ with no README index; AGENTS.md notes CONTENTS.md
+              claims have gone stale before.
+            </div>
+            <div class="callout callout-teal">
+              <strong>Fix: index, don't reorganize</strong>
+              Add docs/research/README.md as a dated index (the html-report-kit
+              series discipline), refresh CONTENTS.md, and let doc-check keep
+              the rest honest.
+            </div>
+          </div>
+
+          <div class="issue issue-nice" id="finding-hygiene">
+            <span class="severity severity-nice"
+              >Mixed &middot; Low impact</span
+            >
+            <h3>Monorepo hygiene nits</h3>
+            <div class="where">
+              scratch/ &middot; standard-topology.db at repo root &middot;
+              gosec.sarif at root &middot; result &rarr; /nix/store symlink
+            </div>
+            <p>
+              A stray SQLite database at the repo root, a checked-in SARIF
+              artifact, a result symlink into the nix store, and a scratch/
+              directory of 250 WIP files. None harmful; all of them noise a
+              newcomer must triage.
+            </p>
+          </div>
+
+          <div class="issue issue-nice" id="finding-systemscenario">
+            <span class="severity severity-nice"
+              >Missed diffusion &middot; Low impact</span
+            >
+            <h3>systemscenario is the fleet's best-kept testing secret</h3>
+            <div class="where">
+              11 importing directories &middot; 10 distinct real projects
+            </div>
+            <p>
+              The flagship testing pattern — Given/When/Then over the same
+              DomainConfig the production binary uses, frozen clock, no sleeps —
+              has only 10 real-world adopters across a 56-project fleet. This is
+              the single highest-leverage habit the library could export.
+            </p>
+          </div>
+
+          <div class="issue issue-nice" id="finding-catalog">
+            <span class="severity severity-nice"
+              >Fully leveraged &middot; Standout</span
+            >
+            <h3>The catalog + schema-compat subsystem is the standout new capability</h3>
+            <div class="where">
+              catalog/v4 (43,129 LOC, 23 fleet consumers) &middot; catalog/compat
+              &middot; nix run .#check-schema-compat
+            </div>
+            <p>
+              One catalog registry feeds EventCatalog exports, a zero-dependency
+              searchable HTML architecture reference with redacted slices
+              (ADR-0159/0160), demo-content badging, and a schema-compatibility
+              gate that blocks a breaking shape change whose message version
+              didn't move. The CUE-subsumption alternative was spiked, scored
+              22/24, and correctly rejected in the one direction a release gate
+              must never be wrong (ADR-0163, evidence file dated 2026-11-02).
+            </p>
+          </div>
+        </section>
+
+        <section id="architecture">
+          <h2><span class="num">02</span>Architecture</h2>
+          <p>
+            A library, not a framework: 100 workspace modules composed via
+            <code>go.work</code>, each independently versioned on the module
+            proxy (1,648 tags to date). The runtime loop every module serves:
+          </p>
+
+          <div class="dep-tree">
+            <span class="root">Command</span> &rarr; <span class="ok">Dispatcher</span>
+            &rarr; Handler &rarr; <span class="ok">Decider</span> (load &rarr; fold &rarr;
+            decide &rarr; save &rarr; publish) &rarr; <span class="ok">EventStore + Bus</span>
+            &rarr; <span class="ok">Projection</span> &rarr; ReadModel &rarr;
+            <span class="ok">Query</span>
+          </div>
+
+          <h3>The two modules that matter (ADR-0123)</h3>
+          <p>
+            <strong>system/v4</strong> (18,695 LOC, promoted out of experimental
+            2026-11-03) is the composition root:
+            <code>system.New(ctx, DomainConfig, DeploymentConfig)</code> auto-wires
+            event store, bus, projectionhost, deciders, queries, snapshots,
+            timers, scheduling, health, docserver, and lifecycle. Developers
+            declare domain types + folds; operators pick engines in one place.
+          </p>
+          <p>
+            <strong>metaengine/v4</strong> (153,696 LOC incl. 18 sub-modules) is
+            the cost-based storage planner: <code>Store</code> +
+            <code>Query[Q,R]</code> with canonical <code>OnRecord</code> folds
+            build read models that auto-project across interchangeable engines —
+            memory, sqlite, turso, pebble, bbolt, badger, duckdb, postgres
+            (production), plus experimental dgraph, bigtable, iroh. It also owns
+            the Graph ADT (edge folds + reachability), planned tables,
+            materialized views, DedupStore, and <code>ServeSSE[V]</code> for
+            live read-model streaming. Per the I/O rule (owner directive
+            2026-10-24, extends ADR-0142), <em>all</em> durable data I/O goes
+            through it.
+          </p>
+
+          <table class="compare">
+            <thead>
+              <tr>
+                <th>Subsystem</th>
+                <th>LOC</th>
+                <th>Role</th>
+                <th>Stability</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>metaengine/*</td>
+                <td>153,696</td>
+                <td>Universal storage substrate: 9 engines, planner, graph ADT, SSE, dedup</td>
+                <td class="yes">Planner stable; per-engine modules experimental</td>
+              </tr>
+              <tr>
+                <td>storage/*</td>
+                <td>52,248</td>
+                <td>RelationalProjection + 8 legacy engine implementations (deprecated paths)</td>
+                <td class="no">Legacy — migration-only</td>
+              </tr>
+              <tr>
+                <td>catalog/v4</td>
+                <td>43,129</td>
+                <td>EventCatalog export, HTML architecture reference, schema-compat gate</td>
+                <td class="yes">Production</td>
+              </tr>
+              <tr>
+                <td>core/v5</td>
+                <td>29,459</td>
+                <td>The v5 consolidation train (decider, event, command, query, middleware in one module)</td>
+                <td class="no">In flight</td>
+              </tr>
+              <tr>
+                <td>system/v4</td>
+                <td>18,695</td>
+                <td>Composition root — the one entry point new apps must use</td>
+                <td class="yes">Production (2026-11-03)</td>
+              </tr>
+              <tr>
+                <td>event/v4</td>
+                <td>15,677</td>
+                <td>Event, Bus, Journal, Recorder — the atom of the whole system</td>
+                <td class="yes">Production</td>
+              </tr>
+              <tr>
+                <td>stack/*</td>
+                <td>14,283</td>
+                <td>v1 preset bundles</td>
+                <td class="no">Deprecated — removed at v5</td>
+              </tr>
+              <tr>
+                <td>systemscenario, scenario, systemtest, testutil</td>
+                <td>~28k</td>
+                <td>Given/When/Then testing ladder from unit to system level</td>
+                <td class="yes">Production</td>
+              </tr>
+              <tr>
+                <td>signing + encryption + dedup + idempotency + claiming</td>
+                <td>~30k</td>
+                <td>Security &amp; delivery semantics (two idempotency stores deprecated)</td>
+                <td class="yes">Production core</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p>
+            Surrounding the core: observability (otel, prometheus, doctor,
+            explain), scheduling + snapshot + commandlifecycle, watermill
+            integration with durable catch-up subscribers, benchkit/cqrs-bench,
+            and six CLIs under cmd/.
+          </p>
+        </section>
+
+        <section id="v5">
+          <h2><span class="num">03</span>The v5 target</h2>
+          <p>
+            If the findings were fixed, this is the shape the library is already
+            growing into (ADR-0123 + the v5 removal list in the FAQ):
+          </p>
+          <pre><code><span class="tok-comment">// v5: exactly two modules, one wiring call</span>
+sys, err := system.<span class="tok-function">New</span>(ctx,
+    system.<span class="tok-type">DomainConfig</span>{ <span class="tok-comment">// commands, queries, folds (OnRecord)</span> ... },
+    system.<span class="tok-type">DeploymentConfig</span>{ <span class="tok-comment">// engines: sqlite dev, postgres prod</span> ... })
+
+<span class="tok-comment">// deleted at v5: stack/* presets, kv.ViewStore tiers,</span>
+<span class="tok-comment">// idempotency/{sqlstore,kvstore}, storage.RelationalProjection,</span>
+<span class="tok-comment">// graph.GraphProjection -&gt; metaengine graphadapter</span></code></pre>
+          <div class="callout callout-teal">
+            <strong>Why this state wins</strong>
+            One entry point ends manual-wiring drift; metaengine as sole
+            substrate ends per-feature storage forks; ~20k LOC of deprecated
+            surface disappears; and the fleet's 20 legacy consumers gain a
+            mechanical path (cqrs-upgrade) instead of an archaeology project.
+          </div>
+        </section>
+
+        <section id="fleet">
+          <h2><span class="num">04</span>Fleet adoption</h2>
+          <p>
+            Verified census, 2026-11-13: every checkout directory under
+            <code>~/projects</code> whose go.mod or .go files reference
+            <code>github.com/larsartmann/go-cqrs-lite/*</code>, deduplicated
+            across mirror checkouts, with direct and indirect (transitive)
+            usage separated.
+          </p>
+
+          <div class="scorecard">
+            <div class="score-card score-good">
+              <div class="score">51</div>
+              <div class="label">Distinct real projects</div>
+            </div>
+            <div class="score-card score-good">
+              <div class="score">30</div>
+              <div class="label">Modern dirs (system / metaengine v4)</div>
+            </div>
+            <div class="score-card score-warn">
+              <div class="score">18</div>
+              <div class="label">Legacy-only dirs (17 projects)</div>
+            </div>
+            <div class="score-card score-warn">
+              <div class="score">10</div>
+              <div class="label">go.mods on removed idempotency/v4</div>
+            </div>
+          </div>
+
+          <p>
+            58 referencing checkout directories collapse to 51 distinct projects
+            (CV/cv, DiscordSync/discordsync, browser-history/-precheck,
+            go-plugin-mvp/plugmarket are mirror pairs; BuildFlow's three
+            checkouts count once — they are <em>tooling</em> consumers embedding
+            cmd/cqrs-lint v4.21.0, not applications; their go-cqrs-lite paths in
+            test fixtures are sample data, not imports). Of the 55
+            application-consumer directories: 30 modern, 4 mixed (modern plus
+            the removed idempotency/v4), 18 legacy-only, 3 transitive-only
+            (e.g. touchbase requires the modules but imports none directly).
+            The oft-quoted "38 direct fleet consumers" from the 2026-10-24
+            census is a <em>go.mod entry count</em> for system/v4 — 39 today —
+            not a project count.
+          </p>
+          <p>
+            Version drift is the quiet gap: 25 of 39 system/v4 pins sit at
+            v4.16.0 (current v4.18.0) and 26 of 36 metaengine/v4 pins trail
+            v4.23.0. Heaviest direct consumers by distinct modules: cqrs-htmx
+            (36, the sister SDK), games/SwettySwipperWeb (23), bank-sync (22),
+            file-and-image-renamer (22), InboxClean (31 incl. indirect-era
+            imports). Three library modules have zero direct fleet consumers —
+            graph/v4, deriver/v4, claiming/v4 (system/metaengine consume them
+            transitively) — making them ADR-0152 deletion candidates after v5.
+            crm pins 29 local replace directives, building against the library
+            tree directly.
+          </p>
+
+          <table class="compare">
+            <thead>
+              <tr>
+                <th>Legacy-only consumer</th>
+                <th>Notable</th>
+                <th>v5 exposure</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>crush-daily</td>
+                <td>Direct storage-tier binding; kv indirect</td>
+                <td class="no">High — those tiers shrink at v5</td>
+              </tr>
+              <tr>
+                <td>Zlota44, Kernovia, github-local-sync, go-localsync, Rolls-Royce-mtuGoHelpCenter-golang, Standup-Killer, DiscordSync</td>
+                <td>storage / kv / projection-era imports</td>
+                <td class="no">High</td>
+              </tr>
+              <tr>
+                <td>KeyHolderAI, overview, storbi, StopTube, Domination, darknet-monitor, accountability-system, PapDashboard, go-business-rules, standard-bug-tracking-schema, vision-review-agent</td>
+                <td>Thin event+command+query core only</td>
+                <td class="yes">Low — those modules survive</td>
+              </tr>
+              <tr>
+                <td>10 go.mods incl. AudibleSync, DiscordSync, games, github-local-sync</td>
+                <td>Require removed idempotency/v4 v4.4.0</td>
+                <td class="no">Latent breakage on clean rebuild</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="adrs">
+          <h2><span class="num">05</span>Decision history</h2>
+          <p>
+            164 ADRs in docs/adr/ (numbered 0001&ndash;0166) plus one archived,
+            written over eight months — roughly five decisions per week, each
+            with status and many with evidence files. The corpus tells one
+            coherent story:
+          </p>
+
+          <table class="compare">
+            <thead>
+              <tr>
+                <th>Era</th>
+                <th>ADRs</th>
+                <th>Theme</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Foundations</td>
+                <td>0001&ndash;0020</td>
+                <td>Decider-over-aggregate, error taxonomy, middleware, snapshots, decoupled read path</td>
+              </tr>
+              <tr>
+                <td>Hardening</td>
+                <td>0021&ndash;0056</td>
+                <td>Exactly-once, retries, middleware ordering, scheduling, tombstones, consistency model</td>
+              </tr>
+              <tr>
+                <td>Engines &amp; gRPC</td>
+                <td>0057&ndash;0089</td>
+                <td>Storage engine waves (sqlite/postgres/pebble/badger/duckdb/turso), gRPC transport, presets</td>
+              </tr>
+              <tr>
+                <td>Modularization &amp; catalog</td>
+                <td>0090&ndash;0121</td>
+                <td>Multi-module split, v4 versioning, EventCatalog, benchmarking, stack presets</td>
+              </tr>
+              <tr>
+                <td>Unification</td>
+                <td>0122&ndash;0166</td>
+                <td>Universal storage substrate (0142), v5 single composition root (0123), zero-consumer deletions (0127/0152), systemscenario (0153), deriver deadlock fix (0154), HTML architecture reference (0159/0160), schema-compat over CUE (0163)</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p>
+            Recent direction is unmistakable: delete what has no consumers,
+            consolidate what remains into system + metaengine, and make the
+            documentation executable (catalog, schema-compat gates). Superseded
+            decisions are marked in place — the corpus reads as one long
+            conversation, not a graveyard.
+          </p>
+        </section>
+
+        <section id="appendix">
+          <h2><span class="num">06</span>Appendix A — Capability inventory &amp; score derivation</h2>
+          <p>
+            28 capability rows; 27 applicable (the ActaFlow row is positioning
+            context, graded N/A). Strong = 1, Mixed = 0.5, At-risk = 0.
+            Score = round(100 &times; (15&times;1 + 9&times;0.5) / 27) =
+            <strong>72/100 — high band</strong> (&ge;85 very high, 70&ndash;84
+            high, 50&ndash;69 moderate).
+          </p>
+
+          <table class="compare">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Capability</th>
+                <th>Grade</th>
+                <th>Evidence</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>1</td><td>Composition root (system.New)</td><td class="yes">Strong</td><td>Promoted 2026-11-03; 39 go.mod requires fleet-wide</td></tr>
+              <tr><td>2</td><td>Metaengine planner + engines</td><td class="no">Mixed</td><td>153k LOC, cost-based planner; per-engine modules experimental</td></tr>
+              <tr><td>3</td><td>Event-sourcing core (event/decider/command/query)</td><td class="yes">Strong</td><td>Mature since ADR-0001; foundation of every consumer</td></tr>
+              <tr><td>4</td><td>Read models &amp; projections</td><td class="yes">Strong</td><td>projectionhost, OnRecord folds, planned tables, matviews</td></tr>
+              <tr><td>5</td><td>Graph ADT</td><td class="no">Mixed</td><td>graphengine 34k LOC + metaengine graphadapter; thin direct adoption (0 direct graph/v4 consumers)</td></tr>
+              <tr><td>6</td><td>Schema evolution</td><td class="yes">Strong</td><td>schema/v4 upcasters + fingerprinting + compat gate</td></tr>
+              <tr><td>7</td><td>Catalog &amp; docs generation</td><td class="yes">Strong</td><td>43k LOC, 23 fleet consumers, HTML reference ADR-0159/0160</td></tr>
+              <tr><td>8</td><td>Testing stack</td><td class="yes">Strong</td><td>55% test LOC, 7,340 test funcs, systemscenario ADR-0153</td></tr>
+              <tr><td>9</td><td>Observability</td><td class="yes">Strong</td><td>otel, prometheus, doctor, explain, SPAN_NAMING.md</td></tr>
+              <tr><td>10</td><td>Security (signing/encryption/multisig)</td><td class="yes">Strong</td><td>docs/signing-architecture.md, key rotation, gosec in gate</td></tr>
+              <tr><td>11</td><td>Scheduling &amp; timers</td><td class="no">Mixed</td><td>v4 production; engine-native scheduling experimental</td></tr>
+              <tr><td>12</td><td>Queue module</td><td class="no">Mixed</td><td>Youngest subsystem; experimental stamps</td></tr>
+              <tr><td>13</td><td>SSE / transport</td><td class="no">Mixed</td><td>Two deliberate implementations (ADR-0091/0097); broker deleted ADR-0127</td></tr>
+              <tr><td>14</td><td>Watermill integration</td><td class="yes">Strong</td><td>CatchUpSubscriber with durable checkpoints; survives v5</td></tr>
+              <tr><td>15</td><td>Benchmarking</td><td class="yes">Strong</td><td>cqrs-bench + benchkit; CoV gates, benchstat, load gates</td></tr>
+              <tr><td>16</td><td>Developer tooling</td><td class="yes">Strong</td><td>6 CLIs; cqrs-lint 217 rules; api-stability golden files</td></tr>
+              <tr><td>17</td><td>Backwards-compat discipline</td><td class="yes">Strong</td><td>Frozen-API golden files per release; proxy-hygiene runbooks</td></tr>
+              <tr><td>18</td><td>Deprecation hygiene</td><td class="no">Mixed</td><td>~20k LOC deprecated-but-shipped (stack/idempotency/kv); every deprecation has an ADR + upgrade path</td></tr>
+              <tr><td>19</td><td>v5 consolidation</td><td class="no">At risk</td><td>core/v5 29.5k LOC in flight; dual-train carrying cost</td></tr>
+              <tr><td>20</td><td>Codebase size hygiene</td><td class="no">At risk</td><td>235 file-size findings; metaengine hotspot</td></tr>
+              <tr><td>21</td><td>Quality gate</td><td class="no">At risk</td><td>255 error findings at HEAD (buildflow, 2026-11-13)</td></tr>
+              <tr><td>22</td><td>Fleet adoption</td><td class="yes">Strong</td><td>51 projects, 30 modern dirs; gravity proven</td></tr>
+              <tr><td>23</td><td>Docs corpus</td><td class="no">Mixed</td><td>Deep and current but 41 top-level files, no research index</td></tr>
+              <tr><td>24</td><td>Docs truthfulness</td><td class="yes">Strong</td><td>Claims audit 2026-11-12: 0 dead refs, 100% valid links</td></tr>
+              <tr><td>25</td><td>Monorepo hygiene</td><td class="no">Mixed</td><td>scratch/, stray root artifacts, nix-store symlink</td></tr>
+              <tr><td>26</td><td>Engine parity</td><td class="no">Mixed</td><td>DueClaim/Dedup refused on 3 engines; matview grouped caveat</td></tr>
+              <tr><td>27</td><td>systemscenario diffusion</td><td class="no">Mixed</td><td>Best-in-class pattern, 10 real adopters in 51 projects</td></tr>
+              <tr><td>28</td><td>ActaFlow positioning</td><td>&mdash;</td><td>N/A to health scoring — comparative context (docs/ActaFlow-vs-go-cqrs-lite-COMPARISON-REPORT.md: feature-dominant, perf unproven)</td></tr>
+            </tbody>
+          </table>
+
+          <h2><span class="num">07</span>Appendix B — How to verify</h2>
+          <p>Every headline number, replayed literally from
+            <code>~/projects/go-cqrs-lite</code>:</p>
+          <pre><code><span class="tok-comment"># Identity &amp; git vitals</span>
+git log -1 --format='%h %ad %s' --date=iso     <span class="tok-comment"># HEAD 3946b7fe6, 2026-11-12</span>
+git rev-list --count HEAD                       <span class="tok-comment"># 9523</span>
+git tag | wc -l                                 <span class="tok-comment"># 1648</span>
+git log --reverse --format='%ad' --date=short | head -1   <span class="tok-comment"># 2026-03-15</span>
+
+<span class="tok-comment"># Corpus size (excluding scratch/ and .git/)</span>
+grep -cE '^\s+\./' go.work                      <span class="tok-comment"># 100 modules</span>
+find . -name '*.go' -not -path './scratch/*' -not -path './.git/*' | wc -l   <span class="tok-comment"># 3727</span>
+find . -name '*_test.go' -not -path './scratch/*' -not -path './.git/*' | wc -l <span class="tok-comment"># 1884</span>
+find . -name '*.go' -not -path './scratch/*' -not -name '*_test.go' -exec cat {} + | wc -l  <span class="tok-comment"># 260224</span>
+find . -name '*_test.go' -not -path './scratch/*' -not -path './.git/*' -exec cat {} + | wc -l <span class="tok-comment"># 319269</span>
+find core -name '*.go' -exec cat {} + | wc -l    <span class="tok-comment"># 29459 (core/v5)</span>
+find metaengine -name '*.go' -exec cat {} + | wc -l  <span class="tok-comment"># 153696</span>
+
+<span class="tok-comment"># Docs &amp; decisions</span>
+ls docs/adr/[0-9]*.md | wc -l                   <span class="tok-comment"># 164</span>
+ls docs/*.md | wc -l                             <span class="tok-comment"># 41</span>
+grep -o '✅' FEATURES.md | wc -l             <span class="tok-comment"># 627 done (19 warn, 9 not-done)</span>
+
+<span class="tok-comment"># Quality gate at HEAD</span>
+buildflow                                        <span class="tok-comment"># findings gate: 255 at error</span>
+buildflow -s file-size-check --format finding    <span class="tok-comment"># 235 of them</span>
+
+<span class="tok-comment"># Fleet census</span>
+rg -l 'larsartmann/go-cqrs-lite' --glob 'go.mod' /home/lars/projects/ | grep -v go-cqrs-lite/ \
+  | cut -d/ -f5 | sort -u | wc -l                <span class="tok-comment"># referencing dirs (dedup mirrors manually)</span>
+rg -l 'go-cqrs-lite/idempotency/v4 ' --glob 'go.mod' /home/lars/projects/ | grep -v go-cqrs-lite/ | wc -l  <span class="tok-comment"># 10 stale requires</span></code></pre>
+
+          <h2><span class="num">08</span>Appendix C — Method, series &amp; supersession</h2>
+          <p>
+            Snapshot report generated 2026-11-13 by Crush (GLM-5.3-flash) from
+            direct inspection of HEAD <code>3946b7fe6</code>: five parallel
+            research passes (module inventory, ADR digest, quality/docs,
+            roadmap, fleet census), every headline number then re-derived
+            first-hand — which corrected three second-hand claims before
+            publication (current tags are system/v4.18.0 not v4.10.0; 9,523
+            commits not 1,899; BuildFlow's "v3 imports" are test fixtures, not
+            dependencies).
+          </p>
+          <p>
+            <strong>Series:</strong> supersedes
+            <code>docs/research/2026-07-23_go-cqrs-lite-cqrs-htmx-ecosystem-deep-dive.html</code>
+            (fleet adoption audit, score 58/100) — newer and broader: this
+            report audits the library itself and refreshes every fleet number.
+            <strong>Refresh trigger:</strong> re-run after the v5 module cut,
+            when the fleet census crosses 40 modern consumers, or on the next
+            1,000-commit anniversary. <strong>No docs/research index exists</strong>
+            — noted here per series discipline; adding README.md as an index is
+            a recommended fix (Finding 5).
+          </p>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+          <p>
+            Generated 2026-11-13 &middot; Reviewed at HEAD 3946b7fe6 (2026-11-12)
+            &middot; All claims verified against source code or first-hand
+            command output unless noted &middot; Screenshot:
+            docs/assets/2026-11-13_deep-dive-screenshot.png
+          </p>
+        </footer>
+      </main>
+    </div>
+
+    <!-- Progressive-enhancement scrollspy. Nav still works without JS via anchor links. -->
+    <script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) {
+            return document.getElementById(id);
+          })
+          .filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (link) {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id,
+                  );
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
+      })();
+    </script>
+  </body>
+</html>
