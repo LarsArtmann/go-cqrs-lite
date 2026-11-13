@@ -56,14 +56,74 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 > the plan-cut's first-hand findings (21:12 CET); owning mediums live in the
 > [21-12 plan](docs/planning/2026-11-13_21-12_SUPERB-truth-green-release-train-v5-runway-pareto-plan.md).
 
-- [ ] 🔥 **Harvest the five unharvested status reports** (11-11 09:16, 12:41, 16:42, 20-24; 11-13 14-54) — their §f lists are entombed in timestamped files (the 07-37 entombment lesson); docs-health HARVEST mode. Includes flipping stale-open rows that carry DONE receipts (A8 residue, custom-exports row). _(Effort: M)_
-- [ ] 🔥 **Close #130/#131** — implementations landed on master 2026-11-13 20-22; evidence comments + close ritual owed. _(Effort: XS)_
+- [x] 🔥 **Harvest the five unharvested status reports** (11-11 09:16, 12:41, 16:42, 20-24; 11-13 14-54) — **DONE 2026-11-13 (M31/F194–F198)**: all five read in full; every §f item verified against code/TODO before minting → 37 surviving rows in the "Harvest — 2026-11-11..13 report §f pull-forward" section below; rest already rowed / done / foreign-repo / declined-with-reason. Stale-open rows flipped with receipts: A8 residue pack (go-directive/BuildFlow prose fixed 2026-11-08 per episode7 report; brutal-review HTMLs delivered docs/reviews/2026-11-08_13-20 + 2026-11-09_07-30) and custom-exports (DONE 2026-10-18 ADR-0160 receipt sat under an open box).
+- [ ] 🔥 **Close #130/#131** — implementations landed on master 2026-11-13 20-22. **UPDATE 2026-11-13 (M31)**: `gh issue view 130` shows it was closed BARE at 2026-11-13T20:21:15Z (no evidence comment — the evidence comment is still owed there); #131 remains OPEN. _(Effort: XS)_
 - [ ] 🔥 **Red-gate trio (verified 21:12)**: `check-file-size` — `cmd/cqrs-lint/v4/pkg/analyzer/loader.go` 377 (NEW), `cmd/cqrs-lint/v4/doctor_audit.go` 360 (NEW), `metaengine/sqliteengine/v4/engine.go` 663→664 growth; `check-error-taxonomy` red on a stack/v4 extraction (provenance unknown, previously unrowed); `check-md-go` red on 4 fences inside the untracked `docs/drafts/` issue drafts. _(Effort: S/M)_
 - [ ] 🔥 **Origin-truth triage (2026-11-13)**: CI push `43475265912`, Gates Rollup `43479191413` (schedule), Benchmarks `43475265565`, and Release `43446210196` (catalog/v4.15.0 tag push, 34s) ALL failed today; job-level triage owed (API 502 blocked it at plan time). Autoretry green ×2 masks nothing — the rollup names the owners. _(Effort: M)_
 - [ ] 🔥 **Release wave R11-13**: storage/v4, cmd/cqrs-lint, sqliteengine, metaengine, system, tursoengine (+ the untagged backlog) with changed-set tests per the J1-full contract; consumer flips ride the tags (cqrs-htmx snapshot_shape test + pin, timesheets ignore-start drop, crm serialized-subtest mitigation check). _(Effort: M)_
 - [ ] **Watermill racing-close repeat-leg hang** — nightly repeat leg hangs 20m on the runner, green locally ×2 (11-09 §c1); budget-tune (per-test timeout) or deeper scheduler diagnosis. _(Effort: S, decision)_
 - [ ] **BuildFlow file-size threshold reconciliation** — the 11-13 deep dive measured 235 BuildFlow file-size findings (its stricter threshold) vs the repo's own 350 ratchet (green at 61 baselined); align the tool config to the repo gate or adopt the stricter threshold as a deliberate decision. _(Effort: S, decision)_
 - [ ] **`docs/research/` index README** (deep-dive Finding 5) — the research series has no index. _(Effort: XS)_
+
+## Harvest — 2026-11-11..13 report §f pull-forward (2026-11-13, docs-health HARVEST; 21-12 plan M31/F194–F198)
+
+> Ledger: five reports (11-11 09:16, 12:41, 16:42, 20-24; 11-13 14-54) read in full; every item verified
+> against code + existing TODO rows before minting. Not minted: items already rowed (verify/release/
+> red-gate rows above), done (#120/#128 close rituals, census receipts, tool-side member-fold fix),
+> foreign-repo ideas (GFL/pdg tool-UX tiers — pointed below), and declined one-time checks (fleet go.sum
+> sampling proven by the 09-16 addendum A/B + disk hand-checks; pkg.go.dev render = go-release ritual;
+> connect-latency = pool pre-warm by construction + nightly bench).
+
+### Wave-11/13 hardening tails (owning medium M37; sources 16-42 §e/f + 20-24 §b/f)
+
+- [ ] **Mutation-verify the #128 projectionhost pins** — restore `return saveErr` in liveHandler, prove the 3 new tests fail, restore (16-42 §e1). _(Effort: S)_
+- [ ] **Eager-ping pragma-fail test** — invalid pragma must fail `NewFromDSN`/`NewSQLiteEngineFromDSNWith` at construction (16-42 §e2/f5). _(Effort: XS)_
+- [ ] **Pragma-pool sibling audits: tursoengine + queue/sqlite** — the #128 once-per-pool `PRAGMA busy_timeout` class; tests green ≠ inspected (16-42 §c/f8/f9). _(Effort: S)_
+- [ ] **Doctor `--prune-suppressions` e2e fixture** — prune a LIVE wrong verdict → the loud re-run failure fires (20-24 §b2/f12; `verifyPruneRemovedNothingLive` wiring untested). _(Effort: S)_
+- [ ] **V003 hygiene pack** — honor GOPRIVATE/GONOPROXY, cap parallel proxy fetches (30×1.5s worst case), include the actual latest string in the suggestion, explicit `--no-network` policy (20-24 f13/f14/f29/f30). _(Effort: S)_
+- [ ] **Converter-wrapped args at helper call sites** — `ResolveHelperEmitCalls`/`ResolveCatalogHelperCalls` drop them today (20-24 f15; + source positions in doctor f31). _(Effort: S)_
+- [ ] **D005/cqrs-lint docs** — RULES.md long description (shortname cue semantics), README doctor-subdir note ("audit verdicts are module-scoped even from a subdir run"), doctor header "analyzed subtree of module X" (20-24 f19/f20/f28). _(Effort: XS)_
+- [ ] **FEATURES rows owed** — projectionhost live-checkpoint semantics, sqliteengine per-conn pragmas, doc-check revival, api-stability split, #117 state_shape, #122 sort index (16-42 §e3/f6). _(Effort: XS)_
+- [ ] **`:memory:` + raised MaxOpenConns footgun doc** (pool.go/WithMaxOpenConns) + faq.md SQLITE_BUSY-under-raised-pool paragraph (16-42 §e7/f18/f35). _(Effort: XS)_
+- [ ] **3 obsolete go-snaps goldens in storage/v4** — `UPDATE_SNAPS=clean` (20-24 f23). _(Effort: XS)_
+- [ ] **SnapshotBackend `state_shape` engine-path verify** — system deployments round-trip the shape or file the gap (20-24 f26). _(Effort: S)_
+- [ ] **Small pins pack** — `TestFullDir` legacy-layout case; errorfamily classification assert on the SQLITE_BUSY fixture; pragmaConnector↔`runImmediateTx` cross-link comment; `driver.Validator`/session-reset evaluation; turso driver-factory-layer versioning pin (20-22 f13); `NewV003DetectorWithLatest` fold-into-internal; cell_versioning in Doctor/Explain (16-42 f20/f34/f40/f47, 20-24 f25, 20-22 f13/f16). _(Effort: S total)_
+- [ ] **(repo: webphone) full `go test ./...` + CHANGELOG row** for the enroll unwrap (only passkey+island tests ran) (20-24 f7/f22). _(Effort: XS)_
+- [ ] **(repo: crm) end-to-end proof** — bump the pin (replace→tree), run `board_stage_matrix_test.go` under `-race`, then drop the serialized-subtests mitigation (16-42 §c/f3, 20-24 f11; rides release wave M35). _(Effort: M)_
+- [ ] **systemscenario system-tier pin** — "checkpoint store failure does not fail dispatch" at the SYSTEM tier (16-42 f31; owning medium M49). _(Effort: S)_
+- [ ] **Checkpoint-failure observability family (v5-additive, owner first)** — bounded-warn-storm surfacing in WorkerState/metrics + `WithCheckpointFailureHook` option + idle-stream retry timer + drain-phase degrade decision (16-42 §e4/f17/f32/f39/f45; ruling → M36). _(Effort: M, decision first)_
+
+### Gate-truth + docs tails (owning mediums M38/M39; sources 16-42 §f + 14-54 §f)
+
+- [ ] **Doc-check single-source invocation** — one script both flake+AGENTS reference (the split brain is how it broke); fail loudly on nonexistent file args; no-args default-corpus leg (16-42 §b3/f13/f14/f43). _(Effort: S)_
+- [ ] **Golden-drift daemon guard** — api-stability regen check-or-fail on `.go` commits (the CommandMetadata incident) (16-42 f15). _(Effort: M)_
+- [ ] **api-stability golden scanner semantics** — methods of unexported types (`pragmaConnector.Connect`) get captured; tighten or document (16-42 §e6/f16). _(Effort: S, investigate)_
+- [ ] **v4-move invocation sweep** — other `cd cmd/<tool>` paths one level short (api-stability, cqrs-lint, cqrs-upgrade) in flake/AGENTS/docs; cmd/doc-check README prose; gotchas-module-management v4-move entry (16-42 f21/f22/f49). _(Effort: S)_
+- [ ] **md-go import-only fences case** (16-42 f41). _(Effort: XS)_
+- [ ] **Skill-reference prose sweep for pre-move paths** — corpus fences green; prose outside fences isn't symbol-checked (16-42 f36; M38). _(Effort: S)_
+- [ ] **docs-gates annotate backlog (5 findings) + fix-or-waive the 7 cqrs-lint self-findings** (14-54 f11/f12; M39). _(Effort: S)_
+
+### Substrate/engine tails (owning mediums M48/M51/M53; sources 20-24 §f + 14-54 §f + 20-22 §f)
+
+- [ ] **tursoengine `WithSortIndex` parity + ApplyLayout auto-drop** of residual meta_map sort indexes (20-24 f16/f17). _(Effort: M)_
+- [ ] **100k-row indexed keyset-scan benchmark** into `benchmarks/latency-ceilings.txt` — make the issue's 58.5ms→0.2ms numbers OUR numbers (20-24 f18; M53). _(Effort: S)_
+- [ ] **EXPLAIN QUERY PLAN pins for other meta_map scans (filters)** — pushdown regressions caught like the sort-index pin (20-24 f33). _(Effort: M)_
+- [ ] **state_shape SQL integration legs** — `#integration-pg` + mysql for the new column; only SQLite ran (20-24 f27; M53). _(Effort: S)_
+- [ ] **Boot-time engine-capability assertion** — DeploymentConfig engine lacking a required ADT → refuse to start (14-54 f18). _(Effort: M, design)_
+- [ ] **Engine parity → machine-readable capability assertions** per engine (14-54 f34). _(Effort: M)_
+- [ ] **Graph path split-brain ruling** — `graph.GraphDriver` + pgengine recursive CTE: ONE canonical graph path (14-54 f35). _(Effort: S, ruling)_
+- [ ] **Grouped materialized-view correctness caveat** — readmodels.md promote-or-warn (14-54 f32). _(Effort: XS, ruling)_
+- [ ] **Turso DSN constructors adopt the shared connector pattern** — extract to metaengine core if both engines need it (contract-27) (16-42 f25). _(Effort: S)_
+- [ ] **As-of-read-through-projection e2e in systemtest** — DomainConfig query with AsOf field (20-22 f14; descoped 11-13). _(Effort: M)_
+
+### Attribution-artifact pack (owning mediums M54/M36; sources 09-16 §f + 12-41 §f)
+
+- [ ] **who-uses fold-artifact documentation** — gotchas-tooling-build row (consumer counts are REPO-folded; `via go-cqrs-lite/<module>` ≠ module edge) + AGENTS Quick-Reference cross-link + census-vs-who-uses "different questions" note + v5-fork-and-delete-playbook "delete-at-zero cites census (strict), never who-uses" + one-line cmdguard-v5 CLI-standard fact + `git log -S cmdguard -- '**/go.mod'` historical proof (09-16 f18–f23, 12-41 f41–f45). _(Effort: S)_
+- [ ] **Post-fix census re-run + module-map count verify** — `census-fleet.sh --zero-consumers` archived with the fixed-attribution era noted; verify docs claims citing fleet consumer counts (12-41 f43/f44; M54). _(Effort: S)_
+- [ ] **(repo: project-dependency-graph) member-fold follow-ups** — zero-dep-member regression pin (the metadata→record shape), graph-layer (`serve`/`diff`/`generate`, `why` beyond the empirical check) bleed audit, `nix flake check`, version-authority decision + release carrying the fix, postmortem doc (12-41 §b1–b5, §c1–c6, f1–f20). _(Effort: M, foreign repo)_
+- [ ] **Staging/fork hygiene decisions (owner)** — crm-stage-t13b + cv-stage-crmfix + erraudit-src broken go.mods (upgrade or trash); ci-siblings/go-cqrs-lite stale fork refresh-vs-delete (09-16 f31–f34, 12-41 f21–f24; ruling → M36). _(Effort: owner)_
+
+Routed, not minted (docs-health routing rule): native `[]Edge` fan-out (multi-value fold contract, issue #130's "separate design decision") → ROADMAP; 14-54 GFL-side items (f1–f9, f26–f30, f43–f49) → graph-features-language backlog; 14-54 fleet-mirror consolidations (f42) + InboxClean F009 heads-up (20-24 f24) → foreign-repo owners; pdg tool-UX idea tier (09-16 f33–f50, 12-41 f26–f40) → project-dependency-graph backlog.
 
 > **Prioritized execution plan (2026-09-08):**
 > [`docs/planning/archived/2026-09-08_17-45_SUPERB-pareto-execution-plan.md`](docs/planning/archived/2026-09-08_17-45_SUPERB-pareto-execution-plan.md)
@@ -273,7 +333,7 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 - [x] **Brutal-audit follow-up A5 — deleted-transport residue sweep** — DONE 2026-11-08 17:30: nine live lies fixed — taskmanager `http.go`+`setup.go` stale "replaces the deprecated transport/http.SSEBroker" comments dropped; `metaengine/sse.go` doc comment ("removed at v5" was FALSE — it was deleted 2026-10-17) corrected; `metaengine/README.md` actively-wrong "use transport/http.SSEBroker instead" guidance repointed at watermill/go-sse; `watermill/catchup_replay.go` stale comparison dropped; `docs/DOMAIN_LANGUAGE.md` Heartbeat+Backfill rows repointed at `metaengine.WithSSEHeartbeat` / `Watcher.WithReplay`+`CatchUpSubscriber`; watermill-skill `internals.md` "deprecated until v5" fixed; `cmd/cqrs-lint/README.md` transport profile wording truthed; `docs/migration/MIGRATION-GUIDE.md` classified HISTORICAL (dated banner). SKILL.md + skill references were already honest DELETED notices (verified, untouched). Receipts: metaengine+watermill+taskmanager `GOWORK=off go build ./...` green; canonical doc-check 1,389/1,389 refs valid. Source: `docs/status/2026-11-08_08-52_brutal-audit-ci-fuzz-doc-drift-status.md`.
 - [x] **Brutal-audit follow-up A6 — ambiguous-alias warning policy** — RESOLVED 2026-11-08 17:32 (policy: mirror-aware split): `cmd/doc-check` now classifies multi-dir aliases via `mirrorAliasDirs` — a v4↔core/v5 copy-forward twin pair (ADR-0152) is the SANCTIONED informational class (all six live warnings are exactly that: event, command, query, dispatcher, id, kv); any UNKNOWN ambiguity is now FATAL (`errAmbiguousAlias`, new tripwire in main.go). The documented "fails on ANY warning" contract is amended in AGENTS.md contract #20 to name both classes. Receipts: 3 new unit tests (`TestMirrorAliasDirs`, `TestVerifyBlocks_MirrorAmbiguityIsKnownNotUnknown`, `TestVerifyBlocks_NonMirrorAmbiguityIsUnknown` — the last is the mutation proof for the fatal class); full doc-check suite green 17.7s; canonical scan exit 0, 1,389 refs valid, six mirrors logged informational. Source: same report.
 - [x] **Brutal-audit follow-up A7 — red-nightly rollup signal** — DONE 2026-11-08 17:50: `scripts/check-gates-rollup.sh` aggregates the latest COMPLETED run of the five required workflows (CI, Nightly Gates, Fuzz Nightly, Benchmarks, Soaks — list lives in ONE place in the script); any `failure` conclusion turns the rollup red NAMING the owning workflow + run URL; in-progress/queued/cancelled/skipped are ignored; missing `gh` data refuses to pass. `--self-test` plants fixtures: all-green passes, one-red fails naming the owner (mutation proof), in-progress ignored (also caught + fixed a real SIGPIPE-under-pipefail bug via the repo's documented 2026-10-01 lesson). Scheduled signal: `.github/workflows/gates-rollup.yml` every 6h + dispatch, self-test runs before real mode, actionlint clean, shellcheck clean. First live run already surfaced the truth: Nightly Gates `42445543709` + Fuzz Nightly `42443401875` still red on origin (their reruns ride tonight's schedules — see A1). Source: same report.
-- [ ] **Brutal-audit follow-up A8 — residue pack** — REMAINS: go-directive/BuildFlow prose drift + the owed brutal-review HTML. CLOSED 2026-11-09 with dated receipts:
+- [x] **Brutal-audit follow-up A8 — residue pack** — CLOSED 2026-11-09 with dated receipts; the two REMAINS items verified delivered 2026-11-13 (M31 harvest): go-directive/BuildFlow prose drift FIXED 2026-11-08 (episode7 report: "contradictory Go-directive/BuildFlow prose for at least a month (fixed today)"), owed brutal-review HTML DELIVERED (`docs/reviews/2026-11-08_13-20_brutal-self-review.html` + `2026-11-09_07-30_brutal-self-review.html`):
       - **Root-artifact generator hunt** — DONE 2026-11-09: NO generator exists; `reports/coverage.out` (13-byte "mode: atomic" header) was a one-off aborted manual `go test -coverprofile` invocation, untracked + gitignored (`/reports/`), trashed. `result/` is a nix build mount (gitignored), `benchmarks/` + `scratch/counterkey` are TRACKED deliberate artifacts/modules.
       - **`StreamIDFrom` zero-ID semantics** — DONE 2026-11-09: zero-ID contract documented on both twins (`id/stream_id.go`, `core/v5/id/stream_id.go`) naming the downstream guards (`StreamRef.Validate()` code `id.nil_stream_id`, `StreamID.IsZero()`); api golden regenerated same-edit (6,475 exports). Only live caller is commandlifecycle (trusted ULID-backed Stringer) — no behavior change needed.
       - **879-finding mechanical triage** — DONE 2026-11-09: raw count is NOT a defect count. Real (excl. build//generated) rows: dupe 493 rows (owned by the calibrated art-dupl gate + deliberate per-example self-containment), phantom 363 (raw strings in catalog/exporter BOUNDARY code — branded-ID doctrine covers domain code, not schema serialization), mixins 226 (embedding is the repo's sanctioned composition doctrine), flagparam 41 + boolblind 13 + ifacecomplete 9 + anti-patterns 34 (small opportunistic sets, no gate action). Panic-analyzer "0 vs 61 panics" is NOT an exemption bug: `branching-flow panic .` silently returns [] while `branching-flow panic event` finds 1 — a root-target invocation bug in the TOOL (foreign repo ~/projects/branching-flow; same family as the rowed dupe-nolint bug). Explicit guard-call panics (nil-arg guards) are deliberately unflagged and correctly so.
@@ -441,7 +501,7 @@ DONE this arc (receipts in CHANGELOG `[Unreleased]`, ADR-0164, and the §"Bounde
       session). M3–M11 landed first; the final re-arm rides the quiet tree
       (receipt recorded here when green).
 
-- [ ] **Custom exports — the EventCatalog 5.2 half (deferred by ADR-0159)**:
+- [x] **Custom exports — the EventCatalog 5.2 half (deferred by ADR-0159)** — **flipped 2026-11-13 (M31 harvest; the DONE receipt below sat under an open box for a month)**:
       selector model (`include`/`exclude`, "exclude applied first and always
       wins"), `references: omit|name-only|include`, `hide:
       [owners,repository,contacts,docs,specifications,examples]`,
