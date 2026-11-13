@@ -1,5 +1,9 @@
 # system: ADR-0141 temporal cells are unreachable through system.New — no EngineConfig/DriverConfig surface for cell versioning
 
+# Draft: temporal cell versioning unreachable through system.New (issue #131)
+
+> **Status 2026-11-13: SHIPPED.** `EngineConfig.CellVersioning` (koanf `cell_versioning: {max_versions, max_age}`) now plumbs through `DriverConfig.CellVersioning` into every registered driver factory — sqlite/turso/memory/bigtable build versioned engines, all other engines fail construction loudly via `metaengine.RejectCellVersioning`. This draft is the historical issue text.
+
 ## TL;DR
 
 `sqliteengine.WithCellVersioning` / `WithRetention` are engine-construction options, but `system.New` builds engines from `DriverConfig` through registered driver factories (database/sql model), and neither `DeploymentConfig.Engines` (`EngineConfig`) nor `metaengine.DriverConfig` carries any versioning or retention field — so a composition-root deployment **cannot enable temporal cells at all**. Ask: **a config surface (e.g. `cell_versioning: {max_versions, max_age}`) plumbed from `EngineConfig` through `DriverConfig` into engine construction**.
@@ -9,6 +13,7 @@
 At `5639c0d6` (2026-11-13), `system/v4/engine_config.go`:
 
 ```go
+// skip-validate
 type EngineConfig struct {
 	Driver  string   `koanf:"driver"`  // "sqlite", "memory", "pebble", "duckdb", "postgres"
 	DSN     string   `koanf:"dsn"`     // connection string (empty for memory)
@@ -18,6 +23,7 @@ type EngineConfig struct {
 …followed by `Priority`, `Durability`, `MaterializedViews`, `MaxOpenConns` — no versioning, no retention. The metaengine side mirrors it (`metaengine/v4/registry.go`):
 
 ```go
+// skip-validate
 type DriverConfig struct {
 	DSN     string
 	Pragmas []string
@@ -26,6 +32,7 @@ type DriverConfig struct {
 …plus `Priority`, `Durability`, `MaterializedViews`, `MaxOpenConns`. `DriverFactory` is `func(ctx, DriverConfig) (Engine, error)` and drivers register at init — there is deliberately no caller-supplied-engine path. Meanwhile the temporal options that ADR-0141 shipped live only as direct engine options (`metaengine/sqliteengine/v4/temporal.go`):
 
 ```go
+// skip-validate
 func WithCellVersioning(opts ...CellVersioningOption) EngineOption {
 	return func(e *sqliteEngine) {
 		e.versioning = true

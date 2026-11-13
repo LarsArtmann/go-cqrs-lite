@@ -1,5 +1,9 @@
 # metaengine: a fold returning []Edge is silently classified as a Set fold — non-canonical handler shapes misroute instead of failing loud
 
+# Draft: `[]Edge` folds silently misclassified as Set (issue #130)
+
+> **Status 2026-11-13: SHIPPED.** `metaengine/v4/fold_single_return.go` now rejects slice-of-canonical-fold-unit returns loudly at construction (`rejectSliceOfFoldUnit`, message names issue #130). This draft is the historical issue text.
+
 ## TL;DR
 
 An `OnRecord` handler whose single return type matches no canonical fold unit falls into the `default:` setFold branch, so `func(record.Record, E) []Edge` plans and applies "successfully" as an **ADTSet** collection keyed by the slice value — no panic, no error, and not one edge ever written. Ask: **reject slice-of-canonical-unit returns loudly at fold construction** (native `[]Edge` fan-out support can be a separate decision).
@@ -9,6 +13,7 @@ An `OnRecord` handler whose single return type matches no canonical fold unit fa
 `metaengine/v4/record_fold.go` at `5639c0d6` (verbatim, the tail of `onRecordFold`):
 
 ```go
+// skip-validate
 default:
 	invoke := func(rec record.Record, event any) any {
 		return callWithRecord(rec, event)[0].Interface()
