@@ -80,7 +80,7 @@ errorfamily.Classify(err) // => Conflict
 
 <!-- generate-error-taxonomy:begin (scripts/generate-error-taxonomy.sh writes this region — edit outside the markers) -->
 
-### middleware
+### middleware/v4
 
 | Error                 | Family         | Code                                               |
 | --------------------- | -------------- | -------------------------------------------------- |
@@ -115,7 +115,7 @@ errorfamily.Classify(err) // => Conflict
 - Unreferenced named errors (dead-sentinel candidates): `ErrMeterRequired`
 - 20 of 27 codes are inline mints (no named sentinel)
 
-### graph
+### graph/v4
 
 | Error                        | Family         | Code                                  |
 | ---------------------------- | -------------- | ------------------------------------- |
@@ -153,10 +153,10 @@ errorfamily.Classify(err) // => Conflict
 | errSinkUnknownProp           | Rejection      | `graph.sink.unknown_prop`             |
 | errSinkWrongKeyProp          | Rejection      | `graph.sink.wrong_key_prop`           |
 
-- Unreferenced named errors (dead-sentinel candidates): `errEmptyEdgeType`, `errEmptyKeyProp`, `errEmptyLabel`, `errNilDriver`, `errNilHandler`, `errNoName`, `errSchemaNoNodeTypes`
+- Unreferenced named errors (dead-sentinel candidates): `ErrPathNotFound`, `errEmptyEdgeType`, `errEmptyKeyProp`, `errEmptyLabel`, `errNilDriver`, `errNilHandler`, `errNoName`, `errSchemaNoNodeTypes`
 - 5 of 33 codes are inline mints (no named sentinel)
 
-### storage/relational
+### storage/v4/relational
 
 | Error                        | Family     | Code                                      |
 | ---------------------------- | ---------- | ----------------------------------------- |
@@ -222,7 +222,7 @@ errorfamily.Classify(err) // => Conflict
 - Unreferenced named errors (dead-sentinel candidates): `errRelationalNilDB`, `errRelationalNilDialect`, `errRelationalNilHandler`, `errRelationalNoName`, `errSchemaNoTables`, `errSchemaTableNoColumns`, `errSchemaTableNoName`, `errSinkEmptyRow`
 - 36 of 58 codes are inline mints (no named sentinel)
 
-### projectionhost
+### projectionhost/v4
 
 | Error              | Family         | Code                                        |
 | ------------------ | -------------- | ------------------------------------------- |
@@ -261,7 +261,7 @@ errorfamily.Classify(err) // => Conflict
 
 - 30 of 32 codes are inline mints (no named sentinel)
 
-### claiming
+### claiming/v4
 
 | Error           | Family         | Code                      |
 | --------------- | -------------- | ------------------------- |
@@ -271,16 +271,16 @@ errorfamily.Classify(err) // => Conflict
 - Unreferenced named errors (dead-sentinel candidates): `ErrLeaseNotHeld`, `ErrUnsupported`
 - 1 of 2 codes are inline mints (no named sentinel)
 
-### queue
+### queue/v4
 
 | Error           | Family        | Code                   |
 | --------------- | ------------- | ---------------------- |
 | ErrDanglingDep  | Rejection     | `queue.dangling_dep`   |
 | ErrLeaseNotHeld | Orchestration | `queue.lease_not_held` |
 
-- Unreferenced named errors (dead-sentinel candidates): `ErrDanglingDep`, `ErrDuplicateID`, `ErrEmptyType`, `ErrInvalidTransition`, `ErrLeaseNotHeld`, `ErrNotFound`, `errDSNRequired`, `errNilPool`, `errObservationAbandoned`
+- Unreferenced named errors (dead-sentinel candidates): `ErrDanglingDep`, `ErrDuplicateID`, `ErrEmptyType`, `ErrInvalidTransition`, `ErrLeaseNotHeld`, `ErrNoTaskDue`, `ErrNotFound`, `errObservationAbandoned`
 
-### watermill
+### watermill/v4
 
 | Error               | Family         | Code                                    |
 | ------------------- | -------------- | --------------------------------------- |
@@ -315,7 +315,7 @@ errorfamily.Classify(err) // => Conflict
 - Unreferenced named errors (dead-sentinel candidates): `ErrMissingMetadata`
 - 25 of 27 codes are inline mints (no named sentinel)
 
-### storage/pebble
+### storage/pebble/v4
 
 | Error                 | Family         | Code                               |
 | --------------------- | -------------- | ---------------------------------- |
@@ -462,7 +462,7 @@ errorfamily.Classify(err) // => Conflict
 | -                     | Corruption     | `command.typed_store.encode_batch` |
 | -                     | Infrastructure | `command.typed_store.load`         |
 
-- Unreferenced named errors (dead-sentinel candidates): `ErrCommandNotFound`, `ErrDispatcherClosed`, `ErrStoreClosed`, `ErrTypeAssertion`, `errNilBusSubscribeAll`
+- Unreferenced named errors (dead-sentinel candidates): `ErrCommandNotFound`, `ErrDispatcherClosed`, `ErrDuplicateCommand`, `ErrStoreClosed`, `ErrTypeAssertion`, `errNilBusSubscribeAll`
 - 6 of 17 codes are inline mints (no named sentinel)
 
 ### core/query
@@ -483,10 +483,10 @@ errorfamily.Classify(err) // => Conflict
 | -                   | Corruption     | `query.typed_store.encode` |
 | -                   | Infrastructure | `query.typed_store.load`   |
 
-- Unreferenced named errors (dead-sentinel candidates): `ErrDispatcherClosed`, `ErrQueryNotFound`, `ErrStoreClosed`, `ErrTypeAssertion`
+- Unreferenced named errors (dead-sentinel candidates): `ErrDispatcherClosed`, `ErrDuplicateQuery`, `ErrQueryNotFound`, `ErrStoreClosed`, `ErrTypeAssertion`
 - 6 of 13 codes are inline mints (no named sentinel)
 
-### storage/view
+### storage/v4/view
 
 | Error                    | Family         | Code                                       |
 | ------------------------ | -------------- | ------------------------------------------ |
@@ -537,7 +537,7 @@ errorfamily.Classify(err) // => Conflict
 | -                    | Infrastructure | `duckdb_preset.init_schema`             |
 | -                    | Infrastructure | `duckdb_preset.init_stack`              |
 | -                    | Infrastructure | `memory.wire_bundle`                    |
-| -                    | Rejection      | `mysql.no_database`                     |
+| ErrNoDatabase        | Rejection      | `mysql.no_database`                     |
 | -                    | Infrastructure | `mysql_preset.create_secondary_backend` |
 | -                    | Infrastructure | `mysql_preset.finalize_bundle`          |
 | -                    | Infrastructure | `mysql_preset.init_schema`              |
@@ -548,7 +548,7 @@ errorfamily.Classify(err) // => Conflict
 | -                    | Infrastructure | `pebble_preset.wire_bundle`             |
 | -                    | Infrastructure | `postgres.create_secondary_backend`     |
 | -                    | Infrastructure | `postgres.init_schema`                  |
-| -                    | Rejection      | `postgres.no_database`                  |
+| ErrNoDatabase        | Rejection      | `postgres.no_database`                  |
 | -                    | Infrastructure | `postgres.open_secondary`               |
 | -                    | Infrastructure | `postgres_preset.finalize_bundle`       |
 | -                    | Infrastructure | `postgres_preset.init_schema`           |
@@ -557,7 +557,7 @@ errorfamily.Classify(err) // => Conflict
 | -                    | Infrastructure | `sqlite.enable_fk`                      |
 | -                    | Infrastructure | `sqlite.enable_wal`                     |
 | -                    | Infrastructure | `sqlite.init_schema`                    |
-| -                    | Rejection      | `sqlite.no_database`                    |
+| ErrNoDatabase        | Rejection      | `sqlite.no_database`                    |
 | -                    | Infrastructure | `sqlite.open`                           |
 | -                    | Infrastructure | `sqlite.optimize`                       |
 | -                    | Infrastructure | `sqlite_preset.apply_durability`        |
@@ -610,9 +610,9 @@ errorfamily.Classify(err) // => Conflict
 | -                    | Infrastructure | `turso_preset.wire_sync_bundle`         |
 
 - Unreferenced named errors (dead-sentinel candidates): `ErrEmpty`, `ErrMissingCheckpoint`, `ErrMissingEventStore`, `ErrMissingJournal`, `ErrMissingProjection`, `ErrMissingPublisher`, `ErrMissingQueryStore`, `ErrMissingReadModels`, `ErrMissingSubscriber`, `ErrNoDatabase`
-- 71 of 80 codes are inline mints (no named sentinel)
+- 68 of 80 codes are inline mints (no named sentinel)
 
-### deriver
+### deriver/v4
 
 | Error            | Family        | Code                     |
 | ---------------- | ------------- | ------------------------ |
@@ -621,7 +621,7 @@ errorfamily.Classify(err) // => Conflict
 
 - Unreferenced named errors (dead-sentinel candidates): `ErrNilDispatcher`
 
-### storage (SQL facade)
+### storage/v4 (SQL facade)
 
 | Error                    | Family         | Code                                       |
 | ------------------------ | -------------- | ------------------------------------------ |
@@ -671,7 +671,6 @@ errorfamily.Classify(err) // => Conflict
 | -                        | Infrastructure | `storage.open_duckdb`                      |
 | -                        | Infrastructure | `storage.open_sqlite`                      |
 | -                        | Infrastructure | `storage.open_sqlite_in_memory`            |
-| -                        | Infrastructure | `storage.open_turso_sync`                  |
 | -                        | Corruption     | `storage.parse_command_id`                 |
 | -                        | Corruption     | `storage.parse_command_metadata`           |
 | -                        | Corruption     | `storage.parse_event_id`                   |
@@ -708,25 +707,24 @@ errorfamily.Classify(err) // => Conflict
 | -                        | Infrastructure | `storage.snapshot_column_probe`            |
 | -                        | Infrastructure | `storage.snapshot_column_rename`           |
 | -                        | Rejection      | `storage.snapshot_not_found`               |
+| -                        | Infrastructure | `storage.snapshot_state_shape_add`         |
+| -                        | Infrastructure | `storage.snapshot_state_shape_probe`       |
 | -                        | Rejection      | `storage.sql.invalid_column`               |
 | -                        | Rejection      | `storage.sql.invalid_operator`             |
 | -                        | Infrastructure | `storage.sql_load`                         |
 | -                        | Infrastructure | `storage.stream_from_start`                |
-| -                        | Conflict       | `storage.stream_id_mismatch`               |
+| ErrStreamIDMismatch      | Conflict       | `storage.stream_id_mismatch`               |
 | -                        | Infrastructure | `storage.stream_iterate`                   |
 | -                        | Infrastructure | `storage.stream_query`                     |
 | -                        | Infrastructure | `storage.stream_query_from`                |
 | -                        | Infrastructure | `storage.stream_read_all`                  |
 | -                        | Infrastructure | `storage.stream_read_from`                 |
 | -                        | Infrastructure | `storage.stream_resolve_cursor`            |
-| -                        | Conflict       | `storage.stream_type_mismatch`             |
-| -                        | Rejection      | `storage.turso_memory_sync`                |
-| -                        | Infrastructure | `storage.turso_pull`                       |
-| -                        | Infrastructure | `storage.turso_stats`                      |
+| ErrStreamTypeMismatch    | Conflict       | `storage.stream_type_mismatch`             |
 | ErrUnexpectedTimeType    | Corruption     | `storage.unexpected_time_type`             |
 | -                        | Corruption     | `storage.unmarshal_timer_payload`          |
 | ErrUnsupportedTimestamp  | Corruption     | `storage.unsupported_timestamp`            |
-| -                        | Conflict       | `storage.version_mismatch`                 |
+| ErrVersionMismatch       | Conflict       | `storage.version_mismatch`                 |
 | -                        | Corruption     | `storage.view.auto.scan_row`               |
 | -                        | Transient      | `storage.view.batch_chunk`                 |
 | -                        | Rejection      | `storage.view.batch_nil`                   |
@@ -758,10 +756,10 @@ errorfamily.Classify(err) // => Conflict
 | -                        | Rejection      | `storage.view.unsupported_operator`        |
 | -                        | Rejection      | `storage.view.validate_mapper`             |
 
-- Unreferenced named errors (dead-sentinel candidates): `ErrClosed`, `ErrHandlerNil`, `ErrNilDB`, `ErrNilDatabase`, `ErrQuotaExceeded`, `ErrVersionMismatch`, `errMapperColumnsRequired`, `errMapperScanRowRequired`, `errMapperTableRequired`, `errRelationalNilDB`, `errRelationalNilDialect`, `errRelationalNilHandler`, `errRelationalNoName`, `errSchemaNoTables`, `errSchemaTableNoColumns`, `errSchemaTableNoName`, `errSinkEmptyRow`
-- 120 of 132 codes are inline mints (no named sentinel)
+- Unreferenced named errors (dead-sentinel candidates): `ErrClosed`, `ErrNilDB`, `ErrVersionMismatch`, `errMapperColumnsRequired`, `errMapperScanRowRequired`, `errMapperTableRequired`, `errRelationalNilDB`, `errRelationalNilDialect`, `errRelationalNilHandler`, `errRelationalNoName`, `errSchemaNoTables`, `errSchemaTableNoColumns`, `errSchemaTableNoName`, `errSinkEmptyRow`
+- 115 of 130 codes are inline mints (no named sentinel)
 
-### metaengine
+### metaengine/v4
 
 | Error                        | Family        | Code                                      |
 | ---------------------------- | ------------- | ----------------------------------------- |
@@ -781,7 +779,7 @@ errorfamily.Classify(err) // => Conflict
 | ErrVectorDimensionMismatch   | Rejection     | `metaengine.vector_dimension_mismatch`    |
 | ErrVerifyDrift               | Corruption    | `metaengine.verify_drift`                 |
 
-- Unreferenced named errors (dead-sentinel candidates): `ErrCollectionCountMismatch`, `ErrDuplicateEvent`, `ErrFrameTooLarge`, `ErrGraphBackendNotImplemented`, `ErrMapUpdaterNotImplemented`, `ErrNoEventLog`, `ErrNoProber`, `ErrNoQueryDecls`, `ErrScanBackendNotImplemented`, `ErrSearchBackendNotImplemented`, `ErrSpatialBackendNotImplemented`, `ErrTransportClosed`, `ErrVectorBackendNotImplemented`, `_`, `errCannotInferADT`, `errEdgeRemoval`, `errNoEngine`, `errNoQuery`, `errNotBinaryVector`, `errQuicTransportClosed`, `errSSENoFlusher`, `errTransportClosed`, `errUndirectedGraph`, `errUnsupportedCounterOps`, `errUnsupportedCounterReads`, `errUnsupportedGraphOps`, `errUnsupportedGraphReads`, `errUnsupportedLogOps`, `errUnsupportedLogReads`, `errUnsupportedMapOps`, `errUnsupportedMultiReads`, `errUnsupportedMultimapOps`, `errUnsupportedSearchOps`, `errUnsupportedSearchReads`, `errUnsupportedSetOps`, `errUnsupportedSpatialOps`, `errUnsupportedSpatialReads`, `errUnsupportedVectorFilters`, `errUnsupportedVectorOps`, `errUnsupportedVectorReads`
+- Unreferenced named errors (dead-sentinel candidates): `ErrCollectionCountMismatch`, `ErrDuplicateEvent`, `ErrLayoutConflict`, `ErrNoEventLog`, `ErrNoQueryDecls`, `ErrPlannedColumnTypeMismatch`, `ErrVersionConflict`, `errCannotInferADT`, `errEdgeRemoval`, `errNoEngine`, `errNoQuery`, `errNotBinaryVector`, `errSSENoFlusher`, `errUndirectedGraph`, `errUnsupportedCounterOps`, `errUnsupportedCounterReads`, `errUnsupportedGraphOps`, `errUnsupportedGraphReads`, `errUnsupportedLogOps`, `errUnsupportedLogReads`, `errUnsupportedMapOps`, `errUnsupportedMultiReads`, `errUnsupportedMultimapOps`, `errUnsupportedSearchOps`, `errUnsupportedSearchReads`, `errUnsupportedSetOps`, `errUnsupportedSpatialOps`, `errUnsupportedSpatialReads`, `errUnsupportedVectorFilters`, `errUnsupportedVectorOps`, `errUnsupportedVectorReads`
 - 7 of 15 codes are inline mints (no named sentinel)
 
 <!-- generate-error-taxonomy:end -->
