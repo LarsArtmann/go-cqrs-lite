@@ -44,6 +44,16 @@ type DriverConfig struct {
 	// negative keeps the engine's default (for SQLite that is the
 	// deliberate 1). Engines without a pool ignore the field.
 	MaxOpenConns int
+
+	// CellVersioning enables BigTable-style versioned cells (ADR-0141) on
+	// this engine, optionally bounding retention: nil (the default) leaves
+	// the engine unversioned; a non-nil policy enables versioning, and a
+	// zero policy versions with keep-everything retention. Engines that
+	// cannot version cells must fail construction on any non-nil value
+	// via [RejectCellVersioning] rather than silently ignoring the request.
+	// Engines that version natively by construction (BigTable) translate
+	// the policy into their native retention knob (the GC policy).
+	CellVersioning *RetentionPolicy
 }
 
 // DriverFactory creates an Engine from a DriverConfig. Implementations are

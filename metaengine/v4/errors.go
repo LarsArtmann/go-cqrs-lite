@@ -39,6 +39,9 @@ var (
 
 	// Construction-time errors.
 	errUnsupportedDurability = errors.New("unsupported durability tier")
+	errUnsupportedCellVersioning = errors.New(
+		"unsupported cell versioning",
+	)
 	errExecuteTypeMismatch   = errors.New(
 		"metaengine.ExecuteTyped: result type does not match expected",
 	)
@@ -186,6 +189,11 @@ var (
 	// requested DurabilityTier is invalid or not implemented by the driver.
 	// See ValidateDurabilityTier and RejectDurabilityTier.
 	ErrUnsupportedDurability = errUnsupportedDurability
+
+	// ErrUnsupportedCellVersioning is returned at engine construction when
+	// DriverConfig.CellVersioning names a retention policy but the driver
+	// cannot version cells. See RejectCellVersioning.
+	ErrUnsupportedCellVersioning = errUnsupportedCellVersioning
 
 	// ErrScanTruncated is returned by TypedReader.Scan/ScanPage when
 	// WithExact was requested and the engine reported more matching rows than

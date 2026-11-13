@@ -2,6 +2,7 @@ package metaengine
 
 import (
 	"context"
+	"fmt"
 	"reflect"
 	"time"
 
@@ -86,6 +87,53 @@ type CellHistoryReader interface {
 type RetentionPolicy struct {
 	MaxVersions int
 	MaxAge      time.Duration
+}
+
+// Validate reports whether the policy is well-formed: both knobs must be
+// zero (unlimited) or positive. Negative values are rejected loudly — they
+// read as "keep minus N versions", which no engine implements.
+func (p RetentionPolicy) Validate() error {
+	switch {
+	case p.MaxVersions < 0:
+		return fmt.Errorf("max_versions must be >= 0, got %d", p.MaxVersions)
+	case p.MaxAge < 0:
+		return fmt.Errorf("max_age must be >= 0, got %s", p.MaxAge)
+	default:
+		return nil
+	}
+}
+
+// RejectCellVersioning fails construction when cfg requests cell versioning.
+// Engines that cannot record versioned cells call it first in their driver
+// factory so an explicit operator request is rejected loudly instead of
+// silently building an unversioned engine (issue #131 — the same contract
+// [RejectDurabilityTier] enforces for durability tiers):
+//
+//	func init() {
+//		metaengine.RegisterDriver("pebble", func(_ context.Context, cfg metaengine.DriverConfig) (metaengine.Engine, error) {
+//			if err := metaengine.RejectCellVersioning("pebble", cfg); err != nil {
+//				return nil, err
+//			}
+//			return NewPebbleEngine(cfg.DSN)
+//		})
+//	}
+//
+// A nil cfg.CellVersioning passes: versioning off is the default every
+// engine supports.
+func RejectCellVersioning(driver string, cfg DriverConfig) error {
+	if cfg.CellVersioning == nil {
+		return nil
+	}
+
+	if err := cfg.CellVersioning.Validate(); err != nil {
+		return fmt.Errorf("driver %q cell_versioning: %w", driver, err)
+	}
+
+	return fmt.Errorf(
+		"driver %q does not implement cell versioning (remove the cell_versioning setting or pick an engine that does): %w",
+		driver,
+		ErrUnsupportedCellVersioning,
+	)
 }
 
 // CellVersioningToggle is implemented by engines whose versioned-cell
