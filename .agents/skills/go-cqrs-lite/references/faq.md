@@ -847,3 +847,42 @@ instances:
 EMPTY instance list), so the same Go code boots both topologies. The
 NixOS twin honors the same escape hatch: `cqrs.deployments.<name>.instances`
 set explicitly suppresses the `standardTopology` filler.
+
+## Why can't I enable cell versioning (or other sqliteengine options) through DeploymentConfig?
+
+Because the operator config surface is narrower than the engine option
+surface. `DeploymentConfig.Engines` (`EngineConfig`) and the metaengine
+`DriverConfig` passed to driver factories expose Driver / DSN / Pragmas /
+Priority / Durability / MaterializedViews / MaxOpenConns — but NOT
+`sqliteengine.WithCellVersioning` / `WithRetention` (ADR-0141 temporal
+cells), and drivers register as factories (database/sql model), so a
+prebuilt engine cannot be injected either (verified against system v4.18.0
+`engine_config.go`, metaengine v4.23.0 `registry.go`, 2026-11-13).
+
+Options today: construct the sqlite engine directly and register your own
+driver factory via `metaengine.RegisterDriver` before `system.New`; run a
+non-standard topology with a caller-owned engine; or grow an upstream
+`EngineConfig` field (design with the owner — I/O rule B). Do not open a
+second storage path beside the substrate.
+
+## A graph edge fold returns ONE Edge — how do I project N edges from one event?
+
+The ADTGraph fold contract is `func(E) Edge` (or `EdgeRemoval`): one edge
+per event occurrence (`edgeFold` in metaengine; advanced.md §6.13). An
+event that carries a LIST of relations (e.g. a batch of facts → N skill
+edges) has three shapes: emit one event per relation at the write side
+(journal grows, replay stays exact); fold into a Multimap/Map collection
+and derive edges in a second pass; or check for multi-value fold support
+in YOUR pinned metaengine version before assuming it (unverified in
+v4.23.0 at the time of writing). The same arity question applies to
+vector folds (`func(E) Embedding`).
+
+## Vector folds re-run on every rebuild — what does that cost?
+
+`Projector.Rebuild` replays the journal through the same folds: a vector
+fold calling a REMOTE embedding provider re-embeds (and pays for) the
+entire corpus on every rebuild or `doctor --repair`-style replay.
+metaengine has no embedding cache. Prefer deterministic offline embeddings
+(hash-provider semantics) for rebuild-cheap vectors, or accept the cost
+knowingly. Embedding dimension is pinned per collection — switching
+providers mid-life requires a new collection, not an in-place swap.
