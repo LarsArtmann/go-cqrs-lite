@@ -2,6 +2,9 @@ package bigtableengine
 
 import (
 	"context"
+	"fmt"
+
+	"cloud.google.com/go/bigtable"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
@@ -23,14 +26,51 @@ func init() {
 				return nil, err
 			}
 
-			return New(
+			// BigTable versions cells natively, so cell_versioning never
+			// gates construction here — a requested RetentionPolicy maps
+			// onto the column-family GC policy (ADR-0141 §1's analog of
+			// client-side retention trimming).
+			var engineOpts []Option
+			if cfg.CellVersioning != nil {
+				if err := cfg.CellVersioning.Validate(); err != nil {
+					return nil, fmt.Errorf("driver %q cell_versioning: %w", "bigtable", err)
+				}
+
+				if gc := gcPolicyFor(*cfg.CellVersioning); gc != nil {
+					engineOpts = append(engineOpts, WithGCPolicy(gc))
+				}
+			}
+
+			return dial(
 				ctx,
 				project,
 				instance,
 				table,
-			)
+				engineOpts,
+			) //nolint:wrapcheck // factory passthrough
 		},
 	)
+}
+
+// gcPolicyFor translates a RetentionPolicy into its BigTable GC-policy
+// analog: MaxVersions → MaxVersionsPolicy, MaxAge → MaxAgePolicy, both →
+// IntersectionPolicy (a version survives only when it satisfies BOTH —
+// RetentionPolicy semantics). A zero policy returns nil: no GC policy,
+// every version kept.
+func gcPolicyFor(p metaengine.RetentionPolicy) bigtable.GCPolicy {
+	switch {
+	case p.MaxVersions > 0 && p.MaxAge > 0:
+		return bigtable.IntersectionPolicy(
+			bigtable.MaxVersionsPolicy(p.MaxVersions),
+			bigtable.MaxAgePolicy(p.MaxAge),
+		)
+	case p.MaxVersions > 0:
+		return bigtable.MaxVersionsPolicy(p.MaxVersions)
+	case p.MaxAge > 0:
+		return bigtable.MaxAgePolicy(p.MaxAge)
+	default:
+		return nil
+	}
 }
 
 // parseDSN splits "project/instance/table" (3 non-empty components).
