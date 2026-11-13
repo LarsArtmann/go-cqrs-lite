@@ -15,6 +15,10 @@ func init() {
 				return nil, err
 			}
 
+			if err := metaengine.RejectCellVersioning("dgraph", cfg); err != nil {
+				return nil, err
+			}
+
 			return New(cfg.DSN) //nolint:contextcheck // constructor doesn't take ctx
 		},
 	)

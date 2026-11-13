@@ -11,6 +11,10 @@ func init() {
 	metaengine.RegisterDriver(
 		"bbolt",
 		func(_ context.Context, cfg metaengine.DriverConfig) (metaengine.Engine, error) {
+			if err := metaengine.RejectCellVersioning("bbolt", cfg); err != nil {
+				return nil, err
+			}
+
 			opts, err := tierToOptions(cfg.Durability)
 			if err != nil {
 				return nil, err

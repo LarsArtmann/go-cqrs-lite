@@ -11,6 +11,10 @@ func init() {
 	metaengine.RegisterDriver(
 		"postgres",
 		func(_ context.Context, cfg metaengine.DriverConfig) (metaengine.Engine, error) {
+			if err := metaengine.RejectCellVersioning("postgres", cfg); err != nil {
+				return nil, err
+			}
+
 			dsn, err := durabilityDSN(cfg.Durability, cfg.DSN)
 			if err != nil {
 				return nil, err
