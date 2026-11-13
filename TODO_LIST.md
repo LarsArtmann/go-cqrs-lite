@@ -2175,6 +2175,13 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
 > enumeration in tooling (api-stability, cqrs-lint `StoreBigTable` +
 > `metaengineEngineFromImport`) landed 2026-09-18 evening session.
 
+- [x] **Composition-root config surface for cell versioning (issue #131)** —
+      DONE 2026-11-13: `cell_versioning: {max_versions, max_age}` on
+      `system.EngineConfig` → `metaengine.DriverConfig.CellVersioning` →
+      driver translation (sqlite/memory/turso version, BigTable GC-policy
+      mapping, the rest fail loudly via `RejectCellVersioning`); ADR-0141
+      addendum + recipes §2.37 updated. The gap was untracked in this
+      section when filed (the issue noted it, 2026-11-13).
 - [ ] [RULED 2026-10-08] 🔥 **Real-GCP validation + prior calibration for
       `bigtableengine`** — **RULED: NOT tag-blocking** (the 🧪 experimental
       status already communicates the validation gap; real-GCP validation and

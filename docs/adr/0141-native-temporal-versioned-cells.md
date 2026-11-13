@@ -106,3 +106,32 @@ distance. Engine-specific notes (ms truncation) are asserted in-engine.
   no emulator binary needed.
 - Health-driven rerouting (ADR-0137) may land an as-of read on a non-versioned engine;
   that fails loud rather than lying — acceptable and documented.
+
+---
+
+## Implementation status addendum (2026-11-13)
+
+**Config surface shipped (issue #131).** At authoring, temporal options were
+reachable only through direct engine construction — a `system.New`
+deployment (the mandated composition root, ADR-0123) could not enable
+versioned cells at all. The operator surface is now plumbed end to end:
+
+- `metaengine.DriverConfig.CellVersioning *RetentionPolicy` — nil (default)
+  leaves the engine unversioned; a non-nil policy enables versioning, and a
+  zero policy versions with keep-everything retention.
+- `system.EngineConfig.CellVersioning *system.CellVersioningConfig` (koanf
+  `cell_versioning`, knobs `max_versions` and `max_age` as a Go duration
+  string) flows through `system.New` into the driver config; malformed or
+  negative knobs fail construction naming the engine.
+- Driver translations: sqlite → `sqliteengine.WithCellVersioning(WithRetention(...))`;
+  memory → `NewMemoryEngineWithVersioning(WithRetention(...))`; turso →
+  forwards to the SQLite core (`tursoengine.WithCellVersioning`); BigTable
+  versions natively, so the policy maps onto the column-family GC policy
+  (`MaxVersionsPolicy` / `MaxAgePolicy` / `IntersectionPolicy` when both
+  knobs are set — a version survives only when it satisfies both).
+- Engines that cannot version cells (pebble, bbolt, badger, postgres, mysql,
+  dgraph, duckdb) fail construction on any non-nil policy via
+  `metaengine.RejectCellVersioning` (wrapping
+  `metaengine.ErrUnsupportedCellVersioning`) — the same contract
+  `RejectDurabilityTier` enforces for durability tiers.
+- `metaengine.RetentionPolicy.Validate` rejects negative knobs at every gate.

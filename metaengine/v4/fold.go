@@ -478,7 +478,9 @@ func rejectSliceOfFoldUnit(construct, eventType string, outType reflect.Type) {
 
 		panic(fmt.Sprintf(
 			"metaengine.%s(%s): handler return type %s is a slice of a canonical fold unit — a fold produces ONE unit per event, so this shape would be silently misrouted into a Set collection keyed by the whole slice (issue #130). Emit one event per relation at the write side, or fold the batch into a Map/Multimap collection and derive the units in a second pass",
-			construct, eventType, outType,
+			construct,
+			eventType,
+			outType,
 		))
 	}
 }

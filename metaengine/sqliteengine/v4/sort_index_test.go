@@ -3,12 +3,11 @@ package sqliteengine
 import (
 	"context"
 	"database/sql"
+	"encoding/json/jsontext"
 	"fmt"
 	"strings"
 	"testing"
 	"time"
-
-	"encoding/json/jsontext"
 
 	_ "modernc.org/sqlite"
 

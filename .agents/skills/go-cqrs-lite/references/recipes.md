@@ -2595,6 +2595,22 @@ sqlEng, err := sqliteengine.NewSQLiteEngineFromDSNWith("file:app.db", nil,
 )
 ```
 
+Through the composition root, the operator declares the same thing in
+deployment YAML (`cell_versioning` on the engine, issue #131) — no code path
+touches the engine options. Engines that cannot version cells fail
+construction loudly on any non-empty `cell_versioning`; BigTable versions
+natively and maps the knobs onto its GC policy:
+
+```yaml
+engines:
+  orders-db:
+    driver: sqlite
+    dsn: "file:app.db"
+    cell_versioning:
+      max_versions: 10      # keep the newest 10 versions per cell
+      max_age: 720h         # drop versions older than 30 days ("0s" = unlimited)
+```
+
 Direct as-of reads work on any versioned engine (BigTable is native — its
 cells ARE versioned; the column-family GC policy is the retention knob):
 

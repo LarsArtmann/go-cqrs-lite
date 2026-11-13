@@ -38,11 +38,11 @@ var (
 	errUnknownFoldKind     = errors.New("unknown fold kind")
 
 	// Construction-time errors.
-	errUnsupportedDurability = errors.New("unsupported durability tier")
+	errUnsupportedDurability     = errors.New("unsupported durability tier")
 	errUnsupportedCellVersioning = errors.New(
 		"unsupported cell versioning",
 	)
-	errExecuteTypeMismatch   = errors.New(
+	errExecuteTypeMismatch = errors.New(
 		"metaengine.ExecuteTyped: result type does not match expected",
 	)
 	errKeyTypeMismatch = errors.New(

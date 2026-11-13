@@ -3342,6 +3342,7 @@ metaengine/tursoengine/v4/const CipherAES128GCM
 metaengine/tursoengine/v4/const CipherAES256GCM
 metaengine/tursoengine/v4/const Turso_NetworkRTT
 metaengine/tursoengine/v4/func New
+metaengine/tursoengine/v4/func WithCellVersioning
 metaengine/tursoengine/v4/func WithEncryption
 metaengine/tursoengine/v4/func WithKnownGroupedViewBug
 metaengine/tursoengine/v4/func WithMaterializedViews
@@ -3672,6 +3673,7 @@ metaengine/v4/func RecordLayoutStamps
 metaengine/v4/func RecordTrace
 metaengine/v4/func RegisterDriver
 metaengine/v4/func RegisteredDrivers
+metaengine/v4/func RejectCellVersioning
 metaengine/v4/func RejectDurabilityTier
 metaengine/v4/func RejectInvalidAggregateFn
 metaengine/v4/func Remove
@@ -4331,6 +4333,7 @@ metaengine/v4/var ErrScanTruncated
 metaengine/v4/var ErrUnknownDriver
 metaengine/v4/var ErrUnknownFoldKind
 metaengine/v4/var ErrUnsupportedADT
+metaengine/v4/var ErrUnsupportedCellVersioning
 metaengine/v4/var ErrUnsupportedDurability
 metaengine/v4/var ErrUnsupportedPattern
 metaengine/v4/var ErrVectorDimensionMismatch
@@ -6212,6 +6215,7 @@ system/v4/struct BusTopology
 system/v4/struct CacheConfig
 system/v4/struct CacheTierInfo
 system/v4/struct CachedEventStore
+system/v4/struct CellVersioningConfig
 system/v4/struct CommandAdapter
 system/v4/struct CommandLifecycleResult
 system/v4/struct CommandRegistration
