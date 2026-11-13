@@ -2,6 +2,7 @@ package sqliteengine
 
 import (
 	"context"
+	"fmt"
 
 	_ "modernc.org/sqlite" // SQLite driver registered with database/sql
 

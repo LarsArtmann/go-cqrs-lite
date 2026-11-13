@@ -13,6 +13,10 @@ type options struct {
 	matViewSpecs []metaengine.MaterializedViewSpec
 	encryption   *encryptionConfig
 
+	// cellVersioning enables ADR-0141 versioned cells on the underlying
+	// SQLite storage core (nil = off).
+	cellVersioning *metaengine.RetentionPolicy
+
 	// knownGroupedViewBug acknowledges the upstream grouped-view defect
 	// (WithKnownGroupedViewBug): grouped materialized views diverge from the
 	// second transaction on and collapse at ~27k rows on turso-go ≤ v0.8.x.

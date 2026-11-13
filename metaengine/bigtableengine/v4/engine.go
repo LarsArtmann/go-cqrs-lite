@@ -70,7 +70,7 @@ func New(
 	project, instance, table string,
 	clientOpts ...option.ClientOption,
 ) (metaengine.Engine, error) {
-	return dial(ctx, project, instance, table, nil, clientOpts)
+	return dial(ctx, project, instance, table, nil, clientOpts...)
 }
 
 // dial is New's body parameterized over engine Options, so the driver
@@ -80,7 +80,7 @@ func dial(
 	ctx context.Context,
 	project, instance, table string,
 	engineOpts []Option,
-	clientOpts []option.ClientOption,
+	clientOpts ...option.ClientOption,
 ) (metaengine.Engine, error) {
 	admin, err := bigtable.NewAdminClient(ctx, project, instance, clientOpts...)
 	if err != nil {
