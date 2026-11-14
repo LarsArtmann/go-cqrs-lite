@@ -533,7 +533,7 @@ linters:
         linters:
           - modernize
           - recvcheck
-      - path: (metaengine/v4|queue/v4)/(.*/)?register\.go$
+      - path: (metaengine/v4|queue/v4|metaengine/[a-z]+engine/v4)/(.*/)?register\.go$
         linters:
           - gochecknoinits
       - path: cmd/cqrs-lint/v4/pkg/rules/.*/template\.go$

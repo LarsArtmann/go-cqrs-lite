@@ -58,7 +58,7 @@ func init() {
 // IntersectionPolicy (a version survives only when it satisfies BOTH —
 // RetentionPolicy semantics). A zero policy returns nil: no GC policy,
 // every version kept.
-func gcPolicyFor(p metaengine.RetentionPolicy) bigtable.GCPolicy {
+func gcPolicyFor(p metaengine.RetentionPolicy) bigtable.GCPolicy { //nolint:ireturn // every bigtable GC-policy constructor returns the vendor's GCPolicy interface
 	switch {
 	case p.MaxVersions > 0 && p.MaxAge > 0:
 		return bigtable.IntersectionPolicy(
