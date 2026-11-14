@@ -66,7 +66,7 @@ func newSpikeMF1Store(t *testing.T) (*metaengine.Store, metaengine.Engine, *sql.
 		metaengine.OnRecordTyped("track.recorded", spikeMF1Row{},
 			func(_ record.Record, e spikeMF1Row) (int64, spikeMF1Row) {
 				return e.ID, e
-		}),
+			}),
 	)
 
 	store, err := metaengine.Plan([]metaengine.Engine{eng}, q)
@@ -231,4 +231,29 @@ func TestSpike_MF1_FloodWritePath(t *testing.T) {
 		foldLane, mapSetLane, ctrlAutocommit, ctrlOneTx, ctrlMultiRow)
 }
 
-// ── SPIKE FINDINGS (filled after the run) ──
+// ── SPIKE FINDINGS (2026-11-14, 15 co-tenant crush sessions per census) ──
+//
+// PRE-MF1 (per-event tx, single-row):
+//   fold lane ApplyBatch(1000), default pragmas : 18.9 s   (~19 ms/event)
+//   fold lane ApplyBatch(1000), WAL + NORMAL    : 115 ms   (~115 µs/event)
+//   MapSet lane (autocommit/call)               : 14-22 s
+//   controls: one-tx xN 11.9-14 ms; one multi-row 12-17 ms
+//
+// S2 (pre-MF1 bug): Store.InTransaction+Apply errored with
+//   "sqliteengine.RunInTx: nested transactions are not supported" — the
+//   documented usage pattern had never worked on SQL engines.
+//
+// POST-MF1 (one tx per batch + buffered multi-row, this file re-run):
+//   fold lane ApplyBatch(1000), default pragmas : 22.8 ms  (830x)
+//   fold lane ApplyBatch(1000), WAL + NORMAL    : 7.2 ms   (16x, ≈ one-tx ctrl)
+//   InTransaction+Apply: nil error (fixed by the ambient-tx join)
+//
+// Design conclusions (memo: dnsblockd
+// docs/research/2026-11-14_metaflood-mf1-bulk-write-contract.md):
+//   1. The per-event BEGIN IMMEDIATE/COMMIT round trip dominates the cost;
+//      the statement shape is second-order.
+//   2. Volume(n) alone does NOT materialize a planned table — declare
+//      FilterOnField/SortOnField or rows silently land in shared meta_map.
+//   3. Production parity: 1000-row batch = 8.8 ms median (formal bench:
+//      BenchmarkPlannedBatchFlood) vs dnsblockd BatchWriter 6.03 ms/80-item
+//      mix — same order; ~0.9% of one core per 1000 QPS second.
