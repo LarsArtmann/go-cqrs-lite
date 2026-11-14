@@ -8,7 +8,10 @@
 # exhaustion, re-arming by hand each session); this script is that runner,
 # durable and self-tested.
 #
-# Chain: go-env → can-run-composed-gate --wait-loop (blocks until quiet,
+# Chain: go-env → PREFLIGHT (sub-second/cheap gates, fail-fast — the
+#            2026-11-06 ritual codified: verify-docs, adr-numbering,
+#            canonical-facts, changelog-symbols, check-templ, tidy meta-test)
+#          → can-run-composed-gate --wait-loop (blocks until quiet,
 # max-wait 4h) → #check-coverage → #verify. Retry rule: ONLY exit code 12
 # (the no-heavy-builds guard refusing under load — transient by definition)
 # is retried; any other failure is a REAL gate result and stops the chain
@@ -73,6 +76,19 @@ chain_main() {
 	source "$SCRIPT_DIR/go-env.sh" 2>/dev/null
 	cd "$REPO" || return 1
 
+	# Pre-arm preflight (TODO row :414, codified 2026-11-14): cheap gates
+	# BEFORE the expensive window — a red cheap gate fails in seconds here
+	# instead of burning a load-guarded verify mid-run (the 2026-11-06 00:40
+	# lesson: an 81-module go.sum strip had already failed CI and would have
+	# killed the verify window hours in). Skip only via explicit override
+	# (self-test / targeted re-runs).
+	if [ "${VERIFY_CHAIN_SKIP_PREFLIGHT:-0}" != "1" ]; then
+		preflight || {
+			echo "[chain] PREFLIGHT red — fix the failing cheap gate before arming" >&2
+			return 1
+		}
+	fi
+
 	if [ -n "$GATE_CMD" ]; then
 		bash -c "$GATE_CMD" || {
 			echo "[chain] composed gate did not go green" >&2
@@ -87,6 +103,31 @@ chain_main() {
 
 	run_with_retry bash -c "$COVERAGE_CMD" || return 1
 	run_with_retry bash -c "$VERIFY_CMD"
+}
+
+# preflight runs the cheap sub-second/minute gates that historically died
+# mid-verify (row :414). Each is fail-loud; the FIRST red aborts the chain.
+preflight() {
+	local step
+	for step in \
+		"scripts/verify-docs.sh" \
+		"scripts/check-adr-numbering.sh" \
+		"scripts/check-canonical-facts.sh" \
+		"scripts/check-changelog-symbols.sh"; do
+		bash "$REPO/$step" >/dev/null 2>&1 || {
+			echo "[chain] preflight RED at $step" >&2
+			return 1
+		}
+	done
+	nix run .#check-templ >/dev/null 2>&1 || {
+		echo "[chain] preflight RED at #check-templ" >&2
+		return 1
+	}
+	(cd "$REPO/cmd/api-stability/v4" && GOWORK=off go test -run TestEveryModuleGoSumIsTidy . >/dev/null 2>&1) || {
+		echo "[chain] preflight RED at TestEveryModuleGoSumIsTidy (stale go.sum — run per-module GOWORK=off go mod tidy)" >&2
+		return 1
+	}
+	echo "[chain] preflight green (verify-docs, adr, canonical-facts, changelog-symbols, templ, tidy)"
 }
 
 # ── self-test: stub commands + fault injection ──────────────────────────────
@@ -128,6 +169,7 @@ self_test() {
 	chmod +x "$tmp/pass"
 	counter_stub "$tmp/cov" 0 0
 	counter_stub "$tmp/ver" 0 0
+	VERIFY_CHAIN_SKIP_PREFLIGHT=1 \
 	VERIFY_CHAIN_GATE_CMD="$tmp/pass" VERIFY_CHAIN_COVERAGE_CMD="$tmp/cov.stub" \
 		VERIFY_CHAIN_VERIFY_CMD="$tmp/ver.stub" VERIFY_CHAIN_RETRY_SLEEP=0 \
 		bash "$SCRIPT_DIR/verify-chain.sh" >/dev/null 2>&1
@@ -137,6 +179,7 @@ self_test() {
 
 	# T2: two guard refusals then success -> chain exits 0 after retries.
 	counter_stub "$tmp/cov2" 2 12
+	VERIFY_CHAIN_SKIP_PREFLIGHT=1 \
 	VERIFY_CHAIN_GATE_CMD="$tmp/pass" VERIFY_CHAIN_COVERAGE_CMD="$tmp/cov2.stub" \
 		VERIFY_CHAIN_VERIFY_CMD="$tmp/pass" VERIFY_CHAIN_RETRY_SLEEP=0 \
 		bash "$SCRIPT_DIR/verify-chain.sh" >/dev/null 2>&1
@@ -145,6 +188,7 @@ self_test() {
 
 	# T3: REAL failure (rc=1) -> immediate stop, exactly one attempt.
 	counter_stub "$tmp/cov3" 99 1
+	VERIFY_CHAIN_SKIP_PREFLIGHT=1 \
 	VERIFY_CHAIN_GATE_CMD="$tmp/pass" VERIFY_CHAIN_COVERAGE_CMD="$tmp/cov3.stub" \
 		VERIFY_CHAIN_VERIFY_CMD="$tmp/pass" VERIFY_CHAIN_RETRY_SLEEP=0 \
 		bash "$SCRIPT_DIR/verify-chain.sh" >/dev/null 2>&1
@@ -157,6 +201,7 @@ self_test() {
 
 	# T4: permanent refusal exhausts the retry budget -> chain fails.
 	counter_stub "$tmp/cov4" 99 12
+	VERIFY_CHAIN_SKIP_PREFLIGHT=1 \
 	VERIFY_CHAIN_GATE_CMD="$tmp/pass" VERIFY_CHAIN_COVERAGE_CMD="$tmp/cov4.stub" \
 		VERIFY_CHAIN_VERIFY_CMD="$tmp/pass" VERIFY_CHAIN_RETRY_SLEEP=0 \
 		VERIFY_CHAIN_MAX_RETRIES=2 \
@@ -172,6 +217,7 @@ self_test() {
 	printf '#!/usr/bin/env bash\nexit 1\n' >"$tmp/failgate"
 	chmod +x "$tmp/failgate"
 	counter_stub "$tmp/cov5" 0 0
+	VERIFY_CHAIN_SKIP_PREFLIGHT=1 \
 	VERIFY_CHAIN_GATE_CMD="$tmp/failgate" VERIFY_CHAIN_COVERAGE_CMD="$tmp/cov5.stub" \
 		VERIFY_CHAIN_VERIFY_CMD="$tmp/pass" VERIFY_CHAIN_RETRY_SLEEP=0 \
 		bash "$SCRIPT_DIR/verify-chain.sh" >/dev/null 2>&1
