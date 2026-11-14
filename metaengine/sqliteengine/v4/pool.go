@@ -32,6 +32,11 @@ import (
 // n <= 0 keeps the default (the database/sql meaning of 0 — unlimited — is a
 // footgun behind an option named "max", so it is deliberately not honored).
 // The engine applies the ceiling at construction, before any query runs.
+//
+// Do NOT raise the ceiling on a ":memory:" DSN: every pooled connection to
+// :memory: opens its OWN separate in-memory database (no shared cache), so a
+// second connection sees empty tables — data appears to vanish under
+// concurrency. Use a file DSN (e.g. under t.TempDir()) when raising it.
 func WithMaxOpenConns(n int) EngineOption {
 	return func(e *sqliteEngine) {
 		if n > 0 {
