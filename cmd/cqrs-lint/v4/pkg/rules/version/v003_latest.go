@@ -129,7 +129,7 @@ func moduleBypassesProxy(modulePath string) bool {
 		// module path equals the pattern or has it as a path-element prefix
 		// (element boundaries are "/"), with path.Match glob semantics inside
 		// each element.
-		if path.Match(pattern, modulePath) {
+		if match, err := path.Match(pattern, modulePath); err == nil && match {
 			return true
 		}
 

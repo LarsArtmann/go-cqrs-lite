@@ -41,7 +41,10 @@ func scanEmitHelperFunc(ctx *AnalysisContext, gf *GoFile, fn *ast.FuncDecl) {
 			return true
 		}
 
-		argName := ExprIdentName(call.Args[0])
+		// Unwrap value-preserving conversions: string(t) and event.Type(t)
+		// both forward the parameter's identity — the wrapped form must
+		// register the helper too (M37/F233, mirrors the catalog twin).
+		argName := ExprIdentName(unwrapIdConversions(gf, call.Args[0]))
 		if argName == "" {
 			return true
 		}
@@ -82,7 +85,11 @@ func ResolveHelperEmitCalls(ctx *AnalysisContext) {
 				return true
 			}
 
-			argName := ExprIdentName(call.Args[idx])
+			// Unwrap value-preserving converters at the call site —
+			// string(const) and event.Type(...) wrappers forward the same
+			// constant — and replay them instead of dropping (M37/F233,
+			// 20-24 item 15).
+			argName := ExprIdentName(unwrapIdConversions(gf, call.Args[idx]))
 			if argName == "" {
 				return true
 			}
@@ -96,6 +103,45 @@ func ResolveHelperEmitCalls(ctx *AnalysisContext) {
 			return true
 		})
 	}
+}
+
+// unwrapEventTypeDef unwraps a single-argument event.Type(x) conversion —
+// the package's own type conversion over a string-kind constant, which
+// preserves the constant's identity for emission-type resolution. Unlike
+// unwrapStringConv this needs the file's import table (IsQualifierFor),
+// because a selector call could otherwise be any function named Type.
+func unwrapEventTypeDef(gf *GoFile, expr ast.Expr) ast.Expr {
+	call, ok := expr.(*ast.CallExpr)
+	if !ok || len(call.Args) != 1 {
+		return expr
+	}
+
+	sel, ok := call.Fun.(*ast.SelectorExpr)
+	if !ok || sel.Sel == nil || sel.Sel.Name != "Type" {
+		return expr
+	}
+
+	if !IsQualifierFor(gf, sel, "go-cqrs-lite/event") {
+		return expr
+	}
+
+	return call.Args[0]
+}
+
+// unwrapIdConversions unwraps any nesting of value-preserving conversions
+// (string(x), event.Type(x)) down to the innermost expression, so a
+// converter-wrapped constant still resolves to its identifier.
+func unwrapIdConversions(gf *GoFile, expr ast.Expr) ast.Expr {
+	for range 8 {
+		unwrapped := unwrapEventTypeDef(gf, unwrapStringConv(expr))
+		if unwrapped == expr {
+			return expr
+		}
+
+		expr = unwrapped
+	}
+
+	return expr
 }
 
 // callTargetIndex resolves the called function's bare name for a call whose

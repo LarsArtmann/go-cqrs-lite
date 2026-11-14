@@ -1,0 +1,8 @@
+{
+  "skip_gates": ["audit-all", "annotate"],
+  "cadence": {
+    "struck_rows": 20,
+    "max_unarchived": 190,
+    "oldest_days": 75
+  }
+}

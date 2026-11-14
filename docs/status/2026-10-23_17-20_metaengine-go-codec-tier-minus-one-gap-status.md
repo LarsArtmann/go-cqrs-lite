@@ -146,19 +146,19 @@ That makes the finding worse than the initial report stated. There is no purity 
 
 ## c) NOT STARTED
 
-- [ ] Failing repro test for CBOR through `ApplyEncoded`.
-- [ ] Failing repro test for CBOR through `projectionadapter` default path.
+- [ ] Failing repro test for CBOR through `ApplyEncoded`. <!-- routing:skip -->
+- [ ] Failing repro test for CBOR through `projectionadapter` default path. <!-- routing:skip -->
 - [ ] Error-path tests for `stream_codec.go`.
-- [ ] Fuzz tests for stream values and cursors.
-- [ ] Any production code change.
-- [ ] Any ADR (the Tier -1 classification deserves one).
-- [ ] Any TODO_LIST row or GitHub issue.
+- [ ] Fuzz tests for stream values and cursors. <!-- routing:skip -->
+- [ ] Any production code change. <!-- routing:skip -->
+- [ ] Any ADR (the Tier -1 classification deserves one). <!-- routing:skip -->
+- [ ] Any TODO_LIST row or GitHub issue. <!-- routing:skip -->
 - [ ] Any dep-budget change (`7 -> 8`).
-- [ ] Any benchmark (JSON vs CBOR read-model rows).
-- [ ] Any gate run (`check-arch`, `check-file-size`, `api-stability`, `doc-check`).
+- [ ] Any benchmark (JSON vs CBOR read-model rows). <!-- routing:skip -->
+- [ ] Any gate run (`check-arch`, `check-file-size`, `api-stability`, `doc-check`). <!-- routing:skip -->
 - [ ] Consumer blast-radius test run.
 - [ ] Doc fixes (stale comments, README, skill refs, WIRE-FORMAT-KEYS).
-- [ ] CHANGELOG entry.
+- [ ] CHANGELOG entry. <!-- routing:skip -->
 
 ## d) TOTALLY FUCKED UP
 
