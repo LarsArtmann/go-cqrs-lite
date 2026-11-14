@@ -683,6 +683,7 @@ as a library primitive.
 | Helper functions           | `ShouldSnapshot`, `ShouldSnapshotFor`, `SaveSnapshot` — decider integration helpers                                                                                                                                                 | ✅     |
 | Rotation write-back        | `NewRewritingTransformedStore` — first load of a retired-key snapshot re-encrypts under the active key and persists it (best-effort; a failed write-back never fails the load)                                                      | ✅     |
 | Honest wire tags (v5 prep) | JSON tags renamed to `stream_id`/`stream_type`; decode-only fallbacks accept the pre-v5 `aggregateId`/`aggregateType` spellings in JSON AND CBOR (the json tag IS the CBOR key under fxamacker/cbor v2.9). Fallback shims die at v6 | ✅     |
+| State-shape stamp (SQL, #117) | `StateShape` stamps the shape identity of State; the SQL snapshot stores persist it (`state_shape TEXT NOT NULL DEFAULT ''`, MySQL `VARCHAR(255)`), bind it on upsert, scan it on both load paths; `storage.MigrateSnapshotStateShapeColumn` idempotently adds the column and is wired into all four `*InitSchema` helpers; decider rejects shape-mismatched snapshots (state rebuilt). Engine-path caveat: `system.SnapshotAdapter` over `metaengine.SnapshotBackend` passes raw state bytes only — the stamp does NOT round-trip there (rowed gap, M37/F238) | ✅     |
 
 ---
 
@@ -1387,6 +1388,8 @@ Fluent BDD harness for deciders and projections — no store or bus needed, just
 | Update mode            | `-update` flag regenerates golden file                                                                                          | ✅     |
 | Diff reporting         | Reports REMOVED/NEW exports — CI gate for breaking changes                                                                      | ✅     |
 | Pin-drift guard        | `TestSiblingModulePinsResolve` — standalone-build (GOWORK=off) pin graph: missing tags, pseudo-version pins, staleness warnings | ✅     |
+| Fail-loud unparseable  | A module that cannot be parsed fails the run instead of silently shrinking the golden (the corruption tell)                       | ✅     |
+| Module-split layout    | `main.go` golden-file half split to `golden.go` (file-size gate); `/v4`-moved module paths resolved post-restructure               | ✅     |
 
 ### doc-check 🔧
 
@@ -1397,6 +1400,8 @@ Fluent BDD harness for deciders and projections — no store or bus needed, just
 | Markdown scanning   | Scans `.md` files for Go code blocks                                    | ✅     |
 | Symbol verification | Verifies Go import paths & qualified symbol refs actually exist in code | ✅     |
 | Ghost detection     | Flags references to renamed/deleted symbols (docs-freshness gate)       | ✅     |
+| `/v4`-move revival   | `importDir` keeps the version segment (legacy-layout fallback via `fullDir`) + live-tree regression pin — repaired the 2026-11-10 breakage where 702 refs failed as "not found" on clean HEAD | ✅     |
+| Ambiguous-alias fail | Zero-warning policy fails UNKNOWN ambiguous package aliases (multi-dir alias that is not a sanctioned v4↔core/v5 mirror) | ✅     |
 
 ### cqrs-lint Domain-Aware Linter 🔧
 
