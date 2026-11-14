@@ -236,6 +236,16 @@ func buildSuppressionAuditJSON(
 			Skipped: fixResult.Skipped,
 			Files:   fixResult.Files,
 		}
+
+		// Same belt-and-braces guard as the text path (issue #126): a real
+		// prune re-runs detection over the post-prune tree and fails loudly
+		// when a removed directive's rule still fires — the JSON path must
+		// not report success while the tree carries unsuppressed findings.
+		if !dryRun {
+			if err := verifyPruneRemovedNothingLive(ctx, cfg, actx, fixResult.Removed); err != nil {
+				return nil, err
+			}
+		}
 	}
 
 	return audit, nil
