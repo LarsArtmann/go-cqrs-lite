@@ -60,6 +60,9 @@ func newSpikeMF1Store(t *testing.T) (*metaengine.Store, metaengine.Engine, *sql.
 
 	q := metaengine.Query[spikeMF1List, spikeMF1Row]("spike_mf1_tracks",
 		metaengine.Volume(1_000_000),
+		metaengine.FilterOnField[spikeMF1Row]("domain", metaengine.FilterEq),
+		metaengine.FilterOnField[spikeMF1Row]("blocked", metaengine.FilterEq),
+		metaengine.SortOnField[spikeMF1Row]("createdUnix", true),
 		metaengine.OnRecordTyped("track.recorded", spikeMF1Row{},
 			func(_ record.Record, e spikeMF1Row) (int64, spikeMF1Row) {
 				return e.ID, e
@@ -119,7 +122,7 @@ func TestSpike_MF1_FloodWritePath(t *testing.T) {
 
 	var table string
 	if err := db.QueryRow(
-		`SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'spike_mf1%'`,
+		`SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'meta_planned%'`,
 	).Scan(&table); err != nil {
 		t.Fatalf("planned table not found (planner did not materialize it?): %v", err)
 	}
@@ -173,18 +176,22 @@ func TestSpike_MF1_FloodWritePath(t *testing.T) {
 	}
 	ctrlAutocommit := time.Since(autoStart)
 
-	tx, _ := eng.(metaengine.Transactional)
-	oneTxStart := time.Now()
-	if err := tx.RunInTx(ctx, func(ctx context.Context) error {
-		for i := range 1000 {
-			if err := ins(db, int64(10_000+i)); err != nil {
-				return err
-			}
-		}
-		return nil
-	}); err != nil {
-		t.Fatalf("ctrl one-tx: %v", err)
+	sqlTx, err := db.BeginTx(ctx, nil)
+	if err != nil {
+		t.Fatalf("ctrl begin: %v", err)
 	}
+
+	oneTxStart := time.Now()
+	for i := range 1000 {
+		if err := ins(sqlTx, int64(10_000+i)); err != nil {
+			t.Fatalf("ctrl one-tx %d: %v", i, err)
+		}
+	}
+
+	if err := sqlTx.Commit(); err != nil {
+		t.Fatalf("ctrl one-tx commit: %v", err)
+	}
+
 	ctrlOneTx := time.Since(oneTxStart)
 
 	if _, err := db.Exec(
