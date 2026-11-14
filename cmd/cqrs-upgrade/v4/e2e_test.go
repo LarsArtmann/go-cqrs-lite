@@ -26,7 +26,9 @@ func setupFixture(t *testing.T, name string) string {
 	src := filepath.Join("testdata", "e2e", name)
 	dst := t.TempDir()
 
-	eventDir := filepath.Join(repoRoot(t), "event")
+	// event/v4 (not the pre-2026-11-10 event/ dir): the replace target must
+	// carry the module's real go.mod after the /v4 module-dir move.
+	eventDir := filepath.Join(repoRoot(t), "event", "v4")
 
 	entries, err := os.ReadDir(src)
 	if err != nil {
