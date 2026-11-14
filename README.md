@@ -354,7 +354,7 @@ Modules release on independent per-module version trains (`<module>/vX.Y.Z` git 
 | --- | --- |
 | . | `v4.0.0` *(untagged per ADR-0152)* |
 | benchkit | `benchkit/v4.7.0` |
-| catalog | `catalog/v4.14.0` |
+| catalog | `catalog/v4.15.0` |
 | catalog/v4 | `catalog/v4/v4.15.0` |
 | claiming | `claiming/v4.0.2` |
 | cmd/api-stability | `cmd/api-stability/v4.4.2` |
@@ -412,6 +412,7 @@ Modules release on independent per-module version trains (`<module>/vX.Y.Z` git 
 | metaengine/projectionadapter | `metaengine/projectionadapter/v4.6.2` |
 | metaengine/sqliteengine | `metaengine/sqliteengine/v4.8.0` |
 | metaengine/tursoengine | `metaengine/tursoengine/v4.2.3` |
+| metaengine/v4 | `metaengine/v4/v4.24.0` |
 | middleware | `middleware/v4.7.2` |
 | otel | `otel/v4.5.3` |
 | otel/otlp | `otel/otlp/v4.0.2` |
