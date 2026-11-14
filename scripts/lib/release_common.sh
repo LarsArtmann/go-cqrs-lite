@@ -7,9 +7,13 @@
 # lockstep risk (a fix in one copy silently missing the other).
 
 # path_matches_major <module-path> <version>: v0/v1 tags require a module
-# path WITHOUT any /vN suffix; v2+ tags require the path to end in the
-# matching /vN. Mismatched tags are INVISIBLE to the module proxy (the
-# issue-#20 class), so both release scripts route every guard here.
+# path WITHOUT a /vN suffix (as the path's last segment); v2+ tags require
+# the path to END in the matching /vN. Mid-path /vN does NOT count: the
+# 2026-11-10 /v4 move put /v4 mid-path for nested modules
+# (event/v4/eventtest), and the old '*/v[0-9]*' glob matched it, making
+# path_major garbage ("4/eventtest") and refusing every tag shape for the
+# module. Mismatched tags are INVISIBLE to the module proxy (the issue-#20
+# class), so both release scripts route every guard here.
 path_matches_major() {
 	local module_path="$1"
 	local version="$2"
@@ -17,11 +21,9 @@ path_matches_major() {
 	tag_major="${tag_major%%.*}"
 
 	local path_major=""
-	case "$module_path" in
-	*/v[0-9]*)
-		path_major="${module_path##*/v}"
-		;;
-	esac
+	if [[ "$module_path" =~ /v([0-9]+)$ ]]; then
+		path_major="${BASH_REMATCH[1]}"
+	fi
 
 	case "$tag_major" in
 	0 | 1)

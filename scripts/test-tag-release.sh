@@ -135,6 +135,15 @@ if path_matches_major "x/v4" "v2.0.0"; then
 else
 	echo "  ✓ PASS: major-mismatched /vN path rejected"
 fi
+# Mid-path /vN (the /v4 move): the suffix rule keys on the path's LAST
+# segment only — event/v4/eventtest is suffix-less for semver purposes.
+check "v0 tag + mid-path /v4 module matches" path_matches_major "github.com/larsartmann/go-cqrs-lite/event/v4/eventtest" "v0.5.0"
+if path_matches_major "github.com/larsartmann/go-cqrs-lite/event/v4/eventtest" "v4.5.0"; then
+	echo "  ✗ FAIL: v4 tag over mid-path-only /v4 module must NOT match"
+	FAILED=1
+else
+	echo "  ✓ PASS: v4 tag over mid-path-only /v4 module rejected"
+fi
 
 LIBTMP="$(mktemp -d)"
 mkdir -p "$LIBTMP/cli" "$LIBTMP/libmod"
