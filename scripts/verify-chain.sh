@@ -170,7 +170,7 @@ self_test() {
 	counter_stub "$tmp/cov" 0 0
 	counter_stub "$tmp/ver" 0 0
 	VERIFY_CHAIN_SKIP_PREFLIGHT=1 \
-	VERIFY_CHAIN_GATE_CMD="$tmp/pass" VERIFY_CHAIN_COVERAGE_CMD="$tmp/cov.stub" \
+		VERIFY_CHAIN_GATE_CMD="$tmp/pass" VERIFY_CHAIN_COVERAGE_CMD="$tmp/cov.stub" \
 		VERIFY_CHAIN_VERIFY_CMD="$tmp/ver.stub" VERIFY_CHAIN_RETRY_SLEEP=0 \
 		bash "$SCRIPT_DIR/verify-chain.sh" >/dev/null 2>&1
 	check "all-green chain exits 0" $?
@@ -180,7 +180,7 @@ self_test() {
 	# T2: two guard refusals then success -> chain exits 0 after retries.
 	counter_stub "$tmp/cov2" 2 12
 	VERIFY_CHAIN_SKIP_PREFLIGHT=1 \
-	VERIFY_CHAIN_GATE_CMD="$tmp/pass" VERIFY_CHAIN_COVERAGE_CMD="$tmp/cov2.stub" \
+		VERIFY_CHAIN_GATE_CMD="$tmp/pass" VERIFY_CHAIN_COVERAGE_CMD="$tmp/cov2.stub" \
 		VERIFY_CHAIN_VERIFY_CMD="$tmp/pass" VERIFY_CHAIN_RETRY_SLEEP=0 \
 		bash "$SCRIPT_DIR/verify-chain.sh" >/dev/null 2>&1
 	check "refused-then-green step exits 0" $?
@@ -189,7 +189,7 @@ self_test() {
 	# T3: REAL failure (rc=1) -> immediate stop, exactly one attempt.
 	counter_stub "$tmp/cov3" 99 1
 	VERIFY_CHAIN_SKIP_PREFLIGHT=1 \
-	VERIFY_CHAIN_GATE_CMD="$tmp/pass" VERIFY_CHAIN_COVERAGE_CMD="$tmp/cov3.stub" \
+		VERIFY_CHAIN_GATE_CMD="$tmp/pass" VERIFY_CHAIN_COVERAGE_CMD="$tmp/cov3.stub" \
 		VERIFY_CHAIN_VERIFY_CMD="$tmp/pass" VERIFY_CHAIN_RETRY_SLEEP=0 \
 		bash "$SCRIPT_DIR/verify-chain.sh" >/dev/null 2>&1
 	want_fail=$? # expect nonzero
@@ -202,7 +202,7 @@ self_test() {
 	# T4: permanent refusal exhausts the retry budget -> chain fails.
 	counter_stub "$tmp/cov4" 99 12
 	VERIFY_CHAIN_SKIP_PREFLIGHT=1 \
-	VERIFY_CHAIN_GATE_CMD="$tmp/pass" VERIFY_CHAIN_COVERAGE_CMD="$tmp/cov4.stub" \
+		VERIFY_CHAIN_GATE_CMD="$tmp/pass" VERIFY_CHAIN_COVERAGE_CMD="$tmp/cov4.stub" \
 		VERIFY_CHAIN_VERIFY_CMD="$tmp/pass" VERIFY_CHAIN_RETRY_SLEEP=0 \
 		VERIFY_CHAIN_MAX_RETRIES=2 \
 		bash "$SCRIPT_DIR/verify-chain.sh" >/dev/null 2>&1
@@ -218,7 +218,7 @@ self_test() {
 	chmod +x "$tmp/failgate"
 	counter_stub "$tmp/cov5" 0 0
 	VERIFY_CHAIN_SKIP_PREFLIGHT=1 \
-	VERIFY_CHAIN_GATE_CMD="$tmp/failgate" VERIFY_CHAIN_COVERAGE_CMD="$tmp/cov5.stub" \
+		VERIFY_CHAIN_GATE_CMD="$tmp/failgate" VERIFY_CHAIN_COVERAGE_CMD="$tmp/cov5.stub" \
 		VERIFY_CHAIN_VERIFY_CMD="$tmp/pass" VERIFY_CHAIN_RETRY_SLEEP=0 \
 		bash "$SCRIPT_DIR/verify-chain.sh" >/dev/null 2>&1
 	want_fail=$?
@@ -236,7 +236,7 @@ self_test() {
 	# storm-riding depends on.
 	counter_stub "$tmp/ver6" 1 12
 	VERIFY_CHAIN_SKIP_PREFLIGHT=1 \
-	VERIFY_CHAIN_GATE_CMD="$tmp/pass" VERIFY_CHAIN_COVERAGE_CMD="$tmp/pass" \
+		VERIFY_CHAIN_GATE_CMD="$tmp/pass" VERIFY_CHAIN_COVERAGE_CMD="$tmp/pass" \
 		VERIFY_CHAIN_VERIFY_CMD="$tmp/ver6.stub" VERIFY_CHAIN_RETRY_SLEEP=0 \
 		bash "$SCRIPT_DIR/verify-chain.sh" >/dev/null 2>&1
 	check "verify-step guard refusal retried to green" $?
