@@ -62,10 +62,13 @@ func (c *txStmtCache) query(ctx context.Context, query string, args ...any) (*sq
 	return c.tx.QueryContext(ctx, query, args...) //nolint:wrapcheck
 }
 
-// txExecutor wraps an ambient transaction executor and its txStmtCache.
+// txExecutor wraps an ambient transaction executor and its txStmtCache,
+// plus the per-transaction planned-table row buffers (multi-row batch
+// writes, MF1.3 — see planned_batch.go).
 type txExecutor struct {
-	tx    metaengine.SQLExec
-	cache *txStmtCache
+	tx      metaengine.SQLExec
+	cache   *txStmtCache
+	pending *plannedBuffers
 }
 
 // runImmediateTx runs fn inside a write transaction opened with BEGIN
@@ -123,22 +126,52 @@ func runImmediateTx(
 //
 // The transaction is carried in fn's context: every engine operation that
 // receives a ctx descended from fn joins the transaction, everything else
-// talks to the base pool. Propagate fn's ctx into nested calls; a nested
-// RunInTx is rejected via the same context marker.
+// talks to the base pool. Propagate fn's ctx into nested calls.
+//
+// NESTED RunInTx JOINS the ambient transaction (MF1.2, 2026-11-14): a
+// RunInTx call whose ctx already descends from this engine's own RunInTx
+// executes fn against that transaction without opening or committing
+// another one; the outermost call owns BEGIN/COMMIT and flushes the
+// planned-table batch buffers at its own commit. This is what makes
+// Store.InTransaction{Apply...} and one-tx-per-batch ApplyBatch wraps work:
+// Store dispatch's per-event tx wrap re-enters RunInTx and joins instead of
+// failing. (Before MF1.2 this returned "nested transactions are not
+// supported" — the documented InTransaction usage pattern had never
+// actually worked for SQL engines.)
 func (e *sqliteEngine) RunInTx(ctx context.Context, fn func(context.Context) error) error {
-	//art-dupl:accept same ctx-marker nested-tx rejection as dgraphengine — separate go.mod
-	if ctx.Value(txMarker{}) != nil {
-		return errors.New("sqliteengine.RunInTx: nested transactions are not supported")
+	if txFromCtx(ctx) != nil {
+		// Ambient join: the outer RunInTx owns BEGIN/COMMIT/rollback and
+		// the pending-buffer flush at commit.
+		return fn(ctx)
 	}
 
 	e.txMu.Lock()
 	defer e.txMu.Unlock()
 
 	return runImmediateTx(ctx, e.db, func(ctx context.Context, exec metaengine.SQLExec) error {
-		return fn(context.WithValue(ctx, txMarker{}, &txExecutor{
-			tx:    exec,
-			cache: &txStmtCache{tx: exec},
-		}))
+		txe := &txExecutor{
+			tx:      exec,
+			cache:   &txStmtCache{tx: exec},
+			pending: newPlannedBuffers(),
+		}
+
+		fnErr := fn(context.WithValue(ctx, txMarker{}, txe))
+
+		if fnErr != nil {
+			// Rollback path: buffered rows were never executed; drop them so
+			// a stale executor cannot leak them into a later flush.
+			txe.pending.discard()
+
+			return fnErr
+		}
+
+		// Flush buffered multi-row planned writes BEFORE COMMIT: the batch's
+		// rows must land in the same transaction fn ran in.
+		if err := txe.pending.flushAll(ctx, exec); err != nil {
+			return fmt.Errorf("sqliteengine: flush planned batch: %w", err)
+		}
+
+		return nil
 	})
 }
 
