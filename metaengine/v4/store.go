@@ -433,18 +433,48 @@ func (s *Store) Apply(ctx context.Context, eventType string, payload any) error 
 // an event without one gets the same synthesized Type-only Record as
 // Store.Apply, and the synthetic-apply advisory counts it.
 func (s *Store) ApplyBatch(ctx context.Context, events []EventInput) error {
-	for _, evt := range events {
-		rec := evt.Record
-		if rec.Type == "" {
-			rec.Type = evt.Type
+	apply := func(ctx context.Context) error {
+		for _, evt := range events {
+			rec := evt.Record
+			if rec.Type == "" {
+				rec.Type = evt.Type
+			}
+
+			if err := s.applyWithRecord(ctx, feedApplyBatch, evt.Type, rec, evt.Payload); err != nil {
+				return fmt.Errorf("batch apply event %q: %w", evt.Type, err)
+			}
 		}
 
-		if err := s.applyWithRecord(ctx, feedApplyBatch, evt.Type, rec, evt.Payload); err != nil {
-			return fmt.Errorf("batch apply event %q: %w", evt.Type, err)
+		return nil
+	}
+
+	// ONE TRANSACTION PER BATCH on Transactional engines (MF1.2, 2026-11-14):
+	// the whole batch commits or rolls back together — the batch write parity
+	// contract for high-volume ingestion (one tx per flush window, zero
+	// concurrent writers). The per-event tx wrap in dispatch re-enters
+	// RunInTx and JOINS this transaction (engines implement ambient-tx join);
+	// before MF1.2 each event committed separately, which multiplied BEGIN/
+	// COMMIT round trips by the batch size.
+	//
+	// Semantics change vs pre-MF1.2: a mid-batch fold error now rolls back
+	// the whole batch instead of leaving prior events applied. Replay and
+	// ingestion callers want all-or-nothing; re-running a transient-commit
+	// retry is safe because Set-shaped folds are idempotent per (key, value).
+	//
+	// The FIRST Transactional engine in registration order carries the batch
+	// transaction; additional engines keep their per-event transactions
+	// (cross-engine atomicity is not supported, same as InTransaction).
+	for _, eng := range s.enginesSnapshot() {
+		if tx, ok := eng.(Transactional); ok {
+			if err := runInTxWithRetry(ctx, tx, apply); err != nil {
+				return err //nolint:wrapcheck // apply already wraps per-event context
+			}
+
+			return nil
 		}
 	}
 
-	return nil
+	return apply(ctx)
 }
 
 // ApplyRecord processes a decoded payload with full Record context (ADR-0112).

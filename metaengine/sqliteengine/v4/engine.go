@@ -161,6 +161,13 @@ func (e *sqliteEngine) MapGet(ctx context.Context, col string, key any) (any, bo
 
 func (e *sqliteEngine) MapDelete(ctx context.Context, col string, key any) error {
 	if plan, ok := e.plans[col]; ok {
+		// Delete-after-set ordering (batch contract): a buffered Set for
+		// this key must flush BEFORE the delete executes, or the deferred
+		// INSERT would resurrect the row after the delete committed.
+		if err := e.flushPlannedTable(ctx, plan.Table); err != nil {
+			return fmt.Errorf("sqliteengine: planned flush-before-delete %s: %w", plan.Table, err)
+		}
+
 		_, err := e.xd(ctx).ExecContext(ctx,
 			fmt.Sprintf("DELETE FROM %s WHERE key = ?", metaengine.QuoteIdent(plan.Table)),
 			encodeKey(key))

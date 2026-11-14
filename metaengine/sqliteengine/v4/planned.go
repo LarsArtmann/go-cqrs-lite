@@ -123,6 +123,27 @@ func (e *sqliteEngine) mapSetPlanned(
 	key any,
 	value any,
 ) error {
+	// Inside an ambient transaction: buffer the row for a chunked
+	// multi-row INSERT OR REPLACE at commit (MF1.3) instead of executing
+	// one statement per row. Buffers flush at commit, at the chunk cap, and
+	// before any read/delete of the same table (sequential semantics).
+	if txe := txFromCtx(ctx); txe != nil {
+		quoted, row, err := plannedSetArgs(plan, key, value)
+		if err != nil {
+			return err
+		}
+
+		txe.pending.add(plan.Table, quoted, row)
+
+		if txe.pending.len(plan.Table) >= plannedBatchChunk {
+			if err := txe.pending.flushTable(ctx, txe.tx, plan.Table); err != nil {
+				return fmt.Errorf("sqliteengine: planned chunk flush %s: %w", plan.Table, err)
+			}
+		}
+
+		return nil
+	}
+
 	return execPlannedSet(ctx, e.xd(ctx), plan, key, value)
 }
 
@@ -132,16 +153,17 @@ type execContext interface {
 	ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error)
 }
 
-func execPlannedSet(
-	ctx context.Context,
-	exec execContext,
+// plannedSetArgs builds the quoted column list and one row's argument slice
+// for a planned-table upsert. Shared by the immediate single-row path
+// (execPlannedSet) and the buffered multi-row path (mapSetPlanned).
+func plannedSetArgs(
 	plan metaengine.LayoutPlan,
 	key any,
 	value any,
-) error {
+) ([]string, []any, error) {
 	valueJSON, err := encodeValue(value)
 	if err != nil {
-		return err
+		return nil, nil, err
 	}
 
 	extracted := metaengine.ExtractFields(
@@ -163,6 +185,33 @@ func execPlannedSet(
 		args = append(args, extracted[c.Name])
 	}
 
+	return quotedColNames, args, nil
+}
+
+// flushPlannedTable flushes a table's buffered multi-row writes before an
+// operation that must observe them (get/scan/update/delete — the
+// read-your-writes and delete-after-set ordering rules of the batch
+// contract). No-op outside a transaction or with nothing buffered.
+func (e *sqliteEngine) flushPlannedTable(ctx context.Context, table string) error {
+	if txe := txFromCtx(ctx); txe != nil {
+		return txe.pending.flushTable(ctx, txe.tx, table) //nolint:wrapcheck // caller wraps
+	}
+
+	return nil
+}
+
+func execPlannedSet(
+	ctx context.Context,
+	exec execContext,
+	plan metaengine.LayoutPlan,
+	key any,
+	value any,
+) error {
+	quotedColNames, args, err := plannedSetArgs(plan, key, value)
+	if err != nil {
+		return err
+	}
+
 	placeholder := strings.Repeat("?,", len(quotedColNames))
 	placeholder = "(" + placeholder[:len(placeholder)-1] + ")"
 
@@ -181,6 +230,13 @@ func (e *sqliteEngine) mapGetPlanned(
 	plan metaengine.LayoutPlan,
 	key any,
 ) (any, bool, error) {
+	// Read-your-writes: buffered batch rows must be visible to a get that
+	// follows them in the same transaction (the batch contract's
+	// flush-before-read rule).
+	if err := e.flushPlannedTable(ctx, plan.Table); err != nil {
+		return nil, false, fmt.Errorf("sqliteengine: planned flush-before-get %s: %w", plan.Table, err)
+	}
+
 	var valStr string
 
 	err := e.xd(ctx).QueryRowContext(ctx,
@@ -206,6 +262,11 @@ func (e *sqliteEngine) mapUpdatePlanned(
 	key any,
 	update func(prev any) any,
 ) error {
+	// Read-your-writes: the RMW read must observe buffered batch rows.
+	if err := e.flushPlannedTable(ctx, plan.Table); err != nil {
+		return fmt.Errorf("sqliteengine: planned flush-before-update %s: %w", plan.Table, err)
+	}
+
 	// Inside outer tx: reuse it (SQLite doesn't support nested BEGIN).
 	if e.txExec(ctx) != nil {
 		xd := e.xd(ctx)
@@ -285,6 +346,12 @@ func (e *sqliteEngine) pushdownMapScanPlanned(
 	cursor any,
 	limit int,
 ) (metaengine.ScanResult, error) {
+	// Read-your-writes: scans must observe buffered batch rows.
+	if err := e.flushPlannedTable(ctx, plan.Table); err != nil {
+		return metaengine.ScanResult{}, fmt.Errorf(
+			"sqliteengine: planned flush-before-scan %s: %w", plan.Table, err)
+	}
+
 	query, args, err := buildPlannedSelectQuery(plan, filters, sort, cursor, limit)
 	if err != nil {
 		return metaengine.ScanResult{}, err

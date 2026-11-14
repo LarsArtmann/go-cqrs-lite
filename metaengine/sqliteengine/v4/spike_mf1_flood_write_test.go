@@ -137,6 +137,10 @@ func TestSpike_MF1_FloodWritePath(t *testing.T) {
 	})
 	t.Logf("S2: InTransaction+Apply err=%v", txErr)
 
+	if txErr != nil {
+		t.Fatalf("S2: InTransaction+Apply must succeed post-MF1.2 (ambient-tx join)")
+	}
+
 	// S3: MapSet lane (direct engine write, autocommit per call).
 	mb, _ := eng.(metaengine.MapBackend)
 	mbStart := time.Now()
@@ -148,7 +152,9 @@ func TestSpike_MF1_FloodWritePath(t *testing.T) {
 		}
 	}
 	mapSetLane := time.Since(mbStart)
-	if got := spikeMF1Count(t, db, table); got != 2000 {
+	// 2000 fold/MapSet rows + the S2 probe row (ID 999999), which lands
+	// successfully post-MF1.2.
+	if got := spikeMF1Count(t, db, table); got != 2001 {
 		t.Fatalf("S3 MapSet: %d rows, want 2000", got)
 	}
 
