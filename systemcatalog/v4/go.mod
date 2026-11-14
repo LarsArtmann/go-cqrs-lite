@@ -81,3 +81,12 @@ require (
 replace github.com/larsartmann/go-cqrs-lite/system/v4 => ../../system/v4
 
 replace github.com/larsartmann/go-cqrs-lite/catalog/v4 => ../../catalog/v4
+
+// Pre-tag sibling adoption (unreleased ADR-0141 config-surface symbols,
+// issue #131): system.EngineConfig.CellVersioning and
+// metaengine.DriverConfig.CellVersioning / RejectCellVersioning exist only
+// on disk until the next tag wave; without this replace the GOWORK=off
+// per-module build (CI matrix "Module systemcatalog/v4") resolves
+// metaengine v4.23.0 and the replaced local system/v4 fails to compile.
+// Drop this replace in the wave's replace-strip sweep.
+replace github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ../../metaengine/v4
