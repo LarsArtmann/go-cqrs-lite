@@ -31,12 +31,7 @@ type Engine struct {
 // the claim/dedup capabilities. The queue's task schema and the claimkit
 // tables coexist; both are created idempotently.
 func NewEngine(path string) (*Engine, error) {
-	dsn := fmt.Sprintf(
-		"file:%s?_pragma=journal_mode(WAL)&_pragma=busy_timeout(5000)&_pragma=foreign_keys(1)",
-		path,
-	)
-
-	db, err := sql.Open("sqlite", dsn)
+	db, err := sql.Open("sqlite", queueDSN(path))
 	if err != nil {
 		return nil, fmt.Errorf("queue/sqlite engine: open: %w", err)
 	}

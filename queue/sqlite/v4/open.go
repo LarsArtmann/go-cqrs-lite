@@ -32,6 +32,16 @@ func WithCodec[T any](c queue.Codec[T]) StoreOption[T] {
 	return func(o *storeOptions[T]) { o.codec = c }
 }
 
+// queueDSN builds the single source of truth for the per-connection pragma
+// set (modernc/sqlite applies DSN _pragmas to every pooled connection); both
+// Open and NewEngine must ride it so the two sites cannot drift (M37 F230).
+func queueDSN(path string) string {
+	return fmt.Sprintf(
+		"file:%s?_pragma=journal_mode(WAL)&_pragma=busy_timeout(5000)&_pragma=foreign_keys(1)",
+		path,
+	)
+}
+
 // Open opens (creating if needed) the queue database at path. One queue
 // per database file.
 func Open[T any](path string, opts ...StoreOption[T]) (*Store[T], error) {
@@ -40,12 +50,7 @@ func Open[T any](path string, opts ...StoreOption[T]) (*Store[T], error) {
 		opt(&options)
 	}
 
-	dsn := fmt.Sprintf(
-		"file:%s?_pragma=journal_mode(WAL)&_pragma=busy_timeout(5000)&_pragma=foreign_keys(1)",
-		path,
-	)
-
-	db, err := sql.Open("sqlite", dsn)
+	db, err := sql.Open("sqlite", queueDSN(path))
 	if err != nil {
 		return nil, fmt.Errorf("queue/sqlite: open: %w", err)
 	}
