@@ -803,6 +803,19 @@ Directive syntax notes: any spacing after `//` works (`//cqrs-lint:` or
 its rules; and directive text inside `/* */` block comments or raw strings
 is inert — prose that merely mentions the syntax never suppresses.
 
+### Running From a Subdirectory (module-scoped verdicts)
+
+`cqrs-lint` and `cqrs-lint doctor` accept a `--path` inside a multi-module
+tree — a subdirectory of the repo you actually want audited. Verdicts are
+**module-scoped even from a subdir run**: feature detection walks UP to the
+enclosing `go.mod` and profiles the whole module, while findings and file
+scanning stay scoped to the subtree you pointed at (issue #126 — a
+downward-only walk degraded the feature profile, silently skipping profile-
+gated rules like B029/B030/B014 and producing false "stale" suppression
+verdicts). The same enclosure rule governs suppression audits and
+`--prune-suppressions`, which re-runs the pipeline post-prune and fails
+loudly if a pruned rule still fires at the pruned location.
+
 ### Findings Baseline
 
 Inline suppressions are per-site and rule disables are per-rule. Neither answers

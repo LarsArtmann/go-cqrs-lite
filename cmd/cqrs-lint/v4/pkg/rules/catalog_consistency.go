@@ -30,13 +30,21 @@ func consistencyRules() []RuleInfo {
 			AutoFix:     false,
 		},
 		{
-			ID:          "D005",
-			Name:        "stale-documentation-version",
-			Category:    "consistency",
-			Severity:    "warning",
-			Confidence:  "low",
-			Description: "Documentation references different version than go.mod",
-			AutoFix:     false,
+			ID:      "D005",
+			Name:    "stale-documentation-version",
+			Category: "consistency",
+			Severity: "warning",
+			Confidence: "low",
+			Description: "Documentation references a different go-cqrs-lite version than go.mod. " +
+				"The cue scan judges each doc token against the module pin it names " +
+				"(go-cqrs-lite tags are per-module, so \"event v4.12.0, decider v4.7.0\" is " +
+				"legitimate), falling back to any-pin matching. Historical mentions are " +
+				"exempt when attached to a past-tense cue: the walk skips connectors and " +
+				"the go-cqrs-lite qualifier within a window of 4 tokens before the version, " +
+				"and a version suffixed with \"-era\" counts as cue-equivalent. " +
+				"Present-tense version claims still fire. Scanned files: README.md, " +
+				"AGENTS.md, MIGRATION.md.",
+			AutoFix: false,
 		},
 		{
 			ID:          "D006",
