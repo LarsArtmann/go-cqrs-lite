@@ -35,10 +35,11 @@ func nothing() {}
 func TestVerifyPruneRemovedNothingLive_HappyPathStale(t *testing.T) {
 	t.Parallel()
 
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+	ctx, cleanup := analyzer.BuildContextFromTempFiles(t, map[string]string{
 		"svc.go":   pruneVerifySources,
 		"stale.go": pruneStaleSource,
 	})
+	defer cleanup()
 	cfg := &AppConfig{}
 
 	entries, err := computeSuppressionAudit(context.Background(), cfg, ctx)
@@ -74,9 +75,10 @@ func TestVerifyPruneRemovedNothingLive_HappyPathStale(t *testing.T) {
 func TestVerifyPruneRemovedNothingLive_WrongStaleFiresLoudly(t *testing.T) {
 	t.Parallel()
 
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+	ctx, cleanup := analyzer.BuildContextFromTempFiles(t, map[string]string{
 		"svc.go": pruneVerifySources,
 	})
+	defer cleanup()
 	cfg := &AppConfig{}
 
 	var svcPath string
@@ -120,9 +122,10 @@ func TestVerifyPruneRemovedNothingLive_WrongStaleFiresLoudly(t *testing.T) {
 func TestBuildSuppressionAuditJSON_RealPruneVerifies(t *testing.T) {
 	t.Parallel()
 
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+	ctx, cleanup := analyzer.BuildContextFromTempFiles(t, map[string]string{
 		"stale.go": pruneStaleSource,
 	})
+	defer cleanup()
 	cfg := &AppConfig{}
 
 	audit, err := buildSuppressionAuditJSON(context.Background(), cfg, ctx,
