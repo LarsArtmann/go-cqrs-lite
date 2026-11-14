@@ -2272,8 +2272,8 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
 > enumeration in tooling (api-stability, cqrs-lint `StoreBigTable` +
 > `metaengineEngineFromImport`) landed 2026-09-18 evening session.
 
-- [x] **Composition-root config surface for cell versioning (issue #131)** —
-      DONE 2026-11-13: `cell_versioning: {max_versions, max_age}` on
+- [x] **Composition-root config surface for cell versioning (issue #131)** — DONE 2026-11-13:
+      `cell_versioning: {max_versions, max_age}` on
       `system.EngineConfig` → `metaengine.DriverConfig.CellVersioning` →
       driver translation (sqlite/memory/turso version, BigTable GC-policy
       mapping, the rest fail loudly via `RejectCellVersioning`); ADR-0141
@@ -2314,13 +2314,6 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
 > #6 → metaengine rows, #1/#7/#8 → ROADMAP. Source: **Consumer ack 2026-11-11:** feedback #2 shipped since (fail-closed grouped matviews, CHANGELOG `ErrGroupedViewBugRefused` + `WithKnownGroupedViewBug`, pinned by `TestTursoMatView_GroupedSpecRefusedWithoutOptIn`); the consumer re-ran its decision matrix on system v4.18/metaengine v4.23 and HELD its verdict (go-graph-rag `docs/research/2026-11-10_metaengine-system-reevaluation.md`, its issue #2 closed).
 > [`docs/feedback/reviewed/archived/2026-09-15_go-graph-rag_metaengine-system-evaluation-feedback.md`](docs/feedback/reviewed/archived/2026-09-15_go-graph-rag_metaengine-system-evaluation-feedback.md)
 
-- [x] [RULED 2026-10-08] **Update the go-graph-rag consumer** — **COMMS
-      APPROVED** (blanket authorization; github-voice + the shipped-fix receipts):
-      tell the consumer feedback #3 + #5 are fixed and released
-      (`system/v4.9.0` `ErrRacySaveRefused`/`WithRacySave`/
-      `ErrEventSaveNotAtomic` + the 17 `# Experimental` doc.go stamps); invite a
-      re-test on v4.9.0. Executes in the T25 filings/comms pack. — source:
-      23-24 followups §f5/§f40 _(Effort: S)_ -> **DONE 2026-11-11:** the consumer re-tested on its own initiative (re-evaluation artifact + closed issue, linked in the section header above): verdict held, receipts recorded; nothing further to send.
 - [ ] [RULED 2026-10-08] **goal-shaped-app postgres e2e CI leg** — **RULED:
       ephemeral PG in the examples CI job** (the `#integration-pg`
       ephemeral-server pattern, no services container needed; billing-gated
