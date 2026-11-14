@@ -89,3 +89,32 @@ func TestNewSQLiteEngineFromDSN_CallerCacheSizeAccepted(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	defer eng.Close()
 }
+
+// TestNewSQLiteEngineFromDSN_InvalidPragmaFailsConstruction pins the eager-ping
+// half of the pragmaConnector contract (M37/F228): a pragma whose SQL is
+// invalid must fail CONSTRUCTION, not the first query. Note SQLite silently
+// ignores unknown pragma NAMES and bad VALUES (probed: busy_timeout=notanumber
+// constructs fine), so the failing class is malformed pragma SQL — exactly
+// what a typo'd pragma string produces. Both DSL constructors are pinned
+// because the delegating convenience form could drift from the With form.
+func TestNewSQLiteEngineFromDSN_InvalidPragmaFailsConstruction(t *testing.T) {
+	t.Parallel()
+
+	g := NewGomegaWithT(t)
+
+	eng, err := sqliteengine.NewSQLiteEngineFromDSN(":memory:", "bad syntax here")
+	g.Expect(err).To(HaveOccurred(), "invalid pragma SQL must fail construction eagerly")
+	g.Expect(err.Error()).To(ContainSubstring(`pragma "bad syntax here"`), "error must name the offending pragma")
+	g.Expect(eng).To(BeNil(), "no engine may escape a failed construction")
+}
+
+func TestNewSQLiteEngineFromDSNWith_InvalidPragmaFailsConstruction(t *testing.T) {
+	t.Parallel()
+
+	g := NewGomegaWithT(t)
+
+	eng, err := sqliteengine.NewSQLiteEngineFromDSNWith(":memory:", []string{"foo(bar"})
+	g.Expect(err).To(HaveOccurred(), "invalid pragma SQL must fail construction eagerly")
+	g.Expect(err.Error()).To(ContainSubstring(`pragma "foo(bar"`), "error must name the offending pragma")
+	g.Expect(eng).To(BeNil(), "no engine may escape a failed construction")
+}
