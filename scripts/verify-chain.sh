@@ -235,6 +235,7 @@ self_test() {
 	# and died mid-storm; the rc=12 contract on both ends is what
 	# storm-riding depends on.
 	counter_stub "$tmp/ver6" 1 12
+	VERIFY_CHAIN_SKIP_PREFLIGHT=1 \
 	VERIFY_CHAIN_GATE_CMD="$tmp/pass" VERIFY_CHAIN_COVERAGE_CMD="$tmp/pass" \
 		VERIFY_CHAIN_VERIFY_CMD="$tmp/ver6.stub" VERIFY_CHAIN_RETRY_SLEEP=0 \
 		bash "$SCRIPT_DIR/verify-chain.sh" >/dev/null 2>&1
