@@ -332,17 +332,17 @@ noise_target_guard() {
 
 	local failed=0
 
-	if ! grep -q -- '"run"' "$root/cmd/cqrs-bench/main.go" 2>/dev/null; then
+	if ! grep -q -- '"run"' "$root/cmd/cqrs-bench/v4/main.go" 2>/dev/null; then
 		echo "NOISE TARGET GUARD FAILED — cqrs-bench 'run' subcommand not found in cmd/cqrs-bench/v4/main.go"
 		failed=1
 	fi
 
-	if ! grep -rEq --exclude='*_test.go' -- "\"$NOISE_BACKEND\"" "$root/cmd/cqrs-bench" --include='*.go' 2>/dev/null; then
+	if ! grep -rEq --exclude='*_test.go' -- "\"$NOISE_BACKEND\"" "$root/cmd/cqrs-bench/v4" --include='*.go' 2>/dev/null; then
 		echo "NOISE TARGET GUARD FAILED — backend '$NOISE_BACKEND' not found in cmd/cqrs-bench/v4 sources"
 		failed=1
 	fi
 
-	if ! grep -rEq --exclude='*_test.go' -- "\"$NOISE_PROFILE\"" "$root/benchkit" --include='*.go' 2>/dev/null; then
+	if ! grep -rEq --exclude='*_test.go' -- "\"$NOISE_PROFILE\"" "$root/benchkit/v4" --include='*.go' 2>/dev/null; then
 		echo "NOISE TARGET GUARD FAILED — profile '$NOISE_PROFILE' not found in benchkit/v4 sources"
 		failed=1
 	fi
