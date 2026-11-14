@@ -221,27 +221,31 @@ check "noise-only still fails on a noisy headline" 1 $?
 # touches tracked files — fault injection happens on this temp tree only.
 plant_guard_repo() { # plant_guard_repo DIR
 	local root="$1"
-	mkdir -p "$root/stack/bench" "$root/metaengine/tursoengine" \
-		"$root/metaengine/claimkit" "$root/cmd/cqrs-bench" "$root/benchkit"
+	# Paths mirror the post-2026-11-10 /v4 module layout (the same dirs
+	# GATE_SETS and noise_target_guard grep — fixed 2026-11-14: the fixture
+	# still planted pre-move paths, so every guard fixture failed for the
+	# wrong reason and the rename mutations passed as false-positives).
+	mkdir -p "$root/stack/bench/v4" "$root/metaengine/tursoengine/v4" \
+		"$root/metaengine/v4/claimkit" "$root/cmd/cqrs-bench/v4" "$root/benchkit/v4"
 
-	cat >"$root/stack/bench/bench_test.go" <<'EOF'
+	cat >"$root/stack/bench/v4/bench_test.go" <<'EOF'
 func BenchmarkFullPipeline_Memory(b *B) {}
 func BenchmarkBenchkitSuite_Memory(b *B) {}
 func BenchmarkBenchkitSuite_SQLite(b *B) {}
 EOF
-	cat >"$root/metaengine/tursoengine/matview_test.go" <<'EOF'
+	cat >"$root/metaengine/tursoengine/v4/matview_test.go" <<'EOF'
 func BenchmarkMatViewRead(b *B) { b.Run("agg=MIN/scale=1k", nil) }
 EOF
-	cat >"$root/metaengine/claimkit/claim_test.go" <<'EOF'
+	cat >"$root/metaengine/v4/claimkit/claim_test.go" <<'EOF'
 func BenchmarkClaimDue_ClaimKit(b *B) {}
 func BenchmarkTimerRoundTrip_ClaimKit(b *B) {}
 func BenchmarkDedupCheckAndRecord_FreshKeys_ClaimKit(b *B) {}
 func BenchmarkDedupCheckAndRecord_LiveWindowHit(b *B) {}
 EOF
 	# Noise-target markers: run subcommand, backend name, profile name.
-	printf 'package main\n// "run" subcommand marker\n' >"$root/cmd/cqrs-bench/main.go"
-	printf 'package main\n// backend "sqlite" marker\n' >"$root/cmd/cqrs-bench/factory.go"
-	printf 'package benchkit\n// profile "dev" marker\n' >"$root/benchkit/profiles.go"
+	printf 'package main\n// "run" subcommand marker\n' >"$root/cmd/cqrs-bench/v4/main.go"
+	printf 'package main\n// backend "sqlite" marker\n' >"$root/cmd/cqrs-bench/v4/factory.go"
+	printf 'package benchkit\n// profile "dev" marker\n' >"$root/benchkit/v4/profiles.go"
 }
 
 GUARD_REPO="$tmp/guardrepo"
@@ -254,18 +258,18 @@ check "guards pass when every gate-set benchmark exists" 0 $?
 # Mutation 1: rename a gate benchmark (delete BenchmarkBenchkitSuite_SQLite)
 # — the second stack/bench/v4 set entry then matches zero funcs and must fail
 # BEFORE any benchmarking.
-mv "$GUARD_REPO/stack/bench/bench_test.go" "$tmp/bench_test.go.bak"
-cat >"$GUARD_REPO/stack/bench/bench_test.go" <<'EOF'
+mv "$GUARD_REPO/stack/bench/v4/bench_test.go" "$tmp/bench_test.go.bak"
+cat >"$GUARD_REPO/stack/bench/v4/bench_test.go" <<'EOF'
 func BenchmarkFullPipeline_Memory(b *B) {}
 func BenchmarkBenchkitSuite_Memory(b *B) {}
 EOF
 BENCH_GATE_GUARD_ROOT="$GUARD_REPO" "$GATE" --noise-only \
 	--noise-current "$tmp/nj-stable" --skip-load-gate >/dev/null 2>&1
 check "renamed gate-set benchmark fails the guard" 1 $?
-mv "$tmp/bench_test.go.bak" "$GUARD_REPO/stack/bench/bench_test.go"
+mv "$tmp/bench_test.go.bak" "$GUARD_REPO/stack/bench/v4/bench_test.go"
 
 # Mutation 2: rename the noise-target backend — the guard must name it.
-printf 'package main\n// backend renamed away\n' >"$GUARD_REPO/cmd/cqrs-bench/factory.go"
+printf 'package main\n// backend renamed away\n' >"$GUARD_REPO/cmd/cqrs-bench/v4/factory.go"
 BENCH_GATE_GUARD_ROOT="$GUARD_REPO" "$GATE" --noise-only \
 	--noise-current "$tmp/nj-stable" --skip-load-gate >"$tmp/guard-out" 2>&1
 check "renamed noise-target backend fails the guard" 1 $?
@@ -275,7 +279,7 @@ else
 	echo "FAIL: guard failure message not emitted"
 	failures=$((failures + 1))
 fi
-printf 'package main\n// backend "sqlite" marker\n' >"$GUARD_REPO/cmd/cqrs-bench/factory.go"
+printf 'package main\n// backend "sqlite" marker\n' >"$GUARD_REPO/cmd/cqrs-bench/v4/factory.go"
 
 # Restored tree must be green again (mutation → fail → restore → green).
 BENCH_GATE_GUARD_ROOT="$GUARD_REPO" "$GATE" --noise-only \
