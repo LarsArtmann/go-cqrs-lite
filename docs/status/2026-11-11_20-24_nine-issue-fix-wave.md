@@ -45,27 +45,27 @@ commits as usual.
 
 ## b) PARTIALLY DONE
 
-- **#117 consumer flip**: the cqrs-htmx pinned test
+~~- **#117 consumer flip**: the cqrs-htmx pinned test~~ routed — M35 consumer flips (cqrs-htmx snapshot_shape_sql_test flip rides the storage/v4 tag; PUSH-BLOCKED, D16)
   (`usermgmt/snapshot_shape_sql_test.go`) still documents the drop by
   design — it flips in the SAME change as the storage/v4 dependency bump,
   and NO release/tag was cut this session (deliberate: release is a ritual
   of its own). The dependency bump + flip is pending.
-- **#126 wiring coverage**: the loader mechanism and `WouldSuppress` are
+~~- **#126 wiring coverage**: the loader mechanism and `WouldSuppress` are~~ done — DONE 2026-11-14 (M37/F231): 3-test e2e incl. JSON-path wiring gap fixed
   pinned, but `verifyPruneRemovedNothingLive` itself (the re-run-after-prune
   guard in `doctor_audit.go`) has NO direct test — a fixture-based e2e that
   prunes a LIVE suppression and asserts the loud failure is missing.
-- **#122 evidence**: planner adoption pinned via EXPLAIN; the 58.5ms →
+~~- **#122 evidence**: planner adoption pinned via EXPLAIN; the 58.5ms →~~ routed — TODO_LIST "100k-row indexed keyset-scan benchmark" row (make the numbers OURS, M53)
   ~0.2ms numbers are the ISSUE's measurements, not re-measured here (no
   100k-row benchmark added; see e/next).
 
 ## c) NOT STARTED (deliberately out of this session's scope)
 
-- Any release/tag wave for the touched modules (storage/v4, cqrs-lint,
+~~- Any release/tag wave for the touched modules (storage/v4, cqrs-lint,~~ routed — M35: manifest staged + dry-run green; cut pending chain green (D16/D17)
   sqliteengine).
-- tursoengine parity for `WithSortIndex` (see e).
-- webphone CHANGELOG/docs entry for the enroll fix (its daemon absorbed the
+~~- tursoengine parity for `WithSortIndex` (see e).~~ routed — TODO_LIST "tursoengine WithSortIndex parity + ApplyLayout auto-drop" row + D15
+~~- webphone CHANGELOG/docs entry for the enroll fix (its daemon absorbed the~~ routed — DONE 2026-11-14 (M37/F236): Fixed row landed, full suite re-verified (37 pkgs)
   code; no release-notes row written).
-- AGENTS.md/gotchas lesson entry for the subdir-audit class (knowledge lives
+~~- AGENTS.md/gotchas lesson entry for the subdir-audit class (knowledge lives~~ routed — DONE 2026-11-14 (M37/F235): gotchas-testing row landed
   in the loader comment + CHANGELOG only).
 
 ## d) TOTALLY FUCKED UP
@@ -91,107 +91,107 @@ Nothing destroyed, no regressions found — but honest near-misses:
 
 ## e) WHAT WE SHOULD IMPROVE (this session's lessons)
 
-1. **Never ship a perf option without an EXPLAIN/planner pin** — existence
+~~1. **Never ship a perf option without an EXPLAIN/planner pin** — existence~~ routed — codified: sort-index EXPLAIN pin shipped with #122; benchmark row keeps it honest
    tests lie for indexes (the partial-index trap above).
-2. **Always run the composed gate** (`#verify`/`#verify-fast`) after an
+~~2. **Always run the composed gate** (`#verify`/`#verify-fast`) after an~~ routed — M34 chain armed (verify-chain.sh); receipt rows 331/495
    API-surface session, not just the pieces — see f/#1. I ran scoped tests,
    scoped lint, doc-check, goldens, and meta-tests but NOT the composed
    `#verify` (coverage floor, duplication gate, file-size ratchet,
    package-surface, test-runtime baseline all unverified).
-3. **Write the fixture e2e for safety-belt wiring when the mechanism test
+~~3. **Write the fixture e2e for safety-belt wiring when the mechanism test~~ routed — DONE via F231 (the exact case named: prune guard wiring untested)
    exists but the wiring doesn't exercise it** (prune guard).
-4. **Format-before-edit discipline** with the daemon + treefmt racing.
-5. **Perf claims in CHANGELOG/comments should say whose measurement they
+~~4. **Format-before-edit discipline** with the daemon + treefmt racing.~~ routed — process note (daemon+treefmt race) — not rowed
+~~5. **Perf claims in CHANGELOG/comments should say whose measurement they~~ routed — codified: CHANGELOG row for #122 cites issue-measured + planner-pinned-here; benchmark row closes the gap
    are** (I wrote "measured" quoting the issue; the honest label is
    "issue-measured, planner-adoption pinned here").
 
 ## f) NEXT — up to 50, prioritized
 
 **Verify/release (blocking confidence):**
-1. Run `nix run .#verify` (exclusive; expect green — but file-size ratchet
+~~1. Run `nix run .#verify` (exclusive; expect green — but file-size ratchet~~ routed — M34 chain #4 armed (gate-waiting on load); composed receipt pending
    on grown `d005_version.go`/`loader.go`, duplication gate on the new
    scanners, and test-runtime baselines are UNMEASURED).
-2. `nix run .#check-coverage` (new code + tests not floor-verified).
-3. `nix run .#check-duplication` (scanner_converters.go vs
+~~2. `nix run .#check-coverage` (new code + tests not floor-verified).~~ routed — rides the chain contract (coverage precedes #verify in verify-chain.sh)
+~~3. `nix run .#check-duplication` (scanner_converters.go vs~~ routed — in #verify battery (rides chain)
    scanner_emit_helpers.go shape overlap; 4 dialect DDL strings).
-4. `nix run .#check-file-size` (grew: d005_version.go ~+30, loader.go ~+70).
-5. `nix run .#check-package-surface` + `check-test-runtime`
+~~4. `nix run .#check-file-size` (grew: d005_version.go ~+30, loader.go ~+70).~~ routed — gate GREEN since M32 red-gate trio (2026-11-13); loader split verified; re-proven by chain battery
+~~5. `nix run .#check-package-surface` + `check-test-runtime`~~ routed — M35 pre-tag Verify Before Release ritual (post-chain window)
    (`--update` likely needed for storage/sqliteengine/cqrs-lint rows).
-6. `nix run .#verify-ci` (GOWORK=off per-module mirror).
-7. Webphone full `go test ./...` (I only ran the passkey + island tests;
+~~6. `nix run .#verify-ci` (GOWORK=off per-module mirror).~~ routed — TODO_LIST:495 optional same-window verify-ci leg (A1 row)
+~~7. Webphone full `go test ./...` (I only ran the passkey + island tests;~~ routed — DONE 2026-11-14 (M37/F236): go test ./... 37/37 green
    pkStub change is low-risk but unverified at package breadth).
-8. Decide + cut the release wave (storage/v4, cmd/cqrs-lint,
+~~8. Decide + cut the release wave (storage/v4, cmd/cqrs-lint,~~ routed — r
    metaengine/sqliteengine) per the tag-wave ritual.
-9. On the storage tag: flip cqrs-htmx `snapshot_shape_sql_test.go` to
+~~9. On the storage tag: flip cqrs-htmx `snapshot_shape_sql_test.go` to~~ routed — M35 consumer flips (PUSH-BLOCKED, D16)
    assert preservation + bump the pin (same change, per the issue contract).
-10. Timesheets: drop the `ignore-start(E004)` block on the cqrs-lint bump.
-11. crm (Kith): remove the consumer-side serialized-subtests mitigation
+~~10. Timesheets: drop the `ignore-start(E004)` block on the cqrs-lint bump.~~ routed — M35 consumer flips
+~~11. crm (Kith): remove the consumer-side serialized-subtests mitigation~~ routed — TODO_LIST crm row (rides M35)
     once the projectionhost fix is in their pin (verify their pin first).
 
 **Hardening what shipped:**
-12. e2e test: `doctor --prune-suppressions` over a fixture whose stale
+~~12. e2e test: `doctor --prune-suppressions` over a fixture whose stale~~ routed — DONE 2026-11-14 (M37/F231)
     verdict is wrong → asserts the loud failure (wiring currently untested).
-13. Parallelize or globally budget V003 proxy fetches (30 pins × 1.5s worst
+~~13. Parallelize or globally budget V003 proxy fetches (30 pins × 1.5s worst~~ routed — DONE 2026-11-14 (M37/F232): 4-slot semaphore
     case = 45s on a slow proxy; per-request cap only today).
-14. V003: honor `GONOSUMDB`-style private-module exclusion (GOPRIVATE/
+~~14. V003: honor `GONOSUMDB`-style private-module exclusion (GOPRIVATE/~~ routed — DONE 2026-11-14 (M37/F232): GONOPROXY/GOPRIVATE chain + 10-case pin
     GONOPROXY modules should skip the proxy, not fail-then-fallback).
-15. Converter replay: cover converter-wrapped args at HELPER call sites
+~~15. Converter replay: cover converter-wrapped args at HELPER call sites~~ routed — DONE 2026-11-14 (M37/F233): fixpoint unwrap def+replay sides
     (`ResolveHelperEmitCalls`/`ResolveCatalogHelperCalls` drop them today).
-16. `WithSortIndex` on tursoengine (delegation or own option) — the IVM
+~~16. `WithSortIndex` on tursoengine (delegation or own option) — the IVM~~ routed — TODO_LIST parity row + D15
     engine is where big sorted collections actually live.
-17. Auto-drop sort indexes when a collection migrates to a planned table
+~~17. Auto-drop sort indexes when a collection migrates to a planned table~~ routed — TODO_LIST parity row (same)
     (`ApplyLayout`) so residual meta_map rows don't pay index maintenance.
-18. Add a 100k-row benchmark for the indexed keyset scan into the bench
+~~18. Add a 100k-row benchmark for the indexed keyset scan into the bench~~ routed — r
     gates (`benchmarks/latency-ceilings.txt`) — the issue's numbers become
     OUR numbers.
-19. D005: update RULES.md long description with the shortname cue scan
+~~19. D005: update RULES.md long description with the shortname cue scan~~ routed — DONE 2026-11-14 (M37/F234)
     semantics (short desc regenerated; long prose not).
-20. Update cqrs-lint README/RULES for the doctor subdir semantics ("audit
+~~20. Update cqrs-lint README/RULES for the doctor subdir semantics ("audit~~ routed — DONE 2026-11-14 (M37/F234)
     verdicts are module-scoped even from a subdir run").
-21. Record the subdir-audit lesson in `docs/agents/gotchas-testing.md` (or
+~~21. Record the subdir-audit lesson in `docs/agents/gotchas-testing.md` (or~~ routed — DONE 2026-11-14 (M37/F235)
     loader gotchas file) — currently only the code comment carries it.
-22. Webphone: CHANGELOG/docs entry for the enroll unwrap (their train).
-23. Clean the 3 obsolete go-snaps golden files in storage/v4
+~~22. Webphone: CHANGELOG/docs entry for the enroll unwrap (their train).~~ routed — DONE 2026-11-14 (M37/F236)
+~~23. Clean the 3 obsolete go-snaps golden files in storage/v4~~ routed — DONE 2026-11-14 (M37/F239): already clean, zero-diff proven
     (`UPDATE_SNAPS=clean`; pre-existing, noticed this session).
-24. InboxClean's own F009 stale suppression (corpus_backup.go:382) surfaced
+~~24. InboxClean's own F009 stale suppression (corpus_backup.go:382) surfaced~~ routed — routed to foreign-repo owner (harvest ledger)
     in the audit — their call, but worth a heads-up.
-25. `NewV003DetectorWithLatest` is an exported test seam — consider folding
+~~25. `NewV003DetectorWithLatest` is an exported test seam — consider folding~~ routed — TODO_LIST Small pins pack row (named)
     into an internal test once ruletest allows package-internal detectors
     (public surface hygiene).
 
 **Bigger follow-ons visible from this session (park/decide):**
-26. Snapshot `state_shape` for the metaengine `SnapshotBackend` wire —
+~~26. Snapshot `state_shape` for the metaengine `SnapshotBackend` wire —~~ routed — DONE 2026-11-14 (M37/F238): GAP VERIFIED + rowed with fix shapes
     verify the engine-backed path already round-trips shape (system
     deployments) or file the gap.
-27. SQL integration suites for the new column (`#integration-pg`,
+~~27. SQL integration suites for the new column (`#integration-pg`,~~ routed — TODO_LIST "state_shape SQL integration legs" row (M53)
     `#integration-mysql-nspawn`) — only SQLite ran.
-28. Doctor: surface "analyzed subtree of module <X>" in the header when the
+~~28. Doctor: surface "analyzed subtree of module <X>" in the header when the~~ routed — r
     enclosing-module path triggers (operator visibility).
-29. V003 suggestion could include the actual latest version string from the
+~~29. V003 suggestion could include the actual latest version string from the~~ routed — TODO_LIST V003 hygiene pack row (named)
     proxy in the `go get` line.
-30. Consider a `--no-network` global flag for cqrs-lint (V003 is the first
+~~30. Consider a `--no-network` global flag for cqrs-lint (V003 is the first~~ routed — TODO_LIST V003 hygiene pack row (named)
     rule that can touch the network; make the policy explicit).
-31. Converter scan: record converters' SOURCE positions and surface them in
+~~31. Converter scan: record converters' SOURCE positions and surface them in~~ routed — r
     doctor for debuggability (why did/didn't my converter inline).
-32. The `attachedToCQRSMention` two-branch asymmetry (raw 2-token vs
+~~32. The `attachedToCQRSMention` two-branch asymmetry (raw 2-token vs~~ routed — not rowed (two-branch window asymmetry; property-test idea)
     skip-aware 4-token windows) could be unified + property-tested.
-33. Explore pinning `EXPLAIN QUERY PLAN` for the OTHER meta_map scans
+~~33. Explore pinning `EXPLAIN QUERY PLAN` for the OTHER meta_map scans~~ routed — TODO_LIST row (M53)
     (filters) so future regressions in pushdown SQL get caught the same way.
-34. Fleet: re-run `census-fleet.sh` after the release wave (sqlstore
+~~34. Fleet: re-run `census-fleet.sh` after the release wave (sqlstore~~ routed — TODO_LIST Post-fix census re-run row (M54)
     deletion prep unaffected, but numbers refresh).
-35. cqrs-htmx deep-check: does webphone's login page (loginpage library)
+~~35. cqrs-htmx deep-check: does webphone's login page (loginpage library)~~ routed — audited in-report: only enroll used the raw shape
     have the same enroll-side gap on any OTHER page? (audited: no — only
     enroll used the raw shape).
 
 ## g) Questions I canNOT answer myself
 
-1. **Run `#verify` now, or is push-CI the verifier of record for this
+~~1. **Run `#verify` now, or is push-CI the verifier of record for this~~ routed — answered by ritual: chain #4 armed (verify = verifier of record; push-CI gates F214)
    batch?** It's the repo contract after API-surface changes, but it's
    exclusive and the machine has been busy; you may want it deferred to a
    quiet window (`nix run .#quiet-window-run`).
-2. **Cut the release wave for storage/v4 + cqrs-lint + sqliteengine now**
+~~2. **Cut the release wave for storage/v4 + cqrs-lint + sqliteengine now**~~ routed — owner decision D16/D17 (push + ratify 48-module scope)
    (which also forces the cqrs-htmx test flip + consumer bumps), or fold
    into the next planned wave?
-3. **tursoengine `WithSortIndex` parity + ApplyLayout auto-drop** (f/16+17):
+~~3. **tursoengine `WithSortIndex` parity + ApplyLayout auto-drop** (f/16+17):~~ routed — owner decision D15
    build now as a small follow-up train, or park in TODO_LIST for the next
    sqliteengine touch?

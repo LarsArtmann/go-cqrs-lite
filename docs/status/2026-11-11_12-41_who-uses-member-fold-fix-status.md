@@ -97,38 +97,38 @@ implemented, tested, verified, and documented the attribution fix in
 
 ## b) PARTIALLY DONE
 
-1. **Zero-dep-member regression pin** — the exact metadata→record shape has no dedicated
+~~1. **Zero-dep-member regression pin** — the exact metadata→record shape has no dedicated~~ routed — pdg member-fold follow-ups TODO row (names the metadata→record pin, open)
    synthetic test (behavior is fixed and incidentally covered; the pin is missing).
-2. **Graph-layer bleed audit** — `graph/build.go` edges still carry aggregate-union deps;
+~~2. **Graph-layer bleed audit** — `graph/build.go` edges still carry aggregate-union deps;~~ routed — pdg member-fold follow-ups TODO row (serve/diff/generate/why, open)
    member-aware paths for `serve`/`diff`/`generate`/`why` unaudited (empirical why-check only).
-3. **Commit-policy remediation** — daemon swept a FOREIGN flake.nix edit (cmdguard pin
+~~3. **Commit-policy remediation** — daemon swept a FOREIGN flake.nix edit (cmdguard pin~~ routed — pdg member-fold follow-ups TODO row (§b3 foreign-pin commit flagged; reword only when no parallel session)
    tag→SHA `56fd69b4`, likely a parallel session) into heuristic commit `05e5b1ae` together with
    my source changes; that commit's body violates the repo's detailed-body policy for flake.nix
    commits. Flagged; no rebase (concurrency detected — rewriting history under a parallel session
    is how work gets destroyed).
-4. **Concurrency anomalies** — go-design-smells/branching-flow go.mod appearance/disappearance +
+~~4. **Concurrency anomalies** — go-design-smells/branching-flow go.mod appearance/disappearance +~~ routed — pdg member-fold follow-ups TODO row (§b4 bounded, not chased)
    samber-linter cmdguard line found/lost between reads. Noticed, bounded (late reads double-
    checked), not chased to the owning session.
-5. **`nix flake check`** — manual loop run instead; sanctioned gate not executed.
-6. **TODO_LIST harvest** — neither status report's (f) has been harvested.
-7. **go.work stale sibling entries** in project-dependency-graph (`../go-cqrs-lite/catalog` —
+~~5. **`nix flake check`** — manual loop run instead; sanctioned gate not executed.~~ routed — pdg member-fold follow-ups TODO row (open)
+~~6. **TODO_LIST harvest** — neither status report's (f) has been harvested.~~ done — M31/F194 harvest DONE 2026-11-13 (both reports)
+~~7. **go.work stale sibling entries** in project-dependency-graph (`../go-cqrs-lite/catalog` —~~ routed — pdg member-fold follow-ups TODO row (open)
    pre-restructure paths) — identified as warning-flood source, not fixed.
-8. **Staging-repo hygiene** from the morning report (crm-stage-t13b, cv-stage-crmfix,
+~~8. **Staging-repo hygiene** from the morning report (crm-stage-t13b, cv-stage-crmfix,~~ routed — TODO_LIST:147 (staging/fork owner row, open)
    erraudit-src, ci-siblings fork) — still broken, untouched.
 
 ## c) NOT STARTED
 
-1. Dedicated zero-dep-member regression test (item b1).
-2. Member-aware graph layer (`why`/`serve`/`diff` paths crossing aggregates).
-3. Release/versioning of project-dependency-graph carrying this fix (version-authority decision
+~~1. Dedicated zero-dep-member regression test (item b1).~~ routed — pdg member-fold follow-ups (same as b1)
+~~2. Member-aware graph layer (`why`/`serve`/`diff` paths crossing aggregates).~~ routed — pdg member-fold follow-ups (b2/c2, open)
+~~3. Release/versioning of project-dependency-graph carrying this fix (version-authority decision~~ routed — pdg member-fold follow-ups (version-authority decision + release, open)
    blocks it — tags end at v0.2.0, CHANGELOG says 0.7.0-dev).
-4. Post-fix fleet re-census / re-run of adoption reports that cited the inflated numbers.
-5. `--attribution=strict|repo` flag, `viaKind` field in JSON/SARIF outputs (idea-tier from the
+~~4. Post-fix fleet re-census / re-run of adoption reports that cited the inflated numbers.~~ routed — TODO_LIST Post-fix census re-run row (12-41 f43/f44, open, M54)
+~~5. `--attribution=strict|repo` flag, `viaKind` field in JSON/SARIF outputs (idea-tier from the~~ routed — pdg backlog (routed not minted: idea tier f5)
    morning list).
-6. Fixture/golden pinning of the 34-consumer cmdguard tree as a named regression fixture.
-7. Verification that go-cqrs-lite's own `census-fleet.sh` numbers were NEVER affected (it uses
+~~6. Fixture/golden pinning of the 34-consumer cmdguard tree as a named regression fixture.~~ routed — pdg member-fold follow-ups (f2/f6, open)
+~~7. Verification that go-cqrs-lite's own `census-fleet.sh` numbers were NEVER affected (it uses~~ routed — TODO_LIST Post-fix census re-run row + TODO_LIST:144 census-vs-who-uses note
    module-graph tooling directly — presumed independent of this tool, unverified).
-8. Re-verification of morning disk facts (KeyHolderAI go.sum etc.) under the concurrency caveat.
+~~8. Re-verification of morning disk facts (KeyHolderAI go.sum etc.) under the concurrency caveat.~~ done — declined-with-reason in harvest ledger (sampling class proven by A/B + disk hand-checks)
 
 ## d) TOTALLY FUCKED UP
 
@@ -144,82 +144,82 @@ shortcuts under momentum.
 
 ## e) WHAT WE SHOULD IMPROVE
 
-1. **Definition of done = original repro command, every time** — green tests are necessary, not
+~~1. **Definition of done = original repro command, every time** — green tests are necessary, not~~ routed — process lesson codified: docs/agents/gotchas-testing.md "Direct sweeps are NOT the gate" row + release-verification rule (AGENTS)
    sufficient.
 2. **Real-data probes first** when a bug survives synthetic reasoning; the one-off discovery
    probe outperformed four rounds of synthetic analysis.
-3. **Regression-pin every production bug shape at fix time** (or immediately after, same
+~~3. **Regression-pin every production bug shape at fix time** (or immediately after, same~~ routed — codified: AGENTS "New goldens must be mutation-tested" + M37/F227 executed the class
    session).
 4. **No python-string-patching of code**; use the edit tool, or commit-flavored throwaway tests.
-5. **Concurrency discipline**: when parallel sessions are known-active, re-read every fact before
+~~5. **Concurrency discipline**: when parallel sessions are known-active, re-read every fact before~~ routed — codified: global AGENTS safety rules (never revert others' work; re-read before citing)
    citing it and never rewrite shared history.
 6. **Prefer the repo's canonical gate** (`nix flake check`) over ad-hoc loops when available.
-7. **Shell hygiene**: no `2>/dev/null` on commands whose failure matters; no pasted garbage flags.
-8. **Harvest discipline**: (f) lists go to TODO_LIST at session end, not into report files.
+~~7. **Shell hygiene**: no `2>/dev/null` on commands whose failure matters; no pasted garbage flags.~~ routed — codified: A7 SIGPIPE lesson row (TODO_LIST:337) + piped-grep gotcha
+~~8. **Harvest discipline**: (f) lists go to TODO_LIST at session end, not into report files.~~ done — M31/F194 DONE 2026-11-13
 
 ## f) Up to 50 things to get done next (BRAINSTORM — HARVEST must route with rigor)
 
 **Immediate hardening (this fix):**
-1. Add the dedicated zero-dep-member regression test (mid requires `record`-shaped empty member; assert no fold to aggregate) — closes b1/gap from the incident.
-2. Pin the post-fix cmdguard tree (34 consumers) as a named regression fixture in the repo.
-3. Audit `graph/build.go` + BFS (`why`/`serve`/`diff`) for aggregate-union path bleed; make paths member-aware or document the boundary.
-4. Add a `viaKind` (module-edge | member-fold | indirect-pin) field to who-uses JSON/SARIF.
-5. Add `--attribution=strict|repo` mode (strict = module-graph edges only, no identity folds).
-6. Confirm `census-fleet.sh` (go-cqrs-lite) independence from this tool's attribution; re-run it and compare with who-uses numbers post-fix.
-7. Re-run any adoption/delete-at-zero reports that cited pre-fix consumer counts; annotate the delta.
-8. Run `nix flake check` on project-dependency-graph (sanctioned gate, closes b5).
-9. Re-verify morning disk facts under the concurrency caveat (KeyHolderAI go.sum, cqrs-htmx go.mods, go-appkit).
-10. Resolve the flake.nix foreign-pin commit `05e5b1ae`: confirm ownership, then reword the body (interactive rebase ONLY when no parallel session is active).
-11. Fix `project-dependency-graph/go.work` stale sibling entries (`../go-cqrs-lite/catalog` etc.) to post-restructure paths; kills the discovery warning flood.
-12. Quiet the ci-siblings fork parse warnings by aligning skip dirs with census exclusions.
-13. Add renderer golden coverage for aggregates carrying `MemberDeps` (JSON shape stability).
-14. Add a doctor/summary line counting parse-error repos with names (they warn; nothing summarizes).
-15. Self-test the hidden-indirect accounting (32+2=34) against `--direct-only` flips.
+~~1. Add the dedicated zero-dep-member regression test (mid requires `record`-shaped empty member; assert no fold to aggregate) — closes b1/gap from the incident.~~ routed — pdg member-fold follow-ups (f1)
+~~2. Pin the post-fix cmdguard tree (34 consumers) as a named regression fixture in the repo.~~ routed — pdg member-fold follow-ups (f2)
+~~3. Audit `graph/build.go` + BFS (`why`/`serve`/`diff`) for aggregate-union path bleed; make paths member-aware or document the boundary.~~ routed — pdg member-fold follow-ups (f3)
+~~4. Add a `viaKind` (module-edge | member-fold | indirect-pin) field to who-uses JSON/SARIF.~~ routed — pdg follow-ups + backlog
+~~5. Add `--attribution=strict|repo` mode (strict = module-graph edges only, no identity folds).~~ routed — pdg backlog (idea tier)
+~~6. Confirm `census-fleet.sh` (go-cqrs-lite) independence from this tool's attribution; re-run it and compare with who-uses numbers post-fix.~~ routed — TODO_LIST census re-run row (M54)
+~~7. Re-run any adoption/delete-at-zero reports that cited pre-fix consumer counts; annotate the delta.~~ routed — TODO_LIST census re-run row ("verify docs claims citing fleet consumer counts")
+~~8. Run `nix flake check` on project-dependency-graph (sanctioned gate, closes b5).~~ routed — pdg member-fold follow-ups (f8)
+~~9. Re-verify morning disk facts under the concurrency caveat (KeyHolderAI go.sum, cqrs-htmx go.mods, go-appkit).~~ done — declined-with-reason (harvest ledger)
+~~10. Resolve the flake.nix foreign-pin commit `05e5b1ae`: confirm ownership, then reword the body (interactive rebase ONLY when no parallel session is active).~~ routed — pdg member-fold follow-ups (f10; owner confirm before release)
+~~11. Fix `project-dependency-graph/go.work` stale sibling entries (`../go-cqrs-lite/catalog` etc.) to post-restructure paths; kills the discovery warning flood.~~ routed — pdg member-fold follow-ups (f11)
+~~12. Quiet the ci-siblings fork parse warnings by aligning skip dirs with census exclusions.~~ routed — pdg member-fold follow-ups (f12) + TODO_LIST:147
+~~13. Add renderer golden coverage for aggregates carrying `MemberDeps` (JSON shape stability).~~ routed — pdg member-fold follow-ups (f13)
+~~14. Add a doctor/summary line counting parse-error repos with names (they warn; nothing summarizes).~~ routed — pdg backlog (idea tier)
+~~15. Self-test the hidden-indirect accounting (32+2=34) against `--direct-only` flips.~~ routed — pdg member-fold follow-ups (f15)
 
 **Release & versioning:**
-16. Decide version authority for project-dependency-graph (tags end v0.2.0 vs CHANGELOG 0.7.0-dev) — maintainer decision already pending.
-17. Cut the release carrying this fix once 16 is decided; CHANGELOG `[Unreleased]` is ready.
-18. Verify cmdguard pin (`56fd69b4`) vs `v5.0.0` tag intent with the cmdguard repo state before releasing.
-19. Tag-wave mechanics: if go-cqrs-lite modules consume the fixed tool version anywhere, plan the consumer bump wave.
-20. Write the incident as a short ADR/postmortem in project-dependency-graph docs (77→34, root cause, semantics chosen) — changelog is not a postmortem.
+~~16. Decide version authority for project-dependency-graph (tags end v0.2.0 vs CHANGELOG 0.7.0-dev) — maintainer decision already pending.~~ routed — pdg member-fold follow-ups (decision, open)
+~~17. Cut the release carrying this fix once 16 is decided; CHANGELOG `[Unreleased]` is ready.~~ routed — pdg member-fold follow-ups (blocked on 16)
+~~18. Verify cmdguard pin (`56fd69b4`) vs `v5.0.0` tag intent with the cmdguard repo state before releasing.~~ routed — pdg member-fold follow-ups (rides 16; = g/Q1)
+~~19. Tag-wave mechanics: if go-cqrs-lite modules consume the fixed tool version anywhere, plan the consumer bump wave.~~ routed — pdg member-fold follow-ups (f19)
+~~20. Write the incident as a short ADR/postmortem in project-dependency-graph docs (77→34, root cause, semantics chosen) — changelog is not a postmortem.~~ routed — pdg member-fold follow-ups (f20)
 
 **Fleet hygiene (carried from morning, still open):**
-21. crm-stage-t13b: broken go.mod (cmdguard v5 path @ v4.2.1) — upgrade or trash.
-22. cv-stage-crmfix: broken go.mod (@ v4.1.0) — same decision.
-23. eventcatalog-hub/work/erraudit-src: broken go.mod (@ v4.2.0) — refresh or remove.
-24. ci-siblings/go-cqrs-lite fork: refresh-vs-delete decision (5 cmd modules on cmdguard v4 requires).
+~~21. crm-stage-t13b: broken go.mod (cmdguard v5 path @ v4.2.1) — upgrade or trash.~~ routed — TODO_LIST:147
+~~22. cv-stage-crmfix: broken go.mod (@ v4.1.0) — same decision.~~ routed — TODO_LIST:147
+~~23. eventcatalog-hub/work/erraudit-src: broken go.mod (@ v4.2.0) — refresh or remove.~~ routed — TODO_LIST:147
+~~24. ci-siblings/go-cqrs-lite fork: refresh-vs-delete decision (5 cmd modules on cmdguard v4 requires).~~ routed — TODO_LIST:147
 25. Identify which parallel session(s) mutated repos mid-investigation (go-design-smells/branching-flow, samber-linter) — coordinate, don't collide.
-26. Harvest BOTH status reports' (f) lists into TODO_LIST.md (docs-health HARVEST) — two sessions, zero harvests so far.
+~~26. Harvest BOTH status reports' (f) lists into TODO_LIST.md (docs-health HARVEST) — two sessions, zero harvests so far.~~ done — M31/F194 DONE 2026-11-13
 
 **Tests & quality:**
-27. Table-driven unit tests for `memberReaches` itself (cycle shapes, memo reuse, ancestor-fold fallback) — currently only exercised via `ConsumersFromModules`.
-28. Property test: fold set ⊆ union fallback set (the fix must never HIDE a real edge; union is the conservative superset).
-29. Parity test: `ConsumersFromModules` vs `Graph.Consumers` for member-keyed targets (the two query paths can drift).
-30. Benchmark: `membersReachingTarget` cost on the real 239-module fleet (called per query; memoized but measure).
-31. Fuzz `memberReaches` dispatch (cyclic MemberDeps unions across forked workspaces).
-32. Cover `buildMemberDepsIndex` fork-collision union behavior with a two-aggregate-same-member fixture.
+~~27. Table-driven unit tests for `memberReaches` itself (cycle shapes, memo reuse, ancestor-fold fallback) — currently only exercised via `ConsumersFromModules`.~~ routed — pdg backlog (routed not minted: f26-f40 tier)
+~~28. Property test: fold set ⊆ union fallback set (the fix must never HIDE a real edge; union is the conservative superset).~~ routed — pdg backlog (f26-f40 tier)
+~~29. Parity test: `ConsumersFromModules` vs `Graph.Consumers` for member-keyed targets (the two query paths can drift).~~ routed — pdg backlog (f26-f40 tier)
+~~30. Benchmark: `membersReachingTarget` cost on the real 239-module fleet (called per query; memoized but measure).~~ routed — pdg backlog (f26-f40 tier)
+~~31. Fuzz `memberReaches` dispatch (cyclic MemberDeps unions across forked workspaces).~~ routed — pdg backlog (f26-f40 tier)
+~~32. Cover `buildMemberDepsIndex` fork-collision union behavior with a two-aggregate-same-member fixture.~~ routed — pdg backlog (f26-f40 tier)
 
 **Tool UX (idea bucket):**
-33. `--via-detail`: full BFS path for attribution debugging.
-34. Label aggregate roots in tree output (`go-cqrs-lite (go.work aggregate, 104 modules)`).
-35. Warn when >N% of a target's consumers are indirect-via-fold.
-36. Reconcile ADR-0152's fleet edge counts with post-fix attribution (pick one canonical source).
-37. Export who-uses JSON for the docserver fleet pages; single canonical consumer number.
-38. Split app-tooling vs library edges in aggregates via `hasMain` (already tracked).
-39. Re-evaluate the aggregate-union fallback: keep for provenance-less aggregates only (current) vs strict-stop (more precise, hides edges for non-go.work discoveries).
-40. Extend the same provenance idea to Node/Rust/Python workspace discoverers if they model aggregates.
+~~33. `--via-detail`: full BFS path for attribution debugging.~~ routed — pdg backlog (idea tier)
+~~34. Label aggregate roots in tree output (`go-cqrs-lite (go.work aggregate, 104 modules)`).~~ routed — pdg backlog (idea tier)
+~~35. Warn when >N% of a target's consumers are indirect-via-fold.~~ routed — pdg backlog (idea tier)
+~~36. Reconcile ADR-0152's fleet edge counts with post-fix attribution (pick one canonical source).~~ routed — pdg follow-ups (version authority) + TODO_LIST:144
+~~37. Export who-uses JSON for the docserver fleet pages; single canonical consumer number.~~ routed — pdg backlog (idea tier)
+~~38. Split app-tooling vs library edges in aggregates via `hasMain` (already tracked).~~ routed — pdg backlog (idea tier)
+~~39. Re-evaluate the aggregate-union fallback: keep for provenance-less aggregates only (current) vs strict-stop (more precise, hides edges for non-go.work discoveries).~~ routed — pdg backlog (idea tier)
+~~40. Extend the same provenance idea to Node/Rust/Python workspace discoverers if they model aggregates.~~ routed — pdg backlog (idea tier)
 
 **go-cqrs-lite side (light, post-ruling):**
-41. One-line AGENTS.md pointer: consumer-count questions → project-dependency-graph semantics (proven folds), not census numbers — avoids the next session re-deriving.
-42. Annotate `docs/agents/v5-fork-and-delete-playbook.md`: delete-at-zero triggers must cite census (strict), never who-uses.
-43. Re-run `bash scripts/census-fleet.sh --zero-consumers` post-fix and archive the evidence JSON with the fixed attribution era noted.
-44. Verify module-map/docs claims that cited fleet consumer counts against post-fix numbers.
-45. Confirm no go-cqrs-lite module EVER required cmdguard historically (`git log -S cmdguard -- '**/go.mod'`) — closes the morning question properly.
-46. Sample 5 more apps' go.sum files for cmdguard absence (morning item, still open).
-47. Full `go mod graph | grep cmdguard` on one rich app (InboxClean) as final proof.
-48. Decide the staging repos' fate (21–24) with one sweep command + trash.
-49. Document in go-cqrs-lite that repo CLIs standardize on cmdguard v5 (one line; verify against cmdguard skill first).
-50. Close the loop: after 1–3 land, re-run the full A/B suite and pin the numbers in the postmortem doc (20).
+~~41. One-line AGENTS.md pointer: consumer-count questions → project-dependency-graph semantics (proven folds), not census numbers — avoids the next session re-deriving.~~ routed — TODO_LIST:144 (fold-artifact docs pack)
+~~42. Annotate `docs/agents/v5-fork-and-delete-playbook.md`: delete-at-zero triggers must cite census (strict), never who-uses.~~ routed — TODO_LIST:144
+~~43. Re-run `bash scripts/census-fleet.sh --zero-consumers` post-fix and archive the evidence JSON with the fixed attribution era noted.~~ routed — TODO_LIST census re-run row (M54)
+~~44. Verify module-map/docs claims that cited fleet consumer counts against post-fix numbers.~~ routed — TODO_LIST census re-run row
+~~45. Confirm no go-cqrs-lite module EVER required cmdguard historically (`git log -S cmdguard -- '**/go.mod'`) — closes the morning question properly.~~ routed — TODO_LIST:144
+~~46. Sample 5 more apps' go.sum files for cmdguard absence (morning item, still open).~~ done — declined-with-reason (harvest ledger)
+~~47. Full `go mod graph | grep cmdguard` on one rich app (InboxClean) as final proof.~~ done — declined-with-reason (harvest ledger)
+~~48. Decide the staging repos' fate (21–24) with one sweep command + trash.~~ routed — TODO_LIST:147
+~~49. Document in go-cqrs-lite that repo CLIs standardize on cmdguard v5 (one line; verify against cmdguard skill first).~~ routed — TODO_LIST:144
+~~50. Close the loop: after 1–3 land, re-run the full A/B suite and pin the numbers in the postmortem doc (20).~~ routed — pdg member-fold follow-ups (rides postmortem f20)
 
 ## g) Questions I can NOT figure out myself
 

@@ -11,7 +11,7 @@ For up-to-date documentation, see:
 
 ## Archived waves index (recount 2026-09-28; waves updated 2026-10-11, 13th docs-health pass)
 
-Files per day across the 1,274 archived snapshots (rows = files MOVED to
+Files per day across the 1,277 archived snapshots (rows = files MOVED to
 an archived/ dir that day, all doc trees; basis: archive-day, not filename
 date). The wave granularity for navigating the archive. Individual files follow the `YYYY-MM-DD_HH-MM_name`
 naming convention. The 1,274 intro count is gate-pinned

@@ -24,7 +24,7 @@ from production wiring. There is nothing to re-declare.
 
 ## Deployment presets
 
-One-liner `DeploymentConfig`s for tests that do not need to exercise a
+One-liner `DeploymentConfig` values for tests that do not need to exercise a
 specific engine topology:
 
 | Preset                     | Layout                                                                        | Use when                                                |

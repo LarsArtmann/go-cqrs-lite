@@ -78,7 +78,7 @@ One edit site, one gate:
 ## 5. Un-skip the grouped benches
 
 `metaengine/tursoengine/matview_bench_test.go` benches grouped matviews only
-at scale=1k and `b.Skip`s the larger scales ("grouped matview seeding is
+at scale=1k and the `b.Skip` calls skip the larger scales ("grouped matview seeding is
 unreliable above ~1k rows"). Remove those skips so grouped read acceleration
 is benched at every scale again (the seed guards in `seedInTxE` can relax to
 the normal chunking once the COMMIT wall is gone — verify with a full

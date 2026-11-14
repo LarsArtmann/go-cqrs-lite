@@ -101,6 +101,11 @@ usage() {
 while [ $# -gt 0 ]; do
 	case "$1" in
 	--update) MODE=update ;;
+	--issue)
+		shift
+		[ $# -gt 0 ] || die "--issue requires a reference (issue number or ADR)"
+		ISSUE_REF="$1"
+		;;
 	--self-test) MODE=selftest ;;
 	--profile)
 		shift
@@ -509,8 +514,36 @@ fi
 measure "$WORKDIR"
 
 if [ "$MODE" = "update" ]; then
+	# F250a ratchet guard: a floor DECREASE is not a one-line edit. Refuse
+	# the rewrite unless the operator names the owning issue on the command
+	# line (--issue <ref>); the ref is stamped into the header so the
+	# decrease is auditable forever after.
+	decreased="$(
+		join -t$'\t' -j1 \
+			<(awk -F'\t' '/^#/ || NF == 0 { next } { print $1, $2 }' "$BASELINE" | sort) \
+			<(awk -F'\t' '{ print $1, $2 }' "$WORKDIR/module-coverage.txt" | sort) 2>/dev/null |
+			awk -F'\t' '$2 != "none" && $3 != "none" && ($3 + 0) < ($2 + 0) { print $1 ": " $2 " -> " $3 }'
+	)"
+	pkg_decreased="$(
+		join -t$'\t' -j1 \
+			<(awk -F'\t' '/^#/ || NF == 0 { next } { print $1, $2 }' "$PKG_BASELINE" | sort) \
+			<(awk -F'|' '{ pct = ($4 + 0 > 0) ? sprintf("%.1f", 100 * $3 / $4) : "none"; print $1, pct }' "$WORKDIR/pkg-coverage.txt" | sort) 2>/dev/null |
+			awk -F'\t' '$2 != "none" && $3 != "none" && ($3 + 0) < ($2 + 0) { print $1 ": " $2 " -> " $3 }'
+	)"
+	# pkg-coverage.txt column 2 is "none" for zero-statement packages in the
+	# baseline but raw pct shape differs; guard both shapes by numeric test.
+	if [ -n "$decreased$pkg_decreased" ] && [ -z "${ISSUE_REF:-}" ]; then
+		echo "✗ coverage floors would DECREASE:" >&2
+		printf '%s\n%s\n' "$decreased" "$pkg_decreased" | sed '/^$/d; s/^/    /' >&2
+		echo "  A weaker ratchet needs an owning issue. Re-run with: --update --issue <issue-or-ADR-ref>" >&2
+		exit 1
+	fi
+
 	write_module_baseline "$WORKDIR" "$BASELINE"
 	write_package_baseline "$WORKDIR" "$PKG_BASELINE"
+	if [ -n "${ISSUE_REF:-}" ]; then
+		sed -i.bak "2a # Floors lowered under ${ISSUE_REF} on $(date +%Y-%m-%d) (audit trail, F250a)." "$BASELINE" && rm -f "$BASELINE.bak"
+	fi
 	echo "✓ Wrote $(grep -vc '^#' "$BASELINE") module floors to $BASELINE"
 	echo "✓ Wrote $(grep -vc '^#' "$PKG_BASELINE") package floors to $PKG_BASELINE"
 	echo "  Quote the measured numbers in the commit message; do not hand-edit rows."

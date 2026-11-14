@@ -107,7 +107,7 @@ func writeBaseline(path string, entries []baselineEntry) error {
 	tmpName := tmp.Name()
 
 	if _, err := tmp.Write(data); err != nil {
-		_ = tmp.Close()
+		_ = tmp.Close() //cqrs-lint:ignore(C023) doomed temp file removed on the next line; the write error is the failure being surfaced
 		_ = os.Remove(tmpName)
 
 		return fmt.Errorf("write findings baseline %s: %w", path, err)

@@ -134,6 +134,23 @@ run_errorflow() { # $1 = module dir to cd into, $2 = package pattern
 		"$erraudit" errorflow "$2" --type-aware 2>/dev/null)
 }
 
+# Sentinel fallback map (2026-11-14, F247): erraudit's per-run .errors array
+# can miss sentinels whose declarations live in a sibling fan-out module
+# (the 2026-10-24 run wrote "-" for ErrNoDatabase et al. while the
+# `var Err… = errorfamily.New…` declarations existed). Before degrading a
+# name to "-", the generator consults this repo-wide declaration census:
+# every errorfamily constructor call bound in a var declaration, keyed by
+# the code literal it carries. Codes with NO declaration anywhere keep "-"
+# honestly (true inline mints).
+sentinel_fallback_json="$(
+	rg -UN --no-filename -g '!*_test.go' -g '!vendor' \
+		'var (Err[A-Za-z0-9_]+)[^=\n]*=[[:space:]]*errorfamily\.\w+\([[:space:]]*"(?:[a-z0-9_]+\.)+[a-z0-9_]+"' \
+		"$repo_root" 2>/dev/null |
+		perl -0777 -ne 'while (/var (Err[A-Za-z0-9_]+)[^=\n]*=\s*errorfamily\.\w+\(\s*"([a-z0-9_.]+)"/gs) { print "$2 $1\n" }' |
+		sort -u |
+		jq -R -n 'reduce inputs as $l ({}; ($l | split(" ")) as $p | . + {($p[0]): $p[1]})'
+)" || sentinel_fallback_json='{}'
+
 schema_checked=0
 check_schema() {
 	if [ "$schema_checked" -eq 1 ]; then
@@ -156,7 +173,7 @@ check_schema() {
 extract_rows() {
 	local json="$1" sec_dir="$2" prefixes="$3"
 
-	jq -r --arg pfx "$prefixes" '
+	jq -r --arg pfx "$prefixes" --argjson fb "$sentinel_fallback_json" '
 		($pfx | split(" ") | map(select(length > 0))) as $pfx
 		| ((.errors // [])
 			| map(select((.code // "") != ""))
@@ -167,7 +184,7 @@ extract_rows() {
 		| map(select(.family | test("^(rejection|conflict|transient|infrastructure|corruption|orchestration)$")))
 		| map(select(.code as $c | any($pfx[]; . as $p | $c | startswith($p))))
 		| unique_by([.code, .family])
-		| .[] | [.code, .family, ($names[.code] // "-")] | @tsv
+		| .[] | [.code, .family, ($names[.code] // $fb[.code] // "-")] | @tsv
 	' <<<"$json" >>"$sec_dir/codes.tsv"
 
 	jq -r '

@@ -1482,6 +1482,8 @@
                   ${pkgs.bash}/bin/bash "$PWD/scripts/check-linter-names.sh"
                   echo "==> exhaustruct_v5 canary (ignore-pattern semantics)"
                   ${pkgs.bash}/bin/bash "$PWD/scripts/test-exhaustruct-canary.sh"
+                  echo "==> linter-settings canaries (cyclop/errcheck drop tripwire)"
+                  ${pkgs.bash}/bin/bash "$PWD/scripts/check-lint-settings.sh"
                 '';
 
             # check-templ: templ codegen-drift gate — fails when a *_templ.go

@@ -14,7 +14,9 @@
 # must contain no placeholder, ever. Restoring a real hash is a one-line fix;
 # discovering it mid-#verify costs a full cycle.
 #
-# Usage: bash scripts/check-nix-hashes.sh [files...]   (default: flake.nix)
+# Usage: bash scripts/check-nix-hashes.sh [files...]   (default: every
+#        tracked *.nix — extended 2026-11-14 (F250c) from flake.nix-only so a
+#        placeholder in ANY shipped nix file trips the gate, not just the root)
 #        bash scripts/check-nix-hashes.sh --self-test
 # Exit:  0 clean, 1 placeholder found or file missing, 2 usage.
 
@@ -119,7 +121,12 @@ fi
 
 FILES=("$@")
 if [ "${#FILES[@]}" -eq 0 ]; then
-	FILES=(flake.nix)
+	# Every tracked .nix file (module-specific flakes, nightly unit files,
+	# submodule expressions) — the 2026-10-23 rewrite class is not
+	# flake.nix-specific.
+	while IFS= read -r f; do
+		FILES+=("$f")
+	done < <(git ls-files '*.nix')
 fi
 
 if ! scan "${FILES[@]}"; then

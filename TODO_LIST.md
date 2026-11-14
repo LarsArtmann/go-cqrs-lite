@@ -83,7 +83,7 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 - [x] 🔥 **Origin-truth triage (2026-11-13)** — **TRIAGED 2026-11-14 00:30 (M33/F209–F213), all four owners root-caused + fixed locally** (the 502 API recovered via check-runs + attempts endpoints): (1) CI matrix red on 4 modules — ROOT CAUSE the #131 pre-tag adoption gap: `systemcatalog/v4` had `replace system/v4 → local` but resolved `metaengine v4.23.0` (published, no CellVersioning) → added the systemtest-pattern `replace metaengine/v4 → ../../metaengine/v4` (+tidy, suite green); PLUS 81/98 modules carried stale `/go.mod` go.sum hashes (the 10-17 errata class, regrown by the 11-10 module move) → bulk `GOWORK=off go mod tidy` (81/81, `TestEveryModuleGoSumIsTidy` green); PLUS `cmd/cqrs-upgrade/v4` tests hardcoded `../..` roots broken by the /v4 move (3 files + fixture replace target `event/` → `event/v4`) → `repoRoot(t)` walk-up helper, suite green 6.4s; api-stability + cqrs-lint full suites green. (2) Release `43446210196` (34s) — tag resolver `%/*` stripped `/v4` from `catalog/v4.15.0` → `cd catalog` (no go.mod); fixed to dirname+`/v`+major with the `core/v5` self-ending edge case, verified against 7 real tag shapes (all dirs exist); validation rides M35's first tag. (3) Benchmarks `43516516113` — `noise_target_guard` grepped PRE-MOVE paths (`cmd/cqrs-bench/main.go`, `cmd/cqrs-bench`, `benchkit`) while its own error message said `/v4`; fixed all three (the missing-baseline artifact error is benign `continue-on-error` cascade). (4) Fuzz Nightly `43359981735` — inventory drift: regenerated via `fuzz-rotation.sh --update-targets` (117 targets, 36 path-drift rows from the move). Gates Rollup = pure aggregator, self-heals with the owners. **REMAINING (F214)**: the origin-green receipt needs a push (post-M34 verify) + first green master CI watch. _(was: CI 43475265912, Rollup 43479191413, Benchmarks 43475265565, Release 43446210196)_
 - [ ] 🔥 **Release wave R11-13**: storage/v4, cmd/cqrs-lint, sqliteengine, metaengine, system, tursoengine (+ the untagged backlog) with changed-set tests per the J1-full contract; consumer flips ride the tags (cqrs-htmx snapshot_shape test + pin, timesheets ignore-start drop, crm serialized-subtest mitigation check). _(Effort: M)_
 - [ ] **Watermill racing-close repeat-leg hang** — nightly repeat leg hangs 20m on the runner, green locally ×2 (11-09 §c1); budget-tune (per-test timeout) or deeper scheduler diagnosis. _(Effort: S, decision)_
-- [ ] **BuildFlow file-size threshold reconciliation** — the 11-13 deep dive measured 235 BuildFlow file-size findings (its stricter threshold) vs the repo's own 350 ratchet (green at 61 baselined); align the tool config to the repo gate or adopt the stricter threshold as a deliberate decision. _(Effort: S, decision)_
+- [x] **BuildFlow file-size threshold reconciliation** — **DECIDED 2026-11-14 (M39/F244): the tools AGREE at 350; no config change**. Full decomposition of BuildFlow's 233 file-size-check findings vs the repo ratchet (both live-measured): 186 are `_test.go` files (repo gate excludes tests by design) + 41 are the repo gate's baselined historical exceptions (by design) + 4 are `example/*` files (gate excludes examples — build-only paths) + **2 are the real delta: files at EXACTLY 350 lines** (`metaengine/v4/enginetest/restart_safety.go`, `systemscenario/v4/scenario.go`) — BuildFlow's step validates "under 350" (strictly), the repo gate's contract is "≤ 350" (at-limit passes). The off-by-one is semantics, not drift; both files are compliant with the repo contract (AGENTS contract 1: "Max 350 lines/file"). Ruling: the repo gate stays canonical (it owns the baseline+scope policy BuildFlow's fleet step cannot express); the BuildFlow finding count is expected cross-tool noise, NOT a stricter-threshold signal — the deep dive's "235 findings" claim decomposes entirely into scope+off-by-one, nothing actionable. _(was: align the tool config or adopt deliberately)_
 - [x] **`docs/research/` index README** (deep-dive Finding 5) — **DONE 2026-11-14 (pre-chain session, F242)**: `docs/research/README.md` founded (deep-dive verdicts table + topical sections).
 - [ ] **VM-test sqlite-state-dir first-run assertion** (11-09 03-40 f11, self-flagged optional): assert the QEMU sqlite VM's state dir is fresh on first boot in `nix/vm/cqrs.nix` — or record a dated optional-decline. Last unrouted item before that report can archive (M38). _(Effort: XS)_
 - [ ] **07-53 floor-drop pack (9 + conditionals)** — items the iroh ruling gates or that were dropped without rows (M38 dispose; ruling = D5 addendum): f2/f3/f4/f45 extraction-contingent (park vs commission rides D5); f6 OpTag-vs-WithClock semantic-diff inventory (was flagged "BEFORE any future merge"); f7 collision preflight (moot until ruling); f16 loopback/quic ADT-matrix factory-completeness read; f22 WriteOp.ID v5 note decision; f31 mesh-demo CI build coverage; f34 quic fork bump path budget; f39 crush-config "never list unexecuted work as done" lesson; f41 "how do we test X" answer template; f43 report close-out preflight; f49 candidate-inventory-as-artifact habit; f32/f50 standing guards (ADR-0056 TimeUnixDynamic pin; internal/cluster untouched watcher) — row-or-decline each with a date; f47 dnsblockd cluster-wave citation note (minor, foreign). _(Effort: S total; batch decision — most are natural NOT-DO/declines)_
@@ -1454,14 +1454,7 @@ replace-free — 10-25 §a2/§a3, now archived).
 ## CI / Infrastructure
 
 - [x] **🔥 `#check-md-go` un-runnable (observed 2026-10-24) — RESOLVED 2026-11-08 18:30:** the FOD premise was STALE — the derivation builds again on current master (pinned rev `13a0e78`, binary version-identified; whether an intervening flake refresh or upstream master movement fixed the missing `pprof` zip was not re-archaeologized). The ACTUAL failure the gate carried: 2 live-draft fences born red from commit `bf3afcde6` (E004 local value-converter opacity draft, illustrative foreign-repo fragment with a literal `...`) — annotated `// skip-validate` per policy (drafts are LIVE; baseline refused them correctly). Receipt: `nix run .#check-md-go` → `All 1532 code blocks valid (86 skipped)`, `no new errors (105 baselined archived error(s))`; baseline untouched (the --update-baseline attempt was restored — it had refused to capture live-doc errors, proving the policy leg).
-- [ ] **Ratchet guards the 2026-10-23 pass could not finish** — (a) refuse a
-      coverage-floor DECREASE without an accompanying issue reference in
-      `scripts/check-coverage.sh` (today it is a one-line edit with a dated
-      comment, which is too cheap for what a weaker ratchet costs); (b) a
-      `flake.lock` coherence check (a bumped input whose package pins a
-      derivation hash must be re-pinned in the same commit — this is what
-      broke `#check-md-go` on 2026-10-23); (c) extend
-      `scripts/check-nix-hashes.sh` beyond `flake.nix` to every tracked `*.nix`.
+- [ ] **Ratchet guards the 2026-10-23 pass could not finish** — **(a) DONE 2026-11-14 (M39/F250a)**: `check-coverage.sh --update` now REFUSES any module- or package-floor decrease unless `--issue <ref>` names the owner (the ref is stamped into the baseline header as an audit trail); decrease-detection logic standalone-tested (75.3→74.9 caught, none-mode exempt, pipe-separated pkg shape handled); self-test 9/9 green post-guard. **(c) DONE 2026-11-14 (F250c)**: `check-nix-hashes.sh` default scan widened from flake.nix to EVERY tracked `*.nix` (6 files at HEAD, all clean); self-test 5/5 green. **(b) REMAINS OPEN**: `flake.lock` coherence (bumped input + stale derivation hash in one commit — the #check-md-go 2026-10-23 breakage) needs a rev↔vendorHash mapping design; not rushed. — original: (a) refuse a coverage-floor DECREASE without an issue reference; (b) flake.lock coherence check; (c) check-nix-hashes beyond flake.nix.
       _(Effort: M)_
 - [ ] **`#verify-serial` fallback tier** — the composed gate requires load1
       AND load5 < 10 plus a 60s stable tree, which never held on a 32-core
@@ -1727,13 +1720,7 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       stabilizes — the golden gate is kind+name only.
       — source: 13-50-10-10 report §f3/f9; 2026-10-16 closure discovery
       _(Effort: L)_
-- [ ] **`#check-lint-config` blindness to settings loss** — the whole-file
-      hash tripwire BLESSED the 2026-10-08..10 cyclop/errcheck drop (its own
-      `--update` instructions re-pinned the regressed config). Extend the gate
-      with settings-canaries: pin the settings KEY-SET and assert
-      `cyclop.max-complexity` + the `errcheck.exclude-functions` presence, so
-      an accidental drop fails even after a re-pin.
-      — source: 13-50-10-10 report §f5 _(Effort: S)_
+- [x] **`#check-lint-config` blindness to settings loss** — **FIXED 2026-11-14 (M39/F248)**: new `scripts/check-lint-settings.sh` settings-canary (wired as the 6th leg of `#check-lint-config`): pins the `linters.settings` KEY-SET (additions-only) + asserts `cyclop.max-complexity: 25` + `errcheck.exclude-functions` presence — mutation-verified (dropping the cyclop block fails rc=1; clean config rc=0). A settings drop now fails even after a hash re-pin. — source: 13-50-10-10 report §f5
 - [ ] **Lint-config guard: install the systemd timer (OWNER, one command)** —
       incident 13 (2026-10-14 17:31, auto-commit `17b40d303`, depguard block
       deleted ~4th recurrence) proved the daemon commits corruption faster
@@ -1770,11 +1757,7 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       real consolidation signal for the v5 core, not noise. Policy decision
       pending (see report §g1).
       — source: 13-50-10-10 report §f7 _(Effort: S + decision)_
-- [ ] **Root-cause the `nix fmt` gofumpt exit-2** ("failed to finalise
-      formatting" persists while the tree comes up clean; hypothesis = sibling
-      mid-write file + fail-on-change racing the daemon — unproven). CI's fmt
-      gate (`nix fmt --fail-on-change`) depends on this being benign.
-      — source: 13-50-10-10 report §f4 _(Effort: S)_
+- [x] **Root-cause the `nix fmt` gofumpt exit-2** — **VERDICT 2026-11-14 (M39/F249): BENIGN-TRANSIENT, not reproducing** — two clean `nix fmt` runs today (RC=0, 7033 traversed, formatting 26 incl. this session's edits; the annotated-report strikes survived the formatter byte-intact per the both-sides check-rows canon). The exit-2 class matches the standing hypothesis (sibling mid-write file racing fail-on-change under the daemon) — no code defect found; CI's `nix fmt --fail-on-change` gate healthy. If it recurs, capture `--verbose` output at the moment of failure before it self-heals. — source: 13-50-10-10 report §f4 _(was: persists while the tree comes up clean — unproven)_
 - [ ] **Verify the nightly weekly load-sweep leg fires** (Sundays-only, first
       real run) and logs cleanly. — source: 14-52 addendum 2, 16-37 §f31 _(Effort: XS, observe)_
 
@@ -1802,16 +1785,7 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
 
 ## Code Quality
 
-- [ ] **`generate-error-taxonomy.sh` sentinel-attribution drift** — the
-      2026-10-24 run re-attributed `ErrNoDatabase` (mysql/postgres/sqlite),
-      `ErrStreamIDMismatch`, `ErrStreamTypeMismatch` and `ErrMemorySync` from
-      their live sentinels to `-` while the `var Err… = errorfamily.New…`
-      declarations still exist (`stack/{mysql,postgres,sqlite,turso}/
-      view_models.go`, `storage/`), and rewrote the inline-mint counters
-      (68→71 of 80). The run was reverted and only the new code row kept. The
-      gate diffs codes/families, so it stays green either way — the SENTINEL
-      column silently degrades doc quality. Fix the generator (verify the
-      sentinel by AST/grep before writing `-`) or pin it with a golden.
+- [x] **`generate-error-taxonomy.sh` sentinel-attribution drift** — **FIXED 2026-11-14 (M39/F247)**: the generator now consults a repo-wide sentinel-declaration census (rg -U multiline over every `var Err… = errorfamily.*("code")` declaration, 85 sentinels at HEAD) as a fallback BEFORE degrading a name to `-` — erraudit's per-run `.errors` array can miss sentinels declared in sibling fan-out modules (the 10-24 incident shape: ErrNoDatabase ×3 engines, ErrStreamIDMismatch/TypeMismatch, ErrMemorySync all verified caught by the census). Codes with no declaration anywhere keep `-` honestly (true inline mints). End-to-end proof rides the next taxonomy regen/gate run. _(was: the 2026-10-24 run re-attributed live sentinels to `-` while declarations existed; gate diffs codes/families so the SENTINEL column silently degraded — fix the generator or pin with a golden)_
       _(Effort: S)_
 - [ ] **`core/v5` needs a `.go-arch-lint.yml`** — 14 production packages and
       growing, `TestMultiPackageModulesHaveArchLintConfig`
@@ -2125,6 +2099,12 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       docs-health cadence decision (owner); (d) pass checklist (index update
       step + banner vocabulary pointer) — suggest upstream to the crush-config
       skill repo. — source: archived 23-31 §e1-3/§f15-20 _(Effort: S gate + XS conventions)_
+      **2026-11-14 receipt (M38, the 15th pass = this week's standing pass):** 3× 11-09
+      reports annotated+gated (check-rows --strict + bare-rows) + archived with index rows
+      removed and canonical-facts re-pinned (1,277); 6× 11-11/13 reports annotated in place
+      (365 verdicts, opens left bare, files stay live); verdict-map specs preserved at
+      build/m38-archive-spec{,-2}/; 07-53 floor-drops rowed; research README + 07-23
+      superseded banner landed. The weekly cadence (c) EXECUTED.
 - [ ] **Bench-gate/tooling single-mention tail (16-37 §f, never harvested)** —
       `--explain <bench>` per-sample diagnostics; `--json` evidence output for
       quiet-window-run; deep-quiet window probe/logger; variance-aware
@@ -2581,7 +2561,7 @@ Re-verified against HEAD on 2026-10-26: the three red file-size offenders were s
 | I43  | Run `check-duplication`                       | EXEC                         | T12      | before v5        | RED 2026-10-26 — `nix run .#check-duplication` rc=2: 1 NEW clone group (5-line append loop) between `systemcatalog/derive.go` and `cmd/cqrs-lint/pkg/rules/version/v006.go`; FOREIGN in-flight code, baseline 189→190. Not re-pinned here (dirty-tree guard + foreign work): owner session must `//art-dupl:accept` or re-pin |
 | I44  | Run `check-coverage`                          | EXEC                         | T12      | before v5        | DONE 2026-10-26 — `nix run .#check-coverage` rc=0: all coverage claims within ±2.0% tolerance                                                                                                                                                                                                                                 |
 | I45  | Format-gate investigation                     | EXEC (re-framed per E3)      | T15      | n/a              | DONE (investigation) 2026-10-25 — E3: treefmt runs gofumpt/goimports/golines/nixfmt only; dprint is ungated, 114 files drifted. Remaining ACTION is owner-gated under I08                                                                                                                                                     |
-| I46  | Archive status reports                        | EXEC                         | T11      | n/a              | OPEN — T11 (124 live status reports; archival loop documented, never run)                                                                                                                                                                                                                                                     |
+| I46  | Archive status reports                        | EXEC                         | T11      | n/a              | OPEN — T11 (124 live status reports; archival loop documented, never run). 2026-11-14 partial (M38): 3 archived (11-09 trio, every item resolved), 6 more annotated live-in-place; the BULK loop stays unrun — next passes consume the oldest-first backlog with the spec→verify→gate→mv ritual proven this session |
 | I47  | Remove stray 18 MB binary                     | EXEC                         | T17      | n/a              | DONE 2026-10-26 — 18 MB `cmd/api-stability/api-stability` (gitignored build output) trashed (T17)                                                                                                                                                                                                                             |
 | I48  | `stack/metaengine` census naming              | EXEC                         | T17      | n/a              | OPEN — T17 (census classification wording for `stack/metaengine`)                                                                                                                                                                                                                                                             |
 | I49  | Layer-gate prod/test edges                    | EXEC                         | T10      | before v5        | OPEN — T10 (layer gate cannot distinguish test-only requires from production ones)                                                                                                                                                                                                                                            |

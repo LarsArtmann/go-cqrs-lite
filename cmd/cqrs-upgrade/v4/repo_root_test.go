@@ -13,7 +13,8 @@ import (
 // repo root survives any future module-dir nesting.
 func repoRoot(t interface {
 	Fatalf(format string, args ...any)
-}) string {
+},
+) string {
 	dir, err := os.Getwd()
 	if err != nil {
 		t.Fatalf("get working dir: %v", err)

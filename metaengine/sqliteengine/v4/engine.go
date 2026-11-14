@@ -61,7 +61,6 @@ type sqliteEngine struct {
 	*claimkit.Dedup
 }
 
-
 // NewSQLiteEngine creates a SQLite-backed metaengine engine. The caller owns
 // the *sql.DB. Tables are created automatically if they don't exist.
 func NewSQLiteEngine(database *sql.DB, opts ...EngineOption) (metaengine.Engine, error) {

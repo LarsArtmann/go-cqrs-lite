@@ -36,15 +36,15 @@
 
 ## b) PARTIALLY DONE
 
-1. **A1 receipts**: Fuzz Nightly green ✓, Sentinel green ✓, canary green ✓, cold+warm benchmarks green ✓; Nightly Gates' re-dispatch still red on the watermill hang (below) — the modsums/banner/changelog classes are all fixed on master now.
-2. **F189 dependabot**: #119 merged (actions group, rebased clean); #124 rebased at 05:46-equivalent, fresh checks pending in the runner backlog.
+~~1. **A1 receipts**: Fuzz Nightly green ✓, Sentinel green ✓, canary green ✓, cold+warm benchmarks green ✓; Nightly Gates' re-dispatch still red on the watermill hang (below) — the modsums/banner/changelog classes are all fixed on master now.~~ routed — routed to TODO_LIST:331 (A1 post-repair trust receipts row, open — workflow runs 42445543709/42443401875/42441847588 + clean post-fix #verify receipt)
+~~2. **F189 dependabot**: #119 merged (actions group, rebased clean); #124 rebased at 05:46-equivalent, fresh checks pending in the runner backlog.~~ done — done at gh PR #124 (state CLOSED 2026-11-09T21:30:35Z; #119 merged per report a-6)
 
 ## c) BLOCKED / FOLLOW-UPS (all rowed in TODO_LIST)
 
-1. **Watermill racing-close hang** (nightly repeat leg): `TestCommandBusPublishRacingCloseNeverLeaksRawTransportError` + Event twin hang 20m on the runner; green locally. Row as flake-watch with run receipt; candidate responses: per-test timeout budget in the repeat leg, or the deeper scheduler diagnosis.
-2. **ADR-0137 hardening residue** (audit follow-ups rowed): TypedReader bypasses quarantine reroute; write-path failures never feed engine health; RegisterStdlibDefaults fail-open; JournalReader unbounded scans.
-3. **branching-flow root-target bug**: `panic .` returns [] while `panic event` returns findings — foreign repo, file or coordinate.
-4. **Release changed-set test contract** (J1-full) and **verify-chain rc=12 through-nix proof** (J6).
+~~1. **Watermill racing-close hang** (nightly repeat leg): `TestCommandBusPublishRacingCloseNeverLeaksRawTransportError` + Event twin hang 20m on the runner; green locally. Row as flake-watch with run receipt; candidate responses: per-test timeout budget in the repeat leg, or the deeper scheduler diagnosis.~~ routed — routed to TODO_LIST:64 (watermill racing-close repeat-leg hang row, open, decision-class -> also M36 fold)
+~~2. **ADR-0137 hardening residue** (audit follow-ups rowed): TypedReader bypasses quarantine reroute; write-path failures never feed engine health; RegisterStdlibDefaults fail-open; JournalReader unbounded scans.~~ routed — routed to TODO_LIST:48 (ADR-0137 hardening residue row (a)-(d), open)
+~~3. **branching-flow root-target bug**: `panic .` returns [] while `panic event` returns findings — foreign repo, file or coordinate.~~ routed — routed to TODO_LIST:341 (root-target zero-findings bug documented as foreign-repo tool defect) + M36 fold ("branching-flow filing") / M57 tail
+~~4. **Release changed-set test contract** (J1-full) and **verify-chain rc=12 through-nix proof** (J6).~~ routed — routed to TODO_LIST:50 (J1-full changed-set test contract) + TODO_LIST:49 (J6 verify-chain rc=12 through-nix proof), both open
 
 ## d) TOTALLY FUCKED UP!
 
@@ -54,24 +54,24 @@
 
 ## e) NEXT UP
 
-1. Watch CI-old/CI-new to verdicts; triage any red against the wave-era list (mostly already fixed); record the first-ever master CI receipt.
-2. Re-dispatch Nightly Gates after the watermill hang disposition (flake-row or budget-tune); close A1.
-3. PR #124 verdict → merge-or-close.
-4. The rowed follow-ups in priority order: ADR-0137 (a)+(b) (the "hard v5" enablers), J1-full changed-set tests, branching-flow filing.
+~~1. Watch CI-old/CI-new to verdicts; triage any red against the wave-era list (mostly already fixed); record the first-ever master CI receipt.~~ routed — routed to TODO_LIST:299 (T01.5 first-full-run receipt row, open) + F214 (TODO_LIST:62: origin push + first green master CI still owed as of 2026-11-14 00:30)
+~~2. Re-dispatch Nightly Gates after the watermill hang disposition (flake-row or budget-tune); close A1.~~ routed — routed to TODO_LIST:331 (A1 row carries the Nightly Gates receipts) + TODO_LIST:64 (watermill disposition gates the re-dispatch)
+~~3. PR #124 verdict → merge-or-close.~~ done — done at gh PR #124 (CLOSED 2026-11-09T21:30:35Z — merge-or-close answered as close)
+~~4. The rowed follow-ups in priority order: ADR-0137 (a)+(b) (the "hard v5" enablers), J1-full changed-set tests, branching-flow filing.~~ routed — routed to TODO_LIST:48 (ADR-0137 (a)+(b)) + TODO_LIST:50 (J1-full) + M36/M57 (branching-flow filing)
 
 ## f) QUESTIONS FOR THE OWNER
 
-1. **CI queue policy**: tonight I cancelled 4 superseded intermediate CI runs (content ⊆ newest) to unblock the backlog. Standing policy: is cancelling superseded QUEUED master runs acceptable, or must every push CI run to completion regardless?
-2. **branching-flow upstream bug**: file the root-target zero-findings issue in the foreign repo now, or coordinate with the active session there first (TODO says coordinate)?
-3. **Watermill repeat-leg hang**: budget-tune the nightly repeat leg (per-test timeout) as the fast response, or commission the deeper scheduler diagnosis first?
+~~1. **CI queue policy**: tonight I cancelled 4 superseded intermediate CI runs (content ⊆ newest) to unblock the backlog. Standing policy: is cancelling superseded QUEUED master runs acceptable, or must every push CI run to completion regardless?~~ routed — owner question — routed via M36 decision sheet (named verbatim in M36's fold list + 11-14 report f-11 -> D9-D16)
+~~2. **branching-flow upstream bug**: file the root-target zero-findings issue in the foreign repo now, or coordinate with the active session there first (TODO says coordinate)?~~ routed — owner question — routed via M36 decision sheet (named verbatim in M36's fold list; M57 owns the tail)
+~~3. **Watermill repeat-leg hang**: budget-tune the nightly repeat leg (per-test timeout) as the fast response, or commission the deeper scheduler diagnosis first?~~ routed — owner question — routed via M36 decision sheet (in fold list) + rowed TODO_LIST:64 (budget-tune vs deeper diagnosis)
 
 ## g) OPEN TDs / NEXT SESSION
 
-- First master CI green receipt (or the triage of what actually fails) — THE trust milestone of this arc.
-- A1 final receipts; watermill hang disposition.
-- M07 archive-drift warnings (116 candidates, docs-health pass decision).
-- The ADR-0137 hardening pair, J1-full, J6 (rowed above).
-- M08+ release waves (owner-gated per plan).
+~~- First master CI green receipt (or the triage of what actually fails) — THE trust milestone of this arc.~~ routed — F214 (TODO_LIST:62: origin push + first green master CI receipt, open; rides M34/M35)
+~~- A1 final receipts; watermill hang disposition.~~ routed — routed to TODO_LIST:331 (A1) + TODO_LIST:64 (watermill hang disposition)
+~~- M07 archive-drift warnings (116 candidates, docs-health pass decision).~~ routed — routed via 21-12 plan M38 docs-health 15th pass (M38 line: "M07's 116 archive-drift warnings"; being executed by this sweep)
+~~- The ADR-0137 hardening pair, J1-full, J6 (rowed above).~~ routed — routed to TODO_LIST:48 (ADR-0137 pair) + :50 (J1-full) + :49 (J6) — all open rows
+~~- M08+ release waves (owner-gated per plan).~~ routed — routed to TODO_LIST:63 (R11-13 release wave row with the untagged backlog; 21-12 plan supersedes the 17:25 plan's sequencing)
 
 ---
 

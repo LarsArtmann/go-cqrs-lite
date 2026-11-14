@@ -30,10 +30,10 @@ func consistencyRules() []RuleInfo {
 			AutoFix:     false,
 		},
 		{
-			ID:      "D005",
-			Name:    "stale-documentation-version",
-			Category: "consistency",
-			Severity: "warning",
+			ID:         "D005",
+			Name:       "stale-documentation-version",
+			Category:   "consistency",
+			Severity:   "warning",
 			Confidence: "low",
 			Description: "Documentation references a different go-cqrs-lite version than go.mod. " +
 				"The cue scan judges each doc token against the module pin it names " +
