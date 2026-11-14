@@ -394,7 +394,7 @@ Modules release on independent per-module version trains (`<module>/vX.Y.Z` git 
 | listing | `listing/v4.4.4` |
 | memory | `memory/v2.6.0` |
 | metadata | `metadata/v4.7.3` |
-| metaengine | `metaengine/v4.23.0` |
+| metaengine | `metaengine/v4.24.0` |
 | metaengine/badgerengine | `metaengine/badgerengine/v4.3.3` |
 | metaengine/bboltengine | `metaengine/bboltengine/v4.3.3` |
 | metaengine/bench | `metaengine/bench/v4.1.2` |
@@ -411,6 +411,7 @@ Modules release on independent per-module version trains (`<module>/vX.Y.Z` git 
 | metaengine/pgengine | `metaengine/pgengine/v4.4.3` |
 | metaengine/projectionadapter | `metaengine/projectionadapter/v4.6.2` |
 | metaengine/sqliteengine | `metaengine/sqliteengine/v4.8.0` |
+| metaengine/sqliteengine/v4 | `metaengine/sqliteengine/v4/v4.9.0` |
 | metaengine/tursoengine | `metaengine/tursoengine/v4.2.3` |
 | metaengine/v4 | `metaengine/v4/v4.24.0` |
 | middleware | `middleware/v4.7.2` |
