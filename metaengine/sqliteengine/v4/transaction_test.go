@@ -75,7 +75,7 @@ func TestRunInTx_SQLite_RollbackDiscards(t *testing.T) {
 	g.Expect(found).To(gomega.BeFalse())
 }
 
-func TestRunInTx_SQLite_NestedRejected(t *testing.T) {
+func TestRunInTx_SQLite_NestedJoins(t *testing.T) {
 	t.Parallel()
 
 	g := gomega.NewWithT(t)
@@ -84,13 +84,53 @@ func TestRunInTx_SQLite_NestedRejected(t *testing.T) {
 	ctx := context.Background()
 
 	tx := eng.(metaengine.Transactional)
+	mb := eng.(metaengine.MapBackend)
 
+	// MF1.2 (2026-11-14): nested RunInTx JOINS the ambient transaction
+	// instead of erroring — the outermost call owns BEGIN/COMMIT. Before
+	// MF1.2 this rejected with "nested transactions are not supported",
+	// which broke the documented Store.InTransaction{Apply...} pattern.
 	err := tx.RunInTx(ctx, func(ctx context.Context) error {
+		if err := mb.MapSet(ctx, "tx_sqlite_join", "k", map[string]any{"v": 1}); err != nil {
+			return err
+		}
+
 		return tx.RunInTx(ctx, func(ctx context.Context) error {
+			_, found, err := mb.MapGet(ctx, "tx_sqlite_join", "k")
+			if err != nil {
+				return err
+			}
+
+			if !found {
+				t.Error("nested RunInTx must see the outer transaction's writes")
+			}
+
 			return nil
 		})
 	})
-	g.Expect(err).To(gomega.HaveOccurred(), "nested RunInTx must be rejected, not deadlock")
+	g.Expect(err).NotTo(gomega.HaveOccurred(), "nested RunInTx joins, not rejects/deadlocks")
+
+	_, found, err := mb.MapGet(ctx, "tx_sqlite_join", "k")
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(found).To(gomega.BeTrue(), "inner writes commit with the outer transaction")
+
+	// Outer rollback discards inner (joined) writes.
+	boom := errors.New("boom: rollback joined")
+
+	err = tx.RunInTx(ctx, func(ctx context.Context) error {
+		if err := mb.MapSet(ctx, "tx_sqlite_join", "rb", map[string]any{"v": 1}); err != nil {
+			return err
+		}
+
+		return tx.RunInTx(ctx, func(ctx context.Context) error {
+			return boom
+		})
+	})
+	g.Expect(err).To(gomega.MatchError(boom), "inner error propagates through the join")
+
+	_, found, err = mb.MapGet(ctx, "tx_sqlite_join", "rb")
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(found).To(gomega.BeFalse(), "outer rollback discards joined inner writes")
 }
 
 func TestRunInTx_SQLite_ReadYourWritesInsideTx(t *testing.T) {
