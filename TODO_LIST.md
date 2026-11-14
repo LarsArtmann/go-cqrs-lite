@@ -17,23 +17,44 @@ deleted the 114 done rows — their shipped work is recorded in CHANGELOG (recen
 in `[Unreleased]`) — and re-rowed the five open tails found inside them.
 The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 
-## OWNER DECISION SHEET (consolidated 2026-11-09 — F049/F186)
+## OWNER DECISION SHEET v2 (consolidated 2026-11-09 F049/F186; extended 2026-11-14 M36/F224–F226)
 
 > Every open owner-gated decision in ONE place, freshest first. Answers go to the
-> owning rows below; this sheet is the queue, not the record.
+> owning rows below; this sheet is the queue, not the record. D9–D26 fold the eight
+> 21-12-plan gates + the 19 owner-gated rows (duplicates struck, triggers parked).
 
 | # | Decision | Options | Where it lands |
 |---|----------|---------|----------------|
-| D1 | **License**: relicense OSS (unblocks pkg.go.dev docs) vs stay PROPRIETARY (docs stay local-only) | OSS / accept-hidden | row ~1379 (F153) |
+| D1 | **License**: relicense OSS (unblocks pkg.go.dev docs) vs stay PROPRIETARY (docs stay local-only) | OSS / accept-hidden | row ~1379 (F153; the license half of row 654) |
 | D2 | **Markdown format policy**: add dprint to treefmt vs document the exclusion | adopt / document | I08+N1 (dprint.json exists ungated) |
-| D3 | **A9 scheduling**: keycodec-v2 engine adoption as its own migration wave (recommended) vs pull ahead | own-wave / ahead | row ~307 |
+| D3 | **A9 scheduling**: keycodec-v2 engine adoption as its own migration wave (recommended) vs pull ahead | own-wave / ahead | row 434 |
 | D4 | **Nightly lint + lint-config systemd timers**: enable both on this machine (two one-liners) | enable / leave | rows ~639 + ~1582 |
-| D5 | **iroh verification slice**: pay `-race` receipts + CI-quic-leg proof now vs accept plain-green | pay / accept | row ~241 (Q3) |
-| D6 | **v4 fix-only declaration**: ratify before v5 or keep implicit | ratify / implicit | I10 |
-| D7 | **Tooling product line** (cqrs-lint ~49k LOC) + **catalog exporters** (~22k LOC): extract post-v5 or fold | extract / fold | I27 + I29 |
-| D8 | **dnsblockd foreign repo**: persist Candidate-3 re-confirmation there (coordinate) | do / defer | row ~242 (Q2) |
+| D5 | **iroh**: verification slice (`-race` receipts + CI-quic-leg proof) AND the 2026-11-14 addendum — rule the g-Q1 extraction question + dispose the 9 floor-dropped §f items (11-09 07-53 spec) | pay / accept; extract / keep; row-or-drop the 9 | rows 368 + M38 apply rows |
+| D6 | **v4 fix-only declaration**: ratify before v5 or keep implicit (row 2450 routes here) | ratify / implicit | I10 |
+| D7 | **Tooling product line** (cqrs-lint ~49k LOC) + **catalog exporters** (~22k LOC): extract post-v5 or fold (row 2476 routes here) | extract / fold | I27 + I29 |
+| D8 | **dnsblockd foreign repo**: persist Candidate-3 re-confirmation there (coordinate) | do / defer | row 369 |
+| D9 | **Watermill racing-close hang** (nightly repeat leg hangs 20m on runner, green locally ×2): budget-tune per-test timeout vs deeper scheduler diagnosis | budget-tune / diagnose | watermill row (Post-issue-wave section) |
+| D10 | **CI queue policy**: runner-backlog latency delays gates — accept / trim matrix (check-job slimming, M57) / more runners | accept / trim / pay | A7 rollup context + M57 |
+| D11 | **branching-flow filing**: file the root-target zero-findings bug upstream (foreign repo tool defect, TODO 341 context) vs park with the rowed note | file / park | row ~341 + M57 tail |
+| D12 | **GFL integration priority**: bridge verdict is "lives in GFL, zero changes here" (11-13) — commission bridge work now vs park until GFL grammar stabilizes | commission / park | 14-54 §f routing (foreign rows) |
+| D13 | **Census authority**: `scripts/census-fleet.sh` (proxy mode) vs the 11-13 deep-dive stricter methodology (58 vs 60 dirs) — name the authoritative source for delete-at-zero triggers | script / stricter | census rows + ADR-0157 |
+| D14 | **Gate-triage ownership**: origin gates red (nightly/rollup) — agent triages autonomously and reports vs owner-reviewed queue | autonomous / queue | A7 rollup row |
+| D15 | **Turso sort-index parity**: sqliteengine got `WithSortIndex` (#130) — replicate in tursoengine now / document not-now / rely on delegation | now / later / free-by-delegation | #130 close-out + untagged-trains policy |
+| D16 | **Verify-vs-push-CI (Q1, release timing)**: push master + the 48-tag R11-13 wave now that composed #verify is green (then first-green-master-CI receipt, F214) vs hold | push / hold | F214 row 62 + M35 remainder |
+| D17 | **R11-13 wave ratification (Q2)**: ratify the 48-module manifest — 9 MINOR bumps + 39 PATCH + policy holds (tursoengine tag-on-first-consumer deviation from plan letter; sqlstore no final tag) | ratify / amend | M35 rows + manifest build/wave-r11-13.manifest |
+| D18 | **scratch/ + staging hygiene (Q3)**: scratch/ in-tree vs out (row 317) AND where session staging lives — gitignored build/ (current) / committed docs/planning for durable manifests / scratch repo | in-tree / out; build/ / commit / repo | row 317 |
+| D19 | **ActorID invalid-UTF-8 hole**: `ParseActorID` boundary like StreamID vs constructor-returning-error vs documented invariant | boundary / error / invariant | row 318 |
+| D20 | **Fleet-audit arc leftovers (5 one-liners, row 403)**: empty-domain `WithAllowEmptyDomain` opt-out · md-go-validator rev-pin vs master-track (7th vendorHash fire) · daemon-commit retitle-or-accept · static empty-DomainConfig advisory (E021 renumber) · nightly file-size/example legs post-T26 | per-item | row 403 |
+| D21 | **External accounts**: GitHub Actions billing (gates branch protection) + evals CLI access — confirm or decline each (F153 license rides D1) | confirm / decline | row 654 |
+| D22 | **kv durable backing**: (a) ONE engine Map adapter (`kv.Store` over `metaengine.MapBackend`) vs (b) demote kv to cache-only; origin review (ADR-0022/0032) feeds this | adapter / demote | row 767 + ADR-0142 ledger |
+| D23 | **metaengine API-shape rulings (4)**: #71 `ScanWithMeta`/`WithExact`+cursor compose · #72 `EnforceCaps` default-on-`system.Timer` · #72 `WithCapOnWrite` fold-time trim · #83 baselined-counts-in-health-score intent | per-item | rows 1048 / 1059 / 1309 |
+| D24 | **Green-CI-wave retro-ratification (3)**: system/v4.14.0 cut MINOR for un-rowed `(*System).Dedup()` · two systemscenario lint carve-outs · (third flag per row) | ratify / note | row 1492 |
+| D25 | **Delete `metaengine/graphadapter` + `otel/otlp`**: only zero-fleet + zero-coupling kills left (KILL verdicts 2026-10-23); §4 playbook cascade per module | delete / keep | row 1946 |
+| D26 | **#58 pre-system journal → system.New path**: `DeploymentConfig` accepts `event.Store` override vs adapter-shape (design review vs ADR-0123) | override / adapter | row 2663 |
 
-**Decided this week (context, not re-openable here):** irohengine + bigtableengine = KEEP BOTH (2026-11-08); system v4.18.0 tagged (2026-11-08); StateCache Get = codec-cloned (2026-11-08); ADR-0166 StreamRef = Proposed, ratify at v5.
+**Parked (trigger-gated, deliberately NOT queued):** DueClaimer v2 reopen trigger (row 766, second-consumer trigger); ADR-0138 command-sourcing draft (row 932, consumer-demand gated). **Actionable post-M35 (not a decision):** journal-side cqrs-lint scorecard adoption (row 1027, needs the cqrs-lint tag pushed).
+
+**Decided (context, not re-openable here):** irohengine + bigtableengine = KEEP BOTH (2026-11-08); system v4.18.0 tagged (2026-11-08); StateCache Get = codec-cloned (2026-11-08); ADR-0166 StreamRef = Proposed, ratify at v5.
 
 ## Per-module deep audits (2026-11-09, the owed brutal-audit scopes — ALL FOUR RUN)
 
