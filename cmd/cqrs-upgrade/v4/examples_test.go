@@ -27,7 +27,7 @@ func TestExamples_AreV5Clean(t *testing.T) {
 
 	for _, name := range examples {
 		t.Run(name, func(t *testing.T) {
-			dir := filepath.Join("..", "..", "example", name)
+			dir := filepath.Join(repoRoot(t), "example", name)
 
 			findings, _, analyzed, err := scanFindingsAnalyzed(dir)
 			if err != nil {

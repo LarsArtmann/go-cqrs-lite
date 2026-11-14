@@ -13,13 +13,10 @@ import (
 // be the target of exactly one table entry, and every table target must
 // exist. Extending the fold without updating the table fails here first.
 func TestV5TableMatchesCoreTree(t *testing.T) {
-	root, err := filepath.Abs(filepath.Join("..", "..", "core", "v5"))
-	if err != nil {
-		t.Fatalf("core root: %v", err)
-	}
+	root := filepath.Join(repoRoot(t), "core", "v5")
 
 	tree := map[string]bool{}
-	err = filepath.WalkDir(root, func(path string, d os.DirEntry, err error) error {
+	err := filepath.WalkDir(root, func(path string, d os.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}

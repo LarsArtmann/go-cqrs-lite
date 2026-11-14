@@ -26,10 +26,7 @@ func setupFixture(t *testing.T, name string) string {
 	src := filepath.Join("testdata", "e2e", name)
 	dst := t.TempDir()
 
-	eventDir, err := filepath.Abs(filepath.Join("..", "..", "event"))
-	if err != nil {
-		t.Fatalf("resolve event dir: %v", err)
-	}
+	eventDir := filepath.Join(repoRoot(t), "event")
 
 	entries, err := os.ReadDir(src)
 	if err != nil {
