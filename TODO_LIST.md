@@ -1476,13 +1476,20 @@ replace-free — 10-25 §a2/§a3, now archived).
       re-anchor there anyway). ADTMap is already O1 (2026-09-07);
       Set/Multimap/Log/StreamLog still OLogN. — source:
       archived 22-33 §g1, 04-35 §f9/§f15
-- [ ] [RULED 2026-10-08] **CapabilityGaps reach into Doctor (Q2)** —
+- [x] **RESOLVED 2026-11-15: [RULED 2026-10-08] CapabilityGaps reach into Doctor (Q2)** —
       **RULED: YES** — documented gaps must silence Doctor's `--- Capability ---`
       violation lines too (consistency: a documented gap suppressing PLAN
       diagnostics but not Doctor noise is a split brain). XS impl: thread the
       gaps into `CapabilityAudit` (receives nil today); rides W2.
       Original: documented gaps silence PLAN diagnostics today.
       — source: archived 22-33 §g2, 04-35 §f17
+      DONE 2026-11-15 (W3/M51): `capabilityDoctorSection` now passes
+      `s.capabilityGaps[profile.Name]` instead of nil (immutable-after-New config map,
+      nil-map read safe); regression test
+      `TestDoctor_CapabilitySectionRespectsDocumentedGaps` pins BOTH halves — Doctor
+      suppresses the under-declared violation (5→4) AND `CapabilityAudit.Table`
+      surfaces "KNOWN GAP: <reason>" at audit level. Fixture gained a safe `Close()`
+      (the auditLyingEngine's nil embedded Engine panicked the deferred store.Close).
 - [ ] **Conformance-sweep + hot-path tail — live-server runs remain** — (a) dedup
       no-op case shipped (`TestApplyIdempotent_DuplicateIsNoOp`); (b) micro-bench
       DONE 2026-09-16 (struct hot path 1.9 ns / 0 allocs through the shared
