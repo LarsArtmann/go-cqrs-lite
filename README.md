@@ -454,7 +454,7 @@ Modules release on independent per-module version trains (`<module>/vX.Y.Z` git 
 | storage/pebble | `storage/pebble/v4.4.4` |
 | storage/turso | `storage/turso/v4.3.5` |
 | sync | `sync/v0.2.0` |
-| system | `system/v4.18.0` |
+| system | `system/v4.19.0` |
 | system/integration | `system/integration/v4.0.2` |
 | system/v4 | `system/v4/v4.19.0` |
 | systemcatalog | `systemcatalog/v4.0.0` |
