@@ -269,5 +269,6 @@ watermill/     — Watermill protocol adapter
 | [0164](0164-per-group-projection-caps.md) | Per-group projection caps: WithCapPerGroup bounds each key group under the WithCap global ceiling | 2026-11-05 | Accepted |
 | [0165](0165-standard-deployment-topology-filler-config-ladder-nixos-module.md) | Standard deployment topology — a data filler, a config-format ladder, and a first-party NixOS module | 2026-11-08 | Accepted |
 | [0166](0166-one-streamref-id-struct-canonical-record-aliases.md) | One StreamRef — the id struct is canonical, record aliases it | 2026-11-08 | Proposed |
+| [0167](0167-idempotency-retirement-system-dedup-facade.md) | Retire idempotency/{kvstore,sqlstore} — dedup moves behind system over metaengine.DedupStore | 2026-11-15 | Proposed |
 
 > **Note:** ADRs 0036, 0041, and 0138 were never assigned (gaps in numbering).

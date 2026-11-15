@@ -148,7 +148,7 @@ func (stdlibJSONParser) Unmarshal(b []byte) (map[string]any, error) {
 }
 
 func (stdlibJSONParser) Marshal(m map[string]any) ([]byte, error) {
-	return json.Marshal(m, json.Deterministic(true))
+	return json.Marshal(m)
 }
 
 // applyLegacyEnvOverrides handles the old CQRS_DEFAULT_DRIVER/CQRS_DEFAULT_DSN

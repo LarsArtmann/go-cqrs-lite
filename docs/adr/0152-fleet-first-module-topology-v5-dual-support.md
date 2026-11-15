@@ -124,6 +124,15 @@ delete cascade becomes continuous:
   fork (storage-core alias re-exports); stack presets defer to the bench-infra
   port (cqrs-bench/benchkit/stack-bench).
 
+### Addendum (2026-11-15): idempotency/kvstore ghost-verdict closed
+
+The pending KEEP-DRIVER ghost-verdict for `idempotency/kvstore` (P1 #11,
+awaiting owner sign-off) is RESOLVED-BY-DELETION: the module died 2026-10-17
+under the delete-at-zero application above, before the verdict was ever signed.
+No owner action remains. The successor-surface question (the `system` dedup
+facade over `metaengine.DedupStore`, retiring `idempotency/sqlstore` at v5) is
+[ADR-0167](0167-idempotency-retirement-system-dedup-facade.md).
+
 Execution plan:
 `docs/planning/2026-10-17_08-02_SUPERB-v4-to-v5-fleet-migration-pareto-execution-plan.md`
 (amended with the ruling + errata).
