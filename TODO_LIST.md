@@ -1281,7 +1281,7 @@ replace-free — 10-25 §a2/§a3, now archived).
       metaengine-local (JSON 3540 vs CBOR 3435 ns/op at 200ms benchtime);
       repeat per engine before quoting them as a routing fact (plan T20).
       _(Effort: M)_
-- [ ] **🔥 NEW (2026-10-25): `encoding/json/v2` non-deterministic map-key order
+- [x] **🔥 NEW (2026-10-25): `encoding/json/v2` non-deterministic map-key order
       — persisted `map[string]any` bytes are iteration-order dependent.**
       Proven during the wave-1 byte-pin work (identical 3-key map marshaled to
       two different orders in one process; a 2-key byte pin failed within 50
@@ -1293,7 +1293,19 @@ replace-free — 10-25 §a2/§a3, now archived).
       `json.Marshal(v, json.Deterministic(true))` — confirmed sorted + stable.
       Own wave: touches every encoder + all byte-expectation tests.
       _(Effort: M)_
-- [ ] **🔥 NEW (2026-10-25): map-typed STORAGE KEYS are also non-deterministic
+      RESOLVED 2026-11-15 (W2/M52 values tail): the canonical encoders were
+      already fixed by the T05 wave (5 write sites + byte pins, 11-09 era);
+      this session closed the TAIL — nine remaining marshal sites now carry
+      `json.Deterministic(true)`: `PlanFingerprint` (hashed nondeterministic
+      bytes into a SHA-256 “stable for structurally identical plans” contract
+      — latent, no map fields in Serializable* today), `ExportStore` rows
+      (backup byte-identity), `VectorMetadataArg` (stored metadata,
+      contract-27), `SaveManifest`, SSE wire payloads ×3, `InspectJSON`,
+      trace lines. `reify`/`reifyReflect` stay deliberately plain (transient
+      in-process round-trips, bytes never persisted). New pin:
+      `TestPlanFingerprint_StructurallyIdenticalPlansAgree` (20× rebuild →
+      equal fingerprint). Scoped suites green (metaengine root, keycodec).
+- [x] **🔥 NEW (2026-10-25): map-typed STORAGE KEYS are also non-deterministic
       under json/v2 — same root cause, worse blast radius.**
       `EncodeKeyStr`/`encodeKey` on a `map[string]any` key marshals in
       iteration order, so the SAME logical key can land on DIFFERENT storage
@@ -1304,6 +1316,20 @@ replace-free — 10-25 §a2/§a3, now archived).
       key encoders) — fold into the same decision wave, but pin keys FIRST
       when it lands: key nondeterminism corrupts state, values only
       byte-identity. _(Effort: S to pin the risk, M in the Q2 wave)_
+      RESOLVED 2026-11-15 (W2/M52 keys): the key encoders were already
+      deterministic (`keycodec.EncodeJSON` — which `EncodeKeyStr` routes
+      through — and `sqliteengine.encodeKey` both carry
+      `json.Deterministic(true)` since T05; `bigtableengine.encodeKey` never
+      JSON-marshals — `fmt.Sprint` sorts map keys since Go 1.12). What was
+      MISSING was the engine-level pin the row demanded: new
+      `adttest.AssertMapKeyIdentity` proves Set→Get (split read),
+      Set→Set-overwrite (uniqueness), and Delete (orphan) all resolve ONE
+      storage key for equal-but-differently-built map keys; wired on pebble,
+      bbolt, badger, sqlite alongside the value-bytes assert (badger/bbolt
+      value halves skip on no-RawValueReader — the keys half needs only
+      MapBackend, so it RUNS there). Mutation-verified: stripping
+      Deterministic from `keycodec.EncodeJSON` fails the engine pin
+      immediately (pebble -count=5); restored, 4 engine suites green 3×.
 
   _Closed 2026-10-25 (was "remaining `fmt.Sprintf("%v")` value encoders"):_ the
   silent-loss class is now 4/4 fixed. sqlite/turso reject (dedicated specs,

@@ -3357,6 +3357,7 @@ metaengine/v4/adttest/func AssertDeterministicMapEncoding
 metaengine/v4/adttest/func AssertDueClaimer
 metaengine/v4/adttest/func AssertFactSink
 metaengine/v4/adttest/func AssertGroupedCapContract
+metaengine/v4/adttest/func AssertMapKeyIdentity
 metaengine/v4/adttest/func AssertPlainCapContract
 metaengine/v4/adttest/func AssertTemporalConformance
 metaengine/v4/adttest/func AssertTxIsolationFromForeignContext

@@ -59,7 +59,7 @@ func AssertMapKeyIdentity(t *testing.T, eng metaengine.Engine) {
 	if got, ok, err := mb.MapGet(ctx, col, keyA); err != nil || !ok {
 		t.Fatalf("MapGet keyA after overwrite: ok=%v err=%v", ok, err)
 	} else if got != "second" {
-		t.Fatalf("overwrite with an equal key did not replace the row: got %v, want \"second\"" +
+		t.Fatalf("overwrite with an equal key did not replace the row: got %v, want \"second\""+
 			" (broken uniqueness: two storage rows for one logical key)", got)
 	}
 

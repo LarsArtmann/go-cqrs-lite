@@ -2,17 +2,27 @@ package system_test
 
 import (
 	"context"
+	"errors"
 	"testing"
-	"time"
 
+	"github.com/larsartmann/go-cqrs-lite/command/v4"
+	"github.com/larsartmann/go-cqrs-lite/decider/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
+	"github.com/larsartmann/go-cqrs-lite/systemscenario/v4"
 )
 
-// RawQuery + Count mixing domain: the raw query consumes two events the
-// Count projection does not — the exact shape that built a PARTIAL auto
-// event decoder before raw decls contributed decoder entries.
+// The RawQuery + Count mixing domain: the raw query consumes two events
+// the Count projection does not — the exact shape that built a PARTIAL
+// auto event decoder before raw decls contributed decoder entries. The
+// test drives events through the FULL journal path (command dispatch →
+// journal → bus → projection host → adapter decoder → folds), because a
+// direct store.Apply bypasses the decoder entirely and cannot observe
+// the bug (the host adapter is the only component that errors on a
+// missing decoder entry).
 type rqPetAdopted struct {
 	ID        string
 	Name      string
@@ -25,96 +35,184 @@ type rqPetRenamed struct {
 }
 
 type rqPetView struct {
-	ID        string
-	Name      string
-	AdoptedAt string
+	ID   string
+	Name string
+}
+
+type rqAdoptCmd struct {
+	*command.BasicCommand
+	Name string
+}
+
+type rqRenameCmd struct {
+	*command.BasicCommand
+	Name string
+}
+
+type rqGetQuery struct {
+	*query.BasicQuery
+	ID string
+}
+
+type rqState struct {
+	Exists bool
+	Name   string
+}
+
+var (
+	rqEventAdopted = event.Type("rq.pet.adopted")
+	rqEventRenamed = event.Type("rq.pet.renamed")
+	rqCmdAdopt     = command.Type("rq.pet.adopt")
+	rqCmdRename    = command.Type("rq.pet.rename")
+	rqQueryGet     = query.Type("rq.pet.get")
+)
+
+func rqApply(s rqState, evt event.Event) (rqState, error) {
+	switch evt.Type() {
+	case rqEventAdopted:
+		p, err := event.DecodePayloadAuto[rqPetAdopted](evt)
+		if err != nil {
+			return s, err
+		}
+
+		s.Exists = true
+		s.Name = p.Name
+	case rqEventRenamed:
+		p, err := event.DecodePayloadAuto[rqPetRenamed](evt)
+		if err != nil {
+			return s, err
+		}
+
+		s.Name = p.Name
+	}
+
+	return s, nil
+}
+
+func rqDomain() system.DomainConfig {
+	return system.DomainConfig{
+		Events: []event.Type{rqEventAdopted, rqEventRenamed},
+		Projections: []system.ProjectionDeclaration{
+			// Declared mechanical folds over wire names; both events are
+			// consumed ONLY by this raw declaration.
+			system.RawQuery(metaengine.Query[system.ScanInput, rqPetView]("rq_pets",
+				metaengine.AutoInsertTyped[rqPetAdopted, rqPetView](string(rqEventAdopted), "ID"),
+				metaengine.AutoUpdateTyped[rqPetRenamed, rqPetView](string(rqEventRenamed), "ID"),
+			)),
+			// A ProjectionSpec consuming a SUBSET of the raw query's events:
+			// before the fix, its decoder entry alone made the auto decoder
+			// partial, so rq.pet.renamed hit "no decoder registered" in the
+			// adapter and crash-looped the projection worker.
+			system.Count("rq-pet-counts").
+				On(string(rqEventAdopted), rqPetAdopted{}, +1, "adopted").
+				Done(),
+		},
+		Commands: func(sys *system.System) {
+			if err := system.RegisterDecider(sys, "RqPet", decider.Decider[rqState]{
+				Initial: rqState{},
+				Apply:   rqApply,
+			}); err != nil {
+				panic(err)
+			}
+
+			adopt := func(ctx context.Context, cmd rqAdoptCmd) system.Op[rqState] {
+				return system.Execute(ctx, cmd.StreamID(), "RqPet",
+					func(s rqState, v event.Version) ([]event.Event, error) {
+						if s.Exists {
+							return nil, errors.New("already exists")
+						}
+
+						evt, err := event.New(rqEventAdopted, cmd.StreamID(), "RqPet", v.Increment(),
+							rqPetAdopted{ID: cmd.StreamID().Get(), Name: cmd.Name, AdoptedAt: "2026-01-15"})
+						if err != nil {
+							return nil, err
+						}
+
+						return []event.Event{evt}, nil
+					})
+			}
+
+			rename := func(ctx context.Context, cmd rqRenameCmd) system.Op[rqState] {
+				return system.Execute(ctx, cmd.StreamID(), "RqPet",
+					func(s rqState, v event.Version) ([]event.Event, error) {
+						if !s.Exists {
+							return nil, errors.New("not found")
+						}
+
+						evt, err := event.New(rqEventRenamed, cmd.StreamID(), "RqPet", v.Increment(),
+							rqPetRenamed{ID: cmd.StreamID().Get(), Name: cmd.Name})
+						if err != nil {
+							return nil, err
+						}
+
+						return []event.Event{evt}, nil
+					})
+			}
+
+			if err := system.RegisterCommand[rqAdoptCmd, rqState](sys, rqCmdAdopt, adopt); err != nil {
+				panic(err)
+			}
+
+			if err := system.RegisterCommand[rqRenameCmd, rqState](sys, rqCmdRename, rename); err != nil {
+				panic(err)
+			}
+		},
+		Queries: func(sys *system.System) {
+			pets := metaengine.NewReader[rqPetView](sys.MetaEngine(), "rq_pets")
+
+			if err := system.RegisterQuery[rqGetQuery, rqPetView](sys, string(rqQueryGet),
+				func(ctx context.Context, q rqGetQuery) (rqPetView, error) {
+					v, found, err := pets.Get(ctx, q.ID)
+					if err != nil {
+						return rqPetView{}, err
+					}
+
+					if !found {
+						return rqPetView{}, errors.New("rq pet not found")
+					}
+
+					return v, nil
+				}); err != nil {
+				panic(err)
+			}
+		},
+	}
 }
 
 func TestRawQueryMixedWithProjectionSpecDecodesAllEvents(t *testing.T) {
 	t.Parallel()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+	ctx := context.Background()
+	sc := systemscenario.System(t, ctx, rqDomain(), systemscenario.Memory())
 
-	domain := system.DomainConfig{
-		Events: []event.Type{
-			"rq.pet.adopted",
-			"rq.pet.renamed",
-		},
-		Projections: []system.ProjectionDeclaration{
-			// Declared mechanical folds over wire names; consumed only here.
-			system.RawQuery(metaengine.Query[system.ScanInput, rqPetView]("rq_pets",
-				metaengine.AutoInsertTyped[rqPetAdopted, rqPetView]("rq.pet.adopted", "ID"),
-				metaengine.AutoUpdateTyped[rqPetRenamed, rqPetView]("rq.pet.renamed", "ID"),
-			)),
-			// A ProjectionSpec consuming a SUBSET of the raw query's events:
-			// before the fix this made the auto decoder partial, so
-			// rq.pet.renamed crashed the projection worker with
-			// "no decoder registered".
-			system.Count("rq-pet-counts").
-				On("rq.pet.adopted", rqPetAdopted{}, +1, "adopted").
-				Done(),
-		},
-	}
+	aggID := id.NewStreamID()
 
-	deployment := system.DeploymentConfig{
-		Engines: map[string]system.EngineConfig{
-			"primary": {Driver: "memory"},
-		},
-		Instances: []system.InstanceConfig{
-			{Role: system.RoleSourceOfTruth, Engine: "primary"},
-			{Role: system.RoleProjections, Engine: "primary"},
-		},
-	}
-
-	sys, err := system.New(ctx, domain, deployment)
+	adoptBasic, err := command.New(rqCmdAdopt, aggID)
 	if err != nil {
-		t.Fatalf("system.New: %v", err)
+		t.Fatalf("command.New(adopt): %v", err)
 	}
 
-	defer sys.Close()
-
-	if err := sys.Start(ctx); err != nil {
-		t.Fatalf("start: %v", err)
+	renameBasic, err := command.New(rqCmdRename, aggID)
+	if err != nil {
+		t.Fatalf("command.New(rename): %v", err)
 	}
 
-	store := sys.MetaEngine()
-
-	apply := func(wire string, payload any) {
-		t.Helper()
-
-		if err := store.Apply(ctx, wire, payload); err != nil {
-			t.Fatalf("apply %s: %v", wire, err)
-		}
+	getBasic, err := query.New(rqQueryGet)
+	if err != nil {
+		t.Fatalf("query.New: %v", err)
 	}
 
-	apply("rq.pet.adopted", rqPetAdopted{ID: "p1", Name: "Rex", AdoptedAt: "2026-01-15"})
-	apply("rq.pet.renamed", rqPetRenamed{ID: "p1", Name: "Rexy"})
-
-	reader := metaengine.NewReader[rqPetView](store, "rq_pets")
-
-	deadline := time.Now().Add(5 * time.Second)
-
-	for {
-		v, found, err := reader.Get(ctx, "p1")
-		if err != nil {
-			t.Fatalf("lookup: %v (poisoned: %v)", err, store.IsPoisoned("rq_pets"))
-		}
-
-		if found && v.Name == "Rexy" && v.AdoptedAt == "2026-01-15" {
-			break
-		}
-
-		if time.Now().After(deadline) {
-			perr := store.IsPoisoned("rq_pets")
-
-			t.Fatalf("rename never folded: found=%v view=%+v poisoned=%v", found, v, perr)
-		}
-
-		time.Sleep(20 * time.Millisecond)
+	view := func() (any, error) {
+		return system.DispatchQuery[rqGetQuery, rqPetView](ctx, sc.System(),
+			rqGetQuery{BasicQuery: getBasic, ID: aggID.Get()})
 	}
 
-	counts, err := system.GetCount(ctx, sys, "rq-pet-counts")
+	sc.Given().
+		Command(rqAdoptCmd{BasicCommand: adoptBasic, Name: "Rex"}).
+		When(rqRenameCmd{BasicCommand: renameBasic, Name: "Rexy"}).
+		ThenQuery(view, rqPetView{ID: aggID.Get(), Name: "Rexy"})
+
+	counts, err := system.GetCount(ctx, sc.System(), "rq-pet-counts")
 	if err != nil {
 		t.Fatalf("count: %v", err)
 	}
