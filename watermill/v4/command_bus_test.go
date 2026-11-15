@@ -264,8 +264,27 @@ func TestCommandBusCustomTopic(t *testing.T) {
 func TestCommandBusPublishRacingCloseNeverLeaksRawTransportError(t *testing.T) {
 	t.Parallel()
 
+	// Per-iteration watchdog (D9, 2026-11-15): the nightly repeat leg hung
+	// 20m on a shared runner (the whole per-package budget) with this test
+	// wedged — Close() under -race -cpu=1 can stall indefinitely while the
+	// hammering publishers keep the drain busy. Green locally twice, so the
+	// honest fix is a budget, not a scheduler diagnosis: each iteration must
+	// finish in 5s (the whole 300-iteration contract normally runs in
+	// single-digit seconds), and a wedge fails FAST naming the iteration
+	// instead of burning the package timeout. The wedged goroutine dies with
+	// the process at test exit.
 	for i := range 300 {
-		commandBusPublishRacingCloseIteration(t, i)
+		done := make(chan struct{})
+		go func() {
+			defer close(done)
+			commandBusPublishRacingCloseIteration(t, i)
+		}()
+
+		select {
+		case <-done:
+		case <-time.After(5 * time.Second):
+			t.Fatalf("iteration %d wedged >5s in the publish-vs-close drain (the D9 repeat-leg hang)", i)
+		}
 	}
 }
 
