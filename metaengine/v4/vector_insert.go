@@ -36,7 +36,9 @@ func VectorMetadataArg(
 		return nil, nil //nolint:nilnil // nil binds SQL NULL by contract
 	}
 
-	data, err := json.Marshal(emb.Metadata)
+	// Deterministic: metadata bytes are STORED (contract-27 byte-identical
+	// storage across engines); json/v2 dropped v1's implicit map-key sorting.
+	data, err := json.Marshal(emb.Metadata, json.Deterministic(true))
 	if err != nil {
 		return nil, fmt.Errorf("%s: marshal metadata: %w", label, err)
 	}

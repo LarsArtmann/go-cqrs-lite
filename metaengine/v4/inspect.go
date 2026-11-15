@@ -34,5 +34,5 @@ func (s *Store) Inspect() string {
 // InspectJSON returns a machine-readable JSON summary of all collections,
 // suitable for API endpoints, monitoring tools, and structured logging.
 func (s *Store) InspectJSON() ([]byte, error) {
-	return json.Marshal(s.Collections()) //nolint:wrapcheck
+	return json.Marshal(s.Collections(), json.Deterministic(true)) //nolint:wrapcheck
 }

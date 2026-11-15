@@ -171,7 +171,7 @@ func serveSSEPlain[V any](
 // Marshal failures are silently skipped to keep the stream alive.
 // Wire-format serialization is delegated to [sse.WriteEvent] (ADR-0097).
 func writePlainSSEEvent[V any](w http.ResponseWriter, val V) error {
-	data, err := json.Marshal(val)
+	data, err := json.Marshal(val, json.Deterministic(true))
 	if err != nil {
 		return nil //nolint:nilerr // skip unmarshalable, keep stream alive
 	}
@@ -225,7 +225,7 @@ func serveSSEReplay[V any](
 // with the sequence number as the id field. Marshal failures are skipped.
 // Wire-format serialization is delegated to [sse.WriteEvent] (ADR-0097).
 func writeReplaySSEEvent[V any](w http.ResponseWriter, item SeqValue[V]) error {
-	data, err := json.Marshal(item.Value)
+	data, err := json.Marshal(item.Value, json.Deterministic(true))
 	if err != nil {
 		return nil //nolint:nilerr // skip unmarshalable, keep stream alive
 	}
@@ -266,7 +266,7 @@ func replayMissedEvents[V any](
 	ring := dedup.NewRing[string](dedup.DefaultCapacity)
 
 	for _, sv := range replayed {
-		data, err := json.Marshal(sv.Value)
+		data, err := json.Marshal(sv.Value, json.Deterministic(true))
 		if err != nil {
 			continue
 		}

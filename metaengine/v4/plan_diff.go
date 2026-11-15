@@ -127,7 +127,7 @@ func PlanDiff(prev, current *SerializablePlan) *PlanDiffResult {
 // The hash is stable for structurally identical plans, enabling pinned-plan
 // verification and drift detection.
 func PlanFingerprint(plan *SerializablePlan) (string, error) {
-	data, err := json.Marshal(plan)
+	data, err := json.Marshal(plan, json.Deterministic(true))
 	if err != nil {
 		return "", fmt.Errorf("metaengine.PlanFingerprint: marshal: %w", err)
 	}
@@ -177,7 +177,8 @@ func NewManifest(plan *SerializablePlan) (*Manifest, error) {
 
 // SaveManifest writes a Manifest to a file as JSON.
 func SaveManifest(path string, m *Manifest) error {
-	data, err := json.Marshal(m, jsontext.WithIndentPrefix(""), jsontext.WithIndent("  "))
+	data, err := json.Marshal(m, json.Deterministic(true),
+		jsontext.WithIndentPrefix(""), jsontext.WithIndent("  "))
 	if err != nil {
 		return fmt.Errorf("metaengine.SaveManifest: marshal: %w", err)
 	}

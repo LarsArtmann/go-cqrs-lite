@@ -102,7 +102,7 @@ func (tr *TraceRecorder) record(op, name string, d time.Duration, err error) {
 	tr.mu.Lock()
 	defer tr.mu.Unlock()
 
-	if line, encErr := json.Marshal(opRecord); encErr != nil {
+	if line, encErr := json.Marshal(opRecord, json.Deterministic(true)); encErr != nil {
 		if tr.err == nil {
 			tr.err = encErr
 		}

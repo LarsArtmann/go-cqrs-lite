@@ -47,7 +47,7 @@ func (s *Store) Export(ctx context.Context, w io.Writer) error {
 
 			first = false
 
-			data, err := json.Marshal(row)
+			data, err := json.Marshal(row, json.Deterministic(true))
 			if err != nil {
 				return fmt.Errorf("marshal: %w", err)
 			}
