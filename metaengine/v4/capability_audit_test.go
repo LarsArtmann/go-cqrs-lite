@@ -164,3 +164,38 @@ func TestDoctor_CapabilitySection(t *testing.T) {
 		}
 	}
 }
+
+// TestDoctor_CapabilitySectionRespectsDocumentedGaps verifies the ruled Q2
+// behavior (2026-10-08): a CapabilityGaps entry that silences PLAN
+// diagnostics must also silence the Doctor capability section — the audit
+// receives the store's documented gaps instead of nil.
+func TestDoctor_CapabilitySectionRespectsDocumentedGaps(t *testing.T) {
+	t.Parallel()
+
+	gapReason := "documented: set backend intentionally undeclared for the lying fixture"
+	store, err := metaengine.Plan(
+		[]metaengine.Engine{newAuditLyingEngine()},
+		findTaskQuery(),
+		metaengine.WithEngineCapabilityGaps(map[string]metaengine.CapabilityGaps{
+			"lying": {metaengine.ADTSet: gapReason},
+		}),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer store.Close()
+
+	output := store.Doctor(t.Context())
+
+	if strings.Contains(output, "planner cannot route to this engine") {
+		t.Errorf("Doctor: documented gap should suppress the under-declared violation, got:\n%s", output)
+	}
+
+	if !strings.Contains(output, "KNOWN GAP: "+gapReason) {
+		t.Errorf("Doctor: expected the documented gap surfaced as KNOWN GAP, got:\n%s", output)
+	}
+
+	if !strings.Contains(output, "4 conformance violation(s)") {
+		t.Errorf("Doctor: expected 5-1=4 violations with the ADTSet gap documented, got:\n%s", output)
+	}
+}

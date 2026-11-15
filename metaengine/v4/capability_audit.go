@@ -250,7 +250,7 @@ func (s *Store) capabilityDoctorSection() string {
 
 	for _, eng := range engines {
 		profile := eng.Profile()
-		res := CapabilityAudit(profile.Name, eng, nil)
+		res := CapabilityAudit(profile.Name, eng, s.capabilityGaps[profile.Name])
 
 		if len(res.Violations) == 0 {
 			fmt.Fprintf(&b, "  %s: declarations consistent\n", profile.Name)
