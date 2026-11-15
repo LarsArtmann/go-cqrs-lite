@@ -2,6 +2,7 @@ package projectionhost_test
 
 import (
 	"context"
+	"sync"
 	"testing"
 	"time"
 
@@ -160,18 +161,47 @@ func TestLiveCheckpoint_CrashWindowIsBounded(t *testing.T) {
 	}
 }
 
+// manualClock is a concurrency-safe fake time source for cadence tests: the
+// worker goroutine reads now(), the test goroutine advances. Only the test
+// moves time, so scheduler delays under load cannot perturb interval
+// assertions (the 2026-10-23 race-sweep flake: a starved worker handled the
+// second live event >interval after the first flush, producing an extra save).
+type manualClock struct {
+	mu sync.Mutex
+	t  time.Time
+}
+
+func (c *manualClock) now() time.Time {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	return c.t
+}
+
+func (c *manualClock) advance(d time.Duration) {
+	c.mu.Lock()
+	c.t = c.t.Add(d)
+	c.mu.Unlock()
+}
+
 // TestLiveCheckpoint_IntervalFlushesAfterElapsed proves the time cadence:
 // events inside the interval stay pending; the first event after the interval
-// elapses flushes the staged checkpoint.
+// elapses flushes the staged checkpoint. Time is injected via WithClock, so
+// the exact save counts are deterministic regardless of goroutine scheduling.
 func TestLiveCheckpoint_IntervalFlushesAfterElapsed(t *testing.T) {
 	t.Parallel()
 
+	clk := &manualClock{t: time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)}
+
 	stop, sub, cpStore, proj := startLiveHost(
-		t, projectionhost.WithCheckpointInterval(120*time.Millisecond),
+		t,
+		projectionhost.WithCheckpointInterval(120*time.Millisecond),
+		projectionhost.WithClock(clk.now),
 	)
 
 	// First live event flushes (time since the zero-value last save exceeds
-	// any interval); the second stays pending.
+	// any interval); the second stays pending — the injected clock has not
+	// moved, so no scheduler delay can change that.
 	sub.publish(context.Background(), makeEvent("task.created"))
 	sub.publish(context.Background(), makeEvent("task.created"))
 
@@ -183,10 +213,11 @@ func TestLiveCheckpoint_IntervalFlushesAfterElapsed(t *testing.T) {
 		t.Fatalf("checkpoint saves after burst = %d, want %d", got, want)
 	}
 
-	time.Sleep(150 * time.Millisecond)
-
-	// Next event crosses the interval: the pending event flushes, the new
-	// event becomes pending.
+	// Cross the interval on the injected clock — exactly 120ms since the
+	// last save, pinning the documented "at least d elapsed" (>=) semantics:
+	// the next event flushes the staged checkpoint inline. No wall-clock
+	// sleep involved.
+	clk.advance(120 * time.Millisecond)
 	sub.publish(context.Background(), makeEvent("task.created"))
 
 	requireEventually(t, 3*time.Second, func() bool {
@@ -206,4 +237,9 @@ func TestLiveCheckpoint_IntervalFlushesAfterElapsed(t *testing.T) {
 	}
 
 	stop()
+
+	// The interval event flushed inline, so shutdown has nothing pending.
+	if got := cpStore.saves.Load(); got != 3 {
+		t.Errorf("saves after Stop = %d, want 3 (no pending flush)", got)
+	}
 }

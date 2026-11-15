@@ -43,6 +43,10 @@ type hostOptions struct {
 	// default save-after-every-event behavior.
 	cpEvery    int
 	cpInterval time.Duration
+
+	// now overrides the wall clock for checkpoint-cadence decisions (nil:
+	// time.Now). Test seam only — production hosts run on the real clock.
+	now func() time.Time
 }
 
 func defaultOptions() hostOptions {
@@ -195,6 +199,18 @@ func WithCheckpointInterval(d time.Duration) HostOption {
 	return func(o *hostOptions) {
 		if d > 0 {
 			o.cpInterval = d
+		}
+	}
+}
+
+// WithClock sets the Host's time source for checkpoint-cadence decisions;
+// default time.Now. Inject a controllable clock to make
+// [WithCheckpointInterval] tests deterministic without wall-clock sleeps
+// (the ADR-0153 D4 additive-seam pattern, same as scheduling.WithClock).
+func WithClock(now func() time.Time) HostOption {
+	return func(o *hostOptions) {
+		if now != nil {
+			o.now = now
 		}
 	}
 }

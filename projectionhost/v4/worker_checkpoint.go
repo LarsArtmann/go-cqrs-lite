@@ -9,6 +9,17 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 )
 
+// now returns the current time for checkpoint-cadence decisions, honoring
+// an injected clock (WithClock) so interval-cadence tests stay deterministic
+// under scheduler delay.
+func (w *worker) now() time.Time {
+	if w.opts.now != nil {
+		return w.opts.now()
+	}
+
+	return time.Now()
+}
+
 // recordLiveCheckpoint stages the live-phase checkpoint for evt and persists
 // it when the configured cadence says so ([WithCheckpointEvery] /
 // [WithCheckpointInterval]; default: every event, unchanged from the
@@ -16,7 +27,7 @@ import (
 func (w *worker) recordLiveCheckpoint(ctx context.Context, evt event.Event) error {
 	w.cpPending = event.Checkpoint{
 		EventID:     evt.ID(),
-		ProcessedAt: time.Now(),
+		ProcessedAt: w.now(),
 	}
 	w.cpHasPending = true
 	w.cpSinceSave++
@@ -40,7 +51,7 @@ func (w *worker) shouldFlushCheckpoint() bool {
 		return true
 	}
 
-	return w.opts.cpInterval > 0 && time.Since(w.cpLastSave) >= w.opts.cpInterval
+	return w.opts.cpInterval > 0 && w.now().Sub(w.cpLastSave) >= w.opts.cpInterval
 }
 
 // flushCheckpoint persists the staged checkpoint if one exists. Must be
@@ -58,7 +69,7 @@ func (w *worker) flushCheckpoint(ctx context.Context) error {
 	w.setCheckpoint(w.cpPending.EventID.String())
 	w.cpHasPending = false
 	w.cpSinceSave = 0
-	w.cpLastSave = time.Now()
+	w.cpLastSave = w.now()
 
 	return nil
 }
