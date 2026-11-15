@@ -27,6 +27,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
      importable packages) — root stays v4.0.0. -->
 ## [Unreleased]
 
+### Added
+
+- **metaengine: SSE ring evictions are now observable via `metaengine.SSEDroppedEvents` (M40, :328).** The drop-old backpressure in the ServeSSE ring is by design (a slow consumer must never stall the watcher), but it was invisible: the CI recurrence class "stream opened, a later event never arrived" (2026-10-27, 2026-11-05, 2026-11-06 — all on shared `-race` runners, unreproducible locally) could not be separated from other loss mechanisms. The process-wide counter is asserted two ways: a throttled-consumer repro proves evictions are counted and only the newest value survives (`TestForwardWithDropOld_EvictionsCounted`), and a fast-consumer SSE window proves the delta stays zero (`TestServeSSE_FastConsumerNeverDrops`) — the next CI recurrence now classifies itself in one query.
+
 ### Fixed
 
 - **cqrs-lint V003 proxy fetch now honors GOPRIVATE/GONOPROXY and caps parallelism (M37/F232).** Private module paths (GONOPROXY patterns, falling back to GOPRIVATE per Go's documented default chain; element-boundary matching with path.Match globs) never reach the public proxy — the request could not succeed and leaked the module name to the proxy operator; bypassed modules use the fleet fallback constant. Concurrent `@latest` requests are bounded by a 4-slot semaphore so a fleet-scale lint cannot burst the proxy. Pinned by `TestModuleBypassesProxy` (10 cases incl. GONOPROXY-overrides-GOPRIVATE and comma lists).

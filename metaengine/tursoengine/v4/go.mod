@@ -8,9 +8,9 @@ require (
 	github.com/larsartmann/go-error-family v0.12.0
 	github.com/onsi/gomega v1.44.0
 	github.com/samber/lo v1.53.0
-	github.com/tursodatabase/turso-go-platform-libs v0.9.0-pre.2
+	github.com/tursodatabase/turso-go-platform-libs v0.8.3
 	pgregory.net/rapid v1.3.0
-	turso.tech/database/tursogo v0.9.0-pre.2
+	turso.tech/database/tursogo v0.8.3
 )
 
 require (

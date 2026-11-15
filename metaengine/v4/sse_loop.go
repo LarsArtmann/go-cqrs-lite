@@ -3,10 +3,29 @@ package metaengine
 import (
 	"context"
 	"net/http"
+	"sync/atomic"
 	"time"
 
 	sse "github.com/larsartmann/go-sse"
 )
+
+// sseDroppedEvents counts events evicted by the SSE ring's drop-old
+// backpressure across the process lifetime. Eviction is BY DESIGN (a slow
+// consumer must never stall the watcher), but it was invisible: the CI
+// recurrence class "stream opened, later event never arrived" (2026-10-27,
+// 2026-11-05, 2026-11-06 — :328) could not be separated from other loss
+// mechanisms without this signal.
+//
+//nolint:gochecknoglobals // process-lifetime diagnostic counter, atomic
+var sseDroppedEvents atomic.Int64
+
+// SSEDroppedEvents reports how many events SSE ring buffers have evicted
+// (drop-old backpressure for slow consumers) since process start. Tests
+// assert a zero delta over fast-consumer windows: a drop there means an
+// event was skipped that the consumer never had a chance to read, which
+// reclassifies an "event never streamed" flake as backpressure in one
+// query.
+func SSEDroppedEvents() int64 { return sseDroppedEvents.Load() }
 
 // forwardWithDropOld reads from src and forwards to dst with drop-old
 // semantics: when dst is full, the oldest item is evicted to make room.
@@ -38,6 +57,7 @@ func forwardWithDropOld[T any](
 				// Evict oldest to make room.
 				select {
 				case <-dst:
+					sseDroppedEvents.Add(1)
 				default:
 				}
 

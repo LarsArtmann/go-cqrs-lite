@@ -28,7 +28,7 @@ RANGE_PAT='(<=|≤|through) v[0-9]+\.[0-9]+\.[0-9]+(-pre\.[0-9]+)?'
 read_canonical() {
 	local root="$1"
 	sed -n 's/^[[:space:]]*TursoGoIVMVerifiedThrough[[:space:]]*= *"\(.*\)"/\1/p' \
-		"$root/metaengine/materialized_view_versions.go" | head -1
+		"$root/metaengine/v4/materialized_view_versions.go" | head -1
 }
 
 # scan_citations <root> <live-file...>: echoes FAIL lines for every citation
@@ -40,7 +40,7 @@ scan_citations() {
 	local canon
 	canon="$(read_canonical "$root")"
 	if [ -z "$canon" ]; then
-		echo "FAIL: cannot read TursoGoIVMVerifiedThrough from $root/metaengine/materialized_view_versions.go"
+		echo "FAIL: cannot read TursoGoIVMVerifiedThrough from $root/metaengine/v4/materialized_view_versions.go"
 		return 1
 	fi
 
@@ -82,7 +82,7 @@ scan_pins() {
 	local canon
 	canon="$(read_canonical "$root")"
 	if [ -z "$canon" ]; then
-		echo "FAIL: cannot read TursoGoIVMVerifiedThrough from $root/metaengine/materialized_view_versions.go (pin scan)"
+		echo "FAIL: cannot read TursoGoIVMVerifiedThrough from $root/metaengine/v4/materialized_view_versions.go (pin scan)"
 		return 1
 	fi
 
@@ -131,7 +131,7 @@ self_test() {
 
 	mkdir -p "$tmp/metaengine" "$tmp/docs"
 	printf 'package metaengine\n\nconst (\n\tTursoGoIVMVerifiedThrough = "v0.7.2-pre.10"\n)\n' \
-		>"$tmp/metaengine/materialized_view_versions.go"
+		>"$tmp/metaengine/v4/materialized_view_versions.go"
 	printf 'The caveat holds through v0.7.2-pre.10.\n' >"$tmp/docs/clean.md"
 	printf 'Older doc says the caveat holds through v0.7.2-pre.8.\n' >"$tmp/docs/stale.md"
 

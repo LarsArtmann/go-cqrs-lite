@@ -3682,6 +3682,7 @@ metaengine/v4/func ReplayCompletedAt
 metaengine/v4/func ReplayCost
 metaengine/v4/func ReplayTrace
 metaengine/v4/func SQLiteEngineProfile
+metaengine/v4/func SSEDroppedEvents
 metaengine/v4/func SanitizeIdent
 metaengine/v4/func SaveManifest
 metaengine/v4/func ScanDistinctValues
