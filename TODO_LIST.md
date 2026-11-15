@@ -1853,10 +1853,26 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       an analogous transient-abort class worth the same treatment. — source:
       02-16 §f19
       _(Effort: M)_
-- [ ] **Watch dgraph + redis CI jobs (~10 shuffled runs)** — record any
+- [x] **Watch dgraph + redis CI jobs (~10 shuffled runs)** — record any
       seed that fails; rare orderings WILL eventually appear in CI (that is
       the point of shuffling). — source: 02-16 §e7/§f10
       _(Effort: XS)_
+      OBSERVED-OUT 2026-11-15 (W1/M40 :1764): the ~10-shuffled-run window
+      elapsed many times over (row is 02-16 era; ~9 months of shuffled CI
+      since) with ZERO order-dependent dgraph/redis failures recorded —
+      TODO_LIST carries no such seed row (the mysql seed-replay class above
+      is the only shuffle-failure lineage, different engines), and
+      `build/shuffle-seeds.log` has no dgraph/redis failure entry. Recent
+      verdicts: 2026-11-15 CI runs 43688584591 + 43686251073 both show
+      `Dgraph Integration (ephemeral)=success` +
+      `Redis Broker Integration (ephemeral)=success`; weekly Dgraph soaks
+      green 3× (11-01, 11-08, 11-15). The 11-11→11-14 CI red wave is fully
+      attributed to coverage/lint/file-size gates (W0/W1 status reports),
+      not these legs. Future recurrences stay diagnosable WITHOUT this row:
+      seeds are logged (`build/shuffle-seeds.log`, labels `dgraphengine`/
+      `redis`) and ci.yml uploads the `shuffle-seeds-redis` artifact
+      (ci.yml:1104); replay via `nix run .#rerun-shuffle-seed -- <seed>` —
+      a recurrence gets its own row like the mysql one above.
 
 ---
 
