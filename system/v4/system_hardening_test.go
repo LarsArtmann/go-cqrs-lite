@@ -318,7 +318,11 @@ func TestSystem_HealthCheck_FailedProjection(t *testing.T) {
 	cpStore := &recordingCheckpointStore{}
 
 	// A decoder that always errors, causing the projection handler to fail.
-	failingDecoder := func(_ string, _ []byte) (any, error) {
+	// EventDecoder is the highest decoder hook the domain can set (documented
+	// priority: TypeDecoder > EventDecoder > auto-derived > PayloadDecoder),
+	// so the failure cannot be shadowed by the auto-derived decoder that raw
+	// declarations now feed.
+	failingDecoder := func(evt event.Event) (any, error) {
 		return nil, errors.New("intentional decoder failure")
 	}
 
@@ -340,7 +344,7 @@ func TestSystem_HealthCheck_FailedProjection(t *testing.T) {
 		Projections: []system.ProjectionDeclaration{
 			system.RawQuery(taskProjectionQuery("fail_proj")),
 		},
-		ProjectionDecoder: failingDecoder,
+		ProjectionEventDecoder: failingDecoder,
 		ProjectionHostOptions: []projectionhost.HostOption{
 			projectionhost.WithMaxRestarts(1),
 			projectionhost.WithBackoff(1*time.Millisecond, 5*time.Millisecond),
