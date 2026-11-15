@@ -8,19 +8,29 @@ package sqliteengine_test
 
 import (
 	"context"
-	"path/filepath"
+	"database/sql"
+	"fmt"
 	"testing"
 
 	_ "modernc.org/sqlite"
-
-	"github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4"
-	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
+
+func countPlannedRows(t *testing.T, db *sql.DB, table string) int {
+	t.Helper()
+
+	var n int
+
+	if err := db.QueryRow(fmt.Sprintf("SELECT COUNT(*) FROM %s", table)).Scan(&n); err != nil {
+		t.Fatalf("count %s: %v", table, err)
+	}
+
+	return n
+}
 
 func TestTrimPlannedBefore_RemovesOnlyOlderRows(t *testing.T) {
 	t.Parallel()
 
-	store, _, _ := newBatchTestStore(t, 0)
+	store, _, db := newBatchTestStore(t, -1)
 	ctx := context.Background()
 
 	if err := store.ApplyBatch(ctx, batchRows(100)); err != nil {
@@ -38,12 +48,7 @@ func TestTrimPlannedBefore_RemovesOnlyOlderRows(t *testing.T) {
 		t.Fatalf("removed = %d, want 50", removed)
 	}
 
-	var alive int
-	if err := queryCount(t, store, "batch_tracks", &alive); err != nil {
-		t.Fatalf("count after trim: %v", err)
-	}
-
-	if alive != 50 {
+	if alive := countPlannedRows(t, db, "meta_planned_batch_tracks"); alive != 50 {
 		t.Fatalf("rows alive after trim = %d, want 50", alive)
 	}
 
@@ -61,12 +66,11 @@ func TestTrimPlannedBefore_RemovesOnlyOlderRows(t *testing.T) {
 func TestTrimPlannedBefore_RejectsNonIntegerColumn(t *testing.T) {
 	t.Parallel()
 
-	store, _, _ := newBatchTestStore(t, 0)
-	ctx := context.Background()
+	store, _, _ := newBatchTestStore(t, -1)
 
 	// "domain" IS an extracted column, but TEXT-typed: the numeric cutoff
 	// comparison would be dishonest, so the sweep must refuse it.
-	if _, err := store.TrimPlannedBefore(ctx, "batch_tracks", "domain", 42); err == nil {
+	if _, err := store.TrimPlannedBefore(t.Context(), "batch_tracks", "domain", 42); err == nil {
 		t.Fatal("TrimPlannedBefore must reject TEXT-typed columns")
 	}
 }
@@ -74,14 +78,14 @@ func TestTrimPlannedBefore_RejectsNonIntegerColumn(t *testing.T) {
 func TestTrimPlannedBefore_RejectsUnknownFieldAndCollection(t *testing.T) {
 	t.Parallel()
 
-	store, _, _ := newBatchTestStore(t, 0)
-	ctx := context.Background()
+	store, _, _ := newBatchTestStore(t, -1)
 
-	if _, err := store.TrimPlannedBefore(ctx, "batch_tracks", "clientIp", 42); err == nil {
+	// The fixture query filters domain/blocked but never extracts clientIp.
+	if _, err := store.TrimPlannedBefore(t.Context(), "batch_tracks", "clientIp", 42); err == nil {
 		t.Fatal("TrimPlannedBefore must reject a field with no extracted column")
 	}
 
-	if _, err := store.TrimPlannedBefore(ctx, "no_such_collection", "createdUnix", 42); err == nil {
+	if _, err := store.TrimPlannedBefore(t.Context(), "no_such_collection", "createdUnix", 42); err == nil {
 		t.Fatal("TrimPlannedBefore must reject an unknown collection")
 	}
 }
@@ -89,64 +93,39 @@ func TestTrimPlannedBefore_RejectsUnknownFieldAndCollection(t *testing.T) {
 func TestTrimPlannedBefore_FlushesBufferedWritesFirst(t *testing.T) {
 	t.Parallel()
 
-	db := openTrimDB(t)
-	eng, err := sqliteengine.NewSQLiteEngine(db)
-	if err != nil {
-		t.Fatalf("NewSQLiteEngine: %v", err)
-	}
-
-	q := trimOnlyQuery()
-
-	store, err := metaengine.Plan([]metaengine.Engine{eng}, q)
-	if err != nil {
-		t.Fatalf("Plan: %v", err)
-	}
-
-	t.Cleanup(func() { _ = store.Close() })
-
+	store, _, db := newBatchTestStore(t, -1)
 	ctx := context.Background()
 
-	// One buffered batch (not yet flushed — chunk cap 500 not reached), then
-	// an immediate sweep: the buffered rows must be flushed BEFORE the sweep
-	// or they would resurrect after it committed.
-	if err := store.ApplyBatch(ctx, batchRows(30)); err != nil {
-		t.Fatalf("ApplyBatch: %v", err)
-	}
+	// The delete-after-set contract, sweep form: inside ONE ambient tx,
+	// fold writes sit in the planned buffer (chunk cap 500 not reached);
+	// the sweep must flush them BEFORE its DELETE executes, or they would
+	// resurrect after the sweep's rows-affected was counted.
+	var removed int64
 
-	removed, err := store.TrimPlannedBefore(ctx, "batch_tracks", "createdUnix", 1_700_000_010)
+	err := store.InTransaction(ctx, func(ctx context.Context) error {
+		if err := store.ApplyBatch(ctx, batchRows(30)); err != nil {
+			return err
+		}
+
+		if got := countPlannedRows(t, db, "meta_planned_batch_tracks"); got != 0 {
+			t.Fatalf("precondition: expected 0 flushed rows mid-tx, got %d (fixture no longer buffers)", got)
+		}
+
+		var trimErr error
+
+		removed, trimErr = store.TrimPlannedBefore(ctx, "batch_tracks", "createdUnix", 1_700_000_010)
+
+		return trimErr
+	})
 	if err != nil {
-		t.Fatalf("TrimPlannedBefore: %v", err)
+		t.Fatalf("InTransaction sweep: %v", err)
 	}
 
 	if removed != 10 {
 		t.Fatalf("removed = %d, want 10 (buffered rows must be swept, not resurrected)", removed)
 	}
-}
 
-// --- helpers -------------------------------------------------------------
-
-func openTrimDB(t *testing.T) interface {
-	Exec(string, ...any) (interface{ RowsAffected() (int64, error) }, error)
-} {
-	t.Helper()
-
-	db, err := openTrimSQL(t)
-	if err != nil {
-		t.Fatalf("open sqlite: %v", err)
+	if alive := countPlannedRows(t, db, "meta_planned_batch_tracks"); alive != 20 {
+		t.Fatalf("rows alive after trim = %d, want 20", alive)
 	}
-
-	return db
-}
-
-func queryCount(t *testing.T, store *metaengine.Store, table string, out *int) error {
-	t.Helper()
-
-	row, err := store.TrimPlannedBefore(t.Context(), table, "__count_probe__", 0)
-	_ = row
-
-	if err == nil {
-		t.Fatal("probe should not succeed")
-	}
-
-	return countViaRawDB(t, table, out)
 }
