@@ -41,16 +41,19 @@ type rqPetView struct {
 
 type rqAdoptCmd struct {
 	*command.BasicCommand
+
 	Name string
 }
 
 type rqRenameCmd struct {
 	*command.BasicCommand
+
 	Name string
 }
 
 type rqGetQuery struct {
 	*query.BasicQuery
+
 	ID string
 }
 
