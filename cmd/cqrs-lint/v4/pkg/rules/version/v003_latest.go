@@ -78,6 +78,14 @@ func latestMinorFromProxy(ctx context.Context, modulePath string) (int, bool) {
 		return 0, false
 	}
 
+	return latestMinorFromProxyLive(ctx, modulePath)
+}
+
+// latestMinorFromProxyLive is latestMinorFromProxy past the test-binary and
+// kill-switch guards; tests exercise it directly because testing.Testing()
+// is always true under `go test`, which would otherwise make every line
+// below the guard unreachable in coverage runs.
+func latestMinorFromProxyLive(ctx context.Context, modulePath string) (int, bool) {
 	if moduleBypassesProxy(modulePath) {
 		return 0, false
 	}
