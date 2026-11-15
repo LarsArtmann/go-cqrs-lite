@@ -2334,6 +2334,18 @@
                   echo "✅ All verification checks passed"
                 '';
 
+            # check-flake-lock-coherence (F250b leg 1): refuse the
+            # incoherent-commit shape — a hash-pinned lock input's rev
+            # bumped while zero sha256 lines moved in tracked .nix files
+            # (the 2026-10-23 late-breakage class). Default compares HEAD
+            # vs worktree; --baseline <rev> for range audits.
+            check-flake-lock-coherence =
+              mkApp "check-flake-lock-coherence"
+                [ pkgs.bash pkgs.git pkgs.jq pkgs.gnugrep pkgs.gawk ]
+                ''
+                  ${pkgs.bash}/bin/bash "$PWD/scripts/check-flake-lock-coherence.sh" "$@"
+                '';
+
             # verify-serial: the loud-box fallback tier (:1343) — same gate
             # list as #verify (runs it via VERIFY_FORCE), package
             # parallelism 1, no aggregate load precondition, outer wall
