@@ -337,7 +337,19 @@ Routed, not minted (docs-health routing rule): native `[]Edge` fan-out (multi-va
 - [ ] **T24 tag-wave housekeeping:** catalog train carrying `Registry.MarkDemo` (gated on T26), graph-native README manifest row, #26 retract-watch confirmation. _(Effort: S)_
 - [ ] **T25 composed quiet-window `#verify`** via `scripts/verify-chain.sh`; record the S04 receipt. _(Effort: S/M)_
 - [ ] **T26 untagged-API CI gate:** examplePaths built against published pins — an untagged exported-symbol change fails CI before consumers do. _(Effort: S/M)_
-- [ ] **🔥 T27 metaengine promotion wave — COMMISSIONED (owner ruling 2026-11-03, below):** per-module evidence table for the 16 engine-family stamps (census consumers, suite status, caveats) → stamp flips → FEATURES/SKILL/matrix alignment → api-stability regen (17 doc.go files incl. family parent). _(Effort: M)_
+- [x] **RESOLVED 2026-11-15: 🔥 T27 metaengine promotion wave — COMMISSIONED (owner ruling 2026-11-03, below):** per-module evidence table for the 16 engine-family stamps (census consumers, suite status, caveats) → stamp flips → FEATURES/SKILL/matrix alignment → api-stability regen (17 doc.go files incl. family parent). _(Effort: M)_
+      DONE 2026-11-15 (W3/M44): fresh census run this wave
+      (`docs/evidence/fleet-census-2026-11-15_12-34.json`) feeds the 19-row T27 evidence
+      table now in FEATURES.md (module × fleet-consumers × suite-status × disclosed-caveats);
+      all 17 doc.go stamps flipped `# Experimental` → `# Stable` (grep-verified 17/17, 0
+      residue); FEATURES section title → `## Metaengine ✅ FULLY_FUNCTIONAL` + 109 feature
+      rows 🧪→✅ + 16 matrix rows → `✅ Production (T27-promoted 2026-11-15: …)`; SKILL.md
+      stability note updated (split brain resolved in favor of the SKILL); modules.md
+      graphadapter tail re-stamped. api golden is symbols-only — stamps don't touch it
+      (compare re-run green, 6497 exports); doc-check 1391 refs green; canonical-facts,
+      engine-capabilities, changelog-symbols green. CI claims kept to verified receipts
+      (dgraph+redis legs green 2026-11-15; jobs API 502-flaky — pg/mysql legs cited as
+      app-availability, not today-green).
 - [ ] **Owner disposition: `scratch/` directory in-tree vs out** (scratch/counterkey is rowed LAYER 7/budget 6 pending this; 22-15 §g residue). _(Effort: XS, owner decision)_
 - [ ] **ActorID invalid-UTF-8 hole** — same class as the StreamID fix (id/v4.7.4), but constructors cannot validate without signature changes; needs a design decision (options: `ParseActorID` boundary like StreamID vs constructor-returning-error vs documented invariant). _(Effort: S, design decision)_
 - [ ] **api-stability count stragglers:** if 6,423 exports persists post-wave, sweep FEATURES/SKILL references (AGENTS row already updated). _(Effort: XS)_
@@ -347,7 +359,11 @@ Routed, not minted (docs-health routing rule): native `[]Edge` fan-out (multi-va
 
 **Owner rulings (2026-11-03, T03.2):**
 
-- [ ] **metaengine promotion scope = ALL 16 engine-family modules.** Promote every Experimental doc.go stamp to Stable via the T27 evidence-table wave (per-module census consumers, suite status, caveats → stamp flips → FEATURES/SKILL/matrix alignment → api-stability regen; 17 doc.go files incl. the family parent). This resolves the SKILL.md "planner surface stable" vs 16 Experimental stamps split brain in favor of the SKILL. Unblocks T13 (five-package carve ADR proceeds on a stable surface) and T12 scope.
+- [x] **RESOLVED 2026-11-15: metaengine promotion scope = ALL 16 engine-family modules.** Promote every Experimental doc.go stamp to Stable via the T27 evidence-table wave (per-module census consumers, suite status, caveats → stamp flips → FEATURES/SKILL/matrix alignment → api-stability regen; 17 doc.go files incl. the family parent). This resolves the SKILL.md "planner surface stable" vs 16 Experimental stamps split brain in favor of the SKILL. Unblocks T13 (five-package carve ADR proceeds on a stable surface) and T12 scope.
+      Executed same edit window as the T27 row above (receipt there). Scope held at ALL —
+      graphadapter flipped WITH its D25-delete caveat disclosed in the table (not
+      re-litigated); iroh flipped with D5-verification caveat disclosed. T13/M44 carve
+      legs (memoryengine extraction :207, seven-package carve :2363) now unblocked.
 - [ ] **Authored commits ARE authorized at phase boundaries on commissioned plans.** Ends the daemon-absorbs-everything default for commissioned waves (4 consecutive fully-`chore:` waves incl. release-tag prep): hand-commit with real messages at each phase boundary; the daemon still absorbs intra-phase edits. Recorded in AGENTS.md Ground Rules.
 
 ## Brutal-audit follow-ups (harvested 2026-11-08 from `docs/status/2026-11-08_08-52_brutal-audit-ci-fuzz-doc-drift-status.md`)
