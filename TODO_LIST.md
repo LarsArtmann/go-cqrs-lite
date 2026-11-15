@@ -959,7 +959,7 @@ the boundary. Verified against this repo's source on 2026-10-15.
 
 - [ ] **TestEngineHealth_CatchUpUnderConcurrentApplies load-sensitivity** — failed once under the full metaengine package suite ("primary ticks = 2001, want exactly 2000"); passes 5/5 isolated — genuine timing sensitivity to full-suite contention, no correctness signal observed since. Revisit only if it recurs. **Receipt 2026-09-28: still no recurrence — 15/15 green under `-race` (isolated), full metaengine package suite green ×2 this session (including once with concurrent edits in flight). Keep as observe-only.** _(Effort: S — observe)_
 
-- [x] **projectionhost `TestLiveCheckpoint_IntervalFlushesAfterElapsed` exact-count assertion (found 2026-10-23)** — the test asserts `checkpoint saves == 3` over a 120 ms cadence window; the full-workspace `-race` sweep produced `saves = 4` (projection `count` was still exactly 5 then 6, so it is NOT double-apply — only one extra checkpoint flush, which can only shrink the at-least-once reprocessing window). Intermittent and non-load-monotonic: failed at load1 ~102, passed in the next sweep at load1 ~312, passes 5/5 isolated, 3/3 whole-package `-race`, 10/10 under 48 synthetic CPU soakers. No mechanism established. A clock seam (or asserting `>= 3` plus the persisted-checkpoint property) would remove the flake; not done because the failure could also hide a real future cadence regression and the mechanism is unproven. Revisit if it recurs in CI. _(Effort: S — observe)_
+- [x] **RESOLVED 2026-11-15: projectionhost `TestLiveCheckpoint_IntervalFlushesAfterElapsed` exact-count assertion (found 2026-10-23)** — the test asserts `checkpoint saves == 3` over a 120 ms cadence window; the full-workspace `-race` sweep produced `saves = 4` (projection `count` was still exactly 5 then 6, so it is NOT double-apply — only one extra checkpoint flush, which can only shrink the at-least-once reprocessing window). Intermittent and non-load-monotonic: failed at load1 ~102, passed in the next sweep at load1 ~312, passes 5/5 isolated, 3/3 whole-package `-race`, 10/10 under 48 synthetic CPU soakers. No mechanism established. A clock seam (or asserting `>= 3` plus the persisted-checkpoint property) would remove the flake; not done because the failure could also hide a real future cadence regression and the mechanism is unproven. Revisit if it recurs in CI. _(Effort: S — observe)_
       RESOLVED 2026-11-15 (W1/M40 :839): mechanism ESTABLISHED — `shouldFlushCheckpoint` compares wall-clock `time.Since(cpLastSave)` on the worker goroutine; under scheduler starvation the second live event's handling can trail the first flush by >interval, so the interval threshold legitimately fires the extra save (scheduling-dependent test, not a cadence bug). Fixed via the clock seam the row proposed: `projectionhost.WithClock(now func() time.Time)` (ADR-0153 D4 additive seam, same shape as `scheduling.WithClock`; `hostOptions.now`, worker reads `ProcessedAt`/interval/`cpLastSave` through it; catch-up drain path untouched — it saves per batch directly and never sets `cpLastSave`, preserving the zero-value first-flush premise). Rewritten test advances time only when it chooses, pins the documented "at least d elapsed" boundary EXACTLY (advance == 120ms interval ⇒ flush), asserts the post-Stop no-pending count, and drops its 150ms sleep (check-test-sleeps shrinks). Exact counts KEPT — determinism no longer depends on the scheduler. Mutation-verified: green on `>=`, red on `>`; cadence suite 5×`-race` + full package `-race` green. Same-edit: api golden (+`projectionhost.WithClock`; regen also repaired 7 lines of parallel-session metaengine v4.25.0 surface committed in ddcdfcce5 without golden regen — `TrimPlannedBefore`/`PlannedTableSweeper`/`AutoCRUDTyped`/`AutoInsertTyped`/`AutoUpdateTyped`/`AutoDeleteTyped`), CHANGELOG Added row, readmodels.md cadence-testing sentence, doc-check 1391 refs green, changelog-symbols 22 citations green.
 
 ## Turso materialized views (ADR-0135) — upstream handoffs
@@ -1281,7 +1281,7 @@ replace-free — 10-25 §a2/§a3, now archived).
       metaengine-local (JSON 3540 vs CBOR 3435 ns/op at 200ms benchtime);
       repeat per engine before quoting them as a routing fact (plan T20).
       _(Effort: M)_
-- [x] **🔥 NEW (2026-10-25): `encoding/json/v2` non-deterministic map-key order
+- [x] **RESOLVED 2026-11-15 — was 🔥 NEW (2026-10-25): `encoding/json/v2` non-deterministic map-key order
       — persisted `map[string]any` bytes are iteration-order dependent.**
       Proven during the wave-1 byte-pin work (identical 3-key map marshaled to
       two different orders in one process; a 2-key byte pin failed within 50
@@ -1305,7 +1305,7 @@ replace-free — 10-25 §a2/§a3, now archived).
       in-process round-trips, bytes never persisted). New pin:
       `TestPlanFingerprint_StructurallyIdenticalPlansAgree` (20× rebuild →
       equal fingerprint). Scoped suites green (metaengine root, keycodec).
-- [x] **🔥 NEW (2026-10-25): map-typed STORAGE KEYS are also non-deterministic
+- [x] **RESOLVED 2026-11-15 — was 🔥 NEW (2026-10-25): map-typed STORAGE KEYS are also non-deterministic
       under json/v2 — same root cause, worse blast radius.**
       `EncodeKeyStr`/`encodeKey` on a `map[string]any` key marshals in
       iteration order, so the SAME logical key can land on DIFFERENT storage
@@ -1879,7 +1879,7 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       an analogous transient-abort class worth the same treatment. — source:
       02-16 §f19
       _(Effort: M)_
-- [x] **Watch dgraph + redis CI jobs (~10 shuffled runs)** — record any
+- [x] **RESOLVED 2026-11-15 (observed-out): Watch dgraph + redis CI jobs (~10 shuffled runs)** — record any
       seed that fails; rare orderings WILL eventually appear in CI (that is
       the point of shuffling). — source: 02-16 §e7/§f10
       _(Effort: XS)_
