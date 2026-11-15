@@ -104,6 +104,7 @@
     "sync": "sync/v0.2.0",
     "system": "system/v4.18.0",
     "system/integration": "system/integration/v4.0.2",
+    "system/v4": "system/v4/v4.19.0",
     "systemcatalog": "systemcatalog/v4.0.0",
     "systemscenario": "systemscenario/v4.3.0",
     "systemtest": "systemtest/v4.0.0",
