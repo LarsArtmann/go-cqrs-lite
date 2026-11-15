@@ -1381,7 +1381,7 @@ replace-free — 10-25 §a2/§a3, now archived).
       inside the fold instead of as an explicit second pass. Decide whether
       the extra surface earns its keep. _(Effort: M)_
 
-- [ ] 🔥 **Write the idempotency-retirement ADR + route the decision** — retire
+- [x] **RESOLVED 2026-11-15: 🔥 Write the idempotency-retirement ADR + route the decision** — retire
       `idempotency/{kvstore,sqlstore}` (pre-ADR-0142 fossils; parent module
       deleted at ADR-0128) in favor of a `system`-exposed dedup facade over
       `metaengine.DedupStore`; fleet consumers enumerated (10 repos). The
