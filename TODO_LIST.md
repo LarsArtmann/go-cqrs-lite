@@ -1392,6 +1392,16 @@ replace-free — 10-25 §a2/§a3, now archived).
       questions (facade shape, `collection`/`now` args, bool vs sentinel
       return) are pre-enumerated in the source report §f5–f12.
       Source: docs/status/2026-10-11_07-28 report §f1–f4. _(Effort: M)_
+      DONE 2026-11-15 (W3/M51): [ADR-0167](docs/adr/0167-idempotency-retirement-system-dedup-facade.md)
+      written (Status: Proposed — retirement verdict captured, facade design questions
+      routed); both indexes rowed (docs/adr/README.md + docs/README.md);
+      check-adr-numbering green before AND after (165 ADRs). FLEET TRUTH CORRECTED during
+      drafting: idempotency/kvstore was ALREADY deleted 2026-10-17 (ADR-0152 delete-at-zero
+      addendum) — only sqlstore survives (5 direct consumers: DiscordSync, browser-history ×2,
+      KeyCountdown, discordsync; census 2026-11-15); parent idempotency/v4 (MemoryStore,
+      8 direct) NOT in scope. ADR-0152 ghost-verdict addendum recorded (resolved-by-deletion,
+      no owner action remains). Design questions → decision sheet D27; migration/codemod rows
+      (source §f13–f20) stay parked until D27 rules.
 
 - [ ] **Post-v4.9.0 metaengine tag wave** — publish the [Unreleased]
       metaengine surface: G-T13 ADTSet parity (pg/mysql, mysql VM leg still
