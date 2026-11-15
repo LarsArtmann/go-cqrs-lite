@@ -1838,6 +1838,47 @@
                   ${pkgs.bash}/bin/bash "$PWD/scripts/check-engine-capabilities.sh" "$@"
                 '';
 
+            # check-generated-artifacts: pre-push freshness sweep over every
+            # committed generated artifact (docs-ui.css, error-taxonomy,
+            # engine-capabilities, api golden, architecture export) —
+            # regenerate + drift-detect in one command. --self-test for the
+            # drift/restore plumbing.
+            check-generated-artifacts =
+              mkApp "check-generated-artifacts"
+                [
+                  goPkg
+                  pkgs.tailwindcss_4
+                  pkgs.bash
+                  pkgs.coreutils
+                  pkgs.gnused
+                  pkgs.gnugrep
+                  pkgs.diffutils
+                  pkgs.findutils
+                  pkgs.git
+                ]
+                ''
+                  ${pkgs.bash}/bin/bash "$PWD/scripts/check-generated-artifacts.sh" "$@"
+                '';
+
+            # erraudit: one-command wrapper around the vendored-tarball build
+            # + the all-modules error-policy sweep (the local mirror of the
+            # CI error-audit job). Takes the same optional binary-path
+            # override as scripts/erraudit-sweep.sh.
+            erraudit =
+              mkApp "erraudit"
+                [
+                  goPkg
+                  pkgs.bash
+                  pkgs.coreutils
+                  pkgs.findutils
+                  pkgs.gnutar
+                  pkgs.gnugrep
+                ]
+                ''
+                  source "$PWD/scripts/go-env.sh"
+                  exec ${pkgs.bash}/bin/bash "$PWD/scripts/erraudit-sweep.sh" "$@"
+                '';
+
             check-modules = mkApp "check-modules" [ pkgs.findutils pkgs.gnugrep ] ''
               # Verify every go.mod in the workspace is covered by testModules.
               # Prevents the "CI blind spot" where new modules ship untested.
