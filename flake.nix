@@ -1875,6 +1875,7 @@
                   pkgs.gnugrep
                 ]
                 ''
+                  # shellcheck disable=SC1091
                   source "$PWD/scripts/go-env.sh"
                   exec ${pkgs.bash}/bin/bash "$PWD/scripts/erraudit-sweep.sh" "$@"
                 '';
@@ -2332,6 +2333,16 @@
                   echo "=== Doc Check ===" && (cd cmd/doc-check/v4 && GOWORK=off ${goPkg}/bin/go run . ../../../SKILL.md ../../../.agents/skills/go-cqrs-lite/references/*.md ../../../AGENTS.md ../../../README.md ../../../*/README.md ../../../*/*/README.md ../../../*/*/*/README.md ../../../TODO_LIST.md ../../../ROADMAP.md ../../../FEATURES.md ../../../CONTRIBUTING.md ../../../docs/DOMAIN_LANGUAGE.md ../../../docs/METAENGINE_DOMAIN_LANGUAGE.md) && \
                   echo "✅ All verification checks passed"
                 '';
+
+            # verify-serial: the loud-box fallback tier (:1343) — same gate
+            # list as #verify (runs it via VERIFY_FORCE), package
+            # parallelism 1, no aggregate load precondition, outer wall
+            # clock. See scripts/verify-serial.sh for the timeout honesty
+            # note. --self-test checks the plumbing only.
+            verify-serial =
+              mkApp "verify-serial" [ goPkg pkgs.bash pkgs.coreutils ] ''
+                ${pkgs.bash}/bin/bash "$PWD/scripts/verify-serial.sh" "$@"
+              '';
 
             # doc-check: scoped standalone doc-reference gate (the same
             # corpus #verify checks inline). Zero-warning policy: exits

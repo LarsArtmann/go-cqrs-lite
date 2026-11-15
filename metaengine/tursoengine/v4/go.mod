@@ -10,7 +10,7 @@ require (
 	github.com/samber/lo v1.53.0
 	github.com/tursodatabase/turso-go-platform-libs v0.8.3
 	pgregory.net/rapid v1.3.0
-	turso.tech/database/tursogo v0.8.3
+	turso.tech/database/tursogo v0.9.0-pre.2
 )
 
 require (
