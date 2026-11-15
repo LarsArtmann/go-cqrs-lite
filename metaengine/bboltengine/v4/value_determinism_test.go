@@ -16,4 +16,5 @@ func TestValueDeterminism(t *testing.T) {
 	eng := mustNewBboltEngine(t)
 
 	adttest.AssertDeterministicMapEncoding(t, eng)
+	adttest.AssertMapKeyIdentity(t, eng)
 }

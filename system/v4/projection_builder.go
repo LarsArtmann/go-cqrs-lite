@@ -130,6 +130,23 @@ func buildProjections(
 					fmt.Sprintf("projection %q", name),
 				)
 			}
+
+			// Raw passthroughs also contribute DECODER entries from their
+			// folds' samples. Without this, a domain mixing RawQuery with any
+			// ProjectionSpec (Lookup/QuerySet/Count) builds a PARTIAL auto
+			// event decoder: events consumed only by the raw query hit
+			// "no decoder registered" in the adapter and crash-loop the
+			// projection worker, even though the store could have decoded
+			// them per fold. Raw-decl-only domains keep the zero-decoder
+			// path (the adapter's per-fold raw decode).
+			if fq, ok := d.decl.(interface{ QueryFolds() []metaengine.Fold }); ok {
+				for _, f := range fq.QueryFolds() {
+					allEntries = append(allEntries, decoderTypeEntry{
+						eventType:  f.EventType(),
+						sampleType: reflect.TypeOf(f.EventSample()),
+					})
+				}
+			}
 		default:
 			return nil, nil, nil, fmt.Errorf(
 				"system: unreachable: unknown ProjectionDeclaration %T", decl,

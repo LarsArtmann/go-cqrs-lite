@@ -16,4 +16,5 @@ func TestValueDeterminism(t *testing.T) {
 	eng := mustNewBadgerEngine(t)
 
 	adttest.AssertDeterministicMapEncoding(t, eng)
+	adttest.AssertMapKeyIdentity(t, eng)
 }

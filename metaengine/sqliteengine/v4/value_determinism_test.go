@@ -15,4 +15,5 @@ func TestValueDeterminism(t *testing.T) {
 	eng := openEncodingEngine(t)
 
 	adttest.AssertDeterministicMapEncoding(t, eng)
+	adttest.AssertMapKeyIdentity(t, eng)
 }
