@@ -135,9 +135,9 @@ self_test() {
 baseline="HEAD"
 while [ $# -gt 0 ]; do
 	case "$1" in
-		--baseline) baseline="${2:?--baseline needs a rev}" && shift 2 ;;
-		--self-test) self_test && exit $? ;;
-		*) echo "usage: $0 [--baseline <rev>|--self-test]" >&2 && exit 2 ;;
+	--baseline) baseline="${2:?--baseline needs a rev}" && shift 2 ;;
+	--self-test) self_test && exit $? ;;
+	*) echo "usage: $0 [--baseline <rev>|--self-test]" >&2 && exit 2 ;;
 	esac
 done
 

@@ -164,19 +164,19 @@ self_test() {
 }
 
 case "${1:-}" in
-	--self-test)
-		self_test
-		exit $?
-		;;
-	--list)
-		printf '%s\n' "${legs[@]%%:*}"
-		exit 0
-		;;
-	"") ;;
-	*)
-		echo "usage: $0 [--self-test|--list]" >&2
-		exit 2
-		;;
+--self-test)
+	self_test
+	exit $?
+	;;
+--list)
+	printf '%s\n' "${legs[@]%%:*}"
+	exit 0
+	;;
+"") ;;
+*)
+	echo "usage: $0 [--self-test|--list]" >&2
+	exit 2
+	;;
 esac
 
 status=0
@@ -185,9 +185,9 @@ for entry in "${legs[@]}"; do
 	rc=0
 	"${entry#*:}" || rc=$?
 	case $rc in
-		0) printf '✅ %-24s fresh\n' "$name" ;;
-		3) printf '⏭️  %-24s skipped\n' "$name" ;;
-		*) printf '❌ %-24s STALE or failed (rc=%d)\n' "$name" "$rc" ;;
+	0) printf '✅ %-24s fresh\n' "$name" ;;
+	3) printf '⏭️  %-24s skipped\n' "$name" ;;
+	*) printf '❌ %-24s STALE or failed (rc=%d)\n' "$name" "$rc" ;;
 	esac
 	[ "$rc" -eq 0 ] || [ "$rc" -eq 3 ] || status=1
 done
