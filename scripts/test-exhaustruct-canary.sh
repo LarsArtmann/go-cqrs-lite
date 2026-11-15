@@ -37,7 +37,7 @@ for pattern in "os/exec.Cmd" "go.etcd.io/bbolt.Options" \
 	fi
 done
 
-if grep -q "^type Capabilities struct" "$repo_root/stack/capabilities.go"; then
+if grep -q "^type Capabilities struct" "$repo_root/stack/v4/capabilities.go"; then
 	echo "  target exists: stack/v4.Capabilities (stack/v4/capabilities.go)"
 else
 	echo "FAIL: stack/v4.Capabilities no longer declared in stack/v4/capabilities.go — update the ignore-pattern" >&2
