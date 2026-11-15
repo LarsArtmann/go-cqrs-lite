@@ -61,7 +61,7 @@ func RunCounterKeyCompositeTest(t *testing.T, eng metaengine.Engine) {
 		metaengine.OnRecordTyped(
 			"T",
 			counterKeyEvent{},
-			func(_ record.Record, e counterKeyEvent, prev counterKeyRow) counterKeyRow {
+			func(_ record.Record, _ counterKeyEvent, prev counterKeyRow) counterKeyRow {
 				prev.Status = "running"
 
 				return prev

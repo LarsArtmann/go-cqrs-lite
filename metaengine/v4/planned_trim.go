@@ -64,7 +64,9 @@ func (s *Store) TrimPlannedBefore(ctx context.Context, queryName, field string, 
 
 	removed, err := sweeper.TrimPlannedBefore(ctx, queryName, field, cutoff)
 	if err != nil {
-		return removed, fmt.Errorf("metaengine.TrimPlannedBefore(%q): %w", queryName, err) //nolint:wrapcheck // single wrap site, engine errors already carry table context
+		return removed, fmt.Errorf(
+			"metaengine.TrimPlannedBefore(%q): %w", queryName, err,
+		) //nolint:wrapcheck // single wrap site, engine errors already carry table context
 	}
 
 	return removed, nil

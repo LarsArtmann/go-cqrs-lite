@@ -3322,6 +3322,7 @@ metaengine/sqliteengine/v4/method StreamScan
 metaengine/sqliteengine/v4/method StreamVersion
 metaengine/sqliteengine/v4/method TrimGroupedCap
 metaengine/sqliteengine/v4/method TrimJournalBefore
+metaengine/sqliteengine/v4/method TrimPlannedBefore
 metaengine/sqliteengine/v4/method TrimStream
 metaengine/sqliteengine/v4/method VectorCollections
 metaengine/sqliteengine/v4/method VectorCount
@@ -3558,9 +3559,13 @@ metaengine/v4/func AppendPlannedOrderLimit
 metaengine/v4/func AutoCRUD
 metaengine/v4/func AutoCRUDByConvention
 metaengine/v4/func AutoCRUDByNamedEvents
+metaengine/v4/func AutoCRUDTyped
 metaengine/v4/func AutoDelete
+metaengine/v4/func AutoDeleteTyped
 metaengine/v4/func AutoInsert
+metaengine/v4/func AutoInsertTyped
 metaengine/v4/func AutoUpdate
+metaengine/v4/func AutoUpdateTyped
 metaengine/v4/func BackfillPlannedCollection
 metaengine/v4/func BenchmarkPlan
 metaengine/v4/func BuildColumnarLayoutPlan
@@ -3815,6 +3820,7 @@ metaengine/v4/interface MultiAggregateReader
 metaengine/v4/interface MultiGroupedAggregateReader
 metaengine/v4/interface MultimapBackend
 metaengine/v4/interface PlanRule
+metaengine/v4/interface PlannedTableSweeper
 metaengine/v4/interface PlannedTablesReporter
 metaengine/v4/interface Prober
 metaengine/v4/interface PushdownScan
@@ -4137,6 +4143,7 @@ metaengine/v4/method String
 metaengine/v4/method Sum
 metaengine/v4/method SupportsADT
 metaengine/v4/method SwapEngine
+metaengine/v4/method TrimPlannedBefore
 metaengine/v4/method TrimStream
 metaengine/v4/method Unwrap
 metaengine/v4/method Valid
@@ -4569,6 +4576,7 @@ projectionhost/v4/func WithBackoff
 projectionhost/v4/func WithBatchSize
 projectionhost/v4/func WithCheckpointEvery
 projectionhost/v4/func WithCheckpointInterval
+projectionhost/v4/func WithClock
 projectionhost/v4/func WithDeadLetterStore
 projectionhost/v4/func WithFlightRecorder
 projectionhost/v4/func WithKeepStaleState
