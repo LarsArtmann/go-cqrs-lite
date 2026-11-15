@@ -167,7 +167,8 @@ func TestSpike_MF1_FloodWritePath(t *testing.T) {
 
 	ins := func(exec interface {
 		ExecContext(context.Context, string, ...any) (sql.Result, error)
-	}, id int64) error {
+	}, id int64,
+	) error {
 		_, err := exec.ExecContext(ctx,
 			`INSERT INTO spike_mf1_ctrl (id, domain, blocked, created) VALUES (?, ?, ?, ?)`,
 			id, "ctrl.example.net", 0, 1)

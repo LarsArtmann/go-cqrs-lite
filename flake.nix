@@ -2340,8 +2340,7 @@
             # (the 2026-10-23 late-breakage class). Default compares HEAD
             # vs worktree; --baseline <rev> for range audits.
             check-flake-lock-coherence =
-              mkApp "check-flake-lock-coherence"
-                [ pkgs.bash pkgs.git pkgs.jq pkgs.gnugrep pkgs.gawk ]
+              mkApp "check-flake-lock-coherence" [ pkgs.bash pkgs.git pkgs.jq pkgs.gnugrep pkgs.gawk ]
                 ''
                   ${pkgs.bash}/bin/bash "$PWD/scripts/check-flake-lock-coherence.sh" "$@"
                 '';
@@ -2351,10 +2350,9 @@
             # parallelism 1, no aggregate load precondition, outer wall
             # clock. See scripts/verify-serial.sh for the timeout honesty
             # note. --self-test checks the plumbing only.
-            verify-serial =
-              mkApp "verify-serial" [ goPkg pkgs.bash pkgs.coreutils ] ''
-                ${pkgs.bash}/bin/bash "$PWD/scripts/verify-serial.sh" "$@"
-              '';
+            verify-serial = mkApp "verify-serial" [ goPkg pkgs.bash pkgs.coreutils ] ''
+              ${pkgs.bash}/bin/bash "$PWD/scripts/verify-serial.sh" "$@"
+            '';
 
             # doc-check: scoped standalone doc-reference gate (the same
             # corpus #verify checks inline). Zero-warning policy: exits
