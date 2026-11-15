@@ -11,9 +11,9 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metaengine/mysqlengine/v4 v4.3.3
 	github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4 v4.4.4
 	github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4 v4.4.3
-	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.8.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.9.1
 	github.com/larsartmann/go-cqrs-lite/metaengine/tursoengine/v4 v4.2.3
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.24.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.26.0
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2
 )
 

@@ -230,11 +230,11 @@ func TestFetchLatestMinorFromBase_ErrorBranches(t *testing.T) {
 }
 
 func TestFetchLatestMinorFromBase_SemaphoreCancellation(t *testing.T) {
-	for i := 0; i < proxyFetchConcurrency; i++ {
+	for range proxyFetchConcurrency {
 		proxyFetchSlots <- struct{}{}
 	}
 	t.Cleanup(func() {
-		for i := 0; i < proxyFetchConcurrency; i++ {
+		for range proxyFetchConcurrency {
 			<-proxyFetchSlots
 		}
 	})
