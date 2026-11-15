@@ -244,6 +244,7 @@ func TestAutoCRUDTypedScanRoundTrip(t *testing.T) {
 			t.Fatalf("filtered scan never settled; last = %+v", pets)
 		}
 
+		//go-sleep:accept poll-interval spacing inside the deadline-bounded retry loop above (eventual consistency settle)
 		time.Sleep(20 * time.Millisecond)
 	}
 }
