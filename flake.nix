@@ -471,7 +471,7 @@
 
             src = "${self}/example/standard-topology";
 
-            vendorHash = "sha256-u58z0FZGK95qcnIsGdVT9hdh3iscscK70nheRynXeaU=";
+            vendorHash = "sha256-idOkfM47GbP6KDxRFmUYLg82ap5J0L3YzKain7LucUU=";
 
             proxyVendor = true;
             subPackages = [ "." ];
