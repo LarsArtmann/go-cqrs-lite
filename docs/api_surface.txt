@@ -3508,6 +3508,7 @@ metaengine/v4/const SampleRTT
 metaengine/v4/const SampleRead
 metaengine/v4/const TraceOpApply
 metaengine/v4/const TraceOpQuery
+metaengine/v4/const TursoGoIVMFixedFromPre
 metaengine/v4/const TursoGoIVMLastVerified
 metaengine/v4/const TursoGoIVMVerifiedFrom
 metaengine/v4/const TursoGoIVMVerifiedThrough

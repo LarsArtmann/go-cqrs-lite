@@ -55,6 +55,11 @@ func (s *Store) MaterializedViewsDoctorSection(_ context.Context) string {
 					TursoGoIVMVerifiedThrough,
 					TursoGoIVMLastVerified,
 				)
+				fmt.Fprintf(
+					&b,
+					"    NOTE: fix verified in pre-releases (first at %s) — flips with the next stable pin per docs/turso-go-ivm-fix-flip-runbook.md\n",
+					TursoGoIVMFixedFromPre,
+				)
 			}
 
 			reported = true

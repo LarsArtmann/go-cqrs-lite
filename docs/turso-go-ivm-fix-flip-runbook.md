@@ -16,6 +16,14 @@ Scalar views are exact. Full characterization:
 
 ## 1. Check a new turso-go release (recurring, ~2 min)
 
+> **Staged (2026-11-15, MF2.6):** the fix is already VERIFIED in
+> pre-releases — first at `v0.8.4-pre.2`, also verified `v0.8.4-pre.3` and
+> `v0.9.0-pre.2`, all three defects gone, full engine suite green (evidence:
+> the research draft's 2026-11-15 addendum;
+> `metaengine.TursoGoIVMFixedFromPre`). When the next STABLE release ships
+> (v0.8.4+ or v0.9.0+), confirm the fix on it with the same two commands,
+> then execute steps 2–6 in one change — the exploratory phase is done.
+
 ```bash
 cd metaengine/tursoengine
 go mod edit -require=turso.tech/database/tursogo@vNEW && go mod tidy

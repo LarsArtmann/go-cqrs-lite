@@ -170,3 +170,38 @@ race-stable, which makes the filed numbers trustworthy).
 
 Anything below this addendum was frozen as of 2026-09-07; the addendum and
 the pre-filing checklist are the only living sections.
+
+## Addendum 2026-11-15 — MF2.6 verify-matrix extension: ALL THREE DEFECTS FIXED UPSTREAM
+
+Swept the driver's pre-release train (dnsblockd metaflood MF2.6; matrix run
+on NixOS x86_64, go 1.27.3, single fresh process per version):
+
+| Driver version    | Defect A (delta loss @2k)     | Defect B (collapse @27k)   | Defect C (COMMIT wall @30k) | Full tursoengine suite |
+| ----------------- | ----------------------------- | -------------------------- | --------------------------- | ---------------------- |
+| v0.8.3 (pin)      | LIVE (repro reproduces)       | live (per 2026-11-05)      | live (per 2026-11-05)       | green                  |
+| v0.8.4-pre.2      | FIXED (view exact, 95890==95890) | FIXED (exact through 27k) | FIXED (no abort through 30k) | not run            |
+| v0.8.4-pre.3      | FIXED                        | not run                    | not run                     | not run                |
+| v0.9.0-pre.2      | FIXED                        | FIXED                      | FIXED                       | GREEN (23.2s)          |
+
+Additional evidence on v0.9.0-pre.2: the defect-A envelope guard
+(`TestTursoMatView_GroupedSumDefectAEnvelopeGuard`) run in ENFORCE mode
+(`TURSO_IVM_ENFORCE_FIX=1`) through the real tursoengine construction is
+EXACT — 2,000 rows over 316 groups in two transactions, per-group and total
+both matching the base.
+
+Conclusions:
+
+1. **The fix landed between v0.8.3 and v0.8.4-pre.2.** Narrowing further
+   (bisecting pre.1 / merged upstream commits) has no operator value.
+2. **No refresh-on-write design-around is needed** — the original MF2.6
+   fallback is dead: the defect closes by pinning the next stable release
+   and executing docs/turso-go-ivm-fix-flip-runbook.md end-to-end (guard
+   un-skip, Doctor WARN removal, citation bump, bench un-skip, CHANGELOG).
+3. The production pin deliberately stays v0.8.3 (newest STABLE) —
+   pre-releases are not pin candidates. The flip is fully staged:
+   `metaengine.TursoGoIVMFixedFromPre = "v0.8.4-pre.2"` records the verified
+   fix window, and the Doctor NOTE renders it next to the WARN.
+
+When the standalone issue is filed (checklist above), cite this addendum:
+the A+B body should be marked fixed-in-prerelease with the window, and
+re-verified on the stable cut before closing.

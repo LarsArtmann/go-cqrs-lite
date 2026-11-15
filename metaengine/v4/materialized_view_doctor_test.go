@@ -106,6 +106,13 @@ func TestMaterializedViewsDoctorSection_GroupedWarnPin(t *testing.T) {
 	if !strings.Contains(section, "scalar views are the safe shape") {
 		t.Errorf("WARN should steer operators to the scalar shape:\n%s", section)
 	}
+	if !strings.Contains(section, "NOTE: fix verified in pre-releases (first at "+TursoGoIVMFixedFromPre+")") {
+		t.Errorf(
+			"WARN should name the verified fix window (first fixed %q) so operators see the exit:\n%s",
+			TursoGoIVMFixedFromPre,
+			section,
+		)
+	}
 }
 
 // TestMaterializedViewsDoctorSection_NoGroupNoWarn: scalar specs must NOT
