@@ -21,6 +21,8 @@ type auditLyingEngine struct {
 
 func (e *auditLyingEngine) Profile() metaengine.EngineProfile { return e.profile }
 
+func (e *auditLyingEngine) Close() error { return nil }
+
 func (e *auditLyingEngine) SetAdd(_ context.Context, _ string, _ any) error { return nil }
 
 func (e *auditLyingEngine) SetContains(_ context.Context, _ string, _ any) (bool, error) {
@@ -174,7 +176,7 @@ func TestDoctor_CapabilitySectionRespectsDocumentedGaps(t *testing.T) {
 
 	gapReason := "documented: set backend intentionally undeclared for the lying fixture"
 	store, err := metaengine.Plan(
-		[]metaengine.Engine{newAuditLyingEngine()},
+		[]metaengine.Engine{newAuditLyingEngine(), metaengine.NewMemoryEngine()},
 		findTaskQuery(),
 		metaengine.WithEngineCapabilityGaps(map[string]metaengine.CapabilityGaps{
 			"lying": {metaengine.ADTSet: gapReason},
@@ -191,11 +193,15 @@ func TestDoctor_CapabilitySectionRespectsDocumentedGaps(t *testing.T) {
 		t.Errorf("Doctor: documented gap should suppress the under-declared violation, got:\n%s", output)
 	}
 
-	if !strings.Contains(output, "KNOWN GAP: "+gapReason) {
-		t.Errorf("Doctor: expected the documented gap surfaced as KNOWN GAP, got:\n%s", output)
-	}
-
 	if !strings.Contains(output, "4 conformance violation(s)") {
 		t.Errorf("Doctor: expected 5-1=4 violations with the ADTSet gap documented, got:\n%s", output)
+	}
+
+	audit := metaengine.CapabilityAudit("lying", newAuditLyingEngine(),
+		map[metaengine.ADT]string{metaengine.ADTSet: gapReason})
+
+	if !strings.Contains(strings.Join(audit.Table, "\n"), "KNOWN GAP: "+gapReason) {
+		t.Errorf("CapabilityAudit table should surface the documented gap as KNOWN GAP, got:\n%s",
+			strings.Join(audit.Table, "\n"))
 	}
 }
