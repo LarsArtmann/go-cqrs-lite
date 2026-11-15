@@ -113,7 +113,7 @@ func reifyCheckpoint(raw any) (checkpointWire, error) {
 		return w, nil
 	}
 
-	b, err := json.Marshal(raw)
+	b, err := json.Marshal(raw, json.Deterministic(true))
 	if err != nil {
 		return checkpointWire{}, fmt.Errorf("marshal stored value: %w", err)
 	}
