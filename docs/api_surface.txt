@@ -720,8 +720,10 @@ cmd/cqrs-lint/v4/pkg/analyzer/func ApplyModulePins
 cmd/cqrs-lint/v4/pkg/analyzer/func ApplySeverityOverrides
 cmd/cqrs-lint/v4/pkg/analyzer/func BaseTypeName
 cmd/cqrs-lint/v4/pkg/analyzer/func BuildContext
+cmd/cqrs-lint/v4/pkg/analyzer/func BuildContextForModule
 cmd/cqrs-lint/v4/pkg/analyzer/func BuildContextFromSource
 cmd/cqrs-lint/v4/pkg/analyzer/func BuildContextFromTempFiles
+cmd/cqrs-lint/v4/pkg/analyzer/func BuildContextWithEnv
 cmd/cqrs-lint/v4/pkg/analyzer/func BuildContextWithTypes
 cmd/cqrs-lint/v4/pkg/analyzer/func CategoryPriority
 cmd/cqrs-lint/v4/pkg/analyzer/func CollectTestImportPaths
@@ -746,7 +748,9 @@ cmd/cqrs-lint/v4/pkg/analyzer/func IsKnownPreset
 cmd/cqrs-lint/v4/pkg/analyzer/func IsMajorVersionSegment
 cmd/cqrs-lint/v4/pkg/analyzer/func IsQualifierFor
 cmd/cqrs-lint/v4/pkg/analyzer/func IsTombstoneLikeEventType
+cmd/cqrs-lint/v4/pkg/analyzer/func LoadParentRulesConfig
 cmd/cqrs-lint/v4/pkg/analyzer/func LoadProjectConfig
+cmd/cqrs-lint/v4/pkg/analyzer/func ModuleDirs
 cmd/cqrs-lint/v4/pkg/analyzer/func NewCQRSRegistry
 cmd/cqrs-lint/v4/pkg/analyzer/func PathContainsFragment
 cmd/cqrs-lint/v4/pkg/analyzer/func ReceiverIsEventBus
