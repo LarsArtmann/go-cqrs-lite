@@ -24,13 +24,14 @@ var loadMu sync.Mutex //nolint:gochecknoglobals // serializes packages.Load; x/t
 // read. A repo with no Go sources at all is still a legitimate clean verdict.
 var errSilentEmptyLoad = errors.New("analyzing nothing must not report clean")
 
-func loadFromDir(dir string, fset *token.FileSet) ([]*packages.Package, error) {
+func loadFromDir(dir string, fset *token.FileSet, env []string) ([]*packages.Package, error) {
 	cfg := &packages.Config{
 		Mode: packages.NeedName | packages.NeedTypes | packages.NeedTypesInfo |
 			packages.NeedSyntax | packages.NeedImports | packages.NeedFiles,
 		Fset:  fset,
 		Tests: false,
 		Dir:   dir,
+		Env:   env, // nil inherits the process environment (x/tools contract)
 	}
 
 	loadMu.Lock()
@@ -119,10 +120,30 @@ func hasGoSourceFiles(dirs []string) bool {
 	return false
 }
 
+// ModuleDirs returns every directory under root containing a go.mod, skipping
+// vendor, .git, node_modules, testdata, dist, and build. Exported for toolsdk
+// hosts that replicate the CLI's per-module walk semantics (see
+// BuildContextWithEnv).
+func ModuleDirs(root string) ([]string, error) {
+	return findGoModDirs(root)
+}
+
 // BuildContext loads packages, builds the CQRSRegistry, and creates an AnalysisContext.
 // Supports monorepos: recursively discovers all go.mod files under projectRoot
 // and merges packages from every module into a single context.
 func BuildContext(projectRoot string) (*AnalysisContext, error) {
+	return buildContext(projectRoot, nil)
+}
+
+// BuildContextWithEnv is BuildContext with an explicit environment for the
+// package loads. Toolsdk hosts pass GOWORK=off to pin every module to its own
+// go.mod resolution (the CLI gate's canonical per-module semantics); a nil env
+// keeps the historical workspace-inheriting behavior.
+func BuildContextWithEnv(projectRoot string, env []string) (*AnalysisContext, error) {
+	return buildContext(projectRoot, env)
+}
+
+func buildContext(projectRoot string, env []string) (*AnalysisContext, error) {
 	// Canonicalize the root to an absolute path: every downstream path form
 	// (module dirs, per-module feature-profile keys, go.mod locations) derives
 	// from it, while finding positions from go/packages are always absolute.
@@ -187,7 +208,7 @@ func BuildContext(projectRoot string) (*AnalysisContext, error) {
 	var featureFiles []*GoFile
 
 	for _, dir := range modDirs {
-		pkgs, err := loadFromDir(dir, fset)
+		pkgs, err := loadFromDir(dir, fset, env)
 		if err != nil {
 			ctx.LoadErrors = append(ctx.LoadErrors, PackageLoadError{
 				Module: dir,

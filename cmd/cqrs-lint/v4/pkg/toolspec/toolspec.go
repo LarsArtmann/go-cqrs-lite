@@ -9,6 +9,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 
 	"github.com/larsartmann/go-finding"
 	"github.com/larsartmann/go-finding/pipeline"
@@ -65,29 +66,96 @@ func workingDir(ctx context.Context) string {
 	return "."
 }
 
-// detect runs every registered rule detector against the working directory.
-// The project's .cqrs-lint.json (preset + rules block) is honored exactly as
-// the CLI honors it: rule-specific config flows to detectors via
-// AnalysisContext.RulesConfig, and disabled rules are filtered post-detection.
+// hermeticEnv returns the process environment with GOWORK disabled so every
+// module's packages resolve from its own go.mod — the CLI gate's canonical
+// per-module semantics (the gate script exports GOWORK=off for exactly this
+// reason). A repo-level go.work otherwise hijacks each module load into
+// workspace resolution, where local replace directives and cross-module
+// symbol visibility surface findings the hermetic walk does not (the
+// cqrs-htmx 2026-11-15 incident: a repo-root BuildFlow walk reported 143
+// findings while the per-module --strict gate passed 14/14 green).
+func hermeticEnv() []string {
+	return append(os.Environ(), "GOWORK=off")
+}
+
+// moduleRoots resolves the per-module walk list for wd: every go.mod
+// directory under it, or wd itself when the tree has no go.mod (a non-Go or
+// non-module directory) so the not-a-consumer verdict still works.
+func moduleRoots(wd string) ([]string, error) {
+	dirs, err := analyzer.ModuleDirs(wd)
+	if err != nil {
+		return nil, fmt.Errorf("cqrs-lint: find modules: %w", err)
+	}
+
+	if len(dirs) == 0 {
+		return []string{wd}, nil
+	}
+
+	return dirs, nil
+}
+
+// detect runs every registered rule detector per module under the working
+// directory. Each module is loaded hermetically (GOWORK=off) and resolved
+// against ITS OWN .cqrs-lint.json — exactly the semantics of the CLI run per
+// module with the gate's environment. A single repo-root walk with one root
+// config was the toolsdk boundary's historical behavior; it diverged from
+// the CLI in both resolution and config scope and is the documented phantom-
+// finding class.
 func detect(ctx context.Context) ([]finding.Finding, error) {
 	wd := workingDir(ctx)
 
-	actx, err := analyzer.BuildContext(wd)
+	dirs, err := moduleRoots(wd)
 	if err != nil {
-		return nil, fmt.Errorf("cqrs-lint: load packages: %w", err)
+		return nil, err
+	}
+
+	env := hermeticEnv()
+
+	var all []finding.Finding
+
+	for _, dir := range dirs {
+		moduleFindings, err := detectModule(ctx, dir, env)
+		if err != nil {
+			return nil, err
+		}
+
+		all = append(all, moduleFindings...)
+	}
+
+	// Inline-suppression parity with the CLI pipeline (M12, DiscordSync
+	// 2026-10-05): the CLI's pipeline marks findings suppressed by
+	// //cqrs-lint:ignore(...) comments and drops them before reporting
+	// (pipeline_detect drops IsSuppressed findings); the Spec boundary must
+	// return the same effective set, not the raw one. One pass over the
+	// merged set keeps that parity across module walks.
+	marked, err := suppression.NewSuppressionFilter().Transform(ctx, all)
+	if err != nil {
+		return nil, fmt.Errorf("cqrs-lint: suppression filter: %w", err)
+	}
+
+	return finding.Filter(marked, finding.NotSuppressed), nil
+}
+
+// detectModule detects against ONE module directory: hermetic load,
+// module-local config, disabled/severity filtering. Returns the module's
+// effective (pre-inline-suppression) findings.
+func detectModule(ctx context.Context, dir string, env []string) ([]finding.Finding, error) {
+	actx, err := analyzer.BuildContextWithEnv(dir, env)
+	if err != nil {
+		return nil, fmt.Errorf("cqrs-lint: load packages (%s): %w", dir, err)
 	}
 
 	// Non-consumer / unanalyzable guard (CLI parity, #42).
 	clean, err := loadVerdict(actx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%s: %w", dir, err)
 	}
 
 	if clean {
 		return nil, nil
 	}
 
-	effective, err := loadEffectiveRules(wd)
+	effective, err := loadEffectiveRules(dir)
 	if err != nil {
 		return nil, err
 	}
@@ -107,19 +175,7 @@ func detect(ctx context.Context) ([]finding.Finding, error) {
 
 	all = analyzer.ApplySeverityOverrides(all, effective.SeverityOverrides)
 
-	all = analyzer.FilterDisabledFindings(all, effective.DisabledSet())
-
-	// Inline-suppression parity with the CLI pipeline (M12, DiscordSync
-	// 2026-10-05): the CLI's pipeline marks findings suppressed by
-	// //cqrs-lint:ignore(...) comments and drops them before reporting
-	// (pipeline_detect drops IsSuppressed findings); the Spec boundary must
-	// return the same effective set, not the raw one.
-	marked, err := suppression.NewSuppressionFilter().Transform(ctx, all)
-	if err != nil {
-		return nil, fmt.Errorf("cqrs-lint: suppression filter: %w", err)
-	}
-
-	return finding.Filter(marked, finding.NotSuppressed), nil
+	return analyzer.FilterDisabledFindings(all, effective.DisabledSet()), nil
 }
 
 // loadVerdict implements CLI parity for the toolsdk boundary (issue #42).
@@ -188,13 +244,37 @@ func loadEffectiveRules(wd string) (analyzer.RulesConfig, error) {
 }
 
 // repair applies the safe fix set (the same CQRSFixProvider the CLI's --fix
-// uses) over one pipeline pass and returns how many findings were fixed. The
-// project's .cqrs-lint.json rules config applies to the fix pipeline too, so
-// config-driven rule behavior (e.g. c008 ignore lists) matches detection.
+// uses) per module — the same hermetic, module-local-config walk detect uses
+// — and returns how many findings were fixed. The module's .cqrs-lint.json
+// rules config applies to the fix pipeline too, so config-driven rule
+// behavior (e.g. c008 ignore lists) matches detection.
 func repair(ctx context.Context, wd string) (int, error) {
-	actx, err := analyzer.BuildContext(wd)
+	dirs, err := moduleRoots(wd)
 	if err != nil {
-		return 0, fmt.Errorf("cqrs-lint repair: load packages: %w", err)
+		return 0, err
+	}
+
+	env := hermeticEnv()
+
+	fixed := 0
+
+	for _, dir := range dirs {
+		moduleFixed, err := repairModule(ctx, dir, env)
+		if err != nil {
+			return 0, err
+		}
+
+		fixed += moduleFixed
+	}
+
+	return fixed, nil
+}
+
+// repairModule fixes ONE module directory and returns the applied fix count.
+func repairModule(ctx context.Context, dir string, env []string) (int, error) {
+	actx, err := analyzer.BuildContextWithEnv(dir, env)
+	if err != nil {
+		return 0, fmt.Errorf("cqrs-lint repair: load packages (%s): %w", dir, err)
 	}
 
 	// Non-consumer / unanalyzable guard (CLI parity, #42): a clean verdict has
@@ -202,14 +282,14 @@ func repair(ctx context.Context, wd string) (int, error) {
 	// zero-fix pass (the detect path already failed loudly for the same state).
 	clean, err := loadVerdict(actx)
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("%s: %w", dir, err)
 	}
 
 	if clean {
 		return 0, nil
 	}
 
-	effective, err := loadEffectiveRules(wd)
+	effective, err := loadEffectiveRules(dir)
 	if err != nil {
 		return 0, fmt.Errorf("cqrs-lint repair: %w", err)
 	}
@@ -220,7 +300,7 @@ func repair(ctx context.Context, wd string) (int, error) {
 		MaxIterations: 1,
 		DryRun:        false,
 		FixProviders:  []pipeline.FixProvider{fix.NewCQRSFixProvider()},
-	}, wd, rules.RegisterAll(actx)...)
+	}, dir, rules.RegisterAll(actx)...)
 	if err != nil {
 		return 0, fmt.Errorf("cqrs-lint repair: create pipeline: %w", err)
 	}
