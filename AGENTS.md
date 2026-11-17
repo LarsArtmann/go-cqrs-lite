@@ -342,7 +342,7 @@ Seven-tier model — see [ADR-0046](docs/adr/0046-seven-tier-model.md) and [SEVE
 ```
 Tier 0 — Primitives: id/, dispatcher/, kv/, dedup/, record/ (codec, retry, flightrecorder extracted → external repos, ADR-0128)
 Tier 1 — Core Domain: event/, command/, query/, scheduling/, metadata/
-Tier 2 — Domain Utilities: schema/, snapshot/, projection/, idempotency/, deriver/, commandlifecycle/, idempotency/kvstore/, idempotency/sqlstore/
+Tier 2 — Domain Utilities: schema/, snapshot/, projection/, idempotency/, deriver/, commandlifecycle/, idempotency/sqlstore/
 Tier 3 — Aggregation: decider/, graph/, scenario/, projectionhost/, listing/, metaengine/, commandlifecycle/projections/
 Tier 4 — Infrastructure: storage/*, signing/, encryption/, otel/, otel/otlp/, prometheus/, middleware/, watermill/, queue/ (+sqlite, postgres; conformance is a subpackage),
                      testutil/, metaengine/*engine/, metaengine/projectionadapter/, metaengine/otelobserver/, metaengine/keycodec/, scheduling/sqlstore/, claiming/
@@ -358,7 +358,7 @@ Rules only — see each module's `go.mod` for the actual package list.
 - **Test-only packages** (gomega, ginkgo, rapid, go-snaps, testcontainers) are excluded from dep budget counts.
 - **CGo isolation**: Only `stack/duckdb` and `metaengine/duckdbengine` require CGo. Each is in its own module so consumers who don't import them never need a C compiler.
 - **External extracted modules**: `go-codec`, `go-retry`, `go-idempotency`, `go-flightrecorder`. The in-repo re-export shims were deleted (ADR-0128); import the external paths directly. Workspace `use` block points at sibling checkouts.
-- **`idempotency/{kvstore,sqlstore}` are DEPRECATED (ADR-0158, 2026-10-11)** — every exported symbol carries a `// Deprecated:` notice pointing at the `metaengine.DedupStore` engine capability (ADR-0142). Nothing is removed in v4; deletion at v5.0.0. In-repo test usage is exempted via the `idempotency/.*_test\.go$` SA1019 exclusion in `.golangci.yml` (config hash re-pinned with the change).
+- **`idempotency/sqlstore` is DEPRECATED (ADR-0158, 2026-10-11)** — every exported symbol carries a `// Deprecated:` notice pointing at the `metaengine.DedupStore` engine capability (ADR-0142). Removal at v5.0.0. Its sibling `idempotency/kvstore` is GONE: deleted 2026-10-17 at zero fleet consumers (delete-at-zero); its tags stay proxy-served and `versions.json`/README still record the latest one as tag truth (ADR-0152). In-repo test usage is exempted via the `idempotency/.*_test\.go$` SA1019 exclusion in `.golangci.yml` (config hash re-pinned with the change).
 
 ## Metaengine
 

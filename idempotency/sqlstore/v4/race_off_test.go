@@ -8,6 +8,6 @@ package sqlstore_test
 //
 // Local test-only copy (not imported from testutil) to avoid adding a
 // test-only dependency to sqlstore's go.mod. See AGENTS.md →
-// "Race-aware test thresholds" and idempotency/kvstore/race_off_test.go for
-// the same pattern.
+// "Race-aware test thresholds" for the pattern and the other lean-budget
+// packages that keep local copies.
 const raceEnabled = false

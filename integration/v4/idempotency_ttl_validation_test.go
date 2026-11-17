@@ -10,11 +10,12 @@ import (
 )
 
 // TestStore_NonPositiveTTLRejected_AllStores verifies the TTL-validation
-// contract across every production implementation (memory, kvstore, sqlstore):
+// contract across every production implementation (memory, sqlstore):
 // Record and CheckAndRecord reject a zero or negative TTL with ErrInvalidTTL,
 // and the rejected key is never recorded. This mirrors the MemoryStore contract
 // test in go-idempotency and closes the audit gap from
-// docs/status/2026-08-07_22-38 for the kvstore and sqlstore adapters.
+// docs/status/2026-08-07_22-38 for the sqlstore adapter (the kvstore twin was
+// deleted 2026-10-17, so it is no longer covered here).
 func TestStore_NonPositiveTTLRejected_AllStores(t *testing.T) {
 	t.Parallel()
 

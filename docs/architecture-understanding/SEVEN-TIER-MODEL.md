@@ -95,8 +95,7 @@ Cross-cutting domain concerns that build on the core vocabulary.
 | `projection/`           | Projection interface (consumer-side)                           |
 | `idempotency/`          | Re-export of go-idempotency: Store, MemoryStore, ErrDuplicate  |
 | `deriver/`              | Event-to-command derivation: Deriver, Then, Filter, Idempotent |
-| `idempotency/kvstore/`  | KV-backed idempotency                                          |
-| `idempotency/sqlstore/` | SQL-backed idempotency (SQLite/Postgres)                       |
+| `idempotency/sqlstore/` | SQL-backed idempotency (SQLite/Postgres); deprecated toward v5 |
 
 ---
 

@@ -989,9 +989,10 @@ re-plan).
 
 ### 2.13 SQL-Backed Idempotency (idempotency/sqlstore)
 
-> **DEPRECATED (ADR-0158):** `idempotency/{sqlstore,kvstore}` retire at v5.0.0 —
+> **DEPRECATED (ADR-0158):** `idempotency/sqlstore` retires at v5.0.0 —
 > use the `metaengine.DedupStore` engine capability (every first-party engine
 > implements it). The recipe below stays valid until the deletion.
+> `idempotency/kvstore` is already DELETED (2026-10-17, zero consumers).
 
 Durable dedup for at-least-once delivery, surviving process restarts.
 

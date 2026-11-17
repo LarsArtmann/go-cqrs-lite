@@ -8,7 +8,7 @@ package enginetest
 //
 // This is the canonical copy for the metaengine module. Engine test packages
 // and the metaengine_test package reference this instead of duplicating the
-// two-file build-tag idiom. Modules outside metaengine with lean dependency
-// budgets (benchkit, transport/grpc, idempotency/kvstore) keep local copies;
+// two-file build-tag idiom. Lean-budget packages (benchkit, cmd/cqrs-lint,
+// idempotency/sqlstore) keep local copies;
 // see AGENTS.md → "Race-aware test thresholds".
 const RaceEnabled = true

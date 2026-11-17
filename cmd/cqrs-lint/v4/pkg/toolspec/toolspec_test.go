@@ -459,6 +459,10 @@ func writeFixableFixture(t *testing.T) string {
 func writeConsumerModule(t *testing.T, dir string) {
 	t.Helper()
 
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+
 	// C003 needs a compilable module whose `event` import resolves to the
 	// real go-cqrs-lite event package; a replace to this checkout keeps the
 	// fixture source hermetic.
