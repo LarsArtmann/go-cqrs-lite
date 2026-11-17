@@ -1767,11 +1767,11 @@ Project has OTel but no tracing middleware — handlers are not instrumented
 
 <a id="f030"></a>
 
-#### F030 — `deprecated-transport-import`
+#### F030 — `deleted-module-import`
 
 Severity: `warning` · Confidence: `high` · Auto-fix: no · Category: `adoption`
 
-Import of deprecated transport/* module — removed at v5; migrate to go-sse, watermill bridge, or cqrs-htmx (ADR-0127)
+Import of a deleted module whose tags still resolve — transport/* (ADR-0127), idempotency/* (ADR-0128/0152/0167); each finding names the sanctioned replacement
 
 <a id="f031"></a>
 

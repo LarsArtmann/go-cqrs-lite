@@ -150,7 +150,7 @@ var PresetDefinitions = map[ConfigPreset]PresetDefinition{
 				"F024",
 				"F025",
 				"F026", // metaengine coaching (consumer's deployment choice)
-				"F030", // deprecated transport/http adoption (consumer's choice)
+				"F030", // deleted-module imports (compat surfaces the library still documents)
 				"F031", // scan-truncation nudge (WithDefaultLimit is the operator's call)
 				"S002",
 				"S003", // security middleware (consumer wires it)

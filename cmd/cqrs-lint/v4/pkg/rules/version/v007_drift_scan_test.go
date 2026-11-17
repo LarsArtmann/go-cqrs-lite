@@ -330,3 +330,75 @@ func recvTypeName(fl *ast.FieldList) string {
 		}
 	}
 }
+
+// TestV5DocSignal_RecognizesIdempotencyRetirementPhrases pins the signal
+// widening: the idempotency satellite stores phrase retirement as "No v5
+// successor" and cite ADR-0158/0167. None of those strings were recognized
+// before, so 16 real deprecation markers were invisible to the drift
+// contract — the tables could not be held against the repo at all.
+func TestV5DocSignal_RecognizesIdempotencyRetirementPhrases(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		doc  string
+		want bool
+	}{
+		{
+			name: "no v5 successor",
+			doc:  "// Deprecated: Use system.Dedup instead. No v5 successor.\n",
+			want: true,
+		},
+		{"adr-0158", "// Deprecated: retire per ADR-0158.\n", true},
+		{"adr-0167", "// Deprecated: retire per ADR-0167.\n", true},
+		{"unrelated", "// Deprecated: use something else.\n", false},
+		{"no deprecated marker", "// No v5 successor for this helper.\n", false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			src := "package p\n\n" + tt.doc + "func Deprecated() {}\n"
+			fset := token.NewFileSet()
+
+			file, err := parser.ParseFile(
+				fset, "p.go", src,
+				parser.ParseComments|parser.SkipObjectResolution,
+			)
+			if err != nil {
+				t.Fatalf("parse: %v", err)
+			}
+
+			fn, ok := file.Decls[0].(*ast.FuncDecl)
+			if !ok {
+				t.Fatalf("expected a func decl, got %T", file.Decls[0])
+			}
+
+			if _, got := v5DocSignal(fn.Doc); got != tt.want {
+				t.Errorf("v5DocSignal = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+// TestV5DriftScan_SeesIdempotencySatelliteMarkers makes the widening
+// observable in the inventory itself: the scan must find the sqlstore markers
+// it previously could not see.
+func TestV5DriftScan_SeesIdempotencySatelliteMarkers(t *testing.T) {
+	markers := scanV5DriftMarkers(t)
+
+	const wantAtLeast = 10
+
+	n := 0
+
+	for _, m := range markers {
+		if m.frag == "idempotency/sqlstore" {
+			n++
+		}
+	}
+
+	if n < wantAtLeast {
+		t.Fatalf("drift scan found %d idempotency/sqlstore markers, want ≥%d", n, wantAtLeast)
+	}
+}

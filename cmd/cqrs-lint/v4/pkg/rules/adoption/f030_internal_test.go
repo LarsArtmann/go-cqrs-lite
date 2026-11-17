@@ -23,9 +23,12 @@ func TestFragmentMatchesImport(t *testing.T) {
 		{"github.com/other/idempotency", "go-cqrs-lite/idempotency", false},
 		{"github.com/larsartmann/go-cqrs-lite/idempotencyx", "go-cqrs-lite/idempotency", false},
 		{
+			// Same path suffix under a different host still matches, exactly
+			// like analyzer.pathBoundaryMatch: the fragment identifies a
+			// module path, and a fork/vendored copy carries the same one.
 			"example.com/larsartmann/go-cqrs-lite/idempotency",
 			"go-cqrs-lite/idempotency",
-			false,
+			true,
 		},
 	}
 

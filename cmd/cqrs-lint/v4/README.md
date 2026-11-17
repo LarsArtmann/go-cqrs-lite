@@ -610,7 +610,7 @@ The scorecard that grades these uses the same rule: importing IS adoption — in
 | F027 | missing-otel-sdk-init            | Info     | Server-mode project with no cqrsotel.Setup call — traces are no-op                                                 |
 | F028 | missing-slog-setdefault          | Info     | Server-mode project using slog without slog.SetDefault — default logger has no structured output                   |
 | F029 | missing-span-creation            | Info     | OTel import but no span creation in handlers — distributed traces are empty                                        |
-| F030 | deprecated-transport-import      | Warning  | Deprecated transport/* import — removed at v5; migrate per ADR-0127                                                |
+| F030 | deleted-module-import            | Warning  | Import of a deleted module whose tags still resolve — transport/* (ADR-0127), idempotency/* (ADR-0128/0152/0167)  |
 | F031 | scan-without-limit               | Warning  | Reader Scan without WithLimit silently truncates at 100 rows — pass WithLimit or set WithDefaultLimit (G-T14)      |
 | F032 | no-catalog-import                | Error    | Project uses go-cqrs-lite but never imports go-cqrs-lite/catalog — catalog documentation not wired (systemcatalog satisfies) |
 
