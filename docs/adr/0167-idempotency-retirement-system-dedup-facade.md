@@ -68,3 +68,22 @@ satellite backends predate the universal-storage-substrate rule.
   block.
 - The facade design questions (source report §f5–f12) live on decision-sheet row D27; the
   migration/codemod rows (§f13–f20) stay parked in TODO_LIST until the owner rules D27.
+
+## Addendum (2026-11-17): fleet census refresh + parent-shim correction
+
+`project-dependency-graph who-uses … --direct-only=false` re-run against the fleet:
+
+- **`idempotency/sqlstore/v4` — 3 consuming modules, all on the latest (and final) tag
+  `v4.4.3`:** DiscordSync, KeyCountdown, browser-history/api. The 2026-11-15 count of 5
+  included `discordsync` (a second checkout of the SAME module path as `DiscordSync`, so one
+  project counted twice) and `browser-history ×2` (the `cmd/browser-history-server` module
+  requires sqlstore only as an indirect). SwettySwipperWeb no longer requires it — it moved to
+  `metaengine.DedupStore` behind a local adapter (the direction this ADR wants), leaving a
+  dangling `replace` line in its go.mod as residue.
+- **`idempotency/v4` — 7 consuming modules (+1 indirect), all on the frozen `v4.4.0`:** the
+  parent is a pure alias shim over `github.com/larsartmann/go-idempotency` and its SOURCE has
+  not existed in this repo since 2026-08-15 (ADR-0128 shim sweep; the tag predates it,
+  2026-08-12). So "the parent survives" above means only its published tag resolves; nothing
+  there can be fixed or re-released. Consumers migrate by swapping the import to
+  `github.com/larsartmann/go-idempotency` (MVS already resolves v0.3.2 in every consumer).
+  This strengthens the retirement decision: the parent is not a live surface either.
