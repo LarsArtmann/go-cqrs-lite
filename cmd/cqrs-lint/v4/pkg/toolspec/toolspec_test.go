@@ -356,6 +356,66 @@ replace github.com/larsartmann/go-cqrs-lite/event/v4 => /nonexistent/poisoned/pa
 	}
 }
 
+// TestDetectRootModuleDoesNotSwallowNestedModules pins BOTH per-module walk
+// guards on the monorepo shape that exposed them (cqrs-htmx: a root go.mod
+// plus 30+ nested sibling modules):
+//
+//  1. SCOPING — the repository-root module's iteration must analyze the root
+//     module only. With nested-module discovery left on, the root iteration
+//     re-loaded the whole tree and duplicated every nested module's findings
+//     under the root config (usermgmt reported 21+44, dashboardui 37+35).
+//  2. PARENT INHERITANCE — the root config's rules.disable must reach nested
+//     modules (the CLI's documented monorepo inheritance), so a root disable
+//     suppresses the nested module's finding while the root module's own
+//     disable list still governs root files.
+func TestDetectRootModuleDoesNotSwallowNestedModules(t *testing.T) {
+	t.Parallel()
+
+	root := t.TempDir()
+	writeConsumerModule(t, root) // root IS a module
+	writeConsumerModule(t, filepath.Join(root, "a"))
+
+	ctx := finding.WithWorkingDir(context.Background(), root)
+
+	countC003For := func(findings []finding.Finding, prefix string) int {
+		n := 0
+		for _, f := range findings {
+			if string(f.Rule) == "C003" && strings.HasPrefix(string(f.Position.File), prefix) {
+				n++
+			}
+		}
+
+		return n
+	}
+
+	baseline, err := Spec().Detect.Detect(ctx)
+	if err != nil {
+		t.Fatalf("Detect: %v", err)
+	}
+
+	if n := countC003For(baseline, root); n != 2 {
+		t.Fatalf("two modules, one C003 site each — got %d (duplication = the root iteration swallowed the tree): %+v", n, baseline)
+	}
+
+	rootConfig := `{"rules": {"disable": ["C003"]}}`
+	if err := os.WriteFile(
+		filepath.Join(root, ".cqrs-lint.json"),
+		[]byte(rootConfig),
+		0o600,
+	); err != nil {
+		t.Fatal(err)
+	}
+
+	inherited, err := Spec().Detect.Detect(ctx)
+	if err != nil {
+		t.Fatalf("Detect with root config: %v", err)
+	}
+
+	if n := countC003For(inherited, root); n != 0 {
+		t.Fatalf("root config must suppress C003 in BOTH modules via parent inheritance, got %d: %+v", n, inherited)
+	}
+}
+
 // TestDetectFailsLoudWhenNothingLoads pins the other half of the #42 verdict:
 // load errors with ZERO analyzable files mean the project likely does not
 // compile — Detect must fail loudly, never return a silent green. The CLI

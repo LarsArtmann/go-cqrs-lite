@@ -84,6 +84,58 @@ func LoadProjectConfig(dir string) (ProjectConfig, bool, error) {
 	return cfg, true, nil
 }
 
+// LoadParentRulesConfig resolves ancestor .cqrs-lint.json rules for config
+// inheritance (monorepo support): walking from the immediate parent of dir
+// upward to the filesystem root, every ancestor's rules.disable and
+// rules.external-api-struct-prefixes are unioned into the result. The module's
+// own config (if any) is NOT consulted here — LoadProjectConfig covers it, and
+// the caller merges this result underneath it.
+//
+// Ancestor severity overrides are intentionally NOT inherited (parity with the
+// CLI's ancestor walk, which collects disables and prefixes only). Ancestor
+// configs are best-effort: an unreadable or malformed file contributes
+// nothing and never blocks the run — only the module's own config errors
+// loudly.
+//
+// This includes the immediate parent, unlike the CLI's ancestor walk, which
+// skips it (a cmdguard-copied comment admits its own config loader covers
+// that layer; the toolsdk host has no such second loader, and skipping it
+// made depth-1 modules ignore a root disable list that depth-2 modules
+// honored).
+func LoadParentRulesConfig(dir string) (RulesConfig, error) {
+	var merged RulesConfig
+
+	absDir, err := filepath.Abs(dir)
+	if err != nil {
+		return RulesConfig{}, fmt.Errorf("resolve %s: %w", dir, err)
+	}
+
+	for cursor := filepath.Dir(absDir); ; {
+		data, readErr := os.ReadFile(filepath.Join(cursor, ConfigFileName))
+		if readErr == nil {
+			var top struct {
+				Rules RulesConfig `json:"rules,omitzero"`
+			}
+			if json.Unmarshal(StripJSONC(data), &top) == nil {
+				merged.Disable = append(merged.Disable, top.Rules.Disable...)
+				merged.ExternalAPIStructPrefixes = append(
+					merged.ExternalAPIStructPrefixes,
+					top.Rules.ExternalAPIStructPrefixes...,
+				)
+			}
+		}
+
+		parent := filepath.Dir(cursor)
+		if parent == cursor {
+			break
+		}
+
+		cursor = parent
+	}
+
+	return merged, nil
+}
+
 // EffectiveRules merges the preset's rule defaults with this config's rules
 // block, mirroring the CLI's merge order: preset disable lists apply as
 // defaults and config disables are appended (union, never subtracted);
