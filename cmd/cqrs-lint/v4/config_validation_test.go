@@ -2,6 +2,8 @@ package main
 
 import (
 	"bytes"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -79,5 +81,51 @@ func TestValidateDisabledRuleIDs_EmptyListNoWarning(t *testing.T) {
 	validateDisabledRuleIDs(&buf, nil)
 	if buf.Len() > 0 {
 		t.Errorf("expected no warnings for nil list, got: %s", buf.String())
+	}
+}
+
+// TestLoadParentRulesConfig_IncludesImmediateParent pins the v4.22.1 fix:
+// the CLI's ancestor walk consults the IMMEDIATE parent, not just the
+// grandparent and beyond. The old walk skipped it on the assumption
+// cmdguard's loader already applies that layer's rules.disable — false, so
+// depth-1 modules ignored root-config disables that depth-2 modules honored
+// (found 2026-11-17 when the cqrs-htmx gate escalated to fail-on-any-finding
+// and six depth-1 modules resurfaced findings the toolsdk walk had
+// inherited away; analyzer.LoadParentRulesConfig always included it).
+func TestLoadParentRulesConfig_IncludesImmediateParent(t *testing.T) {
+	t.Parallel()
+
+	root := t.TempDir()
+	mid := filepath.Join(root, "mid")
+	leaf := filepath.Join(mid, "leaf")
+	if err := os.MkdirAll(leaf, 0o755); err != nil {
+		t.Fatal(err)
+	}
+
+	writeConfig := func(dir, rule string) {
+		t.Helper()
+		body := `{"rules":{"disable":["` + rule + `"]}}`
+		if err := os.WriteFile(filepath.Join(dir, ".cqrs-lint.json"), []byte(body), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	writeConfig(root, "D005") // grandparent — was already inherited
+	writeConfig(mid, "F005")  // immediate parent — SKIPPED before v4.22.1
+
+	got := loadParentRulesConfig(leaf)
+	has := func(rule string) bool {
+		for _, d := range got.Disable {
+			if d == rule {
+				return true
+			}
+		}
+
+		return false
+	}
+	if !has("D005") {
+		t.Errorf("grandparent disable D005 must be inherited; got %v", got.Disable)
+	}
+	if !has("F005") {
+		t.Errorf("immediate-parent disable F005 must be inherited (the v4.22.1 fix); got %v", got.Disable)
 	}
 }

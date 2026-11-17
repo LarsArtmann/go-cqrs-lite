@@ -74,24 +74,34 @@ func loadConfigFileBytes(path string) []byte {
 }
 
 // eachAncestorConfigFile calls fn with the .cqrs-lint.json path of every
-// ancestor directory ABOVE the immediate parent (which cmdguard already
-// loads), walking upward to the filesystem root. Shared by the config-merge
-// and doctor paths so both see the same ancestor set.
+// ancestor directory at or above the IMMEDIATE PARENT, walking upward to the
+// filesystem root. Shared by the config-merge and doctor paths so both see
+// the same ancestor set.
+//
+// An earlier version started at the grandparent, on the assumption that
+// cmdguard's loader already applies the immediate parent's rules —
+// empirically false: cmdguard reads the parent config for its own option
+// keys but never merges cqrs-lint's rules.disable into the lint run, so
+// every depth-1 module ignored root-config disables that depth-2 modules
+// honored (found 2026-11-17 when the cqrs-htmx gate escalated to
+// fail-on-any-finding and six depth-1 modules resurfaced findings the
+// toolsdk walk — whose analyzer.LoadParentRulesConfig always included the
+// immediate parent — had inherited away). Fixed in v4.22.1.
 func eachAncestorConfigFile(lintPath string, fn func(configPath string)) {
 	absPath, err := filepath.Abs(lintPath)
 	if err != nil {
 		return
 	}
 
-	for dir := filepath.Dir(absPath); ; {
-		parent := filepath.Dir(dir)
-		if parent == dir {
+	for cursor := filepath.Dir(absPath); ; {
+		fn(filepath.Join(cursor, ".cqrs-lint.json"))
+
+		parent := filepath.Dir(cursor)
+		if parent == cursor {
 			return // reached filesystem root
 		}
 
-		fn(filepath.Join(parent, ".cqrs-lint.json"))
-
-		dir = parent
+		cursor = parent
 	}
 }
 
@@ -104,8 +114,11 @@ func eachAncestorConfigFile(lintPath string, fn func(configPath string)) {
 // .cqrs-lint.json can disable rules globally, and submodules add their own
 // overrides on top.
 //
-// The immediate parent's config is NOT loaded (cmdguard already loaded it).
-// Only ancestors beyond the current directory are consulted.
+// The IMMEDIATE PARENT IS INCLUDED (v4.22.1): an earlier version skipped it
+// on the assumption cmdguard's loader already applies that layer — false for
+// cqrs-lint's rules block, which left depth-1 modules deaf to root-config
+// disables (see eachAncestorConfigFile). The lint dir's own config stays
+// excluded here; LoadProjectConfig/cmdguard own it.
 func loadParentRulesConfig(lintPath string) analyzer.RulesConfig {
 	var merged analyzer.RulesConfig
 
