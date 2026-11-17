@@ -53,9 +53,12 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 | D26 | **#58 pre-system journal → system.New path**: `DeploymentConfig` accepts `event.Store` override vs adapter-shape (design review vs ADR-0123)                                                                                                                                                                                    | override / adapter                              | row 2663                                       |
 | D27 | **system dedup facade design (ADR-0167 §Decision 3, 2026-11-15)**: facade shape (constructor arg vs DeploymentConfig field vs accessor) · external `idempotency.Store` vs `DedupStore` alignment · `DedupCheckAndRecord` bool vs sentinel · adapter placement (system/metaengine/external) · quarantine interaction (ADR-0137) · dedup-window-vs-reset semantics (ADR-0136/0143) | per-item                                        | ADR-0167 + facade rows below                  |
 
+| D28 | **Idempotency migration timing (2026-11-17)**: the parent-shim swap (17 files / 7 repos) is purely mechanical and re-checked by F030, but the 3 sqlstore consumers ALSO owe an engine-dedup migration — touch each app once (bundled) or land the swap standalone now and migrate later                                                                                                                                                                                                                                                                                                                     | standalone / bundled                            | 2026-11-17 harvest fleet rows                  |
+| D29 | **Dedup durability default (2026-11-17)**: 5 fleet apps dedup in a `MemoryStore` and forget every key on restart — sharpest in browser-history (single container, DB on a volume, separate CLIs open the same DB, so a restart bypasses dedup entirely); keep memory-store semantics per app vs make durable dedup the default (which is a bug fix for 2 apps and a product change for 3 — SEC's journal is itself in-memory) | keep / durable-default                         | 2026-11-17 harvest sweep rows                  |
+
 **Parked (trigger-gated, deliberately NOT queued):** DueClaimer v2 reopen trigger (row 766, second-consumer trigger); ADR-0138 command-sourcing draft (row 932, consumer-demand gated). **Actionable post-M35 (not a decision):** journal-side cqrs-lint scorecard adoption (row 1027, needs the cqrs-lint tag pushed).
 
-**Decided (context, not re-openable here):** irohengine + bigtableengine = KEEP BOTH (2026-11-08); system v4.18.0 tagged (2026-11-08); StateCache Get = codec-cloned (2026-11-08); ADR-0166 StreamRef = Proposed, ratify at v5.
+**Decided (context, not re-openable here):** irohengine + bigtableengine = KEEP BOTH (2026-11-08); system v4.18.0 tagged (2026-11-08); StateCache Get = codec-cloned (2026-11-08); ADR-0166 StreamRef = Proposed, ratify at v5; **idempotency fleet repairs AUTHORIZED 2026-11-17** (owner D1: agent may edit the 7 consumer repos; each repo one commit + build/test receipt).
 
 ## Per-module deep audits (2026-11-09, the owed brutal-audit scopes — ALL FOUR RUN)
 
@@ -89,6 +92,39 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 - [ ] **VM-test sqlite-state-dir first-run assertion** (11-09 03-40 f11, self-flagged optional): assert the QEMU sqlite VM's state dir is fresh on first boot in `nix/vm/cqrs.nix` — or record a dated optional-decline. Last unrouted item before that report can archive (M38). _(Effort: XS)_
 - [ ] **07-53 floor-drop pack (9 + conditionals)** — items the iroh ruling gates or that were dropped without rows (M38 dispose; ruling = D5 addendum): f2/f3/f4/f45 extraction-contingent (park vs commission rides D5); f6 OpTag-vs-WithClock semantic-diff inventory (was flagged "BEFORE any future merge"); f7 collision preflight (moot until ruling); f16 loopback/quic ADT-matrix factory-completeness read; f22 WriteOp.ID v5 note decision; f31 mesh-demo CI build coverage; f34 quic fork bump path budget; f39 crush-config "never list unexecuted work as done" lesson; f41 "how do we test X" answer template; f43 report close-out preflight; f49 candidate-inventory-as-artifact habit; f32/f50 standing guards (ADR-0056 TimeUnixDynamic pin; internal/cluster untouched watcher) — row-or-decline each with a date; f47 dnsblockd cluster-wave citation note (minor, foreign). _(Effort: S total; batch decision — most are natural NOT-DO/declines)_
 - [ ] **dnsblockd revisit-triggers residue** (07-53 f5): TODO_LIST:369 routes there but dnsblockd's "Revisit triggers" list still has no extraction-trigger conditions despite the "regardless of the ruling" framing — foreign-repo edit pending coordination. _(Effort: XS, foreign)_
+
+## Harvest — 2026-11-17 idempotency review + cqrs-lint truth plan (docs-health HARVEST)
+
+> Sources: `docs/status/2026-11-17_12-26_idempotency-module-usage-review-and-doc-reconciliation.md`
+> (§f 50 items) and `docs/planning/2026-11-17_13-33_SUPERB-cqrs-lint-truth-and-idempotency-debt.md`
+> (T1–T20). Landed this session (no rows needed): scorecard no longer reports Idempotency as
+> missing for shim importers (verified on SEC / InboxClean / github-local-sync), F030 now reports
+> deleted `idempotency/v4` + `idempotency/kvstore/v4` + the ADR-0128 shims, V007 now covers
+> `idempotency/sqlstore` (verified on KeyCountdown), the drift scanner recognizes "No v5 successor"
+> / ADR-0158/0167, the deleted-module registry has reverse + ADR-existence gates, and the rule-count
+> lie (202 → 217) is fixed in DOMAIN_LANGUAGE. Owner answered D1 (fleet edits AUTHORIZED) 2026-11-17.
+
+### Fleet repairs (D1 granted; each repo one commit + build/test receipt)
+
+- [ ] **(repo: 7 apps) parent-shim swap — 17 files** — replace `go-cqrs-lite/idempotency/v4` with `github.com/larsartmann/go-idempotency` (all five symbols used across the fleet are exported there): InboxClean `internal/emailcqrs/setup.go`; browser-history `api/server.go`+`server_setup.go`+`idempotency_test.go`; browser-history-precheck same 3 (also bumps indirect 0.3.1→0.3.2); KeyCountdown `internal/container/packages/cqrs.go`+`internal/cqrs/integration_test.go`; SEC `internal/cqrs/app/app.go`+`idempotency_test.go`; github-local-sync `internal/branch/service.go`; Zlota44 5 files + `go mod tidy && go mod vendor` (vendor/modules.txt pins the shim). Gated by **D2**. _(Effort: M)_
+- [ ] **(repo: browser-history, browser-history-precheck, KeyCountdown) add dedup sweeps** — `idempotency_keys` has ZERO `Sweep` callers in all three; mirror DiscordSync's 24h ticker (`cmd/discordsync/idempotency_sweeper.go`). Gated by **D3** (durability intent). _(Effort: S)_
+- [ ] **(repo: DiscordSync, KeyCountdown, browser-history) migrate `idempotency/sqlstore` → engine dedup** — `(*system.System).Dedup()` / `metaengine.NewFromEngine` over the engine's `DedupStore` + a `DedupSweep` caller; sqlstore is deleted at v5 (ADR-0158/0167). Gated by **D3**. _(Effort: M)_
+- [ ] **(repo: Zlota44) delete the 172-line hand-rolled SQLite store** — `internal/app/idempotency_sqlite.go` violates contract 30 (satellite SQL beside the engines); its "growth is bounded by distinct command keys … no sweeper needed" comment is false (`Seen` deletes only the queried key). _(Effort: M)_
+- [ ] **(repo: SwettySwipperWeb) delete the dangling replace** — `services/api/go.mod:20` replaces a module it no longer imports; the `dedupIdempotencyStore` adapter can then collapse onto `metaengine.NewFromEngine`. _(Effort: XS)_
+- [ ] **(repo: DiscordSync + discordsync) resolve the duplicate checkout** — both are real clones with distinct remotes (`DiscordSync.git` vs `discordsync`); `DiscordSync` is the live tree (ahead 2), `discordsync` behind 5 / ahead 3 with no runtime config. Pick canonical, trash-or-archive the twin. _(Effort: XS)_
+- [ ] **(repo: browser-history + precheck) fix the `/debug/idempotency` lie** — `SweepEnabled = cfg.IdempotencyTTL > 0` while the sqlite store has no sweeper and `DedupLayers = 3` is hardcoded, so the debug page reports a dedup topology that does not exist. _(Effort: XS)_
+- [ ] **(repo: InboxClean) close the MemoryStore** — `Setup.Close` closes only the bus; the `NewMemoryStore` 5m sweeper goroutine leaks and keys are lost on restart. _(Effort: XS)_
+- [ ] **(repo: github-local-sync) fix the retry⊂idempotency inversion** — `CommandRetry` is registered BEFORE `CommandIdempotency`, so attempt 1 records the key and attempt 2 re-checks the same command ID → `ErrDuplicate` instead of a retry. _(Effort: XS)_
+- [ ] **(repo: DiscordSync) make capture dedup atomic** — `Seen` then `Record` after append is a non-atomic peek-then-record; `CheckAndRecord` is the contract's atomic claim. _(Effort: S)_
+
+### Repo-local follow-ups (this repo)
+
+- [ ] **F030 forward registry gate** — reverse (no entry may resolve to a live `go.mod`) and ADR-existence gates shipped 2026-11-17; still missing is the FORWARD enumeration: every module the ADR-0128/0152 records as deleted must have a registry row. _(Effort: S)_
+- [ ] **doc-check: cited module must exist at HEAD or carry a deleted marker** — T8; the `idempotency/kvstore` ghost survived in living docs for weeks because nothing checked path existence. _(Effort: M)_
+- [ ] **gotchas: "tag exists ≠ module exists"** — module-management entry (the first-turn miss that started this thread), the `who-uses`-before-greps procedure, and the daemon-mixes-foreign-dirty-files hygiene note. _(Effort: XS)_
+- [ ] **cqrs-upgrade codemod for the shim swap** — `cmd/cqrs-upgrade` rewrite of `go-cqrs-lite/idempotency(/v4)` → `go-idempotency`, so the 17-file sweep becomes mechanical and future consumers migrate themselves. _(Effort: S)_
+- [ ] **Release the linter + bump fleet pins** — `cmd/cqrs-lint` minor carrying F030's renamed rule (`deleted-module-import`) and the V007 sqlstore entry; note the NAME change in the CHANGELOG (suppressions keyed on the name would need updating; IDs unchanged). _(Effort: S)_
+- [ ] **Run `nix run .#verify`** on the changed set (cqrs-lint + doc-check touched; CI, not this session). _(Effort: S)_
 
 ## Harvest — 2026-11-11..13 report §f pull-forward (2026-11-13, docs-health HARVEST; 21-12 plan M31/F194–F198)
 
@@ -299,7 +335,8 @@ Routed, not minted (docs-health routing rule): native `[]Edge` fan-out (multi-va
 [Testing improvements 2026-10-25](#testing-improvements-2026-10-25-plan) ·
 [Declined](#declined--rejected-do-not-re-litigate) ·
 [Post-sweep release](#post-sweep-release--adoption-harvested-2026-11-05-plan-docsplanning2026-11-05_01-48_superb-post-sweep-release-and-adoption-pareto-planmd) ·
-[Post-issue-wave close-out](#post-issue-wave-close-out-found-2026-11-13-during-the-21-12-plan-cut)
+[Post-issue-wave close-out](#post-issue-wave-close-out-found-2026-11-13-during-the-21-12-plan-cut) ·
+[Idempotency review + lint truth 2026-11-17](#harvest--2026-11-17-idempotency-review--cqrs-lint-truth-plan-docs-health-harvest)
 
 ## Legend
 

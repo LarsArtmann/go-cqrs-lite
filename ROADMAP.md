@@ -889,6 +889,28 @@ CONFLICT`, JSONB) should work with near-zero changes. Point the DSN at port
     consumer surface); `catalog/d2` renders architecture diagrams for repo
     docs and the docserver. Different audiences and data sources; no
     consolidation on either side.
+23. **Idempotency migration timing** (2026-11-17) — **OPEN.** The parent
+    shim `go-cqrs-lite/idempotency/v4` is tag-only (source deleted
+    2026-08-15, ADR-0128) yet 7 fleet apps still import it across 17 files;
+    the swap to `github.com/larsartmann/go-idempotency` is mechanical
+    (every symbol used is exported there). Three of those apps also use the
+    deprecated `idempotency/sqlstore`, which owes a real migration to
+    engine-backed dedup. Question: touch each app once (swap + dedup
+    migration together) or land the mechanical swap standalone now and
+    migrate the store later? Bundling halves the app-touching but delays
+    the cheap, risk-free fix behind a design decision; standalone ships the
+    F030-cleanup faster but means visiting the same files twice. Tracked as
+    TODO_LIST **D28**.
+24. **Dedup durability default** (2026-11-17) — **OPEN, shaping.** Five
+    fleet apps dedup in a `MemoryStore`: keys die with the process. For
+    browser-history/precheck that is arguably a bug (one long-running
+    container, DB on a volume, separate CLIs open the same DB — a restart
+    silently bypasses dedup), while for SEC it is almost certainly correct
+    (its journal is in-memory too, so durable keys would outlive the state
+    they protect and could reject a legitimate post-restart resubmit).
+    The question is therefore not "more durability is better" but where the
+    default belongs: per-app choice, or durable-by-default with an explicit
+    opt-out for ephemeral domains. Tracked as TODO_LIST **D29**.
 
 ---
 
