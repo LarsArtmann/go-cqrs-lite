@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"go/token"
 	"io/fs"
+	"os"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -128,11 +129,25 @@ func ModuleDirs(root string) ([]string, error) {
 	return findGoModDirs(root)
 }
 
+// buildScope controls how buildContext discovers the module set to load.
+type buildScope int
+
+const (
+	// scopeDiscover is the historical behavior: recursively discover every
+	// go.mod under projectRoot and merge all modules into one context.
+	scopeDiscover buildScope = iota
+	// scopeSingleModule pins the context to the module AT projectRoot itself
+	// (nested go.mod discovery disabled). Toolsdk per-module walks use this:
+	// the repository-root module must not swallow the whole monorepo, or every
+	// nested module's findings get duplicated under the root config.
+	scopeSingleModule
+)
+
 // BuildContext loads packages, builds the CQRSRegistry, and creates an AnalysisContext.
 // Supports monorepos: recursively discovers all go.mod files under projectRoot
 // and merges packages from every module into a single context.
 func BuildContext(projectRoot string) (*AnalysisContext, error) {
-	return buildContext(projectRoot, nil)
+	return buildContext(projectRoot, nil, scopeDiscover)
 }
 
 // BuildContextWithEnv is BuildContext with an explicit environment for the
@@ -140,10 +155,19 @@ func BuildContext(projectRoot string) (*AnalysisContext, error) {
 // go.mod resolution (the CLI gate's canonical per-module semantics); a nil env
 // keeps the historical workspace-inheriting behavior.
 func BuildContextWithEnv(projectRoot string, env []string) (*AnalysisContext, error) {
-	return buildContext(projectRoot, env)
+	return buildContext(projectRoot, env, scopeDiscover)
 }
 
-func buildContext(projectRoot string, env []string) (*AnalysisContext, error) {
+// BuildContextForModule is BuildContextWithEnv scoped to the module AT
+// projectRoot: nested go.mod discovery is disabled, so exactly that module's
+// packages load — the CLI's per-module semantics (running cqrs-lint inside
+// the module directory). Findings for nested modules come from their own
+// iterations of the caller's walk, never from this one.
+func BuildContextForModule(projectRoot string, env []string) (*AnalysisContext, error) {
+	return buildContext(projectRoot, env, scopeSingleModule)
+}
+
+func buildContext(projectRoot string, env []string, scope buildScope) (*AnalysisContext, error) {
 	// Canonicalize the root to an absolute path: every downstream path form
 	// (module dirs, per-module feature-profile keys, go.mod locations) derives
 	// from it, while finding positions from go/packages are always absolute.
@@ -164,9 +188,24 @@ func buildContext(projectRoot string, env []string) (*AnalysisContext, error) {
 	}
 	projectRoot = absRoot
 
-	modDirs, err := findGoModDirs(projectRoot)
-	if err != nil {
-		return nil, fmt.Errorf("find modules: %w", err)
+	var modDirs []string
+
+	if scope == scopeSingleModule {
+		if _, err := os.Stat(filepath.Join(projectRoot, "go.mod")); err == nil {
+			// The projectRoot IS a module: pin the load to it. Nested modules
+			// are separate iterations of the caller's walk.
+			modDirs = []string{projectRoot}
+		}
+		// No go.mod at projectRoot: degrade to discovery (which finds nothing
+		// and resolves the enclosing module below) so non-module working dirs
+		// keep the not-a-consumer verdict instead of erroring.
+	}
+
+	if modDirs == nil {
+		modDirs, err = findGoModDirs(projectRoot)
+		if err != nil {
+			return nil, fmt.Errorf("find modules: %w", err)
+		}
 	}
 
 	// Subtree-of-a-module runs (issue #126): when no go.mod sits at or under

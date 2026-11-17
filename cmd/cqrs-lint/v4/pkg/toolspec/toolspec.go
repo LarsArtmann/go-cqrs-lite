@@ -140,7 +140,7 @@ func detect(ctx context.Context) ([]finding.Finding, error) {
 // module-local config, disabled/severity filtering. Returns the module's
 // effective (pre-inline-suppression) findings.
 func detectModule(ctx context.Context, dir string, env []string) ([]finding.Finding, error) {
-	actx, err := analyzer.BuildContextWithEnv(dir, env)
+	actx, err := analyzer.BuildContextForModule(dir, env)
 	if err != nil {
 		return nil, fmt.Errorf("cqrs-lint: load packages (%s): %w", dir, err)
 	}
@@ -226,21 +226,38 @@ func loadVerdict(actx *analyzer.AnalysisContext) (clean bool, err error) {
 	return true, nil
 }
 
-// loadEffectiveRules resolves the project's .cqrs-lint.json (preset + rules)
-// against wd. A missing config means "no overrides" — identical behavior to a
-// project without a config file. A malformed config or unknown preset is an
-// error: silently linting unconfigured would make the config file a no-op lie.
+// loadEffectiveRules resolves the module's .cqrs-lint.json (preset + rules)
+// against wd, merged with ancestor configs exactly as the CLI merges them
+// (config inheritance / monorepo support): rules.disable and
+// rules.external-api-struct-prefixes union across ancestors, severity
+// overrides kept from the module's own config (the CLI's ancestor walk
+// collects disable/prefixes only). A missing config anywhere means "no
+// overrides" from that layer. A malformed config or unknown preset is an
+// error: silently linting unconfigured would make the config file a no-op
+// lie.
 func loadEffectiveRules(wd string) (analyzer.RulesConfig, error) {
 	cfg, found, err := analyzer.LoadProjectConfig(wd)
 	if err != nil {
 		return analyzer.RulesConfig{}, fmt.Errorf("cqrs-lint: %w", err)
 	}
 
-	if !found {
-		return analyzer.RulesConfig{}, nil
+	effective := analyzer.RulesConfig{}
+	if found {
+		effective = cfg.EffectiveRules()
 	}
 
-	return cfg.EffectiveRules(), nil
+	parents, err := analyzer.LoadParentRulesConfig(wd)
+	if err != nil {
+		return analyzer.RulesConfig{}, fmt.Errorf("cqrs-lint: parent configs: %w", err)
+	}
+
+	effective.Disable = append(effective.Disable, parents.Disable...)
+	effective.ExternalAPIStructPrefixes = append(
+		effective.ExternalAPIStructPrefixes,
+		parents.ExternalAPIStructPrefixes...,
+	)
+
+	return effective, nil
 }
 
 // repair applies the safe fix set (the same CQRSFixProvider the CLI's --fix
@@ -272,7 +289,7 @@ func repair(ctx context.Context, wd string) (int, error) {
 
 // repairModule fixes ONE module directory and returns the applied fix count.
 func repairModule(ctx context.Context, dir string, env []string) (int, error) {
-	actx, err := analyzer.BuildContextWithEnv(dir, env)
+	actx, err := analyzer.BuildContextForModule(dir, env)
 	if err != nil {
 		return 0, fmt.Errorf("cqrs-lint repair: load packages (%s): %w", dir, err)
 	}
