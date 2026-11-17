@@ -31,10 +31,27 @@ func repoRootForF030(t *testing.T) string {
 	}
 }
 
+// moduleGoMods returns every go.mod belonging to the module at rel: the root
+// module (rel/go.mod) plus any major-version module (rel/v4/go.mod). Both
+// forms exist in this workspace, so "does the module exist" must ask for both.
+func moduleGoMods(root, rel string) []string {
+	var out []string
+
+	for _, pattern := range []string{
+		filepath.Join(root, rel, "go.mod"),
+		filepath.Join(root, rel, "v[0-9]*", "go.mod"),
+	} {
+		matches, _ := filepath.Glob(pattern)
+		out = append(out, matches...)
+	}
+
+	return out
+}
+
 // TestDeletedModuleRegistry_EntriesAreActuallyDeleted is the reverse drift
-// gate: an entry whose module directory came back (a re-extraction, a
-// revert of the ADR-0128 sweep) would make F030 lie about the repo. It also
-// pins that every cited ADR exists, so the migration pointer never rots.
+// gate: an entry whose module came back (a re-extraction, a revert of the
+// ADR-0128 sweep) would make F030 lie about the repo. It also pins that every
+// cited ADR exists, so the migration pointer never rots.
 func TestDeletedModuleRegistry_EntriesAreActuallyDeleted(t *testing.T) {
 	t.Parallel()
 
@@ -44,15 +61,10 @@ func TestDeletedModuleRegistry_EntriesAreActuallyDeleted(t *testing.T) {
 		// A module is deleted when its go.mod is gone. The DIRECTORY may
 		// survive: go-cqrs-lite/idempotency/ still exists because its
 		// sqlstore submodule lives under it.
-		goMod := filepath.Join(
-			root,
-			strings.TrimPrefix(dep.fragment, "go-cqrs-lite/"),
-			"go.mod",
-		)
+		rel := strings.TrimPrefix(dep.fragment, "go-cqrs-lite/")
 
-		if _, err := os.Stat(goMod); err == nil {
-			t.Errorf("%s is listed as deleted but %s exists at HEAD",
-				dep.fragment, goMod)
+		if found := moduleGoMods(root, rel); len(found) > 0 {
+			t.Errorf("%s is listed as deleted but %v exists at HEAD", dep.fragment, found)
 		}
 
 		adrPath := filepath.Join(root, dep.adr)
@@ -71,15 +83,10 @@ func TestPresentModuleFragments_StillExist(t *testing.T) {
 	root := repoRootForF030(t)
 
 	for _, fragment := range presentModuleFragments {
-		goMod := filepath.Join(
-			root,
-			strings.TrimPrefix(fragment, "go-cqrs-lite/"),
-			"go.mod",
-		)
+		rel := strings.TrimPrefix(fragment, "go-cqrs-lite/")
 
-		if _, err := os.Stat(goMod); err != nil {
-			t.Errorf("present-module guard %s has no go.mod at HEAD (%s)",
-				fragment, goMod)
+		if found := moduleGoMods(root, rel); len(found) == 0 {
+			t.Errorf("present-module guard %s has no go.mod at HEAD", fragment)
 		}
 	}
 }
