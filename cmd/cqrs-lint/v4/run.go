@@ -37,7 +37,7 @@ func buildContextForScope(scope, path string) (*analyzer.AnalysisContext, error)
 	case "", "workspace":
 		return analyzer.BuildContext(path)
 	case "module":
-		return analyzer.BuildContextForModule(path)
+		return analyzer.BuildContextForModule(path, os.Environ())
 	default:
 		return nil, fmt.Errorf("invalid --scope %q (want workspace or module)", scope)
 	}

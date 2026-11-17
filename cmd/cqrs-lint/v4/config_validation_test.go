@@ -129,3 +129,35 @@ func TestLoadParentRulesConfig_IncludesImmediateParent(t *testing.T) {
 		t.Errorf("immediate-parent disable F005 must be inherited (the v4.22.1 fix); got %v", got.Disable)
 	}
 }
+
+// TestBuildContextForScope_ScopeSelection pins the --scope wiring (v4.22.2):
+// the default/empty scope resolves workspace semantics, "module" resolves the
+// single-module context, and an unknown scope fails loudly instead of
+// silently degrading to a walk the caller did not ask for.
+func TestBuildContextForScope_ScopeSelection(t *testing.T) {
+	t.Parallel()
+
+	root := t.TempDir()
+	if err := os.WriteFile(filepath.Join(root, "go.mod"), []byte("module example.com/scopeprobe\n\ngo 1.21\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(root, "main.go"), []byte("package main\n\nfunc main() {}\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	for _, scope := range []string{"", "workspace", "module"} {
+		actx, err := buildContextForScope(scope, root)
+		if err != nil {
+			t.Errorf("scope %q must resolve; got %v", scope, err)
+
+			continue
+		}
+		if actx == nil || actx.ProjectRoot == "" {
+			t.Errorf("scope %q must yield a context with a project root", scope)
+		}
+	}
+
+	if _, err := buildContextForScope("bogus", root); err == nil {
+		t.Error("an unknown scope must fail loudly, not degrade to a walk")
+	}
+}
