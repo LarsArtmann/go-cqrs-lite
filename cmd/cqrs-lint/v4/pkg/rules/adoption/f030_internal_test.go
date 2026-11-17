@@ -1,6 +1,88 @@
 package adoption
 
-import "testing"
+import (
+	"os"
+	"path/filepath"
+	"strings"
+	"testing"
+)
+
+// repoRootForF030 walks up from the test's package directory to the repo root
+// (the directory holding go.work).
+func repoRootForF030(t *testing.T) string {
+	t.Helper()
+
+	dir, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("getwd: %v", err)
+	}
+
+	for {
+		if _, statErr := os.Stat(filepath.Join(dir, "go.work")); statErr == nil {
+			return dir
+		}
+
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			t.Fatalf("repo root (go.work) not found above %s", dir)
+		}
+
+		dir = parent
+	}
+}
+
+// TestDeletedModuleRegistry_EntriesAreActuallyDeleted is the reverse drift
+// gate: an entry whose module directory came back (a re-extraction, a
+// revert of the ADR-0128 sweep) would make F030 lie about the repo. It also
+// pins that every cited ADR exists, so the migration pointer never rots.
+func TestDeletedModuleRegistry_EntriesAreActuallyDeleted(t *testing.T) {
+	t.Parallel()
+
+	root := repoRootForF030(t)
+
+	for _, dep := range deletedModuleImports {
+		// A module is deleted when its go.mod is gone. The DIRECTORY may
+		// survive: go-cqrs-lite/idempotency/ still exists because its
+		// sqlstore submodule lives under it.
+		goMod := filepath.Join(
+			root,
+			strings.TrimPrefix(dep.fragment, "go-cqrs-lite/"),
+			"go.mod",
+		)
+
+		if _, err := os.Stat(goMod); err == nil {
+			t.Errorf("%s is listed as deleted but %s exists at HEAD",
+				dep.fragment, goMod)
+		}
+
+		adrPath := filepath.Join(root, dep.adr)
+		if _, err := os.Stat(adrPath); err != nil {
+			t.Errorf("%s cites missing ADR %s", dep.fragment, dep.adr)
+		}
+	}
+}
+
+// TestPresentModuleFragments_StillExist keeps the suppression list honest: a
+// present-module guard that outlives its module would silently mask a deleted
+// ancestor's finding.
+func TestPresentModuleFragments_StillExist(t *testing.T) {
+	t.Parallel()
+
+	root := repoRootForF030(t)
+
+	for _, fragment := range presentModuleFragments {
+		goMod := filepath.Join(
+			root,
+			strings.TrimPrefix(fragment, "go-cqrs-lite/"),
+			"go.mod",
+		)
+
+		if _, err := os.Stat(goMod); err != nil {
+			t.Errorf("present-module guard %s has no go.mod at HEAD (%s)",
+				fragment, goMod)
+		}
+	}
+}
 
 // TestFragmentMatchesImport pins the segment-boundary contract behind F030's
 // longest-fragment matching. Plain strings.Contains would make the deleted

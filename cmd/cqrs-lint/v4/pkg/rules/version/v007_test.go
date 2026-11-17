@@ -1,6 +1,7 @@
 package version
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
@@ -22,6 +23,55 @@ func main() {
 	})
 	findings := ruletest.RunDetector(t, NewV007Detector(ctx))
 	ruletest.AssertRule(t, findings, "V007", 1)
+}
+
+// TestV007_DetectsIdempotencySqlstoreRetirement pins ADR-0158/0167: the
+// satellite SQL dedup store retires at v5 in favour of engine-backed dedup
+// surfaced as system.Dedup(). Before this entry existed, a KeyCountdown-style
+// consumer got zero findings despite using the deprecated store.
+func TestV007_DetectsIdempotencySqlstoreRetirement(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+import (
+	"database/sql"
+
+	"github.com/larsartmann/go-cqrs-lite/idempotency/sqlstore/v4"
+)
+
+func newStore(db *sql.DB) error {
+	_, err := sqlstore.NewSQLiteStore(nil, db)
+	return err
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, NewV007Detector(ctx))
+	ruletest.AssertRule(t, findings, "V007", 1)
+
+	if len(findings) == 0 {
+		return
+	}
+
+	if msg := findings[0].Message; !strings.Contains(msg, "ADR-0158/0167") {
+		t.Errorf("message should cite the retirement ADRs, got %q", msg)
+	}
+}
+
+// TestV007_SilentOnExternalIdempotency pins the migration target: importing
+// go-idempotency directly is the sanctioned path, so it must produce nothing.
+func TestV007_SilentOnExternalIdempotency(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+import "github.com/larsartmann/go-idempotency"
+
+func main() {
+	_ = idempotency.NewMemoryStore
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, NewV007Detector(ctx))
+	ruletest.AssertRule(t, findings, "V007", 0)
 }
 
 func TestV007_DetectsAliasedRemovedModule(t *testing.T) {
