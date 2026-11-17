@@ -479,7 +479,7 @@ jobs:
       # satisfying the go.work floor — without it the job died three times
       # on `go: downloading go1.27.1` (the same toolchain-download trap the
       # other plain-go jobs already fixed this way).
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+      - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
         with:
           go-version-file: go.mod
 
@@ -544,7 +544,7 @@ jobs:
       # Plain setup-go (not the nix stack/v4) so the gate survives nix cache
       # throttling and actually has a `go` binary on PATH — the nix
       # installer alone never provided one, failing the job in seconds.
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+      - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
         with:
           go-version-file: go.mod
 
@@ -581,7 +581,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+      - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
         with:
           go-version-file: go.mod
       - name: Assert every module is tidy (go mod tidy -diff, no-write)
@@ -1126,7 +1126,7 @@ jobs:
       ERRAUDIT_SHA256: f726f94681da816ddbb3fab4a35f045da0efbc7cc7422dd4fd3be10b1aa46208
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+      - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
         with:
           go-version-file: go.mod
       - name: Install erraudit (vendored source)
