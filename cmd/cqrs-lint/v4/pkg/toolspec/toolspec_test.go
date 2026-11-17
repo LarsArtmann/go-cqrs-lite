@@ -265,6 +265,97 @@ func shout(s string) string { return strings.ToUpper(s) }
 	}
 }
 
+// TestDetectHonorsPerModuleConfigs pins the per-module CONFIG scope: two
+// consumer modules under one working directory, each triggering C003, with
+// only module b carrying a config that disables it and NO config at the
+// root. Detection must apply b's config to b's findings while a keeps the
+// default rules. The historical single root-config pass judged every module
+// by the working directory's config and could not express per-module policy
+// (the cqrs-htmx 2026-11-15 incident: seven sibling modules, each with its
+// own disable list, all judged by the root config).
+func TestDetectHonorsPerModuleConfigs(t *testing.T) {
+	t.Parallel()
+
+	root := t.TempDir()
+	modA := filepath.Join(root, "a")
+	modB := filepath.Join(root, "b")
+	writeConsumerModule(t, modA)
+	writeConsumerModule(t, modB)
+
+	config := `{"rules": {"disable": ["C003"]}}`
+	if err := os.WriteFile(
+		filepath.Join(modB, ".cqrs-lint.json"),
+		[]byte(config),
+		0o600,
+	); err != nil {
+		t.Fatal(err)
+	}
+
+	ctx := finding.WithWorkingDir(context.Background(), root)
+
+	findings, err := Spec().Detect.Detect(ctx)
+	if err != nil {
+		t.Fatalf("Detect: %v", err)
+	}
+
+	for _, f := range findings {
+		if string(f.Rule) == "C003" && strings.HasPrefix(string(f.Position.File), modB) {
+			t.Fatalf("module b disabled C003 but it fired for %s", f.Position.File)
+		}
+	}
+
+	foundInA := false
+	for _, f := range findings {
+		if string(f.Rule) == "C003" && strings.HasPrefix(string(f.Position.File), modA) {
+			foundInA = true
+		}
+	}
+	if !foundInA {
+		t.Fatal("module a has no config; C003 must still fire there (test precondition)")
+	}
+}
+
+// TestDetectIgnoresPoisonedWorkspaceGoWork pins the HERMETIC load: a root
+// go.work with a poisoned replace must not distort (or break) module
+// resolution. The CLI gate exports GOWORK=off for exactly this reason; the
+// toolsdk boundary now injects it itself, so a repo-level workspace file
+// cannot hijack the per-module walk into workspace resolution — the mode
+// that surfaced findings the per-module --strict gate does not produce
+// (cqrs-htmx 2026-11-15: 143 workspace findings vs a green 14/14 gate).
+func TestDetectIgnoresPoisonedWorkspaceGoWork(t *testing.T) {
+	t.Parallel()
+
+	root := t.TempDir()
+	writeConsumerModule(t, filepath.Join(root, "a"))
+
+	gowork := `go 1.26
+
+use ./a
+
+replace github.com/larsartmann/go-cqrs-lite/event/v4 => /nonexistent/poisoned/path
+`
+	if err := os.WriteFile(filepath.Join(root, "go.work"), []byte(gowork), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	ctx := finding.WithWorkingDir(context.Background(), root)
+
+	findings, err := Spec().Detect.Detect(ctx)
+	if err != nil {
+		t.Fatalf("Detect must ignore the poisoned go.work (hermetic per-module loads): %v", err)
+	}
+
+	found := false
+	for _, f := range findings {
+		if string(f.Rule) == "C003" {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatalf("C003 must still fire under the poisoned workspace: %+v", findings)
+	}
+}
+
 // TestDetectFailsLoudWhenNothingLoads pins the other half of the #42 verdict:
 // load errors with ZERO analyzable files mean the project likely does not
 // compile — Detect must fail loudly, never return a silent green. The CLI
@@ -352,12 +443,25 @@ func TestDetectConsumerWithPartialLoadErrorsStillAnalyzes(t *testing.T) {
 func writeFixableFixture(t *testing.T) string {
 	t.Helper()
 
+	dir := t.TempDir()
+	writeConsumerModule(t, dir)
+
+	return dir
+}
+
+// writeConsumerModule writes ONE compilable go-cqrs-lite consumer module into
+// dir: a go.mod whose event/v4 require resolves through a replace to this
+// checkout, a C003-triggering fold, and a GENERATED go.sum (event/v4 has real
+// transitive deps, and without go.sum the go/packages driver fails and
+// silently yields an EMPTY analysis — which degraded every consumer
+// assertion here into a passing-looking no-op, 2026-10-02 fixture rot).
+// Shared by the single-module fixtures and the multi-module per-module tests.
+func writeConsumerModule(t *testing.T, dir string) {
+	t.Helper()
+
 	// C003 needs a compilable module whose `event` import resolves to the
 	// real go-cqrs-lite event package; a replace to this checkout keeps the
-	// fixture source hermetic. go.sum is GENERATED below: event/v4 has real
-	// transitive deps, and without go.sum the go/packages driver fails and
-	// silently yields an EMPTY analysis — which degraded every consumer
-	// assertion here into a passing-looking no-op (2026-10-02 fixture rot).
+	// fixture source hermetic.
 	repoRoot, err := filepath.Abs(filepath.Join("..", "..", "..", "..", ".."))
 	if err != nil {
 		t.Fatal(err)
@@ -390,7 +494,6 @@ func apply(state state, evt event.Event) (state, error) {
 	return state, nil
 }
 `
-	dir := t.TempDir()
 	if err := os.WriteFile(filepath.Join(dir, "go.mod"), []byte(gomod), 0o600); err != nil {
 		t.Fatal(err)
 	}
@@ -405,6 +508,4 @@ func apply(state state, evt event.Event) (state, error) {
 	if out, err := tidy.CombinedOutput(); err != nil {
 		t.Fatalf("fixture go mod tidy: %v\n%s", err, out)
 	}
-
-	return dir
 }
