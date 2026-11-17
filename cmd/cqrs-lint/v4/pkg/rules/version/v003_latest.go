@@ -19,9 +19,13 @@ import (
 // v4.0.0, so a fleet-wide latestKnownMinor constant mislabels any module
 // whose own version line never reached it — the suggested
 // `go get ...@v4.3.0` does not even resolve. The proxy is asked for each
-// module path's real @latest; every failure (offline, proxy error, test
-// binary) falls back to the constant, which keeps today's behavior as the
-// floor.
+// module path's real @latest; a rule verdict is emitted ONLY on verified
+// proxy truth. When truth is unavailable (offline, proxy error, test
+// binary, GOPRIVATE/GONOPROXY bypass) the rule stays silent: an
+// unverifiable "behind latest" claim fabricated from a fleet constant is
+// a false positive by construction, and silence beats a wrong info
+// finding (fleet lags are covered honestly by the upstream-treadmill
+// gates instead).
 
 // proxyFetchTimeout bounds one @latest request; the rule must never turn a
 // lint run into a network wait.
@@ -50,22 +54,24 @@ var latestByModuleCache sync.Map // string → int
 //nolint:gochecknoglobals // injectable seam, set once per test
 var latestMinorFetch = latestMinorFromProxy
 
-// latestMinorFor returns the module's latest v4 minor: the proxy's answer
-// when one is available, otherwise the fleet-wide fallback constant.
+// latestMinorFor returns the module's latest v4 minor WITH a verified-ok
+// flag. No proxy truth, no answer — the caller stays silent instead of
+// judging a pin against a fleet constant (issue #129's principle, applied
+// to the failure paths too).
 func latestMinorFor(
 	ctx context.Context,
 	modulePath string,
 	fetch func(context.Context, string) (int, bool),
-) int {
+) (int, bool) {
 	if fetch == nil {
-		return latestKnownMinor
+		return 0, false
 	}
 
 	if minor, ok := fetch(ctx, modulePath); ok && minor >= 0 {
-		return minor
+		return minor, true
 	}
 
-	return latestKnownMinor
+	return 0, false
 }
 
 // latestMinorFromProxy resolves a module's latest minor from the Go module
@@ -117,7 +123,8 @@ func latestMinorFromProxyLive(ctx context.Context, modulePath string) (int, bool
 // when that is unset, GOPRIVATE — Go's documented default chain). Private
 // modules must never be sent to a public proxy: the request cannot succeed
 // (404 at best) and leaks the module name to the proxy operator. Bypassed
-// modules use the fleet fallback constant.
+// modules yield NO V003 verdict — unverifiable truth must not fabricate a
+// lag claim (the fleet fallback constant class is dead).
 func moduleBypassesProxy(modulePath string) bool {
 	patterns := strings.FieldsFunc(os.Getenv("GONOPROXY"), func(r rune) bool {
 		return r == ',' || r == ' '

@@ -98,7 +98,8 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.0.0
 )
 `)
-	findings := ruletest.RunDetector(t, version.NewV003Detector(ctx))
+	findings := ruletest.RunDetector(t, version.NewV003DetectorWithLatest(ctx,
+		func(context.Context, string) (int, bool) { return 3, true }))
 	ruletest.AssertRule(t, findings, "V003", 1)
 }
 
@@ -113,7 +114,8 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.3.0
 )
 `)
-	findings := ruletest.RunDetector(t, version.NewV003Detector(ctx))
+	findings := ruletest.RunDetector(t, version.NewV003DetectorWithLatest(ctx,
+		func(context.Context, string) (int, bool) { return 3, true }))
 	ruletest.AssertRule(t, findings, "V003", 0)
 }
 
@@ -146,7 +148,8 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.1.0
 )
 `)
-	findings := ruletest.RunDetector(t, version.NewV003Detector(ctx))
+	findings := ruletest.RunDetector(t, version.NewV003DetectorWithLatest(ctx,
+		func(context.Context, string) (int, bool) { return 3, true }))
 	ruletest.AssertRule(t, findings, "V003", 0)
 }
 
@@ -172,9 +175,14 @@ require (
 	ruletest.AssertRule(t, findings, "V003", 0)
 }
 
-// TestV003_ProxyFailureFallsBackToFleetConstant: an unreachable proxy
-// keeps the fleet-wide fallback judgment (today's offline behavior).
-func TestV003_ProxyFailureFallsBackToFleetConstant(t *testing.T) {
+// TestV003_UnverifiedLatestStaysSilent pins the verified-truth contract:
+// when no per-module proxy truth is available (offline, bypassed by
+// GOPRIVATE/GONOPROXY, test binary), the rule stays SILENT even for a pin
+// far below the old fleet constant — a fabricated "behind latest" claim
+// is a false positive by construction (the systemcatalog/v4 incident:
+// pinned v4.0.0, its OWN latest, mislabeled "3 behind v4.3.x" in every
+// GOPRIVATE-covered fleet run).
+func TestV003_UnverifiedLatestStaysSilent(t *testing.T) {
 	t.Parallel()
 
 	ctx := ctxWithGoMod(t, `module example.com/app
@@ -182,12 +190,12 @@ func TestV003_ProxyFailureFallsBackToFleetConstant(t *testing.T) {
 go 1.26.4
 
 require (
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.0.0
+	github.com/larsartmann/go-cqrs-lite/systemcatalog/v4 v4.0.0
 )
 `)
 	findings := ruletest.RunDetector(t, version.NewV003DetectorWithLatest(ctx,
 		func(context.Context, string) (int, bool) { return 0, false }))
-	ruletest.AssertRule(t, findings, "V003", 1)
+	ruletest.AssertRule(t, findings, "V003", 0)
 }
 
 // TestV003_NamesTheModulesOwnLatest: the finding names the module's real

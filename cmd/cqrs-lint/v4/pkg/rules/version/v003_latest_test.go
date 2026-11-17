@@ -62,25 +62,25 @@ func TestFetchLatestMinorFromBase_NonV4AndGarbage(t *testing.T) {
 	}
 }
 
-func TestLatestMinorFor_Fallbacks(t *testing.T) {
+func TestLatestMinorFor_RequiresVerifiedTruth(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
 
-	if got := latestMinorFor(ctx, "m", nil); got != latestKnownMinor {
-		t.Errorf("nil fetch must fall back to the constant; got %d", got)
+	if _, ok := latestMinorFor(ctx, "m", nil); ok {
+		t.Error("nil fetch must not answer; an unverifiable latest must not produce a verdict")
 	}
 
-	if got := latestMinorFor(ctx, "m", func(context.Context, string) (int, bool) {
+	if _, ok := latestMinorFor(ctx, "m", func(context.Context, string) (int, bool) {
 		return 0, false
-	}); got != latestKnownMinor {
-		t.Errorf("failed fetch must fall back to the constant; got %d", got)
+	}); ok {
+		t.Error("a failed fetch must not answer; the fleet constant must never fabricate lag")
 	}
 
-	if got := latestMinorFor(ctx, "m", func(context.Context, string) (int, bool) {
+	if minor, ok := latestMinorFor(ctx, "m", func(context.Context, string) (int, bool) {
 		return 23, true
-	}); got != 23 {
-		t.Errorf("successful fetch must win; got %d", got)
+	}); !ok || minor != 23 {
+		t.Errorf("a successful fetch must answer (23, true); got (%d, %t)", minor, ok)
 	}
 }
 

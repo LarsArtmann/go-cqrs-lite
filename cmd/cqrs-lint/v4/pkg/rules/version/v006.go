@@ -31,7 +31,7 @@ import (
 // (a history lie). Pins at the newest existing tag of such a module are
 // current; divergence findings for these modules are skipped. Refresh the
 // newestExistingTags table at every cqrs-lint release (same discipline as
-// V003's latestKnownMinor).
+// V003's per-module @latest resolution).
 //
 //nolint:ireturn // factory returns public interface
 func NewV006Detector(ctx *analyzer.AnalysisContext) finding.Detector {

@@ -9,20 +9,15 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 )
 
-// latestKnownMinor is the FALLBACK fleet-wide latest minor of the v4
-// series, used only when the module proxy cannot be reached (offline runs,
-// test binaries, CQRS_LINT_NO_PROXY_FETCH=1). The per-module truth comes
-// from the proxy — go-cqrs-lite tags are per-module and a module like
-// systemcatalog/v4 whose latest is v4.0.0 must not be judged against the
-// fleet maximum (issue #129).
-// Update this constant when a new minor release ships.
-// As of 2026-07, the latest published modules are v4.3.x.
-const latestKnownMinor = 3
-
 // V003: Version lag behind latest.
 // Detects go-cqrs-lite v4 dependencies more than 2 minor versions behind
 // the module's OWN latest release (resolved per module path from the Go
-// module proxy; the hard-coded fleet constant is the offline fallback).
+// module proxy). A verdict requires VERIFIED proxy truth: when the proxy
+// is unreachable, disabled, or bypassed (GOPRIVATE/GONOPROXY), the rule
+// stays silent — a fleet-constant fallback fabricated "behind latest"
+// claims that were false positives by construction (issue #129; the
+// systemcatalog/v4 v4.0.0 pin mislabeled "3 behind v4.3.x" in every
+// GOPRIVATE-covered fleet run).
 // Stale versions miss bug fixes, security patches, and new features. Only
 // direct (non-indirect) requires are checked — indirect deps are resolved
 // by Go's MVS to the maximum compatible version.
@@ -77,7 +72,11 @@ func newV003Detector(
 					continue
 				}
 
-				latestMinor := latestMinorFor(detectorCtx, req.Path, fetch)
+				latestMinor, verified := latestMinorFor(detectorCtx, req.Path, fetch)
+				if !verified {
+					continue
+				}
+
 				lag := latestMinor - minor
 				if lag <= 2 {
 					continue

@@ -342,7 +342,7 @@ The library provides explicit guarantees on the write side and eventual consiste
 | **idtest**         | Test helpers: `Parse*(tb, s)` for branded ID parsing                 | `id/idtest` — `tb.Fatalf` on error, no panics                                                                     |
 | **testutil**       | Shared cross-module test helpers                                     | `testutil` — `NewCmd(tb, ...)`                                                                                    |
 | **Scenario**       | Fluent BDD test DSL for deciders and projections                     | `scenario.Given/When/Then`, `scenario.GivenProjection/ThenNoError`                                                |
-| **cqrs-lint**      | Domain-aware linter: 202 rules across 10 categories                  | `cmd/cqrs-lint` — correctness, API misuse, boilerplate, architecture, security, performance                       |
+| **cqrs-lint**      | Domain-aware linter: 217 rules across 10 categories                  | `cmd/cqrs-lint` — correctness, API misuse, boilerplate, architecture, security, performance                       |
 | **cqrs-bench**     | CLI: benchmark any backend with named workload profiles              | `cmd/cqrs-bench` — built on `benchkit`                                                                            |
 | **benchkit**       | Factory-driven benchmarking suite: Run/Compare, percentiles, memory  | `benchkit` — mirrors contracttest pattern                                                                         |
 | **FlightRecorder** | Go 1.25 runtime/trace capture on slow/error conditions               | `flightrecorder.New(opts...)` — `Recorder`; middleware wraps command/event/query dispatch                         |
