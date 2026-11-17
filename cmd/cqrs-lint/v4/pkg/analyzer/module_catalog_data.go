@@ -138,8 +138,13 @@ func buildDefaultCatalog() []ModuleEntry {
 			ImportHints: []string{
 				"go-idempotency",
 				"go-cqrs-lite/idempotency/sqlstore",
+				// The parent module is a tag-only shim (source deleted
+				// 2026-08-15, ADR-0128) but 7 fleet modules still import it, so
+				// the hint keeps their scorecard rows truthful while they
+				// migrate. F030 reports the import as deleted.
+				"go-cqrs-lite/idempotency",
 			},
-			Description: "At-least-once delivery dedup (MemoryStore, SQLStore)",
+			Description: "At-least-once delivery dedup (go-idempotency stores, system.Dedup() over metaengine.DedupStore)",
 			Suggestion:  "Dedup at-least-once delivery for command/event handlers",
 		},
 		{

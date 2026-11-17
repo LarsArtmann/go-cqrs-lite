@@ -265,11 +265,11 @@ func adoptionRules() []RuleInfo {
 		},
 		{
 			ID:          "F030",
-			Name:        "deprecated-transport-import",
+			Name:        "deleted-module-import",
 			Category:    "adoption",
 			Severity:    "warning",
 			Confidence:  "high",
-			Description: "Import of deprecated transport/* module — removed at v5; migrate to go-sse, watermill bridge, or cqrs-htmx (ADR-0127)",
+			Description: "Import of a deleted module whose tags still resolve — transport/* (ADR-0127), idempotency/* (ADR-0128/0152/0167); each finding names the sanctioned replacement",
 			AutoFix:     false,
 		},
 		{
