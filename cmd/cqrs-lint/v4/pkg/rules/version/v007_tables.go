@@ -30,6 +30,13 @@ var deprecatedV5Modules = []deprecatedV5Module{ //nolint:gochecknoglobals // sta
 		fragment:    "scheduling/sqlstore",
 		replacement: "scheduling/engine.NewTimerStore over a metaengine.DueClaimer engine",
 	},
+	// ADR-0158/0167: the idempotency satellite SQL store retires for the
+	// engine-backed dedup capability surfaced as system.Dedup().
+	{
+		fragment: "idempotency/sqlstore",
+		replacement: "(*system.System).Dedup() over a metaengine.DedupStore engine " +
+			"(or import github.com/larsartmann/go-idempotency for a standalone store)",
+	},
 }
 
 // exemptedExampleModules lists example apps whose WHOLE PURPOSE is demoing a

@@ -100,6 +100,58 @@ func main() {}
 	}
 }
 
+// TestDetectUsedModules_ParentIdempotencyShimImport pins the fix for the
+// false MISSING row: seven fleet modules still import the DELETED parent
+// shim go-cqrs-lite/idempotency/v4 (source removed 2026-08-15, ADR-0128;
+// F030 reports the deletion). Before the hint existed, pathBoundaryMatch
+// matched neither "go-idempotency" nor "go-cqrs-lite/idempotency/sqlstore",
+// so the scorecard claimed Idempotency was missing for apps that use it.
+func TestDetectUsedModules_ParentIdempotencyShimImport(t *testing.T) {
+	t.Parallel()
+
+	src := `package main
+
+import (
+	"github.com/larsartmann/go-cqrs-lite/idempotency/v4"
+)
+
+func main() { _ = idempotency.NewMemoryStore }
+`
+	fset := token.NewFileSet()
+	gf := parseTestFile(t, fset, "main.go", src)
+
+	usage := DetectUsedModules(nil, []*GoFile{gf}, nil, DefaultCatalog)
+
+	checkStatus(t, usage, "idempotency", UsageImported)
+
+	const wantEvidence = "github.com/larsartmann/go-cqrs-lite/idempotency/v4"
+	if got := usage["idempotency"].Evidence; got != wantEvidence {
+		t.Errorf("evidence = %q, want %q", got, wantEvidence)
+	}
+}
+
+// TestDetectUsedModules_IdempotencyLookalikePathAbsent guards the other
+// direction: a path that merely contains the word idempotency must not
+// score the row.
+func TestDetectUsedModules_IdempotencyLookalikePathAbsent(t *testing.T) {
+	t.Parallel()
+
+	src := `package main
+
+import (
+	"github.com/example/idempotency-service"
+)
+
+func main() {}
+`
+	fset := token.NewFileSet()
+	gf := parseTestFile(t, fset, "main.go", src)
+
+	usage := DetectUsedModules(nil, []*GoFile{gf}, nil, DefaultCatalog)
+
+	checkStatus(t, usage, "idempotency", UsageAbsent)
+}
+
 func TestDetectUsedModules_StackPaths(t *testing.T) {
 	t.Parallel()
 

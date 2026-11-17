@@ -26,7 +26,8 @@ import (
 //     signing.RejectingPublishMiddleware, event.DetectTombstone.
 //
 // The transport/* modules are intentionally NOT covered here — F030
-// (deprecated-transport-import) owns that surface at import granularity.
+// (deleted-module-import) owns that surface at import granularity, together
+// with the other deleted-but-tag-served modules.
 //
 // Coverage contract: the removal surface (deprecatedV5Modules plus
 // deprecatedV5Symbols) is held against the repo's actual `Deprecated:` …v5
@@ -63,6 +64,10 @@ func adrForFragment(fragment string) string {
 		return "ADR-0123"
 	case fragment == "event" || fragment == "metadata":
 		return "ADR-0114/0126"
+	case strings.HasPrefix(fragment, "scheduling"):
+		return "ADR-0142"
+	case strings.HasPrefix(fragment, "idempotency"):
+		return "ADR-0158/0167"
 	default:
 		return "ADR-0126"
 	}

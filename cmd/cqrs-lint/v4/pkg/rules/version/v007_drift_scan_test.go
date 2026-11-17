@@ -47,8 +47,8 @@ type v5MethodKey struct {
 // entries, each with the reason it is intentionally not flagged by V007.
 // (Test fixture data — test files are exempt from gochecknoglobals.)
 var v5DriftAllowlist = map[v5MarkerKey]string{
-	{"transport/http", "(package)"}: "F030 (deprecated-transport-import) owns transport/* at import granularity",
-	{"transport/grpc", "(package)"}: "F030 (deprecated-transport-import) owns transport/* at import granularity",
+	{"transport/http", "(package)"}: "F030 (deleted-module-import) owns transport/* at import granularity",
+	{"transport/grpc", "(package)"}: "F030 (deleted-module-import) owns transport/* at import granularity",
 	{"stack", "(package)"}:          "package-doc deprecation; V007 flags the individual symbols instead",
 }
 
@@ -296,7 +296,12 @@ func v5DocSignal(doc *ast.CommentGroup) (string, bool) {
 	joined := strings.ToLower(strings.Join(lines, " "))
 	for _, sig := range []string{
 		"removed in v5", "removed at v5", "removed v5", "removal at v5",
-		"adr-0114", "adr-0123", "adr-0126", "adr-0127",
+		// "no v5 successor" is how the idempotency satellite stores phrase
+		// their retirement (ADR-0158/0167): there is no drop-in replacement,
+		// the capability moves onto the engines. Without this signal those
+		// markers were invisible to the drift scanner.
+		"no v5 successor",
+		"adr-0114", "adr-0123", "adr-0126", "adr-0127", "adr-0158", "adr-0167",
 	} {
 		if strings.Contains(joined, sig) {
 			return strings.Join(lines, "\n"), true
