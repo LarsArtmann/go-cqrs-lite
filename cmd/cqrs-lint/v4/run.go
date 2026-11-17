@@ -23,6 +23,26 @@ var errAbortClean = errors.New("nothing to lint")
 
 var errStaleSuppressions = errors.New("stale or unknown suppression directive(s) found")
 
+// buildContextForScope resolves the --scope flag. "workspace" (the default)
+// is the byte-identical historical behavior: discover EVERY nested module
+// under the lint path and analyze them together under the root config —
+// monorepo-root union semantics. "module" lints ONLY the module at the path
+// with per-module semantics (its own packages, its config unioned with every
+// ancestor's) — the same resolution BuildFlow's toolsdk walk uses, and what
+// a findings-honest consumer gate wants for each module candidate: the
+// workspace walk cannot see nested modules' configs, so escalating it would
+// resurface findings those configs deliberately silence.
+func buildContextForScope(scope, path string) (*analyzer.AnalysisContext, error) {
+	switch scope {
+	case "", "workspace":
+		return analyzer.BuildContext(path)
+	case "module":
+		return analyzer.BuildContextForModule(path)
+	default:
+		return nil, fmt.Errorf("invalid --scope %q (want workspace or module)", scope)
+	}
+}
+
 func run(ctx context.Context, cfg *AppConfig) error {
 	start := time.Now()
 
@@ -30,7 +50,7 @@ func run(ctx context.Context, cfg *AppConfig) error {
 		return err
 	}
 
-	actx, err := analyzer.BuildContext(cfg.Path)
+	actx, err := buildContextForScope(cfg.Scope, cfg.Path)
 	if err != nil {
 		return fmt.Errorf("load packages: %w", err)
 	}
