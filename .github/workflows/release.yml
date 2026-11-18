@@ -3,8 +3,14 @@ name: Release
 on:
   push:
     tags:
+      # Deep-module trains push BOTH shapes (cmd/cqrs-lint/v4/v4.22.2 plus
+      # compat cmd/cqrs-lint/v4.22.2); * never crosses / in tag filters, so
+      # every depth needs its own pattern or the release run never fires
+      # (all six v4.22.x train tags fired ZERO runs, 2026-11-17).
       - "v*"
       - "*/v*"
+      - "*/*/v*"
+      - "*/*/v*/v*"
 
 permissions:
   contents: write
