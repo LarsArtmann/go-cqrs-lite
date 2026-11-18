@@ -24,10 +24,16 @@
 //
 // # Middleware
 //
-// Middleware wraps handlers in a chain (last added runs first):
+// Middleware wraps handlers in a chain: the FIRST middleware added is the
+// outermost wrapper, so it runs first and its post-processing runs last
+// (dispatcher.Apply wraps in reverse registration order). Order matters for
+// retry: a retry middleware placed OUTSIDE idempotency re-enters the dedup
+// check on every attempt and fails the second attempt with ErrDuplicate.
 //
-//	cmds.Use(middleware.CommandLogging(logger))
+//	cmds.Use(middleware.CommandLogging(logger))   // outermost: sees the final error
 //	cmds.Use(middleware.CommandRecovery())
+//	cmds.Use(middleware.CommandIdempotency(store, ttl, nil)) // once, before retries
+//	cmds.Use(middleware.CommandRetry(cfg))
 //
 // # Command Persistence (Audit Trail)
 //

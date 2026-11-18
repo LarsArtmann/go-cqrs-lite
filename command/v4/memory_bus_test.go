@@ -122,6 +122,63 @@ func TestMemoryBus_Middleware(t *testing.T) {
 	}
 }
 
+// TestMemoryBus_MiddlewareOrder_FirstAddedIsOutermost pins the chain direction
+// the package doc states: the FIRST middleware added is the outermost wrapper,
+// so it runs first and its post-processing runs last. The old doc claimed the
+// opposite ("last added runs first"), which propagated into consumer wiring and
+// produced retry-outside-idempotency chains that dead-end in ErrDuplicate on
+// the second attempt. One middleware cannot reveal the direction; this test
+// registers two.
+func TestMemoryBus_MiddlewareOrder_FirstAddedIsOutermost(t *testing.T) {
+	t.Parallel()
+
+	bus := command.NewMemoryBus()
+	ctx := context.Background()
+
+	var order []string
+
+	trace := func(name string) command.Middleware {
+		return func(next command.Handler) command.Handler {
+			return func(ctx context.Context, cmd command.Command) error {
+				order = append(order, name+"-before")
+				err := next(ctx, cmd)
+				order = append(order, name+"-after")
+
+				return err
+			}
+		}
+	}
+
+	if err := bus.Use(trace("first")); err != nil {
+		t.Fatalf("Use(first): %v", err)
+	}
+	if err := bus.Use(trace("last")); err != nil {
+		t.Fatalf("Use(last): %v", err)
+	}
+	if err := bus.Subscribe("test.cmd", func(_ context.Context, _ command.Command) error {
+		order = append(order, "handler")
+
+		return nil
+	}); err != nil {
+		t.Fatalf("Subscribe: %v", err)
+	}
+
+	cmd, _ := command.New("test.cmd", id.NewStreamID())
+	if err := bus.Publish(ctx, cmd); err != nil {
+		t.Fatalf("Publish: %v", err)
+	}
+
+	want := []string{"first-before", "last-before", "handler", "last-after", "first-after"}
+	if len(order) != len(want) {
+		t.Fatalf("order: got %v, want %v", order, want)
+	}
+	for i := range want {
+		if order[i] != want[i] {
+			t.Fatalf("order[%d]: got %q, want %q (full: %v)", i, order[i], want[i], order)
+		}
+	}
+}
+
 func TestMemoryBus_NilHandler(t *testing.T) {
 	t.Parallel()
 
