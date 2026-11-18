@@ -1,8 +1,52 @@
 # SUPERB plan — cqrs-lint truth fixes + idempotency debt retirement
 
 **Date:** 2026-11-17 13:33 CET
-**Status:** PROPOSED — Phase 1/2 are repo-local and ready to execute; Phase 3 is gated on owner decisions (D1–D3)
+**Status (as written 2026-11-17):** PROPOSED — Phase 1/2 are repo-local and ready to execute; Phase 3 is gated on owner decisions (D1–D3)
 **Trigger:** session review of `idempotency` / `idempotency/sqlstore` usage, which exposed three cqrs-lint detection defects and one doc-count lie. Everything below is derived from commands run in this session, not from memory.
+
+> ## Status banner — 2026-11-18
+>
+> **This plan is EXECUTED IN PART and SUPERSEDED as the working plan** by
+> [`2026-11-18_06-41_SUPERB-idempotency-fleet-repair-and-linter-follow-through.md`](2026-11-18_06-41_SUPERB-idempotency-fleet-repair-and-linter-follow-through.md).
+> Its design intent below is unchanged and remains readable as written; this banner and the
+> addendum in §0.1 are the only reconciliation.
+>
+> - **P1 (T1–T6) — SHIPPED.** Commits `006262476`, `a00ff3a06`, `34973524b`, `2bb70ab84`.
+> - **P2 — PARTIAL.** T7's existence tests landed; T8 and T9 are open (now C27 and C10).
+> - **P3 (T11–T17) — NOT STARTED.** D1 was granted 2026-11-18; the work is re-cut into C13/C15–C26.
+> - **P4 — PARTIAL.** T20's status report landed; CHANGELOG and postmortem are now C3 and C4.
+> - **D1–D3 — ANSWERED / SUPERSEDED.** D1 granted (fleet edits authorized). The blank D2/D3 rows
+>   in §8 are replaced by the named decisions **D28** (parent-shim swap timing) and **D29**
+>   (dedup durability default) on `TODO_LIST.md`'s owner decision sheet, because the bare labels
+>   were colliding with decision rows minted in later sessions.
+>
+> **Current truth for every task below lives in the successor plan's §5 micro-task tables.**
+> Do not execute T11–T20 from this document; the successor re-cut them with the survey evidence.
+
+### §0.1 Per-task addendum (2026-11-18)
+
+| Task | State | Evidence |
+|---|---|---|
+| T1 idempotency hint + regression test | **DONE** | `cmd/cqrs-lint/v4/pkg/analyzer/module_catalog_data.go:135-147`; `module_detect_test.go` parent-only case; live scorecard flipped `missing`→`used` on games/SEC, InboxClean, github-local-sync |
+| T2 F030 deleted-module table + ordering | **DONE (as a registry)** | `cmd/cqrs-lint/v4/pkg/rules/adoption/f030.go` — 7 entries, longest-fragment match, `presentModuleFragments` guard so `idempotency/sqlstore` is never reported as the deleted parent; 7 fixtures |
+| T3 V007 `idempotency/sqlstore` entry | **DONE** | `cmd/cqrs-lint/v4/pkg/rules/version/v007_tables.go:36-41`; verified live on games/KeyCountdown `internal/container/packages/cqrs.go:55` |
+| T4 V007 signal hardening | **DONE** | `v007_drift_scan_test.go` — `no v5 successor`, `adr-0158`, `adr-0167` phrases + 2 regression tests |
+| T5 artifact regen + suites | **PARTIAL** | `RULES.md` regenerated (2-line diff), full `cmd/cqrs-lint/v4` suite green, doc-check green, `check-canonical-facts.sh` green. **`#lint-scope` and `#verify` were never run** → successor task **C5** |
+| T6 doc-truth sweep | **DONE** | `docs/DOMAIN_LANGUAGE.md:345` 202→217; `references/modules.md` idempotency rows; `references/core.md:204` dedup routing |
+| T7 deleted-module registry drift gate | **PARTIAL** | Reverse direction shipped (`f030_internal_test.go`: `TestDeletedModuleRegistry_EntriesAreActuallyDeleted` asserts the module is really gone; `TestPresentModuleFragments_StillExist`). The FORWARD gate (every ADR-0128/0152 deletion has a row) is **C6** |
+| T8 doc-check module existence | **NOT STARTED** | → **C27** |
+| T9 gotchas + process rules | **NOT STARTED** | → **C10** |
+| T10 HARVEST | **DONE** | `8520f6c82` — 10 fleet rows, D28/D29, ROADMAP q23/q24 |
+| T11 parent import swap | **NOT STARTED** | Re-cut as **C15/C16** (four pure swaps) + **C18–C21** (store-changing apps) |
+| T12 sweeps | **NOT STARTED** | → **C24** |
+| T13 sqlstore migrations | **NOT STARTED** | → **C18/C19/C20**, gated on D28/D29 |
+| T14 Zlota44 port | **NOT STARTED** | → **C21** |
+| T15 Swetty cleanup | **NOT STARTED** | → **C16** |
+| T16 checkout + comment truth | **NOT STARTED** | → **C25** (checkout, D31) and **C22** (comments) |
+| T17 receipts | **NOT STARTED** | → **C13** (baseline before), **C17/C26** (after) |
+| T18 release | **NOT STARTED** | → **C12**, gated on D30 |
+| T19 full verify | **NOT STARTED** | → **C5** |
+| T20 CHANGELOG + postmortem | **PARTIAL** | Status report `docs/status/2026-11-17_22-38_…` landed; CHANGELOG → **C3**, postmortem → **C4** |
 
 ---
 
@@ -436,9 +480,17 @@ Sorted by impact, then effort, then customer value.
 
 ## 8. Owner decisions required
 
+> **Reconciled 2026-11-18:** all three are answered. D2 and D3 are re-minted as **D28** and **D29**
+> on `TODO_LIST.md`'s owner decision sheet (the bare D-numbers had drifted into collisions with
+> decisions minted in later sessions). Original wording is preserved below.
+
 - **D1 — foreign-repo authorization:** may I edit the 7 consumer repos (swaps, sweeps, Zlota44, Swetty, duplicate checkout), or should those stay as TODO rows owned by their projects? Blocks all of Phase 3.
+  **ANSWERED 2026-11-17: GRANTED** — fleet edits authorized (recorded in `TODO_LIST.md`).
 - **D2 — migration timing:** parent shim swap as a standalone mechanical sweep now, or bundled with the engine-backed dedup migration so each app is touched once? Changes T11 vs T13 ordering.
+  **SUPERSEDED → D28** (still open as of 2026-11-18).
 - **D3 — durability intent:** is restart-forgetting acceptable for the 5 memory-store dedup paths, or should dedup become durable-by-default? Determines whether T13 is a bug fix or a product change.
+  **SUPERSEDED → D29** (still open as of 2026-11-18); the survey evidence that D29 needs is
+  `docs/evidence/2026-11-17_idempotency-fleet-wiring-survey.md`.
 
 ---
 

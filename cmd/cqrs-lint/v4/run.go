@@ -23,6 +23,8 @@ var errAbortClean = errors.New("nothing to lint")
 
 var errStaleSuppressions = errors.New("stale or unknown suppression directive(s) found")
 
+var errInvalidScope = errors.New("invalid --scope (want workspace or module)")
+
 // buildContextForScope resolves the --scope flag. "workspace" (the default)
 // is the byte-identical historical behavior: discover EVERY nested module
 // under the lint path and analyze them together under the root config —
@@ -39,7 +41,7 @@ func buildContextForScope(scope, path string) (*analyzer.AnalysisContext, error)
 	case "module":
 		return analyzer.BuildContextForModule(path, os.Environ())
 	default:
-		return nil, fmt.Errorf("invalid --scope %q (want workspace or module)", scope)
+		return nil, fmt.Errorf("%w: %q", errInvalidScope, scope)
 	}
 }
 

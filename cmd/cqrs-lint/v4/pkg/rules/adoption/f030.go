@@ -31,9 +31,9 @@ type deletedModuleImport struct {
 //nolint:gochecknoglobals // static lookup table for deleted-module detection
 var deletedModuleImports = []deletedModuleImport{
 	{
-		fragment:    "go-cqrs-lite/transport/http",
-		removal: "the transport/* modules were removed 2026-10-17 (ADR-0127, delete-at-zero)",
-		adr:     "docs/adr/0127-deprecate-transport-modules.md",
+		fragment: "go-cqrs-lite/transport/http",
+		removal:  "the transport/* modules were removed 2026-10-17 (ADR-0127, delete-at-zero)",
+		adr:      "docs/adr/0127-deprecate-transport-modules.md",
 		replacement: "Serve SSE with github.com/larsartmann/go-sse (or metaengine.ServeSSE " +
 			"for read-model push), use the watermill/ bridge " +
 			"(NewEventPublisher/NewCommandPublisher) for broker fanout, or cqrs-htmx " +
@@ -103,9 +103,15 @@ func NewF030Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"F030-deleted-module-import",
 		func(_ context.Context) ([]finding.Finding, error) {
-			var out []finding.Finding
+			scopes := coachingScopes(ctx)
 
-			for _, sc := range coachingScopes(ctx) {
+			capacity := 0
+			for _, sc := range scopes {
+				capacity += len(sc.files)
+			}
+
+			out := make([]finding.Finding, 0, capacity)
+			for _, sc := range scopes {
 				out = append(out, deletedModuleFindings(ctx, sc.files)...)
 			}
 

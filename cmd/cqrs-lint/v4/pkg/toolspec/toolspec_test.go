@@ -394,7 +394,11 @@ func TestDetectRootModuleDoesNotSwallowNestedModules(t *testing.T) {
 	}
 
 	if n := countC003For(baseline, root); n != 2 {
-		t.Fatalf("two modules, one C003 site each — got %d (duplication = the root iteration swallowed the tree): %+v", n, baseline)
+		t.Fatalf(
+			"two modules, one C003 site each — got %d (duplication = the root iteration swallowed the tree): %+v",
+			n,
+			baseline,
+		)
 	}
 
 	rootConfig := `{"rules": {"disable": ["C003"]}}`
