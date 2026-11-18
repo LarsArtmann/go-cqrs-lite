@@ -20,8 +20,8 @@ subtle ways:
 ### Command dispatch
 
 ```go
-cmds.Use(middleware.CommandIdempotency(store, ttl, nil))   // 1. dedup before work
-cmds.Use(middleware.CommandRecovery())                       // 2. catch panics early
+cmds.Use(middleware.CommandRecovery())                       // 1. catch panics from everything below
+cmds.Use(middleware.CommandIdempotency(store, ttl, nil))     // 2. dedup ONCE, outside retries
 cmds.Use(middleware.CommandRetry(retryConfig))               // 3. retry transient failures
 cmds.Use(middleware.CommandCircuitBreaker(brkConfig))        // 4. stop cascading failures
 cmds.Use(bundle.Command()...)                                // 5. OTel tracing + metrics
@@ -59,8 +59,8 @@ qry.Use(middleware.QueryLogging(logger))                     // 4. log final out
 
 | Position  | Middleware             | Why here                                                                                                         |
 | --------- | ---------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| Outermost | Idempotency            | Reject duplicates before any other middleware runs. No point retrying or logging a duplicate.                    |
-| Early     | Recovery               | Catch panics from all middleware below. A panic in a retry loop or handler should never crash the process.       |
+| Outermost | Recovery               | Catch panics from ALL middleware below, including a broken idempotency store. A panic in a retry loop or handler must never crash the process. |
+| Second    | Idempotency            | Reject duplicates before anything does work, and — critically — OUTSIDE retry. Retry outside idempotency re-enters the dedup check on every attempt, so attempt 2 fails with `ErrDuplicate` and the retry is defeated by the dedup it wraps. |
 | Middle    | Retry / CircuitBreaker | Retry wraps the actual handler. CircuitBreaker opens after repeated failures, preventing retry storms.           |
 | Inner     | OTel Tracing           | The span should cover the handler execution, not the retry sleep loop. This gives accurate latency measurements. |
 | Innermost | Logging                | Log the final outcome (success or error) after all retries and circuit-breaker decisions.                        |
@@ -95,3 +95,14 @@ qry.Use(bundle.Query()...)
 - **Logging before retry** — logs every attempt, including retries that succeed. Noise.
 - **Recovery innermost** — misses panics from other middleware (e.g., a tracing bug).
 - **Verify before dedup** — wastes CPU verifying signatures on duplicate events that will be discarded.
+
+## Pinned by a test
+
+`command/v4/memory_bus_test.go::TestMemoryBus_MiddlewareOrder_FirstAddedIsOutermost` registers
+two middlewares and asserts the chain direction this guide relies on.
+
+That test exists because the claim was previously documented backwards: `command/v4/doc.go` and its
+v5 mirror `core/v5/command/doc.go` said "last added runs first". Both were corrected 2026-11-18,
+after a fleet survey found consumer wiring built on the inverted belief — `github-local-sync` used
+`Use(Recovery, Retry, Idempotency)`, putting retry outside dedup, so every retried command failed
+`ErrDuplicate` and the retry never ran.
