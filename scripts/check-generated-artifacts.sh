@@ -29,6 +29,11 @@
 # This is a sweep, not a CI gate: the composed #verify already carries the
 # per-artifact gates where they exist; this composes them for the pre-push
 # window, where staleness otherwise slips through as a green local run.
+#
+# Every leg_* function dispatches INDIRECTLY through the legs array
+# ("${entry#*:}"), which shellcheck cannot see — hence the file-wide
+# SC2329 silence; leg registration itself is proven by --self-test.
+# shellcheck disable=SC2329
 set -uo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
