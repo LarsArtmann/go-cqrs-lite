@@ -280,8 +280,8 @@ jobs:
           nix develop -c bash -c '
             set -e
             cd stack/duckdb/v4 && GOWORK=off CGO_ENABLED=1 go build ./...
-            cd ../../cmd/cqrs-bench/v4 && GOWORK=off CGO_ENABLED=1 go build ./...
-            cd ../../stack/duckdb/v4 && GOWORK=off CGO_ENABLED=1 go vet ./...
+            cd ../../../cmd/cqrs-bench/v4 && GOWORK=off CGO_ENABLED=1 go build ./...
+            cd ../../../stack/duckdb/v4 && GOWORK=off CGO_ENABLED=1 go vet ./...
           '
 
       # Infra retry-once (2026-09-25, CI tail (c)): the CGo/Dgraph legs die
@@ -446,7 +446,8 @@ jobs:
         run: |
           cd cmd/cqrs-lint/v4
           status=0
-          for ex in ../../example/*/; do
+          for ex in ../../../example/*/; do
+            [ -d "$ex" ] || { echo "::error::example glob matched nothing; check the relative path"; status=1; break; }
             echo "::group::Linting $ex"
             out=$(GOWORK=off go run . "$ex" 2>&1) || true
             echo "$out"
@@ -826,7 +827,7 @@ jobs:
           nix-shell -p go --run '
             cd cmd/cqrs-upgrade/v4 &&
             go build -o /tmp/cqrs-upgrade . &&
-            /tmp/cqrs-upgrade --dry-run --strict ../../example/getting-started
+            /tmp/cqrs-upgrade --dry-run --strict ../../../example/getting-started
           '
 
     timeout-minutes: 15
