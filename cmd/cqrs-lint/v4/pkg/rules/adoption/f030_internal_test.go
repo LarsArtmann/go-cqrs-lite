@@ -48,46 +48,75 @@ func moduleGoMods(root, rel string) []string {
 	return out
 }
 
-// TestDeletedModuleRegistry_EntriesAreActuallyDeleted is the reverse drift
-// gate: an entry whose module came back (a re-extraction, a revert of the
-// ADR-0128 sweep) would make F030 lie about the repo. It also pins that every
-// cited ADR exists, so the migration pointer never rots.
-func TestDeletedModuleRegistry_EntriesAreActuallyDeleted(t *testing.T) {
+// TestModulePresenceRegistry_StateMatchesSource is the bidirectional drift gate
+// over the single registry:
+//
+//   - FORWARD: an entry claiming moduleDeleted must have no go.mod at HEAD. If
+//     a deleted module comes back (a re-extraction, a revert of the ADR-0128
+//     sweep), F030 would lie about the repo, and consumers would be coached off
+//     a module that is alive.
+//   - REVERSE: an entry claiming modulePresent must have a go.mod at HEAD. A
+//     present-module guard that outlives its module silently masks the deleted
+//     ancestor's finding.
+//
+// It also pins that every cited ADR and every replacement string exists, so the
+// migration pointer never rots into a dead reference.
+func TestModulePresenceRegistry_StateMatchesSource(t *testing.T) {
 	t.Parallel()
 
 	root := repoRootForF030(t)
 
-	for _, dep := range deletedModuleImports {
-		// A module is deleted when its go.mod is gone. The DIRECTORY may
-		// survive: go-cqrs-lite/idempotency/ still exists because its
-		// sqlstore submodule lives under it.
-		rel := strings.TrimPrefix(dep.fragment, "go-cqrs-lite/")
+	for _, entry := range modulePresenceRegistry {
+		// A module's directory may survive deletion: go-cqrs-lite/idempotency/
+		// still exists because its sqlstore submodule lives under it. Presence
+		// is a go.mod question, never a directory question.
+		rel := strings.TrimPrefix(entry.fragment, "go-cqrs-lite/")
+		found := moduleGoMods(root, rel)
 
-		if found := moduleGoMods(root, rel); len(found) > 0 {
-			t.Errorf("%s is listed as deleted but %v exists at HEAD", dep.fragment, found)
+		switch entry.state {
+		case moduleDeleted:
+			if len(found) > 0 {
+				t.Errorf("%s is registered as deleted but %v exists at HEAD",
+					entry.fragment, found)
+			}
+		case modulePresent:
+			if len(found) == 0 {
+				t.Errorf("%s is registered as present but has no go.mod at HEAD",
+					entry.fragment)
+			}
+		default:
+			t.Errorf("%s has unknown presence state %d", entry.fragment, entry.state)
 		}
 
-		adrPath := filepath.Join(root, dep.adr)
-		if _, err := os.Stat(adrPath); err != nil {
-			t.Errorf("%s cites missing ADR %s", dep.fragment, dep.adr)
+		if entry.removal == "" || entry.replacement == "" {
+			t.Errorf("%s needs both removal and replacement text", entry.fragment)
+		}
+
+		if _, err := os.Stat(filepath.Join(root, entry.adr)); err != nil {
+			t.Errorf("%s cites missing ADR %s", entry.fragment, entry.adr)
 		}
 	}
 }
 
-// TestPresentModuleFragments_StillExist keeps the suppression list honest: a
-// present-module guard that outlives its module would silently mask a deleted
-// ancestor's finding.
-func TestPresentModuleFragments_StillExist(t *testing.T) {
+// TestModulePresenceRegistry_NoDuplicateFragments fails on a repeated
+// fragment: longest-match can only rank DIFFERENT lengths, so a duplicate row
+// with a different state would resolve arbitrarily depending on table order.
+// (A shorter prefix row is legitimate and stays: it is the unique winner for
+// the bare ancestor import.)
+func TestModulePresenceRegistry_NoDuplicateFragments(t *testing.T) {
 	t.Parallel()
 
-	root := repoRootForF030(t)
+	seen := make(map[string]modulePresence, len(modulePresenceRegistry))
 
-	for _, fragment := range presentModuleFragments {
-		rel := strings.TrimPrefix(fragment, "go-cqrs-lite/")
+	for _, entry := range modulePresenceRegistry {
+		if prev, dup := seen[entry.fragment]; dup {
+			t.Errorf("%s is registered twice (states %v and %v)",
+				entry.fragment, prev, entry.state)
 
-		if found := moduleGoMods(root, rel); len(found) == 0 {
-			t.Errorf("present-module guard %s has no go.mod at HEAD", fragment)
+			continue
 		}
+
+		seen[entry.fragment] = entry.state
 	}
 }
 
@@ -129,32 +158,46 @@ func TestFragmentMatchesImport(t *testing.T) {
 	}
 }
 
-// TestLongestDeletedModuleMatch pins specific-first resolution: a path that
-// matches both a deleted ancestor and a more specific deleted module resolves
-// to the specific one, and a still-present submodule suppresses the ancestor.
-func TestLongestDeletedModuleMatch(t *testing.T) {
+// TestResolveModulePresence pins specific-first resolution across BOTH states:
+// a path matching a deleted ancestor and a more specific row resolves to the
+// specific one, and a still-present submodule resolves to itself rather than to
+// the deleted ancestor above it.
+func TestResolveModulePresence(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
 		path     string
 		wantFrag string
+		wantSt   modulePresence
 		wantOK   bool
 	}{
 		{
 			"github.com/larsartmann/go-cqrs-lite/idempotency/kvstore/v4",
 			"go-cqrs-lite/idempotency/kvstore",
+			moduleDeleted,
 			true,
 		},
-		{"github.com/larsartmann/go-cqrs-lite/idempotency/v4", "go-cqrs-lite/idempotency", true},
-		{"github.com/larsartmann/go-cqrs-lite/idempotency/sqlstore/v4", "", false},
-		{"github.com/larsartmann/go-idempotency", "", false},
+		{
+			"github.com/larsartmann/go-cqrs-lite/idempotency/v4",
+			"go-cqrs-lite/idempotency",
+			moduleDeleted,
+			true,
+		},
+		{
+			"github.com/larsartmann/go-cqrs-lite/idempotency/sqlstore/v4",
+			"go-cqrs-lite/idempotency/sqlstore",
+			modulePresent,
+			true,
+		},
+		{"github.com/larsartmann/go-idempotency", "", modulePresent, false},
+		{"github.com/larsartmann/go-cqrs-lite/event/v4", "", modulePresent, false},
 	}
 
 	for _, tt := range tests {
-		got, ok := longestDeletedModuleMatch(tt.path)
-		if ok != tt.wantOK || got.fragment != tt.wantFrag {
-			t.Errorf("longestDeletedModuleMatch(%q) = (%q, %v), want (%q, %v)",
-				tt.path, got.fragment, ok, tt.wantFrag, tt.wantOK)
+		got, ok := resolveModulePresence(tt.path)
+		if ok != tt.wantOK || got.fragment != tt.wantFrag || got.state != tt.wantSt {
+			t.Errorf("resolveModulePresence(%q) = (%q, %v, %v), want (%q, %v, %v)",
+				tt.path, got.fragment, got.state, ok, tt.wantFrag, tt.wantSt, tt.wantOK)
 		}
 	}
 }
