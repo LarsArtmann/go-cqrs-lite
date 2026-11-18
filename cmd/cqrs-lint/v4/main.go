@@ -105,12 +105,12 @@ var errFindingsWithErrors = errors.New("findings with error severity")
 type AppConfig struct {
 	cmdguard.Config
 
-	Path          string `default:"."    flag:"path"           help:"Path to lint"`
-	Scope         string `default:"workspace" flag:"scope"      help:"Module discovery: workspace (default — nested modules walked too, monorepo-root union semantics) or module (ONLY the module at --path: its packages, its config + ancestors)" local:"true"`
-	Format        string `default:"text" flag:"format"         help:"Output format: text, json, sarif, markdown, csv, tsv (per-command subsets)" short:"o"`
-	MinSeverity   string `default:"info" flag:"min-severity"   help:"Minimum severity"`
-	MinConfidence string `default:"low"  flag:"min-confidence" help:"Minimum confidence: none|low|medium|high|full or decimal; keeps >= floor"`
-	Color         string `default:"auto" flag:"color"          help:"Colored output: auto,always,never"`
+	Path          string `default:"."         flag:"path"           help:"Path to lint"`
+	Scope         string `default:"workspace" flag:"scope"          help:"Module discovery: workspace (default — nested modules walked too, monorepo-root union semantics) or module (ONLY the module at --path: its packages, its config + ancestors)" local:"true"`
+	Format        string `default:"text"      flag:"format"         help:"Output format: text, json, sarif, markdown, csv, tsv (per-command subsets)"                                                                                                                short:"o"`
+	MinSeverity   string `default:"info"      flag:"min-severity"   help:"Minimum severity"`
+	MinConfidence string `default:"low"       flag:"min-confidence" help:"Minimum confidence: none|low|medium|high|full or decimal; keeps >= floor"`
+	Color         string `default:"auto"      flag:"color"          help:"Colored output: auto,always,never"`
 
 	Fix                     bool   `default:"false" flag:"fix"                        help:"Apply auto-fixes"                                                                                             local:"true"`
 	DryRun                  bool   `default:"false" flag:"dry-run"                    help:"Show fixes without applying"                                                                                  local:"true"`
