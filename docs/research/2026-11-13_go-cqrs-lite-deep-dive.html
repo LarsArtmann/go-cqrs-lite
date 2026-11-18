@@ -1161,6 +1161,27 @@
               clean rebuild if the pin ever disappears upstream.
             </p>
             <div class="callout callout-teal">
+              <strong>Correction &mdash; 2026-11-18</strong>
+              The count above (10) over-counts: it counted go.mod files, and two
+              of them are the same project (<em>DiscordSync</em> and its
+              <em>discordsync</em> twin) while <em>browser-history</em>
+              contributes two modules (api + cmd). The verified number is
+              <strong>7 consuming modules / 17 files</strong>; the pins are all
+              frozen <em>v4.4.0</em>. Two further corrections: the migration
+              target for a pure import swap is
+              <code>github.com/larsartmann/go-idempotency</code> (MVS already
+              resolves v0.3.2 in every consumer) &mdash; not
+              <code>metaengine.DedupStore</code>, which is the target only when
+              durability is also wanted; and these builds do not &ldquo;break on
+              a clean rebuild&rdquo;, they keep resolving indefinitely because
+              the proxy serves deleted tags forever, which is precisely why the
+              dependency is easy to forget. Evidence:
+              <a href="../evidence/2026-11-17_idempotency-fleet-wiring-survey.md"
+                >the fleet wiring survey</a
+              >.
+            </div>
+
+            <div class="callout callout-teal">
               <strong>Fix: one migration sweep, tool-assisted</strong>
               Sweep the 10 stale idempotency/v4 requires to
               metaengine.DedupStore, run cqrs-upgrade per legacy repo to
