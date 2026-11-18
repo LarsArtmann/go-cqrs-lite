@@ -87,3 +87,22 @@ satellite backends predate the universal-storage-substrate rule.
   there can be fixed or re-released. Consumers migrate by swapping the import to
   `github.com/larsartmann/go-idempotency` (MVS already resolves v0.3.2 in every consumer).
   This strengthens the retirement decision: the parent is not a live surface either.
+
+### Addendum (2026-11-18): the consumer wiring behind those counts
+
+The counts above say who imports what; they do not say what each consumer's dedup actually DOES. That gap
+is now recorded in
+[`docs/evidence/2026-11-17_idempotency-fleet-wiring-survey.md`](../evidence/2026-11-17_idempotency-fleet-wiring-survey.md)
+— per-checkout store, TTL, sweeper presence, restart survival, middleware order, and the exact swap file
+list for all ten checkouts. Three findings there change how this ADR should be read:
+
+- **The retirement is now linter-enforced, not merely documented.** F030 reports imports of the deleted
+  parent and `kvstore`; V007 reports `idempotency/sqlstore` and names this ADR's replacement. A consumer
+  that never reads this ADR still gets the advice.
+- **The replacement is not automatically a durability upgrade.** `metaengine.DedupStore` is durable where
+  the engine is; several checkouts dedup in memory and forget every key on restart. Swapping the store
+  without deciding retention can make the dedup keys OUTLIVE (or fall short of) the state they protect,
+  and both directions are bugs.
+- **A consumer can be on the right side of this ADR and still be wrong.** SwettySwipperWeb already uses
+  `metaengine.DedupStore` and never calls `DedupSweep`, so its collection grows without bound. The
+  retirement path owes a retention step, not only an import swap.

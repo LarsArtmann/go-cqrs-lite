@@ -43,3 +43,23 @@ Semantic deltas consumers must review (documented on the capability): `CheckAndR
 - `(*system.System).Dedup()` pinned by unit tests (named-engine preference, fallback, no-capability error).
 - `adttest.AssertDedupStore` remains the cross-engine semantic pin.
 - v5 deletion: ADR-0123 cascade, slice tracking in the v5 plan (M09/M10 sequence).
+
+## Addendum (2026-11-18): deprecation is now enforced, and retention is the caller's job
+
+Two things this decision assumed have since been made mechanical, and one gap it left is now named:
+
+- **The retirement is linter-covered.** `cqrs-lint` V007 carries an `idempotency/sqlstore` table entry whose
+  replacement text points at the `system`-exposed facade over `metaengine.DedupStore` (this ADR's mapping
+  table), so a consumer still importing the satellite is coached without reading this document. F030
+  separately reports the two already-deleted siblings (the `idempotency` parent and `idempotency/kvstore`).
+  The drift scanner behind V007 now recognizes this ADR's own vocabulary ("No v5 successor", ADR-0158,
+  ADR-0167), so a future deprecation written the same way cannot be silently invisible.
+- **`DedupSweep` is explicit, so retention is the caller's obligation.** No engine expires dedup keys on its
+  own schedule; a deployment that calls `DedupCheckAndRecord` forever without ever calling `DedupSweep`
+  grows the collection without bound. The 2026-11-18 fleet survey found four checkouts in that state —
+  including one that had already completed the migration this ADR asks for — evidence that the mapping
+  table's `Sweep → DedupSweep` row is a required wiring step, not bookkeeping.
+- **Durability is a deployment decision this ADR does not make.** `DedupStore` is as durable as its engine;
+  a consumer moving off a `MemoryStore` must decide whether durable keys are correct for the state they
+  protect (a persistent journal wants durable keys; a replay-on-restart design may not). Per-app evidence:
+  [`docs/evidence/2026-11-17_idempotency-fleet-wiring-survey.md`](../evidence/2026-11-17_idempotency-fleet-wiring-survey.md).

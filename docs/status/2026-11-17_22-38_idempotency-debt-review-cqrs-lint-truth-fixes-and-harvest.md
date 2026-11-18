@@ -37,7 +37,7 @@ behind D2/D3 (as asked), and produced the D2/D3 analysis with per-app evidence g
 | a13 | **Verification receipts** — full `cmd/cqrs-lint/v4` suite green (`go test ./... -count=1`); `cmd/doc-check` "All 1391 references valid across 57 package(s)"; `check-canonical-facts.sh` green | run this session |
 | a14 | **My own canonical-facts drift fixed** — the 12-26 status report was missing from `docs/status/README.md`; row added, gate re-run green (`missing=0 dangling=0`) | `d185f80c6` |
 | a15 | **HARVEST done** — 10 fleet-repair rows (owning repo per row, gated where needed), D28/D29 on the owner decision sheet, D1 recorded as authorized, ROADMAP questions 23/24 | `8520f6c82` (61 insertions) |
-| a16 | **D2/D3 evidence base built** — 10-checkout survey: store type, TTL, sweeper presence, restart survival, middleware order, lying comments, per-repo swap file lists, indirect vs direct `go-idempotency` version | subagent report (see d7 — not persisted) |
+| a16 | **D2/D3 evidence base built** — 10-checkout survey: store type, TTL, sweeper presence, restart survival, middleware order, lying comments, per-repo swap file lists, indirect vs direct `go-idempotency` version | **PERSISTED** in [`docs/evidence/2026-11-17_idempotency-fleet-wiring-survey.md`](../evidence/2026-11-17_idempotency-fleet-wiring-survey.md) (its §7 records the six claims that pass corrected) |
 
 **Rule-count integrity:** `RULES.md` anchors = 217; `meta_test.go` pin = 217; cqrs-lint README = 217; DOMAIN_LANGUAGE = 217.
 No rule IDs were added, removed, or renumbered.
