@@ -4,6 +4,18 @@
 > Modules marked deprecated below (and every `stack/*` preset) are
 > legacy/migration-only and are removed in v5.
 
+> **Row convention (2026-11-18).** Three states, three spellings, so a reader never has to
+> guess whether an import will resolve or whether the code behind it still exists:
+>
+> - **live** — the Import column is the module path and the one-liner describes it.
+> - **DEPRECATED** — the source exists, the row says `**DEPRECATED (ADR-xxxx, deleted vN)**` and
+>   names the replacement. Importing it works today and stops working at the stated version.
+> - **`_(deleted)_`** — the source is GONE at HEAD (check: `git log --diff-filter=D --
+>   <module>/go.mod`), the row says **DELETED** with the date, and it states that pinned v4 tags
+>   still proxy-resolve. A deleted module is NOT importable in any meaningful sense: the tag
+>   compiles because the proxy serves a frozen zip, while nothing can be fixed or re-released
+>   there. Never infer "present" from a resolvable tag.
+
 ### Core (Layer 0–3)
 
 | Module             | Import                                                                                       | One-liner                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |

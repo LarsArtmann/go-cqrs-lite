@@ -1657,6 +1657,16 @@
               ${pkgs.bash}/bin/bash "$PWD/scripts/load-sweep.sh" "$@"
             '';
 
+            # can-run-composed-gate: one-shot (or --wait-loop) precondition assert
+            # for the composed #verify / integration tiers — load ceiling, no
+            # release procs in flight, tree stable. The retry recipe printed by
+            # scripts/verify-load-guard.sh names this app, so it must exist.
+            can-run-composed-gate =
+              mkApp "can-run-composed-gate" [ pkgs.bash pkgs.coreutils pkgs.git pkgs.procps ]
+                ''
+                  ${pkgs.bash}/bin/bash "$PWD/scripts/can-run-composed-gate.sh" "$@"
+                '';
+
             # quiet-window-run: wait for a load1/load5 quiet window, then run
             # a load-sensitive command with a bounded retry budget (e.g. the
             # benchmark gate, calibration campaigns). Self-test: --self-test.

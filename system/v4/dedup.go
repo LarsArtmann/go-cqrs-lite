@@ -17,6 +17,19 @@ import (
 // The resolution mirrors checkpointEngine() (named-else-first with runtime
 // assertion); the error names the engines inspected so a missing capability
 // is a deployment-declaration fix, not a mystery.
+//
+// RETENTION IS THE CALLER'S OBLIGATION. Every engine expires dedup records
+// lazily (an expired key reads as unseen), but nothing deletes them on a
+// schedule: a deployment that calls DedupCheckAndRecord forever without ever
+// calling DedupSweep grows the collection without bound. Schedule
+//
+//	removed, err := dedup.DedupSweep(ctx, "command_dedup", time.Now())
+//
+// on a ticker sized to the write rate and the TTL (a 10m TTL swept hourly
+// keeps at most an hour of dead rows; a 24h TTL swept daily keeps a day),
+// and stop the ticker with the system's lifecycle. The 2026-11-18 fleet
+// survey found four of ten consumers growing an unswept dedup collection,
+// one of them after completing the migration this method exists to serve.
 func (s *System) Dedup() (metaengine.DedupStore, error) {
 	var engine metaengine.Engine
 

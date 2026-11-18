@@ -3065,6 +3065,35 @@ func dedupOnCommandID(sys *system.System) command.Middleware {
 // same command dispatched twice emits its event exactly once.
 ```
 
+**Retention is a separate wiring step.** A dedup key expires logically the moment its TTL passes (an
+expired key reads as unseen and may be re-claimed), but nothing deletes it: the record stays in the
+collection until `DedupSweep` removes it. An app that calls `DedupCheckAndRecord` forever without ever
+calling `DedupSweep` grows without bound — the 2026-11-18 fleet survey found four of ten consumers in
+exactly that state, one of them after completing this migration. Size the sweep to the write rate and the
+TTL (a 10m TTL swept hourly keeps at most an hour of dead rows), run it on the same lifecycle that owns
+the system, and log the removed count so a silent zero is visible (fragment — `ctx`, `slog` and
+`dedupStore` come from the surrounding app):
+
+```text
+go func() {
+    ticker := time.NewTicker(time.Hour)
+    defer ticker.Stop()
+
+    for {
+        select {
+        case <-ctx.Done():
+            return
+        case now := <-ticker.C:
+            if removed, err := dedupStore.DedupSweep(ctx, "commands", now); err != nil {
+                slog.WarnContext(ctx, "dedup sweep failed", "err", err)
+            } else if removed > 0 {
+                slog.DebugContext(ctx, "dedup sweep", "removed", removed)
+            }
+        }
+    }
+}()
+```
+
 ### 2.44 Graph-Native Read Models — Edge folds, traversal, retraction (system + metaengine)
 
 Relations as domain events, traversals as queries: fold `user.followed` into
