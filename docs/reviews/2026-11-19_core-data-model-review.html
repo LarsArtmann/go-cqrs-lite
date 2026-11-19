@@ -1,0 +1,1889 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>The Core Data Model, Audited — go-cqrs-lite</title>
+    <style>
+      /* =========================================================================
+         BAUHAUS LIGHT — Editorial template
+         Design language: form follows function. Primary colors on warm paper.
+         Zero external dependencies: system fonts, no CDN, no build step.
+         Token architecture: see references/bauhaus-tokens.md
+         ========================================================================= */
+
+      :root {
+        /* --- Primitive palette (Bauhaus Light) --- */
+        --color-paper: #f4f4f0;
+        --color-paper-2: #ffffff;
+        --color-paper-3: #e8e8e2;
+        --color-ink: #111111;
+        --color-red: #e63946;
+        --color-blue: #1d3557;
+        --color-yellow: #f4d35e;
+        --color-hairline: rgba(17, 17, 17, 0.14);
+        --color-hairline-strong: rgba(17, 17, 17, 0.3);
+
+        /* --- Semantic layer (shared vocabulary with dark template) --- */
+        --surface: var(--color-paper);
+        --surface-raised: var(--color-paper-2);
+        --surface-sunken: var(--color-paper-3);
+        --text: var(--color-ink);
+        --text-muted: rgba(17, 17, 17, 0.72);
+        --text-faint: rgba(17, 17, 17, 0.5);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-red);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        /* --- Backward-compatible aliases (do not break consumer skills) --- */
+        --bg: var(--surface);
+        --bg-elevated: var(--surface-raised);
+        --bg-sunken: var(--surface-sunken);
+        --bg-card: var(--surface-raised);
+        --bg-code: var(--surface-sunken);
+        --ink: var(--text);
+        --ink-secondary: var(--text-muted);
+        --ink-muted: var(--text-faint);
+        --rose: var(--problem);
+        --rose-glow: color-mix(in srgb, var(--problem) 15%, transparent);
+        --emerald: var(--solution);
+        --emerald-glow: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber: var(--warning);
+        --amber-glow: color-mix(in srgb, var(--warning) 15%, transparent);
+        --amber-light: color-mix(in srgb, var(--warning) 22%, transparent);
+        --coral: var(--problem);
+        --coral-light: color-mix(in srgb, var(--problem) 12%, transparent);
+        --teal: var(--solution);
+        --teal-light: color-mix(in srgb, var(--solution) 12%, transparent);
+
+        /* --- Shape --- */
+        --radius: 0px;
+        --radius-sm: 0px;
+
+        /* --- Type stacks (system only — zero external fonts) --- */
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 16px;
+        line-height: 1.65;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* --- Accessibility: keyboard focus --- */
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      a:focus-visible {
+        outline-offset: -1px;
+      }
+
+      /* --- Full-bleed top bar --- */
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      /* --- Layout: optional sticky sidebar TOC --- */
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--text);
+      }
+      .sidebar a {
+        font-size: 0.86rem;
+        color: var(--text);
+        text-decoration: none;
+        padding: 0.5rem 0.75rem;
+        border-left: 4px solid transparent;
+        font-weight: 600;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+        color: var(--accent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      /* --- Headings --- */
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        color: var(--text);
+      }
+      h1 {
+        font-size: clamp(1.9rem, 4.5vw, 2.8rem);
+        line-height: 1.05;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.5rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 3px solid var(--text);
+        display: flex;
+        align-items: baseline;
+        gap: 0.7rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+      h3 {
+        font-size: 1.15rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 1rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+
+      /* --- Hero --- */
+      .hero {
+        padding: 1.5rem 0 2rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 3px solid var(--text);
+      }
+      .eyebrow {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: var(--accent);
+        margin-bottom: 0.9rem;
+      }
+      .subtitle {
+        font-size: 1.1rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0 0 1rem;
+      }
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      .tag {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        padding: 0.25rem 0.6rem;
+        background: var(--surface-sunken);
+        color: var(--text);
+        border: 1px solid var(--border-strong);
+      }
+      .tag.amber {
+        background: var(--warning);
+        border-color: var(--warning);
+        color: var(--text);
+      }
+      .tag.teal {
+        background: var(--solution);
+        border-color: var(--solution);
+        color: var(--surface);
+      }
+
+      /* Bauhaus signature: geometric shape cluster (optional) */
+      .hero-shapes {
+        position: relative;
+        height: 90px;
+        margin-bottom: 1.2rem;
+      }
+      .hero-shapes .circle {
+        position: absolute;
+        top: 0;
+        right: 180px;
+        width: 64px;
+        height: 64px;
+        background: var(--problem);
+        border-radius: 50%;
+      }
+      .hero-shapes .square {
+        position: absolute;
+        top: 26px;
+        right: 90px;
+        width: 56px;
+        height: 56px;
+        background: var(--solution);
+      }
+      .hero-shapes .tri {
+        position: absolute;
+        top: 8px;
+        right: 0;
+        width: 0;
+        height: 0;
+        border-left: 32px solid transparent;
+        border-right: 32px solid transparent;
+        border-bottom: 56px solid var(--warning);
+      }
+      .hero-shapes .bar {
+        position: absolute;
+        bottom: 0;
+        right: 230px;
+        width: 100px;
+        height: 14px;
+        background: var(--text);
+      }
+
+      /* --- Scorecard / stat cards --- */
+      .scorecard,
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 0;
+        margin: 1.5rem 0 2rem;
+        border: 3px solid var(--text);
+      }
+      .score-card,
+      .stat-card {
+        padding: 1.3rem 1rem;
+        text-align: center;
+        border-right: 3px solid var(--text);
+        background: var(--surface-raised);
+      }
+      .score-card:last-child,
+      .stat-card:last-child {
+        border-right: none;
+      }
+
+      .score,
+      .stat-value {
+        font-family: var(--font-heading);
+        font-size: 2.6rem;
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -0.04em;
+      }
+      .score-card .label,
+      .stat-label {
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        margin-top: 0.5rem;
+      }
+      /* Semantic state classes — no nth-child decoration, no !important */
+      .score-good,
+      .stat-good {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .score-warn,
+      .stat-warn {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .score-bad,
+      .stat-bad {
+        background: var(--problem);
+        color: var(--surface);
+      }
+
+      /* --- General cards --- */
+      .card {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+      }
+
+      /* --- Issue cards --- */
+      .issue {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* --- Severity badges --- */
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.22rem 0.6rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+
+      /* --- Inline badges --- */
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        border: 1px solid var(--text);
+        color: var(--text);
+      }
+      .badge-critical {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .badge-high {
+        background: var(--warning);
+      }
+      .badge-medium {
+        background: var(--surface-sunken);
+      }
+      .badge-low {
+        background: var(--surface-raised);
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        background: var(--solution);
+        color: var(--surface);
+      }
+
+      /* --- Callouts --- */
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.8rem 1rem;
+        border: 1px solid var(--border-strong);
+        border-left: 4px solid var(--border-strong);
+        background: var(--surface-sunken);
+        font-size: 0.92rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-teal,
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 10%,
+          var(--surface-raised)
+        );
+      }
+      .callout-amber,
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 18%,
+          var(--surface-raised)
+        );
+      }
+
+      /* --- Strengths --- */
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.9rem;
+        padding: 0.75rem 0;
+        border-bottom: 2px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        color: var(--solution);
+        font-size: 1.3rem;
+        line-height: 1.3;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.92rem;
+      }
+
+      /* --- Tables --- */
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.92rem;
+        border: 2px solid var(--text);
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--text);
+        color: var(--surface);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-right: 1px solid var(--border-strong);
+      }
+      th:last-child {
+        border-right: none;
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-top: 1px solid var(--border);
+        border-right: 1px solid var(--border);
+      }
+      td:last-child {
+        border-right: none;
+      }
+      tr:nth-child(even) td {
+        background: var(--surface-sunken);
+      }
+      table.compare td.yes {
+        color: var(--solution);
+        font-weight: 700;
+      }
+      table.compare td.no {
+        color: var(--problem);
+        font-weight: 700;
+      }
+
+      /* --- Code blocks + syntax highlighting --- */
+      pre {
+        background: var(--text);
+        color: var(--surface);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+        border: 2px solid var(--text);
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      p code,
+      li code,
+      td code {
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+      }
+      .tok-keyword {
+        color: var(--warning);
+      }
+      .tok-type {
+        color: var(--warning);
+      }
+      .tok-string {
+        color: #95e1d3;
+      }
+      .tok-comment {
+        color: rgba(244, 244, 240, 0.45);
+        font-style: italic;
+      }
+      .tok-func {
+        color: #6eb5ff;
+      }
+      .tok-number {
+        color: var(--warning);
+      }
+      .tok-generic {
+        color: var(--problem);
+      }
+      .tok-builtin {
+        color: #6eb5ff;
+      }
+      .tok-punct {
+        color: rgba(244, 244, 240, 0.7);
+      }
+      .tok-attr {
+        color: var(--warning);
+      }
+
+      /* --- Dependency tree / ASCII diagrams --- */
+      .dep-tree {
+        background: var(--surface-sunken);
+        border: 2px solid var(--text);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.7;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .dep-tree .root {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .dep-tree .ok {
+        color: var(--solution);
+      }
+      .dep-tree .unwanted {
+        color: var(--problem);
+      }
+
+      /* --- Inline node-and-arrow diagrams --- */
+      .diagram {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+      }
+      .node {
+        display: inline-block;
+        padding: 0.4rem 0.75rem;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        font-weight: 700;
+        background: var(--surface-sunken);
+        border: 1px solid var(--text);
+      }
+      .node-core {
+        background: var(--accent);
+        color: var(--surface);
+      }
+      .node-problem {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .node-good {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .arrow {
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Grids --- */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      /* --- Inline TOC --- */
+      .toc {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+        padding: 1rem 1.3rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .toc h3 {
+        margin-bottom: 0.5rem;
+      }
+      .toc ul {
+        list-style: none;
+        padding: 0;
+      }
+      .toc li {
+        margin: 0.25rem 0;
+      }
+      .toc a {
+        color: var(--text);
+        text-decoration: none;
+        font-size: 0.92rem;
+        font-weight: 600;
+      }
+      .toc a:hover {
+        color: var(--accent);
+      }
+
+      /* --- Migration / numbered steps --- */
+      .migration-step {
+        display: grid;
+        grid-template-columns: 56px 1fr;
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1.1rem;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+      }
+      .migration-num {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        font-size: 1.8rem;
+        color: var(--accent);
+        line-height: 1;
+      }
+      .migration-content h4 {
+        margin-bottom: 0.2rem;
+      }
+      .migration-content p {
+        margin-bottom: 0;
+        color: var(--text-muted);
+        font-size: 0.94rem;
+      }
+
+      /* --- Before/After comparison --- */
+      .compare-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin: 1rem 0 0.5rem;
+      }
+      .compare-before,
+      .compare-after {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0.4rem 0.7rem;
+        color: var(--surface);
+      }
+      .compare-before {
+        background: var(--problem);
+      }
+      .compare-after {
+        background: var(--solution);
+      }
+      .compare-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      .compare-row pre {
+        margin: 0;
+      }
+
+      /* --- Footer --- */
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 3px solid var(--text);
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Responsive --- */
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+        .compare-header,
+        .compare-row {
+          grid-template-columns: 1fr;
+        }
+        .scorecard,
+        .stat-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-right: none;
+        }
+        .score-card:nth-child(1),
+        .stat-card:nth-child(1),
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-bottom: 3px solid var(--text);
+        }
+        .migration-step {
+          grid-template-columns: 1fr;
+        }
+        .hero-shapes {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Full-bleed top bar (optional — remove for quieter reports) -->
+    <div class="top-bar">
+      <span>DATA-MODEL REVIEW</span>
+      <span>2026-11-19</span>
+      <span>record/ · id/ · event/ · command/ · query/ · metadata/ · core/v5</span>
+    </div>
+
+    <div class="layout">
+      <!-- Sidebar TOC (hidden below 1024px; use inline .toc if you prefer) -->
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#scorecard">Current state</a>
+          <a href="#summary">Summary</a>
+          <a href="#strengths">What's already excellent</a>
+          <a href="#findings">Problem catalog</a>
+          <a href="#vision">The vision</a>
+          <a href="#target-model">Target model</a>
+          <a href="#composition">Composition in action</a>
+          <a href="#validation">Validation layer</a>
+          <a href="#decision-log">Decision log</a>
+          <a href="#anti-patterns">Anti-patterns</a>
+          <a href="#roadmap">Migration roadmap</a>
+          <a href="#appendix">Appendix</a>
+        </nav>
+      </aside>
+
+      <!-- Main content -->
+      <main class="main">
+        <!-- Hero -->
+        <header class="hero">
+          <div class="hero-shapes">
+            <div class="bar"></div>
+            <div class="circle"></div>
+            <div class="square"></div>
+            <div class="tri"></div>
+          </div>
+          <div class="eyebrow">DATA-MODEL REVIEW &middot; 2026-11-19</div>
+          <h1>The Core Data Model, Audited</h1>
+          <p class="subtitle">
+            A first-principles review of the shared type system — record/, id/,
+            event/, command/, query/, metadata/ — and the core/v5 copy-forward
+            that is supposed to replace it. Companion to the 2026-10-17 on-disk
+            schema review: that report covered what we write to disk; this one
+            covers what the types admit.
+          </p>
+          <div class="meta">
+            <span class="tag amber">Scope: 6 v4 modules + core/v5 twin</span>
+            <span class="tag">HEAD 592b51a7d</span>
+            <span class="tag teal">Status: final</span>
+          </div>
+        </header>
+
+        <!-- Current state -->
+        <section id="scorecard" class="scorecard">
+          <div class="score-card score-bad">
+            <div class="score">2</div>
+            <div class="label">Critical</div>
+          </div>
+          <div class="score-card score-warn">
+            <div class="score">8</div>
+            <div class="label">High + medium</div>
+          </div>
+          <div class="score-card">
+            <div class="score">2</div>
+            <div class="label">Low</div>
+          </div>
+          <div class="score-card">
+            <div class="score">12</div>
+            <div class="label">Findings</div>
+          </div>
+        </section>
+
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="score">181</div>
+            <div class="stat-label">Type declarations audited (v4 core)</div>
+          </div>
+          <div class="stat-card">
+            <div class="score">60</div>
+            <div class="stat-label">Deprecated symbols in scope</div>
+          </div>
+          <div class="stat-card">
+            <div class="score">2</div>
+            <div class="stat-label">Parallel trains (v4 + core/v5)</div>
+          </div>
+          <div class="stat-card">
+            <div class="score">5</div>
+            <div class="stat-label">Structural issues with no deprecation trail</div>
+          </div>
+        </div>
+
+        <!-- Summary -->
+        <section id="summary">
+          <h2><span class="num">00</span>Summary</h2>
+          <p>
+            The core data model is in better shape than most organically grown
+            systems — a prior review already paid down the worst rot (the
+            Stamp, Cause, and Actor types carry its fingerprints). But the
+            model now lives in two places at once: the v4 train and the
+            core/v5 copy-forward. The copy-forward was supposed to be the
+            clean cut; instead it carried every deprecated dual-field across,
+            including the six CommonMetadata pairs whose comments say
+            “removed in v5” — inside the v5 module itself.
+          </p>
+          <p>
+            Twelve findings reduce to three systemic root causes. First,
+            <strong>zero-dependency was read as zero-types</strong>: the
+            record/ module cannot import id/, so Record.ID, Record.Type, and
+            Record.StreamType collapsed to raw strings — even though the
+            module defines record.Type and record.StreamRef and could use
+            them. Second, <strong>the dual-train transition optimizes for
+            compile-compat today and bills model clarity forever</strong>:
+            every metadata fact exists twice until a cut that has not been
+            executed where it matters. Third, <strong>boundary-conversion
+            discipline is uneven</strong>: actors and encodings cross layers
+            through named, single-purpose functions, while versions and
+            identities cross through scattered int64()/uint64() casts guarded
+            by #nosec comments.
+          </p>
+          <div class="callout callout-amber">
+            <strong>The bottom line</strong>
+            The v5 target is ~70% designed and the designed part is the best
+            code in the review. What remains: execute the deprecation cut
+            inside core/v5 while it still has zero fleet consumers, and make
+            the five decisions no deprecation trail currently covers — the
+            unbranded Record fields, the version sign split, the encoding
+            tri-conflation, the duplicate stream-identity fields, and the
+            fabricated query stream.
+          </div>
+        </section>
+
+        <!-- Strengths -->
+        <section id="strengths">
+          <h2><span class="num">&#9670;</span>What's already excellent</h2>
+          <p>
+            Honesty first: the hard problems were mostly solved once already.
+            The v5-direction types are textbook, and this review's job is to
+            finish their adoption, not to redesign them.
+          </p>
+
+          <div class="strengths">
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>record.Stamp — presence-explicit timestamps</strong>
+                <span
+                  >A zero time.Time can no longer masquerade as “recorded at
+                  epoch”. Unexported fields make inconsistent states
+                  unconstructible; the JSON round-trip preserves known-ness
+                  losslessly (record/v4/stamp.go:17).</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>record.Cause and record.Actor — discriminated unions done right</strong>
+                <span
+                  >Zero value = none; CauseUnknown and ActorUnknown are honest
+                  states, not errors; the kind is structural, no “kind:raw”
+                  parse tax (record/v4/cause.go:58, actor.go:60).</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>id/ phantom branding with a documented backing decision</strong>
+                <span
+                  >ULID-backing for system-minted IDs, string-backing for
+                  caller-chosen semantic keys (StreamID) — the rationale lives
+                  in the type doc, and it is correct (id/v4/stream_id.go:21).</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>metadata.Metadata[K] — one generic, module-local key brands</strong>
+                <span
+                  >command.MetadataKey can never collide with
+                  query.MetadataKey, and neither gains event-only fields. Clone,
+                  Merge, WithCustom inherited from one implementation
+                  (metadata/v4/metadata.go:72).</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Capability interfaces instead of interface growth</strong>
+                <span
+                  >MetadataCarrier / PayloadCarrier let middleware opt in via
+                  type assertion instead of breaking every hand-rolled
+                  Command (command/v4/capability.go:12) — the right way to
+                  defer breaking growth to a major cut.</span
+                >
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Defensive clones at every public accessor</strong>
+                <span
+                  >Payload() clones, Metadata() deep-copies, EventTypes()
+                  clones — with zero-copy internal paths
+                  (PayloadReadOnly) so honesty does not cost throughput.</span
+                >
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Findings / Problem Catalog -->
+        <section id="findings">
+          <h2><span class="num">01</span>Problem catalog</h2>
+          <p>
+            Twelve findings, ordered by impact. Each names the exact shape in
+            the source, why it matters, and the fix. Two are critical not
+            because the code is wrong today, but because the window to fix
+            them cheaply is open now and closing.
+          </p>
+
+          <!-- R1 -->
+          <div class="issue issue-critical" id="r1">
+            <span class="severity severity-critical">Critical &middot; Systemic</span>
+            <h3>R1 — The v5 train inherited its own death sentence</h3>
+            <div class="where">
+              core/v5/record/record.go:30-108 &middot; diff vs record/v4/record.go
+              is lint directives only
+            </div>
+            <p>
+              The ADR-0152 copy-forward duplicated the v4 modules into
+              core/v5 verbatim. That includes every field whose comment says
+              <em>“Deprecated: removed in v5”</em> — CausationID, ActorID,
+              ClientCreatedAt, ServerReceivedAt, ServerStoredAt, plus the
+              tombstone channel and the per-module ParseType re-exports. Sixty
+              deprecation markers live inside the module that was created to
+              end them. Every day the cut is deferred, new v5 code binds to
+              the deprecated shapes.
+            </p>
+            <pre><code><span class="tok-comment">// core/v5/record/record.go — inside the v5 module, today:</span>
+<span class="tok-keyword">type</span> <span class="tok-type">CommonMetadata</span> <span class="tok-keyword">struct</span> {
+    <span class="tok-comment">// Deprecated: removed in v5. Use Cause ...</span>
+    CausationID <span class="tok-type">string</span>   <span class="tok-comment">// ... still here, in v5</span>
+    Cause       <span class="tok-type">Cause</span>
+    <span class="tok-comment">// Deprecated: removed in v5. Use Actor ...</span>
+    ActorID     <span class="tok-type">string</span>   <span class="tok-comment">// ... still here, in v5</span>
+    Actor       <span class="tok-type">Actor</span>
+    <span class="tok-comment">// + four more deprecated/new pairs</span>
+}</code></pre>
+            <div class="callout callout-teal">
+              <strong>Fix: execute the cut inside core/v5, now</strong>
+              The fleet census shows zero production consumers of core/v5
+              modules — deleting the deprecated halves there breaks no one and
+              gets cheaper never again. Start with record/ (the root of the
+              type tree), then event/metadata/command/query. The v4 train
+              stays frozen as-is until fleet migration.
+            </div>
+          </div>
+
+          <!-- R2 -->
+          <div class="issue issue-critical" id="r2">
+            <span class="severity severity-critical">Critical &middot; Type safety</span>
+            <h3>R2 — The meeting point de-brands everything</h3>
+            <div class="where">
+              record/v4/record.go:125-148 &middot; Record.ID, Record.Type, Record.StreamType
+            </div>
+            <p>
+              Record is where events, commands, and queries become one shape
+              for the metaengine — the exact layer where cross-family
+              confusion is most dangerous. And it is precisely there that the
+              type system gives up: <code>ID string</code>, <code>Type string</code>,
+              <code>StreamType string</code>. The module's zero-dependency
+              constraint (ADR-0111) forbids importing id/ — but zero-dep was
+              misread as zero-types. The module already defines
+              <code>record.Type</code>, <code>record.StreamRef</code>, and
+              <code>record.Encoding</code>; Record.Type simply fails to use
+              the type sitting in the same file.
+            </p>
+            <pre><code><span class="tok-keyword">type</span> <span class="tok-type">Record</span> <span class="tok-keyword">struct</span> {
+    ID         <span class="tok-type">string</span>     <span class="tok-comment">// was id.EventID / CommandID / RequestID</span>
+    Type       <span class="tok-type">string</span>     <span class="tok-comment">// record.Type exists 20 lines up. Unused.</span>
+    StreamType <span class="tok-type">string</span>     <span class="tok-comment">// id.StreamType exists. Unusable here.</span>
+    <span class="tok-comment">// ...</span>
+}</code></pre>
+            <div class="callout callout-teal">
+              <strong>Fix: in-module brands</strong>
+              <code>Type Type</code> is a one-line fix. Add
+              <code>type InstanceID string</code> and
+              <code>type StreamType string</code> brands inside record/ —
+              zero-dep intact, compile-time distinction restored. ULID-ness
+              stays a minting concern in id/; Record only promises “an
+              identifier”, which a brand expresses honestly.
+            </div>
+          </div>
+
+          <!-- R3 -->
+          <div class="issue issue-important" id="r3">
+            <span class="severity severity-important">High &middot; Systemic</span>
+            <h3>R3 — The version sign split</h3>
+            <div class="where">
+              event/v4/types.go:100 vs record/v4/record.go:152 &middot; every AsRecord bridge
+            </div>
+            <p>
+              Stream position is 1-indexed and cannot be negative — the domain
+              says uint64 (<code>event.Version</code>). Record says int64.
+              Every bridge pays the toll: <code>int64(evt.Version())</code>
+              guarded by <code>#nosec G115</code>, and
+              <code>CheckVersionConflict(existingLen int, ...)</code> accepts a
+              third numeric vocabulary. Actors already cross the SQL boundary
+              through named functions (PrefixedString/ParseActorID); versions
+              deserve the same discipline.
+            </p>
+            <pre><code>Version: <span class="tok-builtin">int64</span>(evt.Version()), <span class="tok-comment">// #nosec G115 -- hope</span></code></pre>
+            <div class="callout callout-teal">
+              <strong>Fix: record.Version uint64 + one SQL boundary</strong>
+              Define the brand in record/ (zero = unversioned, the honest state
+              for queries and commands). event.Version becomes an alias. SQL
+              engines convert through one named function per driver — the
+              ActorID precedent, applied to numbers.
+            </div>
+          </div>
+
+          <!-- R4 -->
+          <div class="issue issue-important" id="r4">
+            <span class="severity severity-important">High &middot; Representability</span>
+            <h3>R4 — One encoding zero value means three different things</h3>
+            <div class="where">
+              record/v4/encoding.go:14-27 &middot; event/v4/asrecord.go:118-125</div>
+            <p>
+              <code>EncodingUnknown</code> conflates <em>absent payload</em>,
+              <em>opaque payload</em>, and <em>envelope-wrapped payload</em>
+              (ADR-0044). A consumer cannot distinguish “nothing to decode”
+              from “bytes present, look inside the envelope”. Layered on top:
+              two enums for one concept — <code>codec.Encoding</code>
+              (string-backed, at the event layer) and
+              <code>record.Encoding</code> (uint8) — bridged by parsing the
+              name string on every event conversion.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Fix: make the three states three values</strong>
+              Add <code>EncodingEnvelope</code>, and pair the bytes with their
+              stamp: <code>Payload struct { Data []byte; Enc Encoding }</code>.
+              Absent ⇔ zero Payload; opaque ⇔ Data + Unknown; wrapped ⇔ Data +
+              Envelope. The dual enum survives (different layers, different
+              budgets), but the bridge gets one home and a direction.
+            </div>
+          </div>
+
+          <!-- R5 -->
+          <div class="issue issue-important" id="r5">
+            <span class="severity severity-important">High &middot; Dual truth</span>
+            <h3>R5 — Stream identity lives in two fields that can disagree</h3>
+            <div class="where">record/v4/record.go:143-148 &middot; StreamID + StreamType</div>
+            <p>
+              <code>StreamID StreamRef</code> already embeds the stream type
+              (“User/01J...”); <code>StreamType string</code> restates it.
+              Nothing enforces agreement — a Record with StreamID
+              “User/1” and StreamType “Order” compiles, validates, and
+              persists. The pair is redundant for events, single-sourced for
+              commands (empty ref-type), and fabricated for queries — one
+              shape carrying three different meanings. The field name lies
+              too: <em>StreamID</em> holds a Ref.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Fix: one home</strong>
+              Rename to <code>Stream StreamRef</code>, delete the StreamType
+              field, derive the type through an accessor backed by Split().
+              The validating v5 constructor (NewStreamRef returning an error,
+              already planned at record/v4/record.go:167) closes the malformed
+              ref gap. Commands keep the legal empty-type ref.
+            </div>
+          </div>
+
+          <!-- R6 -->
+          <div class="issue issue-important" id="r6">
+            <span class="severity severity-important">High &middot; Split brain</span>
+            <h3>R6 — Causation has three homes and four fields</h3>
+            <div class="where">
+              metadata/v4/ids.go Tracing.CausationID &middot; event/v4/causality.go:18 &middot;
+              record/v4 CommonMetadata.{Cause, CausationID}
+            </div>
+            <p>
+              What caused a record is stored as: an untyped ULID
+              (Tracing.CausationID), a pointer with a stringly type
+              (Metadata.Causation *Causation, where CommandType is a raw
+              string), and the structural union plus its deprecated twin at
+              the record layer. Precedence rules (“typed beats tracing beats
+              none”) live in prose comments and are re-implemented per bridge.
+              WithCommandCausality already carries typed data through context
+              — it just never becomes a first-class field.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Fix: one home, typed at birth</strong>
+              Promote <code>cause record.Cause</code> to a first-class
+              ImmutableEvent field stamped at construction.
+              Causation.CommandType becomes record.Type (same module, no
+              layering violation). Tracing.CausationID and the metadata
+              pointer ride the R1 deletion.
+            </div>
+          </div>
+
+          <!-- R7 -->
+          <div class="issue issue-important" id="r7">
+            <span class="severity severity-important">Medium &middot; Parse tax</span>
+            <h3>R7 — Actors pay the parse tax at the minting layer</h3>
+            <div class="where">id/v4/actor_id.go &middot; metadata/v4/ids.go:21-27</div>
+            <p>
+              id.ActorID serializes as “kind:raw” (“user:01ARZ...”); recovering
+              the kind means prefix parsing. record.Actor fixed this
+              structurally — but Tracing, where actors are born from HTTP
+              contexts, still carries the stringly form, and every Record
+              consumer re-derives the union (metadata.RecordActor) or pays the
+              tax. The UserID→ActorID fallback precedence is implicit domain
+              knowledge encoded in one helper.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Fix: structural at birth, stringly at the wire</strong>
+              Tracing carries the structural Actor; “kind:raw” survives only
+              at serialization edges (SQL columns, headers) through the
+              existing PrefixedString/ParseActorID pair. The fallback
+              precedence stays in the one helper, documented as the rule.
+            </div>
+          </div>
+
+          <!-- R8 -->
+          <div class="issue issue-important" id="r8">
+            <span class="severity severity-important">Medium &middot; Semantics</span>
+            <h3>R8 — A server clock is relabeled a client clock</h3>
+            <div class="where">event/v4/asrecord.go:105-106 &middot; types.go:22</div>
+            <p>
+              ImmutableEvent.occurredAt defaults to a server clock
+              (defaultClock, UTC). AsRecord maps it into
+              ClientCreatedAt <em>and</em> Created — fields documented as
+              “the client's clock, which may lie” — while Received, the honest
+              home for a server intake time, stays zero. Downstream audit
+              tooling reading “clientCreatedAt” for a server-minted event is
+              being told a lie about which clock ran.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Fix: stamp what actually happened</strong>
+              Created is populated only when a client clock exists (offline
+              first). Server-minted events stamp Received at intake; the store
+              keeps stamping Stored. One clock, one field, no relabeling.
+            </div>
+          </div>
+
+          <!-- R9 -->
+          <div class="issue issue-important" id="r9">
+            <span class="severity severity-important">Medium &middot; Honesty</span>
+            <h3>R9 — The query bridge fabricates a stream</h3>
+            <div class="where">query/v4/asrecord.go:88 &middot; NewStreamRefOrZero("", id)</div>
+            <p>
+              Queries are not members of any stream, but Record's shape
+              assumes stream membership — so the bridge mints a pseudo-ref
+              “/01JX...” from the RequestID. It looks real downstream: a
+              metaengine fold cannot tell a query's fake stream from a
+              command's real one. Fabricated identity is worse than absent
+              identity because it is indistinguishable from truth.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Fix: zero means not-a-member</strong>
+              Queries leave Stream zero. Consumers branch on IsZero() — which
+              reads as exactly what is true: this record belongs to no stream.
+            </div>
+          </div>
+
+          <!-- R10 -->
+          <div class="issue issue-nice" id="r10">
+            <span class="severity severity-nice">Medium &middot; Two empties</span>
+            <h3>R10 — Event has two empty states</h3>
+            <div class="where">event/v4/event.go:52 &middot; Event = *ImmutableEvent</div>
+            <p>
+              A nil Event and a zero &amp;ImmutableEvent{} are both
+              representable, and they behave differently: AsRecord(nil)
+              returns a zero Record, AsRecord(zero-struct) returns one full of
+              empty strings that look populated. The concrete-alias decision
+              (perf, no interface assertions) is right and stays — but the
+              two-empties asymmetry is a trap for reconstruct paths.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Fix: uniform rejection at the boundary</strong>
+              Reconstruct/AsRecord treat a zero struct exactly like nil
+              (validate ID/type before mapping). Document the invariant:
+              “events exist only via constructors”.
+            </div>
+          </div>
+
+          <!-- R11 -->
+          <div class="issue issue-nice" id="r11">
+            <span class="severity severity-nice">Low &middot; API surface</span>
+            <h3>R11 — Version's method sprawl feeds the cast noise</h3>
+            <div class="where">event/v4/types.go:98-182</div>
+            <p>
+              Int() int, UInt64() uint64, Mod(n int) int, Add(uint), Sub(int)
+              — five arithmetic helpers speaking three numeric vocabularies.
+              Every convenience method that returns a different numeric type
+              licenses another scattered conversion, which is exactly the R3
+              noise.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Fix: shrink at v5</strong>
+              Keep Cmp, String, Increment, Decrement, IsZero, UInt64. Delete
+              the numeric-converters; callers go through the record.Version
+              brand or the SQL boundary.
+            </div>
+          </div>
+
+          <!-- R12 -->
+          <div class="issue issue-nice" id="r12">
+            <span class="severity severity-nice">Low &middot; Deprecated residue</span>
+            <h3>R12 — Pointer-as-state remnants in event.Metadata</h3>
+            <div class="where">event/v4/metadata.go:15-16 &middot; Tombstone, Causation</div>
+            <p>
+              Nil-pointer presence encoding — the pattern Stamp was invented
+              to replace — survives in two metadata fields, both already
+              sentenced (ADR-0114 tombstones → domain events; Causation → R6).
+              Every Metadata.Clone still copies both pointers.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Fix: ride the R1 cut</strong>
+              No new work — just do not let either survive it, and never add a
+              pointer-presence field again (see anti-patterns).
+            </div>
+          </div>
+        </section>
+
+        <!-- Vision -->
+        <section id="vision">
+          <h2><span class="num">02</span>The vision</h2>
+          <p>
+            What does perfection look like for this model? Not more types —
+            fewer truths per fact.
+          </p>
+          <div class="strengths">
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text"><strong>One fact, one field</strong>
+                <span>No dual-train pairs, no StreamRef+StreamType, no three causation homes. Every fact has exactly one home; everything else derives.</span></div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text"><strong>Zero-dep with zero-types rejected</strong>
+                <span>record/ brands its own vocabulary (Type, InstanceID, StreamType, Version, Encoding) — dependency-free is not stringly.</span></div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text"><strong>Presence is explicit everywhere</strong>
+                <span>Stamp for times, Cause/Actor zero-kinds for unions, zero Payload for absence, zero Stream for non-membership. No pointer-as-state, no epoch-as-absence.</span></div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text"><strong>Boundaries convert through named doors</strong>
+                <span>ULID↔string, uint64↔int64, kind↔prefix: every layer crossing has one function pair, the ActorID precedent everywhere.</span></div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text"><strong>Constructors are the only doors in</strong>
+                <span>Validating constructors (NewStreamRef, ParseType, ParseVersion) make malformed values a compile-or-construct-time event, never a persisted fact.</span></div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text"><strong>Deprecated means deleted on schedule</strong>
+                <span>A field marked “removed in v5” does not exist in the v5 module. New majors inherit the payoff, not the debt.</span></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Target model -->
+        <section id="target-model">
+          <h2><span class="num">03</span>The target model</h2>
+          <p>
+            The post-cut record package. Every change extends the already
+            recorded v5 direction (ADR-0111, ADR-0123, ADR-0152) — nothing
+            here reverses a decision, it finishes them and names the five
+            that had no trail.
+          </p>
+          <pre><code><span class="tok-keyword">package</span> record
+
+<span class="tok-comment">// --- The in-module brand vocabulary (zero-dep, zero-stringly) ---</span>
+
+<span class="tok-keyword">type</span> <span class="tok-type">InstanceID</span> <span class="tok-type">string</span>    <span class="tok-comment">// the record's own identity (event/command/request ID)</span>
+<span class="tok-keyword">type</span> <span class="tok-type">Type</span> <span class="tok-type">string</span>         <span class="tok-comment">// exists today — finally used by Record</span>
+<span class="tok-keyword">type</span> <span class="tok-type">StreamType</span> <span class="tok-type">string</span>    <span class="tok-comment">// in-module twin; ULID-ness stays id/'s concern</span>
+<span class="tok-keyword">type</span> <span class="tok-type">Version</span> <span class="tok-type">uint64</span>       <span class="tok-comment">// 1-indexed position; zero = unversioned (queries, commands)</span>
+<span class="tok-keyword">type</span> <span class="tok-type">CorrelationID</span> <span class="tok-type">string</span> <span class="tok-comment">// chain identity; minted as ULID in id/, carried as a brand here</span>
+
+<span class="tok-comment">// --- Payload: three states, three representations ---</span>
+
+<span class="tok-keyword">type</span> <span class="tok-type">Encoding</span> <span class="tok-type">uint8</span> <span class="tok-comment">// Unknown | JSON | CBOR | Envelope</span>
+
+<span class="tok-keyword">type</span> <span class="tok-type">Payload</span> <span class="tok-keyword">struct</span> {
+    Data []<span class="tok-type">byte</span>
+    Enc  <span class="tok-type">Encoding</span>   <span class="tok-comment">// absent ⇔ zero struct; opaque ⇔ Unknown; wrapped ⇔ Envelope</span>
+}
+
+<span class="tok-comment">// --- Stream: one home for identity ---</span>
+
+<span class="tok-keyword">type</span> <span class="tok-type">StreamRef</span> <span class="tok-type">string</span>        <span class="tok-comment">// "Type/EntityID"; zero = not a stream member</span>
+
+<span class="tok-keyword">func</span> <span class="tok-func">NewStreamRef</span>(t <span class="tok-type">StreamType</span>, id <span class="tok-type">InstanceID</span>) (<span class="tok-type">StreamRef</span>, <span class="tok-type">error</span>) <span class="tok-comment">// validating (already planned)</span>
+
+<span class="tok-comment">// --- The Record: 6 fields, each a single truth ---</span>
+
+<span class="tok-keyword">type</span> <span class="tok-type">Record</span> <span class="tok-keyword">struct</span> {
+    ID       <span class="tok-type">InstanceID</span>
+    Type     <span class="tok-type">Type</span>
+    Payload  <span class="tok-type">Payload</span>
+    Stream   <span class="tok-type">StreamRef</span>      <span class="tok-comment">// renamed from StreamID (it is a Ref); StreamType field deleted</span>
+    Version  <span class="tok-type">Version</span>        <span class="tok-comment">// zero = unversioned</span>
+    MetaData <span class="tok-type">CommonMetadata</span>
+}
+
+<span class="tok-keyword">func</span> (r <span class="tok-type">Record</span>) <span class="tok-func">StreamType</span>() <span class="tok-type">StreamType</span> <span class="tok-comment">// derived: Stream.Split()</span>
+
+<span class="tok-comment">// --- CommonMetadata post-cut: 7 fields, one truth each ---</span>
+
+<span class="tok-keyword">type</span> <span class="tok-type">CommonMetadata</span> <span class="tok-keyword">struct</span> {
+    CorrelationID <span class="tok-type">CorrelationID</span>
+    Cause         <span class="tok-type">Cause</span>          <span class="tok-comment">// {none | command | timer | event | unknown, ID}</span>
+    Actor         <span class="tok-type">Actor</span>          <span class="tok-comment">// {unknown | user | bot | system | service, Raw}</span>
+    Created       <span class="tok-type">Stamp</span>          <span class="tok-comment">// client clock; zero = not recorded</span>
+    Received      <span class="tok-type">Stamp</span>          <span class="tok-comment">// server intake; zero = not yet</span>
+    Stored        <span class="tok-type">Stamp</span>          <span class="tok-comment">// DB ack; zero = not yet</span>
+    SchemaVersion <span class="tok-type">int</span>
+}</code></pre>
+
+          <p>
+            On the event side, causation is promoted to a first-class field —
+            typed where it is born instead of boxed in metadata:
+          </p>
+          <pre><code><span class="tok-keyword">type</span> <span class="tok-type">ImmutableEvent</span> <span class="tok-keyword">struct</span> {
+    id        id.<span class="tok-type">EventID</span>
+    eventType record.<span class="tok-type">Type</span>
+    stream    id.<span class="tok-type">StreamRef</span>      <span class="tok-comment">// type + ID travel together, always</span>
+    version   record.<span class="tok-type">Version</span>
+    cause     record.<span class="tok-type">Cause</span>       <span class="tok-comment">// stamped by WithCommandCausality at construction</span>
+    <span class="tok-comment">// ... payload, encoding, stamps, metadata (Custom only)</span>
+}</code></pre>
+          <div class="callout callout-teal">
+            <strong>This is the target</strong>
+            Six Record fields instead of eight, seven metadata fields instead
+            of thirteen, one causation home instead of three, and every field
+            either branded, presence-explicit, or honestly zero.
+          </div>
+        </section>
+
+        <!-- Composition in action -->
+        <section id="composition">
+          <h2><span class="num">04</span>Composition in action</h2>
+          <p>
+            The bridges are where the model's honesty is tested. Today,
+            event.AsRecord runs a precedence ladder over three causation homes
+            and relabels a server clock. The target bridge maps one-to-one.
+          </p>
+
+          <div class="compare-header">
+            <div class="compare-before">Before — event/v4/asrecord.go</div>
+            <div class="compare-after">After — one home per fact</div>
+          </div>
+          <div class="compare-row">
+            <pre><code>causationID := <span class="tok-func">BrandedString</span>(tracing.CausationID)
+cause := record.Cause{}
+<span class="tok-keyword">if</span> md.Causation != <span class="tok-builtin">nil</span> &amp;&amp;
+    !md.Causation.CommandID.<span class="tok-func">IsZero</span>() {
+    causationID = md.Causation.CommandID.<span class="tok-func">String</span>()
+    cause = record.Cause{Kind: CauseCommand, ...}
+} <span class="tok-keyword">else if</span> !tracing.CausationID.<span class="tok-func">IsZero</span>() {
+    cause = record.Cause{Kind: CauseUnknown, ...}
+}
+<span class="tok-comment">// + ActorString precedence for ActorID</span>
+<span class="tok-comment">// + occurredAt → ClientCreatedAt AND Created</span>
+<span class="tok-comment">// + int64(evt.Version()) #nosec G115</span>
+<span class="tok-comment">// + NewStreamRefOrZero fabrication for queries</span></code></pre>
+            <pre><code><span class="tok-keyword">return</span> record.Record{
+    ID:      record.<span class="tok-type">InstanceID</span>(evt.<span class="tok-func">ID</span>().<span class="tok-func">String</span>()),
+    Type:    evt.<span class="tok-func">Type</span>(),
+    Payload: record.<span class="tok-func">PayloadFrom</span>(
+        evt.<span class="tok-func">Payload</span>(), evt.<span class="tok-func">Encoding</span>()),
+    Stream:  evt.<span class="tok-func">StreamRef</span>(),
+    Version: evt.<span class="tok-func">Version</span>(),  <span class="tok-comment">// same brand</span>
+    MetaData: record.CommonMetadata{
+        CorrelationID: <span class="tok-func">BrandedString</span>(...),
+        Cause:  evt.<span class="tok-func">Cause</span>(),      <span class="tok-comment">// typed at birth</span>
+        Actor:  evt.<span class="tok-func">Actor</span>(),
+        Received: record.<span class="tok-func">NewStamp</span>(evt.<span class="tok-func">OccurredAt</span>()),
+    },
+}</code></pre>
+          </div>
+
+          <p>
+            Stream identity before/after — two fields that can disagree
+            become one field plus a derived accessor:
+          </p>
+          <div class="compare-header">
+            <div class="compare-before">Before — dual truth</div>
+            <div class="compare-after">After — one truth, derived</div>
+          </div>
+          <div class="compare-row">
+            <pre><code>r := record.Record{
+    StreamID:   record.<span class="tok-func">NewStreamRefOrZero</span>(
+        streamType, streamID.<span class="tok-func">Get</span>()),
+    StreamType: streamType, <span class="tok-comment">// restates the ref's</span>
+                 <span class="tok-comment">// type component...</span>
+                 <span class="tok-comment">// nothing keeps them equal</span>
+}</code></pre>
+            <pre><code>r := record.Record{
+    Stream: ref, <span class="tok-comment">// "User/01J..."</span>
+}
+r.<span class="tok-func">StreamType</span>() <span class="tok-comment">// derived from ref.Split()</span>
+                   <span class="tok-comment">// disagreement is now</span>
+                   <span class="tok-comment">// unrepresentable</span></code></pre>
+          </div>
+        </section>
+
+        <!-- Validation layer -->
+        <section id="validation">
+          <h2><span class="num">05</span>Validation layer</h2>
+          <p>
+            Invalid states become unrepresentable at three gates — construct,
+            cross, consume — each already proven somewhere in this codebase;
+            the target applies them uniformly.
+          </p>
+          <div class="grid-2">
+            <div class="card card-solution">
+              <strong>Construct: validating constructors</strong>
+              <p>
+                NewStreamRef(type, id) errors on empty ID (planned at v5).
+                ParseType rejects empty. ParseVersion/ParseSchemaVersion
+                enforce ≥ 1. Malformed values never become values.
+              </p>
+            </div>
+            <div class="card card-solution">
+              <strong>Represent: zero-value honesty</strong>
+              <p>
+                Version 0 = unversioned. Zero StreamRef = not a member. Zero
+                Payload = absent. EncodingEnvelope = wrapped. Cause/Actor/Stamp
+                zero = not recorded. Every absence is a value, never a
+                sentinel lie.
+              </p>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="card card-solution">
+              <strong>Cross: named boundary doors</strong>
+              <p>
+                ULID→InstanceID at the bridges; record.Version→int64 in one
+                sqlVersion() per driver; Actor↔“kind:raw” through
+                PrefixedString/ParseActorID. A scattered cast is a code smell
+                the linter can see (the #nosec G115 pattern is its signature).
+              </p>
+            </div>
+            <div class="card card-solution">
+              <strong>Consume: fold-time assertions</strong>
+              <p>
+                metaengine folds branch on IsZero() — a query with no Stream
+                reads as non-member, not as a fake stream. Type-switch defaults
+                on Cause/Actor kinds are build-breaker bugs, not fallbacks.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Decision log -->
+        <section id="decision-log">
+          <h2><span class="num">06</span>Decision log</h2>
+          <p>
+            Every design choice with its rejected alternative and the reason
+            it lost.
+          </p>
+          <table class="compare">
+            <thead>
+              <tr>
+                <th>Decision</th>
+                <th>Chosen</th>
+                <th>Rejected &mdash; why it lost</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>D1 — Record.Type</td>
+                <td class="yes">Type Type (in-module brand)</td>
+                <td>Raw string status quo — the brand exists in the same file; not using it is inertia, not design.</td>
+              </tr>
+              <tr>
+                <td>D2 — record identity</td>
+                <td class="yes">type InstanceID string</td>
+                <td>Struct wrapper with validation — ULID-ness is a minting concern (id/); Record promises only “an identifier”, which a brand states honestly. Alias keeps wire/SQL compat.</td>
+              </tr>
+              <tr>
+                <td>D3 — Version</td>
+                <td class="yes">record.Version uint64; event aliases it</td>
+                <td>int64 for SQL convenience — domain owns the truth, boundaries convert (ActorID precedent). Bare uint64 without brand — three numeric vocabularies already caused R3.</td>
+              </tr>
+              <tr>
+                <td>D4 — payload presence</td>
+                <td class="yes">Payload{Data, Enc} + EncodingEnvelope</td>
+                <td>Keep Encoding field with tri-conflated zero — three meanings in one value is exactly the ambiguity being removed.</td>
+              </tr>
+              <tr>
+                <td>D5 — stream identity</td>
+                <td class="yes">Stream StreamRef; StreamType() derived</td>
+                <td>Keep both + Validate() — a runtime check licenses the drift it detects; one home makes drift unrepresentable.</td>
+              </tr>
+              <tr>
+                <td>D6 — causation home</td>
+                <td class="yes">Cause field on ImmutableEvent</td>
+                <td>Metadata.Causation pointer — pointer presence + stringly CommandType + per-bridge precedence ladders.</td>
+              </tr>
+              <tr>
+                <td>D7 — query streams</td>
+                <td class="yes">zero StreamRef = not a member</td>
+                <td>Fabricated “/RequestID” ref — fake identity is indistinguishable from real identity downstream.</td>
+              </tr>
+              <tr>
+                <td>D8 — correlation</td>
+                <td class="yes">record.CorrelationID brand</td>
+                <td>Raw string — same reasoning as D2; chains deserve compile-time identity too.</td>
+              </tr>
+              <tr>
+                <td>D9 — Event alias</td>
+                <td class="yes">Keep Event = *ImmutableEvent</td>
+                <td>Interface — the recorded perf decision stands; two-empties handled at boundaries (R10) instead.</td>
+              </tr>
+              <tr>
+                <td>D10 — Tracing.UserID</td>
+                <td class="yes">Keep alongside Actor</td>
+                <td>Remove — UserID is the human principal, Actor the attribution; different questions, both legitimate.</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- Anti-patterns -->
+        <section id="anti-patterns">
+          <h2><span class="num">07</span>Anti-patterns</h2>
+          <p>Traps to avoid while adopting the target model.</p>
+          <div class="grid-2">
+            <div class="card card-problem">
+              <strong>Pointer-as-presence</strong>
+              <p>*TombstoneMark and *Causation are the museum pieces. Presence is a value: Stamp, zero-kind unions, zero Payload. Never again a nil-pointer state machine.</p>
+            </div>
+            <div class="card card-problem">
+              <strong>Copy-forwarding debt into a new major</strong>
+              <p>The core/v5 copy made every “removed in v5” field immortal. New majors inherit the payoff of prior deprecations, or the deprecation was a lie.</p>
+            </div>
+            <div class="card card-problem">
+              <strong>Scattered numeric casts</strong>
+              <p>int64(x) + #nosec G115 is the signature of a missing boundary door. One named conversion per crossing, per layer.</p>
+            </div>
+            <div class="card card-problem">
+              <strong>Zero-dep as zero-types</strong>
+              <p>“Cannot import id/” constrains dependencies, not type safety. A package with 12 types can define brands; record/ already had three.</p>
+            </div>
+            <div class="card card-problem">
+              <strong>One fact, two fields</strong>
+              <p>StreamRef + StreamType; CausationID + Cause. Every duplicate becomes a consistency check someone forgets to write.</p>
+            </div>
+            <div class="card card-problem">
+              <strong>Fabricated identity</strong>
+              <p>Stuffing a RequestID into a StreamRef makes absence look like presence. Zero values are honest; fake ones are corrosive.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Migration roadmap -->
+        <section id="roadmap">
+          <h2><span class="num">08</span>Migration roadmap</h2>
+          <p>
+            Ordered for the free window: core/v5 has zero fleet consumers
+            today (fleet census, ADR-0152), so steps 1-5 break no one. The v4
+            train is frozen throughout.
+          </p>
+          <div class="migration-step">
+            <div class="migration-num">1</div>
+            <div class="migration-content">
+              <h4>Execute the deprecation cut inside core/v5</h4>
+              <p>Delete the six deprecated CommonMetadata pairs, tombstone marks, EnsureCustom, and per-module ParseType re-exports from core/v5/*, starting with record/. Verify with the api-stability golden regenerated per module. This is R1; everything else lands on top of it.</p>
+            </div>
+          </div>
+          <div class="migration-step">
+            <div class="migration-num">2</div>
+            <div class="migration-content">
+              <h4>Brand the Record fields</h4>
+              <p>In core/v5/record: Type Type, plus InstanceID, StreamType, Version, CorrelationID brands (R2, R3). event.Version becomes an alias. Compile errors are the migration map — follow them.</p>
+            </div>
+          </div>
+          <div class="migration-step">
+            <div class="migration-num">3</div>
+            <div class="migration-content">
+              <h4>Payload struct + EncodingEnvelope</h4>
+              <p>Pair bytes with their stamp; make absent/opaque/wrapped three values (R4). The codec.Encoding bridge gets one home and a direction (event→record only).</p>
+            </div>
+          </div>
+          <div class="migration-step">
+            <div class="migration-num">4</div>
+            <div class="migration-content">
+              <h4>Single-home stream identity</h4>
+              <p>Rename StreamID→Stream, delete the StreamType field, add the derived accessor, switch on the validating constructor (R5). Update metaengine folds and listing to read Split() instead of the field.</p>
+            </div>
+          </div>
+          <div class="migration-step">
+            <div class="migration-num">5</div>
+            <div class="migration-content">
+              <h4>Promote Cause; fix the stamps</h4>
+              <p>First-class cause field on ImmutableEvent; Causation.CommandType becomes record.Type (R6). AsRecord stamps Received instead of relabeling occurredAt as a client clock (R8). Query bridges leave Stream zero (R9); Reconstruct validates zero structs like nil (R10).</p>
+            </div>
+          </div>
+          <div class="migration-step">
+            <div class="migration-num">6</div>
+            <div class="migration-content">
+              <h4>SQL boundary doors</h4>
+              <p>One named Version conversion per driver replaces the scattered casts and their #nosec guards (R3). Grep the guards to prove the sweep is complete — the annotation is the checklist.</p>
+            </div>
+          </div>
+          <div class="migration-step">
+            <div class="migration-num">7</div>
+            <div class="migration-content">
+              <h4>Fleet migration at the cut</h4>
+              <p>cqrs-upgrade codemod targets cqrs-htmx + go-appkit first (73%+18% of indirect edges, ADR-0152), then direct-import residue. The v4 train tags fixes until the fleet drains; then the twin modules merge into one.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Appendix -->
+        <section id="appendix">
+          <h2><span class="num">09</span>Appendix</h2>
+          <p>
+            Severity &times; effort matrix, methodology, and the series
+            context.
+          </p>
+          <table class="compare">
+            <thead>
+              <tr>
+                <th>Finding</th>
+                <th>Severity</th>
+                <th>Effort</th>
+                <th>Window</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>R1 v5 inherits its own deprecations</td><td class="no">Critical</td><td>Medium</td><td class="no">Closing (zero consumers)</td></tr>
+              <tr><td>R2 meeting point de-brands</td><td class="no">Critical</td><td>Low</td><td class="no">Closing</td></tr>
+              <tr><td>R3 version sign split</td><td class="no">High</td><td>Medium</td><td>Open</td></tr>
+              <tr><td>R4 encoding tri-conflation</td><td class="no">High</td><td>Low</td><td>Open</td></tr>
+              <tr><td>R5 stream identity dual truth</td><td class="no">High</td><td>Medium</td><td>Open</td></tr>
+              <tr><td>R6 causation three homes</td><td class="no">High</td><td>Medium</td><td>Open</td></tr>
+              <tr><td>R7 actor parse tax</td><td>Medium</td><td>Low</td><td>Open</td></tr>
+              <tr><td>R8 server clock relabeled</td><td>Medium</td><td>Low</td><td>Open</td></tr>
+              <tr><td>R9 fabricated query stream</td><td>Medium</td><td>Low</td><td>Open</td></tr>
+              <tr><td>R10 two empty states</td><td>Medium</td><td>Low</td><td>Open</td></tr>
+              <tr><td>R11 version method sprawl</td><td>Low</td><td>Low</td><td>Open</td></tr>
+              <tr><td>R12 pointer-as-state remnants</td><td>Low</td><td>None</td><td>Rides R1</td></tr>
+            </tbody>
+          </table>
+
+          <h3>Methodology</h3>
+          <p>
+            Every type definition in record/, id/, event/, command/, query/,
+            and metadata/ (181 declarations) was read this session, plus the
+            core/v5 twins of record/ and metadata/. All file:line references
+            were verified against HEAD 592b51a7d. The v4/core-v5 copy-forward
+            status was verified by direct diff, not assumed from ADR-0152.
+          </p>
+
+          <h3>Series context</h3>
+          <p>
+            Companion reports:
+            <a href="2026-10-17_on-disk-schema-data-model-review.html">2026-10-17 on-disk schema data-model review</a>
+            (what we write to disk) and the
+            <a href="../research/2026-11-13_go-cqrs-lite-deep-dive.html">2026-11-13 library deep dive</a>
+            (whose top risk — the unfinished v4&rarr;v5 dual train — is
+            quantified here at its type-model root: 60 markers, 6 dual-field
+            pairs, all copied into core/v5). The prior in-code review
+            fingerprints (Stamp “review P7”, Cause “review P4”, Record.ID
+            “review P5”) show this is the second pass; R1-R12 finish what
+            that pass started.
+          </p>
+
+          <div class="callout callout-teal">
+            <strong>Conclusion</strong>
+            “A data model pays compound interest on every string it lets
+            through. The v5 train was created to stop paying — the cut has
+            not been executed, and five decisions have no trail at all.
+            Execute the seven steps while the window is free.”
+          </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+          <p>
+            Generated 2026-11-19 &middot; Reviewed against HEAD 592b51a7d
+            &middot; All claims verified against source code where noted
+            &middot; Companion: 2026-10-17 on-disk schema review
+          </p>
+        </footer>
+      </main>
+    </div>
+
+    <!-- Progressive-enhancement scrollspy. Nav still works without JS via anchor links. -->
+    <script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) {
+            return document.getElementById(id);
+          })
+          .filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (link) {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id,
+                  );
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
+      })();
+    </script>
+  </body>
+</html>
