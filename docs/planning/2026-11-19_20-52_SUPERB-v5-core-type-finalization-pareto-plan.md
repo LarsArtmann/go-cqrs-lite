@@ -232,7 +232,7 @@ Sorted by importance/impact/effort within dependency order. Est = minutes.
 | M24·b | Map each consumer onto the retype; list friction sites | 12 | M24·a |
 | M24·c | Design notes onto the :2585 row; divergences escalated | 12 | M24·b |
 
-**Fine totals:** 79 tasks · ~15.3 h direct · **plus ~30% integration/test overhead**
+**Fine totals:** 81 tasks · ~15.7 h direct · **plus ~30% integration/test overhead**
 (acknowledged gap to the ~21.8 h medium sum: module suites, golden regens, and
 re-runs after review feedback are real time the 12-min chopping hides — the
 medium estimates carry it; fine estimates are hands-on-keyboard only).
