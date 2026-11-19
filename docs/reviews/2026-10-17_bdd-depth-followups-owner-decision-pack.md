@@ -3,7 +3,7 @@
 > One artifact, three rulings requested (supersedes the three separate memos
 > of plan v1 M14+M15+M16). Source:
 > [plan v2](../planning/2026-10-17_20-18_SUPERB-bdd-depth-followups-pareto-plan.md)
-> §2. Context: [self-review](../status/2026-10-17_20-13_bdd-harness-depth-specs-execution-and-self-review.md).
+> §2. Context: [self-review](../status/archived/2026-10-17_20-13_bdd-harness-depth-specs-execution-and-self-review.md).
 
 ## D1 — Tag timing for the depth-spec wave → RESOLVED BY EVENTS (no ruling needed)
 

@@ -17,7 +17,7 @@ satellite backends predate the universal-storage-substrate rule.
   deletion at v5.0.0.
 - **ADR-0142** made dedup an engine capability: `DedupStore` is the one dedup runtime, ridden by
   every durable-I/O consumer (contract 30).
-- The **2026-10-11 placement analysis** (docs/status/2026-10-11_07-28 report) ended with a
+- The **2026-10-11 placement analysis** (docs/status/archived/2026-10-11_07-28 report) ended with a
   verdict but no artifact: pointing consumers directly at `metaengine.DedupStore` repeats the
   original mistake — which engine, which collection, what fallback, and what clock are
   DEPLOYMENT decisions, not domain decisions. The facade belongs at `system`.

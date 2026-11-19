@@ -7,7 +7,7 @@
 > pin idempotency/OCC/DLQ/upcasting) — planned and executed by
 > [`2026-10-17_20-18_SUPERB-bdd-depth-followups-pareto-plan.md`](2026-10-17_20-18_SUPERB-bdd-depth-followups-pareto-plan.md)
 > (COMPLETE, §9). Current harness truth: the skill references §2.43.
-> **Source:** status report [`docs/status/2026-10-09_14-40_systemscenario-bdd-harness-full-execution-status.md`](../status/2026-10-09_14-40_systemscenario-bdd-harness-full-execution-status.md) §b/§c/§f, plus re-verified repo state at 14:45.
+> **Source:** status report [`docs/status/2026-10-09_14-40_systemscenario-bdd-harness-full-execution-status.md`](../status/archived/2026-10-09_14-40_systemscenario-bdd-harness-full-execution-status.md) §b/§c/§f, plus re-verified repo state at 14:45.
 > **Predecessor:** [`2026-10-09_04-04_SUPERB-bdd-testing-harness-pareto-plan.md`](2026-10-09_04-04_SUPERB-bdd-testing-harness-pareto-plan.md) — EXECUTED 27/27 (see its addendum). This plan is the adoption wave that plan ended on.
 > **Format note:** `.md` + mermaid per operator instruction (pareto-planning skill default is HTML — explicit override, consistent with the 04-04 precedent).
 

@@ -155,4 +155,4 @@ codec, per fold. Schema-free JSON normalization is rejected.**
 - ADR-0111 — `record.Record` (`Encoding` stamp, closed JSON/CBOR vocabulary)
 - ADR-0126 — Store/journal decoration (the reason no ad-hoc wrapper was added)
 - `docs/planning/2026-10-24_05-33_SUPERB-metaengine-codec-boundary-completion.md`
-- `docs/status/2026-10-24_05-27_metaengine-codec-boundary-repair-status.md`
+- `docs/status/archived/2026-10-24_05-27_metaengine-codec-boundary-repair-status.md`

@@ -1,7 +1,7 @@
 # SUPERB — BDD Depth-Spec Follow-Ups: Pareto Execution Plan (v2, 2026-10-17 20:31)
 
 > **Input universe:** ALL follow-up TODOs from the 20:13 self-review
-> ([status report](../status/2026-10-17_20-13_bdd-harness-depth-specs-execution-and-self-review.md)).
+> ([status report](../status/archived/2026-10-17_20-13_bdd-harness-depth-specs-execution-and-self-review.md)).
 > **This is v2 — it replaces v1 (written 20:18) after a hostile self-review.
 > v1 was a good inventory and a bad plan.** What changed and why is in §0.
 >

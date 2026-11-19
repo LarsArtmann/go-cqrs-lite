@@ -2,7 +2,7 @@
 
 **Created:** 2026-10-23 09:49 +0200
 **Owner:** Crush session (open-issues remediation, continuation)
-**Predecessor report:** [docs/status/2026-10-23_09-28_open-issues-remediation-comprehensive-status.md](../status/2026-10-23_09-28_open-issues-remediation-comprehensive-status.md)
+**Predecessor report:** [docs/status/2026-10-23_09-28_open-issues-remediation-comprehensive-status.md](../status/archived/2026-10-23_09-28_open-issues-remediation-comprehensive-status.md)
 
 ---
 

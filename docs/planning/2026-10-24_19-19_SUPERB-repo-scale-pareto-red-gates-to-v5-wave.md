@@ -4,8 +4,8 @@
 > **Status:** READY FOR EXECUTION (P0 fires first; owner gates marked ⛔)
 > **Predecessors (READ FIRST — this plan builds on them, does not replace them):**
 > [`2026-10-24_12-09_SUPERB-value-integrity-and-gate-unblock-pareto-plan.md`](2026-10-24_12-09_SUPERB-value-integrity-and-gate-unblock-pareto-plan.md) — ARMED, Wave 1 ready; owns the keycodec value-integrity program. This plan sequences it inside the whole-repo picture.
-> [`2026-10-24_16-56_extraction-candidates-session-status.md`](../status/2026-10-24_16-56_extraction-candidates-session-status.md) — extraction analysis (lint #1, queue #2, benchkit #3, metaengine #4).
-> [`2026-10-24_18-42_io-directive-execution-status.md`](../status/2026-10-24_18-42_io-directive-execution-status.md) — all-I/O-through-metaengine directive: encoded + 3 of 4 verdicts executed (sqlstore deprecated, queue A-verdict, E023 shipped); kv OPEN.
+> [`2026-10-24_16-56_extraction-candidates-session-status.md`](../status/archived/2026-10-24_16-56_extraction-candidates-session-status.md) — extraction analysis (lint #1, queue #2, benchkit #3, metaengine #4).
+> [`2026-10-24_18-42_io-directive-execution-status.md`](../status/archived/2026-10-24_18-42_io-directive-execution-status.md) — all-I/O-through-metaengine directive: encoded + 3 of 4 verdicts executed (sqlstore deprecated, queue A-verdict, E023 shipped); kv OPEN.
 > **Format note:** Markdown + Mermaid per explicit operator instruction (skill default is HTML; operator instruction wins, not propagated).
 
 ---

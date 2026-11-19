@@ -1,7 +1,7 @@
 # SUPERB — cqrs-lint CLI Consistency Pareto Plan
 
 **Date:** 2026-10-03 05:16
-**Provenance:** Harvested from [`docs/status/2026-10-03_04-25_cqrs-lint-subcommand-consistency.md`](../status/2026-10-03_04-25_cqrs-lint-subcommand-consistency.md) §f (30 tasks, 6 groups) + the two open decisions from that report, both now RESOLVED:
+**Provenance:** Harvested from [`docs/status/2026-10-03_04-25_cqrs-lint-subcommand-consistency.md`](../status/archived/2026-10-03_04-25_cqrs-lint-subcommand-consistency.md) §f (30 tasks, 6 groups) + the two open decisions from that report, both now RESOLVED:
 
 - **Decision 1 (doctor `--fix` collision) — EXECUTED this session, pre-plan:** renamed to `doctor --prune-suppressions` (`--dry-run` keeps its doctor-local meaning). Regression-pinned by `TestDoctorFixFlagRenamedToPrune` (`cmd/cqrs-lint/subcommand_consistency_test.go`); README ×2, CHANGELOG `Changed` (breaking) entry with migration note. Root `--fix` remains the ONE autofix flag in the CLI.
 - **Decision 2 (single-render commands vs `--format`) — RESOLVED this session:** `version`/`explain`/`changelog` deliberately IGNORE the inherited `--format` (shared vocabulary, one rendering each). Rationale: a config file setting `"format": "json"` for lint output must not break `cqrs-lint version` in CI scripts, and cmdguard cannot distinguish flag-source vs config-source in the handler cfg. Pinned by `TestSingleRenderCommandsIgnoreSharedFormat`.

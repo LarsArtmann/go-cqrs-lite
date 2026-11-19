@@ -7,7 +7,7 @@
 > (waves 1–4 executed; §11.7/§11.8 are the receipts; §12 is the envelope spike),
 > [`2026-10-23_17-31_SUPERB-metaengine-codec-boundary-repair.md`](2026-10-23_17-31_SUPERB-metaengine-codec-boundary-repair.md)
 > **Source report:**
-> [`docs/status/2026-10-24_12-00_metaengine-codec-boundary-wave4-and-t16-spike-status.md`](../status/2026-10-24_12-00_metaengine-codec-boundary-wave4-and-t16-spike-status.md)
+> [`docs/status/2026-10-24_12-00_metaengine-codec-boundary-wave4-and-t16-spike-status.md`](../status/archived/2026-10-24_12-00_metaengine-codec-boundary-wave4-and-t16-spike-status.md)
 > (its §f 1–50 is the input backlog for this plan).
 > **Format note:** this plan is Markdown with a Mermaid execution graph, per the
 > dispatching instruction. The `pareto-planning` skill's default is HTML; the

@@ -15,8 +15,8 @@
 > - **Current truth:** [`metaengine/README.md`](../../metaengine/v4/README.md) (API surface),
 >   [`commandlifecycle/`](../../commandlifecycle/v4) (the command log, shipped as ADR-0117).
 > - **Audit trail:** [12:10 audit](../status/archived/2026-09-13_12-10_metaengine-event-query-model-doc-audit.md) ·
->   [15:55 deep dive](../status/2026-09-13_15-55_event-query-model-not-shipped-vs-reality.md) ·
->   [T02 source-verification notes](../status/2026-09-13_17-40_event-query-model-t02-verification-notes.md).
+>   [15:55 deep dive](../status/archived/2026-09-13_15-55_event-query-model-not-shipped-vs-reality.md) ·
+>   [T02 source-verification notes](../status/archived/2026-09-13_17-40_event-query-model-t02-verification-notes.md).
 
 > **Two primitives drive everything.** Events (the source of truth across time) and Queries
 > (the read intent). Commands propose events. Metadata travels with all three. Sessions are
@@ -1126,8 +1126,8 @@ for cutover.
 - [`metaengine/README.md`](../../metaengine/v4/README.md) — module overview and API surface.
 - [`commandlifecycle/`](../../commandlifecycle/v4) — command-log implementation (ADR-0117).
 - Audits: [12:10 audit](../status/archived/2026-09-13_12-10_metaengine-event-query-model-doc-audit.md) ·
-  [15:55 deep dive](../status/2026-09-13_15-55_event-query-model-not-shipped-vs-reality.md) ·
-  [T02 verification notes](../status/2026-09-13_17-40_event-query-model-t02-verification-notes.md).
+  [15:55 deep dive](../status/archived/2026-09-13_15-55_event-query-model-not-shipped-vs-reality.md) ·
+  [T02 verification notes](../status/archived/2026-09-13_17-40_event-query-model-t02-verification-notes.md).
 
 ### Features beyond this document (coverage map)
 

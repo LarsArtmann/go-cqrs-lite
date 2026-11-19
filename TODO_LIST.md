@@ -905,7 +905,7 @@ the boundary. Verified against this repo's source on 2026-10-15.
 
 > The harness shipped + verified 2026-10-09 (27/27 tasks of the
 > [04-04 plan](docs/planning/2026-10-09_04-04_SUPERB-bdd-testing-harness-pareto-plan.md);
-> execution record: [14:40 status report](docs/status/2026-10-09_14-40_systemscenario-bdd-harness-full-execution-status.md)).
+> execution record: [14:40 status report](docs/status/archived/2026-10-09_14-40_systemscenario-bdd-harness-full-execution-status.md)).
 > The adoption wave ([14-49 plan](docs/planning/2026-10-09_14-49_SUPERB-bdd-harness-adoption-wave.md),
 > T01–T27, Full Execution Mode) is executing now — its addendum is the execution record.
 > This section holds ONLY what survives the wave (residue the plan does not cover).

@@ -2,7 +2,7 @@
 
 > Canonical procedure doc for ADR-0152 dual-support exit. Written 2026-10-23 (plan task 1, F14–F17),
 > absorbing the 2026-10-17 first-application lessons
-> ([report](../status/2026-10-17_08-56_delete-at-zero-first-application-and-self-review.md)).
+> ([report](../status/archived/2026-10-17_08-56_delete-at-zero-first-application-and-self-review.md)).
 >
 > **Owner ruling (2026-10-17):** phase out v4 submodule-by-submodule; delete the moment zero
 > consumers remain; full v5 cut at the end; fleet window 1–2 weeks. Standing delete-at-zero rule

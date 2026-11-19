@@ -8,7 +8,7 @@
 
 ## Context
 
-The 2026-10-08 module audit (`docs/status/2026-10-08_20-23_go-modules-audit-external-usage-and-self-review.md`)
+The 2026-10-08 module audit (`docs/status/archived/2026-10-08_20-23_go-modules-audit-external-usage-and-self-review.md`)
 measured the multi-module reality against its only possible market:
 
 - **101 go.mod trains**, lockstep release waves of 90+ tags, ~1,839 LOC of
@@ -90,7 +90,7 @@ sprawl mirrors this repo's and will need the same treatment eventually.
 ## Evidence
 
 Full consumer matrix, zero-consumer list, stranded-pin inventory, and the
-verification log: `docs/status/2026-10-08_20-23_go-modules-audit-external-usage-and-self-review.md`.
+verification log: `docs/status/archived/2026-10-08_20-23_go-modules-audit-external-usage-and-self-review.md`.
 
 **Ratchet evidence (2026-10-09, cqrs-lint scorecard):** the migration-order
 premise is now measurable. `cqrs-lint scorecard --path ~/projects/cqrs-htmx`
@@ -101,7 +101,7 @@ renders in the same report. `~/projects/go-appkit` grades **Modernity: Modern**
 (the `cqrs/` submodule's `system.New` wiring is detected project-wide). The
 first-migration-target ordering this ADR predicts is exactly what the
 scorecard now surfaces per project. Snapshots live in
-`docs/status/2026-10-09_17-32_scorecard-followup-wave-session-review.md` and
+`docs/status/archived/2026-10-09_17-32_scorecard-followup-wave-session-review.md` and
 its follow-up addendum.
 
 ## Addendum (2026-10-17): continuous delete-at-zero

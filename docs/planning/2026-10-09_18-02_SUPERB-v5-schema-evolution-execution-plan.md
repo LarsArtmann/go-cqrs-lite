@@ -3,7 +3,7 @@
 > **Date:** 2026-10-09 18:02 CEST · **Plan type:** Pareto execution plan (pareto-planning skill)
 > **Scope:** the v5 declarative schema-evolution program — everything open after T2 + T1-core
 > shipped gate-green this session (status:
-> [`docs/status/2026-10-09_17-57_v5-schema-evolution-t2-t1-shipped.md`](../status/2026-10-09_17-57_v5-schema-evolution-t2-t1-shipped.md)).
+> [`docs/status/2026-10-09_17-57_v5-schema-evolution-t2-t1-shipped.md`](../status/archived/2026-10-09_17-57_v5-schema-evolution-t2-t1-shipped.md)).
 > Other `TODO_LIST.md` sections (BDD harness, queue module, data-mesh, metaengine substrate…)
 > belong to sibling work streams with active sessions and are deliberately OUT of scope here.
 > **Customer** = the first-party fleet (bank-sync, DiscordSync, cqrs-htmx, go-appkit) + v5-us.

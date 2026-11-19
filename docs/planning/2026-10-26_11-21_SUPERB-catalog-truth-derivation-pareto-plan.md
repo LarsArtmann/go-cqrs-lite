@@ -1,7 +1,7 @@
 # SUPERB Plan: Catalog Truth Derivation — catalog × samber/do × auditlog Pareto Plan
 
 **Date:** 2026-10-26 11:21
-**Source:** Session findings recorded in [`docs/status/2026-10-26_11-18_catalog-do-auditlog-bridge-analysis.md`](../status/2026-10-26_11-18_catalog-do-auditlog-bridge-analysis.md) (33 items, 3 owner questions).
+**Source:** Session findings recorded in [`docs/status/2026-10-26_11-18_catalog-do-auditlog-bridge-analysis.md`](../status/archived/2026-10-26_11-18_catalog-do-auditlog-bridge-analysis.md) (33 items, 3 owner questions).
 **Goal:** Fleet catalogs stop being hand-copied lies and become DERIVED from declared truth (`system.DomainConfig`) + runtime truth (`samber-do-auditlog`), with drift gates that make regression a build failure.
 **Errata (Step-0 backlog cross-check):** `TODO_LIST.md` catalog items (ADR-0159/0160 export features, EventCatalog licence, custom exports) do NOT overlap with this session's 33 items — all 33 are new. Nothing here is already shipped (verified against CHANGELOG/TODO_LIST 2026-10-26).
 **Verschlimmbessern guard:** no API is renamed, no consumer is migrated before the derivation proves byte-equivalent on one flagship repo (invoices). Every phase ends green (`#verify-fast` for lib changes; consumer module tests for fleet changes).

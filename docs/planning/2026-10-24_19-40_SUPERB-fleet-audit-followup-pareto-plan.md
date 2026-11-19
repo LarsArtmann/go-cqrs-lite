@@ -3,7 +3,7 @@
 > **Created:** 2026-10-24 19:40 CEST (Saturday)
 > **Status:** READY FOR EXECUTION — P0 carries an ⛔ owner gate (red-gates law); P1 can start immediately
 > **Reviewed:** 2026-10-25 03:27 — all receipts verified against HEAD; §7 red inventory corrected (the 19-19 program's reds RESOLVED by 21:0x; only the file-size trio remains red); errata in §1.1
-> **Author session:** the 19:29 fleet-audit follow-up (status: [`../status/2026-10-24_19-29_consumer-fleet-audit-follow-up-status.md`](../status/2026-10-24_19-29_consumer-fleet-audit-follow-up-status.md))
+> **Author session:** the 19:29 fleet-audit follow-up (status: [`docs/status/archived/2026-10-24_19-29_consumer-fleet-audit-follow-up-status.md`](../status/archived/2026-10-24_19-29_consumer-fleet-audit-follow-up-status.md))
 > **Predecessors (READ FIRST — this plan builds beside them, does not replace them):**
 > [`2026-10-24_19-19_SUPERB-repo-scale-pareto-red-gates-to-v5-wave.md`](2026-10-24_19-19_SUPERB-repo-scale-pareto-red-gates-to-v5-wave.md) — owns repo-scale v5 sequencing and the OLDER red gates (SQL planned-path suite, `check-duplication` 190 groups — both since RESOLVED at HEAD by 21:0x; see §7 correction). This plan owns the FIVE-AUDIT universe only; where they meet (tag wave vs red gates, file-size trio) the conflict is resolved in §7.
 > **Format note:** Markdown + Mermaid per explicit operator instruction (skill default is HTML; operator instruction wins, not propagated).

@@ -4,7 +4,7 @@
 **Status:** PARTIALLY EXECUTED (2026-10-27 00:10) — the 1% task, the 4% task and five
 of the seven 20% tasks are shipped (T01-T04, T07-T09), T05/T08/T12 are partial, T06 was
 verified as already covered, and T10-T27 are untouched. Receipts and deviations:
-[`docs/status/2026-10-27_00-10_testing-gates-execution-and-forgotten-verifications.md`](../status/2026-10-27_00-10_testing-gates-execution-and-forgotten-verifications.md)
+[`docs/status/2026-10-27_00-10_testing-gates-execution-and-forgotten-verifications.md`](../status/archived/2026-10-27_00-10_testing-gates-execution-and-forgotten-verifications.md)
 and `TODO_LIST.md` § Testing improvements. Everything below is the ORIGINAL plan text,
 kept for the decision trail; read §10 for what reality corrected.
 **Input:** [`docs/planning/2026-10-24_50-testing-improvements.md`](2026-10-24_50-testing-improvements.md) (50 ideas, census-grounded)
