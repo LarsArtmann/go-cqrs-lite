@@ -152,7 +152,7 @@ That makes the finding worse than the initial report stated. There is no purity 
 - [ ] Fuzz tests for stream values and cursors. <!-- routing:skip -->
 - [ ] Any production code change. <!-- routing:skip -->
 - [ ] Any ADR (the Tier -1 classification deserves one). <!-- routing:skip -->
-- [ ] Any TODO_LIST row or GitHub issue. <!-- routing:skip -->
+- [x] Any TODO_LIST row or GitHub issue. <!-- routing:skip --> — DONE 2026-11-19: satisfied by the harvest of all other §c boxes into TODO_LIST.md ("Metaengine codec Tier -1 harvest" section); no separate GitHub issue owed
 - [ ] Any dep-budget change (`7 -> 8`).
 - [ ] Any benchmark (JSON vs CBOR read-model rows). <!-- routing:skip -->
 - [ ] Any gate run (`check-arch`, `check-file-size`, `api-stability`, `doc-check`). <!-- routing:skip -->
