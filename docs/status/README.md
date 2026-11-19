@@ -221,6 +221,18 @@ same session) moved all 2026-07 status (240 files) and planning (52 files)
 snapshots to `archived/` — July work is shipped or superseded by the August
 waves; inbound references from active docs were repointed.
 
+**2026-11-19 (16th docs-health pass):** whole-corpus mechanical triage of all
+195 top-level `docs/status/2026-*.md` reports (part 1:
+[triage doc](2026-11-19_23-19_archive-ritual-part1-triage.md)): 53 KEEP
+(live-index window, >= 2026-11-03), 1 POOL (2026-10-23_17-20 metaengine codec
+report, 13 unchecked boxes - harvest before it can archive), and 141
+ANNOTATE + ARCHIVE: every report dated <= 2026-11-02 with ZERO unchecked TODO
+boxes got a dated bulk-pass banner and `git mv` into `archived/` (archived
+count 1,278 -> 1,419; top-level 2026-* report count 195 -> 54 (plus the 1 triage doc)). No content verdicts
+per report this pass - the banner is a mechanical resolved-snapshot marker,
+not an inline annotation; per-report annotation remains for future passes on
+the KEEP window.
+
 **2026-10-11 (13th docs-health pass):** processed the standing mandate
 (`**/2026-0*` files, docs-health, living docs superb, archive fully-done
 files). ANNOTATED + ARCHIVED 21 files via `git mv` — manifest (classification:
