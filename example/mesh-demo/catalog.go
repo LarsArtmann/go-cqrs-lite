@@ -61,7 +61,7 @@ func buildOrdersCatalog() *catalog.Catalog {
 	})
 	reg.AddEvent("orders-svc", catalog.Message{
 		Kind: catalog.EventMessage, ID: evtInvoiceIssuedID, Name: "Invoice Issued",
-		Version: ordersCatalogVersion, Summary: "Billing issued an invoice (consumed)",
+		Version: ordersCatalogVersion, Summary: "An invoice was issued for an order",
 		Direction: catalog.Receives,
 		// Bilateral contract, consuming side: the EXPLICIT external producer
 		// keeps ValidateCoeffects happy — the event is imported, not dangled.
@@ -181,7 +181,7 @@ func buildBillingCatalog() *catalog.Catalog {
 	})
 	reg.AddEvent("billing-svc", catalog.Message{
 		Kind: catalog.EventMessage, ID: evtOrderPlacedID, Name: "Order Placed",
-		Version: billingCatalogVersion, Summary: "An order was placed (consumed from ordering)",
+		Version: billingCatalogVersion, Summary: "An order was placed and is awaiting invoicing",
 		Direction: catalog.Receives,
 		// Bilateral contract, consuming side: name the external producer.
 		Producers: []catalog.ServiceID{"orders-svc"},
