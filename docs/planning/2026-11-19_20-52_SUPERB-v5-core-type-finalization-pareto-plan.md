@@ -58,17 +58,27 @@ deprecated markers per package: command 13, event 22, id 15, metadata 2, query 4
 record 5 (= 61); `id.StreamRef` is already the struct `{Type, ID}` in v4 — ADR-0166
 makes core/v5's `record.StreamRef` its alias and retires the slash string form.
 
+**Two framing facts added in v2:** (a) cut-readiness **Layer 8 ("Breaking core-type
+change") has exactly one row** — the validating `NewStreamRef` — which is M04 of
+this plan: **executing Wave 1 checks off Layer 8 of the sequencing authority.**
+(b) The plan assumed "M42 cuts the first core/v5 tag" — but whether the first
+`core/v5.x.y` tag rides the full v5.0.0 cut or lands EARLIER (the codemod's
+slice 2 is "blocked on the first core/v5 tag", TODO_LIST :395) is **ambiguous in
+the parent plan** — if it lands earlier, the window is shorter than assumed.
+M22 pins the trigger before Wave 1 starts.
+
 ---
 
 ## 2. Pareto breakdown
 
 ### The 1% that delivers 51%
 
-**Retype `core/v5/record.Record` + implement ADR-0166's alias** (M03+M04 below).
+**Retype `core/v5/record.Record` + implement ADR-0166's alias** (M03+M04 below,
+de-risked by the M00 spike).
 Everything else in core/v5 — event, command, query, metadata, the bridges, the
 codemod, the docs — compiles against this one type. It is the root of the type tree;
 landing it first means every later task lands on the final shape instead of
-re-touching its predecessor. ~2 tasks, ~3h of the total effort.
+re-touching its predecessor. It is also cut-readiness Layer 8's only row.
 
 ### The 4% that delivers 64%
 
@@ -103,6 +113,7 @@ All tasks that touch code run their module tests as the definition of done (per-
 
 | ID | Task | Why (impact) | Est | Tier | Dep |
 |----|------|--------------|-----|------|-----|
+| M00 | **Spike: scratch-branch retype prototype** — retype Record + StreamRef alias in a throwaway branch, count the compile-fallout blast radius, calibrate M03/M04/M09 estimates against reality; discard the branch | De-risks the plan's two largest estimates before committing to them; wrong estimates discovered at M03 instead of M20 | 60 | 1% | — |
 | M01 | **Owner ruling pack (1 page)**: (a) ratify this plan's reconciliation — deprecated twins stay until T26, new-surface finalization proceeds now; (b) ADR-0166 ratify-at-implementation confirmed (Proposed → Accepted when M04 lands); (c) brand-now over string-shape-compat approved (codemod absorbs the mechanical rewrites) | Prevents executing the review's amended-away R1 fix against the recorded T26 strategy; unblocks everything | 30 | 1% | — |
 | M02 | **Review errata + fix-up**: annotate the committed data-model review (R1 → T26-gated amendment; methodology = honest inventory "24/91 files read"; census claim → cite the grep; R10 severity badge; hero scope) + postmortem cross-link | The audit artifact must stop overstating; honesty debt from this session | 30 | 20% | — |
 | M03 | **core/v5/record brands**: add `InstanceID`, `StreamType`, `Version` (uint64, 0=unversioned), `CorrelationID` brands; retype `Record.ID/.Type/.Version/.StreamType` + `CommonMetadata.CorrelationID`; Parse*/lockstep tests (the `event.Type = record.Type` cross-comparison pattern) | R2+R3 root fix; the type everything compiles against | 90 | 1% | M01 |
@@ -124,8 +135,11 @@ All tasks that touch code run their module tests as the definition of done (per-
 | M19 | **Series README for docs/reviews/** + read the 10-17 findings table + real cross-refs into the 11-19 review | Review series reads as one conversation | 30 | 20% | M02 |
 | M20 | **Verification protocol**: scoped suites per changed module (core/v5, cqrs-upgrade, api-stability, cqrs-lint v007 tests), `GT_LINT_MODULES="core/v5 cmd/cqrs-upgrade/v4 cmd/api-stability/v4" nix run .#lint-scope`, then full `nix run .#verify` (exclusive window) | Nothing ships on vibes | 90 | 20% | all |
 | M21 | **Post-landing watch**: first green master CI after merge + untagged-API gate (T26-row :378) catches any consumer surprise; fold receipts into TODO_LIST rows | The window closes loudly, not silently | 30 | 20% | M20 |
+| M22 | **Pin the first-core/v5-tag trigger + deadline axis**: read TODO_LIST :1966/:395 + cut-readiness Layer 13; determine whether the first `core/v5.x.y` tag rides the full v5.0.0 cut or lands earlier for the codemod; write the resulting deadline (or "no deadline, gate-ordered") at the top of this plan and re-check wave sizing | The plan's "closing window" urgency is currently an assumption about parent-program timing | 30 | 1% | — |
+| M23 | **v4-untouched negative check**: prove the v4 train is byte-identical after Waves 1–3 (`git diff --stat -- record/ event/ command/ query/ metadata/ id/ dispatcher/ dedup/ kv/` excluding core/v5 must be empty; api golden diff limited to core/v5 module section) | The cleanup must cost v4 nothing; a silent v4 touch would break the frozen-train contract | 30 | 4% | M10 |
+| M24 | **Downstream-shape compat review**: enumerate v4 `metaengine`/`system` consumers of `record.Record` fields (OnRecord folds, projectionadapter) and confirm the retype maps 1:1 onto what M43's copy-forwards will need; record divergences as design notes on the :2585 row | M43 inherits whatever shape Wave 1 finalizes; surprises there are this plan's fault | 45 | 4% | M04 |
 
-**Totals:** 21 tasks, ~16.6 h. Tier 1% = M03+M04 (~3h). Tier 4% = +M05–M11 (~7.25h).
+**Totals:** 25 tasks, ~21.8 h. Tier 1% = M00+M03+M04+M22 (~4h). Tier 4% = +M05–M11, M23, M24 (~8.5h).
 Tier 20% = +M02, M12–M19, M21 (~6.25h). Tail = M20 (inside 20% envelope).
 
 ---
@@ -136,6 +150,9 @@ Sorted by importance/impact/effort within dependency order. Est = minutes.
 
 | ID | Task | Est | Dep |
 |----|------|-----|-----|
+| M00·a | Scratch branch: retype Record fields + StreamRef alias, no tests | 12 | — |
+| M00·b | Count compile-fallout sites across core/v5; recalibrate M03/M04/M09 ests | 12 | M00·a |
+| M00·c | Discard branch; write calibration note into this plan's §8 | 10 | M00·b |
 | M01·a | Draft the 1-page ruling sheet (three decisions, evidence links, recommendation each) | 12 | — |
 | M01·b | Walk owner through sheet; record verdicts verbatim into TODO_LIST D-sheet format | 12 | M01·a |
 | M02·a | Review fix-up edit: R1 card gets "Amended 2026-11-19: cut is T26-gated (v007 v5-twin table); the free window applies to the new surface" | 12 | — |
@@ -207,8 +224,19 @@ Sorted by importance/impact/effort within dependency order. Est = minutes.
 | M20·d | Full `nix run .#verify` in an exclusive window; receipts to TODO_LIST | 12+ | M20·c |
 | M21·a | Watch first master CI green post-merge; record run URL | 10 | M20·d |
 | M21·b | Untagged-API gate (T26-row :378) observed against the merged state; close out | 12 | M21·a |
+| M22·a | Read :1966/:395 + Layer 13; write the tag-trigger finding | 12 | — |
+| M22·b | Deadline axis written into plan header; wave sizing re-check verdict | 12 | M22·a |
+| M23·a | v4-diff negative check (tree + golden section-scoped) | 12 | M10·c |
+| M23·b | Receipt rowed (empty-diff output quoted) | 6 | M23·a |
+| M24·a | Enumerate record.Record field consumers in v4 metaengine/system | 12 | M04·f |
+| M24·b | Map each consumer onto the retype; list friction sites | 12 | M24·a |
+| M24·c | Design notes onto the :2585 row; divergences escalated | 12 | M24·b |
 
-**Fine totals:** 71 tasks · ~13.4 h estimated · every task ≤ 12 min.
+**Fine totals:** 79 tasks · ~15.3 h direct · **plus ~30% integration/test overhead**
+(acknowledged gap to the ~21.8 h medium sum: module suites, golden regens, and
+re-runs after review feedback are real time the 12-min chopping hides — the
+medium estimates carry it; fine estimates are hands-on-keyboard only).
+Every task ≤ 12 min.
 
 ---
 
@@ -220,11 +248,14 @@ graph TD
         M01[M01 owner ruling pack]
         M02[M02 review errata fix-up]
         M17[M17 HARVEST + rowing]
+        M22[M22 tag-trigger + deadline]
     end
     subgraph W1["Wave 1 — record root (the 1%)"]
+        M00[M00 spike\ncalibrate]
         M03[M03 brands]
         M04[M04 ADR-0166 StreamRef alias]
         M05[M05 Payload + Envelope]
+        L8{{cut-readiness Layer 8 checked off}}
     end
     subgraph W2["Wave 2 — event & bridges (the 4%)"]
         M06[M06 stamps + zero-guards]
@@ -249,8 +280,10 @@ graph TD
         M20[M20 verify protocol]
         M21[M21 post-landing watch]
     end
-    M01-->M03
+    M01-->M00
+    M00-->M03
     M03-->M04-->M05
+    M04-->L8
     M04-->M06
     M03-->M07
     M03-->M08
@@ -271,9 +304,14 @@ graph TD
     M20-.blocks.->TAG
 ```
 
-**Critical path:** M01 → M03 → M04 → M06/M09 → M10 → M14 → M20 → M21.
-**Parallelism:** W0 runs beside W1; M05/M07/M08 fan out after M03; W3 gates fan out
-after M10; W4 docs/codemod fan out in parallel.
+**Critical path:** M01 → M00 → M03 → M04 → M06/M09 → M10 → M14 → M20 → M21.
+**Parallelism (corrected in v2):** core/v5 is ONE package tree — Waves 1–2 tasks
+touching the same packages (M03/M04/M05, then M06–M09) run **sequentially**;
+true parallelism exists only across W0, the W3 gates after M10, and the W4
+docs/codemod track. The mermaid fan-out shows dependency order, not a
+concurrency license.
+**Serialization points:** api golden (M10) and `#verify` (M20) each run once,
+exclusively — no concurrent writers.
 
 ---
 
@@ -306,6 +344,10 @@ after M10; W4 docs/codemod fan out in parallel.
   (api golden regen rule, ADR-0123 contract #5).
 - Docs tasks: `cmd/doc-check` canonical scan exit 0; md-go validator on touched
   fences.
+- **Wave stop-checkpoints (added v2):** a wave ends only when (1) its gate tasks are
+  green, (2) the PREVIOUS wave's suites still pass (no cross-wave regression), and
+  (3) the v4-negative check (M23, after Wave 3) holds. A red checkpoint halts the
+  next wave — fix or revert the offending task, never the gate.
 - Final: `nix run .#verify` (exclusive), receipts rowed in TODO_LIST (M20·d).
 - Anti-verschlimmbessern rule: every task leaves its gate state no worse than found;
   a red gate that was green = revert the task, not the gate.
@@ -314,7 +356,21 @@ after M10; W4 docs/codemod fan out in parallel.
 
 | Risk | Mitigation |
 | --- | --- |
+| **Estimates wrong (M03/M04/M09 are the plan's largest)** | M00 spike measures the real blast radius first; wave boundary re-estimates from M00·b calibration; over-budget tasks get their own row instead of silent under-delivery |
+| **First-tag timing ambiguity** — window may be shorter than assumed if a core/v5 tag lands before the full v5.0.0 cut | M22 pins the trigger from :1966/:395 + Layer 13 BEFORE Wave 1; if the window is short, Wave 1 (brands + alias) is the protected minimum and W4 docs follow the tag |
 | ADR-0166 implementation detail drift (storage keys) | StreamKey() stays the disk truth (ADR contract); sticky dual-read for legacy display-form journals already specified |
+| **M43 inherits an incompatible shape** | M24 compat review of v4 metaengine/system Record consumers before the shape hardens; divergences noted on the :2585 row |
 | Codemod complexity grows past M14 budget | Rules ship behind the existing `--to-v5` slice structure; anything over budget becomes its own row, not a silent simplification |
 | Divergence trips mirror/duplication gates unexpectedly | M12/M13 are verification tasks, not assumptions; specview surgical-insert flow documented in AGENTS #14 |
 | Owner ruling (M01) changes the reconciliation | Plan's waves are ordered so only W1 retargets; W0 is one page, cheap to re-run |
+
+## 9. Plan revision log
+
+- **v1 (2026-11-19 20:52):** 21 medium / 71 fine tasks.
+- **v2 (2026-11-19, same session, self-audit):** +M00 spike, +M22 tag-trigger
+  pin-down, +M23 v4-negative check, +M24 downstream compat review; arithmetic
+  corrected (v1 claimed 16.6h for a 19.1h table); fine-vs-medium overhead gap made
+  explicit (~30%); parallelism claim corrected (core/v5 is one package tree —
+  Waves 1–2 sequential, parallelism only in W0/W3-gates/W4); wave stop-checkpoints
+  added to §7; Layer-8-of-cut-readiness framing added; estimate and tag-timing
+  risks added to §8.
