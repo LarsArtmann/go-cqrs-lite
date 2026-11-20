@@ -11,12 +11,12 @@
 
 Two public types name a stream and they disagree:
 
-| | `record.StreamRef` | `id.StreamRef` |
-| --- | --- | --- |
-| Shape | `type StreamRef string` | `struct { Type StreamType; ID StreamID }` |
-| Display/wire form | `"StreamType/EntityID"` (slash-joined) | `String()` = display `"Type:ID"`, `StreamKey()` = storage `"type:bare-id"` |
-| Validation | none (empty type legal on the wire) | `Validate()` rejects empty type + zero ID; `IsZero()` |
-| Construction | raw string cast | `NewStreamRef(type, id)` (validation arrives at v5 per the Appendix B ruling) |
+|                   | `record.StreamRef`                     | `id.StreamRef`                                                                |
+| ----------------- | -------------------------------------- | ----------------------------------------------------------------------------- |
+| Shape             | `type StreamRef string`                | `struct { Type StreamType; ID StreamID }`                                     |
+| Display/wire form | `"StreamType/EntityID"` (slash-joined) | `String()` = display `"Type:ID"`, `StreamKey()` = storage `"type:bare-id"`    |
+| Validation        | none (empty type legal on the wire)    | `Validate()` rejects empty type + zero ID; `IsZero()`                         |
+| Construction      | raw string cast                        | `NewStreamRef(type, id)` (validation arrives at v5 per the Appendix B ruling) |
 
 The disagreement is invisible while `record.StreamRef` stays a permissive wire string, but the
 v5 plan already commissions validation for `record.NewStreamRef` — at which point two

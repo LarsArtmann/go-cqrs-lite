@@ -58,7 +58,7 @@ Order within the layer matters: each deletion must leave `system.New` consumers 
 ## Layer 8 — Breaking core-type change
 
 - [x] `record.NewStreamRef(streamType, entityID) (StreamRef, error)` rejecting empty entityID (owner-confirmed 2026-08-22, decision memo Appendix B). After Layer 2 call-site migration this is a regen + verify.
-  Done 2026-11-20 in core/v5 via ADR-0166, in the stronger form: `record.StreamRef = id.StreamRef` (struct canonical), `id.NewStreamRef(StreamType, StreamID) (StreamRef, error)` rejects empty type AND zero ID, `Record.Stream` collapsed from the StreamID/StreamType pair, `id.ParseStreamRef` added. The v4 train is untouched (frozen until T26).
+      Done 2026-11-20 in core/v5 via ADR-0166, in the stronger form: `record.StreamRef = id.StreamRef` (struct canonical), `id.NewStreamRef(StreamType, StreamID) (StreamRef, error)` rejects empty type AND zero ID, `Record.Stream` collapsed from the StreamID/StreamType pair, `id.ParseStreamRef` added. The v4 train is untouched (frozen until T26).
 
 ## Layer 9 — Universal Engine fold (the big one; scope per ADR-0146/0147 rulings)
 
