@@ -12,6 +12,14 @@
       "tokens": 8
     },
     {
+      "hash": "015bc299e0fec039",
+      "files": [
+        "/home/lars/projects/go-cqrs-lite/core/v5/metadata/metadata.go",
+        "/home/lars/projects/go-cqrs-lite/metadata/v4/metadata.go"
+      ],
+      "tokens": 12
+    },
+    {
       "hash": "032b8fc3d1f3df36",
       "files": [
         "stack/mysql/preset.go",
@@ -109,6 +117,14 @@
       "tokens": 6
     },
     {
+      "hash": "15755db172b8b8af",
+      "files": [
+        "/home/lars/projects/go-cqrs-lite/command/v4/store_test.go",
+        "/home/lars/projects/go-cqrs-lite/core/v5/command/store_test.go"
+      ],
+      "tokens": 38
+    },
+    {
       "hash": "16832264843018ae",
       "files": [
         "metaengine/pgengine/engine.go",
@@ -167,6 +183,14 @@
       "tokens": 8
     },
     {
+      "hash": "1fc3e4cf963cb79f",
+      "files": [
+        "/home/lars/projects/go-cqrs-lite/metadata/v4/metadata.go",
+        "/home/lars/projects/go-cqrs-lite/core/v5/metadata/metadata.go"
+      ],
+      "tokens": 30
+    },
+    {
       "hash": "219938b0cc2b83e8",
       "files": [
         "metaengine/claimkit/dedup.go",
@@ -183,12 +207,28 @@
       "tokens": 6
     },
     {
+      "hash": "21fb2003ae9ba50c",
+      "files": [
+        "/home/lars/projects/go-cqrs-lite/core/v5/record/encoding.go",
+        "/home/lars/projects/go-cqrs-lite/record/v4/encoding.go"
+      ],
+      "tokens": 10
+    },
+    {
       "hash": "233be19fd7a334f4",
       "files": [
         "metaengine/badgerengine/engine.go",
         "metaengine/pebbleengine/engine.go"
       ],
       "tokens": 6
+    },
+    {
+      "hash": "23660e3fd3f0063e",
+      "files": [
+        "/home/lars/projects/go-cqrs-lite/core/v5/id/stream_type.go",
+        "/home/lars/projects/go-cqrs-lite/id/v4/stream_type.go"
+      ],
+      "tokens": 10
     },
     {
       "hash": "23971c93c61b0bf8",
@@ -289,6 +329,14 @@
       "tokens": 6
     },
     {
+      "hash": "331ed310383e1f6d",
+      "files": [
+        "/home/lars/projects/go-cqrs-lite/core/v5/event/options.go",
+        "/home/lars/projects/go-cqrs-lite/event/v4/options.go"
+      ],
+      "tokens": 44
+    },
+    {
       "hash": "36139d78dff8732f",
       "files": [
         "metaengine/memory_graph.go",
@@ -321,6 +369,14 @@
       "tokens": 8
     },
     {
+      "hash": "399216e705bfb820",
+      "files": [
+        "/home/lars/projects/go-cqrs-lite/core/v5/command/commandtest/store_suite.go",
+        "/home/lars/projects/go-cqrs-lite/command/v4/commandtest/store_suite.go"
+      ],
+      "tokens": 14
+    },
+    {
       "hash": "3a8477484cfe9ca4",
       "files": [
         "projectionhost/dlq.go",
@@ -329,12 +385,28 @@
       "tokens": 6
     },
     {
+      "hash": "3aca54b782da87f7",
+      "files": [
+        "/home/lars/projects/go-cqrs-lite/core/v5/event/causality_test.go",
+        "/home/lars/projects/go-cqrs-lite/event/v4/causality_test.go"
+      ],
+      "tokens": 78
+    },
+    {
       "hash": "3b3149d47b3bdd45",
       "files": [
         "watermill/subscriber.go",
         "watermill/command_subscriber_adapter.go"
       ],
       "tokens": 6
+    },
+    {
+      "hash": "3cb16df541913ff0",
+      "files": [
+        "/home/lars/projects/go-cqrs-lite/core/v5/event/asrecord_test.go",
+        "/home/lars/projects/go-cqrs-lite/event/v4/asrecord_test.go"
+      ],
+      "tokens": 30
     },
     {
       "hash": "3e2a79d7e9a98e14",
@@ -469,6 +541,14 @@
       "tokens": 8
     },
     {
+      "hash": "4ecd1fef3bfc4383",
+      "files": [
+        "/home/lars/projects/go-cqrs-lite/core/v5/record/record_test.go",
+        "/home/lars/projects/go-cqrs-lite/record/v4/record_test.go"
+      ],
+      "tokens": 30
+    },
+    {
       "hash": "4ee782da7bbcaa01",
       "files": [
         "metaengine/keycodec/keycodec.go",
@@ -550,6 +630,14 @@
       "tokens": 27
     },
     {
+      "hash": "5c6a76756b9e2124",
+      "files": [
+        "/home/lars/projects/go-cqrs-lite/command/v4/memory_bus_test.go",
+        "/home/lars/projects/go-cqrs-lite/core/v5/command/memory_bus_test.go"
+      ],
+      "tokens": 76
+    },
+    {
       "hash": "5c92cd485f79d9d6",
       "files": [
         "metaengine/mysqlengine/stream_log.go",
@@ -612,12 +700,28 @@
       "tokens": 18
     },
     {
+      "hash": "6165deb7d122a46e",
+      "files": [
+        "/home/lars/projects/go-cqrs-lite/command/v4/memory_bus_test.go",
+        "/home/lars/projects/go-cqrs-lite/core/v5/command/memory_bus_test.go"
+      ],
+      "tokens": 38
+    },
+    {
       "hash": "63a9b6d34ee8f9fc",
       "files": [
         "metaengine/bboltengine/stream_log.go",
         "metaengine/badgerengine/stream_log.go"
       ],
       "tokens": 6
+    },
+    {
+      "hash": "6405f61fe4ce0ed3",
+      "files": [
+        "/home/lars/projects/go-cqrs-lite/core/v5/event/event.go",
+        "/home/lars/projects/go-cqrs-lite/event/v4/event.go"
+      ],
+      "tokens": 12
     },
     {
       "hash": "64b8b6d893007fea",
@@ -669,6 +773,22 @@
       "tokens": 10
     },
     {
+      "hash": "6ef24346682bc21f",
+      "files": [
+        "/home/lars/projects/go-cqrs-lite/query/v4/asrecord_test.go",
+        "/home/lars/projects/go-cqrs-lite/core/v5/query/asrecord_test.go"
+      ],
+      "tokens": 34
+    },
+    {
+      "hash": "70bd972dbdc388a1",
+      "files": [
+        "/home/lars/projects/go-cqrs-lite/core/v5/record/encoding.go",
+        "/home/lars/projects/go-cqrs-lite/record/v4/encoding.go"
+      ],
+      "tokens": 8
+    },
+    {
       "hash": "72476c388429335b",
       "files": [
         "storage/memory/checkpoint.go",
@@ -683,6 +803,22 @@
         "metaengine/pgengine/engine.go"
       ],
       "tokens": 14
+    },
+    {
+      "hash": "761873af8492ee2e",
+      "files": [
+        "/home/lars/projects/go-cqrs-lite/event/v4/coverage_test.go",
+        "/home/lars/projects/go-cqrs-lite/core/v5/event/coverage_test.go"
+      ],
+      "tokens": 72
+    },
+    {
+      "hash": "76a2d8faf3e43a01",
+      "files": [
+        "/home/lars/projects/go-cqrs-lite/command/v4/store_test.go",
+        "/home/lars/projects/go-cqrs-lite/core/v5/command/store_test.go"
+      ],
+      "tokens": 100
     },
     {
       "hash": "76d03c0c6ebbc805",
@@ -700,6 +836,14 @@
         "metaengine/sqliteengine/graph.go"
       ],
       "tokens": 15
+    },
+    {
+      "hash": "7897c30031da4933",
+      "files": [
+        "/home/lars/projects/go-cqrs-lite/event/v4/event.go",
+        "/home/lars/projects/go-cqrs-lite/core/v5/event/event.go"
+      ],
+      "tokens": 20
     },
     {
       "hash": "78ef5b327d7a1af5",
@@ -766,6 +910,30 @@
       "tokens": 6
     },
     {
+      "hash": "8084b97240f4bbb1",
+      "files": [
+        "/home/lars/projects/go-cqrs-lite/core/v5/command/commandtest/store_suite.go",
+        "/home/lars/projects/go-cqrs-lite/command/v4/commandtest/store_suite.go"
+      ],
+      "tokens": 34
+    },
+    {
+      "hash": "808a0c1f94b2b8fc",
+      "files": [
+        "/home/lars/projects/go-cqrs-lite/core/v5/event/asrecord.go",
+        "/home/lars/projects/go-cqrs-lite/event/v4/asrecord.go"
+      ],
+      "tokens": 8
+    },
+    {
+      "hash": "81c2925009b95353",
+      "files": [
+        "/home/lars/projects/go-cqrs-lite/command/v4/commandtest/store_suite.go",
+        "/home/lars/projects/go-cqrs-lite/core/v5/command/commandtest/store_suite.go"
+      ],
+      "tokens": 20
+    },
+    {
       "hash": "842181d148ad87d8",
       "files": [
         "queue/mysql/facts.go",
@@ -798,6 +966,14 @@
       "tokens": 8
     },
     {
+      "hash": "87c7c4dd43932a2d",
+      "files": [
+        "/home/lars/projects/go-cqrs-lite/command/v4/store_test.go",
+        "/home/lars/projects/go-cqrs-lite/core/v5/command/store_test.go"
+      ],
+      "tokens": 58
+    },
+    {
       "hash": "8b26e414587ec84d",
       "files": [
         "queue/mysql/reads.go",
@@ -814,6 +990,14 @@
       "tokens": 8
     },
     {
+      "hash": "8c531eae328f4ebb",
+      "files": [
+        "/home/lars/projects/go-cqrs-lite/event/v4/options.go",
+        "/home/lars/projects/go-cqrs-lite/core/v5/event/options.go"
+      ],
+      "tokens": 16
+    },
+    {
       "hash": "8c6cb24d98625ba7",
       "files": [
         "metaengine/mysqlengine/planned.go",
@@ -828,6 +1012,14 @@
         "catalog/docserver/csp_browser_test.go"
       ],
       "tokens": 6
+    },
+    {
+      "hash": "8d70c8430be89b43",
+      "files": [
+        "/home/lars/projects/go-cqrs-lite/event/v4/store_middleware_test.go",
+        "/home/lars/projects/go-cqrs-lite/core/v5/event/store_middleware_test.go"
+      ],
+      "tokens": 122
     },
     {
       "hash": "90d1189f2ce6c3ba",
@@ -962,6 +1154,14 @@
       "tokens": 68
     },
     {
+      "hash": "acf52cd9e6462603",
+      "files": [
+        "/home/lars/projects/go-cqrs-lite/core/v5/event/causality_test.go",
+        "/home/lars/projects/go-cqrs-lite/event/v4/causality_test.go"
+      ],
+      "tokens": 44
+    },
+    {
       "hash": "acfadf13aa83a1a2",
       "files": [
         "queue/postgres/facts.go",
@@ -994,6 +1194,14 @@
       "tokens": 14
     },
     {
+      "hash": "b122c567094222e5",
+      "files": [
+        "/home/lars/projects/go-cqrs-lite/command/v4/commandtest/store_suite.go",
+        "/home/lars/projects/go-cqrs-lite/core/v5/command/commandtest/store_suite.go"
+      ],
+      "tokens": 26
+    },
+    {
       "hash": "b3ab79107935f177",
       "files": [
         "metaengine/badgerengine/backends.go",
@@ -1023,6 +1231,14 @@
       "files": [
         "queue/sqlite/details.go",
         "queue/mysql/details.go"
+      ],
+      "tokens": 8
+    },
+    {
+      "hash": "b5c7a66c9e7cdbe6",
+      "files": [
+        "/home/lars/projects/go-cqrs-lite/event/v4/asrecord.go",
+        "/home/lars/projects/go-cqrs-lite/core/v5/event/asrecord.go"
       ],
       "tokens": 8
     },
@@ -1069,6 +1285,14 @@
       "tokens": 12
     },
     {
+      "hash": "b8f00c8da7525263",
+      "files": [
+        "/home/lars/projects/go-cqrs-lite/core/v5/id/stream_type.go",
+        "/home/lars/projects/go-cqrs-lite/id/v4/stream_type.go"
+      ],
+      "tokens": 10
+    },
+    {
       "hash": "b9ba62fc086c4089",
       "files": [
         "metaengine/mysqlengine/planned_tables.go",
@@ -1091,6 +1315,14 @@
         "queue/sqlite/cancel.go"
       ],
       "tokens": 52
+    },
+    {
+      "hash": "be1653b6356b029e",
+      "files": [
+        "/home/lars/projects/go-cqrs-lite/command/v4/commandtest/store_suite.go",
+        "/home/lars/projects/go-cqrs-lite/core/v5/command/commandtest/store_suite.go"
+      ],
+      "tokens": 22
     },
     {
       "hash": "c17c3013f61ac59c",
@@ -1259,6 +1491,14 @@
       "tokens": 6
     },
     {
+      "hash": "db2dd81399fb4dad",
+      "files": [
+        "/home/lars/projects/go-cqrs-lite/id/v4/stream_type.go",
+        "/home/lars/projects/go-cqrs-lite/core/v5/id/stream_type.go"
+      ],
+      "tokens": 8
+    },
+    {
       "hash": "dca0f46e7ce3f399",
       "files": [
         "command/commandtest/store_suite.go",
@@ -1273,6 +1513,14 @@
         "queue/postgres/facts.go"
       ],
       "tokens": 18
+    },
+    {
+      "hash": "e0349a9fd5560bb6",
+      "files": [
+        "/home/lars/projects/go-cqrs-lite/command/v4/asrecord_test.go",
+        "/home/lars/projects/go-cqrs-lite/core/v5/command/asrecord_test.go"
+      ],
+      "tokens": 44
     },
     {
       "hash": "e07c4e4571bce887",
@@ -1315,6 +1563,14 @@
         "metaengine/enginetest/restart_safety.go"
       ],
       "tokens": 6
+    },
+    {
+      "hash": "e574e00ba0c46b13",
+      "files": [
+        "/home/lars/projects/go-cqrs-lite/command/v4/commandtest/store_suite.go",
+        "/home/lars/projects/go-cqrs-lite/core/v5/command/commandtest/store_suite.go"
+      ],
+      "tokens": 26
     },
     {
       "hash": "e628aa14d87b49ef",
@@ -1423,6 +1679,14 @@
       "tokens": 6
     },
     {
+      "hash": "f5895232d0755140",
+      "files": [
+        "/home/lars/projects/go-cqrs-lite/event/v4/causality.go",
+        "/home/lars/projects/go-cqrs-lite/core/v5/event/causality.go"
+      ],
+      "tokens": 16
+    },
+    {
       "hash": "f6a4a2089f813261",
       "files": [
         "metaengine/pgengine/pushdown.go",
@@ -1512,6 +1776,14 @@
       "tokens": 8
     },
     {
+      "hash": "fe6522d73d30612f",
+      "files": [
+        "/home/lars/projects/go-cqrs-lite/core/v5/event/store_middleware_test.go",
+        "/home/lars/projects/go-cqrs-lite/event/v4/store_middleware_test.go"
+      ],
+      "tokens": 74
+    },
+    {
       "hash": "feb83cb2e50b0493",
       "files": [
         "metaengine/duckdbengine/graph.go",
@@ -1534,6 +1806,14 @@
         "metaengine/pebbleengine/vector.go"
       ],
       "tokens": 6
+    },
+    {
+      "hash": "ff09fcc343784aa4",
+      "files": [
+        "/home/lars/projects/go-cqrs-lite/core/v5/event/event.go",
+        "/home/lars/projects/go-cqrs-lite/event/v4/event.go"
+      ],
+      "tokens": 14
     },
     {
       "hash": "ffb5766c308b7716",
