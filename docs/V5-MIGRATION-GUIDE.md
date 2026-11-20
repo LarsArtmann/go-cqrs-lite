@@ -49,8 +49,10 @@ deleted modules have no in-repo consumers outside themselves.
 
 ```go
 // skip-validate
-// v4 (deprecated at v5):
-bundle, _ := sqlite.New(dsn, stack.WithEventCodec(codec.CBORCodec{}))
+// v4 (deprecated at v5) — stack/sqlite preset:
+import stacksqlite "github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4"
+
+bundle, _ := stacksqlite.New(dsn, stack.WithEventCodec(codec.CBORCodec{}))
 defer bundle.Close()
 bus := bundle.EventBus()
 
@@ -88,7 +90,9 @@ _ = host.Start(ctx)
 **Transforms: ADR-0126 shells → Decorate composition (wave B)**
 
 ```go
-// v4 (deprecated at v5):
+// v4 (deprecated at v5) — the schema/ module shell:
+import "github.com/larsartmann/go-cqrs-lite/schema/v4"
+
 store := schema.NewVersionedStore(base, upcasters)
 
 // v5 — one store, both transform directions, capabilities preserved:
@@ -135,6 +139,87 @@ What you give up: per-table hand-written SQL. What you get: cost-based
 engine routing, filtered/sorted scans (`Scan`/`FilterOnField`), hot
 rollups (`ADTCounter`, operator-declared materialized views), and
 reset+replay rebuilds instead of schema migrations (ADR-0136 ladder).
+
+## 2b. The core/v5 type model (finalized 2026-11-20, pre-first-tag)
+
+The v4→v5 fold moves consumers onto `core/v5`, whose NEW surface was
+finalized in the 2026-11-20 type waves (ADR-0166; review R2-R10). These
+changes are already live in `core/v5` — migrating code meets them at the
+import rewrite. `cqrs-upgrade --to-v5` applies the mechanical forms below
+automatically and lists the rest as manual-review sites.
+
+### StreamRef: one struct, validated at construction (ADR-0166)
+
+```go
+// v4 (record package, slash-joined string, empty type legal)
+func v4Form(entityID string) {
+	ref := record.NewStreamRef("User", entityID)
+	streamType, streamID := ref.Split()
+	_, _ = streamType, streamID
+}
+
+// v5 (id.StreamRef struct, aliased as record.StreamRef; empty type ILLEGAL,
+// zero ID ILLEGAL — enforced at construction)
+func v5Form(streamID id.StreamID) {
+	validated, err := id.NewStreamRef("User", streamID) // validating door
+	orZero := id.NewStreamRefOrZero("User", streamID)   // zero on invalid, never malformed
+	parsed, err2 := id.ParseStreamRef("User:" + streamID.Get()) // inverse of StreamKey()
+	_, _, _ = validated, orZero, parsed
+	_, _, _ = err, err2, parsed.StreamKey() // "User:01J..." — STORAGE form; String() is display
+}
+```
+
+`Record.StreamID` + `Record.StreamType` collapsed into one `Record.Stream`
+field. The zero ref means "not a stream member" — queries and type-less
+commands carry it instead of a fabricated ref (the AsRecord bridges already
+do this for you).
+
+### Brands, Version, and the fused Payload (R2/R4)
+
+```go
+// v4
+func readV4(rec record.Record) (string, int64, []byte, record.Encoding) {
+	return string(rec.ID), int64(rec.Version), rec.Payload, rec.Encoding
+}
+
+// v5 — typed at the meeting point; presence is honest states.
+// rec.ID is record.InstanceID (brand; construct via record.ParseInstanceID),
+// rec.Version is record.Version (uint64-based, 0 = unversioned).
+func readV5(rec record.Record) ([]byte, record.Encoding) {
+	data, enc := rec.Payload.Data, rec.Payload.Enc // {Data, Enc} — ONE field
+	p := record.PayloadFrom(data, record.EncodingJSON)
+	_, _ = enc, p
+	return data, enc
+}
+```
+
+Payload states: absent (zero), opaque (`Data` + `EncodingUnknown`), wrapped
+(`Data` + `EncodingEnvelope`, the ADR-0044 fact), stamped (JSON/CBOR).
+
+### Cause typed at birth, honest stamps, structural actor (R6/R7/R8)
+
+```go
+// v4: causation reconstructed from metadata precedence at read time
+func readV4(evt event.Event) string {
+	md := evt.Metadata()
+	if md.Causation != nil {
+		return md.Causation.CommandID.String()
+	}
+	return ""
+}
+
+// v5: the event carries the cause field, stamped by the enricher at birth
+func readV5(ctx context.Context, evt event.Event) record.Cause {
+	ctx = event.WithCommandCausality(ctx, "create_user", cmdID)
+	return evt.Cause() // record.Cause{Kind: record.CauseCommand, ID: cmdID}
+}
+```
+
+Clock stamps stopped lying: the bridges no longer relabel the server
+mint/receive clock as a client clock — `Created`/`ClientCreatedAt` are zero
+when no client clock exists, `Received` carries the honest intake clock.
+`Tracing.Actor` is the structural home (`record.Actor{Kind, Raw}`); the
+"kind:raw" stringly `ActorID` twin dies with the v4 train.
 
 ## 3. Wire formats and data
 
