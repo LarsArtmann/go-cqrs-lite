@@ -1476,6 +1476,7 @@ core/v5/event/func WithActor
 core/v5/event/func WithActorContext
 core/v5/event/func WithCausation
 core/v5/event/func WithCausationID
+core/v5/event/func WithCause
 core/v5/event/func WithClientID
 core/v5/event/func WithClientOccurredAt
 core/v5/event/func WithClock
@@ -1520,6 +1521,7 @@ core/v5/event/method AggregateType
 core/v5/event/method AppendBatch
 core/v5/event/method Before
 core/v5/event/method Build
+core/v5/event/method Cause
 core/v5/event/method Clone
 core/v5/event/method Close
 core/v5/event/method Cmp

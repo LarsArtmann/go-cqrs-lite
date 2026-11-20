@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/larsartmann/go-cqrs-lite/core/v5/id"
+	"github.com/larsartmann/go-cqrs-lite/core/v5/record"
 )
 
 // Causation is the typed representation of command causation on an event
@@ -11,8 +12,13 @@ import (
 // stringly-typed Custom[MetadataKeyCommandType]/Custom[MetadataKeyCommandID]
 // pattern while keeping those entries for v2 backward compatibility.
 // art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
+//
+// Deprecated: removed with the v4 train (T26). The canonical causation home
+// is the event's cause field ([ImmutableEvent.Cause], stamped by
+// [WithCause]); this metadata twin stays so dual-window consumers can keep
+// reading metadata.Causation.
 type Causation struct {
-	CommandType string
+	CommandType Type
 	CommandID   id.CommandID
 }
 
@@ -69,7 +75,8 @@ func CommandCausalityEnricher(ctx context.Context) []Option {
 	}
 
 	return []Option{
-		WithCausation(cmdType, cmdID),
+		WithCause(record.Cause{Kind: record.CauseCommand, ID: cmdID.String()}),
+		WithCausation(Type(cmdType), cmdID),
 		WithCustom(MetadataKeyCommandType, cmdType),
 		WithCustom(MetadataKeyCommandID, cmdID.String()),
 	}

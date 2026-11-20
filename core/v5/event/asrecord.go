@@ -32,8 +32,10 @@ import (
 //     construction, so the zero arm covers reconstruct-without-identity)
 //   - Version          ← evt.Version()
 //   - CorrelationID    ← evt.Metadata().Tracing.CorrelationID
-//   - CausationID      ← see precedence rule below (Deprecated: removed in v5)
-//   - Cause            ← see precedence rule below
+//   - CausationID      ← typed command ID, tracing fallback (Deprecated:
+//     removed with the v4 train, T26)
+//   - Cause            ← evt.Cause() — the field wins; twin and tracing
+//     consulted only when it is empty
 //   - ActorID          ← see precedence rule below (Deprecated: removed in v5)
 //   - Actor            ← metadata.RecordActor(tracing): the same precedence
 //     as ActorID, resolved structurally (kind explicit, no parse tax)
@@ -47,24 +49,12 @@ import (
 //   - Stored          ← zero (the store stamps it)
 //   - SchemaVersion    ← evt.SchemaVersion()
 //
-// Cause precedence — the same resolution order as CausationID, but with the
-// causer's kind stated explicitly:
-//  1. If evt.Metadata().Causation is non-nil and Causation.CommandID is
-//     non-zero, Cause is {CauseCommand, commandID}. This is the strongest
-//     signal — the causation was typed at the source.
-//  2. Otherwise, when Tracing.CausationID is set, Cause is {CauseUnknown,
-//     causationID}: the ID survives, and the kind is honestly "unknown"
-//     because the tracing chain does not discriminate it.
-//  3. If neither is set, Cause is zero (no cause recorded).
-//
-// CausationID precedence: the Record's CausationID is resolved with the
-// following priority:
-//  1. If evt.Metadata().Causation is non-nil and Causation.CommandID is
-//     non-zero, the typed command ID wins. This is the strongest signal —
-//     it means the event was produced by a specific command whose ID is known.
-//  2. Otherwise, Tracing.CausationID is used. This is the generic tracing-level
-//     causation chain, set by middleware.
-//  3. If both are zero, CausationID is empty.
+// Cause precedence (review R6): the event's first-class cause FIELD wins —
+// it was typed at birth by [WithCause] (the CommandCausalityEnricher
+// path). When the field is empty, the metadata Causation twin is consulted
+// (events born through legacy paths), then Tracing.CausationID as the
+// honest unknown-kind fallback. The deprecated CausationID string follows
+// the same chain (typed command ID, tracing fallback, empty).
 //
 // ActorID precedence: the kind-discriminated Tracing.ActorID wins when set,
 // serialized in its self-describing "kind:raw" form (e.g. "user:01ARZ...").
@@ -85,13 +75,18 @@ func AsRecord(evt Event) record.Record {
 	tracing := md.Tracing
 
 	causationID := metadata.BrandedString(tracing.CausationID)
-	cause := record.Cause{}
 
 	if md.Causation != nil && !md.Causation.CommandID.IsZero() {
 		causationID = md.Causation.CommandID.String()
-		cause = record.Cause{Kind: record.CauseCommand, ID: md.Causation.CommandID.String()}
-	} else if !tracing.CausationID.IsZero() {
-		cause = record.Cause{Kind: record.CauseUnknown, ID: tracing.CausationID.String()}
+	}
+
+	cause := evt.Cause()
+	if cause.IsZero() {
+		if md.Causation != nil && !md.Causation.CommandID.IsZero() {
+			cause = record.Cause{Kind: record.CauseCommand, ID: md.Causation.CommandID.String()}
+		} else if !tracing.CausationID.IsZero() {
+			cause = record.Cause{Kind: record.CauseUnknown, ID: tracing.CausationID.String()}
+		}
 	}
 
 	return record.Record{

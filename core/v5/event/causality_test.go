@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/core/v5/id"
+	"github.com/larsartmann/go-cqrs-lite/core/v5/record"
 )
 
 func TestWithCommandCausality_RoundTrip(t *testing.T) {
@@ -113,10 +114,11 @@ func TestCommandCausalityEnricher_WithCausality(t *testing.T) {
 		t.Fatal("expected non-nil options when causality is set")
 	}
 
-	if len(opts) != 3 {
-		t.Fatalf("expected 3 options (causation + type + id), got %d", len(opts))
+	if len(opts) != 4 {
+		t.Fatalf("expected 4 options (cause + causation twin + type + id), got %d", len(opts))
 	}
 
+	// The first-class cause field is typed at birth (review R6).
 	// Apply options to a real event and inspect the resulting metadata.
 	streamID := id.NewStreamID()
 	evt, err := NewEvent("user.created", streamID, "User", Version(1), nil, opts...)
@@ -134,6 +136,10 @@ func TestCommandCausalityEnricher_WithCausality(t *testing.T) {
 	if meta.Custom[MetadataKeyCommandID] != cmdID.String() {
 		t.Errorf("metadata[%s] = %q, want %q",
 			MetadataKeyCommandID, meta.Custom[MetadataKeyCommandID], cmdID.String())
+	}
+
+	if got := evt.Cause(); got.Kind != record.CauseCommand || got.ID != cmdID.String() {
+		t.Errorf("Cause() = %v, want {command %s} typed at birth", got, cmdID)
 	}
 }
 

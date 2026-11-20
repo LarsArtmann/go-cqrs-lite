@@ -15,6 +15,11 @@ type Metadata struct {
 	IPAddress IPAddress              `json:"ipAddress,omitempty"`
 	UserAgent UserAgent              `json:"userAgent,omitempty"`
 	Tombstone *TombstoneMark         `json:"tombstone,omitempty"`
+	// Causation carries the command-causation twin.
+	//
+	// Deprecated: removed with the v4 train (T26). The canonical home is the
+	// event's cause field (ImmutableEvent.Cause); this twin is populated in
+	// lockstep during the dual-support window.
 	Causation *Causation             `json:"causation,omitempty"`
 	Custom    map[MetadataKey]string `json:"custom,omitempty"`
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/larsartmann/go-codec"
 
 	"github.com/larsartmann/go-cqrs-lite/core/v5/id"
+	"github.com/larsartmann/go-cqrs-lite/core/v5/record"
 )
 
 // Option configures event creation.
@@ -119,13 +120,30 @@ func WithSchemaVersion(v SchemaVersion) Option {
 	return func(e *ImmutableEvent) { e.schemaVersion = v }
 }
 
-// WithCausation sets the typed Causation field on an event's metadata,
-// recording which command produced this event (ADR-0031).
-func WithCausation(commandType string, commandID id.CommandID) Option {
+// WithCausation sets the typed Causation twin on an event's metadata,
+// recording which command produced this event (ADR-0031). It ALSO stamps the
+// first-class cause field, so twin-born and field-born events agree.
+//
+// Deprecated: removed with the v4 train (T26). Use [WithCause] — the cause
+// field is the canonical home; this metadata twin stays only for consumers
+// reading metadata.Causation during the dual-support window.
+func WithCausation(commandType Type, commandID id.CommandID) Option {
 	return func(e *ImmutableEvent) {
 		e.metadata.Causation = &Causation{
 			CommandType: commandType,
 			CommandID:   commandID,
+		}
+		e.cause = record.Cause{Kind: record.CauseCommand, ID: commandID.String()}
+	}
+}
+
+// WithCause stamps the first-class causation home: what produced this event,
+// with the causer's kind stated explicitly (review R6). The zero Cause is a
+// no-op. This is the canonical path — CommandCausalityEnricher uses it.
+func WithCause(cause record.Cause) Option {
+	return func(e *ImmutableEvent) {
+		if !cause.IsZero() {
+			e.cause = cause
 		}
 	}
 }

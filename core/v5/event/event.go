@@ -64,6 +64,10 @@ type ImmutableEvent struct {
 	encoding      codec.Encoding
 	payload       []byte
 	metadata      Metadata
+	// cause is the first-class causation home (review R6): typed at birth
+	// by [WithCause] (the CommandCausalityEnricher path), not reconstructed
+	// from metadata precedence rules at read time.
+	cause record.Cause
 	//cqrs-lint:ignore(C013) library code or intentional pattern
 	occurredAt time.Time
 	opts       *eventOptions
@@ -93,6 +97,13 @@ func (e *ImmutableEvent) AggregateID() id.StreamID { return e.streamID }
 
 // Deprecated: use StreamType.
 func (e *ImmutableEvent) AggregateType() id.StreamType { return e.streamType }
+
+// Cause returns what produced this event — a command, a timer, an event, or
+// an ID-only tracing chain — with the causer's kind stated explicitly. The
+// zero value means no cause was recorded. This is the canonical causation
+// home (review R6); the metadata Causation twin is kept in lockstep until
+// the v4 train retires.
+func (e *ImmutableEvent) Cause() record.Cause { return e.cause }
 
 // Version returns the stream position of this event within the stream.
 func (e *ImmutableEvent) Version() Version { return e.version }
