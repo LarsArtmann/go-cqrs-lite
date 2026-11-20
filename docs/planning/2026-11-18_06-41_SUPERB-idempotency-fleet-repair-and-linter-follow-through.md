@@ -267,6 +267,14 @@ Original rows above are preserved; these corrections govern execution from here 
 11. **C14 no-upstream-ask record (2026-11-20): NONE.** Zero genuine upstream asks surfaced;
     `go-idempotency` is first-party (its sweep fix is in-repo work). Recorded as "none" in the
     2026-11-18_08-27 report's receipts appendix. Nothing in this plan implies an external filing.
+12. **C13 measurement footguns (2026-11-20, recorded in the baseline evidence):** (a) cqrs-lint's
+    `.cqrs-lint.json` preset binds from the process CWD, not `--path` — analyzing consumers from the
+    library root silently applies `preset: library` and disables F030/V007 for them; every fleet
+    receipt must run from the consumer's own cwd (cmdguard-level fix or warning is a follow-up worth
+    rowing in TODO_LIST). (b) `github-local-sync/go.work` still lists 23 pre-reorg cqrs-lite `use`
+    paths — broken since the /v4 reorganization; repair belongs in C16's commit. (c) precheck's
+    `api` module (templ runtime mismatch) and Swetty's `services/api` (needs `go mod tidy`) fail
+    standalone loads, hiding lint-level F030 there while the scorecard's AST-level rows stay honest.
 
 ---
 
