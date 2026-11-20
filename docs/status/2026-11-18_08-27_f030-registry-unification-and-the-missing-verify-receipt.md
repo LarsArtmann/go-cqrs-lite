@@ -445,6 +445,28 @@ old binary — that is a fact about the fleet's pinning schedule, not about this
 
 ## Receipts appendix
 
+### Dated addendum — 2026-11-20 (C11/C14 records)
+
+- **No-upstream-ask record (§f 50): NONE.** This session and its predecessors surfaced zero
+  genuine upstream asks — `go-idempotency` (the blind oldest-first MemoryStore sweep) is a
+  first-party LarsArtmann module, so its fix is in-repo work (the `sweepInterval >= ttl` constraint
+  is recorded in the plan's Execution corrections), not an external filing. Recorded as "none"
+  rather than inventing one.
+- **Dependabot triage (§f 45): both moderate alerts (#138, #139) are the same otel CVE
+  (AttributeValueLengthLimit bypass via U+FFFD runes, patched 1.47.0), raised 2026-11-13 against
+  the root manifest. Verified: all 96 `otel/sdk`+`otel/trace` pins across the 104-module workspace
+  are v1.47.0 on the DEFAULT BRANCH, and no repo code uses `AttributeValueLengthLimit`. Verdict:
+  stale against an already-patched graph. Manual dismissal was attempted and REJECTED on honesty
+  grounds — GitHub offers no "fixed" reason (only fix_started/inaccurate/no_bandwidth/not_used/
+  tolerable_risk, all false here). The alerts close on GitHub's dependency-graph rescan; no action
+  owed beyond this record.
+- **docs/planning doc-check corpus decision (§f 46): stays OUT of the default corpus.** Planning
+  docs are dated records whose fences are deliberately illustrative; `#check-md-go` already covers
+  them at parse level with the frozen-history baseline, and the banner+addendum reconcile procedure
+  is the semantic gate. Compile-verifying them would force pseudo-code to compile — the wrong bar.
+- **Deep-dive stale count (§f 43): already satisfied** — the report carries the dated 2026-11-18
+  correction callout (7 consuming modules / 17 files, frozen v4.4.0).
+
 ```text
 $ date
 2026-11-18_08-27 Wednesday CET
