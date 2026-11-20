@@ -280,13 +280,38 @@ func TestBuildContext_SubtreeRunUsesEnclosingModuleProfile(t *testing.T) {
 
 	dir := t.TempDir()
 
+	// Hermetic sandbox: the event dependency resolves through a local replace
+	// stub, so the run needs neither the module cache nor the network — and
+	// the go directives stay below every runner's PATH go, so no toolchain
+	// switch (which GOPROXY=off would block) can happen mid-test.
 	goMod := `module subtreehost
 
-go 1.27
+go 1.21
 
 require github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.2
+
+replace github.com/larsartmann/go-cqrs-lite/event/v4 => ./eventstub
 `
 	if err := os.WriteFile(filepath.Join(dir, "go.mod"), []byte(goMod), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	stubDir := filepath.Join(dir, "eventstub")
+	if err := os.MkdirAll(stubDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(
+		filepath.Join(stubDir, "go.mod"),
+		[]byte("module github.com/larsartmann/go-cqrs-lite/event/v4\n\ngo 1.21\n"),
+		0o644,
+	); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(
+		filepath.Join(stubDir, "event.go"),
+		[]byte("package event\n\nfunc New(topic string, payload any) {}\n"),
+		0o644,
+	); err != nil {
 		t.Fatal(err)
 	}
 

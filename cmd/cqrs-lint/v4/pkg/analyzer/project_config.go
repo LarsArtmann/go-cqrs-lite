@@ -170,7 +170,6 @@ func (p ProjectConfig) EffectiveRules() RulesConfig {
 	return effective
 }
 
-
 // ApplySeverityOverrides rewrites finding severities according to a
 // rules.severity-overrides map (preset defaults merged with explicit config).
 // Runs post-detection, pre-filter so triage and host-side gating observe the

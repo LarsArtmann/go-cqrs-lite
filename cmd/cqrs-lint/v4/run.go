@@ -264,7 +264,6 @@ func applyConfigOverrides(cfg *AppConfig, actx *analyzer.AnalysisContext) {
 	actx.RulesConfig = cfg.Rules
 }
 
-
 // handleLoadErrors processes package-loading failures and returns an error
 // if the lint should abort (--strict/--strict-load, no files with errors).
 // Returns nil when the analysis can proceed, possibly after printing a

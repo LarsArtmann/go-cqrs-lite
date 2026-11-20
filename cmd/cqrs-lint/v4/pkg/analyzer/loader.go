@@ -44,7 +44,6 @@ func loadFromDir(dir string, fset *token.FileSet, env []string) ([]*packages.Pac
 	return pkgs, nil
 }
 
-
 // buildScope controls how buildContext discovers the module set to load.
 type buildScope int
 
