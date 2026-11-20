@@ -2586,6 +2586,21 @@ findings.
       migration waves (cqrs-htmx = 73% of indirect edges -> go-appkit = 18% -> app
       residue). — source: review roadmap step 6 _(Effort: L)_
 
+      M24 design notes (2026-11-20, record.Record consumer mapping for the
+      copy-forwards): the retype friction in v4 metaengine/system is TWO
+      one-liners and nothing else — `metaengine/v4/record_context.go:18`
+      (`rec.StreamID == ""` → `rec.Stream.IsZero()`; the v5 zero-Stream
+      semantics ALIGN with the synthetic-record concept, R9) and
+      `metaengine/v4/encoded.go:77` (`rec.Encoding` → `rec.Payload.Enc`).
+      `rec.Type == ""` checks (encoded/failover/replicator/runtime_backend/
+      store) are unchanged — Type stays a string alias. system/ adapters go
+      through the AsRecord bridges (already producing the new shape,
+      M04-M09). projectionadapter uses event accessors, not record fields.
+      The 16 test-site literal fields (StreamID:/StreamType:/Payload:/
+      Encoding:) are exactly what `cqrs-upgrade --to-v5` R2+R3 handles
+      (injected ctor helper + manual-site report). No escalations: the
+      v4→v5 shape maps 1:1 onto what M43 needs.
+
 - [ ] **P2: split tooling into its own product line** — `cmd/cqrs-lint` (48.7k prod
       LOC, 207 rules) + `catalog` exporters (22.2k) are 32.8% of production LOC and
       share the SDK's CI/release trains; give them their own repo (or at least their
@@ -2981,7 +2996,7 @@ re-checked by T23, never re-executed.
 - [x] **M16 DOMAIN_LANGUAGE collapse (2026-11-20)** — the two StreamRef rows collapsed into ONE canonical row (ADR-0166 struct, validating ctor, StreamKey storage form, alias; v4 slash-twin noted as cut-bound); Record row carries the core/v5 shape (branded InstanceID/Version, fused Payload state table, single Stream field, zero = not-a-stream-member); the record-layer StreamRef row now documents the alias + codemod adaptation; doc-check over DOMAIN_LANGUAGE green (109 refs); verification block import list unchanged and resolving. Receipt: this commit.
 - [x] **M18 AGENTS.md memory (2026-11-20)** — Deep-Dive row for the 11-19 review + plan (with the M02 errata honesty note); new Internal Contract 21: core/v5 pre-first-tag FREE WINDOW (finalized shape catalog + mirror-lockstep registration rule + v007 twin-table/codemod pointer — the thing the review missed); old contract 21 renumbered 21b. Canonical-facts green after healing the drifted archived count (1277→1418) and the two missing status-index rows (11-19 postmortem + 11-20 wave-0 report). Receipt: this commit.
 - [x] **M19 reviews series README (2026-11-20)** — docs/reviews/README.md: series index with one-line takeaways + the series conversation (10-17 found the on-disk half, 11-19 the in-memory half, the 11-20 plan closed the in-memory one); TWO real cross-refs added into the 11-19 review HTML: R2→PC-1 (typed WAL rides the Record brands) and R5→PC-3 (key law = the storage twin of ADR-0166), both with fixed-status notes; tag balance re-validated. Receipt: this commit.
-- [ ] **M24 downstream-shape compat (pre-M43)** — enumerate v4 metaengine/system record.Record field consumers (OnRecord folds, projectionadapter); map onto the retype; friction → design notes on `:2585`. Absorbs postmortem §f#4/#5 (StreamType consumer grep + reading debt).
+- [x] **M24 downstream-shape compat (2026-11-20)** — enumerated: production record.Record FIELD consumers in v4 metaengine/system = encoded.go (rec.Encoding, rec.Type), record_context.go (rec.StreamID=="", rec.Version==0), failover/replicator/runtime_backend/store (rec.Type==""), system adapters (via bridges), projectionadapter (event accessors, NOT record fields); map onto the retype = two one-liners + zero semantic divergences (zero-Stream ALIGNS with synthetic-record); design notes rowed on the :2585 P1 row; postmortem §f#4 CLOSED (StreamType grep: NO production reader of rec.StreamType anywhere in metaengine/system — the adapters' docs mention it only); §f#5 reading debt PAID (record_context.go + encoded.go read in full). Receipt: this commit.
 - [ ] **M20 verification protocol** — scoped suites + `GT_LINT_MODULES` lint-scope + full `nix run .#verify` (exclusive). Receipts here.
 - [ ] **M21 post-landing watch** — first green master CI + untagged-API gate (T26-row :378). BLOCKED on push authorization (not granted this session).
 - [ ] **cqrs-lint probe: "removed in v<N>" markers inside a v<N> module (postmortem §f#20)** — generalize R1 so the class cannot recur (a module train for version N must not carry markers deferring to N). Candidate architecture/version rule; design when cqrs-lint next opens. _(Effort: M)_
