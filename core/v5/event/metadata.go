@@ -11,10 +11,10 @@ import (
 type Metadata struct {
 	metadata.Tracing
 
-	Source    Source                 `json:"source,omitempty"`
-	IPAddress IPAddress              `json:"ipAddress,omitempty"`
-	UserAgent UserAgent              `json:"userAgent,omitempty"`
-	Tombstone *TombstoneMark         `json:"tombstone,omitempty"`
+	Source    Source         `json:"source,omitempty"`
+	IPAddress IPAddress      `json:"ipAddress,omitempty"`
+	UserAgent UserAgent      `json:"userAgent,omitempty"`
+	Tombstone *TombstoneMark `json:"tombstone,omitempty"`
 	// Causation carries the command-causation twin.
 	//
 	// Deprecated: removed with the v4 train (T26). The canonical home is the

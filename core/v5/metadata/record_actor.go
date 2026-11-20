@@ -6,14 +6,23 @@ import (
 )
 
 // RecordActor resolves a Tracing's producer into the structural
-// record.Actor: the kind-discriminated ActorID when set, falling back to the
-// legacy UserID as an ActorUser (a user ID is by definition a human user).
+// record.Actor. THE precedence rule (review P3/R7):
 //
-// It is the structural counterpart to [ActorString]: the "kind:raw" wire
-// form survives only at the serialization edge, so Record consumers get the
-// kind without paying the parse tax (review P3).
+//  1. The structural Actor FIELD wins — it was set structurally, no parse.
+//  2. Otherwise the stringly ActorID twin is parsed at this edge (its kind
+//     was already discriminated at the id layer).
+//  3. Otherwise the legacy UserID is an ActorUser (a user ID is by
+//     definition a human user).
+//
+// The "kind:raw" wire form survives only at the serialization edge; Record
+// consumers get the kind without paying the parse tax. [ActorString] is the
+// deprecated wire-form view of the same chain (twin, then UserID).
 func RecordActor(tracing Tracing) record.Actor {
 	//art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
+	if !tracing.Actor.IsZero() {
+		return tracing.Actor
+	}
+
 	if !tracing.ActorID.IsZero() {
 		return record.Actor{
 			Kind: recordActorKind(tracing.ActorID.Kind()),

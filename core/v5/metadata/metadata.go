@@ -4,6 +4,7 @@ import (
 	"maps"
 
 	"github.com/larsartmann/go-cqrs-lite/core/v5/id"
+	"github.com/larsartmann/go-cqrs-lite/core/v5/record"
 )
 
 // Tracing holds the cross-cutting tracing identifiers shared by event,
@@ -19,7 +20,18 @@ type Tracing struct {
 	CausationID   id.CausationID   `json:"causationId"`
 	UserID        id.UserID        `json:"userId"`
 	RequestID     id.RequestID     `json:"requestId"`
-	ActorID       id.ActorID       `json:"actorId,omitzero"`
+
+	// ActorID is the stringly "kind:raw" actor twin.
+	//
+	// Deprecated: removed with the v4 train (T26). The canonical home is the
+	// structural Actor field below — the kind is explicit at the type level
+	// and the "kind:raw" parse tax moves to this serialization edge only.
+	ActorID id.ActorID `json:"actorId,omitzero"`
+
+	// Actor is the structural producer of a record: kind-discriminated,
+	// no parse tax (review P3/R7). The zero value means no actor was
+	// recorded. [RecordActor] resolves it with field-wins precedence.
+	Actor record.Actor `json:"actor,omitzero"`
 }
 
 // IsZero returns true when no tracing field has been set.
@@ -28,7 +40,8 @@ func (t Tracing) IsZero() bool {
 		t.CausationID.IsZero() &&
 		t.UserID.IsZero() &&
 		t.RequestID.IsZero() &&
-		t.ActorID.IsZero()
+		t.ActorID.IsZero() &&
+		t.Actor.IsZero()
 }
 
 // Merge returns a Tracing with non-zero fields from other overlaid onto t.
@@ -53,6 +66,10 @@ func (t Tracing) Merge(other Tracing) Tracing {
 
 	if !other.ActorID.IsZero() {
 		result.ActorID = other.ActorID
+	}
+
+	if !other.Actor.IsZero() {
+		result.Actor = other.Actor
 	}
 
 	return result

@@ -16,9 +16,13 @@ func BrandedString[T interface {
 	return v.String()
 }
 
-// ActorString resolves a Tracing's actor: the kind-discriminated ActorID in
-// its self-describing "kind:raw" form when set, falling back to the bare
-// UserID for records that predate ActorID.
+// ActorString resolves a Tracing's actor into the deprecated "kind:raw"
+// WIRE form: the kind-discriminated ActorID when set, falling back to the
+// bare UserID for records that predate ActorID.
+//
+// Deprecated: removed with the v4 train (T26). This is the wire-form view
+// for the stringly ActorID twin; the canonical structural resolution is
+// [RecordActor] (field wins, twin parsed at the edge, UserID fallback).
 func ActorString(tracing Tracing) string {
 	if !tracing.ActorID.IsZero() {
 		return tracing.ActorID.PrefixedString()
