@@ -8,6 +8,22 @@
 
 ---
 
+> **Window deadline — pinned by M22 (executed 2026-11-19, before Wave 1): GATE-ORDERED, no calendar deadline.**
+> The first `core/v5.x.y` tag rides the **full v5.0.0 cut**. Evidence (all three
+> sources read, no ambiguity remains):
+> parent-plan M42 (:109) — "cut v5.0.0 (:1966) per the cut-readiness checklist";
+> parent-plan M43 (:110) — "slice 2 (:225, blocked on first core/v5 tag — **M42 cuts it**)";
+> cut-readiness Layer 13 — "Tag v5.0.0 for all modules (tag-wave mechanics)".
+> TODO_LIST :395 is a *downstream blocker* on that cut ("proxy must serve it"),
+> not evidence of an earlier tag; no recorded plan tags core/v5 early.
+> M42 itself is gated by M41 (v4 deletions) + M43 (core/v5 completion — whose
+> 23 copy-forwards inherit THIS plan's shape) + Layer 0 rulings. Ordering
+> consequence: this plan's Waves 1–3 must land **before M43's copy-forwards
+> complete**, which places the plan comfortably inside the window.
+> Wave sizing: unchanged — Wave 1 stays the protected minimum regardless.
+
+---
+
 ## 1. Context — what this plan is and is not
 
 The data-model review found the core type model carrying 12 findings. Research into the
@@ -65,7 +81,9 @@ this plan: **executing Wave 1 checks off Layer 8 of the sequencing authority.**
 `core/v5.x.y` tag rides the full v5.0.0 cut or lands EARLIER (the codemod's
 slice 2 is "blocked on the first core/v5 tag", TODO_LIST :395) is **ambiguous in
 the parent plan** — if it lands earlier, the window is shorter than assumed.
-M22 pins the trigger before Wave 1 starts.
+M22 pins the trigger before Wave 1 starts. **Pinned 2026-11-19 (M22 executed): it
+rides the FULL cut** — see the header block. No recorded plan tags core/v5 early;
+TODO_LIST :395 is a downstream blocker on M42's cut, not an early-tag signal.
 
 ---
 
@@ -374,3 +392,7 @@ exclusively — no concurrent writers.
   Waves 1–2 sequential, parallelism only in W0/W3-gates/W4); wave stop-checkpoints
   added to §7; Layer-8-of-cut-readiness framing added; estimate and tag-timing
   risks added to §8.
+- **v2.1 (2026-11-19, M22 executed):** tag trigger pinned — first `core/v5.x.y`
+  tag rides the full v5.0.0 cut (M42 + Layer 13; no early tag in any recorded
+  plan). Deadline axis = gate-ordered. Wave sizing unchanged; Waves 1–3 ordered
+  before M43's copy-forwards. Header block + §1(b) amended.
