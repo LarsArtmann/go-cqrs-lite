@@ -1,4 +1,4 @@
-package system_test
+package systemscenario_test
 
 import (
 	"context"

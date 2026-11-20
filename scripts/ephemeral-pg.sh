@@ -99,7 +99,7 @@ echo "==> PostgreSQL ready: $POSTGRES_TEST_DSN"
 # doesn't resolve integration/v4 build tags correctly in workspace mode.
 # PG_MODULES is env-overridable for targeted loops without the 7-module
 # sweep:  PG_MODULES="metaengine/pgengine/v4" ./scripts/ephemeral-pg.sh go test ...
-PG_MODULES="${PG_MODULES:-storage stack/postgres/v4 metaengine/pgengine/v4 projectionhost/v4 scheduling/sqlstore/v4 idempotency/sqlstore/v4 benchkit/v4}"
+PG_MODULES="${PG_MODULES:-storage/v4 stack/postgres/v4 metaengine/pgengine/v4 projectionhost/v4 scheduling/sqlstore/v4 idempotency/sqlstore/v4 benchkit/v4}"
 
 # shellcheck disable=SC1091  # dynamic path; syntax-checked separately
 source "$(dirname "$0")/lib/shuffle-seed.sh"

@@ -872,7 +872,10 @@ jobs:
           #
           # Locally (without POSTGRES_TEST_DSN), testcontainers-go spins up a
           # postgres:16-alpine container automatically — no manual setup needed.
-          cd ../stack/postgres/v4 && GOWORK=off go test -tags=integration/v4 -v -count=1 ./...
+          # storage/v4 is TWO levels deep, so the next cd needs two ups — the
+          # /v4 reorganization moved modules but left this one-up path behind
+          # (cd: ../stack/postgres/v4 resolved to storage/stack/postgres/v4).
+          cd ../../stack/postgres/v4 && GOWORK=off go test -tags=integration/v4 -v -count=1 ./...
 
     timeout-minutes: 15
   turso-sync:
