@@ -53,17 +53,17 @@ func TestAsRecordPersisted_FullFidelity(t *testing.T) {
 		t.Errorf("Type: got %q, want %q", rec.Type, "user.create")
 	}
 
-	if string(rec.Payload) != string(payload) {
+	if string(rec.Payload.Data) != string(payload) {
 		t.Errorf(
-			"Payload: got %q, want persisted payload carried (thin BasicCommand bridge leaves it empty)",
-			rec.Payload,
+			"Payload.Data: got %q, want persisted payload carried (thin BasicCommand bridge leaves it absent)",
+			rec.Payload.Data,
 		)
 	}
 
-	if rec.Encoding != record.EncodingUnknown {
+	if rec.Payload.Enc != record.EncodingUnknown {
 		t.Errorf(
-			"Encoding: got %v, want EncodingUnknown (ADR-0044 envelope self-describes)",
-			rec.Encoding,
+			"Payload.Enc = %v, want EncodingUnknown (the bridge cannot know the envelope)",
+			rec.Payload.Enc,
 		)
 	}
 
@@ -160,8 +160,8 @@ func TestAsRecordPersisted_ZeroTracing(t *testing.T) {
 		t.Errorf("Cause: got %+v, want zero (no causation recorded)", rec.MetaData.Cause)
 	}
 
-	if rec.Payload != nil {
-		t.Errorf("Payload: got %q, want nil passthrough for nil payload", rec.Payload)
+	if !rec.Payload.IsZero() {
+		t.Errorf("Payload: got %v, want the absent state for nil payload", rec.Payload)
 	}
 }
 

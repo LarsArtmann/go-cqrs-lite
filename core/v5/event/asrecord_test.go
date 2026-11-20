@@ -13,7 +13,7 @@ import (
 func TestAsRecord_NilEvent(t *testing.T) {
 	//art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 	rec := AsRecord(nil)
-	if rec.Type != "" || rec.Payload != nil || !rec.Stream.IsZero() {
+	if rec.Type != "" || !rec.Payload.IsZero() || !rec.Stream.IsZero() {
 		t.Errorf("AsRecord(nil) = %+v, want zero Record", rec)
 	}
 }
@@ -104,7 +104,7 @@ func TestAsRecord_BasicMapping(t *testing.T) {
 		t.Error("Received/Stored must stay unknown at the event layer (store's job)")
 	}
 
-	if len(rec.Payload) == 0 {
+	if rec.Payload.IsZero() {
 		t.Error("Payload is empty")
 	}
 }
@@ -219,12 +219,12 @@ func TestAsRecord_IDAndEncoding(t *testing.T) {
 			t.Errorf("ID = %q, want event ID %q", rec.ID, evt.ID().String())
 		}
 
-		if rec.Encoding.String() != string(evt.Encoding()) {
-			t.Errorf("Encoding = %q, want %q", rec.Encoding, evt.Encoding())
+		if rec.Payload.Enc.String() != string(evt.Encoding()) {
+			t.Errorf("Payload.Enc = %q, want %q", rec.Payload.Enc, evt.Encoding())
 		}
 
-		if rec.Encoding != record.EncodingJSON && rec.Encoding != record.EncodingCBOR {
-			t.Errorf("Encoding = %v, want a known codec stamp", rec.Encoding)
+		if rec.Payload.Enc != record.EncodingJSON && rec.Payload.Enc != record.EncodingCBOR {
+			t.Errorf("Payload.Enc = %v, want a known codec stamp", rec.Payload.Enc)
 		}
 	})
 
@@ -236,9 +236,9 @@ func TestAsRecord_IDAndEncoding(t *testing.T) {
 			t.Fatalf("test setup: event encoding = %q, want cbor", evt.Encoding())
 		}
 
-		if got := AsRecord(evt).Encoding; got != record.EncodingCBOR {
+		if got := AsRecord(evt).Payload.Enc; got != record.EncodingCBOR {
 			t.Errorf(
-				"Encoding = %v, want %v (mixed streams stay self-describing)",
+				"Payload.Enc = %v, want %v (mixed streams stay self-describing)",
 				got,
 				record.EncodingCBOR,
 			)
@@ -253,8 +253,8 @@ func TestAsRecord_IDAndEncoding(t *testing.T) {
 			t.Fatalf("test setup: event encoding = %q, want json", evt.Encoding())
 		}
 
-		if got := AsRecord(evt).Encoding; got != record.EncodingJSON {
-			t.Errorf("Encoding = %v, want %v", got, record.EncodingJSON)
+		if got := AsRecord(evt).Payload.Enc; got != record.EncodingJSON {
+			t.Errorf("Payload.Enc = %v, want %v", got, record.EncodingJSON)
 		}
 	})
 }

@@ -27,8 +27,8 @@ import (
 //   - ID             ← cmd.ID() — the command's instance identity, no
 //     longer dropped by the bridge (review P5)
 //   - Type          ← cmd.Type()
-//   - Payload       ← nil (commands are typed structs, not blobs)
-//   - Encoding      ← EncodingUnknown (no payload to stamp)
+//   - Payload       ← zero (absent — commands are typed structs, not
+//     blobs)
 //   - Stream        ← zero — no fabricated identity: the BasicCommand's
 //     stream ID has no stream TYPE to pair with, and ADR-0166 makes an
 //     empty-type ref illegal; use [AsRecordPersisted] for full stream
@@ -101,11 +101,11 @@ func AsRecord(cmd *BasicCommand) record.Record {
 //
 //   - ID              ← cmd.ID() — the command's instance identity
 //   - Type            ← cmd.Type()
-//   - Payload         ← cmd.Payload() (commands persisted through the
-//     ADR-0044 envelope are self-describing; the envelope carries its own
-//     codec stamp)
-//   - Encoding        ← EncodingUnknown (no codec stamp on the command
-//     itself — same rule as the query bridge)
+//   - Payload         ← record.PayloadFrom(cmd.Payload(),
+//     EncodingUnknown) — bytes and stamp fused; the stamp stays Unknown
+//     because the bridge cannot know whether the bytes are an ADR-0044
+//     envelope (producers that do know stamp EncodingEnvelope)
+
 //   - Stream           ← cmd.StreamRef() (validated at PersistedCommand
 //     construction — full fidelity, never malformed)
 //   - Version          ← 0 (commands have no version)
@@ -140,11 +140,10 @@ func AsRecordPersisted(cmd *PersistedCommand) record.Record {
 	}
 
 	return record.Record{
-		ID:       record.InstanceID(cmd.ID().String()),
-		Type:     cmd.Type(),
-		Payload:  cmd.Payload(),
-		Encoding: record.EncodingUnknown,
-		Stream:   cmd.StreamRef(),
+		ID:      record.InstanceID(cmd.ID().String()),
+		Type:    cmd.Type(),
+		Payload: record.PayloadFrom(cmd.Payload(), record.EncodingUnknown),
+		Stream:  cmd.StreamRef(),
 		MetaData: record.CommonMetadata{
 			CorrelationID:   record.CorrelationID(metadata.BrandedString(tracing.CorrelationID)),
 			CausationID:     metadata.BrandedString(tracing.CausationID),

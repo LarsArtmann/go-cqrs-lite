@@ -151,7 +151,7 @@ func TestRecord_JSONRoundTrip(t *testing.T) {
 
 	original := record.Record{
 		Type:    "user.created",
-		Payload: []byte(`{"name":"alice"}`),
+		Payload: record.PayloadFrom([]byte(`{"name":"alice"}`), record.EncodingJSON),
 		Stream:  mustStreamRef(t, "User", "01JTEST"),
 		Version: 1,
 		MetaData: record.CommonMetadata{
@@ -181,8 +181,12 @@ func TestRecord_JSONRoundTrip(t *testing.T) {
 	if decoded.Type != original.Type {
 		t.Errorf("Type = %q, want %q", decoded.Type, original.Type)
 	}
-	if string(decoded.Payload) != string(original.Payload) {
-		t.Errorf("Payload = %q, want %q", decoded.Payload, original.Payload)
+	if string(decoded.Payload.Data) != string(original.Payload.Data) {
+		t.Errorf("Payload.Data = %q, want %q", decoded.Payload.Data, original.Payload.Data)
+	}
+
+	if decoded.Payload.Enc != original.Payload.Enc {
+		t.Errorf("Payload.Enc = %v, want %v", decoded.Payload.Enc, original.Payload.Enc)
 	}
 	if decoded.Stream != original.Stream {
 		t.Errorf("Stream = %v, want %v", decoded.Stream, original.Stream)

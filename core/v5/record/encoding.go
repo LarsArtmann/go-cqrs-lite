@@ -25,16 +25,25 @@ const (
 	EncodingJSON
 	// EncodingCBOR is the deterministic binary codec stamp ("cbor").
 	EncodingCBOR
+	// EncodingEnvelope means the payload is an ADR-0044 envelope: the
+	// envelope carries its own codec stamp inside, so this layer stamps
+	// only the fact of the wrapping (review R4's wrapped state). It is not
+	// a codec name — ParseEncoding does not accept it, same asymmetry as
+	// EncodingUnknown's empty String.
+	EncodingEnvelope
 )
 
 // String returns the canonical codec name, or "" for EncodingUnknown — the
-// same self-describing string form the codec layers use.
+// same self-describing string form the codec layers use. EncodingEnvelope
+// stringifies as "envelope" (the fact of wrapping, not a codec name).
 func (e Encoding) String() string {
 	switch e {
 	case EncodingJSON:
 		return "json"
 	case EncodingCBOR:
 		return "cbor"
+	case EncodingEnvelope:
+		return "envelope"
 	case EncodingUnknown:
 		return ""
 	default:

@@ -70,11 +70,11 @@ func TestEncoding_ZeroValueIsUnknown(t *testing.T) {
 	t.Parallel()
 
 	var rec record.Record
-	if rec.Encoding != record.EncodingUnknown {
-		t.Error("zero-value Record must carry EncodingUnknown")
+	if rec.Payload.Enc != record.EncodingUnknown {
+		t.Error("zero-value Record payload must carry EncodingUnknown")
 	}
 
-	if rec.Encoding.String() != "" {
-		t.Errorf("EncodingUnknown.String() = %q, want empty", rec.Encoding.String())
+	if rec.Payload.Enc.String() != "" {
+		t.Errorf("EncodingUnknown.String() = %q, want empty", rec.Payload.Enc.String())
 	}
 }

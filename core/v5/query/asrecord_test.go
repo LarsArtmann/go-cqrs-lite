@@ -44,15 +44,15 @@ func TestAsRecord_MapsStructuralFields(t *testing.T) {
 			got.ID, qWithMeta.ID().String())
 	}
 
-	if got.Encoding != record.EncodingUnknown {
+	if got.Payload.Enc != record.EncodingUnknown {
 		t.Errorf(
-			"Encoding = %v, want EncodingUnknown (envelope-wrapped payload carries its own stamp)",
-			got.Encoding,
+			"Payload.Enc = %v, want EncodingUnknown (the bridge cannot know the envelope)",
+			got.Payload.Enc,
 		)
 	}
 
-	if string(got.Payload) != `{"id":"42"}` {
-		t.Errorf("Payload = %q, want encoded query", got.Payload)
+	if string(got.Payload.Data) != `{"id":"42"}` {
+		t.Errorf("Payload.Data = %q, want encoded query", got.Payload.Data)
 	}
 
 	if !got.Stream.IsZero() {
@@ -149,7 +149,7 @@ func TestAsRecord_NilQuery(t *testing.T) {
 	t.Parallel()
 
 	got := query.AsRecord(nil)
-	if got.Type != "" || got.Payload != nil || !got.Stream.IsZero() || got.Version != 0 {
+	if got.Type != "" || !got.Payload.IsZero() || !got.Stream.IsZero() || got.Version != 0 {
 		t.Errorf("AsRecord(nil) = %+v, want zero Record", got)
 	}
 }

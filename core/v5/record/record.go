@@ -128,16 +128,11 @@ type Record struct {
 	// (ADR-0111): one definition, so the per-module copies cannot drift.
 	Type Type
 
-	// Payload is the encoded payload bytes. The encoding is self-describing:
-	// the record carries its codec stamp so mixed JSON+CBOR streams decode
-	// correctly.
-	Payload []byte
-
-	// Encoding is the payload's codec stamp in compact form (see the
-	// Encoding type). The zero value (EncodingUnknown) means the payload is
-	// absent, opaque, or envelope-wrapped — the envelope carries its own
-	// stamp (ADR-0044).
-	Encoding Encoding
+	// Payload is the encoded payload fused with its codec stamp (see the
+	// [Payload] state table): absent (zero), opaque (no stamp at this
+	// layer), envelope-wrapped, or self-describing (JSON/CBOR). One fact,
+	// one field — presence never rides on a separate stamp's zero value.
+	Payload Payload
 
 	// Stream identifies the stream this record belongs to: {Type, ID} at full
 	// fidelity. The zero value means the record is not a stream member

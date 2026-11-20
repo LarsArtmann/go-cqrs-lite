@@ -46,10 +46,10 @@ func TestAsRecord_BasicMapping(t *testing.T) {
 			rec.ID, cmd.ID().String())
 	}
 
-	if rec.Encoding != record.EncodingUnknown {
+	if !rec.Payload.IsZero() || rec.Payload.Enc != record.EncodingUnknown {
 		t.Errorf(
-			"Encoding: got %v, want EncodingUnknown (commands have no payload to stamp)",
-			rec.Encoding,
+			"Payload: got %v, want the absent state (commands have no payload to stamp)",
+			rec.Payload,
 		)
 	}
 
@@ -86,8 +86,8 @@ func TestAsRecord_BasicMapping(t *testing.T) {
 		t.Errorf("Actor: got %+v, want structural user actor", rec.MetaData.Actor)
 	}
 
-	if rec.Payload != nil {
-		t.Errorf("Payload: got %v, want nil (commands have no blob payload)", rec.Payload)
+	if !rec.Payload.IsZero() {
+		t.Errorf("Payload: got %v, want absent (commands have no blob payload)", rec.Payload)
 	}
 }
 

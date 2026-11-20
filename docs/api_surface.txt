@@ -1921,6 +1921,7 @@ core/v5/record/const CauseNone
 core/v5/record/const CauseTimer
 core/v5/record/const CauseUnknown
 core/v5/record/const EncodingCBOR
+core/v5/record/const EncodingEnvelope
 core/v5/record/const EncodingJSON
 core/v5/record/const EncodingUnknown
 core/v5/record/func DeferClose
@@ -1930,6 +1931,7 @@ core/v5/record/func ParseEncoding
 core/v5/record/func ParseInstanceID
 core/v5/record/func ParseType
 core/v5/record/func ParseVersion
+core/v5/record/func PayloadFrom
 core/v5/record/method IsZero
 core/v5/record/method MarshalJSON
 core/v5/record/method String
@@ -1939,6 +1941,7 @@ core/v5/record/method UnmarshalJSON
 core/v5/record/struct Actor
 core/v5/record/struct Cause
 core/v5/record/struct CommonMetadata
+core/v5/record/struct Payload
 core/v5/record/struct Record
 core/v5/record/struct Stamp
 core/v5/record/type ActorKind

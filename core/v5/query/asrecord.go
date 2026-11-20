@@ -27,9 +27,11 @@ import (
 //   - ID              ← q.ID() — the query's instance identity, no longer
 //     dropped by the bridge (review P5)
 //   - Type            ← q.Type()
-//   - Payload         ← q.Payload() (cloned, safe to modify)
-//   - Encoding        ← EncodingUnknown (the payload is ADR-0044
-//     envelope-wrapped — the envelope carries its own codec stamp)
+//   - Payload         ← record.PayloadFrom(q.Payload(),
+//     EncodingUnknown) — bytes and stamp fused (cloned, safe to modify);
+//     the stamp stays Unknown because the bridge cannot know whether the
+//     bytes are an ADR-0044 envelope (producers that do know stamp
+//     EncodingEnvelope)
 //   - Stream           ← zero — a query is not a stream member (R9); no
 //     fabricated ref from the query's own ID
 //   - Version          ← 0 (queries have no version)
@@ -67,7 +69,7 @@ func AsRecord(q *PersistedQuery) record.Record {
 	return record.Record{
 		ID:      record.InstanceID(q.ID().String()),
 		Type:    q.Type(),
-		Payload: q.Payload(),
+		Payload: record.PayloadFrom(q.Payload(), record.EncodingUnknown),
 		Stream:  record.StreamRef{},
 		MetaData: record.CommonMetadata{
 			CorrelationID:   record.CorrelationID(metadata.BrandedString(tracing.CorrelationID)),

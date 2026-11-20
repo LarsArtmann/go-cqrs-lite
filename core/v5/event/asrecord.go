@@ -21,11 +21,11 @@ import (
 //   - ID              ← evt.ID() — the event's instance identity, no longer
 //     dropped by the bridge (review P5)
 //   - Type             ← evt.Type()
-//   - Encoding        ← evt.Encoding() — the codec stamp survives the
-//     bridge in compact form (record.EncodingJSON/CBOR), so mixed-codec
-//     streams stay self-describing; codecs the record layer does not know
-//     stamp EncodingUnknown rather than guessing
-//   - Payload          ← evt.Payload() (cloned, safe to modify)
+//   - Payload          ← record.PayloadFrom(evt.Payload(),
+//     recordEncoding(evt.Encoding())) — bytes and codec stamp fused into
+//     one value: mixed-codec streams stay self-describing, and codecs the
+//     record layer does not know stamp EncodingUnknown (opaque) rather
+//     than guessing (cloned, safe to modify)
 //   - Stream          ← id.NewStreamRefOrZero(evt.StreamType(), evt.StreamID())
 //     (zero when the identity is incomplete — no identity rather than a
 //     malformed identity, ADR-0166; events validate both parts at
@@ -89,12 +89,11 @@ func AsRecord(evt Event) record.Record {
 	}
 
 	return record.Record{
-		ID:       record.InstanceID(evt.ID().String()),
-		Type:     evt.Type(),
-		Encoding: recordEncoding(evt.Encoding()),
-		Payload:  evt.Payload(),
-		Stream:   id.NewStreamRefOrZero(evt.StreamType(), evt.StreamID()),
-		Version:  record.Version(evt.Version().UInt64()),
+		ID:      record.InstanceID(evt.ID().String()),
+		Type:    evt.Type(),
+		Payload: record.PayloadFrom(evt.Payload(), recordEncoding(evt.Encoding())),
+		Stream:  id.NewStreamRefOrZero(evt.StreamType(), evt.StreamID()),
+		Version: record.Version(evt.Version().UInt64()),
 		MetaData: record.CommonMetadata{
 			CorrelationID:   record.CorrelationID(metadata.BrandedString(tracing.CorrelationID)),
 			CausationID:     causationID,
