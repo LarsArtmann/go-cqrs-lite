@@ -56,11 +56,13 @@ func isCqrsV4Import(path string) bool {
 
 // v5ModuleReport is the --to-v5 result for one module directory.
 type v5ModuleReport struct {
-	Dir          string
-	FilesScanned int
-	Rewrites     []v5FileRewrite
-	RemainingV4  []string // unique not-yet-folded cqrs v4 imports (sorted)
-	Error        string
+	Dir            string
+	FilesScanned   int
+	Rewrites       []v5FileRewrite
+	RemainingV4    []string // unique not-yet-folded cqrs v4 imports (sorted)
+	SurfaceChanges int      // M14 new-surface rewrites applied (R1/R2)
+	ManualSites    []string // M14 manual-review hints (R3), sorted
+	Error          string
 }
 
 // v5FileRewrite records one file's applied (or planned) import changes.
@@ -113,6 +115,13 @@ func runV5Pass(dir string, dryRun bool) v5ModuleReport {
 			rep.Rewrites = append(rep.Rewrites, v5FileRewrite{File: path, Changes: changes})
 		}
 
+		surfaceChanges, manual, _, err := rewriteV5SurfaceInFile(path, dryRun)
+		if err != nil {
+			return fmt.Errorf("%s: surface pass: %w", path, err)
+		}
+		rep.SurfaceChanges += len(surfaceChanges)
+		rep.ManualSites = append(rep.ManualSites, manual...)
+
 		return nil
 	})
 	if err != nil {
@@ -122,6 +131,7 @@ func runV5Pass(dir string, dryRun bool) v5ModuleReport {
 	}
 
 	rep.RemainingV4 = sortedKeys(remaining)
+	rep.ManualSites = sortedStrings(rep.ManualSites)
 
 	return rep
 }
@@ -253,6 +263,15 @@ func printV5Report(rep v5ModuleReport) {
 			fmt.Printf("  %s\n    %s\n    %s\n", fw.File, c.From, c.To)
 		}
 	}
+	if rep.SurfaceChanges > 0 {
+		fmt.Printf("  surface rewrites (M14): %d\n", rep.SurfaceChanges)
+	}
+	if len(rep.ManualSites) > 0 {
+		fmt.Printf("  manual-review sites (%d):\n", len(rep.ManualSites))
+		for _, m := range rep.ManualSites {
+			fmt.Printf("    %s\n", m)
+		}
+	}
 	if len(rep.RemainingV4) > 0 {
 		fmt.Printf("  not-yet-folded v4 imports (%d): %s\n",
 			len(rep.RemainingV4), strings.Join(rep.RemainingV4, ", "))
@@ -279,4 +298,11 @@ func strictV5GateError(strict bool, reports []v5ModuleReport) error {
 	}
 
 	return nil
+}
+
+// sortedStrings returns the sorted copy of s (report determinism).
+func sortedStrings(s []string) []string {
+	out := slices.Clone(s)
+	sort.Strings(out)
+	return out
 }
