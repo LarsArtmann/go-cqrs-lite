@@ -58,3 +58,20 @@ cd <consumer-repo>                                          # PRESET BINDS FROM 
 GOWORK=off cqrs-lint scorecard --path . --format json | jq '.summary, .used[] | select(.key=="idempotency")?'
 GOWORK=off cqrs-lint --path . --format text | grep -c "deleted module"
 ```
+
+## 5. AFTER receipts — C15–C17 pure swaps (2026-11-20, same command shape as §2)
+
+| Repo | Swap commit | go.mod | Scorecard idempotency | F030 | Build/tests |
+|------|-------------|--------|-----------------------|------|-------------|
+| InboxClean | `71bb6dd` | direct `go-idempotency v0.3.2`, no shim line | used \| `github.com/larsartmann/go-idempotency` | 1→0 | build ok; emailcqrs suite green EXCEPT two labels tests that fail identically pre-swap (isolated-worktree verified) |
+| games/SEC | `9f12298a` | direct `go-idempotency v0.3.2`, no shim line | used \| `github.com/larsartmann/go-idempotency` | 1→0 | build ok; 8 app-suite failures byte-identical pre-swap (dep-bump fallout, isolated-worktree verified) |
+| github-local-sync | `dc1009f` | direct `go-idempotency v0.6.0`, no shim line | used \| `github.com/larsartmann/go-idempotency` | 1→0 | build ok, internal/branch green; local (gitignored) go.work repaired to /v4 paths |
+| games/SwettySwipperWeb | `84a7352e7` | direct `go-idempotency v0.6.0`, no shim line | used \| `github.com/larsartmann/go-idempotency` | 0→0* | build ok, ALL services/api suites green standalone (first time since the reorg — replace block repaired to /v4, dangling eventtest replace deleted; *F030 was previously hidden by the broken module loads, now honestly 0) |
+
+Notes:
+- The SEC and github-local-sync commits initially landed as daemon `chore:` blends/races; both were
+  split/recommitted with real messages while still unpushed (SEC's foreign `ci.yml` change was left
+  unstaged for its author). v0.6.0 (gls, Swetty) vs v0.3.2 (InboxClean, SEC): dropping the shim's
+  v0.3.2 floor let tidy pick latest; both minors build and test green in their repos.
+- DiscordSync (already direct) and the sqlstore consumers (browser-history, KeyCountdown — V007's
+  v5 territory) are correctly untouched by this tranche. Zlota44's shim usage is C21 (D28/D29-gated).
