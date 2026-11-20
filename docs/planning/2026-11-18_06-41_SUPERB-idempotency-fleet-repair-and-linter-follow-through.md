@@ -541,9 +541,14 @@ Original rows above are preserved; these corrections govern execution from here 
 
 ### C24 — sweeps across four stores (90m) · covers §f 31
 
-> **2026-11-20:** premise corrected (corrections #1/#2). 24.2–24.4 shrink to "verify the existing
-> sqlstore sweep at each wiring site (and that Close stops it)"; 24.5 (Swetty engine `DedupSweep`)
-> stands; DiscordSync already sweeps (reference shape). Effort ≈40m, not 90m.
+> **2026-11-20:** premise corrected twice. First correction (#1 below) over-trusted the survey's §2.1
+> claim that sqlstore auto-sweeps; C22 source verification DISPROVED it: `idempotency/sqlstore`'s
+> `Store.Sweep` is an optional CALLER-invoked method with no background goroutine — sqlite-path keys
+> are reclaimed only lazily on reads, so unaccessed expired rows linger and the table grows. The
+> sqlite-path sweep therefore belongs to the bundle migrations (C18/C19/C20, D28/D29-gated) where the
+> store choice is being remade anyway. The UNGATED remainder is exactly one consumer: Swetty's
+> `wanted_ids` engine collection (`metaengine.DedupStore`, explicit `DedupSweep`, zero callers today).
+> 24.5 stands (DiscordSync's sweeper shape as reference); effort ≈40m.
 
 | #    | Micro-task                                                                                         | Min |
 | ---- | -------------------------------------------------------------------------------------------------- | --- |
