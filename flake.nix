@@ -74,6 +74,13 @@
       url = "github:LarsArtmann/go-ndjson?ref=master";
       flake = false;
     };
+    # md-go-validator upstream gained this dep (rev 7642823, 2026-11 lock
+    # bump); pinned hermetically like the siblings so the docs gate keeps
+    # building sandboxed.
+    go-compliance = {
+      url = "github:LarsArtmann/go-compliance?ref=master";
+      flake = false;
+    };
     # Source of the md-go-validator docs gate (consumed flake=false and built
     # via mkPreparedSource below — the tool's own flake fetches go-finding via
     # git+ssh, which CI sandboxes cannot do; this mirrors the cqrs-lint build).
@@ -99,6 +106,7 @@
       go-atomic-write,
       go-error-family,
       go-ndjson,
+      go-compliance,
       md-go-validator,
       ...
     }:
@@ -129,6 +137,7 @@
         "github.com/larsartmann/go-atomic-write" = go-atomic-write;
         "github.com/larsartmann/go-error-family" = go-error-family;
         "github.com/larsartmann/go-ndjson" = go-ndjson;
+        "github.com/larsartmann/go-compliance" = go-compliance;
       };
       preparedSubModules = {
         "github.com/larsartmann/go-finding" = [ "pipeline" ];
@@ -1098,7 +1107,7 @@
 
               # Re-pinned 2026-10-24: md-go-validator input moved on master
               # again (same class as the 2026-09-29/10-04/10-11/10-13/10-17 shifts).
-              vendorHash = "sha256-I21bkdgBHYjCXn298jnBRawJ104CNcwfr8/InwMoauw=";
+              vendorHash = "sha256-mfj8db/GFdJW1L35gOcmf+Ihl6hMnkw+gWjo6FfGEpA=";
               proxyVendor = true;
 
               subPackages = [ "cmd/md-go-validator" ];
