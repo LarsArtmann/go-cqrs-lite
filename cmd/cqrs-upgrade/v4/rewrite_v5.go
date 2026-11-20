@@ -304,5 +304,6 @@ func strictV5GateError(strict bool, reports []v5ModuleReport) error {
 func sortedStrings(s []string) []string {
 	out := slices.Clone(s)
 	sort.Strings(out)
+
 	return out
 }

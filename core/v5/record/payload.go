@@ -27,7 +27,7 @@ type Payload struct {
 // A nil/empty data slice yields the absent state regardless of the stamp.
 func PayloadFrom(data []byte, enc Encoding) Payload {
 	if len(data) == 0 {
-		return Payload{}
+		return Payload{} //nolint:exhaustruct_v5 // the absent state IS the zero value
 	}
 
 	return Payload{Data: data, Enc: enc}

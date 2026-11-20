@@ -35,7 +35,7 @@ func TestStreamRef_AliasLockstep(t *testing.T) {
 
 	sid := id.NewStreamID()
 
-	var asRecord record.StreamRef = id.StreamRef{Type: "User", ID: sid}
+	var asRecord record.StreamRef = id.StreamRef{Type: "User", ID: sid} //nolint:staticcheck // explicit record.StreamRef proves the alias (lockstep)
 	if asRecord != (record.StreamRef{Type: id.StreamType("User"), ID: sid}) {
 		t.Errorf("id.StreamRef and record.StreamRef diverged: %v", asRecord)
 	}

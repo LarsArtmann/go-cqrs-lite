@@ -76,7 +76,7 @@ func NewStreamRef(streamType StreamType, streamID StreamID) (StreamRef, error) {
 func NewStreamRefOrZero(streamType StreamType, streamID StreamID) StreamRef {
 	ref, err := NewStreamRef(streamType, streamID)
 	if err != nil {
-		return StreamRef{}
+		return StreamRef{} //nolint:exhaustruct_v5 // zero value on the error path
 	}
 
 	return ref

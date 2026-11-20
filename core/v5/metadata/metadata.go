@@ -21,11 +21,11 @@ type Tracing struct {
 	UserID        id.UserID        `json:"userId"`
 	RequestID     id.RequestID     `json:"requestId"`
 
-	// ActorID is the stringly "kind:raw" actor twin.
-	//
-	// Deprecated: removed with the v4 train (T26). The canonical home is the
-	// structural Actor field below — the kind is explicit at the type level
-	// and the "kind:raw" parse tax moves to this serialization edge only.
+	// ActorID is the stringly "kind:raw" actor twin. It is removed with
+	// the v4 train (T26); the canonical home is the structural Actor field
+	// below — the kind is explicit at the type level and the "kind:raw"
+	// parse tax moves to this serialization edge only. No Deprecated marker
+	// yet: dual-window writers still populate it in lockstep.
 	ActorID id.ActorID `json:"actorId,omitzero"`
 
 	// Actor is the structural producer of a record: kind-discriminated,

@@ -68,7 +68,7 @@ func AsRecord(evt Event) record.Record {
 	// without identity or type is not a record, and minting one would
 	// fabricate a Record the source never carried.
 	if evt == nil || evt.ID().IsZero() || evt.Type() == "" {
-		return record.Record{}
+		return record.Record{} //nolint:exhaustruct_v5 // the zero Record IS the verdict
 	}
 
 	md := evt.Metadata()

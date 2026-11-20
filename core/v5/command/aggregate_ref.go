@@ -1,6 +1,8 @@
 package command
 
 import (
+	"fmt"
+
 	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/core/v5/id"
@@ -36,7 +38,12 @@ func ParseStreamType(s string) (StreamType, error) {
 }
 
 func NewStreamRef(streamType StreamType, streamID id.StreamID) (StreamRef, error) {
-	return id.NewStreamRef(streamType, streamID)
+	ref, err := id.NewStreamRef(streamType, streamID)
+	if err != nil {
+		return StreamRef{}, fmt.Errorf("command.NewStreamRef(%s): %w", streamType, err)
+	}
+
+	return ref, nil
 }
 
 // Deprecated: use ParseStreamType.

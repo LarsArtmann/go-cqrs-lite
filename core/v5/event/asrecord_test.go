@@ -340,7 +340,7 @@ func TestAsRecord_ZeroStructTreatedLikeNil(t *testing.T) {
 
 	// R10: a non-nil zero STRUCT (no ID, no type) must behave exactly like
 	// nil — an identity-less source is not a Record.
-	var zero Event = &ImmutableEvent{}
+	var zero Event = &ImmutableEvent{} //nolint:staticcheck // explicit Event type proves the interface
 
 	rec := AsRecord(zero)
 	if !rec.Stream.IsZero() || rec.Type != "" || !rec.Payload.IsZero() {

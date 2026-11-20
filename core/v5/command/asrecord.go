@@ -58,7 +58,7 @@ func AsRecord(cmd *BasicCommand) record.Record {
 	//art-dupl:accept dep-isolated twin of query.AsRecord; lockstep Record population is by design
 	// A zero STRUCT is treated exactly like nil (review R10).
 	if cmd == nil || cmd.ID().IsZero() || cmd.Type() == "" {
-		return record.Record{}
+		return record.Record{} //nolint:exhaustruct_v5 // the zero Record IS the verdict
 	}
 
 	md := cmd.Metadata()
@@ -107,7 +107,6 @@ func AsRecord(cmd *BasicCommand) record.Record {
 //     EncodingUnknown) — bytes and stamp fused; the stamp stays Unknown
 //     because the bridge cannot know whether the bytes are an ADR-0044
 //     envelope (producers that do know stamp EncodingEnvelope)
-
 //   - Stream           ← cmd.StreamRef() (validated at PersistedCommand
 //     construction — full fidelity, never malformed)
 //   - Version          ← 0 (commands have no version)
@@ -134,7 +133,7 @@ func AsRecordPersisted(cmd *PersistedCommand) record.Record {
 	//art-dupl:accept dep-isolated twin of query.AsRecord; lockstep Record population is by design
 	// A zero STRUCT is treated exactly like nil (review R10).
 	if cmd == nil || cmd.ID().IsZero() || cmd.Type() == "" {
-		return record.Record{}
+		return record.Record{} //nolint:exhaustruct_v5 // the zero Record IS the verdict
 	}
 
 	md := cmd.Metadata()

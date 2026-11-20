@@ -48,7 +48,7 @@ func trinityFixture(t *testing.T) (event.Event, *command.PersistedCommand, *quer
 	cmdMeta.Tracing = tracing
 	cmd, err := command.NewPersistedCommand(
 		"create_user",
-		command.StreamRef(streamRef),
+		streamRef,
 		[]byte(`{"name":"alice"}`),
 		command.WithReceivedAt(receivedAt),
 		command.WithCommandMetadata(cmdMeta),

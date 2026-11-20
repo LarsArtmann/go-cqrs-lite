@@ -58,7 +58,7 @@ func AsRecord(q *PersistedQuery) record.Record {
 	//art-dupl:accept dep-isolated twin of command.AsRecord; lockstep Record population is by design
 	// A zero STRUCT is treated exactly like nil (review R10).
 	if q == nil || q.ID().IsZero() || q.Type() == "" {
-		return record.Record{}
+		return record.Record{} //nolint:exhaustruct_v5 // the zero Record IS the verdict
 	}
 
 	md := q.Metadata()

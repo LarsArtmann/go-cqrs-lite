@@ -28,7 +28,6 @@ import (
 	"os"
 	"slices"
 	"strconv"
-	"strings"
 )
 
 const (
@@ -77,6 +76,12 @@ func cqrsV5StreamRef(streamType, entityID string) record.StreamRef {
 }
 `
 
+// edit is one byte-span replacement (offsets into the file's source).
+type edit struct {
+	start, end int
+	text       string
+}
+
 // rewriteV5SurfaceInFile applies the M14 surface rules to one file. It
 // returns the applied changes, the manual-review sites, and whether the file
 // was modified. Parse failures are returned — a file the codemod cannot read
@@ -93,46 +98,12 @@ func rewriteV5SurfaceInFile(path string, dryRun bool) ([]v5SurfaceChange, []stri
 		return nil, nil, false, fmt.Errorf("parse: %w", err)
 	}
 
-	type edit struct {
-		start, end int
-		text       string
-	}
 	var edits []edit
 	var changes []v5SurfaceChange
 	var manual []string
-	needHelper := false
-	needIDImport := true
 
 	// parents maps each node to its parent for context checks.
 	parents := recordParents(f)
-
-	callName := func(ce *ast.CallExpr) (string, bool) {
-		sel, ok := ce.Fun.(*ast.SelectorExpr)
-		if !ok {
-			return "", false
-		}
-		ident, ok := sel.X.(*ast.Ident)
-		if !ok {
-			return "", false
-		}
-		return ident.Name + "." + sel.Sel.Name, true
-	}
-
-	// twoValueContext reports whether the call sits where a two-value
-	// expression is consumed (the unchanged v5 shape).
-	twoValueContext := func(n ast.Node) bool {
-		switch p := parents[n].(type) {
-		case *ast.AssignStmt:
-			if len(p.Rhs) == 1 && len(p.Lhs) == 2 {
-				return true
-			}
-		case *ast.ValueSpec:
-			if len(p.Values) == 1 && len(p.Names) == 2 {
-				return true
-			}
-		}
-		return false
-	}
 
 	hasIDImport := false
 	for _, imp := range f.Imports {
@@ -141,85 +112,17 @@ func rewriteV5SurfaceInFile(path string, dryRun bool) ([]v5SurfaceChange, []stri
 			hasIDImport = true
 		}
 	}
-	needIDImport = !hasIDImport
+	needIDImport := !hasIDImport
 
-	ast.Inspect(f, func(n ast.Node) bool {
-		switch node := n.(type) {
-		case *ast.CallExpr:
-			name, ok := callName(node)
-			if !ok {
-				return true
-			}
+	sites := collectSurfaceSites(f, fset, parents, path)
+	edits = sites.edits
+	changes = sites.changes
+	manual = sites.manual
+	if sites.anyCtorRewrite {
+		needIDImport = true
+	}
 
-			if to, isCtor := singleValueStreamRefCtors[name]; isCtor && !twoValueContext(node) {
-				sel := node.Fun.(*ast.SelectorExpr)
-				pos := fset.Position(sel.Pos())
-				end := fset.Position(sel.End())
-				edits = append(edits, edit{pos.Offset, end.Offset, to})
-				changes = append(changes, v5SurfaceChange{
-					Kind: "ctor-single-value",
-					From: name + "(...)",
-					To:   to + "(...)",
-				})
-				manual = append(manual, fmt.Sprintf(
-					"%s:%d: %s(...) rewritten to %s — review the zero-ref arm",
-					path, pos.Line, name, to))
-				if !strings.HasPrefix(to, "id.") {
-					needIDImport = true
-				}
-				return true
-			}
-
-			if stringFormRecordCtors[name] && len(node.Args) == 2 {
-				sel := node.Fun.(*ast.SelectorExpr)
-				pos := fset.Position(sel.Pos())
-				end := fset.Position(sel.End())
-				edits = append(edits, edit{pos.Offset, end.Offset, v5HelperName})
-				changes = append(changes, v5SurfaceChange{
-					Kind: "record-string-ctor",
-					From: name + "(...)",
-					To:   v5HelperName + "(...)",
-				})
-				needHelper = true
-				needIDImport = true
-				return true
-			}
-
-			// .Split() died with the string form (ADR-0166).
-			if sel, ok := node.Fun.(*ast.SelectorExpr); ok && sel.Sel.Name == "Split" && len(node.Args) == 0 {
-				pos := fset.Position(node.Pos())
-				manual = append(manual, fmt.Sprintf(
-					"%s:%d: .Split() call — the string form died (ADR-0166); read .Type/.ID from the struct ref",
-					path, pos.Line))
-			}
-		case *ast.CompositeLit:
-			// Only interested in literals that mention the collapsed record
-			// fields; without type info the hint is manual-review.
-			for _, elt := range node.Elts {
-				kv, ok := elt.(*ast.KeyValueExpr)
-				if !ok {
-					continue
-				}
-				key, ok := kv.Key.(*ast.Ident)
-				if !ok {
-					continue
-				}
-				switch key.Name {
-				case "StreamID", "StreamType":
-					pos := fset.Position(kv.Pos())
-					manual = append(manual, fmt.Sprintf(
-						"%s:%d: record literal key %s collapsed into Stream (M04) — use a StreamRef",
-						path, pos.Line, key.Name))
-				case "Encoding":
-					pos := fset.Position(kv.Pos())
-					manual = append(manual, fmt.Sprintf(
-						"%s:%d: record literal key Encoding fused into Payload (M05) — use PayloadFrom",
-						path, pos.Line))
-				}
-			}
-		}
-		return true
-	})
+	needHelper := sites.sawStringCtor
 
 	if len(edits) == 0 && !needHelper {
 		return nil, manual, false, nil
@@ -232,12 +135,14 @@ func rewriteV5SurfaceInFile(path string, dryRun bool) ([]v5SurfaceChange, []stri
 		case a.start > b.start:
 			return 1
 		}
+
 		return 0
 	})
 
 	out := string(src)
-	for i := len(edits) - 1; i >= 0; i-- {
-		e := edits[i]
+	// Descending offsets keep later spans' positions valid while earlier
+	// ones are replaced.
+	for _, e := range slices.Backward(edits) {
 		out = out[:e.start] + e.text + out[e.end:]
 	}
 
@@ -276,6 +181,7 @@ func fileDeclaresHelper(f *ast.File) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -286,6 +192,7 @@ func fileDeclaresHelper(f *ast.File) bool {
 func injectIDImport(src string, fset *token.FileSet, f *ast.File) string {
 	pkgEnd := fset.Position(f.Package).Offset + len("package "+f.Name.Name)
 	imp := "\n\nimport " + strconv.Quote(v5IDImportPath)
+
 	return src[:pkgEnd] + imp + src[pkgEnd:]
 }
 
@@ -300,15 +207,166 @@ func recordParents(f *ast.File) map[ast.Node]ast.Node {
 		if node == nil {
 			return
 		}
+
 		parents[node] = parent
 		ast.Inspect(node, func(c ast.Node) bool {
 			if c == nil || c == node {
 				return c != nil
 			}
 			walk(node, c)
+
 			return false
 		})
 	}
 	walk(nil, f)
+
 	return parents
+}
+
+// callName renders a qualified call's "pkg.Fn" name, if the callee is a
+// plain selector on an identifier.
+func callName(ce *ast.CallExpr) (string, bool) {
+	sel, ok := ce.Fun.(*ast.SelectorExpr)
+	if !ok {
+		return "", false
+	}
+	ident, ok := sel.X.(*ast.Ident)
+	if !ok {
+		return "", false
+	}
+
+	return ident.Name + "." + sel.Sel.Name, true
+}
+
+// twoValueContext reports whether the call sits where a two-value
+// expression is consumed (the unchanged v5 shape).
+func twoValueContext(parents map[ast.Node]ast.Node, n ast.Node) bool {
+	switch p := parents[n].(type) {
+	case *ast.AssignStmt:
+		if len(p.Rhs) == 1 && len(p.Lhs) == 2 {
+			return true
+		}
+	case *ast.ValueSpec:
+		if len(p.Values) == 1 && len(p.Names) == 2 {
+			return true
+		}
+	}
+
+	return false
+}
+
+// surfaceSites is the AST walk's harvest.
+type surfaceSites struct {
+	edits          []edit
+	changes        []v5SurfaceChange
+	manual         []string
+	anyCtorRewrite bool
+	sawStringCtor  bool
+}
+
+// collectSurfaceSites walks the file and classifies every R1/R2/R3 site.
+func collectSurfaceSites(
+	f *ast.File,
+	fset *token.FileSet,
+	parents map[ast.Node]ast.Node,
+	path string,
+) surfaceSites {
+	var s surfaceSites
+
+	ast.Inspect(f, func(n ast.Node) bool {
+		switch node := n.(type) {
+		case *ast.CallExpr:
+			visitCall(node, fset, parents, path, &s)
+		case *ast.CompositeLit:
+			visitLiteral(node, fset, path, &s)
+		}
+
+		return true
+	})
+
+	return s
+}
+
+// visitCall applies the R1/R2 constructor rules and the R3 Split hint.
+func visitCall(
+	node *ast.CallExpr,
+	fset *token.FileSet,
+	parents map[ast.Node]ast.Node,
+	path string,
+	s *surfaceSites,
+) {
+	name, ok := callName(node)
+	if !ok {
+		return
+	}
+
+	sel, _ := node.Fun.(*ast.SelectorExpr)
+	if sel == nil {
+		return
+	}
+
+	if to, isCtor := singleValueStreamRefCtors[name]; isCtor && !twoValueContext(parents, node) {
+		pos := fset.Position(sel.Pos())
+		end := fset.Position(sel.End())
+		s.edits = append(s.edits, edit{pos.Offset, end.Offset, to})
+		s.changes = append(s.changes, v5SurfaceChange{
+			Kind: "ctor-single-value",
+			From: name + "(...)",
+			To:   to + "(...)",
+		})
+		s.manual = append(s.manual, fmt.Sprintf(
+			"%s:%d: %s(...) rewritten to %s — review the zero-ref arm",
+			path, pos.Line, name, to))
+		s.anyCtorRewrite = true
+
+		return
+	}
+
+	if stringFormRecordCtors[name] && len(node.Args) == 2 {
+		pos := fset.Position(sel.Pos())
+		end := fset.Position(sel.End())
+		s.edits = append(s.edits, edit{pos.Offset, end.Offset, v5HelperName})
+		s.changes = append(s.changes, v5SurfaceChange{
+			Kind: "record-string-ctor",
+			From: name + "(...)",
+			To:   v5HelperName + "(...)",
+		})
+		s.sawStringCtor = true
+
+		return
+	}
+
+	// .Split() died with the string form (ADR-0166).
+	if sel.Sel.Name == "Split" && len(node.Args) == 0 {
+		pos := fset.Position(node.Pos())
+		s.manual = append(s.manual, fmt.Sprintf(
+			"%s:%d: .Split() call — the string form died (ADR-0166); read .Type/.ID from the struct ref",
+			path, pos.Line))
+	}
+}
+
+// visitLiteral applies the R3 collapsed-field hints.
+func visitLiteral(node *ast.CompositeLit, fset *token.FileSet, path string, s *surfaceSites) {
+	for _, elt := range node.Elts {
+		kv, ok := elt.(*ast.KeyValueExpr)
+		if !ok {
+			continue
+		}
+		key, ok := kv.Key.(*ast.Ident)
+		if !ok {
+			continue
+		}
+
+		pos := fset.Position(kv.Pos())
+		switch key.Name {
+		case "StreamID", "StreamType":
+			s.manual = append(s.manual, fmt.Sprintf(
+				"%s:%d: record literal key %s collapsed into Stream (M04) — use a StreamRef",
+				path, pos.Line, key.Name))
+		case "Encoding":
+			s.manual = append(s.manual, fmt.Sprintf(
+				"%s:%d: record literal key Encoding fused into Payload (M05) — use PayloadFrom",
+				path, pos.Line))
+		}
+	}
 }
