@@ -1128,6 +1128,13 @@
           <div class="issue issue-critical" id="r2">
             <span class="severity severity-critical">Critical &middot; Type safety</span>
             <h3>R2 — The meeting point de-brands everything</h3>
+            <p>
+              Cross-ref: the 2026-10-17 on-disk schema review&rsquo;s
+              <a href="2026-10-17_on-disk-schema-data-model-review.html">PC-1 (typed WAL)</a>
+              rides exactly this work — the typed Record IS the WAL cell the
+              storage layer wants. (Fixed 2026-11-20: M03 brands + M05
+              Payload.)
+            </p>
             <div class="where">
               record/v4/record.go:125-148 &middot; Record.ID, Record.Type, Record.StreamType
             </div>
@@ -1217,6 +1224,13 @@
           <div class="issue issue-important" id="r5">
             <span class="severity severity-important">High &middot; Dual truth</span>
             <h3>R5 — Stream identity lives in two fields that can disagree</h3>
+            <p>
+              Cross-ref: the 2026-10-17 on-disk schema review&rsquo;s
+              <a href="2026-10-17_on-disk-schema-data-model-review.html">PC-3 (key law)</a>
+              governs the SAME identity at the storage layer — one canonical
+              key form per stream; ADR-0166&rsquo;s StreamKey() collapse is the
+              in-memory half of that law. (Fixed 2026-11-20: M04.)
+            </p>
             <div class="where">record/v4/record.go:143-148 &middot; StreamID + StreamType</div>
             <p>
               <code>StreamID StreamRef</code> already embeds the stream type
