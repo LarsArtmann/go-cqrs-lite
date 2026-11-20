@@ -2941,3 +2941,48 @@ re-checked by T23, never re-executed.
 - [ ] Consumer blast-radius test run for the encoding change (system path is already codec-aware; direct metaengine + projectionadapter paths are the holes). (Effort: M)
 - [ ] Doc fixes for stale zero-dependency claims (comments, READMEs, SKILL refs, WIRE-FORMAT-KEYS; ADR-0062 addendum already contradicts them). (Effort: S)
 - [ ] CHANGELOG entry for the codec work once it lands. (Effort: S)
+
+## v5 core-type finalization — execution ledger (2026-11-20; plan 2026-11-19 20-52, v2.1)
+
+> Plan of record:
+> [`docs/planning/2026-11-19_20-52_SUPERB-v5-core-type-finalization-pareto-plan.md`](docs/planning/2026-11-19_20-52_SUPERB-v5-core-type-finalization-pareto-plan.md).
+> Rulings: D-sheet D32 (executing per recommendation under the 2026-11-20 blanket
+> execute order). **Dedupe:** the 11-13 parent plan OWNS M41 (v4 deletions), M42 (the
+> cut + first core/v5 tag — pinned gate-ordered, M22), M43 (23 copy-forwards + codemod
+> slices); T26 owns the deprecated-twin deletion inside core/v5 (NOT this plan,
+> v007-twin-table strategy); `:2585` keeps the copy-forward completion row. This plan
+> finalizes only the NEW core/v5 surface pre-first-tag.
+> Postmortem §f (22 items) routing: #1=this section; #2/#9 DONE/amended (M02 errata);
+> #3 resolved-by-plan §1 reconciliation; #4+#5 → M24 row (consumer mapping + reading
+> debt for consumer-relevant files); #6 → M19; #7 → M18; #8 → D32; #10–#13 → M03–M07;
+> #14 NOT-DO this plan (v4-frozen SQL doors = cut territory, Layer 0 ruling pending);
+> #15 → M14 rules + M43 fleet application; #16/#17 inline during Wave 1 (names +
+> policy checked as the types are written; stdlib-only, no new deps); #18 NOT-DO (no
+> browser in CLI env; structural validation green); #19 PARKED (owner question);
+> #20/#21 new rows below; #22 → M19.
+
+- [x] **M22 tag-trigger pinned (2026-11-20)** — first `core/v5.x.y` tag rides the FULL v5.0.0 cut (parent M42 :109 + cut-readiness Layer 13; TODO_LIST :395 is downstream of the cut, not an early tag). Deadline axis: gate-ordered, no calendar. Waves 1–3 ordered before M43's copy-forwards. Receipt: `5f0dd00cf`.
+- [x] **M01 owner ruling pack (2026-11-20)** — D32 records the three rulings (T26 reconciliation / ADR-0166 flip-at-M04 / brand-now); executing per recommendation, retro-veto = single wave-commit revert. Receipt: `8c7ea3007`.
+- [x] **M02 review errata applied (2026-11-20)** — R1 T26 amendment callout, honest methodology (24/91 + census grep), R10 badge `issue-important`, hero scope; tag balance + anchors re-validated. Receipt: `bff08dfc6`.
+- [x] **M17 harvest + rowing (2026-11-20)** — this section + the 11-13 plan's dated link banner.
+- [ ] **M00 retype spike** — scratch-branch Record retype + StreamRef alias; fallout count calibrates M03/M04/M09 (§8 note).
+- [ ] **M03 core/v5/record brands** — InstanceID, StreamType, Version (uint64, 0=unversioned), CorrelationID; retype Record fields + CommonMetadata.CorrelationID; Parse ctors; lockstep tests; suite green.
+- [ ] **M04 ADR-0166 alias** — `record.StreamRef = id.StreamRef`; validating NewStreamRef/ParseStreamRef; StreamKey disk truth; zero-ref = not-a-stream-member; ADR flips Accepted (+ `#check-adr-numbering`). Checks off cut-readiness **Layer 8** (its only row).
+- [ ] **M05 Payload tri-state** — `Payload{Data, Enc}` + `EncodingEnvelope`; absent/opaque/wrapped tests; recordEncoding bridge one home.
+- [ ] **M06 bridge stamps + zero-guards** — Received stamped at intake, Created = client clock only; query Stream stays zero; zero-struct treated like nil.
+- [ ] **M07 Cause first-class** — `cause record.Cause` on ImmutableEvent via WithCommandCausality; Causation.CommandType → record.Type; pointer twin stays (T26).
+- [ ] **M08 structural Actor** — Tracing carries `Actor{Kind, Raw}`; wire form at edges only; precedence = THE rule.
+- [ ] **M09 command/query twins aligned** — brands through PersistedCommand/PersistedQuery; trinity contract test.
+- [ ] **M10 gate: api golden + untested-exports** — regen + `TestEvery` + `#check-untested-exports --update`.
+- [ ] **M23 v4-negative check** — `git diff --stat` over the nine v4 module dirs (excl. core/v5) empty; golden diff scoped to core/v5 section. Receipt rowed.
+- [ ] **M11–M13 gates** — v007 twin-table sync; doc-check mirrors + md-go; duplication/file-size.
+- [ ] **M14 cqrs-upgrade v5 rules** — StreamRef ctor rewrites, Type coercions, Causation→cause field, query zero-Stream; fixture tests + apply-mode smoke.
+- [ ] **M15 V5-MIGRATION-GUIDE sections** — brands/StreamRef/Payload/Cause/stamps before-after.
+- [ ] **M16 DOMAIN_LANGUAGE collapse** — one StreamRef row (ADR-0166); Record/CommonMetadata core/v5 rows; doc-check green.
+- [ ] **M18 AGENTS.md memory** — deep-dive row, core/v5 free-window fact, v007-v5-twin-table pointer.
+- [ ] **M19 reviews series README** — docs/reviews index + real cross-refs into 10-17 findings.
+- [ ] **M24 downstream-shape compat (pre-M43)** — enumerate v4 metaengine/system record.Record field consumers (OnRecord folds, projectionadapter); map onto the retype; friction → design notes on `:2585`. Absorbs postmortem §f#4/#5 (StreamType consumer grep + reading debt).
+- [ ] **M20 verification protocol** — scoped suites + `GT_LINT_MODULES` lint-scope + full `nix run .#verify` (exclusive). Receipts here.
+- [ ] **M21 post-landing watch** — first green master CI + untagged-API gate (T26-row :378). BLOCKED on push authorization (not granted this session).
+- [ ] **cqrs-lint probe: "removed in v<N>" markers inside a v<N> module (postmortem §f#20)** — generalize R1 so the class cannot recur (a module train for version N must not carry markers deferring to N). Candidate architecture/version rule; design when cqrs-lint next opens. _(Effort: M)_
+- [ ] **docs/reviews anchor/link checker gate (postmortem §f#21)** — the manual python tag-balance + anchor pass (used 2026-11-19 and again for the M02 errata) becomes a small script/gate so review reports cannot land with broken anchors. _(Effort: S)_

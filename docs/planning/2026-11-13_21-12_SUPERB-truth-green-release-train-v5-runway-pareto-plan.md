@@ -1,5 +1,13 @@
 # SUPERB — Truth-Green Release Train & v5 Runway (2026-11-13 21:12 CET)
 
+> **Addendum 2026-11-20 (pre-M43 dependency link):** the
+> [2026-11-19 v5 core-type finalization plan](2026-11-19_20-52_SUPERB-v5-core-type-finalization-pareto-plan.md)
+> finalizes the NEW core/v5 type surface (brands, ADR-0166 StreamRef alias, Payload,
+> Cause, stamps) in the pre-first-tag window and **must land before M43's 23
+> copy-forwards complete** (the copies inherit its shape; M24 there maps the v4
+> metaengine/system consumers onto it). M41/M42 are untouched by it; the first
+> `core/v5.x.y` tag still rides M42's full v5.0.0 cut (pinned there, gate-ordered).
+
 **Mission.** Re-cut the Pareto plan over the **current** backlog — **265 open rows across 46
 sections** (verified `grep -c '^- \[ \]'` at 21:12) — after five shipped-heavy sessions
 (2026-11-09 audits wave, 2026-11-11 ×3, 2026-11-13 ×2) landed ~35 fixes with **no composed
