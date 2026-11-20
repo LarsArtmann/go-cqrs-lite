@@ -189,3 +189,45 @@ func _() {
 	findings := ruletest.RunDetector(t, adoption.NewF030Detector(ctx))
 	ruletest.AssertRule(t, findings, "F030", 3)
 }
+
+// TestF030_TestFileImportFires pins the test-file posture: a _test.go import
+// of a deleted module pins the same frozen tag in go.mod/go.sum and blocks
+// upgrades exactly as hard as a production import, so it fires too. The
+// sanctioned-path import in the sibling test file must stay silent, proving
+// the widening is per-import, not per-file-blanket.
+func TestF030_TestFileImportFires(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+import cqrswm "github.com/larsartmann/go-cqrs-lite/watermill/v4"
+
+func _() {
+	_ = cqrswm.NewEventBus
+}
+`,
+		"service_test.go": `package main
+
+import (
+	"github.com/larsartmann/go-cqrs-lite/idempotency/v4"
+	"github.com/larsartmann/go-cqrs-lite/idempotency/sqlstore/v4"
+)
+
+func TestX(t *testing.T) {
+	_, _ = idempotency.NewMemoryStore, sqlstore.NewSQLiteStore
+}
+`,
+	})
+
+	findings := ruletest.RunDetector(t, adoption.NewF030Detector(ctx))
+	ruletest.AssertRule(t, findings, "F030", 1)
+
+	if len(findings) == 0 {
+		return
+	}
+
+	if got := findings[0].Message; !strings.Contains(got, "idempotency/v4") {
+		t.Errorf("message should name the deleted shim import, got %q", got)
+	}
+}

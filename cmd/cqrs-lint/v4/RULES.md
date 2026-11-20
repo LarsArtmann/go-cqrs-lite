@@ -1771,7 +1771,7 @@ Project has OTel but no tracing middleware — handlers are not instrumented
 
 Severity: `warning` · Confidence: `high` · Auto-fix: no · Category: `adoption`
 
-Import of a deleted module whose tags still resolve — transport/* (ADR-0127), idempotency/* (ADR-0128/0152/0167); each finding names the sanctioned replacement
+Import of a deleted module whose tags still resolve — transport/* (ADR-0127), idempotency/* (ADR-0128/0152/0167); each finding names the sanctioned replacement. Test files are scanned too: a _test.go pin freezes upgrades the same way
 
 <a id="f031"></a>
 

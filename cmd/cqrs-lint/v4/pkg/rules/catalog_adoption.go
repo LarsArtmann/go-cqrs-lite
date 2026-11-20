@@ -269,7 +269,7 @@ func adoptionRules() []RuleInfo {
 			Category:    "adoption",
 			Severity:    "warning",
 			Confidence:  "high",
-			Description: "Import of a deleted module whose tags still resolve — transport/* (ADR-0127), idempotency/* (ADR-0128/0152/0167); each finding names the sanctioned replacement",
+			Description: "Import of a deleted module whose tags still resolve — transport/* (ADR-0127), idempotency/* (ADR-0128/0152/0167); each finding names the sanctioned replacement. Test files are scanned too: a _test.go pin freezes upgrades the same way",
 			AutoFix:     false,
 		},
 		{

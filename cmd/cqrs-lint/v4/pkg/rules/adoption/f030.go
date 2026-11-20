@@ -114,6 +114,13 @@ var modulePresenceRegistry = []modulePresenceEntry{
 // build today and get a concrete migration path here instead of a surprise at
 // upgrade time.
 //
+// Test files are deliberately INCLUDED: a _test.go import pins the same
+// frozen tag in go.mod/go.sum and blocks upgrades exactly as hard as a
+// production import. F030 is purely import-path driven — it consults no
+// feature profile — so it walks every parsed file instead of the
+// profile-scoped coachingScopes (which exist to stop per-module signal
+// leakage, a concern F030 does not share).
+//
 // This is the companion to F013: F013 coaches projects WITHOUT a delivery
 // module toward the sanctioned paths, F030 coaches projects OFF the deleted
 // ones. Deprecated-but-present modules (idempotency/sqlstore, scheduling/
@@ -124,19 +131,7 @@ func NewF030Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
 		"F030-deleted-module-import",
 		func(_ context.Context) ([]finding.Finding, error) {
-			scopes := coachingScopes(ctx)
-
-			capacity := 0
-			for _, sc := range scopes {
-				capacity += len(sc.files)
-			}
-
-			out := make([]finding.Finding, 0, capacity)
-			for _, sc := range scopes {
-				out = append(out, deletedModuleFindings(ctx, sc.files)...)
-			}
-
-			return out, nil
+			return deletedModuleFindings(ctx, ctx.GoFiles), nil
 		},
 	)
 }
@@ -149,7 +144,7 @@ func deletedModuleFindings(
 	var out []finding.Finding
 
 	for _, gf := range files {
-		if gf.IsTest {
+		if gf.AST == nil {
 			continue
 		}
 
