@@ -235,9 +235,13 @@ Original rows above are preserved; these corrections govern execution from here 
 4. **C6 deviation + residual gap:** C6 shipped with presence = `go.mod` at HEAD (root or `/vN`), not the
    ADR-0128/0152 doc-list derivation of micro-tasks 6.6–6.7 (a deleted module's directory survives as a
    container — `idempotency/` still holds `sqlstore/`; tags are proxy-served forever per ADR-0152, so
-   neither directory nor tag proves presence). The residual completeness gap — the tag-universe
-   derivation (`git tag` module paths minus live `go.mod`s == registry `moduleDeleted` rows) — is now
-   tracked as **C6b** (repo-local, ~40m): implement as a set-equality test, mutation-tested both ways.
+   neither directory nor tag proves presence). The residual completeness gap is tracked as **C6b**
+   (~40m), landed 2026-11-20 as `TestTagDerivedDeletedModules_RegistryIsComplete` — NOT set equality:
+   the tag universe yields 16 deleted paths, 9 of them pre-v4-layout relics (memory, pebble, turso,
+   saga, sync, testing, testhelpers, event/v3/eventtest, cqrs-lite) that predate the commissioned
+   ADR-0128/0152 scope. The gate is three-directional instead: tracked rows must be tag-derived,
+   untracked tag-derived paths must be acknowledged with a successor note
+   (`acknowledgedTagOnlyModules`), and acknowledgments must stay fresh. Mutation-verified all three.
 5. **C22 premise correction:** browser-history's "native TTL" comment is ACCURATE (survey verified);
    micro-task 22.5 ("fix the comment") is VOID. The real lies are the endpoint fields:
    `SweepEnabled = TTL > 0` and hardcoded `DedupLayers = 3`. Zlota44's false comment ("no sweeper
