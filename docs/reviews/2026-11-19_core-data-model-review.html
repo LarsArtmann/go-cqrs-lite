@@ -888,11 +888,13 @@
           <div class="eyebrow">DATA-MODEL REVIEW &middot; 2026-11-19</div>
           <h1>The Core Data Model, Audited</h1>
           <p class="subtitle">
-            A first-principles review of the shared type system — record/, id/,
-            event/, command/, query/, metadata/ — and the core/v5 copy-forward
-            that is supposed to replace it. Companion to the 2026-10-17 on-disk
-            schema review: that report covered what we write to disk; this one
-            covers what the types admit.
+            A first-principles review of the shared type system’s load-bearing
+            core — 24 of 91 production files across record/, id/, event/,
+            command/, query/, metadata/ — and the core/v5 copy-forward that is
+            supposed to replace it. Companion to the 2026-10-17 on-disk schema
+            review: that report covered what we write to disk; this one covers
+            what the types admit. Reading coverage and the census method are
+            stated honestly in the Methodology section below.
           </p>
           <div class="meta">
             <span class="tag amber">Scope: 6 v4 modules + core/v5 twin</span>
@@ -1101,12 +1103,24 @@
     <span class="tok-comment">// + four more deprecated/new pairs</span>
 }</code></pre>
             <div class="callout callout-teal">
-              <strong>Fix: execute the cut inside core/v5, now</strong>
+              <strong>Fix (as written): execute the cut inside core/v5, now</strong>
               The fleet census shows zero production consumers of core/v5
               modules — deleting the deprecated halves there breaks no one and
               gets cheaper never again. Start with record/ (the root of the
               type tree), then event/metadata/command/query. The v4 train
               stays frozen as-is until fleet migration.
+            </div>
+            <div class="callout callout-amber">
+              <strong>Amended 2026-11-19 (errata #1 — see the follow-up plan)</strong>
+              The cut is <strong>T26-gated</strong>: the v007 v5-twin table
+              (<code>v007_tables_symbols_v5.go</code>) records these deprecated
+              twins as “removed together with the v4 train in T26”, so the
+              <code>cqrs-upgrade --to-v5</code> import rewrite stays mechanical —
+              deleting the twins now would strand migrating consumers. The
+              finding’s <em>urgency</em> transfers to the new surface: the free
+              window (zero consumers, pre-first-tag) is spent finalizing the
+              NEW core/v5 types. Plan of record:
+              <code>docs/planning/2026-11-19_20-52_SUPERB-v5-core-type-finalization-pareto-plan.md</code>.
             </div>
           </div>
 
@@ -1318,8 +1332,8 @@
           </div>
 
           <!-- R10 -->
-          <div class="issue issue-nice" id="r10">
-            <span class="severity severity-nice">Medium &middot; Two empties</span>
+          <div class="issue issue-important" id="r10">
+            <span class="severity severity-important">Medium &middot; Two empties</span>
             <h3>R10 — Event has two empty states</h3>
             <div class="where">event/v4/event.go:52 &middot; Event = *ImmutableEvent</div>
             <p>
@@ -1791,7 +1805,7 @@ r.<span class="tok-func">StreamType</span>() <span class="tok-comment">// derive
               </tr>
             </thead>
             <tbody>
-              <tr><td>R1 v5 inherits its own deprecations</td><td class="no">Critical</td><td>Medium</td><td class="no">Closing (zero consumers)</td></tr>
+              <tr><td>R1 v5 inherits its own deprecations</td><td class="no">Critical</td><td>Medium</td><td class="no">Amended — T26-gated (errata #1)</td></tr>
               <tr><td>R2 meeting point de-brands</td><td class="no">Critical</td><td>Low</td><td class="no">Closing</td></tr>
               <tr><td>R3 version sign split</td><td class="no">High</td><td>Medium</td><td>Open</td></tr>
               <tr><td>R4 encoding tri-conflation</td><td class="no">High</td><td>Low</td><td>Open</td></tr>
@@ -1808,11 +1822,26 @@ r.<span class="tok-func">StreamType</span>() <span class="tok-comment">// derive
 
           <h3>Methodology</h3>
           <p>
-            Every type definition in record/, id/, event/, command/, query/,
-            and metadata/ (181 declarations) was read this session, plus the
-            core/v5 twins of record/ and metadata/. All file:line references
-            were verified against HEAD 592b51a7d. The v4/core-v5 copy-forward
-            status was verified by direct diff, not assumed from ADR-0152.
+            <strong>Honest inventory (amended 2026-11-19, errata #3):</strong>
+            24 of the 91 production files across the six v4 modules were read
+            in full or relevant part — the load-bearing types (Record,
+            CommonMetadata, Stamp, Cause, Actor, StreamRef, Metadata, Tracing,
+            ImmutableEvent, Version, the AsRecord bridges) and the core/v5
+            record/metadata twins. id/’s branded-ID family beyond StreamID,
+            command/asrecord.go, metadata/record_actor.go, and the event
+            builder/options paths were NOT read; 67 files remained unread at
+            report time. All file:line references were verified against HEAD
+            592b51a7d. The v4/core-v5 copy-forward status was verified by
+            direct diff, not assumed from ADR-0152.
+          </p>
+          <p>
+            <strong>Census method (amended, errata #5):</strong> “zero
+            production consumers of core/v5” is a raw grep
+            (<code>grep -rl ’go-cqrs-lite/core/v5’ ~/projects/*/go.mod</code>
+            → no matches, run 2026-11-19 and re-run 2026-11-20), not
+            <code>scripts/census-fleet.sh</code>. The 2026-10-17 companion
+            report’s headings were cross-checked but its findings body was
+            not re-read for this report.
           </p>
 
           <h3>Series context</h3>
@@ -1842,6 +1871,9 @@ r.<span class="tok-func">StreamType</span>() <span class="tok-comment">// derive
         <footer class="footer">
           <p>
             Generated 2026-11-19 &middot; Reviewed against HEAD 592b51a7d
+            &middot; Errata applied 2026-11-19 (R1 T26 amendment, methodology
+            inventory, R10 severity, hero scope — per the follow-up plan
+            &sect;6)
             &middot; All claims verified against source code where noted
             &middot; Companion: 2026-10-17 on-disk schema review
           </p>
