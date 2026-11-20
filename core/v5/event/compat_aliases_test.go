@@ -19,10 +19,14 @@ func TestV3CompatAliases(t *testing.T) {
 	streamID := id.NewStreamID()
 	_ = event.AggregateID(streamID)
 	_ = event.AggregateType("User")
-	_ = event.AggregateRef(id.NewStreamRef("User", streamID))
+	ref, _ := id.NewStreamRef("User", streamID)
+	_ = event.AggregateRef(ref)
 
 	// v3-compat constructor and parser re-exports.
-	ref := event.NewAggregateRef(id.StreamType("Order"), streamID)
+	ref, err := event.NewAggregateRef(id.StreamType("Order"), streamID)
+	if err != nil {
+		t.Fatalf("NewAggregateRef: %v", err)
+	}
 	if ref.ID != streamID || ref.Type != "Order" {
 		t.Errorf("NewAggregateRef = %+v, want {Order %s}", ref, streamID)
 	}

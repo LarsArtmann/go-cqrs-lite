@@ -55,12 +55,11 @@ func TestAsRecord_MapsStructuralFields(t *testing.T) {
 		t.Errorf("Payload = %q, want encoded query", got.Payload)
 	}
 
-	if got.StreamID != record.NewStreamRef("", qWithMeta.ID().String()) {
-		t.Errorf("StreamID = %q, want request-ID based ref", got.StreamID)
-	}
-
-	if got.StreamType != "" {
-		t.Errorf("StreamType = %q, want empty", got.StreamType)
+	if !got.Stream.IsZero() {
+		t.Errorf(
+			"Stream = %v, want zero (a query is not a stream member; the fabricated request-ID ref is gone, R9)",
+			got.Stream,
+		)
 	}
 
 	if got.Version != 0 {
@@ -150,7 +149,7 @@ func TestAsRecord_NilQuery(t *testing.T) {
 	t.Parallel()
 
 	got := query.AsRecord(nil)
-	if got.Type != "" || got.Payload != nil || got.StreamID != "" || got.Version != 0 {
+	if got.Type != "" || got.Payload != nil || !got.Stream.IsZero() || got.Version != 0 {
 		t.Errorf("AsRecord(nil) = %+v, want zero Record", got)
 	}
 }
@@ -164,14 +163,10 @@ func TestAsRecord_StreamRefInvariant(t *testing.T) {
 	}
 
 	got := query.AsRecord(q)
-	if err := got.StreamID.Validate(); err != nil {
-		t.Fatalf("populated StreamID must pass Validate, got %v (%q)", err, got.StreamID)
-	}
-
-	if _, entityID := got.StreamID.Split(); entityID != q.ID().String() {
-		t.Errorf(
-			"Split entityID = %q, want the query's request ID %q",
-			entityID, q.ID().String(),
+	if !got.Stream.IsZero() {
+		t.Fatalf(
+			"Stream = %v, want zero — a query is not a stream member (R9; the fabricated request-ID ref is gone)",
+			got.Stream,
 		)
 	}
 }

@@ -99,7 +99,7 @@ func TestAllocs_NewStreamRef(t *testing.T) {
 	streamType := id.StreamType("Test")
 
 	allocs := testing.AllocsPerRun(100, func() {
-		_ = id.NewStreamRef(streamType, streamID)
+		_, _ = id.NewStreamRef(streamType, streamID)
 	})
 
 	if allocs != 0 {

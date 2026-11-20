@@ -1679,6 +1679,7 @@ core/v5/id/func NewRequestID
 core/v5/id/func NewServiceActor
 core/v5/id/func NewStreamID
 core/v5/id/func NewStreamRef
+core/v5/id/func NewStreamRefOrZero
 core/v5/id/func NewSystemActor
 core/v5/id/func NewUserActor
 core/v5/id/func NewUserID
@@ -1696,6 +1697,7 @@ core/v5/id/func ParseEventID
 core/v5/id/func ParseRequestID
 core/v5/id/func ParseStreamID
 core/v5/id/func ParseStreamIDStrict
+core/v5/id/func ParseStreamRef
 core/v5/id/func ParseStreamType
 core/v5/id/func ParseUserID
 core/v5/id/func StreamIDFrom
@@ -1923,8 +1925,6 @@ core/v5/record/const EncodingJSON
 core/v5/record/const EncodingUnknown
 core/v5/record/func DeferClose
 core/v5/record/func NewStamp
-core/v5/record/func NewStreamRef
-core/v5/record/func NewStreamRefOrZero
 core/v5/record/func ParseCorrelationID
 core/v5/record/func ParseEncoding
 core/v5/record/func ParseInstanceID
@@ -1932,12 +1932,10 @@ core/v5/record/func ParseType
 core/v5/record/func ParseVersion
 core/v5/record/method IsZero
 core/v5/record/method MarshalJSON
-core/v5/record/method Split
 core/v5/record/method String
 core/v5/record/method Time
 core/v5/record/method UInt64
 core/v5/record/method UnmarshalJSON
-core/v5/record/method Validate
 core/v5/record/struct Actor
 core/v5/record/struct Cause
 core/v5/record/struct CommonMetadata
@@ -1953,7 +1951,6 @@ core/v5/record/type Type
 core/v5/record/type Version
 core/v5/record/var ErrEmptyCorrelationID
 core/v5/record/var ErrEmptyInstanceID
-core/v5/record/var ErrInvalidStreamRef
 core/v5/record/var ErrNegativeVersion
 core/v5/record/var ErrUnknownEncoding
 decider/v4/const DefaultStateCacheCapacity

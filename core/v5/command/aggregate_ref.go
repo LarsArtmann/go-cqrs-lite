@@ -35,7 +35,7 @@ func ParseStreamType(s string) (StreamType, error) {
 	return t, nil
 }
 
-func NewStreamRef(streamType StreamType, streamID id.StreamID) StreamRef {
+func NewStreamRef(streamType StreamType, streamID id.StreamID) (StreamRef, error) {
 	return id.NewStreamRef(streamType, streamID)
 }
 
@@ -43,6 +43,6 @@ func NewStreamRef(streamType StreamType, streamID id.StreamID) StreamRef {
 func ParseAggregateType(s string) (StreamType, error) { return ParseStreamType(s) }
 
 // Deprecated: use NewStreamRef.
-func NewAggregateRef(streamType StreamType, streamID id.StreamID) StreamRef {
+func NewAggregateRef(streamType StreamType, streamID id.StreamID) (StreamRef, error) {
 	return NewStreamRef(streamType, streamID)
 }

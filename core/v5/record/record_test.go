@@ -5,63 +5,68 @@ import (
 	"testing"
 	"time"
 
+	"github.com/larsartmann/go-cqrs-lite/core/v5/id"
 	"github.com/larsartmann/go-cqrs-lite/core/v5/record"
 )
 
-func TestStreamRef_ConstructAndSplit(t *testing.T) {
+func mustStreamRef(t *testing.T, streamType, entityID string) record.StreamRef {
+	t.Helper()
+
+	sid, err := id.ParseStreamID(entityID)
+	if err != nil {
+		t.Fatalf("ParseStreamID(%q): %v", entityID, err)
+	}
+
+	ref, err := id.NewStreamRef(id.StreamType(streamType), sid)
+	if err != nil {
+		t.Fatalf("NewStreamRef(%q, %q): %v", streamType, entityID, err)
+	}
+
+	return ref
+}
+
+func TestStreamRef_AliasLockstep(t *testing.T) {
 	//art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
+	// ADR-0166: record.StreamRef is an alias of id.StreamRef — one canonical
+	// struct, one validation rule set. These cross-type constructions only
+	// compile while the alias holds (the record.Type lockstep pattern,
+	// ADR-0111 contract 21a).
 	t.Parallel()
 
-	ref := record.NewStreamRef("User", "01JTEST")
-	if got := ref.String(); got != "User/01JTEST" {
-		t.Errorf("String() = %q, want %q", got, "User/01JTEST")
+	sid := id.NewStreamID()
+
+	var asRecord record.StreamRef = id.StreamRef{Type: "User", ID: sid}
+	if asRecord != (record.StreamRef{Type: id.StreamType("User"), ID: sid}) {
+		t.Errorf("id.StreamRef and record.StreamRef diverged: %v", asRecord)
 	}
 
-	streamType, entityID := ref.Split()
-	if streamType != "User" {
-		t.Errorf("streamType = %q, want %q", streamType, "User")
+	if got := asRecord.String(); got != "User:"+sid.String() {
+		t.Errorf("String() = %q, want %q", got, "User:"+sid.String())
 	}
-	if entityID != "01JTEST" {
-		t.Errorf("entityID = %q, want %q", entityID, "01JTEST")
+
+	if got := asRecord.StreamKey(); got != "User:"+sid.Get() {
+		t.Errorf("StreamKey() = %q, want %q", got, "User:"+sid.Get())
 	}
 }
 
-func TestStreamRef_SplitInvalid(t *testing.T) {
+func TestStreamRef_ZeroMeansNotAStreamMember(t *testing.T) {
 	t.Parallel()
 
-	ref := record.StreamRef("no-slash")
-	streamType, entityID := ref.Split()
-	if streamType != "" || entityID != "" {
-		t.Errorf("Split() on invalid ref = (%q, %q), want (\"\", \"\")", streamType, entityID)
+	var zero record.StreamRef
+	if !zero.IsZero() {
+		t.Error("the zero StreamRef must report IsZero")
 	}
-}
 
-func TestStreamRef_SplitLeadingSlash(t *testing.T) {
-	t.Parallel()
-
-	// Leading slash = empty stream type → allowed (matches Validate and the
-	// command/query asrecord pattern); the entity ID is still returned.
-	streamType, entityID := record.StreamRef("/01JTEST").Split()
-	if streamType != "" || entityID != "01JTEST" {
-		t.Errorf(
-			"Split() on leading-slash ref = (%q, %q), want (\"\", \"01JTEST\")",
-			streamType,
-			entityID,
-		)
+	// The zero ref is NOT a valid stream identity — it states "not a member
+	// of any stream" (queries, type-less commands), a different fact from a
+	// well-formed ref. Constructing it through the validating door fails.
+	if err := zero.Validate(); err == nil {
+		t.Error("zero StreamRef must fail Validate (it is non-membership, not identity)")
 	}
-}
 
-func TestStreamRef_SplitTrailingSlash(t *testing.T) {
-	t.Parallel()
-
-	// Trailing slash = empty entity ID → invalid.
-	streamType, entityID := record.StreamRef("User/").Split()
-	if streamType != "" || entityID != "" {
-		t.Errorf(
-			"Split() on trailing-slash ref = (%q, %q), want (\"\", \"\")",
-			streamType,
-			entityID,
-		)
+	rec := record.Record{}
+	if !rec.Stream.IsZero() {
+		t.Error("a zero Record must carry a zero Stream (not a stream member)")
 	}
 }
 
@@ -69,63 +74,24 @@ func TestStreamRef_Validate(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
+		name    string
 		ref     record.StreamRef
 		wantErr bool
 	}{
-		{record.NewStreamRef("User", "01JTEST"), false},
-		{
-			record.NewStreamRef("", "01JTEST"),
-			false,
-		}, // empty streamType allowed (command/query pattern)
-		{record.StreamRef("no-slash"), true}, // missing separator
-		{
-			record.StreamRef("/01JTEST"),
-			false,
-		}, // empty streamType but entityID present → valid
-		{record.StreamRef("User/"), true}, // empty entityID → invalid
-		{record.StreamRef(""), true},      // completely empty → invalid
+		{"typed ref", mustStreamRef(t, "User", "01JTEST"), false},
+		{"empty type is illegal (ADR-0166)", record.StreamRef{ID: mustStreamRef(t, "User", "01JTEST").ID}, true},
+		{"zero ID is illegal (ADR-0166)", record.StreamRef{Type: "User"}, true},
+		{"zero ref", record.StreamRef{}, true},
 	}
 
 	for _, tt := range tests {
 		err := tt.ref.Validate()
 		if tt.wantErr && err == nil {
-			t.Errorf("Validate(%q) = nil, want error", tt.ref)
+			t.Errorf("%s: Validate(%v) = nil, want error", tt.name, tt.ref)
 		}
 
 		if !tt.wantErr && err != nil {
-			t.Errorf("Validate(%q) = %v, want nil", tt.ref, err)
-		}
-	}
-}
-
-func TestStreamRef_ConstructSplitRoundTrip(t *testing.T) {
-	t.Parallel()
-
-	cases := []struct{ streamType, entityID string }{
-		{"User", "01JTEST"},
-		{"", "01JTEST"}, // empty streamType (command/query asrecord pattern)
-	}
-
-	for _, tc := range cases {
-		ref := record.NewStreamRef(tc.streamType, tc.entityID)
-
-		if err := ref.Validate(); err != nil {
-			t.Errorf(
-				"Validate(NewStreamRef(%q, %q)) = %v, want nil",
-				tc.streamType,
-				tc.entityID,
-				err,
-			)
-		}
-
-		gotType, gotID := ref.Split()
-		if gotType != tc.streamType || gotID != tc.entityID {
-			t.Errorf(
-				"Split(NewStreamRef(%q, %q)) = (%q, %q), want (%q, %q)",
-				tc.streamType, tc.entityID,
-				gotType, gotID,
-				tc.streamType, tc.entityID,
-			)
+			t.Errorf("%s: Validate(%v) = %v, want nil", tt.name, tt.ref, err)
 		}
 	}
 }
@@ -137,33 +103,46 @@ func TestNewStreamRefOrZero(t *testing.T) {
 		name       string
 		streamType string
 		entityID   string
-		want       record.StreamRef
+		wantZero   bool
 	}{
-		{"typed ref", "User", "01JTEST", "User/01JTEST"},
-		{"empty stream type is legal", "", "01JTEST", "/01JTEST"},
-		{"empty entity ID yields zero", "User", "", ""},
-		{"both empty yields zero", "", "", ""},
+		{"typed ref", "User", "01JTEST", false},
+		{"empty stream type yields zero (illegal at construction, ADR-0166)", "", "01JTEST", true},
+		{"empty entity ID yields zero", "User", "", true},
+		{"both empty yields zero", "", "", true},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := record.NewStreamRefOrZero(tc.streamType, tc.entityID)
-			if got != tc.want {
+			sid, _ := id.ParseStreamID(tc.entityID)
+			got := id.NewStreamRefOrZero(id.StreamType(tc.streamType), sid)
+			if got.IsZero() != tc.wantZero {
 				t.Fatalf(
-					"NewStreamRefOrZero(%q, %q) = %q, want %q",
-					tc.streamType, tc.entityID, got, tc.want,
+					"NewStreamRefOrZero(%q, %q) zero=%v, want %v",
+					tc.streamType, tc.entityID, got.IsZero(), tc.wantZero,
 				)
 			}
 
-			if got != "" && got.Validate() != nil {
-				t.Errorf(
-					"non-zero result %q must pass Validate, got %v",
-					got, got.Validate(),
-				)
+			if !got.IsZero() && got.Validate() != nil {
+				t.Errorf("non-zero result %v must pass Validate, got %v", got, got.Validate())
 			}
 		})
+	}
+}
+
+func TestStreamRef_ParseStreamKeyRoundTrip(t *testing.T) {
+	t.Parallel()
+
+	ref := mustStreamRef(t, "User", "01JTEST")
+
+	parsed, err := id.ParseStreamRef(ref.StreamKey())
+	if err != nil {
+		t.Fatalf("ParseStreamRef(StreamKey()) = %v, want nil", err)
+	}
+
+	if parsed != ref {
+		t.Errorf("ParseStreamRef(%q) = %v, want %v", ref.StreamKey(), parsed, ref)
 	}
 }
 
@@ -171,11 +150,10 @@ func TestRecord_JSONRoundTrip(t *testing.T) {
 	t.Parallel()
 
 	original := record.Record{
-		Type:       "user.created",
-		Payload:    []byte(`{"name":"alice"}`),
-		StreamID:   record.NewStreamRef("User", "01JTEST"),
-		StreamType: "User",
-		Version:    1,
+		Type:    "user.created",
+		Payload: []byte(`{"name":"alice"}`),
+		Stream:  mustStreamRef(t, "User", "01JTEST"),
+		Version: 1,
 		MetaData: record.CommonMetadata{
 			CorrelationID:    "corr-123",
 			CausationID:      "cmd-456",
@@ -206,11 +184,11 @@ func TestRecord_JSONRoundTrip(t *testing.T) {
 	if string(decoded.Payload) != string(original.Payload) {
 		t.Errorf("Payload = %q, want %q", decoded.Payload, original.Payload)
 	}
-	if decoded.StreamID != original.StreamID {
-		t.Errorf("StreamID = %q, want %q", decoded.StreamID, original.StreamID)
+	if decoded.Stream != original.Stream {
+		t.Errorf("Stream = %v, want %v", decoded.Stream, original.Stream)
 	}
-	if decoded.StreamType != original.StreamType {
-		t.Errorf("StreamType = %q, want %q", decoded.StreamType, original.StreamType)
+	if got := decoded.Stream.StreamKey(); got != original.Stream.StreamKey() {
+		t.Errorf("Stream.StreamKey() = %q, want %q", got, original.Stream.StreamKey())
 	}
 	if decoded.Version != original.Version {
 		t.Errorf("Version = %d, want %d", decoded.Version, original.Version)
@@ -280,10 +258,10 @@ func TestRecord_EmbeddingWorks(t *testing.T) {
 	}
 
 	er := EventRecord{
-		Type:       "test.event",
-		StreamType: "Test",
-		Version:    1,
-		Encoding:   "json",
+		Type:     "test.event",
+		Stream:   mustStreamRef(t, "Test", "01JTEST"),
+		Version:  1,
+		Encoding: "json",
 	}
 
 	if er.Type != "test.event" {

@@ -1,8 +1,10 @@
 # ADR-0166: One StreamRef — the id struct is canonical, record aliases it
 
-- Status: Proposed (2026-11-08, brutal-episode7 B3) — ratifies at the v5 cut alongside the
-  already-owner-confirmed `record.NewStreamRef` validation ruling (2026-08-22 core-data-model
-  execution plan, Appendix B)
+- Status: Accepted (proposed 2026-11-08, brutal-episode7 B3; implemented 2026-11-20 in the
+  pre-first-tag core/v5 window — `record.StreamRef` is the `id.StreamRef` alias, `Record.Stream`
+  collapsed from the `StreamID`/`StreamType` pair, `id.NewStreamRef` validating,
+  `id.ParseStreamRef` added; the v4 train keeps its independent string-typed `record.StreamRef`
+  until T26)
 - Date: 2026-11-08
 
 ## Context

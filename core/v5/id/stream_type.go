@@ -2,6 +2,8 @@ package id
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
 
 	errorfamily "github.com/larsartmann/go-error-family"
 )
@@ -51,9 +53,61 @@ func (r StreamRef) StreamKey() string {
 	return r.Type.String() + ":" + r.ID.Get()
 }
 
-// NewStreamRef creates a StreamRef from a type and ID.
-func NewStreamRef(streamType StreamType, streamID StreamID) StreamRef {
-	return StreamRef{Type: streamType, ID: streamID}
+// NewStreamRef creates a StreamRef from a type and ID, enforcing the
+// ADR-0166 validity contract at construction: an empty type and a zero ID
+// are both rejected (owner ruling 2026-08-22, Appendix B). Adapters that
+// cannot surface an error use [NewStreamRefOrZero]; deliberately partial
+// refs (tests, wire validation) use the struct literal — the constructor is
+// the validating door, the literal the trusted one.
+func NewStreamRef(streamType StreamType, streamID StreamID) (StreamRef, error) {
+	ref := StreamRef{Type: streamType, ID: streamID}
+	if err := ref.Validate(); err != nil {
+		return StreamRef{}, err
+	}
+
+	return ref, nil
+}
+
+// NewStreamRefOrZero creates a StreamRef, returning the zero StreamRef when
+// the parts would not validate. It is the producer-side counterpart to
+// [NewStreamRef] for adapters that cannot return an error: a Record either
+// carries a well-formed StreamRef or none at all — never a malformed ref
+// that fails Validate far from its cause.
+func NewStreamRefOrZero(streamType StreamType, streamID StreamID) StreamRef {
+	ref, err := NewStreamRef(streamType, streamID)
+	if err != nil {
+		return StreamRef{}
+	}
+
+	return ref
+}
+
+// ParseStreamRef parses the canonical storage key form "type:bare-id"
+// (the inverse of [StreamRef.StreamKey]) back into a StreamRef. The key
+// splits on the FIRST colon: the type owns everything before it, the ID
+// everything after (StreamIDs accept any non-empty string, so IDs may
+// themselves contain colons). Both parts are required: a missing
+// separator, an empty type, or an empty ID returns a Rejection.
+func ParseStreamRef(key string) (StreamRef, error) {
+	typePart, idPart, found := strings.Cut(key, ":")
+	if !found {
+		return StreamRef{}, errorfamily.NewRejection(
+			"id.parse_stream_ref",
+			"stream key must be \"type:id\", got no separator in "+strconv.Quote(key),
+		)
+	}
+
+	streamType, err := ParseStreamType(typePart)
+	if err != nil {
+		return StreamRef{}, err
+	}
+
+	streamID, err := ParseStreamID(idPart)
+	if err != nil {
+		return StreamRef{}, err
+	}
+
+	return StreamRef{Type: streamType, ID: streamID}, nil
 }
 
 // IsZero returns true if both Type and ID are their zero values.

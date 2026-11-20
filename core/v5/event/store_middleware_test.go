@@ -178,7 +178,12 @@ func passthrough(events []Event) ([]Event, error) { return events, nil }
 
 // testRef returns a fresh stream reference.
 func testRef() id.StreamRef {
-	return id.NewStreamRef(id.StreamType("User"), id.NewStreamID())
+	ref, err := id.NewStreamRef(id.StreamType("User"), id.NewStreamID())
+	if err != nil {
+		panic("testRef: " + err.Error())
+	}
+
+	return ref
 }
 
 func TestDecorateStore_NilTransforms_ReturnsInner(t *testing.T) {

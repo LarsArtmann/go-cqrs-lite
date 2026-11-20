@@ -14,6 +14,6 @@ func ParseAggregateType(s string) (StreamType, error) { return ParseStreamType(s
 type AggregateRef = StreamRef
 
 // Deprecated: use NewStreamRef.
-func NewAggregateRef(streamType StreamType, streamID StreamID) StreamRef {
+func NewAggregateRef(streamType StreamType, streamID StreamID) (StreamRef, error) {
 	return NewStreamRef(streamType, streamID)
 }

@@ -20,7 +20,7 @@ func TestStreamRef_IsZero(t *testing.T) {
 		t.Error("expected zero id.StreamRef to be zero")
 	}
 
-	ref = id.NewStreamRef("User", id.NewStreamID())
+	ref, _ = id.NewStreamRef("User", id.NewStreamID())
 
 	if ref.IsZero() {
 		t.Error("expected non-zero id.StreamRef to not be zero")
@@ -33,7 +33,7 @@ func TestStreamRef_Validate(t *testing.T) {
 	t.Run("valid", func(t *testing.T) {
 		t.Parallel()
 
-		ref := id.NewStreamRef("User", id.NewStreamID())
+		ref, _ := id.NewStreamRef("User", id.NewStreamID())
 
 		err := ref.Validate()
 		if err != nil {
@@ -44,7 +44,7 @@ func TestStreamRef_Validate(t *testing.T) {
 	t.Run("empty type", func(t *testing.T) {
 		t.Parallel()
 
-		ref := id.NewStreamRef("", id.NewStreamID())
+		ref := id.StreamRef{Type: "", ID: id.NewStreamID()} // deliberately invalid: empty type
 
 		err := ref.Validate()
 		if err == nil {
@@ -55,7 +55,7 @@ func TestStreamRef_Validate(t *testing.T) {
 	t.Run("empty ID", func(t *testing.T) {
 		t.Parallel()
 
-		ref := id.NewStreamRef("User", id.StreamID{})
+		ref := id.StreamRef{Type: "User"} // deliberately invalid: zero ID
 
 		err := ref.Validate()
 		if err == nil {

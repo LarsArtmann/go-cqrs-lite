@@ -26,10 +26,10 @@ import (
 //     streams stay self-describing; codecs the record layer does not know
 //     stamp EncodingUnknown rather than guessing
 //   - Payload          ← evt.Payload() (cloned, safe to modify)
-//   - StreamID         ← record.NewStreamRefOrZero(streamType, streamID)
-//     (zero when the event's stream ID is empty — no identity rather than a
-//     malformed identity; the populated form always passes Validate)
-//   - StreamType       ← evt.StreamType()
+//   - Stream          ← id.NewStreamRefOrZero(evt.StreamType(), evt.StreamID())
+//     (zero when the identity is incomplete — no identity rather than a
+//     malformed identity, ADR-0166; events validate both parts at
+//     construction, so the zero arm covers reconstruct-without-identity)
 //   - Version          ← evt.Version()
 //   - CorrelationID    ← evt.Metadata().Tracing.CorrelationID
 //   - CausationID      ← see precedence rule below (Deprecated: removed in v5)
@@ -88,16 +88,13 @@ func AsRecord(evt Event) record.Record {
 		cause = record.Cause{Kind: record.CauseUnknown, ID: tracing.CausationID.String()}
 	}
 
-	streamType := string(evt.StreamType())
-
 	return record.Record{
-		ID:         record.InstanceID(evt.ID().String()),
-		Type:       evt.Type(),
-		Encoding:   recordEncoding(evt.Encoding()),
-		Payload:    evt.Payload(),
-		StreamID:   record.NewStreamRefOrZero(streamType, evt.StreamID().Get()),
-		StreamType: streamType,
-		Version:    record.Version(evt.Version().UInt64()),
+		ID:       record.InstanceID(evt.ID().String()),
+		Type:     evt.Type(),
+		Encoding: recordEncoding(evt.Encoding()),
+		Payload:  evt.Payload(),
+		Stream:   id.NewStreamRefOrZero(evt.StreamType(), evt.StreamID()),
+		Version:  record.Version(evt.Version().UInt64()),
 		MetaData: record.CommonMetadata{
 			CorrelationID:   record.CorrelationID(metadata.BrandedString(tracing.CorrelationID)),
 			CausationID:     causationID,

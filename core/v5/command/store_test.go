@@ -25,10 +25,15 @@ func parseCommandID(tb testing.TB, s string) id.CommandID {
 func validRef(tb testing.TB) command.StreamRef {
 	tb.Helper()
 
-	return command.NewStreamRef(
+	ref, err := command.NewStreamRef(
 		"User",
 		idtest.ParseStreamID(tb, "01HK1540X0841Y0A6BSX1VKR95"),
 	)
+	if err != nil {
+		tb.Fatalf("NewStreamRef: %v", err)
+	}
+
+	return ref
 }
 
 func TestNewPersistedCommand_Success(t *testing.T) {
@@ -171,7 +176,9 @@ func TestNewPersistedCommand_EmptyType(t *testing.T) {
 func TestNewPersistedCommand_EmptyStreamType(t *testing.T) {
 	t.Parallel()
 
-	ref := command.NewStreamRef("", idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95"))
+	ref := command.StreamRef{
+		ID: idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95"),
+	} // deliberately invalid: empty type
 
 	_, err := command.NewPersistedCommand("CreateUser", ref, nil)
 	if err == nil {
@@ -186,7 +193,7 @@ func TestNewPersistedCommand_EmptyStreamType(t *testing.T) {
 func TestNewPersistedCommand_ZeroStreamID(t *testing.T) {
 	t.Parallel()
 
-	ref := command.NewStreamRef("User", id.StreamID{})
+	ref := command.StreamRef{Type: "User"} // deliberately invalid: zero ID
 
 	_, err := command.NewPersistedCommand("CreateUser", ref, nil)
 	if err == nil {
@@ -279,10 +286,13 @@ func TestPersistedCommand_String(t *testing.T) {
 func TestAggregateRef_String(t *testing.T) {
 	t.Parallel()
 
-	ref := command.NewStreamRef(
+	ref, err := command.NewStreamRef(
 		"User",
 		idtest.ParseStreamID(t, "01HK1540X0841Y0A6BSX1VKR95"),
 	)
+	if err != nil {
+		t.Fatalf("NewStreamRef: %v", err)
+	}
 	s := ref.String()
 
 	if s == "" {

@@ -13,7 +13,7 @@ func TestAsRecord_Nil(t *testing.T) {
 	t.Parallel()
 
 	got := command.AsRecord(nil)
-	if got.Type != "" || got.StreamID != "" {
+	if got.Type != "" || !got.Stream.IsZero() {
 		t.Fatalf("nil command should return zero Record, got %+v", got)
 	}
 }
@@ -53,13 +53,11 @@ func TestAsRecord_BasicMapping(t *testing.T) {
 		)
 	}
 
-	wantStreamID := record.NewStreamRef("", streamID.Get())
-	if rec.StreamID != wantStreamID {
-		t.Errorf("StreamID: got %+v, want %+v", rec.StreamID, wantStreamID)
-	}
-
-	if rec.StreamType != "" {
-		t.Errorf("StreamType: got %q, want empty (commands have no stream type)", rec.StreamType)
+	if !rec.Stream.IsZero() {
+		t.Errorf(
+			"Stream: got %v, want zero (BasicCommand has no stream TYPE; ADR-0166 forbids empty-type refs)",
+			rec.Stream,
+		)
 	}
 
 	if rec.Version != 0 {
@@ -155,15 +153,11 @@ func TestAsRecord_StreamRefInvariant(t *testing.T) {
 		t.Fatalf("command.New: %v", err)
 	}
 
+	// The thin BasicCommand bridge leaves Stream zero (no stream TYPE to
+	// pair with the ID; ADR-0166 forbids empty-type refs). The command's
+	// stream ID is still reachable through cmd.StreamID() itself.
 	rec := command.AsRecord(cmd)
-	if err := rec.StreamID.Validate(); err != nil {
-		t.Fatalf("populated StreamID must pass Validate, got %v (%q)", err, rec.StreamID)
-	}
-
-	if _, entityID := rec.StreamID.Split(); entityID != cmd.StreamID().Get() {
-		t.Errorf(
-			"Split entityID = %q, want the command's stream ID %q",
-			entityID, cmd.StreamID().Get(),
-		)
+	if !rec.Stream.IsZero() {
+		t.Fatalf("Stream = %v, want zero for the thin BasicCommand bridge", rec.Stream)
 	}
 }

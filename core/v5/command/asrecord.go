@@ -11,7 +11,10 @@ import (
 // Record-aware fold system (ADR-0111, ADR-0112).
 //
 // Commands differ from events in several ways that affect the mapping:
-//   - Commands have no StreamType → left empty.
+//   - Commands have no stream identity in this thin form → Stream zero
+//     (a BasicCommand carries a stream ID but no stream TYPE; under
+//     ADR-0166 an empty-type ref is illegal, so the Record states "not a
+//     stream member" honestly instead of fabricating a ref).
 //   - Commands have no Version → left zero.
 //   - Commands have no SchemaVersion → left zero.
 //   - Commands carry an id.CommandID (unique per command instance).
@@ -26,10 +29,10 @@ import (
 //   - Type          ← cmd.Type()
 //   - Payload       ← nil (commands are typed structs, not blobs)
 //   - Encoding      ← EncodingUnknown (no payload to stamp)
-//   - StreamID      ← record.NewStreamRefOrZero("", cmd.StreamID().Get())
-//     (zero when the command's stream ID is empty — no identity rather than
-//     a malformed identity; the empty stream type is legal by design)
-//   - StreamType    ← "" (commands do not carry a stream type)
+//   - Stream        ← zero — no fabricated identity: the BasicCommand's
+//     stream ID has no stream TYPE to pair with, and ADR-0166 makes an
+//     empty-type ref illegal; use [AsRecordPersisted] for full stream
+//     identity
 //   - Version       ← 0 (commands have no version)
 //   - CorrelationID ← cmd.Metadata().Tracing.CorrelationID
 //   - CausationID   ← cmd.Metadata().Tracing.CausationID (Deprecated: removed in v5)
@@ -65,10 +68,9 @@ func AsRecord(cmd *BasicCommand) record.Record {
 	}
 
 	return record.Record{
-		ID:         record.InstanceID(cmd.ID().String()),
-		Type:       cmd.Type(),
-		StreamID:   record.NewStreamRefOrZero("", cmd.StreamID().Get()),
-		StreamType: "",
+		ID:     record.InstanceID(cmd.ID().String()),
+		Type:   cmd.Type(),
+		Stream: record.StreamRef{},
 		MetaData: record.CommonMetadata{
 			CorrelationID: record.CorrelationID(metadata.BrandedString(tracing.CorrelationID)),
 			CausationID:   metadata.BrandedString(tracing.CausationID),
@@ -88,8 +90,9 @@ func AsRecord(cmd *BasicCommand) record.Record {
 //
 // AsRecordPersisted bridges the FULL form, unlike [AsRecord] on *BasicCommand:
 //   - Payload        ← cmd.Payload() (cloned, safe to modify)
-//   - StreamID/Type  ← cmd.StreamRef() at full fidelity — the persisted
-//     stream type is carried, where the BasicCommand bridge leaves it empty
+//   - Stream         ← cmd.StreamRef() at full fidelity — both parts of
+//     the identity, validated at PersistedCommand construction; where the
+//     BasicCommand bridge leaves Stream zero
 //   - Received       ← cmd.ReceivedAt() — the honest home for the
 //     server-receive clock. Created stays zero: PersistedCommand carries no
 //     client clock.
@@ -103,12 +106,9 @@ func AsRecord(cmd *BasicCommand) record.Record {
 //     codec stamp)
 //   - Encoding        ← EncodingUnknown (no codec stamp on the command
 //     itself — same rule as the query bridge)
-//   - StreamID        ← record.NewStreamRefOrZero(streamType, streamID)
-//     (zero when the stream ID is empty — no identity rather than a
-//     malformed identity)
-//   - StreamType      ← cmd.StreamType() (populated, unlike the
-//     BasicCommand bridge)
-//   - Version         ← 0 (commands have no version)
+//   - Stream           ← cmd.StreamRef() (validated at PersistedCommand
+//     construction — full fidelity, never malformed)
+//   - Version          ← 0 (commands have no version)
 //   - CorrelationID   ← cmd.Metadata().Tracing.CorrelationID
 //   - CausationID     ← cmd.Metadata().Tracing.CausationID (Deprecated: removed in v5)
 //   - Cause           ← {CauseUnknown, Tracing.CausationID} when set — the
@@ -133,7 +133,6 @@ func AsRecordPersisted(cmd *PersistedCommand) record.Record {
 
 	md := cmd.Metadata()
 	tracing := md.Tracing
-	streamType := string(cmd.StreamType())
 
 	var cause record.Cause
 	if !tracing.CausationID.IsZero() {
@@ -141,12 +140,11 @@ func AsRecordPersisted(cmd *PersistedCommand) record.Record {
 	}
 
 	return record.Record{
-		ID:         record.InstanceID(cmd.ID().String()),
-		Type:       cmd.Type(),
-		Payload:    cmd.Payload(),
-		Encoding:   record.EncodingUnknown,
-		StreamID:   record.NewStreamRefOrZero(streamType, cmd.StreamID().Get()),
-		StreamType: streamType,
+		ID:       record.InstanceID(cmd.ID().String()),
+		Type:     cmd.Type(),
+		Payload:  cmd.Payload(),
+		Encoding: record.EncodingUnknown,
+		Stream:   cmd.StreamRef(),
 		MetaData: record.CommonMetadata{
 			CorrelationID:   record.CorrelationID(metadata.BrandedString(tracing.CorrelationID)),
 			CausationID:     metadata.BrandedString(tracing.CausationID),

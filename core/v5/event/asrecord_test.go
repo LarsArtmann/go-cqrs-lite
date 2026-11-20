@@ -13,7 +13,7 @@ import (
 func TestAsRecord_NilEvent(t *testing.T) {
 	//art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 	rec := AsRecord(nil)
-	if rec.Type != "" || rec.Payload != nil || rec.StreamID != "" {
+	if rec.Type != "" || rec.Payload != nil || !rec.Stream.IsZero() {
 		t.Errorf("AsRecord(nil) = %+v, want zero Record", rec)
 	}
 }
@@ -47,18 +47,9 @@ func TestAsRecord_BasicMapping(t *testing.T) {
 		t.Errorf("Type = %q, want %q", rec.Type, "user.created")
 	}
 
-	if rec.StreamType != "User" {
-		t.Errorf("StreamType = %q, want %q", rec.StreamType, "User")
-	}
-
-	wantStreamID := record.NewStreamRef("User", streamID.Get())
-	if rec.StreamID != wantStreamID {
-		t.Errorf("StreamID = %q, want %q", rec.StreamID, wantStreamID)
-	}
-
-	st, id2 := rec.StreamID.Split()
-	if st != "User" || id2 != streamID.Get() {
-		t.Errorf("StreamID.Split = (%q, %q), want (%q, %q)", st, id2, "User", streamID.Get())
+	wantStream := record.StreamRef{Type: "User", ID: streamID}
+	if rec.Stream != wantStream {
+		t.Errorf("Stream = %v, want %v", rec.Stream, wantStream)
 	}
 
 	if rec.Version != 3 {
@@ -322,15 +313,11 @@ func TestAsRecord_StreamRefInvariant(t *testing.T) {
 	}
 
 	rec := AsRecord(evt)
-	if err := rec.StreamID.Validate(); err != nil {
-		t.Fatalf("populated StreamID must pass Validate, got %v (%q)", err, rec.StreamID)
+	if err := rec.Stream.Validate(); err != nil {
+		t.Fatalf("populated Stream must pass Validate, got %v (%v)", err, rec.Stream)
 	}
 
-	if streamType, entityID := rec.StreamID.Split(); streamType != "User" ||
-		entityID != streamID.Get() {
-		t.Errorf(
-			"Split = (%q, %q), want (%q, %q)",
-			streamType, entityID, "User", streamID.Get(),
-		)
+	if rec.Stream.Type != "User" || rec.Stream.ID != streamID {
+		t.Errorf("Stream = %v, want {User %v}", rec.Stream, streamID)
 	}
 }

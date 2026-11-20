@@ -15,7 +15,7 @@ func TestAsRecordPersisted_Nil(t *testing.T) {
 	t.Parallel()
 
 	got := command.AsRecordPersisted(nil)
-	if got.Type != "" || got.StreamID != "" {
+	if got.Type != "" || !got.Stream.IsZero() {
 		t.Fatalf("nil command should return zero Record, got %+v", got)
 	}
 }
@@ -23,7 +23,10 @@ func TestAsRecordPersisted_Nil(t *testing.T) {
 func TestAsRecordPersisted_FullFidelity(t *testing.T) {
 	t.Parallel()
 
-	ref := command.NewStreamRef("user", id.NewStreamID())
+	ref, err := command.NewStreamRef("user", id.NewStreamID())
+	if err != nil {
+		t.Fatalf("NewStreamRef: %v", err)
+	}
 	receivedAt := time.Date(2026, 9, 13, 10, 0, 0, 0, time.UTC)
 	payload := []byte(`{"name":"Alice"}`)
 	tracing := metadata.Tracing{
@@ -64,15 +67,18 @@ func TestAsRecordPersisted_FullFidelity(t *testing.T) {
 		)
 	}
 
-	if rec.StreamType != "user" {
+	if rec.Stream != ref {
 		t.Errorf(
-			"StreamType: got %q, want persisted stream type carried (thin bridge leaves it empty)",
-			rec.StreamType,
+			"Stream: got %v, want the persisted ref %v at full fidelity",
+			rec.Stream, ref,
 		)
 	}
 
-	if rec.StreamID != record.NewStreamRefOrZero("user", ref.ID.Get()) {
-		t.Errorf("StreamID: got %+v, want full-fidelity stream ref", rec.StreamID)
+	if rec.Stream.Type != "user" {
+		t.Errorf(
+			"Stream.Type: got %q, want persisted stream type carried (thin bridge leaves Stream zero)",
+			rec.Stream.Type,
+		)
 	}
 
 	if rec.Version != 0 {
@@ -138,7 +144,10 @@ func TestAsRecordPersisted_FullFidelity(t *testing.T) {
 func TestAsRecordPersisted_ZeroTracing(t *testing.T) {
 	t.Parallel()
 
-	ref := command.NewStreamRef("user", id.NewStreamID())
+	ref, err := command.NewStreamRef("user", id.NewStreamID())
+	if err != nil {
+		t.Fatalf("NewStreamRef: %v", err)
+	}
 
 	cmd, err := command.NewPersistedCommand("user.create", ref, nil)
 	if err != nil {
@@ -159,7 +168,10 @@ func TestAsRecordPersisted_ZeroTracing(t *testing.T) {
 func TestAsRecordPersisted_ActorKindWins(t *testing.T) {
 	t.Parallel()
 
-	ref := command.NewStreamRef("user", id.NewStreamID())
+	ref, err := command.NewStreamRef("user", id.NewStreamID())
+	if err != nil {
+		t.Fatalf("NewStreamRef: %v", err)
+	}
 	actor := id.NewUserActor(id.NewUserID())
 
 	cmd, err := command.NewPersistedCommand("user.create", ref, nil,

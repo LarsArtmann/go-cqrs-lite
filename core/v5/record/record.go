@@ -8,18 +8,19 @@
 package record
 
 import (
-	"errors"
-	"strings"
 	"time"
+
+	"github.com/larsartmann/go-cqrs-lite/core/v5/id"
 )
 
-// StreamRef identifies a stream as "StreamType/EntityID", e.g. "User/01J...".
-// It is the primary key for event-sourced aggregates and command logs.
-// art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
-type StreamRef string
-
-// String returns the stream reference as a string.
-func (s StreamRef) String() string { return string(s) }
+// StreamRef identifies a stream by its type and instance ID. It is an
+// alias of [id.StreamRef] (ADR-0166): one canonical struct, one validation
+// rule set (empty type ILLEGAL, zero ID ILLEGAL — enforced at construction
+// by [id.NewStreamRef]), one storage form ([id.StreamRef.StreamKey],
+// "type:bare-id"). The zero StreamRef means "not a member of any stream":
+// commands and queries that carry no stream identity use it instead of a
+// fabricated ref.
+type StreamRef = id.StreamRef
 
 // CommonMetadata carries the metadata shared by all record types (events and
 // commands). It replaces the parallel metadata hierarchies in event/ and
@@ -138,13 +139,13 @@ type Record struct {
 	// stamp (ADR-0044).
 	Encoding Encoding
 
-	// StreamID identifies the stream this record belongs to, e.g. "User/01J...".
-	StreamID StreamRef
-
-	// StreamType is the aggregate or category name: "User", "Order", "Command".
-	// For events, this is the aggregate root. For commands, it is "Command" or
-	// the target aggregate type.
-	StreamType string
+	// Stream identifies the stream this record belongs to: {Type, ID} at full
+	// fidelity. The zero value means the record is not a stream member
+	// (queries; commands without a target stream) — never a malformed ref
+	// (ADR-0166). Construct through [id.NewStreamRef], or
+	// [id.NewStreamRefOrZero] where no error can surface; parse storage keys
+	// with [id.ParseStreamRef].
+	Stream StreamRef
 
 	// Version is the 1-indexed position of this record within its stream.
 	// The first record in a stream has Version 1. The zero value means
@@ -154,70 +155,4 @@ type Record struct {
 
 	// MetaData carries shared metadata (correlation, causation, timestamps).
 	MetaData CommonMetadata
-}
-
-// ErrInvalidStreamRef is returned by Validate when a StreamRef is malformed.
-var ErrInvalidStreamRef = errors.New(
-	"invalid stream reference: must be \"Type/EntityID\" with non-empty components",
-)
-
-// NewStreamRef constructs a StreamRef from a stream type and entity ID.
-// The streamType may be empty (for command/query records that store the
-// type separately), but entityID must be non-empty.
-//
-// NOTE — v5 breaking change (ADR-0123 Phase 8): at v5 this constructor
-// becomes NewStreamRef(streamType, entityID string) (StreamRef, error) and
-// returns ErrInvalidStreamRef for an empty entityID at construction. Call
-// [StreamRef.Validate] now to catch malformed refs before the cut; empty
-// streamType stays legal. Not deprecated — the constructor survives v5.
-func NewStreamRef(streamType, entityID string) StreamRef {
-	return StreamRef(streamType + "/" + entityID)
-}
-
-// NewStreamRefOrZero constructs a StreamRef, returning the zero StreamRef
-// when the result would be malformed (an empty entity ID — the only invalid
-// form, since an empty stream type is legal for command/query records).
-//
-// It is the producer-side counterpart to the v5 validating constructor
-// (ADR-0123 Phase 8): adapters that cannot return an error use it so a
-// Record either carries a well-formed StreamRef or none at all — never a
-// malformed ref that fails [StreamRef.Validate] far from its cause.
-func NewStreamRefOrZero(streamType, entityID string) StreamRef {
-	ref := NewStreamRef(streamType, entityID)
-	if ref.Validate() != nil {
-		return ""
-	}
-
-	return ref
-}
-
-// Validate returns an error if the StreamRef is malformed: either no '/'
-// separator, or the entity ID (component after the first '/') is empty.
-// A non-empty stream type is recommended but not required, since command
-// and query records store the type separately in Record.StreamType.
-func (s StreamRef) Validate() error {
-	idx := strings.IndexByte(string(s), '/')
-	if idx < 0 {
-		return ErrInvalidStreamRef
-	}
-
-	if idx == len(s)-1 {
-		return ErrInvalidStreamRef
-	}
-
-	return nil
-}
-
-// Split returns the stream type and entity ID components of the StreamRef.
-// The stream type may be empty (for refs like "/entityID" — command and
-// query records store the type separately in Record.StreamType).
-// Returns ("", "") if the format is invalid: no '/' found, or the entity ID
-// (component after the first '/') is empty.
-func (s StreamRef) Split() (string, string) {
-	idx := strings.IndexByte(string(s), '/')
-	if idx < 0 || idx == len(s)-1 {
-		return "", ""
-	}
-
-	return string(s[:idx]), string(s[idx+1:])
 }

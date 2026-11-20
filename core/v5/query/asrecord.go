@@ -13,7 +13,9 @@ import (
 //
 // Queries differ from events and commands in several ways that affect the
 // mapping:
-//   - Queries have no StreamType → left empty.
+//   - Queries belong to no stream → Stream zero (a query is not a stream
+//     member; the previous fabricated empty-type ref from the query's own
+//     ID is gone — review R9, ADR-0166).
 //   - Queries have no Version → left zero.
 //   - Queries have no SchemaVersion → left zero.
 //   - Queries carry an id.RequestID (unique per query instance).
@@ -28,11 +30,9 @@ import (
 //   - Payload         ← q.Payload() (cloned, safe to modify)
 //   - Encoding        ← EncodingUnknown (the payload is ADR-0044
 //     envelope-wrapped — the envelope carries its own codec stamp)
-//   - StreamID        ← record.NewStreamRefOrZero("", q.ID().String())
-//     (zero when the query's ID is empty — no identity rather than a
-//     malformed identity; the empty stream type is legal by design)
-//   - StreamType      ← "" (queries do not carry a stream type)
-//   - Version         ← 0 (queries have no version)
+//   - Stream           ← zero — a query is not a stream member (R9); no
+//     fabricated ref from the query's own ID
+//   - Version          ← 0 (queries have no version)
 //   - CorrelationID   ← q.Metadata().Tracing.CorrelationID
 //   - CausationID     ← q.Metadata().Tracing.CausationID (Deprecated: removed in v5)
 //   - Cause           ← {CauseUnknown, Tracing.CausationID} when set — the
@@ -65,11 +65,10 @@ func AsRecord(q *PersistedQuery) record.Record {
 	}
 
 	return record.Record{
-		ID:         record.InstanceID(q.ID().String()),
-		Type:       q.Type(),
-		Payload:    q.Payload(),
-		StreamID:   record.NewStreamRefOrZero("", q.ID().String()),
-		StreamType: "",
+		ID:      record.InstanceID(q.ID().String()),
+		Type:    q.Type(),
+		Payload: q.Payload(),
+		Stream:  record.StreamRef{},
 		MetaData: record.CommonMetadata{
 			CorrelationID:   record.CorrelationID(metadata.BrandedString(tracing.CorrelationID)),
 			CausationID:     metadata.BrandedString(tracing.CausationID),

@@ -77,6 +77,17 @@ func RunStoreSuite(t *testing.T, factory StoreFactory) {
 // newTestStream creates a fresh stream ref plus a user.create command bound
 // to it and saves that command — the shared setup for the Save/Load
 // conformance subtests, which each need exactly one persisted command.
+func mustRef(t *testing.T, streamType command.StreamType, streamID id.StreamID) command.StreamRef {
+	t.Helper()
+
+	ref, err := command.NewStreamRef(streamType, streamID)
+	if err != nil {
+		t.Fatalf("NewStreamRef(%q, %v): %v", streamType, streamID, err)
+	}
+
+	return ref
+}
+
 func newTestStream(
 	t *testing.T,
 	store StoreSuite,
@@ -85,7 +96,7 @@ func newTestStream(
 
 	ctx := context.Background()
 	streamID := id.NewStreamID()
-	ref := command.NewStreamRef("User", streamID)
+	ref := mustRef(t, "User", streamID)
 	cmd := MustCreateCommand(t, "user.create", ref)
 
 	if err := store.Save(ctx, ref, cmd); err != nil {
@@ -135,7 +146,7 @@ func testAppendBatch(t *testing.T, store StoreSuite) {
 	ctx := context.Background()
 
 	streamID := id.NewStreamID()
-	ref := command.NewStreamRef("Order", streamID)
+	ref := mustRef(t, "Order", streamID)
 
 	cmds := []*command.PersistedCommand{
 		MustCreateCommand(t, "order.create", ref),
@@ -163,8 +174,8 @@ func testReadAll(t *testing.T, store StoreSuite) {
 
 	ctx := context.Background()
 
-	ref1 := command.NewStreamRef("User", id.NewStreamID())
-	ref2 := command.NewStreamRef("Order", id.NewStreamID())
+	ref1 := mustRef(t, "User", id.NewStreamID())
+	ref2 := mustRef(t, "Order", id.NewStreamID())
 
 	cmd1 := MustCreateCommand(t, "user.create", ref1)
 	if err := store.Save(ctx, ref1, cmd1); err != nil {
@@ -193,7 +204,7 @@ func testReadFrom(t *testing.T, store StoreSuite) {
 
 	ctx := context.Background()
 
-	ref := command.NewStreamRef("User", id.NewStreamID())
+	ref := mustRef(t, "User", id.NewStreamID())
 
 	cmdIDs := make([]id.CommandID, 0, 5)
 
@@ -238,7 +249,7 @@ func testLoadFromTimestamp(t *testing.T, store StoreSuite) {
 
 	ctx := context.Background()
 
-	ref := command.NewStreamRef("User", id.NewStreamID())
+	ref := mustRef(t, "User", id.NewStreamID())
 
 	before := time.Now()
 

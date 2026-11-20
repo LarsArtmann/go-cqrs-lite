@@ -44,7 +44,10 @@ func TestWithCommandMetadata(t *testing.T) {
 	t.Parallel()
 
 	streamID := id.NewStreamID()
-	ref := command.NewStreamRef("User", streamID)
+	ref, err := command.NewStreamRef("User", streamID)
+	if err != nil {
+		t.Fatalf("NewStreamRef: %v", err)
+	}
 
 	md := command.Metadata{
 		CorrelationID: id.NewCorrelationID(),

@@ -70,8 +70,17 @@ func TestBackwardCompatAliases(t *testing.T) {
 	}
 
 	// Ref construction is identical.
-	ref := id.NewAggregateRef(id.StreamType("User"), got)
-	if ref != id.NewStreamRef(id.StreamType("User"), got) {
+	ref, err := id.NewAggregateRef(id.StreamType("User"), got)
+	if err != nil {
+		t.Fatalf("NewAggregateRef: %v", err)
+	}
+
+	want, err := id.NewStreamRef(id.StreamType("User"), got)
+	if err != nil {
+		t.Fatalf("NewStreamRef: %v", err)
+	}
+
+	if ref != want {
 		t.Error("NewAggregateRef does not match NewStreamRef")
 	}
 
