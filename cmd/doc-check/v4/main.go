@@ -9,6 +9,9 @@
 //  1. Every cqrs-lite import path maps to a real directory with a go.mod.
 //  2. Every qualified symbol reference (pkg.Symbol) exists as an exported
 //     declaration in that package.
+//  3. Every full first-party module-path citation (fences, tables, prose)
+//     maps to a module with a go.mod at HEAD — or carries a same-line
+//     deletion marker when it cites a deleted module as history.
 //
 // Usage:
 //
@@ -34,12 +37,13 @@ import (
 const repoImportPrefix = "github.com/larsartmann/go-cqrs-lite/"
 
 var (
-	errBrokenReferences = errors.New("broken documentation reference(s)")
-	errWarningsFound    = errors.New("doc-check warning(s) found")
-	errNoReferences     = errors.New("no Go references found")
-	errBrokenNav        = errors.New("broken doc navigation (anchors/§ cross-refs)")
-	errArityMismatch    = errors.New("doc call arity mismatch(es)")
-	errAmbiguousAlias   = errors.New("unknown ambiguous package alias(es)")
+	errBrokenReferences   = errors.New("broken documentation reference(s)")
+	errWarningsFound      = errors.New("doc-check warning(s) found")
+	errNoReferences       = errors.New("no Go references found")
+	errBrokenNav          = errors.New("broken doc navigation (anchors/§ cross-refs)")
+	errArityMismatch      = errors.New("doc call arity mismatch(es)")
+	errAmbiguousAlias     = errors.New("unknown ambiguous package alias(es)")
+	errDeadModuleCitation = errors.New("citation(s) of deleted module(s) without a deletion marker")
 )
 
 type AppConfig struct {
@@ -178,11 +182,17 @@ func run(files []string, jsonOut, listAllAmbiguous bool) error {
 
 	arityIssues := checkArity(allBlocks, res)
 
+	modPathIssues := checkModulePaths(files, repoRoot)
+
 	for _, iss := range navIssues {
 		log.Printf("  ✗ %s:%d: %s", iss.File, iss.Line, iss.Msg)
 	}
 
 	for _, iss := range arityIssues {
+		log.Printf("  ✗ %s:%d: %s", iss.File, iss.Line, iss.Msg)
+	}
+
+	for _, iss := range modPathIssues {
 		log.Printf("  ✗ %s:%d: %s", iss.File, iss.Line, iss.Msg)
 	}
 
@@ -221,6 +231,11 @@ func run(files []string, jsonOut, listAllAmbiguous bool) error {
 	if len(arityIssues) > 0 {
 		return fmt.Errorf(
 			"%w: %d doc call(s) with wrong argument count", errArityMismatch, len(arityIssues))
+	}
+
+	if len(modPathIssues) > 0 {
+		return fmt.Errorf(
+			"%w: %d stale citation(s) found", errDeadModuleCitation, len(modPathIssues))
 	}
 
 	// 0-warning tripwire: doc-check warnings (unreadable dirs, empty package
