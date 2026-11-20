@@ -42,7 +42,7 @@ func TestAsRecordPersisted_FullFidelity(t *testing.T) {
 
 	rec := command.AsRecordPersisted(cmd)
 
-	if rec.ID != cmd.ID().String() {
+	if rec.ID != record.InstanceID(cmd.ID().String()) {
 		t.Errorf("ID: got %q, want command ID (identity must survive the bridge)", rec.ID)
 	}
 
@@ -90,7 +90,7 @@ func TestAsRecordPersisted_FullFidelity(t *testing.T) {
 		)
 	}
 
-	if rec.MetaData.CorrelationID != tracing.CorrelationID.String() {
+	if rec.MetaData.CorrelationID != record.CorrelationID(tracing.CorrelationID.String()) {
 		t.Errorf(
 			"CorrelationID: got %q, want %q",
 			rec.MetaData.CorrelationID,

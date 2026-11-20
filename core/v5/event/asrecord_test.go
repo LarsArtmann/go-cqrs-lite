@@ -65,7 +65,7 @@ func TestAsRecord_BasicMapping(t *testing.T) {
 		t.Errorf("Version = %d, want 3", rec.Version)
 	}
 
-	if rec.MetaData.CorrelationID != correlationID.String() {
+	if rec.MetaData.CorrelationID != record.CorrelationID(correlationID.String()) {
 		t.Errorf("CorrelationID = %q, want %q", rec.MetaData.CorrelationID, correlationID.String())
 	}
 
@@ -224,7 +224,7 @@ func TestAsRecord_IDAndEncoding(t *testing.T) {
 		evt := newEvent(t)
 		rec := AsRecord(evt)
 
-		if rec.ID != evt.ID().String() {
+		if rec.ID != record.InstanceID(evt.ID().String()) {
 			t.Errorf("ID = %q, want event ID %q", rec.ID, evt.ID().String())
 		}
 

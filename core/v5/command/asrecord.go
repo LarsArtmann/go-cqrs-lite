@@ -65,12 +65,12 @@ func AsRecord(cmd *BasicCommand) record.Record {
 	}
 
 	return record.Record{
-		ID:         cmd.ID().String(),
-		Type:       string(cmd.Type()),
+		ID:         record.InstanceID(cmd.ID().String()),
+		Type:       cmd.Type(),
 		StreamID:   record.NewStreamRefOrZero("", cmd.StreamID().Get()),
 		StreamType: "",
 		MetaData: record.CommonMetadata{
-			CorrelationID: metadata.BrandedString(tracing.CorrelationID),
+			CorrelationID: record.CorrelationID(metadata.BrandedString(tracing.CorrelationID)),
 			CausationID:   metadata.BrandedString(tracing.CausationID),
 			Cause:         cause,
 			ActorID:       metadata.ActorString(tracing),
@@ -141,14 +141,14 @@ func AsRecordPersisted(cmd *PersistedCommand) record.Record {
 	}
 
 	return record.Record{
-		ID:         cmd.ID().String(),
-		Type:       string(cmd.Type()),
+		ID:         record.InstanceID(cmd.ID().String()),
+		Type:       cmd.Type(),
 		Payload:    cmd.Payload(),
 		Encoding:   record.EncodingUnknown,
 		StreamID:   record.NewStreamRefOrZero(streamType, cmd.StreamID().Get()),
 		StreamType: streamType,
 		MetaData: record.CommonMetadata{
-			CorrelationID:   metadata.BrandedString(tracing.CorrelationID),
+			CorrelationID:   record.CorrelationID(metadata.BrandedString(tracing.CorrelationID)),
 			CausationID:     metadata.BrandedString(tracing.CausationID),
 			Cause:           cause,
 			ActorID:         metadata.ActorString(tracing),

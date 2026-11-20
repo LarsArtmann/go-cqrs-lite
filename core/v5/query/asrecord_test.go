@@ -39,7 +39,7 @@ func TestAsRecord_MapsStructuralFields(t *testing.T) {
 		t.Errorf("Type = %q, want get_user", got.Type)
 	}
 
-	if got.ID != qWithMeta.ID().String() {
+	if got.ID != record.InstanceID(qWithMeta.ID().String()) {
 		t.Errorf("ID = %q, want request ID %q (identity must survive the bridge)",
 			got.ID, qWithMeta.ID().String())
 	}
@@ -67,7 +67,7 @@ func TestAsRecord_MapsStructuralFields(t *testing.T) {
 		t.Errorf("Version = %d, want 0", got.Version)
 	}
 
-	if got.MetaData.CorrelationID != correlationID.String() {
+	if got.MetaData.CorrelationID != record.CorrelationID(correlationID.String()) {
 		t.Errorf("CorrelationID = %q, want %q", got.MetaData.CorrelationID, correlationID)
 	}
 

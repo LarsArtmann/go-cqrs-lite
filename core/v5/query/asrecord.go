@@ -65,13 +65,13 @@ func AsRecord(q *PersistedQuery) record.Record {
 	}
 
 	return record.Record{
-		ID:         q.ID().String(),
-		Type:       string(q.Type()),
+		ID:         record.InstanceID(q.ID().String()),
+		Type:       q.Type(),
 		Payload:    q.Payload(),
 		StreamID:   record.NewStreamRefOrZero("", q.ID().String()),
 		StreamType: "",
 		MetaData: record.CommonMetadata{
-			CorrelationID:   metadata.BrandedString(tracing.CorrelationID),
+			CorrelationID:   record.CorrelationID(metadata.BrandedString(tracing.CorrelationID)),
 			CausationID:     metadata.BrandedString(tracing.CausationID),
 			Cause:           cause,
 			ActorID:         metadata.ActorString(tracing),

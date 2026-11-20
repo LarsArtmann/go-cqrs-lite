@@ -91,15 +91,15 @@ func AsRecord(evt Event) record.Record {
 	streamType := string(evt.StreamType())
 
 	return record.Record{
-		ID:         evt.ID().String(),
-		Type:       string(evt.Type()),
+		ID:         record.InstanceID(evt.ID().String()),
+		Type:       evt.Type(),
 		Encoding:   recordEncoding(evt.Encoding()),
 		Payload:    evt.Payload(),
 		StreamID:   record.NewStreamRefOrZero(streamType, evt.StreamID().Get()),
 		StreamType: streamType,
-		Version:    int64(evt.Version()),
+		Version:    record.Version(evt.Version().UInt64()),
 		MetaData: record.CommonMetadata{
-			CorrelationID:   metadata.BrandedString(tracing.CorrelationID),
+			CorrelationID:   record.CorrelationID(metadata.BrandedString(tracing.CorrelationID)),
 			CausationID:     causationID,
 			Cause:           cause,
 			ActorID:         metadata.ActorString(tracing),

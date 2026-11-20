@@ -41,7 +41,7 @@ func TestAsRecord_BasicMapping(t *testing.T) {
 		t.Errorf("Type: got %q, want %q", rec.Type, "user.create")
 	}
 
-	if rec.ID != cmd.ID().String() {
+	if rec.ID != record.InstanceID(cmd.ID().String()) {
 		t.Errorf("ID: got %q, want command ID %q (identity must survive the bridge)",
 			rec.ID, cmd.ID().String())
 	}
@@ -66,7 +66,7 @@ func TestAsRecord_BasicMapping(t *testing.T) {
 		t.Errorf("Version: got %d, want 0 (commands have no version)", rec.Version)
 	}
 
-	if rec.MetaData.CorrelationID != corrID.String() {
+	if rec.MetaData.CorrelationID != record.CorrelationID(corrID.String()) {
 		t.Errorf("CorrelationID: got %q, want %q", rec.MetaData.CorrelationID, corrID.String())
 	}
 

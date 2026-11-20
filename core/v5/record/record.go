@@ -28,7 +28,7 @@ type CommonMetadata struct {
 	// CorrelationID links a chain of related records across the system.
 	// A user action that triggers a command, which emits events, which trigger
 	// sagas that emit more commands — all share one CorrelationID.
-	CorrelationID string
+	CorrelationID CorrelationID
 
 	// CausationID identifies what caused this record: a command ID, a timer
 	// ID, or whatever the tracing chain carried — the kind is implied by the
@@ -116,12 +116,16 @@ type Record struct {
 	// ID is the record instance's unique identifier: the EventID for events,
 	// the CommandID for commands, the RequestID for queries. It survived the
 	// AsRecord bridges before this field existed — identity was dropped on
-	// the floor (review P5). Empty means the source carried no instance ID.
-	ID string
+	// the floor (review P5). The zero value means the source carried no
+	// instance ID; construct through [ParseInstanceID] — constructors are the
+	// only doors in.
+	ID InstanceID
 
 	// Type is the domain event type ("user.created") or command type
 	// ("create_user"). This drives fold dispatch in projections and deciders.
-	Type string
+	// event.Type, command.Type, and query.Type are aliases of this type
+	// (ADR-0111): one definition, so the per-module copies cannot drift.
+	Type Type
 
 	// Payload is the encoded payload bytes. The encoding is self-describing:
 	// the record carries its codec stamp so mixed JSON+CBOR streams decode
@@ -143,8 +147,10 @@ type Record struct {
 	StreamType string
 
 	// Version is the 1-indexed position of this record within its stream.
-	// The first record in a stream has Version 1.
-	Version int64
+	// The first record in a stream has Version 1. The zero value means
+	// "unversioned" — the honest state for commands and queries, which carry
+	// no stream position. Negative positions are unrepresentable.
+	Version Version
 
 	// MetaData carries shared metadata (correlation, causation, timestamps).
 	MetaData CommonMetadata
