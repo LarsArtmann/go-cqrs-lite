@@ -9,7 +9,7 @@ var deprecatedV5SymbolV5Twins = []deprecatedV5Symbol{ //nolint:gochecknoglobals,
 	{
 		fragment:    "core/command",
 		symbol:      "AsRecord",
-		replacement: "command.AsRecordPersisted (payload, stream type, receive stamps)",
+		replacement: "command.AsRecordPersisted (payload, full stream ref, receive stamps)",
 	},
 	{
 		fragment:    "core/command",

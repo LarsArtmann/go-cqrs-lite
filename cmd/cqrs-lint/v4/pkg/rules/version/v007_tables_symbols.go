@@ -193,6 +193,6 @@ var deprecatedV5SymbolShells = []deprecatedV5Symbol{ //nolint:gochecknoglobals,d
 	{
 		fragment:    "command",
 		symbol:      "AsRecord",
-		replacement: "command.AsRecordPersisted (payload, stream type, receive stamps)",
+		replacement: "command.AsRecordPersisted (payload, full stream ref, receive stamps)",
 	},
 }

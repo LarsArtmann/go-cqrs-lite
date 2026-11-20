@@ -18,3 +18,26 @@ kv/v4 v4 func WithCacheCopyFunc pending-mirror: same restructure as NewCacheForV
 command/v4 v4 commandtest/... pending-mirror: commandtest suite helpers relabeled under the module dir (v4-layout rename wave, 2026-11-09); no v5 fork yet
 id/v4 v4 idtest/... pending-mirror: idtest suite helpers relabeled under the module dir (v4-layout rename wave, 2026-11-09)
 query/v4 v4 querytest/... pending-mirror: querytest suite helpers relabeled under the module dir (v4-layout rename wave, 2026-11-09)
+event/v4 v5 func WithCause deliberate v5 evolution (M07, R6): first-class causation typed at birth; the v4 train keeps only the metadata Causation twin until T26
+event/v4 v5 method Cause deliberate v5 evolution (M07, R6): ImmutableEvent carries record.Cause; v4 reconstructs from metadata precedence instead
+id/v4 v5 func NewStreamRefOrZero deliberate v5 evolution (M04, ADR-0166): error-free producer counterpart to the validating id.NewStreamRef; v4 has no validating constructor
+id/v4 v5 func ParseStreamRef deliberate v5 evolution (M04, ADR-0166): StreamKey inverse; the v4 slash-form string ref has no storage-key parser
+record/v4 v4 func NewStreamRef never-mirror (M04, ADR-0166): the slash-joined string constructor died in core/v5 — record.StreamRef is the id.StreamRef struct alias; v4 copy stays frozen until T26
+record/v4 v4 func NewStreamRefOrZero never-mirror (M04, ADR-0166): string-form twin of the constructor above; the v5 OrZero lives in id and takes typed parts
+record/v4 v4 method Split never-mirror (M04, ADR-0166): splitting died with the string form; the struct ref exposes Type and ID directly
+record/v4 v4 method Validate never-mirror (M04, ADR-0166): the struct ref validates via id.StreamRef.Validate; the string-form method is not re-mirrored
+record/v4 v4 var ErrInvalidStreamRef never-mirror (M04, ADR-0166): sentinel of the dead string form; v5 rejects via id.ErrEmptyStreamType / id.nil_stream_id rejections
+record/v4 v5 const EncodingEnvelope deliberate v5 evolution (M05, R4): the ADR-0044 wrapping fact as a stamp; not a codec name, ParseEncoding rejects it
+record/v4 v5 struct Payload deliberate v5 evolution (M05, R4): bytes + codec stamp fused so presence is honest states (absent/opaque/wrapped/stamped)
+record/v4 v5 func PayloadFrom deliberate v5 evolution (M05, R4): the Payload constructor (empty data normalizes to absent)
+record/v4 v5 method IsZero deliberate v5 evolution (M05, R4): Payload presence check — data-only fact
+record/v4 v5 method UInt64 deliberate v5 evolution (M03, R2): record.Version exposes the raw uint64 (0 = unversioned); v4 carries int64 in Record
+record/v4 v5 type Version deliberate v5 evolution (M03, R2): uint64 brand, 0 = unversioned; the v4 Record field is int64
+record/v4 v5 type InstanceID deliberate v5 evolution (M03, R2): branded record instance identity (EventID/CommandID/RequestID meeting point)
+record/v4 v5 type CorrelationID deliberate v5 evolution (M03, R2): string brand carrying foreign correlation IDs (ULID-ness is id/'s minting concern)
+record/v4 v5 func ParseInstanceID deliberate v5 evolution (M03, R2): validating constructor for the brand
+record/v4 v5 func ParseVersion deliberate v5 evolution (M03, R2): validating constructor (rejects negative legacy forms)
+record/v4 v5 func ParseCorrelationID deliberate v5 evolution (M03, R2): validating constructor (rejects empty)
+record/v4 v5 var ErrEmptyInstanceID deliberate v5 evolution (M03, R2): brand sentinel
+record/v4 v5 var ErrNegativeVersion deliberate v5 evolution (M03, R2): brand sentinel
+record/v4 v5 var ErrEmptyCorrelationID deliberate v5 evolution (M03, R2): brand sentinel
