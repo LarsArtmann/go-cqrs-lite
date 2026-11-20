@@ -3,6 +3,8 @@
 **Date:** 2026-11-18 06:41 CET
 **Status:** PROPOSED — C1–C14 and C27 are repo-local and start now; C15–C17 are unblocked (D1 granted);
 C18–C26 gate on D28/D29 (migration timing, dedup durability) and on the two new decisions D30/D31.
+**Update 2026-11-20:** C1–C4, C6, C8–C10 executed 2026-11-17/18; survey corrections reshaped C22/C23/C24 —
+see "Execution corrections (2026-11-20)" below the task table. New task C6b added (registry completeness gate).
 **Trigger:** execution of the 2026-11-17 plan's P1/P2 exposed a further 50 follow-ups (status report
 `docs/status/2026-11-17_22-38_…` §f). This plan routes every one of them.
 **Guardrail (Verschlimmbessern):** rule count stays 217, no rule ID may move, ADR bodies are extended only
@@ -214,6 +216,44 @@ Sorted by impact, then effort, then customer value. "Covers" cites the status-re
 **Totals:** 27 tasks, ≈27 h of focused work. The 80 % value (`C2`, `C5`, `C1`, `C3`, `C4`, `C13`, `C15`–`C17`)
 is **≈7 h**, and the 51 % value (`C2`, `C5`) is **≈2 h15m**.
 
+### Execution corrections (2026-11-20)
+
+Recorded before resuming P4+, after the wiring survey's second pass verified library facts in source.
+Original rows above are preserved; these corrections govern execution from here on.
+
+1. **C24's four-sweeper premise is WRONG.** Verified in library source: `idempotency/sqlstore` already
+   runs its own TTL sweep whenever TTL ≠ 0, and `go-idempotency.MemoryStore` sweeps on its interval.
+   So browser-history, precheck, and KeyCountdown on the sqlite path need **no new sweeper** — C24
+   shrinks to the consumers whose dedup is a `metaengine.DedupStore` engine collection (explicit
+   `DedupSweep`, zero auto-sweep; Swetty's `wanted_ids` today) plus any TTL=0 growth case. Re-derive
+   per wiring site: store type × TTL decides, never "every app gets a sweeper".
+2. **MemoryStore sweep constraint:** the sweep is oldest-first and blind — `sweepInterval < ttl` evicts
+   LIVE keys. Any MemoryStore wiring must keep `sweepInterval >= ttl`; verify at every site touched.
+3. **C5 preflight:** run `nix run .#can-run-composed-gate` FIRST; on load-guard refusal (rc=12), run the
+   gate apps individually and record each — `#verify` is confirmation, not discovery. C5 stays blocked
+   on owner Q1 regardless.
+4. **C6 deviation + residual gap:** C6 shipped with presence = `go.mod` at HEAD (root or `/vN`), not the
+   ADR-0128/0152 doc-list derivation of micro-tasks 6.6–6.7 (a deleted module's directory survives as a
+   container — `idempotency/` still holds `sqlstore/`; tags are proxy-served forever per ADR-0152, so
+   neither directory nor tag proves presence). The residual completeness gap — the tag-universe
+   derivation (`git tag` module paths minus live `go.mod`s == registry `moduleDeleted` rows) — is now
+   tracked as **C6b** (repo-local, ~40m): implement as a set-equality test, mutation-tested both ways.
+5. **C22 premise correction:** browser-history's "native TTL" comment is ACCURATE (survey verified);
+   micro-task 22.5 ("fix the comment") is VOID. The real lies are the endpoint fields:
+   `SweepEnabled = TTL > 0` and hardcoded `DedupLayers = 3`. Zlota44's false comment ("no sweeper
+   needed / growth bounded") stays inside C21 (D28/D29-gated).
+6. **C23 gating split:** 23.1/23.2 (github-local-sync middleware order) wait on the open
+   replay-vs-dedup intent question (owner); 23.3/23.4 (InboxClean `MemoryStore` Close hygiene) are
+   unblocked; 23.5/23.6 (DiscordSync) wait on D31.
+7. **C11 canonical-facts decision:** SKIP adding a registry count row to `check-canonical-facts.sh` —
+   C6's bidirectional state gate is strictly stronger (a count cannot tell you the state is wrong).
+   Recording the skip here satisfies §f 43.
+8. **C7 order note:** confirm FIRST whether `analyzer.TestDetectUsedModules_ParentIdempotencyShimImport`
+   (`module_detect_test.go`) already pins `Idempotency: used` + evidence for the deleted shim — if yes,
+   record the confirmation instead of adding a parallel golden (7.4/7.5).
+9. **C13 filename:** the baseline evidence file is dated at EXECUTION time (honest dating), not the
+   plan's drafting date.
+
 ---
 
 ## 5. Micro-task breakdown (each ≤12 min)
@@ -227,8 +267,12 @@ is **≈7 h**, and the 51 % value (`C2`, `C5`) is **≈2 h15m**.
 | 2.4 | Cross-link from `docs/status/2026-11-17_22-38_…` §a16 and ADR-0167 addendum | 7 |
 
 ### C5 — lint + verify (100m) · covers §f 5,6
+
+> **2026-11-20:** preflight added (correction #3); blocked on owner Q1.
+
 | # | Micro-task | Min |
 |---|-----------|-----|
+| 5.0 | Preflight: `nix run .#can-run-composed-gate`; if rc=12, run gate apps individually | 10 |
 | 5.1 | `GT_LINT_MODULES=cmd/cqrs-lint nix run .#lint-scope` | 12 |
 | 5.2 | Fix any finding in `f030*.go` (complexity/line-length/wrap) | 12 |
 | 5.3 | Re-run lint-scope to green | 8 |
@@ -453,6 +497,11 @@ is **≈7 h**, and the 51 % value (`C2`, `C5`) is **≈2 h15m**.
 | 23.7 | Build + test both | 10 |
 
 ### C24 — sweeps across four stores (90m) · covers §f 31
+
+> **2026-11-20:** premise corrected (corrections #1/#2). 24.2–24.4 shrink to "verify the existing
+> sqlstore sweep at each wiring site (and that Close stops it)"; 24.5 (Swetty engine `DedupSweep`)
+> stands; DiscordSync already sweeps (reference shape). Effort ≈40m, not 90m.
+
 | # | Micro-task | Min |
 |---|-----------|-----|
 | 24.1 | Extract the DiscordSync sweeper shape as the reference (nil/typed-nil guard, immediate first pass) | 8 |
