@@ -452,3 +452,44 @@ Two micro-disciplines that each cost a failed edit this stream:
   `git check-ignore --no-index -v <new-binary-path>` for each tool before the
   next push (`--no-index` is required: `git check-ignore` says nothing for a
   path git is already tracking).
+
+## The runner's PATH go can be older than the module floor (2026-11-20)
+
+- **Symptom**: `TestBuildContext_SubtreeRunUsesEnclosingModuleProfile` failed in
+  CI on every attempt while passing locally in every env combination (warm/cold
+  cache, ±GOEXPERIMENT, ±race). GitHub bumped the ubuntu-26.04 runner image's
+  default PATH go to 1.26.11 on 2026-11-18; the module floor is 1.27.2, so CI's
+  test binary is built by a downloaded toolchain but its `go list` SUBPROCESSES
+  resolve `go` from PATH. A test sandbox whose go.mod directive exceeds PATH go
+  must toolchain-switch, and a sandbox that also sets `GOPROXY=off` blocks the
+  download — the switch dies and the sandbox degrades. Sibling sandboxes pinned
+  `go 1.26.4` never tripped it; only the `go 1.27` one did.
+- **Fix that landed**: sandboxes in test files must be hermetic end to end —
+  local `replace` stub modules for external deps (no cache, no network), go
+  directives below the weakest PATH go that can build the suite. `go 1.21`
+  directives + a stub `event` module made the subtree test 100× faster (18s →
+  0.08s) and runner-proof.
+- **Standing rule**: a test that spawns `go` with a restricted env
+  (GOPROXY=off/GOWORK=off) must not depend on module-cache warmth or on the
+  runner's PATH go version. Reproduce with `nix run nixpkgs#go_1_26` before
+  calling a CI-only failure "flaky".
+
+## A directory move needs a repo-wide sweep of cd-chains AND script module lists (2026-11-20)
+
+- **Symptom**: the 2026-11-15 /v4 reorganization was path-swept for the
+  depth-3-cwd jobs (three fixes, commit 159818b9a) but TWO more classes
+  survived for five days: (a) chained cds INSIDE one step (`cd storage/v4` then
+  `cd ../stack/postgres/v4` — one up instead of two, resolving to
+  storage/stack/...); (b) SCRIPT-side module lists (`ephemeral-pg.sh` still
+  said bare `storage`, which matched no packages and failed the whole
+  ephemeral-PG battery with only a warning line in a 7-module log).
+- **Fix that landed**: both repaired and verified (ci.yml postgres job,
+  ephemeral-pg.sh PG_MODULES); the whole ephemeral battery is green locally
+  end to end.
+- **Standing rule**: after ANY module directory move, sweep (1) every
+  workflow's cd chains per STEP (relative paths chain across lines within one
+  `run:` block — count ups from the FINAL cd, not the checkout root), (2) every
+  script that hard-codes module dirs (grep scripts/ for the old path as a
+  WORD — bare pre-move names match nothing loudly only in some shells), and
+  (3) go.mod requires whose pins resolve by tag shape at the moved path (the
+  v4.21.0 compat-only tag is unresolvable from cmd/cqrs-lint/v4 forever).
