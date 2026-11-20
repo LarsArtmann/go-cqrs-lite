@@ -45,7 +45,8 @@ import (
 //     resolved structurally (kind explicit, no parse tax)
 //   - SchemaVersion ← 0 (commands have no schema version)
 //
-// A nil command returns a zero-valued Record.
+// A nil command — or a zero STRUCT (no ID, no type) — returns a zero-valued
+// Record (review R10).
 //
 // Deprecated: planned for removal at v5. This bridges the thin in-memory
 // form only — the Record it returns has no payload and an empty stream type.
@@ -55,7 +56,8 @@ import (
 // docs/reviews/2026-09-13_event-command-duplication-hypothesis-review.md).
 func AsRecord(cmd *BasicCommand) record.Record {
 	//art-dupl:accept dep-isolated twin of query.AsRecord; lockstep Record population is by design
-	if cmd == nil {
+	// A zero STRUCT is treated exactly like nil (review R10).
+	if cmd == nil || cmd.ID().IsZero() || cmd.Type() == "" {
 		return record.Record{}
 	}
 
@@ -118,16 +120,20 @@ func AsRecord(cmd *BasicCommand) record.Record {
 //     (Deprecated: removed in v5)
 //   - Actor           ← metadata.RecordActor(tracing): same precedence,
 //     resolved structurally (kind explicit, no parse tax)
-//   - ClientCreatedAt ← cmd.ReceivedAt() (Deprecated: removed in v5 — kept in
-//     lockstep with Received until the cut; note the source is the
-//     server-receive clock)
-//   - Received        ← NewStamp(cmd.ReceivedAt())
+//   - ClientCreatedAt ← zero (Deprecated field, in lockstep with Created
+//     until the cut; PersistedCommand carries NO client clock — the old
+//     relabeling of ReceivedAt as a client clock was the R8 lie)
+//   - Created         ← zero (no client clock on the command surface)
+//   - Received        ← NewStamp(cmd.ReceivedAt()) — the honest home for
+//     the server-receive clock
 //   - SchemaVersion   ← 0 (commands have no schema version)
 //
-// A nil command returns a zero-valued Record.
+// A nil command — or a zero STRUCT (no ID, no type) — returns a zero-valued
+// Record (review R10).
 func AsRecordPersisted(cmd *PersistedCommand) record.Record {
 	//art-dupl:accept dep-isolated twin of query.AsRecord; lockstep Record population is by design
-	if cmd == nil {
+	// A zero STRUCT is treated exactly like nil (review R10).
+	if cmd == nil || cmd.ID().IsZero() || cmd.Type() == "" {
 		return record.Record{}
 	}
 
@@ -145,13 +151,12 @@ func AsRecordPersisted(cmd *PersistedCommand) record.Record {
 		Payload: record.PayloadFrom(cmd.Payload(), record.EncodingUnknown),
 		Stream:  cmd.StreamRef(),
 		MetaData: record.CommonMetadata{
-			CorrelationID:   record.CorrelationID(metadata.BrandedString(tracing.CorrelationID)),
-			CausationID:     metadata.BrandedString(tracing.CausationID),
-			Cause:           cause,
-			ActorID:         metadata.ActorString(tracing),
-			Actor:           metadata.RecordActor(tracing),
-			ClientCreatedAt: cmd.ReceivedAt(),
-			Received:        record.NewStamp(cmd.ReceivedAt()),
+			CorrelationID: record.CorrelationID(metadata.BrandedString(tracing.CorrelationID)),
+			CausationID:   metadata.BrandedString(tracing.CausationID),
+			Cause:         cause,
+			ActorID:       metadata.ActorString(tracing),
+			Actor:         metadata.RecordActor(tracing),
+			Received:      record.NewStamp(cmd.ReceivedAt()),
 		},
 	}
 }

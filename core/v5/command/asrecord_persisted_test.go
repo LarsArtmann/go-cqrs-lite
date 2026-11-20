@@ -89,9 +89,9 @@ func TestAsRecordPersisted_FullFidelity(t *testing.T) {
 		t.Errorf("Received: got %v, want receive stamp from ReceivedAt", rec.MetaData.Received)
 	}
 
-	if !rec.MetaData.ClientCreatedAt.Equal(receivedAt) {
+	if !rec.MetaData.ClientCreatedAt.IsZero() {
 		t.Errorf(
-			"ClientCreatedAt: got %v, want lockstep with Received until the v5 cut",
+			"ClientCreatedAt: got %v, want zero (no client clock on commands; the old ReceivedAt relabel was the R8 lie)",
 			rec.MetaData.ClientCreatedAt,
 		)
 	}
@@ -191,5 +191,16 @@ func TestAsRecordPersisted_ActorKindWins(t *testing.T) {
 			rec.MetaData.ActorID,
 			actor.PrefixedString(),
 		)
+	}
+}
+
+func TestAsRecordPersisted_ZeroStructTreatedLikeNil(t *testing.T) {
+	t.Parallel()
+
+	// R10: a non-nil zero STRUCT (no ID, no type) must behave exactly like
+	// nil — an identity-less source is not a Record.
+	rec := command.AsRecordPersisted(&command.PersistedCommand{})
+	if !rec.Stream.IsZero() || rec.Type != "" || !rec.Payload.IsZero() {
+		t.Errorf("AsRecordPersisted(zero struct) = %+v, want the zero Record (R10)", rec)
 	}
 }

@@ -44,17 +44,20 @@ import (
 //     (Deprecated: removed in v5)
 //   - Actor           ← metadata.RecordActor(tracing): same precedence,
 //     resolved structurally (kind explicit, no parse tax)
-//   - ClientCreatedAt ← q.ReceivedAt() (Deprecated: removed in v5 — kept in
-//     lockstep until the cut; note the source is the server-receive clock)
-//   - Received        ← NewStamp(q.ReceivedAt()) — the honest home for the
-//     server-receive clock. Created stays zero: PersistedQuery carries no
-//     client clock.
+//   - ClientCreatedAt ← zero (Deprecated field, in lockstep with Created
+//     until the cut; PersistedQuery carries NO client clock — the old
+//     relabeling of ReceivedAt as a client clock was the R8 lie)
+//   - Created/Received ← Created zero (no client clock); Received
+//     ← NewStamp(q.ReceivedAt()) — the honest home for the server-receive
+//     clock.
 //   - SchemaVersion   ← 0 (queries have no schema version)
 //
-// A nil query returns a zero-valued Record.
+// A nil query — or a zero STRUCT (no ID, no type) — returns a zero-valued
+// Record (review R10).
 func AsRecord(q *PersistedQuery) record.Record {
 	//art-dupl:accept dep-isolated twin of command.AsRecord; lockstep Record population is by design
-	if q == nil {
+	// A zero STRUCT is treated exactly like nil (review R10).
+	if q == nil || q.ID().IsZero() || q.Type() == "" {
 		return record.Record{}
 	}
 
@@ -72,13 +75,12 @@ func AsRecord(q *PersistedQuery) record.Record {
 		Payload: record.PayloadFrom(q.Payload(), record.EncodingUnknown),
 		Stream:  record.StreamRef{},
 		MetaData: record.CommonMetadata{
-			CorrelationID:   record.CorrelationID(metadata.BrandedString(tracing.CorrelationID)),
-			CausationID:     metadata.BrandedString(tracing.CausationID),
-			Cause:           cause,
-			ActorID:         metadata.ActorString(tracing),
-			Actor:           metadata.RecordActor(tracing),
-			ClientCreatedAt: q.ReceivedAt(),
-			Received:        record.NewStamp(q.ReceivedAt()),
+			CorrelationID: record.CorrelationID(metadata.BrandedString(tracing.CorrelationID)),
+			CausationID:   metadata.BrandedString(tracing.CausationID),
+			Cause:         cause,
+			ActorID:       metadata.ActorString(tracing),
+			Actor:         metadata.RecordActor(tracing),
+			Received:      record.NewStamp(q.ReceivedAt()),
 		},
 	}
 }

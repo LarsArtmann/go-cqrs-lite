@@ -37,12 +37,14 @@ import (
 //   - ActorID          ← see precedence rule below (Deprecated: removed in v5)
 //   - Actor            ← metadata.RecordActor(tracing): the same precedence
 //     as ActorID, resolved structurally (kind explicit, no parse tax)
-//   - ClientCreatedAt  ← evt.OccurredAt() (Deprecated: removed in v5 —
-//     populated in lockstep with Created until the cut)
-//   - Created          ← NewStamp(evt.OccurredAt()) — same source, explicit
-//     presence
-//   - Received/Stored  ← zero Stamps (unknown at the event layer; stamped by
-//     the store)
+//   - ClientCreatedAt ← zero (Deprecated field, in lockstep with Created
+//     until the cut; the event layer carries NO client clock — OccurredAt
+//     is the server mint clock, review R8)
+//   - Created         ← zero (no client clock exists at the event layer)
+//   - Received        ← NewStamp(evt.OccurredAt()) — the mint clock IS the
+//     server's intake clock for the fact; the bridge stays deterministic
+//     (no clock of its own, replay-safe)
+//   - Stored          ← zero (the store stamps it)
 //   - SchemaVersion    ← evt.SchemaVersion()
 //
 // Cause precedence — the same resolution order as CausationID, but with the
@@ -68,10 +70,14 @@ import (
 // serialized in its self-describing "kind:raw" form (e.g. "user:01ARZ...").
 // When no actor was recorded, Tracing.UserID is used as the legacy fallback.
 //
-// A nil Event returns a zero-valued Record.
+// A nil Event — or a zero STRUCT (no ID, no type) — returns a zero-valued
+// Record (review R10): identity-less sources are not records.
 func AsRecord(evt Event) record.Record {
 	//art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
-	if evt == nil {
+	// A zero STRUCT is treated exactly like nil (review R10): an event
+	// without identity or type is not a record, and minting one would
+	// fabricate a Record the source never carried.
+	if evt == nil || evt.ID().IsZero() || evt.Type() == "" {
 		return record.Record{}
 	}
 
@@ -95,14 +101,13 @@ func AsRecord(evt Event) record.Record {
 		Stream:  id.NewStreamRefOrZero(evt.StreamType(), evt.StreamID()),
 		Version: record.Version(evt.Version().UInt64()),
 		MetaData: record.CommonMetadata{
-			CorrelationID:   record.CorrelationID(metadata.BrandedString(tracing.CorrelationID)),
-			CausationID:     causationID,
-			Cause:           cause,
-			ActorID:         metadata.ActorString(tracing),
-			Actor:           metadata.RecordActor(tracing),
-			ClientCreatedAt: evt.OccurredAt(),
-			Created:         record.NewStamp(evt.OccurredAt()),
-			SchemaVersion:   int(evt.SchemaVersion()),
+			CorrelationID: record.CorrelationID(metadata.BrandedString(tracing.CorrelationID)),
+			CausationID:   causationID,
+			Cause:         cause,
+			ActorID:       metadata.ActorString(tracing),
+			Actor:         metadata.RecordActor(tracing),
+			Received:      record.NewStamp(evt.OccurredAt()),
+			SchemaVersion: int(evt.SchemaVersion()),
 		},
 	}
 }

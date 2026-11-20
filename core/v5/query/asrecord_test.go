@@ -88,8 +88,11 @@ func TestAsRecord_MapsStructuralFields(t *testing.T) {
 		t.Errorf("Actor = %+v, want structural user actor", got.MetaData.Actor)
 	}
 
-	if !got.MetaData.ClientCreatedAt.Equal(receivedAt) {
-		t.Errorf("ClientCreatedAt = %v, want %v", got.MetaData.ClientCreatedAt, receivedAt)
+	if !got.MetaData.ClientCreatedAt.IsZero() {
+		t.Errorf(
+			"ClientCreatedAt = %v, want zero (no client clock on queries; the old ReceivedAt relabel was the R8 lie)",
+			got.MetaData.ClientCreatedAt,
+		)
 	}
 
 	if got.MetaData.Received.IsZero() || !got.MetaData.Received.Time().Equal(receivedAt) {
@@ -168,5 +171,16 @@ func TestAsRecord_StreamRefInvariant(t *testing.T) {
 			"Stream = %v, want zero — a query is not a stream member (R9; the fabricated request-ID ref is gone)",
 			got.Stream,
 		)
+	}
+}
+
+func TestAsRecord_ZeroStructTreatedLikeNil(t *testing.T) {
+	t.Parallel()
+
+	// R10: a non-nil zero STRUCT (no ID, no type) must behave exactly like
+	// nil — an identity-less source is not a Record.
+	got := query.AsRecord(&query.PersistedQuery{})
+	if !got.Stream.IsZero() || got.Type != "" || !got.Payload.IsZero() {
+		t.Errorf("AsRecord(zero struct) = %+v, want the zero Record (R10)", got)
 	}
 }

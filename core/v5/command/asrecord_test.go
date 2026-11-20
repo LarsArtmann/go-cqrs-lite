@@ -161,3 +161,14 @@ func TestAsRecord_StreamRefInvariant(t *testing.T) {
 		t.Fatalf("Stream = %v, want zero for the thin BasicCommand bridge", rec.Stream)
 	}
 }
+
+func TestAsRecord_ZeroStructTreatedLikeNil(t *testing.T) {
+	t.Parallel()
+
+	// R10: a non-nil zero STRUCT (no ID, no type) must behave exactly like
+	// nil — an identity-less source is not a Record.
+	rec := command.AsRecord(&command.BasicCommand{})
+	if !rec.Stream.IsZero() || rec.Type != "" || !rec.Payload.IsZero() {
+		t.Errorf("AsRecord(zero struct) = %+v, want the zero Record (R10)", rec)
+	}
+}

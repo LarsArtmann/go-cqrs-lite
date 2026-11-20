@@ -92,16 +92,29 @@ func TestAsRecord_BasicMapping(t *testing.T) {
 		t.Errorf("SchemaVersion = %d, want 2", rec.MetaData.SchemaVersion)
 	}
 
-	if !rec.MetaData.ClientCreatedAt.Equal(occurredAt) {
-		t.Errorf("ClientCreatedAt = %v, want %v", rec.MetaData.ClientCreatedAt, occurredAt)
+	// R8: the event layer has NO client clock. OccurredAt is the server
+	// mint clock — it must not masquerade as a client clock. It lands in
+	// Received (the server's intake clock for the fact), deterministically.
+	if !rec.MetaData.ClientCreatedAt.IsZero() {
+		t.Errorf(
+			"ClientCreatedAt = %v, want zero (no client clock at the event layer, R8)",
+			rec.MetaData.ClientCreatedAt,
+		)
 	}
 
-	if rec.MetaData.Created.IsZero() || !rec.MetaData.Created.Time().Equal(occurredAt) {
-		t.Errorf("Created = %v, want known stamp at %v", rec.MetaData.Created, occurredAt)
+	if !rec.MetaData.Created.IsZero() {
+		t.Errorf("Created = %v, want zero (no client clock at the event layer, R8)", rec.MetaData.Created)
 	}
 
-	if !rec.MetaData.Received.IsZero() || !rec.MetaData.Stored.IsZero() {
-		t.Error("Received/Stored must stay unknown at the event layer (store's job)")
+	if rec.MetaData.Received.IsZero() || !rec.MetaData.Received.Time().Equal(occurredAt) {
+		t.Errorf(
+			"Received = %v, want known stamp at the mint clock %v",
+			rec.MetaData.Received, occurredAt,
+		)
+	}
+
+	if !rec.MetaData.Stored.IsZero() {
+		t.Error("Stored must stay unknown at the event layer (store's job)")
 	}
 
 	if rec.Payload.IsZero() {
@@ -319,5 +332,18 @@ func TestAsRecord_StreamRefInvariant(t *testing.T) {
 
 	if rec.Stream.Type != "User" || rec.Stream.ID != streamID {
 		t.Errorf("Stream = %v, want {User %v}", rec.Stream, streamID)
+	}
+}
+
+func TestAsRecord_ZeroStructTreatedLikeNil(t *testing.T) {
+	t.Parallel()
+
+	// R10: a non-nil zero STRUCT (no ID, no type) must behave exactly like
+	// nil — an identity-less source is not a Record.
+	var zero Event = &ImmutableEvent{}
+
+	rec := AsRecord(zero)
+	if !rec.Stream.IsZero() || rec.Type != "" || !rec.Payload.IsZero() {
+		t.Errorf("AsRecord(zero struct) = %+v, want the zero Record (R10)", rec)
 	}
 }
