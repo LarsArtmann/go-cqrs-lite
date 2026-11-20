@@ -5,7 +5,7 @@
 # Regenerate: bash scripts/check-package-surface.sh --update-baseline
 859	176	metaengine/v4
 256	29	catalog/v4
-253	37	core/v5/event
+255	37	core/v5/event
 253	37	event/v4
 230	50	system/v4
 194	43	cmd/cqrs-lint/v4/pkg/analyzer
