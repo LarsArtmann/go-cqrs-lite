@@ -1,3 +1,21 @@
+# golangci-lint v2 config — per-module invocations run from each module dir
+# (flake #lint + scripts/lint-scope.sh); exclusion `path:` values match FULL
+# repo-relative paths.
+#
+# Exclusion-row taxonomy (2026-11-21 red-set campaign, 34 modules → 0):
+#   1. DeferClose false positives — sqlclosecheck cannot see through
+#      record.DeferClose/metaengine.DeferClose (ADR-0144); per-module rows
+#      where the idiom is used (mysql/duckdb/pg engines, storage/v4, turso).
+#   2. Driver boundaries — wrapcheck ignore-sigs for KV/graph/SQL drivers and
+#      first-party storage delegation; the adapter IS the boundary.
+#   3. Option/config structs — exhaustruct_v5 ignore-patterns for functional-
+#      option types and driver options where zero values are the defaults.
+#   4. Schema DATA tables — gochecknoglobals rows for reset/typed_wal tables
+#      that migrate with the DDL, keycodec seams, CBOR codec modes.
+#   5. Deprecated-surface bridges — SA1019 text rows citing the ADR
+#      (ADR-0123 stack presets + storage/turso connector; core/v5 twins D32).
+#   6. Frozen wire contracts — tagliatelle json BOTH-case exclusions.
+# Every row carries its reason inline; prefer a code fix to a new row.
 version: "2"
 run:
   timeout: 5m

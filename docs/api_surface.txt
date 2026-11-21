@@ -2769,6 +2769,9 @@ metadata/v4/struct Tracing
 metadata/v4/type CustomData
 metaengine/badgerengine/v4/const BadgerNsPerOp
 metaengine/badgerengine/v4/const BadgerNsPerRead
+metaengine/badgerengine/v4/const BadgerNsPerRowAggregate
+metaengine/badgerengine/v4/const BadgerNsPerRowFilteredScan
+metaengine/badgerengine/v4/const BadgerNsPerRowFullScan
 metaengine/badgerengine/v4/const BadgerNsPerWrite
 metaengine/badgerengine/v4/func NewBadgerEngine
 metaengine/badgerengine/v4/func NewBadgerEngineFromDB
@@ -2811,6 +2814,8 @@ metaengine/badgerengine/v4/method VectorSearchPath
 metaengine/badgerengine/v4/type Option
 metaengine/bboltengine/v4/const BboltNsPerOp
 metaengine/bboltengine/v4/const BboltNsPerRead
+metaengine/bboltengine/v4/const BboltNsPerRowFilteredScan
+metaengine/bboltengine/v4/const BboltNsPerRowFullScan
 metaengine/bboltengine/v4/const BboltNsPerWrite
 metaengine/bboltengine/v4/func NewBboltEngine
 metaengine/bboltengine/v4/func NewBboltEngineFromDB
@@ -2848,7 +2853,11 @@ metaengine/bboltengine/v4/method VectorSearchFiltered
 metaengine/bboltengine/v4/method VectorSearchPath
 metaengine/bboltengine/v4/type Option
 metaengine/bigtableengine/v4/const BigtableNetworkRTT
+metaengine/bigtableengine/v4/const BigtableNsPerAggregate
 metaengine/bigtableengine/v4/const BigtableNsPerOp
+metaengine/bigtableengine/v4/const BigtableNsPerPointLookup
+metaengine/bigtableengine/v4/const BigtableNsPerRowFiltered
+metaengine/bigtableengine/v4/const BigtableNsPerRowScan
 metaengine/bigtableengine/v4/func New
 metaengine/bigtableengine/v4/func NewWithClients
 metaengine/bigtableengine/v4/func WithGCPolicy
@@ -2921,7 +2930,11 @@ metaengine/dgraphengine/v4/method VectorSearchFiltered
 metaengine/dgraphengine/v4/method VectorSearchPath
 metaengine/dgraphengine/v4/type Option
 metaengine/duckdbengine/v4/const DuckDBNsPerOp
+metaengine/duckdbengine/v4/const DuckDBNsPerPointLookup
 metaengine/duckdbengine/v4/const DuckDBNsPerRead
+metaengine/duckdbengine/v4/const DuckDBNsPerRowAggregate
+metaengine/duckdbengine/v4/const DuckDBNsPerRowFiltered
+metaengine/duckdbengine/v4/const DuckDBNsPerRowFullScan
 metaengine/duckdbengine/v4/func New
 metaengine/duckdbengine/v4/func NewFromDB
 metaengine/duckdbengine/v4/method Aggregate
@@ -3089,7 +3102,11 @@ metaengine/irohengine/v4/var ErrSpatialBackendNotImplemented
 metaengine/irohengine/v4/var ErrTransportClosed
 metaengine/irohengine/v4/var ErrVectorBackendNotImplemented
 metaengine/mysqlengine/v4/const MySQLNsPerOp
+metaengine/mysqlengine/v4/const MySQLNsPerPointLookup
 metaengine/mysqlengine/v4/const MySQLNsPerRead
+metaengine/mysqlengine/v4/const MySQLNsPerRowAggregate
+metaengine/mysqlengine/v4/const MySQLNsPerRowFiltered
+metaengine/mysqlengine/v4/const MySQLNsPerRowFullScan
 metaengine/mysqlengine/v4/const MySQL_NetworkRTT
 metaengine/mysqlengine/v4/func New
 metaengine/mysqlengine/v4/func NewFromDB
@@ -3142,6 +3159,9 @@ metaengine/otelobserver/v4/method Hooks
 metaengine/otelobserver/v4/struct Observer
 metaengine/pebbleengine/v4/const PebbleNsPerOp
 metaengine/pebbleengine/v4/const PebbleNsPerRead
+metaengine/pebbleengine/v4/const PebbleNsPerRowAggregate
+metaengine/pebbleengine/v4/const PebbleNsPerRowFilteredScan
+metaengine/pebbleengine/v4/const PebbleNsPerRowFullScan
 metaengine/pebbleengine/v4/const PebbleNsPerWrite
 metaengine/pebbleengine/v4/func NewPebbleEngine
 metaengine/pebbleengine/v4/func NewPebbleEngineFromDB
@@ -3184,6 +3204,10 @@ metaengine/pebbleengine/v4/method VectorSearch
 metaengine/pebbleengine/v4/method VectorSearchFiltered
 metaengine/pebbleengine/v4/method VectorSearchPath
 metaengine/pebbleengine/v4/type Option
+metaengine/pgengine/v4/const PGNsPerPointLookup
+metaengine/pgengine/v4/const PGNsPerRowAggregate
+metaengine/pgengine/v4/const PGNsPerRowFiltered
+metaengine/pgengine/v4/const PGNsPerRowFullScan
 metaengine/pgengine/v4/const PG_NetworkRTT
 metaengine/pgengine/v4/const PG_NsPerOp
 metaengine/pgengine/v4/const PG_NsPerRead
