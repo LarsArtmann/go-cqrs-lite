@@ -5,6 +5,13 @@ import (
 	"strings"
 )
 
+// Canonical CQRS table names shared by the query-pattern catalog and the
+// recommended index set.
+const (
+	tableEvents   = "events"
+	tableCommands = "commands"
+)
+
 //nolint:gochecknoglobals // static configuration tables for the heuristic advisor; data, not state
 var advisoryRegexes = []*regexp.Regexp{
 	searchIndexRe,
@@ -15,7 +22,7 @@ var advisoryRegexes = []*regexp.Regexp{
 
 //nolint:gochecknoglobals // static query-pattern catalog; data, not state
 var queryPatternsByTable = map[string][]queryPattern{
-	"events": {
+	tableEvents: {
 		{
 			Query: "SELECT * FROM events WHERE aggregate_type = ? AND aggregate_id = ? ORDER BY version ASC",
 			Args:  []any{"User", "dummy-id"},
@@ -33,7 +40,7 @@ var queryPatternsByTable = map[string][]queryPattern{
 			Args:  []any{100},
 		},
 	},
-	"commands": {
+	tableCommands: {
 		{
 			Query: "SELECT * FROM commands WHERE aggregate_type = ? AND aggregate_id = ? ORDER BY received_at ASC",
 			Args:  []any{"User", "dummy-id"},

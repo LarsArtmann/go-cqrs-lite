@@ -17,6 +17,10 @@ import (
 // package).
 const tursoLibraryWarmupTimeout = 30 * time.Second
 
+// tursoLockRetryInterval is the stale-lock polling cadence in
+// acquireTursoLockFile.
+const tursoLockRetryInterval = 25 * time.Millisecond
+
 var (
 	warmTursoLibraryOnce  sync.Once //nolint:gochecknoglobals // idiomatic lazy init; pair of the errXxx below
 	errTursoLibraryWarmup error
@@ -98,7 +102,7 @@ func acquireTursoLockFile(lockPath string) (*os.File, bool) {
 			return nil, false
 		}
 
-		time.Sleep(25 * time.Millisecond)
+		time.Sleep(tursoLockRetryInterval)
 	}
 }
 

@@ -267,6 +267,12 @@ linters:
         - github.com/dgraph-io/dgo/v240/protos/api\.Request
         - github.com/dgraph-io/dgo/v240/protos/api\.Operation
         - github.com/dgraph-io/badger/v4\.IteratorOptions
+        # tursogo sync config: functional SyncOptions default every omitted
+        # field; the driver's zero values are the documented defaults.
+        - turso\.tech/database/tursogo\.TursoSyncDbConfig
+        # indexing.Advisor's mu/existing/excluded zero values are the
+        # armed-by-construction state (sync.RWMutex + nil-map guards).
+        - github.com/larsartmann/go-cqrs-lite/storage/turso/v4/indexing\.Advisor
         # First-party option/optional-field structs: functional options or
         # documented optional stamps default every omitted field.
         - github.com/larsartmann/go-cqrs-lite/metaengine/v4\.LayoutPlan
@@ -568,6 +574,13 @@ linters:
         - (*go.etcd.io/bbolt.DB).View
         - (*go.etcd.io/bbolt.DB).Batch
         - (*go.etcd.io/bbolt.Tx).Rollback
+        # First-party storage delegation (storage/turso is a thin bridge over
+        # the SQLite-dialect storage/v4 constructors; same class as the
+        # driver boundaries above — the bridge error IS the caller's error).
+        - github.com/larsartmann/go-cqrs-lite/storage/v4.NewSQLite
+        - github.com/larsartmann/go-cqrs-lite/storage/v4.SQLiteInitSchema
+        - github.com/larsartmann/go-cqrs-lite/storage/turso/v4/indexing.ApplyOptimizations
+        - indexing.AutoIndexer).ApplyCQRSIndexes
         - (*go.etcd.io/bbolt.Tx).CreateBucketIfNotExists
         - (*go.etcd.io/bbolt.Bucket).Put
         - (*go.etcd.io/bbolt.Bucket).Delete
@@ -791,6 +804,12 @@ linters:
         text: 'SA1019: .*(go-cqrs-lite/(stack|storage)/.*|stack/v4.*) is deprecated.*'
         linters:
           - staticcheck
+      # storage/turso's connector exposes the deprecated storage/v4 view-store
+      # family (ADR-0123) — the bridge dies together with that surface at v5.
+      - path: storage/turso/v4/connector\.go$
+        text: 'SA1019: .*go-cqrs-lite/storage/.* is deprecated.*'
+        linters:
+          - staticcheck
       - path: id/v4/
         linters:
           - err113
@@ -941,21 +960,15 @@ linters:
           - contextcheck
           - ireturn
           - sqlclosecheck
-      - path: turso/indexing/
+      # storage/turso indexing package closes Rows via record.DeferClose
+      # (ADR-0144) — sqlclosecheck cannot see through the helper and flags
+      # every Query site; same treatment as mysql/duckdb/pg engines and
+      # storage/v4. (The previous `turso/indexing/` path never matched any
+      # file — real paths are storage/turso/v4/indexing/ — and its 13-linter
+      # list was dead; revived trimmed to the false-positive class only.)
+      - path: storage/turso/v4/indexing/
         linters:
-          - exhaustruct_v5
-          - goconst
-          - exhaustive
-          - errcheck
-          - errorlint
-          - nlreturn
-          - wsl_v5
-          - modernize
-          - perfsprint
-          - predeclared
-          - nolintlint
-          - wrapcheck
-          - varnamelen
+          - sqlclosecheck
       - path: turso/indexing\.go$
         linters:
           - wsl_v5

@@ -50,6 +50,8 @@ func (p Priority) String() string {
 		return "critical"
 	case PriorityRecommended:
 		return "recommended"
+	case PriorityOptional:
+		return "optional"
 	default:
 		return "optional"
 	}
@@ -92,17 +94,17 @@ type Advisor struct {
 
 // NewAdvisor creates an index advisor for the given database.
 func NewAdvisor(db *sql.DB, opts ...AdvisorOption) *Advisor {
-	a := &Advisor{
+	advisor := &Advisor{
 		db:       db,
 		existing: make(map[string]bool),
 		excluded: make(map[string]bool),
 	}
 
 	for _, opt := range opts {
-		opt(a)
+		opt(advisor)
 	}
 
-	return a
+	return advisor
 }
 
 // AnalyzeQuery runs EXPLAIN QUERY PLAN on the provided query and returns

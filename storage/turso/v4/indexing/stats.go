@@ -94,12 +94,12 @@ func UnusedIndexes(ctx context.Context, db *sql.DB) ([]Index, error) {
 func extractIndexedColumns(sqlDDL string) []string {
 	open := strings.Index(sqlDDL, "(")
 
-	close := strings.Index(sqlDDL, ")")
-	if open < 0 || close < 0 || close <= open {
+	closeIdx := strings.Index(sqlDDL, ")")
+	if open < 0 || closeIdx < 0 || closeIdx <= open {
 		return nil
 	}
 
-	cols := strings.Split(sqlDDL[open+1:close], ",")
+	cols := strings.Split(sqlDDL[open+1:closeIdx], ",")
 
 	out := make([]string, 0, len(cols))
 	for _, c := range cols {

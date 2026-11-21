@@ -27,16 +27,16 @@ func SchemaChangeHook() Hook {
 	}
 }
 
-func analyzeAfterSchemaChange(ctx context.Context, a *AutoIndexer) error {
-	if a == nil {
+func analyzeAfterSchemaChange(ctx context.Context, indexer *AutoIndexer) error {
+	if indexer == nil {
 		return nil
 	}
 
-	if !a.IsEnabled() {
+	if !indexer.IsEnabled() {
 		return nil
 	}
 
-	recs, err := a.Recommendations(ctx)
+	recs, err := indexer.Recommendations(ctx)
 	if err != nil {
 		return errorfamily.WrapInfrastructure(err, "indexing.schema_change",
 			"analyze indexes after schema change")
@@ -46,7 +46,7 @@ func analyzeAfterSchemaChange(ctx context.Context, a *AutoIndexer) error {
 		return nil
 	}
 
-	return a.Apply(ctx, recs)
+	return indexer.Apply(ctx, recs)
 }
 
 // MigrateWithIndexing runs a schema migration (via the provided function)

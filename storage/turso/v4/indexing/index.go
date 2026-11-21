@@ -100,31 +100,31 @@ func RecommendedCQRSIndexes() IndexSet {
 	return IndexSet{
 		{
 			Name:    "idx_events_cursor",
-			Table:   "events",
+			Table:   tableEvents,
 			Columns: []string{"occurred_at", "id"},
 			Reason:  "cursor pagination for ReadFrom / journal replay",
 		},
 		{
 			Name:    "idx_events_agg_ver",
-			Table:   "events",
+			Table:   tableEvents,
 			Columns: []string{"aggregate_type", "aggregate_id", "version"},
 			Reason:  "covering index for LoadFromVersion / LoadToVersion",
 		},
 		{
 			Name:    "idx_events_type_time",
-			Table:   "events",
+			Table:   tableEvents,
 			Columns: []string{"event_type", "occurred_at"},
 			Reason:  "projection filters by event type with ordering",
 		},
 		{
 			Name:    "idx_commands_agg_time",
-			Table:   "commands",
+			Table:   tableCommands,
 			Columns: []string{"aggregate_type", "aggregate_id", "received_at"},
 			Reason:  "command audit trail with time ordering",
 		},
 		{
 			Name:    "idx_commands_type_time",
-			Table:   "commands",
+			Table:   tableCommands,
 			Columns: []string{"command_type", "received_at"},
 			Reason:  "command type analytics",
 		},

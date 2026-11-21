@@ -53,16 +53,16 @@ type AutoIndexer struct {
 
 // NewAutoIndexer creates an auto-indexer for the given database.
 func NewAutoIndexer(db *sql.DB, opts ...AutoIndexerOption) *AutoIndexer {
-	a := &AutoIndexer{
+	indexer := &AutoIndexer{
 		advisor: NewAdvisor(db),
 		db:      db,
 	}
 
 	for _, opt := range opts {
-		opt(a)
+		opt(indexer)
 	}
 
-	return a
+	return indexer
 }
 
 // Enable allows the auto-indexer to create indexes.
