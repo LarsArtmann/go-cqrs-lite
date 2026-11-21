@@ -56,13 +56,16 @@ func RequestScopeFromContext(ctx context.Context) (RequestScope, bool) {
 //	        event.ActorEnricher,
 //	        event.RequestScopeEnricher,
 //	    )))
+const requestScopeOptsCount = 5
+
 func RequestScopeEnricher(ctx context.Context) []Option {
 	scope, ok := RequestScopeFromContext(ctx)
 	if !ok {
 		return nil
 	}
 
-	opts := make([]Option, 0, 5)
+	// requestScopeOpts = correlation, causation, actor, userID, requestID
+	opts := make([]Option, 0, requestScopeOptsCount)
 
 	if !scope.CorrelationID.IsZero() {
 		opts = append(opts, WithCorrelationID(scope.CorrelationID))

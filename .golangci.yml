@@ -1143,6 +1143,24 @@ linters:
           - wrapcheck
           - exhaustruct_v5
           - nolintlint
+      # core/v5 is the copy-forward home of the v4 event/command/query/id
+      # trains (ADR-0152) and carries their code verbatim until T26 — it
+      # inherits the twins' exclusion posture for the same architectural
+      # reasons the v4 rows record (JSON passthrough methods return marshal
+      # errors as-is; sibling-forwarding is same-module by construction;
+      # the id-family set mirrors the id/v4 row). Note event/v4 itself is
+      # on the GLOBAL exclusion paths — this row is deliberately stricter
+      # so the NEW free-window surface stays policed.
+      - path: core/v5/
+        linters:
+          - wrapcheck
+          - exhaustruct_v5
+          - nolintlint
+          - err113
+          - errcheck
+          - exhaustive
+          - recvcheck
+          - gochecknoglobals
       - path: query/v4/
         linters:
           - wrapcheck

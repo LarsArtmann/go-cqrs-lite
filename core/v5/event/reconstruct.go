@@ -148,6 +148,9 @@ func reconstructEvent(
 	return evt, nil
 }
 
+// baseOptsCount = eventID + occurredAt + conditional schemaVersion.
+const baseOptsCount = 3
+
 // reconstructOpts assembles the Option slice shared by every reconstruct
 // path: identity, timestamp, schema version, engine metadata, encoding.
 func reconstructOpts(
@@ -157,7 +160,8 @@ func reconstructOpts(
 	encoding codec.Encoding,
 	metaOpts []Option,
 ) []Option {
-	opts := make([]Option, 0, 3+len(metaOpts))
+	// baseOpts = eventID + occurredAt + schemaVersion (conditional)
+	opts := make([]Option, 0, baseOptsCount+len(metaOpts))
 
 	opts = append(opts, WithEventID(eventID), WithOccurredAt(occurredAt))
 	if schemaVersion > 0 {

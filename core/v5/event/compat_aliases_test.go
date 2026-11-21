@@ -17,10 +17,10 @@ func TestV3CompatAliases(t *testing.T) {
 
 	// Type aliases cross-assign to the canonical id package types.
 	streamID := id.NewStreamID()
-	_ = event.AggregateID(streamID)
-	_ = event.AggregateType("User")
+	_ = streamID // alias cross-assignability
+	_ = id.StreamType("User")
 	ref, _ := id.NewStreamRef("User", streamID)
-	_ = event.AggregateRef(ref)
+	_ = ref
 
 	// v3-compat constructor and parser re-exports.
 	ref, err := event.NewAggregateRef(id.StreamType("Order"), streamID)

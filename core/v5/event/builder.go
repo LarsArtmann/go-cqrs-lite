@@ -18,17 +18,19 @@ type builder struct {
 	opts       []Option
 }
 
-func newBuilder(
-	eventType Type,
-	streamID id.StreamID,
-	streamType id.StreamType,
-	version Version,
-) *builder {
+// testStreamType and testStreamVersion are the fixed identity every test
+// builder uses — the varying axes are event type and stream ID.
+const (
+	testStreamType    = id.StreamType("TestStream")
+	testStreamVersion = Version(1)
+)
+
+func newBuilder(eventType Type, streamID id.StreamID) *builder {
 	return &builder{
 		eventType:  eventType,
 		streamID:   streamID,
-		streamType: streamType,
-		version:    version,
+		streamType: testStreamType,
+		version:    testStreamVersion,
 		payload:    nil,
 		opts:       nil,
 	}

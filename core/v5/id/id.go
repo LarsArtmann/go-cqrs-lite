@@ -38,7 +38,7 @@ func Parse[T any](s string) (Of[T], error) {
 		)
 	}
 
-	id, err := ulid.Parse(s)
+	parsed, err := ulid.Parse(s)
 	if err != nil {
 		var zero Of[T]
 
@@ -52,7 +52,7 @@ func Parse[T any](s string) (Of[T], error) {
 		)
 	}
 
-	return cbid.NewID[T](id), nil
+	return cbid.NewID[T](parsed), nil
 }
 
 // ULID returns the timestamp encoded in the ID.

@@ -52,135 +52,19 @@ func RunSuite[V any, K fmt.Stringer](t *testing.T, cfg Config[V, K]) {
 
 	ctx := context.Background()
 
-	t.Run("GetMissing", func(t *testing.T) {
-		t.Parallel()
+	t.Run("GetMissing", func(t *testing.T) { subtestgetMissing(t, ctx, cfg) })
 
-		store := cfg.Factory(t)
+	t.Run("SetGet", func(t *testing.T) { subtestsetGet(t, ctx, cfg) })
 
-		_, err := store.Get(ctx, cfg.MakeKey("nonexistent"))
-		if !errors.Is(err, kv.ErrNotFound) {
-			t.Fatalf("Get missing: err = %v, want ErrNotFound", err)
-		}
-	})
+	t.Run("SetOverwrite", func(t *testing.T) { subtestsetOverwrite(t, ctx, cfg) })
 
-	t.Run("SetGet", func(t *testing.T) {
-		t.Parallel()
+	t.Run("Delete", func(t *testing.T) { subtestdelete(t, ctx, cfg) })
 
-		store := cfg.Factory(t)
-		val := cfg.MakeValue("Alice")
+	t.Run("DeleteMissing", func(t *testing.T) { subtestdeleteMissing(t, ctx, cfg) })
 
-		err := store.Set(ctx, cfg.MakeKey("u1"), val)
-		if err != nil {
-			t.Fatalf("Set: %v", err)
-		}
+	t.Run("Scan", func(t *testing.T) { subtestscan(t, ctx, cfg) })
 
-		got, err := store.Get(ctx, cfg.MakeKey("u1"))
-		if err != nil {
-			t.Fatalf("Get: %v", err)
-		}
-
-		if !cfg.Equal(got, val) {
-			t.Fatalf("Get: got %+v, want %+v", got, val)
-		}
-	})
-
-	t.Run("SetOverwrite", func(t *testing.T) {
-		t.Parallel()
-
-		store := cfg.Factory(t)
-		key := cfg.MakeKey("u1")
-
-		err := store.Set(ctx, key, cfg.MakeValue("Alice"))
-		if err != nil {
-			t.Fatalf("Set initial: %v", err)
-		}
-
-		updated := cfg.MakeValue("Bob")
-
-		err = store.Set(ctx, key, updated)
-		if err != nil {
-			t.Fatalf("Set overwrite: %v", err)
-		}
-
-		got, err := store.Get(ctx, key)
-		if err != nil {
-			t.Fatalf("Get: %v", err)
-		}
-
-		if !cfg.Equal(got, updated) {
-			t.Fatalf("Get after overwrite: got %+v, want %+v", got, updated)
-		}
-	})
-
-	t.Run("Delete", func(t *testing.T) {
-		t.Parallel()
-
-		store := cfg.Factory(t)
-		key := cfg.MakeKey("u1")
-
-		err := store.Set(ctx, key, cfg.MakeValue("Alice"))
-		if err != nil {
-			t.Fatalf("Set: %v", err)
-		}
-
-		err = store.Delete(ctx, key)
-		if err != nil {
-			t.Fatalf("Delete: %v", err)
-		}
-
-		_, err = store.Get(ctx, key)
-		if !errors.Is(err, kv.ErrNotFound) {
-			t.Fatalf("Get after delete: err = %v, want ErrNotFound", err)
-		}
-	})
-
-	t.Run("DeleteMissing", func(t *testing.T) {
-		t.Parallel()
-
-		store := cfg.Factory(t)
-
-		err := store.Delete(ctx, cfg.MakeKey("never-existed"))
-		if err != nil {
-			t.Fatalf("Delete missing: err = %v, want nil", err)
-		}
-	})
-
-	t.Run("Scan", func(t *testing.T) {
-		t.Parallel()
-
-		store := cfg.Factory(t)
-
-		for _, name := range []string{"Charlie", "Alice", "Bob"} {
-			err := store.Set(ctx, cfg.MakeKey(name), cfg.MakeValue(name))
-			if err != nil {
-				t.Fatalf("Set %s: %v", name, err)
-			}
-		}
-
-		all, err := store.Scan(ctx, nil)
-		if err != nil {
-			t.Fatalf("Scan: %v", err)
-		}
-
-		if len(all) != scanRecordCount {
-			t.Fatalf("Scan: got %d records, want %d", len(all), scanRecordCount)
-		}
-	})
-
-	t.Run("ScanEmpty", func(t *testing.T) {
-		t.Parallel()
-
-		store := cfg.Factory(t)
-
-		all, err := store.Scan(ctx, nil)
-		if err != nil {
-			t.Fatalf("Scan empty: %v", err)
-		}
-
-		if len(all) != 0 {
-			t.Fatalf("Scan empty: got %d, want 0", len(all))
-		}
-	})
+	t.Run("ScanEmpty", func(t *testing.T) { subtestscanEmpty(t, ctx, cfg) })
 }
 
 // RunOptionalSuite tests optional capabilities (ViewQuerier, ViewCounter,
@@ -191,58 +75,214 @@ func RunOptionalSuite[V any, K fmt.Stringer](t *testing.T, cfg Config[V, K]) {
 
 	ctx := context.Background()
 
-	t.Run("Resetter", func(t *testing.T) {
-		store := cfg.Factory(t)
+	t.Run("Resetter", func(t *testing.T) { subtestresetter(t, ctx, cfg) })
 
-		resetter, ok := store.(kv.ViewResetter[V])
-		if !ok {
-			t.Skip("store does not implement ViewResetter")
-		}
+	t.Run("Counter", func(t *testing.T) { subtestcounter(t, ctx, cfg) })
+}
 
-		for i := range scanRecordCount {
-			err := store.Set(ctx, cfg.MakeKey(fmt.Sprintf("k%d", i)), cfg.MakeValue("val"))
-			if err != nil {
-				t.Fatalf("Set: %v", err)
-			}
-		}
+// subtestgetMissing is the GetMissing leg of RunSuite (extracted so the
+// suite runner stays a flat list).
+func subtestgetMissing[V any, K fmt.Stringer](t *testing.T, ctx context.Context, cfg Config[V, K]) {
+	t.Helper()
 
-		err := resetter.DeleteAll(ctx)
+	store := cfg.Factory(t)
+
+	_, err := store.Get(ctx, cfg.MakeKey("nonexistent"))
+	if !errors.Is(err, kv.ErrNotFound) {
+		t.Fatalf("Get missing: err = %v, want ErrNotFound", err)
+	}
+}
+
+// subtestsetGet is the SetGet leg of RunSuite (extracted so the
+// suite runner stays a flat list).
+func subtestsetGet[V any, K fmt.Stringer](t *testing.T, ctx context.Context, cfg Config[V, K]) {
+	t.Helper()
+
+	store := cfg.Factory(t)
+	val := cfg.MakeValue("Alice")
+
+	err := store.Set(ctx, cfg.MakeKey("u1"), val)
+	if err != nil {
+		t.Fatalf("Set: %v", err)
+	}
+
+	got, err := store.Get(ctx, cfg.MakeKey("u1"))
+	if err != nil {
+		t.Fatalf("Get: %v", err)
+	}
+
+	if !cfg.Equal(got, val) {
+		t.Fatalf("Get: got %+v, want %+v", got, val)
+	}
+}
+
+// subtestsetOverwrite is the SetOverwrite leg of RunSuite (extracted so the
+// suite runner stays a flat list).
+func subtestsetOverwrite[V any, K fmt.Stringer](t *testing.T, ctx context.Context, cfg Config[V, K]) {
+	t.Helper()
+
+	store := cfg.Factory(t)
+	key := cfg.MakeKey("u1")
+
+	err := store.Set(ctx, key, cfg.MakeValue("Alice"))
+	if err != nil {
+		t.Fatalf("Set initial: %v", err)
+	}
+
+	updated := cfg.MakeValue("Bob")
+
+	err = store.Set(ctx, key, updated)
+	if err != nil {
+		t.Fatalf("Set overwrite: %v", err)
+	}
+
+	got, err := store.Get(ctx, key)
+	if err != nil {
+		t.Fatalf("Get: %v", err)
+	}
+
+	if !cfg.Equal(got, updated) {
+		t.Fatalf("Get after overwrite: got %+v, want %+v", got, updated)
+	}
+}
+
+// subtestdelete is the Delete leg of RunSuite (extracted so the
+// suite runner stays a flat list).
+func subtestdelete[V any, K fmt.Stringer](t *testing.T, ctx context.Context, cfg Config[V, K]) {
+	t.Helper()
+
+	store := cfg.Factory(t)
+	key := cfg.MakeKey("u1")
+
+	err := store.Set(ctx, key, cfg.MakeValue("Alice"))
+	if err != nil {
+		t.Fatalf("Set: %v", err)
+	}
+
+	err = store.Delete(ctx, key)
+	if err != nil {
+		t.Fatalf("Delete: %v", err)
+	}
+
+	_, err = store.Get(ctx, key)
+	if !errors.Is(err, kv.ErrNotFound) {
+		t.Fatalf("Get after delete: err = %v, want ErrNotFound", err)
+	}
+}
+
+// subtestdeleteMissing is the DeleteMissing leg of RunSuite (extracted so the
+// suite runner stays a flat list).
+func subtestdeleteMissing[V any, K fmt.Stringer](t *testing.T, ctx context.Context, cfg Config[V, K]) {
+	t.Helper()
+
+	store := cfg.Factory(t)
+
+	err := store.Delete(ctx, cfg.MakeKey("never-existed"))
+	if err != nil {
+		t.Fatalf("Delete missing: err = %v, want nil", err)
+	}
+}
+
+// subtestscan is the Scan leg of RunSuite (extracted so the
+// suite runner stays a flat list).
+func subtestscan[V any, K fmt.Stringer](t *testing.T, ctx context.Context, cfg Config[V, K]) {
+	t.Helper()
+
+	store := cfg.Factory(t)
+
+	for _, name := range []string{"Charlie", "Alice", "Bob"} {
+		err := store.Set(ctx, cfg.MakeKey(name), cfg.MakeValue(name))
 		if err != nil {
-			t.Fatalf("DeleteAll: %v", err)
+			t.Fatalf("Set %s: %v", name, err)
 		}
+	}
 
-		all, err := store.Scan(ctx, nil)
+	all, err := store.Scan(ctx, nil)
+	if err != nil {
+		t.Fatalf("Scan: %v", err)
+	}
+
+	if len(all) != scanRecordCount {
+		t.Fatalf("Scan: got %d records, want %d", len(all), scanRecordCount)
+	}
+}
+
+// subtestscanEmpty is the ScanEmpty leg of RunSuite (extracted so the
+// suite runner stays a flat list).
+func subtestscanEmpty[V any, K fmt.Stringer](t *testing.T, ctx context.Context, cfg Config[V, K]) {
+	t.Helper()
+
+	store := cfg.Factory(t)
+
+	all, err := store.Scan(ctx, nil)
+	if err != nil {
+		t.Fatalf("Scan empty: %v", err)
+	}
+
+	if len(all) != 0 {
+		t.Fatalf("Scan empty: got %d, want 0", len(all))
+	}
+}
+
+// subtestresetter is the Resetter leg of RunSuite (extracted so the
+// suite runner stays a flat list).
+func subtestresetter[V any, K fmt.Stringer](t *testing.T, ctx context.Context, cfg Config[V, K]) {
+	t.Helper()
+
+	store := cfg.Factory(t)
+
+	resetter, ok := store.(kv.ViewResetter[V])
+	if !ok {
+		t.Skip("store does not implement ViewResetter")
+	}
+
+	for i := range scanRecordCount {
+		err := store.Set(ctx, cfg.MakeKey(fmt.Sprintf("k%d", i)), cfg.MakeValue("val"))
 		if err != nil {
-			t.Fatalf("Scan after DeleteAll: %v", err)
+			t.Fatalf("Set: %v", err)
 		}
+	}
 
-		if len(all) != 0 {
-			t.Fatalf("After DeleteAll: got %d, want 0", len(all))
-		}
-	})
+	err := resetter.DeleteAll(ctx)
+	if err != nil {
+		t.Fatalf("DeleteAll: %v", err)
+	}
 
-	t.Run("Counter", func(t *testing.T) {
-		store := cfg.Factory(t)
+	all, err := store.Scan(ctx, nil)
+	if err != nil {
+		t.Fatalf("Scan after DeleteAll: %v", err)
+	}
 
-		counter, ok := store.(kv.ViewCounter[V])
-		if !ok {
-			t.Skip("store does not implement ViewCounter")
-		}
+	if len(all) != 0 {
+		t.Fatalf("After DeleteAll: got %d, want 0", len(all))
+	}
+}
 
-		for i := range countRecordCount {
-			err := store.Set(ctx, cfg.MakeKey(fmt.Sprintf("k%d", i)), cfg.MakeValue("val"))
-			if err != nil {
-				t.Fatalf("Set: %v", err)
-			}
-		}
+// subtestcounter is the Counter leg of RunSuite (extracted so the
+// suite runner stays a flat list).
+func subtestcounter[V any, K fmt.Stringer](t *testing.T, ctx context.Context, cfg Config[V, K]) {
+	t.Helper()
 
-		count, err := counter.Count(ctx, kv.ViewQuery{}) //nolint:exhaustruct_v5 // count all
+	store := cfg.Factory(t)
+
+	counter, ok := store.(kv.ViewCounter[V])
+	if !ok {
+		t.Skip("store does not implement ViewCounter")
+	}
+
+	for i := range countRecordCount {
+		err := store.Set(ctx, cfg.MakeKey(fmt.Sprintf("k%d", i)), cfg.MakeValue("val"))
 		if err != nil {
-			t.Fatalf("Count: %v", err)
+			t.Fatalf("Set: %v", err)
 		}
+	}
 
-		if count != countRecordCount {
-			t.Fatalf("Count: got %d, want %d", count, countRecordCount)
-		}
-	})
+	count, err := counter.Count(ctx, kv.ViewQuery{}) //nolint:exhaustruct_v5 // count all
+	if err != nil {
+		t.Fatalf("Count: %v", err)
+	}
+
+	if count != countRecordCount {
+		t.Fatalf("Count: got %d, want %d", count, countRecordCount)
+	}
 }

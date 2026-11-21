@@ -32,38 +32,38 @@ func NewMetadata() Metadata {
 
 // Clone returns a deep copy of the metadata.
 func (m Metadata) Clone() Metadata {
-	cp := m
+	clone := m
 
 	if m.Custom != nil {
-		cp.Custom = maps.Clone(m.Custom)
+		clone.Custom = maps.Clone(m.Custom)
 	}
 
 	if m.Tombstone != nil {
 		mark := *m.Tombstone
-		cp.Tombstone = &mark
+		clone.Tombstone = &mark
 	}
 
 	if m.Causation != nil {
 		c := *m.Causation
-		cp.Causation = &c
+		clone.Causation = &c
 	}
 
-	return cp
+	return clone
 }
 
 // WithCustom returns a copy of m with the given key-value pair added to
 // Custom. The original Metadata is not modified.
 func (m Metadata) WithCustom(key MetadataKey, value string) Metadata {
-	cp := m
+	clone := m
 
-	cp.Custom = maps.Clone(m.Custom)
-	if cp.Custom == nil {
-		cp.Custom = make(map[MetadataKey]string)
+	clone.Custom = maps.Clone(m.Custom)
+	if clone.Custom == nil {
+		clone.Custom = make(map[MetadataKey]string)
 	}
 
-	cp.Custom[key] = value
+	clone.Custom[key] = value
 
-	return cp
+	return clone
 }
 
 // EnsureCustom lazily initializes the Custom map if nil.

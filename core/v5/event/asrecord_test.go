@@ -19,6 +19,8 @@ func TestAsRecord_NilEvent(t *testing.T) {
 }
 
 func TestAsRecord_BasicMapping(t *testing.T) {
+	t.Parallel()
+
 	streamID := id.NewStreamID()
 	occurredAt := time.Date(2026, 8, 6, 12, 0, 0, 0, time.UTC)
 	correlationID := id.NewCorrelationID()

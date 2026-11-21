@@ -52,7 +52,7 @@ func WithCommandCausality(
 // context, if any. Returns zero values if no command causality was set.
 func CommandCausalityFromContext(
 	ctx context.Context,
-) (commandType string, commandID id.CommandID, ok bool) {
+) (string, id.CommandID, bool) {
 	v, exists := ctx.Value(ctxKeyCausality{}).(causalityCtx)
 	if !exists {
 		return "", id.CommandID{}, false

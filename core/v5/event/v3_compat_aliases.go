@@ -9,8 +9,7 @@ import (
 // where these types lived in the event package. They were moved to id/metadata
 // but downstream modules (e.g., cqrs-htmx/usermgmt) still reference them here.
 
-// art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
-type StreamType = id.StreamType
+type StreamType = id.StreamType // art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 
 // Deprecated: use id.StreamType. Retained for v3 consumers that reference event.AggregateType.
 type AggregateType = id.StreamType

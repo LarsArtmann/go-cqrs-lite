@@ -145,6 +145,22 @@ func TestTrinityContract_AsRecord(t *testing.T) {
 		t.Error("command/query payloads are opaque at the record layer (bridge cannot know the envelope)")
 	}
 
+	assertTrinityStamps(t, records, evt, cmd, q)
+}
+
+// assertTrinityStamps pins the M06 stamp contract: every bridge stamps a
+// KNOWN Received; Created stays zero when no client clock exists; Stored is
+// never bridge-stamped; and each twin's Received time equals its source
+// clock (command/query received-at, event mint).
+func assertTrinityStamps(
+	t *testing.T,
+	records map[string]record.Record,
+	evt event.Event,
+	cmd *command.PersistedCommand,
+	q *query.PersistedQuery,
+) {
+	t.Helper()
+
 	for name, rec := range records {
 		if rec.MetaData.Received.IsZero() {
 			t.Errorf("%s: Received stamp must be known after the bridge (M06: every bridge stamps intake)", name)

@@ -118,14 +118,14 @@ func NewCache[T any, K fmt.Stringer](
 // On cache miss, delegates to the underlying store and caches the result.
 // Negative results (ErrNotFound) are NOT cached. The returned value is a deep
 // copy owned by the caller; mutating it never affects the cache.
-func (cs *Cache[T, K]) Get(ctx context.Context, id K) (*T, error) {
-	key := id.String() // art-dupl:accept ADR-0152 twin
+func (cs *Cache[T, K]) Get(ctx context.Context, keyID K) (*T, error) {
+	key := keyID.String() // art-dupl:accept ADR-0152 twin
 
 	if val, ok := cs.cache.GetIfPresent(key); ok {
 		return cs.copy(val)
 	}
 
-	val, err := cs.store.Get(ctx, id)
+	val, err := cs.store.Get(ctx, keyID)
 	if err != nil {
 		return nil, err
 	}
@@ -158,8 +158,8 @@ func (cs *Cache[T, K]) Has(ctx context.Context, id K) (bool, error) {
 // Set writes val to the store and updates the cache (write-through).
 // The cache stores a private deep copy of val, so mutating val after Set
 // returns never affects subsequent reads.
-func (cs *Cache[T, K]) Set(ctx context.Context, id K, val *T) error {
-	err := cs.store.Set(ctx, id, val) // art-dupl:accept ADR-0152 twin
+func (cs *Cache[T, K]) Set(ctx context.Context, keyID K, val *T) error {
+	err := cs.store.Set(ctx, keyID, val) // art-dupl:accept ADR-0152 twin
 	if err != nil {
 		return err
 	}
@@ -168,24 +168,24 @@ func (cs *Cache[T, K]) Set(ctx context.Context, id K, val *T) error {
 	if err != nil {
 		// The store write succeeded; drop any stale cached entry so the
 		// next Get reflects the store instead of the pre-Set value.
-		cs.cache.Invalidate(id.String())
+		cs.cache.Invalidate(keyID.String())
 
 		return err
 	}
 
-	cs.cache.Set(id.String(), cached)
+	cs.cache.Set(keyID.String(), cached)
 
 	return nil
 }
 
 // Delete removes the value from the store and invalidates the cache entry.
-func (cs *Cache[T, K]) Delete(ctx context.Context, id K) error {
-	err := cs.store.Delete(ctx, id)
+func (cs *Cache[T, K]) Delete(ctx context.Context, keyID K) error {
+	err := cs.store.Delete(ctx, keyID)
 	if err != nil {
 		return err
 	}
 
-	cs.cache.Invalidate(id.String())
+	cs.cache.Invalidate(keyID.String())
 
 	return nil
 }

@@ -2870,8 +2870,11 @@ metaengine/bigtableengine/v4/method ResetEngine
 metaengine/bigtableengine/v4/method SetCalibration
 metaengine/bigtableengine/v4/type Option
 metaengine/dgraphengine/v4/const DG_NetworkRTT
+metaengine/dgraphengine/v4/const DG_NsPerAggregate
 metaengine/dgraphengine/v4/const DG_NsPerOp
+metaengine/dgraphengine/v4/const DG_NsPerPointLookup
 metaengine/dgraphengine/v4/const DG_NsPerRead
+metaengine/dgraphengine/v4/const DG_NsPerRowScan
 metaengine/dgraphengine/v4/const DG_NsPerWrite
 metaengine/dgraphengine/v4/func New
 metaengine/dgraphengine/v4/func NewFromClient

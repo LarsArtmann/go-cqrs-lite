@@ -10,6 +10,15 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/v5/id"
 )
 
+// suiteBatch is the fixed command/query batch size every suite case
+// writes and expects back — one name so the arithmetic reads.
+const (
+	// suiteAppendCount: commands/queries explicitly appended before Load.
+	suiteAppendCount = 3
+	// suiteBatch: fixed batch size every suite case writes and expects.
+	suiteBatch = 5
+)
+
 // StoreSuite combines [command.Store] (sink + source) with
 // [command.SeekableCommandJournal] (global journal reads). Every backend's
 // command store implementation satisfies this interface.
@@ -164,7 +173,7 @@ func testAppendBatch(t *testing.T, store StoreSuite) {
 		t.Fatalf("Load: %v", err)
 	}
 
-	if len(loaded) != 3 {
+	if len(loaded) != suiteAppendCount {
 		t.Fatalf("expected 3 commands, got %d", len(loaded))
 	}
 }
@@ -206,9 +215,9 @@ func testReadFrom(t *testing.T, store StoreSuite) {
 
 	ref := mustRef(t, "User", id.NewStreamID())
 
-	cmdIDs := make([]id.CommandID, 0, 5)
+	cmdIDs := make([]id.CommandID, 0, suiteBatch)
 
-	for range 5 {
+	for range suiteBatch {
 		cmd := MustCreateCommand(t, "user.action", ref)
 		cmdIDs = append(cmdIDs, cmd.ID())
 
@@ -225,7 +234,7 @@ func testReadFrom(t *testing.T, store StoreSuite) {
 		t.Fatalf("ReadFrom zero ID: %v", err)
 	}
 
-	if len(all) != 5 {
+	if len(all) != suiteBatch {
 		t.Fatalf("expected 5, got %d", len(all))
 	}
 

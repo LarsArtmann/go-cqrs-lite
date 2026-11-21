@@ -117,18 +117,18 @@ func newULID() ulid.ULID {
 			continue
 		}
 
-		var id ulid.ULID
+		var stamped ulid.ULID
 		// Errors are impossible: e.ms comes from ulid.Now() (always <=
 		// ulid.MaxTime) and the entropy slice is exactly 10 bytes.
-		_ = id.SetTime(epoch.ms)
+		_ = stamped.SetTime(epoch.ms)
 
 		var entropy [10]byte
 		copy(entropy[:6], epoch.prefix[:])
 
 		seq := uint32(s)
 		binary.BigEndian.PutUint32(entropy[6:], seq)
-		_ = id.SetEntropy(entropy[:])
+		_ = stamped.SetEntropy(entropy[:])
 
-		return id
+		return stamped
 	}
 }

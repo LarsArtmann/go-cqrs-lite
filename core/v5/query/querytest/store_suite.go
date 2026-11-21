@@ -10,6 +10,15 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/core/v5/query"
 )
 
+// suiteBatch is the fixed command/query batch size every suite case
+// writes and expects back — one name so the arithmetic reads.
+const (
+	// suiteAppendCount: commands/queries explicitly appended before Load.
+	suiteAppendCount = 3
+	// suiteBatch: fixed batch size every suite case writes and expects.
+	suiteBatch = 5
+)
+
 // StoreSuite combines [query.QueryStore] (sink + source) with
 // [query.SeekableQueryJournal] (global journal reads). Every backend's query
 // store implementation satisfies this interface.
@@ -144,7 +153,7 @@ func testReadAllQueries(t *testing.T, store StoreSuite) {
 		t.Fatalf("ReadAllQueries: %v", err)
 	}
 
-	if len(all) != 3 {
+	if len(all) != suiteAppendCount {
 		t.Fatalf("expected 3 queries, got %d", len(all))
 	}
 }
@@ -154,9 +163,9 @@ func testReadQueriesFrom(t *testing.T, store StoreSuite) {
 
 	ctx := context.Background()
 
-	queryIDs := make([]id.RequestID, 0, 5)
+	queryIDs := make([]id.RequestID, 0, suiteBatch)
 
-	for range 5 {
+	for range suiteBatch {
 		q := MustCreateQuery(t, "user.list")
 		queryIDs = append(queryIDs, q.ID())
 
@@ -173,7 +182,7 @@ func testReadQueriesFrom(t *testing.T, store StoreSuite) {
 		t.Fatalf("ReadQueriesFrom all: %v", err)
 	}
 
-	if len(all) != 5 {
+	if len(all) != suiteBatch {
 		t.Fatalf("expected 5, got %d", len(all))
 	}
 

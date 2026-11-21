@@ -8,8 +8,7 @@ import (
 // the aliases exist so existing consumer code that references event.Family or
 // event.Error continues to compile. New code should import go-error-family
 // directly for error taxonomy, construction, and classification.
-type (
-	//art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
+type ( // art-dupl:accept ADR-0152 v5 copy-forward twin of the v4 train; removed with v4 in T26
 	Family = errorfamily.Family
 	Error  = errorfamily.Error
 )
@@ -81,7 +80,7 @@ var (
 	ErrBusClosed error = errorfamily.NewInfrastructure("event.bus_closed", "event bus is closed")
 	ErrNilBus    error = errorfamily.NewInfrastructure("event.nil_bus", "nil bus")
 
-	// Optional-capability errors returned by DecorateStore when the inner
+	// ErrInnerStoreNotJournal is returned by DecorateStore when the inner
 	// store does not implement the asserted optional interface.
 	ErrInnerStoreNotJournal error = errorfamily.NewRejection(
 		"event.inner_store_not_journal",
@@ -104,7 +103,8 @@ var (
 		"inner journal does not implement StreamingJournal",
 	)
 
-	// Time and date validation errors — returned by NewDate and NewWallTime.
+	// ErrInvalidDate rejects impossible calendar dates from NewDate and
+	// NewWallTime.
 	ErrInvalidDate error = errorfamily.NewRejection("event.invalid_date", "invalid calendar date")
 	ErrInvalidHour error = errorfamily.NewRejection(
 		"event.invalid_hour",

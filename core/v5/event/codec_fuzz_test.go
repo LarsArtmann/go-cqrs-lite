@@ -57,7 +57,7 @@ func FuzzDecodePayload_Roundtrip(f *testing.F) {
 
 	f.Add(`{"name":"Alice","email":"alice@example.com"}`)
 	f.Add(`{"name":"","email":""}`)
-	f.Add(`{"name":"日本語テスト","email":"test@test.jp"}`)
+	f.Add(`{"name":"日本語テスト","email":"test@test.jp"}`) //nolint:gosmopolitan // CJK seed: codec round-trips any UTF-8
 	f.Add(`{"name":"<script>alert(1)</script>","email":"a@b.c"}`)
 
 	f.Fuzz(func(t *testing.T, input string) {
@@ -83,6 +83,7 @@ func FuzzDecodePayload_Roundtrip(f *testing.F) {
 		}
 
 		if result.Name == "" && input != `{}` && input != `{"name":"","email":""}` {
+			t.Errorf("decoded name is empty for input %q", input)
 		}
 	})
 }

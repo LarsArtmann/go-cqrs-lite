@@ -77,39 +77,8 @@ func TestReconstructEventWithMetadata_Equivalence(t *testing.T) {
 				t.Fatalf("ReconstructEventWithMetadata: %v", err)
 			}
 
-			if direct.ID() != viaJSON.ID() ||
-				direct.Type() != viaJSON.Type() ||
-				direct.StreamID() != viaJSON.StreamID() ||
-				direct.StreamType() != viaJSON.StreamType() ||
-				direct.Version() != viaJSON.Version() ||
-				direct.SchemaVersion() != viaJSON.SchemaVersion() ||
-				direct.Encoding() != viaJSON.Encoding() ||
-				!direct.OccurredAt().Equal(viaJSON.OccurredAt()) {
-				t.Fatalf("field mismatch:\ndirect: %+v\nviaJSON: %+v", direct, viaJSON)
-			}
-
-			directMeta := direct.Metadata()
-			viaJSONMeta := viaJSON.Metadata()
-			if directMeta.CorrelationID != viaJSONMeta.CorrelationID ||
-				directMeta.CausationID != viaJSONMeta.CausationID ||
-				directMeta.RequestID != viaJSONMeta.RequestID ||
-				directMeta.ActorID != viaJSONMeta.ActorID ||
-				directMeta.Source != viaJSONMeta.Source ||
-				directMeta.IPAddress != viaJSONMeta.IPAddress ||
-				directMeta.UserAgent != viaJSONMeta.UserAgent {
-				t.Fatalf("metadata mismatch:\ndirect: %+v\nviaJSON: %+v", directMeta, viaJSONMeta)
-			}
-
-			if len(directMeta.Custom) != len(viaJSONMeta.Custom) {
-				t.Fatalf("custom map length mismatch: direct=%d viaJSON=%d",
-					len(directMeta.Custom), len(viaJSONMeta.Custom))
-			}
-
-			for k, v := range directMeta.Custom {
-				if viaJSONMeta.Custom[k] != v {
-					t.Fatalf("custom[%q] = %q, want %q", k, v, viaJSONMeta.Custom[k])
-				}
-			}
+			assertEventFieldsMatch(t, direct, viaJSON)
+			assertMetadataEquivalent(t, direct.Metadata(), viaJSON.Metadata())
 		})
 	}
 }
@@ -140,5 +109,49 @@ func TestReconstructEventWithMetadata_NilCustomMapPreserved(t *testing.T) {
 
 	if got.Source != "nil-custom-test" {
 		t.Fatalf("Source = %q, want %q", got.Source, "nil-custom-test")
+	}
+}
+
+// assertEventFieldsMatch pins field-level equivalence of the two
+// reconstruct paths (the || chain reads one comparison per line).
+func assertEventFieldsMatch(t *testing.T, direct, viaJSON event.Event) {
+	t.Helper()
+
+	if direct.ID() != viaJSON.ID() ||
+		direct.Type() != viaJSON.Type() ||
+		direct.StreamID() != viaJSON.StreamID() ||
+		direct.StreamType() != viaJSON.StreamType() ||
+		direct.Version() != viaJSON.Version() ||
+		direct.SchemaVersion() != viaJSON.SchemaVersion() ||
+		direct.Encoding() != viaJSON.Encoding() ||
+		!direct.OccurredAt().Equal(viaJSON.OccurredAt()) {
+		t.Fatalf("field mismatch:\ndirect: %+v\nviaJSON: %+v", direct, viaJSON)
+	}
+}
+
+// assertMetadataEquivalent pins metadata equivalence including the custom
+// map, key by key.
+func assertMetadataEquivalent(t *testing.T, directMeta, viaJSONMeta event.Metadata) {
+	t.Helper()
+
+	if directMeta.CorrelationID != viaJSONMeta.CorrelationID ||
+		directMeta.CausationID != viaJSONMeta.CausationID ||
+		directMeta.RequestID != viaJSONMeta.RequestID ||
+		directMeta.ActorID != viaJSONMeta.ActorID ||
+		directMeta.Source != viaJSONMeta.Source ||
+		directMeta.IPAddress != viaJSONMeta.IPAddress ||
+		directMeta.UserAgent != viaJSONMeta.UserAgent {
+		t.Fatalf("metadata mismatch:\ndirect: %+v\nviaJSON: %+v", directMeta, viaJSONMeta)
+	}
+
+	if len(directMeta.Custom) != len(viaJSONMeta.Custom) {
+		t.Fatalf("custom map length mismatch: direct=%d viaJSON=%d",
+			len(directMeta.Custom), len(viaJSONMeta.Custom))
+	}
+
+	for k, v := range directMeta.Custom {
+		if viaJSONMeta.Custom[k] != v {
+			t.Fatalf("custom[%q] = %q, want %q", k, v, viaJSONMeta.Custom[k])
+		}
 	}
 }
