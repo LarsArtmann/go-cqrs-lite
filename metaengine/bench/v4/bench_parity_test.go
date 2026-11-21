@@ -13,6 +13,41 @@ import (
 // foundation for multi-engine routing: if Memory and SQLite disagree, the
 // planner's routing decisions are meaningless.
 
+// applyAll seeds every event into the store, failing the test on the first
+// rejected apply.
+func applyAll(t *testing.T, ctx context.Context, store *metaengine.Store, events []promiseEvent) {
+	t.Helper()
+
+	for _, e := range events {
+		if err := store.Apply(ctx, e.typeName, e.payload); err != nil {
+			t.Fatalf("apply %s: %v", e.typeName, err)
+		}
+	}
+}
+
+// requireParity executes the same typed query against both stores and hands
+// the result pair to compare for the engine-divergence assertion.
+func requireParity[Q, R any](
+	t *testing.T,
+	ctx context.Context,
+	memStore, sqlStore *metaengine.Store,
+	query Q,
+	name string,
+	compare func(t *testing.T, memResult, sqlResult R),
+) {
+	t.Helper()
+
+	memResult, err := metaengine.ExecuteTyped[Q, R](ctx, memStore, query)
+	if err != nil {
+		t.Fatalf("memory %s: %v", name, err)
+	}
+	sqlResult, err := metaengine.ExecuteTyped[Q, R](ctx, sqlStore, query)
+	if err != nil {
+		t.Fatalf("sqlite %s: %v", name, err)
+	}
+	compare(t, memResult, sqlResult)
+}
+
 // TestPromise_CrossEngine_ParityAtScale seeds 5K events through both a
 // memory-only and a memory+sqlite store, then verifies all queries return
 // identical results. This catches reify bugs, serialization divergence, and
@@ -27,120 +62,61 @@ func TestPromise_CrossEngine_ParityAtScale(t *testing.T) {
 	// Run against memory-only.
 	memStore := planPromiseStore(t, []metaengine.Engine{metaengine.NewMemoryEngine()})
 	defer memStore.Close()
-	for _, e := range events {
-		if err := memStore.Apply(ctx, e.typeName, e.payload); err != nil {
-			t.Fatalf("memory Apply %s: %v", e.typeName, err)
-		}
-	}
+	applyAll(t, ctx, memStore, events)
 
 	// Run against memory+sqlite.
 	eng, db := newSQLiteEngine()
 	defer metaengine.DeferClose(db)
 	sqlStore := planPromiseStore(t, []metaengine.Engine{metaengine.NewMemoryEngine(), eng})
 	defer sqlStore.Close()
-	for _, e := range events {
-		if err := sqlStore.Apply(ctx, e.typeName, e.payload); err != nil {
-			t.Fatalf("sqlite Apply %s: %v", e.typeName, err)
-		}
-	}
+	applyAll(t, ctx, sqlStore, events)
 
 	// Compare results for each query type.
 	orderID := OrderID("ord-000000")
 	customerID := CustomerID("cus-000")
 
 	// 1. find_order (Map point lookup).
-	memOrder, err := metaengine.ExecuteTyped[FindOrderInput, OrderView](
-		ctx,
-		memStore,
-		FindOrderInput{ID: orderID},
-	)
-	if err != nil {
-		t.Fatalf("memory find_order: %v", err)
-	}
-	sqlOrder, err := metaengine.ExecuteTyped[FindOrderInput, OrderView](
-		ctx,
-		sqlStore,
-		FindOrderInput{ID: orderID},
-	)
-	if err != nil {
-		t.Fatalf("sqlite find_order: %v", err)
-	}
-	if !reflect.DeepEqual(memOrder, sqlOrder) {
-		t.Errorf("find_order divergence: memory=%+v sqlite=%+v", memOrder, sqlOrder)
-	}
+	requireParity(t, ctx, memStore, sqlStore, FindOrderInput{ID: orderID}, "find_order",
+		func(t *testing.T, memOrder, sqlOrder OrderView) {
+			if !reflect.DeepEqual(memOrder, sqlOrder) {
+				t.Errorf("find_order divergence: memory=%+v sqlite=%+v", memOrder, sqlOrder)
+			}
+		})
 
 	// 2. count_by_status (Counter aggregate).
-	memCounts, err := metaengine.ExecuteTyped[CountOrdersByStatusInput, map[string]int64](
-		ctx,
-		memStore,
-		CountOrdersByStatusInput{},
-	)
-	if err != nil {
-		t.Fatalf("memory count_by_status: %v", err)
-	}
-	sqlCounts, err := metaengine.ExecuteTyped[CountOrdersByStatusInput, map[string]int64](
-		ctx,
-		sqlStore,
-		CountOrdersByStatusInput{},
-	)
-	if err != nil {
-		t.Fatalf("sqlite count_by_status: %v", err)
-	}
-	for k, mv := range memCounts {
-		if sv, ok := sqlCounts[k]; !ok || sv != mv {
-			t.Errorf("count_by_status divergence for %s: memory=%d sqlite=%d(exists=%v)",
-				k, mv, sv, ok)
-		}
-	}
+	requireParity(t, ctx, memStore, sqlStore, CountOrdersByStatusInput{}, "count_by_status",
+		func(t *testing.T, memCounts, sqlCounts map[string]int64) {
+			for k, mv := range memCounts {
+				if sv, ok := sqlCounts[k]; !ok || sv != mv {
+					t.Errorf("count_by_status divergence for %s: memory=%d sqlite=%d(exists=%v)",
+						k, mv, sv, ok)
+				}
+			}
+		})
 
 	// 3. orders_by_customer (Multimap lookup).
-	memOrders, err := metaengine.ExecuteTyped[OrdersByCustomerInput, []OrderID](
-		ctx,
-		memStore,
-		OrdersByCustomerInput{Customer: customerID},
-	)
-	if err != nil {
-		t.Fatalf("memory orders_by_customer: %v", err)
-	}
-	sqlOrders, err := metaengine.ExecuteTyped[OrdersByCustomerInput, []OrderID](
-		ctx,
-		sqlStore,
-		OrdersByCustomerInput{Customer: customerID},
-	)
-	if err != nil {
-		t.Fatalf("sqlite orders_by_customer: %v", err)
-	}
-	if len(memOrders) != len(sqlOrders) {
-		t.Errorf(
-			"orders_by_customer length divergence: memory=%d sqlite=%d",
-			len(memOrders),
-			len(sqlOrders),
-		)
-	}
+	requireParity(t, ctx, memStore, sqlStore, OrdersByCustomerInput{Customer: customerID},
+		"orders_by_customer",
+		func(t *testing.T, memOrders, sqlOrders []OrderID) {
+			if len(memOrders) != len(sqlOrders) {
+				t.Errorf(
+					"orders_by_customer length divergence: memory=%d sqlite=%d",
+					len(memOrders),
+					len(sqlOrders),
+				)
+			}
+		})
 
 	// 4. total_revenue (Counter sum).
-	memRev, err := metaengine.ExecuteTyped[TotalRevenueInput, map[string]int64](
-		ctx,
-		memStore,
-		TotalRevenueInput{},
-	)
-	if err != nil {
-		t.Fatalf("memory total_revenue: %v", err)
-	}
-	sqlRev, err := metaengine.ExecuteTyped[TotalRevenueInput, map[string]int64](
-		ctx,
-		sqlStore,
-		TotalRevenueInput{},
-	)
-	if err != nil {
-		t.Fatalf("sqlite total_revenue: %v", err)
-	}
-	for k, mv := range memRev {
-		if sv, ok := sqlRev[k]; !ok || sv != mv {
-			t.Errorf("total_revenue divergence for %s: memory=%d sqlite=%d(exists=%v)",
-				k, mv, sv, ok)
-		}
-	}
+	requireParity(t, ctx, memStore, sqlStore, TotalRevenueInput{}, "total_revenue",
+		func(t *testing.T, memRev, sqlRev map[string]int64) {
+			for k, mv := range memRev {
+				if sv, ok := sqlRev[k]; !ok || sv != mv {
+					t.Errorf("total_revenue divergence for %s: memory=%d sqlite=%d(exists=%v)",
+						k, mv, sv, ok)
+				}
+			}
+		})
 
 	t.Logf("parity verified across %d events: all queries agree", n)
 }

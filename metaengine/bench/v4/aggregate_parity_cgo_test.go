@@ -65,6 +65,94 @@ func seedParityAggData(t *testing.T, ctx context.Context, eng metaengine.Engine)
 	}
 }
 
+// runAggParityOnAll runs the same aggregate call on every engine fixture
+// and verifies they all agree on the result.
+func runAggParityOnAll(
+	t *testing.T,
+	engines []aggEngineFixture,
+	label string,
+	fn func(metaengine.Engine) (float64, error),
+) {
+	t.Helper()
+
+	var first float64
+
+	var firstEng string
+
+	for i, fx := range engines {
+		got, err := fn(fx.eng)
+		if err != nil {
+			t.Fatalf("%s: %s engine error: %v", label, fx.name, err)
+		}
+
+		if i == 0 {
+			first = got
+			firstEng = fx.name
+		} else if got != first {
+			t.Errorf("%s: %s=%v, %s=%v", label, firstEng, first, fx.name, got)
+		}
+	}
+}
+
+// runScalarAggParity verifies the five unfiltered scalar aggregates agree
+// across engines, with a label prefix separating the standard and
+// planned-table harnesses.
+func runScalarAggParity(t *testing.T, ctx context.Context, engines []aggEngineFixture, labelPrefix string) {
+	t.Helper()
+
+	scalars := []struct {
+		label  string
+		fn     metaengine.AggregateFn
+		column string
+	}{
+		{"Count", metaengine.AggregateCount, ""},
+		{"Sum", metaengine.AggregateSum, "price"},
+		{"Min", metaengine.AggregateMin, "price"},
+		{"Max", metaengine.AggregateMax, "price"},
+		{"Avg", metaengine.AggregateAvg, "price"},
+	}
+
+	for _, agg := range scalars {
+		fn, column := agg.fn, agg.column
+		runAggParityOnAll(t, engines, labelPrefix+agg.label, func(e metaengine.Engine) (float64, error) {
+			return e.(metaengine.AggregateReader).Aggregate(ctx, "items", fn, column, nil)
+		})
+	}
+}
+
+// runFilteredScalarAggParity verifies the five scalar aggregates agree
+// across engines when pushed through one filter, labeled by its suffix
+// (e.g. "open" for the status=open equality filter).
+func runFilteredScalarAggParity(
+	t *testing.T,
+	ctx context.Context,
+	engines []aggEngineFixture,
+	filter []metaengine.FilterSpec,
+	labelSuffix string,
+) {
+	t.Helper()
+
+	scalars := []struct {
+		label  string
+		fn     metaengine.AggregateFn
+		column string
+	}{
+		{"Count", metaengine.AggregateCount, ""},
+		{"Sum", metaengine.AggregateSum, "price"},
+		{"Min", metaengine.AggregateMin, "price"},
+		{"Max", metaengine.AggregateMax, "price"},
+		{"Avg", metaengine.AggregateAvg, "price"},
+	}
+
+	for _, agg := range scalars {
+		fn, column := agg.fn, agg.column
+		runAggParityOnAll(t, engines, "Filtered"+agg.label+"/"+labelSuffix,
+			func(e metaengine.Engine) (float64, error) {
+				return e.(metaengine.AggregateReader).Aggregate(ctx, "items", fn, column, filter)
+			})
+	}
+}
+
 func TestAggregateParity_DuckDB_vs_SQLite(t *testing.T) { //nolint:tparallel
 	t.Parallel()
 
@@ -75,57 +163,10 @@ func TestAggregateParity_DuckDB_vs_SQLite(t *testing.T) { //nolint:tparallel
 		seedParityAggData(t, ctx, fx.eng)
 	}
 
-	// Helper to run the same aggregate call on all engines and verify equality.
-	runOnAll := func(t *testing.T, label string, fn func(metaengine.Engine) (float64, error)) {
-		t.Helper()
-
-		var first float64
-
-		var firstEng string
-
-		for i, fx := range engines {
-			got, err := fn(fx.eng)
-			if err != nil {
-				t.Fatalf("%s: %s engine error: %v", label, fx.name, err)
-			}
-
-			if i == 0 {
-				first = got
-				firstEng = fx.name
-			} else if got != first {
-				t.Errorf("%s: %s=%v, %s=%v", label, firstEng, first, fx.name, got)
-			}
-		}
-	}
-
-	// Scalar aggregates
-	runOnAll(t, "Count", func(e metaengine.Engine) (float64, error) {
-		return e.(metaengine.AggregateReader).Aggregate(ctx, "items",
-			metaengine.AggregateCount, "", nil)
-	})
-
-	runOnAll(t, "Sum", func(e metaengine.Engine) (float64, error) {
-		return e.(metaengine.AggregateReader).Aggregate(ctx, "items",
-			metaengine.AggregateSum, "price", nil)
-	})
-
-	runOnAll(t, "Min", func(e metaengine.Engine) (float64, error) {
-		return e.(metaengine.AggregateReader).Aggregate(ctx, "items",
-			metaengine.AggregateMin, "price", nil)
-	})
-
-	runOnAll(t, "Max", func(e metaengine.Engine) (float64, error) {
-		return e.(metaengine.AggregateReader).Aggregate(ctx, "items",
-			metaengine.AggregateMax, "price", nil)
-	})
-
-	runOnAll(t, "Avg", func(e metaengine.Engine) (float64, error) {
-		return e.(metaengine.AggregateReader).Aggregate(ctx, "items",
-			metaengine.AggregateAvg, "price", nil)
-	})
+	runScalarAggParity(t, ctx, engines, "")
 
 	// Grouped aggregates
-	runOnAll(t, "GroupedCount/open", func(e metaengine.Engine) (float64, error) {
+	runAggParityOnAll(t, engines, "GroupedCount/open", func(e metaengine.Engine) (float64, error) {
 		m, err := e.(metaengine.GroupedAggregateReader).GroupedAggregate(ctx, "items",
 			metaengine.AggregateCount, "", "status", nil)
 		if err != nil {
@@ -135,7 +176,7 @@ func TestAggregateParity_DuckDB_vs_SQLite(t *testing.T) { //nolint:tparallel
 		return m["open"], nil
 	})
 
-	runOnAll(t, "GroupedSum/closed", func(e metaengine.Engine) (float64, error) {
+	runAggParityOnAll(t, engines, "GroupedSum/closed", func(e metaengine.Engine) (float64, error) {
 		m, err := e.(metaengine.GroupedAggregateReader).GroupedAggregate(ctx, "items",
 			metaengine.AggregateSum, "price", "status", nil)
 		if err != nil {
@@ -145,7 +186,7 @@ func TestAggregateParity_DuckDB_vs_SQLite(t *testing.T) { //nolint:tparallel
 		return m["closed"], nil
 	})
 
-	runOnAll(t, "GroupedAvg/open", func(e metaengine.Engine) (float64, error) {
+	runAggParityOnAll(t, engines, "GroupedAvg/open", func(e metaengine.Engine) (float64, error) {
 		m, err := e.(metaengine.GroupedAggregateReader).GroupedAggregate(ctx, "items",
 			metaengine.AggregateAvg, "price", "status", nil)
 		if err != nil {
@@ -156,7 +197,7 @@ func TestAggregateParity_DuckDB_vs_SQLite(t *testing.T) { //nolint:tparallel
 	})
 
 	// MultiAggregate
-	runOnAll(t, "MultiAggregate/cnt", func(e metaengine.Engine) (float64, error) {
+	runAggParityOnAll(t, engines, "MultiAggregate/cnt", func(e metaengine.Engine) (float64, error) {
 		m, err := e.(metaengine.MultiAggregateReader).MultiAggregate(ctx, "items",
 			[]metaengine.AggregateSpec{
 				{Fn: metaengine.AggregateCount, Alias: "cnt"},
@@ -169,7 +210,7 @@ func TestAggregateParity_DuckDB_vs_SQLite(t *testing.T) { //nolint:tparallel
 		return m["cnt"], nil
 	})
 
-	runOnAll(t, "MultiAggregate/total", func(e metaengine.Engine) (float64, error) {
+	runAggParityOnAll(t, engines, "MultiAggregate/total", func(e metaengine.Engine) (float64, error) {
 		m, err := e.(metaengine.MultiAggregateReader).MultiAggregate(ctx, "items",
 			[]metaengine.AggregateSpec{
 				{Fn: metaengine.AggregateCount, Alias: "cnt"},
@@ -184,73 +225,94 @@ func TestAggregateParity_DuckDB_vs_SQLite(t *testing.T) { //nolint:tparallel
 
 	// MultiGroupedAggregate — compare row count and per-group values
 	t.Run("MultiGroupedAggregate", func(t *testing.T) {
-		type result struct {
-			group  string
-			values map[string]float64
-		}
-
-		var prev []result
-
-		for _, fx := range engines {
-			rows, err := fx.eng.(metaengine.MultiGroupedAggregateReader).MultiGroupedAggregate(
-				ctx, "items",
-				[]metaengine.AggregateSpec{
-					{Fn: metaengine.AggregateCount, Alias: "cnt"},
-					{Fn: metaengine.AggregateSum, Column: "price", Alias: "total"},
-					{Fn: metaengine.AggregateAvg, Column: "price", Alias: "avg"},
-				}, "status", nil)
-			if err != nil {
-				t.Fatalf("%s: MultiGroupedAggregate: %v", fx.name, err)
-			}
-
-			got := make([]result, len(rows))
-			for i, r := range rows {
-				got[i] = result{group: r.Group, values: r.Values}
-			}
-
-			sort.Slice(got, func(i, j int) bool { return got[i].group < got[j].group })
-
-			if prev == nil {
-				prev = got
-			} else {
-				if len(prev) != len(got) {
-					t.Errorf("row count mismatch: %d vs %d", len(prev), len(got))
-				}
-
-				for i := range prev {
-					if prev[i].group != got[i].group {
-						t.Errorf("group mismatch at %d: %q vs %q", i, prev[i].group, got[i].group)
-					}
-
-					for k, v := range prev[i].values {
-						if got[i].values[k] != v {
-							t.Errorf("group %s key %s: %v vs %v",
-								prev[i].group, k, v, got[i].values[k])
-						}
-					}
-				}
-			}
-		}
+		assertMultiGroupedAggParity(t, ctx, engines)
 	})
 
 	// DistinctValues — compare count and sorted values
 	t.Run("DistinctValues", func(t *testing.T) {
-		var prevCount int
+		assertDistinctValuesParity(t, ctx, engines, nil)
+	})
+}
 
-		for _, fx := range engines {
-			vals, err := fx.eng.(metaengine.DistinctReader).DistinctValues(
-				ctx, "items", "status", nil)
-			if err != nil {
-				t.Fatalf("%s: DistinctValues: %v", fx.name, err)
+// assertMultiGroupedAggParity compares MultiGroupedAggregate rows (group
+// keys and per-group values) across every engine fixture.
+func assertMultiGroupedAggParity(t *testing.T, ctx context.Context, engines []aggEngineFixture) {
+	t.Helper()
+
+	type result struct {
+		group  string
+		values map[string]float64
+	}
+
+	var prev []result
+
+	for _, fx := range engines {
+		rows, err := fx.eng.(metaengine.MultiGroupedAggregateReader).MultiGroupedAggregate(
+			ctx, "items",
+			[]metaengine.AggregateSpec{
+				{Fn: metaengine.AggregateCount, Alias: "cnt"},
+				{Fn: metaengine.AggregateSum, Column: "price", Alias: "total"},
+				{Fn: metaengine.AggregateAvg, Column: "price", Alias: "avg"},
+			}, "status", nil)
+		if err != nil {
+			t.Fatalf("%s: MultiGroupedAggregate: %v", fx.name, err)
+		}
+
+		got := make([]result, len(rows))
+		for i, r := range rows {
+			got[i] = result{group: r.Group, values: r.Values}
+		}
+
+		sort.Slice(got, func(i, j int) bool { return got[i].group < got[j].group })
+
+		if prev == nil {
+			prev = got
+		} else {
+			if len(prev) != len(got) {
+				t.Errorf("row count mismatch: %d vs %d", len(prev), len(got))
 			}
 
-			if prevCount == 0 {
-				prevCount = len(vals)
-			} else if prevCount != len(vals) {
-				t.Errorf("distinct count mismatch: %d vs %d", prevCount, len(vals))
+			for i := range prev {
+				if prev[i].group != got[i].group {
+					t.Errorf("group mismatch at %d: %q vs %q", i, prev[i].group, got[i].group)
+				}
+
+				for k, v := range prev[i].values {
+					if got[i].values[k] != v {
+						t.Errorf("group %s key %s: %v vs %v",
+							prev[i].group, k, v, got[i].values[k])
+					}
+				}
 			}
 		}
-	})
+	}
+}
+
+// assertDistinctValuesParity compares the distinct-value count for the
+// status column across every engine fixture, optionally through a filter.
+func assertDistinctValuesParity(
+	t *testing.T,
+	ctx context.Context,
+	engines []aggEngineFixture,
+	filter []metaengine.FilterSpec,
+) {
+	t.Helper()
+
+	var prevCount int
+
+	for _, fx := range engines {
+		vals, err := fx.eng.(metaengine.DistinctReader).DistinctValues(
+			ctx, "items", "status", filter)
+		if err != nil {
+			t.Fatalf("%s: DistinctValues: %v", fx.name, err)
+		}
+
+		if prevCount == 0 {
+			prevCount = len(vals)
+		} else if prevCount != len(vals) {
+			t.Errorf("distinct count mismatch: %d vs %d", prevCount, len(vals))
+		}
+	}
 }
 
 // TestAggregateParity_WithFilters verifies that filtered aggregates produce
@@ -274,67 +336,21 @@ func TestAggregateParity_WithFilters(t *testing.T) { //nolint:tparallel
 		{Column: "price", Op: metaengine.FilterGe, Value: float64(10)},
 	}
 
-	runOnAll := func(t *testing.T, label string, fn func(metaengine.Engine) (float64, error)) {
-		t.Helper()
-
-		var first float64
-
-		var firstEng string
-
-		for i, fx := range engines {
-			got, err := fn(fx.eng)
-			if err != nil {
-				t.Fatalf("%s: %s engine error: %v", label, fx.name, err)
-			}
-
-			if i == 0 {
-				first = got
-				firstEng = fx.name
-			} else if got != first {
-				t.Errorf("%s: %s=%v, %s=%v", label, firstEng, first, fx.name, got)
-			}
-		}
-	}
-
-	// Scalar aggregates with status=open filter
-	runOnAll(t, "FilteredCount/open", func(e metaengine.Engine) (float64, error) {
-		return e.(metaengine.AggregateReader).Aggregate(ctx, "items",
-			metaengine.AggregateCount, "", statusOpenFilter)
-	})
-
-	runOnAll(t, "FilteredSum/open", func(e metaengine.Engine) (float64, error) {
-		return e.(metaengine.AggregateReader).Aggregate(ctx, "items",
-			metaengine.AggregateSum, "price", statusOpenFilter)
-	})
-
-	runOnAll(t, "FilteredMin/open", func(e metaengine.Engine) (float64, error) {
-		return e.(metaengine.AggregateReader).Aggregate(ctx, "items",
-			metaengine.AggregateMin, "price", statusOpenFilter)
-	})
-
-	runOnAll(t, "FilteredMax/open", func(e metaengine.Engine) (float64, error) {
-		return e.(metaengine.AggregateReader).Aggregate(ctx, "items",
-			metaengine.AggregateMax, "price", statusOpenFilter)
-	})
-
-	runOnAll(t, "FilteredAvg/open", func(e metaengine.Engine) (float64, error) {
-		return e.(metaengine.AggregateReader).Aggregate(ctx, "items",
-			metaengine.AggregateAvg, "price", statusOpenFilter)
-	})
+	runFilteredScalarAggParity(t, ctx, engines, statusOpenFilter, "open")
 
 	// Numeric comparison filter: price >= 10
-	runOnAll(t, "FilteredCount/price_ge_10", func(e metaengine.Engine) (float64, error) {
+	runAggParityOnAll(t, engines, "FilteredCount/price_ge_10", func(e metaengine.Engine) (float64, error) {
 		return e.(metaengine.AggregateReader).Aggregate(ctx, "items",
 			metaengine.AggregateCount, "", priceGteFilter)
 	})
 
-	runOnAll(t, "FilteredSum/price_ge_10", func(e metaengine.Engine) (float64, error) {
+	runAggParityOnAll(t, engines, "FilteredSum/price_ge_10", func(e metaengine.Engine) (float64, error) {
 		return e.(metaengine.AggregateReader).Aggregate(ctx, "items",
 			metaengine.AggregateSum, "price", priceGteFilter)
 	})
 
 	// Grouped aggregate with filter
-	runOnAll(t, "FilteredGroupedCount/open", func(e metaengine.Engine) (float64, error) {
+	runAggParityOnAll(t, engines, "FilteredGroupedCount/open", func(e metaengine.Engine) (float64, error) {
 		m, err := e.(metaengine.GroupedAggregateReader).GroupedAggregate(ctx, "items",
 			metaengine.AggregateCount, "", "status", statusOpenFilter)
 		if err != nil {
@@ -345,7 +361,7 @@ func TestAggregateParity_WithFilters(t *testing.T) { //nolint:tparallel
 	})
 
 	// MultiAggregate with filter
-	runOnAll(t, "FilteredMulti/total_open", func(e metaengine.Engine) (float64, error) {
+	runAggParityOnAll(t, engines, "FilteredMulti/total_open", func(e metaengine.Engine) (float64, error) {
 		m, err := e.(metaengine.MultiAggregateReader).MultiAggregate(ctx, "items",
 			[]metaengine.AggregateSpec{
 				{Fn: metaengine.AggregateCount, Alias: "cnt"},
@@ -360,21 +376,7 @@ func TestAggregateParity_WithFilters(t *testing.T) { //nolint:tparallel
 
 	// DistinctValues with filter
 	t.Run("FilteredDistinct", func(t *testing.T) {
-		var prevCount int
-
-		for _, fx := range engines {
-			vals, err := fx.eng.(metaengine.DistinctReader).DistinctValues(
-				ctx, "items", "status", statusOpenFilter)
-			if err != nil {
-				t.Fatalf("%s: FilteredDistinctValues: %v", fx.name, err)
-			}
-
-			if prevCount == 0 {
-				prevCount = len(vals)
-			} else if prevCount != len(vals) {
-				t.Errorf("filtered distinct count mismatch: %d vs %d", prevCount, len(vals))
-			}
-		}
+		assertDistinctValuesParity(t, ctx, engines, statusOpenFilter)
 	})
 }
 
@@ -428,54 +430,9 @@ func TestAggregateParity_PlannedTable_DuckDB_vs_SQLite(t *testing.T) {
 		seedParityAggData(t, ctx, fx.eng)
 	}
 
-	runOnAll := func(label string, fn func(metaengine.Engine) (float64, error)) {
-		t.Helper()
+	runScalarAggParity(t, ctx, engines, "Planned")
 
-		var first float64
-
-		var firstEng string
-
-		for i, fx := range engines {
-			got, err := fn(fx.eng)
-			if err != nil {
-				t.Fatalf("%s: %s engine error: %v", label, fx.name, err)
-			}
-
-			if i == 0 {
-				first = got
-				firstEng = fx.name
-			} else if got != first {
-				t.Errorf("%s: %s=%v, %s=%v", label, firstEng, first, fx.name, got)
-			}
-		}
-	}
-
-	runOnAll("PlannedCount", func(e metaengine.Engine) (float64, error) {
-		return e.(metaengine.AggregateReader).Aggregate(ctx, "items",
-			metaengine.AggregateCount, "", nil)
-	})
-
-	runOnAll("PlannedSum", func(e metaengine.Engine) (float64, error) {
-		return e.(metaengine.AggregateReader).Aggregate(ctx, "items",
-			metaengine.AggregateSum, "price", nil)
-	})
-
-	runOnAll("PlannedMin", func(e metaengine.Engine) (float64, error) {
-		return e.(metaengine.AggregateReader).Aggregate(ctx, "items",
-			metaengine.AggregateMin, "price", nil)
-	})
-
-	runOnAll("PlannedMax", func(e metaengine.Engine) (float64, error) {
-		return e.(metaengine.AggregateReader).Aggregate(ctx, "items",
-			metaengine.AggregateMax, "price", nil)
-	})
-
-	runOnAll("PlannedAvg", func(e metaengine.Engine) (float64, error) {
-		return e.(metaengine.AggregateReader).Aggregate(ctx, "items",
-			metaengine.AggregateAvg, "price", nil)
-	})
-
-	runOnAll("PlannedGroupedCount/open", func(e metaengine.Engine) (float64, error) {
+	runAggParityOnAll(t, engines, "PlannedGroupedCount/open", func(e metaengine.Engine) (float64, error) {
 		m, err := e.(metaengine.GroupedAggregateReader).GroupedAggregate(ctx, "items",
 			metaengine.AggregateCount, "", "status", nil)
 		if err != nil {
@@ -485,7 +442,7 @@ func TestAggregateParity_PlannedTable_DuckDB_vs_SQLite(t *testing.T) {
 		return m["open"], nil
 	})
 
-	runOnAll("PlannedGroupedSum/closed", func(e metaengine.Engine) (float64, error) {
+	runAggParityOnAll(t, engines, "PlannedGroupedSum/closed", func(e metaengine.Engine) (float64, error) {
 		m, err := e.(metaengine.GroupedAggregateReader).GroupedAggregate(ctx, "items",
 			metaengine.AggregateSum, "price", "status", nil)
 		if err != nil {
