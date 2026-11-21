@@ -290,6 +290,37 @@ linters:
         - github.com/larsartmann/go-cqrs-lite/metaengine/v4\.ScanResult
         - github.com/larsartmann/go-cqrs-lite/metaengine/bboltengine/v4\.engineConfig
         - github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4\.engineConfig
+        # storage/pebble + storage/bbolt stores: shard slices, lock shards,
+        # iterator/batch state, and closed flags initialize lazily on first
+        # use — zero values are the armed-by-construction state.
+        - github.com/larsartmann/go-cqrs-lite/storage/pebble/v4\.KVAdapter
+        - github.com/larsartmann/go-cqrs-lite/storage/pebble/v4\.pebbleBatch
+        - github.com/larsartmann/go-cqrs-lite/storage/pebble/v4\.backendConfig
+        - github.com/larsartmann/go-cqrs-lite/storage/pebble/v4\.CheckpointStore
+        - github.com/larsartmann/go-cqrs-lite/storage/pebble/v4\.CommandStore
+        - github.com/larsartmann/go-cqrs-lite/storage/pebble/v4\.QueryStore
+        - github.com/larsartmann/go-cqrs-lite/storage/pebble/v4\.SnapshotStore
+        - github.com/larsartmann/go-cqrs-lite/storage/pebble/v4\.EventStore
+        - github.com/larsartmann/go-cqrs-lite/storage/pebble/v4\.pebbleEventIterator
+        - github.com/larsartmann/go-cqrs-lite/storage/bbolt/v4\.backendOptions
+        - github.com/larsartmann/go-cqrs-lite/storage/bbolt/v4\.CheckpointStore
+        - github.com/larsartmann/go-cqrs-lite/storage/bbolt/v4\.CommandStore
+        - github.com/larsartmann/go-cqrs-lite/storage/bbolt/v4\.KVAdapter
+        - github.com/larsartmann/go-cqrs-lite/storage/bbolt/v4\.bboltBatch
+        - github.com/larsartmann/go-cqrs-lite/storage/bbolt/v4\.bboltIterator
+        - github.com/larsartmann/go-cqrs-lite/storage/bbolt/v4\.batchOp
+        - github.com/larsartmann/go-cqrs-lite/storage/bbolt/v4\.QueryStore
+        - github.com/larsartmann/go-cqrs-lite/storage/bbolt/v4\.SnapshotStore
+        - github.com/larsartmann/go-cqrs-lite/storage/bbolt/v4\.EventStore
+        # loopback/quic transports: lazy subscriber/latency state and
+        # optional percentiles (absent = not yet measured).
+        - github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/loopback/v4\.config
+        - github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/loopback/v4\.LoopbackTransport
+        - github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/v4\.LatencySnapshot
+        - github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/quic/v4\.peerConn
+        - github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/quic/v4\.config
+        - github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/quic/v4\.QuicTransport
+        - github.com/larsartmann/go-cqrs-lite/metaengine/bigtableengine/v4\.Family
         # Hooks fields are optional observability seams (nil = unobserved);
         # Observer partially fills only the metric hooks it tracks.
         - github.com/larsartmann/go-cqrs-lite/metaengine/v4\.Hooks
@@ -696,6 +727,17 @@ linters:
       # predicate/tag-prefix tables — domain DATA (same class as the
       # keycodec seams: the reset test grows with the table by contract).
       - path: metaengine/(dgraphengine|bboltengine|badgerengine)/v4/reset\.go$
+        linters:
+          - gochecknoglobals
+      # mysqlengine reset.go (base-table list) and typed_wal.go (column
+      # list) hold schema DATA tables that migrate with the DDL.
+      - path: metaengine/mysqlengine/v4/(reset|typed_wal)\.go$
+        linters:
+          - gochecknoglobals
+      # loopback's CBOR codec modes are the fxamacker package-level idiom
+      # (build EncMode/DecMode once — per-call construction is the anti-
+      # pattern the library documents).
+      - path: metaengine/irohengine/loopback/v4/(conn|transport)\.go$
         linters:
           - gochecknoglobals
       # core/v5 carries the v4-mirror twins deliberately (D32 ruling:

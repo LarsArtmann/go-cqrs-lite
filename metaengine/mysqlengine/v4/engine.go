@@ -41,6 +41,15 @@ const MySQLNsPerOp = 12000.0
 // Models production MySQL (InnoDB B-tree index + buffer pool cache hit).
 const MySQLNsPerRead = 5000.0
 
+// MySQL per-row read priors (measured; see the ReadCosts comments and
+// METAENGINE-LIVE-LATENCY-MODEL.md).
+const (
+	MySQLNsPerPointLookup  = 5_000
+	MySQLNsPerRowFiltered  = 400
+	MySQLNsPerRowAggregate = 320
+	MySQLNsPerRowFullScan  = 800
+)
+
 // mysqlEngine implements metaengine.Engine with MySQL as the backend.
 var _ metaengine.TrackerHost = (*mysqlEngine)(nil)
 
@@ -199,14 +208,14 @@ func (e *mysqlEngine) Profile() metaengine.EngineProfile {
 		RequiresNetwork: true,
 		NetworkRTT:      MySQL_NetworkRTT,
 		ReadCosts: metaengine.ReadCosts{
-			NsPerPointLookup:  5_000,
-			NsPerFilteredScan: 400,
+			NsPerPointLookup:  MySQLNsPerPointLookup,
+			NsPerFilteredScan: MySQLNsPerRowFiltered,
 			// Measured ~321 ns/row (BenchmarkCalibration_MySQL_CounterGet,
 			// userspace MariaDB 11.4 2026-09-01). ADR-0133: ReadAggregate executes
 			// CounterGet over meta_counter — SQL SUM over meta_map is the typed
 			// AggregateReader path that bypasses the planner, not the priced one.
-			NsPerAggregate: 320,
-			NsPerScan:      800,
+			NsPerAggregate: MySQLNsPerRowAggregate,
+			NsPerScan:      MySQLNsPerRowFullScan,
 		},
 		Supports: map[metaengine.ADT]metaengine.Complexity{
 			metaengine.ADTMap:       metaengine.ComplexityOLogN,

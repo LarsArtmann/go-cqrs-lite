@@ -12,6 +12,9 @@ import (
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
+// kvTupleWidth is the arity of one (col,key,val) placeholder tuple.
+const kvTupleWidth = 3
+
 // keyCol is the backtick-escaped `key` column name (reserved in MySQL).
 const keyCol = "`key`"
 
@@ -160,7 +163,7 @@ func (e *mysqlEngine) CounterIncrement(
 	sort.Strings(keys) // deterministic placeholder ordering
 
 	placeholders := make([]string, len(keys))
-	args := make([]any, 0, len(keys)*3)
+	args := make([]any, 0, len(keys)*kvTupleWidth)
 
 	for i, key := range keys {
 		placeholders[i] = "(?, ?, ?)"

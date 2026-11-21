@@ -28,9 +28,12 @@ func txFromCtx(ctx context.Context) *sql.Tx {
 // NEVER engine-global state (the engine-global activeTx leaked transactions
 // to unrelated goroutines: dirty reads and "sql: Rows are closed"; ported
 // from sqliteengine 22ab7b218, 2026-09-20). A nested RunInTx is rejected.
+// errNestedTx rejects RunInTx calls made from inside an active RunInTx.
+var errNestedTx = errors.New("mysqlengine.RunInTx: nested transactions are not supported")
+
 func (e *mysqlEngine) RunInTx(ctx context.Context, fn func(context.Context) error) error {
 	if ctx.Value(txMarker{}) != nil {
-		return errors.New("mysqlengine.RunInTx: nested transactions are not supported")
+		return errNestedTx
 	}
 
 	e.mu.Lock()

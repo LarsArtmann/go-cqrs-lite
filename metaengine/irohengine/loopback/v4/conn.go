@@ -67,7 +67,9 @@ func (t *LoopbackTransport) handleConnection(conn net.Conn) {
 		}
 
 		if t.maxDelay > 0 {
-			time.Sleep(time.Duration(rand.Int63n(t.maxDelay.Nanoseconds())))
+			time.Sleep(
+				time.Duration(rand.Int63n(t.maxDelay.Nanoseconds())),
+			) // #nosec G404 -- synthetic network jitter, not a security value
 		}
 
 		t.mu.RLock()

@@ -32,6 +32,13 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/v4"
 )
 
+const (
+	// shutdownGrace bounds a Close-side channel wait.
+	shutdownGrace = 5 * time.Second
+	// percentile99 is the tail percentile both snapshot fields report.
+	percentile99 = 0.99
+)
+
 // maxOpSize is the maximum serialized WriteOp size accepted over a TCP connection.
 const maxOpSize = 16 * 1024 * 1024 // 16 MB
 
@@ -245,7 +252,7 @@ func (t *LoopbackTransport) Close() error {
 
 	select {
 	case <-done:
-	case <-time.After(5 * time.Second):
+	case <-time.After(shutdownGrace):
 	}
 
 	return nil
@@ -264,11 +271,12 @@ func (t *LoopbackTransport) LatencySnapshot() irohengine.LatencySnapshot {
 
 	sorted := irohengine.SortDurations(samples)
 	p50 := sorted[len(sorted)/2]
+	_ = p50 // used below
 
 	return irohengine.LatencySnapshot{
 		DeliveryP50:    p50,
-		DeliveryP99:    sorted[irohengine.PercentileIdx(len(sorted), 0.99)],
-		ConvergenceP99: sorted[irohengine.PercentileIdx(len(sorted), 0.99)],
+		DeliveryP99:    sorted[irohengine.PercentileIdx(len(sorted), percentile99)],
+		ConvergenceP99: sorted[irohengine.PercentileIdx(len(sorted), percentile99)],
 	}
 }
 

@@ -37,36 +37,36 @@ func waitForPeers(t *testing.T, transports []*loopback.LoopbackTransport, expect
 
 func setupTwoNodeLoopback(
 	t *testing.T,
-) (nodeA, nodeB metaengine.Engine, tA, tB *loopback.LoopbackTransport) {
+) (metaengine.Engine, metaengine.Engine, *loopback.LoopbackTransport, *loopback.LoopbackTransport) {
 	t.Helper()
 	g := gomega.NewWithT(t)
 
-	tA, err := loopback.New()
+	transportA, err := loopback.New()
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
-	tB, err = loopback.New()
+	transportB, err := loopback.New()
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
-	nodeA = irohengine.Replicated(
+	engineA := irohengine.Replicated(
 		metaengine.NewMemoryEngine(),
 		irohengine.WithAuthor("node-a"),
-		irohengine.WithTransport(tA),
+		irohengine.WithTransport(transportA),
 	)
-	nodeB = irohengine.Replicated(
+	engineB := irohengine.Replicated(
 		metaengine.NewMemoryEngine(),
 		irohengine.WithAuthor("node-b"),
-		irohengine.WithTransport(tB),
+		irohengine.WithTransport(transportB),
 	)
 
-	g.Expect(tB.Connect(tA.Addr())).To(gomega.Succeed())
-	waitForPeers(t, []*loopback.LoopbackTransport{tA, tB}, 1)
+	g.Expect(transportB.Connect(transportA.Addr())).To(gomega.Succeed())
+	waitForPeers(t, []*loopback.LoopbackTransport{transportA, transportB}, 1)
 
 	t.Cleanup(func() {
-		_ = tA.Close()
-		_ = tB.Close()
+		_ = transportA.Close()
+		_ = transportB.Close()
 	})
 
-	return nodeA, nodeB, tA, tB
+	return engineA, engineB, transportA, transportB
 }
 
 func TestLoopbackConvergenceSuite(t *testing.T) {
@@ -100,24 +100,24 @@ func TestLoopbackFrameEncodingRoundTrip(t *testing.T) {
 	t.Parallel()
 	g := gomega.NewWithT(t)
 
-	tA, err := loopback.New()
+	transportA, err := loopback.New()
 	g.Expect(err).NotTo(gomega.HaveOccurred())
-	t.Cleanup(func() { _ = tA.Close() })
+	t.Cleanup(func() { _ = transportA.Close() })
 
-	tB, err := loopback.New()
+	transportB, err := loopback.New()
 	g.Expect(err).NotTo(gomega.HaveOccurred())
-	t.Cleanup(func() { _ = tB.Close() })
+	t.Cleanup(func() { _ = transportB.Close() })
 
 	var mu sync.Mutex
 	var received []irohengine.WriteOp
-	g.Expect(tB.Subscribe(func(op irohengine.WriteOp) {
+	g.Expect(transportB.Subscribe(func(op irohengine.WriteOp) {
 		mu.Lock()
 		received = append(received, op)
 		mu.Unlock()
 	})).To(gomega.Succeed())
 
-	g.Expect(tB.Connect(tA.Addr())).To(gomega.Succeed())
-	waitForPeers(t, []*loopback.LoopbackTransport{tA, tB}, 1)
+	g.Expect(transportB.Connect(transportA.Addr())).To(gomega.Succeed())
+	waitForPeers(t, []*loopback.LoopbackTransport{transportA, transportB}, 1)
 
 	ops := []irohengine.WriteOp{
 		{ID: "op1", Collection: "c", Kind: irohengine.OpMapSet, Key: "k", Value: "v"},
@@ -131,7 +131,7 @@ func TestLoopbackFrameEncodingRoundTrip(t *testing.T) {
 	}
 
 	for _, op := range ops {
-		g.Expect(tA.Publish(context.Background(), op)).To(gomega.Succeed())
+		g.Expect(transportA.Publish(context.Background(), op)).To(gomega.Succeed())
 	}
 
 	g.Eventually(func(g gomega.Gomega) {

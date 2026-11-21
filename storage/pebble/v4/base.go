@@ -30,11 +30,17 @@ const shardCount = 64
 
 // shardIndex maps a key to its lock shard via FNV-1a. Own function so the
 // uint32→int conversion stays isolated (gosec G115).
+// FNV-1a constants (the hash used ONLY for lock-shard selection).
+const (
+	fnv1aOffsetBasis uint32 = 2166136261
+	fnv1aPrime       uint32 = 16777619
+)
+
 func shardIndex(key []byte) int {
-	h := uint32(2166136261)
+	h := fnv1aOffsetBasis
 	for _, c := range key {
 		h ^= uint32(c)
-		h *= 16777619
+		h *= fnv1aPrime
 	}
 
 	return int(h & (shardCount - 1))
