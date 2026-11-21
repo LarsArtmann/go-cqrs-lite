@@ -13,6 +13,9 @@ import (
 // errNoSpecs rejects empty MultiAggregate spec lists.
 var errNoSpecs = errors.New("duckdbengine.MultiAggregate: no specs provided")
 
+// errNoGroupedSpecs rejects empty MultiGroupedAggregate spec lists.
+var errNoGroupedSpecs = errors.New("duckdbengine.MultiGroupedAggregate: no specs provided")
+
 // art-dupl:accept cross-engine structural parallelism with
 // sqliteengine/aggregations_grouped.go — same algorithm, different SQL dialects.
 
@@ -97,32 +100,7 @@ func appendDuckDBFilter(
 		}
 	}
 	if f.Op == metaengine.FilterIn {
-		values, ok := f.Value.([]any)
-		if !ok || len(values) == 0 {
-			return
-		}
-
-		placeholders := make([]string, len(values))
-		for i, v := range values {
-			if plan.Table != "" {
-				placeholders[i] = fmt.Sprintf("$%d", *argIdx)
-				*args = append(*args, v)
-			} else {
-				jb, _ := json.Marshal(v)
-				placeholders[i] = fmt.Sprintf("$%d::json", *argIdx)
-				*args = append(*args, string(jb))
-			}
-
-			*argIdx++
-		}
-
-		fmt.Fprintf(
-			b,
-			"%s%s IN (%s)",
-			connector,
-			columnExpr(f.Column, plan),
-			strings.Join(placeholders, ", "),
-		)
+		appendDuckDBFilterIn(b, args, argIdx, connector, f, plan)
 	} else {
 		isNumericOp := f.Op == metaengine.FilterLt || f.Op == metaengine.FilterLe ||
 			f.Op == metaengine.FilterGt || f.Op == metaengine.FilterGe
@@ -156,6 +134,46 @@ func appendDuckDBFilter(
 
 		*argIdx++
 	}
+}
+
+// appendDuckDBFilterIn renders the IN (...) arm of appendDuckDBFilter: one
+// placeholder per value ($N on the planned path, $N::json otherwise). Empty
+// or non-list values render nothing — same as the caller's other arms, the
+// connector is only ever written as part of a predicate.
+func appendDuckDBFilterIn(
+	b *strings.Builder,
+	args *[]any,
+	argIdx *int,
+	connector string,
+	f metaengine.FilterSpec,
+	plan metaengine.LayoutPlan,
+) {
+	values, ok := f.Value.([]any)
+	if !ok || len(values) == 0 {
+		return
+	}
+
+	placeholders := make([]string, len(values))
+	for i, v := range values {
+		if plan.Table != "" {
+			placeholders[i] = fmt.Sprintf("$%d", *argIdx)
+			*args = append(*args, v)
+		} else {
+			jb, _ := json.Marshal(v)
+			placeholders[i] = fmt.Sprintf("$%d::json", *argIdx)
+			*args = append(*args, string(jb))
+		}
+
+		*argIdx++
+	}
+
+	fmt.Fprintf(
+		b,
+		"%s%s IN (%s)",
+		connector,
+		columnExpr(f.Column, plan),
+		strings.Join(placeholders, ", "),
+	)
 }
 
 // fromClause returns the FROM clause + initial WHERE collection filter.
@@ -497,7 +515,7 @@ func (e *duckdbEngine) MultiGroupedAggregate(
 	filters []metaengine.FilterSpec,
 ) ([]metaengine.GroupedAggregateRow, error) {
 	if len(specs) == 0 {
-		return nil, errors.New("duckdbengine.MultiGroupedAggregate: no specs provided")
+		return nil, errNoGroupedSpecs
 	}
 
 	for i, s := range specs {

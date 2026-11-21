@@ -740,9 +740,9 @@ linters:
       - path: metaengine/(dgraphengine|bboltengine|badgerengine)/v4/reset\.go$
         linters:
           - gochecknoglobals
-      # mysqlengine reset.go (base-table list) and typed_wal.go (column
-      # list) hold schema DATA tables that migrate with the DDL.
-      - path: metaengine/mysqlengine/v4/(reset|typed_wal)\.go$
+      # mysqlengine/duckdbengine reset.go (base-table list) and typed_wal.go
+      # (column list) hold schema DATA tables that migrate with the DDL.
+      - path: metaengine/(mysqlengine|duckdbengine)/v4/(reset|typed_wal)\.go$
         linters:
           - gochecknoglobals
       # tursoengine dsn.go's knownDSNParams is the strict-DSN allowlist —

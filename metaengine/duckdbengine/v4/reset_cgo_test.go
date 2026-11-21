@@ -80,6 +80,25 @@ func TestResetEngine_ClearsEveryADT(t *testing.T) {
 		t.Fatalf("ResetEngine: %v", err)
 	}
 
+	assertDuckADTsAfterReset(t, eng, mb, cb, sl, claimer, dedup)
+}
+
+// assertDuckADTsAfterReset pins the split-brain reset contract: every
+// materialized ADT (map, counter, claims, dedup, graph) is empty, while the
+// stream log — journal facts per ADR-0143 — survives untouched.
+func assertDuckADTsAfterReset(
+	t *testing.T,
+	eng metaengine.Engine,
+	mb metaengine.MapBackend,
+	cb metaengine.CounterBackend,
+	sl metaengine.StreamLogBackend,
+	claimer metaengine.DueClaimer,
+	dedup metaengine.DedupStore,
+) {
+	t.Helper()
+
+	ctx := context.Background()
+
 	if _, ok, err := mb.MapGet(ctx, "tasks", "t1"); err != nil || ok {
 		t.Fatalf("map must be empty after reset (ok=%v err=%v)", ok, err)
 	}

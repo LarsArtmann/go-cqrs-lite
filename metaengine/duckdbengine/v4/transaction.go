@@ -12,6 +12,9 @@ import (
 // txMarker keys the context value carrying the active transaction.
 type txMarker struct{}
 
+// errNestedTx rejects RunInTx calls made from inside another RunInTx.
+var errNestedTx = errors.New("duckdbengine.RunInTx: nested transactions are not supported")
+
 // conn returns the ambient transaction when ctx descends from a RunInTx
 // callback, otherwise the engine's *sql.DB. Transaction affinity flows
 // through the context — NEVER engine-global state — so a transaction is
@@ -47,7 +50,7 @@ func txFromCtx(ctx context.Context) *sql.Tx {
 func (e *duckdbEngine) RunInTx(ctx context.Context, fn func(context.Context) error) error {
 	//art-dupl:accept same ctx-marker nested-tx rejection as sqliteengine — separate go.mod
 	if ctx.Value(txMarker{}) != nil {
-		return errors.New("duckdbengine.RunInTx: nested transactions are not supported")
+		return errNestedTx
 	}
 
 	e.mu.Lock()

@@ -293,6 +293,9 @@ func coerceInteger(value any) any {
 
 	rv := reflect.ValueOf(value)
 
+	// Numeric kinds only; every other Kind coerces to nil (the planner
+	// extracts only numeric columns), so the default arm is the intent.
+	//exhaustive:ignore
 	switch rv.Kind() {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		return rv.Int()
@@ -318,6 +321,9 @@ func coerceReal(value any) any {
 
 	rv := reflect.ValueOf(value)
 
+	// Numeric kinds only; every other Kind coerces to nil (the planner
+	// extracts only numeric columns), so the default arm is the intent.
+	//exhaustive:ignore
 	switch rv.Kind() {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		return float64(rv.Int())

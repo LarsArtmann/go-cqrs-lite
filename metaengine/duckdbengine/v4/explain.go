@@ -135,36 +135,7 @@ func (e *duckdbEngine) ExplainAggregateQuery(
 	args := initialArgs(collection, plan)
 	argIdx := initialArgIndex(plan)
 
-	// Determine SELECT clause.
-	if opts.Distinct != "" {
-		fmt.Fprintf(&b, "SELECT DISTINCT %s AS dv %s",
-			columnExpr(opts.Distinct, plan), fromClause(collection, plan))
-	} else if len(opts.Specs) > 0 {
-		selectCols := make([]string, len(opts.Specs))
-		for i, s := range opts.Specs {
-			selectCols[i] = fmt.Sprintf("%s AS %s",
-				aggExpr(s.Fn, s.Column, plan),
-				metaengine.QuoteIdent(s.AliasOr()))
-		}
-
-		if opts.GroupBy != "" {
-			fmt.Fprintf(&b, "SELECT %s, %s %s",
-				groupExpr(opts.GroupBy, plan)+" AS group_key",
-				strings.Join(selectCols, ", "),
-				fromClause(collection, plan))
-		} else {
-			fmt.Fprintf(&b, "SELECT %s %s",
-				strings.Join(selectCols, ", "), fromClause(collection, plan))
-		}
-	} else {
-		agg := aggExpr(opts.Fn, opts.Column, plan)
-		if opts.GroupBy != "" {
-			fmt.Fprintf(&b, "SELECT %s AS group_key, %s AS agg_val %s",
-				groupExpr(opts.GroupBy, plan), agg, fromClause(collection, plan))
-		} else {
-			fmt.Fprintf(&b, "SELECT %s %s", agg, fromClause(collection, plan))
-		}
-	}
+	writeAggregateSelect(&b, collection, opts, plan)
 
 	// WHERE / AND filters. The planned path's FROM has no WHERE, so the
 	// helper manages the WHERE/AND connector; the standard path's FROM
@@ -186,6 +157,52 @@ func (e *duckdbEngine) ExplainAggregateQuery(
 	}
 
 	return b.String(), args
+}
+
+// writeAggregateSelect emits the SELECT clause for an aggregate explain:
+// the Distinct form, the multi-spec form (with optional group_key), or the
+// single-fn form (with optional group_key).
+func writeAggregateSelect(
+	b *strings.Builder,
+	collection string,
+	opts metaengine.ExplainAggregateOptions,
+	plan metaengine.LayoutPlan,
+) {
+	if opts.Distinct != "" {
+		fmt.Fprintf(b, "SELECT DISTINCT %s AS dv %s",
+			columnExpr(opts.Distinct, plan), fromClause(collection, plan))
+
+		return
+	}
+
+	if len(opts.Specs) > 0 {
+		selectCols := make([]string, len(opts.Specs))
+		for i, s := range opts.Specs {
+			selectCols[i] = fmt.Sprintf("%s AS %s",
+				aggExpr(s.Fn, s.Column, plan),
+				metaengine.QuoteIdent(s.AliasOr()))
+		}
+
+		if opts.GroupBy != "" {
+			fmt.Fprintf(b, "SELECT %s, %s %s",
+				groupExpr(opts.GroupBy, plan)+" AS group_key",
+				strings.Join(selectCols, ", "),
+				fromClause(collection, plan))
+		} else {
+			fmt.Fprintf(b, "SELECT %s %s",
+				strings.Join(selectCols, ", "), fromClause(collection, plan))
+		}
+
+		return
+	}
+
+	agg := aggExpr(opts.Fn, opts.Column, plan)
+	if opts.GroupBy != "" {
+		fmt.Fprintf(b, "SELECT %s AS group_key, %s AS agg_val %s",
+			groupExpr(opts.GroupBy, plan), agg, fromClause(collection, plan))
+	} else {
+		fmt.Fprintf(b, "SELECT %s %s", agg, fromClause(collection, plan))
+	}
 }
 
 // Compile-time assertion.

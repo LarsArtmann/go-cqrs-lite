@@ -627,9 +627,23 @@ func TestDuckDBEngine_ColumnarAggregation(t *testing.T) {
 		}
 	}
 
-	// Run a vectorized GROUP BY directly on the columnar table. This is the
-	// killer feature of columnar-native storage: DuckDB aggregates native
-	// columns without decoding JSON blobs.
+	results := scanColumnarAggregations(t, db, ctx)
+	assertColumnarAggregations(t, results)
+}
+
+// columnarAgg is one per-category GROUP BY result row.
+type columnarAgg struct {
+	count       int
+	sumPrice    float64
+	avgQuantity float64
+}
+
+// scanColumnarAggregations runs the vectorized GROUP BY directly on the
+// columnar table — the killer feature of columnar-native storage: DuckDB
+// aggregates native columns without decoding JSON blobs.
+func scanColumnarAggregations(t *testing.T, db *sql.DB, ctx context.Context) map[string]columnarAgg {
+	t.Helper()
+
 	rows, err := db.QueryContext(
 		ctx,
 		`SELECT Category, COUNT(*), SUM(Price), AVG(Quantity) FROM meta_planned_products_agg GROUP BY Category ORDER BY Category`,
@@ -639,30 +653,24 @@ func TestDuckDBEngine_ColumnarAggregation(t *testing.T) {
 	}
 	defer metaengine.DeferClose(rows)
 
-	results := make(map[string]struct {
-		count       int
-		sumPrice    float64
-		avgQuantity float64
-	})
+	results := make(map[string]columnarAgg)
 	for rows.Next() {
 		var category string
-		var count int
-		var sumPrice float64
-		var avgQuantity float64
-		if err := rows.Scan(&category, &count, &sumPrice, &avgQuantity); err != nil {
+		var agg columnarAgg
+		if err := rows.Scan(&category, &agg.count, &agg.sumPrice, &agg.avgQuantity); err != nil {
 			t.Fatal(err)
 		}
-		results[category] = struct {
-			count       int
-			sumPrice    float64
-			avgQuantity float64
-		}{
-			count: count, sumPrice: sumPrice, avgQuantity: avgQuantity,
-		}
+		results[category] = agg
 	}
 	if err := rows.Err(); err != nil {
 		t.Fatal(err)
 	}
+
+	return results
+}
+
+func assertColumnarAggregations(t *testing.T, results map[string]columnarAgg) {
+	t.Helper()
 
 	fruit, ok := results["fruit"]
 	if !ok {
