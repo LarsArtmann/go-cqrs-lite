@@ -4,6 +4,13 @@ import (
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
+// Pebble per-row read priors (measured; see the ReadCosts comments).
+const (
+	PebbleNsPerRowFilteredScan = 830
+	PebbleNsPerRowAggregate    = 125
+	PebbleNsPerRowFullScan     = 700
+)
+
 func (e *pebbleEngine) Profile() metaengine.EngineProfile {
 	p := metaengine.EngineProfile{
 		Name:        "pebble",
@@ -20,13 +27,13 @@ func (e *pebbleEngine) Profile() metaengine.EngineProfile {
 			NsPerPointLookup: PebbleNsPerRead,
 			// ~833 ns/row (BenchmarkCalibration_Pebble_FilteredScan):
 			// ScanRawValues + Go-side PassesFilterSpecs over 10K rows, ~50% match.
-			NsPerFilteredScan: 830,
+			NsPerFilteredScan: PebbleNsPerRowFilteredScan,
 			// ~125 ns/row (BenchmarkCalibration_Pebble_CounterScan): CounterGet
 			// prefix scan over 1K counters — the ReadAggregate path.
-			NsPerAggregate: 125,
+			NsPerAggregate: PebbleNsPerRowAggregate,
 			// ~695 ns/row (BenchmarkCalibration_Pebble_FullScan): full
 			// ScanRawValues, JSON decode of every row.
-			NsPerScan: 700,
+			NsPerScan: PebbleNsPerRowFullScan,
 		},
 		Supports: map[metaengine.ADT]metaengine.Complexity{
 			metaengine.ADTMap:       metaengine.ComplexityO1, // LSM point read

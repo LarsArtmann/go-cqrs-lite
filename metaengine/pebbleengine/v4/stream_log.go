@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"sync/atomic"
 
 	"github.com/cockroachdb/pebble"
 
@@ -25,16 +24,13 @@ import (
 // nextStreamSeq returns the next sequence number for a stream.
 func (e *pebbleEngine) nextStreamSeq(col, sid string) int64 {
 	k := streamSeqKey(col, sid)
-	actual, _ := e.streamSeq.LoadOrStore(k, &atomic.Int64{})
 
-	return actual.(*atomic.Int64).Add(1)
+	return seqCounter(&e.streamSeq, k).Add(1)
 }
 
 // nextJournalSeq returns the next global journal sequence for a collection.
 func (e *pebbleEngine) nextJournalSeq(col string) int64 {
-	actual, _ := e.journalSeq.LoadOrStore(col, &atomic.Int64{})
-
-	return actual.(*atomic.Int64).Add(1)
+	return seqCounter(&e.journalSeq, col).Add(1)
 }
 
 func (e *pebbleEngine) StreamAppend(_ context.Context, col, sid string, values []any) error {

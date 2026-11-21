@@ -12,6 +12,10 @@ import (
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
+// indexIntOffset biases int64 to its uint64 rank so negative values
+// sort before positives in the zero-padded key form.
+const indexIntOffset = uint64(1 << 63)
+
 // Compile-time assertion that pebbleEngine implements LayoutPlanner.
 var _ metaengine.LayoutPlanner = (*pebbleEngine)(nil)
 
@@ -36,7 +40,7 @@ func layoutKeyPrefix(col, field, value string) []byte {
 // lexicographic byte comparison matches numeric comparison for ALL integers,
 // including negatives and mixed digit counts.
 func formatIndexInt(v int64) string {
-	return fmt.Sprintf("%020d", uint64(v)-uint64(1<<63))
+	return fmt.Sprintf("%020d", uint64(v)-indexIntOffset)
 }
 
 // encodeIndexValue converts a field value to an order-preserving string for
@@ -200,6 +204,10 @@ func (p layoutPlan) indexBounds(
 				return fp, vp, true
 			case metaengine.FilterLe:
 				return fp, nextKey(vp), true
+			case metaengine.FilterNe, metaengine.FilterIn:
+				// Not index-narrowable: these ops span the whole field
+				// range — the caller falls back to the unindexed scan.
+				return nil, nil, false
 			}
 		}
 	}

@@ -34,6 +34,21 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/keycodec"
 )
 
+// keySegments is the collection/key/value split arity of the KV key form.
+const keySegments = 3
+
+// errHealthCheckPanic anchors the health-check recover wrap.
+var errHealthCheckPanic = errors.New("pebble health check")
+
+// seqCounter returns (storing on first use) the per-key monotonic counter.
+// The type assertion cannot fail: every value in m is stored by this helper
+// as *atomic.Int64 at the same call site.
+func seqCounter(m *sync.Map, key string) *atomic.Int64 {
+	v, _ := m.LoadOrStore(key, new(atomic.Int64))
+
+	return v.(*atomic.Int64) //nolint:forcetypeassert // stored by this helper as *atomic.Int64
+}
+
 // sep is the key separator. Null byte sorts before all printable characters,
 // preventing collisions between collection names and keys.
 const sep = "\x00"
@@ -213,7 +228,7 @@ func (e *pebbleEngine) Close() error {
 func (e *pebbleEngine) HealthCheck(_ context.Context) (retErr error) {
 	defer func() {
 		if r := recover(); r != nil {
-			retErr = fmt.Errorf("pebble health check: %v", r)
+			retErr = fmt.Errorf("%w: %v", errHealthCheckPanic, r)
 		}
 	}()
 
@@ -537,8 +552,8 @@ func (e *pebbleEngine) CounterGet(_ context.Context, col string) (map[string]int
 		// Extract counter key from the full key: "c\x00{col}\x00{counterKey}".
 		keyStr := string(iter.Key())
 
-		parts := strings.SplitN(keyStr, sep, 3)
-		if len(parts) < 3 {
+		parts := strings.SplitN(keyStr, sep, keySegments)
+		if len(parts) < keySegments {
 			continue
 		}
 
@@ -600,9 +615,7 @@ func (e *pebbleEngine) MultiGet(_ context.Context, col string, key any) ([]any, 
 }
 
 func (e *pebbleEngine) nextMmSeq(col string) int64 {
-	actual, _ := e.mmSeq.LoadOrStore(col, &atomic.Int64{})
-
-	return actual.(*atomic.Int64).Add(1)
+	return seqCounter(&e.mmSeq, col).Add(1)
 }
 
 // --- LogBackend ---
@@ -668,9 +681,7 @@ func (e *pebbleEngine) LogTail(_ context.Context, col string, limit int) ([]any,
 }
 
 func (e *pebbleEngine) nextLogSeq(col string) int64 {
-	actual, _ := e.logSeq.LoadOrStore(col, &atomic.Int64{})
-
-	return actual.(*atomic.Int64).Add(1)
+	return seqCounter(&e.logSeq, col).Add(1)
 }
 
 // --- Helpers ---

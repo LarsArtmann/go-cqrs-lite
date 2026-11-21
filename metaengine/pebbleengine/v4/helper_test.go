@@ -36,10 +36,13 @@ func newPebbleEngineOrSkip(tb testing.TB) metaengine.Engine {
 // the engine plus its MapBackend facet (the LayoutPlanner assertion doubles
 // as a capability check before ApplyLayout).
 type layoutFixture struct {
-	ctx context.Context
 	eng metaengine.Engine
 	mb  metaengine.MapBackend
 }
+
+// fixtureCtx returns the per-call context (kept OUT of the struct so the
+// fixture never carries a context across calls).
+func fixtureCtx() context.Context { return context.Background() }
 
 // newLayoutFixture creates a fresh Pebble engine and applies a layout for
 // the given collection (filter fields, then sort fields).
@@ -47,7 +50,6 @@ func newLayoutFixture(tb testing.TB, col string, filterFields, sortFields []stri
 	tb.Helper()
 
 	f := layoutFixture{
-		ctx: context.Background(),
 		eng: mustNewPebbleEngine(tb),
 	}
 

@@ -15,7 +15,7 @@ func TestPebbleLayoutPlanner_SecondaryIndex(t *testing.T) {
 	t.Parallel()
 
 	f := newLayoutFixture(t, "users", []string{"status"}, nil)
-	ctx, eng, mb := f.ctx, f.eng, f.mb
+	ctx, eng, mb := fixtureCtx(), f.eng, f.mb
 
 	// Write 5 users: 3 active, 2 inactive.
 	users := []struct {
@@ -72,7 +72,7 @@ func TestPebbleLayoutPlanner_UpdateReindexes(t *testing.T) {
 	t.Parallel()
 
 	f := newLayoutFixture(t, "items", []string{"cat"}, nil)
-	ctx, eng, mb := f.ctx, f.eng, f.mb
+	ctx, eng, mb := fixtureCtx(), f.eng, f.mb
 
 	// Write with category "a".
 	_ = mb.MapSet(ctx, "items", "k1", map[string]any{"cat": "a", "val": 1})
@@ -115,7 +115,7 @@ func TestPebbleLayoutPlanner_DeleteRemovesIndex(t *testing.T) {
 	t.Parallel()
 
 	f := newLayoutFixture(t, "users", []string{"status"}, nil)
-	ctx, eng, mb := f.ctx, f.eng, f.mb
+	ctx, eng, mb := fixtureCtx(), f.eng, f.mb
 
 	// Write 3 active users.
 	for _, key := range []string{"u1", "u2", "u3"} {
@@ -166,7 +166,7 @@ func TestPebbleLayoutPlanner_MapUpdateReindexes(t *testing.T) {
 	t.Parallel()
 
 	f := newLayoutFixture(t, "items", []string{"cat"}, nil)
-	ctx, eng, mb := f.ctx, f.eng, f.mb
+	ctx, eng, mb := fixtureCtx(), f.eng, f.mb
 
 	// Write with cat="a".
 	if err := mb.MapSet(ctx, "items", "k1", map[string]any{"cat": "a", "val": 1}); err != nil {
@@ -223,7 +223,7 @@ func TestPebbleLayoutPlanner_RangeFilters(t *testing.T) {
 	t.Parallel()
 
 	f := newLayoutFixture(t, "items", []string{"score"}, nil)
-	ctx, eng, mb := f.ctx, f.eng, f.mb
+	ctx, eng, mb := fixtureCtx(), f.eng, f.mb
 
 	// Write items with scores: 10, 20, 30, 40, 50.
 	scores := []struct {
@@ -301,7 +301,7 @@ func TestPebbleLayoutPlanner_NumericRangeMixedDigits(t *testing.T) {
 	t.Parallel()
 
 	f := newLayoutFixture(t, "items", []string{"score"}, nil)
-	ctx, eng, mb := f.ctx, f.eng, f.mb
+	ctx, eng, mb := fixtureCtx(), f.eng, f.mb
 
 	// Scores with DIFFERENT digit counts: 5, 10, 100.
 	// Without type-aware encoding, "10" < "100" < "5" lexicographically,
@@ -370,7 +370,7 @@ func TestPebbleLayoutPlanner_SortIndexAscending(t *testing.T) {
 	t.Parallel()
 
 	f := newLayoutFixture(t, "tasks", nil, []string{"priority"})
-	ctx, eng, mb := f.ctx, f.eng, f.mb
+	ctx, eng, mb := fixtureCtx(), f.eng, f.mb
 
 	items := []struct {
 		key      string
@@ -401,7 +401,7 @@ func TestPebbleLayoutPlanner_SortIndexDescending(t *testing.T) {
 	t.Parallel()
 
 	f := newLayoutFixture(t, "tasks", nil, []string{"priority"})
-	ctx, eng, mb := f.ctx, f.eng, f.mb
+	ctx, eng, mb := fixtureCtx(), f.eng, f.mb
 
 	items := []struct {
 		key      string
@@ -432,7 +432,7 @@ func TestPebbleLayoutPlanner_SortIndexCursorAscending(t *testing.T) {
 	t.Parallel()
 
 	f := newLayoutFixture(t, "paged", nil, []string{"id"})
-	ctx, eng, mb := f.ctx, f.eng, f.mb
+	ctx, eng, mb := fixtureCtx(), f.eng, f.mb
 
 	for i := range 10 {
 		gomega.NewWithT(t).Expect(mb.MapSet(ctx, "paged", i, map[string]any{
@@ -464,7 +464,7 @@ func TestPebbleLayoutPlanner_SortIndexCursorDescending(t *testing.T) {
 	t.Parallel()
 
 	f := newLayoutFixture(t, "paged", nil, []string{"id"})
-	ctx, eng, mb := f.ctx, f.eng, f.mb
+	ctx, eng, mb := fixtureCtx(), f.eng, f.mb
 
 	for i := range 10 {
 		gomega.NewWithT(t).Expect(mb.MapSet(ctx, "paged", i, map[string]any{

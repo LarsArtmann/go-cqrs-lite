@@ -328,6 +328,10 @@ linters:
         - cloud\.google\.com/go/bigtable\.Family
         # CellVersion.Value is optional — zero = tombstone/absent value.
         - github.com/larsartmann/go-cqrs-lite/metaengine/v4\.CellVersion
+        # RawScanResult/kvPair: NextCursor and raw bytes are optional
+        # (absent = single page / no raw echo).
+        - github.com/larsartmann/go-cqrs-lite/metaengine/v4\.RawScanResult
+        - github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4\.kvPair
         # Hooks fields are optional observability seams (nil = unobserved);
         # Observer partially fills only the metric hooks it tracks.
         - github.com/larsartmann/go-cqrs-lite/metaengine/v4\.Hooks

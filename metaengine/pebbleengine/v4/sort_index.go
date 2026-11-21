@@ -108,43 +108,8 @@ func (e *pebbleEngine) scanWithSortIndex(
 	cursor any,
 	limit int,
 ) ([]sortIndexHit, error) {
-	prefix := sortIndexFieldPrefix(col, sortSpec.Column)
-	lowerBound := prefix
-	upperBound := nextKey(prefix)
-
-	// Compound-DESC skip rule: the range spans the cursor's whole value group
-	// (upperBound = nextKey of the group), and entries at or before the cursor
-	// key inside that group are skipped in-loop — byte ranges alone cannot
-	// express "later keys of this group, plus all lower groups" because the
-	// later keys are byte-GREATER than the cursor entry.
-	var skipGroup, skipFloor []byte
-
-	if cursor != nil {
-		if compound, ok := cursor.(metaengine.SortKeyCursor); ok {
-			// cursor.Key is the bare user key (wire form); index entries carry
-			// the JSON-encoded key form, so re-encode before building the entry.
-			encodedKey := encodeKeyStr(string(compound.Key))
-			entry := sortIndexKey(col, sortSpec.Column, encodeIndexValue(compound.Sort), encodedKey)
-
-			if sortSpec.Desc {
-				skipGroup = append(
-					append(append([]byte(nil), prefix...), encodeIndexValue(compound.Sort)...),
-					sep...)
-				skipFloor = []byte(encodedKey)
-				upperBound = nextKey(skipGroup)
-			} else {
-				lowerBound = nextKey(entry)
-			}
-		} else {
-			cursorGroup := append(append(prefix, encodeIndexValue(cursor)...), sep...)
-
-			if sortSpec.Desc {
-				upperBound = cursorGroup
-			} else {
-				lowerBound = nextKey(cursorGroup)
-			}
-		}
-	}
+	lowerBound, upperBound, skipGroup, skipFloor := sortIndexCursorBounds(
+		col, cursor, sortSpec)
 
 	iter, err := e.db.NewIter(&pebble.IterOptions{
 		LowerBound: lowerBound,
@@ -164,48 +129,7 @@ func (e *pebbleEngine) scanWithSortIndex(
 	var results []sortIndexHit
 
 	if sortSpec.Desc {
-		var run []sortIndexHit
-
-		var runGroup []byte
-
-		flushRun := func() {
-			for _, r := range slices.Backward(run) {
-				results = append(results, r)
-			}
-
-			run = run[:0]
-		}
-
-		for iter.Last(); iter.Valid(); iter.Prev() {
-			fullKey := append([]byte(nil), iter.Key()...)
-			primaryKey := extractPrimaryKeyFromIndex(fullKey)
-			group := fullKey[:len(fullKey)-len(primaryKey)]
-
-			if skipGroup != nil && bytes.Equal(group, skipGroup) && string(skipFloor) != "" &&
-				primaryKey <= string(skipFloor) {
-				continue
-			}
-
-			if runGroup == nil || !bytes.Equal(group, runGroup) {
-				flushRun()
-
-				runGroup = append(runGroup[:0], group...)
-			}
-
-			if hit, ok := e.collectSortIndexHit(fullKey, col, filters); ok {
-				run = append(run, hit)
-
-				if targetCount > 0 && len(run) > targetCount {
-					run = run[1:]
-				}
-			}
-
-			if targetCount > 0 && len(results) >= targetCount {
-				break
-			}
-		}
-
-		flushRun()
+		results = e.scanSortIndexDesc(iter, skipGroup, skipFloor, col, filters, targetCount)
 	} else {
 		for iter.First(); iter.Valid(); iter.Next() {
 			fullKey := append([]byte(nil), iter.Key()...)
@@ -253,4 +177,114 @@ func (e *pebbleEngine) collectSortIndexHit(
 	}
 
 	return sortIndexHit{primaryKey: primaryKey, value: valCopy}, true
+}
+
+// sortIndexCursorBounds resolves the scan bounds from a resume cursor:
+// compound cursors re-encode the bare user key into the index entry form;
+// DESC compound cursors cannot narrow the byte range (later keys of the
+// cursor's group are byte-GREATER than the cursor entry), so they return
+// the group + floor for in-loop skipping instead.
+func sortIndexCursorBounds(
+	col string,
+	cursor any,
+	sortSpec *metaengine.SortSpec,
+) ([]byte, []byte, []byte, []byte) {
+	prefix := sortIndexFieldPrefix(col, sortSpec.Column)
+	lowerBound := prefix
+	upperBound := nextKey(prefix)
+
+	var skipGroup, skipFloor []byte
+
+	if cursor == nil {
+		return lowerBound, upperBound, nil, nil
+	}
+
+	if compound, ok := cursor.(metaengine.SortKeyCursor); ok {
+		// cursor.Key is the bare user key (wire form); index entries carry
+		// the JSON-encoded key form, so re-encode before building the entry.
+		encodedKey := encodeKeyStr(string(compound.Key))
+		entry := sortIndexKey(col, sortSpec.Column, encodeIndexValue(compound.Sort), encodedKey)
+
+		if sortSpec.Desc {
+			skipGroup = append(
+				append(append([]byte(nil), prefix...), encodeIndexValue(compound.Sort)...),
+				sep...,
+			)
+			skipFloor = []byte(encodedKey)
+			upperBound = nextKey(skipGroup)
+		} else {
+			lowerBound = nextKey(entry)
+		}
+
+		return lowerBound, upperBound, skipGroup, skipFloor
+	}
+
+	cursorGroup := append(append(prefix, encodeIndexValue(cursor)...), sep...)
+
+	if sortSpec.Desc {
+		upperBound = cursorGroup
+	} else {
+		lowerBound = nextKey(cursorGroup)
+	}
+
+	return lowerBound, upperBound, skipGroup, skipFloor
+}
+
+// scanSortIndexDesc walks the index newest-first, buffering each equal-value
+// run and flushing it reversed (DESC reverses within groups too); the buffer
+// is bounded by targetCount because dropped-oldest entries would sort beyond
+// the page anyway.
+func (e *pebbleEngine) scanSortIndexDesc(
+	iter *pebble.Iterator,
+	skipGroup, skipFloor []byte,
+	col string,
+	filters []metaengine.FilterSpec,
+	targetCount int,
+) []sortIndexHit {
+	var results []sortIndexHit
+
+	var run []sortIndexHit
+
+	var runGroup []byte
+
+	flushRun := func() {
+		for _, r := range slices.Backward(run) {
+			results = append(results, r)
+		}
+
+		run = run[:0]
+	}
+
+	for iter.Last(); iter.Valid(); iter.Prev() {
+		fullKey := append([]byte(nil), iter.Key()...)
+		primaryKey := extractPrimaryKeyFromIndex(fullKey)
+		group := fullKey[:len(fullKey)-len(primaryKey)]
+
+		if skipGroup != nil && bytes.Equal(group, skipGroup) && string(skipFloor) != "" &&
+			primaryKey <= string(skipFloor) {
+			continue
+		}
+
+		if runGroup == nil || !bytes.Equal(group, runGroup) {
+			flushRun()
+
+			runGroup = append(runGroup[:0], group...)
+		}
+
+		if hit, ok := e.collectSortIndexHit(fullKey, col, filters); ok {
+			run = append(run, hit)
+
+			if targetCount > 0 && len(run) > targetCount {
+				run = run[1:]
+			}
+		}
+
+		if targetCount > 0 && len(results) >= targetCount {
+			break
+		}
+	}
+
+	flushRun()
+
+	return results
 }
