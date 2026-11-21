@@ -16,8 +16,6 @@ import (
 // Each embedded projection must share nothing but the event stream with the
 // others; the property AssertObservationalEquivalence checks is exactly that
 // this sharing is observationally harmless.
-//
-//nolint:ireturn // the composition IS the projection interface
 func Interleaved(projs ...projection.Projection) projection.Projection {
 	return &interleavedProjection{projs: projs}
 }

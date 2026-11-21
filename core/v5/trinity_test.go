@@ -155,7 +155,11 @@ func TestTrinityContract_AsRecord(t *testing.T) {
 		}
 
 		if !rec.MetaData.Stored.IsZero() {
-			t.Errorf("%s: Stored = %v, want zero — only the store stamps Stored, never the bridge", name, rec.MetaData.Stored)
+			t.Errorf(
+				"%s: Stored = %v, want zero — only the store stamps Stored, never the bridge",
+				name,
+				rec.MetaData.Stored,
+			)
 		}
 	}
 
@@ -168,6 +172,10 @@ func TestTrinityContract_AsRecord(t *testing.T) {
 	}
 
 	if got := records["event"].MetaData.Received.Time(); !got.Equal(evt.OccurredAt()) {
-		t.Errorf("event Received = %v, want the mint clock %v (the event bridge's honest home for intake)", got, evt.OccurredAt())
+		t.Errorf(
+			"event Received = %v, want the mint clock %v (the event bridge's honest home for intake)",
+			got,
+			evt.OccurredAt(),
+		)
 	}
 }

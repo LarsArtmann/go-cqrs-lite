@@ -137,34 +137,8 @@ func rewriteV5SurfaceInFile(path string, dryRun bool) ([]v5SurfaceChange, []stri
 		return nil, manual, false, nil
 	}
 
-	slices.SortStableFunc(edits, func(a, b edit) int {
-		switch {
-		case a.start < b.start:
-			return -1
-		case a.start > b.start:
-			return 1
-		}
-
-		return 0
-	})
-
-	out := string(src)
-	// Descending offsets keep later spans' positions valid while earlier
-	// ones are replaced.
-	for _, e := range slices.Backward(edits) {
-		out = out[:e.start] + e.text + out[e.end:]
-	}
-
-	if needIDImport && len(f.Decls) > 0 {
-		out = injectIDImport(out, fset, f)
-	}
-
-	if needHelper && !fileDeclaresHelper(f) {
-		pkgEnd := fset.Position(f.Package).Offset + len("package "+f.Name.Name)
-		out = out[:pkgEnd] + v5HelperSrc + out[pkgEnd:]
-	}
-
-	if out == string(src) {
+	out, changedFile := applySurfaceEdits(string(src), fset, f, edits, needIDImport, needHelper)
+	if !changedFile {
 		return changes, manual, false, nil
 	}
 
@@ -179,6 +153,44 @@ func rewriteV5SurfaceInFile(path string, dryRun bool) ([]v5SurfaceChange, []stri
 	}
 
 	return changes, manual, true, nil
+}
+
+// applySurfaceEdits sorts the byte-span replacements, applies them back to
+// front (descending offsets keep later spans' positions valid), then splices
+// in the id import and the adapting helper when the file lacks them.
+func applySurfaceEdits(
+	src string,
+	fset *token.FileSet,
+	f *ast.File,
+	edits []edit,
+	needIDImport, needHelper bool,
+) (string, bool) {
+	slices.SortStableFunc(edits, func(a, b edit) int {
+		switch {
+		case a.start < b.start:
+			return -1
+		case a.start > b.start:
+			return 1
+		}
+
+		return 0
+	})
+
+	out := src
+	for _, e := range slices.Backward(edits) {
+		out = out[:e.start] + e.text + out[e.end:]
+	}
+
+	if needIDImport && len(f.Decls) > 0 {
+		out = injectIDImport(out, fset, f)
+	}
+
+	if needHelper && !fileDeclaresHelper(f) {
+		pkgEnd := fset.Position(f.Package).Offset + len("package "+f.Name.Name)
+		out = out[:pkgEnd] + v5HelperSrc + out[pkgEnd:]
+	}
+
+	return out, out != src
 }
 
 // fileDeclaresHelper reports whether the file already carries the injected

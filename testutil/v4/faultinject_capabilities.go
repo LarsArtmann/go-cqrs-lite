@@ -61,7 +61,7 @@ func (f *FaultInjector) ReadFrom(
 }
 
 // ReadStream forwards to the inner StreamingJournal.
-func (f *FaultInjector) ReadStream( //nolint:ireturn // mirrors event.StreamingJournal, which returns the interface by contract
+func (f *FaultInjector) ReadStream(
 	ctx context.Context,
 ) (event.EventIterator, error) {
 	if err := f.arm(MethodReadStream); err != nil {
@@ -77,7 +77,7 @@ func (f *FaultInjector) ReadStream( //nolint:ireturn // mirrors event.StreamingJ
 }
 
 // ReadStreamFrom forwards to the inner StreamingJournal.
-func (f *FaultInjector) ReadStreamFrom( //nolint:ireturn // mirrors event.StreamingJournal, which returns the interface by contract
+func (f *FaultInjector) ReadStreamFrom(
 	ctx context.Context,
 	afterEventID id.EventID,
 	limit int,

@@ -263,9 +263,9 @@ linters:
         # Stdlib/driver option structs: omitted fields are zero-value
         # options by the driver's own semantics.
         - github.com/cockroachdb/pebble\.IterOptions
-        - github.com/dgraph-io/dgo/v240/api\.Mutation
-        - github.com/dgraph-io/dgo/v240/api\.Request
-        - github.com/dgraph-io/dgo/v240/api\.Operation
+        - github.com/dgraph-io/dgo/v240/protos/api\.Mutation
+        - github.com/dgraph-io/dgo/v240/protos/api\.Request
+        - github.com/dgraph-io/dgo/v240/protos/api\.Operation
         - github.com/dgraph-io/badger/v4\.IteratorOptions
         # First-party option/optional-field structs: functional options or
         # documented optional stamps default every omitted field.
@@ -286,6 +286,45 @@ linters:
         # projectionadapter.Adapter embeds and forwards — its optional
         # event-type filter and error hooks default to pass-through.
         - github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4\.Adapter
+        # Engine constructors (2026-11-21 red-set campaign): engines
+        # initialize lazily — mutexes, done channels, caches, and observer
+        # fields are zero-by-design and armed on first use. Exhaustive
+        # literals would initialize synchronization primitives that are
+        # correct only in their zero state.
+        - github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4\.pgEngine
+        - github.com/larsartmann/go-cqrs-lite/metaengine/mysqlengine/v4\.mysqlEngine
+        - github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4\.duckdbEngine
+        - github.com/larsartmann/go-cqrs-lite/metaengine/dgraphengine/v4\.dgraphEngine
+        - github.com/larsartmann/go-cqrs-lite/metaengine/bboltengine/v4\.bboltEngine
+        - github.com/larsartmann/go-cqrs-lite/metaengine/badgerengine/v4\.badgerEngine
+        - github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4\.pebbleEngine
+        - github.com/larsartmann/go-cqrs-lite/metaengine/bigtableengine/v4\.bigtableEngine
+        - github.com/larsartmann/go-cqrs-lite/metaengine/bigtableengine/v4\.TableConf
+        - github.com/larsartmann/go-cqrs-lite/metaengine/bigtableengine/v4\.ReadItem
+        - github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4\.sortIndexHit
+        # typedStreamRow scan rows (pg/mysql/duckdb): omitted columns are
+        # NULLABLE SQL columns — zero values are the absent-column contract.
+        - github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4\.typedStreamRow
+        - github.com/larsartmann/go-cqrs-lite/metaengine/mysqlengine/v4\.typedStreamRow
+        - github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4\.typedStreamRow
+        # metaengine option/report structs: optional fields default per the
+        # live-latency model (priors replaced by calibration/measurement).
+        - github.com/larsartmann/go-cqrs-lite/metaengine/v4\.StreamLogEntry
+        - github.com/larsartmann/go-cqrs-lite/metaengine/v4\.CalibrationCosts
+        # storage driver option structs and lazy iterators.
+        - github.com/cockroachdb/pebble\.Options
+        - github.com/cockroachdb/pebble\.KVAdapter
+        - github.com/cockroachdb/pebble\.EventStore
+        - github.com/fxamacker/cbor/v2\.EncOptions
+        - github.com/fxamacker/cbor/v2\.DecOptions
+        - go.etcd.io/bbolt\.KVAdapter
+        - github.com/larsartmann/go-cqrs-lite/storage/turso/v4\.TursoSyncDbConfig
+        - github.com/larsartmann/go-cqrs-lite/storage/turso/v4/indexing\.AutoIndexer
+        - github.com/larsartmann/go-cqrs-lite/storage/turso/v4/indexing\.CheckpointScheduler
+        - github.com/larsartmann/go-cqrs-lite/storage/pebble/v4\.pebbleIterator
+        # stdlib config structs: zero fields are documented defaults.
+        - net\.ListenConfig
+        - net\.Dialer
     funlen:
       lines: 200
       statements: 100
@@ -329,6 +368,11 @@ linters:
         - "1"
         - "2"
         - "100"
+        # File-permission idioms: 0o600/0o750 are self-documenting.
+        - "0o600"
+        - "0o750"
+        - "0o644"
+        - "0o755"
     nestif:
       min-complexity: 6
     revive:
@@ -353,12 +397,17 @@ linters:
     tagliatelle:
       case:
         use-field-name: true
-        rules:
-          # The v4 wire contract is snake_case (pre-v5 rows must keep
-          # decoding; see snapshot store.go and wire.go). The default
-          # camel expectation contradicted the frozen contract — dozens of
-          # per-line nolints said so before this row existed.
-          json: snake
+        rules: {}
+        # NO json rule, deliberately (corrected 2026-11-21): the v4 train's
+        # wire is frozen in BOTH cases — the snake majority AND camelCase
+        # persisted-event payloads (commandlifecycle events, snapshot wire
+        # legacy rows, engine metadata, catalog docs; 151 findings under
+        # `json: snake`, mixed within single files). On a byte-frozen train
+        # no tag-case change is actionable (any rename breaks decoding of
+        # stored events), so the linter's judgment is moot here. The first
+        # sweep's `json: snake` row read the majority shape as THE contract;
+        # the red-set measure exposed the camel half. A uniform case policy
+        # belongs to NEW surface (core/v5 + the v5 cut), not this config.
     testifylint:
       disable:
         - go-require
@@ -451,6 +500,39 @@ linters:
         - (github.com/jackc/pgx/v5.Tx).Exec
         - (github.com/jackc/pgx/v5.Tx).Commit
         - (github.com/jackc/pgx/v5.Rows).Err
+        # KV/graph driver boundaries (2026-11-21 red-set campaign): the
+        # engines ARE thin adapters over these drivers — a driver error IS
+        # the engine error; classification happens where context exists
+        # (metaengine core), not at every delegation line.
+        - (*github.com/dgraph-io/badger/v4.DB).Update
+        - (*github.com/dgraph-io/badger/v4.DB).View
+        - (*github.com/dgraph-io/badger/v4.DB).Close
+        - (*github.com/dgraph-io/badger/v4.Txn).Get
+        - (*github.com/dgraph-io/badger/v4.Txn).Set
+        - (*github.com/dgraph-io/badger/v4.Item).ValueCopy
+        - (*go.etcd.io/bbolt.DB).Update
+        - (*go.etcd.io/bbolt.DB).View
+        - (*go.etcd.io/bbolt.DB).Batch
+        - (*go.etcd.io/bbolt.Tx).Rollback
+        - (*go.etcd.io/bbolt.Tx).CreateBucketIfNotExists
+        - (*go.etcd.io/bbolt.Bucket).Put
+        - (*go.etcd.io/bbolt.Bucket).Delete
+        - (*github.com/cockroachdb/pebble.DB).Get
+        - (*github.com/dgraph-io/dgo/v240.Txn).Query
+        - (*github.com/dgraph-io/dgo/v240.Txn).Mutate
+        - (*github.com/dgraph-io/dgo/v240.Txn).Do
+        # Codec modes: (un)marshal errors cross as-is — wrapping breaks
+        # errors.Is for callers testing codec sentinel semantics.
+        - (github.com/fxamacker/cbor/v2.EncMode).Marshal
+        - (github.com/fxamacker/cbor/v2.DecMode).Unmarshal
+        # Pre-classified first-party helpers and idioms: returning ctx.Err()
+        # bare, a Rejection from a Reject* gate, or a liveness ping error is
+        # already the final classified form.
+        - (context.Context).Err
+        - (*database/sql.DB).PingContext
+        - .RejectDurabilityTier(
+        - .RejectCellVersioning(
+        - .WrapRejectionf(
   exclusions:
     generated: lax
     rules:
@@ -572,6 +654,13 @@ linters:
         text: 'SA1019: .*CommonMetadata\).CausationID is deprecated.*'
         linters:
           - staticcheck
+      # The projectionadapter record test pins the deprecated ActorID twin's
+      # bridge behavior (twins-until-T26, D32): the assertion must read the
+      # old field to prove the bridge still populates it.
+      - path: metaengine/projectionadapter/v4/.*_test\.go$
+        text: 'SA1019: .*CommonMetadata\).ActorID is deprecated.*'
+        linters:
+          - staticcheck
       # Engine register.go init() calls are the sanctioned database/sql
       # driver-registration pattern (Internal Contract 19/30): Go cannot
       # centrally register engines, so each dep-isolated module self-registers.
@@ -584,13 +673,6 @@ linters:
       - path: metaengine/(badgerengine|bboltengine)/v4/engine\.go$
         linters:
           - gochecknoglobals
-      # cqrs-lint's doctor/scorecard JSON is a consumed CLI surface with a
-      # camelCase contract pinned by the doctor golden test
-      # (TestDoctorJSONReport_Golden) and .cqrs-lint.json config keys — not
-      # the library's snake_case v4 wire contract this rule protects.
-      - path: cmd/cqrs-lint/v4/.*\.go$
-        linters:
-          - tagliatelle
       # core/v5 carries the v4-mirror twins deliberately (D32 ruling:
       # twins-until-T26); its compat code and tests read the deprecated
       # fields until the v5 cut deletes them together.
@@ -601,6 +683,13 @@ linters:
       # A demo main package prints its own output — that is main's job.
       - path: metaengine/irohengine/quic/v4/main\.go$
         linters:
+          - forbidigo
+      # Demo binaries are illustrative: literal tuning numbers ARE the
+      # demo's readability (named constants would obscure the didactic
+      # shape), and demo files print by design.
+      - path: metaengine/irohengine/(quic/)?v4/demo/
+        linters:
+          - mnd
           - forbidigo
       # The stack presets and their test harnesses are BOTH deprecated at v5
       # (ADR-0123: system.System replaces them); preset modules necessarily
