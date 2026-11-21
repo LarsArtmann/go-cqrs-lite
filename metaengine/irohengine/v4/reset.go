@@ -2,9 +2,18 @@ package irohengine
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+)
+
+// errLocalNotResettable reports a local engine without EngineResetter behind
+// the replicated wrapper — silently pretending a replicated engine reverted
+// when only its wrapper did would be the worst lie available.
+var errLocalNotResettable = errors.New(
+	"irohengine.ResetEngine: local engine does not implement metaengine.EngineResetter — " +
+		"a replicated reset is only as revertible as its local half",
 )
 
 // ResetEngine implements [metaengine.EngineResetter] for the replicated
@@ -27,11 +36,7 @@ import (
 func (e *replicatedEngine) ResetEngine(ctx context.Context) error {
 	resetter, ok := e.local.(metaengine.EngineResetter)
 	if !ok {
-		return fmt.Errorf(
-			"irohengine.ResetEngine: local engine %T does not implement metaengine.EngineResetter — "+
-				"a replicated reset is only as revertible as its local half",
-			e.local,
-		)
+		return fmt.Errorf("%w: %T", errLocalNotResettable, e.local)
 	}
 
 	if err := resetter.ResetEngine(ctx); err != nil {

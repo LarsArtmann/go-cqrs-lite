@@ -12,15 +12,15 @@ import (
 // newTwoNodeCluster is the shared fixture for convergence tests: a 2-node
 // replicated cluster (each node a Memory engine) wired through an in-process
 // network. Cleanup is registered with t.Cleanup, so callers need no defers.
-func newTwoNodeCluster(t *testing.T) (nodeA, nodeB metaengine.Engine) {
+func newTwoNodeCluster(t *testing.T) (metaengine.Engine, metaengine.Engine) {
 	t.Helper()
 	net := irohengine.NewNetwork()
-	nodeA = irohengine.Replicated(
+	nodeA := irohengine.Replicated(
 		metaengine.NewMemoryEngine(),
 		irohengine.WithAuthor("node-a"),
 		irohengine.WithTransport(net.Join("a")),
 	)
-	nodeB = irohengine.Replicated(
+	nodeB := irohengine.Replicated(
 		metaengine.NewMemoryEngine(),
 		irohengine.WithAuthor("node-b"),
 		irohengine.WithTransport(net.Join("b")),
@@ -63,16 +63,16 @@ func (c *manualClock) Advance(d time.Duration) time.Time {
 func newTwoNodeClusterWithClock(
 	t *testing.T,
 	clock *manualClock,
-) (nodeA, nodeB metaengine.Engine) {
+) (metaengine.Engine, metaengine.Engine) {
 	t.Helper()
 	net := irohengine.NewNetwork()
-	nodeA = irohengine.Replicated(
+	nodeA := irohengine.Replicated(
 		metaengine.NewMemoryEngine(),
 		irohengine.WithAuthor("node-a"),
 		irohengine.WithTransport(net.Join("a")),
 		irohengine.WithClock(clock),
 	)
-	nodeB = irohengine.Replicated(
+	nodeB := irohengine.Replicated(
 		metaengine.NewMemoryEngine(),
 		irohengine.WithAuthor("node-b"),
 		irohengine.WithTransport(net.Join("b")),

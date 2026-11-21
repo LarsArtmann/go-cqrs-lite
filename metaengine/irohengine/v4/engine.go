@@ -24,6 +24,19 @@ func lwwKey(collection string, key any) string {
 	return collection + "\x00" + fmt.Sprintf("%v", key)
 }
 
+// localBackend asserts the wrapped local engine implements backend T. The
+// replicated wrapper forwards every CRDT backend method unconditionally, so
+// a local engine missing one is a wiring bug — this names it instead of the
+// bare assertion's opaque interface-conversion panic.
+func localBackend[T any](e *replicatedEngine) T {
+	backend, ok := e.local.(T)
+	if !ok {
+		panic(fmt.Sprintf("irohengine: local engine %T does not implement %T", e.local, backend))
+	}
+
+	return backend
+}
+
 func (e *replicatedEngine) isLWWNewer(collection string, key any, ts time.Time) bool {
 	k := lwwKey(collection, key) //art-dupl:accept same-file mutex guard idiom
 
@@ -148,7 +161,7 @@ func (e *replicatedEngine) MapSet(
 	now := e.cfg.clock.Now()
 	e.recordLWW(collection, key, now)
 
-	if err := e.local.(metaengine.MapBackend).MapSet(ctx, collection, key, value); err != nil {
+	if err := localBackend[metaengine.MapBackend](e).MapSet(ctx, collection, key, value); err != nil {
 		return err
 	}
 
@@ -165,14 +178,14 @@ func (e *replicatedEngine) MapGet(
 	collection string,
 	key any,
 ) (any, bool, error) {
-	return e.local.(metaengine.MapBackend).MapGet(ctx, collection, key)
+	return localBackend[metaengine.MapBackend](e).MapGet(ctx, collection, key)
 }
 
 func (e *replicatedEngine) MapDelete(ctx context.Context, collection string, key any) error {
 	now := e.cfg.clock.Now()
 	e.recordLWW(collection, key, now)
 
-	if err := e.local.(metaengine.MapBackend).MapDelete(ctx, collection, key); err != nil {
+	if err := localBackend[metaengine.MapBackend](e).MapDelete(ctx, collection, key); err != nil {
 		return err
 	}
 
@@ -202,7 +215,7 @@ func (e *replicatedEngine) MapUpdate(
 // --- SetBackend (CRDT-safe: OR-Set) ---
 
 func (e *replicatedEngine) SetAdd(ctx context.Context, collection string, key any) error {
-	if err := e.local.(metaengine.SetBackend).SetAdd(ctx, collection, key); err != nil {
+	if err := localBackend[metaengine.SetBackend](e).SetAdd(ctx, collection, key); err != nil {
 		return err
 	}
 
@@ -219,7 +232,7 @@ func (e *replicatedEngine) SetContains(
 	collection string,
 	key any,
 ) (bool, error) {
-	return e.local.(metaengine.SetBackend).SetContains(ctx, collection, key)
+	return localBackend[metaengine.SetBackend](e).SetContains(ctx, collection, key)
 }
 
 // --- CounterBackend (CRDT-safe: PN-Counter) ---
@@ -229,7 +242,7 @@ func (e *replicatedEngine) CounterIncrement(
 	collection string,
 	deltas metaengine.Delta,
 ) error {
-	if err := e.local.(metaengine.CounterBackend).CounterIncrement(
+	if err := localBackend[metaengine.CounterBackend](e).CounterIncrement(
 		ctx,
 		collection,
 		deltas,
@@ -249,7 +262,7 @@ func (e *replicatedEngine) CounterGet(
 	ctx context.Context,
 	collection string,
 ) (map[string]int64, error) {
-	return e.local.(metaengine.CounterBackend).CounterGet(ctx, collection)
+	return localBackend[metaengine.CounterBackend](e).CounterGet(ctx, collection)
 }
 
 // --- MultimapBackend (CRDT-safe: OR-Set per key) ---
@@ -260,7 +273,7 @@ func (e *replicatedEngine) MultiAdd(
 	key any,
 	value any,
 ) error {
-	if err := e.local.(metaengine.MultimapBackend).MultiAdd(
+	if err := localBackend[metaengine.MultimapBackend](e).MultiAdd(
 		ctx,
 		collection,
 		key,
@@ -282,13 +295,13 @@ func (e *replicatedEngine) MultiGet(
 	collection string,
 	key any,
 ) ([]any, error) {
-	return e.local.(metaengine.MultimapBackend).MultiGet(ctx, collection, key)
+	return localBackend[metaengine.MultimapBackend](e).MultiGet(ctx, collection, key)
 }
 
 // --- LogBackend (CRDT-safe: per-author append-only) ---
 
 func (e *replicatedEngine) LogAppend(ctx context.Context, collection string, value any) error {
-	if err := e.local.(metaengine.LogBackend).LogAppend(ctx, collection, value); err != nil {
+	if err := localBackend[metaengine.LogBackend](e).LogAppend(ctx, collection, value); err != nil {
 		return err
 	}
 
@@ -305,7 +318,7 @@ func (e *replicatedEngine) LogTail(
 	collection string,
 	limit int,
 ) ([]any, error) {
-	return e.local.(metaengine.LogBackend).LogTail(ctx, collection, limit)
+	return localBackend[metaengine.LogBackend](e).LogTail(ctx, collection, limit)
 }
 
 // Compile-time assertions that replicatedEngine implements all backend interfaces.

@@ -86,14 +86,14 @@ func (n *InProcessNetwork) Join(nodeID string) Transport {
 	n.mu.Lock()
 	defer n.mu.Unlock()
 
-	pt := &peerTransport{
+	peer := &peerTransport{
 		nodeID:  nodeID,
 		network: n,
 		subs:    make([]func(op WriteOp), 0),
 	}
-	n.peers[nodeID] = pt
+	n.peers[nodeID] = peer
 
-	return pt
+	return peer
 }
 
 func (n *InProcessNetwork) getOtherPeers(from string) []*peerTransport {
@@ -137,6 +137,7 @@ func (n *InProcessNetwork) deliver(from string, op WriteOp) {
 	)
 
 	for _, p := range peers {
+		// #nosec G404 -- simulated link drop for chaos testing, not a security decision
 		if n.dropRate > 0 &&
 			rand.Float64() < n.dropRate {
 			continue
@@ -147,6 +148,7 @@ func (n *InProcessNetwork) deliver(from string, op WriteOp) {
 			defer wg.Done()
 
 			if n.maxDelay > 0 {
+				// #nosec G404 -- simulated link delay for chaos testing, not a security decision
 				time.Sleep(
 					time.Duration(rand.Int63n(int64(n.maxDelay))),
 				)

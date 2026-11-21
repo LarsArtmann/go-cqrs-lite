@@ -29,6 +29,75 @@ func mustNoErr(t *testing.T, err error) {
 	}
 }
 
+// The as*Backend helpers assert the capability the convergence suite
+// requires, failing with the engine's type instead of a runtime panic —
+// forcetypeassert's checked form, shared by suite and poll helpers.
+func asMapBackend(t *testing.T, e metaengine.Engine) metaengine.MapBackend {
+	t.Helper()
+
+	mb, ok := e.(metaengine.MapBackend)
+	if !ok {
+		t.Fatalf("engine %T does not implement metaengine.MapBackend", e)
+	}
+
+	return mb
+}
+
+func asCounterBackend(t *testing.T, e metaengine.Engine) metaengine.CounterBackend {
+	t.Helper()
+
+	cb, ok := e.(metaengine.CounterBackend)
+	if !ok {
+		t.Fatalf("engine %T does not implement metaengine.CounterBackend", e)
+	}
+
+	return cb
+}
+
+func asSetBackend(t *testing.T, e metaengine.Engine) metaengine.SetBackend {
+	t.Helper()
+
+	sb, ok := e.(metaengine.SetBackend)
+	if !ok {
+		t.Fatalf("engine %T does not implement metaengine.SetBackend", e)
+	}
+
+	return sb
+}
+
+func asLogBackend(t *testing.T, e metaengine.Engine) metaengine.LogBackend {
+	t.Helper()
+
+	lb, ok := e.(metaengine.LogBackend)
+	if !ok {
+		t.Fatalf("engine %T does not implement metaengine.LogBackend", e)
+	}
+
+	return lb
+}
+
+func asMultimapBackend(t *testing.T, e metaengine.Engine) metaengine.MultimapBackend {
+	t.Helper()
+
+	mmb, ok := e.(metaengine.MultimapBackend)
+	if !ok {
+		t.Fatalf("engine %T does not implement metaengine.MultimapBackend", e)
+	}
+
+	return mmb
+}
+
+func asGraphCapable(t *testing.T, e metaengine.Engine) graphCapable {
+	t.Helper()
+
+	gc, ok := e.(graphCapable)
+	if !ok {
+		t.Fatalf("engine %T does not implement the graph dispatch contract", e)
+	}
+
+	return gc
+}
+
 func waitForMap(
 	t *testing.T,
 	node metaengine.Engine,
@@ -37,9 +106,11 @@ func waitForMap(
 ) {
 	t.Helper()
 
+	mapBackend := asMapBackend(t, node)
+
 	deadline := time.Now().Add(pollTimeout)
 	for time.Now().Before(deadline) {
-		val, ok, err := node.(metaengine.MapBackend).MapGet(
+		val, ok, err := mapBackend.MapGet(
 			context.Background(), collection, key)
 		if err == nil && ok && reflect.DeepEqual(val, expected) {
 			return
@@ -48,7 +119,7 @@ func waitForMap(
 		time.Sleep(pollInterval)
 	}
 
-	val, ok, _ := node.(metaengine.MapBackend).MapGet(
+	val, ok, _ := mapBackend.MapGet(
 		context.Background(), collection, key)
 	t.Fatalf("timeout: %s/%s expected %v (got ok=%v val=%v)",
 		collection, key, expected, ok, val)
@@ -62,9 +133,11 @@ func waitForCounter(
 ) {
 	t.Helper()
 
+	counterBackend := asCounterBackend(t, node)
+
 	deadline := time.Now().Add(pollTimeout)
 	for time.Now().Before(deadline) {
-		counts, err := node.(metaengine.CounterBackend).CounterGet(
+		counts, err := counterBackend.CounterGet(
 			context.Background(), collection)
 		if err == nil && counts[counter] == expected {
 			return
@@ -73,7 +146,7 @@ func waitForCounter(
 		time.Sleep(pollInterval)
 	}
 
-	counts, _ := node.(metaengine.CounterBackend).CounterGet(
+	counts, _ := counterBackend.CounterGet(
 		context.Background(), collection)
 	t.Fatalf("timeout: %s/%s expected %d (got %v)",
 		collection, counter, expected, counts[counter])
@@ -86,9 +159,11 @@ func waitForSetContains(
 ) {
 	t.Helper()
 
+	setBackend := asSetBackend(t, node)
+
 	deadline := time.Now().Add(pollTimeout)
 	for time.Now().Before(deadline) {
-		contains, err := node.(metaengine.SetBackend).SetContains(
+		contains, err := setBackend.SetContains(
 			context.Background(), collection, value)
 		if err == nil && contains {
 			return
@@ -108,9 +183,11 @@ func waitForLogTail(
 ) {
 	t.Helper()
 
+	logBackend := asLogBackend(t, node)
+
 	deadline := time.Now().Add(pollTimeout)
 	for time.Now().Before(deadline) {
-		entries, err := node.(metaengine.LogBackend).LogTail(
+		entries, err := logBackend.LogTail(
 			context.Background(), collection, len(expected))
 		if err == nil && sameLogTail(entries, expected) {
 			return
@@ -119,7 +196,7 @@ func waitForLogTail(
 		time.Sleep(pollInterval)
 	}
 
-	entries, _ := node.(metaengine.LogBackend).LogTail(
+	entries, _ := logBackend.LogTail(
 		context.Background(), collection, len(expected))
 	t.Fatalf("timeout: %s tail expected %v (got %v)",
 		collection, expected, entries)
@@ -133,9 +210,11 @@ func waitForMultimap(
 ) {
 	t.Helper()
 
+	multimapBackend := asMultimapBackend(t, node)
+
 	deadline := time.Now().Add(pollTimeout)
 	for time.Now().Before(deadline) {
-		vals, err := node.(metaengine.MultimapBackend).MultiGet(
+		vals, err := multimapBackend.MultiGet(
 			context.Background(), collection, key)
 		if err == nil && sameSetAny(vals, expected) {
 			return
@@ -144,7 +223,7 @@ func waitForMultimap(
 		time.Sleep(pollInterval)
 	}
 
-	vals, _ := node.(metaengine.MultimapBackend).MultiGet(
+	vals, _ := multimapBackend.MultiGet(
 		context.Background(), collection, key)
 	t.Fatalf("timeout: %s/%s expected %v (got %v)",
 		collection, key, expected, vals)
@@ -169,9 +248,11 @@ func waitForGraphNeighbors(
 ) {
 	t.Helper()
 
+	graphDispatch := asGraphCapable(t, node)
+
 	deadline := time.Now().Add(pollTimeout)
 	for time.Now().Before(deadline) {
-		neighbors, err := node.(graphCapable).GraphNeighbors(
+		neighbors, err := graphDispatch.GraphNeighbors(
 			context.Background(), collection, start, depth)
 		if err == nil && sameSetAny(neighbors, expected) {
 			return
@@ -180,7 +261,7 @@ func waitForGraphNeighbors(
 		time.Sleep(pollInterval)
 	}
 
-	neighbors, _ := node.(graphCapable).GraphNeighbors(
+	neighbors, _ := graphDispatch.GraphNeighbors(
 		context.Background(), collection, start, depth)
 	t.Fatalf("timeout: %s neighbors of %s (depth %d) expected %v (got %v)",
 		collection, start, depth, expected, neighbors)

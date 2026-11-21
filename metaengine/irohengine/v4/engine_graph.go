@@ -69,13 +69,13 @@ func (e *replicatedEngine) GraphAddEdge(
 	collection string,
 	edge metaengine.Edge,
 ) error {
-	gb, ok := e.local.(graphCapable)
+	graphBackend, ok := e.local.(graphCapable)
 	if !ok {
 		return ErrGraphBackendNotImplemented
 	}
 
 	return e.writeEdge(ctx, collection, edge, OpGraphAddEdge, func() error {
-		return gb.GraphAddEdge(ctx, collection, edge)
+		return graphBackend.GraphAddEdge(ctx, collection, edge)
 	})
 }
 
@@ -88,13 +88,13 @@ func (e *replicatedEngine) GraphRemoveEdge(
 	collection string,
 	edge metaengine.Edge,
 ) error {
-	gx, ok := e.local.(graphExtCapable)
+	graphExt, ok := e.local.(graphExtCapable)
 	if !ok {
 		return ErrGraphBackendNotImplemented
 	}
 
 	return e.writeEdge(ctx, collection, edge, OpGraphRemoveEdge, func() error {
-		return gx.GraphRemoveEdge(ctx, collection, edge)
+		return graphExt.GraphRemoveEdge(ctx, collection, edge)
 	})
 }
 

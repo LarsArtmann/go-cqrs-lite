@@ -18,6 +18,33 @@ type demoNode struct {
 	engine metaengine.Engine
 }
 
+// backendOf asserts a backend capability, panicking with the engine's type
+// (the demo wires engines that implement every backend — a miss is a bug).
+func backendOf[T any](e metaengine.Engine) T {
+	backend, ok := e.(T)
+	if !ok {
+		panic(fmt.Sprintf("engine %T does not implement %T", e, backend))
+	}
+
+	return backend
+}
+
+func newDemoNodes(net *irohengine.InProcessNetwork) []demoNode {
+	nodes := []demoNode{}
+	for _, nodeName := range []string{"alpha", "beta", "gamma"} {
+		nodes = append(nodes, demoNode{
+			name: nodeName,
+			engine: irohengine.Replicated(
+				metaengine.NewMemoryEngine(),
+				irohengine.WithAuthor(nodeName),
+				irohengine.WithTransport(net.Join(nodeName)),
+			),
+		})
+	}
+
+	return nodes
+}
+
 func main() {
 	ctx := context.Background()
 
@@ -30,17 +57,7 @@ func main() {
 		irohengine.WithNetworkDelay(20 * time.Millisecond),
 	)
 
-	nodes := []demoNode{}
-	for _, id := range []string{"alpha", "beta", "gamma"} {
-		nodes = append(nodes, demoNode{
-			name: id,
-			engine: irohengine.Replicated(
-				metaengine.NewMemoryEngine(),
-				irohengine.WithAuthor(id),
-				irohengine.WithTransport(net.Join(id)),
-			),
-		})
-	}
+	nodes := newDemoNodes(net)
 
 	defer func() {
 		for _, n := range nodes {
@@ -48,24 +65,39 @@ func main() {
 		}
 	}()
 
-	mb := func(e metaengine.Engine) metaengine.MapBackend { return e.(metaengine.MapBackend) }
-	cb := func(e metaengine.Engine) metaengine.CounterBackend { return e.(metaengine.CounterBackend) }
-	sb := func(e metaengine.Engine) metaengine.SetBackend { return e.(metaengine.SetBackend) }
-	lb := func(e metaengine.Engine) metaengine.LogBackend { return e.(metaengine.LogBackend) }
-	mmb := func(e metaengine.Engine) metaengine.MultimapBackend { return e.(metaengine.MultimapBackend) }
+	warmupPhase(ctx, nodes)
+	printStats(net)
 
-	// --- Phase 1: Warmup ---
+	stormPhase(ctx, nodes)
+	printStats(net)
+
+	verifyPhase(ctx, nodes)
+	counterPhase(ctx, nodes)
+	structuresPhase(ctx, nodes)
+	profilePhase(nodes)
+	calmPhase(ctx, nodes)
+
+	printStats(net)
+	fmt.Println()
+	printBanner("Demo complete — all stats measured from real replication traffic")
+}
+
+func warmupPhase(ctx context.Context, nodes []demoNode) {
+	mapBackend := backendOf[metaengine.MapBackend]
+
 	section("Phase 1: Warmup — 20 Map operations to build measurement history")
 
 	for i := range 20 {
+		// #nosec G404 -- demo picks a node uniformly at random; not a security decision
 		n := nodes[rand.Intn(len(nodes))]
-		must(mb(n.engine).MapSet(ctx, "warmup", fmt.Sprintf("k%d", i), fmt.Sprintf("v%d", i)))
+		must(mapBackend(n.engine).MapSet(ctx, "warmup", fmt.Sprintf("k%d", i), fmt.Sprintf("v%d", i)))
 		progressBar("warmup", i+1, 20)
 	}
+}
 
-	printStats(net)
+func stormPhase(ctx context.Context, nodes []demoNode) {
+	mapBackend := backendOf[metaengine.MapBackend]
 
-	// --- Phase 2: Concurrent write storm ---
 	section("Phase 2: Concurrent storm — each node writes 50 entries simultaneously")
 
 	var wg sync.WaitGroup
@@ -76,16 +108,18 @@ func main() {
 
 			for i := range 50 {
 				key := fmt.Sprintf("%s-%d", n.name, i)
-				_ = mb(n.engine).MapSet(ctx, "storm", key, fmt.Sprintf("val-%d", i))
+				_ = mapBackend(n.engine).MapSet(ctx, "storm", key, fmt.Sprintf("val-%d", i))
 			}
 		}(n)
 	}
 
 	wg.Wait()
 	fmt.Println("  150 concurrent writes completed.")
-	printStats(net)
+}
 
-	// --- Phase 3: Correctness ---
+func verifyPhase(ctx context.Context, nodes []demoNode) {
+	mapBackend := backendOf[metaengine.MapBackend]
+
 	section("Phase 3: Correctness — verify all nodes converged")
 
 	allOK := true
@@ -93,7 +127,7 @@ func main() {
 	for i := range 20 {
 		key := fmt.Sprintf("k%d", i)
 		for _, n := range nodes {
-			_, ok, _ := mb(n.engine).MapGet(ctx, "warmup", key)
+			_, ok, _ := mapBackend(n.engine).MapGet(ctx, "warmup", key)
 			if !ok {
 				fmt.Printf("  FAIL: node %s missing warmup/%s\n", n.name, key)
 
@@ -106,7 +140,7 @@ func main() {
 		for i := range 50 {
 			key := fmt.Sprintf("%s-%d", name, i)
 			for _, n := range nodes {
-				_, ok, _ := mb(n.engine).MapGet(ctx, "storm", key)
+				_, ok, _ := mapBackend(n.engine).MapGet(ctx, "storm", key)
 				if !ok {
 					fmt.Printf("  FAIL: node %s missing storm/%s\n", n.name, key)
 
@@ -119,32 +153,40 @@ func main() {
 	if allOK {
 		fmt.Println("  OK: all 3 nodes see all 170 keys (20 warmup + 150 storm)")
 	}
+}
 
-	// --- Phase 4: Counter ---
+func counterPhase(ctx context.Context, nodes []demoNode) {
+	counterBackend := backendOf[metaengine.CounterBackend]
+
 	section("Phase 4: PN-Counter — 30 increments across 3 nodes")
 
 	for range 10 {
 		for _, n := range nodes {
-			must(cb(n.engine).CounterIncrement(ctx, "hits", metaengine.Delta{"total": 1}))
+			must(counterBackend(n.engine).CounterIncrement(ctx, "hits", metaengine.Delta{"total": 1}))
 		}
 	}
 
 	fmt.Println("  Verifying PN-Counter sum (expect total=30):")
 
 	for _, n := range nodes {
-		counts, _ := cb(n.engine).CounterGet(ctx, "hits")
+		counts, _ := counterBackend(n.engine).CounterGet(ctx, "hits")
 		fmt.Printf("  %-8s: hits=%d\n", n.name, counts["total"])
 	}
+}
 
-	// --- Phase 5: Set + Log + Multimap ---
+func structuresPhase(ctx context.Context, nodes []demoNode) {
+	setBackend := backendOf[metaengine.SetBackend]
+	logBackend := backendOf[metaengine.LogBackend]
+	multimapBackend := backendOf[metaengine.MultimapBackend]
+
 	section("Phase 5: OR-Set + Log + Multimap")
-	must(sb(nodes[0].engine).SetAdd(ctx, "tags", "go"))
-	must(sb(nodes[1].engine).SetAdd(ctx, "tags", "crdt"))
-	must(sb(nodes[2].engine).SetAdd(ctx, "tags", "event-sourcing"))
-	must(lb(nodes[0].engine).LogAppend(ctx, "audit", "alpha:deploy"))
-	must(lb(nodes[1].engine).LogAppend(ctx, "audit", "beta:rollback"))
-	must(mmb(nodes[0].engine).MultiAdd(ctx, "teams", "platform", "alice"))
-	must(mmb(nodes[2].engine).MultiAdd(ctx, "teams", "platform", "carol"))
+	must(setBackend(nodes[0].engine).SetAdd(ctx, "tags", "go"))
+	must(setBackend(nodes[1].engine).SetAdd(ctx, "tags", "crdt"))
+	must(setBackend(nodes[2].engine).SetAdd(ctx, "tags", "event-sourcing"))
+	must(logBackend(nodes[0].engine).LogAppend(ctx, "audit", "alpha:deploy"))
+	must(logBackend(nodes[1].engine).LogAppend(ctx, "audit", "beta:rollback"))
+	must(multimapBackend(nodes[0].engine).MultiAdd(ctx, "teams", "platform", "alice"))
+	must(multimapBackend(nodes[2].engine).MultiAdd(ctx, "teams", "platform", "carol"))
 
 	fmt.Println("  OR-Set tags:")
 
@@ -152,7 +194,7 @@ func main() {
 		var found []string
 
 		for _, t := range []string{"go", "crdt", "event-sourcing"} {
-			ok, _ := sb(n.engine).SetContains(ctx, "tags", t)
+			ok, _ := setBackend(n.engine).SetContains(ctx, "tags", t)
 			if ok {
 				found = append(found, t)
 			}
@@ -164,7 +206,7 @@ func main() {
 	fmt.Println("  Log audit:")
 
 	for _, n := range nodes {
-		entries, _ := lb(n.engine).LogTail(ctx, "audit", 10)
+		entries, _ := logBackend(n.engine).LogTail(ctx, "audit", 10)
 
 		var strs []string
 		for _, e := range entries {
@@ -177,7 +219,7 @@ func main() {
 	fmt.Println("  Multimap teams/platform:")
 
 	for _, n := range nodes {
-		vals, _ := mmb(n.engine).MultiGet(ctx, "teams", "platform")
+		vals, _ := multimapBackend(n.engine).MultiGet(ctx, "teams", "platform")
 
 		var strs []string
 		for _, v := range vals {
@@ -186,8 +228,9 @@ func main() {
 
 		fmt.Printf("  %-8s: [%s]\n", n.name, strings.Join(strs, ", "))
 	}
+}
 
-	// --- Phase 6: EngineProfile ---
+func profilePhase(nodes []demoNode) {
 	section("Phase 6: EngineProfile — computed from REAL measurements")
 
 	for _, n := range nodes {
@@ -199,11 +242,14 @@ func main() {
 	fmt.Println("  ^ MEASURED, not hardcoded.")
 	fmt.Println("    ReplicationLag = P99 convergence (last peer to apply).")
 	fmt.Println("    NetworkRTT     = 2 × P50 delivery latency.")
+}
 
-	// --- Phase 7: CALM boundary ---
+func calmPhase(ctx context.Context, nodes []demoNode) {
+	mapBackend := backendOf[metaengine.MapBackend]
+
 	section("Phase 7: MapUpdate — NON-CRDT (CALM theorem boundary)")
 
-	mu := nodes[0].engine.(metaengine.MapUpdater)
+	mu := backendOf[metaengine.MapUpdater](nodes[0].engine)
 	must(mu.MapUpdate(ctx, "local", "counter", func(prev any) any {
 		if n, ok := prev.(int64); ok {
 			return n + 1
@@ -214,7 +260,7 @@ func main() {
 	fmt.Println("  alpha did MapUpdate — stays local:")
 
 	for _, n := range nodes {
-		val, ok, _ := mb(n.engine).MapGet(ctx, "local", "counter")
+		val, ok, _ := mapBackend(n.engine).MapGet(ctx, "local", "counter")
 		if !ok {
 			fmt.Printf("  %-8s: (missing)\n", n.name)
 		} else {
@@ -223,10 +269,6 @@ func main() {
 	}
 
 	fmt.Println("  ^ Only alpha. Non-monotonic ops require coordination.")
-
-	printStats(net)
-	fmt.Println()
-	printBanner("Demo complete — all stats measured from real replication traffic")
 }
 
 func must(err error) {
