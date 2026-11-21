@@ -83,6 +83,7 @@ func (e *duckdbEngine) EvolveLayoutPlan(
 			// index exists on the TABLE (not just the altered column), so
 			// all plan indexes are dropped and recreated around the change.
 			for _, idx := range plan.Indexes {
+				// #nosec G202 -- idx.Name is engine-owned and QuoteIdent-escaped
 				dropIdx := "DROP INDEX IF EXISTS " + metaengine.QuoteIdent(idx.Name)
 
 				if _, err := e.db.ExecContext(ctx, dropIdx); err != nil {

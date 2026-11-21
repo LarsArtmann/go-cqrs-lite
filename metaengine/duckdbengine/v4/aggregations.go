@@ -10,6 +10,9 @@ import (
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
+// errNoSpecs rejects empty MultiAggregate spec lists.
+var errNoSpecs = errors.New("duckdbengine.MultiAggregate: no specs provided")
+
 // art-dupl:accept cross-engine structural parallelism with
 // sqliteengine/aggregations_grouped.go — same algorithm, different SQL dialects.
 
@@ -389,7 +392,7 @@ func (e *duckdbEngine) MultiAggregate(
 	filters []metaengine.FilterSpec,
 ) (map[string]float64, error) {
 	if len(specs) == 0 {
-		return nil, errors.New("duckdbengine.MultiAggregate: no specs provided")
+		return nil, errNoSpecs
 	}
 
 	for i, s := range specs {

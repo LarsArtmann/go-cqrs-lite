@@ -283,6 +283,10 @@ func (e *duckdbEngine) MapDelete(ctx context.Context, col string, key any) error
 // statement well under DuckDB's parameter budget.
 const counterBatchRows = 256
 
+// kvTupleStride is the placeholder stride of one (key, delta) upsert tuple
+// after the leading $1 collection parameter.
+const kvTupleStride = 2
+
 func (e *duckdbEngine) CounterIncrement(
 	ctx context.Context,
 	col string,
@@ -318,7 +322,8 @@ func (e *duckdbEngine) counterIncrementChunk(
 	args = append(args, col)
 
 	for i, key := range keys {
-		placeholders[i] = fmt.Sprintf("($1, $%d, $%d)", i*2+2, i*2+3)
+		tupleBase := i*kvTupleStride + 2
+		placeholders[i] = fmt.Sprintf("($1, $%d, $%d)", tupleBase, tupleBase+1)
 		args = append(args, key, deltas[key])
 	}
 

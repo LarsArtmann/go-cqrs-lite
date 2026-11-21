@@ -13,6 +13,10 @@ import (
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
+// firstDataParam is the 1-based placeholder index of the first column
+// value (after the $1 collection and $2 row-ID parameters).
+const firstDataParam = 3
+
 // ApplyLayout implements metaengine.LayoutPlanner. It creates a dedicated
 // planned table with extracted columns and ART indexes for the declared
 // filter/sort fields. DuckDB does not support expression indexes on JSON
@@ -104,7 +108,7 @@ func (e *duckdbEngine) mapSetPlanned(
 
 	for i, c := range plan.Columns {
 		quotedCols = append(quotedCols, metaengine.QuoteIdent(c.Name))
-		placeholders = append(placeholders, fmt.Sprintf("$%d", i+3))
+		placeholders = append(placeholders, fmt.Sprintf("$%d", i+firstDataParam))
 		args = append(args, coerceForColumn(extracted[c.Name], c))
 	}
 

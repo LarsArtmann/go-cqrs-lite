@@ -4,6 +4,14 @@ import (
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
+// DuckDB read priors (measured; see the ReadCosts comments).
+const (
+	DuckDBNsPerPointLookup  = 50_000
+	DuckDBNsPerRowFiltered  = 450
+	DuckDBNsPerRowAggregate = 420
+	DuckDBNsPerRowFullScan  = 1_000
+)
+
 // Profile returns the cost profile for this DuckDB engine.
 func (e *duckdbEngine) Profile() metaengine.EngineProfile {
 	p := metaengine.EngineProfile{
@@ -20,19 +28,19 @@ func (e *duckdbEngine) Profile() metaengine.EngineProfile {
 			// 50K: DuckDB is NOT a point-lookup engine, but the PK index on
 			// meta_map avoids a full scan. The 50K still makes the planner
 			// prefer Memory (500ns) for point lookups by 100x.
-			NsPerPointLookup: 50_000,
+			NsPerPointLookup: DuckDBNsPerPointLookup,
 			// Measured ~454 ns/row (BenchmarkCalibration_DuckDB_PushdownScan).
 			// json_extract WHERE pushdown + vectorized scan.
-			NsPerFilteredScan: 450,
+			NsPerFilteredScan: DuckDBNsPerRowFiltered,
 			// ~418 ns/row (BenchmarkCalibration_DuckDB_CounterGet, ADR-0133):
 			// CounterGet over 1K counters — the actual ReadAggregate
 			// execution path (ADTCounter queries). The vectorized-SUM cost
 			// (~133 ns/row, BenchmarkCalibration_DuckDB_AggregateSum) prices
 			// the typed AggregateReader path, which bypasses the planner.
-			NsPerAggregate: 420,
+			NsPerAggregate: DuckDBNsPerRowAggregate,
 			// Measured ~975 ns/row (BenchmarkCalibration_DuckDB_FullScan).
 			// Full scan + Go-side JSON decode of all rows.
-			NsPerScan: 1_000,
+			NsPerScan: DuckDBNsPerRowFullScan,
 		},
 		Supports: map[metaengine.ADT]metaengine.Complexity{
 			metaengine.ADTMap:       metaengine.ComplexityOLogN,

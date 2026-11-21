@@ -55,6 +55,7 @@ func (e *duckdbEngine) ResetEngine(ctx context.Context) error {
 	tables := append(append([]string(nil), resetBaseTables...), planned...)
 
 	for _, table := range tables {
+		// #nosec G202 -- table is engine-owned and QuoteIdent-escaped
 		if _, err := tx.ExecContext(ctx, "DELETE FROM "+metaengine.QuoteIdent(table)); err != nil {
 			return rollbackReturning(
 				tx,

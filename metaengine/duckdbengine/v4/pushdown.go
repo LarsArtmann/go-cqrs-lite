@@ -82,10 +82,11 @@ func (e *duckdbEngine) PushdownMapScan(
 		if skc, ok := cursor.(metaengine.SortKeyCursor); ok {
 			jb, _ := json.Marshal(skc.Sort)
 
+			keysetBase := len(args) + 1
 			fmt.Fprintf(&b, ` AND (%s %s $%d::json OR %s = $%d::json AND "key" > $%d)`,
-				sortExpr, op, len(args)+1,
-				sortExpr, len(args)+2,
-				len(args)+3)
+				sortExpr, op, keysetBase,
+				sortExpr, keysetBase+1,
+				keysetBase+2)
 
 			args = append(args, string(jb), string(jb), string(skc.Key))
 		} else {
