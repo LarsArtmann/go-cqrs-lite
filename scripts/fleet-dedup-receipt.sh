@@ -62,12 +62,15 @@ for repo in "${REPOS[@]}"; do
 	mkdir -p "${receipt_dir}"
 
 	# PRESET BINDS FROM CWD — every command below must run from inside the repo.
+	# cqrs-lint exits 1 when a repo HAS findings — that is receipt DATA, not a
+	# sweep failure; the jq evidence step below still fails loudly on a broken
+	# scorecard.json, so real crashes cannot pass silently.
 	(
 		cd "${repo}"
 		GOWORK=off "${CQRS_LINT}" scorecard --path . --format json \
-			>"${receipt_dir}/scorecard.json" 2>"${receipt_dir}/scorecard.stderr"
+			>"${receipt_dir}/scorecard.json" 2>"${receipt_dir}/scorecard.stderr" || true
 		GOWORK=off "${CQRS_LINT}" --path . --format text \
-			>"${receipt_dir}/lint.txt" 2>"${receipt_dir}/lint.stderr"
+			>"${receipt_dir}/lint.txt" 2>"${receipt_dir}/lint.stderr" || true
 	)
 
 	evidence="$(jq -r '[.used[] | select(.key == "idempotency")][0].evidence // "MISSING"' \

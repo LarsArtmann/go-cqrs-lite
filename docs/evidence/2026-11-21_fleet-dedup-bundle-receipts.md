@@ -29,3 +29,9 @@
 <!-- Remaining idempotency-family requires across the fleet after the bundles: expected = zero shim
      parents, zero kvstore, sqlstore only where V007's v5 window still owns them. Feeds the D30
      keep/downgrade call on the codemod. -->
+
+2026-11-21 measured residue (9/9 receipts, per-repo cwd — full table in the baseline evidence §6b,
+`docs/evidence/2026-11-20_fleet-idempotency-baseline.md`): parent-shim residue = Zlota44 only
+(`idempotency/v4`, F030: 3); kvstore = zero; sqlstore = browser-history + precheck + KeyCountdown
+(F030: 2/2/1) + DiscordSync (import present, no flagged sites); direct `go-idempotency` = InboxClean,
+SEC, github-local-sync, SwettySwipperWeb.

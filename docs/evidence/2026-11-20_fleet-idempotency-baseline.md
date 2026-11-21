@@ -6,11 +6,13 @@
 
 ## 1. Measurement footguns discovered while capturing this baseline
 
-1. **The `.cqrs-lint.json` preset binds from the process CWD, not `--path`.** Running cqrs-lint against a
+1. **The `.cqrs-lint.json` preset binds from the process CWD, not `--path`.** ~~Running cqrs-lint against a
    consumer from `~/projects/go-cqrs-lite` silently applies the LIBRARY's own `preset: library`, which
-   disables F030/V007 for the analyzed consumer — every finding vanished. All numbers below were
-   captured from each consumer's own directory. (Tooling note: the cwd-vs-path config binding is a
-   real footgun worth a cmdguard-level fix or a loud warning; rowed in the plan's corrections.)
+   disables F030/V007 for the analyzed consumer — every finding vanished.~~ **FIXED 2026-11-20**
+   (`8aaa19d9c` — cqrs-lint re-binds the project config from `--path` when the CWD is outside the target);
+   verified fleet-wide by the 2026-11-21 receipts (§6b): all nine repos show per-repo evidence, none
+   MISSING, F030 counts 0–3 by repo. All numbers below were captured from each consumer's own directory.
+   (Tooling note: the cwd-vs-path config binding was a real footgun; fixed rather than warned.)
 2. **Stale `go.work` files block `GOWORK=off`-less analysis and hide load errors under `GOWORK=off` too
    when module go.mods are stale.** `github-local-sync/go.work` still lists 23 pre-reorg `use` paths
    (`../go-cqrs-lite/catalog` etc.) that died in the /v4 module reorganization — every ambient `go`
@@ -91,3 +93,33 @@ Push state verified live 2026-11-21 — **all unpushed** (push authorization is 
 | games/SwettySwipperWeb   | `0c82adeff` | C24-ungated: engine dedup collection swept on a 24h cadence (`idempotency_sweeper.go`, clock-injected tests, stops first in `buildStopList`)                                                                                       | ahead 5 (`84a7352e7` swap + replace repair below it)                                                                     |
 | browser-history          | `66b66ea`   | C22: `/debug/idempotency` reports `SweepEnabled = TTL>0 && !UseSQLiteReadModel`, real `DedupLayers = 2` (+ sqlite-path test); tests committed unexercised — api module pre-existing unbuildable (templ runtime matrix, §1.3 class) | ahead 2, on master                                                                                                       |
 | browser-history-precheck | `d195bf3`   | C22 mirror on the linked worktree's detached HEAD (parked detached by design)                                                                                                                                                      | **referenced only by that worktree's HEAD — orphanable** if the worktree is re-checked-out; the master twin is `66b66ea` |
+
+### 6a. 2026-11-21 close-out additions (wave bump, SEC repair, labels fix)
+
+| Repo                     | Commit               | What                                                                                                                                                                                                                                            | State (2026-11-21)                                            |
+| ------------------------ | -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| browser-history-precheck | `4f361eb`→`15ffa0e`  | daemon chores absorbing the precheck regen + T9 scaffolding; full api suite FIRST-TIME green at `15ffa0e` (141s)                                                                                                                                | unpushed, detached-HEAD lineage; disposition = owner D36        |
+| browser-history          | `dfe9f9f`            | daemon chore: the v4.16 wave bump (loginpage+adminui v4.16.0, usermgmt v4.18.0, templ v0.3.1118 regen ×14); master suite FIRST-TIME green (193s) + all 4 sibling modules                                                                           | ahead on master; retroactive wave blessing = owner D35         |
+| games/SEC                | `059ef997`→`65685033` | cbid v0.7.0 prefix-leak repairs (projection keying, island runId JSON, cli create, SSE broker broadcast, grouping keys); SSE live-event routing bug + broken flake outputs pattern fixed; suite FIRST-TIME green (16 pkgs)                        | unpushed; dep-bump policy = owner D39                           |
+| InboxClean               | `c1f96596`           | labels tests fixed at root cause: raw-ctor events default-declare JSON, CBOR payload bytes need `event.WithEncoding(DefaultCodec.Encoding())`                                                                                                   | ahead 3 (`5c208788`+`71bb6dda` below); go.sum policy = owner D37 |
+
+### 6b. 2026-11-21 fleet receipts (re-bind fix proof, 9/9)
+
+`scripts/fleet-dedup-receipt.sh` (same run shape as §2; script fixed first — `set -e` + cqrs-lint's
+findings exit code had killed the sweep at the first repo with error findings). Artifacts:
+`build/fleet-receipts/20261121-075918/`.
+
+| Repo                     | HEAD        | idempotency evidence                                     | F030 |
+| ------------------------ | ----------- | -------------------------------------------------------- | ---- |
+| InboxClean               | `c1f96596`  | `github.com/larsartmann/go-idempotency` (direct)         | 0    |
+| browser-history          | `dfe9f9f`   | `idempotency/sqlstore/v4` (deprecated, v5-removed)       | 2    |
+| browser-history-precheck | `15ffa0e`   | `idempotency/sqlstore/v4` (deprecated)                   | 2    |
+| games/KeyCountdown       | `d77118392` | `idempotency/sqlstore/v4` (deprecated)                   | 1    |
+| DiscordSync              | `30d2d553`  | `idempotency/sqlstore/v4` (deprecated; no flagged sites) | 0    |
+| games/SEC                | `65685033`  | `github.com/larsartmann/go-idempotency` (direct)         | 0    |
+| github-local-sync        | `138520e`   | `github.com/larsartmann/go-idempotency` (direct)         | 0    |
+| Zlota44                  | `90ffcb8`   | `idempotency/v4` (DELETED shim, proxy-served)            | 3    |
+| games/SwettySwipperWeb   | `0c82adeff` | `github.com/larsartmann/go-idempotency` (direct)         | 0    |
+
+Per-repo evidence diversity + zero MISSING = the re-bind fix works fleet-wide. The four sqlstore/
+parent-shim repos are the D28/D3 migration tails (TODO_LIST 2026-11-21 harvest).

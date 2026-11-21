@@ -57,6 +57,13 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 | D30 | **cqrs-lint release timing (2026-11-18)**: the F030 registry + rename and the V007 sqlstore coverage are consumer-facing coaching changes that only reach the fleet on a tag. Cut `cmd/cqrs-lint` now (fleet gets honest deleted-module advice immediately; the plan's C12 release step runs today) vs batch with the next shared wave (fewer tags, but the four pure-swap repos keep seeing F030 fire on imports we already know are dead)                                                                                | now / next wave                                               | 2026-11-18 linter follow-through plan C12                                                    |
 | D31 | **Canonical `DiscordSync` checkout (2026-11-18)**: two clones exist under `~/projects` (`DiscordSync`, `discordsync`) with divergent HEADs and remotes, so any repair risks landing in the copy nobody runs. Name the authoritative path; the other is archived (trash, never `rm`) after a reference sweep                                                                                                                                                                                                                | `DiscordSync` / `discordsync`                                 | 2026-11-18 linter follow-through plan C25                                                    |
 | D32 | **v5 core-type finalization rulings (3, 2026-11-20 M01)**: (A) T26 reconciliation — deprecated twins stay until T26, pre-first-tag window spent on the NEW surface; (B) ADR-0166 flips Proposed→Accepted when M04 lands (not at the full cut); (C) brand-now over string-shape-compat (codemod absorbs rewrites). **EXECUTING PER RECOMMENDATION** under the 2026-11-20 blanket execute order (core/v5 = zero fleet consumers; v4 byte-identical per M23; single-wave-commit reverts) — retro-veto any ruling by naming it | stay+finalize / cut-now; flip-at-M04 / at-cut; brand / string | [ruling pack](docs/planning/2026-11-20_18-10_v5-core-type-owner-ruling-pack.md) + 11-19 plan |
+| D33 | **Push blessing (2026-11-21)**: 20+ unpushed commits across ≥7 repos, incl. two FIRST-TIME-GREEN suites (browser-history master `dfe9f9f` 193s full api + siblings; precheck `15ffa0e` 141s), SEC repaired+green (`65685033`), InboxClean labels fix (`c1f96596`), plus carried gls/Swetty/Zlota44 batches. Push order if blessed: browser-history master → SEC → InboxClean → precheck (or drop per D36) → carried | push / hold-for-review | 2026-11-21 harvest rows + 07-27 report §g-1 |
+| D34 | **T9 wire-shape detection port (2026-11-21)**: master's `verify_tenant_payloads` redesign is corruption-only (legacy rows = tenant-bearing); precheck's keeps wire-shape legacy detection so a reintroduced raw-string payload can never silently reappear (it would decode fine and count as typed under master's design). Port precheck's `tenantIDIsLegacyWireText` + tripwire to master, or accept master's simpler design? | port / accept | 07-27 report §g-2 |
+| D35 | **Retroactive v4.16-wave blessing (2026-11-21)**: the committed loop-guard test could not be satisfied honestly at loginpage v4.13.0, so browser-history (master+precheck) moved to the coherent v4.16 era (loginpage+adminui v4.16.0, usermgmt v4.18.0, templ v0.3.1118, templ-components v1.27.0; zero app-code changes beyond 2 webauthn test signature fixes). Confirm or direct a different pin strategy | confirm / re-pin | 07-27 report §g-3 |
+| D36 | **precheck worktree disposition (2026-11-21)**: browser-history-precheck (detached HEAD lineage, unpushed) served its verification purpose — first-green suite + interim T9 scaffolding. Drop it, or keep as a pre-release canary | drop / keep | 2026-11-21 harvest |
+| D37 | **InboxClean gitignored go.sum (2026-11-21)**: `go.sum` is gitignored (line 20) though it exists on disk — commits normally belong in VCS for reproducible builds. Deliberate (private-proxy workflow) or accident? | commit / keep-ignored | 02-27 report §f-22 |
+| D38 | **gls go.work disposition (carried 2026-11-20)**: github-local-sync keeps a LOCAL gitignored go.work + go.work.sum repaired to /v4 paths (owner-taste item from 02-27 §f-17): keep local-only, or commit a curated one | local / commit | 02-27 report §f |
+| D39 | **SEC dep-bump policy (2026-11-21)**: `ac388725` "update dependencies to latest" pulled go-branded-id v0.7.0 silently and broke 8+ suites for weeks (every `.String()`→`Parse*` round-trip leaked the brand prefix; plus a dead SSE broker and a broken flake). Confirm the bump was deliberate; if unpinned bumps stay, add a test gate (BuildFlow pre-commit or CI) so red suites block the bump commit | confirm+gate / confirm / revert-policy | 2026-11-21 harvest (SEC `65685033` evidence) |
 
 **Parked (trigger-gated, deliberately NOT queued):** DueClaimer v2 reopen trigger (row 766, second-consumer trigger); ADR-0138 command-sourcing draft (row 932, consumer-demand gated). **Actionable post-M35 (not a decision):** journal-side cqrs-lint scorecard adoption (row 1027, needs the cqrs-lint tag pushed).
 
@@ -96,6 +103,30 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 - [ ] **07-53 floor-drop pack (9 + conditionals)** — items the iroh ruling gates or that were dropped without rows (M38 dispose; ruling = D5 addendum): f2/f3/f4/f45 extraction-contingent (park vs commission rides D5); f6 OpTag-vs-WithClock semantic-diff inventory (was flagged "BEFORE any future merge"); f7 collision preflight (moot until ruling); f16 loopback/quic ADT-matrix factory-completeness read; f22 WriteOp.ID v5 note decision; f31 mesh-demo CI build coverage; f34 quic fork bump path budget; f39 crush-config "never list unexecuted work as done" lesson; f41 "how do we test X" answer template; f43 report close-out preflight; f49 candidate-inventory-as-artifact habit; f32/f50 standing guards (ADR-0056 TimeUnixDynamic pin; internal/cluster untouched watcher) — row-or-decline each with a date; f47 dnsblockd cluster-wave citation note (minor, foreign). _(Effort: S total; batch decision — most are natural NOT-DO/declines)_
 - [ ] **dnsblockd revisit-triggers residue** (07-53 f5): TODO_LIST:369 routes there but dnsblockd's "Revisit triggers" list still has no extraction-trigger conditions despite the "regardless of the ruling" framing — foreign-repo edit pending coordination. _(Effort: XS, foreign)_
 
+## Harvest — 2026-11-21 fleet receipts + C-list mop-up close-out (docs-health HARVEST)
+
+> Sources: `docs/status/2026-11-21_07-27_precheck-first-green-master-wave-sec-id-roundtrip.md` §f (50 items) + the
+> 02-27 report §f remainder. Executed by the 2026-11-21 close-out session (no rows needed): SEC projection keying +
+> prefix-leak fixes + SSE-broker live-event routing bug + broken-flake repair — full suite FIRST-TIME green, `65685033`;
+> InboxClean labels tests fixed at root cause (`c1f96596` — raw-ctor events default-declare JSON, CBOR bytes need
+> `event.WithEncoding`); cqrs-lint 19-package suite green; 9/9 fleet receipts captured (re-bind fix verified: per-repo
+> evidence diversity, none MISSING — `build/fleet-receipts/20261121-075918/`, after fixing the receipt script's
+> findings-exit bug where `set -e` killed the sweep on any repo with error findings); SEC production fold path verified
+> JSON-consistent (app init pins `DefaultCodec`); race spot-checks green (browser-history login/passkeys, SEC app+proj);
+> `mesh-demo` untracked dir gone (M-wave cleaned up); versions gate + md-go gate green.
+> Owner-gated: D33–D39 (push blessing, T9 port, wave blessing, precheck disposition, go.sum, gls go.work, SEC bump gate).
+> Done after this section was cut: the browser-history CHANGELOG row (07-27 §f-24) — landed `ed87c29` (2026-11-21).
+
+- [ ] **(repo: cqrs-htmx) v4.16-era doc note** — "consuming the v4.16 wave requires templ ≥ v0.3.1100 regen; templ-components v1.27.x is the pairing" (the era matrix that cost two sessions hours). _(Effort: XS, foreign)_ (07-27 §f-27/39)
+- [ ] **fleet sweep: remaining old-era loginpage/adminui pins** — which other consumers pin < v4.16.0 loginpage/adminui (or templ < v0.3.1100 with components ≥ v1.24) and owe the same wave. _(Effort: S)_ (07-27 §f-17)
+- [ ] **templ-era matrix CORRECTION** — the 02-27 report's "templ-components v1.27 requires templ v0.3.1020" is WRONG (verified: requires ≥ v0.3.1100); verified 2026-11-21 that no LIVING doc carries the wrong number (only archived reports, closed history) — this row is the corrected record until the cqrs-htmx era note (row above) ships. _(Effort: done-in-principle)_ (07-27 §f-15)
+- [ ] **dependabot owner-ping** — 8+ days stale, 138/139 open PRs; owner triage session or auto-close policy. _(Effort: owner)_ (07-27 §f-14, carried)
+- [ ] **brandid-lint round-trip rule** — flag `ParseX(X.String())` and `X.String()` at wire boundaries (the exact class that broke SEC for weeks; check whether go-branded-id already ships it before building). _(Effort: S)_ (07-27 §f-48)
+- [ ] **SEC dep-bump gate** — gated by **D39**: test gate so unpinned "update all" bumps cannot land with red suites. _(Effort: S, foreign)_ (07-27 §f-7/18)
+- [ ] **(repo: Zlota44) parent-shim swap remainder** — see the amended 2026-11-17 row: F030: 3, still on deleted `idempotency/v4`. _(Effort: S, foreign)_
+- [ ] **T9 port to master** — gated by **D34**; small isolated port of `tenantIDIsLegacyWireText` + rewritten tripwire (master files: `api/verify_tenant_payloads_cli.go`, `api/branded_binding_test.go`). _(Effort: S, foreign)_ (07-27 §f-37)
+- [ ] **push batches** — gated by **D33**; unpushed: browser-history master `dfe9f9f`, precheck `15ffa0e`, SEC `65685033`, InboxClean `c1f96596` (+2), gls `138520e`, Swetty `84a7352e7`+5, Zlota44 `90ffcb8`. _(Effort: owner)_ (07-27 §f-32/33/34)
+
 ## Harvest — 2026-11-17 idempotency review + cqrs-lint truth plan (docs-health HARVEST)
 
 > Sources: `docs/status/2026-11-17_12-26_idempotency-module-usage-review-and-doc-reconciliation.md`
@@ -109,16 +140,17 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 
 ### Fleet repairs (D1 granted; each repo one commit + build/test receipt)
 
-- [ ] **(repo: 7 apps) parent-shim swap — 17 files** — replace `go-cqrs-lite/idempotency/v4` with `github.com/larsartmann/go-idempotency` (all five symbols used across the fleet are exported there): InboxClean `internal/emailcqrs/setup.go`; browser-history `api/server.go`+`server_setup.go`+`idempotency_test.go`; browser-history-precheck same 3 (also bumps indirect 0.3.1→0.3.2); KeyCountdown `internal/container/packages/cqrs.go`+`internal/cqrs/integration_test.go`; SEC `internal/cqrs/app/app.go`+`idempotency_test.go`; github-local-sync `internal/branch/service.go`; Zlota44 5 files + `go mod tidy && go mod vendor` (vendor/modules.txt pins the shim). Gated by **D2**. _(Effort: M)_
+- [ ] **(repo: 7 apps) parent-shim swap — 17 files** — replace `go-cqrs-lite/idempotency/v4` with `github.com/larsartmann/go-idempotency` (all five symbols used across the fleet are exported there): InboxClean `internal/emailcqrs/setup.go`; browser-history `api/server.go`+`server_setup.go`+`idempotency_test.go`; browser-history-precheck same 3 (also bumps indirect 0.3.1→0.3.2); KeyCountdown `internal/container/packages/cqrs.go`+`internal/cqrs/integration_test.go`; SEC `internal/cqrs/app/app.go`+`idempotency_test.go`; github-local-sync `internal/branch/service.go`; Zlota44 5 files + `go mod tidy && go mod vendor` (vendor/modules.txt pins the shim). Gated by **D2**. _(Effort: M)_ — 2026-11-21 receipts: InboxClean/SEC/gls/Swetty legs DONE (`c1f96596`/`9f12298a`/`dc1009f`/`84a7352e7`); remainder = Zlota44 (still `idempotency/v4`, F030: 3) + the browser-history/precheck/KeyCountdown sqlstore legs (that row below)
 - [ ] **(repo: browser-history, browser-history-precheck, KeyCountdown) add dedup sweeps** — `idempotency_keys` has ZERO `Sweep` callers in all three; mirror DiscordSync's 24h ticker (`cmd/discordsync/idempotency_sweeper.go`). Gated by **D3** (durability intent). _(Effort: S)_
-- [ ] **(repo: DiscordSync, KeyCountdown, browser-history) migrate `idempotency/sqlstore` → engine dedup** — `(*system.System).Dedup()` / `metaengine.NewFromEngine` over the engine's `DedupStore` + a `DedupSweep` caller; sqlstore is deleted at v5 (ADR-0158/0167). Gated by **D3**. _(Effort: M)_
+- [ ] **(repo: DiscordSync, KeyCountdown, browser-history, browser-history-precheck) migrate `idempotency/sqlstore` → engine dedup** — `(*system.System).Dedup()` / `metaengine.NewFromEngine` over the engine's `DedupStore` + a `DedupSweep` caller; sqlstore is deleted at v5 (ADR-0158/0167). Gated by **D3**. _(Effort: M)_ — 2026-11-21 receipts: browser-history F030: 2, precheck F030: 2, KeyCountdown F030: 1, DiscordSync F030: 0 (import present, no flagged sites); precheck added to the set
 - [ ] **(repo: Zlota44) delete the 172-line hand-rolled SQLite store** — `internal/app/idempotency_sqlite.go` violates contract 30 (satellite SQL beside the engines); its "growth is bounded by distinct command keys … no sweeper needed" comment is false (`Seen` deletes only the queried key). _(Effort: M)_
 - [ ] **(repo: SwettySwipperWeb) delete the dangling replace** — `services/api/go.mod:20` replaces a module it no longer imports; the `dedupIdempotencyStore` adapter can then collapse onto `metaengine.NewFromEngine`. _(Effort: XS)_
 - [ ] **(repo: DiscordSync + discordsync) resolve the duplicate checkout** — both are real clones with distinct remotes (`DiscordSync.git` vs `discordsync`); `DiscordSync` is the live tree (ahead 2), `discordsync` behind 5 / ahead 3 with no runtime config. Pick canonical, trash-or-archive the twin. _(Effort: XS)_
 - [ ] **(repo: browser-history + precheck) fix the `/debug/idempotency` lie** — `SweepEnabled = cfg.IdempotencyTTL > 0` while the sqlite store has no sweeper and `DedupLayers = 3` is hardcoded, so the debug page reports a dedup topology that does not exist. _(Effort: XS)_
-- [ ] **(repo: InboxClean) close the MemoryStore** — `Setup.Close` closes only the bus; the `NewMemoryStore` 5m sweeper goroutine leaks and keys are lost on restart. _(Effort: XS)_
-- [ ] **(repo: github-local-sync) fix the retry⊂idempotency inversion** — `CommandRetry` is registered BEFORE `CommandIdempotency`, so attempt 1 records the key and attempt 2 re-checks the same command ID → `ErrDuplicate` instead of a retry. _(Effort: XS)_
+- [ ] **(repo: github-local-sync) fix the retry⊂idempotency inversion** — `CommandRetry` is registered BEFORE `CommandIdempotency`, so attempt 1 records the key and attempt 2 re-checks the same command ID → `ErrDuplicate` instead of a retry. _(Effort: XS)_ (owner-gated: C23 23.1–23.2)
 - [ ] **(repo: DiscordSync) make capture dedup atomic** — `Seen` then `Record` after append is a non-atomic peek-then-record; `CheckAndRecord` is the contract's atomic claim. _(Effort: S)_
+
+> Closed since this harvest (2026-11-21): the InboxClean MemoryStore-close row — DONE `5c208788` (2026-11-20, C23-ungated half; double-close test pinned). Removed per BUILD rule "done items never stay".
 
 ### Repo-local follow-ups (this repo)
 
@@ -1483,7 +1515,7 @@ replace-free — 10-25 §a2/§a3, now archived).
 > calibration, planner polish, keycodec, restart harnesses) SHIPPED in full —
 > see CHANGELOG `[Unreleased]`. What follows is the open tail.
 
-- [ ] [RULED 2026-10-08] **Turso strict-vs-lenient DSN param policy** —
+- [x] **RESOLVED 2026-11-21: [RULED 2026-10-08] Turso strict-vs-lenient DSN param policy** —
       **RULED: STRICT** ("make impossible states unrepresentable"; blanket
       authorization): reject unknown `*encrypt*`/`*key*` params at tursoengine
       construction with a typed Rejection-family error naming the param and
@@ -1492,6 +1524,17 @@ replace-free — 10-25 §a2/§a3, now archived).
       Implementation + tests ride W2 (T08 tail). Original: the driver
       silently ignores mistyped encryption params (`encryption_hexkkey=`
       opens the DB UNENCRYPTED). — source: 20-57 §g3
+      DONE 2026-11-21: `tursoengine/v4/dsn.go` `strictDSNParams` runs in
+      `New()` on the caller-owned DSN (embedded AND remote); sentinel
+      `tursoengine.ErrUnknownEncryptionParam` wrapped via
+      `errorfamily.WrapRejectionf` (errors.Is + Rejection family pinned);
+      close-match suggestions (scaled Levenshtein + prefix rules →
+      `did you mean "encryption_hexkey"?`); known set {experimental,
+      encryption_cipher, encryption_hexkey} case-insensitive; non-encryption
+      unknowns (mode=memory, authtoken) untouched. Tests:
+      `dsn_strict_test.go` (13-case table + New-level rejection +
+      suggestion/distance tables); full tursoengine suite green 122s; api
+      golden regen (+1 export); CHANGELOG row under [Unreleased] Changed.
 - [ ] [RULED 2026-10-08] **Upstream turso-go issues** — **FILING APPROVED**
       (blanket authorization) via the T25 filings pack, each claim re-verified
       against latest main first (verify-before-filing):
