@@ -1,5 +1,11 @@
 # SUPERB — v5 Core-Type Finalization (2026-11-19 20:52 CET)
 
+> **EXECUTED TO COMPLETION 2026-11-20 — all 25 tasks (M00–M24).**
+> Current truth for the shipped shape: `AGENTS.md` Internal Contract 21 +
+> ADR-0166 (Accepted, implemented 2026-11-20). The only open row is M21's
+> CI-watch leg (green-master receipt pending origin sync). Per-task receipts:
+> CHANGELOG `[Unreleased]` + `docs/status/` reports of 2026-11-20.
+
 > **Leverage v5 for a huge cleanup — the pre-first-tag type window.**
 > Source review: `docs/reviews/2026-11-19_core-data-model-review.html` (R1–R12) ·
 > Session postmortem: `docs/status/2026-11-19_20-35_data-model-review-session-postmortem.md`
@@ -374,7 +380,7 @@ exclusively — no concurrent writers.
 
 | Risk | Mitigation |
 | --- | --- |
-| **Estimates wrong (M03/M04/M09 are the plan's largest)** | M00 spike measures the real blast radius first; wave boundary re-estimates from M00·b calibration; over-budget tasks get their own row instead of silent under-delivery. **M00 EXECUTED 2026-11-20 (calibration note):** full retype on a scratch branch (brands + `Stream StreamRef` single home + Version uint64 + CorrelationID brand + id-alias) → `go vet ./...` fallout = **46 type errors in 5 files**: the three AsRecord bridges (command 22, query 12, event 7 — exactly the toll points R2/R8/R9 named) + event/asrecord_test.go (4) + record/record_test.go (1). `kv` and `metadata` compile untouched. Consequences: (a) M03/M04 are type-declaration work with near-zero internal fallout; (b) M06/M09 absorb the bridge errors — their estimates carry the wave's real work; (c) no estimate escalation warranted; (d) vet, not build, is the fallout counter (build masks dependent-package errors) |
+| **Estimates wrong (M03/M04/M09 are the plan's largest)** | M00 spike measures the real blast radius first; wave boundary re-estimates from M00·b calibration; over-budget tasks get their own row instead of silent under-delivery. **M00 EXECUTED 2026-11-20 (calibration note):** full retype on a scratch branch (brands + `Stream StreamRef` single home + Version uint64 + CorrelationID brand + id-alias) → `go vet ./...` fallout = **46 type errors in 5 files**: the three AsRecord bridges (command 22, query 12, event 7 — exactly the toll points R2/R8/R9 named) + event/asrecord_test.go (4) + record/record_test.go (1). `kv` and `metadata` compile untouched. Consequences: (a) M03/M04 are type-declaration work with near-zero internal fallout; (b) M06/M09 absorb the bridge errors — their estimates carry the wave's real work; (c) no estimate escalation warranted; (d) vet, not build, is the fallout counter (build masks dependent-package errors). **M04 POST-EXECUTION CALIBRATION (recorded 2026-11-21):** the M00-predicted shape held — M04 itself was declaration + alias + validating constructors + ADR flip (Accepted 2026-11-20), with the bridge toll landing in M06 exactly as consequence (b) predicted; the wave executed M03–M09 in a single 2026-11-20 session without estimate escalation |
 | **First-tag timing ambiguity** — window may be shorter than assumed if a core/v5 tag lands before the full v5.0.0 cut | M22 pins the trigger from :1966/:395 + Layer 13 BEFORE Wave 1; if the window is short, Wave 1 (brands + alias) is the protected minimum and W4 docs follow the tag |
 | ADR-0166 implementation detail drift (storage keys) | StreamKey() stays the disk truth (ADR contract); sticky dual-read for legacy display-form journals already specified |
 | **M43 inherits an incompatible shape** | M24 compat review of v4 metaengine/system Record consumers before the shape hardens; divergences noted on the :2585 row |

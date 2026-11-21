@@ -150,6 +150,38 @@ func mk() id.StreamRef {
 	}
 }
 
+// TestRewriteV5Surface_ForeignHelperCollision routes to manual review: a
+// user function squatting on the injected helper name must never receive
+// rewritten call sites (wrong-code or compile break) — the file stays
+// untouched and the manual report names the collision.
+func TestRewriteV5Surface_ForeignHelperCollision(t *testing.T) {
+	t.Parallel()
+
+	src := `package consumer
+
+func cqrsV5StreamRef(kind string) string { return kind }
+
+func mk() string { return cqrsV5StreamRef("User") }
+`
+	path := writeSurfaceFixture(t, "a.go", src)
+
+	changes, manual, changed, err := rewriteV5SurfaceInFile(path, false)
+	if err != nil {
+		t.Fatalf("surface pass: %v", err)
+	}
+	if changed || len(changes) != 0 {
+		t.Fatalf("changed=%v changes=%+v, want no rewrite against a foreign helper", changed, changes)
+	}
+	if len(manual) != 1 || !strings.Contains(manual[0], "foreign cqrsV5StreamRef") {
+		t.Fatalf("manual = %v, want one foreign-helper collision entry", manual)
+	}
+
+	out, _ := os.ReadFile(path)
+	if string(out) != src {
+		t.Errorf("colliding file must be byte-identical after the pass:\n%s", out)
+	}
+}
+
 // TestRewriteV5Surface_ApplySmoke is the M14·e end-to-end apply-mode run:
 // one fixture consumer repo directory, the full pass (imports + surface),
 // and a parse-level verification of the result.

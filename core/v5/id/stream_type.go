@@ -99,12 +99,22 @@ func ParseStreamRef(key string) (StreamRef, error) {
 
 	streamType, err := ParseStreamType(typePart)
 	if err != nil {
-		return StreamRef{}, err
+		return StreamRef{}, errorfamily.Wrapf(
+			err,
+			errorfamily.Rejection,
+			"id.parse_stream_ref",
+			"stream key %s has an empty type before the separator", strconv.Quote(key),
+		)
 	}
 
 	streamID, err := ParseStreamID(idPart)
 	if err != nil {
-		return StreamRef{}, err
+		return StreamRef{}, errorfamily.Wrapf(
+			err,
+			errorfamily.Rejection,
+			"id.parse_stream_ref",
+			"stream key %s has an empty ID after the separator", strconv.Quote(key),
+		)
 	}
 
 	return StreamRef{Type: streamType, ID: streamID}, nil

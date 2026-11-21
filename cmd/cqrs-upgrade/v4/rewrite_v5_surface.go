@@ -28,10 +28,12 @@ import (
 	"os"
 	"slices"
 	"strconv"
+	"strings"
 )
 
 const (
 	v5HelperName      = "cqrsV5StreamRef"
+	v5HelperMarker    = "cqrs-upgrade v5 helper"
 	v5IDImportPath    = "github.com/larsartmann/go-cqrs-lite/core/v5/id"
 	v5RecordQualifier = "record"
 )
@@ -96,6 +98,13 @@ func rewriteV5SurfaceInFile(path string, dryRun bool) ([]v5SurfaceChange, []stri
 	f, err := parser.ParseFile(fset, path, src, parser.ParseComments)
 	if err != nil {
 		return nil, nil, false, fmt.Errorf("parse: %w", err)
+	}
+
+	if fileForeignHelperCollision(f) {
+		return nil, []string{
+			path + ":1: file declares a foreign " + v5HelperName +
+				" — resolve the name collision by hand (rename yours or the injected helper), then re-run",
+		}, false, nil
 	}
 
 	var edits []edit
@@ -183,6 +192,50 @@ func fileDeclaresHelper(f *ast.File) bool {
 	}
 
 	return false
+}
+
+// fileForeignHelperCollision reports whether the file declares a
+// cqrsV5StreamRef that is NOT the codemod's own helper — a user function
+// squatting on the injected name. Rewriting call sites to that name would
+// compile-break (different signature) or silently call the wrong code, so
+// such files route to manual review instead of any rewrite.
+func fileForeignHelperCollision(f *ast.File) bool {
+	for _, d := range f.Decls {
+		fd, ok := d.(*ast.FuncDecl)
+		if !ok || fd.Name.Name != v5HelperName {
+			continue
+		}
+
+		if fd.Doc == nil || !strings.Contains(fd.Doc.Text(), v5HelperMarker) {
+			return true
+		}
+
+		if !helperShapeMatch(fd.Type) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// helperShapeMatch reports whether a FuncType matches the injected helper's
+// (streamType, entityID string) record.StreamRef signature.
+func helperShapeMatch(ft *ast.FuncType) bool {
+	if ft == nil || ft.Params == nil || len(ft.Params.List) != 1 || len(ft.Params.List[0].Names) != 2 {
+		return false
+	}
+
+	if id, ok := ft.Params.List[0].Type.(*ast.Ident); !ok || id.Name != "string" {
+		return false
+	}
+
+	if ft.Results == nil || len(ft.Results.List) != 1 {
+		return false
+	}
+
+	sel, ok := ft.Results.List[0].Type.(*ast.SelectorExpr)
+
+	return ok && sel.Sel != nil && sel.Sel.Name == "StreamRef"
 }
 
 // injectIDImport adds the core/v5/id import after the package clause when

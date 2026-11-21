@@ -144,4 +144,30 @@ func TestTrinityContract_AsRecord(t *testing.T) {
 		records["query"].Payload.Enc != record.EncodingUnknown {
 		t.Error("command/query payloads are opaque at the record layer (bridge cannot know the envelope)")
 	}
+
+	for name, rec := range records {
+		if rec.MetaData.Received.IsZero() {
+			t.Errorf("%s: Received stamp must be known after the bridge (M06: every bridge stamps intake)", name)
+		}
+
+		if !rec.MetaData.Created.IsZero() {
+			t.Errorf("%s: Created = %v, want zero — the fixture records no client clock", name, rec.MetaData.Created)
+		}
+
+		if !rec.MetaData.Stored.IsZero() {
+			t.Errorf("%s: Stored = %v, want zero — only the store stamps Stored, never the bridge", name, rec.MetaData.Stored)
+		}
+	}
+
+	if got := records["commandPersisted"].MetaData.Received.Time(); !got.Equal(cmd.ReceivedAt()) {
+		t.Errorf("persisted-command Received = %v, want the explicit received clock %v", got, cmd.ReceivedAt())
+	}
+
+	if got := records["query"].MetaData.Received.Time(); !got.Equal(q.ReceivedAt()) {
+		t.Errorf("query Received = %v, want the explicit received clock %v", got, q.ReceivedAt())
+	}
+
+	if got := records["event"].MetaData.Received.Time(); !got.Equal(evt.OccurredAt()) {
+		t.Errorf("event Received = %v, want the mint clock %v (the event bridge's honest home for intake)", got, evt.OccurredAt())
+	}
 }
