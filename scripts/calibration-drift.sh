@@ -131,18 +131,23 @@ declare -A CALIB # key: "<module>|<label>" → "<expected_ns_per_unit>|<units_pe
 dump_constants() {
 	local mod=$1
 	local dir="$REPO_ROOT/metaengine/$mod"
-	local out
+	local out dump_err
+	dump_err="$(mktemp)"
 
 	if ! out="$(cd "$dir" && CALIB_DUMP=1 GOWORK=off go test \
 		-run '^TestCalibrationConstantsDump$' \
-		-count=1 -v ./... 2>/dev/null | grep -o 'CALIB|[a-z_]*|[0-9.]*|[0-9]*' || true)"; then
+		-count=1 -v ./... 2>"$dump_err" | grep -o 'CALIB|[a-z_]*|[0-9.]*|[0-9]*' || true)"; then
 		out=""
 	fi
 
 	if [ -z "$out" ]; then
 		echo "::error::no calibration constants dumped for $mod (is TestCalibrationConstantsDump present?)"
+		echo "dump stderr (first 10 lines):" >&2
+		head -10 "$dump_err" >&2
+		rm -f "$dump_err"
 		exit 2
 	fi
+	rm -f "$dump_err"
 
 	while IFS='|' read -r _ label value units; do
 		CALIB["$mod|$label"]="$value|$units"

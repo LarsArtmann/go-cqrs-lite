@@ -78,10 +78,14 @@ func TestForwardWithDropOld_FilteredValuesNotCounted(t *testing.T) {
 	}
 }
 
-// TestServeSSE_FastConsumerNeverDrops asserts the counter stays flat over a
-// fast-consumer SSE window — the diagnostic contract of SSEDroppedEvents:
-// in the CI flake class, a NON-zero delta here (or in the systemscenario
-// HTTP test) reclassifies "event never streamed" as ring backpressure.
+// TestServeSSE_FastConsumerNeverDrops asserts the value streams promptly
+// through a healthy SSE window. It deliberately does NOT assert on the
+// global SSEDroppedEvents delta: the counter is package-global and the
+// parallel eviction tests (TestForwardWithDropOld_EvictionsCounted counts
+// exactly two by design) legitimately increment it mid-window — on a loaded
+// CI runner that false-attributed "dropped 2 event(s)" to this stream twice
+// (2026-11-21). This stream cannot drop its single event into a 64-slot
+// ring; the counter contract is pinned deterministically by the unit tests.
 func TestServeSSE_FastConsumerNeverDrops(t *testing.T) {
 	t.Parallel()
 
@@ -103,8 +107,6 @@ func TestServeSSE_FastConsumerNeverDrops(t *testing.T) {
 		}
 	}
 
-	before := SSEDroppedEvents()
-
 	done := make(chan error, 1)
 	go func() { done <- ServeSSE(probing, req, watcher) }()
 
@@ -118,16 +120,12 @@ func TestServeSSE_FastConsumerNeverDrops(t *testing.T) {
 			if strings.Contains(probing.snapshot(), "drop-probe") {
 				cancel()
 
-				if got := SSEDroppedEvents(); got != before {
-					t.Errorf("fast consumer dropped %d event(s) — backpressure on a healthy window", got-before)
-				}
-
 				return
 			}
 		case <-deadline:
 			cancel()
 			t.Fatalf("value never streamed; body so far: %q (drops delta %d)",
-				probing.snapshot(), SSEDroppedEvents()-before)
+				probing.snapshot(), SSEDroppedEvents())
 		}
 	}
 }

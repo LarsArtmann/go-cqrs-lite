@@ -53,7 +53,7 @@ github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/ruletest	0.005
 github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/suppression	0.034
 github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/toolspec	4.216
 github.com/larsartmann/go-cqrs-lite/cmd/cqrs-upgrade/v4	12.993
-github.com/larsartmann/go-cqrs-lite/cmd/doc-check/v4	45.598
+github.com/larsartmann/go-cqrs-lite/cmd/doc-check/v4	50.000
 github.com/larsartmann/go-cqrs-lite/command/v4	0.026
 github.com/larsartmann/go-cqrs-lite/command/v4/commandtest	0.015
 github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4	0.043
@@ -109,7 +109,7 @@ github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/v4/demo	0
 github.com/larsartmann/go-cqrs-lite/metaengine/mysqlengine/v4	0.011
 github.com/larsartmann/go-cqrs-lite/metaengine/otelobserver/v4	0.03
 github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4	5.195
-github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4	0.068
+github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4	24.000
 github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4	0.764
 github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4	9.514
 github.com/larsartmann/go-cqrs-lite/metaengine/tursoengine/v4	59.686

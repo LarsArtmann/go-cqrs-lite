@@ -289,6 +289,14 @@ jobs:
       # cachix-action removed 2026-09-03: with skipPush it only pulls and
       # the larsartmann cache requires auth, so the step always failed.
 
+      # The drift script shells out to plain `go test` (module-level dumps);
+      # without an explicit toolchain the runner's ambient Go may be older
+      # than the go.mod floor and every dump fails instantly with the stderr
+      # swallowed (the 2026-11-21 "no calibration constants dumped" class).
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+
       - name: Calibration date
         id: date
         run: echo "date=$(date -u +%F)" >> "$GITHUB_OUTPUT"
