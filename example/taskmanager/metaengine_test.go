@@ -29,6 +29,12 @@ func TestMetaEngine_TaskCountsByStatus(t *testing.T) {
 	dispatch(t, srv, ctx, cmdCreateTask, taskC, "Task C", PriorityHigh)
 
 	waitForCounter(t, srv, "pending", 3)
+	// The auto-assign deriver writes task.assigned to these SAME streams
+	// from the durable work queue. Until those writes land, every command
+	// below races an invisible concurrent writer and can lose its
+	// optimistic-concurrency window (observed as version conflicts on
+	// loaded CI runners). Wait for all three assignments to settle first.
+	waitForAssignees(t, srv, taskA, taskB, taskC)
 
 	dispatch(t, srv, ctx, cmdStartTask, taskA, "", "")
 	waitForCounter(t, srv, "pending", 2)
@@ -106,6 +112,38 @@ func waitForCounter(t *testing.T, srv *Server, status string, want int64) {
 	}
 
 	t.Fatalf("timed out waiting for counter %q = %d", status, want)
+}
+
+// waitForAssignees polls the task_views read model until every given task
+// carries an assignee — the deterministic join point for the async
+// auto-assign worker (see the test body for why the join must happen
+// before further commands).
+func waitForAssignees(t *testing.T, srv *Server, taskIDs ...id.StreamID) {
+	t.Helper()
+
+	reader := metaengine.NewReader[TaskView](srv.MetaEngine, taskViewCollection)
+	deadline := time.Now().Add(5 * time.Second)
+
+	for time.Now().Before(deadline) {
+		all := true
+
+		for _, tid := range taskIDs {
+			view, ok, err := reader.Get(context.Background(), tid.Get())
+			if err != nil || !ok || view.AssigneeID == "" {
+				all = false
+
+				break
+			}
+		}
+
+		if all {
+			return
+		}
+
+		time.Sleep(10 * time.Millisecond)
+	}
+
+	t.Fatalf("timed out waiting for auto-assignment of %d tasks", len(taskIDs))
 }
 
 func mustNoErr(t *testing.T, err error, what string) {
