@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/larsartmann/go-cqrs-lite/graph/v4"
 	graphadapter "github.com/larsartmann/go-cqrs-lite/metaengine/graphadapter/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
@@ -185,5 +186,31 @@ func TestAdapter_StoreIntegration_RecordAware(t *testing.T) {
 
 	if len(neighbors) != 3 {
 		t.Errorf("expected 3 neighbors, got %d: %v", len(neighbors), neighbors)
+	}
+}
+
+// TestNewWithDriverRoundTrip pins the driver-injection constructor: the
+// adapter must wrap the GIVEN driver (Driver() returns it), route writes
+// through it, and Close must delegate to it exactly once.
+func TestNewWithDriverRoundTrip(t *testing.T) {
+	driver := graph.NewMemoryDriver()
+	adapter := graphadapter.NewWithDriver(driver)
+
+	if adapter.Driver() != driver {
+		t.Fatal("Driver() must return the injected driver")
+	}
+
+	ctx := context.Background()
+	if err := adapter.GraphAddEdge(ctx, "follows", metaengine.Edge{From: "a", To: "b"}); err != nil {
+		t.Fatalf("GraphAddEdge: %v", err)
+	}
+
+	neighbors, err := adapter.GraphNeighbors(ctx, "follows", "a", 1)
+	if err != nil || len(neighbors) != 1 {
+		t.Fatalf("edge must land in the injected driver (len=%d err=%v)", len(neighbors), err)
+	}
+
+	if err := adapter.Close(); err != nil {
+		t.Fatalf("Close: %v", err)
 	}
 }

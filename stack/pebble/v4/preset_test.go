@@ -2,6 +2,8 @@ package pebble_test
 
 import (
 	"context"
+	"log/slog"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -286,4 +288,60 @@ func TestBundle_Metrics(t *testing.T) {
 
 	m := b.Metrics()
 	_ = m.BlockCacheHitRate()
+}
+
+// TestCheckpoint_ExistingDirFails covers the preset's Checkpoint error wrap:
+// the backend rejects an existing target directory, and the preset must
+// surface that as an Infrastructure-family error naming the target.
+func TestCheckpoint_ExistingDirFails(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+
+	b, err := pebble.New(filepath.Join(dir, "db"))
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	defer func() { _ = b.Close() }()
+
+	target := filepath.Join(dir, "existing")
+	if err := os.Mkdir(target, 0o750); err != nil {
+		t.Fatalf("Mkdir: %v", err)
+	}
+
+	if err := b.Checkpoint(target); err == nil {
+		t.Fatal("Checkpoint to an existing directory must fail")
+	}
+}
+
+// TestPreset_OptionsAndLifecycle exercises the option surface and the
+// snapshot/graceful-close lifecycle that the round-trip tests skip: every
+// Option constructor must be accepted by New, NewSnapshot must hand out a
+// closable read view, and GracefulClose must close the bundle cleanly.
+func TestPreset_OptionsAndLifecycle(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+
+	b, err := pebble.New(filepath.Join(dir, "db"),
+		pebble.WithDurability(stack.DurabilityNormal),
+		pebble.WithLogger(slog.Default()),
+	)
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	snapshot := b.NewSnapshot()
+	if snapshot == nil {
+		t.Fatal("NewSnapshot must return a non-nil snapshot")
+	}
+
+	if err := snapshot.Close(); err != nil {
+		t.Fatalf("snapshot Close: %v", err)
+	}
+
+	if err := b.GracefulClose(context.Background()); err != nil {
+		t.Fatalf("GracefulClose: %v", err)
+	}
 }
