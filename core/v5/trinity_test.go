@@ -44,8 +44,9 @@ func trinityFixture(t *testing.T) (event.Event, *command.PersistedCommand, *quer
 
 	receivedAt := time.Date(2026, 11, 20, 12, 0, 0, 0, time.UTC)
 
-	cmdMeta := command.Metadata{}
-	cmdMeta.Tracing = tracing
+	cmdMeta := command.Metadata{
+		Tracing: tracing,
+	}
 	cmd, err := command.NewPersistedCommand(
 		"create_user",
 		streamRef,
@@ -57,8 +58,9 @@ func trinityFixture(t *testing.T) (event.Event, *command.PersistedCommand, *quer
 		t.Fatalf("NewPersistedCommand: %v", err)
 	}
 
-	qMeta := query.Metadata{}
-	qMeta.Tracing = tracing
+	qMeta := query.Metadata{
+		Tracing: tracing,
+	}
 	q, err := query.NewPersistedQuery(
 		"get_user",
 		[]byte(`{"id":"42"}`),

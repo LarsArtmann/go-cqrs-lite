@@ -45,7 +45,9 @@ func matViewPropertySpecs() []metaengine.MaterializedViewSpec {
 // rows, <=8 groups, <=3 transactions — the regime the two-tx pin covers);
 // the scale regime is governed by
 // TestTursoMatView_GroupedSumDefectAEnvelopeGuard.
-func TestTursoMatView_PropertyServedMatchesBase(t *testing.T) {
+func TestTursoMatView_PropertyServedMatchesBase(
+	t *testing.T,
+) {
 	t.Parallel()
 
 	rapid.Check(t, func(rt *rapid.T) {

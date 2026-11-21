@@ -35,13 +35,19 @@ const (
 )
 
 // cipherKeyLen returns the required raw key length in bytes and whether the
+// Cipher key lengths in bytes.
+const (
+	keyLen128Bit = 16
+	keyLen256Bit = 32
+)
+
 // cipher is known.
 func cipherKeyLen(c Cipher) (int, bool) {
 	switch c {
 	case CipherAEGIS128L, CipherAEGIS128X2, CipherAEGIS128X4, CipherAES128GCM:
-		return 16, true
+		return keyLen128Bit, true
 	case CipherAEGIS256, CipherAEGIS256X2, CipherAEGIS256X4, CipherAES256GCM:
-		return 32, true
+		return keyLen256Bit, true
 	default:
 		return 0, false
 	}
@@ -75,10 +81,12 @@ type encryptionConfig struct {
 // Encryption configuration errors: static sentinels; callers add the
 // offending value via %w context (never key material).
 var (
-	errRemoteEncryption    = errors.New("encryption applies to embedded databases only; remote Turso Cloud BYOK keys are per-connection and not configurable on this engine yet")
-	errUnknownCipher       = errors.New("unknown encryption cipher")
-	errKeyLength           = errors.New("encryption key is wrong length")
-	errDuplicateKeySource  = errors.New("DSN already carries")
+	errRemoteEncryption = errors.New(
+		"encryption applies to embedded databases only; remote Turso Cloud BYOK keys are per-connection and not configurable on this engine yet",
+	)
+	errUnknownCipher      = errors.New("unknown encryption cipher")
+	errKeyLength          = errors.New("encryption key is")
+	errDuplicateKeySource = errors.New("DSN already carries")
 )
 
 // applyEncryption validates the cipher/key pair and rewrites the DSN with
@@ -105,7 +113,7 @@ func applyEncryption(dsn string, cfg *encryptionConfig) (string, error) {
 	}
 
 	if len(key) != keyLen {
-		return "", fmt.Errorf("%w: %d bytes, want %d for %s (openssl rand -hex %d)",
+		return "", fmt.Errorf("%w %d bytes, want %d for %s (openssl rand -hex %d)",
 			errKeyLength, len(key), keyLen, cfg.cipher, keyLen)
 	}
 

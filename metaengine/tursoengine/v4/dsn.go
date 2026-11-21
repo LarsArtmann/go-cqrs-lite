@@ -137,6 +137,7 @@ func strictDSNParams(dsn string) error {
 
 	for part := range strings.SplitSeq(query, "&") {
 		key, _, _ := strings.Cut(part, "=")
+
 		lower := strings.ToLower(key)
 		if !strings.Contains(lower, "encrypt") && !strings.Contains(lower, "key") {
 			continue
@@ -178,14 +179,21 @@ func suggestDSNParams(name string) []string {
 	return suggestions
 }
 
+// Suggestion-distance tuning: long names tolerate one extra edit.
+const (
+	longParamName        = 12
+	longNameMaxDistance  = 3
+	shortNameMaxDistance = 2
+)
+
 // dsnSuggestionThreshold scales the allowed edit distance with name length so
 // long param names tolerate one extra character class of typos.
-func dsnSuggestionThreshold(a, b string) int {
-	if min(len(a), len(b)) >= 12 {
-		return 3
+func dsnSuggestionThreshold(nameA, nameB string) int {
+	if min(len(nameA), len(nameB)) >= longParamName {
+		return longNameMaxDistance
 	}
 
-	return 2
+	return shortNameMaxDistance
 }
 
 // formatDSNSuggestions renders the close-match suffix ("; did you mean ...?")
@@ -204,20 +212,20 @@ func formatDSNSuggestions(suggestions []string) string {
 }
 
 // editDistance is the Levenshtein distance between two ASCII strings.
-func editDistance(a, b string) int {
-	prev := make([]int, len(b)+1)
-	curr := make([]int, len(b)+1)
+func editDistance(source, target string) int {
+	prev := make([]int, len(target)+1)
+	curr := make([]int, len(target)+1)
 
 	for j := range prev {
 		prev[j] = j
 	}
 
-	for i := 1; i <= len(a); i++ {
+	for i := 1; i <= len(source); i++ {
 		curr[0] = i
 
-		for j := 1; j <= len(b); j++ {
+		for j := 1; j <= len(target); j++ {
 			cost := 1
-			if a[i-1] == b[j-1] {
+			if source[i-1] == target[j-1] {
 				cost = 0
 			}
 
@@ -227,5 +235,5 @@ func editDistance(a, b string) int {
 		prev, curr = curr, prev
 	}
 
-	return prev[len(b)]
+	return prev[len(target)]
 }

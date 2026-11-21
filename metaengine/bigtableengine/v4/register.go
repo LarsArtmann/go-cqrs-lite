@@ -75,7 +75,7 @@ func gcPolicyFor(p metaengine.RetentionPolicy) bigtable.GCPolicy { //nolint:iret
 }
 
 // parseDSN splits "project/instance/table" (3 non-empty components).
-func parseDSN(dsn string) (project, instance, table string, err error) {
+func parseDSN(dsn string) (string, string, string, error) {
 	parts := splitAll(dsn, '/')
 	if len(parts) != 3 || parts[0] == "" || parts[1] == "" || parts[2] == "" {
 		return "", "", "", errBadDSN(dsn)

@@ -62,10 +62,11 @@ func (e *mysqlEngine) ResetEngine(ctx context.Context) error {
 	for _, table := range tables {
 		// Table names are engine-owned and unreserved; no quoting needed
 		// (MySQL backticks are only required for the reserved `key` column).
+		// #nosec G202 -- table comes from the engine-owned resetBaseTables constant list
 		if _, err := tx.ExecContext(
 			ctx,
 			"DELETE FROM "+table,
-		); err != nil { // #nosec G202 -- table comes from the engine-owned resetBaseTables constant list
+		); err != nil {
 			//art-dupl:accept intentional cross-module mirror (pgengine reset.go, ADR-0136)
 			return rollbackReturning(
 				tx,

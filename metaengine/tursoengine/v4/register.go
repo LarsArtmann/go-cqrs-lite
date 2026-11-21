@@ -68,7 +68,7 @@ func redactDSN(dsn string) string {
 		return dsn
 	}
 
-	u, err := url.Parse(dsn)
+	parsedURL, err := url.Parse(dsn)
 	if err != nil {
 		if !isRemoteDSN(dsn) {
 			return strings.SplitN(dsn, "?", 2)[0]
@@ -77,12 +77,12 @@ func redactDSN(dsn string) string {
 		return "libsql://[redacted]"
 	}
 
-	if u.User != nil {
-		u.User = url.User("redacted")
+	if parsedURL.User != nil {
+		parsedURL.User = url.User("redacted")
 	}
 
-	if u.RawQuery != "" {
-		q := u.Query()
+	if parsedURL.RawQuery != "" {
+		q := parsedURL.Query()
 		for key := range q {
 			lower := strings.ToLower(key)
 			if strings.Contains(lower, "token") || // authToken, auth_token, AUTH_TOKEN spellings
@@ -91,10 +91,10 @@ func redactDSN(dsn string) string {
 			}
 		}
 
-		u.RawQuery = q.Encode()
+		parsedURL.RawQuery = q.Encode()
 	}
 
-	return u.String()
+	return parsedURL.String()
 }
 
 // New creates a Turso-backed metaengine Engine from a DSN. The DSN must be a
@@ -172,7 +172,7 @@ func New(dsn string, opts ...Option) (metaengine.Engine, error) {
 	eng, err := sqliteengine.NewSQLiteEngine(
 		db,
 		sqliteOpts...,
-	) //nolint:contextcheck,wrapcheck // takes *sql.DB
+	)
 	if err != nil {
 		_ = db.Close()
 

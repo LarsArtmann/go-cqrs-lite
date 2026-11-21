@@ -8,6 +8,9 @@ import (
 	"sync/atomic"
 )
 
+// indexNameHashMask keeps generated MySQL index names within 64 chars.
+const indexNameHashMask = 0xFFFFFFFF
+
 // gcIndexPrefixLen is the prefix length for indexes on TEXT generated
 // columns. MariaDB cannot index a full TEXT column; utf8mb4 at 190 chars
 // keeps the composite (collection, gc(190)) under InnoDB's 3072-byte key
@@ -36,7 +39,7 @@ func gcColumnNamePrefixed(prefix, field string) string {
 	h := fnv.New64a()
 	_, _ = h.Write([]byte(field))
 
-	return fmt.Sprintf("%s%s_%08x", prefix, sanitizeIndexName(field), h.Sum64()&0xFFFFFFFF)
+	return fmt.Sprintf("%s%s_%08x", prefix, sanitizeIndexName(field), h.Sum64()&indexNameHashMask)
 }
 
 // applyMariaDBLayout implements ApplyLayout for the MariaDB dialect.

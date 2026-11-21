@@ -22,8 +22,13 @@ func cellTimestamp(ts time.Time) bigtable.Timestamp {
 // end. The SDK truncates range bounds to milliseconds, so the end must step
 // a full millisecond past the floor — with ms-aligned cell timestamps this
 // captures exactly the cells with ts <= t.
+// msStep is one millisecond in the Bigtable timestamp (µs) unit — the SDK
+// truncates range bounds to ms, so the end must step one full ms past the
+// floor.
+const msStep = 1000
+
 func asOfEnd(t time.Time) bigtable.Timestamp {
-	return cellTimestamp(t) + 1000
+	return cellTimestamp(t) + msStep
 }
 
 // --- metaengine.MapBackend ---
@@ -63,11 +68,15 @@ func latestCell(row bigtable.Row) (bigtable.ReadItem, bool) {
 	return cells[0], true // ReadRows returns newest-first
 }
 
+// errOpPrefix anchors wrapOp's joined error so the operation name rides
+// %w context instead of a dynamic errors.New.
+var errOpPrefix = errors.New("bigtableengine")
+
 func wrapOp(op string, err error) error {
 	return errors.Join(
-		errors.New("bigtableengine: "+op),
+		fmt.Errorf("%w: %s", errOpPrefix, op),
 		err,
-	) //nolint:err113,goerr113 // dynamic join
+	)
 }
 
 // --- metaengine.VersionedWriter (native) ---
@@ -118,7 +127,7 @@ func (e *bigtableEngine) MapDeleteAt(
 func (e *bigtableEngine) readAsOf(
 	ctx context.Context,
 	row string,
-	at time.Time,
+	asOf time.Time,
 ) (bigtable.ReadItem, bool, error) {
 	rowData, err := e.tbl.ReadRow(ctx, row,
 		bigtable.RowFilter(bigtable.ChainFilters(
@@ -126,7 +135,7 @@ func (e *bigtableEngine) readAsOf(
 			// Order matters: narrow to versions <= at FIRST, then take the
 			// newest — LatestN before the range filter would select the
 			// newest overall and drop it against the bound.
-			bigtable.TimestampRangeFilterMicros(0, asOfEnd(at)),
+			bigtable.TimestampRangeFilterMicros(0, asOfEnd(asOf)),
 			bigtable.LatestNFilter(1),
 		)))
 	if err != nil {

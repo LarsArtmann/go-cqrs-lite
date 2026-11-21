@@ -86,39 +86,7 @@ func (e *mysqlEngine) ExplainAggregateQuery(
 
 	args := []any{collection}
 
-	if opts.Distinct != "" {
-		fmt.Fprintf(&b,
-			`SELECT DISTINCT %s AS dv FROM meta_map WHERE collection = ?`,
-			e.jsonFieldExpr(opts.Distinct))
-	} else if len(opts.Specs) > 0 {
-		selectCols := make([]string, len(opts.Specs))
-		for i, s := range opts.Specs {
-			selectCols[i] = fmt.Sprintf("%s AS %s",
-				e.aggExpr(s.Fn, s.Column),
-				metaengine.QuoteIdent(s.AliasOr()))
-		}
-
-		cols := strings.Join(selectCols, ", ")
-		if opts.GroupBy != "" {
-			fmt.Fprintf(&b,
-				`SELECT %s AS group_key, %s FROM meta_map WHERE collection = ?`,
-				e.jsonFieldExpr(opts.GroupBy), cols)
-		} else {
-			fmt.Fprintf(&b, `SELECT %s FROM meta_map WHERE collection = ?`, cols)
-		}
-	} else {
-		agg := e.aggExpr(opts.Fn, opts.Column)
-		if opts.GroupBy != "" {
-			fmt.Fprintf(
-				&b,
-				`SELECT %s AS group_key, %s AS agg_val FROM meta_map WHERE collection = ?`,
-				e.jsonFieldExpr(opts.GroupBy),
-				agg,
-			)
-		} else {
-			fmt.Fprintf(&b, `SELECT %s FROM meta_map WHERE collection = ?`, agg)
-		}
-	}
+	writeAggregateSelect(&b, e, opts)
 
 	for _, f := range opts.Filters {
 		e.appendExplainFilter(&b, &args, f)
@@ -167,3 +135,48 @@ var (
 	_ metaengine.ExplainableScan      = (*mysqlEngine)(nil)
 	_ metaengine.ExplainableAggregate = (*mysqlEngine)(nil)
 )
+
+// writeAggregateSelect emits the SELECT clause for the three aggregate
+// shapes: DISTINCT values, multi-spec grouped aggregates, and the plain
+// single-aggregate form.
+func writeAggregateSelect(b *strings.Builder, e *mysqlEngine, opts metaengine.ExplainAggregateOptions) {
+	if opts.Distinct != "" {
+		fmt.Fprintf(b,
+			`SELECT DISTINCT %s AS dv FROM meta_map WHERE collection = ?`,
+			e.jsonFieldExpr(opts.Distinct))
+
+		return
+	}
+
+	if len(opts.Specs) > 0 {
+		selectCols := make([]string, len(opts.Specs))
+		for i, s := range opts.Specs {
+			selectCols[i] = fmt.Sprintf("%s AS %s",
+				e.aggExpr(s.Fn, s.Column),
+				metaengine.QuoteIdent(s.AliasOr()))
+		}
+
+		cols := strings.Join(selectCols, ", ")
+		if opts.GroupBy != "" {
+			fmt.Fprintf(b,
+				`SELECT %s AS group_key, %s FROM meta_map WHERE collection = ?`,
+				e.jsonFieldExpr(opts.GroupBy), cols)
+		} else {
+			fmt.Fprintf(b, `SELECT %s FROM meta_map WHERE collection = ?`, cols)
+		}
+
+		return
+	}
+
+	agg := e.aggExpr(opts.Fn, opts.Column)
+	if opts.GroupBy != "" {
+		fmt.Fprintf(
+			b,
+			`SELECT %s AS group_key, %s AS agg_val FROM meta_map WHERE collection = ?`,
+			e.jsonFieldExpr(opts.GroupBy),
+			agg,
+		)
+	} else {
+		fmt.Fprintf(b, `SELECT %s FROM meta_map WHERE collection = ?`, agg)
+	}
+}

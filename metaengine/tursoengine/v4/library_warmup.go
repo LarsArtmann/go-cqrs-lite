@@ -10,6 +10,9 @@ import (
 	"time"
 )
 
+// warmupRetryDelay paces the library-extraction retry loop.
+const warmupRetryDelay = 25 * time.Millisecond
+
 // art-dupl:accept dep-isolated twin of storage/turso/library_warmup.go: no legal shared home (tier rules forbid importing that Tier-4 module from here), same pattern as the register.go driver twins
 // tursoLibraryWarmupTimeout bounds how long this process waits for a
 // concurrent process to finish the one-time library extraction before
@@ -98,7 +101,7 @@ func acquireTursoLockFile(lockPath string) (*os.File, bool) {
 			return nil, false
 		}
 
-		time.Sleep(25 * time.Millisecond)
+		time.Sleep(warmupRetryDelay)
 	}
 }
 

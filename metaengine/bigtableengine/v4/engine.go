@@ -29,6 +29,15 @@ import (
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
+// Bigtable read priors (uncalibrated: remote-cloud RTT dominates; refresh
+// via the calibration campaign once a project instance exists).
+const (
+	BigtableNsPerPointLookup = 2_000_000
+	BigtableNsPerAggregate   = 2_000_000
+	BigtableNsPerRowScan     = 900
+	BigtableNsPerRowFiltered = 900
+)
+
 const (
 	// family holds versioned map cells; column "v" carries the JSON value.
 	family = "cqrs"
@@ -199,10 +208,10 @@ func (e *bigtableEngine) Profile() metaengine.EngineProfile {
 		Persistence:     metaengine.PersistencePersistent, // remote replicated service
 		ReadCosts: metaengine.ReadCosts{
 			// One RPC round trip for a point lookup (uncalibrated prior).
-			NsPerPointLookup:  2_000_000,
-			NsPerAggregate:    2_000_000, // CounterGet = one prefix scan RPC
-			NsPerScan:         900,       // per-row within one streamed ReadRows
-			NsPerFilteredScan: 900,
+			NsPerPointLookup:  BigtableNsPerPointLookup,
+			NsPerAggregate:    BigtableNsPerAggregate, // CounterGet = one prefix scan RPC
+			NsPerScan:         BigtableNsPerRowScan,   // per-row within one streamed ReadRows
+			NsPerFilteredScan: BigtableNsPerRowFiltered,
 		},
 		Supports: map[metaengine.ADT]metaengine.Complexity{
 			metaengine.ADTMap:     metaengine.ComplexityO1, // key-addressed LSM lookup

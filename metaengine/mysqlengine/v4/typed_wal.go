@@ -12,6 +12,9 @@ import (
 	"github.com/go-sql-driver/mysql"
 )
 
+// mySQLErrDupEntry is MySQL ER_DUP_ENTRY (error 1062).
+const mySQLErrDupEntry = 1062
+
 // The typed WAL columns (disk-truth plan A12b, mirroring the sqliteengine A11
 // reference and the pgengine A12a twin): meta_stream_log historically stores
 // one opaque JSON envelope per row, so the journal of record has NO
@@ -239,7 +242,7 @@ func isUniqueViolation(err error) bool {
 	}
 
 	if my, ok := errors.AsType[*mysql.MySQLError](err); ok {
-		return my.Number == 1062
+		return my.Number == mySQLErrDupEntry
 	}
 
 	return strings.Contains(err.Error(), "Duplicate entry")
