@@ -206,6 +206,7 @@ func run(files []string, jsonOut, listAllAmbiguous bool) error {
 
 	if jsonOut {
 		if err := emitJSON(
+			os.Stdout,
 			len(files),
 			totalRefs,
 			brokenRefs,
@@ -213,6 +214,7 @@ func run(files []string, jsonOut, listAllAmbiguous bool) error {
 			ambiguities,
 			navIssues,
 			arityIssues,
+			modPathIssues,
 			res,
 		); err != nil {
 			return fmt.Errorf("emit json: %w", err)

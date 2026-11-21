@@ -263,7 +263,7 @@ Original rows above are preserved; these corrections govern execution from here 
     the default branch ARE v1.47.0, so the alerts are stale against a patched graph; manual
     dismissal rejected (GitHub offers no truthful "fixed" reason) — they close on graph rescan.
     (d) §f 46 planning corpus — stays OUT of doc-check's default corpus (parse-level `#check-md-go`
-    + the reconcile procedure are the right bars; compile-verifying dated records is the wrong one).
+    - the reconcile procedure are the right bars; compile-verifying dated records is the wrong one).
 11. **C14 no-upstream-ask record (2026-11-20): NONE.** Zero genuine upstream asks surfaced;
     `go-idempotency` is first-party (its sweep fix is in-repo work). Recorded as "none" in the
     2026-11-18_08-27 report's receipts appendix. Nothing in this plan implies an external filing.
@@ -477,6 +477,19 @@ Original rows above are preserved; these corrections govern execution from here 
 | 18.7 | `go mod tidy` + build                                             | 10  |
 | 18.8 | Test + scorecard receipt                                          | 8   |
 
+> **Draft design (2026-11-21, against the corrected sweep truth; GATED on D28/D29 — do not execute
+> without the answers).** KeyCountdown is sqlite/sqlstore today with NO sweep caller, and sqlstore
+> has NO background sweep — 18.5 is mandatory, not nice-to-have. Shape: (1) resolve the engine dedup
+> through the app's existing engine wiring (mirror Swetty's `idempotency_dedup.go` adapter over
+> `metaengine.DedupStore`, collection named for the app, e.g. `keycountdown_command_idempotency`);
+> (2) `DedupSweep` ticker on the app lifecycle — cadence 1h with an immediate first pass and a
+> nil/typed-nil guard (DiscordSync `cmd/discordsync/idempotency_sweeper.go` is the reference;
+> Swetty's `0c82adeff` is the second exemplar, including the clock-injected expired/live/no-op
+> test shape); (3) engine sweeps delete ONLY expired rows — the MemoryStore `sweepInterval >= ttl`
+> blindness hazard does not apply; (4) ordering is already correct here (CommandIdempotency
+> outermost) — do not touch it; (5) remove the DI `NewIdempotencyStore` constructor and its
+> consumers in the same edit. Receipt via `scripts/fleet-dedup-receipt.sh` from the repo's own cwd.
+
 ### C19 — browser-history bundle (90m) · covers §f 22
 
 | #    | Micro-task                                                          | Min |
@@ -490,6 +503,17 @@ Original rows above are preserved; these corrections govern execution from here 
 | 19.7 | Keep the memory store only for the nil-DB test path (if any)        | 10  |
 | 19.8 | Build + test + scorecard                                            | 12  |
 
+> **Draft design (2026-11-21, corrected sweep truth; GATED on D28/D29).** The dual branch
+> (memory default / sqlite when a DB path is set) both need truth: the memory path sweeps (10m
+> ticker) but the sqlite path has NO sweep and NO background reclamation — only lazy deletes on
+> reads — plus `maxEntries` oldest-first deletion when full. Post-D29 shape: collapse to engine dedup
+> (the D29 answer decides whether the flag survives for the nil-DB test path only). The engine path
+> gets the same sweeper shape as C18. TWO MUSTS carried from C22: the `/debug/idempotency`
+> `SweepEnabled = TTL>0 && !UseSQLiteReadModel` payload and its test (`66b66ea`) are committed but
+> UNEXERCISED — the api module does not build under the current templ pin (see the 01-28 report §e7);
+> 19.8 MUST build the api module and run that test, then flip `SweepEnabled` to reflect the engine
+> sweeper in the same edit.
+
 ### C20 — precheck bundle (80m) · covers §f 23,32
 
 | #    | Micro-task                                                   | Min |
@@ -501,6 +525,16 @@ Original rows above are preserved; these corrections govern execution from here 
 | 20.5 | Bump indirect `go-idempotency` 0.3.1 → 0.3.2                 | 8   |
 | 20.6 | `go mod tidy` + build                                        | 10  |
 | 20.7 | Test + scorecard                                             | 12  |
+
+> **Draft design (2026-11-21, corrected sweep truth; GATED on D28/D29).** Same migration as C19
+> plus the precheck-specific leak: `server.go:298` constructs a `MemoryStore` unconditionally and
+> DISCARDS it when a DB path is configured — the discarded store still owns a 10m ticker. Prefer
+> lazy construction (build the store only on the path that uses it) over close-after-discard: the
+> leak dies at the root and no `Close` choreography is needed. Whichever store survives gets the
+> same sweeper shape as C18/C19. The go-idempotency pin moves 0.3.1 → latest (0.6.0 is proven in
+> gls/Swetty). Note the worktree topology: precheck is a linked worktree parked on a detached HEAD —
+> commit there lands on that HEAD only (see the §6 ledger note about orphanable hashes); if the
+> canonical line is browser-history master, land C19 there first and mirror.
 
 ### C21 — Zlota44 bundle (100m) · covers §f 24,25
 
@@ -515,6 +549,23 @@ Original rows above are preserved; these corrections govern execution from here 
 | 21.7 | `go mod tidy && go mod vendor`                               | 12  |
 | 21.8 | Build + test                                                 | 10  |
 | 21.9 | Scorecard + F030/V007 receipt                                | 12  |
+
+> **Draft design (2026-11-21, corrected Zlota44 facts — survey row 8/§4/§7.3 corrected this date;
+> GATED on D28/D29).** The store is **SQLite, not bbolt** (`internal/app/idempotency_sqlite.go`,
+> 172 lines, same `*sql.DB` as the event store) and already implements `go-idempotency`'s `Store`
+> (direct v0.3.2 require beside the shim). What ties the repo to the deleted module is ONLY the
+> `ErrDuplicate` sentinel — 5 files import the shim for it (`wire.go`, `dispatcher.go`,
+> `cmd/discover/sweep.go`, two BDD tests). Minimal honest scope: (1) swap `ErrDuplicate` for
+> `go-idempotency.ErrDuplicate` (identical sentinel, zero behavior change) and drop the shim
+> require — NOT a store rewrite; the store's own interface already sits on the live module;
+> (2) fix the false comment — the store's "row growth is bounded by distinct command keys … no
+> background sweeper goroutine is needed" is falsified by `ReDiscoverPropertyCmd`
+> (`domain/property/commands.go:138`, key embeds a unique per-command ID): expired rows for unique
+> keys are never `Seen` again and linger forever; (3) wire the sweeper per the D29 answer (a
+> periodic `Sweep()` call over the same `*sql.DB` is enough — the schema already expires rows);
+> (4) vendored tree: `go mod tidy && go mod vendor`. 21.6's "delete the store" is superseded —
+> deleting a WORKING store that already targets the live module buys nothing; the defect was never
+> the store, it was the comment and the missing sweeper.
 
 ### C22 — debug endpoint + comment truths (45m) · covers §f 26,27
 
@@ -547,8 +598,11 @@ Original rows above are preserved; these corrections govern execution from here 
 > are reclaimed only lazily on reads, so unaccessed expired rows linger and the table grows. The
 > sqlite-path sweep therefore belongs to the bundle migrations (C18/C19/C20, D28/D29-gated) where the
 > store choice is being remade anyway. The UNGATED remainder is exactly one consumer: Swetty's
-> `wanted_ids` engine collection (`metaengine.DedupStore`, explicit `DedupSweep`, zero callers today).
-> 24.5 stands (DiscordSync's sweeper shape as reference); effort ≈40m.
+> engine dedup collection (`metaengine.DedupStore`, explicit `DedupSweep`, zero callers today) —
+> shipped 2026-11-20 as `0c82adeff`; the collection is `api_command_idempotency`
+> (`services/api/idempotency_dedup.go:17`; the earlier `wanted_ids` name was wrong, survey §7.6
+> corrected 2026-11-21). 24.5 is DONE; 24.1's reference shape now has a second in-fleet exemplar
+> (Swetty's clock-injected `idempotency_sweeper_test.go`). Effort ≈0m; remaining C24 rows ride the bundles.
 
 | #    | Micro-task                                                                                         | Min |
 | ---- | -------------------------------------------------------------------------------------------------- | --- |
@@ -571,6 +625,10 @@ Original rows above are preserved; these corrections govern execution from here 
 | 25.4 | Note the canonical path in TODO_LIST                        | 6   |
 
 ### C26 — fleet receipts + census (90m) · covers §f 34,35,36
+
+> **2026-11-21:** receipt-doc skeleton created at
+> `docs/evidence/2026-11-21_fleet-dedup-bundle-receipts.md` (§f-29) — 26.6 fills it; per-repo
+> receipts capture via `scripts/fleet-dedup-receipt.sh` (§f-14, shipped).
 
 | #    | Micro-task                                                    | Min |
 | ---- | ------------------------------------------------------------- | --- |
@@ -595,6 +653,17 @@ Original rows above are preserved; these corrections govern execution from here 
 | 12.7 | Push + proxy smoke (`go install` in a clean dir)             | 12  |
 | 12.8 | Bump fleet/CI pins                                           | 12  |
 | 12.9 | `check-versions-manifest --update` + README manifest         | 10  |
+
+> **Draft design (2026-11-21; GATED on D30 — cqrs-lint tag timing).** The four pure swaps shipped
+> by hand (C15–C17), so the codemod's remaining mechanical value is the sqlstore class + any fleet
+> residue: rewrite `…/idempotency/v4` → `github.com/larsartmann/go-idempotency` (pure alias swap,
+> same rule shape as the existing import rewrites in `cmd/cqrs-upgrade`), `…/idempotency/kvstore`
+> → `go-idempotency` (the contract twin), and REPORT `…/idempotency/sqlstore` imports as manual
+> sites pointing at the V007 replacement text (engine dedup) — that migration changes wiring, not
+> just imports, and must never be auto-rewritten. Fixture for 12.2: a temp module requiring the
+> deleted parent + kvstore paths (both resolve from frozen tags) with one import each. Zlota44's
+> five `ErrDuplicate` files are the live fixture for the alias swap. If D30 lands after the fleet
+> residue is gone by hand, downgrade 12.1–12.3 to "not worth it" and record that verdict here.
 
 ### C14 — no-upstream-ask record (10m) · covers §f 50
 

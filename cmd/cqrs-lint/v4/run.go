@@ -184,6 +184,11 @@ func run(ctx context.Context, cfg *AppConfig) error {
 // overrides onto the auto-detected analysis context. Also validates rule config
 // keys to surface typos that would silently disable an override.
 func applyConfigOverrides(cfg *AppConfig, actx *analyzer.AnalysisContext) {
+	// Re-bind the project keys when the config was loaded from a cwd outside
+	// the lint target (the cmdguard loader is cwd-relative) — before any
+	// preset resolution reads them.
+	rebindForeignCwdConfig(os.Stderr, cfg)
+
 	// Warn on unknown preset name (typo detection — consistent with rules-key validation).
 	validatePresetName(os.Stderr, cfg.Preset)
 

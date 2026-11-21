@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json/v2"
 	"fmt"
-	"os"
+	"io"
 )
 
 // jsonSummary is the --json wire shape: deterministic field order, arrays
@@ -16,30 +16,36 @@ type jsonSummary struct {
 	Broken      []brokenRef `json:"broken"`
 	NavIssues   []navIssue  `json:"navIssues"`
 	ArityIssues []navIssue  `json:"arityIssues"`
-	Warnings    []string    `json:"warnings"`
-	Ambiguities []string    `json:"ambiguities"`
+	// ModPathIssues carries the dead-citation class (C27): docs citing
+	// deleted module paths as live guidance. Same navIssue shape as the nav
+	// and arity classes so CI annotations render uniformly.
+	ModPathIssues []navIssue `json:"modPathIssues"`
+	Warnings      []string   `json:"warnings"`
+	Ambiguities   []string   `json:"ambiguities"`
 }
 
-// emitJSON prints the machine-readable summary to stdout. Human logs stay on
-// stderr, so the JSON is the only stdout content.
+// emitJSON prints the machine-readable summary. Human logs stay on stderr,
+// so the JSON is the only stdout content.
 func emitJSON(
+	w io.Writer,
 	files, totalRefs int,
 	brokenRefs []brokenRef,
 	warnings, ambiguities []string,
-	navIssues, arityIssues []navIssue,
+	navIssues, arityIssues, modPathIssues []navIssue,
 	res *resolver,
 ) error {
 	summary := jsonSummary{
 		Valid: len(brokenRefs) == 0 && len(warnings) == 0 &&
-			len(navIssues) == 0 && len(arityIssues) == 0,
-		Files:       files,
-		References:  totalRefs,
-		Packages:    len(res.clauses),
-		Broken:      brokenRefs,
-		NavIssues:   navIssues,
-		ArityIssues: arityIssues,
-		Warnings:    warnings,
-		Ambiguities: ambiguities,
+			len(navIssues) == 0 && len(arityIssues) == 0 && len(modPathIssues) == 0,
+		Files:         files,
+		References:    totalRefs,
+		Packages:      len(res.clauses),
+		Broken:        brokenRefs,
+		NavIssues:     navIssues,
+		ArityIssues:   arityIssues,
+		ModPathIssues: modPathIssues,
+		Warnings:      warnings,
+		Ambiguities:   ambiguities,
 	}
 
 	if summary.Broken == nil {
@@ -52,6 +58,10 @@ func emitJSON(
 
 	if summary.ArityIssues == nil {
 		summary.ArityIssues = []navIssue{}
+	}
+
+	if summary.ModPathIssues == nil {
+		summary.ModPathIssues = []navIssue{}
 	}
 
 	if summary.Warnings == nil {
@@ -67,7 +77,7 @@ func emitJSON(
 		return fmt.Errorf("marshal summary: %w", err)
 	}
 
-	fmt.Fprintln(os.Stdout, string(encoded))
+	fmt.Fprintln(w, string(encoded))
 
 	return nil
 }

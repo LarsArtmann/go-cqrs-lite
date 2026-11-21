@@ -231,3 +231,26 @@ func TestX(t *testing.T) {
 		t.Errorf("message should name the deleted shim import, got %q", got)
 	}
 }
+
+// TestF030_NilASTFileIsSkipped pins the nil-AST guard in deletedModuleFindings:
+// a file whose parse failed (AST == nil) must be skipped without panicking and
+// without suppressing findings from healthy files in the same run.
+func TestF030_NilASTFileIsSkipped(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+import cqrshttp "github.com/larsartmann/go-cqrs-lite/transport/http/v4"
+
+func _() {
+	_ = cqrshttp.NewSSEBroker(nil)
+}
+`,
+	})
+
+	ctx.GoFiles = append(ctx.GoFiles, &analyzer.GoFile{Path: "broken.go"})
+
+	findings := ruletest.RunDetector(t, adoption.NewF030Detector(ctx))
+	ruletest.AssertRule(t, findings, "F030", 1)
+}

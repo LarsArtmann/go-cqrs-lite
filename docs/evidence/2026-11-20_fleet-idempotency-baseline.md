@@ -24,17 +24,17 @@
 
 ## 2. Baseline matrix (2026-11-20, per-repo cwd, GOWORK=off)
 
-| # | Repo | HEAD | Grade / cov | Modernity | Idempotency row | Deprecated API/transport | F030 |
-|---|------|------|-------------|-----------|-----------------|--------------------------|------|
-| 1 | InboxClean | `fb8c2385` | Sparse 36% | Legacy | used \| shim `idempotency/v4` | 0/1 | 1 |
-| 2 | browser-history | `10402b3` | Sparse 34% | Legacy | used \| `idempotency/sqlstore/v4` | 1/2 | 2 |
-| 3 | browser-history-precheck | `3bca1d4` | Minimal 18% | Partial | used \| shim `idempotency/v4` | 0/0 | 0 † |
-| 4 | games/KeyCountdown | `d77118392` | Sparse 22% | Legacy | used \| `idempotency/sqlstore/v4` | 1/1 | 1 |
-| 5 | DiscordSync | `935e8a10` | Fair 44% | Legacy | used \| `idempotency/sqlstore/v4` | 174/0 | 0 ‡ |
-| 6 | games/SEC | `ac388725` | Sparse 25% | Legacy | used \| shim `idempotency/v4` | 2/1 | 1 |
-| 7 | github-local-sync | `277e3a6` | Sparse 30% | Legacy | used \| shim `idempotency/v4` | 3/1 | 1 |
-| 8 | Zlota44 | `90ffcb8` | Sparse 21% | Legacy | used \| shim `idempotency/v4` | 0/3 | 3 |
-| 9 | games/SwettySwipperWeb | `81e6d35ee` | Sparse 29% | Partial | used \| shim `idempotency/v4` | 0/0 | 0 † |
+| # | Repo                     | HEAD        | Grade / cov | Modernity | Idempotency row                   | Deprecated API/transport | F030 |
+| - | ------------------------ | ----------- | ----------- | --------- | --------------------------------- | ------------------------ | ---- |
+| 1 | InboxClean               | `fb8c2385`  | Sparse 36%  | Legacy    | used \| shim `idempotency/v4`     | 0/1                      | 1    |
+| 2 | browser-history          | `10402b3`   | Sparse 34%  | Legacy    | used \| `idempotency/sqlstore/v4` | 1/2                      | 2    |
+| 3 | browser-history-precheck | `3bca1d4`   | Minimal 18% | Partial   | used \| shim `idempotency/v4`     | 0/0                      | 0 †  |
+| 4 | games/KeyCountdown       | `d77118392` | Sparse 22%  | Legacy    | used \| `idempotency/sqlstore/v4` | 1/1                      | 1    |
+| 5 | DiscordSync              | `935e8a10`  | Fair 44%    | Legacy    | used \| `idempotency/sqlstore/v4` | 174/0                    | 0 ‡  |
+| 6 | games/SEC                | `ac388725`  | Sparse 25%  | Legacy    | used \| shim `idempotency/v4`     | 2/1                      | 1    |
+| 7 | github-local-sync        | `277e3a6`   | Sparse 30%  | Legacy    | used \| shim `idempotency/v4`     | 3/1                      | 1    |
+| 8 | Zlota44                  | `90ffcb8`   | Sparse 21%  | Legacy    | used \| shim `idempotency/v4`     | 0/3                      | 3    |
+| 9 | games/SwettySwipperWeb   | `81e6d35ee` | Sparse 29%  | Partial   | used \| shim `idempotency/v4`     | 0/0                      | 0 †  |
 
 † lint-level F030 invisible: a module of the repo fails standalone package loads (§1.3); the
 scorecard's used-row (AST-level) still proves the shim import.
@@ -61,17 +61,33 @@ GOWORK=off cqrs-lint --path . --format text | grep -c "deleted module"
 
 ## 5. AFTER receipts — C15–C17 pure swaps (2026-11-20, same command shape as §2)
 
-| Repo | Swap commit | go.mod | Scorecard idempotency | F030 | Build/tests |
-|------|-------------|--------|-----------------------|------|-------------|
-| InboxClean | `71bb6dd` | direct `go-idempotency v0.3.2`, no shim line | used \| `github.com/larsartmann/go-idempotency` | 1→0 | build ok; emailcqrs suite green EXCEPT two labels tests that fail identically pre-swap (isolated-worktree verified) |
-| games/SEC | `9f12298a` | direct `go-idempotency v0.3.2`, no shim line | used \| `github.com/larsartmann/go-idempotency` | 1→0 | build ok; 8 app-suite failures byte-identical pre-swap (dep-bump fallout, isolated-worktree verified) |
-| github-local-sync | `dc1009f` | direct `go-idempotency v0.6.0`, no shim line | used \| `github.com/larsartmann/go-idempotency` | 1→0 | build ok, internal/branch green; local (gitignored) go.work repaired to /v4 paths |
+| Repo                   | Swap commit | go.mod                                       | Scorecard idempotency                           | F030 | Build/tests                                                                                                                                                                                                                 |
+| ---------------------- | ----------- | -------------------------------------------- | ----------------------------------------------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| InboxClean             | `71bb6dd`   | direct `go-idempotency v0.3.2`, no shim line | used \| `github.com/larsartmann/go-idempotency` | 1→0  | build ok; emailcqrs suite green EXCEPT two labels tests that fail identically pre-swap (isolated-worktree verified)                                                                                                         |
+| games/SEC              | `9f12298a`  | direct `go-idempotency v0.3.2`, no shim line | used \| `github.com/larsartmann/go-idempotency` | 1→0  | build ok; 8 app-suite failures byte-identical pre-swap (dep-bump fallout, isolated-worktree verified)                                                                                                                       |
+| github-local-sync      | `dc1009f`   | direct `go-idempotency v0.6.0`, no shim line | used \| `github.com/larsartmann/go-idempotency` | 1→0  | build ok, internal/branch green; local (gitignored) go.work repaired to /v4 paths                                                                                                                                           |
 | games/SwettySwipperWeb | `84a7352e7` | direct `go-idempotency v0.6.0`, no shim line | used \| `github.com/larsartmann/go-idempotency` | 0→0* | build ok, ALL services/api suites green standalone (first time since the reorg — replace block repaired to /v4, dangling eventtest replace deleted; *F030 was previously hidden by the broken module loads, now honestly 0) |
 
 Notes:
+
 - The SEC and github-local-sync commits initially landed as daemon `chore:` blends/races; both were
   split/recommitted with real messages while still unpushed (SEC's foreign `ci.yml` change was left
   unstaged for its author). v0.6.0 (gls, Swetty) vs v0.3.2 (InboxClean, SEC): dropping the shim's
   v0.3.2 floor let tidy pick latest; both minors build and test green in their repos.
 - DiscordSync (already direct) and the sqlstore consumers (browser-history, KeyCountdown — V007's
   v5 territory) are correctly untouched by this tranche. Zlota44's shim usage is C21 (D28/D29-gated).
+
+## 6. Post-swap fleet-commit ledger (C22 truth fixes + C23-partial Close hygiene + C24-ungated sweep; 2026-11-20)
+
+Receipts for the fleet commits that followed the pure swaps, so no hash lives only in a session log.
+Push state verified live 2026-11-21 — **all unpushed** (push authorization is owner question 3 of the
+2026-11-21 01-28 status report).
+
+| Repo                     | Commit      | What                                                                                                                                                                                                                               | State (2026-11-21)                                                                                                       |
+| ------------------------ | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| InboxClean               | `5c208788`  | C23.3: `Setup.Close` closes the dedup `MemoryStore` (sweep goroutine + ticker no longer leak); `TestSetup_Close_Idempotent` added                                                                                                  | ahead 2 of origin (`71bb6dda` swap below it); `go.sum` is gitignored there — swap receipt could not stage it             |
+| games/SEC                | `9f12298a`  | C15 swap (split out of daemon blend `a46c25c2`)                                                                                                                                                                                    | ahead 2; a later daemon chore `d084837c` sits on top (foreign, left alone)                                               |
+| github-local-sync        | `138520e`   | C23.4: `Service.Close` stops the store's sweep ticker (`idemStore` field)                                                                                                                                                          | ahead 2 (`dc1009f` swap below it); local gitignored `go.work` repaired to /v4 paths (disposition pending owner taste)    |
+| games/SwettySwipperWeb   | `0c82adeff` | C24-ungated: engine dedup collection swept on a 24h cadence (`idempotency_sweeper.go`, clock-injected tests, stops first in `buildStopList`)                                                                                       | ahead 5 (`84a7352e7` swap + replace repair below it)                                                                     |
+| browser-history          | `66b66ea`   | C22: `/debug/idempotency` reports `SweepEnabled = TTL>0 && !UseSQLiteReadModel`, real `DedupLayers = 2` (+ sqlite-path test); tests committed unexercised — api module pre-existing unbuildable (templ runtime matrix, §1.3 class) | ahead 2, on master                                                                                                       |
+| browser-history-precheck | `d195bf3`   | C22 mirror on the linked worktree's detached HEAD (parked detached by design)                                                                                                                                                      | **referenced only by that worktree's HEAD — orphanable** if the worktree is re-checked-out; the master twin is `66b66ea` |
