@@ -110,7 +110,7 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 > prefix-leak fixes + SSE-broker live-event routing bug + broken-flake repair — full suite FIRST-TIME green, `65685033`;
 > InboxClean labels tests fixed at root cause (`c1f96596` — raw-ctor events default-declare JSON, CBOR bytes need
 > `event.WithEncoding`); cqrs-lint 19-package suite green; 9/9 fleet receipts captured (re-bind fix verified: per-repo
-> evidence diversity, none MISSING — `build/fleet-receipts/20261121-075918/`, after fixing the receipt script's
+> evidence diversity, none MISSING — `build/fleet-receipts/20261121-080009/`, after fixing the receipt script's
 > findings-exit bug where `set -e` killed the sweep on any repo with error findings); SEC production fold path verified
 > JSON-consistent (app init pins `DefaultCodec`); race spot-checks green (browser-history login/passkeys, SEC app+proj);
 > `mesh-demo` untracked dir gone (M-wave cleaned up); versions gate + md-go gate green.

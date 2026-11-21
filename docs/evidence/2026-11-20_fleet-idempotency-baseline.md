@@ -107,7 +107,7 @@ Push state verified live 2026-11-21 — **all unpushed** (push authorization is 
 
 `scripts/fleet-dedup-receipt.sh` (same run shape as §2; script fixed first — `set -e` + cqrs-lint's
 findings exit code had killed the sweep at the first repo with error findings). Artifacts:
-`build/fleet-receipts/20261121-075918/`.
+`build/fleet-receipts/20261121-080009/`.
 
 | Repo                     | HEAD        | idempotency evidence                                     | F030 |
 | ------------------------ | ----------- | -------------------------------------------------------- | ---- |
