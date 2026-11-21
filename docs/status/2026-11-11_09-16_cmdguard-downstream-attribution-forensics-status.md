@@ -1,22 +1,22 @@
 # Status: cmdguard Downstream Attribution Forensics (who-uses artifact investigation)
 
 **Date:** 2026-11-11 09:16 CET
-**Session scope:** One question from Lars: *"Why does go-cqrs-lite add cmdguard to downstream apps?"*, asked against a pasted `project-dependency-graph who-uses cmdguard` tree (77 consumers, many `[indirect] via go-cqrs-lite/command@v4.14.1`-style rows).
+**Session scope:** One question from Lars: _"Why does go-cqrs-lite add cmdguard to downstream apps?"_, asked against a pasted `project-dependency-graph who-uses cmdguard` tree (77 consumers, many `[indirect] via go-cqrs-lite/command@v4.14.1`-style rows).
 **Repos touched:** read-only investigation in `go-cqrs-lite` + `project-dependency-graph` + downstream app manifests. **No code changed in any repo.** This report is the only file written.
 
 ## Scope line — what this report VERIFIED vs did NOT verify
 
 **Verified (command/artifact for every claim):**
 
-| # | Claim | Evidence |
-| - | ----- | -------- |
-| V1 | Only 5 go-cqrs-lite modules require cmdguard, all `cmd/*` CLI tooling | `rg -l 'larsartmann/cmdguard' --glob 'go.mod'` → cmd/api-stability, cmd/cqrs-bench, cmd/cqrs-gen, cmd/cqrs-lint, cmd/doc-check (all `v5.0.0`) |
-| V2 | No LIBRARY module requires cmdguard — not even at the published tags the tree cites | Downloaded proxy `.mod` files for `command/v4@v4.14.1`, `event/v4@v4.15.2`, `catalog/v4@v4.12.0`, `decider/v4@v4.8.0`, `claiming/v4@v4.0.2` — zero cmdguard lines in every one |
-| V3 | Downstream apps do not inherit cmdguard | `KeyHolderAI/go.mod` + `KeyHolderAI/go.sum`: no cmdguard at all; `cqrs-htmx` go.mods: none; `go-appkit/go.mod`: none |
-| V4 | The 5 cmd modules are go.work members | `grep 'cmd/(api-stability\|cqrs-bench\|cqrs-gen\|cqrs-lint\|doc-check)' go.work` — all present in the `use` block |
-| V5 | Tool mechanism: workspace aggregate merge | `project-dependency-graph/discovery/workspace.go:53-112` (`buildWorkspaceModule`) + `:121-190` (`collectWorkspaceModules`) merge ALL internal member go.mod requires into ONE aggregate node per go.work repo |
-| V6 | Tool mechanism: member fold + via label | `project-dependency-graph/graph/consumers.go:100-160` (`ConsumersFromModules` BFS), `:356-380` (`buildMemberEdgeIndex` re-indexes consumer-of-member edges under the owning aggregate), `:143-149` (those consumers are stamped `Direct:false` with the member key as `ViaKey`) |
-| V7 | Reproduction matches the pasted tree exactly | `cd ~/projects/project-dependency-graph && go run . who-uses cmdguard --direct-only=false` → 32 direct + "45 hidden indirect" = 77; KeyHolderAI renders as `@ v5.0.0 [indirect] via go-cqrs-lite/command@v4.14.1`, identical to the paste |
+| #  | Claim                                                                               | Evidence                                                                                                                                                                                                                                                                        |
+| -- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| V1 | Only 5 go-cqrs-lite modules require cmdguard, all `cmd/*` CLI tooling               | `rg -l 'larsartmann/cmdguard' --glob 'go.mod'` → cmd/api-stability, cmd/cqrs-bench, cmd/cqrs-gen, cmd/cqrs-lint, cmd/doc-check (all `v5.0.0`)                                                                                                                                   |
+| V2 | No LIBRARY module requires cmdguard — not even at the published tags the tree cites | Downloaded proxy `.mod` files for `command/v4@v4.14.1`, `event/v4@v4.15.2`, `catalog/v4@v4.12.0`, `decider/v4@v4.8.0`, `claiming/v4@v4.0.2` — zero cmdguard lines in every one                                                                                                  |
+| V3 | Downstream apps do not inherit cmdguard                                             | `KeyHolderAI/go.mod` + `KeyHolderAI/go.sum`: no cmdguard at all; `cqrs-htmx` go.mods: none; `go-appkit/go.mod`: none                                                                                                                                                            |
+| V4 | The 5 cmd modules are go.work members                                               | `grep 'cmd/(api-stability\|cqrs-bench\|cqrs-gen\|cqrs-lint\|doc-check)' go.work` — all present in the `use` block                                                                                                                                                               |
+| V5 | Tool mechanism: workspace aggregate merge                                           | `project-dependency-graph/discovery/workspace.go:53-112` (`buildWorkspaceModule`) + `:121-190` (`collectWorkspaceModules`) merge ALL internal member go.mod requires into ONE aggregate node per go.work repo                                                                   |
+| V6 | Tool mechanism: member fold + via label                                             | `project-dependency-graph/graph/consumers.go:100-160` (`ConsumersFromModules` BFS), `:356-380` (`buildMemberEdgeIndex` re-indexes consumer-of-member edges under the owning aggregate), `:143-149` (those consumers are stamped `Direct:false` with the member key as `ViaKey`) |
+| V7 | Reproduction matches the pasted tree exactly                                        | `cd ~/projects/project-dependency-graph && go run . who-uses cmdguard --direct-only=false` → 32 direct + "45 hidden indirect" = 77; KeyHolderAI renders as `@ v5.0.0 [indirect] via go-cqrs-lite/command@v4.14.1`, identical to the paste                                       |
 
 **NOT verified (and why):**
 
@@ -176,13 +176,13 @@ Per Lars's instruction this is scoped to THIS session's run, not a codebase-wide
 
 ---
 
-*Report generated per status-report skill (`.md` default per docs/decisions/2026-10-27). Not committed by hand — auto-commit daemon absorbs it (harness rule: no commit without explicit request).*
+_Report generated per status-report skill (`.md` default per docs/decisions/2026-10-27). Not committed by hand — auto-commit daemon absorbs it (harness rule: no commit without explicit request)._
 
 ---
 
 ## Addendum (2026-11-11 ~12:40) — ruling executed: fix landed in project-dependency-graph
 
-Lars ruled: *"who-uses is a fucking ~/projects/project-dependency-graph/ responsibility"* — the
+Lars ruled: _"who-uses is a fucking ~/projects/project-dependency-graph/ responsibility"_ — the
 attribution behavior is the tool's to own, not a go-cqrs-lite documentation problem. The fix was
 implemented in project-dependency-graph the same session (Q1/Q2 resolved by the ruling):
 
@@ -197,12 +197,12 @@ resurrected the bleed mid-implementation — caught by tracing, covered by the n
 
 **Verified results (A/B against a binary built at the pre-fix commit `6b80811f`):**
 
-| Query | Before | After | Removed |
-| ----- | ------ | ----- | ------- |
-| `who-uses cmdguard` | 77 consumers (45 phantom `via go-cqrs-lite/*`) | 34 (32 direct + 2 true indirect) | all 45 fabrications |
-| `who-uses cqrs-htmx` | 26 | 26 (unchanged — intended folds intact) | 0 |
-| `who-uses go-cqrs-lite` (submodule expansion) | inflated per-module counts | −1 phantom per library module (dnsblockd-style rows); `cmd/cqrs-lint` 58 → 2 real | fabrications |
-| `who-uses go-appkit` | 34 | 33; `via` now names the provable member (`setup`), not an arbitrary fold edge (`identity-model`) | 1 |
+| Query                                         | Before                                         | After                                                                                            | Removed             |
+| --------------------------------------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------ | ------------------- |
+| `who-uses cmdguard`                           | 77 consumers (45 phantom `via go-cqrs-lite/*`) | 34 (32 direct + 2 true indirect)                                                                 | all 45 fabrications |
+| `who-uses cqrs-htmx`                          | 26                                             | 26 (unchanged — intended folds intact)                                                           | 0                   |
+| `who-uses go-cqrs-lite` (submodule expansion) | inflated per-module counts                     | −1 phantom per library module (dnsblockd-style rows); `cmd/cqrs-lint` 58 → 2 real                | fabrications        |
+| `who-uses go-appkit`                          | 34                                             | 33; `via` now names the provable member (`setup`), not an arbitrary fold edge (`identity-model`) | 1                   |
 
 The 2 surviving cmdguard indirect rows are module-graph-true, hand-verified against disk:
 `bank-sync → go-credentials-store` (gcs go.mod:8 requires cmdguard for its in-module CLI) and

@@ -320,28 +320,28 @@ incident caught and split out within minutes).
 
 ## Verification ledger (what was actually run)
 
-| Gate / test | Result |
-| --- | --- |
-| `nix run .#check-eventcatalog` (spike worktree, pin ^5.1.0) | exit 0; 98 + 103 pages; linter clean |
-| Forced crash-path probe (agents + changelog on) | exit 0; 108 pages; agent changelog page renders |
-| `nix run .#check-eventcatalog` (master, post-decision-commit) | exit 0; 108 pages; semantic checks + linter clean |
-| `catalog` module build + vet + tests (incl. `-count=1` eventcatalog) | green; only `package.snap` golden moved |
-| `example/mesh-demo` tests + orders export | green; `flows/order-lifecycle/` correct |
-| doc-check (full file set) | 1336 references valid |
-| `check-md-go` | 1512 blocks valid, 0 new errors |
-| `check-adr-numbering` | OK (156 ADRs) |
-| `check-changelog-symbols` | 13 citations honest |
-| Pre-commit pipeline (×4 commits) | api_surface OK (6302 exports); syntax gate green; BuildFlow report-only warns are pre-existing |
-| Sacred goldens procedure | `UPDATE_SNAPS=true` scoped → `git ls-files -d … restore --` → module suite green |
+| Gate / test                                                          | Result                                                                                         |
+| -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `nix run .#check-eventcatalog` (spike worktree, pin ^5.1.0)          | exit 0; 98 + 103 pages; linter clean                                                           |
+| Forced crash-path probe (agents + changelog on)                      | exit 0; 108 pages; agent changelog page renders                                                |
+| `nix run .#check-eventcatalog` (master, post-decision-commit)        | exit 0; 108 pages; semantic checks + linter clean                                              |
+| `catalog` module build + vet + tests (incl. `-count=1` eventcatalog) | green; only `package.snap` golden moved                                                        |
+| `example/mesh-demo` tests + orders export                            | green; `flows/order-lifecycle/` correct                                                        |
+| doc-check (full file set)                                            | 1336 references valid                                                                          |
+| `check-md-go`                                                        | 1512 blocks valid, 0 new errors                                                                |
+| `check-adr-numbering`                                                | OK (156 ADRs)                                                                                  |
+| `check-changelog-symbols`                                            | 13 citations honest                                                                            |
+| Pre-commit pipeline (×4 commits)                                     | api_surface OK (6302 exports); syntax gate green; BuildFlow report-only warns are pre-existing |
+| Sacred goldens procedure                                             | `UPDATE_SNAPS=true` scoped → `git ls-files -d … restore --` → module suite green               |
 
 ## Files & commits (this session, authored)
 
-| Commit | Content |
-| --- | --- |
-| `288004068` | mesh-demo `order-lifecycle` flow (1 file, +66) |
-| `8bdc12d76` | v5 pin decision: exporter/writer/writer_llms, ec-fixture ×2, `package.snap`, gate script, catalog/AGENTS+README, FEATURES, CHANGELOG (11 files, +144/−134) |
-| `503853c67` | verdicts + receipts + ADR sketch: TODO_LIST, ROADMAP, 18-02 addendum, 20-05 sketch (4 files, +195/−3) |
-| hub `096823c` (daemon) | hub TODO_LIST receipt rows (+29) |
+| Commit                 | Content                                                                                                                                                    |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `288004068`            | mesh-demo `order-lifecycle` flow (1 file, +66)                                                                                                             |
+| `8bdc12d76`            | v5 pin decision: exporter/writer/writer_llms, ec-fixture ×2, `package.snap`, gate script, catalog/AGENTS+README, FEATURES, CHANGELOG (11 files, +144/−134) |
+| `503853c67`            | verdicts + receipts + ADR sketch: TODO_LIST, ROADMAP, 18-02 addendum, 20-05 sketch (4 files, +195/−3)                                                      |
+| hub `096823c` (daemon) | hub TODO_LIST receipt rows (+29)                                                                                                                           |
 
 Plus, written after the working session: TODO_LIST follow-up harvest
 section (6 rows), this report, and its live-index row.

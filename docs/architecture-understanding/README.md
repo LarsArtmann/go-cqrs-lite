@@ -7,10 +7,10 @@ the record; later corrections land in a new report or in `TODO_LIST.md`).
 
 ## Scored reviews (the series)
 
-| Date | Report | Focus | Verdict |
-| ---- | ------ | ----- | ------- |
-| 2026-10-24 | [`2026-10-24_16-54_architecture-review.html`](2026-10-24_16-54_architecture-review.html) | Modularity, service orientation, composability, scalability | **4.0 / 5** (7 dimensions; Cohesion + Scalability 3, Dependency direction 5) |
-| 2026-07-09 | [`archive/2026-07-09_05-18_ARCHITECTURE-REVIEW.html`](archive/2026-07-09_05-18_ARCHITECTURE-REVIEW.html) | First full review (48 modules) | **7.0 / 10** (its 6 roadmap items are all resolved) |
+| Date       | Report                                                                                                   | Focus                                                       | Verdict                                                                      |
+| ---------- | -------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| 2026-10-24 | [`2026-10-24_16-54_architecture-review.html`](2026-10-24_16-54_architecture-review.html)                 | Modularity, service orientation, composability, scalability | **4.0 / 5** (7 dimensions; Cohesion + Scalability 3, Dependency direction 5) |
+| 2026-07-09 | [`archive/2026-07-09_05-18_ARCHITECTURE-REVIEW.html`](archive/2026-07-09_05-18_ARCHITECTURE-REVIEW.html) | First full review (48 modules)                              | **7.0 / 10** (its 6 roadmap items are all resolved)                          |
 
 The 2026-10-24 review ships with a diagram pair:
 
@@ -34,18 +34,18 @@ canvases.
 
 ## Mappings and models
 
-| Document | What it maps |
-| -------- | ------------ |
-| [`SEVEN-TIER-MODEL.md`](SEVEN-TIER-MODEL.md) | Every module → one of seven tiers (the layering authority behind `check-module-layers.sh`) |
-| [`2026-09-10_cordis-spatiotemporal-composability-mapping.md`](2026-09-10_cordis-spatiotemporal-composability-mapping.md) | Repo structure and the go-modularize skill → the Cordis context paradigm (coeffects vs config) |
-| [`2026-09-15_zenoh-spatiotemporal-fabric-mapping.md`](2026-09-15_zenoh-spatiotemporal-fabric-mapping.md) | Repo → Zenoh's spatiotemporal fabric abstractions |
-| [`2026-09-24_data-mesh-conformance-mapping.md`](2026-09-24_data-mesh-conformance-mapping.md) | Repo → data-mesh principles (as a conformance argument, not an aspiration) |
-| [`ANALYTICAL-VS-TRANSACTIONAL.md`](ANALYTICAL-VS-TRANSACTIONAL.md) | Which module owns which workload shape (OLTP vs OLAP boundaries) |
-| [`AGGREGATE-CONCEPT-ANALYSIS.md`](AGGREGATE-CONCEPT-ANALYSIS.md) | DDD aggregate concept vs what the code actually models |
-| [`2026-08-04_metaengine-goal-gap.html`](2026-08-04_metaengine-goal-gap.html) | Operator-ergonomics gap analysis for metaengine (historical) |
-| [`2026-08-09_self-integration-review.md`](2026-08-09_self-integration-review.md) | How the modules do (and do not) compose in practice |
-| [`2026-07-23_book-insights-vs-codebase.html`](2026-07-23_book-insights-vs-codebase.html) / [`…-detailed-answers.md`](2026-07-23_book-insights-detailed-answers.md) | Book-derived principles vs this codebase |
-| [`cordis-arxiv-2608.25512.pdf`](cordis-arxiv-2608.25512.pdf) | Source paper for the September mappings |
+| Document                                                                                                                                                           | What it maps                                                                                   |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------- |
+| [`SEVEN-TIER-MODEL.md`](SEVEN-TIER-MODEL.md)                                                                                                                       | Every module → one of seven tiers (the layering authority behind `check-module-layers.sh`)     |
+| [`2026-09-10_cordis-spatiotemporal-composability-mapping.md`](2026-09-10_cordis-spatiotemporal-composability-mapping.md)                                           | Repo structure and the go-modularize skill → the Cordis context paradigm (coeffects vs config) |
+| [`2026-09-15_zenoh-spatiotemporal-fabric-mapping.md`](2026-09-15_zenoh-spatiotemporal-fabric-mapping.md)                                                           | Repo → Zenoh's spatiotemporal fabric abstractions                                              |
+| [`2026-09-24_data-mesh-conformance-mapping.md`](2026-09-24_data-mesh-conformance-mapping.md)                                                                       | Repo → data-mesh principles (as a conformance argument, not an aspiration)                     |
+| [`ANALYTICAL-VS-TRANSACTIONAL.md`](ANALYTICAL-VS-TRANSACTIONAL.md)                                                                                                 | Which module owns which workload shape (OLTP vs OLAP boundaries)                               |
+| [`AGGREGATE-CONCEPT-ANALYSIS.md`](AGGREGATE-CONCEPT-ANALYSIS.md)                                                                                                   | DDD aggregate concept vs what the code actually models                                         |
+| [`2026-08-04_metaengine-goal-gap.html`](2026-08-04_metaengine-goal-gap.html)                                                                                       | Operator-ergonomics gap analysis for metaengine (historical)                                   |
+| [`2026-08-09_self-integration-review.md`](2026-08-09_self-integration-review.md)                                                                                   | How the modules do (and do not) compose in practice                                            |
+| [`2026-07-23_book-insights-vs-codebase.html`](2026-07-23_book-insights-vs-codebase.html) / [`…-detailed-answers.md`](2026-07-23_book-insights-detailed-answers.md) | Book-derived principles vs this codebase                                                       |
+| [`cordis-arxiv-2608.25512.pdf`](cordis-arxiv-2608.25512.pdf)                                                                                                       | Source paper for the September mappings                                                        |
 
 [`archive/`](archive/) holds 45 older artifacts (13 reports + their diagram pairs) from the
 2026-05/07 episodes. They stay readable and unedited; their conclusions are superseded by the

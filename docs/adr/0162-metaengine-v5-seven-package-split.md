@@ -1,12 +1,12 @@
 # ADR-0162: Metaengine v5 splits into seven packages instead of one 829-symbol package
 
-| Field      | Value                                                                                            |
-| ---------- | ------------------------------------------------------------------------------------------------ |
-| Status     | Proposed                                                                                         |
-| Date       | 2026-10-26                                                                                       |
-| Deciders   | Lars Artmann                                                                                     |
+| Field      | Value                                                                                                                 |
+| ---------- | --------------------------------------------------------------------------------------------------------------------- |
+| Status     | Proposed                                                                                                              |
+| Date       | 2026-10-26                                                                                                            |
+| Deciders   | Lars Artmann                                                                                                          |
 | Related    | ADR-0152 (v5 module topology), ADR-0111 (Record), ADR-0126 (wrapper/decorator contracts), ADR-0142 (engine substrate) |
-| Supersedes | nothing — this is the first decision about the internal shape of `metaengine`                    |
+| Supersedes | nothing — this is the first decision about the internal shape of `metaengine`                                         |
 
 ## Context
 
@@ -26,21 +26,21 @@ Two facts make this a decision rather than a preference:
    a breaking change to a second consumer surface instead of one planned move.
 
 The v4 line is frozen for structural work, so the split can only happen at v5. That makes the
-*shape* of the split a decision to record now, while the census is fresh.
+_shape_ of the split a decision to record now, while the census is fresh.
 
 ## Decision
 
 `metaengine` becomes **seven packages in one `metaengine/v5` module**:
 
-| Package | Files | Exported decls | Production LOC |
-| ------- | ----: | -------------: | -------------: |
-| `metaengine/engine` | 28 | 248 | 5,247 |
-| `metaengine/plan` | 29 | 142 | 4,117 |
-| `metaengine/exec` | 20 | 80 | 3,076 |
-| `metaengine/collection` | 22 | 132 | 4,176 |
-| `metaengine/adt` | 47 | 195 | 7,472 |
-| `metaengine/diagnostic` | 13 | 72 | 2,246 |
-| `metaengine/memoryengine` | 8 | 66 | 1,382 |
+| Package                   | Files | Exported decls | Production LOC |
+| ------------------------- | ----: | -------------: | -------------: |
+| `metaengine/engine`       |    28 |            248 |          5,247 |
+| `metaengine/plan`         |    29 |            142 |          4,117 |
+| `metaengine/exec`         |    20 |             80 |          3,076 |
+| `metaengine/collection`   |    22 |            132 |          4,176 |
+| `metaengine/adt`          |    47 |            195 |          7,472 |
+| `metaengine/diagnostic`   |    13 |             72 |          2,246 |
+| `metaengine/memoryengine` |     8 |             66 |          1,382 |
 
 with the dependency rule
 
@@ -84,12 +84,12 @@ The full file-by-file move table, symbol ceilings, migration sequence and risk l
 
 ## Alternatives considered
 
-| Alternative | Why rejected |
-| ----------- | ------------ |
-| Keep one package, rely on the new package-surface ratchet to freeze it | Freezing 829 symbols at v5 means the fork carries the concentration forever; the ratchet would then protect the wrong shape. |
-| Five-way split (engine, plan, exec, collection, diagnostic) as the review sketched | Leaves ~100 shared types/errors with no home: either a sixth package appears anyway or they get duplicated. |
-| Seven separate modules | Seven more release trains, seven more go.mod files, and no consumer asked for independent versioning; one module preserves the `core/v5` precedent. |
-| Umbrella facade for one release | Re-creates the 935-symbol namespace, fails the new gate by construction, and creates a migration path that never ends. |
+| Alternative                                                                        | Why rejected                                                                                                                                        |
+| ---------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Keep one package, rely on the new package-surface ratchet to freeze it             | Freezing 829 symbols at v5 means the fork carries the concentration forever; the ratchet would then protect the wrong shape.                        |
+| Five-way split (engine, plan, exec, collection, diagnostic) as the review sketched | Leaves ~100 shared types/errors with no home: either a sixth package appears anyway or they get duplicated.                                         |
+| Seven separate modules                                                             | Seven more release trains, seven more go.mod files, and no consumer asked for independent versioning; one module preserves the `core/v5` precedent. |
+| Umbrella facade for one release                                                    | Re-creates the 935-symbol namespace, fails the new gate by construction, and creates a migration path that never ends.                              |
 
 ## Implementation status
 

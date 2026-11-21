@@ -16,17 +16,17 @@ coverage floor) and that several defect classes had no gate at all. That premise
 gates/artefacts landed, all of them with fault-injection self-tests so they can actually go
 red, and all of them wired into `#verify` and/or CI:
 
-| Class the plan named | Gate that now exists |
-| --- | --- |
-| unmeasured surface | coverage floor for 89 modules + 168 packages |
-| unchecked API promise | exported symbol named by no test fails (1,088 frozen, shrink-only) |
-| order dependence | `-shuffle` on by default with logged, replayable seed + nightly repeat leg |
-| goroutine leaks | `goleak` in 14 modules (10 added) |
-| false confidence in sleeps | 182 frozen `time.Sleep` sites, new/growing fail |
-| silent abandonment | 238 skip sites must carry a reason; env-gated skips get a route report |
-| dormant defence | all 115 fuzz targets on a 4-night rotation |
-| "both runs got slower" | absolute latency ceilings, failing independently of the delta gate |
-| consumer-shaped drift | systemscenario adoption ratchet with reasoned allowlist |
+| Class the plan named       | Gate that now exists                                                       |
+| -------------------------- | -------------------------------------------------------------------------- |
+| unmeasured surface         | coverage floor for 89 modules + 168 packages                               |
+| unchecked API promise      | exported symbol named by no test fails (1,088 frozen, shrink-only)         |
+| order dependence           | `-shuffle` on by default with logged, replayable seed + nightly repeat leg |
+| goroutine leaks            | `goleak` in 14 modules (10 added)                                          |
+| false confidence in sleeps | 182 frozen `time.Sleep` sites, new/growing fail                            |
+| silent abandonment         | 238 skip sites must carry a reason; env-gated skips get a route report     |
+| dormant defence            | all 115 fuzz targets on a 4-night rotation                                 |
+| "both runs got slower"     | absolute latency ceilings, failing independently of the delta gate         |
+| consumer-shaped drift      | systemscenario adoption ratchet with reasoned allowlist                    |
 
 Two findings are worth more than the gates themselves:
 
@@ -47,7 +47,7 @@ Two findings are worth more than the gates themselves:
 - `scripts/check-coverage.sh` rewritten: **one** workspace-wide `go test -coverprofile`
   measurement, per-module aggregate **statement** coverage (deepest module directory wins,
   so `metaengine/pgengine` is never counted inside `metaengine`). The old code took the
-  *first package's* coverage line — an arbitrary package in any multi-package module, which
+  _first package's_ coverage line — an arbitrary package in any multi-package module, which
   is why old pinned numbers (metaengine 83.9) differ from the truthful aggregate (70.7).
 - Failure modes: regression beyond tolerance, `testModules` entry with no row, dangling row,
   package that lost its tests, coverage data vanishing. Upward drift is `STALE`, not a
@@ -187,13 +187,13 @@ it is not re-dispatched.
 
 ## §c Partial
 
-| Item | Shipped | Missing |
-| --- | --- | --- |
-| T05 | skip reasons + route report + NATS CI job | zero-assertion gate (erratum → T10); MySQL route open |
-| T08 | rotation, inventory gate, 4 shards | new fuzz targets for replay determinism (deliberately not built: mutation/T15 cover it better) |
-| T12 | FLAKY classification + ledger | per-package runtime budget |
-| T03 | shuffle default, replay, repeat app, nightly job, one full shuffled run green | T03.5 three consecutive full shuffled runs (one of three recorded) |
-| Coverage perf | `--profile` exists to reuse a coverprofile | verify does not use it, so `#verify` now pays one extra full test run (§e-1) |
+| Item          | Shipped                                                                       | Missing                                                                                        |
+| ------------- | ----------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| T05           | skip reasons + route report + NATS CI job                                     | zero-assertion gate (erratum → T10); MySQL route open                                          |
+| T08           | rotation, inventory gate, 4 shards                                            | new fuzz targets for replay determinism (deliberately not built: mutation/T15 cover it better) |
+| T12           | FLAKY classification + ledger                                                 | per-package runtime budget                                                                     |
+| T03           | shuffle default, replay, repeat app, nightly job, one full shuffled run green | T03.5 three consecutive full shuffled runs (one of three recorded)                             |
+| Coverage perf | `--profile` exists to reuse a coverprofile                                    | verify does not use it, so `#verify` now pays one extra full test run (§e-1)                   |
 
 ---
 
@@ -241,7 +241,7 @@ All of them are rowed in `TODO_LIST.md` § Testing improvements with effort and 
    than silently absorbed. (`docs/status/README.md` also carries **uncommitted rows from
    another session** that I did not touch.)
 6. **benchkit's suites time out under load** (four `TestRun_*` at ~90 s with
-   `context deadline exceeded`). The coverage gate now *warns and continues* for exactly this
+   `context deadline exceeded`). The coverage gate now _warns and continues_ for exactly this
    reason (previous behaviour also tolerated test failures). It means the coverage number can
    be measured while the suite is broken — deliberate, documented, and loud.
 7. **`#test-repeat` has never run.** It runs 20 modules × 5 repeats × 2 CPU settings; I did
@@ -298,32 +298,32 @@ All of them are rowed in `TODO_LIST.md` § Testing improvements with effort and 
 
 ## §g Verification ledger (what actually ran)
 
-| Command | Result |
-| --- | --- |
-| `bash scripts/check-coverage.sh --self-test` | 9/9 green |
-| `bash scripts/check-coverage.sh --profile build/coverage/merged.out --quiet` | all 89 module + 168 package floors hold |
-| planted `event 95.0` baseline row | `DRIFT` + exit 1 |
-| `bash scripts/check-untested-exports.sh --self-test` / `--quiet` | 5/5 green / 1,088 frozen, 0 new |
-| baseline row removed (mutation) | exit 1 naming `benchkit/const MetricLoadP99NS` |
-| `bash scripts/check-test-sleeps.sh --self-test` / `--update` / gate | 6/6 / 182 sites / green |
-| `bash scripts/check-test-skips.sh --self-test` / gate / `--report` | 6/6 / 238 sites green / route table |
-| `bash scripts/check-systemscenario-adoption.sh --self-test` / gate / `--report` | 4/4 / green / 9 modules, 7 allowlisted |
-| `bash scripts/fuzz-rotation.sh --self-test` / `--update-targets` / `--shard 2/4 --seconds 3` | 4/4 / 115 targets / 29 clean |
-| `scripts/test-benchmark-regression.sh` | all 20 cases pass, incl. 5 ceiling cases |
-| `benchmark-regression.sh --current <10x inflated>` | `CEILING BREACH` + exit 1 |
-| `nix run .#check-untested-exports -- --self-test` | green (flake wiring proven) |
-| `nix run .#check-coverage -- --self-test` | green (flake wiring proven) |
-| `go test ./...` per touched module: event, core/v5, schema, storage/sql, storage/bbolt, deriver, scheduling, decider, middleware, stack, systemscenario, cmd/api-stability, cmd/cqrs-lint | 13/13 OK |
-| `bash scripts/check-canonical-facts.sh` | green (all citations match) |
-| `bash scripts/check-file-size.sh` | green, no new offenders |
-| `bash scripts/check-md-go.sh` | 1,523 blocks valid (84 skipped) |
-| `bash scripts/check-changelog-symbols.sh` | green (11 citations honest) |
-| `bash scripts/check-doc-annotations.sh` | rc=0, 5 pre-existing archive warnings |
-| `nix shell nixpkgs#shfmt --command shfmt -d scripts/…` | clean on all new scripts |
-| `nix run .#test` (full shuffled suite, seed 203471877496486) | completed, visible tail green; exit code not captured |
-| `nix run .#test -- -run '^$'` (compile all 89 modules, run none) | RC=0, seed logged (app → script → log proven) |
-| `nix run .#verify` | **NOT RUN** (see §e-2) |
-| `nix run .#test-repeat` | **NOT RUN** (see §e-7) |
+| Command                                                                                                                                                                                   | Result                                                |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| `bash scripts/check-coverage.sh --self-test`                                                                                                                                              | 9/9 green                                             |
+| `bash scripts/check-coverage.sh --profile build/coverage/merged.out --quiet`                                                                                                              | all 89 module + 168 package floors hold               |
+| planted `event 95.0` baseline row                                                                                                                                                         | `DRIFT` + exit 1                                      |
+| `bash scripts/check-untested-exports.sh --self-test` / `--quiet`                                                                                                                          | 5/5 green / 1,088 frozen, 0 new                       |
+| baseline row removed (mutation)                                                                                                                                                           | exit 1 naming `benchkit/const MetricLoadP99NS`        |
+| `bash scripts/check-test-sleeps.sh --self-test` / `--update` / gate                                                                                                                       | 6/6 / 182 sites / green                               |
+| `bash scripts/check-test-skips.sh --self-test` / gate / `--report`                                                                                                                        | 6/6 / 238 sites green / route table                   |
+| `bash scripts/check-systemscenario-adoption.sh --self-test` / gate / `--report`                                                                                                           | 4/4 / green / 9 modules, 7 allowlisted                |
+| `bash scripts/fuzz-rotation.sh --self-test` / `--update-targets` / `--shard 2/4 --seconds 3`                                                                                              | 4/4 / 115 targets / 29 clean                          |
+| `scripts/test-benchmark-regression.sh`                                                                                                                                                    | all 20 cases pass, incl. 5 ceiling cases              |
+| `benchmark-regression.sh --current <10x inflated>`                                                                                                                                        | `CEILING BREACH` + exit 1                             |
+| `nix run .#check-untested-exports -- --self-test`                                                                                                                                         | green (flake wiring proven)                           |
+| `nix run .#check-coverage -- --self-test`                                                                                                                                                 | green (flake wiring proven)                           |
+| `go test ./...` per touched module: event, core/v5, schema, storage/sql, storage/bbolt, deriver, scheduling, decider, middleware, stack, systemscenario, cmd/api-stability, cmd/cqrs-lint | 13/13 OK                                              |
+| `bash scripts/check-canonical-facts.sh`                                                                                                                                                   | green (all citations match)                           |
+| `bash scripts/check-file-size.sh`                                                                                                                                                         | green, no new offenders                               |
+| `bash scripts/check-md-go.sh`                                                                                                                                                             | 1,523 blocks valid (84 skipped)                       |
+| `bash scripts/check-changelog-symbols.sh`                                                                                                                                                 | green (11 citations honest)                           |
+| `bash scripts/check-doc-annotations.sh`                                                                                                                                                   | rc=0, 5 pre-existing archive warnings                 |
+| `nix shell nixpkgs#shfmt --command shfmt -d scripts/…`                                                                                                                                    | clean on all new scripts                              |
+| `nix run .#test` (full shuffled suite, seed 203471877496486)                                                                                                                              | completed, visible tail green; exit code not captured |
+| `nix run .#test -- -run '^$'` (compile all 89 modules, run none)                                                                                                                          | RC=0, seed logged (app → script → log proven)         |
+| `nix run .#verify`                                                                                                                                                                        | **NOT RUN** (see §e-2)                                |
+| `nix run .#test-repeat`                                                                                                                                                                   | **NOT RUN** (see §e-7)                                |
 
 ---
 

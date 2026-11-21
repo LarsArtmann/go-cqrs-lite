@@ -9,9 +9,9 @@ CUE`).
 **Trigger:** continuation of the catalog × CUE plan
 ([`docs/planning/2026-11-02_05-31_SUPERB-catalog-cue-compat-and-unification-pareto-plan.md`](../planning/2026-11-02_05-31_SUPERB-catalog-cue-compat-and-unification-pareto-plan.md))
 with the instruction to finish the whole todo list and verify it.
-**One-line verdict:** the *documentation and evidence* half is complete and
+**One-line verdict:** the _documentation and evidence_ half is complete and
 gate-green, including a **correction of a false G0 claim made in the previous
-report**; the *verification* half is NOT done — `#verify` will fail today on 22
+report**; the _verification_ half is NOT done — `#verify` will fail today on 22
 `exhaustruct_v5` findings in `catalog/compat`, and my attempt to allow-list them
 was silently reverted by the toolchain's `.golangci.yml` auto-configurer.
 
@@ -26,14 +26,14 @@ of 10 fixtures and misclassified every additive case". That is **false**. A fres
 harness (`cuelang.org/go v0.17.1`, scratch module, `CGO_ENABLED=0`) over
 **24 fixtures × 6 configurations** gives:
 
-| Configuration | Score | False `compatible` (unsafe) |
-| --- | ---: | ---: |
-| `Config{}` + none | 21/24 | 3 |
-| **`Config{}` + `cue.Raw()`** | **22/24** | **2** |
-| `Config{}` + `cue.Final()` | 16/24 | 8 |
-| `Config{}` + `Raw`+`Final` | 16/24 | 8 |
-| `Config{Strict:true}` + none | 20/24 | 3 |
-| `Config{Strict:true}` + `Raw` | 21/24 | 2 (`int32`/`int64` fail extraction) |
+| Configuration                 |     Score |         False `compatible` (unsafe) |
+| ----------------------------- | --------: | ----------------------------------: |
+| `Config{}` + none             |     21/24 |                                   3 |
+| **`Config{}` + `cue.Raw()`**  | **22/24** |                               **2** |
+| `Config{}` + `cue.Final()`    |     16/24 |                                   8 |
+| `Config{}` + `Raw`+`Final`    |     16/24 |                                   8 |
+| `Config{Strict:true}` + none  |     20/24 |                                   3 |
+| `Config{Strict:true}` + `Raw` |     21/24 | 2 (`int32`/`int64` fail extraction) |
 
 All twelve additive fixtures classify correctly under the best configuration,
 including "add an optional field". The two residual misses are `H7 change format`
@@ -57,7 +57,7 @@ Its Go fence is `md-go-validator` clean.
 ### a3. ADR-0163 created and gate-green
 
 [`docs/adr/0163-schema-compatibility-structural-differ-over-cue.md`](../adr/0163-schema-compatibility-structural-differ-over-cue.md)
-— Accepted; records the context (three partial answers, none can say *how* a
+— Accepted; records the context (three partial answers, none can say _how_ a
 shape moved), the decision (structural walk in `catalog/compat`, inside the
 existing `catalog` module), the measured rejection table, the soundness argument,
 consequences, four rejected alternatives, three reopen triggers.
@@ -81,7 +81,8 @@ unbounded → bounded still block, and a non-numeric format change still blocks.
 ### a6. Parity tests that pin the argument, not just the code
 
 New `catalog/compat/spike_parity_test.go` (306 lines):
-- `TestCompatAgreesWithPolicyOnCueSpikeFixtures` — all 21 *representable* spike
+
+- `TestCompatAgreesWithPolicyOnCueSpikeFixtures` — all 21 _representable_ spike
   fixtures as a subtest table.
 - `TestCompatNeverApprovesABreakingChange` — the two rows CUE cannot see, asserted
   `breaking` and `!OK()`. This is the soundness pin.
@@ -124,7 +125,7 @@ floors** measured under a loaded host: `benchkit` 86.1 → 85.6,
 `cmd/cqrs-lint/v4/pkg/rules/consistency` 86.5 → 86.2 at package level).
 
 Rebuilt both files from the pre-churn version and applied **only** justified
-moves, on the ratchet rule *floors rise freely, fall only for a reason*:
+moves, on the ratchet rule _floors rise freely, fall only for a reason_:
 
 - module rows: 85 restored to `2026-10-26`; 4 moved (`catalog` 76.8→77.8 with
   packages 19→21, `scheduling` 92.3→93.4, `testutil` 11.8→50.4,
@@ -136,14 +137,14 @@ moves, on the ratchet rule *floors rise freely, fall only for a reason*:
 
 ### a10. Docs trail landed (T18/T20 partial → complete)
 
-| File | What changed |
-| --- | --- |
-| `CHANGELOG.md` | `[Unreleased] Added` bullet citing `compat.Compat`, `CompatCatalog`, `Conflicts`, `Validate`, `Baseline`; `check-changelog-symbols` green (19 citations verified) |
-| `FEATURES.md` | new `catalog/compat` table under Auto-Documentation, baseline row marked ⚠️ with the no-committed-artifact reason |
-| `catalog/README.md` | package row, dependency note ("adds no dependency"), new "Schema compatibility" section with a compiling example and the gate command |
-| `catalog/AGENTS.md` | six internal-contract bullets (why not CUE, why in this module, the single blocking class, compose-don't-duplicate, integer widening, no committed baseline) |
-| `.agents/skills/go-cqrs-lite/SKILL.md` | "Schema compatibility: did this payload change owe an op?" section |
-| `.agents/skills/go-cqrs-lite/references/modules.md` | `catalog` row extended with `compat` + ADR-0163 |
+| File                                                | What changed                                                                                                                                                      |
+| --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `CHANGELOG.md`                                      | `[Unreleased] Added` bullet citing `compat.Compat`, `CompatCatalog`, `Conflicts`, `Validate`, `Baseline`; `check-changelog-symbols` green (19 citations verified) |
+| `FEATURES.md`                                       | new `catalog/compat` table under Auto-Documentation, baseline row marked ⚠️ with the no-committed-artifact reason                                                  |
+| `catalog/README.md`                                 | package row, dependency note ("adds no dependency"), new "Schema compatibility" section with a compiling example and the gate command                             |
+| `catalog/AGENTS.md`                                 | six internal-contract bullets (why not CUE, why in this module, the single blocking class, compose-don't-duplicate, integer widening, no committed baseline)      |
+| `.agents/skills/go-cqrs-lite/SKILL.md`              | "Schema compatibility: did this payload change owe an op?" section                                                                                                |
+| `.agents/skills/go-cqrs-lite/references/modules.md` | `catalog` row extended with `compat` + ADR-0163                                                                                                                   |
 
 ### a11. Plan reconciled per the planning-doc discipline
 
@@ -157,7 +158,7 @@ existed; a new module was never justified; the differ had a real bug).
 ### a12. `TODO_LIST.md` harvested
 
 The section is now "executed 2026-11-02 — G0 NO-GO, fallback shipped" with three
-ticked items, plus four new *open* rows that are genuinely still open: decide the
+ticked items, plus four new _open_ rows that are genuinely still open: decide the
 gate's subject, the parked T10 fingerprint bridge (with its tier-direction
 blocker), the unshipped tail, and the sharpened CUE park trigger (now also
 requires `format`/constrained-list support).
@@ -170,24 +171,24 @@ HEAD mid-commit.
 
 ### a14. Gate suite run green
 
-| Gate | Result |
-| --- | --- |
-| `check-file-size` | ✓ no new offenders, no growth (61 baselined) |
-| `check-package-surface` | ✓ 8 baselined |
-| `check-untested-exports` | ✓ 1086/6421 frozen (was a real failure, fixed by a) |
-| `check-doc-links` | ✓ 1234 targets, 0 broken |
-| `check-canonical-facts` | ✓ all citations match |
-| `check-adr-numbering` | ✓ 161 ADRs, index lockstep |
-| `check-md-go` | ✓ 1528 blocks valid (fixed a fence in the evidence pack) |
-| `check-changelog-symbols` | ✓ 19 citations honest (fixed 2 external-symbol false citations) |
-| `check-schema-compat --self-test` | ✓ 6/6 mutation legs |
-| `check-error-taxonomy` | ✓ |
-| `check-error-taxonomy-tests` | ✓ |
-| `cmd/api-stability` | ✓ 6421 exports verified, no drift |
-| `check-test-runtime` | ✓ 170/170 budgeted |
-| catalog module `go test ./...` | ✓ all packages |
-| `catalog/compat` + CLI under `-race` | ✓ |
-| catalog module `go vet ./...` | ✓ |
+| Gate                                 | Result                                                          |
+| ------------------------------------ | --------------------------------------------------------------- |
+| `check-file-size`                    | ✓ no new offenders, no growth (61 baselined)                    |
+| `check-package-surface`              | ✓ 8 baselined                                                   |
+| `check-untested-exports`             | ✓ 1086/6421 frozen (was a real failure, fixed by a)             |
+| `check-doc-links`                    | ✓ 1234 targets, 0 broken                                        |
+| `check-canonical-facts`              | ✓ all citations match                                           |
+| `check-adr-numbering`                | ✓ 161 ADRs, index lockstep                                      |
+| `check-md-go`                        | ✓ 1528 blocks valid (fixed a fence in the evidence pack)        |
+| `check-changelog-symbols`            | ✓ 19 citations honest (fixed 2 external-symbol false citations) |
+| `check-schema-compat --self-test`    | ✓ 6/6 mutation legs                                             |
+| `check-error-taxonomy`               | ✓                                                               |
+| `check-error-taxonomy-tests`         | ✓                                                               |
+| `cmd/api-stability`                  | ✓ 6421 exports verified, no drift                               |
+| `check-test-runtime`                 | ✓ 170/170 budgeted                                              |
+| catalog module `go test ./...`       | ✓ all packages                                                  |
+| `catalog/compat` + CLI under `-race` | ✓                                                               |
+| catalog module `go vet ./...`        | ✓                                                               |
 
 ### a15. Lint reduced 48 → 22
 
@@ -224,16 +225,16 @@ Fixed 26 findings for real (see §e for the 22 that got reverted):
 
 ## b) PARTIALLY DONE
 
-| Item | State | What is missing |
-| --- | --- | --- |
-| **Lint compliance** | 26 of 48 fixed | 22 `exhaustruct_v5` remain; see §d.1 for why |
-| **Coverage baseline for `compat`** | row exists at **95.3** | measured coverage is now **94.6** (the new tests added branches faster than they covered them). Within the 2.0 lower tolerance so the gate passes, but the number is *stale-high* and should be re-pinned to the measured value |
-| **`#verify-fast`** | not run | it will fail on lint today |
-| **`#verify`** | not run | same, plus the ~1300 s composed cost at load >100 |
-| **T14 property/fuzz** | determinism + idempotent-union + schema-equality pins exist | conflict-detector symmetry fuzz, 200-message round-trip |
-| **T18 docs** | complete for the six files listed in a10 | `catalog/compat` examples in godoc for every export (only `doc.go` carries prose) |
-| **T20 inventory** | CHANGELOG + FEATURES + api-stability + coverage rows done | `docs/agents/module-map.md` has no `compat` row; `check-canonical-facts` passes anyway because no count changed |
-| **Gate subject** | mechanism shipped, `--self-test` green | no committed `compat-baseline.json` — the gate cannot catch a real regression in *this* repo (see §g.3) |
+| Item                               | State                                                       | What is missing                                                                                                                                                                                                                 |
+| ---------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Lint compliance**                | 26 of 48 fixed                                              | 22 `exhaustruct_v5` remain; see §d.1 for why                                                                                                                                                                                    |
+| **Coverage baseline for `compat`** | row exists at **95.3**                                      | measured coverage is now **94.6** (the new tests added branches faster than they covered them). Within the 2.0 lower tolerance so the gate passes, but the number is _stale-high_ and should be re-pinned to the measured value |
+| **`#verify-fast`**                 | not run                                                     | it will fail on lint today                                                                                                                                                                                                      |
+| **`#verify`**                      | not run                                                     | same, plus the ~1300 s composed cost at load >100                                                                                                                                                                               |
+| **T14 property/fuzz**              | determinism + idempotent-union + schema-equality pins exist | conflict-detector symmetry fuzz, 200-message round-trip                                                                                                                                                                         |
+| **T18 docs**                       | complete for the six files listed in a10                    | `catalog/compat` examples in godoc for every export (only `doc.go` carries prose)                                                                                                                                               |
+| **T20 inventory**                  | CHANGELOG + FEATURES + api-stability + coverage rows done   | `docs/agents/module-map.md` has no `compat` row; `check-canonical-facts` passes anyway because no count changed                                                                                                                 |
+| **Gate subject**                   | mechanism shipped, `--self-test` green                      | no committed `compat-baseline.json` — the gate cannot catch a real regression in _this_ repo (see §g.3)                                                                                                                         |
 
 ---
 
@@ -283,7 +284,7 @@ AGENTS.md already documents ("the golangci auto-configure re-added `gci` to
 
 The 11:37 report asserted 7-of-10 and "every additive case misclassified". The
 re-run says 22-of-24 with all additive correct. I cannot reconstruct whether the
-original spike had an inverted direction (my own note says a first matrix *was*
+original spike had an inverted direction (my own note says a first matrix _was_
 discarded for inversion), a different fixture set, or a misread of the option
 semantics — but the numbers were presented as hard evidence and they were not
 reproducible. Corrected in a16; recorded here because "evidence" that nobody
@@ -291,7 +292,7 @@ re-runs is just a claim with a filename.
 
 **d.3. Removed a temporary probe test with a lint-cleanliness fix bundled into it — but left the coverage baseline raised at an unverified 95.3.**
 
-I re-pinned `compat` coverage to 95.3 *after* adding tests, then kept editing
+I re-pinned `compat` coverage to 95.3 _after_ adding tests, then kept editing
 (adding `errors.go`, the width constants, the constructor-free fixes), which
 pushed the measured number down to 94.6. I never re-pinned. The floor is
 currently a number I did not verify against the final tree — exactly the class the
@@ -315,12 +316,12 @@ lies is worse than none.
 ## e) WHAT WE SHOULD IMPROVE
 
 **e1. Prefer a design that makes a linter's demand impossible to violate.** The
-robust fix for the 22 `exhaustruct_v5` findings is *not* the allow-list (reverted)
+robust fix for the 22 `exhaustruct_v5` findings is _not_ the allow-list (reverted)
 but centralizing construction in three `reportBuilder` helpers —
 `addAdditive(path, kind, msg)`, `addNeedsOp(path, kind, op, msg)`,
 `addBlocking(...)` — so `Finding` is built fully-specified in three places instead
 of 20, and `Blocking` can never be set on an additive finding by accident. That is
-better code *and* survives the auto-configurer. This is the single most valuable
+better code _and_ survives the auto-configurer. This is the single most valuable
 next change.
 
 **e2. Re-verify any config edit after the fact.** `.golangci.yml` is owned by a
@@ -384,7 +385,7 @@ Ordered by value. Items 1–8 make `#verify` green; 9–20 close the plan's tail
     integer format (the newly fixed rule) so a regression there is caught.
 17. Write the `.golangci.yml` reversion hazard into
     `docs/agents/gotchas-tooling-build.md` with the exact commit evidence.
-18. Root-cause *what* rewrites `.golangci.yml` (BuildFlow auto-configure vs the
+18. Root-cause _what_ rewrites `.golangci.yml` (BuildFlow auto-configure vs the
     daemon) and either disable that step or add a `check-lint-config` assertion
     that the compat entries are present.
 19. Write the G0 correction lesson into `docs/agents/gotchas-testing.md`
@@ -418,7 +419,7 @@ Ordered by value. Items 1–8 make `#verify` green; 9–20 close the plan's tail
 35. Record in ADR-0163 that `hardFixtures`/`easyFixtures` were hand-built, not
     exported fixtures — a future re-run must re-derive them (currently only §9 of
     the evidence says "re-derive from §2 and §3").
-36. Ship the harness source *in* the evidence pack as an appendix (it was in
+36. Ship the harness source _in_ the evidence pack as an appendix (it was in
     `/tmp` and would otherwise be lost, exactly as the first spike was).
 37. Add a `check-schema-compat` row to `.github/workflows/ci.yml`'s summary step
     if one exists (the leg is added; visibility is unverified).
@@ -431,8 +432,8 @@ Ordered by value. Items 1–8 make `#verify` green; 9–20 close the plan's tail
     a world-readable generated file.
 42. Verify `MarshalIndent`'s determinism claim survives map-key ordering on a
     large catalog (only small ones are tested).
-43. Decide whether `Conflicts` should also report *duplicate message IDs within
-    one* catalog (deliberately delegated to `Catalog.Validate` — cross-link it).
+43. Decide whether `Conflicts` should also report _duplicate message IDs within
+    one_ catalog (deliberately delegated to `Catalog.Validate` — cross-link it).
 44. Add a `compat` note to `catalog/AGENTS.md`'s DEP_BUDGET line (it adds 0 deps;
     the budget is unchanged at 5, which is worth stating).
 45. Re-read the plan's "Gate tax" checklist and confirm `compat` genuinely needed
@@ -444,7 +445,7 @@ Ordered by value. Items 1–8 make `#verify` green; 9–20 close the plan's tail
 48. Add the "no committed baseline" gap to `docs/status/README.md`'s index row for
     this report so the open question is discoverable.
 49. Re-run the whole gate suite after items 1–3, and record the timings.
-50. Take one more pass at *what else* in this repo has prose policy that could be
+50. Take one more pass at _what else_ in this repo has prose policy that could be
     made executable — this session proved the pattern works when the model owns
     the fields.
 

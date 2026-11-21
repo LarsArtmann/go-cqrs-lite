@@ -8,6 +8,7 @@
 ## Scope Line — what this report VERIFIED vs NOT
 
 **VERIFIED in-session (command → result):**
+
 - `art-dupl check . --threshold 3` → **green** ("No new clones detected", baseline 189; was **red** with 2 novel groups at session start)
 - `art-dupl --sort total-tokens -t 3 --sarif` (parsed) → **12 distinct groups before, 9 after** the extractions; zero directive-placement warnings anywhere
 - `nix run .#check-file-size` → **green** (was **red**: `cmd/cqrs-upgrade/main.go` at 357 lines, NEW offender, pre-existing on master — not authored by this session)
@@ -16,6 +17,7 @@
 - `go vet` on 10 modules, `golangci-lint` on 10 packages (**0 issues** each), `gofumpt -l` clean on every touched file
 
 **NOT verified (and why):**
+
 - `nix run .#verify` / `#verify-fast` (composed gate incl. race) — too heavy for the session window; individual gates run instead
 - Test suites of the 6 engine modules whose *_test.go files I edited (badger/bbolt/pebble/mysql/pg/dgraph) — they need DB backends; changes are Skip-guarded dump functions + comment removals, so compile (vet+lint) was the practical bar. **Runtime unproven.**
 - `stack/pebble`, `stack/duckdb`, `stack/postgres`, `stack/mysql` contract-suite consumers — only `stack/memory` + `stack/bbolt` were actually run
@@ -75,6 +77,7 @@ Nothing this session broke — but the session **found** two things that were al
 ## f) NEXT — up to 50 items (session-derived; marked [R] = ROADMAP fuel, most are brainstorm not commitment)
 
 **Immediate (this week, high impact / low effort)**
+
 1. HARVEST this report into `TODO_LIST.md` (docs-health HARVEST mode).
 2. Investigate why red-on-master gates went unnoticed: check last CI/nightly runs for `check-duplication` + `check-file-size`; wire a nightly gate-health audit if the answer is "not covered".
 3. Re-run the user's exact original command (`art-dupl --sort total-tokens -t 5 --timing`) end-to-end and confirm zero warnings + only the accepted groups.
@@ -138,4 +141,4 @@ Nothing this session broke — but the session **found** two things that were al
 
 ---
 
-*Report convention: point-in-time snapshot. Section (f) is HARVEST input for `TODO_LIST.md` — do not let it entomb here. Per the harness contract this file is not hand-committed; the auto-commit daemon picks it up.*
+_Report convention: point-in-time snapshot. Section (f) is HARVEST input for `TODO_LIST.md` — do not let it entomb here. Per the harness contract this file is not hand-committed; the auto-commit daemon picks it up._

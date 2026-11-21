@@ -182,7 +182,7 @@ cqrs-lint/v4.16.0). The roll's audit leg surfaced a REAL cqrs-lint bug mid-inves
    now v4.16.0 ✅; browser-history + cqrs-htmx = global PATH binary (rolled today, gates
    unverified/red); SystemNix = `master`-tracking flake input, lock stale; bank-sync =
    frozen rev `7142e43de` + BuildFlow-embedded cqrs-lint step; DiscordSync = frozen-rev input
-   + frozen dep set (atomic-write/auditlog/go-output inputs); go-appkit = no cqrs-lint.
+   - frozen dep set (atomic-write/auditlog/go-output inputs); go-appkit = no cqrs-lint.
 2. **Fix the doctor stale-auditor** (root-cause the feature-profile/double-override
    divergence between `runPipeline` on the doctor path vs the lint run; make
    `AuditSuppressions` classify against the SAME findings universe the suppression filter
@@ -288,4 +288,4 @@ cqrs-lint/v4.16.0). The roll's audit leg surfaced a REAL cqrs-lint bug mid-inves
 
 ---
 
-*Prepared 2026-10-12 12:26. Tree clean. STOPPING — awaiting instructions.*
+_Prepared 2026-10-12 12:26. Tree clean. STOPPING — awaiting instructions._

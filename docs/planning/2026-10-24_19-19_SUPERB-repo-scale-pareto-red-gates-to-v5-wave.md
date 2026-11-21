@@ -70,7 +70,7 @@ zero-consumer kills), **directive closed** (kv + verification gaps), and the
    shielding 73% of fleet edges. Even partial migration (import-surface
    switch on the biggest trains) collapses the v5 cliff for everyone behind it.
 
-*Why 51%:* green gates restore release credibility (all waves unblock), and
+_Why 51%:_ green gates restore release credibility (all waves unblock), and
 the cqrs-htmx/go-appkit pair IS the fleet's migration surface — ADR-0152's own
 analysis. Everything else in this repo is either preparation for these or
 long-tail after them.
@@ -79,14 +79,14 @@ long-tail after them.
 
 Add:
 4. **V007 deletion wave** (stack presets, storage/view + relational,
-   idempotency/sqlstore, + sqlstore if the owner rules delete-at-zero) —
-   trains 101 → ~85, tag-train and gate-registry tax falls immediately.
+idempotency/sqlstore, + sqlstore if the owner rules delete-at-zero) —
+trains 101 → ~85, tag-train and gate-registry tax falls immediately.
 5. **I/O-directive closure:** fleet sqlstore scan, kv doc-note + verdict
-   execution, E023 self-lint run, engine-observability demo.
+execution, E023 self-lint run, engine-observability demo.
 6. **Census-driven kill/integrate sweep** over the 49 zero-consumer trains
-   (evidence already mandated by AGENTS; `census-fleet.sh --zero-consumers`).
+(evidence already mandated by AGENTS; `census-fleet.sh --zero-consumers`).
 
-*Why 64%:* deletion + census convert "101 trains nobody uses" from carrying
+_Why 64%:_ deletion + census convert "101 trains nobody uses" from carrying
 cost into either removed modules or integrated packages — the structural
 payoff ADR-0152 was written to enable.
 
@@ -94,16 +94,16 @@ payoff ADR-0152 was written to enable.
 
 Add:
 7. **go-appkit migration + cqrs-upgrade v5 codemod** (the migration machine
-   for the app residue).
+for the app residue).
 8. **keycodec A9 LSM-engine adoption wave** (the ONE remaining disk-truth
-   item; owner-gated scheduling).
+item; owner-gated scheduling).
 9. **branded-`.String()` warn-first lint rule** (7+ fixes already paid for
-   this bug class; mechanical prevention).
+this bug class; mechanical prevention).
 10. **cqrs-lint extraction** (49k LOC, zero prod coupling — the cleanest
-    structural win; decision-gated).
+structural win; decision-gated).
 11. **Docs truth:** harvest both of today's status reports, module-count
-    split-brain fix (101 vs 98 vs 96/97), deprecate/add-rule procedure
-    checklists (the D1/D2 lessons, made permanent).
+split-brain fix (101 vs 98 vs 96/97), deprecate/add-rule procedure
+checklists (the D1/D2 lessons, made permanent).
 
 ### 2.4 The other 20% to reach 100% (the long tail — batched, not forgotten)
 
@@ -124,35 +124,35 @@ re-baselines; verify-chain receipts per wave.
 Priority: P0 = now (fires), P1 = this week, P2 = this month, P3 = tail.
 Value = fleet/customer value. Effort in minutes. ⛔ = owner gate BEFORE work.
 
-| # | P | Task | Value | Effort | Why this order |
-|---|---|---|---|---|---|
-| T01 | P0 | Reproduce + root-cause + fix SQL-engine planned-path suite RED (pg `IndexUsageProofs` text-bind; mysql `BackfillPlanned`/`PushdownScan_FilterSortKeys`) | H | 100 | Red gate poisons all waves; pre-existing since 10-23 |
-| T02 | P0 | check-duplication: add trailing `// art-dupl:accept ADR-0152 copy-forward` directives to ~180 core/v5 twin files (batched per tier) | H | 100 | Red gate; mechanical; unblocks #verify |
-| T03 | P0 | Surgical baseline insert for the ~10 non-twin residue groups (specview flow) + `check` green | M | 60 | Closes T02 without wholesale re-pin |
-| T04 | P0 | Execute 12-09 plan Wave 1 (armed): keycodec value-integrity mechanism (EncodeJSON fallback kill + LSM value encoders) | H | 100 | Armed, prepared; the defect class ships |
-| T05 | P0 | 12-09 Wave 2: prove the claims (composed #verify-fast + replay pins actually run + receipts) | H | 100 | Plan found "marked done but never run" — close it |
-| T06 | P1 | Fleet scan for `scheduling/sqlstore` consumers + refresh census evidence (`census-fleet.sh`) | H | 30 | Should-have-preceded kill-now; feeds Q3 (delete-at-zero?) |
-| T07 | P1 | kv: package-doc contract-30 note + ledger tick (doc-note path); ⛔ owner verdict gates the deeper path | M | 30 | Honest docs now; decision stays open |
-| T08 | P1 | E023 self-lint run (this repo + one fleet consumer) + triage + `--strict` info-severity pin test | M | 45 | Verify what the new rule actually fires on |
-| T09 | P1 | core/v5 completion audit vs ADR-0152 package list (gap table: missing pieces, wiring, blockers) | H | 60 | The map for wave 1 migration |
-| T10 | P1 | cqrs-htmx migration to core/v5 — leg 1: import-surface switch of the biggest trains (event/id/command/decider/middleware/query) | H | 100 | 73% of fleet indirect edges |
-| T11 | P1 | cqrs-htmx leg 2: remaining trains + adminui/dashboardui/datastar wiring + e2e green | H | 100 | Completes the chassis migration |
-| T12 | P2 | go-appkit migration onto core/v5 (8 prod files; thin wrapper) | H | 60 | 18% of edges; smallest per-edge cost |
-| T13 | P2 | cqrs-upgrade: v5 codemod target (core/v5 import rewrite + strict-gate) | H | 100 | The app-residue migration machine |
-| T14 | P2 | V007 deletion wave 1: delete stack/* presets + storage/view + storage/relational; registry cleanup in all 8 gates | H | 100 | Trains 101→~90; the sentenced die |
-| T15 | P2 | ⛔ + V007 deletion wave 2: `scheduling/sqlstore` (if owner rules delete-at-zero on census evidence) + `idempotency/sqlstore`; retire scheduler-otel-status demo | H | 60 | Zero-consumer kill policy (ADR-0158 precedent) |
-| T16 | P2 | Census-driven kill/integrate sweep: run `--zero-consumers`, verdict per train, fork+delete playbook for the condemned | H | 100 | 49 zero-consumer trains = pure carrying cost |
-| T17 | P2 | ⛔ A9 keycodec-v2 LSM-engine adoption wave (pebble → bbolt → badger, dual-read windows per store) | H | 100/dialect | The ONE remaining disk-truth item |
-| T18 | P2 | cqrs-lint branded-`.String()` warn-first rule (display-form-in-storage bug class) | M | 60 | 7+ fixes already paid; mechanical prevention |
-| T19 | P2 | cqrs-lint extraction: ⛔ intent ruling → ADR + subtree dry-run + catalog-sync test replacement plan | H | 60 | 49k LOC out of the monorepo; cheapest structural win |
-| T20 | P2 | Engine-path observability demo (scheduling/engine + engine instrumentation) replacing scheduler-otel-status | M | 100 | Closes the exempt-demo debt before v5 deletion |
-| T21 | P2 | Docs truth pack: harvest BOTH 10-24 reports into TODO_LIST; module-count split-brain fix (one gate-derived source); AGENTS "Deprecate a module" + "Add a lint rule" checklists (D1/D2 lessons) | M | 45 | Kills the ritual-tax split brain permanently |
-| T22 | P3 | BDD/harness depth tail: `TimeAdvancesTo(t)`, scenario `testing.TB` refactor, observational-equivalence port | M | 60 | Fleet DX; batched |
-| T23 | P3 | EventCatalog 5.2 custom exports (ADR-0159 deferred half) + mesh-demo flows pilot + check-eventcatalog warn-budget | M | 100 | Data-mesh direction |
-| T24 | P3 | Compound-cursor issuance protocol (engines fill NextCursor; ScanPage prefers it; ParseCursor normalizes) | M | 60 | Wire-format change; goldens |
-| T25 | P3 | Metaengine tail: calibration campaigns quiet-window legs; E023 scorecard wiring decision; doctor golden regen | M | 60 | Planner honesty |
-| T26 | P3 | Adoption patches + hygiene: bank-sync M13, DiscordSync workaround-branch drop, companion commit-history hygiene, ROADMAP wave prose, recipes §2.26 note | L | 45 | Fleet friction removal |
-| T27 | P3 | Per-wave verification ritual: verify-chain composed proof + CHANGELOG/FEATURES/TODO receipts after every P0/P1/P2 task (recurring) | H | 30/wave | The "90 tags shipped red" lesson, made mechanical |
+| #   | P  | Task                                                                                                                                                                                           | Value | Effort      | Why this order                                            |
+| --- | -- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- | ----------- | --------------------------------------------------------- |
+| T01 | P0 | Reproduce + root-cause + fix SQL-engine planned-path suite RED (pg `IndexUsageProofs` text-bind; mysql `BackfillPlanned`/`PushdownScan_FilterSortKeys`)                                        | H     | 100         | Red gate poisons all waves; pre-existing since 10-23      |
+| T02 | P0 | check-duplication: add trailing `// art-dupl:accept ADR-0152 copy-forward` directives to ~180 core/v5 twin files (batched per tier)                                                            | H     | 100         | Red gate; mechanical; unblocks #verify                    |
+| T03 | P0 | Surgical baseline insert for the ~10 non-twin residue groups (specview flow) + `check` green                                                                                                   | M     | 60          | Closes T02 without wholesale re-pin                       |
+| T04 | P0 | Execute 12-09 plan Wave 1 (armed): keycodec value-integrity mechanism (EncodeJSON fallback kill + LSM value encoders)                                                                          | H     | 100         | Armed, prepared; the defect class ships                   |
+| T05 | P0 | 12-09 Wave 2: prove the claims (composed #verify-fast + replay pins actually run + receipts)                                                                                                   | H     | 100         | Plan found "marked done but never run" — close it         |
+| T06 | P1 | Fleet scan for `scheduling/sqlstore` consumers + refresh census evidence (`census-fleet.sh`)                                                                                                   | H     | 30          | Should-have-preceded kill-now; feeds Q3 (delete-at-zero?) |
+| T07 | P1 | kv: package-doc contract-30 note + ledger tick (doc-note path); ⛔ owner verdict gates the deeper path                                                                                         | M     | 30          | Honest docs now; decision stays open                      |
+| T08 | P1 | E023 self-lint run (this repo + one fleet consumer) + triage + `--strict` info-severity pin test                                                                                               | M     | 45          | Verify what the new rule actually fires on                |
+| T09 | P1 | core/v5 completion audit vs ADR-0152 package list (gap table: missing pieces, wiring, blockers)                                                                                                | H     | 60          | The map for wave 1 migration                              |
+| T10 | P1 | cqrs-htmx migration to core/v5 — leg 1: import-surface switch of the biggest trains (event/id/command/decider/middleware/query)                                                                | H     | 100         | 73% of fleet indirect edges                               |
+| T11 | P1 | cqrs-htmx leg 2: remaining trains + adminui/dashboardui/datastar wiring + e2e green                                                                                                            | H     | 100         | Completes the chassis migration                           |
+| T12 | P2 | go-appkit migration onto core/v5 (8 prod files; thin wrapper)                                                                                                                                  | H     | 60          | 18% of edges; smallest per-edge cost                      |
+| T13 | P2 | cqrs-upgrade: v5 codemod target (core/v5 import rewrite + strict-gate)                                                                                                                         | H     | 100         | The app-residue migration machine                         |
+| T14 | P2 | V007 deletion wave 1: delete stack/* presets + storage/view + storage/relational; registry cleanup in all 8 gates                                                                              | H     | 100         | Trains 101→~90; the sentenced die                         |
+| T15 | P2 | ⛔ + V007 deletion wave 2: `scheduling/sqlstore` (if owner rules delete-at-zero on census evidence) + `idempotency/sqlstore`; retire scheduler-otel-status demo                                | H     | 60          | Zero-consumer kill policy (ADR-0158 precedent)            |
+| T16 | P2 | Census-driven kill/integrate sweep: run `--zero-consumers`, verdict per train, fork+delete playbook for the condemned                                                                          | H     | 100         | 49 zero-consumer trains = pure carrying cost              |
+| T17 | P2 | ⛔ A9 keycodec-v2 LSM-engine adoption wave (pebble → bbolt → badger, dual-read windows per store)                                                                                              | H     | 100/dialect | The ONE remaining disk-truth item                         |
+| T18 | P2 | cqrs-lint branded-`.String()` warn-first rule (display-form-in-storage bug class)                                                                                                              | M     | 60          | 7+ fixes already paid; mechanical prevention              |
+| T19 | P2 | cqrs-lint extraction: ⛔ intent ruling → ADR + subtree dry-run + catalog-sync test replacement plan                                                                                            | H     | 60          | 49k LOC out of the monorepo; cheapest structural win      |
+| T20 | P2 | Engine-path observability demo (scheduling/engine + engine instrumentation) replacing scheduler-otel-status                                                                                    | M     | 100         | Closes the exempt-demo debt before v5 deletion            |
+| T21 | P2 | Docs truth pack: harvest BOTH 10-24 reports into TODO_LIST; module-count split-brain fix (one gate-derived source); AGENTS "Deprecate a module" + "Add a lint rule" checklists (D1/D2 lessons) | M     | 45          | Kills the ritual-tax split brain permanently              |
+| T22 | P3 | BDD/harness depth tail: `TimeAdvancesTo(t)`, scenario `testing.TB` refactor, observational-equivalence port                                                                                    | M     | 60          | Fleet DX; batched                                         |
+| T23 | P3 | EventCatalog 5.2 custom exports (ADR-0159 deferred half) + mesh-demo flows pilot + check-eventcatalog warn-budget                                                                              | M     | 100         | Data-mesh direction                                       |
+| T24 | P3 | Compound-cursor issuance protocol (engines fill NextCursor; ScanPage prefers it; ParseCursor normalizes)                                                                                       | M     | 60          | Wire-format change; goldens                               |
+| T25 | P3 | Metaengine tail: calibration campaigns quiet-window legs; E023 scorecard wiring decision; doctor golden regen                                                                                  | M     | 60          | Planner honesty                                           |
+| T26 | P3 | Adoption patches + hygiene: bank-sync M13, DiscordSync workaround-branch drop, companion commit-history hygiene, ROADMAP wave prose, recipes §2.26 note                                        | L     | 45          | Fleet friction removal                                    |
+| T27 | P3 | Per-wave verification ritual: verify-chain composed proof + CHANGELOG/FEATURES/TODO receipts after every P0/P1/P2 task (recurring)                                                             | H     | 30/wave     | The "90 tags shipped red" lesson, made mechanical         |
 
 **Owner gates (⛔ not tasks — answering them changes the task list):**
 G1 kv verdict (doc-note+sequenced vs ADR-0152-amendment kill).
@@ -172,116 +172,116 @@ verifiable. Naming: Tnn.mm.
 
 ### P0 — fires (T01–T05)
 
-| Micro | Task (≤12 min) |
-|---|---|
-| T01.1 | Run pgengine planned-path suite at HEAD; capture exact failing tests + errors |
-| T01.2 | Run mysqlengine planned-path suite; capture failures |
-| T01.3 | Root-cause pg text-bind (int bound vs TEXT column) in the test's planned table DDL |
-| T01.4 | Fix pg bind typing; rerun suite green ×2 (`-count=2`) |
-| T01.5 | Root-cause mysql backfill/pushdown failures (divergence vs pg semantics) |
-| T01.6 | Fix mysql; rerun green ×2; row receipt in TODO red row |
-| T02.1 | Script: list core/v5 twin files missing the art-dupl directive (diff vs v4 counterpart) |
-| T02.2 | Batch-annotate twins tier 0–1 (record/id/dedup/dispatcher/metadata/event/command/query) |
-| T02.3 | Batch-annotate twins tier 2–3 (schema/snapshot/projection/deriver/decider/graph/listing) |
+| Micro | Task (≤12 min)                                                                                  |
+| ----- | ----------------------------------------------------------------------------------------------- |
+| T01.1 | Run pgengine planned-path suite at HEAD; capture exact failing tests + errors                   |
+| T01.2 | Run mysqlengine planned-path suite; capture failures                                            |
+| T01.3 | Root-cause pg text-bind (int bound vs TEXT column) in the test's planned table DDL              |
+| T01.4 | Fix pg bind typing; rerun suite green ×2 (`-count=2`)                                           |
+| T01.5 | Root-cause mysql backfill/pushdown failures (divergence vs pg semantics)                        |
+| T01.6 | Fix mysql; rerun green ×2; row receipt in TODO red row                                          |
+| T02.1 | Script: list core/v5 twin files missing the art-dupl directive (diff vs v4 counterpart)         |
+| T02.2 | Batch-annotate twins tier 0–1 (record/id/dedup/dispatcher/metadata/event/command/query)         |
+| T02.3 | Batch-annotate twins tier 2–3 (schema/snapshot/projection/deriver/decider/graph/listing)        |
 | T02.4 | Batch-annotate twins tier 4–5 (middleware/otel/catalog/encryption/signing/stack/storage/system) |
-| T02.5 | Re-run `nix run .#check-duplication`; count residue |
-| T03.1 | Throwaway full pin → /tmp; extract residue group hashes |
-| T03.2 | Surgically insert residue entries into committed baseline (sorted by hash) |
-| T03.3 | `check-duplication` green; commit; dirty-tree guard respected |
-| T04.1 | Read 12-09 Wave 1 task list; confirm preconditions still hold at HEAD |
-| T04.2 | Kill `EncodeJSON` `%v` fallback (loud error); fix compile fallout |
-| T04.3 | Replace pebbleengine value encoder alias; tests |
-| T04.4 | Replace bboltengine value encoder alias; tests |
-| T04.5 | Replace badgerengine value encoder alias; tests |
-| T04.6 | Add the 21-collection value-integrity pin per engine (per 12-09 spec) |
-| T04.7 | Update COOKBOOK/recipes claims to match mechanism reality |
-| T05.1 | Run composed `#verify-fast` (quiet window; load guard) |
-| T05.2 | Run replay pins end-to-end; capture receipts |
-| T05.3 | Correct any claim/docs drift found; row receipts in 12-09 §11 |
+| T02.5 | Re-run `nix run .#check-duplication`; count residue                                             |
+| T03.1 | Throwaway full pin → /tmp; extract residue group hashes                                         |
+| T03.2 | Surgically insert residue entries into committed baseline (sorted by hash)                      |
+| T03.3 | `check-duplication` green; commit; dirty-tree guard respected                                   |
+| T04.1 | Read 12-09 Wave 1 task list; confirm preconditions still hold at HEAD                           |
+| T04.2 | Kill `EncodeJSON` `%v` fallback (loud error); fix compile fallout                               |
+| T04.3 | Replace pebbleengine value encoder alias; tests                                                 |
+| T04.4 | Replace bboltengine value encoder alias; tests                                                  |
+| T04.5 | Replace badgerengine value encoder alias; tests                                                 |
+| T04.6 | Add the 21-collection value-integrity pin per engine (per 12-09 spec)                           |
+| T04.7 | Update COOKBOOK/recipes claims to match mechanism reality                                       |
+| T05.1 | Run composed `#verify-fast` (quiet window; load guard)                                          |
+| T05.2 | Run replay pins end-to-end; capture receipts                                                    |
+| T05.3 | Correct any claim/docs drift found; row receipts in 12-09 §11                                   |
 
 ### P1 — directive closure + v5 wave 1 legs (T06–T11)
 
-| Micro | Task |
-|---|---|
-| T06.1 | `rg` fleet (`~/projects`) for `scheduling/sqlstore` imports; name consumers |
-| T06.2 | Run `scripts/census-fleet.sh`; store JSON in docs/evidence/ |
-| T06.3 | Update CHANGELOG migration note + contract-30 ledger with scan results |
+| Micro | Task                                                                                |
+| ----- | ----------------------------------------------------------------------------------- |
+| T06.1 | `rg` fleet (`~/projects`) for `scheduling/sqlstore` imports; name consumers         |
+| T06.2 | Run `scripts/census-fleet.sh`; store JSON in docs/evidence/                         |
+| T06.3 | Update CHANGELOG migration note + contract-30 ledger with scan results              |
 | T07.1 | Write kv package-doc contract-30 note (durable→metaengine; typed+cache layer scope) |
-| T07.2 | doc-check green; ledger tick (⏳ G1) |
-| T08.1 | Build cqrs-lint; run E023-only over this repo; capture findings |
-| T08.2 | Run E023 over DiscordSync + cqrs-htmx; capture findings |
-| T08.3 | Triage: exemptions/waivers or accepts; record in TODO |
-| T08.4 | Add `--strict` info-severity pin test (advisory never gates) |
-| T09.1 | Diff core/v5 packages vs ADR-0152 core list; write gap table |
-| T09.2 | For each gap: missing / partial / blocked classification with file:line |
-| T09.3 | Row the gap table in TODO (v5 section) |
-| T10.1 | cqrs-htmx worktree; baseline its suites green on v4 pins |
-| T10.2 | Switch event/id imports → core/v5; fix compile; unit suite |
-| T10.3 | Switch command/query/dispatcher; suite |
-| T10.4 | Switch decider/middleware; suite |
-| T10.5 | Snapshot/scheduling trains; suite |
-| T10.6 | Full cqrs-htmx test suite (incl. e2e smoke leg) on core/v5 |
-| T11.1 | adminui wiring switch; suite |
-| T11.2 | dashboardui + datastar wiring switch; suite |
-| T11.3 | examples + docs sweep in cqrs-htmx; strict cqrs-lint run |
-| T11.4 | Pin bumps + standalone-build check (`check-example-standalone` analog) |
-| T11.5 | Migration receipt: CHANGELOG (both repos) + TODO row + edges re-measure |
+| T07.2 | doc-check green; ledger tick (⏳ G1)                                                |
+| T08.1 | Build cqrs-lint; run E023-only over this repo; capture findings                     |
+| T08.2 | Run E023 over DiscordSync + cqrs-htmx; capture findings                             |
+| T08.3 | Triage: exemptions/waivers or accepts; record in TODO                               |
+| T08.4 | Add `--strict` info-severity pin test (advisory never gates)                        |
+| T09.1 | Diff core/v5 packages vs ADR-0152 core list; write gap table                        |
+| T09.2 | For each gap: missing / partial / blocked classification with file:line             |
+| T09.3 | Row the gap table in TODO (v5 section)                                              |
+| T10.1 | cqrs-htmx worktree; baseline its suites green on v4 pins                            |
+| T10.2 | Switch event/id imports → core/v5; fix compile; unit suite                          |
+| T10.3 | Switch command/query/dispatcher; suite                                              |
+| T10.4 | Switch decider/middleware; suite                                                    |
+| T10.5 | Snapshot/scheduling trains; suite                                                   |
+| T10.6 | Full cqrs-htmx test suite (incl. e2e smoke leg) on core/v5                          |
+| T11.1 | adminui wiring switch; suite                                                        |
+| T11.2 | dashboardui + datastar wiring switch; suite                                         |
+| T11.3 | examples + docs sweep in cqrs-htmx; strict cqrs-lint run                            |
+| T11.4 | Pin bumps + standalone-build check (`check-example-standalone` analog)              |
+| T11.5 | Migration receipt: CHANGELOG (both repos) + TODO row + edges re-measure             |
 
 ### P2 — deletion + machine (T12–T21)
 
-| Micro | Task |
-|---|---|
-| T12.1 | go-appkit worktree; switch system/metaengine imports → core/v5 |
-| T12.2 | Suite green; pin bump; receipt |
-| T13.1 | cqrs-upgrade: add core/v5 rewrite rules to the codemod table |
-| T13.2 | Fixture test: v4→v5 import rewrite end-to-end |
-| T13.3 | `--strict` gate includes v5 target; README/docs |
-| T14.1 | Delete stack presets (8 modules) from tree |
+| Micro | Task                                                                                                                                             |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| T12.1 | go-appkit worktree; switch system/metaengine imports → core/v5                                                                                   |
+| T12.2 | Suite green; pin bump; receipt                                                                                                                   |
+| T13.1 | cqrs-upgrade: add core/v5 rewrite rules to the codemod table                                                                                     |
+| T13.2 | Fixture test: v4→v5 import rewrite end-to-end                                                                                                    |
+| T13.3 | `--strict` gate includes v5 target; README/docs                                                                                                  |
+| T14.1 | Delete stack presets (8 modules) from tree                                                                                                       |
 | T14.2 | Registry cleanup: go.work, flake testModules/wasmMods, api-stability, check-module-layers, module catalog, versions.json, canonical-facts counts |
-| T14.3 | Delete storage/view + storage/relational; registry cleanup ditto |
-| T14.4 | `#verify-fast` + `#verify-ci` green post-deletion; counts updated in docs |
-| T15.1 | ⛔ G2 ruling on census evidence; if delete-at-zero: delete scheduling/sqlstore + retire scheduler-otel-status demo |
-| T15.2 | Registry cleanup for sqlstore; V007 table entry already present; CHANGELOG |
-| T16.1 | Run `census-fleet.sh --zero-consumers`; generate trigger report |
-| T16.2 | Verdict per condemned train (fork+delete playbook or integrate) |
-| T16.3 | Execute first batch of deletions; registries; receipts |
-| T17.1 | ⛔ G3 ruling; A9 pebbleengine dual-read window implementation |
-| T17.2 | pebble verification: legacy-prefixed DB fixture round-trip |
-| T17.3 | bboltengine dual-read window + verification |
-| T17.4 | badgerengine dual-read window + verification |
-| T17.5 | Sticky-key fallback decision (needs G5); docs; A9 receipt |
-| T18.1 | E-rule skeleton + catalog + register + RULES.md regen + count pins (use the new checklist) |
-| T18.2 | Detector: `.String()` on branded types (id.StreamID, typed keys) in storage-adjacent args |
-| T18.3 | Tests: fire/silence fixtures + exemption table |
-| T18.4 | Run over repo + fleet; warn-first triage |
-| T19.1 | ⛔ G4 ruling; write extraction ADR (check-adr-numbering first) |
-| T19.2 | Subtree dry-run of cmd/cqrs-lint → /tmp; measure diff + CI legs |
-| T19.3 | module_catalog drift-test replacement design (pinned catalog + sync job) |
-| T20.1 | Demo skeleton: scheduling/engine + engine instrumentation wiring |
-| T20.2 | /status + /metrics endpoints parity with old demo |
-| T20.3 | Tests + example registration; banner-off the old demo |
-| T21.1 | HARVEST both 10-24 reports (docs-health) into TODO_LIST/ROADMAP |
-| T21.2 | Module-count split brain: single gate-derived source; fix module-map/ROADMAP prose |
-| T21.3 | Write AGENTS "Deprecate a module" checklist (from D1: markers→V007→CHANGELOG→FEATURES→maps→banner→gates) |
-| T21.4 | Write AGENTS "Add a lint rule" checklist (rule→register→catalog→RULES.md→README→count test→api golden) |
+| T14.3 | Delete storage/view + storage/relational; registry cleanup ditto                                                                                 |
+| T14.4 | `#verify-fast` + `#verify-ci` green post-deletion; counts updated in docs                                                                        |
+| T15.1 | ⛔ G2 ruling on census evidence; if delete-at-zero: delete scheduling/sqlstore + retire scheduler-otel-status demo                               |
+| T15.2 | Registry cleanup for sqlstore; V007 table entry already present; CHANGELOG                                                                       |
+| T16.1 | Run `census-fleet.sh --zero-consumers`; generate trigger report                                                                                  |
+| T16.2 | Verdict per condemned train (fork+delete playbook or integrate)                                                                                  |
+| T16.3 | Execute first batch of deletions; registries; receipts                                                                                           |
+| T17.1 | ⛔ G3 ruling; A9 pebbleengine dual-read window implementation                                                                                    |
+| T17.2 | pebble verification: legacy-prefixed DB fixture round-trip                                                                                       |
+| T17.3 | bboltengine dual-read window + verification                                                                                                      |
+| T17.4 | badgerengine dual-read window + verification                                                                                                     |
+| T17.5 | Sticky-key fallback decision (needs G5); docs; A9 receipt                                                                                        |
+| T18.1 | E-rule skeleton + catalog + register + RULES.md regen + count pins (use the new checklist)                                                       |
+| T18.2 | Detector: `.String()` on branded types (id.StreamID, typed keys) in storage-adjacent args                                                        |
+| T18.3 | Tests: fire/silence fixtures + exemption table                                                                                                   |
+| T18.4 | Run over repo + fleet; warn-first triage                                                                                                         |
+| T19.1 | ⛔ G4 ruling; write extraction ADR (check-adr-numbering first)                                                                                   |
+| T19.2 | Subtree dry-run of cmd/cqrs-lint → /tmp; measure diff + CI legs                                                                                  |
+| T19.3 | module_catalog drift-test replacement design (pinned catalog + sync job)                                                                         |
+| T20.1 | Demo skeleton: scheduling/engine + engine instrumentation wiring                                                                                 |
+| T20.2 | /status + /metrics endpoints parity with old demo                                                                                                |
+| T20.3 | Tests + example registration; banner-off the old demo                                                                                            |
+| T21.1 | HARVEST both 10-24 reports (docs-health) into TODO_LIST/ROADMAP                                                                                  |
+| T21.2 | Module-count split brain: single gate-derived source; fix module-map/ROADMAP prose                                                               |
+| T21.3 | Write AGENTS "Deprecate a module" checklist (from D1: markers→V007→CHANGELOG→FEATURES→maps→banner→gates)                                         |
+| T21.4 | Write AGENTS "Add a lint rule" checklist (rule→register→catalog→RULES.md→README→count test→api golden)                                           |
 
 ### P3 — tail (T22–T27, batched micros)
 
-| Micro | Task |
-|---|---|
-| T22.1 | `TimeAdvancesTo(t)` sugar + tests + recipe note |
-| T22.2 | scenario/v4 `testing.TB` refactor |
-| T22.3 | Observational-equivalence port scoping note |
-| T23.1 | EventCatalog 5.2 custom exports spike |
-| T23.2 | mesh-demo flows pilot (hub T9) |
-| T23.3 | check-eventcatalog warn-budget hardening |
-| T24.1 | Engines fill ScanResult.NextCursor; golden pins |
-| T24.2 | ScanPage prefers engine cursor; ParseCursor normalizes; tests |
-| T25.1 | Calibration campaign quiet-window leg; baseline update |
-| T25.2 | ⛔ G6: E023 scorecard/Modernity wiring decision + doctor golden regen |
-| T26.1 | bank-sync M13 patch; DiscordSync branch drop |
-| T26.2 | Companion commit-history hygiene (pilot repos) |
-| T26.3 | ROADMAP wave prose + recipes §2.26 note |
+| Micro | Task                                                                                                                          |
+| ----- | ----------------------------------------------------------------------------------------------------------------------------- |
+| T22.1 | `TimeAdvancesTo(t)` sugar + tests + recipe note                                                                               |
+| T22.2 | scenario/v4 `testing.TB` refactor                                                                                             |
+| T22.3 | Observational-equivalence port scoping note                                                                                   |
+| T23.1 | EventCatalog 5.2 custom exports spike                                                                                         |
+| T23.2 | mesh-demo flows pilot (hub T9)                                                                                                |
+| T23.3 | check-eventcatalog warn-budget hardening                                                                                      |
+| T24.1 | Engines fill ScanResult.NextCursor; golden pins                                                                               |
+| T24.2 | ScanPage prefers engine cursor; ParseCursor normalizes; tests                                                                 |
+| T25.1 | Calibration campaign quiet-window leg; baseline update                                                                        |
+| T25.2 | ⛔ G6: E023 scorecard/Modernity wiring decision + doctor golden regen                                                         |
+| T26.1 | bank-sync M13 patch; DiscordSync branch drop                                                                                  |
+| T26.2 | Companion commit-history hygiene (pilot repos)                                                                                |
+| T26.3 | ROADMAP wave prose + recipes §2.26 note                                                                                       |
 | T27.* | After EVERY completed task: git status → commit (detailed) → gates → CHANGELOG/FEATURES/TODO receipt (12 min budget per wave) |
 
 **Total: 27 medium tasks → 96 micro-tasks.**
@@ -330,15 +330,15 @@ flowchart TD
 
 ## 6. Verification matrix
 
-| Claim this plan makes | Verified by |
-|---|---|
-| SQL suite red is real + pre-existing | TODO row (verified at `d0e86a117`, before typed-WAL) — re-verify in T01.1 |
-| check-duplication 190 groups / ~180 twins | TODO row, mutation-verified 2026-10-17 — re-run in T02.5 |
-| 12-09 Wave 1 armed | its own §Status — confirm in T04.1 |
-| cqrs-htmx/go-appkit = 73%/18% edges | ADR-0152 consumed-surface analysis (2026-10-08) |
-| kv fleet consumers | session grep 2026-10-24 (DiscordSync, cqrs-htmx, Code-To-CV-Agent prod files) |
-| 49 zero-consumer trains | ADR-0152 audit; refresh via T06.2 census |
-| E023/sqlstore shipped today | CHANGELOG [Unreleased], full suite green ×2, api golden 6303 |
+| Claim this plan makes                     | Verified by                                                                   |
+| ----------------------------------------- | ----------------------------------------------------------------------------- |
+| SQL suite red is real + pre-existing      | TODO row (verified at `d0e86a117`, before typed-WAL) — re-verify in T01.1     |
+| check-duplication 190 groups / ~180 twins | TODO row, mutation-verified 2026-10-17 — re-run in T02.5                      |
+| 12-09 Wave 1 armed                        | its own §Status — confirm in T04.1                                            |
+| cqrs-htmx/go-appkit = 73%/18% edges       | ADR-0152 consumed-surface analysis (2026-10-08)                               |
+| kv fleet consumers                        | session grep 2026-10-24 (DiscordSync, cqrs-htmx, Code-To-CV-Agent prod files) |
+| 49 zero-consumer trains                   | ADR-0152 audit; refresh via T06.2 census                                      |
+| E023/sqlstore shipped today               | CHANGELOG [Unreleased], full suite green ×2, api golden 6303                  |
 
 ## 7. Verschlimmbessern guard (read before touching anything)
 
@@ -355,12 +355,12 @@ flowchart TD
 
 ## 8. Risks
 
-| Risk | Mitigation |
-|---|---|
-| T01 mysql/pg fixes collide with the parallel session owning pgengine (typed_wal) | Check `git log` owners before editing; coordinate via TODO row |
-| Deletion waves orphan fleet pins | delete only V007-registered paths; old tags serve forever on the proxy |
-| cqrs-htmx migration stalls on v5 gaps | T09 audit FIRST; gaps become blockers list, not mid-migration surprises |
-| Verify-chain exclusivity/load | every composed run via quiet-window/verify-chain (T27 ritual) |
+| Risk                                                                             | Mitigation                                                              |
+| -------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| T01 mysql/pg fixes collide with the parallel session owning pgengine (typed_wal) | Check `git log` owners before editing; coordinate via TODO row          |
+| Deletion waves orphan fleet pins                                                 | delete only V007-registered paths; old tags serve forever on the proxy  |
+| cqrs-htmx migration stalls on v5 gaps                                            | T09 audit FIRST; gaps become blockers list, not mid-migration surprises |
+| Verify-chain exclusivity/load                                                    | every composed run via quiet-window/verify-chain (T27 ritual)           |
 
 ## 9. Owner-gated questions (asked, not answerable here)
 
@@ -443,4 +443,3 @@ delete-at-zero — needs T06 evidence first) and **G4** (lint extraction intent)
     under 100-module parallel load and passed ×3 standalone and in the clean
     composed run — the known load-sensitivity class, not a regression
     (pre-session commit also green in a throwaway worktree).
-

@@ -17,7 +17,7 @@
 4. **M14 — HARVEST.** TODO_LIST: lint-debt STATE marked PAID on the composed-`#verify` row (91/91 modules, 0 findings); two new CI/Infrastructure rows (benchmark-job fix [later marked FIXED with receipt], owner-review of the 3 flagged decisions). No duplication of the 128-backlog (checked by search).
 5. **M15 — coverage gate.** Drift triaged as INHERITED (79/124 commits since the 09-19 baseline in schema/metaengine alone from other waves; this wave's changes were behavior-identical lint fixes + dead-code deletion; the big untested chunk is schema `typed_declaration.go`/chain helpers). EXPECTED re-baselined from quiet-window numbers; **new finding documented in the script: the coverage gate is load-sensitive (±3–5 points under load1>60 — timeout-skipped tests), re-baseline only from quiet windows.**
 6. **M16 — monorepo e2e fixture.** `TestCollectTestImportPaths_MonorepoNestedModules`: nested go.mod fixture, inner module's `_test.go` import collected + detected as Used-with-TestOnly through the composed pipeline.
-7. **M17 — test_only provenance.** `analyzer.ModuleUsage.TestOnly` (Pass 2 sole-matcher flag) → `ScorecardModule.TestOnly` (`json:"test_only,omitempty"`, additive per contract 28; `evidence` bytes unchanged) → text/markdown render ` (test-only import)` suffix. Provenance split pinned (test-only=true vs production-import=false). API golden regenerated; api-stability meta-tests green; full cqrs-lint suite green (19 ok). CHANGELOG Added row.
+7. **M17 — test_only provenance.** `analyzer.ModuleUsage.TestOnly` (Pass 2 sole-matcher flag) → `ScorecardModule.TestOnly` (`json:"test_only,omitempty"`, additive per contract 28; `evidence` bytes unchanged) → text/markdown render `(test-only import)` suffix. Provenance split pinned (test-only=true vs production-import=false). API golden regenerated; api-stability meta-tests green; full cqrs-lint suite green (19 ok). CHANGELOG Added row.
 8. **M18 — symlink contract.** `TestCollectTestImportPaths_SymlinkedDirsNotFollowed`: imports reachable ONLY through a symlinked dir are never collected (WalkDir semantics pin).
 9. **M20 — ADR gate.** `#check-adr-numbering` green before and after (156 ADRs, no duplicates, index lockstep). No ADR spawned (Q2 needed none).
 10. **M19 (partial, see b) — CI truth + benchmark-job root cause + FIX.** `Benchmark Regression Detection` root-caused exactly: `go-env.sh` exported `GOTMPDIR=/home/lars/projects/.gotmp` unconditionally; runners have no `/home/lars`; the `mkdir -p` fallback warned silently; every `mktemp` died. Fix: tmpdir export conditional on creatable+writable (identical local behavior — verified; shfmt + syntax clean). CHANGELOG Fixed row; TODO row closed with receipt (proof = next Benchmarks run).
@@ -59,6 +59,7 @@
 ## f) NEXT ACTIONS (ranked; ~40 items)
 
 **Finish the wave (tonight/morning):**
+
 1. Diagnose `actionlint + shellcheck` red on run 38476649610 (SC2086 on `$GO_TEST_FLAGS` prime suspect; add `# shellcheck disable=SC2086` with rationale or quote-split properly).
 2. Diagnose `Ephemeral PG` red on the same run (pull job log; is it the flag path, the snapshot tests via ephemeral, or new).
 3. Watch the same run to completion; confirm Module Layer / shfmt / Flake Check / PG Docker / Benchmark classes now green.

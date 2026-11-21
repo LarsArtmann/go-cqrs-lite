@@ -12,19 +12,19 @@ systemscenario SSE flake policy (second occurrence)**.
 
 ## Timeline of this segment
 
-| Time (CET) | Event |
-|---|---|
-| 06:45 | Session resumed; todos reconciled (M08–M10 marked done) |
-| 06:45–07:05 | CI run 41964215727 (commit 9c4dddcb1) triaged job-by-job: 10 failures, all root-caused |
-| 06:58 | Verify attempt 11 finished rc=1 — **only** failure: stale `docs-ui.css` (final doc-check leg; tests/race/lint all green) |
-| 07:0x | Discovered `/tmp/adr-0164-draft.md`, `/tmp/m23-draft.md`, `/tmp/m07-wave-draft.txt` are GONE (contrary to handoff belief); reconstructed ADR-0164 + M23 drafts from context + issue #114 body + source reading |
-| 07:1x | Four fixes applied: CSS regen, shfmt on `scripts/probe-proxy-tags.sh`, go-finding v1.15.0→v1.15.1 (cqrs-lint + cqrs-upgrade), error-taxonomy regen |
-| 07:2x | Targeted gates all green (pin-sweep, api-stability meta-tests, taxonomy --check, mesh-demo errorflow, shfmt -d, cqrs-lint/upgrade suites) |
-| 07:3x | Hand-committed taxonomy regen (71be8a45d); pushed 9c4dddcb1..71be8a45d; CI run **41978263864** triggered |
-| 07:3x | Verify load-window watcher armed (threshold load1+load5 < 15.5, 3h deadline) |
-| ~07:4x | CI stuck `queued` ~25 min — root cause: prior run 41964215727 wedged `in_progress` holding the concurrency group; it concluded `cancelled` on touch |
-| 08:04 | **Verify attempt 12 fired and failed rc=1** — `TestSSE_TaskViewStreamsOverHTTP` (systemscenario): garbage-decode dead-letter + SSE await timeout. **This is recurrence #2 of the attempt-8 failure → the observe-only policy ESCALATES** |
-| 09:46 | CI 41978263864 mid-run: 27 jobs done, 3 failed so far (Nix Flake Check, MySQL QEMU VM, actionlint+shellcheck) — untriaged; load 25 |
+| Time (CET)  | Event                                                                                                                                                                                                                                    |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 06:45       | Session resumed; todos reconciled (M08–M10 marked done)                                                                                                                                                                                  |
+| 06:45–07:05 | CI run 41964215727 (commit 9c4dddcb1) triaged job-by-job: 10 failures, all root-caused                                                                                                                                                   |
+| 06:58       | Verify attempt 11 finished rc=1 — **only** failure: stale `docs-ui.css` (final doc-check leg; tests/race/lint all green)                                                                                                                 |
+| 07:0x       | Discovered `/tmp/adr-0164-draft.md`, `/tmp/m23-draft.md`, `/tmp/m07-wave-draft.txt` are GONE (contrary to handoff belief); reconstructed ADR-0164 + M23 drafts from context + issue #114 body + source reading                           |
+| 07:1x       | Four fixes applied: CSS regen, shfmt on `scripts/probe-proxy-tags.sh`, go-finding v1.15.0→v1.15.1 (cqrs-lint + cqrs-upgrade), error-taxonomy regen                                                                                       |
+| 07:2x       | Targeted gates all green (pin-sweep, api-stability meta-tests, taxonomy --check, mesh-demo errorflow, shfmt -d, cqrs-lint/upgrade suites)                                                                                                |
+| 07:3x       | Hand-committed taxonomy regen (71be8a45d); pushed 9c4dddcb1..71be8a45d; CI run **41978263864** triggered                                                                                                                                 |
+| 07:3x       | Verify load-window watcher armed (threshold load1+load5 < 15.5, 3h deadline)                                                                                                                                                             |
+| ~07:4x      | CI stuck `queued` ~25 min — root cause: prior run 41964215727 wedged `in_progress` holding the concurrency group; it concluded `cancelled` on touch                                                                                      |
+| 08:04       | **Verify attempt 12 fired and failed rc=1** — `TestSSE_TaskViewStreamsOverHTTP` (systemscenario): garbage-decode dead-letter + SSE await timeout. **This is recurrence #2 of the attempt-8 failure → the observe-only policy ESCALATES** |
+| 09:46       | CI 41978263864 mid-run: 27 jobs done, 3 failed so far (Nix Flake Check, MySQL QEMU VM, actionlint+shellcheck) — untriaged; load 25                                                                                                       |
 
 ---
 
@@ -133,6 +133,7 @@ script, ignore-cascade tripwire), final completion report.
 ## f) NEXT WORK (up to 50, ordered)
 
 **Receipts & verify:**
+
 1. Hunt the systemscenario SSE garbage-decode (ESCALATED, policy-mandated): reproduce locally with `cd systemscenario && GOWORK=off go test -run TestSSE_TaskViewStreamsOverHTTP -count=20`; inspect projectionadapter decode path + journal-read fan-out for misrouting (is a non-task.updated event's payload being decoded as TaskUpdated?); check whether the dead-letter event_id's raw payload type mismatches its stamped event type.
 2. Read the full attempt-12 log region before the FAIL for the first symptom ordering (dead-letter at 07:04Z vs test start).
 3. Triage CI 41978263864 "Nix Flake Check" failure (likely flake-eval or a meta-test on CI's cold cache).
@@ -216,4 +217,4 @@ script, ignore-cascade tripwire), final completion report.
 failed, untriaged); verify attempt 12 failed on the SSE recurrence; load 25;
 watcher 0EE exited after firing; tree clean at 71be8a45d + daemon absorptions.
 
-* parked — awaiting instructions per directive.
+- parked — awaiting instructions per directive.

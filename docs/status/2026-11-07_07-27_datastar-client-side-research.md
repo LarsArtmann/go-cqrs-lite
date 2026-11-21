@@ -24,38 +24,38 @@ and were caught by subagents, not by me.**
 
 ## (a) FULLY DONE
 
-| # | Item | Evidence |
-|---|------|----------|
-| 1 | Datastar protocol researched from primary sources | `data-star.dev/reference/{attributes,actions,sse_events,sdks,security}` fetched and quoted; release `v1.0.4` via GitHub API (2026-09-21; 1.0 GA 2026-04-16) |
-| 2 | Wire format verified byte-level, not paraphrased | both patch events quoted with every `data:` line; `sdk/test/get-cases/*` golden corpus located |
-| 3 | CSP question settled empirically | default mode needs `'unsafe-eval'` (`Function()`), nonce mode via `<html data-nonce>` needs none, Trusted Types policy literally named `datastar` |
-| 4 | The "no `EventSource`" claim verified, not assumed | zero `EventSource` occurrences in the v1.0.4 bundle; Azure `fetch-event-source` parser is vendored |
-| 5 | Resume semantics verified from the shipped bundle | `_["last-event-id"] = W` deobfuscated assignment; plus the inverse finding (clean close = no reconnect) |
-| 6 | Repo client-side surface mapped exhaustively | docserver (templ, `HTMXSrc = HTMXNone`, `layout.templ:21`), `catalog/architecture` (9,143 B hand-written `reference.js`), `metaengine.ServeSSE` (`sse.go:111/173/227/252`), `catalog/eventcatalog.StaticServer`, `example/taskmanager/http.go:57` |
-| 7 | CSP policy captured verbatim | `catalog/docserver/csp.go:50-66` |
-| 8 | Fleet Datastar stack audited | `go-datastar` v0.6.3 (`Patch.Event() sse.Event`), `go-sse` v0.6.2, `cqrs-htmx/datastar/v4` (`EventBridge`), `templ-components/datastar` + `utils/wire` |
-| 9 | Dependency cost quantified | `catalog/go.mod:17-19` already pins `templ-components{,/icons,/utils}` v1.27.0; only `templ-components/datastar` is new, and its own weight is `templ` + `utils` + `go-datastar/static` (58-byte go.mod) |
-| 10 | Six opportunities ranked with file:line anchors | report §05 |
-| 11 | Hard non-fits argued, not hedged | `catalog/architecture` (offline-by-design, `reference.js:5-8`), HTML rendering inside `metaengine` core |
-| 12 | Report written to the Bauhaus editorial spec | template copied verbatim (CSS untouched), body authored, structure validated |
-| 13 | HTML structure validated mechanically | 0 unclosed tags, 0 mismatched tags, all 9 sidebar anchors resolve |
-| 14 | Three subagent fan-outs, all three reported and used | web research, repo map, fleet audit |
-| 15 | Two factual errors caught and corrected before sign-off | `go-sse` v0.7.0→v0.6.2; `transport/http.SSEBroker` "deprecated"→"deleted" |
+| #  | Item                                                    | Evidence                                                                                                                                                                                                                                          |
+| -- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1  | Datastar protocol researched from primary sources       | `data-star.dev/reference/{attributes,actions,sse_events,sdks,security}` fetched and quoted; release `v1.0.4` via GitHub API (2026-09-21; 1.0 GA 2026-04-16)                                                                                       |
+| 2  | Wire format verified byte-level, not paraphrased        | both patch events quoted with every `data:` line; `sdk/test/get-cases/*` golden corpus located                                                                                                                                                    |
+| 3  | CSP question settled empirically                        | default mode needs `'unsafe-eval'` (`Function()`), nonce mode via `<html data-nonce>` needs none, Trusted Types policy literally named `datastar`                                                                                                 |
+| 4  | The "no `EventSource`" claim verified, not assumed      | zero `EventSource` occurrences in the v1.0.4 bundle; Azure `fetch-event-source` parser is vendored                                                                                                                                                |
+| 5  | Resume semantics verified from the shipped bundle       | `_["last-event-id"] = W` deobfuscated assignment; plus the inverse finding (clean close = no reconnect)                                                                                                                                           |
+| 6  | Repo client-side surface mapped exhaustively            | docserver (templ, `HTMXSrc = HTMXNone`, `layout.templ:21`), `catalog/architecture` (9,143 B hand-written `reference.js`), `metaengine.ServeSSE` (`sse.go:111/173/227/252`), `catalog/eventcatalog.StaticServer`, `example/taskmanager/http.go:57` |
+| 7  | CSP policy captured verbatim                            | `catalog/docserver/csp.go:50-66`                                                                                                                                                                                                                  |
+| 8  | Fleet Datastar stack audited                            | `go-datastar` v0.6.3 (`Patch.Event() sse.Event`), `go-sse` v0.6.2, `cqrs-htmx/datastar/v4` (`EventBridge`), `templ-components/datastar` + `utils/wire`                                                                                            |
+| 9  | Dependency cost quantified                              | `catalog/go.mod:17-19` already pins `templ-components{,/icons,/utils}` v1.27.0; only `templ-components/datastar` is new, and its own weight is `templ` + `utils` + `go-datastar/static` (58-byte go.mod)                                          |
+| 10 | Six opportunities ranked with file:line anchors         | report §05                                                                                                                                                                                                                                        |
+| 11 | Hard non-fits argued, not hedged                        | `catalog/architecture` (offline-by-design, `reference.js:5-8`), HTML rendering inside `metaengine` core                                                                                                                                           |
+| 12 | Report written to the Bauhaus editorial spec            | template copied verbatim (CSS untouched), body authored, structure validated                                                                                                                                                                      |
+| 13 | HTML structure validated mechanically                   | 0 unclosed tags, 0 mismatched tags, all 9 sidebar anchors resolve                                                                                                                                                                                 |
+| 14 | Three subagent fan-outs, all three reported and used    | web research, repo map, fleet audit                                                                                                                                                                                                               |
+| 15 | Two factual errors caught and corrected before sign-off | `go-sse` v0.7.0→v0.6.2; `transport/http.SSEBroker` "deprecated"→"deleted"                                                                                                                                                                         |
 
 ---
 
 ## (b) PARTIALLY DONE
 
-| # | Item | What is missing |
-|---|------|-----------------|
-| 1 | Report discoverability | file is not referenced from `docs/index.md`, from any research index, or from `SKILL.md` |
-| 2 | Filename convention | `datastar-client-side.html` vs the last two series files (`2026-07-23_…`, `2026-10-01_…` — both date-prefixed). Older files are undated, so the convention is genuinely ambiguous |
+| # | Item                                 | What is missing                                                                                                                                                                           |
+| - | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | Report discoverability               | file is not referenced from `docs/index.md`, from any research index, or from `SKILL.md`                                                                                                  |
+| 2 | Filename convention                  | `datastar-client-side.html` vs the last two series files (`2026-07-23_…`, `2026-10-01_…` — both date-prefixed). Older files are undated, so the convention is genuinely ambiguous         |
 | 3 | "Register the new module in N gates" | report says **six**; `AGENTS.md` documents **8 steps + 3 extra gates**, and misses coverage/test-runtime/package-surface baselines and the `check-canonical-facts` go.mod count (103→104) |
-| 4 | Dependency budget claim | "metaengine + go-sse + go-datastar, nothing else" is asserted, never compared against `scripts/check-module-layers.sh` or the closest analogue (`metaengine/graphadapter`) |
-| 5 | ADR cross-check | tier placement reasoned against ADR-0046, but ADR-0091 ("two SSE implementations, kept separate") was never opened — a third implementation needs an explicit answer there |
-| 6 | Scorecard arithmetic | headline says 4 / 6 / 3 / 2; §06 lists 7 distinct costs |
-| 7 | Verified-vs-inference marking | two load-bearing claims are inference, not observation: that `WithSSETimeout` closes silently, and the Pro pricing tier's exact contents |
-| 8 | Visual check | validated by `html.parser` and anchor resolution; never rendered in a browser |
+| 4 | Dependency budget claim              | "metaengine + go-sse + go-datastar, nothing else" is asserted, never compared against `scripts/check-module-layers.sh` or the closest analogue (`metaengine/graphadapter`)                |
+| 5 | ADR cross-check                      | tier placement reasoned against ADR-0046, but ADR-0091 ("two SSE implementations, kept separate") was never opened — a third implementation needs an explicit answer there                |
+| 6 | Scorecard arithmetic                 | headline says 4 / 6 / 3 / 2; §06 lists 7 distinct costs                                                                                                                                   |
+| 7 | Verified-vs-inference marking        | two load-bearing claims are inference, not observation: that `WithSSETimeout` closes silently, and the Pro pricing tier's exact contents                                                  |
+| 8 | Visual check                         | validated by `html.parser` and anchor resolution; never rendered in a browser                                                                                                             |
 
 ---
 
@@ -109,22 +109,23 @@ disagrees with its own evidence two screens later.
 
 ## (e) WHAT WE SHOULD IMPROVE
 
-| Lesson | Concrete rule |
-|--------|---------------|
-| Skill prose is a claim, not a fact | Any module path, function name, version or line number that lands in a report gets read from the tree/`go.mod` first. Two errors came from trusting prose. |
-| The daemon commits everything, including garbage | Scratch work goes to `/tmp`. Never `cp` a template into the repo before you need the final file. `git status` before and after file creation. |
-| Subagents are a verification net, not a decoration | Both errors were found by fan-out. That is the argument for spending the fan-out on *adversarial* review of my own claims, not only on gathering more material. |
-| A report is not done until it is indexed | An unindexed 81 KB artifact is a private note. Every deliverable needs an inbound link from a living doc. |
-| Findings must land where they are needed | Discovering doc drift and stopping is worse than not looking: it converts a bug into a documented bug. Fix-it-on-sight applies. |
-| Structural validation ≠ rendering | `html.parser` proves tag balance, not that the page looks right. Anything user-facing gets opened. |
-| Numbers must reconcile | Every headline number must be the count of the thing listed underneath it. |
-| Research delivers *decisions*, not prose | The report's best content is the decision matrix. Lead with it; put protocol detail behind it. |
+| Lesson                                             | Concrete rule                                                                                                                                                   |
+| -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Skill prose is a claim, not a fact                 | Any module path, function name, version or line number that lands in a report gets read from the tree/`go.mod` first. Two errors came from trusting prose.      |
+| The daemon commits everything, including garbage   | Scratch work goes to `/tmp`. Never `cp` a template into the repo before you need the final file. `git status` before and after file creation.                   |
+| Subagents are a verification net, not a decoration | Both errors were found by fan-out. That is the argument for spending the fan-out on _adversarial_ review of my own claims, not only on gathering more material. |
+| A report is not done until it is indexed           | An unindexed 81 KB artifact is a private note. Every deliverable needs an inbound link from a living doc.                                                       |
+| Findings must land where they are needed           | Discovering doc drift and stopping is worse than not looking: it converts a bug into a documented bug. Fix-it-on-sight applies.                                 |
+| Structural validation ≠ rendering                  | `html.parser` proves tag balance, not that the page looks right. Anything user-facing gets opened.                                                              |
+| Numbers must reconcile                             | Every headline number must be the count of the thing listed underneath it.                                                                                      |
+| Research delivers _decisions_, not prose           | The report's best content is the decision matrix. Lead with it; put protocol detail behind it.                                                                  |
 
 ---
 
 ## (f) UP TO 50 THINGS TO DO NEXT
 
 ### Report artifact (1–8)
+
 1. Rename to `docs/research/2026-11-07_datastar-client-side.html` to match the last two series files.
 2. Add an inbound link from `docs/index.md` (or create `docs/research/README.md` as an index) — research is currently unlinked.
 3. Cross-link from `.agents/skills/go-cqrs-lite/references/advanced.md` §6.15 (the SSE section).
@@ -135,14 +136,16 @@ disagrees with its own evidence two screens later.
 8. Confirm the `REPORT_TMP_DATASTAR.html` deletion lands in the next auto-commit.
 
 ### Skill / doc drift (9–14)
+
 9. Fix `SKILL.md:112,116,118` — `transport/http.SSEBroker` is deleted (`8e39faad5`, 2026-10-17), not pending v5.
 10. Add an executed-date note to `docs/adr/0127-deprecate-transport-modules.md`.
 11. Propose a gate: every module path named in `SKILL.md` must exist in `go.work` (current `doc-check` validates fences, not existence claims).
 12. Sweep `references/*.md` for other modules deleted in the v5 wave (`transport/*`, stack presets) and fix the same class of drift.
-13. Check whether `SKILL.md` still teaches `transport/http` as a *choice* anywhere else (decision matrices, FAQ).
+13. Check whether `SKILL.md` still teaches `transport/http` as a _choice_ anywhere else (decision matrices, FAQ).
 14. Add a one-line "last verified against tree on <date>" stamp to the skill's SSE matrix.
 
 ### The Datastar decision (15–23)
+
 15. Decide the architectural home: `metaengine/datastaradapter` (library) vs `cqrs-htmx/datastar` (handler layer). Ask Q1 below.
 16. Answer ADR-0091 explicitly: is a third SSE implementation acceptable, or is this a mode of the existing one?
 17. Read `scripts/check-module-layers.sh` and `metaengine/graphadapter`'s budget to price the new module honestly.
@@ -151,9 +154,10 @@ disagrees with its own evidence two screens later.
 20. Import upstream `sdk/test/get-cases/*` fixtures as the adapter's golden corpus.
 21. Unit-test `sse.WriteEvent` line splitting against HTML containing blank lines and `<pre>` blocks.
 22. Test `r.Header.Get("Last-Event-ID")` against a literal lowercase `last-event-id` header.
-23. Measure patch overhead (`elements ` prefix per line) on a 1,000-row table.
+23. Measure patch overhead (`elements` prefix per line) on a 1,000-row table.
 
 ### docserver pilot (24–30)
+
 24. Wire `datastar.SDKScript` behind the existing `EnableCSP` flag.
 25. Thread `data-nonce` through `layout.PageProps.HTMLDataAttrs` and extend `csp_test.go`.
 26. Extend the headless `csp_browser_test.go` to cover Datastar's nonce mode (the current test asserts a denied third-party origin).
@@ -163,11 +167,13 @@ disagrees with its own evidence two screens later.
 30. Evaluate `catalog/eventcatalog.StaticServer` as the "built Datastar site" path before adding live routes.
 
 ### Examples (31–33)
+
 31. Add `example/live-dashboard` (system.New + Watcher + adapter + one templ page).
 32. Register it under `examplePaths`, never `testModules`.
 33. Make it the fixture the adapter's contract test boots.
 
 ### Repo hygiene noticed this session (34–40)
+
 34. Investigate the repo-root `--help/` directory (contains `eventcatalog.config.js`) — mis-generated artifact, likely removable.
 35. Check `catalog/work/out/` — generated output inside the source tree; gitignore or relocate.
 36. Settle the `docs/research` filename convention (dated vs undated) and document it.
@@ -177,6 +183,7 @@ disagrees with its own evidence two screens later.
 40. Add the report's six opportunities to `TODO_LIST.md` (repo norm: harvest before session end).
 
 ### Meta / process (41–50)
+
 41. Adopt "read the tree, not the prose" as a written rule in the skill-authoring section.
 42. Add a pre-report checklist item: `git status` clean-of-scratch before writing the artifact.
 43. Two-stage verification pattern: draft from research → adversarial fan-out → correct → sign off.

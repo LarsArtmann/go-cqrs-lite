@@ -50,6 +50,7 @@ Smaller self-inflicted wounds, self-caught: a `var _ = strings.TrimSpace` unused
 ## f) NEXT — up to 50, ordered by leverage (session-scoped)
 
 **Release & rollout (do first):**
+
 1. Row + cut `cmd/cqrs-lint ≥ v4.20.0` carrying T009 (tag-release.sh; rel-tests + example-standalone first; same discipline as the v4.19.0 row).
 2. After tagging: bank-sync pin-bump row already exists — extend its text to note F032+T009 both ride ≥ v4.19.0/≥ v4.20.0 respectively.
 3. Fleet census sweep: list consumers pinning cqrs-lint < v4.19.0 and row their bumps (they cannot see the catalog mandate at all).

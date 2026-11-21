@@ -16,19 +16,19 @@ is verified, not remembered.
 
 ### Forgotten — found and fixed in this audit pass
 
-| Forgotten thing | What it would have cost | State now |
-| --- | --- | --- |
-| **`nix fmt`** after editing `flake.nix` and three fuzz files | CI's `nix fmt --fail-on-change` leg would have failed the branch | **Fixed.** treefmt reported "19 files, 4 changed" (`flake.nix`, `event/codec_fuzz_test.go`, `core/v5/event/codec_fuzz_test.go`, `schema/chain_fuzz_test.go`: nixfmt line-breaking + gofumpt wrapping my long `t.Skip("…")` calls). Re-run after the fix: **0 changed**. |
-| **`check-modsums`** | A red verify leg attributed to "my dependency work" | **Diagnosed, 1 of 10 fixed.** 102 modules checked, **10 untidy**: `cmd/api-stability`, `integration`, and all 8 `example/*`. Diagnosis: stale `/go.mod` sum lines left by an earlier dependency sweep — no commit in this session's window touched those files. I tidied only `cmd/api-stability` (a module I edited). The rest are foreign and rowed. |
-| **`check-depguard`** | A red verify leg | **Pre-existing red, not mine.** `github.com/tursodatabase/turso-go-platform-libs` (indirect in `example/goal-shaped-app`, `cmd/cqrs-bench`) is missing from the allow-list. The previous session recorded the same finding in its own plan; I did not touch it. |
-| **`check-arch`** (dependency budgets) | Adding 10 test deps could have breached a budget | **Ran: green.** Test-only deps are outside the production budget, as designed. |
-| **golangci-lint on the changed modules** | `#lint` runs 89 modules ~20 min; I had only run `go vet`-equivalent compilation | **Ran scoped: 16 modules green** (`deriver`, `scheduling`, `storage/{bbolt,pebble,turso}`, `decider`, `middleware`, `stack`, `systemscenario`, `watermill`, `event`, `schema`, `storage/sql`, `core/v5`, `cmd/api-stability`, `cmd/cqrs-lint`). First attempt failed for a silly reason: `--config ../.golangci.yml` breaks for two-level modules — absolute config path is required. |
-| **Reconciling the plan doc** | The plan still said "PLAN (nothing below is implemented yet)", i.e. the decision record lied | **Fixed.** Dated status banner + errata **E11–E17** appended (zero-assertion not text-detectable, T06 already covered, reentrant pin pre-existing, envelope fuzz out of repo, skip count 238 not 217, coverage measurement correction, and the new defect finding). |
-| **Writing the new gotchas** | The repo's own memory would re-learn three traps | **Fixed** in `docs/agents/gotchas-testing.md`: shuffle-on-by-default + seed replay, the **Ginkgo/Gomega `-shuffle` trap** (a plain test reaching a helper that calls global `Expect`), and the coverage-gate cost + ratchet inventory. |
-| **`#verify-fast` wiring** | The cheap ratchets (all sub-second file analysis) were absent from the gate people actually use for fast feedback | **Fixed.** `verify-fast` now runs `check-untested-exports`, `check-test-sleeps`, `check-test-skips`, `check-systemscenario-adoption` after `check-coverage`; flake evaluates. |
-| **CLI uniformity** | `check-test-skips` was the only new gate without `--quiet` | **Fixed** (flag added, self-test still 6/6, shfmt clean). |
-| **`cmd/api-stability`'s 0.0 coverage floor** | A floor of 0.0 is decoration | **Not forgotten silently**: its tests exec the CLI as a subprocess, so the package's own statements are never instrumented. Rowed as a decision (in-process tests or an explicit `none` row). |
-| **The redundant CI `coverage-gate` job** | Two coverage gates with different rules (80% on five module-root packages vs. the new all-module floors) | Rowed; not removed in this session. |
+| Forgotten thing                                              | What it would have cost                                                                                           | State now                                                                                                                                                                                                                                                                                                                                                                             |
+| ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`nix fmt`** after editing `flake.nix` and three fuzz files | CI's `nix fmt --fail-on-change` leg would have failed the branch                                                  | **Fixed.** treefmt reported "19 files, 4 changed" (`flake.nix`, `event/codec_fuzz_test.go`, `core/v5/event/codec_fuzz_test.go`, `schema/chain_fuzz_test.go`: nixfmt line-breaking + gofumpt wrapping my long `t.Skip("…")` calls). Re-run after the fix: **0 changed**.                                                                                                               |
+| **`check-modsums`**                                          | A red verify leg attributed to "my dependency work"                                                               | **Diagnosed, 1 of 10 fixed.** 102 modules checked, **10 untidy**: `cmd/api-stability`, `integration`, and all 8 `example/*`. Diagnosis: stale `/go.mod` sum lines left by an earlier dependency sweep — no commit in this session's window touched those files. I tidied only `cmd/api-stability` (a module I edited). The rest are foreign and rowed.                                |
+| **`check-depguard`**                                         | A red verify leg                                                                                                  | **Pre-existing red, not mine.** `github.com/tursodatabase/turso-go-platform-libs` (indirect in `example/goal-shaped-app`, `cmd/cqrs-bench`) is missing from the allow-list. The previous session recorded the same finding in its own plan; I did not touch it.                                                                                                                       |
+| **`check-arch`** (dependency budgets)                        | Adding 10 test deps could have breached a budget                                                                  | **Ran: green.** Test-only deps are outside the production budget, as designed.                                                                                                                                                                                                                                                                                                        |
+| **golangci-lint on the changed modules**                     | `#lint` runs 89 modules ~20 min; I had only run `go vet`-equivalent compilation                                   | **Ran scoped: 16 modules green** (`deriver`, `scheduling`, `storage/{bbolt,pebble,turso}`, `decider`, `middleware`, `stack`, `systemscenario`, `watermill`, `event`, `schema`, `storage/sql`, `core/v5`, `cmd/api-stability`, `cmd/cqrs-lint`). First attempt failed for a silly reason: `--config ../.golangci.yml` breaks for two-level modules — absolute config path is required. |
+| **Reconciling the plan doc**                                 | The plan still said "PLAN (nothing below is implemented yet)", i.e. the decision record lied                      | **Fixed.** Dated status banner + errata **E11–E17** appended (zero-assertion not text-detectable, T06 already covered, reentrant pin pre-existing, envelope fuzz out of repo, skip count 238 not 217, coverage measurement correction, and the new defect finding).                                                                                                                   |
+| **Writing the new gotchas**                                  | The repo's own memory would re-learn three traps                                                                  | **Fixed** in `docs/agents/gotchas-testing.md`: shuffle-on-by-default + seed replay, the **Ginkgo/Gomega `-shuffle` trap** (a plain test reaching a helper that calls global `Expect`), and the coverage-gate cost + ratchet inventory.                                                                                                                                                |
+| **`#verify-fast` wiring**                                    | The cheap ratchets (all sub-second file analysis) were absent from the gate people actually use for fast feedback | **Fixed.** `verify-fast` now runs `check-untested-exports`, `check-test-sleeps`, `check-test-skips`, `check-systemscenario-adoption` after `check-coverage`; flake evaluates.                                                                                                                                                                                                         |
+| **CLI uniformity**                                           | `check-test-skips` was the only new gate without `--quiet`                                                        | **Fixed** (flag added, self-test still 6/6, shfmt clean).                                                                                                                                                                                                                                                                                                                             |
+| **`cmd/api-stability`'s 0.0 coverage floor**                 | A floor of 0.0 is decoration                                                                                      | **Not forgotten silently**: its tests exec the CLI as a subprocess, so the package's own statements are never instrumented. Rowed as a decision (in-process tests or an explicit `none` row).                                                                                                                                                                                         |
+| **The redundant CI `coverage-gate` job**                     | Two coverage gates with different rules (80% on five module-root packages vs. the new all-module floors)          | Rowed; not removed in this session.                                                                                                                                                                                                                                                                                                                                                   |
 
 ### Could have done better
 
@@ -71,31 +71,31 @@ is verified, not remembered.
 
 ## §a FULLY DONE
 
-| # | Work package | Evidence |
-| --- | --- | --- |
-| 1 | **All-module coverage floor** (89 rows) + per-package floor (168 rows), one aggregate profile, five failure classes, `--update`/`--report`/`--profile`/`--self-test`, CI artefacts | self-test 9/9; gate green; planted −3pt row → `DRIFT` rc=1; tolerance mutation broke the harness |
-| 2 | **Untested-export ratchet** (1,088/6,334 frozen; 17.2%) with reason-preserving `--update` | 5/5 self-test; removing a row → rc=1 naming the symbol |
-| 3 | **Shuffle by default** + logged seed + `#rerun-shuffle-seed` + `#test-repeat` + nightly job | full shuffled `#test` ran (seed 203471877496486); `-run '^$'` RC=0 through the nix app (seed 254644918072125) |
-| 4 | **goleak in 14 modules** (10 added), go-snaps `TestMain`s combined via goleak's cleanup option | 10 modules green; ginkgo handler is the single ignore |
-| 5 | **Test-sleep ratchet** (182 sites / 85 files, `//go-sleep:accept <reason>`) | 6/6 self-test; gate green |
-| 6 | **Skip-reason gate** (238 sites) + **env-route report** | 6/6 self-test; report found NATS (fixed) and MySQL (rowed) |
-| 7 | **systemscenario adoption ratchet** (9 boot modules, 7 reasoned rows) | 4/4 self-test; gate green; report table |
-| 8 | **Fuzz rotation** (115 targets, 4 shards, inventory-drift job, corpus cache) | 4/4 self-test; a 29-target shard ran clean |
-| 9 | **Absolute latency ceilings** (21 benchmarks ×3) with 5 new fixture cases | 10x fixture → `CEILING BREACH` rc=1; 20/20 fixture cases pass |
-| 10 | **FLAKY classification** in `autoretry.yml` + `scripts/flaky-tests.txt` ledger | YAML validated; ledger created |
-| 11 | **This audit pass**: fmt, arch, modsums diagnosis, depguard diagnosis, scoped lint, plan banner + E11–E17, gotchas entries, verify-fast wiring, `--quiet` uniformity | see §0 table |
+| #  | Work package                                                                                                                                                                       | Evidence                                                                                                      |
+| -- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| 1  | **All-module coverage floor** (89 rows) + per-package floor (168 rows), one aggregate profile, five failure classes, `--update`/`--report`/`--profile`/`--self-test`, CI artefacts | self-test 9/9; gate green; planted −3pt row → `DRIFT` rc=1; tolerance mutation broke the harness              |
+| 2  | **Untested-export ratchet** (1,088/6,334 frozen; 17.2%) with reason-preserving `--update`                                                                                          | 5/5 self-test; removing a row → rc=1 naming the symbol                                                        |
+| 3  | **Shuffle by default** + logged seed + `#rerun-shuffle-seed` + `#test-repeat` + nightly job                                                                                        | full shuffled `#test` ran (seed 203471877496486); `-run '^$'` RC=0 through the nix app (seed 254644918072125) |
+| 4  | **goleak in 14 modules** (10 added), go-snaps `TestMain`s combined via goleak's cleanup option                                                                                     | 10 modules green; ginkgo handler is the single ignore                                                         |
+| 5  | **Test-sleep ratchet** (182 sites / 85 files, `//go-sleep:accept <reason>`)                                                                                                        | 6/6 self-test; gate green                                                                                     |
+| 6  | **Skip-reason gate** (238 sites) + **env-route report**                                                                                                                            | 6/6 self-test; report found NATS (fixed) and MySQL (rowed)                                                    |
+| 7  | **systemscenario adoption ratchet** (9 boot modules, 7 reasoned rows)                                                                                                              | 4/4 self-test; gate green; report table                                                                       |
+| 8  | **Fuzz rotation** (115 targets, 4 shards, inventory-drift job, corpus cache)                                                                                                       | 4/4 self-test; a 29-target shard ran clean                                                                    |
+| 9  | **Absolute latency ceilings** (21 benchmarks ×3) with 5 new fixture cases                                                                                                          | 10x fixture → `CEILING BREACH` rc=1; 20/20 fixture cases pass                                                 |
+| 10 | **FLAKY classification** in `autoretry.yml` + `scripts/flaky-tests.txt` ledger                                                                                                     | YAML validated; ledger created                                                                                |
+| 11 | **This audit pass**: fmt, arch, modsums diagnosis, depguard diagnosis, scoped lint, plan banner + E11–E17, gotchas entries, verify-fast wiring, `--quiet` uniformity               | see §0 table                                                                                                  |
 
 ## §b PARTIALLY DONE
 
-| Item | What exists | What is missing |
-| --- | --- | --- |
-| **T05 zero-assertion** | skip half complete; erratum documented (E11) | the gate itself; T10 (mutation) now owns it |
-| **T05 MySQL route** | diagnosis + TODO row | the CI job (or the decision to declare MySQL local-only) |
-| **T08** | rotation, inventory gate, shards | replay-determinism fuzz target (deliberately not built — T15 covers determinism better); envelope target is in the external `go-codec` repo |
-| **T12** | FLAKY classification + ledger | per-package runtime budget from `go test -json` |
-| **T03.5** | one full shuffled run green | two more consecutive runs (three total) |
-| **Coverage performance** | `--profile` reuse implemented | not wired into `#verify` — verify pays an extra full suite run |
-| **Fmt/modsums/depguard** | 4 formatter files fixed; 1 of 10 untidy modules tidied | 9 foreign modules still untidy; depguard allow-list row still missing |
+| Item                     | What exists                                            | What is missing                                                                                                                             |
+| ------------------------ | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| **T05 zero-assertion**   | skip half complete; erratum documented (E11)           | the gate itself; T10 (mutation) now owns it                                                                                                 |
+| **T05 MySQL route**      | diagnosis + TODO row                                   | the CI job (or the decision to declare MySQL local-only)                                                                                    |
+| **T08**                  | rotation, inventory gate, shards                       | replay-determinism fuzz target (deliberately not built — T15 covers determinism better); envelope target is in the external `go-codec` repo |
+| **T12**                  | FLAKY classification + ledger                          | per-package runtime budget from `go test -json`                                                                                             |
+| **T03.5**                | one full shuffled run green                            | two more consecutive runs (three total)                                                                                                     |
+| **Coverage performance** | `--profile` reuse implemented                          | not wired into `#verify` — verify pays an extra full suite run                                                                              |
+| **Fmt/modsums/depguard** | 4 formatter files fixed; 1 of 10 untidy modules tidied | 9 foreign modules still untidy; depguard allow-list row still missing                                                                       |
 
 ## §c NOT STARTED
 
@@ -115,7 +115,7 @@ All are rowed in `TODO_LIST.md` § Testing improvements with effort and rational
    branch. Root cause: I checked `gofmt -l` and called it formatting; the repo's formatter is
    treefmt (nixfmt + gofumpt), which I never ran. Fixed and re-proven (0 changed).
 2. **I trashed a directory that held a tracked file.** `trash decider/testdata/rapid/<Test>/`
-   deleted the new failure artefact *and* a committed 2026-09-13 seed. My reasoning ("it is my
+   deleted the new failure artefact _and_ a committed 2026-09-13 seed. My reasoning ("it is my
    own garbage") was false because the daemon had already committed my artefact. Restored with
    `git restore -- <dir>`; the decider suite re-ran green with both seeds (the 2026-10-26 seed
    is kept deliberately as a passing regression pin).
@@ -246,21 +246,21 @@ All are rowed in `TODO_LIST.md` § Testing improvements with effort and rational
 
 ## §h Verification ledger (this audit pass)
 
-| Command | Result |
-| --- | --- |
-| `nix fmt -- --fail-on-change` (first run) | **FAIL**: 19 files emitted, **4 changed** (`flake.nix`, 3 fuzz test files) — formatter drift |
-| `nix fmt -- --fail-on-change` (after fix) | **PASS**: 0 changed |
-| `nix run .#check-arch` | **PASS** (all modules) |
-| `nix run .#check-modsums` | **FAIL**: 102 modules, **10 untidy** (foreign; `cmd/api-stability` tidied, 9 left) |
-| `nix run .#check-depguard` | **FAIL**: `turso-go-platform-libs` missing (foreign, pre-recorded) |
-| `golangci-lint` scoped, 16 changed modules | **PASS** all |
-| `bash scripts/check-test-skips.sh --quiet` | 238 sites, green |
-| `bash scripts/check-test-skips.sh --self-test` | 6/6 |
-| `nix run .#check-systemscenario-adoption` | 9 boot modules, 7 reasoned rows |
-| `nix run .#check-test-sleeps` | 182 frozen, none new |
-| `nix eval .#apps.x86_64-linux.verify-fast.program` | evaluates (new gates wired into verify-fast) |
-| `bash scripts/check-md-go.sh` | 1,523 blocks valid |
-| `bash scripts/check-canonical-facts.sh` | all citations match |
-| `nix shell nixpkgs#shfmt -- shfmt -d` (8 new scripts) | clean |
-| `nix run .#verify` (composed) | **STILL NOT RUN** |
-| `nix run .#test-repeat` | **STILL NOT RUN** |
+| Command                                               | Result                                                                                       |
+| ----------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `nix fmt -- --fail-on-change` (first run)             | **FAIL**: 19 files emitted, **4 changed** (`flake.nix`, 3 fuzz test files) — formatter drift |
+| `nix fmt -- --fail-on-change` (after fix)             | **PASS**: 0 changed                                                                          |
+| `nix run .#check-arch`                                | **PASS** (all modules)                                                                       |
+| `nix run .#check-modsums`                             | **FAIL**: 102 modules, **10 untidy** (foreign; `cmd/api-stability` tidied, 9 left)           |
+| `nix run .#check-depguard`                            | **FAIL**: `turso-go-platform-libs` missing (foreign, pre-recorded)                           |
+| `golangci-lint` scoped, 16 changed modules            | **PASS** all                                                                                 |
+| `bash scripts/check-test-skips.sh --quiet`            | 238 sites, green                                                                             |
+| `bash scripts/check-test-skips.sh --self-test`        | 6/6                                                                                          |
+| `nix run .#check-systemscenario-adoption`             | 9 boot modules, 7 reasoned rows                                                              |
+| `nix run .#check-test-sleeps`                         | 182 frozen, none new                                                                         |
+| `nix eval .#apps.x86_64-linux.verify-fast.program`    | evaluates (new gates wired into verify-fast)                                                 |
+| `bash scripts/check-md-go.sh`                         | 1,523 blocks valid                                                                           |
+| `bash scripts/check-canonical-facts.sh`               | all citations match                                                                          |
+| `nix shell nixpkgs#shfmt -- shfmt -d` (8 new scripts) | clean                                                                                        |
+| `nix run .#verify` (composed)                         | **STILL NOT RUN**                                                                            |
+| `nix run .#test-repeat`                               | **STILL NOT RUN**                                                                            |

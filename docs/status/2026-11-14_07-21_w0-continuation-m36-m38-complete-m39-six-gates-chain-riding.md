@@ -42,4 +42,5 @@
 All consolidated on the D-sheet v2 (TODO_LIST top): D9–D26. The four standing session questions are D16 (push), D17 (ratify wave), D18 (staging hygiene), D5-addendum (iroh ruling + 9 floor-drops). No new questions this session.
 
 ---
-*Receipts: TODO_LIST (D-sheet v2, ~20 rows closed with dated receipts, harvest section updates, I46/cadence receipts); CHANGELOG [Unreleased] ×4; build/m38-archive-spec{,-2}/; docs/status/archived ×3; archived-README count 1,277; canonical-facts green; docs-gates check-rows 9/9 complete; cqrs-lint 19-pkg suite green; webphone 37-pkg suite green; coverage self-test 9/9 (full gate running in background at report time).*
+
+_Receipts: TODO_LIST (D-sheet v2, ~20 rows closed with dated receipts, harvest section updates, I46/cadence receipts); CHANGELOG [Unreleased] ×4; build/m38-archive-spec{,-2}/; docs/status/archived ×3; archived-README count 1,277; canonical-facts green; docs-gates check-rows 9/9 complete; cqrs-lint 19-pkg suite green; webphone 37-pkg suite green; coverage self-test 9/9 (full gate running in background at report time)._

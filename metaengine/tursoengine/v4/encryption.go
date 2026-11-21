@@ -72,24 +72,27 @@ type encryptionConfig struct {
 	hexKey string
 }
 
+// Encryption configuration errors: static sentinels; callers add the
+// offending value via %w context (never key material).
+var (
+	errRemoteEncryption    = errors.New("encryption applies to embedded databases only; remote Turso Cloud BYOK keys are per-connection and not configurable on this engine yet")
+	errUnknownCipher       = errors.New("unknown encryption cipher")
+	errKeyLength           = errors.New("encryption key is wrong length")
+	errDuplicateKeySource  = errors.New("DSN already carries")
+)
+
 // applyEncryption validates the cipher/key pair and rewrites the DSN with
 // the driver's encryption parameters. Validation errors quote lengths and
 // fixes, never key material.
 func applyEncryption(dsn string, cfg *encryptionConfig) (string, error) {
 	if isRemoteDSN(dsn) {
-		return "", errors.New(
-			"encryption applies to embedded databases only; remote Turso Cloud BYOK " +
-				"keys are per-connection and not configurable on this engine yet",
-		)
+		return "", errRemoteEncryption
 	}
 
 	keyLen, known := cipherKeyLen(cfg.cipher)
 	if !known {
-		return "", fmt.Errorf(
-			"unknown encryption cipher %q (valid: aegis256, aegis128l, aegis128x2, aegis128x4, "+
-				"aegis256x2, aegis256x4, aes128gcm, aes256gcm)",
-			string(cfg.cipher),
-		)
+		return "", fmt.Errorf("%w %q (valid: aegis256, aegis128l, aegis128x2, aegis128x4, "+
+			"aegis256x2, aegis256x4, aes128gcm, aes256gcm)", errUnknownCipher, string(cfg.cipher))
 	}
 
 	key, err := hex.DecodeString(cfg.hexKey)
@@ -102,8 +105,8 @@ func applyEncryption(dsn string, cfg *encryptionConfig) (string, error) {
 	}
 
 	if len(key) != keyLen {
-		return "", fmt.Errorf("encryption key is %d bytes, want %d for %s (openssl rand -hex %d)",
-			len(key), keyLen, cfg.cipher, keyLen)
+		return "", fmt.Errorf("%w: %d bytes, want %d for %s (openssl rand -hex %d)",
+			errKeyLength, len(key), keyLen, cfg.cipher, keyLen)
 	}
 
 	return withEncryptionParams(dsn, cfg.cipher, cfg.hexKey)
@@ -121,8 +124,8 @@ func withEncryptionParams(dsn string, cipher Cipher, hexKey string) (string, err
 				"=",
 			); key == "encryption_cipher" ||
 				key == "encryption_hexkey" {
-				return "", fmt.Errorf("DSN already carries %q; remove it from the DSN or drop "+
-					"WithEncryption so exactly one key source remains", key)
+				return "", fmt.Errorf("%w %q; remove it from the DSN or drop "+
+					"WithEncryption so exactly one key source remains", errDuplicateKeySource, key)
 			}
 		}
 	}

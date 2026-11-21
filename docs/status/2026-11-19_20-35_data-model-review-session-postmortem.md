@@ -65,30 +65,30 @@
 
 ## f) Next tasks (ranked)
 
-| # | Task | Impact | Effort | Cat |
-|---|------|--------|--------|-----|
-| 1 | HARVEST this report's §f into TODO_LIST.md (roadmap steps 1–7 as rows) | Critical | S | Process |
-| 2 | Fix-up edit to committed report: methodology inventory (d)2), census citation (d)1), R10 badge (d)3), hero scope (d)4) | High | S | Documentation |
-| 3 | Verify ADR-0123 phase plan vs roadmap step 1 — amend or dedupe | High | S | Docs |
-| 4 | Grep metaengine/listing for `Record.StreamType` consumers → ground R5 blast radius | High | S | Quality |
-| 5 | Complete core-file reading pass (67 unread files; id/ family, command/asrecord.go, metadata/record_actor.go, event builder/reconstruct) — stand behind or refine R2/R6/R7 | High | M | Quality |
-| 6 | Read 2026-10-17 report findings; add real cross-refs to my report | Medium | S | Docs |
-| 7 | AGENTS.md: add review row (Deep-Dive list) + record core/v5-carries-deprecations fact | Medium | S | Memory |
-| 8 | Owner decision session on D1–D8 (the five no-trail decisions) before any core/v5 edit — ADR-0142 "design with owner first" pattern | Critical | M | Decision |
-| 9 | Execute roadmap step 1: deprecation cut inside core/v5/record (six CommonMetadata pairs) + api-stability golden regen | Critical | M | Feature |
-| 10 | Roadmap step 2: brand Record fields in core/v5 (Type, InstanceID, StreamType, Version, CorrelationID) | High | M | Feature |
-| 11 | Roadmap step 3: Payload struct + EncodingEnvelope in core/v5 | High | M | Feature |
-| 12 | Roadmap step 4: single-home Stream + derived StreamType() + metaengine fold updates | High | M | Feature |
-| 13 | Roadmap step 5: promote Cause onto ImmutableEvent; Received-stamp fix; query zero-Stream | High | M | Feature |
-| 14 | Roadmap step 6: named SQL version doors; sweep `#nosec G115` casts (grep the guards as checklist) | Medium | M | Quality |
-| 15 | Roadmap step 7 (later): cqrs-upgrade codemod targets cqrs-htmx + go-appkit first | Medium | L | Feature |
-| 16 | naming-review pass on proposed names (InstanceID, PayloadFrom, Stream field rename) | Medium | S | Quality |
-| 17 | how-to-golang pass on target model (banned-lib / pattern conformance) | Medium | S | Quality |
-| 18 | Visual render check of the HTML report (screenshot, quick eyeball) | Low | S | Docs |
-| 19 | Decide mesh-demo/ fate (empty untracked dir — see g)1) | Low | S | Cleanup |
-| 20 | Add a cqrs-lint/arch-metrics probe idea: fail on "removed in v<N>" markers present inside the v<N> module (generalize R1 so it can't recur) | Medium | M | Tooling |
-| 21 | Consider a gate: reports under docs/reviews must pass an anchor/link checker (the manual python pass could be a script) | Low | S | Tooling |
-| 22 | Series README for docs/reviews/ (deep-dive report Finding 5 said the same for docs/research/) | Low | S | Docs |
+| #  | Task                                                                                                                                                                      | Impact   | Effort | Cat           |
+| -- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------ | ------------- |
+| 1  | HARVEST this report's §f into TODO_LIST.md (roadmap steps 1–7 as rows)                                                                                                    | Critical | S      | Process       |
+| 2  | Fix-up edit to committed report: methodology inventory (d)2), census citation (d)1), R10 badge (d)3), hero scope (d)4)                                                    | High     | S      | Documentation |
+| 3  | Verify ADR-0123 phase plan vs roadmap step 1 — amend or dedupe                                                                                                            | High     | S      | Docs          |
+| 4  | Grep metaengine/listing for `Record.StreamType` consumers → ground R5 blast radius                                                                                        | High     | S      | Quality       |
+| 5  | Complete core-file reading pass (67 unread files; id/ family, command/asrecord.go, metadata/record_actor.go, event builder/reconstruct) — stand behind or refine R2/R6/R7 | High     | M      | Quality       |
+| 6  | Read 2026-10-17 report findings; add real cross-refs to my report                                                                                                         | Medium   | S      | Docs          |
+| 7  | AGENTS.md: add review row (Deep-Dive list) + record core/v5-carries-deprecations fact                                                                                     | Medium   | S      | Memory        |
+| 8  | Owner decision session on D1–D8 (the five no-trail decisions) before any core/v5 edit — ADR-0142 "design with owner first" pattern                                        | Critical | M      | Decision      |
+| 9  | Execute roadmap step 1: deprecation cut inside core/v5/record (six CommonMetadata pairs) + api-stability golden regen                                                     | Critical | M      | Feature       |
+| 10 | Roadmap step 2: brand Record fields in core/v5 (Type, InstanceID, StreamType, Version, CorrelationID)                                                                     | High     | M      | Feature       |
+| 11 | Roadmap step 3: Payload struct + EncodingEnvelope in core/v5                                                                                                              | High     | M      | Feature       |
+| 12 | Roadmap step 4: single-home Stream + derived StreamType() + metaengine fold updates                                                                                       | High     | M      | Feature       |
+| 13 | Roadmap step 5: promote Cause onto ImmutableEvent; Received-stamp fix; query zero-Stream                                                                                  | High     | M      | Feature       |
+| 14 | Roadmap step 6: named SQL version doors; sweep `#nosec G115` casts (grep the guards as checklist)                                                                         | Medium   | M      | Quality       |
+| 15 | Roadmap step 7 (later): cqrs-upgrade codemod targets cqrs-htmx + go-appkit first                                                                                          | Medium   | L      | Feature       |
+| 16 | naming-review pass on proposed names (InstanceID, PayloadFrom, Stream field rename)                                                                                       | Medium   | S      | Quality       |
+| 17 | how-to-golang pass on target model (banned-lib / pattern conformance)                                                                                                     | Medium   | S      | Quality       |
+| 18 | Visual render check of the HTML report (screenshot, quick eyeball)                                                                                                        | Low      | S      | Docs          |
+| 19 | Decide mesh-demo/ fate (empty untracked dir — see g)1)                                                                                                                    | Low      | S      | Cleanup       |
+| 20 | Add a cqrs-lint/arch-metrics probe idea: fail on "removed in v<N>" markers present inside the v<N> module (generalize R1 so it can't recur)                               | Medium   | M      | Tooling       |
+| 21 | Consider a gate: reports under docs/reviews must pass an anchor/link checker (the manual python pass could be a script)                                                   | Low      | S      | Tooling       |
+| 22 | Series README for docs/reviews/ (deep-dive report Finding 5 said the same for docs/research/)                                                                             | Low      | S      | Docs          |
 
 (22 concrete items — the honest number this session's work generated; padding to 50 would be brainstorm inflation.)
 
@@ -100,4 +100,4 @@
 
 ---
 
-*Snapshot only. Per the status-report skill this file's §f belongs in TODO_LIST via docs-health HARVEST — not executed, awaiting instructions. Auto-commit daemon will absorb this file.*
+_Snapshot only. Per the status-report skill this file's §f belongs in TODO_LIST via docs-health HARVEST — not executed, awaiting instructions. Auto-commit daemon will absorb this file._

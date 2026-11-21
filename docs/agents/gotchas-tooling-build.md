@@ -424,6 +424,7 @@ Two micro-disciplines that each cost a failed edit this stream:
 ## Queue-module lint findings that vanish on re-run — daemon race DISPROVEN, capture is the cure (2026-10-25)
 
 - **The 10-25 composed-verify lint flake (queue/queue-sqlite/queue-postgres findings gone on immediate re-run ×2) was NOT the auto-commit daemon racing the linter**: git-log correlation shows ZERO daemon commits touching `queue/*` during the 12:50–14:06 flake window (today's queue-touching commits: 03:28, 07:17, then 14:14+ — all outside it). Remaining suspects, unproven: host resource pressure (load1 ≈100 from parallel sessions during the window) stressing golangci typecheck, or a same-shape transient as the badger first-run pin failure. Both incidents now share the standing order: **an uncaptured one-off failure is lost evidence** — on next recurrence, capture the FULL golangci output to a file BEFORE re-running (`nix run .#lint-module ... 2>&1 | tee build/lint-flake-<ts>.log`), then decide. The findings text from 10-25 is unrecoverable (clipped by `tail`), so this row records a disproven hypothesis and a capture protocol, not a root cause.
+
 ## A rebuilt binary blocks the push only after the module moves (2026-11-11)
 
 - **Symptom**: `git push` dies with `GH001: Large files detected` /

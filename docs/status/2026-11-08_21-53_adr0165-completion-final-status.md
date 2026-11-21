@@ -76,14 +76,14 @@
 13. VM asserts: extend with config-file readability by the service user (`sudo -u cqrs-demo cat /etc/cqrs/...`).
 14. CUE `deployment`-entry output → `LoadConfig` round-trip on the Go side (golden exists; loader test missing).
 15. ADR-0165: add the `sot.implicit_memory` interplay note to recipes §2.51 (engines-empty passthrough) if consumers trip on it.
-16–50. **The 266-row backlog** stays owned by `2026-11-08_12-28_SUPERB-full-backlog-trust-to-v5-pareto-plan.md` — deliberately not duplicated here; the standing open owner questions from prior reports (decider.StateCache race A/B, SSE flake instrument-vs-quarantine, daemon retitle, md-go-validator pin policy) all remain open and rank above anything new.
+    16–50. **The 266-row backlog** stays owned by `2026-11-08_12-28_SUPERB-full-backlog-trust-to-v5-pareto-plan.md` — deliberately not duplicated here; the standing open owner questions from prior reports (decider.StateCache race A/B, SSE flake instrument-vs-quarantine, daemon retitle, md-go-validator pin policy) all remain open and rank above anything new.
 
 ## g) QUESTIONS (cannot figure these out myself)
 
 1. **Tag system v4.18.0 now?** The cut is prepped (CHANGELOG rows, minor-version decision per new export). Three deferred items (go-appkit adoption, example replace drop, VM binary leg) unblock on it — but the standing rule is no tag without you.
 2. **Full-#verify policy tonight:** re-arm the wait-loop now and let it storm-ride (host load is 61 at 21:53 with parallel sessions live), or park it for the overnight watcher like previous waves? Both have precedent; the host is the constraint I can't decide for you.
-3. **cqrs-htmx preset shape change (2→3 instances per Recommended* preset):** want me to add ITS changelog row and run a consumer sweep (crm etc.) from this side, or does cqrs-htmx's own release flow own that repo's documentation?
+3. __cqrs-htmx preset shape change (2→3 instances per Recommended_ preset):_* want me to add ITS changelog row and run a consumer sweep (crm etc.) from this side, or does cqrs-htmx's own release flow own that repo's documentation?
 
 ---
 
-*Verification receipts cited: verify-fast exit 0 (attempt 9, `/tmp/verify-fast9.log` summary); check-cue-config "OK (vet + golden + triple pin + drift pin over 28 fields)" + "self-test: OK (6 fault injections caught)"; cqrs-vm "config + peer-auth provisioning verified" (QEMU 13.2s); cqrs-nixos-eval green both arches + mutation-proven; system/example/doc-check/cqrs-lint suites green; canonical-facts all-match. NOT obtained: full `#verify`, `#check-coverage`, aarch64 on real hardware.*
+_Verification receipts cited: verify-fast exit 0 (attempt 9, `/tmp/verify-fast9.log` summary); check-cue-config "OK (vet + golden + triple pin + drift pin over 28 fields)" + "self-test: OK (6 fault injections caught)"; cqrs-vm "config + peer-auth provisioning verified" (QEMU 13.2s); cqrs-nixos-eval green both arches + mutation-proven; system/example/doc-check/cqrs-lint suites green; canonical-facts all-match. NOT obtained: full `#verify`, `#check-coverage`, aarch64 on real hardware._

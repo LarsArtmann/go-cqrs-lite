@@ -6,7 +6,7 @@ Same repo, same `.cqrs-lint.json`, same analyzer code: the CLI reports **116 fin
 
 Two consequences beyond the count split:
 
-- **The CLI's surviving finding is nondeterministic.** E003 iterates a `map[string]map[string]bool` of packages; the five findings share one ID, so `collectFindings` keeps whichever the map yields first — the count is stable (1), the *content* varies run to run.
+- **The CLI's surviving finding is nondeterministic.** E003 iterates a `map[string]map[string]bool` of packages; the five findings share one ID, so `collectFindings` keeps whichever the map yields first — the count is stable (1), the _content_ varies run to run.
 - Any other ID-keyed consumer (SARIT dedup, result caches, `--fail-on` gates) silently collapses project-level findings the same way.
 
 ## Root cause (source)

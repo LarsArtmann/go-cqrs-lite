@@ -114,8 +114,8 @@ rule, warn-first (plan v2 A10)" from the disk-truth residue section)
    could never pass. Read the consumer before the edit; I did it in the wrong order.
 5. **The LSP diagnostics noise** (`golangci_lint_ls` context-deadline on the 101-module
    workspace root) polluted every tool result this session — pre-existing environment
-  issue, not mine, but I should have suppressed/scoped it early instead of re-reading
-  "errors" that were noise.
+   issue, not mine, but I should have suppressed/scoped it early instead of re-reading
+   "errors" that were noise.
 
 ## e) WHAT WE SHOULD IMPROVE (systemic observations from this run)
 
@@ -137,6 +137,7 @@ rule, warn-first (plan v2 A10)" from the disk-truth residue section)
 ## f) NEXT — up to 50 things (roughly impact-ordered; ⏳ = in flight right now)
 
 **This session's tail:**
+
 1. ⏳ Read job 002 (`nix run .#lint`) result; fix anything it names.
 2. Run `nix run .#check-duplication` — the c044 split added a file; the no-new-clones
    gate has NOT been run this session (my miss; run before wave close).
@@ -154,34 +155,34 @@ rule, warn-first (plan v2 A10)" from the disk-truth residue section)
 9. benchkit `go.sum` not tidy (`TestEveryModuleGoSumIsTidy` red) — `GOWORK=off go mod
    tidy` in benchkit + commit both files.
 10. `scratch/counterkey` has go.mod but is not in api-stability modules slice
-    (`TestEveryGoModDirIsInModulesList` red) — register it or relocate the scratch.
+(`TestEveryGoModDirIsInModulesList` red) — register it or relocate the scratch.
 11. Same class: verify `TestEveryGoModDirIsInTestModules` heals with #9/#10.
 
 **High-value standing rows (unchanged):**
 12. 🔴 BLOCKING row: stale-read TOCTOU in `system.CachedEventStore` (TODO testing
-    section, found 2026-10-27, sketch exists) — the one red-row left in that plan.
+section, found 2026-10-27, sketch exists) — the one red-row left in that plan.
 13. keycodec v2 A9 engine adoption wave (pebble → badger/bbolt twins → legacy stores +
-    README migration notes; patterns to copy from the typed-WAL wave).
+README migration notes; patterns to copy from the typed-WAL wave).
 14. OWNER QUESTION: deployed-DB census (sticky-key fallback vs re-key migration).
 15. OWNER QUESTION: A9 scheduling confirmation.
 16. `check-duplication` RED (190 novel groups): fork-campaign directive sweep or ONE
-    deliberate end-of-campaign re-pin (never mid-campaign).
+deliberate end-of-campaign re-pin (never mid-campaign).
 17. Composed `#verify` in an exclusive quiet window for the changed set.
 18. catalog: cut the next train containing `Registry.MarkDemo` (untagged; mesh-demo
-    broken against the proxy) + verify mesh-demo `GOWORK=off` after.
+broken against the proxy) + verify mesh-demo `GOWORK=off` after.
 19. Gate the class: `GOWORK=off` build of `examplePaths` against the pinned graph.
 20. Journal dump⇄load round-trip (typed, envelope-stamped; L effort).
 21. Consumer-facing test-isolation strategy doc (4 strategies + reset-by-replay; S).
 22. C044 dogfood sweep: run cqrs-lint over the OTHER examples (getting-started,
-    goal-shaped-app, graph-native, scheduler-otel-status) — cheap real-world FP-rate
-    validation of today's hardening.
+goal-shaped-app, graph-native, scheduler-otel-status) — cheap real-world FP-rate
+validation of today's hardening.
 23. cqrs-lint analysis-time regression investigation (2.0s → 7.4s; InboxClean ask).
 24. catalog `FactoryFromSystem` (derive Registry from DomainConfig; design with owner).
 25. scenario: version-carrying decide funcs in `Given` (deletes consumer adaptDecide
-    wrappers; S).
+wrappers; S).
 26. Fleet census: invite the five 2026-10-24 auditors to contribute case studies (XS each).
 27. Wave III seed: inspect ≥5-file content deltas on taggable trains (middleware 28,
-    command 14, query 13, …).
+command 14, query 13, …).
 28. Issue #58 owner verdict: pre-system journal → `system.New` adoption path.
 29. T10 mutation-verify gate (tooling evaluation + PR-scoped timeboxing).
 30. T13 `synctest` migration wave 1 (scheduling ticker/deadline tests).
@@ -194,7 +195,9 @@ rule, warn-first (plan v2 A10)" from the disk-truth residue section)
 37. T20 crash-consistency tests (`kill -9` mid-write on sqlite/pebble/bbolt).
 38. T22 broker partition/redelivery/DLQ/outbox crash matrix.
 39. T24 owner decisions: `signing.invalid_signature` family (Corruption vs Rejection)
-    + whether writes should abort on canceled context.
+
+- whether writes should abort on canceled context.
+
 40. Turso matview caveats/upstream handoffs tail (TODO section).
 41. EventCatalog v5 licence shift row.
 42. Upstream asks (EventCatalog hub + cqrs-htmx) sections.

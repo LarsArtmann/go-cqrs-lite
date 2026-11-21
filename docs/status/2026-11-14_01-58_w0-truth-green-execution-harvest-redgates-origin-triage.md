@@ -8,20 +8,20 @@
 
 **Verified this session (command/artifact per claim):**
 
-| # | Claim | Evidence |
-| - | ----- | -------- |
-| V1 | M31 harvest: 5 reports read in full, every §f item routed | TODO_LIST "Harvest — 2026-11-11..13" section: 37 minted rows + declined/done/foreign ledger; `check-todo-stale-premises` green ×2 |
-| V2 | A8 + custom-exports rows carried DONE receipts under open boxes | flipped with receipts (prose fixed 2026-11-08 per episode7 report; HTMLs exist in docs/reviews; ADR-0160 receipt) |
-| V3 | #130/#131 closed with evidence comments | comment links in the flipped TODO row; `gh issue list` → EMPTY |
-| V4 | check-file-size GREEN | loader.go 377→320 (+loader_scope.go 63), doctor_audit.go 360→203 (render→doctor_render.go 254), sqliteengine engine.go 664→540 (+queries.go 126); gate: "no new offenders, no growth (61 baselined)" |
-| V5 | error-taxonomy + md-go self-healed | both gates green on re-verify (stack/v4 red gone; 4 draft fences carry `// skip-validate`, 90 skipped) |
-| V6 | CI matrix 4-module red root-caused | systemcatalog GOWORK=off build reproduced the exact errors; sibling replace added → build+test green |
-| V7 | 81-module go.sum drift swept | bulk `GOWORK=off go mod tidy` (0 failures); `TestEveryModuleGoSumIsTidy` green (26.9s) |
-| V8 | cqrs-upgrade suite green | `repoRoot(t)` helper + event/v4 fixture path; full suite ok 6.4s |
-| V9 | Release resolver fixed + verified | all 7 real tag shapes resolve to EXISTING dirs (incl. core/v5 edge case) |
-| V10 | Benchmarks noise-guard + Fuzz inventory fixed | guard paths corrected (3 sites); `fuzz-rotation.sh --update-targets` → 117 targets, 36 path-drift rows |
-| V11 | M34 preflight battery green | verify-docs, adr-numbering (164), canonical-facts (2 findings FIXED: AGENTS.md "10 go.mod" phrasing + 4 missing status-index rows), changelog-symbols (19), check-templ, tidy meta-test |
-| V12 | Preflight ritual codified | `verify-chain.sh` preflight() + self-test green (6 stub sites carry SKIP_PREFLIGHT) |
+| #   | Claim                                                           | Evidence                                                                                                                                                                                             |
+| --- | --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| V1  | M31 harvest: 5 reports read in full, every §f item routed       | TODO_LIST "Harvest — 2026-11-11..13" section: 37 minted rows + declined/done/foreign ledger; `check-todo-stale-premises` green ×2                                                                    |
+| V2  | A8 + custom-exports rows carried DONE receipts under open boxes | flipped with receipts (prose fixed 2026-11-08 per episode7 report; HTMLs exist in docs/reviews; ADR-0160 receipt)                                                                                    |
+| V3  | #130/#131 closed with evidence comments                         | comment links in the flipped TODO row; `gh issue list` → EMPTY                                                                                                                                       |
+| V4  | check-file-size GREEN                                           | loader.go 377→320 (+loader_scope.go 63), doctor_audit.go 360→203 (render→doctor_render.go 254), sqliteengine engine.go 664→540 (+queries.go 126); gate: "no new offenders, no growth (61 baselined)" |
+| V5  | error-taxonomy + md-go self-healed                              | both gates green on re-verify (stack/v4 red gone; 4 draft fences carry `// skip-validate`, 90 skipped)                                                                                               |
+| V6  | CI matrix 4-module red root-caused                              | systemcatalog GOWORK=off build reproduced the exact errors; sibling replace added → build+test green                                                                                                 |
+| V7  | 81-module go.sum drift swept                                    | bulk `GOWORK=off go mod tidy` (0 failures); `TestEveryModuleGoSumIsTidy` green (26.9s)                                                                                                               |
+| V8  | cqrs-upgrade suite green                                        | `repoRoot(t)` helper + event/v4 fixture path; full suite ok 6.4s                                                                                                                                     |
+| V9  | Release resolver fixed + verified                               | all 7 real tag shapes resolve to EXISTING dirs (incl. core/v5 edge case)                                                                                                                             |
+| V10 | Benchmarks noise-guard + Fuzz inventory fixed                   | guard paths corrected (3 sites); `fuzz-rotation.sh --update-targets` → 117 targets, 36 path-drift rows                                                                                               |
+| V11 | M34 preflight battery green                                     | verify-docs, adr-numbering (164), canonical-facts (2 findings FIXED: AGENTS.md "10 go.mod" phrasing + 4 missing status-index rows), changelog-symbols (19), check-templ, tidy meta-test              |
+| V12 | Preflight ritual codified                                       | `verify-chain.sh` preflight() + self-test green (6 stub sites carry SKIP_PREFLIGHT)                                                                                                                  |
 
 **NOT verified (and why):**
 

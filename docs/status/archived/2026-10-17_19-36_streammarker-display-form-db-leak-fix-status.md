@@ -2,7 +2,7 @@
 
 # Status: "StreamMarker:" display-form DB leak — fix wave (2026-10-17 19:36)
 
-> Session scope: user's one-liner *"Writing 'StreamMarker:...' into DBs is stupid"*. This report
+> Session scope: user's one-liner _"Writing 'StreamMarker:...' into DBs is stupid"_. This report
 > covers ONLY this session's run and what was noticed along the way. No fresh repo-wide research.
 > Format: `.md` at explicit user demand (status-report default is HTML — override noted).
 
@@ -21,23 +21,23 @@ prefix into databases**, plus the examples that taught the bug as the blessed pa
 
 ## a) FULLY DONE
 
-| # | Item | Evidence |
-|---|------|----------|
-| 1 | **system event WAL envelope** — `serializedEvent.StreamID` (TEXT column in every SQL StreamLogBackend) now bare | `system/adapter_event_serial.go:40` `.String()` → `.Get()` |
-| 2 | **system command WAL envelope** — same for commands | `system/adapter_command_serial.go:34` |
-| 3 | **`event.AsRecord`** — `Record.StreamID` ref (`"User/StreamMarker:01J…"`) now `"User/01J…"`; feeds Record-aware folds + entity keys | `event/asrecord.go:96` |
-| 4 | **`command.AsRecord` + `AsRecordPersisted`** — both Record refs + doc comments | `command/asrecord.go:29,70,148` |
-| 5 | **commandlifecycle recorder** — `CommandStreamID` payload stamp bare | `commandlifecycle/recorder.go:108` |
-| 6 | **projectionhost DLQ** — `DeadLetterEntry.StreamID` bare | `projectionhost/worker.go:325` |
-| 7 | **legacy StreamProjection** — `aggregate_id` column writes bare (both INSERT arms) | `storage/aggregate_projection.go:91,119` |
-| 8 | **keyset cursor** — `SQLStreamReader` `After` cursor bare (MUST match the column it pages; prefixed cursor vs bare column = empty pages) | `storage/sql_aggregate_reader.go:106` |
-| 9 | **core/v5 lockstep twins** — event/command asrecord copies updated same edit | `core/v5/{event,command}/asrecord.go` |
-| 10 | **examples teaching the bug** — goal-shaped-app payload IDs/query keys (app.go, story.go, scenario_test, main_test, systemscenario_test), taskmanager deriver `TaskID` | all now `.Get()` |
-| 11 | **Tests repinned to the bare contract** — event (2 asserts), command (BasicMapping, StreamRefInvariant, Persisted_FullFidelity), core/v5 twins, goal-shaped-app | all suites green |
-| 12 | **CHANGELOG `[Unreleased]` Changed entry** — user-visible behavior change documented; changelog-symbols gate verified 19 citations green | `CHANGELOG.md` |
-| 13 | **api-stability golden regenerated** — pre-existing 8-export drift from in-flight catalog/architecture session (`WithInclude/WithExclude/Selection/Selector`…); check mode green at 6233 | `docs/api_surface.txt` |
-| 14 | **benchkit go.sum tidied** — pre-existing untidy (39 stale lines); `TestEveryModuleGoSumIsTidy` no longer flags benchkit | `benchkit/go.sum` |
-| 15 | **`nix fmt`** — 3 pre-existing unformatted catalog files (collect.go, selection.go, architecture-fixture); CI `--fail-on-change` gate demanded them | formatted, pure line-wrapping |
+| #  | Item                                                                                                                                                                                     | Evidence                                                   |
+| -- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| 1  | **system event WAL envelope** — `serializedEvent.StreamID` (TEXT column in every SQL StreamLogBackend) now bare                                                                          | `system/adapter_event_serial.go:40` `.String()` → `.Get()` |
+| 2  | **system command WAL envelope** — same for commands                                                                                                                                      | `system/adapter_command_serial.go:34`                      |
+| 3  | **`event.AsRecord`** — `Record.StreamID` ref (`"User/StreamMarker:01J…"`) now `"User/01J…"`; feeds Record-aware folds + entity keys                                                      | `event/asrecord.go:96`                                     |
+| 4  | **`command.AsRecord` + `AsRecordPersisted`** — both Record refs + doc comments                                                                                                           | `command/asrecord.go:29,70,148`                            |
+| 5  | **commandlifecycle recorder** — `CommandStreamID` payload stamp bare                                                                                                                     | `commandlifecycle/recorder.go:108`                         |
+| 6  | **projectionhost DLQ** — `DeadLetterEntry.StreamID` bare                                                                                                                                 | `projectionhost/worker.go:325`                             |
+| 7  | **legacy StreamProjection** — `aggregate_id` column writes bare (both INSERT arms)                                                                                                       | `storage/aggregate_projection.go:91,119`                   |
+| 8  | **keyset cursor** — `SQLStreamReader` `After` cursor bare (MUST match the column it pages; prefixed cursor vs bare column = empty pages)                                                 | `storage/sql_aggregate_reader.go:106`                      |
+| 9  | **core/v5 lockstep twins** — event/command asrecord copies updated same edit                                                                                                             | `core/v5/{event,command}/asrecord.go`                      |
+| 10 | **examples teaching the bug** — goal-shaped-app payload IDs/query keys (app.go, story.go, scenario_test, main_test, systemscenario_test), taskmanager deriver `TaskID`                   | all now `.Get()`                                           |
+| 11 | **Tests repinned to the bare contract** — event (2 asserts), command (BasicMapping, StreamRefInvariant, Persisted_FullFidelity), core/v5 twins, goal-shaped-app                          | all suites green                                           |
+| 12 | **CHANGELOG `[Unreleased]` Changed entry** — user-visible behavior change documented; changelog-symbols gate verified 19 citations green                                                 | `CHANGELOG.md`                                             |
+| 13 | **api-stability golden regenerated** — pre-existing 8-export drift from in-flight catalog/architecture session (`WithInclude/WithExclude/Selection/Selector`…); check mode green at 6233 | `docs/api_surface.txt`                                     |
+| 14 | **benchkit go.sum tidied** — pre-existing untidy (39 stale lines); `TestEveryModuleGoSumIsTidy` no longer flags benchkit                                                                 | `benchkit/go.sum`                                          |
+| 15 | **`nix fmt`** — 3 pre-existing unformatted catalog files (collect.go, selection.go, architecture-fixture); CI `--fail-on-change` gate demanded them                                      | formatted, pure line-wrapping                              |
 
 **Verification actually run and green:** per-module `GOWORK=off go test -count=1 ./...` for
 event, command, system, storage (all 5 subpackages), commandlifecycle, projectionhost,
@@ -135,6 +135,7 @@ Nothing catastrophic shipped. Honest damage inventory:
 ## f) Next things to get done (impact-sorted; 1–12 are this wave's debt)
 
 **Close this wave's verification**
+
 1. Run `nix run .#verify` (composed gate) on the current tree.
 2. Run the integration battery: `#test-integration` / `#test-all-backends` (covers pg/mysql/duckdb WAL paths).
 3. Add the raw-bytes pin: write event+command through one SQL backend, assert stored envelope/blob contains no `StreamMarker:`.
@@ -169,7 +170,7 @@ Nothing catastrophic shipped. Honest damage inventory:
 24. doc-check run over skill references after any of the above doc edits.
 25. Harvest items 1–24 into TODO_LIST (docs-health HARVEST) once user triages.
 
-*(Items beyond 25 would be invention, not observation — this report is session-scoped.)*
+_(Items beyond 25 would be invention, not observation — this report is session-scoped.)_
 
 ---
 
@@ -188,5 +189,5 @@ Nothing catastrophic shipped. Honest damage inventory:
 
 ---
 
-*Point-in-time snapshot. Next reader: apply docs-health ANNOTATE, never rewrite. Section (f) is
-HARVEST input — items 1–12 are this wave's debt and should not stay entombed here.*
+_Point-in-time snapshot. Next reader: apply docs-health ANNOTATE, never rewrite. Section (f) is
+HARVEST input — items 1–12 are this wave's debt and should not stay entombed here._

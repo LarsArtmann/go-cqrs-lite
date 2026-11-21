@@ -42,9 +42,10 @@ owns the bridge. **system also stays catalog-free** — the adapter is the only
 new edge, avoiding any system dep-budget pressure (its budget is 21, full).
 
 Alternatives rejected:
-- *catalog imports system* — inverts dependency direction (catalog is L7 pure
+
+- _catalog imports system_ — inverts dependency direction (catalog is L7 pure
   data with 1 direct dep; system would drag engines into every catalog user).
-- *system imports catalog* — burns system's tight budget for a docs concern.
+- _system imports catalog_ — burns system's tight budget for a docs concern.
 
 ### D2 — catalog gets an additive schema-parameterized constructor family
 
@@ -92,6 +93,7 @@ Options: `WithTitle`, `WithVersion`, `WithServiceID`, `WithServiceSummary`,
 `WithServiceOwners`, `WithCurator(func(*catalog.Builder))`.
 
 Derivation rules:
+
 - **Commands** → `CommandFromSchema(type, SchemaFromReflect(payloadType).Clone())`, Receives.
 - **Queries** → same, Receives.
 - **Events** = union of `domain.Events` and `domain.Schema` types →

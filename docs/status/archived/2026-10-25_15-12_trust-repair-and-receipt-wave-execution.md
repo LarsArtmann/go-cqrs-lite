@@ -42,10 +42,10 @@ executable NEXT queue. All work verified step-by-step; receipts below.
      (`code = "sqliteengine.wrong_code", want "sqliteengine.encode_value"`).
    - **Bigtable adttest**: `keycodec.encode_value` code mutated →
      `TestValueEncodeRejection` RED on the bttest fake.
-   Method notes: two compile-broken first attempts (unused import; comment
-   split an arg list) were discarded as invalid proofs — only semantic REDs
-   count; all mutations ran mutate→test→restore inside ONE command to avoid
-   daemon absorption.
+     Method notes: two compile-broken first attempts (unused import; comment
+     split an arg list) were discarded as invalid proofs — only semantic REDs
+     count; all mutations ran mutate→test→restore inside ONE command to avoid
+     daemon absorption.
 4. **LSM MapUpdate re-encode pins shipped** (pebble/bbolt/badger):
    `TestStoredBytes_MapUpdate_ReEncodes` per engine (Set→Update→raw read →
    literal `{"title":"updated","n":9}`), all green; pebble version
@@ -134,5 +134,5 @@ executable NEXT queue. All work verified step-by-step; receipts below.
 
 ---
 
-*All mutations restored byte-identical (`git status` verified after each);
-every green claim above is a gate or suite rc=0 observed this session.*
+_All mutations restored byte-identical (`git status` verified after each);
+every green claim above is a gate or suite rc=0 observed this session._

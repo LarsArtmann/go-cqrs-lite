@@ -53,6 +53,7 @@ N05 (P015 fleet roll onto cqrs-lint/v4.16.0) · M05 (fleet adoption: bank-sync p
 ## f) UP TO 50 THINGS TO GET DONE NEXT (roughly plan-II order + this session's discoveries)
 
 **Immediate closeout of M14 (1–8):**
+
 1. Land the recipes.md §2.43 prose paragraph (View first, then edit).
 2. Run `cmd/doc-check` over SKILL.md + references + AGENTS.md (zero-warning policy).
 3. Run `nix run .#check-changelog-symbols` for the new M14 row.
@@ -132,4 +133,4 @@ N05 (P015 fleet roll onto cqrs-lint/v4.16.0) · M05 (fleet adoption: bank-sync p
 
 ---
 
-*Arte in Aeternum*
+_Arte in Aeternum_

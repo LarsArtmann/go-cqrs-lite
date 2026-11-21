@@ -62,6 +62,7 @@ All four owed P015 proofs landed and are on record: **3/3 mutants killed**, corp
 ## f) Up to 30 things we should get done next (brainstorm, impact-sorted; NOT a commitment)
 
 **Product gaps from this session (unblocked, small, high-trust-value):**
+
 1. Fix `--show-suppressed` structured-format pollution (TODO_LIST row filed) — render suppressed findings inside json/sarif/csv payloads or move the text block to stderr; add parseability regression tests.
 2. Make `CQRS_LINT_UPDATE_GOLDEN=1` write the golden (or rename to `PRINT`); keep a `--print` fallback for review workflows.
 3. ruletest JSON-round-trip count helper (pin output shape at fixture level — §f14 from 01-18).

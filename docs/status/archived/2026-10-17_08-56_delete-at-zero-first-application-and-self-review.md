@@ -14,7 +14,7 @@ The owner rejected the copy-forward feel of the migration plan. After an A/B/C m
 ## a) FULLY DONE
 
 1. **Mechanism question resolved.** Presented copy-forward vs move-forward+`release/v4` vs hard-cut tradeoff table; owner answered with the delete-at-zero goal (recorded verbatim in the plan).
-2. **Plan amended** (9 edits, in place — annotated, not rewritten): standing delete-at-zero rule; deletes continuous (D-phase shrinks to coupled residue); twin policy (fork = point-in-time snapshot, v4 side fix-only) explicitly labeled *derived, not owner-ruled*; errata rows for the 9-of-11 coupling discovery and the missing bench-port predecessor; task 38 moved to Phase 0, tasks 38.0 (bench-infra port) and 38b (post-batch delete-at-zero sweep) added; census task gains `--zero-consumers` trigger mode; guardrails #11 (coupling check before every delete) and #12 (no feature dev on forked v4 modules); GO-status note (delete-at-zero GO'ed; Phase A sprint still pending explicit GO).
+2. **Plan amended** (9 edits, in place — annotated, not rewritten): standing delete-at-zero rule; deletes continuous (D-phase shrinks to coupled residue); twin policy (fork = point-in-time snapshot, v4 side fix-only) explicitly labeled _derived, not owner-ruled_; errata rows for the 9-of-11 coupling discovery and the missing bench-port predecessor; task 38 moved to Phase 0, tasks 38.0 (bench-infra port) and 38b (post-batch delete-at-zero sweep) added; census task gains `--zero-consumers` trigger mode; guardrails #11 (coupling check before every delete) and #12 (no feature dev on forked v4 modules); GO-status note (delete-at-zero GO'ed; Phase A sprint still pending explicit GO).
 3. **ADR-0152 addendum** (2026-10-17): continuous delete-at-zero, 1–2 week window, snapshot/freeze mechanics, coupling-check lesson, first application recorded.
 4. **TODO_LIST §v5 Unification**: ruling blockquote added at the section head pointing at the amended plan.
 5. **Census re-verified at 08:37** (time-gap discipline): transport/http, transport/grpc, idempotency/kvstore = 0 fleet requires; stack/sqlite = 3 (the "8th preset"); idempotency core = 7; sqlstore = 4. In-repo `rg` found the hidden couplings the requires-only census missed.
@@ -50,7 +50,7 @@ Everything downstream in the amended plan:
 Nothing catastrophic; all recovered in-session. The honest list:
 
 1. **Intermediate broken-gate commits (worst miss).** `git rm` ran BEFORE the reference rewrites were finished; the auto-commit daemon absorbed 3 mid-flight states (`8e39faad5`, `ba3a14af2`, …) — committed tree snapshots existed where canonical-facts was RED (AGENTS claimed "100 `go.mod` files" — wrong, actual 101; stale "98/98 classified"; status-README missing 5 rows). Root causes: wrong ordering (deletes first instead of rewrites-then-delete) and a guessed count instead of a measured one. Correct ordering for every future delete: rewrite registrations → regen goldens → gate-check → `git rm` last.
-2. **False-green near-miss on cqrs-lint.** First run piped output through `rg -v | head` and echoed `$?` of the *pipe* (0), not `go test` (1). Almost reported cqrs-lint green; caught on reflection and rerun (9 pre-existing failures found and correctly diagnosed). Exit-code discipline with pipes is non-negotiable.
+2. **False-green near-miss on cqrs-lint.** First run piped output through `rg -v | head` and echoed `$?` of the _pipe_ (0), not `go test` (1). Almost reported cqrs-lint green; caught on reflection and rerun (9 pre-existing failures found and correctly diagnosed). Exit-code discipline with pipes is non-negotiable.
 3. **Edit-tool guard round trip wasted:** 5 multiedits rejected simultaneously ("must View first" — bash `sed -n` reads don't count). Recovered via exact-match python with per-edit occurrence asserts (which actually improved rigor).
 4. **Arithmetic guess:** wrote 103−3=100 into AGENTS; truth was 101 because the old "103" was itself drifted (actual pre-delete count 104). Measure, then write.
 5. **advanced.md long-block transcription mismatch** (first edit failed) → recovered with an anchored `re.sub` section replace. For long blocks, anchored replaces should have been the first move.
@@ -65,7 +65,7 @@ Mapped to the self-review questions:
 - **What could I have done better (Q3):** ask all clarifying questions in one batch (5 allowed, 2 used); surface the "slowly vs sprint" tension immediately; use anchored section replaces for long markdown blocks from the start; run the cheap doc gates as part of the deletion definition-of-done.
 - **What can still improve (Q4):** make the delete runbook (plan task 1) absorb today's lessons — ordering, coupling-check `rg`, gate checklist, count-derivation step; consider a canonical-facts-style check for backticked count forms (the gate regex misses them; today's wrong "100" was invisible to the gate until hand-fixed).
 - **Did I lie (Q5):** No deliberate lies. One accidental false signal ("CQRS-LINT EXIT: 0") was caught and corrected within the session, in the same session's log. All capability claims in the final report were test-verified.
-- **Ghost systems (Q7):** none created; three deprecated ghosts deleted. Pending verdicts: deriver, graph (plan task 3). The 7 presets + storage/view+relational are now *correctly classified* as coupling-held rather than free — the census lie is fixed.
+- **Ghost systems (Q7):** none created; three deprecated ghosts deleted. Pending verdicts: deriver, graph (plan task 3). The 7 presets + storage/view+relational are now _correctly classified_ as coupling-held rather than free — the census lie is fixed.
 - **Scope creep (Q8):** mild and justified — status-README backfill + AGENTS "98/98" fix were gate repairs on files already touched; mesh-demo was deliberately left alone (budget changes need owner review).
 - **Removed something useful (Q9):** No — all three were deprecated, zero fleet consumers, replacements documented (MIGRATION guide, go-sse/watermill, metaengine.DedupStore); F030 retained to coach pinned-tag consumers; the CBOR→JSON recipe was ported onto supported primitives, not lost.
 - **Split brains (Q10):** one live risk and one cosmetic: (risk) the twin policy says v4-fix-only while the mirror-lockstep gate enforces sync on the 9 existing pairs — task 25/47 must scope the gate to primitives-only or the policy and gate will fight; (cosmetic) plan mermaid still shows task 38 in Phase D while the table says P0. Also noted: doc-check printed an advisory "alias kv maps to 2 repo packages (core/v5/kv, kv)" — inherent to dual-support, informational.
@@ -74,6 +74,7 @@ Mapped to the self-review questions:
 ## f) Up to 50 things to get done next
 
 **Gate-closure from this session (do first, cheap):**
+
 1. Run `nix run .#verify` in an exclusive window (composite proof of the deletion).
 2. `nix run .#check-md-go` (MIGRATION-grpc fences post-banner).
 3. `bash scripts/check-versions-manifest.sh --check` (deleted-module version rows?).
@@ -133,14 +134,16 @@ Mapped to the self-review questions:
 47. Bench-infra port off presets (38.0) → then delete 7 presets + stack + deprecated APIs.
 48. Gate-pruning cascade → v5 docs → v5.0.0 cut (REAL tests) → fleet pin wave.
 49. Owner-triage queue: mesh-demo 8/7 budget; ~34-module untidy disease (fixes the 4 cqrs-lint reds); taskmanager LSP errors; parallel-session `catalog/AGENTS.md` change identification.
-    > **IDENTIFIED 2026-10-17 (owner session):** the foreign `catalog/AGENTS.md`
-    > change was the architecture-reference section (`catalog/AGENTS.md:176`,
-    > shipped with ADR-0159). Yours to keep as-is.
+
+> **IDENTIFIED 2026-10-17 (owner session):** the foreign `catalog/AGENTS.md`
+> change was the architecture-reference section (`catalog/AGENTS.md:176`,
+> shipped with ADR-0159). Yours to keep as-is.
+
 50. Adopt an authored-commit convention at phase boundaries (this session's work lives only in `chore: auto-commit` commits — acceptable per harness rule, but thin history for a 6.9K-LOC deletion).
 
 ## g) Questions I can NOT figure out myself
 
-1. **Pacing contradiction in the ruling:** you said *"slowly phase out/migrate deprecated submodule by submodule"* (mechanism) and selected *"1–2 weeks, sprint it"* (window). Which governs when they conflict — e.g., may I hold a migrated-but-green fleet repo on frozen v4 tags longer than 2 weeks if a repo is deployment-sensitive (crm/browser-history class), or is the 1–2 weeks a hard wall for the whole fleet?
+1. **Pacing contradiction in the ruling:** you said _"slowly phase out/migrate deprecated submodule by submodule"_ (mechanism) and selected _"1–2 weeks, sprint it"_ (window). Which governs when they conflict — e.g., may I hold a migrated-but-green fleet repo on frozen v4 tags longer than 2 weeks if a repo is deployment-sensitive (crm/browser-history class), or is the 1–2 weeks a hard wall for the whole fleet?
 2. **Twin policy veto/confirm (I derived it, you did not rule it):** fork into core/v5 = point-in-time snapshot; the v4 side goes fix-only; NO new mirror-lockstep registrations for the Big-23 (existing 9 primitive pairs keep sync). Confirm, or do you want full mirror-sync (or full freeze) instead?
 3. **The scheduled fleet automation (carried over, still unanswered):** what runs the fleet-wide tidy/pin waves (the 2026-10-16 05:07–06:48 sweep), and where is it configured? I need to know what can race the codemod waves before Phase C starts.
 

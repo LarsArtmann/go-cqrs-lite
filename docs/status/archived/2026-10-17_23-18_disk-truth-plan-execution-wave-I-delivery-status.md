@@ -55,6 +55,7 @@
 ## f) NEXT — up to 50 things, in order
 
 **Close G2 (A4):**
+
 1. Rerun `nix run .#test-integration -- --mysql-only` — confirm the 3 mysqlengine failures reproduce in isolation.
 2. Inspect `scripts/test-integration.sh` MySQL env plumbing: is `MYSQL_TEST_DSN` exported into the mysqlengine module's `go test` invocation?
 3. Run the dedicated `nix run .#integration-mysql-vm` leg (QEMU, ~131s) as the authoritative MySQL verdict.
@@ -118,10 +119,10 @@
 
 ## g) QUESTIONS FOR THE OWNER (cannot be determined from this machine)
 
-1. **Deployed-DB census (blocking nothing yet, blocking the P-wave's dual-read design):** do any *deployed* fleet databases (pbx-lens, DiscordSync, InboxClean, CV, crush-daily, …) currently hold persisted `StreamMarker:`-prefixed rows written by pre-wave v4 tags? The four-layer compat model says envelope-keyed views heal on rebuild and decode-tolerates everything, but A9's legacy-KV dual-read window and any explicit migration note depend on whether real prefixed bytes exist outside test fixtures. I can enumerate code paths, not production contents.
+1. **Deployed-DB census (blocking nothing yet, blocking the P-wave's dual-read design):** do any _deployed_ fleet databases (pbx-lens, DiscordSync, InboxClean, CV, crush-daily, …) currently hold persisted `StreamMarker:`-prefixed rows written by pre-wave v4 tags? The four-layer compat model says envelope-keyed views heal on rebuild and decode-tolerates everything, but A9's legacy-KV dual-read window and any explicit migration note depend on whether real prefixed bytes exist outside test fixtures. I can enumerate code paths, not production contents.
 2. **example/taskmanager ownership (A17):** its tests are broken from a parallel session (undefined `servertiming`, `idStreamID`, `parseIDString`, `systemRegisterQuery` — 7 compile errors). Is that session finished/abandoned, or actively working? Fixing it is T-wave work for me, but I don't want to collide with a live author mid-edit.
 3. **Bank-sync pilot patch scope:** the (now-closed) release row's tail — "apply the bank-sync snapshot patch (M13) + drop DiscordSync's `map[any]any` workaround + collapse cqrs-htmx's homegrown UpcasterRegistry onto the chain" — is that IN this plan's X-tail for me, or does it stay with the 2026-10-09 schema-evolution plan's owner? (It touches another repo's consumer code and was explicitly gated on "the next schema tag wave" — which I just shipped.)
 
 ---
 
-*Evidence anchors: tag timestamps above (git for-each-ref); battery log `/tmp/battery.log` (test-integration rc=1: 3 mysqlengine cases, redis rc=0); release logs `build/release-logs/batch-20261017-*.log`; G1 probes `/tmp/g1probe{,2}`; sweep logs `/tmp/ps{,2..6}.log`.*
+_Evidence anchors: tag timestamps above (git for-each-ref); battery log `/tmp/battery.log` (test-integration rc=1: 3 mysqlengine cases, redis rc=0); release logs `build/release-logs/batch-20261017-*.log`; G1 probes `/tmp/g1probe{,2}`; sweep logs `/tmp/ps{,2..6}.log`._

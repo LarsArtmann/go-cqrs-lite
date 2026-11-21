@@ -15,21 +15,21 @@
 
 Applies to the Big-23 (plan tasks 4–24). `core/v5` is ONE module; forking adds a package, not a go.mod.
 
-| F# | Step (≤12min) | Verify |
-|----|---------------|--------|
-| F1 | Inventory: file list, LOC, deps, test-couplings of the v4 source package | list written |
-| F2 | Exclusion decision: drop deprecated-at-v5 surfaces (§2); record verdict line | doc note |
-| F3 | Copy production files to `core/v5/<pkg>` | file count matches |
-| F4 | Copy test files | ditto |
-| F5 | Import rewrite: `go-cqrs-lite/<pkg>/v4` → `core/v5/<pkg>` (script, per-file scope) | rg zero old paths |
-| F6 | `core/v5` go.mod dep additions + `GOWORK=off go mod tidy` | tidy clean |
-| F7 | Compile cycle 1: fix residual references | build green |
-| F8 | Compile cycle 2: test compile + fix | vet green |
-| F9 | Registration — see the policy note below | per policy |
-| F10 | Regen api golden (`cd cmd/api-stability && GOWORK=off go run . --update`) | diff = expected only |
-| F11 | Module tests (`GOWORK=off go test -count=1 ./<pkg>/...` inside core/v5) | suite green |
-| F12 | Arch-lint DAG + dep-budget rows + file-size ratchet (trailing `//art-dupl:accept` twin directive for baselined >350-line copies) | gates green |
-| F13 | CHANGELOG row + 1-line status note | changelog gate green |
+| F#  | Step (≤12min)                                                                                                                    | Verify               |
+| --- | -------------------------------------------------------------------------------------------------------------------------------- | -------------------- |
+| F1  | Inventory: file list, LOC, deps, test-couplings of the v4 source package                                                         | list written         |
+| F2  | Exclusion decision: drop deprecated-at-v5 surfaces (§2); record verdict line                                                     | doc note             |
+| F3  | Copy production files to `core/v5/<pkg>`                                                                                         | file count matches   |
+| F4  | Copy test files                                                                                                                  | ditto                |
+| F5  | Import rewrite: `go-cqrs-lite/<pkg>/v4` → `core/v5/<pkg>` (script, per-file scope)                                               | rg zero old paths    |
+| F6  | `core/v5` go.mod dep additions + `GOWORK=off go mod tidy`                                                                        | tidy clean           |
+| F7  | Compile cycle 1: fix residual references                                                                                         | build green          |
+| F8  | Compile cycle 2: test compile + fix                                                                                              | vet green            |
+| F9  | Registration — see the policy note below                                                                                         | per policy           |
+| F10 | Regen api golden (`cd cmd/api-stability && GOWORK=off go run . --update`)                                                        | diff = expected only |
+| F11 | Module tests (`GOWORK=off go test -count=1 ./<pkg>/...` inside core/v5)                                                          | suite green          |
+| F12 | Arch-lint DAG + dep-budget rows + file-size ratchet (trailing `//art-dupl:accept` twin directive for baselined >350-line copies) | gates green          |
+| F13 | CHANGELOG row + 1-line status note                                                                                               | changelog gate green |
 
 ### F9 registration policy (twin policy, derived 2026-10-17 — owner confirm pending)
 
@@ -38,7 +38,7 @@ Applies to the Big-23 (plan tasks 4–24). `core/v5` is ONE module; forking adds
 - The 9 existing primitive pairs (record, id, dedup, kv, dispatcher, metadata, event, command,
   query) keep mirror-sync discipline and stay in `mirrorPairs`.
 - Big-23 forks stay **UNREGISTERED** in `mirrorPairs`. ⚠ KNOWN GATE FIGHT:
-  `TestMirrorLockstep` (cmd/api-stability/mirror_lockstep_test.go) currently *forces* every new
+  `TestMirrorLockstep` (cmd/api-stability/mirror_lockstep_test.go) currently _forces_ every new
   core/v5 package in the golden to be registered. The gate scoping (plan task 25 / 47) MUST land
   before or with the first Big-23 fork, or the gate and this policy contradict each other.
 - Do NOT re-pin `.art-dupl-baseline.json` wholesale to absorb fork copies; use the trailing
@@ -46,15 +46,15 @@ Applies to the Big-23 (plan tasks 4–24). `core/v5` is ONE module; forking adds
 
 ## 2. Exclusion list — deprecated surfaces NOT copied forward
 
-| Surface | Home of the deprecation | Fork that must drop it |
-|---|---|---|
-| `aggregate_projection` | storage core deprecated tier | storage core (task 4) |
-| `view_aliases.go` + `relational_aliases.go` re-exports | storage core alias strips (the submodules die at the storage fork) | storage core (task 4) |
-| `schema.VersionedStore` / `VersionedSeekableJournal` shells | ADR-0126 | schema (task 19) |
-| `signing.Rejecting*`, `encryption.ErrInnerStoreNot*` | ADR-0126 | encryption+signing (task 23) |
-| tombstone metadata API (`event.DetectTombstone`/`MarkTombstone`, `TombstoneMark`) | ADR-0114 | event-adjacent forks |
-| fold DSL v1 | v5 evolution docs | metaengine core (tasks 11–12) |
-| Deprecated pair-form `*Ref` methods | ADR-0111 T04 | decider fork (task 9) |
+| Surface                                                                           | Home of the deprecation                                            | Fork that must drop it        |
+| --------------------------------------------------------------------------------- | ------------------------------------------------------------------ | ----------------------------- |
+| `aggregate_projection`                                                            | storage core deprecated tier                                       | storage core (task 4)         |
+| `view_aliases.go` + `relational_aliases.go` re-exports                            | storage core alias strips (the submodules die at the storage fork) | storage core (task 4)         |
+| `schema.VersionedStore` / `VersionedSeekableJournal` shells                       | ADR-0126                                                           | schema (task 19)              |
+| `signing.Rejecting*`, `encryption.ErrInnerStoreNot*`                              | ADR-0126                                                           | encryption+signing (task 23)  |
+| tombstone metadata API (`event.DetectTombstone`/`MarkTombstone`, `TombstoneMark`) | ADR-0114                                                           | event-adjacent forks          |
+| fold DSL v1                                                                       | v5 evolution docs                                                  | metaengine core (tasks 11–12) |
+| Deprecated pair-form `*Ref` methods                                               | ADR-0111 T04                                                       | decider fork (task 9)         |
 
 Rule: every exclusion produces a verdict line in the fork's status note (F2) — "dropped X because Y".
 
@@ -91,24 +91,24 @@ produced three mid-flight commits with red gates). Correct order:
 
 ## 4. Gate checklist
 
-| # | Gate / registration point | Fork | Delete | Command |
-|---|---------------------------|------|--------|---------|
-| 1 | go.work use-lines | — | edit | (manual) |
-| 2 | flake.nix `testModules` (+ mkApp blocks + CI lines if any) | — | edit | (manual) |
-| 3 | cmd/api-stability `modules` slice | — | edit | (manual) |
-| 4 | api golden regen + diff eyeball | ✔ | ✔ | `cd cmd/api-stability && GOWORK=off go run . --update` |
-| 5 | api-stability meta tests (`TestEvery`, mirror lockstep) | ✔ | ✔ | `cd cmd/api-stability && GOWORK=off go test -run TestEvery .` |
-| 6 | scripts/check-module-layers.sh (LAYER + DEP_BUDGET rows) | ✔ | edit | `bash scripts/check-module-layers.sh` |
-| 7 | cqrs-lint module catalog + module_catalog_test maps | — | edit | `cd cmd/cqrs-lint && GOWORK=off go test ./...` |
-| 8 | doc-check recipes catalog (only if recipes.md touched) | ✔ | ✔ | `cd cmd/doc-check && GOWORK=off go test -run TestRecipes .` |
-| 9 | doc-check reference scan | ✔ | ✔ | `cd cmd/doc-check && GOWORK=off go run . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md` |
-| 10 | integration suite (if consumer) | — | ✔ | `cd integration && GOWORK=off go test -count=1 ./...` |
-| 11 | canonical-facts + count honesty (AGENTS, module-map) | — | ✔ | `bash scripts/check-canonical-facts.sh` |
-| 12 | changelog-symbols | ✔ | ✔ | `bash scripts/check-changelog-symbols.sh` |
-| 13 | root workspace build | ✔ | ✔ | `go build ./...` |
-| 14 | module tests (forked pkg / changed set) | ✔ | ✔ | `GOWORK=off go test -count=1 ./...` per module |
-| 15 | check-md-go (any docs/ fence edit) | ✔ | ✔ | `nix run .#check-md-go` |
-| 16 | census re-confirm | — | ✔ | `scripts/census-fleet.sh` |
+| #  | Gate / registration point                                  | Fork | Delete | Command                                                                                                                    |
+| -- | ---------------------------------------------------------- | ---- | ------ | -------------------------------------------------------------------------------------------------------------------------- |
+| 1  | go.work use-lines                                          | —    | edit   | (manual)                                                                                                                   |
+| 2  | flake.nix `testModules` (+ mkApp blocks + CI lines if any) | —    | edit   | (manual)                                                                                                                   |
+| 3  | cmd/api-stability `modules` slice                          | —    | edit   | (manual)                                                                                                                   |
+| 4  | api golden regen + diff eyeball                            | ✔    | ✔      | `cd cmd/api-stability && GOWORK=off go run . --update`                                                                     |
+| 5  | api-stability meta tests (`TestEvery`, mirror lockstep)    | ✔    | ✔      | `cd cmd/api-stability && GOWORK=off go test -run TestEvery .`                                                              |
+| 6  | scripts/check-module-layers.sh (LAYER + DEP_BUDGET rows)   | ✔    | edit   | `bash scripts/check-module-layers.sh`                                                                                      |
+| 7  | cqrs-lint module catalog + module_catalog_test maps        | —    | edit   | `cd cmd/cqrs-lint && GOWORK=off go test ./...`                                                                             |
+| 8  | doc-check recipes catalog (only if recipes.md touched)     | ✔    | ✔      | `cd cmd/doc-check && GOWORK=off go test -run TestRecipes .`                                                                |
+| 9  | doc-check reference scan                                   | ✔    | ✔      | `cd cmd/doc-check && GOWORK=off go run . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md` |
+| 10 | integration suite (if consumer)                            | —    | ✔      | `cd integration && GOWORK=off go test -count=1 ./...`                                                                      |
+| 11 | canonical-facts + count honesty (AGENTS, module-map)       | —    | ✔      | `bash scripts/check-canonical-facts.sh`                                                                                    |
+| 12 | changelog-symbols                                          | ✔    | ✔      | `bash scripts/check-changelog-symbols.sh`                                                                                  |
+| 13 | root workspace build                                       | ✔    | ✔      | `go build ./...`                                                                                                           |
+| 14 | module tests (forked pkg / changed set)                    | ✔    | ✔      | `GOWORK=off go test -count=1 ./...` per module                                                                             |
+| 15 | check-md-go (any docs/ fence edit)                         | ✔    | ✔      | `nix run .#check-md-go`                                                                                                    |
+| 16 | census re-confirm                                          | —    | ✔      | `scripts/census-fleet.sh`                                                                                                  |
 
 Env discipline: `source scripts/go-env.sh` before any go command; `GOWORK=off` for per-module legs.
 Exit-code discipline: never pipe test output through filters that eat the exit code — capture

@@ -17,7 +17,7 @@ Session context: resumed the parked session (park report 09:46) under the standi
      at the flush could fold projections (memory engine = µs) before the handler
      goroutine registered; every notification in that window was lost. Both serve paths
      (plain + Last-Event-ID replay) now subscribe before header commit
-    (`subscribeSSEHeaders` helper, sse.go).
+     (`subscribeSSEHeaders` helper, sse.go).
    - **Real bug 2 (drop-newest):** the subscriber hub delivered into a cap-1 entry
      channel with drop-NEWEST semantics — a slow consumer's newest projection state was
      discarded (attempt-8 signature: `ship it` streamed, `renamed` vanished), inconsistent

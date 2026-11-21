@@ -13,18 +13,18 @@
 
 I reviewed and implemented fixes for the entire open-issue backlog:
 
-| # | Title | Status | Verified |
-|---|-------|--------|----------|
-| 78 | E005 misses cross-package selectors in `system.RegisterCommand` | **DONE** | Yes |
-| 80 | C010 flags checked-error `if _, err := decode(...)` idiom | **DONE** | Yes |
-| 81 | E003 pins every finding at `go.mod:1:1` (ID collision) | **DONE** | Yes |
-| 79 | E004/F002 blind to `catalog/v4/simple` builder registrations | **DONE** | Yes |
-| 82 | F010 does not recognize metaengine-native graph usage | **DONE** | Yes |
-| 74 | S001 flags schema NAMES as critical hardcoded secrets | **DONE** | Yes |
-| 71 | `TypedReader.Scan` truncates at 100 rows with no signal | **DONE** | Yes |
-| 72 | metaengine has no keep-newest-N cap primitive | **CORE DONE**, docs recipe missing | Yes |
-| 70 | `projectionadapter.EventWithID.ID` carries display form | **ALREADY FIXED** before this session | Yes |
-| 83 | cqrs-lint checked-in findings baseline | **IN PROGRESS** (~60%) | No |
+| #  | Title                                                           | Status                                | Verified |
+| -- | --------------------------------------------------------------- | ------------------------------------- | -------- |
+| 78 | E005 misses cross-package selectors in `system.RegisterCommand` | **DONE**                              | Yes      |
+| 80 | C010 flags checked-error `if _, err := decode(...)` idiom       | **DONE**                              | Yes      |
+| 81 | E003 pins every finding at `go.mod:1:1` (ID collision)          | **DONE**                              | Yes      |
+| 79 | E004/F002 blind to `catalog/v4/simple` builder registrations    | **DONE**                              | Yes      |
+| 82 | F010 does not recognize metaengine-native graph usage           | **DONE**                              | Yes      |
+| 74 | S001 flags schema NAMES as critical hardcoded secrets           | **DONE**                              | Yes      |
+| 71 | `TypedReader.Scan` truncates at 100 rows with no signal         | **DONE**                              | Yes      |
+| 72 | metaengine has no keep-newest-N cap primitive                   | **CORE DONE**, docs recipe missing    | Yes      |
+| 70 | `projectionadapter.EventWithID.ID` carries display form         | **ALREADY FIXED** before this session | Yes      |
+| 83 | cqrs-lint checked-in findings baseline                          | **IN PROGRESS** (~60%)                | No       |
 
 **Overall confidence:** High for the seven cqrs-lint fixes and both metaengine primitives; they are small, unit-tested, and follow existing conventions. Medium for the cap primitive's operational shape (explicit enforcement rather than per-insert), which is a deliberate design decision that needs your sign-off. The baseline feature is structurally complete but not yet wired to the CLI, so it currently breaks the `cmd/cqrs-lint` build (expected, not a regression in shipped code).
 
@@ -57,10 +57,12 @@ The draft investigation docs under `docs/drafts/2026-10-23-crm-lint-fps/` (writt
 **Root cause confirmed:** both registration-extraction paths accepted only `*ast.Ident`, so `deal.LoseCmd` (a `*ast.SelectorExpr`) yielded `""` and the registration was never recorded, leaving every command looking handler-less.
 
 **Fix:**
+
 - `cmd/cqrs-lint/pkg/analyzer/scanner_generic.go` — `typeNameFromGenericArg` now returns `sel.Sel.Name` for `*ast.SelectorExpr` (handles `system.RegisterCommand[deal.LoseCmd, deal.State]`).
 - `cmd/cqrs-lint/pkg/analyzer/scanner_calls.go` — `handlerTypeFromClosure` now handles `*ast.SelectorExpr` and **skips `context.Context` explicitly** via new `isContextSelector` (previously the first parameter was returned unconditionally; with the new case, `ctx context.Context` would have been misread as the handler type). The `*ast.StarExpr` leg also guards against an empty `lastIdentSegment` result.
 
 **Tests:**
+
 - `TestE005_NoFindingWhenRegisteredViaSystemCrossPackage`
 - `TestE005_NoFindingWhenHandlerParamIsQualifiedSelector`
 - Existing `TestE005_NoFindingWhenRegisteredViaSystem` still passes.
@@ -72,8 +74,9 @@ The draft investigation docs under `docs/drafts/2026-10-23-crm-lint-fps/` (writt
 ### #80 — C010 flags the checked-error idiom — DONE
 
 **Root cause confirmed:** any `*ast.AssignStmt` with a blank LHS and a Decode-family RHS emitted a finding, with no inspection of the enclosing statement. The blank discards the payload; the error is tested by the enclosing `if`.
- 
+
 **Fix** (`cmd/cqrs-lint/pkg/rules/correctness/swallow_helpers.go`):
+
 - New `checkedSwallowAssigns(body)` pre-pass collects assignments whose non-blank LHS is inspected by an adjacent `if`.
 - Two accepted forms:
   1. `if _, err := decode(...); err != nil { ... }` — `IfStmt.Init == assign` and `IfStmt.Cond` mentions `err`.
@@ -82,6 +85,7 @@ The draft investigation docs under `docs/drafts/2026-10-23-crm-lint-fps/` (writt
 - Applied before emission, so both the fold path and the inline-closure callback path are covered (they share `inspectBodyForSwallowedError`).
 
 **Tests:**
+
 - `TestC010_NoFindingForCheckedIfInitDecode` (0 findings)
 - `TestC010_NoFindingForCheckedTwoLineDecode` (0)
 - `TestC010_DetectsUncheckedIfInitDecode` (still 1 when the condition ignores the error)
@@ -94,11 +98,13 @@ The draft investigation docs under `docs/drafts/2026-10-23-crm-lint-fps/` (writt
 **Root cause confirmed:** every package-level E003 finding used `go.mod:1:1`. The finding ID is `tool:rule:file:line:col`, so N packages produced one ID; the CLI's `collectFindings` kept whichever map entry iterated first (stable count, nondeterministic content), while the toolspec path reported all N.
 
 **Fix** (`cmd/cqrs-lint/pkg/rules/architecture/e003_e007.go`) — chose the issue's preferred option (unique real positions):
+
 - New `packageBoundaries` accumulator records, per package, the construct kinds **and the earliest contributing source position** (file, then line, then column).
 - Packages are iterated in sorted order, so output order is deterministic too.
 - `pos()` uses the anchor's real position; falls back to the anchor file at `1:1` only when the position is invalid, and to `go.mod:1:1` only when no anchor exists at all.
 
 **Tests:**
+
 - `TestE003_EmitsDistinctIDsPerPackage` — two packages with 3 constructs each → exactly 2 findings, 2 distinct IDs, neither anchored at `go.mod`.
 - Existing `TestE003_DetectsMixedConcerns` still passes.
 
@@ -111,11 +117,13 @@ The draft investigation docs under `docs/drafts/2026-10-23-crm-lint-fps/` (writt
 ### #79 — E004/F002 blind to `catalog/v4/simple` — DONE
 
 **Root cause confirmed (two of the three cited gaps; the third is already handled by current code):**
+
 1. `simple.Event[T](b *Builder, id string, direction, opts...)` puts the builder at arg 0; the scanner read arg 0.
 2. The id often arrives as `string(eventType)`, and the catalog Event case did not unwrap a string conversion.
 3. The pending-ref post-pass already uses `ExprIdentName`, which **does** resolve `*ast.SelectorExpr` to its trailing name; cross-package const values therefore work once the ref is recorded. (The issue's source citation predates that helper's use at this call site.)
 
 **Fix:**
+
 - `cmd/cqrs-lint/pkg/analyzer/scanner_calls.go`
   - New case qualified for `go-cqrs-lite/catalog/simple`, placed **before** the generic catalog case so it wins: reads **arg 1**, unwraps `string(...)` conversions, then records literal or pending const ref.
   - Extracted `recordCatalogEventType` so the plain `catalog.Event` and `simple.Event` paths share one implementation (removes the duplicated literal/const branch).
@@ -124,6 +132,7 @@ The draft investigation docs under `docs/drafts/2026-10-23-crm-lint-fps/` (writt
 - `cmd/cqrs-lint/pkg/rules/adoption/scan_in.go` + `helpers.go` — new `hasCallOnImportedPackage` / `projectHasCallInPath` helpers resolve the qualifier by import path when type info is available (so aliased imports work) and fall back to the qualifier name in AST-only mode.
 
 **Tests:**
+
 - `TestE004_NoFindingForCatalogSimpleBuilderLiteral` (0)
 - `TestE004_NoFindingForCatalogSimpleBuilderConst` (0, covers `string(Const)` plus multi-file const resolution)
 - `TestE004_DetectsUnregisteredSimpleBuilderEvent` (1, guards the arg-1 read)
@@ -138,11 +147,13 @@ The draft investigation docs under `docs/drafts/2026-10-23-crm-lint-fps/` (writt
 **Root cause confirmed:** the only skip was `importsPathIn(files, "go-cqrs-lite/graph")`; a consumer projecting `metaengine.Edge`/`EdgeRemoval` folds failed it and got coached to migrate onto the module it deliberately left.
 
 **Fix** (`cmd/cqrs-lint/pkg/rules/adoption/f010_f011.go`, `scan_in.go`):
+
 - New `usesMetaengineGraph(files)`: requires an import containing `go-cqrs-lite/metaengine` **and** an AST reference to a selector named `Edge` or `EdgeRemoval`.
 - Skip condition is now `graph import OR metaengine Graph ADT`.
 - Suggestion text now leads with the metaengine Graph ADT and offers `graph.NewGraphProjection` as the alternative, instead of presenting the standalone module as the only path.
 
 **Tests:**
+
 - `TestF010_NoFindingWithMetaengineGraphADT` (0)
 - `TestF010_FindingWhenMetaengineImportedWithoutGraphADT` (1 — import alone is not evidence)
 - Existing F010 tests still pass.
@@ -156,6 +167,7 @@ The draft investigation docs under `docs/drafts/2026-10-23-crm-lint-fps/` (writt
 **Root cause confirmed:** the identifier substring list includes `token`/`key`/`secret`, and the only value escapes were length ≥ 8 and `IsURLOrPlaceholder`, so `const enrollTokensCollection = "enroll_tokens"` was a `critical` build-gating finding with unactionable "use env vars" advice.
 
 **Fix:**
+
 - `cmd/cqrs-lint/pkg/rules/lintutil/url_placeholder.go` — new `IsNameShapedValue` (pure lowercase snake_case: `^[a-z][a-z0-9_]*$`, no leading digit/underscore).
 - `cmd/cqrs-lint/pkg/rules/security/rules.go`
   - The `check` closure now takes `isConst` and applies the name-shape allowlist **only when the binding itself says "identifier"**: a `const` declaration, or an identifier carrying a storage/schema suffix (`Collection`, `Table`, `Queue`, `Bucket`, `Topic`, `Index`, `Schema`, `ViewName`, including `*Name` forms).
@@ -164,6 +176,7 @@ The draft investigation docs under `docs/drafts/2026-10-23-crm-lint-fps/` (writt
 **Why the allowlist is scoped (important deviation from the issue's literal proposal):** a bare `^[a-z][a-z0-9_]*$` value allowlist suppresses real lowercase API keys (`supersecretvalue123`, `sk_live_...`) and immediately broke the existing positive test `TestS001_DetectsHardcodedKey`. The two-signal form (`name-shaped` + `const`/structural name) kills the reported class without weakening var-assignment detection.
 
 **Tests:**
+
 - `TestS001_NoFindingForSchemaVocabularyConst` (0)
 - `TestS001_NoFindingForSchemaVocabularyVariable` (0)
 - `TestS001_ConstSecretIsDowngradedToWarning` (1 finding, severity asserted `warning`)
@@ -178,6 +191,7 @@ The draft investigation docs under `docs/drafts/2026-10-23-crm-lint-fps/` (writt
 **Root cause confirmed:** `Scan` returns `([]V, error)`; the internal `scanItems` computes `pageMeta.hasMore` and discards it, so a 100-row default result is indistinguishable from a complete one.
 
 **Fix (additive; no signature change, so the api-stability contract holds):**
+
 - `metaengine/scan_options.go` — `scanConfig` gains `exact bool`; new `WithExact()` option.
 - `metaengine/errors.go` — internal `errScanTruncated` + exported `ErrScanTruncated`.
 - `metaengine/typed_reader_scan.go`
@@ -200,6 +214,7 @@ The draft investigation docs under `docs/drafts/2026-10-23-crm-lint-fps/` (writt
 **Why not per-insert:** memory/KV engines implement scans by materializing and sorting the whole collection, so an automatic scan on every insert would make every capped write O(N) or worse. Explicit enforcement keeps the write path clean; callers trim after a batch or on a timer, which is the real cadence of bounded read models.
 
 **Implementation:**
+
 - `metaengine/query_config.go`
   - `QueryConfig` gains `capRows` / `capOrderBy`, public getters `CapRows()` / `CapOrderBy()`.
   - New `WithCap(maxRows int, orderBy string) QueryOption`. `maxRows <= 0` disables; docs state the Map/key requirements and the enforcement entry points.
@@ -217,6 +232,7 @@ The draft investigation docs under `docs/drafts/2026-10-23-crm-lint-fps/` (writt
 - `metaengine/planner.go`, `metaengine/register_query.go` — validation wiring.
 
 **Tests (`metaengine/cap_test.go`):**
+
 - `TestWithCap_EnforceCapKeepsNewestRows` — 6 inserts, cap 3 → 3 removed, surviving `Seq` are 4/5/6 (proves "newest", not "first").
 - `TestWithCap_EnforceCapIsIdempotent` — under-cap no-op; second pass removes 0.
 - `TestWithCap_EnforceCapsOnlyTrimsCappedCollections` — batch trimming + uncapped query returns 0/nil.
@@ -247,7 +263,7 @@ The fix predates this session (absorbed by an earlier auto-commit; current tip `
 **What exists:** `cmd/cqrs-lint/baseline.go` (untracked, 357 lines) implements the full matching/persistence core:
 
 - `baselineDocument` / `baselineEntry`: `version`, `tool`, and entries of `rule`, `file`, `line`, `column`, optional `reason`.
-- **Portable keying:** entries store the file **relative to the baseline file's directory**, slash-normalized, so a checked-in baseline works across machines and OSes. The finding ID embeds absolute paths and is therefore *not* stored; matching uses `(rule, file, line, column)`.
+- **Portable keying:** entries store the file **relative to the baseline file's directory**, slash-normalized, so a checked-in baseline works across machines and OSes. The finding ID embeds absolute paths and is therefore _not_ stored; matching uses `(rule, file, line, column)`.
 - `splitBaseline(doc, findings, root)` → `New` / `Known` / `Stale`. Stale entries are sorted deterministically.
 - `entriesFromFindings` preserves reasons from the previous document on regeneration (the operator's adjudication notes are never silently dropped).
 - `writeBaseline`: deterministic entry sort (rule, file, line, column), 2-space JSONC-compatible JSON via `encoding/json/v2`, trailing newline, atomic temp-file + rename.
@@ -277,6 +293,7 @@ The fix predates this session (absorbed by an earlier auto-commit; current tip `
 4. Docs: README/`RULES.md` section for the file, flags, exit semantics, and the stale-entry policy.
 
 **Open decisions for #83:**
+
 - Should stale baseline entries be **fatal** under an opt-in flag (`--fail-on-stale-baseline`), matching `--fail-on-stale-suppressions`? Current draft: visible notice, non-fatal.
 - Should baseline matching fall back to `(rule, file, message)` when line numbers move, to reduce churn? Current draft follows the issue and keys on line/column.
 - Should `--baseline` be allowed in `.cqrs-lint.json` (it is, via the flag-tag loader) and resolved relative to the config file rather than the CWD? Current draft resolves relative to CWD.
@@ -287,19 +304,19 @@ The fix predates this session (absorbed by an earlier auto-commit; current tip `
 
 Run from the repo root unless noted. All commands used `GOWORK=off` per the multi-module rule.
 
-| Check | Command | Result |
-|-------|---------|--------|
-| metaengine package | `cd metaengine && GOWORK=off go test . -count=1` | **ok** (25.870s) |
-| projectionadapter (#70) | `cd metaengine/projectionadapter && GOWORK=off go test ./... -count=1` | **ok** (0.323s) |
-| E003/E004/E005 rules | `cd cmd/cqrs-lint && GOWORK=off go test ./pkg/rules/architecture/ -count=1` | **ok** |
-| F-series adoption rules | `... go test ./pkg/rules/adoption/ -count=1` | **ok** (1.087s) |
-| C010 correctness rules | `... go test ./pkg/rules/correctness/ -count=1` | **ok** |
-| S001 security rules | `... go test ./pkg/rules/security/ -count=1` | **ok** |
-| analyzer (scanner changes) | `... go test ./pkg/analyzer/ -count=1` | **ok** |
-| toolspec | `... go test ./pkg/toolspec/ -count=1` | **ok** |
-| gofmt on all touched files | `gofmt -l <files>` | **clean** (no output) |
-| cqrs-lint full suite | `... GOWORK=off go test ./... -count=1` | **FAIL** only in `pkg/rules/version` (2 tests) — see below |
-| File-size ratchet | `bash scripts/check-file-size.sh` | **FAIL** — includes 3 violations caused by this work |
+| Check                      | Command                                                                     | Result                                                     |
+| -------------------------- | --------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| metaengine package         | `cd metaengine && GOWORK=off go test . -count=1`                            | **ok** (25.870s)                                           |
+| projectionadapter (#70)    | `cd metaengine/projectionadapter && GOWORK=off go test ./... -count=1`      | **ok** (0.323s)                                            |
+| E003/E004/E005 rules       | `cd cmd/cqrs-lint && GOWORK=off go test ./pkg/rules/architecture/ -count=1` | **ok**                                                     |
+| F-series adoption rules    | `... go test ./pkg/rules/adoption/ -count=1`                                | **ok** (1.087s)                                            |
+| C010 correctness rules     | `... go test ./pkg/rules/correctness/ -count=1`                             | **ok**                                                     |
+| S001 security rules        | `... go test ./pkg/rules/security/ -count=1`                                | **ok**                                                     |
+| analyzer (scanner changes) | `... go test ./pkg/analyzer/ -count=1`                                      | **ok**                                                     |
+| toolspec                   | `... go test ./pkg/toolspec/ -count=1`                                      | **ok**                                                     |
+| gofmt on all touched files | `gofmt -l <files>`                                                          | **clean** (no output)                                      |
+| cqrs-lint full suite       | `... GOWORK=off go test ./... -count=1`                                     | **FAIL** only in `pkg/rules/version` (2 tests) — see below |
+| File-size ratchet          | `bash scripts/check-file-size.sh`                                           | **FAIL** — includes 3 violations caused by this work       |
 
 **Pre-existing failure (NOT caused by this work):**
 
@@ -443,18 +460,18 @@ Also required by repo procedure: `CHANGELOG.md` `[Unreleased]` rows and `FEATURE
 
 ## Appendix A — Files Changed by Issue
 
-| Issue | Files |
-|-------|-------|
-| 78 | `cmd/cqrs-lint/pkg/analyzer/scanner_generic.go`, `scanner_calls.go`, `pkg/rules/architecture/new_rules_test.go` |
-| 80 | `cmd/cqrs-lint/pkg/rules/correctness/swallow_helpers.go`, `new_rules_test.go` |
-| 81 | `cmd/cqrs-lint/pkg/rules/architecture/e003_e007.go`, `new_rules_test.go` |
-| 79 | `cmd/cqrs-lint/pkg/analyzer/scanner_calls.go`, `pkg/rules/adoption/f002_f005.go`, `helpers.go`, `scan_in.go`, `f001_f009_test.go`, `pkg/rules/architecture/new_rules_test.go` |
-| 82 | `cmd/cqrs-lint/pkg/rules/adoption/f010_f011.go`, `scan_in.go`, `f010_f017_test.go` |
-| 74 | `cmd/cqrs-lint/pkg/rules/security/rules.go`, `new_rules_test.go`, `pkg/rules/lintutil/url_placeholder.go` |
-| 71 | `metaengine/errors.go`, `scan_options.go`, `typed_reader_scan.go`, `with_exact_test.go` |
-| 72 | `metaengine/cap.go` (new), `cap_test.go` (new), `query_config.go`, `planner.go`, `register_query.go` |
-| 70 | none (already fixed; verified only) |
-| 83 | `cmd/cqrs-lint/baseline.go` (new, incomplete wiring) |
+| Issue | Files                                                                                                                                                                         |
+| ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 78    | `cmd/cqrs-lint/pkg/analyzer/scanner_generic.go`, `scanner_calls.go`, `pkg/rules/architecture/new_rules_test.go`                                                               |
+| 80    | `cmd/cqrs-lint/pkg/rules/correctness/swallow_helpers.go`, `new_rules_test.go`                                                                                                 |
+| 81    | `cmd/cqrs-lint/pkg/rules/architecture/e003_e007.go`, `new_rules_test.go`                                                                                                      |
+| 79    | `cmd/cqrs-lint/pkg/analyzer/scanner_calls.go`, `pkg/rules/adoption/f002_f005.go`, `helpers.go`, `scan_in.go`, `f001_f009_test.go`, `pkg/rules/architecture/new_rules_test.go` |
+| 82    | `cmd/cqrs-lint/pkg/rules/adoption/f010_f011.go`, `scan_in.go`, `f010_f017_test.go`                                                                                            |
+| 74    | `cmd/cqrs-lint/pkg/rules/security/rules.go`, `new_rules_test.go`, `pkg/rules/lintutil/url_placeholder.go`                                                                     |
+| 71    | `metaengine/errors.go`, `scan_options.go`, `typed_reader_scan.go`, `with_exact_test.go`                                                                                       |
+| 72    | `metaengine/cap.go` (new), `cap_test.go` (new), `query_config.go`, `planner.go`, `register_query.go`                                                                          |
+| 70    | none (already fixed; verified only)                                                                                                                                           |
+| 83    | `cmd/cqrs-lint/baseline.go` (new, incomplete wiring)                                                                                                                          |
 
 ## Appendix B — Test Commands (copy-paste)
 
@@ -491,4 +508,4 @@ nix run .#verify
 
 ---
 
-*Report generated at 2026-10-23 09:28 +0200. No further commands were run after the request to stop; all pending work is listed above.*
+_Report generated at 2026-10-23 09:28 +0200. No further commands were run after the request to stop; all pending work is listed above._

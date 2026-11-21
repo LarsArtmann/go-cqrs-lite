@@ -9,17 +9,17 @@ arrives. `scheduling`'s delta is go.mod churn (N04 pin-only class, deferred).
 
 ## The 9 trains (dependency order)
 
-| # | Train | From → To | Carries |
-|---|-------|-----------|---------|
-| 1 | schema | v4.6.0 → **v4.7.0** | Fingerprint()/FingerprintStamp/drift twins (T3a), typed declarations `EventOf[T]` (T1a), CBOR nested-map Transform fix (#62-adjacent M9) |
-| 2 | snapshot | v4.6.2 → **v4.7.0** | `Snapshot.StateShape` stamp (T4a) |
-| 3 | decider | v4.7.2 → **v4.8.0** | `WithSnapshotStateVersion` (T4b); STRIPS the dev-time sibling replace on snapshot/v4 |
-| 4 | catalog | v4.7.1 → **v4.8.0** | `FromTypedSchema[T]` + `SemverFromWire` (T1b) — requires schema v4.7.0 pin |
-| 5 | systemscenario | v4.0.0 → **v4.1.0** | DelayedDriver chaos seam, SubscribeSSE, Memory/SQLite presets, hardening pack A+B |
-| 6 | system | v4.12.0 → **v4.13.0** | `Schemas()` builder (T1a), `StampSchemaFingerprints` (T3b), RawQuery coeffect-gate fix (M08) |
-| 7 | metaengine | v4.18.0 → **v4.19.0** | `FilterBindValue` (#62), json-tag-first row resolution (#63), `keycodec` package (T07 KV cursors), SQL-family compound keyset cursors (T07) |
-| 8 | metaengine/sqliteengine | v4.5.2 → **v4.5.3** | #62 standard+planned time-bind coercion |
-| 9 | cmd/cqrs-lint | v4.15.0 → **v4.16.0** | P015 (213 rules), E020/E021/E022, V006 stopped-train ruling (M07), C009/E005 fixes (#64), `./...` path fix, scorecard credit/waivers/modernity |
+| # | Train                   | From → To             | Carries                                                                                                                                        |
+| - | ----------------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | schema                  | v4.6.0 → **v4.7.0**   | Fingerprint()/FingerprintStamp/drift twins (T3a), typed declarations `EventOf[T]` (T1a), CBOR nested-map Transform fix (#62-adjacent M9)       |
+| 2 | snapshot                | v4.6.2 → **v4.7.0**   | `Snapshot.StateShape` stamp (T4a)                                                                                                              |
+| 3 | decider                 | v4.7.2 → **v4.8.0**   | `WithSnapshotStateVersion` (T4b); STRIPS the dev-time sibling replace on snapshot/v4                                                           |
+| 4 | catalog                 | v4.7.1 → **v4.8.0**   | `FromTypedSchema[T]` + `SemverFromWire` (T1b) — requires schema v4.7.0 pin                                                                     |
+| 5 | systemscenario          | v4.0.0 → **v4.1.0**   | DelayedDriver chaos seam, SubscribeSSE, Memory/SQLite presets, hardening pack A+B                                                              |
+| 6 | system                  | v4.12.0 → **v4.13.0** | `Schemas()` builder (T1a), `StampSchemaFingerprints` (T3b), RawQuery coeffect-gate fix (M08)                                                   |
+| 7 | metaengine              | v4.18.0 → **v4.19.0** | `FilterBindValue` (#62), json-tag-first row resolution (#63), `keycodec` package (T07 KV cursors), SQL-family compound keyset cursors (T07)    |
+| 8 | metaengine/sqliteengine | v4.5.2 → **v4.5.3**   | #62 standard+planned time-bind coercion                                                                                                        |
+| 9 | cmd/cqrs-lint           | v4.15.0 → **v4.16.0** | P015 (213 rules), E020/E021/E022, V006 stopped-train ruling (M07), C009/E005 fixes (#64), `./...` path fix, scorecard credit/waivers/modernity |
 
 ## Explicitly NOT tagged (untagged-trains.txt, ADR-0152)
 

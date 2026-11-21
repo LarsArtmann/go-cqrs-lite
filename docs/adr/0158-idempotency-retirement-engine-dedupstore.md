@@ -23,11 +23,11 @@ The migration target is the engine capability, reached two ways:
 
 Migration mapping:
 
-| Retiring call | Replacement |
-|---------------|-------------|
-| `sqlstore.NewFromEngine(eng, coll)` + `Seen/CheckAndRecord/Record` | `sys.Dedup()` → `DedupSeen` / `DedupCheckAndRecord` / (record is fused into the CAS) |
-| `sqlstore` `Sweep` | `DedupSweep` |
-| `kvstore.New(backend)` + `Seen/Record/CheckAndRecord/Sweep` | same, over the deployment's engine (map engines get `MapDedupStore` — degraded semantics declared, same TTL window contract) |
+| Retiring call                                                      | Replacement                                                                                                                  |
+| ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- |
+| `sqlstore.NewFromEngine(eng, coll)` + `Seen/CheckAndRecord/Record` | `sys.Dedup()` → `DedupSeen` / `DedupCheckAndRecord` / (record is fused into the CAS)                                         |
+| `sqlstore` `Sweep`                                                 | `DedupSweep`                                                                                                                 |
+| `kvstore.New(backend)` + `Seen/Record/CheckAndRecord/Sweep`        | same, over the deployment's engine (map engines get `MapDedupStore` — degraded semantics declared, same TTL window contract) |
 
 Semantic deltas consumers must review (documented on the capability): `CheckAndRecord` in the retiring modules returns `error` on duplicates; the capability's `DedupCheckAndRecord` returns `(seen bool, err)` — callers branch on the boolean. Expiry reads as unseen in both worlds; an expired window may be re-claimed in both.
 

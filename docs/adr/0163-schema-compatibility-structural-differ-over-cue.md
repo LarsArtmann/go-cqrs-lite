@@ -1,12 +1,12 @@
 # ADR-0163: Schema compatibility is a structural differ over the schema model, not a CUE subsume
 
-| Field      | Value                                                                                                       |
-| ---------- | ----------------------------------------------------------------------------------------------------------- |
-| Status     | Accepted                                                                                                    |
-| Date       | 2026-11-02                                                                                                  |
-| Deciders   | Lars Artmann                                                                                                |
-| Related    | ADR-0111 (Record), ADR-0151 (evolutions are the declaration), `docs/SCHEMA-COMPATIBILITY.md`                |
-| Supersedes | nothing — this is the first decision about who owns the additive-vs-breaking question                       |
+| Field      | Value                                                                                        |
+| ---------- | -------------------------------------------------------------------------------------------- |
+| Status     | Accepted                                                                                     |
+| Date       | 2026-11-02                                                                                   |
+| Deciders   | Lars Artmann                                                                                 |
+| Related    | ADR-0111 (Record), ADR-0151 (evolutions are the declaration), `docs/SCHEMA-COMPATIBILITY.md` |
+| Supersedes | nothing — this is the first decision about who owns the additive-vs-breaking question        |
 
 ## Context
 
@@ -15,11 +15,11 @@ are additive (old events still decode), others owe an explicit op — `RenameFie
 `Transform`, `RenameType`. The repo had three partial answers and none of them can answer the actual
 question:
 
-| Existing mechanism | What it can say | What it cannot |
-| --- | --- | --- |
-| The written policy | the general rule | whether *this* delta is additive |
-| cqrs-lint E021/E022 | the op ladder is satisfied | whether the op was *needed* |
-| `schema.EventSchema.Fingerprint` | the shape changed | **how** it changed |
+| Existing mechanism               | What it can say            | What it cannot                   |
+| -------------------------------- | -------------------------- | -------------------------------- |
+| The written policy               | the general rule           | whether _this_ delta is additive |
+| cqrs-lint E021/E022              | the op ladder is satisfied | whether the op was _needed_      |
+| `schema.EventSchema.Fingerprint` | the shape changed          | **how** it changed               |
 
 So "the shape moved and nobody wrote an op" fails in production replay rather than in CI. That is
 the gap this decision fills.
@@ -37,7 +37,7 @@ gated the whole effort on a fidelity spike (G0) with a recorded fallback.
 classifies every difference against the policy's own rows, producing `Finding` values that name the
 **op** the change owes (`OpAddField`, `OpRemoveField`, `OpRenameField`, `OpTransform`). Exactly one
 class blocks: a breaking shape change where the message's declared version did not move
-(`KindVersionNotBumped`). A breaking change *with* a version bump passes, because whether the
+(`KindVersionNotBumped`). A breaking change _with_ a version bump passes, because whether the
 required op actually exists is `schema.EventSchema`'s job and cqrs-lint E021/E022's enforcement.
 
 The package lives **inside the existing `catalog` module** as `catalog/compat`, not as a new
@@ -50,14 +50,14 @@ quarantine, so a new module would have bought eight gate registrations and zero 
 fixtures drawn from the policy's own tables plus the shapes a subtype check typically misses
 (closing, format swaps, newly constrained lists, restructuring).
 
-| Configuration | Score | False `compatible` (unsafe) |
-| --- | ---: | ---: |
-| `Config{}` + none | 21/24 | 3 |
-| **`Config{}` + `cue.Raw()`** | **22/24** | **2** |
-| `Config{}` + `cue.Final()` | 16/24 | 8 |
-| `Config{}` + `Raw`+`Final` | 16/24 | 8 |
-| `Config{Strict:true}` + none | 20/24 | 3 |
-| `Config{Strict:true}` + `Raw` | 21/24 | 2 (and `int32`/`int64` fail extraction) |
+| Configuration                 |     Score |             False `compatible` (unsafe) |
+| ----------------------------- | --------: | --------------------------------------: |
+| `Config{}` + none             |     21/24 |                                       3 |
+| **`Config{}` + `cue.Raw()`**  | **22/24** |                                   **2** |
+| `Config{}` + `cue.Final()`    |     16/24 |                                       8 |
+| `Config{}` + `Raw`+`Final`    |     16/24 |                                       8 |
+| `Config{Strict:true}` + none  |     20/24 |                                       3 |
+| `Config{Strict:true}` + `Raw` |     21/24 | 2 (and `int32`/`int64` fail extraction) |
 
 Three findings settle it:
 
@@ -77,7 +77,7 @@ test dimensions this repository's schema model does not carry, so they measure t
 rather than forming differ-parity rows. On the **21 representable** fixtures CUE's best configuration
 scores **19/21** and the shipped differ scores **21/21** with zero false `compatible`.
 
-`cue.Final()` — the option that reads most naturally, since a released schema *is* closed — is the
+`cue.Final()` — the option that reads most naturally, since a released schema _is_ closed — is the
 worst of the six (16/24), converting `remove field`, `rename field` and `add required field` into
 "compatible". That is exactly backwards.
 
@@ -109,12 +109,12 @@ Evidence, fixture table, per-config matrix and reopen triggers:
 
 **Rejected alternatives**
 
-| Alternative | Why rejected |
-| --- | --- |
-| CUE `Subsume` as oracle | 2 of 24 policy rows invisible, and both fail in the unsafe direction (above) |
+| Alternative                                                             | Why rejected                                                                                                                                                |
+| ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CUE `Subsume` as oracle                                                 | 2 of 24 policy rows invisible, and both fail in the unsafe direction (above)                                                                                |
 | Hand-written CUE schemas fed to `Subsume` directly, bypassing `Extract` | Would dodge the extraction limits but recreate the entire schema model in a second language — a split brain of exactly the kind this repo keeps eliminating |
-| Extend `Fingerprint` to report the delta | A fingerprint is a hash; deriving semantics from it means reinventing the walk with less information |
-| Leave it to cqrs-lint E021/E022 | Those check that the op ladder is consistent, not whether an op was owed |
+| Extend `Fingerprint` to report the delta                                | A fingerprint is a hash; deriving semantics from it means reinventing the walk with less information                                                        |
+| Leave it to cqrs-lint E021/E022                                         | Those check that the op ladder is consistent, not whether an op was owed                                                                                    |
 
 **Reopen triggers** (all three required):
 

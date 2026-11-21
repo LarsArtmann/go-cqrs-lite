@@ -64,8 +64,8 @@
 9. go-appkit tag (owner Q2) — `[Unreleased]` row + adoption + suite green; cut when its flow says so.
 10. Push tonight's receipts: TODO_LIST §ADR-0165 arc rows all-closed check + `docs/status/README.md` index row for this report (done in the same edit as the report).
 11. VM test hardening tail (from this session's log): assert the sqlite state dir is created by the FIRST story run even without the pre-create (documents the StateDirectory contract more honestly) — optional.
-~~12. The standing owner questions from prior reports: decider.StateCache race is CLOSED (the parallel session shipped the codec-clone fix under the 11-08 owner ruling — CHANGELOG `[Unreleased]` Fixed row); SSE flake closed 11-05; **still open: daemon `chore:` retitle policy, md-go-validator pin policy.**~~ routed — routed to TODO_LIST:403 owner decision sheet (daemon-commit retitle-or-accept + md-go-validator rev-pin both named verbatim in the row)
-~~13. The 266-row backlog stays with the 12-28 full-send plan (its M/F numbering owns it); next session should pull ITS next 1% wave, not re-plan.~~ routed — routed to 21-12 plan (re-cut over all 265 open rows, "273 rows covered, 0 orphaned"; untagged backlog rides R11-13 release wave TODO_LIST:63 + TODO_LIST:426)
+    ~~12. The standing owner questions from prior reports: decider.StateCache race is CLOSED (the parallel session shipped the codec-clone fix under the 11-08 owner ruling — CHANGELOG `[Unreleased]` Fixed row); SSE flake closed 11-05; **still open: daemon `chore:` retitle policy, md-go-validator pin policy.**~~ routed — routed to TODO_LIST:403 owner decision sheet (daemon-commit retitle-or-accept + md-go-validator rev-pin both named verbatim in the row)
+    ~~13. The 266-row backlog stays with the 12-28 full-send plan (its M/F numbering owns it); next session should pull ITS next 1% wave, not re-plan.~~ routed — routed to 21-12 plan (re-cut over all 265 open rows, "273 rows covered, 0 orphaned"; untagged backlog rides R11-13 release wave TODO_LIST:63 + TODO_LIST:426)
 
 ## g) QUESTIONS (cannot figure these out myself)
 
@@ -75,4 +75,4 @@
 
 ---
 
-*Receipts cited: chain log `build/verify-chain-20261108-232254.log` (40-attempt wait, coverage floors ALL hold, rc=12 retry live, package-surface rc=1 stop); verify-chain self-test 6/6; cqrs-vm 13.26s all-six-steps green; example standalone --build 5/5; lint-scope 4/4; art-dupl 0-new (no-accept-directives mode); proxy `.info` for system/v4.18.0; changelog-symbols 6 citations; modsum failure reproduced + named (tursoengine). NOT obtained: the full `#verify` green receipt (blocked on f-1/f-2 above), the aarch64-on-hardware proof, tomorrow's fuzz-nightly artifact.*
+_Receipts cited: chain log `build/verify-chain-20261108-232254.log` (40-attempt wait, coverage floors ALL hold, rc=12 retry live, package-surface rc=1 stop); verify-chain self-test 6/6; cqrs-vm 13.26s all-six-steps green; example standalone --build 5/5; lint-scope 4/4; art-dupl 0-new (no-accept-directives mode); proxy `.info` for system/v4.18.0; changelog-symbols 6 citations; modsum failure reproduced + named (tursoengine). NOT obtained: the full `#verify` green receipt (blocked on f-1/f-2 above), the aarch64-on-hardware proof, tomorrow's fuzz-nightly artifact._

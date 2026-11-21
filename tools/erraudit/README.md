@@ -19,8 +19,8 @@ and strips the SDK requires from go.mod. The script verifies the build
 against a COLD module cache before writing the tarball — the first
 (2026-10-15) tarball shipped pristine and failed CI exactly here.
 
-| File | Origin | SHA256 |
-| --- | --- | --- |
+| File                      | Origin                                                                                     | SHA256                                                             |
+| ------------------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------ |
 | `erraudit-v0.7.0-src.tgz` | `scripts/make-ci-tarball.sh v0.7.0` from `LarsArtmann/erraudit` (tag + portfolio detached) | `f726f94681da816ddbb3fab4a35f045da0efbc7cc7422dd4fd3be10b1aa46208` |
 
 ## Refresh (bump the pin)
@@ -52,4 +52,3 @@ go-error-family 6-family taxonomy, not per-function error types. Expect
 ~800 findings under `--max`; use `scripts/erraudit-sweep.sh` for gate
 parity. `--no-suppress` surfacing nothing is the honest-zero proof: there
 are zero `//nolint:legacyerrors` suppressions in the tree.
-

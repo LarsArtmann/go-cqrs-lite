@@ -2,7 +2,7 @@
 
 > **Date:** 2026-11-02 · **Status:** FINAL — input to [ADR-0163](../adr/0163-schema-compatibility-structural-differ-over-cue.md)
 > **Gate:** G0 of [`docs/planning/2026-11-02_05-31_SUPERB-catalog-cue-compat-and-unification-pareto-plan.md`](../planning/2026-11-02_05-31_SUPERB-catalog-cue-compat-and-unification-pareto-plan.md)
-> **Verdict:** **NO-GO** — every residual miss is a false *compatible*, the unsafe direction.
+> **Verdict:** **NO-GO** — every residual miss is a false _compatible_, the unsafe direction.
 > **Consumed by:** `catalog/compat/doc.go` (why the structural walk exists), ADR-0163.
 
 ## 1. The question
@@ -10,7 +10,7 @@
 `docs/SCHEMA-COMPATIBILITY.md` states a policy in prose: some payload-shape changes are additive
 (old events still decode), others owe an explicit op (`RenameField`, `RemoveField`, `Transform`).
 The repo had three partial answers — the prose policy, static ladder checks (cqrs-lint E021/E022),
-and `schema.EventSchema.Fingerprint` — and none can say whether a *specific* shape delta was
+and `schema.EventSchema.Fingerprint` — and none can say whether a _specific_ shape delta was
 additive or breaking. A fingerprint reports **that** a shape moved, never **how**.
 
 The plan's hypothesis was that CUE already answers this. `cue.Value.Subsume` documents exactly the
@@ -79,32 +79,32 @@ Twelve come straight from the policy's two tables. Twelve more stress the shapes
 as breaking but that a naive subtype check can miss: schema-closing, format changes, newly
 constrained array items, restructuring, and constraint additions.
 
-| # | Fixture | Policy class | Rationale |
-| --- | --- | --- | --- |
-| A1 | add optional field | additive | "Adding a field with a zero value" |
-| A2 | add optional nested field | additive | nested variant of A1 |
-| A3 | add field inside array items | additive | additive below a list |
-| A4 | widen `integer` → `number` | additive | "Widening an int field" |
-| A5 | add enum value | additive | widening a domain |
-| A6 | required becomes optional | additive | relaxing a requirement |
-| B1 | remove field | bump required | `RemoveField` owed |
-| B2 | rename field | bump required | `RenameField` owed |
-| B3 | change field type | bump required | `Transform` owed |
-| B4 | add required field | bump required | old writers cannot satisfy it |
-| B5 | narrow enum | bump required | narrowing a domain |
-| B6 | become non-nullable | bump required | null payloads now rejected |
-| H1 | close `additionalProperties` | bump required | old accepted unknown fields |
-| H2 | open `additionalProperties` | additive | new accepts a superset |
-| H3 | flatten restructure (`a.b` → `a_b`) | bump required | `Transform` owed |
-| H4 | add `pattern` | bump required | previously valid values may now fail |
-| H5 | relax `pattern` | additive | every old value still valid |
-| H6 | add `maxLength` | bump required | truncation boundary moved |
-| H7 | change `format` (`date-time` → `uuid`) | bump required | "Changing a field's type" |
-| H8 | become nullable | additive | widening |
-| H9 | add array `items` constraint | bump required | old elements may violate the new type |
-| H10 | add required next to existing | bump required | old writers may omit it |
-| H11 | nested remove field | bump required | nested `RemoveField` owed |
-| H12 | `int32` → `int64` | additive | "Widening an int field" |
+| #   | Fixture                                | Policy class  | Rationale                             |
+| --- | -------------------------------------- | ------------- | ------------------------------------- |
+| A1  | add optional field                     | additive      | "Adding a field with a zero value"    |
+| A2  | add optional nested field              | additive      | nested variant of A1                  |
+| A3  | add field inside array items           | additive      | additive below a list                 |
+| A4  | widen `integer` → `number`             | additive      | "Widening an int field"               |
+| A5  | add enum value                         | additive      | widening a domain                     |
+| A6  | required becomes optional              | additive      | relaxing a requirement                |
+| B1  | remove field                           | bump required | `RemoveField` owed                    |
+| B2  | rename field                           | bump required | `RenameField` owed                    |
+| B3  | change field type                      | bump required | `Transform` owed                      |
+| B4  | add required field                     | bump required | old writers cannot satisfy it         |
+| B5  | narrow enum                            | bump required | narrowing a domain                    |
+| B6  | become non-nullable                    | bump required | null payloads now rejected            |
+| H1  | close `additionalProperties`           | bump required | old accepted unknown fields           |
+| H2  | open `additionalProperties`            | additive      | new accepts a superset                |
+| H3  | flatten restructure (`a.b` → `a_b`)    | bump required | `Transform` owed                      |
+| H4  | add `pattern`                          | bump required | previously valid values may now fail  |
+| H5  | relax `pattern`                        | additive      | every old value still valid           |
+| H6  | add `maxLength`                        | bump required | truncation boundary moved             |
+| H7  | change `format` (`date-time` → `uuid`) | bump required | "Changing a field's type"             |
+| H8  | become nullable                        | additive      | widening                              |
+| H9  | add array `items` constraint           | bump required | old elements may violate the new type |
+| H10 | add required next to existing          | bump required | old writers may omit it               |
+| H11 | nested remove field                    | bump required | nested `RemoveField` owed             |
+| H12 | `int32` → `int64`                      | additive      | "Widening an int field"               |
 
 ## 4. Results
 
@@ -174,17 +174,17 @@ both false `compatible`.
 
 - **H7 change `format`.** `format` is not a CUE constraint. `jsonschema.Extract` does not encode
   `format` as a validation the subsume checker can compare; `date-time` and `uuid` are both plain
-  `string` in the extracted value, so the pair is indistinguishable *by construction*. The policy is
+  `string` in the extracted value, so the pair is indistinguishable _by construction_. The policy is
   explicit — "Changing a field's type" owes `Transform` — so this is a policy row CUE cannot see.
 - **H9 add array `items` constraint.** An unconstrained CUE list (`[...]`) subsumes a constrained one
-  (`[...string]`) under `Subsume`, so widening *items* is reported as additive. This is CUE's list
+  (`[...string]`) under `Subsume`, so widening _items_ is reported as additive. This is CUE's list
   semantics, not a misconfiguration.
 
 Both rows are first-class in this repo's own model: `catalog/schema.Property` carries `Format`,
 `Items`, `Pattern`, and `Enum` as inspectable fields. The structural walk sees them directly.
 
 **5.3 The "obvious" option is the worst one.** `cue.Final()` sounds like the right reading — it
-treats the old value as closed, which is what a released payload schema *is* — and it collapses to
+treats the old value as closed, which is what a released payload schema _is_ — and it collapses to
 16/24, turning `remove field`, `rename field`, and `add required field` into **compatible**. That is
 precisely backwards: those are the three rows the policy spends an op on.
 
@@ -194,7 +194,7 @@ precisely backwards: those are the three rows the policy spends an op on.
 **5.5 The shipped differ, measured on the same 21 rows.** For comparison, `catalog/compat` scores
 **21/21** on the representable fixtures, with **zero false `compatible`** results. Pinned by
 `catalog/compat/spike_parity_test.go`. Reaching 21/21 required one fix that the spike surfaced: a
-widened integer *format* (`int32` → `int64`) was being reported as needing an op because the differ
+widened integer _format_ (`int32` → `int64`) was being reported as needing an op because the differ
 treated every `Format` change generically. The policy's own "Widening an int field" row says it is
 additive, so `diffFormat` now orders the known integer widths and only forgives widening; narrowing
 (`int64` → `int32`) and unbounded → bounded still block. That is the whole argument in miniature: the

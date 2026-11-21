@@ -258,7 +258,7 @@ session with this outcome, see g) Q3).
 28. AGENTS.md gotchas (language): json/v2 map-order non-determinism +
     `json.Deterministic(true)` — cross-project Go footgun.
 29. LSM pins: MapUpdate re-encode pins for pebble/bbolt/badger (only MapSet
-    + stream pinned so far).
+    - stream pinned so far).
 30. LSM pins: byte-LEVEL stream pins (current pebble stream pin is
     decode-level; needs raw stream-key access — internal test package or
     a RawStreamReader test hook).
@@ -323,6 +323,6 @@ session with this outcome, see g) Q3).
 
 ---
 
-*Evidence index: plan §11 entries dated 2026-10-25 (afternoon + cont.);
+_Evidence index: plan §11 entries dated 2026-10-25 (afternoon + cont.);
 gate receipts inline above; all mutation artifacts restored byte-identical
-(`git status` clean at close).*
+(`git status` clean at close)._

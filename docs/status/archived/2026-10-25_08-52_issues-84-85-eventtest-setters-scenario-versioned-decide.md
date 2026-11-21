@@ -63,26 +63,26 @@ All items below are implemented, tested, and gate-verified in the working tree. 
 
 ## f) Next tasks (ranked; feeds docs-health HARVEST — deferred per user instruction)
 
-| # | Task | Impact | Effort | Category |
-|---|------|--------|--------|----------|
-| 1 | Tag-release wave: `scenario` + `eventtest` (+ `versions.json` refresh); run per-module test suites over the changed set FIRST (batch-release verify=ok does not test) | Critical | M | Release |
-| 2 | Post terse close-out comments + close #84/#85 | High | S | Process |
-| 3 | InboxClean: delete `errLoader`, drive ReadAll-failure test via `eventtest.FakeStore.ReadAllFn` | High | S | Cleanup |
-| 4 | InboxClean: delete `adaptDecide`/`adaptLabelDecide`, pass domain decides to `scenario.WhenVersioned` | High | S | Cleanup |
-| 5 | Fix `#check-file-size`: split `metaengine/layout.go` (360 → under 350) | High | M | Quality |
-| 6 | Fix `#check-file-size`: split `system/adapter_event.go` (352 → under 350) | High | M | Quality |
-| 7 | Decide + handle `scheduling/sqlstore/store.go` (382): baseline entry (v5-doomed file) vs split — needs owner call (g-3) | Medium | S/M | Quality |
-| 8 | One green chained `#verify-fast` under `#quiet-window-run` (close out b-1) | High | M | Verification |
-| 9 | Full-repo `-race` sweep under quiet load (close out b-4) | Medium | L | Verification |
-| 10 | HARVEST this section into TODO_LIST.md (docs-health) | High | S | Documentation |
-| 11 | Root-cause the 91-module go.sum drift: which wave/tool skipped tidy; add fast-fail-all gate or wave-script step | Medium | M | Quality |
-| 12 | Make `TestEveryModuleGoSumIsTidy` list ALL untidy modules in one failure | Low | S | Quality |
-| 13 | Add `wsl_v5` blank-line rule note to gotchas-language-footguns.md (if missing) | Low | S | Documentation |
-| 14 | Verify gotchas-testing.md documents the systemscenario/systemtest `context deadline exceeded`-under-load flake class; add cure note if missing | Low | S | Documentation |
-| 15 | Consider a recipes.md or core.md §testing mention of `WhenVersioned` for version-stamping BDD scenarios (modules.md row exists; recipes currently silent) | Low | S | Documentation |
-| 16 | Confirm eventtest v0.x tag strategy at release time (modules.md records the v4.x tags of the `event/v4/eventtest` path as DEAD/proxy-invisible; InboxClean pins v0.4.0 — the v0.x series is the live one) | Medium | S | Release |
-| 17 | InboxClean ADR-027 cutover to `systemscenario` (their plan; spike already 12/12 green) | Medium | L | Feature |
-| 18 | After tags: run `cqrs-upgrade` dry-run against InboxClean to validate the wave landed cleanly for a real consumer | Low | S | Verification |
+| #  | Task                                                                                                                                                                                                      | Impact   | Effort | Category      |
+| -- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------ | ------------- |
+| 1  | Tag-release wave: `scenario` + `eventtest` (+ `versions.json` refresh); run per-module test suites over the changed set FIRST (batch-release verify=ok does not test)                                     | Critical | M      | Release       |
+| 2  | Post terse close-out comments + close #84/#85                                                                                                                                                             | High     | S      | Process       |
+| 3  | InboxClean: delete `errLoader`, drive ReadAll-failure test via `eventtest.FakeStore.ReadAllFn`                                                                                                            | High     | S      | Cleanup       |
+| 4  | InboxClean: delete `adaptDecide`/`adaptLabelDecide`, pass domain decides to `scenario.WhenVersioned`                                                                                                      | High     | S      | Cleanup       |
+| 5  | Fix `#check-file-size`: split `metaengine/layout.go` (360 → under 350)                                                                                                                                    | High     | M      | Quality       |
+| 6  | Fix `#check-file-size`: split `system/adapter_event.go` (352 → under 350)                                                                                                                                 | High     | M      | Quality       |
+| 7  | Decide + handle `scheduling/sqlstore/store.go` (382): baseline entry (v5-doomed file) vs split — needs owner call (g-3)                                                                                   | Medium   | S/M    | Quality       |
+| 8  | One green chained `#verify-fast` under `#quiet-window-run` (close out b-1)                                                                                                                                | High     | M      | Verification  |
+| 9  | Full-repo `-race` sweep under quiet load (close out b-4)                                                                                                                                                  | Medium   | L      | Verification  |
+| 10 | HARVEST this section into TODO_LIST.md (docs-health)                                                                                                                                                      | High     | S      | Documentation |
+| 11 | Root-cause the 91-module go.sum drift: which wave/tool skipped tidy; add fast-fail-all gate or wave-script step                                                                                           | Medium   | M      | Quality       |
+| 12 | Make `TestEveryModuleGoSumIsTidy` list ALL untidy modules in one failure                                                                                                                                  | Low      | S      | Quality       |
+| 13 | Add `wsl_v5` blank-line rule note to gotchas-language-footguns.md (if missing)                                                                                                                            | Low      | S      | Documentation |
+| 14 | Verify gotchas-testing.md documents the systemscenario/systemtest `context deadline exceeded`-under-load flake class; add cure note if missing                                                            | Low      | S      | Documentation |
+| 15 | Consider a recipes.md or core.md §testing mention of `WhenVersioned` for version-stamping BDD scenarios (modules.md row exists; recipes currently silent)                                                 | Low      | S      | Documentation |
+| 16 | Confirm eventtest v0.x tag strategy at release time (modules.md records the v4.x tags of the `event/v4/eventtest` path as DEAD/proxy-invisible; InboxClean pins v0.4.0 — the v0.x series is the live one) | Medium   | S      | Release       |
+| 17 | InboxClean ADR-027 cutover to `systemscenario` (their plan; spike already 12/12 green)                                                                                                                    | Medium   | L      | Feature       |
+| 18 | After tags: run `cqrs-upgrade` dry-run against InboxClean to validate the wave landed cleanly for a real consumer                                                                                         | Low      | S      | Verification  |
 
 ## g) Questions I cannot answer myself
 
@@ -94,4 +94,4 @@ All items below are implemented, tested, and gate-verified in the working tree. 
 
 **Session verdict:** Both issues fully implemented and gate-verified; the library-side work is DONE pending tags. The pre-existing master debt (file-size gate red, go.sum drift source, load flake) is documented above and deliberately not bundled.
 
-*Report format: Markdown per explicit user path demand (skill default HTML overridden; flagged, not propagated). HARVEST into TODO_LIST deferred — user instructed WAIT after writing.*
+_Report format: Markdown per explicit user path demand (skill default HTML overridden; flagged, not propagated). HARVEST into TODO_LIST deferred — user instructed WAIT after writing._

@@ -11,11 +11,11 @@ applied require would not resolve.
 
 ## Receipts
 
-| Repo        | Modules | Go files scanned | Planned import rewrites | Distinct not-yet-folded trains |
-| ----------- | ------- | ---------------- | ----------------------- | ------------------------------ |
-| cqrs-htmx   | 29      | 1,413            | 1,000                   | 32                             |
-| go-appkit   | 12      | 308              | 84                      | 13                             |
-| bank-sync   | 5       | 459              | 137                     | 20                             |
+| Repo      | Modules | Go files scanned | Planned import rewrites | Distinct not-yet-folded trains |
+| --------- | ------- | ---------------- | ----------------------- | ------------------------------ |
+| cqrs-htmx | 29      | 1,413            | 1,000                   | 32                             |
+| go-appkit | 12      | 308              | 84                      | 13                             |
+| bank-sync | 5       | 459              | 137                     | 20                             |
 
 Full per-module reports are re-derivable at any time by rerunning the command
 above; the numbers here are their aggregates (session-captured in ephemeral

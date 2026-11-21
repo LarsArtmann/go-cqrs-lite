@@ -84,4 +84,5 @@ M05 (push + CI-green receipt), M06 (changed-set per-module tests + census), M07 
 3. **Foreign go.mod floors:** the sweep wrote patch-form `go 1.27.2` directives into module go.mod files (metaengine confirmed; likely fleet-wide) where the repo contract since the 92-tag wave is minor-form `go 1.27` (AGENTS contract 10; `check-go-version.sh` polices the floor + lockstep). Normalize back to minor-form before the tag wave (my read: yes — but it is another session's in-flight work and reverting it under them could break their sweep), or leave it for the sweep session to reconcile?
 
 ---
-*Receipts: this report's "done" claims are each backed by a green command run this session (tests, gates, self-tests); logs under `build/`. Watcher: PID live, `build/verify-launch-14.out` trail, monitor job armed on `build/verify-run14.rc`.*
+
+_Receipts: this report's "done" claims are each backed by a green command run this session (tests, gates, self-tests); logs under `build/`. Watcher: PID live, `build/verify-launch-14.out` trail, monitor job armed on `build/verify-run14.rc`._

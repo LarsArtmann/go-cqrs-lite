@@ -10,13 +10,13 @@
 
 ## Executive summary
 
-Recipes.md gained **§2.47 "Bind a system Query to an HTTP endpoint — ETag, Server-Timing, safe errors"**: a mistakes table, a copy-once ~60-line `httpx` helper (decode → typed dispatch → deterministic encode → content-hash ETag/304 → Server-Timing phase → errorfamily safe errors), and usage fences for JSON, CBOR, and full server assembly. To make that *superbly* documented by this repo's standard (compile-verified, not prose-only), the recipe compile harness was extended with pinned external requires, and a latent `splitTypeDecls` bug (generic multi-line signatures) was fixed. All gates green — with **one factual error in my closing summary** (see §d) and **runtime behavior never executed** (see §e).
+Recipes.md gained **§2.47 "Bind a system Query to an HTTP endpoint — ETag, Server-Timing, safe errors"**: a mistakes table, a copy-once ~60-line `httpx` helper (decode → typed dispatch → deterministic encode → content-hash ETag/304 → Server-Timing phase → errorfamily safe errors), and usage fences for JSON, CBOR, and full server assembly. To make that _superbly_ documented by this repo's standard (compile-verified, not prose-only), the recipe compile harness was extended with pinned external requires, and a latent `splitTypeDecls` bug (generic multi-line signatures) was fixed. All gates green — with **one factual error in my closing summary** (see §d) and **runtime behavior never executed** (see §e).
 
 Stat cards:
 
-| FULLY DONE | PARTIALLY DONE | NOT STARTED | TOTALLY FUCKED UP |
-| --- | --- | --- | --- |
-| 8 | 6 | 9 | 0 catastrophic · 3 sloppy |
+| FULLY DONE | PARTIALLY DONE | NOT STARTED | TOTALLY FUCKED UP         |
+| ---------- | -------------- | ----------- | ------------------------- |
+| 8          | 6              | 9           | 0 catastrophic · 3 sloppy |
 
 ---
 
@@ -78,6 +78,7 @@ Also on the table, honestly: I changed CI-adjacent tooling (the compile gate's d
 > Brainstorm, not commitment (per skill: most are ROADMAP fuel; HARVEST routes them).
 
 **Immediate hygiene (this week):**
+
 1. Harvest this list into TODO_LIST.md (docs-health HARVEST).
 2. CHANGELOG `[Unreleased]` row for §2.47 + run `check-changelog-symbols`.
 3. AGENTS.md gotchas: external-require pins; splitTypeDecls signature mode; doc-check external-alias skip; `go-etag/server` (not root) import rule.
@@ -147,4 +148,4 @@ Also on the table, honestly: I changed CI-adjacent tooling (the compile gate's d
 
 ---
 
-*Point-in-time snapshot 2026-10-15 03:01 CEST. Section (f) is the primary input for docs-health HARVEST — it should land in TODO_LIST.md/ROADMAP.md, not stay entombed here.*
+_Point-in-time snapshot 2026-10-15 03:01 CEST. Section (f) is the primary input for docs-health HARVEST — it should land in TODO_LIST.md/ROADMAP.md, not stay entombed here._

@@ -31,7 +31,7 @@ What is **not** done is everything that makes the new behavior hard to break aga
 
 ### The 1% that delivers 51%: make the risky mechanism provable, then ship
 
-1. **Replay + edge pins for `encodedPayload`.** The marker is an unexported type crossing the public `EventInput.Payload any` boundary. `Verify`, `Backfill`, `DemoteEngine` catch-up and `failover.go` pass it through `Apply`/`dispatchFolds`, which the type switch handles — *reasoned, never executed*. If replay were wrong, projections rebuild wrong and nobody notices until a failover. Nothing else in this plan matters as much.
+1. **Replay + edge pins for `encodedPayload`.** The marker is an unexported type crossing the public `EventInput.Payload any` boundary. `Verify`, `Backfill`, `DemoteEngine` catch-up and `failover.go` pass it through `Apply`/`dispatchFolds`, which the type switch handles — _reasoned, never executed_. If replay were wrong, projections rebuild wrong and nobody notices until a failover. Nothing else in this plan matters as much.
 2. **Deliver what already works.** Master is pushable again; an unshipped fix is a fix that does not exist.
 
 ### The 4% that delivers 64%: prevent silent regressions
@@ -64,29 +64,29 @@ What is **not** done is everything that makes the new behavior hard to break aga
 
 Sorted by importance × impact / effort, then dependency order. `CV` = customer value. `Wave` = execution grouping.
 
-| #   | Task                                                                                                         | Why it matters                                                                    | Effort | Priority | CV     | Wave |
-| --- | ------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------- | ------ | -------- | ------ | ---- |
-| T1  | Replay + edge pins for `encodedPayload` (Verify, Backfill, record-sniff, lying stamp, empty/unknown, []byte)   | The marker crosses a public `any`; replay correctness is the whole point           | 100m   | P0       | High   | 1    |
-| T2  | Stored-bytes pin: JSON `ApplyEncoded` leaves EventLog payload + engine rows byte-identical                    | Turns "no format change" from an argument into a test                              | 60m    | P0       | High   | 1    |
-| T3  | ADR-0161: encoded ingress decodes with the producer's codec (schema-free transcode rejected)                  | Records the reversal of ADR-0062/0066's codec silence; stops re-litigation         | 60m    | P0       | High   | 1    |
-| T4  | Deliver Scope A (fmt, targeted tests, commit, push)                                                           | An unshipped fix does not exist                                                   | 30m    | P0       | High   | 1    |
-| T5  | Shared `EncodeStreamValuesErr([]any)` + migration of the 4 engine write paths                                 | Removes 4× duplicated encode block and the context-string drift                    | 90m    | P1       | Medium | 2    |
-| T6  | Per-engine write-path error tests (unrepresentable value must fail, not store "")                             | Proves the migrated call sites actually propagate                                  | 60m    | P1       | High   | 2    |
-| T7  | `system`-level nil-decoder proof: CBOR event → read model through `system.New`                                | The delegation path is production-shaped and only unit-tested today                | 60m    | P1       | High   | 2    |
-| T8  | Corruption-family assertion through `ApplyError` + error-message contract test                                 | A refactor could silently downgrade a deterministic failure to Transient            | 30m    | P1       | Medium | 2    |
-| T9  | `AutoDetect` payload-shape matrix (map/array/text/int/float/bool/null) + `encodePayload` fuzz                  | The sniff is a heuristic; untested shapes are silent failure modes                 | 45m    | P1       | High   | 2    |
-| T10 | Benchmark: `ApplyEncoded` JSON vs CBOR vs `Apply(struct)` (ns/op, allocs) and record the numbers               | The new reflect path must be a measurement, not a worry                            | 60m    | P2       | Medium | 3    |
-| T11 | Docs finish: COOKBOOK codec contract, FAQ cross-link, projectionadapter surface                               | Consumers read COOKBOOK; it says nothing about encodings                           | 60m    | P2       | Medium | 3    |
-| T12 | Read-side `DecodeStreamValue` decision: additive `DecodeStreamValueOk` or documented migration plan           | 11 read sites still hide corruption behind a raw-string fallback                   | 60m    | P2       | Medium | 4    |
-| T13 | `sqliteengine/encoding.go` `fmt.Sprintf("%v")` fallback: fix or row it with evidence                          | Same silent-loss class, one module over                                            | 45m    | P2       | Medium | 4    |
-| T14 | `go-error-family 0.11 → 0.12` review + CHANGELOG note                                                         | The bump was forced by go-codec; nobody reviewed the delta                         | 45m    | P2       | Low    | 4    |
-| T15 | Full gate matrix: `#verify-fast`, repo `#lint`, `#check-coverage`, `#check-modsums`                          | Closes the "targeted subset" gap from the last session                             | 90m    | P1       | High   | 4    |
-| T16 | Stamped engine-value envelope spike (ADR-0066 reversal): design + cost, no code                                        | The deferred question that decides whether `reify` survives                          | 100m   | P3       | Low    | 5    |
-| T17 | Custom/encrypted codec scope decision for read-model values                                                   | Owner-gated; affects the envelope design                                           | 60m    | P3       | Low    | 5    |
-| T18 | Unify the two pipeline markers (`jsontext.Value` + `encodedPayload`)                                          | Two markers are a future split brain; needs a compat story first                   | 90m    | P3       | Low    | 5    |
-| T19 | Export an `EncodedPayload` constructor for external raw-CBOR replay                                          | Only if a consumer needs it; today nobody does                                     | 45m    | P3       | Low    | 5    |
-| T20 | Fleet benchmark of the encoded ingress across engines                                                         | Useful, but only after T10 exists                                                  | 60m    | P3       | Low    | 5    |
-| T21 | Harvest this plan into `TODO_LIST.md` (docs-health HARVEST)                                                   | The living backlog, not the snapshot, is the source of truth                       | 30m    | P2       | Medium | 4    |
+| #   | Task                                                                                                         | Why it matters                                                             | Effort | Priority | CV     | Wave |
+| --- | ------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------- | ------ | -------- | ------ | ---- |
+| T1  | Replay + edge pins for `encodedPayload` (Verify, Backfill, record-sniff, lying stamp, empty/unknown, []byte) | The marker crosses a public `any`; replay correctness is the whole point   | 100m   | P0       | High   | 1    |
+| T2  | Stored-bytes pin: JSON `ApplyEncoded` leaves EventLog payload + engine rows byte-identical                   | Turns "no format change" from an argument into a test                      | 60m    | P0       | High   | 1    |
+| T3  | ADR-0161: encoded ingress decodes with the producer's codec (schema-free transcode rejected)                 | Records the reversal of ADR-0062/0066's codec silence; stops re-litigation | 60m    | P0       | High   | 1    |
+| T4  | Deliver Scope A (fmt, targeted tests, commit, push)                                                          | An unshipped fix does not exist                                            | 30m    | P0       | High   | 1    |
+| T5  | Shared `EncodeStreamValuesErr([]any)` + migration of the 4 engine write paths                                | Removes 4× duplicated encode block and the context-string drift            | 90m    | P1       | Medium | 2    |
+| T6  | Per-engine write-path error tests (unrepresentable value must fail, not store "")                            | Proves the migrated call sites actually propagate                          | 60m    | P1       | High   | 2    |
+| T7  | `system`-level nil-decoder proof: CBOR event → read model through `system.New`                               | The delegation path is production-shaped and only unit-tested today        | 60m    | P1       | High   | 2    |
+| T8  | Corruption-family assertion through `ApplyError` + error-message contract test                               | A refactor could silently downgrade a deterministic failure to Transient   | 30m    | P1       | Medium | 2    |
+| T9  | `AutoDetect` payload-shape matrix (map/array/text/int/float/bool/null) + `encodePayload` fuzz                | The sniff is a heuristic; untested shapes are silent failure modes         | 45m    | P1       | High   | 2    |
+| T10 | Benchmark: `ApplyEncoded` JSON vs CBOR vs `Apply(struct)` (ns/op, allocs) and record the numbers             | The new reflect path must be a measurement, not a worry                    | 60m    | P2       | Medium | 3    |
+| T11 | Docs finish: COOKBOOK codec contract, FAQ cross-link, projectionadapter surface                              | Consumers read COOKBOOK; it says nothing about encodings                   | 60m    | P2       | Medium | 3    |
+| T12 | Read-side `DecodeStreamValue` decision: additive `DecodeStreamValueOk` or documented migration plan          | 11 read sites still hide corruption behind a raw-string fallback           | 60m    | P2       | Medium | 4    |
+| T13 | `sqliteengine/encoding.go` `fmt.Sprintf("%v")` fallback: fix or row it with evidence                         | Same silent-loss class, one module over                                    | 45m    | P2       | Medium | 4    |
+| T14 | `go-error-family 0.11 → 0.12` review + CHANGELOG note                                                        | The bump was forced by go-codec; nobody reviewed the delta                 | 45m    | P2       | Low    | 4    |
+| T15 | Full gate matrix: `#verify-fast`, repo `#lint`, `#check-coverage`, `#check-modsums`                          | Closes the "targeted subset" gap from the last session                     | 90m    | P1       | High   | 4    |
+| T16 | Stamped engine-value envelope spike (ADR-0066 reversal): design + cost, no code                              | The deferred question that decides whether `reify` survives                | 100m   | P3       | Low    | 5    |
+| T17 | Custom/encrypted codec scope decision for read-model values                                                  | Owner-gated; affects the envelope design                                   | 60m    | P3       | Low    | 5    |
+| T18 | Unify the two pipeline markers (`jsontext.Value` + `encodedPayload`)                                         | Two markers are a future split brain; needs a compat story first           | 90m    | P3       | Low    | 5    |
+| T19 | Export an `EncodedPayload` constructor for external raw-CBOR replay                                          | Only if a consumer needs it; today nobody does                             | 45m    | P3       | Low    | 5    |
+| T20 | Fleet benchmark of the encoded ingress across engines                                                        | Useful, but only after T10 exists                                          | 60m    | P3       | Low    | 5    |
+| T21 | Harvest this plan into `TODO_LIST.md` (docs-health HARVEST)                                                  | The living backlog, not the snapshot, is the source of truth               | 30m    | P2       | Medium | 4    |
 
 **Wave map:** Wave 1 = T1–T4 (ship), Wave 2 = T5–T9 (harden), Wave 3 = T10–T11 (measure + document), Wave 4 = T12–T15 + T21 (close the gaps), Wave 5 = T16–T20 (owner-gated).
 
@@ -94,80 +94,80 @@ Sorted by importance × impact / effort, then dependency order. `CV` = customer 
 
 ## 4. Micro-task plan (max 12 minutes each)
 
-| ID    | Task                                                                                  | Parent | Est. |
-| ----- | ------------------------------------------------------------------------------------- | ------ | ---- |
-| T1.1  | Read `TestEventLog_ReplayAndVerify` + `Backfill` fixtures to copy the harness shape     | T1     | 8m   |
-| T1.2  | Write replay test: CBOR `ApplyEncoded` + `WithEventLog` + `Verify`                     | T1     | 12m  |
-| T1.3  | Write replay test: `Backfill`/`DemoteEngine` path carries the marker                    | T1     | 12m  |
-| T1.4  | Write record-sniff test (`EncodingUnknown` + CBOR through `ApplyEncodedRecord`)         | T1     | 8m   |
-| T1.5  | Write lying-stamp test (JSON stamp + CBOR bytes → Corruption)                           | T1     | 8m   |
-| T1.6  | Write empty-payload + unknown-codec family assertions                                   | T1     | 8m   |
-| T1.7  | Write `[]byte`-sample fold test (raw CBOR bytes delivered)                              | T1     | 8m   |
-| T1.8  | Run the new specs, fix only genuine failures                                            | T1     | 10m  |
-| T2.1  | Read the EventLog payload accessors + memory engine row API                             | T2     | 8m   |
-| T2.2  | Capture pre-change bytes for a fixed JSON payload into a golden file                    | T2     | 10m  |
-| T2.3  | Assert EventLog payload bytes unchanged after `ApplyEncoded`                            | T2     | 8m   |
-| T2.4  | Assert memory-engine row value bytes unchanged for the same payload                     | T2     | 10m  |
-| T2.5  | Mutation-verify the pin (break the marker path, see red, restore)                       | T2     | 10m  |
-| T3.1  | Read ADR-0062 + ADR-0066 + the ADR index conventions                                    | T3     | 10m  |
-| T3.2  | Run `check-adr-numbering` before writing (claim 0161)                                   | T3     | 4m   |
-| T3.3  | Draft the ADR: context, decision, alternatives (transcode rejected), consequences         | T3     | 12m  |
-| T3.4  | Add the ADR index row + link from the codec docs                                        | T3     | 8m   |
-| T3.5  | Run `check-adr-numbering` after writing                                                 | T3     | 4m   |
-| T4.1  | `nix fmt` on changed files (treefmt)                                                    | T4     | 8m   |
-| T4.2  | Run metaengine + projectionadapter + system suites                                      | T4     | 12m  |
-| T4.3  | Stage only this plan's files; verify no foreign file is staged                          | T4     | 6m   |
-| T4.4  | Commit with a detailed message                                                          | T4     | 6m   |
-| T4.5  | Push master; verify `origin/master` == HEAD                                             | T4     | 5m   |
-| T5.1  | Design the helper signature (`[]any → []string, error`, label parameter)                 | T5     | 8m   |
-| T5.2  | Implement + unit-test the helper in `metaengine/stream_codec.go`                        | T5     | 12m  |
-| T5.3  | Migrate pg `copyAppend`                                                                | T5     | 8m   |
-| T5.4  | Migrate pg `streamInsertBatch`                                                         | T5     | 8m   |
-| T5.5  | Migrate duckdb (2 sites)                                                               | T5     | 10m  |
-| T5.6  | Migrate mysql (2 sites)                                                                | T5     | 10m  |
-| T5.7  | Migrate dgraph (2 sites)                                                               | T5     | 10m  |
-| T5.8  | Build all 4 engine modules                                                             | T5     | 8m   |
-| T6.1  | Design the per-engine test shape (unrepresentable value via `StreamAppend`)             | T6     | 8m   |
-| T6.2  | Add the pg test (unit-level, no live DB needed if the encode fails first)               | T6     | 10m  |
-| T6.3  | Add the duckdb test                                                                     | T6     | 10m  |
-| T6.4  | Add the mysql test                                                                      | T6     | 10m  |
-| T6.5  | Add the dgraph test                                                                     | T6     | 10m  |
-| T6.6  | Run the four module suites `-short`                                                     | T6     | 12m  |
-| T7.1  | Read `system/projection_wiring.go` + an existing system projection test                 | T7     | 10m  |
-| T7.2  | Write the CBOR-event/no-decoder system test                                             | T7     | 12m  |
-| T7.3  | Prove it fails if the adapter delegation is reverted (mutation)                         | T7     | 10m  |
-| T7.4  | Run system `-short`                                                                     | T7     | 8m   |
-| T8.1  | Assert the family via `errors.Is`/`errorfamily` classification through `ApplyError`      | T8     | 10m  |
-| T8.2  | Assert the stable message prefix (`decode <type>`)                                      | T8     | 8m   |
-| T8.3  | Run the metaengine codec specs                                                          | T8     | 6m   |
-| T9.1  | Table-drive `AutoDetect` over 7 CBOR shapes + 4 JSON shapes                             | T9     | 12m  |
-| T9.2  | Add `encodePayload` fuzz target (arbitrary bytes: JSON marker or Corruption, never panic) | T9   | 12m  |
-| T9.3  | Run fuzz for a bounded time and record the result                                       | T9     | 8m   |
-| T10.1 | Read `metaengine/encoded_bench_test.go` for the existing harness                         | T10    | 8m   |
-| T10.2 | Add JSON vs CBOR vs `Apply` benchmarks                                                  | T10    | 12m  |
-| T10.3 | Run with `-benchtime` fixed and record ns/op + allocs                                    | T10    | 10m  |
-| T10.4 | Write the numbers into the plan/README                                                  | T10    | 8m   |
-| T11.1 | Read `metaengine/COOKBOOK.md` structure                                                 | T11    | 8m   |
-| T11.2 | Add the codec contract section (JSON/CBOR, stamps, custom codecs out of scope)           | T11    | 12m  |
-| T11.3 | Cross-link the FAQ entries (CBOR/DLQ ↔ time.Time drift)                                  | T11    | 6m   |
-| T11.4 | Note the delegation contract on the projectionadapter surface                            | T11    | 8m   |
-| T11.5 | Run `cmd/doc-check` on the touched docs                                                  | T11    | 10m  |
-| T12.1 | Inventory the 11 `DecodeStreamValue` call sites and classify each                        | T12    | 12m  |
-| T12.2 | Decide additive `DecodeStreamValueOk` vs a documented migration plan                     | T12    | 8m   |
-| T12.3 | Implement or write the plan section, with tests                                           | T12    | 12m  |
-| T13.1 | Read `metaengine/sqliteengine/encoding.go` and its callers                               | T13    | 8m   |
-| T13.2 | Fix the fallback to return an error, or row it with evidence                             | T13    | 12m  |
-| T13.3 | Run sqliteengine `-short`                                                                | T13    | 8m   |
-| T14.1 | Diff error-family v0.11.0 vs v0.12.0 release notes                                       | T14    | 10m  |
-| T14.2 | Add the CHANGELOG note if the bump changes behavior                                      | T14    | 8m   |
-| T15.1 | `nix run .#verify-fast`                                                                  | T15    | 12m  |
-| T15.2 | `nix run .#lint`                                                                         | T15    | 12m  |
-| T15.3 | `nix run .#check-coverage`                                                               | T15    | 12m  |
-| T15.4 | `nix run .#check-modsums`                                                                | T15    | 12m  |
-| T15.5 | Record every red, classified mine vs foreign                                              | T15    | 8m   |
-| T16–T20 | Spike/decision tasks (owner-gated; see §7)                                             | §7     | 12m each |
-| T21.1 | Harvest Scope B/C rows into `TODO_LIST.md` (only when the file is clean)                 | T21    | 12m  |
-| T21.2 | Verify the TODO_LIST diff contains only my rows                                          | T21    | 6m   |
+| ID      | Task                                                                                      | Parent | Est.     |
+| ------- | ----------------------------------------------------------------------------------------- | ------ | -------- |
+| T1.1    | Read `TestEventLog_ReplayAndVerify` + `Backfill` fixtures to copy the harness shape       | T1     | 8m       |
+| T1.2    | Write replay test: CBOR `ApplyEncoded` + `WithEventLog` + `Verify`                        | T1     | 12m      |
+| T1.3    | Write replay test: `Backfill`/`DemoteEngine` path carries the marker                      | T1     | 12m      |
+| T1.4    | Write record-sniff test (`EncodingUnknown` + CBOR through `ApplyEncodedRecord`)           | T1     | 8m       |
+| T1.5    | Write lying-stamp test (JSON stamp + CBOR bytes → Corruption)                             | T1     | 8m       |
+| T1.6    | Write empty-payload + unknown-codec family assertions                                     | T1     | 8m       |
+| T1.7    | Write `[]byte`-sample fold test (raw CBOR bytes delivered)                                | T1     | 8m       |
+| T1.8    | Run the new specs, fix only genuine failures                                              | T1     | 10m      |
+| T2.1    | Read the EventLog payload accessors + memory engine row API                               | T2     | 8m       |
+| T2.2    | Capture pre-change bytes for a fixed JSON payload into a golden file                      | T2     | 10m      |
+| T2.3    | Assert EventLog payload bytes unchanged after `ApplyEncoded`                              | T2     | 8m       |
+| T2.4    | Assert memory-engine row value bytes unchanged for the same payload                       | T2     | 10m      |
+| T2.5    | Mutation-verify the pin (break the marker path, see red, restore)                         | T2     | 10m      |
+| T3.1    | Read ADR-0062 + ADR-0066 + the ADR index conventions                                      | T3     | 10m      |
+| T3.2    | Run `check-adr-numbering` before writing (claim 0161)                                     | T3     | 4m       |
+| T3.3    | Draft the ADR: context, decision, alternatives (transcode rejected), consequences         | T3     | 12m      |
+| T3.4    | Add the ADR index row + link from the codec docs                                          | T3     | 8m       |
+| T3.5    | Run `check-adr-numbering` after writing                                                   | T3     | 4m       |
+| T4.1    | `nix fmt` on changed files (treefmt)                                                      | T4     | 8m       |
+| T4.2    | Run metaengine + projectionadapter + system suites                                        | T4     | 12m      |
+| T4.3    | Stage only this plan's files; verify no foreign file is staged                            | T4     | 6m       |
+| T4.4    | Commit with a detailed message                                                            | T4     | 6m       |
+| T4.5    | Push master; verify `origin/master` == HEAD                                               | T4     | 5m       |
+| T5.1    | Design the helper signature (`[]any → []string, error`, label parameter)                  | T5     | 8m       |
+| T5.2    | Implement + unit-test the helper in `metaengine/stream_codec.go`                          | T5     | 12m      |
+| T5.3    | Migrate pg `copyAppend`                                                                   | T5     | 8m       |
+| T5.4    | Migrate pg `streamInsertBatch`                                                            | T5     | 8m       |
+| T5.5    | Migrate duckdb (2 sites)                                                                  | T5     | 10m      |
+| T5.6    | Migrate mysql (2 sites)                                                                   | T5     | 10m      |
+| T5.7    | Migrate dgraph (2 sites)                                                                  | T5     | 10m      |
+| T5.8    | Build all 4 engine modules                                                                | T5     | 8m       |
+| T6.1    | Design the per-engine test shape (unrepresentable value via `StreamAppend`)               | T6     | 8m       |
+| T6.2    | Add the pg test (unit-level, no live DB needed if the encode fails first)                 | T6     | 10m      |
+| T6.3    | Add the duckdb test                                                                       | T6     | 10m      |
+| T6.4    | Add the mysql test                                                                        | T6     | 10m      |
+| T6.5    | Add the dgraph test                                                                       | T6     | 10m      |
+| T6.6    | Run the four module suites `-short`                                                       | T6     | 12m      |
+| T7.1    | Read `system/projection_wiring.go` + an existing system projection test                   | T7     | 10m      |
+| T7.2    | Write the CBOR-event/no-decoder system test                                               | T7     | 12m      |
+| T7.3    | Prove it fails if the adapter delegation is reverted (mutation)                           | T7     | 10m      |
+| T7.4    | Run system `-short`                                                                       | T7     | 8m       |
+| T8.1    | Assert the family via `errors.Is`/`errorfamily` classification through `ApplyError`       | T8     | 10m      |
+| T8.2    | Assert the stable message prefix (`decode <type>`)                                        | T8     | 8m       |
+| T8.3    | Run the metaengine codec specs                                                            | T8     | 6m       |
+| T9.1    | Table-drive `AutoDetect` over 7 CBOR shapes + 4 JSON shapes                               | T9     | 12m      |
+| T9.2    | Add `encodePayload` fuzz target (arbitrary bytes: JSON marker or Corruption, never panic) | T9     | 12m      |
+| T9.3    | Run fuzz for a bounded time and record the result                                         | T9     | 8m       |
+| T10.1   | Read `metaengine/encoded_bench_test.go` for the existing harness                          | T10    | 8m       |
+| T10.2   | Add JSON vs CBOR vs `Apply` benchmarks                                                    | T10    | 12m      |
+| T10.3   | Run with `-benchtime` fixed and record ns/op + allocs                                     | T10    | 10m      |
+| T10.4   | Write the numbers into the plan/README                                                    | T10    | 8m       |
+| T11.1   | Read `metaengine/COOKBOOK.md` structure                                                   | T11    | 8m       |
+| T11.2   | Add the codec contract section (JSON/CBOR, stamps, custom codecs out of scope)            | T11    | 12m      |
+| T11.3   | Cross-link the FAQ entries (CBOR/DLQ ↔ time.Time drift)                                   | T11    | 6m       |
+| T11.4   | Note the delegation contract on the projectionadapter surface                             | T11    | 8m       |
+| T11.5   | Run `cmd/doc-check` on the touched docs                                                   | T11    | 10m      |
+| T12.1   | Inventory the 11 `DecodeStreamValue` call sites and classify each                         | T12    | 12m      |
+| T12.2   | Decide additive `DecodeStreamValueOk` vs a documented migration plan                      | T12    | 8m       |
+| T12.3   | Implement or write the plan section, with tests                                           | T12    | 12m      |
+| T13.1   | Read `metaengine/sqliteengine/encoding.go` and its callers                                | T13    | 8m       |
+| T13.2   | Fix the fallback to return an error, or row it with evidence                              | T13    | 12m      |
+| T13.3   | Run sqliteengine `-short`                                                                 | T13    | 8m       |
+| T14.1   | Diff error-family v0.11.0 vs v0.12.0 release notes                                        | T14    | 10m      |
+| T14.2   | Add the CHANGELOG note if the bump changes behavior                                       | T14    | 8m       |
+| T15.1   | `nix run .#verify-fast`                                                                   | T15    | 12m      |
+| T15.2   | `nix run .#lint`                                                                          | T15    | 12m      |
+| T15.3   | `nix run .#check-coverage`                                                                | T15    | 12m      |
+| T15.4   | `nix run .#check-modsums`                                                                 | T15    | 12m      |
+| T15.5   | Record every red, classified mine vs foreign                                              | T15    | 8m       |
+| T16–T20 | Spike/decision tasks (owner-gated; see §7)                                                | §7     | 12m each |
+| T21.1   | Harvest Scope B/C rows into `TODO_LIST.md` (only when the file is clean)                  | T21    | 12m      |
+| T21.2   | Verify the TODO_LIST diff contains only my rows                                           | T21    | 6m       |
 
 ---
 
@@ -204,20 +204,20 @@ flowchart TD
 
 ## 6. Verification matrix
 
-| Area | Command | Required |
-| ---- | ------- | -------- |
-| metaengine | `cd metaengine && GOWORK=off go test ./... -count=1` | green |
-| projectionadapter | `cd metaengine/projectionadapter && GOWORK=off go test ./... -count=1` | green |
-| system | `cd system && GOWORK=off go test -short ./... -count=1` | green |
-| engines | `cd metaengine/{pg,duckdb,mysql,dgraph,sqlite,bigtable}engine && GOWORK=off go test -short ./... -count=1` | green |
-| escape/fuzz | `GOWORK=off go test -run TestEncodePayload -fuzz FuzzEncodePayload -fuzztime 20s .` | no crash, no invariant break |
-| API surface | `cd cmd/api-stability && GOWORK=off go run . --update && GOWORK=off go test -run TestEvery .` | golden intentional |
-| ADR numbering | `nix run .#check-adr-numbering` | green |
-| layers | `bash scripts/check-module-layers.sh` | green |
-| taxonomy | `bash scripts/check-error-taxonomy.sh` | green |
-| docs | `cd cmd/doc-check && GOWORK=off go run . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md` | zero warnings |
-| formatting | `nix fmt` | no diff after |
-| full | `nix run .#verify-fast` (and `#verify` when load permits) | green or foreign-only reds recorded |
+| Area              | Command                                                                                                                    | Required                            |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
+| metaengine        | `cd metaengine && GOWORK=off go test ./... -count=1`                                                                       | green                               |
+| projectionadapter | `cd metaengine/projectionadapter && GOWORK=off go test ./... -count=1`                                                     | green                               |
+| system            | `cd system && GOWORK=off go test -short ./... -count=1`                                                                    | green                               |
+| engines           | `cd metaengine/{pg,duckdb,mysql,dgraph,sqlite,bigtable}engine && GOWORK=off go test -short ./... -count=1`                 | green                               |
+| escape/fuzz       | `GOWORK=off go test -run TestEncodePayload -fuzz FuzzEncodePayload -fuzztime 20s .`                                        | no crash, no invariant break        |
+| API surface       | `cd cmd/api-stability && GOWORK=off go run . --update && GOWORK=off go test -run TestEvery .`                              | golden intentional                  |
+| ADR numbering     | `nix run .#check-adr-numbering`                                                                                            | green                               |
+| layers            | `bash scripts/check-module-layers.sh`                                                                                      | green                               |
+| taxonomy          | `bash scripts/check-error-taxonomy.sh`                                                                                     | green                               |
+| docs              | `cd cmd/doc-check && GOWORK=off go run . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md` | zero warnings                       |
+| formatting        | `nix fmt`                                                                                                                  | no diff after                       |
+| full              | `nix run .#verify-fast` (and `#verify` when load permits)                                                                  | green or foreign-only reds recorded |
 
 ---
 
@@ -236,15 +236,15 @@ flowchart TD
 
 ## 8. Risks
 
-| Risk | Mitigation |
-| ---- | ---------- |
-| Auto-commit daemon races the staging (happened yesterday) | Stage + commit immediately at each phase boundary; verify `git status` after |
-| Foreign uncommitted `CHANGELOG.md`/`TODO_LIST.md` get swept into my commit | Explicit path staging only; verify with `git diff --cached --name-only` |
-| `Verify`/`Backfill` replay of the marker exposes a design gap | T1 runs first; if replay is broken, fix the marker before any other task |
-| ADR number collision with a parallel session | `check-adr-numbering` before and after writing |
-| Benchmark noise read as a regression | Fixed `-benchtime`, single machine, record load; no gate |
-| `DecodeStreamValueOk` invites a wide migration | Additive only, no call-site migration in this wave without an owner decision |
-| Test-suite runtime creep (metaengine suite already 30–50 s) | Put new pins in focused files; use `-ginkgo.focus` during iteration |
+| Risk                                                                       | Mitigation                                                                   |
+| -------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| Auto-commit daemon races the staging (happened yesterday)                  | Stage + commit immediately at each phase boundary; verify `git status` after |
+| Foreign uncommitted `CHANGELOG.md`/`TODO_LIST.md` get swept into my commit | Explicit path staging only; verify with `git diff --cached --name-only`      |
+| `Verify`/`Backfill` replay of the marker exposes a design gap              | T1 runs first; if replay is broken, fix the marker before any other task     |
+| ADR number collision with a parallel session                               | `check-adr-numbering` before and after writing                               |
+| Benchmark noise read as a regression                                       | Fixed `-benchtime`, single machine, record load; no gate                     |
+| `DecodeStreamValueOk` invites a wide migration                             | Additive only, no call-site migration in this wave without an owner decision |
+| Test-suite runtime creep (metaengine suite already 30–50 s)                | Put new pins in focused files; use `-ginkgo.focus` during iteration          |
 
 ---
 
@@ -277,9 +277,9 @@ a `[]byte`-sample fold receiving raw CBOR, garbage bytes, and the
 
 Mutation-verified twice:
 
-| Mutation | Result |
-| -------- | ------ |
-| `decodeRawFoldPayload`: `case encodedPayload: return raw, nil` | RED at the live apply (`reflect: Call using metaengine.encodedPayload`) |
+| Mutation                                                               | Result                                                                  |
+| ---------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| `decodeRawFoldPayload`: `case encodedPayload: return raw, nil`         | RED at the live apply (`reflect: Call using metaengine.encodedPayload`) |
 | `Verify`: `ApplyRecord(ctx, evt.Record, nil)` instead of `evt.Payload` | RED at the Verify assertion (`reflect: Call using zero Value argument`) |
 
 **T2 stored-bytes pins (done).** `metaengine/encoded_internal_test.go` asserts
@@ -324,14 +324,14 @@ unexpected marker.
 **T10 benchmarks (done).** `-benchtime 200ms`, one machine
 (AMD RYZEN AI MAX+ 395):
 
-| Path | ns/op | B/op | allocs/op |
-| ---- | ----- | ---- | --------- |
-| `ApplyEncoded` JSON | 3540 | 2605 | 23 |
-| `ApplyEncoded` CBOR | 3435 | 2625 | 25 |
-| `Apply` (decoded struct) | 4301 | 2416 | 18 |
-| `applyFold` struct | 492 | 80 | 3 |
-| `applyFold` JSON marker | 1173 | 168 | 6 |
-| `decodeRawFoldPayload` CBOR | 356 | 120 | 5 |
+| Path                        | ns/op | B/op | allocs/op |
+| --------------------------- | ----- | ---- | --------- |
+| `ApplyEncoded` JSON         | 3540  | 2605 | 23        |
+| `ApplyEncoded` CBOR         | 3435  | 2625 | 25        |
+| `Apply` (decoded struct)    | 4301  | 2416 | 18        |
+| `applyFold` struct          | 492   | 80   | 3         |
+| `applyFold` JSON marker     | 1173  | 168  | 6         |
+| `decodeRawFoldPayload` CBOR | 356   | 120  | 5         |
 
 CBOR ingress is not slower than JSON. Numbers recorded in
 `metaengine/README.md`; no gate attached.
@@ -343,16 +343,16 @@ the ADR; the metaengine README carries the measurement table.
 
 ### 11.4 Gate results (this wave)
 
-| Gate | Result |
-| ---- | ------ |
-| `metaengine` full suite | ok |
-| `projectionadapter` | ok |
-| `system -short` | ok |
-| pg / duckdb / mysql / dgraph `-short` | ok |
-| `cmd/doc-check` (SKILL + references + AGENTS) | 1349 refs valid |
-| `check-adr-numbering` | ok |
-| `gofmt -l` on every touched file | clean |
-| api golden | regenerated twice (once for the in-flight WAL helpers, once for `EncodeStreamValuesErr` + `WithLayoutStampsDisabled`) |
+| Gate                                          | Result                                                                                                                |
+| --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `metaengine` full suite                       | ok                                                                                                                    |
+| `projectionadapter`                           | ok                                                                                                                    |
+| `system -short`                               | ok                                                                                                                    |
+| pg / duckdb / mysql / dgraph `-short`         | ok                                                                                                                    |
+| `cmd/doc-check` (SKILL + references + AGENTS) | 1349 refs valid                                                                                                       |
+| `check-adr-numbering`                         | ok                                                                                                                    |
+| `gofmt -l` on every touched file              | clean                                                                                                                 |
+| api golden                                    | regenerated twice (once for the in-flight WAL helpers, once for `EncodeStreamValuesErr` + `WithLayoutStampsDisabled`) |
 
 ### 11.5 Foreign state encountered (recorded, not touched)
 
@@ -382,7 +382,7 @@ whole session, so harvesting was deferred rather than mixing diffs).
 ### 11.7 Wave 4 — close the gaps (T12–T15, T21) — 2026-10-24
 
 **T12 read-side decision (DONE — "documented limitation, no new API").** The
-premise that `DecodeStreamValue` hides *corruption* was wrong: the encoder
+premise that `DecodeStreamValue` hides _corruption_ was wrong: the encoder
 stores strings UNQUOTED, so a failed JSON decode is exactly how a legitimate
 plain string reads back. An error-returning twin would report false corruption
 on every string row. The real defect is the other direction and is inherent to
@@ -467,12 +467,12 @@ implemented; `DecodeStreamValue` keeps its documented behavior until then.
 
 The stream log / map value columns store `any` as TEXT with no type tag:
 
-| Written | Stored | Read back |
-| ------- | ------ | --------- |
-| `"plain"` | `plain` | `"plain"` (JSON decode fails → raw fallback) |
-| `"123"` | `123` | `float64(123)` **(type loss)** |
-| `map[string]int{"a":1}` | `{"a":1}` | `map[string]any{"a": float64(1)}` |
-| `time.Time` | `"2026-…Z"` | `string` |
+| Written                 | Stored      | Read back                                    |
+| ----------------------- | ----------- | -------------------------------------------- |
+| `"plain"`               | `plain`     | `"plain"` (JSON decode fails → raw fallback) |
+| `"123"`                 | `123`       | `float64(123)` **(type loss)**               |
+| `map[string]int{"a":1}` | `{"a":1}`   | `map[string]any{"a": float64(1)}`            |
+| `time.Time`             | `"2026-…Z"` | `string`                                     |
 
 Two independent losses: Go types are not preserved (by design, JSON-typed
 contract), and a STRING that parses as JSON is indistinguishable from the value
@@ -497,13 +497,13 @@ that can corrupt a read model; the first is a documented contract.
 
 ### 12.3 Options and costs
 
-| Option | Shape | Cost | Verdict |
-| ------ | ----- | ---- | ------- |
-| **A. In-band string prefix** (`\x01s:` + raw) | string values only | Tiny SQL change, but changes bytes for the ONE case that is rare AND breaks direct-DB readers; legacy lookalike rows stay wrong | Rejected — partial fix, new format without a version |
-| **B. Whole-row envelope** (`{"$","enc","dat"}`) | every value | SQL: value column stops being JSON → planned pushdown dead unless planned tables are exempted (then two formats); KV: natural (already []byte) | Rejected for planned tables; possible for the unplanned map column only |
-| **C. Sibling type column** (`value_type` / `encoding`) | SQL only | In-place `ADD COLUMN` (the typed-WAL precedent, already mechanized per engine), NULL = legacy, zero byte change; **KV engines have no column** → they need B or A, so the fleet diverges | Best SQL answer, incomplete on its own |
-| **D. C + KV in-band value tag** | C on SQL, 1-byte prefix on KV values | Every engine agrees; one tag byte per KV value; SQL gets the column. **Correction (2026-10-24 12:0x):** keycodec v2 is a KEY-grammar family — there is NO value-tag family today. `keycodec.EncodeJSON` is the canonical LSM value encoder and still carries the `%v` fallback, so this option also fixes the 22-site silent-loss gap on pebble/bbolt/badger (see the amended TODO row) | **Recommended**, but it is a migration project |
-| **E. Leave it; document** | current | Zero | Honest baseline (shipped in T12) |
+| Option                                                 | Shape                                | Cost                                                                                                                                                                                                                                                                                                                                                                                    | Verdict                                                                 |
+| ------------------------------------------------------ | ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| **A. In-band string prefix** (`\x01s:` + raw)          | string values only                   | Tiny SQL change, but changes bytes for the ONE case that is rare AND breaks direct-DB readers; legacy lookalike rows stay wrong                                                                                                                                                                                                                                                         | Rejected — partial fix, new format without a version                    |
+| **B. Whole-row envelope** (`{"$","enc","dat"}`)        | every value                          | SQL: value column stops being JSON → planned pushdown dead unless planned tables are exempted (then two formats); KV: natural (already []byte)                                                                                                                                                                                                                                          | Rejected for planned tables; possible for the unplanned map column only |
+| **C. Sibling type column** (`value_type` / `encoding`) | SQL only                             | In-place `ADD COLUMN` (the typed-WAL precedent, already mechanized per engine), NULL = legacy, zero byte change; **KV engines have no column** → they need B or A, so the fleet diverges                                                                                                                                                                                                | Best SQL answer, incomplete on its own                                  |
+| **D. C + KV in-band value tag**                        | C on SQL, 1-byte prefix on KV values | Every engine agrees; one tag byte per KV value; SQL gets the column. **Correction (2026-10-24 12:0x):** keycodec v2 is a KEY-grammar family — there is NO value-tag family today. `keycodec.EncodeJSON` is the canonical LSM value encoder and still carries the `%v` fallback, so this option also fixes the 22-site silent-loss gap on pebble/bbolt/badger (see the amended TODO row) | **Recommended**, but it is a migration project                          |
+| **E. Leave it; document**                              | current                              | Zero                                                                                                                                                                                                                                                                                                                                                                                    | Honest baseline (shipped in T12)                                        |
 
 ### 12.4 Recommended shape (if the owner says yes)
 
@@ -548,28 +548,28 @@ Every gate that can run was run; the reds are classified mine vs foreign and
 none of them is mine. `#verify-fast` cannot complete while foreign reds exist
 (it aborts at `#lint`), so its components were executed individually.
 
-| Gate | Result |
-| ---- | ------ |
-| `metaengine` full suite | ok (53.9 s) |
-| `metaengine` `-race -short` | ok (84.1 s) |
-| `metaengine/sqliteengine` full suite | ok (30.1 s) |
-| `metaengine/sqliteengine` `-race -short` | ok (6.2 s) |
-| `metaengine/projectionadapter` | ok |
-| `system -short` | ok |
-| pg / duckdb / mysql / dgraph `-short` | ok |
-| `go build ./...` + `go vet ./metaengine/... ./system/...` (workspace) | ok |
-| `cmd/doc-check` (SKILL + references + AGENTS) | 1356 refs valid |
-| `check-error-taxonomy.sh` | 543 codes, green (new `metaengine.encode_stream_value` row added by hand; see the generator defect in §11.7) |
-| `check-module-layers.sh` / `#check-arch` | green (sqlite budget 3 → 4 accepted) |
-| `#check-api-stability` | green (106 s) |
-| `#check-modsums` | green (101 modules tidy) |
-| `#check-coverage` | green (all claims within ±2 %, metaengine 83.9 %) |
-| `scripts/verify-docs.sh` | green (module count, licence, ADR index 159, family count) |
-| `#check-file-size` | **RED — foreign:** `scheduling/sqlstore/store.go` 363, `system/adapter_event.go` 351, `metaengine/layout.go` 360 (new parallel-session offenders). Mine: `metaengine/sqliteengine/engine.go` grew 663 → 678 on first run; fixed by extracting `mapSetEncoded` into `map_write.go` and compressing the MapUpdate closure → 654 lines, ratchet green. |
-| `art-dupl check . --threshold 3` | **RED — foreign:** 8 new groups (system adapter twins ×1, adttest ×1, queue/system pin helpers ×1, catalog templ ×1, mysql/pg typed_wal ×1, duckdb/mysql stream_log ×2, keycodec escape ×1). Mine: the planned-write parity group (duckdb/layout_planner vs sqlite/planned) was unmasked by the edit and is now `//art-dupl:accept`-annotated (trailing form, no added lines) → 9 → 8. |
-| `nix run .#lint` | **RED — foreign only:** failures in commandlifecycle, decider, dispatcher, schema, snapshot, graph, projectionhost, claiming, scheduling/sqlstore, catalog, middleware, kv, listing, stack ×6, cmd/cqrs-lint, metaengine/duckdb/pg/mysqlengine, core/v5. Run alone, the two modules this wave touched are CLEAN: `metaengine` → 2 issues, both in `keycodec` (godox in `escape.go`, gosmopolitan in `v2_law_test.go` — the parallel v2-key work); `metaengine/sqliteengine` → 0 issues. |
-| `#check-md-go` | **BLOCKED — tooling:** the pinned `md-go-validator` derivation itself fails to build (`github.com/google/pprof@v0.0.0-20261016150608-…` zip missing from the vendored module FOD). Nothing in this wave adds or edits a `go` fence, so the gate has nothing to say about it. |
-| `#verify-fast` | not runnable to completion: aborts at `#lint` (foreign); all other constituents were run individually above |
+| Gate                                                                  | Result                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| --------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `metaengine` full suite                                               | ok (53.9 s)                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `metaengine` `-race -short`                                           | ok (84.1 s)                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `metaengine/sqliteengine` full suite                                  | ok (30.1 s)                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `metaengine/sqliteengine` `-race -short`                              | ok (6.2 s)                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `metaengine/projectionadapter`                                        | ok                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `system -short`                                                       | ok                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| pg / duckdb / mysql / dgraph `-short`                                 | ok                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `go build ./...` + `go vet ./metaengine/... ./system/...` (workspace) | ok                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `cmd/doc-check` (SKILL + references + AGENTS)                         | 1356 refs valid                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| `check-error-taxonomy.sh`                                             | 543 codes, green (new `metaengine.encode_stream_value` row added by hand; see the generator defect in §11.7)                                                                                                                                                                                                                                                                                                                                                                            |
+| `check-module-layers.sh` / `#check-arch`                              | green (sqlite budget 3 → 4 accepted)                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `#check-api-stability`                                                | green (106 s)                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `#check-modsums`                                                      | green (101 modules tidy)                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `#check-coverage`                                                     | green (all claims within ±2 %, metaengine 83.9 %)                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `scripts/verify-docs.sh`                                              | green (module count, licence, ADR index 159, family count)                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `#check-file-size`                                                    | **RED — foreign:** `scheduling/sqlstore/store.go` 363, `system/adapter_event.go` 351, `metaengine/layout.go` 360 (new parallel-session offenders). Mine: `metaengine/sqliteengine/engine.go` grew 663 → 678 on first run; fixed by extracting `mapSetEncoded` into `map_write.go` and compressing the MapUpdate closure → 654 lines, ratchet green.                                                                                                                                     |
+| `art-dupl check . --threshold 3`                                      | **RED — foreign:** 8 new groups (system adapter twins ×1, adttest ×1, queue/system pin helpers ×1, catalog templ ×1, mysql/pg typed_wal ×1, duckdb/mysql stream_log ×2, keycodec escape ×1). Mine: the planned-write parity group (duckdb/layout_planner vs sqlite/planned) was unmasked by the edit and is now `//art-dupl:accept`-annotated (trailing form, no added lines) → 9 → 8.                                                                                                  |
+| `nix run .#lint`                                                      | **RED — foreign only:** failures in commandlifecycle, decider, dispatcher, schema, snapshot, graph, projectionhost, claiming, scheduling/sqlstore, catalog, middleware, kv, listing, stack ×6, cmd/cqrs-lint, metaengine/duckdb/pg/mysqlengine, core/v5. Run alone, the two modules this wave touched are CLEAN: `metaengine` → 2 issues, both in `keycodec` (godox in `escape.go`, gosmopolitan in `v2_law_test.go` — the parallel v2-key work); `metaengine/sqliteengine` → 0 issues. |
+| `#check-md-go`                                                        | **BLOCKED — tooling:** the pinned `md-go-validator` derivation itself fails to build (`github.com/google/pprof@v0.0.0-20261016150608-…` zip missing from the vendored module FOD). Nothing in this wave adds or edits a `go` fence, so the gate has nothing to say about it.                                                                                                                                                                                                            |
+| `#verify-fast`                                                        | not runnable to completion: aborts at `#lint` (foreign); all other constituents were run individually above                                                                                                                                                                                                                                                                                                                                                                             |
 
 **Foreign-state note (this run):** a `buildflow --fix --build-mode=full` run
 touched the tree for ~15 minutes (go-upgrade sibling pins in `benchkit` /

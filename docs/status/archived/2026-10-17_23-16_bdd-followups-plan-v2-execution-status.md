@@ -189,13 +189,14 @@ Nothing red of mine stands, but six honest failures:
 ## f) NEXT — up to 50, ranked roughly by Pareto
 
 **Finish the plan (do first):**
+
 1. M06: `nix run .#check-coverage` over changed modules vs pin.
 2. M06: `scripts/erraudit-sweep.sh` over systemscenario + projectionadapter
    changed files; fix ≤5m findings on sight, file the rest.
 3. Docs sweep for tonight's tail edits: `nix fmt`, doc-check full run,
    TestRecipes, changelog-symbols.
 4. M12 pre-flight: `git status` ×3 + `git for-each-ref refs/tags` freshness
-   + verify-lock check (parallel release session may still be live).
+   - verify-lock check (parallel release session may still be live).
 5. M12: bump system's projectionadapter pin v4.5.3→v4.6.0 (+ go mod tidy,
    self-sourcing env).
 6. M12: tag `system` via `scripts/tag-release.sh system <ver> "<desc>"`
@@ -218,10 +219,10 @@ Nothing red of mine stands, but six honest failures:
 
 **Owner-gated (memo awaits):**
 17. D2 ruling (erroring folds v4.x/v5/never) — unblocks the retry-journey
-    depth spec.
+depth spec.
 18. C1 ruling (apply-wrap pass-through + buildEventDecoder three wraps).
 19. Whether the dedup-middleware recipes fence (TODO row, plan M12-v1)
-    should still happen this wave or ride the next harness touch.
+should still happen this wave or ride the next harness touch.
 
 **Foreign drift routing (owners, all rowed in TODO §M17):**
 20. catalog file-size ×4 (split or baseline).
@@ -230,10 +231,10 @@ Nothing red of mine stands, but six honest failures:
 23. go.sum-untidy ×76 (re-pin script vs tidy reconciliation).
 24. cqrs-lint born-red rule tests (perf/resilience/version).
 25. `go 1.27.2` 95-file directive wave vs minor-form lockstep (watch
-    check-go-version at next #verify-ci).
+check-go-version at next #verify-ci).
 26. projectionhost `TestLiveCheckpoint_CrashWindowIsBounded` load-sensitivity
-    (quiet-window CI treatment or timeout bump — same class as the closed
-    systemscenario flake).
+(quiet-window CI treatment or timeout bump — same class as the closed
+systemscenario flake).
 27. cqrs-upgrade codemod dot-stripping bug (see e4).
 
 **Depth-spec hardening (from the 20:13 report, still open):**
@@ -244,13 +245,13 @@ Nothing red of mine stands, but six honest failures:
 
 **Adjacent noticed-in-passing (small, no owner):**
 32. taskmanager `setup.go` URL builder now emits bare URLs — verify the
-    demo README/docs examples match.
+demo README/docs examples match.
 33. `query_http_test.go:243-245` dead code (`raw, _ := io.ReadAll…; _ = raw`
-    — the "must not leak" assertion was never actually written).
+— the "must not leak" assertion was never actually written).
 34. `var _ = time.Second` at query_http_test.go:259 — leftover import
-    keeper; delete with the import.
+keeper; delete with the import.
 35. plan v2 §7 says "TODO rows added at v1 stay valid" — verify none of the
-    killed v1 rows leaked back in.
+killed v1 rows leaked back in.
 
 (35 rows — the honest remaining slots stay empty rather than padded.)
 
@@ -274,6 +275,6 @@ Nothing red of mine stands, but six honest failures:
 
 ---
 
-*Arte in Aeternum — report written 2026-10-17 23:16 CEST, immediately after
+_Arte in Aeternum — report written 2026-10-17 23:16 CEST, immediately after
 the interrupted M06-prep point; execution halted per instruction, awaiting
-direction.*
+direction._

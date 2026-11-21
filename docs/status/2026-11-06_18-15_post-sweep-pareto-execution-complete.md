@@ -20,14 +20,14 @@ iter 2010 — cause unknown, machine-level). Re-armed launches 17→23; the
 window opened repeatedly (sum 12–15) and each verify exposed the NEXT latent
 defect until run23 went green:
 
-| Run | Fast-fail | Root cause | Fix |
-| --- | --- | --- | --- |
-| 17 | race ×40 in metaengine | ONE test-only race: `sse_ordering_test.go` polled `rec.Body` while the ServeSSE goroutine wrote it | mutex-guarded write snapshot in `headerProbingRecorder`; full metaengine `-race` suite green (155s) |
-| 18 | lint ×2 | nlreturn in my new `v5_mode_test.go`; mnd magic-30 in `systemscenario/scenario.go` (overnight landing) | blank line + `raceAwaitTimeout` const |
-| 19 | build: 5 stale `*_templ.go` | overnight `.templ` edits never regenerated | `templ generate` in docserver cwd (the `./...` form from catalog/ produces different output) |
-| 20 | build: templ API undefined | **generator-pin vs library-pin split brain**: the sweep bumped `a-h/templ` lib to v0.3.1100 (which REMOVED `JoinURLErrs`/`ResolveAttributeValue`/`RenderAttributes`) while the pinned nixpkgs generator (labeled v0.3.1020, emitting v0.3.1070-era API) still emits calls to them | reverted templ + templ-components family to coherent pre-sweep pins (v0.3.1070 + v1.26.0); rowed the durable fix |
-| 21 | build: workspace lift | five tool modules carried stuck `templ v0.3.1100 // indirect` self-requires | `go mod edit -droprequire` + tidy converged ALL to v0.3.1070 |
-| 22 | stale `docs-ui.css` | generated CSS behind the downgraded templ-components | `nix run .#build-docserver-css` |
+| Run | Fast-fail                   | Root cause                                                                                                                                                                                                                                                                        | Fix                                                                                                              |
+| --- | --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| 17  | race ×40 in metaengine      | ONE test-only race: `sse_ordering_test.go` polled `rec.Body` while the ServeSSE goroutine wrote it                                                                                                                                                                                | mutex-guarded write snapshot in `headerProbingRecorder`; full metaengine `-race` suite green (155s)              |
+| 18  | lint ×2                     | nlreturn in my new `v5_mode_test.go`; mnd magic-30 in `systemscenario/scenario.go` (overnight landing)                                                                                                                                                                            | blank line + `raceAwaitTimeout` const                                                                            |
+| 19  | build: 5 stale `*_templ.go` | overnight `.templ` edits never regenerated                                                                                                                                                                                                                                        | `templ generate` in docserver cwd (the `./...` form from catalog/ produces different output)                     |
+| 20  | build: templ API undefined  | **generator-pin vs library-pin split brain**: the sweep bumped `a-h/templ` lib to v0.3.1100 (which REMOVED `JoinURLErrs`/`ResolveAttributeValue`/`RenderAttributes`) while the pinned nixpkgs generator (labeled v0.3.1020, emitting v0.3.1070-era API) still emits calls to them | reverted templ + templ-components family to coherent pre-sweep pins (v0.3.1070 + v1.26.0); rowed the durable fix |
+| 21  | build: workspace lift       | five tool modules carried stuck `templ v0.3.1100 // indirect` self-requires                                                                                                                                                                                                       | `go mod edit -droprequire` + tidy converged ALL to v0.3.1070                                                     |
+| 22  | stale `docs-ui.css`         | generated CSS behind the downgraded templ-components                                                                                                                                                                                                                              | `nix run .#build-docserver-css`                                                                                  |
 
 Before run17 armed, the preflight caught three MORE classes: the ADR-index
 split brain (fixed 00:10 with a mutation-tested gate extension to
@@ -72,18 +72,18 @@ Closed by the 10:54 sibling session at 09:53Z with the evidence trail
 ## M11–M15 — consumers
 
 - **M13 webphone** (quiet 4h, clean): the flagship #114 adoption. dial_windows
-  + dial_overrides declare `WithCapPerGroup("owner", 500)` — the 2026-11-04
-  T07 ruling's reopen trigger fired exactly as written; both hand-rolled
-  expunge loops deleted; views carry typed Key fields for cap addressing
-  (legacy rows without the field are never wrongly trimmed — zero-key
-  addressing misses). call_transcripts adopts the per-OWNER bound
-  declaratively; the per-CALL floor (1500) stays a loop (metaengine declares
-  one group per collection; nested owner+call grouping rowed upstream). All
-  17 429 responses type Retry-After (`WithResponseHeader`); /api/transcribe
-  declares its multipart body (`WithRequestBodyContent`); the empty-host
-  `WithServer` hack dropped (catalog v4.13 omits servers natively);
-  WithTypedParam honestly SKIPPED (no non-string param exists to type).
-  Full suite green incl. their error-registry gate (regenerated).
+  - dial_overrides declare `WithCapPerGroup("owner", 500)` — the 2026-11-04
+    T07 ruling's reopen trigger fired exactly as written; both hand-rolled
+    expunge loops deleted; views carry typed Key fields for cap addressing
+    (legacy rows without the field are never wrongly trimmed — zero-key
+    addressing misses). call_transcripts adopts the per-OWNER bound
+    declaratively; the per-CALL floor (1500) stays a loop (metaengine declares
+    one group per collection; nested owner+call grouping rowed upstream). All
+    17 429 responses type Retry-After (`WithResponseHeader`); /api/transcribe
+    declares its multipart body (`WithRequestBodyContent`); the empty-host
+    `WithServer` hack dropped (catalog v4.13 omits servers natively);
+    WithTypedParam honestly SKIPPED (no non-string param exists to type).
+    Full suite green incl. their error-registry gate (regenerated).
 - **M11 cqrs-htmx** (quiet 2.5h, clean): the 182-line hand-rolled otter
   view-cache adapter DELETED — kv v4.4.0's `NewCacheForViewStore` fronts any
   ViewStore; the seam is a thin option translation; all seven ViewCache

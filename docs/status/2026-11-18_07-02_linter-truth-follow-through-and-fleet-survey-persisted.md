@@ -58,11 +58,11 @@ self-inflicted red test iterations plus one "all green" overclaim.
 
 `GT_LINT_MODULES="cmd/cqrs-lint/v4" nix run .#lint-scope` went **6 findings → 0 issues**:
 
-| Finding | Fix |
-|---|---|
-| `err113` `run.go:42` dynamic error | static sentinel `errInvalidScope` + `%w` wrap |
-| `prealloc` `f030.go:106` | capacity computed from scope file counts, one allocation |
-| `gofumpt` `f030.go:34` | `nix fmt` |
+| Finding                                                                   | Fix                                                                                             |
+| ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `err113` `run.go:42` dynamic error                                        | static sentinel `errInvalidScope` + `%w` wrap                                                   |
+| `prealloc` `f030.go:106`                                                  | capacity computed from scope file counts, one allocation                                        |
+| `gofumpt` `f030.go:34`                                                    | `nix fmt`                                                                                       |
 | `golines` ×3 (`config_validation_test.go`, `main.go`, `toolspec_test.go`) | `golangci-lint fmt` re-align; verified `nix fmt` is a fixed point afterwards (no formatter war) |
 
 `cd cmd/cqrs-lint/v4 && GOWORK=off go test ./... -count=1` → **all 19 packages ok** (twice: after the fixes
@@ -73,11 +73,11 @@ and after the file splits).
 The ratchet was already red at HEAD from another session's auto-committed work. Split by cohesion, no
 behaviour change:
 
-| File | Before | After | Extracted |
-|---|---|---|---|
-| `pkg/analyzer/loader.go` | 380 | 296 | `module_dirs.go` (92) — module discovery |
-| `pkg/analyzer/project_config.go` | 357 | 248 | `jsonc.go` (111) — JSONC strip |
-| `run.go` | 554 | 493 | `config_merge.go` (68) — preset/config merge helpers |
+| File                             | Before | After | Extracted                                            |
+| -------------------------------- | ------ | ----- | ---------------------------------------------------- |
+| `pkg/analyzer/loader.go`         | 380    | 296   | `module_dirs.go` (92) — module discovery             |
+| `pkg/analyzer/project_config.go` | 357    | 248   | `jsonc.go` (111) — JSONC strip                       |
+| `run.go`                         | 554    | 493   | `config_merge.go` (68) — preset/config merge helpers |
 
 `nix run .#check-file-size` → **no new offenders, no growth**.
 
@@ -150,21 +150,21 @@ registry (deliberately deferred — the registry's own drift tests are the stron
 
 ## c) NOT STARTED
 
-| Plan task | Why not |
-|---|---|
-| **C6** registry unification + forward gate | my `write` was **rejected** — see d1 |
-| **C7** F030 `_test.go` posture + scorecard golden | after C6 |
-| **C27** doc-check module-existence rule | 90m task, not reached |
-| **C13** fleet baseline scorecard | not reached |
-| **C15–C17** four pure swaps (InboxClean, SEC, github-local-sync, Swetty) | not reached; D1 authorization stands |
-| **C18–C21** gated store migrations | blocked on D28/D29 |
-| **C22** debug endpoint + comment truths | not reached |
+| Plan task                                                                            | Why not                                              |
+| ------------------------------------------------------------------------------------ | ---------------------------------------------------- |
+| **C6** registry unification + forward gate                                           | my `write` was **rejected** — see d1                 |
+| **C7** F030 `_test.go` posture + scorecard golden                                    | after C6                                             |
+| **C27** doc-check module-existence rule                                              | 90m task, not reached                                |
+| **C13** fleet baseline scorecard                                                     | not reached                                          |
+| **C15–C17** four pure swaps (InboxClean, SEC, github-local-sync, Swetty)             | not reached; D1 authorization stands                 |
+| **C18–C21** gated store migrations                                                   | blocked on D28/D29                                   |
+| **C22** debug endpoint + comment truths                                              | not reached                                          |
 | **C23** semantics fixes (retry/dedup order, `MemoryStore` close, non-atomic capture) | not reached — the bugs are still live in their repos |
-| **C24** sweeps (browser-history, precheck, KeyCountdown, Swetty) | not reached; scope **narrowed** by a discovery (d3) |
-| **C25** duplicate checkout | blocked on D31 |
-| **C26** fleet receipts + census | not reached |
-| **C12** release + codemod | blocked on D30 |
-| **C14** no-upstream-ask record | trivially open (formatting task) |
+| **C24** sweeps (browser-history, precheck, KeyCountdown, Swetty)                     | not reached; scope **narrowed** by a discovery (d3)  |
+| **C25** duplicate checkout                                                           | blocked on D31                                       |
+| **C26** fleet receipts + census                                                      | not reached                                          |
+| **C12** release + codemod                                                            | blocked on D30                                       |
+| **C14** no-upstream-ask record                                                       | trivially open (formatting task)                     |
 
 ---
 
@@ -180,7 +180,7 @@ package compiles — but the task did not land, and the fix was one `view` away.
 
 ### d2. The daemon absorbed the whole session into five `chore:` commits
 
-`514bd721d`, `f6bbc8223`, `3e5d05942`, `eb3f100b5`, `3d328db8b`. This is *exactly* the failure class I
+`514bd721d`, `f6bbc8223`, `3e5d05942`, `eb3f100b5`, `3d328db8b`. This is _exactly_ the failure class I
 wrote the postmortem about earlier in the same session; I stated the habit and then did not follow it. The
 phase-boundary authorization exists and went unused. Nothing has been pushed.
 
@@ -315,7 +315,7 @@ behaviour; claiming progress on it is not.
    resets both" (design), but the default is a product call.
 2. **Replay-vs-dedup intent** for InboxClean and github-local-sync: after a restart, should a redelivered
    command be deduplicated (durable keys) or re-executed (today's behaviour, which their replay designs may
-   *require*)? Durable keys would be a silent behaviour change in the first case.
+   _require_)? Durable keys would be a silent behaviour change in the first case.
 3. **D30 + D31:** cut `cmd/cqrs-lint` now for the fleet, or hold for the next wave? And confirm
    `~/projects/DiscordSync` as the canonical checkout so the diverged `discordsync` twin can be archived —
    the git evidence (0/0 vs 2 ahead / 5 behind) supports it, but the twins are yours to rule on.
@@ -324,16 +324,16 @@ behaviour; claiming progress on it is not.
 
 ## Appendix — receipts
 
-| Check | Result |
-|---|---|
-| `GT_LINT_MODULES="cmd/cqrs-lint/v4" nix run .#lint-scope` | ✅ 1/1 modules clean (was 6 findings) |
-| `cd cmd/cqrs-lint/v4 && GOWORK=off go test ./... -count=1` | ✅ 19/19 packages ok |
-| `cd command/v4 && GOWORK=off go test -run TestMemoryBus -count=1 .` | ✅ including the new ordering pin |
-| `nix run .#check-file-size` | ✅ no new offenders, no growth (61 baselined) |
-| `bash scripts/check-adr-numbering.sh` | ✅ 165 ADRs, indexes in lockstep |
-| `bash scripts/check-canonical-facts.sh` | ✅ all citations match repo-derived truth |
-| `bash scripts/check-changelog-symbols.sh` | ✅ 27 citations honest |
-| `cd cmd/doc-check/v4 && GOWORK=off go test -run 'TestRecipesCatalogCoversFile\|TestRecipes$'` | ✅ |
-| `nix run .#verify` ×3 | ❌ no receipt — 1 red (file-size, fixed), 2 refusals (load rc=12) |
-| `nix eval .#apps.x86_64-linux.can-run-composed-gate.program` | ✅ resolves |
-| Working tree | 1 modified file (deep-dive annotation), 5 daemon `chore:` commits, **not pushed** |
+| Check                                                                                         | Result                                                                            |
+| --------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| `GT_LINT_MODULES="cmd/cqrs-lint/v4" nix run .#lint-scope`                                     | ✅ 1/1 modules clean (was 6 findings)                                             |
+| `cd cmd/cqrs-lint/v4 && GOWORK=off go test ./... -count=1`                                    | ✅ 19/19 packages ok                                                              |
+| `cd command/v4 && GOWORK=off go test -run TestMemoryBus -count=1 .`                           | ✅ including the new ordering pin                                                 |
+| `nix run .#check-file-size`                                                                   | ✅ no new offenders, no growth (61 baselined)                                     |
+| `bash scripts/check-adr-numbering.sh`                                                         | ✅ 165 ADRs, indexes in lockstep                                                  |
+| `bash scripts/check-canonical-facts.sh`                                                       | ✅ all citations match repo-derived truth                                         |
+| `bash scripts/check-changelog-symbols.sh`                                                     | ✅ 27 citations honest                                                            |
+| `cd cmd/doc-check/v4 && GOWORK=off go test -run 'TestRecipesCatalogCoversFile\|TestRecipes$'` | ✅                                                                                |
+| `nix run .#verify` ×3                                                                         | ❌ no receipt — 1 red (file-size, fixed), 2 refusals (load rc=12)                 |
+| `nix eval .#apps.x86_64-linux.can-run-composed-gate.program`                                  | ✅ resolves                                                                       |
+| Working tree                                                                                  | 1 modified file (deep-dive annotation), 5 daemon `chore:` commits, **not pushed** |

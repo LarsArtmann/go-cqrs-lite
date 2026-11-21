@@ -20,24 +20,24 @@ behind D2/D3 (as asked), and produced the D2/D3 analysis with per-app evidence g
 
 ## a) FULLY DONE
 
-| # | Item | Evidence |
-|---|------|----------|
-| a1 | **Scorecard false-MISSING fixed** — `go-cqrs-lite/idempotency` added to the `idempotency` import hints | `cmd/cqrs-lint/v4/pkg/analyzer/module_catalog_data.go:138-147`. Live check: `scorecard --path` now reports `Idempotency: used` for `games/SEC`, `InboxClean`, `github-local-sync` (all previously `missing`); `Zlota44` control unchanged |
-| a2 | **Hint regression tests** — parent-only import ⇒ `UsageImported` with exact evidence; lookalike path ⇒ `UsageAbsent` | `module_detect_test.go` (`TestDetectUsedModules_ParentIdempotencyShimImport`, `…LookalikePathAbsent`) |
-| a3 | **F030 became a deleted-module registry** — 7 entries: `transport/http`, `transport/grpc` (ADR-0127), `idempotency/kvstore` (2026-10-17), parent `idempotency` + `codec` + `retry` + `flightrecorder` (ADR-0128) | `cmd/cqrs-lint/v4/pkg/rules/adoption/f030.go` — each entry carries removal record + ADR path + replacement |
-| a4 | **Longest-fragment matching replaces plain substring matching** — a specific entry is never shadowed by a deleted ancestor; segment boundaries on both sides | `longestDeletedModuleMatch`, `fragmentMatchesImport`, unit tables in `f030_internal_test.go` |
-| a5 | **Present-module suppression list** — `idempotency/sqlstore` (deprecated, present) is never reported as deleted | `presentModuleFragments` + `TestF030_DeprecatedSqlstoreIsNotReportedAsDeleted` |
-| a6 | **F030 fixtures** — parent fires, kvstore fires exactly once, sqlstore silent, 3 ADR-0128 shims fire, sanctioned paths silent | `f030_test.go` (7 tests total) |
-| a7 | **V007 covers `idempotency/sqlstore`** — module entry with a real successor (`(*system.System).Dedup()` / `metaengine.DedupStore`), `adrForFragment` cases for `scheduling`→ADR-0142 and `idempotency`→ADR-0158/0167 | `v007_tables.go:36-41`, `v007.go` |
-| a8 | **V007 detector fixtures** — `sqlstore.NewSQLiteStore` fires (message cites ADR-0158/0167); `go-idempotency` import stays silent | `v007_test.go` (`TestV007_DetectsIdempotencySqlstoreRetirement`, `…SilentOnExternalIdempotency`) |
-| a9 | **Drift-scanner signal widened** — `no v5 successor`, `adr-0158`, `adr-0167` added; 16 previously invisible sqlstore markers now enter the inventory | `v007_drift_scan_test.go` + `TestV5DriftScan_SeesIdempotencySatelliteMarkers` (asserts ≥10) + phrase table test |
-| a10 | **Registry drift gates (reverse direction)** — a listed-deleted module must have no `go.mod` at HEAD (root or `/vN`); every cited ADR must exist; every present-module guard must still exist | `f030_internal_test.go`, `moduleGoMods` helper |
-| a11 | **Artifacts regenerated truthfully** — `RULES.md` diff is 2 lines (name + description only, no ID churn); cqrs-lint `README.md` F030 row; `presets.go` disable comment | `34973524b`; `rules_doc_test.go` freshness test green |
-| a12 | **Doc-count lie fixed** — `docs/DOMAIN_LANGUAGE.md:345` 202 → 217; `references/modules.md` idempotency/kvstore/sqlstore rows now name `system.Dedup()`; `references/core.md:204` dedup routing points at the engine path | `2bb70ab84` |
-| a13 | **Verification receipts** — full `cmd/cqrs-lint/v4` suite green (`go test ./... -count=1`); `cmd/doc-check` "All 1391 references valid across 57 package(s)"; `check-canonical-facts.sh` green | run this session |
-| a14 | **My own canonical-facts drift fixed** — the 12-26 status report was missing from `docs/status/README.md`; row added, gate re-run green (`missing=0 dangling=0`) | `d185f80c6` |
-| a15 | **HARVEST done** — 10 fleet-repair rows (owning repo per row, gated where needed), D28/D29 on the owner decision sheet, D1 recorded as authorized, ROADMAP questions 23/24 | `8520f6c82` (61 insertions) |
-| a16 | **D2/D3 evidence base built** — 10-checkout survey: store type, TTL, sweeper presence, restart survival, middleware order, lying comments, per-repo swap file lists, indirect vs direct `go-idempotency` version | **PERSISTED** in [`docs/evidence/2026-11-17_idempotency-fleet-wiring-survey.md`](../evidence/2026-11-17_idempotency-fleet-wiring-survey.md) (its §7 records the six claims that pass corrected) |
+| #   | Item                                                                                                                                                                                                                     | Evidence                                                                                                                                                                                                                                  |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| a1  | **Scorecard false-MISSING fixed** — `go-cqrs-lite/idempotency` added to the `idempotency` import hints                                                                                                                   | `cmd/cqrs-lint/v4/pkg/analyzer/module_catalog_data.go:138-147`. Live check: `scorecard --path` now reports `Idempotency: used` for `games/SEC`, `InboxClean`, `github-local-sync` (all previously `missing`); `Zlota44` control unchanged |
+| a2  | **Hint regression tests** — parent-only import ⇒ `UsageImported` with exact evidence; lookalike path ⇒ `UsageAbsent`                                                                                                     | `module_detect_test.go` (`TestDetectUsedModules_ParentIdempotencyShimImport`, `…LookalikePathAbsent`)                                                                                                                                     |
+| a3  | **F030 became a deleted-module registry** — 7 entries: `transport/http`, `transport/grpc` (ADR-0127), `idempotency/kvstore` (2026-10-17), parent `idempotency` + `codec` + `retry` + `flightrecorder` (ADR-0128)         | `cmd/cqrs-lint/v4/pkg/rules/adoption/f030.go` — each entry carries removal record + ADR path + replacement                                                                                                                                |
+| a4  | **Longest-fragment matching replaces plain substring matching** — a specific entry is never shadowed by a deleted ancestor; segment boundaries on both sides                                                             | `longestDeletedModuleMatch`, `fragmentMatchesImport`, unit tables in `f030_internal_test.go`                                                                                                                                              |
+| a5  | **Present-module suppression list** — `idempotency/sqlstore` (deprecated, present) is never reported as deleted                                                                                                          | `presentModuleFragments` + `TestF030_DeprecatedSqlstoreIsNotReportedAsDeleted`                                                                                                                                                            |
+| a6  | **F030 fixtures** — parent fires, kvstore fires exactly once, sqlstore silent, 3 ADR-0128 shims fire, sanctioned paths silent                                                                                            | `f030_test.go` (7 tests total)                                                                                                                                                                                                            |
+| a7  | **V007 covers `idempotency/sqlstore`** — module entry with a real successor (`(*system.System).Dedup()` / `metaengine.DedupStore`), `adrForFragment` cases for `scheduling`→ADR-0142 and `idempotency`→ADR-0158/0167     | `v007_tables.go:36-41`, `v007.go`                                                                                                                                                                                                         |
+| a8  | **V007 detector fixtures** — `sqlstore.NewSQLiteStore` fires (message cites ADR-0158/0167); `go-idempotency` import stays silent                                                                                         | `v007_test.go` (`TestV007_DetectsIdempotencySqlstoreRetirement`, `…SilentOnExternalIdempotency`)                                                                                                                                          |
+| a9  | **Drift-scanner signal widened** — `no v5 successor`, `adr-0158`, `adr-0167` added; 16 previously invisible sqlstore markers now enter the inventory                                                                     | `v007_drift_scan_test.go` + `TestV5DriftScan_SeesIdempotencySatelliteMarkers` (asserts ≥10) + phrase table test                                                                                                                           |
+| a10 | **Registry drift gates (reverse direction)** — a listed-deleted module must have no `go.mod` at HEAD (root or `/vN`); every cited ADR must exist; every present-module guard must still exist                            | `f030_internal_test.go`, `moduleGoMods` helper                                                                                                                                                                                            |
+| a11 | **Artifacts regenerated truthfully** — `RULES.md` diff is 2 lines (name + description only, no ID churn); cqrs-lint `README.md` F030 row; `presets.go` disable comment                                                   | `34973524b`; `rules_doc_test.go` freshness test green                                                                                                                                                                                     |
+| a12 | **Doc-count lie fixed** — `docs/DOMAIN_LANGUAGE.md:345` 202 → 217; `references/modules.md` idempotency/kvstore/sqlstore rows now name `system.Dedup()`; `references/core.md:204` dedup routing points at the engine path | `2bb70ab84`                                                                                                                                                                                                                               |
+| a13 | **Verification receipts** — full `cmd/cqrs-lint/v4` suite green (`go test ./... -count=1`); `cmd/doc-check` "All 1391 references valid across 57 package(s)"; `check-canonical-facts.sh` green                           | run this session                                                                                                                                                                                                                          |
+| a14 | **My own canonical-facts drift fixed** — the 12-26 status report was missing from `docs/status/README.md`; row added, gate re-run green (`missing=0 dangling=0`)                                                         | `d185f80c6`                                                                                                                                                                                                                               |
+| a15 | **HARVEST done** — 10 fleet-repair rows (owning repo per row, gated where needed), D28/D29 on the owner decision sheet, D1 recorded as authorized, ROADMAP questions 23/24                                               | `8520f6c82` (61 insertions)                                                                                                                                                                                                               |
+| a16 | **D2/D3 evidence base built** — 10-checkout survey: store type, TTL, sweeper presence, restart survival, middleware order, lying comments, per-repo swap file lists, indirect vs direct `go-idempotency` version         | **PERSISTED** in [`docs/evidence/2026-11-17_idempotency-fleet-wiring-survey.md`](../evidence/2026-11-17_idempotency-fleet-wiring-survey.md) (its §7 records the six claims that pass corrected)                                           |
 
 **Rule-count integrity:** `RULES.md` anchors = 217; `meta_test.go` pin = 217; cqrs-lint README = 217; DOMAIN_LANGUAGE = 217.
 No rule IDs were added, removed, or renumbered.
@@ -46,14 +46,14 @@ No rule IDs were added, removed, or renumbered.
 
 ## b) PARTIALLY DONE
 
-| # | Item | What is done | What is missing |
-|---|------|--------------|-----------------|
-| b1 | **T7 deleted-module registry gate** | Reverse gate (no ghost entries), ADR-existence gate, guard-liveness gate | The **forward** direction: every module an ADR records as deleted must have a row. No enumeration source is wired yet |
-| b2 | **T5 verification** | Unit suites, doc-check, canonical-facts | `nix run .#lint-scope` and `nix run .#verify` were never run — "all tests green" is true, "all gates green" is unproven |
-| b3 | **T9 process rules** | Rowed in TODO_LIST | No gotchas entry written: "tag exists ≠ module exists", `who-uses`-before-greps, daemon-blends-foreign-files |
-| b4 | **F030 rename** | Catalog, `RULES.md`, README, presets comment, V007 allowlist reasons all updated | No CHANGELOG `[Unreleased]` entry; never grepped consumer `.cqrs-lint.json` files for name-keyed suppressions; no tag |
-| b5 | **D2/D3 answer** | Evidence + matrix + recommendation delivered in chat | Owner has not chosen; no code depends on it yet |
-| b6 | **Fleet work (D1 granted)** | Every repo/item catalogued with file:line evidence | Zero repos touched (correctly — D2/D3 gate the ordering) |
+| #  | Item                                | What is done                                                                     | What is missing                                                                                                         |
+| -- | ----------------------------------- | -------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| b1 | **T7 deleted-module registry gate** | Reverse gate (no ghost entries), ADR-existence gate, guard-liveness gate         | The **forward** direction: every module an ADR records as deleted must have a row. No enumeration source is wired yet   |
+| b2 | **T5 verification**                 | Unit suites, doc-check, canonical-facts                                          | `nix run .#lint-scope` and `nix run .#verify` were never run — "all tests green" is true, "all gates green" is unproven |
+| b3 | **T9 process rules**                | Rowed in TODO_LIST                                                               | No gotchas entry written: "tag exists ≠ module exists", `who-uses`-before-greps, daemon-blends-foreign-files            |
+| b4 | **F030 rename**                     | Catalog, `RULES.md`, README, presets comment, V007 allowlist reasons all updated | No CHANGELOG `[Unreleased]` entry; never grepped consumer `.cqrs-lint.json` files for name-keyed suppressions; no tag   |
+| b5 | **D2/D3 answer**                    | Evidence + matrix + recommendation delivered in chat                             | Owner has not chosen; no code depends on it yet                                                                         |
+| b6 | **Fleet work (D1 granted)**         | Every repo/item catalogued with file:line evidence                               | Zero repos touched (correctly — D2/D3 gate the ordering)                                                                |
 
 ---
 
@@ -77,12 +77,12 @@ No rule IDs were added, removed, or renumbered.
    boundaries or the daemon absorbs edits into `chore:` commits. I never did, so T1–T6 now live across
    `006262476`, `a00ff3a06`, `34973524b`, `2bb70ab84` + two later chore commits — and my one authored
    attempt printed "nothing to commit" because the daemon had already taken it. **Worse:** `2bb70ab84`
-   contains my three doc files *and* another session's `v003*.go`/`v006.go`/`v002_v006_test.go`. The
+   contains my three doc files _and_ another session's `v003*.go`/`v006.go`/`v002_v006_test.go`. The
    history for this work is now unauditable, and I cannot honestly claim any commit as "the fix".
 2. **The surveyed fleet evidence exists only in this conversation.** The 10-checkout wiring table (store
    per app, TTLs, sweeper presence, the lying comments, retry/idempotency inversion) has no file on disk.
    If this session ends, that evidence is gone — and it is the basis for every D3 claim I made.
-3. **Two red iterations on the reverse gate, both self-inflicted.** First version asserted the *directory*
+3. **Two red iterations on the reverse gate, both self-inflicted.** First version asserted the _directory_
    was gone (it exists — `sqlstore` lives under it), second asserted `go.mod` at the module path (the module
    is at `/v4`). One `ls` would have avoided both.
 4. **A test that lied about the contract.** I asserted `example.com/…/go-cqrs-lite/idempotency` must NOT
@@ -98,7 +98,7 @@ No rule IDs were added, removed, or renumbered.
    name changed (`deprecated-transport-import` → `deleted-module-import`). I did not check whether any
    consumer config or doc keys on the name, and I did not surface it as a decision until now.
 8. **Late discovery of the actual bug (carried over, still mine).** The previous turn framed the problem as
-   "nobody uses it"; the *real* defect (scorecard lying to three apps) only surfaced in the second pass.
+   "nobody uses it"; the _real_ defect (scorecard lying to three apps) only surfaced in the second pass.
    "Tag exists" was read as "module exists" for a full turn.
 
 ---
@@ -205,15 +205,15 @@ No rule IDs were added, removed, or renumbered.
 
 ## Appendix — receipts
 
-| What | Command | Result |
-|------|---------|--------|
-| analyzer suites | `GOWORK=off go test ./pkg/analyzer/ -count=1` | ok |
-| adoption + version suites | `GOWORK=off go test ./pkg/rules/adoption/ ./pkg/rules/version/ -count=1` | ok (after fixing my own boundary-test expectation) |
-| full linter suite | `GOWORK=off go test ./... -count=1` | ok (green twice, incl. after the registry gates) |
-| doc-check | `go run . SKILL.md references/*.md AGENTS.md` | `✓ All 1391 references valid across 57 package(s)` |
-| canonical facts | `bash scripts/check-canonical-facts.sh` | red on my own missing index row → fixed → `all citations match repo-derived truth` |
-| scorecard (before/after) | `cqrs-lint scorecard --path <repo> -o markdown` | SEC / InboxClean / github-local-sync `missing` → `used`; Zlota44 `used` both times |
-| lint (real repos) | `cqrs-lint /home/lars/projects/games/SEC` | now emits F030 "deleted module … idempotency/v4" at `app.go:14` |
-| lint (real repos) | `cqrs-lint /home/lars/projects/games/KeyCountdown` | now emits F030 (`cqrs.go:20`) + V007 (`cqrs.go:55`, "removed at v5 (ADR-0158/0167)") |
-| rule count | `grep -c '^<a id="' RULES.md` | 217 |
-| not run | `nix run .#verify`, `nix run .#lint-scope` | deliberately deferred (listed in f5–f6) |
+| What                      | Command                                                                  | Result                                                                               |
+| ------------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------ |
+| analyzer suites           | `GOWORK=off go test ./pkg/analyzer/ -count=1`                            | ok                                                                                   |
+| adoption + version suites | `GOWORK=off go test ./pkg/rules/adoption/ ./pkg/rules/version/ -count=1` | ok (after fixing my own boundary-test expectation)                                   |
+| full linter suite         | `GOWORK=off go test ./... -count=1`                                      | ok (green twice, incl. after the registry gates)                                     |
+| doc-check                 | `go run . SKILL.md references/*.md AGENTS.md`                            | `✓ All 1391 references valid across 57 package(s)`                                   |
+| canonical facts           | `bash scripts/check-canonical-facts.sh`                                  | red on my own missing index row → fixed → `all citations match repo-derived truth`   |
+| scorecard (before/after)  | `cqrs-lint scorecard --path <repo> -o markdown`                          | SEC / InboxClean / github-local-sync `missing` → `used`; Zlota44 `used` both times   |
+| lint (real repos)         | `cqrs-lint /home/lars/projects/games/SEC`                                | now emits F030 "deleted module … idempotency/v4" at `app.go:14`                      |
+| lint (real repos)         | `cqrs-lint /home/lars/projects/games/KeyCountdown`                       | now emits F030 (`cqrs.go:20`) + V007 (`cqrs.go:55`, "removed at v5 (ADR-0158/0167)") |
+| rule count                | `grep -c '^<a id="' RULES.md`                                            | 217                                                                                  |
+| not run                   | `nix run .#verify`, `nix run .#lint-scope`                               | deliberately deferred (listed in f5–f6)                                              |

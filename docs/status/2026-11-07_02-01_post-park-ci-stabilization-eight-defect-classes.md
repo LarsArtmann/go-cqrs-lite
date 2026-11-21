@@ -8,7 +8,7 @@
 
 ## a) Summary
 
-The parked question ("instrument or quarantine the SSE flake?") remains **unanswered and unanswerable tonight** — every candidate run's Verify-fast leg died on a *different* defect or was cancelled before the SSE test could report. Instead of one quiet CI watch, the session became an eight-defect stabilization campaign: the tree at park-time was **un-buildable on CI** (templ 1100-era files vs pinned v0.3.1070 lib), and each fix peeled the onion one layer further. All eight classes are now fixed, locally verified, and — for MySQL (twice) and Dgraph (once) — **CI-verified green**. The final candidate run is 28-green/0-red with two legs in flight.
+The parked question ("instrument or quarantine the SSE flake?") remains **unanswered and unanswerable tonight** — every candidate run's Verify-fast leg died on a _different_ defect or was cancelled before the SSE test could report. Instead of one quiet CI watch, the session became an eight-defect stabilization campaign: the tree at park-time was **un-buildable on CI** (templ 1100-era files vs pinned v0.3.1070 lib), and each fix peeled the onion one layer further. All eight classes are now fixed, locally verified, and — for MySQL (twice) and Dgraph (once) — **CI-verified green**. The final candidate run is 28-green/0-red with two legs in flight.
 
 ## b) What was done (chronological, one fix per defect class)
 
@@ -29,25 +29,25 @@ Also: TODO_LIST rows kept current throughout (M05 row refreshed, MySQL row → F
 
 ## c) Files & changes (all pushed; HEAD = 1b5e6639e)
 
-| Commit | Content |
-| --- | --- |
-| 17687ea56 (daemon) | docserver `*_templ.go` regenerated with the gate binary (1070-era) |
-| 77564de36 | `.buildflow.yml`: `skip_steps: [templ-generate]` + rationale |
-| 8500f8118 (daemon) | 92 go.sums restored (2030 junk lines stripped) |
-| 2d06f93ac (daemon) | `queue/conformance/claims.go`: pinFencing dead-conn retry |
-| 83c0d92e0 | `metaengine/mysqlengine/helper_test.go` (+2 test files routed): `newEngineWithRetry` |
-| f99acdd53 (daemon) | `metaengine/adttest/claim_conformance.go`: claim-worker retry; package-surface baseline re-pin (841→843/169→170) |
-| 1eacdc475 | `metaengine/transient_commit.go`(+test), `runtime_backend.go` (retry call), `dgraphengine/transaction.go` (marker), CHANGELOG, api_surface.txt |
-| cb7c407a0 (daemon) | `scripts/check-test-runtime.sh`: EPIPE guard |
-| 1b5e6639e | `transient_commit.go`: `errors.AsType` migration |
-| BuildFlow#93 | upstream issue (templ-generate newer-CLI skew guard gap) |
+| Commit             | Content                                                                                                                                        |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| 17687ea56 (daemon) | docserver `*_templ.go` regenerated with the gate binary (1070-era)                                                                             |
+| 77564de36          | `.buildflow.yml`: `skip_steps: [templ-generate]` + rationale                                                                                   |
+| 8500f8118 (daemon) | 92 go.sums restored (2030 junk lines stripped)                                                                                                 |
+| 2d06f93ac (daemon) | `queue/conformance/claims.go`: pinFencing dead-conn retry                                                                                      |
+| 83c0d92e0          | `metaengine/mysqlengine/helper_test.go` (+2 test files routed): `newEngineWithRetry`                                                           |
+| f99acdd53 (daemon) | `metaengine/adttest/claim_conformance.go`: claim-worker retry; package-surface baseline re-pin (841→843/169→170)                               |
+| 1eacdc475          | `metaengine/transient_commit.go`(+test), `runtime_backend.go` (retry call), `dgraphengine/transaction.go` (marker), CHANGELOG, api_surface.txt |
+| cb7c407a0 (daemon) | `scripts/check-test-runtime.sh`: EPIPE guard                                                                                                   |
+| 1b5e6639e          | `transient_commit.go`: `errors.AsType` migration                                                                                               |
+| BuildFlow#93       | upstream issue (templ-generate newer-CLI skew guard gap)                                                                                       |
 
 Authored-commit note: five of the nine content commits landed as daemon `chore:` absorbs despite same-window staging (§d.2).
 
 ## d) Self-critique — what I got wrong or could do better
 
 1. **I destroyed my own evidence once.** The first QEMU VM run was piped through `| tail -6` — the diagnostic middle was gone; the rerun then got refused by quiet-window (load ~90). Rule I should follow: **every load-sensitive local run writes a full log to `build/` on the first attempt.**
-2. **The daemon won every commit race.** Five content commits landed as chore-mush. The owner ruling covers authored commits at *phase boundaries*; CI-fix cadence (commit→push→watch, ~8 rounds) gave the daemon ~1-3 min windows and it took them. Not content-lossy (verified each time), but history readability suffered and I kept writing authored messages that never shipped. Improvement: stage+commit in one tool call (no gap), or accept chore-mush for hotfix-class commits and say so in the report.
+2. **The daemon won every commit race.** Five content commits landed as chore-mush. The owner ruling covers authored commits at _phase boundaries_; CI-fix cadence (commit→push→watch, ~8 rounds) gave the daemon ~1-3 min windows and it took them. Not content-lossy (verified each time), but history readability suffered and I kept writing authored messages that never shipped. Improvement: stage+commit in one tool call (no gap), or accept chore-mush for hotfix-class commits and say so in the report.
 3. **Two CI rounds were spent on findings about MY OWN new code** (package-surface ratchet +841→843; erraudit `errors.As`). The preflight ritual (TODO_LIST row 211) doesn't include `#check-package-surface` or `erraudit-sweep` because it was built for docs/tidy/templ drift. **Extension rowed below (f.3):** when a change adds exported API or new error-matching code, those two gates join the preflight.
 4. **Whack-a-mole tax on the MySQL class.** After the second distinct surface (engine init RST) I should have swept ALL mysql-adjacent dial/construction sites in one pass; instead the adttest surface took another round (~45 min of CI). The class-wide grep is now obvious in hindsight: `mysqlengine.New(`, `ClaimDue(`, `sql.Open("mysql"`. Rowed as a checkable habit (f.4).
 5. **I briefly treated a load-starved local VM failure as new signal.** The local `mysqlengine.init: invalid connection` under load≈90 was the same class, not a new fact — I should read `/proc/loadavg` BEFORE interpreting any load-sensitive local result, not after.

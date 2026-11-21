@@ -13,15 +13,15 @@
 
 ## Scope executed
 
-| Item | Source |
-| --- | --- |
-| Idempotency depth spec (same command twice → one event) | 02-46 §f24 |
-| Optimistic-concurrency depth spec (stale version → Conflict family) | 02-46 §f25 |
-| DLQ in-scenario depth spec (`projectionhost.WithDeadLetterStore`) | 02-46 §f22 |
-| Upcaster-in-given-phase depth spec (`DomainConfig.Schema`) | 02-46 §f23 |
-| `Scenario.Event` version-hint invalidation (out-of-band appends) | 14:40 §f13 |
-| `json.Marshal(payload)` trap sweep (sub-item) | 14:40 §f13 sub |
-| `Then*` first-act baseline docs in recipes §2.43 | 07-37 §f25 / 09-05 §f14 |
+| Item                                                                | Source                  |
+| ------------------------------------------------------------------- | ----------------------- |
+| Idempotency depth spec (same command twice → one event)             | 02-46 §f24              |
+| Optimistic-concurrency depth spec (stale version → Conflict family) | 02-46 §f25              |
+| DLQ in-scenario depth spec (`projectionhost.WithDeadLetterStore`)   | 02-46 §f22              |
+| Upcaster-in-given-phase depth spec (`DomainConfig.Schema`)          | 02-46 §f23              |
+| `Scenario.Event` version-hint invalidation (out-of-band appends)    | 14:40 §f13              |
+| `json.Marshal(payload)` trap sweep (sub-item)                       | 14:40 §f13 sub          |
+| `Then*` first-act baseline docs in recipes §2.43                    | 07-37 §f25 / 09-05 §f14 |
 
 ## a) FULLY DONE
 
@@ -207,6 +207,7 @@ Nothing of mine is red or reverted, but three honest failures:
 ## f) NEXT — up to 50, ranked roughly by Pareto
 
 **Verification debt from THIS session (do first):**
+
 1. Run cqrs-htmx full suite against the workspace (corruption-classified
    decode errors reach it at the next tag).
 2. Run go-appkit full suite against the workspace (same).
@@ -222,73 +223,73 @@ Nothing of mine is red or reverted, but three honest failures:
 **Depth-spec hardening (finish what this session sketched):**
 9. Pin the exact DLQ `ProjectionName` in the poison spec.
 10. DLQ retry-journey spec: threshold>1 + a genuinely retryable-then-fatal
-    fold error (needs a way for a consumer fold to error — see #15).
+fold error (needs a way for a consumer fold to error — see #15).
 11. Assert `ThenError(event.ErrVersionConflict)` in the OCC spec.
 12. Multi-hop upcast chain spec (v1→v2→v3, ties to DiscordSync's
-    `UpcastChain()` adoption).
+`UpcastChain()` adoption).
 13. Assert the read-back upcast schema-version stamp in the upcaster spec.
 14. Broaden the payload-trap sweep: `Unmarshal`, `DeepEqual`,
-    `%v`-formatting over payloads in harness + recipes; reopen the TODO row
-    if anything live is found.
+`%v`-formatting over payloads in harness + recipes; reopen the TODO row
+if anything live is found.
 15. Decide whether `system` should expose ERRORING consumer folds (today
-    Lookup folds cannot fail; that's why only decode poisons can DLQ) —
-    likely a small ADR; blocks #10's full depth.
+Lookup folds cannot fail; that's why only decode poisons can DLQ) —
+likely a small ADR; blocks #10's full depth.
 
 **Harness residue (the section's still-open rows):**
 16. cqrs-htmx sqlite-lifecycle tests through the harness (sqliteDeployment
-    variant) — the wave's own leftover.
+variant) — the wave's own leftover.
 17. `TimeAdvancesTo(t)` sugar (Axon 4 analog).
 18. `system` `Bus()` delivery-mode knobs for test deployments.
 19. Observational-equivalence port to system level.
 20. Store-conformance suite reuse inside the harness.
 21. `scenario/v4` `testing.TB` refactor (parity with systemscenario).
 22. systemscenario tag wave to unblock example/graph-native standalone
-    build (owner: harness session).
+build (owner: harness session).
 23. Companion commit-history hygiene (cqrs-htmx/go-appkit daemon `chore:`
-    commits → authored messages if history matters).
+commits → authored messages if history matters).
 24. go-appkit GracefulClose upstream-ask re-check.
 
 **Systemic fixes noticed en route:**
 25. Review `projectionadapter` "apply" error classification
-    (`fmt.Errorf` → Transient-by-default) with an owner ruling.
+(`fmt.Errorf` → Transient-by-default) with an owner ruling.
 26. Review `system/projection_builder.go` `buildEventDecoder` error wraps
-    for the same unclassified-default problem.
+for the same unclassified-default problem.
 27. Document "Schema declaration activates the coeffect gate" in the skill
-    FAQ (and cross-link from the upcasting recipes).
+FAQ (and cross-link from the upcasting recipes).
 28. Promote the dedup middleware into a compile-verified recipes fence
-    (with `recipes_catalog` entry) — the ADR-0158 migration recipe.
+(with `recipes_catalog` entry) — the ADR-0158 migration recipe.
 29. File + treat the race-flake: TODO row, then quiet-window/load-sweep
-    measurement of systemscenario package parallelism budget.
+measurement of systemscenario package parallelism budget.
 30. Consider a harness-level `WithDedupScope`/idempotency preset if more
-    specs need dedup wiring (DRY over the fixture middleware).
+specs need dedup wiring (DRY over the fixture middleware).
 
 **Foreign drift noticed (not mine, needs routing to owners):**
 31. catalog file-size offenders: `types_resources.go` (359),
-    `architecture/selection.go` (397) — split or baseline.
+`architecture/selection.go` (397) — split or baseline.
 32. `example/mesh-demo` dep budget 8/7 via errorfamily — budget bump or
-    budget review.
+budget review.
 33. Duplication gate: 2 foreign clone groups (docserver templ ×2;
-    catalog/architecture vs cqrs-lint fixture) — `//art-dupl:accept` or
-    surgical baseline insert per the specview flow.
+catalog/architecture vs cqrs-lint fixture) — `//art-dupl:accept` or
+surgical baseline insert per the specview flow.
 34. `example/taskmanager` build break: `servertiming` undefined — dep was
-    dropped from go.mod while source still imports it; restore dep or
-    finish the removal.
+dropped from go.mod while source still imports it; restore dep or
+finish the removal.
 35. core/v5 `.go-arch-lint.yml` + V007 marker drift + doc-check
-    alias-ambiguity warnings (the standing externals row).
+alias-ambiguity warnings (the standing externals row).
 
 **Optional polish:**
 36. ManualClock-aware TTL option in the dedup fixture (document the
-   wall-clock choice either way).
+wall-clock choice either way).
 37. The OCC fixture's impure decide (out-of-band append inside decide)
-   deserves a comment-explained convention note in the fixtures header —
-   it deliberately violates pure-decide and the next reader should know.
+deserves a comment-explained convention note in the fixtures header —
+it deliberately violates pure-decide and the next reader should know.
 38. Consider `TestDepth_*` naming convention note in the harness README
-   (depth_*.go files, one concern per file) if more depth packs land.
+(depth_*.go files, one concern per file) if more depth packs land.
 39. CHANGELOG: the bare-ID test fixes could get a sentence in the owning
-   Changed row (currently implicit).
+Changed row (currently implicit).
 40. Reconcile `docs/planning/2026-10-09_14-49` addendum with this
-   session's residue closure (the plan's §7 externals table references the
-   rows I closed).
+session's residue closure (the plan's §7 externals table references the
+rows I closed).
 
 (40 rows — the honest remaining 10 slots stay empty rather than padded.)
 
@@ -311,5 +312,5 @@ Nothing of mine is red or reverted, but three honest failures:
 
 ---
 
-*Arte in Aeternum — report written 2026-10-17 20:13 CEST, immediately after
-session completion; awaiting instructions.*
+_Arte in Aeternum — report written 2026-10-17 20:13 CEST, immediately after
+session completion; awaiting instructions._

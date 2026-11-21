@@ -93,7 +93,7 @@
 
 ## f) Up to 50 things we should get done next
 
-*(Ordered by impact; items 1–6 are this session's direct continuations, 7+ are the commissioned Pareto-plan threads this session left untouched.)*
+_(Ordered by impact; items 1–6 are this session's direct continuations, 7+ are the commissioned Pareto-plan threads this session left untouched.)_
 
 1. Push the 4 pending commits; watch push-CI, Nightly Gates, and a fresh Benchmarks dispatch (calibration cold) — collect explicit green receipts (M01/F002–F004/F011).
 2. Dispatch the warm calibration run and verify runner-class comparison + non-empty artifact (F012).
@@ -154,4 +154,4 @@
 
 ---
 
-*Living truth remains in `TODO_LIST.md`; this snapshot covers only the 2026-11-08 episode-7 session (≈12:50–16:00 CET). The HTML narrative report with all 32 findings: `docs/reviews/2026-11-08_13-20_brutal-self-review.html`.*
+_Living truth remains in `TODO_LIST.md`; this snapshot covers only the 2026-11-08 episode-7 session (≈12:50–16:00 CET). The HTML narrative report with all 32 findings: `docs/reviews/2026-11-08_13-20_brutal-self-review.html`._

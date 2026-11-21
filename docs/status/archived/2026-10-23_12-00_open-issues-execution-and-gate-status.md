@@ -19,6 +19,7 @@ All ten open issues are now **implemented and locally verified**, including the 
 - `check-lint-config`, `check-error-taxonomy`, `check-modsums`, `check-templ`, `check-docserver-css`, `check-architecture-reference`, `check-turso-version`, `check-bench-gate`, `check-duplication`, `check-coverage`, `check-api-stability`, `check-md-go`, full `doc-check` — **all green**
 
 The **full `nix run .#verify` did NOT complete end-to-end**:
+
 - Composed run 1 failed in the test phase on stale `cmd/cqrs-upgrade` E2E fixture `go` directives (`1.27.1` < the local `event` module's `1.27.2`). **Fixed.**
 - Composed run 2 failed on `TestREADMEClaim_CoverageFloors` (README claims 90%/92% vs newly measured 89.5%/87.7%). **Fixed.**
 - `verify-fast` (the load-guard-free variant) failed only on a flaky race test: `systemscenario.TestSSE_TaskViewStreamsOverHTTP` (CBOR decode of `task.updated` into the wrong shape). It passes 3/3 standalone with `-race -short`; no code in this session touches it.
@@ -34,18 +35,18 @@ Nothing was committed by hand and **nothing was pushed**. The daemon produced on
 
 ### 2.1 The ten issues
 
-| # | Issue | Delivered | Verification |
-|---|-------|-----------|--------------|
-| 70 | `EventWithID.ID` display form | Already fixed before this session; verified, not re-implemented | `projectionadapter` suite ok |
-| 71 | `TypedReader.Scan` truncation signal | `WithExact()` + `ErrScanTruncated`; `scanItems` restructured; PrefetchCache `HasMore` surfaced; godoc rewritten | `TestWithExact_MakesTruncationLoud`; full metaengine suite ok |
-| 72 | Keep-newest-N cap primitive | `WithCap(maxRows, orderBy)` + `EnforceCap`/`EnforceCaps` + plan-time validation + temporal delete + live notify | 5 cap tests; full metaengine suite ok; COOKBOOK recipe |
-| 74 | S001 schema names as critical secrets | Scoped name-shape allowlist (const or storage-suffix binding), const-bound downgrade to warning, actionable suggestion | 3 new S001 tests + old suite ok |
-| 78 | E005 cross-package selectors | `typeNameFromGenericArg` + `handlerTypeFromClosure` handle `*ast.SelectorExpr`; `context.Context` skipped | 2 new E005 tests + old suite ok |
-| 79 | E004/F002 blind to `catalog/simple` | `simple.Event` case reads arg 1, unwraps `string(...)`, shared `recordCatalogEventType`; F002 accepts `simple.New` via import-path-scoped helper | 4 new tests; adoption + architecture suites ok |
-| 80 | C010 checked decode idiom | `checkedSwallowAssigns` handles `if`-init and two-line forms; unchecked if-init still fires | 3 new + 2 old C010 tests ok |
-| 81 | E003 `go.mod:1:1` collision | Per-package earliest-construct anchors, deterministic package order; unique finding IDs | `TestE003_EmitsDistinctIDsPerPackage`; architecture suite ok |
-| 82 | F010 metaengine graph | Skip when metaengine imported **and** `Edge`/`EdgeRemoval` referenced; suggestion names the Graph ADT first | 2 new F010 tests + old suite ok |
-| 83 | Findings baseline | `--baseline` / `--update-baseline`; portable relative keys; reason preservation; deterministic atomic write; stale notices; exit gate on new findings only; health score unchanged; explain + README docs | 11 baseline tests; main package suite ok |
+| #  | Issue                                 | Delivered                                                                                                                                                                                                 | Verification                                                  |
+| -- | ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| 70 | `EventWithID.ID` display form         | Already fixed before this session; verified, not re-implemented                                                                                                                                           | `projectionadapter` suite ok                                  |
+| 71 | `TypedReader.Scan` truncation signal  | `WithExact()` + `ErrScanTruncated`; `scanItems` restructured; PrefetchCache `HasMore` surfaced; godoc rewritten                                                                                           | `TestWithExact_MakesTruncationLoud`; full metaengine suite ok |
+| 72 | Keep-newest-N cap primitive           | `WithCap(maxRows, orderBy)` + `EnforceCap`/`EnforceCaps` + plan-time validation + temporal delete + live notify                                                                                           | 5 cap tests; full metaengine suite ok; COOKBOOK recipe        |
+| 74 | S001 schema names as critical secrets | Scoped name-shape allowlist (const or storage-suffix binding), const-bound downgrade to warning, actionable suggestion                                                                                    | 3 new S001 tests + old suite ok                               |
+| 78 | E005 cross-package selectors          | `typeNameFromGenericArg` + `handlerTypeFromClosure` handle `*ast.SelectorExpr`; `context.Context` skipped                                                                                                 | 2 new E005 tests + old suite ok                               |
+| 79 | E004/F002 blind to `catalog/simple`   | `simple.Event` case reads arg 1, unwraps `string(...)`, shared `recordCatalogEventType`; F002 accepts `simple.New` via import-path-scoped helper                                                          | 4 new tests; adoption + architecture suites ok                |
+| 80 | C010 checked decode idiom             | `checkedSwallowAssigns` handles `if`-init and two-line forms; unchecked if-init still fires                                                                                                               | 3 new + 2 old C010 tests ok                                   |
+| 81 | E003 `go.mod:1:1` collision           | Per-package earliest-construct anchors, deterministic package order; unique finding IDs                                                                                                                   | `TestE003_EmitsDistinctIDsPerPackage`; architecture suite ok  |
+| 82 | F010 metaengine graph                 | Skip when metaengine imported **and** `Edge`/`EdgeRemoval` referenced; suggestion names the Graph ADT first                                                                                               | 2 new F010 tests + old suite ok                               |
+| 83 | Findings baseline                     | `--baseline` / `--update-baseline`; portable relative keys; reason preservation; deterministic atomic write; stale notices; exit gate on new findings only; health score unchanged; explain + README docs | 11 baseline tests; main package suite ok                      |
 
 ### 2.2 The work that unblocked CI
 
@@ -67,27 +68,27 @@ Nothing was committed by hand and **nothing was pushed**. The daemon produced on
 
 ### 2.3 Gate matrix (individually run, all green)
 
-| Gate | Command | Result |
-|------|---------|--------|
-| Build | `nix run .#build` (via verify) | green |
-| Lint | `nix run .#lint` | 88/88 modules clean |
-| File size | `bash scripts/check-file-size.sh` | no new offenders, no growth |
-| Arch budgets | `nix run .#check-arch` | all passed (after 2 budget reviews) |
-| Lint config | `nix run .#check-lint-config` | green |
-| Error taxonomy | `nix run .#check-error-taxonomy` | 538 codes, 19 modules match |
-| Module sums | `nix run .#check-modsums` | 101 modules tidy |
-| Templ | `nix run .#check-templ` | green + cwd tripwire green |
-| Arch reference | `nix run .#check-architecture-reference` | green |
-| Turso citations | `nix run .#check-turso-version` | green |
-| Bench gate fixtures | `nix run .#check-bench-gate` | green |
-| Duplication | `nix run .#check-duplication` | 0 new clones |
-| Coverage | `nix run .#check-coverage` | green (after re-baseline) |
-| API stability | `nix run .#check-api-stability` | green (golden = 6265 exports) |
-| md-go | `nix run .#check-md-go` | 1514 blocks valid, 105 baselined |
-| Docs | full `cmd/doc-check` corpus | 2751 references valid |
-| Formatting | `nix fmt -- --fail-on-change` | 0 changed (after one format pass) |
-| Module tests | per-package `go test` for every touched module | green |
-| cqrs-lint full suite | `GOWORK=off go test ./...` | **all green**, including previously red `version`/`performance`/`resilience` |
+| Gate                 | Command                                        | Result                                                                       |
+| -------------------- | ---------------------------------------------- | ---------------------------------------------------------------------------- |
+| Build                | `nix run .#build` (via verify)                 | green                                                                        |
+| Lint                 | `nix run .#lint`                               | 88/88 modules clean                                                          |
+| File size            | `bash scripts/check-file-size.sh`              | no new offenders, no growth                                                  |
+| Arch budgets         | `nix run .#check-arch`                         | all passed (after 2 budget reviews)                                          |
+| Lint config          | `nix run .#check-lint-config`                  | green                                                                        |
+| Error taxonomy       | `nix run .#check-error-taxonomy`               | 538 codes, 19 modules match                                                  |
+| Module sums          | `nix run .#check-modsums`                      | 101 modules tidy                                                             |
+| Templ                | `nix run .#check-templ`                        | green + cwd tripwire green                                                   |
+| Arch reference       | `nix run .#check-architecture-reference`       | green                                                                        |
+| Turso citations      | `nix run .#check-turso-version`                | green                                                                        |
+| Bench gate fixtures  | `nix run .#check-bench-gate`                   | green                                                                        |
+| Duplication          | `nix run .#check-duplication`                  | 0 new clones                                                                 |
+| Coverage             | `nix run .#check-coverage`                     | green (after re-baseline)                                                    |
+| API stability        | `nix run .#check-api-stability`                | green (golden = 6265 exports)                                                |
+| md-go                | `nix run .#check-md-go`                        | 1514 blocks valid, 105 baselined                                             |
+| Docs                 | full `cmd/doc-check` corpus                    | 2751 references valid                                                        |
+| Formatting           | `nix fmt -- --fail-on-change`                  | 0 changed (after one format pass)                                            |
+| Module tests         | per-package `go test` for every touched module | green                                                                        |
+| cqrs-lint full suite | `GOWORK=off go test ./...`                     | **all green**, including previously red `version`/`performance`/`resilience` |
 
 ### 2.4 Pareto recap (plan §2)
 
@@ -175,7 +176,7 @@ Nothing in the shipped code is broken by this session. The only "fucked up" item
 38. Update the plan doc with actual outcomes/timings.
 39. Remove `/tmp/art-dupl-full.json`, `/tmp/verify-*.log` (housekeeping).
 40. Verify `go.work.sum` churn and the 34-module `go.sum` prune belong to this session; restore if not.
-40b. Re-run `bash scripts/check-modsums.sh` after deciding on the prune.
+    40b. Re-run `bash scripts/check-modsums.sh` after deciding on the prune.
 41. Create an authored commit series (or one detailed squash) describing the ten fixes.
 42. Push the branch.
 43. Verify the remote CI run.

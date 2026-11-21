@@ -1,12 +1,12 @@
 # ADR-0161: Encoded ingress decodes with the producer's codec, not a schema-free JSON transcode
 
-| Field      | Value                                                                                                 |
-| ---------- | ----------------------------------------------------------------------------------------------------- |
-| Status     | Accepted                                                                                              |
-| Date       | 2026-10-24                                                                                            |
-| Deciders   | Lars Artmann                                                                                          |
-| Related    | ADR-0062 (metaengine dependency boundary), ADR-0066 (reify), ADR-0111 (Record), ADR-0126 (wrappers)   |
-| Supersedes | nothing (re-opens the codec question left open by ADR-0062's 2026-08-06 amendment and ADR-0066)       |
+| Field      | Value                                                                                               |
+| ---------- | --------------------------------------------------------------------------------------------------- |
+| Status     | Accepted                                                                                            |
+| Date       | 2026-10-24                                                                                          |
+| Deciders   | Lars Artmann                                                                                        |
+| Related    | ADR-0062 (metaengine dependency boundary), ADR-0066 (reify), ADR-0111 (Record), ADR-0126 (wrappers) |
+| Supersedes | nothing (re-opens the codec question left open by ADR-0062's 2026-08-06 amendment and ADR-0066)     |
 
 ## Context
 
@@ -66,9 +66,9 @@ codec, per fold. Schema-free JSON normalization is rejected.**
      `encoding/json/v2`. No stored or logged bytes change.
    - CBOR becomes the internal `encodedPayload{raw, encoding}` marker, cloned on
      ingress.
-   The marker type is deliberately *not* exported: it crosses the public
-   `EventInput.Payload any` boundary, but external callers construct it only by
-   calling the encoded entry points.
+     The marker type is deliberately _not_ exported: it crosses the public
+     `EventInput.Payload any` boundary, but external callers construct it only by
+     calling the encoded entry points.
 3. **Per-fold decode with the producer's codec.** `decodeRawFoldPayload`
    dispatches on the marker; `codec.ForEncoding(encoding).Decode(raw, v)` fills
    `reflect.New(fold sample)`. Folds whose sample is a byte slice receive the
@@ -140,13 +140,13 @@ codec, per fold. Schema-free JSON normalization is rejected.**
 
 ## Implementation status (2026-10-24)
 
-| Surface | Where |
-| ------- | ----- |
-| Ingress markers + detection | `metaengine/encoded.go` (`ApplyEncoded`, `ApplyEncodedRecord`, `encodePayload`, `encodedPayload`, `decodeEncodedFoldPayload`, `codecEncodingOf`) |
-| Adapter delegation | `metaengine/projectionadapter/adapter.go` (`Handle`, no-decoder branch) |
-| Error taxonomy | `metaengine.apply.encoded_codec`, `metaengine.apply.encoded_decode`, `metaengine.encoded.empty_payload`, `metaengine.encoded.unknown_encoding` (`docs/error-taxonomy.md`) |
-| Dependency | `metaengine/go.mod` requires `github.com/larsartmann/go-codec`; `DEP_BUDGET[metaengine]` = 8 |
-| Pins | `metaengine/encoded_codec_test.go`, `encoded_replay_test.go`, `encoded_internal_test.go` (markers, sniff matrix, fuzz, replay), `projectionadapter/adapter_default_codec_test.go` |
+| Surface                     | Where                                                                                                                                                                             |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Ingress markers + detection | `metaengine/encoded.go` (`ApplyEncoded`, `ApplyEncodedRecord`, `encodePayload`, `encodedPayload`, `decodeEncodedFoldPayload`, `codecEncodingOf`)                                  |
+| Adapter delegation          | `metaengine/projectionadapter/adapter.go` (`Handle`, no-decoder branch)                                                                                                           |
+| Error taxonomy              | `metaengine.apply.encoded_codec`, `metaengine.apply.encoded_decode`, `metaengine.encoded.empty_payload`, `metaengine.encoded.unknown_encoding` (`docs/error-taxonomy.md`)         |
+| Dependency                  | `metaengine/go.mod` requires `github.com/larsartmann/go-codec`; `DEP_BUDGET[metaengine]` = 8                                                                                      |
+| Pins                        | `metaengine/encoded_codec_test.go`, `encoded_replay_test.go`, `encoded_internal_test.go` (markers, sniff matrix, fuzz, replay), `projectionadapter/adapter_default_codec_test.go` |
 
 ## References
 

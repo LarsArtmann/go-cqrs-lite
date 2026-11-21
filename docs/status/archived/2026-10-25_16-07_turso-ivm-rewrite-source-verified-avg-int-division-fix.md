@@ -61,6 +61,7 @@ Upstream's materialization-engine rewrite (merged 2026-10-19, **in NO tagged rel
 ## f) NEXT (prioritized, ~30 real items)
 
 **Flip window (trigger: platform-libs tag ≥ v0.9.0):**
+
 1. Fix the #9391 draft attribution, then post on approval
 2. Run the actual zombie-tx readback repro from #9391 against the tagged engine
 3. Re-verify the v0.7.2 reopen-crash (`API misuse: unknown database open flags`) is gone

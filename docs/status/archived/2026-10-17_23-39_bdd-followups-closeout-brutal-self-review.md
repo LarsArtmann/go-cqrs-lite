@@ -197,6 +197,7 @@ This report covers ONLY the 23:19→23:39 close-out.
 ## f) NEXT — up to 50, ranked roughly by Pareto
 
 **Small, this workstream's own residue (do first):**
+
 1. taskmanager `query_http_test.go:243-245` dead `raw, _ := io.ReadAll`
    block — write the actual leak assertion or delete (f33).
 2. `var _ = time.Second` import keeper at `query_http_test.go:259` — delete
@@ -216,34 +217,34 @@ This report covers ONLY the 23:19→23:39 close-out.
 
 **Owner-gated (memo awaits):**
 11. D2 ruling — erroring consumer folds v4.x/v5/never (unblocks the
-    retry-journey depth spec).
+retry-journey depth spec).
 12. C1 ruling — apply-wrap cause-family pass-through +
-    `buildEventDecoder` three wraps (changes worker/DLQ behavior for every
-    system.New consumer).
+`buildEventDecoder` three wraps (changes worker/DLQ behavior for every
+system.New consumer).
 13. Standing push authority for tag waves (I pushed under the blanket
-    directive tonight; confirm it is standing policy, not per-session).
+directive tonight; confirm it is standing policy, not per-session).
 
 **Foreign drift routing (owners, rowed in TODO §ROUTING a–h):**
 14. catalog file-size ×4 (split or baseline).
 15. mesh-demo 8/7 dep budget (bump or review).
 16. 2 duplication groups (accept-directives or specview insert).
 17. go.sum-untidy ×76 (re-pin script vs tidy reconciliation — biggest
-    `#verify-ci` blocker).
+`#verify-ci` blocker).
 18. cqrs-lint born-red rule tests (perf/resilience/version).
 19. `go 1.27.2` 95-file directive wave vs minor-form lockstep.
 20. projectionhost CrashWindowIsBounded load-sensitivity (quiet-window CI
-    treatment or timeout bump).
+treatment or timeout bump).
 21. cqrs-upgrade codemod dot-stripping bug (add dotted-identifier fixture;
-    taskmanager didn't compile for ~2 days because of it).
+taskmanager didn't compile for ~2 days because of it).
 22. Coverage drift ×6 modules (row h) — quiet-window re-baseline after the
-    owning sessions confirm the drops are expected.
+owning sessions confirm the drops are expected.
 
 **Companion/fleet:**
 23. Proactive fleet grep for `StreamID…String()` used as KEY (not display)
-    across cqrs-htmx/go-appkit integration modules before their next pin
-    bump.
+across cqrs-htmx/go-appkit integration modules before their next pin
+bump.
 24. Tag-level full-suite run in cqrs-htmx's repo against systemscenario
-    v4.2.0 + system v4.15.1 (their integration charter).
+v4.2.0 + system v4.15.1 (their integration charter).
 25. Same for go-appkit.
 26. go-appkit GracefulClose upstream-ask re-check (existing row).
 
@@ -251,48 +252,48 @@ This report covers ONLY the 23:19→23:39 close-out.
 27. Retry-journey depth spec (blocked on D2).
 28. Dead-letter retry/requeue semantics spec (park → inspect → replay).
 29. SSE reconnect Last-Event-ID replay depth spec (harness has
-    SubscribeSSE; the replay story is unpinned).
+SubscribeSSE; the replay story is unpinned).
 30. Snapshot corruption/missing-snapshot-at-version recovery spec.
 31. Timers depth spec: deadline firing order under ManualClock batch
-    advance.
+advance.
 32. Equivalence-diff spec: reordering deployment vs memory (ordinal-shift
-    caveat is documented; the fixture proving it is not).
+caveat is documented; the fixture proving it is not).
 33. `ThenCommands` filter composition spec (captureFilter semantics).
 34. Chaos: delayed-driver jitter spec (delay ranges, not fixed).
 35. Golden payload masking: adversarial mask-overlap cases (longest-first
-    pinned; overlap+prefix cases not).
+pinned; overlap+prefix cases not).
 
 **Repo hygiene / tooling:**
 36. erraudit-sweep full-repo run (I ran targeted per-module; the CI-mirror
-    script also writes the per-module report dir).
+script also writes the per-module report dir).
 37. `#verify` full composed run on the settled tree (mine-list expected
-    empty modulo routed foreign rows) — the close-out verified targeted
-    legs only.
+empty modulo routed foreign rows) — the close-out verified targeted
+legs only.
 38. `#verify-ci` after the go.sum ×76 reconciliation lands (watch
-    check-go-version).
+check-go-version).
 39. md-go gate over tonight's daemon-absorbed docs tail (my plan edits are
-    prose-only; cheap to confirm).
+prose-only; cheap to confirm).
 40. `scripts/check-readme-links.sh` + deprecated-symbol honesty gates
-    (nightly class; post-wave sanity).
+(nightly class; post-wave sanity).
 41. versions.json/README regeneration is tag-release-owned (done); consider
-    a gate that fails when README versions drift (exists? verify).
+a gate that fails when README versions drift (exists? verify).
 42. ChangeLog wave-heading linter (heading format + rows-present-per-tag)
-    — tonight's hand-carved heading is exactly the class a gate would pin.
+— tonight's hand-carved heading is exactly the class a gate would pin.
 43. The `/tmp` scratch-module smoke pattern deserves a script
-    (`scripts/scratch-import-smoke.sh <tags...>`) — I hand-rolled it twice.
+(`scripts/scratch-import-smoke.sh <tags...>`) — I hand-rolled it twice.
 44. Companion upgrade-copy smoke likewise (`scripts/companion-upgrade-smoke.sh`).
 45. Dedup fence: add the TTL-expiry half to the recipe (redelivery AFTER
-    TTL re-runs — the boundary consumers will ask about).
+TTL re-runs — the boundary consumers will ask about).
 
 **Bigger arcs (from standing backlog, unchanged):**
 46. Durable Work Queue module adoption (gated on the tag wave — now
-    unblocked by v4.2.0? verify gate state).
+unblocked by v4.2.0? verify gate state).
 47. go.sum ×76 structural fix design (one truth between pin script and
-    tidy).
+tidy).
 48. v5 core/v5 mirror ratchet continuation (lockstep register).
 49. Nightly bench baseline refresh post-wave.
 50. Fleet cqrs-lint scorecard sweep over the new tag set (grade drift after
-    v4.2.0 adoption).
+v4.2.0 adoption).
 
 ## g) Questions only the owner can answer
 
@@ -312,5 +313,5 @@ This report covers ONLY the 23:19→23:39 close-out.
 
 ---
 
-*Arte in Aeternum — report written 2026-10-17 23:39 CEST, immediately after
-the close-out run; execution halted per instruction, awaiting direction.*
+_Arte in Aeternum — report written 2026-10-17 23:39 CEST, immediately after
+the close-out run; execution halted per instruction, awaiting direction._

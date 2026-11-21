@@ -384,6 +384,6 @@ load1 between 14 and 103 the entire time.
 
 ---
 
-*Evidence: every green claim above is a gate or suite rc=0 observed this
+_Evidence: every green claim above is a gate or suite rc=0 observed this
 session; every mutation was restored byte-identical (`git status` verified
-after each); foreign edits found at commit time were left untouched.*
+after each); foreign edits found at commit time were left untouched._

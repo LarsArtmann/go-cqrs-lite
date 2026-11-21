@@ -20,17 +20,17 @@
 
 ## 0. What was actually done in this session
 
-| Step | Action | Result |
-| ---- | ------ | ------ |
-| 1 | Loaded the mandatory `go-cqrs-lite` skill | Confirmed the documented rule: decode payloads with a codec, never raw JSON; default event codec is CBOR |
-| 2 | Read `metaengine/go.mod` | No `go-codec` require, direct or indirect |
-| 3 | Traced history with `git log -S` for `go-codec` and `codec` under `metaengine/` | No production import ever existed; the only historical `go-codec` lines were indirect requires added/removed by 2026-08-13 tidy commits |
-| 4 | Read ADR-0062, ADR-0066, ADR-0048, ADR-0111 | Found the two 2026-07-25 decisions that froze the design |
-| 5 | Read `metaengine/stream_codec.go`, `encoded.go`, `vector_binary.go`, `serializable.go`, `cursor.go`, `reify.go`, `layout_fingerprint.go`, `vector_insert.go`, `sql_keyset.go` | Mapped the bespoke encoding surface |
-| 6 | Read `system/projection_wiring.go`, `system/projection_builder.go`, `system/evolutions.go` | Proved the `system` path IS codec-aware (`codec.ForEncoding(evt.Encoding())`), so the hole is the direct/metaengine path, not the composition root |
-| 7 | Counted the surface | 66 production `.go` files import `encoding/json/v2`; 145 `json.Marshal`/`json.Unmarshal` call sites; 0 production go-codec imports; 1 test-only go-codec import |
-| 8 | Ran `GOWORK=off go test ./keycodec/... -count=1` in `metaengine` | GREEN (0.009s). The committed `testdata/rapid/*.fail` seeds replay green |
-| 9 | Checked tree state | Clean at report time; the pre-existing modified planning doc was absorbed by the auto-commit daemon (`bfdec007e`) |
+| Step | Action                                                                                                                                                                        | Result                                                                                                                                                          |
+| ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1    | Loaded the mandatory `go-cqrs-lite` skill                                                                                                                                     | Confirmed the documented rule: decode payloads with a codec, never raw JSON; default event codec is CBOR                                                        |
+| 2    | Read `metaengine/go.mod`                                                                                                                                                      | No `go-codec` require, direct or indirect                                                                                                                       |
+| 3    | Traced history with `git log -S` for `go-codec` and `codec` under `metaengine/`                                                                                               | No production import ever existed; the only historical `go-codec` lines were indirect requires added/removed by 2026-08-13 tidy commits                         |
+| 4    | Read ADR-0062, ADR-0066, ADR-0048, ADR-0111                                                                                                                                   | Found the two 2026-07-25 decisions that froze the design                                                                                                        |
+| 5    | Read `metaengine/stream_codec.go`, `encoded.go`, `vector_binary.go`, `serializable.go`, `cursor.go`, `reify.go`, `layout_fingerprint.go`, `vector_insert.go`, `sql_keyset.go` | Mapped the bespoke encoding surface                                                                                                                             |
+| 6    | Read `system/projection_wiring.go`, `system/projection_builder.go`, `system/evolutions.go`                                                                                    | Proved the `system` path IS codec-aware (`codec.ForEncoding(evt.Encoding())`), so the hole is the direct/metaengine path, not the composition root              |
+| 7    | Counted the surface                                                                                                                                                           | 66 production `.go` files import `encoding/json/v2`; 145 `json.Marshal`/`json.Unmarshal` call sites; 0 production go-codec imports; 1 test-only go-codec import |
+| 8    | Ran `GOWORK=off go test ./keycodec/... -count=1` in `metaengine`                                                                                                              | GREEN (0.009s). The committed `testdata/rapid/*.fail` seeds replay green                                                                                        |
+| 9    | Checked tree state                                                                                                                                                            | Clean at report time; the pre-existing modified planning doc was absorbed by the auto-commit daemon (`bfdec007e`)                                               |
 
 **Not done:** no repro test, no code fix, no ADR, no TODO row, no GitHub issue, no benchmark, no doc-drift fix, no full gate run.
 
@@ -66,7 +66,7 @@ That rejection is precisely the go-codec envelope design (`WrapEncode`/`UnwrapDe
 
 ### 1.6 Owner correction: the tier framing was wrong
 
-Mid-session correction: **go-codec is a Tier -1 substrate**, not a leaf dependency. It sits conceptually *below* Tier 0 (the old in-repo `codec/` was Layer 0: `core.md:512`). So the correct statement is not "Tier 3 may import an external leaf"; it is:
+Mid-session correction: **go-codec is a Tier -1 substrate**, not a leaf dependency. It sits conceptually _below_ Tier 0 (the old in-repo `codec/` was Layer 0: `core.md:512`). So the correct statement is not "Tier 3 may import an external leaf"; it is:
 
 > metaengine is paying a bespoke-codec tax to avoid a dependency that is architecturally beneath its own lowest tier.
 
@@ -76,50 +76,50 @@ That makes the finding worse than the initial report stated. There is no purity 
 
 ## 2. Evidence ledger
 
-| Claim | Evidence |
-| ----- | -------- |
-| No production go-codec import | `rg -l 'larsartmann/go-codec' metaengine -g '*.go'` returns exactly one file: `metaengine/projectionadapter/adapter_record_test.go` |
+| Claim                                           | Evidence                                                                                                                                                                           |
+| ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| No production go-codec import                   | `rg -l 'larsartmann/go-codec' metaengine -g '*.go'` returns exactly one file: `metaengine/projectionadapter/adapter_record_test.go`                                                |
 | The only go-codec use in metaengine forces JSON | `metaengine/projectionadapter/adapter_record_test.go:9` imports it; line `:267` passes `event.WithCodec(codec.JSONCodec{})` so the JSON-only production decoder can read the event |
-| Production default decode is JSON-only | `metaengine/projectionadapter/adapter.go:145`: `json.Unmarshal(payload, &decoded)` |
-| `ApplyEncoded` is JSON-only by contract | `metaengine/encoded.go:21-33` plus the explicit doc line "For non-JSON encodings (CBOR, etc.), decode manually and use Store.Apply" |
-| Events default to CBOR | `event/codec_test.go:422-428` (`TestDefaultCodec_DefaultIsCBOR`) |
-| The `system` path is safe | `system/projection_builder.go:177-219` uses `codec.ForEncoding(evt.Encoding())`; `system/projection_wiring.go:14-39` prioritizes `TypeDecoder`/`EventDecoder`/auto-derived decoder |
-| Stream codec swallows errors | `metaengine/stream_codec.go:14` (`data, _ := json.Marshal(v)`) and `:24` (decode failure returns the raw string) |
-| Cursor is non-deterministic for maps | `metaengine/cursor.go:35` uses `json.Marshal(c.Value)`; ADR-0048 documents map-order non-determinism |
-| Engine values are unstamped JSON | e.g. `metaengine/pgengine/engine.go:210`, `metaengine/duckdbengine/engine.go:197`, `metaengine/duckdbengine/planned.go:89`, plus the reify path in `metaengine/reify.go` |
-| Stale zero-dep rationale still in code comments | `metaengine/projectionadapter/adapter.go:70` says the split preserves "metaengine's zero-dependency boundary", contradicted by the ADR-0062 addendum |
-| Dep budget excludes codec | `scripts/check-module-layers.sh:328` (`DEP_BUDGET[metaengine]=7` plus the enumerating comment) |
-| Quantified surface | 66 production files import `encoding/json/v2`; 145 production `json.Marshal`/`json.Unmarshal` sites |
-| keycodec current state | `GOWORK=off go test ./keycodec/... -count=1` -> `ok ... 0.009s`; three committed `testdata/rapid/*.fail` seeds replay green |
+| Production default decode is JSON-only          | `metaengine/projectionadapter/adapter.go:145`: `json.Unmarshal(payload, &decoded)`                                                                                                 |
+| `ApplyEncoded` is JSON-only by contract         | `metaengine/encoded.go:21-33` plus the explicit doc line "For non-JSON encodings (CBOR, etc.), decode manually and use Store.Apply"                                                |
+| Events default to CBOR                          | `event/codec_test.go:422-428` (`TestDefaultCodec_DefaultIsCBOR`)                                                                                                                   |
+| The `system` path is safe                       | `system/projection_builder.go:177-219` uses `codec.ForEncoding(evt.Encoding())`; `system/projection_wiring.go:14-39` prioritizes `TypeDecoder`/`EventDecoder`/auto-derived decoder |
+| Stream codec swallows errors                    | `metaengine/stream_codec.go:14` (`data, _ := json.Marshal(v)`) and `:24` (decode failure returns the raw string)                                                                   |
+| Cursor is non-deterministic for maps            | `metaengine/cursor.go:35` uses `json.Marshal(c.Value)`; ADR-0048 documents map-order non-determinism                                                                               |
+| Engine values are unstamped JSON                | e.g. `metaengine/pgengine/engine.go:210`, `metaengine/duckdbengine/engine.go:197`, `metaengine/duckdbengine/planned.go:89`, plus the reify path in `metaengine/reify.go`           |
+| Stale zero-dep rationale still in code comments | `metaengine/projectionadapter/adapter.go:70` says the split preserves "metaengine's zero-dependency boundary", contradicted by the ADR-0062 addendum                               |
+| Dep budget excludes codec                       | `scripts/check-module-layers.sh:328` (`DEP_BUDGET[metaengine]=7` plus the enumerating comment)                                                                                     |
+| Quantified surface                              | 66 production files import `encoding/json/v2`; 145 production `json.Marshal`/`json.Unmarshal` sites                                                                                |
+| keycodec current state                          | `GOWORK=off go test ./keycodec/... -count=1` -> `ok ... 0.009s`; three committed `testdata/rapid/*.fail` seeds replay green                                                        |
 
 ---
 
 ## 3. Capability loss table (what go-codec gives that metaengine lacks)
 
-| go-codec capability | metaengine today | Observable cost |
-| ------------------- | ---------------- | --------------- |
-| `Codec` + `Encoding` + `ForEncoding` | No codec contract at the engine/metaengine boundary; `record.Encoding` is a closed enum on `Record` only | No format negotiation, no custom codecs, no self-description |
-| `AutoDetect` / `AutoDetectDebug` | Hand-rolled sniffing: marker byte in `DecodeVectorAuto`, JSON-fail-then-raw in `DecodeStreamValue` | Silent wrong-type fallbacks, no detection diagnostics |
-| `TranscodeToJSON` | Absent | CBOR payloads cannot enter `ApplyEncoded`; every consumer must bridge manually |
-| `WrapEncode`/`UnwrapDecode` envelope (ADR-0044/0050) | `reify` JSON round-trip (ADR-0066 explicitly rejected stamps) | Unexported fields lost, unknown fields ignored silently, legacy mixed-codec rescue absent |
-| `BufferEncoder` / `EncodePooled` / `GetBuffer` | None | Allocation per stored value on the projection write path |
-| `DeterministicCodec` | Fingerprint hand-sorts (good); cursor does not | Map cursors are not byte-stable; unsafe as cache keys or signatures |
-| `Size` / `ObservableCodec` | None | No codec-level metrics or payload-size diagnostics |
-| Established CBOR performance | Read-model values are JSON only | CBOR's documented size/speed win (go-codec README claims) is unmeasured here, but structurally unavailable |
+| go-codec capability                                  | metaengine today                                                                                         | Observable cost                                                                                            |
+| ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `Codec` + `Encoding` + `ForEncoding`                 | No codec contract at the engine/metaengine boundary; `record.Encoding` is a closed enum on `Record` only | No format negotiation, no custom codecs, no self-description                                               |
+| `AutoDetect` / `AutoDetectDebug`                     | Hand-rolled sniffing: marker byte in `DecodeVectorAuto`, JSON-fail-then-raw in `DecodeStreamValue`       | Silent wrong-type fallbacks, no detection diagnostics                                                      |
+| `TranscodeToJSON`                                    | Absent                                                                                                   | CBOR payloads cannot enter `ApplyEncoded`; every consumer must bridge manually                             |
+| `WrapEncode`/`UnwrapDecode` envelope (ADR-0044/0050) | `reify` JSON round-trip (ADR-0066 explicitly rejected stamps)                                            | Unexported fields lost, unknown fields ignored silently, legacy mixed-codec rescue absent                  |
+| `BufferEncoder` / `EncodePooled` / `GetBuffer`       | None                                                                                                     | Allocation per stored value on the projection write path                                                   |
+| `DeterministicCodec`                                 | Fingerprint hand-sorts (good); cursor does not                                                           | Map cursors are not byte-stable; unsafe as cache keys or signatures                                        |
+| `Size` / `ObservableCodec`                           | None                                                                                                     | No codec-level metrics or payload-size diagnostics                                                         |
+| Established CBOR performance                         | Read-model values are JSON only                                                                          | CBOR's documented size/speed win (go-codec README claims) is unmeasured here, but structurally unavailable |
 
 ---
 
 ## 4. Severity assessment
 
-| Finding | Severity | Why |
-| ------- | -------- | --- |
-| CBOR event through `ApplyEncoded` fails | **High (correctness)** | The library's default event codec cannot feed metaengine's own encoded entry point |
-| `projectionadapter` default decode is JSON-only | **High (correctness)** | CBOR events become `Corruption` and can be dead-lettered unless the consumer supplies a typed/event decoder |
-| `EncodeStreamValue` swallows marshal errors | **Medium-High (data loss)** | Non-JSON-able value writes `""` with no error; `DecodeStreamValue` then returns a string where a value is expected |
-| Engine rows are unstamped bare JSON | **Medium (evolution)** | Cannot introduce CBOR or a new codec per collection without a flag day; `reify` carries the compatibility burden |
-| Cursor map encoding non-deterministic | **Medium (correctness/ops)** | Cursor bytes vary; unsafe as cache keys; pagination state is opaque JSON |
-| No pooling / size / observability at the codec layer | **Low-Medium (perf/ops)** | Avoidable GC and no visibility on the projection write path |
-| Stale "zero-dependency" comments | **Low (doc drift)** | Misleads every future reader and agent; ADR-0062 addendum already contradicts it |
+| Finding                                              | Severity                     | Why                                                                                                                |
+| ---------------------------------------------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| CBOR event through `ApplyEncoded` fails              | **High (correctness)**       | The library's default event codec cannot feed metaengine's own encoded entry point                                 |
+| `projectionadapter` default decode is JSON-only      | **High (correctness)**       | CBOR events become `Corruption` and can be dead-lettered unless the consumer supplies a typed/event decoder        |
+| `EncodeStreamValue` swallows marshal errors          | **Medium-High (data loss)**  | Non-JSON-able value writes `""` with no error; `DecodeStreamValue` then returns a string where a value is expected |
+| Engine rows are unstamped bare JSON                  | **Medium (evolution)**       | Cannot introduce CBOR or a new codec per collection without a flag day; `reify` carries the compatibility burden   |
+| Cursor map encoding non-deterministic                | **Medium (correctness/ops)** | Cursor bytes vary; unsafe as cache keys; pagination state is opaque JSON                                           |
+| No pooling / size / observability at the codec layer | **Low-Medium (perf/ops)**    | Avoidable GC and no visibility on the projection write path                                                        |
+| Stale "zero-dependency" comments                     | **Low (doc drift)**          | Misleads every future reader and agent; ADR-0062 addendum already contradicts it                                   |
 
 ---
 
@@ -254,12 +254,15 @@ Ordered by dependency and value. P0 = correctness, P1 = contract, P2 = migration
 ## Appendix A: Self-review prompts
 
 **What did I forget?**
+
 - The repro tests. The error-path tests. The full engine audit. The `record.Encoding` extensibility question. The artifact (ADR/TODO/issue). The benchmark. The doc sweep.
 
 **What could I have done better?**
+
 - Classified go-codec as Tier -1 from the start. Proved the CBOR failure with a test instead of reasoning from `json.Unmarshal`. Checked all engines, not a sample. Measured instead of quoting README numbers. Produced at least one durable artifact.
 
 **What can I still improve?**
+
 - Everything in §f, starting with items 1-4 and 9-10. The report is only useful if the next session converts it into a failing test, a one-page ADR, and a TODO row.
 
 ## Appendix B: One-sentence verdict

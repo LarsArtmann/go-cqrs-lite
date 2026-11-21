@@ -57,13 +57,13 @@ qry.Use(middleware.QueryLogging(logger))                     // 4. log final out
 
 ## Rationale
 
-| Position  | Middleware             | Why here                                                                                                         |
-| --------- | ---------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| Outermost | Recovery               | Catch panics from ALL middleware below, including a broken idempotency store. A panic in a retry loop or handler must never crash the process. |
+| Position  | Middleware             | Why here                                                                                                                                                                                                                                     |
+| --------- | ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Outermost | Recovery               | Catch panics from ALL middleware below, including a broken idempotency store. A panic in a retry loop or handler must never crash the process.                                                                                               |
 | Second    | Idempotency            | Reject duplicates before anything does work, and — critically — OUTSIDE retry. Retry outside idempotency re-enters the dedup check on every attempt, so attempt 2 fails with `ErrDuplicate` and the retry is defeated by the dedup it wraps. |
-| Middle    | Retry / CircuitBreaker | Retry wraps the actual handler. CircuitBreaker opens after repeated failures, preventing retry storms.           |
-| Inner     | OTel Tracing           | The span should cover the handler execution, not the retry sleep loop. This gives accurate latency measurements. |
-| Innermost | Logging                | Log the final outcome (success or error) after all retries and circuit-breaker decisions.                        |
+| Middle    | Retry / CircuitBreaker | Retry wraps the actual handler. CircuitBreaker opens after repeated failures, preventing retry storms.                                                                                                                                       |
+| Inner     | OTel Tracing           | The span should cover the handler execution, not the retry sleep loop. This gives accurate latency measurements.                                                                                                                             |
+| Innermost | Logging                | Log the final outcome (success or error) after all retries and circuit-breaker decisions.                                                                                                                                                    |
 
 ## Signing and encryption
 

@@ -60,6 +60,7 @@ Session: resumed 18:14 from the 18:10 park (`docs/status/2026-11-05_18-10_sse-ro
 ## f) NEXT (ordered, up to 50 — resumable from this exact state)
 
 **Critical path (M04→M07):**
+
 1. Resolve the load-policy question (g1) → either the window opens (watcher fires) or execute the owner's chosen fallback.
 2. Watch verify attempt 13 to completion (`build/verify-run13.rc`, log `build/verify-run13.log`); triage any finding by class (known flake classes all fixed; timing-under-load → rerun specific test at a quiet moment).
 3. If watcher expires rc=12 first: relaunch per owner ruling (immediate burn / overnight / next quiet hour).

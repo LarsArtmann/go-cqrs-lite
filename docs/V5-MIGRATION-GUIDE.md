@@ -227,20 +227,20 @@ Quick reference for triaging a red build after the import rewrite; `AUTO`
 means `cqrs-upgrade --to-v5` rewrites it, `MANUAL` means it appears in the
 tool's manual-site report.
 
-| v4 expression (fails to compile)                                   | v5 form                                                        | Codemod |
-| ------------------------------------------------------------------ | -------------------------------------------------------------- | ------- |
-| `ref := record.NewStreamRef("User", id)` (single value)            | `id.NewStreamRefOrZero(id.StreamType("User"), id.NewStreamID())` | AUTO    |
-| `ref := record.NewAggregateRef(...)` (single value)                | `id.NewStreamRefOrZero(...)` (alias died with the aggregate vocabulary) | AUTO    |
-| `record.NewStreamRef(t, i)` string-form call sites                 | `cqrsV5StreamRef(t, i)` (per-file injected adapting helper)    | AUTO    |
-| `_, err := record.NewStreamRef(t, i)` (two values)                 | unchanged shape — `id.NewStreamRef(t, i)` still returns `(ref, error)` | none    |
-| `st, sid := ref.Split()`                                           | read `.Type` / `.ID` struct fields                             | MANUAL  |
-| record literal `StreamID:` / `StreamType:` keys                    | one `Stream:` field (`StreamRef` value, zero = not a member)   | MANUAL  |
-| record literal `Encoding:` key                                     | `Payload.Enc` (encoding lives inside the fused payload)        | MANUAL  |
-| `rec.Payload` / `rec.Encoding` field reads                         | `rec.Payload.Data` / `rec.Payload.Enc`                         | MANUAL  |
-| `rec.ID` used as `string`                                          | `record.InstanceID` brand — `record.ParseInstanceID`/`.String()` at the boundary | MANUAL  |
-| `rec.Version` used as `int64`/`uint64`                             | `record.Version` (uint64-based, 0 = unversioned)              | MANUAL  |
-| `md.Causation`-precedence reads                                    | `evt.Cause()` (`record.Cause`, stamped at birth)               | MANUAL  |
-| stringly `Tracing.ActorID` reads                                   | structural `Tracing.Actor` (`record.Actor{Kind, Raw}`)         | MANUAL  |
+| v4 expression (fails to compile)                        | v5 form                                                                          | Codemod |
+| ------------------------------------------------------- | -------------------------------------------------------------------------------- | ------- |
+| `ref := record.NewStreamRef("User", id)` (single value) | `id.NewStreamRefOrZero(id.StreamType("User"), id.NewStreamID())`                 | AUTO    |
+| `ref := record.NewAggregateRef(...)` (single value)     | `id.NewStreamRefOrZero(...)` (alias died with the aggregate vocabulary)          | AUTO    |
+| `record.NewStreamRef(t, i)` string-form call sites      | `cqrsV5StreamRef(t, i)` (per-file injected adapting helper)                      | AUTO    |
+| `_, err := record.NewStreamRef(t, i)` (two values)      | unchanged shape — `id.NewStreamRef(t, i)` still returns `(ref, error)`           | none    |
+| `st, sid := ref.Split()`                                | read `.Type` / `.ID` struct fields                                               | MANUAL  |
+| record literal `StreamID:` / `StreamType:` keys         | one `Stream:` field (`StreamRef` value, zero = not a member)                     | MANUAL  |
+| record literal `Encoding:` key                          | `Payload.Enc` (encoding lives inside the fused payload)                          | MANUAL  |
+| `rec.Payload` / `rec.Encoding` field reads              | `rec.Payload.Data` / `rec.Payload.Enc`                                           | MANUAL  |
+| `rec.ID` used as `string`                               | `record.InstanceID` brand — `record.ParseInstanceID`/`.String()` at the boundary | MANUAL  |
+| `rec.Version` used as `int64`/`uint64`                  | `record.Version` (uint64-based, 0 = unversioned)                                 | MANUAL  |
+| `md.Causation`-precedence reads                         | `evt.Cause()` (`record.Cause`, stamped at birth)                                 | MANUAL  |
+| stringly `Tracing.ActorID` reads                        | structural `Tracing.Actor` (`record.Actor{Kind, Raw}`)                           | MANUAL  |
 
 ## 3. Wire formats and data
 

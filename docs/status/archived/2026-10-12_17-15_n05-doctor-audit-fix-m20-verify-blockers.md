@@ -179,58 +179,58 @@ blocked by the other session's files).
 
 ## f) NEXT (priority-ordered, up to 50 — brainstorm for HARVEST; most are TODO_LIST/ROADMAP fuel)
 
-| # | Task | Impact | Effort | Category |
-|---|------|--------|--------|----------|
-| 1 | Cut the next cmd/cqrs-lint tag wave carrying the doctor-parity fix (patch v4.16.1 or bundle) | High | S | Release |
-| 2 | Re-pin pbx-lens to the fixed tag (hash dance: distinct-wrong placeholder, verify P015 + doctor parity) | High | S | Fleet |
-| 3 | Answer §g Q2 (roll scope) — unblocks items 4-9 | High | — | Decision |
-| 4 | M05 F24: apply bank-sync state-shape patch; build + tests | High | M | Fleet |
-| 5 | M05 F25: drop DiscordSync `map[any]any` workaround branch | High | M | Fleet |
-| 6 | M05 F26: collapse cqrs-htmx homegrown UpcasterRegistry onto `UpcastChain()` | High | M | Fleet |
-| 7 | M05 F27: `check-example-standalone.sh --build` → 0 findings (graph-native) | Medium | S | Fleet |
-| 8 | cqrs-htmx root-unit triage: 28 findings (E021 ×4, P009 ×3, A032 ×4, B027 ×2, A013 ×2, 10 singletons) — audit-or-suppress with recorded reasons | High | L | Fleet |
-| 9 | cqrs-htmx systemadapter: V003 (systemscenario bump) + E014 (projection drain) decisions | Medium | M | Fleet |
-| 10 | Repo-wide green verify once the concurrent session's gocognit triage lands (3 named files + 8 modules) | High | M | Quality |
-| 11 | Audit `.agents/skills/go-cqrs-lite/references/` (faq.md, core.md doctor sections) for doctor-audit semantics this fix changed; update + doc-check | High | S | Documentation |
-| 12 | Fix the verify gate's retry hint: add a `.#can-run-composed-gate` app or rewrite the hint to the script | Medium | S | Tooling |
-| 13 | Harden `ProfileForFile`: WARN (doctor-rendered) when no key matches and the primary profile is used | High | S | Bug-prevention |
-| 14 | Pre-flight script for heavy campaigns (scheduling, api-stability, timing suites) before quiet-window runs | Medium | S | Tooling |
-| 15 | Decide push authorization for `23423746b` (+ the carried-over commit-reflex question) | Medium | — | Decision |
-| 16 | `--show-suppressed` parseability: structured formats carry a `suppressed` array (or route text to stderr) + regression test | Medium | M | Bug |
-| 17 | M09 deletion slice 1: `stack.Materialize`, ADR-0126 shells, `storage/sql.BuildWhereClause`, tombstone metadata API + golden regen | High | L | Feature |
-| 18 | M10 deletion slice 2: `storage.RelationalProjection`+`view`, `graph.GraphProjection`, `stack.Bundle`+presets | High | L | Feature |
-| 19 | M11 breakage pair: `record.NewStreamRef` empty-entityID validation; core/v5 `TombstoneFilter` | High | M | Feature |
-| 20 | M20-T11(a): implement EngineConfig.SingleWriter advisory lease (ADR-0150 ratified) | High | L | Feature |
-| 21 | M20-T11(b): AggregateOn first cut (AggregateSpec QueryOption + MatViewSpecReporter) | High | L | Feature |
-| 22 | M20-T11(c): routing integration v1 (scalar-covered shapes price O(1)) | High | L | Feature |
-| 23 | Turso strict DSN param policy implementation (RULED: reject unknown *key*/*encrypt* params) | Medium | M | Feature |
-| 24 | Batch-fix the nightly-rot 10 error findings gating BuildFlow pre-commit (cqrs-lint 7, securitymd 2, go-structure-linter 1) | Medium | M | Quality |
-| 25 | BuildFlow upstream filing #1: pseudo-version-hygiene FP on /v4 module paths (with the 2026-10-12 breakage receipt) | Medium | S | Upstream |
-| 26 | BuildFlow upstream filing #2: go-work-paths /v4 mismatch warning class (90 paths of noise) | Medium | S | Upstream |
-| 27 | Fleet linter-version visibility: add a per-repo cqrs-lint delivery/version table to the versions manifest or a maintained doc | Medium | M | Documentation |
-| 28 | lessons.md candidate: "instrument shared-function entries first" + "validate env replicas against observable counts" (cross-project, via crush-config commit) | Medium | S | Process |
-| 29 | Re-verify InboxClean's gate actually flows the fixed binary (workspace-linked; receipt pending) | Low | S | Fleet |
-| 30 | Re-run browser-history's gate after item 1's tag lands, using the TAGGED binary (not the local build) | Medium | S | Verification |
-| 31 | nsfw-classifier: confirm doctor parity fix behaves there too (its lock is current; one gate run) | Low | S | Verification |
-| 32 | M06 repro-test legs (#62 sqlite time.Time filter vs RFC3339; #63) | High | M | Bug |
-| 33 | Plan the next release wave: [Unreleased] now holds 6 Fixed entries (Pebble DESC, 2×MySQL, lint-config restore, api-stability golden, doctor-parity) + this session's 2 gate fixes | High | M | Release |
-| 34 | doc-check ambiguous-alias advisories (`id`/`kv` core-v5 vs v4): scope the imports in readmodels.md:114 + recipes.md:69 | Low | S | Documentation |
-| 35 | AGENTS.md 322 > BuildFlow's 220-line budget: trim or record a justified limit bump | Low | S | Documentation |
-| 36 | lychee excludes for archived doc dirs (recurring warn every preflight) | Low | S | Tooling |
-| 37 | Track GO-2026-6617 (stdlib HTTP/2 HPACK) — toolchain bump when the fixed Go lands in nixpkgs | Medium | S | Security |
-| 38 | Make verify's internal load ceiling configurable (env knob) for shared-machine sessions; VERIFY_FORCE is too blunt | Low | S | Tooling |
-| 39 | Record the metaengine/go.mod sqliteengine v4.5.3 pinned-require as a justified BuildFlow-doctor suppress (the FP fires every run) | Low | S | Tooling |
-| 40 | M22 owner Q3 (TODO_LIST header carry-over) | Low | — | Decision |
-| 41 | #26 retract-publish watch: close when the next stack/postgres tag lands | Low | S | Release |
-| 42 | Stable output path for local cqrs-lint builds (/tmp binary vanished mid-session; use ~/go/bin directly) | Low | S | Process |
-| 43 | Background-shell hygiene: kill completed jobs promptly (this session left several; the 50-job ceiling is real) | Low | S | Process |
-| 44 | Consider a fleet-wide "gate env contract" note: every consumer gate's env (GOWORK state, GOEXPERIMENT, PATH source) documented next to its flake app | Medium | M | Documentation |
-| 45 | Ratify the M20 shape this receipt proposes: changed-set trust green + repo-wide once the concurrent wave clears (replaces the old "quiet-window campaign" framing) | Medium | — | Decision |
-| 46 | docs/status README index row for this report (done with the report; listed here for HARVEST completeness) | — | — | — |
-| 47 | Whether E021/P009 coaching findings in fleet repos should auto-suggest in cqrs-upgrade's suggestions section (T25 pattern) — idea-level | Low | M | Idea |
-| 48 | SystemNix: master-tracking input lock is stale (`7142e43de`) — roll when Q2 is answered | Medium | S | Fleet |
-| 49 | bank-sync flake pin-policy comment says frozen rev — revisit under the same Q2 bundle | Medium | S | Fleet |
-| 50 | The 12:26 report's §f items not superseded by this session (SystemNix/bank-sync/DiscordSync untouched; M09-M11/M27) — carried verbatim | — | — | — |
+| #  | Task                                                                                                                                                                              | Impact | Effort | Category       |
+| -- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ | -------------- |
+| 1  | Cut the next cmd/cqrs-lint tag wave carrying the doctor-parity fix (patch v4.16.1 or bundle)                                                                                      | High   | S      | Release        |
+| 2  | Re-pin pbx-lens to the fixed tag (hash dance: distinct-wrong placeholder, verify P015 + doctor parity)                                                                            | High   | S      | Fleet          |
+| 3  | Answer §g Q2 (roll scope) — unblocks items 4-9                                                                                                                                    | High   | —      | Decision       |
+| 4  | M05 F24: apply bank-sync state-shape patch; build + tests                                                                                                                         | High   | M      | Fleet          |
+| 5  | M05 F25: drop DiscordSync `map[any]any` workaround branch                                                                                                                         | High   | M      | Fleet          |
+| 6  | M05 F26: collapse cqrs-htmx homegrown UpcasterRegistry onto `UpcastChain()`                                                                                                       | High   | M      | Fleet          |
+| 7  | M05 F27: `check-example-standalone.sh --build` → 0 findings (graph-native)                                                                                                        | Medium | S      | Fleet          |
+| 8  | cqrs-htmx root-unit triage: 28 findings (E021 ×4, P009 ×3, A032 ×4, B027 ×2, A013 ×2, 10 singletons) — audit-or-suppress with recorded reasons                                    | High   | L      | Fleet          |
+| 9  | cqrs-htmx systemadapter: V003 (systemscenario bump) + E014 (projection drain) decisions                                                                                           | Medium | M      | Fleet          |
+| 10 | Repo-wide green verify once the concurrent session's gocognit triage lands (3 named files + 8 modules)                                                                            | High   | M      | Quality        |
+| 11 | Audit `.agents/skills/go-cqrs-lite/references/` (faq.md, core.md doctor sections) for doctor-audit semantics this fix changed; update + doc-check                                 | High   | S      | Documentation  |
+| 12 | Fix the verify gate's retry hint: add a `.#can-run-composed-gate` app or rewrite the hint to the script                                                                           | Medium | S      | Tooling        |
+| 13 | Harden `ProfileForFile`: WARN (doctor-rendered) when no key matches and the primary profile is used                                                                               | High   | S      | Bug-prevention |
+| 14 | Pre-flight script for heavy campaigns (scheduling, api-stability, timing suites) before quiet-window runs                                                                         | Medium | S      | Tooling        |
+| 15 | Decide push authorization for `23423746b` (+ the carried-over commit-reflex question)                                                                                             | Medium | —      | Decision       |
+| 16 | `--show-suppressed` parseability: structured formats carry a `suppressed` array (or route text to stderr) + regression test                                                       | Medium | M      | Bug            |
+| 17 | M09 deletion slice 1: `stack.Materialize`, ADR-0126 shells, `storage/sql.BuildWhereClause`, tombstone metadata API + golden regen                                                 | High   | L      | Feature        |
+| 18 | M10 deletion slice 2: `storage.RelationalProjection`+`view`, `graph.GraphProjection`, `stack.Bundle`+presets                                                                      | High   | L      | Feature        |
+| 19 | M11 breakage pair: `record.NewStreamRef` empty-entityID validation; core/v5 `TombstoneFilter`                                                                                     | High   | M      | Feature        |
+| 20 | M20-T11(a): implement EngineConfig.SingleWriter advisory lease (ADR-0150 ratified)                                                                                                | High   | L      | Feature        |
+| 21 | M20-T11(b): AggregateOn first cut (AggregateSpec QueryOption + MatViewSpecReporter)                                                                                               | High   | L      | Feature        |
+| 22 | M20-T11(c): routing integration v1 (scalar-covered shapes price O(1))                                                                                                             | High   | L      | Feature        |
+| 23 | Turso strict DSN param policy implementation (RULED: reject unknown _key_/_encrypt_ params)                                                                                       | Medium | M      | Feature        |
+| 24 | Batch-fix the nightly-rot 10 error findings gating BuildFlow pre-commit (cqrs-lint 7, securitymd 2, go-structure-linter 1)                                                        | Medium | M      | Quality        |
+| 25 | BuildFlow upstream filing #1: pseudo-version-hygiene FP on /v4 module paths (with the 2026-10-12 breakage receipt)                                                                | Medium | S      | Upstream       |
+| 26 | BuildFlow upstream filing #2: go-work-paths /v4 mismatch warning class (90 paths of noise)                                                                                        | Medium | S      | Upstream       |
+| 27 | Fleet linter-version visibility: add a per-repo cqrs-lint delivery/version table to the versions manifest or a maintained doc                                                     | Medium | M      | Documentation  |
+| 28 | lessons.md candidate: "instrument shared-function entries first" + "validate env replicas against observable counts" (cross-project, via crush-config commit)                     | Medium | S      | Process        |
+| 29 | Re-verify InboxClean's gate actually flows the fixed binary (workspace-linked; receipt pending)                                                                                   | Low    | S      | Fleet          |
+| 30 | Re-run browser-history's gate after item 1's tag lands, using the TAGGED binary (not the local build)                                                                             | Medium | S      | Verification   |
+| 31 | nsfw-classifier: confirm doctor parity fix behaves there too (its lock is current; one gate run)                                                                                  | Low    | S      | Verification   |
+| 32 | M06 repro-test legs (#62 sqlite time.Time filter vs RFC3339; #63)                                                                                                                 | High   | M      | Bug            |
+| 33 | Plan the next release wave: [Unreleased] now holds 6 Fixed entries (Pebble DESC, 2×MySQL, lint-config restore, api-stability golden, doctor-parity) + this session's 2 gate fixes | High   | M      | Release        |
+| 34 | doc-check ambiguous-alias advisories (`id`/`kv` core-v5 vs v4): scope the imports in readmodels.md:114 + recipes.md:69                                                            | Low    | S      | Documentation  |
+| 35 | AGENTS.md 322 > BuildFlow's 220-line budget: trim or record a justified limit bump                                                                                                | Low    | S      | Documentation  |
+| 36 | lychee excludes for archived doc dirs (recurring warn every preflight)                                                                                                            | Low    | S      | Tooling        |
+| 37 | Track GO-2026-6617 (stdlib HTTP/2 HPACK) — toolchain bump when the fixed Go lands in nixpkgs                                                                                      | Medium | S      | Security       |
+| 38 | Make verify's internal load ceiling configurable (env knob) for shared-machine sessions; VERIFY_FORCE is too blunt                                                                | Low    | S      | Tooling        |
+| 39 | Record the metaengine/go.mod sqliteengine v4.5.3 pinned-require as a justified BuildFlow-doctor suppress (the FP fires every run)                                                 | Low    | S      | Tooling        |
+| 40 | M22 owner Q3 (TODO_LIST header carry-over)                                                                                                                                        | Low    | —      | Decision       |
+| 41 | #26 retract-publish watch: close when the next stack/postgres tag lands                                                                                                           | Low    | S      | Release        |
+| 42 | Stable output path for local cqrs-lint builds (/tmp binary vanished mid-session; use ~/go/bin directly)                                                                           | Low    | S      | Process        |
+| 43 | Background-shell hygiene: kill completed jobs promptly (this session left several; the 50-job ceiling is real)                                                                    | Low    | S      | Process        |
+| 44 | Consider a fleet-wide "gate env contract" note: every consumer gate's env (GOWORK state, GOEXPERIMENT, PATH source) documented next to its flake app                              | Medium | M      | Documentation  |
+| 45 | Ratify the M20 shape this receipt proposes: changed-set trust green + repo-wide once the concurrent wave clears (replaces the old "quiet-window campaign" framing)                | Medium | —      | Decision       |
+| 46 | docs/status README index row for this report (done with the report; listed here for HARVEST completeness)                                                                         | —      | —      | —              |
+| 47 | Whether E021/P009 coaching findings in fleet repos should auto-suggest in cqrs-upgrade's suggestions section (T25 pattern) — idea-level                                           | Low    | M      | Idea           |
+| 48 | SystemNix: master-tracking input lock is stale (`7142e43de`) — roll when Q2 is answered                                                                                           | Medium | S      | Fleet          |
+| 49 | bank-sync flake pin-policy comment says frozen rev — revisit under the same Q2 bundle                                                                                             | Medium | S      | Fleet          |
+| 50 | The 12:26 report's §f items not superseded by this session (SystemNix/bank-sync/DiscordSync untouched; M09-M11/M27) — carried verbatim                                            | —      | —      | —              |
 
 ## g) QUESTIONS (cannot answer myself)
 
@@ -257,5 +257,5 @@ real merge-conflict risk, so I want the all-clear before touching them.
 
 ---
 
-*Report then WAIT. HARVEST note: §f items 1-16 and 24-28 are TODO_LIST-grade; the rest are ROADMAP fuel or
-one-line receipts already harvested into the N05/M20 receipt blocks.*
+_Report then WAIT. HARVEST note: §f items 1-16 and 24-28 are TODO_LIST-grade; the rest are ROADMAP fuel or
+one-line receipts already harvested into the N05/M20 receipt blocks._

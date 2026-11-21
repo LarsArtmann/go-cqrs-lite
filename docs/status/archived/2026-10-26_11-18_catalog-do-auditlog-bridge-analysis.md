@@ -4,7 +4,7 @@
 
 **Date:** 2026-10-26 11:18 (Monday)
 **Session type:** Analysis/research only — zero code changes in go-cqrs-lite this session.
-**Scope:** Investigation started from the owner question: *"Many of our projects that use go-cqrs-lite/catalog claim like 1 Service, but they also use samber/do v2 — how could we be smarter? What can we learn from samber-do-auditlog?"* Everything below is about this session's run and what it surfaced. No unrelated research.
+**Scope:** Investigation started from the owner question: _"Many of our projects that use go-cqrs-lite/catalog claim like 1 Service, but they also use samber/do v2 — how could we be smarter? What can we learn from samber-do-auditlog?"_ Everything below is about this session's run and what it surfaced. No unrelated research.
 
 ---
 
@@ -29,7 +29,7 @@
 ## b) PARTIALLY DONE
 
 1. **Claim verification depth.** samber-do-auditlog's API surface and design docs came from a subagent report, not my own file reads (only cross-checked `plugin.go` signatures indirectly). High confidence, not firsthand-verified line-by-line. Same for the cqrs-htmx `auditlog.Setup` (I read only the first ~40 lines).
-2. **Fleet census breadth.** The dual-consumer list is a module-graph intersection (go.mod greps) — accurate for "who imports both", but I did not open each repo to confirm *how* each uses them (e.g., whether webphone/crm actually register catalogs or merely vendor the deps transitively).
+2. **Fleet census breadth.** The dual-consumer list is a module-graph intersection (go.mod greps) — accurate for "who imports both", but I did not open each repo to confirm _how_ each uses them (e.g., whether webphone/crm actually register catalogs or merely vendor the deps transitively).
 3. **The hub story.** `catalog.home.lan` federation hub and per-repo export mechanics (CV's `scripts/catalogexport/main.go`, invoices' `invoices catalog` subcommand) were observed but not audited for consistency.
 
 ## c) NOT STARTED (all recommendations are analysis-only; nothing implemented)
@@ -53,13 +53,15 @@
 ## e) WHAT WE SHOULD IMPROVE (process + product)
 
 Process (from this session's own mistakes):
+
 1. **Evidence-before-claim for import/adoption statements** — always grep the full module path.
 2. **Persist analysis to a doc in the same session** it was produced.
 3. **Never `head`-truncate a list you're about to count.**
 
 Product (the real improvements, re-ranked after correction):
+
 1. **`catalog.FromDomainConfig`** remains the Pareto pick — kills the hand-copied message lists in every consumer, and the coeffect gate already computes producers/consumers.
-2. **`catalog/simple` is adopted by exactly the newer repos** (InboxClean, PapDashboard, crm) — so the improvement is *migrating the older hand-rolled repos to it* and *teaching it in the skill*, not inventing a new API. My earlier framing was inverted.
+2. **`catalog/simple` is adopted by exactly the newer repos** (InboxClean, PapDashboard, crm) — so the improvement is _migrating the older hand-rolled repos to it_ and _teaching it in the skill_, not inventing a new API. My earlier framing was inverted.
 3. **Inventory drift gate as a one-liner** (InboxClean hand-rolled the only one in the fleet).
 4. **auditlog→catalog bridge** as a small samber-do-auditlog-side exporter.
 5. **Fleet Setup module** standardizing builder + docserver + export + hub push.
@@ -69,12 +71,13 @@ Product (the real improvements, re-ranked after correction):
 ## f) Next things to get done (ranked, session-derived; HARVEST-ready)
 
 **Bridge & derivation (highest impact)**
+
 1. `catalog.FromDomainConfig(domain system.DomainConfig) *catalog.Catalog` in go-cqrs-lite — auto Services/Messages from Commands/Queries/Events/Schema.
 2. Decide service granularity rule (deployable vs bounded context per catalog Service) — needs owner input, see question 1.
 3. `Plugin.ExportCatalog()` in samber-do-auditlog (registrations → Service/Entity inventory; `ServiceGraph` → Flows).
 4. Golden-report CI mode: boot injector in test, dump `Report()` JSON, diff as golden (api-stability ratchet pattern).
 5. Wire `system.New` to optionally stamp schema versions (from `Schema`) onto derived catalog Messages.
-6. Resolve the lazy-service blind spot: derived inventory must rely on *registrations* (eager), not invocations.
+6. Resolve the lazy-service blind spot: derived inventory must rely on _registrations_ (eager), not invocations.
 
 **Drift gates**
 7. `catalog.AssertInventory(t, cat, wantCommands, wantEvents, ...)` shared test helper in `catalog/`.
@@ -117,7 +120,7 @@ Product (the real improvements, re-ranked after correction):
 32. Consider `catalog` dep on nothing new — bridge must live on the auditlog side to keep catalog dep-free.
 33. Bench/gate: none needed (no code changed), but any bridge module gets the standard new-module ritual (AGENTS "Add a New Module", 8 steps).
 
-*(33 items — listed what's real rather than padding to 50.)*
+_(33 items — listed what's real rather than padding to 50.)_
 
 ## g) Questions I cannot figure out myself
 
@@ -127,4 +130,4 @@ Product (the real improvements, re-ranked after correction):
 
 ---
 
-*Point-in-time snapshot. Section (f) is HARVEST-ready for TODO_LIST.md per docs-health; intentionally not harvested yet — waiting for instructions per session protocol.*
+_Point-in-time snapshot. Section (f) is HARVEST-ready for TODO_LIST.md per docs-health; intentionally not harvested yet — waiting for instructions per session protocol._

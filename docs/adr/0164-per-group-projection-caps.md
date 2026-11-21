@@ -1,12 +1,12 @@
 # ADR-0164: Per-group projection caps: WithCapPerGroup bounds each key group under the WithCap global ceiling
 
-| Field      | Value                                                                        |
-| ---------- | ---------------------------------------------------------------------------- |
-| Status     | Accepted                                                                     |
-| Date       | 2026-11-05                                                                   |
-| Deciders   | Lars Artmann                                                                 |
-| Related    | #114, #72, ADR-0136 (invertibility ladder), ADR-0141 (temporal engines)      |
-| Supersedes | nothing — extends the WithCap policy from #72 with a per-group bound         |
+| Field      | Value                                                                   |
+| ---------- | ----------------------------------------------------------------------- |
+| Status     | Accepted                                                                |
+| Date       | 2026-11-05                                                              |
+| Deciders   | Lars Artmann                                                            |
+| Related    | #114, #72, ADR-0136 (invertibility ladder), ADR-0141 (temporal engines) |
+| Supersedes | nothing — extends the WithCap policy from #72 with a per-group bound    |
 
 ## Context
 

@@ -13,7 +13,7 @@
 > best configuration (`Config{}` + `cue.Raw()`) scores **22/24** and classifies
 > **every** additive row correctly. The real defect is different and narrower:
 > the two residual misses — a `format` swap and a newly constrained array
-> `items` — are false *compatible*, i.e. wrong in the unsafe direction. And the
+> `items` — are false _compatible_, i.e. wrong in the unsafe direction. And the
 > option this report treats as an also-ran, `cue.Final()`, is worse than stated
 > (16/24, calling remove/rename/add-required "compatible").
 >
@@ -56,16 +56,16 @@ below rather than glossed over.
   bare, `cue.Raw()`, `cue.Final()`, `Raw+Final`).
 - Result, recorded per configuration against a `new.Subsume(old)` ⇒ additive rule:
 
-  | config | correct |
-  | --- | --- |
-  | closed, bare | 6/10 |
-  | closed, Raw | 6/10 |
-  | closed, Final | 6/10 |
-  | closed, Raw+Final | 6/10 |
-  | open, bare | **7/10** (best) |
-  | open, Raw | 7/10 |
-  | open, Final | 6/10 |
-  | open, Raw+Final | 6/10 |
+  | config            | correct         |
+  | ----------------- | --------------- |
+  | closed, bare      | 6/10            |
+  | closed, Raw       | 6/10            |
+  | closed, Final     | 6/10            |
+  | closed, Raw+Final | 6/10            |
+  | open, bare        | **7/10** (best) |
+  | open, Raw         | 7/10            |
+  | open, Final       | 6/10            |
+  | open, Raw+Final   | 6/10            |
 
   In the best configuration the three wrong rows are **`add optional field`,
   `add optional nested field`, `add optional field next to a required field`** —
@@ -94,19 +94,19 @@ dependency, no `go.mod` change.
 
 Surface delivered:
 
-| Symbol | Contract |
-| --- | --- |
-| `Class` (+ `ClassUnchanged`/`Additive`/`NeedsVersionBump`/`Incomparable`) | ordered so `Worst` composes; `String`, `IsBreaking` |
-| `Kind` (19 constants) | stable identifiers gates/waivers match on |
-| `Op` (4 constants) | the migration op the policy prescribes, named on the finding |
-| `Finding` | `Path`, `Kind`, `Class`, `Message`, `Op`, `Blocking` |
-| `Report` | `Blocking()`, `OK()`, `String()`, deterministic sort by path then kind |
-| `Compat(old, new *schema.Schema)` | the structural walk |
-| `CompatCatalog(old, new *catalog.Catalog)` | per-message, with the blocking rule |
-| `Baseline`, `BaselineMessage`, `BaselineFormatVersion` | committed shipped-shape snapshot |
-| `NewBaseline`, `MarshalIndent`, `WriteFile`, `ParseBaseline`, `MessageIDs`, `CompareBaseline` | deterministic render, version-checked parse |
-| `Conflict` + 4 `Conflict*` kinds, `Conflicts(a, b)` | pre-merge divergence detector |
-| `Validate(c)` | composed cross-resource invariants |
+| Symbol                                                                                        | Contract                                                               |
+| --------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `Class` (+ `ClassUnchanged`/`Additive`/`NeedsVersionBump`/`Incomparable`)                     | ordered so `Worst` composes; `String`, `IsBreaking`                    |
+| `Kind` (19 constants)                                                                         | stable identifiers gates/waivers match on                              |
+| `Op` (4 constants)                                                                            | the migration op the policy prescribes, named on the finding           |
+| `Finding`                                                                                     | `Path`, `Kind`, `Class`, `Message`, `Op`, `Blocking`                   |
+| `Report`                                                                                      | `Blocking()`, `OK()`, `String()`, deterministic sort by path then kind |
+| `Compat(old, new *schema.Schema)`                                                             | the structural walk                                                    |
+| `CompatCatalog(old, new *catalog.Catalog)`                                                    | per-message, with the blocking rule                                    |
+| `Baseline`, `BaselineMessage`, `BaselineFormatVersion`                                        | committed shipped-shape snapshot                                       |
+| `NewBaseline`, `MarshalIndent`, `WriteFile`, `ParseBaseline`, `MessageIDs`, `CompareBaseline` | deterministic render, version-checked parse                            |
+| `Conflict` + 4 `Conflict*` kinds, `Conflicts(a, b)`                                           | pre-merge divergence detector                                          |
+| `Validate(c)`                                                                                 | composed cross-resource invariants                                     |
 
 The walk covers: properties added/removed/renamed, `required` added/removed,
 nested objects, `items` (array-of-object), enum widen/narrow/appear/disappear,
@@ -128,12 +128,12 @@ legitimate bump.
 ### 5. Two split-brain traps found and avoided
 
 - `Catalog.ValidateCoeffects()` **already existed**. `compat.Validate` therefore
-  *delegates* to it instead of re-implementing the coeffect rule. Pinned by
+  _delegates_ to it instead of re-implementing the coeffect rule. Pinned by
   `TestValidateDelegatesCoeffects`, which asserts the exact `Path`+`Message` pair
   appears verbatim in the composed output.
 - `Catalog.Validate()` **already owns global duplicate-message-ID detection**. A
   `SelfConflicts` detector would have been a second copy of that rule, so it was
-  dropped; `Conflicts(a,b)` only reports divergence *between* two catalogs. Pinned
+  dropped; `Conflicts(a,b)` only reports divergence _between_ two catalogs. Pinned
   by `TestValidateDoesNotDuplicateCatalogValidate`, which asserts a catalog that
   `Catalog.Validate` flags produces **zero** compat violations.
 
@@ -159,15 +159,15 @@ validates, dangling channel reference rejected by name. Fixtures live in
 
 ### 9. Gates actually run, and green
 
-| Gate | Result |
-| --- | --- |
-| `go test ./compat/ ./cmd/catalog-compat/` | pass, **93.5%** / **87.4%** coverage |
-| `scripts/check-file-size.sh` | ✓ no new offenders (61 baselined) — caught `diff.go` at 471 lines first, then green after the 3-way split |
-| `scripts/check-package-surface.sh` | ✓ no new oversized package (8 baselined) |
-| `scripts/check-untested-exports.sh` | ✓ 1086/6367 frozen (2 pre-existing STALE rows, not mine) |
-| `scripts/check-schema-compat.sh --self-test` | ✓ 6/6 mutation legs |
-| `cmd/api-stability` | regenerated, 6367 → 6421 exports, only `docs/api_surface.txt` touched |
-| catalog module coverage | `catalog` **76.8 → 77.8**, packages 19 → 21 |
+| Gate                                         | Result                                                                                                    |
+| -------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `go test ./compat/ ./cmd/catalog-compat/`    | pass, **93.5%** / **87.4%** coverage                                                                      |
+| `scripts/check-file-size.sh`                 | ✓ no new offenders (61 baselined) — caught `diff.go` at 471 lines first, then green after the 3-way split |
+| `scripts/check-package-surface.sh`           | ✓ no new oversized package (8 baselined)                                                                  |
+| `scripts/check-untested-exports.sh`          | ✓ 1086/6367 frozen (2 pre-existing STALE rows, not mine)                                                  |
+| `scripts/check-schema-compat.sh --self-test` | ✓ 6/6 mutation legs                                                                                       |
+| `cmd/api-stability`                          | regenerated, 6367 → 6421 exports, only `docs/api_surface.txt` touched                                     |
+| catalog module coverage                      | `catalog` **76.8 → 77.8**, packages 19 → 21                                                               |
 
 ---
 
@@ -209,7 +209,7 @@ validates, dangling channel reference rejected by name. Fixtures live in
 
 - **T10 fingerprint bridge** — now deliberately parked. `schema` is Tier 2 and
   cannot import `catalog`, so a `DriftReport` carrying a compat verdict would force
-  the classifier *down* into `schema` (and into the write path). Needs a written
+  the classifier _down_ into `schema` (and into the write path). Needs a written
   "why parked" paragraph instead of an implementation.
 - **T14 property/fuzz tests** — `Class.Worst` commutativity/monotonicity and
   baseline determinism are pinned, but there is no fuzz target and no 200-message
@@ -217,7 +217,7 @@ validates, dangling channel reference rejected by name. Fixtures live in
 - **T17 benchmarks** — no `BenchmarkCompat`.
 - **T22 fleet consumer proof** — no consumer repo has run the gate.
 - **T23 supply chain** — moot by construction: zero new dependencies. This is worth
-  recording *as* the outcome rather than as a skipped task.
+  recording _as_ the outcome rather than as a skipped task.
 - **T24 release prep**, **T25 plan closure**, **T26 parked source-of-truth row.**
 
 ---
@@ -237,7 +237,7 @@ validates, dangling channel reference rejected by name. Fixtures live in
    `new>old` to the wrong semantic, producing a matrix I had to discard. The fix
    took one probe; I should have run that probe first.
 5. **Repeated a stale claim from the plan.** The plan asserted the `cue` binary was
-   not installed. It *is*, at `~/.nix-profile/bin/cue`, version v0.17.1 — I read
+   not installed. It _is_, at `~/.nix-profile/bin/cue`, version v0.17.1 — I read
    that claim, repeated it in my own summary, and only discovered the binary when
    looking for something else.
 6. **Ran go commands outside the env chain and paid for it.** Two builds failed with
@@ -306,7 +306,7 @@ validates, dangling channel reference rejected by name. Fixtures live in
     → `CompareBaseline` must be `ClassUnchanged` and `OK()`.
 11. Property test: `Compat(a, a)` is always `ClassUnchanged` (reflexivity).
 12. Property test: `Compat` never returns `ClassAdditive` when a field was removed.
-13. Test the `integer → number` widening is *not* symmetric (the reverse must be
+13. Test the `integer → number` widening is _not_ symmetric (the reverse must be
     `NeedsVersionBump`).
 14. Test `Property.Required` (nested `required` array) is honoured, not just the root.
 15. Test deeply nested paths (3+ levels) and array-of-array.
@@ -314,7 +314,7 @@ validates, dangling channel reference rejected by name. Fixtures live in
     difference must not be a conflict).
 17. Test `Conflicts` symmetry: `Conflicts(a,b)` and `Conflicts(b,a)` yield the same
     set.
-18. Test `Validate` reports *multiple* violations of different kinds in one pass.
+18. Test `Validate` reports _multiple_ violations of different kinds in one pass.
 
 **Capability completion**
 
@@ -370,7 +370,7 @@ validates, dangling channel reference rejected by name. Fixtures live in
 
 49. Add `--quiet` to `check-schema-compat.sh` for verify output consistency.
 50. Extend the script's `--self-test` with a `--update-baseline` mutation leg so the
-    plan's fourth self-test requirement is exercised on the *script*, not just the
+    plan's fourth self-test requirement is exercised on the _script_, not just the
     CLI.
 
 ---
@@ -380,9 +380,9 @@ validates, dangling channel reference rejected by name. Fixtures live in
 1. **Does the CUE NO-GO stand, or do you want a second spike?** The evidence is
    against `jsonschema.Extract` → `Subsume`. I could run one more spike that
    hand-writes the CUE schemas directly (`close({a?: string, ...})`, bypassing
-   `Extract` entirely) to see whether the primitive is sound and only the *bridge*
+   `Extract` entirely) to see whether the primitive is sound and only the _bridge_
    is broken. That is a ~45-minute cycle and it changes what the ADR claims was
-   rejected. My recommendation: record the NO-GO as evidence about the *pipeline*
+   rejected. My recommendation: record the NO-GO as evidence about the _pipeline_
    and park the hand-written variant behind a named trigger, because the structural
    differ already delivers the capability with zero dependencies.
 
@@ -402,34 +402,34 @@ validates, dangling channel reference rejected by name. Fixtures live in
 
 ## Appendix: files created in this session
 
-| Path | Lines |
-| --- | --- |
-| `catalog/compat/doc.go` | 31 |
-| `catalog/compat/class.go` | 57 |
-| `catalog/compat/finding.go` | 187 |
-| `catalog/compat/diff.go` | 155 |
-| `catalog/compat/diff_fields.go` | 229 |
-| `catalog/compat/diff_values.go` | 155 |
-| `catalog/compat/paths.go` | 48 |
-| `catalog/compat/catalog.go` | 126 |
-| `catalog/compat/baseline.go` | 174 |
-| `catalog/compat/conflicts.go` | 189 |
-| `catalog/compat/invariants.go` | 190 |
-| `catalog/compat/class_test.go` | 63 |
-| `catalog/compat/finding_test.go` | 85 |
-| `catalog/compat/diff_test.go` | 321 |
-| `catalog/compat/catalog_test.go` | 141 |
-| `catalog/compat/baseline_test.go` | 185 |
-| `catalog/compat/conflicts_test.go` | 110 |
-| `catalog/compat/invariants_test.go` | 185 |
-| `catalog/compat/helpers_test.go` | 77 |
-| `catalog/cmd/catalog-compat/main.go` | 281 |
-| `catalog/cmd/catalog-compat/main_test.go` | 270 |
-| `scripts/check-schema-compat.sh` | 213 |
-| `scripts/testdata/schema-compat/old.json` | 25 |
-| `scripts/testdata/schema-compat/additive.json` | 26 |
-| `scripts/testdata/schema-compat/breaking.json` | 23 |
-| `scripts/testdata/schema-compat/dangling-channel.json` | 26 |
+| Path                                                   | Lines |
+| ------------------------------------------------------ | ----- |
+| `catalog/compat/doc.go`                                | 31    |
+| `catalog/compat/class.go`                              | 57    |
+| `catalog/compat/finding.go`                            | 187   |
+| `catalog/compat/diff.go`                               | 155   |
+| `catalog/compat/diff_fields.go`                        | 229   |
+| `catalog/compat/diff_values.go`                        | 155   |
+| `catalog/compat/paths.go`                              | 48    |
+| `catalog/compat/catalog.go`                            | 126   |
+| `catalog/compat/baseline.go`                           | 174   |
+| `catalog/compat/conflicts.go`                          | 189   |
+| `catalog/compat/invariants.go`                         | 190   |
+| `catalog/compat/class_test.go`                         | 63    |
+| `catalog/compat/finding_test.go`                       | 85    |
+| `catalog/compat/diff_test.go`                          | 321   |
+| `catalog/compat/catalog_test.go`                       | 141   |
+| `catalog/compat/baseline_test.go`                      | 185   |
+| `catalog/compat/conflicts_test.go`                     | 110   |
+| `catalog/compat/invariants_test.go`                    | 185   |
+| `catalog/compat/helpers_test.go`                       | 77    |
+| `catalog/cmd/catalog-compat/main.go`                   | 281   |
+| `catalog/cmd/catalog-compat/main_test.go`              | 270   |
+| `scripts/check-schema-compat.sh`                       | 213   |
+| `scripts/testdata/schema-compat/old.json`              | 25    |
+| `scripts/testdata/schema-compat/additive.json`         | 26    |
+| `scripts/testdata/schema-compat/breaking.json`         | 23    |
+| `scripts/testdata/schema-compat/dangling-channel.json` | 26    |
 
 Modified: `flake.nix` (app + two verify wiring lines), `.github/workflows/ci.yml`
 (one step), `docs/api_surface.txt` (regenerated), `scripts/coverage-baseline.txt`,

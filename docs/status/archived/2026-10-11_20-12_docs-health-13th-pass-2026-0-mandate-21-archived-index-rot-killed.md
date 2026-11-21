@@ -69,6 +69,7 @@
 ## f) UP TO 50 THINGS WE SHOULD GET DONE NEXT (impact-ordered; ★ = rowed in TODO_LIST this pass)
 
 **Owner rulings (unblock chains)**
+
 1. ★ Ratify or reject the strike-depth ruling (12th-pass g2): banner-routing + classified strikes vs full §f sweeps — decides whether "sweep the unstruck remainders" passes are ever real work.
 2. ★ Confirm the benchmark/architecture-understanding LEAVE-ALIVE ruling (12th-pass g1, answered inline this pass).
 3. ★ AGENTS.md second-split decision (61 KB, ~1 contract/month growth): keep indexed-split style or split contracts into `docs/agents/contracts.md`.

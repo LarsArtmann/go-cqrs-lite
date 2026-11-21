@@ -90,12 +90,12 @@ type ViewStore[V any, K fmt.Stringer] interface {
 
 ## Implementations
 
-| Implementation      | Module                                            |
-| ------------------- | ------------------------------------------------- |
-| `MemStore`          | This package (reference in-memory implementation) |
-| Pebble KV adapter   | [storage/pebble](../../../storage/pebble/v4/README.md)     |
-| `SQLKVStore`        | [storage](../../../storage/v4/README.md)                   |
-| `SQLViewStore[V,K]` | [storage](../../../storage/v4/README.md)                   |
+| Implementation      | Module                                                 |
+| ------------------- | ------------------------------------------------------ |
+| `MemStore`          | This package (reference in-memory implementation)      |
+| Pebble KV adapter   | [storage/pebble](../../../storage/pebble/v4/README.md) |
+| `SQLKVStore`        | [storage](../../../storage/v4/README.md)               |
+| `SQLViewStore[V,K]` | [storage](../../../storage/v4/README.md)               |
 
 ## Related Modules
 

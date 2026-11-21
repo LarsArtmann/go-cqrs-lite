@@ -2,7 +2,7 @@
 
 **Date:** 2026-11-03 19:09 CET
 **Scope:** This session only — three turns: (1) explain `system.RawQuery`, (2) when to use/not use it, (3) owner rant "the lib should OWN I/O / why is there no warning / bank-sync uses sqlc and thinks it's fine".
-**Verdict up front:** All planned edits landed green (doc-check ×2, api golden regen + verify, system build + coeffect tests, graph-native example build). The session's biggest *finding* — E023 enforcement has never been released — is rowed but NOT acted on (no tag cut, no bank-sync edit; both await owner instruction). The session's biggest *mistake* — a botched first cqrs-lint invocation that returned 0 E023 findings and nearly produced a false "the lint is blind to bank-sync's layout" conclusion — was self-caught and corrected, but only on the second attempt.
+**Verdict up front:** All planned edits landed green (doc-check ×2, api golden regen + verify, system build + coeffect tests, graph-native example build). The session's biggest _finding_ — E023 enforcement has never been released — is rowed but NOT acted on (no tag cut, no bank-sync edit; both await owner instruction). The session's biggest _mistake_ — a botched first cqrs-lint invocation that returned 0 E023 findings and nearly produced a false "the lint is blind to bank-sync's layout" conclusion — was self-caught and corrected, but only on the second attempt.
 
 ---
 
@@ -10,8 +10,8 @@
 
 Nothing destructive, no red suites, no reverts needed. But two real self-inflicted wounds:
 
-1. **Near-miss false conclusion from a sloppy invocation (the big one).** First bank-sync run: `cqrs-lint --strict /home/lars/projects/bank-sync` from the *go-cqrs-lite* cwd → **0 E023 findings**, while simultaneously *displaying* E003/C040 findings that bank-sync's `.cqrs-lint.json` explicitly disables. I almost read this as "E023 is structurally blind to bank-sync's package layout." The disabled-rules-displayed anomaly was itself the tell (config not discovered), and the corrected run — binary built, executed from *inside* bank-sync exactly as its CI does (`cqrs-lint --strict .`) — fired **20 E023 findings**. Root cause of the confusion: cqrs-lint's config discovery diverges between "absolute path from foreign cwd" and "`.` from repo root" (silent divergence — itself a latent tool bug, rowed in §f). Method lesson: **replicate the consumer's exact CI invocation before drawing conclusions about what their lint sees.**
-2. **Turn-2 answer shipped on stale docs without noticing until mid-answer.** I answered "when should RawQuery be used" partially on the README/skill guidance that *still described the pre-M08 workaround* ("the gate cannot see through RawQuery — declare Events only when…"), which had been false since system v4.13.0 (2026-10-12). I caught it during source verification and fixed 4 sites, but a reader of my first answer's framing ("originally the gate was blind") underweighted that the *docs themselves* were the bug.
+1. **Near-miss false conclusion from a sloppy invocation (the big one).** First bank-sync run: `cqrs-lint --strict /home/lars/projects/bank-sync` from the _go-cqrs-lite_ cwd → **0 E023 findings**, while simultaneously _displaying_ E003/C040 findings that bank-sync's `.cqrs-lint.json` explicitly disables. I almost read this as "E023 is structurally blind to bank-sync's package layout." The disabled-rules-displayed anomaly was itself the tell (config not discovered), and the corrected run — binary built, executed from _inside_ bank-sync exactly as its CI does (`cqrs-lint --strict .`) — fired **20 E023 findings**. Root cause of the confusion: cqrs-lint's config discovery diverges between "absolute path from foreign cwd" and "`.` from repo root" (silent divergence — itself a latent tool bug, rowed in §f). Method lesson: **replicate the consumer's exact CI invocation before drawing conclusions about what their lint sees.**
+2. **Turn-2 answer shipped on stale docs without noticing until mid-answer.** I answered "when should RawQuery be used" partially on the README/skill guidance that _still described the pre-M08 workaround_ ("the gate cannot see through RawQuery — declare Events only when…"), which had been false since system v4.13.0 (2026-10-12). I caught it during source verification and fixed 4 sites, but a reader of my first answer's framing ("originally the gate was blind") underweighted that the _docs themselves_ were the bug.
 
 ## a) FULLY DONE (verified green unless noted)
 
@@ -39,15 +39,15 @@ Nothing destructive, no red suites, no reverts needed. But two real self-inflict
 
 ## b) PARTIALLY DONE
 
-- **"The lib should own I/O" enforcement story.** Diagnosis complete (rule exists on master, unreleased; consumer pins predate it; advisories never gate CI). The *fix* is 0% executed: no tag, no consumer pin bumps, no teeth. Deliberately awaiting owner (release + cross-repo actions).
-- **RawQuery misleading-name mitigation.** Warnings shipped everywhere the symbol is documented; the *name itself* and the type-unsafe `decl any` remain (v5 row only — no additive typed constructor was attempted this session; see §e/§f).
-- **bank-sync comment fix.** The comment now says declaring `Events` "would compose cleanly" — but the example still doesn't declare them. The *demonstration* of the fixed gate is a next task, not done.
+- **"The lib should own I/O" enforcement story.** Diagnosis complete (rule exists on master, unreleased; consumer pins predate it; advisories never gate CI). The _fix_ is 0% executed: no tag, no consumer pin bumps, no teeth. Deliberately awaiting owner (release + cross-repo actions).
+- **RawQuery misleading-name mitigation.** Warnings shipped everywhere the symbol is documented; the _name itself_ and the type-unsafe `decl any` remain (v5 row only — no additive typed constructor was attempted this session; see §e/§f).
+- **bank-sync comment fix.** The comment now says declaring `Events` "would compose cleanly" — but the example still doesn't declare them. The _demonstration_ of the fixed gate is a next task, not done.
 
 ## c) NOT STARTED (noticed this session, deliberately not touched)
 
 - Cutting `cmd/cqrs-lint/v4.19.0`.
 - Any edit inside `~/projects/bank-sync` (pin bump, disable-list re-audit, sqlc→metaengine migration).
-- CHANGELOG `[Unreleased]` row for this session's doc-truth/warning changes (see §e — this is a *miss*, not a choice).
+- CHANGELOG `[Unreleased]` row for this session's doc-truth/warning changes (see §e — this is a _miss_, not a choice).
 - Full `#verify` / `#verify-fast` — only targeted gates ran.
 - golangci-lint on the touched Go files (godoc-only change; format believed fine, unverified).
 - Fleet-wide pin audit beyond bank-sync (DiscordSync known from the E023 row's field receipt; others unexamined).
@@ -56,8 +56,8 @@ Nothing destructive, no red suites, no reverts needed. But two real self-inflict
 
 1. **Session-closing checklist not fully run.** "Close a Wave" procedure says: FEATURES/CHANGELOG inventory + harvest. I wrote TODO rows but **no CHANGELOG `[Unreleased]` row** for the RawQuery godoc WARNING + doc-truth fixes. The api golden moved; the changelog-symbols gate doesn't force doc-only rows, but drift discipline says row it.
 2. **Verification breadth.** Targeted tests only; no `#verify-fast`, no lint pass on `system/`. For a godoc-only change the risk is low, but "low" was asserted, not measured.
-3. **Invocation fidelity discipline.** First lint conclusion was nearly wrong (see §d). Rule to internalize + row in `docs/agents/gotchas-testing.md`: *when testing a consumer-facing tool's behavior, replicate the consumer's exact invocation (cwd, path form, config) before concluding anything.*
-4. **The invocation artifact exposed a real tool trap that I only rowed implicitly.** `cqrs-lint <abs-path>` from a foreign cwd silently analyzed bank-sync with NO config (different findings, different suppressions) — a user/CI-divergence footgun independent of my mistake. Needs its own TODO row + a fix (discover config from the *target* root, or fail loudly).
+3. **Invocation fidelity discipline.** First lint conclusion was nearly wrong (see §d). Rule to internalize + row in `docs/agents/gotchas-testing.md`: _when testing a consumer-facing tool's behavior, replicate the consumer's exact invocation (cwd, path form, config) before concluding anything._
+4. **The invocation artifact exposed a real tool trap that I only rowed implicitly.** `cqrs-lint <abs-path>` from a foreign cwd silently analyzed bank-sync with NO config (different findings, different suppressions) — a user/CI-divergence footgun independent of my mistake. Needs its own TODO row + a fix (discover config from the _target_ root, or fail loudly).
 5. **Near-miss catch was late.** The "disabled rules displayed" anomaly sat in my first run's output; I treated 0-findings as the headline instead of the anomaly. Read the whole output, not the count.
 6. **Authored history.** Three logical changes landed uncommitted; the auto-commit daemon will blur them into `chore:` commits. Project rule 4 says commit at phase boundaries when authored history is wanted; I defaulted to global never-commit. Owner should say which norm wins here.
 7. **bank-sync evidence could be sharper still.** 20 findings counted, but I did not save the categorized breakdown (which packages, how many per class) into the TODO row or an evidence file — the run log lives in `/tmp` only.
@@ -65,6 +65,7 @@ Nothing destructive, no red suites, no reverts needed. But two real self-inflict
 ## f) NEXT — up to 50 things, session-derived, ranked
 
 **Release & enforcement (the rant's actual fix):**
+
 1. Cut `cmd/cqrs-lint/v4.19.0` (tag-release.sh; check-release-scripts + check-example-standalone first; per AGENTS: run the changed-set module suites — `verify=ok` builds don't test).
 2. Bump bank-sync's cqrs-lint pin (CI `@d15e0a48` + hermetic flake package) and re-verify its disable list per its `cqrs-lint-disable-audit` marker discipline.
 3. Fleet pin audit: `scripts/census-fleet.sh` + grep every consumer's cqrs-lint pin; row the stale ones (DiscordSync first candidate).
@@ -114,4 +115,4 @@ Nothing destructive, no red suites, no reverts needed. But two real self-inflict
 
 ---
 
-*Session receipts: doc-check ×2 green (1372 refs), api-stability regen+verify green (6422 exports), system build + `TestSystem_Coeffect*` green, graph-native build green, bank-sync lint ground-truth run captured (20 E023, exit 0). No commits authored; working tree left for the auto-commit daemon.*
+_Session receipts: doc-check ×2 green (1372 refs), api-stability regen+verify green (6422 exports), system build + `TestSystem_Coeffect*` green, graph-native build green, bank-sync lint ground-truth run captured (20 E023, exit 0). No commits authored; working tree left for the auto-commit daemon._

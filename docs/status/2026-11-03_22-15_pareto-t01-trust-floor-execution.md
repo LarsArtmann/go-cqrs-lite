@@ -112,4 +112,5 @@
 3. **Deployed-DB census (keycodec A9)** — which production databases carry prefixed stream keys/rows? Determines permanent sticky-key fallback vs re-key migration; sticky-pin keeps everything working either way, so this can also stay parked if unknown.
 
 ---
-*Receipts available in-session: gate outputs cited per item; tag `id/v4.7.4` pushed and proxy-served; corpus regression committed at `listing/testdata/fuzz/FuzzStreamStatus_MarshalOnly/df5596f0610ade60`.*
+
+_Receipts available in-session: gate outputs cited per item; tag `id/v4.7.4` pushed and proxy-served; corpus regression committed at `listing/testdata/fuzz/FuzzStreamStatus_MarshalOnly/df5596f0610ade60`._

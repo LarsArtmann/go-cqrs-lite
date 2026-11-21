@@ -59,10 +59,10 @@ parallel session was concurrently active the whole time (tagged
    - Discovery: the wave was ~80% already landed (T05, 11-09 era): `keycodec.EncodeJSON`/
      `EncodeJSONErr`, `sqliteengine.encodeKey`/`encodeValue`, `EncodeStreamValueErr` all carry
      `json.Deterministic(true)`; both TODO rows were stale-premise-heavy.
-   - The real tail — NINE remaining plain-marshal sites fixed: **`PlanFingerprint` (correctness
+   - The real tail — NINE remaining plain-marshal sites fixed: __`PlanFingerprint` (correctness
      class: hashed nondeterministic bytes into a "stable for structurally identical plans"
-     SHA-256 contract — latent today, the Serializable* shapes carry no map fields; prophylactic
-     now and test-guarded)**, `ExportStore` rows (backup byte-identity), `VectorMetadataArg`
+     SHA-256 contract — latent today, the Serializable_ shapes carry no map fields; prophylactic
+     now and test-guarded)_*, `ExportStore` rows (backup byte-identity), `VectorMetadataArg`
      (stored metadata, contract-27 byte-identical storage), `SaveManifest`, SSE wire payloads ×3,
      `InspectJSON`, trace lines. `reify`/`reifyReflect` deliberately left plain (transient
      in-process round-trips, bytes never persisted).
@@ -129,10 +129,10 @@ parallel session was concurrently active the whole time (tagged
   test files — content unchanged but mtimes bumped, triggering edit-tool mtime races. Should
   have used the edit tool from the start.
 - **Near-miss carried, not caused**: chain #5 was armed (by W1 me) over a tree that already
-   carried the parallel session's v4.25.0 gate debt (sleeps/file-size/package-surface/api-golden).
-   If the storm had broken at 08:20 instead of 10:11, the chain would have died ~2h earlier on
-   THEIR debt. I found it by luck of running my cheap gates first. Lesson: run the cheap gate
-   battery BEFORE arming any chain, over the whole tree, not just the changed set.
+  carried the parallel session's v4.25.0 gate debt (sleeps/file-size/package-surface/api-golden).
+  If the storm had broken at 08:20 instead of 10:11, the chain would have died ~2h earlier on
+  THEIR debt. I found it by luck of running my cheap gates first. Lesson: run the cheap gate
+  battery BEFORE arming any chain, over the whole tree, not just the changed set.
 
 ## e) WHAT WE SHOULD IMPROVE (process, from this run)
 

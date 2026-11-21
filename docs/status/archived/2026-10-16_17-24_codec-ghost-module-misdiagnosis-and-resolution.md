@@ -29,17 +29,20 @@ The "remove codec" instruction exposed that **my previous session's most dramati
 ## Answers to the three opening questions
 
 **What did I forget?**
+
 - The `DirectOnly` flag's help text — I literally read it ("indirect-only requires are not usage") during the first session's tool audit and still wrote "import-level" into TODO_LIST and the report. Disconfirming evidence in hand, unprocessed.
 - The user's own claim was better information than my tool output. I built a migration plan on top of "11 direct consumers" before testing the owner's contradicting assertion with one `rg`.
 - Mid-session time gaps: ~3 hours of daemon/automation activity landed between my 03:59 capture and my 04:05 checks. I described "11 zombie requires" as current in Addendum 1 **while my own 04:05 sweep in the same document's timeframe showed the repos already clean** — an internal inconsistency I never cross-checked.
 
 **What could I have done better?**
+
 - Premise-check first: one `rg -uu "go-cqrs-lite/codec" ~/projects --glob '*.go'` before planning would have collapsed the ghost-module story in seconds. Instead I prepared import-rewrite mechanics (package-name compat, go.work handling, tidy risks) for a migration that didn't exist.
 - `git log -S` archaeology should have been step 2, not step ~8 — repo state contradicting a 3-hour-old observation means "what changed?", and git answers that instantly.
 - I chased the ci-siblings mirror-resync theory (255-file auto-commit) that never held — the removal was in the REAL repos' working trees, committed by their own daemons.
 - Read a dependency's struct/API before writing against it: my debug program burned two compile round-trips on `m.Name`/`m.Path` (actual fields: `ModuleName`/`Dir`) and an import-casing error (`LarsArtmann` vs `larsartmann`).
 
 **What could I still improve?**
+
 - Stand up the re-runnable census (script + JSON) so "current fleet state" is a command, not a memory — this session's confusion is exactly the failure mode it prevents.
 - Adopt a hard rule: any tool-output number persisted to docs gets its semantics verified from the tool's source/help in the same session, with the evidence line quoted.
 - When my analysis and the owner's assertion conflict, test theirs first — they were right, and cheaper to check.
@@ -48,27 +51,27 @@ The "remove codec" instruction exposed that **my previous session's most dramati
 
 ## a) FULLY DONE
 
-| # | Item | Evidence |
-|---|------|----------|
-| A1 | In-repo codec residue audit — zero (no dir, go.work/flake/golden/gates/module-map clean; matches are concepts or external go-codec) | `rg` fleet + repo sweeps |
-| A2 | Premise collapse: zero `.go` imports of go-cqrs-lite/codec across the entire fleet | `rg -uu` sweeps (04:05 and 06:50) |
-| A3 | Tool semantics ground truth: edges = go.mod requires (direct vs `// indirect` annotation); `extractDeps` is 1:1; lightweight discovery parses go.work internals, excludes `../` siblings | tool source: `extractDeps` (discover.go:218), `ConsumersFromModules` (consumers.go:100), `workspace.go:131-190`, config `DirectOnly` help |
-| A4 | State-change proof: the sweep — daemon commits touching go.mod in all listed repos 05:07–06:48; github-local-sync 05:38 diff removes codec/v4 + promotes go-codec v0.3.1 | `git log -1 --format -- go.mod` per repo, `git log -S` |
-| A5 | Final verification: `who-uses` full tree = 0 codec lines, 50 matched keys (was 53); retry/flightrecorder phantom keys also gone | `/tmp/final-tree.txt` (06:5x) |
-| A6 | Poisoned fixture correctly preserved: `real-setup-v4.8.1-poisoned/go.mod` carries the stale `// indirect` codec pin BY DESIGN (tag-release test fixture) — flagged do-not-clean | go.mod line 64 |
-| A7 | TODO_LIST corrected: blockquote semantics fixed (require-level, stack 5-direct numbers restored after an edit briefly dropped them); ghost-module row marked `[x]` with honest resolution + remaining S-tail | TODO_LIST §v5 Unification |
-| A8 | Report Addendum 2 appended (annotate mode — Addendum 1's wrong text left in place, corrected in place-by-append) | status report 03:55 file |
-| A9 | Debug program (cmd/debugcodec in project-dependency-graph) added for ground truth, then trashed; daemon had absorbed it, deletion now pending daemon | tool repo git status |
-| A10 | Deliberate non-action: 11-repo import rewrite + per-repo tidy/build/test plan retired the moment enumeration came back empty — no repo touched | this report; no working-tree changes outside go-cqrs-lite docs |
+| #   | Item                                                                                                                                                                                                         | Evidence                                                                                                                                  |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| A1  | In-repo codec residue audit — zero (no dir, go.work/flake/golden/gates/module-map clean; matches are concepts or external go-codec)                                                                          | `rg` fleet + repo sweeps                                                                                                                  |
+| A2  | Premise collapse: zero `.go` imports of go-cqrs-lite/codec across the entire fleet                                                                                                                           | `rg -uu` sweeps (04:05 and 06:50)                                                                                                         |
+| A3  | Tool semantics ground truth: edges = go.mod requires (direct vs `// indirect` annotation); `extractDeps` is 1:1; lightweight discovery parses go.work internals, excludes `../` siblings                     | tool source: `extractDeps` (discover.go:218), `ConsumersFromModules` (consumers.go:100), `workspace.go:131-190`, config `DirectOnly` help |
+| A4  | State-change proof: the sweep — daemon commits touching go.mod in all listed repos 05:07–06:48; github-local-sync 05:38 diff removes codec/v4 + promotes go-codec v0.3.1                                     | `git log -1 --format -- go.mod` per repo, `git log -S`                                                                                    |
+| A5  | Final verification: `who-uses` full tree = 0 codec lines, 50 matched keys (was 53); retry/flightrecorder phantom keys also gone                                                                              | `/tmp/final-tree.txt` (06:5x)                                                                                                             |
+| A6  | Poisoned fixture correctly preserved: `real-setup-v4.8.1-poisoned/go.mod` carries the stale `// indirect` codec pin BY DESIGN (tag-release test fixture) — flagged do-not-clean                              | go.mod line 64                                                                                                                            |
+| A7  | TODO_LIST corrected: blockquote semantics fixed (require-level, stack 5-direct numbers restored after an edit briefly dropped them); ghost-module row marked `[x]` with honest resolution + remaining S-tail | TODO_LIST §v5 Unification                                                                                                                 |
+| A8  | Report Addendum 2 appended (annotate mode — Addendum 1's wrong text left in place, corrected in place-by-append)                                                                                             | status report 03:55 file                                                                                                                  |
+| A9  | Debug program (cmd/debugcodec in project-dependency-graph) added for ground truth, then trashed; daemon had absorbed it, deletion now pending daemon                                                         | tool repo git status                                                                                                                      |
+| A10 | Deliberate non-action: 11-repo import rewrite + per-repo tidy/build/test plan retired the moment enumeration came back empty — no repo touched                                                               | this report; no working-tree changes outside go-cqrs-lite docs                                                                            |
 
 ## b) PARTIALLY DONE
 
-| # | Item | Done | Missing |
-|---|------|------|---------|
-| B1 | Ghost-module tail (TODO row) | codec: RESOLVED + verified | retry + flightrecorder consumers still ride local `replace`s (should re-pin to go-retry/go-flightrecorder external repos); crm-exec-stage/go.mod still has unresolved merge-conflict markers (unparseable by tooling) |
-| B2 | Tool-semantics documentation | corrected in TODO blockquote + Addendum 2 | the first report's Addendum 1 body still contains the wrong "import-level" claim by design (annotate-not-rewrite) — a reader must reach Addendum 2 to get the truth |
-| B3 | Master migration plan (03:55 report) | Tier-0 "zero importers" verdicts unchanged in substance | numbers are require-semantics now; a fresh census re-run is advisable before the codemod phase (fleet state moved twice today) |
-| B4 | project-dependency-graph repo hygiene | my debug file removed | `vendorHash.nix` shows modified in that repo — NOT my change, left untouched, needs owner eyes |
+| #  | Item                                  | Done                                                    | Missing                                                                                                                                                                                                               |
+| -- | ------------------------------------- | ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| B1 | Ghost-module tail (TODO row)          | codec: RESOLVED + verified                              | retry + flightrecorder consumers still ride local `replace`s (should re-pin to go-retry/go-flightrecorder external repos); crm-exec-stage/go.mod still has unresolved merge-conflict markers (unparseable by tooling) |
+| B2 | Tool-semantics documentation          | corrected in TODO blockquote + Addendum 2               | the first report's Addendum 1 body still contains the wrong "import-level" claim by design (annotate-not-rewrite) — a reader must reach Addendum 2 to get the truth                                                   |
+| B3 | Master migration plan (03:55 report)  | Tier-0 "zero importers" verdicts unchanged in substance | numbers are require-semantics now; a fresh census re-run is advisable before the codemod phase (fleet state moved twice today)                                                                                        |
+| B4 | project-dependency-graph repo hygiene | my debug file removed                                   | `vendorHash.nix` shows modified in that repo — NOT my change, left untouched, needs owner eyes                                                                                                                        |
 
 ## c) NOT STARTED (unchanged from the master plan)
 
@@ -95,58 +98,58 @@ The 23 core/v5 copy-forwards (M23's ~20K-line eventtest closure first) · `cqrs-
 
 > Carry-over note: the 03:55 report's list remains the master brainstorm; this list re-states the still-open items with today's deltas folded in. New items first.
 
-| # | Item | Impact |
-|---|------|--------|
-| 1 | Re-pin retry/flightrecorder consumers to the external go-retry/go-flightrecorder repos; let the in-repo paths die | ★☆☆ |
-| 2 | Fix crm-exec-stage/go.mod merge-conflict markers (unparseable — invisible to all tooling) | ★★☆ |
-| 3 | Fresh `who-uses` census re-run + saved JSON artifact (fleet moved twice today; codemod phase needs current numbers) | ★★★ |
-| 4 | Identify/document the automation that produced the 05:07–06:48 tidy wave (owner knowledge — see question 1) | ★★☆ |
-| 5 | Owner review: `vendorHash.nix` modification in project-dependency-graph (not mine) | ★☆☆ |
-| 6 | Re-verify Tier-0 free deletes under require-semantics, then delete transport/http+grpc, storage/view+relational, 7 dead stack presets (sequencing per question 3) | ★★☆ |
-| 7 | Fork storage core (minus deprecated surfaces) → core/v5/storage | ★★★ |
-| 8 | Fork storage/memory → core/v5/storage/memory | ★★★ |
-| 9 | Fork snapshot → core/v5/snapshot | ★★★ |
-| 10 | Fork eventtest → core/v5/event/eventtest (closes M23, lag→0) | ★★★ |
-| 11 | Write the copy-forward playbook once (exclusions, pair registration, golden regen, allowlist prune, file-size/dup-gate treatment) | ★★★ |
-| 12 | Fork decider | ★★★ |
-| 13 | Fork middleware | ★★★ |
-| 14 | Fork system (composition root — biggest consumer blocker) | ★★★ |
-| 15 | Fork metaengine core + keycodec | ★★★ |
-| 16 | Fork projectionadapter | ★★☆ |
-| 17 | Fork projection + projectionhost | ★★☆ |
-| 18 | Fork commandlifecycle + projections | ★★☆ |
-| 19 | Fork scheduling + sqlstore | ★★☆ |
-| 20 | Fork schema (minus ADR-0126 shells) | ★★☆ |
-| 21 | Fork listing (ADR-0114 type-driven tombstone decision) | ★★☆ |
-| 22 | Fork claiming | ★☆☆ |
-| 23 | Fork otel + prometheus | ★★☆ |
-| 24 | Fork catalog | ★☆☆ |
-| 25 | Fork encryption + signing (minus Rejecting*/ErrInnerStoreNot*) | ★★☆ |
-| 26 | Ghost-system verdicts: deriver, graph — enter core/v5 or die | ★★☆ |
-| 27 | Decide whether stack enters core/v5 at all or is struck from the ADR-0152 list | ★☆☆ |
-| 28 | Fork systemscenario (absorbs scenario/v4) | ★★☆ |
-| 29 | Register every new mirror pair in the lockstep gate as it lands | ★★★ |
-| 30 | Signature-level lockstep once core/v5 stabilizes | ★☆☆ |
-| 31 | Build `cqrs-upgrade --to-v5` (import rewrite, require collapse, go.work/replace rewrite) | ★★★ |
-| 32 | Codemod rename table (On→OnRecord, OnTyped→OnRecordTyped, tombstone metadata → event types, StreamRef pair forms) | ★★☆ |
-| 33 | Codemod hard-refusal for modules with no core/v5 twin | ★★★ |
-| 34 | Codemod golden fixtures per migration class | ★★☆ |
-| 35 | Per-repo v5-readiness batch (`cqrs-upgrade --strict --json` across the fleet) | ★★☆ |
-| 36 | V007 table maintenance as core/v5 packages land | ★☆☆ |
-| 37 | cqrs-upgrade gains core/v5 pin awareness | ★★☆ |
-| 38 | Migrate cqrs-htmx (stack/v4 in usermgmt + import rewrite; 73% indirect-edge shield) | ★★★ |
-| 39 | Migrate go-appkit cqrs/+docs/+integration (24 trains, blocked on #8–#12) | ★★★ |
-| 40 | Migrate browser-history (stack + idempotency/sqlstore → metaengine.DedupStore) | ★★☆ |
-| 41 | Migrate crm + crm-exec-stage | ★★☆ |
-| 42 | Migrate InboxClean | ★★☆ |
-| 43 | Migrate bank-sync, github-local-sync, SEC, KeyCountdown, SwettySwipperWeb services | ★★☆ |
-| 44 | Migrate residue batch (~25 repos) via codemod with per-repo test gates | ★★☆ |
-| 45 | Post-migration hygiene per repo (go.work/prune, verify chains) | ★☆☆ |
-| 46 | Delete idempotency/kvstore+sqlstore after the 4 repos migrate | ★★☆ |
-| 47 | Delete stack + presets after the 13 repos migrate | ★★★ |
-| 48 | Delete deprecated tombstone metadata APIs + ADR-0126 shells | ★☆☆ |
-| 49 | Gate-pruning cascade + cut v5.0.0 (per-module tests over the changed set — never verify=ok-only) | ★★★ |
-| 50 | Housekeeping: taskmanager gopls errors (real vs workspace noise); possibly-stale .go-arch-lint.yml TODO row; the ~34-module go.sum tidy sweep (owner triage still pending) | ★☆☆ |
+| #  | Item                                                                                                                                                                       | Impact |
+| -- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| 1  | Re-pin retry/flightrecorder consumers to the external go-retry/go-flightrecorder repos; let the in-repo paths die                                                          | ★☆☆    |
+| 2  | Fix crm-exec-stage/go.mod merge-conflict markers (unparseable — invisible to all tooling)                                                                                  | ★★☆    |
+| 3  | Fresh `who-uses` census re-run + saved JSON artifact (fleet moved twice today; codemod phase needs current numbers)                                                        | ★★★    |
+| 4  | Identify/document the automation that produced the 05:07–06:48 tidy wave (owner knowledge — see question 1)                                                                | ★★☆    |
+| 5  | Owner review: `vendorHash.nix` modification in project-dependency-graph (not mine)                                                                                         | ★☆☆    |
+| 6  | Re-verify Tier-0 free deletes under require-semantics, then delete transport/http+grpc, storage/view+relational, 7 dead stack presets (sequencing per question 3)          | ★★☆    |
+| 7  | Fork storage core (minus deprecated surfaces) → core/v5/storage                                                                                                            | ★★★    |
+| 8  | Fork storage/memory → core/v5/storage/memory                                                                                                                               | ★★★    |
+| 9  | Fork snapshot → core/v5/snapshot                                                                                                                                           | ★★★    |
+| 10 | Fork eventtest → core/v5/event/eventtest (closes M23, lag→0)                                                                                                               | ★★★    |
+| 11 | Write the copy-forward playbook once (exclusions, pair registration, golden regen, allowlist prune, file-size/dup-gate treatment)                                          | ★★★    |
+| 12 | Fork decider                                                                                                                                                               | ★★★    |
+| 13 | Fork middleware                                                                                                                                                            | ★★★    |
+| 14 | Fork system (composition root — biggest consumer blocker)                                                                                                                  | ★★★    |
+| 15 | Fork metaengine core + keycodec                                                                                                                                            | ★★★    |
+| 16 | Fork projectionadapter                                                                                                                                                     | ★★☆    |
+| 17 | Fork projection + projectionhost                                                                                                                                           | ★★☆    |
+| 18 | Fork commandlifecycle + projections                                                                                                                                        | ★★☆    |
+| 19 | Fork scheduling + sqlstore                                                                                                                                                 | ★★☆    |
+| 20 | Fork schema (minus ADR-0126 shells)                                                                                                                                        | ★★☆    |
+| 21 | Fork listing (ADR-0114 type-driven tombstone decision)                                                                                                                     | ★★☆    |
+| 22 | Fork claiming                                                                                                                                                              | ★☆☆    |
+| 23 | Fork otel + prometheus                                                                                                                                                     | ★★☆    |
+| 24 | Fork catalog                                                                                                                                                               | ★☆☆    |
+| 25 | Fork encryption + signing (minus Rejecting*/ErrInnerStoreNot*)                                                                                                             | ★★☆    |
+| 26 | Ghost-system verdicts: deriver, graph — enter core/v5 or die                                                                                                               | ★★☆    |
+| 27 | Decide whether stack enters core/v5 at all or is struck from the ADR-0152 list                                                                                             | ★☆☆    |
+| 28 | Fork systemscenario (absorbs scenario/v4)                                                                                                                                  | ★★☆    |
+| 29 | Register every new mirror pair in the lockstep gate as it lands                                                                                                            | ★★★    |
+| 30 | Signature-level lockstep once core/v5 stabilizes                                                                                                                           | ★☆☆    |
+| 31 | Build `cqrs-upgrade --to-v5` (import rewrite, require collapse, go.work/replace rewrite)                                                                                   | ★★★    |
+| 32 | Codemod rename table (On→OnRecord, OnTyped→OnRecordTyped, tombstone metadata → event types, StreamRef pair forms)                                                          | ★★☆    |
+| 33 | Codemod hard-refusal for modules with no core/v5 twin                                                                                                                      | ★★★    |
+| 34 | Codemod golden fixtures per migration class                                                                                                                                | ★★☆    |
+| 35 | Per-repo v5-readiness batch (`cqrs-upgrade --strict --json` across the fleet)                                                                                              | ★★☆    |
+| 36 | V007 table maintenance as core/v5 packages land                                                                                                                            | ★☆☆    |
+| 37 | cqrs-upgrade gains core/v5 pin awareness                                                                                                                                   | ★★☆    |
+| 38 | Migrate cqrs-htmx (stack/v4 in usermgmt + import rewrite; 73% indirect-edge shield)                                                                                        | ★★★    |
+| 39 | Migrate go-appkit cqrs/+docs/+integration (24 trains, blocked on #8–#12)                                                                                                   | ★★★    |
+| 40 | Migrate browser-history (stack + idempotency/sqlstore → metaengine.DedupStore)                                                                                             | ★★☆    |
+| 41 | Migrate crm + crm-exec-stage                                                                                                                                               | ★★☆    |
+| 42 | Migrate InboxClean                                                                                                                                                         | ★★☆    |
+| 43 | Migrate bank-sync, github-local-sync, SEC, KeyCountdown, SwettySwipperWeb services                                                                                         | ★★☆    |
+| 44 | Migrate residue batch (~25 repos) via codemod with per-repo test gates                                                                                                     | ★★☆    |
+| 45 | Post-migration hygiene per repo (go.work/prune, verify chains)                                                                                                             | ★☆☆    |
+| 46 | Delete idempotency/kvstore+sqlstore after the 4 repos migrate                                                                                                              | ★★☆    |
+| 47 | Delete stack + presets after the 13 repos migrate                                                                                                                          | ★★★    |
+| 48 | Delete deprecated tombstone metadata APIs + ADR-0126 shells                                                                                                                | ★☆☆    |
+| 49 | Gate-pruning cascade + cut v5.0.0 (per-module tests over the changed set — never verify=ok-only)                                                                           | ★★★    |
+| 50 | Housekeeping: taskmanager gopls errors (real vs workspace noise); possibly-stale .go-arch-lint.yml TODO row; the ~34-module go.sum tidy sweep (owner triage still pending) | ★☆☆    |
 
 ## g) Questions I cannot figure out myself
 
@@ -156,4 +159,4 @@ The 23 core/v5 copy-forwards (M23's ~20K-line eventtest closure first) · `cqrs-
 
 ---
 
-*Point-in-time snapshot; state captured ~06:55, report written 17:24 — fleet automation may have moved pins again since. Verify-before-acting on any number here.*
+_Point-in-time snapshot; state captured ~06:55, report written 17:24 — fleet automation may have moved pins again since. Verify-before-acting on any number here._

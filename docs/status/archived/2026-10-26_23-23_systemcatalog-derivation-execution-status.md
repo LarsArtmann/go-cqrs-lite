@@ -54,6 +54,7 @@
 ## f) NEXT — up to 50, ordered
 
 **Close out this wave (blocking):**
+
 1. Final composed `nix run .#verify-fast` on the settled tree (the only code-state unknown left).
 2. Fix AGENTS.md line 190 count (101→102, re-check "97 rowed") + recipes claim 104→106; re-run canonical-facts → 0 findings.
 3. Add the 14 missing docs/status/README.md index rows (read each report's header first; 14 honest one-liners).
@@ -114,6 +115,7 @@
 ---
 
 ### Gate receipts (this session, verified)
+
 - `check-module-layers.sh` PASS · `check-package-surface.sh` PASS (8 offenders, honest 246/28 catalog) · cqrs-lint module_catalog PASS · api-stability `--update` ×2 (6334 exports) + `TestEvery` PASS (after tidy sweep) · changelog-symbols PASS (11 citations) · systemcatalog tests PASS · catalog `.` package tests PASS · system package tests PASS · workspace `go build ./...` PASS · verify-fast: **final run OUTSTANDING** (see §b.1).
 
 ---

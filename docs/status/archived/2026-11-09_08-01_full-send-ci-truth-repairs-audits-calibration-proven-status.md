@@ -75,4 +75,4 @@
 
 ---
 
-*Receipts: TODO_LIST rows (A2 closed, A8 closed, audit-outcomes section, owner sheet D1-D8); CHANGELOG `[Unreleased]` rows; commits 762ce5266, c4f703ee4, 3699cb6d3, c83cb723a, ac22df8ca, 416b77aa7, be8e21f20, 4806cbec1, 6e9d2ca31 + daemon-absorbed equivalents; reviews/2026-11-09_07-30_brutal-self-review.html.*
+_Receipts: TODO_LIST rows (A2 closed, A8 closed, audit-outcomes section, owner sheet D1-D8); CHANGELOG `[Unreleased]` rows; commits 762ce5266, c4f703ee4, 3699cb6d3, c83cb723a, ac22df8ca, 416b77aa7, be8e21f20, 4806cbec1, 6e9d2ca31 + daemon-absorbed equivalents; reviews/2026-11-09_07-30_brutal-self-review.html._

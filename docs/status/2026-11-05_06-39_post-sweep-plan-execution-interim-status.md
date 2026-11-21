@@ -71,4 +71,4 @@ M06 (pre-release ritual: changed-set per-module tests + fleet census), **M07 (ta
 2. **`scratch/counterkey` disposition:** I excluded it from the meta-gate walkers (it rows in check-module-layers as "test-only cross-engine repro"). Keep in-tree-excluded, or move `scratch/` out of the repo? (Existing owner-gated row; tonight only neutralized the gate friction.)
 3. **Verify economics under a multi-session host:** tonight's honest launch needed `VERIFY_MAX_LOAD=16` (floor 12–16). Should the repo adopt a documented per-host ceiling (env/config) instead of the hard-coded 10, or should the tag wave keep requiring a genuine sub-10 window even if that means waiting for the fleet to idle?
 
-*Snapshot for the executing session; living truth in TODO_LIST.md. Verify attempt 11 result and CI conclusion are the two open receipts.*
+_Snapshot for the executing session; living truth in TODO_LIST.md. Verify attempt 11 result and CI conclusion are the two open receipts._

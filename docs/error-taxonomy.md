@@ -793,12 +793,12 @@ export cannot yet link these turso-sync mints, but the source mints them
 (`storage/turso/sync.go`) and check-error-taxonomy's rg pool demands them.
 Retire these rows when the vendored erraudit pin bumps past the fix.
 
-| Error | Family         | Code                     |
-| ----- | -------------- | ------------------------ |
-| -     | Infrastructure | `storage.turso_stats`    |
+| Error | Family         | Code                        |
+| ----- | -------------- | --------------------------- |
+| -     | Infrastructure | `storage.turso_stats`       |
 | -     | Rejection      | `storage.turso_memory_sync` |
-| -     | Infrastructure | `storage.turso_pull`     |
-| -     | Infrastructure | `storage.open_turso_sync` |
+| -     | Infrastructure | `storage.turso_pull`        |
+| -     | Infrastructure | `storage.open_turso_sync`   |
 
 ## Default Classification
 

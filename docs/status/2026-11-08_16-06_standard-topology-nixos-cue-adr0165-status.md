@@ -52,6 +52,7 @@
 ## f) NEXT — up to 50, prioritized (impact × effort)
 
 **Close the shipped work's holes (do first):**
+
 1. Round-trip test: Nix-rendered JSON string → `system.LoadConfig` → assert engines/instances (S).
 2. Round-trip test: `cue export --out json` of the fixture → `LoadConfig` (S).
 3. Commit an eval test for `nixosModules.cqrs` in flake checks (S/M).

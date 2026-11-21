@@ -11,7 +11,7 @@
 
 ## What did I forget / could have done better / can still improve
 
-- **Forgot:** to diff `.golangci.yml` against HEAD *before* running `check-golangci-hash.sh --update`. A 30-second `git log -S depguard -- .golangci.yml` would have revealed HEAD was already missing the block (removed in `9d31b8e07`) — the exact daemon-recurrence class AGENTS.md and TODO_LIST document — and saved the entire corruption detour.
+- **Forgot:** to diff `.golangci.yml` against HEAD _before_ running `check-golangci-hash.sh --update`. A 30-second `git log -S depguard -- .golangci.yml` would have revealed HEAD was already missing the block (removed in `9d31b8e07`) — the exact daemon-recurrence class AGENTS.md and TODO_LIST document — and saved the entire corruption detour.
 - **Could have done better:** re-read files after any pause once I knew a parallel session + auto-commit daemon were live (two of my edits bounced on "modified since read"); verify splice anchors character-exactly before writing awk (my first splice was a silent no-op — anchor written with 4-space indent, actual line was 8-space); post brief progress notes during the long corruption excavation instead of going silent until the user re-issued the workflow directive twice.
 - **Can still improve:** the `KVStore` symbol-name drift (modules.md/FEATURES cite `KVStore`; the real exports are `Store`/`New`) is a pre-existing doc lie I noticed and did not fix; an ADR-0142 one-line retirement pointer is still owed; go-idempotency's markdown formatter (dprint) was never run.
 
@@ -75,6 +75,7 @@
 ## f) NEXT — UP TO 50
 
 **Immediate hygiene (minutes)**
+
 1. Add the one-line ADR-0142 retirement pointer (see b1).
 2. Fix the `KVStore` → `Store`/`New` symbol-name drift in `modules.md:64` + `FEATURES.md` (b4).
 3. Add a ROADMAP pointer at the idempotency entries noting ADR-0158 retirement (b2).

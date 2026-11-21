@@ -20,18 +20,18 @@ All ten open GitHub issues are now closed with per-issue evidence comments (file
 
 ### a1. The ten issues, closed with evidence
 
-| Issue | Result | Evidence cited in the closing comment |
-|---|---|---|
-| #70 `EventWithID.ID` display form | verified, no code change needed | `metaengine/projectionadapter/typed_decoder.go:73,99` (`evt.StreamID().Get()`), `typed_decoder_test.go` |
-| #71 `TypedReader.Scan` silent truncation | shipped `WithExact` + `ErrScanTruncated` | `metaengine/scan_options.go:108`, `metaengine/errors.go:195`, `TestWithExact_MakesTruncationLoud` (`with_exact_test.go:14`) |
-| #72 keep-newest-N cap | shipped `WithCap` / `EnforceCap` / `EnforceCaps` | `metaengine/query_config.go:46`, `metaengine/cap.go:144,228`, 5 tests in `cap_test.go` |
-| #74 S001 schema names as secrets | fixed, narrower than proposed | `pkg/rules/security/rules.go:69,212`; `TestS001_NoFindingForSchemaVocabularyConst/Variable`; webphone's stale S001 suppression proves it stopped firing |
-| #78 E005 cross-package selectors | fixed | `pkg/analyzer/scanner_generic.go:65-77`; `TestE005_NoFindingWhenRegisteredViaSystemCrossPackage` (`new_rules_test.go:319`) |
-| #79 E004/F002 catalog builder invisible | fixed **properly this time** (3 root causes) | `scanner_calls.go:136-142`, `type_helpers.go:97`, `scanner_catalog_helpers.go:24,79`, `scanner_emit_helpers.go:118`; 3 new tests |
-| #80 C010 checked-error idiom | fixed | `swallow_helpers.go:140,162`; `TestC010_NoFindingForCheckedIfInitDecode` + unchecked control |
-| #81 E003 all findings at `go.mod:1:1` | fixed | `e003_e007.go:92-118`; `TestE003_EmitsDistinctIDsPerPackage`; CRM now emits 5 findings at 5 distinct positions |
-| #82 F010 metaengine-native graph | fixed | `adoption/scan_in_metaengine.go:14`; `TestF010_NoFindingWithMetaengineGraphADT` + import-only control |
-| #83 findings baseline | shipped | `cmd/cqrs-lint/baseline.go`, `main.go:130-131`, 8 tests |
+| Issue                                    | Result                                           | Evidence cited in the closing comment                                                                                                                   |
+| ---------------------------------------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| #70 `EventWithID.ID` display form        | verified, no code change needed                  | `metaengine/projectionadapter/typed_decoder.go:73,99` (`evt.StreamID().Get()`), `typed_decoder_test.go`                                                 |
+| #71 `TypedReader.Scan` silent truncation | shipped `WithExact` + `ErrScanTruncated`         | `metaengine/scan_options.go:108`, `metaengine/errors.go:195`, `TestWithExact_MakesTruncationLoud` (`with_exact_test.go:14`)                             |
+| #72 keep-newest-N cap                    | shipped `WithCap` / `EnforceCap` / `EnforceCaps` | `metaengine/query_config.go:46`, `metaengine/cap.go:144,228`, 5 tests in `cap_test.go`                                                                  |
+| #74 S001 schema names as secrets         | fixed, narrower than proposed                    | `pkg/rules/security/rules.go:69,212`; `TestS001_NoFindingForSchemaVocabularyConst/Variable`; webphone's stale S001 suppression proves it stopped firing |
+| #78 E005 cross-package selectors         | fixed                                            | `pkg/analyzer/scanner_generic.go:65-77`; `TestE005_NoFindingWhenRegisteredViaSystemCrossPackage` (`new_rules_test.go:319`)                              |
+| #79 E004/F002 catalog builder invisible  | fixed **properly this time** (3 root causes)     | `scanner_calls.go:136-142`, `type_helpers.go:97`, `scanner_catalog_helpers.go:24,79`, `scanner_emit_helpers.go:118`; 3 new tests                        |
+| #80 C010 checked-error idiom             | fixed                                            | `swallow_helpers.go:140,162`; `TestC010_NoFindingForCheckedIfInitDecode` + unchecked control                                                            |
+| #81 E003 all findings at `go.mod:1:1`    | fixed                                            | `e003_e007.go:92-118`; `TestE003_EmitsDistinctIDsPerPackage`; CRM now emits 5 findings at 5 distinct positions                                          |
+| #82 F010 metaengine-native graph         | fixed                                            | `adoption/scan_in_metaengine.go:14`; `TestF010_NoFindingWithMetaengineGraphADT` + import-only control                                                   |
+| #83 findings baseline                    | shipped                                          | `cmd/cqrs-lint/baseline.go`, `main.go:130-131`, 8 tests                                                                                                 |
 
 `gh issue list --state open` → **empty**.
 
@@ -92,17 +92,17 @@ An hour earlier I wired the tripwire into `#verify`/`#verify-fast`/`#check-relea
 
 ## b) PARTIALLY DONE
 
-| Item | State | What is missing |
-|---|---|---|
-| `#72` cap primitive | memory engine only | SQL pushdown branch (`PushdownMapScan` + `DeleteRows`) and temporal branch (`MapDeleteAt` + `notifyLive`) untested; no trim-cost measurement at 10k/100k rows; no default `system.Timer` wiring (deliberate, but undocumented in a consumer-facing place) |
-| `#83` baseline | semantics + 8 unit tests | no end-to-end run through the real binary on a fixture repo; no `--fail-on-stale-baseline`; no README CI recipe; `--update-baseline` exits 0 unconditionally; health score still counts baselined findings |
-| `#71` `WithExact` | shipped + tested | `ScanWithMeta()` deliberately not shipped; `WithExact` + `WithCursor` (page 2 of an exact scan) untested |
-| `#79` catalog detection | works on the real consumer | no typed-load fixture (see b-note below); helper matching is by **bare name**, so same-named helpers in different packages can cross-register; `simple.Command`/`simple.Query` ids not resolved (event-only symmetry) |
-| Race verification | 3 workspace sweeps + 5 targeted `-race` modules | **no fully green workspace sweep exists**: sweep 1 had the pre-existing projectionhost flake, sweep 2 had the benchkit race, sweep 3 was environment-polluted. The touched set is green; the whole-workspace claim is not made. |
-| Full `nix run .#test` | not re-run after the benchkit change | module + 3 consumers green instead (210s of real tests), but the repo's own full gate is unproven since the edit |
-| Composed `nix run .#verify` | never launched | load1 78-155 vs the `< 10` guard, all session |
-| Authored commit | impossible now | the auto-commit daemon absorbed every change into `chore:` commits; nothing of mine is separable without rewriting history |
-| My own deliverable set | comments + closes done | the push (see §c, §g1) |
+| Item                        | State                                           | What is missing                                                                                                                                                                                                                                           |
+| --------------------------- | ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `#72` cap primitive         | memory engine only                              | SQL pushdown branch (`PushdownMapScan` + `DeleteRows`) and temporal branch (`MapDeleteAt` + `notifyLive`) untested; no trim-cost measurement at 10k/100k rows; no default `system.Timer` wiring (deliberate, but undocumented in a consumer-facing place) |
+| `#83` baseline              | semantics + 8 unit tests                        | no end-to-end run through the real binary on a fixture repo; no `--fail-on-stale-baseline`; no README CI recipe; `--update-baseline` exits 0 unconditionally; health score still counts baselined findings                                                |
+| `#71` `WithExact`           | shipped + tested                                | `ScanWithMeta()` deliberately not shipped; `WithExact` + `WithCursor` (page 2 of an exact scan) untested                                                                                                                                                  |
+| `#79` catalog detection     | works on the real consumer                      | no typed-load fixture (see b-note below); helper matching is by **bare name**, so same-named helpers in different packages can cross-register; `simple.Command`/`simple.Query` ids not resolved (event-only symmetry)                                     |
+| Race verification           | 3 workspace sweeps + 5 targeted `-race` modules | **no fully green workspace sweep exists**: sweep 1 had the pre-existing projectionhost flake, sweep 2 had the benchkit race, sweep 3 was environment-polluted. The touched set is green; the whole-workspace claim is not made.                           |
+| Full `nix run .#test`       | not re-run after the benchkit change            | module + 3 consumers green instead (210s of real tests), but the repo's own full gate is unproven since the edit                                                                                                                                          |
+| Composed `nix run .#verify` | never launched                                  | load1 78-155 vs the `< 10` guard, all session                                                                                                                                                                                                             |
+| Authored commit             | impossible now                                  | the auto-commit daemon absorbed every change into `chore:` commits; nothing of mine is separable without rewriting history                                                                                                                                |
+| My own deliverable set      | comments + closes done                          | the push (see §c, §g1)                                                                                                                                                                                                                                    |
 
 **b-note — why "typed-load fixture" is not nitpicking.** `BuildContextFromSource` builds ASTs with empty `types.Info`, and `IsQualifierFor` degrades to qualifier-name matching in that mode. That is precisely how the previous session's #79 fix passed its tests and failed in production. Until a fixture loads a real versioned module with type info, the same class can recur silently.
 

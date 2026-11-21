@@ -176,12 +176,12 @@ the pre-filing checklist are the only living sections.
 Swept the driver's pre-release train (dnsblockd metaflood MF2.6; matrix run
 on NixOS x86_64, go 1.27.3, single fresh process per version):
 
-| Driver version    | Defect A (delta loss @2k)     | Defect B (collapse @27k)   | Defect C (COMMIT wall @30k) | Full tursoengine suite |
-| ----------------- | ----------------------------- | -------------------------- | --------------------------- | ---------------------- |
-| v0.8.3 (pin)      | LIVE (repro reproduces)       | live (per 2026-11-05)      | live (per 2026-11-05)       | green                  |
-| v0.8.4-pre.2      | FIXED (view exact, 95890==95890) | FIXED (exact through 27k) | FIXED (no abort through 30k) | not run            |
-| v0.8.4-pre.3      | FIXED                        | not run                    | not run                     | not run                |
-| v0.9.0-pre.2      | FIXED                        | FIXED                      | FIXED                       | GREEN (23.2s)          |
+| Driver version | Defect A (delta loss @2k)        | Defect B (collapse @27k)  | Defect C (COMMIT wall @30k)  | Full tursoengine suite |
+| -------------- | -------------------------------- | ------------------------- | ---------------------------- | ---------------------- |
+| v0.8.3 (pin)   | LIVE (repro reproduces)          | live (per 2026-11-05)     | live (per 2026-11-05)        | green                  |
+| v0.8.4-pre.2   | FIXED (view exact, 95890==95890) | FIXED (exact through 27k) | FIXED (no abort through 30k) | not run                |
+| v0.8.4-pre.3   | FIXED                            | not run                   | not run                      | not run                |
+| v0.9.0-pre.2   | FIXED                            | FIXED                     | FIXED                        | GREEN (23.2s)          |
 
 Additional evidence on v0.9.0-pre.2: the defect-A envelope guard
 (`TestTursoMatView_GroupedSumDefectAEnvelopeGuard`) run in ENFORCE mode

@@ -47,7 +47,7 @@ fold them into its own commit; do not "tidy" them into yours.
 ## 3. Two self-inflicted red iterations, and one overclaim
 
 **3a. A drift test that asserted the wrong thing twice.** The registry drift test first asserted the
-module *directory* was gone — but `idempotency/` exists because `sqlstore/` lives under it, so the test
+module _directory_ was gone — but `idempotency/` exists because `sqlstore/` lives under it, so the test
 was red against correct code. The second attempt asserted `go.mod` at the module path — but the module is
 at `/v4`, so it was red again. The fix was a `moduleGoMods` helper globbing both `rel/go.mod` and
 `rel/v[0-9]*/go.mod`.
@@ -74,7 +74,7 @@ run it before making the claim.
 Re-verifying the survey rather than trusting it was worth the time: six of its claims were wrong (§7 of
 the evidence file), including one that would have sent a repair to the wrong app (KeyCountdown's middleware
 order was already correct; github-local-sync's was not) and one that inverted the durability reasoning
-(games/SEC's journal is persistent, so its in-memory dedup store is the *only* thing that forgets).
+(games/SEC's journal is persistent, so its in-memory dedup store is the _only_ thing that forgets).
 
 It also surfaced a library defect nobody was looking for: `command/v4/doc.go` and its v5 mirror documented
 the middleware chain backwards. That one is now fixed, pinned by

@@ -65,7 +65,7 @@ default.
   in another session's area and deserved a flag before the edit, not after.
 - **Gate sweep completeness.** The plan's T12 named four gates; I ran six and still missed
   `check-depguard`, which is red. I only found it because I worried about the new catalog dependency.
-  The sweep should start from the list of *all* gates, not from the plan's four.
+  The sweep should start from the list of _all_ gates, not from the plan's four.
 - **Mixed diff.** `nix fmt --fail-on-change` reformatted five files committed unformatted by another
   session. Net-positive (the tree is now treefmt-clean) but my working diff mixed foreign formatting
   with my work; the auto-commit daemon split them afterwards, which is luck, not process.
@@ -86,67 +86,67 @@ default.
 
 ## a) FULLY DONE
 
-| # | Item | Evidence |
-| - | ---- | -------- |
-| 1 | **T02 — per-package API-surface ratchet** (`scripts/check-package-surface.sh`, `scripts/package-surface-baseline.txt`, `scripts/testdata/package-surface/`) | gate green with 8 baselined ceilings; `--self-test` 4/4 (new-god → rc1, growth → rc1, shrink → rc0, clean → rc0); wired into `#verify`, `#verify-fast`, CI |
-| 2 | **T03 — production import-cycle gate** (`scripts/check-cycles.sh`, `scripts/testdata/cycles/`) | **0 cycles / 506 package edges / 159 packages**; `--self-test` 4/4 including an empty-graph *refusal*; `--json` and `--edges` for downstream tools |
-| 3 | **T04 — `scripts/arch-metrics`** | markdown + `--json` + `--write`; composes the two gates so metrics cannot disagree with them; reproduces the review's stable facts (1.23 test/prod LOC ratio; memory driver 8 files / 1,382 LOC) |
-| 4 | **T01 — 52-item follow-up ledger** (`TODO_LIST.md` §"Architecture-review follow-up ledger (2026-10-26)") | all I01–I50 + N1/N2 rowed with routing, v5-impact and status; 18 closed / 1 foreign-red / 8 routed / 6 owner-gated / 19 open |
-| 5 | **T05 — metaengine v5 split design** (`docs/planning/2026-10-26_metaengine-v5-seven-package-split.md`) | 167/167 production files assigned, 935 exported declarations and 27,716 LOC accounted for; largest target 248 symbols; greppable dependency rule; 8-step compile-gated migration |
-| 6 | **ADR-0162** (`docs/adr/0162-metaengine-v5-seven-package-split.md`) | indexed in **both** indexes (`docs/adr/README.md` and `docs/README.md`); `check-adr-numbering` green (160 ADRs, index in lockstep) |
-| 7 | **T02b — the file-size gate is finally wired** | was app-only since it was written; now runs in `#verify`, `#verify-fast` and CI. Verified by reading `flake.nix` + grepping CI, then by building the `verify-fast` app and grepping its script for the three gate lines |
-| 8 | **T07 — discoverability** (`docs/architecture-understanding/README.md`, links from `docs/README.md`, CHANGELOG `[Unreleased]` row) | link gate 1,200 targets / 597 files / 0 broken; `check-changelog-symbols.sh` green (11 citations verified) |
-| 9 | **T12 (partial sweep)** | `check-md-go` rc=0 (1,523 blocks valid, 105 baselined archived errors), `check-arch` rc=0, `check-coverage` rc=0 (within ±2.0%), `check-adr-numbering` rc=0, `cmd/doc-check` rc=0 (1,509 references / 63 packages) |
-| 10 | **T08 (partial)** | PNG companions rendered and linked (5,550×3,304 and 6,420×2,168); SVG stays canonical |
-| 11 | **T17 (partial)** | 18 MB stray `cmd/api-stability/api-stability` trashed after confirming it is gitignored build output |
-| 12 | **Repo repairs found on the way** | shfmt drift in `scripts/probe-proxy-tags.sh` (3.13 heredoc style vs CI's pinned 3.14.1) reformatted; one rotted TODO section-index anchor removed (only `cmd/doc-check` can see anchors); `catalog` dep budget 8 → 9 with rationale; five foreign files golines-formatted so `nix fmt --fail-on-change` is clean |
-| 13 | **Plan reconciled, not rewritten** | execution addendum §12 added to the plan with 13 dated errata (E5–E13) and a receipts table; original design text untouched |
+| #  | Item                                                                                                                                                        | Evidence                                                                                                                                                                                                                                                                                                         |
+| -- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1  | **T02 — per-package API-surface ratchet** (`scripts/check-package-surface.sh`, `scripts/package-surface-baseline.txt`, `scripts/testdata/package-surface/`) | gate green with 8 baselined ceilings; `--self-test` 4/4 (new-god → rc1, growth → rc1, shrink → rc0, clean → rc0); wired into `#verify`, `#verify-fast`, CI                                                                                                                                                       |
+| 2  | **T03 — production import-cycle gate** (`scripts/check-cycles.sh`, `scripts/testdata/cycles/`)                                                              | **0 cycles / 506 package edges / 159 packages**; `--self-test` 4/4 including an empty-graph _refusal_; `--json` and `--edges` for downstream tools                                                                                                                                                               |
+| 3  | **T04 — `scripts/arch-metrics`**                                                                                                                            | markdown + `--json` + `--write`; composes the two gates so metrics cannot disagree with them; reproduces the review's stable facts (1.23 test/prod LOC ratio; memory driver 8 files / 1,382 LOC)                                                                                                                 |
+| 4  | **T01 — 52-item follow-up ledger** (`TODO_LIST.md` §"Architecture-review follow-up ledger (2026-10-26)")                                                    | all I01–I50 + N1/N2 rowed with routing, v5-impact and status; 18 closed / 1 foreign-red / 8 routed / 6 owner-gated / 19 open                                                                                                                                                                                     |
+| 5  | **T05 — metaengine v5 split design** (`docs/planning/2026-10-26_metaengine-v5-seven-package-split.md`)                                                      | 167/167 production files assigned, 935 exported declarations and 27,716 LOC accounted for; largest target 248 symbols; greppable dependency rule; 8-step compile-gated migration                                                                                                                                 |
+| 6  | **ADR-0162** (`docs/adr/0162-metaengine-v5-seven-package-split.md`)                                                                                         | indexed in **both** indexes (`docs/adr/README.md` and `docs/README.md`); `check-adr-numbering` green (160 ADRs, index in lockstep)                                                                                                                                                                               |
+| 7  | **T02b — the file-size gate is finally wired**                                                                                                              | was app-only since it was written; now runs in `#verify`, `#verify-fast` and CI. Verified by reading `flake.nix` + grepping CI, then by building the `verify-fast` app and grepping its script for the three gate lines                                                                                          |
+| 8  | **T07 — discoverability** (`docs/architecture-understanding/README.md`, links from `docs/README.md`, CHANGELOG `[Unreleased]` row)                          | link gate 1,200 targets / 597 files / 0 broken; `check-changelog-symbols.sh` green (11 citations verified)                                                                                                                                                                                                       |
+| 9  | **T12 (partial sweep)**                                                                                                                                     | `check-md-go` rc=0 (1,523 blocks valid, 105 baselined archived errors), `check-arch` rc=0, `check-coverage` rc=0 (within ±2.0%), `check-adr-numbering` rc=0, `cmd/doc-check` rc=0 (1,509 references / 63 packages)                                                                                               |
+| 10 | **T08 (partial)**                                                                                                                                           | PNG companions rendered and linked (5,550×3,304 and 6,420×2,168); SVG stays canonical                                                                                                                                                                                                                            |
+| 11 | **T17 (partial)**                                                                                                                                           | 18 MB stray `cmd/api-stability/api-stability` trashed after confirming it is gitignored build output                                                                                                                                                                                                             |
+| 12 | **Repo repairs found on the way**                                                                                                                           | shfmt drift in `scripts/probe-proxy-tags.sh` (3.13 heredoc style vs CI's pinned 3.14.1) reformatted; one rotted TODO section-index anchor removed (only `cmd/doc-check` can see anchors); `catalog` dep budget 8 → 9 with rationale; five foreign files golines-formatted so `nix fmt --fail-on-change` is clean |
+| 13 | **Plan reconciled, not rewritten**                                                                                                                          | execution addendum §12 added to the plan with 13 dated errata (E5–E13) and a receipts table; original design text untouched                                                                                                                                                                                      |
 
 **Numbers this session measured** (all from the committed tooling, basis `b2592201b`+):
 
-| Metric | Value |
-| ------ | ----: |
-| Workspace modules (`go.work` + root) | 99 |
-| Packages | 170 |
-| Production files / test files | 1,777 / 1,800 |
-| Production LOC / test LOC (ratio) | 250,817 / 308,412 (1.23) |
-| Package-level production import edges | 506 |
-| Production import cycles | 0 |
-| Exported symbols (tracked golden) | 6,327 |
-| Largest package | `metaengine` — 829 symbols, 167 files, 27,716 LOC, 13.1% of the API |
+| Metric                                |                                                               Value |
+| ------------------------------------- | ------------------------------------------------------------------: |
+| Workspace modules (`go.work` + root)  |                                                                  99 |
+| Packages                              |                                                                 170 |
+| Production files / test files         |                                                       1,777 / 1,800 |
+| Production LOC / test LOC (ratio)     |                                            250,817 / 308,412 (1.23) |
+| Package-level production import edges |                                                                 506 |
+| Production import cycles              |                                                                   0 |
+| Exported symbols (tracked golden)     |                                                               6,327 |
+| Largest package                       | `metaengine` — 829 symbols, 167 files, 27,716 LOC, 13.1% of the API |
 
 ---
 
 ## b) PARTIALLY DONE
 
-| Item | What is done | What is missing |
-| ---- | ------------ | --------------- |
-| **T08 skill/artifact polish** | PNG companions + README | the "flat-node D2 guidance" and "verify prior claims" skill edits; the report appendix was left untouched (snapshot discipline) |
-| **T12 unrun-gate sweep** | 6 gates run and recorded | `check-depguard` never run by design of the sweep and is **red**; `check-duplication` **red**; composed `#verify` never run (load) |
-| **T17 housekeeping** | stray binary gone | `stack/metaengine` census-classification wording untouched |
-| **T19 `core/v5` inventory** | measured: 9 packages (command, dedup, dispatcher, event, id, kv, metadata, query, record) + 4 test sub-packages | the 23-missing inventory with consumer counts |
-| **T23 verify routed items** | 19-40's three file splits verified (273 / 230 / 164 lines, gate green) | codemod status re-check, delete-at-zero census, cqrs-lint extraction status |
-| **Ledger ↔ TODO integration** | 52 rows + section index + counts | the new work from this session (T02b, the two foreign reds, arch-metrics golden) has no TODO rows of its own |
+| Item                          | What is done                                                                                                    | What is missing                                                                                                                    |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| **T08 skill/artifact polish** | PNG companions + README                                                                                         | the "flat-node D2 guidance" and "verify prior claims" skill edits; the report appendix was left untouched (snapshot discipline)    |
+| **T12 unrun-gate sweep**      | 6 gates run and recorded                                                                                        | `check-depguard` never run by design of the sweep and is **red**; `check-duplication` **red**; composed `#verify` never run (load) |
+| **T17 housekeeping**          | stray binary gone                                                                                               | `stack/metaengine` census-classification wording untouched                                                                         |
+| **T19 `core/v5` inventory**   | measured: 9 packages (command, dedup, dispatcher, event, id, kv, metadata, query, record) + 4 test sub-packages | the 23-missing inventory with consumer counts                                                                                      |
+| **T23 verify routed items**   | 19-40's three file splits verified (273 / 230 / 164 lines, gate green)                                          | codemod status re-check, delete-at-zero census, cqrs-lint extraction status                                                        |
+| **Ledger ↔ TODO integration** | 52 rows + section index + counts                                                                                | the new work from this session (T02b, the two foreign reds, arch-metrics golden) has no TODO rows of its own                       |
 
 ---
 
 ## c) NOT STARTED
 
-| Task | Why it matters | State |
-| ---- | -------------- | ----- |
-| **T06 API-golden tiering** | 6,327 symbols are still one undifferentiated stability promise; T05's boundaries now make the split possible | untouched |
-| **T09 domain language** | `docs/DOMAIN_LANGUAGE.md` has no `engine` entry at all — `metaengine.Engine` vs `scheduling/engine` remain tribal knowledge | untouched |
-| **T10 layer-gate production/test edges** | the layer gate reads `go.mod` and cannot tell a test-only require from a production one | untouched |
-| **T11 status archival** | `check-doc-links.sh` reported **133 live status reports** when measured mid-session (134 including this one; 124 at planning time) — the pile grows faster than the loop runs | untouched |
-| **T14 filename convention** | review and visualization skills still demand different session-slug formats for the same artifact pair | untouched |
-| **T15 format policy (OWNER Q3)** | `dprint.json` exists, treefmt does not run dprint, ~114 files drifted | owner-gated |
-| **T16 foreign-work ownership convention** | needs the marker convention that would have made E7/E13 self-routing | untouched |
-| **T18 pre-commit growth guards** | the ratchet drift that started all this (363 → 382 lines in one hour) is still only caught after the fact | owner-gated on Q3 |
-| **T20 tooling product-line decision (OWNER Q2)** | `cmd/cqrs-lint` ~49k LOC + `catalog` ~22k LOC are 32.8% of production LOC | owner-gated |
-| **T21 owner-decision note** | v4 fix-only declaration + Q1/Q2/Q3 in one file | not written |
-| **T22 codemod mapping table** | `cmd/cqrs-upgrade` still has zero `core/v5` awareness (re-verified this session) | untouched |
-| **T24 next-review trigger** | reviews stay ad-hoc; the metric-diff procedure now exists (T04) but is undocumented as a trigger | untouched |
-| **I04, I13, I21–I24, I33–I38, I40, I46, I48–I50** | see the ledger for the per-item mapping | open |
+| Task                                              | Why it matters                                                                                                                                                                | State             |
+| ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
+| **T06 API-golden tiering**                        | 6,327 symbols are still one undifferentiated stability promise; T05's boundaries now make the split possible                                                                  | untouched         |
+| **T09 domain language**                           | `docs/DOMAIN_LANGUAGE.md` has no `engine` entry at all — `metaengine.Engine` vs `scheduling/engine` remain tribal knowledge                                                   | untouched         |
+| **T10 layer-gate production/test edges**          | the layer gate reads `go.mod` and cannot tell a test-only require from a production one                                                                                       | untouched         |
+| **T11 status archival**                           | `check-doc-links.sh` reported **133 live status reports** when measured mid-session (134 including this one; 124 at planning time) — the pile grows faster than the loop runs | untouched         |
+| **T14 filename convention**                       | review and visualization skills still demand different session-slug formats for the same artifact pair                                                                        | untouched         |
+| **T15 format policy (OWNER Q3)**                  | `dprint.json` exists, treefmt does not run dprint, ~114 files drifted                                                                                                         | owner-gated       |
+| **T16 foreign-work ownership convention**         | needs the marker convention that would have made E7/E13 self-routing                                                                                                          | untouched         |
+| **T18 pre-commit growth guards**                  | the ratchet drift that started all this (363 → 382 lines in one hour) is still only caught after the fact                                                                     | owner-gated on Q3 |
+| **T20 tooling product-line decision (OWNER Q2)**  | `cmd/cqrs-lint` ~49k LOC + `catalog` ~22k LOC are 32.8% of production LOC                                                                                                     | owner-gated       |
+| **T21 owner-decision note**                       | v4 fix-only declaration + Q1/Q2/Q3 in one file                                                                                                                                | not written       |
+| **T22 codemod mapping table**                     | `cmd/cqrs-upgrade` still has zero `core/v5` awareness (re-verified this session)                                                                                              | untouched         |
+| **T24 next-review trigger**                       | reviews stay ad-hoc; the metric-diff procedure now exists (T04) but is undocumented as a trigger                                                                              | untouched         |
+| **I04, I13, I21–I24, I33–I38, I40, I46, I48–I50** | see the ledger for the per-item mapping                                                                                                                                       | open              |
 
 ---
 
@@ -165,7 +165,7 @@ Ranked by damage, all mine unless marked:
    made unilaterally, in another session's work.
 4. **The depguard red has no TODO row.** Red gate, prose-only record — entombment, by me, in the
    session that built the anti-entombment ledger.
-5. **`#verify` is unproven.** I proved `verify` and `verify-fast` *build and start*, and proved each
+5. **`#verify` is unproven.** I proved `verify` and `verify-fast` _build and start_, and proved each
    gate individually, but never ran the composed chain. "CI-green" would be an overclaim.
 6. **Foreign work touched twice**: the catalog dependency budget (`scripts/check-module-layers.sh`)
    and golines reformatting of five files another session committed. Both net-positive, both
@@ -180,20 +180,20 @@ Ranked by damage, all mine unless marked:
 
 ## e) WHAT WE SHOULD IMPROVE
 
-| # | Improvement | Concrete first step |
-| - | ----------- | ------------------- |
-| 1 | **Every new gate proves it sees all data** | require three invariants in every gate: input count printed, empty input = refusal, and one cross-checked number against an independent source |
-| 2 | **One gate list, three consumers** | extract the `#verify` / `#verify-fast` / CI chains from one data structure in `flake.nix` instead of three hand-kept copies |
-| 3 | **Baseline changes are decisions, not diffs** | a re-pin must add a dated ledger row naming the grower, the amount and the ceiling intent; make the gate print "re-pin requires a ledger row" |
-| 4 | **Backticked paths need a checker** | extend `cmd/doc-check` (or a new `scripts/check-doc-paths.sh`) to resolve backticked repo-relative paths — this is a real drift class, not a one-off |
-| 5 | **Shared shell primitives** | `scripts/lib/tmpdir.sh` (global scratch + cleanup trap) and `scripts/lib/gate.sh` (fail-with-`::error::`, quiet-mode) so gates stop re-inventing both, badly |
-| 6 | **Foreign work needs a marker, not a convention** | T16 should define an ownership header (`<!-- owner: <session/path> -->`) that `docs-health` can route on |
-| 7 | **`arch-metrics` needs teeth** | `--check` against a committed golden snapshot in `docs/evidence/` + `--self-test`; otherwise all-zero metrics look plausible |
-| 8 | **Reconcile the two "edge" numbers** | one note in the review artifact mapping 322 module-level requires ↔ 506 package-level imports, so nobody quotes the wrong one |
-| 9 | **Archive automation, not discipline** | 133 live status reports and counting; a scheduled `git mv` + index update with a link-gate confirmation beats "someone should do a pass" |
-| 10 | **Ledger generation** | generate the 52 rows from the plan table, leave only the status cell human — the count error would be impossible |
-| 11 | **Gate inventory doc** | nothing lists all gates; that is why the file-size gate stayed unwired for six weeks and why my sweep missed depguard |
-| 12 | **Quiet-window habit for verification** | load 70 with 39 users made `#verify` impossible; `#quiet-window-run` + `verify-chain.sh` exist and should be the default, not the exception |
+| #  | Improvement                                       | Concrete first step                                                                                                                                          |
+| -- | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1  | **Every new gate proves it sees all data**        | require three invariants in every gate: input count printed, empty input = refusal, and one cross-checked number against an independent source               |
+| 2  | **One gate list, three consumers**                | extract the `#verify` / `#verify-fast` / CI chains from one data structure in `flake.nix` instead of three hand-kept copies                                  |
+| 3  | **Baseline changes are decisions, not diffs**     | a re-pin must add a dated ledger row naming the grower, the amount and the ceiling intent; make the gate print "re-pin requires a ledger row"                |
+| 4  | **Backticked paths need a checker**               | extend `cmd/doc-check` (or a new `scripts/check-doc-paths.sh`) to resolve backticked repo-relative paths — this is a real drift class, not a one-off         |
+| 5  | **Shared shell primitives**                       | `scripts/lib/tmpdir.sh` (global scratch + cleanup trap) and `scripts/lib/gate.sh` (fail-with-`::error::`, quiet-mode) so gates stop re-inventing both, badly |
+| 6  | **Foreign work needs a marker, not a convention** | T16 should define an ownership header (`<!-- owner: <session/path> -->`) that `docs-health` can route on                                                     |
+| 7  | **`arch-metrics` needs teeth**                    | `--check` against a committed golden snapshot in `docs/evidence/` + `--self-test`; otherwise all-zero metrics look plausible                                 |
+| 8  | **Reconcile the two "edge" numbers**              | one note in the review artifact mapping 322 module-level requires ↔ 506 package-level imports, so nobody quotes the wrong one                                |
+| 9  | **Archive automation, not discipline**            | 133 live status reports and counting; a scheduled `git mv` + index update with a link-gate confirmation beats "someone should do a pass"                     |
+| 10 | **Ledger generation**                             | generate the 52 rows from the plan table, leave only the status cell human — the count error would be impossible                                             |
+| 11 | **Gate inventory doc**                            | nothing lists all gates; that is why the file-size gate stayed unwired for six weeks and why my sweep missed depguard                                        |
+| 12 | **Quiet-window habit for verification**           | load 70 with 39 users made `#verify` impossible; `#quiet-window-run` + `verify-chain.sh` exist and should be the default, not the exception                  |
 
 ---
 
@@ -201,73 +201,73 @@ Ranked by damage, all mine unless marked:
 
 ### P0 — red or unproven right now
 
-| # | Task | Effort | Note |
-| - | ---- | ------ | ---- |
-| 1 | Fix the `check-duplication` red: `//art-dupl:accept` on `systemcatalog/derive.go` **or** a reviewed re-pin | XS | foreign-in-flight; needs the owning session |
-| 2 | Fix the `check-depguard` red: allow-list `turso-go-platform-libs` + re-pin the golangci config hash | S | foreign-in-flight (turso work) |
-| 3 | Run `nix run .#verify` in a quiet window (`#quiet-window-run` / `verify-chain.sh`) and record the receipt | M | only unproven claim in this report |
-| 4 | Create TODO rows for both foreign reds so they cannot rot | XS | my own gap |
-| 5 | Re-run `check-canonical-facts.sh` after the AGENTS.md edit; fix "101 go.mod" → actual 102 | XS | doc fact drift I introduced/met |
+| # | Task                                                                                                       | Effort | Note                                        |
+| - | ---------------------------------------------------------------------------------------------------------- | ------ | ------------------------------------------- |
+| 1 | Fix the `check-duplication` red: `//art-dupl:accept` on `systemcatalog/derive.go` **or** a reviewed re-pin | XS     | foreign-in-flight; needs the owning session |
+| 2 | Fix the `check-depguard` red: allow-list `turso-go-platform-libs` + re-pin the golangci config hash        | S      | foreign-in-flight (turso work)              |
+| 3 | Run `nix run .#verify` in a quiet window (`#quiet-window-run` / `verify-chain.sh`) and record the receipt  | M      | only unproven claim in this report          |
+| 4 | Create TODO rows for both foreign reds so they cannot rot                                                  | XS     | my own gap                                  |
+| 5 | Re-run `check-canonical-facts.sh` after the AGENTS.md edit; fix "101 go.mod" → actual 102                  | XS     | doc fact drift I introduced/met             |
 
 ### P1 — the plan's remaining 20% tier (unblocked)
 
-| # | Task | Effort |
-| - | ---- | ------ |
-| 6 | T06 API-golden tiering: stable-core vs experimental sections + cross-section-move guard | M |
-| 7 | T09 `DOMAIN_LANGUAGE.md`: `engine` disambiguation + 5 dialect-seam notes | S |
-| 8 | T10 layer gate: production vs test-only requires, with a fixture self-test | M |
-| 9 | T13 provenance markers inside the review artifact ([measured]/[inherited]) | S |
-| 10 | T14 align the two skills on one session-slug convention | XS |
-| 11 | T19 inventory the 23 missing `core/v5` packages with consumer counts | S |
-| 12 | T22 codemod mapping table (v4 path → `core/v5` package) | M |
-| 13 | T23 verify the three 19-19 routed items (codemod, census kills, lint extraction) | S |
-| 14 | T24 next-review trigger + metric-diff procedure (uses T04) | XS |
-| 15 | T21 owner-decision note: v4 fix-only + Q1/Q2/Q3 with defaults | XS |
-| 16 | T11 status archival pass (batch 1 of 3, ~134 reports) | M |
-| 17 | T11 batch 2 + index update | M |
-| 18 | T11 batch 3 + link-gate confirmation | M |
-| 19 | T08 skill edits: flat-node D2 guidance | XS |
-| 20 | T08 skill edits: "verify prior claims" checklist | XS |
+| #  | Task                                                                                    | Effort |
+| -- | --------------------------------------------------------------------------------------- | ------ |
+| 6  | T06 API-golden tiering: stable-core vs experimental sections + cross-section-move guard | M      |
+| 7  | T09 `DOMAIN_LANGUAGE.md`: `engine` disambiguation + 5 dialect-seam notes                | S      |
+| 8  | T10 layer gate: production vs test-only requires, with a fixture self-test              | M      |
+| 9  | T13 provenance markers inside the review artifact ([measured]/[inherited])              | S      |
+| 10 | T14 align the two skills on one session-slug convention                                 | XS     |
+| 11 | T19 inventory the 23 missing `core/v5` packages with consumer counts                    | S      |
+| 12 | T22 codemod mapping table (v4 path → `core/v5` package)                                 | M      |
+| 13 | T23 verify the three 19-19 routed items (codemod, census kills, lint extraction)        | S      |
+| 14 | T24 next-review trigger + metric-diff procedure (uses T04)                              | XS     |
+| 15 | T21 owner-decision note: v4 fix-only + Q1/Q2/Q3 with defaults                           | XS     |
+| 16 | T11 status archival pass (batch 1 of 3, ~134 reports)                                   | M      |
+| 17 | T11 batch 2 + index update                                                              | M      |
+| 18 | T11 batch 3 + link-gate confirmation                                                    | M      |
+| 19 | T08 skill edits: flat-node D2 guidance                                                  | XS     |
+| 20 | T08 skill edits: "verify prior claims" checklist                                        | XS     |
 
 ### P2 — new, from this session's own findings
 
-| # | Task | Effort |
-| - | ---- | ------ |
-| 21 | `arch-metrics --check` against a committed golden + `--self-test` | M |
-| 22 | Commit a `docs/evidence/arch-metrics-2026-10-26.json` snapshot (this session's numbers) | XS |
-| 23 | Extract `scripts/lib/tmpdir.sh` (+ adopt in both new gates) | S |
-| 24 | Extract the gate list so `#verify`, `#verify-fast` and CI share one definition | M |
-| 25 | `scripts/check-doc-paths.sh` (or a doc-check mode) for backticked repo paths | M |
-| 26 | Gate-inventory doc (`docs/agents/gates.md`) generated from flake apps | S |
-| 27 | Ledger generator (plan table → TODO rows) | M |
-| 28 | Baseline-change receipt policy + a gate hint line | S |
-| 29 | Reconcile 322 (module) vs 506 (package) edges in the review artifact | XS |
-| 30 | Widen T12's sweep list to *all* gates (include depguard, lint-config, dup, changelog, canonical-facts) | XS |
-| 31 | `check-module-layers.sh` budget changes: require a rationale comment + a TODO row | S |
-| 32 | Add the three new gates to `CONTRIBUTING.md`'s quality-gate table | XS |
-| 33 | Add the gates + `arch-metrics` to the go-cqrs-lite skill's contributor section | S |
-| 34 | Publish `check-package-surface.sh --report` output as a docs snapshot (baseline rationale visible) | XS |
-| 35 | Decide whether `cmd/cqrs-lint/pkg/rules/correctness` (47 files) should be baselined on files at all | S |
+| #  | Task                                                                                                   | Effort |
+| -- | ------------------------------------------------------------------------------------------------------ | ------ |
+| 21 | `arch-metrics --check` against a committed golden + `--self-test`                                      | M      |
+| 22 | Commit a `docs/evidence/arch-metrics-2026-10-26.json` snapshot (this session's numbers)                | XS     |
+| 23 | Extract `scripts/lib/tmpdir.sh` (+ adopt in both new gates)                                            | S      |
+| 24 | Extract the gate list so `#verify`, `#verify-fast` and CI share one definition                         | M      |
+| 25 | `scripts/check-doc-paths.sh` (or a doc-check mode) for backticked repo paths                           | M      |
+| 26 | Gate-inventory doc (`docs/agents/gates.md`) generated from flake apps                                  | S      |
+| 27 | Ledger generator (plan table → TODO rows)                                                              | M      |
+| 28 | Baseline-change receipt policy + a gate hint line                                                      | S      |
+| 29 | Reconcile 322 (module) vs 506 (package) edges in the review artifact                                   | XS     |
+| 30 | Widen T12's sweep list to _all_ gates (include depguard, lint-config, dup, changelog, canonical-facts) | XS     |
+| 31 | `check-module-layers.sh` budget changes: require a rationale comment + a TODO row                      | S      |
+| 32 | Add the three new gates to `CONTRIBUTING.md`'s quality-gate table                                      | XS     |
+| 33 | Add the gates + `arch-metrics` to the go-cqrs-lite skill's contributor section                         | S      |
+| 34 | Publish `check-package-surface.sh --report` output as a docs snapshot (baseline rationale visible)     | XS     |
+| 35 | Decide whether `cmd/cqrs-lint/pkg/rules/correctness` (47 files) should be baselined on files at all    | S      |
 
 ### P3 — owner-gated / long tail (from the plan)
 
-| # | Task | Effort | Gate |
-| - | ---- | ------ | ---- |
-| 36 | T15 dprint decision (add to treefmt vs document exclusion) | M | Q3 |
-| 37 | T18 pre-commit growth guards (staged file-size + markdown) | M | Q3 |
-| 38 | T20 tooling product-line ADR sketch (separate repos vs in-repo line) | M | Q2 |
-| 39 | T16 foreign-work ownership marker convention | S | — |
-| 40 | T17 `stack/metaengine` census-classification wording | XS | — |
-| 41 | I04 staged file-size pre-commit leg (subset of 37) | S | Q3 |
-| 42 | I25 duplication program: confirm the 189-group baseline is the post-campaign truth | S | — |
-| 43 | I48 census naming | XS | — |
-| 44 | I49 (superset of #8) | — | — |
-| 45 | I17 23-package inventory feeds the v5 cut list (same as #11) | — | — |
-| 46 | I29 catalog exporter extraction candidate analysis | M | Q2 |
-| 47 | I27 tooling product line (same as #38) | — | Q2 |
-| 48 | Re-check `docs/planning/` for a 6th live plan colliding with this ledger before the next session starts | XS | — |
-| 49 | Run `#verify-fast` in a quiet window as the cheaper end-to-end proof | M | — |
-| 50 | Re-review the architecture after the metaengine split (trigger condition #14) | L | v5 |
+| #  | Task                                                                                                    | Effort | Gate |
+| -- | ------------------------------------------------------------------------------------------------------- | ------ | ---- |
+| 36 | T15 dprint decision (add to treefmt vs document exclusion)                                              | M      | Q3   |
+| 37 | T18 pre-commit growth guards (staged file-size + markdown)                                              | M      | Q3   |
+| 38 | T20 tooling product-line ADR sketch (separate repos vs in-repo line)                                    | M      | Q2   |
+| 39 | T16 foreign-work ownership marker convention                                                            | S      | —    |
+| 40 | T17 `stack/metaengine` census-classification wording                                                    | XS     | —    |
+| 41 | I04 staged file-size pre-commit leg (subset of 37)                                                      | S      | Q3   |
+| 42 | I25 duplication program: confirm the 189-group baseline is the post-campaign truth                      | S      | —    |
+| 43 | I48 census naming                                                                                       | XS     | —    |
+| 44 | I49 (superset of #8)                                                                                    | —      | —    |
+| 45 | I17 23-package inventory feeds the v5 cut list (same as #11)                                            | —      | —    |
+| 46 | I29 catalog exporter extraction candidate analysis                                                      | M      | Q2   |
+| 47 | I27 tooling product line (same as #38)                                                                  | —      | Q2   |
+| 48 | Re-check `docs/planning/` for a 6th live plan colliding with this ledger before the next session starts | XS     | —    |
+| 49 | Run `#verify-fast` in a quiet window as the cheaper end-to-end proof                                    | M      | —    |
+| 50 | Re-review the architecture after the metaengine split (trigger condition #14)                           | L      | v5   |
 
 > Items 44, 45, 47 are cross-references, not new work — 50 rows, ~44 distinct actions.
 

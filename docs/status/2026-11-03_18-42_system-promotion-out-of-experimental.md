@@ -48,7 +48,7 @@
 
 ## d) TOTALLY FUCKED UP
 
-1. **Three waves, zero authored commits — recurring.** The daemon absorbed the promotion wave too (as it did README and AGENTS waves). For a *product-maturity decision* (experimental→production) landing only as `chore: auto-commit` history, the audit trail is this report + the CHANGELOG row — acceptable only because those exist. The Ground Rule exists; I keep not acting on it at phase boundaries.
+1. **Three waves, zero authored commits — recurring.** The daemon absorbed the promotion wave too (as it did README and AGENTS waves). For a _product-maturity decision_ (experimental→production) landing only as `chore: auto-commit` history, the audit trail is this report + the CHANGELOG row — acceptable only because those exist. The Ground Rule exists; I keep not acting on it at phase boundaries.
 2. **A typo rode my first FEATURES attempt.** The daemon-staleness rejection of my first multiedit blocked a draft that contained a stray `>>` line-continuation in the promotion blockquote; caught only on the retry. The collision protocol saved me — but the honest read is: I drafted sloppily and got lucky the tool forced a re-read.
 3. **Wave-2 report shipped before its own index row.** The 17-31 report claimed (in e.4) that status-report discipline should index-at-write-time — and then I ALSO failed to index it at write time (the turn was interrupted; the row landed one user-turn later, in this wave). The principle was written down before it was followed.
 
@@ -62,26 +62,26 @@
 
 ## f) Next tasks
 
-| # | Task | Impact | Effort | Category |
-|---|------|--------|--------|----------|
-| 1 | Owner decision: metaengine promotion scope (core planner vs engine modules) — g.1 | High | S (decision) | Documentation |
-| 2 | If promoting metaengine: 17 doc.go stamp edits + api-stability regen + FEATURES rows (a real wave) | High | M | Documentation |
-| 3 | Owner decision: systemscenario promotion or keep 🧪 | Medium | S | Documentation |
-| 4 | `system/README.md`: update "next-generation" wording to production framing | Medium | S | Documentation |
-| 5 | Reconcile AGENTS.md "6,422 symbols" vs 6,421 (run `#check-untested-exports`, read its total) | Medium | S | Documentation |
-| 6 | Verify errtax "540 of 546" total via `#check-error-taxonomy-tests` output | Medium | S | Documentation |
-| 7 | Non-md label sweep: `rg -i experimental` over module/example READMEs + godoc comments | Low | S | Quality |
-| 8 | Row or exclude `scratch/counterkey` in module-map census (canonical-facts green) | Medium | S | Cleanup |
-| 9 | Index the two parallel-session status reports (16-22, 16-55) once ownership answered | Medium | S | Documentation |
-| 10 | FEATURES matrix banner: re-run the census re-verify pass and re-date "2026-09-21" | Low | S | Documentation |
-| 11 | ADR status-hygiene pass: any other "Proposed" ADRs whose direction already shipped? | Medium | M | Documentation |
-| 12 | AGENTS.md contracts: link "open TODO" claims to their TODO_LIST rows (29e-class rot) | Medium | M | Documentation |
-| 13 | Permanent compile pin for README quick-start fences (wave-2 f.2, still open) | High | S/M | Quality |
-| 14 | Teach check-canonical-facts to catch backticked `N go.mod` citations (wave-2 e.2) | Medium | M | Quality |
-| 15 | docs-health HARVEST of wave-2 + wave-3 §f into TODO_LIST | High | S | Process |
-| 16 | Authored-commit policy decision (g.3) then apply at phase boundaries | Medium | S | Process |
-| 17 | Composed `#verify` in a quiet window as the promotion wave's final receipt | Medium | M | Quality |
-| 18 | Consider a maturity-status change procedure in AGENTS.md Procedures (from e.1) | Medium | S | Process |
+| #  | Task                                                                                               | Impact | Effort       | Category      |
+| -- | -------------------------------------------------------------------------------------------------- | ------ | ------------ | ------------- |
+| 1  | Owner decision: metaengine promotion scope (core planner vs engine modules) — g.1                  | High   | S (decision) | Documentation |
+| 2  | If promoting metaengine: 17 doc.go stamp edits + api-stability regen + FEATURES rows (a real wave) | High   | M            | Documentation |
+| 3  | Owner decision: systemscenario promotion or keep 🧪                                                | Medium | S            | Documentation |
+| 4  | `system/README.md`: update "next-generation" wording to production framing                         | Medium | S            | Documentation |
+| 5  | Reconcile AGENTS.md "6,422 symbols" vs 6,421 (run `#check-untested-exports`, read its total)       | Medium | S            | Documentation |
+| 6  | Verify errtax "540 of 546" total via `#check-error-taxonomy-tests` output                          | Medium | S            | Documentation |
+| 7  | Non-md label sweep: `rg -i experimental` over module/example READMEs + godoc comments              | Low    | S            | Quality       |
+| 8  | Row or exclude `scratch/counterkey` in module-map census (canonical-facts green)                   | Medium | S            | Cleanup       |
+| 9  | Index the two parallel-session status reports (16-22, 16-55) once ownership answered               | Medium | S            | Documentation |
+| 10 | FEATURES matrix banner: re-run the census re-verify pass and re-date "2026-09-21"                  | Low    | S            | Documentation |
+| 11 | ADR status-hygiene pass: any other "Proposed" ADRs whose direction already shipped?                | Medium | M            | Documentation |
+| 12 | AGENTS.md contracts: link "open TODO" claims to their TODO_LIST rows (29e-class rot)               | Medium | M            | Documentation |
+| 13 | Permanent compile pin for README quick-start fences (wave-2 f.2, still open)                       | High   | S/M          | Quality       |
+| 14 | Teach check-canonical-facts to catch backticked `N go.mod` citations (wave-2 e.2)                  | Medium | M            | Quality       |
+| 15 | docs-health HARVEST of wave-2 + wave-3 §f into TODO_LIST                                           | High   | S            | Process       |
+| 16 | Authored-commit policy decision (g.3) then apply at phase boundaries                               | Medium | S            | Process       |
+| 17 | Composed `#verify` in a quiet window as the promotion wave's final receipt                         | Medium | M            | Quality       |
+| 18 | Consider a maturity-status change procedure in AGENTS.md Procedures (from e.1)                     | Medium | S            | Process       |
 
 ## g) Questions I cannot answer myself
 
@@ -91,4 +91,4 @@
 
 ---
 
-*Point-in-time snapshot. §f feeds docs-health HARVEST; annotate, never rewrite, when superseded. Supersedes nothing — extends `2026-11-03_17-31_readme-agents-superb-session.md` (its g.1 is annotated RESOLVED there).*
+_Point-in-time snapshot. §f feeds docs-health HARVEST; annotate, never rewrite, when superseded. Supersedes nothing — extends `2026-11-03_17-31_readme-agents-superb-session.md` (its g.1 is annotated RESOLVED there)._

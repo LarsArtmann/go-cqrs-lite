@@ -17,11 +17,11 @@
    (`TaskBlockedByPayload.DependencyID`/`TaskUnblockedPayload.DependencyID` carry
    display forms into event payloads) — golden updated. Rules 213→214.
 2. **A12a pgengine typed WAL** — typed columns on BOTH write paths (multi-VALUES
-   + pgx COPY), JSONB metadata, partial unique indexes, SQLSTATE-23505 mapping,
-   `ADD COLUMN IF NOT EXISTS` migration, jsonb identity backfill
-   (`pg_input_is_valid`, PG16 floor). 4/4 pins vs ephemeral PG. Contract
-   decision mid-flight: **identity-only backfill everywhere** (payload/metadata
-   NULL on legacy rows — a malformed foreign row must never abort a migration).
+   - pgx COPY), JSONB metadata, partial unique indexes, SQLSTATE-23505 mapping,
+     `ADD COLUMN IF NOT EXISTS` migration, jsonb identity backfill
+     (`pg_input_is_valid`, PG16 floor). 4/4 pins vs ephemeral PG. Contract
+     decision mid-flight: **identity-only backfill everywhere** (payload/metadata
+     NULL on legacy rows — a malformed foreign row must never abort a migration).
 3. **A12b mysqlengine typed WAL** — `ALGORITHM=INSTANT`-pinned ALTERs (the
    server REFUSES a rebuild — no-recreate is enforced by construction, not
    convention; empirically CREATE_TIME updates on ALTER so it is NOT a

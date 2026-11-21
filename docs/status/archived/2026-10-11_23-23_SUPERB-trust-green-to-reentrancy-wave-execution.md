@@ -176,7 +176,7 @@
 6. **Plan staleness:** the Pareto plan was written WITHOUT checking `git tag`
    state, so its M03/M04 and M12 rows were already done at authoring time.
    Planning passes should verify tag/proxy truth first (cheap: `git for-each-ref`
-   + proxy @latest).
+   - proxy @latest).
 7. **The BuildFlow pre-commit run surfaced 11 failed golangci legs** (decider,
    catalog, commandlifecycle/projections, idempotency/kvstore, metaengine/bench,
    stack/turso, …) — report-only in pre-commit, but red in CI. Nobody triaged
@@ -282,6 +282,6 @@
 
 ---
 
-*Report: session-observational only (no research beyond this session's run).
+_Report: session-observational only (no research beyond this session's run).
 Tree clean at 23:23; 15 local commits unpushed; tags on origin: event/v4.14.0,
-dedup/v4.3.0, metaengine/v4.18.0, deriver/v4.5.0.*
+dedup/v4.3.0, metaengine/v4.18.0, deriver/v4.5.0._

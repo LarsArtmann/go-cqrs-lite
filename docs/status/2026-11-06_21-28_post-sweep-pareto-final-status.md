@@ -124,8 +124,8 @@ brandid-lint BD003 sites stand red).
 ## c) NOT STARTED (all rowed in TODO_LIST)
 
 - Untagged-backlog sweep wave (~20 modules: event, eventtest v0.5.0,
-  scenario v4.5.0, testutil v4.4.0, middleware, query, queue/*, storage/*,
-  system, listing, pebbleengine, signing, record, stack/*, scheduling/* +
+  scenario v4.5.0, testutil v4.4.0, middleware, query, queue/_, storage/_,
+  system, listing, pebbleengine, signing, record, stack/_, scheduling/_ +
   the deprecated-sqlstore final-tag policy call).
 - verify-launcher promotion to `scripts/verify-launch.sh`; ignore-cascade
   tripwire; generated-artifact pre-push freshness sweep; wedged-run

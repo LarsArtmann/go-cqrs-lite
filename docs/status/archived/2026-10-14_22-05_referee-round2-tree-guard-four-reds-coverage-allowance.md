@@ -164,8 +164,8 @@ FOR INSTRUCTIONS per the user's explicit demand.
 2. Re-arm the composed chain if 13B exhausted (~23:30):
    `bash scripts/verify-chain.sh` in background; ride rc=12 retries.
 3. When BOTH green: write M10 receipts (plan §8 addendum + TODO_LIST strike
-   + F-64 addendum); live-index row for this report's successor;
-   `bash scripts/check-canonical-facts.sh`.
+   - F-64 addendum); live-index row for this report's successor;
+     `bash scripts/check-canonical-facts.sh`.
 4. Read ci.yml `concurrency:` block (line ~968); if Autoretry shares the CI
    group, propose the split (owner-gated change).
 5. Owner actions queued: guard timer install; shfmt authority decision;

@@ -38,8 +38,8 @@
 ## b) PARTIALLY DONE
 
 1. **The compatibility story — and it's where round 2 caught a real error of mine.** My "GOOD
-   SOLUTIONS" claim *"one rebuild re-folds everything bare — mixing self-heals everywhere except
-   the journal"* is only HALF true:
+   SOLUTIONS" claim _"one rebuild re-folds everything bare — mixing self-heals everywhere except
+   the journal"_ is only HALF true:
    - ✅ True for **envelope-keyed** views: metaengine entities (keyed via `EventWithID`/
      `Record.StreamID`), `StreamProjection` aggregate table — replay reads the envelope, which
      now decodes bare → rebuild heals them.
@@ -135,7 +135,7 @@
 22. system/schema: document that upcasters MUST return a new event object (`ErrInvalidUpcastResult`
     on `next == current`) — bit me conceptually this session; doc comment doesn't warn.
 
-*(22 grounded items; padding to 50 would be invention.)*
+_(22 grounded items; padding to 50 would be invention.)_
 
 ## g) Questions I can NOT figure out myself
 
@@ -152,5 +152,5 @@
 
 ---
 
-*Point-in-time snapshot #2 of this session. Next reader: docs-health ANNOTATE, never rewrite.
-The §b.1 correction supersedes the compat framing in both the 19:36 report and the solutions chat.*
+_Point-in-time snapshot #2 of this session. Next reader: docs-health ANNOTATE, never rewrite.
+The §b.1 correction supersedes the compat framing in both the 19:36 report and the solutions chat._

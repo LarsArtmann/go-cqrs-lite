@@ -7,18 +7,18 @@ references; decisions live in `docs/adr/`.
 
 ## Layout
 
-| Path                 | Contents                                                                    |
-| -------------------- | --------------------------------------------------------------------------- |
-| `*.md`, `*.html`     | Dated and topical research snapshots (this index covers them)               |
-| `archive/`           | Closed history — pre-2026-06 research, already routed; do not re-open casually |
+| Path             | Contents                                                                       |
+| ---------------- | ------------------------------------------------------------------------------ |
+| `*.md`, `*.html` | Dated and topical research snapshots (this index covers them)                  |
+| `archive/`       | Closed history — pre-2026-06 research, already routed; do not re-open casually |
 
 ## Dated deep dives (newest first)
 
-| Report                                            | Verdict                                                                                                                  |
-| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| [2026-11-13 library deep dive](2026-11-13_go-cqrs-lite-deep-dive.html) | **CURRENT**: health 72/100 (high) at HEAD `3946b7fe6`; refresh triggers in AGENTS.md §Deep-Dive Reports |
-| [2026-10-01 templ-components deep dive](2026-10-01_templ-components-deep-dive.html) | Component-library utilization audit (own repo's skill carries current truth)                            |
-| [2026-07-23 ecosystem deep dive](2026-07-23_go-cqrs-lite-cqrs-htmx-ecosystem-deep-dive.html) | **SUPERSEDED** by the 2026-11-13 dive (banner in-file): 58/100 health verdict is historical            |
+| Report                                                                                       | Verdict                                                                                                 |
+| -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| [2026-11-13 library deep dive](2026-11-13_go-cqrs-lite-deep-dive.html)                       | **CURRENT**: health 72/100 (high) at HEAD `3946b7fe6`; refresh triggers in AGENTS.md §Deep-Dive Reports |
+| [2026-10-01 templ-components deep dive](2026-10-01_templ-components-deep-dive.html)          | Component-library utilization audit (own repo's skill carries current truth)                            |
+| [2026-07-23 ecosystem deep dive](2026-07-23_go-cqrs-lite-cqrs-htmx-ecosystem-deep-dive.html) | **SUPERSEDED** by the 2026-11-13 dive (banner in-file): 58/100 health verdict is historical             |
 
 ## Topical research
 

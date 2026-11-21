@@ -43,14 +43,14 @@ silently stringified into the read model instead of failing.
 
 ### 1.2 What is already true (do not re-plan it)
 
-| Shipped | Where |
-| ------- | ----- |
-| CBOR-aware encoded ingress (producer codec, no transcode) | `metaengine/encoded.go`, ADR-0161 |
-| Zero-config projection adapter delegation | `metaengine/projectionadapter/adapter.go:148-158` |
-| Stream-codec error API + batch encode | `metaengine/stream_codec.go:28,46,82` |
-| SQL write-path rejection (Rejection-classified) | `metaengine/sqliteengine/{encoding,engine,planned,backends,temporal,transaction,stream_log,map_write}.go` |
-| Stored-value contract pins + docs | `metaengine/stream_codec_test.go`, COOKBOOK "Stored values" |
-| Envelope design spike (no code) | predecessor plan §12 |
+| Shipped                                                   | Where                                                                                                     |
+| --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| CBOR-aware encoded ingress (producer codec, no transcode) | `metaengine/encoded.go`, ADR-0161                                                                         |
+| Zero-config projection adapter delegation                 | `metaengine/projectionadapter/adapter.go:148-158`                                                         |
+| Stream-codec error API + batch encode                     | `metaengine/stream_codec.go:28,46,82`                                                                     |
+| SQL write-path rejection (Rejection-classified)           | `metaengine/sqliteengine/{encoding,engine,planned,backends,temporal,transaction,stream_log,map_write}.go` |
+| Stored-value contract pins + docs                         | `metaengine/stream_codec_test.go`, COOKBOOK "Stored values"                                               |
+| Envelope design spike (no code)                           | predecessor plan §12                                                                                      |
 
 ### 1.3 Scope boundary (what this plan does NOT include)
 
@@ -60,10 +60,10 @@ would re-dispatch other sessions' active work. Explicitly out of scope, and
 left where they live:
 
 - **A9 keycodec-v2 KEY adoption** (pebble/bbolt/badger key grammar, own L-wave) —
-  *adjacent file territory; see guard #4 for sequencing.*
+  _adjacent file territory; see guard #4 for sequencing._
 - catalog/architecture export work, benchkit ticker fix, typed-WAL follow-ups,
   cqrs-lint rule work, v5 cut rows, release/tagging rows, BDD depth rows.
-- The 8 foreign clone groups and 3 foreign file-size offenders are *referenced*
+- The 8 foreign clone groups and 3 foreign file-size offenders are _referenced_
   as blockers (T12–T14) but owned by their sessions.
 
 ---
@@ -72,27 +72,27 @@ left where they live:
 
 ### 2.1 The 1% that delivers 51% — make the class mechanical, prove the claims
 
-| Move | Why it alone is half the result |
-| ---- | ------------------------------- |
-| **T5 — `keycodec.EncodeJSONErr`** | One additive 30-line helper converts "silent stringify" into "fail loudly" for every LSM call site, and it is the exact seam the envelope (T19) needs. Without it, 21 sites need 21 bespoke fixes; with it, three engines are mechanical migrations. |
-| **T1 — stored-bytes pins for wave 4** | The wave-4 "no persisted-byte change" statement is currently an argument, not a fact. Two pins make it a fact and protect the release forever. Everything downstream stacks on this. |
+| Move                                  | Why it alone is half the result                                                                                                                                                                                                                      |
+| ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **T5 — `keycodec.EncodeJSONErr`**     | One additive 30-line helper converts "silent stringify" into "fail loudly" for every LSM call site, and it is the exact seam the envelope (T19) needs. Without it, 21 sites need 21 bespoke fixes; with it, three engines are mechanical migrations. |
+| **T1 — stored-bytes pins for wave 4** | The wave-4 "no persisted-byte change" statement is currently an argument, not a fact. Two pins make it a fact and protect the release forever. Everything downstream stacks on this.                                                                 |
 
 ### 2.2 The 4% that delivers 64% — close the class across all engines
 
-| Move | Why |
-| ---- | --- |
+| Move                                                    | Why                                                                                                                                                                                                      |
+| ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **T6/T7/T8 — migrate pebble, bbolt, badger (21 sites)** | After these three, every engine either rejects unrepresentable values or (memory) stores Go values verbatim, which cannot lose them. The data-corruption class is then closed fleet-wide, not by family. |
-| **T2 — mutation proof of the stream batch** | The all-or-nothing claim is the only guarantee that prevents a *partial* append; it is pinned by a test but never mutation-verified. One revert-run proves the test can fail. |
+| **T2 — mutation proof of the stream batch**             | The all-or-nothing claim is the only guarantee that prevents a _partial_ append; it is pinned by a test but never mutation-verified. One revert-run proves the test can fail.                            |
 
 ### 2.3 The 20% that delivers 80% — keep it closed and make the gates usable
 
-| Move | Why |
-| ---- | --- |
-| **T3/T4** | turso proof (delegation) and a shared `adttest` conformance row so a new engine inherits the invariant instead of re-learning it. |
-| **T9/T10** | the graph encoders (mysql/duckdb/pg) and bigtable are the last `%v` fallbacks; leaving them is a split-brain rule ("values must be JSON, except in graphs"). |
-| **T11** | docs/CHANGELOG must follow the code in the same wave, or the COOKBOOK lies again. |
+| Move        | Why                                                                                                                                                                                                           |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **T3/T4**   | turso proof (delegation) and a shared `adttest` conformance row so a new engine inherits the invariant instead of re-learning it.                                                                             |
+| **T9/T10**  | the graph encoders (mysql/duckdb/pg) and bigtable are the last `%v` fallbacks; leaving them is a split-brain rule ("values must be JSON, except in graphs").                                                  |
+| **T11**     | docs/CHANGELOG must follow the code in the same wave, or the COOKBOOK lies again.                                                                                                                             |
 | **T12–T17** | three file-size offenders, eight clone groups, repo lint, the broken md-go-validator, the drifting taxonomy generator, and finally the composed `#verify-fast`. Until these close, nobody can prove anything. |
-| **T18** | the owner packet: the envelope decision is the only thing that can permanently kill the string-vs-JSON ambiguity. |
+| **T18**     | the owner packet: the envelope decision is the only thing that can permanently kill the string-vs-JSON ambiguity.                                                                                             |
 
 ### 2.4 The other 20% to reach 100%
 
@@ -108,32 +108,32 @@ encoder), T24 (harvest + close-out).
 `Wave`: 1 = prove/close the class, 2 = harden + gates, 3 = measure/process,
 4 = owner-gated. `CV` = customer value. Sorted by P0→P3, then dependency.
 
-| #   | Task | Why it matters | Effort | Pri | CV | Wave |
-| --- | ---- | -------------- | ------ | --- | -- | ---- |
-| T1 | Stored-bytes pins: `StreamAppend` + `MapSet`/`MapSetAt` (incl. version row) store byte-identical strings for a fixed representable payload; mutation-verify | Turns wave 4's "no byte change" from an argument into a test | 60m | P0 | High | 1 |
-| T2 | Mutation-verify the stream batch all-or-nothing test + add `ErrorCode()` assertions to both rejection codes | A pin that cannot fail is decoration | 45m | P0 | High | 1 |
-| T3 | turso delegation proof: run/author a rejection test on `tursoengine` and record the result | The fix reaches turso only by delegation, unverified | 45m | P1 | Medium | 1 |
-| T4 | `adttest` conformance row `AssertValueEncodeRejection(t, eng)` wired into sqlite + 3 LSM suites | Future engines inherit the invariant instead of re-learning it | 90m | P1 | High | 2 |
-| T5 | `keycodec.EncodeJSONErr` (additive; no deprecation of `EncodeJSON`) + unit tests incl. family assertion | The one mechanism that unblocks 21 sites and the envelope | 60m | P0 | High | 1 |
-| T6 | Migrate `pebbleengine` (7 sites) to the error twin + `encode_error_test.go` | Closes 1/3 of the class | 90m | P0 | High | 1 |
-| T7 | Migrate `bboltengine` (7 sites) + test | Closes 2/3 | 90m | P0 | High | 1 |
-| T8 | Migrate `badgerengine` (7 sites) + test | Closes the class | 90m | P0 | High | 1 |
-| T9 | Graph encoder rule (keys stringified vs values must be JSON) + migrate `mysqlengine`/`duckdbengine`/`pgengine` graph encoders | Last `%v` fallbacks outside bigtable; removes a rule split-brain | 100m | P1 | Medium | 2 |
-| T10 | `bigtableengine` value encode: migrate or record an explicit, documented exception | Either closes the tail or makes the exception honest | 60m | P2 | Low | 2 |
-| T11 | Docs + CHANGELOG for T5–T10 (COOKBOOK engine scope, README, FAQ, `[Unreleased]`) + `doc-check` | Docs must not outrun the code again | 60m | P0 | High | 2 |
-| T12 | File-size offenders (3, foreign): confirm ownership, then split `scheduling/sqlstore/store.go` 363, `system/adapter_event.go` 351, `metaengine/layout.go` 360 | Blocks `#check-file-size` for everyone | 90m | P0 | High | 2 |
-| T13 | Clone groups (8, foreign): classify, annotate or split, `art-dupl check` green | Blocks `#check-duplication` for everyone | 90m | P0 | High | 2 |
-| T14 | Repo lint reds (foreign modules): classify by owner, fix the mechanical ones (`keycodec` godox/gosmopolitan first) | Blocks `#verify-fast` step 5 | 100m | P0 | High | 2 |
-| T15 | Repair the `md-go-validator` derivation (missing `pprof` zip in the vendored FOD) + re-run `#check-md-go` | The doc gate has been silently off | 45m | P0 | High | 2 |
-| T16 | Fix `generate-error-taxonomy.sh` sentinel attribution + a mutation-tested golden | The generator silently degraded the SENTINEL column | 60m | P1 | Medium | 2 |
-| T17 | Run `#verify-fast` end-to-end after T12–T15; record the receipt + classify any residue | The only composed proof that exists | 90m | P0 | High | 3 |
-| T18 | Owner packet for the envelope: one-pager with §12's options, the now-measured LSM cost, and the 3 questions; send + record | The ambiguity's only permanent fix is a ruling | 60m | P1 | High | 3 |
-| T19 | *(gated)* If approved: ADR (ADR-0066 reversal) + sqlite `value_encoding` prototype (one engine, one read path) | Proves the envelope cost on real code | 100m | P2 | Medium | 4 |
-| T20 | *(gated)* KV value-tag measurement: bytes/op, migration steps, dual-read shape | Option D's KV half is unmeasured | 90m | P2 | Low | 4 |
-| T21 | *(gated)* Opt-in `store backfill --values` design (never touches the journal) | Migration without a journal rewrite | 60m | P2 | Low | 4 |
-| T22 | Wave-start preflight: document + script the "no buildflow/daemon running" check in `docs/agents/gotchas-tooling-build.md` | Prevents another 171-file absorption | 30m | P1 | Medium | 3 |
-| T23 | Benchmark `StreamAppend` batch encode (1 and 100 values, allocs/op) + rejection path; record, no gate | The batch helper added an allocation; measure it | 45m | P2 | Low | 3 |
-| T24 | Harvest this plan into `TODO_LIST.md`, update plan logs, run docs gates, commit + push | The living backlog is the source of truth | 45m | P0 | High | 3 |
+| #   | Task                                                                                                                                                          | Why it matters                                                   | Effort | Pri | CV     | Wave |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- | ------ | --- | ------ | ---- |
+| T1  | Stored-bytes pins: `StreamAppend` + `MapSet`/`MapSetAt` (incl. version row) store byte-identical strings for a fixed representable payload; mutation-verify   | Turns wave 4's "no byte change" from an argument into a test     | 60m    | P0  | High   | 1    |
+| T2  | Mutation-verify the stream batch all-or-nothing test + add `ErrorCode()` assertions to both rejection codes                                                   | A pin that cannot fail is decoration                             | 45m    | P0  | High   | 1    |
+| T3  | turso delegation proof: run/author a rejection test on `tursoengine` and record the result                                                                    | The fix reaches turso only by delegation, unverified             | 45m    | P1  | Medium | 1    |
+| T4  | `adttest` conformance row `AssertValueEncodeRejection(t, eng)` wired into sqlite + 3 LSM suites                                                               | Future engines inherit the invariant instead of re-learning it   | 90m    | P1  | High   | 2    |
+| T5  | `keycodec.EncodeJSONErr` (additive; no deprecation of `EncodeJSON`) + unit tests incl. family assertion                                                       | The one mechanism that unblocks 21 sites and the envelope        | 60m    | P0  | High   | 1    |
+| T6  | Migrate `pebbleengine` (7 sites) to the error twin + `encode_error_test.go`                                                                                   | Closes 1/3 of the class                                          | 90m    | P0  | High   | 1    |
+| T7  | Migrate `bboltengine` (7 sites) + test                                                                                                                        | Closes 2/3                                                       | 90m    | P0  | High   | 1    |
+| T8  | Migrate `badgerengine` (7 sites) + test                                                                                                                       | Closes the class                                                 | 90m    | P0  | High   | 1    |
+| T9  | Graph encoder rule (keys stringified vs values must be JSON) + migrate `mysqlengine`/`duckdbengine`/`pgengine` graph encoders                                 | Last `%v` fallbacks outside bigtable; removes a rule split-brain | 100m   | P1  | Medium | 2    |
+| T10 | `bigtableengine` value encode: migrate or record an explicit, documented exception                                                                            | Either closes the tail or makes the exception honest             | 60m    | P2  | Low    | 2    |
+| T11 | Docs + CHANGELOG for T5–T10 (COOKBOOK engine scope, README, FAQ, `[Unreleased]`) + `doc-check`                                                                | Docs must not outrun the code again                              | 60m    | P0  | High   | 2    |
+| T12 | File-size offenders (3, foreign): confirm ownership, then split `scheduling/sqlstore/store.go` 363, `system/adapter_event.go` 351, `metaengine/layout.go` 360 | Blocks `#check-file-size` for everyone                           | 90m    | P0  | High   | 2    |
+| T13 | Clone groups (8, foreign): classify, annotate or split, `art-dupl check` green                                                                                | Blocks `#check-duplication` for everyone                         | 90m    | P0  | High   | 2    |
+| T14 | Repo lint reds (foreign modules): classify by owner, fix the mechanical ones (`keycodec` godox/gosmopolitan first)                                            | Blocks `#verify-fast` step 5                                     | 100m   | P0  | High   | 2    |
+| T15 | Repair the `md-go-validator` derivation (missing `pprof` zip in the vendored FOD) + re-run `#check-md-go`                                                     | The doc gate has been silently off                               | 45m    | P0  | High   | 2    |
+| T16 | Fix `generate-error-taxonomy.sh` sentinel attribution + a mutation-tested golden                                                                              | The generator silently degraded the SENTINEL column              | 60m    | P1  | Medium | 2    |
+| T17 | Run `#verify-fast` end-to-end after T12–T15; record the receipt + classify any residue                                                                        | The only composed proof that exists                              | 90m    | P0  | High   | 3    |
+| T18 | Owner packet for the envelope: one-pager with §12's options, the now-measured LSM cost, and the 3 questions; send + record                                    | The ambiguity's only permanent fix is a ruling                   | 60m    | P1  | High   | 3    |
+| T19 | _(gated)_ If approved: ADR (ADR-0066 reversal) + sqlite `value_encoding` prototype (one engine, one read path)                                                | Proves the envelope cost on real code                            | 100m   | P2  | Medium | 4    |
+| T20 | _(gated)_ KV value-tag measurement: bytes/op, migration steps, dual-read shape                                                                                | Option D's KV half is unmeasured                                 | 90m    | P2  | Low    | 4    |
+| T21 | _(gated)_ Opt-in `store backfill --values` design (never touches the journal)                                                                                 | Migration without a journal rewrite                              | 60m    | P2  | Low    | 4    |
+| T22 | Wave-start preflight: document + script the "no buildflow/daemon running" check in `docs/agents/gotchas-tooling-build.md`                                     | Prevents another 171-file absorption                             | 30m    | P1  | Medium | 3    |
+| T23 | Benchmark `StreamAppend` batch encode (1 and 100 values, allocs/op) + rejection path; record, no gate                                                         | The batch helper added an allocation; measure it                 | 45m    | P2  | Low    | 3    |
+| T24 | Harvest this plan into `TODO_LIST.md`, update plan logs, run docs gates, commit + push                                                                        | The living backlog is the source of truth                        | 45m    | P0  | High   | 3    |
 
 **Sum:** 24 tasks, 1 710 minutes (~28.5 h) of nominal effort. Wave 1 (T1, T2,
 T5–T8) is 525 min and delivers the 64 % mark.
@@ -142,128 +142,128 @@ T5–T8) is 525 min and delivers the 64 % mark.
 
 ## 4. Micro-task plan (max 12 min each, all tasks)
 
-| ID | Micro-task | Parent | Est |
-| -- | ---------- | ------ | --- |
-| T1.1 | Read `system/wal_raw_bytes_pin_test.go` + `metaengine/encoded_internal_test.go` for the pin harness shape | T1 | 8m |
-| T1.2 | Capture legacy `StreamAppend` stored bytes for a fixed payload into a golden constant | T1 | 10m |
-| T1.3 | Assert the new `StreamAppend` path stores exactly those bytes | T1 | 8m |
-| T1.4 | Capture + pin `MapSet` map-value bytes | T1 | 10m |
-| T1.5 | Capture + pin `MapSetAt` version-row bytes | T1 | 10m |
-| T1.6 | Mutation: revert `StreamAppend` to per-value encode → pin must go RED → restore | T1 | 8m |
-| T1.7 | Run the three pins + full sqlite suite | T1 | 8m |
-| T2.1 | Mutation: revert `StreamAppend` batch pre-encode → batch test must go RED → restore | T2 | 10m |
-| T2.2 | Add `ErrorCode()` assertions for `sqliteengine.encode_value` | T2 | 8m |
-| T2.3 | Add `ErrorCode()` assertions for `metaengine.encode_stream_value` | T2 | 8m |
-| T2.4 | Run the rejection specs and record both mutations | T2 | 6m |
-| T3.1 | Read `tursoengine/helper_test.go` for the constructor/skip pattern | T3 | 8m |
-| T3.2 | Write a turso delegation rejection test (MapSet + StreamAppend) | T3 | 10m |
-| T3.3 | Run `tursoengine -short` and record whether the libSQL path is skipped | T3 | 10m |
-| T3.4 | Document the turso result in the plan log | T3 | 5m |
-| T4.1 | Design the `adttest` signature (`AssertValueEncodeRejection(t, eng)`, surface per backend) | T4 | 10m |
-| T4.2 | Implement the assertion in `metaengine/adttest` | T4 | 10m |
-| T4.3 | Wire it into `sqliteengine` | T4 | 8m |
-| T4.4 | Wire it into `pebbleengine` | T4 | 8m |
-| T4.5 | Wire it into `bboltengine` | T4 | 8m |
-| T4.6 | Wire it into `badgerengine` | T4 | 8m |
-| T4.7 | Run `adttest` + all four engine suites | T4 | 10m |
-| T5.1 | Read `keycodec/keycodec.go` value helpers + the 21 call sites | T5 | 10m |
-| T5.2 | Add `EncodeJSONErr(v any) ([]byte, error)` with a Rejection code `keycodec.encode_value` | T5 | 10m |
-| T5.3 | Unit tests: representable value, channel, cyclic map, family + code assertion | T5 | 10m |
-| T5.4 | Doc comments: `EncodeJSON` = lenient/key path, `EncodeJSONErr` = value path (no deprecation) | T5 | 6m |
-| T5.5 | Regenerate the error taxonomy + run the gate (new code) | T5 | 10m |
-| T5.6 | Add the budget/taxonomy rows if the gate demands them | T5 | 8m |
-| T6.1 | Read the 7 pebble sites (`engine.go` ×4, `vector.go`, `stream_log.go` ×2) | T6 | 10m |
-| T6.2 | Replace the alias block with `encodeJSONErr` where values are written | T6 | 10m |
-| T6.3 | Migrate `engine.go` map set/update/version sites | T6 | 12m |
-| T6.4 | Migrate `vector.go` metadata site | T6 | 8m |
-| T6.5 | Migrate the 2 `stream_log.go` sites (batch: encode-all-first) | T6 | 12m |
-| T6.6 | Write `pebbleengine/encode_error_test.go` (map + stream + log) | T6 | 12m |
-| T6.7 | Run pebble suite + lint + file-size | T6 | 10m |
-| T7.1 | Read the 7 bbolt sites (`backends.go` ×2, `map_backends.go` ×2, `stream_log.go` ×2, `vector.go`) | T7 | 10m |
-| T7.2 | Migrate `backends.go` (multimap + log) | T7 | 10m |
-| T7.3 | Migrate `map_backends.go` (set + update closure) | T7 | 12m |
-| T7.4 | Migrate the 2 `stream_log.go` sites (batch) | T7 | 12m |
-| T7.5 | Migrate `vector.go` metadata | T7 | 8m |
-| T7.6 | Write `bboltengine/encode_error_test.go` | T7 | 12m |
-| T7.7 | Run bbolt suite + lint + file-size | T7 | 10m |
-| T8.1 | Read the 7 badger sites (`stream_log.go` ×2, `map_backends.go` ×2, `vector.go`, `backends.go` ×2) | T8 | 10m |
-| T8.2 | Migrate the 2 `stream_log.go` sites (batch; file is 348 lines — check headroom) | T8 | 12m |
-| T8.3 | Migrate `map_backends.go` (set + update) | T8 | 12m |
-| T8.4 | Migrate `backends.go` (multimap + log) | T8 | 10m |
-| T8.5 | Migrate `vector.go` metadata | T8 | 8m |
-| T8.6 | Write `badgerengine/encode_error_test.go` | T8 | 12m |
-| T8.7 | Run badger suite + lint + file-size | T8 | 10m |
-| T9.1 | Inventory the 4 graph encoders + their key/value split | T9 | 10m |
-| T9.2 | Write the rule down (keys stringified via `%v` are identity; values must be JSON) in the COOKBOOK | T9 | 10m |
-| T9.3 | Migrate `mysqlengine/graph.go` to the rule | T9 | 12m |
-| T9.4 | Migrate `duckdbengine/graph.go` | T9 | 12m |
-| T9.5 | Migrate `pgengine/graph.go` | T9 | 12m |
-| T9.6 | Add one graph rejection test per engine (or one shared skip-gated spec) | T9 | 12m |
-| T9.7 | Run the three suites `-short` + lint | T9 | 12m |
-| T10.1 | Read `bigtableengine/engine.go` encode path + map backend | T10 | 10m |
-| T10.2 | Decide: migrate (bigtable has an error-returning surface) or accept-annotate | T10 | 8m |
-| T10.3 | Implement the decision | T10 | 12m |
-| T10.4 | Test or annotate + run suite | T10 | 10m |
-| T11.1 | Update COOKBOOK "Stored values": engine list + evidence links | T11 | 10m |
-| T11.2 | Update `metaengine/README.md` codec section with the LSM closure | T11 | 8m |
-| T11.3 | FAQ entry: string-that-looks-like-JSON + engine rejection scope | T11 | 10m |
-| T11.4 | CHANGELOG `[Unreleased]` rows (Added/Changed/Fixed) | T11 | 10m |
-| T11.5 | Run `cmd/doc-check` + `verify-docs.sh` | T11 | 10m |
-| T12.1 | Confirm ownership of the 3 offenders (`git log -3 -- <file>`, `pgrep -fa buildflow`) | T12 | 8m |
-| T12.2 | Split `metaengine/layout.go` (360 → ≤350) | T12 | 12m |
-| T12.3 | Split `system/adapter_event.go` (351 → ≤350) | T12 | 10m |
-| T12.4 | Split `scheduling/sqlstore/store.go` (363 → ≤350) | T12 | 12m |
-| T12.5 | Run `#check-file-size` → green | T12 | 8m |
-| T13.1 | Re-run `art-dupl check` and capture the 8 groups verbatim | T13 | 8m |
-| T13.2 | Classify each: intentional twin (annotate) vs real (split) | T13 | 10m |
-| T13.3 | Annotate the system adapter pair + adttest pair | T13 | 10m |
-| T13.4 | Split or annotate the typed_wal SQL const pair (needs the owner) | T13 | 12m |
-| T13.5 | Annotate/split the remaining duckdb/mysql stream_log pairs + keycodec escape pair | T13 | 12m |
-| T13.6 | Re-run `art-dupl` → green | T13 | 8m |
-| T14.1 | Capture the failing-module list from `#lint` verbatim | T14 | 8m |
-| T14.2 | Fix `keycodec/escape.go` godox + `v2_law_test.go` gosmopolitan | T14 | 10m |
-| T14.3 | Classify the remaining modules by owner (core/v5, catalog, cmd/cqrs-lint, stack presets…) | T14 | 12m |
-| T14.4 | Fix the mechanical wrapcheck class in `core/v5/kv` (11 issues) if unowned | T14 | 12m |
-| T14.5 | Re-run `#lint` and record what remains + owners | T14 | 10m |
-| T15.1 | Reproduce the derivation failure and capture the exact missing zip | T15 | 8m |
-| T15.2 | Bump the pinned `md-go-validator` rev or refresh its `vendorHash` | T15 | 12m |
-| T15.3 | `nix build .#md-go-validator` → green | T15 | 10m |
-| T15.4 | Run `#check-md-go` and record the result | T15 | 10m |
-| T16.1 | Read `scripts/generate-error-taxonomy.sh` sentinel logic | T16 | 10m |
-| T16.2 | Add a sentinel-verification step (AST/grep before writing `-`) | T16 | 12m |
-| T16.3 | Add a mutation-tested golden to `check-error-taxonomy.sh --self-test` | T16 | 12m |
-| T16.4 | Regenerate the doc and diff: only intended rows change | T16 | 10m |
-| T16.5 | Run the gate + the self-test | T16 | 8m |
-| T17.1 | Preflight: load average + no buildflow/daemon running | T17 | 8m |
-| T17.2 | Run `nix run .#verify-fast` to completion | T17 | 12m |
-| T17.3 | If red: classify each remaining finding mine vs foreign | T17 | 12m |
-| T17.4 | Record the receipt in this plan's §11 | T17 | 8m |
-| T18.1 | Draft the envelope one-pager (options, cost, dual-read window) | T18 | 12m |
-| T18.2 | Fold in the measured LSM cost from T6–T8 and T20 | T18 | 10m |
-| T18.3 | Send + record the three answers | T18 | 10m |
-| T19.1 | *(gated)* Write the ADR draft (ADR-0066 reversal) | T19 | 12m |
-| T19.2 | *(gated)* Add `value_encoding` to sqlite planned + base tables | T19 | 12m |
-| T19.3 | *(gated)* Dual-read the tagged/untagged value on one read path | T19 | 12m |
-| T19.4 | *(gated)* Pin legacy rows read identically + tagged strings survive | T19 | 12m |
-| T19.5 | *(gated)* Run sqlite suite + file-size + lint | T19 | 10m |
-| T20.1 | *(gated)* Define the KV tag byte layout | T20 | 12m |
-| T20.2 | *(gated)* Measure bytes/op impact on pebble/bbolt/badger | T20 | 12m |
-| T20.3 | *(gated)* Write the migration steps + dual-read shape | T20 | 12m |
-| T20.4 | *(gated)* Record the numbers in §12 of the predecessor plan | T20 | 8m |
-| T21.1 | *(gated)* Design the backfill command surface + safety rails | T21 | 12m |
-| T21.2 | *(gated)* Write the "never touches the journal" contract | T21 | 10m |
-| T21.3 | *(gated)* Add it to the owner packet | T21 | 8m |
-| T22.1 | Draft the preflight checklist (pgrep patterns, load gate, tree state) | T22 | 10m |
-| T22.2 | Add it to `docs/agents/gotchas-tooling-build.md` | T22 | 10m |
-| T22.3 | Optional: a 15-line `scripts/wave-preflight.sh` with `--self-test` | T22 | 12m |
-| T23.1 | Write the `StreamAppend` benchmark (1 and 100 values) | T23 | 12m |
-| T23.2 | Write the rejection-path benchmark | T23 | 8m |
-| T23.3 | Run with fixed `-benchtime` and record ns/op + allocs | T23 | 10m |
-| T23.4 | Add the numbers to the plan + COOKBOOK (no gate) | T23 | 8m |
-| T24.1 | Harvest new rows (T12–T21) into `TODO_LIST.md` | T24 | 12m |
-| T24.2 | Update the status report index + plan log §11 | T24 | 10m |
-| T24.3 | Run docs gates + `#check-file-size`/`#check-duplication` | T24 | 12m |
-| T24.4 | Commit (path-staged) + push | T24 | 8m |
+| ID    | Micro-task                                                                                                | Parent | Est |
+| ----- | --------------------------------------------------------------------------------------------------------- | ------ | --- |
+| T1.1  | Read `system/wal_raw_bytes_pin_test.go` + `metaengine/encoded_internal_test.go` for the pin harness shape | T1     | 8m  |
+| T1.2  | Capture legacy `StreamAppend` stored bytes for a fixed payload into a golden constant                     | T1     | 10m |
+| T1.3  | Assert the new `StreamAppend` path stores exactly those bytes                                             | T1     | 8m  |
+| T1.4  | Capture + pin `MapSet` map-value bytes                                                                    | T1     | 10m |
+| T1.5  | Capture + pin `MapSetAt` version-row bytes                                                                | T1     | 10m |
+| T1.6  | Mutation: revert `StreamAppend` to per-value encode → pin must go RED → restore                           | T1     | 8m  |
+| T1.7  | Run the three pins + full sqlite suite                                                                    | T1     | 8m  |
+| T2.1  | Mutation: revert `StreamAppend` batch pre-encode → batch test must go RED → restore                       | T2     | 10m |
+| T2.2  | Add `ErrorCode()` assertions for `sqliteengine.encode_value`                                              | T2     | 8m  |
+| T2.3  | Add `ErrorCode()` assertions for `metaengine.encode_stream_value`                                         | T2     | 8m  |
+| T2.4  | Run the rejection specs and record both mutations                                                         | T2     | 6m  |
+| T3.1  | Read `tursoengine/helper_test.go` for the constructor/skip pattern                                        | T3     | 8m  |
+| T3.2  | Write a turso delegation rejection test (MapSet + StreamAppend)                                           | T3     | 10m |
+| T3.3  | Run `tursoengine -short` and record whether the libSQL path is skipped                                    | T3     | 10m |
+| T3.4  | Document the turso result in the plan log                                                                 | T3     | 5m  |
+| T4.1  | Design the `adttest` signature (`AssertValueEncodeRejection(t, eng)`, surface per backend)                | T4     | 10m |
+| T4.2  | Implement the assertion in `metaengine/adttest`                                                           | T4     | 10m |
+| T4.3  | Wire it into `sqliteengine`                                                                               | T4     | 8m  |
+| T4.4  | Wire it into `pebbleengine`                                                                               | T4     | 8m  |
+| T4.5  | Wire it into `bboltengine`                                                                                | T4     | 8m  |
+| T4.6  | Wire it into `badgerengine`                                                                               | T4     | 8m  |
+| T4.7  | Run `adttest` + all four engine suites                                                                    | T4     | 10m |
+| T5.1  | Read `keycodec/keycodec.go` value helpers + the 21 call sites                                             | T5     | 10m |
+| T5.2  | Add `EncodeJSONErr(v any) ([]byte, error)` with a Rejection code `keycodec.encode_value`                  | T5     | 10m |
+| T5.3  | Unit tests: representable value, channel, cyclic map, family + code assertion                             | T5     | 10m |
+| T5.4  | Doc comments: `EncodeJSON` = lenient/key path, `EncodeJSONErr` = value path (no deprecation)              | T5     | 6m  |
+| T5.5  | Regenerate the error taxonomy + run the gate (new code)                                                   | T5     | 10m |
+| T5.6  | Add the budget/taxonomy rows if the gate demands them                                                     | T5     | 8m  |
+| T6.1  | Read the 7 pebble sites (`engine.go` ×4, `vector.go`, `stream_log.go` ×2)                                 | T6     | 10m |
+| T6.2  | Replace the alias block with `encodeJSONErr` where values are written                                     | T6     | 10m |
+| T6.3  | Migrate `engine.go` map set/update/version sites                                                          | T6     | 12m |
+| T6.4  | Migrate `vector.go` metadata site                                                                         | T6     | 8m  |
+| T6.5  | Migrate the 2 `stream_log.go` sites (batch: encode-all-first)                                             | T6     | 12m |
+| T6.6  | Write `pebbleengine/encode_error_test.go` (map + stream + log)                                            | T6     | 12m |
+| T6.7  | Run pebble suite + lint + file-size                                                                       | T6     | 10m |
+| T7.1  | Read the 7 bbolt sites (`backends.go` ×2, `map_backends.go` ×2, `stream_log.go` ×2, `vector.go`)          | T7     | 10m |
+| T7.2  | Migrate `backends.go` (multimap + log)                                                                    | T7     | 10m |
+| T7.3  | Migrate `map_backends.go` (set + update closure)                                                          | T7     | 12m |
+| T7.4  | Migrate the 2 `stream_log.go` sites (batch)                                                               | T7     | 12m |
+| T7.5  | Migrate `vector.go` metadata                                                                              | T7     | 8m  |
+| T7.6  | Write `bboltengine/encode_error_test.go`                                                                  | T7     | 12m |
+| T7.7  | Run bbolt suite + lint + file-size                                                                        | T7     | 10m |
+| T8.1  | Read the 7 badger sites (`stream_log.go` ×2, `map_backends.go` ×2, `vector.go`, `backends.go` ×2)         | T8     | 10m |
+| T8.2  | Migrate the 2 `stream_log.go` sites (batch; file is 348 lines — check headroom)                           | T8     | 12m |
+| T8.3  | Migrate `map_backends.go` (set + update)                                                                  | T8     | 12m |
+| T8.4  | Migrate `backends.go` (multimap + log)                                                                    | T8     | 10m |
+| T8.5  | Migrate `vector.go` metadata                                                                              | T8     | 8m  |
+| T8.6  | Write `badgerengine/encode_error_test.go`                                                                 | T8     | 12m |
+| T8.7  | Run badger suite + lint + file-size                                                                       | T8     | 10m |
+| T9.1  | Inventory the 4 graph encoders + their key/value split                                                    | T9     | 10m |
+| T9.2  | Write the rule down (keys stringified via `%v` are identity; values must be JSON) in the COOKBOOK         | T9     | 10m |
+| T9.3  | Migrate `mysqlengine/graph.go` to the rule                                                                | T9     | 12m |
+| T9.4  | Migrate `duckdbengine/graph.go`                                                                           | T9     | 12m |
+| T9.5  | Migrate `pgengine/graph.go`                                                                               | T9     | 12m |
+| T9.6  | Add one graph rejection test per engine (or one shared skip-gated spec)                                   | T9     | 12m |
+| T9.7  | Run the three suites `-short` + lint                                                                      | T9     | 12m |
+| T10.1 | Read `bigtableengine/engine.go` encode path + map backend                                                 | T10    | 10m |
+| T10.2 | Decide: migrate (bigtable has an error-returning surface) or accept-annotate                              | T10    | 8m  |
+| T10.3 | Implement the decision                                                                                    | T10    | 12m |
+| T10.4 | Test or annotate + run suite                                                                              | T10    | 10m |
+| T11.1 | Update COOKBOOK "Stored values": engine list + evidence links                                             | T11    | 10m |
+| T11.2 | Update `metaengine/README.md` codec section with the LSM closure                                          | T11    | 8m  |
+| T11.3 | FAQ entry: string-that-looks-like-JSON + engine rejection scope                                           | T11    | 10m |
+| T11.4 | CHANGELOG `[Unreleased]` rows (Added/Changed/Fixed)                                                       | T11    | 10m |
+| T11.5 | Run `cmd/doc-check` + `verify-docs.sh`                                                                    | T11    | 10m |
+| T12.1 | Confirm ownership of the 3 offenders (`git log -3 -- <file>`, `pgrep -fa buildflow`)                      | T12    | 8m  |
+| T12.2 | Split `metaengine/layout.go` (360 → ≤350)                                                                 | T12    | 12m |
+| T12.3 | Split `system/adapter_event.go` (351 → ≤350)                                                              | T12    | 10m |
+| T12.4 | Split `scheduling/sqlstore/store.go` (363 → ≤350)                                                         | T12    | 12m |
+| T12.5 | Run `#check-file-size` → green                                                                            | T12    | 8m  |
+| T13.1 | Re-run `art-dupl check` and capture the 8 groups verbatim                                                 | T13    | 8m  |
+| T13.2 | Classify each: intentional twin (annotate) vs real (split)                                                | T13    | 10m |
+| T13.3 | Annotate the system adapter pair + adttest pair                                                           | T13    | 10m |
+| T13.4 | Split or annotate the typed_wal SQL const pair (needs the owner)                                          | T13    | 12m |
+| T13.5 | Annotate/split the remaining duckdb/mysql stream_log pairs + keycodec escape pair                         | T13    | 12m |
+| T13.6 | Re-run `art-dupl` → green                                                                                 | T13    | 8m  |
+| T14.1 | Capture the failing-module list from `#lint` verbatim                                                     | T14    | 8m  |
+| T14.2 | Fix `keycodec/escape.go` godox + `v2_law_test.go` gosmopolitan                                            | T14    | 10m |
+| T14.3 | Classify the remaining modules by owner (core/v5, catalog, cmd/cqrs-lint, stack presets…)                 | T14    | 12m |
+| T14.4 | Fix the mechanical wrapcheck class in `core/v5/kv` (11 issues) if unowned                                 | T14    | 12m |
+| T14.5 | Re-run `#lint` and record what remains + owners                                                           | T14    | 10m |
+| T15.1 | Reproduce the derivation failure and capture the exact missing zip                                        | T15    | 8m  |
+| T15.2 | Bump the pinned `md-go-validator` rev or refresh its `vendorHash`                                         | T15    | 12m |
+| T15.3 | `nix build .#md-go-validator` → green                                                                     | T15    | 10m |
+| T15.4 | Run `#check-md-go` and record the result                                                                  | T15    | 10m |
+| T16.1 | Read `scripts/generate-error-taxonomy.sh` sentinel logic                                                  | T16    | 10m |
+| T16.2 | Add a sentinel-verification step (AST/grep before writing `-`)                                            | T16    | 12m |
+| T16.3 | Add a mutation-tested golden to `check-error-taxonomy.sh --self-test`                                     | T16    | 12m |
+| T16.4 | Regenerate the doc and diff: only intended rows change                                                    | T16    | 10m |
+| T16.5 | Run the gate + the self-test                                                                              | T16    | 8m  |
+| T17.1 | Preflight: load average + no buildflow/daemon running                                                     | T17    | 8m  |
+| T17.2 | Run `nix run .#verify-fast` to completion                                                                 | T17    | 12m |
+| T17.3 | If red: classify each remaining finding mine vs foreign                                                   | T17    | 12m |
+| T17.4 | Record the receipt in this plan's §11                                                                     | T17    | 8m  |
+| T18.1 | Draft the envelope one-pager (options, cost, dual-read window)                                            | T18    | 12m |
+| T18.2 | Fold in the measured LSM cost from T6–T8 and T20                                                          | T18    | 10m |
+| T18.3 | Send + record the three answers                                                                           | T18    | 10m |
+| T19.1 | _(gated)_ Write the ADR draft (ADR-0066 reversal)                                                         | T19    | 12m |
+| T19.2 | _(gated)_ Add `value_encoding` to sqlite planned + base tables                                            | T19    | 12m |
+| T19.3 | _(gated)_ Dual-read the tagged/untagged value on one read path                                            | T19    | 12m |
+| T19.4 | _(gated)_ Pin legacy rows read identically + tagged strings survive                                       | T19    | 12m |
+| T19.5 | _(gated)_ Run sqlite suite + file-size + lint                                                             | T19    | 10m |
+| T20.1 | _(gated)_ Define the KV tag byte layout                                                                   | T20    | 12m |
+| T20.2 | _(gated)_ Measure bytes/op impact on pebble/bbolt/badger                                                  | T20    | 12m |
+| T20.3 | _(gated)_ Write the migration steps + dual-read shape                                                     | T20    | 12m |
+| T20.4 | _(gated)_ Record the numbers in §12 of the predecessor plan                                               | T20    | 8m  |
+| T21.1 | _(gated)_ Design the backfill command surface + safety rails                                              | T21    | 12m |
+| T21.2 | _(gated)_ Write the "never touches the journal" contract                                                  | T21    | 10m |
+| T21.3 | _(gated)_ Add it to the owner packet                                                                      | T21    | 8m  |
+| T22.1 | Draft the preflight checklist (pgrep patterns, load gate, tree state)                                     | T22    | 10m |
+| T22.2 | Add it to `docs/agents/gotchas-tooling-build.md`                                                          | T22    | 10m |
+| T22.3 | Optional: a 15-line `scripts/wave-preflight.sh` with `--self-test`                                        | T22    | 12m |
+| T23.1 | Write the `StreamAppend` benchmark (1 and 100 values)                                                     | T23    | 12m |
+| T23.2 | Write the rejection-path benchmark                                                                        | T23    | 8m  |
+| T23.3 | Run with fixed `-benchtime` and record ns/op + allocs                                                     | T23    | 10m |
+| T23.4 | Add the numbers to the plan + COOKBOOK (no gate)                                                          | T23    | 8m  |
+| T24.1 | Harvest new rows (T12–T21) into `TODO_LIST.md`                                                            | T24    | 12m |
+| T24.2 | Update the status report index + plan log §11                                                             | T24    | 10m |
+| T24.3 | Run docs gates + `#check-file-size`/`#check-duplication`                                                  | T24    | 12m |
+| T24.4 | Commit (path-staged) + push                                                                               | T24    | 8m  |
 
 ---
 
@@ -307,26 +307,26 @@ flowchart TD
 
 ## 6. Verification matrix
 
-| Area | Command | Required |
-| ---- | ------- | -------- |
-| keycodec | `cd metaengine && GOWORK=off go test ./keycodec/... -count=1` | green |
-| metaengine | `cd metaengine && GOWORK=off go test ./... -count=1` + `-race -short` | green |
-| sqlite/turso | `cd metaengine/sqliteengine && GOWORK=off go test ./... -count=1`; `cd metaengine/tursoengine && GOWORK=off go test -short ./...` | green |
-| LSM engines | `cd metaengine/{pebble,bbolt,badger}engine && GOWORK=off go test ./... -count=1` | green |
-| SQL graph engines | `cd metaengine/{pg,duckdb,mysql,dgraph}engine && GOWORK=off go test -short ./...` | green |
-| conformance | `cd metaengine/adttest && GOWORK=off go test ./... -count=1` (plus the four engine hooks) | green |
-| mutation proofs | revert one line per claim → RED → restore | recorded |
-| budgets | `bash scripts/check-module-layers.sh` + `nix run .#check-arch` | green |
-| taxonomy | `bash scripts/check-error-taxonomy.sh` + `--self-test` | green |
-| docs | `cd cmd/doc-check && GOWORK=off go run . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md` | zero warnings |
-| size/dupes | `nix run .#check-file-size`; `art-dupl check . --threshold 3` | green (T12/T13) |
-| lint | `nix run .#lint` | green (T14) |
-| md-go | `nix run .#check-md-go` | green (T15) |
-| api | `nix run .#check-api-stability` | green (new export `EncodeJSONErr` ⇒ golden regen in the same commit) |
-| modsums | `nix run .#check-modsums` | green |
-| coverage | `nix run .#check-coverage` | green |
-| composed | `nix run .#verify-fast` | green or foreign-only reds recorded (T17) |
-| formatting | `nix fmt` then `git diff --exit-code` | no diff |
+| Area              | Command                                                                                                                           | Required                                                             |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| keycodec          | `cd metaengine && GOWORK=off go test ./keycodec/... -count=1`                                                                     | green                                                                |
+| metaengine        | `cd metaengine && GOWORK=off go test ./... -count=1` + `-race -short`                                                             | green                                                                |
+| sqlite/turso      | `cd metaengine/sqliteengine && GOWORK=off go test ./... -count=1`; `cd metaengine/tursoengine && GOWORK=off go test -short ./...` | green                                                                |
+| LSM engines       | `cd metaengine/{pebble,bbolt,badger}engine && GOWORK=off go test ./... -count=1`                                                  | green                                                                |
+| SQL graph engines | `cd metaengine/{pg,duckdb,mysql,dgraph}engine && GOWORK=off go test -short ./...`                                                 | green                                                                |
+| conformance       | `cd metaengine/adttest && GOWORK=off go test ./... -count=1` (plus the four engine hooks)                                         | green                                                                |
+| mutation proofs   | revert one line per claim → RED → restore                                                                                         | recorded                                                             |
+| budgets           | `bash scripts/check-module-layers.sh` + `nix run .#check-arch`                                                                    | green                                                                |
+| taxonomy          | `bash scripts/check-error-taxonomy.sh` + `--self-test`                                                                            | green                                                                |
+| docs              | `cd cmd/doc-check && GOWORK=off go run . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md`        | zero warnings                                                        |
+| size/dupes        | `nix run .#check-file-size`; `art-dupl check . --threshold 3`                                                                     | green (T12/T13)                                                      |
+| lint              | `nix run .#lint`                                                                                                                  | green (T14)                                                          |
+| md-go             | `nix run .#check-md-go`                                                                                                           | green (T15)                                                          |
+| api               | `nix run .#check-api-stability`                                                                                                   | green (new export `EncodeJSONErr` ⇒ golden regen in the same commit) |
+| modsums           | `nix run .#check-modsums`                                                                                                         | green                                                                |
+| coverage          | `nix run .#check-coverage`                                                                                                        | green                                                                |
+| composed          | `nix run .#verify-fast`                                                                                                           | green or foreign-only reds recorded (T17)                            |
+| formatting        | `nix fmt` then `git diff --exit-code`                                                                                             | no diff                                                              |
 
 **API-golden note:** `EncodeJSONErr` is a NEW export in `metaengine/keycodec`
 inside the `metaengine` module → `cd cmd/api-stability && GOWORK=off go run .
@@ -364,7 +364,7 @@ inside the `metaengine` module → `cd cmd/api-stability && GOWORK=off go run .
 9. **No new dependencies, no module splits, no interface changes.** Everything
    here fits inside existing modules and budgets.
 10. **The memory engine stays untouched.** It stores Go values verbatim; adding
-    JSON encoding there would *lose* type information, not preserve it.
+    JSON encoding there would _lose_ type information, not preserve it.
 11. **Docs follow code in the same wave.** T11 is part of the class-closure
     wave, not a follow-up — the wave-4 report exists because docs ran ahead.
 
@@ -372,16 +372,16 @@ inside the `metaengine` module → `cd cmd/api-stability && GOWORK=off go run .
 
 ## 8. Risks
 
-| Risk | Likelihood | Mitigation |
-| ---- | ---------- | ---------- |
-| LSM migration grows a baselined file past its baseline | Medium | Headroom table in guard #3; extract a helper if needed; check `#check-file-size` per engine commit |
-| A9 keycodec-v2 work lands mid-wave and conflicts | Medium | Guard #4: sequence + rebase rule; do T5–T8 as one small wave |
-| `EncodeJSONErr` changes hot-path allocations | Medium | T23 measures; the error is nil on the success path (single extra return) |
-| Foreign file splits break an active session | Medium | Guard #5 ownership check; annotate instead of split where the twin is intentional |
-| `#verify-fast` still red after T12–T15 (new foreign work) | High | T17 records residue with owners; the component matrix (predecessor §11.8) is the honest fallback |
-| Daemon absorbs phase commits | High | Path-staged commit at every boundary; plan log is the durable record |
-| Envelope ruling blocked | High | T18 is independent; T19–T21 stay gated and the COOKBOOK keeps the honest gap statement |
-| md-go-validator fix requires a pinned-rev bump with unknown hash churn | Medium | T15 stops at "gate green"; if the rev bump pulls other changes, record and defer the bump to its own row |
+| Risk                                                                   | Likelihood | Mitigation                                                                                               |
+| ---------------------------------------------------------------------- | ---------- | -------------------------------------------------------------------------------------------------------- |
+| LSM migration grows a baselined file past its baseline                 | Medium     | Headroom table in guard #3; extract a helper if needed; check `#check-file-size` per engine commit       |
+| A9 keycodec-v2 work lands mid-wave and conflicts                       | Medium     | Guard #4: sequence + rebase rule; do T5–T8 as one small wave                                             |
+| `EncodeJSONErr` changes hot-path allocations                           | Medium     | T23 measures; the error is nil on the success path (single extra return)                                 |
+| Foreign file splits break an active session                            | Medium     | Guard #5 ownership check; annotate instead of split where the twin is intentional                        |
+| `#verify-fast` still red after T12–T15 (new foreign work)              | High       | T17 records residue with owners; the component matrix (predecessor §11.8) is the honest fallback         |
+| Daemon absorbs phase commits                                           | High       | Path-staged commit at every boundary; plan log is the durable record                                     |
+| Envelope ruling blocked                                                | High       | T18 is independent; T19–T21 stay gated and the COOKBOOK keeps the honest gap statement                   |
+| md-go-validator fix requires a pinned-rev bump with unknown hash churn | Medium     | T15 stops at "gate green"; if the rev bump pulls other changes, record and defer the bump to its own row |
 
 ---
 
@@ -480,9 +480,9 @@ performed, file:line for the change)_
   - **T3** turso delegation proof
     (`metaengine/tursoengine/value_encode_rejection_test.go`): MapSet →
     `sqliteengine.encode_value`, StreamAppend → `metaengine.encode_stream_value`
-    + version 0, both through the embedded libSQL driver (not skipped, 0.07s
-    each). errorfamily promoted indirect→direct in tursoengine go.mod.
-    Full short suite green (22s).
+    - version 0, both through the embedded libSQL driver (not skipped, 0.07s
+      each). errorfamily promoted indirect→direct in tursoengine go.mod.
+      Full short suite green (22s).
   - **Byte pins, LSM + planned** `stored_bytes_pin_test.go` ×3 engines +
     `stored_bytes_write_paths_pin_test.go` (sqlite): pebble via
     `RawValueReader.GetRawValue`, bbolt/badger via `FromDB` raw handles
@@ -548,5 +548,3 @@ performed, file:line for the change)_
     json/v2 map-order row; CHANGELOG [Unreleased] Added/Fixed entries gated by
     check-changelog-symbols (11 citations); COOKBOOK de-staled (graph
     verified value-free, bigtable closed); api golden +1 export.
-
-

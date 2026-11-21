@@ -9,20 +9,20 @@
 The suite is large but unevenly defended. Everything below is grounded in a
 census run on 2026-10-24, not intuition. The numbers that drive the priorities:
 
-| Measurement | Value | Read |
-| --- | --- | --- |
-| Test files / test functions | 1,513 / 7,556 | large suite, no trend line |
-| Benchmarks / fuzz targets | 420 / 115 | fuzzing exists, nightly mutation does not |
-| Modules with a coverage floor | 11 of ~97 non-testdata | the ratchet covers ~11% of the product |
-| `t.Skip` call sites | 224 | no gate, no reason baseline |
-| `testing.Short()` gates | 14 | skips are mostly not short-mode-aware |
-| `t.Parallel()` uses | 6,919 | genuinely parallel suite |
-| Ginkgo spec files | 62 | BDD exists, `systemscenario` adoption is thin |
-| `adttest` consumers | 65 files | engine conformance is the best-defended area |
-| `rapid` / `goleak` / `testing/synctest` files | 32 / 6 / 0 | property testing partial, leak and virtual-time testing almost absent |
-| `-shuffle` scope | integration legs only | unit suites never shuffle |
-| Nightly fuzzed targets | 4 of 115 | 96% of fuzz targets never mutate |
-| Automated mutation testing | none | "prove the test goes red" is manual discipline |
+| Measurement                                   | Value                  | Read                                                                  |
+| --------------------------------------------- | ---------------------- | --------------------------------------------------------------------- |
+| Test files / test functions                   | 1,513 / 7,556          | large suite, no trend line                                            |
+| Benchmarks / fuzz targets                     | 420 / 115              | fuzzing exists, nightly mutation does not                             |
+| Modules with a coverage floor                 | 11 of ~97 non-testdata | the ratchet covers ~11% of the product                                |
+| `t.Skip` call sites                           | 224                    | no gate, no reason baseline                                           |
+| `testing.Short()` gates                       | 14                     | skips are mostly not short-mode-aware                                 |
+| `t.Parallel()` uses                           | 6,919                  | genuinely parallel suite                                              |
+| Ginkgo spec files                             | 62                     | BDD exists, `systemscenario` adoption is thin                         |
+| `adttest` consumers                           | 65 files               | engine conformance is the best-defended area                          |
+| `rapid` / `goleak` / `testing/synctest` files | 32 / 6 / 0             | property testing partial, leak and virtual-time testing almost absent |
+| `-shuffle` scope                              | integration legs only  | unit suites never shuffle                                             |
+| Nightly fuzzed targets                        | 4 of 115               | 96% of fuzz targets never mutate                                      |
+| Automated mutation testing                    | none                   | "prove the test goes red" is manual discipline                        |
 
 Two structural conclusions follow. First, the repo is excellent at
 **conformance** (engines, wire forms, cross-module contracts) and weak at
@@ -33,11 +33,11 @@ mechanical cure that is either absent or applied in one corner only.
 
 ## Priority summary
 
-| Tier | Items | Rationale |
-| --- | --- | --- |
-| Do first | 1, 2, 9, 12, 13, 24, 33 | Eliminate whole defect classes or close the widest blind spots |
-| Next | 3, 5, 6, 10, 11, 20, 26, 27, 41, 42, 49 | Structural, moderate effort, high recurrence value |
-| Then | remainder | Valuable, narrower, or dependent on the tiers above |
+| Tier     | Items                                   | Rationale                                                      |
+| -------- | --------------------------------------- | -------------------------------------------------------------- |
+| Do first | 1, 2, 9, 12, 13, 24, 33                 | Eliminate whole defect classes or close the widest blind spots |
+| Next     | 3, 5, 6, 10, 11, 20, 26, 27, 41, 42, 49 | Structural, moderate effort, high recurrence value             |
+| Then     | remainder                               | Valuable, narrower, or dependent on the tiers above            |
 
 ---
 

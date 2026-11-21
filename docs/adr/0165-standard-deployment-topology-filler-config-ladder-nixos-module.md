@@ -1,12 +1,12 @@
 # ADR-0165: Standard deployment topology — a data filler, a config-format ladder, and a first-party NixOS module
 
-| Field      | Value                                                                                                                       |
-| ---------- | --------------------------------------------------------------------------------------------------------------------------- |
-| Status     | Accepted                                                                                                                    |
-| Date       | 2026-11-08                                                                                                                  |
-| Deciders   | Lars Artmann                                                                                                                |
-| Related    | ADR-0123 (single composition root), ADR-0152 (fleet-first topology), ADR-0163 (CUE verdict, different domain), ADR-0142      |
-| Supersedes | nothing — blesses a default shape on top of the existing `DeploymentConfig` roles; adds no storage concepts                  |
+| Field      | Value                                                                                                                   |
+| ---------- | ----------------------------------------------------------------------------------------------------------------------- |
+| Status     | Accepted                                                                                                                |
+| Date       | 2026-11-08                                                                                                              |
+| Deciders   | Lars Artmann                                                                                                            |
+| Related    | ADR-0123 (single composition root), ADR-0152 (fleet-first topology), ADR-0163 (CUE verdict, different domain), ADR-0142 |
+| Supersedes | nothing — blesses a default shape on top of the existing `DeploymentConfig` roles; adds no storage concepts             |
 
 ## Context
 
@@ -24,7 +24,7 @@ Nearly every fleet app needs the same three-tier deployment:
   (the only NixOS usage today is internal pg/mysql test VMs).
 - The owner dislikes YAML as an authoring format; CUE was raised as an alternative.
 
-CUE prior art: ADR-0163 evaluated and rejected CUE as a *subsumption engine* for
+CUE prior art: ADR-0163 evaluated and rejected CUE as a _subsumption engine_ for
 schema-compat gating (fidelity spike 22/24). That verdict is about CUE answering
 "is this shape additive?" — a different domain. Config-as-CUE is not blocked by it,
 but it does not earn a runtime dependency either.
@@ -46,9 +46,9 @@ but it does not earn a runtime dependency either.
    - **CUE**: `system/config.cue` ships the `DeploymentConfig` schema WITH the standard
      topology as CUE defaults; `cue export --out yaml` (or `--out json`) feeds `LoadConfig`.
    - **YAML/JSON/env**: stays the binary's wire format (k8s-style lowest layer).
-   **No runtime CUE dependency**: `cuelang.org/go` is not added to any module — it would
-   make all 38 fleet consumers pay for a parser most never invoke. CUE is an optional
-   authoring artifact, evaluated by the `cue` CLI at build/deploy time.
+     **No runtime CUE dependency**: `cuelang.org/go` is not added to any module — it would
+     make all 38 fleet consumers pay for a parser most never invoke. CUE is an optional
+     authoring artifact, evaluated by the `cue` CLI at build/deploy time.
 3. **`LoadConfig` gains JSON** — extension-based parser pick (`.json` → stdlib
    `encoding/json` into a koanf confmap; YAML stays the default). Zero new dependencies;
    `cue export --out json` output becomes loadable verbatim.

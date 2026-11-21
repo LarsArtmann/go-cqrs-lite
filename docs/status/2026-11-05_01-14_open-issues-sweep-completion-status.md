@@ -101,4 +101,4 @@
 
 ---
 
-*Verified by: scoped golangci ×8 (0 issues), nix fmt ×2 idempotent, check-file-size, check-package-surface (re-pinned, diff reviewed), golangci config verify, doc-check (1372 refs), 8 module test suites, 24 live GitHub comments. Not verified: full #lint/#verify, CI on pushed HEAD (inference flagged in d4), coverage/duplication/gosec/untested-exports gates, consumer repos.*
+_Verified by: scoped golangci ×8 (0 issues), nix fmt ×2 idempotent, check-file-size, check-package-surface (re-pinned, diff reviewed), golangci config verify, doc-check (1372 refs), 8 module test suites, 24 live GitHub comments. Not verified: full #lint/#verify, CI on pushed HEAD (inference flagged in d4), coverage/duplication/gosec/untested-exports gates, consumer repos._

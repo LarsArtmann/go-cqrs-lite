@@ -4,7 +4,7 @@
 
 > **Scope:** This report covers ONLY this session's run: the
 > `github.com/go-testfixtures/testfixtures` research question ("what can we
-> learn?"), its synthesis, the TODO_LIST harvest, and things *noticed* along
+> learn?"), its synthesis, the TODO_LIST harvest, and things _noticed_ along
 > the way. No unrelated repo-wide research was performed (per instruction).
 > Format: `.md` at operator's explicit demand (HTML is otherwise canonical for
 > status reports — override flagged).
@@ -42,21 +42,21 @@ One research task, executed end-to-end:
 
 ## a) FULLY DONE
 
-| # | Item | Evidence |
-|---|------|----------|
-| 1 | Primary-source verification of testfixtures (metadata, README, 11 source files) | working copies in `/tmp/testfixtures-src/`, fetched 2026-10-17 |
-| 2 | Our-side grounding (testing conventions, PG harness internals, fixture-landscape grep, dump-affordance absence) | `docs/agents/gotchas-testing.md`, `testutil/pgtestcontainer/pgtestcontainer.go:1-200` |
-| 3 | Synthesis delivered with verified claims + file:line citations | chat answer, this session |
-| 4 | TODO_LIST harvest: new section + 2 rows (`dump⇄load` 🔥 Effort L; isolation-strategy doc, Effort S) + index entry | `TODO_LIST.md:81,128-152` |
-| 5 | Retroactive duplicate-checks + claim upgrade (Dangerous\* names in source) | this session's review run |
+| # | Item                                                                                                              | Evidence                                                                              |
+| - | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| 1 | Primary-source verification of testfixtures (metadata, README, 11 source files)                                   | working copies in `/tmp/testfixtures-src/`, fetched 2026-10-17                        |
+| 2 | Our-side grounding (testing conventions, PG harness internals, fixture-landscape grep, dump-affordance absence)   | `docs/agents/gotchas-testing.md`, `testutil/pgtestcontainer/pgtestcontainer.go:1-200` |
+| 3 | Synthesis delivered with verified claims + file:line citations                                                    | chat answer, this session                                                             |
+| 4 | TODO_LIST harvest: new section + 2 rows (`dump⇄load` 🔥 Effort L; isolation-strategy doc, Effort S) + index entry | `TODO_LIST.md:81,128-152`                                                             |
+| 5 | Retroactive duplicate-checks + claim upgrade (Dangerous\* names in source)                                        | this session's review run                                                             |
 
 ## b) PARTIALLY DONE
 
-| # | Item | What's missing |
-|---|------|----------------|
-| 1 | testfixtures deep-dive (~80% coverage) | NOT read: `CHANGELOG.md` (9-year evolution), `cmd/testfixtures/` CLI, `dbtests/common_test.go` (suite structure), `sqlite.go`/`mysql.go` internals, `shared/shared.go` (`Queryable`), `mocks_for_test.go`, `clickhouse.go`/`sqlserver.go`/`spanner.go` bodies |
-| 2 | Both TODO rows harvested but 0% executed | by design (research session) — implementation untouched |
-| 3 | Line-number citations in the chat answer came from raw master working copies | accurate, but not re-checked against upstream canonical numbering (they are the same files; low risk) |
+| # | Item                                                                         | What's missing                                                                                                                                                                                                                                                |
+| - | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | testfixtures deep-dive (~80% coverage)                                       | NOT read: `CHANGELOG.md` (9-year evolution), `cmd/testfixtures/` CLI, `dbtests/common_test.go` (suite structure), `sqlite.go`/`mysql.go` internals, `shared/shared.go` (`Queryable`), `mocks_for_test.go`, `clickhouse.go`/`sqlserver.go`/`spanner.go` bodies |
+| 2 | Both TODO rows harvested but 0% executed                                     | by design (research session) — implementation untouched                                                                                                                                                                                                       |
+| 3 | Line-number citations in the chat answer came from raw master working copies | accurate, but not re-checked against upstream canonical numbering (they are the same files; low risk)                                                                                                                                                         |
 
 ## c) NOT STARTED
 
@@ -215,7 +215,7 @@ this time (loaded dice — the checks I did late happened to come back clean):
 
 ---
 
-*Point-in-time snapshot. The 2 Pareto-grade actionables are already in
+_Point-in-time snapshot. The 2 Pareto-grade actionables are already in
 TODO_LIST (harvested pre-report); remaining (f) items are intentionally NOT
 bulk-harvested (routing rigor). Auto-commit daemon will absorb this file;
-no manual commit per harness contract.*
+no manual commit per harness contract._

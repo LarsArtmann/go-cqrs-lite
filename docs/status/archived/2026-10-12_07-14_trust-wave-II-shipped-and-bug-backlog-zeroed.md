@@ -146,7 +146,7 @@ tail), M27 (v5.0.0 cut — boss), N09 (bench/load hygiene).
 1. M14 code: F73 payload-hash trail, F74 per-stream equivalence diffs, F75
    snapshot-interplay scenario (design above).
 2. M20 quiet `#verify` via `can-run-composed-gate --wait-loop` (dedup tail (a)
-   + S03 re-record + verify-chain v4).
+   - S03 re-record + verify-chain v4).
 3. M05 fleet adoption: bank-sync state-shape patch (wave II shipped
    snapshot/decider), DiscordSync CBOR-workaround drop (schema/v4.7.0),
    cqrs-htmx UpcasterRegistry collapse.

@@ -79,7 +79,7 @@ pushed as `be330c7da`). This phase executed the plan's **1% tier (M01–M04)** e
    that demand offender work (L794/L810/L1538/L2145 region) were NOT closed — they are now
    stale ("offenders exist" is false). F10 (`adttest/pagination_conformance.go` harness-dir
    exemption, owner's call) skipped entirely, not even rowed as a question.
-3. **M04's gate-class follow-up.** The MarkDemo *incident* is healed, but the *class*
+3. **M04's gate-class follow-up.** The MarkDemo _incident_ is healed, but the _class_
    stays ungated: `check-example-standalone.sh` is referenced by no workflow, no flake app,
    no `#verify` leg. Re-rowed as "wire `--build` into CI" (Effort S) rather than done.
 4. **M01's composed-proof share.** Module `-race` ×3 done per F04; the un-forced

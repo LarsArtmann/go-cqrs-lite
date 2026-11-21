@@ -40,7 +40,7 @@
    `stdlibJSONParser.Marshal` stay deliberately plain (transient/v1-json — documented).
    Full system/v4 suite green (2 runs).
 6. **FEATURES feature-visibility rows**: `projectionhost.WithClock` (checkpoint cadence clock)
-   + `Persisted-byte determinism` (metaengine feature row).
+   - `Persisted-byte determinism` (metaengine feature row).
 7. **ADR-0167 (Proposed) written + routed**: retire `idempotency/sqlstore` at v5 behind a
    `system` dedup facade over `metaengine.DedupStore`; design questions → decision-sheet
    **D27**; ADR-0152 ghost-verdict addendum recorded (kvstore resolved-by-deletion);

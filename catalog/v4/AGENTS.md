@@ -320,7 +320,7 @@ afterwards (the restore line would otherwise bring it back).
 - **`compat` is a structural walk, NOT a CUE bridge.** `jsonschema.Extract` +
   CUE subsumption was measured over 24 policy fixtures × 6 configurations: best
   22/24 (`Config{}` + `cue.Raw()`), and both residual misses — a `format` swap
-  and a newly constrained array `items` — were false *compatible*, the unsafe
+  and a newly constrained array `items` — were false _compatible_, the unsafe
   direction for a release gate. `cue.Final()` is worse (16/24, calling
   remove/rename/add-required "compatible"). Evidence:
   [`docs/evidence/2026-11-02_cue-subsume-spike.md`](docs/evidence/2026-11-02_cue-subsume-spike.md);
@@ -330,7 +330,7 @@ afterwards (the restore line would otherwise bring it back).
   quarantine there was nothing for a `catalog/cue` module to isolate, so a new
   module would have bought eight gate registrations and no consumer benefit.
 - **Exactly one class blocks: `KindVersionNotBumped`.** A breaking shape change
-  *with* a version bump passes on purpose — whether the owed op actually exists
+  _with_ a version bump passes on purpose — whether the owed op actually exists
   is `schema.EventSchema`'s job and cqrs-lint E021/E022's enforcement. Widening
   that rule would duplicate the ladder checker.
 - **`Validate` composes, never duplicates.** `Catalog.ValidateCoeffects` owns

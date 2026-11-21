@@ -60,6 +60,7 @@ Nothing destructive; both repos end green and pushed. The honest failures:
 ## f) UP TO 50 THINGS WE SHOULD GET DONE NEXT
 
 **P015 immediate follow-ups (this week):**
+
 1. Mutation-proof P015: disable the detector → assert fixture suite fails → restore; record as the rule's discrimination proof.
 2. Re-validate the corpus via `cqrs-lint --json`; pin the 5-finding expectation as a consumer-side test or gate comment.
 3. Exercise SARIF output with a P015 finding; confirm property-bag fields render (severity/confidence).

@@ -43,11 +43,11 @@
 `metaengine/sqliteengine/stored_bytes_pin_test.go` (new, 213 lines, package
 `sqliteengine_test`).
 
-| Spec | What it pins | Literal expectation |
-| ---- | ------------ | ------------------- |
+| Spec                           | What it pins                                                                     | Literal expectation                         |
+| ------------------------------ | -------------------------------------------------------------------------------- | ------------------------------------------- |
 | `TestStoredBytes_StreamAppend` | each value of a 3-value batch, in caller order, in its own `meta_stream_log` row | `{"title":"pin","n":7}`, `raw-string`, `42` |
-| `TestStoredBytes_MapSet` | `meta_map` key column and value column for a struct value | key `k1`, value `{"title":"pin","n":7}` |
-| `TestStoredBytes_MapSetAt` | latest view and `meta_cell_versions` row carry the **same bytes** | both `{"title":"pin","n":7}` |
+| `TestStoredBytes_MapSet`       | `meta_map` key column and value column for a struct value                        | key `k1`, value `{"title":"pin","n":7}`     |
+| `TestStoredBytes_MapSetAt`     | latest view and `meta_cell_versions` row carry the **same bytes**                | both `{"title":"pin","n":7}`                |
 
 Deliberately literal (not derived from the encoder) so an encoder that agrees
 with itself cannot satisfy the pin. Raw reads go through a second `database/sql`
@@ -55,10 +55,10 @@ handle on the same shared-cache in-memory URI.
 
 **Mutation proofs (both run, both red, both restored):**
 
-| Mutation | Where | Result |
-| -------- | ----- | ------ |
-| Remove the string fast-path from `EncodeStreamValueErr` (strings get JSON-quoted) | `metaengine/stream_codec.go` | `stream row 1 = "\"raw-string\"", want "raw-string"` → FAIL |
-| Wrap the value before marshalling (`json.Marshal(struct{ V any }{value})`) | `metaengine/sqliteengine/encoding.go` | `MapSet` and `MapSetAt` both `= "{\"V\":{…}}", want "{\"title\":…}"` → FAIL |
+| Mutation                                                                          | Where                                 | Result                                                                      |
+| --------------------------------------------------------------------------------- | ------------------------------------- | --------------------------------------------------------------------------- |
+| Remove the string fast-path from `EncodeStreamValueErr` (strings get JSON-quoted) | `metaengine/stream_codec.go`          | `stream row 1 = "\"raw-string\"", want "raw-string"` → FAIL                 |
+| Wrap the value before marshalling (`json.Marshal(struct{ V any }{value})`)        | `metaengine/sqliteengine/encoding.go` | `MapSet` and `MapSetAt` both `= "{\"V\":{…}}", want "{\"title\":…}"` → FAIL |
 
 Evidence: `cd metaengine/sqliteengine && GOWORK=off go test ./... -count=1` →
 `ok … 5.507s`; filtered run `ok … 0.169s`; `gofmt -l` empty; `go vet ./...`
@@ -84,7 +84,7 @@ stream append-expected (`metaengine.encode_stream_value`).
 
 **Plan premise corrected:** the code is not split "map vs stream" but
 "sqlite-local value encoder vs shared stream codec". `LogAppend` and
-`MultiAdd` go through the sqlite-local encoder, so they carry the *map* code.
+`MultiAdd` go through the sqlite-local encoder, so they carry the _map_ code.
 My first attempt asserted `metaengine.encode_stream_value` for them and went red
 with `error code = "sqliteengine.encode_value"` — the test was right, the
 assumption was wrong.
@@ -94,14 +94,14 @@ assumption was wrong.
 I re-ran every affected module at HEAD instead of accepting the commit message
 `7396d262d` ("Close the LSM silent-stringify class…"):
 
-| Module | Result |
-| ------ | ------ |
-| `metaengine/keycodec` | ok 0.007 s |
-| `metaengine/adttest` | ok 0.015 s |
-| `metaengine/pebbleengine` | ok 0.528 s |
-| `metaengine/bboltengine` | ok **489.283 s** (soak included; see §d6) |
-| `metaengine/badgerengine` | ok 0.716 s |
-| `metaengine/sqliteengine` | ok 5.507 s |
+| Module                    | Result                                    |
+| ------------------------- | ----------------------------------------- |
+| `metaengine/keycodec`     | ok 0.007 s                                |
+| `metaengine/adttest`      | ok 0.015 s                                |
+| `metaengine/pebbleengine` | ok 0.528 s                                |
+| `metaengine/bboltengine`  | ok **489.283 s** (soak included; see §d6) |
+| `metaengine/badgerengine` | ok 0.716 s                                |
+| `metaengine/sqliteengine` | ok 5.507 s                                |
 
 Code inspection confirms the class is closed where claimed: all 21 LSM value
 sites call `keycodec.EncodeJSONErr` (pebble 7, bbolt 7, badger 7) and the
@@ -121,12 +121,12 @@ payload, on purpose.
 
 ### a5. Gate probes run in this session
 
-| Gate | Result |
-| ---- | ------ |
-| `nix run .#check-md-go` | **GREEN** — validator rebuilt (`3f466de`), 1519 code blocks valid, 83 skipped, 105 baselined archived errors |
-| `bash scripts/check-error-taxonomy.sh` | **GREEN** — 544 codes / 20 modules, 574 doc claims |
-| `nix run .#check-file-size` | **RED** — 3 offenders, all foreign (see §d/§e) |
-| `art-dupl check . --threshold 3` | **RED** — 1 new group (was 8 on 2026-10-24) |
+| Gate                                   | Result                                                                                                       |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `nix run .#check-md-go`                | **GREEN** — validator rebuilt (`3f466de`), 1519 code blocks valid, 83 skipped, 105 baselined archived errors |
+| `bash scripts/check-error-taxonomy.sh` | **GREEN** — 544 codes / 20 modules, 574 doc claims                                                           |
+| `nix run .#check-file-size`            | **RED** — 3 offenders, all foreign (see §d/§e)                                                               |
+| `art-dupl check . --threshold 3`       | **RED** — 1 new group (was 8 on 2026-10-24)                                                                  |
 
 So T15 (md-go-validator derivation) is, contrary to the 12:00 report, **done** —
 the vendorHash re-pin from the 19:29 session holds and the gate runs.
@@ -135,29 +135,29 @@ the vendorHash re-pin from the 19:29 session holds and the gate runs.
 
 ## b) PARTIALLY DONE
 
-| Item | Done | Missing |
-| ---- | ---- | ------- |
-| **T2** batch atomicity | pinned by `TestSQLite_StreamAppend_RejectsBatchAtomically` + `…Expected…`, both now code-asserted | **T2.1 mutation never run** — no revert of the batch pre-encode was ever executed, so "the test can fail" is asserted, not proven |
-| **T1** coverage | unplanned `MapSet`, `MapSetAt` + version row, `StreamAppend` | no pin for planned-table writes (`execPlannedSet` → different table/column), `MapUpdate`'s re-encode, `StreamAppendExpected`, and **no byte pin at all for the 3 LSM engines** |
-| **T11** docs | CHANGELOG rows accurate, TODO_LIST row accurate ("3/4 fixed"), COOKBOOK now accurate (this session) | no COOKBOOK numbers for the LSM change; FAQ and `metaengine/README.md` have no statement to fix (verified by grep) |
-| **T4** conformance | `adttest.AssertValueEncodeRejection` + wired into pebble/bbolt/badger | sqlite deliberately **not** wired (keeps its stronger dedicated specs with `sqliteengine.encode_value`) — defensible, but the harness therefore does not cover the engine that started the class |
-| **Commit hygiene** | all work is committed, tree clean | every phase landed inside `chore: auto-commit` commits; the authored commit failed (see §d2) |
+| Item                   | Done                                                                                                | Missing                                                                                                                                                                                          |
+| ---------------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **T2** batch atomicity | pinned by `TestSQLite_StreamAppend_RejectsBatchAtomically` + `…Expected…`, both now code-asserted   | **T2.1 mutation never run** — no revert of the batch pre-encode was ever executed, so "the test can fail" is asserted, not proven                                                                |
+| **T1** coverage        | unplanned `MapSet`, `MapSetAt` + version row, `StreamAppend`                                        | no pin for planned-table writes (`execPlannedSet` → different table/column), `MapUpdate`'s re-encode, `StreamAppendExpected`, and **no byte pin at all for the 3 LSM engines**                   |
+| **T11** docs           | CHANGELOG rows accurate, TODO_LIST row accurate ("3/4 fixed"), COOKBOOK now accurate (this session) | no COOKBOOK numbers for the LSM change; FAQ and `metaengine/README.md` have no statement to fix (verified by grep)                                                                               |
+| **T4** conformance     | `adttest.AssertValueEncodeRejection` + wired into pebble/bbolt/badger                               | sqlite deliberately **not** wired (keeps its stronger dedicated specs with `sqliteengine.encode_value`) — defensible, but the harness therefore does not cover the engine that started the class |
+| **Commit hygiene**     | all work is committed, tree clean                                                                   | every phase landed inside `chore: auto-commit` commits; the authored commit failed (see §d2)                                                                                                     |
 
 ---
 
 ## c) NOT STARTED (verified by inspection, not by assumption)
 
-| Task | Evidence it is untouched |
-| ---- | ------------------------ |
-| **T3** turso delegation proof | no `*encode*`/`*rejection*` test in `metaengine/tursoengine/`; no `encode_value` string in that module |
-| **T9** graph encoders | `mysqlengine/graph.go:235`, `duckdbengine/graph.go:122`, `pgengine/graph.go:126`, `badgerengine/graph.go:52` still `fmt.Sprintf("%v", v)` |
-| **T10** bigtable | `bigtableengine/engine.go:321` still `[]byte(fmt.Sprintf("%v", v))` |
-| **T12** file-size | 3 offenders: `scheduling/sqlstore/store.go` **382** (was 363 — grew while deprecated), `system/adapter_event.go` 352, `metaengine/layout.go` 360 |
-| **T13** clones | 1 new group: identical signatures at `catalog/docserver/layout.templ:15` + `:31` and `metaengine/pebbleengine/sort_index.go:26` |
-| **T14** repo lint | not re-run this session (a full `#lint` is ~98 modules; the 2026-10-24 matrix had a dozen red modules) |
-| **T16** taxonomy generator | not fixed; the parallel session *accepted* the generator's sentinel-attribution drift as "the source of truth" instead |
-| **T17** `#verify-fast` | never completed (T12–T14 still red) |
-| **T18–T24** | untouched (envelope owner packet, KV tag measurement, backfill design, preflight script, batch benchmark, harvest) |
+| Task                          | Evidence it is untouched                                                                                                                         |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **T3** turso delegation proof | no `*encode*`/`*rejection*` test in `metaengine/tursoengine/`; no `encode_value` string in that module                                           |
+| **T9** graph encoders         | `mysqlengine/graph.go:235`, `duckdbengine/graph.go:122`, `pgengine/graph.go:126`, `badgerengine/graph.go:52` still `fmt.Sprintf("%v", v)`        |
+| **T10** bigtable              | `bigtableengine/engine.go:321` still `[]byte(fmt.Sprintf("%v", v))`                                                                              |
+| **T12** file-size             | 3 offenders: `scheduling/sqlstore/store.go` **382** (was 363 — grew while deprecated), `system/adapter_event.go` 352, `metaengine/layout.go` 360 |
+| **T13** clones                | 1 new group: identical signatures at `catalog/docserver/layout.templ:15` + `:31` and `metaengine/pebbleengine/sort_index.go:26`                  |
+| **T14** repo lint             | not re-run this session (a full `#lint` is ~98 modules; the 2026-10-24 matrix had a dozen red modules)                                           |
+| **T16** taxonomy generator    | not fixed; the parallel session _accepted_ the generator's sentinel-attribution drift as "the source of truth" instead                           |
+| **T17** `#verify-fast`        | never completed (T12–T14 still red)                                                                                                              |
+| **T18–T24**                   | untouched (envelope owner packet, KV tag measurement, backfill design, preflight script, batch benchmark, harvest)                               |
 
 ---
 
@@ -176,7 +176,7 @@ the vendorHash re-pin from the 19:29 session holds and the gate runs.
    changed file(s)`. The plan's guard #8 ("commit at each phase boundary")
    is not executable while a daemon commits every few seconds.
 3. **I left the tree RED for ~2 minutes on 2026-10-24 12:41.** My T2 code
-   became live as soon as it was written, and the daemon committed it *before*
+   became live as soon as it was written, and the daemon committed it _before_
    I ran the test that proved my LogAppend/MultiAdd codes were wrong. Another
    session then fixed it at 12:43 (`90e320753`, which also renamed the
    constants to `dbValueEncodeCode`/`streamValueEncodeCode`). I discovered this
@@ -229,7 +229,7 @@ the vendorHash re-pin from the 19:29 session holds and the gate runs.
    (path-staged commits) is not executable in practice.
 9. **Deprecated modules should be frozen, not grown.** `scheduling/sqlstore` is
    deprecated-until-v5.0.0 yet `store.go` went 363 → 382 in a day.
-10. **Rejection codes should be named by *layer*, not by data shape.**
+10. **Rejection codes should be named by _layer_, not by data shape.**
     `sqliteengine.encode_value` covering map, log and multimap writes is
     accurate but reads like a map-only code. `turso` inherits the same code by
     delegation, which will surprise anyone grepping for `tursoengine.*`.
@@ -238,10 +238,10 @@ the vendorHash re-pin from the 19:29 session holds and the gate runs.
 
 ## f) Up to 50 things to do next
 
-Ordered by leverage. Items marked *(plan Tn)* are already scoped there.
+Ordered by leverage. Items marked _(plan Tn)_ are already scoped there.
 
 1. **T2.1** revert `StreamAppend`'s batch pre-encode (encode inside the loop),
-   prove `…RejectsBatchAtomically` goes red, restore *(plan T2)*.
+   prove `…RejectsBatchAtomically` goes red, restore _(plan T2)_.
 2. **T3** write a turso delegation rejection test and record whether the
    libSQL path runs or skips under `-short`.
 3. **T1-ext** add a planned-table byte pin (`execPlannedSet` path).
@@ -253,7 +253,7 @@ Ordered by leverage. Items marked *(plan Tn)* are already scoped there.
 8. **T1-ext** add a **badger** byte pin.
 9. Run all four new pins under `-race`.
 10. **Fix the plan log's "T1–T3 pre-shipped" line** and add a per-task
-    "verified by / at" column to §11 *(plan T24)*.
+    "verified by / at" column to §11 _(plan T24)_.
 11. **T9** decide the graph rule (keys stringified, values JSON) and write it
     in the COOKBOOK before touching code.
 12. Migrate `mysqlengine/graph.go`.
@@ -284,10 +284,10 @@ Ordered by leverage. Items marked *(plan Tn)* are already scoped there.
 35. Document `SOAK_SKIP_BOLT=1` as the iteration default in
     `docs/agents/gotchas-testing.md`.
 36. Add a `scripts/wave-preflight.sh` (pgrep buildflow, daemon check, load
-    gate, tree state) *(plan T22)*.
+    gate, tree state) _(plan T22)_.
 37. Write `scripts/mutation-check.sh` with trap-based restore.
 38. **T18** send the envelope one-pager (option C+D vs E) to the owner.
-39. Fold the measured LSM cost into it *(plan T18)*.
+39. Fold the measured LSM cost into it _(plan T18)_.
 40. **T23** benchmark the batch encode (1 and 100 values, allocs/op).
 41. Record the numbers in COOKBOOK (no gate).
 42. Add a CHANGELOG↔COOKBOOK contradiction grep to a docs gate.
@@ -306,7 +306,7 @@ Ordered by leverage. Items marked *(plan Tn)* are already scoped there.
 
 ## g) Three questions I cannot answer myself
 
-1. **Concurrent ownership.** Another session executed T4–T8 of *this* plan
+1. **Concurrent ownership.** Another session executed T4–T8 of _this_ plan
    inside the 22 h this session was suspended. Do you want me to keep executing
    the remainder (T2.1, T3, T9, T10, then the gates), or is that session's
    claim still live? The plan has no claim markers, so I cannot tell from the
@@ -328,21 +328,21 @@ Ordered by leverage. Items marked *(plan Tn)* are already scoped there.
 
 ## Appendix — evidence index
 
-| Claim | Command / file | Result |
-| ----- | -------------- | ------ |
-| Byte pins green | `cd metaengine/sqliteengine && GOWORK=off go test ./... -count=1` | ok 5.507 s |
-| Byte pins red under mutation A | drop string fast-path, same command | `stream row 1 = "\"raw-string\""` FAIL |
-| Byte pins red under mutation B | wrap value, same command | `MapSet` + `MapSetAt` value FAIL |
-| LSM closure real | `grep -n "EncodeJSONErr" metaengine/{pebble,bbolt,badger}engine/*.go` | 21 hits, 0 `EncodeJSON` aliases |
-| LSM suites green | per-module `GOWORK=off go test ./... -count=1` | keycodec 0.007 s, adttest 0.015 s, pebble 0.528 s, bbolt 489.283 s, badger 0.716 s |
-| md-go gate now works | `nix run .#check-md-go` | 1519 blocks valid, 105 baselined archived errors |
-| taxonomy gate green | `bash scripts/check-error-taxonomy.sh` | 544 codes / 20 modules / 574 claims |
-| api golden carries both | `docs/api_surface.txt` | `metaengine/keycodec/func EncodeJSONErr`, `metaengine/adttest/func AssertValueEncodeRejection` |
-| file-size still red | `nix run .#check-file-size` | sqlstore 382, adapter_event 352, layout 360 |
-| clones nearly clean | `art-dupl check . --threshold 3` | 1 new group (was 8) |
-| 76 commits of parallel work | `git rev-list --count 5bb89e622..HEAD` | 76 |
-| daemon won the commit race | `git commit` output on 2026-10-24 12:40 | `cannot lock ref 'HEAD'` exit 128 |
-| wrong-code assumption | test output 2026-10-24 12:41 | `error code = "sqliteengine.encode_value", want "metaengine.encode_stream_value"` |
+| Claim                          | Command / file                                                        | Result                                                                                         |
+| ------------------------------ | --------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Byte pins green                | `cd metaengine/sqliteengine && GOWORK=off go test ./... -count=1`     | ok 5.507 s                                                                                     |
+| Byte pins red under mutation A | drop string fast-path, same command                                   | `stream row 1 = "\"raw-string\""` FAIL                                                         |
+| Byte pins red under mutation B | wrap value, same command                                              | `MapSet` + `MapSetAt` value FAIL                                                               |
+| LSM closure real               | `grep -n "EncodeJSONErr" metaengine/{pebble,bbolt,badger}engine/*.go` | 21 hits, 0 `EncodeJSON` aliases                                                                |
+| LSM suites green               | per-module `GOWORK=off go test ./... -count=1`                        | keycodec 0.007 s, adttest 0.015 s, pebble 0.528 s, bbolt 489.283 s, badger 0.716 s             |
+| md-go gate now works           | `nix run .#check-md-go`                                               | 1519 blocks valid, 105 baselined archived errors                                               |
+| taxonomy gate green            | `bash scripts/check-error-taxonomy.sh`                                | 544 codes / 20 modules / 574 claims                                                            |
+| api golden carries both        | `docs/api_surface.txt`                                                | `metaengine/keycodec/func EncodeJSONErr`, `metaengine/adttest/func AssertValueEncodeRejection` |
+| file-size still red            | `nix run .#check-file-size`                                           | sqlstore 382, adapter_event 352, layout 360                                                    |
+| clones nearly clean            | `art-dupl check . --threshold 3`                                      | 1 new group (was 8)                                                                            |
+| 76 commits of parallel work    | `git rev-list --count 5bb89e622..HEAD`                                | 76                                                                                             |
+| daemon won the commit race     | `git commit` output on 2026-10-24 12:40                               | `cannot lock ref 'HEAD'` exit 128                                                              |
+| wrong-code assumption          | test output 2026-10-24 12:41                                          | `error code = "sqliteengine.encode_value", want "metaengine.encode_stream_value"`              |
 
 **Files created this session:** `metaengine/sqliteengine/stored_bytes_pin_test.go`.
 **Files modified this session:** `metaengine/sqliteengine/encoding_error_test.go`,

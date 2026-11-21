@@ -29,14 +29,14 @@ Everything else (tests, goldens, gates, docs, budget, taxonomy) is green; the re
 
 Authored change set (21 files, ~646 insertions / 179 deletions across the codec work, plus the plan/log/docs):
 
-| Area | Files |
-| ---- | ----- |
-| Core fix | `metaengine/encoded.go` (rewritten ingress + fold decode), `metaengine/stream_codec.go`, `metaengine/cursor.go`, `metaengine/consistency.go` (doc) |
-| Adapter | `metaengine/projectionadapter/adapter.go` |
-| Engine write paths | `metaengine/pgengine/stream_copy.go`, `metaengine/duckdbengine/stream_log.go`, `metaengine/mysqlengine/stream_log.go`, `metaengine/dgraphengine/stream_log.go` |
-| Tests | `metaengine/encoded_codec_test.go` (Ginkgo, committed earlier), `metaengine/projectionadapter/adapter_default_codec_test.go` (committed earlier), `metaengine/stream_codec_test.go`, `metaengine/cursor_deterministic_test.go` |
-| Wiring / goldens | `metaengine/go.mod` + `go.sum` (go-codec), `scripts/check-module-layers.sh`, `docs/error-taxonomy.md`, `docs/api_surface.txt` |
-| Docs | `metaengine/README.md`, `.agents/skills/go-cqrs-lite/references/{recipes,modules,faq}.md`, `CHANGELOG.md`, the plan doc |
+| Area               | Files                                                                                                                                                                                                                          |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Core fix           | `metaengine/encoded.go` (rewritten ingress + fold decode), `metaengine/stream_codec.go`, `metaengine/cursor.go`, `metaengine/consistency.go` (doc)                                                                             |
+| Adapter            | `metaengine/projectionadapter/adapter.go`                                                                                                                                                                                      |
+| Engine write paths | `metaengine/pgengine/stream_copy.go`, `metaengine/duckdbengine/stream_log.go`, `metaengine/mysqlengine/stream_log.go`, `metaengine/dgraphengine/stream_log.go`                                                                 |
+| Tests              | `metaengine/encoded_codec_test.go` (Ginkgo, committed earlier), `metaengine/projectionadapter/adapter_default_codec_test.go` (committed earlier), `metaengine/stream_codec_test.go`, `metaengine/cursor_deterministic_test.go` |
+| Wiring / goldens   | `metaengine/go.mod` + `go.sum` (go-codec), `scripts/check-module-layers.sh`, `docs/error-taxonomy.md`, `docs/api_surface.txt`                                                                                                  |
+| Docs               | `metaengine/README.md`, `.agents/skills/go-cqrs-lite/references/{recipes,modules,faq}.md`, `CHANGELOG.md`, the plan doc                                                                                                        |
 
 ---
 
@@ -287,20 +287,20 @@ The `time.Time` failure is the one that killed the planned transcode design: can
 
 ### 9.2 Final green matrix
 
-| Gate | Command | Result |
-| ---- | ------- | ------ |
-| metaengine | `GOWORK=off go test ./... -count=1` | ok (full suite, 29-50 s) |
-| projectionadapter | `GOWORK=off go test ./... -count=1` | ok |
-| system | `GOWORK=off go test -short ./... -count=1` | ok |
-| pg / duckdb / mysql / dgraph / sqlite / bigtable | `GOWORK=off go test -short ./... -count=1` | ok (before the foreign typed-WAL commit; pg is now red for that foreign file) |
-| builds | `GOWORK=off go build ./...` x8 modules | ok |
-| api surface | `go run . --update` + `go test -run TestEvery .` | ok, +2 exports |
-| layers | `scripts/check-module-layers.sh` | ok |
-| taxonomy | `scripts/check-error-taxonomy.sh` | ok (542 codes, pool=erraudit) |
-| doc refs | `cmd/doc-check …` | ok (1349 refs) |
-| recipes | `go test -run TestRecipes ./cmd/doc-check` | ok |
-| formatting | `nix fmt` | applied (10 files changed, including 4 foreign formatting drifts left unstaged) |
-| lint | `golangci-lint run ./...` in metaengine | 3 findings, all pre-existing in `keycodec/` |
+| Gate                                             | Command                                          | Result                                                                          |
+| ------------------------------------------------ | ------------------------------------------------ | ------------------------------------------------------------------------------- |
+| metaengine                                       | `GOWORK=off go test ./... -count=1`              | ok (full suite, 29-50 s)                                                        |
+| projectionadapter                                | `GOWORK=off go test ./... -count=1`              | ok                                                                              |
+| system                                           | `GOWORK=off go test -short ./... -count=1`       | ok                                                                              |
+| pg / duckdb / mysql / dgraph / sqlite / bigtable | `GOWORK=off go test -short ./... -count=1`       | ok (before the foreign typed-WAL commit; pg is now red for that foreign file)   |
+| builds                                           | `GOWORK=off go build ./...` x8 modules           | ok                                                                              |
+| api surface                                      | `go run . --update` + `go test -run TestEvery .` | ok, +2 exports                                                                  |
+| layers                                           | `scripts/check-module-layers.sh`                 | ok                                                                              |
+| taxonomy                                         | `scripts/check-error-taxonomy.sh`                | ok (542 codes, pool=erraudit)                                                   |
+| doc refs                                         | `cmd/doc-check …`                                | ok (1349 refs)                                                                  |
+| recipes                                          | `go test -run TestRecipes ./cmd/doc-check`       | ok                                                                              |
+| formatting                                       | `nix fmt`                                        | applied (10 files changed, including 4 foreign formatting drifts left unstaged) |
+| lint                                             | `golangci-lint run ./...` in metaengine          | 3 findings, all pre-existing in `keycodec/`                                     |
 
 ### 9.3 Pre-existing reds observed, not touched
 

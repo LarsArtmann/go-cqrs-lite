@@ -172,6 +172,7 @@ Nothing landed broken. Honest near-misses and one process wound:
 ## f) NEXT (≤50, ordered)
 
 **Immediate residue (this session's tail):**
+
 1. One clean full `cmd/cqrs-lint ./...` sweep post-P015-landing (confirm 02:56 state holds).
 2. Full `metaengine` + `metaengine/sqliteengine` GOWORK=off suites (post-final-edits).
 3. api_surface.txt regen (P015 landed; `cd cmd/api-stability && GOWORK=off go run . --update`).
@@ -185,13 +186,13 @@ Nothing landed broken. Honest near-misses and one process wound:
 9. M07: V006 skip-pins at newest existing tag + golden.
 10. M07: catalog counts test adoption bump.
 11. M08: coeffect gate RawQuery fix (`buildProjections` extracts fold event types
-    from `rawQuerySpec`).
+from `rawQuerySpec`).
 12. M12 reconcile: confirm compound-cursor (T07) shipped; close the plan row.
 13. M06 residue: sweep OTHER engines' FILTER paths for time-shaped gaps beyond binds
-    (duckdb planned branch verified via core helper; dgraph/bigtable/memory are
-    Go-side — confirm no raw binds elsewhere).
+(duckdb planned branch verified via core helper; dgraph/bigtable/memory are
+Go-side — confirm no raw binds elsewhere).
 14. Consider an `adttest` probe pinning time-filter semantics across ALL engines
-    (extends #62 from sqlite-specific to engine-contract).
+(extends #62 from sqlite-specific to engine-contract).
 
 **Plan main line (M13+):**
 15. M13: taskmanager 3-tier testing depth (if still open post-adoption).
@@ -200,26 +201,26 @@ Nothing landed broken. Honest near-misses and one process wound:
 18. M16: cqrs-htmx sqlite-lifecycle tests through the harness.
 19. M17–M19: per plan table (review TODO_LIST.md rows when picking up).
 20. M20–M22: docs-corpus sweeps, CI ownerless items (core/v5 eventtest mirror,
-    settings key-set pin, gofumpt exit-2).
+settings key-set pin, gofumpt exit-2).
 21. M23–M27 + T/B/U table: the gated/tail set.
 22. M09 (v5 cascade slice 1) — mechanically-ready deletions: `stack.Materialize`,
-    ADR-0126 compat shells, `storage/sql.BuildWhereClause`, deprecated tombstone
-    metadata API (pre-reqs: listing type-driven status, taskmanager off `OnTombstone`,
-    golden regen).
+ADR-0126 compat shells, `storage/sql.BuildWhereClause`, deprecated tombstone
+metadata API (pre-reqs: listing type-driven status, taskmanager off `OnTombstone`,
+golden regen).
 23. M10: v5 cascade slice 2 (`storage.RelationalProjection`+`view`, `graph.GraphProjection`,
-    `stack.Bundle`+presets+`stack/bench`, transport/http+grpc removals).
+`stack.Bundle`+presets+`stack/bench`, transport/http+grpc removals).
 24. M11: v5 cascade slice 3 per plan.
 25. Fleet M05: bank-sync snapshot state-shape patch (patch file exists:
-    `2026-10-10_m13-bank-sync-state-shape.patch`).
+`2026-10-10_m13-bank-sync-state-shape.patch`).
 26. Fleet M05: DiscordSync drop `map[any]any` workaround (schema CBOR fix shipped).
 27. Fleet M05: cqrs-htmx collapse homegrown UpcasterRegistry onto `UpcastChain()`.
 28. Fleet M05: `check-example-standalone.sh --build` → 0 findings (graph-native unblocked).
 
 **Engine wave C (untagged deltas observed during the module scan):**
 29. Tag or triage the KV-cursor-key engine deltas (bbolt/badger/pebble — the
-    `[Unreleased]` "KV engine cursor keys" row's modules).
+`[Unreleased]` "KV engine cursor keys" row's modules).
 30. Tag or triage pebble sort-index DESC rewrite, MySQL claimkit race + identifier
-    overflow fixes (all sit unreleased in engine modules).
+overflow fixes (all sit unreleased in engine modules).
 31. Turso engine delta triage (11 files since v4.2.3).
 32. Decide the engine-wave CHANGELOG section shape (engines are separate trains).
 
@@ -231,8 +232,8 @@ Nothing landed broken. Honest near-misses and one process wound:
 37. Load-sweep before next `#verify` (timing paths untouched, but cheap insurance).
 38. Cron health: the nightly bench timer + README gates (unchanged; verify last-run).
 39. Document the `--no-verify` incidents + BuildFlow global-gate issue as a lesson
-    candidate for `references/lessons.md` (cross-project: golden gates counting
-    untracked files).
+candidate for `references/lessons.md` (cross-project: golden gates counting
+untracked files).
 40. Answer/close the three §g questions below and the three from the 23:23 report.
 
 **Strategic (from the plan's own framing):**
@@ -242,20 +243,20 @@ Nothing landed broken. Honest near-misses and one process wound:
 44. Watermill skill: NATS plugin-gaps parity check (plan F145).
 45. `#integration-nats` CI-leg decision note (plan F146, billing-gated).
 46. Reconcile plan doc rows M05/M12 formally (banner exists; per-row addendum per the
-    planning-doc discipline).
+planning-doc discipline).
 47. Sweep for other modules whose suites were "verified green" pre-P015 but not
-    post-P015 (the concurrent session's analyzer changes touch linter behavior).
+post-P015 (the concurrent session's analyzer changes touch linter behavior).
 48. CHANGELOG: an `[Unreleased]` Added row for P015 exists (concurrent session wrote
-    it) — verify cross-links (rule catalog, README headline, detector count 213).
+it) — verify cross-links (rule catalog, README headline, detector count 213).
 49. Mirror-drift gate: run the api-stability mirror meta-test after the api regen (step 3).
 50. Sleep-the-machine check: nightly bench + load gates under the 47-user load
-    (load averaged 74–143 this session — bench gates may be starving).
+(load averaged 74–143 this session — bench gates may be starving).
 
 ## g) QUESTIONS I CANNOT FIGURE OUT MYSELF
 
 1. **Issue closure:** #62/#63/#64 are AI-filed with the "MANUALLY REVIEWED" box
    UNCHECKED. May I close all three with fix receipts now (post `verify-before-filing`
-   + `github-voice`), or do you want to review the fixes first and close them yourself?
+   - `github-voice`), or do you want to review the fixes first and close them yourself?
 2. **Concurrent-session ownership:** the P015 session is still landing commits (last:
    `ad4f824f5`, minutes ago). Should I treat the analyzer/lint surface as theirs until
    they declare done (deferring api-golden regen + any lint-adjacent commits), or is

@@ -47,12 +47,12 @@ The plan was corrected THREE times, each against verified source facts, before/w
 
 ### a7. C15–C17 — the four pure swaps (one commit per repo)
 
-| Repo | Commit | Notes |
-|---|---|---|
-| InboxClean | `71bb6dd` | 1 file + go.mod; `go-idempotency v0.3.2` direct |
-| games/SEC | `9f12298a` | app.go + test; v0.3.2 direct; 8 pre-existing failures proven byte-identical in an isolated worktree |
-| github-local-sync | `dc1009f` | v0.6.0 direct; local (gitignored) go.work repaired to /v4 paths |
-| SwettySwipperWeb | `84a7352e7` | 3 files; v0.6.0 direct; replace block repaired to /v4 + dangling `eventtest` replace deleted — services/api builds/tidies standalone for the first time since the reorg |
+| Repo              | Commit      | Notes                                                                                                                                                                   |
+| ----------------- | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| InboxClean        | `71bb6dd`   | 1 file + go.mod; `go-idempotency v0.3.2` direct                                                                                                                         |
+| games/SEC         | `9f12298a`  | app.go + test; v0.3.2 direct; 8 pre-existing failures proven byte-identical in an isolated worktree                                                                     |
+| github-local-sync | `dc1009f`   | v0.6.0 direct; local (gitignored) go.work repaired to /v4 paths                                                                                                         |
+| SwettySwipperWeb  | `84a7352e7` | 3 files; v0.6.0 direct; replace block repaired to /v4 + dangling `eventtest` replace deleted — services/api builds/tidies standalone for the first time since the reorg |
 
 Each: `go mod tidy` + build + scoped tests + scorecard receipt. SEC/gls test failures are THEIR pre-existing dep fallout (dep-bump / labels tests), proven identical at parent commits.
 
@@ -75,14 +75,14 @@ Each: `go mod tidy` + build + scoped tests + scorecard receipt. SEC/gls test fai
 
 ## b) PARTIALLY DONE
 
-| Item | Done | Remaining | Gate |
-|---|---|---|---|
-| C23 semantics fixes | 23.3/23.4 (InboxClean Close + test), gls Close | 23.1/23.2 middleware reorder + retry regression test | owner: replay-vs-dedup intent |
-| C23 DiscordSync | — | 23.5/23.6 `CheckAndRecord` swap + concurrency test | D31 |
-| C24 sweeps | Swetty engine-dedup sweep | sqlite-path periodic sweeps (KeyCountdown, browser-history, precheck) ride C18–C20 | D28/D29 |
-| C22 | both browser-history trees fixed | Zlota44 false comment; api-test verification blocked by THEIR templ breakage | C21 / their deps |
-| Fleet receipts (C26-adjacent) | scorecard + F030 + build/test per touched repo, before/after | formal C26 (census diff, versions-manifest, one linked receipt doc) | runs after gated tranche |
-| F030 fleet honesty | 7/9 repos honestly measurable | precheck lint-level F030 hidden until its api module builds (templ runtime mismatch) | their deps |
+| Item                          | Done                                                         | Remaining                                                                            | Gate                          |
+| ----------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------ | ----------------------------- |
+| C23 semantics fixes           | 23.3/23.4 (InboxClean Close + test), gls Close               | 23.1/23.2 middleware reorder + retry regression test                                 | owner: replay-vs-dedup intent |
+| C23 DiscordSync               | —                                                            | 23.5/23.6 `CheckAndRecord` swap + concurrency test                                   | D31                           |
+| C24 sweeps                    | Swetty engine-dedup sweep                                    | sqlite-path periodic sweeps (KeyCountdown, browser-history, precheck) ride C18–C20   | D28/D29                       |
+| C22                           | both browser-history trees fixed                             | Zlota44 false comment; api-test verification blocked by THEIR templ breakage         | C21 / their deps              |
+| Fleet receipts (C26-adjacent) | scorecard + F030 + build/test per touched repo, before/after | formal C26 (census diff, versions-manifest, one linked receipt doc)                  | runs after gated tranche      |
+| F030 fleet honesty            | 7/9 repos honestly measurable                                | precheck lint-level F030 hidden until its api module builds (templ runtime mismatch) | their deps                    |
 
 ---
 

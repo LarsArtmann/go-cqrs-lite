@@ -88,4 +88,5 @@
 3. **Coverage-debt policy:** when a session's new code legitimately drops a package floor (like V003's 88.0→84.3), is the bar "restore the floor with tests before anything else" (what I'll do by default per f/1-2) — or is a documented, issue-ref'd floor acceptance ever acceptable for internal tooling packages? F250a now forces the question structurally.
 
 ---
-*Receipts: chain log `build/verify-chain-20261114-053846.log` (56 attempts → GREEN 07:37 → coverage red 08:38, DRIFT row quoted); TODO_LIST (~22 rows closed with dated receipts + D-sheet v2 + harvest-section updates); CHANGELOG [Unreleased] ×4; build/m38-archive-spec{,-2}/; docs/status/archived ×3 @ count 1,277; canonical-facts green; check-rows 9/9; cqrs-lint 19-pkg + webphone 37-pkg suites green; coverage self-test 9/9. Session reports: this + 07-21 (both indexed).*
+
+_Receipts: chain log `build/verify-chain-20261114-053846.log` (56 attempts → GREEN 07:37 → coverage red 08:38, DRIFT row quoted); TODO_LIST (~22 rows closed with dated receipts + D-sheet v2 + harvest-section updates); CHANGELOG [Unreleased] ×4; build/m38-archive-spec{,-2}/; docs/status/archived ×3 @ count 1,277; canonical-facts green; check-rows 9/9; cqrs-lint 19-pkg + webphone 37-pkg suites green; coverage self-test 9/9. Session reports: this + 07-21 (both indexed)._

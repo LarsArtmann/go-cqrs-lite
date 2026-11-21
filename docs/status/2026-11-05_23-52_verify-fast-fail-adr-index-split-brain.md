@@ -176,7 +176,7 @@ The expensive window was consumed by a one-line documentation miss.
 10. M07-C: `"metaengine/sqliteengine v4.7.0"` → push → smoke.
 11. M07-D: `"systemscenario v4.3.0"` → push → smoke.
 12. `bash scripts/check-versions-manifest.sh --update` + README module→tag manifest
-    + `--check`.
+    - `--check`.
 13. `go get` smoke per tag from a clean dir.
 14. CHANGELOG cut (wave header; 7 tags) + `bash scripts/check-changelog-symbols.sh`.
 15. Re-run `nix run .#check-release-scripts` (post-wave rule) + versions.json

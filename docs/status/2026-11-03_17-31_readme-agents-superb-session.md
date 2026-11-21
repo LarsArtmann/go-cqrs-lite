@@ -67,26 +67,26 @@
 
 ## f) Next tasks
 
-| # | Task | Impact | Effort | Category |
-|---|------|--------|--------|----------|
-| 1 | Run `#check-error-taxonomy-tests` + `#check-untested-exports`; reconcile 546-total and 6,421-vs-6,422 in AGENTS.md | Medium | S | Documentation |
-| 2 | Add `readme_compile_test.go` in example/getting-started pinning the README Quick-Start fences (docs_compile_test.go pattern) | High | S/M | Quality |
-| 3 | Owner decision: experimental caveat on README's system-first Quick Start (g.1) | High | S | Documentation |
-| 4 | Index the two parallel-session status reports (after g.3 answer) | Medium | S | Documentation |
-| 5 | Row or exclude `scratch/counterkey` in module-map census (canonical-facts green) | Medium | S | Cleanup |
-| 6 | Fix module-map.md banner count ("all 98 repo go.mod files are rowed") | Medium | S | Documentation |
-| 7 | Teach check-canonical-facts to catch backticked `N go.mod` citations | Medium | M | Quality |
-| 8 | Sweep repo docs for toolchain patch-version citations (gowork-modes.md et al.); replace with minor-form or derived | Low | S | Documentation |
-| 9 | Add "how this repo counts modules (go.mod / non-testdata / trains)" definition line to AGENTS.md | Medium | S | Documentation |
-| 10 | Add collision protocol (diff-before-retry) to Ground Rules | Low | S | Process |
-| 11 | CHANGELOG [Unreleased] entry for the README restructure? (docs-only; owner call whether user-visible) | Low | S | Documentation |
-| 12 | Re-verify README comparison-table cells against eventhorizon/watermill current releases (Aug 2026 data) | Low | M | Documentation |
-| 13 | Banner/pointer pass on example/readme-quickstart README → link the system-path getting-started | Low | S | Documentation |
-| 14 | Add v5 pointer banner to docs/getting-started.md (manual-wiring tutorial) mirroring the stack-presets heads-up | Medium | S | Documentation |
-| 15 | Update docs/status/README.md index header date "(2026-10-26)" | Low | S | Cleanup |
-| 16 | Consider README "90+ modules" → single canonical framing after f.9 lands | Low | S | Documentation |
-| 17 | Run composed `nix run .#verify` in a quiet window as the wave's final receipt | Medium | M | Quality |
-| 18 | docs-health HARVEST of this report's §f into TODO_LIST (canonical next step for this file) | High | S | Process |
+| #  | Task                                                                                                                         | Impact | Effort | Category      |
+| -- | ---------------------------------------------------------------------------------------------------------------------------- | ------ | ------ | ------------- |
+| 1  | Run `#check-error-taxonomy-tests` + `#check-untested-exports`; reconcile 546-total and 6,421-vs-6,422 in AGENTS.md           | Medium | S      | Documentation |
+| 2  | Add `readme_compile_test.go` in example/getting-started pinning the README Quick-Start fences (docs_compile_test.go pattern) | High   | S/M    | Quality       |
+| 3  | Owner decision: experimental caveat on README's system-first Quick Start (g.1)                                               | High   | S      | Documentation |
+| 4  | Index the two parallel-session status reports (after g.3 answer)                                                             | Medium | S      | Documentation |
+| 5  | Row or exclude `scratch/counterkey` in module-map census (canonical-facts green)                                             | Medium | S      | Cleanup       |
+| 6  | Fix module-map.md banner count ("all 98 repo go.mod files are rowed")                                                        | Medium | S      | Documentation |
+| 7  | Teach check-canonical-facts to catch backticked `N go.mod` citations                                                         | Medium | M      | Quality       |
+| 8  | Sweep repo docs for toolchain patch-version citations (gowork-modes.md et al.); replace with minor-form or derived           | Low    | S      | Documentation |
+| 9  | Add "how this repo counts modules (go.mod / non-testdata / trains)" definition line to AGENTS.md                             | Medium | S      | Documentation |
+| 10 | Add collision protocol (diff-before-retry) to Ground Rules                                                                   | Low    | S      | Process       |
+| 11 | CHANGELOG [Unreleased] entry for the README restructure? (docs-only; owner call whether user-visible)                        | Low    | S      | Documentation |
+| 12 | Re-verify README comparison-table cells against eventhorizon/watermill current releases (Aug 2026 data)                      | Low    | M      | Documentation |
+| 13 | Banner/pointer pass on example/readme-quickstart README → link the system-path getting-started                               | Low    | S      | Documentation |
+| 14 | Add v5 pointer banner to docs/getting-started.md (manual-wiring tutorial) mirroring the stack-presets heads-up               | Medium | S      | Documentation |
+| 15 | Update docs/status/README.md index header date "(2026-10-26)"                                                                | Low    | S      | Cleanup       |
+| 16 | Consider README "90+ modules" → single canonical framing after f.9 lands                                                     | Low    | S      | Documentation |
+| 17 | Run composed `nix run .#verify` in a quiet window as the wave's final receipt                                                | Medium | M      | Quality       |
+| 18 | docs-health HARVEST of this report's §f into TODO_LIST (canonical next step for this file)                                   | High   | S      | Process       |
 
 ## g) Questions I cannot answer myself
 
@@ -97,4 +97,4 @@
 
 ---
 
-*Point-in-time snapshot. §f feeds docs-health HARVEST; annotate, never rewrite, when superseded.*
+_Point-in-time snapshot. §f feeds docs-health HARVEST; annotate, never rewrite, when superseded._

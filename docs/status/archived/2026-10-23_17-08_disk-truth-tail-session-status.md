@@ -23,8 +23,8 @@
 3. **CI-red set fixed** (7 failing jobs on master): go.work restored to tracking (daemon had
    deleted it 10-16; the parallel restore branch `hermes/restore-go-work` never merged — disk
    file was identical, staged + absorbed); shfmt drift (2 scripts); check-private-deps (go-etag
-   + httputil audited PUBLIC, added to AUDITED_PUBLIC); erraudit + doc-assertions verified
-   green locally (stale CI failures); Examples Test fixed via (4).
+   - httputil audited PUBLIC, added to AUDITED_PUBLIC); erraudit + doc-assertions verified
+     green locally (stale CI failures); Examples Test fixed via (4).
 4. **getting-started wave-completion miss fixed** — `reader.Get(counterID.String())` looked up
    the display form against the bare-keyed projection → `found=false` forever. Now `.Get()`;
    full examples suite green (`nix run .#test-examples`).

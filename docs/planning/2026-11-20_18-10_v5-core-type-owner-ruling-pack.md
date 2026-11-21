@@ -22,12 +22,13 @@ revert cleanly. Recorded as TODO_LIST D-sheet D32.
 reconciliation?
 
 **Evidence.** `cmd/cqrs-lint/v4/pkg/rules/version/v007_tables_symbols_v5.go` documents the
-deprecated twins as *"removed together with the v4 train in T26"* — the strategy that keeps
+deprecated twins as _"removed together with the v4 train in T26"_ — the strategy that keeps
 `cqrs-upgrade --to-v5` import rewriting mechanical (a v4 consumer of a deprecated API lands
 on the same-name core/v5 API; the deprecated surface dies once, with the v4 train).
 art-dupl accepts in core/v5 say the same.
 
 **Options.**
+
 - **Stay (recommended):** twins ride until T26; the pre-first-tag window is spent on the
   NEW surface (brands, ADR-0166 alias, Payload, Cause, stamps).
 - **Cut now (review's original R1):** strands mid-migration consumers on names the codemod
@@ -48,6 +49,7 @@ the v5 surface being born. Leaving Proposed after enactment repeats the
 docs-lag-behind-code drift class this repo gates against.
 
 **Options.**
+
 - **Flip at M04 (recommended):** Accepted + dated implementation note citing the landing
   commit; `#check-adr-numbering` green in the same edit window.
 - **Keep Proposed until the full cut:** an enacted-but-unratified ADR for the entire
@@ -69,6 +71,7 @@ proven in-repo precedent for exactly this kind of typed unification; ADR-0166's
 Alternatives section already rejected string-typed canonical for StreamRef.
 
 **Options.**
+
 - **Brand now (recommended):** final typed surface before the first tag; every later task
   lands on the final shape; M24 compat review catches metaengine/system friction before
   the shape hardens.

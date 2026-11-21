@@ -7,20 +7,20 @@ scripts/audit-tag-baseline.txt`): 1446 tags checked, **0 NEW violations**.
 
 ## Class 1 — content on TAGGABLE trains (wave III seed)
 
-| Module | Δ files | First-read verdict | Wave III disposition |
-|--------|---------|--------------------|----------------------|
-| middleware | 28 | errorfamily import regrouping + deadletter/flightrecorder additions | inspect → minor tag |
-| encryption | 15 | M25 (ADR-0139 completion) territory | fold into M25 |
-| command | 14 | AsRecord/BDD-era test + aggregate_ref work | inspect → minor tag |
-| query | 13 | AsRecord/capability test work | inspect → minor tag |
-| stack (root) | 13 | v5-deletion surface (M09/M10) | DEFER — tags would immortalize a surface scheduled for deletion; deprecation annotations ride M09 |
-| storage (root) | 9 | test-only (sqlite_helpers, snapshot_migration_edge) | patch tag or defer with tests-only note |
-| otel | 7 | inspect (11 total incl. pins) | inspect → minor tag |
-| id | 6 | inspect | inspect → minor tag |
-| scheduling | 5 content (14 total) | store.go +1 line, test tweaks | patch tag |
-| record/metadata/prometheus/commandlifecycle | 3 each | small; likely import regrouping | blanket patch sweep |
-| signing/scenario/projection/listing/kv | 2 each | small | blanket patch sweep |
-| dedup | 1 | post-wave residue | blanket patch sweep |
+| Module                                      | Δ files              | First-read verdict                                                  | Wave III disposition                                                                              |
+| ------------------------------------------- | -------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| middleware                                  | 28                   | errorfamily import regrouping + deadletter/flightrecorder additions | inspect → minor tag                                                                               |
+| encryption                                  | 15                   | M25 (ADR-0139 completion) territory                                 | fold into M25                                                                                     |
+| command                                     | 14                   | AsRecord/BDD-era test + aggregate_ref work                          | inspect → minor tag                                                                               |
+| query                                       | 13                   | AsRecord/capability test work                                       | inspect → minor tag                                                                               |
+| stack (root)                                | 13                   | v5-deletion surface (M09/M10)                                       | DEFER — tags would immortalize a surface scheduled for deletion; deprecation annotations ride M09 |
+| storage (root)                              | 9                    | test-only (sqlite_helpers, snapshot_migration_edge)                 | patch tag or defer with tests-only note                                                           |
+| otel                                        | 7                    | inspect (11 total incl. pins)                                       | inspect → minor tag                                                                               |
+| id                                          | 6                    | inspect                                                             | inspect → minor tag                                                                               |
+| scheduling                                  | 5 content (14 total) | store.go +1 line, test tweaks                                       | patch tag                                                                                         |
+| record/metadata/prometheus/commandlifecycle | 3 each               | small; likely import regrouping                                     | blanket patch sweep                                                                               |
+| signing/scenario/projection/listing/kv      | 2 each               | small                                                               | blanket patch sweep                                                                               |
+| dedup                                       | 1                    | post-wave residue                                                   | blanket patch sweep                                                                               |
 
 **Wave III shape (deferred consciously):** one inspection pass over the ≥5-file
 rows to separate real API from import-regrouping, then a single minor/patch

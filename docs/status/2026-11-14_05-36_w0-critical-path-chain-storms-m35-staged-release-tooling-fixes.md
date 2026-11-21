@@ -146,5 +146,5 @@ spec subagents rate-limited and needs re-dispatch.
   within this block). The chain rides by design; each REAL-red cycle costs ~1h.
 - **Push authorization** (owner) — hard-gates the consumer-facing half of M35 and all of F214.
 
-*Auto-commit daemon absorbed all tree work; the authored phase-boundary commit rides the
-receipt (per the 2026-11-03 ruling).*
+_Auto-commit daemon absorbed all tree work; the authored phase-boundary commit rides the
+receipt (per the 2026-11-03 ruling)._

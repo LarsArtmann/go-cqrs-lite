@@ -55,17 +55,17 @@
 
 ## f) Top next tasks (impact-sorted; plan-arc scoped)
 
-| # | Task | Impact | Effort |
-| --- | --- | --- | --- |
-| 1 | Relaunch M04 verify clean (today's session owns it) — the M05/M06/M07 chain is blocked behind it | Critical | M |
-| 2 | Fix `#check-md-go` (T19 decision + re-pin) — a dead gate validating nothing since ~10-24 | Critical | S/M |
-| 3 | Add pgengine + systemscenario to the M07 wave — closes T01's definition completely | High | S |
-| 4 | Wire `check-example-standalone.sh --build` into ci.yml (TODO row 180) — makes the MarkDemo class automatic | High | S |
-| 5 | One-page owner decision sheet for T18/T19/T24/T25 (+ nightly-legs appetite) — prepared, one meeting | High | S |
-| 6 | T14 explain→RULES.md pointer + tests; T13 AGENTS gotcha rows | Medium | XS |
-| 7 | Harvest remaining plan leftovers into TODO_LIST (or explicitly kill them) so they stop depending on this file | Medium | S |
-| 8 | T15 recipes §2.43 hollow-root note (+ doc-check when gate 2 is fixed) | Low | XS |
-| 9 | Nightly file-size/example legs — decide if still wanted once CI wiring (f4) lands | Medium | S |
+| # | Task                                                                                                          | Impact   | Effort |
+| - | ------------------------------------------------------------------------------------------------------------- | -------- | ------ |
+| 1 | Relaunch M04 verify clean (today's session owns it) — the M05/M06/M07 chain is blocked behind it              | Critical | M      |
+| 2 | Fix `#check-md-go` (T19 decision + re-pin) — a dead gate validating nothing since ~10-24                      | Critical | S/M    |
+| 3 | Add pgengine + systemscenario to the M07 wave — closes T01's definition completely                            | High     | S      |
+| 4 | Wire `check-example-standalone.sh --build` into ci.yml (TODO row 180) — makes the MarkDemo class automatic    | High     | S      |
+| 5 | One-page owner decision sheet for T18/T19/T24/T25 (+ nightly-legs appetite) — prepared, one meeting           | High     | S      |
+| 6 | T14 explain→RULES.md pointer + tests; T13 AGENTS gotcha rows                                                  | Medium   | XS     |
+| 7 | Harvest remaining plan leftovers into TODO_LIST (or explicitly kill them) so they stop depending on this file | Medium   | S      |
+| 8 | T15 recipes §2.43 hollow-root note (+ doc-check when gate 2 is fixed)                                         | Low      | XS     |
+| 9 | Nightly file-size/example legs — decide if still wanted once CI wiring (f4) lands                             | Medium   | S      |
 
 ## g) Top question I cannot figure out myself
 

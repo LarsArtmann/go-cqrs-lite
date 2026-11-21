@@ -132,8 +132,8 @@ or the two harvest sections; re-rowing them here would duplicate, not add.)
 
 ## g) QUESTIONS (cannot resolve myself)
 
-1. **"T fine" confirmation (D34):** I read it as *master's corruption-only design stands — no T9
-   port*; the precheck wire-shape scaffolding survives on `origin/precheck` if ever wanted.
+1. **"T fine" confirmation (D34):** I read it as _master's corruption-only design stands — no T9
+   port_; the precheck wire-shape scaffolding survives on `origin/precheck` if ever wanted.
    Correct reading?
 2. **D35 — retroactive wave blessing:** browser-history master is now PUSHED on the v4.16 pins
    (loginpage/adminui v4.16.0, templ v0.3.1118, templ-components v1.27.0). Confirm, or name a

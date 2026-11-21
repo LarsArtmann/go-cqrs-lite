@@ -52,10 +52,10 @@ All three are corrected in the tree (see §d).
    `StreamAppendExpected` now encode the WHOLE batch via
    `EncodeStreamValuesErr` before any row exists; `encodeValue` returns
    `(string, error)` and all 8 write paths propagate it (map set/update [cached
-   + tx]/planned, multimap add, log append, versioned set, version row).
-   Evidence: `metaengine/sqliteengine/encoding_error_test.go` (9 specs over real
-   in-memory SQLite), suite green (8.1 s warm / 30.1 s cold), `-race -short`
-   green (6.2 s), `golangci-lint` on the module: **0 issues**.
+   - tx]/planned, multimap add, log append, versioned set, version row).
+     Evidence: `metaengine/sqliteengine/encoding_error_test.go` (9 specs over real
+     in-memory SQLite), suite green (8.1 s warm / 30.1 s cold), `-race -short`
+     green (6.2 s), `golangci-lint` on the module: **0 issues**.
 4. **T13 found the site Wave 2 missed.** `sqliteengine` had its own
    `encodeStreamValue` twin with the `%v` fallback, so the earlier "four engine
    write paths" sweep never covered sqlite (turso inherited it by delegation).
@@ -111,28 +111,28 @@ All three are corrected in the tree (see §d).
    on **foreign** modules (see §d). Calling T15 "done" was an overclaim; the
    plan now says PARTIAL. Remaining: re-run `#verify-fast` end-to-end once the
    foreign lint/file-size/duplication reds are fixed.
-   *Effort to finish: S (one run) once unblocked.*
+   _Effort to finish: S (one run) once unblocked._
 2. **T13 coverage of the class — 1 of 4 engine families.** SQL engines reject;
    `pebbleengine` / `bboltengine` / `badgerengine` still call
    `keycodec.EncodeJSON`, which falls back to `fmt.Sprintf("%v")` across
    **21 production write sites** (map/multimap/log/stream/vector metadata).
    The COOKBOOK now states this gap explicitly; the TODO row was amended from
-   "graph encoders only" to the real scope. *Effort: L.*
+   "graph encoders only" to the real scope. _Effort: L._
 3. **No stored-bytes pin for the changed sqlite write path.** Wave 1 pinned
-   ingress bytes; my `StreamAppend`/`MapSet` rewiring is *reasoned* to store the
+   ingress bytes; my `StreamAppend`/`MapSet` rewiring is _reasoned_ to store the
    same strings (same encoder, same inputs) but there is no test asserting it.
-   *Effort: S.*
+   _Effort: S._
 4. **Stream-batch mutation proof missing.** The all-or-nothing test exists and
-   passes; only the map path was mutation-verified. *Effort: S.*
+   passes; only the map path was mutation-verified. _Effort: S._
 5. **Turso not executed.** The fix reaches turso by delegation, but no
    turso-specific test ran (module suites were not invoked for it).
-   *Effort: S (verify), M if libSQL linkage is needed.*
+   _Effort: S (verify), M if libSQL linkage is needed._
 6. **CHANGELOG + TODO_LIST + COOKBOOK content** landed correctly but through
    daemon `chore:` commits, not authored ones (`decbdaed4` swept 171 files).
-   *Effort: S (process change, not content).*
+   _Effort: S (process change, not content)._
 7. **T16 recommendation has an unmeasured input.** The KV half of option D
    (a value tag) has no cost measurement (bytes/op, migration pain) — the
-   design says "1 byte" but nothing measured it. *Effort: S.*
+   design says "1 byte" but nothing measured it. _Effort: S._
 
 ---
 
@@ -158,7 +158,7 @@ All three are corrected in the tree (see §d).
 ## d) TOTALLY FUCKED UP
 
 > This section is the honest one. None of it is broken code; it is broken
-> *claims* and broken *process*, both now corrected in the tree.
+> _claims_ and broken _process_, both now corrected in the tree.
 
 1. **I shipped a fleet-wide overclaim in `metaengine/COOKBOOK.md`.** The first
    wording said write paths reject unrepresentable values and "that fallback is
@@ -173,7 +173,7 @@ All three are corrected in the tree (see §d).
    trap. Fixed: §11.8 and the task line now say PARTIAL with the reason.
 3. **I wrote an unverified claim into the T16 design doc.** §12 said KV engines
    could tag values "under the keycodec v2 value family"; there is no value-tag
-   family — keycodec v2 is a *key grammar*, and the value encoder is
+   family — keycodec v2 is a _key grammar_, and the value encoder is
    `EncodeJSON` with the same `%v` fallback. Fixed: option D now carries the
    correction and links the real gap.
 4. **I ran `nix fmt` while a `buildflow --fix --build-mode=full` was live.**
@@ -234,8 +234,8 @@ All three are corrected in the tree (see §d).
    `errorfamily.Rejection`; a code rename would pass. Impact: low. Fix: add
    `ErrorCode()` assertions.
 10. **Reduce the foreign-red blast radius.** Three file-size offenders, eight
-   clone groups and a dozen lint-failing modules make `#verify-fast`
-   unusable for everyone. Impact: high (nobody can run the composed gate).
+    clone groups and a dozen lint-failing modules make `#verify-fast`
+    unusable for everyone. Impact: high (nobody can run the composed gate).
     Fix: the owning sessions close them; until then, a documented "component
     matrix" run (as in §11.8) is the honest substitute.
 
@@ -243,72 +243,72 @@ All three are corrected in the tree (see §d).
 
 ## f) Top 50 things to get done next
 
-Format: **task** — *Impact / Effort / Category*.
+Format: **task** — _Impact / Effort / Category_.
 
 ### Value-encoding correctness (this wave's unfinished proof)
 
-1. **Add a stored-bytes pin: `StreamAppend` stores byte-identical strings for a fixed representable payload (legacy vs new encoder path).** — *Critical / S / Test*
-2. **Add a stored-bytes pin for `MapSet`/`MapSetAt` map values, including the version row.** — *Critical / S / Test*
-3. **Mutation-verify the stream batch all-or-nothing test (revert to per-value encode → must be RED).** — *High / S / Test*
-4. **Add a `FuzzDecodeStreamValue` (arbitrary bytes never panic; documents the fallback).** — *Medium / S / Test*
-5. **Add `ErrorCode()` assertions to the rejection tests (`sqliteengine.encode_value`, `metaengine.encode_stream_value`).** — *Medium / S / Test*
-6. **Migrate `MapSetAt` onto `mapSetEncoded` (remove the duplicated write+version sequence).** — *Medium / S / Quality*
-7. **Run the tursoengine suite (or a delegated rejection test) to prove the turso inheritance.** — *High / S / Test*
-8. **Add a shared `adttest` conformance row "unrepresentable value is rejected" so every future engine inherits it.** — *High / M / Test*
-9. **`keycodec.EncodeJSONErr` twin + deprecate the silent form.** — *Critical / M / Feature*
-10. **Migrate `pebbleengine` (7 value write sites) to the error twin.** — *High / M / Bug*
-11. **Migrate `bboltengine` (7 value write sites).** — *High / M / Bug*
-12. **Migrate `badgerengine` (7 value write sites).** — *High / M / Bug*
-13. **Add per-engine LSM rejection tests mirroring `encoding_error_test.go`.** — *High / M / Test*
-14. **Decide the graph keys-vs-values rule and document it in the COOKBOOK.** — *Medium / S / Documentation*
-15. **Migrate `mysqlengine/graph.go` to the decided rule.** — *Medium / S / Bug*
-16. **Migrate `duckdbengine/graph.go`.** — *Medium / S / Bug*
-17. **Migrate `pgengine/graph.go`.** — *Medium / S / Bug*
-18. **Migrate `bigtableengine` value encode (or record it as an intentional exception).** — *Medium / M / Bug*
+1. **Add a stored-bytes pin: `StreamAppend` stores byte-identical strings for a fixed representable payload (legacy vs new encoder path).** — _Critical / S / Test_
+2. **Add a stored-bytes pin for `MapSet`/`MapSetAt` map values, including the version row.** — _Critical / S / Test_
+3. **Mutation-verify the stream batch all-or-nothing test (revert to per-value encode → must be RED).** — _High / S / Test_
+4. **Add a `FuzzDecodeStreamValue` (arbitrary bytes never panic; documents the fallback).** — _Medium / S / Test_
+5. **Add `ErrorCode()` assertions to the rejection tests (`sqliteengine.encode_value`, `metaengine.encode_stream_value`).** — _Medium / S / Test_
+6. **Migrate `MapSetAt` onto `mapSetEncoded` (remove the duplicated write+version sequence).** — _Medium / S / Quality_
+7. **Run the tursoengine suite (or a delegated rejection test) to prove the turso inheritance.** — _High / S / Test_
+8. **Add a shared `adttest` conformance row "unrepresentable value is rejected" so every future engine inherits it.** — _High / M / Test_
+9. **`keycodec.EncodeJSONErr` twin + deprecate the silent form.** — _Critical / M / Feature_
+10. **Migrate `pebbleengine` (7 value write sites) to the error twin.** — _High / M / Bug_
+11. **Migrate `bboltengine` (7 value write sites).** — _High / M / Bug_
+12. **Migrate `badgerengine` (7 value write sites).** — _High / M / Bug_
+13. **Add per-engine LSM rejection tests mirroring `encoding_error_test.go`.** — _High / M / Test_
+14. **Decide the graph keys-vs-values rule and document it in the COOKBOOK.** — _Medium / S / Documentation_
+15. **Migrate `mysqlengine/graph.go` to the decided rule.** — _Medium / S / Bug_
+16. **Migrate `duckdbengine/graph.go`.** — _Medium / S / Bug_
+17. **Migrate `pgengine/graph.go`.** — _Medium / S / Bug_
+18. **Migrate `bigtableengine` value encode (or record it as an intentional exception).** — _Medium / M / Bug_
 
 ### Envelope / read-side (owner-gated)
 
-19. **Get the owner ruling on §12 option C+D vs E, and the dual-read window length.** — *Critical / XS / Decision*
-20. **If approved: write the ADR (ADR-0066 reversal) with the SQL-column + KV-tag shape.** — *High / M / Documentation*
-21. **Prototype the SQL `value_encoding` column on sqliteengine (one engine, one read path) to measure cost.** — *High / M / Feature*
-22. **Measure the KV value-tag cost (bytes/op, migration) before committing to D.** — *High / M / Research*
-23. **Design the opt-in `store backfill --values` command (never touches the journal).** — *Medium / M / Feature*
-24. **Document the keys-`%v` stringification rule in the COOKBOOK.** — *Medium / S / Documentation*
-25. **Add a consumer FAQ entry: "why does my string `123` come back as a number?" linking ADR-0161 + §12.** — *High / S / Documentation*
-26. **Link the "Stored values" COOKBOOK section from `metaengine/README.md`.** — *Medium / XS / Documentation*
-27. **Revisit `DecodeStreamValueErr`'s doc: state when a caller can legitimately use it.** — *Low / XS / Documentation*
+19. **Get the owner ruling on §12 option C+D vs E, and the dual-read window length.** — _Critical / XS / Decision_
+20. **If approved: write the ADR (ADR-0066 reversal) with the SQL-column + KV-tag shape.** — _High / M / Documentation_
+21. **Prototype the SQL `value_encoding` column on sqliteengine (one engine, one read path) to measure cost.** — _High / M / Feature_
+22. **Measure the KV value-tag cost (bytes/op, migration) before committing to D.** — _High / M / Research_
+23. **Design the opt-in `store backfill --values` command (never touches the journal).** — _Medium / M / Feature_
+24. **Document the keys-`%v` stringification rule in the COOKBOOK.** — _Medium / S / Documentation_
+25. **Add a consumer FAQ entry: "why does my string `123` come back as a number?" linking ADR-0161 + §12.** — _High / S / Documentation_
+26. **Link the "Stored values" COOKBOOK section from `metaengine/README.md`.** — _Medium / XS / Documentation_
+27. **Revisit `DecodeStreamValueErr`'s doc: state when a caller can legitimately use it.** — _Low / XS / Documentation_
 
 ### Gates, tooling, process
 
-28. **Close the three foreign file-size offenders (`scheduling/sqlstore/store.go`, `system/adapter_event.go`, `metaengine/layout.go`) with their owning sessions.** — *Critical / M / Cleanup*
-29. **Fix or baseline the eight foreign clone groups so `#check-duplication` is green.** — *High / M / Cleanup*
-30. **Fix the foreign lint reds so `#verify-fast` can run to completion.** — *Critical / L / Cleanup*
-31. **Repair the `md-go-validator` derivation (missing `pprof` zip in the FOD) and re-run `#check-md-go`.** — *Critical / S / CI*
-32. **Fix `generate-error-taxonomy.sh` sentinel attribution (verify the sentinel before writing `-`).** — *Medium / S / Tooling*
-33. **Pin the taxonomy generator with a mutation-tested golden.** — *Medium / M / Test*
-34. **Add the preflight "is buildflow/daemon running?" to the wave-start checklist.** — *High / XS / Process*
-35. **Re-run `#verify-fast` end-to-end after 28–30 and record the receipt in the plan.** — *High / S / CI*
-36. **Run `check-adr-numbering` after every doc wave (before AND after).** — *Medium / XS / Process*
-37. **Add a `#verify-components` app that runs the verify-fast constituents and classifies reds, for use while foreign reds exist.** — *Medium / M / CI*
-38. **Make the plan log's task table carry an explicit `PARTIAL` state (no binary done/not-done).** — *Medium / XS / Documentation*
-39. **Re-run `scripts/verify-docs.sh` + doc-check on the corrected COOKBOOK/plan.** — *Medium / S / CI*
-40. **Check whether the 171-file `chore:` sweep included stray files from this wave that belong in CHANGELOG's [Unreleased].** — *Medium / S / Cleanup*
+28. **Close the three foreign file-size offenders (`scheduling/sqlstore/store.go`, `system/adapter_event.go`, `metaengine/layout.go`) with their owning sessions.** — _Critical / M / Cleanup_
+29. **Fix or baseline the eight foreign clone groups so `#check-duplication` is green.** — _High / M / Cleanup_
+30. **Fix the foreign lint reds so `#verify-fast` can run to completion.** — _Critical / L / Cleanup_
+31. **Repair the `md-go-validator` derivation (missing `pprof` zip in the FOD) and re-run `#check-md-go`.** — _Critical / S / CI_
+32. **Fix `generate-error-taxonomy.sh` sentinel attribution (verify the sentinel before writing `-`).** — _Medium / S / Tooling_
+33. **Pin the taxonomy generator with a mutation-tested golden.** — _Medium / M / Test_
+34. **Add the preflight "is buildflow/daemon running?" to the wave-start checklist.** — _High / XS / Process_
+35. **Re-run `#verify-fast` end-to-end after 28–30 and record the receipt in the plan.** — _High / S / CI_
+36. **Run `check-adr-numbering` after every doc wave (before AND after).** — _Medium / XS / Process_
+37. **Add a `#verify-components` app that runs the verify-fast constituents and classifies reds, for use while foreign reds exist.** — _Medium / M / CI_
+38. **Make the plan log's task table carry an explicit `PARTIAL` state (no binary done/not-done).** — _Medium / XS / Documentation_
+39. **Re-run `scripts/verify-docs.sh` + doc-check on the corrected COOKBOOK/plan.** — _Medium / S / CI_
+40. **Check whether the 171-file `chore:` sweep included stray files from this wave that belong in CHANGELOG's [Unreleased].** — _Medium / S / Cleanup_
 
 ### Measurement
 
-41. **Benchmark `StreamAppend` batch encode: 1-value and 100-value appends, allocs/op before vs after `EncodeStreamValuesErr`.** — *Medium / S / Performance*
-42. **Benchmark the rejection path (marshal failure) — it must not be on the success hot path.** — *Low / XS / Performance*
-43. **Re-record the metaengine encoded-ingress numbers after the sqlite changes (fresh machine load).** — *Low / S / Performance*
-44. **Add a `-benchtime`-pinned baseline row for the new LSM encoders once migrated.** — *Low / S / Performance*
+41. **Benchmark `StreamAppend` batch encode: 1-value and 100-value appends, allocs/op before vs after `EncodeStreamValuesErr`.** — _Medium / S / Performance_
+42. **Benchmark the rejection path (marshal failure) — it must not be on the success hot path.** — _Low / XS / Performance_
+43. **Re-record the metaengine encoded-ingress numbers after the sqlite changes (fresh machine load).** — _Low / S / Performance_
+44. **Add a `-benchtime`-pinned baseline row for the new LSM encoders once migrated.** — _Low / S / Performance_
 
 ### Documentation + hygiene
 
-45. **Add this report's row to `docs/status/README.md` (done in the same session).** — *High / XS / Documentation*
-46. **Mark the plan's Wave 4 header as "executed 2026-10-24" and link §11.7/§11.8.** — *Medium / XS / Documentation*
-47. **Add the LSM silent-loss gap to `metaengine/README.md`'s codec section.** — *Medium / S / Documentation*
-48. **Sweep TODOs for stale statements that `sqliteengine` values are JSON-only-encoded-with-fallback.** — *Low / S / Documentation*
-49. **Decide whether `tursoengine` needs its own README note about inherited rejections.** — *Low / XS / Documentation*
-50. **Harvest §f into `TODO_LIST.md` / `ROADMAP.md` (docs-health HARVEST) — most of 1–18 belongs in the Metaengine follow-ups section, 28–40 in CI.** — *High / S / Process*
+45. **Add this report's row to `docs/status/README.md` (done in the same session).** — _High / XS / Documentation_
+46. **Mark the plan's Wave 4 header as "executed 2026-10-24" and link §11.7/§11.8.** — _Medium / XS / Documentation_
+47. **Add the LSM silent-loss gap to `metaengine/README.md`'s codec section.** — _Medium / S / Documentation_
+48. **Sweep TODOs for stale statements that `sqliteengine` values are JSON-only-encoded-with-fallback.** — _Low / S / Documentation_
+49. **Decide whether `tursoengine` needs its own README note about inherited rejections.** — _Low / XS / Documentation_
+50. **Harvest §f into `TODO_LIST.md` / `ROADMAP.md` (docs-health HARVEST) — most of 1–18 belongs in the Metaengine follow-ups section, 28–40 in CI.** — _High / S / Process_
 
 ---
 
@@ -318,7 +318,7 @@ Format: **task** — *Impact / Effort / Category*.
    column + a KV value tag, one-release dual-read) or stay on **E** (document
    the limitation through v4.x)? I can design and cost it, but the call decides
    whether `reify` keeps working on untagged legacy rows and whether a
-   migration project starts now. *Unblocks §f 19–23.*
+   migration project starts now. _Unblocks §f 19–23._
 2. **Is the LSM `keycodec.EncodeJSON` migration in scope for v4.x?** It needs
    either a new exported `EncodeJSONErr` (additive, safe) or a signature change
    (breaking) and touches 21 sites plus engine budgets. I cannot decide whether
@@ -333,14 +333,14 @@ Format: **task** — *Impact / Effort / Category*.
 
 ## Appendix — session evidence index
 
-| Artifact | Location |
-| -------- | -------- |
+| Artifact                                              | Location                                                                        |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------- |
 | Plan + execution log (§11.7, §11.8) + T16 spike (§12) | `docs/planning/2026-10-24_05-33_SUPERB-metaengine-codec-boundary-completion.md` |
-| Ingress codec decision (previous wave) | `docs/adr/0161-encoded-ingress-producer-codec.md` |
-| Stored-value contract + LSM gap | `metaengine/COOKBOOK.md` §"Stored values" |
-| Codec pins | `metaengine/stream_codec_test.go` |
-| SQL write-path rejection tests | `metaengine/sqliteengine/encoding_error_test.go` |
-| Extracted write helper | `metaengine/sqliteengine/map_write.go` |
-| Budget rationale | `scripts/check-module-layers.sh` (`DEP_BUDGET["metaengine/sqliteengine"]=4`) |
-| Taxonomy row | `docs/error-taxonomy.md` (`metaengine.encode_stream_value`) |
-| Harvest | `TODO_LIST.md` → "Metaengine — follow-ups" + Code Quality + CI |
+| Ingress codec decision (previous wave)                | `docs/adr/0161-encoded-ingress-producer-codec.md`                               |
+| Stored-value contract + LSM gap                       | `metaengine/COOKBOOK.md` §"Stored values"                                       |
+| Codec pins                                            | `metaengine/stream_codec_test.go`                                               |
+| SQL write-path rejection tests                        | `metaengine/sqliteengine/encoding_error_test.go`                                |
+| Extracted write helper                                | `metaengine/sqliteengine/map_write.go`                                          |
+| Budget rationale                                      | `scripts/check-module-layers.sh` (`DEP_BUDGET["metaengine/sqliteengine"]=4`)    |
+| Taxonomy row                                          | `docs/error-taxonomy.md` (`metaengine.encode_stream_value`)                     |
+| Harvest                                               | `TODO_LIST.md` → "Metaengine — follow-ups" + Code Quality + CI                  |

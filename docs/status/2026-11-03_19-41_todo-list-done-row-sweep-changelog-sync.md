@@ -8,6 +8,7 @@ CHANGELOG.md +1 entry (E023, the only genuinely unrecorded shipped work).
 ## Scope — what this report VERIFIED vs did NOT verify
 
 **Verified this session (command/artifact named):**
+
 - All 114 `- [x]` blocks inventoried with a block-scanner script (start line +
   continuation lines; 970-line dump read in full before any deletion).
 - CHANGELOG coverage for every done row: grep matrix over `CHANGELOG.md`
@@ -27,6 +28,7 @@ CHANGELOG.md +1 entry (E023, the only genuinely unrecorded shipped work).
   start.
 
 **NOT verified (and why):**
+
 - **Formatter compliance of my markdown edits** — never ran `nix fmt
   --fail-on-change` or a scoped dprint check on TODO_LIST.md/CHANGELOG.md
   (a whole-tree formatter pass in a multi-session tree risks colliding with
@@ -190,6 +192,7 @@ caught within the session:
 ## f) Next — up to 50, impact-sorted (BRAINSTORM, not commitments; most are ROADMAP fuel; provenance marked)
 
 **Direct follow-ups from this session [S]:**
+
 1. [S] Cut `cmd/cqrs-lint` v4.19.0 carrying E023 (rel-tests +
    `check-example-standalone` first, per the row).
 2. [S] Bump bank-sync's cqrs-lint pin to that tag + re-verify its
@@ -211,92 +214,92 @@ caught within the session:
 
 **E023/satellite-SQL thread [S]:**
 11. Decide whether E023 should grade consumers (scorecard wiring) — the
-    idea now lives in TODO_LIST:468.
+idea now lives in TODO_LIST:468.
 12. Re-run the in-repo self-lint after the tag: the 3 deliberate
-    middleware/projectionhost findings should stay visible-by-design.
+middleware/projectionhost findings should stay visible-by-design.
 13. Consider a consumer-facing note in the error-taxonomy or migration docs
-    about the E023 advisory for heavy-SQL adopters (bank-sync shape).
+about the E023 advisory for heavy-SQL adopters (bank-sync shape).
 
 **Docs/truth [S+M]:**
 14. Annotate/harvest the parallel session's committed rawquery report
-    (`docs/status/2026-11-03_19-09_*`) per docs-health (next-items →
-    TODO_LIST before session end).
+(`docs/status/2026-11-03_19-09_*`) per docs-health (next-items →
+TODO_LIST before session end).
 15. Full stale-premise sweep over surviving open rows ("blocked on tag X"
-    vs versions.json — mechanizable).
+vs versions.json — mechanizable).
 16. Verify the CHANGELOG ↔ TODO_LIST E023 pairing survives the v4.19.0 cut
-    (entry must move to the wave section at tag time).
+(entry must move to the wave section at tag time).
 17. Root-cause the M4–M7 duplicate block (which pass wrote it twice).
 
 **Inherited high-value rows seen during the sweep [I] (already rowed —
 listing here so this report is a self-contained map; do NOT re-row):**
 18. [I] A9 keycodec-v2 engine migration wave (pebble reference + badger +
-    bbolt + legacy stores; owner-confirmed as own wave).
+bbolt + legacy stores; owner-confirmed as own wave).
 19. [I] Owner question: deployed-DB census (sticky-key fallback vs re-key).
 20. [I] `check-duplication` RED on HEAD: ~190 novel groups, ~180 ADR-0152
-    mirror twins (one-campaign decision: directives vs end-of-campaign
-    re-pin).
+mirror twins (one-campaign decision: directives vs end-of-campaign
+re-pin).
 21. [I] MarkDemo untagged-API incident: cut the next catalog train;
-    heal `example/mesh-demo` GOWORK=off build.
+heal `example/mesh-demo` GOWORK=off build.
 22. [I] Gate it: build `examplePaths` with GOWORK=off against the pinned
-    graph (would have caught MarkDemo at commit time).
+graph (would have caught MarkDemo at commit time).
 23. [I] The composed-proof re-arm (same as 10 — keep one row, dedupe on
-    harvest).
+harvest).
 24. [I] Testing-plan tail: T10 mutation gate, T13 synctest wave, T14 planner
-    model-based test, T15 differential engine harness, T16 behaviour-test
-    half, T17 executable-examples leg (= 22), T18 tail-latency matrix, T19
-    heap/goroutine/disk budgets, T20 crash-consistency, T22 broker fault
-    matrix, T24 owner family decision (signing Corruption vs Rejection +
-    canceled-context writes), T25 companion-suite remainder.
+model-based test, T15 differential engine harness, T16 behaviour-test
+half, T17 executable-examples leg (= 22), T18 tail-latency matrix, T19
+heap/goroutine/disk budgets, T20 crash-consistency, T22 broker fault
+matrix, T24 owner family decision (signing Corruption vs Rejection +
+canceled-context writes), T25 companion-suite remainder.
 25. [I] V5 schema-evolution follow-ups: compat-gate subject decision;
-    `kv` durable-backing owner decision (engine Map adapter vs cache-only).
+`kv` durable-backing owner decision (engine Map adapter vs cache-only).
 26. [I] Consumer-audit asks: catalog `FactoryFromSystem`-analog from
-    DomainConfig; `scenario.WhenVersioned` — wait, that SHIPPED (verified in
-    trust wave II); the remaining asks are catalog-Registry-derivation,
-    cqrs-lint 2.0→7.4s regression investigation, fleet-census case studies.
+DomainConfig; `scenario.WhenVersioned` — wait, that SHIPPED (verified in
+trust wave II); the remaining asks are catalog-Registry-derivation,
+cqrs-lint 2.0→7.4s regression investigation, fleet-census case studies.
 27. [I] Wave-C delta audit tails (middleware/command/query/otel/id/
-    scheduling content deltas → minor/patch sweep).
+scheduling content deltas → minor/patch sweep).
 28. [I] #58 owner verdict: pre-system journal → system.New adoption path
-    (DeploymentConfig store override vs migration helper).
+(DeploymentConfig store override vs migration helper).
 29. [I] Fleet census: invite the five 2026-10-24 auditors to contribute case
-    studies.
+studies.
 30. [I] EventCatalog: flow-id collision rename next mesh-demo touch;
-    T15.2/T18 hub responses (= c-4).
+T15.2/T18 hub responses (= c-4).
 
 **Process/tooling ideas surfaced by this session [P]:**
 31. [P] Stale-premise detector as a script (see (e)-5, 15).
 32. [P] Deletion-procedure checklist doc in docs-health terms (the four
-    assertions from (e)-2).
+assertions from (e)-2).
 33. [P] Consider `done`-row distillation policy (see (e)-7).
 34. [P] CHANGELOG anchor-linking convention for TODO_LIST cross-refs.
 35. [P] Claims-ledger one-liner for parallel sessions touching shared docs.
 36. [P] Add blockquote-form checkboxes to any checkbox scan (the scanner
-    lesson from (d)-1).
+lesson from (d)-1).
 37. [P] A "receipts-only-in-git-history" disclosure line when deleting done
-    rows whose receipts never made CHANGELOG (four clusters today).
+rows whose receipts never made CHANGELOG (four clusters today).
 38. [P] TODO_LIST size: 2524 lines / ~90 open rows — consider a section
-    quota or auto-archive threshold in the hygiene gate (brainstorm).
+quota or auto-archive threshold in the hygiene gate (brainstorm).
 39. [P] The `#verify` exclusivity rule vs the daemon: the composed chain
-    keeps losing quiet windows to daemon/census churn (10-23/10-24
-    receipts) — worth a dedicated quiet-window scheduling fix.
+keeps losing quiet windows to daemon/census churn (10-23/10-24
+receipts) — worth a dedicated quiet-window scheduling fix.
 40. [P] When a done row cites an archived plan as its only receipt, link
-    the plan path in the CHANGELOG entry at cut time (preserves
-    provenance through wave-section churn).
+the plan path in the CHANGELOG entry at cut time (preserves
+provenance through wave-section churn).
 
 **Bigger arcs (context only, not this session's scope) [B]:**
 41. [B] v5 deletion cascade slices + the cut-order checklist (v5-cut-
-    readiness remains the authority).
+readiness remains the authority).
 42. [B] E023 + C044 + rawquery-warning converge into one "modernization
-    teeth" story for the next cqrs-lint minor.
+teeth" story for the next cqrs-lint minor.
 43. [B] Turso platform-libs flip (open 🔥 row; blocked upstream).
 44. [B] Dgraph integration story for example/graph-native.
 45. [B] metaengine package-split (ADR-0162) execution when the review
-    ratchet bites.
+ratchet bites.
 46. [B] Journal dump⇄load round-trip (testfixtures-inspired 🔥 row).
 47. [B] Fleet v5 migration order: cqrs-htmx + go-appkit first (ADR-0152).
 48. [B] `systemscenario` absorbs scenario/v4 at v5 (ADR-0153 note).
 49. [B] Journal-tailed deriver host (ADR-0154 direction).
 50. [B] The Declined section stays a do-not-re-litigate guard — nothing
-    this session changes it.
+this session changes it.
 
 ## g) Questions I cannot answer myself
 
@@ -319,5 +322,5 @@ listing here so this report is a self-contained map; do NOT re-row):**
 
 ---
 
-*Report by the 2026-11-03 TODO_LIST done-row sweep session. Point-in-time
-snapshot; stale the moment TODO_LIST moves. Section (f) is HARVEST input.*
+_Report by the 2026-11-03 TODO_LIST done-row sweep session. Point-in-time
+snapshot; stale the moment TODO_LIST moves. Section (f) is HARVEST input._

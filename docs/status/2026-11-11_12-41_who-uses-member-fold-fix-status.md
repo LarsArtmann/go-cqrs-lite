@@ -2,7 +2,7 @@
 
 **Date:** 2026-11-11 12:41 CET
 **Session scope:** continuation of the 09:16 cmdguard forensics session. Lars ruled
-*"who-uses is a fucking ~/projects/project-dependency-graph/ responsibility"*; this phase
+_"who-uses is a fucking ~/projects/project-dependency-graph/ responsibility"_; this phase
 implemented, tested, verified, and documented the attribution fix in
 `~/projects/project-dependency-graph`, then annotated the 09:16 status report in go-cqrs-lite.
 
@@ -10,15 +10,15 @@ implemented, tested, verified, and documented the attribution fix in
 
 **Verified this phase (command/artifact for each):**
 
-| # | Claim | Evidence |
-| - | ----- | -------- |
-| V1 | Fix compiles + passes across all 6 modules under race | canonical loop `for m in . discovery graph renderer types testutil; go build ./... && go test -count=1 -race ./...` → all ✅ |
-| V2 | cmdguard tree: 77 → 34 consumers, 0 `via go-cqrs-lite` rows | `/tmp/pdg-fixed who-uses cmdguard --direct-only=false` → 32 direct + 2 indirect; `grep -c 'via go-cqrs-lite'` = 0 |
-| V3 | A/B against pre-fix code (binary built at commit `6b80811f` via `git worktree`) | cmdguard 77→34; cqrs-htmx 26→26 unchanged; go-cqrs-lite submodule counts −1 phantom each, `cmd/cqrs-lint` 58→2; go-appkit 34→33 with corrected `via` member |
-| V4 | The 2 surviving indirect rows are module-graph-true | hand-checked on disk: `go-credentials-store/go.mod:8` (cmdguard for its in-module CLI), `samber-linter/go.mod:8` (cmdguard CLI), `branching-flow/go.mod:25` (samber-linter dep) |
-| V5 | `why` answers truthfully post-fix | `why 'KeyHolderAI->cmdguard'` → "no path" |
-| V6 | No debug residue shipped | `rg PDG_DEBUG` clean; `reach_debug_test.go` absent from HEAD; `git status` clean |
-| V7 | Lint clean on changed files | `golangci-lint run` in graph/discovery/types → 0 issues on my files (2 pre-existing `wrapcheck` findings in `dep.go:177`/`focus.go:18` — NOT mine, untouched) |
+| #  | Claim                                                                           | Evidence                                                                                                                                                                        |
+| -- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| V1 | Fix compiles + passes across all 6 modules under race                           | canonical loop `for m in . discovery graph renderer types testutil; go build ./... && go test -count=1 -race ./...` → all ✅                                                    |
+| V2 | cmdguard tree: 77 → 34 consumers, 0 `via go-cqrs-lite` rows                     | `/tmp/pdg-fixed who-uses cmdguard --direct-only=false` → 32 direct + 2 indirect; `grep -c 'via go-cqrs-lite'` = 0                                                               |
+| V3 | A/B against pre-fix code (binary built at commit `6b80811f` via `git worktree`) | cmdguard 77→34; cqrs-htmx 26→26 unchanged; go-cqrs-lite submodule counts −1 phantom each, `cmd/cqrs-lint` 58→2; go-appkit 34→33 with corrected `via` member                     |
+| V4 | The 2 surviving indirect rows are module-graph-true                             | hand-checked on disk: `go-credentials-store/go.mod:8` (cmdguard for its in-module CLI), `samber-linter/go.mod:8` (cmdguard CLI), `branching-flow/go.mod:25` (samber-linter dep) |
+| V5 | `why` answers truthfully post-fix                                               | `why 'KeyHolderAI->cmdguard'` → "no path"                                                                                                                                       |
+| V6 | No debug residue shipped                                                        | `rg PDG_DEBUG` clean; `reach_debug_test.go` absent from HEAD; `git status` clean                                                                                                |
+| V7 | Lint clean on changed files                                                     | `golangci-lint run` in graph/discovery/types → 0 issues on my files (2 pre-existing `wrapcheck` findings in `dep.go:177`/`focus.go:18` — NOT mine, untouched)                   |
 
 **NOT verified (and why):**
 
@@ -98,36 +98,36 @@ implemented, tested, verified, and documented the attribution fix in
 ## b) PARTIALLY DONE
 
 ~~1. **Zero-dep-member regression pin** — the exact metadata→record shape has no dedicated~~ routed — pdg member-fold follow-ups TODO row (names the metadata→record pin, open)
-   synthetic test (behavior is fixed and incidentally covered; the pin is missing).
+synthetic test (behavior is fixed and incidentally covered; the pin is missing).
 ~~2. **Graph-layer bleed audit** — `graph/build.go` edges still carry aggregate-union deps;~~ routed — pdg member-fold follow-ups TODO row (serve/diff/generate/why, open)
-   member-aware paths for `serve`/`diff`/`generate`/`why` unaudited (empirical why-check only).
+member-aware paths for `serve`/`diff`/`generate`/`why` unaudited (empirical why-check only).
 ~~3. **Commit-policy remediation** — daemon swept a FOREIGN flake.nix edit (cmdguard pin~~ routed — pdg member-fold follow-ups TODO row (§b3 foreign-pin commit flagged; reword only when no parallel session)
-   tag→SHA `56fd69b4`, likely a parallel session) into heuristic commit `05e5b1ae` together with
-   my source changes; that commit's body violates the repo's detailed-body policy for flake.nix
-   commits. Flagged; no rebase (concurrency detected — rewriting history under a parallel session
-   is how work gets destroyed).
+tag→SHA `56fd69b4`, likely a parallel session) into heuristic commit `05e5b1ae` together with
+my source changes; that commit's body violates the repo's detailed-body policy for flake.nix
+commits. Flagged; no rebase (concurrency detected — rewriting history under a parallel session
+is how work gets destroyed).
 ~~4. **Concurrency anomalies** — go-design-smells/branching-flow go.mod appearance/disappearance +~~ routed — pdg member-fold follow-ups TODO row (§b4 bounded, not chased)
-   samber-linter cmdguard line found/lost between reads. Noticed, bounded (late reads double-
-   checked), not chased to the owning session.
+samber-linter cmdguard line found/lost between reads. Noticed, bounded (late reads double-
+checked), not chased to the owning session.
 ~~5. **`nix flake check`** — manual loop run instead; sanctioned gate not executed.~~ routed — pdg member-fold follow-ups TODO row (open)
 ~~6. **TODO_LIST harvest** — neither status report's (f) has been harvested.~~ done — M31/F194 harvest DONE 2026-11-13 (both reports)
 ~~7. **go.work stale sibling entries** in project-dependency-graph (`../go-cqrs-lite/catalog` —~~ routed — pdg member-fold follow-ups TODO row (open)
-   pre-restructure paths) — identified as warning-flood source, not fixed.
+pre-restructure paths) — identified as warning-flood source, not fixed.
 ~~8. **Staging-repo hygiene** from the morning report (crm-stage-t13b, cv-stage-crmfix,~~ routed — TODO_LIST:147 (staging/fork owner row, open)
-   erraudit-src, ci-siblings fork) — still broken, untouched.
+erraudit-src, ci-siblings fork) — still broken, untouched.
 
 ## c) NOT STARTED
 
 ~~1. Dedicated zero-dep-member regression test (item b1).~~ routed — pdg member-fold follow-ups (same as b1)
 ~~2. Member-aware graph layer (`why`/`serve`/`diff` paths crossing aggregates).~~ routed — pdg member-fold follow-ups (b2/c2, open)
 ~~3. Release/versioning of project-dependency-graph carrying this fix (version-authority decision~~ routed — pdg member-fold follow-ups (version-authority decision + release, open)
-   blocks it — tags end at v0.2.0, CHANGELOG says 0.7.0-dev).
+blocks it — tags end at v0.2.0, CHANGELOG says 0.7.0-dev).
 ~~4. Post-fix fleet re-census / re-run of adoption reports that cited the inflated numbers.~~ routed — TODO_LIST Post-fix census re-run row (12-41 f43/f44, open, M54)
 ~~5. `--attribution=strict|repo` flag, `viaKind` field in JSON/SARIF outputs (idea-tier from the~~ routed — pdg backlog (routed not minted: idea tier f5)
-   morning list).
+morning list).
 ~~6. Fixture/golden pinning of the 34-consumer cmdguard tree as a named regression fixture.~~ routed — pdg member-fold follow-ups (f2/f6, open)
 ~~7. Verification that go-cqrs-lite's own `census-fleet.sh` numbers were NEVER affected (it uses~~ routed — TODO_LIST Post-fix census re-run row + TODO_LIST:144 census-vs-who-uses note
-   module-graph tooling directly — presumed independent of this tool, unverified).
+module-graph tooling directly — presumed independent of this tool, unverified).
 ~~8. Re-verification of morning disk facts (KeyHolderAI go.sum etc.) under the concurrency caveat.~~ done — declined-with-reason in harvest ledger (sampling class proven by A/B + disk hand-checks)
 
 ## d) TOTALLY FUCKED UP
@@ -145,14 +145,14 @@ shortcuts under momentum.
 ## e) WHAT WE SHOULD IMPROVE
 
 ~~1. **Definition of done = original repro command, every time** — green tests are necessary, not~~ routed — process lesson codified: docs/agents/gotchas-testing.md "Direct sweeps are NOT the gate" row + release-verification rule (AGENTS)
-   sufficient.
+sufficient.
 2. **Real-data probes first** when a bug survives synthetic reasoning; the one-off discovery
-   probe outperformed four rounds of synthetic analysis.
+probe outperformed four rounds of synthetic analysis.
 ~~3. **Regression-pin every production bug shape at fix time** (or immediately after, same~~ routed — codified: AGENTS "New goldens must be mutation-tested" + M37/F227 executed the class
-   session).
+session).
 4. **No python-string-patching of code**; use the edit tool, or commit-flavored throwaway tests.
 ~~5. **Concurrency discipline**: when parallel sessions are known-active, re-read every fact before~~ routed — codified: global AGENTS safety rules (never revert others' work; re-read before citing)
-   citing it and never rewrite shared history.
+citing it and never rewrite shared history.
 6. **Prefer the repo's canonical gate** (`nix flake check`) over ad-hoc loops when available.
 ~~7. **Shell hygiene**: no `2>/dev/null` on commands whose failure matters; no pasted garbage flags.~~ routed — codified: A7 SIGPIPE lesson row (TODO_LIST:337) + piped-grep gotcha
 ~~8. **Harvest discipline**: (f) lists go to TODO_LIST at session end, not into report files.~~ done — M31/F194 DONE 2026-11-13
@@ -238,6 +238,6 @@ or is accurate `who-uses` (the query surface you actually use) sufficient for no
 
 ---
 
-*Report per status-report skill (`.md` default). Not hand-committed (harness rule); auto-commit
+_Report per status-report skill (`.md` default). Not hand-committed (harness rule); auto-commit
 daemon absorbs it. Section (f) is HARVEST input — both this and the 09:16 report remain
-unharvested (own miss, listed in e8).*
+unharvested (own miss, listed in e8)._

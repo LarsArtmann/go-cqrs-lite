@@ -31,39 +31,39 @@ v4 deletion is **real and now fully measured**, but blocked by exactly three gat
 
 ## a) FULLY DONE
 
-| # | Item | Evidence |
-|---|------|----------|
-| A1 | **core/v5 completeness audit** — 9/32 packages present (record, id, dedup, kv, dispatcher, metadata, event, command, query); all three gates registered (go.work, flake `testModules`, api-stability modules) | agent scan + direct `ls`/grep |
-| A2 | **`cmd/cqrs-upgrade` capability verdict** — pins + V007 deprecation report only; **zero** v4→v5 import rewrite; **zero** `core/v5` awareness; no rewrite tooling exists anywhere in repo | `cmd/cqrs-upgrade/pins.go:13`, `suggest.go:25` |
-| A3 | **go-appkit census correction** — `cqrs/` = 24 trains, `docs/` = 6, `integration/` = 26 (incl. 15 packages core/v5 lacks); ADR-0152 target order stands | direct `rg` on the three submodule `go.mod`s |
-| A4 | **v5-removed-module debt map** — `stack/v4`+presets: 13 fleet repos; `idempotency/sqlstore`: 4 repos; `storage/view`, `storage/relational`, `transport/http`, `transport/grpc`, `idempotency/kvstore`: **zero fleet consumers** (free deletes at cut) | repo-wide `go.mod` greps |
-| A5 | **Fleet-migration critical path persisted** in TODO_LIST §v5 Unification: finish core/v5 → `--to-v5` codemod → cqrs-htmx → go-appkit → residue → Phase 8 deletions | TODO_LIST blockquote (dated 2026-10-16) |
-| A6 | **Delivery-mark trio forked**: `event/deliveryctx.go` (54 lines, zero internal imports) → `core/v5/event/deliveryctx.go`; golden +3 (symmetric both sides); 3 stale register rows pruned | `64be699fa`; `docs/api_surface.txt:1292,1305,1367` |
-| A7 | **Gates green**: mirror lockstep, golden-compat, workspace-registration, arch-lint-config, core/v5/event tests, changelog-symbols (14 citations verified) | test output, this session |
-| A8 | **M23 closure discovery persisted**: eventtest→snapshot (`fake_snapshot.go`, `event_helpers.go`) and snapshot tests→storage/memory (`constructor_test.go`) are test-coupled → fork = storage core + storage/memory + snapshot + eventtest ≈ 20K lines, Effort M→**L**; includes two embedded decisions (exclude deprecated `aggregate_projection.go`; file-size ratchet treatment of copied baselined files) | TODO_LIST M23 row rewrite |
-| A9 | **benchkit/go.sum tidied** — the flagged module of the pre-existing `TestEveryModuleGoSumIsTidy` red | working tree (daemon will absorb) |
-| A10 | CHANGELOG `[Unreleased]` Added row for the trio fork (passes symbol gate) | `check-changelog-symbols.sh` ✓ |
+| #   | Item                                                                                                                                                                                                                                                                                                                                                                                                         | Evidence                                           |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------- |
+| A1  | **core/v5 completeness audit** — 9/32 packages present (record, id, dedup, kv, dispatcher, metadata, event, command, query); all three gates registered (go.work, flake `testModules`, api-stability modules)                                                                                                                                                                                                | agent scan + direct `ls`/grep                      |
+| A2  | **`cmd/cqrs-upgrade` capability verdict** — pins + V007 deprecation report only; **zero** v4→v5 import rewrite; **zero** `core/v5` awareness; no rewrite tooling exists anywhere in repo                                                                                                                                                                                                                     | `cmd/cqrs-upgrade/pins.go:13`, `suggest.go:25`     |
+| A3  | **go-appkit census correction** — `cqrs/` = 24 trains, `docs/` = 6, `integration/` = 26 (incl. 15 packages core/v5 lacks); ADR-0152 target order stands                                                                                                                                                                                                                                                      | direct `rg` on the three submodule `go.mod`s       |
+| A4  | **v5-removed-module debt map** — `stack/v4`+presets: 13 fleet repos; `idempotency/sqlstore`: 4 repos; `storage/view`, `storage/relational`, `transport/http`, `transport/grpc`, `idempotency/kvstore`: **zero fleet consumers** (free deletes at cut)                                                                                                                                                        | repo-wide `go.mod` greps                           |
+| A5  | **Fleet-migration critical path persisted** in TODO_LIST §v5 Unification: finish core/v5 → `--to-v5` codemod → cqrs-htmx → go-appkit → residue → Phase 8 deletions                                                                                                                                                                                                                                           | TODO_LIST blockquote (dated 2026-10-16)            |
+| A6  | **Delivery-mark trio forked**: `event/deliveryctx.go` (54 lines, zero internal imports) → `core/v5/event/deliveryctx.go`; golden +3 (symmetric both sides); 3 stale register rows pruned                                                                                                                                                                                                                     | `64be699fa`; `docs/api_surface.txt:1292,1305,1367` |
+| A7  | **Gates green**: mirror lockstep, golden-compat, workspace-registration, arch-lint-config, core/v5/event tests, changelog-symbols (14 citations verified)                                                                                                                                                                                                                                                    | test output, this session                          |
+| A8  | **M23 closure discovery persisted**: eventtest→snapshot (`fake_snapshot.go`, `event_helpers.go`) and snapshot tests→storage/memory (`constructor_test.go`) are test-coupled → fork = storage core + storage/memory + snapshot + eventtest ≈ 20K lines, Effort M→**L**; includes two embedded decisions (exclude deprecated `aggregate_projection.go`; file-size ratchet treatment of copied baselined files) | TODO_LIST M23 row rewrite                          |
+| A9  | **benchkit/go.sum tidied** — the flagged module of the pre-existing `TestEveryModuleGoSumIsTidy` red                                                                                                                                                                                                                                                                                                         | working tree (daemon will absorb)                  |
+| A10 | CHANGELOG `[Unreleased]` Added row for the trio fork (passes symbol gate)                                                                                                                                                                                                                                                                                                                                    | `check-changelog-symbols.sh` ✓                     |
 
 ## b) PARTIALLY DONE
 
-| # | Item | Done | Missing |
-|---|------|------|---------|
-| B1 | **M23 mirror-lag burn-down** | trio forked, 3/4 register rows closed; event pair lag now = eventtest subtree only | the eventtest subtree fork (~20K-line closure, L) |
-| B2 | **Fleet consumer census** | full-table first pass (35+ repos, per-repo train sets); fed into TODO_LIST | **not submodule-complete**: `games/KeyCountdown` appears in the idempotency grep but NOT in the census table — proof of holes; multi-module repos need per-`go.mod` sweeps before the census can drive the codemod; also not persisted as a machine-readable artifact (this report's appendix is the first durable capture) |
-| B3 | **TestEveryModuleGoSumIsTidy red** | benchkit fixed (first blocker) | ~33 more untidy modules behind the pending owner triage decision ("one sweep session or per-owner distribution") |
-| B4 | **TODO_LIST v5-section hygiene** | critical-path block added; M23 row corrected | noticed `core/v5 needs .go-arch-lint.yml` row possibly stale (root `.go-arch-lint.yml` exists in `ls` output) — not verified, not fixed |
-| B5 | **Verification breadth** | all gates touching the change ran green | full `core/v5` suite (`GOWORK=off go test ./...`), golangci on the new file, and `doc-check` were skipped (verbatim-copy file, docs untouched — risk ~zero, deviation undocumented until now) |
+| #  | Item                               | Done                                                                               | Missing                                                                                                                                                                                                                                                                                                                     |
+| -- | ---------------------------------- | ---------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| B1 | **M23 mirror-lag burn-down**       | trio forked, 3/4 register rows closed; event pair lag now = eventtest subtree only | the eventtest subtree fork (~20K-line closure, L)                                                                                                                                                                                                                                                                           |
+| B2 | **Fleet consumer census**          | full-table first pass (35+ repos, per-repo train sets); fed into TODO_LIST         | **not submodule-complete**: `games/KeyCountdown` appears in the idempotency grep but NOT in the census table — proof of holes; multi-module repos need per-`go.mod` sweeps before the census can drive the codemod; also not persisted as a machine-readable artifact (this report's appendix is the first durable capture) |
+| B3 | **TestEveryModuleGoSumIsTidy red** | benchkit fixed (first blocker)                                                     | ~33 more untidy modules behind the pending owner triage decision ("one sweep session or per-owner distribution")                                                                                                                                                                                                            |
+| B4 | **TODO_LIST v5-section hygiene**   | critical-path block added; M23 row corrected                                       | noticed `core/v5 needs .go-arch-lint.yml` row possibly stale (root `.go-arch-lint.yml` exists in `ls` output) — not verified, not fixed                                                                                                                                                                                     |
+| B5 | **Verification breadth**           | all gates touching the change ran green                                            | full `core/v5` suite (`GOWORK=off go test ./...`), golangci on the new file, and `doc-check` were skipped (verbatim-copy file, docs untouched — risk ~zero, deviation undocumented until now)                                                                                                                               |
 
 ## c) NOT STARTED (identified this session, zero progress by design)
 
-| # | Item |
-|---|------|
-| C1 | The 23 remaining core/v5 copy-forwards (full ADR-0152 target list beyond the 9 mirror-locked) |
-| C2 | `cqrs-upgrade --to-v5` import-rewrite mode (module path rewrite, N-requires→1 collapse, rename application, V007-driven fixups) |
-| C3 | Any fleet repo migration (cqrs-htmx first per ADR-0152; zero repos touched) |
+| #  | Item                                                                                                                                            |
+| -- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| C1 | The 23 remaining core/v5 copy-forwards (full ADR-0152 target list beyond the 9 mirror-locked)                                                   |
+| C2 | `cqrs-upgrade --to-v5` import-rewrite mode (module path rewrite, N-requires→1 collapse, rename application, V007-driven fixups)                 |
+| C3 | Any fleet repo migration (cqrs-htmx first per ADR-0152; zero repos touched)                                                                     |
 | C4 | The four "free deletes" (`transport/http`, `transport/grpc`, `storage/view`, `storage/relational`) — gated on the v5 cut per ADR-0127/TODO rows |
-| C5 | Ghost-system verdicts for `deriver` and `graph` (P1 #11) that decide whether they enter core/v5 at all |
-| C6 | Per-repo v5-readiness scorecards (cqrs-lint V007 + removed-module usage) as machine-readable migration tickets |
+| C5 | Ghost-system verdicts for `deriver` and `graph` (P1 #11) that decide whether they enter core/v5 at all                                          |
+| C6 | Per-repo v5-readiness scorecards (cqrs-lint V007 + removed-module usage) as machine-readable migration tickets                                  |
 
 ## d) TOTALLY FUCKED UP
 
@@ -96,73 +96,73 @@ v4 deletion is **real and now fully measured**, but blocked by exactly three gat
 
 **Track A — finish core/v5 (critical path; nothing else unblocks)**
 
-| # | Item | Impact |
-|---|------|--------|
-| 1 | Fork `storage` core into `core/v5/storage`, EXCLUDING deprecated surfaces (`aggregate_projection.go`/RelationalProjection) — needs the exclusion decision recorded | ★★★ |
-| 2 | Fork `storage/memory` into `core/v5/storage/memory` | ★★★ |
-| 3 | Fork `snapshot` into `core/v5/snapshot` | ★★★ |
-| 4 | Fork `eventtest` → `core/v5/event/eventtest` (closes M23; event-pair lag → 0; prune last register row) | ★★★ |
-| 5 | Write the copy-forward playbook (exclusions, pair registration, golden regen, allowlist prune, file-size/dup-gate treatment) once; run it 20× | ★★★ |
-| 6 | Fork `decider` (incl. cache singleflight/otter wiring) | ★★★ |
-| 7 | Fork `middleware` | ★★★ |
-| 8 | Fork `system` (the composition root — the single biggest consumer blocker) | ★★★ |
-| 9 | Fork `metaengine` core + `keycodec` | ★★★ |
-| 10 | Fork `projectionadapter` | ★★☆ |
-| 11 | Fork `projection` + `projectionhost` | ★★☆ |
-| 12 | Fork `commandlifecycle` + `projections` | ★★☆ |
-| 13 | Fork `scheduling` + `sqlstore` | ★★☆ |
-| 14 | Fork `schema` (minus ADR-0126 shells: `VersionedStore`, `VersionedSeekableJournal`) | ★★☆ |
-| 15 | Fork `listing` (with the ADR-0114 type-driven tombstone status decision) | ★★☆ |
-| 16 | Fork `claiming` | ★☆☆ |
-| 17 | Fork `otel` + `prometheus` (re-export layer discipline per AGENTS rule 4) | ★★☆ |
-| 18 | Fork `catalog` | ★☆☆ |
-| 19 | Fork `encryption` + `signing` (minus `Rejecting*`/`ErrInnerStoreNot*` shells) | ★★☆ |
-| 20 | Ghost-system verdict: `deriver` and `graph` — enter core/v5 or die (P1 #11) | ★★☆ |
-| 21 | Decide whether `stack` enters core/v5 at all (presets die; is any stack surface surviving?) or strike it from the ADR-0152 target list | ★☆☆ |
-| 22 | Fork `systemscenario` (absorbs `scenario/v4` per ADR-0153) | ★★☆ |
-| 23 | Register every new mirror pair in the lockstep gate as it lands (gate fails otherwise) | ★★★ |
-| 24 | Post-stabilization: signature-level lockstep (compile-time cross-import, the `event.Type` pattern) | ★☆☆ |
+| #  | Item                                                                                                                                                               | Impact |
+| -- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------ |
+| 1  | Fork `storage` core into `core/v5/storage`, EXCLUDING deprecated surfaces (`aggregate_projection.go`/RelationalProjection) — needs the exclusion decision recorded | ★★★    |
+| 2  | Fork `storage/memory` into `core/v5/storage/memory`                                                                                                                | ★★★    |
+| 3  | Fork `snapshot` into `core/v5/snapshot`                                                                                                                            | ★★★    |
+| 4  | Fork `eventtest` → `core/v5/event/eventtest` (closes M23; event-pair lag → 0; prune last register row)                                                             | ★★★    |
+| 5  | Write the copy-forward playbook (exclusions, pair registration, golden regen, allowlist prune, file-size/dup-gate treatment) once; run it 20×                      | ★★★    |
+| 6  | Fork `decider` (incl. cache singleflight/otter wiring)                                                                                                             | ★★★    |
+| 7  | Fork `middleware`                                                                                                                                                  | ★★★    |
+| 8  | Fork `system` (the composition root — the single biggest consumer blocker)                                                                                         | ★★★    |
+| 9  | Fork `metaengine` core + `keycodec`                                                                                                                                | ★★★    |
+| 10 | Fork `projectionadapter`                                                                                                                                           | ★★☆    |
+| 11 | Fork `projection` + `projectionhost`                                                                                                                               | ★★☆    |
+| 12 | Fork `commandlifecycle` + `projections`                                                                                                                            | ★★☆    |
+| 13 | Fork `scheduling` + `sqlstore`                                                                                                                                     | ★★☆    |
+| 14 | Fork `schema` (minus ADR-0126 shells: `VersionedStore`, `VersionedSeekableJournal`)                                                                                | ★★☆    |
+| 15 | Fork `listing` (with the ADR-0114 type-driven tombstone status decision)                                                                                           | ★★☆    |
+| 16 | Fork `claiming`                                                                                                                                                    | ★☆☆    |
+| 17 | Fork `otel` + `prometheus` (re-export layer discipline per AGENTS rule 4)                                                                                          | ★★☆    |
+| 18 | Fork `catalog`                                                                                                                                                     | ★☆☆    |
+| 19 | Fork `encryption` + `signing` (minus `Rejecting*`/`ErrInnerStoreNot*` shells)                                                                                      | ★★☆    |
+| 20 | Ghost-system verdict: `deriver` and `graph` — enter core/v5 or die (P1 #11)                                                                                        | ★★☆    |
+| 21 | Decide whether `stack` enters core/v5 at all (presets die; is any stack surface surviving?) or strike it from the ADR-0152 target list                             | ★☆☆    |
+| 22 | Fork `systemscenario` (absorbs `scenario/v4` per ADR-0153)                                                                                                         | ★★☆    |
+| 23 | Register every new mirror pair in the lockstep gate as it lands (gate fails otherwise)                                                                             | ★★★    |
+| 24 | Post-stabilization: signature-level lockstep (compile-time cross-import, the `event.Type` pattern)                                                                 | ★☆☆    |
 
 **Track B — migration tooling**
 
-| # | Item | Impact |
-|---|------|--------|
-| 25 | Build `cqrs-upgrade --to-v5`: import-path rewrite `…/<pkg>/v4` → `…/core/v5/<pkg>`, go.mod require collapse (N→1), `go.work`/`replace` rewrite | ★★★ |
-| 26 | Codemod rename table: `On`→`OnRecord`, `OnTyped`→`OnRecordTyped`, tombstone-metadata APIs → event-type branching, `StreamRef` pair forms → single ref | ★★☆ |
-| 27 | Codemod refuses (loudly) repos using modules with no core/v5 twin (stack, idempotency, transport) — point at the manual migration instead | ★★★ |
-| 28 | Codemod fixtures: golden in/out repos per migration class (pure-rewrite vs removed-module vs rename) | ★★☆ |
-| 29 | Machine-readable fleet census: submodule-deep sweep script + JSON artifact; certify completeness (KeyCountdown-class holes closed) | ★★★ |
-| 30 | Per-repo v5-readiness report batch (`cqrs-upgrade --strict --json` across ~35 repos) → migration ticket list | ★★☆ |
-| 31 | Extend cqrs-lint V007 tables as core/v5 packages land (removed-surface detection stays current) | ★☆☆ |
-| 32 | `core/v5` awareness in `cqrs-upgrade` pins (currently unknown to the tool) | ★★☆ |
+| #  | Item                                                                                                                                                  | Impact |
+| -- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| 25 | Build `cqrs-upgrade --to-v5`: import-path rewrite `…/<pkg>/v4` → `…/core/v5/<pkg>`, go.mod require collapse (N→1), `go.work`/`replace` rewrite        | ★★★    |
+| 26 | Codemod rename table: `On`→`OnRecord`, `OnTyped`→`OnRecordTyped`, tombstone-metadata APIs → event-type branching, `StreamRef` pair forms → single ref | ★★☆    |
+| 27 | Codemod refuses (loudly) repos using modules with no core/v5 twin (stack, idempotency, transport) — point at the manual migration instead             | ★★★    |
+| 28 | Codemod fixtures: golden in/out repos per migration class (pure-rewrite vs removed-module vs rename)                                                  | ★★☆    |
+| 29 | Machine-readable fleet census: submodule-deep sweep script + JSON artifact; certify completeness (KeyCountdown-class holes closed)                    | ★★★    |
+| 30 | Per-repo v5-readiness report batch (`cqrs-upgrade --strict --json` across ~35 repos) → migration ticket list                                          | ★★☆    |
+| 31 | Extend cqrs-lint V007 tables as core/v5 packages land (removed-surface detection stays current)                                                       | ★☆☆    |
+| 32 | `core/v5` awareness in `cqrs-upgrade` pins (currently unknown to the tool)                                                                            | ★★☆    |
 
 **Track C — fleet migration (after A+B)**
 
-| # | Item | Impact |
-|---|------|--------|
-| 33 | cqrs-htmx: migrate off `stack/v4` (usermgmt production code) + import rewrite (shield: 73% of fleet indirect edges) | ★★★ |
-| 34 | go-appkit: `cqrs/` + `docs/` + `integration/` (24 trains; blocked on core/v5 #8–#12) | ★★★ |
-| 35 | browser-history: stack + `idempotency/sqlstore` → `metaengine.DedupStore` | ★★☆ |
-| 36 | crm + crm-exec-stage (~30 trains each, stack presets) | ★★☆ |
-| 37 | InboxClean (31 trains) | ★★☆ |
-| 38 | bank-sync (31 trains) | ★☆☆ |
-| 39 | github-local-sync + SEC + KeyCountdown + SwettySwipperWeb services (stack/idempotency debt) | ★★☆ |
-| 40 | Residue batch (~25 smaller repos) via codemod, per-repo test gates | ★★☆ |
-| 41 | Post-migration hygiene per repo: go.work/prune, verify chains, pin waves | ★☆☆ |
+| #  | Item                                                                                                                | Impact |
+| -- | ------------------------------------------------------------------------------------------------------------------- | ------ |
+| 33 | cqrs-htmx: migrate off `stack/v4` (usermgmt production code) + import rewrite (shield: 73% of fleet indirect edges) | ★★★    |
+| 34 | go-appkit: `cqrs/` + `docs/` + `integration/` (24 trains; blocked on core/v5 #8–#12)                                | ★★★    |
+| 35 | browser-history: stack + `idempotency/sqlstore` → `metaengine.DedupStore`                                           | ★★☆    |
+| 36 | crm + crm-exec-stage (~30 trains each, stack presets)                                                               | ★★☆    |
+| 37 | InboxClean (31 trains)                                                                                              | ★★☆    |
+| 38 | bank-sync (31 trains)                                                                                               | ★☆☆    |
+| 39 | github-local-sync + SEC + KeyCountdown + SwettySwipperWeb services (stack/idempotency debt)                         | ★★☆    |
+| 40 | Residue batch (~25 smaller repos) via codemod, per-repo test gates                                                  | ★★☆    |
+| 41 | Post-migration hygiene per repo: go.work/prune, verify chains, pin waves                                            | ★☆☆    |
 
 **Track D — deletes + cut (the payoff)**
 
-| # | Item | Impact |
-|---|------|--------|
-| 42 | Delete `transport/http` + `transport/grpc` (zero fleet consumers) at the cut | ★★☆ |
-| 43 | Delete `storage/view` + `storage/relational` (zero fleet consumers) | ★★☆ |
-| 44 | Delete `idempotency/kvstore` + `sqlstore` after the 4 repos migrate | ★★☆ |
-| 45 | Delete `stack` + 8 presets after the 13 repos migrate | ★★★ |
-| 46 | Delete deprecated tombstone metadata APIs (ADR-0114 completion; listing pre-req + taskmanager example migration) | ★☆☆ |
-| 47 | Delete ADR-0126 compat shells | ★☆☆ |
-| 48 | Gate pruning cascade: go.work, flake testModules, api-stability modules, module-layers, module catalog, canonical-facts count | ★★☆ |
-| 49 | Cut v5.0.0 (batch-release `core/v5` lockstep wave; verify chain + per-module tests over the changed set — NOT verify=ok-only) | ★★★ |
-| 50 | Housekeeping: resolve the possibly-stale `.go-arch-lint.yml` TODO row; determine taskmanager gopls errors (real vs workspace noise); decide the ~34-module tidy sweep | ★☆☆ |
+| #  | Item                                                                                                                                                                  | Impact |
+| -- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| 42 | Delete `transport/http` + `transport/grpc` (zero fleet consumers) at the cut                                                                                          | ★★☆    |
+| 43 | Delete `storage/view` + `storage/relational` (zero fleet consumers)                                                                                                   | ★★☆    |
+| 44 | Delete `idempotency/kvstore` + `sqlstore` after the 4 repos migrate                                                                                                   | ★★☆    |
+| 45 | Delete `stack` + 8 presets after the 13 repos migrate                                                                                                                 | ★★★    |
+| 46 | Delete deprecated tombstone metadata APIs (ADR-0114 completion; listing pre-req + taskmanager example migration)                                                      | ★☆☆    |
+| 47 | Delete ADR-0126 compat shells                                                                                                                                         | ★☆☆    |
+| 48 | Gate pruning cascade: go.work, flake testModules, api-stability modules, module-layers, module catalog, canonical-facts count                                         | ★★☆    |
+| 49 | Cut v5.0.0 (batch-release `core/v5` lockstep wave; verify chain + per-module tests over the changed set — NOT verify=ok-only)                                         | ★★★    |
+| 50 | Housekeeping: resolve the possibly-stale `.go-arch-lint.yml` TODO row; determine taskmanager gopls errors (real vs workspace noise); decide the ~34-module tidy sweep | ★☆☆    |
 
 ## g) Questions I cannot figure out myself
 
@@ -190,13 +190,13 @@ Ran `project-dependency-graph who-uses github.com/larsartmann/go-cqrs-lite/ --di
 
 **Retire-ability ranking (import-level):**
 
-| Tier | Modules | Verdict |
-|------|---------|---------|
-| **0 — retire NOW** (0 importers anywhere) | `transport/http`, `transport/grpc`, `storage/view`, `storage/relational`, `idempotency/kvstore`, **7 of 8 stack presets** (`stack/{bbolt,duckdb,memory,mysql,pebble,postgres,turso}`; only `stack/sqlite` lives, 3 direct) | free deletes, even ahead of the cut |
+| Tier                                                        | Modules                                                                                                                                                                                                                                                                                                                                                                                                                             | Verdict                             |
+| ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
+| **0 — retire NOW** (0 importers anywhere)                   | `transport/http`, `transport/grpc`, `storage/view`, `storage/relational`, `idempotency/kvstore`, **7 of 8 stack presets** (`stack/{bbolt,duckdb,memory,mysql,pebble,postgres,turso}`; only `stack/sqlite` lives, 3 direct)                                                                                                                                                                                                          | free deletes, even ahead of the cut |
 | **1 — one-repo stragglers** (retire after migrating 1 repo) | `queue`+`queue/sqlite`+`queue/postgres` → universal-workflow only · `scheduling/sqlstore` → ChastityAPI · `storage/bbolt` → vision-review-agent · `storage/turso` → DiscordSync · `metaengine/pebbleengine` → file-and-image-renamer · `testutil` → DiscordSync · `commandlifecycle/projections` → go-appkit · `retry`/`flightrecorder` (0 direct + 1 indirect; flightrecorder has NO proxy versions, consumer rides local replace) | migrate the named repo, then delete |
-| **2 — zero-direct but load-bearing** (NOT retireable) | `claiming` (36 indirect), `commandlifecycle` (37 indirect) — pulled fleet-wide via `system`; `testutil/pgtestcontainer` (22 indirect, in-repo test infra) | die only via system's v5 evolution |
-| **Ghost modules** (deleted from repo, still imported) | `go-cqrs-lite/codec` — **11 direct importers** (InboxClean, Kernovia, KeyCountdown, Rolls-Royce-mtuGoHelpCenter-golang, SwettySwipperWeb, accountability-system, github-local-sync, go-localsync, sec, standard-bug-tracking-schema, zlota44) surviving on the proxy-cached dead v4.4.0 tag; ADR-0128's redirect to `go-codec` never reached them | migration tail, upstream unfixable |
-| **Load-bearing core** (keep, copy-forward) | event 41, id 41, command 34, decider 33, middleware 23, query 22, metaengine 21, system 19, storage 18, record 17, otel 16, watermill 16, snapshot 15, storage/memory 14, projectionhost 13, projectionadapter 13, projection 12, codec-class see ghosts, scenario 11 (absorbed by systemscenario), catalog 10 | the 23-package fork list stands |
+| **2 — zero-direct but load-bearing** (NOT retireable)       | `claiming` (36 indirect), `commandlifecycle` (37 indirect) — pulled fleet-wide via `system`; `testutil/pgtestcontainer` (22 indirect, in-repo test infra)                                                                                                                                                                                                                                                                           | die only via system's v5 evolution  |
+| **Ghost modules** (deleted from repo, still imported)       | `go-cqrs-lite/codec` — **11 direct importers** (InboxClean, Kernovia, KeyCountdown, Rolls-Royce-mtuGoHelpCenter-golang, SwettySwipperWeb, accountability-system, github-local-sync, go-localsync, sec, standard-bug-tracking-schema, zlota44) surviving on the proxy-cached dead v4.4.0 tag; ADR-0128's redirect to `go-codec` never reached them                                                                                   | migration tail, upstream unfixable  |
+| **Load-bearing core** (keep, copy-forward)                  | event 41, id 41, command 34, decider 33, middleware 23, query 22, metaengine 21, system 19, storage 18, record 17, otel 16, watermill 16, snapshot 15, storage/memory 14, projectionhost 13, projectionadapter 13, projection 12, codec-class see ghosts, scenario 11 (absorbed by systemscenario), catalog 10                                                                                                                      | the 23-package fork list stands     |
 
 **Breakage found:** `crm-exec-stage/go.mod` contains **unresolved merge-conflict markers** (`<<<<<<< HEAD` / `>>>>>>> master` at 5 require blocks) — unparseable, so the repo was invisible to the tool. **Census holes confirmed** (missed by the conversational census): Kernovia, Domination, Rolls-Royce-mtuGoHelpCenter-golang, accountability-system, standard-bug-tracking-schema, go-credentials-store, nsfw-classifier, vision-review-agent.
 

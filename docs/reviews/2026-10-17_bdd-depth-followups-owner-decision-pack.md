@@ -41,11 +41,11 @@ The DLQ story is half-built until folds can error.
 
 **Options:**
 
-| Option | Consequence |
-| --- | --- |
+| Option                                               | Consequence                                                                                                                                                |
+| ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | v4.x additive (e.g. `LookupE`/erroring fold variant) | DLQ reachable for domain poisons; unlocks the retry-journey depth spec (plan M09 half); grows v4 declaration API surface during the v5 dual-support window |
-| v5 | Keeps v4 frozen; DLQ stays decode-only until the v5 cut; the depth spec waits |
-| never | DLQ is a decode-poison quarantine, documented as such; spec story closed as-is |
+| v5                                                   | Keeps v4 frozen; DLQ stays decode-only until the v5 cut; the depth spec waits                                                                              |
+| never                                                | DLQ is a decode-poison quarantine, documented as such; spec story closed as-is                                                                             |
 
 **My recommendation (for the record): v5.** The v4.x surface is in
 maintenance mode (ADR-0152 dual-support), erroring folds change the
@@ -101,8 +101,8 @@ light = three small wrapped-error changes + depth-spec pins for each.
 
 ## Ruling log
 
-| Gate | Ruling | By | When |
-| --- | --- | --- | --- |
-| D1 | tag-now (directive + parallel wave already shipping) | owner directive + events | 2026-10-17 20:36 |
-| D2 | *pending* | | |
-| C1 | *pending* | | |
+| Gate | Ruling                                               | By                       | When             |
+| ---- | ---------------------------------------------------- | ------------------------ | ---------------- |
+| D1   | tag-now (directive + parallel wave already shipping) | owner directive + events | 2026-10-17 20:36 |
+| D2   | _pending_                                            |                          |                  |
+| C1   | _pending_                                            |                          |                  |

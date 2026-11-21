@@ -79,4 +79,5 @@
 3. **21-15 parallel report** — I never opened its §f (worked from the 22-15 summary). Harvest it too, or is it fully subsumed by the 20-04 plan rows + the TODO_LIST harvest section?
 
 ---
-*Receipts available in-session: gate outputs cited per item; erraudit v0.7.0 built from the vendored tarball and diffed against the system binary; gosec SARIF parsed (45 results across 5 rules); all touched scripts shfmt/shellcheck/self-test green.*
+
+_Receipts available in-session: gate outputs cited per item; erraudit v0.7.0 built from the vendored tarball and diffed against the system binary; gosec SARIF parsed (45 results across 5 rules); all touched scripts shfmt/shellcheck/self-test green._

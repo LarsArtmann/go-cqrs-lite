@@ -52,25 +52,25 @@ about repos other than go-cqrs-lite / graph-features-language.
 ## b) PARTIALLY DONE
 
 ~~- **Deep-section visual verification**: hero/scorecard/summary and two findings cards screenshot-confirmed; the~~ routed — mid-page sections never pixel-verified; display-filter bug undiagnosed (cosmetic; not rowed)
-  architecture/fleet/appendix sections were verified via parser balance + one filtered capture, but the mid-page
-  display-filter screenshot silently failed to filter (showed unfiltered top) — root cause not diagnosed; those
-  sections were never pixel-verified.
+architecture/fleet/appendix sections were verified via parser balance + one filtered capture, but the mid-page
+display-filter screenshot silently failed to filter (showed unfiltered top) — root cause not diagnosed; those
+sections were never pixel-verified.
 ~~- **Health-audit quality gate**: the "gate green at HEAD" done-bar item is impossible (255 findings) — documented~~ routed — M39 F244 (BuildFlow file-size threshold reconciliation = the 235) + docs-gates annotate row (the residue)
-  with receipts instead of forced green. Honest, but it means the audit ships against a red tree.
+with receipts instead of forced green. Honest, but it means the audit ships against a red tree.
 ~~- **Subagent integration**: the fleet census landed AFTER the health report shipped; reconciled before final~~ routed — process note (research landed post-ship by luck)
-  verification, but by luck of timing, not process.
+verification, but by luck of timing, not process.
 ~~- **Status report index**: this report is being filed with its `docs/status/README.md` row in the same pass~~ routed — fixed since: 01-57/01-58 canonical-facts race root-caused; same-edit discipline (report+index one edit) now standing
-  (not yet committed — daemon absorbs).
+(not yet committed — daemon absorbs).
 
 ## c) NOT STARTED
 
 ~~- Fixing any of the 255 gate findings (out of scope; triage plan is in the health report's Finding 1).~~ routed — M39 (F244 threshold reconciliation) + TODO_LIST engine-module lint debt sweep row
 ~~- The v5 cut itself; cqrs-upgrade `--to-v5` consumer sweeps; migration of the 18 legacy fleet dirs / 10 stale~~ routed — 21-12 plan W2-W4 (M41-M57 v5 runway)
-  `idempotency/v4` requires.
+`idempotency/v4` requires.
 ~~- `docs/research/README.md` index in go-cqrs-lite (declined to create unbidden; recommended in report Finding 5 —~~ routed — CREATED (docs/research/README.md landed 2026-11-14 previous session; F242)
-  GFL's index WAS created because that directory was founded fresh this session).
+GFL's index WAS created because that directory was founded fresh this session).
 ~~- Any GFL parser work (scenario/metadata/relationship blocks remain specced-but-unparsed — that's the~~ routed — GFL backlog (routed ledger; D12 owner priority decides)
-  integration plan's step 1, awaiting go-ahead).
+integration plan's step 1, awaiting go-ahead).
 ~~- docs-health HARVEST of the status report's (f) list into TODO_LIST.md.~~ routed — M31/F198 harvest DONE 2026-11-13
 
 ## d) TOTALLY FUCKED UP
@@ -91,7 +91,7 @@ about repos other than go-cqrs-lite / graph-features-language.
 ~~1. Before writing any report, re-read the user's original question and state the lens in the hero subtitle.~~ routed — process note
 ~~2. Verify EVERY file-citation at write time (one `ls`/`grep` per citation), not just headline stats.~~ routed — codified: docs/agents/gotchas-testing.md citation-replay row (M37/F235) + verify-external-claims skill
 ~~3. Run repo-canonical tooling where it exists (`scripts/census-fleet.sh` was discovered too late as the~~ routed — D13 census authority (owner decision pending)
-   canonical census source).
+canonical census source).
 ~~4. Sequence: all research reports in BEFORE prose is written (fleet census landed post-ship).~~ routed — process note
 ~~5. A reliable full-page screenshot method (fragment-scroll and display-filters both proved flaky).~~ routed — process note (flaky filters)
 ~~6. Prefer one own-hands census over fighting provider outages for a subagent (census took ~3 commands).~~ routed — D13 census authority
@@ -152,13 +152,13 @@ about repos other than go-cqrs-lite / graph-features-language.
 ## g) Questions I cannot figure out myself
 
 ~~1. **Canonical home + lens priority**: should the integration plot (GFL as front-end to GQL) now drive GFL's~~ routed — owner D12 (GFL integration priority)
-   roadmap as its primary purpose (absorb the DOT-toy framing entirely), or stay one of several GFL directions?
-   This decides whether items 1-9 above are THE backlog or a parallel track.
+roadmap as its primary purpose (absorb the DOT-toy framing entirely), or stay one of several GFL directions?
+This decides whether items 1-9 above are THE backlog or a parallel track.
 ~~2. **Gate triage ownership**: are the 255 findings (10-12 above) mine to fix in a follow-up session, or does the~~ routed — owner D14 (folded in decision sheet)
-   go-cqrs-lite contributor flow (you / the parallel sessions that own waves) handle them?
+go-cqrs-lite contributor flow (you / the parallel sessions that own waves) handle them?
 ~~3. **Census authority**: for future fleet counts, do you want the repo-canonical `scripts/census-fleet.sh`~~ routed — owner D13 (folded in decision sheet)
-   output as the single source (my independent rg census then serves only as cross-check), or keep independent
-   methodology as the published number?
+output as the single source (my independent rg census then serves only as cross-check), or keep independent
+methodology as the published number?
 
-*Generated by Crush (GLM-5.3-flash) · session artifacts: 2 HTML reports + 2 in-repo screenshots + 2 index/AGENTS
-updates · awaiting instructions.*
+_Generated by Crush (GLM-5.3-flash) · session artifacts: 2 HTML reports + 2 in-repo screenshots + 2 index/AGENTS
+updates · awaiting instructions._
