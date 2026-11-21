@@ -4,8 +4,8 @@ package architecture
 // resources (exclude/neverExport) drop in every mode; name-only mode
 // renders the display name as plain text; without a selection the
 // identifier degrades to plain text as it always has.
-func (x *refIndex) degrade(kind resourceKind, id string) (resourceRef, bool) {
-	key := selKey{kind: kind, id: id}
+func (x *refIndex) degrade(kind resourceKind, resourceID string) (resourceRef, bool) {
+	key := selKey{kind: kind, id: resourceID}
 
 	if x.banned[key] {
 		return droppedRef(), false
@@ -22,7 +22,7 @@ func (x *refIndex) degrade(kind resourceKind, id string) (resourceRef, bool) {
 	}
 
 	if x.kept == nil {
-		return plainRef(id), true
+		return plainRef(resourceID), true
 	}
 
 	return droppedRef(), false
@@ -30,13 +30,13 @@ func (x *refIndex) degrade(kind resourceKind, id string) (resourceRef, bool) {
 
 // degradeAny is degrade for identifiers the model stores without a kind.
 // The no-selection fallback appends a zero reference, which writeRef skips.
-func (x *refIndex) degradeAny(id string) (resourceRef, bool) {
-	if x.bannedIDs[id] {
+func (x *refIndex) degradeAny(resourceID string) (resourceRef, bool) {
+	if x.bannedIDs[resourceID] {
 		return droppedRef(), false
 	}
 
 	if x.references == ReferencesNameOnly {
-		if name := x.namesByID[id]; name != "" {
+		if name := x.namesByID[resourceID]; name != "" {
 			return plainRef(name), true
 		}
 

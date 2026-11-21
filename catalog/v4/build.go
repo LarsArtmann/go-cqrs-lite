@@ -31,13 +31,13 @@ func NewBuilder(title, version string) *Builder {
 // AddService registers a service with messages. Messages are created via
 // Command[T](), Event[T](), and Query[T]().
 func (b *Builder) AddService(
-	id ServiceID, name, version, summary string,
+	serviceID ServiceID, name, version, summary string,
 	msgs ...MessageConfig,
 ) {
-	b.registry.SetServiceMeta(id, name, version, summary)
+	b.registry.SetServiceMeta(serviceID, name, version, summary)
 
 	for _, m := range msgs {
-		m.apply(id, b.registry)
+		m.apply(serviceID, b.registry)
 	}
 }
 

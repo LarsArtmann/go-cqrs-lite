@@ -151,5 +151,5 @@ func (s *MemorySnapshotStore) Delete(
 }
 
 func (s *MemorySnapshotStore) Close() error {
-	return s.Lifecycle.Close()
+	return wrapClosed(s.Lifecycle.Close(), "memory.snapshot_store.close", "close snapshot store")
 }

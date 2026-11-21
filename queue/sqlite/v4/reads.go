@@ -48,7 +48,7 @@ type scanner interface{ Scan(dest ...any) error }
 func (s *Store[T]) scanTaskRow(r scanner) (task.Task[T], error) {
 	var (
 		t            task.Task[T]
-		id           string
+		taskID       string
 		payload      []byte
 		deps         string
 		notBeforeMS  int64
@@ -59,13 +59,13 @@ func (s *Store[T]) scanTaskRow(r scanner) (task.Task[T], error) {
 		updatedAtMS  int64
 	)
 
-	if err := r.Scan(&id, &t.Project, &t.Type, &payload, &deps, &t.Priority, &t.Attempts,
+	if err := r.Scan(&taskID, &t.Project, &t.Type, &payload, &deps, &t.Priority, &t.Attempts,
 		&t.MaxAttempts, &notBeforeMS, &status, &t.LeaseOwner, &leaseExpires, &t.LastError,
 		&createdAtMS, &updatedAtMS, &completedAt); err != nil {
 		return task.Task[T]{}, err
 	}
 
-	t.ID = task.ID(id)
+	t.ID = task.ID(taskID)
 	t.Status = task.Status(status)
 	t.NotBefore = time.UnixMilli(notBeforeMS)
 	t.CreatedAt = time.UnixMilli(createdAtMS)
@@ -83,13 +83,13 @@ func (s *Store[T]) scanTaskRow(r scanner) (task.Task[T], error) {
 
 	if deps != "" && deps != "[]" {
 		if err := json.Unmarshal([]byte(deps), &t.Deps); err != nil {
-			return task.Task[T]{}, fmt.Errorf("queue/sqlite: unmarshal deps for %s: %w", id, err)
+			return task.Task[T]{}, fmt.Errorf("queue/sqlite: unmarshal deps for %s: %w", taskID, err)
 		}
 	}
 
 	decoded, err := s.codec.Decode(payload)
 	if err != nil {
-		return task.Task[T]{}, fmt.Errorf("queue/sqlite: decode payload for %s: %w", id, err)
+		return task.Task[T]{}, fmt.Errorf("queue/sqlite: decode payload for %s: %w", taskID, err)
 	}
 
 	t.Payload = decoded

@@ -56,12 +56,12 @@ func NewRing[K comparable](capacity int) *Ring[K] {
 // is a no-op, matching Has/Len/Capacity nil-safety so the documented
 // "use a nil *Ring when no replay occurred" pattern cannot panic on the
 // Add side of a Has-then-Add boundary loop.
-func (r *Ring[K]) Add(id K) {
+func (r *Ring[K]) Add(entryID K) {
 	if r == nil {
 		return
 	}
 
-	if _, ok := r.idx[id]; ok {
+	if _, ok := r.idx[entryID]; ok {
 		return
 	}
 
@@ -71,8 +71,8 @@ func (r *Ring[K]) Add(id K) {
 		r.count++
 	}
 
-	r.buf[r.head] = id
-	r.idx[id] = r.head
+	r.buf[r.head] = entryID
+	r.idx[entryID] = r.head
 	r.head = (r.head + 1) % len(r.buf)
 }
 

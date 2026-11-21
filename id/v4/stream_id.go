@@ -148,15 +148,15 @@ func IsStreamIDULID(id StreamID) bool {
 // SHA-256 derived ID or a domain-specific string).
 //
 // For a predicate check, use IsStreamIDULID.
-func StreamTimestamp(id StreamID) (time.Time, error) {
-	ulidVal, err := ulid.Parse(id.Get())
+func StreamTimestamp(streamID StreamID) (time.Time, error) {
+	ulidVal, err := ulid.Parse(streamID.Get())
 	if err != nil {
 		return time.Time{}, errorfamily.Wrapf(
 			err,
 			errorfamily.Rejection,
 			"id.stream_timestamp_not_ulid",
 			"StreamID %q is not a valid ULID, cannot extract timestamp",
-			id.Get(),
+			streamID.Get(),
 		)
 	}
 

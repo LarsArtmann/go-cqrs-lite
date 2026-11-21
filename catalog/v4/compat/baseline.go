@@ -132,16 +132,16 @@ func CompareBaseline(baseline *Baseline, c *catalog.Catalog) Report {
 
 	current := indexMessages(c)
 
-	for id, old := range baseline.Messages {
-		key := catalog.MessageID(id)
+	for msgID, old := range baseline.Messages {
+		key := catalog.MessageID(msgID)
 
 		newMsg, ok := current[key]
 		if !ok {
 			b.add(Finding{
-				Path:    id,
+				Path:    msgID,
 				Kind:    KindMessageRemoved,
 				Class:   ClassNeedsVersionBump,
-				Message: fmt.Sprintf("message %q was shipped but is no longer declared", id),
+				Message: fmt.Sprintf("message %q was shipped but is no longer declared", msgID),
 			})
 
 			continue

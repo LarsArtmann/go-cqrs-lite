@@ -23,13 +23,13 @@ func cancelRequestedTx(ctx context.Context, tx *sql.Tx, id string) (bool, error)
 // cancelRequestedReasonTx reads the reason a task's latest cancel
 // request carried ("" when none). Best-effort: an unparsable detail
 // yields "", never an error — the finalize must not fail on cosmetics.
-func cancelRequestedReasonTx(ctx context.Context, tx *sql.Tx, id string) (string, error) {
+func cancelRequestedReasonTx(ctx context.Context, tx *sql.Tx, taskID string) (string, error) {
 	var detail []byte
 
 	err := tx.QueryRowContext(ctx, `
 		SELECT detail FROM facts
 		WHERE task_id = ? AND type = 'task.cancel-requested'
-		ORDER BY seq DESC LIMIT 1`, id).Scan(&detail)
+		ORDER BY seq DESC LIMIT 1`, taskID).Scan(&detail)
 	if errors.Is(err, sql.ErrNoRows) {
 		return "", nil
 	}

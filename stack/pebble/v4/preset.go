@@ -2,6 +2,7 @@ package pebble
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"math"
 
@@ -157,7 +158,11 @@ type Bundle struct {
 // database at dir. The target directory must not already exist.
 // Use this for backups before migrations or for disaster recovery.
 func (b *Bundle) Checkpoint(dir string) error {
-	return b.backend.Checkpoint(dir)
+	if err := b.backend.Checkpoint(dir); err != nil {
+		return errorfamily.WrapInfrastructure(err, "pebble_preset.checkpoint", "checkpoint to "+dir)
+	}
+
+	return nil
 }
 
 // NewSnapshot returns a consistent read view of the database at the current
@@ -170,7 +175,11 @@ func (b *Bundle) NewSnapshot() *pebble.Snapshot {
 // Flush writes all buffered writes to stable storage. Call this before a
 // Checkpoint to ensure the backup includes all recent writes.
 func (b *Bundle) Flush() error {
-	return b.backend.Flush()
+	if err := b.backend.Flush(); err != nil {
+		return errorfamily.WrapInfrastructure(err, "pebble_preset.flush", "flush buffered writes")
+	}
+
+	return nil
 }
 
 // Metrics returns PebbleDB LSM-tree metrics for health checks and dashboards.
@@ -183,7 +192,13 @@ func (b *Bundle) Metrics() cqrspebble.PebbleMetrics {
 // context is cancelled before Close finishes, the context error is returned
 // and the close continues in the background.
 func (b *Bundle) GracefulClose(ctx context.Context) error {
-	return b.backend.GracefulClose(ctx)
+	if err := b.backend.GracefulClose(ctx); err != nil {
+		// Deliberately %w, not errorfamily: the context error must keep its
+		// errors.Is identity for callers reacting to cancellation.
+		return fmt.Errorf("pebble preset: graceful close: %w", err)
+	}
+
+	return nil
 }
 
 // New opens a PebbleDB database at dir and returns a fully-wired [Bundle].

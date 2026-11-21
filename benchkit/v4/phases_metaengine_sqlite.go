@@ -62,14 +62,14 @@ func (r *runner) metaEngineSQLiteWorkload(ctx context.Context) error {
 			break
 		}
 
-		id := fmt.Sprintf("sql-item-%04d", i)
-		itemIDs[i] = id
+		itemID := fmt.Sprintf("sql-item-%04d", i)
+		itemIDs[i] = itemID
 
 		status := statuses[i%len(statuses)]
 		priority := i % 100
 
 		if err := store.Apply(ctx, "meBenchItemCreated", meBenchItemCreated{
-			ID:       id,
+			ID:       itemID,
 			Status:   status,
 			Priority: priority,
 		}); err != nil {

@@ -46,7 +46,7 @@ type rowScanner interface {
 func (s *Store[T]) scanTask(row rowScanner) (task.Task[T], error) {
 	var (
 		t            task.Task[T]
-		id           string
+		taskID       string
 		depsJSON     string
 		payload      string
 		leaseExpires *int64
@@ -56,13 +56,13 @@ func (s *Store[T]) scanTask(row rowScanner) (task.Task[T], error) {
 		updatedAt    int64
 	)
 
-	if err := row.Scan(&id, &t.Project, &t.Type, &payload, &depsJSON, &t.Priority,
+	if err := row.Scan(&taskID, &t.Project, &t.Type, &payload, &depsJSON, &t.Priority,
 		&t.Attempts, &t.MaxAttempts, &notBefore, &t.Status, &t.LeaseOwner,
 		&leaseExpires, &t.LastError, &createdAt, &updatedAt, &completedAt); err != nil {
 		return task.Task[T]{}, err
 	}
 
-	t.ID = task.ID(id)
+	t.ID = task.ID(taskID)
 	t.NotBefore = time.UnixMilli(notBefore)
 	t.CreatedAt = time.UnixMilli(createdAt)
 	t.UpdatedAt = time.UnixMilli(updatedAt)
@@ -87,7 +87,7 @@ func (s *Store[T]) scanTask(row rowScanner) (task.Task[T], error) {
 
 	decoded, err := s.codec.Decode([]byte(payload))
 	if err != nil {
-		return task.Task[T]{}, fmt.Errorf("queue/postgres: decode payload for %s: %w", id, err)
+		return task.Task[T]{}, fmt.Errorf("queue/postgres: decode payload for %s: %w", taskID, err)
 	}
 
 	t.Payload = decoded

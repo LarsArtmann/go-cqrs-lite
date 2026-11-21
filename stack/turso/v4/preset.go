@@ -267,6 +267,7 @@ func newSyncBundle(
 
 	cqrsturso.ConfigurePool(sqlDB)
 
+	//nolint:contextcheck // preset constructors are ctx-free by public API (deprecated at v5, ADR-0123); the helper fabricates a detached context deliberately
 	if err := applySchemaAndPragmas(sqlDB, cfg); err != nil {
 		//cqrs-lint:ignore(C023) library code or intentional pattern
 		_ = syncDB.Close()

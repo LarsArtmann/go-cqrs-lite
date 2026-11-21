@@ -158,14 +158,14 @@ func renderResourceLink(w *htmlWriter, text string, link linkerFunc) (int, bool)
 
 	body := text[2:end]
 
-	kind, id, found := strings.Cut(body, "|")
+	kind, resourceID, found := strings.Cut(body, "|")
 	if !found || link == nil {
 		w.element("code", body)
 
 		return end + 2, true
 	}
 
-	link(strings.TrimSpace(kind), strings.TrimSpace(id)).writeRef(w)
+	link(strings.TrimSpace(kind), strings.TrimSpace(resourceID)).writeRef(w)
 
 	return end + 2, true
 }

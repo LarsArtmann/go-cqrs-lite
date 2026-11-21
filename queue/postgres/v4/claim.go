@@ -56,13 +56,13 @@ func (s *Store[T]) ClaimDue(
 	finalizedCancel := false
 
 	err := s.withTx(ctx, func(tx pgx.Tx) error {
-		id, st, prevOwner, err := selectCandidate(ctx, tx, now)
+		taskID, st, prevOwner, err := selectCandidate(ctx, tx, now)
 		if err != nil {
 			return err
 		}
 
 		if st == "running" {
-			done, err := s.finalizeReclaim(ctx, tx, id, prevOwner, owner, now)
+			done, err := s.finalizeReclaim(ctx, tx, taskID, prevOwner, owner, now)
 			if err != nil {
 				return err
 			}
@@ -74,7 +74,7 @@ func (s *Store[T]) ClaimDue(
 			}
 		}
 
-		return s.stampLease(ctx, tx, id, owner, token, now, lease, &claimed)
+		return s.stampLease(ctx, tx, taskID, owner, token, now, lease, &claimed)
 	})
 	//art-dupl:accept dialect twin of queue/sqlite ClaimDue tail; conformance pins lease semantics
 	if err != nil {
@@ -104,9 +104,9 @@ func selectCandidate(
 		now.UnixMilli(), now.UnixMilli(),
 		float64(queue.PriorityAgingDaysPerPoint), float64(queue.PriorityAgingMaxBonus))
 
-	var id, status, prevOwner string
+	var taskID, status, prevOwner string
 
-	if err := row.Scan(&id, &status, &prevOwner); err != nil {
+	if err := row.Scan(&taskID, &status, &prevOwner); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return "", "", "", queue.ErrNoTaskDue
 		}
@@ -114,17 +114,17 @@ func selectCandidate(
 		return "", "", "", err
 	}
 
-	return id, status, prevOwner, nil
+	return taskID, status, prevOwner, nil
 }
 
 // finalizeReclaim handles an expired-lease candidate: a pending
 // cooperative cancel is finalized (the task never runs again); either
 // way the Released fact explains the owner change.
 func (s *Store[T]) finalizeReclaim(
-	ctx context.Context, tx pgx.Tx, id, prevOwner, owner string, now time.Time,
+	ctx context.Context, tx pgx.Tx, taskID, prevOwner, owner string, now time.Time,
 ) (bool, error) {
 	//art-dupl:accept dialect twin of queue/sqlite finalizeReclaim; conformance pins reclaim semantics
-	requested, err := cancelRequestedTx(ctx, tx, id)
+	requested, err := cancelRequestedTx(ctx, tx, taskID)
 	if err != nil {
 		return false, err
 	}
@@ -132,7 +132,7 @@ func (s *Store[T]) finalizeReclaim(
 	if err := s.appendFact(
 		ctx,
 		tx,
-		facts.Fact{TaskID: id, Type: facts.Released, Owner: prevOwner},
+		facts.Fact{TaskID: taskID, Type: facts.Released, Owner: prevOwner},
 	); err != nil {
 		return false, err
 	}
@@ -141,14 +141,14 @@ func (s *Store[T]) finalizeReclaim(
 		return false, nil
 	}
 
-	reason, err := cancelRequestedReasonTx(ctx, tx, id)
+	reason, err := cancelRequestedReasonTx(ctx, tx, taskID)
 	if err != nil {
 		return false, err
 	}
 
 	tag, err := tx.Exec(ctx, `
 		UPDATE tasks SET status = 'cancelled', updated_at = $1, lease_owner = '', lease_expires = NULL, lease_token = NULL
-		WHERE id = $2 AND status = 'running'`, now.UnixMilli(), id)
+		WHERE taskID = $2 AND status = 'running'`, now.UnixMilli(), taskID)
 	if err != nil {
 		return false, err
 	}
@@ -158,7 +158,7 @@ func (s *Store[T]) finalizeReclaim(
 	}
 
 	return true, s.appendFact(ctx, tx, facts.Fact{
-		TaskID: id, Type: facts.Cancelled, Owner: owner,
+		TaskID: taskID, Type: facts.Cancelled, Owner: owner,
 		Detail: cooperativeCancelDetail(reason, "lease-expiry"),
 	})
 }
@@ -167,13 +167,13 @@ func (s *Store[T]) finalizeReclaim(
 func (s *Store[T]) stampLease(
 	ctx context.Context,
 	tx pgx.Tx,
-	id, owner, token string,
+	taskID, owner, token string,
 	now time.Time,
 	lease time.Duration,
 	out *task.Task[T],
 ) error {
 	tag, err := tx.Exec(ctx, claimUpdateSQL,
-		owner, now.Add(lease).UnixMilli(), token, now.UnixMilli(), id)
+		owner, now.Add(lease).UnixMilli(), token, now.UnixMilli(), taskID)
 	if err != nil {
 		return err
 	}
@@ -185,12 +185,12 @@ func (s *Store[T]) stampLease(
 	if err := s.appendFact(
 		ctx,
 		tx,
-		facts.Fact{TaskID: id, Type: facts.Claimed, Owner: owner},
+		facts.Fact{TaskID: taskID, Type: facts.Claimed, Owner: owner},
 	); err != nil {
 		return err
 	}
 
-	claimed, err := s.loadTaskTx(ctx, tx, id)
+	claimed, err := s.loadTaskTx(ctx, tx, taskID)
 	if err != nil {
 		return err
 	}

@@ -127,14 +127,14 @@ func serviceConflicts(a, b *catalog.Catalog) []Conflict {
 
 	var conflicts []Conflict
 
-	for id, l := range left {
-		r, ok := right[id]
+	for msgID, l := range left {
+		r, ok := right[msgID]
 		if !ok || l.Version == r.Version {
 			continue
 		}
 
 		conflicts = append(conflicts, Conflict{
-			Path:   fmt.Sprintf("services[%s]", id),
+			Path:   fmt.Sprintf("services[%s]", msgID),
 			Kind:   ConflictServiceMismatch,
 			Detail: fmt.Sprintf("version %q vs %q", l.Version, r.Version),
 		})

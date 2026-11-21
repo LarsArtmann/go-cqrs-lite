@@ -52,17 +52,17 @@ func NewTypedStore[T any, K fmt.Stringer](
 
 // Get retrieves the value for id, decoding it into a new T.
 // Returns [ErrNotFound] if no value exists.
-func (s *TypedStore[T, K]) Get(ctx context.Context, id K) (*T, error) {
-	data, err := s.backend.Get(ctx, s.key(id))
+func (s *TypedStore[T, K]) Get(ctx context.Context, keyID K) (*T, error) {
+	data, err := s.backend.Get(ctx, s.key(keyID))
 	if err != nil {
 		return nil, errorfamily.Wrap(err, errorfamily.Classify(err),
-			"kv.typed_store.get", fmt.Sprintf("get key %q", s.key(id)))
+			"kv.typed_store.get", fmt.Sprintf("get key %q", s.key(keyID)))
 	}
 
 	val, decodeErr := codec.DecodeEnvelopeOrLegacy[T](data, s.codec)
 	if decodeErr != nil {
 		return nil, errorfamily.WrapCorruption(decodeErr, "kv.typed_store.decode",
-			fmt.Sprintf("decode key %q", s.key(id)))
+			fmt.Sprintf("decode key %q", s.key(keyID)))
 	}
 
 	return &val, nil
@@ -80,22 +80,22 @@ func (s *TypedStore[T, K]) Has(ctx context.Context, id K) (bool, error) {
 }
 
 // Set encodes val and stores it under id, replacing any existing value.
-func (s *TypedStore[T, K]) Set(ctx context.Context, id K, val *T) error {
+func (s *TypedStore[T, K]) Set(ctx context.Context, keyID K, val *T) error {
 	if val == nil {
 		return errorfamily.WrapRejection(errNilTypedValue, "kv.typed_store.set_nil",
-			fmt.Sprintf("nil value for key %q", s.key(id)))
+			fmt.Sprintf("nil value for key %q", s.key(keyID)))
 	}
 
 	data, err := codec.WrapEncode(val, s.codec)
 	if err != nil {
 		return errorfamily.WrapCorruption(err, "kv.typed_store.encode",
-			fmt.Sprintf("encode key %q", s.key(id)))
+			fmt.Sprintf("encode key %q", s.key(keyID)))
 	}
 
-	err = s.backend.Set(ctx, s.key(id), data)
+	err = s.backend.Set(ctx, s.key(keyID), data)
 	if err != nil {
 		return errorfamily.Wrap(err, errorfamily.Classify(err),
-			"kv.typed_store.set", fmt.Sprintf("set key %q", s.key(id)))
+			"kv.typed_store.set", fmt.Sprintf("set key %q", s.key(keyID)))
 	}
 
 	return nil

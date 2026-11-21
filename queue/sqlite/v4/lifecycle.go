@@ -13,12 +13,12 @@ import (
 
 // Complete marks a Running task Completed. The token predicate is the
 // fence: only the current claim holder can finish (ADR-0134).
-func (s *Store[T]) Complete(ctx context.Context, id task.ID, token string, result []byte) error {
+func (s *Store[T]) Complete(ctx context.Context, taskID task.ID, token string, result []byte) error {
 	//art-dupl:accept dialect twin — lifecycle family mirrors; conformance pins lifecycle semantics
 	now := time.Now()
 
 	return s.withTx(ctx, func(tx *sql.Tx) error {
-		owner, err := leaseHolder(ctx, tx, id)
+		owner, err := leaseHolder(ctx, tx, taskID)
 		if err != nil {
 			return err
 		}
@@ -27,8 +27,8 @@ func (s *Store[T]) Complete(ctx context.Context, id task.ID, token string, resul
 			UPDATE tasks
 			SET status = 'completed', completed_at = ?, updated_at = ?,
 			    lease_owner = '', lease_expires = NULL, lease_token = NULL, last_error = ''
-			WHERE id = ? AND status = 'running' AND lease_token = ? AND lease_expires > ?`,
-			now.UnixMilli(), now.UnixMilli(), id.String(), token, now.UnixMilli())
+			WHERE taskID = ? AND status = 'running' AND lease_token = ? AND lease_expires > ?`,
+			now.UnixMilli(), now.UnixMilli(), taskID.String(), token, now.UnixMilli())
 		if err != nil {
 			return err
 		}
@@ -38,7 +38,7 @@ func (s *Store[T]) Complete(ctx context.Context, id task.ID, token string, resul
 		}
 
 		return s.appendFact(ctx, tx, facts.Fact{
-			TaskID: id.String(), Type: facts.Completed, Owner: owner,
+			TaskID: taskID.String(), Type: facts.Completed, Owner: owner,
 			Detail: maybeBytes(result),
 		})
 	})
@@ -66,7 +66,7 @@ func leaseHolder(ctx context.Context, q taskQuerier, id task.ID) (string, error)
 // Fail records a failed attempt: retry with backoff or dead-letter.
 func (s *Store[T]) Fail(
 	ctx context.Context,
-	id task.ID,
+	taskID task.ID,
 	token string,
 	errText string,
 	backoff time.Duration,
@@ -75,20 +75,20 @@ func (s *Store[T]) Fail(
 	return s.withTx(ctx, func(tx *sql.Tx) error {
 		now := time.Now() // captured inside the tx: backoff counts from commit, not call
 
-		attempts, maxAttempts, owner, err := readAttemptHolder(ctx, tx, id)
+		attempts, maxAttempts, owner, err := readAttemptHolder(ctx, tx, taskID)
 		if err != nil {
 			return err
 		}
 
 		newAttempts := attempts + 1
 		if newAttempts >= maxAttempts {
-			return s.deadLetter(ctx, tx, id, owner, token, newAttempts, errText, evidence, false)
+			return s.deadLetter(ctx, tx, taskID, owner, token, newAttempts, errText, evidence, false)
 		}
 
 		return s.retryRow(
 			ctx,
 			tx,
-			id,
+			taskID,
 			owner,
 			token,
 			newAttempts,
@@ -102,13 +102,13 @@ func (s *Store[T]) Fail(
 // readAttemptHolder loads the attempt counters plus the lease owner for
 // fact attribution; safe without FOR UPDATE under the single serialized
 // writer.
-func readAttemptHolder(ctx context.Context, tx *sql.Tx, id task.ID) (int, int, string, error) {
+func readAttemptHolder(ctx context.Context, tx *sql.Tx, taskID task.ID) (int, int, string, error) {
 	var attempts, maxAttempts int
 
 	var owner string
 
 	err := tx.QueryRowContext(ctx,
-		`SELECT attempts, max_attempts, lease_owner FROM tasks WHERE id = ?`, id.String()).
+		`SELECT attempts, max_attempts, lease_owner FROM tasks WHERE taskID = ?`, taskID.String()).
 		Scan(&attempts, &maxAttempts, &owner)
 	if errors.Is(err, sql.ErrNoRows) {
 		return 0, 0, "", queue.ErrNotFound
@@ -127,7 +127,7 @@ func readAttemptHolder(ctx context.Context, tx *sql.Tx, id task.ID) (int, int, s
 func (s *Store[T]) retryRow(
 	ctx context.Context,
 	tx *sql.Tx,
-	id task.ID,
+	taskID task.ID,
 	owner, token string,
 	newAttempts int,
 	errText string,
@@ -138,8 +138,8 @@ func (s *Store[T]) retryRow(
 		UPDATE tasks
 		SET status = 'pending', attempts = ?, last_error = ?, not_before = ?,
 		    updated_at = ?, lease_owner = '', lease_expires = NULL, lease_token = NULL
-		WHERE id = ? AND status = 'running' AND lease_token = ?`,
-		newAttempts, errText, ms(notBefore), time.Now().UnixMilli(), id.String(), token)
+		WHERE taskID = ? AND status = 'running' AND lease_token = ?`,
+		newAttempts, errText, ms(notBefore), time.Now().UnixMilli(), taskID.String(), token)
 	if err != nil {
 		return err
 	}
@@ -151,7 +151,7 @@ func (s *Store[T]) retryRow(
 	}
 
 	return s.appendFact(ctx, tx, facts.Fact{
-		TaskID: id.String(), Type: facts.Failed, Owner: owner,
+		TaskID: taskID.String(), Type: facts.Failed, Owner: owner,
 		Attempt: newAttempts, Error: errText, Detail: maybeBytes(evidence),
 	})
 }
@@ -161,7 +161,7 @@ func (s *Store[T]) retryRow(
 // premature death is visible in the row itself. The token predicate
 // fences the write to the current holder.
 func (s *Store[T]) deadLetter(
-	ctx context.Context, tx *sql.Tx, id task.ID, owner, token string, newAttempts int,
+	ctx context.Context, tx *sql.Tx, taskID task.ID, owner, token string, newAttempts int,
 	errText string, evidence []byte, permanent bool,
 ) error {
 	class := "exhausted"
@@ -177,8 +177,8 @@ func (s *Store[T]) deadLetter(
 	}
 
 	res, err := tx.ExecContext(ctx,
-		`UPDATE tasks `+maxStmt+` WHERE id = ? AND status = 'running' AND lease_token = ?`,
-		append(args, id.String(), token)...)
+		`UPDATE tasks `+maxStmt+` WHERE taskID = ? AND status = 'running' AND lease_token = ?`,
+		append(args, taskID.String(), token)...)
 	if err != nil {
 		return err
 	}
@@ -188,14 +188,14 @@ func (s *Store[T]) deadLetter(
 	}
 
 	if err := s.appendFact(ctx, tx, facts.Fact{
-		TaskID: id.String(), Type: facts.Failed, Owner: owner,
+		TaskID: taskID.String(), Type: facts.Failed, Owner: owner,
 		Attempt: newAttempts, Error: errText, Detail: maybeBytes(evidence),
 	}); err != nil {
 		return err
 	}
 
 	return s.appendFact(ctx, tx, facts.Fact{
-		TaskID: id.String(), Type: facts.DeadLettered, Owner: owner, Attempt: newAttempts,
+		TaskID: taskID.String(), Type: facts.DeadLettered, Owner: owner, Attempt: newAttempts,
 		Error: errText, Detail: mustJSON(map[string]string{"class": class}),
 	})
 }
@@ -204,7 +204,7 @@ func (s *Store[T]) deadLetter(
 // identical retry would fail identically. The failing attempt is still
 // counted.
 func (s *Store[T]) FailPermanent(
-	ctx context.Context, id task.ID, token string, errText string, evidence []byte,
+	ctx context.Context, taskID task.ID, token string, errText string, evidence []byte,
 ) error {
 	return s.withTx(ctx, func(tx *sql.Tx) error {
 		var attempts int
@@ -212,7 +212,7 @@ func (s *Store[T]) FailPermanent(
 		var owner string
 
 		err := tx.QueryRowContext(ctx,
-			`SELECT attempts, lease_owner FROM tasks WHERE id = ?`, id.String()).
+			`SELECT attempts, lease_owner FROM tasks WHERE taskID = ?`, taskID.String()).
 			Scan(&attempts, &owner)
 		if errors.Is(err, sql.ErrNoRows) {
 			return queue.ErrNotFound
@@ -222,7 +222,7 @@ func (s *Store[T]) FailPermanent(
 			return err
 		}
 
-		return s.deadLetter(ctx, tx, id, owner, token, attempts+1, errText, evidence, true)
+		return s.deadLetter(ctx, tx, taskID, owner, token, attempts+1, errText, evidence, true)
 	})
 }
 
@@ -231,7 +231,7 @@ func (s *Store[T]) FailPermanent(
 // is fine and the environment is expected to become ready later.
 func (s *Store[T]) Requeue(
 	ctx context.Context,
-	id task.ID,
+	taskID task.ID,
 	token string,
 	errText string,
 	delay time.Duration,
@@ -239,7 +239,7 @@ func (s *Store[T]) Requeue(
 	return s.withTx(ctx, func(tx *sql.Tx) error {
 		now := time.Now()
 
-		owner, err := leaseHolder(ctx, tx, id)
+		owner, err := leaseHolder(ctx, tx, taskID)
 		if err != nil {
 			return err
 		}
@@ -248,8 +248,8 @@ func (s *Store[T]) Requeue(
 			UPDATE tasks
 			SET status = 'pending', not_before = ?, last_error = ?, updated_at = ?,
 			    lease_owner = '', lease_expires = NULL, lease_token = NULL
-			WHERE id = ? AND status = 'running' AND lease_token = ?`,
-			ms(now.Add(delay)), errText, now.UnixMilli(), id.String(), token)
+			WHERE taskID = ? AND status = 'running' AND lease_token = ?`,
+			ms(now.Add(delay)), errText, now.UnixMilli(), taskID.String(), token)
 		if err != nil {
 			return err
 		}
@@ -259,7 +259,7 @@ func (s *Store[T]) Requeue(
 		}
 
 		return s.appendFact(ctx, tx, facts.Fact{
-			TaskID: id.String(), Type: facts.Requeued, Owner: owner, Error: errText,
+			TaskID: taskID.String(), Type: facts.Requeued, Owner: owner, Error: errText,
 			Detail: mustJSON(facts.RequeueEvidence{Reason: errText, RetryIn: delay.Milliseconds()}),
 		})
 	})
@@ -269,7 +269,7 @@ func (s *Store[T]) Requeue(
 // held; no fact is appended (renewal is scheduling, not state).
 func (s *Store[T]) Heartbeat(
 	ctx context.Context,
-	id task.ID,
+	taskID task.ID,
 	token string,
 	extend time.Duration,
 ) error {
@@ -277,8 +277,8 @@ func (s *Store[T]) Heartbeat(
 
 	res, err := s.db.ExecContext(ctx, `
 		UPDATE tasks SET lease_expires = ?, updated_at = ?
-		WHERE id = ? AND status = 'running' AND lease_token = ? AND lease_expires > ?`,
-		ms(now.Add(extend)), now.UnixMilli(), id.String(), token, now.UnixMilli())
+		WHERE taskID = ? AND status = 'running' AND lease_token = ? AND lease_expires > ?`,
+		ms(now.Add(extend)), now.UnixMilli(), taskID.String(), token, now.UnixMilli())
 	if err != nil {
 		return err
 	}

@@ -139,31 +139,31 @@ func derivedMessages(
 		len(domain.Events)+len(domain.Schema)+len(overrides))
 
 	for _, reg := range sys.CommandRegistrations() {
-		id := string(reg.Type)
+		msgID := string(reg.Type)
 
-		if override, curated := overrides[id]; curated {
+		if override, curated := overrides[msgID]; curated {
 			msgs = append(msgs, override)
 
 			continue
 		}
 
 		msgs = append(msgs, catalog.CommandFromSchema(
-			catalog.MessageID(id),
+			catalog.MessageID(msgID),
 			schemaForType(reg.PayloadType),
 		))
 	}
 
 	for _, reg := range sys.QueryRegistrations() {
-		id := string(reg.Type)
+		msgID := string(reg.Type)
 
-		if override, curated := overrides[id]; curated {
+		if override, curated := overrides[msgID]; curated {
 			msgs = append(msgs, override)
 
 			continue
 		}
 
 		msgs = append(msgs, catalog.QueryFromSchema(
-			catalog.MessageID(id),
+			catalog.MessageID(msgID),
 			schemaForType(reg.PayloadType),
 		))
 	}
@@ -174,9 +174,9 @@ func derivedMessages(
 	}
 
 	for _, evtType := range eventUniverse(domain) {
-		id := string(evtType)
+		msgID := string(evtType)
 
-		if override, curated := overrides[id]; curated {
+		if override, curated := overrides[msgID]; curated {
 			msgs = append(msgs, override)
 
 			continue
@@ -190,7 +190,7 @@ func derivedMessages(
 		}
 
 		msgs = append(msgs, catalog.EventFromSchema(
-			catalog.MessageID(id),
+			catalog.MessageID(msgID),
 			catalog.Sends,
 			nil,
 			opts...,

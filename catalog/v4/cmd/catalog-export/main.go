@@ -55,16 +55,16 @@ func parseSelectors(flags selectorList) ([]architecture.Selector, error) {
 	selectors := make([]architecture.Selector, 0, len(flags))
 
 	for _, raw := range flags {
-		kind, id, found := strings.Cut(raw, ":")
-		if !found || kind == "" || id == "" {
+		kind, resourceID, found := strings.Cut(raw, ":")
+		if !found || kind == "" || resourceID == "" {
 			return nil, fmt.Errorf(
-				"catalog-export: selector %q is not kind:id: %w",
+				"catalog-export: selector %q is not kind:resourceID: %w",
 				raw,
 				errBadSelector,
 			)
 		}
 
-		selectors = append(selectors, architecture.Selector{Kind: kind, ID: id})
+		selectors = append(selectors, architecture.Selector{Kind: kind, ID: resourceID})
 	}
 
 	return selectors, nil

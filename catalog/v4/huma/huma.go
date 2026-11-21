@@ -53,11 +53,11 @@ func toMessage(op HumaOperation) catalog.MessageConfig {
 		opts = append(opts, catalog.WithSummary(op.Summary))
 	}
 
-	id := catalog.MessageID(op.OperationID)
+	msgID := catalog.MessageID(op.OperationID)
 
 	if op.Method == http.MethodGet {
-		return catalog.Query[struct{}](id, opts...)
+		return catalog.Query[struct{}](msgID, opts...)
 	}
 
-	return catalog.Command[struct{}](id, opts...)
+	return catalog.Command[struct{}](msgID, opts...)
 }

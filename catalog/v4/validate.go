@@ -142,15 +142,15 @@ func validateMessage(
 		})
 	}
 
-	id := Key(msg)
+	msgID := Key(msg)
 
-	if prev, exists := seenMsgIDs[id]; exists {
+	if prev, exists := seenMsgIDs[msgID]; exists {
 		violations = append(violations, Violation{
 			Path:    path,
-			Message: fmt.Sprintf("duplicate message ID %q (also in %s)", id, prev),
+			Message: fmt.Sprintf("duplicate message ID %q (also in %s)", msgID, prev),
 		})
 	} else {
-		seenMsgIDs[id] = path
+		seenMsgIDs[msgID] = path
 	}
 
 	violations = append(violations, validateOperation(seenOpPaths, path, msg)...)

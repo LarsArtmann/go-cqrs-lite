@@ -84,7 +84,7 @@ func decodeDueTimer[P any](
 // distinguishes the shapes; non-object legacy payloads (strings, arrays) fail
 // the probe and decode directly as P. Decode failures are classified as
 // corruption — a row whose payload no longer matches P is a corrupt row.
-func decodeTimerPayload[P any](id string, data []byte) (timerEnvelope[P], error) {
+func decodeTimerPayload[P any](timerID string, data []byte) (timerEnvelope[P], error) {
 	// Unwrap the gcdc envelope when present (new writes); legacy rows come
 	// back unchanged with the JSON fallback codec (decode-old-wrap-new).
 	_, inner := codec.UnwrapDecode(data, codec.JSONCodec{})
@@ -102,7 +102,7 @@ func decodeTimerPayload[P any](id string, data []byte) (timerEnvelope[P], error)
 			return timerEnvelope[P]{}, errorfamily.WrapCorruption(
 				err,
 				"scheduling.sqlstore.unmarshal_envelope",
-				"unmarshal timer envelope for "+id,
+				"unmarshal timer envelope for "+timerID,
 			)
 		}
 
@@ -115,7 +115,7 @@ func decodeTimerPayload[P any](id string, data []byte) (timerEnvelope[P], error)
 		return timerEnvelope[P]{}, errorfamily.WrapCorruption(
 			err,
 			"scheduling.sqlstore.unmarshal_legacy_payload",
-			"unmarshal legacy timer payload for "+id,
+			"unmarshal legacy timer payload for "+timerID,
 		)
 	}
 

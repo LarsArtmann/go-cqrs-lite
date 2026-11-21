@@ -304,15 +304,15 @@ func channelLinks(
 ) []eventCatalogLink {
 	links := make([]eventCatalogLink, 0, len(ids))
 
-	for _, id := range ids {
-		label := string(id)
-		if ch, ok := findChannel(cat, string(id)); ok && ch.Name != "" {
+	for _, msgID := range ids {
+		label := string(msgID)
+		if ch, ok := findChannel(cat, string(msgID)); ok && ch.Name != "" {
 			label = string(ch.Name)
 		}
 
 		links = append(
 			links,
-			eventCatalogLink{Label: label, Href: eventCatalogChannelHref(docsPath, string(id))},
+			eventCatalogLink{Label: label, Href: eventCatalogChannelHref(docsPath, string(msgID))},
 		)
 	}
 

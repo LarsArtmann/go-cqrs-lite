@@ -37,21 +37,21 @@ func Parse[T any](s string) (Of[T], error) {
 		)
 	}
 
-	id, err := ulid.Parse(s)
+	parsed, err := ulid.Parse(s)
 	if err != nil {
 		var zero Of[T]
 
 		return zero, errorfamily.Wrapf(
 			err,
 			errorfamily.Rejection,
-			"id.parse_ulid",
+			"parsed.parse_ulid",
 			"cannot parse %q as ULID for %T",
 			s,
 			zero,
 		)
 	}
 
-	return cbid.NewID[T](id), nil
+	return cbid.NewID[T](parsed), nil
 }
 
 // ULID returns the timestamp encoded in the ID.

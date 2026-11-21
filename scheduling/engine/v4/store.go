@@ -165,25 +165,25 @@ func (s *TimerStore[P]) Due(ctx context.Context, now time.Time) ([]scheduling.Ti
 // remembered epoch (the timer was canceled or replaced since) is a NO-OP —
 // the TimerStore contract only fires MarkFired after a matching Due, so an
 // unknown generation means the dispatch's timer no longer exists.
-func (s *TimerStore[P]) MarkFired(ctx context.Context, id scheduling.TimerID) error {
-	epoch, ok := s.takeEpoch(id.Get())
+func (s *TimerStore[P]) MarkFired(ctx context.Context, timerID scheduling.TimerID) error {
+	epoch, ok := s.takeEpoch(timerID.Get())
 	if !ok {
 		return nil
 	}
 
-	if err := s.claims.ClaimDeleteIfDue(ctx, s.collection, id.Get(), epoch); err != nil {
-		return fmt.Errorf("scheduling/engine: mark fired %s: %w", id.Get(), err)
+	if err := s.claims.ClaimDeleteIfDue(ctx, s.collection, timerID.Get(), epoch); err != nil {
+		return fmt.Errorf("scheduling/engine: mark fired %s: %w", timerID.Get(), err)
 	}
 
 	return nil
 }
 
 // Cancel removes a timer before it fires.
-func (s *TimerStore[P]) Cancel(ctx context.Context, id scheduling.TimerID) error {
-	s.takeEpoch(id.Get())
+func (s *TimerStore[P]) Cancel(ctx context.Context, timerID scheduling.TimerID) error {
+	s.takeEpoch(timerID.Get())
 
-	if err := s.claims.ClaimDelete(ctx, s.collection, id.Get()); err != nil {
-		return fmt.Errorf("scheduling/engine: cancel %s: %w", id.Get(), err)
+	if err := s.claims.ClaimDelete(ctx, s.collection, timerID.Get()); err != nil {
+		return fmt.Errorf("scheduling/engine: cancel %s: %w", timerID.Get(), err)
 	}
 
 	return nil

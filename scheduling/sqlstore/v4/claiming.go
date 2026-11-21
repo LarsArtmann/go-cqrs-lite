@@ -319,7 +319,7 @@ var ErrLeaseNotHeld error = errorfamily.NewOrchestration(
 // extension <= 0 means DefaultClaimLease.
 func (c *ClaimingTimerStore[P]) RenewLease(
 	ctx context.Context,
-	id scheduling.TimerID,
+	timerID scheduling.TimerID,
 	extension time.Duration,
 ) error {
 	if extension <= 0 {
@@ -330,13 +330,13 @@ func (c *ClaimingTimerStore[P]) RenewLease(
 	newUntil := now.Add(extension)
 
 	query, args := claiming.RenewStmt(
-		c.dialect, timersSpec(), c.formatTime(newUntil), id.Get(), c.formatTime(now),
+		c.dialect, timersSpec(), c.formatTime(newUntil), timerID.Get(), c.formatTime(now),
 	)
 
 	res, err := c.db.ExecContext(ctx, query, args...)
 	if err != nil {
 		return errorfamily.WrapInfrastructure(
-			err, "scheduling.sqlstore.renew_lease", "renew lease for timer "+id.String())
+			err, "scheduling.sqlstore.renew_lease", "renew lease for timer "+timerID.String())
 	}
 
 	n, err := res.RowsAffected()
@@ -352,7 +352,7 @@ func (c *ClaimingTimerStore[P]) RenewLease(
 			c.metrics.RenewRejected()
 		}
 
-		return fmt.Errorf("sqlstore: renew %s: %w", id.String(), ErrLeaseNotHeld)
+		return fmt.Errorf("sqlstore: renew %s: %w", timerID.String(), ErrLeaseNotHeld)
 	}
 
 	c.renewed.Add(1)

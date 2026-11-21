@@ -8,9 +8,11 @@ import (
 	"context"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
 )
 
@@ -61,6 +63,9 @@ func RunFullLifecycle(t *testing.T, f Factory) {
 		StreamType: "User",
 		Version:    1,
 		State:      []byte(`{"name":"alice","version":1}`),
+		Encoding:   record.EncodingUnknown,
+		CreatedAt:  time.Time{},
+		StateShape: "",
 	}
 	must(t, "save snapshot", source.SnapshotStore().Save(ctx, snap))
 

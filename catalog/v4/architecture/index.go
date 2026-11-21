@@ -62,24 +62,24 @@ func (x *refIndex) isKept(kind resourceKind, id string) bool {
 // add registers a resource and returns the reference other sections link to.
 // Resources outside the kept set are not registered, so every resolver below
 // treats them as absent from the document.
-func (x *refIndex) add(kind resourceKind, id, name string) {
-	key := selKey{kind: kind, id: id}
+func (x *refIndex) add(kind resourceKind, resourceID, name string) {
+	key := selKey{kind: kind, id: resourceID}
 
 	if !x.banned[key] {
 		x.names[key] = name
 
-		if _, exists := x.namesByID[id]; !exists {
-			x.namesByID[id] = name
+		if _, exists := x.namesByID[resourceID]; !exists {
+			x.namesByID[resourceID] = name
 		}
 	}
 
-	if !x.isKept(kind, id) {
+	if !x.isKept(kind, resourceID) {
 		return
 	}
 
 	info := kindInfos()[kind]
 	ref := resourceRef{
-		anchor: info.anchor(id),
+		anchor: info.anchor(resourceID),
 		name:   name,
 		tag:    info.tag,
 		class:  info.class,
@@ -90,10 +90,10 @@ func (x *refIndex) add(kind resourceKind, id, name string) {
 		x.byKind[kind] = make(map[string]resourceRef)
 	}
 
-	x.byKind[kind][id] = ref
+	x.byKind[kind][resourceID] = ref
 
-	if _, exists := x.byID[id]; !exists {
-		x.byID[id] = ref
+	if _, exists := x.byID[resourceID]; !exists {
+		x.byID[resourceID] = ref
 	}
 }
 
@@ -128,8 +128,8 @@ func (x *refIndex) owners(ids []string) []resourceRef {
 
 	refs := make([]resourceRef, 0, len(ids))
 
-	for _, id := range ids {
-		ref := x.owner(id)
+	for _, refID := range ids {
+		ref := x.owner(refID)
 
 		if ref.anchor != "" {
 			refs = append(refs, ref)
@@ -137,7 +137,7 @@ func (x *refIndex) owners(ids []string) []resourceRef {
 			continue
 		}
 
-		teamKey, userKey := selKey{kind: kindTeam, id: id}, selKey{kind: kindUser, id: id}
+		teamKey, userKey := selKey{kind: kindTeam, id: refID}, selKey{kind: kindUser, id: refID}
 
 		if x.banned[teamKey] || x.banned[userKey] {
 			continue
@@ -162,7 +162,7 @@ func (x *refIndex) owners(ids []string) []resourceRef {
 		}
 
 		if x.kept == nil {
-			refs = append(refs, plainRef(id))
+			refs = append(refs, plainRef(refID))
 		}
 	}
 
@@ -176,14 +176,14 @@ func (x *refIndex) owners(ids []string) []resourceRef {
 func (x *refIndex) anyOf(ids []string) []resourceRef {
 	refs := make([]resourceRef, 0, len(ids))
 
-	for _, id := range ids {
+	for _, refID := range ids {
 		//art-dupl:accept accidental shape match with cmd/cqrs-lint/discordsync_fixture_test.go accumulate loop: shared continue-ladder shape only, not meaning (ref resolution vs finding accumulation)
-		ref := x.any(id)
+		ref := x.any(refID)
 
 		if ref.anchor == "" {
 			var ok bool
 
-			if ref, ok = x.degradeAny(id); !ok {
+			if ref, ok = x.degradeAny(refID); !ok {
 				continue
 			}
 		}
@@ -199,19 +199,19 @@ func (x *refIndex) anyOf(ids []string) []resourceRef {
 func (x *refIndex) messagesOf(kind resourceKind, ids []string) []resourceRef {
 	refs := make([]resourceRef, 0, len(ids))
 
-	for _, id := range ids {
-		if ref := x.get(kind, id); ref.anchor != "" {
+	for _, refID := range ids {
+		if ref := x.get(kind, refID); ref.anchor != "" {
 			refs = append(refs, ref)
 
 			continue
 		}
 
-		ref := x.any(id)
+		ref := x.any(refID)
 
 		if ref.anchor == "" {
 			var ok bool
 
-			if ref, ok = x.degradeAny(id); !ok {
+			if ref, ok = x.degradeAny(refID); !ok {
 				continue
 			}
 		}
@@ -239,21 +239,21 @@ func (x *refIndex) channelsFor(msg catalog.Message) []resourceRef {
 // link resolves a "[[kind|id]]" prose reference to an in-document link. It
 // understands the same kind names ADR targets use, so one spelling works in
 // decisions, docs and export selectors alike.
-func (x *refIndex) link(kind, id string) resourceRef {
+func (x *refIndex) link(kind, resourceID string) resourceRef {
 	resolved, ok := adrKind(kind)
 	if !ok {
 		if x.kept != nil {
 			return droppedRef()
 		}
 
-		return plainRef(id)
+		return plainRef(resourceID)
 	}
 
-	if ref := x.get(resolved, id); ref.anchor != "" {
+	if ref := x.get(resolved, resourceID); ref.anchor != "" {
 		return ref
 	}
 
-	if ref, keep := x.degrade(resolved, id); keep {
+	if ref, keep := x.degrade(resolved, resourceID); keep {
 		return ref
 	}
 

@@ -29,13 +29,13 @@ func TestBuilder() *catalog.Builder {
 func AddService(
 	tb testing.TB,
 	r *catalog.Registry,
-	id catalog.ServiceID,
+	serviceID catalog.ServiceID,
 	name, version string,
 ) *catalog.Registry {
 	tb.Helper()
 
 	r.AddService(catalog.Service{
-		ID:      id,
+		ID:      serviceID,
 		Name:    catalog.Name(name),
 		Version: catalog.Version(version),
 	})
@@ -46,14 +46,14 @@ func AddService(
 func AddDomain(
 	tb testing.TB,
 	r *catalog.Registry,
-	id catalog.DomainID,
+	domainID catalog.DomainID,
 	name, version, summary string,
 	services []catalog.ServiceID,
 ) {
 	tb.Helper()
 
 	r.AddDomain(catalog.Domain{
-		ID:       id,
+		ID:       domainID,
 		Name:     catalog.Name(name),
 		Version:  catalog.Version(version),
 		Summary:  catalog.Summary(summary),
@@ -134,13 +134,13 @@ func AddServiceWithCommand(
 func AddServiceWithSummary(
 	tb testing.TB,
 	r *catalog.Registry,
-	id catalog.ServiceID,
+	serviceID catalog.ServiceID,
 	name, version, summary string,
 ) *catalog.Registry {
 	tb.Helper()
 
 	r.AddService(catalog.Service{
-		ID:      id,
+		ID:      serviceID,
 		Name:    catalog.Name(name),
 		Version: catalog.Version(version),
 		Summary: catalog.Summary(summary),
@@ -152,13 +152,13 @@ func AddServiceWithSummary(
 func AddDataStore(
 	tb testing.TB,
 	r *catalog.Registry,
-	id catalog.DataStoreID,
+	dataStoreID catalog.DataStoreID,
 	name, version, containerType string,
 ) *catalog.Registry {
 	tb.Helper()
 
 	r.AddDataStore(catalog.DataStore{
-		ID:            id,
+		ID:            dataStoreID,
 		Name:          catalog.Name(name),
 		Version:       catalog.Version(version),
 		ContainerType: containerType,
@@ -170,7 +170,7 @@ func AddDataStore(
 func AddChannel(
 	tb testing.TB,
 	r *catalog.Registry,
-	id catalog.ChannelID,
+	channelID catalog.ChannelID,
 	name, version, summary string,
 	protocols []string,
 ) *catalog.Registry {
@@ -182,7 +182,7 @@ func AddChannel(
 	}
 
 	r.AddChannel(catalog.Channel{
-		ID:        id,
+		ID:        channelID,
 		Name:      catalog.Name(name),
 		Version:   catalog.Version(version),
 		Summary:   catalog.Summary(summary),

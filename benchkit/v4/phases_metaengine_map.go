@@ -69,14 +69,14 @@ func (r *runner) metaEngineMapWorkload(ctx context.Context) error {
 			break
 		}
 
-		id := fmt.Sprintf("item-%04d", i)
-		itemIDs[i] = id
+		itemID := fmt.Sprintf("item-%04d", i)
+		itemIDs[i] = itemID
 
 		status := statuses[i%len(statuses)]
 		priority := i % 100
 
 		if err := store.Apply(ctx, "meBenchItemCreated", meBenchItemCreated{
-			ID:       id,
+			ID:       itemID,
 			Status:   status,
 			Priority: priority,
 		}); err != nil {
@@ -128,11 +128,11 @@ func (r *runner) metaEngineMapWorkload(ctx context.Context) error {
 		}
 
 		// Look up a real ID (round-robin through inserted items).
-		id := itemIDs[i%len(itemIDs)]
+		itemID := itemIDs[i%len(itemIDs)]
 
 		start := time.Now()
 
-		_, found, getErr := reader.Get(ctx, id)
+		_, found, getErr := reader.Get(ctx, itemID)
 
 		pointColl.Record(time.Since(start))
 
@@ -141,7 +141,7 @@ func (r *runner) metaEngineMapWorkload(ctx context.Context) error {
 		}
 
 		if !found {
-			return fmt.Errorf("%w: item %q: %w", errMEPointMiss, id, ErrMEEvent)
+			return fmt.Errorf("%w: item %q: %w", errMEPointMiss, itemID, ErrMEEvent)
 		}
 	}
 

@@ -174,14 +174,14 @@ func danglingStores(
 	var violations []catalog.Violation
 
 	check := func(field string, ids []catalog.DataStoreID) {
-		for _, id := range ids {
-			if stores[id] {
+		for _, msgID := range ids {
+			if stores[msgID] {
 				continue
 			}
 
 			violations = append(violations, catalog.Violation{
 				Path:    fmt.Sprintf("services[%s].%s", svc.ID, field),
-				Message: fmt.Sprintf("service references undeclared data store %q", id),
+				Message: fmt.Sprintf("service references undeclared data store %q", msgID),
 			})
 		}
 	}

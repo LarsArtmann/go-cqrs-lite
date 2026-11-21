@@ -88,7 +88,7 @@ func withCheckpointReadLock[T any](
 
 // Close marks the store as closed.
 func (s *MemoryCheckpointStore) Close() error {
-	return s.Lifecycle.Close()
+	return wrapClosed(s.Lifecycle.Close(), "memory.checkpoint_store.close", "close checkpoint store")
 }
 
 var (

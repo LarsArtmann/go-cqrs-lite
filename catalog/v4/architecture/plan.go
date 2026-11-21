@@ -132,17 +132,17 @@ func (s *Selection) plan(cat *catalog.Catalog, references ReferencesMode) keptPl
 }
 
 // closureReason explains why a container's member is in the export.
-func closureReason(kind resourceKind, id string) string {
+func closureReason(kind resourceKind, resourceID string) string {
 	switch kind {
 	case kindDomain:
-		return "in domain " + id
+		return "in domain " + resourceID
 	case kindService:
-		return "in service " + id
+		return "in service " + resourceID
 	case kindOverview, kindCommand, kindEvent, kindQuery, kindChannel,
 		kindDataStore, kindFlow, kindEntity, kindDataProduct, kindAgent,
 		kindADR, kindTeam, kindUser, kindDoc:
-		return "referenced by " + selectorSpelling(kind) + " " + id
+		return "referenced by " + selectorSpelling(kind) + " " + resourceID
 	default:
-		return "referenced by " + id
+		return "referenced by " + resourceID
 	}
 }

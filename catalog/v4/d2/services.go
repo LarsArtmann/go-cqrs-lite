@@ -277,9 +277,9 @@ func (e *Exporter) writeEntityRelationships(buf *strings.Builder, cat *catalog.C
 
 func (e *Exporter) writeDataProducts(buf *strings.Builder, cat *catalog.Catalog) {
 	for _, product := range cat.DataProducts {
-		id := "dp_" + sanitizeID(string(product.ID))
+		dpKey := "dp_" + sanitizeID(string(product.ID))
 
-		fmt.Fprintf(buf, "%s: {\n", id)
+		fmt.Fprintf(buf, "%s: {\n", dpKey)
 		fmt.Fprintf(buf, "  class: dataProduct\n")
 		fmt.Fprintf(buf, "  label: %q\n", product.Name)
 		buf.WriteString("  shape: package\n")
@@ -287,21 +287,21 @@ func (e *Exporter) writeDataProducts(buf *strings.Builder, cat *catalog.Catalog)
 
 		for _, input := range product.Inputs {
 			inputID := sanitizeID(string(input.ID))
-			fmt.Fprintf(buf, "%s -> %s: \"feeds\"\n\n", inputID, id)
+			fmt.Fprintf(buf, "%s -> %s: \"feeds\"\n\n", inputID, dpKey)
 		}
 
 		for _, output := range product.Outputs {
 			outputID := sanitizeID(string(output.ID))
-			fmt.Fprintf(buf, "%s -> %s: \"produces\"\n\n", id, outputID)
+			fmt.Fprintf(buf, "%s -> %s: \"produces\"\n\n", dpKey, outputID)
 		}
 	}
 }
 
 func (e *Exporter) writeAgents(buf *strings.Builder, cat *catalog.Catalog) {
 	for _, agent := range cat.Agents {
-		id := "agent_" + sanitizeID(string(agent.ID))
+		agentKey := "agent_" + sanitizeID(string(agent.ID))
 
-		fmt.Fprintf(buf, "%s: {\n", id)
+		fmt.Fprintf(buf, "%s: {\n", agentKey)
 		fmt.Fprintf(buf, "  class: agent\n")
 
 		label := string(agent.Name)
@@ -320,12 +320,12 @@ func (e *Exporter) writeAgents(buf *strings.Builder, cat *catalog.Catalog) {
 
 		for _, msg := range agent.Sends {
 			msgID := sanitizeID(string(msg.ID))
-			fmt.Fprintf(buf, "%s -> %s: \"sends\"\n\n", id, msgID)
+			fmt.Fprintf(buf, "%s -> %s: \"sends\"\n\n", agentKey, msgID)
 		}
 
 		for _, msg := range agent.Receives {
 			msgID := sanitizeID(string(msg.ID))
-			fmt.Fprintf(buf, "%s -> %s: \"receives\"\n\n", msgID, id)
+			fmt.Fprintf(buf, "%s -> %s: \"receives\"\n\n", msgID, agentKey)
 		}
 	}
 }

@@ -147,9 +147,9 @@ func (s *Store[T]) insertTaskRow(
 // getTaskByDedupKey returns the stored task for a dedup key, if any.
 func (s *Store[T]) getTaskByDedupKey(ctx context.Context, key string) (task.Task[T], bool, error) {
 	//art-dupl:accept dialect twin of queue/mysql getTaskByDedupKey; conformance pins dedup-key idempotency
-	var id string
+	var taskID string
 
-	err := s.db.QueryRowContext(ctx, `SELECT id FROM tasks WHERE dedup_key = ?`, key).Scan(&id)
+	err := s.db.QueryRowContext(ctx, `SELECT taskID FROM tasks WHERE dedup_key = ?`, key).Scan(&taskID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return task.Task[T]{}, false, nil
 	}
@@ -158,7 +158,7 @@ func (s *Store[T]) getTaskByDedupKey(ctx context.Context, key string) (task.Task
 		return task.Task[T]{}, false, err
 	}
 
-	t, err := s.Get(ctx, task.ID(id))
+	t, err := s.Get(ctx, task.ID(taskID))
 	if err != nil {
 		return task.Task[T]{}, false, err
 	}

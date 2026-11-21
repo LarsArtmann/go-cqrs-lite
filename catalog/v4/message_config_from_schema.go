@@ -44,15 +44,15 @@ func QueryFromSchema(id MessageID, sch *Schema, opts ...MessageOption) MessageCo
 // the message id instead of a Go type name.
 func newMessageBuilderFromSchema(
 	kind MessageKind,
-	id MessageID,
+	msgID MessageID,
 	direction Direction,
 	sch *Schema,
 	opts []MessageOption,
 ) MessageConfig {
 	msgBuilder := &messageBuilder{
 		kind:      kind,
-		id:        id,
-		name:      humanizeMessageID(string(id)),
+		id:        msgID,
+		name:      humanizeMessageID(string(msgID)),
 		version:   defaultVersion,
 		schema:    sch,
 		direction: direction,

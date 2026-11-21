@@ -255,6 +255,30 @@ linters:
         - github.com/larsartmann/go-cqrs-lite/metaengine/v4\.EngineProfile
         - github.com/larsartmann/go-cqrs-lite/storage/v4/pebble\.storeBase
         - github.com/larsartmann/go-cqrs-lite/storage/v4/bbolt\.storeBase
+        # Preset option-pattern structs (deprecated at v5, ADR-0123):
+        # functional options default every omitted field by design.
+        - github.com/larsartmann/go-cqrs-lite/stack/pebble/v4\.config
+        - github.com/larsartmann/go-cqrs-lite/stack/turso/v4\.config
+        - github.com/larsartmann/go-cqrs-lite/stack/turso/v4\.Bundle
+        # Stdlib/driver option structs: omitted fields are zero-value
+        # options by the driver's own semantics.
+        - github.com/cockroachdb/pebble\.IterOptions
+        - github.com/dgraph-io/dgo/v240/api\.Mutation
+        - github.com/dgraph-io/dgo/v240/api\.Request
+        - github.com/dgraph-io/dgo/v240/api\.Operation
+        - github.com/dgraph-io/badger/v4\.IteratorOptions
+        # First-party option/optional-field structs: functional options or
+        # documented optional stamps default every omitted field.
+        - github.com/larsartmann/go-cqrs-lite/metaengine/v4\.LayoutPlan
+        - github.com/larsartmann/go-cqrs-lite/metaengine/v4\.AggregateSpec
+        - github.com/larsartmann/go-cqrs-lite/event/v4\.eventOptions
+        - github.com/larsartmann/go-cqrs-lite/event/v4\.Checkpoint
+        - github.com/larsartmann/go-cqrs-lite/record/v4\.CommonMetadata
+        - github.com/larsartmann/go-cqrs-lite/snapshot/v4\.Snapshot
+        - github.com/larsartmann/go-cqrs-lite/storage/turso/v4/indexing\.Index
+        - github.com/larsartmann/go-cqrs-lite/storage/bbolt/v4\.bboltEventIterator
+        # LogStore's mutex/log slice zero values are correct by design.
+        - github.com/larsartmann/go-cqrs-lite/storage/memory/v4\.LogStore
     funlen:
       lines: 200
       statements: 100
@@ -285,6 +309,11 @@ linters:
         - anon
         - stdlib
         - generic
+        # The library's public API IS interface contracts (see the
+        # Interface Hierarchy in DOMAIN_LANGUAGE.md): constructors and
+        # stores return Engine/EventIterator/Store/Span/Tracer by design;
+        # concrete returns would leak implementations to consumers.
+        - github.com/larsartmann/go-cqrs-lite/.*
     makezero:
       always: false
     mnd:
@@ -314,6 +343,15 @@ linters:
         - validate
         - mapstructure
       sort: true
+    tagliatelle:
+      case:
+        use-field-name: true
+        rules:
+          # The v4 wire contract is snake_case (pre-v5 rows must keep
+          # decoding; see snapshot store.go and wire.go). The default
+          # camel expectation contradicted the frozen contract — dozens of
+          # per-line nolints said so before this row existed.
+          json: snake
     testifylint:
       disable:
         - go-require
@@ -518,6 +556,44 @@ linters:
           - staticcheck
       - path: idempotency/.*_test\.go$
         text: 'SA1019: .*metaengine\.DedupStore.*'
+        linters:
+          - staticcheck
+      # The lifecycle projections read the deprecated CausationID twin by
+      # design until the v5 cut (T26 twins-until-cut); their tests stamp
+      # both the twin and the new Cause field to pin precedence.
+      - path: commandlifecycle/projections/v4/.*_test\.go$
+        text: 'SA1019: .*CommonMetadata\).CausationID is deprecated.*'
+        linters:
+          - staticcheck
+      # Engine register.go init() calls are the sanctioned database/sql
+      # driver-registration pattern (Internal Contract 19/30): Go cannot
+      # centrally register engines, so each dep-isolated module self-registers.
+      - path: (queue|metaengine)/[^/]+/v4/register\.go$
+        linters:
+          - gochecknoinits
+      # badgerengine/bboltengine engine.go package-level function vars are
+      # the keycodec migration seams (ADR-0157 dual-read windows: journalKey,
+      # encodeKeyStr, decodeJSON switch between codec v1/v2 as one unit).
+      - path: metaengine/(badgerengine|bboltengine)/v4/engine\.go$
+        linters:
+          - gochecknoglobals
+      # core/v5 carries the v4-mirror twins deliberately (D32 ruling:
+      # twins-until-T26); its compat code and tests read the deprecated
+      # fields until the v5 cut deletes them together.
+      - path: core/v5/
+        text: 'SA1019: .* is deprecated.*'
+        linters:
+          - staticcheck
+      # A demo main package prints its own output — that is main's job.
+      - path: metaengine/irohengine/quic/v4/main\.go$
+        linters:
+          - forbidigo
+      # The stack presets and their test harnesses are BOTH deprecated at v5
+      # (ADR-0123: system.System replaces them); preset modules necessarily
+      # import their deprecated parent (stack/v4.Bundle) and deprecated
+      # storage helpers — the whole surface dies together at the cut.
+      - path: stack/[^/]+/v4/.*\.go$
+        text: 'SA1019: .*(go-cqrs-lite/(stack|storage)/.*|stack/v4.*) is deprecated.*'
         linters:
           - staticcheck
       - path: id/v4/

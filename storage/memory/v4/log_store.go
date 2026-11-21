@@ -67,7 +67,7 @@ func NewLogStore[T any, ID comparable](cfg LogStoreConfig[T, ID]) *LogStore[T, I
 
 // Close marks the store closed. Subsequent operations return cfg.ClosedErr.
 func (s *LogStore[T, ID]) Close() error {
-	return s.Lifecycle.Close()
+	return wrapClosed(s.Lifecycle.Close(), "memory.log_store.close", "close log store")
 }
 
 // WithWrite checks the store is open, acquires the write lock, and runs fn

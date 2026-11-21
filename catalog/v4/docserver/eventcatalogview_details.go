@@ -51,15 +51,15 @@ func newEventCatalogChannelDetail(
 	ch catalog.Channel,
 ) eventCatalogChannelDetail {
 	links := make([]eventCatalogLink, 0, len(ch.Messages))
-	for _, id := range ch.Messages {
-		label := string(id)
-		if msg, ok := findMessage(cat, string(id)); ok && msg.Name != "" {
+	for _, msgID := range ch.Messages {
+		label := string(msgID)
+		if msg, ok := findMessage(cat, string(msgID)); ok && msg.Name != "" {
 			label = string(msg.Name)
 		}
 
 		links = append(
 			links,
-			eventCatalogLink{Label: label, Href: eventCatalogMessageHref(cfg.DocsPath, id)},
+			eventCatalogLink{Label: label, Href: eventCatalogMessageHref(cfg.DocsPath, msgID)},
 		)
 	}
 

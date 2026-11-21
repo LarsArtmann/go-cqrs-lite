@@ -149,9 +149,9 @@ func (s *Store[T]) insertRows(
 
 // getTaskByDedupKey returns the stored task for a dedup key, if any.
 func (s *Store[T]) getTaskByDedupKey(ctx context.Context, key string) (task.Task[T], bool, error) {
-	var id string
+	var taskID string
 
-	err := s.pool.QueryRow(ctx, `SELECT id FROM tasks WHERE dedup_key = $1`, key).Scan(&id)
+	err := s.pool.QueryRow(ctx, `SELECT taskID FROM tasks WHERE dedup_key = $1`, key).Scan(&taskID)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return task.Task[T]{}, false, nil
 	}
@@ -160,7 +160,7 @@ func (s *Store[T]) getTaskByDedupKey(ctx context.Context, key string) (task.Task
 		return task.Task[T]{}, false, err
 	}
 
-	t, err := s.Get(ctx, task.ID(id))
+	t, err := s.Get(ctx, task.ID(taskID))
 
 	return t, err == nil, err
 }

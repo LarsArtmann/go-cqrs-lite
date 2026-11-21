@@ -15,24 +15,24 @@ import (
 
 // Cancel withdraws a Pending task. A non-empty reason is stored in the
 // task.cancelled fact detail ("reason" key).
-func (s *Store[T]) Cancel(ctx context.Context, id task.ID, reason string) error {
+func (s *Store[T]) Cancel(ctx context.Context, taskID task.ID, reason string) error {
 	//art-dupl:accept dialect twin — queue engines are dep-isolated mirrors; conformance pins cancel semantics
 	now := time.Now()
 
 	return s.withTx(ctx, func(tx *sql.Tx) error {
 		res, err := tx.ExecContext(ctx, `
 			UPDATE tasks SET status = 'cancelled', updated_at = ?, lease_owner = '', lease_expires = NULL, lease_token = NULL
-			WHERE id = ? AND status = 'pending'`, now.UnixMilli(), id.String())
+			WHERE taskID = ? AND status = 'pending'`, now.UnixMilli(), taskID.String())
 		if err != nil {
 			return err
 		}
 
 		if n, _ := res.RowsAffected(); n == 0 {
-			return statusOrNotFound(ctx, tx, id, "cancelled")
+			return statusOrNotFound(ctx, tx, taskID, "cancelled")
 		}
 
 		return s.appendFact(ctx, tx, facts.Fact{
-			TaskID: id.String(), Type: facts.Cancelled, Detail: cancelReasonDetail(reason),
+			TaskID: taskID.String(), Type: facts.Cancelled, Detail: cancelReasonDetail(reason),
 		})
 	})
 }
@@ -41,12 +41,12 @@ func (s *Store[T]) Cancel(ctx context.Context, id task.ID, reason string) error 
 // task. The task.cancel-requested fact IS the flag — no task-row column
 // mirrors it (facts-first). Idempotent: a second request appends
 // nothing.
-func (s *Store[T]) CancelRunning(ctx context.Context, id task.ID, reason string) error {
+func (s *Store[T]) CancelRunning(ctx context.Context, taskID task.ID, reason string) error {
 	return s.withTx(ctx, func(tx *sql.Tx) error {
 		var current string
 
 		if err := tx.QueryRowContext(ctx,
-			`SELECT status FROM tasks WHERE id = ?`, id.String()).Scan(&current); err != nil {
+			`SELECT status FROM tasks WHERE taskID = ?`, taskID.String()).Scan(&current); err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				return queue.ErrNotFound
 			}
@@ -62,7 +62,7 @@ func (s *Store[T]) CancelRunning(ctx context.Context, id task.ID, reason string)
 			)
 		}
 
-		requested, err := cancelRequestedTx(ctx, tx, id.String())
+		requested, err := cancelRequestedTx(ctx, tx, taskID.String())
 		if err != nil {
 			return err
 		}
@@ -72,7 +72,7 @@ func (s *Store[T]) CancelRunning(ctx context.Context, id task.ID, reason string)
 		}
 
 		return s.appendFact(ctx, tx, facts.Fact{
-			TaskID: id.String(), Type: facts.CancelRequested, Detail: cancelReasonDetail(reason),
+			TaskID: taskID.String(), Type: facts.CancelRequested, Detail: cancelReasonDetail(reason),
 		})
 	})
 }
@@ -91,19 +91,19 @@ func (s *Store[T]) CancelRequested(ctx context.Context, id task.ID) (bool, error
 // written by the claim-holding worker (claim token required) after it
 // stopped the execution. The operator's reason (from the
 // cancel-requested fact) is carried onto the cancelled fact.
-func (s *Store[T]) CancelOwned(ctx context.Context, id task.ID, token string) error {
+func (s *Store[T]) CancelOwned(ctx context.Context, taskID task.ID, token string) error {
 	now := time.Now()
 
 	return s.withTx(ctx, func(tx *sql.Tx) error {
-		owner, err := leaseHolder(ctx, tx, id)
+		owner, err := leaseHolder(ctx, tx, taskID)
 		if err != nil {
 			return err
 		}
 
 		res, err := tx.ExecContext(ctx, `
 			UPDATE tasks SET status = 'cancelled', updated_at = ?, lease_owner = '', lease_expires = NULL, lease_token = NULL
-			WHERE id = ? AND status = 'running' AND lease_token = ?`,
-			now.UnixMilli(), id.String(), token)
+			WHERE taskID = ? AND status = 'running' AND lease_token = ?`,
+			now.UnixMilli(), taskID.String(), token)
 		if err != nil {
 			return err
 		}
@@ -112,13 +112,13 @@ func (s *Store[T]) CancelOwned(ctx context.Context, id task.ID, token string) er
 			return queue.ErrLeaseNotHeld
 		}
 
-		reason, err := cancelRequestedReasonTx(ctx, tx, id.String())
+		reason, err := cancelRequestedReasonTx(ctx, tx, taskID.String())
 		if err != nil {
 			return err
 		}
 
 		return s.appendFact(ctx, tx, facts.Fact{
-			TaskID: id.String(), Type: facts.Cancelled, Owner: owner,
+			TaskID: taskID.String(), Type: facts.Cancelled, Owner: owner,
 			Detail: cooperativeCancelDetail(reason, ""),
 		})
 	})
@@ -195,7 +195,7 @@ func (s *Store[T]) MarkOrphaned(ctx context.Context, cutoff time.Time) (int, err
 
 // RescueDead re-queues a Dead task with a fresh attempt budget (DLQ
 // rescue); the enqueued fact carries the rescue marker.
-func (s *Store[T]) RescueDead(ctx context.Context, id task.ID, maxAttempts int) error {
+func (s *Store[T]) RescueDead(ctx context.Context, taskID task.ID, maxAttempts int) error {
 	if maxAttempts <= 0 {
 		maxAttempts = task.DefaultMaxAttempts
 	}
@@ -207,17 +207,17 @@ func (s *Store[T]) RescueDead(ctx context.Context, id task.ID, maxAttempts int) 
 			UPDATE tasks
 			SET status = 'pending', attempts = 0, max_attempts = ?, not_before = 0,
 			    updated_at = ?, lease_owner = '', lease_expires = NULL, lease_token = NULL, last_error = ''
-			WHERE id = ? AND status = 'dead'`, maxAttempts, now.UnixMilli(), id.String())
+			WHERE taskID = ? AND status = 'dead'`, maxAttempts, now.UnixMilli(), taskID.String())
 		if err != nil {
 			return err
 		}
 
 		if n, _ := res.RowsAffected(); n == 0 {
-			return statusOrNotFound(ctx, tx, id, "pending")
+			return statusOrNotFound(ctx, tx, taskID, "pending")
 		}
 
 		return s.appendFact(ctx, tx, facts.Fact{
-			TaskID: id.String(), Type: facts.Enqueued,
+			TaskID: taskID.String(), Type: facts.Enqueued,
 			Detail: mustJSON(map[string]string{"rescue": "true"}),
 		})
 	})
@@ -227,7 +227,7 @@ func (s *Store[T]) RescueDead(ctx context.Context, id task.ID, maxAttempts int) 
 // the cancelled fact's detail carries the reason and who dismissed it.
 func (s *Store[T]) DismissDead(
 	ctx context.Context,
-	id task.ID,
+	taskID task.ID,
 	reason string,
 	dismissedBy string,
 ) error {
@@ -237,17 +237,17 @@ func (s *Store[T]) DismissDead(
 		res, err := tx.ExecContext(ctx, `
 			UPDATE tasks
 			SET status = 'cancelled', updated_at = ?, lease_owner = '', lease_expires = NULL, lease_token = NULL
-			WHERE id = ? AND status = 'dead'`, now.UnixMilli(), id.String())
+			WHERE taskID = ? AND status = 'dead'`, now.UnixMilli(), taskID.String())
 		if err != nil {
 			return err
 		}
 
 		if n, _ := res.RowsAffected(); n == 0 {
-			return statusOrNotFound(ctx, tx, id, "cancelled")
+			return statusOrNotFound(ctx, tx, taskID, "cancelled")
 		}
 
 		return s.appendFact(ctx, tx, facts.Fact{
-			TaskID: id.String(),
+			TaskID: taskID.String(),
 			Type:   facts.Cancelled,
 			Detail: dismissReasonDetail(reason, dismissedBy),
 		})
@@ -258,7 +258,7 @@ func (s *Store[T]) DismissDead(
 // reprioritized fact (old/new, source, reason) lands in the SAME
 // transaction, and a same-value update appends nothing.
 func (s *Store[T]) UpdatePendingPriority(
-	ctx context.Context, id task.ID, newPriority int, source string, reason string,
+	ctx context.Context, taskID task.ID, newPriority int, source string, reason string,
 ) error {
 	now := time.Now()
 
@@ -267,7 +267,7 @@ func (s *Store[T]) UpdatePendingPriority(
 
 		var oldPriority int
 
-		err := tx.QueryRowContext(ctx, `SELECT status, priority FROM tasks WHERE id = ?`, id.String()).
+		err := tx.QueryRowContext(ctx, `SELECT status, priority FROM tasks WHERE taskID = ?`, taskID.String()).
 			Scan(&status, &oldPriority)
 		if errors.Is(err, sql.ErrNoRows) {
 			return queue.ErrNotFound
@@ -285,18 +285,18 @@ func (s *Store[T]) UpdatePendingPriority(
 			return nil // idempotent: same value, no fact
 		}
 
-		return s.updatePriorityRow(ctx, tx, id, oldPriority, newPriority, source, reason, now)
+		return s.updatePriorityRow(ctx, tx, taskID, oldPriority, newPriority, source, reason, now)
 	})
 }
 
 // updatePriorityRow writes the guarded UPDATE plus its fact.
 func (s *Store[T]) updatePriorityRow(
-	ctx context.Context, tx *sql.Tx, id task.ID, oldPriority, newPriority int,
+	ctx context.Context, tx *sql.Tx, taskID task.ID, oldPriority, newPriority int,
 	source, reason string, now time.Time,
 ) error {
 	res, err := tx.ExecContext(ctx, `
 		UPDATE tasks SET priority = ?, updated_at = ?
-		WHERE id = ? AND status = 'pending'`, newPriority, now.UnixMilli(), id.String())
+		WHERE taskID = ? AND status = 'pending'`, newPriority, now.UnixMilli(), taskID.String())
 	if err != nil {
 		return err
 	}
@@ -306,7 +306,7 @@ func (s *Store[T]) updatePriorityRow(
 	}
 
 	return s.appendFact(ctx, tx, facts.Fact{
-		TaskID: id.String(), Type: facts.Reprioritized,
+		TaskID: taskID.String(), Type: facts.Reprioritized,
 		Detail: mustJSON(facts.ReprioritizeEvidence{
 			OldPriority: oldPriority, NewPriority: newPriority, Source: source, Reason: reason,
 		}),

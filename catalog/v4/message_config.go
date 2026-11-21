@@ -245,7 +245,7 @@ func Query[T any](id MessageID, opts ...MessageOption) MessageConfig {
 
 func newMessageBuilder[T any](
 	kind MessageKind,
-	id MessageID,
+	msgID MessageID,
 	direction Direction,
 	opts []MessageOption,
 ) MessageConfig {
@@ -260,7 +260,7 @@ func newMessageBuilder[T any](
 
 	msgBuilder := &messageBuilder{
 		kind:      kind,
-		id:        id,
+		id:        msgID,
 		name:      name,
 		version:   defaultVersion,
 		summary:   "",
