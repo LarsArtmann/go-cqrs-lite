@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"sync"
 	"sync/atomic"
 
 	"github.com/dgraph-io/badger/v4"
@@ -12,6 +13,18 @@ import (
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/keycodec"
 )
+
+// keySegments is the collection/key/value split arity of the KV key form.
+const keySegments = 3
+
+// seqCounter returns (storing on first use) the per-key monotonic counter.
+// The type assertion cannot fail: every value in m is stored by this helper
+// as *atomic.Int64 at the same call site.
+func seqCounter(m *sync.Map, key string) *atomic.Int64 {
+	v, _ := m.LoadOrStore(key, new(atomic.Int64))
+
+	return v.(*atomic.Int64) //nolint:forcetypeassert // stored by this helper as *atomic.Int64
+}
 
 // --- SetBackend ---
 
@@ -55,11 +68,11 @@ func (e *badgerEngine) CounterIncrement(
 ) error {
 	return e.db.Update(func(txn *badger.Txn) error {
 		for k, d := range deltas {
-			ck := counterKey(col, k)
+			counterK := counterKey(col, k)
 
 			var current int64
 
-			item, err := txn.Get(ck)
+			item, err := txn.Get(counterK)
 			if err == nil {
 				val, err := item.ValueCopy(nil)
 				if err != nil {
@@ -71,7 +84,7 @@ func (e *badgerEngine) CounterIncrement(
 				return err
 			}
 
-			if err := txn.Set(ck, encodeCounterValue(current+d)); err != nil {
+			if err := txn.Set(counterK, encodeCounterValue(current+d)); err != nil {
 				return err
 			}
 		}
@@ -93,8 +106,8 @@ func (e *badgerEngine) CounterGet(_ context.Context, col string) (map[string]int
 
 			keyStr := string(item.Key())
 
-			parts := strings.SplitN(keyStr, sep, 3)
-			if len(parts) < 3 {
+			parts := strings.SplitN(keyStr, sep, keySegments)
+			if len(parts) < keySegments {
 				continue
 			}
 
@@ -153,9 +166,7 @@ func (e *badgerEngine) MultiGet(_ context.Context, col string, key any) ([]any, 
 }
 
 func (e *badgerEngine) nextMmSeq(col string) int64 {
-	actual, _ := e.mmSeq.LoadOrStore(col, &atomic.Int64{})
-
-	return actual.(*atomic.Int64).Add(1)
+	return seqCounter(&e.mmSeq, col).Add(1)
 }
 
 // --- LogBackend ---
@@ -231,7 +242,5 @@ func (e *badgerEngine) LogTail(_ context.Context, col string, limit int) ([]any,
 }
 
 func (e *badgerEngine) nextLogSeq(col string) int64 {
-	actual, _ := e.logSeq.LoadOrStore(col, &atomic.Int64{})
-
-	return actual.(*atomic.Int64).Add(1)
+	return seqCounter(&e.logSeq, col).Add(1)
 }

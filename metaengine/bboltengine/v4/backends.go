@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"sync"
 	"sync/atomic"
 
 	bolt "go.etcd.io/bbolt"
@@ -12,6 +13,18 @@ import (
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/keycodec"
 )
+
+// keySegments is the collection/key/value split arity of the KV key form.
+const keySegments = 3
+
+// seqCounter returns (storing on first use) the per-key monotonic counter.
+// The type assertion cannot fail: every value in m is stored by this helper
+// as *atomic.Int64 at the same call site.
+func seqCounter(m *sync.Map, key string) *atomic.Int64 {
+	v, _ := m.LoadOrStore(key, new(atomic.Int64))
+
+	return v.(*atomic.Int64) //nolint:forcetypeassert // stored by this helper as *atomic.Int64
+}
 
 // --- SetBackend ---
 //art-dupl:accept cross-module KV engine pattern — separate go.mod
@@ -39,7 +52,7 @@ func (e *bboltEngine) SetContains(_ context.Context, col string, key any) (bool,
 		return nil
 	})
 
-	return found, err //nolint:wrapcheck // passthrough
+	return found, err
 }
 
 // --- CounterBackend ---
@@ -54,17 +67,17 @@ func (e *bboltEngine) CounterIncrement(
 		bucket := tx.Bucket([]byte(bucketName))
 
 		for k, d := range deltas {
-			ck := counterKey(col, k)
+			counterK := counterKey(col, k)
 
 			var current int64
 
-			val := bucket.Get(ck)
+			val := bucket.Get(counterK)
 			if val != nil {
 				current = decodeCounterValue(val)
 			}
 
-			if err := bucket.Put(ck, encodeCounterValue(current+d)); err != nil {
-				return err //nolint:wrapcheck // bbolt error is self-describing
+			if err := bucket.Put(counterK, encodeCounterValue(current+d)); err != nil {
+				return err
 			}
 		}
 
@@ -84,8 +97,8 @@ func (e *bboltEngine) CounterGet(_ context.Context, col string) (map[string]int6
 		for k, v := c.Seek(prefix); k != nil && bytes.HasPrefix(k, prefix); k, v = c.Next() {
 			keyStr := string(k)
 
-			parts := strings.SplitN(keyStr, sep, 3)
-			if len(parts) < 3 {
+			parts := strings.SplitN(keyStr, sep, keySegments)
+			if len(parts) < keySegments {
 				continue
 			}
 
@@ -95,7 +108,7 @@ func (e *bboltEngine) CounterGet(_ context.Context, col string) (map[string]int6
 		return nil
 	})
 
-	return result, err //nolint:wrapcheck // passthrough
+	return result, err
 }
 
 // --- MultimapBackend ---
@@ -133,13 +146,11 @@ func (e *bboltEngine) MultiGet(_ context.Context, col string, key any) ([]any, e
 		return nil
 	})
 
-	return out, err //nolint:wrapcheck // passthrough
+	return out, err
 }
 
 func (e *bboltEngine) nextMmSeq(col string) int64 {
-	actual, _ := e.mmSeq.LoadOrStore(col, &atomic.Int64{})
-
-	return actual.(*atomic.Int64).Add(1)
+	return seqCounter(&e.mmSeq, col).Add(1)
 }
 
 // --- LogBackend ---
@@ -177,7 +188,7 @@ func (e *bboltEngine) LogTail(_ context.Context, col string, limit int) ([]any, 
 		return nil
 	})
 	if err != nil {
-		return nil, err //nolint:wrapcheck // passthrough
+		return nil, err
 	}
 
 	if limit > 0 && len(all) > limit {
@@ -192,9 +203,7 @@ func (e *bboltEngine) LogTail(_ context.Context, col string, limit int) ([]any, 
 }
 
 func (e *bboltEngine) nextLogSeq(col string) int64 {
-	actual, _ := e.logSeq.LoadOrStore(col, &atomic.Int64{})
-
-	return actual.(*atomic.Int64).Add(1)
+	return seqCounter(&e.logSeq, col).Add(1)
 }
 
 // cloneBytes copies a byte slice, since bbolt values are only valid during the

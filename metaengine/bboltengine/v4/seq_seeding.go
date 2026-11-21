@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strconv"
 	"sync"
-	"sync/atomic"
 
 	bolt "go.etcd.io/bbolt"
 
@@ -136,8 +135,7 @@ func extractGroupAndSeq(key []byte, prefixLen int) (string, int64, bool) {
 // seedSyncMapMax seeds a sync.Map (storing *atomic.Int64) to at least seq.
 // art-dupl:accept cross-module KV engine pattern — separate go.mod
 func seedSyncMapMax(m *sync.Map, key string, seq int64) {
-	actual, _ := m.LoadOrStore(key, new(atomic.Int64))
-	counter := actual.(*atomic.Int64)
+	counter := seqCounter(m, key)
 
 	for {
 		existing := counter.Load()

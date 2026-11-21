@@ -70,54 +70,7 @@ func TestResetEngine_ClearsEveryADT(t *testing.T) {
 		t.Fatalf("ResetEngine: %v", err)
 	}
 
-	if _, ok, err := mb.MapGet(ctx, "tasks", "t1"); err != nil || ok {
-		t.Fatalf("map must be empty after reset (ok=%v err=%v)", ok, err)
-	}
-
-	if ok, err := sb.SetContains(ctx, "seen", "t1"); err != nil || ok {
-		t.Fatalf("set must be empty after reset (ok=%v err=%v)", ok, err)
-	}
-
-	counters, err := cb.CounterGet(ctx, "counts")
-	if err != nil {
-		t.Fatalf("CounterGet: %v", err)
-	}
-
-	if len(counters) != 0 {
-		t.Fatalf("counters must be empty after reset, got %v", counters)
-	}
-
-	values, err := mm.MultiGet(ctx, "index", "t1")
-	if err != nil || len(values) != 0 {
-		t.Fatalf("multimap must be empty after reset (len=%d err=%v)", len(values), err)
-	}
-
-	entries, err := lb.LogTail(ctx, "audit", 10)
-	if err != nil || len(entries) != 1 {
-		t.Fatalf(
-			"log (journal, facts) must SURVIVE reset (ADR-0143): len=%d err=%v",
-			len(entries),
-			err,
-		)
-	}
-
-	stream, err := sl.StreamRead(ctx, "events", "s1")
-	if err != nil || len(stream) != 2 {
-		t.Fatalf(
-			"stream log (journal, facts) must SURVIVE reset (ADR-0143): len=%d err=%v",
-			len(stream),
-			err,
-		)
-	}
-
-	neighbors, err := eng.(graphReader).GraphNeighbors(ctx, "graph", "a", 1)
-	if err != nil {
-		t.Fatalf("GraphNeighbors: %v", err)
-	}
-
-	if len(neighbors) != 0 {
-		t.Fatalf("graph must be empty after reset, got %v", neighbors)
-	}
+	assertBadgerADTsAfterReset(t, eng, mb, sb, cb, mm, lb, sl)
 }
 
 // The drop is scoped to engine-owned keycodec tags: a caller-owned badger.DB
@@ -215,5 +168,71 @@ func TestResetEngine_SeqMonotonicAcrossReset(t *testing.T) {
 			lastSeq,
 			after[len(after)-1].Seq,
 		)
+	}
+}
+
+// assertBadgerADTsAfterReset pins the reset split-brain: every materialized
+// ADT empty, journal ADTs (log, stream log — facts, ADR-0143) surviving.
+func assertBadgerADTsAfterReset(
+	t *testing.T,
+	eng metaengine.Engine,
+	mb metaengine.MapBackend,
+	sb metaengine.SetBackend,
+	cb metaengine.CounterBackend,
+	mm metaengine.MultimapBackend,
+	lb metaengine.LogBackend,
+	sl metaengine.StreamLogBackend,
+) {
+	t.Helper()
+
+	ctx := context.Background()
+
+	if _, ok, err := mb.MapGet(ctx, "tasks", "t1"); err != nil || ok {
+		t.Fatalf("map must be empty after reset (ok=%v err=%v)", ok, err)
+	}
+
+	if ok, err := sb.SetContains(ctx, "seen", "t1"); err != nil || ok {
+		t.Fatalf("set must be empty after reset (ok=%v err=%v)", ok, err)
+	}
+
+	counters, err := cb.CounterGet(ctx, "counts")
+	if err != nil {
+		t.Fatalf("CounterGet: %v", err)
+	}
+
+	if len(counters) != 0 {
+		t.Fatalf("counters must be empty after reset, got %v", counters)
+	}
+
+	values, err := mm.MultiGet(ctx, "index", "t1")
+	if err != nil || len(values) != 0 {
+		t.Fatalf("multimap must be empty after reset (len=%d err=%v)", len(values), err)
+	}
+
+	entries, err := lb.LogTail(ctx, "audit", 10)
+	if err != nil || len(entries) != 1 {
+		t.Fatalf(
+			"log (journal, facts) must SURVIVE reset (ADR-0143): len=%d err=%v",
+			len(entries),
+			err,
+		)
+	}
+
+	stream, err := sl.StreamRead(ctx, "events", "s1")
+	if err != nil || len(stream) != 2 {
+		t.Fatalf(
+			"stream log (journal, facts) must SURVIVE reset (ADR-0143): len=%d err=%v",
+			len(stream),
+			err,
+		)
+	}
+
+	neighbors, err := eng.(graphReader).GraphNeighbors(ctx, "graph", "a", 1)
+	if err != nil {
+		t.Fatalf("GraphNeighbors: %v", err)
+	}
+
+	if len(neighbors) != 0 {
+		t.Fatalf("graph must be empty after reset, got %v", neighbors)
 	}
 }

@@ -153,7 +153,7 @@ func (e *badgerEngine) GraphNeighbors(
 	})
 	// art-dupl:accept view-error epilogue shared by both neighbor walks
 	if err != nil {
-		return nil, err //nolint:wrapcheck // already prefixed inside the view
+		return nil, err
 	}
 
 	if result == nil {
@@ -212,7 +212,7 @@ func (e *badgerEngine) GraphNeighborsUndirected(
 	})
 	// art-dupl:accept view-error epilogue shared by both neighbor walks
 	if err != nil {
-		return nil, err //nolint:wrapcheck // already prefixed inside the view
+		return nil, err
 	}
 
 	if result == nil {

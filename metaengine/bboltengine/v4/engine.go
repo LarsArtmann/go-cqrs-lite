@@ -41,7 +41,16 @@ const sep = "\x00"
 // bbolt uses B+tree storage with mmap — point reads are cache-friendly but
 // writes require a full B+tree page update. These are initial estimates;
 // use SetCalibration to override with measured values.
-const BboltNsPerOp = 5000.0
+const (
+	BboltNsPerOp = 5000.0
+	// BboltNsPerRowFilteredScan: ~614 ns/row (BenchmarkCalibration_Bbolt_FilteredScan):
+	// full MapScan + Go-side predicate over 10K rows, ~50% match.
+	BboltNsPerRowFilteredScan = 620
+)
+
+// BboltNsPerRowFullScan: ~656 ns/row (BenchmarkCalibration_Bbolt_FullScan):
+// full MapScan, JSON decode of every row.
+const BboltNsPerRowFullScan = 660
 
 // BboltNsPerRead is the measured per-READ-operation cost (B+tree point lookup
 // + JSON decode, mmap page cache). It feeds ReadCosts.NsPerPointLookup in
@@ -202,7 +211,7 @@ func (e *bboltEngine) init() error {
 	return e.db.Update(func(tx *bolt.Tx) error {
 		_, err := tx.CreateBucketIfNotExists([]byte(bucketName))
 
-		return err //nolint:wrapcheck // bbolt error is self-describing
+		return err
 	})
 }
 
@@ -222,13 +231,13 @@ func (e *bboltEngine) Profile() metaengine.EngineProfile {
 			NsPerPointLookup: BboltNsPerRead,
 			// ~614 ns/row (BenchmarkCalibration_Bbolt_FilteredScan): full
 			// MapScan + Go-side predicate over 10K rows, ~50% match.
-			NsPerFilteredScan: 620,
+			NsPerFilteredScan: BboltNsPerRowFilteredScan,
 			// ~98 ns/row (BenchmarkCalibration_Bbolt_CounterScan): CounterGet
 			// prefix scan over 1K counters — the ReadAggregate path.
 			NsPerAggregate: 100,
 			// ~656 ns/row (BenchmarkCalibration_Bbolt_FullScan): full MapScan,
 			// JSON decode of every row.
-			NsPerScan: 660,
+			NsPerScan: BboltNsPerRowFullScan,
 		},
 		Supports: map[metaengine.ADT]metaengine.Complexity{
 			metaengine.ADTMap:       metaengine.ComplexityOLogN, // B+tree lookup
@@ -278,7 +287,7 @@ func (e *bboltEngine) Close() error {
 		_ = os.Remove(e.tmpPath)
 	}
 
-	return err //nolint:wrapcheck // bbolt error is self-describing
+	return err
 }
 
 // HealthCheck verifies the underlying bbolt DB is responsive by opening a

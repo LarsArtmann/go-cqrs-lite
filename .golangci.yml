@@ -284,6 +284,12 @@ linters:
         # constructs the zero value (the marker interface holds without err).
         - github.com/larsartmann/go-cqrs-lite/metaengine/v4\.SearchResult
         - github.com/larsartmann/go-cqrs-lite/metaengine/dgraphengine/v4\.transientCommitError
+        # KV-engine scan/config seams: ScanResult.NextCursor is optional
+        # (absent = single page); engineConfig fields are functional-option
+        # defaults.
+        - github.com/larsartmann/go-cqrs-lite/metaengine/v4\.ScanResult
+        - github.com/larsartmann/go-cqrs-lite/metaengine/bboltengine/v4\.engineConfig
+        - github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4\.engineConfig
         # Hooks fields are optional observability seams (nil = unobserved);
         # Observer partially fills only the metric hooks it tracks.
         - github.com/larsartmann/go-cqrs-lite/metaengine/v4\.Hooks
@@ -509,6 +515,7 @@ linters:
         # engines ARE thin adapters over these drivers — a driver error IS
         # the engine error; classification happens where context exists
         # (metaengine core), not at every delegation line.
+        - (*go.etcd.io/bbolt.DB).Close
         - (*github.com/dgraph-io/badger/v4.DB).Update
         - (*github.com/dgraph-io/badger/v4.DB).View
         - (*github.com/dgraph-io/badger/v4.DB).Close
@@ -537,6 +544,7 @@ linters:
         - (*database/sql.DB).PingContext
         - .RejectDurabilityTier(
         - .RejectCellVersioning(
+        - .CheckVectorDimension(
         - .WrapRejectionf(
   exclusions:
     generated: lax
@@ -684,10 +692,10 @@ linters:
       - path: metaengine/(badgerengine|bboltengine)/v4/engine\.go$
         linters:
           - gochecknoglobals
-      # dgraphengine reset.go holds the reset predicate table and its stable
-      # iteration order — domain DATA (same class as the keycodec seams:
-      # the reset test grows with the table by contract).
-      - path: metaengine/dgraphengine/v4/reset\.go$
+      # dgraphengine/bboltengine/badgerengine reset.go hold the reset
+      # predicate/tag-prefix tables — domain DATA (same class as the
+      # keycodec seams: the reset test grows with the table by contract).
+      - path: metaengine/(dgraphengine|bboltengine|badgerengine)/v4/reset\.go$
         linters:
           - gochecknoglobals
       # core/v5 carries the v4-mirror twins deliberately (D32 ruling:

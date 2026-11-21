@@ -90,20 +90,20 @@ func (e *badgerEngine) VectorSearch(
 
 		for iter.Rewind(); iter.Valid(); iter.Next() {
 			item := iter.Item()
-			id := strings.TrimPrefix(string(item.Key()), string(prefix))
+			vectorKey := strings.TrimPrefix(string(item.Key()), string(prefix))
 
 			val, err := item.ValueCopy(nil)
 			if err != nil {
-				return fmt.Errorf("badgerengine.VectorSearch: value %s: %w", id, err)
+				return fmt.Errorf("badgerengine.VectorSearch: value %s: %w", vectorKey, err)
 			}
 
 			vec, err := metaengine.DecodeVectorAuto(val)
 			if err != nil {
-				return fmt.Errorf("badgerengine.VectorSearch: decode %s: %w", id, err)
+				return fmt.Errorf("badgerengine.VectorSearch: decode %s: %w", vectorKey, err)
 			}
 
 			results = append(results, metaengine.VectorResult{
-				ID:       id,
+				ID:       vectorKey,
 				Distance: metaengine.VectorDistance(query, vec, metric),
 			})
 		}
@@ -111,7 +111,7 @@ func (e *badgerEngine) VectorSearch(
 		return nil
 	})
 	if err != nil {
-		return nil, err //nolint:wrapcheck // already prefixed inside the view
+		return nil, err
 	}
 
 	return metaengine.TopKNearest(results, k), nil
@@ -138,9 +138,9 @@ func (e *badgerEngine) VectorSearchFiltered(
 
 		for iter.Rewind(); iter.Valid(); iter.Next() {
 			item := iter.Item()
-			id := strings.TrimPrefix(string(item.Key()), string(prefix))
+			vectorKey := strings.TrimPrefix(string(item.Key()), string(prefix))
 
-			meta, err := vectorMetadata(txn, collection, id)
+			meta, err := vectorMetadata(txn, collection, vectorKey)
 			if err != nil {
 				return fmt.Errorf("badgerengine.VectorSearchFiltered: %w", err)
 			}
@@ -151,16 +151,16 @@ func (e *badgerEngine) VectorSearchFiltered(
 
 			val, err := item.ValueCopy(nil)
 			if err != nil {
-				return fmt.Errorf("badgerengine.VectorSearchFiltered: value %s: %w", id, err)
+				return fmt.Errorf("badgerengine.VectorSearchFiltered: value %s: %w", vectorKey, err)
 			}
 
 			vec, err := metaengine.DecodeVectorAuto(val)
 			if err != nil {
-				return fmt.Errorf("badgerengine.VectorSearchFiltered: decode %s: %w", id, err)
+				return fmt.Errorf("badgerengine.VectorSearchFiltered: decode %s: %w", vectorKey, err)
 			}
 
 			results = append(results, metaengine.VectorResult{
-				ID:       id,
+				ID:       vectorKey,
 				Distance: metaengine.VectorDistance(query, vec, metric),
 			})
 		}
@@ -168,7 +168,7 @@ func (e *badgerEngine) VectorSearchFiltered(
 		return nil
 	})
 	if err != nil {
-		return nil, err //nolint:wrapcheck // already prefixed inside the view
+		return nil, err
 	}
 
 	return metaengine.TopKNearest(results, k), nil
@@ -176,24 +176,24 @@ func (e *badgerEngine) VectorSearchFiltered(
 
 // vectorMetadata loads an embedding's metadata map inside an open view
 // transaction; nil when none is stored.
-func vectorMetadata(txn *badger.Txn, collection, id string) (map[string]any, error) {
-	item, err := txn.Get(keycodec.VectorMetaKey(collection, id))
+func vectorMetadata(txn *badger.Txn, collection, vectorKey string) (map[string]any, error) {
+	item, err := txn.Get(keycodec.VectorMetaKey(collection, vectorKey))
 	if err != nil {
 		if errors.Is(err, badger.ErrKeyNotFound) {
 			return nil, nil //nolint:nilnil // no metadata stored is not an error
 		}
 
-		return nil, err //nolint:wrapcheck // wrapped by caller
+		return nil, err
 	}
 
 	val, err := item.ValueCopy(nil)
 	if err != nil {
-		return nil, err //nolint:wrapcheck // wrapped by caller
+		return nil, err
 	}
 
 	var meta map[string]any
 	if err := json.Unmarshal(val, &meta); err != nil {
-		return nil, fmt.Errorf("metadata %s: %w", id, err)
+		return nil, fmt.Errorf("metadata %s: %w", vectorKey, err)
 	}
 
 	return meta, nil
@@ -239,7 +239,7 @@ func (e *badgerEngine) firstVectorDimension(collection string) (int, error) {
 		return nil
 	})
 	if err != nil {
-		return 0, err //nolint:wrapcheck // wrapped at the probe site
+		return 0, err
 	}
 
 	return established, nil

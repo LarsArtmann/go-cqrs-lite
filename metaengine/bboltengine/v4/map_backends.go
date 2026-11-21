@@ -52,7 +52,7 @@ func (e *bboltEngine) MapGet(_ context.Context, col string, key any) (any, bool,
 		return nil
 	})
 
-	return result, found, err //nolint:wrapcheck // passthrough
+	return result, found, err
 }
 
 func (e *bboltEngine) MapDelete(_ context.Context, col string, key any) error {
@@ -146,7 +146,7 @@ func (e *bboltEngine) MapScan(
 		return nil
 	})
 	if err != nil {
-		return metaengine.ScanResult{}, err //nolint:wrapcheck // passthrough
+		return metaengine.ScanResult{}, err
 	}
 
 	pairs = sortAndPaginateKV(pairs, sortFunc, cursor, limit)

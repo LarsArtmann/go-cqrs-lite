@@ -47,6 +47,18 @@ const BadgerNsPerRead = 1100.0
 // Counter operations are even higher (~5800 ns/op) due to read-modify-write.
 const BadgerNsPerWrite = 4300.0
 
+// BadgerNsPerRowFilteredScan: ~639 ns/row (BenchmarkCalibration_Badger_FilteredScan):
+// full MapScan + Go-side predicate over 10K rows, ~50% match.
+const BadgerNsPerRowFilteredScan = 650
+
+// BadgerNsPerRowAggregate: ~164 ns/row (BenchmarkCalibration_Badger_CounterScan):
+// CounterGet prefix scan over 1K counters — the ReadAggregate path.
+const BadgerNsPerRowAggregate = 165
+
+// BadgerNsPerRowFullScan: ~629 ns/row (BenchmarkCalibration_Badger_FullScan):
+// full MapScan, JSON decode of every row.
+const BadgerNsPerRowFullScan = 630
+
 type badgerEngine struct {
 	metaengine.Calibration
 
@@ -169,13 +181,13 @@ func (e *badgerEngine) Profile() metaengine.EngineProfile {
 			NsPerPointLookup: BadgerNsPerRead,
 			// ~639 ns/row (BenchmarkCalibration_Badger_FilteredScan): full
 			// MapScan + Go-side predicate over 10K rows, ~50% match.
-			NsPerFilteredScan: 650,
+			NsPerFilteredScan: BadgerNsPerRowFilteredScan,
 			// ~164 ns/row (BenchmarkCalibration_Badger_CounterScan):
 			// CounterGet prefix scan over 1K counters — the ReadAggregate path.
-			NsPerAggregate: 165,
+			NsPerAggregate: BadgerNsPerRowAggregate,
 			// ~629 ns/row (BenchmarkCalibration_Badger_FullScan): full MapScan,
 			// JSON decode of every row.
-			NsPerScan: 630,
+			NsPerScan: BadgerNsPerRowFullScan,
 		},
 		Supports: map[metaengine.ADT]metaengine.Complexity{
 			metaengine.ADTMap:       metaengine.ComplexityO1,

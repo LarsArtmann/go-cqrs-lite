@@ -22,7 +22,7 @@ func init() {
 
 			return NewBboltEngine(
 				cfg.DSN,
-				opts...) //nolint:contextcheck,wrapcheck // no ctx; factory passthrough
+				opts...)
 		},
 	)
 }

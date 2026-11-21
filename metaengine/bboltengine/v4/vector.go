@@ -55,11 +55,11 @@ func (e *bboltEngine) VectorInsert(
 			established,
 			len(emb.Values),
 		); err != nil {
-			return err //nolint:wrapcheck // classified by metaengine
+			return err
 		}
 
 		if err := bucket.Put(k, metaengine.EncodeVectorBinary(emb.Values)); err != nil {
-			return err //nolint:wrapcheck // bbolt error is self-describing
+			return err
 		}
 
 		if metaValue == nil {
@@ -86,15 +86,15 @@ func (e *bboltEngine) VectorSearch(
 		c := bucket.Cursor()
 
 		for k, v := c.Seek(prefix); k != nil && bytes.HasPrefix(k, prefix); k, v = c.Next() {
-			id := strings.TrimPrefix(string(k), string(prefix))
+			vectorKey := strings.TrimPrefix(string(k), string(prefix))
 
 			vec, err := metaengine.DecodeVectorAuto(v)
 			if err != nil {
-				return fmt.Errorf("bboltengine.VectorSearch: decode %s: %w", id, err)
+				return fmt.Errorf("bboltengine.VectorSearch: decode %s: %w", vectorKey, err)
 			}
 
 			results = append(results, metaengine.VectorResult{
-				ID:       id,
+				ID:       vectorKey,
 				Distance: metaengine.VectorDistance(query, vec, metric),
 			})
 		}
@@ -102,7 +102,7 @@ func (e *bboltEngine) VectorSearch(
 		return nil
 	})
 	if err != nil {
-		return nil, err //nolint:wrapcheck // passthrough
+		return nil, err
 	}
 
 	return metaengine.TopKNearest(results, k), nil
@@ -129,12 +129,12 @@ func (e *bboltEngine) VectorSearchFiltered(
 		c := bucket.Cursor()
 
 		for k, v := c.Seek(prefix); k != nil && bytes.HasPrefix(k, prefix); k, v = c.Next() {
-			id := strings.TrimPrefix(string(k), string(prefix))
+			vectorKey := strings.TrimPrefix(string(k), string(prefix))
 
 			var meta map[string]any
-			if raw := bucket.Get(keycodec.VectorMetaKey(collection, id)); raw != nil {
+			if raw := bucket.Get(keycodec.VectorMetaKey(collection, vectorKey)); raw != nil {
 				if err := json.Unmarshal(raw, &meta); err != nil {
-					return fmt.Errorf("bboltengine.VectorSearchFiltered: metadata %s: %w", id, err)
+					return fmt.Errorf("bboltengine.VectorSearchFiltered: metadata %s: %w", vectorKey, err)
 				}
 			}
 
@@ -144,11 +144,11 @@ func (e *bboltEngine) VectorSearchFiltered(
 
 			vec, err := metaengine.DecodeVectorAuto(v)
 			if err != nil {
-				return fmt.Errorf("bboltengine.VectorSearchFiltered: decode %s: %w", id, err)
+				return fmt.Errorf("bboltengine.VectorSearchFiltered: decode %s: %w", vectorKey, err)
 			}
 
 			results = append(results, metaengine.VectorResult{
-				ID:       id,
+				ID:       vectorKey,
 				Distance: metaengine.VectorDistance(query, vec, metric),
 			})
 		}
@@ -156,7 +156,7 @@ func (e *bboltEngine) VectorSearchFiltered(
 		return nil
 	})
 	if err != nil {
-		return nil, err //nolint:wrapcheck // passthrough
+		return nil, err
 	}
 
 	return metaengine.TopKNearest(results, k), nil

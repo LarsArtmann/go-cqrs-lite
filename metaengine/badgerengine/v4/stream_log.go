@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"iter"
 	"slices"
-	"sync/atomic"
 
 	"github.com/dgraph-io/badger/v4"
 
@@ -27,15 +26,12 @@ import (
 func (e *badgerEngine) nextStreamSeq(col, sid string) int64 {
 	//art-dupl:accept cross-module KV engine pattern — separate go.mod
 	k := streamSeqMapKey(col, sid)
-	actual, _ := e.streamSeq.LoadOrStore(k, &atomic.Int64{})
 
-	return actual.(*atomic.Int64).Add(1)
+	return seqCounter(&e.streamSeq, k).Add(1)
 }
 
 func (e *badgerEngine) nextJournalSeq(col string) int64 {
-	actual, _ := e.journalSeq.LoadOrStore(col, &atomic.Int64{})
-
-	return actual.(*atomic.Int64).Add(1)
+	return seqCounter(&e.journalSeq, col).Add(1)
 }
 
 func (e *badgerEngine) StreamAppend(
@@ -280,61 +276,7 @@ func (e *badgerEngine) StreamScan(
 		prefix := collectionPrefix(col)
 
 		err := e.db.View(func(txn *badger.Txn) error {
-			iter := txn.NewIterator(badger.IteratorOptions{Prefix: prefix})
-			defer iter.Close()
-
-			if sort == nil {
-				for iter.Rewind(); iter.Valid(); iter.Next() {
-					val, err := iter.Item().ValueCopy(nil)
-					if err != nil {
-						yield(nil, err)
-
-						return nil
-					}
-
-					decoded := decodeJSON(val)
-
-					if len(filters) > 0 && !metaengine.PassesFilterSpecs(decoded, filters) {
-						continue
-					}
-
-					if !yield(decoded, nil) {
-						return nil
-					}
-				}
-
-				return nil
-			}
-
-			// Sorted path: collect, sort, then stream.
-			var matched []any
-
-			for iter.Rewind(); iter.Valid(); iter.Next() {
-				val, err := iter.Item().ValueCopy(nil)
-				if err != nil {
-					yield(nil, err)
-
-					return nil
-				}
-
-				decoded := decodeJSON(val)
-
-				if len(filters) > 0 && !metaengine.PassesFilterSpecs(decoded, filters) {
-					continue
-				}
-
-				matched = append(matched, decoded)
-			}
-
-			sortMatchedFunc(matched, sort)
-
-			for _, val := range matched {
-				if !yield(val, nil) {
-					return nil
-				}
-			}
-
-			return nil
+			return streamBadgerEntries(txn, prefix, filters, sort, yield)
 		})
 		if err != nil {
 			yield(nil, err)
@@ -355,4 +297,71 @@ func sortMatchedFunc(matched []any, sort *metaengine.SortSpec) {
 
 		return cmp
 	})
+}
+
+// streamBadgerEntries walks one prefix iterator, yielding filter-passing
+// entries in order (or sorted by spec).
+// art-dupl:accept cross-module KV engine pattern — separate go.mod
+func streamBadgerEntries(
+	txn *badger.Txn,
+	prefix []byte,
+	filters []metaengine.FilterSpec,
+	sort *metaengine.SortSpec,
+	yield func(any, error) bool,
+) error {
+	iter := txn.NewIterator(badger.IteratorOptions{Prefix: prefix})
+	defer iter.Close()
+
+	if sort == nil {
+		for iter.Rewind(); iter.Valid(); iter.Next() {
+			val, err := iter.Item().ValueCopy(nil)
+			if err != nil {
+				yield(nil, err)
+
+				return nil
+			}
+
+			decoded := decodeJSON(val)
+
+			if len(filters) > 0 && !metaengine.PassesFilterSpecs(decoded, filters) {
+				continue
+			}
+
+			if !yield(decoded, nil) {
+				return nil
+			}
+		}
+
+		return nil
+	}
+
+	// Sorted path: collect, sort, then stream.
+	var matched []any
+
+	for iter.Rewind(); iter.Valid(); iter.Next() {
+		val, err := iter.Item().ValueCopy(nil)
+		if err != nil {
+			yield(nil, err)
+
+			return nil
+		}
+
+		decoded := decodeJSON(val)
+
+		if len(filters) > 0 && !metaengine.PassesFilterSpecs(decoded, filters) {
+			continue
+		}
+
+		matched = append(matched, decoded)
+	}
+
+	sortMatchedFunc(matched, sort)
+
+	for _, val := range matched {
+		if !yield(val, nil) {
+			return nil
+		}
+	}
+
+	return nil
 }

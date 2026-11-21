@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"iter"
 	"slices"
-	"sync/atomic"
 
 	bolt "go.etcd.io/bbolt"
 
@@ -28,15 +27,12 @@ import (
 func (e *bboltEngine) nextStreamSeq(col, sid string) int64 {
 	//art-dupl:accept cross-module KV engine pattern — separate go.mod
 	k := streamSeqMapKey(col, sid)
-	actual, _ := e.streamSeq.LoadOrStore(k, &atomic.Int64{})
 
-	return actual.(*atomic.Int64).Add(1)
+	return seqCounter(&e.streamSeq, k).Add(1)
 }
 
 func (e *bboltEngine) nextJournalSeq(col string) int64 {
-	actual, _ := e.journalSeq.LoadOrStore(col, &atomic.Int64{})
-
-	return actual.(*atomic.Int64).Add(1)
+	return seqCounter(&e.journalSeq, col).Add(1)
 }
 
 func (e *bboltEngine) StreamAppend(
@@ -62,11 +58,11 @@ func (e *bboltEngine) StreamAppend(
 			journalEntry := fmt.Sprintf("%s%s%s", sid, sep, string(valBytes))
 
 			if err := bucket.Put(streamKey(col, sid, seq), valBytes); err != nil {
-				return err //nolint:wrapcheck // bbolt error is self-describing
+				return err
 			}
 
 			if err := bucket.Put(journalKey(col, gseq), []byte(journalEntry)); err != nil {
-				return err //nolint:wrapcheck // bbolt error is self-describing
+				return err
 			}
 		}
 
@@ -111,11 +107,11 @@ func (e *bboltEngine) StreamAppendExpected(
 			journalEntry := fmt.Sprintf("%s%s%s", sid, sep, string(valBytes))
 
 			if err := bucket.Put(streamKey(col, sid, seq), valBytes); err != nil {
-				return err //nolint:wrapcheck // bbolt error is self-describing
+				return err
 			}
 
 			if err := bucket.Put(journalKey(col, gseq), []byte(journalEntry)); err != nil {
-				return err //nolint:wrapcheck // bbolt error is self-describing
+				return err
 			}
 		}
 
@@ -142,7 +138,7 @@ func (e *bboltEngine) StreamRead(
 		return nil
 	})
 	if err != nil {
-		return nil, err //nolint:wrapcheck // passthrough
+		return nil, err
 	}
 
 	if result == nil {
@@ -171,7 +167,7 @@ func (e *bboltEngine) StreamVersion(
 		return nil
 	})
 
-	return count, err //nolint:wrapcheck // passthrough
+	return count, err
 }
 
 // journalEntries iterates the journal of col strictly after afterSeq (the
@@ -217,7 +213,7 @@ func (e *bboltEngine) journalEntries(
 	})
 	//art-dupl:accept dep-isolated engines; same StreamLog tail as badgerengine
 	if err != nil {
-		return nil, err //nolint:wrapcheck // passthrough
+		return nil, err
 	}
 
 	if result == nil {
@@ -253,47 +249,7 @@ func (e *bboltEngine) StreamScan(
 		prefix := collectionPrefix(col)
 
 		err := e.db.View(func(tx *bolt.Tx) error {
-			bucket := tx.Bucket([]byte(bucketName))
-			c := bucket.Cursor()
-
-			if sort == nil {
-				for k, v := c.Seek(prefix); k != nil && bytes.HasPrefix(k, prefix); k, v = c.Next() {
-					decoded := decodeJSON(slices.Clone(v))
-
-					if len(filters) > 0 && !metaengine.PassesFilterSpecs(decoded, filters) {
-						continue
-					}
-
-					if !yield(decoded, nil) {
-						return nil
-					}
-				}
-
-				return nil
-			}
-
-			// Sorted path: collect, sort, then stream.
-			var matched []any
-
-			for k, v := c.Seek(prefix); k != nil && bytes.HasPrefix(k, prefix); k, v = c.Next() {
-				decoded := decodeJSON(slices.Clone(v))
-
-				if len(filters) > 0 && !metaengine.PassesFilterSpecs(decoded, filters) {
-					continue
-				}
-
-				matched = append(matched, decoded)
-			}
-
-			sortMatchedFuncKV(matched, sort)
-
-			for _, val := range matched {
-				if !yield(val, nil) {
-					return nil
-				}
-			}
-
-			return nil
+			return streamBucketEntries(tx.Bucket([]byte(bucketName)), prefix, filters, sort, yield)
 		})
 		if err != nil {
 			yield(nil, err)
@@ -334,4 +290,57 @@ func countStreamEntriesBBolt(
 	}
 
 	return count, nil
+}
+
+// streamBucketEntries walks one bucket prefix, yielding filter-passing
+// entries in order (or sorted by spec). It reports false-to-yield as a nil
+// error — the caller's View ends either way.
+// art-dupl:accept cross-module KV engine pattern — separate go.mod
+func streamBucketEntries(
+	bucket *bolt.Bucket,
+	prefix []byte,
+	filters []metaengine.FilterSpec,
+	sort *metaengine.SortSpec,
+	yield func(any, error) bool,
+) error {
+	c := bucket.Cursor()
+
+	if sort == nil {
+		for k, v := c.Seek(prefix); k != nil && bytes.HasPrefix(k, prefix); k, v = c.Next() {
+			decoded := decodeJSON(slices.Clone(v))
+
+			if len(filters) > 0 && !metaengine.PassesFilterSpecs(decoded, filters) {
+				continue
+			}
+
+			if !yield(decoded, nil) {
+				return nil
+			}
+		}
+
+		return nil
+	}
+
+	// Sorted path: collect, sort, then stream.
+	var matched []any
+
+	for k, v := c.Seek(prefix); k != nil && bytes.HasPrefix(k, prefix); k, v = c.Next() {
+		decoded := decodeJSON(slices.Clone(v))
+
+		if len(filters) > 0 && !metaengine.PassesFilterSpecs(decoded, filters) {
+			continue
+		}
+
+		matched = append(matched, decoded)
+	}
+
+	sortMatchedFuncKV(matched, sort)
+
+	for _, val := range matched {
+		if !yield(val, nil) {
+			return nil
+		}
+	}
+
+	return nil
 }
