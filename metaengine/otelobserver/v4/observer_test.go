@@ -115,17 +115,14 @@ type findItem struct {
 
 type item struct{ Name string }
 
-func observerTestStore(t *testing.T) (
-	store *metaengine.Store,
-	primary, spare *flaky,
-) {
+func observerTestStore(t *testing.T) (*metaengine.Store, *flaky, *flaky) {
 	t.Helper()
 
-	primary = &flaky{
+	primary := &flaky{
 		Engine: metaengine.NewMemoryEngine(), name: "primary",
 		armed: make(chan struct{}), healed: make(chan struct{}),
 	}
-	spare = &flaky{
+	spare := &flaky{
 		Engine: metaengine.NewMemoryEngine(), name: "spare",
 		armed: make(chan struct{}), healed: make(chan struct{}),
 	}
@@ -136,9 +133,7 @@ func observerTestStore(t *testing.T) (
 		}),
 	)
 
-	var err error
-
-	store, err = metaengine.Plan([]metaengine.Engine{primary, spare}, query)
+	store, err := metaengine.Plan([]metaengine.Engine{primary, spare}, query)
 	if err != nil {
 		t.Fatal(err)
 	}

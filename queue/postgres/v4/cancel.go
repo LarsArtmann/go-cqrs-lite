@@ -21,7 +21,7 @@ func (s *Store[T]) Cancel(ctx context.Context, taskID task.ID, reason string) er
 	return s.withTx(ctx, func(tx pgx.Tx) error {
 		tag, err := tx.Exec(ctx, `
 			UPDATE tasks SET status = 'cancelled', updated_at = $1, lease_owner = '', lease_expires = NULL
-			WHERE taskID = $2 AND status = 'pending'`, now.UnixMilli(), taskID.String())
+			WHERE id = $2 AND status = 'pending'`, now.UnixMilli(), taskID.String())
 		if err != nil {
 			return err
 		}
@@ -43,7 +43,7 @@ func (s *Store[T]) CancelRunning(ctx context.Context, taskID task.ID, reason str
 		var current string
 
 		if err := tx.QueryRow(ctx,
-			`SELECT status FROM tasks WHERE taskID = $1`, taskID.String()).Scan(&current); err != nil {
+			`SELECT status FROM tasks WHERE id = $1`, taskID.String()).Scan(&current); err != nil {
 			if errors.Is(err, pgx.ErrNoRows) {
 				return queue.ErrNotFound
 			}
@@ -100,7 +100,7 @@ func (s *Store[T]) CancelOwned(ctx context.Context, taskID task.ID, token string
 
 		tag, err := tx.Exec(ctx, `
 			UPDATE tasks SET status = 'cancelled', updated_at = $1, lease_owner = '', lease_expires = NULL, lease_token = NULL
-			WHERE taskID = $2 AND status = 'running' AND lease_token = $3`,
+			WHERE id = $2 AND status = 'running' AND lease_token = $3`,
 			now.UnixMilli(), taskID.String(), token)
 		if err != nil {
 			return err
@@ -215,7 +215,7 @@ func (s *Store[T]) RescueDead(ctx context.Context, taskID task.ID, maxAttempts i
 			UPDATE tasks
 			SET status = 'pending', attempts = 0, max_attempts = $1, not_before = 0,
 			    updated_at = $2, lease_owner = '', lease_expires = NULL, last_error = ''
-			WHERE taskID = $3 AND status = 'dead'`, maxAttempts, now.UnixMilli(), taskID.String())
+			WHERE id = $3 AND status = 'dead'`, maxAttempts, now.UnixMilli(), taskID.String())
 		if err != nil {
 			return err
 		}
@@ -245,7 +245,7 @@ func (s *Store[T]) DismissDead(
 		tag, err := tx.Exec(ctx, `
 			UPDATE tasks
 			SET status = 'cancelled', updated_at = $1, lease_owner = '', lease_expires = NULL
-			WHERE taskID = $2 AND status = 'dead'`, now.UnixMilli(), taskID.String())
+			WHERE id = $2 AND status = 'dead'`, now.UnixMilli(), taskID.String())
 		if err != nil {
 			return err
 		}
@@ -275,7 +275,7 @@ func (s *Store[T]) UpdatePendingPriority(
 
 		var oldPriority int
 
-		err := tx.QueryRow(ctx, `SELECT status, priority FROM tasks WHERE taskID = $1`, taskID.String()).
+		err := tx.QueryRow(ctx, `SELECT status, priority FROM tasks WHERE id = $1`, taskID.String()).
 			Scan(&status, &oldPriority)
 		if errors.Is(err, pgx.ErrNoRows) {
 			return queue.ErrNotFound
@@ -304,7 +304,7 @@ func (s *Store[T]) updatePriorityRow(
 ) error {
 	tag, err := tx.Exec(ctx, `
 		UPDATE tasks SET priority = $1, updated_at = $2
-		WHERE taskID = $3 AND status = 'pending'`, newPriority, now.UnixMilli(), taskID.String())
+		WHERE id = $3 AND status = 'pending'`, newPriority, now.UnixMilli(), taskID.String())
 	if err != nil {
 		return err
 	}

@@ -221,7 +221,7 @@ func fetchLatestMinorFromBase(ctx context.Context, base, modulePath string) (int
 	}
 
 	var latest struct {
-		Version string `json:"Version"` //nolint:tagliatelle // the module proxy wire contract spells the field "Version"
+		Version string `json:"Version"`
 	}
 	if err := json.Unmarshal(body, &latest); err != nil || latest.Version == "" {
 		return 0, false

@@ -4,7 +4,7 @@
 # 2026-11-21). Usage: lint-rename-id.sh <module> <NewName> [max-passes]
 set -uo pipefail
 repo="$(git rev-parse --show-toplevel)"
-cd "$repo"
+cd "$repo" || exit 1
 mod="${1:?module}"
 name="${2:?new name}"
 passes="${3:-4}"
@@ -18,7 +18,7 @@ for pass in $(seq 1 "$passes"); do
 		rm -f "$found"
 		exit 0
 	fi
-	echo "$out" | grep "varnamelen" | sed 's/ (varnamelen)//' > "$found"
+	echo "$out" | grep "varnamelen" | sed 's/ (varnamelen)//' >"$found"
 	python3 - "$name" "$found" <<'PYEOF'
 import re, sys
 name, found = sys.argv[1], sys.argv[2]

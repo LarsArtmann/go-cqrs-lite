@@ -27,7 +27,7 @@ func (s *Store[T]) Complete(ctx context.Context, taskID task.ID, token string, r
 			UPDATE tasks
 			SET status = 'completed', completed_at = ?, updated_at = ?,
 			    lease_owner = '', lease_expires = NULL, lease_token = NULL, last_error = ''
-			WHERE taskID = ? AND status = 'running' AND lease_token = ? AND lease_expires > ?`,
+			WHERE id = ? AND status = 'running' AND lease_token = ? AND lease_expires > ?`,
 			now.UnixMilli(), now.UnixMilli(), taskID.String(), token, now.UnixMilli())
 		if err != nil {
 			return err
@@ -109,7 +109,7 @@ func readAttemptHolder(ctx context.Context, tx *sql.Tx, taskID task.ID) (int, in
 
 	err := tx.QueryRowContext(
 		ctx,
-		`SELECT attempts, max_attempts, lease_owner FROM tasks WHERE taskID = ? FOR UPDATE`,
+		`SELECT attempts, max_attempts, lease_owner FROM tasks WHERE id = ? FOR UPDATE`,
 		taskID.String(),
 	).
 		Scan(&attempts, &maxAttempts, &owner)
@@ -141,7 +141,7 @@ func (s *Store[T]) retryRow(
 		UPDATE tasks
 		SET status = 'pending', attempts = ?, last_error = ?, not_before = ?,
 		    updated_at = ?, lease_owner = '', lease_expires = NULL, lease_token = NULL
-		WHERE taskID = ? AND status = 'running' AND lease_token = ?`,
+		WHERE id = ? AND status = 'running' AND lease_token = ?`,
 		newAttempts, errText, ms(notBefore), time.Now().UnixMilli(), taskID.String(), token)
 	if err != nil {
 		return err
@@ -178,7 +178,7 @@ func (s *Store[T]) deadLetter(
 	}
 
 	res, err := tx.ExecContext(ctx,
-		`UPDATE tasks `+maxStmt+` WHERE taskID = ? AND status = 'running' AND lease_token = ?`,
+		`UPDATE tasks `+maxStmt+` WHERE id = ? AND status = 'running' AND lease_token = ?`,
 		append(args, taskID.String(), token)...)
 	if err != nil {
 		return err
@@ -213,7 +213,7 @@ func (s *Store[T]) FailPermanent(
 		var owner string
 
 		err := tx.QueryRowContext(ctx,
-			`SELECT attempts, lease_owner FROM tasks WHERE taskID = ? FOR UPDATE`, taskID.String()).
+			`SELECT attempts, lease_owner FROM tasks WHERE id = ? FOR UPDATE`, taskID.String()).
 			Scan(&attempts, &owner)
 		if errors.Is(err, sql.ErrNoRows) {
 			return queue.ErrNotFound
@@ -249,7 +249,7 @@ func (s *Store[T]) Requeue(
 			UPDATE tasks
 			SET status = 'pending', not_before = ?, last_error = ?, updated_at = ?,
 			    lease_owner = '', lease_expires = NULL, lease_token = NULL
-			WHERE taskID = ? AND status = 'running' AND lease_token = ?`,
+			WHERE id = ? AND status = 'running' AND lease_token = ?`,
 			ms(now.Add(delay)), errText, now.UnixMilli(), taskID.String(), token)
 		if err != nil {
 			return err
@@ -278,7 +278,7 @@ func (s *Store[T]) Heartbeat(
 
 	res, err := s.db.ExecContext(ctx, `
 		UPDATE tasks SET lease_expires = ?, updated_at = ?
-		WHERE taskID = ? AND status = 'running' AND lease_token = ? AND lease_expires > ?`,
+		WHERE id = ? AND status = 'running' AND lease_token = ? AND lease_expires > ?`,
 		ms(now.Add(extend)), now.UnixMilli(), taskID.String(), token, now.UnixMilli())
 	if err != nil {
 		return err

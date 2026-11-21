@@ -148,7 +148,7 @@ func (s *Store[T]) finalizeReclaim(
 
 	tag, err := tx.Exec(ctx, `
 		UPDATE tasks SET status = 'cancelled', updated_at = $1, lease_owner = '', lease_expires = NULL, lease_token = NULL
-		WHERE taskID = $2 AND status = 'running'`, now.UnixMilli(), taskID)
+		WHERE id = $2 AND status = 'running'`, now.UnixMilli(), taskID)
 	if err != nil {
 		return false, err
 	}

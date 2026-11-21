@@ -39,7 +39,7 @@ type RulesConfig struct {
 	//
 	//	{"rules": {"disable": ["A009"],
 	//	           "disable-reasons": {"A009": "stack presets are removed in v5; migration is ROADMAP-scale"}}}
-	DisableReasons map[string]string `json:"disable-reasons,omitempty"` //nolint:tagliatelle // CLI config key
+	DisableReasons map[string]string `json:"disable-reasons,omitempty"`
 
 	// ExternalAPIStructPrefixes lists struct-name prefixes whose JSON tags
 	// mirror an external API (Discord, Stripe, GitHub, ...) and must NOT count
@@ -54,7 +54,7 @@ type RulesConfig struct {
 	//
 	// on the struct's doc comment; it suppresses the same rule without needing
 	// config. Both mechanisms stack: a struct is excluded if either matches.
-	ExternalAPIStructPrefixes []string `json:"external-api-struct-prefixes,omitempty"` //nolint:tagliatelle // CLI config key
+	ExternalAPIStructPrefixes []string `json:"external-api-struct-prefixes,omitempty"`
 
 	// IgnoreFloatFields lists field names to exclude from C008 (float64-for-
 	// money). Use for fields that are intentionally float64 — cost estimates,
@@ -65,7 +65,7 @@ type RulesConfig struct {
 	// Example:
 	//
 	//	{"rules": {"c008-ignore-fields": ["CostEstimate", "PriceIndex"]}}
-	IgnoreFloatFields []string `json:"c008-ignore-fields,omitempty"` //nolint:tagliatelle // CLI config key
+	IgnoreFloatFields []string `json:"c008-ignore-fields,omitempty"`
 
 	// IgnoreStructs lists struct type names to exclude entirely from C008
 	// (float64-for-money). All float64 fields in a matched struct are ignored,
@@ -76,7 +76,7 @@ type RulesConfig struct {
 	// Example:
 	//
 	//	{"rules": {"c008-ignore-structs": ["PricingMetrics", "CostEstimate"]}}
-	IgnoreStructs []string `json:"c008-ignore-structs,omitempty"` //nolint:tagliatelle // CLI config key
+	IgnoreStructs []string `json:"c008-ignore-structs,omitempty"`
 
 	// SeverityOverrides rewrites a rule's catalog severity for this project,
 	// e.g. {"V007": "error"} makes v5-removed-API findings block CI without
@@ -91,7 +91,7 @@ type RulesConfig struct {
 	// Example:
 	//
 	//	{"rules": {"severity-overrides": {"V007": "error"}}}
-	SeverityOverrides map[string]string `json:"severity-overrides,omitempty"` //nolint:tagliatelle // CLI config key
+	SeverityOverrides map[string]string `json:"severity-overrides,omitempty"`
 }
 
 // DisabledSet returns the set of disabled rule IDs as a map for O(1) lookup.

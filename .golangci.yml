@@ -279,6 +279,13 @@ linters:
         - github.com/larsartmann/go-cqrs-lite/storage/bbolt/v4\.bboltEventIterator
         # LogStore's mutex/log slice zero values are correct by design.
         - github.com/larsartmann/go-cqrs-lite/storage/memory/v4\.LogStore
+        # Hooks fields are optional observability seams (nil = unobserved);
+        # Observer partially fills only the metric hooks it tracks.
+        - github.com/larsartmann/go-cqrs-lite/metaengine/v4\.Hooks
+        - github.com/larsartmann/go-cqrs-lite/metaengine/otelobserver/v4\.Observer
+        # projectionadapter.Adapter embeds and forwards — its optional
+        # event-type filter and error hooks default to pass-through.
+        - github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4\.Adapter
     funlen:
       lines: 200
       statements: 100
@@ -577,6 +584,13 @@ linters:
       - path: metaengine/(badgerengine|bboltengine)/v4/engine\.go$
         linters:
           - gochecknoglobals
+      # cqrs-lint's doctor/scorecard JSON is a consumed CLI surface with a
+      # camelCase contract pinned by the doctor golden test
+      # (TestDoctorJSONReport_Golden) and .cqrs-lint.json config keys — not
+      # the library's snake_case v4 wire contract this rule protects.
+      - path: cmd/cqrs-lint/v4/.*\.go$
+        linters:
+          - tagliatelle
       # core/v5 carries the v4-mirror twins deliberately (D32 ruling:
       # twins-until-T26); its compat code and tests read the deprecated
       # fields until the v5 cut deletes them together.

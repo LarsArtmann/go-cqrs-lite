@@ -12,8 +12,6 @@ import (
 )
 
 // ScorecardSummary is the headline math for the scorecard.
-//
-//nolint:tagliatelle // snake_case JSON for CLI tool consumers
 type ScorecardSummary struct {
 	UsedCount       int    `json:"used_count"`
 	RelevantTotal   int    `json:"relevant_total"`
@@ -42,8 +40,6 @@ type ScorecardResult struct {
 
 // ScorecardMetaengine holds detected metaengine usage details — which engines
 // are imported and whether SQL pushdown (FilterOnField/SortOnField) is adopted.
-//
-//nolint:tagliatelle // snake_case JSON for CLI tool consumers
 type ScorecardMetaengine struct {
 	Detected        bool     `json:"detected"`
 	Engines         []string `json:"engines,omitempty"`
@@ -57,8 +53,6 @@ type ScorecardMetaengine struct {
 // ADR-0123). The panel answers "is this project already clean for the v5
 // cut?" from the same detectors the lint run uses, independent of preset
 // disables.
-//
-//nolint:tagliatelle // snake_case JSON for CLI tool consumers
 type ScorecardDeprecated struct {
 	RemovedAPIUses      int    `json:"removed_api_uses"`
 	DeprecatedTransport int    `json:"deprecated_transport_uses"`
@@ -67,8 +61,6 @@ type ScorecardDeprecated struct {
 }
 
 // ScorecardModule is one row in the scorecard output.
-//
-//nolint:tagliatelle // snake_case JSON for CLI tool consumers
 type ScorecardModule struct {
 	Key         string `json:"key"`
 	DisplayName string `json:"display_name"`

@@ -7,16 +7,16 @@ import "sort"
 // value". Each non-nil field overrides the auto-detected value.
 type ConfigFeatures struct {
 	Store       *StoreSpec       `json:"store,omitempty"`
-	CommandFlow *CommandFlowKind `json:"command-flow,omitempty"` //nolint:tagliatelle // CLI config key
+	CommandFlow *CommandFlowKind `json:"command-flow,omitempty"`
 	Server      *bool            `json:"server,omitempty"`
-	SoftDelete  *bool            `json:"soft-delete,omitempty"` //nolint:tagliatelle // CLI config key
+	SoftDelete  *bool            `json:"soft-delete,omitempty"`
 	Tracing     *TracingKind     `json:"tracing,omitempty"`
 	Snapshot    *SnapshotKind    `json:"snapshot,omitempty"`
 	Domain      *DomainKind      `json:"domain,omitempty"`
 	Monetary    *MonetaryKind    `json:"monetary,omitempty"`
 	Transport   *bool            `json:"transport,omitempty"`
-	ServerLocal *bool            `json:"server-local,omitempty"` //nolint:tagliatelle // CLI config key
-	AsyncBus    *bool            `json:"async-bus,omitempty"`    //nolint:tagliatelle // CLI config key
+	ServerLocal *bool            `json:"server-local,omitempty"`
+	AsyncBus    *bool            `json:"async-bus,omitempty"`
 }
 
 // ConfigPreset is a named set of feature-flag defaults. Presets are sugar:
@@ -72,7 +72,7 @@ type PresetDefinition struct {
 	Rules    RulesConfig    `json:"rules,omitzero"`
 	// MinSeverity sets the lowest severity shown (e.g. "warning" hides info).
 	// Empty means use the default ("info").
-	MinSeverity string `json:"min-severity,omitempty"` //nolint:tagliatelle // CLI config key
+	MinSeverity string `json:"min-severity,omitempty"`
 }
 
 // PresetDefinitions is the canonical map of preset names to their full

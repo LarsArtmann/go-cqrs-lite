@@ -120,7 +120,7 @@ type AppConfig struct {
 	ExcludeRules            string `default:""      flag:"exclude-rules"              help:"Exclude rule IDs (comma-separated)"                                                                           local:"true"`
 	Exclude                 string `default:""      flag:"exclude"                    help:"Exclude paths (comma-separated)"                                                                              local:"true"`
 	Verbose                 bool   `default:"false" flag:"verbose"                    help:"Verbose output"                                                                                               local:"true"`
-	GroupBy                 string `default:""      flag:"group-by"                   help:"Group findings by: none, module, aggregate"                                                                   local:"true" json:"group-by,omitempty"` //nolint:tagalign,tagliatelle
+	GroupBy                 string `default:""      flag:"group-by"                   help:"Group findings by: none, module, aggregate"                                                                   local:"true" json:"group-by,omitempty"` //nolint:tagalign
 	Quiet                   bool   `default:"false" flag:"quiet"                      help:"Suppress non-finding output"                                                                                  local:"true"                                  short:"q"`
 	FPSuspects              bool   `default:"false" flag:"fp-suspects"                help:"Show only low-confidence findings (likely false positives)"                                                   local:"true"`
 	ShowSuppressed          bool   `default:"false" flag:"show-suppressed"            help:"Show suppressed findings with their suppression reason"                                                       local:"true"`
@@ -129,7 +129,7 @@ type AppConfig struct {
 	Adoption                bool   `default:"false" flag:"adoption"                   help:"Show F-series adoption coaching but exclude them from health score"                                           local:"true"`
 	Scorecard               bool   `default:"false" flag:"scorecard"                  help:"Print module adoption scorecard (used/missing/coverage); the scorecard subcommand adds --scorecard-threshold" local:"true"`
 	Baseline                string `default:""      flag:"baseline"                   help:"Path to a findings baseline file; only findings absent from it are reported"                                  local:"true" json:"baseline,omitempty"`        //nolint:tagalign // json last keeps the long tag readable
-	UpdateBaseline          bool   `default:"false" flag:"update-baseline"            help:"Rewrite the findings baseline from this run (requires --baseline); exits 0"                                   local:"true" json:"update-baseline,omitempty"` //nolint:tagliatelle,tagalign // CLI config key; json last keeps the tag readable
+	UpdateBaseline          bool   `default:"false" flag:"update-baseline"            help:"Rewrite the findings baseline from this run (requires --baseline); exits 0"                                   local:"true" json:"update-baseline,omitempty"` //nolint:tagalign // CLI config key; json last keeps the tag readable
 
 	// Features declares which go-cqrs-lite modules the consumer uses.
 	// Each non-nil flag overrides auto-detection. See FeatureProfile docs.
@@ -152,7 +152,7 @@ type AppConfig struct {
 	// this allows it. "auto" (default) enables them whenever the package
 	// load produced type info; "on" forces them on; "off" restores the
 	// pre-typed name-only behavior everywhere.
-	TypedInfo string `json:"typed-info,omitempty" default:"auto" flag:"typed-info" help:"Typed confirmation tier: auto, on, off"` //nolint:tagliatelle // CLI config key
+	TypedInfo string `json:"typed-info,omitempty" default:"auto" flag:"typed-info" help:"Typed confirmation tier: auto, on, off"`
 }
 
 // HealthConfig tunes the health-score computation. All fields default to zero,
@@ -163,7 +163,7 @@ type AppConfig struct {
 // InfoCap caps the total penalty from Info-severity findings. 0 means use the
 // built-in default (20). A negative value is treated as 0 (no cap).
 type HealthConfig struct {
-	InfoCap int `json:"info-cap,omitempty"` //nolint:tagliatelle // CLI config key
+	InfoCap int `json:"info-cap,omitempty"`
 }
 
 func main() {

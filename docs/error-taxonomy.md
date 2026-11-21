@@ -544,6 +544,8 @@ errorfamily.Classify(err) // => Conflict
 | -                    | Infrastructure | `mysql_preset.init_stack`               |
 | -                    | Infrastructure | `mysql_preset.open_secondary`           |
 | -                    | Infrastructure | `mysql_preset.secondary_init_schema`    |
+| -                    | Infrastructure | `pebble_preset.checkpoint`              |
+| -                    | Infrastructure | `pebble_preset.flush`                   |
 | -                    | Infrastructure | `pebble_preset.open_backend`            |
 | -                    | Infrastructure | `pebble_preset.wire_bundle`             |
 | -                    | Infrastructure | `postgres.create_secondary_backend`     |
@@ -610,7 +612,7 @@ errorfamily.Classify(err) // => Conflict
 | -                    | Infrastructure | `turso_preset.wire_sync_bundle`         |
 
 - Unreferenced named errors (dead-sentinel candidates): `ErrEmpty`, `ErrMissingCheckpoint`, `ErrMissingEventStore`, `ErrMissingJournal`, `ErrMissingProjection`, `ErrMissingPublisher`, `ErrMissingQueryStore`, `ErrMissingReadModels`, `ErrMissingSubscriber`, `ErrNoDatabase`
-- 68 of 80 codes are inline mints (no named sentinel)
+- 70 of 82 codes are inline mints (no named sentinel)
 
 ### deriver/v4
 
