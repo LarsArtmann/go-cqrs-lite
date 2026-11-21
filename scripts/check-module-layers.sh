@@ -352,7 +352,10 @@ DEP_BUDGET["metaengine/duckdbengine/v4"]=5
 DEP_BUDGET["metaengine/pgengine/v4"]=5
 DEP_BUDGET["metaengine/badgerengine/v4"]=2
 DEP_BUDGET["metaengine/dgraphengine/v4"]=3
-DEP_BUDGET["metaengine/graphadapter/v4"]=2
+DEP_BUDGET["metaengine/graphadapter/v4"]=3
+# 3 = graph driver dep + metaengine/v4 + error-family. error-family became direct
+# when the adapter's Close/AddEdge/RemoveEdge paths started classifying failures
+# via errorfamily wraps (Internal Contract 13) instead of bare returns.
 # 4 = claiming/v4 + metaengine/v4 + error-family + modernc/sqlite. error-family became
 # direct when the map-value encoder started classifying unrepresentable input
 # as Rejection instead of silently storing a fmt.Sprintf("%v") placeholder.
