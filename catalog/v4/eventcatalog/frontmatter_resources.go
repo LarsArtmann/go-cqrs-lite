@@ -67,7 +67,7 @@ type flowStepFM struct {
 	Service     *pointer     `yaml:"service,omitempty"`
 	Message     *pointer     `yaml:"message,omitempty"`
 	Actor       *flowActor   `yaml:"actor,omitempty"`
-	ExternalSys *flowActor   `yaml:"externalSystem,omitempty"`
+	ExternalSys *flowActor   `yaml:"externalSystem,omitempty"` //nolint:tagliatelle // EventCatalog frontmatter key
 	Custom      *flowCustom  `yaml:"custom,omitempty"`
 	Agent       *pointer     `yaml:"agent,omitempty"`
 	Container   *pointer     `yaml:"container,omitempty"`
@@ -177,7 +177,7 @@ type customDocFM struct {
 
 type schemaPointerFM struct {
 	ID      string `yaml:"id,omitempty"`
-	Ref     string `yaml:"$ref,omitempty"`
+	Ref     string `yaml:"$ref,omitempty"` //nolint:tagliatelle // JSON Reference syntax, not caseable
 	File    string `yaml:"file,omitempty"`
 	Path    string `yaml:"path,omitempty"`
 	Name    string `yaml:"name,omitempty"`

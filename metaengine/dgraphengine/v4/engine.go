@@ -51,6 +51,33 @@ const DG_NsPerRead = 600_000.0
 // GraphAddEdge 2.8ms, SearchInsert 2.5ms. Average ~2.5ms.
 const DG_NsPerWrite = 2_500_000.0
 
+// DG_NsPerPointLookup: MapGet ~344µs (one RPC; OLogN ops × this value is
+// an upper bound). Calibrated 2026-09-06.
+const DG_NsPerPointLookup = 350_000
+
+// DG_NsPerRowScan is the per-ROW marginal scan/filtered-scan cost (2026-09-06,
+// BenchmarkCalibration_DgraphScaled, ephemeral Dgraph 25.4.0): slopes over
+// 100/1K/10K rows converge to ~2.15-2.75 µs/row (FullScan 100→1K: 2.74,
+// 1K→10K: 2.26; FilteredScan tracks FullScan because the predicate runs
+// client-side over all returned rows). The single-RPC FIXED cost (~0.5-0.7 ms)
+// does NOT scale with volume — bounded by the NetworkRTT prior instead, so
+// the cost fields hold per-row numbers, never per-RPC totals.
+const DG_NsPerRowScan = 2_200
+
+// DG_NsPerAggregate: measured ~2663 ns/row (BenchmarkDgraph_CounterGet,
+// ephemeral Dgraph 25.4.0 2026-09-01). ADR-0133: ReadAggregate executes
+// CounterGet over the counter map — one gRPC round trip + JSON map decode,
+// amortized over the counter-map size.
+const DG_NsPerAggregate = 2_700
+
+// grpcMaxRecvMsgBytes caps a single gRPC response; vector and wide-scan
+// results can exceed the client default.
+const grpcMaxRecvMsgBytes = 64 * 1024 * 1024
+
+// schemaProbeTimeout covers the initial schema-application retry schedule
+// (~4s worst) plus slow cold indexing.
+const schemaProbeTimeout = 30 * time.Second
+
 // dgraphEngine implements metaengine.Engine with Dgraph as the backend.
 type dgraphEngine struct {
 	metaengine.Calibration
@@ -76,7 +103,7 @@ type dgraphEngine struct {
 func New(addr string, opts ...Option) (metaengine.Engine, error) {
 	client, err := dgo.NewClient(addr,
 		dgo.WithGrpcOption(grpc.WithTransportCredentials(insecure.NewCredentials())),
-		dgo.WithGrpcOption(grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(64*1024*1024))),
+		dgo.WithGrpcOption(grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(grpcMaxRecvMsgBytes))),
 		dgo.WithGrpcOption(grpc.WithUnaryInterceptor(boundNoDeadline)),
 	)
 	if err != nil {
@@ -144,7 +171,7 @@ func (e *dgraphEngine) init() error {
 	// than block forever (an unbounded init once stalled a whole test suite
 	// via the shared-server reader lock; a consumer would hang identically).
 	// 30s covers the retry schedule (~4s worst) plus slow cold indexing.
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), schemaProbeTimeout)
 	defer cancel()
 
 	return e.retryOnContention(ctx, false, func() error {
@@ -166,24 +193,10 @@ func (e *dgraphEngine) Profile() metaengine.EngineProfile {
 		RequiresNetwork: true,
 		NetworkRTT:      DG_NetworkRTT,
 		ReadCosts: metaengine.ReadCosts{
-			NsPerPointLookup: 350_000, // MapGet ~344µs (one RPC; OLogN ops × this value is an upper bound)
-			// Per-ROW marginal costs, result-size-scaled (2026-09-06,
-			// BenchmarkCalibration_DgraphScaled, ephemeral Dgraph 25.4.0):
-			// slopes over 100/1K/10K rows converge to ~2.15-2.75 µs/row
-			// (FullScan 100→1K: 2.74, 1K→10K: 2.26; FilteredScan tracks
-			// FullScan because the predicate runs client-side over all
-			// returned rows). The single-RPC FIXED cost (~0.5-0.7 ms) does
-			// NOT scale with volume — it is bounded by the NetworkRTT prior
-			// instead, so these fields must hold per-row numbers, never the
-			// per-RPC totals an unscaled bench measures (~450-900 µs).
-			NsPerFilteredScan: 2_200,
-			// Measured ~2663 ns/row (BenchmarkDgraph_CounterGet, ephemeral
-			// Dgraph 25.4.0 2026-09-01). ADR-0133: ReadAggregate executes
-			// CounterGet over the counter map — one gRPC round trip + JSON map
-			// decode, amortized over the counter-map size. Graph traversal is a
-			// different pattern and does not price this field.
-			NsPerAggregate: 2_700,
-			NsPerScan:      2_200,
+			NsPerPointLookup:  DG_NsPerPointLookup,
+			NsPerFilteredScan: DG_NsPerRowScan,
+			NsPerAggregate:    DG_NsPerAggregate,
+			NsPerScan:         DG_NsPerRowScan,
 		},
 		Supports: map[metaengine.ADT]metaengine.Complexity{
 			// ADTMap is O1 (decision 2026-09-07, TODO 07-43 §g2): every point

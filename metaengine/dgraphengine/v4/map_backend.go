@@ -29,14 +29,14 @@ func (e *dgraphEngine) MapSet(ctx context.Context, col string, key any, value an
 	req.Query = `query entry($col: string, $key: string) {
 		entry as var(func: eq(cqrs.map_collection, $col)) @filter(eq(cqrs.map_key, $key))
 	}`
-	req.Vars = map[string]string{"$col": col, "$key": keyStr}
+	req.Vars = map[string]string{dqlColVar: col, dqlKeyVar: keyStr}
 
 	createJSON, _ := json.Marshal(map[string]any{
-		"uid":                 "_:new",
+		"uid":                 dqlNewNode,
 		"cqrs.map_collection": col,
 		"cqrs.map_key":        keyStr,
 		"cqrs.map_value":      valueStr,
-		"dgraph.type":         []string{"MetaMapEntry"},
+		dqlTypePred:           []string{"MetaMapEntry"},
 	})
 
 	updateJSON, _ := json.Marshal(map[string]any{
@@ -66,7 +66,7 @@ func (e *dgraphEngine) MapGet(ctx context.Context, col string, key any) (any, bo
 	}`
 
 	resp, err := e.readTx().
-		QueryWithVars(ctx, q, map[string]string{"$col": col, "$key": keyStr})
+		QueryWithVars(ctx, q, map[string]string{dqlColVar: col, dqlKeyVar: keyStr})
 	if err != nil {
 		return nil, false, fmt.Errorf("dgraphengine.MapGet: %w", err)
 	}
@@ -101,7 +101,7 @@ func (e *dgraphEngine) MapDelete(ctx context.Context, col string, key any) error
 	req.Query = `query entry($col: string, $key: string) {
 		entry as var(func: eq(cqrs.map_collection, $col)) @filter(eq(cqrs.map_key, $key))
 	}`
-	req.Vars = map[string]string{"$col": col, "$key": keyStr}
+	req.Vars = map[string]string{dqlColVar: col, dqlKeyVar: keyStr}
 
 	deleteJSON, _ := json.Marshal(map[string]any{
 		"uid":                 "uid(entry)",

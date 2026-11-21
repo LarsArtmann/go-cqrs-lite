@@ -29,8 +29,8 @@ import (
 // aggregateId/aggregateType spellings via the decode-only fallback in
 // wire.go (deleted at v6). See docs/planning/v5-deprecation-sweep.md.
 type Snapshot struct { //nolint:recvcheck // receiver mix is API-frozen; changing receivers breaks v4 consumers
-	StreamID   id.StreamID     `json:"stream_id"`   //nolint:tagliatelle // snake_case is the v4 wire contract (pre-v5 rows must keep decoding; see wire.go)
-	StreamType id.StreamType   `json:"stream_type"` //nolint:tagliatelle // snake_case is the v4 wire contract
+	StreamID   id.StreamID     `json:"stream_id"`
+	StreamType id.StreamType   `json:"stream_type"`
 	Version    event.Version   `json:"version"`
 	State      []byte          `json:"state"`
 	Encoding   record.Encoding `json:"encoding,omitempty"`

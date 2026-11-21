@@ -39,19 +39,19 @@ func (e *dgraphEngine) GraphAddEdge(
 		from_node as var(func: eq(cqrs.node_collection, $col)) @filter(eq(cqrs.node_id, $from))
 		to_node as var(func: eq(cqrs.node_collection, $col)) @filter(eq(cqrs.node_id, $to))
 	}`
-	req.Vars = map[string]string{"$col": collection, "$from": fromStr, "$to": toStr}
+	req.Vars = map[string]string{dqlColVar: collection, "$from": fromStr, "$to": toStr}
 
 	fromJSON, _ := json.Marshal(map[string]any{
 		"uid":                  "_:from_new",
 		"cqrs.node_collection": collection,
 		"cqrs.node_id":         fromStr,
-		"dgraph.type":          []string{"GraphNode"},
+		dqlTypePred:            []string{"GraphNode"},
 	})
 	toJSON, _ := json.Marshal(map[string]any{
 		"uid":                  "_:to_new",
 		"cqrs.node_collection": collection,
 		"cqrs.node_id":         toStr,
-		"dgraph.type":          []string{"GraphNode"},
+		dqlTypePred:            []string{"GraphNode"},
 	})
 
 	req.Mutations = []*api.Mutation{
@@ -99,7 +99,7 @@ func (e *dgraphEngine) GraphRemoveEdge(
 		from_node as var(func: eq(cqrs.node_collection, $col)) @filter(eq(cqrs.node_id, $from))
 		to_node as var(func: eq(cqrs.node_collection, $col)) @filter(eq(cqrs.node_id, $to))
 	}`
-	req.Vars = map[string]string{"$col": collection, "$from": fromStr, "$to": toStr}
+	req.Vars = map[string]string{dqlColVar: collection, "$from": fromStr, "$to": toStr}
 
 	req.Mutations = []*api.Mutation{
 		{DelNquads: fmt.Appendf(nil, "uid(from_node) <%s> uid(to_node) .", pred)},
@@ -158,7 +158,7 @@ func (e *dgraphEngine) GraphNeighbors(
 	}
 
 	resp, err := e.readTx().
-		QueryWithVars(ctx, query, map[string]string{"$col": collection, "$node": nodeStr})
+		QueryWithVars(ctx, query, map[string]string{dqlColVar: collection, "$node": nodeStr})
 	if err != nil {
 		return nil, fmt.Errorf("dgraphengine.GraphNeighbors: %w", err)
 	}

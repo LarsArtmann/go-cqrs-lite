@@ -73,11 +73,11 @@ func (e *dgraphEngine) VectorInsert(
 	}
 
 	create := map[string]any{
-		"uid":                    "_:new",
+		"uid":                    dqlNewNode,
 		"cqrs.vector_collection": collection,
 		"cqrs.vector_id":         emb.ID,
 		"cqrs.vector_values":     valuesStr,
-		"dgraph.type":            []string{"VectorEmbedding"},
+		dqlTypePred:              []string{"VectorEmbedding"},
 	}
 
 	update := map[string]any{
@@ -167,7 +167,7 @@ func (e *dgraphEngine) establishedVectorDimension(
 	var out vectorRows
 
 	if err := vectorQuery(e, ctx, vectorDimensionQuery,
-		map[string]string{"$col": collection}, &out); err != nil {
+		map[string]string{dqlColVar: collection}, &out); err != nil {
 		return 0, fmt.Errorf("dgraphengine.VectorInsert: dimension probe: %w", err)
 	}
 
@@ -182,7 +182,7 @@ func (e *dgraphEngine) establishedVectorDimension(
 // delete mutation removing stale cqrs.vector_metadata on update-without-
 // metadata (setting "" would leave a set predicate, not an absent one).
 func vectorUpsertRequest(
-	collection, id string,
+	collection, vectorID string,
 	create, update map[string]any,
 	clearMetadata bool,
 ) (*api.Request, error) {
@@ -198,7 +198,7 @@ func vectorUpsertRequest(
 
 	req := &api.Request{
 		Query: vectorEntryQuery,
-		Vars:  map[string]string{"$col": collection, "$id": id},
+		Vars:  map[string]string{dqlColVar: collection, "$id": vectorID},
 		Mutations: []*api.Mutation{
 			{SetJson: createJSON, Cond: "@if(eq(len(entry), 0))"},
 			{SetJson: updateJSON, Cond: "@if(eq(len(entry), 1))"},

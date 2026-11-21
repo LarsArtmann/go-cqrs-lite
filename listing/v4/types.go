@@ -15,8 +15,8 @@ type StreamListing struct {
 	ID          id.StreamID   `json:"id"`
 	Type        id.StreamType `json:"type"`
 	Version     event.Version `json:"version"`
-	EventCount  uint          `json:"event_count"`   //nolint:tagliatelle // on-disk/external format uses snake_case
-	LastEventAt time.Time     `json:"last_event_at"` //nolint:tagliatelle // on-disk/external format uses snake_case
+	EventCount  uint          `json:"event_count"`
+	LastEventAt time.Time     `json:"last_event_at"`
 }
 
 // Deprecated: use StreamListing.

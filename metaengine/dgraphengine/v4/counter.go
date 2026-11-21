@@ -18,6 +18,12 @@ import (
 // not flag it (the format inserts a DQL variable name, never user input).
 const counterKeyFilterFmt = "eq(cqrs.counter_key, %s)"
 
+// deltaFilterMaxKeys bounds the DQL @filter form of delta reads: at or below
+// it, eq() per key via $keyN variables (injection-safe); above it, the
+// filter would be excessively long and the read falls back to the whole
+// collection.
+const deltaFilterMaxKeys = 20
+
 func (e *dgraphEngine) CounterIncrement(
 	ctx context.Context,
 	col string,
@@ -52,7 +58,7 @@ func (e *dgraphEngine) counterIncrementBatch(
 	// using $keyN variables (not string interpolation) to prevent DQL injection.
 	// For larger sets, the filter expression would be excessively long and we
 	// fall back to querying all counters in the collection.
-	vars := map[string]string{"$col": col}
+	vars := colVars(col)
 	q := `query counters($col: string) {
 		counter(func: eq(cqrs.counter_collection, $col)) {
 			uid
@@ -61,7 +67,7 @@ func (e *dgraphEngine) counterIncrementBatch(
 		}
 	}`
 
-	if len(deltas) <= 20 {
+	if len(deltas) <= deltaFilterMaxKeys {
 		parts := make([]string, 0, len(deltas))
 
 		i := 0
@@ -124,7 +130,7 @@ func (e *dgraphEngine) counterIncrementBatch(
 				"cqrs.counter_collection": col,
 				"cqrs.counter_key":        key,
 				"cqrs.counter_value":      delta,
-				"dgraph.type":             []string{"MetaCounterEntry"},
+				dqlTypePred:               []string{"MetaCounterEntry"},
 			})
 		}
 	}
@@ -178,7 +184,7 @@ func (e *dgraphEngine) CounterGet(ctx context.Context, col string) (map[string]i
 		}
 	}` //art-dupl:accept per-facet DQL queries intentionally repeat the var/query shape
 
-	resp, err := e.readTx().QueryWithVars(ctx, q, map[string]string{"$col": col})
+	resp, err := e.readTx().QueryWithVars(ctx, q, colVars(col))
 	if err != nil {
 		return nil, fmt.Errorf("dgraphengine.CounterGet: %w", err)
 	}

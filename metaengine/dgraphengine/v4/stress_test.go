@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"sync"
-	"sync/atomic"
 	"testing"
 	"time"
 
@@ -37,21 +36,73 @@ func TestGraphRAG_ConcurrentStress(t *testing.T) {
 	}
 
 	ctx := context.Background()
+	topics := buildStressCorpus(t, ctx, gb, sb)
+	latencies, elapsed := runStressQueries(t, ctx, gb, sb, topics)
+
+	successful := int64(len(latencies))
+	if successful == 0 {
+		t.Fatal("every stress query failed — see the reported errors above")
+	}
+
+	qps := float64(successful) / elapsed.Seconds()
+
+	sortLatencies(latencies)
+	p50 := latencies[successful*50/100]
+	p99 := latencies[successful*99/100]
+	maxLat := latencies[successful-1]
+
+	t.Logf("=== GraphRAG Concurrent Stress Results ===")
+	t.Logf("Concurrent goroutines: %d", stressGoroutines)
+	t.Logf("Queries per goroutine: %d", stressQueriesPerGoroutine)
+	t.Logf("Total queries:         %d", successful)
+	t.Logf("Elapsed:               %v", elapsed)
+	t.Logf("Throughput:            %.1f queries/sec", qps)
+	t.Logf("Latency p50:           %v", time.Duration(p50))
+	t.Logf("Latency p99:           %v", time.Duration(p99))
+	t.Logf("Latency max:           %v", time.Duration(maxLat))
+	t.Logf("Corpus:                %d entities, ~%d edges", stressEntities, stressEntities*3)
+
+	// Throughput assertion: at least 50 queries/sec (generous for CI/Dgraph warmup).
+	if qps < 50 {
+		t.Errorf("throughput %.1f qps < 50 qps threshold", qps)
+	}
+
+	// p99 assertion: under 15 seconds (generous for single-node Dgraph under load).
+	if time.Duration(p99) > 15*time.Second {
+		t.Errorf("p99 latency %v > 15s threshold", time.Duration(p99))
+	}
+}
+
+// Stress-shape constants: 200 entities across 10 topic clusters with 3 edges
+// each is a dense, realistic knowledge graph; 16×20 queries give stable
+// percentiles without turning the test into a soak.
+const (
+	stressEntities            = 200
+	stressGoroutines          = 16
+	stressQueriesPerGoroutine = 20
+)
+
+// buildStressCorpus indexes the entity corpus and its edges, returning the
+// topic list queries draw from.
+func buildStressCorpus(
+	t *testing.T,
+	ctx context.Context,
+	gb graphBackend,
+	sb metaengine.SearchBackend,
+) []string {
+	t.Helper()
+
 	const searchCol = "rag-stress-search"
 	const graphCol = "rag-stress-graph"
 
-	// --- BUILD CORPUS ---
-	// 200 entities across 10 topic clusters, each with 3 graph edges.
-	// Creates a dense, realistic knowledge graph.
-	const numEntities = 200
 	topics := []string{
 		"authentication", "database", "payment", "notification",
 		"cache", "queue", "gateway", "storage", "analytics", "monitoring",
 	}
 
-	t.Logf("Indexing %d entities with graph edges...", numEntities)
+	t.Logf("Indexing %d entities with graph edges...", stressEntities)
 
-	for i := range numEntities {
+	for i := range stressEntities {
 		topic := topics[i%len(topics)]
 		doc := metaengine.IndexedText{
 			ID:      fmt.Sprintf("entity-%d", i),
@@ -63,9 +114,9 @@ func TestGraphRAG_ConcurrentStress(t *testing.T) {
 	}
 
 	// Each entity connects to next 3 neighbors — 600 bidirectional edges.
-	for i := range numEntities {
+	for i := range stressEntities {
 		for j := 1; j <= 3; j++ {
-			neighbor := (i + j) % numEntities
+			neighbor := (i + j) % stressEntities
 			if err := gb.GraphAddEdge(
 				ctx,
 				graphCol,
@@ -79,103 +130,110 @@ func TestGraphRAG_ConcurrentStress(t *testing.T) {
 		}
 	}
 
-	t.Logf("Corpus ready: %d entities, ~%d edges, 10 topic clusters", numEntities, numEntities*3)
+	t.Logf("Corpus ready: %d entities, ~%d edges, 10 topic clusters",
+		stressEntities, stressEntities*3)
 
-	// --- CONCURRENT STRESS ---
-	const numGoroutines = 16
-	const queriesPerGoroutine = 20
-	totalQueries := int64(numGoroutines * queriesPerGoroutine)
+	return topics
+}
 
-	latencies := make([]int64, totalQueries)
-	var idx atomic.Int64
+// runStressQueries drives the concurrent search→expand pipeline and returns
+// the per-query latencies (already truncated to successful queries) plus the
+// wall-clock span.
+func runStressQueries(
+	t *testing.T,
+	ctx context.Context,
+	gb graphBackend,
+	sb metaengine.SearchBackend,
+	topics []string,
+) ([]int64, time.Duration) {
+	t.Helper()
 
+	const searchCol = "rag-stress-search"
+	const graphCol = "rag-stress-graph"
+
+	totalQueries := int64(stressGoroutines * stressQueriesPerGoroutine)
+	latencies := make([]int64, 0, totalQueries)
+
+	var mu sync.Mutex
 	var wg sync.WaitGroup
-	wg.Add(numGoroutines)
+	wg.Add(stressGoroutines)
 
 	start := time.Now()
 
-	for g := range numGoroutines {
+	for g := range stressGoroutines {
 		go func(goroutineID int) {
 			defer wg.Done()
 
-			for q := range queriesPerGoroutine {
+			for q := range stressQueriesPerGoroutine {
 				query := topics[(goroutineID+q)%len(topics)]
-				i := idx.Add(1) - 1
 
-				queryStart := time.Now()
-
-				// GraphRAG pipeline: search → expand.
-				results, err := sb.SearchQuery(ctx, searchCol, query, 5)
-				if err != nil {
-					t.Errorf("goroutine %d query %d: SearchQuery %q: %v",
-						goroutineID, q, query, err)
-
+				latency, ok := stressPipelineQuery(t, ctx, gb, sb, searchCol, graphCol, goroutineID, q, query)
+				if !ok {
 					return
 				}
 
-				if len(results) == 0 {
-					t.Errorf("goroutine %d query %d: SearchQuery %q returned 0 results",
-						goroutineID, q, query)
-
-					return
-				}
-
-				// Expand each search hit via depth-2 graph traversal.
-				for _, r := range results {
-					neighbors, err := gb.GraphNeighbors(ctx, graphCol, r.ID, 2)
-					if err != nil {
-						t.Errorf("goroutine %d: GraphNeighbors %s: %v",
-							goroutineID, r.ID, err)
-
-						return
-					}
-					// Verify non-empty expansion (each entity has 3+ neighbors).
-					if len(neighbors) == 0 {
-						t.Errorf("goroutine %d: GraphNeighbors %s returned 0 neighbors",
-							goroutineID, r.ID)
-
-						return
-					}
-				}
-
-				latencies[i] = time.Since(queryStart).Nanoseconds()
+				mu.Lock()
+				latencies = append(latencies, int64(latency))
+				mu.Unlock()
 			}
 		}(g)
 	}
 
 	wg.Wait()
-	elapsed := time.Since(start)
 
-	// --- REPORT ---
-	successful := idx.Load()
-	qps := float64(successful) / elapsed.Seconds()
+	return latencies, time.Since(start)
+}
 
-	// Sort latencies for percentile calculation.
-	sortLatencies(latencies[:successful])
-	p50 := latencies[successful*50/100]
-	p99 := latencies[successful*99/100]
-	maxLat := latencies[successful-1]
+// stressPipelineQuery runs ONE GraphRAG pipeline query (search → depth-2
+// expansion of every hit) and reports its latency; ok=false means the query
+// failed and the error was already reported.
+func stressPipelineQuery(
+	t *testing.T,
+	ctx context.Context,
+	gb graphBackend,
+	sb metaengine.SearchBackend,
+	searchCol, graphCol string,
+	goroutineID, q int,
+	query string,
+) (time.Duration, bool) {
+	t.Helper()
 
-	t.Logf("=== GraphRAG Concurrent Stress Results ===")
-	t.Logf("Concurrent goroutines: %d", numGoroutines)
-	t.Logf("Queries per goroutine: %d", queriesPerGoroutine)
-	t.Logf("Total queries:         %d", successful)
-	t.Logf("Elapsed:               %v", elapsed)
-	t.Logf("Throughput:            %.1f queries/sec", qps)
-	t.Logf("Latency p50:           %v", time.Duration(p50))
-	t.Logf("Latency p99:           %v", time.Duration(p99))
-	t.Logf("Latency max:           %v", time.Duration(maxLat))
-	t.Logf("Corpus:                %d entities, ~%d edges", numEntities, numEntities*3)
+	queryStart := time.Now()
 
-	// Throughput assertion: at least 50 queries/sec (generous for CI/Dgraph warmup).
-	if qps < 50 {
-		t.Errorf("throughput %.1f qps < 50 qps threshold", qps)
+	results, err := sb.SearchQuery(ctx, searchCol, query, 5)
+	if err != nil {
+		t.Errorf("goroutine %d query %d: SearchQuery %q: %v",
+			goroutineID, q, query, err)
+
+		return 0, false
 	}
 
-	// p99 assertion: under 15 seconds (generous for single-node Dgraph under load).
-	if time.Duration(p99) > 15*time.Second {
-		t.Errorf("p99 latency %v > 15s threshold", time.Duration(p99))
+	if len(results) == 0 {
+		t.Errorf("goroutine %d query %d: SearchQuery %q returned 0 results",
+			goroutineID, q, query)
+
+		return 0, false
 	}
+
+	for _, r := range results {
+		neighbors, err := gb.GraphNeighbors(ctx, graphCol, r.ID, 2)
+		if err != nil {
+			t.Errorf("goroutine %d: GraphNeighbors %s: %v",
+				goroutineID, r.ID, err)
+
+			return 0, false
+		}
+
+		// Verify non-empty expansion (each entity has 3+ neighbors).
+		if len(neighbors) == 0 {
+			t.Errorf("goroutine %d: GraphNeighbors %s returned 0 neighbors",
+				goroutineID, r.ID)
+
+			return 0, false
+		}
+	}
+
+	return time.Since(queryStart), true
 }
 
 // sortLatencies sorts in-place using insertion sort (simple, no allocs for

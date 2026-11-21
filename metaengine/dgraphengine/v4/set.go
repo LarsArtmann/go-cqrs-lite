@@ -17,13 +17,13 @@ func (e *dgraphEngine) SetAdd(ctx context.Context, col string, key any) error {
 	req.Query = `query entry($col: string, $key: string) {
 		entry as var(func: eq(cqrs.set_collection, $col)) @filter(eq(cqrs.set_key, $key))
 	}`
-	req.Vars = map[string]string{"$col": col, "$key": keyStr}
+	req.Vars = map[string]string{dqlColVar: col, dqlKeyVar: keyStr}
 
 	createJSON, _ := json.Marshal(map[string]any{
-		"uid":                 "_:new",
+		"uid":                 dqlNewNode,
 		"cqrs.set_collection": col,
 		"cqrs.set_key":        keyStr,
-		"dgraph.type":         []string{"MetaSetEntry"},
+		dqlTypePred:           []string{"MetaSetEntry"},
 	})
 
 	req.Mutations = []*api.Mutation{
@@ -47,7 +47,7 @@ func (e *dgraphEngine) SetContains(ctx context.Context, col string, key any) (bo
 	}`
 
 	resp, err := e.readTx().
-		QueryWithVars(ctx, q, map[string]string{"$col": col, "$key": keyStr})
+		QueryWithVars(ctx, q, map[string]string{dqlColVar: col, dqlKeyVar: keyStr})
 	if err != nil {
 		return false, fmt.Errorf("dgraphengine.SetContains: %w", err)
 	}

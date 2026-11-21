@@ -279,6 +279,11 @@ linters:
         - github.com/larsartmann/go-cqrs-lite/storage/bbolt/v4\.bboltEventIterator
         # LogStore's mutex/log slice zero values are correct by design.
         - github.com/larsartmann/go-cqrs-lite/storage/memory/v4\.LogStore
+        # Optional-result seams: SearchResult.Score is zero for unranked
+        # results; the transientCommitError compile-proof intentionally
+        # constructs the zero value (the marker interface holds without err).
+        - github.com/larsartmann/go-cqrs-lite/metaengine/v4\.SearchResult
+        - github.com/larsartmann/go-cqrs-lite/metaengine/dgraphengine/v4\.transientCommitError
         # Hooks fields are optional observability seams (nil = unobserved);
         # Observer partially fills only the metric hooks it tracks.
         - github.com/larsartmann/go-cqrs-lite/metaengine/v4\.Hooks
@@ -397,17 +402,17 @@ linters:
     tagliatelle:
       case:
         use-field-name: true
-        rules: {}
-        # NO json rule, deliberately (corrected 2026-11-21): the v4 train's
-        # wire is frozen in BOTH cases — the snake majority AND camelCase
-        # persisted-event payloads (commandlifecycle events, snapshot wire
-        # legacy rows, engine metadata, catalog docs; 151 findings under
-        # `json: snake`, mixed within single files). On a byte-frozen train
-        # no tag-case change is actionable (any rename breaks decoding of
-        # stored events), so the linter's judgment is moot here. The first
-        # sweep's `json: snake` row read the majority shape as THE contract;
-        # the red-set measure exposed the camel half. A uniform case policy
-        # belongs to NEW surface (core/v5 + the v5 cut), not this config.
+        # NOTE: no json entry (2026-11-21): the v4 train's wire is frozen
+        # in BOTH cases — the snake majority AND camelCase persisted-event
+        # payloads (commandlifecycle events, snapshot wire legacy rows,
+        # engine metadata, catalog docs; 151 findings under `json: snake`,
+        # mixed within single files). On a byte-frozen train no tag-case
+        # change is actionable (any rename breaks decoding of stored
+        # events), so the json case judgment is scoped out entirely via the
+        # exclusion rule below — tagliatelle still polices the other tag
+        # families. A uniform json case policy belongs to NEW surface
+        # (core/v5 + the v5 cut). (`rules: {}` cannot express this — empty
+        # rules silently restore defaults; `json: ignore` is unsupported.)
     testifylint:
       disable:
         - go-require
@@ -536,6 +541,12 @@ linters:
   exclusions:
     generated: lax
     rules:
+      # The v4 json wire contract is frozen in BOTH cases (see the
+      # tagliatelle settings note) — case findings for json tags are noise
+      # on a byte-frozen train; other tag families stay policed.
+      - text: 'json\((snake|camel|pascal|kebab)\):'
+        linters:
+          - tagliatelle
       - path: _test\.go$
         linters:
           - err113
@@ -671,6 +682,12 @@ linters:
       # the keycodec migration seams (ADR-0157 dual-read windows: journalKey,
       # encodeKeyStr, decodeJSON switch between codec v1/v2 as one unit).
       - path: metaengine/(badgerengine|bboltengine)/v4/engine\.go$
+        linters:
+          - gochecknoglobals
+      # dgraphengine reset.go holds the reset predicate table and its stable
+      # iteration order — domain DATA (same class as the keycodec seams:
+      # the reset test grows with the table by contract).
+      - path: metaengine/dgraphengine/v4/reset\.go$
         linters:
           - gochecknoglobals
       # core/v5 carries the v4-mirror twins deliberately (D32 ruling:

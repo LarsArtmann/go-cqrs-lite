@@ -26,7 +26,7 @@ func (e *dgraphEngine) MapScan(
 	}`
 
 	resp, err := e.readTx().
-		QueryWithVars(ctx, q, map[string]string{"$col": collection})
+		QueryWithVars(ctx, q, map[string]string{dqlColVar: collection})
 	if err != nil {
 		return metaengine.ScanResult{}, fmt.Errorf("dgraphengine.MapScan: %w", err)
 	}

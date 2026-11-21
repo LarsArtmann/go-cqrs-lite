@@ -71,7 +71,7 @@ func (e *dgraphEngine) vectorScan(
 	var out vectorRows
 
 	if err := vectorQuery(e, ctx, vectorScanQuery,
-		map[string]string{"$col": collection}, &out); err != nil {
+		map[string]string{dqlColVar: collection}, &out); err != nil {
 		return nil, fmt.Errorf("dgraphengine.vectorScan: %w", err)
 	}
 
@@ -116,7 +116,7 @@ func (e *dgraphEngine) VectorCount(ctx context.Context, collection string) (int6
 		`query vecs($col: string) {
 			vecs(func: eq(cqrs.vector_collection, $col)) { count(uid) }
 		}`,
-		map[string]string{"$col": collection}, &out); err != nil {
+		map[string]string{dqlColVar: collection}, &out); err != nil {
 		return 0, fmt.Errorf("dgraphengine.VectorCount: %w", err)
 	}
 
@@ -174,7 +174,7 @@ func vectorQuery(
 ) error {
 	resp, err := e.readTx().QueryWithVars(ctx, q, vars)
 	if err != nil {
-		return err //nolint:wrapcheck // caller wraps with the operation name
+		return err
 	}
 
 	if err := json.Unmarshal(resp.GetJson(), out); err != nil {

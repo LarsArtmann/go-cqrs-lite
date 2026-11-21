@@ -15,6 +15,10 @@ import (
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
+// errNestedTx rejects RunInTx calls made from inside an active RunInTx —
+// Dgraph has no savepoints, so nesting cannot be emulated.
+var errNestedTx = errors.New("dgraphengine.RunInTx: nested transactions are not supported")
+
 // RunInTx executes fn within a single Dgraph transaction: every write op the
 // engine performs while fn runs is applied atomically — committed together on
 // success, discarded together on error. Implements [metaengine.Transactional].
@@ -30,7 +34,7 @@ import (
 // write cycles see their own writes.
 func (e *dgraphEngine) RunInTx(ctx context.Context, fn func(context.Context) error) error {
 	if ctx.Value(txMarker{}) != nil {
-		return errors.New("dgraphengine.RunInTx: nested transactions are not supported")
+		return errNestedTx
 	}
 
 	e.txMu.Lock()
@@ -201,7 +205,12 @@ func (e *dgraphEngine) retryOnContention(
 
 		e.countContentionRetry(attempt + 1)
 
-		delay := min(contentionBase<<attempt, contentionCap) + rand.N(contentionBase)
+		delay := min(
+			contentionBase<<attempt,
+			contentionCap,
+		) + rand.N(
+			contentionBase,
+		) // #nosec G404 -- backoff jitter, not a security value
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
@@ -252,7 +261,7 @@ func boundNoDeadline(
 	ctx context.Context,
 	method string,
 	req, reply any,
-	cc *grpc.ClientConn,
+	clientConn *grpc.ClientConn,
 	invoker grpc.UnaryInvoker,
 	opts ...grpc.CallOption,
 ) error {
@@ -263,5 +272,5 @@ func boundNoDeadline(
 		defer cancel()
 	}
 
-	return invoker(ctx, method, req, reply, cc, opts...)
+	return invoker(ctx, method, req, reply, clientConn, opts...)
 }

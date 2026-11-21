@@ -31,11 +31,11 @@ func (e *dgraphEngine) MultiAdd(
 	}
 
 	data, _ := json.Marshal(map[string]any{
-		"uid":                      "_:new",
+		"uid":                      dqlNewNode,
 		"cqrs.multimap_collection": col,
 		"cqrs.multimap_key":        keyStr,
 		"cqrs.multimap_value":      string(valueJSON),
-		"dgraph.type":              []string{"MultimapEntry"},
+		dqlTypePred:                []string{"MultimapEntry"},
 	})
 
 	if err := e.doMutate(ctx, &api.Mutation{
@@ -61,7 +61,7 @@ func (e *dgraphEngine) MultiGet(
 	}`
 
 	return e.queryValueEntries(ctx, "MultiGet", q,
-		map[string]string{"$col": col, "$key": keyStr}, "cqrs.multimap_value")
+		map[string]string{dqlColVar: col, dqlKeyVar: keyStr}, "cqrs.multimap_value")
 }
 
 // queryValueEntries runs q and decodes each entry's predicate value (a JSON
@@ -110,11 +110,11 @@ func (e *dgraphEngine) LogAppend(ctx context.Context, col string, value any) err
 	}
 
 	data, _ := json.Marshal(map[string]any{
-		"uid":                 "_:new",
+		"uid":                 dqlNewNode,
 		"cqrs.log_collection": col,
 		"cqrs.log_seq":        time.Now().UnixNano(),
 		"cqrs.log_value":      string(valueJSON),
-		"dgraph.type":         []string{"LogEntry"},
+		dqlTypePred:           []string{"LogEntry"},
 	})
 
 	if err := e.doMutate(ctx, &api.Mutation{
@@ -142,7 +142,7 @@ func (e *dgraphEngine) LogTail(ctx context.Context, col string, limit int) ([]an
 	}`, firstClause)
 
 	out, err := e.queryValueEntries(ctx, "LogTail", q,
-		map[string]string{"$col": col}, "cqrs.log_value")
+		colVars(col), "cqrs.log_value")
 	if err != nil {
 		return nil, err
 	}

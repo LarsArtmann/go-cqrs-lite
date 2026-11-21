@@ -47,7 +47,7 @@ func (e *dgraphEngine) StreamAppend(
 			"cqrs.stream_log_stream":     sid,
 			"cqrs.stream_log_seq":        seq,
 			"cqrs.stream_log_value":      encoded,
-			"dgraph.type":                []string{"StreamLogEntry"},
+			dqlTypePred:                  []string{"StreamLogEntry"},
 		})
 	}
 
@@ -77,7 +77,7 @@ func (e *dgraphEngine) StreamRead(
 	}`
 
 	resp, err := e.readTx().QueryWithVars(ctx, q,
-		map[string]string{"$col": col, "$sid": sid})
+		map[string]string{dqlColVar: col, "$sid": sid})
 	if err != nil {
 		return nil, fmt.Errorf("dgraphengine.StreamRead: %w", err)
 	}
@@ -112,7 +112,7 @@ func (e *dgraphEngine) StreamVersion(
 	}`
 
 	resp, err := e.readTx().QueryWithVars(ctx, q,
-		map[string]string{"$col": col, "$sid": sid})
+		map[string]string{dqlColVar: col, "$sid": sid})
 	if err != nil {
 		return 0, fmt.Errorf("dgraphengine.StreamVersion: %w", err)
 	}
@@ -145,7 +145,7 @@ func (e *dgraphEngine) JournalReadAll(
 	}` //art-dupl:accept per-facet DQL queries intentionally repeat the var/query shape
 
 	resp, err := e.readTx().QueryWithVars(ctx, q,
-		map[string]string{"$col": col})
+		colVars(col))
 	if err != nil {
 		return nil, fmt.Errorf("dgraphengine.JournalReadAll: %w", err)
 	}
@@ -202,7 +202,7 @@ func (e *dgraphEngine) JournalReadFrom(
 	}`, firstClause)
 
 	resp, err := e.readTx().QueryWithVars(ctx, q,
-		map[string]string{"$col": col})
+		colVars(col))
 	if err != nil {
 		return nil, fmt.Errorf("dgraphengine.JournalReadFrom: %w", err)
 	}
@@ -250,7 +250,7 @@ func (e *dgraphEngine) StreamAppendExpected(
 	req.Query = `query entry($col: string, $sid: string) {
 		entry as var(func: eq(cqrs.stream_log_collection, $col)) @filter(eq(cqrs.stream_log_stream, $sid))
 	}`
-	req.Vars = map[string]string{"$col": col, "$sid": sid}
+	req.Vars = map[string]string{dqlColVar: col, "$sid": sid}
 
 	encodedValues, encodeErr := metaengine.EncodeStreamValuesErr(values)
 	if encodeErr != nil {
@@ -268,7 +268,7 @@ func (e *dgraphEngine) StreamAppendExpected(
 			"cqrs.stream_log_stream":     sid,
 			"cqrs.stream_log_seq":        seq,
 			"cqrs.stream_log_value":      encoded,
-			"dgraph.type":                []string{"StreamLogEntry"},
+			dqlTypePred:                  []string{"StreamLogEntry"},
 		})
 	}
 

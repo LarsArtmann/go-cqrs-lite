@@ -28,17 +28,17 @@ const fixtureVersion = "1.0.0"
 const HostileStoreName = "https://internal.example.com/secret/quarterly-revenue"
 
 type createOrder struct { // art-dupl:accept the fixture command mirrors the export test payload by design (two packages, three fields)
-	OrderID string `json:"order_id" doc:"Order identifier"` //nolint:tagliatelle // mirrors the external snake_case API this fixture documents
+	OrderID string `json:"order_id" doc:"Order identifier"`
 	Amount  int    `json:"amount"   doc:"Total in minor units"`
 }
 
 type orderCreated struct {
-	OrderID string `json:"order_id" doc:"Order identifier"` //nolint:tagliatelle // mirrors the external snake_case API this fixture documents
+	OrderID string `json:"order_id" doc:"Order identifier"`
 	Amount  int    `json:"amount"   doc:"Total in minor units"`
 }
 
 type getOrder struct {
-	OrderID string `json:"order_id" doc:"Order identifier"` //nolint:tagliatelle // mirrors the external snake_case API this fixture documents
+	OrderID string `json:"order_id" doc:"Order identifier"`
 }
 
 func fixtureCatalog() *catalog.Catalog {

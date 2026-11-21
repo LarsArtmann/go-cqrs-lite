@@ -25,14 +25,14 @@ func (e *dgraphEngine) SearchInsert(
 	req.Query = `query doc($col: string, $id: string) {
 		doc as var(func: eq(cqrs.search_collection, $col)) @filter(eq(cqrs.search_id, $id))
 	}`
-	req.Vars = map[string]string{"$col": col, "$id": doc.ID}
+	req.Vars = map[string]string{dqlColVar: col, "$id": doc.ID}
 
 	createJSON, _ := json.Marshal(map[string]any{
-		"uid":                    "_:new",
+		"uid":                    dqlNewNode,
 		"cqrs.search_collection": col,
 		"cqrs.search_id":         doc.ID,
 		"cqrs.search_content":    doc.Content,
-		"dgraph.type":            []string{"SearchDoc"},
+		dqlTypePred:              []string{"SearchDoc"},
 	})
 
 	updateJSON, _ := json.Marshal(map[string]any{
@@ -69,7 +69,7 @@ func (e *dgraphEngine) SearchQuery(
 	}`, firstClause)
 
 	resp, err := e.readTx().
-		QueryWithVars(ctx, q, map[string]string{"$col": collection, "$query": query})
+		QueryWithVars(ctx, q, map[string]string{dqlColVar: collection, "$query": query})
 	if err != nil {
 		return nil, fmt.Errorf("dgraphengine.SearchQuery: %w", err)
 	}

@@ -7,7 +7,7 @@ import (
 type URI string
 
 type Document struct {
-	AsyncAPI           string               `json:"asyncapi"                     yaml:"asyncapi"`
+	AsyncAPI           string               `json:"asyncapi"                     yaml:"asyncapi"` //nolint:tagliatelle // AsyncAPI spec pins the version key
 	ID                 URI                  `json:"id,omitempty"                 yaml:"id,omitempty"`
 	Info               catalog.DocumentInfo `json:"info"                         yaml:"info"`
 	DefaultContentType string               `json:"defaultContentType,omitempty" yaml:"defaultContentType,omitempty"`
@@ -41,7 +41,7 @@ type Channel struct {
 
 // Ref is a JSON Reference pointing to another component in the document.
 type Ref struct {
-	Ref string `json:"$ref" yaml:"$ref"`
+	Ref string `json:"$ref" yaml:"$ref"` //nolint:tagliatelle // JSON Reference syntax, not caseable
 }
 
 // Operation describes a send or receive action on a channel.

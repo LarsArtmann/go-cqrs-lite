@@ -69,6 +69,27 @@ func TestResetEngine_ClearsEveryADT(t *testing.T) {
 		t.Fatalf("ResetEngine: %v", err)
 	}
 
+	assertADTsAfterReset(t, eng, col, mb, sb, cb, mm, lb, sl)
+}
+
+// assertADTsAfterReset pins the split-brain contract of ResetEngine: every
+// materialized ADT is empty, while the journal ADTs (log, stream log — facts
+// per ADR-0143) survive untouched.
+func assertADTsAfterReset(
+	t *testing.T,
+	eng metaengine.Engine,
+	col string,
+	mb metaengine.MapBackend,
+	sb metaengine.SetBackend,
+	cb metaengine.CounterBackend,
+	mm metaengine.MultimapBackend,
+	lb metaengine.LogBackend,
+	sl metaengine.StreamLogBackend,
+) {
+	t.Helper()
+
+	ctx := context.Background()
+
 	if _, ok, err := mb.MapGet(ctx, col+"_map", "t1"); err != nil || ok {
 		t.Fatalf("map must be empty after reset (ok=%v err=%v)", ok, err)
 	}
