@@ -259,6 +259,8 @@ func (s *CommandStore) ReadAll(ctx context.Context) ([]*command.PersistedCommand
 
 // ReadFrom returns commands from the journal starting after the given command
 // ID, up to limit entries. A limit of 0 means no limit.
+//
+//nolint:dupl // command/query journal twins share the ReadFrom shape by ADR-0111 record parity
 func (s *CommandStore) ReadFrom(
 	ctx context.Context,
 	afterCmdID id.CommandID,

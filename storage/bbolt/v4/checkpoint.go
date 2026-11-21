@@ -92,16 +92,16 @@ func (s *CheckpointStore) Load(
 			return nil
 		}
 
-		var sc serializableCheckpoint
-		if err := unmarshalCBOROrJSON(slices.Clone(val), &sc,
+		var decoded serializableCheckpoint
+		if err := unmarshalCBOROrJSON(slices.Clone(val), &decoded,
 			"bbolt.deserialize_checkpoint",
 			"deserialize checkpoint for "+projectionName); err != nil {
 			return err
 		}
 
 		result = event.Checkpoint{
-			EventID:     sc.EventID,
-			ProcessedAt: time.Unix(0, sc.ProcessedAt).UTC(),
+			EventID:     decoded.EventID,
+			ProcessedAt: time.Unix(0, decoded.ProcessedAt).UTC(),
 		}
 
 		return nil

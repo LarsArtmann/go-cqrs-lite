@@ -18,7 +18,7 @@ type serializableQuery struct {
 }
 
 func marshalQuery(q *query.PersistedQuery) ([]byte, error) {
-	sq := serializableQuery{
+	record := serializableQuery{
 		ID:         q.ID(),
 		Type:       string(q.Type()),
 		ReceivedAt: q.ReceivedAt().UnixNano(),
@@ -27,7 +27,7 @@ func marshalQuery(q *query.PersistedQuery) ([]byte, error) {
 	}
 
 	//art-dupl:accept mirror of event/command serialization — type-specific wire structs
-	data, err := marshalCBOR(sq)
+	data, err := marshalCBOR(record)
 	if err != nil {
 		return nil, errorfamily.WrapCorruption(err, "bbolt.serialize_query",
 			"marshal query")
@@ -37,19 +37,19 @@ func marshalQuery(q *query.PersistedQuery) ([]byte, error) {
 }
 
 func unmarshalQuery(data []byte) (*query.PersistedQuery, error) {
-	var sq serializableQuery
+	var record serializableQuery
 
-	if err := unmarshalCBOROrJSON(data, &sq, "bbolt.unmarshal_query",
+	if err := unmarshalCBOROrJSON(data, &record, "bbolt.unmarshal_query",
 		"failed to unmarshal query"); err != nil {
 		return nil, err
 	}
 
 	q, err := query.NewPersistedQuery(
-		query.Type(sq.Type),
-		sq.Payload,
-		query.WithQueryReceivedAt(time.Unix(0, sq.ReceivedAt).UTC()),
-		query.WithQueryID(sq.ID),
-		query.WithQueryMetadata(sq.Metadata),
+		query.Type(record.Type),
+		record.Payload,
+		query.WithQueryReceivedAt(time.Unix(0, record.ReceivedAt).UTC()),
+		query.WithQueryID(record.ID),
+		query.WithQueryMetadata(record.Metadata),
 	)
 	if err != nil {
 		return nil, errorfamily.WrapCorruption(err, "bbolt.reconstruct_query",

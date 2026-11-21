@@ -20,7 +20,7 @@ type serializableCommand struct {
 }
 
 func marshalCommand(cmd *command.PersistedCommand) ([]byte, error) {
-	sc := serializableCommand{
+	record := serializableCommand{
 		ID:         cmd.ID(),
 		Type:       string(cmd.Type()),
 		StreamID:   cmd.StreamID(),
@@ -31,7 +31,7 @@ func marshalCommand(cmd *command.PersistedCommand) ([]byte, error) {
 	}
 
 	//art-dupl:accept mirror of event/query serialization — type-specific wire structs
-	data, err := marshalCBOR(sc)
+	data, err := marshalCBOR(record)
 	if err != nil {
 		return nil, errorfamily.WrapCorruption(err, "bbolt.serialize_command",
 			"marshal command")
@@ -41,24 +41,24 @@ func marshalCommand(cmd *command.PersistedCommand) ([]byte, error) {
 }
 
 func unmarshalCommand(data []byte) (*command.PersistedCommand, error) {
-	var sc serializableCommand
+	var record serializableCommand
 
-	if err := unmarshalCBOROrJSON(data, &sc, "bbolt.unmarshal_command",
+	if err := unmarshalCBOROrJSON(data, &record, "bbolt.unmarshal_command",
 		"failed to unmarshal command"); err != nil {
 		return nil, err
 	}
 
-	adoptLegacyStreamKeys(data, &sc.StreamID, &sc.StreamType)
+	adoptLegacyStreamKeys(data, &record.StreamID, &record.StreamType)
 
-	ref := id.StreamRef{Type: id.StreamType(sc.StreamType), ID: sc.StreamID}
+	ref := id.StreamRef{Type: id.StreamType(record.StreamType), ID: record.StreamID}
 
 	cmd, err := command.NewPersistedCommand(
-		command.Type(sc.Type),
+		command.Type(record.Type),
 		ref,
-		sc.Payload,
-		command.WithReceivedAt(time.Unix(0, sc.ReceivedAt).UTC()),
-		command.WithPersistedCommandID(sc.ID),
-		command.WithCommandMetadata(sc.Metadata),
+		record.Payload,
+		command.WithReceivedAt(time.Unix(0, record.ReceivedAt).UTC()),
+		command.WithPersistedCommandID(record.ID),
+		command.WithCommandMetadata(record.Metadata),
 	)
 	if err != nil {
 		return nil, errorfamily.WrapCorruption(err, "bbolt.reconstruct_command",

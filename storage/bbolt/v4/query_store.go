@@ -119,6 +119,8 @@ func (s *QueryStore) ReadAllQueries(ctx context.Context) ([]*query.PersistedQuer
 
 // ReadQueriesFrom returns queries starting after the given request ID,
 // up to limit entries. A limit of 0 means no limit.
+//
+//nolint:dupl // command/query journal twins share the read shape by ADR-0111 record parity
 func (s *QueryStore) ReadQueriesFrom(
 	ctx context.Context,
 	afterReqID id.RequestID,

@@ -127,23 +127,23 @@ func (s *SnapshotStore) loadSnapshot(
 			return snapshot.ErrSnapshotNotFound
 		}
 
-		var ss serializableSnapshot
-		if err := unmarshalCBOROrJSON(slices.Clone(val), &ss,
+		var decoded serializableSnapshot
+		if err := unmarshalCBOROrJSON(slices.Clone(val), &decoded,
 			"bbolt.deserialize_snapshot", "unmarshal snapshot"); err != nil {
 			return err
 		}
 
-		if enforceMax && ss.Version > maxVersion.Int() {
+		if enforceMax && decoded.Version > maxVersion.Int() {
 			return snapshot.ErrSnapshotNotFound
 		}
 
 		result = &snapshot.Snapshot{
-			StreamType: id.StreamType(ss.StreamType),
-			StreamID:   ss.StreamID,
-			Version:    event.Version(ss.Version), // #nosec G115 -- snapshot version, non-negative
-			State:      slices.Clone(ss.State),
-			Encoding:   ss.Encoding,
-			CreatedAt:  time.Unix(0, ss.CreatedAt).UTC(),
+			StreamType: id.StreamType(decoded.StreamType),
+			StreamID:   decoded.StreamID,
+			Version:    event.Version(decoded.Version), // #nosec G115 -- snapshot version, non-negative
+			State:      slices.Clone(decoded.State),
+			Encoding:   decoded.Encoding,
+			CreatedAt:  time.Unix(0, decoded.CreatedAt).UTC(),
 		}
 
 		return nil

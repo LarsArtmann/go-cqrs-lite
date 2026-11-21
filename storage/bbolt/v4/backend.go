@@ -12,6 +12,9 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 )
 
+// bboltOpenTimeout bounds each acquire of the file lock.
+const bboltOpenTimeout = 5 * time.Second
+
 // BackendOption configures bbolt Backend behavior.
 type BackendOption func(*backendOptions)
 
@@ -52,7 +55,7 @@ type Backend struct {
 // Open creates a new Backend by opening a bbolt database at the given path.
 // The Backend owns the *bbolt.DB — Close will close it.
 func Open(path string, logger *slog.Logger) (*Backend, error) {
-	return OpenWith(path, &bolt.Options{Timeout: 5 * time.Second}, logger)
+	return OpenWith(path, &bolt.Options{Timeout: bboltOpenTimeout}, logger)
 }
 
 // OpenWith creates a new Backend with custom bbolt.Options.
@@ -71,7 +74,7 @@ func OpenWith(path string, opts *bolt.Options, logger *slog.Logger) (*Backend, e
 	}
 
 	if opts == nil {
-		opts = &bolt.Options{Timeout: 5 * time.Second}
+		opts = &bolt.Options{Timeout: bboltOpenTimeout}
 	}
 
 	db, err := bolt.Open(path, 0o600, opts)
@@ -96,7 +99,7 @@ func OpenWithOptions(
 	}
 
 	if boltOpts == nil {
-		boltOpts = &bolt.Options{Timeout: 5 * time.Second}
+		boltOpts = &bolt.Options{Timeout: bboltOpenTimeout}
 	}
 
 	db, err := bolt.Open(path, 0o600, boltOpts)
@@ -219,11 +222,11 @@ func (b *Backend) GracefulClose(ctx context.Context) error {
 
 // DiskUsage estimates the on-disk size of the bbolt file.
 func (b *Backend) DiskUsage() (uint64, error) {
-	st, err := os.Stat(b.db.Path())
+	info, err := os.Stat(b.db.Path())
 	if err != nil {
 		return 0, errorfamily.WrapInfrastructure(err, "bbolt.disk_usage",
 			"stat bbolt file "+b.db.Path())
 	}
 
-	return uint64(st.Size()), nil // #nosec G115 -- file sizes are non-negative by construction
+	return uint64(info.Size()), nil // #nosec G115 -- file sizes are non-negative by construction
 }
