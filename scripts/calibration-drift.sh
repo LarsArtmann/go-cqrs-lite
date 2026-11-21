@@ -130,7 +130,9 @@ declare -A CALIB # key: "<module>|<label>" → "<expected_ns_per_unit>|<units_pe
 # into the CALIB map. Lines arrive as `...: CALIB|label|value|units`.
 dump_constants() {
 	local mod=$1
-	local dir="$REPO_ROOT/metaengine/$mod"
+	# Modules live under <name>/v4 since the 2026-11-10 /v4 path move; the
+	# pre-move path produced "matched no packages" dumps (2026-11-21).
+	local dir="$REPO_ROOT/metaengine/$mod/v4"
 	local out dump_err
 	dump_err="$(mktemp)"
 
