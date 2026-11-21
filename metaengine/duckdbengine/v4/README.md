@@ -50,7 +50,7 @@ MapBackend, CounterBackend, ScanBackend, PushdownScan, and LayoutPlanner.
 
 ## Design
 
-- **Columnar-native storage** ([ADR-0092](../../v4/docs/adr/0092-duckdb-columnar-native-storage.md)):
+- **Columnar-native storage** ([ADR-0092](../../../docs/adr/0092-duckdb-columnar-native-storage.md)):
   `WithColumnarLayout()` extracts all exported fields of R into native SQL columns.
 - **Persistence**: `New("")` is volatile (`:memory:`); `New("file.db")` is persistent.
 - **Cross-engine parity**: Verified via `adttest.RunMatrix`.
@@ -58,5 +58,5 @@ MapBackend, CounterBackend, ScanBackend, PushdownScan, and LayoutPlanner.
 ## Related Modules
 
 - [**metaengine**](README.md) — Core planner and `Engine` interface
-- [**metaengine/adttest**](adttest) — Cross-engine ADT test harness
-- [**stack/duckdb**](../../v4/stack/duckdb/v4/README.md) — DuckDB stack preset
+- [**metaengine/adttest**](../../v4/adttest) — Cross-engine ADT test harness
+- [**stack/duckdb**](../../../stack/duckdb/v4/README.md) — DuckDB stack preset

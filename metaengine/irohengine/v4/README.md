@@ -60,8 +60,8 @@ engine.MapSet(ctx, "users", "alice", map[string]any{"name": "Alice"})
 
 Tier 0 is in this module. Tiers 1 and 2 are separate submodules:
 
-- [**irohengine/loopback**](v4/loopback/README.md) — Real TCP, no CGo
-- [**irohengine/quic**](v4/quic/README.md) — Real QUIC via iroh-go (CGo)
+- [**irohengine/loopback**](../loopback/v4/README.md) — Real TCP, no CGo
+- [**irohengine/quic**](../quic/v4/README.md) — Real QUIC via iroh-go (CGo)
 
 ## API
 
@@ -104,5 +104,5 @@ omission cannot drift.
 ## Related Modules
 
 - [**metaengine**](README.md) — Core planner and `Engine` interface
-- [**irohengine/loopback**](v4/loopback/README.md) — TCP loopback transport (no CGo)
-- [**irohengine/quic**](v4/quic/README.md) — Real QUIC transport (CGo)
+- [**irohengine/loopback**](../loopback/v4/README.md) — TCP loopback transport (no CGo)
+- [**irohengine/quic**](../quic/v4/README.md) — Real QUIC transport (CGo)

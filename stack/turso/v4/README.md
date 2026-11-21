@@ -101,5 +101,5 @@ err := sync.HealthCheck(ctx)
 ## Related Modules
 
 - [**stack**](README.md) — The `Bundle` type
-- [**storage/turso**](../../v4/storage/turso/v4/README.md) — Turso connector and indexing advisor
-- [**stack/sqlite**](sqlite/README.md) — Plain SQLite (no sync) alternative
+- [**storage/turso**](../../../storage/turso/v4/README.md) — Turso connector and indexing advisor
+- [**stack/sqlite**](../../sqlite/v4/README.md) — Plain SQLite (no sync) alternative

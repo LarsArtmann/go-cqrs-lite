@@ -187,11 +187,11 @@ store, _ := turso.NewEventStore(db)
 
 ## Related Modules
 
-- [**event**](event/v4/README.md) — Event store interfaces implemented here
-- [**snapshot**](snapshot/v4/README.md) — Snapshot store interfaces implemented here
-- [**decider**](decider/v4/README.md) — Wires SQL stores into the aggregate repository
-- [**pebble**](storage/pebble/v4/README.md) — Embedded alternative backend (PebbleDB, CBOR)
-- [**turso**](v4/turso/README.md) — Turso connector that delegates to this module
-- [**memory**](storage/memory/v4/README.md) — In-memory implementations for tests
-- [**otel**](otel/v4/README.md) — Span recording via `otel/` re-exports
-- [**listing**](listing/v4/README.md) — SQL-backed aggregate reader
+- [**event**](../../event/v4/README.md) — Event store interfaces implemented here
+- [**snapshot**](../../snapshot/v4/README.md) — Snapshot store interfaces implemented here
+- [**decider**](../../decider/v4/README.md) — Wires SQL stores into the aggregate repository
+- [**pebble**](../pebble/v4/README.md) — Embedded alternative backend (PebbleDB, CBOR)
+- [**turso**](../turso/v4/README.md) — Turso connector that delegates to this module
+- [**memory**](../memory/v4/README.md) — In-memory implementations for tests
+- [**otel**](../../otel/v4/README.md) — Span recording via `otel/` re-exports
+- [**listing**](../../listing/v4/README.md) — SQL-backed aggregate reader

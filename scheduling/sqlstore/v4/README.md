@@ -162,5 +162,5 @@ lock; keep them cheap and never call back into the store.
 ## Related Modules
 
 - [**scheduling**](README.md) — `TimerStore[P]` interface and `Scheduler`
-- [**storage**](../../v4/storage/v4/README.md) — Embedded migrations include a compatible `timers` table
-- [**command**](../../v4/command/v4/README.md) — Timer payloads are typically commands dispatched on fire
+- [**storage**](../../../storage/v4/README.md) — Embedded migrations include a compatible `timers` table
+- [**command**](../../../command/v4/README.md) — Timer payloads are typically commands dispatched on fire

@@ -81,15 +81,15 @@ ts, _ := typedStore.Load(ctx, ref)
 
 ## Implementations
 
-| Implementation           | Module                                        |
-| ------------------------ | --------------------------------------------- |
-| `MemorySnapshotStore`    | [storage/memory](storage/memory/v4/README.md) |
-| `SQLSnapshotStore`       | [storage](storage/v4/README.md)               |
-| PebbleDB `SnapshotStore` | [storage/pebble](storage/pebble/v4/README.md) |
-| `FakeSnapshotStore`      | [eventtest](event/v4/v4/eventtest/README.md)  |
+| Implementation           | Module                                              |
+| ------------------------ | --------------------------------------------------- |
+| `MemorySnapshotStore`    | [storage/memory](../../storage/memory/v4/README.md) |
+| `SQLSnapshotStore`       | [storage](../../storage/v4/README.md)               |
+| PebbleDB `SnapshotStore` | [storage/pebble](../../storage/pebble/v4/README.md) |
+| `FakeSnapshotStore`      | [eventtest](../../event/v4)                         |
 
 ## Related Modules
 
-- [**decider**](decider/v4/README.md) — `WithSnapshotStore` + `WithSnapshotStrategy` for aggregate loading
-- [**event**](event/v4/README.md) — `event.Version` type used in snapshots
+- [**decider**](../../decider/v4/README.md) — `WithSnapshotStore` + `WithSnapshotStrategy` for aggregate loading
+- [**event**](../../event/v4/README.md) — `event.Version` type used in snapshots
 - [**go-codec**](https://github.com/larsartmann/go-codec) — Serialization of snapshot state

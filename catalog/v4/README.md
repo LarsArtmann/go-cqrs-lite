@@ -41,7 +41,7 @@ If you only use the spec exporters (`asyncapi`, `openapi`, `eventcatalog`,
 
 ## Schema compatibility
 
-[`docs/SCHEMA-COMPATIBILITY.md`](docs/SCHEMA-COMPATIBILITY.md) states the
+[`docs/SCHEMA-COMPATIBILITY.md`](../../docs/SCHEMA-COMPATIBILITY.md) states the
 policy for payload-shape evolution: some changes are additive (old events still
 decode), others owe an explicit op. `compat` makes that policy executable.
 
@@ -64,8 +64,8 @@ Gate it in CI with
 `nix run .#check-schema-compat -- --catalog your.json --baseline compat-baseline.json`;
 `--update-baseline` refreshes the snapshot when a change is intended. It is
 deliberately **not** a CUE bridge: CUE's subsumption check was measured and
-rejected (22/24 on a 24-fixture spike, both residual misses false *compatible*).
-See [ADR-0163](docs/adr/0163-schema-compatibility-structural-differ-over-cue.md).
+rejected (22/24 on a 24-fixture spike, both residual misses false _compatible_).
+See [ADR-0163](../../docs/adr/0163-schema-compatibility-structural-differ-over-cue.md).
 
 ## Quick Start
 
@@ -491,7 +491,7 @@ union badges by content, so the marker survives cross-source merges.
 
 Once a catalog is built (`npm install && npx eventcatalog build`), the static
 site in `dist/` can be baked into your Go binary and served from it —
-`catalog/eventcatalog` ships [`StaticServer`](v4/eventcatalog/server.go) for
+`catalog/eventcatalog` ships [`StaticServer`](./eventcatalog/server.go) for
 exactly this:
 
 ```go
@@ -548,21 +548,21 @@ Date, Summary}`). Guidance:
 
 The exporter supports all EventCatalog resource types:
 
-| Resource      | Exported To                                                                  | Notes                                                                                                                                                                   |
-| ------------- | ---------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Messages      | `commands/<id>/index.mdx`, `events/<id>/index.mdx`, `queries/<id>/index.mdx` | Top-level dirs, deduplicated across services                                                                                                                            |
-| Services      | `services/<id>/index.mdx`                                                    | With messages, specs, data stores, external flag, base config (sidebar, styles, editUrl, draft, visualiser)                                                             |
-| Domains       | `domains/<id>/index.mdx`                                                     | With ubiquitous language, sub-domains, data products, base config                                                                                                       |
-| Entities      | `entities/<id>/index.mdx`                                                    | DDD entities: aggregateRoot, identifier, properties with references/relationTypes                                                                                       |
-| Data Products | `data-products/<id>/index.mdx`                                               | Data mesh products with inputs/outputs, output contracts, hidden flag                                                                                                   |
-| Agents        | `agents/<id>/index.mdx`                                                      | AI agents with sends/receives, model, tools, data stores                                                                                                                |
-| Channels      | `channels/<id>/index.mdx`                                                    | With protocols, parameters, routes, delivery guarantees                                                                                                                 |
-| Data Stores   | `containers/<id>/index.mdx`                                                  | Databases/caches with authoritative, accessMode, classification (EventCatalog 4.x collects them from `containers/`)                                                     |
-| Flows         | `flows/<id>/index.mdx`                                                       | Step types: service, message, agent, dataProduct, actor, externalSystem, custom; data stores map to `container`, sub-flows to `flow` (EventCatalog has no channel step) |
+| Resource      | Exported To                                                                  | Notes                                                                                                                                                                                                                            |
+| ------------- | ---------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Messages      | `commands/<id>/index.mdx`, `events/<id>/index.mdx`, `queries/<id>/index.mdx` | Top-level dirs, deduplicated across services                                                                                                                                                                                     |
+| Services      | `services/<id>/index.mdx`                                                    | With messages, specs, data stores, external flag, base config (sidebar, styles, editUrl, draft, visualiser)                                                                                                                      |
+| Domains       | `domains/<id>/index.mdx`                                                     | With ubiquitous language, sub-domains, data products, base config                                                                                                                                                                |
+| Entities      | `entities/<id>/index.mdx`                                                    | DDD entities: aggregateRoot, identifier, properties with references/relationTypes                                                                                                                                                |
+| Data Products | `data-products/<id>/index.mdx`                                               | Data mesh products with inputs/outputs, output contracts, hidden flag                                                                                                                                                            |
+| Agents        | `agents/<id>/index.mdx`                                                      | AI agents with sends/receives, model, tools, data stores                                                                                                                                                                         |
+| Channels      | `channels/<id>/index.mdx`                                                    | With protocols, parameters, routes, delivery guarantees                                                                                                                                                                          |
+| Data Stores   | `containers/<id>/index.mdx`                                                  | Databases/caches with authoritative, accessMode, classification (EventCatalog 4.x collects them from `containers/`)                                                                                                              |
+| Flows         | `flows/<id>/index.mdx`                                                       | Step types: service, message, agent, dataProduct, actor, externalSystem, custom; data stores map to `container`, sub-flows to `flow` (EventCatalog has no channel step)                                                          |
 | ADRs          | `adrs/<id>/index.mdx`                                                        | Architecture decision records: status, date, decisionMakers, appliesTo `{type, id, version?}` pointers to 15 resource kinds, supersedes/supersededBy/amends/amendedBy/related ADR pointers; status/type/date validated at export |
-| Teams         | `teams/<id>.mdx`                                                             | With external source sync, hidden, readOnly; role/avatar ride `x-` custom properties (EventCatalog teams have no such fields)                                           |
-| Users         | `users/<id>.mdx`                                                             | With external source sync, hidden, readOnly                                                                                                                             |
-| Custom Docs   | `docs/<slug>/index.mdx`                                                      | Global documentation pages (ADRs, architecture docs); core 5.x routes them standalone at `/docs/custom/<slug>/` (community too; 4.x needed enterprise)                     |
+| Teams         | `teams/<id>.mdx`                                                             | With external source sync, hidden, readOnly; role/avatar ride `x-` custom properties (EventCatalog teams have no such fields)                                                                                                    |
+| Users         | `users/<id>.mdx`                                                             | With external source sync, hidden, readOnly                                                                                                                                                                                      |
+| Custom Docs   | `docs/<slug>/index.mdx`                                                      | Global documentation pages (ADRs, architecture docs); core 5.x routes them standalone at `/docs/custom/<slug>/` (community too; 4.x needed enterprise)                                                                           |
 
 #### Format fidelity
 
@@ -744,7 +744,7 @@ snippet shown on the overview), `WithLogo`, `WithGeneratedAt` (pin it for
 reproducible output). Only the standard library is used, so importing this
 package links nothing new.
 
-A runnable end-to-end demo lives in [`example/architecture`](v4/example/architecture/main.go):
+A runnable end-to-end demo lives in [`example/architecture`](./example/architecture/main.go):
 
 ```sh
 go run ./example/architecture            # writes architecture.html + architecture-partner.html into the working directory
@@ -826,17 +826,17 @@ mux.HandleFunc("/health", docserver.HealthCheckHandler(cat))
 
 ### Routes
 
-| Route                             | Content                                               |
-| --------------------------------- | ----------------------------------------------------- |
-| `GET {docs}`                      | Index page: stats, artifact links, service cards      |
-| `GET {docs}/openapi`              | OpenAPI reference rendered with Scalar                |
-| `GET {docs}/asyncapi`             | AsyncAPI reference rendered with AsyncAPI React       |
-| `GET {docs}/d2`                   | D2 diagram source view with copy/download             |
-| `GET {docs}/openapi.{json,yaml}`  | Raw OpenAPI spec                                      |
-| `GET {docs}/asyncapi.{json,yaml}` | Raw AsyncAPI spec                                     |
-| `GET {docs}/d2.txt`               | Raw D2 diagram text                                   |
-| `GET {docs}/catalog.json`         | Raw catalog snapshot                                  |
-| `GET {docs}/static/*`             | Embedded assets (docs-ui.css, favicon, vendored SPAs) |
+| Route                             | Content                                                                        |
+| --------------------------------- | ------------------------------------------------------------------------------ |
+| `GET {docs}`                      | Index page: stats, artifact links, service cards                               |
+| `GET {docs}/openapi`              | OpenAPI reference rendered with Scalar                                         |
+| `GET {docs}/asyncapi`             | AsyncAPI reference rendered with AsyncAPI React                                |
+| `GET {docs}/d2`                   | D2 diagram source view with copy/download                                      |
+| `GET {docs}/openapi.{json,yaml}`  | Raw OpenAPI spec                                                               |
+| `GET {docs}/asyncapi.{json,yaml}` | Raw AsyncAPI spec                                                              |
+| `GET {docs}/d2.txt`               | Raw D2 diagram text                                                            |
+| `GET {docs}/catalog.json`         | Raw catalog snapshot                                                           |
+| `GET {docs}/static/*`             | Embedded assets (docs-ui.css, favicon, vendored SPAs)                          |
 | `GET {docs}/architecture`         | Self-contained architecture reference (opt-in: `Config.ArchitectureReference`) |
 
 The opt-in is one line at docserver construction:
@@ -922,7 +922,7 @@ repo root (external bug, filed upstream).
 
 ## Related Modules
 
-- [**command**](command/v4/README.md) — Generates docs for command types
-- [**event**](event/v4/README.md) — Generates docs for event types
-- [**query**](query/v4/README.md) — Generates docs for query types
-- [**dispatcher**](dispatcher/v4/README.md) — `CatalogDispatcher` for introspection
+- [**command**](../../command/v4/README.md) — Generates docs for command types
+- [**event**](../../event/v4/README.md) — Generates docs for event types
+- [**query**](../../query/v4/README.md) — Generates docs for query types
+- [**dispatcher**](../../dispatcher/v4/README.md) — `CatalogDispatcher` for introspection

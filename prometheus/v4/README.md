@@ -74,6 +74,6 @@ registered on the meter provider are collected and exposed.
 
 ## Related Modules
 
-- [**otel**](otel/v4/README.md) — `Setup()` for tracing; `NewCQRSViews()` for histogram boundaries
-- [**middleware**](middleware/v4/README.md) — `CommandOTelMetricsWithCounter`, `NewOTelMetricsRecorder` feed this bridge
-- [**decider**](decider/v4/README.md) — Repository metrics feed this bridge via OTel
+- [**otel**](../../otel/v4/README.md) — `Setup()` for tracing; `NewCQRSViews()` for histogram boundaries
+- [**middleware**](../../middleware/v4/README.md) — `CommandOTelMetricsWithCounter`, `NewOTelMetricsRecorder` feed this bridge
+- [**decider**](../../decider/v4/README.md) — Repository metrics feed this bridge via OTel

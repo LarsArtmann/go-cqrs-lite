@@ -87,6 +87,6 @@ The source event's ID is also stamped as custom metadata (`SourceEventIDKey`) on
 
 ## Related Modules
 
-- [**event**](event/v4/README.md) — `bus.SubscribeAll` is the wiring point for derivers
-- [**command**](command/v4/README.md) — Derived commands are dispatched via `command.Dispatcher`
-- [**middleware**](middleware/v4/README.md) — `CommandIdempotency` deduplicates redelivered derived commands
+- [**event**](../../event/v4/README.md) — `bus.SubscribeAll` is the wiring point for derivers
+- [**command**](../../command/v4/README.md) — Derived commands are dispatched via `command.Dispatcher`
+- [**middleware**](../../middleware/v4/README.md) — `CommandIdempotency` deduplicates redelivered derived commands

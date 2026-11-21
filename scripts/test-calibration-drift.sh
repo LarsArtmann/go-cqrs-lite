@@ -15,6 +15,15 @@ set -euo pipefail
 SCRIPT="$(cd "$(dirname "$0")" && pwd)/calibration-drift.sh"
 FAILED=0
 
+# Plant a quiet load fixture: the self-test must pass regardless of the live
+# host load (2026-11-21: a load1=1129 host outran Test 5's CALIB_MAX_LOAD=1000
+# ceiling and the load gate fired before the CoW gate). Same pattern as
+# calibration-gate.sh's own self-test.
+LOADAVG_FIXTURE="$(mktemp)"
+trap 'rm -f "$LOADAVG_FIXTURE"' EXIT
+printf '0.10 0.20 0.30 1/500 12345\n' >"$LOADAVG_FIXTURE"
+export CALIB_GATE_LOADAVG_FILE="$LOADAVG_FIXTURE"
+
 echo "━━━ Test 1: --baseline and --write-baseline are mutually exclusive ━━━"
 if bash "$SCRIPT" --baseline /tmp/a --write-baseline /tmp/b >/dev/null 2>&1; then
 	echo "  ✗ FAIL: should exit 2 on mutually exclusive flags"

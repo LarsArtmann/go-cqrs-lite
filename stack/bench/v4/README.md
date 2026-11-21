@@ -33,4 +33,4 @@ Each benchmark runs both paths (through Bundle vs direct) and compares the resul
 ## Related Modules
 
 - [**stack**](README.md) — The `Bundle` type under benchmark
-- [**benchkit**](../../v4/benchkit/v4/README.md) — The benchmarking library for workload profiles
+- [**benchkit**](../../../benchkit/v4/README.md) — The benchmarking library for workload profiles

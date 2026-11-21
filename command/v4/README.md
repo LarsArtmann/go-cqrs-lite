@@ -69,9 +69,9 @@ batch, _ := store.ReadFrom(ctx, lastCmdID, 100)
 
 ## Related Modules
 
-- [event](event/v4/README.md) — Event store/bus with matching Journal/SeekableJournal pattern
-- [query](query/v4/README.md) — Query dispatch with parallel PersistedQuery/QueryStore
-- [decider](decider/v4/README.md) — Execute commands via the aggregate repository
-- [memory](storage/memory/v4/README.md) — `MemoryCommandStore` in-memory implementation
-- [middleware](middleware/v4/README.md) — Logging, retry, recovery, tracing for commands
-- [id](id/v4/README.md) — Branded `CommandID` and `AggregateID`
+- [event](../../event/v4/README.md) — Event store/bus with matching Journal/SeekableJournal pattern
+- [query](../../query/v4/README.md) — Query dispatch with parallel PersistedQuery/QueryStore
+- [decider](../../decider/v4/README.md) — Execute commands via the aggregate repository
+- [memory](../../storage/memory/v4/README.md) — `MemoryCommandStore` in-memory implementation
+- [middleware](../../middleware/v4/README.md) — Logging, retry, recovery, tracing for commands
+- [id](../../id/v4/README.md) — Branded `CommandID` and `AggregateID`

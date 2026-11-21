@@ -115,7 +115,7 @@ proj, _ := graph.NewGraphProjection("social", driver, handler, types,
 // → sink.MergeNode with Label: "Bogus" now returns an error
 ```
 
-See [ADR-0039](docs/adr/0039-graph-schema.md) for the full design.
+See [ADR-0039](../../docs/adr/0039-graph-schema.md) for the full design.
 
 ## Read API (MemoryDriver)
 
@@ -141,7 +141,7 @@ path, err := driver.ShortestPath(userA, userB) // returns []NodeRef
 ```
 
 External graph databases (Neo4j, Memgraph) do NOT implement `ReadableDriver`.
-Their reads stay native (Cypher/Gremlin), per [ADR-0038](docs/adr/0038-graph-projection-tier.md).
+Their reads stay native (Cypher/Gremlin), per [ADR-0038](../../docs/adr/0038-graph-projection-tier.md).
 
 ## Backends
 
@@ -157,7 +157,7 @@ bring their backend; the library provides the portable sink abstraction.
 
 ## Related Modules
 
-- [**event**](event/v4/README.md) — `event.Projection` interface this tier implements
-- [**storage**](storage/v4/README.md) — `RelationalProjection` (the relational peer tier)
-- [**stack**](stack/v4/README.md) — `Materialize` (the document/KV peer tier)
-- [**kv**](kv/v4/README.md) — `ViewStore[V,K]` (the document interface)
+- [**event**](../../event/v4/README.md) — `event.Projection` interface this tier implements
+- [**storage**](../../storage/v4/README.md) — `RelationalProjection` (the relational peer tier)
+- [**stack**](../../stack/v4/README.md) — `Materialize` (the document/KV peer tier)
+- [**kv**](../../kv/v4/README.md) — `ViewStore[V,K]` (the document interface)

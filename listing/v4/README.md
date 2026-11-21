@@ -161,11 +161,11 @@ Implementations: `InMemoryStreamReader`, `SQLStreamReader`.
 
 ## Dependencies
 
-| Dependency                            | Purpose                                    |
-| ------------------------------------- | ------------------------------------------ |
-| [event](event/v4/README.md)           | Event types (`event.Type`) for classifiers |
-| [id](id/v4/README.md)                 | AggregateID                                |
-| [memory](storage/memory/v4/README.md) | In-memory reader for testing               |
+| Dependency                                  | Purpose                                    |
+| ------------------------------------------- | ------------------------------------------ |
+| [event](../../event/v4/README.md)           | Event types (`event.Type`) for classifiers |
+| [id](../../id/v4/README.md)                 | AggregateID                                |
+| [memory](../../storage/memory/v4/README.md) | In-memory reader for testing               |
 
 ## Test Coverage
 
@@ -180,8 +180,8 @@ Implementations: `InMemoryStreamReader`, `SQLStreamReader`.
 
 ## Related Modules
 
-- [**projection**](projection/v4/README.md) — Register `StreamProjection` with the runner to populate the reader
-- [**storage**](storage/v4/README.md) — SQL-backed `StreamReader` for PostgreSQL/SQLite
-- [**event**](event/v4/README.md) — Event types consumed by `StatusClassifier`
-- [**id**](id/v4/README.md) — `StreamID` type
-- [**memory**](storage/memory/v4/README.md) — `InMemoryStreamReader` for tests
+- [**projection**](../../projection/v4/README.md) — Register `StreamProjection` with the runner to populate the reader
+- [**storage**](../../storage/v4/README.md) — SQL-backed `StreamReader` for PostgreSQL/SQLite
+- [**event**](../../event/v4/README.md) — Event types consumed by `StatusClassifier`
+- [**id**](../../id/v4/README.md) — `StreamID` type
+- [**memory**](../../storage/memory/v4/README.md) — `InMemoryStreamReader` for tests

@@ -95,5 +95,5 @@ The AGENTS.md documents this as part of the doc maintenance workflow.
 
 ## Related Modules
 
-- [**api-stability**](api-stability/README.md) — API surface checker (complementary: checks exports vs golden file)
-- [**cqrs-lint**](cqrs-lint/README.md) — Domain-aware linter for go-cqrs-lite code
+- [**api-stability**](../../api-stability/v4/README.md) — API surface checker (complementary: checks exports vs golden file)
+- [**cqrs-lint**](../../cqrs-lint/v4/README.md) — Domain-aware linter for go-cqrs-lite code

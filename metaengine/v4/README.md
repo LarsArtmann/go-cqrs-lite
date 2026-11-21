@@ -51,7 +51,7 @@ result, _ := metaengine.ExecuteTyped[FindUser, FindUserResult](
 // → FindUserResult{ID: "u1", Name: "Alice", ...}
 ```
 
-**Runnable version:** [`example/metaengine-quickstart/`](example/metaengine-quickstart) —
+**Runnable version:** [`example/metaengine-quickstart/`](../../example/metaengine-quickstart) —
 maps, graph, and vector demos plus the operator story (engine choices loaded
 from a `cqrs.yaml` at deployment time). `go run .` inside the directory.
 
@@ -311,11 +311,11 @@ integer).
 
 Measured cost of the encoded path (one machine, `-benchtime 200ms`, not a gate):
 
-| Path | ns/op | B/op | allocs/op |
-| ---- | ----- | ---- | --------- |
-| `ApplyEncoded` JSON | 3540 | 2605 | 23 |
-| `ApplyEncoded` CBOR | 3435 | 2625 | 25 |
-| `Apply` (decoded struct) | 4301 | 2416 | 18 |
+| Path                     | ns/op | B/op | allocs/op |
+| ------------------------ | ----- | ---- | --------- |
+| `ApplyEncoded` JSON      | 3540  | 2605 | 23        |
+| `ApplyEncoded` CBOR      | 3435  | 2625 | 25        |
+| `Apply` (decoded struct) | 4301  | 2416 | 18        |
 
 CBOR ingress is not slower than JSON ingress; the per-fold codec decode itself
 costs ~356 ns and 5 allocs (`BenchmarkDecodeRawFoldPayloadCBOR`).
@@ -385,11 +385,11 @@ defer store.Close()
 
 The SQLite engine wraps `MapUpdate` in a transaction (concurrent
 read-modify-write never loses updates — see
-[ADR-0067](docs/adr/0067-metaengine-tx-mapupdate.md)) and seeds the multimap
+[ADR-0067](../../docs/adr/0067-metaengine-tx-mapupdate.md)) and seeds the multimap
 `seq` counter from `MAX(seq)` on first use so it survives restarts
-([ADR-0068](docs/adr/0068-metaengine-multimap-seq-seed.md)). Struct results
+([ADR-0068](../../docs/adr/0068-metaengine-multimap-seq-seed.md)). Struct results
 read back through `ExecuteTyped` are JSON-reified across the SQL boundary
-([ADR-0066](docs/adr/0066-metaengine-reify-fallback.md)) — use exported
+([ADR-0066](../../docs/adr/0066-metaengine-reify-fallback.md)) — use exported
 fields on result types.
 
 ## Persistence (Survivability)
@@ -455,7 +455,7 @@ report := store.Doctor(ctx)
 //   all persistent    ← when every collection survives restart
 ```
 
-See [ADR-0098](docs/adr/0098-metaengine-persistence-enum.md) for the design
+See [ADR-0098](../../docs/adr/0098-metaengine-persistence-enum.md) for the design
 rationale and rejected alternatives.
 
 ## Toolchain (Portability)
@@ -595,10 +595,10 @@ http.HandleFunc("/tasks/stream", func(w http.ResponseWriter, r *http.Request) {
 ```
 
 For raw domain event streaming (bus-to-client), bridge `event.Bus` through
-the [watermill/](watermill/v4) module (any broker) or serve via
+the [watermill/](../../watermill/v4) module (any broker) or serve via
 [go-sse](https://github.com/larsartmann/go-sse) directly (the former
 `transport/http.SSEBroker` was deleted 2026-10-17). See
-[ADR-0079](docs/adr/0079-sse-consolidation.md) for the rationale.
+[ADR-0079](../../docs/adr/0079-sse-consolidation.md) for the rationale.
 
 ## Optional Engine Interfaces
 
@@ -808,22 +808,22 @@ a full re-plan.
 
 ## Design References
 
-- [ADR-0113](docs/adr/0113-delete-graphbackend.md) — GraphBackend deleted; `graph.GraphDriver` implements `metaengine.Engine`
-- [ADR-0117](docs/adr/0117-command-lifecycle-as-events.md) — command lifecycle as event streams (`commandlifecycle`)
-- [ADR-0123](docs/adr/0123-v5-unification-single-composition-root.md) — v5 unification (deprecations removed, single composition root)
-- [ADR-0124](docs/adr/0124-operator-driven-layout-planning.md) — operator-driven layout planning, projection roles, shared collections
-- [ADR-0137](docs/adr/0137-health-driven-engine-deactivation.md) — health-driven engine quarantine and catch-up recovery
+- [ADR-0113](../../docs/adr/0113-delete-graphbackend.md) — GraphBackend deleted; `graph.GraphDriver` implements `metaengine.Engine`
+- [ADR-0117](../../docs/adr/0117-command-lifecycle-as-events.md) — command lifecycle as event streams (`commandlifecycle`)
+- [ADR-0123](../../docs/adr/0123-v5-unification-single-composition-root.md) — v5 unification (deprecations removed, single composition root)
+- [ADR-0124](../../docs/adr/0124-operator-driven-layout-planning.md) — operator-driven layout planning, projection roles, shared collections
+- [ADR-0137](../../docs/adr/0137-health-driven-engine-deactivation.md) — health-driven engine quarantine and catch-up recovery
 
 ## Related Modules
 
-- [**metaengine/sqliteengine**](v4/sqliteengine/README.md) — SQLite-backed engine (widest capability set, pure Go)
-- [**metaengine/tursoengine**](v4/tursoengine/README.md) — Turso/libSQL engine (SQLite core + remote-RTT priors)
-- [**metaengine/mysqlengine**](v4/mysqlengine/README.md) — MySQL/MariaDB engine (JSON columns, MariaDB-safe dialect)
-- [**metaengine/badgerengine**](v4/badgerengine/README.md) — BadgerDB engine (LSM with native multimap/log ADTs)
-- [**metaengine/pebbleengine**](v4/pebbleengine/README.md) — Pebble-backed engine (LSM point reads)
-- [**metaengine/duckdbengine**](v4/duckdbengine/README.md) — DuckDB-backed engine (columnar OLAP, CGo)
-- [**metaengine/pgengine**](v4/pgengine/README.md) — Postgres-backed engine (JSONB + B-tree)
-- [**metaengine/irohengine**](v4/irohengine/README.md) — Iroh CRDT replication wrapper
-- [**metaengine/projectionadapter**](v4/projectionadapter/README.md) — Wraps Store as `projection.Projection`
-- [**event**](event/v4/README.md) — Event types consumed by fold functions
-- [**stack**](stack/v4/README.md) — `WithMetaEngine` bundle integration
+- [**metaengine/sqliteengine**](../sqliteengine/v4/README.md) — SQLite-backed engine (widest capability set, pure Go)
+- [**metaengine/tursoengine**](../tursoengine/v4/README.md) — Turso/libSQL engine (SQLite core + remote-RTT priors)
+- [**metaengine/mysqlengine**](../mysqlengine/v4/README.md) — MySQL/MariaDB engine (JSON columns, MariaDB-safe dialect)
+- [**metaengine/badgerengine**](../badgerengine/v4/README.md) — BadgerDB engine (LSM with native multimap/log ADTs)
+- [**metaengine/pebbleengine**](../pebbleengine/v4/README.md) — Pebble-backed engine (LSM point reads)
+- [**metaengine/duckdbengine**](../duckdbengine/v4/README.md) — DuckDB-backed engine (columnar OLAP, CGo)
+- [**metaengine/pgengine**](../pgengine/v4/README.md) — Postgres-backed engine (JSONB + B-tree)
+- [**metaengine/irohengine**](../irohengine/v4/README.md) — Iroh CRDT replication wrapper
+- [**metaengine/projectionadapter**](../projectionadapter/v4/README.md) — Wraps Store as `projection.Projection`
+- [**event**](../../event/v4/README.md) — Event types consumed by fold functions
+- [**stack**](../../stack/v4/README.md) — `WithMetaEngine` bundle integration

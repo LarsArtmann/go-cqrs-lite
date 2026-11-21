@@ -77,5 +77,5 @@ store, _ := sqlite.SQLViewModel[TodoView, TodoID](bundle, mapper)
 ## Related Modules
 
 - [**stack**](README.md) — The `Bundle` type
-- [**storage**](../../v4/storage/v4/README.md) — SQL event store, command store, view store
-- [**stack/postgres**](postgres/README.md) — PostgreSQL alternative for multi-process
+- [**storage**](../../../storage/v4/README.md) — SQL event store, command store, view store
+- [**stack/postgres**](../../postgres/v4/README.md) — PostgreSQL alternative for multi-process

@@ -210,8 +210,8 @@ a pure event log and `System.ProjectionHost()` returns nil.
 ## Graph-Native Projections (deployment picks the traversal engine)
 
 Domains declare relations as events folded into `metaengine.Edge` records
-(see the skill's [recipes §2.44](.agents/skills/go-cqrs-lite/references/recipes.md)
-and the behavior-verified [`example/graph-native`](example/graph-native));
+(see the skill's [recipes §2.44](../../.agents/skills/go-cqrs-lite/references/recipes.md)
+and the behavior-verified [`example/graph-native`](../../example/graph-native));
 the OPERATOR picks which engine serves the traversals — same domain code,
 different `DeploymentConfig`:
 
@@ -243,9 +243,9 @@ passthrough). Pebble and bbolt do not support the Graph ADT at all. Not every
 graph engine has every capability — duckdb, for example, adds and traverses
 edges but has no `GraphRemoveEdge` and no undirected traversal. The generated,
 gated per-engine matrix (graph / edge removal / undirected / CGo):
-[docs/engine-capabilities.md](docs/engine-capabilities.md); worked graph
-recipes: [metaengine/COOKBOOK.md](metaengine/v4/COOKBOOK.md) and
-[advanced.md §6.13](.agents/skills/go-cqrs-lite/references/advanced.md).
+[docs/engine-capabilities.md](../../docs/engine-capabilities.md); worked graph
+recipes: [metaengine/COOKBOOK.md](../../metaengine/v4/COOKBOOK.md) and
+[advanced.md §6.13](../../.agents/skills/go-cqrs-lite/references/advanced.md).
 
 ## Operator Config File (koanf YAML + env overrides)
 
@@ -330,14 +330,14 @@ import _ "github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4"
 ```
 
 The full driver inventory with pure-Go/CGo and capability columns lives in
-[docs/engine-capabilities.md](docs/engine-capabilities.md) — GENERATED
+[docs/engine-capabilities.md](../../docs/engine-capabilities.md) — GENERATED
 from source and kept honest by `nix run .#check-engine-capabilities`.
 Note: the `graphadapter` bridge's `graph-memory` engine is NOT a
 DeploymentConfig driver — it is a standalone `metaengine.Engine` for
-hand-wiring ([graphadapter README](metaengine/graphadapter/v4/README.md)) —
+hand-wiring ([graphadapter README](../../metaengine/graphadapter/v4/README.md)) —
 and neither is `irohengine` (programmatic `irohengine.Replicated(local)`
 wrapper, no registry driver). The two-level operator story behind this
-registry: [ADR-0157](docs/adr/0157-engine-fleet-operation-two-level-story.md).
+registry: [ADR-0157](../../docs/adr/0157-engine-fleet-operation-two-level-story.md).
 
 Bus drivers are wired directly via `watermill` (no registry). Only
 `gochannel` (in-process) is supported; unknown driver names return an error
@@ -584,7 +584,7 @@ postgres while the DSN sets `synchronous_commit` — is a configuration error.
 
 ## Related Modules
 
-- [**metaengine**](metaengine/v4/README.md) — Engine abstraction and cost planner
-- [**decider**](decider/v4/README.md) — Aggregate pattern
-- [**projectionhost**](projectionhost/v4/README.md) — Managed projection lifecycle
-- [**stack**](stack/v4/README.md) — The simpler `Bundle` composition alternative
+- [**metaengine**](../../metaengine/v4/README.md) — Engine abstraction and cost planner
+- [**decider**](../../decider/v4/README.md) — Aggregate pattern
+- [**projectionhost**](../../projectionhost/v4/README.md) — Managed projection lifecycle
+- [**stack**](../../stack/v4/README.md) — The simpler `Bundle` composition alternative

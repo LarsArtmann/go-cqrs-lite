@@ -121,6 +121,6 @@ Semantics (Axon Framework 5 event-transformation model, adopted):
 
 ## Related Modules
 
-- [**event**](event/v4/README.md) — `DecorateStore`/`DecorateJournal` apply the transform
-- [**decider**](decider/v4/README.md) — Apply upcasters transparently when loading aggregate state
-- [**projectionhost**](projectionhost/v4/README.md) — Decorated journals feed upcasted events to projections
+- [**event**](../../event/v4/README.md) — `DecorateStore`/`DecorateJournal` apply the transform
+- [**decider**](../../decider/v4/README.md) — Apply upcasters transparently when loading aggregate state
+- [**projectionhost**](../../projectionhost/v4/README.md) — Decorated journals feed upcasted events to projections

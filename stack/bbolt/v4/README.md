@@ -5,7 +5,7 @@
 > **Deprecated:** removed in v5 (ADR-0123). `system.New` is the single
 > composition root — pass the equivalent engine and codec options there.
 
-One-call [stack.Bundle](.) preset backed by [bbolt](../../v4/storage/bbolt/v4) (B+tree, pure Go).
+One-call [stack.Bundle](.) preset backed by [bbolt](../../../storage/bbolt/v4) (B+tree, pure Go).
 
 ```bash
 go get github.com/larsartmann/go-cqrs-lite/stack/bbolt/v4

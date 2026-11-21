@@ -52,6 +52,6 @@ query.RegisterTyped(q, "user.get", typedHandler)
 
 ## Related Modules
 
-- [**command**](command/v4/README.md) — `command.Dispatcher` embeds `Dispatcher[Handler, Command]`
-- [**query**](query/v4/README.md) — `query.Dispatcher` embeds `Dispatcher[Handler, Query]`
-- [**catalog**](catalog/v4/README.md) — Catalog introspection and doc generation
+- [**command**](../../command/v4/README.md) — `command.Dispatcher` embeds `Dispatcher[Handler, Command]`
+- [**query**](../../query/v4/README.md) — `query.Dispatcher` embeds `Dispatcher[Handler, Query]`
+- [**catalog**](../../catalog/v4/README.md) — Catalog introspection and doc generation

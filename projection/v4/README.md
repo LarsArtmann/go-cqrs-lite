@@ -63,7 +63,7 @@ Events whose type is not in `EventTypes()` are silently skipped by the projectio
 
 ## Related Modules
 
-- [**projectionhost**](projectionhost/v4/README.md) — Managed lifecycle: registers projections, drives them from a journal with checkpoints and dead-letter queues
-- [**stack**](stack/v4/README.md) — `Materialize[V,K]` implements `Projection` for KV-backed read models (deprecated — removed in v5)
-- [**graph**](graph/v4/README.md) — `GraphProjection` implements `Projection` for traversal-heavy read models (deprecated — removed in v5)
-- [**storage**](storage/v4/README.md) — `RelationalProjection` implements `Projection` for multi-table SQL projections (removed in v5)
+- [**projectionhost**](../../projectionhost/v4/README.md) — Managed lifecycle: registers projections, drives them from a journal with checkpoints and dead-letter queues
+- [**stack**](../../stack/v4/README.md) — `Materialize[V,K]` implements `Projection` for KV-backed read models (deprecated — removed in v5)
+- [**graph**](../../graph/v4/README.md) — `GraphProjection` implements `Projection` for traversal-heavy read models (deprecated — removed in v5)
+- [**storage**](../../storage/v4/README.md) — `RelationalProjection` implements `Projection` for multi-table SQL projections (removed in v5)

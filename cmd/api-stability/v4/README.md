@@ -38,4 +38,4 @@ Zero external dependencies — uses only the Go standard library (`go/ast`, `go/
 ## Related Modules
 
 - All core library modules are scanned by this tool
-- Golden file: [`docs/api_surface.txt`](../../docs/api_surface.txt)
+- Golden file: [`docs/api_surface.txt`](../../../docs/api_surface.txt)

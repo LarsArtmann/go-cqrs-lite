@@ -325,18 +325,18 @@ for a full interactive reference.
 
 ### Top-level keys
 
-| Key              | Type   | Default     | Description                                                                                                            |
-| ---------------- | ------ | ----------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `preset`         | string | `""` (none) | Preset name: `local-cli`, `production`, `library`, `library-framework`, `read-only`, `v5-ready`                        |
-| `min-severity`   | string | `"info"`    | Minimum severity shown: `info`, `warning`, `error`, `critical`                                                         |
-| `min-confidence` | string | `"low"`     | Minimum confidence shown: `none`, `low`, `medium`, `high`, `full`, or decimal `0.0`–`1.0`; keeps findings >= the floor |
-| `format`         | string | `"text"`    | Output format: `text`, `json`, `sarif`, `markdown`                                                                     |
-| `exclude`        | string | `""`        | Comma-separated paths to exclude                                                                                       |
-| `features`       | object | `{}`        | Feature profile overrides (see below)                                                                                  |
-| `rules`          | object | `{}`        | Rule-specific overrides (see below)                                                                                    |
-| `health`         | object | `{}`        | Health-score tuning (see below)                                                                                        |
-| `baseline`       | string | `""`        | Path to a findings baseline; only findings absent from it are reported (see [Findings Baseline](#findings-baseline))   |
-| `update-baseline`| bool   | `false`     | Rewrite the baseline from this run (requires `baseline`); exits 0 without reporting findings                           |
+| Key               | Type   | Default     | Description                                                                                                            |
+| ----------------- | ------ | ----------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `preset`          | string | `""` (none) | Preset name: `local-cli`, `production`, `library`, `library-framework`, `read-only`, `v5-ready`                        |
+| `min-severity`    | string | `"info"`    | Minimum severity shown: `info`, `warning`, `error`, `critical`                                                         |
+| `min-confidence`  | string | `"low"`     | Minimum confidence shown: `none`, `low`, `medium`, `high`, `full`, or decimal `0.0`–`1.0`; keeps findings >= the floor |
+| `format`          | string | `"text"`    | Output format: `text`, `json`, `sarif`, `markdown`                                                                     |
+| `exclude`         | string | `""`        | Comma-separated paths to exclude                                                                                       |
+| `features`        | object | `{}`        | Feature profile overrides (see below)                                                                                  |
+| `rules`           | object | `{}`        | Rule-specific overrides (see below)                                                                                    |
+| `health`          | object | `{}`        | Health-score tuning (see below)                                                                                        |
+| `baseline`        | string | `""`        | Path to a findings baseline; only findings absent from it are reported (see [Findings Baseline](#findings-baseline))   |
+| `update-baseline` | bool   | `false`     | Rewrite the baseline from this run (requires `baseline`); exits 0 without reporting findings                           |
 
 ### `features` keys
 
@@ -386,7 +386,7 @@ catalog severity — nothing silently demotes to `info`).
 
 The tables below are curated highlights. The complete, generated catalog —
 every rule with severity, confidence, auto-fix support, and doc links — lives
-in [`RULES.md`](v4/RULES.md); regenerate with `cqrs-lint rules --markdown > RULES.md`.
+in [`RULES.md`](./RULES.md); regenerate with `cqrs-lint rules --markdown > RULES.md`.
 
 **Rule ID numbering gaps:** IDs A028, A031, P002–P005, S004, and D004 are
 intentionally unused — reserved for future rules in their categories. They
@@ -537,15 +537,15 @@ are not detectors; listing one in `rules.disable` is a silent no-op.
 
 ## Performance Rules
 
-| ID   | Rule                        | Severity | Description                                                                       |
-| ---- | --------------------------- | -------- | --------------------------------------------------------------------------------- |
-| P001 | load-in-subscribeall        | Error    | repo.Load inside SubscribeAll handler — O(N²) replay                              |
-| P007 | manual-retry-bitshift       | Error    | Manual retry loop with bitshift backoff — corrupts time.Duration                  |
-| P008 | projectionhost-no-batchsize | Info     | projectionhost.New without WithBatchSize — throughput bottleneck on large streams |
-| P009 | json-codec-large-payloads   | Info     | Large event payload using JSON codec — CBOR is ~35% smaller                       |
-| P010 | no-snapshot-large-aggregate | Warning  | Collection-type state without snapshot strategy or cache — expensive reloads      |
+| ID   | Rule                             | Severity | Description                                                                                                          |
+| ---- | -------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------- |
+| P001 | load-in-subscribeall             | Error    | repo.Load inside SubscribeAll handler — O(N²) replay                                                                 |
+| P007 | manual-retry-bitshift            | Error    | Manual retry loop with bitshift backoff — corrupts time.Duration                                                     |
+| P008 | projectionhost-no-batchsize      | Info     | projectionhost.New without WithBatchSize — throughput bottleneck on large streams                                    |
+| P009 | json-codec-large-payloads        | Info     | Large event payload using JSON codec — CBOR is ~35% smaller                                                          |
+| P010 | no-snapshot-large-aggregate      | Warning  | Collection-type state without snapshot strategy or cache — expensive reloads                                         |
 | P015 | journal-readall-in-query-handler | Warning  | journal.ReadAll reachable from a query handler — folds the entire journal per query (O(journal) on the request path) |
-| P006 | polling-loop-short-interval | Info     | time.Sleep <100ms inside a for-loop — busy-poll pattern                           |
+| P006 | polling-loop-short-interval      | Info     | time.Sleep <100ms inside a for-loop — busy-poll pattern                                                              |
 
 ## Version Rules
 
@@ -561,17 +561,17 @@ are not detectors; listing one in `rules.disable` is a silent no-op.
 
 ## Testing Rules
 
-| ID   | Rule                              | Severity | Description                                                                 |
-| ---- | --------------------------------- | -------- | --------------------------------------------------------------------------- |
-| T001 | no-scenario-tests-for-deciders    | Info     | Project defines deciders but has no scenario.Given BDD tests                |
-| T002 | no-scenario-tests-for-projections | Info     | Project defines projections but has no scenario.GivenProjection tests       |
-| T003 | no-eventtest-imports              | Info     | Project uses events but lacks eventtest fake stores/buses in tests          |
-| T004 | no-golden-snapshot-tests          | Info     | Catalog/documentation output has no snapshot tests                          |
-| T005 | projection-without-error-test     | Info     | Projections have no error-path tests for malformed payloads                 |
-| T006 | decider-without-conflict-test     | Info     | Decider scenario tests only cover happy paths, not conflict/error scenarios |
-| T007 | no-event-roundtrip-test           | Info     | No save→load round-trip test for event stores                               |
-| T008 | test-imports-production-store   | Warning  | Test file imports a production store instead of eventtest/memory fakes                                    |
-| T009 | hand-booted-system-in-tests      | Info     | Test boots a real system via system.New instead of the systemscenario harness (ADR-0153)                    |
+| ID   | Rule                              | Severity | Description                                                                              |
+| ---- | --------------------------------- | -------- | ---------------------------------------------------------------------------------------- |
+| T001 | no-scenario-tests-for-deciders    | Info     | Project defines deciders but has no scenario.Given BDD tests                             |
+| T002 | no-scenario-tests-for-projections | Info     | Project defines projections but has no scenario.GivenProjection tests                    |
+| T003 | no-eventtest-imports              | Info     | Project uses events but lacks eventtest fake stores/buses in tests                       |
+| T004 | no-golden-snapshot-tests          | Info     | Catalog/documentation output has no snapshot tests                                       |
+| T005 | projection-without-error-test     | Info     | Projections have no error-path tests for malformed payloads                              |
+| T006 | decider-without-conflict-test     | Info     | Decider scenario tests only cover happy paths, not conflict/error scenarios              |
+| T007 | no-event-roundtrip-test           | Info     | No save→load round-trip test for event stores                                            |
+| T008 | test-imports-production-store     | Warning  | Test file imports a production store instead of eventtest/memory fakes                   |
+| T009 | hand-booted-system-in-tests       | Info     | Test boots a real system via system.New instead of the systemscenario harness (ADR-0153) |
 
 ## Adoption Rules
 
@@ -579,39 +579,39 @@ Adoption rules (F-series) are advisory: they suggest modules and patterns that i
 
 The scorecard that grades these uses the same rule: importing IS adoption — in `_test.go` files as anywhere else (#69). Test-file imports are collected through a dedicated pass (the typed package load skips test files), so test-only modules like `systemscenario` and `scenario` count as Used, not Missing.
 
-| ID   | Rule                             | Severity | Description                                                                                                        |
-| ---- | -------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------ |
-| F001 | no-domain-delete-event           | Info     | Delete operations without a domain deletion event — consider emitting a "entity.deleted" event for audit trail     |
-| F002 | no-catalog-documentation         | Info     | 3+ event types but no catalog.NewBuilder — event documentation not generated                                       |
-| F003 | no-otel-tracing                  | Info     | Server-mode project with no OpenTelemetry tracing                                                                  |
-| F004 | no-prometheus-metrics            | Info     | Server-mode project with no Prometheus metrics                                                                     |
-| F005 | no-schema-upcasters              | Info     | Evolving event schemas but no schema.NewUpcaster — version migrations not handled                                  |
-| F006 | no-encryption-for-sensitive-data | Info     | Event payload with PII fields but no encryption module — sensitive data in plaintext                               |
-| F007 | no-idempotency-middleware        | Info     | Command dispatcher without idempotency middleware — duplicate commands under at-least-once delivery                |
-| F008 | no-cbor-codec                    | Info     | Event-heavy project using JSON codec — CBOR is ~35% smaller                                                        |
-| F009 | no-scheduling-module             | Info     | Time-based patterns (timers, deadlines) but no scheduling module — hand-rolled timers are fragile                  |
-| F010 | no-graph-projections             | Info     | Graph-traversal patterns but no graph module — recursive SQL CTEs are slow for deep traversals                     |
-| F011 | no-relational-projections        | Info     | Multi-statement SQL projections without storage.RelationalProjection — manual writes lack atomicity                |
-| F012 | no-deriver-module                | Info     | Saga-like SubscribeAll + command dispatch but no deriver module                                                    |
-| F013 | no-transport-module              | Info     | Manual HTTP handlers for dispatch but no delivery module (watermill/go-sse/cqrs-htmx)                              |
-| F014 | no-kv-cache                      | Info     | kv.NewTypedStore without kv.NewCache — read model hits backing store on every read                                 |
-| F015 | no-metaengine                    | Info     | 3+ query registrations but no metaengine cost-based planner — SQL pushdown and layout optimization unavailable     |
-| F016 | no-listing-module                | Info     | Many aggregate types but no listing module — stream status tracking unavailable                                    |
-| F017 | no-dedup-module                  | Info     | Bus subscriptions without dedup module — duplicate event delivery not handled at stream boundaries                 |
-| F018 | metaengine-filteron-pushdown     | Info     | metaengine.FilterOn (closure-based) prevents SQL pushdown — use FilterOnField for WHERE-clause pushdown            |
-| F019 | metaengine-missing-volume-hint   | Info     | metaengine queries lack Volume hint — cost-based planner cannot optimize engine selection                          |
-| F020 | metaengine-sorton-pushdown       | Info     | metaengine.SortOn (closure-based) prevents SQL ORDER BY pushdown — use SortOnField for indexed sort                |
-| F021 | metaengine-write-amplification   | Info     | single metaengine.Query has 3+ fold args (per-query, not global) — high write amplification may degrade ingest     |
-| F022 | manual-sort-no-pushdown          | Info     | Manual in-memory sorting with a SQL store but no metaengine — all rows loaded into Go memory for sorting           |
-| F023 | manual-filter-no-pushdown        | Info     | Manual in-memory filtering (for-range + if + append) with a SQL store but no metaengine                            |
-| F024 | manual-pagination-no-pushdown    | Info     | Manual pagination (slice[offset:offset+limit]) with a SQL store but no metaengine                                  |
-| F025 | manual-count-no-counter-adt      | Info     | Manual count/aggregation (for-range + count++/sum +=) with a SQL store but no metaengine — full collection scanned |
-| F026 | no-metaengine-prefetch           | Info     | metaengine.NewReader used but WithPrefetch never called — every Scan/Get hits the underlying store individually    |
-| F027 | missing-otel-sdk-init            | Info     | Server-mode project with no cqrsotel.Setup call — traces are no-op                                                 |
-| F028 | missing-slog-setdefault          | Info     | Server-mode project using slog without slog.SetDefault — default logger has no structured output                   |
-| F029 | missing-span-creation            | Info     | OTel import but no span creation in handlers — distributed traces are empty                                        |
-| F030 | deleted-module-import            | Warning  | Import of a deleted module whose tags still resolve — transport/* (ADR-0127), idempotency/* (ADR-0128/0152/0167)  |
-| F031 | scan-without-limit               | Warning  | Reader Scan without WithLimit silently truncates at 100 rows — pass WithLimit or set WithDefaultLimit (G-T14)      |
+| ID   | Rule                             | Severity | Description                                                                                                                  |
+| ---- | -------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| F001 | no-domain-delete-event           | Info     | Delete operations without a domain deletion event — consider emitting a "entity.deleted" event for audit trail               |
+| F002 | no-catalog-documentation         | Info     | 3+ event types but no catalog.NewBuilder — event documentation not generated                                                 |
+| F003 | no-otel-tracing                  | Info     | Server-mode project with no OpenTelemetry tracing                                                                            |
+| F004 | no-prometheus-metrics            | Info     | Server-mode project with no Prometheus metrics                                                                               |
+| F005 | no-schema-upcasters              | Info     | Evolving event schemas but no schema.NewUpcaster — version migrations not handled                                            |
+| F006 | no-encryption-for-sensitive-data | Info     | Event payload with PII fields but no encryption module — sensitive data in plaintext                                         |
+| F007 | no-idempotency-middleware        | Info     | Command dispatcher without idempotency middleware — duplicate commands under at-least-once delivery                          |
+| F008 | no-cbor-codec                    | Info     | Event-heavy project using JSON codec — CBOR is ~35% smaller                                                                  |
+| F009 | no-scheduling-module             | Info     | Time-based patterns (timers, deadlines) but no scheduling module — hand-rolled timers are fragile                            |
+| F010 | no-graph-projections             | Info     | Graph-traversal patterns but no graph module — recursive SQL CTEs are slow for deep traversals                               |
+| F011 | no-relational-projections        | Info     | Multi-statement SQL projections without storage.RelationalProjection — manual writes lack atomicity                          |
+| F012 | no-deriver-module                | Info     | Saga-like SubscribeAll + command dispatch but no deriver module                                                              |
+| F013 | no-transport-module              | Info     | Manual HTTP handlers for dispatch but no delivery module (watermill/go-sse/cqrs-htmx)                                        |
+| F014 | no-kv-cache                      | Info     | kv.NewTypedStore without kv.NewCache — read model hits backing store on every read                                           |
+| F015 | no-metaengine                    | Info     | 3+ query registrations but no metaengine cost-based planner — SQL pushdown and layout optimization unavailable               |
+| F016 | no-listing-module                | Info     | Many aggregate types but no listing module — stream status tracking unavailable                                              |
+| F017 | no-dedup-module                  | Info     | Bus subscriptions without dedup module — duplicate event delivery not handled at stream boundaries                           |
+| F018 | metaengine-filteron-pushdown     | Info     | metaengine.FilterOn (closure-based) prevents SQL pushdown — use FilterOnField for WHERE-clause pushdown                      |
+| F019 | metaengine-missing-volume-hint   | Info     | metaengine queries lack Volume hint — cost-based planner cannot optimize engine selection                                    |
+| F020 | metaengine-sorton-pushdown       | Info     | metaengine.SortOn (closure-based) prevents SQL ORDER BY pushdown — use SortOnField for indexed sort                          |
+| F021 | metaengine-write-amplification   | Info     | single metaengine.Query has 3+ fold args (per-query, not global) — high write amplification may degrade ingest               |
+| F022 | manual-sort-no-pushdown          | Info     | Manual in-memory sorting with a SQL store but no metaengine — all rows loaded into Go memory for sorting                     |
+| F023 | manual-filter-no-pushdown        | Info     | Manual in-memory filtering (for-range + if + append) with a SQL store but no metaengine                                      |
+| F024 | manual-pagination-no-pushdown    | Info     | Manual pagination (slice[offset:offset+limit]) with a SQL store but no metaengine                                            |
+| F025 | manual-count-no-counter-adt      | Info     | Manual count/aggregation (for-range + count++/sum +=) with a SQL store but no metaengine — full collection scanned           |
+| F026 | no-metaengine-prefetch           | Info     | metaengine.NewReader used but WithPrefetch never called — every Scan/Get hits the underlying store individually              |
+| F027 | missing-otel-sdk-init            | Info     | Server-mode project with no cqrsotel.Setup call — traces are no-op                                                           |
+| F028 | missing-slog-setdefault          | Info     | Server-mode project using slog without slog.SetDefault — default logger has no structured output                             |
+| F029 | missing-span-creation            | Info     | OTel import but no span creation in handlers — distributed traces are empty                                                  |
+| F030 | deleted-module-import            | Warning  | Import of a deleted module whose tags still resolve — transport/* (ADR-0127), idempotency/* (ADR-0128/0152/0167)             |
+| F031 | scan-without-limit               | Warning  | Reader Scan without WithLimit silently truncates at 100 rows — pass WithLimit or set WithDefaultLimit (G-T14)                |
 | F032 | no-catalog-import                | Error    | Project uses go-cqrs-lite but never imports go-cqrs-lite/catalog — catalog documentation not wired (systemcatalog satisfies) |
 
 ## CLI
@@ -633,7 +633,7 @@ Built with [cmdguard](https://github.com/larsartmann/cmdguard) for type-safe fla
 | `--fp-suspects`     |       | false   | Show only low-confidence findings (likely FPs). Exit code always 0                                        |
 | `--show-suppressed` |       | false   | Show suppressed findings with their suppression reason                                                    |
 | `--baseline`        |       |         | Findings baseline file; only findings absent from it are reported and gate the exit code                  |
-| `--update-baseline` |       | false   | Rewrite the baseline from this run (requires `--baseline`); deterministic and exits 0                      |
+| `--update-baseline` |       | false   | Rewrite the baseline from this run (requires `--baseline`); deterministic and exits 0                     |
 | `--strict-load`     |       | false   | Exit non-zero if any packages failed to load                                                              |
 | `--only`            |       |         | Filter by category or rule IDs (comma-separated)                                                          |
 | `--exclude`         |       |         | Exclude paths (comma-separated)                                                                           |

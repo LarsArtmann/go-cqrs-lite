@@ -97,10 +97,10 @@ cmds.Use(middleware.CommandRetry(3, 100*time.Millisecond))
 
 ## Related Modules
 
-- [**command**](command/v4/README.md) — `command.Dispatcher.Use()` applies command middleware
-- [**event**](event/v4/README.md) — `event.Bus.Use()` / `UsePublish()` applies event middleware
-- [**query**](query/v4/README.md) — `query.Dispatcher.Use()` applies query middleware
+- [**command**](../../command/v4/README.md) — `command.Dispatcher.Use()` applies command middleware
+- [**event**](../../event/v4/README.md) — `event.Bus.Use()` / `UsePublish()` applies event middleware
+- [**query**](../../query/v4/README.md) — `query.Dispatcher.Use()` applies query middleware
 - [**go-idempotency**](https://github.com/larsartmann/go-idempotency) — `Store`, `MemoryStore`, `KVStore`, `ErrDuplicate` (used by idempotency middleware)
-- [**signing**](signing/v4/README.md) — `SignMiddleware` / `VerifyMiddleware` / `RequireSignatureMiddleware` live there
-- [**encryption**](encryption/v4/README.md) — `EncryptMiddleware` / `DecryptMiddleware` live there
-- [**otel**](otel/v4/README.md) — Tracing middleware uses OTel tracers from this module
+- [**signing**](../../signing/v4/README.md) — `SignMiddleware` / `VerifyMiddleware` / `RequireSignatureMiddleware` live there
+- [**encryption**](../../encryption/v4/README.md) — `EncryptMiddleware` / `DecryptMiddleware` live there
+- [**otel**](../../otel/v4/README.md) — Tracing middleware uses OTel tracers from this module

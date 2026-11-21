@@ -92,5 +92,5 @@ hitRate := float64(m.BlockCacheHits) /
 ## Related Modules
 
 - [**stack**](README.md) — The `Bundle` type
-- [**storage/pebble**](../../v4/storage/pebble/v4/README.md) — Pebble store implementations
-- [**stack/sqlite**](sqlite/README.md) — SQLite alternative with SQL query power
+- [**storage/pebble**](../../../storage/pebble/v4/README.md) — Pebble store implementations
+- [**stack/sqlite**](../../sqlite/v4/README.md) — SQLite alternative with SQL query power

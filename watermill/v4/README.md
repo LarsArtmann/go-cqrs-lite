@@ -4,7 +4,7 @@
 
 Protocol adapters between go-cqrs-lite event/command interfaces and the [Watermill](https://watermill.io/) message bus library. Provides the default in-process EventBus, CatchUpSubscriber (replay + live), EventPublisher, and CommandBus.
 
-**This is the canonical broker delivery path** ([ADR-0127](docs/adr/0127-deprecate-transport-modules.md)): external fanout goes through this module with any Watermill backend — the `transport/*` modules are deprecated and removed at v5.
+**This is the canonical broker delivery path** ([ADR-0127](../../docs/adr/0127-deprecate-transport-modules.md)): external fanout goes through this module with any Watermill backend — the `transport/*` modules are deprecated and removed at v5.
 
 ```bash
 go get github.com/larsartmann/go-cqrs-lite/watermill/v4
@@ -132,7 +132,7 @@ router.AddMiddleware(watermill.TraceContextMiddleware())
 
 ## Related Modules
 
-- [**event**](event/v4/README.md) — Event bus and publisher interfaces
-- [**command**](command/v4/README.md) — Command bus interface
-- [**projectionhost**](projectionhost/v4/README.md) — Reads from SeekableJournal directly (no Watermill dependency)
-- [**dedup**](dedup/v4/README.md) — Ring buffer used by CatchUpSubscriber
+- [**event**](../../event/v4/README.md) — Event bus and publisher interfaces
+- [**command**](../../command/v4/README.md) — Command bus interface
+- [**projectionhost**](../../projectionhost/v4/README.md) — Reads from SeekableJournal directly (no Watermill dependency)
+- [**dedup**](../../dedup/v4/README.md) — Ring buffer used by CatchUpSubscriber

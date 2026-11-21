@@ -140,7 +140,7 @@ cqrs-bench --version
 
 Build: `go build ./cmd/cqrs-bench/...`
 
-See [ADR-0060](docs/adr/0060-benchkit-design-decisions.md) for design rationale.
+See [ADR-0060](../../docs/adr/0060-benchkit-design-decisions.md) for design rationale.
 
 ## Named profiles
 
@@ -362,7 +362,7 @@ events with embedded collections. `NewMixedGenerator(seed, sizes, codec)` picks
 a size uniformly at random per event. CLI: `--payload-sizes 64,256,1024,4096`.
 The result reports the distribution mean in `PayloadBytes` and the full
 distribution in `PayloadSizes`. See
-[scaling report](docs/status/archived/2026-07-24_19-30_event-size-scaling-benchmark.md).
+[scaling report](../../docs/status/archived/2026-07-24_19-30_event-size-scaling-benchmark.md).
 
 ### Soak testing (`--soak`)
 
@@ -395,6 +395,6 @@ Progress is written to stderr; the final result goes to stdout.
 
 ## Related Modules
 
-- [**stack**](stack/v4/README.md) — `Bundle` presets that factories produce
-- [**cmd/cqrs-bench**](cmd/cqrs-bench/v4/README.md) — CLI tool built on benchkit
-- [**stack/bench**](stack/bench/v4/README.md) — Bundle overhead benchmarks
+- [**stack**](../../stack/v4/README.md) — `Bundle` presets that factories produce
+- [**cmd/cqrs-bench**](../../cmd/cqrs-bench/v4/README.md) — CLI tool built on benchkit
+- [**stack/bench**](../../stack/bench/v4/README.md) — Bundle overhead benchmarks

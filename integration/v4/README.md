@@ -60,9 +60,9 @@ go test ./integration/... -count=1 -race
 
 ## Related Modules
 
-- [**command**](command/v4/README.md) — Command dispatch roundtrip tests
-- [**event**](event/v4/README.md) — Event store/load/bus integration
-- [**query**](query/v4/README.md) — Typed result extraction tests
-- [**signing**](signing/v4/README.md) — Sign then verify, middleware chain tests
-- [**encryption**](encryption/v4/README.md) — Encrypt then decrypt integration
-- [**storage/memory**](storage/memory/v4/README.md) — In-memory store/bus used as test fixtures
+- [**command**](../../command/v4/README.md) — Command dispatch roundtrip tests
+- [**event**](../../event/v4/README.md) — Event store/load/bus integration
+- [**query**](../../query/v4/README.md) — Typed result extraction tests
+- [**signing**](../../signing/v4/README.md) — Sign then verify, middleware chain tests
+- [**encryption**](../../encryption/v4/README.md) — Encrypt then decrypt integration
+- [**storage/memory**](../../storage/memory/v4/README.md) — In-memory store/bus used as test fixtures

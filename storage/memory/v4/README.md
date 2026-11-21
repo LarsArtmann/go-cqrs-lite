@@ -52,8 +52,8 @@ qStore := memory.NewMemoryQueryStore()
 
 ## Related Modules
 
-- [**event**](../../v4/event/v4/README.md) — Store, Journal, SeekableJournal interfaces
-- [**snapshot**](../../v4/snapshot/v4/README.md) — SnapshotStore interfaces
-- [**command**](../../v4/command/v4/README.md) — CommandSink/Source interfaces
-- [**query**](../../v4/query/v4/README.md) — QuerySink/Source interfaces
-- [**stack/memory**](../../v4/stack/memory/v4/README.md) — All-in-memory stack preset using these stores
+- [**event**](../../../event/v4/README.md) — Store, Journal, SeekableJournal interfaces
+- [**snapshot**](../../../snapshot/v4/README.md) — SnapshotStore interfaces
+- [**command**](../../../command/v4/README.md) — CommandSink/Source interfaces
+- [**query**](../../../query/v4/README.md) — QuerySink/Source interfaces
+- [**stack/memory**](../../../stack/memory/v4/README.md) — All-in-memory stack preset using these stores

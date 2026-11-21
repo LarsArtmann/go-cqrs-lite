@@ -92,5 +92,5 @@ func main() {
 
 ## Related Modules
 
-- [**command**](command/v4/README.md) — Timer payloads are typically commands dispatched via `command.Dispatcher`
-- [**projectionhost**](projectionhost/v4/README.md) — Managed projection lifecycle (scheduling is a separate concern)
+- [**command**](../../command/v4/README.md) — Timer payloads are typically commands dispatched via `command.Dispatcher`
+- [**projectionhost**](../../projectionhost/v4/README.md) — Managed projection lifecycle (scheduling is a separate concern)

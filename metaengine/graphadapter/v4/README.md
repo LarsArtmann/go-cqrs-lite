@@ -34,6 +34,6 @@ Task) are not distinguishable, and non-string endpoints are stringified. For
 label-rich graphs use `Driver()` directly, or prefer the engine-backed Graph
 ADT path (sqlite/dgraph/…), which does not route through this adapter.
 Richer edge/node labeling is deferred to v5
-([ADR-0156](../../v4/docs/adr/0156-graph-edge-labels-at-v5.md)).
+([ADR-0156](../../../docs/adr/0156-graph-edge-labels-at-v5.md)).
 
 Experimental — part of the metaengine family (see FEATURES.md).

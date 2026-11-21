@@ -4,7 +4,7 @@
 
 Google Cloud BigTable-backed [metaengine](README.md) Engine. Every map
 value is a native **versioned cell** — the storage model that inspired the
-temporal capability stack ([ADR-0141](../../v4/docs/adr/0141-native-temporal-versioned-cells.md)).
+temporal capability stack ([ADR-0141](../../../docs/adr/0141-native-temporal-versioned-cells.md)).
 As-of reads, history ranges, and tombstones are BigTable primitives
 (`TimestampRangeFilterMicros`, `LatestNFilter`, empty-value cells), not
 emulations. Retention is the column-family GC policy, enforced server-side.
@@ -90,7 +90,7 @@ no client-side RMW is needed (ADR-0141 §"fold path").
 ⚠ **Priors are UNCALIBRATED** (`BigtableNsPerOp`, `BigtableNetworkRTT = 3ms`):
 compile-time estimates for same-region RTT, replaced by live measurements
 once `ProbeEngine` runs (see
-[METAENGINE-LIVE-LATENCY-MODEL.md](../../v4/docs/planning/METAENGINE-LIVE-LATENCY-MODEL.md)).
+[METAENGINE-LIVE-LATENCY-MODEL.md](../../../docs/planning/METAENGINE-LIVE-LATENCY-MODEL.md)).
 
 ## Design
 
@@ -131,5 +131,5 @@ cannot drift.
 ## Related Modules
 
 - [**metaengine**](README.md) — Core planner, temporal interfaces, `Engine`
-- [**metaengine/adttest**](adttest) — Cross-engine conformance harness
-- [ADR-0141](../../v4/docs/adr/0141-native-temporal-versioned-cells.md) — The temporal cell contract
+- [**metaengine/adttest**](../../v4/adttest) — Cross-engine conformance harness
+- [ADR-0141](../../../docs/adr/0141-native-temporal-versioned-cells.md) — The temporal cell contract

@@ -75,7 +75,7 @@ func MySQLClaimSelect(s Spec, now any) (string, []any) {
 // claim cannot be resurrected — another worker may already be processing —
 // so renewal after expiry affects zero rows and the caller reports
 // [ErrLeaseNotHeld].
-func RenewStmt(d Dialect, s Spec, newUntil, id, now any) (string, []any) {
+func RenewStmt(d Dialect, s Spec, newUntil, claimID, now any) (string, []any) {
 	var query string
 
 	switch d {
@@ -96,7 +96,7 @@ func RenewStmt(d Dialect, s Spec, newUntil, id, now any) (string, []any) {
 			" = ?1 WHERE " + s.IDColumn + " = ?2 AND " + s.LeaseColumn + " > ?3"
 	}
 
-	return query, []any{newUntil, id, now}
+	return query, []any{newUntil, claimID, now}
 }
 
 // columns joins unqualified column names for SELECT/RETURNING lists.

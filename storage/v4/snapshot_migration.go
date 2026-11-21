@@ -102,8 +102,10 @@ func MigrateSnapshotStateShapeColumn(ctx context.Context, db *sql.DB, d sqlpkg.D
 		return nil
 	}
 
-	stmt := "ALTER TABLE " + sqlpkg.TableSnapshots + " ADD COLUMN state_shape " +
-		snapshotStateShapeColumnDef(d)
+	stmt := "ALTER TABLE " + sqlpkg.TableSnapshots + " ADD COLUMN state_shape " + // #nosec G202 -- table and column identifiers are internal constants (sqlpkg.TableSnapshots + dialect column def), not user input
+		snapshotStateShapeColumnDef(
+			d,
+		)
 	if _, err := db.ExecContext(ctx, stmt); err != nil {
 		// Concurrent InitSchema: another runner may have added the column
 		// between our probe and ALTER. Re-probe — a present column means

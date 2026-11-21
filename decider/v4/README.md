@@ -62,12 +62,12 @@ state, ver, _ := repo.LoadAtVersionRef(ctx, ref, 3)
 
 ### Options
 
-| Option                             | Description                                                               |
-| ---------------------------------- | ------------------------------------------------------------------------- |
-| `WithSnapshotStore(s)`             | Enables snapshot-based loading (skip full replay).                        |
-| `WithSnapshotStrategy(s)`          | When to create snapshots: `EveryNEvents(n)`, `NewReadPressure(n)`.        |
-| `WithCodec(c)`                     | Codec for snapshot serialization (default: CBOR).                         |
-| `WithStateCache(c)`                | LRU-bounded cache for incremental loads (7.4x faster for hot aggregates). |
+| Option                                | Description                                                               |
+| ------------------------------------- | ------------------------------------------------------------------------- |
+| `WithSnapshotStore(s)`                | Enables snapshot-based loading (skip full replay).                        |
+| `WithSnapshotStrategy(s)`             | When to create snapshots: `EveryNEvents(n)`, `NewReadPressure(n)`.        |
+| `WithCodec(c)`                        | Codec for snapshot serialization (default: CBOR).                         |
+| `WithStateCache(c)`                   | LRU-bounded cache for incremental loads (7.4x faster for hot aggregates). |
 | `WithLoadCoalescing[State](v4/false)` | Disable singleflight load coalescing.                                     |
 
 ### TypedDecider[State, Cmd]
@@ -94,9 +94,9 @@ err := repo.ExecuteCommandRef(ctx, id.NewStreamRef("Counter", aggID), IncrementC
 
 ## Related Modules
 
-- [**event**](event/v4/README.md) — Event store/bus interfaces consumed by the repository
-- [**snapshot**](snapshot/v4/README.md) — Snapshot strategies (`EveryNEvents`, `ReadPressure`)
-- [**id**](id/v4/README.md) — Branded `StreamID` for aggregates
-- [**command**](command/v4/README.md) — Dispatch typed commands into `repo.Execute`
-- [**scenario**](scenario/v4/README.md) — BDD test DSL for deciders
-- [**schema**](schema/v4/README.md) — Upcast old events on load
+- [**event**](../../event/v4/README.md) — Event store/bus interfaces consumed by the repository
+- [**snapshot**](../../snapshot/v4/README.md) — Snapshot strategies (`EveryNEvents`, `ReadPressure`)
+- [**id**](../../id/v4/README.md) — Branded `StreamID` for aggregates
+- [**command**](../../command/v4/README.md) — Dispatch typed commands into `repo.Execute`
+- [**scenario**](../../scenario/v4/README.md) — BDD test DSL for deciders
+- [**schema**](../../schema/v4/README.md) — Upcast old events on load

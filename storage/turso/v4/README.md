@@ -233,10 +233,10 @@ fmt.Println(idx.DropDDL())  // DROP INDEX IF EXISTS ...
 ## Related Modules
 
 - [**storage**](README.md) — Turso delegates SQL store implementations to this module
-- [**pebble**](pebble/README.md) — Sibling embedded backend (PebbleDB)
-- [**memory**](memory/README.md) — In-memory implementations for tests
-- [**event**](../../v4/event/v4/README.md) — Event store interface
-- [**command**](../../v4/command/v4/README.md) — Command store interface
-- [**query**](../../v4/query/v4/README.md) — Query store interface
-- [**snapshot**](../../v4/snapshot/v4/README.md) — Snapshot store interface
-- [**otel**](../../v4/otel/v4/README.md) — Index analysis emits spans via `otel/` re-exports
+- [**pebble**](../../pebble/v4/README.md) — Sibling embedded backend (PebbleDB)
+- [**memory**](../../memory/v4/README.md) — In-memory implementations for tests
+- [**event**](../../../event/v4/README.md) — Event store interface
+- [**command**](../../../command/v4/README.md) — Command store interface
+- [**query**](../../../query/v4/README.md) — Query store interface
+- [**snapshot**](../../../snapshot/v4/README.md) — Snapshot store interface
+- [**otel**](../../../otel/v4/README.md) — Index analysis emits spans via `otel/` re-exports

@@ -135,7 +135,7 @@ bus.UsePublish(multisig.MultiSignMiddleware(serverMulti))
 
 ## Related Modules
 
-- [**event**](event/v4/README.md) — Signs events; integrates via `bus.UsePublish` / `bus.Use`
+- [**event**](../../event/v4/README.md) — Signs events; integrates via `bus.UsePublish` / `bus.Use`
 - [**go-codec**](https://github.com/larsartmann/go-codec) — CBOR deterministic encoding for reproducible signatures
-- [**encryption**](encryption/v4/README.md) — Companion security module for confidential payloads
-- [**middleware**](middleware/v4/README.md) — `EventSignMiddleware` / `EventVerifyMiddleware` re-exported here
+- [**encryption**](../../encryption/v4/README.md) — Companion security module for confidential payloads
+- [**middleware**](../../middleware/v4/README.md) — `EventSignMiddleware` / `EventVerifyMiddleware` re-exported here

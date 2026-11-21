@@ -119,6 +119,6 @@ For greenfield projects, consider `stack/postgres` (distributed bus via
 ## Related Modules
 
 - [**stack**](README.md) — The `Bundle` type
-- [**storage**](../../v4/storage/v4/README.md) — SQL event store, `SQLBackend`
-- [**stack/postgres**](postgres/README.md) — PostgreSQL alternative with `LISTEN/NOTIFY`
-- [**stack/sqlite**](sqlite/README.md) — SQLite alternative for single-node
+- [**storage**](../../../storage/v4/README.md) — SQL event store, `SQLBackend`
+- [**stack/postgres**](../../postgres/v4/README.md) — PostgreSQL alternative with `LISTEN/NOTIFY`
+- [**stack/sqlite**](../../sqlite/v4/README.md) — SQLite alternative for single-node

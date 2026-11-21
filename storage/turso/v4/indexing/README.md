@@ -163,6 +163,6 @@ Same as the parent project.
 
 ## Related Modules
 
-- [**turso**](../v4/README.md) — Parent module; Turso connector
-- [**otel**](../../../v4/otel/v4/README.md) — Index analysis and auto-indexer emit OTel spans/metrics
+- [**turso**](../README.md) — Parent module; Turso connector
+- [**otel**](../../../../otel/v4/README.md) — Index analysis and auto-indexer emit OTel spans/metrics
 - [**storage**](../README.md) — SQL store implementations that indexing optimizes

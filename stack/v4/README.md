@@ -106,9 +106,9 @@ Events are self-describing: `evt.Encoding()` is stamped on every event, so mixed
 
 ## Related Modules
 
-- [**stack/memory**](v4/memory/README.md) — All-in-memory preset
-- [**stack/sqlite**](v4/sqlite/README.md) — SQLite preset (recommended for single-node)
-- [**stack/pebble**](v4/pebble/README.md) — PebbleDB preset
-- [**stack/postgres**](v4/postgres/README.md) — PostgreSQL preset
-- [**stack/turso**](v4/turso/README.md) — Turso preset with remote sync
-- [**kv**](kv/v4/README.md) — `ViewStore[V,K]` interface for read models
+- [**stack/memory**](../memory/v4/README.md) — All-in-memory preset
+- [**stack/sqlite**](../sqlite/v4/README.md) — SQLite preset (recommended for single-node)
+- [**stack/pebble**](../pebble/v4/README.md) — PebbleDB preset
+- [**stack/postgres**](../postgres/v4/README.md) — PostgreSQL preset
+- [**stack/turso**](../turso/v4/README.md) — Turso preset with remote sync
+- [**kv**](../../kv/v4/README.md) — `ViewStore[V,K]` interface for read models

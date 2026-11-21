@@ -2,9 +2,9 @@
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/cmd/cqrs-bench.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/cmd/cqrs-bench)
 
-Benchmark any go-cqrs-lite backend with named workload profiles. Thin CLI front-end over the [benchkit](../../benchkit/README.md) library.
+Benchmark any go-cqrs-lite backend with named workload profiles. Thin CLI front-end over the [benchkit](../../../benchkit/v4/README.md) library.
 
-> **Design decisions:** See [ADR-0060](../../docs/adr/0060-benchkit-design-decisions.md) for rationale on codec-aware padding, warmup isolation, ReadRatio-as-passes, SkipPhases, and the DiskSizer interface.
+> **Design decisions:** See [ADR-0060](../../../docs/adr/0060-benchkit-design-decisions.md) for rationale on codec-aware padding, warmup isolation, ReadRatio-as-passes, SkipPhases, and the DiskSizer interface.
 
 ## Install
 
@@ -154,5 +154,5 @@ was (or became) oversubscribed.
 
 ## Related Modules
 
-- [**benchkit**](../../benchkit/README.md) — The benchmarking library powering this CLI
-- [**stack**](../../stack/README.md) — Bundle presets for each backend
+- [**benchkit**](../../../benchkit/v4/README.md) — The benchmarking library powering this CLI
+- [**stack**](../../../stack/v4/README.md) — Bundle presets for each backend

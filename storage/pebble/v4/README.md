@@ -111,6 +111,6 @@ hitRate := float64(m.BlockCacheHits) /
 ## Related Modules
 
 - [**storage**](README.md) — SQL-based alternative (SQLite/Postgres)
-- [**kv**](../../v4/kv/v4/README.md) — `kv.Store` interface that the KV adapter implements
-- [**stack/pebble**](../../v4/stack/pebble/v4/README.md) — All-in-one Pebble stack preset
-- [**event**](../../v4/event/v4/README.md) — Store, Journal interfaces
+- [**kv**](../../../kv/v4/README.md) — `kv.Store` interface that the KV adapter implements
+- [**stack/pebble**](../../../stack/pebble/v4/README.md) — All-in-one Pebble stack preset
+- [**event**](../../../event/v4/README.md) — Store, Journal interfaces

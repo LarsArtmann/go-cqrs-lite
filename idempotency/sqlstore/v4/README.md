@@ -96,5 +96,5 @@ database engine. No application-level locking is needed.
 ## Related Modules
 
 - [**go-idempotency**](https://github.com/larsartmann/go-idempotency) — `Store` interface, `MemoryStore`, `ErrDuplicate`
-- [**middleware**](../../middleware/README.md) — `CommandIdempotency`, `EventIdempotency`, `QueryIdempotency`
-- [**command**](../../command/README.md) — `Command.ID()` / `WithCommandID` provide the stable command identity
+- [**middleware**](../../../middleware/v4/README.md) — `CommandIdempotency`, `EventIdempotency`, `QueryIdempotency`
+- [**command**](../../../command/v4/README.md) — `Command.ID()` / `WithCommandID` provide the stable command identity

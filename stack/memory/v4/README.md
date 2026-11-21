@@ -57,10 +57,10 @@ repo  := bundle.Repository(decider)
 - CI pipelines (no external dependencies)
 - Learning the library
 
-Switch to [stack/sqlite](sqlite/README.md), [stack/pebble](pebble/README.md), or [stack/postgres](postgres/README.md) for production by changing one line.
+Switch to [stack/sqlite](../../sqlite/v4/README.md), [stack/pebble](../../pebble/v4/README.md), or [stack/postgres](../../postgres/v4/README.md) for production by changing one line.
 
 ## Related Modules
 
 - [**stack**](README.md) — The `Bundle` type and `Materialize` builder
-- [**storage/memory**](../../v4/storage/memory/v4/README.md) — In-memory store implementations
-- [**watermill**](../../v4/watermill/v4/README.md) — In-process event bus
+- [**storage/memory**](../../../storage/memory/v4/README.md) — In-memory store implementations
+- [**watermill**](../../../watermill/v4/README.md) — In-process event bus

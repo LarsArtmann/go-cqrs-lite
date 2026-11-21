@@ -79,9 +79,9 @@ type Bus interface {
 | `Checkpoint`      | EventID + ProcessedAt for projection checkpointing                                  |
 | `TombstoneStatus` | **Deprecated** (ADR-0114): express deletion as a domain event instead               |
 
-## 21 Functional Options
+## 22 Functional Options
 
-`WithEventID`, `WithOccurredAt`, `WithMetadata`, `WithCorrelationID`, `WithCausationID`, `WithUserID`, `WithActor`, `WithRequestID`, `WithSource`, `WithIPAddress`, `WithUserAgent`, `WithCustom`, `WithSchemaVersion`, `WithCausation`, `WithEncoding`, `WithCodec`, `WithClock`, `WithClientID`, `WithClientOccurredAt`, `WithDeadline`, `FromContext`
+`WithEventID`, `WithOccurredAt`, `WithMetadata`, `WithCorrelationID`, `WithCausationID`, `WithUserID`, `WithActor`, `WithRequestID`, `WithSource`, `WithIPAddress`, `WithUserAgent`, `WithCustom`, `WithSchemaVersion`, `WithCause`, `WithCausation` (**deprecated**: stamps the `cause` field; prefer `WithCause`), `WithEncoding`, `WithCodec`, `WithClock`, `WithClientID`, `WithClientOccurredAt`, `WithDeadline`, `FromContext`
 
 ## Error Classification
 

@@ -4,6 +4,7 @@ import (
 	"github.com/maypok86/otter/v2"
 
 	"github.com/larsartmann/go-codec"
+	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
@@ -109,7 +110,11 @@ func cloneState[State any](state State) (State, error) {
 	if err != nil {
 		var zero State
 
-		return zero, err
+		return zero, errorfamily.WrapInfrastructure(
+			err,
+			"decider.cache_clone_encode",
+			"encode cached state for clone",
+		)
 	}
 
 	var out State
@@ -117,7 +122,11 @@ func cloneState[State any](state State) (State, error) {
 	if err := (codec.CBORCodec{}).Decode(data, &out); err != nil {
 		var zero State
 
-		return zero, err
+		return zero, errorfamily.WrapInfrastructure(
+			err,
+			"decider.cache_clone_decode",
+			"decode cloned cached state",
+		)
 	}
 
 	return out, nil

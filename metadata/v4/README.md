@@ -94,6 +94,6 @@ type MyStandaloneMetadata struct {
 
 ## Related Modules
 
-- [**event**](event/v4/README.md) — `event.Metadata` embeds `Tracing` and adds event-specific fields (Source, Tombstone, Causation)
-- [**command**](command/v4/README.md) — `command.Metadata` is an alias of `metadata.Metadata[command.MetadataKey]`
-- [**query**](query/v4/README.md) — `query.Metadata` is an alias of `metadata.Metadata[query.MetadataKey]`
+- [**event**](../../event/v4/README.md) — `event.Metadata` embeds `Tracing` and adds event-specific fields (Source, Tombstone, Causation)
+- [**command**](../../command/v4/README.md) — `command.Metadata` is an alias of `metadata.Metadata[command.MetadataKey]`
+- [**query**](../../query/v4/README.md) — `query.Metadata` is an alias of `metadata.Metadata[query.MetadataKey]`

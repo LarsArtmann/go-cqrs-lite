@@ -75,5 +75,5 @@ store, _ := postgres.SQLViewModel[TodoView, TodoID](bundle, mapper)
 ## Related Modules
 
 - [**stack**](README.md) — The `Bundle` type
-- [**storage**](../../v4/storage/v4/README.md) — SQL event store, `PostgresListenNotifyBus`
-- [**stack/sqlite**](sqlite/README.md) — SQLite alternative for single-node
+- [**storage**](../../../storage/v4/README.md) — SQL event store, `PostgresListenNotifyBus`
+- [**stack/sqlite**](../../sqlite/v4/README.md) — SQLite alternative for single-node

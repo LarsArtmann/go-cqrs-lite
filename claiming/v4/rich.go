@@ -276,29 +276,29 @@ func StampLeaseMySQLStmt(s Spec, ids []any, p ClaimParams) (string, []any) {
 // RenewOwnedStmt builds the owner-fenced lease extension: the new deadline
 // is granted only while the lease is live AND the row is still owned by the
 // caller. Zero rows affected means [ErrLeaseNotHeld] for the caller.
-func RenewOwnedStmt(d Dialect, s Spec, newUntil, id, owner, now any) (string, []any) {
+func RenewOwnedStmt(d Dialect, s Spec, newUntil, claimID, owner, now any) (string, []any) {
 	if s.OwnerColumn == "" {
 		// No owner tracking configured: fall back to the fence-only form.
-		return RenewStmt(d, s, newUntil, id, now)
+		return RenewStmt(d, s, newUntil, claimID, now)
 	}
 
 	switch d {
 	case DialectPostgres, DialectDuckDB:
 		return "UPDATE " + s.Table + " SET " + s.LeaseColumn +
 			" = $1 WHERE " + s.IDColumn + " = $2 AND " + s.OwnerColumn +
-			" = $3 AND " + s.LeaseColumn + " > $4", []any{newUntil, id, owner, now}
+			" = $3 AND " + s.LeaseColumn + " > $4", []any{newUntil, claimID, owner, now}
 	case DialectMySQL:
 		return "UPDATE " + s.Table + " SET " + s.LeaseColumn +
 			" = ? WHERE " + s.IDColumn + " = ? AND " + s.OwnerColumn +
-			" = ? AND " + s.LeaseColumn + " > ?", []any{newUntil, id, owner, now}
+			" = ? AND " + s.LeaseColumn + " > ?", []any{newUntil, claimID, owner, now}
 	case DialectSQLite:
 		return "UPDATE " + s.Table + " SET " + s.LeaseColumn +
 			" = ?1 WHERE " + s.IDColumn + " = ?2 AND " + s.OwnerColumn +
-			" = ?3 AND " + s.LeaseColumn + " > ?4", []any{newUntil, id, owner, now}
+			" = ?3 AND " + s.LeaseColumn + " > ?4", []any{newUntil, claimID, owner, now}
 	default:
 		return "UPDATE " + s.Table + " SET " + s.LeaseColumn +
 			" = ?1 WHERE " + s.IDColumn + " = ?2 AND " + s.OwnerColumn +
-			" = ?3 AND " + s.LeaseColumn + " > ?4", []any{newUntil, id, owner, now}
+			" = ?3 AND " + s.LeaseColumn + " > ?4", []any{newUntil, claimID, owner, now}
 	}
 }
 
@@ -313,9 +313,9 @@ func itoa(n int) string {
 // RenewScopedStmt is [RenewOwnedStmt] with the Spec.FilterColumn equality
 // predicate added, for runtimes that share one claim table across many
 // collections: the renewal is fenced by owner AND scoped to the collection.
-func RenewScopedStmt(d Dialect, s Spec, newUntil, id, owner, filter, now any) (string, []any) {
+func RenewScopedStmt(d Dialect, s Spec, newUntil, claimID, owner, filter, now any) (string, []any) {
 	if s.OwnerColumn == "" || s.FilterColumn == "" {
-		return RenewOwnedStmt(d, s, newUntil, id, owner, now)
+		return RenewOwnedStmt(d, s, newUntil, claimID, owner, now)
 	}
 
 	switch d {
@@ -323,21 +323,21 @@ func RenewScopedStmt(d Dialect, s Spec, newUntil, id, owner, filter, now any) (s
 		return "UPDATE " + s.Table + " SET " + s.LeaseColumn +
 				" = $1 WHERE " + s.IDColumn + " = $2 AND " + s.OwnerColumn +
 				" = $3 AND " + s.FilterColumn + " = $4 AND " + s.LeaseColumn + " > $5",
-			[]any{newUntil, id, owner, filter, now}
+			[]any{newUntil, claimID, owner, filter, now}
 	case DialectMySQL:
 		return "UPDATE " + s.Table + " SET " + s.LeaseColumn +
 				" = ? WHERE " + s.IDColumn + " = ? AND " + s.OwnerColumn +
 				" = ? AND " + s.FilterColumn + " = ? AND " + s.LeaseColumn + " > ?",
-			[]any{newUntil, id, owner, filter, now}
+			[]any{newUntil, claimID, owner, filter, now}
 	case DialectSQLite:
 		return "UPDATE " + s.Table + " SET " + s.LeaseColumn +
 				" = ?1 WHERE " + s.IDColumn + " = ?2 AND " + s.OwnerColumn +
 				" = ?3 AND " + s.FilterColumn + " = ?4 AND " + s.LeaseColumn + " > ?5",
-			[]any{newUntil, id, owner, filter, now}
+			[]any{newUntil, claimID, owner, filter, now}
 	default:
 		return "UPDATE " + s.Table + " SET " + s.LeaseColumn +
 				" = ?1 WHERE " + s.IDColumn + " = ?2 AND " + s.OwnerColumn +
 				" = ?3 AND " + s.FilterColumn + " = ?4 AND " + s.LeaseColumn + " > ?5",
-			[]any{newUntil, id, owner, filter, now}
+			[]any{newUntil, claimID, owner, filter, now}
 	}
 }

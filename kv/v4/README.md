@@ -90,16 +90,16 @@ type ViewStore[V any, K fmt.Stringer] interface {
 
 ## Implementations
 
-| Implementation      | Module                                            |
-| ------------------- | ------------------------------------------------- |
-| `MemStore`          | This package (reference in-memory implementation) |
-| Pebble KV adapter   | [storage/pebble](storage/pebble/v4/README.md)     |
-| `SQLKVStore`        | [storage](storage/v4/README.md)                   |
-| `SQLViewStore[V,K]` | [storage](storage/v4/README.md)                   |
+| Implementation      | Module                                              |
+| ------------------- | --------------------------------------------------- |
+| `MemStore`          | This package (reference in-memory implementation)   |
+| Pebble KV adapter   | [storage/pebble](../../storage/pebble/v4/README.md) |
+| `SQLKVStore`        | [storage](../../storage/v4/README.md)               |
+| `SQLViewStore[V,K]` | [storage](../../storage/v4/README.md)               |
 
 ## Related Modules
 
-- [**storage/pebble**](storage/pebble/v4/README.md) — Implements `kv.Store` via `NewKVStore`
-- [**storage**](storage/v4/README.md) — `SQLKVStore` and `SQLViewStore[V,K]`
-- [**stack**](stack/v4/README.md) — `Materialize[V,K]` consumes `ViewStore[V,K]`
+- [**storage/pebble**](../../storage/pebble/v4/README.md) — Implements `kv.Store` via `NewKVStore`
+- [**storage**](../../storage/v4/README.md) — `SQLKVStore` and `SQLViewStore[V,K]`
+- [**stack**](../../stack/v4/README.md) — `Materialize[V,K]` consumes `ViewStore[V,K]`
 - **idempotency/kvstore** — REMOVED 2026-10-17 (zero-consumer delete); was the KV-backed idempotency store

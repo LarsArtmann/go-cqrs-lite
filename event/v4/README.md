@@ -129,7 +129,7 @@ CBOR encoding of `time.Time` loses timezone information. Use these types in even
 - **`event.WallTime`** — Local time-of-day with IANA timezone (schedules, reminders, business hours)
 - **`event.Date`** — Calendar date without time (birth dates, employment dates)
 
-See [`docs/TIMEZONE_HANDLING.md`](docs/TIMEZONE_HANDLING.md) for the full guide.
+See [`docs/TIMEZONE_HANDLING.md`](../../docs/TIMEZONE_HANDLING.md) for the full guide.
 
 ```go
 type CheckinSubmitted struct {
@@ -141,14 +141,14 @@ type CheckinSubmitted struct {
 
 ## Related Modules
 
-- [**command**](command/v4/README.md) — Command dispatch, typed handlers, middleware
-- [**query**](query/v4/README.md) — Query dispatch, typed results, pagination
-- [**decider**](decider/v4/README.md) — Pure-function aggregate pattern (recommended)
-- [**id**](id/v4/README.md) — Branded IDs: `id.Of[T]` backed by ULID
+- [**command**](../../command/v4/README.md) — Command dispatch, typed handlers, middleware
+- [**query**](../../query/v4/README.md) — Query dispatch, typed results, pagination
+- [**decider**](../../decider/v4/README.md) — Pure-function aggregate pattern (recommended)
+- [**id**](../../id/v4/README.md) — Branded IDs: `id.Of[T]` backed by ULID
 - [**go-codec**](https://github.com/larsartmann/go-codec) — Payload encoding (JSON, CBOR, Raw) for `DecodePayload`
-- [**schema**](schema/v4/README.md) — Upcasting and schema evolution
-- [**snapshot**](snapshot/v4/README.md) — Snapshot persistence
-- [**signing**](signing/v4/README.md) — Event signing (HMAC, Ed25519)
-- [**encryption**](encryption/v4/README.md) — Payload encryption (XChaCha20, AES-GCM)
-- [**middleware**](middleware/v4/README.md) — Logging, retry, tracing, metrics
-- [**projection**](projection/v4/README.md) — Read-model projections from event streams
+- [**schema**](../../schema/v4/README.md) — Upcasting and schema evolution
+- [**snapshot**](../../snapshot/v4/README.md) — Snapshot persistence
+- [**signing**](../../signing/v4/README.md) — Event signing (HMAC, Ed25519)
+- [**encryption**](../../encryption/v4/README.md) — Payload encryption (XChaCha20, AES-GCM)
+- [**middleware**](../../middleware/v4/README.md) — Logging, retry, tracing, metrics
+- [**projection**](../../projection/v4/README.md) — Read-model projections from event streams

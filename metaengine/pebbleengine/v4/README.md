@@ -76,5 +76,5 @@ and filtered scans — eliminates the JSON decode tax on hot paths.
 ## Related Modules
 
 - [**metaengine**](README.md) — Core planner and `Engine` interface
-- [**metaengine/adttest**](adttest) — Cross-engine ADT test harness
-- [**storage/pebble**](../../v4/storage/pebble/v4/README.md) — Pebble-backed event/snapshot stores
+- [**metaengine/adttest**](../../v4/adttest) — Cross-engine ADT test harness
+- [**storage/pebble**](../../../storage/pebble/v4/README.md) — Pebble-backed event/snapshot stores

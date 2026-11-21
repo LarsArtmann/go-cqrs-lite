@@ -128,5 +128,5 @@ t.Close()    // closes all connections and the listener
 ## Related Modules
 
 - [**irohengine**](README.md) — The `Transport` interface and `Replicated` wrapper
-- [**irohengine/quic**](quic/README.md) — Real QUIC transport (CGo, full NAT traversal)
+- [**irohengine/quic**](../../quic/v4/README.md) — Real QUIC transport (CGo, full NAT traversal)
 - [**metaengine**](../../v4/README.md) — The core planner (zero-dep, no transport)

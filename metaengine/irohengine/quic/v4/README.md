@@ -137,5 +137,5 @@ locally and do NOT replicate. This matches the CALM theorem constraint.
 ## Related Modules
 
 - [**irohengine**](README.md) — The `Transport` interface and `Replicated` wrapper
-- [**irohengine/loopback**](loopback/README.md) — TCP loopback transport (no CGo)
+- [**irohengine/loopback**](../../loopback/v4/README.md) — TCP loopback transport (no CGo)
 - [**metaengine**](../../v4/README.md) — The core planner (zero-dep, no transport)

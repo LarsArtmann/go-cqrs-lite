@@ -2,8 +2,8 @@
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4)
 
-Wraps a [`metaengine.Store`](README.md) as a [`projection.Projection`](../../v4/projection/v4/README.md),
-so cost-planned stores can be registered with [`projectionhost.Host`](../../v4/projectionhost/v4/README.md)
+Wraps a [`metaengine.Store`](README.md) as a [`projection.Projection`](../../../projection/v4/README.md),
+so cost-planned stores can be registered with [`projectionhost.Host`](../../../projectionhost/v4/README.md)
 and process events through the standard projection lifecycle (checkpoint, retry, DLQ).
 
 ```bash
@@ -111,14 +111,14 @@ skill's `references/recipes.md` §2.44 for the end-to-end path).
   decoded with the same codec that produced it.
 - **Event types auto-derived**: `New()` calls `store.EventTypes()` to discover
   which event types the planned queries listen to. No manual registration needed.
-- **ADR-0062**: See [`docs/adr/0062-metaengine-dependency-boundary.md`](../../v4/docs/adr/0062-metaengine-dependency-boundary.md)
-  for the module-boundary rationale, and [ADR-0161](../../v4/docs/adr/0161-encoded-ingress-producer-codec.md)
+- **ADR-0062**: See [`docs/adr/0062-metaengine-dependency-boundary.md`](../../../docs/adr/0062-metaengine-dependency-boundary.md)
+  for the module-boundary rationale, and [ADR-0161](../../../docs/adr/0161-encoded-ingress-producer-codec.md)
   for the decoding contract (why the producer's codec wins over a JSON
   normalization).
 
 ## Related Modules
 
 - [**metaengine**](README.md) — The Store being wrapped
-- [**projection**](../../v4/projection/v4/README.md) — The `Projection` interface implemented
-- [**projectionhost**](../../v4/projectionhost/v4/README.md) — The managed host that runs projections
-- [**event**](../../v4/event/v4/README.md) — Event types consumed by the decoder
+- [**projection**](../../../projection/v4/README.md) — The `Projection` interface implemented
+- [**projectionhost**](../../../projectionhost/v4/README.md) — The managed host that runs projections
+- [**event**](../../../event/v4/README.md) — Event types consumed by the decoder

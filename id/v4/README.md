@@ -52,7 +52,7 @@ system-minted IDs. `AggregateID` is a **deprecated alias** of `StreamID`.
 | Function                 | Description                                              |
 | ------------------------ | -------------------------------------------------------- |
 | `New[T]()`               | Generate a new random branded ID.                        |
-| `Parse[T](v4/s)`            | Parse a string into a branded ID.                        |
+| `Parse[T](v4/s)`         | Parse a string into a branded ID.                        |
 | `DeriveCommandID(...)`   | Deterministically derive a command ID (for idempotency). |
 | `NewStreamID()`          | Shortcut for `New[StreamID]()`.                          |
 | `NewStreamRef(type, id)` | Create a stream reference for store operations.          |
@@ -75,8 +75,8 @@ All branded IDs support:
 
 ## Related Modules
 
-- [**event**](event/v4/README.md) — Uses `StreamID`, `EventID`, `CorrelationID`, `CausationID`
-- [**command**](command/v4/README.md) — Uses `AggregateID` (deprecated alias of `StreamID`), `CommandID`
-- [**query**](query/v4/README.md) — Uses `RequestID`
-- [**decider**](decider/v4/README.md) — Aggregates keyed by branded `StreamID`
-- [**id/idtest**](v4/idtest/doc.go) — Test helpers (`ParseStreamID`, `ParseEventID`) that call `tb.Fatalf`
+- [**event**](../../event/v4/README.md) — Uses `StreamID`, `EventID`, `CorrelationID`, `CausationID`
+- [**command**](../../command/v4/README.md) — Uses `AggregateID` (deprecated alias of `StreamID`), `CommandID`
+- [**query**](../../query/v4/README.md) — Uses `RequestID`
+- [**decider**](../../decider/v4/README.md) — Aggregates keyed by branded `StreamID`
+- [**id/idtest**](./idtest/doc.go) — Test helpers (`ParseStreamID`, `ParseEventID`) that call `tb.Fatalf`

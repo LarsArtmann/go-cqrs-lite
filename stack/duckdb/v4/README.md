@@ -90,6 +90,6 @@ DuckDB's columnar engine makes these view tables especially powerful for analyti
 ## Related Modules
 
 - [**stack**](README.md) — The `Bundle` type
-- [**stack/sqlite**](sqlite/README.md) — SQLite alternative for OLTP workloads
-- [**stack/postgres**](postgres/README.md) — PostgreSQL alternative for distributed deployments
-- [**storage**](../../v4/storage/v4/README.md) — SQL event store, command store, view store
+- [**stack/sqlite**](../../sqlite/v4/README.md) — SQLite alternative for OLTP workloads
+- [**stack/postgres**](../../postgres/v4/README.md) — PostgreSQL alternative for distributed deployments
+- [**storage**](../../../storage/v4/README.md) — SQL event store, command store, view store

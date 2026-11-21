@@ -54,15 +54,15 @@ func TestUserProjection(t *testing.T) {
 
 ### Decider Scenario
 
-| Symbol                              | Kind   | Description                                                      |
-| ----------------------------------- | ------ | ---------------------------------------------------------------- |
-| `Given[Cmd, State](v4/...)`            | Func   | Pre-existing events folded into initial state. Returns scenario. |
-| `GivenState[State](v4/...)`            | Func   | Convenience: pins `Cmd` to `any` for state-only tests.           |
-| `.When(cmd, decide)`                | Method | Runs the decide function against the folded state.               |
+| Symbol                              | Kind   | Description                                                                                                                                                                    |
+| ----------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `Given[Cmd, State](v4/...)`         | Func   | Pre-existing events folded into initial state. Returns scenario.                                                                                                               |
+| `GivenState[State](v4/...)`         | Func   | Convenience: pins `Cmd` to `any` for state-only tests.                                                                                                                         |
+| `.When(cmd, decide)`                | Method | Runs the decide function against the folded state.                                                                                                                             |
 | `.WhenVersioned(decide)`            | Method | Version-aware decide: receives the current version derived from the Given events (`decider.DecideFunc[State]` shape — passes directly, no adapter). Last call wins vs `.When`. |
-| `.Then(types...)`                   | Method | Asserts the emitted event types match (order-sensitive).         |
-| `.ThenError(target)`                | Method | Asserts the decide function returned an error matching `target`. |
-| `.ThenState(apply, init, expected)` | Method | Folds produced events, asserts final state via `DeepEqual`.      |
+| `.Then(types...)`                   | Method | Asserts the emitted event types match (order-sensitive).                                                                                                                       |
+| `.ThenError(target)`                | Method | Asserts the decide function returned an error matching `target`.                                                                                                               |
+| `.ThenState(apply, init, expected)` | Method | Folds produced events, asserts final state via `DeepEqual`.                                                                                                                    |
 
 ### Projection Scenario
 
@@ -81,6 +81,6 @@ func TestUserProjection(t *testing.T) {
 
 ## Related Modules
 
-- [**decider**](decider/v4/README.md) — The `Decider[State]` type under test
-- [**projection**](projection/v4/README.md) — The `Projection` interface under test
-- [**event**](event/v4/README.md) — Event types used in scenarios
+- [**decider**](../../decider/v4/README.md) — The `Decider[State]` type under test
+- [**projection**](../../projection/v4/README.md) — The `Projection` interface under test
+- [**event**](../../event/v4/README.md) — Event types used in scenarios

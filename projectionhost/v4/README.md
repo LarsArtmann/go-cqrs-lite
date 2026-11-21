@@ -101,9 +101,9 @@ alongside the Host.
 
 ## Related Modules
 
-- [**event**](event/v4/README.md) — `SeekableJournal` that the Host reads from
-- [**projection**](projection/v4/README.md) — `Projection` interface that workers run
-- [**watermill**](watermill/v4/README.md) — `CatchUpSubscriber` for live push delivery alongside the Host
-- [**dedup**](dedup/v4/README.md) — Ring buffer for replay-to-live dedup in the Host
-- [**kv**](kv/v4/README.md) — Typical read-model backend for materialized projections
-- [**stack**](stack/v4/README.md) — `Materialize[V,K]` projection builder used with the Host
+- [**event**](../../event/v4/README.md) — `SeekableJournal` that the Host reads from
+- [**projection**](../../projection/v4/README.md) — `Projection` interface that workers run
+- [**watermill**](../../watermill/v4/README.md) — `CatchUpSubscriber` for live push delivery alongside the Host
+- [**dedup**](../../dedup/v4/README.md) — Ring buffer for replay-to-live dedup in the Host
+- [**kv**](../../kv/v4/README.md) — Typical read-model backend for materialized projections
+- [**stack**](../../stack/v4/README.md) — `Materialize[V,K]` projection builder used with the Host
