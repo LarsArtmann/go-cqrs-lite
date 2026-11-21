@@ -3366,6 +3366,7 @@ metaengine/tursoengine/v4/func WithMaterializedViews
 metaengine/tursoengine/v4/type Cipher
 metaengine/tursoengine/v4/type Option
 metaengine/tursoengine/v4/var ErrGroupedViewBugRefused
+metaengine/tursoengine/v4/var ErrUnknownEncryptionParam
 metaengine/v4/adttest/func AssertConcurrentScanDuringWrite
 metaengine/v4/adttest/func AssertConcurrentVectorInsert
 metaengine/v4/adttest/func AssertDedupStore

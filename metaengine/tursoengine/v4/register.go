@@ -111,6 +111,10 @@ func New(dsn string, opts ...Option) (metaengine.Engine, error) {
 
 	dsn = normalizeEmbeddedDSN(dsn)
 
+	if err := strictDSNParams(dsn); err != nil {
+		return nil, fmt.Errorf("tursoengine: %w", err)
+	}
+
 	var cfg options
 
 	for _, opt := range opts {

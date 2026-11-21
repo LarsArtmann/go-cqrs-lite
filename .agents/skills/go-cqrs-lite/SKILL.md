@@ -166,6 +166,26 @@ go-cqrs-lite has **two SSE implementations** (ADR-0091: kept separate — differ
 
 ### Catalog exports: render tree vs governance tree
 
+**Event declarations with payload generics + a converter (fleet pattern,
+profileagent 2026-11-20):** when wire-name constants already exist, declare
+through a tiny converter so the scanner and the decider share the SAME
+constant — never a string-literal copy:
+
+```go
+// skip-validate: illustrative fragment — the declarations live inside the consumer's setup func, not at package level
+func eventID(t event.Type) catalog.MessageID { return catalog.MessageID(t) }
+
+catalog.Event[ProjectFound](eventID(EvtProjectFound), catalog.Sends,
+    catalog.WithSummary("a project listing was discovered"))
+```
+
+The generic pins the payload type; the converter passes the EvtX constant
+the decider mints with (declarations cannot drift from emissions); the
+summary is consumer-facing prose the AsyncAPI/EventCatalog/D2 exports
+render. Note: older cqrs-lint builds (< v4.22) cannot resolve the
+converter and re-report E004/C040 phantoms — the standalone binary is the
+truthful oracle when the two disagree.
+
 ### The architecture reference: one file, whole catalog or redacted slice
 
 `catalog/architecture` renders the catalog as ONE self-contained `.html`
@@ -217,6 +237,15 @@ CUE subsumption check scored 22/24 on a 24-fixture fidelity spike, and both
 residual misses were false *compatible* (a `format` swap, a newly constrained
 array `items`) — the one direction a release gate must never be wrong in.
 Evidence: `docs/evidence/2026-11-02_cue-subsume-spike.md`; decision ADR-0163.
+
+## Works with
+
+Need a CLI over your CQRS stack (ops, seeding, admin tasks)? cmdguard
+(`github.com/larsartmann/cmdguard/v5`) is the fleet's typed-CLI layer: one
+subcommand per use case, DI-provided services via `v5.Provide`, and the auto
+`doctor` command surfacing the same DI health checks. The flagship pattern to
+copy is taskctl in the cmdguard repo (`examples/taskctl`); the `cmdguard`
+skill carries the full recipe.
 
 ---
 

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 
@@ -114,13 +115,7 @@ func TestLoadParentRulesConfig_IncludesImmediateParent(t *testing.T) {
 
 	got := loadParentRulesConfig(leaf)
 	has := func(rule string) bool {
-		for _, d := range got.Disable {
-			if d == rule {
-				return true
-			}
-		}
-
-		return false
+		return slices.Contains(got.Disable, rule)
 	}
 	if !has("D005") {
 		t.Errorf("grandparent disable D005 must be inherited; got %v", got.Disable)
