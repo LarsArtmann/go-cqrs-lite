@@ -125,7 +125,8 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 - [ ] **SEC dep-bump gate** — gated by **D39**: test gate so unpinned "update all" bumps cannot land with red suites. _(Effort: S, foreign)_ (07-27 §f-7/18)
 - [ ] **(repo: Zlota44) parent-shim swap remainder** — see the amended 2026-11-17 row: F030: 3, still on deleted `idempotency/v4`. _(Effort: S, foreign)_
 - [ ] **T9 port to master** — gated by **D34**; small isolated port of `tenantIDIsLegacyWireText` + rewritten tripwire (master files: `api/verify_tenant_payloads_cli.go`, `api/branded_binding_test.go`). _(Effort: S, foreign)_ (07-27 §f-37)
-- [ ] **push batches** — gated by **D33**; unpushed: browser-history master `dfe9f9f`, precheck `15ffa0e`, SEC `65685033`, InboxClean `c1f96596` (+2), gls `138520e`, Swetty `84a7352e7`+5, Zlota44 `90ffcb8`. _(Effort: owner)_ (07-27 §f-32/33/34)
+- [ ] **owner-gated plan leftovers: Q1 verify strategy (C5, 6th session carrying) · replay-vs-dedup intent (C23) · C26 fill timing** — the idempotency plan's remaining owner gates that cannot move without input; D28–D31 already live on the sheet above. _(Effort: owner)_ (07-27 §f-23/50)
+- [ ] **push batches** — gated by **D33**; unpushed: browser-history master `dfe9f9f`+`ed87c29`, precheck `15ffa0e`, SEC `65685033`, InboxClean `c1f96596` (+2), gls `138520e`, Swetty `84a7352e7`+5, Zlota44 `90ffcb8`. _(Effort: owner)_ (07-27 §f-32/33/34)
 
 ## Harvest — 2026-11-17 idempotency review + cqrs-lint truth plan (docs-health HARVEST)
 

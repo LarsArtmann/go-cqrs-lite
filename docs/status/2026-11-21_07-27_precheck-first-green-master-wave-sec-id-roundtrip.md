@@ -105,80 +105,80 @@ first time in their history.
 
 ## f) NEXT (up to 50, ordered)
 
-1. Close SEC projection: read `decider.FoldEventErr` payload path vs cbid v0.7.0 JSON symmetry;
-   fix keying (`Get()` not `String()`) in `game_state.go:49`+`:118`.
-2. Re-run SEC `server` package; fix remaining prefix-leak sites (analytics/autoplay handlers,
-   `requireParsedGameID`).
-3. Re-run SEC `tests/integration` + `cmd/cli`; fix.
-4. SEC full-suite green run (all packages).
-5. SEC repo-wide sweep for residual `.String()`→`Parse*` round-trips (incl. `e2e/`, `web/`).
-6. SEC: check whether `sec.db`/`sec.db-wal`/`test-results/` untracked junk should be gitignored.
-7. Route the SEC dep-bump aftermath: was `ac388725` ("update dependencies to latest") deliberate?
+1. ~~Close SEC projection: read `decider.FoldEventErr` payload path vs cbid v0.7.0 JSON symmetry;~~ done (docs-health pass 2026-11-21)
+   ~~fix keying (`Get()` not `String()`) in `game_state.go:49`+`:118`.~~
+2. ~~Re-run SEC `server` package; fix remaining prefix-leak sites (analytics/autoplay handlers,~~ done (docs-health pass 2026-11-21)
+   ~~`requireParsedGameID`).~~
+3. ~~Re-run SEC `tests/integration` + `cmd/cli`; fix.~~ done (docs-health pass 2026-11-21)
+4. ~~SEC full-suite green run (all packages).~~ done (docs-health pass 2026-11-21)
+5. ~~SEC repo-wide sweep for residual `.String()`→`Parse*` round-trips (incl. `e2e/`, `web/`).~~ done (docs-health pass 2026-11-21)
+6. ~~SEC: check whether `sec.db`/`sec.db-wal`/`test-results/` untracked junk should be gitignored.~~ done (docs-health pass 2026-11-21)
+7. Route the SEC dep-bump aftermath: was `ac388725` ("update dependencies to latest") deliberate? **→ TODO_LIST-D39**
    Its fallout (8+ red suites for weeks) suggests unpinned bumps need a test gate in that repo.
-8. 8d InboxClean: run the 2 labels-preservation tests; diagnose; fix at root cause.
-9. 8d InboxClean: route the gitignored-go.sum policy question (owner or TODO_LIST).
-10. cqrs-lint full 21-package suite rerun (`cd cmd/cqrs-lint/v4 && GOWORK=off go test ./... -count=1`).
-11. Fleet receipts: `bash scripts/fleet-dedup-receipt.sh` all 9 default repos; archive artifacts.
-12. Verify the receipts show the re-bind fix working fleet-wide (warning + per-repo configs).
-13. Item 6 harvest: load docs-health skill; harvest this + 02-27 §f remainder into TODO_LIST.
-14. Harvest: dependabot owner-ping row (8+ days stale, 138/139 open).
-15. Harvest: templ-era matrix CORRECTION row (the 02-27 knowledge was partly wrong).
-16. Harvest: T9 design divergence row (master accept-convergence vs wire-shape detection).
-17. Harvest: cqrs-htmx v4.16-wave migration row for remaining fleet consumers (loginpage/adminui
+8. ~~8d InboxClean: run the 2 labels-preservation tests; diagnose; fix at root cause.~~ done (docs-health pass 2026-11-21)
+9. 8d InboxClean: route the gitignored-go.sum policy question (owner or TODO_LIST). **→ D37**
+10. ~~cqrs-lint full 21-package suite rerun (`cd cmd/cqrs-lint/v4 && GOWORK=off go test ./... -count=1`).~~ done (docs-health pass 2026-11-21)
+11. ~~Fleet receipts: `bash scripts/fleet-dedup-receipt.sh` all 9 default repos; archive artifacts.~~ done (docs-health pass 2026-11-21)
+12. ~~Verify the receipts show the re-bind fix working fleet-wide (warning + per-repo configs).~~ done (docs-health pass 2026-11-21)
+13. ~~Item 6 harvest: load docs-health skill; harvest this + 02-27 §f remainder into TODO_LIST.~~ done (docs-health pass 2026-11-21)
+14. Harvest: dependabot owner-ping row (8+ days stale, 138/139 open). **→ TODO_LIST-2026-11-21-harvest**
+15. Harvest: templ-era matrix CORRECTION row (the 02-27 knowledge was partly wrong). **→ TODO_LIST-2026-11-21-harvest**
+16. Harvest: T9 design divergence row (master accept-convergence vs wire-shape detection). **→ D34**
+17. Harvest: cqrs-htmx v4.16-wave migration row for remaining fleet consumers (loginpage/adminui **→ TODO_LIST-2026-11-21-harvest**
     old pins elsewhere?).
-18. Harvest: SEC dep-bump gate row.
-19. Harvest: evidence §1.1 tick — the cwd-preset footgun is now FIXED (re-bind shipped `8aaa19d9c`).
-20. Owner decision sheet: push blessing (now 20+ unpushed commits across ≥4 repos, two suites
+18. Harvest: SEC dep-bump gate row. **→ D39**
+19. Harvest: evidence §1.1 tick — the cwd-preset footgun is now FIXED (re-bind shipped `8aaa19d9c`). **→ evidence-baseline-§6b**
+20. Owner decision sheet: push blessing (now 20+ unpushed commits across ≥4 repos, two suites **→ D33**
     first-time-green).
-21. Owner decision sheet: retroactive blessing of the v4.16 wave bump on browser-history master.
-22. Owner decision sheet: T9 wire-shape detection port to master (yes/no).
-23. Owner decision sheet: Q1 verify strategy (C5, 6th session carrying); replay-vs-dedup (C23);
+21. Owner decision sheet: retroactive blessing of the v4.16 wave bump on browser-history master. **→ D35**
+22. Owner decision sheet: T9 wire-shape detection port to master (yes/no). **→ D34**
+23. Owner decision sheet: Q1 verify strategy (C5, 6th session carrying); replay-vs-dedup (C23); **→ TODO_LIST owner-gated plan leftovers row (Q1 · C23 · C26)**
     D28–D31 gates; C26 fill timing.
-24. browser-history: CHANGELOG/FEATURES rows for the wave migration + T9 story (its own repo
-    conventions).
-25. precheck worktree disposition: its verification purpose is served; owner may want it dropped
+24. ~~browser-history: CHANGELOG/FEATURES rows for the wave migration + T9 story (its own repo~~ done (docs-health pass 2026-11-21)
+    ~~conventions).~~
+25. precheck worktree disposition: its verification purpose is served; owner may want it dropped **→ D36**
     (detached HEAD, unpushed) — do NOT delete without instruction.
-26. `go.work`/gls disposition row (carried from 02-27 §f).
-27. Check whether cqrs-htmx v4.16.0+ tags need a release-notes/CHANGELOG cross-ref in the fleet
+26. `go.work`/gls disposition row (carried from 02-27 §f). **→ D38**
+27. Check whether cqrs-htmx v4.16.0+ tags need a release-notes/CHANGELOG cross-ref in the fleet **→ TODO_LIST-cqrs-htmx-row**
     docs (the wave solved browser-history; document the era matrix).
-28. go-cqrs-lite guardrail spot-check after all fleet work: `check-md-go`, `lint-scope` for
-    touched modules (none touched in THIS repo this session — likely clean).
-29. Confirm M-wave session state before any go-cqrs-lite commit (their files may still ride the
-    index — cached-diff check protocol).
-30. Update this repo's `docs/evidence/2026-11-20_fleet-idempotency-baseline.md` §6 ledger with
-    the new commits (precheck ×4 daemon, master `dfe9f9f`, SEC `059ef997`+).
-31. Update `docs/evidence/2026-11-21_fleet-dedup-bundle-receipts.md` §1 with the new repo states.
-32. TODO_LIST row: browser-history precheck/master unpushed — awaiting push blessing.
-33. TODO_LIST row: SEC unpushed — awaiting push blessing.
-34. Re-check InboxClean "ahead 2" + Swetty "ahead 5" push states for the same blessing batch.
-35. Session-close: `git status` all touched repos; ensure no foreign files staged anywhere.
-36. Session-close: reconcile TODO_LIST statuses (8a done, 8b done, 8c partial, 8d pending).
-37. If owner blesses T9 port: port `tenantIDIsLegacyWireText` + tests to master (small, isolated).
-38. If owner blesses push: push order = browser-history master → precheck (or drop) → SEC → others.
-39. Consider a cqrs-htmx doc note: "consuming the v4.16 wave requires templ ≥ v0.3.1100 regen"
+28. ~~go-cqrs-lite guardrail spot-check after all fleet work: `check-md-go`, `lint-scope` for~~ done (docs-health pass 2026-11-21)
+    ~~touched modules (none touched in THIS repo this session — likely clean).~~
+29. ~~Confirm M-wave session state before any go-cqrs-lite commit (their files may still ride the~~ done (docs-health pass 2026-11-21)
+    ~~index — cached-diff check protocol).~~
+30. ~~Update this repo's `docs/evidence/2026-11-20_fleet-idempotency-baseline.md` §6 ledger with~~ done (docs-health pass 2026-11-21)
+    ~~the new commits (precheck ×4 daemon, master `dfe9f9f`, SEC `059ef997`+).~~
+31. ~~Update `docs/evidence/2026-11-21_fleet-dedup-bundle-receipts.md` §1 with the new repo states.~~ done (docs-health pass 2026-11-21)
+32. TODO_LIST row: browser-history precheck/master unpushed — awaiting push blessing. **→ D33**
+33. TODO_LIST row: SEC unpushed — awaiting push blessing. **→ D33**
+34. Re-check InboxClean "ahead 2" + Swetty "ahead 5" push states for the same blessing batch. **→ D33**
+35. ~~Session-close: `git status` all touched repos; ensure no foreign files staged anywhere.~~ done (docs-health pass 2026-11-21)
+36. ~~Session-close: reconcile TODO_LIST statuses (8a done, 8b done, 8c partial, 8d pending).~~ done (docs-health pass 2026-11-21)
+37. If owner blesses T9 port: port `tenantIDIsLegacyWireText` + tests to master (small, isolated). **→ D34**
+38. If owner blesses push: push order = browser-history master → precheck (or drop) → SEC → others. **→ D33**
+39. Consider a cqrs-htmx doc note: "consuming the v4.16 wave requires templ ≥ v0.3.1100 regen" **→ TODO_LIST-cqrs-htmx-row**
     (the era matrix that cost this session hours).
-40. SEC: `FoldEvents` in `shared/fold.go` still decodes with `encoding/json/v2` — confirm every
-    publish path pre-marshals JSON (app init sets `event.DefaultCodec = JSONCodec`) or the
-    production replay has the same CBOR/JSON mismatch the eventtest package documents.
-41. Check SEC `mustParseGameID` callers all pass types with `Get()` (compile-verified, but confirm
-    none pass a display-only stringer).
-42. Fuzz/canary: browser-history master now runs go-codec v0.3.3 — any golden payload fixtures in
-    its repo needing regeneration (check `docs/drafts/templ-components_errorpage-shell-hook…`
-    class TODOs while there).
-43. Race spot-check on browser-history api (`-race` on the login/passkeys subset) — first-time
-    green suites deserve one race pass.
-44. Race spot-check SEC app package after it goes green.
-45. Confirm the `mesh-demo` untracked dir in go-cqrs-lite belongs to the M-wave session (do not
-    touch; flag in harvest if still unowned).
-46. Nightly versions gate (`check-versions-manifest.sh`) unaffected — verify no drift after all
-    this (fleet-side bumps don't touch this repo's manifest).
-47. If the M-wave session has landed more go-cqrs-lite commits by next session, rebase NOTHING —
-    read their report first.
-48. Consider `brandid-lint` BD-style rule for SEC's own code: flag `X.String()` feeding
+40. ~~SEC: `FoldEvents` in `shared/fold.go` still decodes with `encoding/json/v2` — confirm every~~ done (docs-health pass 2026-11-21)
+    ~~publish path pre-marshals JSON (app init sets `event.DefaultCodec = JSONCodec`) or the~~
+    ~~production replay has the same CBOR/JSON mismatch the eventtest package documents.~~
+41. ~~Check SEC `mustParseGameID` callers all pass types with `Get()` (compile-verified, but confirm~~ done (docs-health pass 2026-11-21)
+    ~~none pass a display-only stringer).~~
+42. ~~Fuzz/canary: browser-history master now runs go-codec v0.3.3 — any golden payload fixtures in~~ done (docs-health pass 2026-11-21)
+    ~~its repo needing regeneration (check `docs/drafts/templ-components_errorpage-shell-hook…`~~
+    ~~class TODOs while there).~~
+43. ~~Race spot-check on browser-history api (`-race` on the login/passkeys subset) — first-time~~ done (docs-health pass 2026-11-21)
+    ~~green suites deserve one race pass.~~
+44. ~~Race spot-check SEC app package after it goes green.~~ done (docs-health pass 2026-11-21)
+45. ~~Confirm the `mesh-demo` untracked dir in go-cqrs-lite belongs to the M-wave session (do not~~ done (docs-health pass 2026-11-21)
+    ~~touch; flag in harvest if still unowned).~~
+46. ~~Nightly versions gate (`check-versions-manifest.sh`) unaffected — verify no drift after all~~ done (docs-health pass 2026-11-21)
+    ~~this (fleet-side bumps don't touch this repo's manifest).~~
+47. ~~If the M-wave session has landed more go-cqrs-lite commits by next session, rebase NOTHING —~~ done (docs-health pass 2026-11-21)
+    ~~read their report first.~~
+48. Consider `brandid-lint` BD-style rule for SEC's own code: flag `X.String()` feeding **→ TODO_LIST-brandid-row**
     `ParseX(...)` — the exact class that broke it (may exist upstream already).
-49. Capture the "daemon absorbs within minutes — pre-write commit messages" lesson in
-    `docs/agents/gotchas-module-management.md` (tag-wave section) at harvest time.
-50. Rest: the remaining §f owner-gated items (D28–D31, Q1, C23, C25, C26) cannot move without
+49. ~~Capture the "daemon absorbs within minutes — pre-write commit messages" lesson in~~ done (docs-health pass 2026-11-21)
+    ~~`docs/agents/gotchas-module-management.md` (tag-wave section) at harvest time.~~
+50. Rest: the remaining §f owner-gated items (D28–D31, Q1, C23, C25, C26) cannot move without **→ TODO_LIST owner-gated plan leftovers row**
     owner input — list them at the top of the next session's context.
 
 ## g) QUESTIONS (cannot resolve myself)
