@@ -158,21 +158,21 @@ func (t *QuicTransport) relayToOthers(sourcePeerID string, op irohengine.WriteOp
 
 	var targets []*peerConn
 
-	for id, pc := range t.conns {
+	for id, peer := range t.conns {
 		if id != sourcePeerID {
-			targets = append(targets, pc)
+			targets = append(targets, peer)
 		}
 	}
 
 	t.mu.RUnlock()
 
-	for _, pc := range targets {
-		go func(pc *peerConn) {
+	for _, peer := range targets {
+		go func(peer *peerConn) {
 			if t.cfg.poolStreams {
-				t.sendOpPooled(pc, data)
+				t.sendOpPooled(peer, data)
 			} else {
-				t.sendOp(pc.conn, data)
+				t.sendOp(peer.conn, data)
 			}
-		}(pc)
+		}(peer)
 	}
 }

@@ -27,6 +27,13 @@ var DefaultALPN = []byte("irohengine/crdt/v1")
 // 16 MB is generous for CRDT ops while preventing memory exhaustion.
 const maxOpSize = 16 * 1024 * 1024
 
+// ackReadLimit bounds the bytes read from a write-ack stream (the ack is
+// empty; the budget only drains the stream cleanly).
+const ackReadLimit = 1024
+
+// closeTimeout bounds the shutdown wait for in-flight stream sends.
+const closeTimeout = 5 * time.Second
+
 // rttWindowSize is how many RTT samples we keep for percentile computation.
 const rttWindowSize = 256
 
@@ -90,7 +97,7 @@ func New(opts ...Option) (*QuicTransport, error) {
 	preset := cfg.presetFn()
 	bindAddr := cfg.bindAddr
 
-	ep, err := iroh_ffi.EndpointBind(iroh_ffi.EndpointOptions{
+	endpoint, err := iroh_ffi.EndpointBind(iroh_ffi.EndpointOptions{
 		Preset:   &preset,
 		BindAddr: &bindAddr,
 		Alpns:    &[][]byte{cfg.alpn},
@@ -100,7 +107,7 @@ func New(opts ...Option) (*QuicTransport, error) {
 	}
 
 	t := &QuicTransport{
-		endpoint:  ep,
+		endpoint:  endpoint,
 		alpn:      cfg.alpn,
 		cfg:       cfg,
 		conns:     make(map[string]*peerConn),
@@ -229,17 +236,17 @@ func (t *QuicTransport) Publish(_ context.Context, op irohengine.WriteOp) error 
 	}
 
 	var wg sync.WaitGroup
-	for _, pc := range peers {
+	for _, peer := range peers {
 		wg.Add(1)
-		go func(pc *peerConn) {
+		go func(peer *peerConn) {
 			defer wg.Done()
 
 			if t.cfg.poolStreams {
-				t.sendOpPooled(pc, data)
+				t.sendOpPooled(peer, data)
 			} else {
-				t.sendOp(pc.conn, data)
+				t.sendOp(peer.conn, data)
 			}
-		}(pc)
+		}(peer)
 	}
 
 	wg.Wait()
@@ -277,7 +284,7 @@ func (t *QuicTransport) sendOp(conn *iroh_ffi.Connection, data []byte) {
 	}
 
 	// Read response (empty ack) to complete the stream cleanly
-	_, _ = stream.Recv().ReadToEnd(1024)
+	_, _ = stream.Recv().ReadToEnd(ackReadLimit)
 }
 
 // Subscribe implements irohengine.Transport. Registers a handler that is
@@ -304,17 +311,17 @@ func (t *QuicTransport) Close() error {
 	t.closed = true
 
 	conns := make([]*iroh_ffi.Connection, 0, len(t.conns))
-	for _, pc := range t.conns {
-		conns = append(conns, pc.conn)
+	for _, peer := range t.conns {
+		conns = append(conns, peer.conn)
 		// Clean up pooled streams
 		if t.cfg.poolStreams {
-			pc.streamMu.Lock()
-			if pc.stream != nil {
-				_ = pc.stream.Send().Finish()
-				pc.stream.Destroy()
-				pc.stream = nil
+			peer.streamMu.Lock()
+			if peer.stream != nil {
+				_ = peer.stream.Send().Finish()
+				peer.stream.Destroy()
+				peer.stream = nil
 			}
-			pc.streamMu.Unlock()
+			peer.streamMu.Unlock()
 		}
 	}
 	t.mu.Unlock()
@@ -335,7 +342,7 @@ func (t *QuicTransport) Close() error {
 
 	select {
 	case <-done:
-	case <-time.After(5 * time.Second):
+	case <-time.After(closeTimeout):
 	}
 
 	return nil

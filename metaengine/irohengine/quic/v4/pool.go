@@ -23,7 +23,7 @@ const pooledStreamMagic byte = 0x50
 // framing, then reads a minimal ack. The persistent stream is opened lazily on
 // first use and reused for all subsequent ops to the same peer.
 //
-// Ordering: the entire write-frame → read-ack cycle runs under pc.streamMu, so
+// Ordering: the entire write-frame → read-ack cycle runs under peer.streamMu, so
 // ops to a given peer are strictly FIFO — op N is acked by the receiver before
 // op N+1's frame is written. Combined with QUIC's in-order per-stream delivery
 // and handlePooledStream's sequential frame loop, this is a full per-peer
@@ -33,80 +33,80 @@ const pooledStreamMagic byte = 0x50
 // a fresh stream — self-healing after connection resets or transient failures.
 // Note: the op whose stream errored is silently dropped (no retry, no error
 // surfaced to Publish callers) — identical loss semantics to sendOp.
-func (t *QuicTransport) sendOpPooled(pc *peerConn, data []byte) {
-	pc.streamMu.Lock()
-	defer pc.streamMu.Unlock()
+func (t *QuicTransport) sendOpPooled(peer *peerConn, data []byte) {
+	peer.streamMu.Lock()
+	defer peer.streamMu.Unlock()
 
-	if pc.stream == nil {
-		stream, err := pc.conn.OpenBi()
+	if peer.stream == nil {
+		stream, err := peer.conn.OpenBi()
 		if err != nil {
 			slog.Warn("quic sendOpPooled: OpenBi failed",
-				slog.String("peer", pc.peerID), slog.Any("err", err))
+				slog.String("peer", peer.peerID), slog.Any("err", err))
 
 			return
 		}
 
-		pc.stream = stream
-		pc.streamsOpened.Add(1)
+		peer.stream = stream
+		peer.streamsOpened.Add(1)
 
 		// Write magic byte so the receiver can detect protocol mismatch
 		// (pooled sender to non-pooled receiver would otherwise silently hang).
-		if err := pc.stream.Send().WriteAll([]byte{pooledStreamMagic}); err != nil {
-			t.evictPooledStream(pc)
+		if err := peer.stream.Send().WriteAll([]byte{pooledStreamMagic}); err != nil {
+			t.evictPooledStream(peer)
 
 			return
 		}
 	}
 
 	// Write frame: [4-byte length][payload]
-	if err := pc.stream.Send().WriteAll(frameHeader(len(data))); err != nil {
-		t.evictPooledStream(pc)
+	if err := peer.stream.Send().WriteAll(frameHeader(len(data))); err != nil {
+		t.evictPooledStream(peer)
 
 		return
 	}
 
-	if err := pc.stream.Send().WriteAll(data); err != nil {
-		t.evictPooledStream(pc)
+	if err := peer.stream.Send().WriteAll(data); err != nil {
+		t.evictPooledStream(peer)
 
 		return
 	}
 
 	// Read ack frame: [4-byte length][payload]
-	ackHeader, err := pc.stream.Recv().ReadExact(frameHeaderSize)
+	ackHeader, err := peer.stream.Recv().ReadExact(frameHeaderSize)
 	if err != nil {
-		t.evictPooledStream(pc)
+		t.evictPooledStream(peer)
 
 		return
 	}
 
 	ackSize, err := parseFrameHeader(ackHeader)
 	if err != nil {
-		t.evictPooledStream(pc)
+		t.evictPooledStream(peer)
 
 		return
 	}
 
 	if ackSize > 0 {
-		if _, err := pc.stream.Recv().ReadExact(ackSize); err != nil {
-			t.evictPooledStream(pc)
+		if _, err := peer.stream.Recv().ReadExact(ackSize); err != nil {
+			t.evictPooledStream(peer)
 
 			return
 		}
 	}
 
 	// Record real RTT from QUIC's ACK timing
-	if rtt := pc.conn.Rtt(); rtt != nil {
+	if rtt := peer.conn.Rtt(); rtt != nil {
 		t.recordRTT(time.Duration(*rtt))
 	}
 }
 
 // evictPooledStream closes and nils the pooled stream so the next sendOpPooled
-// call opens a fresh one. Called under pc.streamMu.
-func (t *QuicTransport) evictPooledStream(pc *peerConn) {
-	if pc.stream != nil {
-		_ = pc.stream.Send().Finish()
-		pc.stream.Destroy()
-		pc.stream = nil
+// call opens a fresh one. Called under peer.streamMu.
+func (t *QuicTransport) evictPooledStream(peer *peerConn) {
+	if peer.stream != nil {
+		_ = peer.stream.Send().Finish()
+		peer.stream.Destroy()
+		peer.stream = nil
 	}
 }
 

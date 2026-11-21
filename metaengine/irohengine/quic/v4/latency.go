@@ -31,10 +31,13 @@ func (t *QuicTransport) LatencySnapshot() irohengine.LatencySnapshot {
 
 	return irohengine.LatencySnapshot{
 		DeliveryP50:    rtt / 2, // one-way approx RTT/2
-		DeliveryP99:    sorted[irohengine.PercentileIdx(len(sorted), 0.99)] / 2,
-		ConvergenceP99: sorted[irohengine.PercentileIdx(len(sorted), 0.99)],
+		DeliveryP99:    sorted[irohengine.PercentileIdx(len(sorted), percentileP99)] / 2,
+		ConvergenceP99: sorted[irohengine.PercentileIdx(len(sorted), percentileP99)],
 	}
 }
+
+// percentileP99 is the percentile used for delivery/convergence snapshots.
+const percentileP99 = 0.99
 
 func (t *QuicTransport) recordRTT(d time.Duration) {
 	t.rttMu.Lock()
@@ -85,27 +88,27 @@ func decodeOp(data []byte) (irohengine.WriteOp, error) {
 // (major type 1) decode into int64. This normalizer restores Go int semantics
 // so consumers get back the same types they put in.
 func normalizeAny(v any) any {
-	switch x := v.(type) {
+	switch decoded := v.(type) {
 	case uint64:
-		if x <= math.MaxInt64 {
-			return int(x)
+		if decoded <= math.MaxInt64 {
+			return int(decoded)
 		}
 
-		return x
+		return decoded
 	case int64:
-		return int(x)
+		return int(decoded)
 	case []any:
-		for i, elem := range x {
-			x[i] = normalizeAny(elem)
+		for i, elem := range decoded {
+			decoded[i] = normalizeAny(elem)
 		}
 
-		return x
+		return decoded
 	case map[string]any:
-		for k, elem := range x {
-			x[k] = normalizeAny(elem)
+		for k, elem := range decoded {
+			decoded[k] = normalizeAny(elem)
 		}
 
-		return x
+		return decoded
 	default:
 		return v
 	}

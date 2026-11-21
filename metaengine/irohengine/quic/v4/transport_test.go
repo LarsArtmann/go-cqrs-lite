@@ -90,8 +90,8 @@ type quicCluster struct {
 
 // setupTwoNodeQuic creates two connected QuicTransport nodes with engines.
 func setupTwoNodeQuic(t *testing.T) (
-	nodeA, nodeB metaengine.Engine,
-	tA, tB *quic.QuicTransport,
+	metaengine.Engine, metaengine.Engine,
+	*quic.QuicTransport, *quic.QuicTransport,
 ) {
 	t.Helper()
 	g := gomega.NewWithT(t)
@@ -99,15 +99,15 @@ func setupTwoNodeQuic(t *testing.T) (
 	tA, err := quic.New(quic.WithLocalOnly())
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
-	tB, err = quic.New(quic.WithLocalOnly())
+	tB, err := quic.New(quic.WithLocalOnly())
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
-	nodeA = irohengine.Replicated(
+	nodeA := irohengine.Replicated(
 		metaengine.NewMemoryEngine(),
 		irohengine.WithAuthor("node-a"),
 		irohengine.WithTransport(tA),
 	)
-	nodeB = irohengine.Replicated(
+	nodeB := irohengine.Replicated(
 		metaengine.NewMemoryEngine(),
 		irohengine.WithAuthor("node-b"),
 		irohengine.WithTransport(tB),
@@ -272,8 +272,8 @@ func TestQuicMapUpdateDoesNotReplicate(t *testing.T) {
 // BiStream pooling (WithStreamPooling) on both transports. This exercises the
 // length-prefix framing protocol instead of the default one-stream-per-op mode.
 func setupTwoNodeQuicPooled(t *testing.T) (
-	nodeA, nodeB metaengine.Engine,
-	tA, tB *quic.QuicTransport,
+	metaengine.Engine, metaengine.Engine,
+	*quic.QuicTransport, *quic.QuicTransport,
 ) {
 	t.Helper()
 	g := gomega.NewWithT(t)
@@ -281,15 +281,15 @@ func setupTwoNodeQuicPooled(t *testing.T) (
 	tA, err := quic.New(quic.WithLocalOnly(), quic.WithStreamPooling())
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
-	tB, err = quic.New(quic.WithLocalOnly(), quic.WithStreamPooling())
+	tB, err := quic.New(quic.WithLocalOnly(), quic.WithStreamPooling())
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
-	nodeA = irohengine.Replicated(
+	nodeA := irohengine.Replicated(
 		metaengine.NewMemoryEngine(),
 		irohengine.WithAuthor("node-a"),
 		irohengine.WithTransport(tA),
 	)
-	nodeB = irohengine.Replicated(
+	nodeB := irohengine.Replicated(
 		metaengine.NewMemoryEngine(),
 		irohengine.WithAuthor("node-b"),
 		irohengine.WithTransport(tB),

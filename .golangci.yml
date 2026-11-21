@@ -376,6 +376,9 @@ linters:
         - github.com/cockroachdb/pebble\.EventStore
         - github.com/fxamacker/cbor/v2\.EncOptions
         - github.com/fxamacker/cbor/v2\.DecOptions
+        # iroh-go driver option structs: zero-value fields are the driver's
+        # documented defaults (same class as the pebble/badger options).
+        - git\.coopcloud\.tech/decentral1se/iroh-go\.EndpointOptions
         - go.etcd.io/bbolt\.KVAdapter
         - github.com/larsartmann/go-cqrs-lite/storage/turso/v4\.TursoSyncDbConfig
         - github.com/larsartmann/go-cqrs-lite/storage/turso/v4/indexing\.AutoIndexer
@@ -775,8 +778,12 @@ linters:
           - gocyclo
       # loopback's CBOR codec modes are the fxamacker package-level idiom
       # (build EncMode/DecMode once — per-call construction is the anti-
-      # pattern the library documents).
+      # pattern the library documents). quic's opEncMode/opDecMode are the
+      # same idiom; DefaultALPN is the package's protocol-constant API.
       - path: metaengine/irohengine/loopback/v4/(conn|transport)\.go$
+        linters:
+          - gochecknoglobals
+      - path: metaengine/irohengine/quic/v4/(latency|transport)\.go$
         linters:
           - gochecknoglobals
       # core/v5 carries the v4-mirror twins deliberately (D32 ruling:

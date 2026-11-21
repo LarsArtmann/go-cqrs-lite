@@ -26,18 +26,46 @@ func main() {
 
 	switch *mode {
 	case "coordinator":
-		runCoordinator(*waitFor, *writeCount)
+		if err := runCoordinator(*waitFor, *writeCount); err != nil {
+			fmt.Fprintf(os.Stderr, "ERROR: %v\n", err)
+			os.Exit(1)
+		}
 	case "node":
 		if *ticket == "" {
 			fmt.Fprintln(os.Stderr, "ERROR: --ticket is required for node mode")
 			os.Exit(1)
 		}
 
-		runNode(*ticket, *writeCount)
+		if err := runNode(*ticket, *writeCount); err != nil {
+			fmt.Fprintf(os.Stderr, "ERROR: %v\n", err)
+			os.Exit(1)
+		}
 	default:
 		printUsage()
 		os.Exit(1)
 	}
+}
+
+// nodesMissingError reports the coordinator's node-wait timeout with the
+// observed peer count.
+type nodesMissingError struct {
+	got  int
+	want int
+}
+
+func (e nodesMissingError) Error() string {
+	return fmt.Sprintf("timeout waiting for nodes (got %d/%d)", e.got, e.want)
+}
+
+// backendOf asserts a backend capability, panicking with the engine's type
+// (the demo wires engines that implement every backend — a miss is a bug).
+func backendOf[T any](e metaengine.Engine) T {
+	backend, ok := e.(T)
+	if !ok {
+		panic(fmt.Sprintf("engine %T does not implement %T", e, backend))
+	}
+
+	return backend
 }
 
 func printUsage() {
@@ -62,27 +90,25 @@ func printUsage() {
 	)
 }
 
-func runCoordinator(waitFor, writeCount int) {
+func runCoordinator(waitFor, writeCount int) error {
 	ctx := context.Background()
 
 	transport, err := quic.New(quic.WithLocalOnly(), quic.WithRelay())
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "ERROR: bind failed: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("bind failed: %w", err)
 	}
-	defer transport.Close()
+	defer func() { _ = transport.Close() }()
 
 	engine := irohengine.Replicated(
 		metaengine.NewMemoryEngine(),
 		irohengine.WithAuthor("coordinator"),
 		irohengine.WithTransport(transport),
 	)
-	defer engine.Close()
+	defer func() { _ = engine.Close() }()
 
 	ticket, err := transport.Ticket()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "ERROR: ticket failed: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("ticket failed: %w", err)
 	}
 
 	fmt.Println("═══════════════════════════════════════════════════════════")
@@ -106,9 +132,9 @@ func runCoordinator(waitFor, writeCount int) {
 	}
 
 	if transport.PeerCount() < waitFor {
-		fmt.Fprintf(os.Stderr, "ERROR: timeout waiting for nodes (got %d/%d)\n",
-			transport.PeerCount(), waitFor)
-		os.Exit(1)
+		return nodesMissingError{
+			got: transport.PeerCount(), want: waitFor,
+		}
 	}
 
 	fmt.Printf("  ✓ %d node(s) connected!\n\n", transport.PeerCount())
@@ -121,7 +147,7 @@ func runCoordinator(waitFor, writeCount int) {
 		key := fmt.Sprintf("coord-key-%d", i)
 
 		val := fmt.Sprintf("value-from-coordinator-%d", i)
-		if err := engine.(metaengine.MapBackend).MapSet(ctx, "demo", key, val); err != nil {
+		if err := backendOf[metaengine.MapBackend](engine).MapSet(ctx, "demo", key, val); err != nil {
 			fmt.Fprintf(os.Stderr, "ERROR: MapSet %s: %v\n", key, err)
 		}
 
@@ -144,24 +170,25 @@ func runCoordinator(waitFor, writeCount int) {
 	fmt.Println("  Coordinator running. Waiting for SIGINT/SIGTERM to exit...")
 	fmt.Println("═══════════════════════════════════════════════════════════")
 	waitForSignal()
+
+	return nil
 }
 
-func runNode(ticket string, writeCount int) {
+func runNode(ticket string, writeCount int) error {
 	ctx := context.Background()
 
 	transport, err := quic.New(quic.WithLocalOnly())
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "ERROR: bind failed: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("bind failed: %w", err)
 	}
-	defer transport.Close()
+	defer func() { _ = transport.Close() }()
 
 	engine := irohengine.Replicated(
 		metaengine.NewMemoryEngine(),
 		irohengine.WithAuthor("node"),
 		irohengine.WithTransport(transport),
 	)
-	defer engine.Close()
+	defer func() { _ = engine.Close() }()
 
 	fmt.Println("═══════════════════════════════════════════════════════════")
 	fmt.Println("  Iroh QUIC Demo — Node (real QUIC networking)")
@@ -171,8 +198,7 @@ func runNode(ticket string, writeCount int) {
 	fmt.Println("  Connecting to coordinator...")
 
 	if err := transport.Connect(ticket); err != nil {
-		fmt.Fprintf(os.Stderr, "ERROR: connect failed: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("connect failed: %w", err)
 	}
 
 	time.Sleep(500 * time.Millisecond)
@@ -186,7 +212,7 @@ func runNode(ticket string, writeCount int) {
 		key := fmt.Sprintf("node-key-%d", i)
 
 		val := fmt.Sprintf("value-from-node-%d", i)
-		if err := engine.(metaengine.MapBackend).MapSet(ctx, "demo", key, val); err != nil {
+		if err := backendOf[metaengine.MapBackend](engine).MapSet(ctx, "demo", key, val); err != nil {
 			fmt.Fprintf(os.Stderr, "ERROR: MapSet %s: %v\n", key, err)
 		}
 
@@ -209,6 +235,8 @@ func runNode(ticket string, writeCount int) {
 	fmt.Println("  Node running. Waiting for SIGINT/SIGTERM to exit...")
 	fmt.Println("═══════════════════════════════════════════════════════════")
 	waitForSignal()
+
+	return nil
 }
 
 // formatDuration renders a time.Duration with honest labeling for localhost.
@@ -234,9 +262,9 @@ func waitForSignal() {
 }
 
 func printMapContents(ctx context.Context, engine metaengine.Engine, collection string) {
-	scanResult, err := engine.(metaengine.ScanBackend).MapScan(
+	scanResult, err := backendOf[metaengine.ScanBackend](engine).MapScan(
 		ctx, collection,
-		func(item any) bool { return true },
+		func(any) bool { return true },
 		nil, nil, 100,
 	)
 	if err != nil {
