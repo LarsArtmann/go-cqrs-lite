@@ -12,6 +12,9 @@ import (
 // txMarker keys the context value carrying the active transaction.
 type txMarker struct{}
 
+// errNestedTx rejects RunInTx calls made from inside another RunInTx.
+var errNestedTx = errors.New("pgengine.RunInTx: nested transactions are not supported")
+
 // conn returns the ambient transaction when ctx descends from a RunInTx
 // callback, otherwise the engine's *sql.DB. Transaction affinity flows
 // through the context — never engine-global state.
@@ -72,7 +75,7 @@ func txFromCtx(ctx context.Context) *sql.Tx {
 // from sqliteengine 22ab7b218, 2026-09-20). A nested RunInTx is rejected.
 func (e *pgEngine) RunInTx(ctx context.Context, fn func(context.Context) error) error {
 	if ctx.Value(txMarker{}) != nil {
-		return errors.New("pgengine.RunInTx: nested transactions are not supported")
+		return errNestedTx
 	}
 
 	e.mu.Lock()

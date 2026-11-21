@@ -85,7 +85,7 @@ func (e *pgEngine) copyAppend(ctx context.Context, col, sid string, values []any
 		}
 
 		if copied != int64(len(values)) {
-			return fmt.Errorf("pgengine.copyAppend: copied %d of %d rows", copied, len(values))
+			return fmt.Errorf("%w: %d of %d rows", errCopyCountMismatch, copied, len(values))
 		}
 
 		return nil
@@ -101,6 +101,14 @@ func (e *pgEngine) copyAppend(ctx context.Context, col, sid string, values []any
 // 11 bound params per row x 5000 rows = 55000 params, below Postgres'
 // 65535-parameter limit.
 const streamAppendRowsPerStmt = 5000
+
+// streamLogRowWidth is the column count of one meta_stream_log tuple
+// (three historical columns + eight typed WAL columns).
+const streamLogRowWidth = 11
+
+// errCopyCountMismatch reports a COPY that acknowledged fewer rows than
+// were submitted.
+var errCopyCountMismatch = errors.New("pgengine.copyAppend: copied row count mismatch")
 
 // typedCopyRow builds the 11-column tuple for one stream-log row: the three
 // historical columns plus the typed WAL columns extracted from the event
@@ -142,7 +150,7 @@ func streamInsertBatch(
 		chunk := values[start:end]
 
 		var sb strings.Builder
-		args := make([]any, 0, len(chunk)*11)
+		args := make([]any, 0, len(chunk)*streamLogRowWidth)
 
 		sb.WriteString(`INSERT INTO meta_stream_log
 			(collection, stream_id, value, event_id, stream_type, version, schema_version,
@@ -153,10 +161,15 @@ func streamInsertBatch(
 				sb.WriteByte(',')
 			}
 
-			base := i * 11
-			fmt.Fprintf(&sb, "($%d,$%d,$%d,$%d,$%d,$%d,$%d,$%d,$%d,$%d,$%d)",
-				base+1, base+2, base+3, base+4, base+5, base+6,
-				base+7, base+8, base+9, base+10, base+11)
+			base := i * streamLogRowWidth
+			sb.WriteByte('(')
+			for j := 1; j <= streamLogRowWidth; j++ {
+				if j > 1 {
+					sb.WriteByte(',')
+				}
+				fmt.Fprintf(&sb, "$%d", base+j)
+			}
+			sb.WriteByte(')')
 
 			args = append(args, typedCopyRow(col, sid, encodedValues[start+i])...)
 		}

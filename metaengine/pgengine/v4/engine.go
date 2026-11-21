@@ -54,6 +54,10 @@ import (
 // batch writes amortize the fsync to ~3,375 ns/row (BenchmarkCalibration_Postgres_BatchInsert).
 const PG_NsPerOp = 12000.0
 
+// counterTupleStride is the placeholder stride of one (collection, key,
+// delta) upsert tuple in CounterIncrement.
+const counterTupleStride = 3
+
 // PG_NsPerRead is the calibrated per-read cost.
 // Models production Postgres (B-tree index + buffer cache hit).
 // Docker testcontainer benchmarks measured ~28K ns/op (network overhead).
@@ -308,10 +312,10 @@ func (e *pgEngine) CounterIncrement(
 	sort.Strings(keys) // deterministic placeholder ordering
 
 	placeholders := make([]string, len(keys))
-	args := make([]any, 0, len(keys)*3)
+	args := make([]any, 0, len(keys)*counterTupleStride)
 
 	for i, key := range keys {
-		base := i*3 + 1
+		base := i*counterTupleStride + 1
 		placeholders[i] = fmt.Sprintf("($%d, $%d, $%d)", base, base+1, base+2)
 		args = append(args, col, key, deltas[key])
 	}

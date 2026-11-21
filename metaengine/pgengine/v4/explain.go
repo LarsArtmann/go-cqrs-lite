@@ -99,41 +99,7 @@ func (e *pgEngine) ExplainAggregateQuery(
 	args := []any{collection}
 
 	// Determine SELECT clause.
-	if opts.Distinct != "" {
-		fmt.Fprintf(&b, `SELECT DISTINCT value->'%s' AS dv FROM meta_map WHERE collection = $1`,
-			escapeJSONKey(opts.Distinct))
-	} else if len(opts.Specs) > 0 {
-		selectCols := make([]string, len(opts.Specs))
-		for i, s := range opts.Specs {
-			selectCols[i] = fmt.Sprintf("%s AS %s",
-				pgAggExpr(s.Fn, s.Column),
-				metaengine.QuoteIdent(s.AliasOr()))
-		}
-
-		cols := strings.Join(selectCols, ", ")
-		if opts.GroupBy != "" {
-			fmt.Fprintf(
-				&b,
-				`SELECT value->>'%s' AS group_key, %s FROM meta_map WHERE collection = $1`,
-				escapeJSONKey(opts.GroupBy),
-				cols,
-			)
-		} else {
-			fmt.Fprintf(&b, "SELECT %s FROM meta_map WHERE collection = $1", cols)
-		}
-	} else {
-		agg := pgAggExpr(opts.Fn, opts.Column)
-		if opts.GroupBy != "" {
-			fmt.Fprintf(
-				&b,
-				`SELECT value->>'%s' AS group_key, %s AS agg_val FROM meta_map WHERE collection = $1`,
-				escapeJSONKey(opts.GroupBy),
-				agg,
-			)
-		} else {
-			fmt.Fprintf(&b, "SELECT %s FROM meta_map WHERE collection = $1", agg)
-		}
-	}
+	writeAggregateSelect(&b, opts)
 
 	// WHERE / AND filters.
 	for _, f := range opts.Filters {
@@ -146,6 +112,53 @@ func (e *pgEngine) ExplainAggregateQuery(
 	}
 
 	return b.String(), args
+}
+
+// writeAggregateSelect emits the SELECT clause for an aggregate explain:
+// the Distinct form, the multi-spec form (with optional group_key), or the
+// single-fn form (with optional group_key).
+func writeAggregateSelect(b *strings.Builder, opts metaengine.ExplainAggregateOptions) {
+	if opts.Distinct != "" {
+		fmt.Fprintf(b, `SELECT DISTINCT value->'%s' AS dv FROM meta_map WHERE collection = $1`,
+			escapeJSONKey(opts.Distinct))
+
+		return
+	}
+
+	if len(opts.Specs) > 0 {
+		selectCols := make([]string, len(opts.Specs))
+		for i, s := range opts.Specs {
+			selectCols[i] = fmt.Sprintf("%s AS %s",
+				pgAggExpr(s.Fn, s.Column),
+				metaengine.QuoteIdent(s.AliasOr()))
+		}
+
+		cols := strings.Join(selectCols, ", ")
+		if opts.GroupBy != "" {
+			fmt.Fprintf(
+				b,
+				`SELECT value->>'%s' AS group_key, %s FROM meta_map WHERE collection = $1`,
+				escapeJSONKey(opts.GroupBy),
+				cols,
+			)
+		} else {
+			fmt.Fprintf(b, "SELECT %s FROM meta_map WHERE collection = $1", cols)
+		}
+
+		return
+	}
+
+	agg := pgAggExpr(opts.Fn, opts.Column)
+	if opts.GroupBy != "" {
+		fmt.Fprintf(
+			b,
+			`SELECT value->>'%s' AS group_key, %s AS agg_val FROM meta_map WHERE collection = $1`,
+			escapeJSONKey(opts.GroupBy),
+			agg,
+		)
+	} else {
+		fmt.Fprintf(b, "SELECT %s FROM meta_map WHERE collection = $1", agg)
+	}
 }
 
 // Compile-time assertions.

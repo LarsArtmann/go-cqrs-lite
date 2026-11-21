@@ -56,6 +56,7 @@ func (e *pgEngine) ResetEngine(ctx context.Context) error {
 	tables := append(append([]string(nil), resetBaseTables...), planned...)
 
 	for _, table := range tables {
+		// #nosec G202 -- table names come from engine-owned resetBaseTables and QuoteIdent-escaped plans
 		if _, err := tx.ExecContext(ctx, "DELETE FROM "+metaengine.QuoteIdent(table)); err != nil {
 			//art-dupl:accept intentional cross-module mirror (mysqlengine reset.go, ADR-0136)
 			return rollbackReturning(

@@ -10,6 +10,12 @@ import (
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
+// errNoSpecs rejects empty MultiAggregate spec lists.
+var errNoSpecs = errors.New("pgengine.MultiAggregate: no specs provided")
+
+// errNoGroupedSpecs rejects empty MultiGroupedAggregate spec lists.
+var errNoGroupedSpecs = errors.New("pgengine.MultiGroupedAggregate: no specs provided")
+
 // Postgres implementations of all five aggregate interfaces. Postgres uses
 // JSONB operators (value->'field') for column access and ::float8 casts for
 // aggregate functions (Postgres cannot aggregate JSONB directly).
@@ -170,7 +176,7 @@ func (e *pgEngine) MultiAggregate(
 	filters []metaengine.FilterSpec,
 ) (map[string]float64, error) {
 	if len(specs) == 0 {
-		return nil, errors.New("pgengine.MultiAggregate: no specs provided")
+		return nil, errNoSpecs
 	}
 
 	for i, s := range specs {
@@ -219,7 +225,7 @@ func (e *pgEngine) MultiGroupedAggregate(
 	filters []metaengine.FilterSpec,
 ) ([]metaengine.GroupedAggregateRow, error) {
 	if len(specs) == 0 {
-		return nil, errors.New("pgengine.MultiGroupedAggregate: no specs provided")
+		return nil, errNoGroupedSpecs
 	}
 
 	for i, s := range specs {

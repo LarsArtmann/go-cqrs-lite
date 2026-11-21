@@ -4,6 +4,14 @@ import (
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
+// PG read priors (measured; see the ReadCosts comments).
+const (
+	PGNsPerPointLookup  = 5_000
+	PGNsPerRowFiltered  = 400
+	PGNsPerRowAggregate = 250
+	PGNsPerRowFullScan  = 800
+)
+
 // Profile returns the cost profile for this Postgres engine.
 func (e *pgEngine) Profile() metaengine.EngineProfile {
 	p := metaengine.EngineProfile{
@@ -23,18 +31,18 @@ func (e *pgEngine) Profile() metaengine.EngineProfile {
 		ReadCosts: metaengine.ReadCosts{
 			// Indexed B-tree point lookup. Measured ~28K via Docker (inflated);
 			// production (same-datacenter) ~5K. Matches PG_NsPerRead.
-			NsPerPointLookup: 5_000,
+			NsPerPointLookup: PGNsPerPointLookup,
 			// Measured ~402 ns/row via Docker (BenchmarkCalibration_Postgres_PushdownScan).
 			// JSONB WHERE pushdown + row decode.
-			NsPerFilteredScan: 400,
+			NsPerFilteredScan: PGNsPerRowFiltered,
 			// Measured ~246 ns/row (BenchmarkCalibration_Postgres_CounterGet,
 			// ephemeral local PG 2026-09-01). ADR-0133: ReadAggregate executes
 			// CounterGet over meta_counter — SQL SUM (AggregateSum bench) documents
 			// the typed AggregateReader path that bypasses the planner.
-			NsPerAggregate: 250,
+			NsPerAggregate: PGNsPerRowAggregate,
 			// Measured ~805 ns/row via Docker (BenchmarkCalibration_Postgres_FullScan).
 			// Full scan + Go-side JSON decode.
-			NsPerScan: 800,
+			NsPerScan: PGNsPerRowFullScan,
 		},
 		Supports: map[metaengine.ADT]metaengine.Complexity{
 			metaengine.ADTMap:       metaengine.ComplexityOLogN,

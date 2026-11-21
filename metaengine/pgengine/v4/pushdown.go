@@ -78,15 +78,16 @@ func (e *pgEngine) PushdownMapScan(
 		if skc, ok := cursor.(metaengine.SortKeyCursor); ok {
 			jb, _ := json.Marshal(skc.Sort)
 
+			keysetBase := len(args) + 1
 			fmt.Fprintf(
 				&b,
 				` AND (value->'%s' %s $%d::jsonb OR value->'%s' = $%d::jsonb AND key > $%d)`,
 				escapeJSONKey(sort.Column),
 				op,
-				len(args)+1,
+				keysetBase,
 				escapeJSONKey(sort.Column),
-				len(args)+2,
-				len(args)+3,
+				keysetBase+1,
+				keysetBase+2,
 			)
 
 			args = append(args, string(jb), string(jb), string(skc.Key))

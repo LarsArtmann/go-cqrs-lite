@@ -1,10 +1,17 @@
 package pgengine
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+)
+
+// errDurabilityConflict reports a durability tier set alongside an explicit
+// synchronous_commit DSN parameter — the two are one mechanism, set one.
+var errDurabilityConflict = errors.New(
+	"pgengine: durability tier conflicts with synchronous_commit already set in the DSN — set one, not both",
 )
 
 // synchronousCommit maps a durability tier to the Postgres synchronous_commit
@@ -51,10 +58,7 @@ func durabilityDSN(tier metaengine.DurabilityTier, dsn string) (string, error) {
 	}
 
 	if strings.Contains(strings.ToLower(dsn), "synchronous_commit") {
-		return "", fmt.Errorf(
-			"pgengine: durability tier %q conflicts with synchronous_commit already set in the DSN — set one, not both",
-			tier,
-		)
+		return "", fmt.Errorf("%w (tier %q)", errDurabilityConflict, tier)
 	}
 
 	param := "synchronous_commit=" + value

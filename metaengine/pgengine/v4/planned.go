@@ -11,6 +11,10 @@ import (
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
+// plannedFirstDataParam is the 1-based placeholder index of the first
+// extracted column value (after the $1 key and $2::jsonb value parameters).
+const plannedFirstDataParam = 3
+
 // Planned tables (D1): extracted-column tables per collection, replacing the
 // JSONB-everything meta_map path for collections with a registered
 // metaengine.LayoutPlan. Mirrors metaengine/sqliteengine/planned.go — the
@@ -158,7 +162,7 @@ func execPlannedUpsert(
 
 	for i, c := range plan.Columns {
 		cols = append(cols, metaengine.QuoteIdent(c.Name))
-		placeholders = append(placeholders, fmt.Sprintf("$%d", i+3))
+		placeholders = append(placeholders, fmt.Sprintf("$%d", i+plannedFirstDataParam))
 		args = append(args, extracted[c.Name])
 	}
 
