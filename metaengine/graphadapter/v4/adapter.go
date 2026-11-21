@@ -15,6 +15,18 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/graph/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
+)
+
+const (
+	// genericNodeLabel is the label auto-created NodeRefs carry when simple
+	// Edge folds synthesize graph nodes (the adapter has no domain labels).
+	genericNodeLabel = "entity"
+
+	// memoryDriverNsPerOp is the compile-time RTT prior the memory driver
+	// profile declares (an in-process call; the planner amortizes it to ~0
+	// via NsForRead).
+	memoryDriverNsPerOp = 3000
 )
 
 // Adapter wraps a graph.MemoryDriver as a metaengine.Engine.
@@ -46,26 +58,36 @@ func (a *Adapter) Profile() metaengine.EngineProfile {
 		Supports: map[metaengine.ADT]metaengine.Complexity{
 			metaengine.ADTGraph: metaengine.ComplexityON,
 		},
-		NsPerOp: 3000,
+		NsPerOp: memoryDriverNsPerOp,
 	}
 }
 
 // Close delegates to the underlying driver.
-func (a *Adapter) Close() error { return a.driver.Close() }
+func (a *Adapter) Close() error {
+	if err := a.driver.Close(); err != nil {
+		return errorfamily.WrapInfrastructure(err, "graphadapter.close", "close graph driver")
+	}
+
+	return nil
+}
 
 // GraphAddEdge synthesizes a graph.MergeEdge call from a simple metaengine.Edge.
 // NodeRefs are auto-created from the From/To values using a generic label.
 func (a *Adapter) GraphAddEdge(_ context.Context, collection string, edge metaengine.Edge) error {
-	fromRef := graph.NodeRef{Label: "entity", KeyProp: "id", KeyValue: fmt.Sprint(edge.From)}
-	toRef := graph.NodeRef{Label: "entity", KeyProp: "id", KeyValue: fmt.Sprint(edge.To)}
+	fromRef := graph.NodeRef{Label: genericNodeLabel, KeyProp: "id", KeyValue: fmt.Sprint(edge.From)}
+	toRef := graph.NodeRef{Label: genericNodeLabel, KeyProp: "id", KeyValue: fmt.Sprint(edge.To)}
 
-	return a.driver.RunInTx(func(sink graph.GraphSink) error {
+	if err := a.driver.RunInTx(func(sink graph.GraphSink) error {
 		return sink.MergeEdge(graph.EdgeRef{
 			Type: collection,
 			From: fromRef,
 			To:   toRef,
 		}, nil)
-	})
+	}); err != nil {
+		return errorfamily.WrapInfrastructure(err, "graphadapter.add_edge", "merge edge "+collection)
+	}
+
+	return nil
 }
 
 // GraphNeighbors traverses the graph from the given node, returning neighbor IDs.
@@ -75,7 +97,7 @@ func (a *Adapter) GraphNeighbors(
 	node any,
 	depth int,
 ) ([]any, error) {
-	nodeRef := graph.NodeRef{Label: "entity", KeyProp: "id", KeyValue: fmt.Sprint(node)}
+	nodeRef := graph.NodeRef{Label: genericNodeLabel, KeyProp: "id", KeyValue: fmt.Sprint(node)}
 	nodes := a.driver.Traverse(nodeRef, collection, depth)
 
 	result := make([]any, len(nodes))
@@ -96,14 +118,18 @@ func (a *Adapter) GraphRemoveEdge(
 	collection string,
 	edge metaengine.Edge,
 ) error {
-	fromRef := graph.NodeRef{Label: "entity", KeyProp: "id", KeyValue: fmt.Sprint(edge.From)}
-	toRef := graph.NodeRef{Label: "entity", KeyProp: "id", KeyValue: fmt.Sprint(edge.To)}
+	fromRef := graph.NodeRef{Label: genericNodeLabel, KeyProp: "id", KeyValue: fmt.Sprint(edge.From)}
+	toRef := graph.NodeRef{Label: genericNodeLabel, KeyProp: "id", KeyValue: fmt.Sprint(edge.To)}
 
-	return a.driver.RunInTx(func(sink graph.GraphSink) error {
+	if err := a.driver.RunInTx(func(sink graph.GraphSink) error {
 		return sink.RemoveEdge(graph.EdgeRef{
 			Type: collection,
 			From: fromRef,
 			To:   toRef,
 		})
-	})
+	}); err != nil {
+		return errorfamily.WrapInfrastructure(err, "graphadapter.remove_edge", "remove edge "+collection)
+	}
+
+	return nil
 }

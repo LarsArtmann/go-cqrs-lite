@@ -207,6 +207,29 @@ projection-side captures events that poisoned a projection handler.
 
 ---
 
+## core/v5 (The v5 Core Module) 🧪 EXPERIMENTAL
+
+> `import "github.com/larsartmann/go-cqrs-lite/core/v5/..."` — the merged Tier 0-3 domain
+> trains as packages (ADR-0152), copy-forward alongside v4 during dual-support. Pre-first-tag
+> FREE WINDOW: the NEW surface was finalized in the 2026-11-20 type waves (ADR-0166 Accepted)
+> and may still break freely until the first tag; the v4 train stays byte-frozen in the same
+> window. Codemod: `cqrs-upgrade --to-v5` (single-value ctors → OrZero, string StreamRef →
+> injected helper, collapsed literal keys reported as manual sites). Migration detail:
+> [V5-MIGRATION-GUIDE §2b](docs/V5-MIGRATION-GUIDE.md). Suite: 12/12 core/v5 packages green
+> (M20·a, 2026-11-20).
+
+| Feature                      | Detail                                                                                                                                                                                        | Status |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| StreamRef (ADR-0166)         | `record.StreamRef` is the `id.StreamRef` alias: `{StreamType, ID}` validated at construction — `id.NewStreamRef` rejects an empty type and a zero ID, `id.NewStreamRefOrZero` is the error-free door, `id.ParseStreamRef` is the `StreamKey()` inverse; single `Record.Stream` (zero = not a stream member) | ✅     |
+| Fused Record.Payload         | `Payload{Data, Enc}` makes presence honest states (absent / opaque / wrapped / stamped); `record.PayloadFrom`, `IsZero`, `EncodingEnvelope` (an ADR-0044 envelope wrapping fact, not a codec name) | ✅     |
+| Branded core types           | `record.InstanceID`, `record.Version` (uint64, 0 = unversioned), `record.CorrelationID` — branded with Parse constructors at the boundary                                                | ✅     |
+| Cause typed at birth         | `event.Cause()` returns `record.Cause`; stamped via `event.WithCause` / `WithCausation(commandType, commandID)` — causation carries the command TYPE structurally                        | ✅     |
+| Structural Tracing.Actor     | `metadata.RecordActor(tracing)` derives the structural `record.Actor`; THE precedence rule for actor attribution (replaces stringly ActorID)                                              | ✅     |
+| Honest bridge stamps         | AsRecord bridges stamp Received (never relabel a server clock as a client clock) and treat zero structs like nil                                                                            | ✅     |
+| Deprecated v4-form twins     | metadata Causation, `Tracing.ActorID`, `CausationID`, string-form record constructors — exist for the copy-forward, die with the v4 train at T26                                             | ⚠️     |
+
+---
+
 ## Metaengine ✅ FULLY_FUNCTIONAL
 
 > `import "github.com/larsartmann/go-cqrs-lite/metaengine/v4"`

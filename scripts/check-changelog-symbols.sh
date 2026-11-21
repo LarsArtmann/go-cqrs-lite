@@ -40,8 +40,8 @@ GOLDEN="docs/api_surface.txt"
 SKIP_ALIASES='^(fmt|os|time|sync|context|errors|strings|strconv|bytes|io|log|testing|json|database|sql|net|http|reflect|sort|math|filepath|regexp|slog|rand|slices|maps|atomic|url|tar|zip|tls|big|lint|runtime|pkg|t|e|g|go|api|cli|yaml|toml|db|pebble|humanize|engine|bbolt)$'
 
 # exists_in_source_dir: true when any repo directory named `alias` declares
-# the exported `symbol` in a non-test .go file (func/type level; const/var
-# block members are rare in citations and covered by the golden tiers).
+# the exported `symbol` in a non-test .go file (func/type/var/const shapes;
+# var/const matter for nested-module sentinels the golden tiers can miss).
 exists_in_source_dir() {
 	local alias="$1" symbol="$2"
 	local dir f
@@ -56,6 +56,10 @@ exists_in_source_dir() {
 				-e "^type ${symbol} " \
 				-e "^type ${symbol}\\[" \
 				-e "^type ${symbol}$" \
+				-e "^var ${symbol} " \
+				-e "^var ${symbol}=" \
+				-e "^const ${symbol} " \
+				-e "^const ${symbol}=" \
 				"$f"; then
 				return 0
 			fi
@@ -107,7 +111,10 @@ while IFS= read -r ref; do
 
 	total=$((total + 1))
 
-	if grep -qE "/${alias}/(func|method|type|struct|interface|const|var) ${symbol}$" "$GOLDEN" ||
+	# Tier 1 tolerates the /vN major-version directory the 2026-11-10 module
+	# move introduced (metaengine/tursoengine/v4/var X): the kind segment sits
+	# after the version, not directly after the alias.
+	if grep -qE "/${alias}(/v[0-9]+)?/(func|method|type|struct|interface|const|var) ${symbol}$" "$GOLDEN" ||
 		grep -qE "^${alias}/.*(func|method|type|struct|interface|const|var) ${symbol}$" "$GOLDEN" ||
 		exists_in_source_dir "$alias" "$symbol"; then
 		continue

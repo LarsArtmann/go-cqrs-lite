@@ -247,6 +247,14 @@ subcommand per use case, DI-provided services via `v5.Provide`, and the auto
 copy is taskctl in the cmdguard repo (`examples/taskctl`); the `cmdguard`
 skill carries the full recipe.
 
+Hosting the service itself? go-appkit is the fleet's HTTP-service layer
+(owner default ruling 2026-11-21): the `preset` module is the one-call spine
+(lifecycle, health dashboard, error pages, sd_notify, env-switched
+otel/security/realtime legs), scaffolded from
+`github.com/LarsArtmann/go-service-template`. The `cqrs` module in
+go-appkit wraps THIS library's `system` engine behind that spine — the
+cqrs-htmx skill carries the app-side recipes.
+
 ---
 
 **Fan-out:** this skill lives in this repo (`.agents/skills/go-cqrs-lite`)

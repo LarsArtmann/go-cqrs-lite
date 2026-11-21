@@ -18,7 +18,7 @@ func canonicalPayload(evt event.Event) []byte {
 		return nil
 	}
 
-	id := evt.ID().Get().String()
+	eventID := evt.ID().Get().String()
 	typ := string(evt.Type())
 	aggID := evt.StreamID().Get()
 	aggType := string(evt.StreamType())
@@ -28,7 +28,7 @@ func canonicalPayload(evt event.Event) []byte {
 	payload := event.PayloadReadOnly(evt)
 
 	totalLen := 8*lengthPrefixSize +
-		len(canonicalFormatVersion) + len(id) + len(typ) +
+		len(canonicalFormatVersion) + len(eventID) + len(typ) +
 		len(aggID) + len(aggType) + len(version) + len(schemaVer) + len(occurred)
 
 	if len(payload) > 0 {
@@ -40,7 +40,7 @@ func canonicalPayload(evt event.Event) []byte {
 	var lenBuf [lengthPrefixSize]byte
 
 	buf = appendPrefixed(buf, lenBuf[:], canonicalFormatVersion)
-	buf = appendPrefixed(buf, lenBuf[:], id)
+	buf = appendPrefixed(buf, lenBuf[:], eventID)
 	buf = appendPrefixed(buf, lenBuf[:], typ)
 	buf = appendPrefixed(buf, lenBuf[:], aggID)
 	buf = appendPrefixed(buf, lenBuf[:], aggType)
