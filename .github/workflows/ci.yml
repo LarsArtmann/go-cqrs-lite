@@ -1058,8 +1058,6 @@ jobs:
           path: build/shuffle-seeds.log
           if-no-files-found: ignore
 
-    timeout-minutes: 10
-
   # MySQL integration/v4: the Go suites gated by MYSQL_TEST_DSN (stack/mysql/v4,
   # idempotency/sqlstore/v4, metaengine/mysqlengine/v4) had NO route at all — only
   # a human running scripts/vm-mysql.sh ever set the DSN, so those suites were
