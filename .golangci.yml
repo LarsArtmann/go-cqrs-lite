@@ -1,21 +1,3 @@
-# golangci-lint v2 config — per-module invocations run from each module dir
-# (flake #lint + scripts/lint-scope.sh); exclusion `path:` values match FULL
-# repo-relative paths.
-#
-# Exclusion-row taxonomy (2026-11-21 red-set campaign, 34 modules → 0):
-#   1. DeferClose false positives — sqlclosecheck cannot see through
-#      record.DeferClose/metaengine.DeferClose (ADR-0144); per-module rows
-#      where the idiom is used (mysql/duckdb/pg engines, storage/v4, turso).
-#   2. Driver boundaries — wrapcheck ignore-sigs for KV/graph/SQL drivers and
-#      first-party storage delegation; the adapter IS the boundary.
-#   3. Option/config structs — exhaustruct_v5 ignore-patterns for functional-
-#      option types and driver options where zero values are the defaults.
-#   4. Schema DATA tables — gochecknoglobals rows for reset/typed_wal tables
-#      that migrate with the DDL, keycodec seams, CBOR codec modes.
-#   5. Deprecated-surface bridges — SA1019 text rows citing the ADR
-#      (ADR-0123 stack presets + storage/turso connector; core/v5 twins D32).
-#   6. Frozen wire contracts — tagliatelle json BOTH-case exclusions.
-# Every row carries its reason inline; prefer a code fix to a new row.
 version: "2"
 run:
   timeout: 5m
@@ -34,13 +16,11 @@ output:
   formats: {}
 linters:
   enable:
-    - arangolint
     - asasalint
     - asciicheck
     - bidichk
     - bodyclose
     - canonicalheader
-    - clickhouselint
     - containedctx
     - contextcheck
     - copyloopvar
@@ -144,103 +124,103 @@ linters:
     - zerologlint
   default: none
   settings:
-    depguard:
-      rules:
-        main-allow-list:
-          allow:
-            - $gostd
-            - github.com/larsartmann/go-cqrs-lite
-            - github.com/larsartmann/go-retry
-            - github.com/larsartmann/go-idempotency
-            - github.com/larsartmann/go-codec
-            - github.com/larsartmann/go-composable-business-types
-            - github.com/larsartmann/go-branded-id
-            - github.com/larsartmann/go-sse
-            - github.com/larsartmann/go-sqlitestore
-            # First-party, used by example/taskmanager's system-query HTTP
-            # binding dogfood (2026-10-16); allow-list caught up 2026-10-17.
-            - github.com/larsartmann/go-etag/server
-            - github.com/larsartmann/httputil
-            - github.com/google/uuid
-            - github.com/cockroachdb/errors
-            - github.com/go-json-experiment/json
-            - github.com/go-faster/yaml
-            - gopkg.in/yaml
-            - github.com/oklog/ulid
-            - github.com/DATA-DOG/go-sqlmock
-            - github.com/stretchr/testify
-            - github.com/onsi/ginkgo
-            - github.com/onsi/gomega
-            - go.opentelemetry.io/otel
-            - github.com/cockroachdb/pebble
-            - github.com/larsartmann/go-error-family
-            - github.com/larsartmann/go-flightrecorder
-            - github.com/larsartmann/go-must
-            - modernc.org/sqlite
-            - github.com/mattn/go-sqlite3
-            - turso.tech/database/tursogo
-            - github.com/ThreeDotsLabs/watermill
-            - github.com/ThreeDotsLabs/watermill-nats/v2
-            - github.com/nats-io/nats.go
-            - github.com/redis/go-redis/v9
-            - github.com/samber/ro
-            - github.com/samber/lo
-            - github.com/fxamacker/cbor
-            - github.com/gkampitakis/go-snaps
-            - pgregory.net/rapid
-            - go.uber.org/goleak
-            - github.com/testcontainers/testcontainers-go
-            - go/ast
-            - go/format
-            - go/parser
-            - go/token
-            - go/types
-            - golang.org/x/tools
-            - golang.org/x/crypto
-            - golang.org/x/sync
-            - github.com/prometheus/client_golang
-            - github.com/prometheus/client_model
-            - github.com/maypok86/otter
-            - github.com/failsafe-go/failsafe-go
-            - github.com/jackc/pgx
-            - github.com/go-sql-driver/mysql
-            - github.com/duckdb/duckdb-go
-            - github.com/dustin/go-humanize
-            - cloud.google.com/go/bigtable
-            - google.golang.org/api
-            - google.golang.org/grpc
-            - google.golang.org/protobuf
-            - github.com/larsartmann/go-finding
-            - github.com/larsartmann/cmdguard
-            - github.com/spf13/cobra
-            - github.com/spf13/pflag
-            - charm.land
-            - github.com/charmbracelet
-            - github.com/samber/do
-            - github.com/samber/go-type-to-string
-            - github.com/knadh/koanf
-            - github.com/larsartmann/go-output
-            - github.com/LarsArtmann/gogenfilter
-            - github.com/larsartmann/templ-components
-            - github.com/a-h/templ
-            - github.com/bmatcuk/doublestar
-            - github.com/clipperhouse
-            - github.com/lucasb-eyer/go-colorful
-            - github.com/mattn/go-runewidth
-            - github.com/muesli
-            - github.com/pelletier/go-toml
-            - github.com/rivo/uniseg
-            - github.com/segmentio/asm
-            - github.com/xo/terminfo
-            - go.uber.org/multierr
-            - github.com/inconshreveable/mousetrap
-            - git.coopcloud.tech/decentral1se/iroh-go
-            - github.com/tursodatabase/turso-go-platform-libs
-            - github.com/dgraph-io/dgo/v240
-            - github.com/dgraph-io/badger/v4
-            - go.etcd.io/bbolt
-            - golang.org/x/mod
-            - golang.org/x/term
+depguard:
+  rules:
+    main-allow-list:
+      allow:
+        - $gostd
+        - github.com/larsartmann/go-cqrs-lite
+        - github.com/larsartmann/go-retry
+        - github.com/larsartmann/go-idempotency
+        - github.com/larsartmann/go-codec
+        - github.com/larsartmann/go-composable-business-types
+        - github.com/larsartmann/go-branded-id
+        - github.com/larsartmann/go-sse
+        - github.com/larsartmann/go-sqlitestore
+        # First-party, used by example/taskmanager's system-query HTTP
+        # binding dogfood (2026-10-16); allow-list caught up 2026-10-17.
+        - github.com/larsartmann/go-etag/server
+        - github.com/larsartmann/httputil
+        - github.com/google/uuid
+        - github.com/cockroachdb/errors
+        - github.com/go-json-experiment/json
+        - github.com/go-faster/yaml
+        - gopkg.in/yaml
+        - github.com/oklog/ulid
+        - github.com/DATA-DOG/go-sqlmock
+        - github.com/stretchr/testify
+        - github.com/onsi/ginkgo
+        - github.com/onsi/gomega
+        - go.opentelemetry.io/otel
+        - github.com/cockroachdb/pebble
+        - github.com/larsartmann/go-error-family
+        - github.com/larsartmann/go-flightrecorder
+        - github.com/larsartmann/go-must
+        - modernc.org/sqlite
+        - github.com/mattn/go-sqlite3
+        - turso.tech/database/tursogo
+        - github.com/ThreeDotsLabs/watermill
+        - github.com/ThreeDotsLabs/watermill-nats/v2
+        - github.com/nats-io/nats.go
+        - github.com/redis/go-redis/v9
+        - github.com/samber/ro
+        - github.com/samber/lo
+        - github.com/fxamacker/cbor
+        - github.com/gkampitakis/go-snaps
+        - pgregory.net/rapid
+        - go.uber.org/goleak
+        - github.com/testcontainers/testcontainers-go
+        - go/ast
+        - go/format
+        - go/parser
+        - go/token
+        - go/types
+        - golang.org/x/tools
+        - golang.org/x/crypto
+        - golang.org/x/sync
+        - github.com/prometheus/client_golang
+        - github.com/prometheus/client_model
+        - github.com/maypok86/otter
+        - github.com/failsafe-go/failsafe-go
+        - github.com/jackc/pgx
+        - github.com/go-sql-driver/mysql
+        - github.com/duckdb/duckdb-go
+        - github.com/dustin/go-humanize
+        - cloud.google.com/go/bigtable
+        - google.golang.org/api
+        - google.golang.org/grpc
+        - google.golang.org/protobuf
+        - github.com/larsartmann/go-finding
+        - github.com/larsartmann/cmdguard
+        - github.com/spf13/cobra
+        - github.com/spf13/pflag
+        - charm.land
+        - github.com/charmbracelet
+        - github.com/samber/do
+        - github.com/samber/go-type-to-string
+        - github.com/knadh/koanf
+        - github.com/larsartmann/go-output
+        - github.com/LarsArtmann/gogenfilter
+        - github.com/larsartmann/templ-components
+        - github.com/a-h/templ
+        - github.com/bmatcuk/doublestar
+        - github.com/clipperhouse
+        - github.com/lucasb-eyer/go-colorful
+        - github.com/mattn/go-runewidth
+        - github.com/muesli
+        - github.com/pelletier/go-toml
+        - github.com/rivo/uniseg
+        - github.com/segmentio/asm
+        - github.com/xo/terminfo
+        - go.uber.org/multierr
+        - github.com/inconshreveable/mousetrap
+        - git.coopcloud.tech/decentral1se/iroh-go
+        - github.com/tursodatabase/turso-go-platform-libs
+        - github.com/dgraph-io/dgo/v240
+        - github.com/dgraph-io/badger/v4
+        - go.etcd.io/bbolt
+        - golang.org/x/mod
+        - golang.org/x/term
     cyclop:
       max-complexity: 25
     errcheck:
@@ -273,26 +253,16 @@ linters:
         - github.com/larsartmann/go-cqrs-lite/metaengine/v4\.EngineProfile
         - github.com/larsartmann/go-cqrs-lite/storage/v4/pebble\.storeBase
         - github.com/larsartmann/go-cqrs-lite/storage/v4/bbolt\.storeBase
-        # Preset option-pattern structs (deprecated at v5, ADR-0123):
-        # functional options default every omitted field by design.
         - github.com/larsartmann/go-cqrs-lite/stack/pebble/v4\.config
         - github.com/larsartmann/go-cqrs-lite/stack/turso/v4\.config
         - github.com/larsartmann/go-cqrs-lite/stack/turso/v4\.Bundle
-        # Stdlib/driver option structs: omitted fields are zero-value
-        # options by the driver's own semantics.
         - github.com/cockroachdb/pebble\.IterOptions
         - github.com/dgraph-io/dgo/v240/protos/api\.Mutation
         - github.com/dgraph-io/dgo/v240/protos/api\.Request
         - github.com/dgraph-io/dgo/v240/protos/api\.Operation
         - github.com/dgraph-io/badger/v4\.IteratorOptions
-        # tursogo sync config: functional SyncOptions default every omitted
-        # field; the driver's zero values are the documented defaults.
         - turso\.tech/database/tursogo\.TursoSyncDbConfig
-        # indexing.Advisor's mu/existing/excluded zero values are the
-        # armed-by-construction state (sync.RWMutex + nil-map guards).
         - github.com/larsartmann/go-cqrs-lite/storage/turso/v4/indexing\.Advisor
-        # First-party option/optional-field structs: functional options or
-        # documented optional stamps default every omitted field.
         - github.com/larsartmann/go-cqrs-lite/metaengine/v4\.LayoutPlan
         - github.com/larsartmann/go-cqrs-lite/metaengine/v4\.AggregateSpec
         - github.com/larsartmann/go-cqrs-lite/event/v4\.eventOptions
@@ -301,22 +271,12 @@ linters:
         - github.com/larsartmann/go-cqrs-lite/snapshot/v4\.Snapshot
         - github.com/larsartmann/go-cqrs-lite/storage/turso/v4/indexing\.Index
         - github.com/larsartmann/go-cqrs-lite/storage/bbolt/v4\.bboltEventIterator
-        # LogStore's mutex/log slice zero values are correct by design.
         - github.com/larsartmann/go-cqrs-lite/storage/memory/v4\.LogStore
-        # Optional-result seams: SearchResult.Score is zero for unranked
-        # results; the transientCommitError compile-proof intentionally
-        # constructs the zero value (the marker interface holds without err).
         - github.com/larsartmann/go-cqrs-lite/metaengine/v4\.SearchResult
         - github.com/larsartmann/go-cqrs-lite/metaengine/dgraphengine/v4\.transientCommitError
-        # KV-engine scan/config seams: ScanResult.NextCursor is optional
-        # (absent = single page); engineConfig fields are functional-option
-        # defaults.
         - github.com/larsartmann/go-cqrs-lite/metaengine/v4\.ScanResult
         - github.com/larsartmann/go-cqrs-lite/metaengine/bboltengine/v4\.engineConfig
         - github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4\.engineConfig
-        # storage/pebble + storage/bbolt stores: shard slices, lock shards,
-        # iterator/batch state, and closed flags initialize lazily on first
-        # use — zero values are the armed-by-construction state.
         - github.com/larsartmann/go-cqrs-lite/storage/pebble/v4\.KVAdapter
         - github.com/larsartmann/go-cqrs-lite/storage/pebble/v4\.pebbleBatch
         - github.com/larsartmann/go-cqrs-lite/storage/pebble/v4\.backendConfig
@@ -336,8 +296,6 @@ linters:
         - github.com/larsartmann/go-cqrs-lite/storage/bbolt/v4\.QueryStore
         - github.com/larsartmann/go-cqrs-lite/storage/bbolt/v4\.SnapshotStore
         - github.com/larsartmann/go-cqrs-lite/storage/bbolt/v4\.EventStore
-        # loopback/quic transports: lazy subscriber/latency state and
-        # optional percentiles (absent = not yet measured).
         - github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/loopback/v4\.config
         - github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/loopback/v4\.LoopbackTransport
         - github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/v4\.LatencySnapshot
@@ -345,29 +303,15 @@ linters:
         - github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/quic/v4\.config
         - github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/quic/v4\.QuicTransport
         - github.com/larsartmann/go-cqrs-lite/metaengine/bigtableengine/v4\.Family
-        # Google Cloud Bigtable SDK admin/read shapes: omitted fields are
-        # the SDK's documented defaults (families, retention, labels).
         - cloud\.google\.com/go/bigtable\.TableConf
         - cloud\.google\.com/go/bigtable\.ReadItem
         - cloud\.google\.com/go/bigtable\.Family
-        # CellVersion.Value is optional — zero = tombstone/absent value.
         - github.com/larsartmann/go-cqrs-lite/metaengine/v4\.CellVersion
-        # RawScanResult/kvPair: NextCursor and raw bytes are optional
-        # (absent = single page / no raw echo).
         - github.com/larsartmann/go-cqrs-lite/metaengine/v4\.RawScanResult
         - github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4\.kvPair
-        # Hooks fields are optional observability seams (nil = unobserved);
-        # Observer partially fills only the metric hooks it tracks.
         - github.com/larsartmann/go-cqrs-lite/metaengine/v4\.Hooks
         - github.com/larsartmann/go-cqrs-lite/metaengine/otelobserver/v4\.Observer
-        # projectionadapter.Adapter embeds and forwards — its optional
-        # event-type filter and error hooks default to pass-through.
         - github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4\.Adapter
-        # Engine constructors (2026-11-21 red-set campaign): engines
-        # initialize lazily — mutexes, done channels, caches, and observer
-        # fields are zero-by-design and armed on first use. Exhaustive
-        # literals would initialize synchronization primitives that are
-        # correct only in their zero state.
         - github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4\.pgEngine
         - github.com/larsartmann/go-cqrs-lite/metaengine/mysqlengine/v4\.mysqlEngine
         - github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4\.duckdbEngine
@@ -379,30 +323,22 @@ linters:
         - github.com/larsartmann/go-cqrs-lite/metaengine/bigtableengine/v4\.TableConf
         - github.com/larsartmann/go-cqrs-lite/metaengine/bigtableengine/v4\.ReadItem
         - github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4\.sortIndexHit
-        # typedStreamRow scan rows (pg/mysql/duckdb): omitted columns are
-        # NULLABLE SQL columns — zero values are the absent-column contract.
         - github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4\.typedStreamRow
         - github.com/larsartmann/go-cqrs-lite/metaengine/mysqlengine/v4\.typedStreamRow
         - github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4\.typedStreamRow
-        # metaengine option/report structs: optional fields default per the
-        # live-latency model (priors replaced by calibration/measurement).
         - github.com/larsartmann/go-cqrs-lite/metaengine/v4\.StreamLogEntry
         - github.com/larsartmann/go-cqrs-lite/metaengine/v4\.CalibrationCosts
-        # storage driver option structs and lazy iterators.
         - github.com/cockroachdb/pebble\.Options
         - github.com/cockroachdb/pebble\.KVAdapter
         - github.com/cockroachdb/pebble\.EventStore
         - github.com/fxamacker/cbor/v2\.EncOptions
         - github.com/fxamacker/cbor/v2\.DecOptions
-        # iroh-go driver option structs: zero-value fields are the driver's
-        # documented defaults (same class as the pebble/badger options).
         - git\.coopcloud\.tech/decentral1se/iroh-go\.EndpointOptions
         - go.etcd.io/bbolt\.KVAdapter
         - github.com/larsartmann/go-cqrs-lite/storage/turso/v4\.TursoSyncDbConfig
         - github.com/larsartmann/go-cqrs-lite/storage/turso/v4/indexing\.AutoIndexer
         - github.com/larsartmann/go-cqrs-lite/storage/turso/v4/indexing\.CheckpointScheduler
         - github.com/larsartmann/go-cqrs-lite/storage/pebble/v4\.pebbleIterator
-        # stdlib config structs: zero fields are documented defaults.
         - net\.ListenConfig
         - net\.Dialer
     funlen:
@@ -435,10 +371,6 @@ linters:
         - anon
         - stdlib
         - generic
-        # The library's public API IS interface contracts (see the
-        # Interface Hierarchy in DOMAIN_LANGUAGE.md): constructors and
-        # stores return Engine/EventIterator/Store/Span/Tracer by design;
-        # concrete returns would leak implementations to consumers.
         - github.com/larsartmann/go-cqrs-lite/.*
     makezero:
       always: false
@@ -448,7 +380,6 @@ linters:
         - "1"
         - "2"
         - "100"
-        # File-permission idioms: 0o600/0o750 are self-documenting.
         - "0o600"
         - "0o750"
         - "0o644"
@@ -477,17 +408,6 @@ linters:
     tagliatelle:
       case:
         use-field-name: true
-        # NOTE: no json entry (2026-11-21): the v4 train's wire is frozen
-        # in BOTH cases — the snake majority AND camelCase persisted-event
-        # payloads (commandlifecycle events, snapshot wire legacy rows,
-        # engine metadata, catalog docs; 151 findings under `json: snake`,
-        # mixed within single files). On a byte-frozen train no tag-case
-        # change is actionable (any rename breaks decoding of stored
-        # events), so the json case judgment is scoped out entirely via the
-        # exclusion rule below — tagliatelle still polices the other tag
-        # families. A uniform json case policy belongs to NEW surface
-        # (core/v5 + the v5 cut). (`rules: {}` cannot express this — empty
-        # rules silently restore defaults; `json: ignore` is unsupported.)
     testifylint:
       disable:
         - go-require
@@ -580,10 +500,6 @@ linters:
         - (github.com/jackc/pgx/v5.Tx).Exec
         - (github.com/jackc/pgx/v5.Tx).Commit
         - (github.com/jackc/pgx/v5.Rows).Err
-        # KV/graph driver boundaries (2026-11-21 red-set campaign): the
-        # engines ARE thin adapters over these drivers — a driver error IS
-        # the engine error; classification happens where context exists
-        # (metaengine core), not at every delegation line.
         - (*go.etcd.io/bbolt.DB).Close
         - (*github.com/dgraph-io/badger/v4.DB).Update
         - (*github.com/dgraph-io/badger/v4.DB).View
@@ -595,9 +511,6 @@ linters:
         - (*go.etcd.io/bbolt.DB).View
         - (*go.etcd.io/bbolt.DB).Batch
         - (*go.etcd.io/bbolt.Tx).Rollback
-        # First-party storage delegation (storage/turso is a thin bridge over
-        # the SQLite-dialect storage/v4 constructors; same class as the
-        # driver boundaries above — the bridge error IS the caller's error).
         - github.com/larsartmann/go-cqrs-lite/storage/v4.NewSQLite
         - github.com/larsartmann/go-cqrs-lite/storage/v4.SQLiteInitSchema
         - github.com/larsartmann/go-cqrs-lite/storage/turso/v4/indexing.ApplyOptimizations
@@ -609,13 +522,8 @@ linters:
         - (*github.com/dgraph-io/dgo/v240.Txn).Query
         - (*github.com/dgraph-io/dgo/v240.Txn).Mutate
         - (*github.com/dgraph-io/dgo/v240.Txn).Do
-        # Codec modes: (un)marshal errors cross as-is — wrapping breaks
-        # errors.Is for callers testing codec sentinel semantics.
         - (github.com/fxamacker/cbor/v2.EncMode).Marshal
         - (github.com/fxamacker/cbor/v2.DecMode).Unmarshal
-        # Pre-classified first-party helpers and idioms: returning ctx.Err()
-        # bare, a Rejection from a Reject* gate, or a liveness ping error is
-        # already the final classified form.
         - (context.Context).Err
         - (*database/sql.DB).PingContext
         - .RejectDurabilityTier(
@@ -625,9 +533,6 @@ linters:
   exclusions:
     generated: lax
     rules:
-      # The v4 json wire contract is frozen in BOTH cases (see the
-      # tagliatelle settings note) — case findings for json tags are noise
-      # on a byte-frozen train; other tag families stay policed.
       - text: 'json\((snake|camel|pascal|kebab)\):'
         linters:
           - tagliatelle
@@ -668,7 +573,6 @@ linters:
           - funlen
           - cyclop
           - goconst
-          - exhaustruct
           - forcetypeassert
           - gosec
           - errcheck
@@ -742,96 +646,54 @@ linters:
         text: 'SA1019: .*metaengine\.DedupStore.*'
         linters:
           - staticcheck
-      # The lifecycle projections read the deprecated CausationID twin by
-      # design until the v5 cut (T26 twins-until-cut); their tests stamp
-      # both the twin and the new Cause field to pin precedence.
       - path: commandlifecycle/projections/v4/.*_test\.go$
         text: 'SA1019: .*CommonMetadata\).CausationID is deprecated.*'
         linters:
           - staticcheck
-      # The projectionadapter record test pins the deprecated ActorID twin's
-      # bridge behavior (twins-until-T26, D32): the assertion must read the
-      # old field to prove the bridge still populates it.
       - path: metaengine/projectionadapter/v4/.*_test\.go$
         text: 'SA1019: .*CommonMetadata\).ActorID is deprecated.*'
         linters:
           - staticcheck
-      # Engine register.go init() calls are the sanctioned database/sql
-      # driver-registration pattern (Internal Contract 19/30): Go cannot
-      # centrally register engines, so each dep-isolated module self-registers.
       - path: (queue|metaengine)/[^/]+/v4/register\.go$
         linters:
           - gochecknoinits
-      # badgerengine/bboltengine engine.go package-level function vars are
-      # the keycodec migration seams (ADR-0157 dual-read windows: journalKey,
-      # encodeKeyStr, decodeJSON switch between codec v1/v2 as one unit).
       - path: metaengine/(badgerengine|bboltengine)/v4/engine\.go$
         linters:
           - gochecknoglobals
-      # dgraphengine/bboltengine/badgerengine reset.go hold the reset
-      # predicate/tag-prefix tables — domain DATA (same class as the
-      # keycodec seams: the reset test grows with the table by contract).
       - path: metaengine/(dgraphengine|bboltengine|badgerengine)/v4/reset\.go$
         linters:
           - gochecknoglobals
-      # mysqlengine/duckdbengine/pgengine reset.go (base-table list) and
-      # typed_wal.go (column list) hold schema DATA tables that migrate
-      # with the DDL.
       - path: metaengine/(mysqlengine|duckdbengine|pgengine)/v4/(reset|typed_wal)\.go$
         linters:
           - gochecknoglobals
-      # tursoengine dsn.go's knownDSNParams is the strict-DSN allowlist —
-      # data that moves with the driver's parameter surface.
       - path: metaengine/tursoengine/v4/dsn\.go$
         linters:
           - gochecknoglobals
-      # The matview bench/property tests are phase pipelines whose nesting
-      # IS the experiment (three scales × two configs; draw→seed→mutate→
-      # verify). The author already suppressed maintidx for the same
-      # reason; gocognit/gocyclo measure the same property and golines
-      # wraps multi-line signatures off the directive line.
       - path: metaengine/tursoengine/v4/matview_(bench|property)_test\.go$
         linters:
           - gocognit
           - gocyclo
-      # loopback's CBOR codec modes are the fxamacker package-level idiom
-      # (build EncMode/DecMode once — per-call construction is the anti-
-      # pattern the library documents). quic's opEncMode/opDecMode are the
-      # same idiom; DefaultALPN is the package's protocol-constant API.
       - path: metaengine/irohengine/loopback/v4/(conn|transport)\.go$
         linters:
           - gochecknoglobals
       - path: metaengine/irohengine/quic/v4/(latency|transport)\.go$
         linters:
           - gochecknoglobals
-      # core/v5 carries the v4-mirror twins deliberately (D32 ruling:
-      # twins-until-T26); its compat code and tests read the deprecated
-      # fields until the v5 cut deletes them together.
       - path: core/v5/
         text: 'SA1019: .* is deprecated.*'
         linters:
           - staticcheck
-      # A demo main package prints its own output — that is main's job.
       - path: metaengine/irohengine/quic/v4/main\.go$
         linters:
           - forbidigo
-      # Demo binaries are illustrative: literal tuning numbers ARE the
-      # demo's readability (named constants would obscure the didactic
-      # shape), and demo files print by design.
       - path: metaengine/irohengine/(quic/)?v4/demo/
         linters:
           - mnd
           - forbidigo
-      # The stack presets and their test harnesses are BOTH deprecated at v5
-      # (ADR-0123: system.System replaces them); preset modules necessarily
-      # import their deprecated parent (stack/v4.Bundle) and deprecated
-      # storage helpers — the whole surface dies together at the cut.
       - path: stack/[^/]+/v4/.*\.go$
         text: 'SA1019: .*(go-cqrs-lite/(stack|storage)/.*|stack/v4.*) is deprecated.*'
         linters:
           - staticcheck
-      # storage/turso's connector exposes the deprecated storage/v4 view-store
-      # family (ADR-0123) — the bridge dies together with that surface at v5.
       - path: storage/turso/v4/connector\.go$
         text: 'SA1019: .*go-cqrs-lite/storage/.* is deprecated.*'
         linters:
@@ -884,22 +746,12 @@ linters:
           - gocyclo
           - cyclop
           - maintidx
-      # systemscenario/v4 is the system-tier BDD HARNESS (ADR-0153), the same
-      # class of carve-out as system/v4/ above: the DSL deliberately captures the
-      # scenario/v4 context on the Scenario struct (containedctx), shutdown
-      # closes on a fresh Background context so cleanup survives a cancelled
-      # scenario/v4 context — documented on the method (contextcheck), presets
-      # build minimal deployment literals by design (exhaustruct_v5), and the
-      # harness exposes injected engine/system interfaces (ireturn).
       - path: systemscenario/v4/
         linters:
           - containedctx
           - contextcheck
           - exhaustruct_v5
           - ireturn
-      # chaos.go's DelayedDriver is a transparent forwarding proxy: engine
-      # error identities MUST pass through unwrapped — scenario/v4 assertions
-      # match engine sentinels through the wrapper.
       - path: systemscenario/v4/chaos\.go$
         linters:
           - wrapcheck
@@ -986,12 +838,6 @@ linters:
           - contextcheck
           - ireturn
           - sqlclosecheck
-      # storage/turso indexing package closes Rows via record.DeferClose
-      # (ADR-0144) — sqlclosecheck cannot see through the helper and flags
-      # every Query site; same treatment as mysql/duckdb/pg engines and
-      # storage/v4. (The previous `turso/indexing/` path never matched any
-      # file — real paths are storage/turso/v4/indexing/ — and its 13-linter
-      # list was dead; revived trimmed to the false-positive class only.)
       - path: storage/turso/v4/indexing/
         linters:
           - sqlclosecheck
@@ -1026,8 +872,6 @@ linters:
           - nolintlint
           - wrapcheck
           - staticcheck
-      # Builder-family files: partial literals are the builder's job
-      # (compat.Baseline/Finding, MessageConfig REST headers/responses).
       - path: catalog/v4/compat/
         linters:
           - exhaustruct_v5
@@ -1174,11 +1018,6 @@ linters:
           - gocyclo
           - cyclop
           - maintidx
-      # Declarative rule tables: three sibling files of pure RuleInfo literals
-      # (catalog_api / catalog_adoption / catalog_boilerplate). dupl pair
-      # anchoring flips between the twins, which ping-pongs per-file
-      # //nolint:dupl directives between used and unused (nolintlint) — the
-      # shape-match is intentional, contract-19 class.
       - path: cmd/cqrs-lint/v4/pkg/rules/catalog_(api|adoption|boilerplate)\.go$
         linters:
           - dupl
@@ -1257,14 +1096,6 @@ linters:
           - wrapcheck
           - exhaustruct_v5
           - nolintlint
-      # core/v5 is the copy-forward home of the v4 event/command/query/id
-      # trains (ADR-0152) and carries their code verbatim until T26 — it
-      # inherits the twins' exclusion posture for the same architectural
-      # reasons the v4 rows record (JSON passthrough methods return marshal
-      # errors as-is; sibling-forwarding is same-module by construction;
-      # the id-family set mirrors the id/v4 row). Note event/v4 itself is
-      # on the GLOBAL exclusion paths — this row is deliberately stricter
-      # so the NEW free-window surface stays policed.
       - path: core/v5/
         linters:
           - wrapcheck
@@ -1316,5 +1147,5 @@ formatters:
       - metaengine/sqliteengine/v4/
       - storage/v4/view/
 issues:
-  max-issues-per-linter: 50
-  max-same-issues: 10
+  max-issues-per-linter: 0
+  max-same-issues: 0

@@ -5,12 +5,12 @@ go 1.27.2
 require (
 	github.com/fxamacker/cbor/v2 v2.10.0
 	github.com/gkampitakis/go-snaps v0.5.25
-	github.com/larsartmann/go-branded-id v0.7.0
+	github.com/larsartmann/go-branded-id v0.7.1
 	github.com/larsartmann/go-codec v0.3.3
 	github.com/larsartmann/go-error-family v0.12.0
 	github.com/maypok86/otter/v2 v2.4.0
 	github.com/oklog/ulid/v2 v2.1.2
-	github.com/onsi/ginkgo/v2 v2.33.1
+	github.com/onsi/ginkgo/v2 v2.34.0
 	github.com/onsi/gomega v1.44.0
 	pgregory.net/rapid v1.3.0
 )
@@ -22,7 +22,7 @@ require (
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
 	github.com/goccy/go-yaml v1.19.2 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
-	github.com/google/pprof v0.0.0-20261016150608-1facf8f91b50 // indirect
+	github.com/google/pprof v0.0.0-20261105003125-4bf881d7fb0b // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/maruel/natural v1.3.0 // indirect

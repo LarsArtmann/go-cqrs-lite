@@ -51,18 +51,18 @@ Three modules reference go-cqrs-lite; 57 pins resolve against the
 consumer's per-module tags; **47 are current, 10 lag** — every lag a train
 tagged after go-appkit's last cqrs release train (cqrs/v0.9.0, 2026-11-08):
 
-| Module | Pin | Latest (consumer tag, date) | Behind |
-|---|---|---|---|
-| `go-appkit/cqrs/go.mod:12` | metaengine v4.23.0 | v4.26.0 (2026-11-15) | 3 minors |
-| `go-appkit/cqrs/go.mod:11` | sqliteengine v4.7.1 | v4.9.1 (2026-11-15) | 2 minors — **misses the v4.8.0 EnforceCap deadlock fix** |
-| `go-appkit/cqrs/go.mod:18` | system v4.18.0 | v4.19.0 (2026-11-15) | 1 minor |
-| `go-appkit/cqrs/go.mod:19` | systemscenario v4.2.1 | v4.3.0 (2026-11-06) | 1 minor |
-| `go-appkit/integration/go.mod:25` | metaengine v4.23.0 | v4.26.0 | 3 minors |
-| `go-appkit/integration/go.mod:20` | catalog v4.12.0 | v4.15.0 (2026-11-11) | 3 minors |
-| `go-appkit/integration/go.mod:29` | system v4.18.0 | v4.19.0 | 1 minor |
-| `go-appkit/integration/go.mod:30` | systemscenario v4.2.1 | v4.3.0 | 1 minor |
-| `go-appkit/integration/go.mod:28`→sqliteengine (indirect) | v4.7.1 | v4.9.1 | 2 minors |
-| `go-appkit/docs/go.mod:5` | catalog v4.12.0 | v4.15.0 | 3 minors |
+| Module                                                    | Pin                   | Latest (consumer tag, date) | Behind                                                   |
+| --------------------------------------------------------- | --------------------- | --------------------------- | -------------------------------------------------------- |
+| `go-appkit/cqrs/go.mod:12`                                | metaengine v4.23.0    | v4.26.0 (2026-11-15)        | 3 minors                                                 |
+| `go-appkit/cqrs/go.mod:11`                                | sqliteengine v4.7.1   | v4.9.1 (2026-11-15)         | 2 minors — **misses the v4.8.0 EnforceCap deadlock fix** |
+| `go-appkit/cqrs/go.mod:18`                                | system v4.18.0        | v4.19.0 (2026-11-15)        | 1 minor                                                  |
+| `go-appkit/cqrs/go.mod:19`                                | systemscenario v4.2.1 | v4.3.0 (2026-11-06)         | 1 minor                                                  |
+| `go-appkit/integration/go.mod:25`                         | metaengine v4.23.0    | v4.26.0                     | 3 minors                                                 |
+| `go-appkit/integration/go.mod:20`                         | catalog v4.12.0       | v4.15.0 (2026-11-11)        | 3 minors                                                 |
+| `go-appkit/integration/go.mod:29`                         | system v4.18.0        | v4.19.0                     | 1 minor                                                  |
+| `go-appkit/integration/go.mod:30`                         | systemscenario v4.2.1 | v4.3.0                      | 1 minor                                                  |
+| `go-appkit/integration/go.mod:28`→sqliteengine (indirect) | v4.7.1                | v4.9.1                      | 2 minors                                                 |
+| `go-appkit/docs/go.mod:5`                                 | catalog v4.12.0       | v4.15.0                     | 3 minors                                                 |
 
 Current everywhere: command v4.14.1, event v4.15.2, id v4.7.5, query v4.10.1,
 decider v4.8.0, middleware v4.7.2, projection v4.4.2, projectionhost v4.7.1,
@@ -77,18 +77,18 @@ contract-relevant pin that drifts from the documented map.
 
 ## 3. Capability inventory (inverse questions)
 
-| # | Inverse question | Grade | Evidence / reason |
-|---|---|---|---|
-| 1 | Composition-root adoption (`system.New`) | **Full** | `go-appkit/cqrs/eventservice.go:447` — `buildSystem` calls `system.New(ctx, mergeDomain(...), deployment)`; the wrapper is a DomainConfig/DeploymentConfig split over it |
-| 2 | Canonical topology (`system.Standard`, ADR-0165) | **Full** | `go-appkit/cqrs/eventservice.go:294` — `defaultDeployment` returns `system.Standard(...)`; shape pinned by `go-appkit/cqrs/deployment_test.go:13-18`; adopted same-evening as the system v4.18.0 tag (`TODO_LIST.md:511`) |
-| 3 | Strategic engine layer (metaengine) | **Full** | sqlite driver via blank-import contract (`go-appkit/cqrs/eventservice.go:22`); documented read side over `ExecuteTypedByName`, `NewWatcher`, `ServeSSE` (`go-appkit/cqrs/README.md:580`, `:603-609`) |
-| 4 | systemscenario harness | **Full** | `go-appkit/cqrs/scenario_pilot_test.go:24` and `go-appkit/cqrs/scenario_store_pin_test.go:29` — `systemscenario.Adopt(t, ctx, eventSvc.System())`, Given/When/Then against the wrapper |
-| 5 | Legacy stack presets avoided | **Full** | zero `stack/v4` require in any of the 3 modules; the v0.5.0 BREAKING moved "from the deprecated stack/sqlite preset (removed at go-cqrs-lite v5, ADR-0123) to system.New" (`go-appkit/cqrs/eventservice.go:6-8`) |
-| 6 | Raw `storage/*` avoided | **Full** | production code has zero storage imports; the one hit is test scaffolding (`go-appkit/integration/integration_test.go:17`) |
-| 7 | Legacy `idempotency/v4` avoided | **Full** | not pinned anywhere; policy documented: idempotency "deliberately NOT defaults — duplicate-command semantics belong to the consumer" (`go-appkit/cqrs/commands.go:20`; external `go-idempotency` path noted at `go-appkit/TODO_LIST.md:124`) |
-| 8 | Version currency | Partial | 10/57 pins lag (§2b); ≤1 week of trains; the sqliteengine v4.8.0 fix for the EnforceCap-vs-folds deadlock — 60-600s stalls in a real consumer (`CHANGELOG.md:157`) — is not in the pinned set, though go-appkit declares no caps itself (no `WithCap`/`EnforceCap` usage) |
-| 9 | Feedback pushes improvements upstream | **Full** | go-cqrs-lite#67 filed and closed completed (graceful-shutdown ask, `go-appkit/TODO_LIST.md:129`); watchlist tracks cqrs-lite releases with pin-drift holds and unblock triggers (same row); pin-drift guard harness in `go-appkit/integration/pin_drift_test.go:1-33` |
-| 10 | v5 codemod readiness | Partial | 84 planned import rewrites / 13 trains still to fold (`CHANGELOG.md:185`) — all mechanical core/v5 import folding; composition already v5-clean (rows 1,5,6,7) |
+| #  | Inverse question                                 | Grade    | Evidence / reason                                                                                                                                                                                                                                                         |
+| -- | ------------------------------------------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1  | Composition-root adoption (`system.New`)         | **Full** | `go-appkit/cqrs/eventservice.go:447` — `buildSystem` calls `system.New(ctx, mergeDomain(...), deployment)`; the wrapper is a DomainConfig/DeploymentConfig split over it                                                                                                  |
+| 2  | Canonical topology (`system.Standard`, ADR-0165) | **Full** | `go-appkit/cqrs/eventservice.go:294` — `defaultDeployment` returns `system.Standard(...)`; shape pinned by `go-appkit/cqrs/deployment_test.go:13-18`; adopted same-evening as the system v4.18.0 tag (`TODO_LIST.md:511`)                                                 |
+| 3  | Strategic engine layer (metaengine)              | **Full** | sqlite driver via blank-import contract (`go-appkit/cqrs/eventservice.go:22`); documented read side over `ExecuteTypedByName`, `NewWatcher`, `ServeSSE` (`go-appkit/cqrs/README.md:580`, `:603-609`)                                                                      |
+| 4  | systemscenario harness                           | **Full** | `go-appkit/cqrs/scenario_pilot_test.go:24` and `go-appkit/cqrs/scenario_store_pin_test.go:29` — `systemscenario.Adopt(t, ctx, eventSvc.System())`, Given/When/Then against the wrapper                                                                                    |
+| 5  | Legacy stack presets avoided                     | **Full** | zero `stack/v4` require in any of the 3 modules; the v0.5.0 BREAKING moved "from the deprecated stack/sqlite preset (removed at go-cqrs-lite v5, ADR-0123) to system.New" (`go-appkit/cqrs/eventservice.go:6-8`)                                                          |
+| 6  | Raw `storage/*` avoided                          | **Full** | production code has zero storage imports; the one hit is test scaffolding (`go-appkit/integration/integration_test.go:17`)                                                                                                                                                |
+| 7  | Legacy `idempotency/v4` avoided                  | **Full** | not pinned anywhere; policy documented: idempotency "deliberately NOT defaults — duplicate-command semantics belong to the consumer" (`go-appkit/cqrs/commands.go:20`; external `go-idempotency` path noted at `go-appkit/TODO_LIST.md:124`)                              |
+| 8  | Version currency                                 | Partial  | 10/57 pins lag (§2b); ≤1 week of trains; the sqliteengine v4.8.0 fix for the EnforceCap-vs-folds deadlock — 60-600s stalls in a real consumer (`CHANGELOG.md:157`) — is not in the pinned set, though go-appkit declares no caps itself (no `WithCap`/`EnforceCap` usage) |
+| 9  | Feedback pushes improvements upstream            | **Full** | go-cqrs-lite#67 filed and closed completed (graceful-shutdown ask, `go-appkit/TODO_LIST.md:129`); watchlist tracks cqrs-lite releases with pin-drift holds and unblock triggers (same row); pin-drift guard harness in `go-appkit/integration/pin_drift_test.go:1-33`     |
+| 10 | v5 codemod readiness                             | Partial  | 84 planned import rewrites / 13 trains still to fold (`CHANGELOG.md:185`) — all mechanical core/v5 import folding; composition already v5-clean (rows 1,5,6,7)                                                                                                            |
 
 Score derivation: rows N=10, none N/A → **A=10**. Full=8 (8.0), Partial=2
 (2 × 0.5), Missed=0. Score = round(100 × 9.0 / 10) = **90% → high band**.

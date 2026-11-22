@@ -12,7 +12,7 @@ humans and tools what surfaces exist — mounts 18 routes bare on an
 `http.ServeMux` with no route-level listing and no registry, which is
 precisely the problem statement the endpoints module was extracted to solve
 ("the listing cannot drift from what is actually served"). Severity is low:
-OpenAPI/AsyncAPI/catalog.json already describe the *system's* contract, the
+OpenAPI/AsyncAPI/catalog.json already describe the _system's_ contract, the
 docserver route set is stable, and the module is a two-week-old v0.1.0. But
 the adoption site is correct, the dependency cost is zero (stdlib-only), and
 the repo is the fleet's template.
@@ -56,14 +56,14 @@ each maintained by hand alongside whatever the index page links.
 
 ## 3. Capability inventory
 
-| # | Capability | Grade | Evidence / reason |
-|---|---|---|---|
-| 1 | Self-describing `GET /endpoints` listing on the docs server | Missed | docserver is the fleet's canonical "describe the surfaces" HTTP surface yet has no machine-readable inventory of its own 18 routes (docserver.go:218-247); an adopter would register routes through `Registry.HandleFunc` and mount the listing behind the same prefix |
-| 2 | Registry as single source of truth (mount + record, drift-proof) | Missed | today the docserver's index page, its route handlers, and any prose docs each enumerate the surface independently — the exact drift class the module exists to kill |
-| 3 | `Routes()` machine-readable inventory for fleet tooling | Missed | docserver already emits `catalog.json`/`openapi.json` for the *system*; a route-level listing (or an `endpoints.Response` embedded in the docs index payload) would cover the *server* tier that catalog.json cannot see |
-| 4 | Route listing for example/taskmanager | N/A | examples minimize ceremony; a listing on the golden path is demo value, not correctness — flip trigger: the example grows enough routes that its README hand-maintains a route table |
-| 5 | Adoption in other library modules | N/A | docserver is the only HTTP-serving production module in the repo (transport-agnostic doctrine, ADR-0127); no other listing site exists |
-| 6 | Custom representations / listing customization | N/A | v0.1.0 pre-1.0 iteration tier; no consumer requirement has been validated yet, here or elsewhere |
+| # | Capability                                                       | Grade  | Evidence / reason                                                                                                                                                                                                                                                      |
+| - | ---------------------------------------------------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | Self-describing `GET /endpoints` listing on the docs server      | Missed | docserver is the fleet's canonical "describe the surfaces" HTTP surface yet has no machine-readable inventory of its own 18 routes (docserver.go:218-247); an adopter would register routes through `Registry.HandleFunc` and mount the listing behind the same prefix |
+| 2 | Registry as single source of truth (mount + record, drift-proof) | Missed | today the docserver's index page, its route handlers, and any prose docs each enumerate the surface independently — the exact drift class the module exists to kill                                                                                                    |
+| 3 | `Routes()` machine-readable inventory for fleet tooling          | Missed | docserver already emits `catalog.json`/`openapi.json` for the _system_; a route-level listing (or an `endpoints.Response` embedded in the docs index payload) would cover the _server_ tier that catalog.json cannot see                                               |
+| 4 | Route listing for example/taskmanager                            | N/A    | examples minimize ceremony; a listing on the golden path is demo value, not correctness — flip trigger: the example grows enough routes that its README hand-maintains a route table                                                                                   |
+| 5 | Adoption in other library modules                                | N/A    | docserver is the only HTTP-serving production module in the repo (transport-agnostic doctrine, ADR-0127); no other listing site exists                                                                                                                                 |
+| 6 | Custom representations / listing customization                   | N/A    | v0.1.0 pre-1.0 iteration tier; no consumer requirement has been validated yet, here or elsewhere                                                                                                                                                                       |
 
 Score derivation: rows N=6, N/A rows 4–6 → **A=3**. Full = 0, Partial = 0,
 Missed = 3 × 0 (rows 1–3). Score = round(100 × 0 / 3) = **0% → low band**.
@@ -86,7 +86,7 @@ Missed = 3 × 0 (rows 1–3). Score = round(100 × 0 / 3) = **0% → low band**.
    served" — is the pin. (Counterpoint kept honest: no drift bug has been
    observed; this is prevention, not repair.)
 3. **What adoption does NOT buy.** OpenAPI/AsyncAPI listings describe the
-   fleet's *contracts* — richer than any route table. The endpoints listing
+   fleet's _contracts_ — richer than any route table. The endpoints listing
    covers the deployment tier (which routes exist, which methods). Those are
    complements, not substitutes; adopting one does not retire the other.
 

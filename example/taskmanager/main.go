@@ -15,6 +15,7 @@ projections, and a seeded demo task. Ctrl-C shuts down gracefully.
 Routes:
   GET    /health               liveness probe
   GET    /health/ready         readiness probe (engines + projections)
+  GET    /healthz              go-health probe detail (engines check)
   GET    /api/tasks            list tasks
   POST   /api/tasks            create a task ({"title": "..."})
   GET    /api/tasks/{id}       task detail (also /assign, /complete, ...)

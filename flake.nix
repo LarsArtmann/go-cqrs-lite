@@ -480,7 +480,7 @@
 
             src = "${self}/example/standard-topology";
 
-            vendorHash = "sha256-idOkfM47GbP6KDxRFmUYLg82ap5J0L3YzKain7LucUU=";
+            vendorHash = "sha256-LeWsFY6xxJZscvcIq+PKMsMkblzxrHO/g9m35cukuZ0=";
 
             proxyVendor = true;
             subPackages = [ "." ];
@@ -1050,7 +1050,7 @@
 
               src = mkCqrsLintSource pkgs;
 
-              vendorHash = "sha256-144yHjI2pE6zybH4rTNhOBTUG1iHKh9/ag9j6dYCvUU=";
+              vendorHash = "sha256-Wb4haJX30rrZ8p+gI8IVO9M9zIjOJenDDiZqaxU6Q2g=";
               proxyVendor = true;
 
               subPackages = [ "." ];

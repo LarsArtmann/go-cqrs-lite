@@ -21,6 +21,7 @@ const recipesRelPath = ".agents/skills/go-cqrs-lite/references/recipes.md"
 // the drift.
 var externalRequireVersions = map[string]string{
 	"github.com/larsartmann/go-etag/server":         "v0.6.2",
+	"github.com/larsartmann/go-health":              "v0.10.0",
 	"github.com/larsartmann/httputil":               "v1.9.0",
 	"github.com/larsartmann/httputil/server_timing": "v1.0.3",
 }

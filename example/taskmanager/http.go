@@ -11,6 +11,7 @@ import (
 
 	"github.com/larsartmann/go-codec"
 	errorfamily "github.com/larsartmann/go-error-family"
+	"github.com/larsartmann/go-health"
 
 	"github.com/larsartmann/httputil"
 
@@ -41,6 +42,19 @@ func (s *Server) routes() *http.ServeMux {
 	mux.HandleFunc("GET /health", httputil.HealthHandler())
 	mux.HandleFunc("GET /health/live", httputil.LiveHandler())
 	mux.HandleFunc("GET /health/ready", httputil.ReadyHandlerWithProbe(s.ready))
+
+	// go-health bridge (the fleet's probe/dashboard surface): CheckFunc is
+	// signature-identical to system.HealthCheck, so one adapter line exposes
+	// engine health with per-check detail, timing, and pass/fail
+	// classification — and go-health-dashboard renders the same JSON when an
+	// ops page becomes a need. /healthz answers "dependencies reachable"
+	// with 200/503 semantics compatible with Kubernetes probes.
+	if s.Sys != nil {
+		probe := health.NewChecks(map[string]health.CheckFunc{
+			"engines": s.Sys.HealthCheck,
+		})
+		mux.Handle("GET /healthz", probe.ReadinessHandler())
+	}
 
 	mux.Handle("GET /api/tasks", errorfamily.HTTPHandler(
 		bindQuery[taskListResult](s.Sys, decodeListTasks, codec.JSONCodec{}),

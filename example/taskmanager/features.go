@@ -19,7 +19,7 @@ const hmacKeyBytes = 32
 // newDemoSigner creates an HMAC-SHA256 signer-verifier with a random key.
 // In production, load the key from a secret manager (vault, KMS, etc.).
 //
-//nolint:ireturn // factory returning interface for signing abstraction
+
 func newDemoSigner() signing.SignerVerifier {
 	key := make([]byte, hmacKeyBytes)
 	if _, err := rand.Read(key); err != nil {

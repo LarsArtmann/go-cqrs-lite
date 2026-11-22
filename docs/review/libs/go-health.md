@@ -7,9 +7,9 @@
 
 Zero `require`s — correct for the library's core modules, which must stay
 transport- and platform-agnostic under per-module dep budgets. But the gap is
-real and cheap to close: the repo has a rich *diagnostics* health surface
+real and cheap to close: the repo has a rich _diagnostics_ health surface
 (`System.HealthCheck`, `Doctor`, ADR-0137 quarantine, projection lag) and an
-empty *probe* layer on top of it. The blessed example answers `/health` with a
+empty _probe_ layer on top of it. The blessed example answers `/health` with a
 hard-coded `{"status":"ok"}` that never consults any of it, and the repo's own
 lint rule (E016) mandates Kubernetes probes for server-mode projects that no
 example or recipe demonstrates. `health.NewChecks` accepts exactly the
@@ -21,7 +21,7 @@ ships the same lying health endpoint.
 
 A Kubernetes health-probe SDK implementing the three-probe pattern
 (liveness / readiness / startup) as one `Probe` type: liveness never checks
-dependencies, readiness gates only on *critical* services (non-critical
+dependencies, readiness gates only on _critical_ services (non-critical
 failures degrade to `warn`/200 instead of restarting the pod), startup latches
 after boot. Background caching (1s default), shutdown-aware readiness drain,
 method-set enforcement, panic-hardened check execution, a programmatic API
@@ -66,7 +66,7 @@ nowhere:
   (`EngineActive`/`EngineQuarantined`) and `HealthSnapshot()`;
   `metaengine/v4/engine_stats.go:47-50,68-77` folds them into
   `GetEngineStats`; `metaengine/v4/explain.go:256-259` renders them into the
-  `Doctor` report. This is *diagnostics*, i.e. the layer go-health explicitly
+  `Doctor` report. This is _diagnostics_, i.e. the layer go-health explicitly
   does not want to be — complementary, not duplicate.
 - `projectionhost/v4/host.go:332-338` — `LagDuration()`, whose doc suggests
   wiring it to a gauge: a health signal with no probe surface.
@@ -77,26 +77,26 @@ nowhere:
 - `cmd/cqrs-lint/v4/pkg/rules/architecture/e016.go:126,133` — lint rule E016
   warns "Server-mode project without HealthCheck — Kubernetes probes need
   stack.Bundle.HealthCheck()" and suggests adding it "to your /healthz or
-  /readyz endpoint" — the repo *mandates* the pattern it never demonstrates.
+  /readyz endpoint" — the repo _mandates_ the pattern it never demonstrates.
 - `example/goal-shaped-app/main.go:62` — prints `Doctor(ctx)` to stdout: the
   example story for health is "print diagnostics", not "serve probes".
 
 ## 3. Capability inventory
 
-| # | Capability | Grade | Evidence / reason |
-|---|---|---|---|
-| 1 | Three-probe HTTP handlers (`/healthz`,`/readyz`,`/startupz`) | Missed | example serves one hand-rolled `/health` (`example/taskmanager/http.go:63-65`); E016 demands `/healthz` or `/readyz` (`cmd/cqrs-lint/v4/pkg/rules/architecture/e016.go:133`) |
-| 2 | Critical vs non-critical classification (warn, don't restart) | Missed | `System.HealthCheck` fails on *any* engine error (`system/v4/introspection.go:172-180`); quarantined-but-failover-covered engines (ADR-0137) would flap readiness when the system is serving fine from a healthy engine — the exact case that should be `warn` |
-| 3 | Startup latch (slow-boot tolerance) | Partial | `System` tracks `started` and reports `projections:not-started` (`system/v4/introspection.go:146-150`), but it is informational only — nothing gates traffic on it and there is no one-way latch |
-| 4 | Shutdown-aware readiness drain (503 while stopping) | Partial | `HealthCheck` returns `ErrSystemStopped` when stopped (`system/v4/introspection.go:168-170`), but nothing in the examples flips probes during graceful drain |
-| 5 | Background caching / throttle (kubelet poll ≠ dependency hammering) | Missed | `HealthCheck`/`HealthCheckDetailed` evaluate every engine synchronously on every call (`system/v4/introspection.go:172-189`) |
-| 6 | Structured classified response (`pass`/`warn`/`fail`, per-check `since`, `duration_ns`) | Missed | string `Health` (`system/v4/introspection.go:139-154`) and bespoke `[]EngineHealth` (`system/v4/introspection_extended.go:12-13`) — same information, non-standard shape, no dashboard can consume it |
-| 7 | Injector-free bridge (`NewChecks`/`NewWithHealthCheck`) | Missed | the seam is *structurally free*: `CheckFunc` = `func(ctx) error` (go-health/checks.go:15) ≡ `metaengine.HealthChecker` (`metaengine/v4/stats.go:81-83`) ≡ `stack.HealthChecker` (`stack/v4/health.go:14-16`); no example/recipe exploits it |
-| 8 | Observability seam (evaluation hook → Prometheus) | Missed | repo has a `prometheus` module and a doc-suggested lag gauge (`projectionhost/v4/host.go:337`), but health status is exported to no metrics anywhere |
-| 9 | Aggregation sub-package (multiple in-process probes) | N/A | one system per process in current examples — flip: an app embedding several independent `System`s |
-| 10 | Federation sub-package (remote probes → one hub) | N/A | fleet-deployment concern, not a library one — covered in go-health-dashboard.md |
-| 11 | `checks` batteries (Disk/Memory/HTTP/Database) | N/A | engine pings are domain checks, not the stdlib resource set — flip: first fleet app wanting disk ceilings under a SQLite/pebble data dir |
-| 12 | samber/do injector path, version endpoint, method enforcement | N/A | consumer uses no `samber/do`; identity/method policy are app concerns that arrive for free with any future adoption |
+| #  | Capability                                                                              | Grade   | Evidence / reason                                                                                                                                                                                                                                              |
+| -- | --------------------------------------------------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1  | Three-probe HTTP handlers (`/healthz`,`/readyz`,`/startupz`)                            | Missed  | example serves one hand-rolled `/health` (`example/taskmanager/http.go:63-65`); E016 demands `/healthz` or `/readyz` (`cmd/cqrs-lint/v4/pkg/rules/architecture/e016.go:133`)                                                                                   |
+| 2  | Critical vs non-critical classification (warn, don't restart)                           | Missed  | `System.HealthCheck` fails on _any_ engine error (`system/v4/introspection.go:172-180`); quarantined-but-failover-covered engines (ADR-0137) would flap readiness when the system is serving fine from a healthy engine — the exact case that should be `warn` |
+| 3  | Startup latch (slow-boot tolerance)                                                     | Partial | `System` tracks `started` and reports `projections:not-started` (`system/v4/introspection.go:146-150`), but it is informational only — nothing gates traffic on it and there is no one-way latch                                                               |
+| 4  | Shutdown-aware readiness drain (503 while stopping)                                     | Partial | `HealthCheck` returns `ErrSystemStopped` when stopped (`system/v4/introspection.go:168-170`), but nothing in the examples flips probes during graceful drain                                                                                                   |
+| 5  | Background caching / throttle (kubelet poll ≠ dependency hammering)                     | Missed  | `HealthCheck`/`HealthCheckDetailed` evaluate every engine synchronously on every call (`system/v4/introspection.go:172-189`)                                                                                                                                   |
+| 6  | Structured classified response (`pass`/`warn`/`fail`, per-check `since`, `duration_ns`) | Missed  | string `Health` (`system/v4/introspection.go:139-154`) and bespoke `[]EngineHealth` (`system/v4/introspection_extended.go:12-13`) — same information, non-standard shape, no dashboard can consume it                                                          |
+| 7  | Injector-free bridge (`NewChecks`/`NewWithHealthCheck`)                                 | Missed  | the seam is _structurally free_: `CheckFunc` = `func(ctx) error` (go-health/checks.go:15) ≡ `metaengine.HealthChecker` (`metaengine/v4/stats.go:81-83`) ≡ `stack.HealthChecker` (`stack/v4/health.go:14-16`); no example/recipe exploits it                    |
+| 8  | Observability seam (evaluation hook → Prometheus)                                       | Missed  | repo has a `prometheus` module and a doc-suggested lag gauge (`projectionhost/v4/host.go:337`), but health status is exported to no metrics anywhere                                                                                                           |
+| 9  | Aggregation sub-package (multiple in-process probes)                                    | N/A     | one system per process in current examples — flip: an app embedding several independent `System`s                                                                                                                                                              |
+| 10 | Federation sub-package (remote probes → one hub)                                        | N/A     | fleet-deployment concern, not a library one — covered in go-health-dashboard.md                                                                                                                                                                                |
+| 11 | `checks` batteries (Disk/Memory/HTTP/Database)                                          | N/A     | engine pings are domain checks, not the stdlib resource set — flip: first fleet app wanting disk ceilings under a SQLite/pebble data dir                                                                                                                       |
+| 12 | samber/do injector path, version endpoint, method enforcement                           | N/A     | consumer uses no `samber/do`; identity/method policy are app concerns that arrive for free with any future adoption                                                                                                                                            |
 
 Score derivation: rows N=12, N/A rows 9–12 → **A=8**. Full=0, Partial=2
 (0.5 + 0.5 = 1.0), Missed rows 1,2,5,6,7,8 (6 × 0). Score =
@@ -112,7 +112,7 @@ fraction reads 0/8; the two partials carry the score).
    will never restart a genuinely broken taskmanager because the liveness
    endpoint cannot fail.
 2. **Duplication is at the roll-up layer, not the diagnostics layer.**
-   `Doctor`, quarantine, `GetEngineStats` are diagnostics and *should* stay —
+   `Doctor`, quarantine, `GetEngineStats` are diagnostics and _should_ stay —
    go-health itself refuses that job (go-health/README.md:234). What the repo
    re-implements poorly is the probe tier: string `Health`, first-error
    aggregation, conflated liveness/readiness (its own doc comment,
@@ -145,7 +145,7 @@ bugs all day long." Health endpoints are the canonical re-integration bug:
 every fleet app hand-rolls `/health`, each slightly wrong, none inheriting
 the restart-cascade fix (go-health/README.md:45), the warn-tier semantics, or
 the caching. go-health is where that gets fixed once. go-cqrs-lite already
-did the hard part — it *has* the check functions (`System.HealthCheck`,
+did the hard part — it _has_ the check functions (`System.HealthCheck`,
 per-engine `HealthChecker`, quarantine, lag) — and lacks only the 5-line
 bridge and one honest example. Until the template demonstrates it, E016
 creates demand for a pattern the fleet's own reference repo never shows, so

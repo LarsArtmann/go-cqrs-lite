@@ -5,20 +5,20 @@
 
 ## §a What was done (all twelve medium tasks)
 
-| ID | Outcome | Evidence |
-| --- | --- | --- |
-| M01 | Wave landed + pushed (first-ever push grant honored); CI run 44941784962 | 9abcfc200 · d23ac9087 · 8e02a4b48 |
-| M02 | duckdbengine → lint 0 (placeholders, sentinels, extractions) | 3178ee607 |
-| M03 | storage/turso → lint 0; the "5 REAL bugs" were sqlclosecheck×DeferClose false positives — rows VERIFIED closed; the dead `turso/indexing/` row revived with corrected path, trimmed | 46750c502 |
-| M04 | pgengine → lint 0 (priors, strides, sentinels, writeAggregateSelect) | 9c4be2a19 |
-| M05 | irohengine → lint 0 (checked assertions, suite fixtures, demo phases) | e331b6e4f |
-| M06 | irohengine/quic → lint 0 (error-return demo, peer renames, consts) | 4abf8405c |
-| M07 | **Full #lint matrix 89/89 at ZERO**; config taxonomy header; the M01-push CI fallout healed (shfmt 3.14.1 heredoc, api golden, 4 orphaned nolints outside the red set) | cde46eb97 |
-| M08 | Local `nix flake check` PASS; two closeout pushes; green-candidate runs chained | 2f633621d · 0945ea6bc |
-| M09 | Coverage gate GREEN with REPAIRS not re-baselines (graphadapter +8.0, stack/pebble +10.7 via new tests); erraudit 104/104 clean; package-surface ✓; test-runtime ✓; untested-exports ✓ via 8 pin tests | 77040d720 |
-| M10 | Live backends: PG ✓ (ephemeral), Dgraph ✓ (120s full), KV full suites ✓ (pebble 42s, badger, bbolt matrix + 790s soak); MySQL-VM local runs hit server-teardown races (passing tests pass; CI MySQL legs green on the candidate) | below |
-| M11 | 44859030708 root cause = ambient-Go toolchain (job installs only nix; go.mod floor 1.27.2) + stderr swallowed; fixed via setup-go + stderr capture; Gates Rollup = red-CI aggregator (self-heals); SSE flake root-caused and fixed | 0945ea6bc |
-| M12 | This report + add-status-row.sh helper (self-tested) + harvest | below |
+| ID  | Outcome                                                                                                                                                                                                                            | Evidence                          |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------- |
+| M01 | Wave landed + pushed (first-ever push grant honored); CI run 44941784962                                                                                                                                                           | 9abcfc200 · d23ac9087 · 8e02a4b48 |
+| M02 | duckdbengine → lint 0 (placeholders, sentinels, extractions)                                                                                                                                                                       | 3178ee607                         |
+| M03 | storage/turso → lint 0; the "5 REAL bugs" were sqlclosecheck×DeferClose false positives — rows VERIFIED closed; the dead `turso/indexing/` row revived with corrected path, trimmed                                                | 46750c502                         |
+| M04 | pgengine → lint 0 (priors, strides, sentinels, writeAggregateSelect)                                                                                                                                                               | 9c4be2a19                         |
+| M05 | irohengine → lint 0 (checked assertions, suite fixtures, demo phases)                                                                                                                                                              | e331b6e4f                         |
+| M06 | irohengine/quic → lint 0 (error-return demo, peer renames, consts)                                                                                                                                                                 | 4abf8405c                         |
+| M07 | **Full #lint matrix 89/89 at ZERO**; config taxonomy header; the M01-push CI fallout healed (shfmt 3.14.1 heredoc, api golden, 4 orphaned nolints outside the red set)                                                             | cde46eb97                         |
+| M08 | Local `nix flake check` PASS; two closeout pushes; green-candidate runs chained                                                                                                                                                    | 2f633621d · 0945ea6bc             |
+| M09 | Coverage gate GREEN with REPAIRS not re-baselines (graphadapter +8.0, stack/pebble +10.7 via new tests); erraudit 104/104 clean; package-surface ✓; test-runtime ✓; untested-exports ✓ via 8 pin tests                             | 77040d720                         |
+| M10 | Live backends: PG ✓ (ephemeral), Dgraph ✓ (120s full), KV full suites ✓ (pebble 42s, badger, bbolt matrix + 790s soak); MySQL-VM local runs hit server-teardown races (passing tests pass; CI MySQL legs green on the candidate)   | below                             |
+| M11 | 44859030708 root cause = ambient-Go toolchain (job installs only nix; go.mod floor 1.27.2) + stderr swallowed; fixed via setup-go + stderr capture; Gates Rollup = red-CI aggregator (self-heals); SSE flake root-caused and fixed | 0945ea6bc                         |
+| M12 | This report + add-status-row.sh helper (self-tested) + harvest                                                                                                                                                                     | below                             |
 
 ## §b The green-CI chain (three candidates, each teaching something)
 

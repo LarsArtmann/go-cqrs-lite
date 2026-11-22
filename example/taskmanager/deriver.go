@@ -24,7 +24,7 @@ var defaultAssignee = NewAssigneeID("team-lead")
 // newDeriverProjection creates a projection that auto-assigns new tasks via
 // the durable work queue; the worker loop dispatches the command.
 //
-//nolint:ireturn // factory returning interface is intentional for projection registration
+
 func newDeriverProjection(wq *WorkQueue) projection.Projection {
 	//cqrs-lint:ignore(C004) library code or intentional pattern
 	return projection.NewProjection(

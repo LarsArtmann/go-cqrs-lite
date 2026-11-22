@@ -9,8 +9,8 @@ The library is already inside the module graph of all five repo CLI tools —
 pulled indirectly by `cmdguard/v5`, which every tool imports directly — yet
 not one line of consumer code imports it. Worse than unused: `cqrs-lint`
 hand-rolls a do-it-yourself temp-file-rename that is exactly the library's
-"DIY write + rename" comparison row (crash-durable: *Partial*; concurrent:
-*no*), inside a module that already carries the real thing transitively.
+"DIY write + rename" comparison row (crash-durable: _Partial_; concurrent:
+_no_), inside a module that already carries the real thing transitively.
 And `cqrs-upgrade` rewrites the **user's source files** with bare
 `os.WriteFile` — the highest-stakes non-atomic write in the whole repo.
 27 non-test `os.WriteFile` sites stand where a one-liner exists.
@@ -60,7 +60,7 @@ next tidy.
   (~25 lines). No temp-file fsync, no directory fsync, no cross-process
   lock, no fingerprint — precisely the "DIY write + rename" the library's
   comparison table grades Partial (go-atomic-write/README.md:39-45). This
-  module *already has* go-atomic-write in its go.mod.
+  module _already has_ go-atomic-write in its go.mod.
 - `cmd/cqrs-upgrade/v4/util.go:12` — `osWriteFile` = bare
   `os.WriteFile(path, data, 0o600)`; used by the v4→v5 rewriters
   (`rewrite_v5.go:199`, `rewrite_v5_surface.go:150` also writes directly,
@@ -85,20 +85,20 @@ next tidy.
 
 ## 3. Capability inventory
 
-| # | Capability | Grade | Evidence / reason |
-|---|---|---|---|
-| 1 | Plain atomic write (`Write`) | Missed | cqrs-lint hand-rolls the weaker DIY version (`cmd/cqrs-lint/v4/baseline_file.go:100-125`) while already requiring the lib via cmdguard (`cmd/cqrs-lint/v4/go.mod:44`) |
-| 2 | TOCTOU-verified write (`WriteVerified` + `ErrConcurrentModification`) | Missed | suppression fix rewrites a user-managed file read-modify-write with no protection (`cmd/cqrs-lint/v4/pkg/suppression/fix.go:187`); no caller anywhere verifies a fingerprint |
-| 3 | Idempotent write (`WriteIfChanged`) | Missed | catalog exporter + baselines rewrite identical bytes on every run (`catalog/v4/eventcatalog/writer.go:19+`, `catalog/v4/compat/baseline.go:94`, `cmd/api-stability/v4/golden.go:29`) — mtime churn for downstream caches and noisy git status |
-| 4 | Crash durability (temp fsync + dir fsync) | Missed | the DIY path skips both (`cmd/cqrs-lint/v4/baseline_file.go:100-125`); `cqrs-upgrade` writes user sources with no protection at all (`cmd/cqrs-upgrade/v4/util.go:12`) |
-| 5 | Cross-process locking (flock / LockFileEx) | N/A | today's workflows are single-writer one-shot CLIs — flip: CI matrix jobs sharing one checkout writing the same baseline/golden files |
-| 6 | Streaming write (`WriteFunc*`) | N/A | every writer holds full content in memory — flip: an exporter streaming multi-MB diagrams/manifests |
-| 7 | Windows rename retry (`rename_windows.go`) | N/A | fleet CI is linux-only (same posture as go-health's compatibility note) — flip: first Windows developer tooling |
-| 8 | Fingerprint helpers / retry semantics | N/A | exists to serve `WriteVerified` callers; none exist yet — arrives with row 2 |
+| # | Capability                                                            | Grade  | Evidence / reason                                                                                                                                                                                                                             |
+| - | --------------------------------------------------------------------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | Plain atomic write (`Write`)                                          | Missed | cqrs-lint hand-rolls the weaker DIY version (`cmd/cqrs-lint/v4/baseline_file.go:100-125`) while already requiring the lib via cmdguard (`cmd/cqrs-lint/v4/go.mod:44`)                                                                         |
+| 2 | TOCTOU-verified write (`WriteVerified` + `ErrConcurrentModification`) | Missed | suppression fix rewrites a user-managed file read-modify-write with no protection (`cmd/cqrs-lint/v4/pkg/suppression/fix.go:187`); no caller anywhere verifies a fingerprint                                                                  |
+| 3 | Idempotent write (`WriteIfChanged`)                                   | Missed | catalog exporter + baselines rewrite identical bytes on every run (`catalog/v4/eventcatalog/writer.go:19+`, `catalog/v4/compat/baseline.go:94`, `cmd/api-stability/v4/golden.go:29`) — mtime churn for downstream caches and noisy git status |
+| 4 | Crash durability (temp fsync + dir fsync)                             | Missed | the DIY path skips both (`cmd/cqrs-lint/v4/baseline_file.go:100-125`); `cqrs-upgrade` writes user sources with no protection at all (`cmd/cqrs-upgrade/v4/util.go:12`)                                                                        |
+| 5 | Cross-process locking (flock / LockFileEx)                            | N/A    | today's workflows are single-writer one-shot CLIs — flip: CI matrix jobs sharing one checkout writing the same baseline/golden files                                                                                                          |
+| 6 | Streaming write (`WriteFunc*`)                                        | N/A    | every writer holds full content in memory — flip: an exporter streaming multi-MB diagrams/manifests                                                                                                                                           |
+| 7 | Windows rename retry (`rename_windows.go`)                            | N/A    | fleet CI is linux-only (same posture as go-health's compatibility note) — flip: first Windows developer tooling                                                                                                                               |
+| 8 | Fingerprint helpers / retry semantics                                 | N/A    | exists to serve `WriteVerified` callers; none exist yet — arrives with row 2                                                                                                                                                                  |
 
 Score derivation: rows N=8, N/A rows 5–8 → **A=4**. Full=0, Partial=0,
 Missed rows 1–4 (4 × 0). Score = round(100 × 0 / 4) = **0% → low band**.
-Severe is the right word: the dependency is *present in five module graphs*
+Severe is the right word: the dependency is _present in five module graphs_
 and leveraged zero percent, while its exact product is re-implemented
 worse inside one of those five modules.
 
@@ -112,7 +112,7 @@ worse inside one of those five modules.
    from `// indirect` to direct. Zero new module-graph weight.
 2. **cqrs-upgrade is the highest-stakes miss.** It edits user source files
    (`rewrite_v5.go:199`, `rewrite_v5_surface.go:150`, via `util.go:12`) —
-   the one category of file in the repo that is *not* regeneratable from
+   the one category of file in the repo that is _not_ regeneratable from
    the repo itself. A crash mid-rewrite corrupts the user's working tree;
    `Write`'s temp+rename+fsync makes that structurally impossible. This
    tool is also how every fleet project migrates v4→v5, so the risk is
@@ -120,7 +120,7 @@ worse inside one of those five modules.
 3. **Regeneratable artifacts are a judged, not blind, swap.** Golden files,
    catalog exports, and baselines can be regenerated; plain `WriteFile` is
    defensible there, and `catalog/v4` is a production module under dep
-   budgets (two transitive deps: xxhash, flock). The capability that *does*
+   budgets (two transitive deps: xxhash, flock). The capability that _does_
    pay today is `WriteIfChanged`: identical-bytes exports stop churning
    mtimes, which docserver-side caches and git status both feel. If budget
    forbids the dep in catalog/v4, the honest move is to record that as a
@@ -135,7 +135,7 @@ Indirect pins split **3× v0.6.2 / 2× v0.6.1** against latest local tag
 **v0.6.2** (HEAD 4f10347, 2026-11-15). The split is MVS fallout, not drift
 by decision: `cmdguard/v5@v5.0.0` requires v0.6.1 in all five graphs;
 `samber-do-auditlog@v0.12.3` requires v0.6.2 in the three that resolve
-newer (see §2). Nobody is *pinning* anything — the versions are selected.
+newer (see §2). Nobody is _pinning_ anything — the versions are selected.
 The moment any tool adopts directly, it pins v0.6.2 and the question
 dissolves. Nothing in the v0.6.x line is flagged partial on POSIX in the
 library's own FEATURES audit (only the Windows rename path is
@@ -147,10 +147,10 @@ linux-CI fleet).
 Crash-safe file writes are a fix-once, benefit-everywhere utility — the
 purest form of the owner's "collective improvements" thesis. The fleet's
 tools write baselines, golden files, catalog exports, generated code, and —
-via cqrs-upgrade — each project's *source*. Every one of those sites
+via cqrs-upgrade — each project's _source_. Every one of those sites
 currently re-implements (or skips) safety differently. The library is
 already in five module graphs, so the marginal cost of the flagship fixes
-is one import line each; the marginal cost of *not* fixing is that the next
+is one import line each; the marginal cost of _not_ fixing is that the next
 torn baseline or half-written user file gets debugged per-project, forever.
 This is the cheapest severe finding in this audit group.
 

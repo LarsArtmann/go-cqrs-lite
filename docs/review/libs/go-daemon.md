@@ -11,7 +11,7 @@ and nothing in the repo speaks unix domain sockets or systemd. The one row
 that survives the N/A filter is lifecycle ordering, and it is telling: the
 golden-path example hand-rolls a ~50-line signal/drain choreography that
 duplicates the library's core product, and the hand-roll already contains
-the exact class of ordering wart (drain consumers *before* stopping intake)
+the exact class of ordering wart (drain consumers _before_ stopping intake)
 that go-daemon's explicit `Startup → OnListen → OnShutdown` contract exists
 to make structurally impossible.
 
@@ -50,7 +50,7 @@ alternative surface that exists instead:
   projection host stop at :296, HTTP `Shutdown` at :301, OTel provider,
   watcher, work queue, DLQ. That is a bespoke re-implementation of the
   lifecycle-ordering product (go-daemon/README.md:25-26).
-- **The drain order has a wart.** Projections stop (`example/taskmanager/setup.go:296`) *before*
+- **The drain order has a wart.** Projections stop (`example/taskmanager/setup.go:296`) _before_
   the HTTP server stops accepting (`example/taskmanager/setup.go:301`): during the drain window
   the API is still serving, and any query arriving between the two hits a
   stopped projection host. Small, real, and precisely the bug class the
@@ -70,21 +70,21 @@ alternative surface that exists instead:
 
 ## 3. Capability inventory
 
-| # | Capability | Grade | Evidence / reason |
-|---|---|---|---|
+| # | Capability                                                                                  | Grade  | Evidence / reason                                                                                                                                                                                                                                                            |
+| - | ------------------------------------------------------------------------------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1 | Lifecycle ordering (Startup → OnListen → OnShutdown; drain before/after intake by contract) | Missed | hand-rolled ~50-line choreography (`example/taskmanager/setup.go:290-320,368-374`) that duplicates the lib's product and already drains projections before stopping intake (`example/taskmanager/setup.go:296` vs `:301`) — duplication with a wart, not absence of function |
-| 2 | `SocketServer` unix-socket lifecycle (stale cleanup, 0600, /run, removal on all exits) | N/A | zero unix-socket listeners in the repo — flip: first CLI tool gaining a server/daemon mode over UDS (e.g. a cqrs-gen watch server) |
-| 3 | sd_notify (READY/STOPPING/WATCHDOG) | N/A | nothing ships systemd units — flip: first fleet deployment under systemd `Type=notify`, where the example's log line (`example/taskmanager/setup.go:372`) must become a real notify or the unit hangs |
-| 4 | Unix-socket HTTP client (`NewHTTPClient`) | N/A | no UDS clients exist — arrives together with row 2 |
-| 5 | Content negotiation codecs (`ResolveRequestCodec`, `WriteEncoded`) | N/A | owned by the go-codec audit (`go-codec.md`, this directory); graded there to avoid double-counting — go-daemon re-exports the same capability |
-| 6 | `ParseSSEData` (client-side WHATWG SSE framing) | N/A | consumer *serves* SSE via go-sse (`example/taskmanager/http.go:55-60`); no SSE client dispatch exists — flip: any fleet tool that consumes another service's SSE feed |
-| 7 | `FlightRecorder` (slow-request trace capture) | N/A | no long-running production daemon in this repo to instrument; benchmarks use benchkit — flip: first fleet service with intermittent slow engine folds in production, where the lighter path is `go-flightrecorder` directly (go-daemon/go.mod:8) |
-| 8 | `IsSocketAlive` probe | N/A | no socket files to probe — arrives together with row 2 |
+| 2 | `SocketServer` unix-socket lifecycle (stale cleanup, 0600, /run, removal on all exits)      | N/A    | zero unix-socket listeners in the repo — flip: first CLI tool gaining a server/daemon mode over UDS (e.g. a cqrs-gen watch server)                                                                                                                                           |
+| 3 | sd_notify (READY/STOPPING/WATCHDOG)                                                         | N/A    | nothing ships systemd units — flip: first fleet deployment under systemd `Type=notify`, where the example's log line (`example/taskmanager/setup.go:372`) must become a real notify or the unit hangs                                                                        |
+| 4 | Unix-socket HTTP client (`NewHTTPClient`)                                                   | N/A    | no UDS clients exist — arrives together with row 2                                                                                                                                                                                                                           |
+| 5 | Content negotiation codecs (`ResolveRequestCodec`, `WriteEncoded`)                          | N/A    | owned by the go-codec audit (`go-codec.md`, this directory); graded there to avoid double-counting — go-daemon re-exports the same capability                                                                                                                                |
+| 6 | `ParseSSEData` (client-side WHATWG SSE framing)                                             | N/A    | consumer _serves_ SSE via go-sse (`example/taskmanager/http.go:55-60`); no SSE client dispatch exists — flip: any fleet tool that consumes another service's SSE feed                                                                                                        |
+| 7 | `FlightRecorder` (slow-request trace capture)                                               | N/A    | no long-running production daemon in this repo to instrument; benchmarks use benchkit — flip: first fleet service with intermittent slow engine folds in production, where the lighter path is `go-flightrecorder` directly (go-daemon/go.mod:8)                             |
+| 8 | `IsSocketAlive` probe                                                                       | N/A    | no socket files to probe — arrives together with row 2                                                                                                                                                                                                                       |
 
 Score derivation: rows N=8, N/A rows 2–8 → **A=1**. Full=0, Partial=0,
 Missed row 1 (0). Score = round(100 × 0 / 1) = **0% → low band**. Low is
 the honest reading of "leveraged": the consumer achieves the row-1
-*outcome* hand-rolled, so the deficit is duplication-plus-wart, not missing
+_outcome_ hand-rolled, so the deficit is duplication-plus-wart, not missing
 function.
 
 ## 4. Gap analysis
@@ -120,7 +120,7 @@ No pin (zero requires). Latest local tag **v0.4.0**; HEAD b6af9f1
 Dependency weight (systemd/v22, prometheus/client_golang, codec, flight
 recorder — go-daemon/go.mod:5-11) makes any production-module pin a
 non-starter under per-module dep budgets; the only sane mount points are
-fleet *apps* and repo *tools* (cmd/), which is where the flip triggers aim.
+fleet _apps_ and repo _tools_ (cmd/), which is where the flip triggers aim.
 Note the module path casing (`LarsArtmann`) differs from the fleet's usual
 `larsartmann` — a go.mod typo waiting for whoever adopts first.
 

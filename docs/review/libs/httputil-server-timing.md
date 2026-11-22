@@ -86,16 +86,16 @@ wiring + test assertions + a compile-gated recipe that carries the same call.
 
 ## 3. Capability inventory
 
-| # | Capability | Grade | Evidence / reason |
-|---|---|---|---|
-| 1 | Middleware + auto `total` (TTFB) | **Full** | example/taskmanager/setup.go:275 (outermost); `total;` asserted example/taskmanager/query_http_test.go:107 |
-| 2 | Named handler phases (`MeasureServerTiming`) | **Full** | httpx.go:45 with stop-before-write respected (httpx.go:48); `query;` asserted query_http_test.go:105 |
-| 3 | Conditional exposure (`ServerTimingMiddlewareWhen`) | Missed | timing is emitted unconditionally on every response including health checks; the module's own README says to gate it in production (server_timing/README.md "Features" bullet 3) |
-| 4 | Phase descriptions (`RecordServerTiming`/`MeasureWithDesc`) | Missed | the query phase ships bare (`query;dur=…`) with no `desc=` — one `MeasureWithDesc` call would make DevTools output self-documenting |
-| 5 | SSE/streaming phase timing (defer idiom) | Missed | `metaengine.ServeSSE` measures nothing; its replay phase (metaengine/v4/sse.go:244-285) is exactly the slow part a "replay" metric would expose, and the module README documents the defer idiom as correct for SSE (header stamped at stream start) |
-| 6 | Direct collector access (`ServerTimingFromContext`) | N/A | no consumer needs collector-level control today — flip trigger: recording a phase from a goroutine the handler spawns |
-| 7 | `WrapServerTiming` per-writer wrapping | N/A | the app owns a plain middleware chain; nothing framework-owned to hook into |
-| 8 | Manual collector lifetime (`NewServerTiming` + `WithServerTiming`) | N/A | full-lifetime control for exotic chains; no such chain exists here |
+| # | Capability                                                         | Grade    | Evidence / reason                                                                                                                                                                                                                                    |
+| - | ------------------------------------------------------------------ | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | Middleware + auto `total` (TTFB)                                   | **Full** | example/taskmanager/setup.go:275 (outermost); `total;` asserted example/taskmanager/query_http_test.go:107                                                                                                                                           |
+| 2 | Named handler phases (`MeasureServerTiming`)                       | **Full** | httpx.go:45 with stop-before-write respected (httpx.go:48); `query;` asserted query_http_test.go:105                                                                                                                                                 |
+| 3 | Conditional exposure (`ServerTimingMiddlewareWhen`)                | Missed   | timing is emitted unconditionally on every response including health checks; the module's own README says to gate it in production (server_timing/README.md "Features" bullet 3)                                                                     |
+| 4 | Phase descriptions (`RecordServerTiming`/`MeasureWithDesc`)        | Missed   | the query phase ships bare (`query;dur=…`) with no `desc=` — one `MeasureWithDesc` call would make DevTools output self-documenting                                                                                                                  |
+| 5 | SSE/streaming phase timing (defer idiom)                           | Missed   | `metaengine.ServeSSE` measures nothing; its replay phase (metaengine/v4/sse.go:244-285) is exactly the slow part a "replay" metric would expose, and the module README documents the defer idiom as correct for SSE (header stamped at stream start) |
+| 6 | Direct collector access (`ServerTimingFromContext`)                | N/A      | no consumer needs collector-level control today — flip trigger: recording a phase from a goroutine the handler spawns                                                                                                                                |
+| 7 | `WrapServerTiming` per-writer wrapping                             | N/A      | the app owns a plain middleware chain; nothing framework-owned to hook into                                                                                                                                                                          |
+| 8 | Manual collector lifetime (`NewServerTiming` + `WithServerTiming`) | N/A      | full-lifetime control for exotic chains; no such chain exists here                                                                                                                                                                                   |
 
 Score derivation: rows N=8, N/A rows 6–8 → **A=5**. Full = 2 × 1.0,
 Partial = 0, Missed = 3 × 0 (rows 3, 4, 5).
@@ -161,7 +161,7 @@ instead of the template. The core is fully leveraged; the doctrine-fringe
 3. **Add a `desc` to the query phase** (low): `MeasureWithDesc("query",
    "dispatch + encode")` in httpx.go:45.
 4. **Align the recipe compile-pin v1.0.2 → v1.0.3** (trivial):
-  `cmd/doc-check/v4/recipes_compile_test.go:25`.
+   `cmd/doc-check/v4/recipes_compile_test.go:25`.
 
 ## 8. Reconsider when
 

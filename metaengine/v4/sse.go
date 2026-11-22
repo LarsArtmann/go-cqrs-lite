@@ -40,6 +40,12 @@ type SSEConfig struct {
 	// Zero means replay all available events from the journal.
 	// Only applies when the watcher has a replay journal (WithReplay).
 	ReplayLimit int
+
+	// Retry is the reconnection interval advertised to browsers via the
+	// SSE `retry:` field (sse.WriteRetry) at stream start. Zero (default)
+	// sends nothing and leaves reconnection pacing to the browser default
+	// (~3s); set it to steer reconnect storms after a server restart.
+	Retry time.Duration
 }
 
 // SSEOption configures an SSEConfig.
@@ -69,6 +75,12 @@ func WithSSEReplayLimit(n int) SSEOption {
 	return func(c *SSEConfig) { c.ReplayLimit = n }
 }
 
+// WithSSEReconnectAfter advertises a reconnection interval to browsers via
+// the SSE `retry:` field (sse.WriteRetry). Zero disables the advertisement.
+func WithSSEReconnectAfter(d time.Duration) SSEOption {
+	return func(c *SSEConfig) { c.Retry = d }
+}
+
 // ServeSSE streams Watcher notifications as Server-Sent Events over HTTP.
 // Each value change is JSON-encoded and sent as an SSE "data" event.
 //
@@ -79,10 +91,20 @@ func WithSSEReplayLimit(n int) SSEOption {
 // connection still sees only future changes; clients needing missed
 // history across disconnects must attach a replay journal (WithReplay).
 //
-// Backpressure: the SSE pipeline uses a ring buffer
-// (default [sse.DefaultSubscriberBuffer]). When the
-// client is slow and the buffer fills, the oldest unread event is dropped.
-// A timeout option closes the stream after a maximum duration.
+// Backpressure: the SSE pipeline uses a per-connection ring buffer
+// (default [sse.DefaultSubscriberBuffer]). When the client is slow and the
+// buffer fills, the oldest unread event is dropped. This is a deliberate
+// choice over the two alternatives: blocking writes (one slow client would
+// stall the watcher for every other subscriber) and unbounded buffering (a
+// stalled client leaks memory). go-sse's [sse.Broadcaster] was considered
+// and declined: the watcher already IS the fanout point (each Watch/Subscribe
+// call returns a dedicated channel), so interposing a Broadcaster would
+// double-buffer per subscriber for no added guarantee — its per-subscriber
+// buffer is full-drop as well. Drop-old is coherent here because ServeSSE
+// streams read-model state, not a transaction log: what matters is the
+// newest state, and a client that fell behind re-syncs exactly via the
+// Last-Event-ID replay path on reconnect. A timeout option closes the
+// stream after a maximum duration.
 //
 // Reconnection: when the watcher has a replay journal (attached via
 // [Watcher.WithReplay]), ServeSSE writes an "id: <seq>" field on every event.
@@ -136,12 +158,24 @@ func ServeSSE[V any](
 // subscribeSSEHeaders commits the SSE response status AFTER the watcher
 // subscription is registered. Header commit is the moment the client first
 // observes the stream as live (its request unblocks); doing it after
-// registration is what makes ServeSSE's ordering guarantee hold.
-func subscribeSSEHeaders(w http.ResponseWriter, flusher http.Flusher) {
+// registration is what makes ServeSSE's ordering guarantee hold. When the
+// config advertises a reconnection interval, the `retry:` frame rides right
+// behind the committed headers (browsers apply it globally; it needs no
+// event to take effect).
+func subscribeSSEHeaders(w http.ResponseWriter, flusher http.Flusher, cfg SSEConfig) {
 	sse.SetHeaders(w)
 	w.Header().Set("X-Accel-Buffering", "no") // disable nginx buffering
 
 	w.WriteHeader(http.StatusOK)
+
+	if cfg.Retry > 0 {
+		if err := sse.WriteRetry(w, uint(cfg.Retry.Milliseconds())); err != nil {
+			// The stream is already committed; the retry advertisement is
+			// best-effort (the client falls back to its default pacing).
+			_ = err //nolint:errcheck // nothing actionable after header commit
+		}
+	}
+
 	flusher.Flush()
 }
 
@@ -161,7 +195,7 @@ func serveSSEPlain[V any](
 	// ordering guarantee).
 	watchCh := watcher.Watch(ctx, nil)
 
-	subscribeSSEHeaders(w, flusher)
+	subscribeSSEHeaders(w, flusher, cfg)
 
 	go forwardWithDropOld(ctx, watchCh, buf, nil)
 
@@ -196,16 +230,27 @@ func serveSSEReplay[V any](
 ) error {
 	ctx := r.Context()
 
+	// Phase -1: validate the reconnection cursor BEFORE any header commit.
+	// A present-but-unusable Last-Event-ID must surface as a 400 — treating
+	// it as "no cursor" (the old behavior) silently replayed the ENTIRE
+	// journal to a client that could not have processed it.
+	afterSeq, err := parseLastEventID(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+
+		return nil //nolint:nilerr // the 400 IS the response; nothing to propagate
+	}
+
 	// Phase 0: Subscribe FIRST to buffer live events arriving during replay —
 	// and before the response status is committed (see ServeSSE's ordering
 	// guarantee), so a client that has seen 200 cannot miss the handoff.
 	buf := make(chan SeqValue[V], cfg.MaxBuffer)
 	watchCh := watcher.WatchWithSeq(ctx, nil)
 
-	subscribeSSEHeaders(w, flusher)
+	subscribeSSEHeaders(w, flusher, cfg)
 
 	// Phase 1: Replay missed events from the journal.
-	dedupRing, err := replayMissedEvents(w, r, replay, cfg)
+	dedupRing, err := replayMissedEvents(w, afterSeq, replay, cfg)
 	if err != nil {
 		return err
 	}
@@ -244,18 +289,10 @@ func writeReplaySSEEvent[V any](w http.ResponseWriter, item SeqValue[V]) error {
 // numbers that were sent, so the live phase can skip overlapping events.
 func replayMissedEvents[V any](
 	w http.ResponseWriter,
-	r *http.Request,
+	afterSeq uint64,
 	replay *SSEReplay[V],
 	cfg SSEConfig,
 ) (*dedup.Ring[string], error) {
-	var afterSeq uint64
-
-	if lastID := r.Header.Get("Last-Event-ID"); lastID != "" {
-		if parsed, err := strconv.ParseUint(lastID, 10, 64); err == nil {
-			afterSeq = parsed
-		}
-	}
-
 	replayed := replay.Replay(afterSeq)
 
 	// If capped, keep only the MOST RECENT events — the client cares about
@@ -283,4 +320,27 @@ func replayMissedEvents[V any](
 	}
 
 	return ring, nil
+}
+
+// parseLastEventID validates the Last-Event-ID reconnection cursor. The
+// header must be wire-clean ([sse.ParseEventID] rejects newline corruption)
+// and numeric (the journal sequence number). An absent header is a live
+// connection (zero cursor); a present-but-unusable one is a client bug the
+// server reports instead of papering over.
+func parseLastEventID(r *http.Request) (uint64, error) {
+	raw := r.Header.Get("Last-Event-ID")
+	if raw == "" {
+		return 0, nil
+	}
+
+	if _, err := sse.ParseEventID(raw); err != nil {
+		return 0, fmt.Errorf("malformed Last-Event-ID: %w", err)
+	}
+
+	parsed, err := strconv.ParseUint(raw, 10, 64)
+	if err != nil {
+		return 0, fmt.Errorf("Last-Event-ID %q is not a journal sequence number", raw)
+	}
+
+	return parsed, nil
 }

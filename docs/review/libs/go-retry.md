@@ -5,8 +5,8 @@
 **Verdict:** UNDERUSED-SEVERE
 **Score:** 1.5/8 capabilities fully leveraged = 19% (low)
 
-go-cqrs-lite is the library's only direct consumer and is *named by the
-library* as the CQRS-wrapped face of it — yet the wrapper does not call
+go-cqrs-lite is the library's only direct consumer and is _named by the
+library_ as the CQRS-wrapped face of it — yet the wrapper does not call
 `retry.Do` at all. `middleware/v4` hand-rolls its own attempt loop and
 borrows exactly one function, `ComputeDelay`. The repo's own linter tells
 fleet apps to "use retry.Do" while the repo's own event publisher hand-rolls
@@ -61,18 +61,18 @@ Sources: `go-retry/README.md` (config table, error model, nesting),
 
 ## 3. Capability inventory
 
-| # | Capability | Grade | Evidence / reason |
-|---|---|---|---|
-| 1 | Retry loop `Do` | Missed | 0 production call sites; `middleware/v4/retry.go:75-149` re-implements it inline |
-| 2 | `ComputeDelay` / `Backoff` | **Full** | `middleware/v4/retry.go:152` — the one borrowed symbol |
-| 3 | `Config`/`DefaultConfig`/`Validate` | Missed | `middleware/v4` declares its own `RetryConfig` + `Validate` (`middleware/v4/middleware.go:31`, `middleware/v4/retry.go:22-27`) — parallel knobs, no reuse |
-| 4 | Hooks (`OnRetry`, `OnExhausted`) | Missed | logging and dead-letter entry are hand-coded inside the loop (`middleware/v4/retry.go:114-122, 140-145`) |
-| 5 | Terminal sentinels + deadline/cancel split (`ErrExhausted`/`ErrCanceled`/`ErrDeadlineExceeded`) | Missed | local duplicates `ErrRetryExhausted`/`ErrRetryCanceled` (`middleware/v4/errors.go:21,27`); the loop maps *every* `ctx.Done()` to cancel (`middleware/v4/retry.go:130-136`) — the exact mislabeling go-retry v0.4.0 fixed (`go-retry/CHANGELOG.md` [0.4.0]) |
-| 6 | Jitter strategies (`WithJitter`, `WithRandomSource`) | Partial | additive jitter is inherited via `ComputeDelay`, but not injectable — middleware retry timings stay untestable/deterministic-uncontrolled |
-| 7 | Per-call options (`With*` tail) | Missed | 0 call sites (nothing calls `Do` to pass them to) |
-| 8 | `DoWithValue` | N/A | consumer's retry surface is error-only middleware handlers; no value-returning retry call site exists today |
-| 9 | `DelayFunc` (server-provided Retry-After) | N/A | transport-agnostic library has no server-delay feedback channel; flips the day an HTTP ingress honors Retry-After |
-| 10 | `FromPolicy(errorfamily.RetryPolicy)` | Missed | 0 call sites; would bridge errorfamily's advisory policies into the wrapper's config (see `go-error-family.md` gap 3) |
+| #  | Capability                                                                                      | Grade    | Evidence / reason                                                                                                                                                                                                                                          |
+| -- | ----------------------------------------------------------------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1  | Retry loop `Do`                                                                                 | Missed   | 0 production call sites; `middleware/v4/retry.go:75-149` re-implements it inline                                                                                                                                                                           |
+| 2  | `ComputeDelay` / `Backoff`                                                                      | **Full** | `middleware/v4/retry.go:152` — the one borrowed symbol                                                                                                                                                                                                     |
+| 3  | `Config`/`DefaultConfig`/`Validate`                                                             | Missed   | `middleware/v4` declares its own `RetryConfig` + `Validate` (`middleware/v4/middleware.go:31`, `middleware/v4/retry.go:22-27`) — parallel knobs, no reuse                                                                                                  |
+| 4  | Hooks (`OnRetry`, `OnExhausted`)                                                                | Missed   | logging and dead-letter entry are hand-coded inside the loop (`middleware/v4/retry.go:114-122, 140-145`)                                                                                                                                                   |
+| 5  | Terminal sentinels + deadline/cancel split (`ErrExhausted`/`ErrCanceled`/`ErrDeadlineExceeded`) | Missed   | local duplicates `ErrRetryExhausted`/`ErrRetryCanceled` (`middleware/v4/errors.go:21,27`); the loop maps _every_ `ctx.Done()` to cancel (`middleware/v4/retry.go:130-136`) — the exact mislabeling go-retry v0.4.0 fixed (`go-retry/CHANGELOG.md` [0.4.0]) |
+| 6  | Jitter strategies (`WithJitter`, `WithRandomSource`)                                            | Partial  | additive jitter is inherited via `ComputeDelay`, but not injectable — middleware retry timings stay untestable/deterministic-uncontrolled                                                                                                                  |
+| 7  | Per-call options (`With*` tail)                                                                 | Missed   | 0 call sites (nothing calls `Do` to pass them to)                                                                                                                                                                                                          |
+| 8  | `DoWithValue`                                                                                   | N/A      | consumer's retry surface is error-only middleware handlers; no value-returning retry call site exists today                                                                                                                                                |
+| 9  | `DelayFunc` (server-provided Retry-After)                                                       | N/A      | transport-agnostic library has no server-delay feedback channel; flips the day an HTTP ingress honors Retry-After                                                                                                                                          |
+| 10 | `FromPolicy(errorfamily.RetryPolicy)`                                                           | Missed   | 0 call sites; would bridge errorfamily's advisory policies into the wrapper's config (see `go-error-family.md` gap 3)                                                                                                                                      |
 
 Score derivation: rows N=10, N/A rows 8 and 9 → **A=8**. Full=1 (row 2),
 Partial=1 (row 6 → 0.5), Missed rows 1, 3, 4, 5, 7, 10 → 0.

@@ -357,6 +357,18 @@ var recipeCatalogB3 = map[string]recipeSpec{
 		preamble: "var mux *http.ServeMux\n",
 		trailers: "_ = srv",
 	},
+	"### 2.47 Bind a system Query to an HTTP endpoint — ETag, Server-Timing, safe errors (system + go-etag + httputil) #5": {
+		requires: []string{
+			`github.com/larsartmann/go-health`,
+		},
+		imports: []string{
+			`"net/http"`,
+			`"github.com/larsartmann/go-health"`,
+			`"github.com/larsartmann/go-cqrs-lite/system/v4"`,
+		},
+		preamble: "var sys *system.System\n" +
+			"var mux *http.ServeMux\n",
+	},
 }
 
 // queryEndpointHelperPreamble scaffolds the §2.47 httpx helper (fence #2) for

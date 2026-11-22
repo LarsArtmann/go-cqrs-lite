@@ -60,28 +60,28 @@ budgets (`nix run .#check-arch`).
 
 ## 3. Capability inventory
 
-| # | Capability | Grade | Evidence / reason |
-|---|---|---|---|
-| 1 | Query-param parsing (`ParseUintQuery`) | **Full** | `example/taskmanager/http.go:118`, recipe §2.47 |
-| 2 | Middleware composition (`Chain`, `Compose`, `MiddlewareStack`) | Missed | taskmanager wires exactly one middleware manually (`example/taskmanager/setup.go:275`); no chain anywhere |
-| 3 | Panic recovery (`Recovery`) | Missed | no recovery middleware in the example server; a handler panic drops the connection without a 500 |
-| 4 | Request logging (`Logging`/`LoggingFromContext`) | Missed | `StartHTTP` logs only start/stop (`example/taskmanager/setup.go:271-283`); no per-request line |
-| 5 | Request ID (`RequestID`) | Missed | no request ID generation/propagation; nothing correlates a response to a log line |
-| 6 | Security headers (`SecurityHeaders`) | Missed | taskmanager sets none; docserver sets `X-Content-Type-Options` once by hand (`catalog/v4/docserver/architecture.go:74`) |
-| 7 | CSP nonce (`Nonce`, `NonceAttr`) | Missed | docserver hand-rolls 128-bit nonce minting (`catalog/v4/docserver/csp.go:18-29`) — the exact job of `httputil.Nonce` |
-| 8 | Body size limit (`MaxBodySize`) | Missed | `decodeJSON` decodes `r.Body` unbounded (`example/taskmanager/http.go:344-349`); the recipe's own intro warns about `?limit=100000000`-class inputs but the body path has no ceiling |
-| 9 | Request timeout (`Timeout`) | Missed | `StartHTTP` sets only `ReadHeaderTimeout` (`example/taskmanager/setup.go:274-276`) |
-| 10 | Server lifecycle (`NewServer`/`NewServerListener`) | Missed | hand-rolled `&http.Server{...}` (`example/taskmanager/setup.go:271-277`). Note: the default `WriteTimeout: 30s` would kill SSE streams — a fair reason to not adopt blindly, but then the omission deserves a comment, not silence |
-| 11 | Health handlers (`RegisterHealth`, `ReadyHandlerWithProbe`) | Missed | taskmanager hand-rolls `/health` → `{"status":"ok"}` (`example/taskmanager/http.go:63-65`) — a re-implementation of `httputil.HealthHandler()` without the `/live` + `/ready` K8s pair |
-| 12 | Behavioral spec suite (`httpspec.Run`) | Missed | taskmanager and docserver HTTP behavior is pinned only by hand-written tests; `httpspec.Run(t, mux)` is one line |
-| 13 | CORS | N/A | no browser origins in scope today — flip trigger: first fleet app with a browser frontend on the example twin |
-| 14 | CSRF (`CSRFMiddleware`) | N/A | tokenless JSON API, no cookies — flip trigger: cookie-authenticated browser app |
-| 15 | Compression / Decompression | N/A | proxy-tier job in the fleet's posture (same ruling as go-datastar's README); flip trigger: bandwidth-sensitive direct-to-browser API without a proxy |
-| 16 | Keyed rate limiting | N/A | example/docs servers are not internet-facing — flip trigger: public docserver or fleet-app deployment |
-| 17 | Language negotiation (`Language`) | N/A | single-locale surfaces — flip trigger: i18n docs UI |
-| 18 | Client IP / trusted proxies | N/A | no documented reverse-proxy tier in the examples |
-| 19 | Metrics middleware (`Metrics`) | N/A | observability goes through cqrsotel (OTel), which is the deeper integration |
-| 20 | ResponseRecorder / capability detection | N/A | a middleware-construction building block; the consumer constructs no middleware |
+| #  | Capability                                                     | Grade    | Evidence / reason                                                                                                                                                                                                                  |
+| -- | -------------------------------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1  | Query-param parsing (`ParseUintQuery`)                         | **Full** | `example/taskmanager/http.go:118`, recipe §2.47                                                                                                                                                                                    |
+| 2  | Middleware composition (`Chain`, `Compose`, `MiddlewareStack`) | Missed   | taskmanager wires exactly one middleware manually (`example/taskmanager/setup.go:275`); no chain anywhere                                                                                                                          |
+| 3  | Panic recovery (`Recovery`)                                    | Missed   | no recovery middleware in the example server; a handler panic drops the connection without a 500                                                                                                                                   |
+| 4  | Request logging (`Logging`/`LoggingFromContext`)               | Missed   | `StartHTTP` logs only start/stop (`example/taskmanager/setup.go:271-283`); no per-request line                                                                                                                                     |
+| 5  | Request ID (`RequestID`)                                       | Missed   | no request ID generation/propagation; nothing correlates a response to a log line                                                                                                                                                  |
+| 6  | Security headers (`SecurityHeaders`)                           | Missed   | taskmanager sets none; docserver sets `X-Content-Type-Options` once by hand (`catalog/v4/docserver/architecture.go:74`)                                                                                                            |
+| 7  | CSP nonce (`Nonce`, `NonceAttr`)                               | Missed   | docserver hand-rolls 128-bit nonce minting (`catalog/v4/docserver/csp.go:18-29`) — the exact job of `httputil.Nonce`                                                                                                               |
+| 8  | Body size limit (`MaxBodySize`)                                | Missed   | `decodeJSON` decodes `r.Body` unbounded (`example/taskmanager/http.go:344-349`); the recipe's own intro warns about `?limit=100000000`-class inputs but the body path has no ceiling                                               |
+| 9  | Request timeout (`Timeout`)                                    | Missed   | `StartHTTP` sets only `ReadHeaderTimeout` (`example/taskmanager/setup.go:274-276`)                                                                                                                                                 |
+| 10 | Server lifecycle (`NewServer`/`NewServerListener`)             | Missed   | hand-rolled `&http.Server{...}` (`example/taskmanager/setup.go:271-277`). Note: the default `WriteTimeout: 30s` would kill SSE streams — a fair reason to not adopt blindly, but then the omission deserves a comment, not silence |
+| 11 | Health handlers (`RegisterHealth`, `ReadyHandlerWithProbe`)    | Missed   | taskmanager hand-rolls `/health` → `{"status":"ok"}` (`example/taskmanager/http.go:63-65`) — a re-implementation of `httputil.HealthHandler()` without the `/live` + `/ready` K8s pair                                             |
+| 12 | Behavioral spec suite (`httpspec.Run`)                         | Missed   | taskmanager and docserver HTTP behavior is pinned only by hand-written tests; `httpspec.Run(t, mux)` is one line                                                                                                                   |
+| 13 | CORS                                                           | N/A      | no browser origins in scope today — flip trigger: first fleet app with a browser frontend on the example twin                                                                                                                      |
+| 14 | CSRF (`CSRFMiddleware`)                                        | N/A      | tokenless JSON API, no cookies — flip trigger: cookie-authenticated browser app                                                                                                                                                    |
+| 15 | Compression / Decompression                                    | N/A      | proxy-tier job in the fleet's posture (same ruling as go-datastar's README); flip trigger: bandwidth-sensitive direct-to-browser API without a proxy                                                                               |
+| 16 | Keyed rate limiting                                            | N/A      | example/docs servers are not internet-facing — flip trigger: public docserver or fleet-app deployment                                                                                                                              |
+| 17 | Language negotiation (`Language`)                              | N/A      | single-locale surfaces — flip trigger: i18n docs UI                                                                                                                                                                                |
+| 18 | Client IP / trusted proxies                                    | N/A      | no documented reverse-proxy tier in the examples                                                                                                                                                                                   |
+| 19 | Metrics middleware (`Metrics`)                                 | N/A      | observability goes through cqrsotel (OTel), which is the deeper integration                                                                                                                                                        |
+| 20 | ResponseRecorder / capability detection                        | N/A      | a middleware-construction building block; the consumer constructs no middleware                                                                                                                                                    |
 
 Score derivation: rows N=20, N/A rows 13–20 → **A=12**. Full=1 (1.0), Partial=0,
 Missed rows 2–12 (11 × 0). Score = round(100 × 1.0 / 12) = **8% → low band**.
@@ -150,7 +150,7 @@ there is only thinness where thinness is not required.
 2. **Replace the hand-rolled `/health`** (high, trivial): swap
    `example/taskmanager/http.go:63-65` for `httputil.RegisterHealth(mux)` and
    demonstrate `/ready` with a store probe (`ReadyHandlerWithProbe`) — a CQRS
-   app's readiness *is* its store.
+   app's readiness _is_ its store.
 3. **`httpspec.Run(t, mux)` in the example's HTTP tests** (medium): one line
    pins 19 behavioral conventions on the golden path.
 4. **Decide docserver's nonce posture** (medium): record the

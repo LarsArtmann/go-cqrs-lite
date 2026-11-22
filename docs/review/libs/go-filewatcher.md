@@ -46,7 +46,7 @@ stable stdlib. HEAD 26459ba (2026-11-17); v2.5.0.
   traces it to `a-h/templ@v0.3.1100` (templ's own generate-watch),
   `knadh/koanf/providers/file`, and `samber-do-auditlog`. No consumer code
   uses it.
-- Candidate surfaces that *could* watch, and their current shape:
+- Candidate surfaces that _could_ watch, and their current shape:
   - `cmd/cqrs-gen/v4/` is a one-shot generator (`main.go`, `generate.go`,
     `scan.go` — no watch flag, no loop).
   - `catalog/v4/docserver/` serves pre-built architecture docs
@@ -56,14 +56,14 @@ stable stdlib. HEAD 26459ba (2026-11-17); v2.5.0.
 
 ## 3. Capability inventory
 
-| # | Capability | Grade | Evidence / reason |
-|---|---|---|---|
-| 1 | Recursive fsnotify watching (`New`+`Watch`) | N/A | no tool in the repo watches files — flip: `cqrs-gen --watch` |
-| 2 | Debounce/coalesce (editor 5-events-per-save) | N/A | no watch loop to debounce — flip with row 1 |
-| 3 | Filters incl. `.gitignore`-aware (vendor/node_modules) | N/A | no watcher — and the repo's ignore needs would be real on day one (vendor dirs, `docs/` build output) |
-| 4 | Resilience: ENOSPC, NFS/FUSE poll fallback, self-heal | N/A | no watcher — these are the parts hand-rolls omit and then hit in production |
-| 5 | Observability hooks (Prometheus, OTel, health) | N/A | no watcher; ties into the go-health seam when one exists (`go-health.md`, this directory) |
-| 6 | Event content-hash delivery (dedupe no-op writes) | N/A | no watcher; pairs naturally with go-atomic-write's `WriteIfChanged` on the write side |
+| # | Capability                                             | Grade | Evidence / reason                                                                                     |
+| - | ------------------------------------------------------ | ----- | ----------------------------------------------------------------------------------------------------- |
+| 1 | Recursive fsnotify watching (`New`+`Watch`)            | N/A   | no tool in the repo watches files — flip: `cqrs-gen --watch`                                          |
+| 2 | Debounce/coalesce (editor 5-events-per-save)           | N/A   | no watch loop to debounce — flip with row 1                                                           |
+| 3 | Filters incl. `.gitignore`-aware (vendor/node_modules) | N/A   | no watcher — and the repo's ignore needs would be real on day one (vendor dirs, `docs/` build output) |
+| 4 | Resilience: ENOSPC, NFS/FUSE poll fallback, self-heal  | N/A   | no watcher — these are the parts hand-rolls omit and then hit in production                           |
+| 5 | Observability hooks (Prometheus, OTel, health)         | N/A   | no watcher; ties into the go-health seam when one exists (`go-health.md`, this directory)             |
+| 6 | Event content-hash delivery (dedupe no-op writes)      | N/A   | no watcher; pairs naturally with go-atomic-write's `WriteIfChanged` on the write side                 |
 
 Score derivation: rows N=6, N/A rows 1–6 → **A=0**. Score is not computable
 (0/0); the honest verdict is **N/A — no applicable capability today**, which
@@ -83,7 +83,7 @@ zero candidates in current scope.
    own watcher alongside: `a-h/templ@v0.3.1100 → fsnotify@v1.10.1` in the
    graph). Second likeliest: docserver live preview. Both are feature
    decisions, not integration debts; this report's job is to make the
-   library the *default answer* for them so the implementation isn't
+   library the _default answer_ for them so the implementation isn't
    re-argued per tool.
 3. **The transitive cost is lower than it looks.** fsnotify is already in
    the module graph via templ/koanf/auditlog; go-filewatcher adds its own
@@ -107,7 +107,7 @@ File watching is the archetypal "everyone re-implements it, every
 implementation is subtly broken" problem: recursion, editor-event storms,
 inotify limits (ENOSPC), NFS silence, watch loss on rename. The library
 exists so the fleet fixes those once. go-cqrs-lite needs none of it today —
-but the owner's fleet lens says the decision that matters is the *next*
+but the owner's fleet lens says the decision that matters is the _next_
 one: the first `--watch` flag anywhere in the fleet should start from
 `filewatcher.New(paths, WithExtensions(".go"), WithDebounce(...))`, not
 from a fresh `fsnotify.NewWatcher()` and a hand-rolled debounce map. A

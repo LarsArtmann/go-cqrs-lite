@@ -14,6 +14,7 @@ require (
 	github.com/go-faster/yaml v0.4.6
 	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.7.1
 	github.com/larsartmann/go-error-family v0.12.0
+	github.com/larsartmann/go-etag/server v0.6.2
 	github.com/larsartmann/templ-components v1.27.2
 	github.com/larsartmann/templ-components/icons v1.27.2
 	github.com/larsartmann/templ-components/utils v1.27.2
@@ -42,6 +43,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.5 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2 // indirect
+	github.com/larsartmann/go-etag/entitytag v0.6.2 // indirect
 	github.com/larsartmann/templ-components/htmx v1.27.2 // indirect
 	github.com/maruel/natural v1.3.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect

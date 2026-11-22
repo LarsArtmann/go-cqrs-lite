@@ -9,7 +9,7 @@ The core protocol is adopted to the maximum depth the doctrine allows: every
 production module constructs classified errors through the library, the
 repo's own CI gates drift-check its error codes against a taxonomy doc, and
 its linter enforces the constructor style. What is untouched is the
-surrounding *decision* and *presentation* surface: exit codes, CLI handling,
+surrounding _decision_ and _presentation_ surface: exit codes, CLI handling,
 structured logging, retry policies, idempotent wrapping, the test-assertion
 kit, and the `diagnose` rules engine. This is "share the protocol" done
 right with "and here is everything else we built" left in the box.
@@ -56,25 +56,25 @@ The deepest adoption of the four G1 libraries:
 
 ## 3. Capability inventory
 
-| # | Capability | Grade | Evidence / reason |
-|---|---|---|---|
-| 1 | Six-family constructors and wraps (`New*`/`Wrap*`/`*f`) | **Full** | 445 files; e.g. `watermill/v4/errors.go:25`, `queue/v4/errors.go:43` |
-| 2 | Classification core (`Classify`, `IsRetryable`, `Family` constants) | **Full** | 162 `Classify`, 29 `IsRetryable`; drives retry at `event/v4/middleware.go:86` |
-| 3 | Stable codes (`Coded`, `Code(err)`) | **Full** | `commandlifecycle/v4/recorder.go:146`, `metaengine/v4/adttest/value_encode.go:53`, taxonomy gate keys off them |
-| 4 | Contextual errors (`.WithContext`) | Partial | 5 non-test call sites repo-wide; context fields are mostly minted via log attributes instead |
-| 5 | Third-party sentinel/classifier registration | Partial | `storage/v4/sql/classify_init.go:17-23` (stdlib + SQLite/PG/MySQL), `storage/pebble/v4/classify_init.go:14`; but `metaengine/duckdbengine/v4/typed_wal.go:187` and `metaengine/v4/claimkit/dialect.go:150` still classify by `strings.Contains(err.Error(), …)` |
-| 6 | Scoped registries (`NewRegistry`, `Clone`) | Missed | only `DefaultRegistry` is referenced (2 sites); tests mutate global state |
-| 7 | Multi-error worst-family (`errors.Join` + `Classify`) | Partial | semantics inherited for free (`system/v4/lifecycle.go:114` joins shutdown errors), never asserted or relied on deliberately |
-| 8 | Exit codes (`ExitCode`, `ExitCoder`, `WithExitCode`) | Missed | exercised only by a taxonomy test (`event/v4/errors_taxonomy_test.go:292-299`); no CLI in the repo exits through it |
-| 9 | HTTP boundary (`HTTPStatus`, `HTTPHandler`) | Partial | the example app uses it (`example/taskmanager/http.go:37`); library modules correctly stay transport-agnostic |
-| 10 | CLI boundary (`HandleError*`, `RegisterTemplate`, `TemplateForCode`) | Missed | `HandleErrorDetailed` appears only in `event/v4/errors_taxonomy_test.go:306`; `cmd/cqrs-lint`, `cmd/cqrs-gen`, `cmd/doc-check` hand-roll flag parsing, printing, and `os.Exit` |
-| 11 | `LogError` / `LogErrorContext` (slog) | Missed | 0 call sites; every module hand-rolls `logger.Warn/Error` with ad-hoc attribute sets |
-| 12 | `RetryPolicy()` advisory defaults | Missed | 0 call sites; `middleware/v4` defines its own `RetryConfig` (`middleware/v4/middleware.go:31`) and `go-retry.FromPolicy` (built for exactly this) is unused |
-| 13 | `WrapOnce` / `WrapOncef` (idempotent boundary wrap) | Missed | 0 call sites; API boundaries re-wrap defensively |
-| 14 | `errorfamilytest` assertion kit | Missed | 0 imports; 98 hand-rolled `errorfamily.Classify`/`.Family()` assertions across test files (e.g. `integration/v4/event/classify_test.go`, 12 in one file) |
-| 15 | `bridge` (samber/oops interop) | N/A | library doctrine: lib modules never import an app-enrichment dep; fleet apps may adopt it themselves |
-| 16 | `diagnose` rules (fs/network/postgres/git) | Missed | 0 imports; the pg-backed story (sqlstore, pgengine, integration) is exactly the audience `DefaultRunner` targets |
-| 17 | `agent` submodule | N/A | no runtime AI-agent error surface in this library; nothing to consume |
+| #  | Capability                                                           | Grade    | Evidence / reason                                                                                                                                                                                                                                               |
+| -- | -------------------------------------------------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1  | Six-family constructors and wraps (`New*`/`Wrap*`/`*f`)              | **Full** | 445 files; e.g. `watermill/v4/errors.go:25`, `queue/v4/errors.go:43`                                                                                                                                                                                            |
+| 2  | Classification core (`Classify`, `IsRetryable`, `Family` constants)  | **Full** | 162 `Classify`, 29 `IsRetryable`; drives retry at `event/v4/middleware.go:86`                                                                                                                                                                                   |
+| 3  | Stable codes (`Coded`, `Code(err)`)                                  | **Full** | `commandlifecycle/v4/recorder.go:146`, `metaengine/v4/adttest/value_encode.go:53`, taxonomy gate keys off them                                                                                                                                                  |
+| 4  | Contextual errors (`.WithContext`)                                   | Partial  | 5 non-test call sites repo-wide; context fields are mostly minted via log attributes instead                                                                                                                                                                    |
+| 5  | Third-party sentinel/classifier registration                         | Partial  | `storage/v4/sql/classify_init.go:17-23` (stdlib + SQLite/PG/MySQL), `storage/pebble/v4/classify_init.go:14`; but `metaengine/duckdbengine/v4/typed_wal.go:187` and `metaengine/v4/claimkit/dialect.go:150` still classify by `strings.Contains(err.Error(), …)` |
+| 6  | Scoped registries (`NewRegistry`, `Clone`)                           | Missed   | only `DefaultRegistry` is referenced (2 sites); tests mutate global state                                                                                                                                                                                       |
+| 7  | Multi-error worst-family (`errors.Join` + `Classify`)                | Partial  | semantics inherited for free (`system/v4/lifecycle.go:114` joins shutdown errors), never asserted or relied on deliberately                                                                                                                                     |
+| 8  | Exit codes (`ExitCode`, `ExitCoder`, `WithExitCode`)                 | Missed   | exercised only by a taxonomy test (`event/v4/errors_taxonomy_test.go:292-299`); no CLI in the repo exits through it                                                                                                                                             |
+| 9  | HTTP boundary (`HTTPStatus`, `HTTPHandler`)                          | Partial  | the example app uses it (`example/taskmanager/http.go:37`); library modules correctly stay transport-agnostic                                                                                                                                                   |
+| 10 | CLI boundary (`HandleError*`, `RegisterTemplate`, `TemplateForCode`) | Missed   | `HandleErrorDetailed` appears only in `event/v4/errors_taxonomy_test.go:306`; `cmd/cqrs-lint`, `cmd/cqrs-gen`, `cmd/doc-check` hand-roll flag parsing, printing, and `os.Exit`                                                                                  |
+| 11 | `LogError` / `LogErrorContext` (slog)                                | Missed   | 0 call sites; every module hand-rolls `logger.Warn/Error` with ad-hoc attribute sets                                                                                                                                                                            |
+| 12 | `RetryPolicy()` advisory defaults                                    | Missed   | 0 call sites; `middleware/v4` defines its own `RetryConfig` (`middleware/v4/middleware.go:31`) and `go-retry.FromPolicy` (built for exactly this) is unused                                                                                                     |
+| 13 | `WrapOnce` / `WrapOncef` (idempotent boundary wrap)                  | Missed   | 0 call sites; API boundaries re-wrap defensively                                                                                                                                                                                                                |
+| 14 | `errorfamilytest` assertion kit                                      | Missed   | 0 imports; 98 hand-rolled `errorfamily.Classify`/`.Family()` assertions across test files (e.g. `integration/v4/event/classify_test.go`, 12 in one file)                                                                                                        |
+| 15 | `bridge` (samber/oops interop)                                       | N/A      | library doctrine: lib modules never import an app-enrichment dep; fleet apps may adopt it themselves                                                                                                                                                            |
+| 16 | `diagnose` rules (fs/network/postgres/git)                           | Missed   | 0 imports; the pg-backed story (sqlstore, pgengine, integration) is exactly the audience `DefaultRunner` targets                                                                                                                                                |
+| 17 | `agent` submodule                                                    | N/A      | no runtime AI-agent error surface in this library; nothing to consume                                                                                                                                                                                           |
 
 Score derivation: rows N=17, N/A rows 15 and 17 → **A=15**. Full=3 (rows 1,
 2, 3), Partial=4 (rows 4, 5, 7, 9 → 2.0), Missed rows 6, 8, 10, 11, 12, 13,

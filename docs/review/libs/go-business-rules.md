@@ -25,7 +25,7 @@ named rules with error/warning grades would let the docserver distinguish
 
 "Severity-aware validation for Go — because not all validation failures are
 equal" (go-business-rules/README.md:5-7). Standard validators return
-pass/fail; businessrules returns the *degree* of failure: `SeverityInfo` /
+pass/fail; businessrules returns the _degree_ of failure: `SeverityInfo` /
 `SeverityWarning` / `SeverityError` / `SeverityCritical`, re-exported from
 `go-finding` so the type is fleet-interchangeable (README.md:134-140). Core
 API: an immutable `Rule` interface (`Name`/`Check`/`Severity`/`Message`,
@@ -56,7 +56,7 @@ advertises v2.2.0 as latest.
   - `catalog/v4/validate.go:25` `(*Catalog).Validate() []Violation` with
     `Violation{Path, Message}` (validate.go:6-9) — a hand-rolled,
     severity-blind catalog linter (322 lines).
-  - `cmd/cqrs-lint/v4` — severity-aware *static* findings via
+  - `cmd/cqrs-lint/v4` — severity-aware _static_ findings via
     `github.com/larsartmann/go-finding` (imported at
     `cmd/cqrs-lint/v4/output.go:23`; severity overrides at
     `cmd/cqrs-lint/v4/pkg/analyzer/project_config.go:173`).
@@ -66,15 +66,15 @@ advertises v2.2.0 as latest.
 
 ## 3. Capability inventory
 
-| # | Capability | Grade | Evidence / reason |
-|---|---|---|---|
-| 1 | Severity-aware domain rule evaluation (core Rule/Validator) | N/A | competes with the doctrine: deciders are pure functions, rules are code (`decider/v4/decider.go:13-19` "Apply must be a pure function"); externalizing them into Rule data would move business logic out of the typed, property-tested core |
-| 2 | Event-payload validation (vs `schema.Validator`) | N/A | admission to an append-only journal is binary: `Validate` returns a `Rejection` or nil (`schema/v4/validator.go:159-200`); "warning" severity at append time is incoherent, and the semantic-hook need is already served by `RegisterTypeWithValidator` (`schema/v4/validator.go:118-124`) |
-| 3 | Catalog config validation | Missed | `catalog/v4/validate.go:25-74` hand-rolls `Validate() []Violation` over services/domains/channels/entities/data products — structurally the library's Rule + ValidationResult shape (322 lines) — with no severity, so docserver consumers cannot tell "duplicate operation path" (error) from "missing description" (warning) |
-| 4 | Severity vocabulary for findings | N/A | cqrs-lint already uses `go-finding` directly, whose `Severity` is what businessrules re-exports (go-business-rules/README.md:137) — the shared vocabulary is in the fleet without the rule engine |
-| 5 | Validation events → OTel | N/A | observability doctrine routes through cqrsotel (`otel/v4`); no second metrics bridge wanted |
-| 6 | `adapters/cqrslite` event-bus publishing | N/A | dependency direction inverted: the adapter requires the consumer's `event/v4`/`id/v4` (go-business-rules/adapters/cqrslite/go.mod:5-9); adopting it into the bus it publishes onto is circular — it exists for fleet *apps* |
-| 7 | Concurrent I/O-bound rules (`Stream`, `ContextRule`) | N/A | no I/O-bound validation in the consumer's runtime; deciders must stay pure |
+| # | Capability                                                  | Grade  | Evidence / reason                                                                                                                                                                                                                                                                                                              |
+| - | ----------------------------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1 | Severity-aware domain rule evaluation (core Rule/Validator) | N/A    | competes with the doctrine: deciders are pure functions, rules are code (`decider/v4/decider.go:13-19` "Apply must be a pure function"); externalizing them into Rule data would move business logic out of the typed, property-tested core                                                                                    |
+| 2 | Event-payload validation (vs `schema.Validator`)            | N/A    | admission to an append-only journal is binary: `Validate` returns a `Rejection` or nil (`schema/v4/validator.go:159-200`); "warning" severity at append time is incoherent, and the semantic-hook need is already served by `RegisterTypeWithValidator` (`schema/v4/validator.go:118-124`)                                     |
+| 3 | Catalog config validation                                   | Missed | `catalog/v4/validate.go:25-74` hand-rolls `Validate() []Violation` over services/domains/channels/entities/data products — structurally the library's Rule + ValidationResult shape (322 lines) — with no severity, so docserver consumers cannot tell "duplicate operation path" (error) from "missing description" (warning) |
+| 4 | Severity vocabulary for findings                            | N/A    | cqrs-lint already uses `go-finding` directly, whose `Severity` is what businessrules re-exports (go-business-rules/README.md:137) — the shared vocabulary is in the fleet without the rule engine                                                                                                                              |
+| 5 | Validation events → OTel                                    | N/A    | observability doctrine routes through cqrsotel (`otel/v4`); no second metrics bridge wanted                                                                                                                                                                                                                                    |
+| 6 | `adapters/cqrslite` event-bus publishing                    | N/A    | dependency direction inverted: the adapter requires the consumer's `event/v4`/`id/v4` (go-business-rules/adapters/cqrslite/go.mod:5-9); adopting it into the bus it publishes onto is circular — it exists for fleet _apps_                                                                                                    |
+| 7 | Concurrent I/O-bound rules (`Stream`, `ContextRule`)        | N/A    | no I/O-bound validation in the consumer's runtime; deciders must stay pure                                                                                                                                                                                                                                                     |
 
 Score derivation: rows N=7, N/A rows 1–2 and 4–7 → **A=1**. Full=0,
 Partial=0, Missed=1 (0). Score = round(100 × 0 / 1) = **0% → low band**.
@@ -134,7 +134,7 @@ Partial=0, Missed=1 (0). Score = round(100 × 0 / 1) = **0% → low band**.
 
 The owner's lens: "if every project re-integrates everything I will only
 fix bugs all day long." For most utilities that argument pushes toward
-adoption; here it pushes toward *placement*. Severity-aware validation
+adoption; here it pushes toward _placement_. Severity-aware validation
 genuinely should not be re-implemented per fleet project — at application
 edges, where an API can warn-and-accept. go-cqrs-lite's contribution to
 that fleet story is to stay out of the way: keep deciders pure, keep

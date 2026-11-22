@@ -1,7 +1,6 @@
 package systemscenario
 
 import (
-	"bufio"
 	"context"
 	"encoding/json/v2"
 	"fmt"
@@ -13,6 +12,8 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/larsartmann/go-sse/sseparse"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
@@ -27,6 +28,7 @@ type SSEStream[V any] struct {
 
 	mu      sync.Mutex
 	vals    []V
+	ids     []string
 	lastErr error
 }
 
@@ -91,51 +93,40 @@ func SubscribeSSE[V any](
 	return stream
 }
 
-// readLoop parses the SSE wire format from body: "data: <json>" lines
-// terminated by a blank line delimit events; comment lines (heartbeats,
-// ":keepalive") are ignored. Errors terminate the loop and are reported by
-// Await on timeout.
-// SSE line-scan buffer bounds: events are small JSON documents, but a
-// payload-heavy projection row must not truncate the stream silently.
-const (
-	sseScanInitialBuffer = 64 * 1024
-	sseMaxLineBytes      = 1024 * 1024
-)
+// readLoop parses the SSE wire format via sseparse (the fleet's shared
+// conformance-tested parser — the same one go-sse's own suite runs), so the
+// harness exercises spec-true framing: comment/heartbeat frames never
+// dispatch, multi-line data joins with \n, and id:/retry: fields are
+// surfaced for diagnostics instead of being silently dropped.
+// Line bounds: events are small JSON documents, but a payload-heavy
+// projection row must not truncate the stream silently.
+const sseMaxLineBytes = 1024 * 1024
 
 func (s *SSEStream[V]) readLoop(body io.Reader) {
-	scanner := bufio.NewScanner(body)
-	scanner.Buffer(make([]byte, 0, sseScanInitialBuffer), sseMaxLineBytes)
+	sr := sseparse.NewStreamReader(body, sseparse.WithMaxLineBytes(sseMaxLineBytes))
 
-	var data strings.Builder
+	for {
+		evt, err := sr.Next()
+		if err != nil {
+			s.mu.Lock()
+			s.lastErr = err
+			s.mu.Unlock()
 
-	for scanner.Scan() {
-		line := scanner.Text()
-
-		switch {
-		case strings.HasPrefix(line, "data:"):
-			if data.Len() > 0 {
-				data.WriteByte('\n')
-			}
-
-			data.WriteString(strings.TrimPrefix(strings.TrimPrefix(line, "data:"), " "))
-		case line == "":
-			if data.Len() > 0 {
-				s.record(data.String())
-				data.Reset()
-			}
+			return
 		}
-	}
 
-	s.mu.Lock()
-	s.lastErr = scanner.Err()
-	s.mu.Unlock()
+		s.record(evt)
+	}
 }
 
-// record decodes one SSE data payload as V and appends it to the received
-// values; decode failures are recorded as stream errors instead of failing
-// the test, so Await's timeout message can show the real wire payload.
-func (s *SSEStream[V]) record(payload string) {
+// record decodes one SSE event's data payload as V and appends it to the
+// received values (remembering the wire id: for diagnostics); decode
+// failures are recorded as stream errors instead of failing the test, so
+// Await's timeout message can show the real wire payload.
+func (s *SSEStream[V]) record(evt sseparse.Event) {
 	var val V
+
+	payload := strings.Join(evt.DataLines, "\n")
 
 	if err := json.Unmarshal([]byte(payload), &val); err != nil {
 		s.mu.Lock()
@@ -147,6 +138,7 @@ func (s *SSEStream[V]) record(payload string) {
 
 	s.mu.Lock()
 	s.vals = append(s.vals, val)
+	s.ids = append(s.ids, evt.ID)
 	s.mu.Unlock()
 }
 
@@ -156,6 +148,16 @@ func (s *SSEStream[V]) Received() []V {
 	defer s.mu.Unlock()
 
 	return slices.Clone(s.vals)
+}
+
+// ReceivedIDs returns the wire id: fields of the streamed events, in
+// arrival order (empty strings when the serving watcher has no replay
+// journal — ServeSSE only stamps ids on the reconnection path).
+func (s *SSEStream[V]) ReceivedIDs() []string {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	return slices.Clone(s.ids)
 }
 
 // Await polls the received values until one satisfies match, returning it.
@@ -186,6 +188,9 @@ func (s *SSEStream[V]) Await(
 			detail := fmt.Sprintf("received %d values, none matched: %+v", len(received), received)
 			if lastErr != nil {
 				detail += fmt.Sprintf("; stream error: %v", lastErr)
+			}
+			if ids := s.ReceivedIDs(); len(ids) > 0 {
+				detail += fmt.Sprintf("; wire ids: %v", ids)
 			}
 
 			tb.Fatalf("SSEStream.Await: %s not received within %s: %s", what, within, detail)

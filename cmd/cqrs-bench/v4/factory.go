@@ -23,6 +23,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/stack/turso/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4/sqlopt"
+	"github.com/larsartmann/go-cqrs-lite/system/v4"
 )
 
 // compareWithDiskPaths runs the benchmark against each backend, setting
@@ -88,7 +89,16 @@ func makeFactory(
 	}
 
 	switch backend {
+	case "system-memory", "sys-mem":
+		return makeSystemMemoryFactory()
+
 	case "memory", "mem":
+		// Legacy path: the stack/memory preset bundle. The presets are
+		// v5-doomed (ADR-0123) and kept for backend coverage the system
+		// path has not grown yet; the system-backed entry point is
+		// "system-memory" above. `memory` deliberately stays on the preset
+		// so historical benchmark numbers remain comparable (the system
+		// adapter honestly skips the kv read-model phases).
 		return makeMemoryFactory(ctx)
 
 	case "sqlite", "sq", "sqlite-cgo", "sq3":
@@ -114,12 +124,33 @@ func makeFactory(
 
 	default:
 		fatalf(
-			"unknown backend: %s (use memory, sqlite, sqlite-cgo, bbolt, pebble, postgres, mysql, duckdb, or turso)",
+			"unknown backend: %s (use system-memory, memory, sqlite, sqlite-cgo, bbolt, pebble, postgres, mysql, duckdb, or turso)",
 			backend,
 		)
 
 		return nil, "", nil // unreachable
 	}
+}
+
+// makeSystemMemoryFactory crosses the benchkit bridge: the benchmark runs
+// against a system.New deployment (the strategic composition root, ADR-0123)
+// via benchkit.FactoryFromSystem instead of a stack preset. Capabilities the
+// system does not expose (kv read models) skip with recorded warnings — the
+// runner's honesty, not a silent gap.
+func makeSystemMemoryFactory() (benchkit.Factory, string, func()) {
+	return benchkit.FactoryFromSystem(func(ctx context.Context) (*system.System, error) {
+		deployment := system.DeploymentConfig{
+			Engines: map[string]system.EngineConfig{
+				"primary": {Driver: "memory"},
+			},
+			Instances: []system.InstanceConfig{
+				{Role: system.RoleSourceOfTruth, Engine: "primary"},
+				{Role: system.RoleProjections, Engine: "primary"},
+			},
+		}
+
+		return system.New(ctx, system.DomainConfig{}, deployment)
+	}), "", nil
 }
 
 func makeMemoryFactory(_ context.Context) (benchkit.Factory, string, func()) {

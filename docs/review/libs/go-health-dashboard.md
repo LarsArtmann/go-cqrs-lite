@@ -55,24 +55,24 @@ imports. The alternative surface that exists instead:
 - **docserver is a docs server, not an ops page**
   (`catalog/v4/docserver/`): it serves generated documentation HTML; health
   is not among its routes.
-- The repo already standardizes the dashboard's *transport* for other
+- The repo already standardizes the dashboard's _transport_ for other
   purposes: taskmanager streams query updates over go-sse via
   `metaengine.ServeSSE` (`example/taskmanager/http.go:55-60`) — the same
   go-sse that powers the dashboard's live patches.
 
 ## 3. Capability inventory
 
-| # | Capability | Grade | Evidence / reason |
-|---|---|---|---|
-| 1 | Live HTML status page on `/health` (content-negotiated) | Missed | no status page exists; closest artifact is stdout `Doctor` text (`metaengine/v4/explain.go:256-259`, `example/goal-shaped-app/main.go:62`) |
-| 2 | K8s probe JSON endpoints (`/healthz`,`/readyz`,`/startupz`) via the dashboard's route set | Missed | inherited from unadopted go-health; example's `/health` is static (`example/taskmanager/http.go:63-65`) — see `go-health.md` rows 1–2 |
-| 3 | Trend history + CSV/JSON export | Missed | no health history retained anywhere; projection lag (`projectionhost/v4/host.go:332-338`) is the obvious trend feed and goes unrecorded |
-| 4 | Federation hub: one fleet-wide dashboard, zero app code | Missed | `HEALTH_HUB_REMOTES`-driven hub (go-health-dashboard/README.md:393-443) has nothing to federate: no fleet service currently serves a go-health document |
-| 5 | Prometheus metrics (`WithMetrics`) / webhook push | N/A | meaningless until a probe exists; consumer's `prometheus` module is the eventual sink — flip with rows 1–2 |
-| 6 | Auth middleware / native OIDC login | N/A | no public-facing status surface in the fleet today — flip when a hub is exposed beyond localhost |
-| 7 | Rate limiting, CSP nonce, SSE connection caps | N/A | hardening options for internet-facing mounts; example/docserver are loopback-grade — flip on first public deployment |
-| 8 | Aggregate multi-probe grouping (`GroupBySource`) | N/A | requires multiple in-process probes; consumer has one `System` per process |
-| 9 | `dash.HealthCheck` / samber/do registration | N/A | consumer does not use samber/do |
+| # | Capability                                                                                | Grade  | Evidence / reason                                                                                                                                       |
+| - | ----------------------------------------------------------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | Live HTML status page on `/health` (content-negotiated)                                   | Missed | no status page exists; closest artifact is stdout `Doctor` text (`metaengine/v4/explain.go:256-259`, `example/goal-shaped-app/main.go:62`)              |
+| 2 | K8s probe JSON endpoints (`/healthz`,`/readyz`,`/startupz`) via the dashboard's route set | Missed | inherited from unadopted go-health; example's `/health` is static (`example/taskmanager/http.go:63-65`) — see `go-health.md` rows 1–2                   |
+| 3 | Trend history + CSV/JSON export                                                           | Missed | no health history retained anywhere; projection lag (`projectionhost/v4/host.go:332-338`) is the obvious trend feed and goes unrecorded                 |
+| 4 | Federation hub: one fleet-wide dashboard, zero app code                                   | Missed | `HEALTH_HUB_REMOTES`-driven hub (go-health-dashboard/README.md:393-443) has nothing to federate: no fleet service currently serves a go-health document |
+| 5 | Prometheus metrics (`WithMetrics`) / webhook push                                         | N/A    | meaningless until a probe exists; consumer's `prometheus` module is the eventual sink — flip with rows 1–2                                              |
+| 6 | Auth middleware / native OIDC login                                                       | N/A    | no public-facing status surface in the fleet today — flip when a hub is exposed beyond localhost                                                        |
+| 7 | Rate limiting, CSP nonce, SSE connection caps                                             | N/A    | hardening options for internet-facing mounts; example/docserver are loopback-grade — flip on first public deployment                                    |
+| 8 | Aggregate multi-probe grouping (`GroupBySource`)                                          | N/A    | requires multiple in-process probes; consumer has one `System` per process                                                                              |
+| 9 | `dash.HealthCheck` / samber/do registration                                               | N/A    | consumer does not use samber/do                                                                                                                         |
 
 Score derivation: rows N=9, N/A rows 5–9 → **A=4**. Full=0, Partial=0,
 Missed rows 1–4 (4 × 0). Score = round(100 × 0 / 4) = **0% → low band**.
@@ -126,7 +126,7 @@ the hub gets a remotes list for the price of env vars. If it doesn't, each
 app will either ship nothing (today's state: static `ok` JSON, invisible
 outages) or hand-roll a page (the bug-fixing treadmill the owner explicitly
 wants to escape). The dependency-ordering caveat justifies non-adoption
-*today*; it does not justify non-adoption *by default*.
+_today_; it does not justify non-adoption _by default_.
 
 ## 7. Ranked opportunities
 

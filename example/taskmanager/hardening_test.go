@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
@@ -93,6 +94,38 @@ func TestHardening_ServerTimingGatedByConfig(t *testing.T) {
 
 	if got := resp2.Header.Get("Server-Timing"); got == "" {
 		t.Fatal("timing on: Server-Timing header missing")
+	}
+}
+
+// TestHardening_GoHealthProbeRendersEngineDetail pins the go-health bridge:
+// GET /healthz runs the engines check (system.HealthCheck adapted onto
+// health.CheckFunc) and renders per-check probe JSON with 200 on a healthy
+// stack — the same JSON go-health-dashboard would render.
+func TestHardening_GoHealthProbeRendersEngineDetail(t *testing.T) {
+	t.Parallel()
+
+	srv := newTestServer(t)
+
+	ts := httptest.NewServer(srv.wrapHandler(srv.routes()))
+	t.Cleanup(ts.Close)
+
+	resp, err := http.Get(ts.URL + "/healthz")
+	if err != nil {
+		t.Fatalf("get healthz: %v", err)
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("healthz status: got %d, want %d", resp.StatusCode, http.StatusOK)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatalf("read healthz body: %v", err)
+	}
+
+	if !strings.Contains(string(body), "engines") {
+		t.Fatalf("healthz body does not mention the engines check: %s", body)
 	}
 }
 

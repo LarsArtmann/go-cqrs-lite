@@ -3640,6 +3640,29 @@ workers), a 413-mapping `decodeJSON` error path, and a drain order that shuts
 the HTTP server down BEFORE stopping projections so in-flight requests' tail
 events are still consumed. `hardening_test.go` pins all four behaviors.
 
+The same seam grows an ops dashboard without new server work: `go-health`'s
+`CheckFunc` is signature-identical to `system.HealthCheck`, so the probe
+surface is one adapter line. Flip trigger for adopting `go-health-dashboard`
+itself: the second consumer of health output (a status page, an alerting
+feed) — until then the readiness probe above is all you need.
+
+```go
+import (
+    "net/http"
+
+    "github.com/larsartmann/go-health"
+    "github.com/larsartmann/go-cqrs-lite/system/v4"
+)
+
+// Fleet probe surface: per-check detail, timing, and pass/fail
+// classification over the engines — rendered as JSON on /healthz with
+// 200/503 semantics; go-health-dashboard renders the same payload.
+probe := health.NewChecks(map[string]health.CheckFunc{
+    "engines": sys.HealthCheck,
+})
+mux.Handle("GET /healthz", probe.ReadinessHandler())
+```
+
 Test the same query without HTTP via the system scenario harness (§2.43):
 `WhenQuery` dispatches through the SAME dispatcher this endpoint binds.
 HTMX rendering (partials, toasts, pagination UI) builds on the identical

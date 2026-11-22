@@ -80,30 +80,30 @@ with a headless-Chromium CSP gate over the real docserver
 
 ## 3. Capability inventory
 
-| # | Capability | Grade | Evidence / reason |
-|---|---|---|---|
-| 1 | Page chrome (`layout.Base`/`PageProps`/`Container`/`Script`/`Stylesheet`) | **Full** | every docserver page composes them (`catalog/v4/docserver/specview.templ:42-85`); Script threads the CSP nonce for the Scalar/AsyncAPI bundles |
-| 2 | Navigation (`SimpleNav`, `Breadcrumbs`, `NavLink`) | **Full** | `catalog/v4/docserver/layout.templ:36-51`, `catalog/v4/docserver/eventcatalogview.templ:215-216` |
-| 3 | Dark mode (`layout.ThemeToggle`) | **Full** | `catalog/v4/docserver/layout.templ:43` |
-| 4 | Badges + tones (`display.Badge*`) | **Full** | 15 call sites (`catalog/v4/docserver/index.templ:93-99`) |
-| 5 | Stat cards (`display.StatCard`) | **Full** | 13 call sites across index + eventcatalog overview (`catalog/v4/docserver/index.templ:47-53`) |
-| 6 | Cards + grids (`display.Card`, `Grid`) | **Full** | `catalog/v4/docserver/index.templ:28-47` |
-| 7 | Tables (`display.Table`) | **Full** | 8 call sites (`catalog/v4/docserver/eventcatalogview.templ:41`) |
-| 8 | Definition lists | **Full** | `catalog/v4/docserver/eventcatalogview.templ:226` |
-| 9 | Feedback alerts (`Alert`, `FeedbackInfo/Warning/Error`) | **Full** | `catalog/v4/docserver/eventcatalogview.templ:100-320`, `catalog/v4/docserver/d2view.templ:55-56` |
-| 10 | Copy button (CSP-safe) | **Full** | `catalog/v4/docserver/eventcatalogview.templ:269`, `catalog/v4/docserver/d2view.templ:27-61` |
-| 11 | Collapsible section | **Full** | `catalog/v4/docserver/d2view.templ:43` |
-| 12 | Empty states | **Full** | `catalog/v4/docserver/eventcatalogview.templ:147-200` |
-| 13 | Icon set | Partial | 10 of ~105 named icons used (`templ-components/icons/icon_names.go:10`); a docs UI legitimately needs few |
-| 14 | Code blocks (`display.CodeBlock`, integrated copy button) | Missed | docserver hand-rolls `<pre><code>` (`catalog/v4/docserver/d2view.templ:49-52`, `catalog/v4/docserver/eventcatalogview.templ:274-277`) while using `CopyButton` separately — it re-assembles the two halves `templ-components/display/code_block.templ:9` ships as one component |
-| 15 | Prose container (`display/prose`) | Missed | unused; long-form doc pages (ADR text, guides) render unstyled |
-| 16 | Tabs (`display/tabs`) | Missed | spec pages alternate JSON/schema views stacked instead of tabbed |
-| 17 | Error pages (`errorpage` submodule, incl. `notfound404`) | Missed | docserver 404s bare via mux with no branded page (`templ-components/errorpage/notfound404.templ:1` unused; no catch-all by design, `catalog/v4/AGENTS.md` Routes section) |
-| 18 | Forms suite (22 controls) | N/A | docserver has zero input surfaces; static docs posture |
-| 19 | Toast / loading / progress | N/A | no dynamic UI actions; static `Alert`s carry the job |
-| 20 | `htmx` submodule | N/A | deliberately suppressed: `layout.HTMXNone` sentinel (`catalog/v4/docserver/layout.templ:21`); interactivity is the vendored Scalar/AsyncAPI SPAs, not htmx |
-| 21 | `datastar` submodule | N/A | no datastar surfaces in the consumer's docs posture |
-| 22 | `charts/echarts` | N/A | d2 diagrams render server-side SVG (`catalog/v4/docserver/d2view.templ`); no client charts |
+| #  | Capability                                                                | Grade    | Evidence / reason                                                                                                                                                                                                                                                               |
+| -- | ------------------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1  | Page chrome (`layout.Base`/`PageProps`/`Container`/`Script`/`Stylesheet`) | **Full** | every docserver page composes them (`catalog/v4/docserver/specview.templ:42-85`); Script threads the CSP nonce for the Scalar/AsyncAPI bundles                                                                                                                                  |
+| 2  | Navigation (`SimpleNav`, `Breadcrumbs`, `NavLink`)                        | **Full** | `catalog/v4/docserver/layout.templ:36-51`, `catalog/v4/docserver/eventcatalogview.templ:215-216`                                                                                                                                                                                |
+| 3  | Dark mode (`layout.ThemeToggle`)                                          | **Full** | `catalog/v4/docserver/layout.templ:43`                                                                                                                                                                                                                                          |
+| 4  | Badges + tones (`display.Badge*`)                                         | **Full** | 15 call sites (`catalog/v4/docserver/index.templ:93-99`)                                                                                                                                                                                                                        |
+| 5  | Stat cards (`display.StatCard`)                                           | **Full** | 13 call sites across index + eventcatalog overview (`catalog/v4/docserver/index.templ:47-53`)                                                                                                                                                                                   |
+| 6  | Cards + grids (`display.Card`, `Grid`)                                    | **Full** | `catalog/v4/docserver/index.templ:28-47`                                                                                                                                                                                                                                        |
+| 7  | Tables (`display.Table`)                                                  | **Full** | 8 call sites (`catalog/v4/docserver/eventcatalogview.templ:41`)                                                                                                                                                                                                                 |
+| 8  | Definition lists                                                          | **Full** | `catalog/v4/docserver/eventcatalogview.templ:226`                                                                                                                                                                                                                               |
+| 9  | Feedback alerts (`Alert`, `FeedbackInfo/Warning/Error`)                   | **Full** | `catalog/v4/docserver/eventcatalogview.templ:100-320`, `catalog/v4/docserver/d2view.templ:55-56`                                                                                                                                                                                |
+| 10 | Copy button (CSP-safe)                                                    | **Full** | `catalog/v4/docserver/eventcatalogview.templ:269`, `catalog/v4/docserver/d2view.templ:27-61`                                                                                                                                                                                    |
+| 11 | Collapsible section                                                       | **Full** | `catalog/v4/docserver/d2view.templ:43`                                                                                                                                                                                                                                          |
+| 12 | Empty states                                                              | **Full** | `catalog/v4/docserver/eventcatalogview.templ:147-200`                                                                                                                                                                                                                           |
+| 13 | Icon set                                                                  | Partial  | 10 of ~105 named icons used (`templ-components/icons/icon_names.go:10`); a docs UI legitimately needs few                                                                                                                                                                       |
+| 14 | Code blocks (`display.CodeBlock`, integrated copy button)                 | Missed   | docserver hand-rolls `<pre><code>` (`catalog/v4/docserver/d2view.templ:49-52`, `catalog/v4/docserver/eventcatalogview.templ:274-277`) while using `CopyButton` separately — it re-assembles the two halves `templ-components/display/code_block.templ:9` ships as one component |
+| 15 | Prose container (`display/prose`)                                         | Missed   | unused; long-form doc pages (ADR text, guides) render unstyled                                                                                                                                                                                                                  |
+| 16 | Tabs (`display/tabs`)                                                     | Missed   | spec pages alternate JSON/schema views stacked instead of tabbed                                                                                                                                                                                                                |
+| 17 | Error pages (`errorpage` submodule, incl. `notfound404`)                  | Missed   | docserver 404s bare via mux with no branded page (`templ-components/errorpage/notfound404.templ:1` unused; no catch-all by design, `catalog/v4/AGENTS.md` Routes section)                                                                                                       |
+| 18 | Forms suite (22 controls)                                                 | N/A      | docserver has zero input surfaces; static docs posture                                                                                                                                                                                                                          |
+| 19 | Toast / loading / progress                                                | N/A      | no dynamic UI actions; static `Alert`s carry the job                                                                                                                                                                                                                            |
+| 20 | `htmx` submodule                                                          | N/A      | deliberately suppressed: `layout.HTMXNone` sentinel (`catalog/v4/docserver/layout.templ:21`); interactivity is the vendored Scalar/AsyncAPI SPAs, not htmx                                                                                                                      |
+| 21 | `datastar` submodule                                                      | N/A      | no datastar surfaces in the consumer's docs posture                                                                                                                                                                                                                             |
+| 22 | `charts/echarts`                                                          | N/A      | d2 diagrams render server-side SVG (`catalog/v4/docserver/d2view.templ`); no client charts                                                                                                                                                                                      |
 
 Score derivation: rows N=22, N/A rows 18–22 → **A=17**. Full=12 (12.0),
 Partial=1 (0.5), Missed rows 14–17 (4 × 0). Score = round(100 × 12.5 / 17) =
@@ -143,12 +143,12 @@ Partial=1 (0.5), Missed rows 14–17 (4 × 0). Score = round(100 × 12.5 / 17) =
   **v1.27.2** (2026-11-20, `templ-components/CHANGELOG.md:9`). Two patches
   behind.
 - Both missed patches are low-risk to adopt: v1.27.2 is the JSON-LD escape
-  + ScriptComponent refusal + release-gate hardening
-  (`templ-components/CHANGELOG.md:13-23`); v1.27.1 fixed CI generator pin,
-  Toggle `aria-checked`, a stray duplicate `</script>` in ToastContainer
-  (unused by the docserver), and pagination aria-current
-  (`templ-components/CHANGELOG.md:30-56`). Nothing the docserver uses
-  changed shape; the templ pairing (v0.3.1100) is unchanged.
+  - ScriptComponent refusal + release-gate hardening
+    (`templ-components/CHANGELOG.md:13-23`); v1.27.1 fixed CI generator pin,
+    Toggle `aria-checked`, a stray duplicate `</script>` in ToastContainer
+    (unused by the docserver), and pagination aria-current
+    (`templ-components/CHANGELOG.md:30-56`). Nothing the docserver uses
+    changed shape; the templ pairing (v0.3.1100) is unchanged.
 - Bumping ripples the built docserver CSS — the documented ritual is bump,
   then `nix run .#build-docserver-css`, then the drift gate
   (`catalog/v4/AGENTS.md:46-47`; also `CONTRIBUTING.md:320`).

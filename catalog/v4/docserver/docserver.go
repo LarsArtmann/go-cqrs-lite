@@ -28,6 +28,8 @@ import (
 	"io/fs"
 	"net/http"
 
+	etag "github.com/larsartmann/go-etag/server"
+
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 )
 
@@ -214,8 +216,18 @@ func (ds *DocsServer) StaticFS() http.FileSystem {
 func (ds *DocsServer) RegisterRoutes(mux *http.ServeMux) {
 	prefix := ds.config.DocsPath
 
+	// Every docs route carries conditional-request semantics: responses are
+	// content-hash ETagged, so revisits revalidate (If-None-Match → 304)
+	// instead of re-downloading. Docs payloads are finite; oversized ones
+	// stream untagged (the middleware's MaxBufferSize guard) and Flush
+	// switches to streaming, so nothing is held hostage by the buffer.
+	cache := etag.New(etag.DefaultETagConfig())
+	cached := func(h http.HandlerFunc) http.HandlerFunc {
+		return cache(h).ServeHTTP
+	}
+
 	if !ds.config.SkipIndexRoute {
-		mux.HandleFunc("GET "+prefix, ds.serveIndex)
+		mux.HandleFunc("GET "+prefix, cached(ds.serveIndex))
 		// Exact trailing-slash convenience only: "/docs/" redirects to "/docs".
 		// No subtree catch-all, so unknown /docs/* paths 404 instead of serving
 		// the index with a wrong relative-asset base.
@@ -224,27 +236,27 @@ func (ds *DocsServer) RegisterRoutes(mux *http.ServeMux) {
 		})
 	}
 
-	mux.HandleFunc("GET "+prefix+"/openapi", ds.serveOpenAPIHTML)
-	mux.HandleFunc("GET "+prefix+"/openapi.json", ds.serveOpenAPIJSON)
-	mux.HandleFunc("GET "+prefix+"/openapi.yaml", ds.serveOpenAPIYAML)
-	mux.HandleFunc("GET "+prefix+"/asyncapi", ds.serveAsyncAPIHTML)
-	mux.HandleFunc("GET "+prefix+"/asyncapi.json", ds.serveAsyncAPIJSON)
-	mux.HandleFunc("GET "+prefix+"/asyncapi.yaml", ds.serveAsyncAPIYAML)
-	mux.HandleFunc("GET "+prefix+"/catalog.json", ds.serveCatalogJSON)
-	mux.HandleFunc("GET "+prefix+"/eventcatalog", ds.serveEventCatalog)
-	mux.HandleFunc("GET "+prefix+"/eventcatalog/messages/{id}", ds.serveEventCatalogMessage)
-	mux.HandleFunc("GET "+prefix+"/eventcatalog/channels/{id}", ds.serveEventCatalogChannel)
-	mux.HandleFunc("GET "+prefix+"/eventcatalog/services/{id}", ds.serveEventCatalogService)
-	mux.HandleFunc("GET "+prefix+"/eventcatalog/errors", ds.serveEventCatalogErrors)
+	mux.HandleFunc("GET "+prefix+"/openapi", cached(ds.serveOpenAPIHTML))
+	mux.HandleFunc("GET "+prefix+"/openapi.json", cached(ds.serveOpenAPIJSON))
+	mux.HandleFunc("GET "+prefix+"/openapi.yaml", cached(ds.serveOpenAPIYAML))
+	mux.HandleFunc("GET "+prefix+"/asyncapi", cached(ds.serveAsyncAPIHTML))
+	mux.HandleFunc("GET "+prefix+"/asyncapi.json", cached(ds.serveAsyncAPIJSON))
+	mux.HandleFunc("GET "+prefix+"/asyncapi.yaml", cached(ds.serveAsyncAPIYAML))
+	mux.HandleFunc("GET "+prefix+"/catalog.json", cached(ds.serveCatalogJSON))
+	mux.HandleFunc("GET "+prefix+"/eventcatalog", cached(ds.serveEventCatalog))
+	mux.HandleFunc("GET "+prefix+"/eventcatalog/messages/{id}", cached(ds.serveEventCatalogMessage))
+	mux.HandleFunc("GET "+prefix+"/eventcatalog/channels/{id}", cached(ds.serveEventCatalogChannel))
+	mux.HandleFunc("GET "+prefix+"/eventcatalog/services/{id}", cached(ds.serveEventCatalogService))
+	mux.HandleFunc("GET "+prefix+"/eventcatalog/errors", cached(ds.serveEventCatalogErrors))
 	mux.HandleFunc(
 		"GET "+prefix+"/eventcatalog/data-products/{id}",
-		ds.serveEventCatalogDataProduct,
+		cached(ds.serveEventCatalogDataProduct),
 	)
-	mux.HandleFunc("GET "+prefix+"/d2", ds.serveD2View)
-	mux.HandleFunc("GET "+prefix+"/d2.txt", ds.serveD2Text)
+	mux.HandleFunc("GET "+prefix+"/d2", cached(ds.serveD2View))
+	mux.HandleFunc("GET "+prefix+"/d2.txt", cached(ds.serveD2Text))
 
 	if ds.config.ArchitectureReference {
-		mux.HandleFunc("GET "+prefix+"/architecture", ds.serveArchitecture)
+		mux.HandleFunc("GET "+prefix+"/architecture", cached(ds.serveArchitecture))
 	}
 
 	// Scalar's bundle hardcodes its @font-face URLs to Scalar's CDN; serve a

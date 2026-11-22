@@ -66,6 +66,10 @@ github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2 h1:h7624nwPbDVqIpCX
 github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2/go.mod h1:yl5xmDZ2IbDv6WkBMzbeJ8mNenfWRpXpImfj1gTTTus=
 github.com/larsartmann/go-error-family v0.12.0 h1:HEtocvwaPe9udDusqDqV0pxN9Wx98KHQBK0MEHZupzg=
 github.com/larsartmann/go-error-family v0.12.0/go.mod h1:gB43rKC69SoPilihuze43OFqKYMGQxDNUi/25PF9MgE=
+github.com/larsartmann/go-etag/entitytag v0.6.2 h1:jZf2948bipd8N7fVehh9o2scq9+kAjuUBc50my5GDI4=
+github.com/larsartmann/go-etag/entitytag v0.6.2/go.mod h1:e09zrSYF6RS8c0IzxZnI1HZQw15gIgwlyp3zerGv+bI=
+github.com/larsartmann/go-etag/server v0.6.2 h1:f0NsDy0Vy1/HRx0aoyj4j8aIdNueqJrhtg02EVyNlNI=
+github.com/larsartmann/go-etag/server v0.6.2/go.mod h1:8C4/ve9SY7Jmcgehy3iIWMYyVJuX0cLl0Aothgx70z0=
 github.com/larsartmann/templ-components v1.27.2 h1:ExklASitQVGmn/U88IHYY9wnXAosKivDT6xHQLWzZNg=
 github.com/larsartmann/templ-components v1.27.2/go.mod h1:luBAqs5NpXbtx3LqxuIoCt7HfvJTXWn42TXoOODqhHE=
 github.com/larsartmann/templ-components/htmx v1.27.2 h1:zDE/au61pJ57oLQSaRMynOKh+TekRmsdD1mdaQtVrYU=

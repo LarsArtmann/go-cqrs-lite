@@ -6,10 +6,14 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"net/http/httptest"
+	"strconv"
 	"strings"
 	"sync"
 	"testing"
 	"time"
+
+	ssetest "github.com/larsartmann/go-sse/ssetest"
 )
 
 // --- SSEReplay unit tests ---
@@ -216,125 +220,197 @@ func TestSSE_LastEventID_Reconnect(t *testing.T) {
 		)
 	})
 
-	srv := &http.Server{Handler: mux}
-	defer srv.Close()
+	ts := httptest.NewServer(mux)
+	defer ts.Close()
 
-	ln, _ := net.Listen("tcp", "127.0.0.1:0")
-	srv.Addr = ln.Addr().String()
-	go srv.Serve(ln)
-
-	time.Sleep(100 * time.Millisecond)
-
-	// Phase 1: Connect and receive events.
-	conn1, err := net.Dial("tcp", srv.Addr)
+	// Phase 1: connect and receive live events. http.Get returns once the
+	// response headers are committed — which ServeSSE does only AFTER the
+	// watcher subscription is registered, so applying events immediately
+	// after the GET returns can never race the subscription.
+	resp1, err := http.Get(ts.URL + "/events")
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer func() { _ = resp1.Body.Close() }()
 
-	defer conn1.Close()
+	sr1 := ssetest.NewStreamReader(resp1.Body)
 
-	_, _ = conn1.Write([]byte("GET /events HTTP/1.0\r\nHost: localhost\r\n\r\n"))
-	time.Sleep(200 * time.Millisecond)
-
-	// Apply events while client 1 is connected.
 	_ = store.Apply(ctx, "task_created", testTask{ID: "rc1", Title: "Reconnect 1"})
 	_ = store.Apply(ctx, "task_created", testTask{ID: "rc2", Title: "Reconnect 2"})
 
-	// Read from client 1 until we get both events and the id fields.
-	var data1 string
-	deadline := time.Now().Add(5 * time.Second)
-	buf := make([]byte, 8192)
+	// Live events carry their journal sequence as the id: field.
+	ssetest.RequireEventID(t, ssetest.MustReadNextEvent(t, sr1), "1")
+	ssetest.RequireEventID(t, ssetest.MustReadNextEvent(t, sr1), "2")
 
-	for time.Now().Before(deadline) {
-		conn1.SetReadDeadline(time.Now().Add(500 * time.Millisecond))
-		n, err := conn1.Read(buf)
-		if err != nil {
-			break
-		}
-
-		data1 += string(buf[:n])
-
-		if strings.Contains(data1, "Reconnect 2") {
-			break
-		}
+	// Phase 2: disconnect, apply more events, reconnect with Last-Event-ID.
+	if err := resp1.Body.Close(); err != nil {
+		t.Fatal(err)
 	}
-
-	// Verify id: field is present.
-	if !strings.Contains(data1, "id: 1") {
-		t.Errorf("expected 'id: 1' in SSE output, got: %s", data1)
-	}
-
-	if !strings.Contains(data1, "id: 2") {
-		t.Errorf("expected 'id: 2' in SSE output, got: %s", data1)
-	}
-
-	if !strings.Contains(data1, "Reconnect 1") {
-		t.Errorf("expected 'Reconnect 1' in data, got: %s", data1)
-	}
-
-	// Phase 2: Disconnect client 1, apply more events, reconnect with Last-Event-ID.
-	conn1.Close()
-	time.Sleep(100 * time.Millisecond)
 
 	_ = store.Apply(ctx, "task_created", testTask{ID: "rc3", Title: "Reconnect 3"})
 	_ = store.Apply(ctx, "task_created", testTask{ID: "rc4", Title: "Reconnect 4"})
 
-	time.Sleep(100 * time.Millisecond)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, ts.URL+"/events", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Header.Set("Last-Event-ID", "2")
 
-	// Reconnect with Last-Event-ID: 2 (last seq received).
-	conn2, err := net.Dial("tcp", srv.Addr)
+	resp2, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = resp2.Body.Close() }()
+
+	sr2 := ssetest.NewStreamReader(resp2.Body)
+
+	// Reading exactly the next two events IS the absence proof: a wrong
+	// replay (everything from seq 0) would deliver "Reconnect 1" here.
+	next1 := ssetest.MustReadNextEvent(t, sr2)
+	ssetest.RequireEventID(t, next1, "3")
+	ssetest.RequireDataContains(t, next1, "Reconnect 3")
+
+	next2 := ssetest.MustReadNextEvent(t, sr2)
+	ssetest.RequireEventID(t, next2, "4")
+	ssetest.RequireDataContains(t, next2, "Reconnect 4")
+}
+
+// TestParseLastEventID covers the cursor validator directly, including
+// the newline-corrupted value the HTTP transport itself refuses to carry
+// (it can only arrive via a hijacked/raw connection — still rejected here).
+func TestParseLastEventID(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		header  string
+		want    uint64
+		wantErr bool
+	}{
+		{header: "", want: 0},
+		{header: "0", want: 0},
+		{header: "42", want: 42},
+		{header: "banana", wantErr: true},
+		{header: "3.5", wantErr: true},
+		{header: "-1", wantErr: true},
+		{header: "1\nx", wantErr: true},
+	}
+
+	for _, tc := range cases {
+		t.Run("header="+strconv.Quote(tc.header), func(t *testing.T) {
+			t.Parallel()
+
+			r, err := http.NewRequest(http.MethodGet, "/events", nil)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if tc.header != "" {
+				r.Header.Set("Last-Event-ID", tc.header)
+			}
+
+			got, err := parseLastEventID(r)
+			if tc.wantErr {
+				if err == nil {
+					t.Fatalf("header %q: expected error, got seq %d", tc.header, got)
+				}
+
+				return
+			}
+
+			if err != nil {
+				t.Fatalf("header %q: %v", tc.header, err)
+			}
+			if got != tc.want {
+				t.Fatalf("header %q: seq: got %d, want %d", tc.header, got, tc.want)
+			}
+		})
+	}
+}
+
+// TestSSE_MalformedLastEventID_Returns400 pins the reconnection-cursor
+// contract: a present-but-unusable Last-Event-ID is a 400 (client bug
+// reported), never a silent "no cursor" that would replay the ENTIRE journal
+// to a client that could not have processed it.
+func TestSSE_MalformedLastEventID_Returns400(t *testing.T) {
+	eng := NewMemoryEngine()
+	store, err := Plan([]Engine{eng}, testTaskQuery())
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	defer conn2.Close()
+	watcher := NewWatcher[testTask](store, "tasks")
+	watcher.WithReplay(100)
+	defer watcher.Close()
 
-	_, _ = conn2.Write(
-		[]byte("GET /events HTTP/1.0\r\nHost: localhost\r\nLast-Event-ID: 2\r\n\r\n"),
-	)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 
-	// Read replayed events.
-	var data2 string
-	deadline2 := time.Now().Add(5 * time.Second)
+	for _, header := range []string{"banana", "3.5", "-1"} {
+		t.Run("header="+strconv.Quote(header), func(t *testing.T) {
+			mux := http.NewServeMux()
+			mux.HandleFunc("/events", func(w http.ResponseWriter, r *http.Request) {
+				_ = ServeSSE(w, r, watcher)
+			})
 
-	for time.Now().Before(deadline2) {
-		conn2.SetReadDeadline(time.Now().Add(500 * time.Millisecond))
-		n, err := conn2.Read(buf)
-		if err != nil {
-			break
-		}
+			ts := httptest.NewServer(mux)
+			defer ts.Close()
 
-		data2 += string(buf[:n])
+			req, err := http.NewRequestWithContext(ctx, http.MethodGet, ts.URL+"/events", nil)
+			if err != nil {
+				t.Fatal(err)
+			}
+			req.Header.Set("Last-Event-ID", header)
 
-		if strings.Contains(data2, "Reconnect 3") && strings.Contains(data2, "Reconnect 4") {
-			break
-		}
+			resp, err := http.DefaultClient.Do(req)
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer func() { _ = resp.Body.Close() }()
+
+			if resp.StatusCode != http.StatusBadRequest {
+				t.Fatalf("Last-Event-ID %q: status: got %d, want %d", header, resp.StatusCode, http.StatusBadRequest)
+			}
+		})
+	}
+}
+
+// TestSSE_ReconnectAfter_Advertised pins the retry: advertisement
+// (WithSSEReconnectAfter → sse.WriteRetry at stream start). Browsers do not
+// dispatch retry-only frames; the value rides sticky on the next dispatched
+// event, which is exactly what sseparse surfaces as Event.Retry.
+func TestSSE_ReconnectAfter_Advertised(t *testing.T) {
+	eng := NewMemoryEngine()
+	store, err := Plan([]Engine{eng}, testTaskQuery())
+	if err != nil {
+		t.Fatal(err)
 	}
 
-	// Should have replayed events 3 and 4 (after seq 2).
-	if !strings.Contains(data2, "id: 3") {
-		t.Errorf("expected 'id: 3' in replayed output, got: %s", data2)
-	}
+	watcher := NewWatcher[testTask](store, "tasks")
+	defer watcher.Close()
 
-	if !strings.Contains(data2, "id: 4") {
-		t.Errorf("expected 'id: 4' in replayed output, got: %s", data2)
-	}
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 
-	if !strings.Contains(data2, "Reconnect 3") {
-		t.Errorf("expected 'Reconnect 3' in replayed data, got: %s", data2)
-	}
+	mux := http.NewServeMux()
+	mux.HandleFunc("/events", func(w http.ResponseWriter, r *http.Request) {
+		_ = ServeSSE(w, r, watcher, WithSSEReconnectAfter(2500*time.Millisecond))
+	})
 
-	if !strings.Contains(data2, "Reconnect 4") {
-		t.Errorf("expected 'Reconnect 4' in replayed data, got: %s", data2)
-	}
+	ts := httptest.NewServer(mux)
+	defer ts.Close()
 
-	// Should NOT have replayed events 1 and 2 (those are before Last-Event-ID).
-	if strings.Contains(data2, "Reconnect 1") {
-		t.Errorf("replay should not include 'Reconnect 1' (before Last-Event-ID), got: %s", data2)
+	resp, err := http.Get(ts.URL + "/events")
+	if err != nil {
+		t.Fatal(err)
 	}
+	defer func() { _ = resp.Body.Close() }()
 
-	if strings.Contains(data2, "Reconnect 2") {
-		t.Errorf("replay should not include 'Reconnect 2' (before Last-Event-ID), got: %s", data2)
+	sr := ssetest.NewStreamReader(resp.Body)
+
+	_ = store.Apply(ctx, "task_created", testTask{ID: "retry1", Title: "Retry probe"})
+
+	evt := ssetest.MustReadNextEvent(t, sr)
+	if evt.Retry != 2500 {
+		t.Fatalf("advertised retry: got %d ms, want 2500 ms", evt.Retry)
 	}
 }
 
@@ -360,8 +436,6 @@ func TestSSE_ReplayLimit(t *testing.T) {
 		})
 	}
 
-	time.Sleep(200 * time.Millisecond)
-
 	mux := http.NewServeMux()
 	mux.HandleFunc("/events", func(w http.ResponseWriter, r *http.Request) {
 		_ = ServeSSE(
@@ -371,48 +445,31 @@ func TestSSE_ReplayLimit(t *testing.T) {
 		)
 	})
 
-	srv := &http.Server{Handler: mux}
-	defer srv.Close()
+	ts := httptest.NewServer(mux)
+	defer ts.Close()
 
-	ln, _ := net.Listen("tcp", "127.0.0.1:0")
-	srv.Addr = ln.Addr().String()
-	go srv.Serve(ln)
-
-	time.Sleep(100 * time.Millisecond)
-
-	conn, err := net.Dial("tcp", srv.Addr)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, ts.URL+"/events", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
+	// Last-Event-ID: 0 replays the whole journal — capped at 2 by config.
+	req.Header.Set("Last-Event-ID", "0")
 
-	defer conn.Close()
-
-	// Connect with Last-Event-ID: 0 (replay all, but capped at 2).
-	_, _ = conn.Write([]byte("GET /events HTTP/1.0\r\nHost: localhost\r\nLast-Event-ID: 0\r\n\r\n"))
-
-	var data string
-	deadline := time.Now().Add(5 * time.Second)
-	buf := make([]byte, 8192)
-
-	for time.Now().Before(deadline) {
-		conn.SetReadDeadline(time.Now().Add(500 * time.Millisecond))
-		n, err := conn.Read(buf)
-		if err != nil {
-			break
-		}
-
-		data += string(buf[:n])
-
-		// Wait for enough data.
-		if strings.Count(data, "id:") >= 2 {
-			break
-		}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatal(err)
 	}
+	defer func() { _ = resp.Body.Close() }()
 
-	// Should have at most 2 id: lines (replay capped at 2).
-	idCount := strings.Count(data, "id:")
-	if idCount > 2 {
-		t.Errorf("expected at most 2 replayed events, got %d id fields", idCount)
+	sr := ssetest.NewStreamReader(resp.Body)
+
+	// The cap keeps the MOST RECENT events: 4 and 5, never 1-3.
+	ssetest.RequireEventID(t, ssetest.MustReadNextEvent(t, sr), "4")
+	ssetest.RequireEventID(t, ssetest.MustReadNextEvent(t, sr), "5")
+
+	// No third replayed event: the stream ends (timeout) with exactly two.
+	if _, err := sr.Next(); err == nil {
+		t.Fatal("expected stream end after the capped replay, got a third event")
 	}
 }
 

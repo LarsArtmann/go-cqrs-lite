@@ -6,7 +6,7 @@
 **Score:** 2.5/7 capabilities fully leveraged = 36% (low)
 
 The `Store` contract and its sentinel semantics are properly adopted: the
-consumer's idempotency middleware is built *on* the library's interface, and
+consumer's idempotency middleware is built _on_ the library's interface, and
 the deprecated in-repo SQL twin implements it. But the consumer sits on a
 split-pin drift (one module at v0.6.0, five still at v0.3.2), and has taken
 none of the three releases' worth of capability that arrived after v0.3.2:
@@ -36,14 +36,14 @@ shim was deleted by ADR-0128 (2026-08-14).
 
 Pins (2026-11-22):
 
-| Module | Pin | Kind |
-|---|---|---|
-| `middleware/v4/go.mod:17` | **v0.6.0** | direct (the only current pin) |
-| `idempotency/sqlstore/v4/go.mod:10` | v0.3.2 | direct |
-| `example/taskmanager/go.mod:30` | v0.3.2 | direct |
-| `integration/v4/go.mod:32` | v0.3.2 | direct |
-| `commandlifecycle/v4/go.mod:35` | v0.3.2 | indirect (via middleware) |
-| `system/v4/go.mod:65` | v0.3.2 | indirect |
+| Module                              | Pin        | Kind                          |
+| ----------------------------------- | ---------- | ----------------------------- |
+| `middleware/v4/go.mod:17`           | **v0.6.0** | direct (the only current pin) |
+| `idempotency/sqlstore/v4/go.mod:10` | v0.3.2     | direct                        |
+| `example/taskmanager/go.mod:30`     | v0.3.2     | direct                        |
+| `integration/v4/go.mod:32`          | v0.3.2     | direct                        |
+| `commandlifecycle/v4/go.mod:35`     | v0.3.2     | indirect (via middleware)     |
+| `system/v4/go.mod:65`               | v0.3.2     | indirect                      |
 
 Production import sites (3 modules):
 
@@ -79,17 +79,17 @@ overlap), not duplication.
 
 ## 3. Capability inventory
 
-| # | Capability | Grade | Evidence / reason |
-|---|---|---|---|
-| 1 | `Store` contract (`Seen`/`Record`/`CheckAndRecord`) | **Full** | consumed at `middleware/v4/idempotency.go:36`, implemented by `idempotency/sqlstore/v4/store.go` |
-| 2 | Sentinel semantics (`ErrDuplicate`, `ErrInvalidTTL`) + fail-closed doctrine | **Full** | `middleware/v4/idempotency.go:37,42-47`; error table honored end to end |
-| 3 | `MemoryStore` (deprecated dev/test store) | Partial | correct in tests (`middleware/v4/test_helpers_test.go:18`); but the fleet-template example uses it as its *only* production store (`example/taskmanager/setup.go:121`) while the library marks it dev/test-only (`go-idempotency/store.go:150`) |
-| 4 | `contract.RunTests` invariant suite | Missed | never imported; sqlstore's invariants are pinned only by hand-rolled tests (`idempotency/sqlstore/v4/property_test.go`, `integration/v4/idempotency_contract_test.go:13`) — the 18-invariant suite incl. the 200-goroutine atomicity drill runs nowhere |
-| 5 | `idemtest` kit (drills, spies, failure injection) | Missed | 0 imports; middleware tests hand-roll helpers and counters |
-| 6 | `Forever` permanent claims (v0.4.0) | Missed | 0 uses; `EventIdempotency` consumers get TTL-windowed dedupe only, though permanent claims are the library's stated answer for consumer/event dedupe (`go-idempotency/CHANGELOG.md` [0.4.0], ADR-006 there) |
-| 7 | `WithClock` deterministic clocks (v0.6.0) | Missed | 0 uses; `middleware/v4/idempotency_ttl_test.go:57` still `time.Sleep(wait)`s past the TTL — the exact pattern v0.6.0 was released to eliminate |
-| 8 | `middleware` subpackage (`NewCommand`, `HTTP`) | N/A | the consumer *is* the CQRS middleware layer; its `middleware/v4/idempotency.go` is the sanctioned CQRS-shaped twin the library defers to |
-| 9 | Production backend recipes (Redis/PG/DynamoDB) | N/A | consumer backends route through `metaengine.DedupStore` per ADR-0142/0158 — the engine-first divergence the library's own README endorses |
+| # | Capability                                                                  | Grade    | Evidence / reason                                                                                                                                                                                                                                       |
+| - | --------------------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | `Store` contract (`Seen`/`Record`/`CheckAndRecord`)                         | **Full** | consumed at `middleware/v4/idempotency.go:36`, implemented by `idempotency/sqlstore/v4/store.go`                                                                                                                                                        |
+| 2 | Sentinel semantics (`ErrDuplicate`, `ErrInvalidTTL`) + fail-closed doctrine | **Full** | `middleware/v4/idempotency.go:37,42-47`; error table honored end to end                                                                                                                                                                                 |
+| 3 | `MemoryStore` (deprecated dev/test store)                                   | Partial  | correct in tests (`middleware/v4/test_helpers_test.go:18`); but the fleet-template example uses it as its _only_ production store (`example/taskmanager/setup.go:121`) while the library marks it dev/test-only (`go-idempotency/store.go:150`)         |
+| 4 | `contract.RunTests` invariant suite                                         | Missed   | never imported; sqlstore's invariants are pinned only by hand-rolled tests (`idempotency/sqlstore/v4/property_test.go`, `integration/v4/idempotency_contract_test.go:13`) — the 18-invariant suite incl. the 200-goroutine atomicity drill runs nowhere |
+| 5 | `idemtest` kit (drills, spies, failure injection)                           | Missed   | 0 imports; middleware tests hand-roll helpers and counters                                                                                                                                                                                              |
+| 6 | `Forever` permanent claims (v0.4.0)                                         | Missed   | 0 uses; `EventIdempotency` consumers get TTL-windowed dedupe only, though permanent claims are the library's stated answer for consumer/event dedupe (`go-idempotency/CHANGELOG.md` [0.4.0], ADR-006 there)                                             |
+| 7 | `WithClock` deterministic clocks (v0.6.0)                                   | Missed   | 0 uses; `middleware/v4/idempotency_ttl_test.go:57` still `time.Sleep(wait)`s past the TTL — the exact pattern v0.6.0 was released to eliminate                                                                                                          |
+| 8 | `middleware` subpackage (`NewCommand`, `HTTP`)                              | N/A      | the consumer _is_ the CQRS middleware layer; its `middleware/v4/idempotency.go` is the sanctioned CQRS-shaped twin the library defers to                                                                                                                |
+| 9 | Production backend recipes (Redis/PG/DynamoDB)                              | N/A      | consumer backends route through `metaengine.DedupStore` per ADR-0142/0158 — the engine-first divergence the library's own README endorses                                                                                                               |
 
 Score derivation: rows N=9, N/A rows 8 and 9 → **A=7**. Full=2 (rows 1, 2),
 Partial=1 (row 3 → 0.5), Missed rows 4, 5, 6, 7 → 0.
@@ -168,7 +168,7 @@ Score = round(100 × 2.5 / 7) = **36% → low band**.
   v0.5.0 the `idemtest` kit as nested module; v0.6.0 `WithClock`.
   [Unreleased] adds `idemtest.RequireAllowsAfterExpiryPinned` + `PinnedClock`
   — release intent: deterministic TTL drills are the active direction.
-- None of the consumer's 6 pins is *broken* by the gap (the API the consumer
+- None of the consumer's 6 pins is _broken_ by the gap (the API the consumer
   touches is stable across v0.3.2-v0.6.0), but the drift means two fleet
   behaviors coexist: middleware-compiled binaries already run v0.6.0
   semantics; standalone sqlstore/taskmanager builds declare v0.3.2 minimums.

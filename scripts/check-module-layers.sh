@@ -335,7 +335,9 @@ DEP_BUDGET["stack/bench/v4"]=25
 # go-error-family, go-humanize. The 9th (templ-components/utils) became DIRECT
 # when templ-components v1.22.0 started emitting an explicit utils import in
 # generated *_templ.go files (2026-10-26; before that it was transitive).
-DEP_BUDGET["catalog/v4"]=9
+# 10th dep = go-etag/server (v0.6.2): conditional-request (304) semantics on
+# the docserver routes — same author, zero transitive burden beyond entitytag.
+DEP_BUDGET["catalog/v4"]=10
 DEP_BUDGET["integration/v4"]=21
 DEP_BUDGET["benchkit/v4"]=25
 DEP_BUDGET["testutil/v4"]=5
@@ -410,7 +412,9 @@ DEP_BUDGET["cmd/cqrs-gen/v4"]=2
 # 9th dep = go-finding/toolsdk (v1.11.0): the cqrs-lint toolsdk Spec
 # (pkg/toolspec) exposes cqrs-lint as a BuildFlow-discoverable tool;
 # same author, no new transitive burden beyond go-finding itself.
-DEP_BUDGET["cmd/cqrs-lint/v4"]=9
+# 10th dep = go-atomic-write (v0.6.2): crash-safe baseline persistence
+# (staged temp + fsync + rename) replacing the DIY temp-file dance.
+DEP_BUDGET["cmd/cqrs-lint/v4"]=10
 # metaengine/v4 added for the `cqrs-bench layout` planning CLI.
 DEP_BUDGET["cmd/cqrs-bench/v4"]=19
 # cqrs-upgrade: cqrs-lint (in-process V007 engine), go-finding (rendering),

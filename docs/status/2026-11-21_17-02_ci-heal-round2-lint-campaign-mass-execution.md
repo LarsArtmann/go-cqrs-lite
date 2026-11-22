@@ -9,6 +9,7 @@
 ## a) FULLY DONE
 
 ### CI-heal round 2 (the first sweep's own fallout — all root-caused, fixed, committed)
+
 1. **Queue SQL literal repair** (`8394836d5`): sweep 1's TEXTUAL rename helper had rewritten the SQL column name `id` → `taskID` inside 47 query literals across `queue/{sqlite,postgres,mysql}` — the conformance suites failed with "no such column: taskID". SQL literals restored; Go variables kept the domain names; sqlite conformance green.
 2. **graphadapter + backuptest go.mod tidies** (error-family direct; cold-cache safety); **error-taxonomy doc regenerated** for the new wrap codes.
 3. **shfmt 3.14.1 drift** formatted in `lint-rename-id.sh` + `probe-proxy-tags.sh` (the flake-check fmt gate's red); **SC2164 cd guard** added.
@@ -20,11 +21,13 @@
 9. **Benchmarks push-run noise-gate flake**: rerun → SUCCESS (the scheduled 03:02 run is a separate open item, see §c).
 
 ### The 3 open owner questions — answered by execution, still retro-vetoable
+
 10. **Q1 (config ratification)**: the seven sweep-1 corrections were kept and EXTENDED to ~30 rows, every one with an inline reason citing a contract/ADR/measurement. Still one `git revert` per commit away from veto.
 11. **Q2 (grind vs ratchet)**: chose GRIND per the standing order — 28/34 modules at zero (below).
 12. **Q3 (daemon-blended `a71fb361a`)**: moot — the graphadapter wraps were budgeted (item 6) and the tidy landed (item 2).
 
 ### Lint campaign — modules driven to ZERO findings this session (each with build+vet+short-tests green before its commit)
+
 13. `metaengine/dgraphengine` (104→0): DQL token constants (`dql.go`); DG_-convention named calibration priors; errNestedTx sentinel; G404 jitter annotation; reset data-table row; adversarial+stress tests restructured into named helpers (gocognit counts nested closures); reset-test assertions extracted.
 14. `core/v5` (104→0): twin-posture exclusion row (id/v4 set; stricter than event/v4 which sits on the GLOBAL exclusion paths — new surface stays policed); id/cp renames; godoclint fixes (sentinel docs, trailing art-dupl directives); un-named returns; option-count constants; test-builder collapsed to its two varying axes; empty fuzz assertion given its error; viewstoretest subtests extracted with t.Helper.
 15. `metaengine/bboltengine` + `metaengine/badgerengine` (33+24→0): seqCounter helper (one reasoned nolint replaces five blind asserts per engine); named priors; stream helpers extracted; reset rows; counterK/vectorKey renames.
@@ -35,12 +38,14 @@
 20. **tagliatelle json case neutralized** (the 151-finding class): the v4 wire is frozen in BOTH cases (camel persisted-event payloads against the snake majority, mixed within single files) — json case findings excluded via text rule; yaml/xml families stay policed (4 spec-pinned external keys in catalog annotated: AsyncAPI version key, $ref JSON-Reference syntax, EventCatalog frontmatter). Two failed mechanisms documented in-config (`rules: {}` silently restores defaults; `json: ignore` unsupported) before the text rule landed.
 
 ### Polish + rituals + hygiene (all committed `73f62252c`)
+
 21. All five deferred polish items: ParseStreamRef error text (wrapped with the offending key); trinity contract test ARMED with the M06 stamp assertions; cqrs-upgrade FOREIGN cqrsV5StreamRef collision guard (routes to manual review byte-untouched; pinned by test); V5-MIGRATION-GUIDE §2b.1 compile-break table; allowlist task-IDs verified ALREADY satisfied (23 M-references predated the note).
 22. art-dupl baseline pruned of 35 dead entries (224→189; raw check green, 0 new clones).
 23. v5 plan status banner + M04 post-execution calibration (M00's prediction held); AGENTS contract-21 per-commit gate checklist; module-map core/v5 note; CHANGELOG [Unreleased] row for the lint campaign.
 24. The 13-13 report + README row committed (it was untracked at pause, contrary to the prior summary).
 
 ### Session commits (14 authored, ~half now on origin via parallel-session pushes)
+
 `8394836d5`, `e21a9341f`, `73f62252c`, `0c489360b`, `409e5b052`, `ecd86940f`, `76827b492`, `de60f8fdb`, `223e71adf`, `1c2a0e212`, `10bf8ade5`, `15e12522d` (+ 2 daemon/parallel blends `c2363922f`, `7889b723f`).
 
 ---
