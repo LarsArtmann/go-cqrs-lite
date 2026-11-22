@@ -234,7 +234,7 @@ while IFS='|' read -r mod suffix label; do
 		echo "=== $mod $label (shipped ~${expected_ns} ns/row) ==="
 	fi
 
-	dir="$REPO_ROOT/metaengine/$mod"
+	dir="$REPO_ROOT/metaengine/$mod/v4" # /v4 since the 2026-11-10 path move
 	# Engine-name casing fixups (Badger/Bbolt/Pebble/SQLite bench prefixes).
 	case "$mod" in
 	badgerengine) bench="BenchmarkCalibration_Badger" ;;
