@@ -35,12 +35,10 @@
 415	./catalog/v4/architecture/index.go
 409	./cmd/cqrs-lint/v4/pkg/rules/correctness/c008.go
 409	./system/v4/config_types.go
-408	./cmd/doc-check/v4/recipes_catalog_meta3.go
 407	./system/v4/query_constructors.go
 401	./benchkit/v4/report.go
 400	./cmd/cqrs-lint/v4/doctor.go
 399	./metaengine/badgerengine/v4/stream_log.go
-398	./cmd/cqrs-bench/v4/factory.go
 394	./metaengine/v4/advanced.go
 393	./metaengine/v4/engine_health.go
 392	./catalog/v4/eventcatalog/exporter.go

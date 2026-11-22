@@ -93,7 +93,16 @@
 
 ### T25 closeouts — DONE
 
-- m72: `#verify-fast` run green post-commit (see below).
+- m72: `#verify-fast` first run caught TWO file-size ratchet violations the wave
+  commits smuggled past per-module testing: `cmd/cqrs-bench/v4/factory.go`
+  (398→429, grown by the T10 system-memory backend) and
+  `cmd/doc-check/v4/recipes_catalog_meta3.go` (408→420, the §2.47 fence-#5 entry).
+  Root-cause fix, not re-baseline: factory.go split into `factory_system.go`
+  (the system/memory backends) + `parse_helpers.go` (CLI parse helpers) → 300
+  lines; the §2.47 recipe family + its helper const moved from meta3 to meta4 →
+  meta3 284 / meta4 193. Both baselined rows dropped (the shrink-only ratchet,
+  61→59 entries), both module suites green, file-size gate green. The full
+  `#verify-fast` re-run to green is still owed before m72 closes.
 - m73: `level=warn` stray dispositioned — origin identified (nats-server stdout captured
   by scripts/ephemeral-nats.sh on 2026-09-29, absorbed by daemon commit 3756eb4d1,
   later dropped from tracking); file no longer exists on disk or in the index. Nothing
