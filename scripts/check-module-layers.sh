@@ -421,8 +421,10 @@ DEP_BUDGET["cmd/cqrs-lint/v4"]=10
 # FactoryFromSystem bridge (system.New deployments as benchmark targets).
 DEP_BUDGET["cmd/cqrs-bench/v4"]=20
 # cqrs-upgrade: cqrs-lint (in-process V007 engine), go-finding (rendering),
-# x/mod (semver parsing) — all three are the tool's job.
-DEP_BUDGET["cmd/cqrs-upgrade/v4"]=3
+# x/mod (semver parsing) — all three are the tool's job. +cmdguard +cobra
+# (fleet CLI chassis, plan T19: struct-tag flags with --help parity; cobra
+# is direct for ArbitraryArgs/RunE wiring, same shape as cqrs-gen).
+DEP_BUDGET["cmd/cqrs-upgrade/v4"]=5
 DEP_BUDGET["cmd/api-stability/v4"]=3
 DEP_BUDGET["cmd/doc-check/v4"]=2
 # mesh-demo: decider/v4/event/command/id = 4 (the bilateral-contract example)

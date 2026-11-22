@@ -1,16 +1,33 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"strings"
 	"testing"
+
+	cmdguard "github.com/larsartmann/cmdguard/v5/pkg/cmdguard/v5"
 )
 
-// TestParseFlags_RejectsArgsAfterDir pins the 2026-09-11 hardening: stdlib
-// flag parsing stops at the first positional, so `cqrs-upgrade . --strict`
-// used to silently ignore --strict and run as a plain report. Extra args
-// after the directory must now fail loudly.
-func TestParseFlags_RejectsArgsAfterDir(t *testing.T) {
+// buildForTest wires the production CLI for in-process driving.
+func buildForTest(t *testing.T) *cmdguard.CLI[AppConfig] {
+	t.Helper()
+
+	cli, err := buildCLI()
+	if err != nil {
+		t.Fatalf("buildCLI: %v", err)
+	}
+
+	return cli
+}
+
+// TestCLIParse_RejectsArgsAfterDir pins the 2026-09-11 hardening under the
+// cmdguard parse layer: flags must precede the positional directory, so
+// `cqrs-upgrade . --strict` fails loudly instead of silently ignoring
+// --strict (stdlib flag's original sin) or silently applying it (pflag's
+// interspersed default). SetInterspersed(false) on the root keeps the
+// rejected tail visible as positional arguments.
+func TestCLIParse_RejectsArgsAfterDir(t *testing.T) {
 	t.Parallel()
 
 	for _, args := range [][]string{
@@ -18,25 +35,40 @@ func TestParseFlags_RejectsArgsAfterDir(t *testing.T) {
 		{"--to", "v4.13.0", "/tmp", "--json"},
 		{"/tmp", "extra-dir"},
 	} {
-		if _, err := parseFlags(args); err == nil {
-			t.Errorf("parseFlags(%v) accepted args after the positional dir", args)
+		cli := buildForTest(t)
+
+		err := cli.ExecuteWithArgs(context.Background(), args)
+		if err == nil {
+			t.Errorf("ExecuteWithArgs(%v) accepted args after the positional dir", args)
 		} else if !errors.Is(err, errArgsAfterDir) {
-			t.Errorf("parseFlags(%v) = %v, want errArgsAfterDir", args, err)
+			t.Errorf("ExecuteWithArgs(%v) = %v, want errArgsAfterDir", args, err)
 		}
 	}
+}
 
-	cfg, err := parseFlags([]string{"--strict", "--json", "/tmp"})
-	if err != nil {
-		t.Fatalf("flags before the dir must keep working: %v", err)
+// TestCLIParse_FlagsBeforeDirReachConfig proves the flags that PRECEDE the
+// directory still land in the parsed config: the run fails on the second
+// positional (so the pipeline never starts), then the config struct is
+// inspected directly.
+func TestCLIParse_FlagsBeforeDirReachConfig(t *testing.T) {
+	t.Parallel()
+
+	cli := buildForTest(t)
+
+	err := cli.ExecuteWithArgs(context.Background(),
+		[]string{"--strict", "--json", "/tmp", "second"})
+	if !errors.Is(err, errArgsAfterDir) {
+		t.Fatalf("expected errArgsAfterDir before any pipeline work, got: %v", err)
 	}
 
-	if !cfg.strict || !cfg.jsonOut || cfg.dir != "/tmp" {
-		t.Errorf("unexpected config: %+v", cfg)
+	ac := cli.Config()
+	if !ac.Strict || !ac.JSONOut {
+		t.Errorf("flags before the dir must reach the config, got: %+v", *ac)
 	}
 }
 
 // TestStrictGateError pins the gate ordering: an errored module fails FIRST
-// (its pipeline died before any scan — unscanned = unproven), then a failed
+// (its pipeline died before any scan — unscanned is unproven), then a failed
 // deprecation scan, then actual findings. A clean set passes.
 func TestStrictGateError(t *testing.T) {
 	t.Parallel()

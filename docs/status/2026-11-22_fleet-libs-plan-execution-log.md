@@ -4,6 +4,103 @@
 > (T01–T25). One section per wave, per-task verdicts with the plan's done-when checks.
 > This file is the wave-notes home (m06 tag-prep lists live here).
 
+## W4 — Consolidation + closeouts (T15–T25) — DONE 2026-11-22
+
+> Bulk landed in commit `34fef2212`; the T19 cmdguard port + T25 closeouts + this
+> log section are the same-session tail. Owner questions outstanding: T15 verdict
+> ratification, T19 shape (flat-flags compat chosen), pin-wave + remote-tag policy.
+
+### T15 catalog D2 → go-output/d2 — REFUSED (plan's own gate)
+
+- m52's done-when ("D2 golden unchanged") is unreachable: `escape.SlugifyID` is NOT a
+  drop-in for hand-rolled `sanitizeID` (catalog/v4/docserver/connections.go:221) — it
+  lacks ToLower and adds asterisk/bracket handling, so connection IDs change bytes; and
+  go-output/d2's `Diagram` renderer does not reproduce the golden-pinned output format.
+- Swapping would force a D2 golden re-baseline = user-visible diff churn — exactly the
+  verschlimmbesser the plan's §0 blesses refusing. m51/m53 moot (no swap, no budget bump).
+- **Reconsider when:** go-output grows a byte-compatible renderer, or the v5 train
+  re-baselines the D2 goldens anyway.
+
+### T16 retry consolidation — DONE (m54); m55 REFUSED
+
+- middleware/v4/retry.go: hand-rolled loop → `retry.Do` (go-retry). Config parity:
+  OnRetry logging, OnExhausted → DeadLetter entry, per-attempt OTel spans inside
+  AttemptFunc. Sentinels `ErrRetryExhausted`/`ErrRetryCanceled` preserved by wrapping
+  go-retry's errors (cause chains keep ErrCanceled/ErrDeadlineExceeded distinctions);
+  dead `backoff()` helper deleted. Full middleware suite green.
+- **m55 (event/v4 PublishRetry) REFUSED on the v4 byte-freeze**: event/ is a frozen
+  train — a behavioral consolidation there is a v5-train change, not an audit follow-up.
+  No ADR cut; this row is the decision record.
+
+### T17+T18 errorfamilytest sweep — DONE (19 sites, 6 rowed)
+
+- 19 mechanical `errorfamily.Classify(err) != family` sites converted to
+  `errorfamilytest.AssertFamily` across 12 files (schema ×2, command, id, storage ×2,
+  event, storage/turso ×3, integration, benchkit). errorfamilytest is a subpackage of
+  the go-error-family root module — imports only, zero new deps. All 8 module suites green.
+- Plan's ~98 estimate was wrong: only ~25 real sites existed. 6 non-mechanical shapes
+  ROWED, not converted: `.Family() !=` forms in event/v4/errors_taxonomy_test.go:80,
+  event/v4/coverage_test.go:159, stack/pebble/v4/preset_test.go:328 (foreign-dirty file —
+  untouched by design), plus three assertion-shape variants that assert on family
+  extraction rather than classification.
+
+### T19 cqrs-upgrade → cmdguard — DONE
+
+- Sixth CLI on the fleet chassis: `AppConfig` typed flag struct (7 flags, help strings
+  byte-identical to the stdlib set — pinned by `TestCLIHelpParity`), `buildCLI()` +
+  `cli.RootCommand().RunE`, `ExecuteAndExit` entry. `AppConfig` deliberately does NOT
+  embed `cmdguard.Config`: the batteries' config carries its own `--strict` flag, which
+  would collide with the v5-readiness gate.
+- Shape: **flat single-command** (owner Q2 — compat-first; subcommand restructure would
+  break every scripted `cqrs-upgrade --json --strict <dir>` consumer for zero gain).
+- Parse contract preserved: `cobra.ArbitraryArgs` for the positional dir;
+  `SetInterspersed(false)` keeps the 2026-09-11 hardening true (flags-after-dir is a
+  LOUD `errArgsAfterDir`, not pflag's silent interspersed apply — pinned by
+  `TestCLIParse_RejectsArgsAfterDir`/`TestCLIParse_FlagsBeforeDirReachConfig`).
+- Exit-code contract: RunE errors propagate through `ExecuteWithArgs`
+  (`errors.Is(errStrictViolations)` still holds in the e2e ports); `--json` stdout wire
+  clean (cmdguard prints errors to stderr).
+- Codemod golden suite unchanged (green); kill-mid-write test green; DEP_BUDGET 3→5
+  (cmdguard + cobra, rationale inline).
+
+### T20 signing determinism test — DONE
+
+- signing/v4/payload_determinism_test.go (internal): canonicalPayload idempotency +
+  DefaultCodec/JSONCodec/CBORCompactCodec all satisfy `codec.DeterministicCodec`.
+
+### T21 cqrs-gen dogfood — DONE
+
+- `//cqrs:command task.create` marker on CreateTaskCmd (example/taskmanager/handlers.go);
+  handlers_gen.go committed beside it; README regeneration-loop section. Generator quirk
+  recorded: needs an ABSOLUTE path arg (`cqrs-gen --type=command --output=<abs> <abs-dir>`).
+
+### T22 go-sse CHANGELOG — DONE (other repo, commit 1b7d168)
+
+- [0.7.0] section cut from Unreleased, dated to the tag date 2026-11-04.
+
+### T23 audit artifact gates — DONE
+
+- `scripts/check-libreports.sh` + flake app `#check-libreports`: citation sweep (900 ok /
+  0 bad / 23 reports) + index↔report↔asset link bijection; `--self-test` fault-injects.
+  First live run caught a stale citation the T05 edit caused → go-atomic-write report
+  re-derived (UPDATE header, not retro-edited).
+
+### T24 session infra — DONE
+
+- m69: status row for the 16-30 audit report. m70: border-before-trim screenshot lesson →
+  crush-config lessons.md (bc637bf). m71: sequential-dispatch+resume pattern →
+  SKILLS/library-deep-dive runbook (f4cd4a8).
+
+### T25 closeouts — DONE
+
+- m72: `#verify-fast` run green post-commit (see below).
+- m73: `level=warn` stray dispositioned — origin identified (nats-server stdout captured
+  by scripts/ephemeral-nats.sh on 2026-09-29, absorbed by daemon commit 3756eb4d1,
+  later dropped from tracking); file no longer exists on disk or in the index. Nothing
+  to trash.
+- m74: error-taxonomy doc header v0.10.0 → v0.12.0 (matches every module pin).
+- m75: **pending owner Q3** (fetch remote tags vs stay local) — no policy invented.
+
 ## W3 — Bridges + seams (T08–T14) — DONE 2026-11-22
 
 ### T08 SSE correctness — DONE

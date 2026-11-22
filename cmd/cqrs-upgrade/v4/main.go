@@ -2,54 +2,84 @@ package main
 
 import (
 	"context"
-	"errors"
-	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
+	cmdguard "github.com/larsartmann/cmdguard/v5/pkg/cmdguard/v5"
+	"github.com/spf13/cobra"
 	"golang.org/x/mod/semver"
 )
 
-var (
-	// errInvalidToFlag fires when --to is not valid semver.
-	errInvalidToFlag = errors.New("--to is not a valid semver version")
-	// errStrictViolations fires when --strict finds v5-removed API usage.
-	errStrictViolations = errors.New("--strict: v5-removed API usage detected")
-	// errArgsAfterDir fires when arguments follow the positional module
-	// directory. Stdlib flag parsing stops at the first positional, so a
-	// flag written after the dir is silently ignored (2026-09-11:
-	// `cqrs-upgrade . --strict` ran as a plain report instead of the gate).
-	errArgsAfterDir = errors.New(
-		"unexpected arguments after the module directory (flags must precede it)")
-	// errStrictScanFailed fires when --strict cannot prove cleanliness: the
-	// deprecation scan itself failed, so v5-readiness is unproven. A gate
-	// that silently passes when its scanner breaks is not a gate.
-	errStrictScanFailed = errors.New("--strict: deprecation scan failed")
-	// errStrictModuleFailed fires when any module errored in the pipeline
-	// (pin collection, go.mod edit, or build verification). An errored module
-	// never reached the deprecation scan — unscanned is unproven, so --strict
-	// must fail instead of passing on the silence.
-	errStrictModuleFailed = errors.New("--strict: module error")
-	// errStrictV5Remaining fires when --to-v5 --strict still sees cqrs v4
-	// imports with no folded core/v5 twin: the module's migration to the v5
-	// core is incomplete, so v5-readiness is unproven.
-	errStrictV5Remaining = errors.New(
-		"--strict --to-v5: not-yet-folded go-cqrs-lite v4 imports remain")
-	// errStrictV5ModuleFailed fires when the --to-v5 pass itself errored on a
-	// module (unreadable file, unparseable source). Unscanned is unproven.
-	errStrictV5ModuleFailed = errors.New("--strict --to-v5: module error")
-)
-
 func main() {
-	if err := run(context.Background(), os.Args[1:]); err != nil {
+	cli, err := buildCLI()
+	if err != nil {
 		fmt.Fprintln(os.Stderr, "cqrs-upgrade:", err)
 		os.Exit(1)
 	}
+
+	cli.ExecuteAndExit(context.Background())
 }
 
-// config holds the parsed CLI options.
+// AppConfig is the CLI flag surface: one typed field per flag, with help
+// strings byte-identical to the pre-cmdguard stdlib flag set (--help parity,
+// plan T19/m60). It deliberately does NOT embed cmdguard.Config: the
+// batteries' config struct carries its own --strict flag, which would
+// collide with this tool's load-bearing v5-readiness gate of the same name.
+type AppConfig struct {
+	DryRun    bool   `default:"false" flag:"dry-run"   help:"show planned bumps and the deprecation report without changing go.mod"`                                                                                                                                    //nolint:lll // struct tag must stay on one line
+	NoBuild   bool   `default:"false" flag:"no-build"  help:"skip the go mod tidy + build + vet verification after bumping"`                                                                                                                                            //nolint:lll // struct tag must stay on one line
+	Strict    bool   `default:"false" flag:"strict"    help:"exit non-zero on v5-removed API usage, failed scans, or module errors (v5-readiness gate)"`                                                                                                                //nolint:lll // struct tag must stay on one line
+	JSONOut   bool   `default:"false" flag:"json"      help:"machine-readable JSON output (bump plan + deprecations per module)"`                                                                                                                                       //nolint:lll // struct tag must stay on one line
+	To        string `default:""      flag:"to"        help:"clamp every bump target to at most this version (semver, e.g. v4.13.0); never downgrades"`                                                                                                                 //nolint:lll // struct tag must stay on one line
+	Workspace bool   `default:"false" flag:"workspace" help:"upgrade every module under dir (skips vendor/, testdata/, .git/)"`                                                                                                                                         //nolint:lll // struct tag must stay on one line
+	ToV5      bool   `default:"false" flag:"to-v5"     help:"v5 migration pass: rewrite imports of the folded v4 trains to their core/v5 twins (ADR-0152); go.mod requires are reported, not edited (core/v5 is untagged); combine with --dry-run for a per-file diff"` //nolint:lll // struct tag must stay on one line
+}
+
+// buildCLI wires the cqrs-upgrade CLI as a flat single-command tool: the
+// seven pipeline flags live on the root, the module directory is the one
+// optional positional. Extracted from main so CLI-level tests drive the
+// exact production wiring via ExecuteWithArgs.
+func buildCLI() (*cmdguard.CLI[AppConfig], error) {
+	cli, err := cmdguard.NewCLI(
+		"cqrs-upgrade",
+		"Bump go-cqrs-lite module pins to the latest tags and report v5-removed API usage",
+		AppConfig{},
+	)
+	//art-dupl:accept cobra CLI bootstrap guard — identical by design across cmd tools
+	if err != nil {
+		return nil, err
+	}
+
+	rootCmd := cli.RootCommand()
+	rootCmd.Use = "cqrs-upgrade [flags] [dir]"
+	// The dir is a positional argument, not a subcommand. Without
+	// ArbitraryArgs, cobra's default Args validator (active because the
+	// battery commands register as subcommands) rejects every positional as
+	// "Unknown command" — the documented `cqrs-upgrade <dir>` invocation
+	// would be dead code.
+	rootCmd.Args = cobra.ArbitraryArgs
+	// Preserve the stdlib-flag parse contract the 2026-09-11 hardening
+	// pinned: flags must precede the directory. pflag defaults to
+	// interspersed parsing (a flag written after the dir would silently
+	// apply); disabling it keeps `cqrs-upgrade . --strict` a LOUD
+	// errArgsAfterDir failure instead of a second, subtler dialect.
+	rootCmd.Flags().SetInterspersed(false)
+
+	rootCmd.RunE = func(c *cobra.Command, args []string) error {
+		cfg, err := configFromFlags(*cli.Config(), args)
+		if err != nil {
+			return err
+		}
+
+		return runPipeline(c.Context(), cfg)
+	}
+
+	return cli, nil
+}
+
+// config holds the validated pipeline options.
 type config struct {
 	dir       string
 	dryRun    bool
@@ -61,52 +91,33 @@ type config struct {
 	toV5      bool
 }
 
-// parseFlags builds the config from args. dir defaults to the working
-// directory and must contain a go.mod (or, with --workspace, be the root of a
-// multi-module tree).
-func parseFlags(args []string) (config, error) {
-	cfg := config{}
-
-	fs := flag.NewFlagSet("cqrs-upgrade", flag.ContinueOnError)
-	fs.BoolVar(&cfg.dryRun, "dry-run", false,
-		"show planned bumps and the deprecation report without changing go.mod")
-	fs.BoolVar(
-		&cfg.noBuild,
-		"no-build",
-		false,
-		"skip the go mod tidy + build + vet verification after bumping",
-	)
-	fs.BoolVar(&cfg.strict, "strict", false,
-		"exit non-zero on v5-removed API usage, failed scans, or module errors (v5-readiness gate)")
-	fs.BoolVar(&cfg.jsonOut, "json", false,
-		"machine-readable JSON output (bump plan + deprecations per module)")
-	fs.StringVar(&cfg.to, "to", "",
-		"clamp every bump target to at most this version (semver, e.g. v4.13.0); never downgrades")
-	fs.BoolVar(&cfg.workspace, "workspace", false,
-		"upgrade every module under dir (skips vendor/, testdata/, .git/)")
-	fs.BoolVar(
-		&cfg.toV5,
-		"to-v5",
-		false,
-		"v5 migration pass: rewrite imports of the folded v4 trains to their core/v5 twins (ADR-0152); "+
-			"go.mod requires are reported, not edited (core/v5 is untagged); combine with --dry-run for a per-file diff",
-	)
-
-	if err := fs.Parse(args); err != nil {
-		return cfg, err
+// configFromFlags validates the parsed flag values against the positional
+// arguments and builds the pipeline config: --to must be valid semver, at
+// most one directory may follow the flags, and the directory resolves to an
+// absolute path (default: the working directory, which must contain a
+// go.mod — or, with --workspace, be the root of a multi-module tree).
+func configFromFlags(ac AppConfig, args []string) (config, error) {
+	cfg := config{
+		dryRun:    ac.DryRun,
+		noBuild:   ac.NoBuild,
+		strict:    ac.Strict,
+		jsonOut:   ac.JSONOut,
+		to:        ac.To,
+		workspace: ac.Workspace,
+		toV5:      ac.ToV5,
 	}
 
 	if cfg.to != "" && !semver.IsValid(cfg.to) {
 		return cfg, fmt.Errorf("%w: %q", errInvalidToFlag, cfg.to)
 	}
 
-	if fs.NArg() > 1 {
-		return cfg, fmt.Errorf("%w: %s", errArgsAfterDir, strings.Join(fs.Args()[1:], " "))
+	if len(args) > 1 {
+		return cfg, fmt.Errorf("%w: %s", errArgsAfterDir, strings.Join(args[1:], " "))
 	}
 
 	cfg.dir = "."
-	if fs.NArg() > 0 {
-		cfg.dir = fs.Arg(0)
+	if len(args) > 0 {
+		cfg.dir = args[0]
 	}
 
 	abs, err := filepath.Abs(cfg.dir)
@@ -119,24 +130,21 @@ func parseFlags(args []string) (config, error) {
 	return cfg, nil
 }
 
-// run executes the upgrade pipeline: collect pins → resolve latest →
+// runPipeline executes the upgrade pipeline: collect pins → resolve latest →
 // (dry-run | edit + verify) → deprecation report. With --workspace the
 // pipeline runs for every go.mod under the root; with --strict a non-empty
 // deprecation report fails the run; with --json the whole result is emitted
 // as one machine-readable document.
-func run(_ context.Context, args []string) error {
-	cfg, err := parseFlags(args)
-	if err != nil {
-		return err
-	}
-
+func runPipeline(_ context.Context, cfg config) error {
 	dirs := []string{cfg.dir}
 
 	if cfg.workspace {
-		dirs, err = findGoMods(cfg.dir)
+		found, err := findGoMods(cfg.dir)
 		if err != nil {
 			return err
 		}
+
+		dirs = found
 	}
 
 	if cfg.toV5 {

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"sort"
@@ -282,13 +283,20 @@ func TestStrictV5GateError(t *testing.T) {
 	}
 }
 
-// TestParseFlagsToV5 pins the flag wiring.
+// TestParseFlagsToV5 pins the flag wiring: --to-v5 and --dry-run reach the
+// parsed config through the cmdguard surface. The extra positional makes the
+// run fail at errArgsAfterDir before any pipeline work.
 func TestParseFlagsToV5(t *testing.T) {
-	cfg, err := parseFlags([]string{"--to-v5", "--dry-run"})
-	if err != nil {
-		t.Fatalf("parse: %v", err)
+	cli := buildForTest(t)
+
+	err := cli.ExecuteWithArgs(context.Background(),
+		[]string{"--to-v5", "--dry-run", t.TempDir(), "extra"})
+	if err == nil {
+		t.Fatal("expected errArgsAfterDir from the extra positional")
 	}
-	if !cfg.toV5 || !cfg.dryRun {
-		t.Errorf("toV5=%v dryRun=%v, want both true", cfg.toV5, cfg.dryRun)
+
+	ac := cli.Config()
+	if !ac.ToV5 || !ac.DryRun {
+		t.Errorf("toV5=%v dryRun=%v, want both true", ac.ToV5, ac.DryRun)
 	}
 }

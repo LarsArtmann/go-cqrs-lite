@@ -1,6 +1,6 @@
 # Error Taxonomy
 
-> The go-cqrs-lite library uses [go-error-family](https://github.com/LarsArtmann/go-error-family) v0.10.0 for structured, classified error handling.
+> The go-cqrs-lite library uses [go-error-family](https://github.com/LarsArtmann/go-error-family) v0.12.0 for structured, classified error handling.
 
 ## The 6 Error Families
 

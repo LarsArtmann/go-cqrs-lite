@@ -10,11 +10,12 @@ import (
 	"testing"
 )
 
-// e2eTest: run() against fixture modules — flags → report → strict exit
-// codes, the full pipeline including the --json wire (strict-gate residual
-// hole (c), 05-26 §e4). Fixtures live under testdata/e2e/<name>/ with .txt
-// suffixes (go tooling ignores testdata); each test copies them into a
-// temp dir with real names so the package loader sees a true module.
+// e2eTest: the full production CLI wiring against fixture modules — flags →
+// report → strict exit codes, the full pipeline including the --json wire
+// (strict-gate residual hole (c), 05-26 §e4). Fixtures live under
+// testdata/e2e/<name>/ with .txt suffixes (go tooling ignores testdata); each
+// test copies them into a temp dir with real names so the package loader sees
+// a true module.
 
 // setupFixture copies testdata/e2e/<name>/* into a temp dir, renaming the
 // *.go.mod.txt / *.go.txt shims to their real names and substituting the
@@ -86,6 +87,19 @@ func decodeWire(t *testing.T, buf []byte) []wireModule {
 	return modules
 }
 
+// runCLI drives the full production CLI wiring (buildCLI + ExecuteWithArgs)
+// against args, replacing the old in-process run(ctx, args) seam.
+func runCLI(t *testing.T, args []string) error {
+	t.Helper()
+
+	cli, err := buildCLI()
+	if err != nil {
+		t.Fatalf("buildCLI: %v", err)
+	}
+
+	return cli.ExecuteWithArgs(context.Background(), args)
+}
+
 // TestE2E_NoPins_ModuleStillScanned pins hole (a): a module with zero
 // direct cqrs pins still gets the deprecation scan (NoPins ≠ no scan), the
 // --json wire carries schemaVersion, and --strict exits clean on a
@@ -95,7 +109,7 @@ func TestE2E_NoPins_ModuleStillScanned(t *testing.T) {
 
 	stdout := captureStdout(t)
 
-	err := run(context.Background(), []string{"--json", "--strict", dir})
+	err := runCLI(t, []string{"--json", "--strict", dir})
 
 	out := stdout()
 
@@ -158,7 +172,7 @@ func TestE2E_Violation_StrictExitCodes(t *testing.T) {
 
 	stdout := captureStdout(t)
 
-	err := run(context.Background(), []string{"--json", "--dry-run", "--strict", dir})
+	err := runCLI(t, []string{"--json", "--dry-run", "--strict", dir})
 
 	out := stdout()
 

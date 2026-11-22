@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json/v2"
 	"errors"
 	"os"
@@ -209,11 +210,14 @@ func TestPlanUpgrades_CeilingClampsWithoutDowngrade(t *testing.T) {
 func TestParseFlags_InvalidToVersion(t *testing.T) {
 	t.Parallel()
 
-	if _, err := parseFlags([]string{"--to", "4.13.0"}); err == nil {
-		t.Fatal("expected error for non-semver --to value")
+	cli := buildForTest(t)
+
+	err := cli.ExecuteWithArgs(context.Background(), []string{"--to", "4.13.0"})
+	if err == nil || !errors.Is(err, errInvalidToFlag) {
+		t.Fatalf("expected errInvalidToFlag for non-semver --to value, got: %v", err)
 	}
 
-	cfg, err := parseFlags([]string{"--to", "v4.13.0", "/tmp"})
+	cfg, err := configFromFlags(AppConfig{To: "v4.13.0"}, []string{"/tmp"})
 	if err != nil {
 		t.Fatalf("valid --to rejected: %v", err)
 	}

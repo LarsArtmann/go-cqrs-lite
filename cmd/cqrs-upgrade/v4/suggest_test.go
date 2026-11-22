@@ -50,7 +50,7 @@ func TestSuggestions_NeverGatesStrict(t *testing.T) {
 
 	stdout := captureStdout(t)
 
-	if err := run(t.Context(), []string{"--json", "--strict", "--no-build", dir}); err != nil {
+	if err := runCLI(t, []string{"--json", "--strict", "--no-build", dir}); err != nil {
 		t.Fatalf("--strict must pass on suggestion-only modules, got: %v", err)
 	}
 
