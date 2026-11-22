@@ -897,6 +897,7 @@
               pkgs.mariadb.client
               pkgs.tailwindcss_4
               pkgs.actionlint
+              pkgs.shfmt # 3.14.1, shadows ~/.local/bin/shfmt 3.13.1 (CI-form arbiter)
               templPkg
             ];
 
@@ -2317,6 +2318,12 @@
                   export SOAK_SKIP_BOLT=1
                   ${pkgs.bash}/bin/bash scripts/verify-docs.sh && \
                   echo "=== Module Coverage ===" && nix run .#check-modules && \
+                  # docserver-css hoisted to the FRONT (2026-11-22): it needs
+                  # only tailwind, so a stale artifact fails in seconds here
+                  # instead of ~40 min in, after test+race+lint (the 14-53
+                  # §f.29 lesson). The flake-check's generated-artifacts leg
+                  # re-covers it for that job.
+                  echo "=== Check Docserver CSS ===" && nix run .#check-docserver-css && \
                   echo "=== Build ===" && ${goPkg}/bin/go build ${tagFlags} ${allPaths} && \
                   echo "=== Vet ===" && ${goPkg}/bin/go vet ${tagFlags} ${modulePaths} && \
                   # Test 10m / Race 12m per package (was 8m both): the quic
@@ -2343,7 +2350,6 @@
                   # check-lint-config is the superset of check-depguard: config
                   # verify + depguard allow-list + formatters.enable pin.
                   echo "=== Check Lint Config ===" && nix run .#check-lint-config && \
-                  echo "=== Check Docserver CSS ===" && nix run .#check-docserver-css && \
                   echo "=== Check Duplication ===" && nix run .#check-duplication && \
                   echo "=== Check Architecture Reference ===" && nix run .#check-architecture-reference && \
                   echo "=== Check Turso Version Citations ===" && nix run .#check-turso-version && \
@@ -2428,6 +2434,9 @@
                   ${pkgs.bash}/bin/bash scripts/check-package-surface.sh && \
                   ${pkgs.bash}/bin/bash scripts/check-cycles.sh && \
                   ${pkgs.bash}/bin/bash scripts/verify-docs.sh && \
+                  # docserver-css runs early (needs only tailwind): a stale
+                  # artifact fails in seconds, not after the test legs.
+                  echo "=== Check Docserver CSS ===" && nix run .#check-docserver-css && \
                   echo "=== Build ===" && ${goPkg}/bin/go build ${tagFlags} ${allPaths} && \
                   echo "=== Vet ===" && ${goPkg}/bin/go vet ${tagFlags} ${modulePaths} && \
                   # Same package-parallelism cap as #verify: uncapped, the
@@ -2440,7 +2449,6 @@
                   # check-lint-config is the superset of check-depguard: config
                   # verify + depguard allow-list + formatters.enable pin.
                   echo "=== Check Lint Config ===" && nix run .#check-lint-config && \
-                  echo "=== Check Docserver CSS ===" && nix run .#check-docserver-css && \
                   echo "=== Check Duplication ===" && nix run .#check-duplication && \
                   echo "=== Check Architecture Reference ===" && nix run .#check-architecture-reference && \
                   echo "=== Check Turso Version Citations ===" && nix run .#check-turso-version && \

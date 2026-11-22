@@ -47,6 +47,13 @@ jobs:
       - name: Dgraph AutoCRUD soak (ephemeral Dgraph)
         run: TEST_ARGS='-run TestSoak' nix run .#integration-dgraph
 
+      # NATS canary (2026-11-22): the integration-nats leg was silent-broken
+      # for weeks — its script idled at a wait-for-Ctrl+C prompt, so the job
+      # "passed" having run zero tests. A weekly probe makes that failure
+      # class visible within seven days even if the push leg regresses.
+      - name: NATS watermill suite canary
+        run: nix run .#integration-nats
+
       - name: Upload shuffle seeds
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

@@ -31,12 +31,15 @@
 # Usage: scripts/calibration-drift.sh [--baseline FILE | --write-baseline FILE] [MODULE ...]
 # Default modules: metaengine/v4/{badger,bbolt,pebble,sqlite}engine (in-memory,
 # no DSN needed). count=3 per bench, run 1 discarded, median of the rest.
+# --self-test: deterministic fault-injection legs (no benching, no ambient
+# load dependence — the load gate is bypassed via CALIB_MAX_LOAD=9999).
 set -euo pipefail
 
 THRESHOLD_WARN=25  # percent
 THRESHOLD_FAIL=100 # percent
 COUNT=3
 
+MODE=gate
 ALL_MODULES=(badgerengine bboltengine pebbleengine sqliteengine)
 
 BASELINE_FILE=""
@@ -52,6 +55,10 @@ while [ $# -gt 0 ]; do
 	--write-baseline)
 		WRITE_BASELINE_FILE="${2:?--write-baseline requires a file argument}"
 		shift 2
+		;;
+	--self-test)
+		MODE=selftest
+		shift
 		;;
 	*)
 		MODULES+=("$1")
@@ -70,6 +77,90 @@ if [ -n "$BASELINE_FILE" ] && [ -n "$WRITE_BASELINE_FILE" ]; then
 fi
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+# self_test — fault-injection legs against THIS script via subprocess
+# re-invocation (the calibration-gate.sh pattern). Every leg drives the REAL
+# path with an env/arg fault and asserts the failure class, so a regression in
+# arg plumbing, gate ordering, or the /v4 dir construction goes red here
+# instead of on a 40-minute scheduled run. CALIB_MAX_LOAD=9999 makes the load
+# gate a pass-through on any host; CALIB_FAKE_TMPFS_TYPE pins the fs branch.
+self_test() {
+	local fixture out fail=0
+	fixture="$(mktemp -d)"
+	trap 'rm -rf "$fixture"' RETURN
+	local self="${BASH_SOURCE[0]}"
+
+	# L1: missing baseline artifact must fail fast (before any gate runs).
+	if bash "$self" --baseline "$fixture/absent.txt" >/dev/null 2>&1; then
+		echo "self-test FAIL: missing baseline file was accepted" >&2
+		fail=$((fail + 1))
+	fi
+
+	# L2: a baseline artifact with zero rows must be rejected.
+	: >"$fixture/empty.txt"
+	if bash "$self" --baseline "$fixture/empty.txt" >/dev/null 2>&1; then
+		echo "self-test FAIL: empty baseline was accepted" >&2
+		fail=$((fail + 1))
+	fi
+
+	# L3: --baseline and --write-baseline are mutually exclusive.
+	if bash "$self" --baseline "$fixture/empty.txt" --write-baseline "$fixture/w.txt" >/dev/null 2>&1; then
+		echo "self-test FAIL: --baseline + --write-baseline accepted together" >&2
+		fail=$((fail + 1))
+	fi
+
+	# L4: a CoW TMPDIR must be refused loudly (fake the fs type; pass the load gate).
+	if out="$(CALIB_MAX_LOAD=9999 CALIB_FAKE_TMPFS_TYPE=btrfs bash "$self" bogusengine 2>&1)"; then
+		echo "self-test FAIL: CoW TMPDIR was not refused" >&2
+		fail=$((fail + 1))
+	elif ! grep -q 'CoW' <<<"$out"; then
+		echo "self-test FAIL: CoW refusal did not name CoW" >&2
+		fail=$((fail + 1))
+	fi
+
+	# L5: a module with no dump test must fail the dump step by NAME (proves
+	# arg plumbing reaches dump_constants with the /v4-suffixed dir).
+	if out="$(CALIB_MAX_LOAD=9999 CALIB_FAKE_TMPFS_TYPE=tmpfs bash "$self" bogusengine 2>&1)"; then
+		echo "self-test FAIL: bogus module was accepted" >&2
+		fail=$((fail + 1))
+	elif ! grep -q 'no calibration constants dumped for bogusengine' <<<"$out"; then
+		echo "self-test FAIL: bogus-module error did not name the module" >&2
+		fail=$((fail + 1))
+	fi
+
+	# L6: the real-module dir must carry the /v4 suffix (the 2026-11-21 path
+	# class: pre-move paths dump nothing and the scheduled leg burns red).
+	local mod
+	for mod in "${ALL_MODULES[@]}"; do
+		if [ ! -d "$REPO_ROOT/metaengine/$mod/v4" ]; then
+			echo "self-test FAIL: metaengine/$mod/v4 does not exist (path-move regression?)" >&2
+			fail=$((fail + 1))
+		fi
+	done
+
+	# L7: median() — odd takes the middle, even averages the middle pair.
+	sed -n '/^median()/,/^}/p' "$self" >"$fixture/median.sh"
+	(
+		# shellcheck source=/dev/null
+		source "$fixture/median.sh"
+		[ "$(median 10 20 30)" = "20" ] || exit 1
+		[ "$(median 10 20 30 40)" = "25" ] || exit 1
+	) || {
+		echo "self-test FAIL: median() odd/even behavior" >&2
+		fail=$((fail + 1))
+	}
+
+	[ "$fail" -eq 0 ] || {
+		echo "::error::calibration-drift self-test: $fail leg(s) failed" >&2
+		return 1
+	}
+	echo "✓ calibration-drift self-test: 7/7 legs green (baseline args, CoW gate, dump naming, /v4 dirs, median)"
+}
+
+if [ "$MODE" = "selftest" ]; then
+	self_test
+	exit $?
+fi
 
 # CI-baseline artifact: rows `module|label|ns_per_unit`. In --baseline mode
 # these rows replace the shipped constants as the comparison target.

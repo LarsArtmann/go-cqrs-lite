@@ -777,6 +777,12 @@ jobs:
       - name: Calibration freeze/cold/evidence contract
         run: bash scripts/test-calibration-freeze.sh
 
+      # calibration-drift.sh self-test (2026-11-22): the /v4 path class and
+      # the arg/gate plumbing burn a 40-minute scheduled leg when they
+      # regress; the fault-injection legs go red here in seconds instead.
+      - name: Calibration drift self-test
+        run: bash scripts/calibration-drift.sh --self-test
+
       # README truth gates on EVERY push (M09, 2026-09-20): nightly-only meant
       # a broken link or deprecated citation could land unnoticed for up to a
       # day; both gates are fast and carry self-tests.

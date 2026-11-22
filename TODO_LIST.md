@@ -105,6 +105,34 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 - [ ] **07-53 floor-drop pack (9 + conditionals)** — items the iroh ruling gates or that were dropped without rows (M38 dispose; ruling = D5 addendum): f2/f3/f4/f45 extraction-contingent (park vs commission rides D5); f6 OpTag-vs-WithClock semantic-diff inventory (was flagged "BEFORE any future merge"); f7 collision preflight (moot until ruling); f16 loopback/quic ADT-matrix factory-completeness read; f22 WriteOp.ID v5 note decision; f31 mesh-demo CI build coverage; f34 quic fork bump path budget; f39 crush-config "never list unexecuted work as done" lesson; f41 "how do we test X" answer template; f43 report close-out preflight; f49 candidate-inventory-as-artifact habit; f32/f50 standing guards (ADR-0056 TimeUnixDynamic pin; internal/cluster untouched watcher) — row-or-decline each with a date; f47 dnsblockd cluster-wave citation note (minor, foreign). _(Effort: S total; batch decision — most are natural NOT-DO/declines)_
 - [ ] **dnsblockd revisit-triggers residue** (07-53 f5): TODO_LIST:369 routes there but dnsblockd's "Revisit triggers" list still has no extraction-trigger conditions despite the "regardless of the ruling" framing — foreign-repo edit pending coordination. _(Effort: XS, foreign)_
 
+## Harvest — 2026-11-22 CI-heal round-3 honest closeout (docs-health HARVEST)
+
+> Source: `docs/status/2026-11-22_14-53_ci-heal-round3-honest-closeout-status.md` §c/§f residue.
+> Executed same-day by the closeout session: §f.1–2 (docserver-css /v4 + taxonomy ratchet — both root causes fixed),
+> §f.3–5 pending the receipt push; §f.10–17 (CHANGELOG/FEATURES rows, gotchas entries, actionlint gate inside
+> `#check-lint-config`, readme-links untracked-target flag, /v4 script sweep VERIFIED CLEAN, docs-ui freshness
+> VERIFIED already covered, coverage refresh) done; §f.18 devShell shfmt 3.14.1 shadow; §f.30 this section;
+> §f.32 mesh-demo already gone (M-wave); §f.38 `docs/agents/ci-first-failure-index.md`; §f.39 plan banner.
+> Owner answers received 2026-11-22 (standing order): push grant EXTENDED through green receipt; mysql ladder
+> retro-CONFIRMED (structural fix rowed below as design row); parallel-session files left to their session.
+
+- [ ] **🔴 THE green receipt** — one green CI run on master closes M08 and unblocks the M21 row (line ~3042). Watch: Verify-fast + Nix Flake Check (the two healed legs) + NATS (first real run) + MySQL QEMU (ladder). _(Effort: watch)_ (14-53 §f.3–8)
+- [ ] **Final Benchmarks dispatch on the green SHA + Gates Rollup self-heal confirm** — first fully-green scheduled-class leg since 11-10; verify the Benchmark Regression Detection leg un-skips and the calibration cache compares sanely (green-only refresh is the design). _(Effort: S)_ (14-53 §f.5–6, 25–26)
+- [ ] **mysql ordered claim-candidate locking (design)** — makes 1213 deadlocks structurally impossible vs the shipped 3→8 retry ladder; queue backlog design row, not urgent. _(Effort: M, design)_ (14-53 §f.46)
+- [ ] **mysql-vm local harness suite-drain wait before server teardown** — or document CI legs as authoritative (two local runs died at the tail on teardown races while all connecting tests passed). _(Effort: S)_ (14-53 §f.19)
+- [ ] **Runtime gate per-environment baselines** (local vs CI-mode rows) — environment-mode flips (Docker-present runners, cold proxies) don't fit factor-based widening; owner input wanted on the row type. _(Effort: M, owner-input)_ (14-53 §f.20)
+- [ ] **systemscenario SSE recurrence watch** — if "renamed view never streamed" recurs, the drop-delta diagnostic splits backpressure vs fold-side; change code only then. _(Effort: watch)_ (14-53 §f.21)
+- [ ] **graphadapter Close error-branch unreachable with memory driver** — test-double seam or documented exemption; decide. _(Effort: XS)_ (14-53 §f.22)
+- [ ] **Autoretry: skip re-running SHAs superseded by a newer master push** — it re-ran a SHA with known-unpushed fixes overnight. _(Effort: S)_ (14-53 §f.27)
+- [ ] **Push-triggered Benchmarks intent** — run 44961863632 succeeded on push; if push-triggering benchmarks is unintended, gate to schedule/dispatch only. _(Effort: XS, decision)_ (14-53 §f.28)
+- [ ] **docserver-css check placement** — runs LAST in verify-fast (~40 min in); consider moving into flake-check beside the other generated-artifact gates (freshness already covered by `#check-generated-artifacts` leg 1). _(Effort: XS)_ (14-53 §f.29/37)
+- [ ] **calibration-drift.sh `--self-test`** — env-hooked fault injection like `CALIB_FAKE_TMPFS_TYPE`, satisfying the gate-script self-test policy AGENTS states. _(Effort: S)_ (14-53 §f.47)
+- [ ] **Scheduled NATS canary** — the leg was silent-broken (interactive wait) for weeks; a weekly scheduled probe of `#integration-nats` would have caught it. _(Effort: XS)_ (14-53 §f.42)
+- [ ] **Pin tests: profile==consts equality** where engines are constructible without servers (4 engines today). _(Effort: S)_ (14-53 §f.34)
+- [ ] **Fleet census before any release wave** — parallel sessions may hold unpushed commits; reconcile first. _(Effort: S)_ (14-53 §f.33)
+- [ ] **api-stability TestEvery meta-gates re-run** — the M07 regen was additive; confirm the meta-gates green. _(Effort: XS)_ (14-53 §f.36)
+- [ ] **docs/status archive pass** — 73 unarchived reports (cadence gate still healthy at threshold 190 but the NOTE nags); batch-annotate + archive finished snapshots. _(Effort: M)_ (14-53 §f.44)
+
 ## Harvest — 2026-11-21 fleet receipts + C-list mop-up close-out (docs-health HARVEST)
 
 > Sources: `docs/status/2026-11-21_07-27_precheck-first-green-master-wave-sec-id-roundtrip.md` §f (50 items) + the

@@ -1,5 +1,10 @@
 # SUPERB — Lint-Campaign Closeout & Green-CI Chain (2026-11-21 19:50 CET)
 
+> **STATUS 2026-11-22 (executed M01–M12; this banner is the reconciliation per the planning-doc ritual):**
+> **DONE** — M01–M07 (full `#lint` matrix 89/89 modules at ZERO, measured twice), M09 (coverage gate green with repairs not re-baselines; erraudit 104/104; package-surface/test-runtime/untested-exports green), M12 (session report + rows + `add-status-row.sh` + overlap audit + doc gates).
+> **PARTIAL** — M08 (green receipt): 8 CI candidates chased the next latent failure each; the last two root causes (docserver-css `/v4` path, error-taxonomy ratchet) were fixed 2026-11-22 and the receipt push is imminent — see [the 14-53 honest closeout](../status/2026-11-22_14-53_ci-heal-round3-honest-closeout-status.md) for the full a–g accounting and the 50 ranked next items. M10 (mysql-vm local teardown races residue only; CI legs authoritative), M11 (calibration leg healed and green on one dispatch; final receipt pending).
+> **DEVIATIONS** — M03's "5 REAL turso sqlclosecheck bugs" were verified FALSE POSITIVES (rows close via `record.DeferClose`); the plan's §1 push count and CI-state rows are point-in-time. Current truth lives in the status reports, not here.
+
 > **Finish the 47-module lint campaign (5 modules left) and CLOSE the red-CI window open since 2026-11-18.**
 > Context reports: [17-02 mass-execution](../status/2026-11-21_17-02_ci-heal-round2-lint-campaign-mass-execution.md) ·
 > [19-21 landing delta](../status/2026-11-21_19-21_report-landing-row-insert-battle-delta.md) ·

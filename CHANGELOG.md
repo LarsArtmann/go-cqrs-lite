@@ -6462,8 +6462,9 @@ forbidden — see CONTRIBUTING.md → Release Process.
   [`go-codec`](https://pkg.go.dev/github.com/larsartmann/go-codec) module.
   All types, functions, constants, and error sentinels are re-exported as
   type/variable aliases. Existing imports of
-  `github.com/larsartmann/go-cqrs-lite/codec/v4` continue to compile; new code
-  should import `github.com/larsartmann/go-codec` directly.
+  `github.com/larsartmann/go-cqrs-lite/codec/v4` (deleted) continue to compile
+  via its proxy-served tags; new code should import
+  `github.com/larsartmann/go-codec` directly.
 - All 53 consumer modules across the workspace now import `go-codec` directly
   instead of the internal `codec/v4` path.
 - `go.work` uses a `replace` directive to redirect to the local `../go-codec`
