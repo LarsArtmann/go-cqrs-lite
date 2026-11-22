@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-idempotency"
+	"github.com/larsartmann/httputil"
 	servertiming "github.com/larsartmann/httputil/server_timing"
 	otel "go.opentelemetry.io/otel"
 
@@ -38,6 +39,7 @@ const (
 	primaryEngine        = "primary"
 	sseReplayCapacity    = 256
 	sseHeartbeatSecs     = 30
+	maxBodyBytes         = 1 << 20 // 1 MiB request-body ceiling (413 beyond)
 )
 
 // Server holds the System and HTTP lifecycle. Infrastructure (event store,
@@ -55,12 +57,17 @@ type Server struct {
 	httpServer   *http.Server
 	taskWatcher  *metaengine.Watcher[TaskView]
 	dlqDB        *sql.DB
+	timingEnabled bool
 }
 
 // Config configures the Server.
 type Config struct {
 	DatabasePath string
 	HTTPAddr     string
+	// ServerTiming emits the Server-Timing header on responses. Off by
+	// default: timing headers are a debugging affordance, not something a
+	// production deployment should pay for (or leak query-phase names in).
+	ServerTiming bool
 }
 
 func DefaultConfig() Config {
@@ -195,12 +202,13 @@ func NewServer(cfg Config, logger *slog.Logger) (*Server, error) {
 	}
 
 	srv := &Server{
-		Sys:          sys,
-		CmdDisp:      sys.CommandDispatcher(),
-		MetaEngine:   sys.MetaEngine(),
-		ProjHost:     sys.ProjectionHost(),
-		Logger:       logger,
-		otelProvider: provider,
+		Sys:           sys,
+		CmdDisp:       sys.CommandDispatcher(),
+		MetaEngine:    sys.MetaEngine(),
+		ProjHost:      sys.ProjectionHost(),
+		Logger:        logger,
+		otelProvider:  provider,
+		timingEnabled: cfg.ServerTiming,
 	}
 
 	if sys.MetaEngine() != nil {
@@ -266,13 +274,25 @@ func (s *Server) Start(ctx context.Context) {
 	}
 }
 
+// wrapHandler applies the production middleware chain, outermost first:
+// Recovery turns handler panics into 500s instead of dropped connections,
+// MaxBodySize caps request bodies at maxBodyBytes (oversized reads surface
+// as *http.MaxBytesError, mapped to 413 by writeDecodeError), and
+// Server-Timing is only emitted when the deployment opted in.
+func (s *Server) wrapHandler(mux *http.ServeMux) http.Handler {
+	return httputil.Chain(
+		mux,
+		httputil.Recovery(s.Logger),
+		httputil.MaxBodySize(maxBodyBytes),
+		servertiming.ServerTimingMiddlewareWhen(func(*http.Request) bool { return s.timingEnabled }),
+	)
+}
+
 // StartHTTP launches the HTTP API server in a background goroutine.
 func (s *Server) StartHTTP(addr string) {
 	s.httpServer = &http.Server{
 		Addr: addr,
-		// Timing middleware outermost so `total` covers every phase inside
-		// (the bindQuery "query" phase lands on the same header).
-		Handler:           servertiming.ServerTimingMiddleware()(s.routes()),
+		Handler:           s.wrapHandler(s.routes()),
 		ReadHeaderTimeout: httpReadHeaderSecs * time.Second,
 	}
 
@@ -286,19 +306,23 @@ func (s *Server) StartHTTP(addr string) {
 	}()
 }
 
-// Stop gracefully drains all components.
+// Stop gracefully drains all components. Drain order matters: the HTTP
+// server shuts down FIRST so in-flight requests finish committing their
+// events, and only then do projections stop — reversing the two drops the
+// tail events of draining requests on the floor (they arrive after the
+// projection host stopped listening).
 func (s *Server) Stop() error {
 	ctx, cancel := context.WithTimeout(context.Background(), shutdownTimeoutSecs*time.Second)
 	defer cancel()
 
-	if s.ProjHost != nil {
-		//cqrs-lint:ignore(C023) library code or intentional pattern
-		_ = s.ProjHost.Stop()
-	}
-
 	if s.httpServer != nil {
 		//cqrs-lint:ignore(C023) library code or intentional pattern
 		_ = s.httpServer.Shutdown(ctx)
+	}
+
+	if s.ProjHost != nil {
+		//cqrs-lint:ignore(C023) library code or intentional pattern
+		_ = s.ProjHost.Stop()
 	}
 
 	if s.otelProvider != nil {

@@ -1,8 +1,10 @@
 package main
 
 import (
+	"context"
 	"encoding/json/jsontext"
 	"encoding/json/v2"
+	"errors"
 	"net/http"
 	"strings"
 	"time"
@@ -32,7 +34,13 @@ const taskViewCollection = "task_views"
 // routes builds the HTTP mux with all task management endpoints.
 func (s *Server) routes() *http.ServeMux {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/health", s.handleHealth)
+	// Liveness/readiness from httputil (the fleet's shared health surface):
+	// liveness answers "is the process up", readiness answers "can it serve"
+	// — the engine/projection probe below keeps load balancers from routing
+	// to an instance whose store is degraded.
+	mux.HandleFunc("GET /health", httputil.HealthHandler())
+	mux.HandleFunc("GET /health/live", httputil.LiveHandler())
+	mux.HandleFunc("GET /health/ready", httputil.ReadyHandlerWithProbe(s.ready))
 
 	mux.Handle("GET /api/tasks", errorfamily.HTTPHandler(
 		bindQuery[taskListResult](s.Sys, decodeListTasks, codec.JSONCodec{}),
@@ -60,8 +68,28 @@ func (s *Server) handleEvents(w http.ResponseWriter, r *http.Request) {
 	)
 }
 
-func (s *Server) handleHealth(w http.ResponseWriter, _ *http.Request) {
-	writeJSON(w, http.StatusOK, map[string]string{jsonKeyStatus: "ok"})
+// ready is the readiness probe behind GET /health/ready: every engine
+// that implements a health check must answer and no projection worker may
+// be in a failed state (system.HealthCheck walks both).
+func (s *Server) ready() bool {
+	if s.Sys == nil {
+		return false
+	}
+
+	return s.Sys.HealthCheck(context.Background()) == nil
+}
+
+// writeDecodeError maps body-decode failures to HTTP status codes: a body
+// that exceeded the MaxBodySize cap is a 413, everything else is a 400.
+func writeDecodeError(w http.ResponseWriter, err error, prefix string) {
+	var maxBytes *http.MaxBytesError
+	if errors.As(err, &maxBytes) {
+		writeError(w, http.StatusRequestEntityTooLarge, prefix+"body exceeds limit")
+
+		return
+	}
+
+	writeError(w, http.StatusBadRequest, prefix+err.Error())
 }
 
 func (s *Server) handleCreateTask(w http.ResponseWriter, r *http.Request) {
@@ -72,7 +100,7 @@ func (s *Server) handleCreateTask(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := decodeJSON(r, &body); err != nil {
-		writeError(w, http.StatusBadRequest, "invalid request body: "+err.Error())
+		writeDecodeError(w, err, "invalid request body: ")
 
 		return
 	}
@@ -171,7 +199,7 @@ func (s *Server) handleTaskSubresource(w http.ResponseWriter, r *http.Request) {
 			AssigneeID string `json:"assigneeId"`
 		}
 		if err := decodeJSON(r, &body); err != nil {
-			writeError(w, http.StatusBadRequest, "invalid body: "+err.Error())
+			writeDecodeError(w, err, "invalid body: ")
 
 			return
 		}
@@ -213,7 +241,7 @@ func (s *Server) handleTaskSubresource(w http.ResponseWriter, r *http.Request) {
 				DependencyID string `json:"dependencyId"`
 			}
 			if err := decodeJSON(r, &body); err != nil {
-				writeError(w, http.StatusBadRequest, "invalid body: "+err.Error())
+				writeDecodeError(w, err, "invalid body: ")
 
 				return
 			}
@@ -260,7 +288,7 @@ func (s *Server) handlePatchTask(w http.ResponseWriter, r *http.Request, taskID 
 	}
 
 	if err := decodeJSON(r, &body); err != nil {
-		writeError(w, http.StatusBadRequest, "invalid body: "+err.Error())
+		writeDecodeError(w, err, "invalid body: ")
 
 		return
 	}
