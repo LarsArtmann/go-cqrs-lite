@@ -1140,6 +1140,7 @@ cmd/cqrs-lint/v4/struct ScorecardMetaengine
 cmd/cqrs-lint/v4/struct ScorecardModule
 cmd/cqrs-lint/v4/struct ScorecardResult
 cmd/cqrs-lint/v4/struct ScorecardSummary
+cmd/cqrs-upgrade/v4/struct AppConfig
 cmd/doc-check/v4/struct AppConfig
 cmd/doc-check/v4/struct RecipeBlock
 command/v4/commandtest/func MustCreateCommand
