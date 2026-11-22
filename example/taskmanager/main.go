@@ -14,6 +14,7 @@ projections, and a seeded demo task. Ctrl-C shuts down gracefully.
 
 Routes:
   GET    /health               liveness probe
+  GET    /health/ready         readiness probe (engines + projections)
   GET    /api/tasks            list tasks
   POST   /api/tasks            create a task ({"title": "..."})
   GET    /api/tasks/{id}       task detail (also /assign, /complete, ...)
@@ -39,6 +40,12 @@ func main() {
 		"db",
 		cfg.DatabasePath,
 		`SQLite database path (":memory:" keeps everything in RAM)`,
+	)
+	flag.BoolVar(
+		&cfg.ServerTiming,
+		"server-timing",
+		cfg.ServerTiming,
+		"emit the Server-Timing response header (debug affordance)",
 	)
 	flag.Parse()
 

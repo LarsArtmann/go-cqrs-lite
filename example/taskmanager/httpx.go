@@ -42,7 +42,9 @@ func bindQuery[R any, Q query.Query](
 			return err
 		}
 
-		stop := servertiming.MeasureServerTiming(r.Context(), "query")
+		stop := servertiming.ServerTimingFromContext(r.Context()).MeasureWithDesc(
+			"query", "typed dispatch + deterministic encode",
+		)
 		data, tag, err := dispatchEncode[R](r.Context(), sys, q, c)
 
 		stop() // stop BEFORE any write: the header is injected at first Write
