@@ -15,6 +15,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$REPO_ROOT"
+# shellcheck disable=SC1091  # dynamic path; syntax-checked separately
+source "${SCRIPT_DIR}/lib/shuffle-seed.sh"
 
 # Pick a free port if not overridden
 if [ -z "${NATS_PORT:-}" ]; then
@@ -72,8 +74,11 @@ if [ $# -gt 0 ]; then
 	echo "==> Running: $*"
 	"$@"
 else
-	echo "==> No command/v4 specified. NATS is running at $NATS_URL"
-	echo "    Set NATS_URL and run your tests in another terminal."
-	echo "    Press Ctrl+C to stop."
-	wait "$NATS_PID"
+	echo "==> Running watermill/v4 broker tests (default; pass a command/v4 to override)"
+	SEED=$(new_shuffle_seed)
+	log_shuffle_seed "watermill/v4" "$SEED"
+	(
+		cd watermill/v4
+		GOWORK=off go test -shuffle="$SEED" ./... -count=1 -v
+	)
 fi
