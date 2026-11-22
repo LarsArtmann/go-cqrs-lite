@@ -11,4 +11,5 @@ require (
 	github.com/larsartmann/go-branded-id v0.7.1 // indirect
 	github.com/larsartmann/go-error-family v0.12.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
+	golang.org/x/net v0.63.0 // indirect
 )

@@ -21,8 +21,8 @@ require (
 	github.com/larsartmann/go-sse v0.7.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.yaml.in/yaml/v3 v3.0.6 // indirect
-	golang.org/x/net v0.62.0 // indirect
-	golang.org/x/text v0.43.0 // indirect
+	golang.org/x/net v0.63.0 // indirect
+	golang.org/x/text v0.44.0 // indirect
 )
 
 // Sibling replace for unpublished irohengine symbols (DefaultDedupCapacity);

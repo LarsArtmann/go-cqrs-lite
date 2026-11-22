@@ -25,5 +25,8 @@ require (
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
 	github.com/onsi/ginkgo/v2 v2.34.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
-	modernc.org/libc v1.80.1 // indirect
+	golang.org/x/net v0.63.0 // indirect
+	golang.org/x/sys v0.50.0 // indirect
+	golang.org/x/tools v0.53.0 // indirect
+	modernc.org/sqlite v1.62.0 // indirect
 )

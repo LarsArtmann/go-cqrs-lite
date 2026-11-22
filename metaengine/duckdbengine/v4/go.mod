@@ -10,7 +10,7 @@ require (
 )
 
 require (
-	github.com/andybalholm/brotli v1.2.7 // indirect
+	github.com/andybalholm/brotli v1.3.0 // indirect
 	github.com/apache/arrow-go/v18 v18.8.0 // indirect
 	github.com/duckdb/duckdb-go-bindings v0.20000.0 // indirect
 	github.com/dustin/go-humanize v1.1.0 // indirect
@@ -37,7 +37,7 @@ require (
 	go.duckdb.org/libduckdb/linux-arm64 v0.20000.0 // indirect
 	go.duckdb.org/libduckdb/windows-amd64 v0.20000.0 // indirect
 	golang.org/x/exp v0.0.0-20261014143641-f0251eb4aa3e // indirect
-	golang.org/x/sys v0.49.0 // indirect
+	golang.org/x/sys v0.50.0 // indirect
 )
 
 // Sibling replace for unpublished metaengine symbols (planned-table capabilities); stripped by scripts/tag-release.sh at cut time.

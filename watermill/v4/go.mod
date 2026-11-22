@@ -16,7 +16,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.3
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2
 	github.com/larsartmann/go-error-family v0.12.0
-	github.com/nats-io/nats.go v1.54.0
+	github.com/nats-io/nats.go v1.56.0
 	github.com/redis/go-redis/v9 v9.23.0
 	go.opentelemetry.io/otel v1.47.0
 	go.opentelemetry.io/otel/sdk v1.47.0
@@ -69,9 +69,10 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v1.47.0 // indirect
 	go.opentelemetry.io/otel/trace v1.47.0 // indirect
 	go.uber.org/atomic v1.12.0 // indirect
-	golang.org/x/crypto v0.58.0 // indirect
-	golang.org/x/sys v0.49.0 // indirect
-	golang.org/x/tools v0.52.0 // indirect
+	golang.org/x/crypto v0.59.0 // indirect
+	golang.org/x/net v0.63.0 // indirect
+	golang.org/x/sys v0.50.0 // indirect
+	golang.org/x/tools v0.53.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/protobuf v1.36.12 // indirect
 )

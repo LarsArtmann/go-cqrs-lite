@@ -37,6 +37,8 @@ require (
 	github.com/moby/sys/user v0.5.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
 	github.com/shirou/gopsutil/v4 v4.26.10 // indirect
+	github.com/testcontainers/testcontainers-go v0.45.0 // indirect
+	github.com/testcontainers/testcontainers-go/modules/postgres v0.45.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/otel v1.47.0 // indirect
@@ -46,7 +48,7 @@ require (
 	go.opentelemetry.io/otel/sdk v1.47.0 // indirect
 	go.opentelemetry.io/otel/sdk/metric v1.47.0 // indirect
 	go.opentelemetry.io/otel/trace v1.47.0 // indirect
-	golang.org/x/sys v0.49.0 // indirect
+	golang.org/x/sys v0.50.0 // indirect
 )
 
 // Sibling replace for unpublished metaengine symbols (Store.Reset, ResetResult,

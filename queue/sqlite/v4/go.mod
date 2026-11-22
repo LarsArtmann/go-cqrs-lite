@@ -6,7 +6,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.2
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.26.0
 	github.com/larsartmann/go-cqrs-lite/queue/v4 v4.0.3
-	modernc.org/sqlite v1.61.1
+	modernc.org/sqlite v1.62.0
 )
 
 require (
@@ -23,7 +23,7 @@ require (
 	github.com/ncruces/go-strftime v1.1.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/x448/float16 v0.8.4 // indirect
-	golang.org/x/sys v0.49.0 // indirect
+	golang.org/x/sys v0.50.0 // indirect
 	modernc.org/libc v1.80.1 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
