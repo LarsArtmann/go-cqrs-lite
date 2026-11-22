@@ -192,11 +192,7 @@ func rewriteV5ImportsInFile(path string, dryRun bool) ([]v5ImportChange, []strin
 	}
 
 	if !dryRun {
-		info, err := os.Stat(path)
-		if err != nil {
-			return nil, nil, err
-		}
-		if err := os.WriteFile(path, []byte(out), info.Mode().Perm()); err != nil {
+		if err := osWriteFile(path, []byte(out)); err != nil {
 			return nil, nil, err
 		}
 	}

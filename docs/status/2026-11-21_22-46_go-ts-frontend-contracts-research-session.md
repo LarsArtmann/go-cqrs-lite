@@ -17,7 +17,10 @@ claims beyond what the report's §10 already discloses (agent-extracted, one
 class raw-verified).
 
 **Primary artifact:** `docs/research/2026-11-21_go-ts-frontend-contracts.html`
-(2,013 lines, editorial Bauhaus, series-matched). Decision row: TODO_LIST **D34**.
+(2,013 lines, editorial Bauhaus, series-matched). Decision row: TODO_LIST **D40**
+_(2026-11-22 renumber annotation: this decision was originally rowed as D34;
+parallel sessions took D34–D39 the next day, so it was renumbered to D40 with a
+collision note in the sheet. All references updated.)_
 
 ---
 
@@ -48,7 +51,7 @@ class raw-verified).
    dedup facade, D27). Corrected to ADR-0168 after checking `docs/adr/`.
 6. **Harvest done per repo procedure:** `docs/research/README.md` indexed
    (newest dated row + UI/transport bullet pairing with the DataStar sibling);
-   TODO_LIST owner-decision sheet gained **D34** (approve-P0 / all / park).
+   TODO_LIST owner-decision sheet gained **D40** (approve-P0 / all / park).
 7. **Repo grounding for the proposal:** catalog schema surface, AsyncAPI
    schema embedding, the test-pinned TS renderer, `system.DomainConfig`
    declare-once, `ServeSSE` replay/Last-Event-ID tests, catalog-export cmd
@@ -76,7 +79,7 @@ class raw-verified).
 ## c) NOT STARTED
 
 1. **No code.** P0 (`catalog/v4/typescript` exporter) is a proposal gated on
-   D34 — by design, not neglect.
+   D40 — by design, not neglect.
 2. **No ADR-0168** (deliberately deferred to P0 per appendix).
 3. **No consumer wiring:** no cqrs-htmx/example integration, no freshness-gate
    leg in `#check-generated-artifacts`, no envelope spec, no generated
@@ -93,13 +96,13 @@ class raw-verified).
    unchanged" — **neither `RegisterEvent` nor `EventConfig` exists** (the real
    surface is `MessageConfig` interface, `catalog/v4/message_config.go:15`,
    registered via `simple.Builder.AddMessage`). The sketch would not compile
-   and, worse, it *lies about the current API* in a doc whose entire thesis is
+   and, worse, it _lies about the current API_ in a doc whose entire thesis is
    verified-claims-only. Invisible to every gate (md-go = .md fences;
    doc-check = .md) — nothing would ever have caught it. **Must be fixed with
    a dated amendment.**
 2. **UNVERIFIED count is inconsistent.** Scorecard and §10 preamble both say
    "three"; the file contains 8 UNVERIFIED string occurrences and the count of
-   *distinct* unverified claims (typescriptify release date, cbor-x browser
+   _distinct_ unverified claims (typescriptify release date, cbor-x browser
    speed, …) was never actually tallied. A consistency number that was never
    counted — exactly the class the report criticizes elsewhere.
 3. **Two memory-fabrications entered MY OWN research prompts this session**
@@ -125,9 +128,9 @@ class raw-verified).
 1. **HTML research reports bypass every symbol-honesty gate.** doc-check and
    md-go cover `.md`; code sketches inside HTML reports are unchecked — this
    session shipped a fabricated API name through precisely that hole. Fix:
-   session checklist (or gate extension): *rg-verify every package-qualified
+   session checklist (or gate extension): _rg-verify every package-qualified
    symbol against source, compile-or-strike code sketches, recount every
-   scorecard number* before an HTML report ships.
+   scorecard number_ before an HTML report ships.
 2. **Raw-fetch the load-bearing exact strings** (versions, dates, sizes)
    before they enter reference tables; label extraction class per row.
 3. **Render-verify HTML once** (headless screenshot) — parse+anchors do not
@@ -143,6 +146,7 @@ class raw-verified).
 ## f) Up to 50 next things
 
 **FIX-NOW — report integrity, no decision needed:**
+
 1. Fix L0/L1 sketches to the real catalog API (`AddMessage`/`MessageConfig`),
    with a dated amendment note (never silently rewrite a shipped report)
 2. Tally distinct UNVERIFIED claims; correct scorecard + §10 preamble
@@ -153,10 +157,10 @@ class raw-verified).
 5. Add the "HTML report checklist" (compile-or-strike, symbol rg-verify,
    count recount) to the html-report-kit guide or gotchas
 
-**D34-gated — P0 (exporter slice):**
+**D40-gated — P0 (exporter slice):**
 6. ADR-0168 draft: generation-only / never-runtime principle + L4 gate
 7. `catalog/v4/typescript` package: promote `typeScriptInterface`,
-   `exportName`, `tsType` out of `architecture/schema.go`
+`exportName`, `tsType` out of `architecture/schema.go`
 8. `Export(*catalog.Catalog)` + Result envelope with generation stamp
 9. Golden tests incl. hard shapes (time.Time, branded IDs, unions, oneOf)
 10. `api-stability --update` (new exports, same-edit ritual)
@@ -168,9 +172,9 @@ class raw-verified).
 16. Deprecation flags → generated JSDoc `@deprecated`
 17. Catalog version stamp in generated file headers
 
-**D34-gated — P1 (first consumer + drift gate):**
+**D40-gated — P1 (first consumer + drift gate):**
 18. Choose first consumer (see question 3) and wire `contracts.ts` +
-    `schemas.json` generation
+`schemas.json` generation
 19. zod `fromJSONSchema` import + zod version pin
 20. Keyword-coverage assert (our schemas ⊆ covered keywords)
 21. Envelope spec: type name + `schemaVersion` on every wire message
@@ -181,10 +185,10 @@ class raw-verified).
 26. hey-api fallback spike (OpenAPI → zod plugin)
 27. valibot comparison, only if validator bytes matter after measurement
 
-**D34-gated — P2 (thin client):**
+**D40-gated — P2 (thin client):**
 28. Typed dispatch client (fetch POST JSON)
 29. Subscribe via EventSource; Last-Event-ID replay verified against
-    `sse_replay_test.go` semantics
+`sse_replay_test.go` semantics
 30. Reconnect demo: view survives server restart mid-stream
 31. Pin client KB budget; update report
 32. Unknown-field tolerance config design
@@ -205,14 +209,14 @@ class raw-verified).
 45. Decide: docserver serving contracts? (lean no)
 46. Extend doc-check or adopt manual checklist for HTML report symbols (e1)
 47. verify-external-claims skill: add this session's two seeded-false-lead
-    incidents to its examples
+incidents to its examples
 48. Status-report pre-ship pass: counts-vs-occurrences grep (cheap, scriptable)
 49. Retro rule: for this owner, "how can we…" questions default to deep mode
-50. D34 disposition itself — close the row either way so the sheet stays truth
+50. D40 disposition itself — close the row either way so the sheet stays truth
 
 ## g) Questions (cannot figure out myself)
 
-1. **D34:** approve P0 only (1–2 d exporter slice), the full P0–P2 pipeline,
+1. **D40:** approve P0 only (1–2 d exporter slice), the full P0–P2 pipeline,
    or park? Items 6–39 all fork on this.
 2. **Report defects §d1/§d2:** fix in place now with dated amendments (my
    recommendation — the fabrication undercuts the report's core claim of
@@ -223,6 +227,6 @@ class raw-verified).
 
 ---
 
-*Written 2026-11-21 22:46. Items in (f) are D34-gated except FIX-NOW 1–5; D34
+_Written 2026-11-21 22:46. Items in (f) are D40-gated except FIX-NOW 1–5; D40
 already rows the decision in TODO_LIST, so nothing here is entombed. **Now
-waiting for instructions.***
+waiting for instructions.**_

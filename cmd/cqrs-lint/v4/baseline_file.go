@@ -9,7 +9,8 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"path/filepath"
+
+	atomicwrite "github.com/larsartmann/go-atomic-write"
 )
 
 // baselineVersion is the on-disk schema version. Unknown versions are rejected
@@ -81,8 +82,9 @@ func loadBaselineIfPresent(path string) (*baselineDocument, error) {
 }
 
 // writeBaseline writes the document deterministically: entries sorted by the
-// caller, two space indent, trailing newline. Atomic via a temp file + rename
-// so an interrupted run cannot leave a truncated baseline behind.
+// caller, two space indent, trailing newline. Atomic (staged temp file +
+// fsync + rename) so an interrupted run cannot leave a truncated baseline
+// behind.
 func writeBaseline(path string, entries []baselineEntry) error {
 	doc := baselineDocument{
 		Version: baselineVersion,
@@ -97,31 +99,7 @@ func writeBaseline(path string, entries []baselineEntry) error {
 
 	data = append(data, '\n')
 
-	dir := filepath.Dir(path)
-
-	tmp, err := os.CreateTemp(dir, ".cqrs-lint-baseline-*.tmp")
-	if err != nil {
-		return fmt.Errorf("write findings baseline %s: %w", path, err)
-	}
-
-	tmpName := tmp.Name()
-
-	if _, err := tmp.Write(data); err != nil {
-		_ = tmp.Close() //cqrs-lint:ignore(C023) doomed temp file removed on the next line; the write error is the failure being surfaced
-		_ = os.Remove(tmpName)
-
-		return fmt.Errorf("write findings baseline %s: %w", path, err)
-	}
-
-	if err := tmp.Close(); err != nil {
-		_ = os.Remove(tmpName)
-
-		return fmt.Errorf("write findings baseline %s: %w", path, err)
-	}
-
-	if err := os.Rename(tmpName, path); err != nil {
-		_ = os.Remove(tmpName)
-
+	if err := atomicwrite.Write(path, data); err != nil {
 		return fmt.Errorf("write findings baseline %s: %w", path, err)
 	}
 

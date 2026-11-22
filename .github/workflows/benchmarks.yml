@@ -293,7 +293,7 @@ jobs:
       # without an explicit toolchain the runner's ambient Go may be older
       # than the go.mod floor and every dump fails instantly with the stderr
       # swallowed (the 2026-11-21 "no calibration constants dumped" class).
-      - uses: actions/setup-go@v6
+      - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
         with:
           go-version-file: go.mod
 

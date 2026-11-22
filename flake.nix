@@ -1472,6 +1472,7 @@
                 [
                   goPkg
                   pkgs.golangci-lint
+                  pkgs.actionlint
                   pkgs.bash
                   pkgs.findutils
                   pkgs.gnugrep
@@ -1493,6 +1494,8 @@
                   ${pkgs.bash}/bin/bash "$PWD/scripts/test-exhaustruct-canary.sh"
                   echo "==> linter-settings canaries (cyclop/errcheck drop tripwire)"
                   ${pkgs.bash}/bin/bash "$PWD/scripts/check-lint-settings.sh"
+                  echo "==> actionlint (workflow yaml — duplicate keys die here, not in a 0-second CI run)"
+                  ${pkgs.actionlint}/bin/actionlint "$PWD"/.github/workflows/*.yml
                 '';
 
             # check-templ: templ codegen-drift gate — fails when a *_templ.go

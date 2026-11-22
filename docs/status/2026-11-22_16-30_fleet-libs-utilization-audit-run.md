@@ -140,6 +140,7 @@
 ## f) NEXT (ranked, ≤50; ★ = highest leverage)
 
 **Cross-cutting fixes from the audit (already rowed in TODO_LIST):**
+
 1. ★ Unify go-sse pins to v0.7.0 (metaengine direct + 40 indirects; non-breaking) —
    kills the two-version test matrix.
 2. ★ Unify go-idempotency pins to v0.6.0 (5 modules behind middleware).
@@ -174,23 +175,23 @@
 
 **Session-infra follow-ups:**
 29. ★ Add the docs/status/README.md row for THIS report via add-status-row.sh (clean
-    tree required — foreign edit in flight).
+tree required — foreign edit in flight).
 30. Memorialize the border-before-trim screenshot lesson (crush-config lessons.md or
-    html-report-kit Phase-8 text).
+html-report-kit Phase-8 text).
 31. Update library-deep-dive fleet runbook with sequential-dispatch default +
-    session-resume recovery pattern.
+session-resume recovery pattern.
 32. Wire `scripts/citation-sweep.py` into CI (#verify leg or nightly) + baseline.
 33. Consider a `check-review-links` addition: index.html → report links (I verified
-    23/23 manually; it's one grep away from being a gate).
+23/23 manually; it's one grep away from being a gate).
 34. Re-run `#verify-fast` once the foreign session's in-flight edits settle, to
-    exercise the doc-assertions legs my edits could interact with (TODO hygiene,
-    module-count).
+exercise the doc-assertions legs my edits could interact with (TODO hygiene,
+module-count).
 35. Remote `git fetch --tags` + re-stamp pass if any lib published past local tags.
 36. Investigate the `level=warn` stray file at repo root (pre-existing, foreign;
-    likely a redirect accident — candidate for trash after owner confirm).
+likely a redirect accident — candidate for trash after owner confirm).
 37. The auto-commit daemon absorbed this session's files into `chore:` commits; if
-    this audit should carry an authored message at a phase boundary, that window is
-    gone — an `--amend`-free follow-up commit annotating the audit set is possible.
+this audit should carry an authored message at a phase boundary, that window is
+gone — an `--amend`-free follow-up commit annotating the audit set is possible.
 
 ## g) QUESTIONS FOR THE OWNER (cannot be figured out myself)
 
@@ -207,5 +208,6 @@
    source)?
 
 ---
-*Session runtime ~13h wall (03:06→16:30 CET) including provider-outage waits; 6
-auditor groups (G1-G6) + 2 vision QC passes; 900 verified citations; 0 known stale.*
+
+_Session runtime ~13h wall (03:06→16:30 CET) including provider-outage waits; 6
+auditor groups (G1-G6) + 2 vision QC passes; 900 verified citations; 0 known stale._

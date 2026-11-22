@@ -494,3 +494,51 @@ Two micro-disciplines that each cost a failed edit this stream:
   WORD — bare pre-move names match nothing loudly only in some shells), and
   (3) go.mod requires whose pins resolve by tag shape at the moved path (the
   v4.21.0 compat-only tag is unresolvable from cmd/cqrs-lint/v4 forever).
+
+## The /v4 path class also hides in $ROOT constructions — sweep the whole scripts/ tree, not the failing script (2026-11-22)
+
+- **Symptom**: after the 2026-11-15 move, THREE more `$REPO_ROOT/<module>`
+  constructions failed one at a time across three sessions:
+  `scripts/calibration-drift.sh`'s dump loop (fixed), its bench loop (the SAME
+  bug, found only after the next CI run — fixed in a second commit), and
+  `scripts/build-docserver-css.sh`'s `CATALOG_DIR="$REPO_ROOT/catalog"`
+  (stale-artifact failure on Verify-fast ~40 min into a run). Each fix was
+  made in isolation; each time the identical pattern sat in a sibling line or
+  script.
+- **Fix that landed**: all three re-pointed to the post-move paths
+  (`metaengine/$mod/v4`, `catalog/v4`); the calibration leg then went green
+  for the first time since the move.
+- **Standing rule**: when ONE `$ROOT`-constructed pre-move path is found,
+  grep the ENTIRE scripts/ tree (and .github/workflows) for the pattern class
+  in the SAME edit — `rg 'REPO_ROOT/<module>' scripts/` for every moved
+  module — never fix just the failing line. The class has now bitten 4+ times
+  (see also the 2026-11-20 entry above for the cd-chain and module-list
+  variants).
+
+## Jobs that run go outside nix inherit the runner's PATH go — install setup-go from go.mod (2026-11-22)
+
+- **Symptom**: the scheduled-Benchmarks calibration leg failed on every
+  dispatch with export-data errors the workspace never produces locally: the
+  job installs only nix, and its inline `go run` steps resolved `go` from the
+  runner PATH (1.26.x) which cannot read the 1.27.2 workspace's export data.
+  Locally `source scripts/go-env.sh` hides the entire class.
+- **Fix that landed**: the job gained a `setup-go` step resolved from go.mod
+  (`go-version-file`), which is also the standing pattern for ANY workflow
+  step that invokes go directly rather than through a flake app.
+- **Standing rule**: a workflow step that runs `go` without the nix-provided
+  toolchain must pin `setup-go` with `go-version-file` — the runner's default
+  PATH go drifts (see the 2026-11-20 PATH-go entry for the same class from
+  the test-spawn side).
+
+## Run actionlint BEFORE pushing any workflow YAML edit (2026-11-22)
+
+- **Symptom**: a `timeout-minutes` key inserted at the job header while the
+  original trailing copy stayed produced a DUPLICATE key — GitHub rejected
+  the whole workflow file (every job of the run died in <1s as "workflow file
+  issue"), burning a full CI candidate. `actionlint` at
+  `/run/current-system/sw/bin/actionlint` catches duplicate keys (and
+  expression errors) in one second — it was run only AFTER the push.
+- **Standing rule**: any `.github/workflows/*.yml` diff gets
+  `actionlint .github/workflows/<file>` locally BEFORE the push that carries
+  it; it is part of the pre-push candidate checklist
+  (docs/status/2026-11-22_14-53_ci-heal-round3-honest-closeout-status.md §e.1).

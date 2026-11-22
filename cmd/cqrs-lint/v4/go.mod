@@ -4,6 +4,7 @@ go 1.27.2
 
 require (
 	github.com/larsartmann/cmdguard/v5 v5.1.0
+	github.com/larsartmann/go-atomic-write v0.6.2
 	github.com/larsartmann/go-finding v1.15.1
 	github.com/larsartmann/go-finding/pipeline v1.15.1
 	github.com/larsartmann/go-finding/toolsdk v1.16.0
@@ -41,7 +42,6 @@ require (
 	github.com/knadh/koanf/parsers/toml v0.1.0 // indirect
 	github.com/knadh/koanf/parsers/yaml v1.1.1 // indirect
 	github.com/knadh/koanf/v2 v2.4.1 // indirect
-	github.com/larsartmann/go-atomic-write v0.6.2 // indirect
 	github.com/larsartmann/go-branded-id v0.7.1 // indirect
 	github.com/larsartmann/go-error-family v0.12.0 // indirect
 	github.com/larsartmann/go-ndjson v0.0.1 // indirect
