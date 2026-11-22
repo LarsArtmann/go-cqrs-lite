@@ -135,6 +135,7 @@ LAYER["example/taskmanager"]=7
 LAYER["example/getting-started"]=7
 LAYER["example/goal-shaped-app"]=7
 LAYER["example/readme-quickstart"]=7
+LAYER["example/scheduler-engine-status"]=7
 LAYER["example/scheduler-otel-status"]=7
 LAYER["example/standard-topology"]=7
 LAYER["example/metaengine-quickstart"]=7
@@ -416,7 +417,9 @@ DEP_BUDGET["cmd/cqrs-gen/v4"]=2
 # (staged temp + fsync + rename) replacing the DIY temp-file dance.
 DEP_BUDGET["cmd/cqrs-lint/v4"]=10
 # metaengine/v4 added for the `cqrs-bench layout` planning CLI.
-DEP_BUDGET["cmd/cqrs-bench/v4"]=19
+# 20th dep = system/v4: the system-memory backend crosses the benchkit
+# FactoryFromSystem bridge (system.New deployments as benchmark targets).
+DEP_BUDGET["cmd/cqrs-bench/v4"]=20
 # cqrs-upgrade: cqrs-lint (in-process V007 engine), go-finding (rendering),
 # x/mod (semver parsing) — all three are the tool's job.
 DEP_BUDGET["cmd/cqrs-upgrade/v4"]=3
@@ -446,6 +449,7 @@ DEP_BUDGET["example/readme-quickstart"]=6
 # (sqlite projections + postgres primary over peer auth) —
 # command/v4/decider/event/id/metaengine/query/system + 2 drivers = 9.
 DEP_BUDGET["example/standard-topology"]=9
+DEP_BUDGET["example/scheduler-engine-status"]=5 # scheduling + scheduling/engine + metaengine + otel + prometheus
 DEP_BUDGET["example/scheduler-otel-status"]=8
 # metaengine-quickstart demos the full strategic surface: system/v4 + metaengine/v4
 # + sqliteengine + projectionadapter + event/v4/id/record — 7 first-party deps

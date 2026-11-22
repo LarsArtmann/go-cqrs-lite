@@ -6,10 +6,9 @@
 //
 // NOTE (2026-10-24): scheduling/sqlstore is DEPRECATED (ADR-0142 I/O rule,
 // removed at v5.0.0) — new code composes scheduling/engine.NewTimerStore over
-// a metaengine.DueClaimer engine (see module-map row scheduling/engine).
-// This example stays on the deprecated path because it demonstrates the
-// sqlstore-specific ClaimMetrics hooks; an engine-path observability demo
-// (metaengine engine instrumentation) replaces it before v5.
+// a metaengine.DueClaimer engine; the engine-path demo lives at
+// example/scheduler-engine-status. This example stays on the deprecated path
+// because it demonstrates the sqlstore-specific ClaimMetrics hooks.
 //
 //	go run .            # then: curl localhost:8080/status | jq
 //	                    #       curl localhost:8080/metrics | grep cqrs_scheduler

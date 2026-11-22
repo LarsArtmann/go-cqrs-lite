@@ -238,6 +238,7 @@ func TestCatalogEveryGoWorkModuleCovered(t *testing.T) {
 		"example/graph-native":           "example project",
 		"example/metaengine-quickstart":  "example project",
 		"example/readme-quickstart":      "example project",
+		"example/scheduler-engine-status": "example project",
 		"example/scheduler-otel-status":  "example project",
 		"example/standard-topology":      "example project",
 		"example/taskmanager":            "example project",

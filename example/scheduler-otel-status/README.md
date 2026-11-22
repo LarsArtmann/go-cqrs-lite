@@ -1,7 +1,10 @@
 # scheduler-otel-status
 
 Runnable wiring for `scheduling/sqlstore` claim observability (the module
-deliberately carries no OTel dependency — this example is the recipe):
+deliberately carries no OTel dependency — this example is the recipe). The
+sqlstore path is **deprecated** (ADR-0142, removed at v5.0.0); the
+v5-forward engine-path demo is
+[`example/scheduler-engine-status`](../scheduler-engine-status/):
 
 - `ClaimMetrics` hooks → OTel counters (`cqrs.scheduler.claim.*`), exposed
   on **`/metrics`** via the OTel→Prometheus bridge

@@ -99,6 +99,7 @@ github.com/google/flatbuffers v25.12.19+incompatible/go.mod h1:1AeVuKshWv4vARoZa
 github.com/google/go-cmp v0.7.0 h1:wk8382ETsv4JYUZwIsn6YpYiWiBsYLSJiTsyBybVuN8=
 github.com/google/go-cmp v0.7.0/go.mod h1:pXiqmnSA92OHEEa9HXL2W4E7lf9JzCmGVUdgjX3N/iU=
 github.com/google/pprof v0.0.0-20261105003125-4bf881d7fb0b h1:5NKFt6kcAJNVt3XBOf8jwp8TnWZVOZFmmGkK0XextI4=
+github.com/google/pprof v0.0.0-20261105003125-4bf881d7fb0b/go.mod h1:yUo1AMMpsPIDFGuwDK8nLcf8+vvAd5l2O6JDZ6hpwrM=
 github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
 github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/hashicorp/golang-lru/v2 v2.0.7 h1:a+bsQ5rvGLjzHuww6tVxozPZFVghXaHOwFs4luLUK2k=
@@ -122,6 +123,7 @@ github.com/kr/pretty v0.3.1/go.mod h1:hoEshYVHaxMs3cyo3Yncou5ZscifuDolrwPKZanG3x
 github.com/kr/text v0.2.0 h1:5Nx0Ya0ZqY2ygV366QzturHI13Jq95ApcVaJBhpS+AY=
 github.com/kr/text v0.2.0/go.mod h1:eLer722TekiGuMkidMxC/pM04lWEeraHUUmBw8l2grE=
 github.com/larsartmann/go-branded-id v0.7.1 h1:w68pg/t74AM8PsTVVw7VkL3vq2C70zLH1jFxJCJwLPk=
+github.com/larsartmann/go-branded-id v0.7.1/go.mod h1:gM5FhB6d23qZO8hIU/rHpUnm/6dwKy9UGMhgvXDqNsc=
 github.com/larsartmann/go-codec v0.3.3 h1:aKwY9YaUnawfcUxNNgfEb/6xQa8HJsrS7QHSOmnQUpU=
 github.com/larsartmann/go-codec v0.3.3/go.mod h1:hRx2Esr7xEF5+fH8pkLojM6bcHUquQNQk9m6/tBsbZI=
 github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.2 h1:yakAjC4K02sVvudipDP/fhLfSXDuo5rnNBY+hDou34Y=
@@ -146,6 +148,10 @@ github.com/larsartmann/go-error-family v0.12.0 h1:HEtocvwaPe9udDusqDqV0pxN9Wx98K
 github.com/larsartmann/go-error-family v0.12.0/go.mod h1:gB43rKC69SoPilihuze43OFqKYMGQxDNUi/25PF9MgE=
 github.com/larsartmann/go-sse v0.7.0 h1:dLT0eBk5hrxfajew84MmFoWHnEZ1eZfokqzbaA9qxH0=
 github.com/larsartmann/go-sse v0.7.0/go.mod h1:ZsW88AQMBRy+ZEhCWl8FGyEoXcb/YwvwosKYQEDLgBs=
+github.com/larsartmann/go-sse/sseparse v0.2.1 h1:GHn8SFFZkMJRhLkmusJwtchgSPJV0/b5Keq6z3xop9k=
+github.com/larsartmann/go-sse/sseparse v0.2.1/go.mod h1:1Nql3y1hf9v/IVd4/26AfRilz0/OiDyF7YA2mvwwtHw=
+github.com/larsartmann/go-sse/ssetest v0.5.0 h1:6QQ9rURjqScKfkV8BmpNdoMSW5pxsNVs+ioLOqERS4k=
+github.com/larsartmann/go-sse/ssetest v0.5.0/go.mod h1:mTBSF8nBmmw3Eb7DOKWqgmp0B1unUOFcjt6WGdUJT0o=
 github.com/lufia/plan9stats v0.0.0-20261101121723-be84dd9509a0 h1:bGmNmV0W+HWMJyDOXmbY2InjV33LK59X9ClO7AU/8e8=
 github.com/lufia/plan9stats v0.0.0-20261101121723-be84dd9509a0/go.mod h1:autxFIvghDt3jPTLoqZ9OZ7s9qTGNAWmYCjVFWPX/zg=
 github.com/magiconair/properties v1.18.12 h1:sT9zQpvTB3B4gzrX0tmZNTEaGyg8Zw55MFYRE32Mr9I=
@@ -179,6 +185,7 @@ github.com/ncruces/go-strftime v1.1.0/go.mod h1:yVaq7iwCN09vHRrKBrrflXT0M9tTMG2K
 github.com/oklog/ulid/v2 v2.1.2 h1:IEclFb9JNvzYA6MW2SCxbLzcHTVsfqm3PrqGQJH5zec=
 github.com/oklog/ulid/v2 v2.1.2/go.mod h1:rcEKHmBBKfef9DhnvX7y1HZBYxjXb0cP5ExxNsTT1QQ=
 github.com/onsi/ginkgo/v2 v2.34.0 h1:aN3Us823mHHTSWMIi8WIQTdYuSPhl2lWY46E/w3SiAk=
+github.com/onsi/ginkgo/v2 v2.34.0/go.mod h1:+aXOY+vzZ5mu2iI2HpTZUPmM//oQfsNFX6gU9kNcA44=
 github.com/onsi/gomega v1.44.0 h1:eAiGl3Pw5jz5GQdDff0BcxYpAX1JxW8xD7mFUuwNfZQ=
 github.com/onsi/gomega v1.44.0/go.mod h1:e/C2HwaZ1DhvjzXXuFhcR7hY7Sh9pl7MmoWKEjzwcdA=
 github.com/opencontainers/go-digest v1.0.0 h1:apOUWs51W5PlhuyGyz9FCeeBIOUDA/6nW8Oi/yOhh5U=
@@ -327,7 +334,9 @@ google.golang.org/protobuf v1.36.12/go.mod h1:HTf+CrKn2C3g5S8VImy6tdcUvCska2kB7j
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
 modernc.org/cc/v4 v4.30.6-0.20261101114202-1b9d1a076f6b h1:WE5SLOURcNd8s6uPR/n4WV4weQxxYKi5OpEZkfNVvdE=
+modernc.org/cc/v4 v4.30.6-0.20261101114202-1b9d1a076f6b/go.mod h1:OnovgIhbbMXMu1aISnJ0wvVD1KnW+cAUJkIrAWh+kVI=
 modernc.org/ccgo/v4 v4.38.1 h1:wdxJVBuFT8JufZnnQyS6Bbz3NOWhViD0xJOGR96Bpd4=
+modernc.org/ccgo/v4 v4.38.1/go.mod h1:kOpEkJRbFwBvjUWwn4j1j9B7iFHbl1+orhgTMCDkDBk=
 modernc.org/fileutil v1.4.0 h1:j6ZzNTftVS054gi281TyLjHPp6CPHr2KCxEXjEbD6SM=
 modernc.org/fileutil v1.4.0/go.mod h1:EqdKFDxiByqxLk8ozOxObDSfcVOv/54xDs/DUHdvCUU=
 modernc.org/gc/v2 v2.6.5 h1:nyqdV8q46KvTpZlsw66kWqwXRHdjIlJOhG6kxiV/9xI=
@@ -337,6 +346,7 @@ modernc.org/gc/v3 v3.2.0/go.mod h1:HFK/6AGESC7Ex+EZJhJ2Gni6cTaYpSMmU/cT9RmlfYY=
 modernc.org/goabi0 v0.2.0 h1:HvEowk7LxcPd0eq6mVOAEMai46V+i7Jrj13t4AzuNks=
 modernc.org/goabi0 v0.2.0/go.mod h1:CEFRnnJhKvWT1c1JTI3Avm+tgOWbkOu5oPA8eH8LnMI=
 modernc.org/libc v1.80.1 h1:ejn7HtTV3GknNKbklqWQ1nvUrfX8mTxs1D+xp/JQwy4=
+modernc.org/libc v1.80.1/go.mod h1:pvo25Rs3OJEbDqhUV9jdEGevxeLJrJeDmNid/AcQV1g=
 modernc.org/mathutil v1.7.1 h1:GCZVGXdaN8gTqB1Mf/usp1Y/hSqgI2vAGGP4jZMCxOU=
 modernc.org/mathutil v1.7.1/go.mod h1:4p5IwJITfppl0G4sUEDtCr4DthTaT47/N3aT6MhfgJg=
 modernc.org/memory v1.12.1 h1:nFMiWrpStgZczNl6XI9GnIk/rWhYIyHGUaR04pGbp9g=

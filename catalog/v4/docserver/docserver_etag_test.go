@@ -8,9 +8,11 @@ import (
 )
 
 // TestDocsServer_RoutesAreETagged304 pins the conditional-request wrap on
-// RegisterRoutes: docs routes carry a content-hash ETag, and a revalidation
-// with If-None-Match answers 304 with no body — revisits revalidate instead
-// of re-downloading the whole docs payload.
+// RegisterRoutes: the deterministic spec/data routes carry a content-hash
+// ETag, and a revalidation with If-None-Match answers 304 with no body —
+// revisits revalidate instead of re-downloading the payload. The
+// templ-rendered HTML pages are deliberately unwrapped: their per-request
+// CSP nonce legitimately changes the bytes every render.
 func TestDocsServer_RoutesAreETagged304(t *testing.T) {
 	srv := testServer(t)
 
@@ -21,15 +23,11 @@ func TestDocsServer_RoutesAreETagged304(t *testing.T) {
 	defer ts.Close()
 
 	paths := []string{
-		"/docs",
 		"/docs/openapi.json",
 		"/docs/openapi.yaml",
 		"/docs/asyncapi.json",
 		"/docs/asyncapi.yaml",
 		"/docs/catalog.json",
-		"/docs/eventcatalog",
-		"/docs/eventcatalog/errors",
-		"/docs/d2",
 		"/docs/d2.txt",
 	}
 

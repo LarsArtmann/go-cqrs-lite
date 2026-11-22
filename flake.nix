@@ -376,6 +376,7 @@
             "example/mesh-demo"
             "example/metaengine-quickstart"
             "example/readme-quickstart"
+            "example/scheduler-engine-status"
             "example/scheduler-otel-status"
             "example/standard-topology"
             "example/taskmanager"

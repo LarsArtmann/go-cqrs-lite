@@ -24,10 +24,10 @@ templ D2Page(brand, docsPrefix, diagram, svg string) {
 			Subtitle:     "Text · UTF-8",
 			HeaderAction: display.Button(display.ButtonProps{Text: "Download .d2", Href: docsPrefix + "/d2.txt", Variant: display.ButtonSecondary, Size: display.ButtonSizeSM}),
 		}
-		copyProps := display.CopyButtonProps{
+		codeBlockProps := display.CodeBlockProps{
 			BaseProps: utils.BaseProps{Nonce: templ.GetNonce(ctx)},
-			Text:      diagram,
-			Label:     "Copy D2 source",
+			Code:      diagram,
+			Label:     "D2 source",
 		}
 	}}
 	@layout.Base(base) {
@@ -45,11 +45,7 @@ templ D2Page(brand, docsPrefix, diagram, svg string) {
 					Title:     "D2 source",
 					Collapsed: true,
 				}) {
-					@display.CopyButton(copyProps)
-					<pre
-						aria-label="D2 diagram source"
-						class="mt-4 overflow-x-auto rounded-lg bg-gray-950 p-4 text-xs leading-relaxed text-gray-100 dark:bg-black dark:text-gray-200"
-					><code>{ diagram }</code></pre>
+					@display.CodeBlock(codeBlockProps)
 				}
 			} else {
 				@feedback.Alert(feedback.AlertProps{
@@ -58,11 +54,7 @@ templ D2Page(brand, docsPrefix, diagram, svg string) {
 					Message: "This server has no D2 rendering hook, so only the diagram source is shown. Paste it into any D2 renderer, or configure DocsServer.Config.D2SVG to render the diagram here.",
 				})
 				@display.Card(sourceCardProps) {
-					@display.CopyButton(copyProps)
-					<pre
-						aria-label="D2 diagram source"
-						class="mt-4 overflow-x-auto rounded-lg bg-gray-950 p-4 text-xs leading-relaxed text-gray-100 dark:bg-black dark:text-gray-200"
-					><code>{ diagram }</code></pre>
+					@display.CodeBlock(codeBlockProps)
 				}
 			}
 		}

@@ -1,14 +1,19 @@
 package docserver
 
 import (
+	"bytes"
 	"net/http"
 
 	"github.com/a-h/templ"
 )
 
-// renderComponent writes a templ component as an HTML response. Rendering
-// errors mid-stream are best-effort: templ streams directly to the writer,
-// so a 500 can only be sent if nothing was written yet.
+// renderComponent writes a templ component as an HTML response. The
+// component renders into an in-memory buffer first, then lands on the wire
+// in one write: render errors surface as a clean 500 (nothing was sent
+// yet), and the route-level ETag middleware can hash the page for
+// conditional requests — templ's runtime flushes at the end of a render,
+// which would otherwise switch the middleware to uncacheable streaming
+// mode. Docs pages are bounded (kilobytes), so the buffer is cheap.
 func (ds *DocsServer) renderComponent(
 	w http.ResponseWriter,
 	r *http.Request,
@@ -26,10 +31,16 @@ func (ds *DocsServer) renderComponentStatus(
 	status int,
 	component templ.Component,
 ) {
+	var page bytes.Buffer
+
+	if err := component.Render(r.Context(), &page); err != nil {
+		http.Error(w, "failed to render documentation page", http.StatusInternalServerError)
+
+		return
+	}
+
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(status)
 
-	if err := component.Render(r.Context(), w); err != nil {
-		http.Error(w, "failed to render documentation page", http.StatusInternalServerError)
-	}
+	_, _ = w.Write(page.Bytes())
 }

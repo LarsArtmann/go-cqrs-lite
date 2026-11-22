@@ -73,6 +73,15 @@ func cspPolicy(nonce string, allowEval bool) string {
 // the outer response header does not grant, and the browser would block
 // every inline script. Without a usable nonce the request passes through
 // untouched — the pages render exactly as they did before CSP support.
+//
+// Budget decision (vs httputil.Nonce): the docserver mints its own nonce
+// instead of depending on httputil's Nonce middleware because this package's
+// contract is stdlib-net/http-only ("Use with any router"). An app that
+// already runs httputil.Nonce at its edge needs no second middleware — the
+// context bridge above adopts its nonce for free. The per-request mint also
+// sets the ETag budget: HTML pages legitimately differ every render, so the
+// route-level ETag wrap (RegisterRoutes) covers only the deterministic
+// spec/data routes.
 func (ds *DocsServer) applyCSP(w http.ResponseWriter, r *http.Request) *http.Request {
 	return ds.applyCSPWith(w, r, cspHeaderValue)
 }

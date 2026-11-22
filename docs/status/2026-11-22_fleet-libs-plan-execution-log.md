@@ -4,6 +4,76 @@
 > (T01–T25). One section per wave, per-task verdicts with the plan's done-when checks.
 > This file is the wave-notes home (m06 tag-prep lists live here).
 
+## W3 — Bridges + seams (T08–T14) — DONE 2026-11-22
+
+### T08 SSE correctness — DONE
+
+- `parseLastEventID` (metaengine/v4/sse.go): wire-valid via `sse.ParseEventID` + numeric seq;
+  validated BEFORE header commit; present-but-unusable → **400** (was: silent full-journal replay).
+- `SSEConfig.Retry` + `WithSSEReconnectAfter` → `sse.WriteRetry` behind committed headers on BOTH
+  paths (subscribeSSEHeaders), default off.
+- Drop-old-vs-Broadcaster rationale paragraph in ServeSSE doc (watcher already IS the fanout).
+- Tests: `TestSSE_MalformedLastEventID_Returns400` (banana/3.5/-1), `TestParseLastEventID`
+  (incl. newline-corrupt via constructed request), `TestSSE_ReconnectAfter_Advertised`
+  (sticky Retry=2500ms on first event).
+
+### T09 ssetest/sseparse adoption — DONE
+
+- metaengine raw-TCP legs (LastEventID_Reconnect, ReplayLimit) rewritten on
+  `ssetest.NewStreamReader` + `RequireEventID`/`RequireDataContains` typed asserts; sleep-free
+  (the header-commit ordering guarantee replaces the timing hacks); reading-exactly-N is the
+  absence proof. ssetest v0.5.0 test-dep.
+- systemscenario/v4/sse.go: hand-rolled bufio parser → `sseparse.NewStreamReader`; `id:` fields
+  recorded (`ReceivedIDs()`) + surfaced in Await failure diagnostics. sseparse v0.2.1 dep (budget OK).
+
+### T10 benchkit bridge — DONE
+
+- cqrs-bench `system-memory` backend via `benchkit.FactoryFromSystem` + system.New deployment;
+  presets marked legacy-path (memory stays preset for benchmark comparability — deliberate
+  deviation from "flip the default", recorded here; the system adapter honestly skips kv
+  read-model phases so `memory` numbers would silently change meaning).
+- Smoke run green (`run --backend system-memory --profile dev`); suite green 77s; budget 19→20.
+
+### T11 go-health seam — DONE
+
+- example/taskmanager: `/healthz` = `health.NewChecks{"engines": Sys.HealthCheck}` probe
+  ReadinessHandler (the audit's free seam — CheckFunc ≡ HealthCheck); pinned by
+  `TestHardening_GoHealthProbeRendersEngineDetail`. go-health v0.10.0 dep.
+- Recipe §2.47 fence #5 (cataloged + pinned) with the dashboard flip-trigger note.
+
+### T12 docserver polish — DONE
+
+- `etag.New` wrap on the six deterministic spec/data routes (304 test: `docserver_etag_test.go`).
+  HTML pages deliberately unwrapped: per-request CSP nonce legitimately changes bytes each render
+  (decision recorded in RegisterRoutes + csp.go). DEP_BUDGET catalog 9→10.
+- `renderComponent` buffers the templ render: render errors become clean 500s (was: best-effort
+  after first byte) and single-write pages gain Content-Length.
+- d2view.templ: two hand-rolled pre/code + CopyButton pairs → one `display.CodeBlock` (templ
+  regenerated with the pinned v0.3.1100 CLI; `#check-templ` green both legs; `#check-csp` PASS).
+
+### T13 go-appkit refresh — DONE (other repo, commit 9a03806)
+
+- cqrs: metaengine v4.26.0, sqliteengine v4.9.1 (EnforceCap deadlock fix), system v4.19.0,
+  systemscenario v4.3.0; docs: catalog v4.15.0; integration re-pinned same wave.
+- Module tests green (cqrs 22.5s, docs, integration via published-tag resolution); CHANGELOGs cut;
+  **tagged cqrs/v0.10.0 + docs/v0.3.4 and pushed** (plan m47 "+ release").
+
+### T14 scheduler engine-path example — DONE
+
+- New `example/scheduler-engine-status`: `scheduling/engine.NewTimerStore[reminder]` over the
+  memory DueClaimer engine, OTel fired counter on /metrics, JSON /status with rate anchor;
+  `TestScheduler_FiresDueTimer` pins schedule→claim→dispatch→retire.
+- Full registration: go.work, flake exampleModules, LAYER 7 + DEP_BUDGET 5, api-stability
+  exclusion maps (×3), cqrs-lint catalog known-absent map, root README row.
+- Legacy scheduler-otel-status banner + README point at the new path (deprecated-path framing).
+
+### Gate repairs ridden in W3 (pre-existing debt, not plan tasks)
+
+- `TestEveryModuleGoSumIsTidy` was red repo-wide (60 modules missing /go.mod checksum rows — the
+  documented drift-debt class): mechanical `go mod tidy` sweep, gate green.
+- DEP_BUDGET raises with rationale: cqrs-lint 9→10 (atomic-write), cqrs-bench 19→20 (system),
+  catalog 9→10 (etag).
+
 ## W2 — File safety + golden path (T05–T07) — DONE 2026-11-22
 
 ### T05 go-atomic-write in the write-path tools — DONE

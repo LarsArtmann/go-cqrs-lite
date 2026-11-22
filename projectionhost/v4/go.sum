@@ -132,6 +132,7 @@ github.com/larsartmann/go-error-family v0.12.0/go.mod h1:gB43rKC69SoPilihuze43OF
 github.com/larsartmann/go-flightrecorder v0.2.1 h1:46haKa+T3R8HmtEfVIvF4j6ri8N8qn6H94AFKFMdkE8=
 github.com/larsartmann/go-flightrecorder v0.2.1/go.mod h1:fZZpp2eR4SkhI31DTCGheg4QqKE2o9R/22jk3/084tE=
 github.com/larsartmann/go-sqlitestore v0.1.2 h1:hTEi5QxkJNUEWOip02gAPiZvHcHekF2u+KCh3YCPurU=
+github.com/larsartmann/go-sqlitestore v0.1.2/go.mod h1:M35KLHeKWS74l8hzvA/KmYO8cgjaOTGNvym0XCJZ8rQ=
 github.com/lib/pq v1.12.3 h1:tTWxr2YLKwIvK90ZXEw8GP7UFHtcbTtty8zsI+YjrfQ=
 github.com/lib/pq v1.12.3/go.mod h1:/p+8NSbOcwzAEI7wiMXFlgydTwcgTr3OSKMsD2BitpA=
 github.com/lufia/plan9stats v0.0.0-20261101121723-be84dd9509a0 h1:bGmNmV0W+HWMJyDOXmbY2InjV33LK59X9ClO7AU/8e8=
