@@ -18,7 +18,7 @@ require (
 	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/larsartmann/go-branded-id v0.7.0 // indirect
+	github.com/larsartmann/go-branded-id v0.7.1 // indirect
 	github.com/larsartmann/go-codec v0.3.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-sse v0.7.0 // indirect
@@ -29,7 +29,7 @@ require (
 	go.opentelemetry.io/otel/metric v1.47.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.47.0 // indirect
 	go.opentelemetry.io/otel/trace v1.47.0 // indirect
-	golang.org/x/sys v0.49.0 // indirect
+	golang.org/x/sys v0.50.0 // indirect
 )
 
 // Sibling replace for unpublished metaengine symbols (health hooks:
