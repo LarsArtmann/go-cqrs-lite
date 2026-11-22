@@ -43,7 +43,7 @@ func TestOSWriteFileKillMidWrite(t *testing.T) {
 
 	oldPayload := bytes.Repeat([]byte("o"), killPayloadSize)
 
-	for round := 0; round < 3; round++ {
+	for round := range 3 {
 		path := filepath.Join(t.TempDir(), "victim.txt")
 		if err := os.WriteFile(path, oldPayload, 0o644); err != nil {
 			t.Fatalf("round %d: seed old content: %v", round, err)

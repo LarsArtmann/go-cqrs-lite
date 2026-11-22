@@ -3430,8 +3430,11 @@ one `mux.Handle` line.
 | --- | --- | --- |
 | Error → status + safe body | `go-error-family` | `Family.HTTPStatus()` (Rejection→400, Conflict→409, Transient→503, …); `HTTPHandler` writes a body that never leaks the raw error |
 | Cache validation | `go-etag/server` | strong content-hash `ETag`; `If-None-Match` → `304` and the body bytes are never re-sent |
-| Phase timing | `httputil/server_timing` | `Server-Timing: query;dur=…` on every response, visible in browser devtools |
+| Phase timing | `httputil/server_timing` | `Server-Timing: query;dur=…` when the deployment opts in, visible in browser devtools |
 | Deterministic bytes | `go-codec` | stable encode → stable ETag; JSON or CBOR by constructor argument |
+| Panic containment | `httputil` | `Recovery` turns handler panics into logged `500`s — never a dropped connection |
+| Body ceiling | `httputil` | `MaxBodySize` caps request bodies; the oversize read surfaces as `*http.MaxBytesError` → `413` |
+| Liveness/readiness | `httputil` | `HealthHandler` / `ReadyHandlerWithProbe` on `/health` and `/health/ready` (probe = `system.HealthCheck`: engines + projections) |
 
 Declare the query types, register the handler, bind the route:
 
@@ -3534,7 +3537,9 @@ func Query[R any, Q query.Query](
             return err
         }
 
-        stop := servertiming.MeasureServerTiming(r.Context(), "query")
+        stop := servertiming.ServerTimingFromContext(r.Context()).MeasureWithDesc(
+            "query", "typed dispatch + deterministic encode",
+        )
         data, tag, err := dispatchEncode[Q, R](r.Context(), sys, q, c)
         stop() // stop BEFORE any write: the header is injected at first Write
         if err != nil {
@@ -3590,8 +3595,10 @@ mux.Handle("GET /tasks.cbor", errorfamily.HTTPHandler(
 ))
 ```
 
-Assemble the server with the httputil chain; keep the timing middleware
-outermost so `total` covers every inner phase:
+Assemble the server with one `httputil.Chain` (first middleware = outermost):
+`Recovery` outermost so panics from ANY inner layer become 500s, the body
+ceiling next, and timing behind a deployment predicate — timing headers are
+a debugging affordance, not a default tax:
 
 ```go
 import (
@@ -3603,14 +3610,16 @@ import (
     "github.com/larsartmann/httputil/server_timing"
 )
 
-handler := servertiming.ServerTimingMiddleware()(
-    httputil.Chain(mux,
-        httputil.Recovery(slog.Default()),
-        httputil.Timeout(10*time.Second),
-        httputil.SecurityHeaders(httputil.DefaultSecurityHeadersConfig()),
-        httputil.Compression(httputil.DefaultCompressionConfig()),
-        httputil.KeyedRateLimiterMiddleware(httputil.DefaultKeyedRateLimiterConfig()),
-    ),
+timingEnabled := false // per deployment: flag, env, config — your call
+
+handler := httputil.Chain(mux,
+    httputil.Recovery(slog.Default()), // outermost: panic -> logged 500
+    httputil.MaxBodySize(1<<20),       // 413 beyond 1 MiB (*http.MaxBytesError in decode)
+    servertiming.ServerTimingMiddlewareWhen(func(*http.Request) bool { return timingEnabled }),
+    httputil.Timeout(10*time.Second),
+    httputil.SecurityHeaders(httputil.DefaultSecurityHeadersConfig()),
+    httputil.Compression(httputil.DefaultCompressionConfig()),
+    httputil.KeyedRateLimiterMiddleware(httputil.DefaultKeyedRateLimiterConfig()),
 )
 srv := &http.Server{Addr: ":8080", Handler: handler, ReadHeaderTimeout: 5 * time.Second}
 ```
@@ -3622,6 +3631,14 @@ identifies the uncompressed entity). `KeyedRateLimiterMiddleware` answers with
 handlers you do not control, the buffered whole-mux variant
 `etag.New(etag.DefaultETagConfig())` adds the same `304` semantics externally
 — the helper above just does it without buffering.
+
+Production posture: this section's runnable twin is `example/taskmanager`
+(`http.go`/`httpx.go`/`setup.go`) — same `wrapHandler` chain, `GET /health`
+and `/health/ready` from `httputil.HealthHandler`/`ReadyHandlerWithProbe(s.ready)`
+where `ready` consults `system.HealthCheck` (engines that ping + projection
+workers), a 413-mapping `decodeJSON` error path, and a drain order that shuts
+the HTTP server down BEFORE stopping projections so in-flight requests' tail
+events are still consumed. `hardening_test.go` pins all four behaviors.
 
 Test the same query without HTTP via the system scenario harness (§2.43):
 `WhenQuery` dispatches through the SAME dispatcher this endpoint binds.

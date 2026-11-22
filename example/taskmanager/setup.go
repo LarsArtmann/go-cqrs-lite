@@ -45,18 +45,18 @@ const (
 // Server holds the System and HTTP lifecycle. Infrastructure (event store,
 // snapshot store, projection host, bus, dispatchers) is owned by the System.
 type Server struct {
-	Sys          *system.System
-	CmdDisp      *command.Dispatcher
-	MetaEngine   *metaengine.Store
-	TaskReader   *metaengine.TypedReader[TaskView]
-	ProjHost     *projectionhost.Host
-	WorkQueue    *WorkQueue
-	Logger       *slog.Logger
-	otelProvider *cqrsotel.Provider
-	signer       signing.SignerVerifier
-	httpServer   *http.Server
-	taskWatcher  *metaengine.Watcher[TaskView]
-	dlqDB        *sql.DB
+	Sys           *system.System
+	CmdDisp       *command.Dispatcher
+	MetaEngine    *metaengine.Store
+	TaskReader    *metaengine.TypedReader[TaskView]
+	ProjHost      *projectionhost.Host
+	WorkQueue     *WorkQueue
+	Logger        *slog.Logger
+	otelProvider  *cqrsotel.Provider
+	signer        signing.SignerVerifier
+	httpServer    *http.Server
+	taskWatcher   *metaengine.Watcher[TaskView]
+	dlqDB         *sql.DB
 	timingEnabled bool
 }
 
@@ -291,7 +291,7 @@ func (s *Server) wrapHandler(mux *http.ServeMux) http.Handler {
 // StartHTTP launches the HTTP API server in a background goroutine.
 func (s *Server) StartHTTP(addr string) {
 	s.httpServer = &http.Server{
-		Addr: addr,
+		Addr:              addr,
 		Handler:           s.wrapHandler(s.routes()),
 		ReadHeaderTimeout: httpReadHeaderSecs * time.Second,
 	}

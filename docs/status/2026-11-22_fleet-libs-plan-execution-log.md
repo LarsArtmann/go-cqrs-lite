@@ -4,6 +4,43 @@
 > (T01–T25). One section per wave, per-task verdicts with the plan's done-when checks.
 > This file is the wave-notes home (m06 tag-prep lists live here).
 
+## W2 — File safety + golden path (T05–T07) — DONE 2026-11-22
+
+### T05 go-atomic-write in the write-path tools — DONE
+
+- Direct pins v0.6.2 in cmd/cqrs-upgrade (new dep) + cmd/cqrs-lint (indirect→direct).
+- cqrs-upgrade: `osWriteFile` (util.go) now `atomicwrite.Write` (staged temp + fsync + rename;
+  preserves the target's existing mode — also fixes the old forced-0600 rewrite of go.mod);
+  `rewrite_v5.go` + `rewrite_v5_surface.go` write sites route through it (dropping their
+  stat-then-write perm dance).
+- cqrs-lint: `writeBaseline` DIY temp+rename (no fsync!) replaced by `atomicwrite.Write`.
+- Kill-mid-write self-test (`util_kill_test.go`, re-exec child + SIGKILL): victim file is
+  old-or-new across rounds, never truncated — GREEN. Full suites green (cqrs-upgrade 7.7s
+  incl. codemod goldens unchanged; cqrs-lint 39.6s).
+
+### T06 golden-path hardening (example/taskmanager) — DONE
+
+- `wrapHandler` chain (setup.go): `httputil.Recovery` outermost → `httputil.MaxBodySize(1 MiB)`
+  → `servertiming.ServerTimingMiddlewareWhen(timingEnabled)` (Config.ServerTiming + `-server-timing`
+  flag; default OFF).
+- Health: hand-rolled `/health` → `httputil.HealthHandler` + `/health/live` (LiveHandler) +
+  `/health/ready` (ReadyHandlerWithProbe over `system.HealthCheck`).
+- 413 mapping: `writeDecodeError` (`*http.MaxBytesError` → 413, else 400) on all four decodeJSON sites.
+- Drain order: HTTP `Shutdown` BEFORE `ProjHost.Stop` (in-flight requests' tail events consumed).
+- `httpx.go` timing phase → `MeasureWithDesc("query", "typed dispatch + deterministic encode")`.
+- New `hardening_test.go`: panic→500, 2 MiB body→413, timing gated off/on, readiness 200 +
+  `ready()==true` — all GREEN; full example suite + `-race` GREEN; example-standalone 0 findings.
+
+### T07 recipe §2.47 mirror — DONE
+
+- Job table +3 rows (panic containment, body ceiling, liveness/readiness).
+- Helper fence: `MeasureWithDesc` via `ServerTimingFromContext` (matches httpx.go).
+- Assemble fence: single `httputil.Chain`, Recovery outermost, `MaxBodySize`,
+  `ServerTimingMiddlewareWhen` behind a deployment predicate (was: unconditional outermost timing).
+- Prod-posture paragraph names example/taskmanager as the runnable twin incl. drain order +
+  hardening_test.go pin.
+- Gates: recipes compile harness + doc-check green (see W2 commit), `#check-md-go` green.
+
 ## W1 — Version-truth sweep (T01–T04) — DONE 2026-11-22
 
 ### T01 go-sse → v0.7.0 — DONE

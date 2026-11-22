@@ -82,8 +82,7 @@ func (s *Server) ready() bool {
 // writeDecodeError maps body-decode failures to HTTP status codes: a body
 // that exceeded the MaxBodySize cap is a 413, everything else is a 400.
 func writeDecodeError(w http.ResponseWriter, err error, prefix string) {
-	var maxBytes *http.MaxBytesError
-	if errors.As(err, &maxBytes) {
+	if _, ok := errors.AsType[*http.MaxBytesError](err); ok {
 		writeError(w, http.StatusRequestEntityTooLarge, prefix+"body exceeds limit")
 
 		return
