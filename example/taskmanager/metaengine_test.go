@@ -108,7 +108,7 @@ func waitForCounter(t *testing.T, srv *Server, status string, want int64) {
 			return
 		}
 
-		time.Sleep(10 * time.Millisecond)
+		time.Sleep(10 * time.Millisecond) //go-sleep:accept bounded poll cadence in a deadline loop (counter eventually)
 	}
 
 	t.Fatalf("timed out waiting for counter %q = %d", status, want)
@@ -140,7 +140,7 @@ func waitForAssignees(t *testing.T, srv *Server, taskIDs ...id.StreamID) {
 			return
 		}
 
-		time.Sleep(10 * time.Millisecond)
+		time.Sleep(10 * time.Millisecond) //go-sleep:accept bounded poll cadence in a deadline loop (counter eventually)
 	}
 
 	t.Fatalf("timed out waiting for auto-assignment of %d tasks", len(taskIDs))

@@ -22,8 +22,11 @@ const (
 	// in nondeterministic order, so occasional deadlocks are NORMAL on
 	// MySQL — retrying the whole transaction is the documented InnoDB
 	// remedy, and the claim is idempotent from the caller's perspective
-	// (either it takes the lease or reports ErrNoTaskDue).
-	claimDeadlockRetries = 3
+	// (either it takes the lease or reports ErrNoTaskDue). 8 attempts
+	// (25ms→2s ladder, full jitter) held up under the 40-claimer
+	// conformance shard on a QEMU-throttled CI MySQL, where 3 did not
+	// (2026-11-22: 28/40 distinct keys claimed, the rest surfaced 1213).
+	claimDeadlockRetries = 8
 	// claimRetryBaseDelay and claimRetryMaxDelay shape the pause between
 	// deadlock retries: exponential growth (25ms, 50ms, 100ms) capped at
 	// the max, with full jitter so N racing workers do not re-collide in

@@ -10,11 +10,23 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/systemscenario/v4"
 )
 
 func TestSSE_TaskViewStreamsOverHTTP(t *testing.T) {
 	t.Parallel()
+
+	// Failure diagnostic (test-only import; the harness stays dep-budgeted):
+	// on failure, report the global SSE ring-eviction delta next to the
+	// Await timeout — nonzero reclassifies "never streamed" as backpressure,
+	// zero points at the fold/journal side (the 2026-11-22 CI occurrence).
+	beforeDrops := metaengine.SSEDroppedEvents()
+	t.Cleanup(func() {
+		if t.Failed() {
+			t.Logf("SSE ring evictions during test: %d", metaengine.SSEDroppedEvents()-beforeDrops)
+		}
+	})
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	t.Cleanup(cancel)
