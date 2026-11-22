@@ -1,5 +1,6 @@
 # go-atomic-write — Utilization Audit · go-cqrs-lite
 
+> Audited 2026-11-22 · **UPDATE 2026-11-22 (plan T05 executed):** opportunity #1/#4 SHIPPED — cqrs-lint `writeBaseline` and cqrs-upgrade `osWriteFile`/rewrite sites now route through `atomicwrite.Write` (staged temp + fsync + rename; SIGKILL crash-consistency test in `cmd/cqrs-upgrade/v4/util_kill_test.go`). Line citations re-derived. Original audit text preserved below.
 > Audited 2026-11-22 · Library `github.com/larsartmann/go-atomic-write` @ 4f10347 (latest local tag v0.6.2) · Consumer go-cqrs-lite @ feec9bc74 · Group G3
 
 **Verdict:** UNDERUSED-SEVERE
@@ -54,7 +55,7 @@ next tidy.
 
 **The hand-rolled surface that exists instead** (non-test, key sites):
 
-- `cmd/cqrs-lint/v4/baseline_file.go:100-125` — a hand-rolled atomic write:
+- `cmd/cqrs-lint/v4/baseline_file.go:84-106` — a hand-rolled atomic write:
   `os.CreateTemp(dir, ".cqrs-lint-baseline-*.tmp")` → write → close →
   `os.Rename(tmpName, path)`, with manual cleanup on each failure path
   (~25 lines). No temp-file fsync, no directory fsync, no cross-process
@@ -87,10 +88,10 @@ next tidy.
 
 | # | Capability                                                            | Grade  | Evidence / reason                                                                                                                                                                                                                             |
 | - | --------------------------------------------------------------------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1 | Plain atomic write (`Write`)                                          | Missed | cqrs-lint hand-rolls the weaker DIY version (`cmd/cqrs-lint/v4/baseline_file.go:100-125`) while already requiring the lib via cmdguard (`cmd/cqrs-lint/v4/go.mod:44`)                                                                         |
+| 1 | Plain atomic write (`Write`)                                          | Missed | cqrs-lint hand-rolls the weaker DIY version (`cmd/cqrs-lint/v4/baseline_file.go:84-106`) while already requiring the lib via cmdguard (`cmd/cqrs-lint/v4/go.mod:44`)                                                                          |
 | 2 | TOCTOU-verified write (`WriteVerified` + `ErrConcurrentModification`) | Missed | suppression fix rewrites a user-managed file read-modify-write with no protection (`cmd/cqrs-lint/v4/pkg/suppression/fix.go:187`); no caller anywhere verifies a fingerprint                                                                  |
 | 3 | Idempotent write (`WriteIfChanged`)                                   | Missed | catalog exporter + baselines rewrite identical bytes on every run (`catalog/v4/eventcatalog/writer.go:19+`, `catalog/v4/compat/baseline.go:94`, `cmd/api-stability/v4/golden.go:29`) — mtime churn for downstream caches and noisy git status |
-| 4 | Crash durability (temp fsync + dir fsync)                             | Missed | the DIY path skips both (`cmd/cqrs-lint/v4/baseline_file.go:100-125`); `cqrs-upgrade` writes user sources with no protection at all (`cmd/cqrs-upgrade/v4/util.go:12`)                                                                        |
+| 4 | Crash durability (temp fsync + dir fsync)                             | Missed | the DIY path skips both (`cmd/cqrs-lint/v4/baseline_file.go:84-106`); `cqrs-upgrade` writes user sources with no protection at all (`cmd/cqrs-upgrade/v4/util.go:12`)                                                                         |
 | 5 | Cross-process locking (flock / LockFileEx)                            | N/A    | today's workflows are single-writer one-shot CLIs — flip: CI matrix jobs sharing one checkout writing the same baseline/golden files                                                                                                          |
 | 6 | Streaming write (`WriteFunc*`)                                        | N/A    | every writer holds full content in memory — flip: an exporter streaming multi-MB diagrams/manifests                                                                                                                                           |
 | 7 | Windows rename retry (`rename_windows.go`)                            | N/A    | fleet CI is linux-only (same posture as go-health's compatibility note) — flip: first Windows developer tooling                                                                                                                               |
@@ -105,7 +106,7 @@ worse inside one of those five modules.
 ## 4. Gap analysis
 
 1. **cqrs-lint is the flagship irony.** Its baseline writer
-   (`baseline_file.go:100-125`) is a hand-maintained clone of the library's
+   (`baseline_file.go:84-106`) is a hand-maintained clone of the library's
    stage→commit pipeline minus fsync, lock, and fingerprint — 25 lines that
    exist only because nobody noticed the dependency was already there. The
    swap is `atomicwrite.Write(path, data)` and moves one line in go.mod
@@ -157,7 +158,7 @@ This is the cheapest severe finding in this audit group.
 ## 7. Ranked opportunities
 
 1. **Swap cqrs-lint's baseline writer** (high, ~30 min): replace
-   `cmd/cqrs-lint/v4/baseline_file.go:100-125` with
+   `cmd/cqrs-lint/v4/baseline_file.go:84-106` with
    `atomicwrite.Write(path, data)`; promote the go.mod line to direct.
    Deletes 25 hand-maintained lines, gains fsync + lock.
 2. **Make cqrs-upgrade crash-safe** (high): replace `osWriteFile`

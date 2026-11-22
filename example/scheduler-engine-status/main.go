@@ -159,12 +159,18 @@ func seedTimers() []scheduling.Timer[reminder] {
 	now := time.Now()
 
 	return []scheduling.Timer[reminder]{
-		{ID: scheduling.MustParseTimerID("demo-immediate"), FireAt: now.Add(-time.Second),
-			Payload: reminder{OrderID: "order-1", Note: "fires immediately"}},
-		{ID: scheduling.MustParseTimerID("demo-5s"), FireAt: now.Add(5 * time.Second),
-			Payload: reminder{OrderID: "order-2", Note: "fires after five seconds"}},
-		{ID: scheduling.MustParseTimerID("demo-30s"), FireAt: now.Add(30 * time.Second),
-			Payload: reminder{OrderID: "order-3", Note: "fires after thirty seconds"}},
+		{
+			ID: scheduling.MustParseTimerID("demo-immediate"), FireAt: now.Add(-time.Second),
+			Payload: reminder{OrderID: "order-1", Note: "fires immediately"},
+		},
+		{
+			ID: scheduling.MustParseTimerID("demo-5s"), FireAt: now.Add(5 * time.Second),
+			Payload: reminder{OrderID: "order-2", Note: "fires after five seconds"},
+		},
+		{
+			ID: scheduling.MustParseTimerID("demo-30s"), FireAt: now.Add(30 * time.Second),
+			Payload: reminder{OrderID: "order-3", Note: "fires after thirty seconds"},
+		},
 	}
 }
 

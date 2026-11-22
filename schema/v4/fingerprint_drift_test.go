@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	errorfamily "github.com/larsartmann/go-error-family"
+	errorfamilytest "github.com/larsartmann/go-error-family/errorfamilytest"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 )
@@ -100,9 +101,7 @@ func TestFingerprintDriftHard_FailsOnlyOnMismatch(t *testing.T) {
 		t.Fatal("mismatched event must fail hard mode")
 	}
 
-	if errorfamily.Classify(err) != errorfamily.Corruption {
-		t.Fatalf("hard-mode drift is Corruption, got %v", errorfamily.Classify(err))
-	}
+	errorfamilytest.AssertFamily(t, err, errorfamily.Corruption)
 }
 
 func TestFingerprintDrift_UndeclaredTypeSilent(t *testing.T) {

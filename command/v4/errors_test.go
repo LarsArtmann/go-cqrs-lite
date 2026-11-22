@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	errorfamily "github.com/larsartmann/go-error-family"
+	errorfamilytest "github.com/larsartmann/go-error-family/errorfamilytest"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
@@ -75,7 +76,5 @@ func TestDispatchOnClosed(t *testing.T) {
 		t.Fatal("expected error dispatching on closed dispatcher")
 	}
 
-	if errorfamily.Classify(err) != errorfamily.Infrastructure {
-		t.Errorf("expected Infrastructure, got %v", errorfamily.Classify(err))
-	}
+	errorfamilytest.AssertFamily(t, err, errorfamily.Infrastructure)
 }

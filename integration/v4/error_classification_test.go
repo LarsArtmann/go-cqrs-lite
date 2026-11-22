@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	errorfamily "github.com/larsartmann/go-error-family"
+	errorfamilytest "github.com/larsartmann/go-error-family/errorfamilytest"
 
 	"github.com/larsartmann/go-cqrs-lite/graph/v4"
 	"github.com/larsartmann/go-cqrs-lite/middleware/v4"
@@ -85,10 +86,7 @@ func TestErrorClassificationWrappedChain(t *testing.T) {
 
 	wrapped := fmt.Errorf("dispatch failed: %w", stack.ErrMissingEventStore)
 
-	if errorfamily.Classify(wrapped) != errorfamily.Rejection {
-		t.Errorf("wrapped stack.ErrMissingEventStore classified as %v, want Rejection",
-			errorfamily.Classify(wrapped))
-	}
+	errorfamilytest.AssertFamily(t, wrapped, errorfamily.Rejection)
 
 	if errorfamily.IsRetryable(wrapped) {
 		t.Error("wrapped stack.ErrMissingEventStore should not be retryable")

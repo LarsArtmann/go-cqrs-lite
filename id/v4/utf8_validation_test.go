@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	errorfamily "github.com/larsartmann/go-error-family"
+	errorfamilytest "github.com/larsartmann/go-error-family/errorfamilytest"
 )
 
 // Regression pins for the 2026-11-03 fuzz finding (FuzzStreamStatus_MarshalOnly):
@@ -28,13 +29,7 @@ func TestParseStreamID_RejectsInvalidUTF8(t *testing.T) {
 				t.Fatalf("ParseStreamID(%q) should reject invalid UTF-8", input)
 			}
 
-			if errorfamily.Classify(err) != errorfamily.Rejection {
-				t.Errorf(
-					"ParseStreamID(%q) family = %v, want Rejection",
-					input,
-					errorfamily.Classify(err),
-				)
-			}
+			errorfamilytest.AssertFamily(t, err, errorfamily.Rejection)
 
 			var code string
 			if familyErr, ok := err.(interface{ Code() string }); ok {
@@ -70,9 +65,7 @@ func TestParseStreamType_RejectsInvalidUTF8(t *testing.T) {
 		t.Fatal("ParseStreamType should reject invalid UTF-8")
 	}
 
-	if errorfamily.Classify(err) != errorfamily.Rejection {
-		t.Errorf("ParseStreamType family = %v, want Rejection", errorfamily.Classify(err))
-	}
+	errorfamilytest.AssertFamily(t, err, errorfamily.Rejection)
 
 	coded, ok := errors.AsType[interface {
 		error

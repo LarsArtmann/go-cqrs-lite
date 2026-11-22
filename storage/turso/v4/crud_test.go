@@ -6,6 +6,7 @@ import (
 	"time"
 
 	errorfamily "github.com/larsartmann/go-error-family"
+	errorfamilytest "github.com/larsartmann/go-error-family/errorfamilytest"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
@@ -166,9 +167,7 @@ func TestEventStore_LoadNonExistent(t *testing.T) {
 		t.Fatal("expected error for non-existent stream")
 	}
 
-	if errorfamily.Classify(err) != errorfamily.Rejection {
-		t.Errorf("expected Rejection, got %s", errorfamily.Classify(err))
-	}
+	errorfamilytest.AssertFamily(t, err, errorfamily.Rejection)
 }
 
 func TestEventStore_ReadAll(t *testing.T) {

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	errorfamily "github.com/larsartmann/go-error-family"
+	errorfamilytest "github.com/larsartmann/go-error-family/errorfamilytest"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
@@ -182,9 +183,7 @@ func TestMigrateSnapshotStateShapeColumn_ProbeFailure(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected probe failure on a closed database, got nil")
 	}
-	if errorfamily.Classify(err) != errorfamily.Infrastructure {
-		t.Fatalf("expected Infrastructure family, got %v (%v)", errorfamily.Classify(err), err)
-	}
+	errorfamilytest.AssertFamily(t, err, errorfamily.Infrastructure)
 	if !strings.Contains(err.Error(), "storage.snapshot_state_shape_probe") {
 		t.Fatalf("error does not name the probe code: %v", err)
 	}
@@ -211,9 +210,7 @@ func TestMigrateSnapshotStateShapeColumn_AddFailure(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected ALTER failure on a view, got nil")
 	}
-	if errorfamily.Classify(err) != errorfamily.Infrastructure {
-		t.Fatalf("expected Infrastructure family, got %v (%v)", errorfamily.Classify(err), err)
-	}
+	errorfamilytest.AssertFamily(t, err, errorfamily.Infrastructure)
 	if !strings.Contains(err.Error(), "storage.snapshot_state_shape_add") {
 		t.Fatalf("error does not name the add code: %v", err)
 	}

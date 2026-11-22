@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	errorfamily "github.com/larsartmann/go-error-family"
+	errorfamilytest "github.com/larsartmann/go-error-family/errorfamilytest"
 
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
 )
@@ -50,9 +51,7 @@ func TestMigrateSnapshotColumns_MixedStateRejected(t *testing.T) {
 		t.Fatal("mixed-state table must be rejected")
 	}
 
-	if errorfamily.Classify(err) != errorfamily.Corruption {
-		t.Fatalf("expected Corruption family, got %v (%v)", errorfamily.Classify(err), err)
-	}
+	errorfamilytest.AssertFamily(t, err, errorfamily.Corruption)
 
 	if famErr, ok := errors.AsType[*errorfamily.Error](err); !ok ||
 		famErr.Code() != "storage.snapshot_column_mixed" {

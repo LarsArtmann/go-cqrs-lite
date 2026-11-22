@@ -32,9 +32,14 @@ const (
 	cmdAddBlocker   = command.Type("task.add_blocker")
 )
 
-// CreateTaskCmd carries the payload for creating a new task.
+// CreateTaskCmd carries the payload for creating a new task. The cqrs-gen
+// marker keeps the registered type string beside the type —
+// `cqrs-gen -type=command` regenerates RegisterCreateTaskCmdHandler
+// (handlers_gen.go), the dogfooded codegen loop this example pins.
 //
 // cqrs-lint:ignore(B004) library code or intentional pattern
+//
+//cqrs:command task.create
 type CreateTaskCmd struct {
 	*command.BasicCommand
 

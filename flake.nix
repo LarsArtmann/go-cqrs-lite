@@ -1288,6 +1288,14 @@
               ${pkgs.bash}/bin/bash "$PWD/scripts/check-doc-stubs.sh"
             '';
 
+            # Fleet-libs audit artifacts: citation sweep (docs/review/libs
+            # path:line cites vs consumer + sibling checkouts — LOCAL gate,
+            # the siblings are ~/projects checkouts CI does not have) plus
+            # index↔report link integrity. Self-test: --self-test.
+            check-libreports = mkApp "check-libreports" [ pkgs.python3 pkgs.gnugrep ] ''
+              ${pkgs.bash}/bin/bash "$PWD/scripts/check-libreports.sh" "''${1:-}"
+            '';
+
             check-turso-version =
               mkApp "check-turso-version" [ pkgs.bash pkgs.findutils pkgs.gnugrep pkgs.gnused ]
                 ''

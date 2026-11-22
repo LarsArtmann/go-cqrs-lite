@@ -7,6 +7,7 @@ import (
 
 	codecpkg "github.com/larsartmann/go-codec"
 	errorfamily "github.com/larsartmann/go-error-family"
+	errorfamilytest "github.com/larsartmann/go-error-family/errorfamilytest"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
@@ -373,9 +374,7 @@ func TestDecodePayload_JSONEventWithCBORCodec_Rejected(t *testing.T) {
 		t.Fatal("expected encoding mismatch rejection for JSON event with CBOR codec")
 	}
 
-	if errorfamily.Classify(err) != errorfamily.Rejection {
-		t.Fatalf("expected Rejection, got %T: %v", err, err)
-	}
+	errorfamilytest.AssertFamily(t, err, errorfamily.Rejection)
 }
 
 func TestDecodePayload_CBOREventWithJSONCodec_Rejected(t *testing.T) {
@@ -396,9 +395,7 @@ func TestDecodePayload_CBOREventWithJSONCodec_Rejected(t *testing.T) {
 		t.Fatal("expected encoding mismatch rejection for CBOR event with JSON codec")
 	}
 
-	if errorfamily.Classify(err) != errorfamily.Rejection {
-		t.Fatalf("expected Rejection, got %T: %v", err, err)
-	}
+	errorfamilytest.AssertFamily(t, err, errorfamily.Rejection)
 }
 
 func TestPayloadReadOnly_ReturnsInternalReference(t *testing.T) {

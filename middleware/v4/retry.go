@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"time"
@@ -79,12 +80,14 @@ func retry(
 	entry DeadLetterEntry,
 	fn func(context.Context) error,
 ) error {
-	var err error
-
-	//cqrs-lint:ignore(B008) library code or intentional pattern
-	for attempt := 1; attempt <= config.MaxAttempts; attempt++ {
+	// The loop mechanics (backoff + jitter, retryable classification,
+	// cancel-vs-deadline distinction, exhaustion cause chains) are
+	// go-retry's retry.Do; this wrapper contributes the CQRS concerns —
+	// per-attempt OTel spans, the dead-letter entry, and the middleware's
+	// public sentinels on top of go-retry's.
+	attemptFn := func(attemptCtx context.Context, attempt int) error {
 		attemptCtx, attemptSpan := cqrsotel.StartSpan(
-			ctx, retryTracer(), fmt.Sprintf("retry.attempt.%d", attempt),
+			attemptCtx, retryTracer(), fmt.Sprintf("retry.attempt.%d", attempt),
 			cqrsotel.SpanKindInternal,
 			cqrsotel.WithAttributes(
 				cqrsotel.AttrInt("cqrs.retry.attempt", attempt),
@@ -92,72 +95,63 @@ func retry(
 			),
 		)
 
-		err = fn(attemptCtx)
-		if err == nil {
-			attemptSpan.End()
-
-			return nil
+		err := fn(attemptCtx)
+		if err != nil {
+			cqrsotel.RecordError(attemptSpan, err)
 		}
 
-		cqrsotel.RecordError(attemptSpan, err)
 		attemptSpan.End()
 
-		if !config.IsRetryable(err) {
-			return err
-		}
-
-		if attempt == config.MaxAttempts {
-			break
-		}
-
-		delay := backoff(config, attempt)
-
-		if logger != nil {
-			logger.Warn(
-				"retry attempt",
-				"operation", entry.Type,
-				"attempt", attempt,
-				"maxAttempts", config.MaxAttempts,
-				"delay", delay,
-				"error", err,
-			)
-		}
-
-		timer := time.NewTimer(delay)
-
-		select {
-		case <-timer.C:
-		case <-ctx.Done():
-			timer.Stop()
-
-			return errorfamily.WrapInfrastructure(ErrRetryCanceled, "middleware.retry_canceled",
-				entry.Type+": retry canceled").WithCause(err)
-		}
-
-		timer.Stop()
+		return err
 	}
 
-	if config.OnDeadLetter != nil {
-		entry.Error = err
-		entry.Attempts = config.MaxAttempts
-		entry.FailedAt = time.Now()
-		config.OnDeadLetter(ctx, entry)
+	rcfg := retrypkg.Config{
+		MaxAttempts:  config.MaxAttempts,
+		InitialDelay: config.InitialDelay,
+		MaxDelay:     config.MaxDelay,
+		Multiplier:   config.Multiplier,
+		IsRetryable:  config.IsRetryable,
+		OnRetry: func(attempt int, delay time.Duration, err error) {
+			if logger != nil {
+				logger.Warn(
+					"retry attempt",
+					"operation", entry.Type,
+					"attempt", attempt,
+					"maxAttempts", config.MaxAttempts,
+					"delay", delay,
+					"error", err,
+				)
+			}
+		},
+		OnExhausted: func(attempts int, err error) {
+			if config.OnDeadLetter != nil {
+				dlEntry := entry
+				dlEntry.Error = err
+				dlEntry.Attempts = attempts
+				dlEntry.FailedAt = time.Now()
+
+				config.OnDeadLetter(ctx, dlEntry)
+			}
+		},
 	}
 
-	return errorfamily.WrapInfrastructure(ErrRetryExhausted, "middleware.retry_exhausted",
-		fmt.Sprintf("all %d attempts failed for %s", config.MaxAttempts, entry.Type)).WithCause(err)
-}
-
-func backoff(config RetryConfig, attempt int) time.Duration {
-	delay, err := retrypkg.ComputeDelay(
-		config.InitialDelay,
-		config.MaxDelay,
-		config.Multiplier,
-		attempt,
-	)
-	if err != nil {
-		return config.InitialDelay
+	err := retrypkg.Do(ctx, rcfg, attemptFn)
+	if err == nil {
+		return nil
 	}
 
-	return delay
+	// Re-surface the middleware's public sentinels (frozen v4 contract)
+	// over go-retry's; the cause chain keeps go-retry's distinctions
+	// (ErrCanceled vs ErrDeadlineExceeded, the final attempt error)
+	// reachable via errors.Is/errors.AsType.
+	switch {
+	case errors.Is(err, retrypkg.ErrExhausted):
+		return errorfamily.WrapInfrastructure(ErrRetryExhausted, "middleware.retry_exhausted",
+			fmt.Sprintf("all %d attempts failed for %s", config.MaxAttempts, entry.Type)).WithCause(err)
+	case errors.Is(err, retrypkg.ErrCanceled):
+		return errorfamily.WrapInfrastructure(ErrRetryCanceled, "middleware.retry_canceled",
+			entry.Type+": retry canceled").WithCause(err)
+	default:
+		return err
+	}
 }

@@ -13,6 +13,7 @@ import (
 
 	"github.com/larsartmann/go-codec"
 	errorfamily "github.com/larsartmann/go-error-family"
+	errorfamilytest "github.com/larsartmann/go-error-family/errorfamilytest"
 
 	"github.com/larsartmann/go-cqrs-lite/stack/memory/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/pebble/v4"
@@ -663,10 +664,7 @@ func TestConfig_Validation(t *testing.T) {
 				t.Errorf("error should mention %s, got: %v", tt.errMsg, err)
 			}
 
-			if errorfamily.Classify(err) != errorfamily.Rejection {
-				t.Errorf("error should be classified as Rejection, got %s",
-					errorfamily.Classify(err))
-			}
+			errorfamilytest.AssertFamily(t, err, errorfamily.Rejection)
 		})
 	}
 }
@@ -695,9 +693,7 @@ func TestRun_WarmupFactoryError(t *testing.T) {
 		t.Fatal("expected error from warmup factory failure")
 	}
 
-	if errorfamily.Classify(err) != errorfamily.Transient {
-		t.Errorf("warmup error should be Transient, got %s", errorfamily.Classify(err))
-	}
+	errorfamilytest.AssertFamily(t, err, errorfamily.Transient)
 }
 
 func TestRun_WarmupEventsInResult(t *testing.T) {

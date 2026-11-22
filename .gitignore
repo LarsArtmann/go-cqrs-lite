@@ -171,6 +171,7 @@ htmlcov/
 example/taskmanager/taskmanager
 example/getting-started/getting-started
 example/readme-quickstart/readme-quickstart
+example/scheduler-engine-status/scheduler-engine-status
 cmd/cqrs-bench/cqrs-bench
 
 # Compiled tool binaries. The tool modules moved under cmd/<tool>/v4/ on
