@@ -1037,6 +1037,11 @@ jobs:
   nats-integration:
     name: NATS Broker Integration (ephemeral)
     runs-on: ubuntu-latest
+    # 10 min was the cap before 2026-11-22: on a cold runner the module
+    # compile inside the nix wrapper eats most of it and the leg dies as
+    # "cancelled" with zero test output (run 44967760293). Sibling broker
+    # legs (QEMU VMs) get 20-45.
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
