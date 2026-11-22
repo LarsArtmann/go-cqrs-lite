@@ -2,11 +2,13 @@ package pebble_test
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"os"
 	"path/filepath"
 	"testing"
 
+	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/go-codec"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -292,7 +294,8 @@ func TestBundle_Metrics(t *testing.T) {
 
 // TestCheckpoint_ExistingDirFails covers the preset's Checkpoint error wrap:
 // the backend rejects an existing target directory, and the preset must
-// surface that as an Infrastructure-family error naming the target.
+// surface that as an Infrastructure-family error naming the target and the
+// pebble_preset.checkpoint code.
 func TestCheckpoint_ExistingDirFails(t *testing.T) {
 	t.Parallel()
 
@@ -310,8 +313,20 @@ func TestCheckpoint_ExistingDirFails(t *testing.T) {
 		t.Fatalf("Mkdir: %v", err)
 	}
 
-	if err := b.Checkpoint(target); err == nil {
+	err = b.Checkpoint(target)
+	if err == nil {
 		t.Fatal("Checkpoint to an existing directory must fail")
+	}
+
+	famErr, ok := errors.AsType[*errorfamily.Error](err)
+	if !ok {
+		t.Fatalf("Checkpoint error must carry errorfamily identity, got %T: %v", err, err)
+	}
+	if famErr.Code() != "pebble_preset.checkpoint" {
+		t.Errorf("Code() = %q, want %q", famErr.Code(), "pebble_preset.checkpoint")
+	}
+	if famErr.Family() != errorfamily.Infrastructure {
+		t.Errorf("Family() = %v, want %v", famErr.Family(), errorfamily.Infrastructure)
 	}
 }
 

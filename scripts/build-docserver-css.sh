@@ -12,7 +12,7 @@
 set -euo pipefail
 
 REPO_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-CATALOG_DIR="$REPO_ROOT/catalog"
+CATALOG_DIR="$REPO_ROOT/catalog/v4" # /v4 since the 2026-11-10 path move
 STATIC_DIR="$CATALOG_DIR/docserver/static"
 SRC_CSS="$STATIC_DIR/docs-ui.src.css"
 OUT_CSS="$STATIC_DIR/docs-ui.css"

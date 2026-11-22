@@ -1,0 +1,1124 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fleet Library Utilization Audit — go-cqrs-lite</title>
+    <style>
+      /* =========================================================================
+         BAUHAUS DARK — Dashboard template
+         Design language: form follows function. Primary colors on graphite.
+         Zero external dependencies: system fonts, no CDN, no build step.
+         Token architecture: see references/bauhaus-tokens.md
+         ========================================================================= */
+
+      :root {
+        /* --- Primitive palette (Bauhaus Dark) --- */
+        --color-graphite: #0e0e10;
+        --color-graphite-2: #18181d;
+        --color-graphite-3: #16161a;
+        --color-bone: #f4f4f0;
+        --color-red: #ff6b6b;
+        --color-blue: #6eb5ff;
+        --color-yellow: #f4d35e;
+        --color-amber: #ffb347;
+        --color-hairline: rgba(244, 244, 240, 0.12);
+        --color-hairline-strong: rgba(244, 244, 240, 0.25);
+
+        /* --- Semantic layer (shared vocabulary with editorial template) --- */
+        --surface: var(--color-graphite);
+        --surface-raised: var(--color-graphite-2);
+        --surface-sunken: var(--color-graphite-3);
+        --text: var(--color-bone);
+        --text-muted: rgba(244, 244, 240, 0.72);
+        --text-faint: rgba(244, 244, 240, 0.45);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-amber);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        /* --- Backward-compatible aliases (do not break consumer skills) --- */
+        --bg: var(--surface);
+        --bg-elevated: var(--surface-raised);
+        --bg-sunken: var(--surface-sunken);
+        --bg-card: var(--surface-raised);
+        --bg-code: var(--surface-sunken);
+        --ink: var(--text);
+        --ink-secondary: var(--text-muted);
+        --ink-muted: var(--text-faint);
+        --rose: var(--problem);
+        --rose-glow: color-mix(in srgb, var(--problem) 15%, transparent);
+        --emerald: var(--solution);
+        --emerald-glow: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber-glow: color-mix(in srgb, var(--warning) 15%, transparent);
+        --coral: var(--problem);
+        --coral-light: color-mix(in srgb, var(--problem) 15%, transparent);
+        --teal: var(--solution);
+        --teal-light: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber-light: color-mix(in srgb, var(--warning) 20%, transparent);
+
+        /* --- Shape --- */
+        --radius: 0px; /* Bauhaus default: sharp corners */
+        --radius-sm: 0px;
+
+        /* --- Type stacks (system only — zero external fonts) --- */
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      /* Sticky-header offset for anchor jumps */
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 15px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* --- Accessibility: keyboard focus --- */
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      a:focus-visible {
+        outline-offset: -1px;
+      }
+
+      /* --- Full-bleed top bar --- */
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      /* --- Layout: optional sticky sidebar TOC --- */
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .sidebar a {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        text-decoration: none;
+        padding: 0.45rem 0.75rem;
+        border-left: 2px solid transparent;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+        font-weight: 500;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        color: var(--accent);
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      /* --- Headings --- */
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      h1 {
+        font-size: clamp(1.8rem, 4vw, 2.6rem);
+        line-height: 1.1;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.4rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+        display: flex;
+        align-items: baseline;
+        gap: 0.6rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.06em;
+      }
+      h3 {
+        font-size: 1.1rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 0.98rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+
+      /* --- Hero --- */
+      .hero {
+        padding: 1.5rem 0 1.5rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .hero-badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--surface);
+        background: var(--accent);
+        padding: 0.3rem 0.7rem;
+        margin-bottom: 0.9rem;
+      }
+      .hero-subtitle {
+        font-size: 1.05rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0;
+      }
+
+      /* Bauhaus signature: geometric shape cluster (optional) */
+      .hero-shapes {
+        position: relative;
+        height: 80px;
+        margin-bottom: 1rem;
+      }
+      .hero-shapes .circle {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 56px;
+        height: 56px;
+        background: var(--problem);
+        border-radius: 50%;
+      }
+      .hero-shapes .square {
+        position: absolute;
+        top: 24px;
+        left: 72px;
+        width: 48px;
+        height: 48px;
+        background: var(--solution);
+      }
+      .hero-shapes .tri {
+        position: absolute;
+        top: 8px;
+        left: 140px;
+        width: 0;
+        height: 0;
+        border-left: 28px solid transparent;
+        border-right: 28px solid transparent;
+        border-bottom: 48px solid var(--warning);
+      }
+
+      /* --- General cards --- */
+      .card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
+      }
+
+      /* --- Issue cards --- */
+      .issue {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* --- Severity badges (used inside issue cards) --- */
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+
+      /* --- Inline badges (used in tables) --- */
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.18rem 0.5rem;
+        border: 1px solid var(--border-strong);
+        color: var(--text-muted);
+      }
+      .badge-critical {
+        color: var(--problem);
+        border-color: var(--problem);
+      }
+      .badge-high {
+        color: var(--warning);
+        border-color: var(--warning);
+      }
+      .badge-medium {
+        color: var(--accent);
+        border-color: var(--accent);
+      }
+      .badge-low {
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        color: var(--solution);
+        border-color: var(--solution);
+      }
+
+      /* --- Callouts (used inside issues or standalone) --- */
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.7rem 0.9rem;
+        border-left: 3px solid var(--border-strong);
+        background: color-mix(in srgb, var(--text) 5%, transparent);
+        font-size: 0.9rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 10%, transparent);
+      }
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 10%, transparent);
+      }
+
+      /* --- Stat cards / scorecards (aliased vocabulary) --- */
+      .stat-grid,
+      .scorecard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 0.75rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .stat-card,
+      .score-card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1rem;
+        position: relative;
+      }
+      .stat-card::before,
+      .score-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--border-strong);
+      }
+      .stat-bad,
+      .score-bad {
+        /* default top bar already set */
+      }
+      .stat-bad::before,
+      .score-bad::before {
+        background: var(--problem);
+      }
+      .stat-good::before,
+      .score-good::before {
+        background: var(--solution);
+      }
+      .stat-warn::before,
+      .score-warn::before {
+        background: var(--warning);
+      }
+      .stat-value,
+      .score {
+        font-family: var(--font-heading);
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.03em;
+        color: var(--text);
+      }
+      .stat-bad .stat-value,
+      .score-bad .score {
+        color: var(--problem);
+      }
+      .stat-good .stat-value,
+      .score-good .score {
+        color: var(--solution);
+      }
+      .stat-warn .stat-value,
+      .score-warn .score {
+        color: var(--warning);
+      }
+      .stat-label,
+      .score-card .label {
+        font-family: var(--font-mono);
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-faint);
+        margin-top: 0.5rem;
+      }
+
+      /* --- Strengths list --- */
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.8rem;
+        padding: 0.7rem 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 700;
+        color: var(--solution);
+        font-size: 1.1rem;
+        line-height: 1.4;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+      }
+
+      /* --- Tables --- */
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.9rem;
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--surface-raised);
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-bottom: 1px solid var(--border-strong);
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-bottom: 1px solid var(--border);
+      }
+      tr:hover td {
+        background: var(--surface-raised);
+      }
+
+      /* --- Before/After comparison --- */
+      .compare-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin: 1rem 0 0.5rem;
+      }
+      .compare-before,
+      .compare-after {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0.4rem 0.7rem;
+        color: var(--surface);
+      }
+      .compare-before {
+        background: var(--problem);
+      }
+      .compare-after {
+        background: var(--solution);
+      }
+      .compare-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      .compare-row pre {
+        margin: 0;
+      }
+
+      /* --- Code blocks + syntax highlighting --- */
+      pre {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      p code,
+      li code,
+      td code {
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+      }
+      .tok-keyword {
+        color: var(--accent);
+      } /* func, type, struct, if, return */
+      .tok-type {
+        color: var(--warning);
+      } /* int, string, bool, error */
+      .tok-string {
+        color: var(--solution);
+      } /* "quoted strings" */
+      .tok-comment {
+        color: var(--text-faint);
+        font-style: italic;
+      }
+      .tok-func {
+        color: #74a9ff;
+      } /* function names */
+      .tok-number {
+        color: var(--accent);
+      } /* 42, 3.14 */
+      .tok-generic {
+        color: var(--problem);
+      } /* T, ID in generics */
+      .tok-builtin {
+        color: #4dd9ff;
+      } /* make, len, append */
+      .tok-punct {
+        color: var(--text-muted);
+      } /* { } ( ) ; = : */
+      .tok-attr {
+        color: var(--accent);
+      } /* Nix attribute names */
+
+      /* --- Dependency tree / ASCII diagrams --- */
+      .dep-tree {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.7;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .dep-tree .root {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .dep-tree .ok {
+        color: var(--solution);
+      }
+      .dep-tree .unwanted {
+        color: var(--problem);
+      }
+
+      /* --- Inline node-and-arrow diagrams --- */
+      .diagram {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+      }
+      .node {
+        display: inline-block;
+        padding: 0.35rem 0.7rem;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        font-weight: 600;
+        background: var(--surface-sunken);
+        border: 1px solid var(--border-strong);
+      }
+      .node-core {
+        background: var(--accent);
+        color: var(--surface);
+        border-color: var(--accent);
+      }
+      .node-problem {
+        background: var(--problem);
+        color: var(--surface);
+        border-color: var(--problem);
+      }
+      .node-good {
+        background: var(--solution);
+        color: var(--surface);
+        border-color: var(--solution);
+      }
+      .arrow {
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Grids (responsive) --- */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      /* --- Inline TOC (alternative to sidebar) --- */
+      .toc {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+        padding: 1rem 1.3rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .toc h3 {
+        margin-bottom: 0.5rem;
+      }
+      .toc ul {
+        list-style: none;
+        padding: 0;
+      }
+      .toc li {
+        margin: 0.25rem 0;
+      }
+      .toc a {
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 0.9rem;
+      }
+      .toc a:hover {
+        color: var(--accent);
+      }
+
+      /* --- Migration / numbered steps --- */
+      .migration-step {
+        display: grid;
+        grid-template-columns: 48px 1fr;
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1rem;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+      }
+      .migration-num {
+        font-family: var(--font-mono);
+        font-weight: 800;
+        font-size: 1.5rem;
+        color: var(--accent);
+        line-height: 1;
+      }
+      .migration-content h4 {
+        margin-bottom: 0.2rem;
+      }
+      .migration-content p {
+        margin-bottom: 0;
+        color: var(--text-muted);
+        font-size: 0.92rem;
+      }
+
+      /* --- Footer --- */
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border);
+        font-size: 0.8rem;
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Responsive --- */
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+        .compare-header,
+        .compare-row {
+          grid-template-columns: 1fr;
+        }
+        .stat-grid,
+        .scorecard {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .migration-step {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Full-bleed top bar -->
+    <div class="top-bar">
+      <span>Fleet Library Utilization Audit</span>
+      <span>go-cqrs-lite @ feec9bc74</span>
+      <span>2026-11-22</span>
+    </div>
+
+    <div class="layout">
+      <!-- Sidebar TOC -->
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#summary">Summary</a>
+          <a href="#verdicts">Verdict Board</a>
+          <a href="#audits">The 23 Audits</a>
+          <a href="#themes">Fleet Themes</a>
+          <a href="#companions">Companions</a>
+          <a href="#method">Method</a>
+          <a href="#verify">Verify</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <!-- Hero -->
+        <div class="hero">
+          <div class="hero-shapes">
+            <div class="circle"></div>
+            <div class="square"></div>
+            <div class="tri"></div>
+          </div>
+          <div class="hero-badge">23 Libraries &times; 1 Consumer</div>
+          <h1>Do we leverage our own fleet SUPERBLY?</h1>
+          <p class="hero-subtitle">
+            Twenty-three back-to-back audits of the LarsArtmann first-party library
+            fleet against one consumer: <strong>go-cqrs-lite</strong>, the 104-module
+            CQRS/event-sourcing SDK. Each report answers the same question &mdash; used
+            to the max? if not, should we? &mdash; with derived scores, file:line
+            evidence, version stamps for future re-review, and a named flip trigger
+            for every non-adoption.
+          </p>
+        </div>
+
+        <!-- Summary -->
+        <h2 id="summary"><span class="num">00</span>Summary</h2>
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-value">23</div>
+            <div class="stat-label">Libraries audited</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">900</div>
+            <div class="stat-label">Citations verified, 0 stale</div>
+          </div>
+          <div class="stat-card stat-warn">
+            <div class="stat-value">11</div>
+            <div class="stat-label">Underused (7 moderate, 4 severe)</div>
+          </div>
+          <div class="stat-card stat-bad">
+            <div class="stat-value">3</div>
+            <div class="stat-label">Split-pin drifts (sse, idempotency, atomic-write)</div>
+          </div>
+          <div class="stat-card stat-good">
+            <div class="stat-value">2</div>
+            <div class="stat-label">Adopted well (cmdguard, templ-components)</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">6</div>
+            <div class="stat-label">Auditor groups (sequential, rate-limit hardened)</div>
+          </div>
+        </div>
+
+        <div class="callout callout-solution">
+          <strong>The one-sentence answer.</strong>
+          The core data-plane dependencies (go-error-family, go-codec, go-retry,
+          go-sse) are pinned current and structurally sound, but almost every one is
+          leveraged at a fraction of its surface &mdash; and the strongest recurring
+          pattern is <em>bridges built but never crossed</em>: the repo constructs the
+          modern path (benchkit system factory, ssetest/sseparse, contract.RunTests,
+          go-output/d2) and then keeps walking the hand-rolled one.
+        </div>
+
+        <!-- Verdict board -->
+        <h2 id="verdicts"><span class="num">01</span>Verdict Board</h2>
+        <table>
+          <thead>
+            <tr><th>Verdict</th><th>Count</th><th>Libraries</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><span class="badge badge-fixed">Adopted</span></td><td>2</td><td>cmdguard (73%), templ-components (74%)</td></tr>
+            <tr><td><span class="badge badge-medium">Underused moderate</span></td><td>7</td><td>go-error-family, go-idempotency, go-etag, go-codec, go-sse, httputil/server_timing, go-cqrs-lite (self)</td></tr>
+            <tr><td><span class="badge badge-high">Underused severe</span></td><td>4</td><td>go-retry, httputil, go-atomic-write, go-output</td></tr>
+            <tr><td><span class="badge badge-low">Not adopted, justified</span></td><td>6</td><td>go-business-rules, go-datastar, go-filewatcher, go-daemon, go-health-dashboard, go-credentials-store</td></tr>
+            <tr><td><span class="badge badge-critical">Not adopted, gap</span></td><td>2</td><td>go-health, httputil/endpoints</td></tr>
+            <tr><td><span class="badge badge-low">N/A direction</span></td><td>2</td><td>go-appkit, cqrs-htmx (companions: they consume us; inverse audits instead)</td></tr>
+          </tbody>
+        </table>
+
+        <!-- The 23 audits -->
+        <h2 id="audits"><span class="num">02</span>The 23 Audits</h2>
+        <p>
+          Sorted by auditor group (provenance for QC sampling). Score = M of A
+          applicable capabilities fully leveraged (Fully 1 / Partial 0.5 / Missed 0;
+          N/A rows excluded, each with a stated reason). Full evidence in the
+          linked report.
+        </p>
+        <table>
+          <thead>
+            <tr><th>#</th><th>Library</th><th>Verdict</th><th>Score</th><th>Pins vs latest</th><th>Headline finding</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td><a href="go-error-family.md">go-error-family</a></td><td><span class="badge badge-medium">Moderate</span></td><td>5/15 = 33%</td><td>v0.12.0 = latest (96 pins)</td><td>errorfamilytest kit unused; 98 hand-rolled Classify asserts</td></tr>
+            <tr><td>2</td><td><a href="go-codec.md">go-codec</a></td><td><span class="badge badge-medium">Moderate</span></td><td>8/17 = 47%</td><td>v0.3.3 = latest (86 pins)</td><td>36 hand-rolled deterministic json.Marshal sites; signing seam unguarded</td></tr>
+            <tr><td>3</td><td><a href="go-retry.md">go-retry</a></td><td><span class="badge badge-high">Severe</span></td><td>1.5/8 = 19%</td><td>v0.9.0 = latest</td><td>Zero retry.Do call sites; middleware hand-rolls the loop</td></tr>
+            <tr><td>4</td><td><a href="go-idempotency.md">go-idempotency</a></td><td><span class="badge badge-medium">Moderate</span></td><td>2.5/7 = 36%</td><td class="bad">split v0.3.2/v0.6.0</td><td>contract.RunTests never certifies own sqlstore; WithClock unused, tests sleep</td></tr>
+            <tr><td>5</td><td><a href="httputil.md">httputil</a></td><td><span class="badge badge-high">Severe</span></td><td>1/12 = 8%</td><td>v1.8.0 vs v1.9.0</td><td>Example uses 1 of ~60 symbols; no Recovery, MaxBodySize, or health handlers</td></tr>
+            <tr><td>6</td><td><a href="httputil-server-timing.md">httputil/server_timing</a></td><td><span class="badge badge-medium">Moderate</span></td><td>2/5 = 40%</td><td>v1.0.3 = latest</td><td>Core loop real and test-pinned; ungated in prod, SSE replay unmeasured</td></tr>
+            <tr><td>7</td><td><a href="httputil-endpoints.md">httputil/endpoints</a></td><td><span class="badge badge-critical">Gap</span></td><td>0/3 = 0%</td><td>none (v0.1.0)</td><td>Docserver mounts 18 bare routes; route-listing drift is the exact problem it kills</td></tr>
+            <tr><td>8</td><td><a href="go-etag.md">go-etag</a></td><td><span class="badge badge-medium">Moderate</span></td><td>2.5/6 = 42%</td><td>v0.6.2 = latest nested</td><td>Docserver serves 18 routes with zero ETag/304; no If-Match recipe</td></tr>
+            <tr><td>9</td><td><a href="go-sse.md">go-sse</a></td><td><span class="badge badge-medium">Moderate</span></td><td>5/9 = 56%</td><td class="bad">split v0.6.2/v0.7.0</td><td>Only prod-adopted transport; own harnesses bypass ssetest/sseparse; malformed Last-Event-ID silently replays all</td></tr>
+            <tr><td>10</td><td><a href="go-datastar.md">go-datastar</a></td><td><span class="badge badge-low">Justified</span></td><td>0/1 = 0%</td><td>none (v0.7.0)</td><td>No browser surface; bridge pre-built via go-sse keyed lines</td></tr>
+            <tr><td>11</td><td><a href="go-health.md">go-health</a></td><td><span class="badge badge-critical">Gap</span></td><td>0/8 = 13%</td><td>none (v0.10.0 alpha)</td><td>Seam is free: health.CheckFunc equals metaengine.HealthChecker; example health is a hardcoded string</td></tr>
+            <tr><td>12</td><td><a href="go-health-dashboard.md">go-health-dashboard</a></td><td><span class="badge badge-low">Justified</span></td><td>0/4 = 0%</td><td>none (v0.13.3)</td><td>Blocked behind the go-health seam; flips cheap once bridged</td></tr>
+            <tr><td>13</td><td><a href="go-daemon.md">go-daemon</a></td><td><span class="badge badge-low">Justified</span></td><td>0/1 = 0%</td><td>none (v0.4.0)</td><td>Example drain-order wart (projections stop before intake) is a 2-line fix, not an adoption</td></tr>
+            <tr><td>14</td><td><a href="go-filewatcher.md">go-filewatcher</a></td><td><span class="badge badge-low">Justified</span></td><td>0/0 = N/A</td><td>none (v2.5.0)</td><td>Zero watchers exist; pre-committed flip for cqrs-gen --watch</td></tr>
+            <tr><td>15</td><td><a href="go-atomic-write.md">go-atomic-write</a></td><td><span class="badge badge-high">Severe</span></td><td>0/4 = 0%</td><td class="bad">split v0.6.1/v0.6.2 indirect</td><td>In all 5 tool graphs with zero imports; cqrs-lint DIY temp+rename, cqrs-upgrade bare os.WriteFile on user source</td></tr>
+            <tr><td>16</td><td><a href="go-output.md">go-output</a></td><td><span class="badge badge-high">Severe</span></td><td>4.5/11 = 41%</td><td>v0.38.7 = latest</td><td>catalog hand-rolls 633 lines of D2 DSL beside an un-pinned go-output/d2</td></tr>
+            <tr><td>17</td><td><a href="cmdguard.md">cmdguard</a></td><td><span class="badge badge-fixed">Adopted</span></td><td>8/11 = 73%</td><td>v5.0.0 vs v5.1.0</td><td>5 of 6 CLIs ride it; cqrs-upgrade still on stdlib flags; battery layer untouched</td></tr>
+            <tr><td>18</td><td><a href="go-credentials-store.md">go-credentials-store</a></td><td><span class="badge badge-low">Justified</span></td><td>0/1 = 0%</td><td>none (v0.4.3)</td><td>Dependency arrow points the wrong way (it requires us); fix is a recipe, not a require</td></tr>
+            <tr><td>19</td><td><a href="go-business-rules.md">go-business-rules</a></td><td><span class="badge badge-low">Justified</span></td><td>0/1 = 0%</td><td>none (v2.2.1)</td><td>Deciders are pure functions; one honest overlap (catalog validate.go) fixed better zero-dep</td></tr>
+            <tr><td>20</td><td><a href="templ-components.md">templ-components</a></td><td><span class="badge badge-fixed">Well-used</span></td><td>12.5/17 = 74%</td><td>v1.27.0 vs v1.27.2 (hardening)</td><td>Entire docserver chrome library-owned; missed patches fix rendered-surface break-outs</td></tr>
+            <tr><td>21</td><td><a href="go-appkit.md">go-appkit</a></td><td><span class="badge badge-low">N/A dir.</span></td><td>9/10 inverse = 90%</td><td>47/57 pins latest</td><td>Model v5 citizen (system.New, systemscenario.Adopt); sqliteengine pin misses deadlock fix</td></tr>
+            <tr><td>22</td><td><a href="cqrs-htmx.md">cqrs-htmx</a></td><td><span class="badge badge-low">N/A dir.</span></td><td>6.5/10 inverse = 65%</td><td>528/551 pins latest</td><td>Fleet-best currency; usermgmt still on v5-doomed stack/v4 prices the codemod bill</td></tr>
+            <tr><td>23</td><td><a href="go-cqrs-lite.md">go-cqrs-lite (self)</a></td><td><span class="badge badge-medium">Moderate</span></td><td>5.5/8 = 69%</td><td>v4 frozen / core-v5 free</td><td>cqrs-bench runs on doomed presets beside an uncrossed system bridge; deprecated-sqlstore demo example</td></tr>
+          </tbody>
+        </table>
+
+        <!-- Fleet themes -->
+        <h2 id="themes"><span class="num">03</span>Fleet Themes</h2>
+
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">Highest leverage</span>
+          <h3>Bridges built, never crossed</h3>
+          <div class="where">benchkit/v4/system_factory.go:22 &middot; metaengine/v4/sse_replay_test.go:293 &middot; catalog/v4/d2/connections.go:23 &middot; idempotency contract.RunTests</div>
+          <p>
+            Four times the repo constructed the shared/modern path and then kept the
+            hand-rolled one: benchkit's FactoryFromSystem exists but cqrs-bench still
+            builds v5-doomed stack presets; the SSE test kit (ssetest/sseparse) is
+            used by one example while metaengine tests speak raw TCP; go-output/d2
+            sits un-pinned beside 633 hand-rolled DSL lines; the idempotency contract
+            suite has never certified the repo's own sqlstore. Under the owner's
+            fleet lens this is the cheapest class to fix: the bridge is already paid for.
+          </p>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Fleet-wide</span>
+          <h3>The golden path teaches gaps</h3>
+          <div class="where">example/taskmanager/http.go:63-65,344-349 &middot; recipes.md &sect;2.47</div>
+          <p>
+            The example and recipe that fleet apps copy use 1 of ~60 httputil symbols,
+            omit panic recovery and body-size limits, and hand-roll a health endpoint
+            that ignores the system's own rich diagnostics. Every cloned app inherits
+            the gaps; one example diff fixes the whole fleet-to-be.
+          </p>
+        </div>
+
+        <div class="issue issue-important">
+          <span class="severity severity-important">Accidental matrix</span>
+          <h3>Split-pin drift</h3>
+          <div class="where">go-sse v0.6.2/v0.7.0 &middot; go-idempotency v0.3.2/v0.6.0 &middot; go-atomic-write v0.6.1/v0.6.2</div>
+          <p>
+            The same production code is tested against two versions of go-sse
+            depending on entry point (metaengine resolves v0.6.2; the integration
+            tier v0.7.0). go-sse v0.7.0 was cut from a chore commit with no CHANGELOG
+            section, which is likely why no sweep caught it. One-command bumps per
+            module; all three diffs verified non-breaking.
+          </p>
+        </div>
+
+        <div class="issue issue-nice">
+          <span class="severity severity-nice">Cheap seams</span>
+          <h3>One-liners left on the table</h3>
+          <div class="where">health.CheckFunc &equiv; metaengine.HealthChecker &middot; etag.New wrap &middot; sse.LastEventIDFromRequest</div>
+          <p>
+            The go-health bridge is signature-identical to the existing HealthChecker
+            seam (zero new library deps); docserver repeat visits could be 304s with
+            one etag wrap; malformed Last-Event-ID headers could stop silently
+            replaying the entire journal. Each is a deliberate afternoon, not a project.
+          </p>
+        </div>
+
+        <!-- Companions -->
+        <h2 id="companions"><span class="num">04</span>Companions (inverse audits)</h2>
+        <div class="card card-solution">
+          <h4>cqrs-htmx &mdash; fleet-best currency</h4>
+          <p>
+            528/551 resolvable pins at latest; zero production-module lag; new
+            chassis on system.Standard presets and the systemscenario harness.
+            The one red flag: usermgmt's stack/v4 + storage/sql usage is the
+            single strongest coupling blocking the v5 stack deletion.
+          </p>
+        </div>
+        <div class="card card-solution">
+          <h4>go-appkit &mdash; model v5 citizen</h4>
+          <p>
+            system.New composition root, systemscenario.Adopt, zero legacy
+            stack/storage/idempotency imports in production. 10/57 pins lag by
+            &le;1 week; the sqliteengine v4.7.1 pin predates the v4.8.0 EnforceCap
+            deadlock fix it should not miss.
+          </p>
+        </div>
+
+        <!-- Method -->
+        <h2 id="method"><span class="num">05</span>Method</h2>
+        <div class="migration-step">
+          <div class="migration-num">1</div>
+          <div class="migration-content">
+            <h4>Orchestrator fact base</h4>
+            <p>go.mod pin census across all 104 modules; latest tags re-derived semver-sorted (never git tag | tail); HEAD stamps recorded for re-review.</p>
+          </div>
+        </div>
+        <div class="migration-step">
+          <div class="migration-num">2</div>
+          <div class="migration-content">
+            <h4>Six auditor groups, one report contract</h4>
+            <p>Core-heavy, transport, ops, tooling, companions, self-dogfood. Each report: derived score with inputs, capability inventory with N/A reasons, evidence, version currency, fleet argument, ranked opportunities, flip trigger, verify block.</p>
+          </div>
+        </div>
+        <div class="migration-step">
+          <div class="migration-num">3</div>
+          <div class="migration-content">
+            <h4>Machine QC</h4>
+            <p>scripts/citation-sweep.py (new, self-tested) resolves every path:line cite against the consumer and the 21 library checkouts: 900 ok / 0 bad. Verify blocks replayed by the orchestrator; ambiguous bare-basename cites qualified during QC.</p>
+          </div>
+        </div>
+        <div class="migration-step">
+          <div class="migration-num">4</div>
+          <div class="migration-content">
+            <h4>Repo gates</h4>
+            <p>check-md-go green (all fences parse or carry skip-validate); provider rate-limits absorbed by running groups sequentially and resuming failed agents with session context intact.</p>
+          </div>
+        </div>
+
+        <!-- Verify -->
+        <h2 id="verify"><span class="num">06</span>Verify</h2>
+        <pre><code>python3 scripts/citation-sweep.py          # 900 ok, 0 bad, 23 reports
+python3 scripts/citation-sweep.py --self-test
+nix run .#check-md-go                      # fences green
+grep -m1 'Verdict' docs/review/libs/&lt;LIB&gt;.md  # any report's verdict line
+git -C ~/projects/&lt;LIB&gt; describe --tags     # version stamps (semver-sort for latest)</code></pre>
+
+        <footer class="footer">
+          Generated 2026-11-22 &middot; Reports: docs/review/libs/*.md &middot; Consumer go-cqrs-lite @ feec9bc74 &middot;
+          Re-review trigger: any library's next minor tag, or the v5 module cut<br />Render trace: <a href="../../assets/2026-11-22_fleet-libs-audit-index.png" style="color:inherit">docs/assets/2026-11-22_fleet-libs-audit-index.png</a>
+        </footer>
+      </main>
+    </div>
+
+    <!-- Progressive-enhancement scrollspy. Nav still works without JS via anchor links. -->
+    <script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) {
+            return document.getElementById(id);
+          })
+          .filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (link) {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id,
+                  );
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
+      })();
+    </script>
+  </body>
+</html>

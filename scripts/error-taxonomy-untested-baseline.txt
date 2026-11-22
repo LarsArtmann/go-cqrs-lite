@@ -238,6 +238,13 @@ pebble.version_conflict
 pebble.version_mismatch
 pebble.write_checkpoint
 pebble.write_snapshot
+pebble_preset.flush
+# pebble_preset.flush recorded deliberately (2026-11-22): pebble PANICS
+# ("pebble: closed") on Flush after Close instead of returning an error, and
+# the preset holds the backend unexported with no error-injection seam, so the
+# wrap cannot be exercised deterministically. Sibling pebble_preset.checkpoint
+# IS asserted (TestCheckpoint_ExistingDirFails: family + code). Revisit when
+# storage/pebble grows a closed-guard on Backend.Flush.
 pebble_preset.open_backend
 pebble_preset.wire_bundle
 postgres.create_secondary_backend

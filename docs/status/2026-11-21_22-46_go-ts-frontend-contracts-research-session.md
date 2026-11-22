@@ -113,6 +113,12 @@ class raw-verified).
    one wasted round-trip each.
 5. **Intent misjudge on the first answer:** delivered a compact options
    summary where the owner wanted deep research — user had to demand it.
+6. **Late addendum (found 2026-11-21 ~23:00, answering a GopherJS follow-up):**
+   the report's GopherJS row said "not under active development" marked ✅ —
+   the verified source actually says "not archived, but far behind", and its
+   June 2026 release contradicts my phrasing. Third instance of the
+   misquote-as-verified class (with d1's fabricated API and d2's uncounted
+   number). Corrected in place with dated notes (report §03.E, §04, §10).
 
 ## e) WHAT WE SHOULD IMPROVE
 
