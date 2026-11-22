@@ -112,7 +112,8 @@
       .top-bar {
         background: var(--text);
         color: var(--surface);
-        padding: 0.6rem 2rem;
+        padding: 0.75rem 2rem;
+        line-height: 1.3;
         font-family: var(--font-mono);
         font-size: 0.75rem;
         font-weight: 700;
@@ -946,7 +947,7 @@
             <tr><td>8</td><td><a href="go-etag.md">go-etag</a></td><td><span class="badge badge-medium">Moderate</span></td><td>2.5/6 = 42%</td><td>v0.6.2 = latest nested</td><td>Docserver serves 18 routes with zero ETag/304; no If-Match recipe</td></tr>
             <tr><td>9</td><td><a href="go-sse.md">go-sse</a></td><td><span class="badge badge-medium">Moderate</span></td><td>5/9 = 56%</td><td class="bad">split v0.6.2/v0.7.0</td><td>Only prod-adopted transport; own harnesses bypass ssetest/sseparse; malformed Last-Event-ID silently replays all</td></tr>
             <tr><td>10</td><td><a href="go-datastar.md">go-datastar</a></td><td><span class="badge badge-low">Justified</span></td><td>0/1 = 0%</td><td>none (v0.7.0)</td><td>No browser surface; bridge pre-built via go-sse keyed lines</td></tr>
-            <tr><td>11</td><td><a href="go-health.md">go-health</a></td><td><span class="badge badge-critical">Gap</span></td><td>0/8 = 13%</td><td>none (v0.10.0 alpha)</td><td>Seam is free: health.CheckFunc equals metaengine.HealthChecker; example health is a hardcoded string</td></tr>
+            <tr><td>11</td><td><a href="go-health.md">go-health</a></td><td><span class="badge badge-critical">Gap</span></td><td>0/8 full (+2 partial) = 13%</td><td>none (v0.10.0 alpha)</td><td>Seam is free: health.CheckFunc equals metaengine.HealthChecker; example health is a hardcoded string</td></tr>
             <tr><td>12</td><td><a href="go-health-dashboard.md">go-health-dashboard</a></td><td><span class="badge badge-low">Justified</span></td><td>0/4 = 0%</td><td>none (v0.13.3)</td><td>Blocked behind the go-health seam; flips cheap once bridged</td></tr>
             <tr><td>13</td><td><a href="go-daemon.md">go-daemon</a></td><td><span class="badge badge-low">Justified</span></td><td>0/1 = 0%</td><td>none (v0.4.0)</td><td>Example drain-order wart (projections stop before intake) is a 2-line fix, not an adoption</td></tr>
             <tr><td>14</td><td><a href="go-filewatcher.md">go-filewatcher</a></td><td><span class="badge badge-low">Justified</span></td><td>0/0 = N/A</td><td>none (v2.5.0)</td><td>Zero watchers exist; pre-committed flip for cqrs-gen --watch</td></tr>
@@ -1058,7 +1059,7 @@
           <div class="migration-num">3</div>
           <div class="migration-content">
             <h4>Machine QC</h4>
-            <p>scripts/citation-sweep.py (new, self-tested) resolves every path:line cite against the consumer and the 21 library checkouts: 900 ok / 0 bad. Verify blocks replayed by the orchestrator; ambiguous bare-basename cites qualified during QC.</p>
+            <p>scripts/citation-sweep.py (new, self-tested) resolves every path:line cite against the consumer repo and the 21 sibling library checkouts (23 reports: httputil spans three module reports, plus the self-audit): 900 ok / 0 bad. Verify blocks replayed by the orchestrator; ambiguous bare-basename cites qualified during QC.</p>
           </div>
         </div>
         <div class="migration-step">

@@ -1,0 +1,1624 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Commands vs Facts — LiveStore, DataStar, and where the decision boundary lives — go-cqrs-lite</title>
+    <style>
+      /* =========================================================================
+         BAUHAUS LIGHT — Editorial template
+         Design language: form follows function. Primary colors on warm paper.
+         Zero external dependencies: system fonts, no CDN, no build step.
+         Token architecture: see references/bauhaus-tokens.md
+         ========================================================================= */
+
+      :root {
+        /* --- Primitive palette (Bauhaus Light) --- */
+        --color-paper: #f4f4f0;
+        --color-paper-2: #ffffff;
+        --color-paper-3: #e8e8e2;
+        --color-ink: #111111;
+        --color-red: #e63946;
+        --color-blue: #1d3557;
+        --color-yellow: #f4d35e;
+        --color-hairline: rgba(17, 17, 17, 0.14);
+        --color-hairline-strong: rgba(17, 17, 17, 0.3);
+
+        /* --- Semantic layer (shared vocabulary with dark template) --- */
+        --surface: var(--color-paper);
+        --surface-raised: var(--color-paper-2);
+        --surface-sunken: var(--color-paper-3);
+        --text: var(--color-ink);
+        --text-muted: rgba(17, 17, 17, 0.72);
+        --text-faint: rgba(17, 17, 17, 0.5);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-red);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        /* --- Backward-compatible aliases (do not break consumer skills) --- */
+        --bg: var(--surface);
+        --bg-elevated: var(--surface-raised);
+        --bg-sunken: var(--surface-sunken);
+        --bg-card: var(--surface-raised);
+        --bg-code: var(--surface-sunken);
+        --ink: var(--text);
+        --ink-secondary: var(--text-muted);
+        --ink-muted: var(--text-faint);
+        --rose: var(--problem);
+        --rose-glow: color-mix(in srgb, var(--problem) 15%, transparent);
+        --emerald: var(--solution);
+        --emerald-glow: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber: var(--warning);
+        --amber-glow: color-mix(in srgb, var(--warning) 15%, transparent);
+        --amber-light: color-mix(in srgb, var(--warning) 22%, transparent);
+        --coral: var(--problem);
+        --coral-light: color-mix(in srgb, var(--problem) 12%, transparent);
+        --teal: var(--solution);
+        --teal-light: color-mix(in srgb, var(--solution) 12%, transparent);
+
+        /* --- Shape --- */
+        --radius: 0px;
+        --radius-sm: 0px;
+
+        /* --- Type stacks (system only — zero external fonts) --- */
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 16px;
+        line-height: 1.65;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* --- Accessibility: keyboard focus --- */
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      a:focus-visible {
+        outline-offset: -1px;
+      }
+
+      /* --- Full-bleed top bar --- */
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      /* --- Layout: optional sticky sidebar TOC --- */
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--text);
+      }
+      .sidebar a {
+        font-size: 0.86rem;
+        color: var(--text);
+        text-decoration: none;
+        padding: 0.5rem 0.75rem;
+        border-left: 4px solid transparent;
+        font-weight: 600;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+        color: var(--accent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      /* --- Headings --- */
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        color: var(--text);
+      }
+      h1 {
+        font-size: clamp(1.9rem, 4.5vw, 2.8rem);
+        line-height: 1.05;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.5rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 3px solid var(--text);
+        display: flex;
+        align-items: baseline;
+        gap: 0.7rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+      h3 {
+        font-size: 1.15rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 1rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+
+      /* --- Hero --- */
+      .hero {
+        padding: 1.5rem 0 2rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 3px solid var(--text);
+      }
+      .eyebrow {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: var(--accent);
+        margin-bottom: 0.9rem;
+      }
+      .subtitle {
+        font-size: 1.1rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0 0 1rem;
+      }
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      .tag {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        padding: 0.25rem 0.6rem;
+        background: var(--surface-sunken);
+        color: var(--text);
+        border: 1px solid var(--border-strong);
+      }
+      .tag.amber {
+        background: var(--warning);
+        border-color: var(--warning);
+        color: var(--text);
+      }
+      .tag.teal {
+        background: var(--solution);
+        border-color: var(--solution);
+        color: var(--surface);
+      }
+
+      /* Bauhaus signature: geometric shape cluster (optional) */
+      .hero-shapes {
+        position: relative;
+        height: 90px;
+        margin-bottom: 1.2rem;
+      }
+      .hero-shapes .circle {
+        position: absolute;
+        top: 0;
+        right: 180px;
+        width: 64px;
+        height: 64px;
+        background: var(--problem);
+        border-radius: 50%;
+      }
+      .hero-shapes .square {
+        position: absolute;
+        top: 26px;
+        right: 90px;
+        width: 56px;
+        height: 56px;
+        background: var(--solution);
+      }
+      .hero-shapes .tri {
+        position: absolute;
+        top: 8px;
+        right: 0;
+        width: 0;
+        height: 0;
+        border-left: 32px solid transparent;
+        border-right: 32px solid transparent;
+        border-bottom: 56px solid var(--warning);
+      }
+      .hero-shapes .bar {
+        position: absolute;
+        bottom: 0;
+        right: 230px;
+        width: 100px;
+        height: 14px;
+        background: var(--text);
+      }
+
+      /* --- Scorecard / stat cards --- */
+      .scorecard,
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 0;
+        margin: 1.5rem 0 2rem;
+        border: 3px solid var(--text);
+      }
+      .score-card,
+      .stat-card {
+        padding: 1.3rem 1rem;
+        text-align: center;
+        border-right: 3px solid var(--text);
+        background: var(--surface-raised);
+      }
+      .score-card:last-child,
+      .stat-card:last-child {
+        border-right: none;
+      }
+
+      .score,
+      .stat-value {
+        font-family: var(--font-heading);
+        font-size: 2.6rem;
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -0.04em;
+      }
+      .score-card .label,
+      .stat-label {
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        margin-top: 0.5rem;
+      }
+      /* Semantic state classes — no nth-child decoration, no !important */
+      .score-good,
+      .stat-good {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .score-warn,
+      .stat-warn {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .score-bad,
+      .stat-bad {
+        background: var(--problem);
+        color: var(--surface);
+      }
+
+      /* --- General cards --- */
+      .card {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+      }
+
+      /* --- Issue cards --- */
+      .issue {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* --- Severity badges --- */
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.22rem 0.6rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+
+      /* --- Inline badges --- */
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        border: 1px solid var(--text);
+        color: var(--text);
+      }
+      .badge-critical {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .badge-high {
+        background: var(--warning);
+      }
+      .badge-medium {
+        background: var(--surface-sunken);
+      }
+      .badge-low {
+        background: var(--surface-raised);
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        background: var(--solution);
+        color: var(--surface);
+      }
+
+      /* --- Callouts --- */
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.8rem 1rem;
+        border: 1px solid var(--border-strong);
+        border-left: 4px solid var(--border-strong);
+        background: var(--surface-sunken);
+        font-size: 0.92rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-teal,
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 10%,
+          var(--surface-raised)
+        );
+      }
+      .callout-amber,
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 18%,
+          var(--surface-raised)
+        );
+      }
+
+      /* --- Strengths --- */
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.9rem;
+        padding: 0.75rem 0;
+        border-bottom: 2px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        color: var(--solution);
+        font-size: 1.3rem;
+        line-height: 1.3;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.92rem;
+      }
+
+      /* --- Tables --- */
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.92rem;
+        border: 2px solid var(--text);
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--text);
+        color: var(--surface);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-right: 1px solid var(--border-strong);
+      }
+      th:last-child {
+        border-right: none;
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-top: 1px solid var(--border);
+        border-right: 1px solid var(--border);
+      }
+      td:last-child {
+        border-right: none;
+      }
+      tr:nth-child(even) td {
+        background: var(--surface-sunken);
+      }
+      table.compare td.yes {
+        color: var(--solution);
+        font-weight: 700;
+      }
+      table.compare td.no {
+        color: var(--problem);
+        font-weight: 700;
+      }
+
+      /* --- Code blocks + syntax highlighting --- */
+      pre {
+        background: var(--text);
+        color: var(--surface);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+        border: 2px solid var(--text);
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      p code,
+      li code,
+      td code {
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+      }
+      .tok-keyword {
+        color: var(--warning);
+      }
+      .tok-type {
+        color: var(--warning);
+      }
+      .tok-string {
+        color: #95e1d3;
+      }
+      .tok-comment {
+        color: rgba(244, 244, 240, 0.45);
+        font-style: italic;
+      }
+      .tok-func {
+        color: #6eb5ff;
+      }
+      .tok-number {
+        color: var(--warning);
+      }
+      .tok-generic {
+        color: var(--problem);
+      }
+      .tok-builtin {
+        color: #6eb5ff;
+      }
+      .tok-punct {
+        color: rgba(244, 244, 240, 0.7);
+      }
+      .tok-attr {
+        color: var(--warning);
+      }
+
+      /* --- Dependency tree / ASCII diagrams --- */
+      .dep-tree {
+        background: var(--surface-sunken);
+        border: 2px solid var(--text);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.7;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .dep-tree .root {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .dep-tree .ok {
+        color: var(--solution);
+      }
+      .dep-tree .unwanted {
+        color: var(--problem);
+      }
+
+      /* --- Inline node-and-arrow diagrams --- */
+      .diagram {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+      }
+      .node {
+        display: inline-block;
+        padding: 0.4rem 0.75rem;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        font-weight: 700;
+        background: var(--surface-sunken);
+        border: 1px solid var(--text);
+      }
+      .node-core {
+        background: var(--accent);
+        color: var(--surface);
+      }
+      .node-problem {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .node-good {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .arrow {
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Grids --- */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      /* --- Inline TOC --- */
+      .toc {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+        padding: 1rem 1.3rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .toc h3 {
+        margin-bottom: 0.5rem;
+      }
+      .toc ul {
+        list-style: none;
+        padding: 0;
+      }
+      .toc li {
+        margin: 0.25rem 0;
+      }
+      .toc a {
+        color: var(--text);
+        text-decoration: none;
+        font-size: 0.92rem;
+        font-weight: 600;
+      }
+      .toc a:hover {
+        color: var(--accent);
+      }
+
+      /* --- Migration / numbered steps --- */
+      .migration-step {
+        display: grid;
+        grid-template-columns: 56px 1fr;
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1.1rem;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+      }
+      .migration-num {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        font-size: 1.8rem;
+        color: var(--accent);
+        line-height: 1;
+      }
+      .migration-content h4 {
+        margin-bottom: 0.2rem;
+      }
+      .migration-content p {
+        margin-bottom: 0;
+        color: var(--text-muted);
+        font-size: 0.94rem;
+      }
+
+      /* --- Before/After comparison --- */
+      .compare-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin: 1rem 0 0.5rem;
+      }
+      .compare-before,
+      .compare-after {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0.4rem 0.7rem;
+        color: var(--surface);
+      }
+      .compare-before {
+        background: var(--problem);
+      }
+      .compare-after {
+        background: var(--solution);
+      }
+      .compare-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      .compare-row pre {
+        margin: 0;
+      }
+
+      /* --- Footer --- */
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 3px solid var(--text);
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Responsive --- */
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+        .compare-header,
+        .compare-row {
+          grid-template-columns: 1fr;
+        }
+        .scorecard,
+        .stat-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-right: none;
+        }
+        .score-card:nth-child(1),
+        .stat-card:nth-child(1),
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-bottom: 3px solid var(--text);
+        }
+        .migration-step {
+          grid-template-columns: 1fr;
+        }
+        .hero-shapes {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Full-bleed top bar (optional — remove for quieter reports) -->
+    <div class="top-bar">
+      <span>DEEP RESEARCH</span>
+      <span>2026-11-22</span>
+      <span>GO-CQRS-LITE / FRONT-END STRATEGY</span>
+    </div>
+
+    <div class="layout">
+      <!-- Sidebar TOC (hidden below 1024px; use inline .toc if you prefer) -->
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#summary">Summary</a>
+          <a href="#question">01 · Command vs Fact, precisely</a>
+          <a href="#livestore">02 · LiveStore, verified</a>
+          <a href="#industry">03 · The industry answer</a>
+          <a href="#datastar">04 · DataStar, deeper</a>
+          <a href="#synthesis">05 · The synthesis for this repo</a>
+          <a href="#changes">06 · What this changes</a>
+          <a href="#risks">07 · Risks</a>
+          <a href="#references">08 · Sources &amp; verification</a>
+          <a href="#appendix">Appendix · Open decisions</a>
+        </nav>
+      </aside>
+
+      <!-- Main content -->
+      <main class="main">
+        <!-- Hero -->
+        <header class="hero">
+          <!-- Optional Bauhaus signature: geometric shape cluster. Remove for quieter hero. -->
+          <div class="hero-shapes">
+            <div class="bar"></div>
+            <div class="circle"></div>
+            <div class="square"></div>
+            <div class="tri"></div>
+          </div>
+          <div class="eyebrow">DEEP RESEARCH &middot; 2026-11-22</div>
+          <h1>Commands vs Facts</h1>
+          <p class="subtitle">
+            LiveStore and DataStar, interrogated on one question: where does
+            the decision boundary live? The owner&rsquo;s suspicion about
+            LiveStore is verified &mdash; and it is the exact fault line the
+            rest of the local-first industry converged away from. What each
+            choice costs, and the shape that keeps LiveStore&rsquo;s UX
+            without surrendering the decider.
+          </p>
+          <div class="meta">
+            <span class="tag amber">Scope: LiveStore + DataStar deep dives</span>
+            <span class="tag">Series: docs/research #3</span>
+            <span class="tag">Siblings: datastar (11-07) &middot; go-ts contracts (11-21)</span>
+            <span class="tag teal">Feeds D34/L4 + adapter decision</span>
+          </div>
+        </header>
+
+        <!-- Scorecard -->
+        <section id="scorecard" class="scorecard">
+          <div class="score-card score-bad">
+            <div class="score">0</div>
+            <div class="label">Command concepts in LiveStore (verified — "command" appears only as the CLI)</div>
+          </div>
+          <div class="score-card score-good">
+            <div class="score">3/3</div>
+            <div class="label">Mature local-first engines that queue intents and decide server-authoritatively (Replicache, Zero, Electric)</div>
+          </div>
+          <div class="score-card score-good">
+            <div class="score">2</div>
+            <div class="label">SSE event types in the entire DataStar protocol</div>
+          </div>
+          <div class="score-card score-warn">
+            <div class="score">#253</div>
+            <div class="label">LiveStore merge-conflict handling: open issue, unimplemented, depends on an unbuilt "facts system"</div>
+          </div>
+        </section>
+
+        <!-- Summary -->
+        <section id="summary">
+          <h2><span class="num">00</span>Summary</h2>
+          <p>
+            The owner&rsquo;s dislike of LiveStore was a hypothesis:
+            &ldquo;they don&rsquo;t seem to have the concept of
+            Commands.&rdquo; <strong>Verified: they do not.</strong> A
+            LiveStore client calls <code>store.commit(events)</code> and the
+            events <em>are</em> the mutation &mdash; there is no
+            intent-vs-state decision step, no rejection path that can consult
+            authoritative current state, and the consequences surface where
+            they are hardest to fix: merge-conflict handling is still
+            unimplemented (open issue #253, reopened May 2026, blocked on an
+            unbuilt &ldquo;facts system&rdquo;).
+          </p>
+          <p>
+            Meanwhile the rest of the local-first industry converged on the
+            opposite pole: Replicache and Zero run client mutators
+            <em>speculatively</em> and re-run them
+            <em>authoritatively on a server push endpoint</em>; ElectricSQL
+            ships read-path sync only and routes every write through your own
+            API. In CQRS vocabulary they all reinvented the Command boundary.
+            go-cqrs-lite was born with it.
+          </p>
+          <table class="compare">
+            <thead>
+              <tr>
+                <th>System</th>
+                <th>Who mints facts (events)</th>
+                <th>Can the answer be &ldquo;no&rdquo;?</th>
+                <th>Where decide() lives</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>LiveStore</strong></td>
+                <td class="no">The client, directly (<code>store.commit</code>)</td>
+                <td class="no">Only payload-schema errors; state checks see pre-commit local state</td>
+                <td class="no">Nowhere (the gap)</td>
+              </tr>
+              <tr>
+                <td><strong>Replicache / Zero</strong></td>
+                <td>The server, after re-running the queued intent</td>
+                <td class="yes">Yes — server may compute a different outcome; rejects revert the optimistic client state</td>
+                <td class="yes">Server push/mutate endpoint</td>
+              </tr>
+              <tr>
+                <td><strong>ElectricSQL</strong></td>
+                <td>Your API (write-path sync explicitly out of scope)</td>
+                <td class="yes">Yes — writes are plain API calls</td>
+                <td class="yes">Your handlers</td>
+              </tr>
+              <tr>
+                <td><strong>DataStar</strong></td>
+                <td>The server (there is no client write model at all)</td>
+                <td class="yes">Yes — the docs mandate backend validation</td>
+                <td class="yes">Your handlers — by construction</td>
+              </tr>
+              <tr>
+                <td><strong>go-cqrs-lite</strong></td>
+                <td>The decider, always</td>
+                <td class="yes">Yes — Rejection family is a first-class error family</td>
+                <td class="yes">Server-side decider (L4 keeps it there)</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="callout callout-amber">
+            <strong>The bottom line</strong>
+            The fault line is <em>who is allowed to say what happened</em>.
+            LiveStore answers &ldquo;the client, optimistically&rdquo; and is
+            still paying for it in unimplemented conflict resolution.
+            Everyone else answers &ldquo;the server, after judging an
+            intent&rdquo; &mdash; which is the Command, rediscovered. This
+            repo&rsquo;s L4 offline tier, if ever opened, syncs
+            <strong>queued Commands into server-side deciders &mdash; never
+            client-minted events</strong>; DataStar needs nothing new because
+            it never took the boundary away. The owner&rsquo;s instinct was
+            the correct architecture review.
+          </div>
+        </section>
+
+        <!-- 01 Question -->
+        <section id="question">
+          <h2><span class="num">01</span>Command vs Fact, precisely</h2>
+          <p>
+            The distinction this whole report turns on, in this
+            repo&rsquo;s own vocabulary:
+          </p>
+          <table class="compare">
+            <thead>
+              <tr>
+                <th></th>
+                <th>Command</th>
+                <th>Event (Fact)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>What it is</strong></td>
+                <td>Intent: a request that the world change</td>
+                <td>Immutable truth: something that happened</td>
+              </tr>
+              <tr>
+                <td><strong>Who may create it</strong></td>
+                <td>Anyone (a user, a browser, a cron)</td>
+                <td>Only the decider, <em>after deciding</em></td>
+              </tr>
+              <tr>
+                <td><strong>Can it be refused?</strong></td>
+                <td class="yes">Yes &mdash; <code>decide(state, cmd)</code> may return a Rejection after consulting current state</td>
+                <td class="no">No &mdash; refusing a fact is a category error; the decision already happened</td>
+              </tr>
+              <tr>
+                <td><strong>Timing</strong></td>
+                <td>Pre-decision</td>
+                <td>Post-decision</td>
+              </tr>
+            </tbody>
+          </table>
+          <p>
+            This is exactly the DOMAIN_LANGUAGE &ldquo;Record vs Event vs
+            Command&rdquo; row: <em>a Command is a Record of intent (may be
+            rejected); an Event is a Record of a fact (immutable
+            truth)</em>. Collapse the two &mdash; let the client write facts
+            &mdash; and every business rule that depends on current state
+            (&ldquo;email not already taken&rdquo;, &ldquo;balance
+            sufficient&rdquo;, &ldquo;item not already deleted&rdquo;) loses
+            its enforcement point. That is the critique to test against
+            LiveStore, not a strawman: maybe they enforce it elsewhere.
+          </p>
+        </section>
+
+        <!-- 02 LiveStore -->
+        <section id="livestore">
+          <h2><span class="num">02</span>LiveStore, verified</h2>
+          <p>
+            Primary sources: docs.livestore.dev (llms.txt index, main
+            concepts, sync, contributing, eventschemas pages) and the GitHub
+            repo, fetched 2026-11-22. Quotes verbatim; status: v0.5.0,
+            self-described &ldquo;beta&rdquo;, Apache-2.0, developed
+            full-time by Johannes Schickling (since 2021), incubated as the
+            foundation of his local-first music app Overtone, sponsors
+            include ElectricSQL, Netlify, Expo, Axial. No hosted backend;
+            self-hosted sync only.
+          </p>
+
+          <h3>02.1 · The verdict on Commands: absent, confirmed</h3>
+          <p>
+            The word &ldquo;command&rdquo; appears in their docs exactly
+            where you&rsquo;d find it if the concept existed &mdash; and it
+            doesn&rsquo;t: CLI usage. The mutation primitive is:
+          </p>
+          <pre><code>const store = useStore(app)
+store.commit({ type: 'todoCreated', ...args })</code></pre>
+          <p>
+            The client <strong>authors the event</strong>. Sync then pushes
+            event batches to the backend, which validates payloads and
+            assigns a global sequence number &mdash; it judges
+            <em>shape and order</em>, never <em>business outcome</em>.
+            There is no artifact in the system whose job is
+            &ldquo;given current state and an intent, emit events or
+            reject.&rdquo;
+          </p>
+
+          <h3>02.2 · The ladder of &ldquo;no&rdquo; &mdash; what a LiveStore client can and cannot be told</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Check that exists</th>
+                <th>When it runs</th>
+                <th>State it can see</th>
+                <th>Can enforce business invariants?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Effect-Schema payload validation (types, required, defaults) on event tables</td>
+                <td>At <code>store.commit</code>, client-side</td>
+                <td>The event payload only</td>
+                <td class="no">No &mdash; shape, not meaning</td>
+              </tr>
+              <tr>
+                <td>Synchronous callback on <code>store.commit</code></td>
+                <td>Before local materialization</td>
+                <td><em>Pre-commit</em> state only &mdash; it cannot see the batch&rsquo;s own effects or a concurrent remote writer&rsquo;s state</td>
+                <td class="no">Partially, on stale data &mdash; a race window by construction</td>
+              </tr>
+              <tr>
+                <td>Materializers (event &rarr; SQL)</td>
+                <td>After commit</td>
+                <td>Post-state &mdash; but they <em>must be deterministic</em>; they cannot reject, roll back, or branch</td>
+                <td class="no">No &mdash; projection, not policy</td>
+              </tr>
+              <tr>
+                <td>Sync-backend validation</td>
+                <td>On push, server-side</td>
+                <td>Payload schema + seqNum ordering</td>
+                <td class="no">No &mdash; it is a serializer/orderer, not a decider</td>
+              </tr>
+            </tbody>
+          </table>
+          <p>
+            The strongest rung is the commit callback &mdash; and it is
+            client-side, pre-state, and blind to concurrency. Everything a
+            decider does is squeezed into the one place it cannot be done.
+          </p>
+
+          <h3>02.3 · The sync model (the part worth stealing)</h3>
+          <ul>
+            <li>Git-like: push batches of new events, pull batches of new events since a cursor; batch headers carry <code>{seqNum, parentSeqNum, name, args}</code>.</li>
+            <li>The server assigns the global total order; sync backends must process one push at a time; a client pushing into a moved head gets <code>ServerAheadError</code> &rarr; pull &rarr; <strong>rebase</strong> its pending events (a <code>rebaseGeneration</code> counter tracks exactly this).</li>
+            <li>Optimistic by default: every commit is applied locally immediately; pending events are distinguished from confirmed ones; clients can stream only backend-confirmed events.</li>
+            <li>Client-only events (never synced, last-write-wins) exist for UI state &mdash; a clean seam this repo would not need (browser state is not domain state).</li>
+          </ul>
+
+          <h3>02.4 · Where the missing boundary bites: conflicts, still unimplemented</h3>
+          <p>
+            Issue #253 (merge-conflict handling) is open, was reopened May
+            2026, and depends on issue #254 &mdash; an unbuilt
+            &ldquo;facts&rdquo; system. The README markets &ldquo;custom
+            merge conflict resolution&rdquo;, which in practice means: your
+            app re-applies its own event in a callback during rebase. This
+            is the tax of client-minted facts &mdash; two clients that both
+            committed &ldquo;the truth&rdquo; produce a structural conflict
+            the platform cannot resolve, because no component ever had the
+            authority to say &ldquo;no&rdquo; before the facts existed. In
+            a command-first system that collision is not a merge problem at
+            all: the second intent simply loses at
+            <code>decide()</code> and the client reverts its optimistic
+            state &mdash; the exact semantics Zero ships today.
+          </p>
+
+          <h3>02.5 · Be fair: what LiveStore gets right</h3>
+          <div class="strengths">
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Optimistic UI with an honest ledger</strong>
+                <span>Pending vs confirmed events, rebase generations, and nanoid-based global IDs give the UX layer exactly the vocabulary an offline client needs.</span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Eventlog &ne; state, dual SQLite</strong>
+                <span>The eventlog is the source of truth; materialized state is disposable and rebuildable &mdash; the same ADR-0136 ladder this repo enforces (replayable &rarr; compensable &rarr; must-be-an-event).</span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Typed event tables</strong>
+                <span>Effect-Schema event definitions with defaults and validation are genuinely good developer UX &mdash; the same goal as our catalog schema registration, aimed at the same problem from the TS side.</span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Serious, funded, solo-driven</strong>
+                <span>Full-time since 2021, real app (Overtone) eating the dogfood, respected sponsors. This is not a toy &mdash; which is exactly why its architectural bet is worth understanding rather than dismissing.</span>
+              </div>
+            </div>
+          </div>
+          <p style="color: var(--text-muted)">
+            Not fetched (UNVERIFIED): the cookbook pattern pages (state
+            machines, undo/redo) and the <code>@livestore/livestore</code>
+            API reference beyond the concepts pages; the &ldquo;facts
+            system&rdquo; (#254) design does not exist in public form yet.
+          </p>
+        </section>
+
+        <!-- 03 Industry -->
+        <section id="industry">
+          <h2><span class="num">03</span>The industry answer: everyone else kept the boundary</h2>
+          <p>
+            Verified 2026-11-22 against primary docs. Three engines, one
+            converged model: <strong>read-path sync to the client,
+            write-path judgment on the server.</strong>
+          </p>
+
+          <h3>Replicache &mdash; speculative client, authoritative server</h3>
+          <ul>
+            <li>&ldquo;Mutators are arbitrary functions that run once on the client immediately (aka &lsquo;optimistically&rsquo;), and then run again later on the server (&lsquo;authoritatively&rsquo;) during sync.&rdquo;</li>
+            <li>The push endpoint receives <em>mutator name + args</em> &mdash; intents, not state: &ldquo;executes the pushed mutations in order &hellip; canonicalizing the mutations&rsquo; effects in the server&rsquo;s state.&rdquo;</li>
+            <li>&ldquo;It is important to understand that the push endpoint is <em>not necessarily</em> expected to compute the same result that the mutator on the client did. This is a feature. &hellip; In Replicache, the server is authoritative.&rdquo;</li>
+            <li>Even failure is a server judgment: &ldquo;If a mutation is invalid or cannot be handled, the server must still mark the mutation as processed.&rdquo;</li>
+          </ul>
+
+          <h3>Zero (Rocicorp) &mdash; the same shape, named plainly</h3>
+          <ul>
+            <li>&ldquo;A copy of each mutator exists on both the client and on your server &hellip; the server can add extra checks to enforce permissions, or send notifications or interact with other systems.&rdquo;</li>
+            <li>You must implement the <code>mutate</code> endpoint; <code>zero-cache</code> calls it per mutation, running the server-side mutator in a transaction.</li>
+            <li>Rejection semantics: &ldquo;The mutation is skipped and the next mutation runs as normal. The optimistic mutation on the client will be reverted.&rdquo; Their own heading: &ldquo;Server authority to the rescue!&rdquo;</li>
+          </ul>
+
+          <h3>ElectricSQL &mdash; declined the write path entirely</h3>
+          <ul>
+            <li>&ldquo;Electric does read-path sync &hellip; It does not do write-path sync. It doesn&rsquo;t provide (or prescribe) a built-in solution for getting data back into Postgres.&rdquo;</li>
+            <li>All four documented write patterns are server-mediated (REST calls, optimistic wrappers over REST, a change-log syncer); &ldquo;If an offline write is rejected by the server, the local application needs to find some way to revert the local state.&rdquo;</li>
+          </ul>
+
+          <div class="callout callout-teal">
+            <strong>Read the convergence in CQRS terms</strong>
+            Replicache&rsquo;s &ldquo;push endpoint&rdquo; and Zero&rsquo;s
+            &ldquo;mutate endpoint&rdquo; are Command handlers. The
+            &ldquo;speculative client run&rdquo; is optimistic UI. The
+            &ldquo;revert on rejection&rdquo; is a Rejection-family error
+            surfacing to the fold. The entire local-first industry
+            re-derived Commands &mdash; and this repo already owns the
+            concept, the error taxonomy
+            (<code>errorfamily.NewRejection</code>), and the decider
+            primitive. LiveStore is the one serious bet on the other pole.
+          </div>
+        </section>
+
+        <!-- 04 DataStar -->
+        <section id="datastar">
+          <h2><span class="num">04</span>DataStar, deeper than the sibling report</h2>
+          <p>
+            The 2026-11-07 sibling report established the baseline (33,553 B
+            raw / 13,365 B gzip client; the go-sse &rarr; go-datastar &rarr;
+            cqrs-htmx/datastar &rarr; templ-components/wire stack the fleet
+            already owns; the <code>metaengine/datastaradapter</code>
+            proposal). This section covers what is new or unexamined:
+            verified against data-star.dev and the GitHub org on 2026-11-22.
+          </p>
+
+          <h3>04.1 · Delta since the sibling report</h3>
+          <ul>
+            <li>Client <strong>v1.0.5 shipped 2026-11-09</strong> (five weeks after the v1.0.4 the sibling verified); cadence is healthy. The official Go SDK remains <strong>v1.2.2</strong> (2026-06-02) &mdash; the fleet&rsquo;s own <code>go-datastar v0.6.3</code> wrapper is not behind on anything that matters.</li>
+            <li>Nothing in the delta changes the sibling&rsquo;s adapter design; its P0&ndash;P2 rollout stands as written.</li>
+          </ul>
+
+          <h3>04.2 · The protocol is exactly two events &mdash; and that is the whole contract</h3>
+          <pre><code>event: datastar-patch-elements
+data: elements &lt;tr id="user-42"&gt;...
+
+event: datastar-patch-signals
+data: signals {"projectionLagMs": 12}</code></pre>
+          <ul>
+            <li><code>patch-elements</code>: HTML fragments with nine patch modes (outer/inner/replace/prepend/append/before/after/remove); morph is ID-based (the sibling&rsquo;s &ldquo;stable IDs&rdquo; rule).</li>
+            <li><code>patch-signals</code>: a JSON object deep-merged into the reactive store; <code>null</code> removes a key; <code>onlyIfMissing</code> seeds defaults.</li>
+            <li>No third event type exists. A read model served as signals is a one-line encoder from a <code>Watcher[V]</code>; served as HTML it takes the caller-supplied renderer the sibling proposed.</li>
+          </ul>
+
+          <h3>04.3 · The command half: fetch actions, and a docs mandate for the boundary</h3>
+          <ul>
+            <li>Writes are <code>@post/@put/@patch/@delete</code> (and <code>@query</code>, the QUERY method, since v1.0.4) &mdash; plain HTTP to your handlers, with <code>Datastar-Request: true</code> and the signals object as JSON body (<code>{datastar: *}</code>; <code>@get</code> puts them in the query string instead).</li>
+            <li>Their security docs, verbatim: <strong>&ldquo;always implement backend validation&rdquo;</strong> &mdash; DataStar itself tells you the browser is not the decision-maker. CSP: default build needs <code>unsafe-eval</code> for expressions; an opt-in CSP mode with <code>data-nonce</code> exists (v1.0.3+); expressions are a real XSS surface if user data is ever interpolated into them (sibling&rsquo;s limits section covers the mitigation rules).</li>
+            <li>Pro tier boundaries (verified): $349/$399 solo lifetime, $1,299/$1,499 team &le;25 &mdash; gates ~a dozen convenience attributes (<code>data-animate</code>, <code>data-persist</code>, <code>data-query-string</code>&hellip;) and actions (@clipboard, @fit, @intl) plus devtools. Rocket (bundler) moved <em>out</em> of Pro in v1.0.4. None of the gates touch the protocol or the SSE contract &mdash; the sibling&rsquo;s design already avoided all of them.</li>
+          </ul>
+
+          <h3>04.4 · Where DataStar sits on the fault line</h3>
+          <p>
+            DataStar has <strong>no client write model at all</strong> &mdash;
+            no local store, no mutation queue, no sync. That absence is why
+            it composes so cleanly with this repo: the CQRS boundary is not
+            something DataStar respects or violates; it simply never touches
+            it. Commands remain HTTP calls into handlers that dispatch to
+            deciders; events reach the browser only as derived rendering
+            (fragments or signals over SSE). Commands are first-class
+            <em>by construction</em> &mdash; the exact property LiveStore
+            lacks and Replicache/Zero rebuilt.
+          </p>
+        </section>
+
+        <!-- 05 Synthesis -->
+        <section id="synthesis">
+          <h2><span class="num">05</span>The synthesis for this repo</h2>
+          <p>
+            Put every option on one axis &mdash; <em>who mints facts</em>
+            &mdash; and the front-end strategy from the 11-21 report becomes
+            a placement decision, not a new architecture:
+          </p>
+
+          <div class="dep-tree"><span class="root">who mints facts?</span> ├── <span class="ok">server only, no client model &mdash; DataStar (render target browser)</span> ├── <span class="ok">server only, typed thin client &mdash; contracts pipeline (11-21 report, L2/L3)</span> ├── <span class="ok">server, after judging queued intents &mdash; L4 offline tier (this report's shape)</span> └── <span class="unwanted">client, optimistically &mdash; LiveStore (the pole we decline)</span></div>
+
+          <h3>05.1 · L4, redesigned: an offline <strong>command</strong> queue, not event sync</h3>
+          <p>
+            If the local-first gate ever opens (named consumer + offline
+            requirement, per the 11-21 report), the verified industry shape
+            is the design &mdash; and this repo already owns every
+            server-side piece:
+          </p>
+          <table>
+            <thead>
+              <tr>
+                <th>Replicache / Zero concept</th>
+                <th>go-cqrs-lite equivalent (exists today)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Client mutation queue (name + args)</td>
+                <td><code>PersistedCommand</code> over <code>command.CommandSink</code> &mdash; the durable command journal is already a product surface; the client-side queue (IndexedDB) is the only new code</td>
+              </tr>
+              <tr>
+                <td>Exactly-once push processing</td>
+                <td><code>idempotency</code> / engine <code>DedupStore</code> &mdash; deterministic command IDs are already the documented pattern (<code>id.DeriveCommandID</code>, <code>deriver.Idempotent()</code>)</td>
+              </tr>
+              <tr>
+                <td>Server push/mutate endpoint</td>
+                <td>The command dispatcher itself &mdash; deciders run behind it, Rejections flow back as first-class errors</td>
+              </tr>
+              <tr>
+                <td>Speculative client run + revert on reject</td>
+                <td>Optimistic local fold of the <em>expected</em> event, reverted on Rejection &mdash; requires fold purity on the client, the same constraint Zero imposes on its mutators</td>
+              </tr>
+              <tr>
+                <td>Pull (read-path sync)</td>
+                <td>Journal tail (<code>SeekableJournal.ReadFrom</code>) or per-view <code>Watcher</code> replay &mdash; Last-Event-ID semantics already tested in <code>sse_replay_test.go</code></td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="callout callout-amber">
+            <strong>The one rule that falls out of this research</strong>
+            Clients may <em>queue intents</em> and <em>fold projections</em>;
+            only deciders <em>mint events</em>. That single boundary keeps
+            LiveStore&rsquo;s UX (optimistic, offline, local reads) while
+            avoiding precisely the debt they are still paying (#253): in a
+            command-first system, a concurrent collision is a
+            <code>decide()</code> rejection, not an unresolvable structural
+            merge.
+          </div>
+
+          <h3>05.2 · LiveStore concept &rarr; this repo, translated</h3>
+          <table class="compare">
+            <thead>
+              <tr>
+                <th>LiveStore</th>
+                <th>go-cqrs-lite</th>
+                <th>Note</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>store.commit(event)</code></td>
+                <td class="no">&mdash;</td>
+                <td class="no">No equivalent, deliberately: clients dispatch Commands instead</td>
+              </tr>
+              <tr>
+                <td>Event table (typed event schema)</td>
+                <td><code>catalog.SchemaFromType[T]</code> registration</td>
+                <td>Same goal; ours also feeds AsyncAPI/EventCatalog/TS contracts</td>
+              </tr>
+              <tr>
+                <td>Materializer (event &rarr; SQL)</td>
+                <td>Evolution / fold + metaengine engine</td>
+                <td>Theirs runs in every client; ours server-side (L4 folds client-side for <em>projections only</em>)</td>
+              </tr>
+              <tr>
+                <td>Sync provider (push/pull)</td>
+                <td>Command push + journal pull (L4, gated)</td>
+                <td>Their push carries events; ours carries intents</td>
+              </tr>
+              <tr>
+                <td>Pending vs confirmed events</td>
+                <td>Queued command vs decider-accepted</td>
+                <td>The optimistic/revert ledger maps 1:1</td>
+              </tr>
+              <tr>
+                <td>Client-only events (LWW UI state)</td>
+                <td>Out of scope</td>
+                <td>Browser state is not domain state in this architecture</td>
+              </tr>
+              <tr>
+                <td>Conflict resolution (#253, unimplemented)</td>
+                <td class="yes"><code>decide()</code> rejection at sync time</td>
+                <td class="yes">The problem does not structurally exist here</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>05.3 · DataStar: nothing to redesign &mdash; only to wire</h3>
+          <p>
+            The sibling report&rsquo;s adapter plan is unchanged and
+            endorsed: <code>metaengine/datastaradapter</code> as a Tier-4
+            encoder beside <code>projectionadapter</code>, goldens adopted
+            from the upstream conformance corpus, P0&ndash;P2 rollout. This
+            report adds only the command-side observation: the same
+            <code>wire.Action</code> spec that renders an HTMX or DataStar
+            fetch action should point at command-dispatch handlers, so the
+            &ldquo;always implement backend validation&rdquo; mandate is
+            satisfied by the decider &mdash; not by hand-rolled handler
+            checks.
+          </p>
+        </section>
+
+        <!-- 06 Changes -->
+        <section id="changes">
+          <h2><span class="num">06</span>What this changes in the earlier reports</h2>
+          <table class="compare">
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Effect</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>D34 (contracts pipeline, 11-21)</td>
+                <td class="yes">Unchanged &mdash; strengthened: the thin-client/L3 model sits safely on the server-mints side of the fault line</td>
+              </tr>
+              <tr>
+                <td>L4 offline tier gate (11-21)</td>
+                <td>Refined: criteria unchanged (named consumer + offline need), but the <strong>shape is now specified</strong> &mdash; Replicache/Zero-style command queue, never event sync</td>
+              </tr>
+              <tr>
+                <td>DataStar adapter (11-07 sibling)</td>
+                <td class="yes">Endorsed as-is; v1.0.5 delta does not touch the design</td>
+              </tr>
+              <tr>
+                <td>&ldquo;Adopt LiveStore wholesale&rdquo; verdict (11-21 matrix)</td>
+                <td class="no">Confirmed rejection, now with the sharpest reason: client-minted facts delete the command boundary &mdash; and their own issue tracker prices that deletion</td>
+              </tr>
+              <tr>
+                <td>New decision needed</td>
+                <td>Whether to commission the DataStar adapter P0 now &mdash; see Appendix (D35)</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- 07 Risks -->
+        <section id="risks">
+          <h2><span class="num">07</span>Risks in the synthesis</h2>
+          <div class="issue issue-important" id="risk-l4-client">
+            <span class="severity severity-important">R1 &middot; Medium</span>
+            <h3>The L4 client queue is still new client-side code</h3>
+            <div class="where">IndexedDB durability, ordering, flush retry &mdash; none of it exists here</div>
+            <p>
+              The server side is all existing pieces; the browser side
+              (durable queue, per-stream ordering, revert-on-rejection UX) is
+              genuinely new and is the real cost of L4 &mdash; the reason it
+              stays gated.
+            </p>
+          </div>
+          <div class="issue issue-important" id="risk-fold-purity">
+            <span class="severity severity-important">R2 &middot; Medium</span>
+            <h3>Optimistic folding demands client-side fold purity</h3>
+            <div class="where">speculative apply &rarr; revert must be total</div>
+            <p>
+              Zero imposes the same constraint on its mutators; for us it
+              means the L4 client folds <em>projections</em> only, from
+              expected-then-confirmed events, with version-keyed state so a
+              revert is a key rollback, not a diff undo.
+            </p>
+          </div>
+          <div class="issue issue-nice" id="risk-live-vs-queue">
+            <span class="severity severity-nice">R3 &middot; Low</span>
+            <h3>Queued commands age badly across long offline windows</h3>
+            <div class="where">intent captured against ancient state</div>
+            <p>
+              A command queued for days decides against fresh server state
+              &mdash; correct, but the UX must expect late Rejections. Zero/
+              Replicache share this property; it is inherent to the model,
+              not a defect. Document, don&rsquo;t engineer around.
+            </p>
+          </div>
+        </section>
+
+        <!-- 08 References -->
+        <section id="references">
+          <h2><span class="num">08</span>Sources &amp; verification</h2>
+          <p>
+            External claims verified 2026-11-22 via parallel research agents
+            against primary sources (docs sites, GitHub, npm), exact-quote
+            method; repo claims cite file:line at today&rsquo;s HEAD. Items
+            that could not be confirmed are labeled UNVERIFIED inline.
+          </p>
+          <h3>Repo-internal</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Claim</th>
+                <th>Evidence</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Command/Event/Record distinction (intent vs fact)</td><td><code>docs/DOMAIN_LANGUAGE.md</code> §Record: &ldquo;a Command is a Record of intent (may be rejected); an Event is a Record of a fact&rdquo;</td></tr>
+              <tr><td>Rejection as first-class error family</td><td><code>errorfamily.NewRejection</code> (DOMAIN_LANGUAGE §Error Taxonomy)</td></tr>
+              <tr><td>Durable command journal</td><td><code>command.PersistedCommand</code> + <code>CommandSink</code> (DOMAIN_LANGUAGE §CQRS)</td></tr>
+              <tr><td>Deterministic command IDs / idempotent derivation</td><td><code>id.DeriveCommandID</code>, <code>deriver.Idempotent()</code></td></tr>
+              <tr><td>Engine dedup (exactly-once push equivalent)</td><td><code>metaengine.DedupStore</code> capability (ADR-0142 ledger)</td></tr>
+              <tr><td>Journal tail / replay for pull</td><td><code>event.SeekableJournal.ReadFrom</code>; <code>metaengine/v4/sse_replay_test.go:195</code></td></tr>
+              <tr><td>SSE read-model serving leg</td><td><code>metaengine/v4/sse.go:111</code> (Watchers, Last-Event-ID, backpressure)</td></tr>
+              <tr><td>DataStar fleet stack + adapter design</td><td>sibling report <code>docs/research/datastar-client-side.html</code> (2026-11-07, all claims verified there)</td></tr>
+              <tr><td>Contracts pipeline + L4 gate criteria</td><td><code>docs/research/2026-11-21_go-ts-frontend-contracts.html</code> §05/§06</td></tr>
+            </tbody>
+          </table>
+          <h3>External (fetched 2026-11-22)</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Claim</th>
+                <th>Source</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>LiveStore has no Command concept; &ldquo;command&rdquo; hits are CLI-only; mutation is <code>store.commit(events)</code></td><td>docs.livestore.dev (llms.txt + concepts pages, searched for &ldquo;command&rdquo;)</td><td class="yes">✅</td></tr>
+              <tr><td>Commit-time validation = Effect-Schema payload checks; state-aware sync callback sees pre-commit state; materializers deterministic post-hoc; backend validates payload + ordering only</td><td>docs.livestore.dev eventschemas + sync pages</td><td class="yes">✅</td></tr>
+              <tr><td>Sync: git-like push/pull; server assigns global seqNum; <code>ServerAheadError</code> &rarr; pull + rebase (rebaseGeneration); one push at a time</td><td>docs.livestore.dev syncing + custom-provider pages</td><td class="yes">✅</td></tr>
+              <tr><td>Conflict handling unimplemented; #253 open (reopened May 2026), depends on #254 &ldquo;facts system&rdquo;</td><td>github.com/livestorejs/livestore issues #253/#254</td><td class="yes">✅</td></tr>
+              <tr><td>Status: v0.5.0 &ldquo;beta&rdquo;, Apache-2.0, Johannes Schickling full-time since 2021, Overtone incubator, sponsors ElectricSQL/Netlify/Expo/Axial, self-host only</td><td>docs.livestore.dev contributing/README, GitHub</td><td class="yes">✅</td></tr>
+              <tr><td>LiveStore cookbook patterns (state machine, undo/redo) pages</td><td>not fetched</td><td>UNVERIFIED</td></tr>
+              <tr><td>Replicache: mutators run optimistically on client, authoritatively on server; push endpoint executes name+args; server may compute a different result; invalid mutations still marked processed</td><td>doc.replicache.dev (tutorial, server-push reference, how-it-works)</td><td class="yes">✅</td></tr>
+              <tr><td>Zero: mutator copies on client + server; server adds checks; user-implemented <code>mutate</code> endpoint; rejects revert optimistic state</td><td>zero.rocicorp.dev/docs/mutators</td><td class="yes">✅</td></tr>
+              <tr><td>ElectricSQL: read-path sync only; no write-path sync; four server-mediated write patterns; rejected writes must be reverted locally</td><td>electric.ax/docs/sync/guides/writes</td><td class="yes">✅</td></tr>
+              <tr><td>DataStar client v1.0.5 (2026-11-09); Go SDK still v1.2.2 (2026-06-02)</td><td>data-star.dev + GitHub releases</td><td class="yes">✅</td></tr>
+              <tr><td>Protocol = exactly two SSE events (patch-elements, patch-signals); 9 modes; null-removes; onlyIfMissing</td><td>data-star.dev docs (protocol/reference)</td><td class="yes">✅</td></tr>
+              <tr><td>Fetch actions (@post etc., QUERY method since v1.0.4, Datastar-Request header, {datastar:*} JSON body, data-indicator)</td><td>data-star.dev actions/fetch docs</td><td class="yes">✅</td></tr>
+              <tr><td>&ldquo;Always implement backend validation&rdquo;; CSP default needs unsafe-eval, opt-in nonce mode; no sanitization of expressions</td><td>data-star.dev security docs</td><td class="yes">✅</td></tr>
+              <tr><td>Pro tier: $349/$399 solo lifetime, $1,299/$1,499 team &le;25; gated attrs/actions/devtools; Rocket freed in v1.0.4</td><td>data-star.dev pricing + repo</td><td class="yes">✅</td></tr>
+              <tr><td>DataStar client bundle sizes (33,553 B raw / 13,365 B gz, v1.0.4)</td><td>measured in the 11-07 sibling report (not re-measured for v1.0.5)</td><td>✅ (v1.0.4)</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- Appendix -->
+        <section id="appendix">
+          <h2><span class="num">09</span>Appendix · Open decisions</h2>
+          <table class="compare">
+            <thead>
+              <tr>
+                <th>Decision</th>
+                <th>Options</th>
+                <th>Report&rsquo;s lean</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>D35 (proposed): commission the DataStar adapter P0</td>
+                <td>commission <code>metaengine/datastaradapter</code> now (~300 LOC + module gates) / fold into D34&rsquo;s P1 consumer work / park</td>
+                <td>commission alongside D34 P1 &mdash; the same first consumer exercises both halves (commands via handlers, reads via patches)</td>
+              </tr>
+              <tr>
+                <td>L4 command-queue shape ratification</td>
+                <td>adopt the Replicache/Zero shape as the standing L4 design / leave unspecified until a consumer appears</td>
+                <td>ratify the <em>principle</em> now (clients queue intents, deciders mint events) in the L4 gate row; design detail stays consumer-gated</td>
+              </tr>
+              <tr>
+                <td>Monitor or ignore LiveStore&rsquo;s facts system (#254)</td>
+                <td>watch / ignore</td>
+                <td>watch &mdash; if they add a server-side decision layer, the outlier converges and the tradeoff table changes</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+          <p>
+            Generated 2026-11-22 &middot; Series: docs/research #3 (after
+            datastar 11-07 and go-ts contracts 11-21) &middot; External claims
+            verified against primary sources fetched 2026-11-22; UNVERIFIED
+            items labeled inline &middot; Feeds D34 (L4 shape) and proposed D35
+          </p>
+        </footer>
+      </main>
+    </div>
+
+    <!-- Progressive-enhancement scrollspy. Nav still works without JS via anchor links. -->
+    <script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) {
+            return document.getElementById(id);
+          })
+          .filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (link) {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id,
+                  );
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
+      })();
+    </script>
+  </body>
+</html>
