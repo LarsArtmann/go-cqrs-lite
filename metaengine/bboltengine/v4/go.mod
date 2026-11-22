@@ -18,7 +18,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.5 // indirect
 	github.com/larsartmann/go-error-family v0.12.0 // indirect
-	github.com/larsartmann/go-sse v0.6.2 // indirect
+	github.com/larsartmann/go-sse v0.7.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
 	github.com/stretchr/testify v1.12.1 // indirect
 	github.com/x448/float16 v0.8.4 // indirect

@@ -36,7 +36,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.7.0 // indirect
 	github.com/larsartmann/go-error-family v0.12.0 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.1 // indirect
-	github.com/larsartmann/go-sse v0.6.2 // indirect
+	github.com/larsartmann/go-sse v0.7.0 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/maypok86/otter/v2 v2.4.0 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect

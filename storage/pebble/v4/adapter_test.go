@@ -557,7 +557,8 @@ func TestKVAdapter_OperationsAfterClose(t *testing.T) {
 // ── SetIfAbsent (ConditionalWriter) tests ─────────────────────
 
 // TestKVAdapter_SetIfAbsent_ImplementsConditionalWriter ensures the adapter
-// satisfies kv.ConditionalWriter, unlocking idempotency.KVStore support.
+// satisfies kv.ConditionalWriter, the atomic set-if-absent seam (claim-style
+// consumers).
 func TestKVAdapter_SetIfAbsent_ImplementsConditionalWriter(t *testing.T) {
 	t.Parallel()
 

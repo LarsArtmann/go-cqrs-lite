@@ -28,7 +28,7 @@ type SSEConfig struct {
 	// MaxBuffer is the maximum number of events buffered in the SSE
 	// pipeline before applying drop-old semantics. When the buffer is
 	// full, the oldest unread event is discarded to make room for the
-	// newest. Zero defaults to 64.
+	// newest. Zero defaults to [sse.DefaultSubscriberBuffer].
 	MaxBuffer int
 
 	// HeartbeatInterval is how often to send a heartbeat comment
@@ -79,7 +79,8 @@ func WithSSEReplayLimit(n int) SSEOption {
 // connection still sees only future changes; clients needing missed
 // history across disconnects must attach a replay journal (WithReplay).
 //
-// Backpressure: the SSE pipeline uses a ring buffer (default 64). When the
+// Backpressure: the SSE pipeline uses a ring buffer
+// (default [sse.DefaultSubscriberBuffer]). When the
 // client is slow and the buffer fills, the oldest unread event is dropped.
 // A timeout option closes the stream after a maximum duration.
 //
@@ -114,7 +115,7 @@ func ServeSSE[V any](
 	watcher *Watcher[V],
 	opts ...SSEOption,
 ) error {
-	cfg := SSEConfig{MaxBuffer: 64}
+	cfg := SSEConfig{MaxBuffer: sse.DefaultSubscriberBuffer}
 	for _, opt := range opts {
 		opt(&cfg)
 	}

@@ -32,7 +32,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.7.0 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.1 // indirect
-	github.com/larsartmann/go-idempotency v0.3.2 // indirect
+	github.com/larsartmann/go-idempotency v0.6.0 // indirect
 	github.com/larsartmann/go-retry v0.9.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
 	github.com/onsi/ginkgo/v2 v2.33.1 // indirect

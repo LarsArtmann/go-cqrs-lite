@@ -241,8 +241,8 @@ github.com/larsartmann/go-retry v0.8.0 h1:R7twMiRiZNWQKryF3nqtE/3R3Td5xkhiHIoXEn
 github.com/larsartmann/go-retry v0.8.0/go.mod h1:p1ITwjm4NMVRhJHV/23ymaIbAdGuvufounnvFbgItXs=
 github.com/larsartmann/go-sqlitestore v0.1.1 h1:BMhLZ5tVxTHrHqOV5bDDVqVQ9zc7uC6XoSn9pPH2qxE=
 github.com/larsartmann/go-sqlitestore v0.1.1/go.mod h1:mKG0Qp1ZdIvOHrNqxTvXjoqnbpUt5L97lWYrdYiiYl0=
-github.com/larsartmann/go-sse v0.6.2 h1:a1f/EnjhWlsNnxo0U1DygpYMy2XbUfyGBuKMWhwQg0U=
-github.com/larsartmann/go-sse v0.6.2/go.mod h1:PVVDLkzjkTR2MvqcqL3/XmWY8cdSUpEe8YWaouHVVz4=
+github.com/larsartmann/go-sse v0.7.0 h1:dLT0eBk5hrxfajew84MmFoWHnEZ1eZfokqzbaA9qxH0=
+github.com/larsartmann/go-sse v0.7.0/go.mod h1:ZsW88AQMBRy+ZEhCWl8FGyEoXcb/YwvwosKYQEDLgBs=
 github.com/lib/pq v1.12.3 h1:tTWxr2YLKwIvK90ZXEw8GP7UFHtcbTtty8zsI+YjrfQ=
 github.com/lib/pq v1.12.3/go.mod h1:/p+8NSbOcwzAEI7wiMXFlgydTwcgTr3OSKMsD2BitpA=
 github.com/lithammer/shortuuid/v3 v3.0.7 h1:trX0KTHy4Pbwo/6ia8fscyHoGA+mf1jWbPJVuvyJQQ8=

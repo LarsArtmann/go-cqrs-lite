@@ -3,7 +3,7 @@ module github.com/larsartmann/go-cqrs-lite/cmd/cqrs-bench/v4
 go 1.27.2
 
 require (
-	github.com/larsartmann/cmdguard/v5 v5.0.0
+	github.com/larsartmann/cmdguard/v5 v5.1.0
 	github.com/larsartmann/go-codec v0.3.3
 	github.com/larsartmann/go-cqrs-lite/benchkit/v4 v4.7.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.26.0
@@ -88,7 +88,7 @@ require (
 	github.com/knadh/koanf/v2 v2.4.1 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
-	github.com/larsartmann/go-atomic-write v0.6.1 // indirect
+	github.com/larsartmann/go-atomic-write v0.6.2 // indirect
 	github.com/larsartmann/go-branded-id v0.7.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.1 // indirect
@@ -130,8 +130,8 @@ require (
 	github.com/larsartmann/go-output/serialization v0.38.7 // indirect
 	github.com/larsartmann/go-output/tree v0.38.7 // indirect
 	github.com/larsartmann/go-sqlitestore v0.1.1 // indirect
-	github.com/larsartmann/go-sse v0.6.2 // indirect
-	github.com/larsartmann/samber-do-auditlog v0.12.1 // indirect
+	github.com/larsartmann/go-sse v0.7.0 // indirect
+	github.com/larsartmann/samber-do-auditlog v0.12.3 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/lucasb-eyer/go-colorful v1.4.1 // indirect
 	github.com/lufia/plan9stats v0.0.0-20261101121723-be84dd9509a0 // indirect
@@ -171,7 +171,7 @@ require (
 	github.com/spf13/pflag v1.0.10 // indirect
 	github.com/tursodatabase/turso-go-platform-libs v0.8.3 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
-	github.com/xo/terminfo v1.3.0 // indirect
+	github.com/xo/terminfo v1.3.1 // indirect
 	github.com/zeebo/xxh3 v1.1.0 // indirect
 	go.duckdb.org/libduckdb/darwin-amd64 v0.20000.0 // indirect
 	go.duckdb.org/libduckdb/darwin-arm64 v0.20000.0 // indirect
