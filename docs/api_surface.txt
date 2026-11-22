@@ -3816,6 +3816,7 @@ metaengine/v4/func WithRoutingHysteresis
 metaengine/v4/func WithRoutingMinDelta
 metaengine/v4/func WithSSEHeartbeat
 metaengine/v4/func WithSSEMaxBuffer
+metaengine/v4/func WithSSEReconnectAfter
 metaengine/v4/func WithSSEReplayLimit
 metaengine/v4/func WithSSETimeout
 metaengine/v4/func WithSharedCollection
@@ -6391,6 +6392,7 @@ systemscenario/v4/method MapUpdate
 systemscenario/v4/method Phase
 systemscenario/v4/method Query
 systemscenario/v4/method Received
+systemscenario/v4/method ReceivedIDs
 systemscenario/v4/method RunInTx
 systemscenario/v4/method StreamAppend
 systemscenario/v4/method StreamAppendExpected
