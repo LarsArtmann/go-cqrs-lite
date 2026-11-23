@@ -1,5 +1,5 @@
 created_at: 2026-03-21T23:41:38.337543Z
-updated_at: 2026-09-10T03:59:06.607535046Z
+updated_at: 2026-11-22T23:30:54.681532275Z
 tags:
     - go
     - golang
@@ -15,4 +15,5 @@ tags:
     - backend
     - infrastructure
     - lib
+    - linter
 importance: 70

@@ -870,6 +870,7 @@
           <a href="#risks">07 · Risks</a>
           <a href="#references">08 · Sources &amp; verification</a>
           <a href="#appendix">Appendix · Open decisions</a>
+          <a href="#local-commands">10 · Addendum: the local-Commands question</a>
         </nav>
       </aside>
 
@@ -1572,6 +1573,138 @@ data: signals {"projectionLagMs": 12}</code></pre>
           </table>
         </section>
 
+        <!-- Owner's addendum: the local-Commands question -->
+        <section id="local-commands">
+          <h2><span class="num">10</span>Owner&rsquo;s addendum (2026-11-22, later): the local-Commands question</h2>
+          <p>
+            After this report closed, the owner sharpened the requirement into
+            a precise question &mdash; recorded verbatim, then reconciled
+            against the findings above. Original sections are untouched; this
+            addendum extends them.
+          </p>
+          <div class="callout callout-amber">
+            <strong>The Question</strong>
+            &ldquo;How can we make the browser OWN its data smartly, be as
+            local-first as possible (i.e. including Commands), but at the same
+            time be able to smartly branch-rebase (like Git) with a server as
+            soon as the client has a connection again! All that transparently.
+            Like we kinda need to be able to have Commands &amp; Events that
+            only have happened on the client. And we need to be able to share
+            the logic for these Commands &amp; Events &amp; Queries (as long
+            as they do not [access] other protected server resources) with
+            the client, efficiently!&rdquo;
+          </div>
+
+          <h3>10.1 · Decomposed against this report&rsquo;s findings</h3>
+          <table class="compare">
+            <thead>
+              <tr>
+                <th>Part</th>
+                <th>What it demands</th>
+                <th>Where the report stands</th>
+                <th>The delta</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>P1 · Browser owns its data</td>
+                <td>Local read models + local history, client-side persistence</td>
+                <td>L4 pull leg (journal tail / Watcher replay) feeds local folds; client store choice open (SQLite-WASM vs IndexedDB)</td>
+                <td>Small &mdash; storage pick, not architecture</td>
+              </tr>
+              <tr>
+                <td>P2 · Local-first <em>including Commands</em></td>
+                <td>Intents decided <strong>on the client</strong>, offline &mdash; not merely queued</td>
+                <td>&sect;05.1 queues commands, decides server-side only</td>
+                <td class="no">NEW &mdash; client-side decider execution; deciders are pure functions, so this is legal &mdash; the constraint is porting them (10.3)</td>
+              </tr>
+              <tr>
+                <td>P3 · Git-like branch/rebase on reconnect, transparently</td>
+                <td>Local work rebases onto server truth; user sees one coherent state</td>
+                <td>LiveStore&rsquo;s rebase UX is the reference (&sect;02.3); Zero&rsquo;s revert-on-reject is the semantics (&sect;03)</td>
+                <td>Rebase <em>intents</em>, not facts: re-decide queued commands against fresh state; rejections surface as UX, not merges</td>
+              </tr>
+              <tr>
+                <td>P4 · Commands &amp; Events that only happened on the client</td>
+                <td>Client-local speculative events</td>
+                <td>&ldquo;Only deciders mint events&rdquo; (&sect;05.1)</td>
+                <td>Refines the rule: only deciders mint <strong>authoritative</strong> events; a client-side decider may mint <strong>speculative local</strong> ones (10.2)</td>
+              </tr>
+              <tr>
+                <td>P5 · Shared Command/Event/Query logic, minus protected resources</td>
+                <td>Same logic both sides, efficiently</td>
+                <td>Contracts (types/validators) generate (11-21 report); logic does not</td>
+                <td>NEW &mdash; the client-safe decider seam (10.3)</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>10.2 · The shape: a local branch, rebased on intent</h3>
+          <ul>
+            <li><strong>Local = a branch.</strong> Client holds: last-confirmed server facts (base) + a pending-command log + speculative events minted by the client-side decider running on that log. UI reads the local read-model; <em>speculative vs confirmed is a flag on rows, not two code paths</em> (LiveStore&rsquo;s pending/confirmed vocabulary, applied to intents).</li>
+            <li><strong>Reconnect = fetch + push + rebase.</strong> Push the queued <em>commands</em> (server re-decides; Rejections trigger revert of the optimistic state &mdash; Zero&rsquo;s documented semantics). Pull authoritative facts. Rebase: rebuild the local branch by replaying server facts, then re-applying still-pending commands through the (possibly newer) decider &mdash; an <em>interactive</em> rebase where a rejection is the conflict, surfaced to the user as a first-class Rejection, never a structural merge.</li>
+            <li><strong>Transparency follows from purity.</strong> Because Apply/Decide are pure and version-keyed, rebuilding the branch is replay &mdash; the exact machinery (journal, checkpoints, deterministic replay) this library ships server-side today.</li>
+          </ul>
+
+          <h3>10.3 · The client-safe decider seam (P5)</h3>
+          <p>
+            &ldquo;As long as they do not access other protected server
+            resources&rdquo; is a <em>decider-scoped</em> property, and it is
+            statically checkable:
+          </p>
+          <table>
+            <thead>
+              <tr>
+                <th>Decider kind</th>
+                <th>Reads</th>
+                <th>Client-portable?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Stream-local decider</td>
+                <td>Only its own stream&rsquo;s events + the command</td>
+                <td class="yes">YES &mdash; pure, self-contained; runs anywhere</td>
+              </tr>
+              <tr>
+                <td>Cross-stream decider</td>
+                <td>Other streams&rsquo; state (users, quotas, PII)</td>
+                <td class="no">NO &mdash; protected; server-side forever</td>
+              </tr>
+              <tr>
+                <td>Effectful decider wrapper</td>
+                <td>External systems, timers, side-channels</td>
+                <td class="no">NO &mdash; not a decider anymore; belongs behind the server boundary</td>
+              </tr>
+            </tbody>
+          </table>
+          <p>
+            Sharing mechanisms, honestly ranked: (a) <strong>dual
+            implementation + contract tests</strong> (pragmatic today: shared
+            scenario DSL already exists &mdash; <code>scenario.Given/When/Then</code>
+            pins both sides to identical behavior); (b) <strong>TS codegen of
+            fold/decide logic</strong> (does not exist; the 11-21 pipeline
+            generates contracts only); (c) <strong>TinyGo/WASM</strong>
+            (parked on verified fidelity gaps, 11-21 &sect;03.E). Version
+            skew: command payloads carry <code>schemaVersion</code>; decider
+            LOGIC version must ride the same envelope so the server knows
+            which spec a queued intent was decided under.
+          </p>
+
+          <h3>10.4 · Status and routing</h3>
+          <p>
+            This addendum is a <strong>design question, not a verdict</strong>
+            &mdash; the evidence base is the in-flight landscape sweep at
+            <code>docs/competition/</code> (per-tool pages + index answering
+            the six axes this question decomposes into). It refines
+            <strong>D41(b)</strong>: the ratifiable principle becomes
+            &ldquo;clients queue commands <em>and may decide locally on a
+            speculative branch</em>; only server deciders mint authoritative
+            events; deciders declare their resource dependencies, and
+            stream-local ones are client-portable.&rdquo;
+          </p>
+        </section>
+
         <!-- Footer -->
         <footer class="footer">
           <p>
@@ -1579,6 +1712,9 @@ data: signals {"projectionLagMs": 12}</code></pre>
             datastar 11-07 and go-ts contracts 11-21) &middot; External claims
             verified against primary sources fetched 2026-11-22; UNVERIFIED
             items labeled inline &middot; Feeds D40 (L4 shape) and proposed D41
+            &middot; Owner's addendum §10 (local-Commands question) added later
+            same day; its evidence base is the docs/competition/ landscape
+            sweep
           </p>
         </footer>
       </main>
