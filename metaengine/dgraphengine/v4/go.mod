@@ -1,10 +1,10 @@
 module github.com/larsartmann/go-cqrs-lite/metaengine/dgraphengine/v4
 
-go 1.27.2
+go 1.27
 
 require (
 	github.com/dgraph-io/dgo/v240 v240.2.0
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.26.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.26.1
 	github.com/onsi/gomega v1.44.0
 	google.golang.org/grpc v1.85.0
 )
@@ -14,9 +14,9 @@ require (
 	github.com/fxamacker/cbor/v2 v2.10.0 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/larsartmann/go-branded-id v0.7.1 // indirect
-	github.com/larsartmann/go-codec v0.3.3 // indirect
+	github.com/larsartmann/go-codec v0.3.4 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.3.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.5 // indirect
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.6 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2 // indirect
 	github.com/larsartmann/go-error-family v0.12.0 // indirect
 	github.com/larsartmann/go-sse v0.7.0 // indirect

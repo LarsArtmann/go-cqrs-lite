@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/decider/v4
 
-go 1.27.2
+go 1.27
 
 // Dev-time sibling replace: WithSnapshotStateVersion stamps
 // snapshot.Snapshot.StateShape, which is unreleased. tag-release.sh strips
@@ -8,11 +8,11 @@ go 1.27.2
 replace github.com/larsartmann/go-cqrs-lite/snapshot/v4 => ../../snapshot/v4
 
 require (
-	github.com/larsartmann/go-codec v0.3.3
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.2
+	github.com/larsartmann/go-codec v0.3.4
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.3
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.4.0
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.5
-	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.3
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.6
+	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.4
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.7.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.2
@@ -42,7 +42,7 @@ require (
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/larsartmann/go-branded-id v0.7.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1 // indirect

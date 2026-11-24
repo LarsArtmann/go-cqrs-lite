@@ -1,9 +1,9 @@
 module github.com/larsartmann/go-cqrs-lite/kv/v4
 
-go 1.27.2
+go 1.27
 
 require (
-	github.com/larsartmann/go-codec v0.3.3
+	github.com/larsartmann/go-codec v0.3.4
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2
 	github.com/larsartmann/go-error-family v0.12.0
 	github.com/maypok86/otter/v2 v2.4.0

@@ -1,12 +1,12 @@
 module github.com/larsartmann/go-cqrs-lite/queue/mysql/v4
 
-go 1.27.2
+go 1.27
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/go-sql-driver/mysql v1.10.1
 	github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.2
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.26.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.26.1
 	github.com/larsartmann/go-cqrs-lite/queue/v4 v4.0.3
 	github.com/larsartmann/go-cqrs-lite/testutil/mysqltestcontainer/v4 v4.0.0
 )
@@ -36,7 +36,7 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/klauspost/compress v1.20.3 // indirect
 	github.com/larsartmann/go-branded-id v0.7.1 // indirect
-	github.com/larsartmann/go-codec v0.3.3 // indirect
+	github.com/larsartmann/go-codec v0.3.4 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2 // indirect
 	github.com/larsartmann/go-error-family v0.12.0 // indirect

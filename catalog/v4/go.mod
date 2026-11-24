@@ -5,14 +5,14 @@ module github.com/larsartmann/go-cqrs-lite/catalog/v4
 // schema/v4.7.0). tag-release.sh strips local replaces at tag time.
 replace github.com/larsartmann/go-cqrs-lite/schema/v4 => ../../schema/v4
 
-go 1.27.2
+go 1.27
 
 require (
 	github.com/a-h/templ v0.3.1100
 	github.com/dustin/go-humanize v1.1.0
 	github.com/gkampitakis/go-snaps v0.5.25
 	github.com/go-faster/yaml v0.4.6
-	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.7.1
+	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.7.2
 	github.com/larsartmann/go-error-family v0.12.0
 	github.com/larsartmann/go-etag/server v0.6.2
 	github.com/larsartmann/templ-components v1.27.2
@@ -37,10 +37,10 @@ require (
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/larsartmann/go-branded-id v0.7.1 // indirect
-	github.com/larsartmann/go-codec v0.3.3 // indirect
+	github.com/larsartmann/go-codec v0.3.4 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.2 // indirect
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.2 // indirect
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.5 // indirect
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.3 // indirect
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.6 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2 // indirect
 	github.com/larsartmann/go-etag/entitytag v0.6.2 // indirect

@@ -1,11 +1,11 @@
 module github.com/larsartmann/go-cqrs-lite/cmd/cqrs-upgrade/v4
 
-go 1.27.2
+go 1.27
 
 require (
 	github.com/larsartmann/cmdguard/v5 v5.1.0
 	github.com/larsartmann/go-atomic-write v0.6.2
-	github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4 v4.22.2
+	github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4 v4.22.3
 	github.com/spf13/cobra v1.10.2
 	golang.org/x/mod v0.42.0
 )

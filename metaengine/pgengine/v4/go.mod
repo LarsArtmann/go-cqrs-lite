@@ -1,11 +1,11 @@
 module github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4
 
-go 1.27.2
+go 1.27
 
 require (
 	github.com/jackc/pgx/v5 v5.12.0
 	github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.2
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.26.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.26.1
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2
 	github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.2.3
 	github.com/onsi/gomega v1.44.0
@@ -39,9 +39,9 @@ require (
 	github.com/jackc/puddle/v2 v2.2.3 // indirect
 	github.com/klauspost/compress v1.20.3 // indirect
 	github.com/larsartmann/go-branded-id v0.7.1 // indirect
-	github.com/larsartmann/go-codec v0.3.3 // indirect
+	github.com/larsartmann/go-codec v0.3.4 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.3.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.5 // indirect
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.6 // indirect
 	github.com/larsartmann/go-error-family v0.12.0 // indirect
 	github.com/larsartmann/go-sse v0.7.0 // indirect
 	github.com/lufia/plan9stats v0.0.0-20261101121723-be84dd9509a0 // indirect

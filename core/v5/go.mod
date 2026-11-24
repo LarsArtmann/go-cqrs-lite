@@ -1,12 +1,12 @@
 module github.com/larsartmann/go-cqrs-lite/core/v5
 
-go 1.27.2
+go 1.27
 
 require (
 	github.com/fxamacker/cbor/v2 v2.10.0
 	github.com/gkampitakis/go-snaps v0.5.25
 	github.com/larsartmann/go-branded-id v0.7.1
-	github.com/larsartmann/go-codec v0.3.3
+	github.com/larsartmann/go-codec v0.3.4
 	github.com/larsartmann/go-error-family v0.12.0
 	github.com/maypok86/otter/v2 v2.4.0
 	github.com/oklog/ulid/v2 v2.1.2

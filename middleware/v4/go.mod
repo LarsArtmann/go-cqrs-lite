@@ -1,16 +1,16 @@
 module github.com/larsartmann/go-cqrs-lite/middleware/v4
 
-go 1.27.2
+go 1.27
 
 require (
 	github.com/failsafe-go/failsafe-go v0.9.8
 	github.com/gkampitakis/go-snaps v0.5.25
-	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.1
+	github.com/larsartmann/go-cqrs-lite/command/v4 v4.14.2
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.2
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.2
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.3
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.4.0
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.5
-	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.3
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.7.6
+	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.4
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.10.1
 	github.com/larsartmann/go-error-family v0.12.0
 	github.com/larsartmann/go-flightrecorder v0.2.1
@@ -44,10 +44,10 @@ require (
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/larsartmann/go-branded-id v0.7.1 // indirect
-	github.com/larsartmann/go-codec v0.3.3 // indirect
+	github.com/larsartmann/go-codec v0.3.4 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.3 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.2 // indirect
-	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.7.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.7.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.7.0 // indirect
 	github.com/maruel/natural v1.3.0 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
