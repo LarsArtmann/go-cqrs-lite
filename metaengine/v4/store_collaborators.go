@@ -58,6 +58,9 @@ type idempotencyTracker struct {
 	mu   sync.Mutex
 	ring *dedup.Ring[string] // nil → unbounded legacy mode
 	seen sync.Map            // event ID → struct{}, used only when ring == nil
+
+	inMu     sync.Mutex
+	inFlight map[string]struct{} // IDs reserved by an apply that is still running
 }
 
 func newIdempotencyTracker(capacity int) *idempotencyTracker {
@@ -65,7 +68,61 @@ func newIdempotencyTracker(capacity int) *idempotencyTracker {
 		return &idempotencyTracker{}
 	}
 
-	return &idempotencyTracker{ring: dedup.NewRing[string](capacity)}
+	return &idempotencyTracker{
+		ring:     dedup.NewRing[string](capacity),
+		inFlight: make(map[string]struct{}),
+	}
+}
+
+// claim reserves eventID for the caller's apply. It reports applied=true when
+// the ID must not be applied again: it was recorded, or another goroutine is
+// applying it right now. A reserved ID is only recorded by commit, so a
+// failed apply is released and the retry goes through.
+func (t *idempotencyTracker) claim(eventID string) (applied bool) {
+	t.inMu.Lock()
+	defer t.inMu.Unlock()
+
+	if t.has(eventID) {
+		return true
+	}
+
+	if _, running := t.inFlight[eventID]; running {
+		return true
+	}
+
+	t.inFlight[eventID] = struct{}{}
+
+	return false
+}
+
+// commit records a successfully applied event ID and lifts its reservation.
+func (t *idempotencyTracker) commit(eventID string) {
+	t.inMu.Lock()
+	defer t.inMu.Unlock()
+
+	t.CheckAndRecord(eventID)
+	delete(t.inFlight, eventID)
+}
+
+// release lifts the reservation of an apply that failed.
+func (t *idempotencyTracker) release(eventID string) {
+	t.inMu.Lock()
+	defer t.inMu.Unlock()
+
+	delete(t.inFlight, eventID)
+}
+
+func (t *idempotencyTracker) has(eventID string) bool {
+	if t.ring != nil {
+		t.mu.Lock()
+		defer t.mu.Unlock()
+
+		return t.ring.Has(eventID)
+	}
+
+	_, exists := t.seen.Load(eventID)
+
+	return exists
 }
 
 // CheckAndRecord returns true if the eventID was already seen (duplicate).

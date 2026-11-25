@@ -50,42 +50,60 @@ type SpatialBackend interface {
 // haversine distance for every range query — O(N) per query. Suitable for
 // small collections or testing. For production scale, use an R-tree engine.
 type MemorySpatialIndex struct {
-	mu     sync.RWMutex
-	points map[string]Point // key → point
+	mu sync.RWMutex
+	// collection → point ID → point. Points are keyed by collection because
+	// every spatial collection of an engine shares this one index.
+	points map[string]map[string]Point
 }
 
 // NewMemorySpatialIndex creates a brute-force spatial index.
 func NewMemorySpatialIndex() *MemorySpatialIndex {
-	return &MemorySpatialIndex{points: make(map[string]Point)}
+	return &MemorySpatialIndex{points: make(map[string]map[string]Point)}
 }
 
-// Insert adds a point to the spatial index.
-func (m *MemorySpatialIndex) Insert(_ context.Context, _ string, pt Point) error {
+// Insert adds a point to the spatial index of the given collection.
+func (m *MemorySpatialIndex) Insert(_ context.Context, collection string, pt Point) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	m.points[pt.ID] = pt
+	if m.points == nil {
+		m.points = make(map[string]map[string]Point)
+	}
+
+	bucket := m.points[collection]
+	if bucket == nil {
+		bucket = make(map[string]Point)
+		m.points[collection] = bucket
+	}
+
+	bucket[pt.ID] = pt
+
 	return nil
 }
 
-// Range returns points within the given radius of (x, y), sorted by distance.
+// Range returns the points of the given collection within the given radius of
+// (x, y), sorted by distance.
 func (m *MemorySpatialIndex) Range(
 	_ context.Context,
-	_ string,
+	collection string,
 	x, y, radius float64,
 	limit int,
 ) ([]SpatialResult, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
-	return m.rangeQueryLocked(x, y, radius, limit), nil
+	return m.rangeQueryLocked(collection, x, y, radius, limit), nil
 }
 
-// rangeQueryLocked scans the index. Caller MUST hold m.mu (RLock suffices).
-func (m *MemorySpatialIndex) rangeQueryLocked(x, y, radius float64, limit int) []SpatialResult {
+// rangeQueryLocked scans one collection. Caller MUST hold m.mu (RLock suffices).
+func (m *MemorySpatialIndex) rangeQueryLocked(
+	collection string,
+	x, y, radius float64,
+	limit int,
+) []SpatialResult {
 	var results []SpatialResult
 
-	for id, pt := range m.points {
+	for id, pt := range m.points[collection] {
 		dist := haversineDistance(y, x, pt.Y, pt.X)
 		if dist <= radius {
 			results = append(results, SpatialResult{ID: id, Distance: dist})

@@ -19,36 +19,34 @@ import (
 // silently short slice. Use [TypedReader.ScanPage] when you want the cursor for
 // the next page rather than an error.
 func (r *TypedReader[V]) Scan(ctx context.Context, opts ...ScanOption) ([]V, error) {
-	items, _, err := r.scanItems(ctx, opts...)
+	items, _, _, err := r.scanItemsCfg(ctx, opts...)
+
 	return items, err
 }
 
-// scanItems is the scan dispatch shared by Scan and ScanPage. It applies the
-// scan options and enforces [WithExact] on the resulting metadata.
-func (r *TypedReader[V]) scanItems(ctx context.Context, opts ...ScanOption) ([]V, pageMeta, error) {
-	cfg := scanConfig{limit: 100}
-	if dl := r.store.defaultLimit; dl > 0 {
-		cfg.limit = dl
-	}
-
-	for _, opt := range opts {
-		opt(&cfg)
-	}
+// scanItemsCfg applies the scan options, enforces [WithExact] on the
+// resulting metadata and hands back the resolved option set, which ScanPage
+// needs to decide whether a full page was served.
+func (r *TypedReader[V]) scanItemsCfg(
+	ctx context.Context,
+	opts ...ScanOption,
+) ([]V, pageMeta, scanConfig, error) {
+	cfg := r.applyScanOptions(opts)
 
 	items, meta, err := r.scanItemsConfigured(ctx, cfg)
 	if err != nil {
-		return nil, pageMeta{}, err
+		return nil, pageMeta{}, scanConfig{}, err
 	}
 
 	if cfg.exact && meta.hasMore {
-		return nil, pageMeta{}, fmt.Errorf(
+		return nil, pageMeta{}, scanConfig{}, fmt.Errorf(
 			"%w: collection %q has more rows than the limit of %d (use a higher "+
 				"WithLimit, WithLimit(0), or ScanPage for the next cursor)",
 			ErrScanTruncated, r.collection, cfg.limit,
 		)
 	}
 
-	return items, meta, nil
+	return items, meta, cfg, nil
 }
 
 // scanItemsConfigured runs the scan with a fully applied option set and
@@ -63,16 +61,12 @@ func (r *TypedReader[V]) scanItemsConfigured(
 	}
 
 	// Operator and column names are spliced into SQL text (never bound as
-	// parameters), so both are validated here — the single entry point every
-	// typed scan flows through — and again in the engines' query builders.
-	if err := ValidateFilterSpecs(cfg.filters); err != nil {
-		return nil, pageMeta{}, err
-	}
+	// parameters), so both are validated here, the single entry point every
+	// typed scan flows through.
+	cfg = expandScanFilters(cfg)
 
-	for _, f := range cfg.filters {
-		if err := ValidateIdentifier(f.Column); err != nil {
-			return nil, pageMeta{}, fmt.Errorf("filter column: %w", err)
-		}
+	if err := validateScanFilters(cfg.filters); err != nil {
+		return nil, pageMeta{}, err
 	}
 
 	if cfg.sort != nil {
@@ -80,30 +74,6 @@ func (r *TypedReader[V]) scanItemsConfigured(
 			return nil, pageMeta{}, fmt.Errorf("sort column: %w", err)
 		}
 	}
-
-	// Expand range specs into filter pairs for pushdown/raw paths.
-	for _, rg := range cfg.ranges {
-		cfg.filters = append(
-			cfg.filters,
-			FilterSpec{Column: rg.Column, Op: FilterGe, Value: rg.Low},
-			FilterSpec{Column: rg.Column, Op: FilterLe, Value: rg.High},
-		)
-	}
-
-	// Expand IN specs into FilterIn FilterSpecs so pushdown/raw paths
-	// handle them. Without this, WithIn is silently dropped on
-	// RawScanReader and PushdownScan paths (data correctness bug).
-	for _, in := range cfg.inSpecs {
-		cfg.filters = append(cfg.filters, FilterSpec{
-			Column: in.Column,
-			Op:     FilterIn,
-			Value:  in.Values,
-		})
-	}
-
-	// IN specs are now merged into filters — clear so closure fallback
-	// doesn't double-evaluate.
-	cfg.inSpecs = nil
 
 	// PrefetchCache: serve from cache when this call's shape + cursor key
 	// matches. Resolved AFTER the range/IN expansion so the cache-read shape and
@@ -225,27 +195,3 @@ func (r *TypedReader[V]) scanPushdown(
 
 // Exists checks whether a key is present in the collection.
 // Uses SetBackend.SetContains for Set ADTs, falls back to MapGet for Map ADTs.
-// buildScanFilters applies scan options and returns the expanded filter list
-// (ranges and IN specs expanded into FilterSpecs).
-func buildScanFilters(opts ...ScanOption) []FilterSpec {
-	cfg := scanConfig{limit: 100}
-	for _, opt := range opts {
-		opt(&cfg)
-	}
-
-	for _, rg := range cfg.ranges {
-		cfg.filters = append(
-			cfg.filters,
-			FilterSpec{Column: rg.Column, Op: FilterGe, Value: rg.Low},
-			FilterSpec{Column: rg.Column, Op: FilterLe, Value: rg.High},
-		)
-	}
-
-	for _, in := range cfg.inSpecs {
-		cfg.filters = append(cfg.filters, FilterSpec{
-			Column: in.Column, Op: FilterIn, Value: in.Values,
-		})
-	}
-
-	return cfg.filters
-}

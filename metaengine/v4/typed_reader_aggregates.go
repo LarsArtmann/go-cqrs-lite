@@ -6,7 +6,10 @@ import "context"
 // When the engine implements AggregateReader, COUNT(*) is pushed to SQL;
 // otherwise it falls back to Scan + len(rows).
 func (r *TypedReader[V]) Count(ctx context.Context, opts ...ScanOption) (int, error) {
-	filters := buildScanFilters(opts...)
+	filters, err := r.aggregateFilters(opts...)
+	if err != nil {
+		return 0, err
+	}
 
 	eng, ok := r.store.collectionEngine(r.collection)
 	if ok {
@@ -74,7 +77,15 @@ func (r *TypedReader[V]) aggregatePushdown(
 	column string,
 	opts ...ScanOption,
 ) (float64, error) {
-	filters := buildScanFilters(opts...)
+	filters, err := r.aggregateFilters(opts...)
+	if err != nil {
+		return 0, err
+	}
+
+	err = validateIdentifiers("aggregate", column)
+	if err != nil {
+		return 0, err
+	}
 
 	eng, ok := r.store.collectionEngine(r.collection)
 	if ok {

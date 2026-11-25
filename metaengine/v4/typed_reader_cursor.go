@@ -35,15 +35,13 @@ type pageMeta struct {
 // instead of hitting the engine.
 //
 // Returns (items, nil cursor, nil) when there are no more pages.
+//
+// The page size is the limit Scan resolved for this call (an explicit
+// WithLimit, else the store's default, else 100).
 func (r *TypedReader[V]) ScanPage(ctx context.Context, opts ...ScanOption) ([]V, *Cursor, error) {
-	result, meta, err := r.scanItems(ctx, opts...)
+	result, meta, cfg, err := r.scanItemsCfg(ctx, opts...)
 	if err != nil {
 		return nil, nil, err
-	}
-
-	cfg := scanConfig{limit: 100}
-	for _, opt := range opts {
-		opt(&cfg)
 	}
 
 	if len(result) == 0 || cfg.limit <= 0 || len(result) < cfg.limit {

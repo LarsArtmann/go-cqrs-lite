@@ -560,20 +560,6 @@ func (s *Store) replicateLocked(eventType string, rec record.Record, payload any
 	}
 }
 
-// ApplyIdempotent processes an event with deduplication by event ID. If the
-// same eventID has been applied before, the call is a no-op. This is essential
-// for at-least-once delivery scenarios where events may be replayed.
-//
-// The dedup is in-memory (process-local); for durable dedup across restarts,
-// consumers should wrap the Store with an external idempotency store.
-func (s *Store) ApplyIdempotent(ctx context.Context, eventID, eventType string, payload any) error {
-	if eventID != "" && s.idempotency.CheckAndRecord(eventID) {
-		return nil // already applied
-	}
-
-	return s.applyIdempotentFeed(ctx, eventType, payload)
-}
-
 func (s *Store) applyIdempotentFeed(ctx context.Context, eventType string, payload any) error {
 	return s.applyWithRecord(
 		ctx, feedApplyIdempotent, eventType, record.Record{Type: eventType}, payload,
