@@ -29,7 +29,7 @@ func (r *durabilityRule) Apply(result *PlanResult, ctx PlanContext) error {
 		// Check if any other engine in the plan is persistent and supports the same ADT.
 		var altProfile EngineProfile
 		var altComplexity Complexity
-		for _, eng := range ctx.Store.engines {
+		for _, eng := range ctx.Store.enginesForRules() {
 			ep := eng.Profile()
 			if ep.Name == profile.Name {
 				continue

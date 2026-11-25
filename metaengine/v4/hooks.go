@@ -10,11 +10,11 @@ import "time"
 // The same read contract as WithHooks applies: configure hooks at
 // construction, before concurrent use.
 func (s *Store) CurrentHooks() Hooks {
-	if s.hooks == nil {
-		return Hooks{}
+	if h := s.hooks.Load(); h != nil {
+		return *h
 	}
 
-	return *s.hooks
+	return Hooks{}
 }
 
 // Merge returns hooks that run both h and other for every callback field

@@ -137,7 +137,7 @@ func (s *Store) noteSyntheticRecordApply(entry feedEntryPoint, eventType string)
 	s.syntheticFeeds.bucket(entry).Add(1)
 
 	s.syntheticRecordAdvisory.Do(func() {
-		logSyntheticRecordAdvisory(s.hooks, eventType)
+		logSyntheticRecordAdvisory(s.hooks.Load(), eventType)
 	})
 }
 

@@ -146,8 +146,12 @@ func AutoCRUDByConvention[R any](keyField string, samples ...any) ([]Fold, error
 
 	var createdType, updatedType, deletedType reflect.Type
 
-	for _, s := range samples {
+	for i, s := range samples {
 		t := reflect.TypeOf(s)
+		if t == nil {
+			return nil, fmt.Errorf("AutoCRUDByConvention: sample %d is nil", i)
+		}
+
 		if t.Kind() == reflect.Pointer {
 			t = t.Elem()
 		}

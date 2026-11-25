@@ -28,7 +28,7 @@ type Store struct {
 	idempotency          *idempotencyTracker
 	meter                *workloadMeter
 	subs                 *subscriberHub
-	hooks                *Hooks // observability hooks (nil = no-op)
+	hooks                atomic.Pointer[Hooks] // observability hooks (nil = no-op)
 	eventLog             *EventLog
 	queryDecls           []any          // original query declarations (for Verify)
 	coalescer            *ReadCoalescer // optional read coalescer (nil = disabled)
@@ -512,8 +512,8 @@ func (s *Store) applyWithRecord(
 	start := time.Now()
 
 	defer func() {
-		if s.hooks != nil && s.hooks.OnApply != nil {
-			s.hooks.OnApply(eventType, time.Since(start), err)
+		if h := s.hooks.Load(); h != nil && h.OnApply != nil {
+			h.OnApply(eventType, time.Since(start), err)
 		}
 	}()
 

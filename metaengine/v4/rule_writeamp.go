@@ -11,7 +11,7 @@ type writeAmpRule struct {
 func (*writeAmpRule) Name() string { return "write-amplification" }
 
 func (r *writeAmpRule) Apply(result *PlanResult, ctx PlanContext) error {
-	diags := checkWriteAmplification(ctx.Store.queries, r.budget)
+	diags := checkWriteAmplification(ctx.Store.queriesForRules(), r.budget)
 	result.Diagnostics = append(result.Diagnostics, diags...)
 
 	return nil

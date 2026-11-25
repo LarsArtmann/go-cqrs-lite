@@ -52,11 +52,16 @@ func AutoCRUDByNamedEvents[R any](keyField string, samples ...NamedSample) ([]Fo
 	resultType := reflect.TypeFor[R]()
 
 	var created, updated, deleted *NamedSample
+	var createdType, updatedType, deletedType reflect.Type
 
 	for i := range samples {
 		s := samples[i]
 
 		t := reflect.TypeOf(s.sample)
+		if t == nil {
+			return nil, fmt.Errorf("AutoCRUDByNamedEvents: sample for event type %q is nil", s.eventType)
+		}
+
 		if t.Kind() == reflect.Pointer {
 			t = t.Elem()
 		}
@@ -68,29 +73,32 @@ func AutoCRUDByNamedEvents[R any](keyField string, samples ...NamedSample) ([]Fo
 			if created != nil {
 				return nil, fmt.Errorf(
 					"AutoCRUDByNamedEvents: multiple Created types: %s and %s",
-					reflect.TypeOf(created.sample).Name(), name,
+					createdType.Name(), name,
 				)
 			}
 
 			created = &samples[i]
+			createdType = t
 		case strings.HasSuffix(name, "Updated"):
 			if updated != nil {
 				return nil, fmt.Errorf(
 					"AutoCRUDByNamedEvents: multiple Updated types: %s and %s",
-					reflect.TypeOf(updated.sample).Name(), name,
+					updatedType.Name(), name,
 				)
 			}
 
 			updated = &samples[i]
+			updatedType = t
 		case strings.HasSuffix(name, "Deleted"):
 			if deleted != nil {
 				return nil, fmt.Errorf(
 					"AutoCRUDByNamedEvents: multiple Deleted types: %s and %s",
-					reflect.TypeOf(deleted.sample).Name(), name,
+					deletedType.Name(), name,
 				)
 			}
 
 			deleted = &samples[i]
+			deletedType = t
 		default:
 			return nil, fmt.Errorf(
 				"AutoCRUDByNamedEvents: type %s does not match *Created/*Updated/*Deleted suffix",
@@ -108,20 +116,20 @@ func AutoCRUDByNamedEvents[R any](keyField string, samples ...NamedSample) ([]Fo
 	var folds []Fold
 
 	folds = append(folds, overrideEventType(
-		autoInsertByType(reflect.TypeOf(created.sample), resultType, keyField),
+		autoInsertByType(createdType, resultType, keyField),
 		created.eventType,
 	))
 
 	if updated != nil {
 		folds = append(folds, overrideEventType(
-			autoUpdateByType(reflect.TypeOf(updated.sample), resultType, keyField),
+			autoUpdateByType(updatedType, resultType, keyField),
 			updated.eventType,
 		))
 	}
 
 	if deleted != nil {
 		folds = append(folds, overrideEventType(
-			autoDeleteByType(reflect.TypeOf(deleted.sample), keyField),
+			autoDeleteByType(deletedType, keyField),
 			deleted.eventType,
 		))
 	}

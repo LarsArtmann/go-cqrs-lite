@@ -97,10 +97,10 @@ func (s *Store) executeQuery(
 		s.recordEngineSuccess(effective.QueryEngine())
 	}
 
-	if s.hooks != nil && s.hooks.OnExecute != nil {
+	if h := s.hooks.Load(); h != nil && h.OnExecute != nil {
 		elapsed := time.Since(start)
-		if s.hooks.SlowQueryThreshold == 0 || elapsed >= s.hooks.SlowQueryThreshold {
-			s.hooks.OnExecute(q.QueryName(), q.QueryReadPattern(), elapsed, err)
+		if h.SlowQueryThreshold == 0 || elapsed >= h.SlowQueryThreshold {
+			h.OnExecute(q.QueryName(), q.QueryReadPattern(), elapsed, err)
 		}
 	}
 

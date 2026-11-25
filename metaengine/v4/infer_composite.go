@@ -154,7 +154,7 @@ func generateCompositeFolds(
 	c conventionClassification,
 	resultType reflect.Type,
 	det keyDetection,
-) []Fold {
+) ([]Fold, error) {
 	valueType := collectionElementType(resultType)
 
 	var folds []Fold
@@ -162,15 +162,58 @@ func generateCompositeFolds(
 	insert := compositeInsertFold(c.created, valueType, det)
 	folds = append(folds, insert)
 
-	if c.updated != nil {
-		folds = append(folds, compositeUpdateFold(c.updated, valueType, det))
+	for _, eventType := range nonNilTypes(c.updated, c.deleted) {
+		eventDet, err := keyDetectionFor(eventType, det)
+		if err != nil {
+			return nil, err
+		}
+
+		if eventType == c.updated {
+			folds = append(folds, compositeUpdateFold(eventType, valueType, eventDet))
+		} else {
+			folds = append(folds, compositeDeleteFold(eventType, eventDet))
+		}
 	}
 
-	if c.deleted != nil {
-		folds = append(folds, compositeDeleteFold(c.deleted, det))
+	return folds, nil
+}
+
+func nonNilTypes(types ...reflect.Type) []reflect.Type {
+	var out []reflect.Type
+
+	for _, t := range types {
+		if t != nil {
+			out = append(out, t)
+		}
 	}
 
-	return folds
+	return out
+}
+
+// keyDetectionFor re-resolves the composite key fields by NAME for one event
+// type. The Created sample's field offsets say nothing about the Updated or
+// Deleted structs: a different layout silently builds the wrong key, a
+// missing field panics at apply time and poisons the collection.
+func keyDetectionFor(eventType reflect.Type, det keyDetection) (keyDetection, error) {
+	indices := make([]int, len(det.fields))
+
+	for i, name := range det.fields {
+		f, ok := eventType.FieldByName(name)
+		if !ok {
+			return det, fmt.Errorf("infer: %s has no key field %q", eventType.Name(), name)
+		}
+
+		if want := det.keyType.Field(i).Type; f.Type != want {
+			return det, fmt.Errorf("infer: key field %s.%s is %s, want %s as declared by the Created event",
+				eventType.Name(), name, f.Type, want)
+		}
+
+		indices[i] = f.Index[0]
+	}
+
+	det.eventIndices = indices
+
+	return det, nil
 }
 
 func compositeInsertFold(

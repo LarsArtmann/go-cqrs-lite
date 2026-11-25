@@ -18,25 +18,25 @@ import (
 // not call back into the Store. Meters and loggers are always safe.
 
 func (s *Store) emitQuarantined(engine string, failures int, lastErr string) {
-	if h := s.hooks; h != nil && h.OnQuarantined != nil {
+	if h := s.hooks.Load(); h != nil && h.OnQuarantined != nil {
 		h.OnQuarantined(engine, failures, lastErr)
 	}
 }
 
 func (s *Store) emitReactivated(engine, reason string) {
-	if h := s.hooks; h != nil && h.OnReactivated != nil {
+	if h := s.hooks.Load(); h != nil && h.OnReactivated != nil {
 		h.OnReactivated(engine, reason)
 	}
 }
 
 func (s *Store) emitProbe(engine string, err error) {
-	if h := s.hooks; h != nil && h.OnProbe != nil {
+	if h := s.hooks.Load(); h != nil && h.OnProbe != nil {
 		h.OnProbe(engine, err)
 	}
 }
 
 func (s *Store) emitCatchUp(engine string, replayed int, err error) {
-	if h := s.hooks; h != nil && h.OnCatchUp != nil {
+	if h := s.hooks.Load(); h != nil && h.OnCatchUp != nil {
 		h.OnCatchUp(engine, replayed, err)
 	}
 }

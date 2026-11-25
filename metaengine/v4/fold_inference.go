@@ -244,7 +244,10 @@ func (q *QueryDecl[Q, R]) ensureFolds() error {
 	var folds []Fold
 
 	if det.composite {
-		folds = generateCompositeFolds(classified, resultType, det)
+		folds, err = generateCompositeFolds(classified, resultType, det)
+		if err != nil {
+			return fmt.Errorf("query %q: %w", q.Name, err)
+		}
 	} else {
 		folds = generateInferredFolds(classified, resultType, det.fields[0])
 	}

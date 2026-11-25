@@ -34,6 +34,14 @@ type RulePipeline struct {
 // The bool is false when the plan references a query the store no longer
 // knows; advisory rules skip those silently (re-planning owns the error).
 func declaredQuery(ctx PlanContext, q QueryAssignment) (queryMeta, bool) {
+	if ctx.Store == nil {
+		return nil, false
+	}
+
+	// Rules run without the store lock; RegisterQuery may add entries concurrently.
+	ctx.Store.mu.RLock()
+	defer ctx.Store.mu.RUnlock()
+
 	meta, ok := ctx.Store.queries[q.QueryName]
 
 	return meta, ok

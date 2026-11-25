@@ -74,8 +74,12 @@ func (s *Store) Export(ctx context.Context, w io.Writer) error {
 	return nil
 }
 
-// Import loads collection data from a JSON reader (previously created by Export).
-// Events are replayed into the store via Apply, rebuilding projections.
+// Import writes rows from a JSON reader (previously created by Export) straight
+// into the store's map-backed collections. It does NOT replay events: only
+// collections whose engine implements MapBackend are restored, and any other
+// collection, non-object row or row without an id/ID/Id/key/Key field is
+// skipped without an error. Import is therefore not a complete rebuild — for
+// that, replay the EventLog (Backfill) instead.
 //
 //	err := store.Import(ctx, os.Stdin)
 func (s *Store) Import(ctx context.Context, r io.Reader) error {

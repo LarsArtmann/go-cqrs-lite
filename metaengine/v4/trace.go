@@ -39,7 +39,7 @@ type TraceOp struct {
 // TraceRecorder records a Store's applied events and executed queries as
 // JSON-lines to an io.Writer. Attach with RecordTrace; detach with Close.
 //
-// The recorder chains any hooks already installed on the Store (WithHooks
+// The recorder chains every hook already installed on the Store (WithHooks
 // replaces hooks wholesale, so the recorder wraps and forwards). While
 // recording, all queries invoke the execute hook regardless of any previous
 // SlowQueryThreshold — a trace that silently drops fast queries is useless.
@@ -52,36 +52,26 @@ type TraceRecorder struct {
 }
 
 // RecordTrace attaches a TraceRecorder to the store. The returned recorder
-// must be Closed when done to restore the previous hooks.
+// must be Closed when done to restore the previous hooks. Safe on a serving
+// store, but Close reinstates the hook set captured at attach time: anything
+// installed in between is dropped, so do not interleave other WithHooks calls.
 func RecordTrace(store *Store, w io.Writer) *TraceRecorder {
 	tr := &TraceRecorder{w: w, store: store}
 
-	if store.hooks != nil {
-		prevCopy := *store.hooks
-		tr.prev = &prevCopy
-	}
+	tr.prev = store.hooks.Load()
 
 	hooks := Hooks{
-		OnApply: func(eventType string, d time.Duration, err error) {
-			tr.record(TraceOpApply, eventType, d, err)
-			if tr.prev != nil && tr.prev.OnApply != nil {
-				tr.prev.OnApply(eventType, d, err)
-			}
-		},
-		OnExecute: func(collection string, pattern ReadPattern, d time.Duration, err error) {
+		OnApply: func(eventType string, d time.Duration, err error) { tr.record(TraceOpApply, eventType, d, err) },
+		OnExecute: func(collection string, _ ReadPattern, d time.Duration, err error) {
 			tr.record(TraceOpQuery, collection, d, err)
-			if tr.prev != nil && tr.prev.OnExecute != nil {
-				tr.prev.OnExecute(collection, pattern, d, err)
-			}
 		},
 	}
 
-	if tr.prev != nil {
-		hooks.OnFold = tr.prev.OnFold
-		hooks.Logger = tr.prev.Logger
-	}
+	merged := store.CurrentHooks().Merge(hooks)
+	// Every query must reach the trace, whatever the previous hooks deemed slow.
+	merged.SlowQueryThreshold = 0
 
-	WithHooks(store, hooks)
+	WithHooks(store, merged)
 
 	return tr
 }

@@ -28,7 +28,7 @@ func (r *degradedADTRule) Apply(result *PlanResult, ctx PlanContext) error {
 		}
 
 		recommendation := findNativeADTEngine(
-			ctx.Store.engines, q.ADT, profile.Name,
+			ctx.Store.enginesForRules(), q.ADT, profile.Name,
 		)
 
 		msg := fmt.Sprintf(

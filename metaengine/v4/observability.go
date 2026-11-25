@@ -77,8 +77,11 @@ type StoreHooks = Hooks
 //	        log.Printf("[debug] %s: %s → %s (%v)", col, evt, kind, d)
 //	    },
 //	})
+//
+// WithHooks replaces the store's hooks. Safe to call while the store is
+// serving: dispatch sites load the hook set atomically.
 func WithHooks(store *Store, hooks Hooks) {
-	store.hooks = &hooks
+	store.hooks.Store(&hooks)
 }
 
 // WithDebug enables debug logging of every fold operation.
@@ -124,12 +127,12 @@ func WithMetrics(store *Store, rec MetricsRecorder) {
 			rec.RecordExecute(col, pattern, d, 0, err)
 		},
 	}
-	if store.hooks != nil {
-		hooks.Logger = store.hooks.Logger
-		hooks.SlowQueryThreshold = store.hooks.SlowQueryThreshold
+	if prev := store.hooks.Load(); prev != nil {
+		hooks.Logger = prev.Logger
+		hooks.SlowQueryThreshold = prev.SlowQueryThreshold
 	}
 
-	store.hooks = &hooks
+	store.hooks.Store(&hooks)
 }
 
 // --- Plan visualization ---
@@ -311,5 +314,5 @@ func WithTracing(store *Store, tracer Tracer) {
 			span.End()
 		},
 	}
-	store.hooks = &hooks
+	store.hooks.Store(&hooks)
 }

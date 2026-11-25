@@ -4,8 +4,6 @@ import (
 	"context"
 	"log/slog"
 	"time"
-
-	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // DefaultEngineFailureThreshold is the number of consecutive classified
@@ -82,9 +80,7 @@ func (s *Store) recordEngineFailure(eng Engine, err error) {
 		return
 	}
 
-	switch errorfamily.Classify(err) {
-	case errorfamily.Infrastructure, errorfamily.Transient:
-	default:
+	if !countsTowardHealth(err) {
 		return
 	}
 

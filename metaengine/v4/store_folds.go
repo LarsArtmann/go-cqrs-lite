@@ -37,8 +37,8 @@ func (s *Store) applyFold(
 	}()
 
 	defer func() {
-		if s.hooks != nil && s.hooks.OnFold != nil {
-			s.hooks.OnFold(q.QueryName(), fold.EventType(), fold.Kind(), time.Since(start), err)
+		if h := s.hooks.Load(); h != nil && h.OnFold != nil {
+			h.OnFold(q.QueryName(), fold.EventType(), fold.Kind(), time.Since(start), err)
 		}
 	}()
 
