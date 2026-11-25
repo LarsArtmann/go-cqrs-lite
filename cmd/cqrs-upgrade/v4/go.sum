@@ -67,8 +67,8 @@ github.com/larsartmann/go-atomic-write v0.6.2 h1:lUHfOGTd+27+8pZxz+htSkbKSFVwwrQ
 github.com/larsartmann/go-atomic-write v0.6.2/go.mod h1:rIkglf/MmsaEMMWykVE6wFwvDHtfcYm5t2qb4m9C+VU=
 github.com/larsartmann/go-branded-id v0.7.1 h1:w68pg/t74AM8PsTVVw7VkL3vq2C70zLH1jFxJCJwLPk=
 github.com/larsartmann/go-branded-id v0.7.1/go.mod h1:gM5FhB6d23qZO8hIU/rHpUnm/6dwKy9UGMhgvXDqNsc=
-github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4 v4.22.2 h1:222iIzimgn5LIuRw1sdhwVEsbGQgnE0Q4zI7xDifbZE=
-github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4 v4.22.2/go.mod h1:vdeKSQ0wxlE4sqv/R5H8B17PVzP9VxOvf6vRj0uvoW0=
+github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4 v4.22.3 h1:GaQTexg+EI351UL357cAQi4AiuiiiSFRLT0PE/CMsEU=
+github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4 v4.22.3/go.mod h1:FhuwkINfyN2Lih//wHD0MB75vfnIslzoOlciLgMlmGY=
 github.com/larsartmann/go-error-family v0.12.0 h1:HEtocvwaPe9udDusqDqV0pxN9Wx98KHQBK0MEHZupzg=
 github.com/larsartmann/go-error-family v0.12.0/go.mod h1:gB43rKC69SoPilihuze43OFqKYMGQxDNUi/25PF9MgE=
 github.com/larsartmann/go-finding v1.15.1 h1:oL3EixoLh7rnmTNgnoJaoZVgKtRwmAJdknDZEomw31g=

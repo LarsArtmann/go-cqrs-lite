@@ -20,6 +20,9 @@ var siblingRequireRe = regexp.MustCompile(
 
 var versionSuffixRe = regexp.MustCompile(`^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$`)
 
+// A module directory ends in its major-version suffix (/v4); its tags do not.
+var majorSuffixRe = regexp.MustCompile(`^(.*)/v[0-9]+$`)
+
 // TestSiblingModulePinsResolve guards the standalone-build (GOWORK=off) graph:
 // every require of a sibling module that is NOT governed by a replace
 // directive must resolve to a real, published tag.
@@ -68,14 +71,15 @@ func TestSiblingModulePinsResolve(t *testing.T) {
 			}
 
 			depDir := strings.TrimPrefix(dep, "github.com/larsartmann/go-cqrs-lite/")
+			tagDir := tagDirFor(depDir)
 
-			if latest := latestTagFor(allTags, depDir); latest != "" {
+			if latest := latestTagFor(allTags, tagDir); latest != "" {
 				if version == latest {
 					continue
 				}
 
 				switch {
-				case !slices.Contains(allTags, depDir+"/"+version) && isPseudoVersion(version):
+				case !tagExists(allTags, tagDir, version) && isPseudoVersion(version):
 					broken = append(
 						broken,
 						fmt.Sprintf(
@@ -85,9 +89,9 @@ func TestSiblingModulePinsResolve(t *testing.T) {
 							version,
 						),
 					)
-				case !slices.Contains(allTags, depDir+"/"+version):
-					broken = append(broken, fmt.Sprintf("%s requires %s %s — no such tag exists",
-						mod, depDir, version))
+				case !tagExists(allTags, tagDir, version):
+					broken = append(broken, fmt.Sprintf("%s requires %s %s — no such tag exists (%s/%s)",
+						mod, depDir, version, tagDir, version))
 				case compareVersions(version, latest) < 0:
 					msg := fmt.Sprintf(
 						"%s requires %s %s (latest tag: %s)",
@@ -227,9 +231,21 @@ func collectReplace(into map[string]struct{}, line string) {
 	}
 }
 
-// latestTagFor returns the newest version tag belonging to module dir D.
+// tagDirFor maps a module directory to the directory its version tags live
+// under: the module path without its trailing major-version suffix. event/v4
+// is tagged event/v4.15.3; a nested suffix-less module such as
+// event/v4/eventtest keeps its whole path.
+func tagDirFor(dir string) string {
+	if match := majorSuffixRe.FindStringSubmatch(dir); match != nil {
+		return match[1]
+	}
+
+	return dir
+}
+
+// latestTagFor returns the newest version tag belonging to tag directory D.
 // A tag belongs to D iff it is exactly "D/<version>" — nested-module tags
-// (e.g. event/v4/eventtest/v4.2.0 when D == "event") are excluded.
+// (e.g. event/v4/eventtest/v0.4.0 when D == "event") are excluded.
 func latestTagFor(tags []string, dir string) string {
 	best := ""
 

@@ -970,6 +970,8 @@ cmd/cqrs-lint/v4/pkg/rules/boilerplate/func NewB025Detector
 cmd/cqrs-lint/v4/pkg/rules/boilerplate/func NewB026Detector
 cmd/cqrs-lint/v4/pkg/rules/boilerplate/func NewB027Detector
 cmd/cqrs-lint/v4/pkg/rules/boilerplate/func NewB028Detector
+cmd/cqrs-lint/v4/pkg/rules/boilerplate/func NewB032Detector
+cmd/cqrs-lint/v4/pkg/rules/boilerplate/func NewB033Detector
 cmd/cqrs-lint/v4/pkg/rules/consistency/func NewD001Detector
 cmd/cqrs-lint/v4/pkg/rules/consistency/func NewD002Detector
 cmd/cqrs-lint/v4/pkg/rules/consistency/func NewD003Detector
@@ -6139,6 +6141,7 @@ system/v4/func DispatchQuery
 system/v4/func Event
 system/v4/func Evolve
 system/v4/func EvolveKey
+system/v4/func Exact
 system/v4/func Execute
 system/v4/func Find
 system/v4/func Get
@@ -6167,6 +6170,7 @@ system/v4/func RegisterQuery
 system/v4/func SchemaEvent
 system/v4/func Schemas
 system/v4/func Standard
+system/v4/func Unlimited
 system/v4/func Where
 system/v4/func WithClock
 system/v4/func WithCommandLifecycle
@@ -6243,6 +6247,7 @@ system/v4/method ReadAllQueries
 system/v4/method ReadFrom
 system/v4/method ReadFromAfter
 system/v4/method ReadQueriesFrom
+system/v4/method ReadyCheck
 system/v4/method RegisterCloser
 system/v4/method RegisterDrainer
 system/v4/method ResetProjection
@@ -6339,7 +6344,9 @@ system/v4/var ErrQueryTypeMismatch
 system/v4/var ErrRacySaveRefused
 system/v4/var ErrSeekableJournalMissing
 system/v4/var ErrShutdownDependencyInvalid
+system/v4/var ErrSystemNotStarted
 system/v4/var ErrSystemStopped
+system/v4/var ErrTimersStopped
 system/v4/var ErrTrimUnavailable
 system/v4/var ErrUnknownBusDriver
 system/v4/var ErrUnknownEngine

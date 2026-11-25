@@ -40,6 +40,7 @@ AUDITED_PUBLIC=(
 	github.com/larsartmann/go-etag
 	github.com/larsartmann/go-finding
 	github.com/larsartmann/go-flightrecorder
+	github.com/larsartmann/go-health
 	github.com/larsartmann/go-idempotency
 	github.com/larsartmann/go-ndjson
 	github.com/larsartmann/go-output
