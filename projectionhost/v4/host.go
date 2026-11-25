@@ -39,7 +39,7 @@ type Host struct {
 	workers map[string]*worker
 	started bool
 	stopped bool
-	cancel  context.CancelFunc
+	run     *hostRun
 	wg      sync.WaitGroup
 }
 
@@ -146,16 +146,18 @@ func newWorker(
 // WorkerState). For continuous live tailing, pair this host with
 // watermill.CatchUpSubscriber or poll periodically by calling Start again.
 //
+// Context lifetime contract: the context bounds more than the start sequence
+// — workers run only as long as it lives. A request- or test-scoped context
+// stops them the moment it is cancelled, leaving projections stale until
+// Start is called again; the host logs one warning when that happens. Pass a
+// context that lives as long as the host (context.WithoutCancel) and stop
+// with [Host.Stop].
+//
 // Returns an error if already started.
 func (h *Host) Start(ctx context.Context) error {
 	h.mu.Lock()
 	if h.started && !h.stopped {
-		h.mu.Unlock()
-
-		return errorfamily.NewRejection(
-			"projectionhost.already_started",
-			"projectionhost: already started",
-		)
+		return h.rejectStartedLocked()
 	}
 
 	// Restart path (after Stop): the previous workers are exited and their
@@ -170,31 +172,29 @@ func (h *Host) Start(ctx context.Context) error {
 
 	h.stopped = false
 	h.started = true
-	runCtx, cancel := context.WithCancel(ctx)
-	h.cancel = cancel
+	runCtx, run := newHostRun(ctx, h)
+	h.run = run
 
 	workers := slices.Collect(maps.Values(h.workers))
 	h.mu.Unlock()
 
 	for i, w := range workers {
 		h.wg.Add(1)
-
 		go func(worker *worker, delay int) {
 			defer h.wg.Done()
 
-			if delay > 0 {
-				select {
-				case <-time.After(time.Duration(delay) * time.Millisecond):
-				case <-runCtx.Done():
-					return
-				}
-			}
-
-			worker.run(runCtx)
+			run.runWorker(runCtx, worker, delay)
 		}(w, i*workerStartStaggerMs) // staggered ms between workers to avoid thundering herd
 	}
 
 	return nil
+}
+
+// rejectStartedLocked refuses a second Start; the caller holds h.mu.
+func (h *Host) rejectStartedLocked() error {
+	h.mu.Unlock()
+
+	return errorfamily.NewRejection("projectionhost.already_started", "projectionhost: already started")
 }
 
 // Stop gracefully shuts down all workers, waiting for in-flight events to
@@ -210,7 +210,7 @@ func (h *Host) Stop() error {
 	}
 
 	h.stopped = true
-	h.cancel()
+	h.run.stop()
 
 	for _, w := range h.workers {
 		if s := w.snapshot().Status; s == WorkerRunning || s == WorkerLive || s == WorkerBackoff {
@@ -240,7 +240,7 @@ func (h *Host) ForceStop(ctx context.Context) error {
 	}
 
 	h.stopped = true
-	h.cancel()
+	h.run.stop()
 
 	for _, w := range h.workers {
 		w.signalStop()
