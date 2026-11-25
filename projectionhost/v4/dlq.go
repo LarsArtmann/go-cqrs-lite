@@ -70,6 +70,8 @@ type DeadLetterStore interface {
 	// An empty projectionName returns entries across all projections.
 	List(ctx context.Context, projectionName string) ([]DeadLetterEntry, error)
 	// Delete removes a single dead-letter entry by projection name and event ID.
+	// An empty projectionName removes every entry with that event ID, across
+	// all projections (the same scope rule as List and Purge).
 	// Use it after a pure ReplayDeadLetters run to clear only the entries that
 	// replayed successfully, leaving still-failing entries in place. Prefer
 	// Delete over Purge when you want surgical cleanup.
@@ -162,9 +164,12 @@ func (s *MemoryDeadLetterStore) Delete(_ context.Context, projectionName, eventI
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	// Keep entries that do not match BOTH the projection and the event ID.
-	// This makes Delete safe to call with a non-empty projectionName to
-	// scope the delete, or with an empty one to delete by eventID globally.
+	if projectionName == "" {
+		s.retainEntries(func(e DeadLetterEntry) bool { return e.EventID != eventID })
+
+		return nil
+	}
+
 	s.retainEntries(func(e DeadLetterEntry) bool {
 		return e.ProjectionName != projectionName || e.EventID != eventID
 	})

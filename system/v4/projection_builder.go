@@ -77,21 +77,9 @@ type eventDecoderFn func(evt event.Event) (any, error)
 // It also returns the consumed event-type set (event type → consuming
 // projection names) for the coeffect validation gate.
 func buildProjections(
-	evolutions []EvolutionSpec,
+	evoIndex map[reflect.Type]*evolutionSpec,
 	decls []ProjectionDeclaration,
 ) (queryDecls []any, eventDecoder eventDecoderFn, consumed map[event.Type][]string, err error) {
-	evoIndex := make(map[reflect.Type]*evolutionSpec)
-	for _, e := range evolutions {
-		es, ok := e.(*evolutionSpec)
-		if !ok {
-			return nil, nil, nil, fmt.Errorf(
-				"system: unreachable: unknown EvolutionSpec %T", e,
-			)
-		}
-
-		evoIndex[es.resultType] = es
-	}
-
 	var allEntries []decoderTypeEntry
 	consumed = make(map[event.Type][]string)
 
@@ -199,12 +187,14 @@ func rawQueryConsumedTypes(decl any) (name string, types []string) {
 // buildEventDecoder creates an EventDecoder that auto-detects the payload
 // encoding (JSON or CBOR) and decodes into the correct Go type.
 func buildEventDecoder(entries []decoderTypeEntry) eventDecoderFn {
+	warnDecoderConflicts(entries)
+
 	typeMap := make(map[string]reflect.Type, len(entries))
 	for _, e := range entries {
 		typeMap[e.eventType] = e.sampleType
 	}
 
-	return func(evt event.Event) (any, error) {
+	decode := func(evt event.Event) (any, error) {
 		eventType := string(evt.Type())
 
 		t, ok := typeMap[eventType]
@@ -227,4 +217,6 @@ func buildEventDecoder(entries []decoderTypeEntry) eventDecoderFn {
 
 		return reflect.ValueOf(val).Elem().Interface(), nil
 	}
+
+	return decode
 }

@@ -61,35 +61,12 @@ func New(
 		qryDisp:      query.NewDispatcher(),
 	}
 
-	// Process ProjectionDeclaration values (auto-projection) before planning.
-	autoEventDecoder := eventDecoderFn(nil)
-	processedProjections := []any(nil)
-	var consumedEventTypes map[event.Type][]string
-
-	if len(domain.Projections) > 0 {
-		var buildErr error
-
-		processedProjections, autoEventDecoder, consumedEventTypes, buildErr = buildProjections(
-			domain.Evolutions, domain.Projections,
-		)
-		if buildErr != nil {
-			return nil, fmt.Errorf("system: build projections: %w", buildErr)
-		}
+	processedProjections, autoEventDecoder, err := planDomainProjections(domain, safetyReport)
+	if err != nil {
+		return nil, err
 	}
 
-	// Coeffect validation gate (ADR-0136 follow-up): fail composition when a
-	// declared event universe exists and something consumes outside it.
-	// DomainConfig.Schema types join the universe — a payload-contract
-	// declaration is also a journal-universe declaration (2026-10-09 T1).
-	eventUniverse := declaredEventTypes(domain)
-
-	if len(eventUniverse) > 0 && !domain.DisableCoeffectValidation {
-		if err := validateCoeffectGraph(
-			eventUniverse, domain.Evolutions, consumedEventTypes, safetyReport,
-		); err != nil {
-			return nil, err
-		}
-	}
+	warnShadowedInstances(deployment)
 
 	// Create engines from the deployment config via the driver registry,
 	// in sorted name order so error selection is deterministic across

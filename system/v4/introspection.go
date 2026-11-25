@@ -135,7 +135,11 @@ func (s *System) Snapshot(_ context.Context) (*Topology, error) {
 	return topo, nil
 }
 
-// Health returns aggregated health across all components.
+// Health returns a lifecycle summary string ("ok", plus projections: and
+// timers: segments), NOT a health verdict: it does not probe engines or look
+// at individual workers, so "ok projections:running" is printed while a
+// worker is failed. Use [System.HealthCheck] as the liveness probe and
+// [System.ReadyCheck] as the readiness probe; the string format is frozen.
 func (s *System) Health(_ context.Context) string {
 	s.mu.RLock()
 	defer s.mu.RUnlock()

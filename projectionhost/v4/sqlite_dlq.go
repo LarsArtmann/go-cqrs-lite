@@ -222,23 +222,6 @@ func (s *SQLiteDeadLetterStore) List(
 	return result, nil
 }
 
-func (s *SQLiteDeadLetterStore) Delete(
-	ctx context.Context,
-	projectionName, eventID string,
-) error {
-	_, err := s.db.ExecContext(ctx,
-		"DELETE FROM projection_dead_letters WHERE projection_name = ? AND event_id = ?",
-		projectionName, eventID)
-	if err != nil {
-		return errorfamily.WrapInfrastructure(
-			err, "projectionhost.dlq_delete",
-			fmt.Sprintf("delete dead-letter entry %s/%s", projectionName, eventID),
-		)
-	}
-
-	return nil
-}
-
 func (s *SQLiteDeadLetterStore) Purge(
 	ctx context.Context,
 	projectionName string,
@@ -303,19 +286,30 @@ func scanDLQRow(rows *sql.Rows) (DeadLetterEntry, error) {
 		)
 	}
 
-	failedAt, err := time.Parse(time.RFC3339Nano, failedAtStr)
+	// A zero time would predate every PurgeBefore cut-off, so an
+	// unreadable timestamp must not be downgraded to one: the row is corrupt.
+	entry.FailedAt, err = time.Parse(time.RFC3339Nano, failedAtStr)
 	if err != nil {
-		failedAt = time.Time{}
+		return DeadLetterEntry{}, errorfamily.WrapCorruption(
+			err, "projectionhost.dlq_corrupt_failed_at",
+			fmt.Sprintf("dead-letter row %s/%s: stored failed_at is not RFC3339Nano",
+				entry.ProjectionName, entry.EventID),
+		)
 	}
-
-	entry.FailedAt = failedAt
 
 	if len(payload) > 0 || entry.EventID != "" {
 		occurredAt, _ := time.Parse(time.RFC3339Nano, occurredAtStr)
 
+		// A stored id that does not parse names a row we cannot safely
+		// attribute: replaying under an invented id would feed the projection
+		// an event that never happened. Report it as the corrupt row it is.
 		eventID, idErr := id.ParseEventID(entry.EventID)
 		if idErr != nil {
-			eventID = id.NewEventID()
+			return DeadLetterEntry{}, errorfamily.WrapCorruption(
+				idErr, "projectionhost.dlq_corrupt_event_id",
+				fmt.Sprintf("dead-letter row %s/%s: stored event_id is not a valid event ID",
+					entry.ProjectionName, entry.EventID),
+			)
 		}
 
 		aggID, _ := id.ParseStreamID(entry.StreamID)

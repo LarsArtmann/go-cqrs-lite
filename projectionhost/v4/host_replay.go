@@ -9,9 +9,14 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/projection/v4"
 )
 
-// RegisterAndWait registers all projections with the host, then starts the
-// host, and blocks until ctx is cancelled or all workers stop. Useful for
-// simple single-projection setups.
+// RegisterAndWait registers all projections with the host, starts the host,
+// and blocks until ctx is cancelled or all workers stop. Useful for simple
+// single-projection setups; call it from the goroutine that owns shutdown.
+//
+// Cancelling ctx stops the host gracefully (as [Host.Stop]), so ctx should
+// live as long as the process. It returns nil after a clean stop and the
+// error if a projection could not be registered or the host could not start
+// or stop.
 func RegisterAndWait(ctx context.Context, h *Host, projections ...projection.Projection) error {
 	for _, p := range projections {
 		if err := h.Register(p); err != nil {
@@ -19,7 +24,32 @@ func RegisterAndWait(ctx context.Context, h *Host, projections ...projection.Pro
 		}
 	}
 
-	return h.Start(ctx)
+	// The workers must not inherit ctx's cancellation: stopping is routed
+	// through Host.Stop below, so a cancelled ctx reads as a shutdown and
+	// not as a Start context that died underneath a running host.
+	if err := h.Start(context.WithoutCancel(ctx)); err != nil {
+		return err
+	}
+
+	return h.waitUntilStopped(ctx)
+}
+
+// waitUntilStopped blocks until ctx is cancelled and the host is stopped, or
+// until every worker has exited on its own.
+func (h *Host) waitUntilStopped(ctx context.Context) error {
+	exited := make(chan struct{})
+
+	go func() {
+		h.wg.Wait()
+		close(exited)
+	}()
+
+	select {
+	case <-ctx.Done():
+		return h.Stop()
+	case <-exited:
+		return nil
+	}
 }
 
 // ReplayResult reports the outcome of a pure ReplayDeadLetters run.
