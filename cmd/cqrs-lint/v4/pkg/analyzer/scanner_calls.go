@@ -74,6 +74,9 @@ func scanCallExpr(ctx *AnalysisContext, gf *GoFile, call *ast.CallExpr) {
 
 		capturePayloadType(ctx, call)
 
+	case funcName == "NewEvents" && IsQualifierFor(gf, sel, "go-cqrs-lite/event"):
+		scanNewEventsCall(ctx, gf, call)
+
 	case funcName == "RegisterTyped" || funcName == "RegisterQuery":
 		if handlerType := handlerTypeFromCall(call); handlerType != "" {
 			ctx.Registry.CommandTypesRegistered[handlerType] = true

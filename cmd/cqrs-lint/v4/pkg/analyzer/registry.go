@@ -11,7 +11,9 @@ type CQRSRegistry struct {
 	Deciders    []DeciderInfo
 	Projections []ProjectionInfo
 
-	// EventTypesEmitted tracks event type strings emitted via event.New/NewEvent.
+	// EventTypesEmitted tracks event type strings emitted via event.New,
+	// event.NewEvent, and event.NewEvents (whose slice argument is a literal of
+	// string literals or constants; a slice held in a variable stays unrecorded).
 	EventTypesEmitted map[string]EventEmission // event type string → emission location
 	// EventTypesInCatalog tracks event types registered via catalog.Event.
 	EventTypesInCatalog map[string]bool
