@@ -1,0 +1,1355 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RxDB: local-first landscape review for go-cqrs-lite</title>
+    <style>
+      /* =========================================================================
+         BAUHAUS LIGHT — Editorial template
+         Design language: form follows function. Primary colors on warm paper.
+         Zero external dependencies: system fonts, no CDN, no build step.
+         Token architecture: see references/bauhaus-tokens.md
+         ========================================================================= */
+
+      :root {
+        /* --- Primitive palette (Bauhaus Light) --- */
+        --color-paper: #f4f4f0;
+        --color-paper-2: #ffffff;
+        --color-paper-3: #e8e8e2;
+        --color-ink: #111111;
+        --color-red: #e63946;
+        --color-blue: #1d3557;
+        --color-yellow: #f4d35e;
+        --color-hairline: rgba(17, 17, 17, 0.14);
+        --color-hairline-strong: rgba(17, 17, 17, 0.3);
+
+        /* --- Semantic layer (shared vocabulary with dark template) --- */
+        --surface: var(--color-paper);
+        --surface-raised: var(--color-paper-2);
+        --surface-sunken: var(--color-paper-3);
+        --text: var(--color-ink);
+        --text-muted: rgba(17, 17, 17, 0.72);
+        --text-faint: rgba(17, 17, 17, 0.5);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-red);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        /* --- Backward-compatible aliases (do not break consumer skills) --- */
+        --bg: var(--surface);
+        --bg-elevated: var(--surface-raised);
+        --bg-sunken: var(--surface-sunken);
+        --bg-card: var(--surface-raised);
+        --bg-code: var(--surface-sunken);
+        --ink: var(--text);
+        --ink-secondary: var(--text-muted);
+        --ink-muted: var(--text-faint);
+        --rose: var(--problem);
+        --rose-glow: color-mix(in srgb, var(--problem) 15%, transparent);
+        --emerald: var(--solution);
+        --emerald-glow: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber: var(--warning);
+        --amber-glow: color-mix(in srgb, var(--warning) 15%, transparent);
+        --amber-light: color-mix(in srgb, var(--warning) 22%, transparent);
+        --coral: var(--problem);
+        --coral-light: color-mix(in srgb, var(--problem) 12%, transparent);
+        --teal: var(--solution);
+        --teal-light: color-mix(in srgb, var(--solution) 12%, transparent);
+
+        /* --- Shape --- */
+        --radius: 0px;
+        --radius-sm: 0px;
+
+        /* --- Type stacks (system only — zero external fonts) --- */
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+        *,
+        *::before,
+        *::after {
+          transition-duration: 0.01ms !important;
+          animation-duration: 0.01ms !important;
+        }
+      }
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 16px;
+        line-height: 1.65;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* --- Accessibility: keyboard focus --- */
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      a:focus-visible {
+        outline-offset: -1px;
+      }
+
+      /* --- Full-bleed top bar --- */
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      /* --- Layout: optional sticky sidebar TOC --- */
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--text);
+      }
+      .sidebar a {
+        font-size: 0.86rem;
+        color: var(--text);
+        text-decoration: none;
+        padding: 0.5rem 0.75rem;
+        border-left: 4px solid transparent;
+        font-weight: 600;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+        color: var(--accent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      /* --- Headings --- */
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        color: var(--text);
+      }
+      h1 {
+        font-size: clamp(1.9rem, 4.5vw, 2.8rem);
+        line-height: 1.05;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.5rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 3px solid var(--text);
+        display: flex;
+        align-items: baseline;
+        gap: 0.7rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+      h3 {
+        font-size: 1.15rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 1rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+
+      /* --- Hero --- */
+      .hero {
+        padding: 1.5rem 0 2rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 3px solid var(--text);
+      }
+      .eyebrow {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: var(--accent);
+        margin-bottom: 0.9rem;
+      }
+      .subtitle {
+        font-size: 1.1rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0 0 1rem;
+      }
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      .tag {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        padding: 0.25rem 0.6rem;
+        background: var(--surface-sunken);
+        color: var(--text);
+        border: 1px solid var(--border-strong);
+      }
+      .tag.amber {
+        background: var(--warning);
+        border-color: var(--warning);
+        color: var(--text);
+      }
+      .tag.teal {
+        background: var(--solution);
+        border-color: var(--solution);
+        color: var(--surface);
+      }
+
+      /* Bauhaus signature: geometric shape cluster (optional) */
+      .hero-shapes {
+        position: relative;
+        height: 90px;
+        margin-bottom: 1.2rem;
+      }
+      .hero-shapes .circle {
+        position: absolute;
+        top: 0;
+        right: 180px;
+        width: 64px;
+        height: 64px;
+        background: var(--problem);
+        border-radius: 50%;
+      }
+      .hero-shapes .square {
+        position: absolute;
+        top: 26px;
+        right: 90px;
+        width: 56px;
+        height: 56px;
+        background: var(--solution);
+      }
+      .hero-shapes .tri {
+        position: absolute;
+        top: 8px;
+        right: 0;
+        width: 0;
+        height: 0;
+        border-left: 32px solid transparent;
+        border-right: 32px solid transparent;
+        border-bottom: 56px solid var(--warning);
+      }
+      .hero-shapes .bar {
+        position: absolute;
+        bottom: 0;
+        right: 230px;
+        width: 100px;
+        height: 14px;
+        background: var(--text);
+      }
+
+      /* --- Scorecard / stat cards --- */
+      .scorecard,
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 0;
+        margin: 1.5rem 0 2rem;
+        border: 3px solid var(--text);
+      }
+      .score-card,
+      .stat-card {
+        padding: 1.3rem 1rem;
+        text-align: center;
+        border-right: 3px solid var(--text);
+        background: var(--surface-raised);
+      }
+      .score-card:last-child,
+      .stat-card:last-child {
+        border-right: none;
+      }
+
+      .score,
+      .stat-value {
+        font-family: var(--font-heading);
+        font-size: 2.6rem;
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -0.04em;
+      }
+      .score-card .label,
+      .stat-label {
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        margin-top: 0.5rem;
+      }
+      /* Semantic state classes — no nth-child decoration, no !important */
+      .score-good,
+      .stat-good {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .score-warn,
+      .stat-warn {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .score-bad,
+      .stat-bad {
+        background: var(--problem);
+        color: var(--surface);
+      }
+
+      /* --- General cards --- */
+      .card {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+      }
+
+      /* --- Issue cards --- */
+      .issue {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* --- Severity badges --- */
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.22rem 0.6rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+
+      /* --- Inline badges --- */
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        border: 1px solid var(--text);
+        color: var(--text);
+      }
+      .badge-critical {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .badge-high {
+        background: var(--warning);
+      }
+      .badge-medium {
+        background: var(--surface-sunken);
+      }
+      .badge-low {
+        background: var(--surface-raised);
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        background: var(--solution);
+        color: var(--surface);
+      }
+
+      /* --- Callouts --- */
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.8rem 1rem;
+        border: 1px solid var(--border-strong);
+        border-left: 4px solid var(--border-strong);
+        background: var(--surface-sunken);
+        font-size: 0.92rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-teal,
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 10%,
+          var(--surface-raised)
+        );
+      }
+      .callout-amber,
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 18%,
+          var(--surface-raised)
+        );
+      }
+
+      /* --- Strengths --- */
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.9rem;
+        padding: 0.75rem 0;
+        border-bottom: 2px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        color: var(--solution);
+        font-size: 1.3rem;
+        line-height: 1.3;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.92rem;
+      }
+
+      /* --- Tables --- */
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.92rem;
+        border: 2px solid var(--text);
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--text);
+        color: var(--surface);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-right: 1px solid var(--border-strong);
+      }
+      th:last-child {
+        border-right: none;
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-top: 1px solid var(--border);
+        border-right: 1px solid var(--border);
+      }
+      td:last-child {
+        border-right: none;
+      }
+      tr:nth-child(even) td {
+        background: var(--surface-sunken);
+      }
+      table.compare td.yes {
+        color: var(--solution);
+        font-weight: 700;
+      }
+      table.compare td.no {
+        color: var(--problem);
+        font-weight: 700;
+      }
+
+      /* --- Code blocks + syntax highlighting --- */
+      pre {
+        background: var(--text);
+        color: var(--surface);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+        border: 2px solid var(--text);
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      p code,
+      li code,
+      td code {
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+      }
+      .tok-keyword {
+        color: var(--warning);
+      }
+      .tok-type {
+        color: var(--warning);
+      }
+      .tok-string {
+        color: #95e1d3;
+      }
+      .tok-comment {
+        color: rgba(244, 244, 240, 0.45);
+        font-style: italic;
+      }
+      .tok-func {
+        color: #6eb5ff;
+      }
+      .tok-number {
+        color: var(--warning);
+      }
+      .tok-generic {
+        color: var(--problem);
+      }
+      .tok-builtin {
+        color: #6eb5ff;
+      }
+      .tok-punct {
+        color: rgba(244, 244, 240, 0.7);
+      }
+      .tok-attr {
+        color: var(--warning);
+      }
+
+      /* --- Dependency tree / ASCII diagrams --- */
+      .dep-tree {
+        background: var(--surface-sunken);
+        border: 2px solid var(--text);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.7;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .dep-tree .root {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .dep-tree .ok {
+        color: var(--solution);
+      }
+      .dep-tree .unwanted {
+        color: var(--problem);
+      }
+
+      /* --- Inline node-and-arrow diagrams --- */
+      .diagram {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+      }
+      .node {
+        display: inline-block;
+        padding: 0.4rem 0.75rem;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        font-weight: 700;
+        background: var(--surface-sunken);
+        border: 1px solid var(--text);
+      }
+      .node-core {
+        background: var(--accent);
+        color: var(--surface);
+      }
+      .node-problem {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .node-good {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .arrow {
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Grids --- */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      /* --- Inline TOC --- */
+      .toc {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+        padding: 1rem 1.3rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .toc h3 {
+        margin-bottom: 0.5rem;
+      }
+      .toc ul {
+        list-style: none;
+        padding: 0;
+      }
+      .toc li {
+        margin: 0.25rem 0;
+      }
+      .toc a {
+        color: var(--text);
+        text-decoration: none;
+        font-size: 0.92rem;
+        font-weight: 600;
+      }
+      .toc a:hover {
+        color: var(--accent);
+      }
+
+      /* --- Migration / numbered steps --- */
+      .migration-step {
+        display: grid;
+        grid-template-columns: 56px 1fr;
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1.1rem;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+      }
+      .migration-num {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        font-size: 1.8rem;
+        color: var(--accent);
+        line-height: 1;
+      }
+      .migration-content h4 {
+        margin-bottom: 0.2rem;
+      }
+      .migration-content p {
+        margin-bottom: 0;
+        color: var(--text-muted);
+        font-size: 0.94rem;
+      }
+
+      /* --- Before/After comparison --- */
+      .compare-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin: 1rem 0 0.5rem;
+      }
+      .compare-before,
+      .compare-after {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0.4rem 0.7rem;
+        color: var(--surface);
+      }
+      .compare-before {
+        background: var(--problem);
+      }
+      .compare-after {
+        background: var(--solution);
+      }
+      .compare-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      .compare-row pre {
+        margin: 0;
+      }
+
+      /* --- Footer --- */
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 3px solid var(--text);
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Responsive --- */
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+        .compare-header,
+        .compare-row {
+          grid-template-columns: 1fr;
+        }
+        .scorecard,
+        .stat-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-right: none;
+        }
+        .score-card:nth-child(1),
+        .stat-card:nth-child(1),
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-bottom: 3px solid var(--text);
+        }
+        .migration-step {
+          grid-template-columns: 1fr;
+        }
+        .hero-shapes {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top-bar">
+      <span><a href="index.html" style="color: inherit">Local-first landscape index</a></span>
+      <span>go-cqrs-lite competition review</span>
+      <span>Accessed 2026-11-23</span>
+    </div>
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#summary">Summary</a>
+          <a href="#scorecard">Six-axis scorecard</a>
+          <a href="#evidence">Evidence</a>
+          <a href="#analysis">Analysis</a>
+          <a href="#verdict">Fit verdict</a>
+          <a href="#sources">Sources</a>
+        </nav>
+      </aside>
+      <main class="main">
+        <header class="hero">
+          <div class="eyebrow">Local-first landscape review &middot; accessed 2026-11-23</div>
+          <h1>RxDB</h1>
+          <p class="subtitle">A local-first, reactive NoSQL database for JavaScript that runs in the browser, Node and mobile, and replicates documents with any backend through three handlers (pull, push, stream), resolving conflicts on the client.</p>
+          <div class="meta">
+            <span class="tagamber">Maturity: Production-Ready (localfirst.fm landscape self-report)</span>
+            <span class="tag">License: Apache-2.0 core (package.json and LICENSE.txt, accessed 2026-11-23) &middot; commercial premium plugins</span>
+            <span class="tag">Current version: 17.6.0 (package.json on master; GitHub release 17.6.0 published 2026-10-05)</span>
+            <span class="tag">Bundle size: ~40kB, storage-dependent (landscape self-report)</span>
+            <span class="tag"><span class="badge badge-high">LOCAL COMMANDS: CLIENT-MINTS-FACTS</span></span>
+            <span class="tag"><span class="badge badge-medium">REBASE: GIT-LIKE-REBASE (default merge: master wins)</span></span>
+            <span class="tag teal"><a href="index.html" style="color: inherit">Back to the landscape index</a></span>
+          </div>
+        </header>
+
+        <section id="summary">
+          <h2><span class="num">00</span>Summary</h2>
+
+          <p>RxDB is the incumbent answer to the browser half of the owner&#39;s question: a real local database with observable queries, pluggable storage, and a replication protocol designed so that &ldquo;the backend can be &quot;dumb&quot;&rdquo;. The wire unit is a document state with a revision; the protocol is explicitly described as git-like, with a fork (client), a master (server), an assumed base, and a client-side conflict handler that by default drops the fork state and keeps the master.</p>
+          <p>That protocol is the reason this page exists: it is the closest shipping implementation of &ldquo;branch, then merge with the server on reconnect&rdquo;, and it is built for <em>states</em>, not intents. RxDB&#39;s own downsides essay then recommends, as its fifth conflict strategy, storing &ldquo;all the events that lead to the current state&rdquo; &mdash; which the reader will recognise as the whole go-cqrs-lite thesis, published by the tool that ships without it.</p>
+          <div class="callout callout-amber">
+            <strong>The bottom line</strong> RxDB occupies exactly the browser slot the planned offline client targets, and its protocol pushes document state through a deliberately dumb backend. It is the incumbent to beat or to reuse; either way, its git-like fork/master shape and its honest downsides page are required reading.
+          </div>
+
+        </section>
+        <section id="scorecard" class="scorecard">
+          <div class="score-card score-good">
+            <div class="score">STRONG</div>
+            <div class="label">1 &middot; Browser owns its data</div>
+          </div>
+          <div class="score-card score-warn">
+            <div class="score">MINTS</div>
+            <div class="label">2 &middot; Local Commands &middot; CLIENT-MINTS-FACTS</div>
+          </div>
+          <div class="score-card score-warn">
+            <div class="score">FORK</div>
+            <div class="label">3 &middot; Reconnect rebase &middot; GIT-LIKE-REBASE</div>
+          </div>
+          <div class="score-card score-bad">
+            <div class="score">DOCS</div>
+            <div class="label">4 &middot; Client-local Commands &amp; Events</div>
+          </div>
+          <div class="score-card score-warn">
+            <div class="score">PROTOCOL</div>
+            <div class="label">5 &middot; Logic sharing</div>
+          </div>
+          <div class="score-card score-good">
+            <div class="score">PROD</div>
+            <div class="label">6 &middot; Maturity &middot; Apache-2.0 core</div>
+          </div>
+        </section>
+
+        <section id="axes">
+          <h2><span class="num">01</span>Six axes against the owner&#39;s question</h2>
+
+          <p>Colours rate each axis <em>against the owner&#39;s question</em> (blue: serves it, yellow: partly, red: does not). They are not a product-quality score.</p>
+          <div class="table-wrap">
+          <table class="compare">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Axis</th>
+                <th>Verdict</th>
+                <th>What that means, with evidence</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>1</td>
+                <td>Client data ownership</td>
+                <td><span class="badge badge-fixed">STRONG, WITH CAVEATS</span></td>
+                <td>A local database is the gateway for all persistent changes; queries are observable; storage is pluggable (<a href="#ev-identity">E1</a>). The caveat is durability: browser storage &ldquo;cannot be trusted to stay there forever&rdquo; (<a href="#ev-not-persistent">E13</a>), and the recommended OPFS, SQLite, worker and shared-worker storages are commercial premium plugins (<a href="#ev-sharedworker">E19</a>).</td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td>Local Commands</td>
+                <td><span class="badge badge-high">CLIENT-MINTS-FACTS</span></td>
+                <td>The client writes document states directly; there is no command abstraction and no multi-document transaction &mdash; &ldquo;a single write operation to a document is the only atomic thing you can do&rdquo; (<a href="#ev-no-transactions">E2</a>). Client-side gates exist (revisions that throw a 409 on stale writes, and middleware hooks that can stop an operation, <a href="#ev-middleware">E17</a>), but nothing is re-decided anywhere.</td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td>Reconnect rebase</td>
+                <td><span class="badge badge-medium">GIT-LIKE-REBASE</span></td>
+                <td>The protocol is explicitly &ldquo;like git&rdquo;: the client is a fork that pushes with an assumed master state; the backend returns the real master state on mismatch; the client&#39;s conflict handler produces a new state and pushes again (<a href="#ev-fork-master">E4</a>). Reconnect replays via a <code>RESYNC</code> event and checkpoint iteration (<a href="#ev-resync">E8</a>). The default merge is &ldquo;drop the fork state and use the master state&rdquo; (<a href="#ev-conflict-client">E7</a>).</td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td>Client-local Commands &amp; Events</td>
+                <td><span class="badge badge-critical">DOCUMENTS ONLY</span></td>
+                <td>No Commands and no Events exist as records. Local (non-replicated) documents exist for metadata and could hold a queue, but that is do-it-yourself. Conflicts are the price of the state model, and RxDB&#39;s own remedy is to switch units: store events and fold (<a href="#ev-event-sourcing">E14</a>).</td>
+              </tr>
+              <tr>
+                <td>5</td>
+                <td>Logic sharing &amp; protected resources</td>
+                <td><span class="badge badge-medium">PROTOCOL ONLY</span></td>
+                <td>The shareable artefact is the protocol contract: three endpoints plus a conflict handler with <code>isEqual</code> and <code>resolve</code>, small enough to implement in any backend (<a href="#ev-three-endpoints">E5</a>). Schemas are JSON Schema, so validators can be shared. Business rules and authorization are explicitly the backend&#39;s job per the landscape self-report.</td>
+              </tr>
+              <tr>
+                <td>6</td>
+                <td>Maturity &amp; license</td>
+                <td><span class="badge badge-fixed">PRODUCTION-READY</span></td>
+                <td>Production-Ready per the landscape self-report; 23,440 stars and a release cadence up to 17.6.0 (GitHub, accessed 2026-11-23). Core is Apache-2.0; OPFS, SQLite, filesystem, worker, shared-worker, sharding and encryption plugins are commercial (<a href="#ev-license">E22</a>, <a href="#ev-sharedworker">E19</a>).</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+
+        </section>
+        <section id="evidence">
+          <h2><span class="num">02</span>Evidence</h2>
+
+          <p>"accessed 2026-11-23" means the page or file was fetched live for this review; "cache 2026-11-22" means the quote comes from the scraped copy taken the day before. Ellipses mark omitted words.</p>
+
+          <div class="issue" id="ev-identity">
+            <h3>E1 &middot; The product in one sentence</h3>
+            <div class="where">https://rxdb.info/ &middot; cache 2026-11-22</div>
+            <p>&ldquo;RxDB is a NoSQL database for JavaScript that runs directly in your app. With a local-first design, it delivers zero-latency queries even offline, and syncs seamlessly with any backend.&rdquo;</p>
+          </div>
+          <div class="issue" id="ev-no-transactions">
+            <h3>E2 &middot; No transactions: one document write is the atom</h3>
+            <div class="where">https://rxdb.info/transactions-conflicts-revisions.html.md &middot; cache 2026-11-22</div>
+            <p>&ldquo;In contrast to most SQL databases, RxDB does not have the concept of relational ACID transactions. &hellip; A single write operation to a document is the only atomic thing you can do in RxDatabase.&rdquo;</p>
+          </div>
+          <div class="issue" id="ev-revisions">
+            <h3>E3 &middot; Revisions instead of last-write-wins</h3>
+            <div class="where">https://rxdb.info/transactions-conflicts-revisions.html.md &middot; cache 2026-11-22</div>
+            <p>&ldquo;Instead, to ensure that the behavior of RxDB is always predictable, RxDB relies on revisions for version control. Revisions work similar to Lamport Clocks.&rdquo;</p>
+          </div>
+          <div class="issue" id="ev-fork-master">
+            <h3>E4 &middot; The replication is described as git</h3>
+            <div class="where">https://rxdb.info/replication.html.md &middot; cache 2026-11-22</div>
+            <p>&ldquo;On the RxDocument level, the replication works like git, where the fork/client contains all new writes and must be merged with the master/server before it can push its new state to the master/server.&rdquo;</p>
+          </div>
+          <div class="issue" id="ev-three-endpoints">
+            <h3>E5 &middot; Three endpoints, dumb backend</h3>
+            <div class="where">https://rxdb.info/replication.html.md &middot; cache 2026-11-22</div>
+            <p>&ldquo;The sync engine works in a simple &quot;git-like&quot; way that is easy to understand for an average developer. You only have to understand how three simple endpoints work. &hellip; Because the complex parts are in RxDB, the backend can be &quot;dumb&quot; which makes the protocol compatible to almost every backend. No matter if you use PostgreSQL, MongoDB or anything else.&rdquo;</p>
+          </div>
+          <div class="issue" id="ev-one-way">
+            <h3>E6 &middot; One-directional replication is first-class</h3>
+            <div class="where">https://rxdb.info/replication.html.md &middot; cache 2026-11-22</div>
+            <p>&ldquo;When only one direction is configured, the other direction completes instantly. A pull-only replication resolves as soon as the pull is done, and a push-only replication resolves as soon as the push is done.&rdquo;</p>
+          </div>
+          <div class="issue" id="ev-conflict-client">
+            <h3>E7 &middot; Conflicts are resolved on the client, and the default is master-wins</h3>
+            <div class="where">https://rxdb.info/replication.html.md &middot; cache 2026-11-22</div>
+            <p>&ldquo;RxDB resolves all conflicts on the client so it would call the conflict handler of the RxCollection and create a new document state D that can then be written to the master. &hellip; The default conflict handler will always drop the fork state and use the master state. This ensures that clients that are offline for a very long time, do not accidentally overwrite other peoples changes when they go online again.&rdquo;</p>
+          </div>
+          <div class="issue" id="ev-resync">
+            <h3>E8 &middot; Reconnect means replay from a checkpoint</h3>
+            <div class="where">https://rxdb.info/replication.html.md &middot; cache 2026-11-22</div>
+            <p>&ldquo;When the client goes offline and online again, it might happen that the <code>pullStream$</code> has missed out some events. Therefore the <code>pullStream$</code> should also emit a <code>RESYNC</code> event each time the client reconnects, so that the client can become in sync with the backend via the checkpoint iteration mode.&rdquo;</p>
+          </div>
+          <div class="issue" id="ev-sse">
+            <h3>E9 &middot; Server-sent events are an accepted transport</h3>
+            <div class="where">https://rxdb.info/replication.html.md &middot; cache 2026-11-22</div>
+            <p>&ldquo;Here we use a websocket but any other way of sending data to the client can be used, like long polling or server-sent events.&rdquo;</p>
+            <p>A code comment from the pull-stream example.</p>
+          </div>
+          <div class="issue" id="ev-crdt-limits">
+            <h3>E10 &middot; CRDTs stop where judgement begins</h3>
+            <div class="where">https://rxdb.info/crdt.html.md &middot; accessed 2026-11-23</div>
+            <p>&ldquo;CRDT can only be use when your business logic allows to represent document changes via static json operators. If you can have cases where user interaction is required to correctly merge conflicting document states, you cannot use CRDTs for that.&rdquo;</p>
+            <p>The grammatical slip is in the source.</p>
+          </div>
+          <div class="issue" id="ev-crdt-conditional">
+            <h3>E11 &middot; CRDT operations can be conditional and re-interpreted</h3>
+            <div class="where">https://rxdb.info/crdt.html.md &middot; accessed 2026-11-23</div>
+            <p>&ldquo;At each time the CRDT is applied to the document state, first the selector will run and evaluate which operations path must be used.&rdquo;</p>
+          </div>
+          <div class="issue" id="ev-crdt-shared">
+            <h3>E12 &middot; The operation format is the shared contract</h3>
+            <div class="where">https://rxdb.info/crdt.html.md &middot; accessed 2026-11-23</div>
+            <p>&ldquo;Using NoSQL operators instead of binary data in CRDTs, makes it easy to implement the exact same logic on these backends so that the backend can also do document writes and still be compliant to the RxDB CRDT plugin.&rdquo;</p>
+          </div>
+          <div class="issue" id="ev-not-persistent">
+            <h3>E13 &middot; Browser storage cannot be trusted to persist</h3>
+            <div class="where">https://rxdb.info/downsides-of-offline-first.html.md &middot; accessed 2026-11-23</div>
+            <p>&ldquo;When data is stored inside IndexedDB or one of the other storage APIs, it cannot be trusted to stay there forever. &hellip; Apple for example deletes the data when the website was not used in the last 7 days.&rdquo;</p>
+          </div>
+          <div class="issue" id="ev-event-sourcing">
+            <h3>E14 &middot; RxDB&#39;s own fifth conflict strategy is Event Sourcing</h3>
+            <div class="where">https://rxdb.info/downsides-of-offline-first.html.md &middot; accessed 2026-11-23</div>
+            <p>&ldquo;Instead of storing the current state in a single document, you store all the events that lead to the current state. Sometimes called the &quot;everything is a delta&quot; strategy, others would call it Event Sourcing. Like an accountant that does not need an eraser, you append all changes and afterwards aggregate the current state at the client.&rdquo;</p>
+          </div>
+          <div class="issue" id="ev-stale-assumptions">
+            <h3>E15 &middot; Offline edits ride on stale assumptions</h3>
+            <div class="where">https://rxdb.info/downsides-of-offline-first.html.md &middot; accessed 2026-11-23</div>
+            <p>&ldquo;The user could update a document based on wrong assumptions because it was not fully replicated at that point in time because the user is offline.&rdquo;</p>
+          </div>
+          <div class="issue" id="ev-migrate-skew">
+            <h3>E16 &middot; Client logic versions drift by weeks</h3>
+            <div class="where">https://rxdb.info/downsides-of-offline-first.html.md &middot; accessed 2026-11-23</div>
+            <p>&ldquo;The clients can only migrate when the new code was updated from the appstore or the user visited your website again. This could be today or in a few weeks.&rdquo;</p>
+          </div>
+          <div class="issue" id="ev-middleware">
+            <h3>E17 &middot; Client-side hooks can stop a write</h3>
+            <div class="where">https://rxdb.info/middleware.html.md &middot; accessed 2026-11-23</div>
+            <p>&ldquo;To stop the operation at a specific hook, throw an error.&rdquo;</p>
+          </div>
+          <div class="issue" id="ev-multi-tab">
+            <h3>E18 &middot; Exactly one tab replicates</h3>
+            <div class="where">https://rxdb.info/replication.html.md &middot; cache 2026-11-22</div>
+            <p>&ldquo;Multi-Tab Support: When RxDB is used in a browser and multiple tabs of the same application are opened, only exactly one runs the replication at any given time. This reduces client- and backend resources.&rdquo;</p>
+          </div>
+          <div class="issue" id="ev-sharedworker">
+            <h3>E19 &middot; The shared-worker architecture is a paid plugin</h3>
+            <div class="where">https://rxdb.info/rx-storage-shared-worker.html.md &middot; accessed 2026-11-23</div>
+            <p>&ldquo;The SharedWorker RxStorage uses the SharedWorker API to run the storage inside of a separate JavaScript process in browsers. Compared to a normal WebWorker, the SharedWorker is created exactly once, even when there are multiple browser tabs opened. &hellip; it is recommended to run the replication inside of the worker.&rdquo;</p>
+            <p>The page imports from <code>rxdb-premium</code> and links to the premium plans; it also notes the SharedWorker API is not available in some mobile browsers.</p>
+          </div>
+          <div class="issue" id="ev-pouchdb-removed">
+            <h3>E20 &middot; It grew out of PouchDB, then dropped it</h3>
+            <div class="where">https://rxdb.info/rx-storage-pouchdb.html.md &middot; accessed 2026-11-23</div>
+            <p>&ldquo;The PouchDB RxStorage is removed from RxDB and can no longer be used in new projects. &hellip; To be compliant to CouchDB, PouchDB has to store all revision trees of documents which slows down queries.&rdquo;</p>
+          </div>
+          <div class="issue" id="ev-couchdb-protocol">
+            <h3>E21 &middot; And it bypasses the CouchDB replication protocol</h3>
+            <div class="where">https://rxdb.info/replication-couchdb.html.md &middot; accessed 2026-11-23</div>
+            <p>&ldquo;This plugin does NOT use the official CouchDB replication protocol because the CouchDB protocol was optimized for server-to-server replication and is not suitable for fast client side applications, mostly because it has to run many HTTP-requests (at least one per document) and also it has to store the whole revision tree of the documents at the client.&rdquo;</p>
+          </div>
+          <div class="issue" id="ev-license">
+            <h3>E22 &middot; Version and licence, from the source of truth</h3>
+            <div class="where">https://github.com/pubkey/rxdb/blob/master/package.json &middot; accessed 2026-11-23</div>
+            <p>&ldquo;version 17.6.0 &mdash; license Apache-2.0&rdquo;</p>
+            <p>Fields of the <code>package.json</code> on <code>master</code>. The premium page adds: &ldquo;The core of RxDB is free and open-source. The Pro and Pro Plus tiers add commercial plugins&hellip;&rdquo; The landscape self-report&#39;s &ldquo;FSL-Apach 2.0&rdquo; conflicts with both primary sources.</p>
+          </div>
+
+        </section>
+        <section id="analysis">
+          <h2><span class="num">03</span>Analysis against the owner&#39;s question and the go-cqrs-lite thesis</h2>
+
+          <p>RxDB matters to this review for two reasons: it already ships the fork-and-merge shape the owner wants, and it is the most senior witness that state replication keeps rediscovering event sourcing.</p>
+          <div class="table-wrap">
+          <table class="compare">
+            <thead>
+              <tr>
+                <th>Part</th>
+                <th>RxDB&#39;s answer</th>
+                <th>What it means for go-cqrs-lite</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>P1 &middot; Browser owns its data</td>
+                <td>Yes: a local reactive database is the source of truth for the UI, with multi-tab coordination (one tab replicates, <a href="#ev-multi-tab">E18</a>). Persistence is best-effort: eviction and quota are real (<a href="#ev-not-persistent">E13</a>).</td>
+                <td>The planned dual-SQLite client should copy two things: the single-replicator-per-origin rule, and the honesty that local data needs a rebuild path. The premium paywall around OPFS and shared-worker storage is also market evidence that the owner&#39;s storage plan is the hard, valuable part.</td>
+              </tr>
+              <tr>
+                <td>P2 &middot; Local-first including Commands</td>
+                <td>Writes happen locally and replicate as document states; there are no transactions and no decide step (<a href="#ev-no-transactions">E2</a>).</td>
+                <td>A command-first client cannot use RxDB&#39;s write path as-is: the interesting logic would have to run in app code before <code>insert</code>, which RxDB never sees. Middleware hooks (<a href="#ev-middleware">E17</a>) can gate writes locally, but that logic is not shared with the server.</td>
+              </tr>
+              <tr>
+                <td>P3 &middot; Git-like rebase on reconnect</td>
+                <td>Structurally yes, semantically no. The fork/master protocol with an assumed base is the right shape (<a href="#ev-fork-master">E4</a>), and reconnect is a checkpoint replay (<a href="#ev-resync">E8</a>). But the merge function receives two <em>states</em>; it can only guess intent field by field, and by default it keeps the master and discards the client&#39;s work (<a href="#ev-conflict-client">E7</a>).</td>
+                <td>This is the exact gap the addendum&#39;s design closes: rebase the <em>intents</em> (re-decide queued commands against fresh state) instead of merging states, and a conflict becomes a Rejection the user can act on, rather than a heuristic field merge or a silent loss.</td>
+              </tr>
+              <tr>
+                <td>P4 &middot; Commands &amp; Events that only happened on the client</td>
+                <td>Not modelled. The nearest primitive is local (non-replicated) documents.</td>
+                <td>A workable composition exists (below), but the speculative-versus-confirmed distinction has to be built by hand on top, just as PowerSync users rebuild status tables.</td>
+              </tr>
+              <tr>
+                <td>P5 &middot; Shared logic, minus protected resources</td>
+                <td>The protocol and the schema are the shared contracts; all behaviour logic is client-side JavaScript, and the backend is expected to be storage, not rules (<a href="#ev-three-endpoints">E5</a>).</td>
+                <td>The three-handler contract is genuinely small enough to implement once in Go and reuse. The CRDT plugin makes the complementary choice: it shares an <em>operation format</em> simple enough that &ldquo;the backend can also do document writes and still be compliant&rdquo; (<a href="#ev-crdt-shared">E12</a>) &mdash; the same idea as sharing a fold/decide contract rather than code.</td>
+              </tr>
+              <tr>
+                <td>Version skew</td>
+                <td>Client code versions drift by weeks (<a href="#ev-migrate-skew">E16</a>).</td>
+                <td>Confirms the addendum&#39;s requirement that a decider logic version ride with the data: with intents, the server can know which spec a queued command was decided under.</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+
+          <h3>The composition that would actually work</h3>
+
+          <div class="diagram"><span class="node">RxDB: read-model collections</span>
+<span class="arrow">&rarr;</span>
+<span class="node">pull-only replication</span>
+<span class="arrow">&rarr;</span>
+<span class="node node-core">Go backend: SSE pullStream</span></div>
+
+          <div class="diagram"><span class="node">RxDB: command collection</span>
+<span class="arrow">&rarr;</span>
+<span class="node">push-only replication</span>
+<span class="arrow">&rarr;</span>
+<span class="node node-core">Go backend: dispatcher, deciders</span></div>
+
+          <p>RxDB supports one-directional replication as a first-class configuration (<a href="#ev-one-way">E6</a>), and its docs bless server-sent events as a stream transport (<a href="#ev-sse">E9</a>). That suggests a clean split: read models flow one way, from go-cqrs-lite&#39;s server-folded query results into pull-only RxDB collections, while Commands flow the other way as rows of a push-only collection, dispatched by the Go backend. Nothing is merged, so the master-wins default never fires; conflicts become decider Rejections instead. The open cost is the adapter: <code>pullStream$</code> wants document batches plus checkpoints, and go-cqrs-lite streams query results, so the shapes must be reconciled (UNVERIFIED until prototyped).</p>
+
+          <div class="card card-solution">
+            <h3>What to adopt</h3>
+            <ul><li><strong>The fork/master protocol shape.</strong> Push carries the assumed base and the new state; the backend answers only with real states on mismatch; the client resolves and repushes. For a command-first system, swap the merge function for a re-decide: the same loop, with meaning preserved.</li><li><strong><code>RESYNC</code> on reconnect.</strong> A single signal meaning &ldquo;anything unknown changed, replay from your checkpoint&rdquo; (<a href="#ev-resync">E8</a>) is exactly the reconnect entry point an intent-rebase needs.</li><li><strong>Conditional, re-interpretable operations.</strong> The CRDT plugin&#39;s selector pattern re-evaluates an operation against current state at apply time (<a href="#ev-crdt-conditional">E11</a>) &mdash; the same property that makes a pure fold safe to replay.</li><li><strong>The downsides essay as a checklist.</strong> Eviction, stale assumptions, migration skew and &ldquo;realtime is a lie&rdquo; (<a href="#ev-not-persistent">E13</a>, <a href="#ev-stale-assumptions">E15</a>, <a href="#ev-migrate-skew">E16</a>) are the four risks any offline tier will be judged against.</li></ul>
+          </div>
+
+          <div class="card card-problem">
+            <h3>Where it bites (for this question)</h3>
+            <ul><li><strong>State is the unit, so meaning is lost.</strong> The conflict handler sees two document states and must guess; the CRDT plugin explicitly stops where judgement is required (<a href="#ev-crdt-limits">E10</a>).</li><li><strong>The default merge discards the client&#39;s work.</strong> &ldquo;Always drop the fork state and use the master state&rdquo; (<a href="#ev-conflict-client">E7</a>) is the right default for a state-sync world and the wrong one for a user&#39;s queued intent.</li><li><strong>Its own docs recommend event sourcing instead.</strong> The fifth conflict strategy is to store &ldquo;all the events that lead to the current state&rdquo; (<a href="#ev-event-sourcing">E14</a>) &mdash; evidence from inside the ecosystem that the state model is the ceiling.</li><li><strong>The strongest storage options are paid.</strong> OPFS, SQLite, worker and shared-worker storages sit in the premium tiers (<a href="#ev-sharedworker">E19</a>), so the free comparison point for a dual-SQLite design is Dexie or IndexedDB.</li></ul>
+          </div>
+
+        </section>
+        <section id="verdict">
+          <h2><span class="num">04</span>Fit verdict</h2>
+
+          <div class="card card-problem">
+            <p style="margin-bottom: 0.6rem"><span class="badge badge-critical">COMPETITOR</span> <span class="badge badge-high">LOCAL COMMANDS: CLIENT-MINTS-FACTS</span> <span class="badge badge-medium">REBASE: GIT-LIKE-REBASE</span></p>
+            <p style="margin-bottom: 0">RxDB competes for the browser slot the owner&#39;s dual-SQLite plan targets, and its write path embodies the state-replication thesis: documents with revisions pushed through a deliberately dumb backend, conflicts merged as states, and the offline client&#39;s work dropped by default. It can host a command-first design only by sidelining its own conflict machinery (pull-only read models plus a push-only command collection), which is viable but leaves most of its value unused. As a pattern source, its git-like protocol and its candid downsides essay are the two most useful documents in this shard.</p>
+          </div>
+
+        </section>
+        <section id="sources">
+          <h2><span class="num">05</span>Sources and what was not verified</h2>
+
+          <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Source</th>
+                <th>Used for</th>
+                <th>Accessed</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>https://rxdb.info/</td>
+                <td>Identity, sync targets, customer evidence</td>
+                <td>cache 2026-11-22</td>
+                <td>primary, cached</td>
+              </tr>
+              <tr>
+                <td>https://rxdb.info/llms.txt</td>
+                <td>Documentation index and product self-description</td>
+                <td>cache 2026-11-22</td>
+                <td>primary, cached</td>
+              </tr>
+              <tr>
+                <td>https://rxdb.info/replication.html.md</td>
+                <td>Protocol design, fork/master, RESYNC, one-way replication, SSE remark</td>
+                <td>cache 2026-11-22</td>
+                <td>primary, cached</td>
+              </tr>
+              <tr>
+                <td>https://rxdb.info/transactions-conflicts-revisions.html.md</td>
+                <td>No transactions, revisions, conflict handler</td>
+                <td>cache 2026-11-22</td>
+                <td>primary, cached</td>
+              </tr>
+              <tr>
+                <td>https://rxdb.info/crdt.html.md</td>
+                <td>CRDT operators, conditional ops, limits, shared contract</td>
+                <td>accessed 2026-11-23</td>
+                <td>primary, live</td>
+              </tr>
+              <tr>
+                <td>https://rxdb.info/downsides-of-offline-first.html.md</td>
+                <td>Persistence, eviction, event-sourcing strategy, skew</td>
+                <td>accessed 2026-11-23</td>
+                <td>primary, live</td>
+              </tr>
+              <tr>
+                <td>https://rxdb.info/middleware.html.md</td>
+                <td>Client-side hooks that can stop a write</td>
+                <td>accessed 2026-11-23</td>
+                <td>primary, live</td>
+              </tr>
+              <tr>
+                <td>https://rxdb.info/rx-storage-shared-worker.html.md</td>
+                <td>Shared-worker storage architecture, premium status</td>
+                <td>accessed 2026-11-23</td>
+                <td>primary, live</td>
+              </tr>
+              <tr>
+                <td>https://rxdb.info/rx-storage-pouchdb.html.md</td>
+                <td>PouchDB removal and reasons</td>
+                <td>accessed 2026-11-23</td>
+                <td>primary, live</td>
+              </tr>
+              <tr>
+                <td>https://rxdb.info/replication-couchdb.html.md</td>
+                <td>Why the CouchDB protocol is bypassed</td>
+                <td>accessed 2026-11-23</td>
+                <td>primary, live</td>
+              </tr>
+              <tr>
+                <td>https://rxdb.info/premium/</td>
+                <td>Tier structure, what is free versus paid</td>
+                <td>cache 2026-11-22</td>
+                <td>primary, cached</td>
+              </tr>
+              <tr>
+                <td>https://github.com/pubkey/rxdb/blob/master/package.json and LICENSE.txt</td>
+                <td>Version 17.6.0, Apache-2.0 core</td>
+                <td>accessed 2026-11-23</td>
+                <td>primary, live</td>
+              </tr>
+              <tr>
+                <td>GitHub REST API: pubkey/rxdb</td>
+                <td>Stars, latest release 17.6.0 (2026-10-05), repository creation</td>
+                <td>accessed 2026-11-23</td>
+                <td>primary, live</td>
+              </tr>
+              <tr>
+                <td>localfirst.fm landscape dataset (22 entries)</td>
+                <td>Maturity, bundle size, storage and conflict self-reports</td>
+                <td>cache 2026-11-22</td>
+                <td>self-report</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+
+          <h3>Not verified against a primary source</h3>
+
+          <ul>
+            <li><span class="badge badge-critical">UNVERIFIED</span> Initial release date: the landscape reports none. GitHub shows the repository created 2016-12-02, and the deprecated PouchDB storage page says &ldquo;When I started developing RxDB in 2016&hellip;&rdquo;; a first release date was not confirmed on a release page.</li>
+            <li><span class="badge badge-critical">UNVERIFIED</span> Bundle size "~40kB (depends on the used storage)" is a localfirst.fm landscape self-report; no figure is stated in the pages read here.</li>
+            <li><span class="badge badge-critical">UNVERIFIED</span> The premium page lists &ldquo;Up to 13 open collections in parallel.&rdquo; among the free tier&#39;s line items, but the cached copy has lost the section heading context for the last items in that list, so whether it is a limit of the free tier is not certain.</li>
+            <li><span class="badge badge-critical">UNVERIFIED</span> Whether a go-cqrs-lite SSE stream could feed RxDB&#39;s <code>pullStream$</code> directly: the docs bless server-sent events as a transport, but the stream must emit document batches plus checkpoints, so an adapter is required. Not prototyped here.</li>
+          </ul>
+
+        </section>
+        <footer class="footer">
+          <p>
+            Part of the local-first landscape review for go-cqrs-lite. Owner question, six axes and
+            the cross-tool comparison live in the <a href="index.html">landscape index</a>.
+            Grounding: the 2026-11-22 research note
+            (<a href="../research/2026-11-22_commands-vs-facts-livestore-datastar.html">Commands vs Facts</a>,
+            section 10) and <a href="../DOMAIN_LANGUAGE.md">the domain language</a> (Core Concepts).
+            Quotes are verbatim from the cited pages; anything not confirmed against a primary
+            source is labelled UNVERIFIED. Built 2026-11-23.
+          </p>
+        </footer>
+      </main>
+    </div>
+
+<script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) {
+            return document.getElementById(id);
+          })
+          .filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (link) {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id,
+                  );
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
+      })();
+    </script>
+  </body>
+</html>

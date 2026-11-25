@@ -281,5 +281,23 @@ func boilerplateRules() []RuleInfo {
 			Description: "projectionhost.New without WithDeadLetterStore — poison events cause terminal failure",
 			AutoFix:     false,
 		},
+		{
+			ID:          "B032",
+			Name:        "command-without-tracing-metadata",
+			Category:    "boilerplate",
+			Severity:    "warning",
+			Confidence:  "high",
+			Description: "command.New without tracing options — audit panels render zero Correlation/Causation/Request IDs",
+			AutoFix:     false,
+		},
+		{
+			ID:          "B033",
+			Name:        "passive-audit-store-read",
+			Category:    "boilerplate",
+			Severity:    "warning",
+			Confidence:  "medium",
+			Description: "CommandStore()/QueryStore() read with no writer in the module — the audit panel stays empty forever",
+			AutoFix:     false,
+		},
 	}
 }

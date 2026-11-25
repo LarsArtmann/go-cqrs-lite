@@ -1,0 +1,888 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Y-Sweet — Local-First Landscape Review · go-cqrs-lite</title>
+    <style>
+/* =========================================================================
+         BAUHAUS LIGHT — Editorial template
+         Design language: form follows function. Primary colors on warm paper.
+         Zero external dependencies: system fonts, no CDN, no build step.
+         Token architecture: see references/bauhaus-tokens.md
+         ========================================================================= */
+
+      :root {
+        /* --- Primitive palette (Bauhaus Light) --- */
+        --color-paper: #f4f4f0;
+        --color-paper-2: #ffffff;
+        --color-paper-3: #e8e8e2;
+        --color-ink: #111111;
+        --color-red: #e63946;
+        --color-blue: #1d3557;
+        --color-yellow: #f4d35e;
+        --color-hairline: rgba(17, 17, 17, 0.14);
+        --color-hairline-strong: rgba(17, 17, 17, 0.3);
+
+        /* --- Semantic layer (shared vocabulary with dark template) --- */
+        --surface: var(--color-paper);
+        --surface-raised: var(--color-paper-2);
+        --surface-sunken: var(--color-paper-3);
+        --text: var(--color-ink);
+        --text-muted: rgba(17, 17, 17, 0.72);
+        --text-faint: rgba(17, 17, 17, 0.5);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-red);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        /* --- Backward-compatible aliases (do not break consumer skills) --- */
+        --bg: var(--surface);
+        --bg-elevated: var(--surface-raised);
+        --bg-sunken: var(--surface-sunken);
+        --bg-card: var(--surface-raised);
+        --bg-code: var(--surface-sunken);
+        --ink: var(--text);
+        --ink-secondary: var(--text-muted);
+        --ink-muted: var(--text-faint);
+        --rose: var(--problem);
+        --rose-glow: color-mix(in srgb, var(--problem) 15%, transparent);
+        --emerald: var(--solution);
+        --emerald-glow: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber: var(--warning);
+        --amber-glow: color-mix(in srgb, var(--warning) 15%, transparent);
+        --amber-light: color-mix(in srgb, var(--warning) 22%, transparent);
+        --coral: var(--problem);
+        --coral-light: color-mix(in srgb, var(--problem) 12%, transparent);
+        --teal: var(--solution);
+        --teal-light: color-mix(in srgb, var(--solution) 12%, transparent);
+
+        /* --- Shape --- */
+        --radius: 0px;
+        --radius-sm: 0px;
+
+        /* --- Type stacks (system only — zero external fonts) --- */
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 16px;
+        line-height: 1.65;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* --- Accessibility: keyboard focus --- */
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      a:focus-visible {
+        outline-offset: -1px;
+      }
+
+      /* --- Full-bleed top bar --- */
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      /* --- Layout: optional sticky sidebar TOC --- */
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--text);
+      }
+      .sidebar a {
+        font-size: 0.86rem;
+        color: var(--text);
+        text-decoration: none;
+        padding: 0.5rem 0.75rem;
+        border-left: 4px solid transparent;
+        font-weight: 600;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+        color: var(--accent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      /* --- Headings --- */
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        color: var(--text);
+      }
+      h1 {
+        font-size: clamp(1.9rem, 4.5vw, 2.8rem);
+        line-height: 1.05;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.5rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 3px solid var(--text);
+        display: flex;
+        align-items: baseline;
+        gap: 0.7rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+      h3 {
+        font-size: 1.15rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 1rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+
+      /* --- Hero --- */
+      .hero {
+        padding: 1.5rem 0 2rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 3px solid var(--text);
+      }
+      .eyebrow {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: var(--accent);
+        margin-bottom: 0.9rem;
+      }
+      .subtitle {
+        font-size: 1.1rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0 0 1rem;
+      }
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      .tag {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        padding: 0.25rem 0.6rem;
+        background: var(--surface-sunken);
+        color: var(--text);
+        border: 1px solid var(--border-strong);
+      }
+      .tag.amber {
+        background: var(--warning);
+        border-color: var(--warning);
+        color: var(--text);
+      }
+      .tag.teal {
+        background: var(--solution);
+        border-color: var(--solution);
+        color: var(--surface);
+      }
+
+
+      /* --- Scorecard / stat cards --- */
+      .scorecard,
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 0;
+        margin: 1.5rem 0 2rem;
+        border: 3px solid var(--text);
+      }
+      .score-card,
+      .stat-card {
+        padding: 1.3rem 1rem;
+        text-align: center;
+        border-right: 3px solid var(--text);
+        background: var(--surface-raised);
+      }
+      .score-card:last-child,
+      .stat-card:last-child {
+        border-right: none;
+      }
+
+      .score,
+      .stat-value {
+        font-family: var(--font-heading);
+        font-size: 2.6rem;
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -0.04em;
+      }
+      .score-card .label,
+      .stat-label {
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        margin-top: 0.5rem;
+      }
+      /* Semantic state classes — no nth-child decoration, no !important */
+      .score-good,
+      .stat-good {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .score-warn,
+      .stat-warn {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .score-bad,
+      .stat-bad {
+        background: var(--problem);
+        color: var(--surface);
+      }
+
+      /* --- General cards --- */
+      .card {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+      }
+
+      /* --- Issue cards --- */
+      .issue {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* --- Severity badges --- */
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.22rem 0.6rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+
+      /* --- Inline badges --- */
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        border: 1px solid var(--text);
+        color: var(--text);
+      }
+      .badge-critical {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .badge-high {
+        background: var(--warning);
+      }
+      .badge-medium {
+        background: var(--surface-sunken);
+      }
+      .badge-low {
+        background: var(--surface-raised);
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        background: var(--solution);
+        color: var(--surface);
+      }
+
+      /* --- Callouts --- */
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.8rem 1rem;
+        border: 1px solid var(--border-strong);
+        border-left: 4px solid var(--border-strong);
+        background: var(--surface-sunken);
+        font-size: 0.92rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-teal,
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 10%,
+          var(--surface-raised)
+        );
+      }
+      .callout-amber,
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 18%,
+          var(--surface-raised)
+        );
+      }
+
+      /* --- Tables --- */
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.92rem;
+        border: 2px solid var(--text);
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--text);
+        color: var(--surface);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-right: 1px solid var(--border-strong);
+      }
+      th:last-child {
+        border-right: none;
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-top: 1px solid var(--border);
+        border-right: 1px solid var(--border);
+      }
+      td:last-child {
+        border-right: none;
+      }
+      tr:nth-child(even) td {
+        background: var(--surface-sunken);
+      }
+      table.compare td.yes {
+        color: var(--solution);
+        font-weight: 700;
+      }
+      table.compare td.no {
+        color: var(--problem);
+        font-weight: 700;
+      }
+
+      /* --- Grids --- */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      /* --- Inline TOC --- */
+      .toc {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+        padding: 1rem 1.3rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .toc h3 {
+        margin-bottom: 0.5rem;
+      }
+      .toc ul {
+        list-style: none;
+        padding: 0;
+      }
+      .toc li {
+        margin: 0.25rem 0;
+      }
+      .toc a {
+        color: var(--text);
+        text-decoration: none;
+        font-size: 0.92rem;
+        font-weight: 600;
+      }
+      .toc a:hover {
+        color: var(--accent);
+      }
+
+      /* --- Footer --- */
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 3px solid var(--text);
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Responsive --- */
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+        .compare-header,
+        .compare-row {
+          grid-template-columns: 1fr;
+        }
+        .scorecard,
+        .stat-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-right: none;
+        }
+        .score-card:nth-child(1),
+        .stat-card:nth-child(1),
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-bottom: 3px solid var(--text);
+        }
+        .migration-step {
+          grid-template-columns: 1fr;
+        }
+      }
+    
+      /* --- Code blocks --- */
+      pre {
+        background: var(--text);
+        color: var(--surface);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+        border: 2px solid var(--text);
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      p code,
+      li code,
+      td code {
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+      }
+
+      /* --- Top-bar back link --- */
+      .top-bar a {
+        color: inherit;
+        text-decoration: none;
+      }
+      .top-bar a:hover {
+        text-decoration: underline;
+      }
+
+    </style>
+  </head>
+  <body>
+    <div class="top-bar">
+      <span><a href="index.html">&larr; Local-first landscape index</a></span>
+      <span>Competition review &middot; 2026-11-23</span>
+      <span>go-cqrs-lite</span>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#identity">Identity</a>
+          <a href="#scorecard">Six-axis scorecard</a>
+          <a href="#evidence">Evidence</a>
+          <a href="#analysis">Analysis vs the lens</a>
+          <a href="#verdict">Fit verdict</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <header class="hero" id="identity">
+          <div class="eyebrow">Local-first landscape &middot; competition review &middot; 2026-11-23</div>
+          <h1>Y-Sweet</h1>
+          <p class="subtitle">
+            An open-source Yjs document store and realtime sync backend that persists to S3 — the "Figma architecture" as a self-hostable server, now in post-acquisition limbo.
+          </p>
+          <div class="meta">
+            <span class="tag">Maturity: not rated &middot; landscape self-report blank; see status card below</span>
+            <span class="tag">License: MIT &middot; per project README (GitHub API reports NOASSERTION)</span>
+            <span class="tag">Initial release: 2023 (repo created 2023-07-17 &middot; GitHub cache)</span>
+            <span class="tag">Bundle: n/a (server + client SDK)</span>
+            <span class="tag amber">Write model: CLIENT-MINTS-FACTS (via embedded Yjs)</span>
+            <span class="tag amber">Reconnect model: CRDT (YATA)</span>
+          </div>
+        </header>
+
+        <section id="scorecard">
+          <h2><span class="num">01</span>Six-axis scorecard</h2>
+          <p>
+            Scored against the owner's question: browser-owned data, local
+            Commands, Git-like branch-rebase on reconnect, client-local
+            Commands &amp; Events, shared Command/Event/Query logic, and
+            maturity. Axis labels are fixed across every project page in this
+            review so the columns can be compared row by row.
+          </p>
+          <tr>
+                  <td>1 &middot; Client data ownership</td>
+                  <td>Inherited from Yjs</td>
+                  <td>The browser holds the Yjs doc (IndexedDB via ecosystem providers; landscape self-report lists IndexedDB, offline reads/writes yes). Y-Sweet itself is the server half: stateless-ish sync + S3 persistence.</td>
+                </tr>
+                <tr>
+                  <td>2 &middot; Local Commands</td>
+                  <td><span class="badge badge-critical">CLIENT-MINTS-FACTS</span></td>
+                  <td>Y-Sweet adds no write model of its own: client apps mutate Yjs docs locally; the server relays and persists updates. Landscape self-report: what gets synced client&rarr;server is &ldquo;mutations&rdquo; (CRDT updates), not intents.</td>
+                </tr>
+                <tr>
+                  <td>3 &middot; Reconnect rebase model</td>
+                  <td><span class="badge badge-high">CRDT</span></td>
+                  <td>Yjs/YATA automatic merge; the landscape self-report puts WhereResolutionOccurs on the Server &mdash; i.e. the Y-Sweet server folds updates into the canonical doc it persists, but it never rejects one.</td>
+                </tr>
+                <tr>
+                  <td>4 &middot; Commands &amp; Events client-local?</td>
+                  <td class="no">No such concepts</td>
+                  <td>Document updates and presence are the only message kinds. No commands, no domain events, no decision logic anywhere in the stack &mdash; by design (&ldquo;backed by S3, like Figma&rdquo;).</td>
+                </tr>
+                <tr>
+                  <td>5 &middot; Logic sharing + protected resources</td>
+                  <td>Token delegation seam; server closed but open-source</td>
+                  <td>&ldquo;Provides document-level access control via client tokens&rdquo;: the app backend authenticates users and mints scoped tokens. That is access control, not logic partitioning &mdash; the only protected-resource notion in this shard.</td>
+                </tr>
+                <tr>
+                  <td>6 &middot; Maturity + license</td>
+                  <td>Untiered &middot; MIT &middot; post-acquisition limbo</td>
+                  <td>Landscape self-report leaves maturity blank. GitHub (cache 2026-11-22): 1,022 stars, not archived, last push 2025-12-04. npm (live 2026-11-23): y-sweet and @y-sweet/client both 0.9.1, last published 2025-09-16. UNVERIFIED: current roadmap/hosting under Modal.</td>
+                </tr>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Axis</th>
+                  <th>Verdict</th>
+                  <th>Grounds</th>
+                </tr>
+              </thead>
+              <tbody>
+<div class="scorecard">
+            <div class="score-card score-bad">
+              <div class="score">CMF</div>
+              <div class="label">Commands verdict</div>
+            </div>
+            <div class="score-card score-warn">
+              <div class="score">CRDT</div>
+              <div class="label">Reconnect model</div>
+            </div>
+            <div class="score-card score-bad">
+              <div class="score">NO</div>
+              <div class="label">Client Commands &amp; Events</div>
+            </div>
+            <div class="score-card score-warn">
+              <div class="score">RISK</div>
+              <div class="label">Project status</div>
+            </div>
+          </div>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="evidence">
+          <h2><span class="num">02</span>Evidence</h2>
+          <p>
+            Every claim above traces to a primary source. Quotes are verbatim;
+            dates distinguish yesterday's scraped cache from today's live
+            fetches. Items that could not be primary-source-verified are
+            marked UNVERIFIED where they are relied on at all.
+          </p>
+<div class="card">
+            <p>&ldquo;Y-Sweet is an open-source document store and realtime sync backend, built on top of the Yjs CRDT library.&rdquo; &hellip; &ldquo;Persists document data to S3-compatible storage, like Figma.&rdquo; &hellip; &ldquo;Provides document-level access control via client tokens.&rdquo;</p>
+            <div class="where">github.com/jamsocket/y-sweet README &mdash; cache 2026-11-22</div>
+          </div>
+          <div class="card card-solution">
+            <p>&ldquo;create an endpoint that auths your user and returns a Y-Sweet client token&rdquo; &mdash; the documented integration pattern: the application backend owns auth and mints short-lived document-scoped tokens; clients then sync directly.</p>
+            <div class="where">github.com/jamsocket/y-sweet README (On the server example) &mdash; cache 2026-11-22</div>
+          </div>
+          <div class="card">
+            <p>&ldquo;Y-Sweet is MIT-licensed, and was created by Jamsocket.&rdquo; Stack: create-y-sweet-app CLI, @y-sweet/sdk (app backend), @y-sweet/client, @y-sweet/react; server core in Rust (crates/y-sweet-core).</p>
+            <div class="where">github.com/jamsocket/y-sweet README &mdash; cache 2026-11-22</div>
+          </div>
+          <div class="card card-problem">
+            <p>&ldquo;Jamsocket is joining Modal&rdquo; (July 10, 2025) &hellip; &ldquo;Jamsocket products will continue to operate normally while the core functionality is being migrated to Modal.&rdquo; Jamsocket products listed include &ldquo;Y-Sweet: a document store and realtime sync backend&rdquo;.</p>
+            <div class="where">jamsocket.com/y-sweet (redirects to the Modal acquisition announcement) &mdash; cache 2026-11-22</div>
+          </div>
+          <div class="card">
+            <p>Landscape self-report: license MIT; deployment Self-hosted + Hosted; client persistence IndexedDB; conflict handling &ldquo;Automatic via CRDT (YATA)&rdquo;; server-side data &ldquo;S3-compatible object store&rdquo; with the comment &ldquo;ground-truth document data only lives on S3, but document metadata exists in your existing DB&rdquo;; auth &ldquo;delegation from your application server based on temporary tokens&rdquo;.</p>
+            <div class="where">localfirst.fm landscape self-report (via /tmp/lf/raw/landscape.json, cache 2026-11-22)</div>
+          </div>
+          <div class="card">
+            <p>Live checks 2026-11-23: npm y-sweet 0.9.1 (published 2025-09-16) and @y-sweet/client 0.9.1 (2025-09-16), both MIT; GitHub API license field NOASSERTION for jamsocket/y-sweet (README asserts MIT). y-sweet.dev and docs.jamsocket.com/y-sweet did not resolve from this environment today; GitHub repo cache (2026-11-22) shows last push 2025-12-04. UNVERIFIED: hosting/roadmap status under Modal.</p>
+            <div class="where">registry.npmjs.org/y-sweet + registry.npmjs.org/@y-sweet/client + github.com/jamsocket/y-sweet &mdash; live 2026-11-23</div>
+          </div>
+        </section>
+
+        <section id="analysis">
+          <h2><span class="num">03</span>Analysis vs the owner's question</h2>
+<p>
+            Y-Sweet matters to this review less as a product and more as the
+            cleanest published blueprint of the &ldquo;thin server&rdquo;
+            posture: a generic Rust sync relay over object storage, an
+            application backend that owns authentication, and clients that do
+            <em>all</em> the write logic in Yjs. Ground truth is a byte blob
+            on S3 &mdash; the server never inspects, validates, or decides
+            anything about document content.
+          </p>
+          <p>
+            That posture is exactly one deletion away from go-cqrs-lite:
+            remove the Decider and you have Y-Sweet. The consequence for the
+            owner's question is instructive &mdash; because no server-side
+            decision exists, there is nothing to rebase <em>onto</em>: a
+            reconnecting client exchanges missed updates and converges. The
+            branch-rebase-with-server that the owner wants is impossible in
+            this architecture by construction, not by omission. Rejections,
+            protected-resource commands, and server-folded read models all
+            need a server that understands intent.
+          </p>
+          <div class="callout callout-solution">
+            <strong>Two adoptable seams</strong>
+            First, token delegation: the Go server authenticating a user and
+            minting a short-lived, stream-scoped token before the browser
+            opens its SSE/command channel is the same pattern, and it maps
+            cleanly onto &ldquo;as long as they do not access protected server
+            resources&rdquo; &mdash; scope the token, then let shared logic
+            run anywhere it is valid. Second, the metadata/data split
+            (&ldquo;ground-truth document data only lives on S3, but document
+            metadata exists in your existing DB&rdquo;) mirrors the thesis's
+            snapshot-plus-journal split.
+          </div>
+          <p>
+            As a dependency it is hard to recommend today: the creating team
+            was acquired by Modal (announced July 10, 2025), the repo's last
+            push was 2025-12-04, and both npm packages have been quiet since
+            September 2025 (all as of 2026-11-23). The project's current
+            hosting and roadmap under Modal are UNVERIFIED. Study the
+            architecture; do not build on the binary.
+          </p>
+        </section>
+
+        <section id="verdict">
+          <h2><span class="num">04</span>Fit verdict</h2>
+          <p>
+            <span class="badge badge-high">PATTERN-TO-ADOPT</span>
+          </p>
+          <p>Y-Sweet is a reference architecture, not a rival: it shows the
+            ceiling of server-thin local-first (CRDT persistence with no
+            decisions) and supplies a directly reusable token-delegation seam
+            for go-cqrs-lite's client/server boundary. Its post-acquisition
+            dormancy makes adopting the running software unwise; adopting the
+            pattern is cheap.</p>
+          <div class="callout">
+            <strong>Back to the index</strong>
+            <a href="index.html">Return to the local-first landscape index</a>
+            for the other projects scored on the same six axes.
+          </div>
+        </section>
+
+        <footer class="footer">
+          <p>
+            Y-Sweet reviewed 2026-11-23 &middot; sources: github.com/jamsocket/y-sweet + jamsocket.com (cache 2026-11-22), localfirst.fm landscape self-report, npm (live 2026-11-23) &middot; UNVERIFIED count: 1 (post-acquisition hosting/roadmap) &middot; Grounding:
+            docs/DOMAIN_LANGUAGE.md &sect;Core Concepts &middot;
+            docs/research/2026-11-22_commands-vs-facts-livestore-datastar.html
+            &sect;10 owner addendum &middot; Template: Bauhaus Light editorial
+          </p>
+        </footer>
+      </main>
+    </div>
+
+    <script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) {
+            return document.getElementById(id);
+          })
+          .filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (link) {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id
+                  );
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
+      })();
+    </script>
+
+  </body>
+</html>

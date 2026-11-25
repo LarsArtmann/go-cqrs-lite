@@ -914,8 +914,8 @@
             <div class="label">Options evaluated and verified</div>
           </div>
           <div class="score-card score-warn">
-            <div class="score">3</div>
-            <div class="label">Claims explicitly UNVERIFIED (labeled in §10)</div>
+            <div class="score">2</div>
+            <div class="label">Claims explicitly UNVERIFIED (labeled in §10; amended 2026-11-23, was 3)</div>
           </div>
           <div class="score-card">
             <div class="score">1–2 d</div>
@@ -1150,7 +1150,7 @@
               </tr>
               <tr>
                 <td><code>tkrajina/typescriptify</code></td>
-                <td>584 stars; reflection-based; tagged v0.2.0 but last-release date UNVERIFIED — appears release-stale</td>
+                <td>584 stars; reflection-based; latest tag v0.2.0, no GitHub Releases published, last push 2026-02-07 (GitHub API, verified 2026-11-23) — release-stale</td>
                 <td>Reflects structs; <code>json</code>-tagged fields only; <code>ts_type</code>/<code>ts_transform</code></td>
               </tr>
               <tr>
@@ -1509,16 +1509,20 @@
             <code>catalog-export</code> copy-paste cmd pattern generalizes:
             one registration feed now has one more consumer.
           </p>
-          <pre><code><span class="tok-comment">// L0 — today's shape, unchanged</span>
-reg := catalog.NewRegistry()
-reg.RegisterEvent(catalog.EventConfig{
-    Name:   <span class="tok-string">"todo.created"</span>,
-    Schema: catalog.SchemaFromType[TodoCreated](), <span class="tok-comment">// Go struct → JSON Schema</span>
-})
-reg.RegisterCommand(catalog.CommandConfig{
-    Name:   <span class="tok-string">"todo.create"</span>,
-    Schema: catalog.SchemaFromType[CreateTodo](),
-})</code></pre>
+          <pre><code><span class="tok-comment">// L0 — today's shape, unchanged (real API)</span>
+b := simple.New(<span class="tok-string">"Todo Service"</span>, <span class="tok-string">"1.0.0"</span>)
+simple.Command[CreateTodo](b, <span class="tok-string">"todo.create"</span>)
+<span class="tok-comment">// payload schema auto-derived from the Go struct</span>
+simple.Event[TodoCreated](b, <span class="tok-string">"todo.created"</span>, catalog.Sends)
+cat := b.Build() <span class="tok-comment">// the single registration feed</span></code></pre>
+          <p class="small" style="color: var(--text-muted)">
+            Amended 2026-11-23: the original draft sketched a nonexistent
+            <code>catalog.RegisterEvent(EventConfig{...})</code> shape; replaced
+            with the real registration surface — <code>simple.New</code> +
+            <code>simple.Command[T]</code> / <code>simple.Event[T]</code> +
+            <code>Build()</code>, source-verified at
+            <code>catalog/v4/simple/builder.go</code>.
+          </p>
 
           <h3>L1 · Emit contracts — <code>catalog/v4/typescript</code> (the only new package)</h3>
           <p>
@@ -1709,7 +1713,7 @@ reg.RegisterCommand(catalog.CommandConfig{
               </tr>
               <tr>
                 <td>Validators</td>
-                <td>~1 KB min+gz (valibot claim: &lt;700 B entry) to a few KB (zod)</td>
+                <td>~1 KB min+gz (valibot claim: &lt;700 B entry — vendor sizes, UNVERIFIED) to a few KB (zod)</td>
                 <td>Vendor claims; measure in P1 and pin the real number</td>
               </tr>
               <tr>
@@ -1897,15 +1901,15 @@ reg.RegisterCommand(catalog.CommandConfig{
             <tbody>
               <tr><td>No official Go&rarr;TS generator (tsgen does not exist)</td><td>go.dev/blog/all index through 2026-11-10; go.dev/blog/go-typescript &rarr; 404; pkg.go.dev/golang.org/x/tools/cmd/tsgen &rarr; 404; Sourcegraph over github.com/golang/tools</td><td class="yes">✅ negative verified</td></tr>
               <tr><td>microsoft/typescript-go is TS-compiler-in-Go (reverse direction)</td><td>pkg.go.dev/github.com/microsoft/typescript-go</td><td class="yes">✅</td></tr>
-              <tr><td>tygo v0.2.21 (2026-02-03), 940★, AST-based, tstype tags</td><td>github.com/gzuidhof/tygo + releases</td><td class="yes">✅ (note: gdm85/tygo is a 404 — wrong owner)</td></tr>
-              <tr><td>typescriptify release-stale</td><td>github.com/tkrajina/typescriptify-golang-structs (584★)</td><td>last-release date UNVERIFIED</td></tr>
+              <tr><td>tygo v0.2.21 (2026-02-03), 940★, AST-based, tstype tags</td><td>github.com/gzuidhof/tygo + releases — re-verified 2026-11-23 via GitHub API: v0.2.21 published_at 2026-02-03T10:17:07Z, latest release</td><td class="yes">✅ (note: gdm85/tygo is a 404 — wrong owner)</td></tr>
+              <tr><td>typescriptify release-stale</td><td>github.com/tkrajina/typescriptify-golang-structs (584★) — GitHub REST API 2026-11-23: latest tag v0.2.0, zero Releases, pushed_at 2026-02-07</td><td class="yes">✅ (2026-11-23)</td></tr>
               <tr><td>json-schema-to-typescript v16.0.0 (2026-08), --imports</td><td>npm</td><td class="yes">✅</td></tr>
               <tr><td>openapi-typescript v7.13.0 (2026-10)</td><td>npm</td><td class="yes">✅</td></tr>
               <tr><td>hey-api Zod v4 plugin; orval v8 zod/valibot</td><td>npm + docs</td><td class="yes">✅</td></tr>
               <tr><td>AsyncAPI generator TS template archived; generator experimental</td><td>github.com/asyncapi/generator</td><td class="yes">✅</td></tr>
-              <tr><td>zod v4: toJSONSchema stable; fromJSONSchema experimental (expanded 4.6, 2026-09)</td><td>zod docs / changelog</td><td class="yes">✅</td></tr>
-              <tr><td>valibot &lt;700 B entry, &ldquo;up to 95% smaller than Zod&rdquo;</td><td>valibot.dev (vendor claim)</td><td>vendor claim, not independently measured</td></tr>
-              <tr><td>ConnectRPC TS v2 rename, v2.3.0 (2026-10); streaming = length-prefixed, not SSE</td><td>npm + connectrpc.com/docs</td><td class="yes">✅</td></tr>
+              <tr><td>zod v4: toJSONSchema stable; fromJSONSchema experimental (expanded 4.6, 2026-09)</td><td>zod docs / changelog; npm registry 2026-11-23: zod@4.6.0 exists (MIT, ./v4 + ./mini exports), dist-tags latest 4.6.7</td><td class="yes">✅</td></tr>
+              <tr><td>valibot &lt;700 B entry, &ldquo;up to 95% smaller than Zod&rdquo;</td><td>valibot.dev (vendor claim)</td><td>vendor sizes UNVERIFIED (claim, not independently measured)</td></tr>
+              <tr><td>ConnectRPC TS v2 rename, v2.3.0 (2026-10); streaming = length-prefixed, not SSE</td><td>npm + connectrpc.com/docs; @connectrpc/connect-web@2.3.0 re-verified on npm 2026-11-23 (v2 line, peer @connectrpc/connect 2.3.0)</td><td class="yes">✅</td></tr>
               <tr><td>Mainline Go wasm ~2 MB floor / ~500 KB gz</td><td>Go issues + wiki (as cited in research leg)</td><td class="yes">✅</td></tr>
               <tr><td>wasip2 for Go still Backlog (#65333)</td><td>github.com/golang/go issue #65333</td><td class="yes">✅</td></tr>
               <tr><td>TinyGo: tiny hello-world, partial reflect, unreliable recover on wasm</td><td>tinygo.org docs + GitHub</td><td class="yes">✅</td></tr>
@@ -1921,7 +1925,11 @@ reg.RegisterCommand(catalog.CommandConfig{
             2026-11-21; exact-string claims (URLs, versions, dates) were
             taken from primary-source pages, not search-result snippets.
             Three claims remain explicitly UNVERIFIED and are marked wherever
-            they appear.
+            they appear. Amended 2026-11-23: the typescriptify claim was
+            verified live (GitHub REST API — v0.2.0 tag, no Releases, last
+            push 2026-02-07) and the valibot vendor-size row now carries an
+            explicit UNVERIFIED label; the remaining two are cbor-x browser
+            decode speed and valibot vendor sizes.
           </p>
         </section>
 

@@ -1,0 +1,1201 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ElectricSQL: local-first landscape review for go-cqrs-lite</title>
+    <style>
+      /* =========================================================================
+         BAUHAUS LIGHT — Editorial template
+         Design language: form follows function. Primary colors on warm paper.
+         Zero external dependencies: system fonts, no CDN, no build step.
+         Token architecture: see references/bauhaus-tokens.md
+         ========================================================================= */
+
+      :root {
+        /* --- Primitive palette (Bauhaus Light) --- */
+        --color-paper: #f4f4f0;
+        --color-paper-2: #ffffff;
+        --color-paper-3: #e8e8e2;
+        --color-ink: #111111;
+        --color-red: #e63946;
+        --color-blue: #1d3557;
+        --color-yellow: #f4d35e;
+        --color-hairline: rgba(17, 17, 17, 0.14);
+        --color-hairline-strong: rgba(17, 17, 17, 0.3);
+
+        /* --- Semantic layer (shared vocabulary with dark template) --- */
+        --surface: var(--color-paper);
+        --surface-raised: var(--color-paper-2);
+        --surface-sunken: var(--color-paper-3);
+        --text: var(--color-ink);
+        --text-muted: rgba(17, 17, 17, 0.72);
+        --text-faint: rgba(17, 17, 17, 0.5);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-red);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        /* --- Backward-compatible aliases (do not break consumer skills) --- */
+        --bg: var(--surface);
+        --bg-elevated: var(--surface-raised);
+        --bg-sunken: var(--surface-sunken);
+        --bg-card: var(--surface-raised);
+        --bg-code: var(--surface-sunken);
+        --ink: var(--text);
+        --ink-secondary: var(--text-muted);
+        --ink-muted: var(--text-faint);
+        --rose: var(--problem);
+        --rose-glow: color-mix(in srgb, var(--problem) 15%, transparent);
+        --emerald: var(--solution);
+        --emerald-glow: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber: var(--warning);
+        --amber-glow: color-mix(in srgb, var(--warning) 15%, transparent);
+        --amber-light: color-mix(in srgb, var(--warning) 22%, transparent);
+        --coral: var(--problem);
+        --coral-light: color-mix(in srgb, var(--problem) 12%, transparent);
+        --teal: var(--solution);
+        --teal-light: color-mix(in srgb, var(--solution) 12%, transparent);
+
+        /* --- Shape --- */
+        --radius: 0px;
+        --radius-sm: 0px;
+
+        /* --- Type stacks (system only — zero external fonts) --- */
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+        *,
+        *::before,
+        *::after {
+          transition-duration: 0.01ms !important;
+          animation-duration: 0.01ms !important;
+        }
+      }
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 16px;
+        line-height: 1.65;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* --- Accessibility: keyboard focus --- */
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      a:focus-visible {
+        outline-offset: -1px;
+      }
+
+      /* --- Full-bleed top bar --- */
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      /* --- Layout: optional sticky sidebar TOC --- */
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--text);
+      }
+      .sidebar a {
+        font-size: 0.86rem;
+        color: var(--text);
+        text-decoration: none;
+        padding: 0.5rem 0.75rem;
+        border-left: 4px solid transparent;
+        font-weight: 600;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+        color: var(--accent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      /* --- Headings --- */
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        color: var(--text);
+      }
+      h1 {
+        font-size: clamp(1.9rem, 4.5vw, 2.8rem);
+        line-height: 1.05;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.5rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 3px solid var(--text);
+        display: flex;
+        align-items: baseline;
+        gap: 0.7rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+      h3 {
+        font-size: 1.15rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 1rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+
+      /* --- Hero --- */
+      .hero {
+        padding: 1.5rem 0 2rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 3px solid var(--text);
+      }
+      .eyebrow {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: var(--accent);
+        margin-bottom: 0.9rem;
+      }
+      .subtitle {
+        font-size: 1.1rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0 0 1rem;
+      }
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      .tag {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        padding: 0.25rem 0.6rem;
+        background: var(--surface-sunken);
+        color: var(--text);
+        border: 1px solid var(--border-strong);
+      }
+      .tag.amber {
+        background: var(--warning);
+        border-color: var(--warning);
+        color: var(--text);
+      }
+      .tag.teal {
+        background: var(--solution);
+        border-color: var(--solution);
+        color: var(--surface);
+      }
+
+      /* Bauhaus signature: geometric shape cluster (optional) */
+      .hero-shapes {
+        position: relative;
+        height: 90px;
+        margin-bottom: 1.2rem;
+      }
+      .hero-shapes .circle {
+        position: absolute;
+        top: 0;
+        right: 180px;
+        width: 64px;
+        height: 64px;
+        background: var(--problem);
+        border-radius: 50%;
+      }
+      .hero-shapes .square {
+        position: absolute;
+        top: 26px;
+        right: 90px;
+        width: 56px;
+        height: 56px;
+        background: var(--solution);
+      }
+      .hero-shapes .tri {
+        position: absolute;
+        top: 8px;
+        right: 0;
+        width: 0;
+        height: 0;
+        border-left: 32px solid transparent;
+        border-right: 32px solid transparent;
+        border-bottom: 56px solid var(--warning);
+      }
+      .hero-shapes .bar {
+        position: absolute;
+        bottom: 0;
+        right: 230px;
+        width: 100px;
+        height: 14px;
+        background: var(--text);
+      }
+
+      /* --- Scorecard / stat cards --- */
+      .scorecard,
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 0;
+        margin: 1.5rem 0 2rem;
+        border: 3px solid var(--text);
+      }
+      .score-card,
+      .stat-card {
+        padding: 1.3rem 1rem;
+        text-align: center;
+        border-right: 3px solid var(--text);
+        background: var(--surface-raised);
+      }
+      .score-card:last-child,
+      .stat-card:last-child {
+        border-right: none;
+      }
+
+      .score,
+      .stat-value {
+        font-family: var(--font-heading);
+        font-size: 2.6rem;
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -0.04em;
+      }
+      .score-card .label,
+      .stat-label {
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        margin-top: 0.5rem;
+      }
+      /* Semantic state classes — no nth-child decoration, no !important */
+      .score-good,
+      .stat-good {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .score-warn,
+      .stat-warn {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .score-bad,
+      .stat-bad {
+        background: var(--problem);
+        color: var(--surface);
+      }
+
+      /* --- General cards --- */
+      .card {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+      }
+
+      /* --- Issue cards --- */
+      .issue {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* --- Severity badges --- */
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.22rem 0.6rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+
+      /* --- Inline badges --- */
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        border: 1px solid var(--text);
+        color: var(--text);
+      }
+      .badge-critical {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .badge-high {
+        background: var(--warning);
+      }
+      .badge-medium {
+        background: var(--surface-sunken);
+      }
+      .badge-low {
+        background: var(--surface-raised);
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        background: var(--solution);
+        color: var(--surface);
+      }
+
+      /* --- Callouts --- */
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.8rem 1rem;
+        border: 1px solid var(--border-strong);
+        border-left: 4px solid var(--border-strong);
+        background: var(--surface-sunken);
+        font-size: 0.92rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-teal,
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 10%,
+          var(--surface-raised)
+        );
+      }
+      .callout-amber,
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 18%,
+          var(--surface-raised)
+        );
+      }
+
+      /* --- Strengths --- */
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.9rem;
+        padding: 0.75rem 0;
+        border-bottom: 2px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        color: var(--solution);
+        font-size: 1.3rem;
+        line-height: 1.3;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.92rem;
+      }
+
+      /* --- Tables --- */
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.92rem;
+        border: 2px solid var(--text);
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--text);
+        color: var(--surface);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-right: 1px solid var(--border-strong);
+      }
+      th:last-child {
+        border-right: none;
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-top: 1px solid var(--border);
+        border-right: 1px solid var(--border);
+      }
+      td:last-child {
+        border-right: none;
+      }
+      tr:nth-child(even) td {
+        background: var(--surface-sunken);
+      }
+      table.compare td.yes {
+        color: var(--solution);
+        font-weight: 700;
+      }
+      table.compare td.no {
+        color: var(--problem);
+        font-weight: 700;
+      }
+
+      /* --- Code blocks + syntax highlighting --- */
+      pre {
+        background: var(--text);
+        color: var(--surface);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+        border: 2px solid var(--text);
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      p code,
+      li code,
+      td code {
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+      }
+      .tok-keyword {
+        color: var(--warning);
+      }
+      .tok-type {
+        color: var(--warning);
+      }
+      .tok-string {
+        color: #95e1d3;
+      }
+      .tok-comment {
+        color: rgba(244, 244, 240, 0.45);
+        font-style: italic;
+      }
+      .tok-func {
+        color: #6eb5ff;
+      }
+      .tok-number {
+        color: var(--warning);
+      }
+      .tok-generic {
+        color: var(--problem);
+      }
+      .tok-builtin {
+        color: #6eb5ff;
+      }
+      .tok-punct {
+        color: rgba(244, 244, 240, 0.7);
+      }
+      .tok-attr {
+        color: var(--warning);
+      }
+
+      /* --- Dependency tree / ASCII diagrams --- */
+      .dep-tree {
+        background: var(--surface-sunken);
+        border: 2px solid var(--text);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.7;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .dep-tree .root {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .dep-tree .ok {
+        color: var(--solution);
+      }
+      .dep-tree .unwanted {
+        color: var(--problem);
+      }
+
+      /* --- Inline node-and-arrow diagrams --- */
+      .diagram {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+      }
+      .node {
+        display: inline-block;
+        padding: 0.4rem 0.75rem;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        font-weight: 700;
+        background: var(--surface-sunken);
+        border: 1px solid var(--text);
+      }
+      .node-core {
+        background: var(--accent);
+        color: var(--surface);
+      }
+      .node-problem {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .node-good {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .arrow {
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Grids --- */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      /* --- Inline TOC --- */
+      .toc {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+        padding: 1rem 1.3rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .toc h3 {
+        margin-bottom: 0.5rem;
+      }
+      .toc ul {
+        list-style: none;
+        padding: 0;
+      }
+      .toc li {
+        margin: 0.25rem 0;
+      }
+      .toc a {
+        color: var(--text);
+        text-decoration: none;
+        font-size: 0.92rem;
+        font-weight: 600;
+      }
+      .toc a:hover {
+        color: var(--accent);
+      }
+
+      /* --- Migration / numbered steps --- */
+      .migration-step {
+        display: grid;
+        grid-template-columns: 56px 1fr;
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1.1rem;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+      }
+      .migration-num {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        font-size: 1.8rem;
+        color: var(--accent);
+        line-height: 1;
+      }
+      .migration-content h4 {
+        margin-bottom: 0.2rem;
+      }
+      .migration-content p {
+        margin-bottom: 0;
+        color: var(--text-muted);
+        font-size: 0.94rem;
+      }
+
+      /* --- Before/After comparison --- */
+      .compare-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin: 1rem 0 0.5rem;
+      }
+      .compare-before,
+      .compare-after {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0.4rem 0.7rem;
+        color: var(--surface);
+      }
+      .compare-before {
+        background: var(--problem);
+      }
+      .compare-after {
+        background: var(--solution);
+      }
+      .compare-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      .compare-row pre {
+        margin: 0;
+      }
+
+      /* --- Footer --- */
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 3px solid var(--text);
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Responsive --- */
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+        .compare-header,
+        .compare-row {
+          grid-template-columns: 1fr;
+        }
+        .scorecard,
+        .stat-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-right: none;
+        }
+        .score-card:nth-child(1),
+        .stat-card:nth-child(1),
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-bottom: 3px solid var(--text);
+        }
+        .migration-step {
+          grid-template-columns: 1fr;
+        }
+        .hero-shapes {
+          display: none;
+        }
+      }
+    
+      /* ---------------------------------------------------------------------
+         Additions for the landscape dossier pages (everything above this
+         marker is the editorial template, copied verbatim).
+         --------------------------------------------------------------------- */
+      .top-bar a,
+      .footer a {
+        color: inherit;
+      }
+      .main a {
+        color: var(--solution);
+      }
+      .score-text {
+        font-family: var(--font-mono);
+        font-size: 0.95rem;
+        font-weight: 900;
+        letter-spacing: 0.02em;
+        line-height: 1.25;
+        overflow-wrap: anywhere;
+      }
+      .score-text-sm {
+        font-size: 0.78rem;
+        font-weight: 700;
+      }
+      .src {
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        color: var(--text-faint);
+        margin-top: 0.55rem;
+        overflow-wrap: anywhere;
+      }
+      .src a {
+        color: var(--text-muted);
+      }
+      .quote {
+        font-size: 0.95rem;
+      }
+      .quote em {
+        font-style: normal;
+        box-shadow: inset 0 -0.45em 0
+          color-mix(in srgb, var(--warning) 55%, transparent);
+      }
+      .verdict {
+        font-family: var(--font-mono);
+        font-size: 1.05rem;
+        font-weight: 900;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.5rem 0.9rem;
+        display: inline-block;
+        border: 2px solid var(--text);
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .verdict-adopt {
+        background: var(--solution);
+      }
+      .verdict-compete {
+        background: var(--problem);
+      }
+      .verdict-complement,
+      .verdict-orthogonal {
+        background: var(--surface-sunken);
+        color: var(--text);
+      }
+</style>
+  </head>
+  <body>
+    <div class="top-bar">
+      <span>LOCAL-FIRST LANDSCAPE REVIEW</span>
+      <span><a href="index.html">&larr; ALL PROJECTS</a></span>
+      <span>ACCESSED 2026-11-23</span>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#identity">01 &middot; Identity &amp; metadata</a>
+          <a href="#scorecard">02 &middot; Six-axis scorecard</a>
+          <a href="#evidence">03 &middot; Evidence</a>
+          <a href="#analysis">04 &middot; Analysis vs the question</a>
+          <a href="#fit">05 &middot; Fit verdict</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <section id="identity">
+          <h2><span class="num">00</span>Identity &amp; metadata</h2>
+          <p>
+            Electric has narrowed to what it is uniquely good at: Postgres Sync streams subsets of
+            a Postgres database (&ldquo;shapes&rdquo;: table + where + columns) into any client
+            store &mdash; from an in-memory variable to PGlite, TanStack DB or SQLite &mdash;
+            over an HTTP API designed for CDNs, with SSE live mode and offset-based resume.
+            Writes are explicitly out of scope and routed through your existing backend, which is
+            why Electric composes with a Go command side instead of competing with it. Since
+            2026-08-11 the team is part of Databricks (joining Neon, building Lakebase); the
+            hosted Electric Cloud is winding down, the open-source components continue.
+          </p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Metadata</th><th>Value</th><th>Source</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Maturity</td><td>Postgres Sync is post-1.0 production software (client 1.x since 2025-03-17; &ldquo;post-1.0 reliability sprint&rdquo; and Electric 1.1 storage engine, 2025-08); localfirst.fm self-report leaves maturity unreported. Org in transition: Electric Cloud &ldquo;winding down&rdquo;.</td><td>npm registry + electric.ax blog links (cache 2026-11-22; blog posts fetched live 2026-11-23); localfirst.fm self-report</td></tr>
+                <tr><td>License</td><td>Apache-2.0 (repo, npm, and site footer &ldquo;Released under the Apache 2.0 License&rdquo;)</td><td>GitHub API + npm registry + electric.ax, live 2026-11-23</td></tr>
+                <tr><td>Initial release</td><td>self-report: not reported; repo created 2022-06-01 (repo later moved under <code>neondatabase/electric</code>, same repository id); <code>@electric-sql/client</code> 0.1.0 published 2022-10-17</td><td>GitHub API + npm registry, live 2026-11-23</td></tr>
+                <tr><td>Current version</td><td>@electric-sql/client 1.5.28 (2026-09-09); repo last pushed 2026-11-23; 10,435 stars; PGlite &ldquo;10 million weekly npm downloads&rdquo; per blog</td><td>npm registry + GitHub API + electric.ax blog, live 2026-11-23</td></tr>
+                <tr><td>Bundle size</td><td>Not reported (landscape &ldquo;&mdash;&rdquo;); npm unpacked 2.38&nbsp;MB for the TS client</td><td>localfirst.fm self-report; npm dist, live 2026-11-23</td></tr>
+                <tr><td>Composition</td><td>Postgres Sync (Elixir sync service, Docker image) + TanStack DB (reactive client store) + PGlite (embedded Postgres/WASM) + Durable Streams (open protocol; Rust reference server); Elixir + TypeScript clients documented, any HTTP/JSON language supported</td><td>electric.ax pages, cache 2026-11-22 and live 2026-11-23</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+        <section id="scorecard">
+          <h2><span class="num">01</span>Six-axis scorecard</h2>
+          <p>
+            Colour encodes fit with the owner&rsquo;s question (blue&nbsp;=&nbsp;matches the lens,
+            yellow&nbsp;=&nbsp;partial with a caveat, neutral&nbsp;=&nbsp;orthogonal to it), not
+            product quality.
+          </p>
+          <section class="scorecard">
+            <div class="score-card score-warn">
+              <div class="score score-text">SYNCED READ REPLICA</div>
+              <div class="label">1 &middot; Client data ownership</div>
+            </div>
+            <div class="score-card">
+              <div class="score score-text">SERVER-ONLY-WRITES</div>
+              <div class="label">2 &middot; Local commands</div>
+            </div>
+            <div class="score-card">
+              <div class="score score-text">NONE (WRITES OUT OF SCOPE)</div>
+              <div class="label">3 &middot; Reconnect model</div>
+            </div>
+            <div class="score-card score-bad">
+              <div class="score score-text score-text-sm">NO WRITE MODEL; FORK AT THE LOG LAYER</div>
+              <div class="label">4 &middot; Client-local commands &amp; events</div>
+            </div>
+            <div class="score-card score-good">
+              <div class="score score-text score-text-sm">NO SHARED LOGIC NEEDED: HTTP + JSON</div>
+              <div class="label">5 &middot; Logic sharing</div>
+            </div>
+            <div class="score-card score-warn">
+              <div class="score score-text">1.X / APACHE-2.0</div>
+              <div class="label">6 &middot; Maturity &amp; license</div>
+            </div>
+          </section>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Axis</th><th>Verdict</th><th>Detail (evidence)</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>1 &middot; Client data ownership</td>
+                  <td><strong>Owned copy of synced shapes</strong></td>
+                  <td>Shape logs land in whatever store you point at them (in-memory, IndexedDB, OPFS, SQLite, PGlite); resume from the last offset after offline periods <a href="#ev1">#ev1</a> <a href="#ev3">#ev3</a></td>
+                </tr>
+                <tr>
+                  <td>2 &middot; Local commands</td>
+                  <td><span class="badge badge-medium">SERVER-ONLY-WRITES</span></td>
+                  <td>&ldquo;Electric does not do write-path sync&rdquo;; all four documented write patterns call your own API; optimistic state is your responsibility (or TanStack DB&rsquo;s) <a href="#ev2">#ev2</a></td>
+                </tr>
+                <tr>
+                  <td>3 &middot; Reconnect rebase model</td>
+                  <td><strong>NONE for writes; log-resume for reads</strong></td>
+                  <td>&ldquo;It doesn't prescribe a solution for writes and thus avoids handling conflicts&rdquo;; the read path resumes by offset/handle and can be told to <code>must-refetch</code> from scratch <a href="#ev2">#ev2</a> <a href="#ev4">#ev4</a></td>
+                </tr>
+                <tr>
+                  <td>4 &middot; Commands &amp; events client-local</td>
+                  <td><strong>No client write model; branching exists at the stream layer</strong></td>
+                  <td>Optimistic patterns are documented recipes, not primitives; Durable Streams add copy-on-write <em>fork</em> at any offset (online, HTTP-only) <a href="#ev2">#ev2</a> <a href="#ev5">#ev5</a></td>
+                </tr>
+                <tr>
+                  <td>5 &middot; Logic sharing + protected resources</td>
+                  <td><strong>None required &mdash; protocol-level interop</strong></td>
+                  <td>&ldquo;How to write an Electric client for any language that speaks HTTP and JSON&rdquo;; authorization happens in your proxy by setting shape <code>where</code> clauses server-side; the API is &ldquo;public by default&rdquo; and must be locked down <a href="#ev6">#ev6</a> <a href="#ev7">#ev7</a></td>
+                </tr>
+                <tr>
+                  <td>6 &middot; Maturity + license</td>
+                  <td><strong>1.x production / Apache-2.0</strong></td>
+                  <td>Self-hostable Elixir service; cloud winding down after the Databricks/Neon move; &ldquo;Everything we've previously open sourced stays open source&rdquo; <a href="#ev8">#ev8</a></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+        <section id="evidence">
+          <h2><span class="num">02</span>Evidence</h2>
+          <div class="card" id="ev1">
+            <p class="quote">&ldquo;Postgres Sync is a sync engine that syncs subsets of your data out of your Postgres database, into local apps and services. You can sync data into anything you like. From web, mobile and desktop apps and client stores like TanStack DB to databases like PGlite.&rdquo; &hellip; &ldquo;The same shape log is delivered to every subscriber &mdash; web tabs, mobile devices, server workers, agents &mdash; in real time, with the same ordering and guarantees.&rdquo;</p>
+            <div class="src">electric.ax/sync/postgres-sync &middot; <a href="https://electric.ax/sync/postgres-sync.md">https://electric.ax/sync/postgres-sync.md</a> &middot; cache 2026-11-22</div>
+          </div>
+          <div class="card" id="ev2">
+            <p class="quote">&ldquo;Electric does read-path sync &hellip; It does not do write-path sync. It doesn't provide (or prescribe) a built-in solution for getting data back into Postgres from local apps and services.&rdquo; The writes guide then documents four patterns &mdash; online writes, optimistic state, shared persistent optimistic state, through-the-database sync &mdash; all with writes going &ldquo;using your existing API&rdquo;, and warns: &ldquo;If an offline write is rejected by the server, the local application needs to find some way to revert the local state.&rdquo;</p>
+            <div class="src">electric.ax/docs/sync/guides/writes &middot; <a href="https://electric.ax/docs/sync/guides/writes.md">https://electric.ax/docs/sync/guides/writes.md</a> &middot; cache 2026-11-22</div>
+          </div>
+          <div class="card" id="ev3">
+            <p class="quote">Shapes &mdash; &ldquo;a <strong>Shape</strong> is a SQL query against your Postgres. Postgres Sync carves out the matching rows and keeps them live for every client that subscribes&rdquo; &mdash; defined by table, optional where clause, optional columns; single-table with subquery filtering; the TypeScript client stores &ldquo;the last offset and handle you'd seen&rdquo; so that after going offline &ldquo;you'd pass in the last offset &hellip; so it knows at what point in the shape to catch you up from&rdquo;.</p>
+            <div class="src">electric.ax/docs/sync/guides/shapes + TypeScript client docs &middot; <a href="https://electric.ax/docs/sync/guides/shapes.md">https://electric.ax/docs/sync/guides/shapes.md</a> &middot; cache 2026-11-22 (shapes), live 2026-11-23 (TS client)</div>
+          </div>
+          <div class="card" id="ev4">
+            <p class="quote">HTTP API control flow: after an initial <code>offset=-1</code> sync the client receives <code>&#123; &quot;headers&quot;: &#123; &quot;control&quot;: &quot;up-to-date&quot; &#125; &#125;</code>; the other control message is <code>must-refetch</code>, which tells the client to throw away local shape data and re-sync. Live mode adds SSE: <code>live=true&amp;live_sse=true</code> with &ldquo;Keep-alive comments: Sent as <code>: keep-alive</code> every 21 seconds&rdquo;; <code>offset=now</code> skips history.</p>
+            <div class="src">electric.ax/docs/sync/api/http &middot; <a href="https://electric.ax/docs/sync/api/http.md">https://electric.ax/docs/sync/api/http.md</a> &middot; live 2026-11-23</div>
+          </div>
+          <div class="card" id="ev5">
+            <p class="quote">Durable Streams + fork: &ldquo;Every position in a stream is identified by an offset &hellip; Opaque &hellip; Lexicographically sortable&rdquo;; reads return <code>Stream-Next-Offset</code> to resume; &ldquo;For exactly-once write semantics, a producer can identify itself using three headers&rdquo; (<code>Producer-Id</code>, <code>Producer-Epoch</code>, <code>Producer-Seq</code>) with stale producers fenced out by <code>403</code>. Fork (2026-04-15): &ldquo;a single API call that branches a stream at any point &hellip; Forks don't copy data. They use copy-on-write (COW)&rdquo; via <code>Stream-Forked-From</code> + <code>Stream-Fork-Offset</code>.</p>
+            <div class="src">electric.ax/docs/streams + blog &ldquo;Fork &mdash; branching for Durable Streams&rdquo; &middot; <a href="https://electric.ax/blog/2026/04/15/fork-branching-for-durable-streams">https://electric.ax/blog/2026/04/15/fork-branching-for-durable-streams</a> &middot; live 2026-11-23</div>
+          </div>
+          <div class="card" id="ev6">
+            <p class="quote">Any language, including Go: the docs ship a guide for &ldquo;writing an Electric client for any language that speaks HTTP and JSON&rdquo; (the streams page shows a Go SSE reader in six lines). Writes: &ldquo;Bring your own writes &hellip; Write through your API (Plain API). POST or PUT to your existing endpoints. The Postgres txid flows back through the read path&rdquo;; TanStack DB adds &ldquo;optimistic mutations that tie into the sync machinery&rdquo; &mdash; &ldquo;UI updates instantly. The collection awaits the txid on the stream and reconciles.&rdquo;</p>
+            <div class="src">electric.ax docs index + postgres-sync + tanstack-db &middot; <a href="https://electric.ax/sync/tanstack-db.md">https://electric.ax/sync/tanstack-db.md</a> &middot; cache 2026-11-22</div>
+          </div>
+          <div class="card" id="ev7">
+            <p class="quote">Protected resources: &ldquo;Electric then exposes access to <strong>any data</strong> that its database user can access in Postgres to <strong>any client</strong> that can connect to the Electric HTTP API&rdquo; &mdash; it is &ldquo;public by default&rdquo; and must sit behind an authorizing proxy; the recommended client pattern is that &ldquo;Server controls table and authorization&rdquo; by injecting the <code>where</code> clause (<code>user_id = $1</code>) after validating the user.</p>
+            <div class="src">electric.ax/docs/sync/guides/security + auth guide + TS client docs &middot; <a href="https://electric.ax/docs/sync/guides/security.md">https://electric.ax/docs/sync/guides/security.md</a> &middot; live 2026-11-23</div>
+          </div>
+          <div class="card" id="ev8">
+            <p class="quote">&ldquo;Electric is joining Databricks &hellip; to add our data primitives and reactivity to Lakebase&rdquo; (2026-08-11); &ldquo;Electric Cloud is winding down. Cloud users will need to self-host or move to another provider&rdquo;; &ldquo;Everything we've previously open sourced stays open source: Postgres Sync, PGlite, TanStack DB, Durable Streams.&rdquo;</p>
+            <div class="src">electric.ax blog, &ldquo;Electric is joining Databricks&rdquo; &middot; <a href="https://electric.ax/blog/2026/08/11/electric-joining-databricks.md">https://electric.ax/blog/2026/08/11/electric-joining-databricks.md</a> &middot; live 2026-11-23</div>
+          </div>        </section>
+        <section id="analysis">
+          <h2><span class="num">03</span>Analysis vs the owner&rsquo;s question and go-cqrs-lite&rsquo;s thesis</h2>
+          <p>
+            Electric is the only entry in this shard that keeps the CQRS boundary by construction
+            &mdash; it never took the write path, so there is nothing to re-derive. For this repo
+            it is interesting twice: as a production reference for the SSE read leg, and as the
+            declared non-goal that go-cqrs-lite&rsquo;s L4 tier would have to fill.
+          </p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Question part</th><th>Electric&rsquo;s answer</th><th>Read-across to go-cqrs-lite</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>P1 &middot; browser owns its data</td>
+                  <td>Owned, resumable copies of queried shapes in any local store; the offset+handle pair is the durability contract.</td>
+                  <td>Same shape as <code>metaengine.ServeSSE</code> + Watcher replay with Last-Event-ID: compare Electric&rsquo;s opaque offsets, <code>up-to-date</code>/<code>must-refetch</code> control messages and 21-second keep-alives against this repo&rsquo;s heartbeat/replay behaviour &mdash; a ready conformance checklist.</td>
+                </tr>
+                <tr>
+                  <td>P2 &middot; local-first including Commands</td>
+                  <td>Declined, in writing: writes go through &ldquo;your existing API&rdquo;, optimistic state is a documented pattern you build.</td>
+                  <td>Validates the thesis: the industry&rsquo;s read-path specialist chose to keep Commands in application backends &mdash; exactly where go-cqrs-lite&rsquo;s dispatcher and deciders live. A Go backend + Electric read fan-out is a coherent stack.</td>
+                </tr>
+                <tr>
+                  <td>P3 &middot; git-like branch/rebase</td>
+                  <td>No offline rebase; instead the Durable Streams protocol makes the <em>log</em> first-class: opaque sortable offsets, exact resume, idempotent producers with epoch fencing, and copy-on-write fork at any offset.</td>
+                  <td>The fork primitive is the closest thing to &ldquo;branch like Git&rdquo; shipped anywhere in this landscape &mdash; but it branches server-held logs online. For the offline branch, the producer-id/epoch/seq dedupe headers are a directly comparable design to deterministic command IDs (<code>id.DeriveCommandID</code>) plus engine dedup.</td>
+                </tr>
+                <tr>
+                  <td>P4 &middot; client-only Commands &amp; Events</td>
+                  <td>Not offered. The most complete published recipe for bolting optimistic writes onto a read-synced store is pattern&nbsp;4: PGlite shadow tables + <code>INSTEAD OF</code> triggers + a local change log drained to the server.</td>
+                  <td>Pattern&nbsp;4 is a working sketch of the owner&rsquo;s DB1/DB2 split minus events: local writes land in a shadow table, a change log drains them to the API, and reads merge synced + local. Swap &ldquo;change log&rdquo; for &ldquo;pending command journal + speculative events&rdquo; and it is the L4 client store.</td>
+                </tr>
+                <tr>
+                  <td>P5 &middot; shared logic minus protected resources</td>
+                  <td>No logic is shared because none runs client-side; interop is the protocol. Authorization is compositional: your proxy owns identity and injects per-user <code>where</code> clauses; the sync service stays dumb and cacheable.</td>
+                  <td>The &ldquo;dumb pipe behind an authorizing proxy&rdquo; posture is what lets a Go server own the boundary while any client consumes read models &mdash; the same reason go-cqrs-lite serves reads as folded JSON rather than sharing query engines. Public-by-default is the failure mode to avoid.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            Against the thesis: Electric is the read half of this library&rsquo;s architecture,
+            built for Postgres rather than for an event journal &mdash; its shape logs carry row
+            changes, not domain facts, so projections served this way are state-sync, not
+            event-sourced reads. Organizationally it is mid-pivot (Databricks/Neon/Lakebase, cloud
+            winding down), which matters for a complement chosen as infrastructure.
+          </p>
+          <div class="callout callout-amber">
+            <strong>UNVERIFIED (2)</strong>
+            The current version number of the Elixir sync service itself (as opposed to the npm
+            client 1.5.28) was not pinned from a primary source; and bundle size is unreported
+            (landscape &ldquo;&mdash;&rdquo;) and was not measured here.
+          </div>
+        </section>
+        <section id="fit">
+          <h2><span class="num">04</span>Fit verdict</h2>
+          <p><span class="verdict verdict-complement">COMPLEMENT</span></p>
+          <p>
+            Electric wants exactly the division go-cqrs-lite enforces: it syncs read models and
+            refuses the write path, speaks plain HTTP/SSE to any language (Go included), and is
+            Apache-2.0 and self-hostable. Pair it with a Go command side whose deciders write to
+            Postgres, and it covers partial replication, CDN-scale fan-out and offline reads that
+            <code>metaengine.ServeSSE</code> would otherwise have to grow &mdash; while its
+            Durable Streams protocol (opaque offsets, idempotent producers with fencing,
+            copy-on-write fork) doubles as the reference spec for this repo&rsquo;s SSE and
+            journaling contracts. Budget for the pivot: the cloud is winding down, so the
+            complement is the self-hosted Elixir service.
+          </p>
+        </section>
+
+        <footer class="footer">
+          <p>
+            Dossier assembled 2026-11-23 for go-cqrs-lite &middot; cached page
+            dumps are dated <em>cache 2026-11-22</em>, live fetches
+            <em>2026-11-23</em> &middot; claims that could not be verified
+            against a primary source are labelled UNVERIFIED inline &middot;
+            <a href="index.html">back to the landscape index</a>
+          </p>
+        </footer>
+      </main>
+    </div>
+
+<script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) {
+            return document.getElementById(id);
+          })
+          .filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (link) {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id,
+                  );
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
+      })();
+    </script>
+  </body>
+</html>

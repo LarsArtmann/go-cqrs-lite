@@ -1,0 +1,1348 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CouchDB: local-first landscape review for go-cqrs-lite</title>
+    <style>
+      /* =========================================================================
+         BAUHAUS LIGHT — Editorial template
+         Design language: form follows function. Primary colors on warm paper.
+         Zero external dependencies: system fonts, no CDN, no build step.
+         Token architecture: see references/bauhaus-tokens.md
+         ========================================================================= */
+
+      :root {
+        /* --- Primitive palette (Bauhaus Light) --- */
+        --color-paper: #f4f4f0;
+        --color-paper-2: #ffffff;
+        --color-paper-3: #e8e8e2;
+        --color-ink: #111111;
+        --color-red: #e63946;
+        --color-blue: #1d3557;
+        --color-yellow: #f4d35e;
+        --color-hairline: rgba(17, 17, 17, 0.14);
+        --color-hairline-strong: rgba(17, 17, 17, 0.3);
+
+        /* --- Semantic layer (shared vocabulary with dark template) --- */
+        --surface: var(--color-paper);
+        --surface-raised: var(--color-paper-2);
+        --surface-sunken: var(--color-paper-3);
+        --text: var(--color-ink);
+        --text-muted: rgba(17, 17, 17, 0.72);
+        --text-faint: rgba(17, 17, 17, 0.5);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-red);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        /* --- Backward-compatible aliases (do not break consumer skills) --- */
+        --bg: var(--surface);
+        --bg-elevated: var(--surface-raised);
+        --bg-sunken: var(--surface-sunken);
+        --bg-card: var(--surface-raised);
+        --bg-code: var(--surface-sunken);
+        --ink: var(--text);
+        --ink-secondary: var(--text-muted);
+        --ink-muted: var(--text-faint);
+        --rose: var(--problem);
+        --rose-glow: color-mix(in srgb, var(--problem) 15%, transparent);
+        --emerald: var(--solution);
+        --emerald-glow: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber: var(--warning);
+        --amber-glow: color-mix(in srgb, var(--warning) 15%, transparent);
+        --amber-light: color-mix(in srgb, var(--warning) 22%, transparent);
+        --coral: var(--problem);
+        --coral-light: color-mix(in srgb, var(--problem) 12%, transparent);
+        --teal: var(--solution);
+        --teal-light: color-mix(in srgb, var(--solution) 12%, transparent);
+
+        /* --- Shape --- */
+        --radius: 0px;
+        --radius-sm: 0px;
+
+        /* --- Type stacks (system only — zero external fonts) --- */
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+        *,
+        *::before,
+        *::after {
+          transition-duration: 0.01ms !important;
+          animation-duration: 0.01ms !important;
+        }
+      }
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 16px;
+        line-height: 1.65;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* --- Accessibility: keyboard focus --- */
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      a:focus-visible {
+        outline-offset: -1px;
+      }
+
+      /* --- Full-bleed top bar --- */
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      /* --- Layout: optional sticky sidebar TOC --- */
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--text);
+      }
+      .sidebar a {
+        font-size: 0.86rem;
+        color: var(--text);
+        text-decoration: none;
+        padding: 0.5rem 0.75rem;
+        border-left: 4px solid transparent;
+        font-weight: 600;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+        color: var(--accent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      /* --- Headings --- */
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        color: var(--text);
+      }
+      h1 {
+        font-size: clamp(1.9rem, 4.5vw, 2.8rem);
+        line-height: 1.05;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.5rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 3px solid var(--text);
+        display: flex;
+        align-items: baseline;
+        gap: 0.7rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+      h3 {
+        font-size: 1.15rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 1rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+
+      /* --- Hero --- */
+      .hero {
+        padding: 1.5rem 0 2rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 3px solid var(--text);
+      }
+      .eyebrow {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: var(--accent);
+        margin-bottom: 0.9rem;
+      }
+      .subtitle {
+        font-size: 1.1rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0 0 1rem;
+      }
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      .tag {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        padding: 0.25rem 0.6rem;
+        background: var(--surface-sunken);
+        color: var(--text);
+        border: 1px solid var(--border-strong);
+      }
+      .tag.amber {
+        background: var(--warning);
+        border-color: var(--warning);
+        color: var(--text);
+      }
+      .tag.teal {
+        background: var(--solution);
+        border-color: var(--solution);
+        color: var(--surface);
+      }
+
+      /* Bauhaus signature: geometric shape cluster (optional) */
+      .hero-shapes {
+        position: relative;
+        height: 90px;
+        margin-bottom: 1.2rem;
+      }
+      .hero-shapes .circle {
+        position: absolute;
+        top: 0;
+        right: 180px;
+        width: 64px;
+        height: 64px;
+        background: var(--problem);
+        border-radius: 50%;
+      }
+      .hero-shapes .square {
+        position: absolute;
+        top: 26px;
+        right: 90px;
+        width: 56px;
+        height: 56px;
+        background: var(--solution);
+      }
+      .hero-shapes .tri {
+        position: absolute;
+        top: 8px;
+        right: 0;
+        width: 0;
+        height: 0;
+        border-left: 32px solid transparent;
+        border-right: 32px solid transparent;
+        border-bottom: 56px solid var(--warning);
+      }
+      .hero-shapes .bar {
+        position: absolute;
+        bottom: 0;
+        right: 230px;
+        width: 100px;
+        height: 14px;
+        background: var(--text);
+      }
+
+      /* --- Scorecard / stat cards --- */
+      .scorecard,
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 0;
+        margin: 1.5rem 0 2rem;
+        border: 3px solid var(--text);
+      }
+      .score-card,
+      .stat-card {
+        padding: 1.3rem 1rem;
+        text-align: center;
+        border-right: 3px solid var(--text);
+        background: var(--surface-raised);
+      }
+      .score-card:last-child,
+      .stat-card:last-child {
+        border-right: none;
+      }
+
+      .score,
+      .stat-value {
+        font-family: var(--font-heading);
+        font-size: 2.6rem;
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -0.04em;
+      }
+      .score-card .label,
+      .stat-label {
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        margin-top: 0.5rem;
+      }
+      /* Semantic state classes — no nth-child decoration, no !important */
+      .score-good,
+      .stat-good {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .score-warn,
+      .stat-warn {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .score-bad,
+      .stat-bad {
+        background: var(--problem);
+        color: var(--surface);
+      }
+
+      /* --- General cards --- */
+      .card {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+      }
+
+      /* --- Issue cards --- */
+      .issue {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* --- Severity badges --- */
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.22rem 0.6rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+
+      /* --- Inline badges --- */
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        border: 1px solid var(--text);
+        color: var(--text);
+      }
+      .badge-critical {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .badge-high {
+        background: var(--warning);
+      }
+      .badge-medium {
+        background: var(--surface-sunken);
+      }
+      .badge-low {
+        background: var(--surface-raised);
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        background: var(--solution);
+        color: var(--surface);
+      }
+
+      /* --- Callouts --- */
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.8rem 1rem;
+        border: 1px solid var(--border-strong);
+        border-left: 4px solid var(--border-strong);
+        background: var(--surface-sunken);
+        font-size: 0.92rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-teal,
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 10%,
+          var(--surface-raised)
+        );
+      }
+      .callout-amber,
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 18%,
+          var(--surface-raised)
+        );
+      }
+
+      /* --- Strengths --- */
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.9rem;
+        padding: 0.75rem 0;
+        border-bottom: 2px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        color: var(--solution);
+        font-size: 1.3rem;
+        line-height: 1.3;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.92rem;
+      }
+
+      /* --- Tables --- */
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.92rem;
+        border: 2px solid var(--text);
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--text);
+        color: var(--surface);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-right: 1px solid var(--border-strong);
+      }
+      th:last-child {
+        border-right: none;
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-top: 1px solid var(--border);
+        border-right: 1px solid var(--border);
+      }
+      td:last-child {
+        border-right: none;
+      }
+      tr:nth-child(even) td {
+        background: var(--surface-sunken);
+      }
+      table.compare td.yes {
+        color: var(--solution);
+        font-weight: 700;
+      }
+      table.compare td.no {
+        color: var(--problem);
+        font-weight: 700;
+      }
+
+      /* --- Code blocks + syntax highlighting --- */
+      pre {
+        background: var(--text);
+        color: var(--surface);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+        border: 2px solid var(--text);
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      p code,
+      li code,
+      td code {
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+      }
+      .tok-keyword {
+        color: var(--warning);
+      }
+      .tok-type {
+        color: var(--warning);
+      }
+      .tok-string {
+        color: #95e1d3;
+      }
+      .tok-comment {
+        color: rgba(244, 244, 240, 0.45);
+        font-style: italic;
+      }
+      .tok-func {
+        color: #6eb5ff;
+      }
+      .tok-number {
+        color: var(--warning);
+      }
+      .tok-generic {
+        color: var(--problem);
+      }
+      .tok-builtin {
+        color: #6eb5ff;
+      }
+      .tok-punct {
+        color: rgba(244, 244, 240, 0.7);
+      }
+      .tok-attr {
+        color: var(--warning);
+      }
+
+      /* --- Dependency tree / ASCII diagrams --- */
+      .dep-tree {
+        background: var(--surface-sunken);
+        border: 2px solid var(--text);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.7;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .dep-tree .root {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .dep-tree .ok {
+        color: var(--solution);
+      }
+      .dep-tree .unwanted {
+        color: var(--problem);
+      }
+
+      /* --- Inline node-and-arrow diagrams --- */
+      .diagram {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+      }
+      .node {
+        display: inline-block;
+        padding: 0.4rem 0.75rem;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        font-weight: 700;
+        background: var(--surface-sunken);
+        border: 1px solid var(--text);
+      }
+      .node-core {
+        background: var(--accent);
+        color: var(--surface);
+      }
+      .node-problem {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .node-good {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .arrow {
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Grids --- */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      /* --- Inline TOC --- */
+      .toc {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+        padding: 1rem 1.3rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .toc h3 {
+        margin-bottom: 0.5rem;
+      }
+      .toc ul {
+        list-style: none;
+        padding: 0;
+      }
+      .toc li {
+        margin: 0.25rem 0;
+      }
+      .toc a {
+        color: var(--text);
+        text-decoration: none;
+        font-size: 0.92rem;
+        font-weight: 600;
+      }
+      .toc a:hover {
+        color: var(--accent);
+      }
+
+      /* --- Migration / numbered steps --- */
+      .migration-step {
+        display: grid;
+        grid-template-columns: 56px 1fr;
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1.1rem;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+      }
+      .migration-num {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        font-size: 1.8rem;
+        color: var(--accent);
+        line-height: 1;
+      }
+      .migration-content h4 {
+        margin-bottom: 0.2rem;
+      }
+      .migration-content p {
+        margin-bottom: 0;
+        color: var(--text-muted);
+        font-size: 0.94rem;
+      }
+
+      /* --- Before/After comparison --- */
+      .compare-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin: 1rem 0 0.5rem;
+      }
+      .compare-before,
+      .compare-after {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0.4rem 0.7rem;
+        color: var(--surface);
+      }
+      .compare-before {
+        background: var(--problem);
+      }
+      .compare-after {
+        background: var(--solution);
+      }
+      .compare-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      .compare-row pre {
+        margin: 0;
+      }
+
+      /* --- Footer --- */
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 3px solid var(--text);
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Responsive --- */
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+        .compare-header,
+        .compare-row {
+          grid-template-columns: 1fr;
+        }
+        .scorecard,
+        .stat-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-right: none;
+        }
+        .score-card:nth-child(1),
+        .stat-card:nth-child(1),
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-bottom: 3px solid var(--text);
+        }
+        .migration-step {
+          grid-template-columns: 1fr;
+        }
+        .hero-shapes {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top-bar">
+      <span><a href="index.html" style="color: inherit">Local-first landscape index</a></span>
+      <span>go-cqrs-lite competition review</span>
+      <span>Accessed 2026-11-23</span>
+    </div>
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#summary">Summary</a>
+          <a href="#scorecard">Six-axis scorecard</a>
+          <a href="#evidence">Evidence</a>
+          <a href="#analysis">Analysis</a>
+          <a href="#verdict">Fit verdict</a>
+          <a href="#sources">Sources</a>
+        </nav>
+      </aside>
+      <main class="main">
+        <header class="hero">
+          <div class="eyebrow">Local-first landscape review &middot; accessed 2026-11-23</div>
+          <h1>CouchDB</h1>
+          <p class="subtitle">The Apache document database that started the offline-first category: HTTP replication between peers, a per-document revision tree with deterministic conflict winners, and validation functions that also gate replicated writes. In the browser it is used through PouchDB.</p>
+          <div class="meta">
+            <span class="tagamber">Maturity: Production-Ready (localfirst.fm landscape self-report)</span>
+            <span class="tag">License: Apache-2.0 (LICENSE on main, accessed 2026-11-23)</span>
+            <span class="tag">Current release: 3.5.3, 2026-10-12 (project homepage)</span>
+            <span class="tag">Initial release: 2010-07-13 (landscape self-report)</span>
+            <span class="tag">Bundle size: not applicable server-side; browser peer PouchDB is 46KB gzipped (its own homepage)</span>
+            <span class="tag"><span class="badge badge-high">LOCAL COMMANDS: CLIENT-MINTS-FACTS</span></span>
+            <span class="tag"><span class="badge badge-medium">REBASE: GIT-LIKE-REBASE (fork + deterministic winner, no built-in merge)</span></span>
+            <span class="tag teal"><a href="index.html" style="color: inherit">Back to the landscape index</a></span>
+          </div>
+        </header>
+
+        <section id="summary">
+          <h2><span class="num">00</span>Summary</h2>
+
+          <p>CouchDB is where this whole design space was invented, and it is the only system reviewed here whose own documentation compares itself to Git in detail &mdash; and then explains why the comparison breaks: a conflict is a &ldquo;fork&rdquo;, there is &ldquo;no merge&rdquo; in the data model, and the revision history is &ldquo;incidental&rdquo;. Clients mint document revisions offline; replication is unidirectional, checkpointed HTTP; conflicts persist as sibling revisions until an application merges them.</p>
+          <p>Two features matter disproportionately for this review. First, <code>validate_doc_update</code> is a pure function over the proposed document, the current document, the user and the security object, and it is enforced for replicated updates too &mdash; the receiving peer re-validates offline-originated writes against <em>its</em> current state. Second, the replication protocol defines per-document, non-fatal rejection with explicitly non-retryable status classes. Both are exactly the mechanics an intent-rebase needs on the server side.</p>
+          <div class="callout callout-amber">
+            <strong>The bottom line</strong> CouchDB is not a candidate component for a Go CQRS library, but it is the reference implementation for &ldquo;browser mints facts, server re-validates on arrival, rejection never blocks the queue&rdquo;. Read it for the validation gate and the rejection protocol; read its conflict window as the cost of merging states without intents.
+          </div>
+
+        </section>
+        <section id="scorecard" class="scorecard">
+          <div class="score-card score-warn">
+            <div class="score">VIA PEER</div>
+            <div class="label">1 &middot; Browser owns its data</div>
+          </div>
+          <div class="score-card score-warn">
+            <div class="score">MINTS</div>
+            <div class="label">2 &middot; Local Commands &middot; CLIENT-MINTS-FACTS</div>
+          </div>
+          <div class="score-card score-warn">
+            <div class="score">FORK</div>
+            <div class="label">3 &middot; Reconnect rebase &middot; GIT-LIKE-REBASE</div>
+          </div>
+          <div class="score-card score-bad">
+            <div class="score">REVS</div>
+            <div class="label">4 &middot; Client-local Commands &amp; Events</div>
+          </div>
+          <div class="score-card score-warn">
+            <div class="score">AS DATA</div>
+            <div class="label">5 &middot; Logic sharing</div>
+          </div>
+          <div class="score-card score-good">
+            <div class="score">PROD</div>
+            <div class="label">6 &middot; Maturity &middot; Apache-2.0</div>
+          </div>
+        </section>
+
+        <section id="axes">
+          <h2><span class="num">01</span>Six axes against the owner&#39;s question</h2>
+
+          <p>Colours rate each axis <em>against the owner&#39;s question</em> (blue: serves it, yellow: partly, red: does not). They are not a product-quality score.</p>
+          <div class="table-wrap">
+          <table class="compare">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Axis</th>
+                <th>Verdict</th>
+                <th>What that means, with evidence</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>1</td>
+                <td>Client data ownership</td>
+                <td><span class="badge badge-medium">VIA POUCHDB</span></td>
+                <td>The server does not run in the browser; the project itself delegates that to PouchDB, which keeps a full replica in IndexedDB and syncs when connected (<a href="#ev-pouchdb-split">E2</a>). Replication can be full or filtered, and the protocol is plain HTTP.</td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td>Local Commands</td>
+                <td><span class="badge badge-high">CLIENT-MINTS-FACTS</span></td>
+                <td>The client writes document revisions directly; there is no intent layer. The receiving side may refuse: validation functions run for replicated updates (<a href="#ev-validate-enforced">E12</a>), and the protocol explicitly lets the target reject a document with <code>forbidden</code> (<a href="#ev-target-may-reject">E16</a>).</td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td>Reconnect rebase</td>
+                <td><span class="badge badge-medium">GIT-LIKE-REBASE</span></td>
+                <td>Topology is git-like: a branching revision tree where each database deterministically picks a winner (<a href="#ev-arbiter">E5</a>), and the docs themselves say a conflict is a fork (<a href="#ev-fork">E6</a>). But there is &ldquo;no merge in the data model&rdquo; (<a href="#ev-no-merge">E7</a>); resolution is application code, and the history is &ldquo;incidental&rdquo; (<a href="#ev-timeline-incidental">E8</a>).</td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td>Client-local Commands &amp; Events</td>
+                <td><span class="badge badge-critical">REVISIONS ONLY</span></td>
+                <td>Revisions are the facts and they all replicate; the protocol&#39;s only local-only documents are <code>_local</code> checkpoint records. No speculative-versus-confirmed distinction exists.</td>
+              </tr>
+              <tr>
+                <td>5</td>
+                <td>Logic sharing &amp; protected resources</td>
+                <td><span class="badge badge-medium">LOGIC AS DATA</span></td>
+                <td>Design documents replicate, so map/reduce, filters, update handlers and validation functions ship with the data and run wherever a query server exists (<a href="#ev-design-replicates">E14</a>). The sharing is JavaScript strings, not typed code, and the browser peer&#39;s validation &ldquo;does not behave&hellip; like the Apache CouchDB <code>validate_doc_update()</code> API&rdquo; (<a href="#ev-pouchdb-not-validate">E15</a>).</td>
+              </tr>
+              <tr>
+                <td>6</td>
+                <td>Maturity &amp; license</td>
+                <td><span class="badge badge-fixed">PRODUCTION-READY</span></td>
+                <td>Production-Ready per the landscape self-report; 3.5.3 released 2026-10-12; Apache-2.0 throughout (<a href="#ev-release">E22</a>). Sixteen-plus years of production use; show and list functions are deprecated and slated for removal in 4.0.</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+
+        </section>
+        <section id="evidence">
+          <h2><span class="num">02</span>Evidence</h2>
+
+          <p>"accessed 2026-11-23" means the page was fetched live for this review; "cache 2026-11-22" means the quote comes from the scraped copy taken the day before. Ellipses mark omitted words.</p>
+
+          <div class="issue" id="ev-peer">
+            <h3>E1 &middot; The original peer-based claim</h3>
+            <div class="where">https://docs.couchdb.org/en/stable/intro/overview.html &middot; cache 2026-11-22</div>
+            <p>&ldquo;CouchDB is a peer-based distributed database system. It allows users and servers to access and update the same shared data while disconnected. Those changes can then be replicated bi-directionally later.&rdquo;</p>
+          </div>
+          <div class="issue" id="ev-pouchdb-split">
+            <h3>E2 &middot; Browsers are delegated to PouchDB</h3>
+            <div class="where">https://couchdb.apache.org/ &middot; cache 2026-11-22</div>
+            <p>&ldquo;CouchDB is built for servers (from a Raspberry Pi to big cloud installations), while PouchDB is built for mobile &amp; web-browsers. They can seamlessly replicate data with each other.&rdquo;</p>
+          </div>
+          <div class="issue" id="ev-never-overwrite">
+            <h3>E3 &middot; The storage discipline is append-only</h3>
+            <div class="where">https://docs.couchdb.org/en/stable/intro/overview.html &middot; cache 2026-11-22</div>
+            <p>&ldquo;On-disk, CouchDB never overwrites committed data or associated structures, ensuring the database file is always in a consistent state.&rdquo;</p>
+          </div>
+          <div class="issue" id="ev-revision-def">
+            <h3>E4 &middot; A revision is explicitly not a VCS revision</h3>
+            <div class="where">https://docs.couchdb.org/en/stable/replication/protocol.html &middot; cache 2026-11-22</div>
+            <p>&ldquo;Revision: A MVCC token value of following pattern: N-sig where N is ALWAYS a positive integer and sig is the Document signature (custom). Don&#39;t mix it up with the revision in version control systems!&rdquo;</p>
+          </div>
+          <div class="issue" id="ev-arbiter">
+            <h3>E5 &middot; A deterministic winner, chosen everywhere alike</h3>
+            <div class="where">https://docs.couchdb.org/en/stable/replication/conflicts.html &middot; accessed 2026-11-23</div>
+            <p>&ldquo;By default, CouchDB picks one arbitrary revision as the &ldquo;winner&rdquo;, using a deterministic algorithm so that the same choice will be made on all peers.&rdquo;</p>
+          </div>
+          <div class="issue" id="ev-fork">
+            <h3>E6 &middot; Its own docs call a conflict a fork</h3>
+            <div class="where">https://docs.couchdb.org/en/stable/replication/conflicts.html &middot; accessed 2026-11-23</div>
+            <p>&ldquo;CouchDB &ldquo;conflicts&rdquo; do not correspond to Git &ldquo;conflicts.&rdquo; A Couch conflict is a divergent revision history, what Git calls a &ldquo;fork.&rdquo;&rdquo;</p>
+            <p>From the embedded essay &ldquo;What is the CouchDB replication protocol? Is it like Git?&rdquo;, credited to Jason Smith, StackOverflow, 2011-01-29.</p>
+          </div>
+          <div class="issue" id="ev-no-merge">
+            <h3>E7 &middot; And there is no merge in the data model</h3>
+            <div class="where">https://docs.couchdb.org/en/stable/replication/conflicts.html &middot; accessed 2026-11-23</div>
+            <p>&ldquo;In the data model, there is no merge. The client simply marks one time line as deleted and continues to work with the only extant time line. In the application, it feels like a merge.&rdquo;</p>
+          </div>
+          <div class="issue" id="ev-timeline-incidental">
+            <h3>E8 &middot; The history is incidental</h3>
+            <div class="where">https://docs.couchdb.org/en/stable/replication/conflicts.html &middot; accessed 2026-11-23</div>
+            <p>&ldquo;These behaviors are different because, in Git, the time line itself is important; but in CouchDB, the data is important and the time line is incidental&mdash;it&#39;s just there to support replication.&rdquo;</p>
+          </div>
+          <div class="issue" id="ev-single-node-409">
+            <h3>E9 &middot; On a single node, the 409 path is a mini-rebase</h3>
+            <div class="where">https://docs.couchdb.org/en/stable/replication/conflicts.html &middot; accessed 2026-11-23</div>
+            <p>&ldquo;When working on a single node, CouchDB will avoid creating conflicting revisions by returning a 409 Conflict error. &hellip; apply the same changes as were applied to the earlier revision, and submit a new PUT&rdquo;</p>
+            <p>The recommended recovery is literally: fetch the current revision, re-apply your edit to it, and PUT again.</p>
+          </div>
+          <div class="issue" id="ev-sweeper">
+            <h3>E10 &middot; The unresolved-conflict window</h3>
+            <div class="where">https://docs.couchdb.org/en/stable/replication/conflicts.html &middot; accessed 2026-11-23</div>
+            <p>&ldquo;Whilst this keeps the main application simple, the problem with this approach is that there will be a window between a conflict being introduced and it being resolved. From a user&#39;s viewpoint, this may appear that the document they just saved successfully may suddenly lose their changes, only to be resurrected some time later.&rdquo;</p>
+          </div>
+          <div class="issue" id="ev-validate-fn">
+            <h3>E11 &middot; Server-side validation functions exist</h3>
+            <div class="where">https://docs.couchdb.org/en/stable/ddocs/ddocs.html &middot; accessed 2026-11-23</div>
+            <p>&ldquo;A design document may contain a function named <code>validate_doc_update</code> which can be used to prevent invalid or unauthorized document update requests from being stored.&rdquo;</p>
+          </div>
+          <div class="issue" id="ev-validate-enforced">
+            <h3>E12 &middot; Validation also gates replicated writes</h3>
+            <div class="where">https://docs.couchdb.org/en/stable/intro/overview.html &middot; cache 2026-11-22</div>
+            <p>&ldquo;The update validations are enforced for both live usage and replicated updates, ensuring security and data validation in a shared, distributed system.&rdquo;</p>
+          </div>
+          <div class="issue" id="ev-update-handlers">
+            <h3>E13 &middot; Update handlers are server-side logic you can call</h3>
+            <div class="where">https://docs.couchdb.org/en/stable/ddocs/ddocs.html &middot; accessed 2026-11-23</div>
+            <p>&ldquo;Update handlers are functions that clients can request to invoke server-side logic that will create or update a document.&rdquo;</p>
+            <p>Their result is a pair of document-or-nothing and a response: &ldquo;If the first element is null no document will be committed to the database.&rdquo; They are request-driven; nothing suggests they run during replication.</p>
+          </div>
+          <div class="issue" id="ev-design-replicates">
+            <h3>E14 &middot; Logic ships as data</h3>
+            <div class="where">https://docs.couchdb.org/en/stable/intro/overview.html &middot; cache 2026-11-22</div>
+            <p>&ldquo;Both documents and designs can replicate, allowing full database applications (including application design, logic and data) to be replicated to laptops for offline use, or replicated to servers in remote offices where slow or unreliable connections make sharing data difficult.&rdquo;</p>
+          </div>
+          <div class="issue" id="ev-pouchdb-not-validate">
+            <h3>E15 &middot; The browser peer does not run the same validation</h3>
+            <div class="where">https://pouchdb.apache.org/api.html &middot; cache 2026-11-22</div>
+            <p>&ldquo;Note: this is a very, very simple validation example. It does not behave, for example, like the Apache CouchDB <code>validate_doc_update()</code> API.&rdquo;</p>
+            <p>From the PouchDB plugin example that intercepts <code>bulkDocs()</code>.</p>
+          </div>
+          <div class="issue" id="ev-target-may-reject">
+            <h3>E16 &middot; The protocol lets the receiver refuse, per document</h3>
+            <div class="where">https://docs.couchdb.org/en/stable/replication/protocol.html &middot; cache 2026-11-22</div>
+            <p>&ldquo;Document updating failure isn&#39;t fatal as Target MAY reject the update for its own reasons. It&#39;s RECOMMENDED to use error type <code>forbidden</code> for rejections, but other error types can also be used (like invalid field name etc.). The Replicator SHOULD NOT retry uploading rejected documents unless there are good reasons for doing so&hellip;&rdquo;</p>
+          </div>
+          <div class="issue" id="ev-non-fatal-batch">
+            <h3>E17 &middot; One rejection does not block the batch</h3>
+            <div class="where">https://docs.couchdb.org/en/stable/replication/protocol.html &middot; cache 2026-11-22</div>
+            <p>&ldquo;Note that while a update may fail for one Document in the response, Target can still return a 201 Created response. Same will be true if all updates fail for all uploaded Documents.&rdquo;</p>
+          </div>
+          <div class="issue" id="ev-no-retry">
+            <h3>E18 &middot; Non-retryable status classes are named in the protocol</h3>
+            <div class="where">https://docs.couchdb.org/en/stable/replication/protocol.html &middot; cache 2026-11-22</div>
+            <p>&ldquo;Replicator SHOULD NOT retry requests in case of a 401 Unauthorized, 403 Forbidden, 409 Conflict or 412 Precondition Failed since repeating the request couldn&#39;t solve the issue with user credentials or uploaded data.&rdquo;</p>
+          </div>
+          <div class="issue" id="ev-store-diff">
+            <h3>E19 &middot; Its own advice: carry the change description with the state</h3>
+            <div class="where">https://docs.couchdb.org/en/stable/replication/conflicts.html &middot; accessed 2026-11-23</div>
+            <p>&ldquo;So if you want to work with diffs, the recommended way is to store those diffs within the new revision itself. That is: when you replace v1 with v2a, include an extra field or attachment in v2a which says which fields were changed from v1 to v2a.&rdquo;</p>
+          </div>
+          <div class="issue" id="ev-retry-backoff">
+            <h3>E20 &middot; The browser peer retries with backoff</h3>
+            <div class="where">https://pouchdb.com/api.html &middot; cache 2026-11-22</div>
+            <p>&ldquo;options.retry: If true will attempt to retry replications in the case of failure (due to being offline), using a backoff algorithm that retries at longer and longer intervals until a connection is re-established, with a maximum delay of 10 minutes.&rdquo;</p>
+          </div>
+          <div class="issue" id="ev-rxdb-bypass">
+            <h3>E21 &middot; The leading JS consumer bypasses the protocol</h3>
+            <div class="where">https://rxdb.info/replication-couchdb.html.md &middot; accessed 2026-11-23</div>
+            <p>&ldquo;This plugin does NOT use the official CouchDB replication protocol because the CouchDB protocol was optimized for server-to-server replication and is not suitable for fast client side applications, mostly because it has to run many HTTP-requests (at least one per document) and also it has to store the whole revision tree of the documents at the client.&rdquo;</p>
+          </div>
+          <div class="issue" id="ev-release">
+            <h3>E22 &middot; Version and licence</h3>
+            <div class="where">https://couchdb.apache.org/ &middot; cache 2026-11-22</div>
+            <p>&ldquo;3.5.3 (2026-10-12) &hellip; Copyright &copy; 2025 The Apache Software Foundation &mdash; Licensed under the Apache License 2.0&rdquo;</p>
+            <p>The first fragment is the homepage download banner, which renders as &ldquo;DOWNLOAD 3.5.3 (2026-10-12)&rdquo;; the second is the page footer. The LICENSE file on <code>main</code> is the Apache License 2.0 (accessed 2026-11-23), and GitHub reports 7,014 stars.</p>
+          </div>
+
+        </section>
+        <section id="analysis">
+          <h2><span class="num">03</span>Analysis against the owner&#39;s question and the go-cqrs-lite thesis</h2>
+
+          <p>CouchDB is the ancestor that already ran the experiment the owner is designing for, and its documentation records where the git analogy held and where it failed.</p>
+          <div class="table-wrap">
+          <table class="compare">
+            <thead>
+              <tr>
+                <th>Part</th>
+                <th>CouchDB&#39;s answer</th>
+                <th>What it means for go-cqrs-lite</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>P1 &middot; Browser owns its data</td>
+                <td>Through PouchDB: a full or filtered replica in IndexedDB, replicating over HTTP with retry and backoff (<a href="#ev-retry-backoff">E20</a>).</td>
+                <td>The oldest proof that the browser can own a replica. The 2026 caveat is ecosystem decay: RxDB dropped its PouchDB storage and bypasses the replication protocol for client performance (<a href="#ev-rxdb-bypass">E21</a>).</td>
+              </tr>
+              <tr>
+                <td>P2 &middot; Local-first including Commands</td>
+                <td>No commands: the client mints revisions. The only &ldquo;decide&rdquo; is on the receiving side, as a validation function that may forbid (<a href="#ev-validate-fn">E11</a>).</td>
+                <td>Validation-on-arrival is the server half of the addendum&#39;s design, sixteen years old and still the best statement of it: an offline write is not trusted until the receiving node has checked it against current state.</td>
+              </tr>
+              <tr>
+                <td>P3 &middot; Git-like rebase on reconnect</td>
+                <td>Half git: a fork per conflict, a deterministic winner, app-side merges, and a sweeper window where saved work can &ldquo;suddenly lose their changes&rdquo; (<a href="#ev-sweeper">E10</a>). On a single node the 409 recovery is a genuine rebase of an edit (<a href="#ev-single-node-409">E9</a>).</td>
+                <td>The contrast to draw: rebase the intent, not the state. When the unit is an edit of a document, recovery means refetch-and-reapply, and anything not re-applied is lost. When the unit is a command, recovery means re-decide, and the outcome is a new fact or a first-class Rejection.</td>
+              </tr>
+              <tr>
+                <td>P4 &middot; Commands &amp; Events that only happened on the client</td>
+                <td>Not modelled; every revision replicates.</td>
+                <td>CouchDB&#39;s own advice gestures at the fix: store the change description inside the new revision (<a href="#ev-store-diff">E19</a>). That is causation metadata &mdash; the link between a fact and the intent that produced it &mdash; embedded in the state, which is how merges become intent-aware.</td>
+              </tr>
+              <tr>
+                <td>P5 &middot; Shared logic, minus protected resources</td>
+                <td>Logic replicates as design documents (<a href="#ev-design-replicates">E14</a>), but the browser peer does not faithfully run the server&#39;s validation (<a href="#ev-pouchdb-not-validate">E15</a>).</td>
+                <td>The historical answer to &ldquo;share the logic&rdquo; was: make it data. The lesson is that shared <em>behaviour</em> needs more than shipping code: it needs the same execution guarantees, or a contract both sides implement.</td>
+              </tr>
+              <tr>
+                <td>Rejection semantics</td>
+                <td>Per-document, non-fatal (<a href="#ev-non-fatal-batch">E17</a>), with named non-retryable classes (<a href="#ev-no-retry">E18</a>).</td>
+                <td>A ready-made mapping for the error families: <code>403/409/412</code> correspond to Rejection and Conflict (do not retry); everything else is Transient (retry with backoff). And unlike PowerSync&#39;s blocking FIFO, one rejection never stalls the rest of the batch.</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+
+          <div class="card card-solution">
+            <h3>What to adopt</h3>
+            <ul><li><strong>Validation on the receiving end.</strong> A pure check over (proposed state, current state, user, security) that runs for live <em>and</em> replicated writes (<a href="#ev-validate-enforced">E12</a>) is precisely the gate an intent-rebase passes through on arrival. go-cqrs-lite gets a stronger version for free, because a decider returns an outcome, not just a verdict.</li><li><strong>Non-blocking, classified rejection.</strong> Rejections are per document, do not fail the batch (<a href="#ev-non-fatal-batch">E17</a>), and the protocol names the statuses that must not be retried (<a href="#ev-no-retry">E18</a>). Copy this taxonomy into the offline command queue contract.</li><li><strong>Causation carried with the fact.</strong> &ldquo;Store those diffs within the new revision itself&rdquo; (<a href="#ev-store-diff">E19</a>) is the storage-side expression of linking every event to the command that caused it.</li><li><strong>Append-only discipline under conflicts.</strong> Committed data is never overwritten on disk (<a href="#ev-never-overwrite">E3</a>); conflicts coexist instead of destroying each other. An event journal already behaves this way, which is why a command-first rebase never needs a sweeper window.</li></ul>
+          </div>
+
+          <div class="card card-problem">
+            <h3>Where it bites (for this question)</h3>
+            <ul><li><strong>The winner can silently hide user work.</strong> Deterministic winning plus delayed resolution means &ldquo;the document they just saved successfully may suddenly lose their changes&rdquo; (<a href="#ev-sweeper">E10</a>).</li><li><strong>No merge, and history is incidental.</strong> The revision is explicitly &ldquo;not&rdquo; a version-control revision (<a href="#ev-revision-def">E4</a>), compaction discards old bodies, and diffs must be re-embedded by hand (<a href="#ev-store-diff">E19</a>).</li><li><strong>The protocol is heavy for browsers.</strong> At least one HTTP request per document and a full revision tree at the client, per RxDB&#39;s reasons for bypassing it (<a href="#ev-rxdb-bypass">E21</a>); browsers also cap parallel long-polls per domain, which that page works around with HTTP/2 proxies or subdomains.</li><li><strong>Validation cannot compute an alternative.</strong> <code>validate_doc_update</code> accepts or forbids; it cannot produce a different outcome. Update handlers can, but they are request-driven, not replication-driven (<a href="#ev-update-handlers">E13</a>).</li></ul>
+          </div>
+
+          <h3>Where the git analogy holds and breaks</h3>
+
+          <div class="diagram"><span class="node">branch per conflict</span>
+<span class="arrow">&rarr;</span>
+<span class="node">deterministic winner</span>
+<span class="arrow">&rarr;</span>
+<span class="node">app-specific merge</span>
+<span class="arrow">&rarr;</span>
+<span class="node">sweeper closes the window</span></div>
+
+          <div class="diagram"><span class="node node-core">queued command</span>
+<span class="arrow">&rarr;</span>
+<span class="node node-core">re-decide on fresh state</span>
+<span class="arrow">&rarr;</span>
+<span class="node node-core">event or Rejection</span>
+<span class="arrow">&rarr;</span>
+<span class="node node-core">no window to sweep</span></div>
+
+          <p>The browser-side peer has its own page in this review series (<a href="pouchdb.html">PouchDB</a>), which covers the IndexedDB replica, the changes feed and the retry behaviour in detail.</p>
+
+        </section>
+        <section id="verdict">
+          <h2><span class="num">04</span>Fit verdict</h2>
+
+          <div class="card card-solution">
+            <p style="margin-bottom: 0.6rem"><span class="badge badge-fixed">PATTERN-TO-ADOPT</span> <span class="badge badge-high">LOCAL COMMANDS: CLIENT-MINTS-FACTS</span> <span class="badge badge-medium">REBASE: GIT-LIKE-REBASE</span></p>
+            <p style="margin-bottom: 0">CouchDB will not be a dependency of go-cqrs-lite: it is an Erlang server database whose browser story now runs through an aging PouchDB and whose replication protocol the JS ecosystem bypasses for performance. It earns PATTERN-TO-ADOPT because it is the only reviewed system that already implements the receiving-side gate this design needs &mdash; validation enforced on replicated updates, with per-document non-fatal rejection and named non-retryable classes &mdash; and because its documented failure mode (deterministic winners plus a resolution window that can hide a user&#39;s work) is the clearest argument for rebasing intents instead of merging states.</p>
+          </div>
+
+        </section>
+        <section id="sources">
+          <h2><span class="num">05</span>Sources and what was not verified</h2>
+
+          <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Source</th>
+                <th>Used for</th>
+                <th>Accessed</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>https://couchdb.apache.org/</td>
+                <td>Version 3.5.3, licence, PouchDB relationship</td>
+                <td>cache 2026-11-22</td>
+                <td>primary, cached</td>
+              </tr>
+              <tr>
+                <td>https://docs.couchdb.org/en/stable/</td>
+                <td>Documentation version (3.5.3)</td>
+                <td>cache 2026-11-22</td>
+                <td>primary, cached</td>
+              </tr>
+              <tr>
+                <td>https://docs.couchdb.org/en/stable/intro/overview.html</td>
+                <td>Peer model, validation enforcement, append-only storage, design replication</td>
+                <td>cache 2026-11-22</td>
+                <td>primary, cached</td>
+              </tr>
+              <tr>
+                <td>https://docs.couchdb.org/en/stable/replication/protocol.html</td>
+                <td>Protocol definitions, per-document rejection, non-retryable classes</td>
+                <td>cache 2026-11-22</td>
+                <td>primary, cached</td>
+              </tr>
+              <tr>
+                <td>https://docs.couchdb.org/en/stable/replication/conflicts.html</td>
+                <td>Deterministic winners, fork/no-merge, 409 recovery, diff embedding</td>
+                <td>accessed 2026-11-23</td>
+                <td>primary, live</td>
+              </tr>
+              <tr>
+                <td>https://docs.couchdb.org/en/stable/ddocs/ddocs.html</td>
+                <td>Update handlers, validate_doc_update, deprecations</td>
+                <td>accessed 2026-11-23</td>
+                <td>primary, live</td>
+              </tr>
+              <tr>
+                <td>https://pouchdb.com/api.html</td>
+                <td>Adapters, revisions, retry and backoff, plugin validation example</td>
+                <td>cache 2026-11-22</td>
+                <td>primary, cached</td>
+              </tr>
+              <tr>
+                <td>https://pouchdb.com/</td>
+                <td>PouchDB size claim, offline-sync positioning</td>
+                <td>cache 2026-11-22</td>
+                <td>primary, cached</td>
+              </tr>
+              <tr>
+                <td>https://rxdb.info/replication-couchdb.html.md</td>
+                <td>Why the protocol is bypassed in browsers</td>
+                <td>accessed 2026-11-23</td>
+                <td>primary, live</td>
+              </tr>
+              <tr>
+                <td>https://github.com/apache/couchdb/blob/main/LICENSE</td>
+                <td>Apache-2.0 licence text</td>
+                <td>accessed 2026-11-23</td>
+                <td>primary, live</td>
+              </tr>
+              <tr>
+                <td>GitHub REST API: apache/couchdb</td>
+                <td>Stars, licence detection, repository creation date</td>
+                <td>accessed 2026-11-23</td>
+                <td>primary, live</td>
+              </tr>
+              <tr>
+                <td>localfirst.fm landscape dataset (22 entries)</td>
+                <td>Maturity, licence, initial release, conflict-handling self-reports</td>
+                <td>cache 2026-11-22</td>
+                <td>self-report</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+
+          <h3>Not verified against a primary source</h3>
+
+          <ul>
+            <li><span class="badge badge-critical">UNVERIFIED</span> Initial release "2010-07-13" is a localfirst.fm landscape self-report; the GitHub repository was created 2009-05-21 (accessed 2026-11-23). Earlier Apache incubator history was not primary-source checked.</li>
+            <li><span class="badge badge-critical">UNVERIFIED</span> Whether PouchDB can invoke CouchDB update handlers (server-side update functions) from the browser: the CouchDB docs describe them as client-requested, but the PouchDB API pages read here do not document a wrapper, so the client-side ergonomics are unknown.</li>
+            <li><span class="badge badge-critical">UNVERIFIED</span> PouchDB&#39;s claim of exactly &ldquo;46KB (gzipped)&rdquo; comes from its homepage copy; no bundle measurement was made here.</li>
+          </ul>
+
+        </section>
+        <footer class="footer">
+          <p>
+            Part of the local-first landscape review for go-cqrs-lite. Owner question, six axes and
+            the cross-tool comparison live in the <a href="index.html">landscape index</a>.
+            Grounding: the 2026-11-22 research note
+            (<a href="../research/2026-11-22_commands-vs-facts-livestore-datastar.html">Commands vs Facts</a>,
+            section 10) and <a href="../DOMAIN_LANGUAGE.md">the domain language</a> (Core Concepts).
+            Quotes are verbatim from the cited pages; anything not confirmed against a primary
+            source is labelled UNVERIFIED. Built 2026-11-23.
+          </p>
+        </footer>
+      </main>
+    </div>
+
+<script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) {
+            return document.getElementById(id);
+          })
+          .filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (link) {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id,
+                  );
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
+      })();
+    </script>
+  </body>
+</html>

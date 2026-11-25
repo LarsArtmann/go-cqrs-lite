@@ -1,0 +1,1352 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PowerSync: local-first landscape review for go-cqrs-lite</title>
+    <style>
+      /* =========================================================================
+         BAUHAUS LIGHT — Editorial template
+         Design language: form follows function. Primary colors on warm paper.
+         Zero external dependencies: system fonts, no CDN, no build step.
+         Token architecture: see references/bauhaus-tokens.md
+         ========================================================================= */
+
+      :root {
+        /* --- Primitive palette (Bauhaus Light) --- */
+        --color-paper: #f4f4f0;
+        --color-paper-2: #ffffff;
+        --color-paper-3: #e8e8e2;
+        --color-ink: #111111;
+        --color-red: #e63946;
+        --color-blue: #1d3557;
+        --color-yellow: #f4d35e;
+        --color-hairline: rgba(17, 17, 17, 0.14);
+        --color-hairline-strong: rgba(17, 17, 17, 0.3);
+
+        /* --- Semantic layer (shared vocabulary with dark template) --- */
+        --surface: var(--color-paper);
+        --surface-raised: var(--color-paper-2);
+        --surface-sunken: var(--color-paper-3);
+        --text: var(--color-ink);
+        --text-muted: rgba(17, 17, 17, 0.72);
+        --text-faint: rgba(17, 17, 17, 0.5);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-red);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        /* --- Backward-compatible aliases (do not break consumer skills) --- */
+        --bg: var(--surface);
+        --bg-elevated: var(--surface-raised);
+        --bg-sunken: var(--surface-sunken);
+        --bg-card: var(--surface-raised);
+        --bg-code: var(--surface-sunken);
+        --ink: var(--text);
+        --ink-secondary: var(--text-muted);
+        --ink-muted: var(--text-faint);
+        --rose: var(--problem);
+        --rose-glow: color-mix(in srgb, var(--problem) 15%, transparent);
+        --emerald: var(--solution);
+        --emerald-glow: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber: var(--warning);
+        --amber-glow: color-mix(in srgb, var(--warning) 15%, transparent);
+        --amber-light: color-mix(in srgb, var(--warning) 22%, transparent);
+        --coral: var(--problem);
+        --coral-light: color-mix(in srgb, var(--problem) 12%, transparent);
+        --teal: var(--solution);
+        --teal-light: color-mix(in srgb, var(--solution) 12%, transparent);
+
+        /* --- Shape --- */
+        --radius: 0px;
+        --radius-sm: 0px;
+
+        /* --- Type stacks (system only — zero external fonts) --- */
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+        *,
+        *::before,
+        *::after {
+          transition-duration: 0.01ms !important;
+          animation-duration: 0.01ms !important;
+        }
+      }
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 16px;
+        line-height: 1.65;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* --- Accessibility: keyboard focus --- */
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      a:focus-visible {
+        outline-offset: -1px;
+      }
+
+      /* --- Full-bleed top bar --- */
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      /* --- Layout: optional sticky sidebar TOC --- */
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--text);
+      }
+      .sidebar a {
+        font-size: 0.86rem;
+        color: var(--text);
+        text-decoration: none;
+        padding: 0.5rem 0.75rem;
+        border-left: 4px solid transparent;
+        font-weight: 600;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+        color: var(--accent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      /* --- Headings --- */
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        color: var(--text);
+      }
+      h1 {
+        font-size: clamp(1.9rem, 4.5vw, 2.8rem);
+        line-height: 1.05;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.5rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 3px solid var(--text);
+        display: flex;
+        align-items: baseline;
+        gap: 0.7rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+      h3 {
+        font-size: 1.15rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 1rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+
+      /* --- Hero --- */
+      .hero {
+        padding: 1.5rem 0 2rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 3px solid var(--text);
+      }
+      .eyebrow {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: var(--accent);
+        margin-bottom: 0.9rem;
+      }
+      .subtitle {
+        font-size: 1.1rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0 0 1rem;
+      }
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      .tag {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        padding: 0.25rem 0.6rem;
+        background: var(--surface-sunken);
+        color: var(--text);
+        border: 1px solid var(--border-strong);
+      }
+      .tag.amber {
+        background: var(--warning);
+        border-color: var(--warning);
+        color: var(--text);
+      }
+      .tag.teal {
+        background: var(--solution);
+        border-color: var(--solution);
+        color: var(--surface);
+      }
+
+      /* Bauhaus signature: geometric shape cluster (optional) */
+      .hero-shapes {
+        position: relative;
+        height: 90px;
+        margin-bottom: 1.2rem;
+      }
+      .hero-shapes .circle {
+        position: absolute;
+        top: 0;
+        right: 180px;
+        width: 64px;
+        height: 64px;
+        background: var(--problem);
+        border-radius: 50%;
+      }
+      .hero-shapes .square {
+        position: absolute;
+        top: 26px;
+        right: 90px;
+        width: 56px;
+        height: 56px;
+        background: var(--solution);
+      }
+      .hero-shapes .tri {
+        position: absolute;
+        top: 8px;
+        right: 0;
+        width: 0;
+        height: 0;
+        border-left: 32px solid transparent;
+        border-right: 32px solid transparent;
+        border-bottom: 56px solid var(--warning);
+      }
+      .hero-shapes .bar {
+        position: absolute;
+        bottom: 0;
+        right: 230px;
+        width: 100px;
+        height: 14px;
+        background: var(--text);
+      }
+
+      /* --- Scorecard / stat cards --- */
+      .scorecard,
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 0;
+        margin: 1.5rem 0 2rem;
+        border: 3px solid var(--text);
+      }
+      .score-card,
+      .stat-card {
+        padding: 1.3rem 1rem;
+        text-align: center;
+        border-right: 3px solid var(--text);
+        background: var(--surface-raised);
+      }
+      .score-card:last-child,
+      .stat-card:last-child {
+        border-right: none;
+      }
+
+      .score,
+      .stat-value {
+        font-family: var(--font-heading);
+        font-size: 2.6rem;
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -0.04em;
+      }
+      .score-card .label,
+      .stat-label {
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        margin-top: 0.5rem;
+      }
+      /* Semantic state classes — no nth-child decoration, no !important */
+      .score-good,
+      .stat-good {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .score-warn,
+      .stat-warn {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .score-bad,
+      .stat-bad {
+        background: var(--problem);
+        color: var(--surface);
+      }
+
+      /* --- General cards --- */
+      .card {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+      }
+
+      /* --- Issue cards --- */
+      .issue {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* --- Severity badges --- */
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.22rem 0.6rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+
+      /* --- Inline badges --- */
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        border: 1px solid var(--text);
+        color: var(--text);
+      }
+      .badge-critical {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .badge-high {
+        background: var(--warning);
+      }
+      .badge-medium {
+        background: var(--surface-sunken);
+      }
+      .badge-low {
+        background: var(--surface-raised);
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        background: var(--solution);
+        color: var(--surface);
+      }
+
+      /* --- Callouts --- */
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.8rem 1rem;
+        border: 1px solid var(--border-strong);
+        border-left: 4px solid var(--border-strong);
+        background: var(--surface-sunken);
+        font-size: 0.92rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-teal,
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 10%,
+          var(--surface-raised)
+        );
+      }
+      .callout-amber,
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 18%,
+          var(--surface-raised)
+        );
+      }
+
+      /* --- Strengths --- */
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.9rem;
+        padding: 0.75rem 0;
+        border-bottom: 2px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        color: var(--solution);
+        font-size: 1.3rem;
+        line-height: 1.3;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.92rem;
+      }
+
+      /* --- Tables --- */
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.92rem;
+        border: 2px solid var(--text);
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--text);
+        color: var(--surface);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-right: 1px solid var(--border-strong);
+      }
+      th:last-child {
+        border-right: none;
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-top: 1px solid var(--border);
+        border-right: 1px solid var(--border);
+      }
+      td:last-child {
+        border-right: none;
+      }
+      tr:nth-child(even) td {
+        background: var(--surface-sunken);
+      }
+      table.compare td.yes {
+        color: var(--solution);
+        font-weight: 700;
+      }
+      table.compare td.no {
+        color: var(--problem);
+        font-weight: 700;
+      }
+
+      /* --- Code blocks + syntax highlighting --- */
+      pre {
+        background: var(--text);
+        color: var(--surface);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+        border: 2px solid var(--text);
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      p code,
+      li code,
+      td code {
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+      }
+      .tok-keyword {
+        color: var(--warning);
+      }
+      .tok-type {
+        color: var(--warning);
+      }
+      .tok-string {
+        color: #95e1d3;
+      }
+      .tok-comment {
+        color: rgba(244, 244, 240, 0.45);
+        font-style: italic;
+      }
+      .tok-func {
+        color: #6eb5ff;
+      }
+      .tok-number {
+        color: var(--warning);
+      }
+      .tok-generic {
+        color: var(--problem);
+      }
+      .tok-builtin {
+        color: #6eb5ff;
+      }
+      .tok-punct {
+        color: rgba(244, 244, 240, 0.7);
+      }
+      .tok-attr {
+        color: var(--warning);
+      }
+
+      /* --- Dependency tree / ASCII diagrams --- */
+      .dep-tree {
+        background: var(--surface-sunken);
+        border: 2px solid var(--text);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.7;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .dep-tree .root {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .dep-tree .ok {
+        color: var(--solution);
+      }
+      .dep-tree .unwanted {
+        color: var(--problem);
+      }
+
+      /* --- Inline node-and-arrow diagrams --- */
+      .diagram {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+      }
+      .node {
+        display: inline-block;
+        padding: 0.4rem 0.75rem;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        font-weight: 700;
+        background: var(--surface-sunken);
+        border: 1px solid var(--text);
+      }
+      .node-core {
+        background: var(--accent);
+        color: var(--surface);
+      }
+      .node-problem {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .node-good {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .arrow {
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Grids --- */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      /* --- Inline TOC --- */
+      .toc {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+        padding: 1rem 1.3rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .toc h3 {
+        margin-bottom: 0.5rem;
+      }
+      .toc ul {
+        list-style: none;
+        padding: 0;
+      }
+      .toc li {
+        margin: 0.25rem 0;
+      }
+      .toc a {
+        color: var(--text);
+        text-decoration: none;
+        font-size: 0.92rem;
+        font-weight: 600;
+      }
+      .toc a:hover {
+        color: var(--accent);
+      }
+
+      /* --- Migration / numbered steps --- */
+      .migration-step {
+        display: grid;
+        grid-template-columns: 56px 1fr;
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1.1rem;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+      }
+      .migration-num {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        font-size: 1.8rem;
+        color: var(--accent);
+        line-height: 1;
+      }
+      .migration-content h4 {
+        margin-bottom: 0.2rem;
+      }
+      .migration-content p {
+        margin-bottom: 0;
+        color: var(--text-muted);
+        font-size: 0.94rem;
+      }
+
+      /* --- Before/After comparison --- */
+      .compare-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin: 1rem 0 0.5rem;
+      }
+      .compare-before,
+      .compare-after {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0.4rem 0.7rem;
+        color: var(--surface);
+      }
+      .compare-before {
+        background: var(--problem);
+      }
+      .compare-after {
+        background: var(--solution);
+      }
+      .compare-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      .compare-row pre {
+        margin: 0;
+      }
+
+      /* --- Footer --- */
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 3px solid var(--text);
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Responsive --- */
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+        .compare-header,
+        .compare-row {
+          grid-template-columns: 1fr;
+        }
+        .scorecard,
+        .stat-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-right: none;
+        }
+        .score-card:nth-child(1),
+        .stat-card:nth-child(1),
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-bottom: 3px solid var(--text);
+        }
+        .migration-step {
+          grid-template-columns: 1fr;
+        }
+        .hero-shapes {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top-bar">
+      <span><a href="index.html" style="color: inherit">Local-first landscape index</a></span>
+      <span>go-cqrs-lite competition review</span>
+      <span>Accessed 2026-11-23</span>
+    </div>
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#summary">Summary</a>
+          <a href="#scorecard">Six-axis scorecard</a>
+          <a href="#evidence">Evidence</a>
+          <a href="#analysis">Analysis</a>
+          <a href="#verdict">Fit verdict</a>
+          <a href="#sources">Sources</a>
+        </nav>
+      </aside>
+      <main class="main">
+        <header class="hero">
+          <div class="eyebrow">Local-first landscape review &middot; accessed 2026-11-23</div>
+          <h1>PowerSync</h1>
+          <p class="subtitle">A sync engine that keeps a client-side SQLite database (including in the browser) in sync with a backend database you already have, and routes every write through a write endpoint that you implement.</p>
+          <div class="meta">
+            <span class="tagamber">Maturity: Production-Ready (localfirst.fm landscape self-report)</span>
+            <span class="tag">License: Service Apache-2.0 (LICENSE on main, accessed 2026-11-23) &middot; SDKs Apache-2.0 (landscape self-report)</span>
+            <span class="tag">Initial release: 2023-11-30 (landscape self-report)</span>
+            <span class="tag">Bundle size: @powersync/web 2.7.0 &mdash; 49.5KB min / 15.5KB gzipped JS plus ~2.3MB SQLite WebAssembly (bundlephobia and npm, accessed 2026-11-23)</span>
+            <span class="tag"><span class="badge badge-fixed">LOCAL COMMANDS: COMMANDS-QUEUED</span></span>
+            <span class="tag"><span class="badge badge-medium">REBASE: LWW</span></span>
+            <span class="tag teal"><a href="index.html" style="color: inherit">Back to the landscape index</a></span>
+          </div>
+        </header>
+
+        <section id="summary">
+          <h2><span class="num">00</span>Summary</h2>
+
+          <p>PowerSync is the tool in this shard closest to the owner&#39;s storage thesis: a real SQLite file in the browser (WebAssembly, Origin Private File System, web worker), partial replication by subscription, and a durable, ordered queue of local writes. It is also the clearest picture of that thesis <em>without</em> Commands: the queue carries row-level <code>PUT</code>, <code>PATCH</code> and <code>DELETE</code> operations, and all business logic is deferred to a server endpoint the developer writes. Nothing is decided on the client and nothing is rebased. The client waits with its queued writes, the server decides, and the synced result overwrites the local copy.</p>
+          <p>That makes it a shell around go-cqrs-lite rather than a rival to it. The write endpoint is the one place PowerSync insists that <em>you</em> supply validation, authorization and domain rules, which is exactly where a command dispatcher with deciders belongs. The cost of that composition is the subject of the analysis below.</p>
+          <div class="callout callout-amber">
+            <strong>The bottom line</strong> PowerSync proves the browser can own its data with SQLite on OPFS, and hands the write logic to the server. It complements go-cqrs-lite because it needs a backend that owns business rules, it competes with a hand-built offline client, and its queue carries state changes rather than Commands.
+          </div>
+
+        </section>
+        <section id="scorecard" class="scorecard">
+          <div class="score-card score-good">
+            <div class="score">STRONG</div>
+            <div class="label">1 &middot; Browser owns its data</div>
+          </div>
+          <div class="score-card score-warn">
+            <div class="score">QUEUED</div>
+            <div class="label">2 &middot; Local Commands &middot; COMMANDS-QUEUED</div>
+          </div>
+          <div class="score-card score-warn">
+            <div class="score">LWW</div>
+            <div class="label">3 &middot; Reconnect rebase model</div>
+          </div>
+          <div class="score-card score-bad">
+            <div class="score">NO</div>
+            <div class="label">4 &middot; Client-local Commands &amp; Events</div>
+          </div>
+          <div class="score-card score-warn">
+            <div class="score">SERVER</div>
+            <div class="label">5 &middot; Where write logic runs</div>
+          </div>
+          <div class="score-card score-good">
+            <div class="score">PROD</div>
+            <div class="label">6 &middot; Maturity &middot; Apache-2.0</div>
+          </div>
+        </section>
+
+        <section id="axes">
+          <h2><span class="num">01</span>Six axes against the owner&#39;s question</h2>
+
+          <p>Colours rate each axis <em>against the owner&#39;s question</em> (blue: serves it, yellow: partly, red: does not). They are not a product-quality score. Evidence references link to the quotes in section 02.</p>
+          <div class="table-wrap">
+          <table class="compare">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Axis</th>
+                <th>Verdict</th>
+                <th>What that means, with evidence</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>1</td>
+                <td>Client data ownership</td>
+                <td><span class="badge badge-fixed">STRONG</span></td>
+                <td>The app reads and writes a local SQLite database, online or offline (<a href="#ev-identity">E1</a>, <a href="#ev-local-reads">E2</a>). In the browser the file lives in OPFS behind a web worker, with IndexedDB as the legacy default (<a href="#ev-vfs">E9</a>). Tables are SQLite views over synced JSON, and access is scoped by Sync Streams, so the browser owns a <em>partial replica</em> plus local-only tables.</td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td>Local Commands</td>
+                <td><span class="badge badge-high">COMMANDS-QUEUED</span></td>
+                <td>The client applies SQL changes locally and records them in an ordered upload queue, drained by a developer-supplied <code>uploadData()</code> function (<a href="#ev-queue">E3</a>). The queue stores only <code>PUT</code>, <code>PATCH</code> and <code>DELETE</code>; custom operations are still described as a possible future feature (<a href="#ev-custom-ops">E8</a>). Intents are therefore <em>queued as state changes</em>, not executed as Commands.</td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td>Reconnect rebase</td>
+                <td><span class="badge badge-high">LWW</span></td>
+                <td>Server-authoritative reconciliation: the backend decides how queued mutations apply, and the simplest backend yields per-field last-write-wins (<a href="#ev-reconcile">E5</a>). The client never resolves conflicts and never rebases: it stays on its last checkpoint while the queue is non-empty (<a href="#ev-checkpoint">E7</a>) and is then overwritten by the synced copy (<a href="#ev-overwrite">E6</a>).</td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td>Client-local Commands &amp; Events</td>
+                <td><span class="badge badge-critical">NO</span></td>
+                <td>There is no Command record and no Event record on the client. The only client-local write record is the CRUD queue (<code>ps_crud</code>); the inbound <code>ps_oplog</code> is the sync service&#39;s operation history, not domain events (<a href="#ev-logs">E13</a>). Everything local is provisional until the server echoes it back.</td>
+              </tr>
+              <tr>
+                <td>5</td>
+                <td>Logic sharing &amp; protected resources</td>
+                <td><span class="badge badge-medium">SERVER ONLY</span></td>
+                <td>No logic is shared with the client. Write logic lives entirely in your backend (<a href="#ev-backend-logic">E4</a>), and PowerSync explicitly refuses to authenticate or authorize writes (<a href="#ev-authz">E11</a>). What is shared is declarative: the client-side schema and SQL-like Sync Stream queries.</td>
+              </tr>
+              <tr>
+                <td>6</td>
+                <td>Maturity &amp; license</td>
+                <td><span class="badge badge-fixed">PRODUCTION-READY</span></td>
+                <td>Production-Ready per the landscape self-report. Service: Apache-2.0 (LICENSE file on main, accessed 2026-11-23; GitHub&#39;s license detection agrees). SDKs: Apache-2.0. The landscape&#39;s "FSL" label for the Service conflicts with the primary source (see UNVERIFIED in section 05).</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+
+        </section>
+        <section id="evidence">
+          <h2><span class="num">02</span>Evidence</h2>
+
+          <p>Verbatim quotes in the order the argument uses them. "accessed 2026-11-23" means the page was fetched live for this review; "cache 2026-11-22" means the quote comes from the scraped copy taken the day before. Ellipses mark omitted words.</p>
+
+          <div class="issue" id="ev-identity">
+            <h3>E1 &middot; The product in one sentence</h3>
+            <div class="where">https://www.powersync.com/ &middot; cache 2026-11-22</div>
+            <p>&ldquo;PowerSync keeps a local SQLite database for every user (or agent) in sync with the backend database you already have.&rdquo;</p>
+          </div>
+          <div class="issue" id="ev-local-reads">
+            <h3>E2 &middot; Reads are always local</h3>
+            <div class="where">https://docs.powersync.com/architecture/client-architecture.md &middot; accessed 2026-11-23</div>
+            <p>&ldquo;App clients always read data from the client-side SQLite database, regardless of whether the user is online or offline.&rdquo;</p>
+          </div>
+          <div class="issue" id="ev-queue">
+            <h3>E3 &middot; Local writes go to a blocking queue</h3>
+            <div class="where">https://docs.powersync.com/architecture/client-architecture.md &middot; accessed 2026-11-23</div>
+            <p>&ldquo;Any mutations on the SQLite database, namely updates, deletes and inserts, are immediately reflected in the SQLite database, and also automatically placed into an upload queue by the Client SDK. The upload queue is a blocking FIFO queue.&rdquo;</p>
+          </div>
+          <div class="issue" id="ev-backend-logic">
+            <h3>E4 &middot; All business logic is the backend&#39;s</h3>
+            <div class="where">https://docs.powersync.com/architecture/client-architecture.md &middot; accessed 2026-11-23</div>
+            <p>&ldquo;PowerSync is designed this way so that you can apply your own backend business logic, validations and authorization to any mutations going to your source database.&rdquo;</p>
+          </div>
+          <div class="issue" id="ev-reconcile">
+            <h3>E5 &middot; Server-authoritative reconciliation, LWW by default</h3>
+            <div class="where">https://docs.powersync.com/handling-writes/handling-update-conflicts.md &middot; accessed 2026-11-23</div>
+            <p>&ldquo;This is known as server-authoritative reconciliation. In the simplest backend implementation, the behavior of the overall system will be per-field Last-Write-Wins (LWW). However, this can be customized.&rdquo;</p>
+            <p>The same sentences appear in the 2026-11-22 cached copy of the page.</p>
+          </div>
+          <div class="issue" id="ev-overwrite">
+            <h3>E6 &middot; No client-side rollback, no client-side rebase</h3>
+            <div class="where">https://docs.powersync.com/handling-writes/write-path/concepts.md &middot; accessed 2026-11-23</div>
+            <p>&ldquo;The client has no explicit rollback operation. Instead, the client SDK keeps a copy of the data as last synced from the source database, separate from local changes. When the upload queue is empty and the client has synced up to its latest write checkpoint, the SDK replaces the local data with that synced copy.&rdquo;</p>
+          </div>
+          <div class="issue" id="ev-checkpoint">
+            <h3>E7 &middot; The client is frozen on its checkpoint while it has pending writes</h3>
+            <div class="where">https://docs.powersync.com/architecture/consistency &middot; cache 2026-11-22</div>
+            <p>&ldquo;While mutations are present in the upload queue, the client does not advance to a new checkpoint. This means the client never has to resolve conflicts locally.&rdquo;</p>
+          </div>
+          <div class="issue" id="ev-custom-ops">
+            <h3>E8 &middot; Custom operations do not exist yet</h3>
+            <div class="where">https://docs.powersync.com/handling-writes/handling-update-conflicts.md &middot; accessed 2026-11-23</div>
+            <p>&ldquo;Future versions may include support for custom operations, e.g. &quot;increment column by 1&quot;.&rdquo;</p>
+          </div>
+          <div class="issue" id="ev-vfs">
+            <h3>E9 &middot; Storage: OPFS in a worker is the recommendation</h3>
+            <div class="where">https://docs.powersync.com/client-sdks/reference/javascript-web-storage.md &middot; accessed 2026-11-23</div>
+            <p>&ldquo;For new apps, use <code>vfs: &#39;auto&#39;</code>. It selects <code>SimpleOpfsVFS</code> when the Origin Private File System (OPFS) is available. &hellip; All OPFS options require <code>useWebWorker: true</code> (which is the default). &hellip; This VFS doesn&#39;t support <code>ATTACH</code> for additional databases, and SQLite temporary data, such as materialized CTEs, always stays in memory.&rdquo;</p>
+            <p>Ellipses mark omitted sentences. The no-<code>ATTACH</code> limit matters for a design that wants two SQLite databases (journal and projections) on one connection.</p>
+          </div>
+          <div class="issue" id="ev-shared-worker">
+            <h3>E10 &middot; One shared sync worker for all tabs, except on mobile</h3>
+            <div class="where">https://docs.powersync.com/client-sdks/reference/javascript-web-storage.md &middot; accessed 2026-11-23</div>
+            <p>&ldquo;The <code>enableMultiTabs</code> option controls whether tabs share one sync connection through a shared worker. &hellip; When shared-worker mode is enabled, the SDK creates a shared worker named <code>shared-powersync-[dbFileName]</code> to manage one sync connection for the tabs. &hellip; The SDK disables shared-worker sync by default on Android, iOS, and Safari.&rdquo;</p>
+          </div>
+          <div class="issue" id="ev-authz">
+            <h3>E11 &middot; Authorization is delegated to the write endpoint</h3>
+            <div class="where">https://docs.powersync.com/handling-writes/write-path/concepts.md &middot; accessed 2026-11-23</div>
+            <p>&ldquo;PowerSync does not authenticate or authorize writes. Your write endpoint is responsible for both.&rdquo;</p>
+          </div>
+          <div class="issue" id="ev-reject">
+            <h3>E12 &middot; Rejections must not block the queue</h3>
+            <div class="where">https://docs.powersync.com/handling-writes/write-path/concepts.md &middot; accessed 2026-11-23</div>
+            <p>&ldquo;A rejected write is a write that your write endpoint will never apply, for example because it fails validation. Your write endpoint tells <code>uploadData()</code> that it rejected the write, preferably with a 2xx response that includes the reason. &hellip; The queue is ordered, so a change that stays at the front holds back every write behind it. No later writes from that device upload until the change leaves the queue.&rdquo;</p>
+          </div>
+          <div class="issue" id="ev-logs">
+            <h3>E13 &middot; Two logs inside one SQLite file</h3>
+            <div class="where">https://docs.powersync.com/architecture/client-architecture.md &middot; accessed 2026-11-23</div>
+            <p>&ldquo;<code>ps_crud</code>: The client-side upload queue. <code>ps_oplog</code>: This is the operation history data as received from the PowerSync Service, grouped per bucket.&rdquo;</p>
+            <p>Quoted from the table of SDK-maintained tables; table names shown in code style.</p>
+          </div>
+          <div class="issue" id="ev-strategy6">
+            <h3>E14 &middot; Users reinvent an intent log when state diffs are not enough</h3>
+            <div class="where">https://docs.powersync.com/handling-writes/custom-conflict-resolution.md &middot; accessed 2026-11-23</div>
+            <p>&ldquo;Instead of merging everything in one atomic update, you log each field change as its own row in a separate table. &hellip; Each one gets a status like <code>pending</code>, <code>applied</code>, or <code>failed</code>.&rdquo;</p>
+            <p>This is PowerSync&#39;s own "Strategy 6: Change-Level Status Tracking".</p>
+          </div>
+          <div class="issue" id="ev-inventory">
+            <h3>E15 &middot; Why state values cannot express an intent</h3>
+            <div class="where">https://docs.powersync.com/handling-writes/custom-conflict-resolution.md &middot; accessed 2026-11-23</div>
+            <p>&ldquo;For scenarios like inventory management, simply replacing values causes data loss. When two clerks simultaneously sell the same item while offline, both sales must be honored.&rdquo;</p>
+          </div>
+          <div class="issue" id="ev-domain-rules">
+            <h3>E16 &middot; Where the domain rules belong, in PowerSync&#39;s words</h3>
+            <div class="where">https://docs.powersync.com/handling-writes/custom-conflict-resolution.md &middot; accessed 2026-11-23</div>
+            <p>&ldquo;This is where your domain rules live. The logic becomes the gatekeeper that blocks changes that don&#39;t make sense.&rdquo;</p>
+          </div>
+          <div class="issue" id="ev-no-policy">
+            <h3>E17 &middot; No conflict policy of its own</h3>
+            <div class="where">https://docs.powersync.com/intro/powersync-philosophy.md &middot; accessed 2026-11-23</div>
+            <p>&ldquo;PowerSync imposes no conflict policy: the app backend decides how mutations are applied, while straightforward CRUD implementations commonly produce per-field LWW.&rdquo;</p>
+          </div>
+          <div class="issue" id="ev-outbox">
+            <h3>E18 &middot; The queue is the outbox</h3>
+            <div class="where">https://docs.powersync.com/resources/architecture-guides/offline-first-architecture.md &middot; accessed 2026-11-23</div>
+            <p>&ldquo;You don&#39;t need to build the outbox. PowerSync&#39;s upload queue <em>is</em> the outbox. Every <code>INSERT</code>, <code>UPDATE</code> and <code>DELETE</code> on the local database is recorded as a <code>PUT</code>, <code>PATCH</code> or <code>DELETE</code> operation in the same transaction, in a blocking FIFO queue.&rdquo;</p>
+            <p>The source italicises "is"; code formatting added for the SQL words.</p>
+          </div>
+          <div class="issue" id="ev-bundle">
+            <h3>E19 &middot; What the web SDK actually weighs</h3>
+            <div class="where">https://bundlephobia.com/api/size?package=@powersync/web and https://registry.npmjs.org/@powersync/web/latest &middot; accessed 2026-11-23</div>
+            <p>&ldquo;name @powersync/web, version 2.7.0, license Apache-2.0 &mdash; main bundle 49,494 bytes minified, 15,472 bytes gzipped, plus WebAssembly SQLite assets such as wa-sqlite-async at 2,279,233 bytes (794,126 gzipped)&rdquo;</p>
+            <p>Numbers read from the bundle analysis service and the npm registry for version 2.7.0, the version the docs cite for <code>vfs: &#39;auto&#39;</code>. The WASM engine dominates the download; the JavaScript is small.</p>
+          </div>
+
+        </section>
+        <section id="analysis">
+          <h2><span class="num">03</span>Analysis against the owner&#39;s question and the go-cqrs-lite thesis</h2>
+
+          <p>The owner&#39;s question decomposes into five parts in the 2026-11-22 addendum (P1 to P5) plus a storage decision. Here is what PowerSync does for each, and what follows for a command-first library.</p>
+          <div class="table-wrap">
+          <table class="compare">
+            <thead>
+              <tr>
+                <th>Part</th>
+                <th>PowerSync&#39;s answer</th>
+                <th>What it means for go-cqrs-lite</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>P1 &middot; Browser owns its data</td>
+                <td>Yes, concretely: a SQLite file on OPFS in a web worker, a partial replica scoped by Sync Streams, local-only tables, and a queue written in the same transaction as the change (<a href="#ev-queue">E3</a>, <a href="#ev-outbox">E18</a>).</td>
+                <td>This validates the storage direction. Three caveats come from its own docs: the recommended OPFS VFS cannot <code>ATTACH</code> a second database (<a href="#ev-vfs">E9</a>), so "dual SQLite" means two files or two connections; shared-worker sync is off by default on Android, iOS and Safari (<a href="#ev-shared-worker">E10</a>), so one writer across tabs is not free on mobile Safari; and OPFS access can fail in private browsing, where the fallback is in-memory and unsent writes are lost.</td>
+              </tr>
+              <tr>
+                <td>P2 &middot; Local-first including Commands</td>
+                <td>No. What runs on the client is SQL against the replica; the decision runs later, in the write endpoint (<a href="#ev-backend-logic">E4</a>).</td>
+                <td>A go-cqrs-lite composition would be "queue intents, decide on the server", which is the 11-22 report&#39;s section 05.1, not the addendum&#39;s P2 (decide on the client). To go further, a client-side decider would have to run <em>outside</em> PowerSync, writing to the same SQLite file.</td>
+              </tr>
+              <tr>
+                <td>P3 &middot; Git-like rebase on reconnect</td>
+                <td>Deliberately absent. The client never resolves conflicts (<a href="#ev-checkpoint">E7</a>); it waits, drains, and is overwritten by the synced copy (<a href="#ev-overwrite">E6</a>).</td>
+                <td>This is "revert to server truth", the semantics the 11-22 report attributes to Zero. It is not a rebase: a queued change cannot be re-expressed against new state, which is why a value such as a stock count is lossy (<a href="#ev-inventory">E15</a>). A command-first design re-decides the intent instead.</td>
+              </tr>
+              <tr>
+                <td>P4 &middot; Commands &amp; Events that only happened on the client</td>
+                <td>No such concept. The nearest primitives are an insert-only table excluded from Sync Streams (rows go up, never come down) and the per-field change log of Strategy 6 (<a href="#ev-strategy6">E14</a>).</td>
+                <td>Both are a command journal rebuilt by hand in userland. go-cqrs-lite models this natively with <code>command.PersistedCommand</code> and <code>command.CommandSink</code>; the row ID that makes an insert-only row idempotent is the same idea as a deterministic command ID.</td>
+              </tr>
+              <tr>
+                <td>P5 &middot; Shared logic, minus protected resources</td>
+                <td>Nothing is shared. The write endpoint is yours, in any language (<a href="#ev-backend-logic">E4</a>); PowerSync does not authenticate or authorize writes (<a href="#ev-authz">E11</a>), and scopes reads by authenticated JWT parameters inside Sync Streams (landscape self-report).</td>
+                <td>This is the boundary the addendum draws, pushed all the way to the server: every decider is treated as protected. It is the safe default, and the reason the two tools compose.</td>
+              </tr>
+              <tr>
+                <td>Storage</td>
+                <td>One SQLite file holding data tables, the inbound operation log and the outbound queue (<a href="#ev-logs">E13</a>).</td>
+                <td>A useful precedent for the "DB1 journal + DB2 projections" plan: PowerSync keeps both logs and the materialized data in one file and rebuilds views from the log.</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+
+          <div class="card card-solution">
+            <h3>What to adopt</h3>
+            <ul><li><strong>The write-failure taxonomy.</strong> Retryable errors keep the entry and retry; rejected writes are acknowledged with a 2xx plus a reason so the queue keeps moving; only unfixable failures stay at the front and block (<a href="#ev-reject">E12</a>). go-cqrs-lite&#39;s error families map onto it directly: Transient means throw and retry, Rejection means acknowledge with the reason, and a Conflict or an Infrastructure error is the blocking case.</li><li><strong>Rejections as data.</strong> To show a user why a write was refused, PowerSync suggests returning the reason or writing it to a table that syncs back, plus a dead-letter table on the backend. A Rejection that is recorded rather than thrown away is the same move.</li><li><strong>Freeze-then-overwrite as the simple case.</strong> Holding the checkpoint while the queue is non-empty (<a href="#ev-checkpoint">E7</a>) removes client-side conflict handling altogether. It is worth keeping for commands whose decider is not client-portable, upgrading only the stream-local ones to a rebase.</li><li><strong>Warn before losing the queue.</strong> PowerSync&#39;s docs suggest watching the queue table to tell the user when uploads are pending. Any local command journal needs the same affordance.</li></ul>
+          </div>
+
+          <div class="card card-problem">
+            <h3>Where it bites</h3>
+            <ul><li><strong>The unit on the wire is a row, not an intent.</strong> A <code>PATCH</code> says which columns changed, not what the user did. PowerSync&#39;s own inventory recipe has to reinterpret a value as a delta (<a href="#ev-inventory">E15</a>), and its change-log recipe re-adds a per-change status table (<a href="#ev-strategy6">E14</a>). Commands carry that meaning natively.</li><li><strong>The docs lean towards accepting over rejecting.</strong> One recommendation is to relax backend constraints because "Accepting slightly inconsistent data can be better than discarding the user&#39;s change." That is a defensible UX stance, but the opposite of a Rejection-first command model, and it should be a deliberate choice per stream rather than a habit.</li><li><strong>A blocked write stalls everything behind it.</strong> The queue is strictly ordered, so one undecidable write freezes later unrelated writes from the same device until the app resolves it. An intent queue can do better by reordering commands that touch different streams.</li><li><strong>No Go SDK.</strong> The client SDK list in the documentation index (accessed 2026-11-23) covers JavaScript, React Native, Capacitor, Tauri, Node, Dart/Flutter, Kotlin, Swift, .NET and Rust. A Go backend is fine as the write endpoint; a Go client is not on the menu.</li></ul>
+          </div>
+
+          <h3>How the two would compose</h3>
+
+          <div class="diagram"><span class="node">browser app</span>
+<span class="arrow">&rarr;</span>
+<span class="node">local SQLite on OPFS</span>
+<span class="arrow">&rarr;</span>
+<span class="node">upload queue</span>
+<span class="arrow">&rarr;</span>
+<span class="node">uploadData()</span>
+<span class="arrow">&rarr;</span>
+<span class="node node-core">write endpoint: dispatcher, deciders</span>
+<span class="arrow">&rarr;</span>
+<span class="node">source database</span>
+<span class="arrow">&rarr;</span>
+<span class="node">PowerSync Service</span>
+<span class="arrow">&rarr;</span>
+<span class="node">Sync Streams</span>
+<span class="arrow">&rarr;</span>
+<span class="node">local SQLite</span></div>
+
+          <p>The read leg needs a supported source database. The philosophy page lists Postgres, MongoDB, MySQL, SQL Server, Azure DocumentDB and Convex, read through logical replication, change streams, the binlog, change data capture or document deltas. The no-conflict-policy quote (<a href="#ev-no-policy">E17</a>) comes from the same page. The write leg is where go-cqrs-lite&#39;s <code>command.Dispatcher</code> would sit, with one translation problem in between: rows arrive, and commands must be derived from them. The clean alternative is to queue real commands in an insert-only table and dispatch those rows.</p>
+
+        </section>
+        <section id="verdict">
+          <h2><span class="num">04</span>Fit verdict</h2>
+
+          <div class="card card-solution">
+            <p style="margin-bottom: 0.6rem"><span class="badge badge-fixed">COMPLEMENT</span> <span class="badge badge-high">LOCAL COMMANDS: COMMANDS-QUEUED</span> <span class="badge badge-medium">REBASE: LWW</span></p>
+            <p style="margin-bottom: 0">PowerSync is built to sit in front of a backend that owns the business rules, which is precisely the slot go-cqrs-lite&#39;s deciders occupy, and it supplies the read-path sync and durable upload queue that the planned offline client lacks. It competes with a hand-rolled offline client rather than with the Go library, and it needs one of its supported source databases behind it. Its queue carries row-level state changes rather than Commands, so a command-first design would have to queue intents in a synced table or re-derive them at the write endpoint.</p>
+          </div>
+
+        </section>
+        <section id="sources">
+          <h2><span class="num">05</span>Sources and what was not verified</h2>
+
+          <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Source</th>
+                <th>Used for</th>
+                <th>Accessed</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>https://www.powersync.com/</td>
+                <td>Identity, one-line product claim</td>
+                <td>cache 2026-11-22</td>
+                <td>primary, cached</td>
+              </tr>
+              <tr>
+                <td>https://docs.powersync.com/llms.txt</td>
+                <td>Documentation index: SDK list, source databases</td>
+                <td>accessed 2026-11-23</td>
+                <td>primary, live</td>
+              </tr>
+              <tr>
+                <td>https://docs.powersync.com/architecture/client-architecture.md</td>
+                <td>Local reads, upload queue, internal tables</td>
+                <td>accessed 2026-11-23</td>
+                <td>primary, live</td>
+              </tr>
+              <tr>
+                <td>https://docs.powersync.com/handling-writes/handling-update-conflicts.md</td>
+                <td>Reconciliation model, LWW default, operation types</td>
+                <td>accessed 2026-11-23 and cache 2026-11-22</td>
+                <td>primary, live and cached</td>
+              </tr>
+              <tr>
+                <td>https://docs.powersync.com/handling-writes/write-path/concepts.md</td>
+                <td>Write failure taxonomy, rollback, authorization</td>
+                <td>accessed 2026-11-23</td>
+                <td>primary, live</td>
+              </tr>
+              <tr>
+                <td>https://docs.powersync.com/handling-writes/custom-conflict-resolution.md</td>
+                <td>Strategies 4, 6 and 7</td>
+                <td>accessed 2026-11-23</td>
+                <td>primary, live</td>
+              </tr>
+              <tr>
+                <td>https://docs.powersync.com/architecture/consistency</td>
+                <td>Checkpoint behaviour while the queue is non-empty</td>
+                <td>cache 2026-11-22</td>
+                <td>primary, cached</td>
+              </tr>
+              <tr>
+                <td>https://docs.powersync.com/client-sdks/reference/javascript-web-storage.md</td>
+                <td>VFS options, OPFS, workers, multi-tab</td>
+                <td>accessed 2026-11-23</td>
+                <td>primary, live</td>
+              </tr>
+              <tr>
+                <td>https://docs.powersync.com/intro/powersync-philosophy.md</td>
+                <td>Conflict policy, source databases</td>
+                <td>accessed 2026-11-23</td>
+                <td>primary, live</td>
+              </tr>
+              <tr>
+                <td>https://docs.powersync.com/resources/architecture-guides/offline-first-architecture.md</td>
+                <td>Outbox and idempotency guidance</td>
+                <td>accessed 2026-11-23</td>
+                <td>primary, live</td>
+              </tr>
+              <tr>
+                <td>https://docs.powersync.com/resources/supported-platforms.md</td>
+                <td>Browser support, connection methods</td>
+                <td>accessed 2026-11-23</td>
+                <td>primary, live</td>
+              </tr>
+              <tr>
+                <td>https://github.com/powersync-ja/powersync-service/blob/main/LICENSE</td>
+                <td>Service license (Apache-2.0)</td>
+                <td>accessed 2026-11-23</td>
+                <td>primary, live</td>
+              </tr>
+              <tr>
+                <td>https://bundlephobia.com/api/size?package=@powersync/web and https://registry.npmjs.org/@powersync/web/latest</td>
+                <td>Bundle size, WASM assets, SDK license</td>
+                <td>accessed 2026-11-23</td>
+                <td>primary, live</td>
+              </tr>
+              <tr>
+                <td>GitHub REST API: powersync-ja/powersync-service, powersync-ja/powersync-js</td>
+                <td>License detection, stars, repository creation dates</td>
+                <td>accessed 2026-11-23</td>
+                <td>primary, live</td>
+              </tr>
+              <tr>
+                <td>localfirst.fm landscape dataset (22 entries)</td>
+                <td>Maturity, self-reported license, initial release, SDK list, access-control notes</td>
+                <td>cache 2026-11-22</td>
+                <td>self-report</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+
+          <h3>Not verified against a primary source</h3>
+
+          <ul>
+            <li><span class="badge badge-critical">UNVERIFIED</span> Initial release "2023-11-30" is a localfirst.fm landscape self-report and was not confirmed on a PowerSync page. GitHub shows the powersync-ja/powersync-js repository created 2023-10-03, which is consistent but a different claim.</li>
+            <li><span class="badge badge-critical">UNVERIFIED</span> When the Service license became Apache-2.0: the landscape self-report still says "FSL-Apache 2.0 (Service)", while the LICENSE file on main, GitHub&#39;s license detection and the npm metadata for @powersync/web (Apache-2.0) all say Apache-2.0 today. No license-change announcement was read.</li>
+          </ul>
+
+        </section>
+        <footer class="footer">
+          <p>
+            Part of the local-first landscape review for go-cqrs-lite. Owner question, six axes and
+            the cross-tool comparison live in the <a href="index.html">landscape index</a>.
+            Grounding: the 2026-11-22 research note
+            (<a href="../research/2026-11-22_commands-vs-facts-livestore-datastar.html">Commands vs Facts</a>,
+            section 10) and <a href="../DOMAIN_LANGUAGE.md">the domain language</a> (Core Concepts).
+            Quotes are verbatim from the cited pages; anything not confirmed against a primary
+            source is labelled UNVERIFIED. Built 2026-11-23.
+          </p>
+        </footer>
+      </main>
+    </div>
+
+<script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) {
+            return document.getElementById(id);
+          })
+          .filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (link) {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id,
+                  );
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,1219 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Jazz: local-first landscape review for go-cqrs-lite</title>
+    <style>
+      /* =========================================================================
+         BAUHAUS LIGHT — Editorial template
+         Design language: form follows function. Primary colors on warm paper.
+         Zero external dependencies: system fonts, no CDN, no build step.
+         Token architecture: see references/bauhaus-tokens.md
+         ========================================================================= */
+
+      :root {
+        /* --- Primitive palette (Bauhaus Light) --- */
+        --color-paper: #f4f4f0;
+        --color-paper-2: #ffffff;
+        --color-paper-3: #e8e8e2;
+        --color-ink: #111111;
+        --color-red: #e63946;
+        --color-blue: #1d3557;
+        --color-yellow: #f4d35e;
+        --color-hairline: rgba(17, 17, 17, 0.14);
+        --color-hairline-strong: rgba(17, 17, 17, 0.3);
+
+        /* --- Semantic layer (shared vocabulary with dark template) --- */
+        --surface: var(--color-paper);
+        --surface-raised: var(--color-paper-2);
+        --surface-sunken: var(--color-paper-3);
+        --text: var(--color-ink);
+        --text-muted: rgba(17, 17, 17, 0.72);
+        --text-faint: rgba(17, 17, 17, 0.5);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-red);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        /* --- Backward-compatible aliases (do not break consumer skills) --- */
+        --bg: var(--surface);
+        --bg-elevated: var(--surface-raised);
+        --bg-sunken: var(--surface-sunken);
+        --bg-card: var(--surface-raised);
+        --bg-code: var(--surface-sunken);
+        --ink: var(--text);
+        --ink-secondary: var(--text-muted);
+        --ink-muted: var(--text-faint);
+        --rose: var(--problem);
+        --rose-glow: color-mix(in srgb, var(--problem) 15%, transparent);
+        --emerald: var(--solution);
+        --emerald-glow: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber: var(--warning);
+        --amber-glow: color-mix(in srgb, var(--warning) 15%, transparent);
+        --amber-light: color-mix(in srgb, var(--warning) 22%, transparent);
+        --coral: var(--problem);
+        --coral-light: color-mix(in srgb, var(--problem) 12%, transparent);
+        --teal: var(--solution);
+        --teal-light: color-mix(in srgb, var(--solution) 12%, transparent);
+
+        /* --- Shape --- */
+        --radius: 0px;
+        --radius-sm: 0px;
+
+        /* --- Type stacks (system only — zero external fonts) --- */
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+        *,
+        *::before,
+        *::after {
+          transition-duration: 0.01ms !important;
+          animation-duration: 0.01ms !important;
+        }
+      }
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 16px;
+        line-height: 1.65;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* --- Accessibility: keyboard focus --- */
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      a:focus-visible {
+        outline-offset: -1px;
+      }
+
+      /* --- Full-bleed top bar --- */
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      /* --- Layout: optional sticky sidebar TOC --- */
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--text);
+      }
+      .sidebar a {
+        font-size: 0.86rem;
+        color: var(--text);
+        text-decoration: none;
+        padding: 0.5rem 0.75rem;
+        border-left: 4px solid transparent;
+        font-weight: 600;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+        color: var(--accent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      /* --- Headings --- */
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        color: var(--text);
+      }
+      h1 {
+        font-size: clamp(1.9rem, 4.5vw, 2.8rem);
+        line-height: 1.05;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.5rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 3px solid var(--text);
+        display: flex;
+        align-items: baseline;
+        gap: 0.7rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+      h3 {
+        font-size: 1.15rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 1rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+
+      /* --- Hero --- */
+      .hero {
+        padding: 1.5rem 0 2rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 3px solid var(--text);
+      }
+      .eyebrow {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: var(--accent);
+        margin-bottom: 0.9rem;
+      }
+      .subtitle {
+        font-size: 1.1rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0 0 1rem;
+      }
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      .tag {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        padding: 0.25rem 0.6rem;
+        background: var(--surface-sunken);
+        color: var(--text);
+        border: 1px solid var(--border-strong);
+      }
+      .tag.amber {
+        background: var(--warning);
+        border-color: var(--warning);
+        color: var(--text);
+      }
+      .tag.teal {
+        background: var(--solution);
+        border-color: var(--solution);
+        color: var(--surface);
+      }
+
+      /* Bauhaus signature: geometric shape cluster (optional) */
+      .hero-shapes {
+        position: relative;
+        height: 90px;
+        margin-bottom: 1.2rem;
+      }
+      .hero-shapes .circle {
+        position: absolute;
+        top: 0;
+        right: 180px;
+        width: 64px;
+        height: 64px;
+        background: var(--problem);
+        border-radius: 50%;
+      }
+      .hero-shapes .square {
+        position: absolute;
+        top: 26px;
+        right: 90px;
+        width: 56px;
+        height: 56px;
+        background: var(--solution);
+      }
+      .hero-shapes .tri {
+        position: absolute;
+        top: 8px;
+        right: 0;
+        width: 0;
+        height: 0;
+        border-left: 32px solid transparent;
+        border-right: 32px solid transparent;
+        border-bottom: 56px solid var(--warning);
+      }
+      .hero-shapes .bar {
+        position: absolute;
+        bottom: 0;
+        right: 230px;
+        width: 100px;
+        height: 14px;
+        background: var(--text);
+      }
+
+      /* --- Scorecard / stat cards --- */
+      .scorecard,
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 0;
+        margin: 1.5rem 0 2rem;
+        border: 3px solid var(--text);
+      }
+      .score-card,
+      .stat-card {
+        padding: 1.3rem 1rem;
+        text-align: center;
+        border-right: 3px solid var(--text);
+        background: var(--surface-raised);
+      }
+      .score-card:last-child,
+      .stat-card:last-child {
+        border-right: none;
+      }
+
+      .score,
+      .stat-value {
+        font-family: var(--font-heading);
+        font-size: 2.6rem;
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -0.04em;
+      }
+      .score-card .label,
+      .stat-label {
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        margin-top: 0.5rem;
+      }
+      /* Semantic state classes — no nth-child decoration, no !important */
+      .score-good,
+      .stat-good {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .score-warn,
+      .stat-warn {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .score-bad,
+      .stat-bad {
+        background: var(--problem);
+        color: var(--surface);
+      }
+
+      /* --- General cards --- */
+      .card {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+      }
+
+      /* --- Issue cards --- */
+      .issue {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* --- Severity badges --- */
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.22rem 0.6rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+
+      /* --- Inline badges --- */
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        border: 1px solid var(--text);
+        color: var(--text);
+      }
+      .badge-critical {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .badge-high {
+        background: var(--warning);
+      }
+      .badge-medium {
+        background: var(--surface-sunken);
+      }
+      .badge-low {
+        background: var(--surface-raised);
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        background: var(--solution);
+        color: var(--surface);
+      }
+
+      /* --- Callouts --- */
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.8rem 1rem;
+        border: 1px solid var(--border-strong);
+        border-left: 4px solid var(--border-strong);
+        background: var(--surface-sunken);
+        font-size: 0.92rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-teal,
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 10%,
+          var(--surface-raised)
+        );
+      }
+      .callout-amber,
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 18%,
+          var(--surface-raised)
+        );
+      }
+
+      /* --- Strengths --- */
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.9rem;
+        padding: 0.75rem 0;
+        border-bottom: 2px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        color: var(--solution);
+        font-size: 1.3rem;
+        line-height: 1.3;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.92rem;
+      }
+
+      /* --- Tables --- */
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.92rem;
+        border: 2px solid var(--text);
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--text);
+        color: var(--surface);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-right: 1px solid var(--border-strong);
+      }
+      th:last-child {
+        border-right: none;
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-top: 1px solid var(--border);
+        border-right: 1px solid var(--border);
+      }
+      td:last-child {
+        border-right: none;
+      }
+      tr:nth-child(even) td {
+        background: var(--surface-sunken);
+      }
+      table.compare td.yes {
+        color: var(--solution);
+        font-weight: 700;
+      }
+      table.compare td.no {
+        color: var(--problem);
+        font-weight: 700;
+      }
+
+      /* --- Code blocks + syntax highlighting --- */
+      pre {
+        background: var(--text);
+        color: var(--surface);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+        border: 2px solid var(--text);
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      p code,
+      li code,
+      td code {
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+      }
+      .tok-keyword {
+        color: var(--warning);
+      }
+      .tok-type {
+        color: var(--warning);
+      }
+      .tok-string {
+        color: #95e1d3;
+      }
+      .tok-comment {
+        color: rgba(244, 244, 240, 0.45);
+        font-style: italic;
+      }
+      .tok-func {
+        color: #6eb5ff;
+      }
+      .tok-number {
+        color: var(--warning);
+      }
+      .tok-generic {
+        color: var(--problem);
+      }
+      .tok-builtin {
+        color: #6eb5ff;
+      }
+      .tok-punct {
+        color: rgba(244, 244, 240, 0.7);
+      }
+      .tok-attr {
+        color: var(--warning);
+      }
+
+      /* --- Dependency tree / ASCII diagrams --- */
+      .dep-tree {
+        background: var(--surface-sunken);
+        border: 2px solid var(--text);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.7;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .dep-tree .root {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .dep-tree .ok {
+        color: var(--solution);
+      }
+      .dep-tree .unwanted {
+        color: var(--problem);
+      }
+
+      /* --- Inline node-and-arrow diagrams --- */
+      .diagram {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+      }
+      .node {
+        display: inline-block;
+        padding: 0.4rem 0.75rem;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        font-weight: 700;
+        background: var(--surface-sunken);
+        border: 1px solid var(--text);
+      }
+      .node-core {
+        background: var(--accent);
+        color: var(--surface);
+      }
+      .node-problem {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .node-good {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .arrow {
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Grids --- */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      /* --- Inline TOC --- */
+      .toc {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+        padding: 1rem 1.3rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .toc h3 {
+        margin-bottom: 0.5rem;
+      }
+      .toc ul {
+        list-style: none;
+        padding: 0;
+      }
+      .toc li {
+        margin: 0.25rem 0;
+      }
+      .toc a {
+        color: var(--text);
+        text-decoration: none;
+        font-size: 0.92rem;
+        font-weight: 600;
+      }
+      .toc a:hover {
+        color: var(--accent);
+      }
+
+      /* --- Migration / numbered steps --- */
+      .migration-step {
+        display: grid;
+        grid-template-columns: 56px 1fr;
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1.1rem;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+      }
+      .migration-num {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        font-size: 1.8rem;
+        color: var(--accent);
+        line-height: 1;
+      }
+      .migration-content h4 {
+        margin-bottom: 0.2rem;
+      }
+      .migration-content p {
+        margin-bottom: 0;
+        color: var(--text-muted);
+        font-size: 0.94rem;
+      }
+
+      /* --- Before/After comparison --- */
+      .compare-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin: 1rem 0 0.5rem;
+      }
+      .compare-before,
+      .compare-after {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0.4rem 0.7rem;
+        color: var(--surface);
+      }
+      .compare-before {
+        background: var(--problem);
+      }
+      .compare-after {
+        background: var(--solution);
+      }
+      .compare-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      .compare-row pre {
+        margin: 0;
+      }
+
+      /* --- Footer --- */
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 3px solid var(--text);
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Responsive --- */
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+        .compare-header,
+        .compare-row {
+          grid-template-columns: 1fr;
+        }
+        .scorecard,
+        .stat-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-right: none;
+        }
+        .score-card:nth-child(1),
+        .stat-card:nth-child(1),
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-bottom: 3px solid var(--text);
+        }
+        .migration-step {
+          grid-template-columns: 1fr;
+        }
+        .hero-shapes {
+          display: none;
+        }
+      }
+    
+      /* ---------------------------------------------------------------------
+         Additions for the landscape dossier pages (everything above this
+         marker is the editorial template, copied verbatim).
+         --------------------------------------------------------------------- */
+      .top-bar a,
+      .footer a {
+        color: inherit;
+      }
+      .main a {
+        color: var(--solution);
+      }
+      .score-text {
+        font-family: var(--font-mono);
+        font-size: 0.95rem;
+        font-weight: 900;
+        letter-spacing: 0.02em;
+        line-height: 1.25;
+        overflow-wrap: anywhere;
+      }
+      .score-text-sm {
+        font-size: 0.78rem;
+        font-weight: 700;
+      }
+      .src {
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        color: var(--text-faint);
+        margin-top: 0.55rem;
+        overflow-wrap: anywhere;
+      }
+      .src a {
+        color: var(--text-muted);
+      }
+      .quote {
+        font-size: 0.95rem;
+      }
+      .quote em {
+        font-style: normal;
+        box-shadow: inset 0 -0.45em 0
+          color-mix(in srgb, var(--warning) 55%, transparent);
+      }
+      .verdict {
+        font-family: var(--font-mono);
+        font-size: 1.05rem;
+        font-weight: 900;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.5rem 0.9rem;
+        display: inline-block;
+        border: 2px solid var(--text);
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .verdict-adopt {
+        background: var(--solution);
+      }
+      .verdict-compete {
+        background: var(--problem);
+      }
+      .verdict-complement,
+      .verdict-orthogonal {
+        background: var(--surface-sunken);
+        color: var(--text);
+      }
+</style>
+  </head>
+  <body>
+    <div class="top-bar">
+      <span>LOCAL-FIRST LANDSCAPE REVIEW</span>
+      <span><a href="index.html">&larr; ALL PROJECTS</a></span>
+      <span>ACCESSED 2026-11-23</span>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#identity">01 &middot; Identity &amp; metadata</a>
+          <a href="#scorecard">02 &middot; Six-axis scorecard</a>
+          <a href="#evidence">03 &middot; Evidence</a>
+          <a href="#analysis">04 &middot; Analysis vs the question</a>
+          <a href="#fit">05 &middot; Fit verdict</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <section id="identity">
+          <h2><span class="num">00</span>Identity &amp; metadata</h2>
+          <p>
+            Jazz 2 (Garden Computing) turns what was a peer-to-peer CoValue/CRDT toolkit into a
+            backend-embedded relational database: <code>createJazz</code> runs inside your own
+            server (Vercel, Cloudflare Durable Objects, or a plain Node box with SQLite), browsers
+            sync through your origin&rsquo;s <code>/jazz</code> route, and every read and write is
+            filtered by typed permission policies that compile to SQL. Clients start
+            &ldquo;thin&rdquo; (server-side queries, no local store) and can upgrade to a
+            local-first client that runs the same Rust engine as a Wasm build inside a
+            SharedWorker with a local replica in IndexedDB. Note the landscape self-report below
+            still describes pre-2.0 &ldquo;Classic Jazz&rdquo;.
+          </p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Metadata</th><th>Value</th><th>Source</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Maturity</td><td>Jazz 2 in beta: &ldquo;2.0.0-beta.0 is the first beta of Jazz 2&rdquo; (published 2026-11-22); Go/Rust/Swift/Kotlin clients &ldquo;experimental&rdquo;</td><td>jazz.tools docs (live 2026-11-23) + npm registry (live 2026-11-23). localfirst.fm self-report says &ldquo;Production-Ready&rdquo; &mdash; that predates/describes Classic Jazz (inference, see UNVERIFIED)</td></tr>
+                <tr><td>License</td><td>MIT (core repo and npm); commercial: Jazz Pro &ldquo;Source available&rdquo;, Jazz Scale &ldquo;Self-serve license&rdquo; from $200/mo</td><td>GitHub API + npm (live 2026-11-23); jazz.tools home pricing table (cache 2026-11-22)</td></tr>
+                <tr><td>Initial release</td><td>self-report 2023-09-11; <code>jazz-tools</code> first npm publish 2024-04-05; current GitHub repo created 2026-01-04 (reason not documented &mdash; UNVERIFIED)</td><td>localfirst.fm landscape self-report; npm registry + GitHub API (live 2026-11-23)</td></tr>
+                <tr><td>Current version</td><td>jazz-tools 2.0.0-beta.0 (2026-11-22); repo last pushed 2026-11-23; 254 stars; primary language Rust</td><td>npm registry + GitHub API, live 2026-11-23</td></tr>
+                <tr><td>Bundle size</td><td>thin client &ldquo;about 160 KB gzipped&rdquo;; local-first client &ldquo;adds the Wasm engine (about 3.1 MB gzipped)&rdquo; as its own chunk; landscape self-report &ldquo;112kb gzipped (jazz-react)&rdquo; describes Classic Jazz</td><td>jazz.tools docs thin/local-first client pages (cache 2026-11-22); localfirst.fm self-report (not re-measured)</td></tr>
+                <tr><td>Server storage</td><td>&ldquo;Each Jazz server stores its data in plain SQLite&rdquo;; large values in S3-compatible object storage</td><td>jazz.tools, How Jazz Works (cache 2026-11-22)</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+        <section id="scorecard">
+          <h2><span class="num">01</span>Six-axis scorecard</h2>
+          <p>
+            Colour encodes fit with the owner&rsquo;s question (blue&nbsp;=&nbsp;matches the lens,
+            yellow&nbsp;=&nbsp;partial with a caveat, neutral&nbsp;=&nbsp;orthogonal to it), not
+            product quality.
+          </p>
+          <section class="scorecard">
+            <div class="score-card score-warn">
+              <div class="score score-text">OPT-IN REPLICA</div>
+              <div class="label">1 &middot; Client data ownership</div>
+            </div>
+            <div class="score-card score-warn">
+              <div class="score score-text">CLIENT-MINTS-FACTS</div>
+              <div class="label">2 &middot; Local commands</div>
+            </div>
+            <div class="score-card score-warn">
+              <div class="score score-text">LWW + SERIALIZABLE</div>
+              <div class="label">3 &middot; Reconnect model</div>
+            </div>
+            <div class="score-card score-good">
+              <div class="score score-text score-text-sm">WRITES + TRANSACTIONS YES, OFFLINE</div>
+              <div class="label">4 &middot; Client-local commands &amp; events</div>
+            </div>
+            <div class="score-card score-good">
+              <div class="score score-text score-text-sm">ONE SCHEMA, POLICIES SERVER-ONLY</div>
+              <div class="label">5 &middot; Logic sharing</div>
+            </div>
+            <div class="score-card">
+              <div class="score score-text">2.0 BETA / MIT</div>
+              <div class="label">6 &middot; Maturity &amp; license</div>
+            </div>
+          </section>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Axis</th><th>Verdict</th><th>Detail (evidence)</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>1 &middot; Client data ownership</td>
+                  <td><strong>Opt-in, per account</strong></td>
+                  <td>Thin client keeps nothing; the local-first client keeps a full replica in IndexedDB owned by one SharedWorker, with explicit eviction guidance (<code>navigator.storage.persist()</code>) <a href="#ev1">#ev1</a> <a href="#ev2">#ev2</a></td>
+                </tr>
+                <tr>
+                  <td>2 &middot; Local commands</td>
+                  <td><span class="badge badge-high">CLIENT-MINTS-FACTS</span></td>
+                  <td>Writes apply locally first as row-version updates; Core authorizes and durably accepts them &mdash; the unit is a transaction of row writes, not an intent, and Core never re-executes your logic <a href="#ev3">#ev3</a> <a href="#ev4">#ev4</a></td>
+                </tr>
+                <tr>
+                  <td>3 &middot; Reconnect rebase model</td>
+                  <td><strong>LWW (column-level, by server acceptance order)</strong></td>
+                  <td>Same-column collisions resolved by &ldquo;the edit the server accepts last wins&rdquo; (clocks irrelevant); merge columns (counter, g-set, text) merge; serializable transactions are rejected wholesale on conflicting reads <a href="#ev5">#ev5</a> <a href="#ev6">#ev6</a></td>
+                </tr>
+                <tr>
+                  <td>4 &middot; Commands &amp; events client-local</td>
+                  <td><strong>Yes for writes; offline-capable; &ldquo;events&rdquo; only as accepted row history</strong></td>
+                  <td>Queued writes survive outages and restarts; serializable transactions can be staged offline but &ldquo;cannot be accepted until the authority is reachable&rdquo;; history exposes only server-accepted versions <a href="#ev3">#ev3</a> <a href="#ev6">#ev6</a> <a href="#ev7">#ev7</a></td>
+                </tr>
+                <tr>
+                  <td>5 &middot; Logic sharing + protected resources</td>
+                  <td><strong>Single schema; permissions never ship to the client</strong></td>
+                  <td><code>schema.ts</code> is the one source for tables + policies; <code>npx jazz-tools generate</code> emits per-language typed bindings (including Go); &ldquo;Client bundles never include&rdquo; the permissions file; backend clients act with machine credentials <a href="#ev8">#ev8</a> <a href="#ev9">#ev9</a> <a href="#ev10">#ev10</a></td>
+                </tr>
+                <tr>
+                  <td>6 &middot; Maturity + license</td>
+                  <td><strong>Jazz 2 beta / MIT core</strong></td>
+                  <td>First 2.0 beta published 2026-11-22; storage format and wire protocol promised stable between betas; Go client experimental; the main backend must stay TypeScript <a href="#ev11">#ev11</a></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+        <section id="evidence">
+          <h2><span class="num">02</span>Evidence</h2>
+          <div class="card" id="ev1">
+            <p class="quote">&ldquo;Jazz is a relational database with tables, blobs, durable streams, collaborative rich text and more, all protected by declarative permissions. It runs in your existing cloud as part of your backend.&rdquo; &hellip; &ldquo;Clients start thin. Switch one to local-first for offline use and instant reads: it runs the same Rust engine on the device, with the same queries.&rdquo;</p>
+            <div class="src">jazz.tools home &middot; <a href="https://jazz.tools/">https://jazz.tools/</a> &middot; cache 2026-11-22</div>
+          </div>
+          <div class="card" id="ev2">
+            <p class="quote">&ldquo;A local-first client keeps a local replica of the data each user can read in the browser&rdquo;; in persistent mode &ldquo;the worker owns the SQLite database (stored in IndexedDB) and the server connection; each tab communicates with that runtime through a message port. There is no tab-leader election.&rdquo; Browsers treat default storage as &ldquo;best-effort &mdash; under disk pressure &hellip; the browser can clear it without warning&rdquo;, so apps are told to request <code>navigator.storage.persist()</code>.</p>
+            <div class="src">jazz.tools, How Sync Works + Local-First Client + Advanced Internals &middot; <a href="https://jazz.tools/docs/recipes/local-first/how-sync-works.md">https://jazz.tools/docs/recipes/local-first/how-sync-works.md</a> &middot; cache 2026-11-22</div>
+          </div>
+          <div class="card" id="ev3">
+            <p class="quote">&ldquo;[Writes] are applied locally immediately so the UI updates without waiting on a round-trip. Jazz queues the corresponding row-version updates for upstream sync. When the client reconnects, queued writes are sent and active query subscriptions are replayed automatically.&rdquo; &hellip; &ldquo;Offline, only <code>local</code> can resolve. A <code>global</code> wait stays pending until the device reconnects and Core accepts or rejects the queued write, however long the outage lasts.&rdquo;</p>
+            <div class="src">jazz.tools, How Sync Works + Writing Data &middot; <a href="https://jazz.tools/docs/recipes/local-first/how-sync-works.md">https://jazz.tools/docs/recipes/local-first/how-sync-works.md</a> &middot; cache 2026-11-22</div>
+          </div>
+          <div class="card" id="ev4">
+            <p class="quote">&ldquo;Jazz sends every transaction upstream as one unit, and the authority decides that unit as a whole.&rdquo; The authority &ldquo;checks permissions and other rules before accepting them&rdquo;; a rejected write &ldquo;has already been undone locally&rdquo; when awaited &mdash; <code>PersistedWriteRejectedError</code> carries the server&rsquo;s <code>code</code>, <code>reason</code> and <code>transactionId</code>.</p>
+            <div class="src">jazz.tools, Transactions + Writing Data &middot; <a href="https://jazz.tools/docs/writing/transactions.md">https://jazz.tools/docs/writing/transactions.md</a> &middot; cache 2026-11-22</div>
+          </div>
+          <div class="card" id="ev5">
+            <p class="quote">&ldquo;When two clients change the same column, the edit the server accepts last wins, whatever the clients&rsquo; clocks say, and the overwritten value stays in the row&rsquo;s history. A run of offline edits is applied when it syncs, so it overwrites edits others made to the same columns while the device was offline. Every write also records the version of the row it was made over, which merge strategies (such as text merging) use to combine concurrent edits instead of picking one.&rdquo;</p>
+            <div class="src">jazz.tools, Advanced Internals (Merge strategies) &middot; <a href="https://jazz.tools/docs/reference/internals.md">https://jazz.tools/docs/reference/internals.md</a> &middot; live 2026-11-23</div>
+          </div>
+          <div class="card" id="ev6">
+            <p class="quote">&ldquo;A serializable transaction uses a stable view of the data. Before accepting it, the authority checks whether another write made a conflicting change. If so, it rejects the whole transaction and Jazz removes its local changes.&rdquo; &hellip; &ldquo;For an app without a sync server, the authority runs locally instead.&rdquo; &hellip; &ldquo;The authority checks only the reads the writing client reports &hellip; it is not a security boundary: a client that under-reports its reads can commit anyway.&rdquo;</p>
+            <div class="src">jazz.tools, Transactions &middot; <a href="https://jazz.tools/docs/writing/transactions.md">https://jazz.tools/docs/writing/transactions.md</a> &middot; cache 2026-11-22</div>
+          </div>
+          <div class="card" id="ev7">
+            <p class="quote">History: &ldquo;Every table has a read-only history table &hellip; It contains all accepted versions of each row &hellip; Pending writes do not appear until the server accepts them.&rdquo;</p>
+            <div class="src">jazz.tools, History &middot; <a href="https://jazz.tools/docs/reading/history.md">https://jazz.tools/docs/reading/history.md</a> &middot; cache 2026-11-22</div>
+          </div>
+          <div class="card" id="ev8">
+            <p class="quote">&ldquo;Declarative permissions control who can read, insert, update, and delete rows. You declare them as policies in <code>schema.ts</code>, next to your tables, and Jazz enforces them server-side. Clients that fail a policy check have their writes rejected and their reads filtered.&rdquo; &hellip; &ldquo;Only backends read <code>jazz.permissions.json</code> &hellip; Client bundles never include it, and nothing imports <code>schema.ts</code> at runtime.&rdquo;</p>
+            <div class="src">jazz.tools, Declarative Permissions &middot; <a href="https://jazz.tools/docs/schemas/policies.md">https://jazz.tools/docs/schemas/policies.md</a> &middot; cache 2026-11-22</div>
+          </div>
+          <div class="card" id="ev9">
+            <p class="quote">Codegen for other languages: &ldquo;Every language works from your app's TypeScript schema and permissions: <code>npx jazz-tools generate</code> writes each language's typed bindings from them.&rdquo; &hellip; Go tab: &ldquo;Go is for apps, and runs as a backend client &hellip; It doesn't support yet: running your main backend in Go (publishing permissions, serving <code>/jazz</code>): run it in TypeScript with <code>createJazz</code>.&rdquo; The Go module is <code>github.com/garden-co/jazz/packages/jazz-go/v2</code>.</p>
+            <div class="src">jazz.tools, Language Support + Go setup &middot; <a href="https://jazz.tools/docs/reference/language-support.md">https://jazz.tools/docs/reference/language-support.md</a> &middot; live 2026-11-23</div>
+          </div>
+          <div class="card" id="ev10">
+            <p class="quote">Protected-resource machinery: backend clients connect with machine credentials &mdash; &ldquo;Trusted. It acts as the system, with your main backend's own authority: your permissions are not checked&rdquo; &mdash; or scoped to one user; <code>jazz.db</code> &ldquo;bypasses user permission policies&rdquo;; tables may be declared writeable only by the backend. Optimism has a documented leak: &ldquo;A user who changes a column their read permission checks, on a row they can't read, could see that row's other columns &hellip; until the core refuses the write&rdquo; &mdash; so backends should return only <code>remote</code> reads.</p>
+            <div class="src">jazz.tools, Backend Client + Policies + Durability Tiers &middot; <a href="https://jazz.tools/docs/setup/backend-client.md">https://jazz.tools/docs/setup/backend-client.md</a> &middot; live 2026-11-23</div>
+          </div>
+          <div class="card" id="ev11">
+            <p class="quote">Beta contract: &ldquo;From beta.0 on, we try not to break these between beta releases: the TypeScript client and backend APIs &hellip; the storage format &hellip; the wire protocol&rdquo;; &ldquo;These stay experimental and may change in any release: the Rust, Swift, Kotlin and Go clients.&rdquo;</p>
+            <div class="src">jazz.tools, Backups &amp; Upgrades (What beta means) &middot; <a href="https://jazz.tools/docs/operating/backups-and-upgrades.md">https://jazz.tools/docs/operating/backups-and-upgrades.md</a> &middot; live 2026-11-23</div>
+          </div>
+          <div class="card" id="ev12">
+            <p class="quote">Branch-like views: &ldquo;Jazz gives you flexible, branch-like views over your data. Build anything from drafts to complex git-like workflows on them, including permissions over branches.&rdquo; Branches are ordinary columns plus <code>branchBy</code> with head-over-base views, frozen-base snapshots, and &ldquo;Merging stays a userland operation.&rdquo;</p>
+            <div class="src">jazz.tools home + Branches recipe &middot; <a href="https://jazz.tools/docs/recipes/drafts-and-branches.md">https://jazz.tools/docs/recipes/drafts-and-branches.md</a> &middot; cache 2026-11-22</div>
+          </div>        </section>
+        <section id="analysis">
+          <h2><span class="num">03</span>Analysis vs the owner&rsquo;s question and go-cqrs-lite&rsquo;s thesis</h2>
+          <p>
+            Jazz 2 matters to this review for two things nobody else in the shard ships together:
+            an explicit two-kind transaction model that separates &ldquo;optimistic merge&rdquo;
+            from &ldquo;authority-validated invariant&rdquo;, and durability tiers that make
+            pending-vs-confirmed a first-class API rather than an implementation detail.
+          </p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Question part</th><th>Jazz&rsquo;s answer</th><th>Read-across to go-cqrs-lite</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>P1 &middot; browser owns its data</td>
+                  <td>Opt-in replica, per account, in IndexedDB behind one SharedWorker; thin default keeps nothing; storage eviction is the app&rsquo;s problem.</td>
+                  <td>Validates the owner&rsquo;s &ldquo;no IndexedDB&rdquo; instinct in part: Jazz keeps SQLite <em>inside</em> IndexedDB via Wasm rather than using IndexedDB as a database. The single-worker, no-leader-election topology is a simpler variant of the owner&rsquo;s dedicated-worker plan.</td>
+                </tr>
+                <tr>
+                  <td>P2 &middot; local-first including Commands</td>
+                  <td>No commands: a transaction of row writes commits locally, Core validates <em>after</em>. The serializable variant is the closest legal analogue of a decided command &mdash; but validation is read-set checking, not re-execution, and it cannot settle offline.</td>
+                  <td>Two error classes map directly: a rejected write behaves like <code>errorfamily.NewRejection</code> with server-supplied code/reason, and &ldquo;serialization_conflict &hellip; treat both as read again and retry&rdquo; is the retry semantics a rebase loop needs. Keep the decider as logic; Jazz shows the data-only ceiling of the same UX.</td>
+                </tr>
+                <tr>
+                  <td>P3 &middot; git-like branch/rebase</td>
+                  <td>No history rebase: column-LWW by acceptance order plus merge columns, with every overwritten version retained in row history. Branches exist but are domain-level (head-over-base views, frozen snapshots), merges are userland.</td>
+                  <td>Contrast, not pattern: Jazz buys always-merges semantics and pays with lost same-column updates. The owner&rsquo;s rebase-intents model keeps the stronger guarantee by re-deciding; Jazz&rsquo;s frozen-base snapshots are still worth copying for &ldquo;branch captured at a point&rdquo; UX.</td>
+                </tr>
+                <tr>
+                  <td>P4 &middot; client-only Commands &amp; Events</td>
+                  <td>Durable offline writes with <code>local</code>/<code>global</code> wait tiers; a local authority exists when no server is configured; pending uploads counted and observable; history shows only accepted versions.</td>
+                  <td>This is the pending/confirmed ledger with a public API. Adopt the tier vocabulary for the client store: DB1 journal write = <code>local</code>; decider acceptance = <code>global</code>; a row flag derived from the tier, exactly like Jazz&rsquo;s <code>getPendingUploadRows</code>.</td>
+                </tr>
+                <tr>
+                  <td>P5 &middot; shared logic minus protected resources</td>
+                  <td>One TypeScript schema generates every client binding; the permissions artifact is backend-only by construction; trusted machines get a separate credential class; advice APIs (<code>canInsert</code>&hellip;) return &ldquo;allowed / denied / unknown&rdquo; and are explicitly &ldquo;advice, not permission enforcement&rdquo;.</td>
+                  <td>The permissions-file split is the cleanest published version of &ldquo;share the catalog, withhold the protected part&rdquo; &mdash; the direct analogue of go-cqrs-lite emitting TS contracts from <code>catalog.SchemaFromType</code> while cross-stream deciders stay server-side. Jazz&rsquo;s &ldquo;advice&rdquo; tier is the right shape for client-side pre-validation.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            Against the thesis: Jazz has no Command concept &mdash; Core orders and authorizes
+            row versions and validates read-sets; it never runs your logic. go-cqrs-lite&rsquo;s
+            deciders are shared <em>logic</em>; Jazz&rsquo;s policies are shared <em>data
+            filters</em> compiled to SQL. For a Go shop the practical blocker is stated plainly:
+            the main backend must be TypeScript, and the Go client (whose bindings are generated
+            from the same schema) is experimental.
+          </p>
+          <div class="callout callout-amber">
+            <strong>UNVERIFIED (3)</strong>
+            (1) That the landscape self-report (&ldquo;Production-Ready&rdquo;, &ldquo;112kb
+            gzipped (jazz-react)&rdquo;, CoValue/CRDT sync) describes Classic Jazz is an inference
+            from the 2.0 rewrite docs, not a dated primary statement. (2) Why the GitHub repo was
+            created 2026-01-04 despite a 2023 launch is not documented anywhere I could check.
+            (3) Bundle sizes are the project&rsquo;s own documentation figures, not measured here.
+          </div>
+        </section>
+        <section id="fit">
+          <h2><span class="num">04</span>Fit verdict</h2>
+          <p><span class="verdict verdict-adopt">PATTERN-TO-ADOPT</span></p>
+          <p>
+            Not a complement &mdash; it demands a TypeScript main backend and its Go client is
+            experimental &mdash; but the richest pattern mine in this shard: the mergeable-vs-
+            serializable transaction split (optimistic merge vs authority-validated invariant),
+            the <code>local</code>/<code>global</code> durability tiers that make speculative
+            state a row flag, and the schema-generates-client-bindings-while-permissions-stay-
+            server-side split that answers the owner&rsquo;s P5 almost exactly. Its column-LWW
+            reconnect model is the part to decline.
+          </p>
+        </section>
+
+        <footer class="footer">
+          <p>
+            Dossier assembled 2026-11-23 for go-cqrs-lite &middot; cached page
+            dumps are dated <em>cache 2026-11-22</em>, live fetches
+            <em>2026-11-23</em> &middot; claims that could not be verified
+            against a primary source are labelled UNVERIFIED inline &middot;
+            <a href="index.html">back to the landscape index</a>
+          </p>
+        </footer>
+      </main>
+    </div>
+
+<script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) {
+            return document.getElementById(id);
+          })
+          .filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (link) {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id,
+                  );
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
+      })();
+    </script>
+  </body>
+</html>

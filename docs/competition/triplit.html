@@ -1,0 +1,1199 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Triplit: local-first landscape review for go-cqrs-lite</title>
+    <style>
+      /* =========================================================================
+         BAUHAUS LIGHT — Editorial template
+         Design language: form follows function. Primary colors on warm paper.
+         Zero external dependencies: system fonts, no CDN, no build step.
+         Token architecture: see references/bauhaus-tokens.md
+         ========================================================================= */
+
+      :root {
+        /* --- Primitive palette (Bauhaus Light) --- */
+        --color-paper: #f4f4f0;
+        --color-paper-2: #ffffff;
+        --color-paper-3: #e8e8e2;
+        --color-ink: #111111;
+        --color-red: #e63946;
+        --color-blue: #1d3557;
+        --color-yellow: #f4d35e;
+        --color-hairline: rgba(17, 17, 17, 0.14);
+        --color-hairline-strong: rgba(17, 17, 17, 0.3);
+
+        /* --- Semantic layer (shared vocabulary with dark template) --- */
+        --surface: var(--color-paper);
+        --surface-raised: var(--color-paper-2);
+        --surface-sunken: var(--color-paper-3);
+        --text: var(--color-ink);
+        --text-muted: rgba(17, 17, 17, 0.72);
+        --text-faint: rgba(17, 17, 17, 0.5);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-red);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        /* --- Backward-compatible aliases (do not break consumer skills) --- */
+        --bg: var(--surface);
+        --bg-elevated: var(--surface-raised);
+        --bg-sunken: var(--surface-sunken);
+        --bg-card: var(--surface-raised);
+        --bg-code: var(--surface-sunken);
+        --ink: var(--text);
+        --ink-secondary: var(--text-muted);
+        --ink-muted: var(--text-faint);
+        --rose: var(--problem);
+        --rose-glow: color-mix(in srgb, var(--problem) 15%, transparent);
+        --emerald: var(--solution);
+        --emerald-glow: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber: var(--warning);
+        --amber-glow: color-mix(in srgb, var(--warning) 15%, transparent);
+        --amber-light: color-mix(in srgb, var(--warning) 22%, transparent);
+        --coral: var(--problem);
+        --coral-light: color-mix(in srgb, var(--problem) 12%, transparent);
+        --teal: var(--solution);
+        --teal-light: color-mix(in srgb, var(--solution) 12%, transparent);
+
+        /* --- Shape --- */
+        --radius: 0px;
+        --radius-sm: 0px;
+
+        /* --- Type stacks (system only — zero external fonts) --- */
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+        *,
+        *::before,
+        *::after {
+          transition-duration: 0.01ms !important;
+          animation-duration: 0.01ms !important;
+        }
+      }
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 16px;
+        line-height: 1.65;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* --- Accessibility: keyboard focus --- */
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      a:focus-visible {
+        outline-offset: -1px;
+      }
+
+      /* --- Full-bleed top bar --- */
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      /* --- Layout: optional sticky sidebar TOC --- */
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--text);
+      }
+      .sidebar a {
+        font-size: 0.86rem;
+        color: var(--text);
+        text-decoration: none;
+        padding: 0.5rem 0.75rem;
+        border-left: 4px solid transparent;
+        font-weight: 600;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+        color: var(--accent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      /* --- Headings --- */
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        color: var(--text);
+      }
+      h1 {
+        font-size: clamp(1.9rem, 4.5vw, 2.8rem);
+        line-height: 1.05;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.5rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 3px solid var(--text);
+        display: flex;
+        align-items: baseline;
+        gap: 0.7rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+      h3 {
+        font-size: 1.15rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 1rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+
+      /* --- Hero --- */
+      .hero {
+        padding: 1.5rem 0 2rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 3px solid var(--text);
+      }
+      .eyebrow {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: var(--accent);
+        margin-bottom: 0.9rem;
+      }
+      .subtitle {
+        font-size: 1.1rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0 0 1rem;
+      }
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      .tag {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        padding: 0.25rem 0.6rem;
+        background: var(--surface-sunken);
+        color: var(--text);
+        border: 1px solid var(--border-strong);
+      }
+      .tag.amber {
+        background: var(--warning);
+        border-color: var(--warning);
+        color: var(--text);
+      }
+      .tag.teal {
+        background: var(--solution);
+        border-color: var(--solution);
+        color: var(--surface);
+      }
+
+      /* Bauhaus signature: geometric shape cluster (optional) */
+      .hero-shapes {
+        position: relative;
+        height: 90px;
+        margin-bottom: 1.2rem;
+      }
+      .hero-shapes .circle {
+        position: absolute;
+        top: 0;
+        right: 180px;
+        width: 64px;
+        height: 64px;
+        background: var(--problem);
+        border-radius: 50%;
+      }
+      .hero-shapes .square {
+        position: absolute;
+        top: 26px;
+        right: 90px;
+        width: 56px;
+        height: 56px;
+        background: var(--solution);
+      }
+      .hero-shapes .tri {
+        position: absolute;
+        top: 8px;
+        right: 0;
+        width: 0;
+        height: 0;
+        border-left: 32px solid transparent;
+        border-right: 32px solid transparent;
+        border-bottom: 56px solid var(--warning);
+      }
+      .hero-shapes .bar {
+        position: absolute;
+        bottom: 0;
+        right: 230px;
+        width: 100px;
+        height: 14px;
+        background: var(--text);
+      }
+
+      /* --- Scorecard / stat cards --- */
+      .scorecard,
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 0;
+        margin: 1.5rem 0 2rem;
+        border: 3px solid var(--text);
+      }
+      .score-card,
+      .stat-card {
+        padding: 1.3rem 1rem;
+        text-align: center;
+        border-right: 3px solid var(--text);
+        background: var(--surface-raised);
+      }
+      .score-card:last-child,
+      .stat-card:last-child {
+        border-right: none;
+      }
+
+      .score,
+      .stat-value {
+        font-family: var(--font-heading);
+        font-size: 2.6rem;
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -0.04em;
+      }
+      .score-card .label,
+      .stat-label {
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        margin-top: 0.5rem;
+      }
+      /* Semantic state classes — no nth-child decoration, no !important */
+      .score-good,
+      .stat-good {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .score-warn,
+      .stat-warn {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .score-bad,
+      .stat-bad {
+        background: var(--problem);
+        color: var(--surface);
+      }
+
+      /* --- General cards --- */
+      .card {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+      }
+
+      /* --- Issue cards --- */
+      .issue {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* --- Severity badges --- */
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.22rem 0.6rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+
+      /* --- Inline badges --- */
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        border: 1px solid var(--text);
+        color: var(--text);
+      }
+      .badge-critical {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .badge-high {
+        background: var(--warning);
+      }
+      .badge-medium {
+        background: var(--surface-sunken);
+      }
+      .badge-low {
+        background: var(--surface-raised);
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        background: var(--solution);
+        color: var(--surface);
+      }
+
+      /* --- Callouts --- */
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.8rem 1rem;
+        border: 1px solid var(--border-strong);
+        border-left: 4px solid var(--border-strong);
+        background: var(--surface-sunken);
+        font-size: 0.92rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-teal,
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 10%,
+          var(--surface-raised)
+        );
+      }
+      .callout-amber,
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 18%,
+          var(--surface-raised)
+        );
+      }
+
+      /* --- Strengths --- */
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.9rem;
+        padding: 0.75rem 0;
+        border-bottom: 2px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        color: var(--solution);
+        font-size: 1.3rem;
+        line-height: 1.3;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.92rem;
+      }
+
+      /* --- Tables --- */
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.92rem;
+        border: 2px solid var(--text);
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--text);
+        color: var(--surface);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-right: 1px solid var(--border-strong);
+      }
+      th:last-child {
+        border-right: none;
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-top: 1px solid var(--border);
+        border-right: 1px solid var(--border);
+      }
+      td:last-child {
+        border-right: none;
+      }
+      tr:nth-child(even) td {
+        background: var(--surface-sunken);
+      }
+      table.compare td.yes {
+        color: var(--solution);
+        font-weight: 700;
+      }
+      table.compare td.no {
+        color: var(--problem);
+        font-weight: 700;
+      }
+
+      /* --- Code blocks + syntax highlighting --- */
+      pre {
+        background: var(--text);
+        color: var(--surface);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+        border: 2px solid var(--text);
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      p code,
+      li code,
+      td code {
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+      }
+      .tok-keyword {
+        color: var(--warning);
+      }
+      .tok-type {
+        color: var(--warning);
+      }
+      .tok-string {
+        color: #95e1d3;
+      }
+      .tok-comment {
+        color: rgba(244, 244, 240, 0.45);
+        font-style: italic;
+      }
+      .tok-func {
+        color: #6eb5ff;
+      }
+      .tok-number {
+        color: var(--warning);
+      }
+      .tok-generic {
+        color: var(--problem);
+      }
+      .tok-builtin {
+        color: #6eb5ff;
+      }
+      .tok-punct {
+        color: rgba(244, 244, 240, 0.7);
+      }
+      .tok-attr {
+        color: var(--warning);
+      }
+
+      /* --- Dependency tree / ASCII diagrams --- */
+      .dep-tree {
+        background: var(--surface-sunken);
+        border: 2px solid var(--text);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.7;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .dep-tree .root {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .dep-tree .ok {
+        color: var(--solution);
+      }
+      .dep-tree .unwanted {
+        color: var(--problem);
+      }
+
+      /* --- Inline node-and-arrow diagrams --- */
+      .diagram {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+      }
+      .node {
+        display: inline-block;
+        padding: 0.4rem 0.75rem;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        font-weight: 700;
+        background: var(--surface-sunken);
+        border: 1px solid var(--text);
+      }
+      .node-core {
+        background: var(--accent);
+        color: var(--surface);
+      }
+      .node-problem {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .node-good {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .arrow {
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Grids --- */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      /* --- Inline TOC --- */
+      .toc {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+        padding: 1rem 1.3rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .toc h3 {
+        margin-bottom: 0.5rem;
+      }
+      .toc ul {
+        list-style: none;
+        padding: 0;
+      }
+      .toc li {
+        margin: 0.25rem 0;
+      }
+      .toc a {
+        color: var(--text);
+        text-decoration: none;
+        font-size: 0.92rem;
+        font-weight: 600;
+      }
+      .toc a:hover {
+        color: var(--accent);
+      }
+
+      /* --- Migration / numbered steps --- */
+      .migration-step {
+        display: grid;
+        grid-template-columns: 56px 1fr;
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1.1rem;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+      }
+      .migration-num {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        font-size: 1.8rem;
+        color: var(--accent);
+        line-height: 1;
+      }
+      .migration-content h4 {
+        margin-bottom: 0.2rem;
+      }
+      .migration-content p {
+        margin-bottom: 0;
+        color: var(--text-muted);
+        font-size: 0.94rem;
+      }
+
+      /* --- Before/After comparison --- */
+      .compare-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin: 1rem 0 0.5rem;
+      }
+      .compare-before,
+      .compare-after {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0.4rem 0.7rem;
+        color: var(--surface);
+      }
+      .compare-before {
+        background: var(--problem);
+      }
+      .compare-after {
+        background: var(--solution);
+      }
+      .compare-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      .compare-row pre {
+        margin: 0;
+      }
+
+      /* --- Footer --- */
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 3px solid var(--text);
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Responsive --- */
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+        .compare-header,
+        .compare-row {
+          grid-template-columns: 1fr;
+        }
+        .scorecard,
+        .stat-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-right: none;
+        }
+        .score-card:nth-child(1),
+        .stat-card:nth-child(1),
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-bottom: 3px solid var(--text);
+        }
+        .migration-step {
+          grid-template-columns: 1fr;
+        }
+        .hero-shapes {
+          display: none;
+        }
+      }
+    
+      /* ---------------------------------------------------------------------
+         Additions for the landscape dossier pages (everything above this
+         marker is the editorial template, copied verbatim).
+         --------------------------------------------------------------------- */
+      .top-bar a,
+      .footer a {
+        color: inherit;
+      }
+      .main a {
+        color: var(--solution);
+      }
+      .score-text {
+        font-family: var(--font-mono);
+        font-size: 0.95rem;
+        font-weight: 900;
+        letter-spacing: 0.02em;
+        line-height: 1.25;
+        overflow-wrap: anywhere;
+      }
+      .score-text-sm {
+        font-size: 0.78rem;
+        font-weight: 700;
+      }
+      .src {
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        color: var(--text-faint);
+        margin-top: 0.55rem;
+        overflow-wrap: anywhere;
+      }
+      .src a {
+        color: var(--text-muted);
+      }
+      .quote {
+        font-size: 0.95rem;
+      }
+      .quote em {
+        font-style: normal;
+        box-shadow: inset 0 -0.45em 0
+          color-mix(in srgb, var(--warning) 55%, transparent);
+      }
+      .verdict {
+        font-family: var(--font-mono);
+        font-size: 1.05rem;
+        font-weight: 900;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.5rem 0.9rem;
+        display: inline-block;
+        border: 2px solid var(--text);
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .verdict-adopt {
+        background: var(--solution);
+      }
+      .verdict-compete {
+        background: var(--problem);
+      }
+      .verdict-complement,
+      .verdict-orthogonal {
+        background: var(--surface-sunken);
+        color: var(--text);
+      }
+</style>
+  </head>
+  <body>
+    <div class="top-bar">
+      <span>LOCAL-FIRST LANDSCAPE REVIEW</span>
+      <span><a href="index.html">&larr; ALL PROJECTS</a></span>
+      <span>ACCESSED 2026-11-23</span>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#identity">01 &middot; Identity &amp; metadata</a>
+          <a href="#scorecard">02 &middot; Six-axis scorecard</a>
+          <a href="#evidence">03 &middot; Evidence</a>
+          <a href="#analysis">04 &middot; Analysis vs the question</a>
+          <a href="#fit">05 &middot; Fit verdict</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <section id="identity">
+          <h2><span class="num">00</span>Identity &amp; metadata</h2>
+          <p>
+            Triplit runs one embedded database on both sides of the wire: every client keeps a
+            local cache plus an <em>outbox</em> of unconfirmed writes, answers queries locally,
+            and syncs attribute-level deltas over WebSockets with a server that enforces
+            role-based permission filters. Entities decompose into per-attribute Lamport-timestamped
+            registers, so concurrent edits to different attributes never collide and same-attribute
+            edits resolve last-writer-wins.
+          </p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Metadata</th><th>Value</th><th>Source</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Maturity</td><td>Dormant: last commit on main 2025-09-11; last release/npm publish 2025-07-31; cloud closed (&ldquo;Triplit Cloud is no longer accepting new users&rdquo;); co-founder joined Supabase 2025-10-08. The localfirst.fm self-report &ldquo;Production-Ready&rdquo; predates all of this.</td><td>GitHub API + npm registry (live 2026-11-23); docs in repo; supabase.com blog (live 2026-11-23)</td></tr>
+                <tr><td>License</td><td>AGPL-3.0 (GitHub: &ldquo;GNU Affero General Public License v3.0&rdquo;; npm package license field &ldquo;AGPL-3.0-only&rdquo;). The localfirst.fm self-report &ldquo;GPL3&rdquo; is imprecise about the network clause.</td><td>GitHub API + npm registry, live 2026-11-23</td></tr>
+                <tr><td>Initial release</td><td>self-report 2023-07-27; repo created 2023-07-20; <code>@triplit/client</code> first npm publish 2023-05-12</td><td>localfirst.fm self-report; GitHub API + npm registry (live 2026-11-23)</td></tr>
+                <tr><td>Current version</td><td>@triplit/client 1.0.50 (2025-07-31); 3,122 stars; repo not archived</td><td>npm registry + GitHub API, live 2026-11-23</td></tr>
+                <tr><td>Bundle size</td><td>&ldquo;~70kB (gzip)&rdquo;</td><td>localfirst.fm landscape self-report (not re-measured)</td></tr>
+                <tr><td>Platform / SDK</td><td>TypeScript; browser (IndexedDB/SQLite/memory storage), Node, Deno, Bun, Cloudflare Workers, Hermes; server: Node <code>@triplit/server</code> or Triplit Cloud (closed); HTTP API for any language</td><td>GitHub README + docs in repo (live 2026-11-23)</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+        <section id="scorecard">
+          <h2><span class="num">01</span>Six-axis scorecard</h2>
+          <p>
+            Colour encodes fit with the owner&rsquo;s question (blue&nbsp;=&nbsp;matches the lens,
+            yellow&nbsp;=&nbsp;partial with a caveat, neutral&nbsp;=&nbsp;orthogonal to it), not
+            product quality.
+          </p>
+          <section class="scorecard">
+            <div class="score-card score-good">
+              <div class="score score-text">CACHE + OUTBOX</div>
+              <div class="label">1 &middot; Client data ownership</div>
+            </div>
+            <div class="score-card score-warn">
+              <div class="score score-text">CLIENT-MINTS-FACTS</div>
+              <div class="label">2 &middot; Local commands</div>
+            </div>
+            <div class="score-card score-warn">
+              <div class="score score-text">LWW / LAMPORT</div>
+              <div class="label">3 &middot; Reconnect model</div>
+            </div>
+            <div class="score-card score-warn">
+              <div class="score score-text score-text-sm">OFFLINE WRITES YES, EVENTS NO</div>
+              <div class="label">4 &middot; Client-local commands &amp; events</div>
+            </div>
+            <div class="score-card score-warn">
+              <div class="score score-text score-text-sm">ONE ENGINE BOTH SIDES, FILTERS AS RULES</div>
+              <div class="label">5 &middot; Logic sharing</div>
+            </div>
+            <div class="score-card score-bad">
+              <div class="score score-text">DORMANT / AGPL-3.0</div>
+              <div class="label">6 &middot; Maturity &amp; license</div>
+            </div>
+          </section>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Axis</th><th>Verdict</th><th>Detail (evidence)</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>1 &middot; Client data ownership</td>
+                  <td><strong>Real local DB + outbox</strong></td>
+                  <td>&ldquo;All Triplit clients save data to a local cache and mutate that cache optimistically&rdquo;; with IndexedDB storage the outbox survives reloads <a href="#ev1">#ev1</a></td>
+                </tr>
+                <tr>
+                  <td>2 &middot; Local commands</td>
+                  <td><span class="badge badge-high">CLIENT-MINTS-FACTS</span></td>
+                  <td>Inserts/updates/deletes (functional or patch form) apply client-side first; the server checks schema and permissions and &ldquo;unauthorized updates are rejected and not propagated&rdquo; <a href="#ev2">#ev2</a> <a href="#ev3">#ev3</a></td>
+                </tr>
+                <tr>
+                  <td>3 &middot; Reconnect rebase model</td>
+                  <td><strong>LWW register per attribute (Lamport timestamps)</strong></td>
+                  <td>&ldquo;a Last Writer Wins Register that uses Lamport timestamps&rdquo;; different attributes never collide; sets (not arrays) are the collection type because they merge <a href="#ev4">#ev4</a></td>
+                </tr>
+                <tr>
+                  <td>4 &middot; Commands &amp; events client-local</td>
+                  <td><strong>Offline writes yes; no event vocabulary</strong></td>
+                  <td>Outbox drains on reconnect; failed syncs surface per-entity with undo/retry handlers; no log &mdash; current state only <a href="#ev1">#ev1</a> <a href="#ev5">#ev5</a></td>
+                </tr>
+                <tr>
+                  <td>5 &middot; Logic sharing + protected resources</td>
+                  <td><strong>Same DB engine and query language on both sides; rules are server-side query filters</strong></td>
+                  <td>Permissions &ldquo;defined as query filters&rdquo; run &ldquo;exclusively on the server&rdquo;; <code>update</code> checks the pre-state, <code>postUpdate</code> can compare against <code>$prev</code>; servers integrate in any language via HTTP API with a service token <a href="#ev3">#ev3</a> <a href="#ev6">#ev6</a></td>
+                </tr>
+                <tr>
+                  <td>6 &middot; Maturity + license</td>
+                  <td><strong>Dormant / AGPL-3.0</strong></td>
+                  <td>No main-branch commits since 2025-09-11 and no npm publish since 2025-07-31; AGPL-3.0 network-copyleft; Supabase says the codebase will be &ldquo;further open-sourc[ed]&rdquo; <a href="#ev7">#ev7</a> <a href="#ev8">#ev8</a></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+        <section id="evidence">
+          <h2><span class="num">02</span>Evidence</h2>
+          <div class="card" id="ev1">
+            <p class="quote">&ldquo;Apps that use Triplit work offline by default. No extra configuration is needed. All Triplit clients save data to a local cache and mutate that cache optimistically without waiting for the server to respond. Mutations that are made offline queue in an &quot;outbox&quot; and are sent to the server when the client comes back online.&rdquo; &hellip; &ldquo;Triplit's CRDT-based sync protocol ensures that data is eventually consistent across all clients, even those that have been offline for an extended period.&rdquo;</p>
+            <div class="src">Triplit docs, Offline mode (repo packages/docs, main branch) &middot; <a href="https://github.com/aspen-cloud/triplit/blob/main/packages/docs/src/pages/offline-mode.mdx">https://github.com/aspen-cloud/triplit/blob/main/packages/docs/src/pages/offline-mode.mdx</a> &middot; live 2026-11-23</div>
+          </div>
+          <div class="card" id="ev2">
+            <p class="quote">Client/server model: &ldquo;each client has its own database that is fully queryable just like the remote database&rdquo;; on the client &ldquo;Triplit keeps your data in two storage areas: an <code>outbox</code> and a <code>cache</code>&rdquo; with merged results by default, and queries &ldquo;can be configured to only return data from the cache (to display only confirmed data) or only &hellip; from the outbox (to denote unconfirmed data)&rdquo;.</p>
+            <div class="src">Triplit docs, Client (repo packages/docs, main branch) &middot; <a href="https://github.com/aspen-cloud/triplit/blob/main/packages/docs/src/pages/client/index.mdx">https://github.com/aspen-cloud/triplit/blob/main/packages/docs/src/pages/client/index.mdx</a> &middot; live 2026-11-23</div>
+          </div>
+          <div class="card" id="ev3">
+            <p class="quote">&ldquo;Access control checks run exclusively on the server, and are not enforced on the client. Invalid writes will only be rejected when they have been sent to the server.&rdquo; Permissions are per role and operation, &ldquo;defined as query filters&rdquo; over JWT claims (<code>$token.sub</code>, custom roles); updates check the old state and <code>postUpdate</code> may compare against <code>$prev</code>; attribute-level access control &ldquo;is not yet supported&rdquo;.</p>
+            <div class="src">Triplit docs, Authorization and access control (repo packages/docs, main branch) &middot; <a href="https://github.com/aspen-cloud/triplit/blob/main/packages/docs/src/pages/schemas/permissions.mdx">https://github.com/aspen-cloud/triplit/blob/main/packages/docs/src/pages/schemas/permissions.mdx</a> &middot; live 2026-11-23</div>
+          </div>
+          <div class="card" id="ev4">
+            <p class="quote">&ldquo;Every entity inserted into Triplit is broken down at the attribute level, and each attribute is assigned a unique timestamp &hellip; When two users do update the same attribute at the same time, we use these timestamps to decide which value will be kept. In the literature this type of data structure is called a CRDT or more specifically a Last Writer Wins Register that uses Lamport timestamps.&rdquo;</p>
+            <div class="src">Triplit docs, FAQ (repo packages/docs, main branch) &middot; <a href="https://github.com/aspen-cloud/triplit/blob/main/packages/docs/src/pages/faq.mdx">https://github.com/aspen-cloud/triplit/blob/main/packages/docs/src/pages/faq.mdx</a> &middot; live 2026-11-23</div>
+          </div>
+          <div class="card" id="ev5">
+            <p class="quote">Sync failure handling: <code>onEntitySyncError</code> fires &ldquo;when a write for that entity fails to sync with the server&rdquo; (corruption, failed schema check, or &ldquo;insufficient write permissions&rdquo;) and &ldquo;You may choose to undo the write by calling <code>clearPendingChangesForEntity</code> or retry the write by mutating the entity again&rdquo;; <code>onFailureToSyncWrites</code> covers the whole buffer. Transactions roll back fully if any mutation fails <em>on the client</em>; server failures &ldquo;will need to be handled&rdquo; via these listeners.</p>
+            <div class="src">Triplit docs, Event listeners + transact (repo packages/docs, main branch) &middot; <a href="https://github.com/aspen-cloud/triplit/blob/main/packages/docs/src/pages/client/event-listeners.mdx">https://github.com/aspen-cloud/triplit/blob/main/packages/docs/src/pages/client/event-listeners.mdx</a> &middot; live 2026-11-23</div>
+          </div>
+          <div class="card" id="ev6">
+            <p class="quote">Any-language server access: &ldquo;You can use the HTTP API &hellip; if your application wants to forgo the local cache and optimistic updates&rdquo; &mdash; REST routes <code>/fetch</code>, <code>/insert</code>, <code>/update</code>, <code>/delete</code>, <code>/bulk-insert</code>, authenticated with JWTs (service or anonymous token); the FAQ: &ldquo;How do I connect to Triplit from a server? &hellip; anywhere that supports HTTP.&rdquo;</p>
+            <div class="src">Triplit docs, HTTP API + FAQ (repo packages/docs, main branch) &middot; <a href="https://github.com/aspen-cloud/triplit/blob/main/packages/docs/src/pages/http-api.mdx">https://github.com/aspen-cloud/triplit/blob/main/packages/docs/src/pages/http-api.mdx</a> &middot; live 2026-11-23</div>
+          </div>
+          <div class="card" id="ev7">
+            <p class="quote">&ldquo;Triplit Cloud is no longer accepting new users, and we recommend that you self-host your Triplit database instead.&rdquo; Repo activity: latest commit on main &ldquo;fixup query update for triplit route&rdquo; (2025-09-11); latest GitHub releases 2025-07-31; <code>@triplit/client</code> last npm publish 2025-07-31.</p>
+            <div class="src">Triplit docs, Triplit Cloud + GitHub API/npm registry &middot; <a href="https://github.com/aspen-cloud/triplit/blob/main/packages/docs/src/pages/triplit-cloud/index.mdx">https://github.com/aspen-cloud/triplit/blob/main/packages/docs/src/pages/triplit-cloud/index.mdx</a> &middot; live 2026-11-23</div>
+          </div>
+          <div class="card" id="ev8">
+            <p class="quote">&ldquo;Triplit joins Supabase&rdquo; (2025-10-08): &ldquo;We're excited to welcome Matt Linkous, co-founder of Triplit, to the Supabase team.&rdquo; &mdash; &ldquo;Our focus isn't to directly integrate Triplit into our platform.&rdquo; &mdash; &ldquo;Matt will spend time further open-sourcing the Triplit codebase, documenting the patterns they used, and sharing lessons learned.&rdquo;</p>
+            <div class="src">supabase.com blog, &ldquo;Triplit joins Supabase&rdquo; &middot; <a href="https://supabase.com/blog/triplit-joins-supabase">https://supabase.com/blog/triplit-joins-supabase</a> &middot; live 2026-11-23</div>
+          </div>        </section>
+        <section id="analysis">
+          <h2><span class="num">03</span>Analysis vs the owner&rsquo;s question and go-cqrs-lite&rsquo;s thesis</h2>
+          <p>
+            Triplit once marketed itself as exactly the owner&rsquo;s P1&ndash;P4 stack
+            (&ldquo;full-stack database&rdquo;, offline out-of-the-box, optimistic everything).
+            Its architecture is honest about the cost: ownership means an outbox you must be able
+            to un-send, and conflict handling means per-attribute LWW plus manual recovery
+            handlers.
+          </p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Question part</th><th>Triplit&rsquo;s answer</th><th>Read-across to go-cqrs-lite</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>P1 &middot; browser owns its data</td>
+                  <td>Local database (pluggable storage; IndexedDB for durability) plus a persisted outbox; queries can select cache-only (confirmed) or outbox-only (unconfirmed) views.</td>
+                  <td>The cache/outbox split with a per-row confirmed/unconfirmed query flag is precisely the &ldquo;speculative is a flag on rows, not two code paths&rdquo; rule from the owner&rsquo;s addendum &mdash; the single most portable idea on this page.</td>
+                </tr>
+                <tr>
+                  <td>P2 &middot; local-first including Commands</td>
+                  <td>State-shaped mutations only; the server&rsquo;s contribution is schema + permission filters at apply time. Transactions are atomic client-side, advisory server-side.</td>
+                  <td>Another confirmation that optimistic state-mutation without intents ends in LWW; the client-side rollback of a failed transaction is the local half of what a client-side decider would own.</td>
+                </tr>
+                <tr>
+                  <td>P3 &middot; git-like branch/rebase</td>
+                  <td>Lamport-timestamped LWW registers per attribute; no history, nothing to rebase.</td>
+                  <td>Nothing to adopt; note their data-type discipline though &mdash; sets over arrays because arrays &ldquo;lose many nice properties under collaboration&rdquo; is the same argument that pushes event payloads toward addable facts.</td>
+                </tr>
+                <tr>
+                  <td>P4 &middot; client-only Commands &amp; Events</td>
+                  <td>Durable offline writes with automatic resync; failures exposed per entity with undo-or-retry callbacks; no event log anywhere.</td>
+                  <td>The per-entity sync-error handler (<code>onEntitySyncError</code> with <code>clearPendingChangesForEntity</code>) is a good UX primitive for late rejections of replayed commands &mdash; finer-grained than a global &ldquo;sync failed&rdquo; badge.</td>
+                </tr>
+                <tr>
+                  <td>P5 &middot; shared logic minus protected resources</td>
+                  <td>Same engine + query language on client and server is genuine logic sharing; rules-as-filters are server-only; any-language servers go through the HTTP API with a service token.</td>
+                  <td>Rules-as-query-filters is a weaker cousin of the client-safe decider seam (filters cannot branch or compensate). The &ldquo;one engine, two deployments&rdquo; claim is only possible because the logic is data-shaped &mdash; the exact reason a Go decider cannot ride along.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            Against the thesis: Triplit is state-replication with server-side filters &mdash; no
+            Commands, no Events, no fold. And the ecosystem facts dominate any architectural
+            lesson: AGPL-3.0 makes incorporation into a permissively-licensed Go stack a legal
+            question rather than an engineering one, and the project has been untouched for over
+            a year (main frozen 2025-09-11, npm frozen 2025-07-31, cloud closed, founder at
+            Supabase, which promises further open-sourcing of the codebase).
+          </p>
+          <div class="callout callout-amber">
+            <strong>UNVERIFIED (2)</strong>
+            The live triplit.dev site is script-rendered and could not be scraped in this pass
+            (2026-11-22 cache holds only its title), so all doc quotes come from the repo&rsquo;s
+            main branch &mdash; whether the deployed site still matches is unverified; and bundle
+            size &ldquo;~70kB (gzip)&rdquo; is a landscape self-report, not measured here.
+          </div>
+        </section>
+        <section id="fit">
+          <h2><span class="num">04</span>Fit verdict</h2>
+          <p><span class="verdict verdict-orthogonal">ORTHOGONAL</span></p>
+          <p>
+            Dormant, AGPL-3.0, and architecturally a sibling of InstantDB (client-minted state,
+            attribute LWW, server-side filters) with a nicer offline outbox. Harvest exactly two
+            small patterns &mdash; the cache/outbox split with per-view confirmed/unconfirmed
+            flags, and per-entity sync-error handlers with explicit undo-or-retry &mdash; and
+            treat its stalling as evidence that the &ldquo;full-stack syncing database&rdquo;
+            category is brutal to sustain independently.
+          </p>
+        </section>
+
+        <footer class="footer">
+          <p>
+            Dossier assembled 2026-11-23 for go-cqrs-lite &middot; cached page
+            dumps are dated <em>cache 2026-11-22</em>, live fetches
+            <em>2026-11-23</em> &middot; claims that could not be verified
+            against a primary source are labelled UNVERIFIED inline &middot;
+            <a href="index.html">back to the landscape index</a>
+          </p>
+        </footer>
+      </main>
+    </div>
+
+<script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) {
+            return document.getElementById(id);
+          })
+          .filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (link) {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id,
+                  );
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
+      })();
+    </script>
+  </body>
+</html>

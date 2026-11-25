@@ -1452,12 +1452,15 @@ data: signals {"projectionLagMs": 12}</code></pre>
           <div class="issue issue-important" id="risk-l4-client">
             <span class="severity severity-important">R1 &middot; Medium</span>
             <h3>The L4 client queue is still new client-side code</h3>
-            <div class="where">IndexedDB durability, ordering, flush retry &mdash; none of it exists here</div>
+            <div class="where">Durable client queue + per-stream ordering + flush retry &mdash; none of it exists here (storage now specified: dual SQLite-WASM, &sect;10.5)</div>
             <p>
               The server side is all existing pieces; the browser side
               (durable queue, per-stream ordering, revert-on-rejection UX) is
               genuinely new and is the real cost of L4 &mdash; the reason it
-              stays gated.
+              stays gated. <em style="color: var(--text-muted)">(2026-11-22
+              owner refinement: the client store is dual SQLite-WASM &mdash;
+              WAL journal on OPFS in a dedicated worker &mdash; not
+              IndexedDB; see &sect;10.5.)</em>
             </p>
           </div>
           <div class="issue issue-important" id="risk-fold-purity">
@@ -1702,6 +1705,63 @@ data: signals {"projectionLagMs": 12}</code></pre>
             speculative branch</em>; only server deciders mint authoritative
             events; deciders declare their resource dependencies, and
             stream-local ones are client-portable.&rdquo;
+            <em>(2026-11-23: the sweep completed — 22/22 entries + master
+            index at <code>docs/competition/</code>. Census: 17 of 22
+            CLIENT-MINTS-FACTS; only Zero, Ditto, and PowerSync hold any
+            Command-shaped write path, and none of the three shares decision
+            logic with the client — the client-safe decider seam remains
+            unclaimed territory.)</em>
+          </p>
+          <h3>10.5 · Storage topology (owner refinement, later 2026-11-22): dual SQLite, not IndexedDB</h3>
+          <p>
+            &ldquo;IndexedDB is BS&rdquo; &mdash; and the mature local-first
+            clients agree: LiveStore and Evolu (both verified in the Nov-21
+            sweep) ship embedded SQLite (WASM), not IndexedDB. Adopt that
+            layer for L4 while keeping our command boundary &mdash;
+            LiveStore&rsquo;s storage architecture, minus its
+            client-mints-facts flaw:
+          </p>
+          <table>
+            <thead>
+              <tr>
+                <th>Layer</th>
+                <th>Storage</th>
+                <th>Contents</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>DB1 &middot; journal</strong></td>
+                <td>SQLite-WASM, WAL journal on OPFS, memory-speed appends (<code>synchronous=NORMAL</code>)</td>
+                <td>Pending <em>commands</em> (PersistedCommand shape) + <em>speculative events</em> (Record shape, <code>speculative</code> flag) minted by the client-side decider</td>
+                <td>Nuance: pure <code>:memory:</code> persists nothing &mdash; durability <em>is</em> the WAL on OPFS; memory is the cache, WAL is the ledger</td>
+              </tr>
+              <tr>
+                <td><strong>DB2 &middot; projections</strong></td>
+                <td>Second SQLite (WAL on OPFS, or in-memory + rebuild)</td>
+                <td>Client-side folds of client-portable deciders only (&sect;10.3 seam); rows carry the speculative flag</td>
+                <td>Disposable by design &mdash; ADR-0136&rsquo;s invertibility ladder, applied client-side; rebuild = replay DB1</td>
+              </tr>
+              <tr>
+                <td><strong>Host</strong></td>
+                <td>Dedicated/SharedWorker</td>
+                <td>Both DBs; one writer across tabs</td>
+                <td>Sync OPFS handles exist only in workers; SharedWorker gives cross-tab single-writer free &mdash; a service worker, if any, only intercepts sync traffic</td>
+              </tr>
+              <tr>
+                <td><strong>Sync</strong></td>
+                <td>&mdash;</td>
+                <td>Push DB1 command tail; pull authoritative facts; rebase per &sect;10.2</td>
+                <td>Speculative events dropped where the server&rsquo;s differ; UI reads DB2, so transparency is a row flag, not two code paths</td>
+              </tr>
+            </tbody>
+          </table>
+          <p>
+            Queries become one SQL surface (DB2) with deterministic rebuild
+            &mdash; and every server-side mechanic this library already
+            ships (journal, checkpoint, deterministic replay) recurses to
+            the client unchanged.
           </p>
         </section>
 
@@ -1711,10 +1771,11 @@ data: signals {"projectionLagMs": 12}</code></pre>
             Generated 2026-11-22 &middot; Series: docs/research #3 (after
             datastar 11-07 and go-ts contracts 11-21) &middot; External claims
             verified against primary sources fetched 2026-11-22; UNVERIFIED
-            items labeled inline &middot; Feeds D40 (L4 shape) and proposed D41
+            items labeled inline &middot; Feeds D40 (pipeline) and proposed D41
+            (adapter + L4 shape)
             &middot; Owner's addendum §10 (local-Commands question) added later
             same day; its evidence base is the docs/competition/ landscape
-            sweep
+            sweep (completed 2026-11-23: 22/22 entries + index)
           </p>
         </footer>
       </main>

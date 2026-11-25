@@ -1,0 +1,1208 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Zero: local-first landscape review for go-cqrs-lite</title>
+    <style>
+      /* =========================================================================
+         BAUHAUS LIGHT — Editorial template
+         Design language: form follows function. Primary colors on warm paper.
+         Zero external dependencies: system fonts, no CDN, no build step.
+         Token architecture: see references/bauhaus-tokens.md
+         ========================================================================= */
+
+      :root {
+        /* --- Primitive palette (Bauhaus Light) --- */
+        --color-paper: #f4f4f0;
+        --color-paper-2: #ffffff;
+        --color-paper-3: #e8e8e2;
+        --color-ink: #111111;
+        --color-red: #e63946;
+        --color-blue: #1d3557;
+        --color-yellow: #f4d35e;
+        --color-hairline: rgba(17, 17, 17, 0.14);
+        --color-hairline-strong: rgba(17, 17, 17, 0.3);
+
+        /* --- Semantic layer (shared vocabulary with dark template) --- */
+        --surface: var(--color-paper);
+        --surface-raised: var(--color-paper-2);
+        --surface-sunken: var(--color-paper-3);
+        --text: var(--color-ink);
+        --text-muted: rgba(17, 17, 17, 0.72);
+        --text-faint: rgba(17, 17, 17, 0.5);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-red);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        /* --- Backward-compatible aliases (do not break consumer skills) --- */
+        --bg: var(--surface);
+        --bg-elevated: var(--surface-raised);
+        --bg-sunken: var(--surface-sunken);
+        --bg-card: var(--surface-raised);
+        --bg-code: var(--surface-sunken);
+        --ink: var(--text);
+        --ink-secondary: var(--text-muted);
+        --ink-muted: var(--text-faint);
+        --rose: var(--problem);
+        --rose-glow: color-mix(in srgb, var(--problem) 15%, transparent);
+        --emerald: var(--solution);
+        --emerald-glow: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber: var(--warning);
+        --amber-glow: color-mix(in srgb, var(--warning) 15%, transparent);
+        --amber-light: color-mix(in srgb, var(--warning) 22%, transparent);
+        --coral: var(--problem);
+        --coral-light: color-mix(in srgb, var(--problem) 12%, transparent);
+        --teal: var(--solution);
+        --teal-light: color-mix(in srgb, var(--solution) 12%, transparent);
+
+        /* --- Shape --- */
+        --radius: 0px;
+        --radius-sm: 0px;
+
+        /* --- Type stacks (system only — zero external fonts) --- */
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+        *,
+        *::before,
+        *::after {
+          transition-duration: 0.01ms !important;
+          animation-duration: 0.01ms !important;
+        }
+      }
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 16px;
+        line-height: 1.65;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* --- Accessibility: keyboard focus --- */
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      a:focus-visible {
+        outline-offset: -1px;
+      }
+
+      /* --- Full-bleed top bar --- */
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      /* --- Layout: optional sticky sidebar TOC --- */
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--text);
+      }
+      .sidebar a {
+        font-size: 0.86rem;
+        color: var(--text);
+        text-decoration: none;
+        padding: 0.5rem 0.75rem;
+        border-left: 4px solid transparent;
+        font-weight: 600;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+        color: var(--accent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      /* --- Headings --- */
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        color: var(--text);
+      }
+      h1 {
+        font-size: clamp(1.9rem, 4.5vw, 2.8rem);
+        line-height: 1.05;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.5rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 3px solid var(--text);
+        display: flex;
+        align-items: baseline;
+        gap: 0.7rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+      h3 {
+        font-size: 1.15rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 1rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+
+      /* --- Hero --- */
+      .hero {
+        padding: 1.5rem 0 2rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 3px solid var(--text);
+      }
+      .eyebrow {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: var(--accent);
+        margin-bottom: 0.9rem;
+      }
+      .subtitle {
+        font-size: 1.1rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0 0 1rem;
+      }
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      .tag {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        padding: 0.25rem 0.6rem;
+        background: var(--surface-sunken);
+        color: var(--text);
+        border: 1px solid var(--border-strong);
+      }
+      .tag.amber {
+        background: var(--warning);
+        border-color: var(--warning);
+        color: var(--text);
+      }
+      .tag.teal {
+        background: var(--solution);
+        border-color: var(--solution);
+        color: var(--surface);
+      }
+
+      /* Bauhaus signature: geometric shape cluster (optional) */
+      .hero-shapes {
+        position: relative;
+        height: 90px;
+        margin-bottom: 1.2rem;
+      }
+      .hero-shapes .circle {
+        position: absolute;
+        top: 0;
+        right: 180px;
+        width: 64px;
+        height: 64px;
+        background: var(--problem);
+        border-radius: 50%;
+      }
+      .hero-shapes .square {
+        position: absolute;
+        top: 26px;
+        right: 90px;
+        width: 56px;
+        height: 56px;
+        background: var(--solution);
+      }
+      .hero-shapes .tri {
+        position: absolute;
+        top: 8px;
+        right: 0;
+        width: 0;
+        height: 0;
+        border-left: 32px solid transparent;
+        border-right: 32px solid transparent;
+        border-bottom: 56px solid var(--warning);
+      }
+      .hero-shapes .bar {
+        position: absolute;
+        bottom: 0;
+        right: 230px;
+        width: 100px;
+        height: 14px;
+        background: var(--text);
+      }
+
+      /* --- Scorecard / stat cards --- */
+      .scorecard,
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 0;
+        margin: 1.5rem 0 2rem;
+        border: 3px solid var(--text);
+      }
+      .score-card,
+      .stat-card {
+        padding: 1.3rem 1rem;
+        text-align: center;
+        border-right: 3px solid var(--text);
+        background: var(--surface-raised);
+      }
+      .score-card:last-child,
+      .stat-card:last-child {
+        border-right: none;
+      }
+
+      .score,
+      .stat-value {
+        font-family: var(--font-heading);
+        font-size: 2.6rem;
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -0.04em;
+      }
+      .score-card .label,
+      .stat-label {
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        margin-top: 0.5rem;
+      }
+      /* Semantic state classes — no nth-child decoration, no !important */
+      .score-good,
+      .stat-good {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .score-warn,
+      .stat-warn {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .score-bad,
+      .stat-bad {
+        background: var(--problem);
+        color: var(--surface);
+      }
+
+      /* --- General cards --- */
+      .card {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+      }
+
+      /* --- Issue cards --- */
+      .issue {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* --- Severity badges --- */
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.22rem 0.6rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+
+      /* --- Inline badges --- */
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        border: 1px solid var(--text);
+        color: var(--text);
+      }
+      .badge-critical {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .badge-high {
+        background: var(--warning);
+      }
+      .badge-medium {
+        background: var(--surface-sunken);
+      }
+      .badge-low {
+        background: var(--surface-raised);
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        background: var(--solution);
+        color: var(--surface);
+      }
+
+      /* --- Callouts --- */
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.8rem 1rem;
+        border: 1px solid var(--border-strong);
+        border-left: 4px solid var(--border-strong);
+        background: var(--surface-sunken);
+        font-size: 0.92rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-teal,
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 10%,
+          var(--surface-raised)
+        );
+      }
+      .callout-amber,
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 18%,
+          var(--surface-raised)
+        );
+      }
+
+      /* --- Strengths --- */
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.9rem;
+        padding: 0.75rem 0;
+        border-bottom: 2px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        color: var(--solution);
+        font-size: 1.3rem;
+        line-height: 1.3;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.92rem;
+      }
+
+      /* --- Tables --- */
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.92rem;
+        border: 2px solid var(--text);
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--text);
+        color: var(--surface);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-right: 1px solid var(--border-strong);
+      }
+      th:last-child {
+        border-right: none;
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-top: 1px solid var(--border);
+        border-right: 1px solid var(--border);
+      }
+      td:last-child {
+        border-right: none;
+      }
+      tr:nth-child(even) td {
+        background: var(--surface-sunken);
+      }
+      table.compare td.yes {
+        color: var(--solution);
+        font-weight: 700;
+      }
+      table.compare td.no {
+        color: var(--problem);
+        font-weight: 700;
+      }
+
+      /* --- Code blocks + syntax highlighting --- */
+      pre {
+        background: var(--text);
+        color: var(--surface);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+        border: 2px solid var(--text);
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      p code,
+      li code,
+      td code {
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+      }
+      .tok-keyword {
+        color: var(--warning);
+      }
+      .tok-type {
+        color: var(--warning);
+      }
+      .tok-string {
+        color: #95e1d3;
+      }
+      .tok-comment {
+        color: rgba(244, 244, 240, 0.45);
+        font-style: italic;
+      }
+      .tok-func {
+        color: #6eb5ff;
+      }
+      .tok-number {
+        color: var(--warning);
+      }
+      .tok-generic {
+        color: var(--problem);
+      }
+      .tok-builtin {
+        color: #6eb5ff;
+      }
+      .tok-punct {
+        color: rgba(244, 244, 240, 0.7);
+      }
+      .tok-attr {
+        color: var(--warning);
+      }
+
+      /* --- Dependency tree / ASCII diagrams --- */
+      .dep-tree {
+        background: var(--surface-sunken);
+        border: 2px solid var(--text);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.7;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .dep-tree .root {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .dep-tree .ok {
+        color: var(--solution);
+      }
+      .dep-tree .unwanted {
+        color: var(--problem);
+      }
+
+      /* --- Inline node-and-arrow diagrams --- */
+      .diagram {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+      }
+      .node {
+        display: inline-block;
+        padding: 0.4rem 0.75rem;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        font-weight: 700;
+        background: var(--surface-sunken);
+        border: 1px solid var(--text);
+      }
+      .node-core {
+        background: var(--accent);
+        color: var(--surface);
+      }
+      .node-problem {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .node-good {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .arrow {
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Grids --- */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      /* --- Inline TOC --- */
+      .toc {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+        padding: 1rem 1.3rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .toc h3 {
+        margin-bottom: 0.5rem;
+      }
+      .toc ul {
+        list-style: none;
+        padding: 0;
+      }
+      .toc li {
+        margin: 0.25rem 0;
+      }
+      .toc a {
+        color: var(--text);
+        text-decoration: none;
+        font-size: 0.92rem;
+        font-weight: 600;
+      }
+      .toc a:hover {
+        color: var(--accent);
+      }
+
+      /* --- Migration / numbered steps --- */
+      .migration-step {
+        display: grid;
+        grid-template-columns: 56px 1fr;
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1.1rem;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+      }
+      .migration-num {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        font-size: 1.8rem;
+        color: var(--accent);
+        line-height: 1;
+      }
+      .migration-content h4 {
+        margin-bottom: 0.2rem;
+      }
+      .migration-content p {
+        margin-bottom: 0;
+        color: var(--text-muted);
+        font-size: 0.94rem;
+      }
+
+      /* --- Before/After comparison --- */
+      .compare-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin: 1rem 0 0.5rem;
+      }
+      .compare-before,
+      .compare-after {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0.4rem 0.7rem;
+        color: var(--surface);
+      }
+      .compare-before {
+        background: var(--problem);
+      }
+      .compare-after {
+        background: var(--solution);
+      }
+      .compare-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      .compare-row pre {
+        margin: 0;
+      }
+
+      /* --- Footer --- */
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 3px solid var(--text);
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Responsive --- */
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+        .compare-header,
+        .compare-row {
+          grid-template-columns: 1fr;
+        }
+        .scorecard,
+        .stat-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-right: none;
+        }
+        .score-card:nth-child(1),
+        .stat-card:nth-child(1),
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-bottom: 3px solid var(--text);
+        }
+        .migration-step {
+          grid-template-columns: 1fr;
+        }
+        .hero-shapes {
+          display: none;
+        }
+      }
+    
+      /* ---------------------------------------------------------------------
+         Additions for the landscape dossier pages (everything above this
+         marker is the editorial template, copied verbatim).
+         --------------------------------------------------------------------- */
+      .top-bar a,
+      .footer a {
+        color: inherit;
+      }
+      .main a {
+        color: var(--solution);
+      }
+      .score-text {
+        font-family: var(--font-mono);
+        font-size: 0.95rem;
+        font-weight: 900;
+        letter-spacing: 0.02em;
+        line-height: 1.25;
+        overflow-wrap: anywhere;
+      }
+      .score-text-sm {
+        font-size: 0.78rem;
+        font-weight: 700;
+      }
+      .src {
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        color: var(--text-faint);
+        margin-top: 0.55rem;
+        overflow-wrap: anywhere;
+      }
+      .src a {
+        color: var(--text-muted);
+      }
+      .quote {
+        font-size: 0.95rem;
+      }
+      .quote em {
+        font-style: normal;
+        box-shadow: inset 0 -0.45em 0
+          color-mix(in srgb, var(--warning) 55%, transparent);
+      }
+      .verdict {
+        font-family: var(--font-mono);
+        font-size: 1.05rem;
+        font-weight: 900;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.5rem 0.9rem;
+        display: inline-block;
+        border: 2px solid var(--text);
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .verdict-adopt {
+        background: var(--solution);
+      }
+      .verdict-compete {
+        background: var(--problem);
+      }
+      .verdict-complement,
+      .verdict-orthogonal {
+        background: var(--surface-sunken);
+        color: var(--text);
+      }
+</style>
+  </head>
+  <body>
+    <div class="top-bar">
+      <span>LOCAL-FIRST LANDSCAPE REVIEW</span>
+      <span><a href="index.html">&larr; ALL PROJECTS</a></span>
+      <span>ACCESSED 2026-11-23</span>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#identity">01 &middot; Identity &amp; metadata</a>
+          <a href="#scorecard">02 &middot; Six-axis scorecard</a>
+          <a href="#evidence">03 &middot; Evidence</a>
+          <a href="#analysis">04 &middot; Analysis vs the question</a>
+          <a href="#fit">05 &middot; Fit verdict</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <section id="identity">
+          <h2><span class="num">00</span>Identity &amp; metadata</h2>
+          <p>
+            Zero has two parts: <code>zero-cache</code>, a cloud service holding a read-only
+            SQLite replica of your Postgres, and <code>zero-client</code>, a TypeScript client
+            store kept up to date by query-driven partial replication (ZQL over logical
+            replication, incrementally maintained). Writes go through application-defined
+            mutators that execute once on the client for instant UI and again inside your own
+            mutate endpoint in a Postgres transaction; the server&rsquo;s outcome replaces the
+            optimistic one. This is the exact &ldquo;Command boundary, rediscovered&rdquo; the
+            repo&rsquo;s 2026-11-22 research report identified, and it is now generally available.
+          </p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Metadata</th><th>Value</th><th>Source</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Maturity</td><td>&ldquo;As of March 2026, Zero is generally available and fully-supported.&rdquo; (1.0.0 published 2026-03-24; current 1.12.0). The localfirst.fm self-report &ldquo;Alpha&rdquo; is stale.</td><td>zero.rocicorp.dev/docs/status (cache 2026-11-22) + npm registry (live 2026-11-23)</td></tr>
+                <tr><td>License</td><td>Apache-2.0 &mdash; &ldquo;Specifically, the Zero client and server are Apache-2 licensed&rdquo;; managed service + paid support is the business model</td><td>zero.rocicorp.dev/docs/open-source (cache 2026-11-22); GitHub API + npm (live 2026-11-23)</td></tr>
+                <tr><td>Initial release</td><td>self-report 2024-12-18; <code>@rocicorp/zero</code> first npm publish 2024-10-03; repo rocicorp/mono created 2023-02-09</td><td>localfirst.fm self-report; npm registry + GitHub API (live 2026-11-23)</td></tr>
+                <tr><td>Current version</td><td>1.12.0 (published 2026-11-12): synced aggregates, group-by, JSON-path filters; repo last pushed 2026-11-20; 3,449 stars</td><td>npm registry + GitHub API + release notes, live 2026-11-23</td></tr>
+                <tr><td>Bundle size</td><td>&ldquo;~40kb gzipped&rdquo; (self-report; npm unpacked 11.97&nbsp;MB)</td><td>localfirst.fm landscape self-report (not re-measured); npm dist, live 2026-11-23</td></tr>
+                <tr><td>Platform / SDK</td><td>TypeScript clients (browser, Node, React Native); backend: your Postgres + your mutate/query endpoints (TypeScript utilities provided)</td><td>zero.rocicorp.dev docs (cache 2026-11-22 and live 2026-11-23)</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+        <section id="scorecard">
+          <h2><span class="num">01</span>Six-axis scorecard</h2>
+          <p>
+            Colour encodes fit with the owner&rsquo;s question (blue&nbsp;=&nbsp;matches the lens,
+            yellow&nbsp;=&nbsp;partial with a caveat, neutral&nbsp;=&nbsp;orthogonal to it), not
+            product quality.
+          </p>
+          <section class="scorecard">
+            <div class="score-card score-warn">
+              <div class="score score-text">READ CACHE ONLY</div>
+              <div class="label">1 &middot; Client data ownership</div>
+            </div>
+            <div class="score-card score-good">
+              <div class="score score-text">COMMANDS-EXECUTED-LOCALLY</div>
+              <div class="label">2 &middot; Local commands</div>
+            </div>
+            <div class="score-card">
+              <div class="score score-text">NONE (SERVER RECONCILE)</div>
+              <div class="label">3 &middot; Reconnect model</div>
+            </div>
+            <div class="score-card score-warn">
+              <div class="score score-text score-text-sm">COMMANDS YES (ONLINE), NO OFFLINE WRITES</div>
+              <div class="label">4 &middot; Client-local commands &amp; events</div>
+            </div>
+            <div class="score-card score-good">
+              <div class="score score-text score-text-sm">SAME CODE CLIENT + SERVER, ctx SPLIT</div>
+              <div class="label">5 &middot; Logic sharing</div>
+            </div>
+            <div class="score-card score-good">
+              <div class="score score-text">GA / APACHE-2.0</div>
+              <div class="label">6 &middot; Maturity &amp; license</div>
+            </div>
+          </section>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Axis</th><th>Verdict</th><th>Detail (evidence)</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>1 &middot; Client data ownership</td>
+                  <td><strong>Cache of synced rows</strong></td>
+                  <td>The local store holds exactly what active queries need (&ldquo;25MB&ndash;100MB&rdquo; typical per self-report); &ldquo;Zero is not local-first. It's a client-server system with an authoritative server.&rdquo; <a href="#ev1">#ev1</a> <a href="#ev6">#ev6</a></td>
+                </tr>
+                <tr>
+                  <td>2 &middot; Local commands</td>
+                  <td><span class="badge badge-fixed">COMMANDS-EXECUTED-LOCALLY</span></td>
+                  <td>&ldquo;When a mutator is invoked, it initially runs on the client, against the client-side datastore&rdquo;; the mutation record (name + args) is pushed to your endpoint, which re-runs the same mutator in a Postgres transaction <a href="#ev2">#ev2</a></td>
+                </tr>
+                <tr>
+                  <td>3 &middot; Reconnect rebase model</td>
+                  <td><strong>NONE &mdash; server reconciliation</strong></td>
+                  <td>No merge and no rebase: &ldquo;Any pending mutations which have been applied to the server have their local effects rolled back&rdquo; and the authoritative rows flow back through replication <a href="#ev2">#ev2</a></td>
+                </tr>
+                <tr>
+                  <td>4 &middot; Commands &amp; events client-local</td>
+                  <td><strong>Commands: yes, but only while connected; events: no</strong></td>
+                  <td>&ldquo;Zero does not support offline writes &hellip; reads from synced data continue to work, but writes are rejected&rdquo;; the docs argue no algorithm can auto-resolve week-long offline divergence <a href="#ev3">#ev3</a></td>
+                </tr>
+                <tr>
+                  <td>5 &middot; Logic sharing + protected resources</td>
+                  <td><strong>One mutator definition, two deployments, verified context</strong></td>
+                  <td>&ldquo;A copy of each mutator exists on both the client and on your server &hellip; you can just share their code&rdquo;; server copies may differ; <code>ctx</code> carries server-verified identity; queries follow the identical dual pattern <a href="#ev4">#ev4</a> <a href="#ev5">#ev5</a></td>
+                </tr>
+                <tr>
+                  <td>6 &middot; Maturity + license</td>
+                  <td><strong>GA 1.12 / Apache-2.0</strong></td>
+                  <td>API declared &ldquo;very stable&rdquo; from 1.0; 1.12 fixed twelve security vulnerabilities and added server-validated user IDs <a href="#ev7">#ev7</a></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+        <section id="evidence">
+          <h2><span class="num">02</span>Evidence</h2>
+          <div class="card" id="ev1">
+            <p class="quote">&ldquo;Zero makes web apps feel instant by syncing the data your UI needs into a local, normalized client datastore. Reads and writes hit that local store first, then sync continuously with your server in the background.&rdquo; &hellip; &ldquo;Server Authority: All reads and writes flow through your code on your server, giving you complete control over permissions and business logic.&rdquo;</p>
+            <div class="src">zero.rocicorp.dev home + introduction &middot; <a href="https://zero.rocicorp.dev/">https://zero.rocicorp.dev/</a> &middot; cache 2026-11-22</div>
+          </div>
+          <div class="card" id="ev2">
+            <p class="quote">&ldquo;When a mutator is invoked, it initially runs on the client, against the client-side datastore. Any changes are immediately applied to open queries and the user sees the changes. In the background, Zero sends a mutation (a record of the mutator having run with certain arguments) to your server's push endpoint. Your push endpoint runs the push protocol, executing the server-side mutator in a transaction against your database and recording the fact that the mutation ran.&rdquo; &hellip; &ldquo;Any pending mutations which have been applied to the server have their local effects rolled back.&rdquo;</p>
+            <div class="src">zero.rocicorp.dev/docs/mutators, Life of a Mutation &middot; <a href="https://zero.rocicorp.dev/docs/mutators">https://zero.rocicorp.dev/docs/mutators</a> &middot; cache 2026-11-22</div>
+          </div>
+          <div class="card" id="ev3">
+            <p class="quote">&ldquo;Zero does not support offline writes. When the client is in the <code>disconnected</code>, <code>error</code>, or <code>needs-auth</code> states, reads from synced data continue to work, but writes are rejected.&rdquo; &hellip; &ldquo;Supporting offline writes in collaborative applications is inherently difficult, and no sync engine or CRDT algorithm can automatically solve it for you. Despite what their marketing says.&rdquo; &hellip; &ldquo;It is of course possible to create applications that support offline writes well (Git exists!). But it requires significant tradeoffs.&rdquo;</p>
+            <div class="src">zero.rocicorp.dev/docs/connection, Offline + Why Zero Doesn't Support Offline Writes &middot; <a href="https://zero.rocicorp.dev/docs/connection">https://zero.rocicorp.dev/docs/connection</a> &middot; live 2026-11-23</div>
+          </div>
+          <div class="card" id="ev4">
+            <p class="quote">&ldquo;A copy of each mutator exists on both the client and on your server &hellip; Often the implementations will be the same, and you can just share their code &hellip; But the implementations don't have to be the same, or even compute the same result. For example, the server can add extra checks to enforce permissions, or send notifications or interact with other systems.&rdquo; Branching is explicit: <code>if (tx.location === 'client')</code>, and server registries can override shared ones via <code>defineMutators(baseMutators, &#123;&#125;)</code> &mdash; the docs headline this &ldquo;Server authority to the rescue!&rdquo;</p>
+            <div class="src">zero.rocicorp.dev/docs/mutators, Architecture + Server-Specific Code &middot; <a href="https://zero.rocicorp.dev/docs/mutators">https://zero.rocicorp.dev/docs/mutators</a> &middot; cache 2026-11-22</div>
+          </div>
+          <div class="card" id="ev5">
+            <p class="quote">Protected inputs: &ldquo;Mutator parameters are supplied by the client application and passed to the server automatically by Zero. This makes them unsuitable for credentials, since the user could modify them. For this reason, Zero mutators also support the concept of a context object&rdquo; &mdash; <code>ctx.userID</code> &ldquo;User cannot control &hellip; so this enforces authorship&rdquo;. Queries mirror mutators: <code>defineQuery</code> runs client-side, while zero-cache asks your server to resolve name+args into ZQL &ldquo;where you also enforce permissions via <code>context</code>&rdquo;. Impure mutators are allowed: &ldquo;Impure mutators can be useful, e.g., to consult some external system on the server for authorization or validation.&rdquo;</p>
+            <div class="src">zero.rocicorp.dev/docs/mutators + /docs/queries &middot; <a href="https://zero.rocicorp.dev/docs/queries">https://zero.rocicorp.dev/docs/queries</a> &middot; live 2026-11-23</div>
+          </div>
+          <div class="card" id="ev6">
+            <p class="quote">&ldquo;Zero is not local-first. It's a client-server system with an authoritative server.&rdquo; &mdash; listed under &ldquo;Zero Might Not be a Good Fit&rdquo; for &ldquo;the privacy or data ownership benefits of local-first&rdquo; and for offline writes; the same page positions Automerge as &ldquo;Pioneering branch-based offline support&rdquo;.</p>
+            <div class="src">zero.rocicorp.dev/docs/when-to-use &middot; <a href="https://zero.rocicorp.dev/docs/when-to-use">https://zero.rocicorp.dev/docs/when-to-use</a> &middot; live 2026-11-23</div>
+          </div>
+          <div class="card" id="ev7">
+            <p class="quote">&ldquo;As of March 2026, Zero is generally available and fully-supported.&rdquo; &hellip; 1.0: &ldquo;After nearly two years of development, 50+ releases &hellip; we are declaring Zero stable.&rdquo; 1.12 security: &ldquo;zero-cache can now refuse a userID that your API didn't confirm&rdquo; (<code>ZERO_AUTH_REQUIRE_SERVER_USER_ID=true</code>), following the fix of twelve vulnerabilities in 1.11.5.</p>
+            <div class="src">zero.rocicorp.dev/docs/status + release notes 1.0/1.12 &middot; <a href="https://zero.rocicorp.dev/docs/status">https://zero.rocicorp.dev/docs/status</a> &middot; cache 2026-11-22 (status), live 2026-11-23 (release notes)</div>
+          </div>
+          <div class="card" id="ev8">
+            <p class="quote">Error semantics at the endpoint: &ldquo;handleMutateRequest skips any mutations that throw: &hellip; The mutation is skipped and the next mutation runs as normal. The optimistic mutation on the client will be reverted.&rdquo; HTTP 401/403 park the client in a needs-auth state and &ldquo;Zero will retry all queued mutations&rdquo; after reconnect; <code>tx.retryOn()</code> re-runs a server mutator on serialization failures (Postgres code 40001) up to five times.</p>
+            <div class="src">zero.rocicorp.dev/docs/mutators, Handling Errors + Retrying Mutators &middot; <a href="https://zero.rocicorp.dev/docs/mutators">https://zero.rocicorp.dev/docs/mutators</a> &middot; live 2026-11-23</div>
+          </div>
+          <div class="card" id="ev9">
+            <p class="quote">Go angle: &ldquo;You can manually implement the mutate endpoint in any programming language. This will be documented in the future, but you can refer to the handleMutateRequest source code for an example for now.&rdquo; Clients are TypeScript only: &ldquo;Zero is written in TypeScript and only supports TypeScript clients.&rdquo;</p>
+            <div class="src">zero.rocicorp.dev/docs/mutators + /docs/when-to-use &middot; <a href="https://zero.rocicorp.dev/docs/mutators">https://zero.rocicorp.dev/docs/mutators</a> &middot; live 2026-11-23</div>
+          </div>        </section>
+        <section id="analysis">
+          <h2><span class="num">03</span>Analysis vs the owner&rsquo;s question and go-cqrs-lite&rsquo;s thesis</h2>
+          <p>
+            The repo&rsquo;s 2026-11-22 report already ratified the Zero/Replicache shape as the
+            L4 offline design (&ldquo;clients queue commands and deciders mint events&rdquo;).
+            This dossier re-verified the core quotes live and adds three deltas: the API has been
+            formalized (<code>defineMutators</code>/<code>defineQueries</code> registries with
+            dotted names, <code>.client</code>/<code>.server</code> result promises, JSON return
+            values, <code>tx.retryOn</code>), the project is GA, and the no-offline-writes
+            position is now argued in writing rather than implied.
+          </p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Question part</th><th>Zero&rsquo;s answer</th><th>Read-across to go-cqrs-lite</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>P1 &middot; browser owns its data</td>
+                  <td>Deliberately no: a disposable query cache in front of an authoritative server; the client store is not a source of truth.</td>
+                  <td>Confirms the two-tier read plan (server folds, client caches) but refuses ownership. go-cqrs-lite&rsquo;s DB1 journal must be <em>owned</em>, not cached &mdash; Zero shows you cannot get that from replication alone.</td>
+                </tr>
+                <tr>
+                  <td>P2 &middot; local-first including Commands</td>
+                  <td>Commands run locally for one optimistic frame, then the server re-runs them authoritatively. Not offline.</td>
+                  <td>The dispatch contract matches this library&rsquo;s <code>command.Dispatcher</code> model almost exactly: name + validated args, exactly one handler, server-authoritative. Zero is the existence proof that this shape is productizable &mdash; minus offline.</td>
+                </tr>
+                <tr>
+                  <td>P3 &middot; git-like branch/rebase</td>
+                  <td>None: reconciliation replaces optimistic effects with authoritative rows; rejected mutations simply vanish from the queue.</td>
+                  <td>Zero demonstrates the cheap alternative to rebase: never carry speculative work across a divergence. The owner wants the stronger property; keep Zero&rsquo;s &ldquo;skip and revert&rdquo; as the fallback semantics when a replayed command cannot be decided.</td>
+                </tr>
+                <tr>
+                  <td>P4 &middot; client-only Commands &amp; Events</td>
+                  <td>Explicitly out of scope, with a written argument: constraints, business rules and schema changes &ldquo;can pass while offline, but break when the user reconnects&rdquo;; only restricted offline writes (create-only, single-device) would be safe.</td>
+                  <td>This is the strongest counter-argument to the owner&rsquo;s P4 in the whole landscape &mdash; quote it in the design doc. The answer stays what the addendum sketched: restrict client-local deciding to stream-local deciders whose whole input set is on the device, and surface late rejections as first-class UX.</td>
+                </tr>
+                <tr>
+                  <td>P5 &middot; shared logic minus protected resources</td>
+                  <td>Best-in-class: one codebase deployed twice, <code>tx.location</code> branching, server-only overrides, verified <code>ctx</code>, impure server mutators for external authorization.</td>
+                  <td>Direct template for the client-safe decider seam: stream-local deciders ship to the client unchanged; cross-stream/effectful ones live only in the server registry; <code>ctx</code> is the analogue of <code>record.CommonMetadata</code> actor claims, and <code>tx.location</code> of the initial/replay phase flag.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            Against the thesis: Zero has re-derived Commands (the mutate endpoint is a command
+            handler; the optimistic run is optimistic UI; revert-on-reject is a rejection
+            surfacing) but keeps rows, not events, as the sync substrate, and pushes events out of
+            the model entirely. For Go: zero-cache will happily call a mutate endpoint you write
+            in Go, but the wire protocol is undocumented &mdash; implementing it means reading
+            the TypeScript reference today.
+          </p>
+          <div class="callout callout-amber">
+            <strong>UNVERIFIED (2)</strong>
+            Bundle size &ldquo;~40kb gzipped&rdquo; is a landscape self-report, not measured; and
+            whether the zero-cache&nbsp;&rarr;&nbsp;mutate-endpoint protocol is implementable from
+            Go without forking TypeScript internals was not verified (the docs defer to source
+            code).
+          </div>
+        </section>
+        <section id="fit">
+          <h2><span class="num">04</span>Fit verdict</h2>
+          <p><span class="verdict verdict-adopt">PATTERN-TO-ADOPT</span></p>
+          <p>
+            The canonical, now-GA statement of &ldquo;same command code on client and server,
+            server decides&rdquo;: adopt the registry/override/context discipline wholesale for
+            the client-safe decider seam, and adopt revert-on-reject as the terminal semantics of
+            a replayed command. Not a complement &mdash; TypeScript-only clients, Postgres-bound,
+            and it rejects exactly the offline branch the owner wants &mdash; which is why its
+            written argument against offline writes belongs in the design doc as the position to
+            answer.
+          </p>
+        </section>
+
+        <footer class="footer">
+          <p>
+            Dossier assembled 2026-11-23 for go-cqrs-lite &middot; cached page
+            dumps are dated <em>cache 2026-11-22</em>, live fetches
+            <em>2026-11-23</em> &middot; claims that could not be verified
+            against a primary source are labelled UNVERIFIED inline &middot;
+            <a href="index.html">back to the landscape index</a>
+          </p>
+        </footer>
+      </main>
+    </div>
+
+<script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) {
+            return document.getElementById(id);
+          })
+          .filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (link) {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id,
+                  );
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
+      })();
+    </script>
+  </body>
+</html>

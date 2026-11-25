@@ -105,7 +105,19 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 - [ ] **07-53 floor-drop pack (9 + conditionals)** — items the iroh ruling gates or that were dropped without rows (M38 dispose; ruling = D5 addendum): f2/f3/f4/f45 extraction-contingent (park vs commission rides D5); f6 OpTag-vs-WithClock semantic-diff inventory (was flagged "BEFORE any future merge"); f7 collision preflight (moot until ruling); f16 loopback/quic ADT-matrix factory-completeness read; f22 WriteOp.ID v5 note decision; f31 mesh-demo CI build coverage; f34 quic fork bump path budget; f39 crush-config "never list unexecuted work as done" lesson; f41 "how do we test X" answer template; f43 report close-out preflight; f49 candidate-inventory-as-artifact habit; f32/f50 standing guards (ADR-0056 TimeUnixDynamic pin; internal/cluster untouched watcher) — row-or-decline each with a date; f47 dnsblockd cluster-wave citation note (minor, foreign). _(Effort: S total; batch decision — most are natural NOT-DO/declines)_
 - [ ] **dnsblockd revisit-triggers residue** (07-53 f5): TODO_LIST:369 routes there but dnsblockd's "Revisit triggers" list still has no extraction-trigger conditions despite the "regardless of the ruling" framing — foreign-repo edit pending coordination. _(Effort: XS, foreign)_
 
-## Harvest — 2026-11-22 CI-heal round-3 honest closeout (docs-health HARVEST)
+## Harvest — 2026-11-23 competition sweep executed (docs-health HARVEST)
+
+> Source: `docs/status/2026-11-23_02-39_landscape-sweep-blocked-local-commands-session.md` §f (items 41–43) + the
+> 11-21 report's FIX-NOW 4 (render screenshot). The sweep itself landed 2026-11-23: `docs/competition/` holds
+> 22/22 per-entry pages + parent-assembled index.html (verified: parse, anchors, zero markers, zero external
+> resources); the blocked-work items §f.1–7 are resolved and annotated in that report.
+
+- [ ] **LiveStore convergence watch** (11-23 §f.41) — conflicts #253/#254 plus the merged-but-unimplemented RFC 0002 "Command Replay" (verified absent from npm 0.5.0 during the sweep): when LiveStore ships command replay or the "facts system", that is a D41(b) decision input (merge/rebase vocabulary vs our command boundary), not amnesia. _(Effort: XS, trigger-based — check on any LiveStore release note)_
+- [ ] **Render-screenshot the three research reports** (11-21 §f.4, agent-blocked) — firefox is hook-blocked as dangerous in yolo mode; one manual command per report, e.g. `firefox --headless --screenshot docs/assets/<slug>-render.png --window-size=1400,3600 file://$PWD/docs/research/<slug>.html` (targets: 2026-11-21_go-ts-frontend-contracts, 2026-11-22_commands-vs-facts-livestore-datastar, docs/competition/index). _(Effort: XS, manual)_
+- [ ] **Re-measure DataStar client size at v1.0.5** (11-23 §f.42; sibling measured v1.0.4) — one bundle-size number feeding the DataStar adapter row D41(a). _(Effort: XS)_
+- [ ] **Prove or strike: catalog-export cmd pattern consuming `system.DomainConfig` directly** (11-23 §f.43 — declare-once bridge currently asserted, not proven). _(Effort: S)_
+
+
 
 > Source: `docs/status/2026-11-22_14-53_ci-heal-round3-honest-closeout-status.md` §c/§f residue.
 > Executed same-day by the closeout session: §f.1–2 (docserver-css /v4 + taxonomy ratchet — both root causes fixed),

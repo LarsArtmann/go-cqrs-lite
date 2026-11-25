@@ -99,6 +99,8 @@ func RegisterAll(ctx *analyzer.AnalysisContext) []finding.Detector {
 		boilerplate.NewB012Detector(ctx),
 		boilerplate.NewB013Detector(ctx),
 		boilerplate.NewB014Detector(ctx),
+		boilerplate.NewB032Detector(ctx),
+		boilerplate.NewB033Detector(ctx),
 		boilerplate.NewB015Detector(ctx),
 		boilerplate.NewB016Detector(ctx),
 		boilerplate.NewB017Detector(ctx),

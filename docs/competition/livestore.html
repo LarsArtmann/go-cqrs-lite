@@ -1,0 +1,1224 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LiveStore: local-first landscape review for go-cqrs-lite</title>
+    <style>
+      /* =========================================================================
+         BAUHAUS LIGHT — Editorial template
+         Design language: form follows function. Primary colors on warm paper.
+         Zero external dependencies: system fonts, no CDN, no build step.
+         Token architecture: see references/bauhaus-tokens.md
+         ========================================================================= */
+
+      :root {
+        /* --- Primitive palette (Bauhaus Light) --- */
+        --color-paper: #f4f4f0;
+        --color-paper-2: #ffffff;
+        --color-paper-3: #e8e8e2;
+        --color-ink: #111111;
+        --color-red: #e63946;
+        --color-blue: #1d3557;
+        --color-yellow: #f4d35e;
+        --color-hairline: rgba(17, 17, 17, 0.14);
+        --color-hairline-strong: rgba(17, 17, 17, 0.3);
+
+        /* --- Semantic layer (shared vocabulary with dark template) --- */
+        --surface: var(--color-paper);
+        --surface-raised: var(--color-paper-2);
+        --surface-sunken: var(--color-paper-3);
+        --text: var(--color-ink);
+        --text-muted: rgba(17, 17, 17, 0.72);
+        --text-faint: rgba(17, 17, 17, 0.5);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-red);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        /* --- Backward-compatible aliases (do not break consumer skills) --- */
+        --bg: var(--surface);
+        --bg-elevated: var(--surface-raised);
+        --bg-sunken: var(--surface-sunken);
+        --bg-card: var(--surface-raised);
+        --bg-code: var(--surface-sunken);
+        --ink: var(--text);
+        --ink-secondary: var(--text-muted);
+        --ink-muted: var(--text-faint);
+        --rose: var(--problem);
+        --rose-glow: color-mix(in srgb, var(--problem) 15%, transparent);
+        --emerald: var(--solution);
+        --emerald-glow: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber: var(--warning);
+        --amber-glow: color-mix(in srgb, var(--warning) 15%, transparent);
+        --amber-light: color-mix(in srgb, var(--warning) 22%, transparent);
+        --coral: var(--problem);
+        --coral-light: color-mix(in srgb, var(--problem) 12%, transparent);
+        --teal: var(--solution);
+        --teal-light: color-mix(in srgb, var(--solution) 12%, transparent);
+
+        /* --- Shape --- */
+        --radius: 0px;
+        --radius-sm: 0px;
+
+        /* --- Type stacks (system only — zero external fonts) --- */
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+        *,
+        *::before,
+        *::after {
+          transition-duration: 0.01ms !important;
+          animation-duration: 0.01ms !important;
+        }
+      }
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 16px;
+        line-height: 1.65;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* --- Accessibility: keyboard focus --- */
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      a:focus-visible {
+        outline-offset: -1px;
+      }
+
+      /* --- Full-bleed top bar --- */
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      /* --- Layout: optional sticky sidebar TOC --- */
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--text);
+      }
+      .sidebar a {
+        font-size: 0.86rem;
+        color: var(--text);
+        text-decoration: none;
+        padding: 0.5rem 0.75rem;
+        border-left: 4px solid transparent;
+        font-weight: 600;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+        color: var(--accent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      /* --- Headings --- */
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        color: var(--text);
+      }
+      h1 {
+        font-size: clamp(1.9rem, 4.5vw, 2.8rem);
+        line-height: 1.05;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.5rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 3px solid var(--text);
+        display: flex;
+        align-items: baseline;
+        gap: 0.7rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+      h3 {
+        font-size: 1.15rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 1rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+
+      /* --- Hero --- */
+      .hero {
+        padding: 1.5rem 0 2rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 3px solid var(--text);
+      }
+      .eyebrow {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: var(--accent);
+        margin-bottom: 0.9rem;
+      }
+      .subtitle {
+        font-size: 1.1rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0 0 1rem;
+      }
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      .tag {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        padding: 0.25rem 0.6rem;
+        background: var(--surface-sunken);
+        color: var(--text);
+        border: 1px solid var(--border-strong);
+      }
+      .tag.amber {
+        background: var(--warning);
+        border-color: var(--warning);
+        color: var(--text);
+      }
+      .tag.teal {
+        background: var(--solution);
+        border-color: var(--solution);
+        color: var(--surface);
+      }
+
+      /* Bauhaus signature: geometric shape cluster (optional) */
+      .hero-shapes {
+        position: relative;
+        height: 90px;
+        margin-bottom: 1.2rem;
+      }
+      .hero-shapes .circle {
+        position: absolute;
+        top: 0;
+        right: 180px;
+        width: 64px;
+        height: 64px;
+        background: var(--problem);
+        border-radius: 50%;
+      }
+      .hero-shapes .square {
+        position: absolute;
+        top: 26px;
+        right: 90px;
+        width: 56px;
+        height: 56px;
+        background: var(--solution);
+      }
+      .hero-shapes .tri {
+        position: absolute;
+        top: 8px;
+        right: 0;
+        width: 0;
+        height: 0;
+        border-left: 32px solid transparent;
+        border-right: 32px solid transparent;
+        border-bottom: 56px solid var(--warning);
+      }
+      .hero-shapes .bar {
+        position: absolute;
+        bottom: 0;
+        right: 230px;
+        width: 100px;
+        height: 14px;
+        background: var(--text);
+      }
+
+      /* --- Scorecard / stat cards --- */
+      .scorecard,
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 0;
+        margin: 1.5rem 0 2rem;
+        border: 3px solid var(--text);
+      }
+      .score-card,
+      .stat-card {
+        padding: 1.3rem 1rem;
+        text-align: center;
+        border-right: 3px solid var(--text);
+        background: var(--surface-raised);
+      }
+      .score-card:last-child,
+      .stat-card:last-child {
+        border-right: none;
+      }
+
+      .score,
+      .stat-value {
+        font-family: var(--font-heading);
+        font-size: 2.6rem;
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -0.04em;
+      }
+      .score-card .label,
+      .stat-label {
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        margin-top: 0.5rem;
+      }
+      /* Semantic state classes — no nth-child decoration, no !important */
+      .score-good,
+      .stat-good {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .score-warn,
+      .stat-warn {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .score-bad,
+      .stat-bad {
+        background: var(--problem);
+        color: var(--surface);
+      }
+
+      /* --- General cards --- */
+      .card {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+      }
+
+      /* --- Issue cards --- */
+      .issue {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* --- Severity badges --- */
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.22rem 0.6rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+
+      /* --- Inline badges --- */
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        border: 1px solid var(--text);
+        color: var(--text);
+      }
+      .badge-critical {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .badge-high {
+        background: var(--warning);
+      }
+      .badge-medium {
+        background: var(--surface-sunken);
+      }
+      .badge-low {
+        background: var(--surface-raised);
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        background: var(--solution);
+        color: var(--surface);
+      }
+
+      /* --- Callouts --- */
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.8rem 1rem;
+        border: 1px solid var(--border-strong);
+        border-left: 4px solid var(--border-strong);
+        background: var(--surface-sunken);
+        font-size: 0.92rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-teal,
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 10%,
+          var(--surface-raised)
+        );
+      }
+      .callout-amber,
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 18%,
+          var(--surface-raised)
+        );
+      }
+
+      /* --- Strengths --- */
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.9rem;
+        padding: 0.75rem 0;
+        border-bottom: 2px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        color: var(--solution);
+        font-size: 1.3rem;
+        line-height: 1.3;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.92rem;
+      }
+
+      /* --- Tables --- */
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.92rem;
+        border: 2px solid var(--text);
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--text);
+        color: var(--surface);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-right: 1px solid var(--border-strong);
+      }
+      th:last-child {
+        border-right: none;
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-top: 1px solid var(--border);
+        border-right: 1px solid var(--border);
+      }
+      td:last-child {
+        border-right: none;
+      }
+      tr:nth-child(even) td {
+        background: var(--surface-sunken);
+      }
+      table.compare td.yes {
+        color: var(--solution);
+        font-weight: 700;
+      }
+      table.compare td.no {
+        color: var(--problem);
+        font-weight: 700;
+      }
+
+      /* --- Code blocks + syntax highlighting --- */
+      pre {
+        background: var(--text);
+        color: var(--surface);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+        border: 2px solid var(--text);
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      p code,
+      li code,
+      td code {
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+      }
+      .tok-keyword {
+        color: var(--warning);
+      }
+      .tok-type {
+        color: var(--warning);
+      }
+      .tok-string {
+        color: #95e1d3;
+      }
+      .tok-comment {
+        color: rgba(244, 244, 240, 0.45);
+        font-style: italic;
+      }
+      .tok-func {
+        color: #6eb5ff;
+      }
+      .tok-number {
+        color: var(--warning);
+      }
+      .tok-generic {
+        color: var(--problem);
+      }
+      .tok-builtin {
+        color: #6eb5ff;
+      }
+      .tok-punct {
+        color: rgba(244, 244, 240, 0.7);
+      }
+      .tok-attr {
+        color: var(--warning);
+      }
+
+      /* --- Dependency tree / ASCII diagrams --- */
+      .dep-tree {
+        background: var(--surface-sunken);
+        border: 2px solid var(--text);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.7;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .dep-tree .root {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .dep-tree .ok {
+        color: var(--solution);
+      }
+      .dep-tree .unwanted {
+        color: var(--problem);
+      }
+
+      /* --- Inline node-and-arrow diagrams --- */
+      .diagram {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+      }
+      .node {
+        display: inline-block;
+        padding: 0.4rem 0.75rem;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        font-weight: 700;
+        background: var(--surface-sunken);
+        border: 1px solid var(--text);
+      }
+      .node-core {
+        background: var(--accent);
+        color: var(--surface);
+      }
+      .node-problem {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .node-good {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .arrow {
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Grids --- */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      /* --- Inline TOC --- */
+      .toc {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+        padding: 1rem 1.3rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .toc h3 {
+        margin-bottom: 0.5rem;
+      }
+      .toc ul {
+        list-style: none;
+        padding: 0;
+      }
+      .toc li {
+        margin: 0.25rem 0;
+      }
+      .toc a {
+        color: var(--text);
+        text-decoration: none;
+        font-size: 0.92rem;
+        font-weight: 600;
+      }
+      .toc a:hover {
+        color: var(--accent);
+      }
+
+      /* --- Migration / numbered steps --- */
+      .migration-step {
+        display: grid;
+        grid-template-columns: 56px 1fr;
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1.1rem;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+      }
+      .migration-num {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        font-size: 1.8rem;
+        color: var(--accent);
+        line-height: 1;
+      }
+      .migration-content h4 {
+        margin-bottom: 0.2rem;
+      }
+      .migration-content p {
+        margin-bottom: 0;
+        color: var(--text-muted);
+        font-size: 0.94rem;
+      }
+
+      /* --- Before/After comparison --- */
+      .compare-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin: 1rem 0 0.5rem;
+      }
+      .compare-before,
+      .compare-after {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0.4rem 0.7rem;
+        color: var(--surface);
+      }
+      .compare-before {
+        background: var(--problem);
+      }
+      .compare-after {
+        background: var(--solution);
+      }
+      .compare-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      .compare-row pre {
+        margin: 0;
+      }
+
+      /* --- Footer --- */
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 3px solid var(--text);
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Responsive --- */
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+        .compare-header,
+        .compare-row {
+          grid-template-columns: 1fr;
+        }
+        .scorecard,
+        .stat-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-right: none;
+        }
+        .score-card:nth-child(1),
+        .stat-card:nth-child(1),
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-bottom: 3px solid var(--text);
+        }
+        .migration-step {
+          grid-template-columns: 1fr;
+        }
+        .hero-shapes {
+          display: none;
+        }
+      }
+    
+      /* ---------------------------------------------------------------------
+         Additions for the landscape dossier pages (everything above this
+         marker is the editorial template, copied verbatim).
+         --------------------------------------------------------------------- */
+      .top-bar a,
+      .footer a {
+        color: inherit;
+      }
+      .main a {
+        color: var(--solution);
+      }
+      .score-text {
+        font-family: var(--font-mono);
+        font-size: 0.95rem;
+        font-weight: 900;
+        letter-spacing: 0.02em;
+        line-height: 1.25;
+        overflow-wrap: anywhere;
+      }
+      .score-text-sm {
+        font-size: 0.78rem;
+        font-weight: 700;
+      }
+      .src {
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        color: var(--text-faint);
+        margin-top: 0.55rem;
+        overflow-wrap: anywhere;
+      }
+      .src a {
+        color: var(--text-muted);
+      }
+      .quote {
+        font-size: 0.95rem;
+      }
+      .quote em {
+        font-style: normal;
+        box-shadow: inset 0 -0.45em 0
+          color-mix(in srgb, var(--warning) 55%, transparent);
+      }
+      .verdict {
+        font-family: var(--font-mono);
+        font-size: 1.05rem;
+        font-weight: 900;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.5rem 0.9rem;
+        display: inline-block;
+        border: 2px solid var(--text);
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .verdict-adopt {
+        background: var(--solution);
+      }
+      .verdict-compete {
+        background: var(--problem);
+      }
+      .verdict-complement,
+      .verdict-orthogonal {
+        background: var(--surface-sunken);
+        color: var(--text);
+      }
+</style>
+  </head>
+  <body>
+    <div class="top-bar">
+      <span>LOCAL-FIRST LANDSCAPE REVIEW</span>
+      <span><a href="index.html">&larr; ALL PROJECTS</a></span>
+      <span>ACCESSED 2026-11-23</span>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#identity">01 &middot; Identity &amp; metadata</a>
+          <a href="#scorecard">02 &middot; Six-axis scorecard</a>
+          <a href="#evidence">03 &middot; Evidence</a>
+          <a href="#analysis">04 &middot; Analysis vs the question</a>
+          <a href="#fit">05 &middot; Fit verdict</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <section id="identity">
+          <h2><span class="num">00</span>Identity &amp; metadata</h2>
+          <p>
+            LiveStore models app state as an append-only eventlog that is materialized into a local
+            SQLite database by user-defined materializers, wrapped in a signals-based reactivity
+            system, and synced between clients through a pluggable sync backend that enforces one
+            global total order of events. Writes are <code>store.commit(event)</code> calls that
+            take effect locally first and are pushed upstream later &mdash; pending events are
+            rebased onto the server head on reconnect, exactly like a git rebase. It is
+            TypeScript-only, self-hosted, and developed full-time by Johannes Schickling since
+            2021 (facts re-used from the repo&rsquo;s own 2026-11-22-verified research report).
+          </p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Metadata</th><th>Value</th><th>Source</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Maturity</td><td>&ldquo;currently in <strong>beta</strong>&rdquo;; &ldquo;not yet ready for all production scenarios&rdquo;</td><td>docs.livestore.dev &ldquo;State of the project&rdquo;, cache 2026-11-22; localfirst.fm landscape self-report: &ldquo;Beta&rdquo;</td></tr>
+                <tr><td>License</td><td>Apache-2.0</td><td>GitHub API + npm <code>@livestore/livestore@0.5.0</code>, live 2026-11-23</td></tr>
+                <tr><td>Initial release</td><td>self-report 2021-12-01; &ldquo;in development since 2021&rdquo;; first npm publish 2023-09-22; repo created 2023-09-21</td><td>localfirst.fm landscape self-report; state-of-the-project (cache 2026-11-22); npm registry + GitHub API (live 2026-11-23)</td></tr>
+                <tr><td>Current version</td><td>0.5.0 (published 2026-10-15); repo last pushed 2026-11-22; 3,765 stars</td><td>npm registry + GitHub API, live 2026-11-23</td></tr>
+                <tr><td>Bundle size</td><td>&ldquo;~500kb gzipped&rdquo; library + SQLite WASM &ldquo;~600kb / 300kb gzipped&rdquo; (npm unpacked 1.45&nbsp;MB)</td><td>localfirst.fm landscape self-report (not re-measured); npm dist, live 2026-11-23</td></tr>
+                <tr><td>Platform / SDK</td><td>TypeScript; Browser, Node, iOS, Android; sync backends: Cloudflare, ElectricSQL, S2, custom</td><td>docs.livestore.dev llms.txt, cache 2026-11-22</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+        <section id="scorecard">
+          <h2><span class="num">01</span>Six-axis scorecard</h2>
+          <p>
+            Colour encodes fit with the owner&rsquo;s question (blue&nbsp;=&nbsp;matches the lens,
+            yellow&nbsp;=&nbsp;partial with a caveat, neutral&nbsp;=&nbsp;orthogonal to it), not
+            product quality.
+          </p>
+          <section class="scorecard">
+            <div class="score-card score-good">
+              <div class="score score-text">OWNS ITS DATA</div>
+              <div class="label">1 &middot; Client data ownership</div>
+            </div>
+            <div class="score-card score-warn">
+              <div class="score score-text">CLIENT-MINTS-FACTS</div>
+              <div class="label">2 &middot; Local commands</div>
+            </div>
+            <div class="score-card score-good">
+              <div class="score score-text">GIT-LIKE-REBASE</div>
+              <div class="label">3 &middot; Reconnect model</div>
+            </div>
+            <div class="score-card score-warn">
+              <div class="score score-text">EVENTS YES / COMMANDS NO</div>
+              <div class="label">4 &middot; Client-local commands &amp; events</div>
+            </div>
+            <div class="score-card score-warn">
+              <div class="score score-text score-text-sm">SHARED TS SCHEMA, NO PROTECTED SEAM</div>
+              <div class="label">5 &middot; Logic sharing</div>
+            </div>
+            <div class="score-card">
+              <div class="score score-text">BETA / APACHE-2.0</div>
+              <div class="label">6 &middot; Maturity &amp; license</div>
+            </div>
+          </section>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Axis</th><th>Verdict</th><th>Detail (evidence)</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>1 &middot; Client data ownership</td>
+                  <td><strong>Strong</strong></td>
+                  <td>Eventlog plus materialized SQLite persist in browser storage (IndexedDB/OPFS per landscape self-report); reads and writes work offline out of the box; state is disposable and rebuildable from the log <a href="#ev1">#ev1</a> <a href="#ev13">#ev13</a></td>
+                </tr>
+                <tr>
+                  <td>2 &middot; Local commands</td>
+                  <td><span class="badge badge-high">CLIENT-MINTS-FACTS</span></td>
+                  <td>The mutation primitive is <code>store.commit(events.todoCreated(&#123; &#125;))</code> &mdash; the client authors the fact; the sync backend only validates payload shape and sequence order <a href="#ev2">#ev2</a> <a href="#ev7">#ev7</a></td>
+                </tr>
+                <tr>
+                  <td>3 &middot; Reconnect rebase model</td>
+                  <td><strong>GIT-LIKE-REBASE</strong></td>
+                  <td>Pull before push; pending events re-parent onto the arbitrated head and replay; <code>rebaseGeneration</code> counts each rebase; backend assigns the total order and answers <code>ServerAheadError</code> <a href="#ev3">#ev3</a> <a href="#ev8">#ev8</a></td>
+                </tr>
+                <tr>
+                  <td>4 &middot; Commands &amp; events client-local</td>
+                  <td><strong>Events yes, commands no (shipped)</strong></td>
+                  <td><code>synced</code> and <code>clientOnly</code> events both originate on the client; no shipped command API &mdash; RFC&nbsp;0002 &ldquo;Command Replay&rdquo; is an open proposal, absent from npm 0.5.0 (checked live) <a href="#ev5">#ev5</a> <a href="#ev9">#ev9</a></td>
+                </tr>
+                <tr>
+                  <td>5 &middot; Logic sharing + protected resources</td>
+                  <td><strong>Shared TS schema; protection is app-level</strong></td>
+                  <td>Event schema must be shared by all clients; per-client state schemas allowed; &ldquo;leaving authentication, file uploads, and business logic to application code&rdquo;; server-side clients may commit &ldquo;for sensitive/trusted operations&rdquo; <a href="#ev6">#ev6</a> <a href="#ev10">#ev10</a> <a href="#ev12">#ev12</a></td>
+                </tr>
+                <tr>
+                  <td>6 &middot; Maturity + license</td>
+                  <td><strong>Beta / Apache-2.0</strong></td>
+                  <td>Self-described beta, breaking changes allowed in minor releases; conflict handling and compaction unimplemented, both blocked on the unbuilt &ldquo;facts system&rdquo; <a href="#ev11">#ev11</a></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+        <section id="evidence">
+          <h2><span class="num">02</span>Evidence</h2>
+          <div class="card" id="ev1">
+            <p class="quote">&ldquo;LiveStore is a client-centric local-first data layer for high-performance apps based on SQLite and event-sourcing.&rdquo;</p>
+            <div class="src">docs.livestore.dev llms.txt &middot; <a href="https://docs.livestore.dev/llms.txt">https://docs.livestore.dev/llms.txt</a> &middot; cache 2026-11-22</div>
+          </div>
+          <div class="card" id="ev2">
+            <p class="quote">&ldquo;store.commit(events.todoCreated(&#123; id: '1', text: 'Buy milk' &#125;))&rdquo; &mdash; and &ldquo;It's strongly recommended to use past-tense event names &hellip; to indicate something already occurred.&rdquo;</p>
+            <div class="src">docs.livestore.dev, Events &middot; <a href="https://docs.livestore.dev/building-with-livestore/events">https://docs.livestore.dev/building-with-livestore/events</a> &middot; cache 2026-11-22</div>
+          </div>
+          <div class="card" id="ev3">
+            <p class="quote">&ldquo;The syncing mechanism is similar to how Git works in that regard that it's based on a &quot;push/pull&quot; model. Upstream events always need to be pulled before a client can push its own events to preserve a global total order of events. Local pending events which haven't been pushed yet need to be rebased on top of the latest upstream events before they can be pushed.&rdquo;</p>
+            <div class="src">docs.livestore.dev, Syncing &middot; <a href="https://docs.livestore.dev/building-with-livestore/syncing">https://docs.livestore.dev/building-with-livestore/syncing</a> &middot; cache 2026-11-22</div>
+          </div>
+          <div class="card" id="ev4">
+            <p class="quote">&ldquo;The sync backend acts as the global authority and determines the total order of events (&quot;causality&quot;).&rdquo; &hellip; &ldquo;Do rebasing on the client side (instead of on the sync backend). This allows the user to have more control over the rebase process.&rdquo;</p>
+            <div class="src">docs.livestore.dev, Syncing &middot; <a href="https://docs.livestore.dev/building-with-livestore/syncing">https://docs.livestore.dev/building-with-livestore/syncing</a> &middot; cache 2026-11-22</div>
+          </div>
+          <div class="card" id="ev5">
+            <p class="quote">&ldquo;There are two types of events: <code>synced</code>: Events that are synced across clients; <code>clientOnly</code>: Events that are only processed locally on the client (but still synced across client sessions e.g. across browser tabs/windows)&rdquo;</p>
+            <div class="src">docs.livestore.dev, Events &middot; <a href="https://docs.livestore.dev/building-with-livestore/events">https://docs.livestore.dev/building-with-livestore/events</a> &middot; cache 2026-11-22</div>
+          </div>
+          <div class="card" id="ev6">
+            <p class="quote">&ldquo;While the <code>events</code> schema needs to be shared across all clients, the <code>state</code> schema can be different for each client&rdquo; &mdash; and server-side clients can &ldquo;commit events on the server side (e.g. for sensitive/trusted operations)&rdquo;.</p>
+            <div class="src">docs.livestore.dev, Server-side clients &middot; <a href="https://docs.livestore.dev/patterns/server-side-clients">https://docs.livestore.dev/patterns/server-side-clients</a> &middot; live 2026-11-23</div>
+          </div>
+          <div class="card" id="ev7">
+            <p class="quote">A custom sync backend must, for pushes: &ldquo;Validate the batch of events / Ensure the batch sequence numbers are in ascending order and larger than the sync backend head / Further validation checks (e.g. schema-aware payload validation) &hellip; It's important that the server only processes one push request at a time to ensure a total ordering of events.&rdquo;</p>
+            <div class="src">docs.livestore.dev, Build your own sync provider &middot; <a href="https://docs.livestore.dev/sync-providers/custom">https://docs.livestore.dev/sync-providers/custom</a> &middot; live 2026-11-23</div>
+          </div>
+          <div class="card" id="ev8">
+            <p class="quote">&ldquo;Client rolls back events and state to the point of divergence &hellip; Client replays its local pending events on top of the new head &hellip; Stored original events keep their payload but their sequence number gets updated to follow upstream head.&rdquo; Client-side sequence numbers carry <code>&#123; global, client, rebaseGeneration &#125;</code>.</p>
+            <div class="src">docs.livestore.dev, Events (conflict resolution walkthrough) &middot; <a href="https://docs.livestore.dev/building-with-livestore/events">https://docs.livestore.dev/building-with-livestore/events</a> &middot; cache 2026-11-22</div>
+          </div>
+          <div class="card" id="ev9">
+            <p class="quote">RFC 0002 (merged 2026-04-15): &ldquo;Commands live entirely on the client. The sync backend continues to exchange events, not commands.&rdquo; &hellip; &ldquo;Rebasing re-parents events without re-validating whether the assumptions that justified their creation still hold, resulting in potentially invalid states.&rdquo; &hellip; &ldquo;Event rebasing gives us convergence without correctness.&rdquo; Status per the repo&rsquo;s intent layer: &ldquo;LS-DQ1 Command/intent design. RFC 0002 (command replay) is an open proposal &hellip; Unresolved: whether to accept the design and fold it into the owning nodes.&rdquo;</p>
+            <div class="src">github.com livestorejs/livestore, contributor-docs/rfcs/0002 + context/open-questions.md &middot; <a href="https://github.com/livestorejs/livestore/blob/main/contributor-docs/rfcs/0002-command-replay.md">https://github.com/livestorejs/livestore/blob/main/contributor-docs/rfcs/0002-command-replay.md</a> &middot; live 2026-11-23</div>
+          </div>
+          <div class="card" id="ev10">
+            <p class="quote">&ldquo;Deliberately minimal scope: LiveStore stays focused on core data management and syncing, leaving authentication, file uploads, and business logic to application code &mdash; a composable, Unix-like building block.&rdquo; &hellip; &ldquo;Conflicts resolve by deterministic total-order rebase: the sync backend arbitrates one event order, clients rebase and replay &hellip; Richer conflict semantics are an active design direction (see the command replay RFC).&rdquo;</p>
+            <div class="src">docs.livestore.dev, Design decisions &middot; <a href="https://docs.livestore.dev/understanding-livestore/design-decisions">https://docs.livestore.dev/understanding-livestore/design-decisions</a> &middot; live 2026-11-23</div>
+          </div>
+          <div class="card" id="ev11">
+            <p class="quote">&ldquo;Merge conflict handling isn't implemented yet (see this issue)&rdquo; and will be &ldquo;based on the upcoming facts system functionality&rdquo;. Issue #253 &ldquo;Merge conflict handling&rdquo; and #254 &ldquo;Facts system&rdquo; are both open and reopened, last updated 2026-05-15 / 2026-05-14.</p>
+            <div class="src">docs.livestore.dev, Syncing + GitHub issues #253/#254 &middot; <a href="https://github.com/livestorejs/livestore/issues/253">https://github.com/livestorejs/livestore/issues/253</a> &middot; cache 2026-11-22 (docs), live 2026-11-23 (issues via GitHub API)</div>
+          </div>
+          <div class="card" id="ev12">
+            <p class="quote">&ldquo;LiveStore doesn't include built-in authentication or authorization support, but you can implement it in your app's logic.&rdquo; The auth pattern is an app-supplied <code>syncPayload</code> verified by the sync backend&rsquo;s <code>validatePayload</code> and re-checked inside the Durable Object on every push.</p>
+            <div class="src">docs.livestore.dev, Auth &middot; <a href="https://docs.livestore.dev/patterns/auth">https://docs.livestore.dev/patterns/auth</a> &middot; live 2026-11-23</div>
+          </div>          <div class="card" id="ev13">
+            <p class="quote">&ldquo;LiveStore supports offline data management out of the box. In order to make your app work fully offline, you might need to also consider the following: Design your app in a way to treat the network as an optional feature&rdquo; &mdash; with <code>store.networkStatus</code> exposing connectivity transitions and devtools able to simulate offline clients.</p>
+            <div class="src">docs.livestore.dev, Offline support &middot; <a href="https://docs.livestore.dev/patterns/offline">https://docs.livestore.dev/patterns/offline</a> &middot; live 2026-11-23</div>
+          </div>        </section>
+        <section id="analysis">
+          <h2><span class="num">03</span>Analysis vs the owner&rsquo;s question and go-cqrs-lite&rsquo;s thesis</h2>
+          <p>
+            The owner&rsquo;s addendum (research report of 2026-11-22, section&nbsp;10) decomposes
+            the question into P1&nbsp;browser owns its data, P2&nbsp;local Commands,
+            P3&nbsp;git-like rebase on reconnect, P4&nbsp;Commands &amp; Events that only happened
+            on the client, P5&nbsp;shared logic minus protected server resources. LiveStore is the
+            reference system for P1 and P3 and the anti-reference for P2.
+          </p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Question part</th><th>LiveStore&rsquo;s answer</th><th>Read-across to go-cqrs-lite</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>P1 &middot; browser owns its data</td>
+                  <td>Eventlog is the source of truth on the device; SQLite state is a disposable projection. Leader thread owns <code>dbEventLog</code> + <code>dbState</code>; sessions hold in-memory mirrors.</td>
+                  <td>This is the owner&rsquo;s dual-SQLite topology (journal DB + projections DB in a worker) almost verbatim &mdash; adopt the leader/session split and the &ldquo;state is rebuildable&rdquo; stance.</td>
+                </tr>
+                <tr>
+                  <td>P2 &middot; local-first including Commands</td>
+                  <td>Not available: the client commits events directly. The shipped validation ladder is payload schema, a pre-state commit callback, deterministic materializers, and backend ordering &mdash; none can consult authoritative state.</td>
+                  <td>Confirms the 2026-11-22 finding: no Command concept exists in the shipping API. Do not copy the write model; keep <code>command.PersistedCommand</code> queueing with server-side deciders.</td>
+                </tr>
+                <tr>
+                  <td>P3 &middot; git-like branch/rebase</td>
+                  <td>Push/pull with rebasing of pending events onto the arbitrated head; rollback to the divergence point, replay, renumber &mdash; with a <code>rebaseGeneration</code> counter.</td>
+                  <td>The UX to steal &mdash; but rebase <em>intents</em>, not facts: re-decide queued commands against fresh server state so a collision is a <code>errorfamily.NewRejection</code>, never a structural merge.</td>
+                </tr>
+                <tr>
+                  <td>P4 &middot; client-only Commands &amp; Events</td>
+                  <td><code>clientOnly</code> events are a clean local-only seam (UI state). RFC&nbsp;0002 proposes a journaled, replayable command executed on the client with <code>ctx.phase</code> initial/replay and a <code>confirmation</code> promise that ends in <code>confirmed</code> or <code>conflict</code>.</td>
+                  <td>RFC&nbsp;0002&rsquo;s shape is nearly identical to the owner&rsquo;s speculative-branch design; its Alternatives&nbsp;D (server-side command execution) and E (client-authoritative facts) bracket exactly the choice go-cqrs-lite already made. Watch this RFC &mdash; the outlier is converging.</td>
+                </tr>
+                <tr>
+                  <td>P5 &middot; shared logic minus protected resources</td>
+                  <td>One TypeScript schema (event tables + materializers) runs in every client; no notion of a protected decider. Auth is an app-level <code>syncPayload</code>; &ldquo;sensitive/trusted&rdquo; writes go through a server-side client.</td>
+                  <td>LiveStore shares <em>data</em> logic, not decision logic. go-cqrs-lite&rsquo;s equivalent seam is the stream-local vs cross-stream decider split (pure <code>decider.TypedDecider</code> portable; anything reading other streams server-only).</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            Against the thesis: LiveStore is event-sourcing with the Command boundary deleted
+            &mdash; the exact pole the 2026-11-22 report declined, and the project is now paying
+            for it in public: merge-conflict handling and compaction are unimplemented and blocked
+            on an unbuilt facts system (#253/#254). What makes this page more than a confirmation
+            is the delta since that report: the repo now carries a merged-but-unaccepted RFC that
+            re-introduces Commands <em>on the client</em>, while keeping the wire format
+            events-only. The published package does not contain the RFC&rsquo;s API (no
+            <code>defineCommand</code> / <code>store.execute</code> in the 0.5.0 tarball, checked
+            2026-11-23) &mdash; so nothing shipped has changed, but the design direction has.
+          </p>
+          <div class="callout callout-amber">
+            <strong>UNVERIFIED (2)</strong>
+            Bundle size (&ldquo;~500kb gzipped&rdquo; + WASM) is a landscape self-report, not
+            re-measured here; and whether any in-repo branch already implements the RFC&nbsp;0002
+            API was not checked &mdash; only main&rsquo;s intent documents and the published npm
+            tarball were inspected.
+          </div>
+        </section>
+        <section id="fit">
+          <h2><span class="num">04</span>Fit verdict</h2>
+          <p><span class="verdict verdict-adopt">PATTERN-TO-ADOPT</span></p>
+          <p>
+            Adopt the sync and storage anatomy &mdash; pull-before-push rebase of a pending log,
+            pending-vs-confirmed event states, the leader/session worker split over a durable
+            eventlog plus disposable SQLite state, and the <code>clientOnly</code> seam &mdash;
+            and treat RFC&nbsp;0002 as free validation of the speculative-branch design, including
+            its honest pricing of offline replay (cascading rejections, audit-trail rewrite).
+            Do not adopt the write model: client-minted facts remove the one boundary
+            go-cqrs-lite exists to keep, and LiveStore&rsquo;s own tracker shows the bill.
+          </p>
+        </section>
+
+        <footer class="footer">
+          <p>
+            Dossier assembled 2026-11-23 for go-cqrs-lite &middot; cached page
+            dumps are dated <em>cache 2026-11-22</em>, live fetches
+            <em>2026-11-23</em> &middot; claims that could not be verified
+            against a primary source are labelled UNVERIFIED inline &middot;
+            <a href="index.html">back to the landscape index</a>
+          </p>
+        </footer>
+      </main>
+    </div>
+
+<script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) {
+            return document.getElementById(id);
+          })
+          .filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (link) {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id,
+                  );
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
+      })();
+    </script>
+  </body>
+</html>

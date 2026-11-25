@@ -1,0 +1,897 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DXOS — Local-First Landscape Review · go-cqrs-lite</title>
+    <style>
+/* =========================================================================
+         BAUHAUS LIGHT — Editorial template
+         Design language: form follows function. Primary colors on warm paper.
+         Zero external dependencies: system fonts, no CDN, no build step.
+         Token architecture: see references/bauhaus-tokens.md
+         ========================================================================= */
+
+      :root {
+        /* --- Primitive palette (Bauhaus Light) --- */
+        --color-paper: #f4f4f0;
+        --color-paper-2: #ffffff;
+        --color-paper-3: #e8e8e2;
+        --color-ink: #111111;
+        --color-red: #e63946;
+        --color-blue: #1d3557;
+        --color-yellow: #f4d35e;
+        --color-hairline: rgba(17, 17, 17, 0.14);
+        --color-hairline-strong: rgba(17, 17, 17, 0.3);
+
+        /* --- Semantic layer (shared vocabulary with dark template) --- */
+        --surface: var(--color-paper);
+        --surface-raised: var(--color-paper-2);
+        --surface-sunken: var(--color-paper-3);
+        --text: var(--color-ink);
+        --text-muted: rgba(17, 17, 17, 0.72);
+        --text-faint: rgba(17, 17, 17, 0.5);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-red);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        /* --- Backward-compatible aliases (do not break consumer skills) --- */
+        --bg: var(--surface);
+        --bg-elevated: var(--surface-raised);
+        --bg-sunken: var(--surface-sunken);
+        --bg-card: var(--surface-raised);
+        --bg-code: var(--surface-sunken);
+        --ink: var(--text);
+        --ink-secondary: var(--text-muted);
+        --ink-muted: var(--text-faint);
+        --rose: var(--problem);
+        --rose-glow: color-mix(in srgb, var(--problem) 15%, transparent);
+        --emerald: var(--solution);
+        --emerald-glow: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber: var(--warning);
+        --amber-glow: color-mix(in srgb, var(--warning) 15%, transparent);
+        --amber-light: color-mix(in srgb, var(--warning) 22%, transparent);
+        --coral: var(--problem);
+        --coral-light: color-mix(in srgb, var(--problem) 12%, transparent);
+        --teal: var(--solution);
+        --teal-light: color-mix(in srgb, var(--solution) 12%, transparent);
+
+        /* --- Shape --- */
+        --radius: 0px;
+        --radius-sm: 0px;
+
+        /* --- Type stacks (system only — zero external fonts) --- */
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 16px;
+        line-height: 1.65;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* --- Accessibility: keyboard focus --- */
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      a:focus-visible {
+        outline-offset: -1px;
+      }
+
+      /* --- Full-bleed top bar --- */
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      /* --- Layout: optional sticky sidebar TOC --- */
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--text);
+      }
+      .sidebar a {
+        font-size: 0.86rem;
+        color: var(--text);
+        text-decoration: none;
+        padding: 0.5rem 0.75rem;
+        border-left: 4px solid transparent;
+        font-weight: 600;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+        color: var(--accent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      /* --- Headings --- */
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        color: var(--text);
+      }
+      h1 {
+        font-size: clamp(1.9rem, 4.5vw, 2.8rem);
+        line-height: 1.05;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.5rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 3px solid var(--text);
+        display: flex;
+        align-items: baseline;
+        gap: 0.7rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+      h3 {
+        font-size: 1.15rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 1rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+
+      /* --- Hero --- */
+      .hero {
+        padding: 1.5rem 0 2rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 3px solid var(--text);
+      }
+      .eyebrow {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: var(--accent);
+        margin-bottom: 0.9rem;
+      }
+      .subtitle {
+        font-size: 1.1rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0 0 1rem;
+      }
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      .tag {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        padding: 0.25rem 0.6rem;
+        background: var(--surface-sunken);
+        color: var(--text);
+        border: 1px solid var(--border-strong);
+      }
+      .tag.amber {
+        background: var(--warning);
+        border-color: var(--warning);
+        color: var(--text);
+      }
+      .tag.teal {
+        background: var(--solution);
+        border-color: var(--solution);
+        color: var(--surface);
+      }
+
+
+      /* --- Scorecard / stat cards --- */
+      .scorecard,
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 0;
+        margin: 1.5rem 0 2rem;
+        border: 3px solid var(--text);
+      }
+      .score-card,
+      .stat-card {
+        padding: 1.3rem 1rem;
+        text-align: center;
+        border-right: 3px solid var(--text);
+        background: var(--surface-raised);
+      }
+      .score-card:last-child,
+      .stat-card:last-child {
+        border-right: none;
+      }
+
+      .score,
+      .stat-value {
+        font-family: var(--font-heading);
+        font-size: 2.6rem;
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -0.04em;
+      }
+      .score-card .label,
+      .stat-label {
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        margin-top: 0.5rem;
+      }
+      /* Semantic state classes — no nth-child decoration, no !important */
+      .score-good,
+      .stat-good {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .score-warn,
+      .stat-warn {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .score-bad,
+      .stat-bad {
+        background: var(--problem);
+        color: var(--surface);
+      }
+
+      /* --- General cards --- */
+      .card {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+      }
+
+      /* --- Issue cards --- */
+      .issue {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* --- Severity badges --- */
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.22rem 0.6rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+
+      /* --- Inline badges --- */
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        border: 1px solid var(--text);
+        color: var(--text);
+      }
+      .badge-critical {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .badge-high {
+        background: var(--warning);
+      }
+      .badge-medium {
+        background: var(--surface-sunken);
+      }
+      .badge-low {
+        background: var(--surface-raised);
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        background: var(--solution);
+        color: var(--surface);
+      }
+
+      /* --- Callouts --- */
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.8rem 1rem;
+        border: 1px solid var(--border-strong);
+        border-left: 4px solid var(--border-strong);
+        background: var(--surface-sunken);
+        font-size: 0.92rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-teal,
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 10%,
+          var(--surface-raised)
+        );
+      }
+      .callout-amber,
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 18%,
+          var(--surface-raised)
+        );
+      }
+
+      /* --- Tables --- */
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.92rem;
+        border: 2px solid var(--text);
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--text);
+        color: var(--surface);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-right: 1px solid var(--border-strong);
+      }
+      th:last-child {
+        border-right: none;
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-top: 1px solid var(--border);
+        border-right: 1px solid var(--border);
+      }
+      td:last-child {
+        border-right: none;
+      }
+      tr:nth-child(even) td {
+        background: var(--surface-sunken);
+      }
+      table.compare td.yes {
+        color: var(--solution);
+        font-weight: 700;
+      }
+      table.compare td.no {
+        color: var(--problem);
+        font-weight: 700;
+      }
+
+      /* --- Grids --- */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      /* --- Inline TOC --- */
+      .toc {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+        padding: 1rem 1.3rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .toc h3 {
+        margin-bottom: 0.5rem;
+      }
+      .toc ul {
+        list-style: none;
+        padding: 0;
+      }
+      .toc li {
+        margin: 0.25rem 0;
+      }
+      .toc a {
+        color: var(--text);
+        text-decoration: none;
+        font-size: 0.92rem;
+        font-weight: 600;
+      }
+      .toc a:hover {
+        color: var(--accent);
+      }
+
+      /* --- Footer --- */
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 3px solid var(--text);
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Responsive --- */
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+        .compare-header,
+        .compare-row {
+          grid-template-columns: 1fr;
+        }
+        .scorecard,
+        .stat-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-right: none;
+        }
+        .score-card:nth-child(1),
+        .stat-card:nth-child(1),
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-bottom: 3px solid var(--text);
+        }
+        .migration-step {
+          grid-template-columns: 1fr;
+        }
+      }
+    
+      /* --- Code blocks --- */
+      pre {
+        background: var(--text);
+        color: var(--surface);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+        border: 2px solid var(--text);
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      p code,
+      li code,
+      td code {
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+      }
+
+      /* --- Top-bar back link --- */
+      .top-bar a {
+        color: inherit;
+        text-decoration: none;
+      }
+      .top-bar a:hover {
+        text-decoration: underline;
+      }
+
+    </style>
+  </head>
+  <body>
+    <div class="top-bar">
+      <span><a href="index.html">&larr; Local-first landscape index</a></span>
+      <span>Competition review &middot; 2026-11-23</span>
+      <span>go-cqrs-lite</span>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#identity">Identity</a>
+          <a href="#scorecard">Six-axis scorecard</a>
+          <a href="#evidence">Evidence</a>
+          <a href="#analysis">Analysis vs the lens</a>
+          <a href="#verdict">Fit verdict</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <header class="hero" id="identity">
+          <div class="eyebrow">Local-first landscape &middot; competition review &middot; 2026-11-23</div>
+          <h1>DXOS</h1>
+          <p class="subtitle">
+            A maximalist open-source stack for collaborative local-first apps — graph database, key-based identity, P2P networking, optional cloud peer — where the client is everything and no server has authority.
+          </p>
+          <div class="meta">
+            <span class="tag">Maturity: not tiered &middot; landscape blank; 0.x SDK, very active</span>
+            <span class="tag">License: FSL-1.1-Apache-2.0 &middot; verified LICENSE + npm 2026-11-23 (landscape's MIT is stale)</span>
+            <span class="tag">Initial release: repo created 2021-04-07 &middot; GitHub cache</span>
+            <span class="tag">Bundle: not published</span>
+            <span class="tag amber">Write model: CLIENT-MINTS-FACTS</span>
+            <span class="tag amber">Reconnect model: CRDT (Automerge)</span>
+          </div>
+        </header>
+
+        <section id="scorecard">
+          <h2><span class="num">01</span>Six-axis scorecard</h2>
+          <p>
+            Scored against the owner's question: browser-owned data, local
+            Commands, Git-like branch-rebase on reconnect, client-local
+            Commands &amp; Events, shared Command/Event/Query logic, and
+            maturity. Axis labels are fixed across every project page in this
+            review so the columns can be compared row by row.
+          </p>
+          <tr>
+                  <td>1 &middot; Client data ownership</td>
+                  <td class="yes">Maximal: client-only by design</td>
+                  <td>&ldquo;run entirely on the client and communicate peer-to-peer, without the need for centralized servers&rdquo;; data lives in ECHO spaces on-device (IndexedDB), replicated across the user's peers. Identity itself is client-held keys (HALO).</td>
+                </tr>
+                <tr>
+                  <td>2 &middot; Local Commands</td>
+                  <td><span class="badge badge-critical">CLIENT-MINTS-FACTS</span></td>
+                  <td>ECHO objects are written locally and merged by CRDT (Automerge under the hood per landscape self-report and the DXOS homepage). The only gate is Effect Schema validation on write &mdash; structural, not domain decision.</td>
+                </tr>
+                <tr>
+                  <td>3 &middot; Reconnect rebase model</td>
+                  <td><span class="badge badge-high">CRDT</span></td>
+                  <td>&ldquo;A peer can write while offline. Its changes merge when it rejoins the network.&rdquo; EDGE is an optional always-on peer, never an authority: &ldquo;Peers replicate data with CRDTs. There is no central authority.&rdquo;</td>
+                </tr>
+                <tr>
+                  <td>4 &middot; Commands &amp; Events client-local?</td>
+                  <td class="no">No such concepts</td>
+                  <td>Objects, spaces, and typed operations are the vocabulary. Writes are client-local facts by construction, but there is no command/handler split and no domain-event log exposed to apps.</td>
+                </tr>
+                <tr>
+                  <td>5 &middot; Logic sharing + protected resources</td>
+                  <td>TypeScript-only; identity-level protection</td>
+                  <td>Schemas defined with Effect Schema, &ldquo;validated on write&rdquo; (landscape self-report); full type support via Effect. HALO gives key-based identity, invitations, RBAC. No Go story; agents (SAGE) operate through typed operations on the same data.</td>
+                </tr>
+                <tr>
+                  <td>6 &middot; Maturity + license</td>
+                  <td>Untiered, 0.x &middot; FSL-1.1-Apache-2.0</td>
+                  <td>Verified 2026-11-23: LICENSE file = Functional Source License 1.1 (converts to Apache-2.0 per its change-date clause); npm @dxos/client 0.17.0 (FSL-1.1-Apache-2.0, modified 2026-11-20); repo pushed 2026-11-22. Docs last updated 2026-11-19/20.</td>
+                </tr>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Axis</th>
+                  <th>Verdict</th>
+                  <th>Grounds</th>
+                </tr>
+              </thead>
+              <tbody>
+<div class="scorecard">
+            <div class="score-card score-bad">
+              <div class="score">CMF</div>
+              <div class="label">Commands verdict</div>
+            </div>
+            <div class="score-card score-warn">
+              <div class="score">CRDT</div>
+              <div class="label">Reconnect model</div>
+            </div>
+            <div class="score-card score-bad">
+              <div class="score">NO</div>
+              <div class="label">Client Commands &amp; Events</div>
+            </div>
+            <div class="score-card score-warn">
+              <div class="score">FSL</div>
+              <div class="label">License (not MIT)</div>
+            </div>
+          </div>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="evidence">
+          <h2><span class="num">02</span>Evidence</h2>
+          <p>
+            Every claim above traces to a primary source. Quotes are verbatim;
+            dates distinguish yesterday's scraped cache from today's live
+            fetches. Items that could not be primary-source-verified are
+            marked UNVERIFIED where they are relied on at all.
+          </p>
+<div class="card">
+            <p>&ldquo;DXOS is an open source framework for building real-time, collaborative web applications that run entirely on the client and communicate peer-to-peer, without the need for centralized servers.&rdquo;</p>
+            <div class="where">dxos.org (home) &mdash; https://dxos.org/ &mdash; cache 2026-11-22</div>
+          </div>
+          <div class="card">
+            <p>&ldquo;The only reason you need a central server is to serve your application shell. Everything else happens in the client and works peer-to-peer.&rdquo; &hellip; &ldquo;DXOS leverages Automerge. A powerful CRDT that enables multiple concurrent users to operate on the same data without loss or conflict.&rdquo;</p>
+            <div class="where">dxos.org (home) &mdash; cache 2026-11-22</div>
+          </div>
+          <div class="card">
+            <p>&ldquo;ECHO, the Eventually Consistent Hierarchical Object store, is a peer-to-peer graph database for TypeScript.&rdquo; &hellip; &ldquo;Peers replicate data with CRDTs. There is no central authority.&rdquo; &hellip; &ldquo;A peer can write while offline. Its changes merge when it rejoins the network.&rdquo;</p>
+            <div class="where">dxos.org/docs/echo/overview &mdash; cache 2026-11-22</div>
+          </div>
+          <div class="card card-problem">
+            <p>&ldquo;The SDK is under active development, and right now its features follow what Composer needs. Support for other uses is limited, so suggestions and contributions that line up with Composer get priority.&rdquo;</p>
+            <div class="where">dxos.org/docs/echo/overview &mdash; cache 2026-11-22</div>
+          </div>
+          <div class="card">
+            <p>Stack listing: &ldquo;ECHO &mdash; Realtime graph database [&hellip;] HALO &mdash; Decentralized identity, with keys on your devices. MESH &mdash; Peer-to-peer networking that links devices directly. EDGE &mdash; Always-on cloud peer for sync, backup and compute. SAGE &mdash; AI agents with their own identity, tools and skills.&rdquo; Docs footer: &ldquo;FSL-1.1-Apache-2.0. Copyright DXOS.org.&rdquo;</p>
+            <div class="where">dxos.org/docs (The DXOS Stack) &mdash; cache 2026-11-22 (docs last updated 2026-11-19)</div>
+          </div>
+          <div class="card">
+            <p>Landscape self-report: license listed as MIT (stale &mdash; see live verification below); client persistence IndexedDB; conflict &ldquo;Automatic via CRDT (Automerge is the CRDT used under the hood)&rdquo;; schema management &ldquo;Schemas are defined using Effect Schema, and are validated on write&rdquo;; encryption comment: &ldquo;Data is not currently encrypted at rest. E2EE is planned via Keyhive&rdquo; &mdash; E2EE status UNVERIFIED beyond this comment.</p>
+            <div class="where">localfirst.fm landscape self-report (via /tmp/lf/raw/landscape.json, cache 2026-11-22)</div>
+          </div>
+          <div class="card">
+            <p>Live 2026-11-23: raw.githubusercontent.com/dxos/dxos/main/LICENSE begins &ldquo;# Functional Source License, Version 1.1, ALv2 Future License&rdquo; and grants Apache-2.0 rights &ldquo;on the second anniversary&rdquo; of each change; npm @dxos/client 0.17.0 declares license FSL-1.1-Apache-2.0 (modified 2026-11-20); GitHub API reports license NOASSERTION (FSL is not auto-classified). GitHub cache 2026-11-22: 531 stars, created 2021-04-07, pushed 2026-11-22.</p>
+            <div class="where">raw.githubusercontent.com + registry.npmjs.org/@dxos/client + api.github.com &mdash; live 2026-11-23</div>
+          </div>
+        </section>
+
+        <section id="analysis">
+          <h2><span class="num">03</span>Analysis vs the owner's question</h2>
+<p>
+            DXOS is the maximalist answer to the owner's lens: it takes
+            &ldquo;local-first including the write path&rdquo; all the way to
+            client-authoritative everything &mdash; data, identity,
+            networking &mdash; with an optional cloud <em>peer</em> (EDGE)
+            that by doctrine holds no authority. If the owner ever wonders
+            what the far end of the local-first dial looks like as a shipped
+            framework, this is it: ECHO spaces on-device, Automerge merges on
+            rejoin, key-pair identity, invitations as first-class UX.
+          </p>
+          <p>
+            The cost structure is equally instructive. Because every peer is
+            an equal, a conflict can never be a Rejection &mdash;
+            &ldquo;without loss or conflict&rdquo; is the homepage's promise,
+            which forecloses exactly the rebase-and-reject semantics
+            &sect;10 of the research grounding calls for (rejections surfaced
+            as UX, never structural merges). The one validation gate, Effect
+            Schema &ldquo;validated on write&rdquo;, is structural typing
+            &mdash; it can check an Order payload's shape on the client, but
+            it cannot decide whether this Order <em>may ship</em> given
+            server-side state. That decision needs an authority DXOS
+            deliberately does not have.
+          </p>
+          <div class="callout callout-warning">
+            <strong>License correction + maturity caveats</strong>
+            The localfirst.fm landscape self-report lists DXOS as MIT; that
+            is stale. Live verification (2026-11-23) shows the repo LICENSE
+            is FSL-1.1-Apache-2.0 (source-available, competing-use
+            restricted, converting to Apache-2.0 two years after each
+            change) and npm agrees. For an app that may be fine; for a
+            library embedding scenario it is a real constraint. Add the
+            docs' own warning that the SDK &ldquo;features follow what
+            Composer needs&rdquo; and a 0.x version, and DXOS reads as a
+            strong product bet, not a stable substrate.
+          </div>
+          <p>
+            Still, two patterns travel well: typed objects with validation
+            happening <em>at the write boundary on the client</em> is the
+            shape of go-cqrs-lite's client-side command guard (cheap local
+            reject before queuing), and the SAGE framing &mdash; agents
+            operating on shared data through typed operations &mdash; is the
+            same seam the owner needs for sharing query folds with
+            non-browser consumers.
+          </p>
+        </section>
+
+        <section id="verdict">
+          <h2><span class="num">04</span>Fit verdict</h2>
+          <p>
+            <span class="badge badge-critical">COMPETITOR</span>
+          </p>
+          <p>DXOS is a full-stack competitor that proves the ceiling of
+            client-authoritative local-first &mdash; and pays for it with
+            merge-only conflict handling (no Rejections), a TypeScript-only
+            SDK with no Go seam, an FSL license that the landscape
+            misreports as MIT, and an API that tracks one product's needs.
+            Adopt its client-side write-validation and typed-agent seam; run
+            the domain on go-cqrs-lite.</p>
+          <div class="callout">
+            <strong>Back to the index</strong>
+            <a href="index.html">Return to the local-first landscape index</a>
+            for the other projects scored on the same six axes.
+          </div>
+        </section>
+
+        <footer class="footer">
+          <p>
+            DXOS reviewed 2026-11-23 &middot; sources: dxos.org + docs (cache 2026-11-22), localfirst.fm landscape self-report, LICENSE + npm + GitHub (live 2026-11-23) &middot; UNVERIFIED count: 1 (E2EE &ldquo;planned via Keyhive&rdquo;) &middot; Grounding:
+            docs/DOMAIN_LANGUAGE.md &sect;Core Concepts &middot;
+            docs/research/2026-11-22_commands-vs-facts-livestore-datastar.html
+            &sect;10 owner addendum &middot; Template: Bauhaus Light editorial
+          </p>
+        </footer>
+      </main>
+    </div>
+
+    <script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) {
+            return document.getElementById(id);
+          })
+          .filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (link) {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id
+                  );
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
+      })();
+    </script>
+
+  </body>
+</html>

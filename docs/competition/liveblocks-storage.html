@@ -1,0 +1,1202 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Liveblocks Storage vs go-cqrs-lite — Local-First Landscape Entry</title>
+    <style>
+      /* =========================================================================
+         BAUHAUS LIGHT — Editorial template
+         Design language: form follows function. Primary colors on warm paper.
+         Zero external dependencies: system fonts, no CDN, no build step.
+         Token architecture: see references/bauhaus-tokens.md
+         ========================================================================= */
+
+      :root {
+        /* --- Primitive palette (Bauhaus Light) --- */
+        --color-paper: #f4f4f0;
+        --color-paper-2: #ffffff;
+        --color-paper-3: #e8e8e2;
+        --color-ink: #111111;
+        --color-red: #e63946;
+        --color-blue: #1d3557;
+        --color-yellow: #f4d35e;
+        --color-hairline: rgba(17, 17, 17, 0.14);
+        --color-hairline-strong: rgba(17, 17, 17, 0.3);
+
+        /* --- Semantic layer (shared vocabulary with dark template) --- */
+        --surface: var(--color-paper);
+        --surface-raised: var(--color-paper-2);
+        --surface-sunken: var(--color-paper-3);
+        --text: var(--color-ink);
+        --text-muted: rgba(17, 17, 17, 0.72);
+        --text-faint: rgba(17, 17, 17, 0.5);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-red);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        /* --- Backward-compatible aliases (do not break consumer skills) --- */
+        --bg: var(--surface);
+        --bg-elevated: var(--surface-raised);
+        --bg-sunken: var(--surface-sunken);
+        --bg-card: var(--surface-raised);
+        --bg-code: var(--surface-sunken);
+        --ink: var(--text);
+        --ink-secondary: var(--text-muted);
+        --ink-muted: var(--text-faint);
+        --rose: var(--problem);
+        --rose-glow: color-mix(in srgb, var(--problem) 15%, transparent);
+        --emerald: var(--solution);
+        --emerald-glow: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber: var(--warning);
+        --amber-glow: color-mix(in srgb, var(--warning) 15%, transparent);
+        --amber-light: color-mix(in srgb, var(--warning) 22%, transparent);
+        --coral: var(--problem);
+        --coral-light: color-mix(in srgb, var(--problem) 12%, transparent);
+        --teal: var(--solution);
+        --teal-light: color-mix(in srgb, var(--solution) 12%, transparent);
+
+        /* --- Shape --- */
+        --radius: 0px;
+        --radius-sm: 0px;
+
+        /* --- Type stacks (system only — zero external fonts) --- */
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 16px;
+        line-height: 1.65;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* --- Accessibility: keyboard focus --- */
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      a:focus-visible {
+        outline-offset: -1px;
+      }
+
+      /* --- Full-bleed top bar --- */
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      /* --- Layout: optional sticky sidebar TOC --- */
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--text);
+      }
+      .sidebar a {
+        font-size: 0.86rem;
+        color: var(--text);
+        text-decoration: none;
+        padding: 0.5rem 0.75rem;
+        border-left: 4px solid transparent;
+        font-weight: 600;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+        color: var(--accent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      /* --- Headings --- */
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        color: var(--text);
+      }
+      h1 {
+        font-size: clamp(1.9rem, 4.5vw, 2.8rem);
+        line-height: 1.05;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.5rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 3px solid var(--text);
+        display: flex;
+        align-items: baseline;
+        gap: 0.7rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+      h3 {
+        font-size: 1.15rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 1rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+
+      /* --- Hero --- */
+      .hero {
+        padding: 1.5rem 0 2rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 3px solid var(--text);
+      }
+      .eyebrow {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: var(--accent);
+        margin-bottom: 0.9rem;
+      }
+      .subtitle {
+        font-size: 1.1rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0 0 1rem;
+      }
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      .tag {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        padding: 0.25rem 0.6rem;
+        background: var(--surface-sunken);
+        color: var(--text);
+        border: 1px solid var(--border-strong);
+      }
+      .tag.amber {
+        background: var(--warning);
+        border-color: var(--warning);
+        color: var(--text);
+      }
+      .tag.teal {
+        background: var(--solution);
+        border-color: var(--solution);
+        color: var(--surface);
+      }
+
+      /* Bauhaus signature: geometric shape cluster (optional) */
+      .hero-shapes {
+        position: relative;
+        height: 90px;
+        margin-bottom: 1.2rem;
+      }
+      .hero-shapes .circle {
+        position: absolute;
+        top: 0;
+        right: 180px;
+        width: 64px;
+        height: 64px;
+        background: var(--problem);
+        border-radius: 50%;
+      }
+      .hero-shapes .square {
+        position: absolute;
+        top: 26px;
+        right: 90px;
+        width: 56px;
+        height: 56px;
+        background: var(--solution);
+      }
+      .hero-shapes .tri {
+        position: absolute;
+        top: 8px;
+        right: 0;
+        width: 0;
+        height: 0;
+        border-left: 32px solid transparent;
+        border-right: 32px solid transparent;
+        border-bottom: 56px solid var(--warning);
+      }
+      .hero-shapes .bar {
+        position: absolute;
+        bottom: 0;
+        right: 230px;
+        width: 100px;
+        height: 14px;
+        background: var(--text);
+      }
+
+      /* --- Scorecard / stat cards --- */
+      .scorecard,
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 0;
+        margin: 1.5rem 0 2rem;
+        border: 3px solid var(--text);
+      }
+      .score-card,
+      .stat-card {
+        padding: 1.3rem 1rem;
+        text-align: center;
+        border-right: 3px solid var(--text);
+        background: var(--surface-raised);
+      }
+      .score-card:last-child,
+      .stat-card:last-child {
+        border-right: none;
+      }
+
+      .score,
+      .stat-value {
+        font-family: var(--font-heading);
+        font-size: 2.6rem;
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -0.04em;
+      }
+      .score-card .label,
+      .stat-label {
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        margin-top: 0.5rem;
+      }
+      /* Semantic state classes — no nth-child decoration, no !important */
+      .score-good,
+      .stat-good {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .score-warn,
+      .stat-warn {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .score-bad,
+      .stat-bad {
+        background: var(--problem);
+        color: var(--surface);
+      }
+
+      /* --- General cards --- */
+      .card {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+      }
+
+      /* --- Issue cards --- */
+      .issue {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* --- Severity badges --- */
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.22rem 0.6rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+
+      /* --- Inline badges --- */
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        border: 1px solid var(--text);
+        color: var(--text);
+      }
+      .badge-critical {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .badge-high {
+        background: var(--warning);
+      }
+      .badge-medium {
+        background: var(--surface-sunken);
+      }
+      .badge-low {
+        background: var(--surface-raised);
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        background: var(--solution);
+        color: var(--surface);
+      }
+
+      /* --- Callouts --- */
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.8rem 1rem;
+        border: 1px solid var(--border-strong);
+        border-left: 4px solid var(--border-strong);
+        background: var(--surface-sunken);
+        font-size: 0.92rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-teal,
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 10%,
+          var(--surface-raised)
+        );
+      }
+      .callout-amber,
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 18%,
+          var(--surface-raised)
+        );
+      }
+
+      /* --- Strengths --- */
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.9rem;
+        padding: 0.75rem 0;
+        border-bottom: 2px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        color: var(--solution);
+        font-size: 1.3rem;
+        line-height: 1.3;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.92rem;
+      }
+
+      /* --- Tables --- */
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.92rem;
+        border: 2px solid var(--text);
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--text);
+        color: var(--surface);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-right: 1px solid var(--border-strong);
+      }
+      th:last-child {
+        border-right: none;
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-top: 1px solid var(--border);
+        border-right: 1px solid var(--border);
+      }
+      td:last-child {
+        border-right: none;
+      }
+      tr:nth-child(even) td {
+        background: var(--surface-sunken);
+      }
+      table.compare td.yes {
+        color: var(--solution);
+        font-weight: 700;
+      }
+      table.compare td.no {
+        color: var(--problem);
+        font-weight: 700;
+      }
+
+      /* --- Code blocks + syntax highlighting --- */
+      pre {
+        background: var(--text);
+        color: var(--surface);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+        border: 2px solid var(--text);
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      p code,
+      li code,
+      td code {
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+      }
+      .tok-keyword {
+        color: var(--warning);
+      }
+      .tok-type {
+        color: var(--warning);
+      }
+      .tok-string {
+        color: #95e1d3;
+      }
+      .tok-comment {
+        color: rgba(244, 244, 240, 0.45);
+        font-style: italic;
+      }
+      .tok-func {
+        color: #6eb5ff;
+      }
+      .tok-number {
+        color: var(--warning);
+      }
+      .tok-generic {
+        color: var(--problem);
+      }
+      .tok-builtin {
+        color: #6eb5ff;
+      }
+      .tok-punct {
+        color: rgba(244, 244, 240, 0.7);
+      }
+      .tok-attr {
+        color: var(--warning);
+      }
+
+      /* --- Dependency tree / ASCII diagrams --- */
+      .dep-tree {
+        background: var(--surface-sunken);
+        border: 2px solid var(--text);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.7;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .dep-tree .root {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .dep-tree .ok {
+        color: var(--solution);
+      }
+      .dep-tree .unwanted {
+        color: var(--problem);
+      }
+
+      /* --- Inline node-and-arrow diagrams --- */
+      .diagram {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+      }
+      .node {
+        display: inline-block;
+        padding: 0.4rem 0.75rem;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        font-weight: 700;
+        background: var(--surface-sunken);
+        border: 1px solid var(--text);
+      }
+      .node-core {
+        background: var(--accent);
+        color: var(--surface);
+      }
+      .node-problem {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .node-good {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .arrow {
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Grids --- */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      /* --- Inline TOC --- */
+      .toc {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+        padding: 1rem 1.3rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .toc h3 {
+        margin-bottom: 0.5rem;
+      }
+      .toc ul {
+        list-style: none;
+        padding: 0;
+      }
+      .toc li {
+        margin: 0.25rem 0;
+      }
+      .toc a {
+        color: var(--text);
+        text-decoration: none;
+        font-size: 0.92rem;
+        font-weight: 600;
+      }
+      .toc a:hover {
+        color: var(--accent);
+      }
+
+      /* --- Migration / numbered steps --- */
+      .migration-step {
+        display: grid;
+        grid-template-columns: 56px 1fr;
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1.1rem;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+      }
+      .migration-num {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        font-size: 1.8rem;
+        color: var(--accent);
+        line-height: 1;
+      }
+      .migration-content h4 {
+        margin-bottom: 0.2rem;
+      }
+      .migration-content p {
+        margin-bottom: 0;
+        color: var(--text-muted);
+        font-size: 0.94rem;
+      }
+
+      /* --- Before/After comparison --- */
+      .compare-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin: 1rem 0 0.5rem;
+      }
+      .compare-before,
+      .compare-after {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0.4rem 0.7rem;
+        color: var(--surface);
+      }
+      .compare-before {
+        background: var(--problem);
+      }
+      .compare-after {
+        background: var(--solution);
+      }
+      .compare-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      .compare-row pre {
+        margin: 0;
+      }
+
+      /* --- Footer --- */
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 3px solid var(--text);
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Responsive --- */
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+        .compare-header,
+        .compare-row {
+          grid-template-columns: 1fr;
+        }
+        .scorecard,
+        .stat-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-right: none;
+        }
+        .score-card:nth-child(1),
+        .stat-card:nth-child(1),
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-bottom: 3px solid var(--text);
+        }
+        .migration-step {
+          grid-template-columns: 1fr;
+        }
+        .hero-shapes {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Full-bleed top bar (optional — remove for quieter reports) -->
+    <div class="top-bar">
+      <span>COMPETITION REVIEW · LIVEBLOCKS STORAGE</span>
+      <span>2026-11-23</span>
+      <span>LOCAL-FIRST LANDSCAPE REVIEW</span>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#question">The question</a>
+          <a href="#quickfacts">Quick facts</a>
+          <a href="#axes">Six axes</a>
+          <a href="#compare">vs go-cqrs-lite</a>
+          <a href="#steal">What to steal</a>
+          <a href="#sources">Sources</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <header class="hero">
+          <div class="hero-shapes">
+            <div class="bar"></div>
+            <div class="circle"></div>
+            <div class="square"></div>
+            <div class="tri"></div>
+          </div>
+          <div class="eyebrow">COMPETITION REVIEW &middot; LOCAL-FIRST LANDSCAPE &middot; 2026-11-23</div>
+          <h1>Liveblocks Storage</h1>
+          <p class="subtitle">
+            Liveblocks&rsquo; own structured sync engine (LiveObject / LiveList /
+            LiveMap): client-minted ops, attribute-level last-write-wins resolved on
+            the server &mdash; and, per the landscape dataset, &ldquo;fix-ops&rdquo;
+            broadcast to every client when the server settles a conflict. That
+            correction-broadcast loop is the most directly relevant reconciliation
+            pattern in this shard for the owner&rsquo;s &ldquo;transparent
+            rebase&rdquo; demand.
+          </p>
+          <div class="meta">
+            <span class="tag amber">LOCAL COMMANDS: CLIENT-MINTS-FACTS</span>
+            <span class="tag teal">REBASE: LWW (server-resolved, fix-ops broadcast)</span>
+            <span class="tag">FIT: PATTERN-TO-ADOPT</span>
+            <a class="tag" href="index.html">&larr; all entries</a>
+          </div>
+        </header>
+
+        <section id="question">
+          <h2><span class="num">00</span>The question this page answers</h2>
+          <div class="callout callout-amber">
+            <strong>The owner&rsquo;s lens (brief, 2026-11-22)</strong>
+            &ldquo;How can we make the browser OWN its data smartly, be as local-first
+            as possible (i.e. including Commands), but at the same time be able to
+            smartly branch-rebase (like Git) with a server as soon as the client has a
+            connection again! All that transparently. We need Commands &amp; Events
+            that only happened on the client. And we need to share the logic for
+            Commands &amp; Events &amp; Queries (as long as they do not access
+            protected server resources) with the client, efficiently.&rdquo;
+          </div>
+          <p>
+            Liveblocks Storage&rsquo; answer: the client writes structured live
+            objects optimistically, the server is the resolution point
+            (attribute-level LWW plus fractional indexing for list order), and the
+            protocol closes the loop by sending clients the resolved result.
+            Transparent? Yes. Git-like? No &mdash; divergence is settled by
+            overwrite rules, not by re-running intent. Commands and Events do not
+            exist; ops on three collection types do.
+          </p>
+        </section>
+
+        <section id="quickfacts" class="scorecard">
+          <div class="score-card score-good">
+            <div class="score">PROD</div>
+            <div class="label">Production-ready (axis 6)</div>
+          </div>
+          <div class="score-card score-bad">
+            <div class="score">PROPRIETARY</div>
+            <div class="label">Hosted SaaS license (axis 6)</div>
+          </div>
+          <div class="score-card score-warn">
+            <div class="score">LWW</div>
+            <div class="label">Reconnect model (axis 3)</div>
+          </div>
+          <div class="score-card score-bad">
+            <div class="score">NO</div>
+            <div class="label">Client-local Commands &amp; Events (axis 4)</div>
+          </div>
+          <div class="score-card">
+            <div class="score">ROOM-ACL</div>
+            <div class="label">Protected resources: server-enforced room access (axis 5)</div>
+          </div>
+          <div class="score-card score-warn">
+            <div class="score">PARTIAL</div>
+            <div class="label">Client data ownership: in-memory cache (axis 1)</div>
+          </div>
+        </section>
+
+        <section id="axes">
+          <h2><span class="num">01</span>Six axes, scored with evidence</h2>
+          <table class="compare">
+            <thead>
+              <tr>
+                <th>Axis</th>
+                <th>Verdict</th>
+                <th>Evidence (primary sources, dates below)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>1 &middot; Client data ownership</td>
+                <td>PARTIAL &mdash; in-memory query cache</td>
+                <td>
+                  Landscape: offline reads are &ldquo;Query Cache &mdash;
+                  previously accessed data is stored in-memory&rdquo;; offline
+                  writes are &ldquo;Cached offline writes, stored in-memory, server
+                  will resolve conflict&rdquo;; size &ldquo;Limited by
+                  memory&rdquo; (2026-11-22). There is no durable local database
+                  the user holds &mdash; the provider owns persistence.
+                </td>
+              </tr>
+              <tr>
+                <td>2 &middot; Local commands</td>
+                <td class="no">CLIENT-MINTS-FACTS</td>
+                <td>
+                  Mutations are <code>useMutation</code> pushing structured ops:
+                  &ldquo;Update realtime data, e.g. add a new shape to the array
+                  &hellip; <code>storage.get("shapes").push(newShape)</code>&rdquo;
+                  (sync docs, 2026-11-23). The client authors the state change
+                  itself; no intent object, no rejection-before-effect path.
+                </td>
+              </tr>
+              <tr>
+                <td>3 &middot; Reconnect rebase</td>
+                <td>LWW + fractional indexing, server-resolved, corrected downstream</td>
+                <td>
+                  Landscape: &ldquo;Automatic via LWW or fractional indexing
+                  &mdash; Values: LWW, LiveObject: LWW at attribute level, LiveMap:
+                  LWW at entry level, LiveList: fractional indexing (for
+                  insertions) or LWW (for replacements)&rdquo;; resolution happens
+                  on the Server; server&rarr;client carries &ldquo;ops, acks, and
+                  <strong>fix-ops (when conflict was resolved)</strong>&rdquo;
+                  (2026-11-22). Reconnect catch-up is handled by the engine:
+                  &ldquo;catches clients up when they reconnect. This avoids stale
+                  documents, lost&hellip;&rdquo; (sync docs, 2026-11-23).
+                  fix-ops appears only in the landscape dataset &mdash; not
+                  corroborated in fetched docs (UNVERIFIED beyond the dataset).
+                </td>
+              </tr>
+              <tr>
+                <td>4 &middot; Client-local Commands &amp; Events</td>
+                <td class="no">NO</td>
+                <td>
+                  The data model is three live collection types &mdash;
+                  &ldquo;LiveObject: A record of named values&rdquo;,
+                  &ldquo;LiveList: An ordered collection&rdquo;, &ldquo;LiveMap: A
+                  key-value collection&rdquo; (storage docs, 2026-11-23) &mdash;
+                  with no event log, no causality, no replay. A version-history
+                  feature exists (&ldquo;browse earlier versions of a document and
+                  restore them&hellip; Each version is a snapshot of a room&rdquo;,
+                  version-history docs, 2026-11-23): snapshots, not events.
+                </td>
+              </tr>
+              <tr>
+                <td>5 &middot; Logic sharing + protected resources</td>
+                <td>TS SDK client-side; server-enforced room permissions</td>
+                <td>
+                  Client logic is TypeScript in <code>@liveblocks/client</code>
+                  (mutations as closures over storage); the server side is
+                  Liveblocks&rsquo;, not yours. Permissions: room-level
+                  defaultAccesses / groupsAccesses / usersAccesses, &ldquo;enforced
+                  on Liveblocks servers, so a read-only user can never modify a
+                  document, even with a modified client&rdquo; (permissions doc,
+                  2026-11-23).
+                </td>
+              </tr>
+              <tr>
+                <td>6 &middot; Maturity / license</td>
+                <td>Production-ready &middot; proprietary SaaS</td>
+                <td>
+                  Landscape: Production-ready, Proprietary (2026-11-22). SDK repo
+                  github.com/liveblocks/liveblocks: 4,773 stars, NOASSERTION
+                  license, pushed 2026-11-22 (GitHub API, 2026-11-23). Product
+                  renamed: &ldquo;Liveblocks Sync, previously known as Storage, is
+                  a hosted sync engine&rdquo; (sync docs, 2026-11-23).
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="compare">
+          <h2><span class="num">02</span>Liveblocks Storage vs go-cqrs-lite</h2>
+          <table class="compare">
+            <thead>
+              <tr>
+                <th>Dimension</th>
+                <th>Liveblocks Storage</th>
+                <th>go-cqrs-lite</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Conflict unit</td>
+                <td>Attribute / map entry / list position</td>
+                <td>Stream + Version; a rejected append is a decision, not an overwrite</td>
+              </tr>
+              <tr>
+                <td>Resolution authority</td>
+                <td>Liveblocks servers, LWW rules, results pushed as fix-ops</td>
+                <td>The decider on your servers; client speculation is reverted by re-running the Command authoritatively (the Zero-style loop verified in research 2026-11-22)</td>
+              </tr>
+              <tr>
+                <td>Offline durability</td>
+                <td>In-memory cache only</td>
+                <td>L4 target: durable local outbox of Commands + journal replay via <code>SeekableJournal</code>-style cursors</td>
+              </tr>
+              <tr>
+                <td>History</td>
+                <td>Snapshot-based version history (room-level restore)</td>
+                <td>Append-only event streams &mdash; history is the storage, not a feature</td>
+              </tr>
+              <tr>
+                <td>Protected resources</td>
+                <td>Room ACLs on provider servers</td>
+                <td>Server-side deciders own protected resources; only pure logic is shared</td>
+              </tr>
+              <tr>
+                <td>Self-hosting</td>
+                <td>No &mdash; hosted only</td>
+                <td>Library; you run everything</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="callout callout-teal">
+            <strong>Fit verdict: PATTERN-TO-ADOPT</strong>
+            As a product it is orthogonal hosted infrastructure; as a pattern it is
+            the clearest illustration in the shard of <em>transparent
+            server-corrected reconciliation</em>: clients speculate, the authority
+            resolves, and the protocol itself tells every client what was fixed.
+            That loop &mdash; not the LWW rule inside it &mdash; is the adoptable
+            part for the L4 tier.
+          </div>
+        </section>
+
+        <section id="steal">
+          <h2><span class="num">03</span>What to steal</h2>
+          <div class="strengths">
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>fix-ops: corrections as protocol messages</strong>
+                <span>When the server resolves a conflict it does not just bump a
+                version &mdash; it sends every client the compensating ops. The L4
+                rebase should do the same: emit explicit
+                compensation/correction events (the ADR-0136
+                replayable&rarr;compensable ladder from research 2026-11-22) rather
+                than silently swapping state under the UI.</span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Granularity-typed containers</strong>
+                <span>LWW at attribute level, fractional indexing only where order
+                matters &mdash; conflict granularity is a property of the container
+                type, declared up front. go-cqrs-lite&rsquo;s equivalent decision
+                (per-stream Version vs per-field merge) deserves the same explicit,
+                typed surface.</span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Reconnect catch-up as an engine guarantee</strong>
+                <span>&ldquo;Catches clients up when they reconnect&rdquo; is the
+                client-side twin of what <code>metaengine.ServeSSE</code> already
+                guarantees server-side (replay, Last-Event-ID resume) &mdash; the
+                two halves of one protocol.</span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Snapshot version-history for users</strong>
+                <span>Browsable, restorable room snapshots are what event sourcing
+                gives for free via replay &mdash; a reminder to surface the
+                journal&rsquo;s power as a product feature, not just an
+                implementation detail.</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="sources">
+          <h2><span class="num">04</span>Sources &amp; verification</h2>
+          <ul>
+            <li>localfirst.fm/landscape embedded entry dataset (Production-ready, Proprietary, LWW/fractional-indexing rules, resolution Server, &ldquo;ops, acks, and fix-ops (when conflict was resolved)&rdquo;, in-memory query cache + cached offline writes, &lt;1&nbsp;ms local refresh) &mdash; fetched <strong>2026-11-22</strong>.</li>
+            <li>https://liveblocks.io/docs/products/sync/storage &mdash; LiveObject/LiveList/LiveMap definitions, nesting, typing &mdash; fetched <strong>2026-11-23</strong>.</li>
+            <li>https://liveblocks.io/docs/products/sync &mdash; &ldquo;previously known as Storage&rdquo;, <code>useMutation</code> example, reconnect catch-up &mdash; fetched <strong>2026-11-23</strong>.</li>
+            <li>https://liveblocks.io/docs/products/sync/permissions &mdash; room access levels, server-side enforcement quote &mdash; fetched <strong>2026-11-23</strong>.</li>
+            <li>https://liveblocks.io/docs/products/sync/version-history &mdash; snapshot version history &mdash; fetched <strong>2026-11-23</strong>.</li>
+            <li>GitHub API github.com/liveblocks/liveblocks: 4,773 stars, NOASSERTION license, pushed 2026-11-22 &mdash; fetched <strong>2026-11-23</strong>.</li>
+            <li>UNVERIFIED: fix-ops beyond the landscape dataset (term not found in fetched docs pages); pricing/SLA; durability guarantees of the hosted store.</li>
+          </ul>
+        </section>
+
+        <footer class="footer">
+          <p>
+            Generated 2026-11-23 &middot; Entry #liveblocks-storage of 22 in the localfirst.fm
+            landscape &middot; All quotes verbatim from fetched primary sources; UNVERIFIED items labeled inline
+          </p>
+        </footer>
+      </main>
+    </div>
+    <!-- Progressive-enhancement scrollspy. Nav still works without JS via anchor links. -->
+    <script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) {
+            return document.getElementById(id);
+          })
+          .filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (link) {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id,
+                  );
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
+      })();
+    </script>
+  </body>
+</html>

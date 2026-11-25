@@ -9,7 +9,7 @@ Detectors per category (severities: `error` blocks CI, `warning` reports, `info`
 |---|---|---|
 | [Correctness](#correctness) | 44 | C001–C044 |
 | [API](#api) | 32 | A001–A034 |
-| [Boilerplate](#boilerplate) | 31 | B001–B031 |
+| [Boilerplate](#boilerplate) | 33 | B001–B033 |
 | [Performance](#performance) | 11 | P001–P015 |
 | [Consistency](#consistency) | 18 | D001–D019 |
 | [Architecture](#architecture) | 23 | E001–E023 |
@@ -881,6 +881,22 @@ Bus/dispatcher without circuit breaker middleware — cascading failures not iso
 Severity: `info` · Confidence: `low` · Auto-fix: no · Category: `boilerplate`
 
 projectionhost.New without WithDeadLetterStore — poison events cause terminal failure
+
+<a id="b032"></a>
+
+#### B032 — `command-without-tracing-metadata`
+
+Severity: `warning` · Confidence: `high` · Auto-fix: no · Category: `boilerplate`
+
+command.New without tracing options — audit panels render zero Correlation/Causation/Request IDs
+
+<a id="b033"></a>
+
+#### B033 — `passive-audit-store-read`
+
+Severity: `warning` · Confidence: `medium` · Auto-fix: no · Category: `boilerplate`
+
+CommandStore()/QueryStore() read with no writer in the module — the audit panel stays empty forever
 
 
 ## Performance

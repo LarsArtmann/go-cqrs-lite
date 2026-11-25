@@ -1,0 +1,1206 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TinyBase vs go-cqrs-lite — Local-First Landscape Entry</title>
+    <style>
+      /* =========================================================================
+         BAUHAUS LIGHT — Editorial template
+         Design language: form follows function. Primary colors on warm paper.
+         Zero external dependencies: system fonts, no CDN, no build step.
+         Token architecture: see references/bauhaus-tokens.md
+         ========================================================================= */
+
+      :root {
+        /* --- Primitive palette (Bauhaus Light) --- */
+        --color-paper: #f4f4f0;
+        --color-paper-2: #ffffff;
+        --color-paper-3: #e8e8e2;
+        --color-ink: #111111;
+        --color-red: #e63946;
+        --color-blue: #1d3557;
+        --color-yellow: #f4d35e;
+        --color-hairline: rgba(17, 17, 17, 0.14);
+        --color-hairline-strong: rgba(17, 17, 17, 0.3);
+
+        /* --- Semantic layer (shared vocabulary with dark template) --- */
+        --surface: var(--color-paper);
+        --surface-raised: var(--color-paper-2);
+        --surface-sunken: var(--color-paper-3);
+        --text: var(--color-ink);
+        --text-muted: rgba(17, 17, 17, 0.72);
+        --text-faint: rgba(17, 17, 17, 0.5);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-red);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        /* --- Backward-compatible aliases (do not break consumer skills) --- */
+        --bg: var(--surface);
+        --bg-elevated: var(--surface-raised);
+        --bg-sunken: var(--surface-sunken);
+        --bg-card: var(--surface-raised);
+        --bg-code: var(--surface-sunken);
+        --ink: var(--text);
+        --ink-secondary: var(--text-muted);
+        --ink-muted: var(--text-faint);
+        --rose: var(--problem);
+        --rose-glow: color-mix(in srgb, var(--problem) 15%, transparent);
+        --emerald: var(--solution);
+        --emerald-glow: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber: var(--warning);
+        --amber-glow: color-mix(in srgb, var(--warning) 15%, transparent);
+        --amber-light: color-mix(in srgb, var(--warning) 22%, transparent);
+        --coral: var(--problem);
+        --coral-light: color-mix(in srgb, var(--problem) 12%, transparent);
+        --teal: var(--solution);
+        --teal-light: color-mix(in srgb, var(--solution) 12%, transparent);
+
+        /* --- Shape --- */
+        --radius: 0px;
+        --radius-sm: 0px;
+
+        /* --- Type stacks (system only — zero external fonts) --- */
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 16px;
+        line-height: 1.65;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* --- Accessibility: keyboard focus --- */
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      a:focus-visible {
+        outline-offset: -1px;
+      }
+
+      /* --- Full-bleed top bar --- */
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      /* --- Layout: optional sticky sidebar TOC --- */
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--text);
+      }
+      .sidebar a {
+        font-size: 0.86rem;
+        color: var(--text);
+        text-decoration: none;
+        padding: 0.5rem 0.75rem;
+        border-left: 4px solid transparent;
+        font-weight: 600;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+        color: var(--accent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      /* --- Headings --- */
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        color: var(--text);
+      }
+      h1 {
+        font-size: clamp(1.9rem, 4.5vw, 2.8rem);
+        line-height: 1.05;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.5rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 3px solid var(--text);
+        display: flex;
+        align-items: baseline;
+        gap: 0.7rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+      h3 {
+        font-size: 1.15rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 1rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+
+      /* --- Hero --- */
+      .hero {
+        padding: 1.5rem 0 2rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 3px solid var(--text);
+      }
+      .eyebrow {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: var(--accent);
+        margin-bottom: 0.9rem;
+      }
+      .subtitle {
+        font-size: 1.1rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0 0 1rem;
+      }
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      .tag {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        padding: 0.25rem 0.6rem;
+        background: var(--surface-sunken);
+        color: var(--text);
+        border: 1px solid var(--border-strong);
+      }
+      .tag.amber {
+        background: var(--warning);
+        border-color: var(--warning);
+        color: var(--text);
+      }
+      .tag.teal {
+        background: var(--solution);
+        border-color: var(--solution);
+        color: var(--surface);
+      }
+
+      /* Bauhaus signature: geometric shape cluster (optional) */
+      .hero-shapes {
+        position: relative;
+        height: 90px;
+        margin-bottom: 1.2rem;
+      }
+      .hero-shapes .circle {
+        position: absolute;
+        top: 0;
+        right: 180px;
+        width: 64px;
+        height: 64px;
+        background: var(--problem);
+        border-radius: 50%;
+      }
+      .hero-shapes .square {
+        position: absolute;
+        top: 26px;
+        right: 90px;
+        width: 56px;
+        height: 56px;
+        background: var(--solution);
+      }
+      .hero-shapes .tri {
+        position: absolute;
+        top: 8px;
+        right: 0;
+        width: 0;
+        height: 0;
+        border-left: 32px solid transparent;
+        border-right: 32px solid transparent;
+        border-bottom: 56px solid var(--warning);
+      }
+      .hero-shapes .bar {
+        position: absolute;
+        bottom: 0;
+        right: 230px;
+        width: 100px;
+        height: 14px;
+        background: var(--text);
+      }
+
+      /* --- Scorecard / stat cards --- */
+      .scorecard,
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 0;
+        margin: 1.5rem 0 2rem;
+        border: 3px solid var(--text);
+      }
+      .score-card,
+      .stat-card {
+        padding: 1.3rem 1rem;
+        text-align: center;
+        border-right: 3px solid var(--text);
+        background: var(--surface-raised);
+      }
+      .score-card:last-child,
+      .stat-card:last-child {
+        border-right: none;
+      }
+
+      .score,
+      .stat-value {
+        font-family: var(--font-heading);
+        font-size: 2.6rem;
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -0.04em;
+      }
+      .score-card .label,
+      .stat-label {
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        margin-top: 0.5rem;
+      }
+      /* Semantic state classes — no nth-child decoration, no !important */
+      .score-good,
+      .stat-good {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .score-warn,
+      .stat-warn {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .score-bad,
+      .stat-bad {
+        background: var(--problem);
+        color: var(--surface);
+      }
+
+      /* --- General cards --- */
+      .card {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+      }
+
+      /* --- Issue cards --- */
+      .issue {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* --- Severity badges --- */
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.22rem 0.6rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+
+      /* --- Inline badges --- */
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        border: 1px solid var(--text);
+        color: var(--text);
+      }
+      .badge-critical {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .badge-high {
+        background: var(--warning);
+      }
+      .badge-medium {
+        background: var(--surface-sunken);
+      }
+      .badge-low {
+        background: var(--surface-raised);
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        background: var(--solution);
+        color: var(--surface);
+      }
+
+      /* --- Callouts --- */
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.8rem 1rem;
+        border: 1px solid var(--border-strong);
+        border-left: 4px solid var(--border-strong);
+        background: var(--surface-sunken);
+        font-size: 0.92rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-teal,
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 10%,
+          var(--surface-raised)
+        );
+      }
+      .callout-amber,
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 18%,
+          var(--surface-raised)
+        );
+      }
+
+      /* --- Strengths --- */
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.9rem;
+        padding: 0.75rem 0;
+        border-bottom: 2px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        color: var(--solution);
+        font-size: 1.3rem;
+        line-height: 1.3;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.92rem;
+      }
+
+      /* --- Tables --- */
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.92rem;
+        border: 2px solid var(--text);
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--text);
+        color: var(--surface);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-right: 1px solid var(--border-strong);
+      }
+      th:last-child {
+        border-right: none;
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-top: 1px solid var(--border);
+        border-right: 1px solid var(--border);
+      }
+      td:last-child {
+        border-right: none;
+      }
+      tr:nth-child(even) td {
+        background: var(--surface-sunken);
+      }
+      table.compare td.yes {
+        color: var(--solution);
+        font-weight: 700;
+      }
+      table.compare td.no {
+        color: var(--problem);
+        font-weight: 700;
+      }
+
+      /* --- Code blocks + syntax highlighting --- */
+      pre {
+        background: var(--text);
+        color: var(--surface);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+        border: 2px solid var(--text);
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      p code,
+      li code,
+      td code {
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+      }
+      .tok-keyword {
+        color: var(--warning);
+      }
+      .tok-type {
+        color: var(--warning);
+      }
+      .tok-string {
+        color: #95e1d3;
+      }
+      .tok-comment {
+        color: rgba(244, 244, 240, 0.45);
+        font-style: italic;
+      }
+      .tok-func {
+        color: #6eb5ff;
+      }
+      .tok-number {
+        color: var(--warning);
+      }
+      .tok-generic {
+        color: var(--problem);
+      }
+      .tok-builtin {
+        color: #6eb5ff;
+      }
+      .tok-punct {
+        color: rgba(244, 244, 240, 0.7);
+      }
+      .tok-attr {
+        color: var(--warning);
+      }
+
+      /* --- Dependency tree / ASCII diagrams --- */
+      .dep-tree {
+        background: var(--surface-sunken);
+        border: 2px solid var(--text);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.7;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .dep-tree .root {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .dep-tree .ok {
+        color: var(--solution);
+      }
+      .dep-tree .unwanted {
+        color: var(--problem);
+      }
+
+      /* --- Inline node-and-arrow diagrams --- */
+      .diagram {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+      }
+      .node {
+        display: inline-block;
+        padding: 0.4rem 0.75rem;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        font-weight: 700;
+        background: var(--surface-sunken);
+        border: 1px solid var(--text);
+      }
+      .node-core {
+        background: var(--accent);
+        color: var(--surface);
+      }
+      .node-problem {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .node-good {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .arrow {
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Grids --- */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      /* --- Inline TOC --- */
+      .toc {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+        padding: 1rem 1.3rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .toc h3 {
+        margin-bottom: 0.5rem;
+      }
+      .toc ul {
+        list-style: none;
+        padding: 0;
+      }
+      .toc li {
+        margin: 0.25rem 0;
+      }
+      .toc a {
+        color: var(--text);
+        text-decoration: none;
+        font-size: 0.92rem;
+        font-weight: 600;
+      }
+      .toc a:hover {
+        color: var(--accent);
+      }
+
+      /* --- Migration / numbered steps --- */
+      .migration-step {
+        display: grid;
+        grid-template-columns: 56px 1fr;
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1.1rem;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+      }
+      .migration-num {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        font-size: 1.8rem;
+        color: var(--accent);
+        line-height: 1;
+      }
+      .migration-content h4 {
+        margin-bottom: 0.2rem;
+      }
+      .migration-content p {
+        margin-bottom: 0;
+        color: var(--text-muted);
+        font-size: 0.94rem;
+      }
+
+      /* --- Before/After comparison --- */
+      .compare-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin: 1rem 0 0.5rem;
+      }
+      .compare-before,
+      .compare-after {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0.4rem 0.7rem;
+        color: var(--surface);
+      }
+      .compare-before {
+        background: var(--problem);
+      }
+      .compare-after {
+        background: var(--solution);
+      }
+      .compare-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      .compare-row pre {
+        margin: 0;
+      }
+
+      /* --- Footer --- */
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 3px solid var(--text);
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Responsive --- */
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+        .compare-header,
+        .compare-row {
+          grid-template-columns: 1fr;
+        }
+        .scorecard,
+        .stat-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-right: none;
+        }
+        .score-card:nth-child(1),
+        .stat-card:nth-child(1),
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-bottom: 3px solid var(--text);
+        }
+        .migration-step {
+          grid-template-columns: 1fr;
+        }
+        .hero-shapes {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Full-bleed top bar (optional — remove for quieter reports) -->
+    <div class="top-bar">
+      <span>COMPETITION REVIEW · TINYBASE</span>
+      <span>2026-11-23</span>
+      <span>LOCAL-FIRST LANDSCAPE REVIEW</span>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#question">The question</a>
+          <a href="#quickfacts">Quick facts</a>
+          <a href="#axes">Six axes</a>
+          <a href="#compare">vs go-cqrs-lite</a>
+          <a href="#steal">What to steal</a>
+          <a href="#sources">Sources</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <header class="hero">
+          <div class="hero-shapes">
+            <div class="bar"></div>
+            <div class="circle"></div>
+            <div class="square"></div>
+            <div class="tri"></div>
+          </div>
+          <div class="eyebrow">COMPETITION REVIEW &middot; LOCAL-FIRST LANDSCAPE &middot; 2026-11-23</div>
+          <h1>TinyBase</h1>
+          <p class="subtitle">
+            A 7&ndash;17&nbsp;kB reactive data store for JavaScript with mergeable
+            stores, pluggable CRDT persistence, and reactive derived tables
+            (metrics, indexes, relationships, queries). On the Question&rsquo;s
+            read side it is the closest thing to what go-cqrs-lite&rsquo;s
+            metaengine already is; on the write side it has no opinion at all
+            &mdash; by design.
+          </p>
+          <div class="meta">
+            <span class="tag amber">LOCAL COMMANDS: CLIENT-MINTS-FACTS</span>
+            <span class="tag teal">REBASE: CRDT (delegated to Yjs/Automerge)</span>
+            <span class="tag">FIT: PATTERN-TO-ADOPT</span>
+            <a class="tag" href="index.html">&larr; all entries</a>
+          </div>
+        </header>
+
+        <section id="question">
+          <h2><span class="num">00</span>The question this page answers</h2>
+          <div class="callout callout-amber">
+            <strong>The owner&rsquo;s lens (brief, 2026-11-22)</strong>
+            &ldquo;How can we make the browser OWN its data smartly, be as local-first
+            as possible (i.e. including Commands), but at the same time be able to
+            smartly branch-rebase (like Git) with a server as soon as the client has a
+            connection again! All that transparently. We need Commands &amp; Events
+            that only happened on the client. And we need to share the logic for
+            Commands &amp; Events &amp; Queries (as long as they do not access
+            protected server resources) with the client, efficiently.&rdquo;
+          </div>
+          <p>
+            TinyBase&rsquo;s answer: the browser owns a fully reactive, persistable,
+            syncable copy of the data; writes are local cell/value mutations that
+            reconcile later through CRDT metadata; and queries/metrics/indexes/relationships
+            are <em>derived</em> and recompute incrementally on the client. It
+            solves the Queries half of the owner&rsquo;s sharing demand almost
+            exactly the way this repo&rsquo;s metaengine vision describes &mdash;
+            and it has nothing whatsoever to say about Commands.
+          </p>
+        </section>
+
+        <section id="quickfacts" class="scorecard">
+          <div class="score-card score-good">
+            <div class="score">MATURE</div>
+            <div class="label">Maturity per landscape (axis 6)</div>
+          </div>
+          <div class="score-card score-good">
+            <div class="score">MIT</div>
+            <div class="label">License (axis 6)</div>
+          </div>
+          <div class="score-card">
+            <div class="score">CRDT</div>
+            <div class="label">Reconnect model, delegated (axis 3)</div>
+          </div>
+          <div class="score-card score-warn">
+            <div class="score">STATE-ONLY</div>
+            <div class="label">Client-local Commands &amp; Events (axis 4)</div>
+          </div>
+          <div class="score-card score-bad">
+            <div class="score">NONE</div>
+            <div class="label">Protected-resource notion (axis 5)</div>
+          </div>
+          <div class="score-card score-good">
+            <div class="score">FULL</div>
+            <div class="label">Client data ownership (axis 1)</div>
+          </div>
+        </section>
+
+        <section id="axes">
+          <h2><span class="num">01</span>Six axes, scored with evidence</h2>
+          <table class="compare">
+            <thead>
+              <tr>
+                <th>Axis</th>
+                <th>Verdict</th>
+                <th>Evidence (primary sources, dates below)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>1 &middot; Client data ownership</td>
+                <td class="yes">FULL</td>
+                <td>
+                  &ldquo;TinyBase works anywhere that JavaScript does, but it&rsquo;s
+                  especially great for local-first apps: where data is stored
+                  locally on the user&rsquo;s device and that can be run
+                  offline&rdquo; (tinybase.org, 2026-11-23). Persistence to
+                  IndexedDB/OPFS/SQLite/PGLite, including &ldquo;twelve SQLite-based
+                  persistence options, four for PostgreSQL, and one for SQL
+                  Server&rdquo; (persistence guide, 2026-11-23); OPFS
+                  &ldquo;Since v6.7&rdquo; (architectural-options guide).
+                </td>
+              </tr>
+              <tr>
+                <td>2 &middot; Local commands</td>
+                <td class="no">CLIENT-MINTS-FACTS</td>
+                <td>
+                  Mutations are <code>setCell</code>/<code>setValue</code> on an
+                  in-memory Store &mdash; the client writes state directly; there is
+                  no intent, validation, or decision step anywhere in the API
+                  surface (tinybase.org, 2026-11-23). The library is explicit about
+                  staying out of that business: &ldquo;TinyBase deliberately avoids
+                  having an opinion on simultaneous or conflicting updates,
+                  deferring that to the underlying CRDT framework&rdquo; (CRDT
+                  persistence guide, 2026-11-23).
+                </td>
+              </tr>
+              <tr>
+                <td>3 &middot; Reconnect rebase</td>
+                <td>CRDT &mdash; delegated, cell-granular</td>
+                <td>
+                  Synchronization rides on MergeableStores: the Store
+                  &ldquo;records additional metadata as the data is changed so that
+                  potential conflicts can be reconciled&rdquo;, over
+                  &ldquo;WebSockets, the browser&rsquo;s BroadcastChannel API, or
+                  other custom media&rdquo; (synchronization guide, 2026-11-23).
+                  First-party CRDT sync delegates to Yjs/Automerge persisters;
+                  conflicts resolve &ldquo;at a Cell or Value level&rdquo; with a
+                  client-ID tiebreak (&ldquo;Yjs typically runs a tie-break based on
+                  the client ID of the document, where the higher one wins&rdquo;)
+                  &mdash; i.e. LWW inside a CRDT envelope (CRDT guide, 2026-11-23).
+                  Landscape: conflict handling &ldquo;Automatic via CRDT&rdquo;,
+                  resolution &ldquo;Client&rdquo; with &ldquo;Server can also
+                  resolve conflicts&rdquo; (2026-11-22).
+                </td>
+              </tr>
+              <tr>
+                <td>4 &middot; Client-local Commands &amp; Events</td>
+                <td>State-level only &mdash; no journal</td>
+                <td>
+                  A client can compute anything locally (queries, metrics run
+                  in-memory), but persistence and sync carry <em>state</em>, not an
+                  append-only event log: the store is &ldquo;an in-memory data
+                  store&rdquo; saved as tables/JSON (architectural-options guide,
+                  2026-11-23). Client-local Commands &amp; Events in the CQRS sense
+                  would be app code on top; the substrate neither records causality
+                  nor replays history. (Rebuild-from-log semantics: UNVERIFIED
+                  &mdash; no journal feature found in fetched docs.)
+                </td>
+              </tr>
+              <tr>
+                <td>5 &middot; Logic sharing + protected resources</td>
+                <td>One TS runtime everywhere; no auth notion</td>
+                <td>
+                  The same store/synchronizer code runs in browser, workers, Node,
+                  Bun, React Native (home + architectural options, 2026-11-23) &mdash;
+                  query/fold logic shares naturally because everything is
+                  TypeScript. Protected resources: none in the fetched docs; no
+                  auth, roles, or server-side enforcement surface appears in the
+                  product. Servers in the picture are yours (WebSocket
+                  synchronizers, PostgreSQL persisters).
+                </td>
+              </tr>
+              <tr>
+                <td>6 &middot; Maturity / license</td>
+                <td class="yes">Mature &middot; MIT</td>
+                <td>
+                  Landscape: Mature, MIT, ~1&nbsp;ms local refresh, 5&ndash;10&nbsp;MB
+                  per store (2026-11-22). Site: &ldquo;just 7.3kB - 16.7kB and with
+                  no dependencies - yet 100% tested, fully documented, and of
+                  course, open source!&rdquo; Repo github.com/tinyplex/tinybase:
+                  5,219 stars, MIT, pushed 2026-11-18 (GitHub API, 2026-11-23).
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="compare">
+          <h2><span class="num">02</span>TinyBase vs go-cqrs-lite</h2>
+          <table class="compare">
+            <thead>
+              <tr>
+                <th>Dimension</th>
+                <th>TinyBase</th>
+                <th>go-cqrs-lite</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Write boundary</td>
+                <td>None &mdash; &ldquo;deliberately avoids having an opinion&rdquo;</td>
+                <td>Everything &mdash; Decide is the only path to an event; Rejection is first-class</td>
+              </tr>
+              <tr>
+                <td>Derived read models</td>
+                <td>Reactive Metrics / Indexes / Relationships / Queries (TinyQL) recomputed incrementally, client-side</td>
+                <td>Projections + metaengine planner; <code>metaengine.ServeSSE</code> streams a <code>Watcher[V]</code> with replay and Last-Event-ID resume &mdash; server-side today</td>
+              </tr>
+              <tr>
+                <td>Source of truth</td>
+                <td>In-memory Store state; persist &amp; sync as state</td>
+                <td>Append-only event streams; state is disposable and replayable (ADR-0136 ladder as cited in research 2026-11-22)</td>
+              </tr>
+              <tr>
+                <td>Offline</td>
+                <td>Persist offline, sync on reconnect &mdash; first-class guidance</td>
+                <td>L4 parked: queue Commands, decide on server after reconnect (research 2026-11-22)</td>
+              </tr>
+              <tr>
+                <td>Contract to the client</td>
+                <td>TS API consumed directly by React/Solid/Svelte</td>
+                <td>Generated TS contracts from <code>catalog.SchemaFromType[T]()</code> via the pinned <code>typeScriptInterface()</code> renderer (research 2026-11-21)</td>
+              </tr>
+              <tr>
+                <td>Cost in browser</td>
+                <td>7.3&ndash;16.7&nbsp;kB, zero dependencies</td>
+                <td>0 runtime bytes for types (they erase); Go-in-browser rejected at ~2&nbsp;MB raw (research 2026-11-21)</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="callout callout-teal">
+            <strong>Fit verdict: PATTERN-TO-ADOPT</strong>
+            Not a dependency (no Go surface, no write model) but the best map of
+            what the client half of the owner&rsquo;s Question looks like when it
+            is done well: reactive derived queries over locally-owned data, merge
+            metadata recorded at mutation time, and a tiny pluggable perimeter
+            (persister/synchronizer) instead of a monolithic engine.
+          </div>
+        </section>
+
+        <section id="steal">
+          <h2><span class="num">03</span>What to steal</h2>
+          <div class="strengths">
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>MergeableStore: record merge metadata at write time</strong>
+                <span>Conflict metadata is captured when the change happens, not
+                computed at sync time &mdash; the L4 journal should stamp each
+                client event with its causal context the same way, so rebase is
+                bookkeeping, not archaeology.</span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Metrics/Indexes/Relationships as reactive fold declarations</strong>
+                <span>Derived tables that recompute incrementally when source rows
+                change are precisely Evolutions/fold declarations from ADR-0151
+                &mdash; proof the developer-facing surface can be declarative and
+                still reactive in a browser.</span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>The persister/synchronizer seam</strong>
+                <span>One tiny interface, many backends (twelve SQLite variants,
+                Postgres, Yjs, Automerge, PartyKit, Supabase&hellip;). The
+                go-cqrs-lite client tier should expose exactly one such seam for
+                storage and one for sync &mdash; not a hardcoded engine.</span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Honest scope statement</strong>
+                <span>&ldquo;Deliberately avoids having an opinion on&hellip;
+                conflicting updates&rdquo; is the exact inverse of this repo&rsquo;s
+                thesis; saying so plainly on both sides is what makes the eventual
+                combination (TinyBase-shaped reads, decider-shaped writes) clean
+                rather than muddled.</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="sources">
+          <h2><span class="num">04</span>Sources &amp; verification</h2>
+          <ul>
+            <li>localfirst.fm/landscape embedded entry dataset (Mature, MIT, full replication, &ldquo;Automatic via CRDT&rdquo;, resolution Client &ldquo;Server can also resolve conflicts&rdquo;, cell/value-level sync, ~1&nbsp;ms, 5&ndash;10&nbsp;MB/store) &mdash; fetched <strong>2026-11-22</strong>.</li>
+            <li>https://tinybase.org/ &mdash; size/deps claim, reactive indexing/metrics/relationships/queries, ecosystem logos &mdash; fetched <strong>2026-11-23</strong>.</li>
+            <li>https://tinybase.org/guides/synchronization &mdash; MergeableStore metadata, synchronizer media, offline-then-sync guidance &mdash; fetched <strong>2026-11-23</strong>.</li>
+            <li>https://tinybase.org/guides/persistence/third-party-crdt-persistence &mdash; &ldquo;avoids having an opinion&rdquo;, cell-level atomicity, Yjs client-ID tiebreak &mdash; fetched <strong>2026-11-23</strong>.</li>
+            <li>https://tinybase.org/guides/the-basics/architectural-options &mdash; in-memory store, OPFS since v6.7, client DB options &mdash; fetched <strong>2026-11-23</strong>.</li>
+            <li>https://tinybase.org/guides/persistence/database-persistence &mdash; twelve SQLite options, four PostgreSQL, one SQL Server &mdash; fetched <strong>2026-11-23</strong>.</li>
+            <li>GitHub API github.com/tinyplex/tinybase: 5,219 stars, MIT, pushed 2026-11-18 &mdash; fetched <strong>2026-11-23</strong>.</li>
+            <li>UNVERIFIED: current release version number (site shows v6.7+ features but a pinned version was not extracted); whether any journal/replay-from-log mode exists beyond state persistence (none found in fetched docs).</li>
+          </ul>
+        </section>
+
+        <footer class="footer">
+          <p>
+            Generated 2026-11-23 &middot; Entry #tinybase of 22 in the localfirst.fm
+            landscape &middot; All quotes verbatim from fetched primary sources; UNVERIFIED items labeled inline
+          </p>
+        </footer>
+      </main>
+    </div>
+    <!-- Progressive-enhancement scrollspy. Nav still works without JS via anchor links. -->
+    <script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) {
+            return document.getElementById(id);
+          })
+          .filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (link) {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id,
+                  );
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
+      })();
+    </script>
+  </body>
+</html>

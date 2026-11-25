@@ -746,3 +746,136 @@ func TestSomething(t *testing.T) {
 	findings := ruletest.RunDetector(t, boilerplate.NewB015Detector(ctx))
 	ruletest.AssertRule(t, findings, "B015", 0)
 }
+
+// --- B032: Command without tracing metadata ---
+
+func TestB032_DetectsBareCommandNew(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"cmd.go": `package main
+
+import "github.com/larsartmann/go-cqrs-lite/command/v4"
+
+func build(stream string) {
+	cmd, _ := command.New("file.rename", streamType(stream))
+	_ = cmd
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, boilerplate.NewB032Detector(ctx))
+	ruletest.AssertRule(t, findings, "B032", 1)
+}
+
+func TestB032_NoFindingWithTracingOptions(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"cmd.go": `package main
+
+import "github.com/larsartmann/go-cqrs-lite/command/v4"
+
+func build(stream string) {
+	cmd, _ := command.New("file.rename", streamType(stream),
+		command.WithCorrelationID(correlationID()))
+	_ = cmd
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, boilerplate.NewB032Detector(ctx))
+	ruletest.AssertRule(t, findings, "B032", 0)
+}
+
+func TestB032_NoFindingForCommandMetadata(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"audit.go": `package main
+
+import "github.com/larsartmann/go-cqrs-lite/command/v4"
+
+func record(t string) {
+	persisted, _ := command.NewPersistedCommand(t, ref, nil,
+		command.WithCommandMetadata(cmd.Metadata()))
+	_ = persisted
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, boilerplate.NewB032Detector(ctx))
+	ruletest.AssertRule(t, findings, "B032", 0)
+}
+
+func TestB032_DetectsBarePersistedCommand(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"audit.go": `package main
+
+import "github.com/larsartmann/go-cqrs-lite/command/v4"
+
+func record(t string) {
+	persisted, _ := command.NewPersistedCommand(t, ref, nil,
+		command.WithPersistedCommandID(id))
+	_ = persisted
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, boilerplate.NewB032Detector(ctx))
+	ruletest.AssertRule(t, findings, "B032", 1)
+}
+
+// --- B033: Passive audit-store read without a writer ---
+
+func TestB033_DetectsUnwrittenQueryStore(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"dash.go": `package main
+
+func wire(raw *system.System) {
+	journal := queryJournalFrom(raw.QueryStore())
+	_ = journal
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, boilerplate.NewB033Detector(ctx))
+	ruletest.AssertRule(t, findings, "B033", 1)
+}
+
+func TestB033_NoFindingWithWriter(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"dash.go": `package main
+
+func wire(raw *system.System) {
+	journal := queryJournalFrom(raw.QueryStore())
+	_ = journal
+}
+
+func audit(ctx context.Context, q *query.PersistedQuery) error {
+	return store.SaveQuery(ctx, q)
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, boilerplate.NewB033Detector(ctx))
+	ruletest.AssertRule(t, findings, "B033", 0)
+}
+
+func TestB033_NoFindingWithoutReads(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+func main() {}
+`,
+	})
+	findings := ruletest.RunDetector(t, boilerplate.NewB033Detector(ctx))
+	ruletest.AssertRule(t, findings, "B033", 0)
+}
+
+func TestB033_CommandStoreWriterViaAuditor(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"dash.go": `package main
+
+func wire(raw *system.System) {
+	journal := commandJournalFrom(raw.CommandStore())
+	_ = journal
+}
+
+func record(cmd command.Command) {
+	persisted, _ := command.NewPersistedCommand(cmd.Type(), ref, nil)
+	_ = persisted
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, boilerplate.NewB033Detector(ctx))
+	ruletest.AssertRule(t, findings, "B033", 0)
+}

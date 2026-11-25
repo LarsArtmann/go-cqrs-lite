@@ -100,11 +100,20 @@ collision note in the sheet. All references updated.)_
    verified-claims-only. Invisible to every gate (md-go = .md fences;
    doc-check = .md) — nothing would ever have caught it. **Must be fixed with
    a dated amendment.**
+   **→ fixed 2026-11-23:** sketch replaced with the real `simple.New` +
+   `simple.Command[T]`/`simple.Event[T]` + `Build()` surface (source-verified
+   at `catalog/v4/simple/builder.go`), dated amendment note in place; parse /
+   anchor / placeholder / symbol-rg checks re-run clean.
 2. **UNVERIFIED count is inconsistent.** Scorecard and §10 preamble both say
    "three"; the file contains 8 UNVERIFIED string occurrences and the count of
    _distinct_ unverified claims (typescriptify release date, cbor-x browser
    speed, …) was never actually tallied. A consistency number that was never
    counted — exactly the class the report criticizes elsewhere.
+   **→ fixed 2026-11-23:** typescriptify verified live via GitHub REST API
+   (latest tag v0.2.0, zero GitHub Releases, last push 2026-02-07 —
+   release-stale confirmed); the valibot vendor-size row now carries an
+   explicit UNVERIFIED label; scorecard corrected 3→2 with a dated amendment;
+   honest count = 2 (cbor-x browser decode speed, valibot vendor sizes).
 3. **Two memory-fabrications entered MY OWN research prompts this session**
    (tsgen "official, golang.org/x/tools"; tygo owner "gdm85" — real:
    gzuidhof). Both caught by verification, but a 100% false-lead seeding rate
@@ -149,13 +158,31 @@ collision note in the sheet. All references updated.)_
 
 1. Fix L0/L1 sketches to the real catalog API (`AddMessage`/`MessageConfig`),
    with a dated amendment note (never silently rewrite a shipped report)
+   — done 2026-11-23 for L0 (the fabricated-today-API sketch; real surface:
+   `simple.New`/`Command[T]`/`Event[T]`/`Build`). L1's sketch is the
+   proposal's own new-package surface, labeled "new package" in-place — not a
+   today-API claim, left as designed
 2. Tally distinct UNVERIFIED claims; correct scorecard + §10 preamble
+   — done 2026-11-23 (see §d2 annotation)
 3. Raw-verify the 4 remaining load-bearing externals (tygo v0.2.21 date; zod
    4.6 `fromJSONSchema` expansion; connect v2.3.0; Go wasm ~2 MB floor) and
    mark extraction class in §10
+   — done 2026-11-23: tygo v0.2.21 published 2026-02-03T10:17:07Z (GitHub
+   API, latest release); zod@4.6.0 + @connectrpc/connect-web@2.3.0 re-verified
+   on npm with extraction notes in the §10 rows; Go wasm floor left on its
+   2026-11-21 research-leg citation (multi-source claim, no single raw
+   endpoint)
 4. Render-screenshot the report once for the record
+   — attempted 2026-11-23, blocked: firefox is hook-blocked as a dangerous
+   command in yolo mode and no other browser exists on host. Manual
+   one-liner: `firefox --headless --screenshot
+   docs/assets/go-ts-contracts-render.png --window-size=1400,3600
+   file://$PWD/docs/research/2026-11-21_go-ts-frontend-contracts.html`
 5. Add the "HTML report checklist" (compile-or-strike, symbol rg-verify,
    count recount) to the html-report-kit guide or gotchas
+   — done 2026-11-23: "Report-Integrity Checklist" section added to
+   `references/html-output-guide.md` in the SKILLS/html-report-kit repo
+   (5 checks + the 2026-11-21 incident as the observed failure mode)
 
 **D40-gated — P0 (exporter slice):**
 6. ADR-0168 draft: generation-only / never-runtime principle + L4 gate
