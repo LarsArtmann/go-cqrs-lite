@@ -201,25 +201,63 @@ func TestProbeHandle_NilSafe(t *testing.T) {
 // --- StartAutoReplan Parent Context Tests ---
 
 // TestStartAutoReplan_ParentContextCancellation proves that cancelling the
-// parent context stops the auto-replan loop.
+// parent context stops the auto-replan loop. The loop's only visible heartbeat
+// is the engine Profile() read each routing check performs, so a counter that
+// stops advancing is the proof; a test that merely cancels and returns cannot
+// fail.
 func TestStartAutoReplan_ParentContextCancellation(t *testing.T) {
 	t.Parallel()
 
-	remote := newFakeRemote("remote", 1, 1*time.Millisecond)
-	store := planWith(t, remote)
+	eng := &profileCountingEngine{fakeRemoteEngine: newFakeRemote("remote", 1, 1*time.Millisecond)}
+	store := planWith(t, eng)
 
 	ctx, cancel := context.WithCancel(context.Background())
+	t.Cleanup(cancel)
+	stop := store.StartAutoReplan(ctx, 5*time.Millisecond)
+	t.Cleanup(stop)
 
-	_ = store.StartAutoReplan(ctx, 10*time.Millisecond)
+	// The loop must demonstrably be alive before its death can mean anything.
+	if !awaitProfileCalls(eng, 3, 5*time.Second) {
+		t.Fatalf("auto-replan loop never checked routing: %d Profile() calls", eng.profileCalls.Load())
+	}
 
-	// Cancel the parent context — the loop should stop.
 	cancel()
 
-	// Give the goroutine time to notice and exit.
-	time.Sleep(50 * time.Millisecond)
+	if !awaitProfileCallsStable(eng, 200*time.Millisecond) {
+		t.Errorf("auto-replan loop kept running after parent cancel: %d Profile() calls", eng.profileCalls.Load())
+	}
 
-	// If the goroutine didn't exit, it would still be running. We can't easily
-	// check goroutine count, but the test passes if it doesn't hang.
+	// The returned stop is a context cancel func: calling it after the parent
+	// is gone must stay safe.
+	stop()
+}
+
+// TestStartAutoReplan_StopFunc proves the returned stop function ends the loop
+// while the parent context stays alive.
+func TestStartAutoReplan_StopFunc(t *testing.T) {
+	t.Parallel()
+
+	eng := &profileCountingEngine{fakeRemoteEngine: newFakeRemote("remote", 1, 1*time.Millisecond)}
+	store := planWith(t, eng)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	t.Cleanup(cancel)
+	stop := store.StartAutoReplan(ctx, 5*time.Millisecond)
+	t.Cleanup(stop)
+
+	if !awaitProfileCalls(eng, 3, 5*time.Second) {
+		t.Fatalf("auto-replan loop never checked routing: %d Profile() calls", eng.profileCalls.Load())
+	}
+
+	stop()
+
+	if err := ctx.Err(); err != nil {
+		t.Errorf("stop cancelled the caller's parent context: %v", err)
+	}
+
+	if !awaitProfileCallsStable(eng, 200*time.Millisecond) {
+		t.Errorf("auto-replan loop kept running after stop(): %d Profile() calls", eng.profileCalls.Load())
+	}
 }
 
 // --- Concurrency Stress Test ---

@@ -2,7 +2,6 @@ package metaengine_test
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"testing"
 	"time"
@@ -12,27 +11,15 @@ import (
 )
 
 // cursorNonNumericEngines returns both engine implementations for the
-// cross-engine cursor test. Each SQLite engine gets a unique named in-memory
-// database to avoid shared-state interference with other tests.
+// cross-engine cursor tests, each on a private database so the two cannot
+// share state.
 func cursorNonNumericEngines(t *testing.T) map[string]metaengine.Engine {
 	t.Helper()
-	engines := map[string]metaengine.Engine{
-		"memory": metaengine.NewMemoryEngine(),
-	}
-	dbName := fmt.Sprintf("cursortest_%d", time.Now().UnixNano())
-	db, err := sql.Open("sqlite", fmt.Sprintf("file:%s?mode=memory&cache=shared", dbName))
-	if err != nil {
-		t.Fatalf("sql.Open: %v", err)
-	}
-	db.SetMaxOpenConns(1)
-	t.Cleanup(func() { _ = db.Close() })
-	eng, err := metaengine.NewMemoryEngine(), nil
-	if err != nil {
-		t.Fatalf("NewSQLiteEngine: %v", err)
-	}
-	engines["sqlite"] = eng
 
-	return engines
+	return map[string]metaengine.Engine{
+		"memory": metaengine.NewMemoryEngine(),
+		"sqlite": newIsolatedSQLiteEngine(t),
+	}
 }
 
 // StringKeyItem is a value sorted by a string key.

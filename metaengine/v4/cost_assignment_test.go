@@ -27,8 +27,12 @@ var _ = Describe("Regression: cost model picks the cheaper engine", func() {
 		plan := store.Plan()
 		Expect(plan.Queries).To(HaveLen(1))
 		Expect(plan.Queries[0].EngineName).To(Equal("memory"))
-		Expect(plan.Queries[0].Cost.EstimatedLatencyMs).To(BeNumerically("<",
-			plan.Queries[0].Cost.EstimatedLatencyMs+1)) // sanity: finite cost
+		// A Map point lookup is one O(1) op on memory (500 ns/op = 0.0005 ms). A
+		// zeroed or non-finite estimate would pass a self-comparison yet defeat
+		// every latency budget downstream.
+		cost := plan.Queries[0].Cost.EstimatedLatencyMs
+		Expect(cost).To(BeNumerically(">", 0))
+		Expect(cost).To(BeNumerically("<", 0.001))
 	})
 
 	It("estimates a lower latency for memory than SQLite for the same query", func() {

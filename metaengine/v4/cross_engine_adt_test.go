@@ -40,9 +40,9 @@ func TestCrossEngineCounterParity(t *testing.T) {
 	var resultsMu sync.Mutex
 
 	for name, eng := range engines {
+		// Sequential on purpose: the parity check below reads what the subtests
+		// recorded, which a parallel subtest has not done yet when it returns.
 		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-
 			cb, ok := eng.(metaengine.CounterBackend)
 			if !ok {
 				t.Fatalf("%s engine does not implement CounterBackend", name)
@@ -70,9 +70,7 @@ func TestCrossEngineCounterParity(t *testing.T) {
 	}
 
 	// Cross-engine deep-equal (both must agree on every key+value).
-	if len(results) == len(engines) {
-		assertCrossEngineCountersEq(t, results)
-	}
+	assertCrossEngineCountersEq(t, results)
 }
 
 // TestCrossEngineSetParity — SetAdd + SetContains produce identical membership
@@ -94,8 +92,6 @@ func TestCrossEngineSetParity(t *testing.T) {
 
 	for name, eng := range engines {
 		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-
 			sb, ok := eng.(metaengine.SetBackend)
 			if !ok {
 				t.Fatalf("%s engine does not implement SetBackend", name)
@@ -129,9 +125,7 @@ func TestCrossEngineSetParity(t *testing.T) {
 		})
 	}
 
-	if len(results) == len(engines) {
-		assertCrossEngineSetEq(t, results)
-	}
+	assertCrossEngineSetEq(t, results)
 }
 
 func assertCounterEq(
@@ -165,7 +159,7 @@ func assertCrossEngineCountersEq(
 	t.Helper()
 
 	if len(results) < 2 {
-		return
+		t.Fatalf("expected results from both engines, got %d", len(results))
 	}
 
 	// Collect all keys for a deterministic comparison order.
@@ -202,7 +196,7 @@ func assertCrossEngineSetEq(
 	t.Helper()
 
 	if len(results) < 2 {
-		return
+		t.Fatalf("expected results from both engines, got %d", len(results))
 	}
 
 	for k, memHit := range results["memory"] {
@@ -244,8 +238,6 @@ func TestCrossEngineSortedMapParity(t *testing.T) {
 
 	for name, eng := range engines {
 		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-
 			store, err := metaengine.Plan(
 				[]metaengine.Engine{eng},
 				listTasksByStatusQuery(),
@@ -313,10 +305,8 @@ func TestCrossEngineSortedMapParity(t *testing.T) {
 	}
 
 	// Cross-engine deep-equal: both engines must produce identical ordered results.
-	if len(scanResults) == len(engines) {
-		assertCrossEngineScanEq(t, scanResults, "full scan")
-		assertCrossEngineScanEq(t, limitResults, "limit=2 scan")
-	}
+	assertCrossEngineScanEq(t, scanResults, "full scan")
+	assertCrossEngineScanEq(t, limitResults, "limit=2 scan")
 }
 
 func assertCrossEngineScanEq(t *testing.T, results map[string][]TaskID, label string) {

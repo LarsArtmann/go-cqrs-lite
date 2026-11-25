@@ -856,7 +856,10 @@ func TestWithCursorString_InvalidString(t *testing.T) {
 	ctx := context.Background()
 	_ = store.Apply(ctx, "task_created", testTask{ID: "i1", Title: "Invalid"})
 
-	// Invalid base64 string → ParseCursor fails → cursor stays nil → no crash.
+	// Pins current behaviour, not a contract: WithCursorString swallows the
+	// ParseCursor error, so a malformed cursor silently restarts at page 1
+	// (inconsistent with ServeSSE, which rejects a malformed Last-Event-ID).
+	// Surfacing the error here is an owner decision on a frozen v4 surface.
 	page, _, err := reader.ScanPage(ctx, WithSort("Title", false), WithLimit(10),
 		WithCursorString("!!!invalid!!!"))
 	if err != nil {

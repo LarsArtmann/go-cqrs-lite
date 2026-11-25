@@ -118,12 +118,9 @@ var _ = Describe("Cross-engine read-contract meta-test", func() {
 	BeforeEach(func() {
 		memEng = metaengine.NewMemoryEngine()
 
-		var err error
-		db, err = sql.Open("sqlite", "file:xmeta1?mode=memory&cache=shared")
-		Expect(err).NotTo(HaveOccurred())
-		db.SetMaxOpenConns(1)
-
-		sqliteEng = metaengine.NewMemoryEngine()
+		// A private SQLite engine: only a real second implementation can catch a
+		// reify divergence, and a shared cache would leak rows between specs.
+		sqliteEng, db = newSQLiteEngine()
 	})
 
 	AfterEach(func() {
