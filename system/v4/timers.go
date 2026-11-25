@@ -2,9 +2,16 @@ package system
 
 import (
 	"context"
+	"errors"
+	"log/slog"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
+
+// errTimersStopped is the cancellation cause stopTimersLocked installs on the
+// scheduler context. Any other cause means the context passed to
+// System.Start was cancelled by its caller.
+var errTimersStopped = errors.New("system: timers stopped")
 
 // TimerEngine returns the engine deployments designate for timer storage:
 // the engine named "timers" in DeploymentConfig.Engines when present, else
@@ -63,16 +70,40 @@ func (s *System) startTimersLocked(parent context.Context) {
 		return
 	}
 
-	ctx, cancel := context.WithCancel(parent)
+	ctx, cancel := context.WithCancelCause(parent)
 	s.timerCancel = cancel
 
 	for _, sched := range s.timers {
+		s.timersAlive.Add(1)
+
 		s.timersWG.Go(func() {
+			defer s.timersAlive.Add(-1)
+
 			// Start returns only on context cancellation (the documented
 			// Scheduler contract); its error is terminal noise at shutdown.
 			_ = sched.Start(ctx)
+			s.warnIfStartContextCancelled(ctx)
 		})
 	}
+}
+
+// warnIfStartContextCancelled logs when a managed scheduler returned because
+// the context passed to System.Start was cancelled while the system was not
+// closed: timers then stay silent until Start is called again, and nothing
+// else says so.
+func (s *System) warnIfStartContextCancelled(ctx context.Context) {
+	cause := context.Cause(ctx)
+	if cause == nil || errors.Is(cause, errTimersStopped) {
+		return
+	}
+
+	slog.Warn(
+		"system: managed timers stopped: the context passed to Start was cancelled while the system is not closed; "+
+			"timers run only as long as that context, so due timers stay silent. "+
+			"Pass a context that lives as long as the system (context.WithoutCancel) and stop with Close",
+		"cause",
+		cause,
+	)
 }
 
 // stopTimers cancels the scheduler context and waits for every Start
@@ -94,7 +125,7 @@ func (s *System) stopTimersLocked() {
 	s.timerCancel = nil
 
 	if cancel != nil {
-		cancel()
+		cancel(errTimersStopped)
 	}
 
 	s.timersWG.Wait()

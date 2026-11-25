@@ -105,12 +105,17 @@ func retry(
 		return err
 	}
 
+	isRetryable := config.IsRetryable
+	if isRetryable == nil {
+		isRetryable = errorfamily.IsRetryable
+	}
+
 	rcfg := retrypkg.Config{
 		MaxAttempts:  config.MaxAttempts,
 		InitialDelay: config.InitialDelay,
 		MaxDelay:     config.MaxDelay,
 		Multiplier:   config.Multiplier,
-		IsRetryable:  config.IsRetryable,
+		IsRetryable:  isRetryable,
 		OnRetry: func(attempt int, delay time.Duration, err error) {
 			if logger != nil {
 				logger.Warn(

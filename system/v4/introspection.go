@@ -150,7 +150,23 @@ func (s *System) Health(_ context.Context) string {
 		}
 	}
 
+	if len(s.timers) > 0 {
+		parts = append(parts, "timers:"+s.timersState())
+	}
+
 	return strings.Join(parts, " ")
+}
+
+// timersState names the managed-scheduler lifecycle. The caller must hold s.mu.
+func (s *System) timersState() string {
+	switch {
+	case !s.started:
+		return "not-started"
+	case s.timersAlive.Load() == 0:
+		return "stopped"
+	default:
+		return "running"
+	}
 }
 
 // HealthCheck verifies that all infrastructure resources are reachable and
@@ -159,8 +175,11 @@ func (s *System) Health(_ context.Context) string {
 //   - All engines that implement [metaengine.HealthChecker] respond to pings.
 //   - No projection worker is in a failed state.
 //
+// It is a liveness probe: a system that owns a projection host or managed
+// timers but was never started passes, because its resources are reachable
+// even though nothing runs. Use [System.ReadyCheck] for a readiness probe.
+//
 // Returns nil if all resources are healthy. Returns the first error otherwise.
-// Use this for Kubernetes liveness/readiness probes.
 func (s *System) HealthCheck(ctx context.Context) error {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -169,6 +188,12 @@ func (s *System) HealthCheck(ctx context.Context) error {
 		return ErrSystemStopped
 	}
 
+	return s.healthCheckLocked(ctx)
+}
+
+// healthCheckLocked runs the resource checks shared by HealthCheck and
+// ReadyCheck. The caller must hold s.mu.
+func (s *System) healthCheckLocked(ctx context.Context) error {
 	// Check all engines that implement HealthChecker.
 	for _, ne := range s.engines {
 		eng := ne.engine

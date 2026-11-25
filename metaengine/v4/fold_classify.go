@@ -62,6 +62,7 @@ func classifyADT(folds []Fold) (ADT, error) {
 
 // deriveKeys auto-generates keyExtractor closures for update and remove folds
 // by matching the insert fold's key type against fields in the event struct.
+// Without an insert fold every such fold must already carry an extractor.
 func deriveKeys(folds []Fold) error {
 	var keyType reflect.Type
 
@@ -74,7 +75,7 @@ func deriveKeys(folds []Fold) error {
 	}
 
 	if keyType == nil {
-		return nil
+		return rejectUnkeyedFolds(folds)
 	}
 
 	for _, f := range folds {
@@ -83,6 +84,26 @@ func deriveKeys(folds []Fold) error {
 				return err
 			}
 		}
+	}
+
+	return nil
+}
+
+// rejectUnkeyedFolds fails registration when an update or remove fold cannot
+// derive its key: with no insert fold there is no key type to match against,
+// and the nil extractor would only panic on the first applied event.
+func rejectUnkeyedFolds(folds []Fold) error {
+	for _, f := range folds {
+		keyed, ok := f.(extractorFold)
+		if !ok || *keyed.keyExtractorPtr() != nil {
+			continue
+		}
+
+		return fmt.Errorf(
+			"fold for %s (%s): no key source — without an insert fold there is no key type to derive it from; add an insert fold or an explicit key extractor",
+			keyed.EventType(),
+			f.Kind(),
+		)
 	}
 
 	return nil

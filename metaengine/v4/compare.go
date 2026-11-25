@@ -201,32 +201,17 @@ func tryNumericCompare(left, right any) (int, bool) {
 	return cmp.Compare(fLeft, fRight), true
 }
 
+// toFloat64 converts any numeric value, including named numeric types such as
+// `type Priority int` (a type switch on the unnamed kinds would miss those and
+// push them onto the string fallback, where 10 sorts before 9).
 func toFloat64(v any) (float64, bool) {
-	switch n := v.(type) {
-	case int:
-		return float64(n), true
-	case int8:
-		return float64(n), true
-	case int16:
-		return float64(n), true
-	case int32:
-		return float64(n), true
-	case int64:
-		return float64(n), true
-	case uint:
-		return float64(n), true
-	case uint8:
-		return float64(n), true
-	case uint16:
-		return float64(n), true
-	case uint32:
-		return float64(n), true
-	case uint64:
-		return float64(n), true
-	case float32:
-		return float64(n), true
-	case float64:
-		return n, true
+	switch n := reflect.ValueOf(v); n.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return float64(n.Int()), true
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return float64(n.Uint()), true
+	case reflect.Float32, reflect.Float64:
+		return n.Float(), true
 	default:
 		return 0, false
 	}

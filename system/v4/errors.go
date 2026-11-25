@@ -40,7 +40,9 @@ var (
 		"system: engine does not implement EventByIDBackend",
 	)
 	ErrShutdownDependencyInvalid = errors.New("system: invalid shutdown dependency")
+	ErrSystemNotStarted          = errors.New("system: not started")
 	ErrSystemStopped             = errors.New("system: already stopped")
+	ErrTimersStopped             = errors.New("system: managed timers are not running")
 	ErrUnknownBusDriver          = errors.New("system: unknown bus driver")
 	ErrUnknownEngine             = errors.New("system: unknown engine")
 	ErrUnknownInstanceRole       = errors.New("system: unknown instance role")

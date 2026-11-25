@@ -56,11 +56,13 @@ const (
 type FindOption func(*findConfig)
 
 type findConfig struct {
-	filters []filterCond
-	sortBy  string
-	desc    bool
-	limit   int
-	cursor  any
+	filters   []filterCond
+	sortBy    string
+	desc      bool
+	limit     int
+	unlimited bool
+	exact     bool
+	cursor    any
 }
 
 type filterCond struct {
@@ -85,13 +87,31 @@ func OrderBy(field string, order SortOrder) FindOption {
 	}
 }
 
-// Limit caps the number of results returned.
+// Limit caps the number of results returned. Without it (or with a non-positive
+// n) a scan stops at the engine's default bound of 100 rows; use [Unlimited] to
+// read a whole collection, or [Exact] to turn a truncation into an error.
 func Limit(n int) FindOption {
 	return func(c *findConfig) { c.limit = n }
 }
 
-// After sets a pagination cursor from a previous page's [PaginatedResult.Cursor].
-// Use with [Limit] to paginate through large result sets.
+// Unlimited removes the result cap: Find returns every matching row. Without
+// it a scan stops at 100 rows and the caller cannot tell.
+func Unlimited() FindOption {
+	return func(c *findConfig) { c.unlimited = true }
+}
+
+// Exact makes Find fail with an error that matches
+// [metaengine.ErrScanTruncated] when a bounded scan left rows behind, instead
+// of returning a silently truncated slice. It composes with [Limit] and has
+// no effect together with [Unlimited].
+func Exact() FindOption {
+	return func(c *findConfig) { c.exact = true }
+}
+
+// After sets a pagination cursor from an encoded cursor string
+// ([metaengine.Cursor.Encode]). Find itself returns only rows, so take the
+// cursor from [metaengine.TypedReader.ScanPage]. Use with [Limit] to paginate
+// through large result sets.
 func After(cursor string) FindOption {
 	return func(c *findConfig) { c.cursor = cursor }
 }
@@ -99,8 +119,8 @@ func After(cursor string) FindOption {
 // Find queries a QuerySet projection with optional filters, sort, and limit.
 // Returns a slice of results; empty slice if no matches.
 //
-//	// All tasks
-//	all, err := system.Find[TaskView](ctx, sys, "tasks")
+//	// All tasks (the default scan stops at 100 rows)
+//	all, err := system.Find[TaskView](ctx, sys, "tasks", system.Unlimited())
 //
 //	// Filtered + sorted + limited
 //	hot, err := system.Find[TaskView](ctx, sys, "tasks",
@@ -128,8 +148,15 @@ func Find[R any](ctx context.Context, sys *System, name string, opts ...FindOpti
 		scanOpts = append(scanOpts, metaengine.WithSort(cfg.sortBy, cfg.desc))
 	}
 
-	if cfg.limit > 0 {
+	switch {
+	case cfg.unlimited:
+		scanOpts = append(scanOpts, metaengine.WithLimit(0))
+	case cfg.limit > 0:
 		scanOpts = append(scanOpts, metaengine.WithLimit(cfg.limit))
+	}
+
+	if cfg.exact {
+		scanOpts = append(scanOpts, metaengine.WithExact())
 	}
 
 	if cfg.cursor != nil {

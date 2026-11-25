@@ -91,6 +91,58 @@ func TestCommandRetry_NonRetryable(t *testing.T) {
 	}
 }
 
+func TestCommandRetry_NilIsRetryableAppliesDocumentedDefault(t *testing.T) {
+	t.Parallel()
+
+	mw := CommandRetry(handBuiltRetryConfig())
+
+	callCount := 0
+	handler := mw(func(_ context.Context, _ command.Command) error {
+		callCount++
+
+		return errorfamily.NewRejection("test.rejection", "a domain answer")
+	})
+
+	err := handler(context.Background(), &testCommand{streamID: id.NewStreamID()})
+	if err == nil {
+		t.Fatal("expected error")
+	}
+
+	if callCount != 1 {
+		t.Errorf(
+			"nil IsRetryable must mean the documented default (Transient only): Rejection expected 1 call, got %d",
+			callCount,
+		)
+	}
+}
+
+func TestCommandRetry_NilIsRetryableRetriesTransient(t *testing.T) {
+	t.Parallel()
+
+	config := handBuiltRetryConfig()
+	mw := CommandRetry(config)
+
+	callCount := 0
+	handler := mw(func(_ context.Context, _ command.Command) error {
+		callCount++
+
+		return errors.New("boom")
+	})
+
+	err := handler(context.Background(), &testCommand{streamID: id.NewStreamID()})
+	if err == nil {
+		t.Fatal("expected exhausted error")
+	}
+
+	if callCount != config.MaxAttempts {
+		t.Errorf(
+			"nil IsRetryable must retry Transient errors: expected %d calls, got %d",
+			config.MaxAttempts,
+			callCount,
+		)
+	}
+}
+
 func TestCommandRetry_ContextCancellation(t *testing.T) {
 	t.Parallel()
 

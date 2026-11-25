@@ -17,7 +17,7 @@ type RetryConfig struct {
 	InitialDelay time.Duration
 	MaxDelay     time.Duration
 	Multiplier   float64
-	IsRetryable  func(error) bool  // defaults to errorfamily.IsRetryable (Transient only — Conflict errors such as event.ErrVersionConflict are NOT retried; override for journal-reloading pipelines, see CommandRetry)
+	IsRetryable  func(error) bool  // defaults to errorfamily.IsRetryable (Transient only — Conflict errors such as event.ErrVersionConflict are NOT retried; unclassified errors classify as Transient and are retried; override for journal-reloading pipelines, see CommandRetry)
 	OnDeadLetter DeadLetterHandler // optional; called when retries are exhausted
 }
 

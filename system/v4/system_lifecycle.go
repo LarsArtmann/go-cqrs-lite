@@ -43,7 +43,17 @@ func (sys *System) fail(err error) error {
 	return errors.Join(errs...)
 }
 
-// Start begins projection processing (if configured).
+// Start begins projection processing and managed timers (if configured).
+//
+// Context lifetime contract: on the v4 train the context bounds more than the
+// start sequence — projection workers and managed schedulers run only as long
+// as it lives. A request- or test-scoped context therefore stops them the
+// moment it is cancelled, with nothing but a logged warning to show for it.
+// Pass a context that lives as long as the system, such as
+// context.WithoutCancel(requestCtx), and stop with [System.Close] or
+// [System.GracefulClose].
+//
+// Returns [ErrAlreadyStarted] on a second call.
 func (s *System) Start(ctx context.Context) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()

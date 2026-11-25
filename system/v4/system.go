@@ -16,6 +16,7 @@ import (
 	"io"
 	"reflect"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
@@ -143,9 +144,11 @@ type System struct {
 	// ADR-0142 timers: schedulers registered via ManageTimers, started with
 	// the System and stopped (cancelled + waited) on Close/GracefulClose
 	// (timers.go). timersWG tracks the running Start goroutines so teardown
-	// can wait for dispatch to fully finish.
+	// can wait for dispatch to fully finish; timersAlive counts the
+	// schedulers whose Start has not returned (what ReadyCheck reports).
 	timers      []TimerScheduler
-	timerCancel context.CancelFunc
+	timerCancel context.CancelCauseFunc
+	timersAlive atomic.Int32
 	timersWG    sync.WaitGroup
 
 	// shutdownDeps declares ordering constraints for Close(). Each edge says

@@ -42,6 +42,19 @@ func retryConfigSlow() RetryConfig {
 	return config
 }
 
+// handBuiltRetryConfig is the consumer shape from issue #141: every pacing
+// field set by hand, IsRetryable left at its zero value.
+func handBuiltRetryConfig() RetryConfig {
+	return RetryConfig{
+		MaxAttempts:  defaultMaxRetryAttempts,
+		InitialDelay: time.Millisecond,
+		MaxDelay:     defaultRetryMaxDelay,
+		Multiplier:   defaultRetryMultiplier,
+		IsRetryable:  nil,
+		OnDeadLetter: nil,
+	}
+}
+
 func newEventNonRetryableHandler(callCount *int, errMsg string) event.Handler {
 	return func(_ context.Context, _ event.Event) error {
 		*callCount++
