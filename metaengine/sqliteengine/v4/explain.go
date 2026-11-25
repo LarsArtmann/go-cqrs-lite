@@ -16,6 +16,10 @@ func (e *sqliteEngine) ExplainScanQuery(
 ) (string, []any) {
 	filters := opts.Filters
 
+	if err := validateQueryIdents(filters, opts.Sort); err != nil {
+		return rejectedExplain, nil
+	}
+
 	if plan, ok := e.plans[col]; ok {
 		return explainPlanned(plan, filters, opts.Sort, opts.Limit)
 	}
@@ -119,6 +123,12 @@ func (e *sqliteEngine) ExplainAggregateQuery(
 		if !metaengine.IsValidAggregateFn(s.Fn) {
 			return "/* rejected: invalid aggregate fn */", nil
 		}
+	}
+
+	specCols := append(specColumns(opts.Specs), opts.Column, opts.GroupBy, opts.Distinct)
+
+	if err := validateQueryIdents(opts.Filters, nil, specCols...); err != nil {
+		return rejectedExplain, nil
 	}
 
 	planned := false

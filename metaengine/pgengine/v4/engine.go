@@ -110,8 +110,13 @@ func New(dsn string, opts ...Option) (metaengine.Engine, error) {
 	return eng, nil
 }
 
-// NewFromDB wraps an existing *sql.DB connected to Postgres.
-// The caller owns the DB lifecycle — Close is a no-op.
+// NewFromDB wraps an existing *sql.DB connected to Postgres and applies the
+// engine's schema to it.
+//
+// The engine does not track ownership: Close closes this *sql.DB (the
+// dialect has no owned/borrowed distinction; only sqliteengine does). A
+// caller that shares the pool with other components must therefore keep the
+// engine open for as long as the pool is in use.
 func NewFromDB(db *sql.DB) (metaengine.Engine, error) {
 	eng := &pgEngine{db: db}
 

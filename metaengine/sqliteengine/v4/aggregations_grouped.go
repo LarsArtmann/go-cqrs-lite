@@ -33,6 +33,10 @@ func (e *sqliteEngine) GroupedAggregate(
 		return nil, fmt.Errorf("sqliteengine.GroupedAggregate: %w", err)
 	}
 
+	if err := validateQueryIdents(filters, nil, column, groupBy); err != nil {
+		return nil, fmt.Errorf("sqliteengine.GroupedAggregate: %w", err)
+	}
+
 	if plan, ok := e.plans[col]; ok {
 		return e.groupedAggregatePlanned(ctx, plan, fn, column, groupBy, filters)
 	}
@@ -136,6 +140,10 @@ func (e *sqliteEngine) MultiAggregate(
 		}
 	}
 
+	if err := validateQueryIdents(filters, nil, specColumns(specs)...); err != nil {
+		return nil, fmt.Errorf("sqliteengine.MultiAggregate: %w", err)
+	}
+
 	if plan, ok := e.plans[col]; ok {
 		return e.multiAggregatePlanned(ctx, plan, specs, filters)
 	}
@@ -237,6 +245,12 @@ func (e *sqliteEngine) MultiGroupedAggregate(
 		}
 	}
 
+	cols := append(specColumns(specs), groupBy)
+
+	if err := validateQueryIdents(filters, nil, cols...); err != nil {
+		return nil, fmt.Errorf("sqliteengine.MultiGroupedAggregate: %w", err)
+	}
+
 	if plan, ok := e.plans[col]; ok {
 		return e.multiGroupedAggregatePlanned(ctx, plan, specs, groupBy, filters)
 	}
@@ -333,6 +347,10 @@ func (e *sqliteEngine) DistinctValues(
 	column string,
 	filters []metaengine.FilterSpec,
 ) ([]any, error) {
+	if err := validateQueryIdents(filters, nil, column); err != nil {
+		return nil, fmt.Errorf("sqliteengine.DistinctValues: %w", err)
+	}
+
 	if plan, ok := e.plans[col]; ok {
 		return e.distinctPlanned(ctx, plan, column, filters)
 	}

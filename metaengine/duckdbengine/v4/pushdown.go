@@ -36,6 +36,10 @@ func (e *duckdbEngine) PushdownMapScan(
 	cursor any,
 	limit int,
 ) (metaengine.ScanResult, error) {
+	if err := validateQueryIdents(filters, sort); err != nil {
+		return metaengine.ScanResult{}, fmt.Errorf("duckdbengine.PushdownMapScan: %w", err)
+	}
+
 	if plan, ok := e.lookupPlan(collection); ok {
 		return e.pushdownMapScanPlanned(ctx, plan, filters, sort, cursor, limit)
 	}
@@ -146,6 +150,10 @@ func (e *duckdbEngine) pushdownMapScanPlanned(
 	cursor any,
 	limit int,
 ) (metaengine.ScanResult, error) {
+	if err := validateQueryIdents(filters, sort); err != nil {
+		return metaengine.ScanResult{}, fmt.Errorf("duckdbengine.PushdownMapScan: %w", err)
+	}
+
 	query, args := buildPlannedSelectQuery(plan, filters, sort, cursor, limit)
 
 	rows, keys, err := scanDuckDBJSONValuesWithKeys(ctx, e.conn(ctx), query, args...)

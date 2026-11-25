@@ -13,8 +13,12 @@ import (
 // MapUpdate implements metaengine.MapUpdater: a transactional read-modify-
 // write on one key. Planned collections update the planned table, planless
 // collections update meta_map. Concurrent updates on the same key serialize
-// via SELECT ... FOR UPDATE inside the transaction (PG is multi-writer, so
-// unlike the single-writer SQLite engine the row must be locked). Inside an
+// inside the transaction: a transaction-scoped advisory lock on the key (see
+// lockMapKey) is taken before the read, then the existing row is locked with
+// SELECT ... FOR UPDATE (PG is multi-writer, so unlike the single-writer
+// SQLite engine the row must be locked). This covers a key that does not
+// exist yet, where a row lock alone would let two callers both create it and
+// lose one update. Inside an
 // outer RunInTx the active transaction participates (and keeps its row lock,
 // which is harmless there).
 func (e *pgEngine) MapUpdate(
@@ -75,6 +79,10 @@ func (e *pgEngine) updateMetaMap(
 	keyStr := fmt.Sprint(key)
 
 	rm := func(ctx context.Context, q metaengine.SQLExec) error {
+		if err := lockMapKey(ctx, q, col, keyStr); err != nil {
+			return err
+		}
+
 		var raw []byte
 
 		err := q.QueryRowContext(ctx,
@@ -146,6 +154,10 @@ func updatePlannedValue(
 	update func(prev any) any,
 	setFn func(ctx context.Context, q metaengine.SQLExec, keyStr string, val any) error,
 ) error {
+	if err := lockMapKey(ctx, q, table, keyStr); err != nil {
+		return err
+	}
+
 	var raw []byte
 
 	//art-dupl:accept cross-module SQL engine pattern — dep-isolated go.mod modules

@@ -22,7 +22,7 @@ func (e *sqliteEngine) mapSetPlanned(
 	// multi-row INSERT OR REPLACE at commit (MF1.3) instead of executing
 	// one statement per row. Buffers flush at commit, at the chunk cap, and
 	// before any read/delete of the same table (sequential semantics).
-	if txe := txFromCtx(ctx); txe != nil {
+	if txe := e.txFromCtx(ctx); txe != nil {
 		quoted, row, err := plannedSetArgs(plan, key, value)
 		if err != nil {
 			return err
@@ -88,7 +88,7 @@ func plannedSetArgs(
 // read-your-writes and delete-after-set ordering rules of the batch
 // contract). No-op outside a transaction or with nothing buffered.
 func (e *sqliteEngine) flushPlannedTable(ctx context.Context, table string) error {
-	if txe := txFromCtx(ctx); txe != nil {
+	if txe := e.txFromCtx(ctx); txe != nil {
 		return txe.pending.flushTable(ctx, txe.tx, table) //nolint:wrapcheck // caller wraps
 	}
 

@@ -25,7 +25,7 @@ type dbExecer interface {
 // always talks to the base pool and can neither observe uncommitted
 // writes nor have its rows closed by a foreign tx commit.
 func (e *sqliteEngine) xc(ctx context.Context) dbExecer {
-	if tx := txFromCtx(ctx); tx != nil {
+	if tx := e.txFromCtx(ctx); tx != nil {
 		return tx.cache
 	}
 
@@ -37,7 +37,7 @@ func (e *sqliteEngine) xc(ctx context.Context) dbExecer {
 // PushdownMapScan with variable WHERE clauses). Like xc, the transaction
 // is resolved from ctx; both *sql.DB and *sql.Tx satisfy SQLExec.
 func (e *sqliteEngine) xd(ctx context.Context) metaengine.SQLExec {
-	if tx := txFromCtx(ctx); tx != nil {
+	if tx := e.txFromCtx(ctx); tx != nil {
 		return tx.tx
 	}
 
@@ -66,6 +66,7 @@ func (c *txStmtCache) query(ctx context.Context, query string, args ...any) (*sq
 // plus the per-transaction planned-table row buffers (multi-row batch
 // writes, MF1.3 — see planned_batch.go).
 type txExecutor struct {
+	owner   *sqliteEngine
 	tx      metaengine.SQLExec
 	cache   *txStmtCache
 	pending *plannedBuffers
@@ -139,7 +140,7 @@ func runImmediateTx(
 // supported" — the documented InTransaction usage pattern had never
 // actually worked for SQL engines.)
 func (e *sqliteEngine) RunInTx(ctx context.Context, fn func(context.Context) error) error {
-	if txFromCtx(ctx) != nil {
+	if e.txFromCtx(ctx) != nil {
 		// Ambient join: the outer RunInTx owns BEGIN/COMMIT/rollback and
 		// the pending-buffer flush at commit.
 		return fn(ctx)
@@ -150,6 +151,7 @@ func (e *sqliteEngine) RunInTx(ctx context.Context, fn func(context.Context) err
 
 	return runImmediateTx(ctx, e.db, func(ctx context.Context, exec metaengine.SQLExec) error {
 		txe := &txExecutor{
+			owner:   e,
 			tx:      exec,
 			cache:   &txStmtCache{tx: exec},
 			pending: newPlannedBuffers(),
@@ -176,9 +178,15 @@ func (e *sqliteEngine) RunInTx(ctx context.Context, fn func(context.Context) err
 }
 
 // txFromCtx returns the transaction executor carried by ctx, or nil when
-// ctx does not descend from a RunInTx callback.
-func txFromCtx(ctx context.Context) *txExecutor {
+// ctx does not descend from a RunInTx callback of THIS engine. The marker
+// type is package-global, so a ctx descending from another instance's
+// RunInTx carries a foreign transaction: adopting it would run this
+// engine's writes on the other engine's connection and database.
+func (e *sqliteEngine) txFromCtx(ctx context.Context) *txExecutor {
 	tx, _ := ctx.Value(txMarker{}).(*txExecutor)
+	if tx == nil || tx.owner != e {
+		return nil
+	}
 
 	return tx
 }
@@ -187,7 +195,7 @@ func txFromCtx(ctx context.Context) *txExecutor {
 // transaction is ambient. It answers "am I inside a RunInTx callback?" for
 // call sites that need the executor itself, not just routing.
 func (e *sqliteEngine) txExec(ctx context.Context) *txExecutor {
-	return txFromCtx(ctx)
+	return e.txFromCtx(ctx)
 }
 
 // txMarker keys the context value carrying the active transaction executor.

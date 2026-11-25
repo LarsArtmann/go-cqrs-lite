@@ -23,6 +23,10 @@ func (e *duckdbEngine) ExplainScanQuery(
 	collection string,
 	opts metaengine.ExplainOptions,
 ) (string, []any) {
+	if err := validateQueryIdents(opts.Filters, opts.Sort); err != nil {
+		return rejectedExplain, nil
+	}
+
 	if plan, ok := e.lookupPlan(collection); ok {
 		return buildPlannedSelectQuery(plan, opts.Filters, opts.Sort, opts.Cursor, opts.Limit)
 	}
@@ -123,6 +127,12 @@ func (e *duckdbEngine) ExplainAggregateQuery(
 		if !metaengine.IsValidAggregateFn(s.Fn) {
 			return "/* rejected: invalid aggregate fn */", nil
 		}
+	}
+
+	cols := append(specColumns(opts.Specs), opts.Column, opts.GroupBy, opts.Distinct)
+
+	if err := validateQueryIdents(opts.Filters, nil, cols...); err != nil {
+		return rejectedExplain, nil
 	}
 
 	plan, hasPlan := e.lookupPlan(collection)

@@ -91,8 +91,12 @@ func New(dsn string) (metaengine.Engine, error) {
 	return eng, nil
 }
 
-// NewFromDB wraps an existing *sql.DB connected to DuckDB.
-// The caller owns the DB lifecycle — Close is a no-op.
+// NewFromDB wraps an existing *sql.DB connected to DuckDB and applies the
+// engine's schema to it.
+//
+// The engine does not track ownership: Close closes this *sql.DB. A caller
+// that shares the pool with other components must therefore keep the engine
+// open for as long as the pool is in use.
 func NewFromDB(db *sql.DB) (metaengine.Engine, error) {
 	eng := &duckdbEngine{db: db, persistence: metaengine.PersistencePersistent}
 

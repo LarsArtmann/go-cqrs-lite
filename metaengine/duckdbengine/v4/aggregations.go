@@ -241,6 +241,10 @@ func (e *duckdbEngine) Aggregate(
 		return 0, fmt.Errorf("duckdbengine.Aggregate: %w", err)
 	}
 
+	if err := validateQueryIdents(filters, nil, column); err != nil {
+		return 0, fmt.Errorf("duckdbengine.Aggregate: %w", err)
+	}
+
 	if plan, ok := e.lookupPlan(col); ok {
 		return e.aggregatePlanned(ctx, plan, fn, column, filters)
 	}
@@ -323,6 +327,10 @@ func (e *duckdbEngine) GroupedAggregate(
 	filters []metaengine.FilterSpec,
 ) (map[string]float64, error) {
 	if err := metaengine.RejectInvalidAggregateFn(fn); err != nil {
+		return nil, fmt.Errorf("duckdbengine.GroupedAggregate: %w", err)
+	}
+
+	if err := validateQueryIdents(filters, nil, column, groupBy); err != nil {
 		return nil, fmt.Errorf("duckdbengine.GroupedAggregate: %w", err)
 	}
 
@@ -417,6 +425,10 @@ func (e *duckdbEngine) MultiAggregate(
 		if err := metaengine.RejectInvalidAggregateFn(s.Fn); err != nil {
 			return nil, fmt.Errorf("duckdbengine.MultiAggregate spec %d: %w", i, err)
 		}
+	}
+
+	if err := validateQueryIdents(filters, nil, specColumns(specs)...); err != nil {
+		return nil, fmt.Errorf("duckdbengine.MultiAggregate: %w", err)
 	}
 
 	if plan, ok := e.lookupPlan(col); ok {
@@ -524,6 +536,12 @@ func (e *duckdbEngine) MultiGroupedAggregate(
 		}
 	}
 
+	cols := append(specColumns(specs), groupBy)
+
+	if err := validateQueryIdents(filters, nil, cols...); err != nil {
+		return nil, fmt.Errorf("duckdbengine.MultiGroupedAggregate: %w", err)
+	}
+
 	if plan, ok := e.lookupPlan(col); ok {
 		return e.multiGroupedAggregatePlanned(ctx, plan, specs, groupBy, filters)
 	}
@@ -628,6 +646,10 @@ func (e *duckdbEngine) DistinctValues(
 	column string,
 	filters []metaengine.FilterSpec,
 ) ([]any, error) {
+	if err := validateQueryIdents(filters, nil, column); err != nil {
+		return nil, fmt.Errorf("duckdbengine.DistinctValues: %w", err)
+	}
+
 	if plan, ok := e.lookupPlan(col); ok {
 		return e.distinctPlanned(ctx, plan, column, filters)
 	}

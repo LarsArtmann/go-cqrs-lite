@@ -23,9 +23,20 @@ func sqliteMapScanTieRows(ctx context.Context, mb metaengine.MapBackend) {
 	}
 }
 
+// sqliteTieSortVal reads the sort value of a comparison operand. During
+// keyset pagination metaengine.SortPaginate also hands the sort function the
+// bare Sort component of a SortKeyCursor, so a non-row operand is the cursor.
+func sqliteTieSortVal(v any) float64 {
+	if row, ok := v.(map[string]any); ok {
+		return toF(row["sort"])
+	}
+
+	return toF(v)
+}
+
 func sqliteTieSortFn(a, b any) int {
-	av := a.(map[string]any)["sort"] //nolint:forcetypeassert // rows are decoded JSON maps by construction
-	bv := b.(map[string]any)["sort"] //nolint:forcetypeassert // rows are decoded JSON maps by construction
+	av := sqliteTieSortVal(a)
+	bv := sqliteTieSortVal(b)
 
 	switch {
 	case toF(av) < toF(bv):
