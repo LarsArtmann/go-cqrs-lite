@@ -122,7 +122,11 @@ func WithLogger(l *slog.Logger) HostOption {
 // WithSubscriber enables live event processing after journal drain. When set,
 // each worker drains the journal (replay), then transitions to live subscription
 // via subscriber.SubscribeAll. Events seen during replay are deduped in the live
-// phase to prevent double-processing at the replay→live boundary.
+// phase to prevent double-processing at the replay→live boundary. With a
+// non-blocking subscriber the registered handler keeps applying events after
+// the worker goroutine exits, until the host stops it; a live phase that
+// ends in an error (restart or terminal failure) retires its handler, and a
+// restart registers exactly one fresh handler.
 //
 // Without this option, the host is a batch-drainer: workers exit after catching up.
 func WithSubscriber(subscriber event.Subscriber) HostOption {

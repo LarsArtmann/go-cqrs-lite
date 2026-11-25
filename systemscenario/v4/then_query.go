@@ -9,7 +9,15 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
-// await polls probe every 10ms until it passes or the await timeout
+// pollInterval is the tick between poll-await probes (ThenQuery, ThenNoEvents
+// quiet window, SSEStream.Await).
+const pollInterval = 10 * time.Millisecond
+
+// shutdownGrace bounds the cleanup drain/close when the scenario context is
+// already cancelled (the documented cleanup-on-Background design).
+const shutdownGrace = 5 * time.Second
+
+// await polls probe every pollInterval until it passes or the await timeout
 // expires, then fails the test with what and the probe's last detail.
 func (s *Scenario) await(what string, probe func() (bool, string)) {
 	s.t.Helper()

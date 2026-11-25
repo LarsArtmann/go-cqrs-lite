@@ -60,7 +60,9 @@ func (p *WhenPhase) ThenCommandsSatisfy(inspect func(cmds []command.Command)) *W
 // (WithAsyncDispatch), so the captured-command log fills in asynchronously.
 // The void-returning sibling stays synchronous because its t.Errorf
 // contract cannot express "not yet"; awaiting inspection reports failure as
-// an error instead, and the timeout message carries the last one.
+// an error instead, and the timeout message carries the last one. It observes
+// the command log only: a timer callback may still be running (see the
+// await contract on [WhenPhase.TimeAdvances]).
 func (p *WhenPhase) ThenCommandsSatisfyAwait(
 	inspect func(cmds []command.Command) error,
 ) *WhenPhase {

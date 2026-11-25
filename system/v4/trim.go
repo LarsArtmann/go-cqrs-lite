@@ -62,7 +62,43 @@ func (s *System) TrimStream(ctx context.Context, ref id.StreamRef) (int64, error
 		return removed, fmt.Errorf("system: trim %s: %w", ref, err)
 	}
 
+	if err := trimShadowedSnapshots(ctx, backend, ref, sid); err != nil {
+		return removed, fmt.Errorf("system: trim %s: %w", ref, err)
+	}
+
 	return removed, nil
+}
+
+// trimShadowedSnapshots erases the stream's snapshot under the key forms the
+// trimmer did not cover. Snapshots are always written under the bare key
+// (SnapshotAdapter.Save), but a legacy-keyed stream's journal is trimmed
+// under the legacy key: without this, the bare snapshot survives the erasure
+// and Load still finds it. These deletes run outside the trimmer's
+// transaction; a crash in between leaves a snapshot whose stream is gone,
+// which Load still answers — re-running TrimStream completes the erasure.
+func trimShadowedSnapshots(
+	ctx context.Context,
+	backend metaengine.StreamLogBackend,
+	ref id.StreamRef,
+	trimmedKey string,
+) error {
+	snaps, ok := backend.(metaengine.SnapshotBackend)
+	if !ok {
+		return nil
+	}
+
+	for _, key := range []string{ref.StreamKey(), legacyStreamKey(ref)} {
+		if key == trimmedKey {
+			continue
+		}
+
+		err := snaps.SnapshotDelete(ctx, snapshotsCollection, key)
+		if err != nil && !errors.Is(err, metaengine.ErrNotFound) {
+			return fmt.Errorf("delete snapshot under %q: %w", key, err)
+		}
+	}
+
+	return nil
 }
 
 // TrimJournalBefore erases every journal row older than cutoff plus the

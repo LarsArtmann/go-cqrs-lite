@@ -113,6 +113,13 @@ func (w *worker) handleProcessEventError(
 		return err
 	}
 
+	// A failure caused by the worker's own context ending is not a verdict
+	// on the event: nothing is poison. Returning the error leaves the event
+	// unseen and the checkpoint put, so the next Start re-delivers it.
+	if ctx.Err() != nil {
+		return err
+	}
+
 	// Only non-retryable families (Rejection/Corruption) park in the DLQ.
 	// Parking a Transient/Infrastructure failure would quarantine an event
 	// that a later retry could succeed on — a permanent silent gap until
@@ -158,85 +165,33 @@ func (w *worker) handleProcessEventError(
 //
 // The handleMu mutex serializes event processing between the catch-up drain
 // and the live handler callback, preventing concurrent projection.Handle calls.
+//
+// With a non-blocking subscriber SubscribeAll returns at once and the worker
+// goroutine exits when the catch-up drain completes; the registered handler
+// keeps applying events until the worker's context or stop channel closes it.
 func (w *worker) processLive(ctx context.Context, afterID id.EventID) error {
 	w.setStatus(WorkerLive)
 
 	//cqrs-lint:ignore(A005,C027) library code or intentional pattern
-	if err := w.opts.subscriber.SubscribeAll(w.liveHandler(ctx)); err != nil {
+	// The handler outlives this call by design: with a non-blocking
+	// subscriber the worker goroutine exits after the catch-up drain and the
+	// registered handler keeps serving. It is retired only when the live
+	// phase ends in an error (restart or terminal failure).
+	sub := newLiveSubscription()
+
+	if err := w.opts.subscriber.SubscribeAll(sub.handler(w, ctx)); err != nil {
+		sub.retire()
+
 		return fmt.Errorf("subscribe live events: %w", err)
 	}
 
 	if err := w.drainCatchUp(ctx, afterID); err != nil {
+		sub.retire()
+
 		return fmt.Errorf("catch-up drain: %w", err)
 	}
 
 	return nil
-}
-
-// liveHandler returns the event.Handler callback for the live subscriber.
-// The handler acquires handleMu to serialize with any concurrent catch-up
-// drain processing, and marks applied events as seen so the subsequent (or
-// concurrent) catch-up drain skips them instead of double-applying.
-func (w *worker) liveHandler(ctx context.Context) event.Handler {
-	return func(_ context.Context, evt event.Event) error {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		case <-w.stop:
-			return nil
-		default:
-		}
-
-		w.handleMu.Lock()
-		defer w.handleMu.Unlock()
-
-		if w.wasSeen(evt.ID()) {
-			return nil
-		}
-
-		if !w.shouldHandle(evt) {
-			w.markSeen(evt.ID())
-			w.lastProcessedNs.Store(time.Now().UnixNano())
-
-			return nil
-		}
-
-		start := time.Now()
-		handleErr := w.applyWithRetry(ctx, evt)
-		duration := time.Since(start)
-
-		if handleErr != nil {
-			if e := w.handleProcessEventError(ctx, evt, handleErr); e != nil {
-				return e
-			}
-		} else {
-			w.recordMetric(func(m MetricsRecorder) {
-				m.EventProcessed(w.name, string(evt.Type()), duration)
-			})
-		}
-
-		if saveErr := w.recordLiveCheckpoint(ctx, evt); saveErr != nil {
-			// The event is already journaled and applied; the checkpoint is
-			// bookkeeping that only bounds reprocessing. Failing the handler
-			// here would fail the publisher's dispatch (in-process buses run
-			// handlers synchronously; EventBus sets
-			// BlockPublishUntilSubscriberAck) for a write that IS durable.
-			// recordLiveCheckpoint staged the checkpoint before flushing, so
-			// cpHasPending stays set: the next live event retries the save
-			// and Stop's flushPendingCheckpoint gives the final retry
-			// (issue #128).
-			w.logger.Warn("live checkpoint save failed; will retry on next event",
-				"projection", w.name,
-				"event_id", evt.ID().String(),
-				"error", saveErr)
-		}
-
-		w.markSeen(evt.ID())
-		w.processed.Add(1)
-		w.lastProcessedNs.Store(time.Now().UnixNano())
-
-		return nil
-	}
 }
 
 // processEvent applies a single event to the projection (with retry), recording

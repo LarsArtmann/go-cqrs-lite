@@ -14,7 +14,9 @@ import (
 // Payloads are ignored — use [WhenPhase.ThenEvents] or [ThenPayload].
 //
 // After [WhenPhase.TimeAdvances] the assertion polls until the types match
-// or the await timeout expires (timer firing is asynchronous).
+// or the await timeout expires (timer firing is asynchronous). Journal
+// visibility is the await point: the timer callback may still be running
+// (await contract on [WhenPhase.TimeAdvances]).
 func (p *WhenPhase) Then(expected ...event.Type) *WhenPhase {
 	s := p.thenScenario("Then")
 
@@ -55,7 +57,8 @@ func (p *WhenPhase) ThenEvents(inspect func(events []event.Event)) *WhenPhase {
 
 // ThenEventsSatisfy polls inspect until it returns nil or the await timeout
 // expires. Use after asynchronous acts (TimeAdvances); ThenEvents is the
-// synchronous sibling.
+// synchronous sibling. Await contract as for [WhenPhase.Then]: passing means
+// the journal shows it, not that the timer callback has returned.
 func (p *WhenPhase) ThenEventsSatisfy(inspect func(events []event.Event) error) *WhenPhase {
 	s := p.thenScenario("ThenEventsSatisfy")
 

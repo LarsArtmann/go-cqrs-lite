@@ -37,8 +37,18 @@ func (s *Scenario) WhenEvent(events ...event.Event) *WhenPhase {
 // (Axon 4 whenTimeElapses analog; Axon 5 dropped it). Timers whose FireAt
 // falls due fire on the scheduler's next poll tick, and the scenario flips
 // into await mode so subsequent Then* assertions poll. Requires the default
-// harness clock (do not pass [WithClock]) and consumer timers wired with
+// harness clock (do not pass [WithClock]; [Adopt] needs the system built
+// with system.WithClock(manual)) and consumer timers wired with
 // scheduling.WithClock(sys.Clock().Now).
+//
+// Await contract (issue #134): the await point of every Then* assertion is
+// JOURNAL VISIBILITY. A fired timer's callback is still in flight when the
+// awaited assertion passes — the scheduler dispatches synchronously in its
+// own goroutine and nothing waits for it — so work the callback does after
+// its journal write is not covered, and advancing again may land while it
+// runs. A callback that re-arms a timer must anchor the next FireAt to the
+// fired timer's FireAt (plus the interval), never to the scenario clock's
+// Now: under TimeAdvances the clock has already jumped ahead.
 func (s *Scenario) TimeAdvances(d time.Duration) *WhenPhase {
 	return (&WhenPhase{sc: s}).TimeAdvances(d)
 }
@@ -100,8 +110,8 @@ func (p *WhenPhase) TimeAdvances(d time.Duration) *WhenPhase {
 
 	manual, ok := s.clock.(*system.ManualClock)
 	if !ok {
-		s.t.Fatal("systemscenario: TimeAdvances requires the default harness ManualClock " +
-			"(a WithClock option replaced it)")
+		s.t.Fatalf("systemscenario: TimeAdvances requires a ManualClock; the scenario clock is %T "+
+			"(build the system with system.WithClock(system.NewManualClock(...)))", s.clock)
 	}
 
 	manual.Advance(d)
@@ -121,7 +131,8 @@ func (p *WhenPhase) TimeAdvances(d time.Duration) *WhenPhase {
 //		Then("task.updated", "task.archived").
 //		ThenCommands("task.complete", "task.archive")
 //
-// [WhenPhase.TimeAdvances] implies await mode.
+// [WhenPhase.TimeAdvances] implies await mode, and with it the await
+// contract: the assertions observe the journal, not a returned callback.
 func (p *WhenPhase) Await() *WhenPhase {
 	p.sc.awaitMode = true
 

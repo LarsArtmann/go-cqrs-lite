@@ -56,8 +56,8 @@ func WithAwaitTimeout(d time.Duration) Option {
 }
 
 // WithClock replaces the scenario's default [system.ManualClock] (frozen at
-// a fixed epoch) with another time source. TimeAdvances requires the
-// ManualClock, so tests that exercise timers should not override it.
+// a fixed epoch) with another time source; [Adopt] ignores it. TimeAdvances
+// requires the ManualClock, so tests that exercise timers should not override it.
 func WithClock(clock system.Clock) Option {
 	return func(c *scenarioConfig) {
 		if clock != nil {
@@ -187,6 +187,10 @@ func System(
 // the vacuous-pass guard over it so Given/When/Then works against the
 // wrapper's boot. The caller owns the lifecycle — Adopt registers no
 // shutdown cleanup.
+//
+// The scenario's clock is the adopted system's [system.System.Clock] — the
+// only clock its timers read — so [WithClock] is ignored here and
+// [WhenPhase.TimeAdvances] works when the system was built with a ManualClock.
 func Adopt(
 	tb testing.TB,
 	ctx context.Context,
@@ -199,6 +203,8 @@ func Adopt(
 	for _, opt := range opts {
 		opt(&cfg)
 	}
+
+	cfg.clock = sys.Clock()
 
 	scenario := newScenario(tb, ctx, sys, cfg)
 	scenario.requireTerminalAssertion()
@@ -227,14 +233,6 @@ func newScenario(
 
 	return scenario
 }
-
-// pollInterval is the tick between poll-await probes (ThenQuery, ThenNoEvents
-// quiet window, SSEStream.Await).
-const pollInterval = 10 * time.Millisecond
-
-// shutdownGrace bounds the cleanup drain/close when the scenario context is
-// already cancelled (the documented cleanup-on-Background design).
-const shutdownGrace = 5 * time.Second
 
 // shutdown drains and closes the booted system on a background context so
 // cleanup works even when the scenario context is already cancelled.
