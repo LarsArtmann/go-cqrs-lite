@@ -42,11 +42,11 @@ MapBackend, CounterBackend, ScanBackend, PushdownScan, and LayoutPlanner.
 
 ## API
 
-| Symbol          | Description                                          |
-| --------------- | ---------------------------------------------------- |
-| `New(dsn)`      | Creates engine from DSN. Empty = in-memory.          |
-| `NewFromDB(db)` | Wraps an existing `*sql.DB`; `Close` closes it.     |
-| `Profile()`     | Returns `EngineProfile` with DuckDB cost model.      |
+| Symbol          | Description                                     |
+| --------------- | ----------------------------------------------- |
+| `New(dsn)`      | Creates engine from DSN. Empty = in-memory.     |
+| `NewFromDB(db)` | Wraps an existing `*sql.DB`; `Close` closes it. |
+| `Profile()`     | Returns `EngineProfile` with DuckDB cost model. |
 
 ## Design
 

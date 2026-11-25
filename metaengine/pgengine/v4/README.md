@@ -63,7 +63,7 @@ live row counts) is `Doctor`'s `--- Planned tables ---` section.
 | Symbol          | Description                                           |
 | --------------- | ----------------------------------------------------- |
 | `New(dsn)`      | Creates engine from Postgres DSN. Opens its own pool. |
-| `NewFromDB(db)` | Wraps an existing `*sql.DB`; `Close` closes it.     |
+| `NewFromDB(db)` | Wraps an existing `*sql.DB`; `Close` closes it.       |
 | `Profile()`     | Returns `EngineProfile` with Postgres cost model.     |
 
 ## Design
