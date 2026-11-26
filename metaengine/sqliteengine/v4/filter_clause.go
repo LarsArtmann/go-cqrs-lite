@@ -9,7 +9,8 @@ import (
 
 // appendStandardFilter writes a single filter clause for the standard
 // (non-planned) path using json_extract. It handles both binary ops (=, <, etc.)
-// and the special metaengine.FilterIn operator which generates IN (?, ?, ...).
+// and the special metaengine.FilterIn operator which generates IN (?, ?, ...);
+// an empty list renders [emptyInPredicate].
 //
 // The caller is responsible for the leading " AND " or " WHERE ".
 //
@@ -27,6 +28,8 @@ func appendStandardFilter(b *strings.Builder, args *[]any, f metaengine.FilterSp
 	if f.Op == metaengine.FilterIn {
 		values, ok := f.Value.([]any)
 		if !ok || len(values) == 0 {
+			b.WriteString(" AND " + emptyInPredicate)
+
 			return
 		}
 

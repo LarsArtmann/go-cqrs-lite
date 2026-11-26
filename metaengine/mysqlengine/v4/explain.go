@@ -12,12 +12,17 @@ import (
 // that PushdownMapScan would execute for the given collection and options,
 // without running the query. MySQL uses JSON path operators (value->'$.field')
 // for column access and CAST(? AS JSON) placeholders for filter values;
-// MariaDB gets JSON_EXTRACT/JSON_UNQUOTE forms (see dialect.go).
+// MariaDB gets JSON_EXTRACT/JSON_UNQUOTE forms (see dialect.go). The SQL
+// comes from the same builder PushdownMapScan executes (buildMapScanQuery).
 func (e *mysqlEngine) ExplainScanQuery(
 	_ context.Context,
 	collection string,
 	opts metaengine.ExplainOptions,
 ) (string, []any) { //art-dupl:accept cross-module SQL builder pattern — separate go.mod
+	if err := metaengine.ValidateQueryIdents(opts.Filters, opts.Sort); err != nil {
+		return rejectedExplain, nil
+	}
+
 	// Planned collections explain the extracted-column query (D3 slice 3):
 	// EXPLAIN must reflect what actually executes.
 	if plan, ok := e.planFor(collection); ok {
@@ -30,49 +35,20 @@ func (e *mysqlEngine) ExplainScanQuery(
 		)
 		//art-dupl:accept dialect twin (pgengine explain.go) — builder diverges per dialect below
 		if err != nil {
-			return "", nil
+			return rejectedExplain, nil
 		}
 
 		return q, args
 	}
 
-	var b strings.Builder
-
-	args := []any{collection}
-
-	b.WriteString(`SELECT CAST(value AS CHAR) FROM meta_map WHERE collection = ?`)
-
-	for _, f := range opts.Filters {
-		e.appendExplainFilter(&b, &args, f)
+	query, args, err := e.buildMapScanQuery(
+		collection, opts.Filters, opts.Sort, opts.Cursor, opts.Limit,
+	)
+	if err != nil {
+		return rejectedExplain, nil
 	}
 
-	if opts.Sort != nil && opts.Cursor != nil {
-		op := ">"
-		if opts.Sort.Desc {
-			op = "<"
-		}
-
-		fmt.Fprintf(&b, ` AND %s %s %s`,
-			e.jsonCursorExpr(opts.Sort.Column, opts.Cursor), op, e.jsonParamPlaceholder())
-		args = append(args, e.jsonFilterParam(opts.Cursor))
-	}
-
-	if opts.Sort != nil {
-		exprs := e.jsonSortExprs(opts.Sort.Column)
-		for i := range exprs {
-			if opts.Sort.Desc {
-				exprs[i] += ` DESC`
-			}
-		}
-
-		fmt.Fprintf(&b, ` ORDER BY %s`, strings.Join(exprs, ", "))
-	}
-
-	if opts.Limit > 0 {
-		fmt.Fprintf(&b, ` LIMIT %d`, opts.Limit+1)
-	}
-
-	return b.String(), args
+	return query, args
 }
 
 // ExplainAggregateQuery implements metaengine.ExplainableAggregate. It returns
@@ -88,8 +64,17 @@ func (e *mysqlEngine) ExplainAggregateQuery(
 
 	writeAggregateSelect(&b, e, opts)
 
+	columns := []string{opts.Column, opts.Distinct, opts.GroupBy}
+	for _, s := range opts.Specs {
+		columns = append(columns, s.Column)
+	}
+
+	if err := metaengine.ValidateQueryIdents(opts.Filters, nil, columns...); err != nil {
+		return rejectedExplain, nil
+	}
+
 	for _, f := range opts.Filters {
-		e.appendExplainFilter(&b, &args, f)
+		e.appendMapFilter(&b, &args, f)
 	}
 
 	if opts.GroupBy != "" {
@@ -97,16 +82,6 @@ func (e *mysqlEngine) ExplainAggregateQuery(
 	}
 
 	return b.String(), args
-}
-
-func (e *mysqlEngine) appendExplainFilter(
-	b *strings.Builder,
-	args *[]any,
-	f metaengine.FilterSpec,
-) {
-	fmt.Fprintf(b, ` AND %s %s %s`,
-		e.filterExpr(f.Column), string(f.Op), e.jsonParamPlaceholder())
-	*args = append(*args, e.jsonFilterParam(f.Value))
 }
 
 func (e *mysqlEngine) aggExpr(fn metaengine.AggregateFn, column string) string {

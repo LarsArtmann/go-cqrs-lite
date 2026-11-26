@@ -16,7 +16,7 @@ func (e *sqliteEngine) ExplainScanQuery(
 ) (string, []any) {
 	filters := opts.Filters
 
-	if err := validateQueryIdents(filters, opts.Sort); err != nil {
+	if err := metaengine.ValidateQueryIdents(filters, opts.Sort); err != nil {
 		return rejectedExplain, nil
 	}
 
@@ -127,7 +127,7 @@ func (e *sqliteEngine) ExplainAggregateQuery(
 
 	specCols := append(specColumns(opts.Specs), opts.Column, opts.GroupBy, opts.Distinct)
 
-	if err := validateQueryIdents(opts.Filters, nil, specCols...); err != nil {
+	if err := metaengine.ValidateQueryIdents(opts.Filters, nil, specCols...); err != nil {
 		return rejectedExplain, nil
 	}
 

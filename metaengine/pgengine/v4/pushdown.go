@@ -33,6 +33,10 @@ func (e *pgEngine) PushdownMapScan(
 	cursor any,
 	limit int,
 ) (metaengine.ScanResult, error) {
+	if err := metaengine.ValidateQueryIdents(filters, sort); err != nil {
+		return metaengine.ScanResult{}, fmt.Errorf("pgengine.PushdownMapScan: %w", err)
+	}
+
 	// Planned collections scan the extracted-column table (D3 slice 1),
 	// not meta_map.
 	if plan, ok := e.planFor(collection); ok {
@@ -49,6 +53,8 @@ func (e *pgEngine) PushdownMapScan(
 			//art-dupl:accept cross-module SQL builder pattern — dep-isolated go.mod
 			values, ok := f.Value.([]any)
 			if !ok || len(values) == 0 {
+				b.WriteString(" AND " + emptyInPredicate)
+
 				continue
 			}
 

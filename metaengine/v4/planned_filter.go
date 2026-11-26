@@ -46,7 +46,8 @@ func filterOpNames() []string {
 // AppendPlannedFilter writes one planned-table filter clause: the FilterIn
 // branch expands the value list into placeholders and renders an IN (...);
 // every other operator renders a binary comparison. The WHERE/AND switch is
-// shared (first clause " WHERE ", the rest " AND "). It is the shared core of
+// shared (first clause " WHERE ", the rest " AND "); an empty list renders
+// the false predicate `1 = 0`. It is the shared core of
 // the SQL engines' appendPlannedFilter builders; identQuote quotes the column
 // name (backticks on MySQL, [QuoteIdent] elsewhere), placeholder renders
 // each bind position, and inSeparator joins IN-list placeholders (", " on
@@ -65,6 +66,11 @@ func AppendPlannedFilter(
 
 	if f.Op == FilterIn {
 		if len(values) == 0 {
+			// Ruling: an empty IN list matches no rows (as in the memory
+			// engine). Dropping the clause returned every row instead.
+			beginFilterClause(b, started)
+			b.WriteString(emptyInPredicate)
+
 			return
 		}
 
@@ -88,6 +94,11 @@ func AppendPlannedFilter(
 
 	*args = append(*args, FilterBindValue(f.Value))
 }
+
+// emptyInPredicate is the false predicate every SQL engine renders for a
+// FilterIn whose value list is empty or not a list: such a filter matches
+// no rows. The SQL engines carry the same literal (separate go.mod each).
+const emptyInPredicate = "1 = 0"
 
 // beginFilterClause opens the WHERE clause or extends it with AND.
 func beginFilterClause(b *strings.Builder, started *bool) {

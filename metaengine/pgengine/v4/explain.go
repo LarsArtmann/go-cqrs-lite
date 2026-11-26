@@ -18,6 +18,10 @@ func (e *pgEngine) ExplainScanQuery(
 	collection string,
 	opts metaengine.ExplainOptions,
 ) (string, []any) { //art-dupl:accept cross-module SQL builder pattern — separate go.mod
+	if err := metaengine.ValidateQueryIdents(opts.Filters, opts.Sort); err != nil {
+		return rejectedExplain, nil
+	}
+
 	// Planned collections explain the extracted-column query (D3 slice 3):
 	// EXPLAIN must reflect what actually executes.
 	if plan, ok := e.planFor(collection); ok {
@@ -30,7 +34,7 @@ func (e *pgEngine) ExplainScanQuery(
 		)
 		//art-dupl:accept dialect twin (mysqlengine explain.go) — builder diverges per dialect below
 		if qerr != nil {
-			return "", nil
+			return rejectedExplain, nil
 		}
 
 		return q, args
@@ -88,10 +92,18 @@ func (e *pgEngine) ExplainAggregateQuery(
 		return "/* rejected: invalid aggregate fn */", nil
 	}
 
+	columns := []string{opts.Column, opts.Distinct, opts.GroupBy}
+
 	for _, s := range opts.Specs {
 		if !metaengine.IsValidAggregateFn(s.Fn) {
 			return "/* rejected: invalid aggregate fn */", nil
 		}
+
+		columns = append(columns, s.Column)
+	}
+
+	if err := metaengine.ValidateQueryIdents(opts.Filters, nil, columns...); err != nil {
+		return rejectedExplain, nil
 	}
 
 	var b strings.Builder

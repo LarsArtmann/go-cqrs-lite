@@ -3,11 +3,11 @@
 # Ceilings for NEW packages: 150 symbols / 40 files.
 # Remove an entry once the package sits under BOTH ceilings.
 # Regenerate: bash scripts/check-package-surface.sh --update-baseline
-860	176	metaengine/v4
+861	181	metaengine/v4
 256	29	catalog/v4
 255	37	core/v5/event
 253	37	event/v4
-235	51	system/v4
-194	43	cmd/cqrs-lint/v4/pkg/analyzer
+235	53	system/v4
+194	44	cmd/cqrs-lint/v4/pkg/analyzer
 112	47	benchkit/v4
 44	48	cmd/cqrs-lint/v4/pkg/rules/correctness

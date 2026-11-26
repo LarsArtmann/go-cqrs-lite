@@ -48,11 +48,17 @@ func expandScanFilters(cfg scanConfig) scanConfig {
 	return cfg
 }
 
-// validateScanFilters is the gate in front of every engine call that turns
-// filters into SQL: the operator and the column name are spliced into the
-// query text (never bound), so both are checked before the engine is reached.
-// The engines only repeat this on their scan paths, not on aggregates.
-func validateScanFilters(filters []FilterSpec) error {
+// ValidateQueryIdents is the gate in front of every query surface that
+// turns caller-supplied filters into statement text: the filter operator, the
+// filter and sort columns and the extra columns (value / group-by / distinct)
+// are spliced into the SQL text, never bound, so each is checked before a SQL
+// builder sees it. A FilterIn value must be a []any list, the only form the
+// engines render (the typed reader coerces typed slices into it).
+//
+// The SQL engines call it from their optional-reader interfaces too: those
+// are public, so a consumer reaching an engine directly bypasses the typed
+// reader's own validation.
+func ValidateQueryIdents(filters []FilterSpec, sort *SortSpec, columns ...string) error {
 	if err := ValidateFilterSpecs(filters); err != nil {
 		return err
 	}
@@ -67,7 +73,28 @@ func validateScanFilters(filters []FilterSpec) error {
 		}
 	}
 
+	names := make([]string, 0, len(columns)+1)
+	if sort != nil {
+		names = append(names, sort.Column)
+	}
+
+	for _, c := range append(names, columns...) {
+		if c == "" {
+			continue
+		}
+
+		if err := ValidateIdentifier(c); err != nil {
+			return fmt.Errorf("column: %w", err)
+		}
+	}
+
 	return nil
+}
+
+// validateScanFilters is the typed reader's use of ValidateQueryIdents; the
+// sort column is checked separately so its error names it.
+func validateScanFilters(filters []FilterSpec) error {
+	return ValidateQueryIdents(filters, nil)
 }
 
 // aggregateFilters resolves the options of an aggregate-style call (Count,
@@ -100,25 +127,22 @@ func validateIdentifiers(what string, columns ...string) error {
 	return nil
 }
 
-// validateInList requires the value of a FilterIn spec to be a list. Anything
-// else cannot be rendered as IN (...) by an engine; the SQL builders skip the
-// clause entirely and return every row, while the closure path matches none.
+// validateInList requires the value of a FilterIn spec to be a []any list
+// (or nil). No engine renders any other form: the typed reader coerces typed
+// slices into []any, so anything else reaching here was passed around it.
 func validateInList(f FilterSpec) error {
 	if f.Op != FilterIn || f.Value == nil {
 		return nil
 	}
 
-	switch reflect.ValueOf(f.Value).Kind() {
-	case reflect.Slice, reflect.Array:
+	if _, ok := f.Value.([]any); ok {
 		return nil
-	case reflect.Invalid:
-		return nil
-	default:
-		return fmt.Errorf(
-			"metaengine: FilterIn on column %q needs a slice of values, got %T",
-			f.Column, f.Value,
-		)
 	}
+
+	return fmt.Errorf(
+		"metaengine: FilterIn on column %q needs a []any list of values, got %T",
+		f.Column, f.Value,
+	)
 }
 
 // coerceInLists rewrites FilterIn values held in a typed slice ([]string,

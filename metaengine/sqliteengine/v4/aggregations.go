@@ -22,7 +22,7 @@ func (e *sqliteEngine) Aggregate(
 		return 0, fmt.Errorf("sqliteengine.Aggregate: %w", err)
 	}
 
-	if err := validateQueryIdents(filters, nil, column); err != nil {
+	if err := metaengine.ValidateQueryIdents(filters, nil, column); err != nil {
 		return 0, fmt.Errorf("sqliteengine.Aggregate: %w", err)
 	}
 

@@ -23,7 +23,7 @@ func (e *duckdbEngine) ExplainScanQuery(
 	collection string,
 	opts metaengine.ExplainOptions,
 ) (string, []any) {
-	if err := validateQueryIdents(opts.Filters, opts.Sort); err != nil {
+	if err := metaengine.ValidateQueryIdents(opts.Filters, opts.Sort); err != nil {
 		return rejectedExplain, nil
 	}
 
@@ -55,6 +55,8 @@ func explainStandardDuckDB(
 		if f.Op == metaengine.FilterIn {
 			values, ok := f.Value.([]any)
 			if !ok || len(values) == 0 {
+				b.WriteString(" AND " + emptyInPredicate)
+
 				continue
 			}
 
@@ -131,7 +133,7 @@ func (e *duckdbEngine) ExplainAggregateQuery(
 
 	cols := append(specColumns(opts.Specs), opts.Column, opts.GroupBy, opts.Distinct)
 
-	if err := validateQueryIdents(opts.Filters, nil, cols...); err != nil {
+	if err := metaengine.ValidateQueryIdents(opts.Filters, nil, cols...); err != nil {
 		return rejectedExplain, nil
 	}
 

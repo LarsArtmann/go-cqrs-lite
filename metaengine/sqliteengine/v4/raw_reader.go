@@ -57,7 +57,7 @@ func (e *sqliteEngine) ScanRawValues(
 
 	var err error
 
-	if err := validateQueryIdents(filters, sort); err != nil {
+	if err := metaengine.ValidateQueryIdents(filters, sort); err != nil {
 		return metaengine.RawScanResult{}, fmt.Errorf("sqliteengine.ScanRawValues: %w", err)
 	}
 

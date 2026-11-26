@@ -21,6 +21,8 @@ import (
 // once; the sort-side expressions reuse the dialect's cursor/twin-column
 // helpers so MariaDB's numeric ordering stays intact. LIMIT is n+1 for
 // has-more detection; the last included row mints the next compound cursor.
+// The query text comes from buildMapScanQuery, shared with ExplainScanQuery.
+//
 // art-dupl:accept cross-module SQL engine pattern — separate go.mod
 func (e *mysqlEngine) PushdownMapScan(
 	ctx context.Context,
@@ -36,73 +38,12 @@ func (e *mysqlEngine) PushdownMapScan(
 		return e.pushdownMapScanPlanned(ctx, plan, filters, sort, cursor, limit)
 	}
 
-	var b strings.Builder
-
-	args := []any{collection}
-
-	b.WriteString("SELECT CAST(value AS CHAR), `key` FROM meta_map WHERE collection = ?")
-
-	for _, f := range filters {
-		if f.Op == metaengine.FilterIn {
-			values, ok := f.Value.([]any)
-			if !ok || len(values) == 0 {
-				continue
-			}
-
-			placeholders := make([]string, len(values))
-			for i, v := range values {
-				placeholders[i] = e.jsonParamPlaceholder()
-				args = append(args, e.jsonFilterParam(v))
-			}
-
-			fmt.Fprintf(&b, ` AND %s IN (%s)`,
-				e.filterExpr(f.Column), strings.Join(placeholders, ", "))
-		} else {
-			fmt.Fprintf(&b, ` AND %s %s %s`,
-				e.filterExpr(f.Column), string(f.Op), e.jsonParamPlaceholder())
-			args = append(args, e.jsonFilterParam(f.Value))
-		}
+	query, args, err := e.buildMapScanQuery(collection, filters, sort, cursor, limit)
+	if err != nil {
+		return metaengine.ScanResult{}, fmt.Errorf("mysqlengine.PushdownMapScan: %w", err)
 	}
 
-	if sort != nil && cursor != nil {
-		op := ">"
-		if sort.Desc {
-			op = "<"
-		}
-
-		if skc, ok := cursor.(metaengine.SortKeyCursor); ok {
-			sortExpr := e.jsonCursorExpr(sort.Column, skc.Sort)
-
-			fmt.Fprintf(&b, ` AND (%s %s %s OR %s = %s AND `+"`key`"+` > ?)`,
-				sortExpr, op, e.jsonParamPlaceholder(),
-				sortExpr, e.jsonParamPlaceholder())
-
-			sortParam := e.jsonFilterParam(skc.Sort)
-			args = append(args, sortParam, sortParam, string(skc.Key))
-		} else {
-			fmt.Fprintf(&b, ` AND %s %s %s`,
-				e.jsonCursorExpr(sort.Column, cursor), op, e.jsonParamPlaceholder())
-			args = append(args, e.jsonFilterParam(cursor))
-		}
-	}
-
-	if sort != nil {
-		exprs := e.jsonSortExprs(sort.Column)
-		for i := range exprs {
-			if sort.Desc {
-				exprs[i] += ` DESC`
-			}
-		}
-
-		fmt.Fprintf(&b, ` ORDER BY %s`, strings.Join(exprs, ", "))
-		b.WriteString(", `key`")
-	}
-
-	if limit > 0 {
-		fmt.Fprintf(&b, ` LIMIT %d`, limit+1)
-	}
-
-	rows, keys, err := scanMySQLJSONValuesWithKeys(ctx, e.conn(ctx), b.String(), args...)
+	rows, keys, err := scanMySQLJSONValuesWithKeys(ctx, e.conn(ctx), query, args...)
 	//art-dupl:accept cross-module SQL engine pattern — dep-isolated go.mod modules
 	if err != nil {
 		return metaengine.ScanResult{}, err

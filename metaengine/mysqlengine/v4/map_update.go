@@ -13,9 +13,12 @@ import (
 // MapUpdate implements metaengine.MapUpdater: a transactional read-modify-
 // write on one key. Planned collections update the planned table, planless
 // collections update meta_map. Concurrent updates on the same key serialize
-// via SELECT ... FOR UPDATE inside the transaction (InnoDB row locks; the
-// MySQL driver pool is multi-writer). Inside an outer RunInTx the active
-// transaction participates.
+// inside the transaction: a named lock on the key (see lockMapKey) is taken
+// before the read, then the existing row is locked with SELECT ... FOR
+// UPDATE (InnoDB row locks; the MySQL driver pool is multi-writer). This
+// covers a key that does not exist yet, where a row lock alone let two
+// callers both create it and lose one update. Inside an outer RunInTx the
+// active transaction participates.
 func (e *mysqlEngine) MapUpdate(
 	ctx context.Context,
 	col string,
@@ -74,9 +77,16 @@ func (e *mysqlEngine) updateMetaMap(
 	keyStr := fmt.Sprint(key)
 
 	rm := func(ctx context.Context, q metaengine.SQLExec) error {
+		release, err := lockMapKey(ctx, q, col, keyStr)
+		if err != nil {
+			return err
+		}
+
+		defer release()
+
 		var raw []byte
 
-		err := q.QueryRowContext(
+		err = q.QueryRowContext(
 			ctx,
 			`SELECT CAST(value AS CHAR) FROM meta_map WHERE collection = ? AND `+keyCol+` = ? FOR UPDATE`,
 			col,
@@ -149,10 +159,17 @@ func updatePlannedValue(
 	update func(prev any) any,
 	setFn func(ctx context.Context, q metaengine.SQLExec, keyStr string, val any) error,
 ) error {
+	release, err := lockMapKey(ctx, q, table, keyStr)
+	if err != nil {
+		return err
+	}
+
+	defer release()
+
 	var raw []byte
 
 	//art-dupl:accept cross-module SQL engine pattern — dep-isolated go.mod modules
-	err := q.QueryRowContext(ctx,
+	err = q.QueryRowContext(ctx,
 		fmt.Sprintf("SELECT CAST(value AS CHAR) FROM %s WHERE %s = ? FOR UPDATE",
 			backtickIdent(table), keyCol),
 		keyStr,

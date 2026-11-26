@@ -33,7 +33,7 @@ func (e *sqliteEngine) GroupedAggregate(
 		return nil, fmt.Errorf("sqliteengine.GroupedAggregate: %w", err)
 	}
 
-	if err := validateQueryIdents(filters, nil, column, groupBy); err != nil {
+	if err := metaengine.ValidateQueryIdents(filters, nil, column, groupBy); err != nil {
 		return nil, fmt.Errorf("sqliteengine.GroupedAggregate: %w", err)
 	}
 
@@ -140,7 +140,7 @@ func (e *sqliteEngine) MultiAggregate(
 		}
 	}
 
-	if err := validateQueryIdents(filters, nil, specColumns(specs)...); err != nil {
+	if err := metaengine.ValidateQueryIdents(filters, nil, specColumns(specs)...); err != nil {
 		return nil, fmt.Errorf("sqliteengine.MultiAggregate: %w", err)
 	}
 
@@ -247,7 +247,7 @@ func (e *sqliteEngine) MultiGroupedAggregate(
 
 	cols := append(specColumns(specs), groupBy)
 
-	if err := validateQueryIdents(filters, nil, cols...); err != nil {
+	if err := metaengine.ValidateQueryIdents(filters, nil, cols...); err != nil {
 		return nil, fmt.Errorf("sqliteengine.MultiGroupedAggregate: %w", err)
 	}
 
@@ -347,7 +347,7 @@ func (e *sqliteEngine) DistinctValues(
 	column string,
 	filters []metaengine.FilterSpec,
 ) ([]any, error) {
-	if err := validateQueryIdents(filters, nil, column); err != nil {
+	if err := metaengine.ValidateQueryIdents(filters, nil, column); err != nil {
 		return nil, fmt.Errorf("sqliteengine.DistinctValues: %w", err)
 	}
 

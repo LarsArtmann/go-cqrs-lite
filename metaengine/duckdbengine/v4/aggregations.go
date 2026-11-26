@@ -137,9 +137,9 @@ func appendDuckDBFilter(
 }
 
 // appendDuckDBFilterIn renders the IN (...) arm of appendDuckDBFilter: one
-// placeholder per value ($N on the planned path, $N::json otherwise). Empty
-// or non-list values render nothing — same as the caller's other arms, the
-// connector is only ever written as part of a predicate.
+// placeholder per value ($N on the planned path, $N::json otherwise). An
+// empty or non-list value renders [emptyInPredicate], so the
+// filter matches no rows instead of every row.
 func appendDuckDBFilterIn(
 	b *strings.Builder,
 	args *[]any,
@@ -150,6 +150,8 @@ func appendDuckDBFilterIn(
 ) {
 	values, ok := f.Value.([]any)
 	if !ok || len(values) == 0 {
+		fmt.Fprintf(b, "%s%s", connector, emptyInPredicate)
+
 		return
 	}
 
@@ -241,7 +243,7 @@ func (e *duckdbEngine) Aggregate(
 		return 0, fmt.Errorf("duckdbengine.Aggregate: %w", err)
 	}
 
-	if err := validateQueryIdents(filters, nil, column); err != nil {
+	if err := metaengine.ValidateQueryIdents(filters, nil, column); err != nil {
 		return 0, fmt.Errorf("duckdbengine.Aggregate: %w", err)
 	}
 
@@ -330,7 +332,7 @@ func (e *duckdbEngine) GroupedAggregate(
 		return nil, fmt.Errorf("duckdbengine.GroupedAggregate: %w", err)
 	}
 
-	if err := validateQueryIdents(filters, nil, column, groupBy); err != nil {
+	if err := metaengine.ValidateQueryIdents(filters, nil, column, groupBy); err != nil {
 		return nil, fmt.Errorf("duckdbengine.GroupedAggregate: %w", err)
 	}
 
@@ -427,7 +429,7 @@ func (e *duckdbEngine) MultiAggregate(
 		}
 	}
 
-	if err := validateQueryIdents(filters, nil, specColumns(specs)...); err != nil {
+	if err := metaengine.ValidateQueryIdents(filters, nil, specColumns(specs)...); err != nil {
 		return nil, fmt.Errorf("duckdbengine.MultiAggregate: %w", err)
 	}
 
@@ -538,7 +540,7 @@ func (e *duckdbEngine) MultiGroupedAggregate(
 
 	cols := append(specColumns(specs), groupBy)
 
-	if err := validateQueryIdents(filters, nil, cols...); err != nil {
+	if err := metaengine.ValidateQueryIdents(filters, nil, cols...); err != nil {
 		return nil, fmt.Errorf("duckdbengine.MultiGroupedAggregate: %w", err)
 	}
 
@@ -646,7 +648,7 @@ func (e *duckdbEngine) DistinctValues(
 	column string,
 	filters []metaengine.FilterSpec,
 ) ([]any, error) {
-	if err := validateQueryIdents(filters, nil, column); err != nil {
+	if err := metaengine.ValidateQueryIdents(filters, nil, column); err != nil {
 		return nil, fmt.Errorf("duckdbengine.DistinctValues: %w", err)
 	}
 

@@ -36,7 +36,7 @@ func (e *duckdbEngine) PushdownMapScan(
 	cursor any,
 	limit int,
 ) (metaengine.ScanResult, error) {
-	if err := validateQueryIdents(filters, sort); err != nil {
+	if err := metaengine.ValidateQueryIdents(filters, sort); err != nil {
 		return metaengine.ScanResult{}, fmt.Errorf("duckdbengine.PushdownMapScan: %w", err)
 	}
 
@@ -55,6 +55,8 @@ func (e *duckdbEngine) PushdownMapScan(
 		if f.Op == metaengine.FilterIn {
 			values, ok := f.Value.([]any)
 			if !ok || len(values) == 0 {
+				b.WriteString(" AND " + emptyInPredicate)
+
 				continue
 			}
 
@@ -150,7 +152,7 @@ func (e *duckdbEngine) pushdownMapScanPlanned(
 	cursor any,
 	limit int,
 ) (metaengine.ScanResult, error) {
-	if err := validateQueryIdents(filters, sort); err != nil {
+	if err := metaengine.ValidateQueryIdents(filters, sort); err != nil {
 		return metaengine.ScanResult{}, fmt.Errorf("duckdbengine.PushdownMapScan: %w", err)
 	}
 

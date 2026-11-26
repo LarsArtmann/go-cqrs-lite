@@ -95,7 +95,11 @@ func New(dsn string) (metaengine.Engine, error) {
 }
 
 // NewFromDB wraps an existing *sql.DB connected to MySQL.
-// The caller owns the DB lifecycle — Close is a no-op.
+//
+// The engine does not track ownership: Close closes this *sql.DB (the
+// dialect has no owned/borrowed distinction; only sqliteengine does). A
+// caller that shares the pool with other components must therefore keep the
+// engine open for as long as the pool is in use.
 func NewFromDB(db *sql.DB) (metaengine.Engine, error) {
 	eng := &mysqlEngine{db: db}
 

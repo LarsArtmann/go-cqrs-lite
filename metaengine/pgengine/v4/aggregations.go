@@ -39,12 +39,15 @@ func pgAggExpr(fn metaengine.AggregateFn, column string) string {
 // Filter type-coercion: Postgres uses value->'field' (JSONB operator) which
 // preserves native JSON types; numeric comparisons use $N::jsonb parameters.
 // This differs from DuckDB (CAST AS DOUBLE on json_extract) and SQLite
-// (native types from json_extract, no CAST needed).
+// (native types from json_extract, no CAST needed). An empty IN list renders
+// [emptyInPredicate].
 // art-dupl:accept cross-module SQL builder pattern — separate go.mod
 func appendPGFilter(b *strings.Builder, args *[]any, f metaengine.FilterSpec) {
 	if f.Op == metaengine.FilterIn {
 		values, ok := f.Value.([]any)
 		if !ok || len(values) == 0 {
+			b.WriteString(" AND " + emptyInPredicate)
+
 			return
 		}
 
@@ -80,6 +83,10 @@ func (e *pgEngine) Aggregate(
 		return 0, fmt.Errorf("pgengine.Aggregate: %w", err)
 	}
 
+	if err := metaengine.ValidateQueryIdents(filters, nil, column); err != nil {
+		return 0, fmt.Errorf("pgengine.Aggregate: %w", err)
+	}
+
 	var b strings.Builder
 
 	args := []any{col}
@@ -112,6 +119,10 @@ func (e *pgEngine) GroupedAggregate(
 	filters []metaengine.FilterSpec,
 ) (map[string]float64, error) {
 	if err := metaengine.RejectInvalidAggregateFn(fn); err != nil {
+		return nil, fmt.Errorf("pgengine.GroupedAggregate: %w", err)
+	}
+
+	if err := metaengine.ValidateQueryIdents(filters, nil, column, groupBy); err != nil {
 		return nil, fmt.Errorf("pgengine.GroupedAggregate: %w", err)
 	}
 
@@ -183,6 +194,10 @@ func (e *pgEngine) MultiAggregate(
 		if err := metaengine.RejectInvalidAggregateFn(s.Fn); err != nil {
 			return nil, fmt.Errorf("pgengine.MultiAggregate spec %d: %w", i, err)
 		}
+
+		if err := metaengine.ValidateQueryIdents(filters, nil, s.Column); err != nil {
+			return nil, fmt.Errorf("pgengine.MultiAggregate: %w", err)
+		}
 	}
 
 	var b strings.Builder
@@ -232,6 +247,10 @@ func (e *pgEngine) MultiGroupedAggregate(
 		if err := metaengine.RejectInvalidAggregateFn(s.Fn); err != nil {
 			return nil, fmt.Errorf("pgengine.MultiGroupedAggregate spec %d: %w", i, err)
 		}
+
+		if err := metaengine.ValidateQueryIdents(filters, nil, s.Column, groupBy); err != nil {
+			return nil, fmt.Errorf("pgengine.MultiGroupedAggregate: %w", err)
+		}
 	}
 
 	var b strings.Builder
@@ -268,6 +287,10 @@ func (e *pgEngine) DistinctValues(
 	column string,
 	filters []metaengine.FilterSpec,
 ) ([]any, error) {
+	if err := metaengine.ValidateQueryIdents(filters, nil, column); err != nil {
+		return nil, fmt.Errorf("pgengine.DistinctValues: %w", err)
+	}
+
 	var b strings.Builder
 
 	args := []any{col}

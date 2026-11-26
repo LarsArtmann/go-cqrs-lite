@@ -3766,6 +3766,7 @@ metaengine/v4/func TypeName
 metaengine/v4/func ValidateDurabilityTier
 metaengine/v4/func ValidateFilterSpecs
 metaengine/v4/func ValidateIdentifier
+metaengine/v4/func ValidateQueryIdents
 metaengine/v4/func VectorDistance
 metaengine/v4/func VectorExecuteTyped
 metaengine/v4/func VectorMatchesFilters
