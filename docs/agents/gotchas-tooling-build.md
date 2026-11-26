@@ -558,10 +558,11 @@ Two micro-disciplines that each cost a failed edit this stream:
   2. The JS/TS detectors joined `erraudit lint` in v0.8.0 and are NOT covered
      by `--disable-extensions`: 25 hits in the vendored bundles
      (`catalog/v4/docserver/static/asyncapi-react.js`, `scalar.js`), the class
-     the 2026-11-04 version-skew guard was added for.
+     the 2026-11-04 version-skew guard was added for. `--modules=none` does
+     not scope them: the root run still reported all 25.
   3. Nested-module fan-out is the default since v0.8.0: a run in the repo
      root analyzes every nested `go.mod`, so the root row equals the sum of
-     all other rows and doubles the sweep time.
+     all other rows (2023 = 2023 in the first pin).
 - **Fix that landed**: `scripts/erraudit-sweep.sh` is the one implementation
   for CI and `nix run .#erraudit`. It measures each module with
   `--modules=none --exclude docserver/static`, counts findings from

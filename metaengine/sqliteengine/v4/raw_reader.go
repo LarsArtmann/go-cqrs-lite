@@ -18,6 +18,10 @@ func (e *sqliteEngine) GetRawValue(ctx context.Context, col string, key any) ([]
 	var err error
 
 	if plan, ok := e.plans[col]; ok {
+		if err := e.flushPlannedTable(ctx, plan.Table); err != nil {
+			return nil, false, fmt.Errorf("sqliteengine: planned flush-before-get %s: %w", plan.Table, err)
+		}
+
 		err = e.xc(ctx).queryRow(ctx,
 			fmt.Sprintf("SELECT value FROM %s WHERE key = ?", metaengine.QuoteIdent(plan.Table)),
 			encodeKey(key)).Scan(&valStr)
@@ -62,6 +66,11 @@ func (e *sqliteEngine) ScanRawValues(
 	}
 
 	if plan, ok := e.plans[col]; ok {
+		if err := e.flushPlannedTable(ctx, plan.Table); err != nil {
+			return metaengine.RawScanResult{}, fmt.Errorf(
+				"sqliteengine: planned flush-before-scan %s: %w", plan.Table, err)
+		}
+
 		rows, keys, err = scanRawPlanned(ctx, e.xd(ctx), plan, filters, sort, cursor, limit)
 	} else {
 		rows, keys, err = scanRawStandard(ctx, e.xd(ctx), col, filters, sort, cursor, limit)

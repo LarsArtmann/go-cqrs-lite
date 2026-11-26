@@ -12,6 +12,10 @@ import (
 // metaengine.SnapshotBackend implementation for the SQLite engine.
 // Snapshots are stored in the meta_snapshot table with a composite primary
 // key (collection, stream_id). One snapshot per stream — saves overwrite.
+// All four methods run on the ambient transaction when one is in the context,
+// like every other write path: a snapshot is atomic with the events written
+// beside it, and with the default single-connection pool a call that bypassed
+// the transaction could never obtain a connection.
 
 func (e *sqliteEngine) SnapshotSave(
 	ctx context.Context,
@@ -19,7 +23,7 @@ func (e *sqliteEngine) SnapshotSave(
 	version int64,
 	data []byte,
 ) error {
-	_, err := e.db.ExecContext(
+	_, err := e.xd(ctx).ExecContext(
 		ctx,
 		`INSERT OR REPLACE INTO meta_snapshot (collection, stream_id, version, data) VALUES (?, ?, ?, ?)`,
 		collection,
@@ -41,7 +45,7 @@ func (e *sqliteEngine) SnapshotLoad(
 	var data []byte
 	var version int64
 
-	err := e.db.QueryRowContext(ctx,
+	err := e.xd(ctx).QueryRowContext(ctx,
 		`SELECT data, version FROM meta_snapshot WHERE collection = ? AND stream_id = ?`,
 		collection, streamID,
 	).Scan(&data, &version)
@@ -65,7 +69,7 @@ func (e *sqliteEngine) SnapshotLoadAtVersion(
 	var data []byte
 	var version int64
 
-	err := e.db.QueryRowContext(ctx,
+	err := e.xd(ctx).QueryRowContext(ctx,
 		`SELECT data, version FROM meta_snapshot
 		 WHERE collection = ? AND stream_id = ? AND version <= ?
 		 ORDER BY version DESC LIMIT 1`,
@@ -92,7 +96,7 @@ func (e *sqliteEngine) SnapshotDelete(
 	ctx context.Context,
 	collection, streamID string,
 ) error {
-	_, err := e.db.ExecContext(ctx,
+	_, err := e.xd(ctx).ExecContext(ctx,
 		`DELETE FROM meta_snapshot WHERE collection = ? AND stream_id = ?`,
 		collection, streamID,
 	)

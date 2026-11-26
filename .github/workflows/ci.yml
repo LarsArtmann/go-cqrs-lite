@@ -1129,10 +1129,10 @@ jobs:
   # POLICY: a shrink-only ratchet per module (scripts/erraudit-baseline.txt).
   # `--enforce-go-error-family` could not produce a finding on `erraudit
   # lint` before v0.8.0, so the "zero findings" this job recorded against
-  # the old v0.7.0 pin was vacuous. The first real run (2026-11-26, erraudit
-  # cb96501) pinned 1998 findings in 65 modules; the gate now fails on any
-  # module that grows, on a new offender, and on a module that cannot be
-  # measured. scripts/erraudit-sweep.sh is the one implementation.
+  # the old v0.7.0 pin was vacuous. The first real run (2026-11-26) pinned
+  # the standing debt; the baseline header carries the totals. The gate
+  # fails on any module that grows, on a new offender, and on a module that
+  # cannot be measured. scripts/erraudit-sweep.sh is the one implementation.
   error-audit:
     name: Error Audit (erraudit)
     runs-on: ubuntu-latest

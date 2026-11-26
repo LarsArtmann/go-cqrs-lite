@@ -8,9 +8,10 @@
 # lint` until v0.8.0 (erraudit CHANGELOG 0.8.0, "Every --enforce-* flag now
 # produces findings on erraudit lint"), so the zero this sweep reported
 # against v0.7.0 was vacuous. The first real run (2026-11-26, erraudit
-# cb96501) reports 3992 stdlib constructors in 65 modules. The baseline pins
-# that debt; the gate fails on any module that grows, on a new offender, on
-# a module erraudit could not measure, and on a dangling baseline row.
+# cb96501) reported findings in most modules; the baseline header carries
+# the pinned totals and the pinning version. The gate fails on any module
+# that grows, on a new offender, on a module erraudit could not measure,
+# and on a dangling baseline row.
 #
 # Usage:
 #   scripts/erraudit-sweep.sh [erraudit-binary]   gate (default)
