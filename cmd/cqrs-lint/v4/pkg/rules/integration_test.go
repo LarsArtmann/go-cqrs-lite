@@ -66,6 +66,11 @@ var taskmanagerGoldenProfile = map[string]int{
 	"A032": 2,
 	"B004": 1,
 	"B005": 1,
+	// B032: 12 since 2026-11-26 — the rule landed 2026-11-25 (28db93fe7)
+	// after this profile was pinned and while this test still skipped; the
+	// 12 non-test command.New calls carry no tracing option, which is the
+	// rule's real pattern.
+	"B032": 12,
 	// C009: 3 since 2026-10-12 — the bare `Must` helper exemption (issue #64,
 	// commit 46187d98a) silences taskmanager's generic Must[T]; the raw
 	// detector count is must.go:23 plus the two features.go panics (their
@@ -102,9 +107,9 @@ var taskmanagerGoldenProfile = map[string]int{
 	// backlog; until then this pin records honest detector behavior.
 	"F032": 1,
 	"S010": 1,
-	// V003: 2 since trust wave II (2026-10-12) — taskmanager's settled pins
-	// ride the freshly tagged trains, so only two minors-behind rows remain.
-	"V003": 2,
+	// V003 left the profile 2026-11-26: since issue #129 the rule resolves
+	// "latest" from the module proxy and stays silent in test binaries
+	// (latestMinorFromProxy), so its rows can no longer be produced here.
 	// V006 (divergent-module-pins) intentionally absent: the 2026-10-03
 	// per-module-tags rework fires only on the SAME module pinned to
 	// different versions across MULTIPLE go.mod files; taskmanager is a
@@ -128,7 +133,7 @@ func TestIntegration_TaskmanagerExpectedFindings(t *testing.T) {
 	}
 
 	if len(actx.GoFiles) == 0 {
-		t.Skip("no Go files found in taskmanager example")
+		t.Fatalf("no Go files found in taskmanager example at %s — the profile gate cannot run", tmPath)
 	}
 
 	detectors := rules.RegisterAll(actx)
@@ -342,7 +347,10 @@ func TestUnit_IsRuleID(t *testing.T) {
 func findProjectRoot(t *testing.T) string {
 	t.Helper()
 
-	root, err := filepath.Abs("../../../..")
+	// cwd is cmd/cqrs-lint/v4/pkg/rules — five levels below the repo root.
+	// One level too high resolved to cmd/, where example/taskmanager does not
+	// exist, and every taskmanager test here SKIPped instead of comparing.
+	root, err := filepath.Abs("../../../../..")
 	if err != nil {
 		t.Fatal(err)
 	}

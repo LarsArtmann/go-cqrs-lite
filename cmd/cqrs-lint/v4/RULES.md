@@ -485,7 +485,7 @@ Command embeds BasicCommand by value — cannot satisfy command.Command (pointer
 
 Severity: `warning` · Confidence: `high` · Auto-fix: no · Category: `api`
 
-Calls to deprecated APIs (dispatcher.Register, command.Register)
+Calls to APIs the library marks Deprecated (command/event/query v3-compat aggregate names, ParseType, tombstones)
 
 <a id="a015"></a>
 
@@ -1249,7 +1249,7 @@ Signing/encryption imported but config Enabled: false
 
 Severity: `info` · Confidence: `low` · Auto-fix: no · Category: `architecture`
 
-Projectionhost used without drain/wait for read consistency
+Projectionhost used without a projection staleness guard — the read model may be stale when a command returns
 
 <a id="e015"></a>
 

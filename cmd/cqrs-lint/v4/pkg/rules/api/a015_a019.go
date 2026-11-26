@@ -8,14 +8,18 @@ import (
 	"github.com/larsartmann/go-finding"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/lintutil"
 )
 
 // A016: Missing idempotency middleware.
 // Detects command dispatchers without idempotency middleware.
 // Only flags when the dispatcher's module actually dispatches commands
 // (CommandFlowCommands). Read-only systems (no dispatcher) and sync/batch
-// systems are not at risk. Command-flow is evaluated per-module via
-// ProfileForFile so a dispatcher in a read-only sub-module is not flagged.
+// systems are not at risk. Only go-cqrs-lite dispatcher wiring counts (see
+// a016_dispatcher.go). Command-flow is evaluated per-module via
+// ProfileForFile, one finding per module that dispatches commands, so a
+// dispatcher in a read-only sub-module is not flagged and a real one
+// elsewhere is not hidden by it.
 //
 //nolint:ireturn // factory returns public interface
 func NewA016Detector(ctx *analyzer.AnalysisContext) finding.Detector {
@@ -23,8 +27,7 @@ func NewA016Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 		"A016-missing-idempotency-middleware",
 		func(_ context.Context) ([]finding.Finding, error) {
 			hasIdempotency := false
-			dispFile := ""
-			dispLine := 0
+			dispatchers := newDispatcherSites()
 
 			for _, gf := range ctx.GoFiles {
 				if gf.IsTest {
@@ -42,65 +45,53 @@ func NewA016Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						return true
 					}
 
-					if sel.Sel.Name == "CommandIdempotency" || sel.Sel.Name == "EventIdempotency" ||
-						sel.Sel.Name == "QueryIdempotency" {
+					if hasIdempotencySignal(sel) {
 						hasIdempotency = true
 
 						return false
 					}
 
-					// Direct idempotency.NewMemoryStore usage also counts.
-					if sel.Sel.Name == "NewMemoryStore" &&
-						analyzer.SelectorPackage(sel) == "idempotency" {
-						hasIdempotency = true
-
-						return false
-					}
-
-					if sel.Sel.Name == "NewDispatcher" || sel.Sel.Name == "Use" {
-						if dispFile == "" {
-							p := ctx.Fset.Position(call.Pos())
-							dispFile = p.Filename
-							dispLine = p.Line
-						}
+					// `.Use` is also a router/logger method: only go-cqrs-lite
+					// dispatcher wiring decides the verdict.
+					if isDispatcherWiring(gf, call) {
+						dispatchers.add(ctx, gf, call)
 					}
 
 					return true
 				})
 			}
 
-			if hasIdempotency || dispFile == "" {
-				return nil, nil
-			}
-
-			// Evaluate per-module: only flag dispatchers in modules that
-			// actually dispatch commands. Using the primary profile would
-			// flag a read-only sub-module when the primary module has
-			// command flow.
-			if ctx.ProfileForFile(dispFile).CommandFlow != analyzer.CommandFlowCommands {
+			if hasIdempotency {
 				return nil, nil
 			}
 
 			var findings []finding.Finding
 
-			f, err := findingTemplate.Builder(
-				"A016",
-				"Command dispatcher lacks idempotency middleware — duplicate commands may execute twice",
-				finding.SeverityWarning,
-				finding.Pos(finding.FilePath(dispFile), dispLine, 1),
-			).
-				WithCategory(finding.CategoryBestPractice).
-				WithConfidence(finding.ConfidenceLow).
-				WithSuggestion("Add middleware.CommandIdempotency(store, ttl, nil) to your dispatcher").
-				WithSnippet(ctx.SourceLine(dispFile, dispLine)).
-				Build()
-			if err == nil {
-				findings = append(findings, f)
+			for _, site := range dispatchers.sites {
+				if ctx.ProfileForFile(site.pos.Filename).CommandFlow != analyzer.CommandFlowCommands {
+					continue
+				}
+
+				f, err := a016Finding(ctx, site)
+				lintutil.AppendBuild(&findings, f, err)
 			}
 
 			return findings, nil
 		},
 	)
+}
+
+// hasIdempotencySignal reports whether sel is a library idempotency
+// middleware constructor or a direct idempotency.NewMemoryStore call.
+func hasIdempotencySignal(sel *ast.SelectorExpr) bool {
+	switch sel.Sel.Name {
+	case "CommandIdempotency", "EventIdempotency", "QueryIdempotency":
+		return true
+	case "NewMemoryStore":
+		return analyzer.SelectorPackage(sel) == "idempotency"
+	default:
+		return false
+	}
 }
 
 // A018: No actual event sourcing.

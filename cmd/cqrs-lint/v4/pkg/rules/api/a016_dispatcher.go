@@ -47,17 +47,16 @@ func isDispatcherWiring(gf *analyzer.GoFile, call *ast.CallExpr) bool {
 }
 
 func useTargetsDispatcher(gf *analyzer.GoFile, sel *ast.SelectorExpr) bool {
+	ident, _ := sel.X.(*ast.Ident)
+
 	if gf.Pkg != nil && gf.Pkg.TypesInfo != nil {
 		if selection, ok := gf.Pkg.TypesInfo.Selections[sel]; ok {
 			return typeInDispatcherModule(selection.Recv().String())
 		}
+	}
 
-		// A package qualifier (never a method receiver): `pkg.Use` is not a
-		// go-cqrs-lite call.
-		if _, isVar := gf.Pkg.TypesInfo.Uses[sel.X.(*ast.Ident)]; !isVar {
-			return false
-		}
-	} else if qualifierTargetsDispatcher(gf, sel.X.(*ast.Ident)) {
+	// `pkg.Use(...)`: a package qualifier, never a dispatcher method.
+	if qualifierTargetsDispatcher(gf, ident) {
 		return false
 	}
 

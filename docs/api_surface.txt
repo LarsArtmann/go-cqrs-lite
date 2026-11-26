@@ -638,15 +638,7 @@ claiming/v4/struct Spec
 claiming/v4/type Dialect
 claiming/v4/var ErrLeaseNotHeld
 claiming/v4/var ErrUnsupported
-cmd/cqrs-bench/v4/struct AppConfig
-cmd/cqrs-bench/v4/struct BenchFlags
-cmd/cqrs-bench/v4/struct CompareFlags
-cmd/cqrs-bench/v4/struct LayoutFlags
-cmd/cqrs-bench/v4/struct ListPhasesFlags
-cmd/cqrs-bench/v4/struct RunFlags
-cmd/cqrs-bench/v4/struct SweepFlags
 cmd/cqrs-gen/v4/struct AppConfig
-cmd/cqrs-gen/v4/struct Entry
 cmd/cqrs-lint/v4/func ComputeDeprecatedPanel
 cmd/cqrs-lint/v4/func ComputeHealthScore
 cmd/cqrs-lint/v4/func ComputeHealthScoreWithCap
