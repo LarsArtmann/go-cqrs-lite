@@ -25,15 +25,6 @@ func sortAndPaginate(pairs []kvPair, sortFn func(a, b any) int, cursor any, limi
 	return metaengine.SortPaginate(pairs, kvPairKey, kvPairValue, sortFn, cursor, limit)
 }
 
-func trimRaw(results [][]byte, limit int) metaengine.RawScanResult {
-	hasMore := limit > 0 && len(results) > limit
-	if hasMore {
-		results = results[:limit]
-	}
-
-	return metaengine.RawScanResult{Items: results, HasMore: hasMore}
-}
-
 // extractOrDirect returns the named column from a map item, or the value itself
 // if it is not a map. This lets a single comparator function handle both item
 // comparisons (where both args are decoded JSON maps) and cursor comparisons

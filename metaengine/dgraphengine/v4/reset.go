@@ -149,9 +149,23 @@ func (e *dgraphEngine) dropEdgePredicates(ctx context.Context) error {
 		if err != nil {
 			return fmt.Errorf("drop edge predicate %s: %w", drop, err)
 		}
+
+		e.forgetEdgeSchema(drop)
 	}
 
 	return nil
+}
+
+// forgetEdgeSchema removes a dropped predicate from the lazy-schema cache.
+// ensureEdgeSchema skips the Alter for cached predicates, so a stale entry
+// would make the first post-reset GraphAddEdge write to a predicate that no
+// longer exists. Called per predicate right after its drop succeeds, so a
+// later failure in the loop leaves only truly dropped predicates forgotten.
+func (e *dgraphEngine) forgetEdgeSchema(pred string) {
+	e.schemaMu.Lock()
+	defer e.schemaMu.Unlock()
+
+	delete(e.appliedSchemas, pred)
 }
 
 // Compile-time assertion: the engine satisfies the reset capability.

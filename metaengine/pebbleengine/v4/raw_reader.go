@@ -45,7 +45,6 @@ func (e *pebbleEngine) GetRawValue(_ context.Context, col string, key any) ([]by
 }
 
 // --- RawScanReader ---
-
 // ScanRawValues scans collection values as raw JSON bytes without decoding
 // each row to any. Filters and sorting are applied in Go (Pebble has no SQL
 // engine), but the returned bytes allow the caller to decode directly to the
@@ -72,8 +71,8 @@ func (e *pebbleEngine) ScanRawValues(
 			return rawHitsResult(hits, sortSpec, limit), nil
 		}
 
-		if indexed, err := e.scanWithIndex(ctx, col, filters, plan); err == nil && indexed != nil {
-			return trimRaw(processFilterIndex(indexed, sortSpec, cursor, limit), limit), nil
+		if hits, indexed, err := e.scanWithIndex(col, filters, plan); err == nil && indexed {
+			return rawPairsResult(filterIndexPairs(hits), sortSpec, cursor, limit), nil
 		}
 	}
 
@@ -111,42 +110,7 @@ func (e *pebbleEngine) ScanRawValues(
 		return metaengine.RawScanResult{}, err
 	}
 
-	var sortFn func(a, b any) int
-
-	if sortSpec != nil {
-		sortFn = func(a, b any) int {
-			va := extractOrDirect(a, sortSpec.Column)
-			vb := extractOrDirect(b, sortSpec.Column)
-			c := metaengine.CompareValues(va, vb)
-
-			if sortSpec.Desc {
-				return -c
-			}
-
-			return c
-		}
-	}
-
-	pairs = sortAndPaginate(pairs, sortFn, cursor, limit)
-
-	hasMore := limit > 0 && len(pairs) > limit
-	if hasMore {
-		pairs = pairs[:limit]
-	}
-
-	results := make([][]byte, len(pairs))
-	for i, p := range pairs {
-		results[i] = p.raw
-	}
-
-	var next any
-
-	if sortSpec != nil && len(pairs) > 0 {
-		last := pairs[len(pairs)-1]
-		next = metaengine.LastDecodedRowCursor(last.value, sortSpec.Column, last.key)
-	}
-
-	return metaengine.RawScanResult{Items: results, HasMore: hasMore, NextCursor: next}, nil
+	return rawPairsResult(pairs, sortSpec, cursor, limit), nil
 }
 
 // rawHitsResult assembles the RawScanResult for a sort-index walk: truncate
@@ -165,6 +129,7 @@ func rawHitsResult(
 	}
 
 	items := make([][]byte, len(hits))
+
 	for i, hit := range hits {
 		items[i] = hit.value
 	}

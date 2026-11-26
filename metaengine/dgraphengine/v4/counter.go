@@ -105,35 +105,13 @@ func (e *dgraphEngine) counterIncrementBatch(
 	}
 
 	// Index existing counters by key for O(1) lookup.
-	existing := make(map[string]struct {
-		uid   string
-		value int64
-	}, len(result.Counter))
+	existing := make(map[string]counterRow, len(result.Counter))
+
 	for _, c := range result.Counter {
-		existing[c.CqrsCounterKey] = struct {
-			uid   string
-			value int64
-		}{uid: c.UID, value: c.CqrsCounterValue}
+		existing[c.CqrsCounterKey] = counterRow{uid: c.UID, value: c.CqrsCounterValue}
 	}
 
-	// Build all mutations in a single request — one RAFT commit for all deltas.
-	setJSON := make([]map[string]any, 0, len(deltas))
-	for key, delta := range deltas {
-		if ex, ok := existing[key]; ok {
-			setJSON = append(setJSON, map[string]any{
-				"uid":                ex.uid,
-				"cqrs.counter_value": ex.value + delta,
-			})
-		} else {
-			setJSON = append(setJSON, map[string]any{
-				"uid":                     "_:new_" + sanitizeKey(key),
-				"cqrs.counter_collection": col,
-				"cqrs.counter_key":        key,
-				"cqrs.counter_value":      delta,
-				dqlTypePred:               []string{"MetaCounterEntry"},
-			})
-		}
-	}
+	setJSON := counterIncrementMutation(col, deltas, existing)
 
 	data, _ := json.Marshal(setJSON)
 
@@ -147,21 +125,46 @@ func (e *dgraphEngine) counterIncrementBatch(
 	return nil
 }
 
-// sanitizeKey strips characters that are unsafe in Dgraph blank-node labels.
-// Blank node labels must match [a-zA-Z_][a-zA-Z0-9_]*.
-func sanitizeKey(s string) string {
-	var b strings.Builder
+// counterRow is an existing counter as read back before an increment.
+type counterRow struct {
+	uid   string
+	value int64
+}
 
-	for _, r := range s {
-		if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') ||
-			(r >= '0' && r <= '9') || r == '_' {
-			b.WriteRune(r)
-		} else {
-			b.WriteByte('_')
+// counterIncrementMutation builds the single mutation that applies every
+// delta. New counters get a blank-node label unique per position in the
+// batch: a label derived from the key would collide for distinct keys that
+// sanitize alike ("a-b" and "a_b"), silently merging two increments into one
+// node. The key travels only in the cqrs.counter_key predicate.
+func counterIncrementMutation(
+	col string,
+	deltas metaengine.Delta,
+	existing map[string]counterRow,
+) []map[string]any {
+	setJSON := make([]map[string]any, 0, len(deltas))
+	i := 0
+
+	for key, delta := range deltas {
+		if ex, ok := existing[key]; ok {
+			setJSON = append(setJSON, map[string]any{
+				"uid":                ex.uid,
+				"cqrs.counter_value": ex.value + delta,
+			})
+
+			continue
 		}
+
+		setJSON = append(setJSON, map[string]any{
+			"uid":                     fmt.Sprintf("_:new_%d", i),
+			"cqrs.counter_collection": col,
+			"cqrs.counter_key":        key,
+			"cqrs.counter_value":      delta,
+			dqlTypePred:               []string{"MetaCounterEntry"},
+		})
+		i++
 	}
 
-	return b.String()
+	return setJSON
 }
 
 // keyVarDecls produces DQL variable declarations for n counter keys:

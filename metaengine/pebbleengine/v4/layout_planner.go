@@ -2,10 +2,8 @@ package pebbleengine
 
 import (
 	"bytes"
-	"context"
 	"encoding/json/v2"
 	"fmt"
-	"sort"
 
 	"github.com/cockroachdb/pebble"
 
@@ -103,20 +101,32 @@ func encodeIndexValue(v any) string {
 }
 
 // ApplyLayout creates a secondary index layout for the collection. After this,
-// MapSet writes secondary index entries for the declared filter fields, and
-// ScanRawValues uses prefix scans when a filter matches a declared field.
+// MapSet writes secondary index entries for the declared filter and sort
+// fields, and ScanRawValues uses prefix scans when a filter matches a
+// declared field. Rows that already exist are indexed in one pass, so they
+// stay visible to indexed scans; the call therefore costs one scan of the
+// collection and fails without publishing the plan if that scan fails.
 func (e *pebbleEngine) ApplyLayout(collection string, filterFields, sortFields []string) error {
+	plan := layoutPlan{
+		filterFields: append([]string(nil), filterFields...),
+		sortFields:   append([]string(nil), sortFields...),
+	}
+
+	// layoutMu is held across the backfill so a concurrent MapSet either
+	// lands before the scan (and is indexed here) or sees the published plan
+	// (and indexes itself); no row can slip between the two.
 	e.layoutMu.Lock()
 	defer e.layoutMu.Unlock()
+
+	if err := e.backfillIndex(collection, plan); err != nil {
+		return err
+	}
 
 	if e.layouts == nil {
 		e.layouts = make(map[string]layoutPlan)
 	}
 
-	e.layouts[collection] = layoutPlan{
-		filterFields: append([]string(nil), filterFields...),
-		sortFields:   append([]string(nil), sortFields...),
-	}
+	e.layouts[collection] = plan
 
 	return nil
 }
@@ -218,52 +228,43 @@ func (p layoutPlan) indexBounds(
 // scanWithIndex uses a secondary index to find matching keys, then reads
 // their values. This is O(matches) instead of O(all rows in collection).
 // Supports FilterEq, FilterGt, FilterGe, FilterLt, FilterLe via index bounds.
+// The index narrows to ONE filter; every filter (including that one) is then
+// re-applied in Go, because rows can carry stale or missing index entries.
+// indexed is false when no filter can narrow the range; the caller then
+// falls back to the unindexed scan.
 func (e *pebbleEngine) scanWithIndex(
-	_ context.Context,
 	col string,
 	filters []metaengine.FilterSpec,
 	plan layoutPlan,
-) ([][]byte, error) {
+) ([]sortIndexHit, bool, error) {
 	lowerBound, upperBound, ok := plan.indexBounds(col, filters)
 	if !ok {
-		return nil, nil
+		return nil, false, nil
 	}
+
+	var hits []sortIndexHit
 
 	iter, err := e.db.NewIter(&pebble.IterOptions{
 		LowerBound: lowerBound,
 		UpperBound: upperBound,
 	})
 	if err != nil {
-		return nil, err
+		return nil, true, err
 	}
 
 	defer metaengine.DeferClose(iter)
 
-	var results [][]byte
-
 	for iter.First(); iter.Valid(); iter.Next() {
-		// The index key is: i{sep}{col}{sep}{field}{sep}{value}{sep}{primaryKey}
-		// Extract primaryKey by finding the last separator.
-		fullKey := append([]byte(nil), iter.Key()...)
-		primaryKey := extractPrimaryKeyFromIndex(fullKey)
-
-		// Read the actual value from the map store.
-		val, closer, err := e.db.Get(mapKey(col, primaryKey))
-		if err != nil {
-			continue
+		if hit, ok := e.collectSortIndexHit(iter.Key(), col, filters); ok {
+			hits = append(hits, hit)
 		}
-
-		valCopy := append([]byte(nil), val...)
-		_ = closer.Close()
-
-		results = append(results, valCopy)
 	}
 
 	if err := iter.Error(); err != nil {
-		return nil, err
+		return nil, true, err
 	}
 
-	return results, nil
+	return hits, true, nil
 }
 
 // extractPrimaryKeyFromIndex extracts the primary key portion from any index
@@ -276,84 +277,4 @@ func extractPrimaryKeyFromIndex(fullKey []byte) string {
 	}
 
 	return string(fullKey[idx+1:])
-}
-
-// sortIndexedResults sorts raw JSON values by a sort field.
-func sortIndexedResults(results [][]byte, sortField string, desc bool) {
-	if sortField == "" || len(results) <= 1 {
-		return
-	}
-
-	sort.Slice(results, func(i, j int) bool {
-		vi := decodeJSON(results[i])
-		vj := decodeJSON(results[j])
-
-		c := metaengine.CompareValues(
-			metaengine.ItemFieldByName(vi, sortField),
-			metaengine.ItemFieldByName(vj, sortField),
-		)
-
-		if c != 0 {
-			if desc {
-				return c > 0
-			}
-
-			return c < 0
-		}
-
-		return bytes.Compare(results[i], results[j]) < 0
-	})
-}
-
-// processFilterIndex sorts, cursor-paginates, and limits filter-indexed results.
-func processFilterIndex(
-	indexed [][]byte,
-	sortSpec *metaengine.SortSpec,
-	cursor any,
-	limit int,
-) [][]byte {
-	if sortSpec != nil {
-		sortIndexedResults(indexed, sortSpec.Column, sortSpec.Desc)
-
-		if cursor != nil {
-			indexed = paginateIndexedResults(indexed, sortSpec, cursor)
-		}
-	}
-
-	return applyLimit(indexed, limit)
-}
-
-// applyLimit truncates results to limit+1 (the extra row signals "has more").
-func applyLimit(results [][]byte, limit int) [][]byte {
-	if limit <= 0 || len(results) <= limit+1 {
-		return results
-	}
-
-	return results[:limit+1]
-}
-
-// paginateIndexedResults applies keyset cursor pagination to filter-indexed
-// results. Must be called after sortIndexedResults so results are in order.
-// Items at or before the cursor are skipped (already seen by the caller).
-func paginateIndexedResults(results [][]byte, sortSpec *metaengine.SortSpec, cursor any) [][]byte {
-	cursorVal := extractOrDirect(cursor, sortSpec.Column)
-	filtered := results[:0]
-
-	for _, raw := range results {
-		decoded := decodeJSON(raw)
-		fieldVal := metaengine.ItemFieldByName(decoded, sortSpec.Column)
-		c := metaengine.CompareValues(fieldVal, cursorVal)
-
-		if sortSpec.Desc {
-			c = -c
-		}
-
-		if c <= 0 {
-			continue
-		}
-
-		filtered = append(filtered, raw)
-	}
-
-	return filtered
 }

@@ -504,33 +504,6 @@ func (e *pebbleEngine) SetContains(_ context.Context, col string, key any) (bool
 
 // --- CounterBackend ---
 
-func (e *pebbleEngine) CounterIncrement(
-	_ context.Context,
-	col string,
-	deltas metaengine.Delta,
-) error {
-	for k, d := range deltas {
-		ck := counterKey(col, k)
-
-		var current int64
-
-		val, closer, err := e.db.Get(ck)
-		if err == nil {
-			current = decodeCounterValue(val)
-			//cqrs-lint:ignore(C023) library code or intentional pattern
-			_ = closer.Close() //cqrs-lint:ignore(C015) pebble closer, error is always nil
-		} else if !errors.Is(err, pebble.ErrNotFound) {
-			return err
-		}
-
-		if err := e.db.Set(ck, encodeCounterValue(current+d), e.writeOptions()); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
 func (e *pebbleEngine) CounterGet(_ context.Context, col string) (map[string]int64, error) {
 	// Prefix scan all counters for this collection.
 	prefix := []byte("c" + sep + col + sep)

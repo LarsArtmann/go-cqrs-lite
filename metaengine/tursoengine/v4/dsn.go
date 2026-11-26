@@ -124,11 +124,13 @@ var knownDSNParams = []string{
 }
 
 // strictDSNParams enforces the strict DSN policy on the caller-owned DSN: a
-// query parameter whose name contains "encrypt" or "key" but is not one of
-// knownDSNParams (case-insensitive) is rejected, because the turso driver
-// silently ignores it and a mistyped encryption parameter would open the
-// database unencrypted. The error names the parameter and its closest known
-// spelling.
+// query parameter whose name contains "encrypt" or "key" (either matched
+// case-insensitively) but is not one of knownDSNParams spelled EXACTLY is
+// rejected, because the turso driver silently ignores it and a mistyped
+// encryption parameter would open the database unencrypted. The driver reads
+// parameters case-sensitively, so a mixed-case spelling (Encryption_HexKey)
+// is as good as unknown to it. The error names the parameter and its closest
+// known spelling.
 func strictDSNParams(dsn string) error {
 	_, query, hasQuery := strings.Cut(dsn, "?")
 	if !hasQuery {
@@ -143,9 +145,7 @@ func strictDSNParams(dsn string) error {
 			continue
 		}
 
-		if slices.ContainsFunc(knownDSNParams, func(k string) bool {
-			return strings.EqualFold(k, key)
-		}) {
+		if slices.Contains(knownDSNParams, key) {
 			continue
 		}
 

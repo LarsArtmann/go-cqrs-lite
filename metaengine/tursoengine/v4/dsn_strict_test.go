@@ -42,8 +42,18 @@ func TestStrictDSNParams(t *testing.T) {
 			dsn:  "/data/app.db?encryption_cipher=aegis256&encryption_hexkey=ab",
 		},
 		{
-			name: "known encryption params case-insensitive pass",
-			dsn:  "/data/app.db?Encryption_HexKey=ab",
+			// The driver reads parameters case-sensitively: it would drop this
+			// key and open the database unencrypted, so the gate must reject it.
+			name:    "mixed-case hexkey rejected: the driver would drop it",
+			dsn:     "/data/app.db?Encryption_HexKey=ab",
+			wantErr: true,
+			wantMsg: `parameter "Encryption_HexKey"`,
+		},
+		{
+			name:    "mixed-case cipher rejected: the driver would drop it",
+			dsn:     "/data/app.db?Encryption_Cipher=aegis256",
+			wantErr: true,
+			wantMsg: `did you mean "encryption_cipher"`,
 		},
 		{
 			name:    "mistyped hexkey rejected with suggestion",
