@@ -1,6 +1,6 @@
 module example.com/busfixture
 
-go 1.27.2
+go 1.27
 
 require github.com/larsartmann/go-cqrs-lite/event/v4 v4.15.3
 

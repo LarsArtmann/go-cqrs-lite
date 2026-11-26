@@ -1,6 +1,6 @@
 module example.com/scanfixture
 
-go 1.27.2
+go 1.27
 
 require github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.26.1
 
