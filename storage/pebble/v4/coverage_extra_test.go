@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/cockroachdb/pebble"
+	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
@@ -14,17 +15,11 @@ import (
 )
 
 // TestEventStore_CorruptEventTriggersCorruptionError writes garbage data
-// to the event store keys, then verifies that Load returns a Corruption error.
+// to the event store keys and verifies that Load returns a Corruption error.
 func TestEventStore_CorruptEventTriggersCorruptionError(t *testing.T) {
 	t.Parallel()
 
-	dir := t.TempDir()
-	database, err := pebble.Open(dir, &pebble.Options{})
-	if err != nil {
-		t.Fatalf("pebble.Open: %v", err)
-	}
-
-	t.Cleanup(func() { _ = database.Close() })
+	database := openProbeDB(t)
 
 	logger := slog.New(slog.NewTextHandler(&testWriter{t: t}, nil))
 	store, err := cqrspebble.NewStore(database, logger)
@@ -34,95 +29,116 @@ func TestEventStore_CorruptEventTriggersCorruptionError(t *testing.T) {
 
 	streamID := id.NewStreamID()
 	ref := id.NewStreamRef("Test", streamID)
+	key := []byte("cqrs_event:Test:" + ref.ID.String() + ":0000000003")
 
-	// Write a valid event first
+	// A valid event precedes the corrupt one: the error must win over a
+	// silently truncated result.
 	evt, err := event.NewEvent("test.event", streamID, "Test", event.Version(1), []byte(`{}`))
 	if err != nil {
 		t.Fatalf("NewEvent: %v", err)
 	}
 
-	ctx := context.Background()
-	if err := store.Save(ctx, ref, []event.Event{evt}, event.Version(0)); err != nil {
+	if err := store.Save(context.Background(), ref, []event.Event{evt}, event.Version(0)); err != nil {
 		t.Fatalf("Save: %v", err)
 	}
 
-	// Now overwrite the event with corrupt data
-	// The key format is cqrs_event:<streamType>:<streamID>:<version>
-	// We write garbage to a version-2 key that doesn't exist yet
-	corruptKey := []byte("cqrs_event:Test:" + streamID.String() + ":0000000002")
-	if err := database.Set(
-		corruptKey,
-		[]byte("garbage-data-not-cbor-or-json"),
-		pebble.Sync,
-	); err != nil {
-		t.Fatalf("Set corrupt: %v", err)
-	}
+	for name, payload := range map[string][]byte{
+		"binary garbage": []byte("garbage-data-not-cbor-or-json"),
+		"truncated json": []byte(`{"id":`),
+	} {
+		if err := database.Set(key, payload, pebble.Sync); err != nil {
+			t.Fatalf("Set corrupt: %v", err)
+		}
 
-	// Load should return corruption error
-	events, err := store.Load(ctx, ref)
-	if err == nil {
-		// Some implementations may skip corrupt events; verify we still got events
-		_ = events
+		events, err := store.Load(context.Background(), ref)
+		assertCorruption(t, "event Load ("+name+")", key, err)
+		if len(events) != 0 {
+			t.Errorf("event Load (%s): returned %d events beside the error", name, len(events))
+		}
 	}
-
-	// Try Load with corrupt JSON data
-	jsonCorruptKey := []byte("cqrs_event:Test:" + streamID.String() + ":0000000003")
-	if err := database.Set(jsonCorruptKey, []byte(`{"id":`), pebble.Sync); err != nil {
-		t.Fatalf("Set json corrupt: %v", err)
-	}
-
-	_, _ = store.Load(ctx, ref) // should handle corruption gracefully
 }
 
-// TestCheckpointStore_CorruptData writes corrupt checkpoint data
-// and verifies Load returns an error.
-func TestCheckpointStore_CorruptData(t *testing.T) {
-	t.Parallel()
+// assertCorruption pins that a decode failure is reported, not swallowed.
+func assertCorruption(t *testing.T, what string, key []byte, err error) {
+	t.Helper()
 
-	dir := t.TempDir()
-	database, err := pebble.Open(dir, &pebble.Options{})
+	if err == nil {
+		t.Fatalf("%s: corrupt data must return an error, got nil", what)
+	}
+
+	if family := errorfamily.Classify(err); family != errorfamily.Corruption {
+		t.Errorf("%s: family = %v, want Corruption (err: %v)", what, family, err)
+	}
+}
+
+func openProbeDB(t *testing.T) *pebble.DB {
+	t.Helper()
+
+	database, err := pebble.Open(t.TempDir(), &pebble.Options{})
 	if err != nil {
 		t.Fatalf("pebble.Open: %v", err)
 	}
 
 	t.Cleanup(func() { _ = database.Close() })
+
+	return database
+}
+
+// TestCheckpointStore_CorruptData writes corrupt checkpoint data
+// and verifies Load returns a Corruption error, and that the legacy
+// JSON checkpoint is still read.
+func TestCheckpointStore_CorruptData(t *testing.T) {
+	t.Parallel()
+
+	database := openProbeDB(t)
 
 	cpStore, err := cqrspebble.NewCheckpointStore(database, slog.Default())
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	// Write corrupt checkpoint data
-	projName := "test-projection"
-	corruptKey := []byte("cqrs_checkpoint:" + projName)
-	if err := database.Set(corruptKey, []byte("garbage-not-cbor"), pebble.Sync); err != nil {
-		t.Fatalf("Set corrupt: %v", err)
+	for name, payload := range map[string][]byte{
+		"binary garbage": []byte("garbage-not-cbor"),
+		"broken json":    []byte(`{"broken json`),
+	} {
+		projName := "test-projection-" + name
+
+		if err := database.Set([]byte("cqrs_checkpoint:"+projName), payload, pebble.Sync); err != nil {
+			t.Fatalf("Set corrupt: %v", err)
+		}
+
+		_, err := cpStore.Load(context.Background(), projName)
+		assertCorruption(t, "checkpoint Load ("+name+")", nil, err)
 	}
 
-	// Load should return error or zero checkpoint
-	_, err = cpStore.Load(context.Background(), projName)
-	_ = err // some implementations return zero on corruption
-
-	// Write corrupt JSON checkpoint
-	if err := database.Set(corruptKey, []byte(`{"broken json`), pebble.Sync); err != nil {
-		t.Fatalf("Set corrupt json: %v", err)
+	// Legacy JSON checkpoints (written before the CBOR migration) still load.
+	legacyID := id.NewEventID()
+	if err := database.Set([]byte("cqrs_checkpoint:legacy"),
+		[]byte(`{"EventID":"`+legacyID.String()+`","ProcessedAt":1700000000000000000}`), pebble.Sync); err != nil {
+		t.Fatalf("Set legacy: %v", err)
 	}
 
-	_, _ = cpStore.Load(context.Background(), projName)
+	cp, err := cpStore.Load(context.Background(), "legacy")
+	if err != nil {
+		t.Fatalf("legacy JSON checkpoint: %v", err)
+	}
+
+	if cp.EventID != legacyID || cp.ProcessedAt.UnixNano() != 1700000000000000000 {
+		t.Errorf("legacy JSON checkpoint: got %+v", cp)
+	}
+
+	// A missing checkpoint is not corruption: zero value, no error.
+	if _, err := cpStore.Load(context.Background(), "never-written"); err != nil {
+		t.Errorf("missing checkpoint: err = %v, want nil", err)
+	}
 }
 
 // TestSnapshotStore_CorruptData writes corrupt snapshot data
-// and verifies LoadAtVersion returns an error.
+// and verifies LoadAtVersion returns a Corruption error.
 func TestSnapshotStore_CorruptData(t *testing.T) {
 	t.Parallel()
 
-	dir := t.TempDir()
-	database, err := pebble.Open(dir, &pebble.Options{})
-	if err != nil {
-		t.Fatalf("pebble.Open: %v", err)
-	}
-
-	t.Cleanup(func() { _ = database.Close() })
+	database := openProbeDB(t)
 
 	snapStore, err := cqrspebble.NewSnapshotStore(database, slog.Default())
 	if err != nil {
@@ -130,24 +146,20 @@ func TestSnapshotStore_CorruptData(t *testing.T) {
 	}
 
 	streamID := id.NewStreamID()
+	ref := id.NewStreamRef("Test", streamID)
+	key := []byte("cqrs_snapshot:Test:" + streamID.String())
 
-	// Write corrupt snapshot data
-	corruptKey := []byte("cqrs_snapshot:Test:" + streamID.String() + ":0000000005")
-	if err := database.Set(corruptKey, []byte("garbage-snapshot"), pebble.Sync); err != nil {
-		t.Fatalf("Set corrupt: %v", err)
+	for name, payload := range map[string][]byte{
+		"binary garbage": []byte("garbage-snapshot"),
+		"broken json":    []byte(`{"broken`),
+	} {
+		if err := database.Set(key, payload, pebble.Sync); err != nil {
+			t.Fatalf("Set corrupt: %v", err)
+		}
+
+		_, err := snapStore.LoadAtVersion(context.Background(), ref, 5)
+		assertCorruption(t, "snapshot LoadAtVersion ("+name+")", key, err)
 	}
-
-	_, err = snapStore.LoadAtVersion(context.Background(),
-		id.NewStreamRef("Test", streamID), 5)
-	_ = err
-
-	// Write corrupt JSON snapshot
-	if err := database.Set(corruptKey, []byte(`{"broken`), pebble.Sync); err != nil {
-		t.Fatalf("Set corrupt json: %v", err)
-	}
-
-	_, _ = snapStore.LoadAtVersion(context.Background(),
-		id.NewStreamRef("Test", streamID), 5)
 }
 
 // TestSnapshotStore_Delete verifies snapshot deletion.

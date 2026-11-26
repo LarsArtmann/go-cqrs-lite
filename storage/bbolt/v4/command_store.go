@@ -204,14 +204,16 @@ func (s *CommandStore) loadByTimestamp(
 				return err
 			}
 
+			// Keys are ordered by command ID, not received-at, so a row past
+			// the cutoff says nothing about the rows after it: filter the
+			// whole stream range.
+			inRange := cmd.ReceivedAt().After(ts)
 			if before {
-				if !cmd.ReceivedAt().Before(ts) {
-					break
-				}
-			} else {
-				if !cmd.ReceivedAt().After(ts) {
-					continue
-				}
+				inRange = cmd.ReceivedAt().Before(ts)
+			}
+
+			if !inRange {
+				continue
 			}
 
 			cmds = append(cmds, cmd)

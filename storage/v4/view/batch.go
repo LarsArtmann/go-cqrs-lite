@@ -56,6 +56,12 @@ func (s *SQLViewStore[V, K]) BatchSet(ctx context.Context, items []kv.ViewItem[V
 // estimate in addition to the real bind is safe and cheap.
 func (s *SQLViewStore[V, K]) estimateItemBytes(item kv.ViewItem[V, K]) int {
 	total := len(s.keyString(item.Key)) + bytesPerViewRowOverhead
+
+	// batchChunk rejects a nil value; the estimate must not dereference it.
+	if item.Value == nil {
+		return total
+	}
+
 	for _, c := range s.mapper.Columns {
 		total += estimateArgBytes(c.Extract(item.Value))
 	}

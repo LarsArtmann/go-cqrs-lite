@@ -5,6 +5,7 @@ package relational
 import (
 	"context"
 	"database/sql"
+	"strings"
 	"testing"
 	"time"
 
@@ -105,4 +106,52 @@ func TestPostgres_RelationalProjection_BasicCRUD(t *testing.T) {
 	}
 
 	_ = cqrsevent.Type("")
+}
+
+// PostgreSQL rejects "LIMIT -1"; an Offset without a Limit must return the
+// remaining rows instead of failing.
+func TestPostgres_RelationalStore_OffsetWithoutLimit(t *testing.T) {
+	db := openPostgresDB(t)
+	ctx := context.Background()
+
+	schema := pgDiscordSchema()
+	if err := schema.Migrate(ctx, db); err != nil {
+		t.Fatalf("migrate: %v", err)
+	}
+
+	store, err := NewRelationalStore(schema, db, sqlpkg.PostgresDialect{})
+	if err != nil {
+		t.Fatalf("new store: %v", err)
+	}
+
+	for _, id := range []string{"g1", "g2", "g3", "g4", "g5"} {
+		if _, err := db.ExecContext(
+			ctx,
+			`INSERT INTO guilds (id, name, created_at, updated_at) VALUES ($1, $2, now(), now())`,
+			id,
+			"n"+id,
+		); err != nil {
+			t.Fatalf("insert: %v", err)
+		}
+	}
+
+	var ids []string
+	err = store.Query(ctx, "guilds", []string{"id"}, kv.ViewQuery{OrderBy: "id", Offset: 2},
+		func(scan func(dest ...any) error) error {
+			var id string
+			if err := scan(&id); err != nil {
+				return err
+			}
+
+			ids = append(ids, id)
+
+			return nil
+		})
+	if err != nil {
+		t.Fatalf("Query offset without limit: %v", err)
+	}
+
+	if strings.Join(ids, ",") != "g3,g4,g5" {
+		t.Fatalf("offset 2 without limit: got %v, want [g3 g4 g5]", ids)
+	}
 }

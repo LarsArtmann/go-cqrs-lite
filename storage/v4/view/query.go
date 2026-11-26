@@ -182,6 +182,19 @@ func normaliseOrderClauses(clauses []kv.OrderClause) []kv.OrderClause {
 // defaultKeysetColumns derives the cursor columns from the effective ORDER BY
 // clauses, guaranteeing a unique tiebreaker by appending the key column when
 // it is not already the last sort column.
+// keysetColumnDescending reports whether column sorts descending in the
+// effective ORDER BY. A column outside the ORDER BY (the appended key
+// tiebreaker) compares ascending.
+func keysetColumnDescending(col string, order []kv.OrderClause) bool {
+	for _, c := range order {
+		if c.Column == col {
+			return c.Desc
+		}
+	}
+
+	return false
+}
+
 func defaultKeysetColumns(order []kv.OrderClause) []string {
 	cols := make([]string, 0, len(order)+1)
 	for _, c := range order {
@@ -218,6 +231,9 @@ func orderClauseSQL(order []kv.OrderClause, quote func(string) string) string {
 // (with ">" for ascending columns). This is safe across SQLite and Postgres —
 // no row-value syntax is used. startIdx is the 1-based placeholder index of
 // the first value; returned args are in placeholder order.
+//
+// A cursor column may cover any subset of the ORDER BY columns: its
+// direction is looked up by column name, not by position.
 func buildKeysetClause(
 	cols []string, vals []any, order []kv.OrderClause,
 	placeholder func(int) string, startIdx int,
@@ -231,7 +247,7 @@ func buildKeysetClause(
 	}
 
 	op := func(i int) string {
-		if i < len(order) && order[i].Desc {
+		if keysetColumnDescending(cols[i], order) {
 			return "<"
 		}
 		return ">"

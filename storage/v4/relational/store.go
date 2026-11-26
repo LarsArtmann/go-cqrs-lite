@@ -216,9 +216,7 @@ func (s *RelationalStore) Query(
 			args = append(args, q.Offset)
 		}
 	} else if q.Offset > 0 {
-		fmt.Fprintf(&b, " LIMIT %s OFFSET %s",
-			s.dialect.Placeholder(paramIdx), s.dialect.Placeholder(paramIdx+1))
-		args = append(args, -1, q.Offset)
+		args = appendOffsetWithoutLimit(&b, s.dialect, q.Offset, paramIdx, args)
 	}
 
 	rows, err := s.db.QueryContext(ctx, b.String(), args...)

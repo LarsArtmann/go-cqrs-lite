@@ -3,11 +3,14 @@ package bbolt
 import (
 	"bytes"
 	"context"
+	"errors"
 	"io"
 	"log/slog"
 	"time"
 
 	bolt "go.etcd.io/bbolt"
+
+	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
@@ -37,7 +40,7 @@ func (s *QueryStore) SaveQuery(ctx context.Context, q *query.PersistedQuery) err
 
 	key := queryKey(q.ID())
 
-	return recordErr(span, wrapBucketErr(s.writeTx(func(tx *bolt.Tx) error {
+	err := s.writeTx(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(bucketQueries))
 		if bucket.Get(key) != nil {
 			return query.ErrDuplicateQuery
@@ -49,7 +52,16 @@ func (s *QueryStore) SaveQuery(ctx context.Context, q *query.PersistedQuery) err
 		}
 
 		return bucket.Put(key, data)
-	}), "bbolt.query_save", "save query"))
+	})
+
+	// A duplicate is a Conflict (as on the pebble store): the bucket wrapper
+	// would relabel it as an Infrastructure failure.
+	if errors.Is(err, query.ErrDuplicateQuery) {
+		return recordErr(span, errorfamily.WrapConflict(err, "bbolt.duplicate_query",
+			"query "+q.ID().String()+" already exists"))
+	}
+
+	return recordErr(span, wrapBucketErr(err, "bbolt.query_save", "save query"))
 }
 
 // LoadQueries returns all queries received after the given time.
