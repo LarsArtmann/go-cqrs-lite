@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 )
 
@@ -9,13 +10,15 @@ import (
 
 // The Goal, in domain types. This file is the ENTIRE developer-owned data
 // surface: plain Go structs. It imports nothing from go-cqrs-lite except the
-// tier-1 core-domain bus types (command, query) — no engines, no schema, no
-// table registration, no scan limits. Operators decide all of that in
-// cqrs.yaml and can swap them per deployment without touching this file.
-// Identifier fields stay plain strings for the same reason — payloads,
-// read models, and queries are serialized data on this surface — encoded as
-// a file-level strong-id directive below.
-//branching-flow:ignore file
+// tier-1 core-domain bus types (command, query) and the tier-0 identity type
+// (id): no engines, no schema, no table registration, no scan limits.
+// Operators decide all of that in cqrs.yaml and can swap them per deployment
+// without touching this file.
+//
+// Identifiers are branded end to end: the task identity is an id.StreamID in
+// the events, the read model and the query alike, so another identity can
+// never stand in for it. On the wire it stays a bare string (the catalog
+// renders it as one), so branding costs nothing on the serialized surface.
 
 // Task status values folded into [TaskView].
 const (
@@ -31,9 +34,9 @@ const (
 //
 //cqrs:event task.created
 type TaskCreated struct {
-	ID       string `json:"id"`
-	Title    string `json:"title"`
-	Priority int    `json:"priority"`
+	ID       id.StreamID `json:"id"`
+	Title    string      `json:"title"`
+	Priority int         `json:"priority"`
 }
 
 // TaskUpdated changes a task, e.g. completing it with Status "done".
@@ -43,10 +46,10 @@ type TaskCreated struct {
 //
 //cqrs:event task.updated
 type TaskUpdated struct {
-	ID       string `json:"id"`
-	Title    string `json:"title"`
-	Status   string `json:"status"`
-	Priority int    `json:"priority"`
+	ID       id.StreamID `json:"id"`
+	Title    string      `json:"title"`
+	Status   string      `json:"status"`
+	Priority int         `json:"priority"`
 }
 
 // TaskDeleted removes its task. The Evolution's Deleted-convention fold
@@ -54,17 +57,17 @@ type TaskUpdated struct {
 //
 //cqrs:event task.deleted
 type TaskDeleted struct {
-	ID string `json:"id"`
+	ID id.StreamID `json:"id"`
 }
 
 // TaskView is the read model. One Evolution derives it from the events
 // above: Created/Deleted folds come from the naming convention, Completed
 // is a single closure in app.go.
 type TaskView struct {
-	ID       string `json:"id"`
-	Title    string `json:"title"`
-	Status   string `json:"status"`
-	Priority int    `json:"priority"`
+	ID       id.StreamID `json:"id"`
+	Title    string      `json:"title"`
+	Status   string      `json:"status"`
+	Priority int         `json:"priority"`
 }
 
 // CreateTaskCmd opens a task. The stream ID is the task identity.
@@ -97,7 +100,7 @@ type DeleteTaskCmd struct {
 type GetTask struct {
 	*query.BasicQuery
 
-	ID string
+	ID id.StreamID
 }
 
 // OpenTasks asks for every task whose status is still open.

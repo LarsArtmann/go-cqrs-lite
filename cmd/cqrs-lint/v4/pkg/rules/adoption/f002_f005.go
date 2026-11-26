@@ -2,6 +2,8 @@ package adoption
 
 import (
 	"context"
+	"go/ast"
+	"go/token"
 
 	"github.com/larsartmann/go-finding"
 
@@ -48,8 +50,9 @@ func NewF002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	)
 }
 
-// F005 detects projects with evolving event schemas (WithSchemaVersion calls
-// or 5+ event types) that do not use schema.NewUpcaster for version migration.
+// F005 detects projects with evolving event schemas (a schema version beyond
+// the first, or 5+ event types) that do not use schema.NewUpcaster for version
+// migration.
 //
 //nolint:ireturn // factory returns public interface
 func NewF005Detector(ctx *analyzer.AnalysisContext) finding.Detector {
@@ -60,8 +63,8 @@ func NewF005Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				return nil, nil
 			}
 
-			// Signal 1: explicit WithSchemaVersion usage (schemas are versioned).
-			hasVersioning := projectHasCall(ctx, "event", "WithSchemaVersion")
+			// Signal 1: a schema version beyond the first (schemas are evolving).
+			hasVersioning := hasSchemaVersionBeyondFirst(ctx)
 
 			// Signal 2: many event types suggest a complex, evolving domain.
 			if eventCount(ctx) < 5 && !hasVersioning {
@@ -94,3 +97,70 @@ func NewF005Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 // itoa is a thin wrapper to avoid importing strconv in every rule file.
 func itoa(n int) string { return strconvItoa(n) }
+
+// hasSchemaVersionBeyondFirst reports whether any non-test file stamps a
+// schema version other than 1 through event.WithSchemaVersion. Stamping the
+// first version is what D013 asks for and what cqrs-gen derives by default;
+// until a second version exists there is nothing to upcast from.
+func hasSchemaVersionBeyondFirst(ctx *analyzer.AnalysisContext) bool {
+	for _, gf := range ctx.GoFiles {
+		if gf.IsTest {
+			continue
+		}
+
+		found := false
+
+		ast.Inspect(gf.AST, func(n ast.Node) bool {
+			if found {
+				return false
+			}
+
+			call, ok := n.(*ast.CallExpr)
+			if !ok {
+				return true
+			}
+
+			sel, ok := analyzer.SelectorFromExpr(call.Fun)
+			if !ok || sel.Sel.Name != "WithSchemaVersion" {
+				return true
+			}
+
+			if pkg, ok := sel.X.(*ast.Ident); !ok || pkg.Name != "event" {
+				return true
+			}
+
+			if !stampsFirstVersion(call) {
+				found = true
+
+				return false
+			}
+
+			return true
+		})
+
+		if found {
+			return true
+		}
+	}
+
+	return false
+}
+
+// stampsFirstVersion reports whether the call's only argument is the literal
+// 1, bare or wrapped in a conversion such as event.SchemaVersion(1). Anything
+// else, a variable included, may name a later version.
+func stampsFirstVersion(call *ast.CallExpr) bool {
+	if len(call.Args) != 1 {
+		return false
+	}
+
+	arg := call.Args[0]
+
+	if conversion, ok := arg.(*ast.CallExpr); ok && len(conversion.Args) == 1 {
+		arg = conversion.Args[0]
+	}
+
+	lit, ok := arg.(*ast.BasicLit)
+
+	return ok && lit.Kind == token.INT && lit.Value == "1"
+}

@@ -33,7 +33,7 @@ func givenCreated(t *testing.T, title string, priority int) []event.Event {
 	streamID := id.NewStreamID()
 
 	return []event.Event{mustEvent(t, evtTaskCreated, streamID, event.Version(1),
-		TaskCreated{ID: streamID.Get(), Title: title, Priority: priority})}
+		TaskCreated{ID: streamID, Title: title, Priority: priority})}
 }
 
 // givenDoneTask hands the scenario a persisted create+complete history on
@@ -45,14 +45,14 @@ func givenDoneTask(t *testing.T, title string, priority int) []event.Event {
 
 	return []event.Event{
 		mustEvent(t, evtTaskCreated, streamID, event.Version(1),
-			TaskCreated{ID: streamID.Get(), Title: title, Priority: priority}),
+			TaskCreated{ID: streamID, Title: title, Priority: priority}),
 		mustEvent(
 			t,
 			evtTaskUpdated,
 			streamID,
 			event.Version(2),
 			TaskUpdated{
-				ID:       streamID.Get(),
+				ID:       streamID,
 				Title:    title,
 				Status:   StatusDone,
 				Priority: priority,

@@ -29,6 +29,11 @@ func (e *pgEngine) StreamAppend(ctx context.Context, col, sid string, values []a
 // inside RunInTx, participates in the outer transaction instead of starting
 // a nested one.
 // Returns metaengine.ErrVersionConflict if the current version does not match.
+//
+// A transaction alone does not serialize two callers: under READ COMMITTED
+// each one counts the other's uncommitted rows as absent and both append.
+// The per-stream transaction-scoped advisory lock in lockStream serializes
+// the check-then-append across goroutines and processes.
 func (e *pgEngine) StreamAppendExpected(
 	ctx context.Context,
 	col, sid string,
@@ -36,6 +41,10 @@ func (e *pgEngine) StreamAppendExpected(
 	values []any,
 ) error {
 	return e.inTx(ctx, func(conn metaengine.SQLExec) error {
+		if err := lockStream(ctx, conn, col, sid); err != nil {
+			return err
+		}
+
 		var current int64
 
 		err := conn.QueryRowContext(

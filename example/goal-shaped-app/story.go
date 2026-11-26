@@ -8,7 +8,6 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
-	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
 )
 
@@ -16,7 +15,10 @@ import (
 // back through the typed query bus. It runs identically on every engine
 // the operator picks — run() in main.go composes the system from cqrs.yaml.
 
-var errStoryNotDone = errors.New("story: task never reached done in the read model")
+var (
+	errStoryNotDone  = errors.New("story: task never reached done in the read model")
+	errNoConstructor = errors.New("story: no typed constructor for command")
+)
 
 // runStory boots the projection host, exercises every declared fold
 // (create, complete, delete), and returns the surviving task's view.
@@ -31,21 +33,17 @@ func runStory(ctx context.Context, sys *system.System) (TaskView, error) {
 		return TaskView{}, err
 	}
 
-	view, err := awaitDone(ctx, sys, doneID.Get())
+	view, err := awaitDone(ctx, sys, doneID)
 	if err != nil {
 		return TaskView{}, err
 	}
 
-	openBasic, err := query.New(qryOpenTasks)
+	openQuery, err := NewOpenTasks(OpenTasks{})
 	if err != nil {
-		return TaskView{}, fmt.Errorf("query.New: %w", err)
+		return TaskView{}, err
 	}
 
-	open, err := system.DispatchQuery[OpenTasks, []TaskView](
-		ctx,
-		sys,
-		OpenTasks{BasicQuery: openBasic},
-	)
+	open, err := system.DispatchQuery[OpenTasks, []TaskView](ctx, sys, openQuery)
 	if err != nil {
 		return TaskView{}, fmt.Errorf("task.open: %w", err)
 	}
@@ -87,33 +85,40 @@ func createTask(
 	title string,
 	priority int,
 ) error {
-	basic, err := command.New(cmdCreateTask, taskID)
+	cmd, err := NewCreateTaskCmd(taskID, CreateTaskCmd{Title: title, Priority: priority})
 	if err != nil {
-		return fmt.Errorf("command.New: %w", err)
+		return err
 	}
 
-	return sys.CommandDispatcher().Dispatch(ctx,
-		CreateTaskCmd{BasicCommand: basic, Title: title, Priority: priority})
+	return sys.CommandDispatcher().Dispatch(ctx, cmd)
 }
 
+// dispatch builds every command through the constructor cqrs-gen derives, so
+// a wire name can never be paired with the wrong payload type.
 func dispatch(
 	ctx context.Context,
 	sys *system.System,
 	kind command.Type,
 	taskID id.StreamID,
 ) error {
-	basic, err := command.New(kind, taskID)
-	if err != nil {
-		return fmt.Errorf("command.New: %w", err)
-	}
-
-	var cmd command.Command = basic
+	var (
+		cmd command.Command
+		err error
+	)
 
 	switch kind {
+	case cmdCreateTask:
+		cmd, err = NewCreateTaskCmd(taskID, CreateTaskCmd{})
 	case cmdCompleteTask:
-		cmd = CompleteTaskCmd{BasicCommand: basic}
+		cmd, err = NewCompleteTaskCmd(taskID, CompleteTaskCmd{})
 	case cmdDeleteTask:
-		cmd = DeleteTaskCmd{BasicCommand: basic}
+		cmd, err = NewDeleteTaskCmd(taskID, DeleteTaskCmd{})
+	default:
+		return fmt.Errorf("%w %s", errNoConstructor, kind)
+	}
+
+	if err != nil {
+		return err
 	}
 
 	return sys.CommandDispatcher().Dispatch(ctx, cmd)
@@ -121,21 +126,14 @@ func dispatch(
 
 // awaitGone polls the task.get query until the deleted task's view has
 // been removed from the read model (the tombstone folded everywhere).
-// taskID stays a plain string: the story's task identity is a plain-struct
-// value end to end (domain.go's surface rationale).
-// branching-flow:ignore file
-func awaitGone(ctx context.Context, sys *system.System, taskID string) error {
-	basic, err := query.New(qryGetTask)
-	if err != nil {
-		return fmt.Errorf("query.New: %w", err)
-	}
-
+func awaitGone(ctx context.Context, sys *system.System, taskID id.StreamID) error {
 	for deadline := time.Now().Add(settleDeadline); ; {
-		_, qerr := system.DispatchQuery[GetTask, TaskView](
-			ctx,
-			sys,
-			GetTask{BasicQuery: basic, ID: taskID},
-		)
+		get, err := NewGetTask(GetTask{ID: taskID})
+		if err != nil {
+			return err
+		}
+
+		_, qerr := system.DispatchQuery[GetTask, TaskView](ctx, sys, get)
 		if errors.Is(qerr, errTaskGone) {
 			return nil
 		}
@@ -150,18 +148,14 @@ func awaitGone(ctx context.Context, sys *system.System, taskID string) error {
 
 // awaitDone polls the task.get query until the projection host has folded
 // the completed fact into the read model.
-func awaitDone(ctx context.Context, sys *system.System, taskID string) (TaskView, error) {
-	basic, err := query.New(qryGetTask)
-	if err != nil {
-		return TaskView{}, fmt.Errorf("query.New: %w", err)
-	}
-
+func awaitDone(ctx context.Context, sys *system.System, taskID id.StreamID) (TaskView, error) {
 	for deadline := time.Now().Add(settleDeadline); ; {
-		view, qerr := system.DispatchQuery[GetTask, TaskView](
-			ctx,
-			sys,
-			GetTask{BasicQuery: basic, ID: taskID},
-		)
+		get, err := NewGetTask(GetTask{ID: taskID})
+		if err != nil {
+			return TaskView{}, err
+		}
+
+		view, qerr := system.DispatchQuery[GetTask, TaskView](ctx, sys, get)
 		if qerr == nil && view.Status == StatusDone {
 			return view, nil
 		}

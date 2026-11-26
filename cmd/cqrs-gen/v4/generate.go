@@ -15,7 +15,6 @@ const (
 	pathCatalog = "github.com/larsartmann/go-cqrs-lite/catalog/v4"
 
 	pathContext = "context"
-	pathFmt     = "fmt"
 
 	localPrefix = "github.com/larsartmann/go-cqrs-lite/"
 )
@@ -112,7 +111,7 @@ func requiredImports(p pkg, opts genOptions) []string {
 			}
 
 			if m.constructor {
-				paths = append(paths, pathFmt, pathID)
+				paths = append(paths, pathID)
 			}
 
 			if opts.target == targetSystem {
@@ -125,15 +124,11 @@ func requiredImports(p pkg, opts genOptions) []string {
 				paths = append(paths, pathQuery)
 			}
 
-			if m.constructor {
-				paths = append(paths, pathFmt)
-			}
-
 			if opts.target == targetSystem {
 				paths = append(paths, pathSystem)
 			}
 		case kindEvent:
-			paths = append(paths, pathEvent, pathID, pathFmt)
+			paths = append(paths, pathEvent, pathID)
 
 			if opts.handlers {
 				paths = append(paths, pathContext)
@@ -257,15 +252,17 @@ func writeDispatcherQuery(b *strings.Builder, m *marker) {
 }
 
 func writeEventConstructor(b *strings.Builder, m *marker) {
-	fmt.Fprintf(b, "// %s builds the %s event for a stream; options reach event.New.\n", eventName(m), m.wire)
+	fmt.Fprintf(b, "// %s builds the %s event for a stream at schema version %d; options reach event.New.\n",
+		eventName(m), m.wire, m.schemaVersion)
 	fmt.Fprintf(b, "func %s(\n", eventName(m))
 	b.WriteString("\tstreamID id.StreamID,\n")
 	b.WriteString("\tstreamType id.StreamType,\n")
 	b.WriteString("\tversion event.Version,\n")
 	fmt.Fprintf(b, "\tpayload %s,\n\topts ...event.Option,\n) (event.Event, error) {\n", m.structName)
-	fmt.Fprintf(b, "\tevt, err := event.New(%s, streamID, streamType, version, payload, opts...)\n", m.constName)
-	fmt.Fprintf(b, "\tif err != nil {\n\t\treturn nil, fmt.Errorf(\"%%s: %%w\", %s, err)\n\t}\n\n", m.constName)
-	b.WriteString("\treturn evt, nil\n}\n\n")
+	fmt.Fprintf(b, "\toptions := make([]event.Option, 0, len(opts)+1)\n")
+	fmt.Fprintf(b, "\toptions = append(options, event.WithSchemaVersion(%d))\n", m.schemaVersion)
+	b.WriteString("\toptions = append(options, opts...)\n\n")
+	fmt.Fprintf(b, "\treturn event.New(%s, streamID, streamType, version, payload, options...)\n}\n\n", m.constName)
 }
 
 func writeEventHandler(b *strings.Builder, m *marker) {
@@ -301,12 +298,26 @@ func writeCatalogMessage(b *strings.Builder, m *marker) {
 		fmt.Fprintf(b, "\t\tcatalog.Query[%s](catalog.MessageID(%s), opts...),\n",
 			m.structName, m.constName)
 	case kindEvent:
-		direction := directionSends
-		if m.receives {
-			direction = directionReceives
-		}
+		writeCatalogEvent(b, m)
+	}
+}
 
+// writeCatalogEvent: a bumped schema version is the message's version, and it
+// has to lead the caller's options so those can still override it.
+func writeCatalogEvent(b *strings.Builder, m *marker) {
+	direction := directionSends
+	if m.receives {
+		direction = directionReceives
+	}
+
+	if m.schemaVersion == defaultSchemaVersion {
 		fmt.Fprintf(b, "\t\tcatalog.Event[%s](catalog.MessageID(%s), %s, opts...),\n",
 			m.structName, m.constName, direction)
+
+		return
 	}
+
+	fmt.Fprintf(b, "\t\tcatalog.Event[%s](catalog.MessageID(%s), %s,\n"+
+		"\t\t\tappend([]catalog.MessageOption{catalog.WithVersion(%q)}, opts...)...),\n",
+		m.structName, m.constName, direction, fmt.Sprintf("%d.0.0", m.schemaVersion))
 }

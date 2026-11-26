@@ -66,7 +66,7 @@ type LoopbackTransport struct {
 	listener net.Listener
 
 	mu     sync.RWMutex
-	conns  map[string]net.Conn // peerAddr → connection
+	conns  map[string]*peerConn // peerAddr → connection
 	subs   []func(op irohengine.WriteOp)
 	closed bool
 
@@ -135,7 +135,7 @@ func New(opts ...Option) (*LoopbackTransport, error) {
 	t := &LoopbackTransport{
 		addr:      listener.Addr().String(),
 		listener:  listener,
-		conns:     make(map[string]net.Conn),
+		conns:     make(map[string]*peerConn),
 		dedupRing: dedup.NewRing[string](irohengine.DefaultDedupCapacity),
 		maxDelay:  cfg.maxDelay,
 	}
@@ -166,11 +166,13 @@ func (t *LoopbackTransport) Connect(addr string) error {
 		return fmt.Errorf("loopback connect failed: %w", err)
 	}
 
+	pc := &peerConn{conn: conn}
+
 	t.mu.Lock()
-	t.conns[addr] = conn
+	t.conns[addr] = pc
 	t.mu.Unlock()
 
-	go t.handleConnection(conn)
+	go t.handleConnection(pc)
 
 	return nil
 }
@@ -196,15 +198,15 @@ func (t *LoopbackTransport) Publish(_ context.Context, op irohengine.WriteOp) er
 	}
 
 	t.mu.RLock()
-	conns := slices.Collect(maps.Values(t.conns))
+	peers := slices.Collect(maps.Values(t.conns))
 	t.mu.RUnlock()
 
-	if len(conns) == 0 {
+	if len(peers) == 0 {
 		return nil
 	}
 
-	for _, conn := range conns {
-		if err := writeFrame(conn, data); err != nil {
+	for _, peer := range peers {
+		if err := peer.writeFrame(data); err != nil {
 			continue // peer may have disconnected
 		}
 	}
@@ -238,7 +240,7 @@ func (t *LoopbackTransport) Close() error {
 	t.mu.Unlock()
 
 	for _, c := range conns {
-		_ = c.Close()
+		_ = c.conn.Close()
 	}
 
 	_ = t.listener.Close()

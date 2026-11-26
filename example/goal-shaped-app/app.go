@@ -130,7 +130,7 @@ func decideCreate(_ context.Context, cmd CreateTaskCmd, s TaskState, v event.Ver
 	}
 
 	evt, err := NewTaskCreatedEvent(cmd.StreamID(), streamType, v.Increment(),
-		TaskCreated{ID: cmd.StreamID().Get(), Title: cmd.Title, Priority: cmd.Priority})
+		TaskCreated{ID: cmd.StreamID(), Title: cmd.Title, Priority: cmd.Priority})
 	if err != nil {
 		return nil, err
 	}
@@ -149,7 +149,7 @@ func decideComplete(_ context.Context, cmd CompleteTaskCmd, s TaskState, v event
 
 	evt, err := NewTaskUpdatedEvent(cmd.StreamID(), streamType, v.Increment(),
 		TaskUpdated{
-			ID: cmd.StreamID().Get(), Title: s.Title,
+			ID: cmd.StreamID(), Title: s.Title,
 			Status: StatusDone, Priority: s.Priority,
 		})
 	if err != nil {
@@ -165,7 +165,7 @@ func decideDelete(_ context.Context, cmd DeleteTaskCmd, s TaskState, v event.Ver
 	}
 
 	evt, err := NewTaskDeletedEvent(cmd.StreamID(), streamType, v.Increment(),
-		TaskDeleted{ID: cmd.StreamID().Get()})
+		TaskDeleted{ID: cmd.StreamID()})
 	if err != nil {
 		return nil, err
 	}

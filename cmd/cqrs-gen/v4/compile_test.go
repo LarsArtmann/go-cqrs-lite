@@ -141,7 +141,7 @@ type TaskCreated struct {
 	ID string
 }
 
-//cqrs:event invoice.received receives
+//cqrs:event invoice.received receives v2
 type InvoiceReceived struct {
 	Ref string
 }
@@ -153,14 +153,32 @@ import (
 	"context"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
+	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
 )
 
 type taskState struct{ exists bool }
 
 func wire(sys *system.System, bus event.Subscriber, streamID id.StreamID) error {
+	cmd, err := NewCreateTaskCmd(streamID, CreateTaskCmd{Title: "x"},
+		command.WithCorrelationID(id.NewCorrelationID()))
+	if err != nil {
+		return err
+	}
+
+	get, err := NewGetTask(GetTask{ID: "1"}, query.WithRequestID(id.NewRequestID()))
+	if err != nil {
+		return err
+	}
+
+	var (
+		_ command.Command = cmd
+		_ query.Query     = get
+	)
+
 	if err := RegisterCreateTaskCmd(sys, "Task", decideCreate); err != nil {
 		return err
 	}
@@ -177,7 +195,7 @@ func wire(sys *system.System, bus event.Subscriber, streamID id.StreamID) error 
 	}
 
 	if err := RegisterGetTask[*TaskCreated](sys, func(_ context.Context, q GetTask) (*TaskCreated, error) {
-		if _, err := NewTaskCreatedEvent(streamID, "Task", 1, TaskCreated{ID: q.ID}); err != nil {
+		if _, err := NewTaskCreatedEvent(streamID, "Task", 1, TaskCreated{ID: q.ID}, event.WithSchemaVersion(2)); err != nil {
 			return nil, err
 		}
 
@@ -231,17 +249,38 @@ import (
 	"context"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 )
 
-func wire(cmds *command.Dispatcher, queries *query.Dispatcher) error {
+func wire(cmds *command.Dispatcher, queries *query.Dispatcher, streamID id.StreamID) error {
+	run, err := NewRunCmd(streamID, RunCmd{})
+	if err != nil {
+		return err
+	}
+
+	status, err := NewStatusQuery(StatusQuery{})
+	if err != nil {
+		return err
+	}
+
 	if err := RegisterRunCmdHandler(cmds, func(context.Context, RunCmd) error { return nil }); err != nil {
 		return err
 	}
 
-	return RegisterStatusQueryHandler[string](queries, func(context.Context, StatusQuery) (string, error) {
+	if err := RegisterStatusQueryHandler[string](queries, func(context.Context, StatusQuery) (string, error) {
 		return "ok", nil
-	})
+	}); err != nil {
+		return err
+	}
+
+	if err := cmds.Dispatch(context.Background(), run); err != nil {
+		return err
+	}
+
+	_, err = queries.Dispatch(context.Background(), status)
+
+	return err
 }
 `
 

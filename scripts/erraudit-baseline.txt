@@ -1,7 +1,7 @@
 # Error-policy ratchet baseline (see scripts/erraudit-sweep.sh).
 # Format: <findings><TAB><module-dir>, findings desc.
 # Regenerate: scripts/erraudit-sweep.sh --update-baseline
-# Pinned 2026-11-26 with erraudit version cb96501: 1998 findings in 65 modules.
+# Pinned 2026-11-26 with erraudit version cb96501: 1995 findings in 65 modules.
 461	metaengine/v4
 192	system/v4
 125	metaengine/pgengine/v4
@@ -25,10 +25,10 @@
 20	catalog/v4
 20	cmd/doc-check/v4
 19	metaengine/tursoengine/v4
-16	example/goal-shaped-app
 16	example/metaengine-quickstart
 15	metaengine/irohengine/quic/v4
 15	projectionhost/v4
+13	example/goal-shaped-app
 13	metaengine/irohengine/v4
 12	cmd/api-stability/v4
 12	example/taskmanager

@@ -258,7 +258,17 @@ func TestScan_Rejects(t *testing.T) {
 		{
 			name:    "unknown event option",
 			sources: map[string]string{"a.go": "package p\n\n//cqrs:event a.b maybe\ntype A struct{}"},
-			wantErr: `takes "sends" or "receives", got "maybe"`,
+			wantErr: `takes "sends", "receives" or one schema version such as v2, got "maybe"`,
+		},
+		{
+			name:    "schema version below one",
+			sources: map[string]string{"a.go": "package p\n\n//cqrs:event a.b v0\ntype A struct{}"},
+			wantErr: `one schema version such as v2, got "v0"`,
+		},
+		{
+			name:    "two schema versions on one event",
+			sources: map[string]string{"a.go": "package p\n\n//cqrs:event a.b v2 v3\ntype A struct{}"},
+			wantErr: `one schema version such as v2, got "v2 v3"`,
 		},
 		{
 			name:    "option on a command marker",

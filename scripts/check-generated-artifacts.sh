@@ -19,11 +19,14 @@
 #                              auto-committed)
 #   5. catalog architecture  — scripts/check-architecture-reference.sh
 #      HTML export             (local go render + self-containment gate)
+#   6. cqrs-gen output       — cmd/cqrs-gen --catalog --check over
+#                              example/goal-shaped-app (the dogfood package)
 #
 # Modes:
 #   (default)  run every leg, print one verdict line per leg, rc 1 on drift
 #   --self-test  verify leg registration + the api-golden drift/restore
 #                plumbing with a stub regen (fast; never runs real regens)
+#                + the cqrs-gen leg against a temp copy of its package
 #   --list     print the leg names and exit
 #
 # This is a sweep, not a CI gate: the composed #verify already carries the
@@ -102,12 +105,30 @@ leg_architecture_reference() {
 	"$repo_root/scripts/check-architecture-reference.sh"
 }
 
+dogfood_pkg="$repo_root/example/goal-shaped-app"
+
+# cqrs_gen_check_dir runs the generator's own --check over one package dir.
+# The dir parameter exists for --self-test, which points it at a temp copy.
+cqrs_gen_check_dir() {
+	(cd "$repo_root/cmd/cqrs-gen/v4" && env GOWORK=off go run . --catalog --check "$1")
+}
+
+leg_cqrs_gen() {
+	[ -f "$dogfood_pkg/cqrs_gen.go" ] || {
+		echo "    $dogfood_pkg/cqrs_gen.go is missing — run cqrs-gen in the package" >&2
+		return 1
+	}
+
+	cqrs_gen_check_dir "$dogfood_pkg"
+}
+
 legs=(
 	"docs-ui.css:leg_docs_ui_css"
 	"error-taxonomy:leg_error_taxonomy"
 	"engine-capabilities:leg_engine_capabilities"
 	"api-surface-golden:leg_api_surface"
 	"architecture-export:leg_architecture_reference"
+	"cqrs-gen-output:leg_cqrs_gen"
 )
 
 self_test() {
@@ -126,7 +147,9 @@ self_test() {
 		scripts/generate-error-taxonomy.sh \
 		scripts/check-engine-capabilities.sh \
 		scripts/check-architecture-reference.sh \
-		cmd/api-stability/v4/main.go; do
+		cmd/api-stability/v4/main.go \
+		cmd/cqrs-gen/v4/main.go \
+		example/goal-shaped-app/domain.go; do
 		if [ ! -f "$repo_root/$f" ]; then
 			echo "self-test FAIL: leg target $f missing" >&2
 			failures=$((failures + 1))
@@ -159,7 +182,31 @@ self_test() {
 		failures=$((failures + 1))
 	fi
 
-	[ "$failures" -eq 0 ] && echo "self-test: 3 fault classes verified, all green"
+	# cqrs-gen leg, mutation-style on a TEMP COPY of the dogfood package, so
+	# the real --check runs and the repo is never written: the pristine copy
+	# must pass, a planted stale line must fail.
+	local copy
+	copy="$(mktemp -d)"
+	trap 'rm -rf "$copy"' RETURN
+	cp "$dogfood_pkg"/*.go "$copy"/
+
+	rc=0
+	cqrs_gen_check_dir "$copy" || rc=$?
+	if [ "$rc" -ne 0 ]; then
+		echo "self-test FAIL: pristine cqrs-gen copy must pass (rc=$rc)" >&2
+		failures=$((failures + 1))
+	fi
+
+	echo "// self-test planted drift" >>"$copy/cqrs_gen.go"
+
+	rc=0
+	cqrs_gen_check_dir "$copy" || rc=$?
+	if [ "$rc" -eq 0 ]; then
+		echo "self-test FAIL: planted cqrs-gen drift must be detected (rc=$rc)" >&2
+		failures=$((failures + 1))
+	fi
+
+	[ "$failures" -eq 0 ] && echo "self-test: 5 fault classes verified, all green"
 	[ "$failures" -eq 0 ]
 }
 

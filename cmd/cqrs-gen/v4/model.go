@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"slices"
+	"strconv"
 	"strings"
 	"unicode"
 )
@@ -26,6 +27,9 @@ const (
 	optionSends    = "sends"
 	optionReceives = "receives"
 
+	schemaVersionPrefix  = "v"
+	defaultSchemaVersion = 1
+
 	prefixCommand = "Command"
 	prefixQuery   = "Query"
 	prefixEvent   = "Event"
@@ -34,15 +38,16 @@ const (
 )
 
 type marker struct {
-	kind        kind
-	structName  string
-	wire        string
-	receives    bool
-	byValue     bool
-	constructor bool
-	constName   string
-	constExpr   string
-	pos         string
+	kind          kind
+	structName    string
+	wire          string
+	receives      bool
+	schemaVersion int
+	byValue       bool
+	constructor   bool
+	constName     string
+	constExpr     string
+	pos           string
 }
 
 type pkg struct {
@@ -90,6 +95,69 @@ func parseTarget(value string) (string, error) {
 	}
 
 	return value, nil
+}
+
+// parseValue reads the wire name and the kind's options. An event also
+// carries its payload's schema version, so a payload change is one marker
+// edit and every construction site follows.
+func (m *marker) parseValue(value string) error {
+	fields := strings.Fields(value)
+	if len(fields) == 0 {
+		return fmt.Errorf("the cqrs:%s marker carries no type string", m.kind)
+	}
+
+	m.wire = fields[0]
+
+	if m.kind != kindEvent {
+		return rejectOptions(m.kind, fields[1:])
+	}
+
+	version := 0
+
+	for _, option := range fields[1:] {
+		switch option {
+		case optionSends:
+		case optionReceives:
+			m.receives = true
+		default:
+			parsed, ok := schemaVersionOf(option)
+			if ok && version != 0 && version != parsed {
+				option, ok = fmt.Sprintf("v%d v%d", version, parsed), false
+			}
+
+			if !ok {
+				return fmt.Errorf("the cqrs:event marker takes %q, %q or one schema version such as v2, got %q",
+					optionSends, optionReceives, option)
+			}
+
+			version = parsed
+		}
+	}
+
+	if version == 0 {
+		version = defaultSchemaVersion
+	}
+
+	m.schemaVersion = version
+
+	return nil
+}
+
+func schemaVersionOf(option string) (int, bool) {
+	digits, ok := strings.CutPrefix(option, schemaVersionPrefix)
+	if !ok || digits == "" {
+		return 0, false
+	}
+
+	for _, r := range digits {
+		if r < '0' || r > '9' {
+			return 0, false
+		}
+	}
+
+	version, err := strconv.Atoi(digits)
+
+	return version, err == nil && version >= 1
 }
 
 func isKind(k kind) bool {

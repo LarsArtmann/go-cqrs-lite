@@ -694,7 +694,7 @@ linters:
       - path: queue/v4/conformance/
         linters:
           - mnd
-      - text: "embedlit: embedded field type can be removed from struct literal"
+      - text: 'embedlit: embedded field type can be removed from struct literal'
         linters:
           - modernize
       - path: testhelpers/fake.*\.go$
@@ -727,15 +727,15 @@ linters:
         linters:
           - contextcheck
       - path: (stack/v4|storage/v4|graph/v4|benchkit/v4|cmd/cqrs-bench/v4|example|integration/v4|record/v4|metadata/v4|event/v4|command/v4|query/v4|metaengine/v4|commandlifecycle/v4|decider/v4)/.*\.go$
-        text: "SA1019: .*removed in v5.*"
+        text: 'SA1019: .*removed in v5.*'
         linters:
           - staticcheck
       - path: (event/v4|metadata/v4)/.*_test\.go$
-        text: "SA1019: .*EnsureCustom.*is deprecated"
+        text: 'SA1019: .*EnsureCustom.*is deprecated'
         linters:
           - staticcheck
       - path: (middleware/v4|idempotency)/.*_test\.go$
-        text: "SA1019: .*(NewMemoryStore|MemoryStore) is deprecated"
+        text: 'SA1019: .*(NewMemoryStore|MemoryStore) is deprecated'
         linters:
           - staticcheck
       - path: idempotency/.*_test\.go$
@@ -808,7 +808,7 @@ linters:
       # twins-until-T26); its compat code and tests read the deprecated
       # fields until the v5 cut deletes them together.
       - path: core/v5/
-        text: "SA1019: .* is deprecated.*"
+        text: 'SA1019: .* is deprecated.*'
         linters:
           - staticcheck
       # A demo main package prints its own output — that is main's job.
@@ -827,13 +827,13 @@ linters:
       # import their deprecated parent (stack/v4.Bundle) and deprecated
       # storage helpers — the whole surface dies together at the cut.
       - path: stack/[^/]+/v4/.*\.go$
-        text: "SA1019: .*(go-cqrs-lite/(stack|storage)/.*|stack/v4.*) is deprecated.*"
+        text: 'SA1019: .*(go-cqrs-lite/(stack|storage)/.*|stack/v4.*) is deprecated.*'
         linters:
           - staticcheck
       # storage/turso's connector exposes the deprecated storage/v4 view-store
       # family (ADR-0123) — the bridge dies together with that surface at v5.
       - path: storage/turso/v4/connector\.go$
-        text: "SA1019: .*go-cqrs-lite/storage/.* is deprecated.*"
+        text: 'SA1019: .*go-cqrs-lite/storage/.* is deprecated.*'
         linters:
           - staticcheck
       - path: id/v4/

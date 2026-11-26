@@ -4,13 +4,30 @@ package main
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
+	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
 )
+
+// NewCompleteTaskCmd stamps the task.complete envelope onto the payload; options reach the library constructor.
+func NewCompleteTaskCmd(
+	streamID id.StreamID,
+	payload CompleteTaskCmd,
+	opts ...command.Option,
+) (CompleteTaskCmd, error) {
+	basic, err := command.New(cmdCompleteTask, streamID, opts...)
+	if err != nil {
+		return CompleteTaskCmd{}, err
+	}
+
+	payload.BasicCommand = basic
+
+	return payload, nil
+}
 
 // RegisterCompleteTaskCmd registers task.complete on the composition root.
 // decide runs against the state folded from the command's stream.
@@ -24,6 +41,22 @@ func RegisterCompleteTaskCmd[State any](
 			return decide(ctx, cmd, state, version)
 		})
 	})
+}
+
+// NewCreateTaskCmd stamps the task.create envelope onto the payload; options reach the library constructor.
+func NewCreateTaskCmd(
+	streamID id.StreamID,
+	payload CreateTaskCmd,
+	opts ...command.Option,
+) (CreateTaskCmd, error) {
+	basic, err := command.New(cmdCreateTask, streamID, opts...)
+	if err != nil {
+		return CreateTaskCmd{}, err
+	}
+
+	payload.BasicCommand = basic
+
+	return payload, nil
 }
 
 // RegisterCreateTaskCmd registers task.create on the composition root.
@@ -40,6 +73,22 @@ func RegisterCreateTaskCmd[State any](
 	})
 }
 
+// NewDeleteTaskCmd stamps the task.delete envelope onto the payload; options reach the library constructor.
+func NewDeleteTaskCmd(
+	streamID id.StreamID,
+	payload DeleteTaskCmd,
+	opts ...command.Option,
+) (DeleteTaskCmd, error) {
+	basic, err := command.New(cmdDeleteTask, streamID, opts...)
+	if err != nil {
+		return DeleteTaskCmd{}, err
+	}
+
+	payload.BasicCommand = basic
+
+	return payload, nil
+}
+
 // RegisterDeleteTaskCmd registers task.delete on the composition root.
 // decide runs against the state folded from the command's stream.
 func RegisterDeleteTaskCmd[State any](
@@ -54,12 +103,42 @@ func RegisterDeleteTaskCmd[State any](
 	})
 }
 
+// NewGetTask stamps the task.get envelope onto the payload; options reach the library constructor.
+func NewGetTask(
+	payload GetTask,
+	opts ...query.Option,
+) (GetTask, error) {
+	basic, err := query.New(qryGetTask, opts...)
+	if err != nil {
+		return GetTask{}, err
+	}
+
+	payload.BasicQuery = basic
+
+	return payload, nil
+}
+
 // RegisterGetTask registers task.get on the composition root.
 func RegisterGetTask[R any](
 	sys *system.System,
 	handler func(context.Context, GetTask) (R, error),
 ) error {
 	return system.RegisterQuery[GetTask, R](sys, string(qryGetTask), handler)
+}
+
+// NewOpenTasks stamps the task.open envelope onto the payload; options reach the library constructor.
+func NewOpenTasks(
+	payload OpenTasks,
+	opts ...query.Option,
+) (OpenTasks, error) {
+	basic, err := query.New(qryOpenTasks, opts...)
+	if err != nil {
+		return OpenTasks{}, err
+	}
+
+	payload.BasicQuery = basic
+
+	return payload, nil
 }
 
 // RegisterOpenTasks registers task.open on the composition root.
@@ -70,49 +149,49 @@ func RegisterOpenTasks[R any](
 	return system.RegisterQuery[OpenTasks, R](sys, string(qryOpenTasks), handler)
 }
 
-// NewTaskCreatedEvent builds the task.created event for a stream.
+// NewTaskCreatedEvent builds the task.created event for a stream at schema version 1; options reach event.New.
 func NewTaskCreatedEvent(
 	streamID id.StreamID,
 	streamType id.StreamType,
 	version event.Version,
 	payload TaskCreated,
+	opts ...event.Option,
 ) (event.Event, error) {
-	evt, err := event.New(evtTaskCreated, streamID, streamType, version, payload)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", evtTaskCreated, err)
-	}
+	options := make([]event.Option, 0, len(opts)+1)
+	options = append(options, event.WithSchemaVersion(1))
+	options = append(options, opts...)
 
-	return evt, nil
+	return event.New(evtTaskCreated, streamID, streamType, version, payload, options...)
 }
 
-// NewTaskDeletedEvent builds the task.deleted event for a stream.
+// NewTaskDeletedEvent builds the task.deleted event for a stream at schema version 1; options reach event.New.
 func NewTaskDeletedEvent(
 	streamID id.StreamID,
 	streamType id.StreamType,
 	version event.Version,
 	payload TaskDeleted,
+	opts ...event.Option,
 ) (event.Event, error) {
-	evt, err := event.New(evtTaskDeleted, streamID, streamType, version, payload)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", evtTaskDeleted, err)
-	}
+	options := make([]event.Option, 0, len(opts)+1)
+	options = append(options, event.WithSchemaVersion(1))
+	options = append(options, opts...)
 
-	return evt, nil
+	return event.New(evtTaskDeleted, streamID, streamType, version, payload, options...)
 }
 
-// NewTaskUpdatedEvent builds the task.updated event for a stream.
+// NewTaskUpdatedEvent builds the task.updated event for a stream at schema version 1; options reach event.New.
 func NewTaskUpdatedEvent(
 	streamID id.StreamID,
 	streamType id.StreamType,
 	version event.Version,
 	payload TaskUpdated,
+	opts ...event.Option,
 ) (event.Event, error) {
-	evt, err := event.New(evtTaskUpdated, streamID, streamType, version, payload)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", evtTaskUpdated, err)
-	}
+	options := make([]event.Option, 0, len(opts)+1)
+	options = append(options, event.WithSchemaVersion(1))
+	options = append(options, opts...)
 
-	return evt, nil
+	return event.New(evtTaskUpdated, streamID, streamType, version, payload, options...)
 }
 
 // CatalogMessages returns the catalog declarations of every marked message in this package.

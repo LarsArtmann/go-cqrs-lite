@@ -581,3 +581,35 @@ Two micro-disciplines that each cost a failed edit this stream:
   (c) CI installs `@latest` while the machine runs the SystemNix master
   build, so the two can differ by unreleased erraudit commits, which is why
   the baseline header names the pinning version.
+
+## cqrs-gen output is a pinned surface: regenerate in the same edit (2026-11-26)
+
+- **Three pins go red together.** Any change to what `cmd/cqrs-gen/v4`
+  writes must land with `example/goal-shaped-app/cqrs_gen.go`
+  (`TestDogfoodIsFresh`, plus the `cqrs-gen-output` leg of
+  `nix run .#check-generated-artifacts`), the output fence of
+  `cmd/cqrs-gen/v4/README.md` (`TestReadme_ShowsRealOutput`) and the goldens
+  in `generate_test.go`. Regenerate with a locally built binary:
+  `cd cmd/cqrs-gen/v4 && GOWORK=off go build -o /tmp/cqrs-gen . &&
+  /tmp/cqrs-gen --catalog ../../../example/goal-shaped-app`. The README fence
+  is the generator's output for the README's own first `go` fence (the
+  marker example).
+- **No release train to protect.** `cmd/cqrs-gen/v4` is listed in
+  `scripts/untagged-trains.txt` (zero fleet consumers), so the generated
+  surface may change freely; the dogfood is the only in-repo consumer.
+- **Go 1.27 AST trap (cqrs-lint):** a spread call argument is no longer an
+  `*ast.Ellipsis` in `CallExpr.Args`. The parser stores the plain element in
+  `Args` and records the `...` position in `CallExpr.Ellipsis`; detect a
+  forwarding call with `call.Ellipsis.IsValid()` (B032 does). `*ast.Ellipsis`
+  nodes still appear in variadic parameter types and in `[...]T` lengths.
+- **Lint and generated code:** a finding inside a generated file cannot be
+  fixed in place, so fix the rule or the generator instead. B009 and B010
+  skip files with the generated-code header; B032 does not judge a
+  constructor that forwards an option list; F005 counts only a schema
+  version beyond the first (stamping version 1 is what D013 asks for and
+  what the generator derives by default).
+- **Format per file while another session shares the tree.** `nix fmt . -- <path>`
+  ignores the path and formats the whole tree, which rewrites files another
+  session has in flight; run `gofumpt -w`, `goimports -local
+  github.com/larsartmann/go-cqrs-lite -w` and `golines --max-len=120` on the
+  changed files instead.

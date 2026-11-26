@@ -2,6 +2,13 @@
 
 > Audited 2026-11-22 · Library github.com/larsartmann/go-cqrs-lite/** (self) @ feec9bc74 (train tags: event v4.15.2, system v4.19.0, metaengine v4.26.0, core/v5 untagged) · Consumer = the repo itself · Group G6
 
+> **Update 2026-11-26:** risk 3 and recommendation 3 below are resolved.
+> `example/goal-shaped-app` runs on `cqrs-gen` output (8 markers: typed
+> constructors, composition-root registration, catalog declarations); its
+> freshness is pinned by a unit test and by the `cqrs-gen-output` leg of the
+> pre-push sweep, and the tool's contract is ADR-0168. Everything below is the
+> record of 2026-11-22.
+
 **Verdict:** UNDERUSED-MODERATE
 **Score:** 5.5/8 capabilities (3 Full = 3.0, 5 Partial = 2.5, 0 Missed; N/A rows: none — all 8 axes apply to a self-audit) = 69% (moderate)
 
@@ -135,6 +142,7 @@ Score = round(100 × 5.5 / 8) = **69% → moderate band**.
    uses it; the only tags in the tree are cqrs-gen's own test fixtures. A
    tool whose dogfood proof is its unit tests is one refactor away from
    silently drifting from the blessed composition shapes.
+   **DONE 2026-11-26:** dogfooded in `example/goal-shaped-app` (ADR-0168).
 4. **Harness seams.** `integration/v4/graph_projection_test.go:41` hand-wires
    `stack.New` for the graph-projection integration leg, and
    `integration/v4/error_classification_test.go:39-42` asserts on stack
@@ -200,6 +208,8 @@ copies — which is why the ranked list below leads with the bench bridge.
 3. **Dogfood cqrs-gen in one example** (medium): tag taskmanager's (or a new
    minimal example's) commands with `//cqrs:` and generate the handler stubs
    in CI so the codegen loop is proven end-to-end on every push.
+   **DONE 2026-11-26:** in `example/goal-shaped-app`; the proof is
+   `TestDogfoodIsFresh` plus the pre-push sweep leg.
 4. **An encryption example** (medium): `encryption/v4` is flagship-tier
    (pin v4.4.6 in `integration/v4/go.mod:11`) with only integration tests to
    its name; a 30-line demo beside signing in taskmanager closes the gap.

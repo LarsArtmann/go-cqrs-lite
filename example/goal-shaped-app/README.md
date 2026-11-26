@@ -161,11 +161,17 @@ journal keeps every fact.
 
 Each struct in `domain.go` carries a `cqrs` marker, and `cqrs_gen.go` —
 committed, regenerated with `go generate` — derives everything mechanical
-from it: registration on the composition root (`RegisterCreateTaskCmd(sys,
-streamType, decideCreate)`, no hand-written `Op` wrapper), typed event
-constructors (`NewTaskCreatedEvent`), and the catalog declarations behind the
-AsyncAPI export below. The wire names live once, in the constants `app.go`
-already declared.
+from it: typed constructors (`NewCreateTaskCmd(streamID, payload)`,
+`NewGetTask(payload)`, `NewTaskCreatedEvent(...)`) that bind each wire name
+to its payload type, registration on the composition root
+(`RegisterCreateTaskCmd(sys, streamType, decideCreate)`, no hand-written `Op`
+wrapper), and the catalog declarations behind the AsyncAPI export below. The
+wire names live once, in the constants `app.go` already declared.
+
+The task identity is a branded `id.StreamID` everywhere: in the event
+payloads, the read model, and the `task.get` query. On the wire it stays a
+bare string (it implements `encoding.TextMarshaler`), so branding costs
+nothing on the serialized surface.
 
 ```bash
 go install github.com/larsartmann/go-cqrs-lite/cmd/cqrs-gen/v4@latest

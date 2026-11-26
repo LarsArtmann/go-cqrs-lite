@@ -181,10 +181,19 @@ func backfillTypedStreamColumns(db *sql.DB) error {
 }
 
 // isUniqueViolation reports whether err is DuckDB's unique-constraint
-// rejection ("Constraint Error: Duplicate key ... violates unique
-// constraint.").
+// rejection. DuckDB words it two ways: "Duplicate key ... violates unique
+// constraint." for a row that is already committed, and "PRIMARY KEY or
+// UNIQUE constraint violation: duplicate key ..." for a key inserted earlier
+// in the same transaction (a duplicate inside one batch).
 func isUniqueViolation(err error) bool {
-	return err != nil && strings.Contains(err.Error(), "violates unique constraint")
+	if err == nil {
+		return false
+	}
+
+	msg := err.Error()
+
+	return strings.Contains(msg, "violates unique constraint") ||
+		strings.Contains(msg, "PRIMARY KEY or UNIQUE constraint violation")
 }
 
 func fmtErr(what string, err error) error {

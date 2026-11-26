@@ -2,7 +2,6 @@ package loopback
 
 import (
 	"math/rand"
-	"net"
 	"reflect"
 	"time"
 
@@ -39,16 +38,17 @@ func (t *LoopbackTransport) acceptLoop() {
 			return
 		}
 
-		t.conns[conn.RemoteAddr().String()] = conn
+		pc := &peerConn{conn: conn}
+		t.conns[conn.RemoteAddr().String()] = pc
 		t.mu.Unlock()
 
-		go t.handleConnection(conn)
+		go t.handleConnection(pc)
 	}
 }
 
-func (t *LoopbackTransport) handleConnection(conn net.Conn) {
+func (t *LoopbackTransport) handleConnection(pc *peerConn) {
 	for {
-		data, err := readFrame(conn)
+		data, err := readFrame(pc.conn)
 		if err != nil {
 			return // connection closed or error
 		}

@@ -13,7 +13,6 @@ package tasks
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
@@ -51,7 +50,7 @@ func RegisterGetTask[R any](
 	return system.RegisterQuery[*GetTask, R](sys, string(QueryGetTask), handler)
 }
 
-// NewTaskCreatedEvent builds the task.created event for a stream; options reach event.New.
+// NewTaskCreatedEvent builds the task.created event for a stream at schema version 1; options reach event.New.
 func NewTaskCreatedEvent(
 	streamID id.StreamID,
 	streamType id.StreamType,
@@ -59,12 +58,11 @@ func NewTaskCreatedEvent(
 	payload TaskCreated,
 	opts ...event.Option,
 ) (event.Event, error) {
-	evt, err := event.New(EventTaskCreated, streamID, streamType, version, payload, opts...)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", EventTaskCreated, err)
-	}
+	options := make([]event.Option, 0, len(opts)+1)
+	options = append(options, event.WithSchemaVersion(1))
+	options = append(options, opts...)
 
-	return evt, nil
+	return event.New(EventTaskCreated, streamID, streamType, version, payload, options...)
 }
 
 // CatalogMessages returns the catalog declarations of every marked message in this package.
@@ -83,7 +81,6 @@ package tasks
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -113,7 +110,7 @@ func RegisterGetTaskHandler[R any](
 	return query.RegisterTyped[*GetTask, R](d, QueryGetTask, handler)
 }
 
-// NewTaskCreatedEvent builds the task.created event for a stream; options reach event.New.
+// NewTaskCreatedEvent builds the task.created event for a stream at schema version 1; options reach event.New.
 func NewTaskCreatedEvent(
 	streamID id.StreamID,
 	streamType id.StreamType,
@@ -121,12 +118,11 @@ func NewTaskCreatedEvent(
 	payload TaskCreated,
 	opts ...event.Option,
 ) (event.Event, error) {
-	evt, err := event.New(EventTaskCreated, streamID, streamType, version, payload, opts...)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", EventTaskCreated, err)
-	}
+	options := make([]event.Option, 0, len(opts)+1)
+	options = append(options, event.WithSchemaVersion(1))
+	options = append(options, opts...)
 
-	return evt, nil
+	return event.New(EventTaskCreated, streamID, streamType, version, payload, options...)
 }
 `
 
@@ -358,10 +354,10 @@ func TestGenerate_ReferenceKeepsPackageConstant(t *testing.T) {
 
 func TestImportBlockGroups(t *testing.T) {
 	std, other, local := splitImports(uniqueSorted([]string{
-		pathSystem, pathContext, "github.com/spf13/cobra", pathFmt, pathCommand,
+		pathSystem, pathContext, "github.com/spf13/cobra", "fmt", pathCommand,
 	}))
 
-	if !slices.Equal(std, []string{pathContext, pathFmt}) {
+	if !slices.Equal(std, []string{pathContext, "fmt"}) {
 		t.Errorf("std imports = %q", std)
 	}
 

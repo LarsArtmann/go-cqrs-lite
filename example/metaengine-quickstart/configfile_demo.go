@@ -2,6 +2,7 @@
 // system from it. This is the deployment-time story — the developer's domain
 // code (DomainConfig) stays in Go; the operator's engine choices live in
 // cqrs.yaml and can change per environment without a rebuild.
+
 package main
 
 import (
@@ -20,7 +21,7 @@ func runConfigFileDemo(ctx context.Context) error {
 		return err
 	}
 
-	defer os.RemoveAll(dir)
+	defer func() { _ = os.RemoveAll(dir) }()
 
 	configPath := filepath.Join(dir, "cqrs.yaml")
 	if err := os.WriteFile(configPath, []byte(sampleConfig(dir)), 0o600); err != nil {
@@ -43,7 +44,7 @@ func runConfigFileDemo(ctx context.Context) error {
 		return err
 	}
 
-	defer sys.Close()
+	defer func() { _ = sys.Close() }()
 
 	if err := sys.Start(ctx); err != nil {
 		return err

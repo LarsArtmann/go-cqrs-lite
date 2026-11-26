@@ -51,6 +51,32 @@ func TestB010_GeneratedFileIsSilent(t *testing.T) {
 	ruletest.AssertRule(t, ruletest.RunDetector(t, boilerplate.NewB010Detector(gen)), "B010", 0)
 }
 
+const forwardedOptions = `package main
+
+func newCreateTask(streamID string, opts ...command.Option) (command.Command, error) {
+	return command.New(cmdCreateTask, streamID, opts...)
+}
+`
+
+const bareConstructor = `package main
+
+func newCreateTask(streamID string) (command.Command, error) {
+	return command.New(cmdCreateTask, streamID)
+}
+`
+
+// B032 must not judge a constructor that forwards its option list: tracing is
+// decided where that list is built, which is the shape cqrs-gen derives.
+func TestB032_ForwardedOptionsAreNotJudged(t *testing.T) {
+	t.Parallel()
+
+	bare := analyzer.BuildContextFromSource(t, map[string]string{"cmd.go": bareConstructor})
+	ruletest.AssertRule(t, ruletest.RunDetector(t, boilerplate.NewB032Detector(bare)), "B032", 1)
+
+	forwarding := analyzer.BuildContextFromSource(t, map[string]string{"cmd.go": forwardedOptions})
+	ruletest.AssertRule(t, ruletest.RunDetector(t, boilerplate.NewB032Detector(forwarding)), "B032", 0)
+}
+
 // B004 may only promise what cqrs-gen writes: the marker and the constructor
 // it derives for the flagged command.
 func TestB004_PointsAtMarkerAndConstructor(t *testing.T) {

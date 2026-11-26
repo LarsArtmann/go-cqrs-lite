@@ -49,6 +49,8 @@ func (t *QuicTransport) acceptLoop() {
 }
 
 func (t *QuicTransport) handleConnection(conn *iroh_ffi.Connection, peerID string) {
+	defer t.removePeer(peerID, conn)
+
 	for {
 		stream, err := conn.AcceptBi()
 		if err != nil {
@@ -127,6 +129,19 @@ func (t *QuicTransport) handleStream(
 	// Relay: forward to all OTHER peers (star topology support)
 	if t.cfg.relay {
 		t.relayToOthers(sourcePeerID, op)
+	}
+}
+
+// removePeer forgets a connection whose accept loop ended (peer went away).
+// Only the entry that still points at THIS connection is removed: a peer that
+// reconnected has already replaced it, and deleting that would hide a live
+// peer. Without this PeerCount and Healthy keep reporting a dead peer forever.
+func (t *QuicTransport) removePeer(peerID string, conn *iroh_ffi.Connection) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	if pc, ok := t.conns[peerID]; ok && pc.conn == conn {
+		delete(t.conns, peerID)
 	}
 }
 

@@ -116,19 +116,18 @@ func markerOf(
 			"which is not a plain struct type declaration", pos, markedKind, spec.Name.Name)
 	}
 
-	wire, receives, err := parseMarkerValue(markedKind, value)
-	if err != nil {
+	found := marker{
+		kind:       markedKind,
+		structName: spec.Name.Name,
+		byValue:    embedsEnvelope(st, markedKind),
+		pos:        pos,
+	}
+
+	if err := found.parseValue(value); err != nil {
 		return marker{}, false, fmt.Errorf("%s: %w", pos, err)
 	}
 
-	return marker{
-		kind:       markedKind,
-		structName: spec.Name.Name,
-		wire:       wire,
-		receives:   receives,
-		byValue:    embedsEnvelope(st, markedKind),
-		pos:        pos,
-	}, true, nil
+	return found, true, nil
 }
 
 // embedsEnvelope: a struct embedding the library's command or query envelope
@@ -225,32 +224,6 @@ func tagMarker(expr ast.Expr, kinds map[kind]bool) (kind, string, bool) {
 	}
 
 	return "", "", false
-}
-
-func parseMarkerValue(k kind, value string) (string, bool, error) {
-	fields := strings.Fields(value)
-	if len(fields) == 0 {
-		return "", false, fmt.Errorf("the cqrs:%s marker carries no type string", k)
-	}
-
-	if k != kindEvent {
-		return fields[0], false, rejectOptions(k, fields[1:])
-	}
-
-	receives := false
-
-	for _, option := range fields[1:] {
-		switch option {
-		case optionSends:
-		case optionReceives:
-			receives = true
-		default:
-			return "", false, fmt.Errorf("the cqrs:event marker takes %q or %q, got %q",
-				optionSends, optionReceives, option)
-		}
-	}
-
-	return fields[0], receives, nil
 }
 
 func rejectOptions(k kind, options []string) error {

@@ -27,9 +27,26 @@ func (e *pgEngine) VectorInsert(
 	collection string,
 	emb metaengine.Embedding,
 ) error {
+	vecJSON, err := json.Marshal(emb.Values)
+	if err != nil {
+		return fmt.Errorf("pgengine.VectorInsert: marshal: %w", err)
+	}
+
+	// Metadata comes straight from the caller and may hold values JSON
+	// rejects (func, chan, NaN); that is an error, not a crash. Encoded
+	// before the database is touched so nothing is probed for a doomed insert.
+	var metaJSON any // nil marshals to SQL NULL
+	if emb.Metadata != nil {
+		data, err := json.Marshal(emb.Metadata)
+		if err != nil {
+			return fmt.Errorf("pgengine.VectorInsert: metadata: %w", err)
+		}
+
+		metaJSON = string(data)
+	}
+
 	// Dimension lock (metaengine.ErrVectorDimensionMismatch): the first
 	// insert establishes the collection's dimension.
-	//art-dupl:accept dimension-lock idiom twin of duckdbengine VectorInsert; probe SQL, value marshaling, and exec surface are dialect-specific, adttest pins the semantics
 	established, err := metaengine.ScanVectorDimensionProbe(
 		e.conn(ctx).QueryRowContext(ctx,
 			`SELECT jsonb_array_length(vector) FROM meta_vector WHERE collection = $1 LIMIT 1`,
@@ -45,16 +62,6 @@ func (e *pgEngine) VectorInsert(
 		len(emb.Values),
 	); err != nil {
 		return fmt.Errorf("pgengine.VectorInsert: %w", err)
-	}
-
-	vecJSON, err := json.Marshal(emb.Values)
-	if err != nil {
-		return fmt.Errorf("pgengine.VectorInsert: marshal: %w", err)
-	}
-
-	var metaJSON any // nil marshals to SQL NULL
-	if emb.Metadata != nil {
-		metaJSON = string(mustMarshalMetadata(emb.Metadata))
 	}
 
 	_, err = e.conn(ctx).ExecContext(
@@ -184,17 +191,6 @@ func (e *pgEngine) VectorSearchFiltered(
 	}
 
 	return metaengine.TopKNearest(results, k), nil
-}
-
-// mustMarshalMetadata encodes filter metadata; map[string]any from the typed
-// Embedding field always marshals, so a failure is a programming error.
-func mustMarshalMetadata(meta map[string]any) []byte {
-	data, err := json.Marshal(meta)
-	if err != nil {
-		panic(fmt.Sprintf("pgengine: metadata marshal: %v", err))
-	}
-
-	return data
 }
 
 // VectorCount returns the number of embeddings in the collection via SQL

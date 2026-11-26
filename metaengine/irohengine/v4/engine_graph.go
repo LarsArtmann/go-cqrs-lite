@@ -100,28 +100,20 @@ func (e *replicatedEngine) GraphRemoveEdge(
 
 // applyRemoteGraphAdd applies an incoming edge-add op under LWW guard.
 func (e *replicatedEngine) applyRemoteGraphAdd(op WriteOp) {
-	if !e.isLWWNewer(op.Collection, graphLWWKey(op.Key, op.Value), op.Timestamp) {
-		return
-	}
-
-	if gb, ok := e.local.(graphCapable); ok {
-		_ = gb.GraphAddEdge(context.Background(), op.Collection, edgeFromOp(op))
-	}
-
-	e.recordLWW(op.Collection, graphLWWKey(op.Key, op.Value), op.Timestamp)
+	e.applyRemoteLWW(op, lwwKey(op.Collection, graphLWWKey(op.Key, op.Value)), func() {
+		if gb, ok := e.local.(graphCapable); ok {
+			_ = gb.GraphAddEdge(context.Background(), op.Collection, edgeFromOp(op))
+		}
+	})
 }
 
 // applyRemoteGraphRemove applies an incoming edge-remove op under LWW guard.
 // Engines without GraphRemoveEdge drop the apply but still record the
 // timestamp, keeping LWW ordering consistent for later ops.
 func (e *replicatedEngine) applyRemoteGraphRemove(op WriteOp) {
-	if !e.isLWWNewer(op.Collection, graphLWWKey(op.Key, op.Value), op.Timestamp) {
-		return
-	}
-
-	if gx, ok := e.local.(graphExtCapable); ok {
-		_ = gx.GraphRemoveEdge(context.Background(), op.Collection, edgeFromOp(op))
-	}
-
-	e.recordLWW(op.Collection, graphLWWKey(op.Key, op.Value), op.Timestamp)
+	e.applyRemoteLWW(op, lwwKey(op.Collection, graphLWWKey(op.Key, op.Value)), func() {
+		if gx, ok := e.local.(graphExtCapable); ok {
+			_ = gx.GraphRemoveEdge(context.Background(), op.Collection, edgeFromOp(op))
+		}
+	})
 }

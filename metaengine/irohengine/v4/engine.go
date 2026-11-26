@@ -18,6 +18,7 @@ type replicatedEngine struct {
 
 	mu         sync.Mutex
 	timestamps map[string]time.Time // "col\x00key" → latest LWW timestamp
+	pubErr     publishHealth        // outcome of the most recent transport publish
 }
 
 func lwwKey(collection string, key any) string {
@@ -104,50 +105,6 @@ func (e *replicatedEngine) Profile() metaengine.EngineProfile {
 	}
 
 	return p
-}
-
-func (e *replicatedEngine) Close() error {
-	if e.cfg.transport != nil {
-		_ = e.cfg.transport.Close()
-	}
-
-	return e.local.Close()
-}
-
-// HealthCheck verifies the replication stack is responsive: the local engine
-// (when it implements [metaengine.HealthChecker]) and the transport (when it
-// implements [LivenessReporter]). A transport with no liveness report is
-// assumed healthy — there is no application-data-free probe for it.
-// Implements [metaengine.HealthChecker].
-func (e *replicatedEngine) HealthCheck(ctx context.Context) error {
-	if hc, ok := e.local.(metaengine.HealthChecker); ok {
-		if err := hc.HealthCheck(ctx); err != nil {
-			return fmt.Errorf("iroh: local engine: %w", err)
-		}
-	}
-
-	if e.cfg.transport != nil {
-		if lr, ok := e.cfg.transport.(LivenessReporter); ok {
-			if err := lr.Healthy(ctx); err != nil {
-				return fmt.Errorf("iroh: transport: %w", err)
-			}
-		}
-	}
-
-	return nil
-}
-
-// publish sends a WriteOp to remote nodes. No re-entrancy guard needed:
-// applyRemote calls the local engine directly, never the wrapper methods,
-// so publish cannot be triggered from a remote-op application.
-func (e *replicatedEngine) publish(ctx context.Context, op WriteOp) {
-	if e.cfg.transport == nil {
-		return
-	}
-
-	op.ID = nextOpID()
-	op.PublishedAt = e.cfg.clock.Now()
-	_ = e.cfg.transport.Publish(ctx, op)
 }
 
 // --- MapBackend (CRDT-safe: LWW-Map) ---

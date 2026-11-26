@@ -180,3 +180,61 @@ func TestLoopbackLatencyMeasurement(t *testing.T) {
 	snap := tA.LatencySnapshot()
 	_ = snap // just verify it doesn't panic
 }
+
+// Concurrent publishers share one TCP connection; without a per-connection
+// write lock their frames interleave and the peer's reader loses sync.
+func TestLoopbackConcurrentPublishKeepsFramesWhole(t *testing.T) {
+	t.Parallel()
+	g := gomega.NewWithT(t)
+
+	transportA, err := loopback.New()
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	t.Cleanup(func() { _ = transportA.Close() })
+
+	transportB, err := loopback.New()
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	t.Cleanup(func() { _ = transportB.Close() })
+
+	const publishers, opsEach = 8, 200
+
+	var (
+		mu       sync.Mutex
+		received int
+	)
+	g.Expect(transportB.Subscribe(func(irohengine.WriteOp) {
+		mu.Lock()
+		received++
+		mu.Unlock()
+	})).To(gomega.Succeed())
+
+	g.Expect(transportB.Connect(transportA.Addr())).To(gomega.Succeed())
+	waitForPeers(t, []*loopback.LoopbackTransport{transportA}, 1)
+
+	var wg sync.WaitGroup
+	for p := range publishers {
+		wg.Add(1)
+
+		go func(p int) {
+			defer wg.Done()
+
+			for i := range opsEach {
+				op := irohengine.WriteOp{
+					ID:         "conc-" + strconv.Itoa(p) + "-" + strconv.Itoa(i),
+					Collection: "conc",
+					Kind:       irohengine.OpMapSet,
+					Key:        "k",
+					Value:      "payload-that-makes-frames-span-multiple-writes-" + strconv.Itoa(i),
+				}
+				_ = transportA.Publish(context.Background(), op)
+			}
+		}(p)
+	}
+	wg.Wait()
+
+	g.Eventually(func(g gomega.Gomega) {
+		mu.Lock()
+		defer mu.Unlock()
+
+		g.Expect(received).To(gomega.Equal(publishers * opsEach))
+	}, 10*time.Second, 50*time.Millisecond).Should(gomega.Succeed())
+}

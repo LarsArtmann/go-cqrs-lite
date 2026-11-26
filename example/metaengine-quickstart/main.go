@@ -23,48 +23,51 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
-const demoTaskID = "task-1"
-
 var errUnknownEventType = errors.New("unknown event type")
 
 // ── Domain Events ──
 //
 // This quickstart's point is the smallest possible declaration surface:
-// plain structs, plain strings (the demo task identity is the semantic key
-// "task-1"). Identifier fields stay primitives by design — event payloads,
-// the read model, and the query are serialized data, not domain handles.
-// The file-level strong-id directive encodes exactly that policy.
+// plain structs. The task identity is a branded id.StreamID in the events,
+// the read model, and the query alike; on the wire it is a bare string, so
+// branding costs the demo nothing. The two stamp columns mirror the Record's
+// own string fields, which is what the file-level strong-id directive covers.
 //branching-flow:ignore file
 
 type TaskCreated struct {
-	ID     string
+	ID     id.StreamID
 	Title  string
 	Status string
 }
 
 type TaskUpdated struct {
-	ID     string
+	ID     id.StreamID
 	Title  string
 	Status string
 }
 
 type TaskDeleted struct {
-	ID string
+	ID id.StreamID
 }
 
 // ── Read Model ──
 
 type TaskView struct {
-	ID            string
-	Title         string
-	Status        string
-	StreamID      string // auto-stamped from Record
-	Version       int64  // auto-stamped from Record
+	ID     id.StreamID
+	Title  string
+	Status string
+
+	//cqrs-lint:ignore(A032) the Record stamps this column with its own string field
+	StreamID string // auto-stamped from Record
+
+	Version int64 // auto-stamped from Record
+
+	//cqrs-lint:ignore(A032) the Record stamps this column with its own string field
 	CorrelationID string // auto-stamped from Record
 }
 
 type TaskQuery struct {
-	ID string
+	ID id.StreamID
 }
 
 func main() {
@@ -139,12 +142,17 @@ func runTaskDemo(ctx context.Context) error {
 	adapter := projectionadapter.New("tasks-projection", store, decoder)
 
 	// 4. Create events and process them through the adapter.
+	taskID, err := id.ParseStreamID("task-1")
+	if err != nil {
+		return err
+	}
+
 	streamID := id.NewStreamID()
 	correlationID := id.NewCorrelationID()
 
 	// Create
 	createPayload, _ := json.Marshal(
-		TaskCreated{ID: demoTaskID, Title: "Build metaengine app", Status: "open"},
+		TaskCreated{ID: taskID, Title: "Build metaengine app", Status: "open"},
 	)
 
 	createEvt, _ := event.New("TaskCreated", streamID, "Task", event.Version(1), createPayload,
@@ -158,7 +166,7 @@ func runTaskDemo(ctx context.Context) error {
 	const taskUpdatedPosition = 2
 
 	updatePayload, _ := json.Marshal(
-		TaskUpdated{ID: demoTaskID, Title: "Build metaengine app", Status: "in_progress"},
+		TaskUpdated{ID: taskID, Title: "Build metaengine app", Status: "in_progress"},
 	)
 
 	updateEvt, _ := event.New(
@@ -177,7 +185,7 @@ func runTaskDemo(ctx context.Context) error {
 	result, err := metaengine.ExecuteTyped[TaskQuery, TaskView](
 		ctx,
 		store,
-		TaskQuery{ID: demoTaskID},
+		TaskQuery{ID: taskID},
 	)
 	if err != nil {
 		return fmt.Errorf("ExecuteTyped: %w", err)
@@ -189,7 +197,7 @@ func runTaskDemo(ctx context.Context) error {
 	fmt.Printf("  CorrelationID: %s (auto-stamped from Record)\n", result.CorrelationID)
 
 	// 6. Delete
-	deletePayload, _ := json.Marshal(TaskDeleted{ID: demoTaskID})
+	deletePayload, _ := json.Marshal(TaskDeleted{ID: taskID})
 
 	deleteEvt, _ := event.New(
 		"TaskDeleted",
@@ -202,7 +210,7 @@ func runTaskDemo(ctx context.Context) error {
 		return fmt.Errorf("handle delete: %w", err)
 	}
 
-	_, err = metaengine.ExecuteTyped[TaskQuery, TaskView](ctx, store, TaskQuery{ID: demoTaskID})
+	_, err = metaengine.ExecuteTyped[TaskQuery, TaskView](ctx, store, TaskQuery{ID: taskID})
 	if err != nil {
 		fmt.Printf("\nAfter delete: %v (expected not-found error)\n", err)
 	}

@@ -6,24 +6,17 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
-	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
 	"github.com/larsartmann/go-cqrs-lite/systemscenario/v4"
 )
 
-// newCmd builds a basic command for kind on taskID, failing the test on
-// construction errors.
-func newCmd(t *testing.T, kind command.Type, taskID id.StreamID) *command.BasicCommand {
-	t.Helper()
+// mustBuild returns a typed constructor's value, panicking like must on a
+// construction error.
+func mustBuild[T any](value T, err error) T {
+	must(err)
 
-	basic, err := command.New(kind, taskID)
-	if err != nil {
-		t.Fatalf("command.New(%s): %v", kind, err)
-	}
-
-	return basic
+	return value
 }
 
 // goalDoneView checks the surviving task reached the done state the story
@@ -88,24 +81,16 @@ func TestScenario_GoalStory(t *testing.T) {
 
 	doneID, goneID := id.NewStreamID(), id.NewStreamID()
 
-	getBasic, err := query.New(qryGetTask)
-	if err != nil {
-		t.Fatalf("query.New: %v", err)
-	}
-
-	openBasic, err := query.New(qryOpenTasks)
-	if err != nil {
-		t.Fatalf("query.New: %v", err)
-	}
+	doneQuery := mustBuild(NewGetTask(GetTask{ID: doneID}))
+	goneQuery := mustBuild(NewGetTask(GetTask{ID: goneID}))
+	openQuery := mustBuild(NewOpenTasks(OpenTasks{}))
 
 	doneView := func() (any, error) {
-		return system.DispatchQuery[GetTask, TaskView](ctx, sys,
-			GetTask{BasicQuery: getBasic, ID: doneID.Get()})
+		return system.DispatchQuery[GetTask, TaskView](ctx, sys, doneQuery)
 	}
 
 	goneView := func() (any, error) {
-		view, qerr := system.DispatchQuery[GetTask, TaskView](ctx, sys,
-			GetTask{BasicQuery: getBasic, ID: goneID.Get()})
+		view, qerr := system.DispatchQuery[GetTask, TaskView](ctx, sys, goneQuery)
 		if errors.Is(qerr, errTaskGone) {
 			return true, nil
 		}
@@ -118,26 +103,19 @@ func TestScenario_GoalStory(t *testing.T) {
 	}
 
 	openView := func() (any, error) {
-		return system.DispatchQuery[OpenTasks, []TaskView](ctx, sys,
-			OpenTasks{BasicQuery: openBasic})
+		return system.DispatchQuery[OpenTasks, []TaskView](ctx, sys, openQuery)
 	}
 
 	sc.Given().
 		Command(
-			CreateTaskCmd{
-				BasicCommand: newCmd(t, cmdCreateTask, doneID),
-				Title:        "Ship The Goal demo",
-				Priority:     PriorityNormal,
-			},
-			CreateTaskCmd{
-				BasicCommand: newCmd(t, cmdCreateTask, goneID),
-				Title:        "Break the build",
-				Priority:     PriorityHigh,
-			},
+			mustBuild(NewCreateTaskCmd(doneID,
+				CreateTaskCmd{Title: "Ship The Goal demo", Priority: PriorityNormal})),
+			mustBuild(NewCreateTaskCmd(goneID,
+				CreateTaskCmd{Title: "Break the build", Priority: PriorityHigh})),
 		).
-		When(CompleteTaskCmd{BasicCommand: newCmd(t, cmdCompleteTask, doneID)}).
+		When(mustBuild(NewCompleteTaskCmd(doneID, CompleteTaskCmd{}))).
 		ThenSuccess().
-		Command(DeleteTaskCmd{BasicCommand: newCmd(t, cmdDeleteTask, goneID)}).
+		Command(mustBuild(NewDeleteTaskCmd(goneID, DeleteTaskCmd{}))).
 		ThenQueryFunc(doneView, func(got any) error {
 			view, ok := got.(TaskView)
 			if !ok {
@@ -147,8 +125,8 @@ func TestScenario_GoalStory(t *testing.T) {
 			// Disk-truth pin (A7): the view carries the BARE stream value —
 			// the prefixed String() display form here would key the read
 			// model off the wire identity every other layer dispatches on.
-			if view.ID != doneID.Get() {
-				return fmt.Errorf("view.ID: want bare %q, got %q", doneID.Get(), view.ID)
+			if view.ID != doneID {
+				return fmt.Errorf("view.ID: want bare %q, got %q", doneID.Get(), view.ID.Get())
 			}
 
 			return goalDoneView(view)

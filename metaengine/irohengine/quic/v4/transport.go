@@ -7,8 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"maps"
-	"slices"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -204,42 +202,6 @@ func (t *QuicTransport) Connect(ticketStr string) error {
 	return nil
 }
 
-// Publish implements irohengine.Transport. It serializes the WriteOp and sends
-// it over a real QUIC BiStream to every connected peer. Blocks until all peers
-// have received the data at the QUIC level.
-func (t *QuicTransport) Publish(_ context.Context, op irohengine.WriteOp) error {
-	data, err := encodeOp(op)
-	if err != nil {
-		return fmt.Errorf("encode op: %w", err)
-	}
-
-	t.mu.RLock()
-	peers := slices.Collect(maps.Values(t.conns))
-	t.mu.RUnlock()
-
-	if len(peers) == 0 {
-		return nil // no peers — local-only write
-	}
-
-	var wg sync.WaitGroup
-	for _, peer := range peers {
-		wg.Add(1)
-		go func(peer *peerConn) {
-			defer wg.Done()
-
-			if t.cfg.poolStreams {
-				t.sendOpPooled(peer, data)
-			} else {
-				t.sendOp(peer.conn, data)
-			}
-		}(peer)
-	}
-
-	wg.Wait()
-
-	return nil
-}
-
 // sendOp opens a bidirectional stream, writes the encoded op, finishes the
 // send side, then reads the empty ack. This is the default one-stream-per-op
 // mode — simple and robust, with one QUIC stream ID allocation per op.
@@ -333,6 +295,3 @@ func (t *QuicTransport) Close() error {
 
 	return nil
 }
-
-// Compile-time assertion that QuicTransport implements irohengine.Transport.
-var _ irohengine.Transport = (*QuicTransport)(nil)

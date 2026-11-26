@@ -1043,7 +1043,7 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 | Registry            | Thread-safe builder: `AddService`, `AddCommand`, `AddEvent`, `AddQuery`, `AddDomain`, `AddChannel`, `AddFlow`, `AddDataStore`, `AddTeam`, `AddUser`, `Build()`                                        | ✅     |
 | Builder             | `NewBuilder` fluent API: `ConfigureService`, `ConfigureDomain`, `ConfigureChannel`, `AddDataStore`, `AddFlow`, `AddTeam`, `AddUser`                                                                   | ✅     |
 | Schema reflection   | `SchemaFromType[T]()` — auto-generates JSON Schema from Go structs via `reflect`                                                                                                                      | ✅     |
-| Struct tag support  | `json` (name, omitempty), `doc`/`description`, `format`, `default`, `enum`, `nullable`, `deprecated`, `pattern`                                                                                       | ✅     |
+| Branded ID fields   | A single-field TextMarshaler type (every branded ID, such as `id.StreamID`) renders as the JSON type of its value: a string on the wire                                                               | ✅     |
 | Immutable catalog   | `Build()` returns deep-copied, immutable `*Catalog`                                                                                                                                                   | ✅     |
 | Validation          | `Catalog.Validate()` returns `[]Violation` — checks titles, duplicates, references                                                                                                                    | ✅     |
 | Exporter interface  | `Exporter[T]` + `ErrorExporter` — pluggable output format                                                                                                                                             | ✅     |
@@ -1428,14 +1428,22 @@ Fluent BDD harness for deciders and projections — no store or bus needed, just
 
 ### cqrs-gen Code Generator 🔧
 
-> `go run github.com/larsartmann/go-cqrs-lite/cmd/cqrs-gen/v4`
+> `go run github.com/larsartmann/go-cqrs-lite/cmd/cqrs-gen/v4` · [README](cmd/cqrs-gen/v4/README.md) · [ADR-0168](docs/adr/0168-cqrs-gen-derives-message-wiring.md)
 
-| Feature             | Detail                                                                       | Status |
-| ------------------- | ---------------------------------------------------------------------------- | ------ |
-| AST-based scanning  | Parses Go source for `//cqrs:command <Name>` / `//cqrs:query <Name>` markers | ✅     |
-| Typed handler gen   | Generates `Register<StructName>Handler` functions using `RegisterTyped[T]`   | ✅     |
-| CLI flags           | `-type` (command/query), `-output` (file), `-pkg` (package name)             | ✅     |
-| Recursive directory | Walks directories, skips `_test.go`, extracts markers from doc comments      | ✅     |
+Derives the wiring a marked message implies, and nothing else: no folds, no projections, no placement.
+
+| Feature                       | Detail                                                                                                                                                                                        | Status |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| Markers                       | `//cqrs:command`, `//cqrs:query` and `//cqrs:event <wire name>` comments or the matching struct tags; an event marker also carries a catalog direction and the payload's schema version       | ✅     |
+| Typed constructors            | `NewX` for a command or query that embeds the library envelope, `NewXEvent` for an event; each binds the wire name to one payload type and forwards the library's options                     | ✅     |
+| Composition-root registration | `RegisterXCmd(sys, streamType, decide)` over `system.RegisterCommand`, `RegisterX(sys, handler)` over `system.RegisterQuery`; `--target=dispatcher` keeps the legacy shape                    | ✅     |
+| Schema version                | An event constructor stamps `event.WithSchemaVersion` from the marker (`v2`, default 1); a bumped version becomes the catalog message version                                                 | ✅     |
+| Catalog declarations          | `--catalog` writes `CatalogMessages()`: one `catalog.Command`, `catalog.Query` or `catalog.Event` entry per marked message                                                                    | ✅     |
+| Event subscriptions           | `--handlers` writes typed `RegisterXHandler(bus, handler)` functions that decode with `event.DecodePayloadAuto`                                                                               | ✅     |
+| Package-aware scan            | One `cqrs_gen.go` per package; `./...` supported; test files and files the build excludes are skipped; loud errors on empty markers, duplicate wire names, mixed packages and name collisions | ✅     |
+| Drift gates                   | `--check` fails on a missing or stale file; the output is pinned by a compile test, a README-output test, the dogfood's freshness test and the `cqrs-gen-output` leg of the pre-push sweep    | ✅     |
+| Flags                         | `--type`, `--target`, `--output`, `--pkg`, `--catalog`, `--handlers`, `--check`, `--list`                                                                                                     | ✅     |
+| Dogfood                       | `example/goal-shaped-app` runs on generated code                                                                                                                                              | ✅     |
 
 ### API Stability Checker 🔧
 

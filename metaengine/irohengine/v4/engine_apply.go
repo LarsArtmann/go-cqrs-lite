@@ -14,26 +14,18 @@ func (e *replicatedEngine) applyRemote(op WriteOp) {
 
 	switch op.Kind {
 	case OpMapSet:
-		if !e.isLWWNewer(op.Collection, op.Key, op.Timestamp) {
-			return
-		}
-
-		if mb, ok := e.local.(metaengine.MapBackend); ok {
-			_ = mb.MapSet(ctx, op.Collection, op.Key, op.Value)
-		}
-
-		e.recordLWW(op.Collection, op.Key, op.Timestamp)
+		e.applyRemoteLWW(op, lwwKey(op.Collection, op.Key), func() {
+			if mb, ok := e.local.(metaengine.MapBackend); ok {
+				_ = mb.MapSet(ctx, op.Collection, op.Key, op.Value)
+			}
+		})
 
 	case OpMapDelete:
-		if !e.isLWWNewer(op.Collection, op.Key, op.Timestamp) {
-			return
-		}
-
-		if mb, ok := e.local.(metaengine.MapBackend); ok {
-			_ = mb.MapDelete(ctx, op.Collection, op.Key)
-		}
-
-		e.recordLWW(op.Collection, op.Key, op.Timestamp)
+		e.applyRemoteLWW(op, lwwKey(op.Collection, op.Key), func() {
+			if mb, ok := e.local.(metaengine.MapBackend); ok {
+				_ = mb.MapDelete(ctx, op.Collection, op.Key)
+			}
+		})
 
 	case OpSetAdd:
 		if sb, ok := e.local.(metaengine.SetBackend); ok {
@@ -60,5 +52,25 @@ func (e *replicatedEngine) applyRemote(op WriteOp) {
 
 	case OpGraphRemoveEdge:
 		e.applyRemoteGraphRemove(op)
+	}
+}
+
+// applyRemoteLWW applies an incoming op to one LWW register while holding
+// e.mu across the guard, the apply and the record. The guard is only sound
+// as one critical section: with separate sections two ops for the same key
+// can both pass it, and the older one then applies last and wins on this
+// node alone.
+func (e *replicatedEngine) applyRemoteLWW(op WriteOp, key string, apply func()) {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+
+	if op.Timestamp.Before(e.timestamps[key]) {
+		return
+	}
+
+	apply()
+
+	if op.Timestamp.After(e.timestamps[key]) {
+		e.timestamps[key] = op.Timestamp
 	}
 }

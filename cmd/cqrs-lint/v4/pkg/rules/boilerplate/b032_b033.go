@@ -39,7 +39,9 @@ func NewB032Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						return true
 					}
 
-					if hasTracingOption(call) {
+					// A spread forwards the caller's option list: whether tracing
+					// reaches the command is decided at those call sites, not here.
+					if call.Ellipsis.IsValid() || hasTracingOption(call) {
 						return true
 					}
 

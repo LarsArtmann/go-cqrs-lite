@@ -56,22 +56,25 @@ func (e *duckdbEngine) StreamAppend(ctx context.Context, col, sid string, values
 		defer e.mu.Unlock()
 	}
 
-	encodedValues, encodeErr := metaengine.EncodeStreamValuesErr(values)
-	if encodeErr != nil {
-		return fmt.Errorf("duckdbengine.StreamAppend: %w", encodeErr)
-	}
-
-	for _, encoded := range encodedValues {
-		if err := e.typedInsertRow(ctx, col, sid, encoded, "StreamAppend"); err != nil {
-			return err
+	return e.inStreamTx(ctx, func(ctx context.Context) error {
+		encodedValues, err := metaengine.EncodeStreamValuesErr(values)
+		if err != nil {
+			return fmt.Errorf("duckdbengine.StreamAppend: %w", err)
 		}
-	}
 
-	return nil
+		for _, encoded := range encodedValues {
+			if err := e.typedInsertRow(ctx, col, sid, encoded, "StreamAppend"); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
 }
 
 // StreamAppendExpected appends values atomically if the stream version matches.
-// The mutex serializes the version-check-then-append, eliminating the TOCTOU race.
+// The mutex serializes the version-check-then-append, eliminating the TOCTOU race;
+// the transaction makes the whole batch commit or roll back together.
 // Returns metaengine.ErrVersionConflict if the current version does not match.
 func (e *duckdbEngine) StreamAppendExpected(
 	ctx context.Context,
@@ -84,6 +87,17 @@ func (e *duckdbEngine) StreamAppendExpected(
 		defer e.mu.Unlock()
 	}
 
+	return e.inStreamTx(ctx, func(ctx context.Context) error {
+		return e.appendExpected(ctx, col, sid, expectedVersion, values)
+	})
+}
+
+func (e *duckdbEngine) appendExpected(
+	ctx context.Context,
+	col, sid string,
+	expectedVersion int64,
+	values []any,
+) error {
 	var current int64
 
 	err := e.conn(ctx).QueryRowContext(
@@ -99,9 +113,9 @@ func (e *duckdbEngine) StreamAppendExpected(
 		return metaengine.ErrVersionConflict
 	}
 
-	encodedValues, encodeErr := metaengine.EncodeStreamValuesErr(values)
-	if encodeErr != nil {
-		return fmt.Errorf("duckdbengine.StreamAppendExpected insert: %w", encodeErr)
+	encodedValues, err := metaengine.EncodeStreamValuesErr(values)
+	if err != nil {
+		return fmt.Errorf("duckdbengine.StreamAppendExpected insert: %w", err)
 	}
 
 	for _, encoded := range encodedValues {

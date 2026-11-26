@@ -332,20 +332,20 @@ The library provides explicit guarantees on the write side and eventual consiste
 
 ## Tooling & Testing
 
-| Term               | Definition                                                           | Context                                                                                                           |
-| ------------------ | -------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| **cqrs-gen**       | Code generator: typed handler registration from annotated Go structs | `cmd/cqrs-gen` — generates `RegisterTyped` boilerplate from `//cqrs:command`, `//cqrs:query`, `//cqrs:event` tags |
-| **api-stability**  | CI tool: compares exported API surface against a golden file         | `cmd/api-stability` — catches breaking changes before release                                                     |
-| **doc-check**      | CI tool: verifies Go import paths + qualified symbols in docs        | `cmd/doc-check` — validates SKILL.md, AGENTS.md, and skill references by default                                  |
-| **eventtest**      | Test helpers: FakeStore, FakeBus, FakeSnapshotStore, assertions      | `event/v4/eventtest` — `AssertGolden`, event factories                                                            |
-| **querytest**      | Test helper: `New(tb, queryType)` for query construction             | `query/querytest` — `tb.Fatalf` on error, no panics                                                               |
-| **idtest**         | Test helpers: `Parse*(tb, s)` for branded ID parsing                 | `id/idtest` — `tb.Fatalf` on error, no panics                                                                     |
-| **testutil**       | Shared cross-module test helpers                                     | `testutil` — `NewCmd(tb, ...)`                                                                                    |
-| **Scenario**       | Fluent BDD test DSL for deciders and projections                     | `scenario.Given/When/Then`, `scenario.GivenProjection/ThenNoError`                                                |
-| **cqrs-lint**      | Domain-aware linter: 219 rules across 10 categories                  | `cmd/cqrs-lint` — correctness, API misuse, boilerplate, architecture, security, performance                       |
-| **cqrs-bench**     | CLI: benchmark any backend with named workload profiles              | `cmd/cqrs-bench` — built on `benchkit`                                                                            |
-| **benchkit**       | Factory-driven benchmarking suite: Run/Compare, percentiles, memory  | `benchkit` — mirrors contracttest pattern                                                                         |
-| **FlightRecorder** | Go 1.25 runtime/trace capture on slow/error conditions               | `flightrecorder.New(opts...)` — `Recorder`; middleware wraps command/event/query dispatch                         |
+| Term               | Definition                                                          | Context                                                                                                      |
+| ------------------ | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| **cqrs-gen**       | Code generator: derives message wiring for marked structs           | `cmd/cqrs-gen`: typed constructors, registration and catalog declarations from `//cqrs:*` markers (ADR-0168) |
+| **api-stability**  | CI tool: compares exported API surface against a golden file        | `cmd/api-stability` — catches breaking changes before release                                                |
+| **doc-check**      | CI tool: verifies Go import paths + qualified symbols in docs       | `cmd/doc-check` — validates SKILL.md, AGENTS.md, and skill references by default                             |
+| **eventtest**      | Test helpers: FakeStore, FakeBus, FakeSnapshotStore, assertions     | `event/v4/eventtest` — `AssertGolden`, event factories                                                       |
+| **querytest**      | Test helper: `New(tb, queryType)` for query construction            | `query/querytest` — `tb.Fatalf` on error, no panics                                                          |
+| **idtest**         | Test helpers: `Parse*(tb, s)` for branded ID parsing                | `id/idtest` — `tb.Fatalf` on error, no panics                                                                |
+| **testutil**       | Shared cross-module test helpers                                    | `testutil` — `NewCmd(tb, ...)`                                                                               |
+| **Scenario**       | Fluent BDD test DSL for deciders and projections                    | `scenario.Given/When/Then`, `scenario.GivenProjection/ThenNoError`                                           |
+| **cqrs-lint**      | Domain-aware linter: 219 rules across 10 categories                 | `cmd/cqrs-lint` — correctness, API misuse, boilerplate, architecture, security, performance                  |
+| **cqrs-bench**     | CLI: benchmark any backend with named workload profiles             | `cmd/cqrs-bench` — built on `benchkit`                                                                       |
+| **benchkit**       | Factory-driven benchmarking suite: Run/Compare, percentiles, memory | `benchkit` — mirrors contracttest pattern                                                                    |
+| **FlightRecorder** | Go 1.25 runtime/trace capture on slow/error conditions              | `flightrecorder.New(opts...)` — `Recorder`; middleware wraps command/event/query dispatch                    |
 
 ---
 

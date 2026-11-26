@@ -149,27 +149,35 @@ val, _ := kvStore.Get([]byte("k"))
 
 ### 6.7 Code Generation (cqrs-gen)
 
-```bash
-go install github.com/larsartmann/go-cqrs-lite/cmd/cqrs-gen/v4@latest
-```
-
-Add markers to your types:
+`cqrs-gen` derives the wiring a marked message implies, and nothing else: no
+folds, no projections, no placement ([ADR-0168](../../../../docs/adr/0168-cqrs-gen-derives-message-wiring.md)).
+A marker carries the **wire name**; one `cqrs_gen.go` is written per package.
 
 ```go
-//cqrs:command
-type CreateUser struct { Name string }
+//cqrs:command user.create
+type CreateUserCmd struct {
+    *command.BasicCommand
+    Name string
+}
 
-//cqrs:query
-type GetUser struct { ID string }
+//cqrs:event user.created v2
+type UserCreated struct {
+    UserID id.StreamID
+}
 ```
-
-Run:
 
 ```bash
-cqrs-gen -type . -output handlers_gen.go -pkg myapp
+go install github.com/larsartmann/go-cqrs-lite/cmd/cqrs-gen/v4@latest
+cqrs-gen --catalog ./...   # typed constructors, registration, catalog declarations
+cqrs-gen --check ./...     # CI gate: fail when a generated file is missing or stale
 ```
 
-Generates typed `Register*` boilerplate.
+Per marked struct it derives a typed constructor (`NewX` for a command or
+query that embeds the library envelope, `NewXEvent` for an event, stamping the
+marker's schema version), the composition-root registration (`RegisterXCmd(sys,
+streamType, decide)`, `RegisterX(sys, handler)`) and, with `--catalog`, a
+`CatalogMessages()` function. A hand-written `NewX` is kept. The full contract:
+[`cmd/cqrs-gen/v4/README.md`](../../../../cmd/cqrs-gen/v4/README.md).
 
 ### 6.8 gRPC Transport (remote command/query dispatch) — REMOVED
 
@@ -578,7 +586,7 @@ provider, handler, _ = prometheus.Setup(prometheus.WithRegistry(myRegistry))
 transition to live events. They share the same dedup ring and batched journal
 read patterns. **Pick based on where events need to arrive:**
 
-| Need                              | `go-sse` endpoint (historical `SSEBroker` shape)                                        | CatchUpSubscriber (`watermill`)                                                                  |
+| Need                              | `go-sse` endpoint (historical `SSEBroker` shape)                                      | CatchUpSubscriber (`watermill`)                                                                  |
 | --------------------------------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
 | **Destination**                   | Browser / HTTP client (text/event-stream)                                             | Watermill message channel (in-process or broker)                                                 |
 | **Transport**                     | HTTP/1.1 or HTTP/2, unidirectional                                                    | Any Watermill subscriber (GoChannel, NATS, Kafka, Redis)                                         |
@@ -635,12 +643,12 @@ http.HandleFunc("/events", func(w http.ResponseWriter, r *http.Request) {
 Key differences from a raw event-log endpoint (the deleted `transport/http.SSEBroker` shape):
 
 | Aspect            | `metaengine.ServeSSE`                  | raw event-log endpoint (go-sse) |
-| ----------------- | -------------------------------------- | --------------------------- |
-| **Source**        | Watcher (projected values)             | Event bus (raw events)      |
-| **Replay**        | In-memory ring buffer (`SSEReplay[V]`) | Journal-backed (persistent) |
-| **Dedup**         | `dedup.Ring` (bounded)                 | `dedup.Ring` (bounded)      |
-| **Cross-process** | No (in-process watcher)                | Yes (journal + bus)         |
-| **Payload**       | Projected value (JSON)                 | Raw event payload           |
+| ----------------- | -------------------------------------- | ------------------------------- |
+| **Source**        | Watcher (projected values)             | Event bus (raw events)          |
+| **Replay**        | In-memory ring buffer (`SSEReplay[V]`) | Journal-backed (persistent)     |
+| **Dedup**         | `dedup.Ring` (bounded)                 | `dedup.Ring` (bounded)          |
+| **Cross-process** | No (in-process watcher)                | Yes (journal + bus)             |
+| **Payload**       | Projected value (JSON)                 | Raw event payload               |
 
 **Cursor pagination with prefetch cache:**
 

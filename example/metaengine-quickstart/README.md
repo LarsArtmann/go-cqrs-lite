@@ -41,8 +41,12 @@ store, err := metaengine.Plan(
 )
 defer func() { _ = store.Close() }()
 
-result, err := metaengine.ExecuteTyped[TaskQuery, TaskView](ctx, store, TaskQuery{ID: "task-1"})
+result, err := metaengine.ExecuteTyped[TaskQuery, TaskView](ctx, store, TaskQuery{ID: taskID})
 ```
+
+The task identity is a branded `id.StreamID` in the events, the read model,
+and the query (`taskID, err := id.ParseStreamID("task-1")`). On the wire it is
+a bare string, so the JSON payload stays as small as a plain string key.
 
 Swap the `Memory` engine for any backend (`sqliteengine`, `pgengine`,
 `pebbleengine`, …) — the declarations and queries are engine-agnostic; the
