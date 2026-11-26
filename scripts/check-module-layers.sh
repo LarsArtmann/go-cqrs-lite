@@ -309,7 +309,9 @@ DEP_BUDGET["prometheus/v4"]=5
 # external sprawl; re-check if a future dep wants the same slot.
 DEP_BUDGET["storage/pebble/v4"]=11
 DEP_BUDGET["storage/bbolt/v4"]=11
-DEP_BUDGET["storage/backuptest/v4"]=3
+# backuptest: +1 (4) for the direct record/v4 require (record.Encoding on the
+# suite's snapshot fixtures), the same in-repo Tier-0 promotion as above.
+DEP_BUDGET["storage/backuptest/v4"]=4
 DEP_BUDGET["storage/turso/v4"]=10
 DEP_BUDGET["storage/memory/v4"]=8
 DEP_BUDGET["stack/v4"]=18
@@ -397,7 +399,9 @@ DEP_BUDGET["systemtest/v4"]=6
 #   directly — RegisterDriver/LookupDriver, NewWatcher, ServeSSE; it was a
 #   test-only import before those production files; in-repo Tier 3, already
 #   an indirect dep of system/v4)
-DEP_BUDGET["systemscenario/v4"]=9
+# + go-sse/sseparse (SSEStream parses the event stream a system serves; added
+#   2026-11-22 with the SSE replay hardening, be5cd58e0)
+DEP_BUDGET["systemscenario/v4"]=10
 # systemcatalog/v4: 4 = system/v4 + catalog/v4 + event/v4 (in-repo) + go-error-family
 # (classified rejections for nil builder/system inputs). command/v4/query/schema
 # types flow through system/v4's accessor signatures without direct imports.
@@ -435,7 +439,9 @@ DEP_BUDGET["example/mesh-demo"]=8
 # taskmanager: the reference app exercises the full modern stack/v4; the 26th
 # direct dep is httputil/server_timing, added with the Server-Timing HTTP
 # surface (2026-10-15 repair) and pinned by its HTTP integration/v4 tests.
-DEP_BUDGET["example/taskmanager"]=26
+# The 27th is go-health (the /healthz engine-detail bridge in http.go;
+# be5cd58e0, 2026-11-22).
+DEP_BUDGET["example/taskmanager"]=27
 # counterkey repro: 4 engines + metaengine/v4 + record/v4, all first-party; the
 # point of the scratch is cross-engine comparison, test-only.
 DEP_BUDGET["scratch/counterkey"]=6
@@ -444,7 +450,9 @@ DEP_BUDGET["example/getting-started"]=10
 # root with BOTH swap targets compiled in (sqliteengine + pgengine) —
 # command/v4/decider/event/id/metaengine/query/system + 2 drivers + snapshot/v4
 # (the snapshot-story demo strategy line) = 10.
-DEP_BUDGET["example/goal-shaped-app"]=11 # multi-engine demo (sqlite+pg+turso) is the point of the app
+DEP_BUDGET["example/goal-shaped-app"]=12 # multi-engine demo (sqlite+pg+turso) is the point of the app
+# (the 12th is catalog/v4: the generated cqrs_gen.go registers catalog
+# messages since 0b4d58409)
 DEP_BUDGET["example/readme-quickstart"]=6
 # standard-topology is the ADR-0165 demo: engines-only config +
 # system.Standard + the two drivers its VM-test leg runs against

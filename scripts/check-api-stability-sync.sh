@@ -25,6 +25,8 @@ EXCLUDE=(
 	"example/taskmanager"
 	"stack/bench/v4"
 	"integration/v4"
+	# scratch repro module: in go.work for the engine matrix, no consumer API
+	"scratch/counterkey"
 )
 
 is_excluded() {

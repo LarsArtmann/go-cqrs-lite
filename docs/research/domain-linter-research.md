@@ -3,7 +3,9 @@
 > **Date**: 2026-07-16 (revised)
 > **Scope**: Design a domain-aware linter for `go-cqrs-lite` consumers
 
-> **Companion document**: [Consumer Projects Analysis](../../../docs/go-cqrs-lite-consumer-projects-analysis.md)
+> **Companion document**: Consumer Projects Analysis, kept outside this
+> repository at `docs/go-cqrs-lite-consumer-projects-analysis.md` in the fleet
+> checkout (not a link: the file is not part of go-cqrs-lite).
 
 ---
 
