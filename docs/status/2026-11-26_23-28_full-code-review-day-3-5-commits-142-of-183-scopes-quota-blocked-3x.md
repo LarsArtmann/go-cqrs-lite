@@ -257,3 +257,13 @@ routes and no authentication on any route.
    window in about 2.5 hours, and this session's own calls cost more than both. Options: keep
    one provider and accept the pauses; allow a second provider for reviewers; or stop the
    review at the P0/P1 line and leave the remaining 41 scopes for a later session.
+
+## Addendum (2026-11-27 00:30, after the report was committed)
+
+- The engine batch did not need my commit: the other session had already committed its 25
+  files as `9f109cea8` ("feat cqrs-gen: derive constructors and schema versions"), so my
+  commit was empty. That is the fourth batch that landed under a foreign commit message.
+- The pre-commit receipt of that empty attempt still ran the five module suites on the tree at
+  `9f109cea8`: loopback, quic, irohengine, pgengine and duckdbengine passed (vet and tests).
+- HEAD at this addendum: `51e069ec4` (this report and its index row). Item 1 of section f is
+  therefore done.
